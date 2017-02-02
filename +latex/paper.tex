@@ -1,0 +1,178 @@
+\begin{filecontents}{myheadings.sty}
+\newcommand{\ps@normalheadings}
+{
+    \renewcommand{\@oddhead}
+        {\footnotesize\filetitle\ {\ttfamily[\mfilename]}\hfill\thepage}
+    \renewcommand{\@evenhead}{\@oddhead}
+    \renewcommand{\@oddfoot}{}
+    \renewcommand{\@evenfoot}{\@oddfoot}
+}
+\newcommand{\ps@firstpageheadings}
+{
+    \renewcommand{\@oddhead}
+        {\footnotesize\filetitle\ {\ttfamily[\mfilename]}\hfill\matlabversion\ $\lvert$ \irisversion}
+    \renewcommand{\@evenhead}{\@oddhead}
+    \renewcommand{\@oddfoot}{}
+    \renewcommand{\@evenfoot}{\@oddfoot}
+}
+\end{filecontents}
+
+\documentclass[10pt,$papersize$,fleqn]{article}
+
+\usepackage[$papersize$, portrait, scale=$textscale$, pdftex]{geometry}
+\usepackage{amsmath, color, sectsty, graphicx, listings}
+\usepackage{myheadings}
+
+\usepackage{fourier}
+%\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{inconsolata}
+
+$packages$
+
+\sectionfont{\centering\Large\mdseries\scshape\lowercase}
+\subsectionfont{\centering\Large\mdseries\scshape\lowercase}
+
+\renewcommand{\thesubsection}{\arabic{subsection}}
+\renewcommand{\abstractname}{{\mdseries Summary}}
+\renewcommand{\contentsname}{contents}
+
+\definecolor{outputcodecolor}{rgb}{0,0,0.68}
+\definecolor{inputcodebgcolor}{rgb}{0.90,0.90,0.90}
+\definecolor{outputcodebgcolor}{rgb}{0.95,0.95,1}
+\definecolor{bookmarkcolor}{rgb}{0.80,0,0}
+
+\newcommand{\codesizeintitle}{\Large}
+\newcommand{\codesizeintext}{\small}
+\newcommand{\codesizeinabstract}{\footnotesize}
+\newcommand{\codesize}{}
+
+\newenvironment{myabstract}
+{\renewcommand{\codesize}{\codesizeinabstract}\begin{abstract}}
+{\end{abstract}\renewcommand{\codesize}{\codesizeintext}}
+
+\lstdefinestyle{inputcode}{
+   breaklines=false,
+   language={},
+   backgroundcolor=\color{inputcodebgcolor},
+   columns=flexible,
+   keepspaces=true,
+   frame=single,rulecolor=\color{inputcodebgcolor},framerule=0.1em,
+   numbers=left,
+   numberstyle={\ttfamily},
+   basicstyle={\color{black}\ttfamily\codesize},
+   escapechar=`, %escapechar=",
+   linewidth=1000em,   
+}
+
+\lstdefinestyle{outputcode}{
+   breaklines=false,
+   language={},
+   backgroundcolor=\color{outputcodebgcolor},
+   columns=flexible,
+   keepspaces=true,
+   frame=single,rulecolor=\color{outputcodebgcolor},framerule=0.1em,
+   numbers=none,columns=flexible,
+   basicstyle={\color{outputcodecolor}\ttfamily\codesize},
+   escapechar={},
+   linewidth=1000em,   
+}
+
+% \newcommand{\abovetitle}
+% {\normalsize $\int$ IRIS Macroeconomic Modeling Tutorials \\[18pt] }
+\newcommand{\abovetitle}{}
+\newcommand{\filetitle}{}
+\newcommand{\mfilename}{$filename$}
+\newcommand{\matlabversion}{$matlabversion$}
+\newcommand{\irisversion}{$irisversion$}
+\newcommand{\mfilenametitle}[1]{\\ {\normalsize{\ttfamily \underline{#1}}}}
+
+%%%%% Matlab figures %%%%%
+\newcommand{\matlabfigure}[1]{\centering
+$figureframe${\includegraphics[scale=$figurescale$,trim=$figuretrim$,clip=true]{#1}}
+\par}
+
+%%%%% Cell environment %%%%%
+\newenvironment{cell}[1]
+{
+    \subsection$numbered${#1}
+}
+{ }
+
+%%%%% Split cell environment %%%%%
+\newenvironment{splitcell}{}{}
+
+%%%%% Intro text environment %%%%%
+\newenvironment{introtext}{}{\medskip\par}
+
+%%%%% Input code environment %%%%%
+\newenvironment{inputcode}{
+    \lstset{style=inputcode}}
+{}
+
+%%%%% Ouput code environment %%%%%
+\newenvironment{outputcode}{
+    \lstset{style=outputcode}}
+{}
+
+%%%%% Bookmarks %%%%%
+\newcommand{\bookmark}[1]
+{{\color{bookmarkcolor}\ttfamily\scriptsize\fbox{#1}}}
+
+%%%%% Table of contents %%%%%
+\newcommand{\mytableofcontents}
+{
+    {\setlength{\parskip}{0pt} \tableofcontents}
+    %\bigskip\bigskip\par
+    \pagebreak
+}
+
+%%%%% Title page %%%%%
+\newcommand{\mytitle}[1]
+{
+    \title{
+    \abovetitle
+    \fontsize{18}{16}
+    \fontshape{sc}
+    \selectfont
+    \lowercase{#1}
+    }
+    \author{$author$}
+    \date{\medskip \today}
+    \renewcommand{\codesize}{\codesizeintitle}
+    \begin{center}
+    \begin{minipage}{0.75\textwidth}
+    \maketitle
+    \end{minipage}
+    \end{center}
+    \renewcommand{\codesize}{\codesizeintext}
+    \thispagestyle{firstpageheadings}
+}
+
+\newcommand{\byauthor}{\textit{by}\ }
+\newcommand{\atevent}{\textit{at}\ }
+\renewcommand{\and}{\\[2pt] \itshape}
+
+\pagestyle{normalheadings}
+
+% \renewcommand{\today}{\number\day\space\ifcase\month\or
+%   January\or February\or March\or April\or May\or June\or
+%   July\or August\or September\or October\or November\or December\fi
+%   \space\number\year}
+
+\linespread{$linespread$}
+
+$preamble$
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.75\baselineskip}
+
+\usepackage[pdftex]{hyperref}
+
+\begin{document}
+
+\renewcommand{\codesize}{\codesizeintext}
+
+$body$
+
+\end{document}

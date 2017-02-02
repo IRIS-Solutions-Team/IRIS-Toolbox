@@ -1,0 +1,66 @@
+function [obj, lik, pp, sp] = objfunc(x, this, data, pri, estOpt, likOpt)
+% objfunc  Evaluate minus log posterior.
+%
+% Backend IRIS function.
+% No help provided.
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2017 IRIS Solutions Team.
+    
+%--------------------------------------------------------------------------
+
+obj = 0; % Minus log posterior.
+lik = 0; % Minus log data likelihood.
+pp = 0; % Minus log parameter prior.
+sp = 0; % Minus log system prior.
+
+isLik = estOpt.evallik;
+isPPrior = estOpt.evalpprior && any(pri.IxPrior);
+isSPrior = estOpt.evalsprior && ~isempty(pri.SystemPrior);
+
+% Evaluate parameter priors.
+if isPPrior
+    pp = shared.Estimation.evalPrior(x, pri);
+    obj = obj + pp;
+end
+
+% Update model with new parameter values; do this before evaluating the
+% system priors.
+if isLik || isSPrior
+    isThrowErr = strcmpi(estOpt.nosolution, 'error');
+    [this,UpdateOk] = update(this, x, pri, 1, estOpt, isThrowErr);
+    if ~UpdateOk
+        obj = Inf;
+    end
+end
+
+% Evaluate system priors.
+if isfinite(obj) && isSPrior
+    % The function `evalsystempriors` returns minus log density.
+    sp = evalsystempriors(this, pri.SystemPrior);
+    obj = obj + sp;
+end
+
+% Evaluate data likelihood.
+if isfinite(obj) && isLik
+    % Evaluate minus log likelihood; no data output is required.
+    lik = likOpt.minusLogLikFunc(this, data, [ ], likOpt);
+    % Sum up minus log priors and minus log likelihood.
+    obj = obj + lik;
+end
+
+isValid = isnumeric(obj) && length(obj)==1 ...
+    && isfinite(obj) && imag(obj)==0;
+if ~isValid
+    if isnumeric(estOpt.nosolution)
+        penalty = estOpt.nosolution;
+    else
+        penalty = irisconst.OBJ_FUNC_PENALTY;
+    end
+    obj = penalty;
+end
+
+% Make sure Obj is a double, otherwise Optim Tbx will complain.
+obj = double(obj);
+
+end

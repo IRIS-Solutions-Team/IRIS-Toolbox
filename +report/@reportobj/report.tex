@@ -1,0 +1,40 @@
+\documentclass[10pt,$papersize$]{article}
+
+\usepackage[$fontencoding$]{fontenc}
+\usepackage{amsmath,amssymb,sectsty,color}
+\usepackage[$papersize$,$orientation$,scale=$textscale$,pdftex]{geometry}
+$packages$
+
+\sectionfont{\centering}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{\baselineskip}
+\definecolor{highlightcolor}{rgb}{$highlightcolor$}
+$preamble$
+
+\setlength{\fboxrule}{0pt}
+\setlength{\fboxsep}{0pt}
+\setlength{\tabcolsep}{3pt}
+\newlength{\tableColNameHeight}
+\newcommand{\mylcmss}{\fontfamily{lcmss}\selectfont}
+
+\title{{\mylcmss\bfseries $title$}$titlefootnote$}
+\author{$author$}
+\date{$date$}
+
+\newcommand{\hide}[1]{}
+% $colortbl$\newcolumntype{R}{>{\columncolor{highlightcolor}}r}
+% $colortbl$\newcolumntype{L}{>{\columncolor{highlightcolor}}l}
+% $colortbl$\newcolumntype{C}{>{\columncolor{highlightcolor}}c}
+
+\begin{document}
+
+\markright{$headertimestamp$ $headertitle$}
+\pagestyle{myheadings}
+
+$maketitle$
+$abstract$
+$clearfirstpage$
+
+$document$
+
+\end{document}

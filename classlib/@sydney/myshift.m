@@ -1,0 +1,52 @@
+function expn = myshift(expn, by, applyTo)
+% myshift  Shift all lags and leads of variables.
+%
+% Backend IRIS function.
+% No help provided.
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2017 IRIS Solutions Team.
+
+%--------------------------------------------------------------------------
+
+if by==0
+    return
+end
+
+ptn = '\<x(\d+)(([pm]\d+)?)\>(?!\()';
+if true % ##### MOSW
+    FN_REPLACE = @replace; %#ok<NASGU>
+    expn = regexprep(expn, ptn, '${ FN_REPLACE($0, $1, $2) }');
+else
+    eqtn = mosw.dregexprep(eqtn, ptn, @replace, [0, 1, 2]); %#ok<UNRCH>
+end
+
+return
+
+
+
+
+    function c = replace(c0, c1, c2)
+        n = sscanf(c1, '%g', 1);
+        if ~applyTo(n)
+            c = c0;
+            return
+        end
+        if isempty(c2)
+            oldSh = 0;
+        elseif c2(1)=='p'
+            oldSh = sscanf(c2(2:end), '%g', 1);
+        elseif c2(1)=='m'
+            oldSh = -sscanf(c2(2:end), '%g', 1);
+        end
+        newSh = round(oldSh + by);
+        if newSh==0
+            c2 = '';
+        elseif newSh>0
+            c2 = sprintf('p%g', newSh);
+        else
+            c2 = sprintf('m%g', -newSh);
+        end
+        c = ['x', c1, c2];
+    end
+end

@@ -1,0 +1,2 @@
+function shock( )
+end
