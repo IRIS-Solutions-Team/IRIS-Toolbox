@@ -33,6 +33,6 @@ function dat = mm(varargin)
 %--------------------------------------------------------------------------
 
 dat = datcode(12, varargin{:});
-dat = dates.Dat(dat);
+dat = dates.Date(dat);
 
 end
