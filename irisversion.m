@@ -1,18 +1,17 @@
-function [C,N] = irisversion( )
+function [c, n] = irisversion( )
 % irisversion  Current IRIS version.
-%
 %
 % Syntax
 % =======
 %
 %     irisversion
-%     X = irisversion( )
+%     x = irisversion( )
 %
 %
 % Output arguments
 % =================
 %
-% * `X` [ char ] - String describing the currently installed IRIS version.
+% * `x` [ char ] - String describing the currently installed IRIS version.
 %
 %
 % Description
@@ -31,9 +30,9 @@ function [C,N] = irisversion( )
 % accessible through the Matlab ver( ) command. In each session, the version
 % is refreshed by the `irisconfig` file.
 
-C = irisconfigmaster('get','version');
-if nargout > 1
-    N = sscanf(C,'%g',1);
+c = irisconfigmaster('get', 'version');
+if nargout>1
+    n = sscanf(c, '%g', 1);
 end
 
 end

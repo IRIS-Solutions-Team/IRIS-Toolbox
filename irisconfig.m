@@ -143,7 +143,7 @@ if any(ix)
             'and try again.', ...
             ]);
     end
-    icfg.version = regexp(x(ix).Version, '\d+\w+', 'match', 'once');
+    icfg.version = regexp(x(ix).Version, '\d+\-?\w+', 'match', 'once');
 else
     utils.warning('config:irisconfig', ...
         'Cannot determine the current version of IRIS.');

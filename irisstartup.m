@@ -187,7 +187,7 @@ return
     function chkId( )
         list = dir(fullfile(root, 'iristbx*'));
         if length(list)==1
-            idFileVersion = regexp(list.name, '(?<=iristbx)\d+', 'match', 'once');
+            idFileVersion = regexp(list.name, '(?<=iristbx)\d+\-?\w+', 'match', 'once');
             if ~strcmp(version, idFileVersion)
                 deleteProgress( );
                 utils.error('config:irisstartup', ...
