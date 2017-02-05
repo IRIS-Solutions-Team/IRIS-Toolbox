@@ -48,7 +48,7 @@ MATLAB_RELEASE_OR_HIGHER = 'R2014b';
 if true % ##### MOSW
     if getMatlabRelease( )<release2num(MATLAB_RELEASE_OR_HIGHER)
         error( ...
-            'IRIS:Config:IrisStartup',...
+            'IRIS:Config:IrisStartup', ...
             'Sorry, Matlab <strong>%s</strong> or later is needed to run this version of the <a href="http://www.iris-toolbox.com">IRIS Macroeconomic Modeling Toolbox</a>.', ...
             MATLAB_RELEASE_OR_HIGHER ...
             );
@@ -57,8 +57,8 @@ else
     % Do nothing.
 end
 
-shutup = any(strcmpi(varargin,'-shutup'));
-isIdChk = ~any(strcmpi(varargin,'-noidchk'));
+shutup = any(strcmpi(varargin, '-shutup'));
+isIdChk = ~any(strcmpi(varargin, '-noidchk'));
 
 if ~shutup
     progress = 'Starting up an IRIS session...';
@@ -121,15 +121,15 @@ return
     function displayMessage( )
         % Intro message.
         mosw.fprintf('\t<a href="http://www.iris-toolbox.com">IRIS Macroeconomic Modeling Toolbox</a> ');
-        fprintf('Release %s.',version);
+        fprintf('Release %s.', version);
         fprintf('\n');
-        fprintf('\tCopyright (c) 2007-%s ',datestr(now,'YYYY'));
+        fprintf('\tCopyright (c) 2007-%s ', datestr(now, 'YYYY'));
         mosw.fprintf('<a href="https://code.google.com/p/iris-toolbox-project/wiki/ist">');
         mosw.fprintf('IRIS Solutions Team</a>.');
         fprintf('\n\n');
         
         % IRIS root folder.
-        mosw.fprintf('\tIRIS root: <a href="file:///%s">%s</a>.\n',root,root);
+        mosw.fprintf('\tIRIS root: <a href="file:///%s">%s</a>.\n', root, root);
         
         % Report user config file used.
         fprintf('\tUser config file: ');
@@ -138,7 +138,7 @@ return
             mosw.fprintf('No user config file found</a>.');
         else
             mosw.fprintf('<a href="matlab: edit %s">%s</a>.', ...
-                icfg.userconfigpath,icfg.userconfigpath);
+                icfg.userconfigpath, icfg.userconfigpath);
         end
         fprintf('\n');
         
@@ -154,7 +154,7 @@ return
                     icfg.PdfLaTeXPath ...
                     );
             else
-                fprintf('%s.',config.PdfLaTeXPath); %#ok<UNRCH>
+                fprintf('%s.', config.PdfLaTeXPath); %#ok<UNRCH>
             end
         end
         fprintf('\n');
@@ -185,17 +185,17 @@ return
 
 
     function chkId( )
-        list = dir(fullfile(root,'iristbx*'));
-        if length(list) == 1
-            idFileVersion = strrep(list.name,'iristbx','');
-            if ~strcmp(version,idFileVersion)
+        list = dir(fullfile(root, 'iristbx*'));
+        if length(list)==1
+            idFileVersion = regexp(list.name, '(?<=iristbx)\d+', 'match', 'once');
+            if ~strcmp(version, idFileVersion)
                 deleteProgress( );
                 utils.error('config:irisstartup', ...
                     ['The IRIS version check file (%s) does not match ', ...
                     'the current version of IRIS (%s). ', ...
                     'Delete everything from the IRIS root folder, ', ...
                     'and reinstall IRIS.'], ...
-                    idFileVersion,version);
+                    idFileVersion, version);
             end
         elseif isempty(list)
             deleteProgress( );
@@ -223,9 +223,9 @@ function r = getMatlabRelease( )
 r = uint16(0);
 try %#ok<TRYNC>
     s = ver('MATLAB');
-    ixMatlab = strcmpi({s.Name},'MATLAB');
+    ixMatlab = strcmpi({s.Name}, 'MATLAB');
     if any(ixMatlab)
-        s = s(find(ixMatlab,1));
+        s = s(find(ixMatlab, 1));
         r = regexp(s.Release, 'R\d{4}[ab]', 'match', 'once');
         if ~isempty(r)
             r = release2num(r);
