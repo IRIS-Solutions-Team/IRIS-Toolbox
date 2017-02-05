@@ -30,13 +30,13 @@ function d = dbload(varargin)
 % * `'Case='` [ `'lower'` | `'upper'` | *empty* ] - Change case of variable
 % names.
 %
-% * `'CommentRow='` [ char | cellstr | *`{'comment','comments'}`* ] - Label
+% * `'CommentRow='` [ char | cellstr | *`{'comment', 'comments'}`* ] - Label
 % at the start of row that will be used to create Series object comments.
 %
 % * `'DateFormat='` [ char | *`'YYYYFP'`* ] - Format of dates in first
 % column.
 %
-% * `'Delimiter='` [ char | *`','`* ] - Delimiter separating the individual
+% * `'Delimiter='` [ char | *`', '`* ] - Delimiter separating the individual
 % values (cells) in the CSV file; if different from a comma, all occurences
 % of the delimiter will replaced with commas -- note that this will also
 % affect text in comments.
@@ -56,7 +56,7 @@ function d = dbload(varargin)
 % data file; `'auto'` means the format will be determined by the file
 % extension.
 %
-% * `'NameRow='` [ char | numeric | *`{'','Variables'}`* ] - String, or
+% * `'NameRow='` [ char | numeric | *`{'', 'Variables'}`* ] - String, or
 % cell array of possible strings, that is found at the beginning (in the
 % first cell) of the row with variable names, or the line number at which
 % the row with variable names appears (first row is numbered 1).
@@ -105,7 +105,7 @@ function d = dbload(varargin)
 % --------------------------------
 %
 % The minimalist structure of a CSV database file has a leading row with
-% variables names, a leading column with dates in the basic IRIS format,
+% variables names, a leading column with dates in the basic IRIS format, 
 % and individual columns with numeric data:
 %
 %     +---------+---------+---------+--
@@ -166,7 +166,7 @@ function d = dbload(varargin)
 % 2000-01-01, 2000-04-01, 2000-07-01, 2000-10-01, etc. In this case, you
 % can use the following options:
 %
-%     d = dbload('filename.csv','dateFormat','YYYY-MM-01','freq',4);
+%     d = dbload('filename.csv', 'dateFormat', 'YYYY-MM-01', 'freq', 4);
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -183,21 +183,21 @@ FName = varargin{1};
 varargin(1) = [ ];
 
 P = inputParser( );
-P.addRequired('d',@isstruct);
-P.addRequired('fname',@(x) ischar(x) || iscellstr(x));
-P.parse(d,FName);
+P.addRequired('d', @isstruct);
+P.addRequired('fname', @(x) ischar(x) || iscellstr(x));
+P.parse(d, FName);
 
 % Loop over all input databases subcontracting `dbload` and merging the
 % resulting databases in one.
 if iscellstr(FName)
     nFName = length(FName);
     for i = 1 : nFName
-        d = dbload(d,FName{i},varargin{:});
+        d = dbload(d, FName{i}, varargin{:});
         return
     end
 end
 
-opt = passvalopt('dbase.dbload',varargin{1:end});
+opt = passvalopt('dbase.dbload', varargin{1:end});
 opt = datdefaults(opt);
 
 % Pre-process options.
@@ -211,8 +211,8 @@ file = '';
 readFile( );
 
 % Replace non-comma delimiter with comma; applies only to CSV files.
-if ~strcmp(opt.delimiter,',')
-    file = strrep(file,sprintf(opt.delimiter),',');
+if ~strcmp(opt.delimiter, ', ')
+    file = strrep(file, sprintf(opt.delimiter), ', ');
 end
 
 % Read headers
@@ -228,16 +228,16 @@ seriesUserdata = struct( );
 readHeaders( );
 
 % Trim the headers.
-if start > 1
+if start>1
     file = file(start:end);
 end
 
 classRow = strtrim(classRow);
 cmtRow = strtrim(cmtRow);
-if length(classRow) < length(nameRow)
+if length(classRow)<length(nameRow)
     classRow(length(classRow)+1:length(nameRow)) = {''};
 end
-if length(cmtRow) < length(nameRow)
+if length(cmtRow)<length(nameRow)
     cmtRow(length(cmtRow)+1:length(nameRow)) = {''};
 end
 
@@ -334,11 +334,11 @@ return
                 if isempty(opt.skiprows{ii})
                     continue
                 end
-                if opt.skiprows{ii}(1) ~= '^'
-                    opt.skiprows{ii} = ['^',opt.skiprows{ii}];
+                if opt.skiprows{ii}(1)~='^'
+                    opt.skiprows{ii} = ['^', opt.skiprows{ii}];
                 end
-                if opt.skiprows{ii}(end) ~= '$'
-                    opt.skiprows{ii} = [opt.skiprows{ii},'$'];
+                if opt.skiprows{ii}(end)~='$'
+                    opt.skiprows{ii} = [opt.skiprows{ii}, '$'];
                 end
             end
         end
@@ -352,21 +352,20 @@ return
 
 
     function readHeaders( )
-        strFindFunc = @(x,y) ~isempty(strfind(lower(x),y));
+        strFindFunc = @(x, y) ~isempty(strfind(lower(x), y));
         isDate = false;
         isNameRowDone = false;
-        isLegacyWarn = false;
         ident = '';
         rowCount = 0;
         while ~isempty(file) && ~isDate
             rowCount = rowCount + 1;
-            eol = regexp(file,'\n','start','once');
+            eol = regexp(file, '\n', 'start', 'once');
             if isempty(eol)
                 line = file;
             else
                 line = file(start:eol-1);
             end
-            if isnumericscalar(opt.namerow) && rowCount < opt.namerow
+            if isnumericscalar(opt.namerow) && rowCount<opt.namerow
                 doMoveToNextEol( );
                 continue
             end
@@ -378,19 +377,19 @@ return
             tokens = regexp(line, ...
                 '[^",]*,|[^",]*$|"[^"]*",|"[^"]*"$', 'match');
             % Remove separating commas from the end of cells.
-            tokens = regexprep(tokens,',$','','once');
+            tokens = regexprep(tokens, ',$', '', 'once');
             % Remove double quotes from beginning and end of each cell.
-            tokens = regexprep(tokens,'^"','','once');
-            tokens = regexprep(tokens,'"$','','once');
+            tokens = regexprep(tokens, '^"', '', 'once');
+            tokens = regexprep(tokens, '"$', '', 'once');
             
-            if isempty(tokens) || all(cellfun(@isempty,tokens))
+            if isempty(tokens) || all(cellfun(@isempty, tokens))
                 ident = '%';
             else
-                ident = strrep(tokens{1},'->','');
+                ident = strrep(tokens{1}, '->', '');
                 ident = strtrim(ident);
             end
             
-            if isnumeric(opt.skiprows) && any(rowCount == opt.skiprows)
+            if isnumeric(opt.skiprows) && any(rowCount==opt.skiprows)
                 doMoveToNextEol( );
                 continue
             end
@@ -409,18 +408,18 @@ return
             %-----------------
             % Some of the userdata fields can be reused as comments, hence do this
             % before anything else.
-            if strncmp(ident,opt.userdatafield,1) ...
+            if strncmp(ident, opt.userdatafield, 1) ...
                     ...
                     || ( ...
                     iscellstr(opt.userdatafieldlist) ...
                     && ~isempty(opt.userdatafieldlist) ...
-                    && any(strcmpi(ident,opt.userdatafieldlist)) ...
+                    && any(strcmpi(ident, opt.userdatafieldlist)) ...
                     ) ...
                     ...
                     || ( ...
                     isnumeric(opt.userdatafieldlist) ...
                     && ~isempty(opt.userdatafieldlist) ...
-                    && any(rowCount == opt.userdatafieldlist(:).') ...
+                    && any(rowCount==opt.userdatafieldlist(:).') ...
                     )
                 fieldName = regexprep(ident, '\W', '');
                 fieldName = matlab.lang.makeUniqueStrings(fieldName);
@@ -430,32 +429,23 @@ return
                 isDate = false;
             end
 
-            if strncmp(ident,'%',1) || isempty(ident)
+            if strncmp(ident, '%', 1) || isempty(ident)
                 isDate = false;
-            elseif strFindFunc(ident,'userdata')
+            elseif strFindFunc(ident, 'userdata')
                 dbUserdataFieldName = getUserdataFieldName(tokens{1});
                 dbUserdata = tokens{2};
                 isUserData = true;
                 isDate = false;
-            elseif strFindFunc(ident,'class[size]')
+            elseif strFindFunc(ident, 'class[size]')
                 classRow = tokens(2:end);
                 isDate = false;
-            elseif strFindFunc(ident,'class')
-                if ~isLegacyWarn
-                    utils.warning('dbase:dbload', ...
-                        ['This seems to be a legacy CSV file ', ...
-                        'created in an older version of IRIS. ', ...
-                        'The database may not load correctly.']);
-                    isLegacyWarn = true;
-                end
-                isDate = false;
-            elseif any(strcmpi(ident,opt.commentrow))
+            elseif any(strcmpi(ident, opt.commentrow))
                 cmtRow = tokens(2:end);
                 isDate = false;
-            elseif ~isempty(strfind(lower(ident),'units'))
+            elseif ~isempty(strfind(lower(ident), 'units'))
                 isDate = false;
             elseif ~isnumeric(opt.skiprows) ...
-                    && any(~cellfun(@isempty,regexp(ident,opt.skiprows)))
+                    && any(~cellfun(@isempty, regexp(ident, opt.skiprows)))
                 isDate = false;
             end
             
@@ -487,9 +477,9 @@ return
                 return
             end
             if isnumeric(opt.namerow)
-                Flag = rowCount == opt.namerow;
+                Flag = rowCount==opt.namerow;
             else
-                Flag = any(strcmpi(ident,opt.namerow));
+                Flag = any(strcmpi(ident, opt.namerow));
             end
         end
     end 
@@ -548,9 +538,10 @@ return
             'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', -Inf, ...
             'CommentStyle', 'Matlab', 'CollectOutput', true);
         if isempty(data)
-            utils.error('dbase', ...
-                ['Incorrect data format or no ', ...
-                'delimiter-separated data found.']);
+            throw( ...
+                exception.Base('Dbase:InvalidLoadFormat', 'error'), ...
+                FName ...
+                ); %#ok<GTARG>
         end
         data = data{1};
         miss = false(size(data));
@@ -560,7 +551,7 @@ return
         isMaybeMissing = real(data)==-Inf;
         if any(isMaybeMissing(:))
             data1 = textscan(file, '', -1, ...
-                'Delimiter', ',', 'WhiteSpace', whiteSpace, ...
+                'Delimiter', ', ', 'WhiteSpace', whiteSpace, ...
                 'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', NaN, ...
                 'CommentStyle', 'Matlab', 'CollectOutput', true);
             data1 = data1{1};
@@ -573,20 +564,20 @@ return
 
 
     function parseDates( )
-        dateCol = dateCol(1:min(end,size(data,1)));
+        dateCol = dateCol(1:min(end, size(data, 1)));
         if ~isempty(dateCol)
             if opt.firstdateonly
                 dateCol(2:end) = {''};
             end
             % Rows with empty dates.
-            emptyDate = cellfun(@isempty,dateCol);
+            emptyDate = cellfun(@isempty, dateCol);
         end
         % Convert date strings.
         if ~isempty(dateCol) && ~all(emptyDate)
             dates(~emptyDate) = str2dat(dateCol(~emptyDate), ...
-                'dateFormat=',opt.dateformat, ...
-                'freq=',opt.freq, ...
-                'freqLetters=',opt.freqletters);
+                'DateFormat=', opt.dateformat, ...
+                'Freq=', opt.freq, ...
+                'FreqLetters=', opt.freqletters);
             if opt.firstdateonly
                 dates(2:end) = dates(1) + (1 : length(dates)-1);
             end
@@ -599,11 +590,11 @@ return
         % Check for mixed frequencies.
         if ~isempty(dates)
             x = datfreq(dates);
-            if any(x(1) ~= x)
-                utils.error('dbase:dbload', ...
-                    ['CSV data file ''%s'' contains dates ', ...
-                    'with mixed frequencies.'], ...
-                    FName);
+            if any(x(1)~=x)
+                throw( ...
+                    exception.Base('Dbase:LoadMixedFrequency', 'error'), ...
+                    FName ...
+                    ); %#ok<GTARG>
             end
         end
     end 
@@ -617,9 +608,9 @@ return
         nName = length(nameRow);
         seriesUserdataList = fieldnames(seriesUserdata);
         nSeriesUserdata = length(seriesUserdataList);
-        while count < nName
+        while count<nName
             name = nameRow{count+1};
-            if nSeriesUserdata > 0
+            if nSeriesUserdata>0
                 thisUserData = createSeriesUserdata( );
             end
             if isempty(name)
@@ -628,12 +619,12 @@ return
                 continue
             end
             tokens = regexp(classRow{count+1}, ...
-                '^(\w+)((\[.*\])?)','tokens','once');
+                '^(\w+)((\[.*\])?)', 'tokens', 'once');
             if isempty(tokens)
                 cls = '';
                 tmpSize = [ ];
             else
-                cls = lower(tokens{1});
+                cls = tokens{1};
                 tmpSize = getSize(tokens{2});
             end
             if isempty(cls)
@@ -656,7 +647,7 @@ return
                     iData(dateInx, :) = data(~ixNanDate, count+(1:nCol));
                     iMiss(dateInx, :) = miss(~ixNanDate, count+(1:nCol));
                     iData(iMiss) = NaN*unit;
-                    iData = reshape(iData, nPer, tmpSize(2:end));
+                    iData = reshape(iData, [nPer, tmpSize(2:end)]);
                     cmt = cmtRow(count+(1:nCol));
                     cmt = reshape(cmt, [1, tmpSize(2:end)]);
                     d.(name) = replace(TEMPLATE_SERIES, iData, minDate, cmt);
@@ -666,14 +657,14 @@ return
                     iData = zeros([0, tmpSize(2:end)]);
                     d.(name) = replace(TEMPLATE_SERIES, iData, NaN, '');
                 end
-                if nSeriesUserdata > 0
+                if nSeriesUserdata>0
                     d.(name) = userdata(d.(name), thisUserData);
                 end
                 % Convert the series to requested frequency if it isn't it yet.
 %                 if ~isempty(opt.convert) ...
 %                         && ~isnan(D.(name).start) ...
-%                         && datfreq(D.(name).start) ~= opt.convert{1}
-%                     D.(name) = convert(D.(name),opt.convert{:});
+%                         && datfreq(D.(name).start)~=opt.convert{1}
+%                     D.(name) = convert(D.(name), opt.convert{:});
 %                 end
             elseif ~isempty(tmpSize)
                 % Numeric data.
@@ -727,9 +718,9 @@ return
             end
         end
         if ~iscellstr(nameRow)
-            utils.error('dbase:dbload', ...
-                ['Function handle in option ''nameFunc='' ', ...
-                'must return a char string.']);
+            throw( ...
+                exception.Base('Dbase:InvalidOptionNameFunc', 'error') ...
+                );
         end
         % Switch lower/upper case.
         switch lower(opt.case)
@@ -744,16 +735,16 @@ return
 
 
     function chkNames( )
-        ixEmpty = cellfun(@isempty,nameRow);
-        ixValid = cellfun(@isvarname,nameRow);
+        ixEmpty = cellfun(@isempty, nameRow);
+        ixValid = cellfun(@isvarname, nameRow);
         % Index of non-empty, invalid names that need to be regenerated.
         ixGen = ~ixEmpty & ~ixValid;
         % Index of valid names that will be protected.
         ixProtect = ~ixEmpty & ixValid;
-        % `genvarname` now guarantees uniqueness of names by appending `1`, `2`,
+        % `genvarname` now guarantees uniqueness of names by appending `1`, `2`, 
         % etc. at the end of the string; did not use to be the case in older
         % versions of Matlab.
-        nameRow(ixGen) = genvarname(nameRow(ixGen),nameRow(ixProtect)); %#ok<DEPGENAM>
+        nameRow(ixGen) = genvarname(nameRow(ixGen), nameRow(ixProtect)); %#ok<DEPGENAM>
     end 
 
 
@@ -765,11 +756,11 @@ return
         end
         try
             d.(dbUserdataFieldName) = eval(dbUserdata);
-        catch E
-            utils.error('dbase:dbload', ...
-                ['Function dbload( ) failed when reconstructing user data.\n', ...
-                '\Uncle says: %s'], ...
-                E.message);
+        catch err
+            throw( ...
+                exception.Base('Dbase:ErrorLoadingUserData', 'error'), ...
+                FName, err.message ...
+                ); %#ok<GTARG>
         end
     end
 end
@@ -778,11 +769,11 @@ end
 
 
 function s = getSize(c)
-% xxGetSize  Read the size string 1-by-1-by-1 etc. as a vector.
+% Read the size string 1-by-1-by-1 etc. as a vector.
 % New style of saving size: [1-by-1-by-1].
 % Old style of saving size: [1][1][1].
-c = strrep(c(2:end-1),'][','-by-');
-s = sscanf(c,'%g-by-');
+c = strrep(c(2:end-1), '][', '-by-');
+s = sscanf(c, '%g-by-');
 s = s(:).';
 end 
 
@@ -790,7 +781,7 @@ end
 
 
 function name = getUserdataFieldName(c)
-name = regexp(c,'\[([^\]]+)\]','once','tokens');
+name = regexp(c, '\[([^\]]+)\]', 'once', 'tokens');
 if ~isempty(name)
     name = name{1};
 else

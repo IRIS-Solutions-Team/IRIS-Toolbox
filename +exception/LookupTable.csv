@@ -15,6 +15,10 @@ Dbase:DbfunReportWarning,Warning occured when processing this database entry: %s
 Dbase:EntrySizeMismatch,This database entry does not match the size of other entries: %s
 Dbase:EntryFrequencyMismatch,This database entry does not match the date frequency requested: %s
 Dbase:EntryNotSeries,This name exists in input database but is not a time series: %s
+Dbase:InvalidLoadFormat, This CSV file contains data in invalid format or no delimiter-separated values: %s
+Dbase:LoadMixedFrequency, This CSV file contains dates with mixed frequencies: %s 
+Dbase:ErrorLoadingUserData, Error when reconstructing user data from this CSV file: %s\nUncle says: %s
+Dbase:InvalidOptionNameFunc, Option NameFunc= must be function returning text string.
 Dbase:NameNotExist,This name does not exist in input database: %s
 Dynamic:EvaluatesToNan,This dynamic equation evaluates to NaN or Inf in period %1: %s
 Equation:InvalidDefinition,This definition has an invalid LHS: %s 

@@ -39,7 +39,7 @@ function lsSaved = dbsave(inp, fileName, varargin)
 % objects.
 %
 % * `'Decimal='` [ numeric | *empty* ] - Number of decimals up to which the
-% data will be saved; if empty the `'format'` option is used.
+% data will be saved; if empty the option `'Format='` is used.
 %
 % * `'Format='` [ char | *`'%.8e'`* ] - Numeric format that will be used to
 % represent the data, see `sprintf` for details on formatting, The format
@@ -61,7 +61,7 @@ function lsSaved = dbsave(inp, fileName, varargin)
 % found within the input struct `d`); the sub-databases will be saved to
 % separate CSF files.
 %
-% * `'userData='` [ char | *'userdata'* ] - Field name from which
+% * `'UserData='` [ char | *'userdata'* ] - Field name from which
 % any kind of userdata will be read and saved in the CSV file.
 %
 %
@@ -286,7 +286,7 @@ end
 nRowsMax = max(nRows);
 ixCorrect = nRows==nRowsMax;
 if any(~ixCorrect)
-    for i = find(ixCorrect)
+    for i = find(~ixCorrect)
         data{i}(end+1:nRowsMax, :) = NaN;
     end
 end
