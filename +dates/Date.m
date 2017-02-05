@@ -74,6 +74,13 @@ classdef Date < double
             end
             this = dates.Date(builtin('colon', from, step, to));
         end
+        
+        
+        
+        
+        function flag = eq(d1, d2)
+            flag = round(d1*100)==round(d2*100);
+        end
     end
     
     
