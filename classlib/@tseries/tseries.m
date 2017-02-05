@@ -325,6 +325,9 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = doubledata(varargin)
         varargout = empty(varargin)
         varargout = endDate(varargin)
+        function varargout = enddate(varargin)
+            [varargout{1:nargout}] = endDate(varargin{:});
+        end        
         varargout = errorbar(varargin)
         varargout = expsmooth(varargin)
         varargout = fft(varargin)
@@ -372,6 +375,9 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = specrange(varargin)        
         varargout = spy(varargin)
         varargout = startDate(varargin)
+        function varargout = startdate(varargin)
+            [varargout{1:nargout}] = startDate(varargin{:});
+        end
         varargout = stdise(varargin)
         varargout = stem(varargin)
         varargout = subsasgn(varargin)
