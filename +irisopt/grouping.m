@@ -1,5 +1,5 @@
-function Def = grouping( )
-% grouping  [Not a public function] Default options for grouping class.
+function def = grouping( )
+% grouping  Default options for grouping class.
 %
 % Backend IRIS function.
 % No help provided.
@@ -9,8 +9,12 @@ function Def = grouping( )
 
 %--------------------------------------------------------------------------
 
-Def.eval = { ...
-    'append',true,@islogicalscalar, ...
+def.eval = {
+    'append', true, @islogicalscalar
+    };
+
+def.grouping = {
+    'IncludeExtras', false, @islogicalscalar
     };
 
 end

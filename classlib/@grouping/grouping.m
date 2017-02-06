@@ -72,7 +72,7 @@ classdef grouping < shared.UserDataContainer & shared.GetterSetter
             % Syntax
             % =======
             %
-            %     g = grouping(m, type)
+            %     g = grouping(m, type, ...)
             %
             %
             % Input arguments
@@ -87,6 +87,15 @@ classdef grouping < shared.UserDataContainer & shared.GetterSetter
             % =================
             %
             % * `g` [ grouping ] - New empty grouping object.
+            %
+            %
+            % Options
+            % ========
+            %
+            % * `'IncludeExtras='` [ `true` | *`false`* ] - Include two extra
+            % decomposition columns, `Init+Const+Dtrend` and `Nonlinear`, produced by
+            % the `simulate( )` functio, in the list of constributions available in
+            % this grouping.
             %
             %
             % Description
@@ -114,6 +123,8 @@ classdef grouping < shared.UserDataContainer & shared.GetterSetter
             
             m = varargin{1};
             type = varargin{2};
+            varargin(1:2) = [ ];
+            opt = passvalopt('grouping.grouping', varargin{:});
             
             pp = inputParser( );
             pp.addRequired('m', @(x) isa(x, 'model'));
@@ -121,7 +132,7 @@ classdef grouping < shared.UserDataContainer & shared.GetterSetter
             pp.parse(m, type);
 
             if any(strncmpi(type, {'shock', 'measu'}, 5))
-                this = prepareGrouping(m, this, type);
+                this = prepareGrouping(m, this, type, opt);
             else
                 throw( ...
                     exception.Base('Grouping:InvalidType', 'error'), ...
