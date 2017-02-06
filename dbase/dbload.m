@@ -211,8 +211,8 @@ file = '';
 readFile( );
 
 % Replace non-comma delimiter with comma; applies only to CSV files.
-if ~strcmp(opt.delimiter, ', ')
-    file = strrep(file, sprintf(opt.delimiter), ', ');
+if ~strcmp(opt.delimiter, ',')
+    file = strrep(file, sprintf(opt.delimiter), ',');
 end
 
 % Read headers
@@ -257,7 +257,7 @@ end
 %-----------------------------------
 dates = [ ];
 data = [ ];
-miss = [ ];
+ixMissing = [ ];
 ixNanDate = [ ];
 dateCol = { };
 if ~isempty(file)
@@ -366,7 +366,7 @@ return
                 line = file(start:eol-1);
             end
             if isnumericscalar(opt.namerow) && rowCount<opt.namerow
-                doMoveToNextEol( );
+                moveToNextEol( );
                 continue
             end
             
@@ -374,30 +374,30 @@ return
             % entire match (including separating commas and double quotes), not only
             % tokens -- this is a workaround for a bug in Octave.
             % @@@@@ MOSW
-            tokens = regexp(line, ...
+            tkn = regexp(line, ...
                 '[^",]*,|[^",]*$|"[^"]*",|"[^"]*"$', 'match');
             % Remove separating commas from the end of cells.
-            tokens = regexprep(tokens, ',$', '', 'once');
+            tkn = regexprep(tkn, ',$', '', 'once');
             % Remove double quotes from beginning and end of each cell.
-            tokens = regexprep(tokens, '^"', '', 'once');
-            tokens = regexprep(tokens, '"$', '', 'once');
+            tkn = regexprep(tkn, '^"', '', 'once');
+            tkn = regexprep(tkn, '"$', '', 'once');
             
-            if isempty(tokens) || all(cellfun(@isempty, tokens))
+            if isempty(tkn) || all(cellfun(@isempty, tkn))
                 ident = '%';
             else
-                ident = strrep(tokens{1}, '->', '');
+                ident = strrep(tkn{1}, '->', '');
                 ident = strtrim(ident);
             end
             
             if isnumeric(opt.skiprows) && any(rowCount==opt.skiprows)
-                doMoveToNextEol( );
+                moveToNextEol( );
                 continue
             end
             
-            if doIsThisNameRow( )
-                nameRow = tokens(2:end);
+            if isThisNameRow( )
+                nameRow = tkn(2:end);
                 isNameRowDone = true;
-                doMoveToNextEol( );
+                moveToNextEol( );
                 continue
             end
             
@@ -424,7 +424,7 @@ return
                 fieldName = regexprep(ident, '\W', '');
                 fieldName = matlab.lang.makeUniqueStrings(fieldName);
                 try %#ok<TRYNC>
-                    seriesUserdata.(fieldName) = tokens(2:end);
+                    seriesUserdata.(fieldName) = tkn(2:end);
                 end
                 isDate = false;
             end
@@ -432,15 +432,15 @@ return
             if strncmp(ident, '%', 1) || isempty(ident)
                 isDate = false;
             elseif strFindFunc(ident, 'userdata')
-                dbUserdataFieldName = getUserdataFieldName(tokens{1});
-                dbUserdata = tokens{2};
+                dbUserdataFieldName = getUserdataFieldName(tkn{1});
+                dbUserdata = tkn{2};
                 isUserData = true;
                 isDate = false;
             elseif strFindFunc(ident, 'class[size]')
-                classRow = tokens(2:end);
+                classRow = tkn(2:end);
                 isDate = false;
             elseif any(strcmpi(ident, opt.commentrow))
-                cmtRow = tokens(2:end);
+                cmtRow = tkn(2:end);
                 isDate = false;
             elseif ~isempty(strfind(lower(ident), 'units'))
                 isDate = false;
@@ -450,7 +450,7 @@ return
             end
             
             if ~isDate
-                doMoveToNextEol( );
+                moveToNextEol( );
             end 
         end
         
@@ -459,7 +459,7 @@ return
         
         
 
-        function doMoveToNextEol( )
+        function moveToNextEol( )
             if ~isempty(eol)
                 file(eol) = ' ';
                 start = eol + 1;
@@ -471,7 +471,7 @@ return
         
         
         
-        function Flag = doIsThisNameRow( )
+        function Flag = isThisNameRow( )
             if isNameRowDone
                 Flag = false;
                 return
@@ -507,7 +507,7 @@ return
         % date strings. We do not resolve this conflict because it is not very
         % likely.
         if strcmp(opt.nan, 'nan')
-            % Handle quoted NaNs correctly.
+            % Remove quotes from quoted NaNs.
             file = strrep(file, '"nan"', 'nan');
         else
             % We cannot have multiple NaN strings because of the way `strrep` handles
@@ -544,19 +544,19 @@ return
                 ); %#ok<GTARG>
         end
         data = data{1};
-        miss = false(size(data));
+        ixMissing = false(size(data));
         % The value `-Inf` indicates a possible missing value (but may be a
         % genuine `-Inf`, too). Re-read the table again, with missing
         % values represented by `NaN` this time to pin down missing values.
         isMaybeMissing = real(data)==-Inf;
         if any(isMaybeMissing(:))
             data1 = textscan(file, '', -1, ...
-                'Delimiter', ', ', 'WhiteSpace', whiteSpace, ...
+                'Delimiter', ',', 'WhiteSpace', whiteSpace, ...
                 'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', NaN, ...
                 'CommentStyle', 'Matlab', 'CollectOutput', true);
             data1 = data1{1};
             isMaybeMissing1 = isnan(real(data1));
-            miss(isMaybeMissing & isMaybeMissing1) = true;
+            ixMissing(isMaybeMissing & isMaybeMissing1) = true;
         end
     end 
 
@@ -645,7 +645,7 @@ return
                     iData = nan(nPer, nCol)*unit;
                     iMiss = false(nPer, nCol);
                     iData(dateInx, :) = data(~ixNanDate, count+(1:nCol));
-                    iMiss(dateInx, :) = miss(~ixNanDate, count+(1:nCol));
+                    iMiss(dateInx, :) = ixMissing(~ixNanDate, count+(1:nCol));
                     iData(iMiss) = NaN*unit;
                     iData = reshape(iData, [nPer, tmpSize(2:end)]);
                     cmt = cmtRow(count+(1:nCol));
@@ -670,7 +670,7 @@ return
                 % Numeric data.
                 nCol = prod(tmpSize(2:end));
                 iData = reshape(data(1:tmpSize(1), count+(1:nCol)), tmpSize);
-                iMiss = reshape(miss(1:tmpSize(1), count+(1:nCol)), tmpSize);
+                iMiss = reshape(ixMissing(1:tmpSize(1), count+(1:nCol)), tmpSize);
                 iData(iMiss) = NaN;
                 % Convert to the right numeric class.
                 if true % ##### MOSW
