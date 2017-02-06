@@ -1,31 +1,33 @@
 function [x, list, range] = db2tseries(d, varargin)
-% db2tseries  Combine tseries database entries in one multivariate tseries object.
+% db2tseries  Combine time series entries from input database in one multivariate time series object.
 %
 % Syntax
 % =======
 %
-%     [X,Incl,Range] = db2tseries(D,List,Range)
+%     [x, includedList, range] = db2tseries(d, list, range)
+%
 %
 % Input arguments
 % ================
 %
-% * `D` [ struct ] - Input database with tseries objects that will be
+% * `d` [ struct ] - Input database with tseries objects that will be
 % combined in one multivariate tseries object.
 %
-% * `List` [ char | cellstr ] - List of tseries names that will be
+% * `list` [ char | cellstr ] - List of tseries names that will be
 % combined.
 %
-% * `Range` [ numeric | Inf ] - Date range.
+% * `range` [ numeric | Inf ] - Date range.
+%
 %
 % Output arguments
 % =================
 %
-% * `X` [ numeric ] - Combined multivariate tseries object.
+% * `x` [ numeric ] - Combined multivariate tseries object.
 %
-% * `Incl` [ cellstr ] - List of tseries names that have been actually
-% found in the database.
+% * `includedList` [ cellstr ] - List of time series names that have been
+% actually included in the output time series.
 %
-% * `Range` [ numeric ] - The date range actually used.
+% * `range` [ numeric ] - Date range actually used.
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

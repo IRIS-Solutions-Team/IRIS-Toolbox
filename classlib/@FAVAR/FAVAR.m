@@ -49,6 +49,9 @@ classdef FAVAR < varobj
         Cross = NaN;
     end
     
+    
+    
+    
     methods
         varargout = eig(vararing)
         varargout = estimate(varargin)
@@ -59,40 +62,56 @@ classdef FAVAR < varobj
         varargout = VAR(varargin)
     end
     
+    
+    
+    
     methods (Hidden)
         varargout = standardise(varargin)
     end
     
+    
+    
+    
     methods (Access=protected, Hidden)
         varargout = myny(varargin)
+        varargout = getEstimationData(varargin)
+        varargout = outputFactorData(varargin)
     end
     
-    methods (Static,Hidden)
+    
+    
+    
+    methods (Static, Hidden)
         varargout = pc(varargin)
         varargout = estimatevar(varargin)
         varargout = cc(varargin)
         varargout = destandardise(varargin)
     end
     
-    % Constructor.
+    
+    
+    
     methods
-        function This = FAVAR(varargin)
+        function this = FAVAR(varargin)
             % FAVAR  Create new empty FAVAR object.
             %
             % Syntax
             % =======
             %
-            %     F = FAVAR(YNames)
+            %     f = FAVAR(list)
+            %
             %
             % Input arguments
             % ================
             %
-            % * `YNames` [ cellstr | char ] - Names of observed variables in the FAVAR model.
+            % * `list` [ cellstr | char ] - Names of observed variables in the FAVAR model.
+            %
             %
             % Output arguments
             % =================
             %
-            % * `F` [ FAVAR ] - New FAVAR object.
+            % * `f` [ FAVAR ] - New FAVAR object.
+            %
             %
             % Description
             % ============
@@ -101,28 +120,28 @@ classdef FAVAR < varobj
             % the [estimate](FAVAR/estimate) function to estimate the FAVAR parameters
             % on data.
             %
+            %
             % Example
             % ========
             %
             % To estimate a FAVAR, you first need to create an empty VAR object, and
             % then run the [FAVAR](FAVAR/estimate) function on it, e.g.
             %
-            %     list = {'DLCPI','DLGDP','R'};
+            %     list = {'DLCPI', 'DLGDP', 'R'};
             %     f = FAVAR(list);
-            %     f = estimate(f,d,range);
+            %     f = estimate(f, d, range);
             %
             
             % -IRIS Macroeconomic Modeling Toolbox.
             % -Copyright (c) 2007-2017 IRIS Solutions Team.
             
-            This = This@varobj(varargin{:});
+            this = this@varobj(varargin{:});
             if length(varargin)==1
-                if isa(varargin{1},'FAVAR')
-                    This = varargin{1};
+                if isa(varargin{1}, 'FAVAR')
+                    this = varargin{1};
                     return
                 end
             end
         end
     end
-    
 end

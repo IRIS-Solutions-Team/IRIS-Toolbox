@@ -1,11 +1,10 @@
-function [This, D, CC, FF, U, E, CTF, Rng] = estimate(This, varargin)
+function [this, D, CC, FF, U, E, CTF, range] = estimate(this, d, range, varargin)
 % estimate  Estimate FAVAR using static principal components.
-%
 %
 % Syntax
 % =======
 %
-%     [A,D,CC,F,U,E,CTF] = estimate(A,D,Range,[R,Q],...)
+%     [A, D, CC, F, U, E, CTF] = estimate(A, D, Range, [R, Q], ...)
 %
 %
 % Input arguments
@@ -48,17 +47,14 @@ function [This, D, CC, FF, U, E, CTF, Rng] = estimate(This, varargin)
 % Options
 % ========
 %
-% * `'cross='` [ *`true`* | `false` | numeric ] - Keep off-diagonal
+% * `'Cross='` [ *`true`* | `false` | numeric ] - Keep off-diagonal
 % elements in the covariance matrix of idiosyncratic residuals; if false
 % all cross-covariances are reset to zero; if a number between zero and
 % one, all cross-covariances are multiplied by that number.
 %
-% * `'order='` [ numeric | *1* ] - Order of the VAR for factors.
+% * `'Order='` [ numeric | *1* ] - Order of the VAR for factors.
 %
-% * `'output='` [ *`'auto'`* | `'dbase'` | `'tseries'` ] - Format of output
-% data.
-%
-% * `'rank='` [ numeric | *`Inf`* ] - Restriction on the rank of the factor
+% * `'Rank='` [ numeric | *`Inf`* ] - Restriction on the rank of the factor
 % VAR residuals.
 %
 %
@@ -75,17 +71,15 @@ function [This, D, CC, FF, U, E, CTF, Rng] = estimate(This, varargin)
 
 TEMPLATE_SERIES = Series( );
 
-%--------------------------------------------------------------------------
-
 % Get input data.
-[y, Rng, yNames, inpFmt, varargin] = myinpdata(This, varargin{:});
+[y, range, lsy] = getEstimationData(this, d, range);
 
-if isempty(This.YNames) && isequal(inpFmt, 'dbase')
+if isempty(this.YNames) && isequal(inpFmt, 'dbase')
     % ##### Nov 2013 OBSOLETE and scheduled for removal.
-    This.YNames = yNames;
+    this.YNames = lsy;
 end
 
-This.Range = Rng;
+this.Range = range;
 
 % Parse required input arguments.
 crit = varargin{1};
@@ -94,71 +88,64 @@ varargin(1) = [ ];
 % Parse and validate options.
 opt = passvalopt('FAVAR.estimate', varargin{:});
 
-% Determine format of output data.
-if strcmpi(opt.output, 'auto')
-    outpFmt = inpFmt;
-else
-    outpFmt = opt.output;
-end
-
 %--------------------------------------------------------------------------
 
 % Standardise input data.
 y0 = y;
-[This, y] = standardise(This, y);
+[this, y] = standardise(this, y);
 
 % Estimate static factors using principal components.
-[FF, This.C, U, This.Sigma, This.SingVal, sample, CTF] = ...
+[FF, this.C, U, this.Sigma, this.SingVal, sample, CTF] = ...
     FAVAR.pc(y, crit, opt.method);
 
-% Estimate VAR(p,q) on factors.
-[This.A, This.B, This.Omega, This.T, This.U, E, This.IxFitted] = ...
+% Estimate VAR(p, q) on factors.
+[this.A, this.B, this.Omega, this.T, this.U, E, this.IxFitted] = ...
     FAVAR.estimatevar(FF, opt.order, opt.rank);
-This.EigVal = ordeig(This.T);
+this.EigVal = ordeig(this.T);
 
 % Reduce or zero off-diagonal elements in the cov matrix of idiosyncratic
 % residuals if requested.
-This.Cross = double(opt.cross);
-if This.Cross < 1
-    index = logical( eye(size(This.Sigma)) );
-    This.Sigma(~index) = This.Cross*This.Sigma(~index);
+this.Cross = double(opt.cross);
+if this.Cross < 1
+    index = logical( eye(size(this.Sigma)) );
+    this.Sigma(~index) = this.Cross*this.Sigma(~index);
 end
 
-if nargout > 1
-    yNames = get(This, 'ynames');
-    D = myoutpdata(This, outpFmt, Rng, y0, [ ], yNames);
+if nargout>1
+    lsy = get(this, 'ynames');
+    D = myoutpdata(this, range, y0, [ ], lsy);
 end
 
-if nargout > 2
+if nargout>2
     % Common components.
-    CC = FAVAR.cc(This.C, FF);
-    CC = FAVAR.destandardise(This.Mean, This.Std,CC);
-    CC = myoutpdata(This, outpFmt, Rng, CC, [ ], yNames);
+    CC = FAVAR.cc(this.C, FF);
+    CC = FAVAR.destandardise(this.Mean, this.Std, CC);
+    CC = myoutpdata(this, range, CC, [ ], lsy);
 end
 
-if nargout > 3
+if nargout>3
     % Factors.
-    FF = replace(TEMPLATE_SERIES, permute(FF,[2,1,3]), Rng(1));
+    FF = replace(TEMPLATE_SERIES, permute(FF, [2, 1, 3]), range(1));
 end
 
-if nargout > 4
+if nargout>4
     % Idiosyncratic residuals.
-    U = FAVAR.destandardise(0, This.Std, U);
-    U = myoutpdata(This, outpFmt, Rng, U, [ ], yNames);
+    U = FAVAR.destandardise(0, this.Std, U);
+    U = myoutpdata(this, range, U, [ ], lsy);
 end
 
-if nargout > 5
+if nargout>5
     % Residuals from the factor VAR.
-    E = replace(TEMPLATE_SERIES, permute(E,[2,1,3]), Rng(1));
+    E = replace(TEMPLATE_SERIES, permute(E, [2, 1, 3]), range(1));
 end
 
-if nargout > 6
+if nargout>6
     % Contributions to the factors.
-    CTF = replace(TEMPLATE_SERIES, permute(CTF,[2,1,3]), Rng(1));
+    CTF = replace(TEMPLATE_SERIES, permute(CTF, [2, 1, 3]), range(1));
 end
 
-if nargout > 7
-    Rng = Rng(sample);
+if nargout>7
+    range = range(sample);
 end
 
 end

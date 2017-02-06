@@ -124,7 +124,10 @@ if isX
 end
 
 % Get tunes on VAR variables and instruments; do not include pre-sample.
-req = datarequest('y e i', this,cond, range);
+if ~isstruct(cond)
+    cond = struct( );
+end
+req = datarequest('y e i', this, cond, range);
 condY = req.Y;
 condE = req.E;
 condI = req.I;

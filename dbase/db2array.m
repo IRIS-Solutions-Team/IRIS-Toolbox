@@ -4,46 +4,46 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 % Syntax
 % =======
 %
-%     [X, Incl, Range] = db2array(D)
-%     [X, Incl, Range] = db2array(D, List)
-%     [X, Incl, Range] = db2array(D, List, Range, ...)
+%     [x, includedList, range] = db2array(d)
+%     [x, includedList, range] = db2array(d, list)
+%     [x, includedList, range] = db2array(d, list, range, ...)
 %
 %
 % Input arguments
 % ================
 %
-% * `D` [ struct ] - Input database with tseries objects that will be
+% * `d` [ struct ] - Input database with tseries objects that will be
 % converted to a numeric array.
 %
-% * `List` [ char | cellstr ] - List of tseries names that will be
-% converted to a numeric array; if not specified, all tseries
-% entries found in the input database, `D`, will be included in the output
-% arrays, `X`.
+% * `list` [ char | cellstr ] - List of time series names that will be
+% converted to numeric array and included in the output matrix; if not
+% specified, all time series entries found in the input database, `d`, will
+% be included in the output array, `x`.
 %
-% * `Range` [ numeric | `Inf` ] - Date range; `Inf` means a range from the
+% * `range` [ numeric | `@all` ] - Date range; `@all` means a range from the
 % very first non-NaN observation to the very last non-NaN observation.
 %
 %
 % Output arguments
 % =================
 %
-% * `X` [ numeric ] - Numeric array with observations from individual
+% * `x` [ numeric ] - Numeric array with observations from individual
 % tseries objects in columns.
 %
-% * `Incl` [ cellstr ] - List of tseries names that have been actually
-% found in the database.
+% * `includedList` [ cellstr ] - List of time series names that have been 
+% included in the output array.
 %
-% * `Range` [ numeric ] - Date range actually used; this output argument is
-% useful when the input argument `Range` is missing or `Inf`.
+% * `range` [ numeric ] - Date range actually used; this output argument is
+% useful when the input argument `range` is missing or `Inf`.
 %
 %
 % Description
 % ============
 %
-% The output array, `X`, is always NPer-by-NList-by-NAlt, where NPer is the
-% length of the `Range` (the number of periods), NList is the number of
-% tseries included in the `List`, and NAlt is the maximum number of columns
-% that any of the tseries included in the `List` have.
+% The output array, `x`, is always NPer-by-NList-by-NAlt, where NPer is the
+% length of the `range` (the number of periods), NList is the number of
+% tseries included in the `list`, and NAlt is the maximum number of columns
+% that any of the tseries included in the `list` have.
 %
 % If all tseries data have the same size in 2nd and higher dimensions, the
 % output array will respect that size in 3rd and higher dimensions. For
@@ -70,11 +70,13 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 try
     list;
 catch
-    list = dbnames(d, 'classFilter=', 'tseries');
+    list = dbnames(d, 'ClassFilter=', 'tseries');
 end
 
 try
-    range;
+    if isequal(range, @all)
+        range = Inf;
+    end
 catch
     range = Inf;
 end
@@ -137,10 +139,16 @@ try, sw.BaseYear; catch, sw.BaseYear = @config; end
 
 try, sw.ExpandMethod; catch, sw.ExpandMethod = 'RepeatLast'; end %#ok<*NOCOM>
 
-% Swap `List` and `Range` if needed.
+% Swap `list` and `Range` if needed.
 if isnumeric(list) && (iscellstr(range) || ischar(range))
     [list, range] = deal(range, list);
 end
+
+pp = inputParser( );
+pp.addRequired('d', @isstruct);
+pp.addRequired('list', @iscellstr);
+pp.addRequired('range', @isnumeric);
+pp.parse(d, list, range);
 
 %--------------------------------------------------------------------------
 
@@ -161,9 +169,9 @@ if any(isinf(range([1, end])))
     range2 = dbrange(d, list);
     if isempty(range2)
         if sw.Warn.NoRangeFound
-            utils.warning('dbase:db2array', ...
-                ['Cannot determine range because ', ...
-                'no tseries entries have been found in the database.']);
+            throw( ...
+                exception.Base('Dbase:CannotDetermineRange', 'warning') ...
+                );
         end
         x = [ ];
         range = [ ];
@@ -207,7 +215,7 @@ for i = 1 : nList
             field = d.(name);
             if istseries(field)
                 iX = [ ];
-                getTseriesData( );
+                getSeriesData( );
                 addData( );
             else
                 ixNonSeries(i) = true;
@@ -237,7 +245,7 @@ return
 
 
 
-    function getTseriesData( )
+    function getSeriesData( )
         tmpFreq = freq(field);
         if ~isnan(tmpFreq) && rangeFreq~=tmpFreq
             nData = max(1, size(x, 3));

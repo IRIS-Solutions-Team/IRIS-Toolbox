@@ -51,12 +51,10 @@ if nargin==1
     x = this.Data;
     range = [this.Start, this.Start+size(this.Data, 1)-1];
     return
-else
-    range = double(range);
-end
-
-if isequal(range, @all)
+elseif isequal(range, @all)
     range = Inf;
+elseif isa(range, 'dates.Date')
+    range = double(range);
 end
 
 data = this.Data;

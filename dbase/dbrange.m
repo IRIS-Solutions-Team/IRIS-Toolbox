@@ -101,7 +101,7 @@ else
 end
 
 for i = find(~cellfun(@isempty, startDat))
-    range{i} = startDat{i} : endDat{i};
+    range{i} = dates.Date(startDat{i} : endDat{i});
 end
 
 isEmpty = cellfun(@isempty, range);

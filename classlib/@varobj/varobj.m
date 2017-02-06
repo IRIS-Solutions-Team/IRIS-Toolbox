@@ -60,7 +60,6 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
         varargout = myenames(varargin)
         varargout = mygroupmethod(varargin)
         varargout = mygroupnames(varargin)
-        varargout = myinpdata(varargin)
         varargout = myny(varargin)
         varargout = myprealloc(varargin)
         varargout = subsalt(varargin)

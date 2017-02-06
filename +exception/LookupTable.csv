@@ -10,6 +10,7 @@ Config:InvalidOptionValue,New value for this option failed validation: %s
 Config:ProtectedOption,This option is not customizable: %s
 Dates:MixedFrequency,Mixed frequency date vector not allowed in this context: %s
 Dates:UnrecognizedFrequency,Unrecognized date frequency
+Dbase:CannotDetermineRange,Cannot determine range because no time series entries have been found in input database
 Dbase:DbfunReportError,Error occured when processing this database entry: %s \n$ENGINE$ says: %s
 Dbase:DbfunReportWarning,Warning occured when processing this database entry: %s \n$ENGINE$ says: %s
 Dbase:EntrySizeMismatch,This database entry does not match the size of other entries: %s
