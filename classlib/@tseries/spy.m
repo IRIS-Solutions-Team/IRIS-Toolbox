@@ -42,6 +42,9 @@ function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 % * `'ShowFalse='` [ `true` | *`false`* ] - Display marks for the
 % observations that fail the test.
 %
+% * `'Squeeze='` [ `true` | *`false`*] - Adjust the PlotBoxAspecgtRatio
+% property to squeeze the graph.
+%
 % * `'Test='` [ function_handle | *@(x)~isnan(x)* ] - Test applied to each
 % observations; only the values returning a true will be displayed.
 %
@@ -92,7 +95,7 @@ freq = get(this, 'freq');
 
 [x, range] = rangedata(this, range);
 x = x(:, :, 1);
-x = opt.test(x.');
+x = opt.Test(x.');
 if ~islogical(x)
     x = logical(x);
 end
@@ -125,6 +128,13 @@ end
 set( gca( ), 'YDir', 'Reverse', 'YLim', [0, size(x, 1)+1], ...
     'XLim', round([xCoor(1)-0.5, xCoor(end)+0.5]) );
 
+if ~opt.ShowTrue
+    grfun.excludefromlegend(hPlotTrue);
+end
+if ~opt.ShowFalse
+    grfun.excludefromlegend(hPlotFalse);
+end
+
 setappdata(hAx, 'IRIS_SERIES', true);
 setappdata(hAx, 'IRIS_FREQ', freq);
 setappdata(hAx, 'IRIS_XLIM_ADJUST', true);
@@ -132,9 +142,9 @@ mydatxtick(hAx, range, time, freq, range, opt);
 
 set(hAx, 'GridLineStyle', ':');
 yLim = [1, size(x, 1)];
-if ~isempty(opt.names)
+if ~isempty(opt.Names)
     set( hAx, 'YTick', yLim(1):yLim(end), 'YTickMode', 'Manual', ...
-        'YTickLabel', opt.names, 'yTickLabelMode', 'Manual', ...
+        'YTickLabel', opt.Names, 'yTickLabelMode', 'Manual', ...
         'YLim', [0.5, yLim(end)+0.5], 'YLimMode', 'Manual', ...
         'PlotBoxAspectRatio', [size(x,2)+1, size(x,1)+1, 1] );
 else
@@ -145,7 +155,10 @@ else
     set(hAx, 'YTick', yTick, 'YTickMode', 'Manual');
 end
 
-set(hAx, 'PlotBoxAspectRatio', [size(x,2)+5, size(x,1)+2, 1]);
+if opt.Squeeze
+    set(hAx, 'PlotBoxAspectRatio', [size(x, 2)+5, size(x, 1)+2, 1]);
+end
+
 xlabel('');
 if ~isempty(varargin)
     set(hPlotTrue, varargin{:});
