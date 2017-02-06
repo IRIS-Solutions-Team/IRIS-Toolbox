@@ -1,5 +1,5 @@
 function [epsCurrent, epsShifted] = getIncidenceEps(eqn, ixSelect)
-% getIncidenceEps  List of eps incidences in select equations.
+% getIncidenceEps  List of EPS incidences in select equations.
 %
 % Backend IRIS function.
 % No help provided.
@@ -34,6 +34,7 @@ lsCurrent(ixSelect) = regexp( ...
     'tokens' ...
     );
 
+% EPS = [Equation; Position of Name; Shift]
 epsCurrent = zeros(3, 0, 'int32');
 for iEqn = find( ~cellfun(@isempty, lsCurrent) ) % 1/
     temp = FN_CELLSTR2NUM( [ lsCurrent{iEqn}{:} ] );
