@@ -25,10 +25,8 @@ if opt.meanonly
 else
     std_ = nan(nx, nPer, nAlt);
     for i = 1 : nx
-        temp = Px(nx, nx, :, :);
-        temp = sqrt(temp);
-        temp = permute(temp, [1, 3, 4, 2]);
-        std_(i, :, :) = temp;
+        ithVar = permute(Px(i, i, :, :), [1, 3, 4, 2]);
+        std_(i, :, :) = sqrt(ithVar);
     end
     std_ = replace( ...
         TEMPLATE_SERIES, ...
