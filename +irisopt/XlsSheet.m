@@ -13,8 +13,8 @@ dates = irisopt.dates( );
 
 def = struct( );
 
-def.retrieveDbase = { ...
-    dates.str2dat{:}, ...
-    }; %#ok<CCAT1>
+def.retrieveDbase = [
+    dates.str2dat
+    ];
 
 end

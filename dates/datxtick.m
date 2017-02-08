@@ -4,33 +4,32 @@ function datxtick(varargin)
 % Syntax
 % =======
 %
-%     datxtick(Range, ...)
-%     datxtick(Ax, Range, ...)
+%     datxtick(range, ...)
+%     datxtick(ax, range, ...)
 %
 % Input arguments
 % ================
 %
-% * `Ax` [ numeric ] - Handle to the axes object where the changes will be
+% * `ax` [ numeric ] - Handle to the axes object where the changes will be
 % made; if not specified, the current axes object, `gca( )`, is changed.
 %
-% * `Range` [ numeric ] - New date range to which the x-axis will be
+% * `range` [ numeric ] - New date range to which the x-axis will be
 % changed.
 %
 % Options
 % ========
 %
-% * `'datePosition='` [ `'start'` | `'centre'` | `'end'` ] - Where within
-% each given period the date tick will be placed (at the beginning of the
-% period, in the middle of the period, or at the end of the period).
+% * `'DatePosition='` [ `'start'` | `'centre'` | `'end'` ] - Position
+% within each period the date tick will be placed (i.e. to denote the
+% beginning of the period, in the middle of the period, or at the end of
+% the period).
 %
-% * `'dateTicks='` [ numeric | *`Inf`* ] - Individual date ticks; if `Inf`, 
+% * `'DateTicks='` [ numeric | *`Inf`* ] - Individual date ticks; if `Inf`, 
 % the ticks will be determined automatically using the standard Matlab
 % algorithm.
 %
 % See [`dat2str`](dates/dat2str) for date formatting options available.
 %
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
 %
 % Description
 % ============
@@ -50,39 +49,39 @@ function datxtick(varargin)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 if all(ishandle(varargin{1}))
-    H = varargin{1};
+    ax = varargin{1};
     varargin(1) = [ ] ;
 else
-    H = gca( );
+    ax = gca( );
 end
-H = H(:).';
+ax = ax(:).';
 
-NewRange = varargin{1};
+newRange = varargin{1};
 varargin(1) = [ ];
 
 pp = inputParser( );
-pp.addRequired('H', @(x) all(ishandle(x)));
-pp.addRequired('Range', @(x) isnumeric(x) && all(isfinite(x)) && ~isempty(x));
-pp.parse(H, NewRange);
+pp.addRequired('ax', @(x) all(ishandle(x)));
+pp.addRequired('range', @(x) isnumeric(x) && all(isfinite(x)) && ~isempty(x));
+pp.parse(ax, newRange);
 
 opt = passvalopt('dates.datxtick', varargin{:});
 
 %--------------------------------------------------------------------------
 
-[~, ~, newFreq] = dat2ypf(NewRange(1));
-for iH = H
-    valid = isequal(getappdata(iH, 'IRIS_SERIES'), true);
-    oldFreq = getappdata(iH, 'IRIS_FREQ');
+[~, ~, newFreq] = dat2ypf(newRange(1));
+for h = ax
+    valid = isequal(getappdata(h, 'IRIS_SERIES'), true);
+    oldFreq = getappdata(h, 'IRIS_FREQ');
     if ~valid || ~isnumericscalar(oldFreq)
-        utils.errors('dates:datxtick', ...
+        utils.error('dates:datxtick', ...
             ['This axes object has not been created ', ...
             'as a valid tseries graph: %g.'], ...
-            iH);
+            h);
     end
-    oldRange = getappdata(iH, 'IRIS_RANGE');
-    oldDatePosition = getappdata(iH, 'IRIS_DATE_POSITION');
+    oldRange = getappdata(h, 'IRIS_RANGE');
+    oldDatePosition = getappdata(h, 'IRIS_DATE_POSITION');
     oldTime = dat2dec(oldRange, oldDatePosition);
-    mydatxtick(iH, oldRange, oldTime, newFreq, NewRange, opt);
+    mydatxtick(h, oldRange, oldTime, newFreq, newRange, opt);
 end
 
 end

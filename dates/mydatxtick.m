@@ -1,5 +1,5 @@
 function mydatxtick(h, range, time, freq, userRange, opt)
-% mydatxtick  Set up x-axis for tseries object graphs.
+% mydatxtick  Set up x-axis for Series object graphs.
 %
 % Backend IRIS function.
 % No help provided.
@@ -93,7 +93,7 @@ adjustXLim( );
         end
         set([h, peer], ...
             'xLim', xLim, ...
-            'xLimMode','manual');
+            'xLimMode', 'manual');
     end 
 
 
@@ -104,14 +104,14 @@ adjustXLim( );
             utils.error('dates:mydatxtick', ...
                 ['Inf is an obsolete value for the option ''dateTick=''. ', ...
                 'Use @auto instead.']);
-        elseif isequal(opt.datetick,@auto)
+        elseif isequal(opt.datetick, @auto)
             % Determine step and xTick.
             % Step is number of periods.
             % If multiple axes handles are passed in (e.g. plotyy) use just
             % the first one to get xTick but set the properties for both
             % eventually.
             if length(xTick) > 1
-                step = max(1,round(freq*(xTick(2) - xTick(1))));
+                step = max(1, round(freq*(xTick(2) - xTick(1))));
             else
                 step = 1;
             end
@@ -120,7 +120,7 @@ adjustXLim( );
             xTickDates = opt.datetick;
         elseif ischar(opt.datetick)
             tempRange = firstDate : lastDate;
-            [~,tempPer] = dat2ypf(tempRange);
+            [~, tempPer] = dat2ypf(tempRange);
             switch lower(opt.datetick)
                 case 'yearstart'
                     xTickDates = tempRange(tempPer==1);
@@ -137,8 +137,8 @@ adjustXLim( );
                     end
             end
         end
-        xTick = dat2dec(xTickDates,opt.dateposition);
-        doSetXTickLabel( );
+        xTick = dat2dec(xTickDates, opt.dateposition);
+        setXTickLabel( );
     end 
 
 
@@ -150,7 +150,7 @@ adjustXLim( );
             utils.error('dates:mydatxtick', ...
                 ['Inf is an obsolete value for the option ''dateTick=''. ', ...
                 'Use @auto instead.']);
-        elseif isequal(opt.datetick,@auto)
+        elseif isequal(opt.datetick, @auto)
             % Do nothing.
         else
             xTick = opt.datetick;
@@ -159,18 +159,18 @@ adjustXLim( );
             xTick = xTick(1) : xTick(end);
         end
         xTickDates = xTick;
-        doSetXTickLabel( );
+        setXTickLabel( );
     end 
 
 
 
     
-    function doSetXTickLabel( )
+    function setXTickLabel( )
         set(h, ...
             'xTick', xTick, ...
-            'xTickMode','manual');
+            'xTickMode', 'manual');
         % Set xTickLabel.
-        opt = datdefaults(opt,true);
+        opt = datdefaults(opt, true);
         % Default value for '.plotDateFormat' is a struct with a different
         % date format for each date frequency. Fetch the right date format
         % now, and pass it into `dat2str( )`.
@@ -183,7 +183,7 @@ adjustXLim( );
         xTickLabel = dat2str(xTickDates, opt);
         set(h, ...
             'xTickLabel', xTickLabel, ...
-            'xTickLabelMode','manual');
+            'xTickLabelMode', 'manual');
     end 
 
 
