@@ -79,7 +79,7 @@ if ~isempty(comprise)
 end
 
 data = mygetdata(this, rng);
-xCoor = dat2dec(rng, opt.dateposition);
+xCoor = dat2dec(rng, opt.DatePosition);
 
 if isempty(func)
     return
@@ -113,7 +113,7 @@ if isTimeAxis && ~isTimeNan
     setappdata(hAx, 'IRIS_SERIES', true);
     setappdata(hAx, 'IRIS_FREQ', freq);
     setappdata(hAx, 'IRIS_RANGE', rng);
-    setappdata(hAx, 'IRIS_DATE_POSITION', opt.dateposition);
+    setappdata(hAx, 'IRIS_DATE_POSITION', opt.DatePosition);
     mydatxtick(hAx, rng, xCoor, freq, usrRng, opt);
 end
 
@@ -151,16 +151,16 @@ return
 
 
     function range = mergeRange(range, comprise)
-        % first = dec2dat(Comprise(1), Freq, Opt.dateposition);
+        % first = dec2dat(Comprise(1), Freq, Opt.DatePosition);
         first = double(range(1));
         % Make sure ranges with different frequencies are merged
         % properly.
-        while dat2dec(first-1, opt.dateposition)>=comprise(1)
+        while dat2dec(first-1, opt.DatePosition)>=comprise(1)
             first = first - 1;
         end
-        % last = dec2dat(Comprise(end), Freq, Opt.dateposition);
+        % last = dec2dat(Comprise(end), Freq, Opt.DatePosition);
         last = double(range(end));
-        while dat2dec(last+1, opt.dateposition)<=comprise(end)
+        while dat2dec(last+1, opt.DatePosition)<=comprise(end)
             last = last + 1;
         end
         range = double(first) : double(last);

@@ -30,8 +30,8 @@ def.dat2str = [
 def.datxtick = [
     def.dates
     {
-    'dateposition', 'c', @(x) ischar(x) && ~isempty(x) && any(x(1) == 'sec')
-    'datetick, dateticks', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isfunc(x)
+    'DatePosition', 'c', @(x) ischar(x) && ~isempty(x) && any(x(1) == 'sec')
+    'DateTick, DateTicks', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isfunc(x)
     } ];
 
 def.str2dat = [

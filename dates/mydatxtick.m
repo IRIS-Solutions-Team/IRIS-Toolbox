@@ -39,7 +39,7 @@ isDaily = freq==365;
 firstDate = [ ];
 lastDate = [ ];
 xLim = [ ];
-doXLim( );
+setXLim( );
 
 % Allow temporarily auto ticks and labels.
 set(h, ...
@@ -50,9 +50,9 @@ xTick = get(h(1), 'xTick');
 xTickDates = [ ];
 
 if isZero || isDaily
-    doXTickZeroDaily( );
+    setXTickZeroDaily( );
 else
-    doXTick( );
+    setXTick( );
 end
 
 % Adjust x-limits if the graph includes bars.
@@ -61,7 +61,7 @@ adjustXLim( );
 
 
 
-    function doXLim( )
+    function setXLim( )
         if isequal(userRange, Inf)
             if isZero
                 firstDate = range(1);
@@ -80,12 +80,12 @@ adjustXLim( );
                 % First period in first plotted year to last period in last plotted year.
                 firstDate = double( datcode(freq, floor(time(1)), 1) );
                 lastDate = double( datcode(freq, floor(time(end)), freq) );
-                xLim = dat2dec([firstDate, lastDate], opt.dateposition);
+                xLim = dat2dec([firstDate, lastDate], opt.DatePosition);
             end
         else
             firstDate = userRange(1);
             lastDate = userRange(end);
-            xLim = dat2dec([firstDate, lastDate], opt.dateposition);
+            xLim = dat2dec([firstDate, lastDate], opt.DatePosition);
         end
         xLim = double(xLim);
         while xLim(2)<=xLim(1)
@@ -99,12 +99,12 @@ adjustXLim( );
 
 
     
-    function doXTick( )
-        if isequal(opt.datetick, Inf)
+    function setXTick( )
+        if isequal(opt.DateTick, Inf)
             utils.error('dates:mydatxtick', ...
                 ['Inf is an obsolete value for the option ''dateTick=''. ', ...
                 'Use @auto instead.']);
-        elseif isequal(opt.datetick, @auto)
+        elseif isequal(opt.DateTick, @auto)
             % Determine step and xTick.
             % Step is number of periods.
             % If multiple axes handles are passed in (e.g. plotyy) use just
@@ -116,12 +116,12 @@ adjustXLim( );
                 step = 1;
             end
             xTickDates = firstDate : step : lastDate;
-        elseif isnumeric(opt.datetick)
-            xTickDates = opt.datetick;
-        elseif ischar(opt.datetick)
+        elseif isnumeric(opt.DateTick)
+            xTickDates = opt.DateTick;
+        elseif ischar(opt.DateTick)
             tempRange = firstDate : lastDate;
             [~, tempPer] = dat2ypf(tempRange);
-            switch lower(opt.datetick)
+            switch lower(opt.DateTick)
                 case 'yearstart'
                     xTickDates = tempRange(tempPer==1);
                 case 'yearend'
@@ -137,23 +137,23 @@ adjustXLim( );
                     end
             end
         end
-        xTick = dat2dec(xTickDates, opt.dateposition);
+        xTick = dat2dec(xTickDates, opt.DatePosition);
         setXTickLabel( );
     end 
 
 
 
 
-    function doXTickZeroDaily( )
+    function setXTickZeroDaily( )
         % Make sure the xTick step is not smaller than 1.
-        if isequal(opt.datetick, Inf)
+        if isequal(opt.DateTick, Inf)
             utils.error('dates:mydatxtick', ...
                 ['Inf is an obsolete value for the option ''dateTick=''. ', ...
                 'Use @auto instead.']);
-        elseif isequal(opt.datetick, @auto)
+        elseif isequal(opt.DateTick, @auto)
             % Do nothing.
         else
-            xTick = opt.datetick;
+            xTick = opt.DateTick;
         end
         if any(diff(xTick)<1)
             xTick = xTick(1) : xTick(end);

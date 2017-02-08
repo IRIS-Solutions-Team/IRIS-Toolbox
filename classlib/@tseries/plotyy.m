@@ -159,12 +159,12 @@ end
 setappdata(Ax(1),'IRIS_SERIES', true);
 setappdata(Ax(1),'IRIS_FREQ', freqLhs);
 setappdata(Ax(1),'IRIS_RANGE', RangeLhs);
-setappdata(Ax(1),'IRIS_DATE_POSITION', opt.dateposition);
+setappdata(Ax(1),'IRIS_DATE_POSITION', opt.DatePosition);
 
 setappdata(Ax(2),'IRIS_SERIES', true);
 setappdata(Ax(2),'IRIS_FREQ', freqRhs);
 setappdata(Ax(2),'IRIS_RANGE', RangeRhs);
-setappdata(Ax(2),'IRIS_DATE_POSITION', opt.dateposition);
+setappdata(Ax(2),'IRIS_DATE_POSITION', opt.DatePosition);
 
 if strcmp(lhsPlotFuncStr, 'bar') || strcmp(rhsPlotFuncStr, 'bar')
     setappdata(Ax(1), 'IRIS_XLIM_ADJUST',true);
