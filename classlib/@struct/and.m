@@ -1,4 +1,4 @@
-function s = and(s1, s2)
+function s = and(varargin)
 % and  Concatenate database entries in 2nd dimension.
 %
 % Syntax
@@ -53,11 +53,9 @@ function s = and(s1, s2)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-if isempty(s1)
-    s = s2;
-    return
-elseif isempty(s2)
-    s = s1;
+ixEmpty = cellfun(@isempty, varargin);
+if sum(~ixEmpty)==1
+    s = varargin{~ixEmpty};
     return
 end
 
@@ -69,7 +67,7 @@ idw = 'IRIS:Dbase:DbfunReportWarning';
 warning('off', ide);
 warning('off', idw);
 
-s = dbfun(@horzcat, s1, s2);
+s = dbfun(@horzcat, varargin{:});
 
 warning(q);
 
