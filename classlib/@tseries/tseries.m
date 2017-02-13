@@ -442,6 +442,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     
     
     methods (Static, Hidden)
+        varargout = clpf(varargin)
         varargout = loadobj(varargin)        
         varargout = myband(varargin)
         varargout = mybarcon(varargin)
