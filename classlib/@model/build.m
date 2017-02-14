@@ -9,7 +9,7 @@ function this = build(this, opt)
 
 %--------------------------------------------------------------------------
 
-asgn = opt.assign;
+asgn = opt.Assign;
 
 % Assign user comment if it is non-empty, otherwise use what has been
 % found in the model code.

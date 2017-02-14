@@ -616,14 +616,14 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
             function processOptions( )
                 [opt, varargin] = passvalopt('model.model', varargin{:});
                 optimalOpt = passvalopt('model.optimal', opt.optimal);
-                if ~isstruct(opt.assign)
-                    % Default for `'assign='` is an empty array.
-                    opt.assign = struct( );
+                if ~isstruct(opt.Assign)
+                    % Default for Assign= is an empty array.
+                    opt.Assign = struct( );
                 end
-                opt.assign.sstateOnly = opt.sstateonly;
-                opt.assign.linear = opt.linear;
+                opt.Assign.SteadyOnly = opt.sstateonly;
+                opt.Assign.Linear = opt.linear;
                 for iArg = 1 : 2 : length(varargin)
-                    opt.assign.(varargin{iArg}) = varargin{iArg+1};
+                    opt.Assign.(varargin{iArg}) = varargin{iArg+1};
                 end
             end
         end
