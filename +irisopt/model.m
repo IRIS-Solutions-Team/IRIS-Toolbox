@@ -331,7 +331,7 @@ def.simulate = [
     deviation_dtrends
     {
     'anticipate', true, @islogicalscalar
-    'Presample, AddPresample', false, @islogical
+    'AppendPresample, AddPresample', false, @islogical
     'contributions, contribution', false, @islogicalscalar
     'dboverlay, dbextend', false, @(x) islogicalscalar(x) || isstruct(x)
     'Delog', true, @islogicalscalar
