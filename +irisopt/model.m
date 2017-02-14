@@ -103,8 +103,7 @@ def.chksstate = { ...
     };
 
 def.mychksstate = {
-    'Kind, Type, Eqtn, Equation, Equations', 'dynamic', ...
-    @(x) ischar(x) && any(strcmpi(x, {'dynamic', 'full', 'steady', 'sstate'}))
+    'Kind, Type, Eqtn, Equation, Equations', 'dynamic', @(x) ischar(x) && any(strcmpi(x, {'dynamic', 'full', 'steady', 'sstate'}))
     };
 
 def.diffloglik = {...
@@ -265,7 +264,7 @@ def.model = [
     x.parse
     {
     'addlead', false, @islogicalscalar
-    'assign', [ ], @(x) isempty(x) || isstruct(x)
+    'Assign', [ ], @(x) isempty(x) || isstruct(x)
     'chksyntax', true, @islogicalscalar
     'comment', '', @ischar
     'optimal', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end)))
@@ -332,7 +331,7 @@ def.simulate = [
     deviation_dtrends
     {
     'anticipate', true, @islogicalscalar
-    'AppendPresample', false, @islogical
+    'Presample, AddPresample', false, @islogical
     'contributions, contribution', false, @islogicalscalar
     'dboverlay, dbextend', false, @(x) islogicalscalar(x) || isstruct(x)
     'Delog', true, @islogicalscalar
@@ -386,6 +385,7 @@ def.simulate = [
     'AlmostLinear', false, @islogicalscalar
     'chksstate', true, FN_VALID.chksstate
     'ForceRediff', false, @islogicalscalar
+    'InitEndog', 'Dynamic', @(x) ischar(x) && any(strcmpi(x, {'Dynamic', 'Static'})) 
     'solve', true, FN_VALID.solve
     'sstate, sstateopt', true, FN_VALID.sstate
     'Unlog', [ ], @(x) isempty(x) || isequal(x, @all) || iscellstr(x) || ischar(x)
@@ -410,8 +410,8 @@ def.symbdiff = { ...
 def.createSourceDbase = [
     deviation_dtrends
     {
-    'AppendPresample', true, @islogicalscalar
-    'AppendPostsample', false, @islogicalscalar
+    'AppendPresample, AddPresample', true, @islogicalscalar
+    'AppendPostsample, AddPostsample', false, @islogicalscalar
     'ndraw', 1, @(x) isintscalar(x) && x>=0
     'ncol', 1, @(x) isintscalar(x) && x>=0
     'randshocks, randshock, randomshocks, randomshock', false, @islogicalscalar

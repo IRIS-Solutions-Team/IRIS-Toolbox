@@ -93,6 +93,7 @@ Model:Postparser:TransitionShockInMeasurement,This measurement equation includes
 Model:CannotLoadFromMat,Cannot load model objects created in older versions of the IRIS Toolbox (prior to %s). Rebuild the model object from its model file.
 Model:InconsistentParamData,Number of parameter variants [%g] is not consistent with number of data variants [%g]
 Model:IndexExceedsVariants,Index exceeds the number of parameter variants: %s
+Model:InvalidShockName,This is not a valid shock name: %s 
 Model:InvalidVariantName,Cannot find parameter variant with this name: %s
 Model:LinksNotSequential,Dynamic links cannot be reordered sequentially
 Model:MissingInitCond,This initial value is missing from input database: %s 
