@@ -37,15 +37,19 @@ if needsRefresh
     this = refresh(this, vecAlt);
 end
 
-% Check for levels and growth rate fixed to NaNs.
-chkFixedNans(this, blz, vecAlt);
+% * Check for levels and growth rate fixed to NaNs.
+% * Check for NaN in non-endogenous quantities (parameters, exogenous)
+asgn = model.Variant.getQuantity(this.Variant, ':', vecAlt);
+chkNanFixed( );
+chkNanExog( );
 
 lx0 = [ ];
 gx0 = [ ];
+firstAlt = true;
 
-for iAlt = vecAlt    
+for iAlt = vecAlt
     [lx, gx] = initialize( );
-
+    
     % Cycle over individual blocks
     %------------------------------
     blockExitStatus = false(1, nBlk);
@@ -75,6 +79,7 @@ for iAlt = vecAlt
     % Store current values to initialise next parameterisation.
     lx0 = lx;
     gx0 = gx;
+    firstAlt = false;
 end
 
 if needsRefresh
@@ -91,23 +96,23 @@ return
 
 
     function [lx, gx] = initialize( )
-        % Initialise levels
-        %-------------------
+        % Initialise levels of endogenous quantities
+        %--------------------------------------------
         lx = real(this.Variant{iAlt}.Quantity);
         % Level variables that are set to zero (all shocks).
         lx(ixZero.Level) = 0;
         % Assign NaN level initial conditions. First, assign values from the
         % previous iteration, if they exist and option 'reuse=' is `true`.
         ix = isnan(lx) & ixEndg.Level;
-        if blz.Reuse && any(ix) && ~isempty(lx0)
+        if ~firstAlt && blz.Reuse && any(ix) && ~isempty(lx0)
             lx(ix) = lx0(ix);
             ix = isnan(lx) & ixEndg.Level;
         end
         % Use option NanInit= to assign NaNs.
         lx(ix) = real(blz.NanInit);
         
-        % Initialise growth rates
-        %-------------------------
+        % Initialise growth rates of endogenous quantities
+        %--------------------------------------------------
         gx = imag(this.Variant{iAlt}.Quantity);
         % Variables with zero growth (all variables if 'growth=' false).
         gx(ixZero.Growth) = 0;
@@ -116,47 +121,65 @@ return
             % the previous iteration, if they exist and option 'reuse=' is
             % `true`.
             ix = isnan(gx) & ixEndg.Growth;
-            if blz.Reuse && any(ix) && ~isempty(gx0)
+            if ~firstAlt && blz.Reuse && any(ix) && ~isempty(gx0)
                 gx(ix) = gx0(ix);
                 ix = isnan(gx) & ixEndg.Growth;
             end
             % Use option NanInit= to assign NaNs.
             gx(ix) = imag(blz.NanInit);
         end
-        % Reset zero growth to 1 for log variables.
+        % Reset zero growth to 1 for *all* log quantities (not only endogenous).
         gx(ixLog & gx==0) = 1;
     end
-end
 
 
 
 
-function chkFixedNans(this, blz, vecAlt)
-nQuan = length(this.Quantity);
-% Check for levels fixed to NaN.
-posFix = blz.PosFix.Level;
-ixFix = false(1, nQuan);
-ixFix(posFix) = true;
-ixZero = blz.IxZero.Level;
-asgn = model.Variant.getQuantity(this.Variant, ':', vecAlt);
-ixNanLevel = any(isnan(real(asgn)), 3) & ixFix & ~ixZero;
-if any(ixNanLevel)
-    throw( ...
-        exception.Base('Steady:LevelFixedToNan', 'error'), ...
-        this.Quantity.Name{ixNanLevel} ...
-        );
-end
+    function chkNanFixed( )
+        nQuan = length(this.Quantity);
+        % Check for levels fixed to NaN.
+        posFix = blz.PosFix.Level;
+        ixFix = false(1, nQuan);
+        ixFix(posFix) = true;
+        iixZero = blz.IxZero.Level;
+        
+        ixNanLevel = any(isnan(real(asgn)), 3) & ixFix & ~iixZero;
+        if any(ixNanLevel)
+            throw( ...
+                exception.Base('Steady:LevelFixedToNan', 'error'), ...
+                this.Quantity.Name{ixNanLevel} ...
+                );
+        end
+        
+        % Check for growth rates fixed to NaN.
+        posFix = blz.PosFix.Growth;
+        ixFix = false(1, nQuan);
+        ixFix(posFix) = true;
+        iixZero = blz.IxZero.Growth;
+        ixNanGrowth = any(isnan(imag(asgn)), 3) & ixFix & ~iixZero;
+        if any(ixNanGrowth)
+            throw( ...
+                exception.Base('Steady:GrowthFixedToNan', 'error'), ...
+                this.Quantity.Name{ixNanGrowth} ...
+                );
+        end
+    end
 
-% Check for growth rates fixed to NaN.
-posFix = blz.PosFix.Growth;
-ixFix = false(1, nQuan);
-ixFix(posFix) = true;
-ixZero = blz.IxZero.Growth;
-ixNanGrowth = any(isnan(imag(asgn)), 3) & ixFix & ~ixZero;
-if any(ixNanGrowth)
-    throw( ...
-        exception.Base('Steady:GrowthFixedToNan', 'error'), ...
-        this.Quantity.Name{ixNanGrowth} ...
-        );
-end
+
+
+
+    function chkNanExog( )
+        % Parameter or exogenous variable occurs in steady equations.
+        ixNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
+        % Level or growth is endogenous and NaN.
+        ixNan = (isnan(real(asgn)) & ~ixEndg.Level) ...
+            | (isnan(imag(asgn)) & ~ixEndg.Growth);
+        ixRpt = ixNeeded & ixNan;
+        if any(ixRpt)
+            throw( ...
+                exception.Base('Steady:ExogenousNan', 'warning'), ...
+                this.Quantity.Name{ixRpt} ...
+                );
+        end
+    end
 end

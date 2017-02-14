@@ -55,11 +55,15 @@ for i = 1 : nVecAlt
     x(end+1, :, :) = 1; %#ok<AGROW>
 
     state.IAlt = iAlt;
+    x0 = x;
     for t = firstPeriod : lastPeriod
         state.T = firstPeriod;
         state.Date = xRange(t);
         state.PrintDate = dat2char(state.Date);
         blockExitStatus = false(1, nBlk);
+        if strcmpi(opt.InitEndog, 'Static')
+            x(:, 1:t-1) = x0(:, 1:t-1);
+        end
         for iBlk = 1 : nBlk
             blk = blz.Block{iBlk};
             
@@ -72,8 +76,8 @@ for i = 1 : nVecAlt
                     );
             end
         end
+        YXEPG(:, t, i) = x(1:end-1, t);
     end
-    YXEPG(:, :, i) = x(1:end-1, :);
 end
 
 outp = array2db( ...

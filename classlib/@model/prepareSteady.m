@@ -153,7 +153,6 @@ TYPE = @int8;
 nQty = length(this.Quantity.Name);
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ixp = this.Quantity.Type==TYPE(4);
-ixg = this.Quantity.Type==TYPE(5);
 
 % Run solver.blazer.Blazer on steady equations.
 blz = prepareBlazer(this, 'steady', opt);
@@ -165,16 +164,6 @@ prepareBlocks(blz, opt);
 if blz.IsSingular
     throw( ...
         exception.Base('Steady:STRUCTURAL_SINGULARITY', 'warning')...
-        );
-end
-
-% Check for NaNs in exogenized variables.
-x = model.Variant.getQuantity(this.Variant, ':', ':');
-ixNan = chkExogNan(blz, x);
-if any(ixNan)
-    throw( ...
-        exception.Base('Steady:ExogenousNan', 'error'), ...
-        this.Quantity.Name{ixNan} ...
         );
 end
 

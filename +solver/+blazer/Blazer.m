@@ -180,18 +180,7 @@ classdef Blazer < handle
                 end
             end
             char2file(c, fileName);
-        end
-        
-        
-        
-        
-        function ixNan = chkExogNan(this, x)
-            nAlt = size(x, 3);           
-            ixChk = this.IxCanBeEndg & ~this.IxEndg;
-            ixChk = repmat(ixChk, 1, 1, nAlt);
-            ixNan = (isnan(real(x)) | isnan(imag(x))) & ixChk;
-            ixNan = any(ixNan, 3);
-        end
+        end        
     end
     
     
