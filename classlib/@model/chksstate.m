@@ -34,8 +34,8 @@ function [flag, varargout] = chksstate(this, varargin)
 % * `'Error='` [ *`true`* | `false` ] - Throw an error if one or more
 % equations fail to hold up to tolerance level.
 %
-% * `'Eqtn='` [ *`'Dynamic'`* | `'Steady'` ] - Evaluate either full or
-% steady-state equations on steady-state values.
+% * `'Eqtn='` [ `'Both'` | *`'Dynamic'`* | `'Steady'` ] - Check either
+% dynamic equations or steady equations or both.
 %
 % * `'Warning='` [ *`true`* | `false` ] - Display warnings produced by this
 % function.
@@ -79,7 +79,6 @@ if opt.warning
 end
 
 nAlt = length(this);
-
 
 % `dcy` is a matrix of discrepancies; it has two columns when dynamic
 % equations are evaluated, or one column when steady equations are

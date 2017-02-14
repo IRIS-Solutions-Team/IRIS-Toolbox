@@ -4,21 +4,22 @@ function s = and(varargin)
 % Syntax
 % =======
 %
-%     S = S1 & S2
+%     s = s1 & s2
+%     s = and(s1, s2, ...)
 %
 %
 % Input arguments
 % ================
 %
-% * `S1`, `S2` [ struct ] - Input databases whose entries will be
+% * `s1`, `s2`, ... [ struct ] - Input databases whose entries will be
 % concatenated in 2nd dimension.
 %
 %
 % Output arguments
 % =================
 %
-% * `S` [ struct ] - Output database created by horizontally concatenating
-% entries that are present in both `S1` and `S2`.
+% * `s` [ struct ] - Output database created by horizontally concatenating
+% entries that are present in all `s1`, `s2`, ...
 %
 %
 % Description
