@@ -18,7 +18,7 @@ classdef Options
     
     
     methods (Static)
-        function solverOpt = processOptions(solverOpt, displayMode, obsoleteSolverOpt)
+        function solverOpt = processOptions(solverOpt, displayMode, varargin)
             FN_CHKOPTIMTBX = @(x) ...
                 isequal(x, 'lsqnonlin') || isequal(x, 'fsolve') ...
                 || isequal(x, @lsqnonlin) || isequal(x, @fsolve);
@@ -37,7 +37,7 @@ classdef Options
                     solverOpt = optimoptions(solverOpt{1});
                 else
                     % 'Solver=' 'lsqnonlin' | 'fsolve'
-                    temp = passvalopt('solver.SteadyOptimTbx', obsoleteSolverOpt{:});
+                    temp = passvalopt('solver.SteadyOptimTbx', varargin{:});
                     solverOpt = optimoptions(solverOpt);
                 end
                 if isequal(temp.Display, true)
@@ -63,7 +63,7 @@ classdef Options
                     temp = passvalopt('solver.SteadyIris', solverOpt{2:end});
                 else
                     % 'Solver=' 'IRIS'
-                    temp = passvalopt('solver.SteadyIris', obsoleteSolverOpt{:});
+                    temp = passvalopt('solver.SteadyIris', varargin{:});
                 end
                 temp.Display = silentDisplay(temp.Display, displayMode);
                 solverOpt = solver.Options( );

@@ -306,11 +306,18 @@ opt = passvalopt('model.simulate', varargin{:});
 
 % Global (exact) nonlinear simulation of backward-looking models.
 if strcmpi(opt.method, 'global') || strcmpi(opt.method, 'exact')
+    if isequal(opt.Solver, @auto)
+        opt.Solver = 'IRIS';
+    end
     [this, inp, range] = ...
         irisinp.parser.parse('model.run', this, inp, range);
     [outp, exitFlag]  = simulateNonlinear(this, inp, range, @all, 'Verbose', opt);
     outp = model.appendData(inp, outp, range, opt);
     return
+end
+
+if isequal(opt.Solver, @auto)
+    opt.Solver = 'qad';
 end
 
 [this, inp, range] = ...
