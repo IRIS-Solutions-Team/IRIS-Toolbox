@@ -168,7 +168,7 @@ for t = runTime
             newSize = size(x);
             lhs = repmat(lhs, [1, newSize(2:end)]);
         end
-        lhs(t,:) = x;
+        lhs(t, :) = x;
         D.(name) = lhs;
     end
 end

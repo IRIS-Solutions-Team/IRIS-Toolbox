@@ -17,8 +17,10 @@ steadyShared = {
     'Display', 'iter*', FN_VALID.Display
     'MaxIterations, MaxIter', @default, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0)
     'MaxFunctionEvaluations, MaxFunEvals', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && round(x)==x && x>0)
+    'FiniteDifferenceStepSize', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0)
+    'FiniteDifferenceType', 'forward', @(x) any(strcmpi(x, {'finite', 'central'}))
     'FunctionTolerance, TolFun', 1e-12, @(x) isnumericscalar(x) && x>0
-    'SpecifyObjectiveGradient', true, @islogicalscalar
+    'SpecifyObjectiveGradient', false, @islogicalscalar
     'StepTolerance, TolX', 1e-12, @(x) isnumericscalar(x) && x>0
     };
 

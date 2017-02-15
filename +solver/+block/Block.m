@@ -91,11 +91,6 @@ classdef Block < handle
             % Set solver options.
             if blk.Type==solver.block.Type.SOLVE
                 blk.Solver = opt.Solver;
-                if isa(opt.Solver, 'optim.options.SolverOptions')
-                    if opt.AlmostLinear
-                        blk.Solver.InitDamping = 0;
-                    end
-                end
                 if isa(opt.Solver, 'optim.options.SolverOptions') ...
                         || isa(opt.Solver, 'solver.Options')
                     blk.Solver.SpecifyObjectiveGradient = ...

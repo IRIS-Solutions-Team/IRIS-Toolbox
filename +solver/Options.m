@@ -2,11 +2,12 @@ classdef Options
     properties
         Algorithm = 'lm'
         Display = 'iter'
-        InitDamping = @auto
         SolverName = 'IRIS'
         MaxIterations = 1000
         MaxFunctionEvaluations = @(inp) 100*inp.NumberOfVariables
         StepTolerance = 1e-12
+        FiniteDifferenceStepSize = eps( )^(1/3)
+        FiniteDifferenceType = 'forward'
         FunctionTolerance = 1e-12
         FunctionNorm = @(x) norm(x, 2)
         SpecifyObjectiveGradient = true
@@ -18,7 +19,7 @@ classdef Options
     
     
     methods (Static)
-        function solverOpt = processOptions(solverOpt, displayMode, varargin)
+        function [solverOpt, isGradient] = processOptions(solverOpt, isGradient, displayMode, varargin)
             FN_CHKOPTIMTBX = @(x) ...
                 isequal(x, 'lsqnonlin') || isequal(x, 'fsolve') ...
                 || isequal(x, @lsqnonlin) || isequal(x, @fsolve);
@@ -79,6 +80,17 @@ classdef Options
             elseif isa(solverOpt, 'function_handle')
                 % 'Solver=' @userFunction
                 % Do nothing.
+            end
+            
+            % High-level option Gradient= is used to prepare gradients within the
+            % solver.Block object.
+            if isequal(isGradient, @auto)
+                if isa(solverOpt, 'optim.options.SolverOptions') ...
+                    || isa(solverOpt, 'solver.Options')
+                    isGradient = solverOpt.SpecifyObjectiveGradient;
+                else
+                    isGradient = false;
+                end
             end
 
             return

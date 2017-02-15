@@ -1,4 +1,11 @@
 function [x, numericExitFlag] = lm(fnObjective, xInit, opt, varargin)
+% lm  Variant of Levenberg-Marquardt function solver algorithm
+%
+% Backend IRIS function.
+% No help provided.
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s';
 FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g';
@@ -8,9 +15,20 @@ STEP_DOWN = opt.StepDown;
 STEP_UP = opt.StepUp;
 MIN_STEP = 1e-8;
 MAX_STEP = 2;
+DIFF_STEP = opt.FiniteDifferenceStepSize;
 
 isStepDown = ~isequal(STEP_DOWN, false);
 isStepUp = ~isequal(STEP_UP, false);
+fnDiff = [ ];
+if ~opt.SpecifyObjectiveGradient
+    if strcmpi(opt.FiniteDifferenceType, 'forward')
+        fnDiff = @solver.algorithm.fdiff;
+    else
+        fnDiff = @solver.algorithm.cdiff;
+    end
+end
+
+%--------------------------------------------------------------------------
 
 xInit = xInit(:);
 nx = numel(xInit);
@@ -47,24 +65,32 @@ w = warning( );
 warning('off', 'MATLAB:nearlySingularMatrix');
 
 while true
-    [f, j] = fnObjective(x, varargin{:});
-    fnCount = fnCount + 1;
+    if opt.SpecifyObjectiveGradient
+        [f, j] = fnObjective(x, varargin{:});
+        fnCount = fnCount + 1;
+    else
+        [f] = fnObjective(x, varargin{:});
+        fnCount = fnCount + 1;
+        [j, addCount] = fnDiff(fnObjective, x, f, DIFF_STEP); %#ok<RHSFN>
+        fnCount = fnCount + addCount;
+    end
+    
     normFn = FN_NORM(f);
     
     if hasConverged( ) 
-        % Convergence.
+        % Convergence reached, exit.
         exitFlag = solver.ExitFlag.CONVERGED;
         break
     end
     
     if iter>maxIter
-        % Max iter reached.
+        % Max iter reached, exit.
         exitFlag = solver.ExitFlag.MAX_ITER;
         break
     end
     
     if fnCount>maxFunEvals
-        % Max fun evals reached.
+        % Max fun evals reached, exit.
         exitFlag = solver.ExitFlag.MAX_FUN_EVALS;
         break
     end
@@ -116,7 +142,7 @@ while true
     end
     
     if normFn>normFn0
-        % No further progress can be made.
+        % No further progress can be made, exit.
         exitFlag = solver.ExitFlag.NO_PROGRESS;
         break
     end

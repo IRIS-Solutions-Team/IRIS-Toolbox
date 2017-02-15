@@ -352,7 +352,7 @@ def.simulate = [
     ...
     'display', @auto, FN_VALID.Display
     'error', false, @islogicalscalar
-    'Gradient', true, @islogicalscalar
+    'Gradient', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
     'optimset', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x)
     'Solver', @auto, @(x) isequal(x, @auto) ...
     || (ischar(x) && any(strcmpi(x, {'qad', 'plain', 'lsqnonlin', 'IRIS', 'fsolve'}))) ...
@@ -382,7 +382,6 @@ def.simulate = [
     ...
     ... Global nonlinear simulations
     ...
-    'AlmostLinear', false, @islogicalscalar
     'chksstate', true, FN_VALID.chksstate
     'ForceRediff', false, @islogicalscalar
     'InitEndog', 'Dynamic', @(x) ischar(x) && any(strcmpi(x, {'Dynamic', 'Static'})) 
@@ -451,7 +450,6 @@ def.SteadyLinear = {
 def.SteadyNonlinear = [
     swap
     {
-    'AlmostLinear', false, @islogicalscalar
     'blocks, block', true, @islogicalscalar
     'fix', { }, @(x) isempty(x) || iscellstr(x) || ischar(x)
     'fixallbut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x)
@@ -469,7 +467,7 @@ def.SteadyNonlinear = [
     'resetinit', [ ], @(x) isempty(x) || (isnumericscalar(x) && isfinite(x))
     'Reuse', false, @islogicalscalar
     'Solver', 'IRIS', @(x) ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle')))
-    'Gradient', true, @islogicalscalar
+    'Gradient', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
     'Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all)
     'Warning', true, @islogicalscalar
     'zeromultipliers', false, @islogicalscalar
