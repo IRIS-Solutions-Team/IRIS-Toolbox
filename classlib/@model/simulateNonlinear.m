@@ -25,7 +25,8 @@ if isequal(vecAlt, @all)
 end
 nVecAlt = length(vecAlt);
 
-opt.Solver = solver.Options.processOptions(opt.Solver, displayMode);
+[opt.Solver, opt.Gradient] = ...
+    solver.Options.processOptions(opt.Solver, opt.Gradient, displayMode);
 blz = prepareBlazer(this, 'Dynamic', opt);
 run(blz);
 prepareBlocks(blz, opt);
