@@ -17,6 +17,7 @@ ixd = this.Equation.Type==TYPE(3);
 ixl = this.Equation.Type==TYPE(4);
 ixu = this.Equation.Type==TYPE(5);
 ixmt = ixm | ixt;
+ixdl = ixd | ixl;
 
 % Extract the converted equations into local variables to speed up the
 % executiona considerably. This is a Matlab issue.
@@ -24,7 +25,7 @@ ixmt = ixm | ixt;
 % Dtrends, Links, Revisions
 %---------------------------
 eqtn = this.Equation.Dynamic;
-for i = find(ixd)
+for i = find(ixdl)
     eqtn{i} = vectorize(eqtn{i});
 end
 eqtn(ixd) = convert(eqtn(ixd), this.PREAMBLE_DTREND, str2func([this.PREAMBLE_DTREND, '0']));
