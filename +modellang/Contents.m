@@ -43,12 +43,11 @@
 % * [`!reporting_equations`](modellang/reportingequations) - Block of reporting equations.
 % 
 %
-% Linearised and log-linearised variables
+% Linearized and log-linearised variables
 % ========================================
 % 
 % * [`!log_variables`](modellang/logvariables) - List of log-linearised variables.
 % * [`!all_but`](modellang/allbut) - Inverse list of log-linearised variables.
-% * [`<...>`](modellang/regexpression) - Regular expression in log variable list.
 %
 %
 % Special operators
@@ -81,7 +80,7 @@
 % ===========================
 % 
 % * [`!substitutions`](modellang/substitutions) - Define text substitutions.
-% * [`$[...]$`](modellang/pseudosubs) - Pseudosubstitutions.
+% * [`<...>`](modellang/interp) - Interpolation.
 % * [`!import`](modellang/import) - Include the content of another model file.
 % * [`!export`](modellang/export) - Create exportable file to be saved in working directory.
 % * [`!function`](modellang/function) - Create exportable m-file function in working directory.
