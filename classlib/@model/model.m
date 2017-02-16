@@ -622,6 +622,9 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
                 end
                 opt.Assign.SteadyOnly = opt.sstateonly;
                 opt.Assign.Linear = opt.linear;
+                % Bkw compatibility:
+                opt.Assign.sstateonly = opt.sstateonly;
+                opt.Assign.linear = opt.linear;
                 for iArg = 1 : 2 : length(varargin)
                     opt.Assign.(varargin{iArg}) = varargin{iArg+1};
                 end
