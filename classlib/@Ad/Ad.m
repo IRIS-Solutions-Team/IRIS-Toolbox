@@ -74,7 +74,7 @@ classdef Ad
         
         function this = uminus(this)
             this.Input = Ad.lowUminus(this.Input);
-            nd = length(this.Diff);
+            nd = numel(this.Diff);
             for i = 1 : nd
                 this.Diff{i} =  Ad.lowUminus(this.Diff{i});
             end
@@ -90,13 +90,13 @@ classdef Ad
             end
             this = TEMPLATE;
             if isnumeric(a)
-                nd = length(b.Diff);
+                nd = numel(b.Diff);
                 a = Ad.createNumber(a, nd);
             elseif isnumeric(b)
-                nd = length(a.Diff);
+                nd = numel(a.Diff);
                 b = Ad.createNumber(b, nd);
             else
-                nd = length(a.Diff);
+                nd = numel(a.Diff);
             end
             this.Input = Ad.lowPlus(a.Input, b.Input);
             this.Diff = cell(1, nd);
@@ -115,13 +115,13 @@ classdef Ad
             end
             this = TEMPLATE;
             if isnumeric(a)
-                nd = length(b.Diff);
+                nd = numel(b.Diff);
                 a = Ad.createNumber(a, nd);
             elseif isnumeric(b)
-                nd = length(a.Diff);
+                nd = numel(a.Diff);
                 b = Ad.createNumber(b, nd);
             else
-                nd = length(a.Diff);
+                nd = numel(a.Diff);
             end
             this.Input = Ad.lowMinus(a.Input, b.Input);
             this.Diff = cell(1, nd);
@@ -140,13 +140,13 @@ classdef Ad
             end
             this = TEMPLATE;
             if isnumeric(a)
-                nd = length(b.Diff);
+                nd = numel(b.Diff);
                 a = Ad.createNumber(a, nd);
             elseif isnumeric(b)
-                nd = length(a.Diff);
+                nd = numel(a.Diff);
                 b = Ad.createNumber(b, nd);
             else
-                nd = length(a.Diff);
+                nd = numel(a.Diff);
             end
             this.Input = Ad.lowTimes(a.Input, b.Input);
             this.Diff = cell(1, nd);
@@ -177,13 +177,13 @@ classdef Ad
             isna = isnumeric(a);
             isnb = isnumeric(b);
             if isna
-                nd = length(b.Diff);
+                nd = numel(b.Diff);
                 a = Ad.createNumber(a, nd);
             elseif isnb
-                nd = length(a.Diff);
+                nd = numel(a.Diff);
                 b = Ad.createNumber(b, nd);
             else
-                nd = length(a.Diff);
+                nd = numel(a.Diff);
             end
             this.Input = Ad.lowDivide(a.Input, b.Input);
             this.Diff = cell(1, 0);
@@ -245,13 +245,13 @@ classdef Ad
             isna = isnumeric(a);
             isnb = isnumeric(b);
             if isna
-                nd = length(b.Diff);
+                nd = numel(b.Diff);
                 a = Ad.createNumber(a, nd);
             elseif isnb
-                nd = length(a.Diff);
+                nd = numel(a.Diff);
                 b = Ad.createNumber(b, nd);
             else
-                nd = length(a.Diff);
+                nd = numel(a.Diff);
             end
             this.Input = Ad.lowPower(a.Input, b.Input);
             this.Diff = cell(1, nd);
@@ -311,7 +311,7 @@ classdef Ad
             this.Input = Ad.lowFunc1('sqrt', a.Input);
             xh = Ad.STRUCT;
             xh.Expression = 0.5;
-            nd = length(a.Diff);
+            nd = numel(a.Diff);
             this.Diff = cell(1, nd);
             for i = 1 : nd
                 this.Diff{i} = Ad.lowTimes( ...
@@ -333,7 +333,7 @@ classdef Ad
             end
             this = TEMPLATE;
             this.Input = Ad.lowFunc1('log', a.Input);
-            nd = length(a.Diff);
+            nd = numel(a.Diff);
             this.Diff = cell(1, nd);
             for i = 1 : nd
                 this.Diff{i} = Ad.lowTimes( ...
@@ -353,9 +353,9 @@ classdef Ad
             end
             this = TEMPLATE;
             this.Input = Ad.lowFunc1('exp', a.Input);
-            nd = length(a.Diff);
+            nd = numel(a.Diff);
             this.Diff = cell(1, nd);
-            for i = 1: nd
+            for i = 1 : nd
                 this.Diff{i} = Ad.lowTimes( ...
                     Ad.lowFunc1('exp', a.Input), ...
                     a.Diff{i} ...
@@ -371,21 +371,22 @@ classdef Ad
             if ~isa(TEMPLATE, 'Ad')
                 TEMPLATE = Ad( );
             end
+            nd = numel(x.Diff);
             n = numel(varargin);
             for i = 1 : n
                 if isnumeric(varargin{i})
-                    varargin{i} = Ad.createNumber(varargin{i});
+                    varargin{i} = Ad.createNumber(varargin{i}, nd);
                 end
             end
             try
                 mu = varargin{1};
             catch
-                mu = Ad.createNumber(0);
+                mu = Ad.createNumber(0, nd);
             end
             try
                 sgm = varargin{2};
             catch
-                sgm = Ad.createNumber(1);
+                sgm = Ad.createNumber(1, nd);
             end
             this = TEMPLATE;
             this.Input = Ad.lowFuncN('normpdf', x, varargin{:});
@@ -419,7 +420,7 @@ classdef Ad
             end
             this = TEMPLATE;
             this.Input = Ad.lowFuncN('normcdf', x, varargin{:});
-            nd = length(x.Diff);
+            nd = numel(x.Diff);
             this.Diff = cell(1, nd);
             if n==0
                 for i = 1 : nd
@@ -521,7 +522,7 @@ classdef Ad
                     d = sprintf('%.16g', d);
                 end
             else
-                nd = length(y.Diff);
+                nd = numel(y.Diff);
                 d = cell(lsWrt);
                 for i = 1 : nd
                     d{i} = y.Diff{i}.Expression;
@@ -841,7 +842,7 @@ classdef Ad
             nd = NaN;
             for i = 1 : n
                 if isa(varargin{i}, 'Ad')
-                    nd = length(varargin{i}.Diff);
+                    nd = numel(varargin{i}.Diff);
                     break
                 end
             end
