@@ -74,7 +74,7 @@ classdef For < parser.control.Control
             import parser.control.For;
             forCode = strtrim(forCode);
             % Replace pseudosubstitutions in between !for and !do.
-            forCode = parser.Pseudosubs.parse(forCode, assigned);
+            forCode = parser.Interp.parse(forCode, assigned);
             tkn = regexp(forCode, For.FOR_PATTERN, 'tokens', 'once');
             if ~isempty(tkn)
                 controlName = tkn{1};
