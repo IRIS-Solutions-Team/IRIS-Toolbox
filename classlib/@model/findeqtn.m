@@ -1,11 +1,10 @@
 function varargout = findeqtn(this, varargin)
 % findeqtn  Find equations by their labels.
 %
-%
 % Syntax
 % =======
 %
-%     [eqn, eqn, ...] = findeqtn(M, search, search, ...)
+%     [found, found, ...] = findeqtn(M, search, search, ...)
 %
 %
 % Input arguments
@@ -14,17 +13,18 @@ function varargout = findeqtn(this, varargin)
 % * `m` [ model ] - Model object in which the equations will be searched
 % for.
 %
-% * `search` [ char | rexp ] - Equation label that will be searched for, or
-% regular expression that will be matched against equation labels in model
-% `m`.
+% * `search` [ char | rexp ] - Equation labels that will be searched for,
+% or rexp objects (regular expressions) against which the labels will be
+% matched.
 %
 %
 % Output arguments
 % =================
 %
-% * `eqn` [ char ] - First equation found with the label `search` (when
-% `search is a character string) or cell array of equations (when `search`
-% is a rexp object).
+% * `found` [ char | cellstr ] - If `search` is a text string, `found` is
+% the first equation found with the label `search`; if `search` is a rexp
+% object (regular expression), `found` is a cell array of equations matched
+% successfully against the regular expression.
 %
 %
 % Description
@@ -44,11 +44,6 @@ if nargin<2
     return
 end
 
-[ varargout{1:numel(varargin)} ] = myfind(this, 'findeqtn', varargin{:});
-for i = 1 : numel(varargout)
-    if iscellstr(varargout{i})
-        varargout{i} = varargout{i}.';
-    end
-end
+[ varargout{1:numel(varargin)} ] = find(this, 'eqn', varargin{:});
 
 end

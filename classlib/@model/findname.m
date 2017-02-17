@@ -1,33 +1,35 @@
-function varargout = findname(This,varargin)
-% findname  Find names of variables, shocks, or parameters by their descriptors.
+function varargout = findname(this, varargin)
+% findname  Find names of variables, shocks, or parameters by their labels.
 %
 % Syntax
 % =======
 %
-%     [Name,Name,...] = findname(M,Desc,Desc,...)
-%     [List,List,...] = findname(M,'-rexp',Rexp,Rexp,...)
+%     [found, found, ...] = findfound(m, search, search, ...)
+%
 %
 % Input arguments
 % ================
 %
-% * `M` [ model ] - Model object in which the names will be searched for.
+% * `m` [ model ] - Model object in which names will be searched for by
+% their labels.
 %
-% * `Desc` [ char ] - Variable, shock, or parameter descriptors that will
-% be searched for.
+% * `search` [ char | rexp ] - Labels of variables, shocks, or parameters that
+% will be searched for, or rexp objects (regular expressions) against which
+% the labels will be matched.
 %
-% * `Rexp` [ char ] - Regular expressions that will be matched against
-% variable, shock, and parameter descriptors.
 %
 % Output arguments
 % =================
 %
-% * `Name` [ char ] - First name found with the descriptor `Desc`.
+% * `found` [ char | cellstr ] - If `search` is a text string, `found` is
+% the first model name found with the label `search`; if `search` is a
+% rexp object (regular expression), `found` is a cell array of model names
+% matched successfully against the regular expression.
 %
-% * `List` [ cellstr ] - List of names whose descriptors match the regular
-% expression `Rexp`.
 %
 % Description
 % ============
+%
 %
 % Example
 % ========
@@ -38,10 +40,10 @@ function varargout = findname(This,varargin)
 
 %--------------------------------------------------------------------------
 
-if nargin < 2
+if nargin<2
     return
 end
 
-[varargout{1:nargout}] = myfind(This,'findname',varargin{:});
+[varargout{1:nargout}] = find(this, 'qty', varargin{:});
 
 end

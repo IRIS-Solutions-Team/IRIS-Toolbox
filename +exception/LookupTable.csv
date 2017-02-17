@@ -110,6 +110,7 @@ Model:ZeroVarianceFactor,Common variance factor estimate is zero because all obs
 Obsolete:KeywordUseInstead,"The keyword %s is obsolete, and will be removed from IRIS in a future version. Use %s instead."
 Obsolete:ObsoleteMatFile,"The model object in this MAT file was saved by an older, incompatible IRIS. It will no be possible to load it in a future version. Rebuild the model object from its model file."
 Obsolete:OptionUseInstead,"The option %s= is obsolete, and will be removed from IRIS in a future version. Use %s= instead."
+Obsolete:RexpFlag,"The '-rexp' flag is not supported any more; use a rexp( ) wrapper instead"
 Options:FailsValidation,Value assigned to option %s= fails validation: %s
 Options:InvalidObsolete,Invalid or obsolete option: %s=
 Pairing:InvalidNamesInDynamicAutoexog,This is not a valid pair of names for dynamic autoexog: %s 
