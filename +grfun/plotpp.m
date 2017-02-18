@@ -380,7 +380,6 @@ elseif length(nSub) == 1
 end
 
 total = prod(nSub);
-Fig = figure( );
 Ax = nan(1,nList);
 Tit = nan(1,nList);
 pos = 1;
@@ -389,6 +388,7 @@ figureOpt = { };
 axesOpt = { };
 titleOpt = { };
 doGraphicsOpt( );
+Fig = figure(figureOpt{:});
 
 for i = 1 : nList
     if pos > total

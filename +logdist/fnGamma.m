@@ -23,7 +23,7 @@ switch lower(varargin{1})
     case {'proper', 'pdf'}
         y(ixPositive) = x.^(a-1).*exp(-x/b)/(b^a*gamma(a));
     case 'info'
-        y(ixPositive) = -(a - 1)/x.^2;
+        y(ixPositive) = (a - 1)/x.^2;
     case {'a', 'location'}
         y = a;
     case {'b', 'scale'}

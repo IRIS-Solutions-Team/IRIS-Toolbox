@@ -66,7 +66,11 @@ if this.IsLinear
         nPth = 1;
     end
     if isstruct(opt.sstate)
-        this = steadyLinear(this, iAlt, opt);
+        steady = struct;        
+        steady.Solve = 0;
+        steady.Warning = 1;
+        this = steadyLinear(this, steady, iAlt);
+%         this = steadyLinear(this, iAlt, opt);
         if needsRefresh
             this = refresh(this, iAlt);
         end

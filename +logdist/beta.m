@@ -66,7 +66,7 @@ switch lower(varargin{1})
     case {'proper','pdf'}
         Y(inx) = x.^(a-1).*(1-x).^(b-1)/beta(a,b);
     case 'info'
-        Y(inx) = -(b - 1)./(x - 1).^2 - (a - 1)./x.^2;
+        Y(inx) = (b - 1)./(x - 1).^2 + (a - 1)./x.^2;
     case {'a','location'}
         Y = a;
     case {'b','scale'}

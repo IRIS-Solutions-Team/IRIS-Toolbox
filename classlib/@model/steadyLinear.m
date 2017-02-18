@@ -55,7 +55,7 @@ ixSolution = true(1, nAlt);
 ixSolution(vecAlt) = ~ixNanSolution(vecAlt);
 if isWarn && any(~ixSolution)
     throw( ...
-        exception.Base('Model:CannotLinearSteady', 'warning'), ...
+        exception.Base('Model:CannotSteadyLinear', 'warning'), ...
         exception.Base.alt2str(~ixSolution) ...
         ); %#ok<GTARG>
 end
@@ -65,6 +65,7 @@ ixDiffStat = true(1, nAlt);
 for iAlt = vecAlt
     lvl = nan(1, nQty);
     grw = zeros(1, nQty);
+    isDiffStat = false;
     if ixSolution(iAlt)
         [lvl, grw, isDiffStat] = getSstate( );
         if any(ixLog)
