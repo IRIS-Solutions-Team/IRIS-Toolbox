@@ -71,7 +71,7 @@ end
 lsRedParam([ ]) = { };
 if opt.chkparam
     incParam = any(incid(:, ixp), 1);
-    lsRedParam = this.Quantity.Type(ixp);
+    lsRedParam = this.Quantity.Name(ixp);
     lsRedParam = lsRedParam(~incParam);
 end
 

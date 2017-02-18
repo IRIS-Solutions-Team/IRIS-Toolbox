@@ -754,7 +754,7 @@ nPer = size(S.y1, 2);
 lastObs = S.lastObs;
 
 % Pre-allocation.
-if S.retSmoothMse
+if S.retFilterMse
     S.Pb1 = nan(nb, nb, nPer);
 end
 S.Db1 = nan(nb, nPer); % Diagonal of Pb2.
