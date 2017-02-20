@@ -5,34 +5,34 @@ function [lsRedShock, lsRedParam] = chkredundant(this, varargin)
 % Syntax
 % =======
 %
-%     [RedShocks,RedParams] = chkredundant(M)
+%     [redShocks, redParams] = chkredundant(m)
 %
 %
 % Input arguments
 % ================
 %
-% * `M` [ model ] - Model object.
+% * `m` [ model ] - Model object.
 %
 %
 % Output arguments
 % =================
 %
-% * `RedShocks` [ cellstr ] - List of shocks that do not occur in any model
+% * `redShocks` [ cellstr ] - List of shocks that do not occur in any model
 % equation.
 %
-% * `RedParams` [ cellstr ] - List of parameters that do not occur in any
+% * `redParams` [ cellstr ] - List of parameters that do not occur in any
 % model equation.
 %
 %
 % Options
 % ========
 %
-% * `'warning='` [ *`true`* | `false` ] - Throw a warning listing redundant
+% * `'Warning='` [ *`true`* | `false` ] - Throw a warning listing redundant
 % shocks and parameters.
 %
-% * `'chkShocks='` [ *`true`* | `false` ] - Check for redundant shocks.
+% * `'ChkShocks='` [ *`true`* | `false` ] - Check for redundant shocks.
 %
-% * `'chkParams='` [ *`true`* | `false` ] - Check for redundant parameters.
+% * `'ChkParams='` [ *`true`* | `false` ] - Check for redundant parameters.
 %
 %
 % Description
@@ -71,18 +71,22 @@ end
 lsRedParam([ ]) = { };
 if opt.chkparam
     incParam = any(incid(:, ixp), 1);
-    lsRedParam = this.Quantity.Type(ixp);
+    lsRedParam = this.Quantity.Name(ixp);
     lsRedParam = lsRedParam(~incParam);
 end
 
 if opt.warning
     if ~isempty(lsRedShock)
-        throw( exception.Base('Model:REDUNDANT_SHOCK', 'warning'), ...
-            lsRedShock{:} );
+        throw( ...
+            exception.Base('Model:REDUNDANT_SHOCK', 'warning'), ...
+            lsRedShock{:} ...
+            );
     end
     if ~isempty(lsRedParam)
-        throw( exception.Base('Model:REDUNDANT_PARAMETER', 'warning'), ...
-            lsRedParam{:} );
+        throw( ...
+            exception.Base('Model:REDUNDANT_PARAMETER', 'warning'), ...
+            lsRedParam{:} ...
+            );
     end
 end
 
