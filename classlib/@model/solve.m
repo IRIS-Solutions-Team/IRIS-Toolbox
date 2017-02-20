@@ -11,7 +11,7 @@ function [this, nPath, eig_] = solve(this, varargin)
 % Input arguments
 % ================
 %
-% * `M` [ model ] - Paramterised model object. Non-linear models must also
+% * `M` [ model ] - Paramterised model object. Nonlinear models must also
 % have a steady state values assigned.
 %
 %
@@ -24,31 +24,27 @@ function [this, nPath, eig_] = solve(this, varargin)
 % Options
 % ========
 %
-% * `'expand='` [ numeric | *`0`* | `NaN` ] - Number of periods ahead up to
+% * `'Expand='` [ numeric | *`0`* | `NaN` ] - Number of periods ahead up to
 % which the model solution will be expanded; if `NaN` the matrices needed
 % to support solution expansion are not calculated and stored at all and
 % the model cannot be used later in simulations or forecasts with
 % anticipated shocks or plans.
 %
-% * `'eqtn='` [ *`all`* | `'measurement'` | `'transition'` ] - Update
+% * `'Eqtn='` [ *`all`* | `'measurement'` | `'transition'` ] - Update
 % existing solution in the measurement block, or the transition block, or
 % both.
 %
-% * `'error='` [ `true` | *`false`* ] - Throw an error if no unique stable
+% * `'Error='` [ `true` | *`false`* ] - Throw an error if no unique stable
 % solution exists; if `false`, a warning message only will be displayed.
 %
-% * `'linear='` [ *`@auto`* | `true` | `false` ] - Solve the model using a
-% linear approach, i.e. differentiating around zero and not the currently
-% assigned steady state.
-%
-% * `'progress='` [ `true` | *`false`* ] - Display progress bar in the
+% * `'Progress='` [ `true` | *`false`* ] - Display progress bar in the
 % command window.
 %
-% * `'select='` [ *`true`* | `false` ] - Automatically detect which
+% * `'Select='` [ *`true`* | `false` ] - Automatically detect which
 % equations need to be re-differentiated based on parameter changes from
 % the last time the system matrices were calculated.
 %
-% * `'warning='` [ *`true`* | `false` ] - Display warnings produced by this
+% * `'Warning='` [ *`true`* | `false` ] - Display warnings produced by this
 % function.
 %
 %
@@ -106,7 +102,7 @@ end
 
 % Calculate solutions for all parameterisations, and store expansion
 % matrices.
-[this, nPath, nanDeriv, sing2, BK] = solveFirstOrder(this, Inf, opt);
+[this, nPath, nanDeriv, sing2, bk] = solveFirstOrder(this, Inf, opt);
 
 if (opt.warning || opt.error) && any(nPath~=1)
     throwErrWarn( );
@@ -126,7 +122,7 @@ return
         else
             msgFunc = @(varargin) utils.warning(varargin{:});
         end
-        [body, args] = solveFail(this, nPath, nanDeriv, sing2, BK);
+        [body, args] = solveFail(this, nPath, nanDeriv, sing2, bk);
         msgFunc('model:solve', body, args{:});
     end
 end

@@ -259,15 +259,6 @@ return
         % Check for sstate references in wrong places.
         func = @(c) ~cellfun(@(x) isempty(strfind(x, '&')), c);
         ixSstateRef = func(eqn.Dynamic) | func(eqn.Steady);
-        % Not allowed in linear models.
-        if this.IsLinear
-            if any(ixSstateRef)
-                throw( ...
-                    exception.ParseTime('Model:Postparser:SSTATE_REF_IN_LINEAR', 'warning'), ...
-                    eqn.Input{ixSstateRef} ...
-                );
-            end
-        end
         % Not allowed in deterministic trends.
         inx = ixSstateRef & eqn.Type==TYPE(3);
         if any(inx)

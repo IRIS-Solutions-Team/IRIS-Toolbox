@@ -362,6 +362,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
     
     
     methods (Access=protected, Hidden)
+        varargout = affected(varargin)
         varargout = build(varargin)
         varargout = chkStructureAfter(varargin)
         varargout = chkStructureBefore(varargin)
@@ -372,7 +373,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
         varargout = getXRange(varargin)
         varargout = kalmanFilterRegOutp(varargin)
         varargout = lp4yxe(varargin)
-        varargout = myaffectedeqtn(varargin)
         varargout = myanchors(varargin)
         varargout = mychksstate(varargin)
         varargout = myd2s(varargin)
@@ -380,7 +380,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
         varargout = myeqtn2afcn(varargin)
         varargout = myfind(varargin)
         varargout = myforecastswap(varargin)
-        varargout = mynamepattrepl(varargin)
         varargout = mysimulateper(varargin)
         varargout = mysspace(varargin)
         varargout = operateLock(varargin)

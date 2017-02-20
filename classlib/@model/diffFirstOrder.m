@@ -11,10 +11,6 @@ TYPE = @int8;
 
 isNanDeriv = nargout > 2;
 
-if isequal(opt.linear, @auto)
-    opt.linear = this.IsLinear;
-end
-
 %--------------------------------------------------------------------------
 
 % Copy last computed derivatives.
@@ -59,12 +55,12 @@ if any(eqSelect)
         calcNumDeriv( );
     end
     
-    % Reset the add-factors in non-linear equations to 1.
+    % Reset the add-factors in nonlinear equations to 1.
     tempEye = -eye(sum(this.Equation.Type<=2));
     deriv.n(eqSelect, :) = tempEye(eqSelect, this.Equation.IxHash);
     
-    % Normalise derivatives by largest number in nonlinear models.
-    if ~opt.linear && opt.normalize
+    % Normalize derivatives by largest number in nonlinear models.
+    if ~this.IsLinear && opt.normalize
         for iEq = find(eqSelect)
             ix = deriv.f(iEq, :)~=0;
             if any(ix)
@@ -85,7 +81,7 @@ return
         maxT = nsh - t0;
         tVec = minT : maxT;
         
-        if opt.linear
+        if this.IsLinear
             init = zeros(nName, 1);
             init(ixp) = real(asgn(ixp));
             init = repmat(init, 1, nsh);
@@ -113,7 +109,7 @@ return
         end
         
         % References to steady levels; can be used only in nonlinear setup.
-        if opt.linear
+        if this.IsLinear
             L = [ ];
         else
             L = init;
@@ -143,7 +139,7 @@ return
             end
             
             % Constant in linear models.
-            if opt.linear
+            if this.IsLinear
                 deriv.c(iiEq) = fn(init, t0, L);
             end
             
@@ -161,7 +157,7 @@ return
     
     
     function calcSymbDeriv( )
-        if opt.linear
+        if this.IsLinear
             x = zeros(nName, 1);
             x(ixLog) = 1;
             x(ixp) = real(asgn(ixp));
@@ -212,7 +208,7 @@ return
         end
         
         % Evaluate all equations at x=0, log(x)=0 to get constant terms.
-        if opt.linear
+        if this.IsLinear
             fn = str2func([this.PREAMBLE_DYNAMIC, '[', this.Equation.Dynamic{ixSymb}, ']', ]);
             deriv.c(ixSymb) = fn(x, t0, L);
         end

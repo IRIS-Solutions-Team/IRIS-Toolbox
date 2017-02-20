@@ -517,12 +517,21 @@ switch lower(query)
     case 'ne'
         answ = sum(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
         
-        
-        
+
+
+
+    case {'islinear', 'linear'}
+        answ = this.IsLinear;
+
+
+
         
     case {'lastsyst', 'lastsystem'}
         answ = this.LastSystem;
         
+
+
+
     otherwise
         flag = false;
         

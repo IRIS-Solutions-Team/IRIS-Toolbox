@@ -111,7 +111,7 @@ for iAlt = vecAlt(:).'
     end
     
     if nPath(iAlt)==1
-        if ~opt.linear
+        if ~this.IsLinear
             % Steady-state levels needed in doTransition( ) and
             % doMeasurement( ).
             isDelog = false;
@@ -313,7 +313,7 @@ return
     
     function Flag = transitionEquations( )
         Flag = true;
-        isNonlin = any(ixh);
+        isHash = any(ixh);
         S11 = SS(1:nb, 1:nb);
         S12 = SS(1:nb, nb+1:end);
         S22 = SS(nb+1:end, nb+1:end);
@@ -332,9 +332,9 @@ return
             C = QQ*syst.K{2};
             % Effect of transition shocks.
             D = QQ*full(syst.E{2});
-            if isNonlin
+            if isHash
                 % Effect of add-factors in transition equations earmarked
-                % for non-linear simulations.
+                % for nonlinear simulations.
                 N = QQ*syst.N{2};
             end
         else
@@ -343,9 +343,9 @@ return
             C = QQ*syst.K{2}(eqOrd, :);
             % Effect of transition shocks.
             D = QQ*full(syst.E{2}(eqOrd, :));
-            if isNonlin
+            if isHash
                 % Effect of add-factors in transition equations earmarked
-                % for non-linear simulations.
+                % for nonlinear simulations.
                 N = QQ*syst.N{2}(eqOrd, :);
             end
         end
@@ -354,7 +354,7 @@ return
         C2 = C(nb+1:end, 1);
         D1 = D(1:nb, :);
         D2 = D(nb+1:end, :);
-        if isNonlin
+        if isHash
             N1 = N(1:nb, :);
             N2 = N(nb+1:end, :);
         end
@@ -370,9 +370,9 @@ return
             return
         end
         
-        % Steady state for non-linear models. They are needed in non-linear
+        % Steady state for nonlinear models. They are needed in nonlinear
         % models to back out the constant vectors.
-        if ~opt.linear
+        if ~this.IsLinear
             ssA = U \ ssXb;
             if any(isnan(ssA(:)))
                 Flag = false;
@@ -394,7 +394,7 @@ return
             return
         end
         
-        if isNonlin
+        if isHash
             Yu = -T22\N2;
             if any(isnan(Yu(:)))
                 Flag = false;
@@ -402,7 +402,7 @@ return
             end
         end
         
-        if opt.linear
+        if this.IsLinear
             Ku = -(S22+T22)\C2;
         else
             Ku = zeros(nf, 1);
@@ -432,7 +432,7 @@ return
             return
         end
         
-        if isNonlin
+        if isHash
             Ya = -Xa0*Yu - S11\N1;
             if any(isnan(Ya(:)))
                 Flag = false;
@@ -445,7 +445,7 @@ return
             Flag = false;
             return
         end
-        if opt.linear
+        if this.IsLinear
             Ka = -(Xa0 + Xa1)*Ku - S11\C1;
         else
             Ka = ssA(:, 2) - Ta*ssA(:, 1);
@@ -461,10 +461,10 @@ return
         Tf = Z11;
         Xf = Z11*G + Z12;
         Rf = Xf*Ru;
-        if isNonlin
+        if isHash
             Yf = Xf*Yu;
         end
-        if opt.linear
+        if this.IsLinear
             Kf = Xf*Ku;
         else
             Kf = ssXf(:, 2) - Tf*ssA(:, 1);
@@ -480,7 +480,7 @@ return
         T = [Tf;Ta];
         K = [Kf;Ka];
         R = [Rf;Ra];
-        if isNonlin
+        if isHash
             Y = [Yf;Ya];
         end
         
@@ -488,7 +488,7 @@ return
         this.solution{2}(:, 1:ne, iAlt) = R;
         this.solution{3}(:, :, iAlt) = K;
         this.solution{7}(:, :, iAlt) = U;
-        if isNonlin
+        if isHash
             this.solution{8}(:, 1:nh, iAlt) = Y;
         end
         
@@ -511,7 +511,7 @@ return
             this.Expand{3}(:, :, iAlt) = Ru;
             this.Expand{4}(:, :, iAlt) = J;
             this.Expand{5}(:, :, iAlt) = Jk;
-            if isNonlin
+            if isHash
                 this.Expand{6}(:, :, iAlt) = Yu;
             end
         end
@@ -544,7 +544,7 @@ return
                 Flag = false;
                 return
             end
-            if opt.linear
+            if this.IsLinear
                 D = full(-syst.A{1}\syst.K{1});
             else
                 D = ssY - Zb*ssXb(:, 2);

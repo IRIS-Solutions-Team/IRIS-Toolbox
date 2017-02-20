@@ -28,10 +28,4 @@ if ~isempty( strfind(mode, 'fast') )
     opt.fast = true;
 end
 
-if isequal(opt.linear, @auto)
-    opt.linear = this.IsLinear;
-elseif opt.linear~=this.IsLinear
-    opt.select = false;
-end
-
 end

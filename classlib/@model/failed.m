@@ -1,22 +1,25 @@
-function varargout ...
-    = failed(This,SstateOk,ChkSstateOk,SstateErrList,NPath,NanDerv,Sing2)
+function varargout = failed(this, okSstate, okChkSstate, lsSstateErr, ...
+    nPath, nanDerv, sing2, bk)
 % failed  Give access to the last failed model object.
 %
 % Syntax
 % =======
 %
-%     M = model.failed( )
+%     m = model.failed( )
+%
 %
 % Output arguments
 % =================
 %
-% * `M` [ numeric ] - The model object with the parameterisation that
+% * `m` [ numeric ] - The model object with the parameterisation that
 % failed to converge on steady state or to solve during one of the
 % following functions: [`model/estimate`](model/estimate),
 % [`model/diffloglik`](model/diffloglik), [`model/fisher`](model/fisher).
 %
+%
 % Description
 % ============
+%
 %
 % Example
 % ========
@@ -27,27 +30,24 @@ function varargout ...
 
 %--------------------------------------------------------------------------
 
-% TODO: Write a separate function to produce the core of the message and
-% share it with `model/solve`.
-
 persistent STORE;
 
-if nargin == 0
+if nargin==0
     varargout{1} = STORE;
     return
 end
 
-STORE = This;
+STORE = this;
 
-if ~SstateOk
+if ~okSstate
     c = utils.error('model:failed', ...
         'Steady state failed to converge on current parameters.');
-elseif ~ChkSstateOk
+elseif ~okChkSstate
     c = utils.error('model:failed', ...
         'Steady-state error in this equation: ''%s''.', ...
-        SstateErrList{:});
+        lsSstateErr{:});
 else
-    [body,args] = solveFail(This,NPath,NanDerv,Sing2);
+    [body, args] = solveFail(this, nPath, nanDerv, sing2, bk);
     c = utils.error('model:failed',body,args{:});
 end
 

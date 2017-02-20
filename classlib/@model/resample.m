@@ -1,7 +1,6 @@
 function Outp = resample(varargin)
 % resample  Resample from the model implied distribution.
 %
-%
 % Syntax
 % =======
 %

@@ -143,14 +143,13 @@ for eq = first : posLossEqtn
             sign = '';
         end
         new.Input{newEq} = [d{j}, sign, new.Input{newEq}];
-        if ~this.IsLinear
-            % Earmark the derivative for non-linear simulation if at least one equation
-            % in it is nonlinear and the derivative is nonzero. The derivative of the
-            % loss function is supposed to be treated as nonlinear if the loss function
-            % itself has been introduced by min#( ) and not min( ).
-            isNonlin = equation.IxHash(eq) && ~isequal(dEqtn, '0');
-            new.IxHash(newEq) = new.IxHash(newEq) || isNonlin;
-        end
+
+        % Earmark the derivative for non-linear simulation if at least one equation
+        % in it is nonlinear and the derivative is nonzero. The derivative of the
+        % loss function is supposed to be treated as nonlinear if the loss function
+        % itself has been introduced by min#( ) and not min( ).
+        isNonlin = equation.IxHash(eq) && ~isequal(dEqtn, '0');
+        new.IxHash(newEq) = new.IxHash(newEq) || isNonlin;
         
     end
 end
@@ -175,8 +174,6 @@ new.Dynamic(pos) = strcat(new.Dynamic(pos), ';');
 new.Steady(pos) = strcat(new.Steady(pos), ';');
 
 % Replace = with #= in nonlinear human equations.
-if ~this.IsLinear
-    new.Input(new.IxHash) = strrep(new.Input(new.IxHash), '=0;', '=#0;');
-end
+new.Input(new.IxHash) = strrep(new.Input(new.IxHash), '=0;', '=#0;');
     
 end
