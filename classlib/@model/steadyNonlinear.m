@@ -9,20 +9,24 @@ function  [this, ixOk] = steadyNonlinear(this, blz, vecAlt)
 
 PTR = @int16;
 
-ixLog = blz.IxLog;
-ixZero = blz.IxZero;
-
 nAlt = length(this);
 if isequal(vecAlt, Inf) || isequal(vecAlt, @all)
     vecAlt = 1 : nAlt;
 end
+ixOk = true(1, nAlt);
+
+if isequal(blz, false)
+    return
+end
+
+ixLog = blz.IxLog;
+ixZero = blz.IxZero;
 
 %--------------------------------------------------------------------------
 
 nQty = length(this.Quantity);
 nBlk = numel(blz.Block);
 needsRefresh = any( this.Pairing.Link.Lhs>PTR(0) );
-ixOk = true(1, nAlt);
 
 % Index of endogenous level and growth quantities.
 ixEndg = struct( );

@@ -7,7 +7,6 @@ function [syst, ixNanDeriv, deriv] = systemFirstOrder(this, iAlt, opt)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-% opt.linear
 % opt.select
 % opt.eqtn
 % opt.symbolic
@@ -22,7 +21,7 @@ ixm = this.Equation.Type==TYPE(1);
 ixt = this.Equation.Type==TYPE(2);
 nm = sum(ixm);
 nt = sum(ixt); 
-eqSelect = myaffectedeqtn(this, iAlt, opt);
+eqSelect = affected(this, iAlt, opt);
 eqSelect = eqSelect & (ixm | ixt);
 
 % Evaluate derivatives of equations wrt parameters
@@ -77,7 +76,7 @@ return
         syst.A{2}(nt+1:end, :) = d2s.ident1;
         syst.B{2}(nt+1:end, :) = d2s.ident;
         
-        % Effect of non-linear equations
+        % Effect of nonlinear equations
         %--------------------------------
         syst.N{1} = [ ];
         syst.N{2}(post, :) = deriv.n(post_, :); 

@@ -46,7 +46,6 @@ select = {
 
 system = {
     'eqtn, equations', @all, @(x) isequal(x, @all) || ischar(x)
-    'linear', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
     'normalize, normalise', true, @islogicalscalar
     'select', true, @islogicalscalar
     'symbolic', true, @islogicalscalar
@@ -124,7 +123,7 @@ def.estimate = [
     'filter, filteropt', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end)))
     'nosolution', 'error', @(x) (isnumericscalar(x) && x>=1e10) || (ischar(x) && any(strcmpi(x, {'error', 'penalty'})))
     'solve', true, FN_VALID.solve
-    'sstate, sstateopt', false, FN_VALID.sstate
+    'Steady, sstate, sstateopt', false, FN_VALID.sstate
     'zero', false, @islogicalscalar
     } ];
 

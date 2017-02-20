@@ -8,14 +8,14 @@ function varargout = prepareSteady(this, displayMode, varargin)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 % Run user-supplied steady-state solver:
-% 'sstate=', @func
+% sstate = @func
 if length(varargin)==1 && isa(varargin{1}, 'function_handle')
     varargout{1} = varargin{1};
     return
 end
 
 % Run user-supplied steady-state solver with extra arguments:
-% 'sstate=', { @func, arg2, arg3,...}
+% sstate = { @func, arg2, arg3,...}
 if length(varargin)==1 && iscell(varargin{1}) ...
         && ~isempty(varargin{1}) ...
         && isa(varargin{1}{1}, 'function_handle')
@@ -24,14 +24,14 @@ if length(varargin)==1 && iscell(varargin{1}) ...
 end
 
 % Do not run steady-state solver:
-% 'sstate=', false
+% sstate = false
 if length(varargin)==1 && isequal(varargin{1}, false)
     varargout{1} = false;
     return
 end
 
 % Do run steady-state solve with default options:
-% sstate=, true
+% sstate = true
 if length(varargin)==1 && isequal(varargin{1}, true)
     varargin(1) = [ ];
 end
@@ -39,13 +39,13 @@ end
 %--------------------------------------------------------------------------
 
 if this.IsLinear
-    % Linear sstate solver
-    %----------------------
+    % Linear steady state solver
+    %----------------------------
     opt = passvalopt('model.SteadyLinear', varargin{:});
     varargout{1} = opt;
 else
-    % Nonlinear sstate solver
-    %-------------------------
+    % Nonlinear steady state solver
+    %-------------------------------
     % Capture obsolete syntax with solver options directly passed among other
     % sstate options and not as suboptions through Solver=; these are only used
     % if Solver= is a char.

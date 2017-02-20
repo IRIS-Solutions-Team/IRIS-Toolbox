@@ -23,8 +23,12 @@ L = x;
 % Create a random vector `x` for dynamic links. In dynamic links, we allow
 % std and corr names to occurs, and append them to the assign vector.
 if any(ixl)
-    std = double(this.IsLinear)*1 + double(~this.IsLinear)*log(1.01);   
-    xLink = [rand(nQuan, 1); std*ones(ne, 1); zeros(ne*(ne-1)/2, 1)];
+    if this.IsLinear
+        std = this.DEFAULT_STD_LINEAR;
+    else
+        std = this.DEFAULT_STD_NONLINEAR;
+    end
+    xLink = [ rand(nQuan, 1); std*ones(ne, 1); zeros(ne*(ne-1)/2, 1) ];
 end
 
 % Dynamic equations.

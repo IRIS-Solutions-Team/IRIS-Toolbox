@@ -61,6 +61,9 @@ switch lower(query)
     case 'userdata'
         this = userdata(this, value);
         
+
+
+
     case 'epsilon'
         if isnumericscalar(value) && value>0
             this.Tolerance.DiffStep = value;
@@ -68,6 +71,19 @@ switch lower(query)
             isValidValue = false;
         end
         
+
+
+
+    case {'islinear', 'linear'}
+        if islogicalscalar(value)
+            this.IsLinear = value;
+        else
+            isValidValue = false;
+        end
+
+
+
+
     case 'rlabel'
         if iscellstr(value) ...
                 && length(value)==length(this.Reporting.Label)

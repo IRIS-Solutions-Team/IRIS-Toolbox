@@ -33,15 +33,15 @@ if any(this.Equation.IxHash)
     opt.removeleads = false;
 end
 
-% Assign default stddevs.
+% Assign default stdevs.
 if isequal(opt.std, @auto)
     if this.IsLinear
-        defaultStd = opt.stdlinear;
+        dftStd = opt.stdlinear;
     else
-        defaultStd = opt.stdnonlinear;
+        dftStd = opt.stdnonlinear;
     end
 else
-    defaultStd = opt.stdev;
+    dftStd = opt.std;
 end
 
 nAlt = 1;
@@ -81,7 +81,7 @@ this = populateTransient(this);
 
 nh = sum(this.Equation.IxHash);
 nExpand = 0;
-template = model.Variant(this.Quantity, this.Vector, nExpand, nh, defaultStd);
+template = model.Variant(this.Quantity, this.Vector, nExpand, nh, dftStd);
 this.Variant = repmat({template}, 1, nAlt);
 
 % Preallocate solution matrices. This must be done after populating
