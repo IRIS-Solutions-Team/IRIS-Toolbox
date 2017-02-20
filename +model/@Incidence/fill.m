@@ -1,4 +1,4 @@
-function this = fill(this, qty, lsEqn, ixEqn)
+function this = fill(this, qty, lsEqn, ixEqn, varargin)
 % fill  Fill in incidence matrices.
 %
 % Backend IRIS function.
@@ -16,7 +16,9 @@ nsh = length(this.Shift);
 nEqn = length(lsEqn);
 nQty = length(qty.Name);
 
-[epsCurrent, epsShifted] = model.Incidence.getIncidenceEps(lsEqn, ixEqn);
+% Get equation, position of name, shift.
+[epsCurrent, epsShifted] = ...
+    model.Incidence.getIncidenceEps(lsEqn, ixEqn, varargin{:});
 
 ind = sub2ind([nEqn, nQty, nsh], ...
     epsCurrent(1, :), epsCurrent(2, :), t0+epsCurrent(3, :));

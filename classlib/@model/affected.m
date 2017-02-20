@@ -35,7 +35,6 @@ if this.IsLinear
 end
 
 % Affected equations.
-ind0 = across(this.Incidence.Dynamic, 'Zero'); % Incidence at zero.
-ixAff = any(ind0(:, ixChanged), 2).';
+ixAff = any( this.Incidence.Affected.Matrix(:, ixChanged), 2 ).';
 
 end

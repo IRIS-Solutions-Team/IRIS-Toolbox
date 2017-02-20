@@ -1,21 +1,21 @@
-function incid = across(this, dim)
+function matrix = across(this, dim)
 
 nsh = length(this.Shift);
 nEqtn = size(this.Matrix, 1);
 nQuan = size(this.Matrix, 2) / nsh;
 
 if strncmpi(dim, 'Sh', 2) % Across all shifts.
-    incid = acrossShift(this.Matrix);
+    matrix = acrossShift(this.Matrix);
 elseif strncmpi(dim, 'La', 2) % Across all lags (negative shifts).
-    incid = acrossLag(this.Matrix);
+    matrix = acrossLag(this.Matrix);
 elseif strncmpi(dim, 'Le', 2) % Across all leads (positive shifts).
-    incid = acrossLead(this.Matrix);
+    matrix = acrossLead(this.Matrix);
 elseif strncmpi(dim, 'No', 2) % Across all non-zero shifts (lags and leads).
-    incid = acrossNonzero(this.Matrix);
+    matrix = acrossNonzero(this.Matrix);
 elseif strncmpi(dim, 'Ze', 2) % At zero shift.
-    incid = atZero(this.Matrix);
+    matrix = atZero(this.Matrix);
 elseif strncmpi(dim, 'Eq', 2) % Across all equations.
-    incid = acrossEqtn(this.Matrix);
+    matrix = acrossEqtn(this.Matrix);
 end
 
 return

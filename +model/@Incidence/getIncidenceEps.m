@@ -1,4 +1,4 @@
-function [epsCurrent, epsShifted] = getIncidenceEps(eqn, ixSelect)
+function [epsCurrent, epsShifted] = getIncidenceEps(eqn, ixSelect, letter)
 % getIncidenceEps  List of EPS incidences in select equations.
 %
 % Backend IRIS function.
@@ -9,6 +9,12 @@ function [epsCurrent, epsShifted] = getIncidenceEps(eqn, ixSelect)
 
 PTR = @int32;
 FN_CELLSTR2NUM = @(x) sscanf( sprintf('%s,', x{:}), '%g,' ).';
+PTN_CURRENT = '\<x\((\d+),t\)';
+PTN_SHIFTED = '\<x\((\d+),t([+\-]\d+)\)';
+if nargin>=3
+    PTN_CURRENT = strrep(PTN_CURRENT, 'x', letter);
+    PTN_SHIFTED = strrep(PTN_SHIFTED, 'x', letter);
+end
 
 %--------------------------------------------------------------------------
 
@@ -30,7 +36,7 @@ end
 % Look for x(10,t).
 lsCurrent(ixSelect) = regexp( ...
     eqn(ixSelect), ...
-    '\<x\((\d+),t\)', ...
+    PTN_CURRENT, ...
     'tokens' ...
     );
 
@@ -53,7 +59,7 @@ end
 % Look for x(10,t-2) or x(10,t+2).
 lsShifted(ixSelect) = regexp( ...
     eqn(ixSelect), ...
-    '\<x\((\d+),t([+\-]\d+)\)', ...
+    PTN_SHIFTED, ...
     'tokens' ...
     );
 
