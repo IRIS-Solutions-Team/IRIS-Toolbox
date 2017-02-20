@@ -55,7 +55,7 @@ ixSolution = true(1, nAlt);
 ixSolution(vecAlt) = ~ixNanSolution(vecAlt);
 if isWarn && any(~ixSolution)
     throw( ...
-        exception.Base('Model:CannotLinearSteady', 'warning'), ...
+        exception.Base('Model:CannotSteadyLinear', 'warning'), ...
         exception.Base.alt2str(~ixSolution) ...
         ); %#ok<GTARG>
 end
@@ -66,18 +66,17 @@ for iAlt = vecAlt
     lvl = nan(1, nQty);
     grw = zeros(1, nQty);
     if ixSolution(iAlt)
-        [lvl, grw, isDiffStat] = getSstate( );
+        [lvl, grw, ixDiffStat(iAlt)] = getSstate( );
         if any(ixLog)
             lvl(1, ixLog) = real(exp(lvl(1, ixLog)));
             grw(1, ixLog) = real(exp(grw(1, ixLog)));
         end
+        ixSuccess(iAlt) = true;
     end
     % Assign the values to the model object, measurement and transition
     % variables only.
     this.Variant{iAlt}.Quantity(1, ixyx) = lvl(1, ixyx) + 1i*grw(1, ixyx);
     this.Variant{iAlt}.Quantity(1, ixe) = 0;
-    ixDiffStat(iAlt) = isDiffStat;
-    ixSuccess(iAlt) = true;
 end
 
 % Some parameterizations are not difference stationary.
