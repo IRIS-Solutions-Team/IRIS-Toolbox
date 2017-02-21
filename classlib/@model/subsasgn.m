@@ -96,9 +96,9 @@ if isnumeric(b) ...
     posQty = ell.PosName;
     posStdCorr = ell.PosStdCorr;
     if isnan(posQty) && isnan(posStdCorr)
-        if strcmpi(this.Behavior.InvalidAssign, 'error')
+        if strcmpi(this.Behavior.InvalidDotAssign, 'error')
             throw(exception.Base('Model:InvalidName', 'error'), '', name); %#ok<GTARG>
-        elseif strcmpi(this.Behavior.InvalidAssign, 'warning')
+        elseif strcmpi(this.Behavior.InvalidDotAssign, 'warning')
             throw(exception.Base('Model:InvalidName', 'warning'), '', name); %#ok<GTARG>
         else
             return
