@@ -161,12 +161,18 @@ chkTimeSsref( );
 % occurences in the Lagrangian derivatives.
 this.Incidence.Dynamic = model.Incidence(nEqtn, nQuan, minSh, maxSh);
 this.Incidence.Steady = model.Incidence(nEqtn, nQuan, minSh, maxSh);
+this.Incidence.Affected = model.Incidence(nEqtn, nQuan, 0, 0);
+steadyRef = model.Incidence(nEqtn, nQuan, minSh, maxSh);
 this.Incidence.Dynamic = ...
     fill(this.Incidence.Dynamic, qty, eqn.Dynamic, ixmtd); % 1/
 this.Incidence.Steady = ...
     fill(this.Incidence.Steady, qty, eqn.Steady, ixmt);
 ixCopy = ixmt & cellfun(@isempty, eqn.Steady);   
 this.Incidence.Steady.Matrix(ixCopy, :) = this.Incidence.Dynamic.Matrix(ixCopy, :); 
+steadyRef = fill(steadyRef, qty, eqn.Dynamic, ixmt, 'L');
+this.Incidence.Affected.Matrix = ...
+    across(this.Incidence.Dynamic, 'Shifts') ...
+    | across(steadyRef, 'Shifts');
 
 % 1/ Do not create Incidence matrix for !links because they can have std_
 % and corr_ on both LHS and RHS for which Incidence matrix does not have
@@ -259,15 +265,6 @@ return
         % Check for sstate references in wrong places.
         func = @(c) ~cellfun(@(x) isempty(strfind(x, '&')), c);
         ixSstateRef = func(eqn.Dynamic) | func(eqn.Steady);
-        % Not allowed in linear models.
-        if this.IsLinear
-            if any(ixSstateRef)
-                throw( ...
-                    exception.ParseTime('Model:Postparser:SSTATE_REF_IN_LINEAR', 'warning'), ...
-                    eqn.Input{ixSstateRef} ...
-                );
-            end
-        end
         % Not allowed in deterministic trends.
         inx = ixSstateRef & eqn.Type==TYPE(3);
         if any(inx)

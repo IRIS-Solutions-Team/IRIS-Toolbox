@@ -1,16 +1,49 @@
 function [x, numericExitFlag] = lm(fnObjective, xInit, opt, varargin)
+% lm  Variant of Levenberg-Marquardt function solver algorithm
+%
+% Backend IRIS function.
+% No help provided.
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s';
 FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g';
-FN_NORM = opt.FunctionNorm;
-VEC_LAMBDA = [0.1, 1, 10, 100]; %, 500, 1000];
-STEP_DOWN = opt.StepDown;
-STEP_UP = opt.StepUp;
 MIN_STEP = 1e-8;
 MAX_STEP = 2;
 
-isStepDown = ~isequal(STEP_DOWN, false);
-isStepUp = ~isequal(STEP_UP, false);
+%--------------------------------------------------------------------------
+
+vecLmb = opt.Lambda;
+if isempty(vecLmb)
+    strStepType = 'Newton';
+else
+    strStepType = 'Hybrid';
+end
+if isa(opt.FunctionNorm, 'function_handle')
+    fnNorm = opt.FunctionNorm;
+    strFnNorm = func2str(fnNorm);
+    strFnNorm = regexprep(strFnNorm, '^@\(.*?\)', '', 'once');
+    if length(strFnNorm)>12
+        strFnNorm = strFnNorm(1:12);
+    end
+else
+    fnNorm = @(x) norm(x, opt.FunctionNorm);
+    strFnNorm = sprintf('norm(x,%g)', opt.FunctionNorm);
+end
+stepDown = opt.StepDown;
+stepUp = opt.StepUp;
+isStepDown = ~isequal(stepDown, false);
+isStepUp = ~isequal(stepUp, false);
+diffStep = opt.FiniteDifferenceStepSize;
+fnDiff = [ ];
+if ~opt.SpecifyObjectiveGradient
+    if strcmpi(opt.FiniteDifferenceType, 'forward')
+        fnDiff = @solver.algorithm.fdiff;
+    else
+        fnDiff = @solver.algorithm.cdiff;
+    end
+end
 
 xInit = xInit(:);
 nx = numel(xInit);
@@ -34,7 +67,7 @@ end
 x = xInit;
 lmb = NaN;
 step = NaN;
-normFn0 = NaN;
+n0 = NaN;
 iter = 0;
 fnCount = 0;
 x0 = xInit;
@@ -47,76 +80,62 @@ w = warning( );
 warning('off', 'MATLAB:nearlySingularMatrix');
 
 while true
-    [f, j] = fnObjective(x, varargin{:});
-    fnCount = fnCount + 1;
-    normFn = FN_NORM(f);
+    if opt.SpecifyObjectiveGradient
+        [f, j] = fnObjective(x, varargin{:});
+        fnCount = fnCount + 1;
+    else
+        [f] = fnObjective(x, varargin{:});
+        fnCount = fnCount + 1;
+        [j, addCount] = fnDiff(fnObjective, x, f, diffStep); %#ok<RHSFN>
+        fnCount = fnCount + addCount;
+    end
+    f = f(:);    
+    n = fnNorm(f);
     
     if hasConverged( ) 
-        % Convergence.
+        % Convergence reached, exit.
         exitFlag = solver.ExitFlag.CONVERGED;
         break
     end
     
     if iter>maxIter
-        % Max iter reached.
+        % Max iter reached, exit.
         exitFlag = solver.ExitFlag.MAX_ITER;
         break
     end
     
     if fnCount>maxFunEvals
-        % Max fun evals reached.
+        % Max fun evals reached, exit.
         exitFlag = solver.ExitFlag.MAX_FUN_EVALS;
         break
     end
-    
    
     if displayLevel.Iter
         displayIter( );
         fprintf('\n');
     end
-    f = f(:);
     x0 = x;
     f0 = f;
-    normFn0 = FN_NORM(f0);
-    jj = j.'*j;
-    sj = svd(j);
-    tol = max(size(j)) * eps(max(sj));
-    vecLmb = VEC_LAMBDA;
-    if sj(end)>tol
-        vecLmb = [0, vecLmb]; %#ok<AGROW>
-    end
-    nlmb0 = numel(vecLmb);
-    scale = tol * eye(nx);
-    
-    % Optimize lambda.
+    n0 = n;
+
     step = 1;
-    dd = cell(1, nlmb0);
-    nn = nan(1, nlmb0);
-    ff = cell(1, nlmb0);
-    for i = 1 : nlmb0
-        dd{i} = -( jj + vecLmb(i)*scale ) \ j.' * f;
-        c = x + step*dd{i};
-        ff{i} = fnObjective(c);
-        fnCount = fnCount + 1;
-        nn(i) = FN_NORM(ff{i});
+    if isempty(vecLmb)
+        [d, n] = makeNewtonStep( );
+    else
+        [d, n] = makeHybridStep( );
     end
-    [~, pos] = min(nn);
-    lmb = vecLmb(pos);
-    f = ff{i};
-    d = dd{i};
-    
-    normFn = FN_NORM(f);
+
     q = 0;
-    if normFn>normFn0 && isStepDown
+    if n>n0 && isStepDown
         % Shrink step until objective function improves.
-        stepDown( );
+        makeStepDown( );
     elseif isStepUp
         % Inflate step as far as objective function improves.
-        stepUp( );
+        makeStepUp( );
     end
     
-    if normFn>normFn0
-        % No further progress can be made.
+    if n>n0
+        % No further progress can be made, exit.
         exitFlag = solver.ExitFlag.NO_PROGRESS;
         break
     end
@@ -128,17 +147,30 @@ end
 warning(w);
 
 if displayLevel.Iter
-    fprintf('<strong>');
+    try
+        jDesktop = com.mathworks.mde.desk.MLDesktop.getInstance;
+        isDesktop = ~isempty(jDesktop.getClient('Command Window'));
+    catch
+        isDesktop = false;
+    end
+    if isDesktop
+        fprintf('<strong>');
+    end
     displayIter( );
-    fprintf('</strong>');
+    if isDesktop
+        fprintf('</strong>');
+    end
     fprintf('\n');
 end
+
 if displayLevel.Final
     displayFinal( );
 end
+
 if displayLevel.Any
     fprintf('\n');
 end
+
 numericExitFlag = double(exitFlag);
 
 return
@@ -146,34 +178,76 @@ return
 
 
 
-    function stepDown( )
+    function [d, n] = makeNewtonStep( )
+        lmb = 0;
+        d = -j \ f;
+        c = x + step*d;
+        f = fnObjective(c, varargin{:});
+        n = fnNorm(f);
+    end
+
+
+
+
+    function [d, n] = makeHybridStep( )
+        jj = j.'*j;
+        sj = svd(j);
+        tol = max(size(j)) * eps(max(sj));
+        vecLmb0 = vecLmb;
+        if sj(end)>tol
+            vecLmb0 = [0, vecLmb0]; %#ok<AGROW>
+        end
+        nlmb0 = numel(vecLmb0);
+        scale = tol * eye(nx);
+        
+        % Optimize lambda.
+        dd = cell(1, nlmb0);
+        nn = nan(1, nlmb0);
+        ff = cell(1, nlmb0);
+        for i = 1 : nlmb0
+            dd{i} = -( jj + vecLmb0(i)*scale ) \ j.' * f;
+            c = x + step*dd{i};
+            ff{i} = fnObjective(c, varargin{:});
+            fnCount = fnCount + 1;
+            nn(i) = fnNorm(ff{i});
+        end
+        [~, pos] = min(nn);
+        lmb = vecLmb0(pos);
+        d = dd{i};
+        f = ff{i};
+        n = nn(i);
+    end 
+
+
+
+    function makeStepDown( )
         % Shrink step until objective function improves.
-        while normFn>normFn0 && step>MIN_STEP
-            step = STEP_DOWN*step;
+        while n>n0 && step>MIN_STEP
+            step = stepDown*step;
             c = x + step*d;
-            f = fnObjective(c);
+            f = fnObjective(c, varargin{:});
             fnCount = fnCount + 1;
             q = q + 1;
-            normFn = FN_NORM(f);
+            n = fnNorm(f);
         end
     end
 
 
 
 
-    function stepUp( )
+    function makeStepUp( )
         % Inflate step as far as objective function improves.
         while step<MAX_STEP
-            c = x + STEP_UP*step*d;
-            f = fnObjective(c);
+            c = x + stepUp*step*d;
+            f = fnObjective(c, varargin{:});
             fnCount = fnCount + 1;
             q = q + 1;
-            normFn1 = FN_NORM(f);
-            if normFn1>=normFn || q>=40
+            n1 = fnNorm(f);
+            if n1>=n || q>=40
                 break
             end
-            normFn = normFn1;
-            step = STEP_UP*step;
+            n = n1;
+            step = stepUp*step;
         end
     end        
 
@@ -192,7 +266,7 @@ return
 
     function displayHeader( )
         fprintf('\n');
-        c = sprintf( ...
+        c1 = sprintf( ...
             FORMAT_HEADER, ...
             'Iter', ...
             'Fn-Count', ...
@@ -202,8 +276,19 @@ return
             'Fn-Norm-Chg', ...
             'Max-X-Chg' ...
             );
-        disp(c);
-        disp( repmat('-', 1, length(c)) );
+        c2 = sprintf( ...
+            FORMAT_HEADER, ...
+            '', ...
+            '', ...
+            strFnNorm, ...
+            strStepType, ...
+            '', ...
+            '', ...
+            '' ...
+            );
+        disp(c1);
+        disp(c2);
+        disp( repmat('-', 1, max(length(c1), length(c2))) );
     end
 
 
@@ -214,10 +299,10 @@ return
             FORMAT_ITER, ...
             iter, ...
             fnCount, ...
-            FN_NORM(f), ...
+            n, ...
             lmb, ...
             step, ...
-            normFn-normFn0, ...
+            n-n0, ...
             maxabs(x-x0) ...
             );
     end

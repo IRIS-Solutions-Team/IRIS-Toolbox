@@ -1,6 +1,7 @@
 classdef Behavior
     properties
-        InvalidAssign = 'Error'
+        InvalidDotAssign = 'Error'
+        DotReferenceFunc = [ ]
     end
     
     

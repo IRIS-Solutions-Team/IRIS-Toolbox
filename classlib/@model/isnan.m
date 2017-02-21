@@ -4,29 +4,33 @@ function [flag, list] = isnan(this, varargin)
 % Syntax
 % =======
 %
-%     [Flag,List] = isnan(M,'parameters')
-%     [Flag,List] = isnan(M,'sstate')
-%     [Flag,List] = isnan(M,'derivatives')
-%     [Flag,List] = isnan(M,'solution')
+%     [flag, list] = isnan(M, 'parameters')
+%     [flag, list] = isnan(M, 'sstate')
+%     [flag, list] = isnan(M, 'derivatives')
+%     [flag, list] = isnan(M, 'solution')
+%
 %
 % Input arguments
 % ================
 %
 % * `M` [ model ] - Model object.
 %
+%
 % Output arguments
 % =================
 %
-% * `Flag` [ `true` | `false` ] - True if at least one `NaN` value exists
+% * `flag` [ `true` | `false` ] - True if at least one `NaN` value exists
 % in the queried category.
 %
-% * `List` [ cellstr ] - List of parameters (if called with `'parameters'`)
+% * `list` [ cellstr ] - List of parameters (if called with `'parameters'`)
 % or variables (if called with `'sstate'`) that are assigned NaN in at
 % least one parameterisation, or equations (if called with `'derivatives'`)
 % that produce an NaN derivative in at least one parameterisation.
 %
+%
 % Description
 % ============
+%
 %
 % Example
 % ========
@@ -37,7 +41,7 @@ function [flag, list] = isnan(this, varargin)
 
 TYPE = @int8;
 
-if ~isempty(varargin) && (ischar(varargin{1}) &&  ~strcmp(varargin{1},':'))
+if ~isempty(varargin) && (ischar(varargin{1}) &&  ~strcmp(varargin{1}, ':'))
     request = lower(strtrim(varargin{1}));
     varargin(1) = [ ];
 else
@@ -64,7 +68,7 @@ switch request
             list = this.Quantity.Name(ixNan);
         end
         flag = any(ixNan);
-    case {'p','parameter','parameters'}
+    case {'p', 'parameter', 'parameters'}
         x = model.Variant.getQuantity(this.Variant, ':', vecAlt);
         ixNan = any(isnan(x), 3);
         ixNan = ixNan & this.Quantity.Type==TYPE(4);
@@ -88,8 +92,8 @@ switch request
         R = this.solution{2}(:, :, vecAlt);
         % Transition matrix can be empty in 2nd dimension (no lagged
         % variables).
-        if size(T,1)>0 && size(T,2)==0
-            ixNan = false(1,size(T, 3));
+        if size(T, 1)>0 && size(T, 2)==0
+            ixNan = false(1, size(T, 3));
         else
             ixNan = any(any(isnan(T), 1), 2) | any(any(isnan(R), 1), 2);
             ixNan = ixNan(:).';
@@ -106,14 +110,13 @@ switch request
             list = ixNan;
         end
         flag = any(ixNan);
-    case {'deriv','derivative','derivatives'}
+    case {'deriv', 'derivative', 'derivatives'}
         nAlt = length(this);
         nEqtn = length(this.Equation);
         eqSelect = true(1, nEqtn);
         list = false(1, nEqtn);
         flag = false;
         opt = struct( );
-        opt.linear = this.IsLinear;
         opt.select = true;
         for iAlt = 1 : nAlt
             [~, ~, ixNanDeriv] = diffFirstOrder(this, eqSelect, iAlt, opt);
@@ -122,7 +125,7 @@ switch request
         end
         list = this.Equation.Input(list);
     otherwise
-        utils.error('Invalid request: %s ',varargin{1});
+        utils.error('Invalid request: %s ', varargin{1});
 end
 
 end

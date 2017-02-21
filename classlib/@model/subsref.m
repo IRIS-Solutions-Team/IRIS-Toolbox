@@ -6,10 +6,12 @@ function x = subsref(this, s)
 %
 %     M(Inx)
 %
+%
 % Syntax for retrieving parameters or steady-state values
 % ========================================================
 %
 %     M.Name
+%
 %
 % Syntax to retrieve a std deviation or a cross-correlation of shocks
 % ====================================================================
@@ -19,6 +21,7 @@ function x = subsref(this, s)
 %
 % Note that a double underscore is used to separate the names of shocks in
 % correlation coefficients.
+%
 %
 % Input arguments
 % ================
@@ -31,8 +34,10 @@ function x = subsref(this, s)
 %
 % * `ShockName1`, `ShockName2` - Name of a shock.
 %
+%
 % Description
 % ============
+%
 %
 % Example
 % ========
@@ -60,6 +65,9 @@ if strcmp(s(1).type,'.') && ischar(s(1).subs)
         x = model.Variant.getStdCorr(this.Variant, posStdCorr, ':');
     end
     x = permute(x, [1, 3, 2]);
+    if isa(this.Behavior.DotReferenceFunc, 'function_handle')
+        x = feval(this.Behavior.DotReferenceFunc, x);
+    end
     s(1) = [ ];
     if ~isempty(s)
         x = subsref(x, s);

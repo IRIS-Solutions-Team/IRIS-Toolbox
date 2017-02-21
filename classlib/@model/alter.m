@@ -4,22 +4,22 @@ function this = alter(this, n)
 % Syntax
 % =======
 %
-%     M = alter(M,N)
+%     m = alter(m, n)
 %
 %
 % Input arguments
 % ================
 %
-% * `M` [ model ] - Model object in which the number of model variants
+% * `m` [ model ] - Model object in which the number of model variants
 % will be changed.
 %
-% * `N` [ numeric ] - New number of model variants.
+% * `n` [ numeric ] - New number of model variants.
 %
 %
 % Output arguments
 % =================
 %
-% * `M` [ model ] - Model object with the new number of variants.
+% * `m` [ model ] - Model object with the new number of variants.
 %
 %
 % Description

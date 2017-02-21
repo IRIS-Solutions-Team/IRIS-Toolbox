@@ -31,15 +31,11 @@ function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 % Options
 % ========
 %
-% * `'linear='` [ *`@auto`* | `true` | `false` ] - Compute the model using
-% a linear approach, i.e. differentiating around zero and not the currently
-% assigned steady state.
-%
-% * `'select='` [ *`true`* | `false` ] - Automatically detect which
+% * `'Select='` [ *`true`* | `false` ] - Automatically detect which
 % equations need to be re-differentiated based on parameter changes from
 % the last time the system matrices were calculated.
 %
-% * `'sparse='` [ `true` | *`false`* ] - Return matrices `A`, `B`, `D`,
+% * `'Sparse='` [ `true` | *`false`* ] - Return matrices `A`, `B`, `D`,
 % `F`, `G`, and `J` as sparse matrices; can be set to `true` only in models
 % with one parameterization.
 %
@@ -68,10 +64,6 @@ function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 opt = passvalopt('model.system', varargin{:});
-
-if isequal(opt.linear,@auto)
-    opt.linear = this.IsLinear;
-end
 
 %--------------------------------------------------------------------------
 

@@ -19,7 +19,7 @@ if ~isfield(opt, 'percent')
 end
 
 % Initialise steady-state solver and chksstate options.
-opt.sstate = prepareSteady(this, 'silent', opt.sstate);
+opt.Steady = prepareSteady(this, 'silent', opt.sstate);
 opt.chksstate = prepareChkSteady(this, 'silent', opt.chksstate);
 opt.solve = prepareSolve(this, 'silent, fast', opt.solve);
 
@@ -56,10 +56,10 @@ for i = 1 : np
     pp(i) = pp(i) + step(i);
     mp(i) = mp(i) - step(i);
     twoSteps(i) = pp(i) - mp(i);
-    mInx = 1 + 2*(i-1) + 1;
-    this(mInx) = update(this(mInx), pp, pri, 1, opt, throwErr);
-    mInx = 1 + 2*(i-1) + 2;
-    this(mInx) = update(this(mInx), mp, pri, 1, opt, throwErr);
+    ix = 1 + 2*(i-1) + 1;
+    this(ix) = update(this(ix), pp, pri, 1, opt, throwErr);
+    ix = 1 + 2*(i-1) + 2;
+    this(ix) = update(this(ix), mp, pri, 1, opt, throwErr);
 end
 
 % Horizontal vectorisation.

@@ -1,5 +1,5 @@
 function [rpl, rplStdCorr] = pattern4postparse(this, lsStdCorr)
-% mynamepattrepl  Patterns and replacements for names in equations.
+% pattern4postparse  Patterns and replacements for names in equations.
 %
 % Backend IRIS function.
 % No help provided.

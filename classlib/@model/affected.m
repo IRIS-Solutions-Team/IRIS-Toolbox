@@ -1,5 +1,5 @@
-function ixAffected = myaffectedeqtn(this, iAlt, opt)
-% myaffectedeqtn  Equations affected by parameter changes since last system.
+function ixAff = affected(this, iAlt, opt)
+% affected  Equations affected by parameter changes since last system.
 %
 % Backend IRIS function.
 % No help provided.
@@ -9,16 +9,12 @@ function ixAffected = myaffectedeqtn(this, iAlt, opt)
 
 TYPE = @int8;
 
-if isequal(opt.linear, @auto)
-    opt.linear = this.IsLinear;
-end
-
 %--------------------------------------------------------------------------
 
 ixp = this.Quantity.Type==TYPE(4);
 nEqtn = length(this.Equation.Input);
 
-ixAffected = true(1, nEqtn);
+ixAff = true(1, nEqtn);
 if ~opt.select
     return
 end
@@ -33,13 +29,12 @@ end
 % Changes in steady states and parameters.
 ixChanged = this.Variant{iAlt}.Quantity~=value0 ...
     & (~isnan(this.Variant{iAlt}.Quantity) | ~isnan(value0));
-if opt.linear
+if this.IsLinear
     % Only parameter changes matter in linear models.
     ixChanged = ixChanged & ixp;
 end
 
 % Affected equations.
-ind0 = across(this.Incidence.Dynamic, 'Zero'); % Incidence at zero.
-ixAffected = any(ind0(:, ixChanged), 2).';
+ixAff = any( this.Incidence.Affected.Matrix(:, ixChanged), 2 ).';
 
 end

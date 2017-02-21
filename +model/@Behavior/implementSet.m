@@ -12,8 +12,11 @@ switch upper(request)
         end
         return
         
-    case 'BEHAVIOR:INVALIDASSIGN'
-        this.InvalidAssign = value;
+    case 'BEHAVIOR:INVALIDDOTASSIGN'
+        this.InvalidDotAssign = value;
+
+    case 'BEHAVIOR:DOTREFERENCEFUNC'
+        this.DotReferenceFunc = value;
         
     otherwise
         isValidRequest = false;

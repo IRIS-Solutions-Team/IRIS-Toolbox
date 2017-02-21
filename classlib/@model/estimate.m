@@ -1,4 +1,4 @@
-function [estDbase, p, PCov, Hess, this, V, Delta, PDelta] = estimate(varargin)
+function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(varargin)
 % estimate  Estimate model parameters by optimising selected objective function.
 %
 %
@@ -7,34 +7,34 @@ function [estDbase, p, PCov, Hess, this, V, Delta, PDelta] = estimate(varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [PEst, Pos, Cov, Hess, M, V, Delta, PDelta] = estimate(M, D, Range, Est, ~Spr,...)
+%     [pEst, pos, Cov, Hess, m, V, delta, PDelta] = estimate(m, d, range, est, ~spr, ...)
 %
 %
 % Input arguments
 % ================
 %
-% * `M` [ model ] - Model object with single parameterization.
+% * `m` [ model ] - Model object with single parameterization.
 %
-% * `D` [ struct | cell ] - Input database or datapack from which the
+% * `d` [ struct | cell ] - Input database or datapack from which the
 % measurement variables will be taken.
 %
-% * `Range` [ struct | char ] - Date range on which the data likelihood
+% * `range` [ struct | char ] - Date range on which the data likelihood
 % will be evaluated.
 %
-% * `Est` [ struct ] - Database with the list of paremeters that will be
+% * `est` [ struct ] - Database with the list of paremeters that will be
 % estimated, and the parameter prior specifications (see below).
 %
-% * `~SPr` [ systempriors | *empty* ] - System priors object,
+% * `~spr` [ systempriors | *empty* ] - System priors object,
 % [`systempriors`](systempriors/Contents); may be omitted.
 %
 %
 % Output arguments
 % =================
 %
-% * `PEst` [ struct ] - Database with point estimates of requested
+% * `pEst` [ struct ] - Database with point estimates of requested
 % parameters.
 %
-% * `Pos` [ poster ] - Posterior, [`poster`](poster/Contents), object; this
+% * `pos` [ poster ] - Posterior, [`poster`](poster/Contents), object; this
 % object also gives you access to the value of the objective function at
 % optimum or at any point in the parameter space, see the
 % [`poster/eval`](poster/eval) function.
@@ -46,10 +46,10 @@ function [estDbase, p, PCov, Hess, this, V, Delta, PDelta] = estimate(varargin)
 % * `Hess` [ cell ] - `Hess{1}` is the total hessian of the objective
 % function; `Hess{2}` is the contributions of the priors to the hessian.
 %
-% * `M` [ model ] - Model object solved with the estimated parameters
+% * `m` [ model ] - Model object solved with the estimated parameters
 % (including out-of-likelihood parameters and common variance factor).
 %
-% The remaining three output arguments, `V`, `Delta`, `PDelta`, are the
+% The remaining three output arguments, `V`, `delta`, `PDelta`, are the
 % same as the [`model/loglik`](model/loglik) output arguments of the same
 % names.
 %
@@ -57,55 +57,55 @@ function [estDbase, p, PCov, Hess, this, V, Delta, PDelta] = estimate(varargin)
 % Options
 % ========
 %
-% * `'chkSstate='` [ `true` | *`false`* | cell ] - Check steady state in
+% * `'ChkSstate='` [ `true` | *`false`* | cell ] - Check steady state in
 % each iteration; works only in non-linear models.
 %
-% * `'evalFrfPriors='` [ *`true`* | `false` ] - In each iteration, evaluate
+% * `'EvalFrfPriors='` [ *`true`* | `false` ] - In each iteration, evaluate
 % frequency response function prior density, and include it to the overall
 % objective function to be optimised.
 %
-% * `'evalLik='` [ *`true`* | `false` ] - In each iteration, evaluate
+% * `'EvalLik='` [ *`true`* | `false` ] - In each iteration, evaluate
 % likelihood (or another data based criterion), and include it to the
 % overall objective function to be optimised.
 %
-% * `'evalPPriors='` [ *`true`* | `false` ] - In each iteration, evaluate
+% * `'EvalPPriors='` [ *`true`* | `false` ] - In each iteration, evaluate
 % parameter prior density, and include it to the overall objective function
 % to be optimised.
 %
-% * `'evalSPriors='` [ *`true`* | `false` ] - In each iteration, evaluate
+% * `'EvalSPriors='` [ *`true`* | `false` ] - In each iteration, evaluate
 % system prior density, and include it to the overall objective function to
 % be optimised.
 %
-% * `'filter='` [ cell | *empty* ] - Cell array of options that will be
+% * `'Filter='` [ cell | *empty* ] - Cell array of options that will be
 % passed on to the Kalman filter including the type of objective function;
 % see help on [`model/filter`](model/filter) for the options available.
 %
-% * `'initVal='` [ `model` | *`struct`* | struct ] - If `struct` use the
-% values in the input struct `Est` to start the iteration; if `model` use
-% the currently assigned parameter values in the input model, `M`.
+% * `'InitVal='` [ `model` | *`struct`* | struct ] - If `struct` use the
+% values in the input struct `est` to start the iteration; if `model` use
+% the currently assigned parameter values in the input model, `m`.
 %
-% * `'maxIter='` [ numeric | *`500`* ] - Maximum number of iterations
+% * `'MaxIter='` [ numeric | *`500`* ] - Maximum number of iterations
 % allowed.
 %
-% * `'maxFunEvals='` [ numeric | *`2000`* ] - Maximum number of objective
+% * `'MaxFunEvals='` [ numeric | *`2000`* ] - Maximum number of objective
 % function calls allowed.
 %
-% * `'noSolution='` [ *`'error'`* | `'penalty'` | numeric ] - Specifies
+% * `'NoSolution='` [ *`'error'`* | `'penalty'` | numeric ] - Specifies
 % what happens if solution or steady state fails to solve in an iteration:
-% `'error='` stops the execution with an error message, `'penalty='`
+% `'Error='` stops the execution with an error message, `'Penalty='`
 % returns an extreme value, `1e10`, back into the minimization routine; or
 % a user-supplied penalty can be specified as a numeric scalar greater than
 % `1e10`.
 %
-% * `'optimSet='` [ cell | *empty* ] - Cell array used to create the
+% * `'OptimSet='` [ cell | *empty* ] - Cell array used to create the
 % Optimization Toolbox options structure; works only with the option
-% `'optimiser='` `'default'`.
+% `'Optimiser='` `'default'`.
 %
-% * `'solve='` [ *`true`* | `false` | cellstr ] - Re-compute solution in
+% * `'Solve='` [ *`true`* | `false` | cellstr ] - Re-compute solution in
 % each iteration; you can specify a cell array with options for the `solve`
 % function.
 %
-% * `'optimiser='` [ *`'default'`* | `'pso'` | cell | function_handle ] -
+% * `'Optimiser='` [ *`'default'`* | `'pso'` | cell | function_handle ] -
 % Minimiz ation procedure.
 %
 %     * `'default'`: The Optimization Toolbox function `fminunc` or
@@ -122,15 +122,15 @@ function [estDbase, p, PCov, Hess, this, V, Delta, PDelta] = estimate(varargin)
 %     optimization procedure, or a cell array with a function handle and
 %     additional input arguments (see below).
 %
-% * `'sstate='` [ `true` | *`false`* | cell | function_handle ] -
+% * `'Sstate='` [ `true` | *`false`* | cell | function_handle ] -
 % Re-compute steady state in each iteration; you can specify a cell array
 % with options for the `sstate` function, or a function handle whose
 % behaviour is described below.
 %
-% * `'tolFun='` [ numeric | *`1e-6`* ] - Termination tolerance on the
+% * `'TolFun='` [ numeric | *`1e-6`* ] - Termination tolerance on the
 % objective function.
 %
-% * `'tolX='` [ numeric | *`1e-6`* ] - Termination tolerance on the
+% * `'TolX='` [ numeric | *`1e-6`* ] - Termination tolerance on the
 % estimated parameters.
 %
 %
@@ -159,8 +159,8 @@ function [estDbase, p, PCov, Hess, this, V, Delta, PDelta] = estimate(varargin)
 %
 % By default, only the first-order solution, but not the steady state is
 % updated (recomputed) in each iteration before the likelihood is
-% evaluated. This behavior is controled by two options, `'solve='` (`true`
-% by default) and `'sstate='` (`false` by default). If some of the
+% evaluated. This behavior is controled by two options, `'Solve='` (`true`
+% by default) and `'Sstate='` (`false` by default). If some of the
 % estimated parameters do affect the steady state of the model, the option
 % '`sstate='` needs to be set to `true` or to a cell array with
 % steady-state options, as in the function [`sstate`](model/sstate),
@@ -168,19 +168,19 @@ function [estDbase, p, PCov, Hess, this, V, Delta, PDelta] = estimate(varargin)
 % solution will be impossible to find.
 %
 % When steady state is recomputed in each iteration, you may also want to
-% use the option `'chksstate='` to require that a steady-state check for
+% use the option `'Chksstate='` to require that a steady-state check for
 % all model equations be performed.
 %
 % User-supplied optimization (minimization) routine
 % --------------------------------------------------
 %
 % You can supply a function handle to your own minimization routine through
-% the option `'optimiser='`. This routine will be used instead of the Optim
+% the option `'Optimiser='`. This routine will be used instead of the Optim
 % Tbx's `fminunc` or `fmincon` functions. The user-supplied function is
 % expected to take at least five input arguments and return three output
 % arguments:
 %
-%     [PEst,ObjEst,Hess] = yourminfunc(F,P0,PLow,PHigh,OptimSet)
+%     [pEst, ObjEst, Hess] = yourminfunc(F, P0, PLow, PHigh, OptimSet)
 %
 % with the following input arguments:
 %
@@ -191,32 +191,32 @@ function [estDbase, p, PCov, Hess, this, V, Delta, PDelta] = estimate(varargin)
 % * `PHigh` is a 1-by-N vector of upper bounds (with `Inf` indicating no
 % upper bounds);
 % * `OptimSet` is a cell array with name-value pairs entered by the user
-% through the option `'optimSet='`. This option can be used to modify
+% through the option `'OptimSet='`. This option can be used to modify
 % various settings related to the optimization routine, such as tolerance,
 % number of iterations, etc. Of course, you may simply ignore it and leave
 % this input argument unused;
 %
 % and the following output arguments:
 %
-% * `PEst` is a 1-by-N vector of estimated parameters;
+% * `pEst` is a 1-by-N vector of estimated parameters;
 % * `ObjEst` is the value of the objective function at optimum;
 % * `Hess` is a N-by-N approximate Hessian matrix at optimum.
 %
 % If you need to use extra input arguments in your minimization function,
 % enter a cell array instead of a plain function handle:
 %
-%     {@yourminfunc,Arg1,Arg2,...}
+%     {@yourminfunc, Arg1, Arg2, ...}
 %
 % In that case, the optimiser will be called the following way:
 %
-%     [PEst,ObjEst,Hess] = yourminfunc(F,P0,PLow,PHigh,Opt,Arg1,Arg2,...)
+%     [pEst, ObjEst, Hess] = yourminfunc(F, P0, PLow, PHigh, Opt, Arg1, Arg2, ...)
 %
 % User-supplied steady-state solver
 % ----------------------------------
 %
 % You can supply a function handle to your own steady-state solver (i.e. a
 % function that finds the steady state for given parameters) through the
-% `'sstate='` option.
+% `'Sstate='` option.
 %
 % The function is expected to take one input argument, the model object
 % with newly assigned parameters, and return at least two output arguments,
@@ -224,7 +224,7 @@ function [estDbase, p, PCov, Hess, this, V, Delta, PDelta] = estimate(varargin)
 % success flag. The flag is `true` if the steady state has been successfully
 % computed, and `false` if not:
 %
-%     [M,Success] = mysstatesolver(M)
+%     [m, success] = mysstatesolver(m)
 %
 % It is your responsibility to add the growth characteristics if some of
 % the model variables drift over time. In other words, you need to take
@@ -233,15 +233,15 @@ function [estDbase, p, PCov, Hess, this, V, Delta, PDelta] = estimate(varargin)
 %
 % Alternatively, you can also run the steady-state solver with extra input
 % arguments (with the model object still being the first input argument).
-% In that case, you need to set the option `'sstate='` to a cell array with
+% In that case, you need to set the option `'Sstate='` to a cell array with
 % the function handle in the first cell, and the other input arguments
 % afterwards, e.g.
 %
-%     'sstate=',{@mysstatesolver,1,'a',X}
+%     'Sstate=', {@mysstatesolver, 1, 'a', x}
 %
 % The actual function call will have the following form:
 %
-%     [M,Success] = mysstatesolver(M,1,'a',X)
+%     [m, success] = mysstatesolver(m, 1, 'a', x)
 %
 %
 % Example
@@ -259,19 +259,19 @@ TYPE = @int8;
 estOpt = passvalopt('model.estimate', varargin{:});
 
 % Initialize and preprocess sstate, chksstate, solve options.
-estOpt.sstate = prepareSteady(this, 'silent', estOpt.sstate);
+estOpt.Steady = prepareSteady(this, 'silent', estOpt.Steady);
 estOpt.chksstate = prepareChkSteady(this, 'silent', estOpt.chksstate);
-estOpt.solve = prepareSolve(this, 'silent,fast', estOpt.solve);
+estOpt.solve = prepareSolve(this, 'silent, fast', estOpt.solve);
 
 % Process likelihood function options and create a likstruct.
-likOpt = prepareLoglik(this,range,estOpt.domain,[ ],estOpt.filter{:});
-estOpt = rmfield(estOpt,'filter');
+likOpt = prepareLoglik(this, range, estOpt.domain, [ ], estOpt.filter{:});
+estOpt = rmfield(estOpt, 'filter');
 
 % Get first column of measurement and exogenous variables.
 if estOpt.evallik
     % `Data` includes pre-sample.
     req = [likOpt.domain(1), 'yg*'];
-    inp = datarequest(req,this,inp,range,1);
+    inp = datarequest(req, this, inp, range, 1);
 else
     inp = [ ];
 end
@@ -314,14 +314,14 @@ populatePosterObj( );
 % Re-run the Kalman filter or FD likelihood to get the estimates of V
 % and out-of-lik parameters.
 V = 1;
-Delta = [ ];
+delta = [ ];
 PDelta = [ ];
 if estOpt.evallik && (nargout >= 5 || likOpt.relative)
-    [~,regOutp] = likOpt.minusLogLikFunc(this,inp,[ ],likOpt);
+    [~, regOutp] = likOpt.minusLogLikFunc(this, inp, [ ], likOpt);
     % Post-process the regular output arguments, update the std parameter
     % in the model object, and refresh if needed.
     xRange = range(1)-1 : range(end);
-    [~, ~, V, Delta, PDelta, ~, this] ...
+    [~, ~, V, delta, PDelta, ~, this] ...
         = kalmanFilterRegOutp(this, regOutp, xRange, likOpt, estOpt);
 end
 
@@ -334,16 +334,16 @@ return
 
 
     function callChkPriors( )
-        [flag, invalidBounds, invalidPrior] = chkpriors(this,estSpec);
+        [flag, invalidBounds, invalidPrior] = chkpriors(this, estSpec);
         if ~flag
             if ~isempty(invalidBounds)
-                utils.error('model:estimate',...
+                utils.error('model:estimate', ...
                     ['Initial condition is inconsistent with ', ...
                     'lower/upper bounds: ''%s''.'], ...
                     invalidBounds{:});
             end
             if ~isempty(invalidPrior)
-                utils.error('model:estimate',...
+                utils.error('model:estimate', ...
                     ['Initial condition is inconsistent with ', ...
                     'prior distribution: ''%s''.'], ...
                     invalidPrior{:});

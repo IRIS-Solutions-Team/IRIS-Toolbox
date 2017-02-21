@@ -1,25 +1,28 @@
-% $[...]$  Pseudosubstitutions.
+% <...>  Interpolation.
 %
 % Syntax
 % =======
 %
-%     $[Expr]$
+%     <Expr>
+%
 %
 % Description
 % ============
 %
-% The expression `Expr` enclosed within `$[...]$` is evaluated as a Matlab
-% expression, and converted to a character string. The expression may refer
-% to parameters passed into the function [`model`](model/model), or to
-% [`!for`](modellang/for) loop control variable names. The expression must
-% evaluate to a scalar number, a logical scalar, or character string.
+% The expression `Expr` enclosed within a pair of angle braces, `<...>`, is
+% evaluated as a Matlab expression, and converted to a character string.
+% The expression may refer to parameters passed into the function
+% [`model`](model/model), or to [`!for`](modellang/for) loop control
+% variable names. The expression must evaluate to a scalar number, a
+% logical scalar, or character string.
+%
 %
 % Example
 % ========
 %
 % The following line of code
 %
-%     pie{$[K]$}
+%     pie{<K>}
 %
 % which is assumed to be part of a model file named `my.model`, will expand
 % to
@@ -34,15 +37,16 @@
 %     P.K = 3;
 %     model('my.model','assign=',P);
 %
+%
 % Example
 % ========
 %
 % The following [`!for`](modellang/for) loop
 %
 %     !for
-%         $[ 2 : 4 ]$
+%         < 2 : 4 >
 %     !do
-%         x? = x$[?-1]${-1};
+%         x? = x<?-1>{-1};
 %     !end
 %
 % will expand to

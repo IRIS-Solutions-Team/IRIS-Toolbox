@@ -4,40 +4,40 @@ function this = reset(this, varargin)
 % Syntax
 % =======
 %
-%     M = reset(M)
-%     M = reset(M,Req1,Req2,...)
+%     m = reset(m)
+%     m = reset(m, req1, req2, ...)
 %
 %
 % Input arguments
 % ================
 %
-% * `M` [ model ] -  Model object in which the requested type(s) of values
+% * `m` [ model ] -  Model object in which the requested type(s) of values
 % will be reset.
 %
-% * `Req1`, `Req2`, ... [ `'corr'` | `'parameters'` | `'sstate'` | `'std'`
-% | `'stdcorr'` ] - Requested type(s) of values that will be reset; if
+% * `req1`, `req2`, ... [ `'Corr'` | `'Parameters'` | `'Sstate'` | `'Std'`
+% | `'Stdcorr'` ] - Requested type(s) of values that will be reset; if
 % omitted, everything will be reset.
 %
 %
 % Output arguments
 % =================
 %
-% * `M` [ model ] - Model object with the requested values reset.
+% * `m` [ model ] - Model object with the requested values reset.
 %
 %
 % Description
 % ============
 %
-% * `'corr'` - All cross-correlation coefficients will be reset to `0`.
+% * `'Corr'` - All cross-correlation coefficients will be reset to `0`.
 %
-% * `'parameters'` - All parameters will be reset to `NaN`.
+% * `'Parameters'` - All parameters will be reset to `NaN`.
 %
-% * `'sstate'` - All steady state values will be reset to `NaN`.
+% * `'Sstate'` - All steady state values will be reset to `NaN`.
 %
-% * `'std'` - All std deviations will be reset to `1` (in linear models) or
+% * `'Std'` - All std deviations will be reset to `1` (in linear models) or
 % `log(1.01)` (in non-linear models).
 %
-% * `'stdcorr'` - Equivalent to `'std'` and `'corr'`.
+% * `'Stdcorr'` - Equivalent to `'Std'` and `'Corr'`.
 %
 %
 % Example
@@ -60,9 +60,9 @@ ne = sum(ixe);
 nAlt = length(this.Variant);
 
 if this.IsLinear
-    defaultStd = 1;
+    dftStd = this.DEFAULT_STD_LINEAR;
 else
-    defaultStd = 0.01;
+    dftStd = this.DEFAULT_STD_NONLINEAR;
 end
 
 if isempty(varargin)
@@ -121,7 +121,7 @@ return
 
     function resetStd( )
         for iAlt = 1 : nAlt
-            this.Variant{iAlt}.StdCorr(:, 1:ne) = defaultStd;
+            this.Variant{iAlt}.StdCorr(:, 1:ne) = dftStd;
         end
     end
 
