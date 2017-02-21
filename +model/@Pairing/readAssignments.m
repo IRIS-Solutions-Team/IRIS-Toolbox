@@ -5,6 +5,9 @@ PTR = @int16;
 
 %--------------------------------------------------------------------------
 
+nEqn = numel(equation.Input);
+nQty = numel(quantity.Name);
+asgn = model.Pairing.initAssignment(nEqn); % Initialize assignement struct.
 ixm = equation.Type==TYPE(1);
 ixt = equation.Type==TYPE(2);
 ixmt = ixm | ixt;
@@ -12,8 +15,6 @@ if ~any(ixmt)
     return
 end
 
-nEqn = numel(equation.Input);
-nQty = numel(quantity.Name);
 
 % Equations written as assingments with a variable (or a log, exp, uminus
 % transformation) on the LHS.
@@ -29,9 +30,6 @@ for i = 1 : nAssignType
     type = allBlazerType(i);
     lsAssign{i} = strcat(type, lsName);
 end
-
-% Initialize assignement struct.
-asgn = model.Pairing.initAssignment(nEqn);
 
 for i = find(ixmt)
     [asgn.Dynamic.Lhs(i), asgn.Dynamic.Type(i)] = testLhs(euc.LhsDynamic{i});

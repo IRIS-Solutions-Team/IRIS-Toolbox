@@ -2,7 +2,11 @@ function matrix = across(this, dim)
 
 nsh = length(this.Shift);
 nEqtn = size(this.Matrix, 1);
-nQuan = size(this.Matrix, 2) / nsh;
+if nsh>0
+    nQuan = size(this.Matrix, 2) / nsh;
+else
+    nQuan = 0;
+end
 
 if strncmpi(dim, 'Sh', 2) % Across all shifts.
     matrix = acrossShift(this.Matrix);
@@ -46,7 +50,7 @@ return
     function ix = acrossLead(ix)
         pos = find(this.Shift>0, 1, 'First');
         ix = ix(:, (pos-1)*nQuan+1:end);
-        ix = reshape(ix, nEqtn*nQuan, nsh-pos+1);
+        ix = reshape(ix, nEqtn*nQuan, max(0, nsh-pos+1));
         ix = any(ix, 2);
         ix = reshape(ix, nEqtn, nQuan);
     end
@@ -57,7 +61,7 @@ return
     function ix = acrossNonzero(ix)
         pos = find(this.Shift==0);
         ix(:, (pos-1)*nQuan+(1:nQuan)) = [ ];
-        ix = reshape(ix, nEqtn*nQuan, nsh-1);
+        ix = reshape(ix, nEqtn*nQuan, max(0, nsh-1));
         ix = any(ix, 2);
         ix = reshape(ix, nEqtn, nQuan);
     end

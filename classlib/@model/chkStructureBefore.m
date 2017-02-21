@@ -26,6 +26,20 @@ ixm = equation.Type==TYPE(1);
 ixt = equation.Type==TYPE(2);
 ixd = equation.Type==TYPE(3);
 
+% No transition variable
+%------------------------
+if ~any(ixx)
+    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_VARIABLE', 'error');
+    return
+end
+
+% No transition equation
+%------------------------
+if ~any(ixt)
+    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_EQUATION', 'error');
+    return
+end
+
 indxs = across(this.Incidence.Dynamic, 'Shift'); % Across all shifts.
 insxs = across(this.Incidence.Steady, 'Shift');
 indxl = across(this.Incidence.Dynamic, 'Nonzero'); % Across lags and leads (non-zero shifts).

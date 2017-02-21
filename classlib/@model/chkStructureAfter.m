@@ -29,20 +29,6 @@ ixt = equation.Type==TYPE(2);
 nm = sum(ixm);
 nt = sum(ixt);
 
-% No transition variable
-%------------------------
-if ~any(ixx)
-    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_VARIABLE', 'error');
-    return
-end
-
-% No transition equation
-%------------------------
-if ~any(ixt)
-    exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_EQUATION', 'error');
-    return
-end
-
 % Current dates of transition variables
 %---------------------------------------
 % Dynamic equations.
