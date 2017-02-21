@@ -1,66 +1,84 @@
 classdef Interp
     properties (Constant)
-        INTERP_OPEN = {'$[', '<'}
-        INTERP_CLOSE = {']$', '>'}
+        OPEN = '<'
+        CLOSE = '>'
     end
     
     
     
     
     methods (Static)
-        function code = parse(varargin)
+        function [code, value, postCode] = parse(varargin)
             import parser.Interp;
             import parser.Preparser;
+            maxInterp = uint32(Inf);
             if nargin==1
                 % (Preparser):
                 p = varargin{1};
                 code = p.Code;
                 assigned = p.Assigned;
-            else % (code, assigned):
+            else 
+                % (code, assigned):
                 code = varargin{1};
                 assigned = varargin{2};
+                if nargin==3
+                    % (code, assigned, maxInterp)
+                    maxInterp = uint32(varargin{3});
+                end
             end
-            strOpen = Interp.INTERP_OPEN;
-            strClose = Interp.INTERP_CLOSE;
-            for i = 1 : numel(strOpen)
-                sh = Interp.createShadowCode(code, strOpen{i}, strClose{i});
-                level = cumsum(sh);
-                if any(level>1)
-                    posNested = find(level>1, 1);
-                    throwCode( exception.ParseTime('Preparser:INTERP_NESTED', 'error'), ...
-                        code(posNested:end) );
+
+            sh = Interp.createShadowCode(code, Interp.OPEN, Interp.CLOSE);
+            level = cumsum(sh);
+            if any(level>1)
+                posNested = find(level>1, 1);
+                throwCode( ...
+                    exception.ParseTime('Preparser:INTERP_NESTED', 'error'), ...
+                    code(posNested:end) ...
+                    );
+            end
+            count = uint32(0);
+            value = [ ];
+            while count<maxInterp
+                posOpen = find(level==1, 1);
+                if isempty(posOpen)
+                    break
                 end
-                lenOpen = length(strOpen{i});
-                lenClose = length(strClose{i});
-                while true
-                    posOpen = find(level==1, 1);
-                    if isempty(posOpen)
-                        break
-                    end
-                    posClose = posOpen + find(level(posOpen+1:end)==0, 1);
-                    if isempty(posClose)
-                        throwCode( exception.ParseTime('Preparser:INTERP_NOT_CLOSED', 'error'), ...
-                            code(posOpen:end) );
-                    end
-                    expn = code(posOpen+lenOpen:posClose-1);
-                    try
-                        value = Preparser.eval(expn, assigned);
-                        s = Interp.printValue(value);
-                    catch
-                        throwCode( exception.ParseTime('Preparser:INTERP_EVAL_FAILED', 'error'), ...
-                            code(posOpen:posClose+lenClose-1) );
-                    end
-                    code = [ ...
-                        code(1:posOpen-1), ...
-                        s, ...
-                        code(posClose+lenClose:end), ...
-                        ];
-                    level = [ ...
-                        level(1:posOpen-1), ...
-                        zeros(1, length(s), 'int8'), ...
-                        level(posClose+lenClose:end), ...
-                        ];
+                posClose = posOpen + find(level(posOpen+1:end)==0, 1);
+                if isempty(posClose)
+                    throwCode( ...
+                        exception.ParseTime('Preparser:INTERP_NOT_CLOSED', 'error'), ...
+                        code(posOpen:end) ...
+                        );
                 end
+                expn = code(posOpen+1:posClose-1);
+                try
+                    value = Preparser.eval(expn, assigned);
+                    value = Interp.any2cellstr(value);
+                    s = '';
+                    if ~isempty(value)
+                        s = sprintf('%s,', value{:});
+                        s = s(1:end-1);
+                    end
+                catch
+                    throwCode( ...
+                        exception.ParseTime('Preparser:InterpEvalFailed', 'error'), ...
+                        code(posOpen:posClose) ...
+                        );
+                end
+                if nargout>2
+                    postCode = code(posClose+1:end);
+                end
+                code = [ ...
+                    code(1:posOpen-1), ...
+                    s, ...
+                    code(posClose+1:end), ...
+                    ];
+                level = [ ...
+                    level(1:posOpen-1), ...
+                    zeros(1, length(s), 'int8'), ...
+                    level(posClose+1:end), ...
+                    ];
+                count = count + 1;
             end
             p.Code = code;
         end
@@ -84,28 +102,26 @@ classdef Interp
         
         
         
-        function c = printValue(value)
+        function value = any2cellstr(value)
             if isnumeric(value) || islogical(value) || ischar(value)
                 value = num2cell(value);
             elseif ~iscell(value)
                 value = { value };
             end
-            c = '';
             for i = 1 : numel(value)
                 if ischar(value{i})
-                    c = [c, value{i}, ',']; %#ok<AGROW>
+                    % Do nothing.
                 elseif isnumeric(value{i})
-                    c = [c, sprintf('%g,', value{i})]; %#ok<AGROW>
-                elseif isequal(value{i},true)
-                    c = [c, 'true,']; %#ok<AGROW>
-                elseif isequal(value{i},false)
-                    c = [c, 'false,']; %#ok<AGROW>
+                    value{i} = sprintf('%g', value{i});
+                elseif isequal(value{i}, true)
+                    value{i} = 'true';
+                elseif isequal(value{i}, false)
+                    value{i} = 'false';
                 else
-                    c = char(value{i});
-                    c = c(:).';
+                    error('IRIS:Intermediate', 'Intermediate Error');
+                    return
                 end
             end
-            c = c(1:end-1);
         end
     end
 end

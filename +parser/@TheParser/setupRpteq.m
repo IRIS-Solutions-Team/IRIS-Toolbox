@@ -16,11 +16,12 @@ x.Keyword = '!reporting_equations';
 x.Type = TYPE(6);
 this.Block{end+1} = x;
 
-this.AltKeywordWarn = [ this.AltKeywordWarn; ...
-    { ...
-    '!outside', '!reporting_equations'; ...
-    '!equations:reporting', '!reporting_equations'; ...
-    '!reporting', '!reporting_equations'; ...
+this.AltKeywordWarn = [ 
+    this.AltKeywordWarn
+    { 
+    '!outside', '!reporting_equations'
+    '!equations:reporting', '!reporting_equations'
+    '!reporting', '!reporting_equations'
     } ];
 
 end

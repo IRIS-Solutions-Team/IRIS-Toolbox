@@ -147,12 +147,7 @@ end
 warning(w);
 
 if displayLevel.Iter
-    try
-        jDesktop = com.mathworks.mde.desk.MLDesktop.getInstance;
-        isDesktop = ~isempty(jDesktop.getClient('Command Window'));
-    catch
-        isDesktop = false;
-    end
+    isDesktop = irisget('IsDesktop');
     if isDesktop
         fprintf('<strong>');
     end
