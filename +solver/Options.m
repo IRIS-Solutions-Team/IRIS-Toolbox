@@ -3,12 +3,13 @@ classdef Options
         Algorithm = 'lm'
         Display = 'iter'
         InitDamping = @auto
+        Lambda = [0.1, 1, 10, 100];
         SolverName = 'IRIS'
         MaxIterations = 1000
         MaxFunctionEvaluations = @(inp) 100*inp.NumberOfVariables
         StepTolerance = 1e-12
         FunctionTolerance = 1e-12
-        FunctionNorm = @(x) norm(x, 2)
+        FunctionNorm = 2
         SpecifyObjectiveGradient = true
         StepDown = 0.8
         StepUp = 1.2

@@ -33,6 +33,8 @@ opt.SteadyIris = [
     steadyShared
     {
     'Algorithm', 'levenberg-marquardt', @(x) ischar(x) && any(strcmpi(x, {'levenberg-marquardt', 'lm'}))
+    'FunctionNorm', 2, @(x) isequal(x, 1) || isequal(x, 2) || isequal(x, Inf) || isa(x, 'function_handle')
+    'Lambda', [0.1, 1, 10, 100], @(x) isnumeric(x) && all(x>0) && all(isreal(x))
     'StepUp', 1.2, @(x) isequal(x, false) || (isnumericscalar(x) && x>1)
     'StepDown', 0.8, @(x) isequal(x, false) || (isnumericscalar(x) && x>0 && x<1)
     } ];
