@@ -7,6 +7,7 @@ function irisstartup(varargin)
 %     irisstartup
 %     irisstartup -shutup
 %
+%
 % Description
 % ============
 %
@@ -49,7 +50,7 @@ if true % ##### MOSW
     if getMatlabRelease( )<release2num(MATLAB_RELEASE_OR_HIGHER)
         error( ...
             'IRIS:Config:IrisStartup', ...
-            'Sorry, Matlab <strong>%s</strong> or later is needed to run this version of the <a href="http://www.iris-toolbox.com">IRIS Macroeconomic Modeling Toolbox</a>.', ...
+            'Matlab %s or later is needed to run this version of the IRIS Macroeconomic Modeling Toolbox.', ...
             MATLAB_RELEASE_OR_HIGHER ...
             );
     end
@@ -111,33 +112,42 @@ return
 
 
     function deleteProgress( )
-        progress(1:end) = sprintf('\b');
-        fprintf(progress);
+        if icfg.IsDesktop
+            progress(1:end) = sprintf('\b');
+            fprintf(progress);
+        else
+            fprintf('\n\n');
+        end
     end
 
 
 
 
     function displayMessage( )
+        if icfg.IsDesktop
+            fprintfx = @(varargin) fprintf(varargin{:});       
+        else
+            fprintfx = @(varargin) fprintf('%s', textfun.removeTags(sprintf(varargin{:})));
+        end
         % Intro message.
-        mosw.fprintf('\t<a href="http://www.iris-toolbox.com">IRIS Macroeconomic Modeling Toolbox</a> ');
+        fprintfx('\t<a href="http://www.iris-toolbox.com">IRIS Macroeconomic Modeling Toolbox</a> ');
         fprintf('Release %s.', version);
         fprintf('\n');
         fprintf('\tCopyright (c) 2007-%s ', datestr(now, 'YYYY'));
-        mosw.fprintf('<a href="https://code.google.com/p/iris-toolbox-project/wiki/ist">');
-        mosw.fprintf('IRIS Solutions Team</a>.');
+        fprintfx('<a href="https://code.google.com/p/iris-toolbox-project/wiki/ist">');
+        fprintfx('IRIS Solutions Team</a>.');
         fprintf('\n\n');
         
         % IRIS root folder.
-        mosw.fprintf('\tIRIS root: <a href="file:///%s">%s</a>.\n', root, root);
+        fprintfx('\tIRIS root: <a href="file:///%s">%s</a>.\n', root, root);
         
         % Report user config file used.
         fprintf('\tUser config file: ');
         if isempty(icfg.userconfigpath)
-            mosw.fprintf('<a href="matlab: idoc config/irisuserconfighelp">');
-            mosw.fprintf('No user config file found</a>.');
+            fprintfx('<a href="matlab: idoc config/irisuserconfighelp">');
+            fprintfx('No user config file found</a>.');
         else
-            mosw.fprintf('<a href="matlab: edit %s">%s</a>.', ...
+            fprintfx('<a href="matlab: edit %s">%s</a>.', ...
                 icfg.userconfigpath, icfg.userconfigpath);
         end
         fprintf('\n');
@@ -148,7 +158,7 @@ return
             fprintf('No PDF LaTeX engine found.');
         else
             if true % ##### MOSW
-                fprintf( ...
+                fprintfx( ...
                     '<a href="file:///%s">%s</a>.', ...
                     fileparts(icfg.PdfLaTeXPath), ...
                     icfg.PdfLaTeXPath ...
@@ -160,8 +170,8 @@ return
         fprintf('\n');
         
         % Report the X12 version integrated with IRIS.
-        mosw.fprintf('\t<a href="http://www.census.gov/srd/www/x13as/">');
-        mosw.fprintf('X13-ARIMA-SEATS</a>: ');
+        fprintfx('\t<a href="http://www.census.gov/srd/www/x13as/">');
+        fprintfx('X13-ARIMA-SEATS</a>: ');
         fprintf('Version 1.1 Build 19 (April 2, 2015).');
         fprintf('\n');
         

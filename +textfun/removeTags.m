@@ -1,5 +1,5 @@
-function msg = removehtml(msg)
-% removehtml  Remove HTML tags from message before printing.
+function msg = removeTags(msg)
+% removeTags  Remove HTML tags from message before printing.
 %
 % Backend IRIS function.
 % No help provided.
@@ -10,7 +10,7 @@ function msg = removehtml(msg)
 %--------------------------------------------------------------------------
 
 msg = regexprep(msg, '<a[^<]*>', '');
-msg = strrep(msg,'</a>', '');
+msg = strrep(msg, '</a>', '');
 msg = strrep(msg, '<strong>', '');
 msg = strrep(msg, '</strong>', '');
 

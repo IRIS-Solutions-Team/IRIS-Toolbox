@@ -90,32 +90,33 @@ x.Keyword = '!steady_autoexog';
 x.Type = TYPE(2);
 this.Block{end+1} = x;
 
-this.AltKeyword = [ this.AltKeyword; ...
+this.AltKeyword = [ 
+    this.AltKeyword 
     {
-    '!allbut', '!all_but'
-    '!equations', '!transition_equations'
-    '!variables', '!transition_variables'
-    '!shocks', '!transition_shocks'
-    '!ttrend', 'ttrend'
+    '\$\<([a-zA-Z]\w*)\>(?!\$)', '&$1' % Steady references
+    '!allbut\>', '!all_but'
+    '!equations\>', '!transition_equations'
+    '!variables\>', '!transition_variables'
+    '!shocks\>', '!transition_shocks'
+    '!ttrend\>', 'ttrend'
+    '\$\[', '<' % Open interpolation
+    '\]\$', '>' % Close interpolation
     } ];
 
-this.AltKeywordWarn = [ this.AltKeywordWarn; ...
+this.AltKeywordWarn = [ 
+    this.AltKeywordWarn
     { 
-    '!coefficients', '!parameters'
-    '!variables:residual', '!shocks'
-    '!variables:innovation', '!shocks'
-    '!residuals', '!shocks'
-    '!equations:dtrends', '!dtrends'
-    '!dtrends:measurement', '!dtrends'
-    '!variables:transition', '!transition_variables'
-    '!shocks:transition', '!transition_shocks'
-    '!equations:transition', '!transition_equations'
-    '!variables:measurement', '!measurement_variables'
-    '!shocks:measurement', '!measurement_shocks'
-    '!equations:measurement', '!measurement_equations'
-    '!variables:log', '!log_variables'
-    '!autoexogenise', '!dynamic_autoexog'
-    '!autoexogenize', '!dynamic_autoexog'
+    '!equations:dtrends\>', '!dtrends'
+    '!dtrends:measurement\>', '!dtrends'
+    '!variables:transition\>', '!transition_variables'
+    '!shocks:transition\>', '!transition_shocks'
+    '!equations:transition\>', '!transition_equations'
+    '!variables:measurement\>', '!measurement_variables'
+    '!shocks:measurement\>', '!measurement_shocks'
+    '!equations:measurement\>', '!measurement_equations'
+    '!variables:log\>', '!log_variables'
+    '!autoexogenise\>', '!dynamic_autoexog'
+    '!autoexogenize\>', '!dynamic_autoexog'
     } ];
 
 this.OtherKeyword = [ this.OtherKeyword, ...

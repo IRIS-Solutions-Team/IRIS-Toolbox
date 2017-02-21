@@ -11,6 +11,16 @@ function icfg = irisconfig(varargin)
 
 icfg = struct( );
 
+% Environment
+%-------------
+
+try
+    jDesktop = com.mathworks.mde.desk.MLDesktop.getInstance;
+    icfg.IsDesktop = ~isempty(jDesktop.getClient('Command Window'));
+catch
+    icfg.IsDesktop = false;
+end
+
 % Factory defaults
 %------------------
 % Date preferences.
@@ -152,6 +162,7 @@ end
 
 % User cannot change these properties.
 icfg.protected = { 
+    'IsDesktop'
     'freq'
     'FreqName'
     'userconfigpath'
@@ -173,6 +184,7 @@ return
         dateFormatStructValidFn = @(X) isstruct(X) && length(X) == 1 ...
             && all(isfield(X,dateStructFields));
         icfg.validate = struct( ...
+            'IsDesktop', @islogicalscalar, ...
             'FreqName', ...
             @(x) isa(x, 'containers.Map') && length(x)==nFreq && strcmp(x.KeyType, 'double') && strcmp(x.ValueType, 'char'), ...
             'freqletters', ...
