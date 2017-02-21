@@ -16,6 +16,7 @@ end
 if isa(opt.FunctionNorm, 'function_handle')
     fnNorm = opt.FunctionNorm;
     strFnNorm = func2str(fnNorm);
+    strFnNorm = regexprep(strFnNorm, '^@\(.*?\)', '', 'once');
     if length(strFnNorm)>12
         strFnNorm = strFnNorm(1:12);
     end
