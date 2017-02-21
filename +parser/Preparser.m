@@ -7,7 +7,7 @@ classdef Preparser < handle
         Assigned = struct( ) % Database with control parameters.
         CloneTemplate = '' % Template to clone model names.
         Exported = cell(2, 0) % Files to be saved into working folder.
-        CtrlParameters = cell(1, 0) % List of parameter names occuring in control expressions and pseudosubs.
+        CtrlParameters = cell(1, 0) % List of parameter names occuring in control expressions and interpolations.
         EvalWarning = parser.Preparser.EVAL_WARNING % List of if/elseif/switch/case conditions/expressions producing errors.
         
         StoreForCtrl = cell(0, 2) % Store !for control variable replacements.
@@ -84,11 +84,11 @@ classdef Preparser < handle
                 parser.UserComment.parse(p);
                 parser.Comment.parse(p);
                 parser.control.Control.parse(p);
-                % Resolve pseudosubtitions *after* controls so that pseudosubs expressions
-                % can refer to !for control variables. Pseudosubstitutions between !for and
+                % Resolve interpolations *after* controls so that interpolated expressions
+                % can refer to !for control variables. Interpolations between !for and
                 % !do keywords are resolved separately within For.writeFinal( ) in the
                 % previous step.
-                parser.Pseudosubs.parse(p);
+                parser.Interp.parse(p);
                 parser.substitution.Substitution.parse(p);
                 parser.pseudofunc.Pseudofunc.parse(p);
                 parser.doubledot.DoubleDot.parse(p);

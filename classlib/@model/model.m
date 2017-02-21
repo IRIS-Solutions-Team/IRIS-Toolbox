@@ -1,10 +1,11 @@
 % model  Models (model Objects).
 %
-% Model objects are created by loading a [model file](modellang/Contents).
-% Once a model object exists, you can use model functions and standard
-% Matlab functions to write your own m-files to perform the desired tasks,
-% such calibrate or estimate the model, find its steady state, solve and
-% simulate it, produce forecasts, analyse its properties, and so on.
+% Model objects are created by loading a model file written in [IRIS
+% modeling language](modellang/Contents). Once a model object exists, you
+% can use model functions and standard Matlab functions to write your own
+% m-files to perform the desired tasks, such calibrate or estimate the
+% model, find its steady state, solve and simulate it, produce forecasts,
+% analyse its properties, and so on.
 %
 % model methods:
 %
@@ -12,124 +13,124 @@
 % Constructor
 % ============
 %
-% * [`model`](model/model) - Create new model object based on model file.
+% * model - Create new model object based on model file.
 %
 %
 % Getting information about model
 % ================================
 %
-% * [`addparam`](model/addparam) - Add model parameters to a database (struct).
-% * [`autocaption`](model/autocaption) - Create captions for graphs of model variables or parameters.
-% * [`autoexog`](model/autoexog) - Get or set variable/shock pairs for use in autoexogenised simulation plans.
-% * [`chkredundant`](model/chkredundant) - Check for redundant shocks and/or parameters.
-% * [`comment`](model/comment) - Get or set user comments in an IRIS object.
-% * [`eig`](model/eig) - Eigenvalues of the transition matrix.
-% * [`findeqtn`](model/findeqtn) - Find equations by the labels.
-% * [`findname`](model/findname) - Find names of variables, shocks, or parameters by their descriptors.
-% * [`get`](model/get) - Query model object properties.
-% * [`iscompatible`](model/iscompatible) - True if two models can occur together on the LHS and RHS in an assignment.
-% * [`islinear`](model/islinear) - True for models declared as linear.
-% * [`islog`](model/islog) - True for log-linearised variables.
-% * [`ismissing`](model/ismissing) - True if some initical conditions are missing from input database.
-% * [`islocked`](model/islocked) - Get lock status of dynamic links or steady-state revision equations.
-% * [`isnan`](model/isnan) - Check for NaNs in model object.
-% * [`isname`](model/isname) - True for valid names of variables, parameters, or shocks in model object.
-% * [`issolved`](model/issolved) - True if model solution exists.
-% * [`isstationary`](model/isstationary) - True if model or specified combination of variables is stationary.
-% * [`length`](model/length) - Number of alternative parameterisations.
-% * [`omega`](model/omega) - Get or set the covariance matrix of shocks.
-% * [`sspace`](model/sspace) - State-space matrices describing the model solution.
-% * [`system`](model/system) - System matrices for unsolved model.
-% * [`userdata`](model/userdata) - Get or set user data in an IRIS object.
+% * addparam - Add model parameters to a database (struct).
+% * autocaption - Create captions for graphs of model variables or parameters.
+% * autoexog - Get or set variable/shock pairs for use in autoexogenised simulation plans.
+% * chkredundant - Check for redundant shocks and/or parameters.
+% * comment - Get or set user comments in an IRIS object.
+% * eig - Eigenvalues of the transition matrix.
+% * findeqtn - Find equations by the labels.
+% * findname - Find names of variables, shocks, or parameters by their descriptors.
+% * get - Query model object properties.
+% * iscompatible - True if two models can occur together on the LHS and RHS in an assignment.
+% * islinear - True for models declared as linear.
+% * islog - True for log-linearised variables.
+% * ismissing - True if some initical conditions are missing from input database.
+% * islocked - Get lock status of dynamic links or steady-state revision equations.
+% * isnan - Check for NaNs in model object.
+% * isname - True for valid names of variables, parameters, or shocks in model object.
+% * issolved - True if model solution exists.
+% * isstationary - True if model or specified combination of variables is stationary.
+% * length - Number of alternative parameterisations.
+% * omega - Get or set the covariance matrix of shocks.
+% * sspace - State-space matrices describing the model solution.
+% * system - System matrices for unsolved model.
+% * userdata - Get or set user data in an IRIS object.
 %
 %
 % Referencing model objects
 % ==========================
 %
-% * [`subsasgn`](model/subsasgn) - Subscripted assignment for model and systemfit objects.
-% * [`subsref`](model/subsref) - Subscripted reference for model and systemfit objects.
+% * subsasgn - Subscripted assignment for model and systemfit objects.
+% * subsref - Subscripted reference for model and systemfit objects.
 %
 %
 % Changing model objects
 % =======================
 %
-% * [`alter`](model/alter) - Expand or reduce number of alternative parameterisations.
-% * [`assign`](model/assign) - Assign parameters, steady states, std deviations or cross-correlations.
-% * [`export`](model/export) - Save export files to disk.
-% * [`horzcat`](model/horzcat) - Combine two compatible model objects in one object with multiple parameterisations.
-% * [`lock`](model/lock) - Lock (disable) dynamic links or steady-state revision equations temporarily.
-% * [`refresh`](model/refresh) - Refresh dynamic links.
-% * [`reset`](model/reset) - Reset specific values within model object.
-% * [`stdscale`](model/stdscale) - Rescale all std deviations by the same factor.
-% * [`set`](model/set) - Change modifiable model object property.
-% * [`single`](model/single) - Convert solution matrices to single precision.
-% * [`unlock`](model/unlock) - Unlock (enable) locked dynamic links or steady-state revision equations.
+% * alter - Expand or reduce number of alternative parameterisations.
+% * assign - Assign parameters, steady states, std deviations or cross-correlations.
+% * export - Save export files to disk.
+% * horzcat - Combine two compatible model objects in one object with multiple parameterisations.
+% * lock - Lock (disable) dynamic links or steady-state revision equations temporarily.
+% * refresh - Refresh dynamic links.
+% * reset - Reset specific values within model object.
+% * stdscale - Rescale all std deviations by the same factor.
+% * set - Change modifiable model object property.
+% * single - Convert solution matrices to single precision.
+% * unlock - Unlock (enable) locked dynamic links or steady-state revision equations.
 %
 %
 % Steady state
 % =============
 %
-% * [`blazer`](model/blazer) - Reorder steady-state equations into sequential block structure.
-% * [`chksstate`](model/chksstate) - Check if equations hold for currently assigned steady-state values.
-% * [`sstate`](model/sstate) - Compute steady state or balance-growth path of the model.
+% * blazer - Reorder steady-state equations into sequential block structure.
+% * chksstate - Check if equations hold for currently assigned steady-state values.
+% * sstate - Compute steady state or balance-growth path of the model.
 %
 %
 % Solution, simulation and forecasting
 % =====================================
 %
-% * [`chkmissing`](model/chkmissing) - Check for missing initial values in simulation database.
-% * [`diffsrf`](model/diffsrf) - Differentiate shock response functions w.r.t. specified parameters.
-% * [`expand`](model/expand) - Compute forward expansion of model solution for anticipated shocks.
-% * [`jforecast`](model/jforecast) - Forecast with judgmental adjustments (conditional forecasts).
-% * [`icrf`](model/icrf) - Initial-condition response functions.
-% * [`lhsmrhs`](model/lhsmrhs) - Evaluate the discrepancy between the LHS and RHS for each model equation and given data.
-% * [`resample`](model/resample) - Resample from the model implied distribution.
-% * [`reporting`](model/reporting) - Evaluate reporting equations from within model object.
-% * [`shockplot`](model/shockplot) - Short-cut for running and plotting plain shock simulation.
-% * [`simulate`](model/simulate) - Simulate model.
-% * [`solve`](model/solve) - Calculate first-order accurate solution of the model.
-% * [`srf`](model/srf) - Shock response functions, first-order solution only.
-% * [`tolerance`](model/tolerance) - Get or set model-specific tolerance levels.
+% * chkmissing - Check for missing initial values in simulation database.
+% * diffsrf - Differentiate shock response functions w.r.t. specified parameters.
+% * expand - Compute forward expansion of model solution for anticipated shocks.
+% * jforecast - Forecast with judgmental adjustments (conditional forecasts).
+% * icrf - Initial-condition response functions.
+% * lhsmrhs - Evaluate the discrepancy between the LHS and RHS for each model equation and given data.
+% * resample - Resample from the model implied distribution.
+% * reporting - Evaluate reporting equations from within model object.
+% * shockplot - Short-cut for running and plotting plain shock simulation.
+% * simulate - Simulate model.
+% * solve - Calculate first-order accurate solution of the model.
+% * srf - Shock response functions, first-order solution only.
+% * tolerance - Get or set model-specific tolerance levels.
 %
 %
 % Model data
 % ===========
 %
 % * [`data4lhsmrhs`](model/data4lhsmrhs) - Prepare data array for running `lhsmrhs`.
-% * [`emptydb`](model/emptydb) - Create model-specific database with empty tseries for all variables, shocks and parameters.
-% * [`rollback`](model/rollback) - Prepare database for a rollback run of Kalman filter.
-% * [`shockdb`](model/shockdb) - Create model-specific database with random shocks.
-% * [`sstatedb`](model/sstatedb) - Create model-specific steady-state or balanced-growth-path database.
-% * [`templatedb`](model/templatedb) - Create model-specific template database.
-% * [`zerodb`](model/zerodb) - Create model-specific zero-deviation database.
+% * emptydb - Create model-specific database with empty tseries for all variables, shocks and parameters.
+% * rollback - Prepare database for a rollback run of Kalman filter.
+% * shockdb - Create model-specific database with random shocks.
+% * sstatedb - Create model-specific steady-state or balanced-growth-path database.
+% * templatedb - Create model-specific template database.
+% * zerodb - Create model-specific zero-deviation database.
 %
 %
 % Stochastic properties
 % ======================
 %
-% * [`acf`](model/acf) - Autocovariance and autocorrelation function for model variables.
-% * [`ifrf`](model/ifrf) - Frequency response function to shocks.
-% * [`fevd`](model/fevd) - Forecast error variance decomposition for model variables.
-% * [`ffrf`](model/ffrf) - Filter frequency response function of transition variables to measurement variables.
-% * [`fmse`](model/fmse) - Forecast mean square error matrices.
-% * [`vma`](model/vma) - Vector moving average representation of the model.
-% * [`xsf`](model/xsf) - Power spectrum and spectral density of model variables.
+% * acf - Autocovariance and autocorrelation function for model variables.
+% * ifrf - Frequency response function to shocks.
+% * fevd - Forecast error variance decomposition for model variables.
+% * ffrf - Filter frequency response function of transition variables to measurement variables.
+% * fmse - Forecast mean square error matrices.
+% * vma - Vector moving average representation of the model.
+% * xsf - Power spectrum and spectral density of model variables.
 %
 %
 % Identification, estimation and filtering
 % =========================================
 %
-% * [`bn`](model/bn) - Beveridge-Nelson trends.
-% * [`diffloglik`](model/diffloglik) - Approximate gradient and hessian of log-likelihood function.
-% * [`estimate`](model/estimate) - Estimate model parameters by optimising selected objective function.
-% * [`evalsystempriors`](model/evalsystempriors) - Evaluate minus log of system prior density.
-% * [`filter`](model/filter) - Kalman smoother and estimator of out-of-likelihood parameters.
-% * [`fisher`](model/fisher) - Approximate Fisher information matrix in frequency domain.
-% * [`lognormal`](model/lognormal) - Characteristics of log-normal distributions returned from filter of forecast.
-% * [`loglik`](model/loglik) - Evaluate minus the log-likelihood function in time or frequency domain.
-% * [`neighbourhood`](model/neighbourhood) - Evaluate the local behaviour of the objective function around the estimated parameter values.
-% * [`regress`](model/regress) - Centred population regression for selected model variables.
-% * [`VAR`](model/VAR) - Population VAR for selected model variables.
+% * bn - Beveridge-Nelson trends.
+% * diffloglik - Approximate gradient and hessian of log-likelihood function.
+% * estimate - Estimate model parameters by optimising selected objective function.
+% * evalsystempriors - Evaluate minus log of system prior density.
+% * filter - Kalman smoother and estimator of out-of-likelihood parameters.
+% * fisher - Approximate Fisher information matrix in frequency domain.
+% * lognormal - Characteristics of log-normal distributions returned from filter of forecast.
+% * loglik - Evaluate minus the log-likelihood function in time or frequency domain.
+% * neighbourhood - Evaluate the local behaviour of the objective function around the estimated parameter values.
+% * regress - Centred population regression for selected model variables.
+% * VAR - Population VAR for selected model variables.
 %
 %
 % Getting on-line help on model functions

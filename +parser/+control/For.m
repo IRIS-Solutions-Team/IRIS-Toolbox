@@ -73,8 +73,8 @@ classdef For < parser.control.Control
         function readForCode(this, forCode, assigned)
             import parser.control.For;
             forCode = strtrim(forCode);
-            % Replace interpolations between !for and !do.
-            forCode = parser.Pseudosubs.parse(forCode, assigned);
+            % Replace pseudosubstitutions in between !for and !do.
+            forCode = parser.Interp.parse(forCode, assigned);
             tkn = regexp(forCode, For.FOR_PATTERN, 'tokens', 'once');
             if ~isempty(tkn)
                 controlName = tkn{1};

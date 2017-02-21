@@ -1,7 +1,7 @@
-classdef Pseudosubs
+classdef Interp
     properties (Constant)
-        PSEUDOSUBS_OPEN = {'$[', '<'}
-        PSEUDOSUBS_CLOSE = {']$', '>'}
+        INTERP_OPEN = {'$[', '<'}
+        INTERP_CLOSE = {']$', '>'}
     end
     
     
@@ -9,7 +9,7 @@ classdef Pseudosubs
     
     methods (Static)
         function code = parse(varargin)
-            import parser.Pseudosubs;
+            import parser.Interp;
             import parser.Preparser;
             if nargin==1
                 % (Preparser):
@@ -20,14 +20,14 @@ classdef Pseudosubs
                 code = varargin{1};
                 assigned = varargin{2};
             end
-            strOpen = Pseudosubs.PSEUDOSUBS_OPEN;
-            strClose = Pseudosubs.PSEUDOSUBS_CLOSE;
+            strOpen = Interp.INTERP_OPEN;
+            strClose = Interp.INTERP_CLOSE;
             for i = 1 : numel(strOpen)
-                sh = Pseudosubs.createShadowCode(code, strOpen{i}, strClose{i});
+                sh = Interp.createShadowCode(code, strOpen{i}, strClose{i});
                 level = cumsum(sh);
                 if any(level>1)
                     posNested = find(level>1, 1);
-                    throwCode( exception.ParseTime('Preparser:PSEUDOSUBS_NESTED', 'error'), ...
+                    throwCode( exception.ParseTime('Preparser:INTERP_NESTED', 'error'), ...
                         code(posNested:end) );
                 end
                 lenOpen = length(strOpen{i});
@@ -39,15 +39,15 @@ classdef Pseudosubs
                     end
                     posClose = posOpen + find(level(posOpen+1:end)==0, 1);
                     if isempty(posClose)
-                        throwCode( exception.ParseTime('Preparser:PSEUDOSUBS_NOT_CLOSED', 'error'), ...
+                        throwCode( exception.ParseTime('Preparser:INTERP_NOT_CLOSED', 'error'), ...
                             code(posOpen:end) );
                     end
                     expn = code(posOpen+lenOpen:posClose-1);
                     try
                         value = Preparser.eval(expn, assigned);
-                        s = Pseudosubs.printValue(value);
+                        s = Interp.printValue(value);
                     catch
-                        throwCode( exception.ParseTime('Preparser:PSEUDOSUBS_EVAL_FAILED', 'error'), ...
+                        throwCode( exception.ParseTime('Preparser:INTERP_EVAL_FAILED', 'error'), ...
                             code(posOpen:posClose+lenClose-1) );
                     end
                     code = [ ...
@@ -69,7 +69,7 @@ classdef Pseudosubs
         
         
         function sh = createShadowCode(c, strOpen, strClose)
-            import parser.Pseudosubs;
+            import parser.Interp;
             sh = zeros(1, length(c), 'int8');
             posOpen = strfind(c, strOpen);
             if ~isempty(posOpen)
