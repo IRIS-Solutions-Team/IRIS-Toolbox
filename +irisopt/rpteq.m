@@ -1,4 +1,4 @@
-function Def = rpteq( )
+function def = rpteq( )
 % rpteq  Default options for rpteq class.
 %
 % Backend IRIS function.
@@ -9,14 +9,14 @@ function Def = rpteq( )
 
 %--------------------------------------------------------------------------
 
-Def = struct( );
+def = struct( );
 
-Def.rpteq = {
-    'assign', struct([ ]), @isstruct
+def.rpteq = {
+    'Assign', struct( ), @isstruct
     'saveas', '', @ischar
     };
 
-Def.run = {
+def.run = {
     'AppendPresample', false, @(x) islogicalscalar(x) || isstruct(x)
     'dboverlay', false, @(x) islogicalscalar(x) || isstruct(x)
     'fresh', false, @islogicalscalar

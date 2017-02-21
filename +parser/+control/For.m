@@ -22,7 +22,7 @@ classdef For < parser.control.Control
     
     
     methods
-        function this = For(c,sh)
+        function this = For(c, sh)
             import parser.control.*;
             if nargin==0
                 return
@@ -57,10 +57,10 @@ classdef For < parser.control.Control
             if isempty(this.ForBody) || isempty(this.DoBody)
                 return
             end
-%             forCode = writeFinal(this.ForBody,p,varargin{:});
-%             doCode = writeFinal(this.DoBody,p,varargin{:});
-%             readForCode(this,forCode,p.Assigned);
-%             c = replaceDoCode(this,doCode);
+%             forCode = writeFinal(this.ForBody, p, varargin{:});
+%             doCode = writeFinal(this.DoBody, p, varargin{:});
+%             readForCode(this, forCode, p.Assigned);
+%             c = replaceDoCode(this, doCode);
             
             forCode = writeFinal(this.ForBody, p, varargin{:});
             readForCode(this, forCode, p.Assigned);
@@ -73,7 +73,7 @@ classdef For < parser.control.Control
         function readForCode(this, forCode, assigned)
             import parser.control.For;
             forCode = strtrim(forCode);
-            % Replace pseudosubstitutions in between !for and !do.
+            % Replace interpolations between !for and !do.
             forCode = parser.Pseudosubs.parse(forCode, assigned);
             tkn = regexp(forCode, For.FOR_PATTERN, 'tokens', 'once');
             if ~isempty(tkn)
@@ -94,15 +94,15 @@ classdef For < parser.control.Control
             import parser.control.For;
             c = '';
             % Remove leading and trailing line breaks.
-            % doCode = regexprep(doCode,'^\s*\n','');
-            % doCode = regexprep(doCode,'\n\s*$','');
+            % doCode = regexprep(doCode, '^\s*\n', '');
+            % doCode = regexprep(doCode, '\n\s*$', '');
             controlName = this.ControlName;
             
             for i = 1 : length(this.Token)
-                p.StoreForCtrl(end+1,:) = { controlName, this.Token{i} };
+                p.StoreForCtrl(end+1, :) = { controlName, this.Token{i} };
                 c1 = writeFinal(this.DoBody, p, varargin{:});
                 c = [c, c1]; %#ok<AGROW>
-                p.StoreForCtrl(end,:) = [ ];
+                p.StoreForCtrl(end, :) = [ ];
             end
         end
     end
@@ -119,7 +119,7 @@ classdef For < parser.control.Control
                 return
             end
             for i = 1 : size(p.StoreForCtrl, 1)
-                ctrlName = p.StoreForCtrl{i,1};
+                ctrlName = p.StoreForCtrl{i, 1};
                 tkn = p.StoreForCtrl{i, 2};
                 For.chkObsolete(c, ctrlName);
                 if length(ctrlName)>1

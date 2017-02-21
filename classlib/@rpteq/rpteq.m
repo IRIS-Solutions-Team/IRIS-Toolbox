@@ -63,28 +63,29 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
         function this = rpteq(varargin)
             % rpteq  New reporting equations (rpteq) object.
             %
-            %
             % Syntax
             % =======
             %
-            %     Q = rpteq(FName)
-            %     Q = rpteq(Eqtn)
+            %     q = rpteq(fileName)
+            %     q = rpteq(eqtn)
             %
             %
             % Input arguments
             % ================
             %
-            % * `FName` [ char | cellstr ] - File name or cellstr array of
+            % * `fileName` [ char | cellstr ] - File name or cellstr array of
             % file names, each a plain text file with reporting equations;
             % multiple input files will be combined together.
             %
-            % * `Eqtn` [ char | cellstr ] - Equation or cellstr array of
-            % equations.
+            % * `eqtn` [ char | cellstr ] - Text string with an equation or cellarray
+            % of equations.
+            %
             %
             % Output arguments
             % =================
             %
-            % * `Q` [ rpteq ] - New reporting equations object.
+            % * `q` [ rpteq ] - New reporting equations object.
+            %
             %
             % Description
             % ============
@@ -108,6 +109,7 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
             % left-hand-side variable.
             %
             % * the equation must end with a semicolon.
+            %
             %
             % Example
             % ========
@@ -144,7 +146,15 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
             elseif ischar(varargin{1}) || iscellstr(varargin{1})
                 inp = varargin{1};
                 varargin(1) = [ ];
-                opt = passvalopt('rpteq.rpteq', varargin{:});
+                [opt, varargin] = passvalopt('rpteq.rpteq', varargin{:});
+                if ~isstruct(opt.Assign)
+                    opt.Assign = struct( );
+                end
+                for iArg = 1 : 2 : length(varargin)
+                    name = varargin{iArg};
+                    value = varargin{iArg+1};
+                    opt.Assign.(name) = value;
+                end
                 % Tell apart equations from file names.
                 if ischar(inp)
                     inp = { inp };
@@ -154,12 +164,12 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
                     % Input is file name or cellstr of file names.
                     [code, fileName, exported] = ...
                         parser.Preparser.parse(inp, [ ], ...
-                        opt.assign, '', '');
+                        opt.Assign, '', '');
                 elseif all(~ixFName)
                     % Input is equation or cellstr of equations.
                     [code, fileName, exported] = ...
                         parser.Preparser.parse([ ], inp, ...
-                        opt.assign, '', '');
+                        opt.Assign, '', '');
                 else
                     utils.error('rpteq:rpteq', ...
                         ['Input to rpteq( ) must be either file name(s), ', ...
@@ -173,7 +183,7 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
                     code = ['!reporting_equations', BR, code];
                 end
                 % Run theparser on preparsed code.
-                the = parser.TheParser('rpteq', fileName, code, opt.assign);
+                the = parser.TheParser('rpteq', fileName, code, opt.Assign);
                 [~, eqn, euc] = parse(the, opt);
             end
             
