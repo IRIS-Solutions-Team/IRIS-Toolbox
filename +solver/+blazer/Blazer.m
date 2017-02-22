@@ -148,23 +148,7 @@ classdef Blazer < handle
         
         
         
-        function [blkEqnHuman, blkQtyHuman, blkType] = getHuman(this, m)
-            nBlk = numel(this.Block);
-            blkEqnHuman = cell(1, nBlk);
-            blkQtyHuman = cell(1, nBlk);
-            blkType = repmat(solver.block.Type.SOLVE, 1, nBlk);
-            for i = 1 : nBlk
-                b = this.Block{i};
-                blkEqnHuman{i} = m.Equation.Input( b.PosEqn );
-                blkQtyHuman{i} = m.Quantity.Name( b.PosQty );
-                blkType(i) = b.Type;
-            end
-        end
-        
-        
-        
-        
-        function saveAs(this, m, fileName)
+       function saveAs(this, m, fileName)
             BR = sprintf('\n');
             nBlk = numel(this.Block);
             c = [ ...
