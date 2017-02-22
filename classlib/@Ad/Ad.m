@@ -402,21 +402,22 @@ classdef Ad
             if ~isa(TEMPLATE, 'Ad')
                 TEMPLATE = Ad( );
             end
+            nd = numel(x.Diff);
             n = numel(varargin);
             for i = 1 : n
                 if isnumeric(varargin{i})
-                    varargin{i} = Ad.createNumber(varargin{i});
+                    varargin{i} = Ad.createNumber(varargin{i}, nd);
                 end
             end
             try
                 mu = varargin{1};
             catch
-                mu = Ad.createNumber(0);
+                mu = Ad.createNumber(0, nd);
             end
             try
                 sgm = varargin{2};
             catch
-                sgm = Ad.createNumber(1);
+                sgm = Ad.createNumber(1, nd);
             end
             this = TEMPLATE;
             this.Input = Ad.lowFuncN('normcdf', x, varargin{:});
