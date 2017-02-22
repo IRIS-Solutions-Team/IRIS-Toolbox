@@ -19,9 +19,9 @@ this.Block{end+1} = x;
 this.AltKeywordWarn = [ 
     this.AltKeywordWarn
     { 
-    '!outside', '!reporting_equations'
-    '!equations:reporting', '!reporting_equations'
-    '!reporting', '!reporting_equations'
+    '!outside\>', '!reporting_equations'
+    '!equations:reporting\>', '!reporting_equations'
+    '!reporting\>', '!reporting_equations'
     } ];
 
 end

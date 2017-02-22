@@ -65,7 +65,6 @@ ixDiffStat = true(1, nAlt);
 for iAlt = vecAlt
     lvl = nan(1, nQty);
     grw = zeros(1, nQty);
-    isDiffStat = false;
     if ixSolution(iAlt)
         [lvl, grw, ixDiffStat(iAlt)] = getSstate( );
         if any(ixLog)
