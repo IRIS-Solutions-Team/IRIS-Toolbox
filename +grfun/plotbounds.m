@@ -1,5 +1,5 @@
-function [HLow,HHigh] = plotbounds(Ax,Low,High,Y,PlotBounds)
-% plotbounds  [Not a public function] Add lower and upper bounds to estimation diagnostics plots.
+function [hLow, hHigh] = plotbounds(ax, low, high, y, opt)
+% plotbounds  Add lower and upper bounds to estimation diagnostics plots.
 %
 % Backed IRIS function.
 % No help provided.
@@ -9,28 +9,26 @@ function [HLow,HHigh] = plotbounds(Ax,Low,High,Y,PlotBounds)
 
 %--------------------------------------------------------------------------
 
-xlim = get(Ax,'xLim');
+xlim = get(ax, 'XLim');
 
 plotOpt = { };
-if iscell(PlotBounds)
-    plotOpt = PlotBounds;
-    plotOpt(1:2:end) = strrep(plotOpt(1:2:end),'=','');
-end
-
-if ischar(PlotBounds) && strcmpi(PlotBounds,'auto')
+if iscell(opt)
+    plotOpt = opt;
+    plotOpt(1:2:end) = strrep(plotOpt(1:2:end), '=', '');
+elseif isequal(opt, 'auto') || isequal(opt, @auto)
     % Plot bounds only if they fall within the current x-lims.
-    if Low < xlim(1) || Low > xlim(2)
-        Low = NaN;
+    if low<xlim(1) || low>xlim(2)
+        low = NaN;
     end
-    if High < xlim(1) || High > xlim(2)
-        High = NaN;
+    if high<xlim(1) || high>xlim(2)
+        high = NaN;
     end
 end
-w = [0.02;1/4;1/2;3/4;0.98];
+w = [0.02; 1/4; 1/2; 3/4; 0.98];
 n = length(w);
-pos = w*Y;
-HLow = plot(Ax,Low(ones(n,1)),pos,'marker','>',plotOpt{:});
-HHigh = plot(Ax,High(ones(n,1)),pos,'marker','<',plotOpt{:});
-set(HHigh,'color',get(HLow,'color'));
+pos = w*y;
+hLow = plot(ax, low(ones(n, 1)), pos, 'marker', '>', plotOpt{:});
+hHigh = plot(ax, high(ones(n, 1)), pos, 'marker', '<', plotOpt{:});
+set(hHigh, 'color', get(hLow, 'color'));
 
 end
