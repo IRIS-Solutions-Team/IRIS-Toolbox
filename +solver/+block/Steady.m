@@ -145,6 +145,14 @@ classdef Steady < solver.block.Block
             
             
             function [y, j] = objective(z)
+                % Solver is requesting gradient but gradient was not
+                % prepared; this never happens with IRIS or Optim Tbx
+                % solvers as long as PrepareGradient=@auto.
+                if nargout>1 && ~retGradient
+                    throw( ...
+                        exception.Base('Solver:SteadyGradientRequestedButNotPrepared', 'error') ...
+                        ); 
+                end
                 % Delogarithmize log variables; variables in steady equations are expected
                 % to be in original levels.
                 z = real(z);
@@ -228,7 +236,7 @@ classdef Steady < solver.block.Block
             prepareBlock@solver.block.Block(this, blz, opt);
             
             % Prepare function handles and auxiliary matrices for gradients.
-            this.RetGradient = opt.Gradient && this.Type==solver.block.Type.SOLVE;
+            this.RetGradient = opt.PrepareGradient && this.Type==solver.block.Type.SOLVE;
             if this.RetGradient
                 [this.Gradient, this.XX2L, this.D.Level, this.D.Growth0, this.D.GrowthK] = ...
                     createFnGradient(this, blz, opt);

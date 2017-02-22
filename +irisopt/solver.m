@@ -20,7 +20,7 @@ steadyShared = {
     'FiniteDifferenceStepSize', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0)
     'FiniteDifferenceType', 'forward', @(x) any(strcmpi(x, {'finite', 'central'}))
     'FunctionTolerance, TolFun', 1e-12, @(x) isnumericscalar(x) && x>0
-    'SpecifyObjectiveGradient', false, @islogicalscalar
+    'SpecifyObjectiveGradient', true, @islogicalscalar
     'StepTolerance, TolX', 1e-12, @(x) isnumericscalar(x) && x>0
     };
 

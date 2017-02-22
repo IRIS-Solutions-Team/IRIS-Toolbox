@@ -466,7 +466,7 @@ def.SteadyNonlinear = [
     'resetinit', [ ], @(x) isempty(x) || (isnumericscalar(x) && isfinite(x))
     'Reuse', false, @islogicalscalar
     'Solver', 'IRIS', @(x) ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle')))
-    'Gradient', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
+    'PrepareGradient', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
     'Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all)
     'Warning', true, @islogicalscalar
     'zeromultipliers', false, @islogicalscalar

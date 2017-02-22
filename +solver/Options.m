@@ -2,7 +2,6 @@ classdef Options
     properties
         Algorithm = 'lm'
         Display = 'iter'
-        InitDamping = @auto
         Lambda = [0.1, 1, 10, 100];
         SolverName = 'IRIS'
         MaxIterations = 1000
@@ -16,12 +15,35 @@ classdef Options
         StepDown = 0.8
         StepUp = 1.2
     end
-    
+
+
+
+
+    methods
+        function this = Options(varargin)
+            user = passvalopt('solver.SteadyIris', varargin{:});
+            this = copyFromStruct(this, user);
+        end
+   
+
+
+
+        function this = copyFromStruct(this, user)
+            list = fieldnames(user);
+            for i = 1 : numel(list)
+                name = list{i};
+                if isequal(user.(name), @default)
+                    continue
+                end
+                this.(name) = user.(name);
+            end
+        end
+    end
     
     
     
     methods (Static)
-        function [solverOpt, isGradient] = processOptions(solverOpt, isGradient, displayMode, varargin)
+        function [solverOpt, prepareGradient] = processOptions(solverOpt, prepareGradient, displayMode, varargin)
             FN_CHKOPTIMTBX = @(x) ...
                 isequal(x, 'lsqnonlin') || isequal(x, 'fsolve') ...
                 || isequal(x, @lsqnonlin) || isequal(x, @fsolve);
@@ -36,26 +58,26 @@ classdef Options
                     || ( iscell(solverOpt) && FN_CHKOPTIMTBX(solverOpt{1}) && iscellstr(solverOpt(2:2:end)) )
                 if iscell(solverOpt)
                     % 'Solver=' { 'lsqnonlin', 'Name=', Value, ... }
-                    temp = passvalopt('solver.SteadyOptimTbx', solverOpt{2:end});
+                    user = passvalopt('solver.SteadyOptimTbx', solverOpt{2:end});
                     solverOpt = optimoptions(solverOpt{1});
                 else
                     % 'Solver=' 'lsqnonlin' | 'fsolve'
-                    temp = passvalopt('solver.SteadyOptimTbx', varargin{:});
+                    user = passvalopt('solver.SteadyOptimTbx', varargin{:});
                     solverOpt = optimoptions(solverOpt);
                 end
-                if isequal(temp.Display, true)
-                    temp.Display = 'iter';
-                elseif isequal(temp.Display, false)
-                    temp.Display = 'off';
+                if isequal(user.Display, true)
+                    user.Display = 'iter';
+                elseif isequal(user.Display, false)
+                    user.Display = 'off';
                 end
-                temp.Display = silentDisplay(temp.Display, displayMode);
-                list = fieldnames(temp);
+                user.Display = silentDisplay(user.Display, displayMode);
+                list = fieldnames(user);
                 for i = 1 : numel(list)
                     name = list{i};
-                    if isequal(temp.(name), @default)
+                    if isequal(user.(name), @default)
                         continue
                     end
-                    solverOpt = optimoptions(solverOpt, name, temp.(name));
+                    solverOpt = optimoptions(solverOpt, name, user.(name));
                 end
                 
                 
@@ -63,21 +85,14 @@ classdef Options
                     || ( iscell(solverOpt) && strcmpi(solverOpt{1}, 'IRIS') && iscellstr(solverOpt(2:2:end)) )
                 if iscell(solverOpt)
                     % 'Solver=  { 'IRIS', 'Name=', Value, ... }
-                    temp = passvalopt('solver.SteadyIris', solverOpt{2:end});
+                    user = passvalopt('solver.SteadyIris', solverOpt{2:end});
                 else
                     % 'Solver=' 'IRIS'
-                    temp = passvalopt('solver.SteadyIris', varargin{:});
+                    user = passvalopt('solver.SteadyIris', varargin{:});
                 end
-                temp.Display = silentDisplay(temp.Display, displayMode);
+                user.Display = silentDisplay(user.Display, displayMode);
                 solverOpt = solver.Options( );
-                list = fieldnames(temp);
-                for i = 1 : numel(list)
-                    name = list{i};
-                    if isequal(temp.(name), @default)
-                        continue
-                    end
-                    solverOpt.(name) = temp.(name);
-                end
+                solverOpt = copyFromStruct(solverOpt, user);
                 
             elseif isa(solverOpt, 'function_handle')
                 % 'Solver=' @userFunction
@@ -86,12 +101,12 @@ classdef Options
             
             % High-level option Gradient= is used to prepare gradients within the
             % solver.Block object.
-            if isequal(isGradient, @auto)
+            if isequal(prepareGradient, @auto)
                 if isa(solverOpt, 'optim.options.SolverOptions') ...
                     || isa(solverOpt, 'solver.Options')
-                    isGradient = solverOpt.SpecifyObjectiveGradient;
+                    prepareGradient = solverOpt.SpecifyObjectiveGradient;
                 else
-                    isGradient = false;
+                    prepareGradient = true;
                 end
             end
 
