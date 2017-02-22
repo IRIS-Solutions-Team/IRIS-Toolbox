@@ -50,8 +50,8 @@ else
     % sstate options and not as suboptions through Solver=; these are only used
     % if Solver= is a char.
     [opt, obsoleteSolverOpt] = passvalopt('model.SteadyNonlinear', varargin{:});
-    [opt.Solver, opt.Gradient] = ...
-        solver.Options.processOptions(opt.Solver, opt.Gradient, displayMode, obsoleteSolverOpt);
+    [opt.Solver, opt.PrepareGradient] = ...
+        solver.Options.processOptions(opt.Solver, opt.PrepareGradient, displayMode, obsoleteSolverOpt);
     blz = createBlocks(this, opt);
     blz = processFixOpt(this, blz, opt);
     blz = prepareBounds(this, blz, opt);

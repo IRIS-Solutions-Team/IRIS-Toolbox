@@ -134,9 +134,7 @@ Preparser:CtrlUnfinishedCondition,This control condition or expression is unfini
 Preparser:ErrorPreparsing,%s
 Preparser:PseudofuncSecondInputFailed,Second input argument to this pseudofunction failed to evaluate to a scalar number: %s 
 Preparser:PseudofuncUnfinished,No matching closing braket found for this pseudofunction: %s 
-Preparser:PseudosubsEvalFailed,Error evaluating this pseudosubstitution: %s 
-Preparser:PseudosubsNested,This pseudosubstitution is nested within another: %s 
-Preparser:PseudosubsNotClosed,This pseudosubstitution is not properly closed: %s 
+Preparser:InterpEvalFailed,Error evaluating this pseudosubstitution: %s 
 Preparser:InvalidDoubledotPattern,This is not a valid double-dot pattern: %s 
 Preparser:SubsLeftover,This leftover code found in !substitution block: %s 
 Preparser:SubsNameMultiple,This substitution name is defined more than once: %s 
@@ -154,6 +152,7 @@ Series:InputsRemovedFromCat,Inputs other than time series and numeric removed fr
 Series:InvalidCommentSize,Invalid size of comment array assigned to time series. 
 Series:CannotCatMixedFrequencies,Cannot concatenate time series with different date frequencies.
 Series:FrequencyMismatch,Date frequency mismatch: %s 
+Solver:SteadyGradientRequestedButNotPrepared, Steady-state gradient requested but not prepared; use option PrepareGradient=true
 Steady:BothUnlogLogminus,This name is used in both Unlog= and LogMinus= options: %s 
 Steady:CannotFix,Cannot fix this name: %s 
 Steady:ExogenousNan,This parameter or exogenized variable is not assigned: %s 

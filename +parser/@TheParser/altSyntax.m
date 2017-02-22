@@ -9,49 +9,21 @@ function altSyntax(this)
 
 %--------------------------------------------------------------------------
 
-% Steady-state reference $Name -> &Name.
-this.Code = regexprep(this.Code, '\$\<([a-zA-Z]\w*)\>(?!\$)', '&$1');
-
 % Obsolete alternative syntax, throw a warning.
-nBlkWarn = size(this.AltKeywordWarn, 1);
-ixObsolete = false(nBlkWarn, 1);
-
-for iBlk = 1 : nBlkWarn
-    ptn = ['\<', this.AltKeywordWarn{iBlk,1}, '\>'];
-    if true % ##### MOSW
-        replaceFunc = @replace; %#ok<NASGU>
-        this.Code = regexprep(this.Code, ptn, '${replaceFunc( )}');
-    else
-        This.Code = mosw.dregexprep(This.Code,ptn, @replace, [ ]); %#ok<UNRCH>
-    end
-end
-
-
-
-
-    function C = replace( )
-        C = this.AltKeywordWarn{iBlk, 2};
-        ixObsolete(iBlk) = true;
-    end
-
-
-
-
-% Create a cellstr {obsolete, new, obsolete, new,...} for obsolete syntax.
-if any(ixObsolete)
-    lsObsolete = this.AltKeywordWarn(ixObsolete, :).';
-    lsObsolete = lsObsolete(:).';
-    throw( exception.Base('Obsolete:KEYWORD_USE_INSTEAD', 'warning'), ...
-        lsObsolete{:} );
+for iBlk = 1 : size(this.AltKeywordWarn, 1)
+    this.Code = regexprep( ...
+        this.Code, ...
+        this.AltKeywordWarn{iBlk, 1}, ...
+        this.AltKeywordWarn{iBlk, 2} ...
+        );
 end
 
 % Alternative or abbreviated syntax, do not report.
-nAltBlk = size(this.AltKeyword, 1);
-for iBlk = 1 : nAltBlk
-    this.Code = regexprep(...
+for iBlk = 1 : size(this.AltKeyword, 1)
+    this.Code = regexprep( ...
         this.Code, ...
-        [this.AltKeyword{iBlk,1}, '\>'], ...
-        this.AltKeyword{iBlk,2} ...
+        this.AltKeyword{iBlk, 1}, ...
+        this.AltKeyword{iBlk, 2} ...
         );
 end
 

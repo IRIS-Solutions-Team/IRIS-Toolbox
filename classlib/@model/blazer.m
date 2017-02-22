@@ -80,10 +80,27 @@ if blz.IsSingular
     throw( exception.Base('Steady:StructuralSingularity', 'error') );
 end
 
-[eqtnBlk, nameBlk, blkType] = getHuman(blz, this);
+[eqtnBlk, nameBlk, blkType] = getHuman(this, blz);
 
 if ~isempty(opt.saveas)
     saveAs(blz, this, opt.saveas);
 end
 
 end
+
+
+
+
+function [blkEqnHuman, blkQtyHuman, blkType] = getHuman(this, blz)
+nBlk = numel(blz.Block);
+blkEqnHuman = cell(1, nBlk);
+blkQtyHuman = cell(1, nBlk);
+blkType = repmat(solver.block.Type.SOLVE, 1, nBlk);
+for i = 1 : nBlk
+    blk = blz.Block{i};
+    blkEqnHuman{i} = this.Equation.Input( blk.PosEqn );
+    blkQtyHuman{i} = this.Quantity.Name( blk.PosQty );
+    blkType(i) = blk.Type;
+end
+end
+

@@ -94,7 +94,7 @@ classdef Block < handle
                 if isa(opt.Solver, 'optim.options.SolverOptions') ...
                         || isa(opt.Solver, 'solver.Options')
                     blk.Solver.SpecifyObjectiveGradient = ...
-                        opt.Gradient && opt.Solver.SpecifyObjectiveGradient;
+                        opt.PrepareGradient && opt.Solver.SpecifyObjectiveGradient;
                 end
             end
         end
@@ -211,8 +211,10 @@ classdef Block < handle
                 
                 z = real(z);
                 z( abs(z)<=this.Solver.StepTolerance ) = 0;
+                
             elseif isa(this.Solver, 'function_handle')
-                [z, exitFlag] = this.Solver(@objective, z0);
+                % User-supplied solver:
+                [z, exitFlag] = this.Solver(fnObjective, z0);
             end
         end
         

@@ -7,8 +7,8 @@ function [x, numericExitFlag] = lm(fnObjective, xInit, opt, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s';
-FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g';
+FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s %13s';
+FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g';
 MIN_STEP = 1e-8;
 MAX_STEP = 2;
 
@@ -30,6 +30,11 @@ if isa(opt.FunctionNorm, 'function_handle')
 else
     fnNorm = @(x) norm(x, opt.FunctionNorm);
     strFnNorm = sprintf('norm(x,%g)', opt.FunctionNorm);
+end
+if opt.SpecifyObjectiveGradient
+    strJacobNorm = 'Analytical';
+else
+    strJacobNorm = 'Numerical';
 end
 stepDown = opt.StepDown;
 stepUp = opt.StepUp;
@@ -71,6 +76,7 @@ n0 = NaN;
 iter = 0;
 fnCount = 0;
 x0 = xInit;
+j = NaN;
 
 if displayLevel.Iter
     displayHeader( );
@@ -147,12 +153,7 @@ end
 warning(w);
 
 if displayLevel.Iter
-    try
-        jDesktop = com.mathworks.mde.desk.MLDesktop.getInstance;
-        isDesktop = ~isempty(jDesktop.getClient('Command Window'));
-    catch
-        isDesktop = false;
-    end
+    isDesktop = irisget('IsDesktop');
     if isDesktop
         fprintf('<strong>');
     end
@@ -183,6 +184,7 @@ return
         d = -j \ f;
         c = x + step*d;
         f = fnObjective(c, varargin{:});
+        fnCount = fnCount + 1;
         n = fnNorm(f);
     end
 
@@ -274,7 +276,8 @@ return
             'Lambda', ...
             'Step-Size', ...
             'Fn-Norm-Chg', ...
-            'Max-X-Chg' ...
+            'Max-X-Chg', ...
+            'Jacob-Norm' ...
             );
         c2 = sprintf( ...
             FORMAT_HEADER, ...
@@ -284,7 +287,8 @@ return
             strStepType, ...
             '', ...
             '', ...
-            '' ...
+            '', ...
+            strJacobNorm ...
             );
         disp(c1);
         disp(c2);
@@ -303,7 +307,8 @@ return
             lmb, ...
             step, ...
             n-n0, ...
-            maxabs(x-x0) ...
+            maxabs(x-x0), ...
+            norm(j, 2) ...
             );
     end
 
@@ -325,6 +330,7 @@ return
         displayLevel.Final = displayLevel.Any;
         displayLevel.Iter = ...
             isequal(opt.Display, true) ...
-            || strcmpi(opt.Display, 'iter');
+            || strcmpi(opt.Display, 'iter') ...
+            || strcmpi(opt.Display, 'iter*');
     end
 end

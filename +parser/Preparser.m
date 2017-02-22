@@ -30,6 +30,11 @@ classdef Preparser < handle
         
         CODE_SEPARATOR = sprintf('\n\n');
         FILE_NAME_SEPARATOR = ' & ';
+        OBSOLETE_SYNTAX = {
+            '\$\[', '<'
+            '\]\$', '>'
+            };
+
     end
     
     
@@ -80,6 +85,8 @@ classdef Preparser < handle
                     continue
                 end
                 
+                % Handle obsolete syntax.
+                obsoleteSyntax(p);
                 % Preparse individual components.
                 parser.UserComment.parse(p);
                 parser.Comment.parse(p);
@@ -266,6 +273,18 @@ classdef Preparser < handle
                 return
             end
             this.EvalWarning.(type){end+1} = message;
+        end
+
+
+
+
+        function obsoleteSyntax(this)
+            n = size(parser.Preparser.OBSOLETE_SYNTAX, 1);
+            for i = 1 : n
+                old = parser.Preparser.OBSOLETE_SYNTAX{i, 1};
+                new = parser.Preparser.OBSOLETE_SYNTAX{i, 2};
+                this.Code = regexprep(this.Code, old, new); 
+            end
         end
     end
     

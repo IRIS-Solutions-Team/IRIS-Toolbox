@@ -14,6 +14,7 @@ classdef VAR < varobj
     %
     % * [`VAR`](VAR/VAR) - Create new empty reduced-form VAR object.
     %
+    %
     % Getting information about VAR objects
     % ======================================
     %
@@ -35,12 +36,14 @@ classdef VAR < varobj
     % * [`sspace`](VAR/sspace) - Quasi-triangular state-space representation of VAR.
     % * [`userdata`](VAR/userdata) - Get or set user data in an IRIS object.
     %
+    %
     % Referencing VAR objects
     % ========================
     %
     % * [`group`](VAR/group) - Retrieve VAR object from panel VAR for specified group of data.
     % * [`subsasgn`](VAR/subsasgn) - Subscripted assignment for VAR objects.
     % * [`subsref`](VAR/subsref) - Subscripted reference for VAR objects.
+    %
     %
     % Simulation, forecasting and filtering
     % ======================================
@@ -51,6 +54,7 @@ classdef VAR < varobj
     % * [`instrument`](VAR/instrument) - Define forecast conditioning instruments in VAR models.
     % * [`resample`](VAR/resample) - Resample from a VAR object.
     % * [`simulate`](VAR/simulate) - Simulate VAR model.
+    %
     %
     % Manipulating VARs
     % ==================
@@ -63,6 +67,7 @@ classdef VAR < varobj
     % * [`integrate`](VAR/integrate) - Integrate VAR process and data associated with it.
     % * [`xasymptote`](VAR/xasymptote) - Set or get asymptotic assumptions for exogenous inputs.
     %
+    %
     % Stochastic properties
     % ======================
     %
@@ -70,6 +75,7 @@ classdef VAR < varobj
     % * [`fmse`](VAR/fmse) - Forecast mean square error matrices.
     % * [`vma`](VAR/vma) - Matrices describing the VMA representation of a VAR process.
     % * [`xsf`](VAR/xsf) - Power spectrum and spectral density functions for VAR variables.
+    %
     %
     % Estimation, identification, and statistical tests
     % ==================================================
@@ -79,6 +85,7 @@ classdef VAR < varobj
     % * [`lrtest`](VAR/lrtest) - Likelihood ratio test for VAR models.
     % * [`portest`](VAR/portest) - Portmanteau test for autocorrelation in VAR residuals.
     % * [`schur`](VAR/schur) - Compute and store triangular representation of VAR.
+    %
     %
     % Getting on-line help on VAR functions
     % ======================================

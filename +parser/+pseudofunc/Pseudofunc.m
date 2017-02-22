@@ -10,7 +10,7 @@ classdef Pseudofunc < handle
             end
             allKeywords = enumeration('parser.pseudofunc.Keyword');
             for key = allKeywords.'
-                if isempty( strfind(c, key.Type) )
+                if isempty( strfind(c, lower(char(key))) )
                     continue
                 end
                 c = parse(key, c);
