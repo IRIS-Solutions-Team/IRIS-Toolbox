@@ -9,9 +9,9 @@ function [g, addCount] = cdiff(fnObjective, x, f, step)
 
 %--------------------------------------------------------------------------
 
-maxXOr1 = x;
-maxXOr1(x<1) = 1;
-h = step*maxXOr1;
+z = abs(x);
+z(z<1) = 1;
+h = step*z;
 
 nf = numel(f);
 nx = numel(x);
