@@ -8,17 +8,18 @@ function lg = bottomlegend(varargin)
 %     lg = grfun.bottomlegend(ax, entry, entry, ...)
 %     lg = grfun.bottomlegend(fig, entry, entry, ...)
 %
+%
 % Input arguments
 % ================
 %
 % * `entry` [ char | cellstr ] - Legend entries; same as in the standard
 % `legend` function.
 %
-% * `ax` [ Axes ] - Handle to Axes object for which the bottom legend will
+% * `ax` [ Axes ] - Handle to Axes objects for which bottom legend will
 % be created.
 %
-% * `fig` [ Figure ] - Handle to Figure object in which the bottom legend
-% will be created for the last Axes object found.
+% * `fig` [ Figure ] - Handle to Figure objects in which bottom legend
+% will be created for the latest Axes object created.
 %
 %
 % Output arguments
@@ -39,6 +40,10 @@ function lg = bottomlegend(varargin)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 ax = NaN;
+
+% Input handles can be either Axes objects or Figure objects. If they are
+% Figures, find the latest Axes within each Figure, and creat bottom legend
+% for it.
 if ishandle(varargin{1})
     ax = [ ];
     if ~isempty(varargin{1})
@@ -48,7 +53,9 @@ if ishandle(varargin{1})
             for i = 1 : n
                 fig = varargin{1}(i);
                 temp = findobj(fig, '-depth', 1, 'type', 'axes');
-                ax = [ax, temp(1)];
+                if ~isempty(temp)
+                    ax = [ax, temp(1)];
+                end
             end
         elseif strcmpi(get(varargin{1}(1), 'Type'), 'Axes')
             ax = varargin{1};

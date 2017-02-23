@@ -7,8 +7,6 @@ function this = loadobj(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-MIN_RELEASE = 20170220;
-
 %--------------------------------------------------------------------------
 
 try
@@ -17,10 +15,10 @@ catch
     build = 0;
 end
 
-if build<MIN_RELEASE
+if build<model.LAST_LOADABLE
     throw( ...
         exception.Base('Model:CannotLoadFromMat', 'warning'), ...
-        sprintf('%i', MIN_RELEASE) ...
+        sprintf('%i', model.LAST_LOADABLE) ...
         ); %#ok<GTARG>
     this = model( ); %#ok<UNRCH>
     return

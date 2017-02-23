@@ -58,27 +58,28 @@ else
     end
 end
 mode = b/(a + 1);
-fn = @(x,varargin) invGamma(x, a, b, mean_, std_, mode, varargin{:});
+fn = @(x,varargin) fnInvGamma(x, a, b, mean_, std_, mode, varargin{:});
 
 end
 
 
 
 
-function y = invGamma(x, a, b, mean_, std_, mode_, varargin)
+function y = fnInvGamma(x, a, b, mean_, std_, mode_, varargin)
 y = zeros(size(x));
-ixPositive = x>0;
-x = x(ixPositive);
+ix = x>0;
+x = x(ix);
 if isempty(varargin)
-    y(ixPositive) = (-a-1)*log(x) - b./x;
-    y(~ixPositive) = -Inf;
+    y(ix) = (-a-1)*log(x) - b./x;
+    y(~ix) = -Inf;
     return
 end
 switch lower(varargin{1})
     case {'proper', 'pdf'}
-        y(ixPositive) = b^a/gamma(a)*(1./x).^(a+1).*exp(-b./x);
+        y(ix) = b^a/gamma(a)*(1./x).^(a+1).*exp(-b./x);
     case 'info'
-        y(ixPositive) = (2*b - x*(a + 1))./x.^3;
+        y(ix) = (2*b - x*(a + 1))./x.^3;
+        y(~ix) = NaN;
     case {'a', 'location'}
         y = a;
     case {'b', 'scale'}
@@ -91,7 +92,11 @@ switch lower(varargin{1})
         y = mode_;
     case 'name'
         y = 'invgamma';
-    case 'draw'
+    case {'rand', 'draw'}
         y = 1./gamrnd(a, 1/b, varargin{2:end});
+    case 'lower'
+        y = 0;
+    case 'upper'
+        y = Inf;
 end
 end

@@ -565,11 +565,13 @@ return
         if s.retSmoothCont
             yy = s.yc2;
             yy = permute(yy, [1, 3, 2, 4]);
-            xx = [s.fc2;s.bc2];
+            xx = [s.fc2; s.bc2];
             xx = permute(xx, [1, 3, 2, 4]);
             ee = s.ec2;
             ee = permute(ee, [1, 3, 2, 4]);
-            gg = [nan(ng, 1), zeros(ng, nPer-1)];
+            size3 = size(xx, 3);
+            size4 = size(xx, 4);
+            gg = [nan(ng, 1, size3, size4), zeros(ng, nPer-1, size3, size4)];
             hdataassign(hData.C2, ':', { yy, xx, ee, [ ], gg } );
         end
         

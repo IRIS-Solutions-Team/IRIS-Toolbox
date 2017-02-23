@@ -68,7 +68,7 @@ if iscell( mean_ )
     fn = @(x, varargin) fnMultNormalMixture(x, a, mean_, std_, Weight, varargin{:}) ;
 else
     % Distribution is normal
-    mode = mean_(:) ;
+    mode_ = mean_(:) ;
     a = mean_(:) ;
     
     if numel(mean_) > 1
@@ -76,11 +76,11 @@ else
         std_ = logdist.chkStd( std_ ) ;
         b = std_ ;
         
-        fn = @(x, varargin) xxMultNormal(x, a, b, mean_, std_, mode, varargin{:}) ;
+        fn = @(x, varargin) fnMultNormal(x, a, b, mean_, std_, mode_, varargin{:}) ;
     else
         % Distribution is scalar
         b = std_ ;
-        fn = @(x, varargin) fnNormal(x, a, b, mean_, std_, mode, varargin{:}) ;
+        fn = @(x, varargin) fnNormal(x, a, b, mean_, std_, mode_, varargin{:}) ;
     end
 end
 
@@ -101,7 +101,7 @@ end
 switch lower(varargin{1})
     case {'proper', 'pdf'}
         y = mixturePdf( ) ;
-    case 'draw'
+    case {'rand', 'draw'}
         if numel(varargin)<2
             NDraw = 1 ;
         else
@@ -188,15 +188,19 @@ switch lower(varargin{1})
         y = mode_;
     case 'name'
         y = 'normal';
-    case 'draw'
+    case {'rand', 'draw'}
         y = mean_ + std_*randn(varargin{2:end});
+    case 'lower'
+        y = -Inf;
+    case 'upper'
+        y = Inf;
 end
 end
 
 
 
 
-function y = xxMultNormal(x, a, b, mean_, std_, mode_, varargin)
+function y = fnMultNormal(x, a, b, mean_, std_, mode_, varargin)
 K = numel(mean_) ;
 if isempty(varargin)
     y = logMultNormalPdf(x, mean_, std_) ;
@@ -206,7 +210,7 @@ switch lower(varargin{1})
     case {'proper', 'pdf'}
         y = exp(logMultNormalPdf(x, mean_, std_)) ;
     case 'info'
-        y = eye(size(std_)) / ( std_'*std_ ) ;
+        y = eye(size(std_)) / ( std_.'*std_ ) ;
     case {'a', 'location'}
         y = a ;
     case {'b', 'scale'}
@@ -219,7 +223,7 @@ switch lower(varargin{1})
         y = mode_ ;
     case 'name'
         y = 'normal';
-    case 'draw'
+    case {'rand', 'draw'}
         if numel(varargin)<2
             dim = size(mean_) ;
         else
@@ -232,5 +236,4 @@ switch lower(varargin{1})
         y = bsxfun(@plus, mean_, std_*randn(dim)) ;
 end
 end
-
 
