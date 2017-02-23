@@ -55,13 +55,13 @@ for ip = 1 : np
     
     % Diff parameter priors.
     if estOpt.evalpprior
-        iDiffPPrior = (pp - 2*p0 + pm) / h2;
+        d = (pp - 2*p0 + pm) / h2;
         if ~isempty(itr.FnPrior{ip}) && isfunc(itr.FnPrior{ip})
             try %#ok<TRYNC>
-                iDiffPPrior = itr.FnPrior{ip}(x0(ip), 'info');
+                d = -itr.FnPrior{ip}(x0(ip), 'info');
             end
         end
-        diffParamPrior(ip) = iDiffPPrior;
+        diffParamPrior(ip) = d;
     end
     
     % Diff system priors.

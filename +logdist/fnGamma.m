@@ -1,4 +1,5 @@
 function y = fnGamma(x, a, b, mean_, std_, mode_, varargin)
+% fnGamma  Backend gamma distribution function to support gamma, inv gamma, and chi2.
 % Backend IRIS function.
 % No help provided.
 
@@ -11,19 +12,20 @@ function y = fnGamma(x, a, b, mean_, std_, mode_, varargin)
 %--------------------------------------------------------------------------
 
 y = zeros(size(x));
-ixPositive = x>0;
-x = x(ixPositive);
+ix = x>0;
+x = x(ix);
 if isempty(varargin)
-    y(ixPositive) = (a-1)*log(x) - x/b;
-    y(~ixPositive) = -Inf;
+    y(ix) = (a-1)*log(x) - x/b;
+    y(~ix) = -Inf;
     return
 end
 
 switch lower(varargin{1})
     case {'proper', 'pdf'}
-        y(ixPositive) = x.^(a-1).*exp(-x/b)/(b^a*gamma(a));
+        y(ix) = x.^(a-1).*exp(-x/b) / (b^a*gamma(a));
     case 'info'
-        y(ixPositive) = -(a - 1)/x.^2;
+        y(ix) = (a - 1)/x.^2;
+        y(~ix) = NaN;
     case {'a', 'location'}
         y = a;
     case {'b', 'scale'}
@@ -36,8 +38,12 @@ switch lower(varargin{1})
         y = mode_;
     case 'name'
         y = 'gamma';
-    case 'draw'
+    case {'rand', 'draw'}
         y = gamrnd(a, b, varargin{2:end});
+    case 'lower'
+        y = 0;
+    case 'upper'
+        y = Inf;
 end
 
 end

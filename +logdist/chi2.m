@@ -1,10 +1,10 @@
-function fn = chisquare(df)
-% chisquare  Create function proportional to log of Chi-Squared distribution.
+function fn = chi2(df)
+% chi2  Create function proportional to log of Chi-Squared distribution.
 %
 % Syntax
 % =======
 %
-%     fn = logdist.chisquare(df)
+%     fn = logdist.chi2(df)
 %
 %
 % Input arguments

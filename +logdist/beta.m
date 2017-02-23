@@ -18,7 +18,7 @@ function fn = beta(mean_, std_)
 % Output arguments
 % =================
 %
-% * `F` [ function_handle ] - Function handle returning a value
+% * `fn` [ function_handle ] - Function handle returning a value
 % proportional to the log of the beta density.
 %
 %
@@ -41,45 +41,49 @@ function fn = beta(mean_, std_)
 a = (1-mean_)*mean_^2/std_^2 - mean_;
 b = a*(1/mean_ - 1);
 if a > 1 && b > 1
-    mode = (a - 1)/(a + b - 2);
+    mode_ = (a - 1)/(a + b - 2);
 else
-    mode = NaN;
+    mode_ = NaN;
 end
-fn = @(x,varargin) fnBeta(x,a,b,mean_,std_,mode,varargin{:});
+fn = @(x, varargin) fnBeta(x, a, b, mean_, std_, mode_, varargin{:});
 
 end
 
 
 
 
-function Y = fnBeta(x, a, b, mean_, std_, mode_, varargin)
-Y = zeros(size(x));
-inx = x>0 & x<1;
-x = x(inx);
+function y = fnBeta(x, a, b, mean_, std_, mode_, varargin)
+y = zeros(size(x));
+ix = x>0 & x<1;
+x = x(ix);
 if isempty(varargin)
-    Y(inx) = (a-1)*log(x) + (b-1)*log(1-x);
-    Y(~inx) = -Inf;
+    y(ix) = (a-1)*log(x) + (b-1)*log(1-x);
+    y(~ix) = -Inf;
     return
 end
-
 switch lower(varargin{1})
-    case {'proper','pdf'}
-        Y(inx) = x.^(a-1).*(1-x).^(b-1)/beta(a,b);
+    case {'proper', 'pdf'}
+        y(ix) = x.^(a-1).*(1-x).^(b-1) / beta(a, b);
     case 'info'
-        Y(inx) = -(b - 1)./(x - 1).^2 - (a - 1)./x.^2;
-    case {'a','location'}
-        Y = a;
-    case {'b','scale'}
-        Y = b;
+        y(ix) = (b - 1)./(x - 1).^2 + (a - 1)./x.^2;
+        y(~ix) = NaN;
+    case {'a', 'location'}
+        y = a;
+    case {'b', 'scale'}
+        y = b;
     case 'mean'
-        Y = mean_;
-    case {'sigma','sgm','std'}
-        Y = std_;
+        y = mean_;
+    case {'sigma', 'sgm', 'std'}
+        y = std_;
     case 'mode'
-        Y = mode_;
+        y = mode_;
     case 'name'
-        Y = 'beta';
-    case 'draw'
-        Y = betarnd(a,b,varargin{2:end});
+        y = 'beta';
+    case {'rand', 'draw'}
+        y = betarnd(a, b, varargin{2:end});
+    case 'lower'
+        y = 0;
+    case 'upper'
+        y = 1;
 end
-end % xxBeta( )
+end 

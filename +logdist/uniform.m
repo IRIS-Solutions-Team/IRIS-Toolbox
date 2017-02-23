@@ -65,7 +65,8 @@ switch lower(varargin{1})
         y(ix) = 1/(b - a);
         y(~ix) = 0;
     case 'info'
-        y = 0;
+        y(ix) = 0;
+        y(~ix) = NaN;
     case {'a', 'location'}
         y = a;
     case {'b', 'scale'}
@@ -78,7 +79,11 @@ switch lower(varargin{1})
         y = mode_;
     case 'name'
         y = 'uniform';
-    case 'draw'
+    case {'rand', 'draw'}
         y = a + (b-a)*rand(varargin{2:end});
+    case 'lower'
+        y = a;
+    case 'upper'
+        y = b;
 end
 end

@@ -6,6 +6,7 @@ function fn = t(mean_, std_, df)
 %
 %     fn = logdist.t(mean, stdev, df)
 %
+%
 % Input arguments
 % ================
 %
@@ -31,7 +32,6 @@ function fn = t(mean_, std_, df)
 % Description
 % ============
 %
-%
 % See [help on the logdisk package](logdist/Contents) for details on using
 % the function handle `gn`.
 %
@@ -46,6 +46,8 @@ function fn = t(mean_, std_, df)
 if nargin<3
     df = Inf;
 end
+
+%--------------------------------------------------------------------------
 
 mode = mean_(:);
 a = mean_(:);
@@ -81,7 +83,7 @@ if isempty(varargin)
 end
 chi2fh = logdist.chisquare(df);
 switch lower(varargin{1})
-    case 'draw'
+    case {'rand', 'draw'}
         if numel(varargin)<2
             dim = size(mean_);
         else
@@ -141,12 +143,13 @@ end
 
 function y = fnT(x, a, b, mean_, std_, df, mode_, varargin)
 if isempty(varargin)
-    y = logT( );
+    sX = bsxfun(@minus, x, mean_).' / std_;
+    y = -0.5*(df+1)*log1p( sX.^2/df );
     return
 end
 chi2fh = logdist.chisquare(df);
 switch lower(varargin{1})
-    case 'draw'
+    case {'rand', 'draw'}
         if numel(varargin)<2
             dim = size(mean_);
         else
@@ -172,10 +175,13 @@ switch lower(varargin{1})
         y( pos ) = -y( pos );
         y = mean_ + y*std_;
     case {'proper', 'pdf'}
-        y = exp(logT( ));
+        sX = bsxfun(@minus, x, mean_).' / std_;
+        y = ( gammaln(0.5*(df+1)) - gammaln(0.5*df) - log(sqrt(df*pi)*std_) ) ...
+            - 0.5*(df+1)*log1p( sX.^2/df );
+        y = exp(y);
     case 'info'
         % add this later...
-        y = NaN(size(std_));
+        y = NaN(size(x));
     case {'a', 'location'}
         y = a;
     case {'b', 'scale'}
@@ -189,15 +195,4 @@ switch lower(varargin{1})
     case 'name'
         y = 'normal';
 end
-
-return
-
-
-
-
-    function y = logT( )
-        sX = bsxfun(@minus, x, mean_)' / std_;
-        y = ( gammaln(0.5*(df+1)) - gammaln(0.5*df) - log(sqrt(df*pi)*std_) ) ...
-            - 0.5*(df+1)*log1p( sX.^2/df );
-    end
 end
