@@ -1,6 +1,7 @@
 classdef Variant
     properties
         Name = NaN
+        IsActive = true
         Quantity
         StdCorr
         Solution
@@ -214,6 +215,13 @@ classdef Variant
                     );
                 x = cat(3, x{:});
             end
+        end
+
+
+
+
+        function ixActive = getIxActive(vv)
+            ixActive = cellfun(@(x) x.IsActive, vv);
         end
         
         
