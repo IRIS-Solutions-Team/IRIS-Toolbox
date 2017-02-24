@@ -112,7 +112,7 @@ return
 
 
     function deleteProgress( )
-        if icfg.IsDesktop
+        if getappdata(0, 'IRIS_IS_DESKTOP')
             progress(1:end) = sprintf('\b');
             fprintf(progress);
         else
@@ -124,7 +124,7 @@ return
 
 
     function displayMessage( )
-        if icfg.IsDesktop
+        if getappdata(0, 'IRIS_IS_DESKTOP')
             fprintfx = @(varargin) fprintf(varargin{:});       
         else
             fprintfx = @(varargin) fprintf('%s', textfun.removeTags(sprintf(varargin{:})));

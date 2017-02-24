@@ -153,7 +153,7 @@ end
 warning(w);
 
 if displayLevel.Iter
-    isDesktop = irisget('IsDesktop');
+    isDesktop = getappdata(0, 'IRIS_IS_DESKTOP');
     if isDesktop
         fprintf('<strong>');
     end
