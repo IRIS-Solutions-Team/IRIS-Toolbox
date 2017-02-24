@@ -1,10 +1,11 @@
-function fn = invgamma(mean_, std_)
+function fn = invgamma(mean_, std_, a, b)
 % invgamma  Create function proportional to log of inv-gamma distribution.
 %
 % Syntax
 % =======
 %
 %     fn = logdist.invgamma(mean, stdev)
+%     fn = logdist.invgamma(NaN, NaN, a, b)
 %
 %
 % Input arguments
@@ -13,6 +14,10 @@ function fn = invgamma(mean_, std_)
 % * `mean` [ numeric ] - Mean of the inv-gamma distribution.
 %
 % * `stdev` [ numeric ] - Stdev of the inv-gamma distribution.
+%
+% * `a` [ numeric ] - Parameter alpha defining inv-gamma distribution.
+%
+% * 'b` [ numeric ] - Parameter beta defining inv-gamma distribution.
 %
 %
 % Output arguments
@@ -38,10 +43,23 @@ function fn = invgamma(mean_, std_)
 
 %--------------------------------------------------------------------------
 
-a = 2 + (mean_/std_)^2;
-b = mean_*(1 + (mean_/std_)^2);
-mode = b/(a + 1);
-fn = @(x,varargin) fnInvGamma(x, a, b, mean_, std_, mode, varargin{:});
+if isequaln(mean_, NaN) && isequaln(std_, NaN)
+    if a>1
+        mean_ = b/(a - 1);
+    else
+        mean_ = NaN;
+    end
+    if a>2
+        std_ = mean_/sqrt(a - 2);
+    else
+        std_ = NaN;
+    end 
+else
+    a = 2 + (mean_/std_)^2;
+    b = mean_*(1 + (mean_/std_)^2);
+end
+mode_ = b/(a + 1);
+fn = @(x,varargin) fnInvGamma(x, a, b, mean_, std_, mode_, varargin{:});
 
 end
 
