@@ -205,6 +205,12 @@ return
         end
         inp = strrep(inp, '$Parameters$', rpl);
         
+        rpl = '';
+        if ~isempty(c{5})
+            rpl = c{5};
+        end
+        inp = strrep(inp, '$ExogenousVariables$', rpl);
+        
         inp = regexprep(inp, '\n[ ]*\n[ ]*\n+', '\n\n\n');
     end
 
