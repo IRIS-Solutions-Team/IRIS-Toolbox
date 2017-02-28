@@ -96,7 +96,7 @@
 % Model data
 % ===========
 %
-% * [`data4lhsmrhs`](model/data4lhsmrhs) - Prepare data array for running `lhsmrhs`.
+% * data4lhsmrhs - Prepare data array for running `lhsmrhs`.
 % * emptydb - Create model-specific database with empty tseries for all variables, shocks and parameters.
 % * rollback - Prepare database for a rollback run of Kalman filter.
 % * shockdb - Create model-specific database with random shocks.
