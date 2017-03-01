@@ -388,7 +388,7 @@ titleOpt = { };
 processGraphicsOptions( );
 
 total = prod(nSub);
-fig = figure( );
+fig = figure(figureOpt{:});
 ax = [ ];
 tit = [ ];
 pos = 1;

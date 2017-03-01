@@ -69,6 +69,18 @@ classdef Ad
         function this = uplus(this)
         end
         
+
+
+
+        function this = ctranspose(this)
+        end
+        
+
+        
+        
+        function this = transpose(this)
+        end
+        
         
         
         
@@ -460,7 +472,7 @@ classdef Ad
             end
             nWrt = numel(lsWrt);
             
-            lsVar = unique( regexp(expn, '(?<![''\.@])(\<[a-zA-Z]\w*\>)(?![''\.\(])', 'match') );
+            lsVar = unique( regexp(expn, '(?<![''\.@])(\<[a-zA-Z]\w*\>)(?![\.\(])', 'match') );
             D = struct( );
             for i = 1:numel(lsVar)
                 name = lsVar{i};
@@ -511,7 +523,7 @@ classdef Ad
             for i = 1:nVar
                 name = lsVar{i};
                 expn = regexprep( expn, ...
-                    ['(?<![''\.@])(\<', name, '\>)(?![''\.\(])'], ...
+                    ['(?<![''\.@])(\<', name, '\>)(?![\.\(])'], ...
                     ['D___.', name] );
             end
             

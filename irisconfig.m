@@ -16,10 +16,11 @@ icfg = struct( );
 
 try
     jDesktop = com.mathworks.mde.desk.MLDesktop.getInstance;
-    icfg.IsDesktop = ~isempty(jDesktop.getClient('Command Window'));
+    isDesktop = ~isempty(jDesktop.getClient('Command Window'));
 catch
-    icfg.IsDesktop = false;
+    isDesktop = false;
 end
+setappdata(0, 'IRIS_IS_DESKTOP', isDesktop);
 
 % Factory defaults
 %------------------
@@ -162,7 +163,6 @@ end
 
 % User cannot change these properties.
 icfg.protected = { 
-    'IsDesktop'
     'freq'
     'FreqName'
     'userconfigpath'
@@ -184,7 +184,6 @@ return
         dateFormatStructValidFn = @(X) isstruct(X) && length(X) == 1 ...
             && all(isfield(X,dateStructFields));
         icfg.validate = struct( ...
-            'IsDesktop', @(x) islogical(x) && length(x)==1, ...
             'FreqName', ...
             @(x) isa(x, 'containers.Map') && length(x)==nFreq && strcmp(x.KeyType, 'double') && strcmp(x.ValueType, 'char'), ...
             'freqletters', ...

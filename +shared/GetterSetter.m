@@ -176,7 +176,7 @@ classdef GetterSetter
     methods (Access=protected, Hidden)
         function ccn = getClickableClassName(this)
             cn = class(this);
-            if true % ##### MOSW
+            if getappdata(0, 'IRIS_IS_DESKTOP') % ##### MOSW
                 ccn = sprintf('<a href="matlab: idoc %s">%s</a>', cn, cn);
             else
                 ccn = cn; %#ok<UNRCH>

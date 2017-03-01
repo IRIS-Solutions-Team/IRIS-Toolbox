@@ -5,6 +5,7 @@ function fn = invgamma(mean_, std_, a, b)
 % =======
 %
 %     fn = logdist.invgamma(mean, stdev)
+%     fn = logdist.invgamma(NaN, NaN, a, b)
 %
 %     fn = logdist.invgamma(NaN, NaN, A, B)
 %
@@ -15,9 +16,10 @@ function fn = invgamma(mean_, std_, a, b)
 %
 % * `stdev` [ numeric ] - Stdev of the inv-gamma distribution.
 %
-% * `A` [ numeric ] - Shape parameter.
+% * `a` [ numeric ] - Parameter alpha defining inv-gamma distribution.
 %
-% * `B` [ numeric ] - Scale parameter.
+% * 'b` [ numeric ] - Parameter beta defining inv-gamma distribution.
+%
 %
 % Output arguments
 % =================
@@ -42,23 +44,23 @@ function fn = invgamma(mean_, std_, a, b)
 
 %--------------------------------------------------------------------------
 
-if nargin<3
-    a = 2 + (mean_/std_)^2;
-    b = mean_*(1 + (mean_/std_)^2);
-else
-    if a > 1
+if isequaln(mean_, NaN) && isequaln(std_, NaN)
+    if a>1
         mean_ = b/(a - 1);
     else
         mean_ = NaN;
     end
-    if a > 2
+    if a>2
         std_ = mean_/sqrt(a - 2);
     else
         std_ = NaN;
-    end
+    end 
+else
+    a = 2 + (mean_/std_)^2;
+    b = mean_*(1 + (mean_/std_)^2);
 end
-mode = b/(a + 1);
-fn = @(x,varargin) fnInvGamma(x, a, b, mean_, std_, mode, varargin{:});
+mode_ = b/(a + 1);
+fn = @(x,varargin) fnInvGamma(x, a, b, mean_, std_, mode_, varargin{:});
 
 end
 
