@@ -1,10 +1,10 @@
-function H = import_haver(hpath,varargin)
+function d = import_haver(hpath,varargin)
 % import_haver  Import data from Haver Analytics databases
 %
 % Syntax
 % =======
 %
-%      H = import_haver(hpath,dbfile1,series1,dbfile2,series2,...)
+%      d = import_haver(hpath,dbfile1,series1,dbfile2,series2,...)
 %
 % Input arguments
 % ================
@@ -18,6 +18,12 @@ function H = import_haver(hpath,varargin)
 % * `series1`,`series2`,... [ char | cellstr ] - Names of Haver Analytics series
 % (not case sensitive)
 %
+% Output arguments
+% =================
+%
+% * `d` [ struct ] - Database containing imported Haver series.
+%
+%
 % Description
 % ============
 %
@@ -28,35 +34,35 @@ function H = import_haver(hpath,varargin)
 % Example
 % ========
 %
-% H = import_haver('\\wahaverdb\DLX\DATA\','USECON','GDP')
+% d = import_haver('\\wahaverdb\DLX\DATA\','USECON','GDP')
 % 
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-d = {}; h = []; i=2; %#ok<*AGROW>
+data = {}; meta = []; i=2; %#ok<*AGROW>
 for dbfile = varargin(1:2:end)
-    c = haver([hpath dbfile{1} '.dat']);
-    d = [d fetch(c,varargin{i})];
-    h = [h info(c,varargin{i})];
-    close(c); i=i+2;
+    h = haver([hpath dbfile{1} '.dat']);
+    data = [data fetch(h,varargin{i})];
+    meta = [meta info(h,varargin{i})];
+    close(h); i=i+2;
 end
 
-H=struct;
-for j=1:size(d,2)
-    switch h(j).Frequency
+d = struct;
+for i=1:size(data,2)
+    switch meta(i).Frequency
         case 'D'
-            dates=d{j}(:,1);
+            dates=data{i}(:,1);
         case 'FRI'
-            dates=ww(year(d{j}(1)),month(d{j}(1)),day(d{j}(1)));
+            dates=ww(year(data{i}(1)),month(data{i}(1)),day(data{i}(1)));
         case 'M'
-            dates=mm(year(d{j}(1)),month(d{j}(1)));
+            dates=mm(year(data{i}(1)),month(data{i}(1)));
         case 'Q'
-            dates=qq(year(d{j}(1)),month(d{j}(1))/3);
+            dates=qq(year(data{i}(1)),month(data{i}(1))/3);
         case 'Y'
-            dates=yy(year(d{j}(1)));
+            dates=yy(year(data{i}(1)));
         otherwise
-            error('unknown freq: %s',h(j).Frequency)
+            error('unknown freq: %s',meta(i).Frequency)
     end
-    H.(h(j).VarName)=userdata(tseries(dates,d{j}(:,2),h(j).Descriptor),h(j));
+    d.(meta(i).VarName)=userdata(tseries(dates,data{i}(:,2),meta(i).Descriptor),meta(i));
 end
