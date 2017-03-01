@@ -12,7 +12,7 @@ function fn = invgamma(mean_, std_, a, b)
 % Input arguments
 % ================
 %
-% * `mean` [ numeric ] - mean_ of the inv-gamma distribution.
+% * `mean` [ numeric ] - Mean of the inv-gamma distribution.
 %
 % * `stdev` [ numeric ] - Stdev of the inv-gamma distribution.
 %
