@@ -7,6 +7,7 @@ function fn = invgamma(mean_, std_, a, b)
 %     fn = logdist.invgamma(mean, stdev)
 %     fn = logdist.invgamma(NaN, NaN, a, b)
 %
+%
 % Input arguments
 % ================
 %
