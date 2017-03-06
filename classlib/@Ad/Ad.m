@@ -433,7 +433,6 @@ classdef Ad
             end
             this = TEMPLATE;
             this.Input = Ad.lowFuncN('normcdf', x, varargin{:});
-            nd = numel(x.Diff);
             this.Diff = cell(1, nd);
             if n==0
                 for i = 1 : nd

@@ -69,6 +69,7 @@ for iAlt = vecAlt
                 );
         end
     end
+    gx(ixLog & gx == 1) = 0;
     this.Variant{iAlt}.Quantity = lx + 1i*gx;
     
     % Check for zero log variables.

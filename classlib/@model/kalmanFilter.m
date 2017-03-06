@@ -180,6 +180,7 @@ for iLoop = 1 : nLoop
         
         % Add presample, which will be used to initialise the Kalman
         % filter.
+        stdcorri = s.stdcorr(:,1);
         s.stdcorr = [stdcorri, s.stdcorr];
         
         % Create covariance matrix from stdcorr vector.
