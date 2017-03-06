@@ -62,13 +62,9 @@ xStart = range(1);
 xEnd = range(end);
 
 % Determine the filter range.
-lStart = [ ];
-gStart = [ ];
-lEnd = [ ];
-gEnd = [ ];
-fStart = [ ];
-fEnd = [ ];
-getFilterRange( );
+[fStart, fEnd, lStart, lEnd, gStart, gEnd] = getFilterRange( );
+isLevel = ~isempty(lStart);
+isGrowth = ~isempty(gStart);
 
 % Get time-varying gamma weights; default is 1.
 gamma = [ ];
@@ -80,10 +76,10 @@ xData = rangedata(inp, [fStart, fEnd]);
 % Separate soft and hard tunes.
 lData = [ ];
 gData = [ ];
-if ~isempty(lStart)
+if isLevel
     lData = rangedata(opt.Level, [fStart, fEnd]);
 end
-if ~isempty(gStart)
+if isGrowth
     gData = rangedata(opt.Change, [fStart, fEnd]);
 end
 
@@ -145,7 +141,7 @@ return
 
 
 
-    function getFilterRange( )
+    function [fStart, fEnd, lStart, lEnd, gStart, gEnd] = getFilterRange( )
         if ~isempty(opt.Level) && isa(opt.Level, 'tseries')
             lStart = opt.Level.Start;
             lEnd = opt.Level.Start + size(opt.Level.Data, 1) - 1;
