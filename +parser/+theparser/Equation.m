@@ -109,8 +109,21 @@ classdef Equation < parser.theparser.Generic
                 parser.theparser.Equation.evalTimeSubs(lsEqnSteady);
             
             % Split equations into LHS, sign, and RHS.
-            [lhsDynamic, signDynamic, rhsDynamic] = this.splitLhsSignRhs(lsEqnDynamic);
-            [lhsSteady, signSteady, rhsSteady] = this.splitLhsSignRhs(lsEqnSteady);
+            [lhsDynamic, signDynamic, rhsDynamic, ixMissingDynamic] = this.splitLhsSignRhs(lsEqnDynamic);
+            [lhsSteady, signSteady, rhsSteady, ixMissingSteady] = this.splitLhsSignRhs(lsEqnSteady);
+
+            if any(ixMissingDynamic)
+                throw( ...
+                    exception.Base('TheParser:EmptyLhsOrRhs', 'error'), ...
+                    lsEqn{ixMissingDynamic} ...
+                    );
+            end
+            if any(ixMissingSteady)
+                throw( ...
+                    exception.Base('TheParser:EmptyLhsOrRhs', 'error'), ...
+                    lsEqn{ixMissingSteady} ...
+                    );
+            end
             
             % Split labels into labels and aliases.
             [lsLabel, alias] = this.splitLabelAlias(lsLabel);
@@ -173,23 +186,25 @@ classdef Equation < parser.theparser.Generic
         
         
         
-        function [lhs, sign, rhs] = splitLhsSignRhs(eqtn)
-            nEqtn = length(eqtn);
-            lhs = cell(1,nEqtn);
-            rhs = cell(1,nEqtn);
-            sign = cell(1,nEqtn);
-            [from, to] = regexp(eqtn,':=|=#|\+=|=', 'once', 'start', 'end');
-            for i = 1 : nEqtn
-                if ~isempty(from{i})
-                    lhs{i}  = eqtn{i}( 1:from{i}-1 );
-                    sign{i} = eqtn{i}( from{i}:to{i} );
-                    rhs{i}  = eqtn{i}( to{i}+1:end );
+        function [lhs, sign, rhs, ixMissing] = splitLhsSignRhs(eqn)
+            nEqn = length(eqn);
+            lhs = cell(1, nEqn);
+            rhs = cell(1, nEqn);
+            sign = cell(1, nEqn);
+            [from, to] = regexp(eqn, ':=|=#|\+=|=', 'once', 'start', 'end');
+            ixSign = ~cellfun(@isempty, from);
+            for i = 1 : nEqn
+                if ixSign(i)
+                    lhs{i}  = eqn{i}( 1:from{i}-1 );
+                    sign{i} = eqn{i}( from{i}:to{i} );
+                    rhs{i}  = eqn{i}( to{i}+1:end );
                 else
                     lhs{i}  = '';
                     sign{i} = '';
-                    rhs{i}  = eqtn{i};
+                    rhs{i}  = eqn{i};
                 end
             end
+            ixMissing = ixSign & (cellfun(@isempty, lhs) | cellfun(@isempty, rhs));
         end
         
         
@@ -198,7 +213,7 @@ classdef Equation < parser.theparser.Generic
         function [eqtn, maxSh, minSh] = evalTimeSubs(eqtn)
             maxSh = 0;
             minSh = 0;
-            lsInvalid = cell(1,0);
+            lsInvalid = cell(1, 0);
             
             eqtn = strrep(eqtn, '{t+', '{+');
             eqtn = strrep(eqtn, '{t-', '{-');
@@ -258,7 +273,7 @@ classdef Equation < parser.theparser.Generic
                             c = '';
                             return
                         else
-                            c = sprintf('{@%+g}',xx);
+                            c = sprintf('{@%+g}', xx);
                             return
                         end
                     end
