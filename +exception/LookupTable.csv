@@ -171,6 +171,7 @@ SystemPriors:InvalidPriorFunction,This is not a valid system prior function name
 SystemPriors:InvalidRow,This is not a valid row name: %s 
 SystemPriors:LowerUpperBound,Lower bound (%g) must be lower than upper bound (%g).
 TheParser:EmptyEquation,"This equation is empty, and will be removed: %s "
+TheParser:EmptyLhsOrRhs, LHS or RHS of this equation is empty: %s 
 TheParser:EssentialBlocksMissing,Cannot find a nonempty %s block; this is not a valid source file.
 TheParser:InconsistentAllBut,The keyword !all_but may be used in either all or none of the !log_variables declaration blocks.
 TheParser:InvalidBounds,This is not a valid lower-upper bounds specification: %s 
