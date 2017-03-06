@@ -1,10 +1,11 @@
-function d = import_haver(hpath,varargin)
-% import_haver  Import data from Haver Analytics databases
+function d = import(hpath, varargin)
+% import  Import data from Haver Analytics databases
 %
 % Syntax
 % =======
 %
-%      d = import_haver(hpath,dbfile1,series1,dbfile2,series2,...)
+%      d = haver.import(hpath, dbfile1, series1, dbfile2, series2, ...)
+%
 %
 % Input arguments
 % ================
@@ -12,11 +13,12 @@ function d = import_haver(hpath,varargin)
 % * `hpath` [ char ] - Directory where the Haver databases are stored
 % (most likely a network location)
 %
-% * `dbfile1`,`dbfile1`,... [ char ] - Names of a Haver Analytics databases
+% * `dbfile1`, `dbfile1`, ... [ char ] - Names of a Haver Analytics databases
 % (without a suffix .dat)
 %
-% * `series1`,`series2`,... [ char | cellstr ] - Names of Haver Analytics series
+% * `series1`, `series2`, ... [ char | cellstr ] - Names of Haver Analytics series
 % (not case sensitive)
+%
 %
 % Output arguments
 % =================
@@ -29,12 +31,13 @@ function d = import_haver(hpath,varargin)
 %
 % Haver Analytics (http://www.haver.com) provides more than 200 economic and
 % financial databases in the form of .dat files to which you can purchase access.
-% The import_haver function provides access to those databases with IRIS.
+% The `haver.import( )` function provides access to those databases with IRIS.
+%
 %
 % Example
 % ========
 %
-% d = import_haver('\\wahaverdb\DLX\DATA\','USECON','GDP')
+% d = haver.import('\\wahaverdb\DLX\DATA\', 'USECON', 'GDP')
 % 
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -65,4 +68,6 @@ for i=1:size(data,2)
             error('unknown freq: %s',meta(i).Frequency)
     end
     d.(meta(i).VarName)=userdata(tseries(dates,data{i}(:,2),meta(i).Descriptor),meta(i));
+end
+
 end
