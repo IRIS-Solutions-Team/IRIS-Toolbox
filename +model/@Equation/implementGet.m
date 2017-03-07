@@ -65,8 +65,9 @@ elseif any(strcmpi(query, ...
     
     
     
-elseif any(strcmpi(query, {'links', 'link'}))
+elseif any(strcmpi(query, {'Links:Struct', 'Links', 'Link'}))
     nQuan = length(qty.Name);
+    ne = sum(qty.Type==PTR(31) | qty.Type==PTR(32));
     ixl = eqn.Type==TYPE(4);
     nl = sum(ixl);
     lhs = abs( pai.Link.Lhs(ixl) );
@@ -78,19 +79,18 @@ elseif any(strcmpi(query, {'links', 'link'}))
     ixCorr = lhs>nQuan+ne;
     lsLhs(ixCorr) = getCorrName(qty, lhs(ixCorr)-nQuan-ne);
     answ = cell2struct(eqn.Input(ixl), lsLhs, 2);
+
+
+
+
+elseif any(strcmpi(query, {'Links:List'}))
+    answ = eqn.Input(eqn.Type==TYPE(4));
+    answ = answ.';
     
     
     
-    
-elseif strcmpi(query, 'LEqtn:Ordered')
-    ixl = eqn.Type==TYPE(4);
-    order = pai.Link.Order(ixl);
-    posl = find(ixl);
-    if all(order>PTR(0))
-        [~, temp] = sort(order);
-        posl = posl(temp);
-    end
-    answ = eqn.Input(posl);
+elseif any(strcmpi(query, {'LEqtn:Ordered', 'Links:Ordered'}))
+    answ = eqn.Input(pai.Link.Order);
     answ = answ.';
     
     

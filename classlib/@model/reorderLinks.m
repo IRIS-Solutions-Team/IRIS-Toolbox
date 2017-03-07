@@ -12,23 +12,26 @@ function this = reorderLinks(this, opt)
 TYPE = @int8;
 PTR = @int16;
 nEqn = length(this.Equation);
+ixl = this.Equation.Type==TYPE(4);
+posl = find(ixl);
 
 % Reset ordering of links.
-this.Pairing.Link.Order = repmat(PTR(0), 1, nEqn);
+this.Pairing.Link.Order = find(ixl);
 if ~opt.OrderLinks
     return
 end
 
-ixl = this.Equation.Type==TYPE(4);
 nl = sum(ixl);
 ptr = this.Pairing.Link.Lhs(ixl);
-nPtr = length(ptr);
 
 eps = model.Incidence.getIncidenceEps(this.Equation.Dynamic, ixl);
-inc = false(nl, nPtr);
-for i = 1 : nPtr
-    ix = eps(1, :)==ptr(i);
-    inc(eps(2, ix), i) = true;
+inc = false(nl);
+for i = 1 : nl
+    ixPtr = eps(2, :)==ptr(i);
+    ixEqn = false(1, nEqn);
+    ixEqn(eps(1, ixPtr)) = true;
+    ixEqn = ixEqn(ixl);
+    inc(ixEqn, i) = true;
 end
 
 if nnz(inc)==0
@@ -36,11 +39,11 @@ if nnz(inc)==0
     return
 end
 
-for i = 1 : nPtr
+for i = 1 : nl
     inc(i, i) = true;
 end
 
-[ordInc, ordEqn, ordQty] = solver.blazer.Blazer.reorder(inc, 1:nl, 1:nl);
+[ordInc, ordEqn, ordQty] = solver.blazer.Blazer.reorder(inc, posl, ptr);
 blk = solver.blazer.Blazer.getBlocks(ordInc, ordEqn, ordQty);
 if any( cellfun(@length, blk)>1 )
     throw( ...
@@ -49,6 +52,6 @@ if any( cellfun(@length, blk)>1 )
 end
 
 ordEqn = fliplr(ordEqn);
-this.Pairing.Link.Order(ixl) = PTR(ordEqn);
+this.Pairing.Link.Order = PTR(ordEqn);
 
 end
