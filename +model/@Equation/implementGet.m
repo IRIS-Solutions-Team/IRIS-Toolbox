@@ -4,60 +4,61 @@ TYPE = @int8;
 PTR = @int16;
 answ = [ ];
 isValid = true;
+query1 = regexprep(query, '[^\w]', '')
 
 
 
 
-if strcmpi(query, 'Eqtn')
+if strcmpi(query1, 'Eqtn')
     answ = eqn.Input;
     answ = answ.';
     
     
     
     
-elseif any(strcmpi(query, {'Eqtn:Label', 'EqtnLabel', 'Label'}))
+elseif any(strcmpi(query1, {'EqtnLabel', 'Label'}))
     answ = eqn.Label;
     answ = answ.';
     
     
     
     
-elseif any(strcmpi(query, {'Eqtn:Alias', 'EqtnAlias'}))
+elseif any(strcmpi(query1, {'EqtnAlias'}))
     answ = eqn.Alias;
     answ = answ.';
     
     
     
     
-elseif strcmpi(query, 'Eqtn:Steady')
+elseif strcmpi(query1, 'EqtnSteady')
     answ = model.Equation.extractInput(eqn.Input, 'Steady');
     answ = answ.';
     
     
     
     
-elseif strcmpi(query, 'Eqtn:Dynamic')
+elseif strcmpi(query1, 'EqtnDynamic')
     answ = model.Equation.extractInput(eqn.Input, 'Dynamic');
     answ = answ.';
     
     
     
     
-elseif any(strcmpi(query, ...
+elseif any(strcmpi(query1, ...
         {'YEqtn', 'XEqtn', 'DEqtn', 'LEqtn', 'UEqtn', 'NEqtn', ...
         'YLabel', 'XLabel', 'DLabel', 'LLabel', 'ULabel', 'NLabel', ...
         'YEqtnAlias', 'XEqtnAlias', 'DEqtnAlias', 'LEqtnAlias', 'UEqtnAlias', 'NEqtnAlias'} ...
         ))
-    if strncmpi(query, 'N', 1)
+    if strncmpi(query1, 'N', 1)
         ix = eqn.IxHash;
     else
-        ix = eqn.Type==TYPE(find(strncmpi(query, {'Y', 'X', 'D', 'L', 'U'}, 1))); %#ok<FNDSB>
+        ix = eqn.Type==TYPE(find(strncmpi(query1, {'Y', 'X', 'D', 'L', 'U'}, 1))); %#ok<FNDSB>
     end
-    if strcmpi(query(2:end), 'Eqtn')
+    if strcmpi(query1(2:end), 'Eqtn')
         answ = eqn.Input(ix);
-    elseif strcmpi(query(2:end), 'Label')
+    elseif strcmpi(query1(2:end), 'Label')
         answ = eqn.Label(ix);
-    elseif strcmpi(query(2:end), 'EqtnAlias')
+    elseif strcmpi(query1(2:end), 'EqtnAlias')
         answ = eqn.Alias(ix);
     end
     answ = answ.';
@@ -65,7 +66,7 @@ elseif any(strcmpi(query, ...
     
     
     
-elseif any(strcmpi(query, {'Links:Struct', 'Links', 'Link'}))
+elseif any(strcmpi(query1, {'LinksStruct', 'Links', 'Link'}))
     nQuan = length(qty.Name);
     ne = sum(qty.Type==PTR(31) | qty.Type==PTR(32));
     ixl = eqn.Type==TYPE(4);
@@ -83,13 +84,13 @@ elseif any(strcmpi(query, {'Links:Struct', 'Links', 'Link'}))
 
 
 
-elseif any(strcmpi(query, {'Links:List'}))
+elseif any(strcmpi(query1, {'LinksList'}))
     answ = eqn.Input(eqn.Type==TYPE(4));
     answ = answ.';
     
     
     
-elseif any(strcmpi(query, {'LEqtn:Ordered', 'Links:Ordered'}))
+elseif any(strcmpi(query1, {'LEqtnOrdered', 'LinksOrdered'}))
     answ = eqn.Input(pai.Link.Order);
     answ = answ.';
     
