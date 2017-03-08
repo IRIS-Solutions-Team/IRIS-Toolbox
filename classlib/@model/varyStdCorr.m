@@ -1,5 +1,5 @@
-function [stdcorrReal, stdcorrImag] = varyStdCorr(this, range, j, opt, varargin)
-% varyStdCorr  Convert the option 'vary=' or a tune database to stdcorr vector.
+function [sxReal, sxImag] = varyStdCorr(this, range, j, opt, varargin)
+% varyStdCorr  Convert the option vary= or tune database to stdcorr vector.
 %
 % Backend IRIS function.
 % No help provided.
@@ -9,20 +9,19 @@ function [stdcorrReal, stdcorrImag] = varyStdCorr(this, range, j, opt, varargin)
 
 TYPE = @int8;
 
-isClip = any(strcmpi(varargin, 'clip'));
+isClip = any(strcmpi(varargin, '--clip')); % Clip trailing NaNs.
+isPresample = any(strcmpi(varargin, '--presample')); % Include one presample period.
 isImag = nargout>1;
 
 %--------------------------------------------------------------------------
 
-% We do not include pre-sample.
-
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ne = sum(ixe);
-nStdcorr = ne + ne*(ne-1)/2;
+nsx = ne + ne*(ne-1)/2;
 
 if isempty(range)
-    stdcorrReal = nan(nStdcorr, 0);
-    stdcorrImag = nan(nStdcorr, 0);
+    sxReal = nan(nsx, 0);
+    sxImag = nan(nsx, 0);
     return
 end
 
@@ -30,44 +29,45 @@ d = [ ];
 processTimeVarying( );
 
 range = range(1) : range(end);
+if isPresample 
+    % Add one presample period if requested.
+    range = [range(1)-1, range];
+end
 nPer = length(range);
-stdcorrReal = nan(nStdcorr, nPer);
 
+sxReal = nan(nsx, nPer);
+if isImag
+    sxImag = nan(nsx, nper);
+end
 if ~isempty(d)
     c = fieldnames(d);
     ell = lookup(this.Quantity, c);
-    posStdCorr = ell.PosStdCorr;
-    for i = find(~isnan(posStdCorr))
+    pos = ell.PosStdCorr;
+    for i = find(~isnan(pos))
         x = d.(c{i});
         if isa(x, 'tseries')
             x = rangedata(x, range);
-            x = x(:,1);
+            x = x(:, 1);
             x = x(:).';
         end
-        stdcorrReal(posStdCorr(i), :) = x;
+        sxReal(pos(i), :) = real(x);
+        if isImag
+            sxImag(pos(i), :) = imag(x);
+        end
     end
 end
-
-if isImag
-    stdcorrImag = imag(stdcorrReal);
-end
-stdcorrReal = real(stdcorrReal);
-
-% Vector of non-NaN variances/stdevs.
-scRealInx = ~isnan(stdcorrReal);
-
-if isImag
-    scImagInx = ~isnan(stdcorrImag);
-end
-
-% If requested, remove all periods behind the last user-supplied data
-% point.
-if isClip
-    last = find(any(scRealInx,1), 1, 'last');
-    stdcorrReal = stdcorrReal(:, 1:last);
+ 
+% Remove trailing NaNs if requested.
+if isClip 
+    ixSxReal = ~isnan(sxReal);
     if isImag
-        last = find(any(scImagInx, 1), 1, 'last');
-        stdcorrImag = stdcorrImag(:,1:last);
+        ixScImag = ~isnan(sxImag);
+    end
+    last = find(any(ixSxReal, 1), 1, 'last');
+    sxReal = sxReal(:, 1:last);
+    if isImag
+        last = find(any(ixScImag, 1), 1, 'last');
+        sxImag = sxImag(:, 1:last);
     end
 end
 

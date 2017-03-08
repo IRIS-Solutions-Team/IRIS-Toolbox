@@ -70,9 +70,10 @@ end
 %------------------------------
 
 if likOpt.domain=='t'
-    % Time-varying stdcorr vector; 'clip' means the stdcorr vector will
-    % be cut at the last user-supplied period.
-    likOpt.stdcorr = varyStdCorr(this, range, tune, likOpt, 'clip');
+    % Time-varying StdCorr vector 
+    % * --clip means trailing NaNs will be removed
+    % * --presample means one presample period will be added
+    likOpt.StdCorr = varyStdCorr(this, range, tune, likOpt, '--clip', '--presample');
     
     % User-supplied tunes on the mean of shocks.
     if isfield(likOpt,'vary')

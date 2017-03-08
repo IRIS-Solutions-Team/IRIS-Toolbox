@@ -414,7 +414,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
     
     methods (Static, Hidden)
         varargout = appendData(varargin)
-        varargout = combineStdCorr(varargin)
         varargout = createNonlinEqtn(varargin)
         varargout = myalias(varargin)        
         varargout = myexpand(varargin)

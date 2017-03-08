@@ -81,8 +81,10 @@ lik = prepareLoglik(this, range, 't', [ ], varargin{:});
 % Get measurement and exogenous variables including pre-sample.
 data = datarequest('yg*', this, data, range);
 
-% Create an `stdcorr` vector from user-supplied database.
-lik.stdcorr = varyStdCorr(this, range, [ ], lik, 'clip');
+% Create StdCorr vector from user-supplied database:
+% * --clip means remove trailing NaNs
+% * --presample means include one presample period
+lik.StdCorr = varyStdCorr(this, range, [ ], lik, '--clip', '--presample');
 
 % Requested output data.
 lik.retpevec = true;

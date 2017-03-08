@@ -72,6 +72,26 @@ classdef Variant
             this.Solution.Zb = nan(ny, nb);
             this.Solution.V = nan(ny, ng); % Exogenous variables.
         end
+
+
+
+
+        function sx = combineStdCorr(this, userStdCorr, nPer)
+            thisStdCorr = this.StdCorr(:);
+            ixUserStdCorr = ~isnan(userStdCorr);
+            if any(ixUserStdCorr(:))
+                lastUser = max(1, size(userStdCorr, 2));
+                sx = repmat(thisStdCorr, 1, lastUser);
+                sx(ixUserStdCorr) = userStdCorr(ixUserStdCorr);
+                % Add model StdCorr if the last user-supplied data point is before
+                % the end of the sample.
+                if size(sx, 2)<nPer
+                    sx = [sx, thisStdCorr];
+                end
+            else
+                sx = thisStdCorr;
+            end
+        end
     end
     
     

@@ -171,26 +171,22 @@ for iLoop = 1 : nLoop
             end
         end
         
-        % Time-varying stdcorr
+        % Time-varying StdCorr
         %----------------------
-        % Combine currently assigned `stdcorr` in the model object with the
-        % user-supplied time-vaying `stdcorr`.
-        stdcorri = this.Variant{iLoop}.StdCorr.';
-        s.stdcorr = this.combineStdCorr(stdcorri, opt.stdcorr, nPer-1);
-        
-        % Add presample, which will be used to initialise the Kalman
-        % filter.
-        s.stdcorr = [stdcorri, s.stdcorr];
+        % Combine currently assigned StdCorr with user-supplied
+        % time-varying StdCorr including one presample period used to
+        % initialize the filter.
+        sx = combineStdCorr(this.Variant{iLoop}, opt.StdCorr, nPer);
         
         % Create covariance matrix from stdcorr vector.
-        s.Omg = covfun.stdcorr2cov(s.stdcorr, ne);
+        s.Omg = covfun.stdcorr2cov(sx, ne);
         
         % Create reduced form covariance matrices `Sa` and `Sy`, and find
         % measurement variables with infinite measurement shocks, `syinf`.
-        s = convertOmg2SaSy(s);
+        s = convertOmg2SaSy(s, sx);
         
         % Free memory.
-        s.stdcorr = [ ];
+        clear sx;
     end
     
     % Continue immediately if solution is not available; report NaN solutions
@@ -928,63 +924,63 @@ end
 
 
 
-function S = convertOmg2SaSy(S)
+function s = convertOmg2SaSy(s, sx)
 % Convert the structural covariance matrix `Omg` to reduced-form
 % covariance matrices `Sa` and `Sy`. Detect `Inf` std deviations and remove
 % the corresponding observations.
-ny = size(S.Z, 1);
-nf = size(S.Tf, 1);
-nb = size(S.Ta, 1);
-ne = size(S.Ra, 2);
-nPer = size(S.y1, 2);
-lastOmg = size(S.Omg, 3);
-ixet = S.IxEt;
-ixem = S.IxEm;
+ny = size(s.Z, 1);
+nf = size(s.Tf, 1);
+nb = size(s.Ta, 1);
+ne = size(s.Ra, 2);
+nPer = size(s.y1, 2);
+lastOmg = size(s.Omg, 3);
+ixet = s.IxEt;
+ixem = s.IxEm;
 
 % Periods where Omg(t) is the same as Omg(t-1).
-omgEqual = [false, all(S.stdcorr(:, 1:end-1)==S.stdcorr(:, 2:end), 1)];
+omgEqual = [false, all(sx(:, 1:end-1)==sx(:, 2:end), 1)];
 
 % Cut off forward expansion.
-Ra = S.Ra(:, 1:ne);
-Rf = S.Rf(:, 1:ne);
+Ra = s.Ra(:, 1:ne);
+Rf = s.Rf(:, 1:ne);
 Ra = Ra(:, ixet);
 Rf = Rf(:, ixet);
 
-H = S.H(:, ixem);
-Ht = S.H(:, ixem).';
+H = s.H(:, ixem);
+Ht = s.H(:, ixem).';
 
-S.Sa = nan(nb, nb, lastOmg);
-S.Sf = nan(nf, nf, lastOmg);
-S.Sfa = nan(nf, nb, lastOmg);
-S.Sy = nan(ny, ny, lastOmg);
-S.syinf = false(ny, lastOmg);
+s.Sa = nan(nb, nb, lastOmg);
+s.Sf = nan(nf, nf, lastOmg);
+s.Sfa = nan(nf, nb, lastOmg);
+s.Sy = nan(ny, ny, lastOmg);
+s.syinf = false(ny, lastOmg);
 
 for t = 1 : lastOmg
     % If Omg(t) is the same as Omg(t-1), do not compute anything and
     % only copy the previous results.
     if omgEqual(t)
-        S.Sa(:, :, t) = S.Sa(:, :, t-1);
-        S.Sf(:, :, t) = S.Sf(:, :, t-1);
-        S.Sfa(:, :, t) = S.Sfa(:, :, t-1);
-        S.Sy(:, :, t) = S.Sy(:, :, t-1);
-        S.syinf(:, t) = S.syinf(:, t-1);
+        s.Sa(:, :, t) = s.Sa(:, :, t-1);
+        s.Sf(:, :, t) = s.Sf(:, :, t-1);
+        s.Sfa(:, :, t) = s.Sfa(:, :, t-1);
+        s.Sy(:, :, t) = s.Sy(:, :, t-1);
+        s.syinf(:, t) = s.syinf(:, t-1);
         continue
     end
-    Omg = S.Omg(:, :, t);
+    Omg = s.Omg(:, :, t);
     OmgT = Omg(ixet, ixet);
     OmgM = Omg(ixem, ixem);
-    S.Sa(:, :, t) = Ra*OmgT*Ra.';
-    S.Sf(:, :, t) = Rf*OmgT*Rf.';
-    S.Sfa(:, :, t) = Rf*OmgT*Ra.';
+    s.Sa(:, :, t) = Ra*OmgT*Ra.';
+    s.Sf(:, :, t) = Rf*OmgT*Rf.';
+    s.Sfa(:, :, t) = Rf*OmgT*Ra.';
     omgMInf = isinf(diag(OmgM));
     if ~any(omgMInf)
         % No `Inf` std devs.
-        S.Sy(:, :, t) = H*OmgM*Ht;
+        s.Sy(:, :, t) = H*OmgM*Ht;
     else
         % Some std devs are `Inf`, we will remove the corresponding observations.
-        S.Sy(:, :, t) = ...
+        s.Sy(:, :, t) = ...
             H(:, ~omgMInf)*OmgM(~omgMInf, ~omgMInf)*Ht(~omgMInf, :);
-        S.syinf(:, t) = diag(H(:, omgMInf)*Ht(omgMInf, :)) ~= 0;
+        s.syinf(:, t) = diag(H(:, omgMInf)*Ht(omgMInf, :)) ~= 0;
     end
 end
 
@@ -992,7 +988,7 @@ end
 % is because we use `syinf` to remove observations from `y1` on the whole
 % filter range.
 if lastOmg<nPer
-    S.syinf(:, end+1:nPer) = S.syinf(:, ones(1, nPer-lastOmg));
+    s.syinf(:, end+1:nPer) = s.syinf(:, ones(1, nPer-lastOmg));
 end
 end
 

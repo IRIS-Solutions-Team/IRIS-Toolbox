@@ -106,14 +106,17 @@ classdef Quantity < parser.theparser.Generic
             end
             
             if this.IsReservedPrefix
-                % Report all names starting with STD_PREFIX or CORR_PREFIX.
+                % Report all names starting with STD_PREFIX, CORR_PREFIX,
+                % LOG_PREFIX.
                 ixStd = strncmp(name, this.STD_PREFIX, length(this.STD_PREFIX));
                 ixCorr = strncmp(name, this.CORR_PREFIX, length(this.CORR_PREFIX));
                 ixLog = strncmp(name, this.LOG_PREFIX, length(this.LOG_PREFIX));
                 ixPrefix = ixStd | ixCorr | ixLog;
                 if any(ixPrefix)
-                    throw( exception.ParseTime('TheParser:ReservedPrefixDeclared', 'error'), ...
-                        name{ixPrefix} );
+                    throw( ...
+                        exception.ParseTime('TheParser:ReservedPrefixDeclared', 'error'), ...
+                        name{ixPrefix} ...
+                        );
                 end
             end
             

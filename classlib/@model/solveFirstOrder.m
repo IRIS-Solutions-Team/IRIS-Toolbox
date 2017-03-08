@@ -168,7 +168,6 @@ for iAlt = vecAlt(:).'
     if opt.progress
         update(progress, iAlt/length(vecAlt));
     end
-
 end
 
 nPath = nPath(1, vecAlt);
