@@ -103,6 +103,10 @@ end
 
 nExn = numel(exn);
 exn = strtrim(exn);
+
+% Remove backtick-type marks.
+exn = regexprep(exn, '`\w+', '');
+
 list1 = fieldnames(d).';
 list2 = fieldnames(ss).';
 prefix1 = [char(1), '.'];
