@@ -173,10 +173,10 @@ for iAlt = 1 : nAlt
     m = this(iAlt);
     
     % Minimum necessary state space.
-    [T0, R0, Z0, H0, Omg0, nunit0] = getSspace( );
+    [T0, R0, Z0, H0, Omg0, nUnit0] = getSspace( );
     
     % SGF and inverse SGF at p0.
-    [G, Gi] = computeSgfy(T0, R0, Z0, H0, Omg0, nunit0, freq, opt);
+    [G, Gi] = computeSgfy(T0, R0, Z0, H0, Omg0, nUnit0, freq, opt);
     
     % Compute derivatives of SGF and steady state
     % wrt the selected parameters.
@@ -204,16 +204,16 @@ for iAlt = 1 : nAlt
         if isSstate
             yp = getSstate( );
         end
-        [Tp, Rp, Zp, Hp, Omgp, nunitp] = getSspace( );
-        Gp = computeSgfy(Tp, Rp, Zp, Hp, Omgp, nunitp, freq, opt);
+        [Tp, Rp, Zp, Hp, Omgp, nUnitp] = getSspace( );
+        Gp = computeSgfy(Tp, Rp, Zp, Hp, Omgp, nUnitp, freq, opt);
         
         % Steady state, state space and SGF at p0(i) - step(i).
         m = update(m, pm, itr, 1, opt, throwErr);
         if isSstate
             ym = getSstate( );
         end
-        [Tm, Rm, Zm, Hm, Omgm, nunitm] = getSspace( );
-        Gm = computeSgfy(Tm, Rm, Zm, Hm, Omgm, nunitm, freq, opt);
+        [Tm, Rm, Zm, Hm, Omgm, nUnitm] = getSspace( );
+        Gm = computeSgfy(Tm, Rm, Zm, Hm, Omgm, nUnitm, freq, opt);
         
         % Differentiate SGF and steady state.
         dG(:, :, :, i) = (Gp - Gm) / twoSteps;
