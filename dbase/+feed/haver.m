@@ -1,23 +1,23 @@
-function d = import(hpath, varargin)
-% import  Import data from Haver Analytics databases
+function d = haver(hpath, varargin)
+% haver  Import data from Haver Analytics databases.
 %
 % Syntax
 % =======
 %
-%      d = haver.import(hpath, dbfile1, series1, dbfile2, series2, ...)
+%      d = feed.haver(hpath, dbfile1, series1, dbfile2, series2, ...)
 %
 %
 % Input arguments
 % ================
 %
 % * `hpath` [ char ] - Directory where the Haver databases are stored
-% (most likely a network location)
+% (most likely a network location).
 %
 % * `dbfile1`, `dbfile1`, ... [ char ] - Names of a Haver Analytics databases
-% (without a suffix .dat)
+% (without a suffix .dat).
 %
 % * `series1`, `series2`, ... [ char | cellstr ] - Names of Haver Analytics series
-% (not case sensitive)
+% (not case sensitive).
 %
 %
 % Output arguments
@@ -31,13 +31,15 @@ function d = import(hpath, varargin)
 %
 % Haver Analytics (http://www.haver.com) provides more than 200 economic and
 % financial databases in the form of .dat files to which you can purchase access.
-% The `haver.import( )` function provides access to those databases with IRIS.
+% The `feed.haver( )` function provides access to those databases with IRIS.
+%
+% This function requires the Datafeed Toolbox.
 %
 %
 % Example
 % ========
 %
-% d = haver.import('\\wahaverdb\DLX\DATA\', 'USECON', 'GDP')
+% d = feed.haver('\\wahaverdb\DLX\DATA\', 'USECON', 'GDP')
 % 
 
 % -IRIS Macroeconomic Modeling Toolbox.

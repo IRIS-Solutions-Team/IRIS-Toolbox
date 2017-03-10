@@ -1,17 +1,17 @@
-function d = import(varargin)
-% import  Import data from FRED, Federal Reserve Bank of St. Louis
+function d = fred(varargin)
+% fred  Import data from FRED, Federal Reserve Bank of St. Louis.
 %
 % Syntax
 % =======
 %
-%      d = fred.import(series1, series2, ...)
+%      d = feed.fred(series1, series2, ...)
 %
 %
 % Input arguments
 % ================
 %
 % * `series1`, `series2`, ... [ char ] - Names of FRED series
-% (not case sensitive)
+% (not case sensitive).
 %
 %
 % Output arguments
@@ -26,13 +26,15 @@ function d = import(varargin)
 % Federal Reserve Economic Data, FRED (https://fred.stlouisfed.org/)
 % is an online database consisting of more than 385,000 economic data time
 % series from 80 national, international, public, and private sources. 
-% The `fred.import( )` function provides access to those databases with IRIS.
+% The `feed.fred( )` function provides access to those databases with IRIS.
+%
+% This function requires the Datafeed Toolbox.
 %
 %
 % Example
 % ========
 %
-% d = fred.import('GDP','PCEC','FPI')
+% d = feed.fred('GDP','PCEC','FPI')
 % 
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -40,7 +42,7 @@ function d = import(varargin)
 
 c = fred('https://research.stlouisfed.org/fred2/');
 data = fetch(c,varargin);
-close(c)
+close(c);
 d = struct;
 for i = 1:numel(data)
     % Note that Dates are start-of-period Dates in the FRED database
