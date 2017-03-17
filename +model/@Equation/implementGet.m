@@ -4,7 +4,7 @@ TYPE = @int8;
 PTR = @int16;
 answ = [ ];
 isValid = true;
-query1 = regexprep(query, '[^\w]', '')
+query1 = regexprep(query, '[^\w]', '');
 
 
 
@@ -65,36 +65,7 @@ elseif any(strcmpi(query1, ...
     
     
     
-    
-elseif any(strcmpi(query1, {'LinksStruct', 'Links', 'Link'}))
-    nQuan = length(qty.Name);
-    ne = sum(qty.Type==PTR(31) | qty.Type==PTR(32));
-    ixl = eqn.Type==TYPE(4);
-    nl = sum(ixl);
-    lhs = abs( pai.Link.Lhs(ixl) );
-    lsLhs = cell(1, nl);
-    ixQuan = lhs<=nQuan;
-    lsLhs(ixQuan) = qty.Name( lhs(ixQuan) );
-    ixStd = lhs>nQuan & lhs<=nQuan+ne;
-    lsLhs(ixStd) = getStdName(qty, lhs(ixStd)-nQuan);
-    ixCorr = lhs>nQuan+ne;
-    lsLhs(ixCorr) = getCorrName(qty, lhs(ixCorr)-nQuan-ne);
-    answ = cell2struct(eqn.Input(ixl), lsLhs, 2);
 
-
-
-
-elseif any(strcmpi(query1, {'LinksList'}))
-    answ = eqn.Input(eqn.Type==TYPE(4));
-    answ = answ.';
-    
-    
-    
-elseif any(strcmpi(query1, {'LEqtnOrdered', 'LinksOrdered'}))
-    answ = eqn.Input(pai.Link.Order);
-    answ = answ.';
-    
-    
 else
     isValid = false;
 end

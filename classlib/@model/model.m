@@ -171,6 +171,8 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
             'Affected', model.Incidence( ) ...
             ) % Incidence matrices.
         
+        Link = model.Link( ) % Dynamic links.
+
         Gradient = model.Gradient(0) % Automatic derivatives.
         
         Pairing = model.Pairing(0, 0) % Autoexog, Dtrend, Link, Revision, Assignment.
@@ -196,7 +198,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
 
     
     properties (Constant, Hidden)
-        LAST_LOADABLE = 20170223
+        LAST_LOADABLE = 20170317
         DEFAULT_SOLVE_TOLERANCE = eps( )^(5/9)
         DEFAULT_EIGEN_TOLERANCE = eps( )^(5/9)
         DEFAULT_STEADY_TOLERANCE = eps( )^(5/9)

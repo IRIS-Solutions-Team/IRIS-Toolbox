@@ -27,6 +27,11 @@ if flag
     return
 end
 
+[answ, flag, query] = implementGet(this.Link, this.Quantity, query, varargin{:});
+if flag
+    return
+end
+
 [answ, flag, query] = implementGet(this.Quantity, query, varargin{:});
 if flag
     return

@@ -11,7 +11,7 @@ function flag = chkConsistency(pai, qty, eqn)
 
 try
     flag = chkAutoexogDynamic( ) && chkAutoexogSteady( ) ...
-        && chkDtrend( ) && chkLink( ) && chkRevision( );
+        && chkDtrend( ) && chkRevision( );
 catch
     flag = false;
 end
@@ -71,23 +71,6 @@ return
                 return
             end
         end
-    end
-
-
-
-
-    function flag = chkLink( )
-        TYPE = @int8;
-        ixl = eqn.Type==TYPE(4);
-        flag = true;
-        for i = find(ixl)
-            ptr = pai.Link.Lhs(i);
-            lhs = qty.Name{ptr};
-            if ~strncmp(eqn.Input{i}, lhs, length(lhs))
-                flag = false;
-                return
-            end
-        end        
     end
 
 

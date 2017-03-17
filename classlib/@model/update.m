@@ -35,7 +35,7 @@ runSolve = ~isequal(opt.solve, false);
 runChksstate = ~isequal(opt.chksstate, false);
 
 % Update regular parameters and run refresh if needed.
-needsRefresh = any( this.Pairing.Link.Lhs>PTR(0) );
+needsRefresh = any(this.Link);
 beenRefreshed = false;
 if any(~ixNanQty)
     this.Variant{iAlt}.Quantity(1, posQty) = p(~ixNanQty);

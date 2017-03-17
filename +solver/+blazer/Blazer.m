@@ -66,9 +66,8 @@ classdef Blazer < handle
         
         function error = swap(this, vecSwap, setIxEndgTo, testFunc)
             error = struct( ...
-                'CannotSwap', [ ] ...
+                'IxCannotSwap', [ ] ...
                 );
-            vecSwap = unique(vecSwap, 'stable');
             nSwap = length(vecSwap);
             ixValid = true(1, nSwap);
             for i = 1 : nSwap
@@ -79,9 +78,7 @@ classdef Blazer < handle
                 end
                 this.IxEndg(pos) = setIxEndgTo;
             end
-            if any(~ixValid)
-                error.CannotSwap = vecSwap(~ixValid);
-            end
+            error.IxCannotSwap = ~ixValid;
         end
         
         

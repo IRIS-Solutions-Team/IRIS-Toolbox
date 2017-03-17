@@ -29,7 +29,7 @@ if any(ixl)
 end
 
 % Create lists of replacements.
-[rpl, rplStdCorr] = pattern4postparse(quantity, lsStdCorr);
+[rpl, rplSx] = pattern4postparse(quantity, lsStdCorr);
 
 d = cell2struct(rpl, quantity.Name, 2);
 FN_GET_RPL = @getRpl; %#ok<NASGU>
@@ -64,7 +64,7 @@ end
 % Dynamic links
 %---------------
 if any(ixl)
-    d = cell2struct([rpl, rplStdCorr], [quantity.Name, lsStdCorr], 2);
+    d = cell2struct([rpl, rplSx], [quantity.Name, lsStdCorr], 2);
     isl = true;
     equation.Dynamic(ixl) = regexprep( ...
         equation.Dynamic(ixl), ...

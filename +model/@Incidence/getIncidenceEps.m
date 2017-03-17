@@ -11,6 +11,9 @@ PTR = @int32;
 FN_CELLSTR2NUM = @(x) sscanf( sprintf('%s,', x{:}), '%g,' ).';
 PTN_CURRENT = '\<x\((\d+),t\)';
 PTN_SHIFTED = '\<x\((\d+),t([+\-]\d+)\)';
+if nargin<2 || isequal(ixSelect, @all)
+    ixSelect = true(size(eqn));
+end
 if nargin>=3
     PTN_CURRENT = strrep(PTN_CURRENT, 'x', letter);
     PTN_SHIFTED = strrep(PTN_SHIFTED, 'x', letter);

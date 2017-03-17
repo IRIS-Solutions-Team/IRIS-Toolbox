@@ -26,7 +26,7 @@ ixZero = blz.IxZero;
 
 nQty = length(this.Quantity);
 nBlk = numel(blz.Block);
-needsRefresh = any( this.Pairing.Link.Lhs>PTR(0) );
+needsRefresh = any(this.Link);
 
 % Index of endogenous level and growth quantities.
 ixEndg = struct( );
@@ -59,8 +59,7 @@ for iAlt = vecAlt
     blockExitStatus = false(1, nBlk);
     for iBlk = 1 : nBlk
         blk = blz.Block{iBlk};
-        blk.NeedsRefresh = needsRefresh;
-        [lx, gx, blockExitStatus(iBlk), error] = run(blk, lx, gx, ixLog);
+        [lx, gx, blockExitStatus(iBlk), error] = run(blk, this.Link, lx, gx, ixLog);
         
         if ~isempty(error.EvaluatesToNan)
             throw( ...

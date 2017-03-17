@@ -4,19 +4,19 @@ function this = refresh(this, vecAlt)
 % Syntax
 % =======
 %
-%     M = refresh(M)
+%     m = refresh(m)
 %
 %
 % Input arguments
 % ================
 %
-% * `M` [ model ] - Model object whose dynamic links will be refreshed.
+% * `m` [ model ] - Model object whose dynamic links will be refreshed.
 %
 %
 % Output arguments
 % =================
 %
-% * `M` [ model ] - Model object with dynamic links refreshed.
+% * `m` [ model ] - Model object with dynamic links refreshed.
 %
 %
 % Description
@@ -26,16 +26,14 @@ function this = refresh(this, vecAlt)
 % Example
 % ========
 %
-%     m = refresh(m);
+%     m = refresh(m)
 %
-
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 PTR = @int16;
 
-lhs = this.Pairing.Link.Lhs;
-if ~any(lhs>PTR(0))
+if ~any(this.Link)
     return
 end
 
@@ -51,33 +49,26 @@ nVecAlt = length(vecAlt);
 
 %--------------------------------------------------------------------------
 
-nQuan = length(this.Quantity);
+nQty = length(this.Quantity);
 
 % Get a 1-(nQty+nStdCorr)-nAlt matrix of quantities and stdcorrs.
 x = [ ...
     model.Variant.getQuantity(this.Variant, ':', vecAlt), ...
-    model.Variant.getStdCorr(this.Variant, ':', vecAlt) ...
+    model.Variant.getStdCorr(this.Variant, ':', vecAlt), ...
     ];
 
-% Permute from 1-(nQty+nStdCorr)-nAlt to (nQty+nStdCorr)-nAlt-1.
+% Permute from 1-nQty-nAlt to nQty-nAlt-1.
 x = permute(x, [2, 3, 1]);
 
-t = 1 : nVecAlt;
-for iEqn = this.Pairing.Link.Order
-    if lhs(iEqn)<PTR(0)
-        % Inactive (disabled) link, do not refresh.
-        continue
-    end
-    x(lhs(iEqn), :) = this.Equation.Dynamic{iEqn}(x, t);
-end
+x = refresh(this.Link, x);
 
 % Permute from (nQty+nStdCorr)-nAlt-1 to 1-(nQty+nStdCorr)-nAlt.
 x = ipermute(x, [2, 3, 1]);
 
 this.Variant = model.Variant.assignQuantity( ...
-    this.Variant, ':', ':', x(1, 1:nQuan, :) ...
+    this.Variant, ':', ':', x(1, 1:nQty, :) ...
     );
 this.Variant = model.Variant.assignStdCorr( ...
-    this.Variant, ':', ':', x(1, nQuan+1:end, :) ...
+    this.Variant, ':', ':', x(1, nQty+1:end, :) ...
     );
 end

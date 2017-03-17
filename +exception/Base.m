@@ -14,8 +14,8 @@ classdef Base
         HIGHLIGHT = '*** '
         BASE_ERROR_HEADER_FORMAT = 'IRIS Toolbox Error'
         BASE_WARNING_HEADER_FORMAT = 'IRIS Toolbox Warning'
-        MAX_LEN = 30;
-        CONTINUATION_CHAR_CODE = 8230;
+        MAX_LEN = 40;
+        STRING_CONTINUATION_MARK = getappdata(0, 'IRIS_STRING_CONTINUATION_MARK');
         
         ALT2STR_FORMAT = '#%g';
         ALT2STR_FROM_TO_STRING = '-';
@@ -102,7 +102,7 @@ classdef Base
                 if length(varargin{i})>this.MAX_LEN
                     varargin{i} = [ ...
                         varargin{i}(1:this.MAX_LEN), ...
-                        char(this.CONTINUATION_CHAR_CODE), ...
+                        this.STRING_CONTINUATION_MARK, ...
                         ];
                 end
             end

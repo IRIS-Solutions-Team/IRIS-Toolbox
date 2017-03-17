@@ -86,7 +86,7 @@ opt = prepareSolve(this, 'verbose', opt);
 %--------------------------------------------------------------------------
 
 % Refresh dynamic links.
-if any( this.Equation.Type==TYPE(4) )
+if any(this.Link)
     this = refresh(this);
 end
 

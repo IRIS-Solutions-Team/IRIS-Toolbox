@@ -1,11 +1,4 @@
 classdef Steady < solver.block.Block
-    properties
-        NeedsRefresh % Refresh dynamic links.
-    end
-    
-    
-    
-    
     properties (Constant)
         STEADY_SHIFT = 10
         
@@ -32,7 +25,7 @@ classdef Steady < solver.block.Block
         
         
         
-        function [lx, gx, exitStatus, error] = run(this, lx, gx, ixLog)
+        function [lx, gx, exitStatus, error] = run(this, lnk, lx, gx, ixLog)
             exitStatus = true;
             error = struct( ...
                 'EvaluatesToNan', [ ] ...
@@ -44,7 +37,7 @@ classdef Steady < solver.block.Block
                 return
             end
             
-            needsRefresh = this.NeedsRefresh;
+            needsRefresh = any(lnk);
             retGradient = this.RetGradient;
             sh = this.Shift;
             nsh = length(sh);
@@ -167,10 +160,10 @@ classdef Steady < solver.block.Block
                 
                 % Refresh all dynamic links in each iteration if needed.
                 if needsRefresh
-                    this.Variant{iAlt}.Quantity = lx + 1i*gx;
-                    this = refresh(this, iAlt);
-                    lx = real( this.Variant{iAlt}.Quantity );
-                    gx = imag( this.Variant{iAlt}.Quantity );
+                    temp = lx + 1i*gx;
+                    temp = refresh(lnk, temp);
+                    lx = real(temp);
+                    gx = imag(temp);
                     gx(ixLog & gx==0) = 1;
                 end
                 

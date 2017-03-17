@@ -138,10 +138,10 @@ blz.PosFix.Level = PTR( find(fixL) ); %#ok<FNDSB>
 blz.PosFix.Growth = PTR( find(fixG) ); %#ok<FNDSB>
 
 % Remove quantities fixed by user and LHS quantities from dynamic links.
-ixl = this.Pairing.Link.Lhs>PTR(0);
+temp = getActiveLhsPtr(this.Link);
 posExclude = struct( );
-posExclude.Level = [blz.PosFix.Level, this.Pairing.Link.Lhs(ixl)];
-posExclude.Growth = [blz.PosFix.Growth, this.Pairing.Link.Lhs(ixl)];
+posExclude.Level = [blz.PosFix.Level, temp];
+posExclude.Growth = [blz.PosFix.Growth, temp];
 exclude(blz, posExclude);
 end
 

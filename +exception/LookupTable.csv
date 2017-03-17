@@ -51,6 +51,7 @@ Grouping:NotExistCannotSplit, This group does not exist and cannot be split: %s
 Grouping:InvalidType, Invalid grouping type: %s 
 Grouping:MultipleOccurrence, This %1 name is assigned to multiple groups: %s
 Grouping:InvalidName, This is not a valid %1 name in the grouping object: %s  
+Link:LinksNotSequential,Dynamic links cannot be reordered sequentially
 Model:CannotCatInOtherDim,Cannot concatenate model objects other than horizontally; use horizontal concatenation to merge models into multiple parameter variants.
 Model:CannotChangeSteadyShocks,Steady levels for shocks cannot be changed from zero: %s 
 Model:CannotSteadyLinear,Cannot compute linear steady state because first-order solution is not available: %s
@@ -95,7 +96,6 @@ Model:InconsistentParamData,Number of parameter variants [%g] is not consistent 
 Model:IndexExceedsVariants,Index exceeds the number of parameter variants: %s
 Model:InvalidShockName,This is not a valid shock name: %s 
 Model:InvalidVariantName,Cannot find parameter variant with this name: %s
-Model:LinksNotSequential,Dynamic links cannot be reordered sequentially
 Model:MissingInitCond,This initial value is missing from input database: %s 
 Model:NoMeasurementData,No data for measurement variables found in input database: %s
 Model:RedundantParameter,This parameter does not occur in any model equation: %s 

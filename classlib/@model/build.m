@@ -63,7 +63,7 @@ if ~isempty(asgn) ...
 end
 
 % Reset the ordering of !links, and reorder if requested.
-this = reorderLinks(this, opt);
+this.Link = reorder(this.Link, opt);
 
 % Pre-compute symbolic derivatives of
 % * transition and measurement equations wrt variables (if symbdiff=true),

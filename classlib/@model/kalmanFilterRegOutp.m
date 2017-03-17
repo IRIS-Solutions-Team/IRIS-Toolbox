@@ -21,7 +21,6 @@ TEMPLATE_SERIES = Series( );
 
 ixy = this.Quantity.Type==TYPE(1);
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixl = this.Equation.Type==TYPE(4);
 
 startDate = xRange(1);
 
@@ -92,7 +91,7 @@ if likOpt.relative && nargout>6
     end
     % Refresh dynamic links after we change std deviations because std devs are
     % allowed in dynamic links.
-    if any(ixl)
+    if any(this.Link)
         this = refresh(this);
     end
 end

@@ -2,7 +2,6 @@ classdef Pairing
     properties
         Autoexog
         Dtrend
-        Link
         Revision
         Assignment
     end
@@ -18,7 +17,6 @@ classdef Pairing
             end
             this.Autoexog = model.Pairing.initAutoexog(nQty);
             this.Dtrend = model.Pairing.initDtrend(nEqn);
-            this.Link = model.Pairing.initLink(nEqn);
             this.Revision = model.Pairing.initRevision(nEqn);
             this.Assignment = model.Pairing.initAssignment(nEqn);
         end
@@ -54,17 +52,6 @@ classdef Pairing
             PTR = @int16;
             dtrend = repmat(PTR(0), 1, nEqn);
         end
-        
-        
-        
-        
-        function link = initLink(nEqn)
-            PTR = @int16;
-            link = struct( );
-            link.Lhs = repmat(PTR(0), 1, nEqn);
-            link.Order = repmat(PTR(0), 1, nEqn);
-        end
-        
         
         
         

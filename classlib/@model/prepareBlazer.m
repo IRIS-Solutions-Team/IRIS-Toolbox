@@ -74,14 +74,15 @@ end
 if ischar(lsEndg)
     lsEndg = regexp(lsEndg, '\w+', 'match');
 end
+lsEndg = unique(lsEndg);
 if ~isempty(lsEndg)
     outp = lookup(this.Quantity, lsEndg);
     vecEndg = outp.PosName;
     error = endogenize(blz, vecEndg);
-    if ~isempty(error.CannotSwap)
+    if any(error.IxCannotSwap)
         throw( ...
             exception.Base('Blazer:CannotEndogenize', 'error'), ...
-            this.Quantity{error.CannotSwap} ...
+            lsEndg{error.IxCannotSwap} ...
             );
     end
 end
@@ -89,14 +90,15 @@ end
 if ischar(lsExg)
     lsExg = regexp(lsExg, '\w+', 'match');
 end
+lsExg = unique(lsExg);
 if ~isempty(lsExg)
     outp = lookup(this.Quantity, lsExg);
     vecExg = outp.PosName;
     error = exogenize(blz, vecExg);
-    if ~isempty(error.CannotSwap)
+    if any(error.IxCannotSwap)
         throw( ...
             exception.Base('Blazer:CannotExogenize', 'error'), ...
-            this.Quantity{error.CannotSwap} ...
+            lsExg{error.IxCannotSwap} ...
             );
     end
 end

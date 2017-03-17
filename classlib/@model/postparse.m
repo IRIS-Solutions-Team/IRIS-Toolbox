@@ -94,7 +94,7 @@ end
 % Read them after placeholders for optimal policy have been created.
 try
     [eqn, this.Pairing.Dtrend] = readDtrends(eqn, euc, qty);
-    [eqn, this.Pairing.Link] = readLinks(eqn, euc, qty);
+    [eqn, this.Link] = readLinks(eqn, euc, qty);
     [eqn, this.Pairing.Revision] = readRevisions(eqn, euc, qty);
     this.Pairing.Autoexog = model.Pairing.readAutoexog(qty, puc);
     this.Pairing.Assignment = model.Pairing.readAssignments(eqn, euc, qty);
@@ -132,14 +132,13 @@ end
 
 % Postparse equations
 %---------------------
-% Check for sstate references occuring in wrong places. Replace the old
-% syntax & with $.
+% Check for sstate references occuring in wrong places.
 chkSstateRef( );
 
 try
     eqn = postparse(eqn, qty);
 catch exc
-   throw( exception.Rethrow(exc) );
+    throw( exception.Rethrow(exc) );
 end
 
 if isOptimal
@@ -225,6 +224,12 @@ end
 if ~isempty(exc)
     throw(exc, args{:});
 end
+
+% Create link object.
+ixl = eqn.Type==TYPE(4);
+this.Link.Input = eqn.Input(ixl);
+this.Link.RhsExpn = eqn.Dynamic(ixl);
+eqn.Dynamic(ixl) = {''};
 
 % Reset parsed file name.
 exception.ParseTime.storeFileName( );

@@ -63,8 +63,7 @@ mychksstateOpt = prepareChkSteady(this, 'verbose', varargin{:});
 %--------------------------------------------------------------------------
 
 % Refresh dynamic links.
-ixl = this.Equation.Type==TYPE(4);
-if any(ixl)
+if any(this.Link)
     this = refresh(this);
 end
 

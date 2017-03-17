@@ -1,4 +1,4 @@
-function [rpl, rplStdCorr] = pattern4postparse(this, lsStdCorr)
+function [rpl, rplSx] = pattern4postparse(this, lsStdCorr)
 % pattern4postparse  Patterns and replacements for names in equations.
 %
 % Backend IRIS function.
@@ -36,10 +36,10 @@ if any(~ixValid)
 end
 
 % Replacements for std_ and corr_ in links.
-rplStdCorr = cell(1, nStdCorr);    
+rplSx = cell(1, nStdCorr);
 for i = 1 : nStdCorr
-    ic = sprintf('%g', nQuan + ell.PosStdCorr(i));
-    rplStdCorr{i} = [ 'x(', ic, ',t)' ];
+    rplSx{i} = sprintf('%g', nQuan+ell.PosStdCorr(i));
 end
+rplSx = strcat('x(', rplSx, ',t)');
 
 end

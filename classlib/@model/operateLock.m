@@ -26,13 +26,12 @@ pp.parse(this, type, list);
 %--------------------------------------------------------------------------
 
 nQty = length(this.Quantity);
-ixl = this.Equation.Type==TYPE(4);
 
 type = strrep(type, '!', '');
 type = upper(type(1));
 switch type
     case 'L' % !links
-        ptr = this.Pairing.Link.Lhs;
+        ptr = this.Link.LhsPtr;
         lsName = [ ...
             this.Quantity.Name, ...
             getStdName(this.Quantity), ...
@@ -62,7 +61,7 @@ if action==0
 else
     % Disable (Action==-1) or enable (Action==1).
     if isequal(list, @all)
-        posToChange = find(ixl);
+        posToChange = ':';
     else
         posToChange = matchNames( );
     end
@@ -70,7 +69,7 @@ else
         ptr(posToChange) = PTR( action*abs(ptr(posToChange)) );
         switch type
             case 'L'
-                this.Pairing.Link.Lhs = ptr;
+                this.Link.LhsPtr = ptr;
             case 'R'
                 this.Pairing.Revision = ptr;
         end

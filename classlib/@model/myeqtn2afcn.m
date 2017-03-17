@@ -14,24 +14,28 @@ TYPE = @int8;
 ixm = this.Equation.Type==TYPE(1);
 ixt = this.Equation.Type==TYPE(2);
 ixd = this.Equation.Type==TYPE(3);
-ixl = this.Equation.Type==TYPE(4);
 ixu = this.Equation.Type==TYPE(5);
 ixmt = ixm | ixt;
-ixdl = ixd | ixl;
 
 % Extract the converted equations into local variables to speed up the
 % executiona considerably. This is a Matlab issue.
 
-% Dtrends, Links, Revisions
-%---------------------------
+% Dtrends, Revisions
+%--------------------
 eqtn = this.Equation.Dynamic;
-for i = find(ixdl)
+for i = find(ixd)
     eqtn{i} = vectorize(eqtn{i});
 end
 eqtn(ixd) = convert(eqtn(ixd), this.PREAMBLE_DTREND, str2func([this.PREAMBLE_DTREND, '0']));
-eqtn(ixl) = convert(eqtn(ixl), this.PREAMBLE_LINK, [ ]);
 eqtn(ixu) = convert(eqtn(ixu), this.PREAMBLE_REVISION, [ ]);
 this.Equation.Dynamic = eqtn;
+
+% Links
+%-------
+for i = 1 : length(this.Link)
+    this.Link.RhsExpn{i} = vectorize(this.Link.RhsExpn{i});
+end
+this.Link.RhsExpn = convert(this.Link.RhsExpn, this.PREAMBLE_LINK, [ ]);
 
 % Gradients 
 %-----------
