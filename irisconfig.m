@@ -22,6 +22,13 @@ catch
 end
 setappdata(0, 'IRIS_IS_DESKTOP', isDesktop);
 
+if isDesktop
+    scm = char(8230);
+else
+    scm = ' etc...';
+end
+setappdata(0, 'IRIS_STRING_CONTINUATION_MARK', scm);
+
 % Factory defaults
 %------------------
 % Date preferences.
