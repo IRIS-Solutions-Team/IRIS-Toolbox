@@ -37,7 +37,7 @@ nPer = length(range);
 
 sxReal = nan(nsx, nPer);
 if isImag
-    sxImag = nan(nsx, nper);
+    sxImag = nan(nsx, nPer);
 end
 if ~isempty(d)
     c = fieldnames(d);
