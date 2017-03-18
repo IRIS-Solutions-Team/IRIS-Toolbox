@@ -138,7 +138,6 @@ classdef Dynamic < solver.block.Block
                         'UniformOutput', false ...
                         );
                     j = reshape([j{:}], nCol, nRow).';
-                    if any(any(isnan(j))), keyboard, end
                 end                
             end
         end
