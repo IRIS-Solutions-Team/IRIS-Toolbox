@@ -113,5 +113,59 @@ classdef Date < double
             end
             prt = values(freqName, f);
         end
+
+
+
+
+
+        function fmt = chooseFormat(fmt, freq, k)
+        if ischar(fmt)
+            return
+        end
+
+        if nargin<2
+            k = 1;
+        elseif k>numel(fmt)
+            k = numel(fmt);
+        end
+
+        if iscellstr(fmt)
+            fmt = fmt{k};
+            return
+        end
+
+        if isa(fmt, 'string')
+            fmt = fmt(k);
+            return
+        end
+
+        if ~isstruct(fmt)
+            throw( ...
+                exception.Base('Date:InvalidDateFormat', 'error') ...
+                );
+        end
+
+        switch freq
+            case 0
+                fmt = fmt(k).unspecified;
+            case 1
+                fmt = fmt(k).yy;
+            case 2
+                fmt = fmt(k).hh;
+            case 4
+                fmt = fmt(k).qq;
+            case 6
+                fmt = fmt(k).bb;
+            case 12
+                fmt = fmt(k).mm;
+            case 52
+                fmt = fmt(k).ww;
+            case 365
+                fmt = fmt(k).dd;
+            otherwise
+                fmt = '';
+        end
+
+        end
     end
 end

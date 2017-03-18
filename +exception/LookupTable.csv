@@ -8,8 +8,11 @@ Blazer:NumberEquationsEndogenized,Number of endogenized names [%g] fails to matc
 Config:InvalidOptionName,This is not a valid IRIS config option: %s 
 Config:InvalidOptionValue,New value for this option failed validation: %s
 Config:ProtectedOption,This option is not customizable: %s
+Dates:CalendarFormatForDaily, Calendar date format (starting with a $) must be specified for daily-frequency dates.
+Dates:InvalidDateFormat,"Invalid date format; must be char, string, cellstr, or struct."
 Dates:MixedFrequency,Mixed frequency date vector not allowed in this context: %s
-Dates:UnrecognizedFrequency,Unrecognized date frequency
+Dates:OnlyScalarFormatAllowed, "Only one single DateFormat= allowed in str2dat( )."
+Dates:UnrecognizedFrequency,Unrecognized date frequency.
 Dbase:CannotDetermineRange,Cannot determine range because no time series entries have been found in input database
 Dbase:DbfunReportError,Error occured when processing this database entry: %s \n$ENGINE$ says: %s
 Dbase:DbfunReportWarning,Warning occured when processing this database entry: %s \n$ENGINE$ says: %s

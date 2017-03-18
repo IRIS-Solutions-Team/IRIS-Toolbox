@@ -176,10 +176,10 @@ daysOfWeek = { ...
 
 [year, per, freq] = dat2ypf(dat);
 
-%ixYearly = freq == 1;
-%ixZero = freq == 0;
-ixWeekly = freq == 52;
-ixDaily = freq == 365;
+%ixYearly = freq==1;
+%ixZero = freq==0;
+ixWeekly = freq==52;
+ixDaily = freq==365;
 ixMsd = ixWeekly | ixDaily;
 
 % Matlab serial date numbers (daily or weekly dates only), calendar years, 
@@ -200,30 +200,29 @@ s = cell(size(year));
 s(:) = {''};
 nDat = numel(year);
 nFmt = numel(opt.dateformat);
+prevFreq = NaN;
 
 for iDat = 1 : nDat
     
-    iFreq = freq(iDat);
-    if ~any(iFreq == [0, 1, 2, 4, 6, 12, 52, 365])
-        continue
-    end
+    thisFreq = freq(iDat);
 
-    if iDat <= nFmt
-        isMonthNeeded = false;
-        isCalendar = false;
-        field = { };
-        % `opt.dateformat` can be either a string, a cellstr array, or a struct.
-        fmt = mydateformat(opt.dateformat, iFreq, iDat);
-        parseDateFormat( );
+    if iDat<=nFmt || ~isequaln(thisFreq, prevFreq)
+        fmt = dates.Date.chooseFormat(opt.dateformat, thisFreq, min(iDat, nFmt));
+        [fmt, field, isCalendar, isMonthNeeded] = parseDateFormat(fmt);
         nField = length(field);
     end
     
-    if iFreq == 365 && ~isCalendar
-        utils.error('dates:dat2str', ...
-            ['Calendar date format must be specified for dates ', ...
-            'with daily frequency.']);
+    if ~any( thisFreq==[0, 1, 2, 4, 6, 12, 52, 365] )
+        s{iDat} = 'Not-A-Date';
+        continue
     end
-    
+
+    if thisFreq==365 && ~isCalendar
+        throw( ...
+            exception.Base('Options:CalendarFormatForDaily', 'error') ...
+            );
+    end
+
     subs = cell(1, nField);
     subs(:) = {''};
     
@@ -288,6 +287,7 @@ for iDat = 1 : nDat
     end
     
     s{iDat} = sprintf(fmt, subs{:});
+    prevFreq = thisFreq;
 end
 
 return
@@ -295,11 +295,13 @@ return
 
 
 
-    function parseDateFormat( )
+    function [fmt, field, isCalendar, isMonthNeeded] = parseDateFormat(fmt)
+        field = cell(1, 0);
         isCalendar = strncmp(fmt, '$', 1);
         if isCalendar
             fmt(1) = '';
         end
+        isMonthNeeded = false;
         
         fragile = 'YPFfRrQqMmEWDA';
         fmt = regexprep(fmt, ['%([', fragile, '])'], '&$1');
@@ -340,7 +342,7 @@ return
             found = true;
             c = '%s';
             field{end+1} = c0;
-            if ~isCalendar && any(c0(1) == 'MQqEW')
+            if ~isCalendar && any(c0(1)=='MQqEW')
                 isMonthNeeded = true;
             end
         end
@@ -359,7 +361,7 @@ return
                 Subs = sprintf('%04g', Y);
             case 'YY'
                 Subs = sprintf('%04g', Y);
-                if length(Subs) > 2
+                if length(Subs)>2
                     Subs = Subs(end-1:end);
                 end
             case 'Y'
@@ -379,7 +381,7 @@ return
             case 'PP'
                 Subs = sprintf('%02g', iPer);
             case 'P'
-                if iFreq < 10
+                if thisFreq<10
                     Subs = sprintf('%g', iPer);
                 else
                     Subs = sprintf('%02g', iPer);
@@ -406,17 +408,17 @@ return
         switch field{j}
             case {'MMMM', 'Mmmm', 'MMM', 'Mmm'}
                 Subs = opt.months{M};
-                if field{j}(1) == 'M'
+                if field{j}(1)=='M'
                     Subs(1) = upper(Subs(1));
                 else
                     Subs(1) = lower(Subs(1));
                 end
-                if field{j}(end) == 'M'
+                if field{j}(end)=='M'
                     Subs(2:end) = upper(Subs(2:end));
                 else
                     Subs(2:end) = lower(Subs(2:end));
                 end
-                if length(field{j}) == 3
+                if length(field{j})==3
                     Subs = Subs(1:min(3, end));
                 end
             case 'MM'
@@ -477,9 +479,9 @@ return
         end
         e = eomday(Y, M);
         w = weekday(datenum(Y, M, e));
-        if w == 1
+        if w==1
             e = e - 2;
-        elseif w == 7
+        elseif w==7
             e = e - 1;
         end
         switch field{j}
@@ -508,9 +510,9 @@ return
     function m = calculateMonth( )
         % Non-calendar month.
         m = NaN;
-        switch iFreq
+        switch thisFreq
             case {1, 2, 4, 6}
-                m = per2month(iPer, iFreq, opt.standinmonth);
+                m = per2month(iPer, thisFreq, opt.standinmonth);
             case 12
                 m = iPer;
             case 52
@@ -524,7 +526,7 @@ return
 
     function subs = subsFreqLetter( )
         subs = '';
-        switch iFreq
+        switch thisFreq
             case 1
                 subs = opt.freqletters(1);
             case 2

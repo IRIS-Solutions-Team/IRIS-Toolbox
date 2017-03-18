@@ -167,15 +167,22 @@ return
             opt.freq = 365;
         end
         
+        if (isstruct(opt.dateformat) || iscell(opt.dateformat)) ...
+            && numel(opt.dateformat)~=1
+            throw( ...
+                exception.Base('Dates:OnlyScalarFormatAllowed', 'error') ...
+                );
+        end
+
         if isstruct(opt.dateformat)
             if isempty(opt.freq)
                 opt.dateformat = opt.dateformat.qq;
             else
-                opt.dateformat = mydateformat(opt.dateformat,opt.freq);
+                opt.dateformat = dates.Date.chooseFormat(opt.dateformat, opt.freq);
             end
         end
         
-        if strncmp(opt.dateformat,'$',1) && ...
+        if strncmp(opt.dateformat, '$', 1) && ...
                 ( isempty(opt.freq) || isequal(opt.freq, 0) )
             opt.freq = 365;
         end

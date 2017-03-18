@@ -175,7 +175,7 @@ adjustXLim( );
         % date format for each date frequency. Fetch the right date format
         % now, and pass it into `dat2str( )`.
         if isstruct(opt.dateformat)
-            opt.dateformat = mydateformat(opt.dateformat, freq);
+            opt.dateformat = dates.Date.chooseFormat(opt.dateformat, freq);
         end
         if freq==0 && strcmp(opt.dateformat, 'P')
             return
