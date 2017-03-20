@@ -123,7 +123,7 @@ classdef Date < double
             return
         end
 
-        if nargin<2
+        if nargin<3
             k = 1;
         elseif k>numel(fmt)
             k = numel(fmt);
