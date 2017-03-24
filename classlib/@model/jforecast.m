@@ -90,33 +90,6 @@ function outp = jforecast(this, inp, range, varargin)
 % shocks and imaginary numbers describe anticipated shocks;
 %
 %
-% Std Deviations
-% ---------------
-%
-% Function `jforecast( )` treats each shock as if it comprised two separate
-% shocks: one unanticipated and one anticipated. This is needed because of
-% the specific legacy way anticipated and unanticipated shocks are mixed together
-% in forecasts with conditioning variables.
-%
-% By default, both of these are assigned their stdevs from the model object
-% and can be overriden by stdevs entered in the `'Vary='` option.
-%
-% This treatment of std deviations amounts to a rather unexpected result:
-% because each shock is effectively counted twice, the resulting std
-% deviations reported in the output database, `outp`, are bigger than those
-% e.g. returned from `filter( )` or `fmse( )` by a factor of $$\sqrt{2}$$, i.e.
-% about `1.41...`.
-%
-% To correct for this legacy behavior, use option `'StdScale='` to enter a
-% factor by which the std deviations of shocks will be initially
-% pre-multiplied. This can be a complex number in which case different
-% scale will be applied to anticipated and unanticipated shocks.
-%
-% By setting `'StdScale='` to `1/sqrt(2)` or equivalently to `'half'`, the std
-% deviations of both anticipated and unanticipated shocks will be
-% diminished so that total variance in the model 
-% 
-%
 % Example
 % ========
 %
