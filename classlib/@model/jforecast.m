@@ -46,8 +46,13 @@ function outp = jforecast(this, inp, range, varargin)
 % * `'MeanOnly='` [ `true` | *`false`* ] - Return only mean data, i.e. point
 % estimates.
 %
-% * `'Plan='` [ Scenario ] - Scenario specifying exogenised variables,
-% endogenised shocks, and conditioning variables.
+% * `'Plan='` [ Scenario ] - Scenario specifying exogenized variables,
+% endogenized shocks, and conditioning variables.
+%
+% * `'StdScale='` [ *1* | `'half'` | numeric | complex ] - Scale standard
+% deviations of shocks by this factor; if `StdScale=` is a complex number,
+% stdevs for anticipated and unanticipated shocks will be scaled
+% differently. See Description/Std Deviations.
 %
 % * `'Vary='` [ struct | *empty* ] - Database with time-varying std
 % deviations or cross-correlations of shocks.
@@ -56,24 +61,61 @@ function outp = jforecast(this, inp, range, varargin)
 % Description
 % ============
 %
-% When adjusting the mean and/or std devs of shocks, you can use real and
-% imaginary numbers ot distinguish between anticipated and unanticipated
-% shocks:
+% Function `jforecast( )` provides similar functionality as `simulate( )`
+% but differs in a number of ways:
 %
-% * any shock entered as an imaginary number is treated as an
-% anticipated change in the mean of the shock distribution;
+% * `jforecast( )` returns also standard deviations for the forecasts of
+% model variables;
 %
-% * any std dev of a shock entered as an imaginary number indicates that
-% the shock will be treated as anticipated when conditioning the forecast
-% on the reduced-form tunes.
+% * `jforecast( )` can use conditioning (specified in a `Scenario` object)
+% techniques in addition to exogenizing techniques; conditiong and
+% exogenizing techniques can be combined together.
 %
-% * the same shock or its std dev can have both the real and the imaginary
-% part.
+% * `jforecast( )` only works with first-order approximate solution; no
+% nonlinear technique is available.
 %
 %
-% Description
-% ============
+% Anticipated and Unanticipated Shocks
+% -------------------------------------
 %
+% When adjusting the mean of shocks (in the input database, `inp`) or the
+% std deviations of shocks (in the option `'Vary='`), you can use real and
+% imaginary numbers to distinguish between anticipated and unanticipated
+% shocks (depending on the `'Anticipate='` option):
+%
+% * if `'Anticipate='` is `true` then real numbers describe anticipated
+% shocks and imaginary numbers describe unanticipated shocks;
+%
+% * if `'Anticipate='` is `false` then real numbers describe unanticipated
+% shocks and imaginary numbers describe anticipated shocks;
+%
+%
+% Std Deviations
+% ---------------
+%
+% Function `jforecast( )` treats each shock as if it comprised two separate
+% shocks: one unanticipated and one anticipated. This is needed because of
+% the specific legacy way anticipated and unanticipated shocks are mixed together
+% in forecasts with conditioning variables.
+%
+% By default, both of these are assigned their stdevs from the model object
+% and can be overriden by stdevs entered in the `'Vary='` option.
+%
+% This treatment of std deviations amounts to a rather unexpected result:
+% because each shock is effectively counted twice, the resulting std
+% deviations reported in the output database, `outp`, are bigger than those
+% e.g. returned from `filter( )` or `fmse( )` by a factor of $$\sqrt{2}$$, i.e.
+% about `1.41...`.
+%
+% To correct for this legacy behavior, use option `'StdScale='` to enter a
+% factor by which the std deviations of shocks will be initially
+% pre-multiplied. This can be a complex number in which case different
+% scale will be applied to anticipated and unanticipated shocks.
+%
+% By setting `'StdScale='` to `1/sqrt(2)` or equivalently to `'half'`, the std
+% deviations of both anticipated and unanticipated shocks will be
+% diminished so that total variance in the model 
+% 
 %
 % Example
 % ========
@@ -110,9 +152,6 @@ isCond = isCond || isPlanCond;
 % Tunes.
 isSwap = isplan(opt.plan) && ~isempty(opt.plan, 'tunes');
 
-% Create real and imag `stdcorr` vectors from user-supplied databases.
-[opt.stdcorrreal, opt.stdcorrimag] = varyStdCorr(this, range, cond, opt);
-
 % TODO: Remove 'missing', 'contributions' options from jforecast, 
 % 'anticipate' scalar.
 
@@ -127,7 +166,7 @@ nXPer = length(xRange);
 
 % Current-dated variables in the original state vector.
 if opt.currentonly
-    ixXCurr = imag(this.Vector.Solution{2}) == 0;
+    ixXCurr = imag(this.Vector.Solution{2})==0;
 else
     ixXCurr = true(size(this.Vector.Solution{2}));
 end
@@ -147,19 +186,19 @@ nInit = size(aInit, 3);
 nInitMse = size(aInitMse, 4);
 
 if opt.anticipate
-    antFn = @real;
-    unaFn = @imag;
+    fnAn = @real;
+    fnUn = @imag;
 else
-    antFn = @imag;
-    unaFn = @real;
+    fnAn = @imag;
+    fnUn = @real;
 end
 
 % Get input data for y, current dates of [xf;xb], and e. The size of all
-% data is equalised in 3rd dimensin in the `datarequest` function.
-[yInp, xInp, eInp] = datarequest('yxe', this, inp, range);
-nData = size(xInp, 3);
-eaInp = antFn(eInp);
-euInp = unaFn(eInp);
+% data is equalized in 3rd dimensin in the `datarequest` function.
+[inpY, inpX, inpE] = datarequest('yxe', this, inp, range);
+nData = size(inpX, 3);
+inpEa = fnAn(inpE);
+inpEu = fnUn(inpE);
 
 % Get exogenous variables includig ttrend.
 G = datarequest('g', this, inp, range);
@@ -171,17 +210,17 @@ nLoop = max([nAlt, nInit, nInitMse, nData, nExog]);
 lastOrZeroFunc = @(x) max([0, find(any(x, 1), 1, 'last')]);
 
 if isSwap || isPlanCond
-    % Anchors for exogenised `AnchX` and conditioning `AnchC` variables.
+    % Anchors for exogenized `AnchX` and conditioning `AnchC` variables.
     [yAnchX, xAnchX, eaAnchX, euAnchX, yAnchC, xAnchC] = ...
         myanchors(this, opt.plan, range, opt.anticipate);
 end
 
 if isSwap
-    % Load positions (anchors) of exogenised and endogenised data points.
+    % Load positions (anchors) of exogenized and endogenized data points.
     xAnchX = xAnchX(ixXCurr, :);
-    % Check for NaNs in exogenised variables, and check the number of
-    % exogenised and endogenised data points.
-    chkExogenised( );
+    % Check for NaNs in exogenized variables, and check the number of
+    % exogenized and endogenized data points.
+    chkExogenized( );
     lastEaAnchX = lastOrZeroFunc(eaAnchX);
     lastEuAnchX = lastOrZeroFunc(euAnchX);
     lastYAnchX = lastOrZeroFunc(yAnchX);
@@ -196,8 +235,8 @@ end
 if isCond
     % Load conditioning data.
     if isPlanCond
-        Y = yInp;
-        X = xInp;
+        Y = inpY;
+        X = inpX;
         Ea = zeros(ne, nPer);
         Eu = zeros(ne, nPer);
         xAnchC = xAnchC(ixXCurr, :);
@@ -209,8 +248,8 @@ if isCond
         Y = Y(:, :, 1);
         X = X(:, :, 1);
         E = E(:, :, 1);
-        Ea = antFn(E);
-        Eu = unaFn(E);
+        Ea = fnAn(E);
+        Eu = fnUn(E);
         X = X(ixXCurr, :);
         yAnchC = ~isnan(Y);
         xAnchC = ~isnan(X);
@@ -226,8 +265,8 @@ else
     lastXAnchC = 0;
 end
 
-lastEa = lastOrZeroFunc(any(eaInp ~= 0, 3));
-lastEu = lastOrZeroFunc(any(euInp ~= 0, 3));
+lastEa = lastOrZeroFunc(any(inpEa~=0, 3));
+lastEu = lastOrZeroFunc(any(inpEu~=0, 3));
 
 last = max([lastXAnchX, lastYAnchX, ...
     lastEa, lastEaAnchX, lastEu, lastEuAnchX, ...
@@ -238,7 +277,7 @@ if isSwap
     xAnchX = xAnchX(:, 1:last);
     eaAnchX = eaAnchX(:, 1:last);
     euAnchX = euAnchX(:, 1:last);
-    % Indices of exogenised data points and endogenised shocks.
+    % Indices of exogenized data points and endogenized shocks.
     ixExog = [yAnchX(:).', xAnchX(:).'];
     ixEndg = [false, false(1, nb), euAnchX(:).', eaAnchX(:).'];
 else
@@ -254,14 +293,14 @@ if isCond
     % Index of conditions on measurement and transition variables.
     ixCond = [yAnchC(:).', xAnchC(:).'];
     % Index of conditions on measurement and transition variables excluding
-    % exogenised positions.
+    % exogenized positions.
     ixCondNotExog = ixCond(~ixExog);
 end
 
 % Index of parameterisation with solutions not available.
 [~, ixNanSol] = isnan(this, 'solution');
 
-% Create and initialise output hdataobj.
+% Create and initialize output hdataobj.
 hData = struct( );
 hData.mean = hdataobj(this, xRange, nLoop, ...
     'Precision=', opt.precision);
@@ -287,7 +326,7 @@ for iLoop = 1 : nLoop
         W = evalDtrends(this, [ ], g, iLoop);
     end
     
-    if iLoop <= nAlt
+    if iLoop<=nAlt
         % Expansion needed to t+k.
         k = max(1, last) - 1;
         this = expand(this, k);
@@ -309,9 +348,7 @@ for iLoop = 1 : nLoop
         else
             [M, Ma, N, Na] = myforecastswap(this, iLoop, ixExog, ixEndg, last);
         end
-        StdcorrA = [ ];
-        StdcorrU = [ ];
-        createStdCorr( );
+        [sxAn, sxUn] = createStdCorr( );
     end
     
     % Solution not available.
@@ -331,17 +368,17 @@ for iLoop = 1 : nLoop
     end
     
     % Anticipated and unanticipated shocks.
-    ea = eaInp(:, :, min(end, iLoop));
-    eu = euInp(:, :, min(end, iLoop));
+    ea = inpEa(:, :, min(end, iLoop));
+    eu = inpEu(:, :, min(end, iLoop));
     
     if isSwap
         % Tunes on measurement variables.
-        y = yInp(:, 1:last, min(end, iLoop));
+        y = inpY(:, 1:last, min(end, iLoop));
         if opt.dtrends
             y = y - W(:, 1:last);
         end
         % Tunes on transition variables.
-        x = xInp(:, 1:last, min(end, iLoop));
+        x = inpX(:, 1:last, min(end, iLoop));
         x = x(ixXCurr, :);
     else
         y = nan(ny, last);
@@ -375,7 +412,7 @@ for iLoop = 1 : nLoop
         % outp := [y;x].
         outp = [ y(:) ; x(:) ];
         
-        % Swap exogenised outputs and endogenised inputs.
+        % Swap exogenized outputs and endogenized inputs.
         % rhs := [inp(~endi);outp(exi)].
         % lhs := [outp(~exi);inp(endi)].
         rhs = [ inp(~ixEndg) ; outp(ixExog) ];
@@ -480,28 +517,28 @@ return
 
 
 
-    function chkExogenised( )
-        % Check for NaNs in exogenised variables, and check the number of
-        % exogenised and endogenised data points.
+    function chkExogenized( )
+        % Check for NaNs in exogenized variables, and check the number of
+        % exogenized and endogenized data points.
         ix1 = [yAnchX;xAnchX];
-        ix2 = [any(isnan(yInp), 3); ...
-            any(isnan(xInp(ixXCurr, :, :)), 3)];
+        ix2 = [any(isnan(inpY), 3); ...
+            any(isnan(inpX(ixXCurr, :, :)), 3)];
         inx = any(ix1 & ix2, 2);
         if any(inx)
             yVec = printSolutionVector(this, 'y');
             xVec = printSolutionVector(this, 'x');
             xVec = xVec(ixXCurr);
             yxVec = [yVec, xVec];
-            % Some of the variables are exogenised to NaNs.
+            % Some of the variables are exogenized to NaNs.
             utils.error('model:jforecast', ...
-                'This variable is exogenised to NaN: ''%s''.', ...
+                'This variable is exogenized to NaN: ''%s''.', ...
                 yxVec{inx});
         end
-        % Check number of exogenised and endogenised data points.
-        if nnzexog(opt.plan) ~= nnzendog(opt.plan)
+        % Check number of exogenized and endogenized data points.
+        if nnzexog(opt.plan)~=nnzendog(opt.plan)
             utils.warning('model:jforecast', ...
-                ['The number of exogenised data points (%g) does not match ', ...
-                'the number of endogenised data points (%g).'], ...
+                ['The number of exogenized data points (%g) does not match ', ...
+                'the number of endogenized data points (%g).'], ...
                 nnzexog(opt.plan), nnzendog(opt.plan));
         end
     end 
@@ -511,12 +548,12 @@ return
 
     function chkOverlap( )
         isWarnOverlap = false;
-        if any(Ea(:) ~= 0) && any(eaInp(:) ~= 0)
-            eaInp = bsxfun(@plus, eaInp, Ea);
+        if any(Ea(:)~=0) && any(inpEa(:)~=0)
+            inpEa = bsxfun(@plus, inpEa, Ea);
             isWarnOverlap = true;
         end
-        if any(Eu(:) ~= 0) && any(euInp(:) ~= 0)
-            euInp = bsxfun(@plus, euInp, Eu);
+        if any(Eu(:)~=0) && any(inpEu(:)~=0)
+            inpEu = bsxfun(@plus, inpEu, Eu);
             isWarnOverlap = true;
         end        
         if isWarnOverlap
@@ -533,8 +570,8 @@ return
         % Prhs is the MSE/Cov matrix of the RHS in the swapped system.
         Prhs = zeros(1+nb+2*ne*last);
         Prhs(1+(1:nb), 1+(1:nb)) = Pa0;
-        Pu = covfun.stdcorr2cov(StdcorrU(:, 1:last), ne);
-        Pe = covfun.stdcorr2cov(StdcorrA(:, 1:last), ne);
+        Pu = covfun.stdcorr2cov(sxUn(:, 1:last), ne);
+        Pe = covfun.stdcorr2cov(sxAn(:, 1:last), ne);
         pos = 1+nb+(1:ne);
         for i = 1 : last
             Prhs(pos, pos) = Pu(:, :, i);
@@ -545,7 +582,7 @@ return
             pos = pos + ne;
         end
         Prhs = Prhs(~ixEndg, ~ixEndg);
-        % Add zeros for the std errors of exogenised data points.
+        % Add zeros for the std errors of exogenized data points.
         if any(ixExog)
             Prhs = blkdiag(Prhs, zeros(sum(ixExog)));
         end
@@ -675,12 +712,12 @@ return
             return
         end
         
-        Du(1:end, last+1:nPer) = StdcorrU(1:ne, last+1:nPer).^2;
-        De(1:end, last+1:nPer) = StdcorrA(1:ne, last+1:nPer).^2;
+        Du(1:end, last+1:nPer) = sxUn(1:ne, last+1:nPer).^2;
+        De(1:end, last+1:nPer) = sxAn(1:ne, last+1:nPer).^2;
         RfCurr = Rf(ixXfCurr, :);
         for t = last+1 : nPer
-            Pue = covfun.stdcorr2cov(StdcorrU(:, t), ne) ...
-                + covfun.stdcorr2cov(StdcorrA(:, t), ne);
+            Pue = covfun.stdcorr2cov(sxUn(:, t), ne) ...
+                + covfun.stdcorr2cov(sxAn(:, t), ne);
             PxfCurr = TfCurr*Pa*TfCurr.' + RfCurr*Pue*RfCurr.';
             Pa = Ta*Pa*Ta.' + Ra*Pue*Ra.';
             PxbCurr = UCurr*Pa*UCurr.';
@@ -707,46 +744,51 @@ return
 
 
     
-    function createStdCorr( )
+    function varargout = createStdCorr( )
         % TODO: use `combineStdCorr` here.
-        % Combine `stdcorr` from the current parameterisation and the
-        % `stdcorr` supplied through the tune database.
-        stdcorrReal = this.Variant{iLoop}.StdCorr(1, :).';
-        stdcorrReal = stdcorrReal(:, ones(1, nPer));
-        ixStdcorrReal = ~isnan(opt.stdcorrreal);
-        if any(ixStdcorrReal(:))
-            stdcorrReal(ixStdcorrReal) = ...
-                opt.stdcorrreal(ixStdcorrReal);
+        % Combine sx from the current parameterisation and
+        % sx supplied in Vary= or cond.
+        [inpSxRe, inpSxIm] = varyStdCorr(this, range, cond, opt);
+
+        sxRe = this.Variant{iLoop}.StdCorr(:);
+        sxRe = repmat(sxRe, 1, nPer);
+        ixAvail = ~isnan(inpSxRe);
+        if any(ixAvail(:))
+            sxRe(ixAvail) = inpSxRe(ixAvail);
         end
         
-        stdcorrImag = this.Variant{iLoop}.StdCorr.';
-        stdcorrImag = stdcorrImag(:, ones(1, nPer));
-        ixStdcorrImag = ~isnan(opt.stdcorrimag);
-        if any(ixStdcorrImag(:))
-            stdcorrImag(ixStdcorrImag) = ...
-                opt.stdcorrimag(ixStdcorrImag);
+        sxIm = this.Variant{iLoop}.StdCorr(:);
+        sxIm = repmat(sxIm, 1, nPer);
+        ixAvail = ~isnan(inpSxIm);
+        if any(ixAvail(:))
+            sxIm(ixAvail) = inpSxIm(ixAvail);
         end
         
-        % Set the std devs of the endogenised shocks to zero. Otherwise an
-        % anticipated endogenised shock would have a non-zero unanticipated
-        % std dev, and vice versa.
+        % Set the stdevs of endogenized shocks to zero. Otherwise an
+        % anticipated endogenized shock would have a non-zero unanticipated
+        % stdev, and vice versa.
         if isSwap
-            temp = stdcorrReal(1:ne, 1:last);
+            temp = sxRe(1:ne, 1:last);
             temp(eaAnchX) = 0;
             temp(euAnchX) = 0;
-            stdcorrReal(1:ne, 1:last) = temp;
-            temp = stdcorrImag(1:ne, 1:last);
+            sxRe(1:ne, 1:last) = temp;
+            temp = sxIm(1:ne, 1:last);
             temp(eaAnchX) = 0;
             temp(euAnchX) = 0;
-            stdcorrImag(1:ne, 1:last) = temp;
+            sxIm(1:ne, 1:last) = temp;
         end
         
+        scale = opt.StdScale;
+        if strcmpi(scale, 'normalize')
+            scale = complex(1/sqrt(2), 1/sqrt(2));
+        end
+        sxRe = sxRe * real(scale);
+        sxIm = sxIm * imag(scale);
+
         if opt.anticipate
-            StdcorrA = stdcorrReal;
-            StdcorrU = stdcorrImag;
+            varargout = { sxRe, sxIm };
         else
-            StdcorrA = stdcorrImag;
-            StdcorrU = stdcorrReal;
+            varargout = { sxIm, sxRe };
         end            
     end 
 
@@ -768,7 +810,7 @@ return
             realOutpE = eu;
             imagOutpE = ea;
         end
-        if all(imagOutpE(:) == 0 | isnan(imagOutpE(:)))
+        if all(imagOutpE(:)==0 | isnan(imagOutpE(:)))
             outpE = [nan(ne, 1), realOutpE];
         else
             outpE = [nan(ne, 1)*(1+1i), complex(realOutpE, imagOutpE)];

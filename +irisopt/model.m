@@ -176,6 +176,7 @@ def.jforecast = [
     'precision', 'double', @(x) ischar(x) && any(strcmpi(x, {'double', 'single'}))
     'progress', false, @islogicalscalar
     'plan, Scenario', [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x)
+    'StdScale', complex(1, 1), @(x) (isnumericscalar(x) && ~isreal(x) && real(x)>=0 && imag(x)>=0) || strcmpi(x, 'normalize')
     'vary, std', [ ], @(x) isstruct(x) || isempty(x)
     } ];
 
