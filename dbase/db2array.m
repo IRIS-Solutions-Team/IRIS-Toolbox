@@ -15,10 +15,11 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 % * `d` [ struct ] - Input database with tseries objects that will be
 % converted to a numeric array.
 %
-% * `list` [ char | cellstr ] - List of time series names that will be
-% converted to numeric array and included in the output matrix; if not
-% specified, all time series entries found in the input database, `d`, will
-% be included in the output array, `x`.
+% * `list` [ char | cellstr | rexp | `@all` ] - List of time series names
+% that will be converted to numeric array and included in the output
+% matrix; if not specified, all time series entries found in the input
+% database, `d`, will be included in the output array, `x`. The list can be
+% specified as a regular expression wrapped in a `rexp` object.
 %
 % * `range` [ numeric | `@all` ] - Date range; `@all` means a range from the
 % very first non-NaN observation to the very last non-NaN observation.
@@ -70,7 +71,7 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 try
     list;
 catch
-    list = dbnames(d, 'ClassFilter=', 'tseries');
+    list = @all;
 end
 
 try
@@ -146,13 +147,17 @@ end
 
 pp = inputParser( );
 pp.addRequired('d', @isstruct);
-pp.addRequired('list', @iscellstr);
+pp.addRequired('list', @(x) iscellstr(x) || ischar(x) || isa(x, 'rexp') || isequal(x, @all));
 pp.addRequired('range', @isnumeric);
 pp.parse(d, list, range);
 
 %--------------------------------------------------------------------------
 
-if ischar(list)
+if isequal(list, @all)
+    list = dbnames(d, 'ClassFilter=', 'tseries');
+elseif isa(list, 'rexp')
+    list = dbnames(d, 'ClassFilter=', 'tseries', 'NameFilter=', list);
+elseif ischar(list)
     list = regexp(list, '\w+', 'match');
 end
 list = list(:).';
