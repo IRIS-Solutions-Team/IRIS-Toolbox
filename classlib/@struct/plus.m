@@ -1,19 +1,19 @@
-function D = plus(D1,D2)
+function this = plus(this, d2)
 % See help on dbase/dbplus.
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 pp = inputParser( );
-pp.addRequired('D1',@isstruct);
-pp.addRequired('D2',@isstruct);
-pp.parse(D1,D2);
+pp.addRequired('this', @isstruct);
+pp.addRequired('d2', @isstruct);
+pp.parse(this, d2);
 
 %--------------------------------------------------------------------------
 
-names = [fieldnames(D1);fieldnames(D2)];
-values = [struct2cell(D1);struct2cell(D2)];
-[names,inx] = unique(names,'last');
-D = cell2struct(values(inx),names);
+f2 = fieldnames(d2);
+for i = 1 : numel(f2)
+    this.(f2{i}) = d2.(f2{i});
+end
 
 end

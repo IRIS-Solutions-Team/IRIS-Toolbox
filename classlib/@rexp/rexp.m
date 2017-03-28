@@ -26,7 +26,7 @@ classdef rexp
                 this = varargin{1};
                 return
             end
-            if ischar(varargin{1})
+            if ischar(varargin{1}) || isa(varargin{1}, 'string')
                 this.String = varargin{1};
             end
         end
@@ -150,12 +150,28 @@ classdef rexp
         function this = subsasgn(this, varargin)
             this.String = subsasgn(this.String, varargin{:});
         end
+
+
+
         
         function s = minus(s, this)
             if iscellstr(s) && isa(this, 'rexp')
                 start = regexp(s, this.String, 'once');
                 ixKeep = cellfun(@isempty, start);
                 s = s(ixKeep);
+            elseif isstruct(s) && isa(this, 'rexp')
+                list = dbnames(s, 'NameFilter=', this);
+                s = dbminus(s, list);
+            end
+        end
+
+
+
+
+        function d = mtimes(d, this)
+            if isstruct(d)
+                list = dbnames(d, 'NameFilter=', this);
+                d = dbmtimes(d, list);
             end
         end
     end
