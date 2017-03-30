@@ -160,10 +160,10 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         Start = NaN % Date of first available observation
         Data = zeros(0, 1) % Time series data
     end
-    
-    
-    
-    
+
+
+
+
     methods
         function this = tseries(varargin)
             % tseries  Create new time series (tseries) object.

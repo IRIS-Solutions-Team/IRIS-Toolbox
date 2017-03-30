@@ -7,11 +7,13 @@ function disp(this)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
+STR_VARIANT = 'parameter variant';
+
 %--------------------------------------------------------------------------
 
-ny = size(this.A,1);
-p = size(this.A,2) / max(ny,1);
-nAlt = size(this.A,3);
+ny = size(this.A, 1);
+p = size(this.A, 2) / max(ny, 1);
+nAlt = size(this.A, 3);
 isPanel = ispanel(this);
 
 ccn = getClickableClassName(this);
@@ -24,7 +26,7 @@ else
         fprintf('panel ');
     end
     fprintf('%s(%g) object: ', ccn, p);
-    fprintf('[%g] parameterisation(s)', nAlt);
+    fprintf('[%g %s(s)]', nAlt, STR_VARIANT);
     if isPanel
         nGrp = length(this.GroupNames);
         fprintf(' * [%g] group(s)', nGrp);
@@ -34,7 +36,7 @@ fprintf('\n');
 
 fprintf('\tvariables: ');
 if ~isempty(this.YNames)
-    fprintf('[%g] %s',length(this.YNames),textfun.displist(this.YNames));
+    fprintf('[%g] %s', length(this.YNames), textfun.displist(this.YNames));
 else
     fprintf('none');
 end
@@ -47,7 +49,7 @@ fprintf('\tgroups: ');
 if ~isPanel
     fprintf('implicit');
 else
-    fprintf('[%g] %s',length(this.GroupNames), ...
+    fprintf('[%g] %s', length(this.GroupNames), ...
         textfun.displist(this.GroupNames));
 end
 fprintf('\n');

@@ -21,9 +21,7 @@ if dim==0
     if length(sz)>2
         this.data = reshape(this.data, [size(this.data,1),sz(2:end)]);
     end
-    if ~isempty(this.data) && any(any( isnan(this.data([1, end], :)) ))
-        this = trim(this);
-    end
+    this = trim(this);
 elseif dim==1
     % Returns numeric array as a result of applying FUNC in 1st dimension
     % (time).
@@ -41,11 +39,8 @@ else
         [this.data, varargout{1:nargout-1}] = func(this.data, varargin{:});
     end
     dim = size(this.data);
-    this.Comment = cell(1, dim(2:end));
-    this.Comment(:) = {''};
-    if ~isempty(this.data) && any(any( isnan(this.data([1, end], :)) ))
-        this = trim(this);
-    end
+    this.Comment = repmat({''}, [1, dim(2:end)]);
+    this = trim(this);
 end
 
 end

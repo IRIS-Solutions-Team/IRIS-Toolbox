@@ -151,6 +151,7 @@ RptEq:InvalidLhs,Invalid LHS name in this reporting equation: %s
 RptEq:RhsNameDataNotFound,This name is not found in input database: %s 
 RptEq:RhsNameDataInvalid,Input data for this name are invalid: %s 
 RptEq:SteadyRefNotFoundInModel,Name of this steady-state reference is not found in model: %s 
+Series:BinopSizeMismatch,The size of the resulting Series object must match the size of one of the input Series objects.
 Series:InputsRemovedFromCat,Inputs other than time series and numeric removed from concatenation.
 Series:InvalidCommentSize,Invalid size of comment array assigned to time series. 
 Series:CannotCatMixedFrequencies,Cannot concatenate time series with different date frequencies.
