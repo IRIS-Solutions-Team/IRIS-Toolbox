@@ -1,5 +1,5 @@
-function Body = hashmessage(Body)
-% hashmessage  [Not a public function] Frequent error/warning messages.
+function body = hashmessage(body)
+% hashmessage  Frequent error/warning messages.
 %
 % Backend IRIS function.
 % No help provided.
@@ -9,40 +9,40 @@ function Body = hashmessage(Body)
 
 %--------------------------------------------------------------------------
 
-pos = strfind(Body,':');
+pos = strfind(body,':');
 if ~isempty(pos)
     pos = pos(end);
-    thisClass = Body(pos+1:end);
-    Body(pos:end) = '';
+    thisClass = body(pos+1:end);
+    body(pos:end) = '';
 end
 
-switch Body
+switch body
     case '#Cannot_simulate_contributions'
-        Body = [ ...
-            'Cannot simulate multiple parameterisations ', ...
+        body = [ ...
+            'Cannot simulate multiple parameter variants ', ...
             'or multiple data sets ', ...
             'with option contributions=true.', ...
             ];
         
     case '#Invalid_assign'
-        Body = [ ...
+        body = [ ...
             'Invalid assignment to a ',thisClass,' object.', ...
             ];
         
     case '#Solution_not_available'
-        Body = [ ...
+        body = [ ...
             'Model solution not available for some ', ...
-            'parameterization(s) %s.', ...
+            'parameter variant(s) %s.', ...
             ];
         
     case '#Internal'
-        Body = [ ...
+        body = [ ...
             'Internal IRIS error. ', ...
             'Please report this error with a copy of the screen message.', ...
             ];
     
     otherwise
-        % Keep `Body` unchanged.
+        % Do nothing.
 end
 
 end

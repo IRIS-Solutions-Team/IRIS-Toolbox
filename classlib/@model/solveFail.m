@@ -13,7 +13,7 @@ BRX = sprintf('\n    ');
 
 %--------------------------------------------------------------------------
 
-body = 'Solution not available for some parameterization(s)';
+body = 'Solution not available for some parameter variant(s)';
 args = { };
 ixReportBK = nPath==0 | isinf(nPath);
 

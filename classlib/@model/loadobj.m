@@ -20,7 +20,9 @@ if build<model.LAST_LOADABLE
         exception.Base('Model:CannotLoadFromMat', 'warning'), ...
         sprintf('%i', model.LAST_LOADABLE) ...
         ); %#ok<GTARG>
+    s = this;
     this = model( ); %#ok<UNRCH>
+    this = userdata(this, s);
     return
 end
 

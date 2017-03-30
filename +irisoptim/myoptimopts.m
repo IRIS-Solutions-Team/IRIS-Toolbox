@@ -1,5 +1,5 @@
-function [Opt,OO] = myoptimopts(Opt)
-% myoptimoptions  [Not a public function] Set up Optim Tbx options.
+function [opt,OO] = myoptimopts(opt)
+% myoptimoptions  Set up Optim Tbx options.
 %
 % Backend IRIS function.
 % No help provided.
@@ -9,7 +9,12 @@ function [Opt,OO] = myoptimopts(Opt)
 
 %--------------------------------------------------------------------------
 
-solverName = Opt.solver;
+try
+    solverName = opt.solver;
+catch
+    solverName = opt.Solver;
+end
+
 if iscell(solverName)
     solverName = solverName{1};
 end
@@ -19,12 +24,12 @@ end
 
 switch lower(solverName)
     case {'pso','alps'}
-        if strcmpi(Opt.nosolution,'error')
+        if strcmpi(opt.nosolution,'error')
             utils.warning('irisoptim:myoptimopts', ...
                 ['Global optimization algorithm, ', ...
                 'switching from ''noSolution=error'' to ', ...
                 '''noSolution=penalty''.']);
-            Opt.nosolution = 'penalty';
+            opt.nosolution = 'penalty';
         end
     case {'fmin','fmincon','fminunc','lsqnonlin','fsolve'}
         switch lower(solverName)
@@ -39,7 +44,7 @@ switch lower(solverName)
             'Hessian','off', ...
             'LargeScale','off');
         try %#ok<TRYNC>
-            x = Opt.display;
+            x = opt.display;
             if isintscalar(x)
                 if x == 0
                     x = 'none';
@@ -56,24 +61,24 @@ switch lower(solverName)
             OO = optimset(OO,'Display',x);
         end
         try %#ok<TRYNC>
-            OO = optimset(OO,'MaxIter',Opt.maxiter);
+            OO = optimset(OO,'MaxIter',opt.maxiter);
         end
         try %#ok<TRYNC>
-            OO = optimset(OO,'MaxFunEvals',Opt.maxfunevals);
+            OO = optimset(OO,'MaxFunEvals',opt.maxfunevals);
         end
         try %#ok<TRYNC>
-            OO = optimset(OO,'TolFun',Opt.tolfun);
+            OO = optimset(OO,'TolFun',opt.tolfun);
         end
         try %#ok<TRYNC>
-            OO = optimset(OO,'TolX',Opt.tolx);
+            OO = optimset(OO,'TolX',opt.tolx);
         end
-        if ~isempty(Opt.optimset) && iscell(Opt.optimset) ...
-                && iscellstr(Opt.optimset(1:2:end))
-            temp = Opt.optimset;
+        if ~isempty(opt.optimset) && iscell(opt.optimset) ...
+                && iscellstr(opt.optimset(1:2:end))
+            temp = opt.optimset;
             temp(1:2:end) = strrep(temp(1:2:end),'=','');
             OO = optimset(OO,temp{:});
         end
-        Opt.optimset = OO;
+        opt.optimset = OO;
     otherwise
         OO = optimset( );
 end

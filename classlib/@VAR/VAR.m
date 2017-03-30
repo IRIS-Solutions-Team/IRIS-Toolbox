@@ -109,13 +109,13 @@ classdef VAR < varobj
         NHyper = NaN % Number of estimated hyperparameters.
         
         % Exogenous inputs in VARXs.
-        XNames = cell(1,0) % Names of exogenous inputs.
+        XNames = cell(1, 0) % Names of exogenous inputs.
         X0 = [ ] % Asymptotic mean assumption for exogenous inputs.
         J = [ ] % Coefficient matrix for exogenous inputs.
         
         % Conditioning instruments.
-        INames = cell(1,0) % Names of conditioning instruments.
-        IEqtn = cell(1,0) % Expressions for conditioning instruments.
+        INames = cell(1, 0) % Names of conditioning instruments.
+        IEqtn = cell(1, 0) % Expressions for conditioning instruments.
         Zi = [ ] % Measurement matrix for conditioning instruments.
     end
     
@@ -213,7 +213,7 @@ classdef VAR < varobj
     
     
     methods
-        function This = VAR(varargin)
+        function this = VAR(varargin)
             % VAR  Create new empty reduced-form VAR object.
             %
             %
@@ -221,15 +221,15 @@ classdef VAR < varobj
             % ======================================================
             %
             %     V = VAR(YNames)
-            %     V = VAR(YNames,'exogenous=',XNames)
+            %     V = VAR(YNames, 'exogenous=', XNames)
             %
             %
             % Syntax for panel VAR and VAR with exogenous variables
             % ======================================================
             %
             %
-            %     V = VAR(YNames,'groups=',GroupNames)
-            %     V = VAR(YNames,'exogenous=',XNames,'groups=',GroupNames)
+            %     V = VAR(YNames, 'groups=', GroupNames)
+            %     V = VAR(YNames, 'exogenous=', XNames, 'groups=', GroupNames)
             %
             %
             % Output arguments
@@ -261,7 +261,7 @@ classdef VAR < varobj
             % ============
             %
             %
-            % This function creates a new empty VAR object. It is usually followed by
+            % this function creates a new empty VAR object. It is usually followed by
             % an [`estimate`](VAR/estimate) command to estimate the coefficient
             % matrices in the VAR object using some data.
             %
@@ -273,10 +273,10 @@ classdef VAR < varobj
             % variable names, and then run the [VAR/estimate](VAR/estimate) function on
             % it, e.g.
             %
-            %     v = VAR({'x','y','z'});
-            %     [v,d] = estimate(v,d,range);
+            %     v = VAR({'x', 'y', 'z'});
+            %     [v, d] = estimate(v, d, range);
             %
-            % where the input database `d` ought to contain time series `d.x`, `d.y`,
+            % where the input database `d` ought to contain time series `d.x`, `d.y`, 
             % `d.z`.
             
             % -IRIS Macroeconomic Modeling Toolbox.
@@ -284,22 +284,22 @@ classdef VAR < varobj
             
             %--------------------------------------------------------------------------
             
-            This = This@varobj(varargin{:});
+            this = this@varobj(varargin{:});
             
             if nargin==0
                 return
             elseif nargin==1 && isVAR(varargin{1})
-                This = varargin{1};
+                this = varargin{1};
                 return
             elseif nargin==1 && isstruct(varargin{1})
-                This = struct2obj(This, varargin{1});
+                this = struct2obj(this, varargin{1});
                 return
             elseif nargin>=3
-                % VAR(YNames,...)
+                % VAR(YNames, ...)
                 varargin(1) = [ ];
                 [opt, ~] = passvalopt('VAR.VAR', varargin{:});
                 if ~isempty(opt.exogenous)
-                    This = myxnames(This, opt.exogenous);
+                    this = myxnames(this, opt.exogenous);
                 end
             end
         end

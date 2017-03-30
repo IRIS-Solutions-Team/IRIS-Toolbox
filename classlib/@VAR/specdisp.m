@@ -1,5 +1,5 @@
-function specdisp(This)
-% specdisp  [Not a public function] Subclass specific disp line.
+function specdisp(this)
+% specdisp  Subclass specific disp line.
 %
 % Backend IRIS function.
 % No help provided.
@@ -10,16 +10,16 @@ function specdisp(This)
 %--------------------------------------------------------------------------
 
 % Exogenous inputs.
-fprintf('\texogenous: [%g] ',length(This.XNames));
-if ~isempty(This.XNames)
-    fprintf('%s',textfun.displist(This.XNames));
+fprintf('\texogenous: [%g] ', length(this.XNames));
+if ~isempty(this.XNames)
+    fprintf('%s', textfun.displist(this.XNames));
 end
 fprintf('\n');
 
 % Conditioning instruments.
-fprintf('\tinstruments: [%g] ',length(This.INames));
-if ~isempty(This.INames)
-    fprintf('%s',textfun.displist(This.INames));
+fprintf('\tinstruments: [%g] ', length(this.INames));
+if ~isempty(this.INames)
+    fprintf('%s', textfun.displist(this.INames));
 end
 fprintf('\n');
 

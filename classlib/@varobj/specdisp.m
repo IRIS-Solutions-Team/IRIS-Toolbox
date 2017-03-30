@@ -1,5 +1,5 @@
-function specdisp(This) %#ok<INUSD>
-% specdisp  [Not a public function] Subclass specific disp line.
+function specdisp(this) %#ok<INUSD>
+% specdisp  Subclass specific disp line.
 %
 % Backend IRIS function.
 % No help provided.
