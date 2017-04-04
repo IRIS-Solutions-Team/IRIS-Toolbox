@@ -1,5 +1,5 @@
 function d = fred(varargin)
-% fred  Import data from FRED, Federal Reserve Bank of St. Louis.
+% feed.fred  Import data from FRED, Federal Reserve Bank of St. Louis.
 %
 % Syntax
 % =======
@@ -45,26 +45,26 @@ data = fetch(c,varargin);
 close(c);
 d = struct;
 for i = 1:numel(data)
+    [Y,M,D] = datevec(data(i).Data(:,1));
     % Note that Dates are start-of-period Dates in the FRED database
     switch regexp(data(i).Frequency,'\w+','match','once')
         case 'Daily'
             dates = data(i).Data(:,1);
         case 'Weekly'
-            dates = ww(year(data(i).Data(1)),month(data(i).Data(1)),day(data(i).Data(1)));
+            dates = ww(Y,M,D);
         case 'Monthly'
-            dates = mm(year(data(i).Data(1)),month(data(i).Data(1)));
+            dates = mm(Y,M);
         case 'Quarterly'
-            dates = qq(year(data(i).Data(1)),(month(data(i).Data(1))+2)/3);
+            dates = qq(Y,(M+2)/3);
         case 'Semiannual'
-            dates = hh(year(data(i).Data(1)),(month(data(i).Data(1))+2)/6);
+            dates = hh(Y,(M+2)/6);
         case 'Annual'
-            dates = yy(year(data(i).Data(1)));
+            dates = yy(Y);
         otherwise
             error('unknown freq: %s',data(i).Frequency)
     end
-    d.(strtrim(data(i).SeriesID)) = userdata( ...
-        tseries(dates,data(i).Data(:,2),strtrim(data(i).Title)), ...
-        rmfield(data(i),'Data') );
+    meta = dbfun(@(x) strtrim(x),rmfield(data(i),'Data'));
+    d.(meta.SeriesID) = userdata(tseries(dates,data(i).Data(:,2),meta.Title),meta);
 end
 
 end

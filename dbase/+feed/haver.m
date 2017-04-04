@@ -1,5 +1,5 @@
 function d = haver(hpath, varargin)
-% haver  Import data from Haver Analytics databases.
+% feed.haver  Import data from Haver Analytics databases.
 %
 % Syntax
 % =======
@@ -55,17 +55,18 @@ end
 
 d = struct;
 for i=1:size(data,2)
+    [Y,M,D] = datevec(data{i}(:,1));
     switch meta(i).Frequency
         case 'D'
             dates=data{i}(:,1);
-        case 'FRI'
-            dates=ww(year(data{i}(1)),month(data{i}(1)),day(data{i}(1)));
+        case {'MON','TUE','WED','THU','FRI','SAT','SUN'}
+            dates=ww(Y,M,D);
         case 'M'
-            dates=mm(year(data{i}(1)),month(data{i}(1)));
+            dates=mm(Y,M);
         case 'Q'
-            dates=qq(year(data{i}(1)),month(data{i}(1))/3);
-        case 'Y'
-            dates=yy(year(data{i}(1)));
+            dates=qq(Y,M/3);
+        case {'Y','A'}
+            dates=yy(Y);
         otherwise
             error('unknown freq: %s',meta(i).Frequency)
     end
