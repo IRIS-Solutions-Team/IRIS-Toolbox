@@ -235,13 +235,13 @@ for iLoop = 1 : nLoop
     
     % Initialize
     %------------
-    % * Initial distribution
+    % * Initial mean and MSE
     % * Number of init cond estimated as fixed unknowns
-    s = kalman.init(s, iLoop, opt);
+    s = kalman.initialize(s, iLoop, opt);
     
     % Prediction step
     %-----------------
-    % Prepare the struct `s2` for nonlinear simulations in this round of
+    % Prepare the struct sn for nonlinear simulations in this round of
     % prediction steps.
     if s.IsSimulate
         sn.ILoop = iLoop;
@@ -255,13 +255,14 @@ for iLoop = 1 : nLoop
     [obj(:, iLoop), s] = kalman.ped(s, sn, opt);
     ixValidFactor(iLoop) = abs(s.V)>MSE_TOLERANCE;
 
-    % Return immediately if only the objective function is to be returned.
+    % Return immediately if only the value of the objective function is
+    % requested.
     if s.IsObjOnly
         continue
     end
     
-    % Prediction errors uncorrected to estimated init cond and dtrends; these
-    % are needed for contributions.
+    % Prediction errors unadjusted (uncorrected) for estimated init cond
+    % and dtrends; these are needed for contributions.
     if s.retCont
         s.peUnc = s.pe;
     end

@@ -228,9 +228,8 @@ def.kalmanFilter = [
     'condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x)
     'fmsecondtol', eps( ), @(x) isnumericscalar(x) && x>0 && x<1
     'returncont, contributions', false, @islogicalscalar
-    'initcond, init', 'stochastic', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'Stochastic', 'Fixed', 'Optimal', 'FixedUnknown'})))
-    ... 'InitMeanUnit', 'FixedUnknown', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'})))
-    'InitUnit', 'FixedUnknown', @(x) ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'}))
+    'Init, InitCond', 'Steady', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'Asymptotic', 'Stochastic', 'Steady'})))
+    'InitUnitRoot, InitUnit, InitMeanUnit', 'FixedUnknown', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'})))
     'lastsmooth', Inf, @(x) isempty(x) || isnumericscalar(x)
     ... 'nonlinear, nonlinearise, nonlinearize', 0, @(x) isintscalar(x) && x>=0
     'outoflik', { }, @(x) ischar(x) || iscellstr(x)

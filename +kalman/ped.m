@@ -78,15 +78,15 @@ if ~s.IsObjOnly
         % re-use the same algorithm for both regular runs of the filter and the
         % contributions.
         s.a0 = nan(nb, 1, nPer);
-        s.a0(:, 1, 1) = s.ainit;
+        s.a0(:, 1, 1) = s.InitMean;
         s.y0 = nan(ny, 1, nPer);
         s.ydelta = zeros(ny, 1, nPer);
         s.f0 = nan(nf, 1, nPer);
         
         s.Pa0 = nan(nb, nb, nPer);
         s.Pa1 = nan(nb, nb, nPer);
-        s.Pa0(:, :, 1) = s.Painit;
-        s.Pa1(:, :, 1) = s.Painit;
+        s.Pa0(:, :, 1) = s.InitMse;
+        s.Pa1(:, :, 1) = s.InitMse;
         s.De0 = nan(ne, nPer);
         % Kalman gain matrices.
         s.K0 = nan(nb, ny, nPer);
@@ -115,8 +115,8 @@ if ~s.IsObjOnly
 end
 
 % Reset initial condition.
-a = s.ainit;
-P = s.Painit;
+a = s.InitMean;
+P = s.InitMse;
 
 % Number of actually observed data points.
 nObs = zeros(1, nPer);

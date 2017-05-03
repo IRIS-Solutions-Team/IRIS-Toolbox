@@ -65,21 +65,21 @@ switch lower(req)
     case 'init'
         % Initial condition for the mean and MSE of Alpha.
         if nargout<4
-            [xbInitMean, ixNanInitMean] = assembleXbInit( );
+            [xbInitMean, lsNanInitMean] = assembleXbInit( );
             xbInitMse = [ ];
             alpInitMean = convertXbInit2AlpInit( );
             varargout{1} = alpInitMean;
             varargout{2} = xbInitMean;
-            varargout{3} = ixNanInitMean;
+            varargout{3} = lsNanInitMean;
         else
             [xbInitMean, ixNanInitMean, xbInitMse, ixNanInitMse] = assembleXbInit( );
             [alpInitMean, alpInitMse] = convertXbInit2AlpInit( );
             varargout{1} = alpInitMean;
             varargout{2} = xbInitMean;
-            varargout{3} = ixNanInitMean;
+            varargout{3} = lsNanInitMean;
             varargout{4} = alpInitMse;
             varargout{5} = xbInitMse;
-            varargout{6} = ixNanInitMse;
+            varargout{6} = lsNanInitMse;
         end
     case 'xbinit'
         % Initial condition for the mean and MSE of X.
@@ -101,7 +101,7 @@ switch lower(req)
         end
         g = assembleGData( );
         nYData = size(y, 3);
-        if size(g, 3) == 1 && size(g, 3) < nYData
+        if size(g, 3) == 1 && size(g, 3)<nYData
             g = g(:, :, ones(1, nYData));
         end
         varargout{1} = [y;g];
@@ -114,15 +114,15 @@ switch lower(req)
         data = {getYData( ), assembleXData(range), assembleEData( )};
         nData = max([size(data{1}, 3), size(data{2}, 3), size(data{3}, 3)]);
         % Make the size of all data arrays equal in 3rd dimension.
-        if size(data{1}, 3) < nData
+        if size(data{1}, 3)<nData
             data{1} = cat(3, data{1}, ...
                 data{1}(:, :, end*ones(1, nData-size(data{1}, 3))));
         end
-        if size(data{2}, 3) < nData
+        if size(data{2}, 3)<nData
             data{2} = cat(3, data{2}, ...
                 data{2}(:, :, end*ones(1, nData-size(data{2}, 3))));
         end
-        if size(data{3}, 3) < nData
+        if size(data{3}, 3)<nData
             data{3} = cat(3, data{3}, ...
                 data{3}(:, :, end*ones(1, nData-size(data{3}, 3))));
         end
@@ -145,7 +145,7 @@ return
     
     
     
-    function [xbInitMean, ixNanInitMean, xbInitMse, ixNanInitMse] ...
+    function [xbInitMean, lsNanInitMean, xbInitMse, lsNanInitMse] ...
             = assembleXbInit( )
         xbInitMean = nan(nb, 1, nAlt);
         xbInitMse = [ ];
@@ -180,18 +180,16 @@ return
             end
         end
         % Report NaN init conditions in mean.
+        lsNanInitMean = { };
         if any(ixNanInitMean)
             id = this.Vector.Solution{2}(nf+1:end);
-            ixNanInitMean = printSolutionVector(this, id(ixNanInitMean)-1i);
-        else
-            ixNanInitMean = { };
+            lsNanInitMean = printSolutionVector(this, id(ixNanInitMean)-1i);
         end
         % Report NaN init conditions in MSE.
+        lsNanInitMse = { };
         if any(ixNanInitMse)
             id = this.Vector.Solution{2}(nf+1:end);
             ixNanInitMse = printSolutionVector(this, id(ixNanInitMse)-1i);
-        else
-            ixNanInitMse = { };
         end
     end 
 
@@ -222,12 +220,12 @@ return
             end
         end
         % Transform MSE[Xb] to MSE[Alpha].
-        if nargout < 2 || isempty(xbInitMse)
+        if nargout<2 || isempty(xbInitMse)
             alpInitMse = xbInitMse;
             return
         end
         nData = size(xbInitMse, 4);
-        if nData < nAlt
+        if nData<nAlt
             xbInitMse(:, :, 1, end+1:nAlt) = ...
                 xbInitMse(:, :, 1, end*ones(1, nAlt-nData));
             nData = nAlt;
@@ -360,7 +358,7 @@ return
             A = permute(A, [2, 1, 3]);
         end
         nData = size(A, 3);
-        if nData < nAlt
+        if nData<nAlt
             A(:, :, end+1:nAlt) = A(:, :, end*ones(1, nAlt-nData));
             nData = nAlt;
         end
