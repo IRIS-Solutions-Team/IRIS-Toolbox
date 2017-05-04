@@ -8,6 +8,13 @@ classdef Quantity < model.Insertable
         IxLagrange = false(1, 0) % True for Lagrange multipliers in optimal policy models.
         Bounds = zeros(4, 0) % Lower and upper bounds on level and growth.
     end
+
+
+
+
+    properties (Hidden) % Hidden are non-insertable properties.
+        IxStdCorrAllowed % Index of elements in StdCorr that are allowed nonzero.
+    end
     
     
     
@@ -37,7 +44,26 @@ classdef Quantity < model.Insertable
         varargout = saveObject(varargin)
         varargout = size(varargin);
         varargout = userSelection2Index(varargin)
+
+
+
+
+        function this = build(this)
+            TYPE = model.Quantity.TYPE;
+
+            % Build index of StdCorr elements that can be nonzero.
+            ixe = this.Type==TYPE(31) | this.Type==TYPE(32);
+            ne = sum(ixe);
+            temp = this.Type(ixe);
+            ix31 = temp==model.Quantity.TYPE(31);
+            ixCorrAllowed = true(length(temp));
+            ixCorrAllowed(ix31, ~ix31) = false;
+            ixCorrAllowed(~ix31, ix31) = false;
+            ixTril = tril(ones(ne), -1)==1;
+            this.IxStdCorrAllowed = [true(1, ne), ixCorrAllowed(ixTril).'];
+        end
     end
+
     
     
     

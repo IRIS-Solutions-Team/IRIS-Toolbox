@@ -49,7 +49,7 @@ if isempty(D)
 end
 
 if nargout>7
-    Omg = omega(this, [ ], iAlt);
+    Omg = omega(this, @get, iAlt);
 end
 
 end

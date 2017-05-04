@@ -48,7 +48,7 @@ function varargout = omega(this, newOmg, vecAlt)
 
 TYPE = @int8;
 
-try, newOmg; catch, newOmg = [ ]; end %#ok<NOCOM>
+try, newOmg; catch, newOmg = @get; end %#ok<NOCOM>
 try, vecAlt; catch, vecAlt = ':'; end %#ok<NOCOM>
 
 %--------------------------------------------------------------------------
@@ -57,7 +57,7 @@ if isequal(vecAlt, Inf)
     vecAlt = ':';
 end
 
-if isempty(newOmg)
+if isequal(newOmg, @get)
     % Return Omega from StdCorr vector.
     ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
     ne = sum(ixe);
@@ -76,7 +76,8 @@ else
         vecStdCorr(1, :, end+1:nAlt) = vecStdCorr(1, :, end*ones(1, nAlt-end));
     end
     this.Variant = model.Variant.assignStdCorr( ...
-        this.Variant, ':', vecAlt, vecStdCorr ...
+        this.Variant, ':', vecAlt, vecStdCorr, ...
+        this.Quantity.IxStdCorrAllowed ...
         );
     varargout{1} = this;
 end

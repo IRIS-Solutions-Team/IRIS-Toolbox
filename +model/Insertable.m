@@ -84,8 +84,9 @@ classdef Insertable
         
         function lsProp = getInsertableProp(this)
             x = metaclass(this);
-            ix = ~[ x.PropertyList.Dependent ] & ~[ x.PropertyList.Constant ];
-            lsProp = { x.PropertyList(ix).Name };
+            x = x.PropertyList;
+            ix = ~[ x.Dependent ] & ~[ x.Constant ] & ~[ x.Hidden ];
+            lsProp = { x(ix).Name };
         end
     end
 end

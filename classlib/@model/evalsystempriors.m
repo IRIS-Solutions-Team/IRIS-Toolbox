@@ -54,7 +54,7 @@ for iAlt = 1 : nAlt
     Z = this.solution{4}(:, :, iAlt);
     H = this.solution{5}(:, :, iAlt);
     U = this.solution{7}(:, :, iAlt);
-    Omg = omega(this, [ ], iAlt);
+    Omg = omega(this, @get, iAlt);
     eig_ = this.Variant{iAlt}.Eigen;
     
     % Shock response function.

@@ -59,6 +59,7 @@ Model:CannotCatInOtherDim,Cannot concatenate model objects other than horizontal
 Model:CannotChangeSteadyShocks,Steady levels for shocks cannot be changed from zero: %s 
 Model:CannotSteadyLinear,Cannot compute linear steady state because first-order solution is not available: %s
 Model:CannotLoadFromMatFile,Cannot load model object from MAT file. Recreated model object from its model file.
+Model:CannotSetNonzeroCorr, Nonzero correlation between measurement and transition shocks is not allowed. 
 Model:InvalidAssignFlag,Invalid assignment flag: %s
 Model:InvalidName,This is not a valid %1name in the model object: %s 
 Model:LogVariableZeroSteady,Steady state for this log variable is numerically close to zero: %s 

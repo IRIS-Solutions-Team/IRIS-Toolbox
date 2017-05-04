@@ -80,8 +80,8 @@ classdef Keyword
             lastNumbers = regexp(lastToken, this.PATTERN_NUMBERS, 'match');
             firstPattern = regexprep(firstToken, this.PATTERN_NUMBERS, '?');
             lastPattern = regexprep(lastToken, this.PATTERN_NUMBERS, '?');
-            firstPattern = strrep(firstPattern, ' ', '');
-            lastPattern = strrep(lastPattern, ' ', '');
+            firstPattern = regexprep(firstPattern, '\s+', '');
+            lastPattern = regexprep(lastPattern, '\s+', '');
             if ~strcmp(firstPattern, lastPattern) ...
                     || isempty(firstNumbers) ...
                     || any(~strcmp(firstNumbers{1}, firstNumbers)) ...
