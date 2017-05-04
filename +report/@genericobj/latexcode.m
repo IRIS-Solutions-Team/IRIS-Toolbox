@@ -1,7 +1,7 @@
 function c = latexcode(this,varargin)
 % latexcode  Generate LaTeX code to represent a report object.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

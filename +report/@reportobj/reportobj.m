@@ -1,7 +1,7 @@
 classdef reportobj < report.genericobj
     % reportobj  [Not a public class] Top level report object.
     %
-    % Backed IRIS class.
+    % Backend IRIS class.
     % No help provided.
     
     % -IRIS Macroeconomic Modeling Toolbox.

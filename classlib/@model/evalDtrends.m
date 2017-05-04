@@ -1,7 +1,7 @@
 function [W, dW] = evalDtrends(this, posPout, G, alt)
 % evalDtrends  Evaluate dtrend coefficient matrices for likelihood function.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

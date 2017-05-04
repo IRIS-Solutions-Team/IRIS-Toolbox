@@ -1,7 +1,7 @@
 function [obj, regOutp, hData] = kalmanFilter(this, inp, hData, opt, varargin)
 % kalmanFilter  Run Kalman filter.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

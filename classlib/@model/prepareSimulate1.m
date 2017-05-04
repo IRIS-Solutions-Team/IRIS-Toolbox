@@ -1,7 +1,7 @@
 function s = prepareSimulate1(this, s, opt)
 % prepareSimulate1  Prepare loop-independent data.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

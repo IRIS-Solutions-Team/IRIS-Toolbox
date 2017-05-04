@@ -1,7 +1,7 @@
 function s = initialize(s, iLoop, opt)
 % initialize  Initialize Kalman filter.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

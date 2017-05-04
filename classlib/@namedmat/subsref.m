@@ -1,7 +1,7 @@
 function X = subsref(This,varargin)
 % subsref  [Not a public function] Subscripted reference for namedmat objects.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

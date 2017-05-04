@@ -1,7 +1,7 @@
 function X = ishg2(Yes,No)
 % ishg2  [Not a public function] Detect HG2 and implement a switch.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

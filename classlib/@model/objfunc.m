@@ -36,8 +36,8 @@ end
 
 % Evaluate system priors.
 if isfinite(obj) && isSPrior
-    % The function `evalsystempriors` returns minus log density.
-    sp = evalsystempriors(this, pri.SystemPrior);
+    % Function systempriors/eval returns minus log density.
+    sp = eval(pri.SystemPrior, this);
     obj = obj + sp;
 end
 

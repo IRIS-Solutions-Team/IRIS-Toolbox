@@ -1,7 +1,7 @@
 function this = myd2s(this, opt)
 % myd2s  Create derivative-to-system convertor.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

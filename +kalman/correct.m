@@ -1,7 +1,7 @@
 function [Pe0,A0,Y0,YDelta] = correct(S,Pe0,A0,Y0,Est,D)
 % correct  Correct the prediction step for the estimated oolik parameters.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

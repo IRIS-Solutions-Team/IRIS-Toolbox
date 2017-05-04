@@ -1,19 +1,22 @@
-function detail(This)
+function detail(this)
 % detail  Display details of system priors object.
 %
 % Syntax
 % =======
 %
-%     detail(S)
+%     detail(s)
+%
 %
 % Input arguments
 % ================
 %
-% * `S` [ systempriors ] - System priors,
-% [`systempriors`](systempriors/Contents) object.
+% * `s` [ systempriors ] - System priors, 
+% [`systempriors`](systempriors/Contents), object.
+%
 %
 % Description
 % ============
+%
 %
 % Example
 % ========
@@ -24,23 +27,28 @@ function detail(This)
 
 %--------------------------------------------------------------------------
 
-nPrior = length(This.Eval);
+nPrior = length(this.Eval);
 nDigit = 1 + floor(log10(nPrior));
 textfun.loosespace( );
 for i = 1 : nPrior
-    if ~isempty(This.PriorFn{i})
-        priorFuncName = This.PriorFn{i}([ ],'name');
-        priorMean = This.PriorFn{i}([ ],'mean');
-        priorStd = This.PriorFn{i}([ ],'std');
-        priorDescript = sprintf('Distribution: %s mean=%g std=%g', ...
-            priorFuncName,priorMean,priorStd);
+    if ~isempty(this.PriorFn{i})
+        priorFuncName = this.PriorFn{i}([ ], 'name');
+        priorMean = this.PriorFn{i}([ ], 'mean');
+        priorStd = this.PriorFn{i}([ ], 'std');
+        priorDescript = sprintf('%s Mean=%g Std=%g', ...
+            priorFuncName, priorMean, priorStd);
     else
-        priorDescript = '[]';
+        priorDescript = 'Flat';
     end
-    fprintf('\t#%*g  %s\n',nDigit,i,This.UserString{i});
-    fprintf('\t\t%s\n',priorDescript);
-    fprintf('\t\tBounds: lower=%g upper=%g\n', ...
-        This.LowerBnd(i),This.UpperBnd(i));
+    if all(isinf(this.Bounds(:, i)))
+        boundsDescript = 'Unbounded';
+    else
+        boundsDescript = sprintf('Lower=%g Upper=%g', this.Bounds(:, i));
+    end
+    fprintf('\t#%*g\n', nDigit, i);
+    fprintf('\tSystem Function: %s\n', this.UserString{i});
+    fprintf('\tDistribution: %s\n', priorDescript);
+    fprintf('\tBounds: %s\n', boundsDescript);
     textfun.loosespace( );
 end
 

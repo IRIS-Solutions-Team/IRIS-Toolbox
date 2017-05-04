@@ -145,7 +145,7 @@ acfOrder = opt.order;
 ixSolved = true(1, nAlt);
 for iAlt = 1 : nAlt
     isExpand = false;
-    [T, R, ~, Z, H, ~, U, Omg] = mysspace(this, iAlt, isExpand);
+    [T, R, ~, Z, H, ~, U, Omg] = sspaceMatrices(this, iAlt, isExpand);
 
     % Continue immediately if solution is not available.
     ixSolved(iAlt) = all(~isnan(T(:)));

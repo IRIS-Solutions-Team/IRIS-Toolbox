@@ -2,7 +2,7 @@ function this = add(this, child, varargin)
 % Go down this object and all its descendants and find the
 % youngest among possible parents.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

@@ -2,7 +2,7 @@ function x = mynansum(x,dim)
 % mynansum  [Not a public function] Sum implemented for data with in-sample NaNs.
 %
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

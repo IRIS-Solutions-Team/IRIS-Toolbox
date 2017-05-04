@@ -155,7 +155,7 @@ return
         [flag, ixNanAlt] = isnan(this, 'solution');
         for iAlt = find(~ixNanAlt)
             nUnit = sum(this.Variant{iAlt}.Stability==TYPE(1));
-            [T, R, ~, Z, H, ~, U, Omg] = mysspace(this, iAlt, false);
+            [T, R, ~, Z, H, ~, U, Omg] = sspaceMatrices(this, iAlt, false);
             % Compute FFRF.
             F(:, :, :, iAlt) = freqdom.ffrf3( ...
                 T, R, [ ], Z, H, [ ], U, Omg, nUnit, ...

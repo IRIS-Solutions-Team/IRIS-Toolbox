@@ -1,7 +1,7 @@
 function flag = chkQty(this, vecAlt, varargin)
 % chkQty  Check quantities for missing or log-zero values.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

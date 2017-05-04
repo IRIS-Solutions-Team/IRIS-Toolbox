@@ -2,7 +2,7 @@ function [Y,Xx,Ea,Eu] = contributions(S,NPer)
 % simulate.linear.contributions  Compute contributions of shocks, ...
 % initial condition, const, and nonlinearities.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

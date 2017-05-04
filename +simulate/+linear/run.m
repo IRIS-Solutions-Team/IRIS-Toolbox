@@ -1,7 +1,7 @@
 function [Y,Xx,Ea,Eu,W] = run(S,NPer,V)
 % simulate.linear.run  [Not a public function] Linear simulation.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

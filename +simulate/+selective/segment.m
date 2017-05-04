@@ -1,7 +1,7 @@
 function [v, dcy, exit] = segment(s, v0)
 % segment  Nonlinear simulation of one segment.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

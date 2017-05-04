@@ -1,7 +1,7 @@
 function [YRpt,XxRpt,EaRpt,EuRpt,WRpt,Exit,Dcy,Addf] = run(S)
 % run  [Not a public function] Equation-selective nonlinear simulation.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

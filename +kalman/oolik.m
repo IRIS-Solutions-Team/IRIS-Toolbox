@@ -1,7 +1,7 @@
 function [Obj,V,Est,PEst] = oolik(LogDetF,PeFiPe,MtFiM,MtFiPe,NObs,Opt)
 % oolik  [Not a public function] Estimate out-of-lik parameters and sum up log-likelihood function components.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

@@ -1,7 +1,7 @@
 function varargout = subsasgn(this,varargin)
 % subsasgn  [Not a public function] Subscripted assignment for namedmat objects.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

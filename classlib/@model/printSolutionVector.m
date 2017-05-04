@@ -1,7 +1,7 @@
 function vec = printSolutionVector(this, type)
 % printSolutionVector  Print vectors of variables as in solution matrices.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

@@ -1,7 +1,7 @@
 function [V, Dcy, Exit] = qad(EvalFn, V0, Opt)
 % simulate.selective.qad  Quick-and-dirty equation-selective nonlinear simulation algorithm.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

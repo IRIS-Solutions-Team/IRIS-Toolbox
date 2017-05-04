@@ -1,7 +1,7 @@
 function [obj, regOutp] = myfdlik(this, inp, ~, likOpt)
 % myfdlik  Approximate likelihood function in frequency domain.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -81,7 +81,7 @@ for iLoop = 1 : nLoop
     
     if iLoop<=nAlt
         
-        [T, R, K, Z, H, D, U, Omg] = mysspace(this, iLoop, false); %#ok<ASGLU>
+        [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, iLoop, false); %#ok<ASGLU>
         [nx, nb] = size(T);
         nf = nx - nb;
         nUnit = sum(this.Variant{iLoop}.Stability==TYPE(1));

@@ -1,7 +1,7 @@
 function N = size(This)
 % SIZE  [Not a public function] Number of alternative parameterisations.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

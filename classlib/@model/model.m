@@ -123,7 +123,6 @@
 % * bn - Beveridge-Nelson trends.
 % * diffloglik - Approximate gradient and hessian of log-likelihood function.
 % * estimate - Estimate model parameters by optimising selected objective function.
-% * evalsystempriors - Evaluate minus log of system prior density.
 % * filter - Kalman smoother and estimator of out-of-likelihood parameters.
 % * fisher - Approximate Fisher information matrix in frequency domain.
 % * lognormal - Characteristics of log-normal distributions returned from filter of forecast.
@@ -236,6 +235,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
         varargout = alter(varargin)
         varargout = altName(varargin)
         varargout = assign(varargin)
+        varargout = assigned(varargin)
         varargout = autocaption(varargin)
         varargout = autoexog(varargin)
         varargout = autoexogenise(varargin)
@@ -251,7 +251,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
         varargout = eig(varargin)
         varargout = emptydb(varargin)        
         varargout = estimate(varargin)
-        varargout = evalsystempriors(varargin)
         varargout = expand(varargin)
         varargout = fevd(varargin)
         varargout = ffrf(varargin)
@@ -341,6 +340,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
         %varargout = saveobj(varargin)
         varargout = size(varargin)        
         varargout = sizeOfSolution(varargin)
+        varargout = sspaceMatrices(varargin)
         varargout = implementGet(varargin)
         varargout = implementSet(varargin)
         varargout = update(varargin)
@@ -386,7 +386,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
         varargout = myfind(varargin)
         varargout = myforecastswap(varargin)
         varargout = mysimulateper(varargin)
-        varargout = mysspace(varargin)
         varargout = operateLock(varargin)
         varargout = optimalPolicy(varargin)
         varargout = parseEstimStruct(varargin)

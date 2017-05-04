@@ -1,7 +1,7 @@
 function [obj, s] = ped(s, sn, opt)
 % ped  Prediction error decomposition and objective function evaluation.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

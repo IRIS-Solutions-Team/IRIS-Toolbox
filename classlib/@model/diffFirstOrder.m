@@ -1,7 +1,7 @@
 function [deriv, ixNanDeriv] = diffFirstOrder(this, eqSelect, iAlt, opt)
 % diffFirstOrder  Calculate first-order derivatives of equations.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

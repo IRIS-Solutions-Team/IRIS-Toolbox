@@ -1,7 +1,7 @@
 function [hLow, hHigh] = plotbounds(ax, low, high, y, opt)
 % plotbounds  Add lower and upper bounds to estimation diagnostics plots.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
