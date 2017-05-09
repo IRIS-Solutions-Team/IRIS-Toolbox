@@ -125,11 +125,11 @@ classdef systempriors < shared.UserDataContainer & shared.GetterSetter
             if length(varargin)==1 && isa(varargin{1}, 'model')
                 m = varargin{1};
                 this.Quantity = getp(m, 'Quantity');
-                ne = sum(this.Quantity.Type==TYPE(3));
+                ne = sum(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
                 if islinear(m)
-                    this.ShkSize = model.DEFAULT_STD_LINEAR;
+                    this.ShkSize = repmat(model.DEFAULT_STD_LINEAR, 1, ne);
                 else
-                    this.ShkSize = model.DEFAULT_STD_NONLINEAR;
+                    this.ShkSize = repmat(model.DEFAULT_STD_NONLINEAR, 1, ne);
                 end
                 this = defineSystemFunc(this, m);
             end
