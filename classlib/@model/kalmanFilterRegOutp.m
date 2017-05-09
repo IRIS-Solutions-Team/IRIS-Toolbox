@@ -27,7 +27,7 @@ startDate = xRange(1);
 F = [ ];
 if isfield(regOutp, 'F')
     F = TEMPLATE_SERIES;
-    F = replace(F, permute(regOutp.F, [3,1,2,4]), startDate);
+    F = replace(F, permute(regOutp.F, [3, 1, 2, 4]), startDate);
 end
 
 Pe = [ ];
@@ -35,7 +35,7 @@ if isfield(regOutp, 'Pe')
     Pe = struct( );
     for iName = find(ixy)
         name = this.Quantity.Name{iName};
-        data = permute(regOutp.Pe(iName,:,:), [2,3,1]);
+        data = permute(regOutp.Pe(iName, :, :), [2, 3, 1]);
         if this.Quantity.IxLog(iName)
             data = real(exp(data));
         end

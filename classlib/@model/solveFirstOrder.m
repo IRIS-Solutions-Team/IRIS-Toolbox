@@ -41,9 +41,8 @@ ixh = this.Equation.IxHash;
 nh = sum(ixh);
 nt = sum(ixt);
 
-ny = sum(ixy);
-ne = sum(ixe);
 [ny, nxi, nb, nf, ne] = sizeOfSolution(this.Vector);
+nz = nnz(this.Quantity.IxMeasure);
 kxi = length(this.Vector.System{2});
 kf = kxi - nb; % Fwl in system.
 ixFKeep = ~this.d2s.remove;
@@ -69,7 +68,6 @@ if opt.progress
 end
 
 for iAlt = vecAlt(:).'
-
     % Differentiate equations and set up unsolved system matrices; check
     % for NaN derivatives.
     [syst, nanDeriv{iAlt}] = systemFirstOrder(this, iAlt, opt);
@@ -143,8 +141,10 @@ for iAlt = vecAlt(:).'
                 continue;
             end
         end
-        % Transformed measurement matrices.
-        transformMeasurement( );
+        if ny>0
+            % Transformed measurement matrices.
+            transformMeasurement( );
+        end
         
         % Forward expansion of solution matrices
         %----------------------------------------
@@ -274,10 +274,10 @@ return
         
         
         
-        function Flag = applySevn2Patch( )
+        function flag = applySevn2Patch( )
             % Sum of two eigvals near to 2 may indicate inaccuracy.
             % Largest eigval less than 1.
-            Flag = false;
+            flag = false;
             eigval0 = invEigen;
             eigval0(abs(invEigen) >= 1-EIGEN_TOLERANCE) = 0;
             eigval0(imag(invEigen) ~= 0) = 0;
@@ -302,7 +302,7 @@ return
                 invEigen(above) = sign(invEigen(above));
                 TT(below, below) = sign(TT(below, below))*abs(SS(below, below));
                 TT(above, above) = sign(TT(above, above))*abs(SS(above, above));
-                Flag = true;
+                flag = true;
             end
         end
     end
@@ -310,8 +310,8 @@ return
     
 
     
-    function Flag = transitionEquations( )
-        Flag = true;
+    function flag = transitionEquations( )
+        flag = true;
         isHash = any(ixh);
         S11 = SS(1:nb, 1:nb);
         S12 = SS(1:nb, nb+1:end);
@@ -365,7 +365,7 @@ return
         % Singularity in the rotation matrix; something's wrong with the model
         % because this is supposed to be regular by construction.
         if rcond(U)<=SOLVE_TOLERANCE
-            Flag = false;
+            flag = false;
             return
         end
         
@@ -374,7 +374,7 @@ return
         if ~this.IsLinear
             ssA = U \ ssXb;
             if any(isnan(ssA(:)))
-                Flag = false;
+                flag = false;
                 return
             end
         end
@@ -383,20 +383,20 @@ return
         
         G = -Z21\Z22;
         if any(isnan(G(:)))
-            Flag = false;
+            flag = false;
             return
         end
         
         Ru = -T22\D2;
         if any(isnan(Ru(:)))
-            Flag = false;
+            flag = false;
             return
         end
         
         if isHash
             Yu = -T22\N2;
             if any(isnan(Yu(:)))
-                Flag = false;
+                flag = false;
                 return
             end
         end
@@ -407,7 +407,7 @@ return
             Ku = zeros(nf, 1);
         end
         if any(isnan(Ku(:)))
-            Flag = false;
+            flag = false;
             return
         end
         
@@ -416,32 +416,32 @@ return
         
         Ta = -S11\T11;
         if any(isnan(Ta(:)))
-            Flag = false;
+            flag = false;
             return
         end
         Xa0 = S11\(T11*G + T12);
         if any(isnan(Xa0(:)))
-            Flag = false;
+            flag = false;
             return
         end
         
         Ra = -Xa0*Ru - S11\D1;
         if any(isnan(Ra(:)))
-            Flag = false;
+            flag = false;
             return
         end
         
         if isHash
             Ya = -Xa0*Yu - S11\N1;
             if any(isnan(Ya(:)))
-                Flag = false;
+                flag = false;
                 return
             end
         end
         
         Xa1 = G + S11\S12;
         if any(isnan(Xa1(:)))
-            Flag = false;
+            flag = false;
             return
         end
         if this.IsLinear
@@ -450,7 +450,7 @@ return
             Ka = ssA(:, 2) - Ta*ssA(:, 1);
         end
         if any(isnan(Ka(:)))
-            Flag = false;
+            flag = false;
             return
         end
         
@@ -469,7 +469,7 @@ return
             Kf = ssXf(:, 2) - Tf*ssA(:, 1);
         end
         if any(isnan(Kf(:)))
-            Flag = false;
+            flag = false;
             return
         end
         
@@ -519,15 +519,26 @@ return
     
     
 
-    function Flag = measurementEquations( )
-        Flag = true;
+    function flag = measurementEquations( )
+        flag = true;
         % First, create untransformed measurement equation; the transformed
         % measurement matrix will be calculated later on.
         % y(t) = ZZ xb(t) + D + H e(t)
-        if ny>0
+        Zb = zeros(0, nb);
+        H = zeros(0, ne);
+        D = zeros(0, 1);
+        if nz>0
+            % Transition variables marked for measurement.
+            pos = find(this.Quantity.IxMeasure);
+            xbVector = this.Vector.Solution{2}(nf+1:end);
+            Zb = zeros(nz, nb);
+            ix = bsxfun(@eq, pos(:), xbVector);
+            Zb(ix) = 1;
+        elseif ny>0
+            % Measurement variables.
             Zb = -full(syst.A{1}\syst.B{1});
             if any(isnan(Zb(:)))
-                Flag = false;
+                flag = false;
                 % Find singularities in measurement equations and their culprits.
                 if rcond(full(syst.A{1}))<=SOLVE_TOLERANCE
                     s = size(syst.A{1}, 1);
@@ -540,7 +551,7 @@ return
             end
             H = -full(syst.A{1}\syst.E{1});
             if any(isnan(H(:)))
-                Flag = false;
+                flag = false;
                 return
             end
             if this.IsLinear
@@ -549,13 +560,9 @@ return
                 D = ssY - Zb*ssXb(:, 2);
             end
             if any(isnan(D(:)))
-                Flag = false;
+                flag = false;
                 return
             end
-        else
-            Zb = zeros(0, nb);
-            H = zeros(0, ne);
-            D = zeros(0, 1);
         end
         % This.solution{4}(:, :, iAlt) is assigned later on.
         this.solution{5}(:, :, iAlt) = H;
@@ -567,12 +574,12 @@ return
 
     
     function transformMeasurement( )
-        % Transform the Zb matrix to Z:
-        %     y = Zb*xb -> y = Z*alp
+        % Transform the Zb matrix to Za:
+        %     y = Zb*xb -> y = Za*alp
         Zb = this.solution{9}(:, :, iAlt);
         U = this.solution{7}(:, :, iAlt);
-        Z = Zb*U;
-        this.solution{4}(:, :, iAlt) = Z;
+        Za = Zb*U;
+        this.solution{4}(:, :, iAlt) = Za;
     end
 
     
@@ -587,7 +594,7 @@ return
             this.solution{2} = nan(nxi, ne*(nExpand+1), nAlt); % R
             this.solution{3} = nan(nxi, 1, nAlt); % K
             % Measurement matrices.
-            this.solution{4} = nan(ny, nb, nAlt); % Z
+            this.solution{4} = nan(ny, nb, nAlt); % Za
             this.solution{5} = nan(ny, ne, nAlt); % H
             this.solution{6} = nan(ny, 1, nAlt); % D
             % Transformation of the alpha vector.
@@ -595,7 +602,7 @@ return
             % Effect of nonlinearirities.
             this.solution{8} = nan(nxi, nh*(nExpand+1), nAlt); % Y
             % Auxiliary measurement matrix y = Zb*xb;
-            this.solution{9} = nan(ny, nb, nAlt); % Zb
+            this.solution{9} = nan(max(ny, nz), nb, nAlt); % Zb
         end
                     
         if opt.fast && opt.expand==0
@@ -654,7 +661,7 @@ return
             % Reset measurement properties.
             this.solution{5}(:, :, vecAlt) = nan(ny, ne, nVecAlt);
             this.solution{6}(:, :, vecAlt) = nan(ny, 1, nVecAlt);
-            this.solution{9}(:, :, vecAlt) = nan(ny, nb, nAlt);
+            this.solution{9}(:, :, vecAlt) = nan(max(ny, nz), nb, nAlt);
             for iiAlt = vecAlt
                 this.Variant{iiAlt} = ...
                     resetMeasurement(this.Variant{iiAlt}, this.Vector);

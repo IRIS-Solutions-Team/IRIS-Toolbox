@@ -1,4 +1,4 @@
-function [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this)
+function [ny, nxi, nb, nf, ne, ng, nz] = sizeOfSolution(this)
 % sizeOfSolution  Size of solution vectors.
 %
 % Backend IRIS function.
@@ -10,5 +10,8 @@ function [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this)
 %--------------------------------------------------------------------------
 
 [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
+if nargout>6
+    nz = nnz(this.Quantity.ixMeasure);
+end
 
 end

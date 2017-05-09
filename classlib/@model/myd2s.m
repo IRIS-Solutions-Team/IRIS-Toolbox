@@ -165,6 +165,10 @@ return
             end
             [~, ixMakeBkw] = userSelection2Index(this.Quantity, lsMakeBkw);
         end
+
+        % Add transition variables earmarked for measurement to the list of
+        % variables forced into the backward lookig vector.
+        ixMakeBkw = ixMakeBkw | this.Quantity.IxMeasure;
         
         % Reshape incidence matrix to nEqn-nxx-nsh.
         inc = this.Incidence.Dynamic.Matrix;

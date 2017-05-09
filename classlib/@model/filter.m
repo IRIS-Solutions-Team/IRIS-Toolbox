@@ -7,7 +7,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [M,Outp,V,Delta,PE,SCov] = filter(M,Inp,Range,~J,...)
+%     [M, Outp, V, Delta, PE, SCov] = filter(M, Inp, Range, ~J, ...)
 %
 %
 % Input arguments
@@ -203,7 +203,7 @@ isOutpData = nargout>1;
 
 % Get measurement and exogenous variables.
 inp = datarequest('yg*', this, inp, range);
-nData = size(inp,3);
+nData = size(inp, 3);
 nAlt = length(this);
 
 % Check option conflicts.
@@ -212,11 +212,12 @@ chkConflicts( );
 %--------------------------------------------------------------------------
 
 [ny, ~, nb] = sizeOfSolution(this.Vector);
+nz = nnz(this.Quantity.IxMeasure);
 xRange = range(1)-1 : range(end);
 nXPer = length(xRange);
 
 % Throw a warning if some of the data sets have no observations.
-ixNanData = all( all(isnan(inp),1), 2 );
+ixNanData = all( all(isnan(inp), 1), 2 );
 if any(ixNanData)
     throw( ...
         exception.Base('Model:NoMeasurementData', 'warning'), ...
@@ -272,7 +273,7 @@ return
         isSmooth = ~isempty(strfind(lowerOutput, 'smooth'));
         nLoop = max(nData, nAlt);
         nPred = max(nLoop, likOpt.ahead);
-        nCont = ny;
+        nCont = max(ny, nz);
         if isOutpData
             
             % Prediction step

@@ -99,7 +99,8 @@ return
 
 
     function preallocSolution( )
-        [ny, ~, nb, nf, ne] = sizeOfSolution(this.Vector);
+        [ny, ~, nb, nf, ne, ~] = sizeOfSolution(this.Vector);
+        nz = nnz(this.Quantity.IxMeasure);
         [~, ~, ~, kf] = sizeOfSystem(this.Vector);
         
         this.solution{1} = nan(nf+nb, nb, nAlt); % T
@@ -110,7 +111,7 @@ return
         this.solution{6} = nan(ny, 1, nAlt); % D
         this.solution{7} = nan(nb, nb, nAlt); % U
         this.solution{8} = nan(nf+nb, nh, nAlt); % Y - nonlin addfactors.
-        this.solution{9} = nan(ny, nb, nAlt); % ZZ - Untransformed measurement.
+        this.solution{9} = nan(max(ny, nz), nb, nAlt); % Zb - Untransformed measurement.
         
         this.Expand{1} = nan(nb, kf, nAlt); % Xa
         this.Expand{2} = nan(nf, kf, nAlt); % Xf

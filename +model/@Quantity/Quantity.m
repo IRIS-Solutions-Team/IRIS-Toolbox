@@ -6,6 +6,7 @@ classdef Quantity < model.Insertable
         Alias = cell(1, 0) % LaTeX representation of quantity name or description.
         IxLog = false(1, 0) % True for log variables.
         IxLagrange = false(1, 0) % True for Lagrange multipliers in optimal policy models.
+        IxMeasure = false(1, 0) % True for transition variables earmarked for measurement and forced into the backward looking vector.
         Bounds = zeros(4, 0) % Lower and upper bounds on level and growth.
     end
 

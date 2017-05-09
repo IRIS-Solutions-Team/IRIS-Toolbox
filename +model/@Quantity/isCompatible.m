@@ -11,5 +11,4 @@ function flag = isCompatible(q1, q2)
 
 flag = isequal(q1.Name, q2.Name) && isequal(q1.Type, q2.Type);
 
-
 end
