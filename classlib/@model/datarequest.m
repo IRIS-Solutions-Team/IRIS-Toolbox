@@ -73,7 +73,7 @@ switch lower(req)
             varargout{2} = xbInitMean;
             varargout{3} = lsNanInitMean;
         else
-            [xbInitMean, ixNanInitMean, xbInitMse, ixNanInitMse] = assembleXbInit( );
+            [xbInitMean, lsNanInitMean, xbInitMse, lsNanInitMse] = assembleXbInit( );
             [alpInitMean, alpInitMse] = convertXbInit2AlpInit( );
             varargout{1} = alpInitMean;
             varargout{2} = xbInitMean;
@@ -194,7 +194,7 @@ return
         lsNanInitMse = { };
         if any(ixNanInitMse)
             id = this.Vector.Solution{2}(nf+1:end);
-            ixNanInitMse = printSolutionVector(this, id(ixNanInitMse)-1i);
+            lsNanInitMse = printSolutionVector(this, id(ixNanInitMse)-1i);
         end
     end 
 
