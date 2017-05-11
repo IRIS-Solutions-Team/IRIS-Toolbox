@@ -355,7 +355,7 @@ return
                 || s.retFilterMse || s.retSmoothMse
             s.Pb0(:, :, t) = kalman.pa2pb(s.U, P);
             s.Dy0(:, t) = diag(s.F(:, :, t));
-            if nf > 0
+            if nf>0
                 s.Df0(:, t) = diag(Pf0);
             end
             s.Db0(:, t) = diag(s.Pb0(:, :, t));

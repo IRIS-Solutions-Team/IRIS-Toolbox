@@ -244,7 +244,7 @@ for iLoop = 1 : nLoop
     
     % Index of available observations.
     s.yindex = ~isnan(s.y1);
-    s.lastObs = max( 0, find( any(s.yindex, 1), 1, 'last' ) );
+    s.LastObs = max([ 0, find( any(s.yindex, 1), 1, 'last' ) ]);
     s.jyeq = [false, all(s.yindex(:, 2:end)==s.yindex(:, 1:end-1), 1) ];
     
     % Initialize
@@ -746,7 +746,7 @@ nf = size(S.Tf, 1);
 ne = size(S.Ra, 2);
 nPer = size(S.y1, 2);
 yInx = S.yindex;
-lastObs = S.lastObs;
+lastObs = S.LastObs;
 
 % Pre-allocation. Re-use first page of prediction data. Prediction data
 % can have multiple pages if `ahead`>1.
@@ -790,7 +790,7 @@ nf = size(S.Tf, 1);
 nb = size(S.Ta, 1);
 ng = size(S.g, 1);
 nPer = size(S.y1, 2);
-lastObs = S.lastObs;
+lastObs = S.LastObs;
 
 % Pre-allocation.
 if S.retFilterMse
@@ -834,7 +834,7 @@ nb = size(S.Ta, 1);
 ng = size(S.g, 1);
 nPer = size(S.y1, 2);
 lastSmooth = S.lastSmooth;
-lastObs = S.lastObs;
+lastObs = S.LastObs;
 
 % Pre-allocation.
 if S.retSmoothMse
@@ -875,7 +875,7 @@ nb = size(S.Ta, 1);
 nf = size(S.Tf, 1);
 ne = size(S.Ra, 2);
 nPer = size(S.y1, 2);
-lastObs = S.lastObs;
+lastObs = S.LastObs;
 lastSmooth = S.lastSmooth;
 
 % Pre-allocation. Re-use first page of prediction data. Prediction data
