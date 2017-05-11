@@ -1,7 +1,7 @@
 function Y = myeval(This,varargin)
 % myeval  [Not a public function] Numerically evaluate sydney.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

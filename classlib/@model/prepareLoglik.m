@@ -23,22 +23,27 @@ end
 
 %--------------------------------------------------------------------------
 
-[ny, ~, nb] = sizeOfSolution(this.Vector);
+[ny, ~, nb, nf] = sizeOfSolution(this.Vector);
+nz = nnz(this.Quantity.IxMeasure);
 nPer = length(range);
 
 % Conditioning measurement variables.
-if likOpt.domain=='t'
-    [~, likOpt.condition] = userSelection2Index( ...
-        this.Quantity, ...
-        likOpt.condition, ...
-        TYPE(1) ...
-        );
-elseif likOpt.domain=='f'
-    [~, likOpt.exclude] = userSelection2Index( ...
-        this.Quantity, ...
-        likOpt.exclude, ...
-        TYPE(1) ...
-        );
+if nz>0
+    likOpt.condition = false(1, nz);
+else
+    if likOpt.domain=='t'
+        [~, likOpt.condition] = userSelection2Index( ...
+            this.Quantity, ...
+            likOpt.condition, ...
+            TYPE(1) ...
+            );
+    elseif likOpt.domain=='f'
+        [~, likOpt.exclude] = userSelection2Index( ...
+            this.Quantity, ...
+            likOpt.exclude, ...
+            TYPE(1) ...
+            );
+    end
 end
 
 % Out-of-lik parameters.
@@ -133,26 +138,26 @@ if likOpt.domain=='t'
     end
 end
 
-% User-supplied initial conditions.
+% Initialize Kalman filter.
 if likOpt.domain=='t'
-    if isstruct(likOpt.initcond)
-        [xbInitMean, isNanInitMean, xbInitMse, isNanInitMse] = ...
-            datarequest('xbInit', this,likOpt.initcond, range);
+    if isstruct(likOpt.Init)
+        [xbInitMean, lsNanInitMean, xbInitMse, lsNanInitMse] = ...
+            datarequest('xbInit', this,likOpt.Init, range);
         if isempty(xbInitMse)
             nData = size(xbInitMean, 3);
             xbInitMse = zeros(nb, nb, nData);
         end
         chkNanInit( );
-        likOpt.initcond = {xbInitMean, xbInitMse};
+        likOpt.Init = {xbInitMean, xbInitMse};
     end
     % Initial mean for unit root elements of Alpha.
-%     if isstruct(likOpt.InitMeanUnit)
-%         [xbInitMean, isNanInitMean] = ...
-%             datarequest('xbInit', this, likOpt.InitMeanUnit, range);
-%         isNanInitMse = [ ];
-%         chkNanInit( );
-%         likOpt.initmeanunit = xbInitMean;
-%     end
+    if isstruct(likOpt.InitUnitRoot)
+        [xbInitMean, lsNanInitMean] = ...
+            datarequest('xbInit', this, likOpt.InitUnitRoot, range);
+        lsNanInitMse = { };
+        chkNanInit( );
+        likOpt.InitUnitRoot = xbInitMean;
+    end
 end
 
 % Last backward smoothing period. The option  lastsmooth will not be
@@ -178,15 +183,15 @@ return
 
 
     function chkNanInit( )
-        if ~isempty(isNanInitMean)
+        if ~isempty(lsNanInitMean)
             utils.error('model:prepareLoglik', ...
                 'This mean initial condition is not available: %s ', ...
-                isNanInitMean{:});
+                lsNanInitMean{:});
         end
-        if ~isempty(isNanInitMse)
+        if ~isempty(lsNanInitMse)
             utils.error('model:prepareLoglik', ...
                 'This MSE initial condition is not available: %s ', ...
-                isNanInitMse{:});
+                lsNanInitMse{:});
         end        
     end
 end

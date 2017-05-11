@@ -95,7 +95,7 @@ for iAlt = 1 : nAlt
         continue
     end
     
-    [T, R, K, Z, H, D, Za, Omg] = mysspace(this, iAlt, false);
+    [T, R, K, Z, H, D, Za, Omg] = sspaceMatrices(this, iAlt, false);
     
     % Continue immediately if solution is not available.
     ixSolved(iAlt) = all(~isnan(T(:)));

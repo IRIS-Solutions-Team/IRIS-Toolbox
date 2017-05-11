@@ -19,7 +19,7 @@ classdef Quantity < parser.theparser.Generic
     
     
     methods
-        function [quantity, equation] = parse(this, the, code, quantity, equation, ~, ~, opt)
+        function [qty, eqn] = parse(this, the, code, qty, eqn, ~, ~, opt)
             import parser.White;
             BR = sprintf('\n');
             
@@ -29,6 +29,7 @@ classdef Quantity < parser.theparser.Generic
             NAME_PATTERN = [ ...
                 '(("[ ]*"|''[ ]*'')?)\s*', ... % Label.
                 '([a-zA-Z]\w*)', ... % Name.
+                '(@?)', ... % Include in bwl vector.
                 '((\[[^\]]*\]){0,2})', ... % Bounds [LoLevel,HiLevel] or [LoLevel,HiLevel][LoGrowth,HiGrowth]
                 '\s*((=[^;,\n]+[;,\n])?)', ... % =Value.
                 ];
@@ -66,15 +67,16 @@ classdef Quantity < parser.theparser.Generic
             nQuan = length(tknExt);
             label = cell(1, nQuan);
             name = cell(1, nQuan);
+            ixMeasure = false(1, nQuan);
             strBounds = cell(1, nQuan);
             strAssigned = cell(1, nQuan);
             for i = 1 : nQuan
                 label{i} = code( tknExt{i}(1,1)+1 : tknExt{i}(1,2)-1 );
                 name{i}  = code( tknExt{i}(2,1) : tknExt{i}(2,2)   );
-                strBounds{i} = code( tknExt{i}(3,1) : tknExt{i}(3,2) );
-                strAssigned{i} = code( tknExt{i}(4,1)+1 : tknExt{i}(4,2) );
+                ixMeasure(i) = tknExt{i}(3,1)<=tknExt{i}(3,2);
+                strBounds{i} = code( tknExt{i}(4,1) : tknExt{i}(4,2) );
+                strAssigned{i} = code( tknExt{i}(5,1)+1 : tknExt{i}(5,2) );
             end
-            
             name = strtrim(name);
             label = strtrim(label);
             strAssigned = strtrim(strAssigned);
@@ -92,6 +94,7 @@ classdef Quantity < parser.theparser.Generic
                     posUnique = sort(posUnique);
                     posUnique = posUnique(:).';
                     name = name(posUnique);
+                    ixMeasure = ixMeasure(posUnique);
                     label = label(posUnique);
                     strAssigned = strAssigned(posUnique);
                     strBounds = strBounds(posUnique);
@@ -124,14 +127,15 @@ classdef Quantity < parser.theparser.Generic
             bounds = this.evalBounds(strBounds);
             [label, alias] = this.splitLabelAlias(label);
             
-            quantity.Name(end+(1:nQuan)) = name;
-            quantity.Type(end+(1:nQuan)) = repmat(this.Type, 1, nQuan);
-            quantity.Label(end+(1:nQuan)) = label;
-            quantity.Alias(end+(1:nQuan)) = alias;
-            quantity.Bounds(:, end+(1:nQuan)) = bounds;
+            qty.Name(end+(1:nQuan)) = name;
+            qty.IxMeasure(end+(1:nQuan)) = ixMeasure;
+            qty.Type(end+(1:nQuan)) = repmat(this.Type, 1, nQuan);
+            qty.Label(end+(1:nQuan)) = label;
+            qty.Alias(end+(1:nQuan)) = alias;
+            qty.Bounds(:, end+(1:nQuan)) = bounds;
             
-            quantity.IxLog(end+(1:nQuan)) = repmat(this.IsLog, 1, nQuan);
-            quantity.IxLagrange(end+(1:nQuan)) = repmat(this.IsLagrange, 1, nQuan);
+            qty.IxLog(end+(1:nQuan)) = repmat(this.IsLog, 1, nQuan);
+            qty.IxLagrange(end+(1:nQuan)) = repmat(this.IsLagrange, 1, nQuan);
             
             the.StrAssigned = [the.StrAssigned, strAssigned];
         end

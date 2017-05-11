@@ -109,7 +109,8 @@ if isnumeric(b) ...
             );
     else
         this.Variant = model.Variant.assignStdCorr( ...
-            this.Variant, posStdCorr, ':', b ...
+            this.Variant, posStdCorr, ':', b, ...
+            this.Quantity.IxStdCorrAllowed ...
             );
     end
     return
@@ -120,7 +121,6 @@ s = alterSubs(s, nAlt);
 
 % Regular assignment
 %--------------------
-
 % this(ix) = b
 % RHS must be model or empty.
 

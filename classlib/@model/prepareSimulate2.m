@@ -1,7 +1,7 @@
 function s = prepareSimulate2(this, s, iAlt)
 % prepareSimulate2  Prepare i-th simulation round.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

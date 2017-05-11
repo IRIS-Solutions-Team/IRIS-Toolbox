@@ -1,7 +1,7 @@
 function X = mypct(X,S,Q)
 % mypct  [Not a public function] Percent rate of change.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

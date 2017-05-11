@@ -1,7 +1,7 @@
 function posh = find(this, eqtnRequest, quanRequest)
 % find  Find quantities and their lags/leads in one equation.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

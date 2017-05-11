@@ -5,8 +5,8 @@ function this = prior(this, def, priorFunc, varargin)
 % Syntax
 % =======
 %
-%     S = prior(S,Expr,PriorFn,...)
-%     S = prior(S,Expr,[ ],...)
+%     S = prior(S, Expr, PriorFn, ...)
+%     S = prior(S, Expr, [ ], ...)
 %
 %
 % Input arguments
@@ -31,9 +31,9 @@ function this = prior(this, def, priorFunc, varargin)
 % Options
 % ========
 %
-% * `'lowerBound='` [ numeric | *`-Inf`* ] - Lower bound for the prior.
+% * `'LowerBound='` [ numeric | *`-Inf`* ] - Lower bound for the prior.
 %
-% * `'upperBound='` [ numeric | *`Inf`* ] - Upper bound for the prior.
+% * `'UpperBound='` [ numeric | *`Inf`* ] - Upper bound for the prior.
 %
 %
 % Description
@@ -42,23 +42,23 @@ function this = prior(this, def, priorFunc, varargin)
 % System properties that can be used in `Expr`
 % ---------------------------------------------
 %
-% * `srf[VarName,ShockName,T]` - Plain shock response function of variables
+% * `srf[VarName, ShockName, T]` - Plain shock response function of variables
 % `VarName` to shock `ShockName` in period `T`. Mind the square brackets.
 %
-% * `ffrf[VarName,MVarName,Freq]` - Filter frequency response function of
+% * `ffrf[VarName, MVarName, Freq]` - Filter frequency response function of
 % transition variables `TVarName` to measurement variable `MVarName` at
 % frequency `Freq`. Mind the square brackets.
 %
-% * `corr[VarName1,VarName2,Lag]` - Correlation between variable
+% * `corr[VarName1, VarName2, Lag]` - Correlation between variable
 % `VarName1` and variables `VarName2` lagged by `Lag` periods.
 %
-% * `spd[VarName1,VarName2,Freq]` - Spectral density between
+% * `spd[VarName1, VarName2, Freq]` - Spectral density between
 % variables `VarName1` and `VarName2` at frequency `Freq`.
 %
-% If a variable is declared as a [`log variable`](modellang/logvariables),
+% If a variable is declared as a [`log variable`](modellang/logvariables), 
 % it must be referred to as `log(VarName)` in the above expressions, and
 % the log of that variables is returned, e.g.
-% `srf[log(VarName),ShockName,T]`. or `ffrf[log(TVarName),MVarName,T]`.
+% `srf[log(VarName), ShockName, T]`. or `ffrf[log(TVarName), MVarName, T]`.
 %
 % Expressions involving combinations or functions of parameters
 % --------------------------------------------------------------
@@ -79,7 +79,7 @@ function this = prior(this, def, priorFunc, varargin)
 % shock `eps` in period 4. The prior density is lognormal with mean 0.3 and
 % std deviation 0.05;
 %
-%     s = prior(s,'-srf[ygap,eps,4]',logdist.lognormal(0.3,0.05));
+%     s = prior(s, '-srf[ygap, eps, 4]', logdist.lognormal(0.3, 0.05));
 %
 % Add a prior on the gain of the frequency response function of transition
 % variable `ygap` to measurement variable 'y' at frequency `2*pi/40`. The
@@ -87,14 +87,14 @@ function this = prior(this, def, priorFunc, varargin)
 % says that we wish to keep the cut-off periodicity for trend-cycle
 % decomposition close to 40 periods.
 %
-%     s = prior(s,'abs(ffrf[ygap,y,2*pi/40])',logdist.normal(0.5,0.01));
+%     s = prior(s, 'abs(ffrf[ygap, y, 2*pi/40])', logdist.normal(0.5, 0.01));
 %
 % Add a prior on the sum of parameters `alpha1` and `alpha2`. The prior is
 % normal with mean 0.9 and std deviation 0.1, but the sum is forced to be
 % between 0 and 1 by imposing lower and upper bounds.
 %
-%     s = prior(s,'.alpha1 + .alpha2',logdist.normal(0.9,0.1), ...
-%         'lowerBound=',0,'upperBound=',1);
+%     s = prior(s, '.alpha1 + .alpha2', logdist.normal(0.9, 0.1), ...
+%         'lowerBound=', 0, 'upperBound=', 1);
 %
 % Add a prior saying that the first 16 periods account for at least 90% of
 % total variability (cyclicality) in a 40-period response of `ygap` to
@@ -102,8 +102,8 @@ function this = prior(this, def, priorFunc, varargin)
 % response functions.
 %
 %     s = prior(s, ...
-%        'sum(abs(srf[ygap,eps,1:16])) / sum(abs(srf[ygap,eps,1:40]))', ...
-%        [ ],'lowerBound=',0.9);
+%        'sum(abs(srf[ygap, eps, 1:16])) / sum(abs(srf[ygap, eps, 1:40]))', ...
+%        [ ], 'lowerBound=', 0.9);
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -119,6 +119,11 @@ opt = passvalopt('systempriors.prior', varargin{:});
 
 %--------------------------------------------------------------------------
 
+% Remove all blank space; this may not be, in theory, proper as the user
+% moight have specified a string with blank spaces inside the definition
+% string, but this case is quite unlikely, and we make sure to explain this
+% in the help.
+def = regexprep(def, '\s+', '');
 inpDef = def;
 
 % Parse system function names.
@@ -128,22 +133,27 @@ inpDef = def;
 def = parseNames(this, def);
 
 try
-    % ##### MOSW
-    this.Eval{end+1} = mosw.str2func( ...
-        ['@(srf,ffrf,cov,corr,pws,spd,Assign,stdcorr) ', def]);
+    this.Eval{end+1} = str2func( ...
+        ['@(srf, ffrf, cov, corr, pws, spd, Quantity, StdCorr) ', def] ...
+        );
 catch %#ok<CTCH>
-    throw( exception.Base('SystemPriors:ERROR_PARSING_DEFINITION', 'error'), inpDef );
+    throw( ...
+        exception.Base('SystemPriors:ERROR_PARSING_DEFINITION', 'error'), ...
+        inpDef ...
+    );
 end
 
 this.PriorFn{end+1} = priorFunc;
 
 this.UserString{end+1} = inpDef;
 
-this.LowerBnd(end+1) = opt.lowerbound;
-this.UpperBnd(end+1) = opt.upperbound;
-if this.LowerBnd(end)>=this.UpperBnd(end)
-    throw( exception.Base('SystemPriors:LOWER_UPPER_BOUND', 'error'), ...
-        this.lowerBound(end), this.upperBound(end)); %#ok<GTARG>
+% Set and verify lower and upper bounds.
+this.Bounds(:, end+1) = [opt.lowerbound; opt.upperbound];
+if this.Bounds(1, end)>=this.Bounds(2, end)
+    throw( ...
+        exception.Base('SystemPriors:LOWER_UPPER_BOUND', 'error'), ...
+        this.Bounds(1, end), this.Bounds(2, end) ...
+    ); %#ok<GTARG>
 end
 
 end
@@ -158,39 +168,34 @@ function [this, def] = parseSystemFunctions(this, def)
 % FFRF frequencies, (iii) ACF lags, and (iv) XSF frequencies that need to be
 % computed.
 
-% Remove all blank space; this may not be, in theory, proper as the user
-% moight have specified a string with blank spaces inside the definition
-% string, but this case is quite unlikely, and we make sure to explain this
-% in the help.
-def = regexprep(def, '\s+', '');
-
-%allFunc = fieldnames(This.SystemFn);
-%allFunc = sprintf('%s|',allFunc{:});
-%allFunc(end) = '';
+temp = fieldnames(this.SystemFn);
+ptn = sprintf('%s|', temp{:});
+ptn = ['\<(', ptn(1:end-1), ')\['];
 
 while true
-    % The system function names `srf`, `ffrf`, `cov`, `corr`, `pws`,
+    % The system function names `srf`, `ffrf`, `cov`, `corr`, `pws`, 
     % `spd` are case insensitive.
-    [start, open] = regexpi(def, '\<([a-zA-Z]+)\>\[', 'start', 'end', 'once');
+    [start, open] = regexpi(def, ptn, 'start', 'end', 'once');
     if isempty(open)
         break
     end
-    close = textfun.matchbrk(def,open);
+    close = textfun.matchbrk(def, open);
     if isempty(close)
         throw( exception.Base('SystemPriors:ERROR_PARSING_DEFINITION', 'error'), ...
             def(start:end) );
     end
     funcName = def(start:open-1);
+    funcName = lower(funcName);
     funcArgs = def(open+1:close-1);
     if ~isfield(this.SystemFn, funcName)
         throw( exception.Base('SystemPriors:INVALID_PRIOR_FUNCTION', 'error'), funcName );
     end
-    [this, replace, isError] = replaceSystemFunc(this, funcName, funcArgs);
+    [this, rpl, isError] = replaceSystemFunc(this, funcName, funcArgs);
     if isError
         throw( exception.Base('SystemPriors:ERROR_PARSING_DEFINITION', 'error'), ...
             def(start:close) );
     end
-    def = [def(1:start-1), replace, def(close+1:end)];
+    def = [def(1:start-1), rpl, def(close+1:end)];
 end
 
 end
@@ -239,7 +244,7 @@ try
             addPage( );
         end
         if ~isempty(pagePosString)
-            pagePosString = [pagePosString, ',']; %#ok<AGROW>
+            pagePosString = [pagePosString, ', ']; %#ok<AGROW>
         end
         pagePosString = [pagePosString, sprintf('%g', pagePos)]; %#ok<AGROW>
     end
@@ -247,7 +252,7 @@ try
         pagePosString = ['[', pagePosString, ']'];
     end
     
-    c = sprintf('%s(%g,%g,%s)', funcName, posRow, posCol, pagePosString);
+    c = sprintf('%s(%g, %g, %s)', funcName, posRow, posCol, pagePosString);
     
     % Update the system function struct.
     this.SystemFn.(funcName) = s; 
@@ -336,10 +341,10 @@ return
         ell = lookup(this.Quantity, {c0});
         posName = ell.PosName;
         posStdCorr = ell.PosStdCorr;
-        if ~isnan(posName)
-            c1 = sprintf('Assign(1,%g)', posName);
-        elseif ~isnan(posStdCorr)
-            c1 = sprintf('stdcorr(1,%g)', posStdCorr);
+        if ~isnan(ell.PosName)
+            c1 = sprintf('Quantity(1, %g)', ell.PosName);
+        elseif ~isnan(ell.PosStdCorr)
+            c1 = sprintf('StdCorr(1, %g)', ell.PosStdCorr);
         else
             lsInvalid{end+1} = c0;
         end

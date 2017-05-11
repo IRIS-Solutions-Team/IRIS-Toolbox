@@ -78,7 +78,7 @@ opt = passvalopt('model.sspace', varargin{:});
 
 %--------------------------------------------------------------------------
 
-[T, R, K, Z, H, D, U, Omg, Zb] = mysspace(this, ':', true);
+[T, R, K, Z, H, D, U, Omg, Zb] = sspaceMatrices(this, ':', true);
 [~, nxx, ~, nf, ne] = sizeOfSolution(this.Vector);
 nAlt = length(this);
 

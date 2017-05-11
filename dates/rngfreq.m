@@ -1,7 +1,7 @@
 function Freq = rngfreq(Range)
 % rngfreq  [Not a public function] Date frequency of a date range.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

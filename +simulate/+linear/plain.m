@@ -1,7 +1,7 @@
 function [Y, XX, W] = plain(S, isDeviation, A0, Ea, Eu, nPer, V)
 % simulate.linear.plain  [Not a public function] Plain linear simulation.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

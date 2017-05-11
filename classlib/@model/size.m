@@ -1,7 +1,7 @@
 function varargout = size(this)
 % size  Number of alternative parameterisations in model object
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

@@ -137,6 +137,7 @@ return
         add.Alias = {''};
         add.IxLog = false;
         add.IxLagrange = false;
+        add.IxMeasure = false;
         add.Bounds = qty.DEFAULT_BOUNDS;
         qty = insert(qty, add, TYPE(5), 'last');
     end

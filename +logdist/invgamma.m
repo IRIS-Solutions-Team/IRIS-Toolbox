@@ -1,5 +1,5 @@
 function fn = invgamma(mean_, std_, a, b)
-% invgamma  Create function proportional to log of inv-gamma distribution.
+% invgamma  Create function proportional to log of square-root-inverse-gamma distribution.
 %
 % Syntax
 % =======
@@ -11,20 +11,20 @@ function fn = invgamma(mean_, std_, a, b)
 % Input arguments
 % ================
 %
-% * `mean` [ numeric ] - Mean of the inv-gamma distribution.
+% * `mean` [ numeric ] - Mean of the square-root-inverse-gamma distribution.
 %
-% * `stdev` [ numeric ] - Stdev of the inv-gamma distribution.
+% * `stdev` [ numeric ] - Stdev of the square-root-inverse-gamma distribution.
 %
-% * `a` [ numeric ] - Parameter alpha defining inv-gamma distribution.
+% * `a` [ numeric ] - Parameter alpha defining square-root-inverse-gamma distribution.
 %
-% * 'b` [ numeric ] - Parameter beta defining inv-gamma distribution.
+% * 'b` [ numeric ] - Parameter beta defining square-root-inverse-gamma distribution.
 %
 %
 % Output arguments
 % =================
 %
 % * `fn` [ function_handle ] - Function handle returning a value
-% proportional to the log of the inv-gamma density.
+% proportional to the log of the square-root-inverse-gamma density.
 %
 %
 % Description
@@ -44,21 +44,20 @@ function fn = invgamma(mean_, std_, a, b)
 %--------------------------------------------------------------------------
 
 if isequaln(mean_, NaN) && isequaln(std_, NaN)
+    mean_ = sqrt(b)*exp(gammaln(a-.5)-gammaln(a));
     if a>1
-        mean_ = b/(a - 1);
+        std_ = sqrt(b/(a-1)-mean_^2);
     else
-        mean_ = NaN;
-    end
-    if a>2
-        std_ = mean_/sqrt(a - 2);
-    else
-        std_ = NaN;
+        std_ = Inf;
     end 
+elseif isinf(std_)
+    a = 1;
+    b = mean_^2/pi;
 else
-    a = 2 + (mean_/std_)^2;
-    b = mean_*(1 + (mean_/std_)^2);
+    a = fzero(@(x) gammaln(x)-gammaln(x-.5)-log((x-1)*(1+(std_/mean_)^2))/2,[1+eps 1e3]);
+    b = (a-1)*(mean_^2+std_^2);
 end
-mode_ = b/(a + 1);
+mode_ = sqrt((a-.5)/b);
 fn = @(x,varargin) fnInvGamma(x, a, b, mean_, std_, mode_, varargin{:});
 
 end
@@ -71,17 +70,17 @@ y = zeros(size(x));
 ix = x>0;
 x = x(ix);
 if isempty(varargin)
-    y(ix) = (-a-1)*log(x) - b./x;
+    y(ix) = (-2*a-1)*log(x) - b./x.^2 + log(2) - gammaln(a) + a*log(b);
     y(~ix) = -Inf;
     return
 end
 switch lower(varargin{1})
     case {'proper', 'pdf'}
-        y(ix) = b^a/gamma(a)*(1./x).^(a+1).*exp(-b./x);
+        y(ix) = 2*b^a/gamma(a)*x.^(-2*a-1).*exp(-b./x.^2);
     case 'info'
-        y(ix) = (2*b - x*(a + 1))./x.^3;
+        y(ix) = (6*b - x.^2*(2*a + 1))./x.^4;
         y(~ix) = NaN;
-    case {'a', 'location'}
+    case {'a', 'shape'}
         y = a;
     case {'b', 'scale'}
         y = b;
@@ -94,7 +93,7 @@ switch lower(varargin{1})
     case 'name'
         y = 'invgamma';
     case {'rand', 'draw'}
-        y = 1./gamrnd(a, 1/b, varargin{2:end});
+        y = 1./sqrt(gamrnd(a, 1/b, varargin{2:end}));
     case 'lower'
         y = 0;
     case 'upper'

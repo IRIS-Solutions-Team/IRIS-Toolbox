@@ -263,25 +263,32 @@ for i = 1 : length(q)
         nSeries = length(ch.eval);
         
         if isempty(opt.SubDatabase)
-            series = cell(1, nSeries);
-            [series{:}] = dbeval(d, opt.sstate, ch.eval{:});
+            % Allow for an array of structs, [d1, d2, d3]. Evaluate
+            % expressions first within individual structs, apply
+            % transformations, and only then combine all series.
+            ndb = length(d);
+            series = cell(ndb, nSeries);
+            for k = 1 : ndb
+                [series{k, :}] = dbeval(d(k), opt.sstate, ch.eval{:});
+            end
         else
+            % Evaluate expressions in a given list of sub-databases, apply
+            % transformations, and only then combine all series.
             lsSub = opt.SubDatabase;
             if ischar(lsSub)
                 lsSub = regexp(lsSub, '\w+', 'match');
             else
                 lsSub = regexp(lsSub, '\w+', 'match', 'once');
             end
-            series = cell(1, 0);
-            for k = 1 : numel(lsSub)
-                x = cell(1, nSeries);
-                [x{:}] = dbeval(d.(lsSub{k}), opt.sstate, ch.eval{:});
-                series = [series, x]; %#ok<AGROW>
+            ndb = numel(lsSub);
+            series = cell(ndb, nSeries);
+            for k = 1 : ndb
+                [series{k, :}] = dbeval(d.(lsSub{k}), opt.sstate, ch.eval{:});
             end
         end
                 
         if ch.isTransform
-            for k = 1 : nSeries
+            for k = 1 : numel(series)
                 % First, calculate deviations, then apply a tranformation function.
                 if isnumericscalar(opt.deviationfrom)
                     t = opt.deviationfrom;
@@ -299,9 +306,17 @@ for i = 1 : length(q)
             end
         end
         if isRound
-            for k = 1 : nSeries
+            for k = 1 : numel(series)
                 series{k} = round(series{k}, opt.round);
             end
+        end
+        if size(series, 1)>1
+            temp = series;
+            series = cell(1, size(temp, 2));
+            for k = 1 : nSeries
+                series{1, k} = horzcat(temp{:, k});
+            end
+            clear temp;
         end
         q{i}.children{j}.series = series;
     end

@@ -48,7 +48,7 @@ Phi = nan(ny+nxx, nRun, nPer+1, nAlt);
 
 ixSolved = true(1, nAlt);
 for iAlt = 1 : nAlt
-    [T,R,K,Z,H,D,U] = mysspace(this,iAlt,false); %#ok<ASGLU>
+    [T,R,K,Z,H,D,U] = sspaceMatrices(this,iAlt,false); %#ok<ASGLU>
     
     % Continue immediately if solution is not available.
     ixSolved(iAlt) = all(~isnan(T(:)));

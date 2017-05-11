@@ -1,7 +1,7 @@
 function M = multipliers(S,YXAnch)
 % multipliers  [Not a public function] Compute anticipated or unanticipated multipliers.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

@@ -46,12 +46,12 @@ function outp = jforecast(this, inp, range, varargin)
 % * `'MeanOnly='` [ `true` | *`false`* ] - Return only mean data, i.e. point
 % estimates.
 %
-% * `'Plan='` [ Scenario ] - Scenario specifying exogenized variables,
+% * `'Plan='` [ Plan ] - Forecast plan specifying exogenized variables,
 % endogenized shocks, and conditioning variables.
 %
-% * `'StdScale='` [ *1* | `'half'` | numeric | complex ] - Scale standard
-% deviations of shocks by this factor; if `StdScale=` is a complex number,
-% stdevs for anticipated and unanticipated shocks will be scaled
+% * `'StdScale='` [ *1* | `'normalize'` | numeric | complex ] - Scale
+% standard deviations of shocks by this factor; if `StdScale=` is a complex
+% number, stdevs for anticipated and unanticipated shocks will be scaled
 % differently. See Description/Std Deviations.
 %
 % * `'Vary='` [ struct | *empty* ] - Database with time-varying std

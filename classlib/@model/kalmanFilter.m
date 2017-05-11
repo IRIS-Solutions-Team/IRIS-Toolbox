@@ -1,7 +1,7 @@
 function [obj, regOutp, hData] = kalmanFilter(this, inp, hData, opt, varargin)
 % kalmanFilter  Run Kalman filter.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -23,6 +23,10 @@ TYPE = @int8;
 MSE_TOLERANCE = this.Tolerance.Mse;
 
 [ny, nxx, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
+nz = nnz(this.Quantity.IxMeasure);
+if nz>0
+    ny = nz;
+end
 nAlt = length(this);
 nData = size(inp, 3);
 
@@ -138,9 +142,21 @@ for iLoop = 1 : nLoop
     if iLoop<=nAlt
         T = this.solution{1}(:, :, iLoop);
         R = this.solution{2}(:, :, iLoop);
-        s.Z = this.solution{4}(:, :, iLoop);
-        s.H = this.solution{5}(:, :, iLoop);
+        k = this.solution{3}(:, 1, iLoop);
         s.U = this.solution{7}(:, :, iLoop);
+        if nz>0
+            % Transition variables marked for measurement.
+            Zb = this.solution{9}(:, :, iLoop);
+            s.Z = Zb*s.U;
+            s.H = zeros(nz, ne);
+            s.d = zeros(nz, 1);
+        else
+            % Measurement variables.
+            s.Z = this.solution{4}(:, :, iLoop);
+            s.H = this.solution{5}(:, :, iLoop);
+            s.d = this.solution{6}(:, :, iLoop);
+        end
+
         s.IxRequired = this.Variant{iLoop}.IxInit(1, :, iLoop);
         s.NUnit = sum(this.Variant{iLoop}.Stability==TYPE(1));
         s.Tf = T(1:nf, :);
@@ -155,8 +171,6 @@ for iLoop = 1 : nLoop
             s.kf = [ ];
             s.d = [ ];
         else
-            s.d = this.solution{6}(:, :, iLoop);
-            k = this.solution{3}(:, 1, iLoop);
             s.kf = k(1:nf, :);
             s.ka = k(nf+1:end, :);
         end
@@ -199,7 +213,7 @@ for iLoop = 1 : nLoop
     % Deterministic trends
     %----------------------
     % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
-    if nPOut>0 || opt.dtrends
+    if nz==0 && (nPOut>0 || opt.dtrends)
         [s.D, s.X] = evalDtrends(this, opt.outoflik, s.g, iLoop);
     else
         s.D = [ ];
@@ -230,18 +244,18 @@ for iLoop = 1 : nLoop
     
     % Index of available observations.
     s.yindex = ~isnan(s.y1);
-    s.lastObs = max( 0, find( any(s.yindex, 1), 1, 'last' ) );
+    s.LastObs = max([ 0, find( any(s.yindex, 1), 1, 'last' ) ]);
     s.jyeq = [false, all(s.yindex(:, 2:end)==s.yindex(:, 1:end-1), 1) ];
     
     % Initialize
     %------------
-    % * Initial distribution
+    % * Initial mean and MSE
     % * Number of init cond estimated as fixed unknowns
-    s = kalman.init(s, iLoop, opt);
+    s = kalman.initialize(s, iLoop, opt);
     
     % Prediction step
     %-----------------
-    % Prepare the struct `s2` for nonlinear simulations in this round of
+    % Prepare the struct sn for nonlinear simulations in this round of
     % prediction steps.
     if s.IsSimulate
         sn.ILoop = iLoop;
@@ -255,13 +269,14 @@ for iLoop = 1 : nLoop
     [obj(:, iLoop), s] = kalman.ped(s, sn, opt);
     ixValidFactor(iLoop) = abs(s.V)>MSE_TOLERANCE;
 
-    % Return immediately if only the objective function is to be returned.
+    % Return immediately if only the value of the objective function is
+    % requested.
     if s.IsObjOnly
         continue
     end
     
-    % Prediction errors uncorrected to estimated init cond and dtrends; these
-    % are needed for contributions.
+    % Prediction errors unadjusted (uncorrected) for estimated init cond
+    % and dtrends; these are needed for contributions.
     if s.retCont
         s.peUnc = s.pe;
     end
@@ -403,7 +418,14 @@ return
         % Note that s.y0, s.f0 and s.a0 include k-sted-ahead predictions if
         % ahead>1.
         if s.retPredMean
+            if nz>0
+                s.y0 = s.y0([ ], :, :, :);
+            end
             yy = permute(s.y0, [1, 3, 4, 2]);
+            yy(:, 1, :) = NaN;
+            if ~isempty(s.D)
+                yy = yy + repmat(s.D, 1, 1, s.NAhead);
+            end
             % Convert `alpha` predictions to `xb` predictions. The
             % `a0` may contain k-step-ahead predictions in 3rd dimension.
             bb = permute(s.a0, [1, 3, 4, 2]);
@@ -415,13 +437,9 @@ return
             % Shock predictions are always zeros.
             ee = zeros(ne, nPer, s.NAhead);
             % Set predictions for the pre-sample period to `NaN`.
-            yy(:, 1, :) = NaN;
             xx(:, 1, :) = NaN;
             ee(:, 1, :) = NaN;
             % Add fixed deterministic trends back to measurement vars.
-            if ~isempty(s.D)
-                yy = yy + repmat(s.D, 1, 1, s.NAhead);
-            end
             % Add shock tunes to shocks.
             if s.IsShkTune
                 ee = ee + repmat(s.tune, 1, 1, s.NAhead);
@@ -432,10 +450,13 @@ return
         
         % Return pred std.
         if s.retPredStd
+            if nz>0
+                s.Dy0 = s.Dy0([ ], :);
+            end
             % Do not use lags in the prediction output data.
             hdataassign(hData.S0, iLoop, ...
                 {s.Dy0*s.V, ...
-                [s.Df0;s.Db0]*s.V, ...
+                [s.Df0; s.Db0]*s.V, ...
                 s.De0*s.V, ...
                 [ ], ...
                 [ ], ...
@@ -449,6 +470,9 @@ return
 
         % Return PE contributions to prediction step.
         if s.retPredCont
+            if nz>0
+                s.yc0 = s.yc0([ ], :, :, :);
+            end
             yy = s.yc0;
             yy = permute(yy, [1, 3, 2, 4]);
             xx = [s.fc0;s.bc0];
@@ -466,13 +490,16 @@ return
 
     function returnFilter( )        
         if s.retFilterMean
+            if nz>0
+                s.y1 = s.y1([ ], :);
+            end
             yy = s.y1;
-            xx = [s.f1; s.b1];
-            ee = s.e1;
             % Add fixed deterministic trends back to measurement vars.
             if ~isempty(s.D)
                 yy = yy + s.D;
             end
+            xx = [s.f1; s.b1];
+            ee = s.e1;
             % Add shock tunes to shocks.
             if s.IsShkTune
                 ee = ee + s.tune;
@@ -483,6 +510,9 @@ return
         
         % Return PE contributions to filter step.
         if s.retFilterCont
+            if nz>0
+                s.yc1 = s.yc1([ ], :, :, :);
+            end
             yy = s.yc1;
             yy = permute(yy, [1, 3, 2, 4]);
             xx = [s.fc1; s.bc1];
@@ -495,6 +525,9 @@ return
         
         % Return filter std.
         if s.retFilterStd
+            if nz>0
+                s.Dy1 = s.Dy1([ ], :);
+            end
             hdataassign(hData.S1, iLoop, ...
                 { ...
                 s.Dy1*s.V, ...
@@ -517,15 +550,18 @@ return
 
     function returnSmooth( )
         if s.retSmoothMean
+            if nz>0
+                s.y2 = s.y2([ ], :);
+            end
             yy = s.y2;
-            xx = [s.f2;s.b2(:, :, 1)];
             yy(:, 1:s.lastSmooth) = NaN;
-            xx(:, 1:s.lastSmooth-1) = NaN;
-            xx(1:nf, s.lastSmooth) = NaN;
             % Add deterministic trends to measurement vars.
             if ~isempty(s.D)
                 yy = yy + s.D;
             end
+            xx = [s.f2; s.b2(:, :, 1)];
+            xx(:, 1:s.lastSmooth-1) = NaN;
+            xx(1:nf, s.lastSmooth) = NaN;
             ee = s.e2;
             preNaN = NaN;
             if s.IsShkTune
@@ -543,13 +579,16 @@ return
         
         % Return smooth std.
         if s.retSmoothStd
+            if nz>0
+                s.Dy2 = s.Dy2([ ], :);
+            end
             s.Dy2(:, 1:s.lastSmooth) = NaN;
             s.Df2(:, 1:s.lastSmooth) = NaN;
             s.Db2(:, 1:s.lastSmooth-1) = NaN;
             hdataassign(hData.S2, iLoop, ...
                 { ...
                 s.Dy2*s.V, ...
-                [s.Df2;s.Db2]*s.V, ...
+                [s.Df2; s.Db2]*s.V, ...
                 [ ], ...
                 [ ], ...
                 s.Dg2*s.V, ...
@@ -558,6 +597,9 @@ return
         
         % Return PE contributions to smooth step.
         if s.retSmoothCont
+            if nz>0
+                s.yc2 = s.yc2([ ], :, :, :);
+            end
             yy = s.yc2;
             yy = permute(yy, [1, 3, 2, 4]);
             xx = [s.fc2; s.bc2];
@@ -704,7 +746,7 @@ nf = size(S.Tf, 1);
 ne = size(S.Ra, 2);
 nPer = size(S.y1, 2);
 yInx = S.yindex;
-lastObs = S.lastObs;
+lastObs = S.LastObs;
 
 % Pre-allocation. Re-use first page of prediction data. Prediction data
 % can have multiple pages if `ahead`>1.
@@ -748,7 +790,7 @@ nf = size(S.Tf, 1);
 nb = size(S.Ta, 1);
 ng = size(S.g, 1);
 nPer = size(S.y1, 2);
-lastObs = S.lastObs;
+lastObs = S.LastObs;
 
 % Pre-allocation.
 if S.retFilterMse
@@ -792,7 +834,7 @@ nb = size(S.Ta, 1);
 ng = size(S.g, 1);
 nPer = size(S.y1, 2);
 lastSmooth = S.lastSmooth;
-lastObs = S.lastObs;
+lastObs = S.LastObs;
 
 % Pre-allocation.
 if S.retSmoothMse
@@ -833,7 +875,7 @@ nb = size(S.Ta, 1);
 nf = size(S.Tf, 1);
 ne = size(S.Ra, 2);
 nPer = size(S.y1, 2);
-lastObs = S.lastObs;
+lastObs = S.LastObs;
 lastSmooth = S.lastSmooth;
 
 % Pre-allocation. Re-use first page of prediction data. Prediction data
@@ -885,9 +927,9 @@ if opt.deviation
     Ka = zeros(nb, nPer);
     Kf = zeros(nf, nPer);
 else
-    D = s.d(:, ones(1, nPer));
-    Ka = s.ka(:, ones(1, nPer));
-    Kf = s.kf(:, ones(1, nPer));
+    D = repmat(s.d, 1, nPer);
+    Ka = repmat(s.ka, 1, nPer);
+    Kf = repmat(s.kf, 1, nPer);
 end
 
 eu = real(s.tune);

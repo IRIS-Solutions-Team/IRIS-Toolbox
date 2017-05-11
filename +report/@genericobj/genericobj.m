@@ -1,7 +1,7 @@
 classdef genericobj < handle
     % genericobj  [Not a public class] Generic report object.
     %
-    % Backed IRIS class.
+    % Backend IRIS class.
     % No help provided.
     
     % -IRIS Macroeconomic Modeling Toolbox.

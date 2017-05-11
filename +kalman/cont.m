@@ -1,7 +1,7 @@
 function S = cont(S)
 % cont  Contributions of measurement variables to estimates of transition variables.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

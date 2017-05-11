@@ -1,7 +1,7 @@
 function d = derv(this, mode, wrt, isSimplify)
 % derv  [Not a public function] Compute first derivatives wrt specified variables.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

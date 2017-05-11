@@ -1,7 +1,7 @@
 function Flag = isequal(This,That)
 % isequal  [Not a public function] Compare shared.UserDataContainer objects.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

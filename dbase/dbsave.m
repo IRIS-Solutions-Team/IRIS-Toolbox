@@ -29,8 +29,8 @@ function lsSaved = dbsave(inp, fileName, varargin)
 % Options
 % ========
 %
-% * `'A1='` [ *`'Variables ->'`* | char ] - String that will be put in the
-% top-left corncer (cell A1).
+% * `'VariablesHeader='` [ *`'Variables ->'`* | char ] - String that will
+% be put in the top-left corncer (cell A1).
 %
 % * `'Class='` [ *`true`* | false ] - Include a row with class and size
 % specifications.

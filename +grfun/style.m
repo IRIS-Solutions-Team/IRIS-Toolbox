@@ -169,6 +169,7 @@ end
 
 
 function applyTo(H, D, Field, Opt)
+H0 = H;
 H = findobj(H,'flat','-not','userData','excludeFromStyle');
 if isempty(H)
     return
@@ -332,7 +333,7 @@ for iH = H
     
     % Stem graphs.
     stemObj = findobj(jH,'type','stem');
-    applyTo(stemObj.',D,'stem',Opt);
+    applyTo(stemObj(end:-1:1).',D,'stem',Opt);
     
     % Find handles to all patches except highlights and fancharts.
     patchObj = findobj(jH,'type','patch', ...

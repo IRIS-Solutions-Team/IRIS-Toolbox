@@ -143,7 +143,7 @@ xRange = range(1)-1 : range(end);
 ixd = this.Equation.Type==TYPE(3);
 isDTrends = opt.dtrends && any(ixd);
 [ny, nxx, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
-[T, R, K, Z, H, D, U, Omg] = mysspace(this, 1, false);
+[T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, 1, false);
 if opt.deviation
     K(:) = 0;
     D(:) = 0;

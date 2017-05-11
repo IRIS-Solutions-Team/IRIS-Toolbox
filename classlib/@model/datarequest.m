@@ -17,7 +17,8 @@ try, expandMethod; catch, expandMethod = 'RepeatLast'; end %#ok<NOCOM>
 
 %--------------------------------------------------------------------------
 
-[~, nxx, nb, nf] = sizeOfSolution(this.Vector);
+[ny, nxx, nb, nf] = sizeOfSolution(this.Vector);
+nz = nnz(this.Quantity.IxMeasure);
 nAlt = length(this);
 range = range(1) : range(end);
 nPer = length(range);
@@ -65,21 +66,21 @@ switch lower(req)
     case 'init'
         % Initial condition for the mean and MSE of Alpha.
         if nargout<4
-            [xbInitMean, ixNanInitMean] = assembleXbInit( );
+            [xbInitMean, lsNanInitMean] = assembleXbInit( );
             xbInitMse = [ ];
             alpInitMean = convertXbInit2AlpInit( );
             varargout{1} = alpInitMean;
             varargout{2} = xbInitMean;
-            varargout{3} = ixNanInitMean;
+            varargout{3} = lsNanInitMean;
         else
-            [xbInitMean, ixNanInitMean, xbInitMse, ixNanInitMse] = assembleXbInit( );
+            [xbInitMean, lsNanInitMean, xbInitMse, lsNanInitMse] = assembleXbInit( );
             [alpInitMean, alpInitMse] = convertXbInit2AlpInit( );
             varargout{1} = alpInitMean;
             varargout{2} = xbInitMean;
-            varargout{3} = ixNanInitMean;
+            varargout{3} = lsNanInitMean;
             varargout{4} = alpInitMse;
             varargout{5} = xbInitMse;
-            varargout{6} = ixNanInitMse;
+            varargout{6} = lsNanInitMse;
         end
     case 'xbinit'
         % Initial condition for the mean and MSE of X.
@@ -88,12 +89,16 @@ switch lower(req)
         varargout{1} = assembleXData(range(1)-1);
     case 'y'
         % Measurement variables.
-        y = getYData( );
+        y = assembleYData( );
         varargout{1} = y;
     case {'yg', 'tyg', 'fyg'}
         % Measurement variables, and exogenous variables for deterministic trends.
         % In request, `t` means time domain, `f` means frequency domain.
-        y = getYData( );
+        if nz>0
+            y = assembleZData( );
+        else
+            y = assembleYData( );
+        end
         if strncmpi(req, 'f', 1)
             y = permute(y, [2, 1, 3]);
             y = fft(y);
@@ -101,28 +106,28 @@ switch lower(req)
         end
         g = assembleGData( );
         nYData = size(y, 3);
-        if size(g, 3) == 1 && size(g, 3) < nYData
+        if size(g, 3) == 1 && size(g, 3)<nYData
             g = g(:, :, ones(1, nYData));
         end
-        varargout{1} = [y;g];
+        varargout{1} = [y; g];
     case 'e'
         varargout{1} = assembleEData( );
     case 'x'
         % Current dates of transition variables.
         varargout{1} = assembleXData(range);
     case 'yxe'
-        data = {getYData( ), assembleXData(range), assembleEData( )};
+        data = {assembleYData( ), assembleXData(range), assembleEData( )};
         nData = max([size(data{1}, 3), size(data{2}, 3), size(data{3}, 3)]);
         % Make the size of all data arrays equal in 3rd dimension.
-        if size(data{1}, 3) < nData
+        if size(data{1}, 3)<nData
             data{1} = cat(3, data{1}, ...
                 data{1}(:, :, end*ones(1, nData-size(data{1}, 3))));
         end
-        if size(data{2}, 3) < nData
+        if size(data{2}, 3)<nData
             data{2} = cat(3, data{2}, ...
                 data{2}(:, :, end*ones(1, nData-size(data{2}, 3))));
         end
-        if size(data{3}, 3) < nData
+        if size(data{3}, 3)<nData
             data{3} = cat(3, data{3}, ...
                 data{3}(:, :, end*ones(1, nData-size(data{3}, 3))));
         end
@@ -145,7 +150,7 @@ return
     
     
     
-    function [xbInitMean, ixNanInitMean, xbInitMse, ixNanInitMse] ...
+    function [xbInitMean, lsNanInitMean, xbInitMse, lsNanInitMse] ...
             = assembleXbInit( )
         xbInitMean = nan(nb, 1, nAlt);
         xbInitMse = [ ];
@@ -180,18 +185,16 @@ return
             end
         end
         % Report NaN init conditions in mean.
+        lsNanInitMean = { };
         if any(ixNanInitMean)
             id = this.Vector.Solution{2}(nf+1:end);
-            ixNanInitMean = printSolutionVector(this, id(ixNanInitMean)-1i);
-        else
-            ixNanInitMean = { };
+            lsNanInitMean = printSolutionVector(this, id(ixNanInitMean)-1i);
         end
         % Report NaN init conditions in MSE.
+        lsNanInitMse = { };
         if any(ixNanInitMse)
             id = this.Vector.Solution{2}(nf+1:end);
-            ixNanInitMse = printSolutionVector(this, id(ixNanInitMse)-1i);
-        else
-            ixNanInitMse = { };
+            lsNanInitMse = printSolutionVector(this, id(ixNanInitMse)-1i);
         end
     end 
 
@@ -222,12 +225,12 @@ return
             end
         end
         % Transform MSE[Xb] to MSE[Alpha].
-        if nargout < 2 || isempty(xbInitMse)
+        if nargout<2 || isempty(xbInitMse)
             alpInitMse = xbInitMse;
             return
         end
         nData = size(xbInitMse, 4);
-        if nData < nAlt
+        if nData<nAlt
             xbInitMse(:, :, 1, end+1:nAlt) = ...
                 xbInitMse(:, :, 1, end*ones(1, nAlt-nData));
             nData = nAlt;
@@ -247,7 +250,8 @@ return
 
 
 
-    function Y = getYData( )
+    function Y = assembleYData( )
+        % Measurement variables.
         if ~isempty(dMean)
             ixy = this.Quantity.Type==TYPE(1);
             sw = struct( );
@@ -257,6 +261,23 @@ return
             sw.ExpandMethod = expandMethod;
             Y = db2array(dMean, this.Quantity.Name(ixy), range, sw);
             Y = permute(Y, [2, 1, 3]);
+        end
+    end
+
+
+
+    
+    function z = assembleZData( )
+        % Transition variables marked for measurement.
+        if ~isempty(dMean)
+            ixz = this.Quantity.IxMeasure;
+            sw = struct( );
+            sw.LagOrLead = [ ];
+            sw.IxLog = this.Quantity.IxLog(ixz);
+            sw.Warn = warn;
+            sw.ExpandMethod = expandMethod;
+            z = db2array(dMean, this.Quantity.Name(ixz), range, sw);
+            z = permute(z, [2, 1, 3]);
         end
     end
 
@@ -360,7 +381,7 @@ return
             A = permute(A, [2, 1, 3]);
         end
         nData = size(A, 3);
-        if nData < nAlt
+        if nData<nAlt
             A(:, :, end+1:nAlt) = A(:, :, end*ones(1, nAlt-nData));
             nData = nAlt;
         end

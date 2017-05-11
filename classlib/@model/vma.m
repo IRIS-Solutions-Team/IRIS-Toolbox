@@ -56,7 +56,7 @@ phi = zeros(ny+nxx, ne, nPer+1, nAlt);
 ixSolved = true(1, nAlt);
 
 for iAlt = 1 : nAlt
-   [T,R,K,Z,H,D,U,Omg] = mysspace(this,iAlt,false);
+   [T,R,K,Z,H,D,U,Omg] = sspaceMatrices(this,iAlt,false);
     % Continue immediately if solution is not available.
     ixSolved(iAlt) = all(~isnan(T(:)));
     if ~ixSolved(iAlt)

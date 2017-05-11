@@ -1,7 +1,7 @@
 function Y = myeval(This,Time,LhsTs,LhsInpName,LhsStamp)
 % myeval  [Not a public function] Return tseries value when evaluating time-recursive expressions.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

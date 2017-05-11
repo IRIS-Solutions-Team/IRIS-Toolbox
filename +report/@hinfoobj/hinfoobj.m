@@ -1,7 +1,7 @@
 classdef hinfoobj < handle
     % hinfoobj  [Not a public class] Report compiling and publishing info.
     %
-    % Backed IRIS class.
+    % Backend IRIS class.
     % No help provided.
     
     % -IRIS Macroeconomic Modeling Toolbox.

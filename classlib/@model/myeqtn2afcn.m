@@ -1,7 +1,7 @@
  function this = myeqtn2afcn(this)
 % myeqtn2afcn  Convert equation strings to anonymous functions.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

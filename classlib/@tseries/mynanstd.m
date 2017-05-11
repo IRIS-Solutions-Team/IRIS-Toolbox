@@ -2,7 +2,7 @@ function X = mynanstd(X,Flag,Dim)
 % mynanstd  [Not a public function] Std deviation implemented for data with in-sample NaNs.
 %
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

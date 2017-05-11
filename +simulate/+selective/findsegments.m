@@ -1,7 +1,7 @@
 function Sgm = findsegments(S)
 % findsegments  [Not a public function] Detect segmentation by unanticipated shocks.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

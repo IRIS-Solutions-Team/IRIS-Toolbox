@@ -130,8 +130,6 @@ src = file2char(opt.SrcTemplate);
 src = strrep(src, '$ModelName$', modelName);
 src = strrep(src, '$Equations$', c);
 src = strrep(src, '$TimeStamp$', TIME_STAMP);
-char2file(src, [output, '.src']);
-lsFile{end+1} = [output, '.src'];
 
 c = cell(1, 40);
 for i = 1 : nQuan
@@ -149,19 +147,22 @@ for i = 1 : nQuan
 end
 
 ls = fieldnames(sref);
+s = '';
 if ~isempty(ls)
-    s2d = '';
+    %s2d = '';
     for i = 1 : numel(ls)
-%         type = TYPE(4);
         name = ls{i};
         namess = [name, opt.SteadyRefSuffix];
-%         value = sref.(name);
-%         c{type} = [ c{type}, sprintf(fmt4, namess, value) ];
-        s2d = [s2d, sprintf('DO %s = %s; \n', namess, name)]; %#ok<AGROW>
+        type = 6;
+        c{type} = [ c{type}, sprintf('DO %s = %s; \n', namess, name) ];
+        s = [s, char(">> SS_" + namess + ": " + namess + char(39) + "n = " + name + ",")];
     end
-    lsFile{end+1} = STEADY_REF_FILENAME;
-    char2file(s2d, STEADY_REF_FILENAME);
+    %lsFile{end+1} = STEADY_REF_FILENAME;
+    %char2file(s2d, STEADY_REF_FILENAME);
 end
+src = strrep(src, '$SteadyReferences$', s);
+char2file(src, [output, '.src']);
+lsFile{end+1} = [output, '.src'];
 
 inp = file2char(opt.InpTemplate);
 writeInp( );
@@ -210,6 +211,12 @@ return
             rpl = c{5};
         end
         inp = strrep(inp, '$ExogenousVariables$', rpl);
+        
+        rpl = '';
+        if ~isempty(c{6})
+            rpl = c{6};
+        end
+        inp = strrep(inp, '$SteadyReferences$', rpl);
         
         inp = regexprep(inp, '\n[ ]*\n[ ]*\n+', '\n\n\n');
     end

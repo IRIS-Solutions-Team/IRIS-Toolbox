@@ -1,7 +1,7 @@
 function C = shortclass(This)
 % shortclass  [Not a public function] Short class name of report objects.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

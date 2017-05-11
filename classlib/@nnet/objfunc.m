@@ -1,7 +1,7 @@
 function [Obj,Pred,This] = objfunc(X,This,InData,OutData,Range,options)
 % OBJFUNC  [Not a public function] Objective function value.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

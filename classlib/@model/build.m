@@ -9,6 +9,8 @@ function this = build(this, opt)
 
 %--------------------------------------------------------------------------
 
+this.Quantity = build(this.Quantity);
+
 asgn = opt.Assign;
 
 % Assign user comment if it is non-empty, otherwise use what has been
@@ -45,19 +47,15 @@ else
 end
 
 nAlt = 1;
-if ~isempty(asgn) ...
-        && isstruct(asgn) ...
-        && ~isempty(fieldnames(asgn))
-    % Check number of alternative parametrizations in input database, exclude shocks.
-    lsName = [ ...
-        this.Quantity.Name, ...
-        getStdName(this.Quantity), ...
-        getCorrName(this.Quantity), ...
-        ];
-    for i = 1 : length(lsName)
-        if isfield(asgn, lsName{i}) && isnumeric(asgn.(lsName{i}))
-            asgn.(lsName{i}) = asgn.(lsName{i})(:).';
-            nAlt = max(nAlt, length(asgn.(lsName{i})));
+if ~isempty(asgn) && isstruct(asgn) 
+    % Check number of alternative parametrizations in input database.
+    lsField = fieldnames(asgn);
+    ell = lookup(this.Quantity, lsField);
+    lsField(isnan(ell.PosName) & isnan(ell.PosStdCorr)) = [ ];
+    for i = 1 : numel(lsField)
+        name = lsField{i};
+        if isnumeric(asgn.(name))
+            nAlt = max(nAlt, numel(asgn.(name)));
         end
     end
 end
@@ -101,7 +99,8 @@ return
 
 
     function preallocSolution( )
-        [ny, ~, nb, nf, ne] = sizeOfSolution(this.Vector);
+        [ny, ~, nb, nf, ne, ~] = sizeOfSolution(this.Vector);
+        nz = nnz(this.Quantity.IxMeasure);
         [~, ~, ~, kf] = sizeOfSystem(this.Vector);
         
         this.solution{1} = nan(nf+nb, nb, nAlt); % T
@@ -112,7 +111,7 @@ return
         this.solution{6} = nan(ny, 1, nAlt); % D
         this.solution{7} = nan(nb, nb, nAlt); % U
         this.solution{8} = nan(nf+nb, nh, nAlt); % Y - nonlin addfactors.
-        this.solution{9} = nan(ny, nb, nAlt); % ZZ - Untransformed measurement.
+        this.solution{9} = nan(max(ny, nz), nb, nAlt); % Zb - Untransformed measurement.
         
         this.Expand{1} = nan(nb, kf, nAlt); % Xa
         this.Expand{2} = nan(nf, kf, nAlt); % Xf

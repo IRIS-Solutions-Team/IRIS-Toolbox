@@ -70,7 +70,7 @@ W = zeros(ny+nxx, ne, nFreq, nAlt);
 if ne>0
     ixSolved = true(1, nAlt);
     for iAlt = 1 : nAlt
-        [T,R,K,Z,H,D,Za,Omg] = mysspace(this,iAlt,false);
+        [T,R,K,Z,H,D,Za,Omg] = sspaceMatrices(this,iAlt,false);
         
         % Continue immediately if solution is not available.
         ixSolved(iAlt) = all(~isnan(T(:)));

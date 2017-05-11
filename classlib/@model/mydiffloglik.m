@@ -1,7 +1,7 @@
 function [MLL, score, info, se2] = mydiffloglik(this, data, pri, likOpt, opt)
 % mydiffloglik  Gradient and hessian of log-likelihood function.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

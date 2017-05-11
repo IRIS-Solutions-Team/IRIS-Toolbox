@@ -1,7 +1,7 @@
 function  [this, ixSuccess, nPath, eigen] = steadyLinear(this, steady, vecAlt)
 % steadyLinear  Calculate steady state in linear models.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

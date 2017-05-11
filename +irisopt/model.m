@@ -176,7 +176,7 @@ def.jforecast = [
     'precision', 'double', @(x) ischar(x) && any(strcmpi(x, {'double', 'single'}))
     'progress', false, @islogicalscalar
     'plan, Scenario', [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x)
-    'StdScale', complex(1, 1), @(x) (isnumericscalar(x) && ~isreal(x) && real(x)>=0 && imag(x)>=0) || strcmpi(x, 'normalize')
+    'StdScale', complex(1, 0), @(x) (isnumericscalar(x) && real(x)>=0 && imag(x)>=0 && abs(abs(x)-1)<1e-12) || strcmpi(x, 'normalize')
     'vary, std', [ ], @(x) isstruct(x) || isempty(x)
     } ];
 
@@ -228,9 +228,8 @@ def.kalmanFilter = [
     'condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x)
     'fmsecondtol', eps( ), @(x) isnumericscalar(x) && x>0 && x<1
     'returncont, contributions', false, @islogicalscalar
-    'initcond, init', 'stochastic', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'Stochastic', 'Fixed', 'Optimal', 'FixedUnknown'})))
-    ... 'InitMeanUnit', 'FixedUnknown', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'})))
-    'InitUnit', 'FixedUnknown', @(x) ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'}))
+    'Init, InitCond', 'Steady', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'Asymptotic', 'Stochastic', 'Steady'})))
+    'InitUnitRoot, InitUnit, InitMeanUnit', 'FixedUnknown', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'})))
     'lastsmooth', Inf, @(x) isempty(x) || isnumericscalar(x)
     ... 'nonlinear, nonlinearise, nonlinearize', 0, @(x) isintscalar(x) && x>=0
     'outoflik', { }, @(x) ischar(x) || iscellstr(x)

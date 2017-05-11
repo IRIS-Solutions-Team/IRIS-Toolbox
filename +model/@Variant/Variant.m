@@ -119,7 +119,7 @@ classdef Variant
         
         
         
-        function vv = assignStdCorr(vv, pos, vecAlt, value)
+        function vv = assignStdCorr(vv, pos, vecAlt, value, ixStdCorrAllowed)
             if isempty(vv)
                 return
             end
@@ -134,6 +134,11 @@ classdef Variant
             for i = 1 : numel(vecAlt)
                 iAlt = vecAlt(i);
                 vv{iAlt}.StdCorr(pos) = x(1, :, i);
+                if any( vv{iAlt}.StdCorr(~ixStdCorrAllowed)~=0 )
+                    throw( ...
+                        exception.Base('Model:CannotSetNonzeroCorr', 'error') ...                         
+                    );
+                end
             end
         end
         

@@ -1,7 +1,7 @@
 function [ea, eu, addEa, addEu] = exogenize(s, M, yxi, ea, eu)
 % exogenize  Compute add-factors to endogenised shocks.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

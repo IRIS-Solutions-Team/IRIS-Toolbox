@@ -149,6 +149,9 @@ switch lower(query)
         isNonzeroOnly = strcmpi(query, 'nonzeroCorr');
         lsCorr = getCorrName(this.Quantity);
         vecCorr = model.Variant.getAllCorr(this.Variant, ':');
+        ixCorrAllowed = this.Quantity.IxStdCorrAllowed(ne+1:end);
+        lsCorr = lsCorr(ixCorrAllowed);
+        vecCorr = vecCorr(ixCorrAllowed);
         if isNonzeroOnly
             posRemove = find(all(vecCorr==0, 3));
             vecCorr(:, posRemove, :) = [ ];

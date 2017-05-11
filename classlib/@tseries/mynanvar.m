@@ -1,7 +1,7 @@
 function X = mynanvar(X,Flag,Dim)
 % mynanvar  [Not a public function] Variance implemeted for data with in-sample NaNs.
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.

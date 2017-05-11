@@ -2,7 +2,7 @@ function P = pa2pb(U,P)
 % Pa2Pb  [Not a public function] Convert MSE matrix of the alpha vector to MSE matrix of the
 % vector of predetermined variables
 %
-% Backed IRIS function.
+% Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
