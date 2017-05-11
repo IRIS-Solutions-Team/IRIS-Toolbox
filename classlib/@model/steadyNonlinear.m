@@ -174,6 +174,7 @@ return
     function chkNanExog( )
         % Parameter or exogenous variable occurs in steady equations.
         ixNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
+        ixNeeded = full(ixNeeded);
         % Level or growth is endogenous and NaN.
         ixNan = (isnan(real(asgn)) & ~ixEndg.Level) ...
             | (isnan(imag(asgn)) & ~ixEndg.Growth);
