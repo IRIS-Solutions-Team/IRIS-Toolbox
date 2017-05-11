@@ -1,6 +1,6 @@
-classdef Scenario < plan
+classdef Plan < plan
     methods
-        function this = Scenario(varargin)
+        function this = Plan(varargin)
             this = this@plan(varargin{:});
         end
     end
