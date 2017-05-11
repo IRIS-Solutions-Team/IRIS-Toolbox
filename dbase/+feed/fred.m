@@ -1,5 +1,5 @@
 function d = fred(varargin)
-% fred  Import data from FRED, Federal Reserve Bank of St. Louis.
+% feed.fred  Import data from FRED, Federal Reserve Bank of St. Louis.
 %
 % Syntax
 % =======
