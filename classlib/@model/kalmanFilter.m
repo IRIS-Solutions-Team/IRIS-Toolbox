@@ -157,7 +157,7 @@ for iLoop = 1 : nLoop
             s.d = this.solution{6}(:, :, iLoop);
         end
 
-        s.IxRequired = this.Variant{iLoop}.IxInit(1, :, iLoop);
+        s.IxRequired = this.Variant{iLoop}.IxInit;
         s.NUnit = sum(this.Variant{iLoop}.Stability==TYPE(1));
         s.Tf = T(1:nf, :);
         s.Ta = T(nf+1:end, :);
