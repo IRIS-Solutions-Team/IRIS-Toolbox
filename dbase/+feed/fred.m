@@ -70,7 +70,7 @@ for i = 1 : nData
     name = strtrim(data(i).SeriesID);
     comment = strtrim(data(i).Title);
     userData = rmfield(data(i), 'Data');
-    d.(name) = Series(dates, data(i).Data(:, 2), comment, userData);
+    d.(name) = userdata(Series(dates, data(i).Data(:, 2), comment),userData);
 end
 
 if ~isempty(lsUnknownFreq)
