@@ -35,35 +35,20 @@ function d = emptydb(this)
 
 TYPE = @int8;
 
-LS_RESERVED_NAME = { ...
-    model.RESERVED_NAME_TTREND, ...
-    };
-
-LS_COMMENT = { ...
-    model.COMMENT_TTREND, ...
-    };
-
 %--------------------------------------------------------------------------
 
-nAlt = length(this);
-lsName = [ this.Quantity.Name, LS_RESERVED_NAME ];
-x = cell(1, length(lsName));
-d = cell2struct(x, lsName, 2);
-ixp = this.Quantity.Type==TYPE(4);
-emptyTSeries = Series([ ], zeros(0, nAlt));
+numberOfVariants = length(this);
+numberOfQuantities = length(this.Quantity);
+x = cell(1, numberOfQuantities);
+d = cell2struct(x, this.Quantity.Name, 2);
+indexOfParameters = this.Quantity.Type==TYPE(4);
+emptyTimeSeries = Series([ ], zeros(0, numberOfVariants));
 
-% Add and comment a time series for each variable.
-cmt = getLabelOrName(this.Quantity);
-for i = find(~ixp)
+% Add comment to time series for each variable.
+labelOrName = getLabelOrName(this.Quantity);
+for i = find(~indexOfParameters)
     name = this.Quantity.Name{i};
-    d.(name) = comment(emptyTSeries, cmt{i});
-end
-
-% Add and comment a time series for reserved name.
-for i = 1 : length(LS_RESERVED_NAME)
-    name = LS_RESERVED_NAME{i};
-    cmt = LS_COMMENT{i};
-    d.(name) = comment(emptyTSeries, cmt);
+    d.(name) = comment(emptyTimeSeries, labelOrName{i});
 end
 
 % Add a value for each parameter.
