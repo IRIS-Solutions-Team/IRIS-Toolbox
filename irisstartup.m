@@ -172,7 +172,7 @@ return
         % Report the X12 version integrated with IRIS.
         fprintfx('\t<a href="http://www.census.gov/srd/www/x13as/">');
         fprintfx('X13-ARIMA-SEATS</a>: ');
-        fprintf('Version 1.1 Build 19 (April 2, 2015).');
+        fprintf('Version 1.1 Build 39 (March 10, 2017).');
         fprintf('\n');
         
         % Report IRIS folders removed.

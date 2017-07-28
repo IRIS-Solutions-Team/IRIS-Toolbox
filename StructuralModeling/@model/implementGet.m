@@ -17,7 +17,7 @@ if flag
     return
 end
 
-[answ, flag, query] = implementGet@shared.Exported(this, query, varargin{:});
+[answ, flag, query] = implementGet(this.Export, query, varargin{:});
 if flag
     return
 end

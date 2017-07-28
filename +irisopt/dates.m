@@ -15,8 +15,8 @@ def.dates = {
     'dateformat', @config, @config
     'freqletters, freqletter', @config, @config
     'months, month', @config, @config
-    'standinmonth', @config, @config
-    'wwday', @config, @config
+    'ConversionMonth, standinmonth', @config, @config
+    'Wday', @config, @config
     };
 
 def.convert = [

@@ -53,7 +53,7 @@ function day = ww2day(dat, wday)
 try
     wday; %#ok<VUNUS>
 catch
-    wday = irisget('wwday');
+    wday = irisget('Wday');
 end
 
 days = {'Mon','Tue','Wed','Thu','Fri','Sat','Sun'};

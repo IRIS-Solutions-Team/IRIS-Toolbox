@@ -22,22 +22,22 @@ function [s, field] = dat2str(dat, varargin)
 % Options
 % ========
 %
-% * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string, 
+% * `'DateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string, 
 % or array of format strings (possibly different for each date).
 %
-% * `'freqLetters='` [ char | *`'YHQBMW'`* ] - Six letters used to
+% * `'FreqLetters='` [ char | *`'YHQBMW'`* ] - Six letters used to
 % represent the six possible frequencies of IRIS dates, in this order:
 % yearly, half-yearly, quarterly, bi-monthly, monthly, and weekly (such as
 % the `'Q'` in `'2010Q1'`).
 %
-% * `'months='` [ cellstr | *`{'January', ..., 'December'}`* ] - Twelve
+% * `'Months='` [ cellstr | *`{'January', ..., 'December'}`* ] - Twelve
 % strings representing the names of the twelve months.
 %
-% * `'standinMonth='` [ numeric | `'last'` | *`1`* ] - Month that will
+% * `'ConversionMonth=='` [ numeric | `'last'` | *`1`* ] - Month that will
 % represent a lower-than-monthly-frequency date if the month is part of the
 % date format string.
 %
-% * `'wwDay='` [ `'Mon'` | `'Tue'` | `'Wed'` | *`'Thu'`* | `'Fri'` |
+% * `'Wwday='` [ `'Mon'` | `'Tue'` | `'Wed'` | *`'Thu'`* | `'Fri'` |
 % `'Sat'` | `'Sun'` ] - Day of week that will represent weeks.
 %
 %
@@ -81,23 +81,23 @@ function [s, field] = dat2str(dat, varargin)
 % * `'MMM'`, `'Mmm'`, `'mmm'` - Case-sensitive three-letter abbreviation of
 % month.
 %
-% * `'Q'` - Upper-case roman numeral for the month or stand-in month.
+% * `'Q'` - Upper-case roman numeral for the month or conversion month.
 %
-% * `'q'` - Lower-case roman numeral for the month or stand-in month.
+% * `'q'` - Lower-case roman numeral for the month or conversion month.
 %
 % * `'F'` - Upper-case letter representing the date frequency.
 %
 % * `'f'` - Lower-case letter representing the date frequency.
 %
-% * `'EE'` - Two-digit end-of-month day; stand-in month used for
+% * `'EE'` - Two-digit end-of-month day; conversion month used for
 % non-monthly dates.
 %
-% * `'E'` - End-of-month day; stand-in month used for non-monthly dates.
+% * `'E'` - End-of-month day; conversion month used for non-monthly dates.
 %
-% * `'WW'` - Two-digit end-of-month workday; stand-in month used for
+% * `'WW'` - Two-digit end-of-month workday; conversion month used for
 % non-monthly dates.
 %
-% * `'W'` - End-of-month workday; stand-in month used for non-monthly dates.
+% * `'W'` - End-of-month workday; conversion month used for non-monthly dates.
 %
 % Calendar date strings
 % ----------------------
@@ -191,7 +191,7 @@ dayC = nan(size(dat));
 dowC = nan(size(dat)); %% Day of week: 'Mon' through 'Sun'.
 if any(ixMsd(:))
     msd(ixDaily) = dat(ixDaily);
-    msd(ixWeekly) = ww2day(dat(ixWeekly), opt.wwday);
+    msd(ixWeekly) = ww2day(dat(ixWeekly), opt.Wday);
     [yearC(ixMsd), monC(ixMsd), dayC(ixMsd)] = datevec( double(msd(ixMsd)) );
     dowC(ixMsd) = weekday(msd(ixMsd));
 end
@@ -512,7 +512,7 @@ return
         m = NaN;
         switch thisFreq
             case {1, 2, 4, 6}
-                m = per2month(iPer, thisFreq, opt.standinmonth);
+                m = per2month(iPer, thisFreq, opt.ConversionMonth);
             case 12
                 m = iPer;
             case 52

@@ -58,7 +58,7 @@ TYPE = @int8;
 isSort = nargout>3;
 
 % Pre-process options passed to `mychksstate`.
-mychksstateOpt = prepareChkSteady(this, 'verbose', varargin{:});
+chksstateOpt = prepareChkSteady(this, 'verbose', varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -68,11 +68,11 @@ if any(this.Link)
 end
 
 if opt.warning
-    if any(strcmpi(mychksstateOpt.Kind, {'dynamic', 'full'}))
-        mychksstateOpt.Kind = 'Dynamic';
+    if any(strcmpi(chksstateOpt.Kind, {'dynamic', 'full'}))
+        chksstateOpt.Kind = 'Dynamic';
         chkQty(this, Inf, 'parameters:dynamic', 'sstate', 'log');
     else
-        mychksstateOpt.Kind = 'Steady';
+        chksstateOpt.Kind = 'Steady';
         chkQty(this, Inf, 'parameters:steady', 'sstate', 'log');
     end
 end
@@ -82,7 +82,7 @@ nAlt = length(this);
 % `dcy` is a matrix of discrepancies; it has two columns when dynamic
 % equations are evaluated, or one column when steady equations are
 % evaluated.
-[flag, dcy, maxAbsDiscr, list] = mychksstate(this, Inf, mychksstateOpt);
+[flag, dcy, maxAbsDiscr, list] = mychksstate(this, Inf, chksstateOpt);
 
 if any(~flag) && opt.error
     tmp = { };
@@ -92,7 +92,7 @@ if any(~flag) && opt.error
             tmp{end+1} = list{i}{j}; %#ok<AGROW>
         end
     end
-    if strcmpi(mychksstateOpt.Kind, 'Dynamic')
+    if strcmpi(chksstateOpt.Kind, 'Dynamic')
         exc = exception.Base('Model:SteadyErrorInDynamic', 'error');
     else
         exc = exception.Base('Model:SteadyErrorInSteady', 'error');

@@ -40,7 +40,7 @@ end
 
 disp@shared.GetterSetter(this, 1);
 disp@shared.UserDataContainer(this, 1);
-disp@shared.Exported(this, 1);
+disp(this.Export, 1);
 textfun.loosespace( );
 
 return

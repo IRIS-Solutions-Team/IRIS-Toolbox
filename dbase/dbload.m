@@ -33,6 +33,9 @@ function d = dbload(varargin)
 % * `'CommentRow='` [ char | cellstr | *`{'comment', 'comments'}`* ] - Label
 % at the start of row that will be used to create Series object comments.
 %
+% * `'Continuous='` [ false | `'Descending'` | `'Ascending'` ] - Indicate
+% that dates are a continuous range, either acending or descending.
+%
 % * `'DateFormat='` [ char | *`'YYYYFP'`* ] - Format of dates in first
 % column.
 %
@@ -97,7 +100,7 @@ function d = dbload(varargin)
 % Description
 % ============
 %
-% Use the `'freq='` option whenever there is ambiguity in intepreting
+% Use the `'Freq='` option whenever there is ambiguity in intepreting
 % the date strings, and IRIS is not able to determine the frequency
 % correctly (see Example).
 %
@@ -199,6 +202,10 @@ end
 
 opt = passvalopt('dbase.dbload', varargin{1:end});
 opt = datdefaults(opt);
+
+if isequal(opt.firstdateonly, true)
+    opt.Continuous = 'Ascending';
+end
 
 % Pre-process options.
 processOptions( );
@@ -489,8 +496,9 @@ return
 
     function readNumericData( )
         % Read date column (first column).
-        dateCol = regexp(file, '^[^,\n]*', 'match', 'lineanchors');
+        dateCol = regexp(file, '^.*?(,|$)', 'match', 'lineanchors');
         dateCol = strtrim(dateCol);
+        dateCol = strrep(dateCol, ',', '');
         
         % Remove leading or trailing single or double quotes.
         % Some programs save any text cells with single or double quotes.
@@ -558,6 +566,11 @@ return
             isMaybeMissing1 = isnan(real(data1));
             ixMissing(isMaybeMissing & isMaybeMissing1) = true;
         end
+        if strcmpi(opt.Continuous, 'Descending')
+            data = flipud(data);
+            ixMissing = flipud(ixMissing);
+            dateCol = dateCol(end:-1:1);
+        end
     end 
 
 
@@ -566,20 +579,24 @@ return
     function parseDates( )
         dateCol = dateCol(1:min(end, size(data, 1)));
         if ~isempty(dateCol)
-            if opt.firstdateonly
+            if strcmpi(opt.Continuous, 'Ascending')
                 dateCol(2:end) = {''};
+            elseif strcmpi(opt.Continuous, 'Descending')
+                dateCol(1:end-1) = {''};
             end
             % Rows with empty dates.
-            emptyDate = cellfun(@isempty, dateCol);
+            ixEmptyDate = cellfun(@isempty, dateCol);
         end
         % Convert date strings.
-        if ~isempty(dateCol) && ~all(emptyDate)
-            dates(~emptyDate) = str2dat(dateCol(~emptyDate), ...
+        if ~isempty(dateCol) && ~all(ixEmptyDate)
+            dates(~ixEmptyDate) = str2dat(dateCol(~ixEmptyDate), ...
                 'DateFormat=', opt.dateformat, ...
                 'Freq=', opt.freq, ...
                 'FreqLetters=', opt.freqletters);
-            if opt.firstdateonly
+            if strcmpi(opt.Continuous, 'Ascending')
                 dates(2:end) = dates(1) + (1 : length(dates)-1);
+            elseif strcmpi(opt.Continuous, 'Descending')
+                dates(end-1:-1:1) = dates(end) - (1 : length(dates)-1);
             end
         end
         % Exclude NaN dates (that includes also empty dates), but keep all data

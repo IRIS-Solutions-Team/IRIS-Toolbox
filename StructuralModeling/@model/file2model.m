@@ -10,7 +10,7 @@ function [this, opt] = file2model(this, fileName, opt, optimalOpt)
 %--------------------------------------------------------------------------
 
 % Run the parser.
-[code, this.FileName, this.ExportedFile, ctrlParameters, this.Comment] = ...
+[code, this.FileName, this.Export, ctrlParameters, this.Comment] = ...
     parser.Preparser.parse(fileName, [ ], opt.Assign, opt.saveas, '');
 
 % Export files; they must be available before we run the postparser because

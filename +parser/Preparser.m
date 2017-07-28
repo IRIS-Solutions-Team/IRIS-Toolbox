@@ -1,16 +1,16 @@
 classdef Preparser < handle
     properties
-        FileName = '' % Input file name.
-        UserComment = '' % User comment line read from code.
-        Code = '' % Code being preparsed.
-        White = '' % Code with all labels whited out.
-        Assigned = struct( ) % Database with control parameters.
-        CloneTemplate = '' % Template to clone model names.
-        Exported = cell(2, 0) % Files to be saved into working folder.
+        FileName = char.empty(1, 0)  % Input file name.
+        UserComment = char.empty(1, 0)  % User comment line read from code.
+        Code = char.empty(1, 0)  % Code being preparsed.
+        White = char.empty(1, 0)  % Code with all labels whited out.
+        Assigned = struct.empty( ) % Database with control parameters.
+        CloneTemplate = char.empty(1, 0)  % Template to clone model names.
+        Export = shared.Export.empty(1, 0) % Files to be saved into working folder.
         CtrlParameters = cell(1, 0) % List of parameter names occuring in control expressions and interpolations.
         EvalWarning = parser.Preparser.EVAL_WARNING % List of if/elseif/switch/case conditions/expressions producing errors.
         
-        StoreForCtrl = cell(0, 2) % Store !for control variable replacements.
+        StoreForCtrl = cell.empty(0, 2) % Store !for control variable replacements.
     end
     
     
@@ -231,9 +231,9 @@ classdef Preparser < handle
         
         
         
-        function add(this, ctrlDatabase, exported)
+        function add(this, ctrlDatabase, export)
             addCtrlParameter(this, ctrlDatabase);
-            addExported(this, exported);
+            add(this.Export, export);
         end
         
         
@@ -244,23 +244,6 @@ classdef Preparser < handle
                 add = { add };
             end
             this.CtrlParameters = [ this.CtrlParameters, add ];
-        end
-        
-        
-        
-        
-        function addExported(this, varargin)
-            if length(varargin)==1
-                this.Exported = [ ...
-                    this.Exported, ...
-                    varargin{1}, ...
-                    ];
-            elseif length(varargin)==2
-                this.Exported = [ ...
-                    this.Exported, ...
-                    [ varargin(1); varargin(2) ], ...
-                    ];
-            end
         end
         
         
@@ -292,7 +275,7 @@ classdef Preparser < handle
     
     
     methods (Static)
-        function [finalCut, fileName, exported, ctrlParameters, userComment] ...
+        function [finalCut, fileName, export, ctrlParameters, userComment] ...
                 = parse(fileName, inpCode, assigned, saveAs, cloneStr)
             import parser.Preparser;
             
@@ -310,7 +293,7 @@ classdef Preparser < handle
             % Return list of control parameters.
             ctrlParameters = unique( [ this(:).CtrlParameters ] );
             % Merge all exported files.
-            exported = [ this(:).Exported ];
+            export = [ this(:).Export ];
             % First-line comment from the first file.
             userComment = this(1).UserComment;
             % Save preparsed code to disk file if requested.

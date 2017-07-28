@@ -42,18 +42,19 @@
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-classdef rpteq < shared.GetterSetter & shared.UserDataContainer & shared.Exported
+classdef rpteq < shared.GetterSetter & shared.UserDataContainer
     properties
-        FileName = ''
-        NameLhs = cell(1, 0)
-        NameRhs = cell(1, 0)
-        NameSteadyRef = cell(1, 0)
-        EqtnRhs = cell(1, 0)
-        NaN = zeros(1, 0)
-        UsrEqtn = cell(1, 0)
-        Label = cell(1, 0)
+        FileName = char.empty(1, 0)
+        NameLhs = cell.empty(1, 0)
+        NameRhs = cell.empty(1, 0)
+        NameSteadyRef = cell.empty(1, 0)
+        EqtnRhs = cell.empty(1, 0)
+        NaN = double.empty(1, 0)
+        UsrEqtn = cell.empty(1, 0)
+        Label = cell.empty(1, 0)
         MaxSh = 0
         MinSh = 0
+        Export = shared.Export.empty(1, 0)
     end
     
     
@@ -124,7 +125,7 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
             %         number of equations: [2]
             %         comment: ''
             %         user data: empty
-            %         exported files: [0]
+            %         export files: [0]
             %
             
             % -IRIS Macroeconomic Modeling Toolbox.
@@ -162,12 +163,12 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
                 ixFName = cellfun(@isempty, strfind(inp, '='));
                 if all(ixFName)
                     % Input is file name or cellstr of file names.
-                    [code, fileName, exported] = ...
+                    [code, fileName, export] = ...
                         parser.Preparser.parse(inp, [ ], ...
                         opt.Assign, '', '');
                 elseif all(~ixFName)
                     % Input is equation or cellstr of equations.
-                    [code, fileName, exported] = ...
+                    [code, fileName, export] = ...
                         parser.Preparser.parse([ ], inp, ...
                         opt.Assign, '', '');
                 else
@@ -176,7 +177,7 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
                         'or equation(s), but not combination of both.']);
                 end
                 this.FileName = fileName;
-                this.ExportedFile = exported;
+                this.Export = export;
                 export(this);
                 % Supply the  `!reporting_equations` keyword if missing.
                 if isempty(strfind(code, '!reporting_equations'))

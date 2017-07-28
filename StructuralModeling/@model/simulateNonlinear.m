@@ -47,7 +47,6 @@ state = struct( );
 firstPeriod = find(datcmp(range(1), xRange), 1);
 lastPeriod = find(datcmp(range(end), xRange), 1, 'last');
 
-
 for i = 1 : nVecAlt
     iAlt = vecAlt(i);
   

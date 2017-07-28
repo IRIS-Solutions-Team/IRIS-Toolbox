@@ -266,10 +266,11 @@ def.model = [
     'Assign', [ ], @(x) isempty(x) || isstruct(x)
     'chksyntax', true, @islogicalscalar
     'comment', '', @ischar
+    'Growth', false, @islogicalscalar
     'optimal', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end)))
     'epsilon', [ ], @(x) isempty(x) || (isnumericscalar(x) && x>0 && x<1)
     'removeleads, removelead', false, @islogicalscalar
-    'linear', false, @islogicalscalar
+    'Linear', false, @islogicalscalar
     'makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x)
     'OrderLinks', true, @islogicalscalar
     'precision', 'double', @(x) ischar(x) && any(strcmp(x, {'double', 'single'}))
@@ -457,7 +458,7 @@ def.SteadyNonlinear = [
     'fixgrowth', { }, @(x) isempty(x) || iscellstr(x) || ischar(x)
     'fixgrowthallbut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x)
     'ForceRediff', false, @islogicalscalar
-    'growth', false, @islogicalscalar
+    'Growth', @auto, @(x) isequal(x, @auto) || islogicalscalar(x)
     'growthbounds, growthbnds', [ ], @(x) isempty(x) || isstruct(x)
     'levelbounds, levelbnds', [ ], @(x) isempty(x) || isstruct(x)
     ... 'LogMinus', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all)

@@ -29,12 +29,12 @@ if ~isfield(opt,'months') || isequal(opt.months, @config)
     opt.months = cfg.months;
 end
 
-if ~isfield(opt,'standinmonth') || isequal(opt.standinmonth, @config)
-    opt.standinmonth = cfg.standinmonth;
+if ~isfield(opt, 'ConversionMonth') || isequal(opt.ConversionMonth, @config)
+    opt.ConversionMonth = cfg.ConversionMonth;
 end
 
-if ~isfield(opt,'wwday') || isequal(opt.wwday, @config)
-    opt.wwday = cfg.wwday;
+if ~isfield(opt, 'Wday') || isequal(opt.Wday, @config)
+    opt.Wday = cfg.Wday;
 end
 
 end

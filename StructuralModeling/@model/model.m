@@ -7,37 +7,37 @@
 % model, find its steady state, solve and simulate it, produce forecasts,
 % analyse its properties, and so on.
 %
-% model methods:
+% model methods::
 %
+% Categorical List of Model Functions
+% ====================================
 %
 % Constructor
-% ============
-%
-% * model - Create new model object based on model file.
+% ------------
+% * model - Create new model object from model file.
 %
 %
 % Getting information about model
-% ================================
-%
+% --------------------------------
 % * addparam - Add model parameters to a database (struct).
-% * autocaption - Create captions for graphs of model variables or parameters.
-% * autoexog - Get or set variable/shock pairs for use in autoexogenised simulation plans.
+% * autocaption - Create captions for reporting model variables or parameters.
+% * autoexog - Get or set pairs of names in dynamic and steady autoexog.
 % * chkredundant - Check for redundant shocks and/or parameters.
 % * comment - Get or set user comments in an IRIS object.
 % * eig - Eigenvalues of the transition matrix.
-% * findeqtn - Find equations by the labels.
-% * findname - Find names of variables, shocks, or parameters by their descriptors.
+% * findeqtn - Find equations by their labels.
+% * findname - Find names of variables, shocks, or parameters by their labels.
 % * get - Query model object properties.
+% * isactive - True if dynamic link or steady-state revision is active (not disabled).
 % * iscompatible - True if two models can occur together on the LHS and RHS in an assignment.
 % * islinear - True for models declared as linear.
 % * islog - True for log-linearised variables.
 % * ismissing - True if some initical conditions are missing from input database.
-% * islocked - Get lock status of dynamic links or steady-state revision equations.
 % * isnan - Check for NaNs in model object.
 % * isname - True for valid names of variables, parameters, or shocks in model object.
 % * issolved - True if model solution exists.
 % * isstationary - True if model or specified combination of variables is stationary.
-% * length - Number of alternative parameterisations.
+% * length - Number of model variants.
 % * omega - Get or set the covariance matrix of shocks.
 % * sspace - State-space matrices describing the model solution.
 % * system - System matrices for unsolved model.
@@ -45,39 +45,35 @@
 %
 %
 % Referencing model objects
-% ==========================
-%
+% --------------------------
 % * subsasgn - Subscripted assignment for model and systemfit objects.
 % * subsref - Subscripted reference for model and systemfit objects.
 %
 %
 % Changing model objects
-% =======================
-%
-% * alter - Expand or reduce number of alternative parameterisations.
+% -----------------------
+% * alter - Expand or reduce number of model variants.
 % * assign - Assign parameters, steady states, std deviations or cross-correlations.
-% * export - Save export files to disk.
-% * horzcat - Combine two compatible model objects in one object with multiple parameterisations.
-% * lock - Lock (disable) dynamic links or steady-state revision equations temporarily.
+% * disable - Disable dynamic links or steady-state revision equations.
+% * enable - Enable dynamic links or revision equations.
+% * export - Save all export files associated with model object to current working folder.
+% * horzcat - Merge two or more compatible model objects into multiple parameterizations.
 % * refresh - Refresh dynamic links.
 % * reset - Reset specific values within model object.
 % * stdscale - Rescale all std deviations by the same factor.
-% * set - Change modifiable model object property.
+% * set - Change settable model object property.
 % * single - Convert solution matrices to single precision.
-% * unlock - Unlock (enable) locked dynamic links or steady-state revision equations.
 %
 %
 % Steady state
-% =============
-%
-% * blazer - Reorder steady-state equations into sequential block structure.
+% -------------
+% * blazer - Reorder dynamic or steady equations and variables into sequential block structure.
 % * chksstate - Check if equations hold for currently assigned steady-state values.
 % * sstate - Compute steady state or balance-growth path of the model.
 %
 %
 % Solution, simulation and forecasting
-% =====================================
-%
+% -------------------------------------
 % * chkmissing - Check for missing initial values in simulation database.
 % * diffsrf - Differentiate shock response functions w.r.t. specified parameters.
 % * expand - Compute forward expansion of model solution for anticipated shocks.
@@ -87,27 +83,25 @@
 % * resample - Resample from the model implied distribution.
 % * reporting - Evaluate reporting equations from within model object.
 % * shockplot - Short-cut for running and plotting plain shock simulation.
-% * simulate - Simulate model.
+% * simulate - Simulate model
 % * solve - Calculate first-order accurate solution of the model.
 % * srf - Shock response functions, first-order solution only.
 % * tolerance - Get or set model-specific tolerance levels.
 %
 %
 % Model data
-% ===========
-%
+% -----------
 % * data4lhsmrhs - Prepare data array for running `lhsmrhs`.
-% * emptydb - Create model-specific database with empty tseries for all variables, shocks and parameters.
+% * emptydb - Create model-specific database with empty time series for all variables, shocks and parameters.
 % * rollback - Prepare database for a rollback run of Kalman filter.
 % * shockdb - Create model-specific database with random shocks.
-% * sstatedb - Create model-specific steady-state or balanced-growth-path database.
+% * sstatedb - Create model-specific steady-state or balanced-growth-path database
 % * templatedb - Create model-specific template database.
 % * zerodb - Create model-specific zero-deviation database.
 %
 %
 % Stochastic properties
-% ======================
-%
+% ----------------------
 % * acf - Autocovariance and autocorrelation function for model variables.
 % * ifrf - Frequency response function to shocks.
 % * fevd - Forecast error variance decomposition for model variables.
@@ -118,8 +112,7 @@
 %
 %
 % Identification, estimation and filtering
-% =========================================
-%
+% -----------------------------------------
 % * bn - Beveridge-Nelson trends.
 % * diffloglik - Approximate gradient and hessian of log-likelihood function.
 % * estimate - Estimate model parameters by optimising selected objective function.
@@ -133,8 +126,7 @@
 %
 %
 % Getting on-line help on model functions
-% ========================================
-%
+% ----------------------------------------
 %     help model
 %     help model/function_name
 %
@@ -142,11 +134,12 @@
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exported & shared.Estimation
+classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimation
     
     properties (GetAccess=public, SetAccess=protected, Hidden)
         FileName = '' % File name of source model file.
         IsLinear = false % True for linear models.
+        IsGrowth = false % True for models with nonzero deterministic growth in steady state.
         Tolerance = model.DEFAULT_TOLERANCE_STRUCT % Tolerance levels for different contexts.
         
         Reporting = rpteq( ) % Reporting equations.
@@ -183,6 +176,8 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
         Variant = cell(1, 0) % Cell array of model.Variant objects with parameter dependent data.
         
         Behavior = model.Behavior( ) % Behavior control.
+
+        Export = shared.Export.empty(1, 0) % Export files.
     end
 
     
@@ -227,6 +222,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
         PREAMBLE_LINK = '@(x,t)'
         PREAMBLE_REVISION = '@(x,t)'
         PREAMBLE_HASH = '@(y,xi,e,p,t,L,T)'
+        OBJ_FUN_PENALTY = 1e+10
     end
     
     
@@ -252,6 +248,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
         varargout = emptydb(varargin)        
         varargout = estimate(varargin)
         varargout = expand(varargin)
+        varargout = export(varargin)
         varargout = fevd(varargin)
         varargout = ffrf(varargin)
         varargout = filter(varargin)
@@ -576,8 +573,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
             
             %--------------------------------------------------------------------------
             
-            this = this@shared.Exported( );
-            
             opt = struct( );
             optimalOpt = struct( );
             
@@ -596,7 +591,8 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
                     fileName = strtrim(varargin{1});
                     varargin(1) = [ ];
                     processOptions( );
-                    this.IsLinear = opt.linear;
+                    this.IsLinear = opt.Linear;
+                    this.IsGrowth = opt.Growth;
                     [this, opt] = file2model(this, fileName, opt, optimalOpt);
                     this = build(this, opt);
                 elseif isa(varargin{1}, 'model')
@@ -623,10 +619,10 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Exporte
                     opt.Assign = struct( );
                 end
                 opt.Assign.SteadyOnly = opt.sstateonly;
-                opt.Assign.Linear = opt.linear;
+                opt.Assign.Linear = opt.Linear;
                 % Bkw compatibility:
                 opt.Assign.sstateonly = opt.sstateonly;
-                opt.Assign.linear = opt.linear;
+                opt.Assign.linear = opt.Linear;
                 for iArg = 1 : 2 : length(varargin)
                     opt.Assign.(varargin{iArg}) = varargin{iArg+1};
                 end

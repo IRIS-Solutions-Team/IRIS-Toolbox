@@ -38,6 +38,7 @@ end
 
 %--------------------------------------------------------------------------
 
+
 if this.IsLinear
     % Linear steady state solver
     %----------------------------
@@ -50,6 +51,9 @@ else
     % sstate options and not as suboptions through Solver=; these are only used
     % if Solver= is a char.
     [opt, obsoleteSolverOpt] = passvalopt('model.SteadyNonlinear', varargin{:});
+    if isequal(opt.Growth, @auto)
+        opt.Growth = this.IsGrowth;
+    end
     [opt.Solver, opt.PrepareGradient] = ...
         solver.Options.processOptions(opt.Solver, opt.PrepareGradient, displayMode, obsoleteSolverOpt);
     blz = createBlocks(this, opt);
@@ -120,7 +124,7 @@ fixL(opt.fixlevel) = true;
 fixG = false(1, nQty);
 % Fix growth of endogenized parameters to zero.
 fixG(ixp) = true;
-if opt.growth
+if opt.Growth
     fixG(opt.fix) = true;
     fixG(opt.fixgrowth) = true;
 else
@@ -172,7 +176,7 @@ end
 ixZero = struct( );
 ixZero.Level = false(1, nQty);
 ixZero.Level(ixe) = true;
-if opt.growth
+if opt.Growth
     ixZero.Growth = false(1, nQty);
     ixZero.Growth(ixe | ixp) = true;
 else

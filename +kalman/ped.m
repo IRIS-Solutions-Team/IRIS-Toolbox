@@ -274,9 +274,10 @@ for t = 2 : nPer
     
 end % for t...
 
+
 switch status
     case 'condNumberFailed'
-        obj(1) = irisconst.OBJ_FUNC_PENALTY;
+        obj(1) = s.ObjFunPenalty;
         V = 1;
         est = nan(nPOut+nInit, 1);
         Pest = nan(nPOut+nInit);
