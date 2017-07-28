@@ -158,7 +158,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         tseries < shared.GetterSetter & shared.UserDataContainer 
     properties
         Start = NaN % Date of first available observation
-        Data = double.empty(0, 1) % Time series data
+        Data = zeros(0, 1) % Time series data
     end
 
 
@@ -168,40 +168,36 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         function this = tseries(varargin)
             % tseries  Create new time series (tseries) object.
             %
+            %
             % Syntax
             % =======
             %
-            % Input arguments marked with a `~` sign may be omitted.
-            %
-            %     X = tseries( )
-            %     X = tseries(Dates, Values, ~ColumnComments, ~UserData)
+            %     x = tseries( )
+            %     x = tseries(dates, values)
+            %     x = tseries(dates, values, comment)
             %
             %
             % Input arguments
             % ================
             %
-            % * `Dates` [ numeric | char ] - Dates for which observations will be
+            % * `dates` [ numeric | char ] - Dates for which observations will be
             % supplied; `dates` do not need to be sorted in ascending order or create a
             % continuous date range. If `dates` is scalar and `values` have multiple
             % rows, then the date is interpreted as the start date for the entire time
             % series.
             %
-            % * `Values` [ numeric | function_handle ] - Numerical values
+            % * `values` [ numeric | function_handle ] - Numerical values
             % (observations) arranged columnwise, or a function that will be used to
             % create an N-by-1 array of values, where N is the number of `dates`.
             %
-            % * `~ColumnComments` [ char | cellstr | string ] - Comment or
-            % comments attached to each column of observations; if omitted,
-            % comments will be empty strings.
-            %
-            % * `~UserData` [ * ] - Any kind of user data attached to the
-            % object; if omitted, user data will be empty.
+            % * `comment` [ char | cellstr ] - Comment or comments attached to each
+            % column of observations.
             %
             %
             % Output arguments
             % =================
             %
-            % * `X` [ tseries ] - New times series.
+            % * `x` [ tseries ] - New times series.
             %
             %
             % Description
@@ -237,21 +233,8 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 return
             end
 
-            persistent INPUT_PARSER
-            if isempty(INPUT_PARSER)
-                INPUT_PARSER = extend.InputParser('tseries/tseries');
-                INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'dates.Date') || (isnumeric(x) && all(x==round(x))));
-                INPUT_PARSER.addRequired('Values', @(x) isnumeric(x));
-                INPUT_PARSER.addOptional('ColumnComments', '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x));
-                INPUT_PARSER.addOptional('UserData', [ ], @(x) true);
-            end
-
-            INPUT_PARSER.parse(varargin{:});
-            dat = double(INPUT_PARSER.Results.Dates);
-            values = INPUT_PARSER.Results.Values;
-            columnComments = INPUT_PARSER.Results.ColumnComments;
-            userData = INPUT_PARSER.Results.UserData;
-
+            [dat, values, cmt, varargin] = ...
+                irisinp.parser.parse('tseries.tseries', varargin{:}); %#ok<ASGLU>
             dat = double(dat); % Store start date as double, not dates.Date.
             dat = dat(:);
             nPer = length(dat);            
@@ -291,16 +274,22 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             this = init(this, dat, values);
             
             % Populate comments for each column.
-            sizeOfData = size(this.Data);
-            sizeOfColumnComments = [1, sizeOfData(2:end)];
-            this.Comment = repmat({''}, sizeOfColumnComments);
-
-            if ~isempty(columnComments)
-                this = comment(this, columnComments);
+            sizeCmt = size(this.Data);
+            sizeCmt(1) = 1;
+            this.Comment = cell(sizeCmt);
+            this.Comment(:) = {''};
+            if isempty(cmt)
+                % Do nothing.
+            elseif ischar(cmt)
+                this.Comment(:) = { cmt };
+            elseif iscellstr(cmt)
+                try
+                    this.Comment(:) = cmt(:);
+                catch Error
+                    throw( exception.Base('Series:InvalidCommentSize', 'error') );
+                end
             end
             
-            this = userdata(this, userData);
-
             if ~isempty(this.Data) && any(any(isnan(this.Data([1, end], :))))
                 this = trim(this);
             end

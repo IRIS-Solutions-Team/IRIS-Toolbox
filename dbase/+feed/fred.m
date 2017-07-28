@@ -1,29 +1,23 @@
-function outputData = fred(fredSeriesID, varargin)
-% feed.fred  Import data from FRED, Federal Reserve Bank of St. Louis database.
+function d = fred(varargin)
+% feed.fred  Import data from FRED, Federal Reserve Bank of St. Louis.
 %
 % Syntax
 % =======
 %
-%      OutputDatabase = feed.fred(FredSeriesID, ...)
+%      d = feed.fred(series1, series2, ...)
 %
 %
 % Input arguments
 % ================
 %
-% * `FredSeriesID` [ cellstr | string ] - FRED Series IDs for requested
-% data (not case sensitive).
+% * `series1`, `series2`, ... [ char ] - Names of FRED series
+% (not case sensitive).
 %
 %
 % Output arguments
 % =================
 %
-% * `OutputDatabase` [ struct ] - Database containing imported FRED series.
-%
-%
-% Options
-% ========
-%
-% * `'URL='` [ *`'https://research.stlouisfed.org/fred2/'`* | char | string ] - URL for the database.
+% * `d` [ struct ] - Database containing imported FRED series.
 %
 %
 % Description
@@ -40,78 +34,50 @@ function outputData = fred(fredSeriesID, varargin)
 % Example
 % ========
 %
-%     d = feed.fred({'GDP', 'PCEC', 'FPI'})
-%  
-%     d = 
-%       struct with fields:
-%     
-%          GDP: [281x1 Series]
-%         PCEC: [281x1 Series]
-%          FPI: [281x1 Series]
+% d = feed.fred('GDP', 'PCEC', 'FPI')
 % 
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-outputData = struct( );
-if isempty(fredSeriesID)
-    return
-end
-
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('feed/fred');
-    INPUT_PARSER.addRequired('FredSeriesID', @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
-    INPUT_PARSER.addParameter('URL', 'https://research.stlouisfed.org/fred2/', @(x) ischar(x) || isa(x, 'string'));
-end
-
-INPUT_PARSER.parse(fredSeriesID, varargin{:});
-opt = INPUT_PARSER.Results;
-
-%--------------------------------------------------------------------------
-
-if ~iscell(fredSeriesID)
-    fredSeriesID = cellstr(fredSeriesID);
-end
-
-c = fred(char(opt.URL));
-dataStruct = fetch(c, fredSeriesID);
+c = fred('https://research.stlouisfed.org/fred2/');
+data = fetch(c, varargin);
 close(c);
 
-numberOfSeries = numel(dataStruct);
-unknownFrequencies = cell(1, 0);
-for ithSeries = 1 : numberOfSeries
-    freq = regexp(dataStruct(ithSeries).Frequency, '\w+', 'match', 'once');
-    [year, month, day] = datevec(dataStruct(ithSeries).Data(:, 1));
+d = struct( );
+nData = numel(data);
+lsUnknownFreq = cell(1, 0);
+for i = 1 : nData
+    freq = regexp(data(i).Frequency, '\w+', 'match', 'once');
+    v = datevec(data(i).Data(:, 1));
     switch freq
         case 'Daily'
-            dates = dataStruct(ithSeries).Data(:, 1);
+            dates = data(i).Data(:, 1);
         case 'Weekly'
-            dates = ww(year, month, day);
+            dates = ww(v(:, 1), v(:, 2), v(:, 3));
         case 'Monthly'
-            dates = mm(year, month);
+            dates = mm(v(:, 1), v(:, 2));
         case 'Quarterly'
-            dates = qq(year, month2per(month, 4));
+            dates = qq(v(:, 1), month2per(v(:, 2), 4));
         case 'Semiannual'
-            dates = hh(year, month2per(month, 2));
+            dates = hh(v(:, 1), month2per(v(:, 2), 2));
         case 'Annual'
-            dates = yy(year);
+            dates = yy(v(:, 1));
         otherwise
-            unknownFrequencies{end+1} = fredSeriesID{ithSeries};
+            lsUnknownFreq{end+1} = varargin{i};
             continue
     end
-    ithName = strtrim( dataStruct(ithSeries).SeriesID );
-    ithData = dataStruct(ithSeries).Data(:, 2);
-    ithComment = strtrim( dataStruct(ithSeries).Title );
-    ithUserData = rmfield( dataStruct(ithSeries), 'Data' );
-    outputData.(ithName) = Series(dates, ithData, ithComment, ithUserData);
+    name = strtrim(data(i).SeriesID);
+    comment = strtrim(data(i).Title);
+    userData = rmfield(data(i), 'Data');
+    d.(name) = Series(dates, data(i).Data(:, 2), comment, userData);
 end
 
-if ~isempty(unknownFrequencies)
+if ~isempty(lsUnknownFreq)
     throw( ...
         exception.Base('Dbase:FeedUnknownFrequency', 'warning'), ...
-        unknownFrequencies ...
-    );
+        lsUnknownFreq ...
+        );
 end
 
 end

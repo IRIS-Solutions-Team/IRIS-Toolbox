@@ -44,7 +44,6 @@ s.IsSimulate = ~isequal(opt.simulate, false) ...
     && opt.simulate.NonlinWindow>0 && any(this.Equation.IxHash);
 s.NAhead = opt.ahead;
 s.IsObjOnly = nargout<=1;
-s.ObjFunPenalty = this.OBJ_FUN_PENALTY;
 
 % Out-of-lik params cannot be used with ~opt.dtrends.
 nPOut = length(opt.outoflik);

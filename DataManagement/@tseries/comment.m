@@ -1,18 +1,18 @@
-function varargout = comment(this, varargin)
+function This = comment(This,varargin)
 % comment  Get or set user comments in a tseries object.
 %
 %
 % Syntax for getting user comments
 % =================================
 %
-%     columnComments = comment(X)
+%     Cmt = comment(X)
 %
 %
 % Syntax for assigning user comments
 % ===================================
 %
-%     X = comment(X, ColumnComments)
-%     X = comment(X, Y)
+%     X = comment(X,Cmt)
+%     X = comment(X,Y)
 %
 %
 % Input arguments
@@ -20,11 +20,11 @@ function varargout = comment(this, varargin)
 %
 % * `X` [ tseries ] - Time series.
 %
-% * `ColumnComments` [ char | cellstr ] - Comment(s) that will be assigned to each
+% * `Cmt` [ char | cellstr ] - Comment(s) that will be assigned to each
 % column of the input time series, `X`.
 %
-% * `Y` [ tseries ] - Another time series whose comment(s) will be assigned
-% to the input time series, `X`.
+% * `Y` [ tseries ] - Time series whose comment(s) will be assigned to the
+% input time series, `X`.
 %
 %
 % Output arguments
@@ -32,8 +32,7 @@ function varargout = comment(this, varargin)
 %
 % * `X` [ tseries ] - Output time series with new comments.
 %
-% * `ColumnComments` [ cellstr ] - Column comments from the input time
-% series, `X`.
+% * `Cmt` [ cellstr ] - Comments from the input time series.
 %
 %
 % Description
@@ -42,19 +41,18 @@ function varargout = comment(this, varargin)
 % Multivariate time series (i.e. tseries objects) have comments assigned to
 % each of their columns. When assigning comments (using the syntax with two
 % input arguments) you can either pass in a char (text string) or a cellstr
-% (a cell array of strings). If `columnComments` is a char, then this same
-% comment will be assigned to all of the tseries columns. If
-% `columnComments` is a cellstr, its size in the 2nd and higher dimensions
-% must match the size of the tseries data; the individual strings from
-% `columnComments` will be then copied to the comments belonging to the
-% individual tseries columns.
+% (a cell array of strings). If `Cmt` is a char, then this same comment
+% will be assigned to all of the tseries columns. If `Cmt` is a cellstr,
+% its size in the 2nd and higher dimensions must match the size of the
+% tseries data; the individual strings from `Cmt` will be then copied to
+% the comments belonging to the individual tseries columns.
 %
 %
 % Example
 % ========
 %
-%     x = tseries(1:2, rand(2, 2));
-%     x = comment(x, 'Comment')
+%     x = tseries(1:2,rand(2,2));
+%     x = comment(x,'Comment')
 %
 %     x =
 % 
@@ -66,7 +64,7 @@ function varargout = comment(this, varargin)
 % 
 %         user data: empty
 % 
-%     x = comment(x, {'Comment 1', 'Comment 2'})
+%     x = comment(x,{'Comment 1','Comment 2'})
 % 
 %     x =
 % 
@@ -82,56 +80,44 @@ function varargout = comment(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('tseries/comment');
-    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addOptional('ColumnComments', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x) || isa(x, 'tseries'));
-end
-
-INPUT_PARSER.parse(this, varargin{:});
-
-if ismember('ColumnComments', INPUT_PARSER.UsingDefaults)
-    action = 'get';
-else
-    action = 'set';
-    columnComments = INPUT_PARSER.Results.ColumnComments;
+if ~isempty(varargin)
+    pp = inputParser( );
+    pp.addRequired('Cmt', ...
+        @(x) ischar(x) || iscellstr(x) || isa(x,'tseries'));
+    pp.parse(varargin{1});
 end
 
 %--------------------------------------------------------------------------
 
-varargout = cell(1, 1);
-
 % Get comments
 %--------------
-if isequal(action, 'get')
-    varargout{1} = this.Comment;
+if isempty(varargin)
+    This = This.Comment;
     return
 end
 
 % Set comments
 %--------------
-if isa(columnComments, 'tseries')
-    columnComments = columnComments.Comment;
+Cmt = varargin{1};
+if isa(Cmt,'tseries')
+    Cmt = Cmt.Comment;
 end
 
-columnComments = strrep(columnComments, '"', '');
-
-if ischar(columnComments)
-    this.Comment(:) = varargin(1);
+Cmt = strrep(Cmt,'"','');
+if ischar(Cmt)
+    This.Comment(:) = varargin(1);
 else
-    sizeOfData = size(this.Data);
-    sizeOfComments = size(columnComments);
-    expectedSizeOfComments = [1, sizeOfData(2:end)];
-    if isequal(sizeOfComments, expectedSizeOfComments)
-        this.Comment = columnComments;
-    elseif isequal(sizeOfComments, [1, 1])
-        this.Comment = repmat(columnComments, expectedSizeOfComments);
+    s1 = size(This.data);
+    s1(1) = 1;
+    s2 = size(Cmt);
+    if length(s1)==length(s2) && all(s1==s2)
+        This.Comment = Cmt;
+    elseif isequal(s2,[1,1])
+        This.Comment = repmat(Cmt,[1,s1(2:end)]);
     else
-        throw( exception.Base('Series:InvalidCommentSize', 'error') );
+        utils.error('tseries:comment', ...
+            'Incorrect size of comments attempted to be assigned.');
     end
 end
-
-varargout{1} = this;
 
 end
