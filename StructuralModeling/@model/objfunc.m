@@ -55,7 +55,7 @@ if ~isValid
     if isnumeric(estOpt.nosolution)
         penalty = estOpt.nosolution;
     else
-        penalty = irisconst.OBJ_FUNC_PENALTY;
+        penalty = this.OBJ_FUNC_PENALTY;
     end
     obj = penalty;
 end
