@@ -4,13 +4,15 @@ function yaxistight(varargin)
 % Syntax
 % =======
 %
-%     grfun.yaxistight(Ax)
+%     grfun.yaxistight(Axes)
+%
 %
 % Input arguments
 % ================
 %
-% * `Ax` [ numeric ] - Handles to axes objects whose vertical axes will be
-% made tight.
+% * `Axes` [ numeric ] - Handles to axes objects whose vertical axes will
+% be made tight.
+%
 %
 % Description
 % ============
@@ -20,6 +22,7 @@ function yaxistight(varargin)
 % `grfun.highlight` objects when determining the minimum and maximum on the
 % vertical axis.
 %
+%
 % Example
 % ========
 %
@@ -28,28 +31,44 @@ function yaxistight(varargin)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 if ~isempty(varargin) && all(ishghandle(varargin{1}))
-    Ax = varargin{1}(:).';
+    handlesToAxes = varargin{1}(:).';
     varargin(1) = [ ]; %#ok<NASGU>
 else
-    Ax = gca( );
+    handlesToAxes = gca( );
 end
 
 %--------------------------------------------------------------------------
 
-for iAx = Ax
-    if true % ##### MOSW
-        lim = objbounds(iAx);
-    else
-        lim = mosw.objbounds(iAx); %#ok<UNRCH>
+for ithAxes = handlesToAxes
+    [yMin, yMax] = getActualYDataLimits(ithAxes);
+    if isinf(yMin) && isinf(yMax)
+        continue
     end
-    if isempty(lim)
-        yLim = get(iAx,'yLim');
-    else
-        yLim = lim(3:4);
+    if yMin>=yMax
+        continue
     end
-    if any(~isinf(yLim)) && yLim(1) < yLim(2)
-        set(iAx,'yLim',yLim,'yLimMode','manual');
-    end
+    set(ithAxes, 'YLim', [yMin, yMax], 'YLimMode', 'Manual');
 end
 
+end
+
+
+function [yMin, yMax] = getActualYDataLimits(ax)
+    obj = findobj(ax, ...
+        '-property', 'YData', ...
+        '-not', 'Tag', 'vline', ...
+        '-not', 'Tag', 'hline', ...
+        '-not', 'Tag', 'highlight' ...
+    );
+    yMin = Inf;
+    yMax = -Inf;
+    for i = 1 : numel(obj)
+        ithObj = obj(i);
+        ithYData = get(ithObj, 'YData');
+        if isempty(ithYData)
+            continue
+        end
+        yMin = min(yMin, min(ithYData(:)));
+        yMax = max(yMax, max(ithYData(:)));
+    end
 end
