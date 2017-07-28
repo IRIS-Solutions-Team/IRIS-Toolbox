@@ -688,6 +688,7 @@ if strcmpi(opt.saveasformat, '.csv')
     dbsave(plotDb, opt.saveas, Inf, opt.dbsave{:});
     return
 end
+
 if strcmpi(opt.saveasformat, '.ps')
     [~, fTitle] = fileparts(opt.saveas);
     psfile = fullfile([fTitle, '.ps']);
@@ -699,6 +700,18 @@ if strcmpi(opt.saveasformat, '.ps')
         orient('landscape');
         print('-dpsc', '-painters', '-append', psfile);
     end
+    return
+end
+
+if strcmpi(opt.saveasformat, '.pdf')
+    [filePath, fileTitle, fileExtension] = fileparts(opt.saveas);
+    numberOfFigures = numel(ff);
+    for ithFigure = 1 : numberOfFigures
+        figure(ff(ithFigure));
+        orient landscape;
+        print('-dpdf', '-fillpage', fullfile(filePath, sprintf('%s_F%g%s', fileTitle, ithFigure, fileExtension)));
+    end
+    return
 end
 end 
 
