@@ -2,16 +2,14 @@ function outp = run(varargin)
 % run  Evaluate reporting equations (rpteq) object.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     Outp = run(Q,Inp,Range,~Model,...)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
 % * `Q` [ char ] - Reporting equations (rpteq) object.
 %
@@ -26,34 +24,30 @@ function outp = run(varargin)
 % reporting equations, this input argument may be omitted.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
 % * `Outp` [ struct ] - Output database with reporting variables.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'dbOverlay='` [ `true` | *`false`* | struct ] - If `true`, the LHS
+% * `'DbOverlay='` [ `true` | *`false`* | struct ] - If `true`, the LHS
 % output data will be combined with data from the input database (or a
 % user-supplied database).
 %
-% * `'fresh='` [ `true` | *`false`* ] - If `true`, only the LHS reporting
+% * `'Fresh='` [ `true` | *`false`* ] - If `true`, only the LHS reporting
 % variables will be included in the output database, `Outp`; if `false` the
 % output database will also include all entries from the input database,
 % `Inp`.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % Reporting equations are always evaluated non-simultaneously, i.e.
 % equation by equation, for each period.
 %
 %
-% Example
-% ========
+% __Example__
 %
 % Note the differences in the three output databases, `d1`, `d2`, `d3`,
 % depending on the options `'dbOverlay='` and `'fresh='`.
@@ -107,7 +101,8 @@ function outp = run(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 [this, inp, dates, m, varargin] = ...
     irisinp.parser.parse('rpteq.run', varargin{:});

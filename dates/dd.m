@@ -73,6 +73,6 @@ elseif strcmpi(day, 'end')
 end
 
 dat = datenum(year, month, day);
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

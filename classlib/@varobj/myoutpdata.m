@@ -7,7 +7,8 @@ function outp = myoutpdata(this, range, inpMean, inpMse, lsy, addDb) %#ok<INUSL>
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 try, inpMse; catch, inpMse = [ ]; end %#ok<VUNUS,NOCOM>
 

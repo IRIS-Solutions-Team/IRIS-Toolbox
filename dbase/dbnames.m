@@ -1,28 +1,23 @@
 function list = dbnames(varargin)
 % dbnames  List of database entries filtered by name and/or class.
 %
+% __Syntax__
 %
-% Syntax
-% =======
-%
-%     list = dbnames(d, ...)
+%     List = dbnames(D, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `d` [ struct ] - Input database.
+% * `D` [ struct ] - Input database.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `list` [ cellstr ] - List of input database entries that pass the name
+% * `List` [ cellstr ] - List of input database entries that pass the name
 % or class test.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'NameFilter='` [ cellstr | char | rexp | *`@all`* ] - List of names or
 % regular expression against which the database entry names will be
@@ -33,12 +28,10 @@ function list = dbnames(varargin)
 % be matched; `@all` means all classes will be matched.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 % Notice the differences in the following calls to `dbnames`:
 %
@@ -105,7 +98,7 @@ if isequal(filter, @all)
 elseif isempty(filter)
     ixTest(:) = false;
     return
-elseif ischar(filter) || isrexp(filter)
+elseif ischar(filter) || isa(filter, 'rexp')
     x = regexp(list, filter, 'once');
     ixTest = ~cellfun(@isempty, x);
     return

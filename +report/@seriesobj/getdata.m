@@ -33,7 +33,7 @@ end
         end
         Time = Range;
         
-        rangeFreq = datfreq(Range);
+        rangeFreq = DateWrapper.getFrequencyFromNumeric(Range);
         dataFreq = cellfun(@freq,Inp);
         % We cannot pre-allocate `outp` properly because the number of
         % columns is unknown at this point.

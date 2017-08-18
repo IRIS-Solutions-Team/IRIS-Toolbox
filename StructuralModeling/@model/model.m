@@ -1,134 +1,133 @@
-% model  Models (model Objects).
+% Models
 %
-% Model objects are created by loading a model file written in [IRIS
-% modeling language](modellang/Contents). Once a model object exists, you
-% can use model functions and standard Matlab functions to write your own
-% m-files to perform the desired tasks, such calibrate or estimate the
-% model, find its steady state, solve and simulate it, produce forecasts,
-% analyse its properties, and so on.
+% This section describes the `Model` class of objects.
 %
-% model methods::
-%
-% Categorical List of Model Functions
-% ====================================
-%
-% Constructor
+% Description
 % ------------
-% * model - Create new model object from model file.
+%
+% Model objects are created by loading a model file written in [IRIS Model
+% File Language](ModelFileLanguage). Once a model object exists in the
+% Matlab workspace, you can combine model functions and standard Matlab
+% functions to work with it in your own m-files (scripts, functions, etc.):
+% assign or estimate model parameters, run model simulations, calculate its
+% stochastic properties, etc.
 %
 %
-% Getting information about model
-% --------------------------------
-% * addparam - Add model parameters to a database (struct).
-% * autocaption - Create captions for reporting model variables or parameters.
-% * autoexog - Get or set pairs of names in dynamic and steady autoexog.
-% * chkredundant - Check for redundant shocks and/or parameters.
-% * comment - Get or set user comments in an IRIS object.
-% * eig - Eigenvalues of the transition matrix.
-% * findeqtn - Find equations by their labels.
-% * findname - Find names of variables, shocks, or parameters by their labels.
-% * get - Query model object properties.
-% * isactive - True if dynamic link or steady-state revision is active (not disabled).
-% * iscompatible - True if two models can occur together on the LHS and RHS in an assignment.
-% * islinear - True for models declared as linear.
-% * islog - True for log-linearised variables.
-% * ismissing - True if some initical conditions are missing from input database.
-% * isnan - Check for NaNs in model object.
-% * isname - True for valid names of variables, parameters, or shocks in model object.
-% * issolved - True if model solution exists.
-% * isstationary - True if model or specified combination of variables is stationary.
-% * length - Number of model variants.
-% * omega - Get or set the covariance matrix of shocks.
-% * sspace - State-space matrices describing the model solution.
-% * system - System matrices for unsolved model.
-% * userdata - Get or set user data in an IRIS object.
+% model methods:
 %
-%
-% Referencing model objects
-% --------------------------
-% * subsasgn - Subscripted assignment for model and systemfit objects.
-% * subsref - Subscripted reference for model and systemfit objects.
-%
-%
-% Changing model objects
-% -----------------------
-% * alter - Expand or reduce number of model variants.
-% * assign - Assign parameters, steady states, std deviations or cross-correlations.
-% * disable - Disable dynamic links or steady-state revision equations.
-% * enable - Enable dynamic links or revision equations.
-% * export - Save all export files associated with model object to current working folder.
-% * horzcat - Merge two or more compatible model objects into multiple parameterizations.
-% * refresh - Refresh dynamic links.
-% * reset - Reset specific values within model object.
-% * stdscale - Rescale all std deviations by the same factor.
-% * set - Change settable model object property.
-% * single - Convert solution matrices to single precision.
-%
-%
-% Steady state
-% -------------
-% * blazer - Reorder dynamic or steady equations and variables into sequential block structure.
-% * chksstate - Check if equations hold for currently assigned steady-state values.
-% * sstate - Compute steady state or balance-growth path of the model.
-%
-%
-% Solution, simulation and forecasting
-% -------------------------------------
-% * chkmissing - Check for missing initial values in simulation database.
-% * diffsrf - Differentiate shock response functions w.r.t. specified parameters.
-% * expand - Compute forward expansion of model solution for anticipated shocks.
-% * jforecast - Forecast with judgmental adjustments (conditional forecasts).
-% * icrf - Initial-condition response functions.
-% * lhsmrhs - Evaluate the discrepancy between the LHS and RHS for each model equation and given data.
-% * resample - Resample from the model implied distribution.
-% * reporting - Evaluate reporting equations from within model object.
-% * shockplot - Short-cut for running and plotting plain shock simulation.
-% * simulate - Simulate model
-% * solve - Calculate first-order accurate solution of the model.
-% * srf - Shock response functions, first-order solution only.
-% * tolerance - Get or set model-specific tolerance levels.
-%
-%
-% Model data
-% -----------
-% * data4lhsmrhs - Prepare data array for running `lhsmrhs`.
-% * emptydb - Create model-specific database with empty time series for all variables, shocks and parameters.
-% * rollback - Prepare database for a rollback run of Kalman filter.
-% * shockdb - Create model-specific database with random shocks.
-% * sstatedb - Create model-specific steady-state or balanced-growth-path database
-% * templatedb - Create model-specific template database.
-% * zerodb - Create model-specific zero-deviation database.
-%
-%
-% Stochastic properties
+% Functions by Category
 % ----------------------
-% * acf - Autocovariance and autocorrelation function for model variables.
-% * ifrf - Frequency response function to shocks.
-% * fevd - Forecast error variance decomposition for model variables.
-% * ffrf - Filter frequency response function of transition variables to measurement variables.
-% * fmse - Forecast mean square error matrices.
-% * vma - Vector moving average representation of the model.
-% * xsf - Power spectrum and spectral density of model variables.
+%
+% __Constructor__
+%
+%   model - Create new model object from model file
 %
 %
-% Identification, estimation and filtering
-% -----------------------------------------
-% * bn - Beveridge-Nelson trends.
-% * diffloglik - Approximate gradient and hessian of log-likelihood function.
-% * estimate - Estimate model parameters by optimising selected objective function.
-% * filter - Kalman smoother and estimator of out-of-likelihood parameters.
-% * fisher - Approximate Fisher information matrix in frequency domain.
-% * lognormal - Characteristics of log-normal distributions returned from filter of forecast.
-% * loglik - Evaluate minus the log-likelihood function in time or frequency domain.
-% * neighbourhood - Evaluate the local behaviour of the objective function around the estimated parameter values.
-% * regress - Centred population regression for selected model variables.
-% * VAR - Population VAR for selected model variables.
+% __Getting Information about Models__
+%
+%   addparam - Add model parameters to a database
+%   autocaption - Create captions for reporting model variables or parameters
+%   autoexog - Get or set pairs of names in dynamic and steady autoexog
+%   chkredundant - Check for redundant shocks and/or parameters
+%   comment - Get or set user comments in an IRIS object
+%   eig - Eigenvalues of the transition matrix
+%   findeqtn - Find equations by their labels
+%   findname - Find names of variables, shocks, or parameters by their labels
+%   get - Query model object properties
+%   isactive - True if dynamic link or steady-state revision is active (not disabled)
+%   iscompatible - True if two models can occur together on the LHS and RHS in an assignment
+%   islinear - True for models declared as linear
+%   islog - True for log-linearised variables
+%   ismissing - True if some initical conditions are missing from input database
+%   isnan - Check for NaNs in model object
+%   isname - True for valid names of variables, parameters, or shocks in model object
+%   issolved - True if model solution exists
+%   isstationary - True if model or specified combination of variables is stationary
+%   length - Number of model variants
+%   omega - Get or set the covariance matrix of shocks
+%   sspace - State-space matrices describing the model solution
+%   system - System matrices for unsolved model
+%   userdata - Get or set user data in an IRIS object
 %
 %
-% Getting on-line help on model functions
-% ----------------------------------------
-%     help model
-%     help model/function_name
+% __Referencing Model Objects__
+%
+%   subsasgn - Subscripted assignment for model and systemfit objects
+%   subsref - Subscripted reference for model and systemfit objects
+%
+%
+% __Changing Model Objects__
+%
+%   alter - Expand or reduce number of model variants
+%   assign - Assign parameters, steady states, std deviations or cross-correlations
+%   disable - Disable dynamic links or steady-state revision equations
+%   enable - Enable dynamic links or revision equations
+%   export - Save all export files associated with model object to current working folder
+%   horzcat - Merge two or more compatible model objects into multiple parameterizations
+%   refresh - Refresh dynamic links
+%   reset - Reset specific values within model object
+%   stdscale - Rescale all std deviations by the same factor
+%   set - Change settable model object property
+%
+%
+% __Steady State__
+%
+%   blazer - Reorder dynamic or steady equations and variables into sequential block structure
+%   chksstate - Check if equations hold for currently assigned steady-state values
+%   sstate - Compute steady state or balance-growth path of the model
+%
+%
+% __Solution, Simulation and Forecasting__
+%
+%   chkmissing - Check for missing initial values in simulation database
+%   diffsrf - Differentiate shock response functions w.r.t. specified parameters
+%   expand - Compute forward expansion of model solution for anticipated shocks
+%   jforecast - Forecast with judgmental adjustments (conditional forecasts)
+%   icrf - Initial-condition response functions, first-order solution only
+%   lhsmrhs - Discrepancy between the LHS and RHS of each model equation for given data
+%   resample - Resample from the model implied distribution
+%   reporting - Evaluate reporting equations from within model object
+%   shockplot - Short-cut for running and plotting plain shock simulation
+%   simulate - Simulate model
+%   solve - Calculate first-order accurate solution of the model
+%   srf - Shock response functions, first-order solution only
+%   tolerance - Get or set model-specific tolerance levels
+%
+%
+% __Model Data__
+%
+%   data4lhsmrhs - Prepare data array for running `lhsmrhs`
+%   emptydb - Create model database with empty time series for each variable and shock
+%   shockdb - Create model-specific database with random shocks
+%   sstatedb - Create model-specific steady-state or balanced-growth-path database
+%   templatedb - Create model-specific template database
+%   zerodb - Create model-specific zero-deviation database
+%
+%
+% __Stochastic Properties__
+%
+%   acf - Autocovariance and autocorrelation function for model variables
+%   ifrf - Frequency response function to shocks
+%   fevd - Forecast error variance decomposition for model variables
+%   ffrf - Filter frequency response function of transition variables to measurement variables
+%   fmse - Forecast mean square error matrices
+%   vma - Vector moving average representation of the model
+%   xsf - Power spectrum and spectral density of model variables
+%
+%
+% __Identification, Estimation and Filtering__
+%
+%   bn - Beveridge-Nelson trends
+%   diffloglik - Approximate gradient and hessian of log-likelihood function
+%   estimate - Estimate model parameters by optimising selected objective function
+%   filter - Kalman smoother and estimator of out-of-likelihood parameters
+%   fisher - Approximate Fisher information matrix in frequency domain
+%   lognormal - Characteristics of log-normal distributions returned from filter of forecast
+%   loglik - Evaluate minus the log-likelihood function in time or frequency domain
+%   neighbourhood - Local behaviour of the objective function around the estimated parameters
+%   regress - Centred population regression for selected model variables
+%   VAR - Population VAR for selected model variables
+%
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -209,7 +208,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             )
         DEFAULT_STEADY_EXOGENOUS = NaN;
         DEFAULT_STD_LINEAR = 1;
-        DEFAULT_STD_NONLINEAR = log(1.01);
+        DEFAULT_STD_NONLINEAR = log(1.01)
         RESERVED_NAME_TTREND = 'ttrend'
         COMMENT_TTREND = 'Time trend'
         STEADY_TTREND = 0 + 1i
@@ -282,12 +281,10 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = reporting(varargin)
         varargout = resample(varargin)
         varargout = reset(varargin)        
-        varargout = rollback(varargin)
         varargout = set(varargin)
         varargout = shockdb(varargin)
         varargout = shockplot(varargin)
         varargout = simulate(varargin)
-        varargout = single(varargin)
         varargout = solve(varargin)
         varargout = sprintf(varargin)
         varargout = srf(varargin)
@@ -327,6 +324,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = objfunc(varargin)
         varargout = isempty(varargin)
         
+
         varargout = prepareBlazer(varargin)        
         varargout = prepareChkSteady(varargin)
         varargout = prepareGlobal(varargin)        
@@ -334,6 +332,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = prepareSolve(varargin)        
         varargout = prepareSteady(varargin)
         
+
         %varargout = saveobj(varargin)
         varargout = size(varargin)        
         varargout = sizeOfSolution(varargin)
@@ -344,19 +343,26 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = verifyEstimStruct(varargin)
         varargout = vertcat(varargin)
 
-        function lsProp = properties(this)
-            lsProp = [ ...
+
+        function listOfAllNames = properties(this)
+            listOfAllNames = [ ...
                 this.Quantity.Name, ...
                 getStdName(this.Quantity), ...
                 getCorrName(this.Quantity), ...
                 ];
         end
+        
+
         function this = setp(this, prop, value)
             this.(prop) = value;
         end
+
+
         function value = getp(this, prop)
             value = this.(prop);
         end
+
+
         function varargout = lookup(this, varargin)
             [varargout{1:nargout}] = lookup(this.Quantity, varargin{:});
         end
@@ -392,6 +398,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = prepareSimulate1(varargin)
         varargout = prepareSimulate2(varargin)
         varargout = printSolutionVector(varargin)
+        varargout = responseFunction(varargin)
         varargout = simulateNonlinear(varargin)
         varargout = solveFail(varargin)
         varargout = solveFirstOrder(varargin)        

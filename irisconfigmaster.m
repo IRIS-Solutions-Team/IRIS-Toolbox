@@ -9,10 +9,14 @@ function varargout = irisconfigmaster(varargin)
 
 persistent CONFIG LS_CONFIG
 
-if isempty(varargin) || isempty(CONFIG)
+if nargin==0 || isempty(CONFIG)
     CONFIG = irisconfig( );
     LS_CONFIG = fieldnames(CONFIG);
     mlock( );
+end
+
+if nargin==0
+    return
 end
 
 try

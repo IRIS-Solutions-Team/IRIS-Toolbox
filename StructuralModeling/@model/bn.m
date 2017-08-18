@@ -1,32 +1,28 @@
 function outp = bn(this, inp, range, varargin)
 % bn  Beveridge-Nelson trends.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     outp = bn(m, inp, range, ...)
+%     Outp = bn(M, Inp, Range, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `m` [ model ] - Solved model object.
+% * `M` [ model ] - Solved model object.
 %
-% * `inp` [ struct | cell ] - Input data on which the BN trends will be
+% * `Inp` [ struct | cell ] - Input data on which the BN trends will be
 % computed.
 %
-% * `range` [ numeric | char ] - Date range on which the BN trends will be
+% * `Range` [ numeric | char ] - Date range on which the BN trends will be
 % computed.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `outp` [ struct | cell ] - Output data with the BN trends.
+% * `Outp` [ struct | cell ] - Output data with the BN trends.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Deviations='` [ `true` | *`false`* ] - Input and output data are
 % deviations from balanced-growth paths.
@@ -36,26 +32,25 @@ function outp = bn(this, inp, range, varargin)
 % [`!dtrends`](modellang/dtrends) equations.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The BN decomposition is accurate only if the input data have been
 % generated using unanticipated shocks.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
+EYE_TOLERANCE = this.Tolerance.Solve;
 TYPE = @int8;
 
 % Parse required input arguments.
 pp = inputParser( );
 pp.addRequired('Inp', @(x) isstruct(x) || iscell(x));
-pp.addRequired('Range', @(x) isdatinp(x));
+pp.addRequired('Range', @DateWrapper.validateDateInput);
 pp.parse(inp, range);
 
 opt = passvalopt('model.bn', varargin{:});
@@ -86,6 +81,7 @@ hd = hdataobj(this, range, nLoop, 'IncludeLag=', false);
 
 ixSolved = true(1, nAlt);
 ixDiffStat = true(1, nAlt);
+testEye = @(x) all(all(abs(x - eye(size(x)))<=EYE_TOLERANCE));
 
 for iLoop = 1 : nLoop
     
@@ -102,7 +98,7 @@ for iLoop = 1 : nLoop
         end
         
         nUnit = sum(this.Variant{iLoop}.Stability==TYPE(1));
-        if ~iseye(Ta(1:nUnit, 1:nUnit))
+        if ~testEye(Ta(1:nUnit, 1:nUnit))
             ixDiffStat(iLoop) = false;
             continue
         end

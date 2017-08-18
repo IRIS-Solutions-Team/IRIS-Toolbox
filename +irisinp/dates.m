@@ -3,7 +3,7 @@ classdef dates < irisinp.generic
         ReportName = 'Dates';
         Value = NaN;
         Omitted = @error;
-        ValidFn = @(x) isdatinp(x); 
+        ValidFn = @DateWrapper.validateDateInput;
     end
     
 

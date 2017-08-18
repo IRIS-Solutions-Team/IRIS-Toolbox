@@ -1,40 +1,36 @@
-function [s, ff, aa] = shockplot(this, shockName, range, lsPlot, varargin)
+function [s, ff, aa] = shockplot(this, shockName, range, listOfNamesToPlot, varargin)
 % shockplot  Short-cut for running and plotting plain shock simulation.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [s, ff, aa] = shockplot(m, shockName, range, plotLis,...)
+%     [S, FF, AA] = shockplot(M, ShockName, Range, PlotList, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `m` [ model ] - Model object that will be simulated.
+% * `M` [ model ] - Model object that will be simulated.
 %
-% * `shockName` [ char ] - Name of the shock that will be simulated.
+% * `ShockName` [ char ] - Name of the shock that will be simulated.
 %
-% * `range` [ numeric | char ] - Date range on which the shock will be
+% * `Range` [ DateWrapper ] - Date range on which the shock will be
 % simulated.
 %
-% * `plotList` [ cellstr ] - List of variables that will be reported; you
+% * `PlotList` [ cellstr ] - List of variables that will be reported; you
 % can use the syntax of [`dbase/dbplot`](dbase/dbplot).
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `s` [ struct ] - Database with simulation results.
+% * `S` [ struct ] - Database with simulation results.
 %
-% * `ff` [ numeric ] - Handles of figure windows created.
+% * `FF` [ numeric ] - Handles of figure windows created.
 %
-% * `aa` [ numeric ] - Handles of axes objects created.
+% * `AA` [ numeric ] - Handles of axes objects created.
 %
 %
-% Options affecting the simulation
-% =================================
+% __Options Controlling the Simulation__
 %
-% * `'Deviation='` [ *`true`* | `false` ] - See the option `'deviation='`
+% * `'Deviation='` [ *`true`* | `false` ] - See the option `'Deviation='`
 % in [`model/simulate`](model/simulate).
 %
 % * `'Dtrends='` [ *`@auto`* | `true` | `false` ] - See the option
@@ -45,44 +41,41 @@ function [s, ff, aa] = shockplot(this, shockName, range, lsPlot, varargin)
 % simulated.
 %
 %
-% Options affecting the graphs
-% =============================
+% __Options Controlling the Chart Plotted__
 %
 % See help on [`dbase/dbplot`](dbase/dbplot) for other options available.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The simulated shock always occurs at time `t=1`. Starting the simulation
-% range, `SimRange`, before `t=1` allows you to simulate anticipated
+% range, `Range`, before `t=1` allows you to simulate anticipated
 % shocks.
 %
 % The graphs automatically include one pre-sample period, i.e. one period
 % prior to the start of the simulation.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 try
-    if ischar(lsPlot)
-        lsPlot = {lsPlot};
+    if ischar(listOfNamesToPlot)
+        listOfNamesToPlot = { listOfNamesToPlot };
     end
 catch %#ok<CTCH>
-    lsPlot = { };
+    listOfNamesToPlot = { };
 end
 
 pp = inputParser( );
-pp.addRequired('m', @(x) isa(x, 'model'));
-pp.addRequired('shockName', @ischar);
-pp.addRequired('range', @(x) isdatinp(x));
-pp.addRequired('plotList', @(x) ischar(x) || iscellstr(lsPlot));
-pp.parse(this, shockName, range, lsPlot);
+pp.addRequired('M', @(x) isa(x, 'model'));
+pp.addRequired('ShockName', @ischar);
+pp.addRequired('Range', @DateWrapper.validateDateInput);
+pp.addRequired('PlotList', @(x) ischar(x) || iscellstr(x));
+pp.parse(this, shockName, range, listOfNamesToPlot);
 
 [opt, varargin] = passvalopt('model.shockplot', varargin{:});
 
@@ -125,9 +118,9 @@ s = simulate(this,d,range, ...
     'AppendPresample=', true, ...
     opt.simulate{:});
 
-if ~isempty(lsPlot)
+if ~isempty(listOfNamesToPlot)
     plotRange = range(1)-1 : range(end);
-    [ff, aa] = dbplot(s, plotRange, lsPlot, varargin{:}, opt.dbplot{:});
+    [ff, aa] = dbplot(s, plotRange, listOfNamesToPlot, varargin{:}, opt.dbplot{:});
 end
 
 end

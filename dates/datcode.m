@@ -48,7 +48,7 @@ if any(ixReg)
     end
     serial = round(year(ixReg)).*round(freq(ixReg)) + round(per(ixReg)) - 1;
     dat(ixReg) = serial + round(freq(ixReg))/100;
-    dat = dates.Date(dat);
+    dat = DateWrapper(dat);
 end
 
 if any(ixZero)

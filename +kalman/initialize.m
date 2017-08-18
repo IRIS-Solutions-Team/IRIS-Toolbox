@@ -60,6 +60,9 @@ return
     function Pa0 = getInitMse( )
         % Initialise MSE matrix.
         Pa0 = zeros(nb);
+        if strcmpi(opt.Init, 'Fixed')
+            return
+        end
         if iscell(opt.Init) 
             % User supplied initial condition.
             if ~isempty(opt.Init{2})
@@ -116,6 +119,10 @@ return
         end
         if strcmpi(opt.InitUnitRoot, 'ApproxDiffuse')
             % Initialize unit roots with a large finite MSE matrix.
+            n = 0;
+            return
+        end
+        if strcmpi(opt.Init, 'Fixed')
             n = 0;
             return
         end

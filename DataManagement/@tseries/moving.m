@@ -57,11 +57,11 @@ opt = passvalopt('tseries.moving',varargin{:});
 %--------------------------------------------------------------------------
 
 if isequal(opt.window,@auto)
-    freq = datfreq(This.start);
+    freq = DateWrapper.getFrequencyFromNumeric(This.start);
     if freq == 0
         utils.error('tseries:moving', ...
             ['Option ''window='' must be used for tseries objects ', ...
-            'with unspecified date frequency.']);
+            'with integer date frequency.']);
     else
         opt.window = -freq+1:0;
     end

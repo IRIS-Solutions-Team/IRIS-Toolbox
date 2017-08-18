@@ -72,8 +72,8 @@ ixYInf = isinf(y);
 fx = inf(size(x));
 fy = inf(size(y));
 
-fx(~ixXInf) = datfreq(x(~ixXInf));
-fy(~ixYInf) = datfreq(y(~ixYInf));
+fx(~ixXInf) = DateWrapper.getFrequencyFromNumeric(x(~ixXInf));
+fy(~ixYInf) = DateWrapper.getFrequencyFromNumeric(y(~ixYInf));
 
 flag = fx==fy | isinf(fx-fy);
 

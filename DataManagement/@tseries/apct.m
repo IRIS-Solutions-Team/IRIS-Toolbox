@@ -30,7 +30,7 @@ function X = apct(X, Q)
 try
     Q; %#ok<VUNUS>
 catch %#ok<CTCH>
-    Q = datfreq(X.start);
+    Q = DateWrapper.getFrequencyFromNumeric(X.start);
     if Q == 0
         Q = 1;
     end

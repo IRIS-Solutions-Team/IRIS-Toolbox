@@ -281,7 +281,7 @@ while ~isempty(varargin) && ~ischar(varargin{1}) ...
         varargin(1) = [ ];
         continue
     end
-    if iscellstr(varargin{1}) || isrexp(varargin{1})
+    if iscellstr(varargin{1}) || isa(varargin{1}, 'rexp')
         list = varargin{1};
         varargin(1) = [ ];
         continue
@@ -291,7 +291,7 @@ end
 if isequal(list, @all)
     % All time series names in the input database.
     list = dbnames(d, 'ClassFilter=', 'tseries');
-elseif isrexp(list)
+elseif isa(list, 'rexp')
     % Regular expression.
     list = dbnames(d, 'NameFilter=', list, 'ClassFilter=', 'tseries');
 end

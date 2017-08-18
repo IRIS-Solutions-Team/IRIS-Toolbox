@@ -1,17 +1,15 @@
-function X = normalise(X,NormDate,varargin)
+function this = normalise(this, normDate, varargin)
 % normalise  Normalise (or rebase) data to particular date.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     X = normalise(X,NormDate,...)
+%     X = normalise(X, NormDate, ...)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
-% * `x` [ tseries ] -  Input time series that will be normalised.
+% * `X` [ tseries ] -  Input time series that will be normalised.
 %
 % * `NormDate` [ numeric | `'start'` | `'end'` | `'nanStart'` | `'nanEnd'`
 % ] - Date relative to which the input data will be normalised; if not
@@ -19,60 +17,56 @@ function X = normalise(X,NormDate,varargin)
 % observation) will be used.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
 % * `X` [ tseries ] - Normalised time series.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'mode='` [ `'add'` | *`'mult'`* ]  - Additive or multiplicative
+% * `'Mode='` [ `'add'` | *`'mult'`* ]  - Additive or multiplicative
 % normalisation.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-opt = passvalopt('tseries.normalise',varargin{:});
+opt = passvalopt('tseries.normalise', varargin{:});
 
-if ischar(NormDate)
-    if isdatinp(NormDate)
-        NormDate = textinp2dat(NormDate);
+if ischar(normDate)
+    if DateWrapper.validateDateInput(normDate)
+        normDate = textinp2dat(normDate);
     else
-        NormDate = get(X,NormDate);
+        normDate = get(this, normDate);
     end
 end
 
 %--------------------------------------------------------------------------
 
-if strncmpi(opt.mode,'add',3)
+if strncmpi(opt.mode, 'add', 3)
     func = @minus;
 else
     func = @rdivide;
 end
 
-xSize = size(X.data);
-X.data = X.data(:,:);
+sizeOfData = size(this.Data);
+this.Data = this.Data(:, :);
 
-y = mygetdata(X,NormDate);
-for i = 1 : size(X.data,2)
-    X.data(:,i) = func(X.data(:,i),y(i));
+y = mygetdata(this, normDate);
+for i = 1 : size(this.Data, 2)
+    this.Data(:, i) = func(this.Data(:, i), y(i));
 end
 
-if length(xSize) > 2
-    X.data = reshape(X.data,xSize);
+if length(sizeOfData) > 2
+    this.Data = reshape(this.Data, sizeOfData);
 end
 
-X = trim(X);
+this = trim(this);
 
 end

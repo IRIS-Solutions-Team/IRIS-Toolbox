@@ -1,14 +1,13 @@
 function [minusLogLik, grad, hess, v] ...
-    = diffloglik(this, data, range, lsPar, varargin)
-% diffloglik  Approximate gradient and hessian of log-likelihood function.
+    = diffloglik(this, data, range, listOfParameters, varargin)
+% diffloglik  Approximate gradient and hessian of log-likelihood function
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [MinusLogLik,Grad,Hess,V] = diffloglik(M,Inp,Range,PList,...)
+%     [MinusLogLik, Grad, Hess, V] = diffloglik(M, Inp, Range, PList, ...)
 %
-% Input arguments
-% ================
+%
+% __Input arguments__
 %
 % * `M` [ model ] - Model object whose likelihood function will be
 % differentiated.
@@ -22,8 +21,8 @@ function [minusLogLik, grad, hess, v] ...
 % * `PList` [ cellstr ] - List of model parameters with respect to which
 % the likelihood function will be differentiated.
 %
-% Output arguments
-% =================
+%
+% __Output arguments__
 %
 % * `MinusLogLik` [ numeric ] - Value of minus the likelihood function at the input
 % data.
@@ -35,27 +34,27 @@ function [minusLogLik, grad, hess, v] ...
 % * `V` [ numeric ] - Estimated variance scale factor if the `'relative='`
 % options is true; otherwise `v` is 1.
 %
-% Options
-% ========
 %
-% * `'chkSstate='` [ `true` | *`false`* | cell ] - Check steady state in
+% __Options__
+%
+% * `'ChkSstate='` [ `true` | *`false`* | cell ] - Check steady state in
 % each iteration; works only in non-linear models.
 %
-% * `'solve='` [ *`true`* | `false` | cellstr ] - Re-compute solution for
+% * `'Solve='` [ *`true`* | `false` | cellstr ] - Re-compute solution for
 % each parameter change; you can specify a cell array with options for the
 % `solve` function.
 %
-% * `'sstate='` [ `true` | *`false`* | cell ] - Re-compute steady state in each
+% * `'Sstate='` [ `true` | *`false`* | cell ] - Re-compute steady state in each
 % differentiation step; if the model is non-linear, you can pass in a cell
-% array with options used in the `sstate` function.
+% array with options used in the `sstate( )` function.
 %
 % See help on [`model/filter`](model/filter) for other options available.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -65,9 +64,9 @@ TYPE = @int8;
 
 pp = inputParser( );
 pp.addRequired('Inp', @(x) isstruct(x) || iscell(x));
-pp.addRequired('Range', @(x) isdatinp(x));
+pp.addRequired('Range', @DateWrapper.validateDateInput);
 pp.addRequired('PList', @(x) ischar(x) || iscellstr(x));
-pp.parse(data, range, lsPar);
+pp.parse(data, range, listOfParameters);
 
 [opt, varargin] = passvalopt('model.diffloglik', varargin{:});
 
@@ -90,8 +89,8 @@ lik.StdCorr = varyStdCorr(this, range, [ ], lik, '--clip', '--presample');
 lik.retpevec = true;
 lik.retf = true;
 
-if ischar(lsPar)
-    lsPar = regexp(lsPar, '\w+', 'match');
+if ischar(listOfParameters)
+    listOfParameters = regexp(listOfParameters, '\w+', 'match');
 end
 
 %--------------------------------------------------------------------------
@@ -105,14 +104,14 @@ if nAlt>1
 end
 
 % Find parameter names and create parameter index.
-ell = lookup(this.Quantity, lsPar, TYPE(4));
+ell = lookup(this.Quantity, listOfParameters, TYPE(4));
 posQty = ell.PosName;
 posStdCorr = ell.PosStdCorr;
 ixValid = ~isnan(posQty) | ~isnan(posStdCorr);
 if any(~ixValid)
     utils.error('model:diffloglik', ...
         'This is not a valid parameter name: ''%s''.', ...
-        lsPar{~ixValid});
+        listOfParameters{~ixValid});
 end
 
 pri = model.IterateOver( );

@@ -1,14 +1,13 @@
 function [s, range, select] = srf(this, time, varargin)
-% srf  Shock response functions, first-order solution only.
+% srf  Shock response functions, first-order solution only
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     S = srf(M,NPer,...)
-%     S = srf(M,Range,...)
+%     S = srf(M, NPer, ...)
+%     S = srf(M, Range, ...)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object whose shock responses will be simulated.
 %
@@ -17,33 +16,35 @@ function [s, range, select] = srf(this, time, varargin)
 %
 % * `NPer` [ numeric ] - Number of simulation periods.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `S` [ struct ] - Database with shock response time series.
 %
-% Options
-% ========
 %
-% * `'delog='` [ *`true`* | `false` ] - Delogarithmise shock responses for
+% __Options__
+%
+% * `'Delog='` [ *`true`* | `false` ] - Delogarithmise shock responses for
 % log variables afterwards.
 %
-% * `'select='` [ cellstr | *`@all`* ] - Run the shock response function
+% * `'Select='` [ cellstr | *`@all`* ] - Run the shock response function
 % for a selection of shocks only; `@all` means all shocks are simulated.
 %
-% * `'size='` [ *`@auto`* | numeric ] - Size of the shocks that will be
+% * `'Size='` [ *`@auto`* | numeric ] - Size of the shocks that will be
 % simulated; `@auto` means that each shock will be set to its std dev
 % currently assigned in the model object `M`.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+% 
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
+
+TYPE = @int8;
 
 opt = passvalopt('model.srf', varargin{:});
 
@@ -53,9 +54,9 @@ end
 
 %--------------------------------------------------------------------------
 
-ixe = this.Quantity.Type==int8(31) | this.Quantity.Type==int8(32); 
+ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32); 
 ne = sum(ixe);
-nAlt = length(this.Variant);
+nv = length(this.Variant);
 lse = this.Quantity.Name(ixe);
 
 % Select shocks.
@@ -81,7 +82,7 @@ if strcmpi(opt.size, 'std') ...
         || isequal(opt.size, @std)
     shkSize = model.Variant.getStdCorr(this.Variant, pos, ':');
 else
-    shkSize = opt.size*ones(1, nSel, nAlt);
+    shkSize = opt.size*ones(1, nSel, nv);
 end
 
 func = @(T, R, K, Z, H, D, U, Omg, iAlt, nPer) ...
@@ -90,13 +91,11 @@ func = @(T, R, K, Z, H, D, U, Omg, iAlt, nPer) ...
 
 [s, range, select] = myrf(this, time, func, select, opt);
 for i = 1 : length(select)
-    s.(select{i}).data(1,i,:) = shkSize(1,i,:);
+    s.(select{i}).data(1, i, :) = shkSize(1, i, :);
     s.(select{i}) = trim(s.(select{i}));
 end
 
 return
-
-
     
 
     function chkShockSelection( )

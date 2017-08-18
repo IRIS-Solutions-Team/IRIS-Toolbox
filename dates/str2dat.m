@@ -112,7 +112,7 @@ if any(ixPeriod)
     end
 end
 
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 return
 
@@ -178,7 +178,7 @@ return
             if isempty(opt.freq)
                 opt.dateformat = opt.dateformat.qq;
             else
-                opt.dateformat = dates.Date.chooseFormat(opt.dateformat, opt.freq);
+                opt.dateformat = DateWrapper.chooseFormat(opt.dateformat, opt.freq);
             end
         end
         

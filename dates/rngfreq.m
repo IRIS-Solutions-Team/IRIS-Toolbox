@@ -31,7 +31,7 @@ end
 
 Range = Range(~isinf(Range));
 
-freq = datfreq(Range);
+freq = DateWrapper.getFrequencyFromNumeric(Range);
 if all(freq == freq(1))
     Freq = freq(1);
 else

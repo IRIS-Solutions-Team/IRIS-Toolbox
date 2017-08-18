@@ -1,15 +1,13 @@
 function [X,Y,XX,YY] = fevd(This,Time,varargin)
 % fevd  Forecast error variance decomposition for SVAR variables.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [X,Y,XX,YY] = fevd(V,NPer)
 %     [X,Y,XX,YY] = fevd(V,Range)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
 % * `V` [ VAR ] - Structural VAR model.
 %
@@ -18,8 +16,7 @@ function [X,Y,XX,YY] = fevd(This,Time,varargin)
 % * `Range` [ numeric ] - Date range.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
 % * `X` [ namedmat | numeric ] - Forecast error variance decomposition into
 % absolute contributions of residuals; absolute contributions sum up to the
@@ -29,23 +26,21 @@ function [X,Y,XX,YY] = fevd(This,Time,varargin)
 % relative contributions of residuals; relative contributions sum up to
 % `1`.
 %
-% * `XX` [ Series ] - Database with absolute contributions in multicolumn
-% time series for each VAR variable.
+% * `XX` [ Series | tseries ] - Database with absolute contributions in
+% multicolumn time series for each VAR variable.
 %
-% * `YY` [ Series ] - Database with relative contributions in multicolumn
-% time series for each VAR variable.
+% * `YY` [ Series | tseries ] - Database with relative contributions in
+% multicolumn time series for each VAR variable.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'matrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrices `X`
 % and `Y` as be either [`namedmat`](namedmat/Contents) objects (i.e.
 % matrices with named rows and columns) or plain numeric arrays.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The output matrices `X` and `Y` are Ny-by-Ny-by-Nt-by-NAlt namedmat objects (matrices with named
 % rows and columns), where Ny is the number of endogenous variables (and
@@ -56,13 +51,13 @@ function [X,Y,XX,YY] = fevd(This,Time,varargin)
 % (one for each endogenous variable).
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
 opt = passvalopt('SVAR.fevd',varargin{:});
 
 % Tell whether time is `NPer` or `Range`.
@@ -113,9 +108,9 @@ if nargout > 2 && ~isempty(This.YNames)
             % Matlab accepts repmat(c,1,1,nAlt), too.
             c = repmat(c,[1,1,nAlt]);
         end
-        XX.(name) = Series(range,permute(X(i,:,:,:),[3,2,4,1]),c);
+        XX.(name) = TIME_SERIES_CONSTRUCTOR(range,permute(X(i,:,:,:),[3,2,4,1]),c);
         if nargout > 3
-            YY.(name) = Series(range,permute(Y(i,:,:,:),[3,2,4,1]),c);
+            YY.(name) = TIME_SERIES_CONSTRUCTOR(range,permute(Y(i,:,:,:),[3,2,4,1]),c);
         end
     end
 end

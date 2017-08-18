@@ -32,7 +32,7 @@ function [year, per, freq] = dat2ypf(dat)
 
 %--------------------------------------------------------------------------
 
-freq = double(datfreq(dat));
+freq = double(DateWrapper.getFrequencyFromNumeric(dat));
 serial = double(floor(dat));
 ixZero = freq==0;
 ixWeekly = freq==52;
@@ -47,7 +47,7 @@ if any(ixReg)
     per(ixReg) = round(serial(ixReg) - year(ixReg).*freq(ixReg) + 1);
 end
 
-% Unspecified frequency.
+% Integer frequency.
 if any(ixZero)
     year(ixZero) = NaN;
     per(ixZero) = serial(ixZero);

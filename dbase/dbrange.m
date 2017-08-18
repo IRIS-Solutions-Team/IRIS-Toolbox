@@ -2,16 +2,14 @@ function [range, freqList] = dbrange(varargin)
 % dbrange  Find a range that encompasses the ranges of the listed tseries objects.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     [Range, FreqList] = dbrange(D, ~List, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `D` [ struct ] - Input database.
 %
@@ -21,8 +19,7 @@ function [range, freqList] = dbrange(varargin)
 % the input databases will be included; may be omitted.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Range` [ numeric | cell ] - Range that encompasses the observations of
 % the tseries objects in the input database; if tseries objects with
@@ -32,24 +29,23 @@ function [range, freqList] = dbrange(varargin)
 % returned ranges.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'startDate='` [ *`'maxRange'`* | `'minRange'` ] - `'maxRange'` means
+% * `'StartDate='` [ *`'maxRange'`* | `'minRange'` ] - `'maxRange'` means
 % the output `Range` will start at the earliest start date among all time
 % series included in the search; `'minRange'` means the `range` will start
 % at the latest start date.
 %
-% * `'endDate='` [ *`'maxRange'`* | `'minRange'` ] - `'maxRange'` means the
+% * `'EndDate='` [ *`'maxRange'`* | `'minRange'` ] - `'maxRange'` means the
 % `range` will end at the latest end date among all time series included in
 % the search; `'minRange'` means the `range` will end at the earliest end
 % date.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -60,7 +56,7 @@ opt = passvalopt('dbase.dbrange', varargin{:});
 
 if ischar(list)
     list = regexp(list, '\w+', 'match');
-elseif isrexp(list)
+elseif isa(list, 'rexp')
     f = fieldnames(d);
     ixMatched = ~cellfun(@isempty, regexp(f, list, 'once'));
     list = f(ixMatched);
@@ -78,7 +74,7 @@ range = cell(1, nFreq);
 nList = numel(list);
 
 for i = 1 : nList
-    if isfield(d, list{i}) && istseries(d.(list{i}))
+    if isfield(d, list{i}) && isa(d.(list{i}), 'tseries')
         x = d.(list{i});
         freqInx = freq(x) == freqList;
         if any(freqInx)
@@ -101,7 +97,7 @@ else
 end
 
 for i = find(~cellfun(@isempty, startDat))
-    range{i} = dates.Date(startDat{i} : endDat{i});
+    range{i} = DateWrapper(startDat{i} : endDat{i});
 end
 
 isEmpty = cellfun(@isempty, range);

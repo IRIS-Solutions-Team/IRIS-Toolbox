@@ -2,16 +2,14 @@ function [d, isDev] = zerodb(this, range, varargin)
 % zerodb  Create model-specific zero-deviation database.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [D,IsDev] = zerodb(M,Range,~NCol,...)
+%     [D, IsDev] = zerodb(M, Range, ~NCol, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object for which the zero database will be
 % created.
@@ -25,8 +23,7 @@ function [d, isDev] = zerodb(this, range, varargin)
 % used on models with one parameterisation; may be omitted.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'shockFunc='` [ `@lhsnorm` | `@randn` | *`@zeros`* ] - Function used
 % to generate data for shocks. If `@zeros`, the shocks will simply be
@@ -35,8 +32,7 @@ function [d, isDev] = zerodb(this, range, varargin)
 % implied by the current model parameterization.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `D` [ struct ] - Database with a tseries object filled with zeros for
 % each linearised variable, a tseries object filled with ones for each
@@ -48,12 +44,10 @@ function [d, isDev] = zerodb(this, range, varargin)
 % [`model/simulate`](model/simulate).
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -63,7 +57,7 @@ function [d, isDev] = zerodb(this, range, varargin)
 
 pp = inputParser( );
 pp.addRequired('M', @(x) isa(x, 'model'));
-pp.addRequired('Range', @(x) isdatinp(x));
+pp.addRequired('Range', @DateWrapper.validateDateInput);
 pp.parse(this, range);
 
 %--------------------------------------------------------------------------

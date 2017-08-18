@@ -14,8 +14,9 @@ catch
     isNamedMat = false;
 end
 
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 TYPE = @int8;
-TEMPLATE_SERIES = Series( );
 
 %--------------------------------------------------------------------------
 

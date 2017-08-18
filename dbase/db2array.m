@@ -197,7 +197,7 @@ else
 end
 
 range = startDate : endDate;
-rangeFreq = datfreq(startDate);
+rangeFreq = DateWrapper.getFrequencyFromNumeric(startDate);
 nPer = numel(range);
 
 
@@ -218,7 +218,7 @@ for i = 1 : nList
             addData( );
         else
             field = d.(name);
-            if istseries(field)
+            if isa(field, 'tseries')
                 iX = [ ];
                 getSeriesData( );
                 addData( );

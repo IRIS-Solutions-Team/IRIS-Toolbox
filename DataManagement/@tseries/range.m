@@ -43,6 +43,6 @@ if isempty(x.Data)
 else
     r = x.Start : (x.Start + size(x.Data, 1) - 1);
 end
-r = dates.Date(r);
+r = DateWrapper(r);
 
 end

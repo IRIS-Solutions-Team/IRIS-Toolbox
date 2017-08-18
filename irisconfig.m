@@ -1,4 +1,4 @@
-function icfg = irisconfig(varargin)
+function icfg = irisconfig( )
 % irisconfig  Configure default values for IRIS config preferences.
 %
 % Backend IRIS function.
@@ -11,30 +11,12 @@ function icfg = irisconfig(varargin)
 
 icfg = struct( );
 
-% Environment
-%-------------
-
-try
-    jDesktop = com.mathworks.mde.desk.MLDesktop.getInstance;
-    isDesktop = ~isempty(jDesktop.getClient('Command Window'));
-catch
-    isDesktop = false;
-end
-setappdata(0, 'IRIS_IS_DESKTOP', isDesktop);
-
-if isDesktop
-    scm = char(8230);
-else
-    scm = ' etc...';
-end
-setappdata(0, 'IRIS_STRING_CONTINUATION_MARK', scm);
-
 % Factory defaults
 %------------------
 % Date preferences.
 icfg.freq = [0, 1, 2, 4, 6, 12, 52, 365];
 freqName = {
-    'Unspecified'
+    'Integer'
     'Yearly'
     'Half-Yearly'
     'Quarterly'
@@ -46,7 +28,7 @@ freqName = {
 icfg.FreqName = containers.Map(icfg.freq, freqName);
 icfg.freqletters = 'YHQBMW';
 icfg.dateformat = struct( ...
-    'unspecified', 'P', ...
+    'integer', 'P', ...
     'yy', 'YF', ...
     'hh', 'YFP', ...
     'qq', 'YFP', ...
@@ -55,10 +37,10 @@ icfg.dateformat = struct( ...
     'ww', 'YFP', ...
     'dd', '$YYYY-Mmm-DD' );
 icfg.baseyear = 2000; % Base year for deterministic time trends.
-% Plot date formats for each frequency: Y, H, Q, B, M, W. Unspecified
+% Plot date formats for each frequency: Y, H, Q, B, M, W. Integer
 % frequency is simply printed as a number.
 icfg.plotdateformat = struct( ...
-    'unspecified','P', ...    
+    'integer','P', ...    
     'yy', 'Y', ...
     'hh', 'Y:P', ...
     'qq', 'Y:P', ...
@@ -187,7 +169,7 @@ return
     function validateConfig( )
         nFreq = numel(icfg.freq);
         dateStructFields = ...
-            {'yy','hh','qq','bb','mm','ww','dd','unspecified'};
+            {'integer', 'yy','hh','qq','bb','mm','ww','dd'};
         dateFormatStructValidFn = @(X) isstruct(X) && length(X) == 1 ...
             && all(isfield(X,dateStructFields));
         icfg.validate = struct( ...

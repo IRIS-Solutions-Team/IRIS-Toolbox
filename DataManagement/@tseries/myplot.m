@@ -11,10 +11,10 @@ function [hAx, hPlot, rng, data, xCoor, usrRng, freq] ...
 % If the caller supplies empty `Func`, the graph will not be actually
 % rendered. This is a dry call to `myplot` used from within `plotyy`.
 
-usrRng = double(rng);
+usrRng = rng;
 
 % Resize input time series to input range if needed.
-if ~isequal(rng, Inf) && ~isequal(rng, @all)
+if ~isequal(rng, Inf) && ~isequal(rng, @all) && ~isnan(this.Start)
     rng = rng(:).';    
     if ~all( freqcmp(this, rng) )
         utils.error('tseries:myplot', ...
@@ -43,7 +43,7 @@ if isempty(rng)
     return
 end
 
-freq = datfreq( rng(1) );
+freq = DateWrapper.getFrequencyFromNumeric( rng(1) );
 
 if ~isempty(func) && isa(hAx, 'function_handle')
     hAx = hAx( );

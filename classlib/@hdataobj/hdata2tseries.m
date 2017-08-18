@@ -7,7 +7,8 @@ function outp = hdata2tseries(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 opt = passvalopt('HData.hdata2tseries', varargin{:});
 

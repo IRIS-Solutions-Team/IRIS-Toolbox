@@ -37,6 +37,6 @@ function f = freq(x)
 
 %--------------------------------------------------------------------------
 
-f = datfreq(x.start);
+f = DateWrapper.getFrequencyFromNumeric(x.start);
 
 end

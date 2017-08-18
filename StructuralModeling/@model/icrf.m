@@ -1,15 +1,13 @@
 function [S, range, select] = icrf(this, time, varargin)
-% icrf  Initial-condition response functions.
+% icrf  Initial-condition response functions, first-order solution only
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     S = icrf(M, NPer, ...)
 %     S = icrf(M, Range, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object for which the initial condition responses
 % will be simulated.
@@ -20,28 +18,29 @@ function [S, range, select] = icrf(this, time, varargin)
 % * `NPer` [ numeric ] - Number of periods.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `S` [ struct ] - Database with initial condition response series.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'delog='` [ *`true`* | `false` ] - Delogarithmise the responses for
+% * `'Delog='` [ *`true`* | `false` ] - Delogarithmise the responses for
 % variables declared as `!log_variables`.
 %
-% * `'size='` [ numeric | *`1`* for linear models | *`log(1.01)`* for non-linear
+% * `'Size='` [ numeric | *`1`* for linear models | *`log(1.01)`* for non-linear
 % models ] - Size of the deviation in initial conditions.
 %
 %
-% Description
-% ============
+% __Description__
+%
+% Function `icrf` returns the responses of all model variables to a
+% deviation (of a given size) in one initial condition. All other
+% initial conditions remain undisturbed and all shocks remain zero in the
+% simulation.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -79,6 +78,6 @@ func = @(T, R, K, Z, H, D, U, Omg, ~, nPer) ...
     timedom.icrf(T, [ ], [ ], Z, [ ], [ ], U, [ ], ...
     nPer, size_, ixInit);
 
-[S, range] = myrf(this, time, func, select, opt);
+[S, range] = responseFunction(this, time, func, select, opt);
 
 end

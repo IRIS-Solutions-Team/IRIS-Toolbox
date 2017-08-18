@@ -2,19 +2,17 @@ function x = rebase(x, date, b)
 % rebase  Rebase times seris data to specified period.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     X = rebase(X, Date, B...)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
-% * `X` [ tseries ] -  Input time series that will be normalised.
+% * `X` [ Series | tseries ] -  Input time series that will be normalized.
 %
-% * `Date` [ numeric | `'start'` | `'end'` | `'nanStart'` | `'nanEnd'`
-% ] - Date relative to which the input data will be normalised; if not
+% * `Date` [ DateWrapper | `'start'` | `'end'` | `'nanStart'` | `'nanEnd'`
+% ] - Date relative to which the input data will be normalized; if not
 % specified, `'nanStart'` (the first date for which all columns have an
 % observation) will be used.
 %
@@ -24,18 +22,15 @@ function x = rebase(x, date, b)
 % `100` in the base period;
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
-% * `X` [ tseries ] - Normalised time series.
-%
-%
-% Description
-% ============
+% * `X` [ Series | tseries ] - Normalized time series.
 %
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -45,7 +40,7 @@ try, date; catch, date = 'NanStart'; end %#ok<VUNUS,NOCOM>
 try, b; catch, b = 1; end %#ok<VUNUS,NOCOM>
 
 if ischar(date)
-    if isdatinp(date)
+    if DateWrapper.validateDateInput(date)
         date = textinp2dat(date);
     else
         date = get(x, date);

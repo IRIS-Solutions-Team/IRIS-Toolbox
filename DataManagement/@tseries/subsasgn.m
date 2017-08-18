@@ -51,14 +51,6 @@ if ~isstruct(s)
     s.subs = [{dates}, varargin];
 end
 
-% Time-recursive assignment.
-isTRec = isanystr(s(1).type, {'{}', '()'}) && isa(s(1).subs{1}, 'trec');
-isSydney = isa(y, 'sydney');
-if isTRec || isSydney
-    this = tRecExp(this, s, y, inputname(1), isTRec, isSydney);
-    return
-end
-
 switch s(1).type
     case {'()', '{}'}
         % Run `mylagorlead` to tell if the first reference is a lag/lead. If yes, 
@@ -95,7 +87,7 @@ function this = setData(this, s, y)
 [this, s, dates, freqTest] = expand(this, s);
 
 % Get RHS tseries object data.
-if istseries(y)
+if isa(y, 'tseries')
     y = mygetdata(y, dates);
 end
 
@@ -186,14 +178,14 @@ if (ischar(s.subs{1}) && strcmp(s.subs{1}, ':')) ...
 elseif isnumeric(s.subs{1}) && ~isempty(s.subs{1})
     dates = s.subs{1};
     if ~isempty(dates)
-        f2 = dates - floor(dates);
+        f2 = DateWrapper.getFrequencyFromNumeric(dates);
         if isnan(this.start)
             % If LHS series is empty tseries, set start date to the minimum
             % date with the same frequency as the first date.
             this.start = min(dates(f2==f2(1)));
         end
-        f1 = this.start - floor(this.start);
-        freqTest = abs(f1 - f2)<1e-2;
+        f1 = DateWrapper.getFrequencyFromNumeric(this.Start);
+        freqTest = f1==f2;
         dates(~freqTest) = [ ];
         s.subs{1} = round(dates - this.start + 1);
     end
@@ -260,41 +252,3 @@ if isReshaped
 end
 end 
 
-
-
-
-function this = tRecExp(this, s, y, inpName, isTRec, isSydney)
-if ~isTRec
-    utils.error('tseries:subsasgn', ...
-        'Invalid left-hand side in time-recursive expression.');
-end
-if ~isSydney && ~isnumeric(y)
-    utils.error('tseries:subsasgn', ...
-        'Invalid right-hand side in time-recursive expression.');
-end
-tr = s(1).subs{1};
-if ~isempty(tr.Dates) && ~isnan(this.start) ...
-        && ~freqcmp(tr.Dates(1), this.start)
-    utils.error('tseries:subsasgn', ...
-        'Frequency mismatch in recursive expression.');
-end
-ref = s(1).subs(2:end);
-stamp = this.Stamp;
-
-% TODO: Pre-evaluate functions on tseries other than LHS tseries.
-
-s = struct( );
-s.type = '()';
-s.subs = [{NaN}, ref];
-
-for t = tr.Dates(:).'
-    if isSydney
-        x = myeval(y, t, this, inpName, stamp);
-    else
-        x = y;
-    end
-    s.subs{1} = t;
-    this = setData(this, s, x);
-end
-this = trim(this);
-end

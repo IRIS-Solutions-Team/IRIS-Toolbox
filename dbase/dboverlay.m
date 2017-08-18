@@ -75,7 +75,7 @@ for j = 1 : numel(combList)
     end
     x = d.(combList{j});
     y = s.(combList{j});
-    if istseries(x) && istseries(y)
+    if isa(x, 'tseries') && isa(y, 'tseries')
         if freq(x)==freq(y)
             % Two non-empty time series with the same frequency.
             d.(combList{j}) = vertcat(x, y);

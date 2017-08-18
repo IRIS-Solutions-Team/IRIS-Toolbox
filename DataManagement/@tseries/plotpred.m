@@ -134,8 +134,8 @@ end
 %--------------------------------------------------------------------------
 
 if ~isempty(x1)
-    f1 = datfreq(x1.start);
-    f2 = datfreq(x2.start);
+    f1 = DateWrapper.getFrequencyFromNumeric(x1.start);
+    f2 = DateWrapper.getFrequencyFromNumeric(x2.start);
     if f1~=f2
         utils.error('tseries:plotpred', ...
             'Input data must have the same date frequency.');

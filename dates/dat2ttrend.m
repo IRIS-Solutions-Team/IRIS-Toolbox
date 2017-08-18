@@ -73,8 +73,8 @@ end
 if isempty(range)
     trend = range;
 else
-    freq = datfreq(range);
-    dates.Date.chkMixedFrequency(freq);
+    freq = DateWrapper.getFrequencyFromNumeric(range);
+    DateWrapper.chkMixedFrequency(freq);
     freq = freq(1);
     if freq==0
         trend = range;

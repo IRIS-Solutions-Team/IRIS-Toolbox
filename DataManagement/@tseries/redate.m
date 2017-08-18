@@ -71,7 +71,7 @@ pp.parse(this,oldDate,newDate);
 %--------------------------------------------------------------------------
 
 xFreq = get(this,'freq');
-oldFreq = datfreq(oldDate);
+oldFreq = DateWrapper.getFrequencyFromNumeric(oldDate);
 
 if oldFreq ~= xFreq
    utils.error('tseries:redate', ...

@@ -1,30 +1,26 @@
 function outp = jforecast(this, inp, range, varargin)
 % jforecast  Forecast with judgmental adjustments (conditional forecasts).
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     f = jforecast(m, d, range, ...)
-%
-%
-% Input arguments
-% ================
-%
-% * `m` [ model ] - Solved model object.
-%
-% * `d` [ struct ] - Input data from which the initial condition is taken.
-%
-% * `range` [ numeric ] - Forecast range.
+%     F = jforecast(M, D, Range, ...)
 %
 %
-% Output arguments
-% =================
+% __Input Arguments__
 %
-% * `f` [ struct ] - Output struct with the judgmentally adjusted forecast.
+% * `M` [ model ] - Solved model object.
+%
+% * `D` [ struct ] - Input data from which the initial condition is taken.
+%
+% * `Range` [ numeric ] - Forecast range.
 %
 %
-% Options
-% ========
+% __Output Arguments__
+%
+% * `F` [ struct ] - Output struct with the judgmentally adjusted forecast.
+%
+%
+% __Options__
 %
 % * `'Anticipate='` [ *`true`* | `false` ] - If true, real future shocks are
 % anticipated, imaginary are unanticipated; vice versa if false.
@@ -58,8 +54,7 @@ function outp = jforecast(this, inp, range, varargin)
 % deviations or cross-correlations of shocks.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % Function `jforecast( )` provides similar functionality as `simulate( )`
 % but differs in a number of ways:
@@ -75,8 +70,7 @@ function outp = jforecast(this, inp, range, varargin)
 % nonlinear technique is available.
 %
 %
-% Anticipated and Unanticipated Shocks
-% -------------------------------------
+% _Anticipated and Unanticipated Shocks_
 %
 % When adjusting the mean of shocks (in the input database, `inp`) or the
 % std deviations of shocks (in the option `'Vary='`), you can use real and
@@ -90,8 +84,7 @@ function outp = jforecast(this, inp, range, varargin)
 % shocks and imaginary numbers describe anticipated shocks;
 %
 %
-% Example
-% ========
+% __Example__
 %
 %
 
@@ -100,7 +93,7 @@ function outp = jforecast(this, inp, range, varargin)
 
 pp = inputParser( );
 pp.addRequired('Inp', @(x) isstruct(x) || iscell(x));
-pp.addRequired('Range', @(x) isdatinp(x));
+pp.addRequired('Range', @DateWrapper.validateDateInput);
 pp.parse(inp, range);
 
 if ischar(range)
@@ -123,7 +116,7 @@ isPlanCond = isa(opt.plan, 'plan') && ~isempty(opt.plan, 'cond');
 isCond = isCond || isPlanCond;
 
 % Tunes.
-isSwap = isplan(opt.plan) && ~isempty(opt.plan, 'tunes');
+isSwap = isa(opt.plan, 'plan') && ~isempty(opt.plan, 'tunes');
 
 % TODO: Remove 'missing', 'contributions' options from jforecast, 
 % 'anticipate' scalar.

@@ -1,15 +1,13 @@
 function irisstartup(varargin)
 % irisstartup  Start an IRIS session.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     irisstartup
-%     irisstartup -shutup
+%     irisstartup --option
 %
 %
-% Description
-% ============
+% __Description__
 %
 % We recommend that you keep the IRIS root directory on the permanent
 % Matlab search path. Each time you wish to start working with IRIS, you
@@ -35,8 +33,17 @@ function irisstartup(varargin)
 % had not been associated before, Matlab must be re-started for the
 % association to take effect.
 %
-% * Prints an introductory message on the screen unless `irisstartup` is
-% called with the `-shutup` input argument.
+%
+% __Options__
+%
+% * `--shutup` - Do not print introductory message on the screen.
+%
+% * `--tseries` - Use the `tseries` class as the default time series class.
+%
+% * `--Series` - Use the `Series` class as the default time series class.
+%
+% * `--TimeSeries` - Use the `TimeSeries` class as the default time series
+% class.
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
@@ -58,10 +65,22 @@ else
     % Do nothing.
 end
 
-shutup = any(strcmpi(varargin, '-shutup'));
+options = struct( );
+options.shutup = any(strcmpi(varargin, '-shutup')) || any(strcmpi(varargin, '--shutup'));
+options.tseries = any(strcmpi(varargin, '--tseries'));
+options.Series = any(strcmpi(varargin, '--Series'));
+options.TimeSeries = any(strcmpi(varargin, '--TimeSeries'));
+if ~options.tseries && ~options.Series && ~options.TimeSeries
+    options.Series = true;
+end
+assert( ...
+    double(options.tseries) + double(options.Series) + double(options.TimeSeries) == 1, ...
+    'Only one or none of the options {--tseries, --Series, --TimeSeries} can be specified.' ...
+);
+
 isIdChk = ~any(strcmpi(varargin, '-noidchk'));
 
-if ~shutup
+if ~options.shutup
     progress = 'Starting up an IRIS session...';
     fprintf('\n');
     fprintf(progress);
@@ -87,11 +106,13 @@ try %#ok<TRYNC>
     munlock('irisconfigmaster');
 end
 
+setEnvironment( );
+
 % Reset m-files with persistent variables.
 munlock irisconfigmaster;
 munlock passvalopt;
 irisconfigmaster( );
-irisreset(varargin{:});
+irisreset( );
 icfg = irisget( );
 passvalopt( );
 
@@ -100,7 +121,7 @@ if isIdChk
     chkId( );
 end
 
-if ~shutup
+if ~options.shutup
     % Delete progress message.
     deleteProgress( );
     displayMessage( );
@@ -109,6 +130,28 @@ end
 return
 
 
+    function setEnvironment( )
+        try
+            jDesktop = com.mathworks.mde.desk.MLDesktop.getInstance;
+            isDesktop = ~isempty(jDesktop.getClient('Command Window'));
+        catch
+            isDesktop = false;
+        end
+        setappdata(0, 'IRIS_IS_DESKTOP', isDesktop);
+
+        if isDesktop
+            scm = char(8230);
+        else
+            scm = ' etc...';
+        end
+        setappdata(0, 'IRIS_STRING_CONTINUATION_MARK', scm);
+
+        if options.tseries
+            setappdata(0, 'IRIS_TIME_SERIES_CONSTRUCTOR', @tseries);
+        else
+            setappdata(0, 'IRIS_TIME_SERIES_CONSTRUCTOR', @Series);
+        end
+    end
 
 
     function deleteProgress( )

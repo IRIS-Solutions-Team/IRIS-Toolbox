@@ -106,7 +106,7 @@ elseif isstruct(X)
     Pos(isnan(Pos)) = [ ];
     list = fieldnames(X);
     for i = 1 : length(list)
-        if istseries(X.(list{i}))
+        if isa(X.(list{i}), 'tseries')
             X.(list{i}) = X.(list{i}){:,Pos};
         end
     end

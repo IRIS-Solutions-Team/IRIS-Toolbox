@@ -1,44 +1,38 @@
-function F = frf2gain(F,varargin)
+function G = frf2gain(F, varargin)
 % frf2gain  Gain of frequency response function.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     G = frf2gain(F)
 %
-% Input arguments
-% ================
+%
+% __Input arguments__
 %
 % * `F` [ numeric ] - Frequency response function.
 %
-% Output arguments
-% =================
+%
+% __Output arguments__
 %
 % * `G` [ numeric ] - Gain of frequency response function.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
+    
+G = abs(F);
 
-isNamed = isnamedmat(F);
-
-if isNamed
+if isa(F, 'namedmat')
     rowNames = rownames(F);
     colNames = colnames(F);
-end
-    
-F = abs(F);
-
-if isNamed
-    F = namedmat(F,rowNames,colNames);
+    G = namedmat(G, rowNames, colNames);
 end
 
 end

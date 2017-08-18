@@ -1,64 +1,59 @@
 function [d, cc, ff, u, e] = forecast(this, inp, range, j, varargin)
 % forecast  Forecast FAVAR factors and observables.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [d, cc, f, u, e] = forecast(a, inp, range, j, ...)
+%     [D, CC, F, U, E] = forecast(A, Inp, Range, J, ...)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
-% * `a` [ FAVAR ] - Estimated FAVAR object.
+% * `A` [ FAVAR ] - Estimated FAVAR object.
 %
-% * `inp` [ struct | cell | Series ] - Input data with initial condition for
-% the FAVAR factors.
+% * `Inp` [ struct | cell | Series | tseries ] - Input data with initial
+% condition for the FAVAR factors.
 %
-% * `range` [ numeric ] - Forecast range.
+% * `Range` [ numeric ] - Forecast range.
 %
-% * `j` [ struct | tseries] - Conditioning data with hard tunes on the
+% * `J` [ struct | Series | tseries] - Conditioning data with hard tunes on the
 % FAVAR observables.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
-% * `d` [ struct ] - Output database or tseries object with the FAVAR
+% * `D` [ struct ] - Output database or tseries object with the FAVAR
 % observables.
 %
-% * `cc` [ Series ] - Projection of common components in the
+% * `CC` [ Series | tseries ] - Projection of common components in the
 % observables.
 %
-% * `f` [ Series ] - Projection of common factors.
+% * `F` [ Series | tseries ] - Projection of common factors.
 %
-% * `u` [ Series ] - Conditional idiosyncratic residuals.
+% * `U` [ Series | tseries ] - Conditional idiosyncratic residuals.
 %
-% * `e` [ Series ] - Conditional structural residuals.
+% * `E` [ Series | tseries ] - Conditional structural residuals.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % See help on [`FAVAR/filter`](FAVAR/filter) for options available.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 % Parse required input arguments.
 pp = inputParser( );
-pp.addRequired('a', @isFAVAR);
+pp.addRequired('a', @(x) isa(x, 'FAVAR'));
 pp.addRequired('inp', @(x) isa(x, 'tseries') || isstruct(x));
 pp.addRequired('range', @isnumeric);
 pp.addRequired('j', @(x) isempty(x) || isa(x, 'tseries') || isstruct(x));
@@ -77,11 +72,11 @@ range = range(1) : range(end);
 if isstruct(inp) ...
       && ~isfield(inp, 'init') ...
       && isfield(inp, 'mean') ...
-      && istseries(inp.mean)
+      && isa(inp.mean, 'tseries')
    inp = inp.mean;
 end
 
-if istseries(inp)
+if isa(inp, 'tseries')
    % Only mean tseries supplied; no uncertainty in initial condition.
    reqRange = range(1)-pp : range(1)-1;
    req = datarequest('y*', this, inp, reqRange);

@@ -1,5 +1,7 @@
 function y = rearrangePred(x1, x2)
 
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+
 [data, range] = rangedata([x1, x2]);
 
 nPer = size(data, 1);
@@ -17,6 +19,6 @@ for t = 1 : nPer
     data2(row, t, :) = diag( data(t+(0:ahead), :) );
 end
 
-y = Series(range(1), [data1, data2]);
+y = TIME_SERIES_CONSTRUCTOR(range(1), [data1, data2]);
 
 end

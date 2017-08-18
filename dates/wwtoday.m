@@ -28,6 +28,6 @@ function dat = wwtoday( )
 
 today = floor(now( ));
 dat = day2ww(today);
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

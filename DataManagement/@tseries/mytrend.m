@@ -9,13 +9,13 @@ function [T, TT, TS, S] = mytrend(x, start, opt)
 
 %--------------------------------------------------------------------------
 
-freq = datfreq(start);
+freq = DateWrapper.getFrequencyFromNumeric(start);
 if islogical(opt.season)
     if opt.season
         if freq==52 || freq==365
             utils.error('tseries:mytrend', ...
                 ['Cannot use option ''season''=true for tseries objects ', ...
-                'with unspecified or daily date frequency.']);
+                'with integer or daily date frequency.']);
         end
         S = freq;
     else

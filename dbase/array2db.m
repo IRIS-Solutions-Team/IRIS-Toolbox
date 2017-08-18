@@ -1,13 +1,12 @@
 function d = array2db(X, date, lsName, ixLog, d)
 % array2db  Convert numeric array to database.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     D = array2db(X,Range,List)
+%     D = array2db(X, Range, List)
 %
-% Input arguments
-% ================
+%
+% __Input arguments__
 %
 % * `X` [ numeric ] - Numeric array with individual time series in columns.
 %
@@ -16,16 +15,16 @@ function d = array2db(X, date, lsName, ixLog, d)
 % * `List` [ cellstr | char ] - List of names for time series in individual
 % columns of `X`.
 %
-% Output arguments
-% =================
+%
+% __Output arguments__
 %
 % * `D` [ struct ] - Output database.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -34,7 +33,8 @@ function d = array2db(X, date, lsName, ixLog, d)
 %#ok<*CTCH>
 %#ok<*VUNUS>
 
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 try, ixLog; catch, ixLog = [ ]; end %#ok<NOCOM>
 try, d; catch, d = struct( ); end %#ok<NOCOM>
@@ -71,7 +71,7 @@ if nx~=nList
         'number of variable names.']);
 end
 
-if size(X,1)~=nDate
+if size(X, 1)~=nDate
     utils.error('dbase:array2db', ...
         ['Number of rows in input array must match ', ...
         'number of periods.']);
@@ -91,7 +91,7 @@ for i = 1 : nx
     end
     if isRange
         % Continuous range.
-        d.(name) = replace(TEMPLATE_SERIES,iX,minDate);
+        d.(name) = replace(TEMPLATE_SERIES, iX, minDate);
     else
         % Vector of dates.
         if i==1
@@ -106,8 +106,6 @@ end
 return
 
 
-
-
     function isLog = getIsLog( )
         isLog = false;
         if islogicalscalar(ixLog)
@@ -115,7 +113,7 @@ return
             return
         end        
         if islogical(ixLog)
-            isLog = ixLog( min(i,end) );
+            isLog = ixLog( min(i, end) );
             return
         end
         if isstruct(ixLog) ...

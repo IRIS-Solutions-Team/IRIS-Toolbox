@@ -1,15 +1,13 @@
-function X = arf(X,A,Z,Range,varargin)
+function X = arf(X, A, Z, Range, varargin)
 % arf  Run autoregressive function on time series.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     X = arf(X,A,Z,Range,...)
+%     X = arf(X, A, Z, Range, ...)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
 % * `X` [ tseries ] - Input data from which initial condition will be
 % taken.
@@ -26,42 +24,39 @@ function X = arf(X,A,Z,Range,varargin)
 % (taking into account the length of pre-sample initial condition needed).
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
 % * `X` [ tseries ] - Output data with new observations created by running
 % an autoregressive process described by `A` and `Z`.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The autoregressive process has one of the following forms:
 %
-%     A1*x + A2*x(-1) + ... + An*x(-n) = z,
+%     A1*x + A2*x(-1) + ... + An*x(-n) = z, 
 %
 % or
 %
-%     A1*x + A2*x(+1) + ... + An*x(+n) = z,
+%     A1*x + A2*x(+1) + ... + An*x(+n) = z, 
 %
-% depending on whether the range is increasing (running forward in time),
-% or decreasing (running backward in time). The coefficients `A1`,...`An`
-% are gathered in the input vector `A`,
+% depending on whether the range is increasing (running forward in time), 
+% or decreasing (running backward in time). The coefficients `A1`, ...`An`
+% are gathered in the input vector `A`, 
 %
-%     A = [A1,A2,...,An].
+%     A = [A1, A2, ..., An].
 %
 %
-% Example
-% ========
+% __Example__
 %
 % The following two lines create an autoregressive process constructed from
-% normally distributed residuals,
+% normally distributed residuals, 
 %
 % $$ x_t = \rho x_{t-1} + \epsilon_t $$
 %
 %     rho = 0.8;
-%     X = Series(1:20,@randn);
-%     X = arf(X,[1,-rho],X,2:20);
+%     X = Series(1:20, @randn);
+%     X = arf(X, [1, -rho], X, 2:20);
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -73,11 +68,11 @@ end
 
 % Parse input arguments.
 pp = inputParser( );
-pp.addRequired('X',@istseries);
-pp.addRequired('A',@isnumeric);
-pp.addRequired('Z',@(x) isnumericscalar(x) || istseries(x));
-pp.addRequired('Range',@(x) isnumeric(x) || isequal(x,@all));
-pp.parse(X,A,Z,Range);
+pp.addRequired('X', @(x) isa(x, 'tseries'));
+pp.addRequired('A', @isnumeric);
+pp.addRequired('Z', @(x) isnumericscalar(x) || isa(x, 'tseries'));
+pp.addRequired('Range', @(x) isnumeric(x) || isequal(x, @all));
+pp.parse(X, A, Z, Range);
 
 %--------------------------------------------------------------------------
 
@@ -86,8 +81,8 @@ order = length(A) - 1;
 
 % Work out range (includes pre/post-sample initial condition).
 xfirst = X.start;
-xlast = X.start + size(X.data,1) - 1;
-if isequal(Range,Inf)
+xlast = X.start + size(X.data, 1) - 1;
+if isequal(Range, Inf)
     Range = xfirst : xlast;
 end
 if Range(1) <= Range(end)
@@ -99,9 +94,9 @@ else
 end
 
 % Get endogenous data.
-xData = rangedata(X,Range);
+xData = rangedata(X, Range);
 xSize = size(xData);
-xData = xData(:,:);
+xData = xData(:, :);
 
 % Do noting if effective range is empty.
 nPer = length(Range);
@@ -110,18 +105,18 @@ if nPer <= order
 end
 
 % Get exogenous (z) data.
-if istseries(Z)
-    zdata = mygetdata(Z,Range);
-    zdata = zdata(:,:);
+if isa(Z, 'tseries')
+    zdata = mygetdata(Z, Range);
+    zdata = zdata(:, :);
     % expand zdata in 2nd dimension if needed
 else
     if isempty(Z)
         Z = 0;
     end
-    zdata = Z(ones([1,nPer]),:);
+    zdata = Z(ones([1, nPer]), :);
 end
-if size(zdata,2) == 1 && size(xData,2) > 1
-    zdata = zdata(:,ones([1,size(xData,2)]));
+if size(zdata, 2) == 1 && size(xData, 2) > 1
+    zdata = zdata(:, ones([1, size(xData, 2)]));
 end
 
 % Normalise polynomial vector.
@@ -131,7 +126,7 @@ if A(1) ~= 1
 end
 
 % Run AR.
-if strcmp(time,'forward')
+if strcmp(time, 'forward')
     shifts = -1 : -1 : -order;
     timeVec = 1+order : nPer;
 else
@@ -139,13 +134,13 @@ else
     timeVec = nPer-order : -1 : 1;
 end
 
-for i = 1 : size(xData,2)
+for i = 1 : size(xData, 2)
     for t = timeVec
-        xData(t,i) = -A(2:end)*xData(t+shifts,i) + zdata(t,i);
+        xData(t, i) = -A(2:end)*xData(t+shifts, i) + zdata(t, i);
     end
 end
 
 % Update output series.
-X = subsasgn(X,Range,reshape(xData,[size(xData,1),xSize(2:end)]));
+X = subsasgn(X, Range, reshape(xData, [size(xData, 1), xSize(2:end)]));
 
 end

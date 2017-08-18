@@ -1,14 +1,13 @@
 function [X, YXVec, dbStd] = fmse(this, time, varargin)
 % fmse  Forecast mean square error matrices.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [F,List,D] = fmse(M,NPer,...)
-%     [F,List,D] = fmse(M,Range,...)
+%     [F, List, D] = fmse(M, NPer, ...)
+%     [F, List, D] = fmse(M, Range, ...)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object for which the forecast MSE matrices will
 % be computed.
@@ -17,8 +16,8 @@ function [X, YXVec, dbStd] = fmse(this, time, varargin)
 %
 % * `Range` [ numeric | char ] - Date range.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `F` [ namedmat | numeric ] - Forecast MSE matrices.
 %
@@ -28,31 +27,31 @@ function [X, YXVec, dbStd] = fmse(this, time, varargin)
 % individual variables, i.e. the square roots of the diagonal elements of
 % `F`.
 %
-% Options
-% ========
 %
-% * `'matrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
+% __Options__
+%
+% * `'MatrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
 % either a [`namedmat`](namedmat/Contents) object (i.e. matrix with named
 % rows and columns) or a plain numeric array.
 %
-% * `'select='` [ *`@all`* | char | cellstr ] - Return FMSE for selected
+% * `'Select='` [ *`@all`* | char | cellstr ] - Return FMSE for selected
 % variables only; `@all` means all variables.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
 TYPE = @int8;
 
 pp = inputParser( );
 pp.addRequired('M', @(x) isa(x, 'model'));
-pp.addRequired('Time', @(x) isdatinp(x));
+pp.addRequired('Time', @DateWrapper.validateDateInput);
 pp.parse(this, time);
 
 opt = passvalopt('model.fmse', varargin{:});
@@ -66,8 +65,8 @@ end
 Range = time(1) : time(end);
 nPer = length(Range);
 
-isSelect = ~isequal(opt.select,@all);
-isNamedMat = strcmpi(opt.MatrixFmt,'namedmat');
+isSelect = ~isequal(opt.select, @all);
+isNamedMat = strcmpi(opt.MatrixFmt, 'namedmat');
 
 %--------------------------------------------------------------------------
 
@@ -76,9 +75,9 @@ ixp = this.Quantity.Type==TYPE(4);
 nAlt = length(this);
 X = zeros(ny+nxx, ny+nxx, nPer, nAlt);
 
-ixSolved = true(1,nAlt);
+ixSolved = true(1, nAlt);
 for iAlt = 1 : nAlt
-    [T,R,K,Z,H,dbStd,U,Omg] = sspaceMatrices(this,iAlt,false);
+    [T, R, K, Z, H, dbStd, U, Omg] = sspaceMatrices(this, iAlt, false);
     
     % Continue immediately if solution is not available.
     ixSolved(iAlt) = all(~isnan(T(:)));
@@ -86,7 +85,7 @@ for iAlt = 1 : nAlt
         continue
     end
     
-    X(:,:,:,iAlt) = timedom.fmse(T,R,K,Z,H,dbStd,U,Omg,nPer);
+    X(:, :, :, iAlt) = timedom.fmse(T, R, K, Z, H, dbStd, U, Omg, nPer);
 end
 
 % Report NaN solutions.
@@ -103,7 +102,7 @@ if nargout > 2
     dbStd = struct( );
     for i = find(imag(id)==0)
         name = this.Quantity.Name{id(i)};
-        dbStd.(name) = Series( ...
+        dbStd.(name) = TIME_SERIES_CONSTRUCTOR( ...
             Range, ...
             sqrt( permute(X(i, i, :, :), [3, 4, 1, 2]) ) ...
             );
@@ -118,11 +117,11 @@ if nargout <= 1 && ~isSelect && ~isNamedMat
     return
 end
 
-YXVec = printSolutionVector(this,'yx');
+YXVec = printSolutionVector(this, 'yx');
 
 % Select variables if requested.
 if isSelect
-    [X, pos] = namedmat.myselect(X,YXVec,YXVec,opt.select);
+    [X, pos] = namedmat.myselect(X, YXVec, YXVec, opt.select);
     pos = pos{1};
     YXVec = YXVec(pos);
 end
@@ -130,7 +129,7 @@ end
 if true % ##### MOSW
     % Convert output matrix to namedmat object if requested.
     if isNamedMat
-        X = namedmat(X,YXVec,YXVec);
+        X = namedmat(X, YXVec, YXVec);
     end
 else
     % Do nothing.

@@ -1,7 +1,7 @@
 function varargout = horzcat(varargin)
 
 for i = 1 : length(varargin)
-    if isnamedmat(varargin{i})
+    if isa(varargin{i}, 'namedmat')
         varargin{i} = double(varargin{i});
     end
 end

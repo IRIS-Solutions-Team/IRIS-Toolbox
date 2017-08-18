@@ -3,7 +3,7 @@ classdef range < irisinp.generic
         ReportName = 'Date Range';
         Value = NaN;
         Omitted = @error;
-        ValidFn = @(x) isdatrange(x);
+        ValidFn = @DateWrapper.validateRangeInput;
     end
     
 

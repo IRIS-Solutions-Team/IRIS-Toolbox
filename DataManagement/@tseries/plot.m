@@ -4,9 +4,9 @@ function varargout = plot(varargin)
 % Syntax
 % =======
 %
-%     [H,Range] = plot(X,...)
-%     [H,Range] = plot(Range,X,...)
-%     [H,Range] = plot(Ax,Range,X,...)
+%     [H, Range] = plot(X, ...)
+%     [H, Range] = plot(Range, X, ...)
+%     [H, Range] = plot(Ax, Range, X, ...)
 %
 % Input arguments
 % ================
@@ -45,7 +45,7 @@ function varargout = plot(varargin)
 %
 % See [`dat2str`](dates/dat2str) for details on date format options.
 %
-% * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string,
+% * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string, 
 % or array of format strings (possibly different for each date).
 %
 % * `'freqLetters='` [ char | *`'YHQBMW'`* ] - Six letters used to
@@ -53,7 +53,7 @@ function varargout = plot(varargin)
 % yearly, half-yearly, quarterly, bi-monthly, monthly,  and weekly (such as
 % the `'Q'` in `'2010Q1'`).
 %
-% * `'months='` [ cellstr | *`{'January',...,'December'}`* ] - Twelve
+% * `'months='` [ cellstr | *`{'January', ..., 'December'}`* ] - Twelve
 % strings representing the names of the twelve months.
 %
 % * `'ConversionMonth='` [ numeric | `'last'` | *`1`* ] - Month that will
@@ -74,16 +74,16 @@ function varargout = plot(varargin)
 
 % TODO: Add help on date format related options.
 
-% TODO: Document the use of half-ranges in plot functions [-Inf,date],
-% [date,Inf].
+% TODO: Document the use of half-ranges in plot functions [-Inf, date], 
+% [date, Inf].
 
-[Ax,Rng,X,PlotSpec,varargin] = ...
-    irisinp.parser.parse('tseries.plot',varargin{:});
-[opt,varargin] = passvalopt('tseries.plot',varargin{:});
+[Ax, Rng, X, PlotSpec, varargin] = ...
+    irisinp.parser.parse('tseries.plot', varargin{:});
+[opt, varargin] = passvalopt('tseries.plot', varargin{:});
 
 %--------------------------------------------------------------------------
 
-[~,varargout{1:nargout}] = ...
-    tseries.myplot(@plot,Ax,Rng,[ ],X,PlotSpec,opt,varargin{:});
+[~, varargout{1:nargout}] = ...
+    tseries.myplot(@plot, Ax, Rng, [ ], X, PlotSpec, opt, varargin{:});
 
 end

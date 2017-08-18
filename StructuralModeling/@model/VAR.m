@@ -1,13 +1,12 @@
 function v = VAR(this, select, range, varargin)
 % VAR  Population VAR for selected model variables.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     V = VAR(M,List,Range,...)
+%     V = VAR(M, List, Range, ...)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `M` [ model ] - Solved model object.
 %
@@ -16,24 +15,24 @@ function v = VAR(this, select, range, varargin)
 % * `Range` [ numeric | char ] - Hypothetical range, including pre-sample
 % initial condition, on which the VAR would be estimated.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `V` [ VAR ] - Asymptotic reduced-form VAR for selected model variables.
 %
-% Options
-% ========
 %
-% * `'order='` [ numeric | *1* ] - Order of the VAR.
+% __Options__
 %
-% * `'constant='` [ *`true`* | `false` ] - Include in the VAR a constant
+% * `'Order='` [ numeric | *1* ] - Order of the VAR.
+%
+% * `'Constant='` [ *`true`* | `false` ] - Include in the VAR a constant
 % vector derived from the steady state of the selected variables.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -42,8 +41,8 @@ function v = VAR(this, select, range, varargin)
 % Parse required arguments.
 pp = inputParser( );
 pp.addRequired('List', @(x) ischar(x) || iscellstr(x));
-pp.addRequired('Range', @(x) isdatinp(x));
-pp.parse(List,range);
+pp.addRequired('Range', @DateWrapper.validateDateInput);
+pp.parse(List, range);
 
 % Parse options.
 opt = passvalopt('model.VAR', varargin{:});
@@ -51,7 +50,7 @@ opt = passvalopt('model.VAR', varargin{:});
 % Convert char list to cellstr.
 if ischar(select)
     select = regexp(select, ...
-        '[a-zA-Z][\w\(\)\{\}\+\-]*','match');
+        '[a-zA-Z][\w\(\)\{\}\+\-]*', 'match');
 end
 
 if ischar(range)
@@ -70,25 +69,25 @@ nk = double(opt.constant);
 
 % Find the position of selected variables in the sspace vector and in the
 % model names.
-[posSpace, posName] = myfindsspacepos(this,select, '-error');
+[posSpace, posName] = myfindsspacepos(this, select, '-error');
 
 C = C(posSpace, posSpace, :, :);
 ixLog = this.Quantity.IxLog(1, posName);
 
 % TODO: Calculate Sigma.
 v = VAR( );
-v.A = nan(nz,nz*p,nAlt);
-v.K = zeros(nz,nAlt);
-v.Omega = nan(nz,nz,nAlt);
+v.A = nan(nz, nz*p, nAlt);
+v.K = zeros(nz, nAlt);
+v.Omega = nan(nz, nz, nAlt);
 v.Sigma = [ ];
-v.G = nan(nz,0,nAlt);
+v.G = nan(nz, 0, nAlt);
 v.Range = range;
-v.IxFitted = true(1,nPer);
+v.IxFitted = true(1, nPer);
 v.IxFitted(1:p) = false;
 v.NHyper = nz*(nk+p*nz);
 
 for iAlt = 1 : nAlt
-    Ci = C(:,:,:,iAlt);
+    Ci = C(:, :, :, iAlt);
     zBar = this.Variant{iAlt}.Quantity(1, posName).';
     zBar(ixLog) = log(zBar(ixLog));
     
@@ -101,7 +100,7 @@ for iAlt = 1 : nAlt
     M0t = [ ];
     for i = 0 : p-1
         M0t = [M0t; ...
-            nan(nz, nz*i), reshape(Ci(:,:,1:p-i), nz, nz*(p-i)) ...
+            nan(nz, nz*i), reshape(Ci(:, :, 1:p-i), nz, nz*(p-i)) ...
             ]; %#ok<AGROW>
     end
     M0 = M0t.';
@@ -114,7 +113,7 @@ for iAlt = 1 : nAlt
     Ai = M1 / M0;
     
     % Estimate cov matrix of residuals.
-    Omgi = Ci(:,:,1) - M1*Ai.' - Ai*M1.' + Ai*M0*Ai.';
+    Omgi = Ci(:, :, 1) - M1*Ai.' - Ai*M1.' + Ai*M0*Ai.';
     
     % Calculate constant vector.
     Ki = zeros(size(zBar));

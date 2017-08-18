@@ -1,17 +1,17 @@
 function d = addparam(this, d)
-% addparam  Add model parameters to a database (struct).
+% addparam  Add model parameters to a database
 %
 % Syntax
 % =======
 %
-%     D = addparam(M,D)
+%     D = addparam(M, D)
 %
 %
 % Input arguments
 % ================
 %
 % * `M` [ model ] - Model object whose parameters will be added to database
-% (struct) `D`.
+% `D`.
 %
 % * `D` [ struct ] - Database to which the model parameters will be added.
 %
@@ -19,14 +19,14 @@ function d = addparam(this, d)
 % Output arguments
 % =================
 %
-% * `D [ struct ] - Database with the model parameters added.
+% * `D` [ struct ] - Database with the model parameters added.
 %
 %
 % Description
 % ============
 %
-% If there are database entries in `D` whose names conincide with the model
-% parameters, they will be overwritten.
+% Any existing database entries whose names coincide with the names of
+% model parameters will be overwritten.
 %
 %
 % Example

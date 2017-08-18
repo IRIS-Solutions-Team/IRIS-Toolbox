@@ -64,7 +64,7 @@ end
 
 Q = 1;
 if ~isempty(opt.outputfreq)
-    inpFreq = datfreq(X.start);
+    inpFreq = DateWrapper.getFrequencyFromNumeric(X.start);
     Q = inpFreq / opt.outputfreq / abs(S);
 end
 

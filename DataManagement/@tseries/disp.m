@@ -14,7 +14,7 @@ catch %#ok<CTCH>
 end
 
 start = this.start;
-freq = datfreq(start);
+freq = DateWrapper.getFrequencyFromNumeric(start);
 
 try
     disp2DFunc; %#ok<VUNUS>
@@ -106,7 +106,7 @@ function x = disp2d(start, data, tab, sep, num2strFunc)
 nPer = size(data, 1);
 range = start + (0 : nPer-1);
 dates = strjust(dat2char(range));
-if datfreq(range(1))==52
+if DateWrapper.getFrequencyFromNumeric(range(1))==52
     dateFormatW = '$ (Aaa DD-Mmm-YYYY)';
     dates = [dates, ...
         strjust(dat2char(range, 'dateFormat=', dateFormatW))];

@@ -44,8 +44,8 @@ if nargin < 3
 end
 
 pp = inputParser( );
-pp.addRequired('X',@istseries);
-pp.addRequired('W',@(x) isnumeric(x) || istseries(x));
+pp.addRequired('X',@(x) isa(x, 'tseries'));
+pp.addRequired('W',@(x) isnumeric(x) || isa(x, 'tseries'));
 pp.addRequired('Range',@isnumeric);
 pp.parse(This,W,Range);
 
@@ -55,7 +55,7 @@ options = passvalopt('tseries.windex',varargin{:});
 
 This.data = This.data(:,:);
 temp = This;
-if istseries(W)
+if isa(W, 'tseries')
     W.data = W.data(:,:);
     temp = trim([temp,W]);
 end
@@ -66,7 +66,7 @@ data = rangedata(This,Range);
 nPer = length(Range);
 
 % Get the weights.
-if istseries(W)
+if isa(W, 'tseries')
     W = rangedata(W,Range);
 elseif size(W,1) == 1
     W = W(ones([1,nPer]),:);

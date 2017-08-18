@@ -23,7 +23,7 @@ function dat = ww(year, varargin)
 % Output arguments
 % =================
 %
-% * `dat` [ dates.Date ] - IRIS serial date numbers.
+% * `dat` [ DateWrapper ] - IRIS serial date numbers.
 %
 %
 % Description
@@ -56,6 +56,6 @@ else
     dat = datcode(52, year, varargin{:});
 end
 
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

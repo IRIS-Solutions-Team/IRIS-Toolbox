@@ -20,7 +20,7 @@ function varargout = subsref(this, s, varargin)
 %
 % * `x` [ Series ] - Time series.
 %
-% * `dates` [ dates.Date | numeric ] - Dates for which the time series
+% * `dates` [ DateWrapper | numeric ] - Dates for which the time series
 % observations will be returned, either as a numeric array or as another
 % tseries object.
 %
@@ -38,14 +38,6 @@ function varargout = subsref(this, s, varargin)
 
 %--------------------------------------------------------------------------
 
-% Handle a call from the Variable Editor.
-d = dbstack( );
-isVE = length(d)>1 && strcmp(d(2).file, 'arrayviewfunc.m');
-if isVE
-    varargout{1} = subsref(this.data, s);
-    return
-end
-
 if isnumeric(s)
     % Simplified syntax: subsref(X, Dates, Ref2, Ref3, ...)
     dates = s;
@@ -54,14 +46,8 @@ if isnumeric(s)
     s.subs = [{dates}, varargin];
 end
 
-% Time-recursive expressions.
-if isanystr(s(1).type, {'{}', '()'}) && isa(s(1).subs{1}, 'trec')
-    varargout{1} = xxTRecExp(this, s, inputname(1));
-    return
-end
-
 % Run `mylagorlead` to tell if the first reference is a lag/lead. If yes, 
-% the startdate of `x` will be adjusted withing `mylagorlead`.
+% the startdate of `x` will be adjusted within `mylagorlead`.
 [this, s] = mylagorlead(this, s);
 if isempty(s)
     varargout{1} = this;
@@ -84,46 +70,8 @@ switch s(1).type
             varargout{1} = subsref(this, s);
         end
     otherwise
-        if strcmp(s(1).type, '.') && strcmp(s(1).subs, 'args')
-            utils.error('tseries:subsref', ...
-                ['In time-recursive expressions, tseries objects must ', ...
-                'be always indexed by trec objects.']);
-        end
         % Give standard access to public properties.
         varargout{1} = builtin('subsref', this, s);
 end
 
 end
-
-
-% Subfunctions...
-
-
-%**************************************************************************
-
-
-function X = xxTRecExp(This, S, InpName)
-nSubs = length(S(1).subs);
-% All references in 2nd and higher dimensions must be integer scalars or
-% vectors or colons.
-valid = true(1, nSubs);
-for i = 2 : nSubs
-    s = S(1).subs{i};
-    valid(i) = ( isnumeric(s) && ~isempty(s) && all(isround(s)) ) ...
-        || strcmp(s, ':');
-end
-if any(~valid)
-    utils.error('tseries:subsref', ...
-        'Invalid reference to tseries object in recursive expression.');
-end
-% Date vector in trec object must have the same date frequency as the
-% referenced tseries object.
-tr = S(1).subs{1};
-if ~isempty(tr.Dates) && ~isnan(This.start) ...
-        && ~freqcmp(tr.Dates(1), This.start)
-    utils.error('tseries:subsref', ...
-        'Frequency mismatch in recursive expression.');
-end
-% Create tsydney object.
-X = tsydney(This, InpName, S(1).subs{:});
-end % xxTRecExp( )

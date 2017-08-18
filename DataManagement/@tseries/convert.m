@@ -19,7 +19,7 @@ function this = convert(this, newFreq, varargin)
 % `4` or `'Q'` for quarterly, `6` or `'B'` for bi-monthly, and `12` or
 % `'M'` for monthly.
 %
-% * `range` [ dates.Date ] - Date range on which the input data will be
+% * `range` [ DateWrapper ] - Date range on which the input data will be
 % converted.
 %
 %
@@ -122,11 +122,11 @@ if isempty(newFreq)
         'Cannot determine output frequency.');
 end
 
-fromFreq = datfreq(this.Start);
+fromFreq = DateWrapper.getFrequencyFromNumeric(this.Start);
 
 if fromFreq==0 || newFreq==0
     utils.error('tseries:convert', ...
-        'Cannot convert tseries from or to unspecified frequency.');
+        'Cannot convert tseries from or to integer frequency.');
 end
 
 call = [ ];

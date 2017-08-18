@@ -56,7 +56,7 @@ pp.parse(dat, toFreq);
 
 %--------------------------------------------------------------------------
 
-fromFreq = datfreq(dat);
+fromFreq = DateWrapper.getFrequencyFromNumeric(dat);
 ixFromZero = fromFreq==0;
 ixFromDaily = fromFreq==365;
 ixFromWeekly = fromFreq==52;
@@ -105,6 +105,6 @@ if any(ixFromDaily(:))
     end
 end
 
-newDat = dates.Date(newDat);
+newDat = DateWrapper(newDat);
 
 end

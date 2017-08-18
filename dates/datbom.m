@@ -35,6 +35,6 @@ function dat = datbom(dat)
 
 [y, m] = datevec( double(dat) );
 dat = datenum([y, m, 1]);
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

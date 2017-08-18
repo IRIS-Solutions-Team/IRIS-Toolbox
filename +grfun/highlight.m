@@ -123,7 +123,7 @@ for iAx = Ax(:).'
     range = range([1, end]);
     around = opt.around;
     if isequal(getappdata(h, 'IRIS_SERIES'), true)
-        freq = datfreq(range(1));
+        freq = DateWrapper.getFrequencyFromNumeric(range(1));
         timeScale = dat2dec(range, 'centre');
         if isempty(timeScale)
             continue

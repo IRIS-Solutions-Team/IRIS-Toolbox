@@ -45,7 +45,7 @@ end
 
 [year, per, freq] = dat2ypf(dat);
 
-dates.Date.chkMixedFrequency(freq);
+DateWrapper.chkMixedFrequency(freq);
 freq = freq(1);
 
 switch freq

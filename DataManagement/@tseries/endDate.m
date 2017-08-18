@@ -34,6 +34,6 @@ function dat = endDate(x)
 %--------------------------------------------------------------------------
 
 dat = x.Start + size(x.Data, 1) - 1;
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

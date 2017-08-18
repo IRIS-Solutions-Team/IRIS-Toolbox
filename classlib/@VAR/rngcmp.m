@@ -1,51 +1,50 @@
-function Flag = rngcmp(V1,V2)
+function flag = rngcmp(V1, V2)
 % rngcmp  True if two VAR objects have been estimated using the same dates.
 %
-% Syntax
+% __Syntax__
 % -------
 %
-%     Flag = rngcmp(V1,V2)
+%     flag = rngcmp(V1, V2)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `V1`, `V2` [ VAR ] - Two estimated VAR objects.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 % 
-% * `Flag` [ `true` | `false` ] - True if the two VAR objects, `V1` and
+% * `flag` [ `true` | `false` ] - True if the two VAR objects, `V1` and
 % `V2`, have been estimated using observations at the same dates.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 pp = inputParser( );
-pp.addRequired('V1',@isVAR);
-pp.addRequired('V2',@isVAR);
-pp.parse(V1,V2);
+pp.addRequired('V1', @(x) isa(x, 'VAR'));
+pp.addRequired('V2', @(x) isa(x, 'VAR'));
+pp.parse(V1, V2);
 
 %--------------------------------------------------------------------------
 
-nAlt1 = size(V1.A,3);
-nAlt2 = size(V2.A,3);
-nAlt = max(nAlt1,nAlt2);
+nv1 = size(V1.A, 3);
+nv2 = size(V2.A, 3);
+nv = max(nv1, nv2);
 
-Flag = false(1,nAlt);
-for iAlt = 1 : nAlt
-    fitted1 = V1.IxFitted(:,:,min(iAlt,end));
-    fitted2 = V2.IxFitted(:,:,min(iAlt,end));
+flag = false(1, nv);
+for iAlt = 1 : nv
+    fitted1 = V1.IxFitted(:, :, min(iAlt, end));
+    fitted2 = V2.IxFitted(:, :, min(iAlt, end));
     range1 = V1.Range(fitted1);
     range2 = V2.Range(fitted2);
-    Flag(iAlt) = length(range1) == length(range2) ...
-        && all(datcmp(range1,range2));
+    flag(iAlt) = length(range1) == length(range2) && all(datcmp(range1, range2));
 end
 
 end

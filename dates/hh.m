@@ -34,6 +34,6 @@ function dat = hh(varargin)
 %--------------------------------------------------------------------------
 
 dat = datcode(2, varargin{:});
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

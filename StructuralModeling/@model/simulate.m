@@ -1,51 +1,50 @@
 function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, varargin)
 % simulate  Simulate model
 %
-% Syntax
-%========
+% __Syntax__
 %
-%     s = simulate(m, d, range)
-%     [s, exitFlag, addF, delta] = simulate(m, d, range)
+%     S = simulate(M, D, Range)
+%     [S, ExitFlag, AddF, Delta] = simulate(M, D, Range)
 %
 %
-% Input arguments
-%=================
+% __Input Arguments__
 %
-% * `m` [ model ] - Solved model object.
+% * `M` [ model ] - Solved model object.
 %
-% * `d` [ struct | cell ] - Input database or datapack from which the
+% * `D` [ struct | cell ] - Input database or datapack from which the
 % initial conditions and shocks from within the simulation range will be
 % read.
 %
-% * `range` [ numeric | char ] - Simulation range.
+% * `Range` [ numeric | char ] - Simulation range.
 %
 %
-% Output arguments
-%==================
+% __Output Arguments__
 %
-% * `s` [ struct | cell ] - Database with simulation results.
+% * `S` [ struct | cell ] - Database with simulation results.
 %
 %
-% Output arguments in nonlinear simulations
-%===========================================    
+% __Output Arguments in Nonlinear Simulations__
 %
-% * `exitFlag` [ cell | empty ] - Cell array with exit flags for
+% * `ExitFlag` [ cell | empty ] - Cell array with exit flags for
 % nonlinearised simulations.
 %
-% * `addF` [ cell | empty ] - Cell array of time series with final add-factors
+% * `AddF` [ cell | empty ] - Cell array of time series with final add-factors
 % added to first-order approximate equations to make nonlinear equations
 % hold.
 %
-% * `delta` [ cell | empty ] - Cell array of time series with final
+% * `Delta` [ cell | empty ] - Cell array of time series with final
 % discrepancies between LHS and RHS in equations marked for nonlinear
 % simulations by a double-equal sign.
 %
 %
-% Options
-%=========
+% __Options__
 %
 % * `'Anticipate='` [ *`true`* | `false` ] - If `true`, real future shocks
 % are anticipated, imaginary are unanticipated; vice versa if `false`.
+%
+% * `'AppendPresample=`' [ `true` | *`false` ] - Append data from
+% periods preceding the simulation start date found in the input database
+% to the output time series.
 %
 % * `'Contributions='` [ `true` | *`false`* ] - Decompose the simulated
 % paths into contributions of individual shocks.
@@ -81,8 +80,7 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % (including endogenized anticipated shocks) in sparse array.
 %
 %
-% Options for equation-selective nonlinear simulations
-%======================================================
+% __Options for Equation-Selective Nonlinear Simulations__
 %
 % * `'Solver='` [ *`@qad`* | `@fsolve` | `@lsqnonlin` ] - Solution
 % algorithm; see Description.
@@ -100,8 +98,7 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % solution.
 %
 %
-% Options for equation-selective nonlinear simulations with @qad solver
-%=======================================================================
+% __Options for Equation-selective Nonlinear Simulations with @qad Solver__
 %
 % * `'AddSstate='` [ *`true`* | `false` ] - Add steady state levels to
 % simulated paths before evaluating nonlinear equations; this option is
@@ -137,14 +134,12 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % * `'Tolerance='` [ numeric | *`1e-5`* ] - Convergence tolerance.
 %
 %
-% Options for nonlinear simulations with Optim Tbx solver
-%=========================================================
+% __Options for Nonlinear Simulations with Optim Tbx Solver__
 %
 % * `'OptimSet='` [ cell | struct ] - Optimization Tbx options.
 %
 %
-% Options for global nonlinear simulations
-%==========================================
+% __Options for Global Nonlinear Simulations
 %
 % * `'OptimSet='` [ cell | struct ] - Optimization Tbx options.
 %
@@ -152,16 +147,14 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % Description.
 %
 %
-% Description
-%=============
+% __Description__
 %
 % The function `simulate( )` simulates a model on the specified
 % simulation range. By default, the simulation is based on a first-order
 % approximate solution (calculated around steady state). To run nonlinear
 % simulations, use the option `'Nonlinear='` (to set the number of periods
 %
-% Output range
-%--------------
+% _Output Range_
 %
 % Time series in the output database, `s`, are are defined on the
 % simulation range, `range`, plus include all necessary initial conditions, 
@@ -171,8 +164,7 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % series).
 %
 %
-% Deviations from steady-state and deterministic trends
-%-------------------------------------------------------
+% _Deviations from Steady-State and Deterministic Trends_
 %
 % By default, both the input database, `d`, and the output database, `s`, 
 % are in full levels and the simulated paths for measurement variables
@@ -199,8 +191,7 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % behavior by setting `'Dtrends=' true`.
 %
 %
-% Simulating contributions of shocks
-%------------------------------------
+% _Simulating Contributions of Shocks_
 %
 % Use the option `'Contributions=' true` to request the contributions of
 % shocks to the simulated path for each variable; this option cannot be
@@ -237,8 +228,7 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % simulated path for the variable `Z`.
 %
 %
-% Simulations with multiple parameterisations and/or multiple data sets
-%-----------------------------------------------------------------------
+% _Simulations with Multiple Parameter Variants and/or Multiple Input Data Sets_
 %
 % If you simulate a model with `N` parameterisations and the input database
 % contains `K` data sets (ie. each variable is a time series with `K`
@@ -259,8 +249,7 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % `min(I, K)`-th input data set number.
 %
 %
-% Equation-selective nonlinear simulations
-%------------------------------------------
+% _Equation-Selective Nonlinear Simulations_
 %
 % The equation-selective nonlinear simulation approach is invoked by
 % setting `'Method=' 'Selective'`. In equation-selective nonlinear
@@ -279,8 +268,7 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % slower but likely to converge for a wider variety of simulations.
 %
 %
-% Global nonlinear simulations
-%------------------------------
+% _Global Nonlinear Simulations_
 %
 % The global nonlinear simulation approach is invoked by setting `'Method='
 % 'Global'` and is available only in models with no leads (expectations).
@@ -289,8 +277,7 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % Optimization Tbx routines: `@fsolve` or `@lsqnonlin` (default).
 %
 %
-% Example
-%=========
+% __Example__
 %
 %
 
@@ -300,7 +287,8 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % [this, inp, range, varargin] = ...
 %     irisinp.parser.parse('model.simulate', varargin{:});
 
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 opt = passvalopt('model.simulate', varargin{:});
 
@@ -533,11 +521,11 @@ for iLoop = 1 : nLoop
     if isequal(s.Method, 'selective') && nargout>2
         label = s.Selective.EqtnLabelN;
         finalDcy{iLoop} = permute(finalDcy{iLoop}, [2, 1, 3]);
-        finalDcy{iLoop} = Series( range(1), finalDcy{iLoop}, label );
+        finalDcy{iLoop} = TIME_SERIES_CONSTRUCTOR( range(1), finalDcy{iLoop}, label );
         finalAddf{iLoop} = permute(finalAddf{iLoop}, [2, 1, 3]);
         nSgm = size(finalAddf{iLoop}, 3);
         label = repmat(label, 1, 1, nSgm);
-        finalAddf{iLoop} = Series( range(1), finalAddf{iLoop}, label );
+        finalAddf{iLoop} = TIME_SERIES_CONSTRUCTOR( range(1), finalAddf{iLoop}, label );
     end
 
     % Update progress bar.

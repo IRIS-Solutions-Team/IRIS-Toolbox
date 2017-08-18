@@ -1,0 +1,370 @@
+classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) TimeSeries < mixedin.UserDataWrapper
+    properties
+        Start Date = Date.NaD
+        Data = double.empty(0)
+        ColumnNames = string.empty(1, 0)
+        MissingValue (1, 1) = NaN
+    end
+
+
+
+
+    properties (Dependent)
+        End
+        Range
+        Frequency
+        FrequencyDisplayName
+        MissingTest
+    end
+
+
+
+
+    methods
+        function this = TimeSeries(varargin)
+            persistent INPUT_PARSER
+            if isempty(INPUT_PARSER)
+                INPUT_PARSER = extend.InputParser('TimeSeries');
+                INPUT_PARSER.addRequired('Time', @(x) isa(x, 'Date') || isempty(x)); 
+                INPUT_PARSER.addRequired('Data', @(x) isnumeric(x) || islogical(x) || iscell(x) || isstring(x));
+                INPUT_PARSER.addParameter('ColumnNames', '', @(x) isstring(x) || ischar(x) || iscellstr(x));
+                INPUT_PARSER.addParameter('UserData', [ ], @(x) true);
+            end
+
+            if nargin==0
+                return
+            end
+
+            if nargin==1
+                assert( ...
+                    isa(varargin{1}, 'TimeSeries'), ...
+                    'TimeSeries:TimeSeries:InvalidInput', ...
+                    'Invalid input argument(s).' ...
+                );
+                this = varargin{1};
+                return
+            end
+            dates = varargin{1};
+            data = varargin{2};
+            INPUT_PARSER.parse(dates, data, varargin{3:end});
+
+            numDates = numel(dates);
+            assert( ...
+                numDates==1 || size(data, 1)==1 || (size(data, 1)==numDates), ...
+                'TimeSeries:TimeSeries:InvalidSizeInTimeDim', ...
+                'Invalid size of input data in time dimension.' ...
+            );
+
+            if isempty(dates) 
+                dates = Date.NaD;
+            else
+                dates = vec(dates);
+            end
+            this = initData(this, dates, data);
+            this.ColumnNames = INPUT_PARSER.Results.ColumnNames;
+            this.UserData = INPUT_PARSER.Results.UserData;
+            this = trim(this);
+        end
+
+
+        function last = get.End(this)
+            if isnad(this.Start)
+                last = this.Start;
+                return
+            end
+            last = addTo(this.Start, size(this.Data, 1)-1);
+        end
+
+
+        function range = get.Range(this)
+            if isnad(this.Start)
+                range = this.Start;
+                return
+            end
+            vec = transpose(0:size(this.Data, 1)-1);
+            range = addTo(this.Start, vec);
+        end
+
+
+        function frequency = get.Frequency(this)
+            frequency = getFrequency(this.Start);
+        end
+
+
+        function frequency = getFrequency(this)
+            frequency = this.Frequency;
+        end
+
+
+        function frequencyDisplayName = get.FrequencyDisplayName(this)
+            frequencyDisplayName = getFrequencyDisplayName(this.Start);
+        end
+
+
+        function missingTest = get.MissingTest(this)
+            missingValue = this.MissingValue;
+            if iscell(this.Data)
+                missingTest = @(data) cellfun(@(y) isequal({y}, missingValue), data);
+            elseif islogical(this.Data)
+                missingTest = @(data) data==missingValue;
+            elseif isstring(this.Data) || isa(this.Data, 'double') || isa(this.Data, 'single')
+                missingTest = @ismissing;
+            else
+                if isnan(missingValue)
+                    missingTest = @isnan;
+                else
+                    missingTest = @(data) data==missingValue;
+                end
+            end
+        end
+
+
+        function this = set.ColumnNames(this, value)
+            sizeData = size(this.Data);
+            expectedSizeOfColumnNames = [1, sizeData(2:end)];
+            if isempty(value)
+                columnNames = repmat("", expectedSizeOfColumnNames);
+            elseif ischar(value)
+                columnNames = repmat(string(value), expectedSizeOfColumnNames);
+            elseif isstring(value) && numel(value)==1
+                columnNames = repmat(value, expectedSizeOfColumnNames);
+            else
+                columnNames = repmat("", expectedSizeOfColumnNames);
+                columnNames(:) = value(1, :);
+            end
+            this.ColumnNames = columnNames;
+        end
+    end
+
+
+
+
+    methods %(Access=protected, Hidden)
+        varargout = binary(varargin)
+        varargout = getDataFromRange(varargin)
+        varargout = initData(varargin)
+        varargout = setData(varargin)
+        varargout = trim(varargin)
+        varargout = unaryDim(varargin)
+    end
+
+
+
+
+    methods %(Hidden)
+        varargout = disp(varargin)
+        varargout = getData(varargin)
+        varargout = getDataNoFrills(varargin)
+        varargout = getDataFromAll(varargin)
+        varargout = implementPlot(varargin)
+        varargout = subsasgn(varargin)
+        varargout = subsref(varargin)
+
+
+        function this = template(this)
+            this = TimeSeries( );
+        end
+
+
+        function this = fill(this, newData, newStart, newColumnNames)
+            assert( ...
+                isequal(class(this.Data), class(newData)), ...
+                'TimeSeries:fill', ...
+                'New data class must match existing data class.' ...
+            );
+            this.Data = newData;
+            if nargin>2
+                this.Start = newStart;
+            end
+            if nargin>3
+                this.ColumnNames = newColumnNames;
+            else
+                this.ColumnNames = "";
+            end
+        end
+
+
+        function this = emptyData(this)
+            if isnad(this.Start) || size(this.Data, 1)==0
+                return
+            end
+            sizeOfData = size(this.Data);
+            newSizeOfData = [0, sizeOfData(2:end)];
+            this.Start = empty(this.Start.Frequency, 0, 0);
+            this.Data = repmat(this.MissingValue, newSizeOfData);
+        end
+
+
+        function n = numArgumentsFromSubscript(varargin)
+            n = 1;
+        end
+
+
+        function n = end(this, k, varargin)
+            if k==1
+                if isnad(this.Start)
+                    n = Date.NaD;
+                else
+                    n = addTo(this.Start, size(this.Data, 1)-1);
+                end
+            else
+                n = size(this.Data, k);
+            end
+        end
+
+
+        function this = reshape(this, varargin)
+            if numel(varargin)==1
+                newShape = varargin{1};
+            else
+                newShape = [varargin{:}];
+            end
+            this.Data = reshape(this.Data, [size(this.Data, 1), newShape(2:end)]);
+            this.ColumnNames = reshape(this.ColumnNames, [1, newShape(2:end)]);
+        end
+    end
+
+
+
+
+    methods
+        varargout = aggregate(varargin)
+        varargout = cat(varargin)
+        varargout = clip(varargin)
+        varargout = detrend(varargin)
+        varargout = diff(varargin)
+        varargout = interpolate(varargin)
+        varargout = horzcat(varargin)
+        varargout = hpf(varargin)
+        varargout = vertcat(varargin)
+        varargout = pct(varargin)
+        varargout = plot(varargin)
+    end
+
+
+
+
+    methods
+        function this = elementwise(fun, this, varargin)
+            if iscell(this.Data)
+                this.Data = cellfun(@(x) feval(fun, x, varargin{:}), this.Data, 'UniformOutput', false);
+            else
+                this.Data = feval(fun, this.Data, varargin{:});
+            end
+        end
+
+
+        #for FN = {uplus, uminus, not, log, exp, sin, cos, tan, asin, acos, atan}
+        function this = #(FN)(this, varargin)
+            this = elementwise('#(FN)', this, varargin{:});
+            this = trim(this);
+        end
+
+
+        #endfor
+        #for FN = {plus, minus, times, rdivide, ldivide, power}
+        function this = #(FN)(a, b)
+            this = binary('#(FN)', a, b);
+            this = trim(this);
+        end
+
+
+        #endfor
+        #for FN = {times, rdivide, ldivide, power}
+        function this = m#(FN)(a, b)
+            this = binary('#(FN)', a, b);
+            this = trim(this);
+        end
+        
+
+        #endfor
+        #for FN = {mean, sum, cumsum, prod, cumprod}
+        function outp = #(FN)(this, varargin)
+            [outp, dim] = unaryDim('#(FN)', 1, this, varargin{:});
+            if dim>2
+                outp = trim(outp);
+            end
+        end
+
+
+        #endfor
+        #for FN = {std, prctile}
+        function outp = #(FN)(this, varargin)
+            [outp, dim] = unaryDim('#(FN)', 2, this, varargin{:});
+            if dim>2
+                outp = trim(outp);
+            end
+        end
+
+
+        #endfor
+    end
+    
+
+
+
+
+    methods
+        function varargout = size(this)
+            [varargout{1:nargout}] = size(this.Data);
+        end
+
+
+        function n = length(this)
+            n = size(this.Data, 1);
+        end
+
+
+        function n = numel(this)
+            n = numel(this.Data);
+        end
+
+
+        function flag = isempty(this)
+            flag = isempty(this.Data);
+        end
+
+
+        function flag = isnad(this)
+            flag = isnad(this.Start);
+        end
+
+
+        function flag = isnumeric(this)
+            flag = isnumeric(this.Data);
+        end
+    end
+
+
+
+
+    methods (Static)
+        function miss = getDefaultMissingValue(data)
+            if iscell(data)
+                miss = { double.empty(0) };
+            elseif islogical(data)
+                miss = false;
+            elseif isstring(data)
+                miss = string(missing);
+            else
+                miss = ones(1, 1, 'like', data)*NaN;
+            end
+        end
+
+
+        varargout = fromFred(varargin)
+        varargout = shiftedDataFun(varargin)
+        varargout = shiftDataKeepRange(varargin)
+        varargout = subsCase(varargin)
+    end
+
+
+
+
+    methods
+        function this = setDataColumn(this, i, x)
+            this.Data(:, i) = x;
+        end
+    end
+end
+

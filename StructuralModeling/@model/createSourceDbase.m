@@ -8,7 +8,8 @@ function outp = createSourceDbase(this, range, varargin)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 TYPE = @int8;
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 if ischar(range)
     range = textinp2dat(range);

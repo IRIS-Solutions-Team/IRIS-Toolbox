@@ -1,61 +1,48 @@
+% SVAR  Structural Vector Autoregressions (SVAR Objects).
+%
+%
+% SVAR methods:
+%
+% Constructor
+% ============
+%
+% * [`SVAR`](SVAR/SVAR) - Convert reduced-form VAR to structural VAR.
+%
+% SVAR objects can call any of the [VAR](VAR/Contents) functions. In
+% addition, the following functions are available for SVAR objects.
+%
+%
+% Getting information about SVAR objects
+% =======================================
+%
+% * [`get`](SVAR/get) - Query SVAR object properties.
+%
+%
+% Simulation
+% ===========
+%
+% * [`srf`](SVAR/srf) - Shock (impulse) response function.
+%
+%
+% Stochastic properties
+% ======================
+%
+% * [`fevd`](SVAR/fevd) - Forecast error variance decomposition for SVAR variables.
+%
+%
+% Manipulating SVAR objects
+% ==========================
+%
+% * [`sort`](SVAR/sort) - Sort SVAR parameterisations by squared distance of shock reponses to median.
+%
+% See help on [VAR](VAR/Contents) objects for other functions available.
+%
+%
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2017 IRIS Solutions Team.
+    
 classdef SVAR < VAR
-    % SVAR  Structural Vector Autoregressions (SVAR Objects).
-    %
-    %
-    % SVAR methods:
-    %
-    % Constructor
-    % ============
-    %
-    % * [`SVAR`](SVAR/SVAR) - Convert reduced-form VAR to structural VAR.
-    %
-    % SVAR objects can call any of the [VAR](VAR/Contents) functions. In
-    % addition, the following functions are available for SVAR objects.
-    %
-    %
-    % Getting information about SVAR objects
-    % =======================================
-    %
-    % * [`get`](SVAR/get) - Query SVAR object properties.
-    %
-    %
-    % Simulation
-    % ===========
-    %
-    % * [`srf`](SVAR/srf) - Shock (impulse) response function.
-    %
-    %
-    % Stochastic properties
-    % ======================
-    %
-    % * [`fevd`](SVAR/fevd) - Forecast error variance decomposition for SVAR variables.
-    %
-    %
-    % Manipulating SVAR objects
-    % ==========================
-    %
-    % * [`sort`](SVAR/sort) - Sort SVAR parameterisations by squared distance of shock reponses to median.
-    %
-    % See help on [VAR](VAR/Contents) objects for other functions available.
-    %
-    %
-    % Getting on-line help on SVAR functions
-    % =======================================
-    %
-    %     help SVAR
-    %     help SVAR/function_name
-    %
-    %
-    % Getting on-line help on SVAR functions that are inherited from VARs
-    % ====================================================================
-    %
-    %     help VAR
-    %     help VAR/function_name
-    %
-    
-    % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2017 IRIS Solutions Team.
-    
     properties
         B = [ ]; % Coefficient matrix in front of structural residuals.
         Std = [ ]; % Std dev of structural residuals.

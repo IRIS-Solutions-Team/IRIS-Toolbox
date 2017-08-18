@@ -7,6 +7,8 @@ function D = hdatafinal(Y)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+
 %--------------------------------------------------------------------------
 
 D = struct( );
@@ -56,7 +58,7 @@ end
             end
             if isfield(Y, mseField)
                 Y.(mseField).Data = permute(Y.(mseField).Data, [3, 1, 2, 4]);
-                D.(outpName).mse = tseries( );
+                D.(outpName).mse = TIME_SERIES_CONSTRUCTOR( );
                 D.(outpName).mse.start = Y.(mseField).Range(1);
                 D.(outpName).mse.data = Y.(mseField).Data;
                 D.(outpName).mse.Comment = cell(1, ...

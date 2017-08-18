@@ -386,6 +386,7 @@ end
 
 
 function [vecHFig, vecHAx, plotDb, figTitle] = render(qq, range, opt, varargin)
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
 vecHFig = [ ];
 vecHAx = { };
 plotDb = struct( );
@@ -436,14 +437,14 @@ for i = 1 : length(qq)
         % Create an entry for the current panel in the output database. Do not
         % if plotting the panel fails.
         try
-            [range, data, ok] = callPlot(func, ...
+            [reportRange, data, ok] = callPlot(func, ...
                 funcArgs, aa, range, x, finalLegend, opt, varargin{:});
             if ~ok
                 lsUnknown{end+1} = qq{i}.children{j}.caption; %#ok<AGROW>
             end
-        catch me
+        catch Error
             lsError{end+1} = qq{i}.children{j}.caption; %#ok<AGROW>
-            lsError{end+1} = me.message; %#ok<AGROW>
+            lsError{end+1} = Error.message; %#ok<AGROW>
         end
         if ~isempty(tit)
             grfun.title(tit, 'interpreter=', opt.interpreter);
@@ -463,7 +464,7 @@ for i = 1 : length(qq)
                 plotDbName = sprintf('Panel%g', count);
             end
             try
-                plotDb.(plotDbName) = Series(range, data, finalLegend);
+                plotDb.(plotDbName) = TIME_SERIES_CONSTRUCTOR(reportRange, data, finalLegend);
             catch %#ok<CTCH>
                 plotDb.(plotDbName) = NaN;
             end
@@ -549,7 +550,7 @@ end
 
 
 
-function [range, data, isOk] = callPlot(func, funcArgs, aa, range, x, legEnt, opt, varargin)
+function [range, data, isOk] = callPlot(func, funcArgs, aa, inpRange, inpData, legEnt, opt, varargin)
 isXGrid = opt.grid;
 isYGrid = opt.grid;
 
@@ -558,31 +559,34 @@ isOk = true;
 
 switch func2str(func)
     case {'plot', 'bar', 'barcon', 'stem'}
-        data = [x{:}];
-        if istseries(data)
-            [~, range, data] = func(range, data, varargin{:}, funcArgs{:});
-        elseif ~isempty(data)
-            func(range, data, varargin{:}, funcArgs{:});
+        inpDataCat = [inpData{:}];
+        if isa(inpDataCat, 'tseries')
+            [~, range, data] = func(inpRange, inpDataCat, varargin{:}, funcArgs{:});
+        elseif ~isempty(inpDataCat)
+            data = inpDataCat;
+            func(inpRange, inpDataCat, varargin{:}, funcArgs{:});
         else
             % Do nothing.
         end
-    case 'errorbar' % Error bar graph.
+    case 'errorbar'
         [~, ~, range, data] ...
-            = errorbar(range, x{:}, varargin{:}, funcArgs{:});
-    case 'plotpred' % Prediction plot.
+            = errorbar(inpRange, inpData{:}, varargin{:}, funcArgs{:});
+    case 'plotpred'
         [~, ~, ~, range, data] ...
-            = plotpred(range, x{:}, varargin{:}, funcArgs{:});
-    case 'hist' % Histogram.
-        data = [ x{:} ];
-        data = data(range, :);
+            = plotpred(inpRange, inpData{:}, varargin{:}, funcArgs{:});
+    case 'hist'
+        data = [ inpData{:} ];
+        data = data(inpRange, :);
+        range = inpRange;
         [count, pos] = hist(data);
         [~] = bar(pos, count, 'barWidth', 0.8, varargin{:}, funcArgs{:});
         isXGrid = false;
-    case 'plotcmp' % Plotcmp.
+    case 'plotcmp'
         [aa, ~, ~, range, data] ...
-            = plotcmp(range, [x{:}], varargin{:}, funcArgs{:});
+            = plotcmp(inpRange, [inpData{:}], varargin{:}, funcArgs{:});
     otherwise
-        func(range, [x{:}], varargin{:}, funcArgs{:});
+        func(inpRange, [inpData{:}], varargin{:}, funcArgs{:});
+        range = inpRange;
 end
 
 if opt.tight
@@ -622,6 +626,7 @@ end
 if ~isempty(opt.highlight)
     grfun.highlight(aa, opt.highlight);
 end
+if ~isa(range, 'DateWrapper'), keyboard, end
 
 end 
 

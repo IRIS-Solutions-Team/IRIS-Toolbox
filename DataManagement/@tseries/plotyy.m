@@ -2,45 +2,41 @@ function [ax, hLhs, hRhs, rangeLhs, dataLhs, timeLhs, rangeRhs, dataRhs, timeRhs
     = plotyy(varargin)
 % plotyy  Line plot function with LHS and RHS axes for time series.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [ax, lhs, rhs, range] = plotyy(x, y, ...)
-%     [ax, lhs, rhs, range] = plotyy(range, x, y, ...)
-%     [ax, lhs, rhs, range] = plotyy(rangeLhs, x, rangeRhs, y, ...)
+%     [Ax, Lhs, Rhs, Range] = plotyy(X, Y, ...)
+%     [Ax, Lhs, Rhs, Range] = plotyy(Range, X, Y, ...)
+%     [Ax, Lhs, Rhs, Range] = plotyy(LhsRange, X, RhsRange, Y, ...)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
-% * `range` [ numeric | char ] - Date range; if not specified the entire
+% * `Range` [ numeric | char ] - Date range; if not specified the entire
 % range of the input tseries object will be plotted.
 %
-% * `rangeLhs` [ numeric | char ] - LHS plot date range.
+% * `LhsRange` [ numeric | char ] - LHS plot date range.
 %
-% * `rangeRhs` [ numeric | char ] - RHS plot date range.
+% * `RhsRange` [ numeric | char ] - RHS plot date range.
 %
-% * `x` [ Series ] - Input tseries object whose columns will be plotted
+% * `X` [ Series ] - Input tseries object whose columns will be plotted
 % and labelled on the LHS.
 %
-% * `y` [ Series ] - Input tseries object whose columns will be plotted
+% * `Y` [ Series ] - Input tseries object whose columns will be plotted
 % and labelled on the RHS.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
-% * `ax` [ Axes ] - Handles to the LHS and RHS axes.
+% * `Ax` [ Axes ] - Handles to the LHS and RHS axes.
 %
-% * `lhs` [ Axes ] - Handles to series plotted on the LHS axis.
+% * `Lhs` [ Axes ] - Handles to series plotted on the LHS axis.
 %
-% * `rhs` [ Line ] - Handles to series plotted on the RHS axis.
+% * `Rhs` [ Line ] - Handles to series plotted on the RHS axis.
 %
-% * `range` [ numeric ] - Actually plotted date range.
+% * `Range` [ numeric ] - Actually plotted date range.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Coincide='` [ `true` | *`false`* ] - Make the LHS and RHS y-axis
 % grids coincide.
@@ -59,12 +55,10 @@ function [ax, hLhs, hRhs, rangeLhs, dataLhs, timeLhs, rangeRhs, dataRhs, timeRhs
 % `plotyy` for all options available.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -73,7 +67,7 @@ function [ax, hLhs, hRhs, rangeLhs, dataLhs, timeLhs, rangeRhs, dataRhs, timeRhs
 % AREA, BAND, BAR, BARCON, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM
 
 % range for LHS time series.
-if isdatinp(varargin{1})
+if DateWrapper.validateDateInput(varargin{1})
     rangeLhs = varargin{1};
     varargin(1) = [ ];
 else
@@ -85,7 +79,7 @@ XLhs = varargin{1};
 varargin(1) = [ ];
 
 % range for RHS time series.
-if isdatinp(varargin{1})
+if DateWrapper.validateDateInput(varargin{1})
     rangeRhs = varargin{1};
     varargin(1) = [ ];
 else
@@ -111,7 +105,7 @@ end
 % LHS.
 if ~all(isinf(rangeLhs)) && ~isempty(rangeLhs) && ~isempty(XLhs) ...
         && isa(XLhs, 'tseries')
-    if datfreq(rangeLhs(1)) ~= get(XLhs, 'freq')
+    if DateWrapper.getFrequencyFromNumeric(rangeLhs(1)) ~= get(XLhs, 'freq')
         utils.error('tseries:plotyy', ...
             ['LHS range and LHS time series must have ', ...
             'the same date frequency.']);
@@ -120,7 +114,7 @@ end
 % RHS.
 if ~all(isinf(rangeRhs)) && ~isempty(rangeRhs) && ~isempty(XRhs) ...
         && isa(XRhs, 'tseries')
-    if datfreq(rangeRhs(1)) ~= get(XRhs, 'freq')
+    if DateWrapper.getFrequencyFromNumeric(rangeRhs(1)) ~= get(XRhs, 'freq')
         utils.error('tseries:plotyy', ...
             ['RHS range and RHS time series must have ', ...
             'the same date frequency.']);

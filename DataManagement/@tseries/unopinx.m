@@ -1,5 +1,5 @@
-function [X,Inx] = unopinx(Func,This,Dim,varargin)
-% unopinx  [Not a public function] Unary operators and functions on tseries objects with index returned.
+function [x, pos] = unopinx(func, this, dim, varargin)
+% unopinx  Unary operators and functions on tseries objects with index returned.
 %
 % Backend IRIS function.
 % No help provided.
@@ -7,14 +7,16 @@ function [X,Inx] = unopinx(Func,This,Dim,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+
 %--------------------------------------------------------------------------
 
-[X,Inx] = unop(Func,This,Dim,varargin{:});
+[x, inx] = unop(func, this, dim, varargin{:});
 
-if Dim == 1
-    Inx = This.start + Inx - 1;
+if dim==1
+    pos = this.Start + pos - 1;
 else
-    Inx = tseries(This.start,Inx);
+    pos = TIME_SERIES_CONSTRUCTOR(this.Start, pos);
 end
 
 end

@@ -1,14 +1,13 @@
-function [X,D,D1] = fmse(This,Time,varargin)
+function [X, D, D1] = fmse(This, Time, varargin)
 % fmse  Forecast mean square error matrices.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [F,X] = fmse(V,NPer)
-%     [F,X] = fmse(V,Range)
+%     [F, X] = fmse(V, NPer)
+%     [F, X] = fmse(V, Range)
 %
-% Input arguments
-% ================
+%
+% __Input arguments__
 %
 % * `V` [ VAR ] - VAR object for which the forecast MSE matrices will be
 % computed.
@@ -17,8 +16,8 @@ function [X,D,D1] = fmse(This,Time,varargin)
 %
 % * `Range` [ numeric ] - Date range.
 %
-% Output arguments
-% =================
+%
+% __Output arguments__
 %
 % * `F` [ namedmat | numeric ] - Forecast MSE matrices.
 %
@@ -26,27 +25,26 @@ function [X,D,D1] = fmse(This,Time,varargin)
 % of individual variables, i.e. the square roots of the corresponding
 % diagonal elements of `M`.
 %
-% Options
-% ========
 %
-% * `'matrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
+% __Options__
+%
+% * `'MatrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
 % either a [`namedmat`](namedmat/Contents) object (i.e. matrix with named
 % rows and columns) or a plain numeric array.
 
 %
-% Description
-% ============
+% __Description__
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-opt = passvalopt('VAR.fmse',varargin{:});
+opt = passvalopt('VAR.fmse', varargin{:});
 
 % Tell whether time is nper or range.
 if length(Time) == 1 && round(Time) == Time && Time > 0
@@ -56,41 +54,41 @@ else
 end
 nPer = length(range);
 
-isNamedMat = strcmpi(opt.MatrixFmt,'namedmat');
+isNamedMat = strcmpi(opt.MatrixFmt, 'namedmat');
 
 %--------------------------------------------------------------------------
 
-ny = size(This.A,1);
-nAlt = size(This.A,3);
+ny = size(This.A, 1);
+nAlt = size(This.A, 3);
 
 % Orthonormalise residuals so that we do not have to multiply the VMA
 % representation by Omega.
 B = covfun.factorise(This.Omega);
 
 % Get VMA representation.
-X = timedom.var2vma(This.A,B,nPer);
+X = timedom.var2vma(This.A, B, nPer);
 
 % Compute FMSE matrices.
 for iAlt = 1 : nAlt
     for t = 1 : nPer
-        X(:,:,t,iAlt) = X(:,:,t,iAlt)*transpose(X(:,:,t,iAlt));
+        X(:, :, t, iAlt) = X(:, :, t, iAlt)*transpose(X(:, :, t, iAlt));
     end
 end
-X = cumsum(X,3);
+X = cumsum(X, 3);
 
 % Return std devs for individual series.
 if nargout > 1
-    x = nan(nPer,ny,nAlt);
+    x = nan(nPer, ny, nAlt);
     for i = 1 : ny
-        x(:,i,:) = sqrt(permute(X(i,i,:,:),[3,1,4,2]));
+        x(:, i, :) = sqrt(permute(X(i, i, :, :), [3, 1, 4, 2]));
     end
     % ##### Nov 2013 OBSOLETE and scheduled for removal.
     % All VAR output data will be returned as dbase (struct).
     D = struct( );
     for i = 1 : ny
         name = This.YNames{i};
-        data = x(:,i,:);
-        D.(name) = replace(TEMPLATE_SERIES,data(:,:),range(1));
+        data = x(:, i, :);
+        D.(name) = replace(TEMPLATE_SERIES, data(:, :), range(1));
     end
     if nargout > 2
         % ##### Nov 2013 OBSOLETE and scheduled for removal.
@@ -104,7 +102,7 @@ end
 if true % ##### MOSW
     % Convert output matrix to namedmat object if requested.
     if isNamedMat
-        X = namedmat(X,This.YNames,This.YNames);
+        X = namedmat(X, This.YNames, This.YNames);
     end
 else
     % Do nothing.

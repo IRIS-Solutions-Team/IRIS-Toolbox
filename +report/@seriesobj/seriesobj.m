@@ -1,7 +1,7 @@
 classdef seriesobj < report.genericobj & report.condformatobj
     
     properties
-        data = {tseries( )};
+        data = { getappdata(0, 'IRIS_TIME_SERIES_CONSTRUCTOR') };
     end
     
     methods
@@ -61,9 +61,9 @@ classdef seriesobj < report.genericobj & report.condformatobj
         
         function [This,varargin] = specargin(This,varargin)
             if ~isempty(varargin)
-                if istseries(varargin{1}) || iscell(varargin{1})
+                if isa(varargin{1}, 'tseries') || iscell(varargin{1})
                     This.data = varargin{1};
-                    if istseries(This.data)
+                    if isa(This.data, 'tseries')
                         This.data = {This.data};
                     end
                 end
@@ -106,7 +106,7 @@ classdef seriesobj < report.genericobj & report.condformatobj
             r = This.options.round;
             if ~isequal(r,Inf)
                 for i = 1 : length(This.data)
-                    if istseries(This.data{i})
+                    if isa(This.data{i}, 'tseries')
                         This.data{i} = round(This.data{i},r);
                     end
                 end

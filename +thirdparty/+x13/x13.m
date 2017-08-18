@@ -40,7 +40,7 @@ kb = Opt.backcast;
 kf = Opt.forecast;
 nPer = size(X,1);
 nx = size(X,2);
-freq = datfreq(StartDate);
+freq = DateWrapper.getFrequencyFromNumeric(StartDate);
 
 % Preallocate output arguments
 %------------------------------
@@ -337,7 +337,7 @@ spec = strrep(spec,'$series_data$',cData);
 
 % Seasonal period specs
 %-----------------------
-spec = strrep(spec,'$series_freq$',sprintf('%g',datfreq(StartDate)));
+spec = strrep(spec,'$series_freq$',sprintf('%g',DateWrapper.getFrequencyFromNumeric(StartDate)));
 % Start date.
 spec = strrep(spec,'$series_startyear$',sprintf('%g',round(dataYear)));
 spec = strrep(spec,'$series_startper$',sprintf('%g',round(dataPer)));

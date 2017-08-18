@@ -107,7 +107,7 @@ classdef poster < shared.GetterSetter
                         
             if isempty(varargin)
                 return
-            elseif length(varargin)==1 && isposter(varargin{1})
+            elseif length(varargin)==1 && isa(varargin{1}, 'poster')
                 this = varargin{1};
             elseif length(varargin)==1 && isstruct(varargin{1})
                 this = struct2obj(this, varargin{1});

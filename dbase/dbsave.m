@@ -1,33 +1,30 @@
 function lsSaved = dbsave(inp, fileName, varargin)
 % dbsave  Save database to CSV file.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     listSaved = dbsave(d, fileName)
-%     listSaved = dbsave(d, fileName, dates, ...)
-%
-%
-% Output arguments
-% =================
-%
-% * `listSaved` [ cellstr ] - List of actually saved database entries.
+%     ListSaved = dbsave(D, FileName)
+%     ListSaved = dbsave(D, FileName, Dates, ...)
 %
 %
-% Input arguments
-% ================
+% __Output Arguments__
 %
-% * `d` [ struct ] - Database whose tseries and numeric entries will be
+% * `ListSaved` [ cellstr ] - List of actually saved database entries.
+%
+%
+% __Input Arguments__
+%
+% * `D` [ struct ] - Database whose tseries and numeric entries will be
 % saved.
 %
-% * `fileName` [ char ] - Filename under which the CSV will be saved, 
+% * `FileName` [ char ] - Filename under which the CSV will be saved, 
 % including its extension.
 %
-% * `dates` [ numeric | *`Inf`* ] Dates or date range on which the tseries
+% * `Dates` [ numeric | *`Inf`* ] Dates or date range on which the tseries
 % objects will be saved.
 %
-% Options
-% ========
+%
+% __Options__
 %
 % * `'VariablesHeader='` [ *`'Variables ->'`* | char ] - String that will
 % be put in the top-left corncer (cell A1).
@@ -48,7 +45,7 @@ function lsSaved = dbsave(inp, fileName, varargin)
 % `'-'` signs.
 %
 % * `'FreqLetters='` [ char | *`'YHQBMW'`* ] - Six letters to represent the
-% five possible date frequencies except daily and unspecified (annual,
+% five possible date frequencies except daily and integer (annual,
 % semi-annual, quarterly, bimonthly, monthly, weekly).
 %
 % * `'MatchFreq='` [ `true` | *`false`* ] - Save only the tseries whose
@@ -58,21 +55,19 @@ function lsSaved = dbsave(inp, fileName, varargin)
 % NaNs.
 %
 % * `'SaveSubdb='` [ `true` | *`false`* ] - Save sub-databases (structs
-% found within the input struct `d`); the sub-databases will be saved to
+% found within the input struct `D`); the sub-databases will be saved to
 % separate CSF files.
 %
 % * `'UserData='` [ char | *'userdata'* ] - Field name from which
 % any kind of userdata will be read and saved in the CSV file.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The data saved include also imaginary parts of complex numbers.
 %
 %
-% Saving user data with the database
-% ------------------------------------
+% _Saving user data with the database_
 %
 % If your database contains field named `'userdata='`, this will be saved
 % in the CSV file on a separate row. The `'userdata='` field can be any
@@ -83,28 +78,27 @@ function lsSaved = dbsave(inp, fileName, varargin)
 % user data, use the `'userData='` option.
 %
 %
-% Example
-% ========
+% __Example__
 %
 % Create a simple database with two time series.
 %
-%     d = struct( );
-%     d.x = tseries(qq(2010, 1):qq(2010, 4), @rand);
-%     d.y = tseries(qq(2010, 1):qq(2010, 4), @rand);
+%     D = struct( );
+%     D.x = tseries(qq(2010, 1):qq(2010, 4), @rand);
+%     D.y = tseries(qq(2010, 1):qq(2010, 4), @rand);
 %
 % Add your own description of the database, e.g.
 %
-%     d.UserData = {'My database', datestr(now( ))};
+%     D.UserData = {'My database', datestr(now( ))};
 %
 % Save the database as CSV using `dbsave`, 
 %
-%     dbsave(d, 'mydatabase.csv');
+%     dbsave(D, 'mydatabase.csv');
 %
 % When you later load the database, 
 %
-%     d = dbload('mydatabase.csv')
+%     D = dbload('mydatabase.csv')
 %
-%     d = 
+%     D = 
 %
 %        userdata: {'My database'  '23-Sep-2011 14:10:17'}
 %               x: [4x1 tseries]
@@ -113,25 +107,24 @@ function lsSaved = dbsave(inp, fileName, varargin)
 % the database will preserve the `'userdata='` field.
 %
 %
-% Example
-% ========
+% __Example__
 %
 % To change the field name under which you store your own user data, use
 % the `'userdata='` option when running `dbsave`, 
 %
-%     d = struct( );
-%     d.x = tseries(qq(2010, 1):qq(2010, 4), @rand);
-%     d.y = tseries(qq(2010, 1):qq(2010, 4), @rand);
-%     d.MYUSERDATA = {'My database', datestr(now( ))};
-%     dbsave(d, 'mydatabase.csv', Inf, 'userData=', 'MYUSERDATA');
+%     D = struct( );
+%     D.x = tseries(qq(2010, 1):qq(2010, 4), @rand);
+%     D.y = tseries(qq(2010, 1):qq(2010, 4), @rand);
+%     D.MYUSERDATA = {'My database', datestr(now( ))};
+%     dbsave(D, 'mydatabase.csv', Inf, 'userData=', 'MYUSERDATA');
 %
 % The name of the user data field is also kept in the CSV file so that
 % `dbload` works fine in this case, too, and returns a database identical
 % to the saved one, 
 %
-%     d = dbload('mydatabase.csv')
+%     D = dbload('mydatabase.csv')
 %
-%     d = 
+%     D = 
 %
 %        MYUSERDATA: {'My database'  '23-Sep-2011 14:10:17'}
 %                 x: [4x1 tseries]
@@ -153,7 +146,7 @@ catch %#ok<CTCH>
     vecDat = Inf;
 end
 
-% Allow both dbsave(D, fileName) and dbsave(fileName, D).
+% Allow both dbsave(d, fileName) and dbsave(fileName, d).
 if ischar(inp) && isstruct(fileName)
     [inp, fileName] = deal(fileName, inp);
 end
@@ -197,7 +190,7 @@ end
 vecDat = double(vecDat);
 isRange = all(round(diff(vecDat))==1);
 if ~isempty(vecDat)
-    usrFreq = datfreq(vecDat(1));
+    usrFreq = DateWrapper.getFrequencyFromNumeric(vecDat(1));
 else
     usrFreq = NaN;
 end

@@ -69,7 +69,8 @@ function [this, D, CC, FF, U, E, CTF, range] = estimate(this, d, range, varargin
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 % Get input data.
 [y, range, lsy] = getEstimationData(this, d, range);

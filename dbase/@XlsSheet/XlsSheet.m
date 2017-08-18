@@ -58,6 +58,7 @@ classdef XlsSheet < handle
         
         
         function x = readSeries(this, time, xlsRange)
+            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
             [from, to] = parseXlsRange(this, xlsRange);
             if from(1)~=to(1) && from(2)~=to(2)
                 error('XlsSheet:DataMustBeRowOrColumn', ...
@@ -73,13 +74,14 @@ classdef XlsSheet < handle
                 error('XlsSheet:DataMustBeNumeric', ...
                     'Time series data must be numeric');
             end
-            x = Series(time, data);
+            x = TIME_SERIES_CONSTRUCTOR(time, data);
         end
         
         
         
         
         function d = readDatabase(this, varargin)
+            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
             opt = passvalopt('XlsSheet.retrieveDbase', varargin{:});
             opt = datdefaults(opt, false);
             d = struct( );
@@ -98,7 +100,7 @@ classdef XlsSheet < handle
             data = cell2mat(data);
             for iCol = 2 : this.NCol
                 name = this.Raw{1, iCol};
-                d.(name) = Series(range, data(:, iCol));
+                d.(name) = TIME_SERIES_CONSTRUCTOR(range, data(:, iCol));
             end
         end
         

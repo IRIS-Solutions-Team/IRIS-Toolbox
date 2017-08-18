@@ -1,31 +1,27 @@
 function d = dbload(varargin)
 % dbload  Create database by loading CSV file.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     d = dbload(fileName, ...)
-%     d = dbload(d, fileName, ...)
+%     D = dbload(FileName, ...)
+%     D = dbload(D, FileName, ...)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
-% * `fileName` [ char | cellstr ] - Name of the Input CSV data file or a cell
+% * `FileName` [ char | cellstr ] - Name of the Input CSV data file or a cell
 % array of CSV file names that will be combined.
 %
-% * `d` [ struct ] - An existing database (struct) to which the new entries
+% * `D` [ struct ] - An existing database (struct) to which the new entries
 % from the input CSV data file entries will be added.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
-% * `d` [ struct ] - Database created from the input CSV file(s).
+% * `D` [ struct ] - Database created from the input CSV file(s).
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Case='` [ `'lower'` | `'upper'` | *empty* ] - Change case of variable
 % names.
@@ -97,15 +93,13 @@ function d = dbload(varargin)
 % each time series.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % Use the `'Freq='` option whenever there is ambiguity in intepreting
 % the date strings, and IRIS is not able to determine the frequency
 % correctly (see Example).
 %
-% Structure of CSV database files
-% --------------------------------
+% _Structure of CSV database files_
 %
 % The minimalist structure of a CSV database file has a leading row with
 % variables names, a leading column with dates in the basic IRIS format, 
@@ -161,15 +155,14 @@ function d = dbload(varargin)
 %     |         |         |         |
 %
 %
-% Example
-% ========
+% __Example__
 %
-% Typical example of using the `'freq='` option is a quarterly database
+% Typical example of using the `'Freq='` option is a quarterly database
 % with dates represented by the corresponding months, such as a sequence
 % 2000-01-01, 2000-04-01, 2000-07-01, 2000-10-01, etc. In this case, you
 % can use the following options:
 %
-%     d = dbload('filename.csv', 'dateFormat', 'YYYY-MM-01', 'freq', 4);
+%     D = dbload('filename.csv', 'DateFormat=', 'YYYY-MM-01', 'Freq=', 4);
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -606,7 +599,7 @@ return
         
         % Check for mixed frequencies.
         if ~isempty(dates)
-            x = datfreq(dates);
+            x = DateWrapper.getFrequencyFromNumeric(dates);
             if any(x(1)~=x)
                 throw( ...
                     exception.Base('Dbase:LoadMixedFrequency', 'error'), ...
@@ -620,7 +613,8 @@ return
 
 
     function populateDatabase( )
-        TEMPLATE_SERIES = Series( );
+        TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+        TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
         count = 0;
         nName = length(nameRow);
         seriesUserdataList = fieldnames(seriesUserdata);
@@ -680,7 +674,7 @@ return
                 % Convert the series to requested frequency if it isn't it yet.
 %                 if ~isempty(opt.convert) ...
 %                         && ~isnan(D.(name).start) ...
-%                         && datfreq(D.(name).start)~=opt.convert{1}
+%                         && DateWrapper.getFrequencyFromNumeric(D.(name).start)~=opt.convert{1}
 %                     D.(name) = convert(D.(name), opt.convert{:});
 %                 end
             elseif ~isempty(tmpSize)

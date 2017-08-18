@@ -1,0 +1,87 @@
+function this = clip(this, newStart, newEnd)
+
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('TimeSeries/clip');
+    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'TimeSeries'));
+    INPUT_PARSER.addRequired('NewStartDate', @(x) isa(x, 'Date') || isequal(x, -Inf));
+    INPUT_PARSER.addRequired('NewEndDate', @(x) isa(x, 'Date') || isequal(x, Inf));
+end
+
+thisStart = this.Start;
+thisEnd = this.End;
+thisFrequency = this.Frequency;
+
+assert( ...
+    validate(thisStart, newStart) || isequal(newStart, -Inf), ...
+    'TimeSeries:clip', ...
+    'Date frequency mismatch.' ...
+);
+
+assert( ...
+    validate(thisEnd, newEnd) || isequal(newEnd, Inf), ...
+    'TimeSeries:clip', ...
+    'Date frequency mismatch.' ...
+);
+
+if newStart>newEnd
+    this = emptyData(this);
+    return
+end
+
+if thisStart>=newStart && thisEnd<=newEnd
+    return
+end
+
+sizeOfData = size(this.Data);
+ndimsOfData = ndims(this.Data);
+thisData = this.Data(:, :);
+clipStart( );
+clipEnd( );
+if ndimsOfData>2
+    thisData = reshape(thisData, [size(thisData, 1), sizeOfData(2:end)]);
+end
+this.Start = thisStart;
+this.Data = thisData;
+
+return
+
+
+    function clipStart( )
+        if size(thisData, 1)==0
+            return
+        end
+        if thisStart>newStart
+            return
+        end
+        if newStart<=thisEnd
+            posNewStart = positionOf(newStart, thisStart);
+            thisData(1:posNewStart-1, :) = [ ];
+            thisStart = newStart;
+            return
+        else
+            thisData(:, :) = [ ];
+            thisStart = Date.empty(thisFrequency);
+        end
+    end
+
+
+    function clipEnd( )
+        if size(thisData, 1)==0
+            return
+        end
+        if thisEnd<newEnd
+            return
+        end
+        if newEnd>=thisStart
+            posNewEnd = positionOf(newEnd, thisStart);
+            thisData(posNewEnd+1:end, :) = [ ];
+            return
+        else
+            thisData(:, :) = [ ];
+            thisStart = Date.empty(thisFrequency);
+        end
+    end
+end
+
+

@@ -53,9 +53,9 @@ maxEnd = max( vecEnd(~isnan(vecEnd)) );
 nPer = rnglen( [minStart, maxEnd] );
 
 if ~isempty(minStart)
-    outp.start = minStart;
+    outp.Start = DateWrapper(minStart);
 else
-    outp.start = NaN;
+    outp.Start = DateWrapper(NaN);
 end
 
 % Add inputs one by one to output series.

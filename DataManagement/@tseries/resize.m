@@ -1,10 +1,10 @@
-function [X,NewRange] = resize(X,Range)
+function [this, newRange] = resize(this, range)
 % resize  Clip tseries object down to a specified date range.
 %
 % Syntax
 % =======
 %
-%     X = resize(X,Range)
+%     X = resize(X, Range)
 %
 % Input arguments
 % ================
@@ -13,7 +13,7 @@ function [X,NewRange] = resize(X,Range)
 % down.
 %
 % * `Range` [ numeric ] - New date range to which the input tseries object
-% will be resized; the range can be specified as a `[startDate,endDate]`
+% will be resized; the range can be specified as a `[startDate, endDate]`
 % vector where `-Inf` and `Inf` can be used for the dates.
 %
 % Output arguments
@@ -32,26 +32,28 @@ function [X,NewRange] = resize(X,Range)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-% Parse input arguments.
-pp = inputParser( );
-pp.addRequired('x',@(x) isa(x,'tseries'));
-pp.addRequired('range',@isnumeric);
-pp.parse(X,Range);
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('tseries/resize');
+    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
+    INPUT_PARSER.addRequired('Range', @isnumeric);
+end
+INPUT_PARSER.parse(this, range);
 
 %--------------------------------------------------------------------------
 
-if isempty(Range) || isnan(X.start)
-    NewRange = [ ];
-    X = empty(X);
+if isempty(range) || isnan(this.Start)
+    newRange = [ ];
+    this = empty(this);
     return
-elseif all(isinf(Range))
-    NewRange = X.start + (0 : size(X.data,1)-1);
+elseif all(isinf(range))
+    newRange = this.Start + (0 : size(this.Data, 1)-1);
     return
 end
 
 % Frequency of input tseries must be the same as frequency of new date
 % range.
-if ~all(freqcmp(Range([1,end]),X.start))
+if ~all(freqcmp(range([1, end]), this.Start))
     utils.error('tseries:resize', ...
         ['Frequency of the tseries object and ', ...
         'the date frequency of the new range must be the same.']);
@@ -59,40 +61,40 @@ end
 
 % Return immediately if start of new range is before start of input tseries
 % and end of new range is after end of input tseries.
-if round(Range(1)) <= round(X.start) ...
-        && round(Range(end)) >= round(X.start + size(X.data,1) - 1)
-    NewRange = X.start + (0 : size(X.data,1)-1);
+if round(range(1))<=round(this.Start) ...
+        && round(range(end))>=round(this.Start + size(this.Data, 1) - 1)
+    newRange = this.Start + (0 : size(this.Data, 1)-1);
     return
 end
 
-if isinf(Range(1))
-    startDate = X.start;
+if isinf(range(1))
+    startDate = this.Start;
 else
-    startDate = Range(1);
+    startDate = range(1);
 end
 
-if isinf(Range(end))
-    endDate = X.start + size(X.data,1) - 1;
+if isinf(range(end))
+    endDate = this.Start + size(this.Data, 1) - 1;
 else
-    endDate = Range(end);
+    endDate = range(end);
 end
 
-NewRange = startDate : endDate;
-tmpSize = size(X.data);
-nPer = tmpSize(1);
-inx = round(NewRange - X.start + 1);
-deleteRows = inx < 1 | inx > nPer;
-NewRange(deleteRows) = [ ];
-inx(deleteRows) = [ ];
+newRange = startDate : endDate;
+sizeOfData = size(this.Data);
+numberOfDates = sizeOfData(1);
+pos = round(newRange - this.Start + 1);
+ixDeleteRows = pos<1 | pos>numberOfDates;
+newRange(ixDeleteRows) = [ ];
+pos(ixDeleteRows) = [ ];
 
-if ~isempty(inx)
-    X.data = X.data(:,:);
-    X.data = X.data(inx,:);
-    X.data = reshape(X.data,[length(inx),tmpSize(2:end)]);
-    X.start = NewRange(1);
+if ~isempty(pos)
+    this.Data = this.Data(:, :);
+    this.Data = this.Data(pos, :);
+    this.Data = reshape(this.Data, [length(pos), sizeOfData(2:end)]);
+    this.Start = newRange(1);
 else
-    X.data = zeros([0,tmpSize(2:end)]);
-    X.start = NaN;
+    this.Data = zeros([0, sizeOfData(2:end)]);
+    this.Start = NaN;
 end
 
 end

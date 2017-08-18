@@ -1,6 +1,6 @@
 function [d, figH, axH, objH, likH, estH, bH] ...
     = neighbourhood(this, pos, pct, varargin)
-% neighbourhood  Evaluate the local behaviour of the objective function around the estimated parameter values.
+% neighbourhood  Local behaviour of the objective function around the estimated parameters.
 %
 % Syntax
 % =======

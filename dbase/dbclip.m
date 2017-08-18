@@ -78,7 +78,7 @@ for i = 1 : nList
     name = list{i};
     if isa(D.(name),'tseries') && ~isempty(D.(name))
         % Clip a tseries entry.
-        xFreq = datfreq(D.(name).start);
+        xFreq = DateWrapper.getFrequencyFromNumeric(D.(name).start);
         pos = find(xFreq == inpFreq,1);
         if isempty(pos)
             freqMatched(i) = false;

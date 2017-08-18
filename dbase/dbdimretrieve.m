@@ -31,7 +31,7 @@ for i = 1 : nList
     else
         ref{Dim} = Ix;
     end
-    if istseries(This.(name))
+    if isa(This.(name), 'tseries')
         try %#ok<TRYNC>
             This.(name) = This.(name){ref{:}};
             ixSuccess(i) = true;

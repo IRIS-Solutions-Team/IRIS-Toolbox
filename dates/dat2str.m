@@ -207,7 +207,7 @@ for iDat = 1 : nDat
     thisFreq = freq(iDat);
 
     if iDat<=nFmt || ~isequaln(thisFreq, prevFreq)
-        fmt = dates.Date.chooseFormat(opt.dateformat, thisFreq, min(iDat, nFmt));
+        fmt = DateWrapper.chooseFormat(opt.dateformat, thisFreq, min(iDat, nFmt));
         [fmt, field, isCalendar, isMonthNeeded] = parseDateFormat(fmt);
         nField = length(field);
     end

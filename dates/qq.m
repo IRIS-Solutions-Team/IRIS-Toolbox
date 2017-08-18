@@ -19,7 +19,7 @@ function dat = qq(varargin)
 % Output arguments
 % =================
 %
-% * `dat` [ dates.Date ] - Quarterly date.
+% * `dat` [ DateWrapper ] - Quarterly date.
 %
 %
 % Description
@@ -36,6 +36,6 @@ function dat = qq(varargin)
 %--------------------------------------------------------------------------
 
 dat = datcode(4, varargin{:});
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

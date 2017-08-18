@@ -1,4 +1,4 @@
-function this = init(this, dat, data)
+function this = init(this, dates, data)
 % init  Create start date and data for new tseries object.
 %
 % Backend IRIS function.
@@ -15,19 +15,18 @@ else
     prec = 'double';
 end
 
-dat = double(dat);
-dat = dat(:);
-nPer = length(dat);
+dates = dates(:);
+numberOfDates = length(dates);
 nObs = size(data, 1);
-dataSize = size(data);
-if nObs==0 && (all(isnan(dat)) || nPer==0)
-    dataSize(1) = 0;
+sizeOfData = size(data);
+if nObs==0 && (all(isnan(dates)) || numberOfDates==0)
+    sizeOfData(1) = 0;
     this.Start = NaN;
-    this.Data = zeros(dataSize, prec);
+    this.Data = zeros(sizeOfData, prec);
     return
 end
 
-if dataSize(1)~=nPer
+if sizeOfData(1)~=numberOfDates
     utils.error('tseries:myinit', ...
         'Number of dates and number of rows of data must match.');
 end
@@ -35,32 +34,32 @@ end
 data = data(:, :);
 
 % Remove NaN dates.
-nanDates = isnan(dat);
-if any(nanDates)
-    data(nanDates, :) = [ ];
-    dat(nanDates) = [ ];
+ixNanDates = isnan(dates);
+if any(ixNanDates)
+    data(ixNanDates, :) = [ ];
+    dates(ixNanDates) = [ ];
 end
 
 % No proper date entered, return an empty tseries object.
-if isempty(dat)
-    this.Data = zeros([0, dataSize(2:end)]);
+if isempty(dates)
+    this.Data = zeros([0, sizeOfData(2:end)]);
     this.Start = NaN;
     return
 end
 
 % Start date is the minimum date found.
-start = min(dat);
+start = min(dates);
 
 % The actual stretch of the tseries range.
-nPer = round(max(dat) - start + 1);
-if isempty(nPer)
-    nPer = 0;
+numberOfDates = round(max(dates) - start + 1);
+if isempty(numberOfDates)
+    numberOfDates = 0;
 end
-dataSize(1) = nPer;
+sizeOfData(1) = numberOfDates;
 
 % Assign data points at proper dates only.
-this.Data = nan(dataSize, prec);
-pos = round(dat - start + 1);
+this.Data = nan(sizeOfData, prec);
+pos = round(dates - start + 1);
 
 % Assign user data to tseries object; note that higher dimensions will be
 % preserved in `this.Data`.

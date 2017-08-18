@@ -219,7 +219,7 @@ elseif n<=2 && isstruct(varargin{1})
     end
     chkValid( );
 
-elseif all(cellfun(@(x) ischar(x) || isrexp(x), varargin(1:2:end)))
+elseif all(cellfun(@(x) ischar(x) || isa(x, 'rexp'), varargin(1:2:end)))
     % m = assign(m, name, value, name, value, ...)
     % name is char or char list or rexp or double dot but not cellstr.
     lsAllName = varargin(1:2:end);
@@ -398,7 +398,7 @@ return
             ixQty = ell.IxName;
             ixStdCorr = ell.IxStdCorr;
             if ~any(ixQty) && ~any(ixStdCorr)
-                if ~isrexp(lsAllName{i})
+                if ~isa(lsAllName{i}, 'rexp')
                     lsInvalidLhsName{end+1} = name;
                 end
                 return

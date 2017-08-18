@@ -10,7 +10,7 @@ function dat = yytoday( )
 % Output arguments
 % =================
 %
-% * `dat` [ dates.Date ]  - IRIS serial date number for current year.
+% * `dat` [ DateWrapper ]  - IRIS serial date number for current year.
 %
 %
 % Description

@@ -10,7 +10,7 @@ function [YA, XA, Ea, Eu, YC, XC, wReal, wImag] = myanchors(this, p, rng, isAnt)
 TYPE = @int8;
 
 % Check date frequencies.
-if datfreq(p.Start)~=datfreq(rng(1)) || datfreq(p.End)~=datfreq(rng(end))
+if DateWrapper.getFrequencyFromNumeric(p.Start)~=DateWrapper.getFrequencyFromNumeric(rng(1)) || DateWrapper.getFrequencyFromNumeric(p.End)~=DateWrapper.getFrequencyFromNumeric(rng(end))
     utils.error('model:myanchors', ...
         'Simulation range and plan range must be the same frequency.');
 end

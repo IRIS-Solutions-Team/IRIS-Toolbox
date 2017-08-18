@@ -1,7 +1,8 @@
 function f = results(outp, quantity, solution)
 
 TYPE = @int8;
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 [ny, ~, nb, nf, ne] = sizeOfSolution(solution);
 ixy = quantity.Type==TYPE(1);

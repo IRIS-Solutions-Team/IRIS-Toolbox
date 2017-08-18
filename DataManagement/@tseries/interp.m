@@ -36,7 +36,7 @@ function X = interp(X,varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-if ~isempty(varargin) && isdatinp(varargin{1})
+if ~isempty(varargin) && DateWrapper.validateDateInput(varargin{1})
     Range = varargin{1};
     varargin(1) = [ ];
     if ischar(Range)

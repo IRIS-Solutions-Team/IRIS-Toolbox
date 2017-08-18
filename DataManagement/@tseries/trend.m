@@ -1,16 +1,14 @@
 function [this, tt, ts] = trend(this, varargin)
 % trend  Estimate time trend in time series data.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     x = trend(x, ~range, ...)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
 % * `x` [ tseries ] - Input time series.
 %
@@ -18,14 +16,12 @@ function [this, tt, ts] = trend(this, varargin)
 % computed; if omitted or assigned `@all`, the entire range of the input times series.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
 % * `x` [ tseries ] - Output trend time series.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Break='` [ numeric | *empty* ] - Vector of breaking points at which
 % the trend may change its slope.
@@ -36,25 +32,23 @@ function [this, tt, ts] = trend(this, varargin)
 % * `'Diff='` [ `true` | *`false`* ] - Estimate the trend on differenced
 % data.
 %
-% * `':og='` [ `true` | *`false`* ] - Logarithmise the input data, 
-% de-logarithmise the output data.
+% * `'Log='` [ `true` | *`false`* ] - Logarithmize the input data, 
+% de-logarithmize the output data.
 %
 % * `'Season='` [ `true` | *`false`* | `2` | `4` | `6` | `12` ] - Include
 % deterministic seasonal factors in the trend.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-if ~isempty(varargin) && isdatinp(varargin{1})
+if ~isempty(varargin) && DateWrapper.validateDateInput(varargin{1})
     range = varargin{1};
     varargin(1) = [ ];
     if ischar(range)

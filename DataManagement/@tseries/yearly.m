@@ -51,7 +51,7 @@ function yearly(This)
 
 %--------------------------------------------------------------------------
 
-freq = datfreq(This.start);
+freq = DateWrapper.getFrequencyFromNumeric(This.start);
 
 switch freq
     case {0,1,365}
@@ -73,7 +73,7 @@ end
 function X = xxDisp2d(Start,Data,Tab,Sep,Num2StrFunc)
 % `Data` is always a vector or a 2D matrix; no higher dimensions.
 [nPer,nx] = size(Data);
-freq = datfreq(Start);
+freq = DateWrapper.getFrequencyFromNumeric(Start);
 range = Start+(0:nPer-1);
 [year,per] = dat2ypf(range);
 firstYear = year(1);

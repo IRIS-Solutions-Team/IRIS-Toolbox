@@ -1,43 +1,39 @@
 function [this, d, cc, ff, uu, ee] = filter(this, inp, range, varargin)
-% filter  Re-estimate the factors by Kalman filtering the data taking FAVAR coefficients as given.
+% filter  Re-estimate factors by Kalman filtering data taking FAVAR coefficients as given
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [a, d, cc, f, u, e] = filter(a, d, range, ...)
+%     [A, D, CC, F, U, E] = filter(A, D, Range, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `a` [ FAVAR ] - Estimated FAVAR object.
+% * `A` [ FAVAR ] - Estimated FAVAR object.
 %
-% * `d` [ struct | tseries ] - Input database or tseries object with the
+% * `a` [ struct | tseries ] - Input database or tseries object with the
 % FAVAR observables.
 %
-% * `range` [ numeric ] - Filter date range.
+% * `Range` [ numeric ] - Filter date range.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `a` [ FAVAR ] - FAVAR object.
+% * `A` [ FAVAR ] - FAVAR object.
 %
-% * `d` [ struct ] - Output database or tseries object with the FAVAR
+% * `D` [ struct ] - Output database or tseries object with the FAVAR
 % observables.
 %
-% * `cc` [ struct | tseries ] - Re-estimated common components in the
+% * `CC` [ struct | Series | tseries ] - Re-estimated common components in the
 % observables.
 %
-% * `f` [ Series ] - Re-estimated common factors.
+% * `F` [ Series | tseries ] - Re-estimated common factors.
 %
-% * `u` [ Series ] - Re-estimated idiosyncratic residuals.
+% * `U` [ Series | tseries ] - Re-estimated idiosyncratic residuals.
 %
-% * `e` [ Series ] - Re-estimated structural residuals.
+% * `E` [ Series | tseries ] - Re-estimated structural residuals.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Cross='` [ *`true`* | `false` | numeric ] - Run the filter with the
 % off-diagonal elements in the covariance matrix of idiosyncratic
@@ -62,29 +58,28 @@ function [this, d, cc, ff, uu, ee] = filter(this, inp, range, varargin)
 % equal and their inversions will be re-used, not re-computed.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % It is the user's responsibility to make sure that `filter` and `forecast`
-% called with `'persist='` set to true are valid, i.e. that the
+% called with `'Persist='` set to true are valid, i.e. that the
 % previously computed FMSE matrices can be really re-used in the current
 % run.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 % Parse input arguments.
 pp = inputParser( );
-pp.addRequired('a', @(x) isa(x, 'FAVAR'));
-pp.addRequired('d', @(x) isstruct(x) || isa(x, 'tseries'));
-pp.addRequired('range', @isnumeric);
+pp.addRequired('A', @(x) isa(x, 'FAVAR'));
+pp.addRequired('D', @(x) isstruct(x) || isa(x, 'tseries'));
+pp.addRequired('Range', @isnumeric);
 pp.parse(this, inp, range);
 
 % Parse options.

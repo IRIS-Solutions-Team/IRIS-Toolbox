@@ -40,7 +40,7 @@ pos = lower(pos(1));
 
 %--------------------------------------------------------------------------
 
-dates.Date.chkMixedFrequency(freq);
+DateWrapper.chkMixedFrequency(freq);
 freq = freq(1);
 
 switch freq

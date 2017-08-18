@@ -76,7 +76,7 @@ function X = cumsumk(X,K,Rho,varargin)
 try
     K; %#ok<VUNUS>
 catch
-    K = -max(1,datfreq(X.start));
+    K = -max(1,DateWrapper.getFrequencyFromNumeric(X.start));
 end         
 
 try

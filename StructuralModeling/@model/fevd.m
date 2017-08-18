@@ -1,14 +1,13 @@
 function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 % fevd  Forecast error variance decomposition for model variables.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [X, Y, List, A, B] = fevd(M, Range, ...)
 %     [X, Y, List, A, B] = fevd(M, NPer, ...)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object for which the decomposition will be
 % computed.
@@ -19,8 +18,8 @@ function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 % * `NPer` [ numeric ] - Number of periods for which the decomposition will
 % be computed.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `X` [ namedmat | numeric ] - Array with the absolute contributions of
 % individual shocks to total variance of each variables.
@@ -37,8 +36,8 @@ function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 % * `B` [ struct ] - Database with the relative contributions converted to
 % time series.
 %
-% Options
-% ========
+%
+% __Options__
 %
 % * `'matrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrices `X`
 % and `Y` as be either [`namedmat`](namedmat/Contents) objects (i.e.
@@ -48,19 +47,21 @@ function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 % variables and/or shocks only; `@all` means all variables and shocks; this
 % option does not apply to the output databases, `A` and `B`.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+
 pp = inputParser( );
 pp.addRequired('M', @(x) isa(x, 'model'));
-pp.addRequired('Time', @(x) isdatinp(x));
+pp.addRequired('Time', @DateWrapper.validateDateInput);
 pp.parse(this, time);
 
 % Parse options.
@@ -140,8 +141,8 @@ if nargout > 3
     dbRel = struct( );
     for i = find(imag(id) == 0)
         c = strcat(rowNames{i}, ' <-- ', colNames);
-        dbAbs.(name{i}) = Series(Range, permute(X(i, :, :, :), [3, 2, 4, 1]), c);
-        dbRel.(name{i}) = Series(Range, permute(Y(i, :, :, :), [3, 2, 4, 1]), c);
+        dbAbs.(name{i}) = TIME_SERIES_CONSTRUCTOR(Range, permute(X(i, :, :, :), [3, 2, 4, 1]), c);
+        dbRel.(name{i}) = TIME_SERIES_CONSTRUCTOR(Range, permute(Y(i, :, :, :), [3, 2, 4, 1]), c);
     end
     % Add parameter database.
     dbAbs = addparam(this, dbAbs);

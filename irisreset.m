@@ -1,4 +1,4 @@
-function irisreset(varargin)
+function irisreset( )
 % irisreset  Reset IRIS configuration options to start-up values.
 %
 % Syntax
@@ -20,7 +20,7 @@ function irisreset(varargin)
 
 %--------------------------------------------------------------------------
 
-irisconfig(varargin{:});
+irisconfig( );
 irisconfigmaster( );
 
 end

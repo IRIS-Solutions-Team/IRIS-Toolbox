@@ -2,16 +2,14 @@ function [d, isDev] = sstatedb(this, range, varargin)
 % sstatedb  Create model-specific steady-state or balanced-growth-path database
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [D,IsDev] = sstatedb(M,Range,~NCol,...)
+%     [D, IsDev] = sstatedb(M, Range, ~NCol, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object for which the sstate database will be
 % created.
@@ -25,18 +23,16 @@ function [d, isDev] = sstatedb(this, range, varargin)
 % used on models with one parameterisation; if omitted `NCol=1`.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'shockFunc='` [ `@lhsnorm` | `@randn` | *`@zeros`* ] - Function used
-% to generate data forshocks. If `@zeros`, the shocks will simply be filled
+% * `'ShockFunc='` [ `@lhsnorm` | `@randn` | *`@zeros`* ] - Function used
+% to generate data for shocks. If `@zeros`, the shocks will simply be filled
 % with zeros. Otherwise, the random numbers will be drawn using the
 % specified function and adjusted by the respective covariance matrix
 % implied by the current model parameterization.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `D` [ struct ] - Database with a steady-state or balanced-growth path
 % tseries object for each model variable, and a scalar or vector of the
@@ -47,12 +43,10 @@ function [d, isDev] = sstatedb(this, range, varargin)
 % [`model/simulate`](model/simulate).
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -62,7 +56,7 @@ function [d, isDev] = sstatedb(this, range, varargin)
 
 pp = inputParser( );
 pp.addRequired('M', @(x) isa(x, 'model'));
-pp.addRequired('Range', @(x) isdatinp(x));
+pp.addRequired('Range', @DateWrapper.validateDateInput);
 pp.parse(this, range);
 
 %--------------------------------------------------------------------------

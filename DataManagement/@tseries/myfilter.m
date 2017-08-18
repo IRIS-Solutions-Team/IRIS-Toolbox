@@ -20,7 +20,7 @@ end
 defaultLambdaFunc = @(freq, order) (10*freq)^order;
 lambdaFunc = @(cutoff, order) (2*sin(pi./cutoff)).^(-2*order);
 cutoffFunc = @(lambda, order) pi./asin(0.5*lambda.^(-1/(2*order)));
-freq = datfreq(inp.Start);
+freq = DateWrapper.getFrequencyFromNumeric(inp.Start);
 
 if ~isempty(opt.CutOffYear)
     cutoff = opt.CutOffYear * freq;
@@ -35,7 +35,7 @@ else
         if freq == 0 || freq == 365
             utils.error('tseries:myfilter', ...
                 ['Option ''lambda='' must be used for tseries objects ', ...
-                'with unspecified or daily date frequency.']);
+                'with integer or daily date frequency.']);
         else
             lambda = defaultLambdaFunc(freq, order);
         end

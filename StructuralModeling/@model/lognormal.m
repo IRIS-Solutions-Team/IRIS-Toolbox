@@ -1,13 +1,12 @@
 function db = lognormal(this, db, varargin)
 % lognormal  Characteristics of log-normal distributions returned from filter of forecast.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     D = lognormal(M,D,...)
+%     D = lognormal(M, D, ...)
 %
-% Input arguments
-% ================
+%
+% __Input arguments__
 %
 % * `M` [ model ] - Model on which the `filter` or `forecast` function has
 % been run.
@@ -15,51 +14,55 @@ function db = lognormal(this, db, varargin)
 % * `D` [ struct ] - Struct or database returned from the `filter`
 % or `forecast` function.
 %
-% Output arguments
-% =================
+%
+% __Output arguments__
 %
 % * `D` [ struct ] - Struct including new sub-databases with requested
 % log-normal statistics.
 %
-% Options
-% ========
 %
-% * `'fresh='` [ `true` | *`false`* ] - Output structure will include only
+% __Options__
+%
+% * `'Fresh='` [ `true` | *`false`* ] - Output structure will include only
 % the newly computed databases.
 %
-% * `'mean='` [ *`true`* | `false` ] - Compute the mean of the log-normal
+% * `'Mean='` [ *`true`* | `false` ] - Compute the mean of the log-normal
 % distributions.
 %
-% * `'median='` [ *`true`* | `false` ] - Compute the median of the log-normal
+% * `'Median='` [ *`true`* | `false` ] - Compute the median of the log-normal
 % distributions.
 %
-% * `'mode='` [ *`true`* | `false` ] - Compute the mode of the log-normal
+% * `'Mode='` [ *`true`* | `false` ] - Compute the mode of the log-normal
 % distributions.
 %
-% * `'prctile='` [ numeric | *`[5,95]`* ] - Compute the selected
+% * `'Prctile='` [ numeric | *`[5, 95]`* ] - Compute the selected
 % percentiles of the log-normal distributions.
 %
-% * `'prefix='` [ char | *`'lognormal'`* ] - Prefix used in the names of
+% * `'Prefix='` [ char | *`'lognormal'`* ] - Prefix used in the names of
 % the newly created databases.
 %
-% * `'std='` [ *`true`* | `false` ] - Compute the std deviations of the
+% * `'Std='` [ *`true`* | `false` ] - Compute the std deviations of the
 % log-normal distributions.
 %
-% Description
-% ============
+%
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TEMPLATE_SERIES = Series( );
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 pp = inputParser( );
 pp.addRequired('D', ...
     @(x) isstruct(x) && isfield(x, 'mean') && isfield(x, 'std'));
 pp.parse(db);
 
-Opt = passvalopt('model.lognormal',varargin{:});
+Opt = passvalopt('model.lognormal', varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -95,7 +98,7 @@ return
         if Opt.std
             db.(field('std')) = struct( );
         end
-        if ~isequal(Opt.prctile,false) && ~isempty(Opt.prctile)
+        if ~isequal(Opt.prctile, false) && ~isempty(Opt.prctile)
             Opt.prctile = Opt.prctile(:).';
             Opt.prctile = round(Opt.prctile);
             Opt.prctile(Opt.prctile <= 0 | Opt.prctile >= 100) = [ ];
@@ -107,38 +110,38 @@ return
 
     
     function doPopulate( )
-        [expmu,range] = rangedata(db.mean.(name),Inf);
+        [expmu, range] = rangedata(db.mean.(name), Inf);
         if isempty(range)
             return
         end
-        sgm = rangedata(db.std.(name),range);
+        sgm = rangedata(db.std.(name), range);
         sgm = log(sgm);
         sgm2 = sgm.^2;
         co = comment(db.mean.(name));
         start = range(1);
         if Opt.median
-            x = getMedian(expmu,sgm,sgm2);
-            db.(field('median')).(name) = replace(TEMPLATE_SERIES,x,start,co);
+            x = getMedian(expmu, sgm, sgm2);
+            db.(field('median')).(name) = replace(TEMPLATE_SERIES, x, start, co);
         end
         if Opt.mode
-            x = getMode(expmu,sgm,sgm2);
-            db.(field('mode')).(name) = replace(TEMPLATE_SERIES,x,start,co);
+            x = getMode(expmu, sgm, sgm2);
+            db.(field('mode')).(name) = replace(TEMPLATE_SERIES, x, start, co);
         end
         if Opt.mean
-            x = getMean(expmu,sgm,sgm2);
-            db.(field('mean')).(name) = replace(TEMPLATE_SERIES,x,start,co);
+            x = getMean(expmu, sgm, sgm2);
+            db.(field('mean')).(name) = replace(TEMPLATE_SERIES, x, start, co);
         end
         if Opt.std
-            x = getStd(expmu,sgm,sgm2);
-            db.(field('std')).(name) = replace(TEMPLATE_SERIES,x,start,co);
+            x = getStd(expmu, sgm, sgm2);
+            db.(field('std')).(name) = replace(TEMPLATE_SERIES, x, start, co);
         end
-        if ~isequal(Opt.prctile,false) && ~isempty(Opt.prctile)
+        if ~isequal(Opt.prctile, false) && ~isempty(Opt.prctile)
             x = [ ];
             for p = Opt.prctile
-                x = [x,getPrctile(expmu,sgm,sgm2,p/100)]; %#ok<AGROW>
+                x = [x, getPrctile(expmu, sgm, sgm2, p/100)]; %#ok<AGROW>
             end
-            co = repmat(co,1,length(Opt.prctile));
-            db.(field('pct')).(name) = replace(TEMPLATE_SERIES,x,start,co);
+            co = repmat(co, 1, length(Opt.prctile));
+            db.(field('pct')).(name) = replace(TEMPLATE_SERIES, x, start, co);
         end
     end
 end
@@ -146,35 +149,35 @@ end
 
 
 
-function X = getMedian(ExpMu,~,~)
+function X = getMedian(ExpMu, ~, ~)
 X = ExpMu;
 end
 
 
 
 
-function X = getMode(ExpMu,~,Sgm2)
+function X = getMode(ExpMu, ~, Sgm2)
 X = ExpMu ./ exp(Sgm2);
 end
 
 
 
 
-function X = getMean(ExpMu,~,Sgm2)
+function X = getMean(ExpMu, ~, Sgm2)
 X = ExpMu .* exp(0.5*Sgm2);
 end
 
 
 
 
-function X = getStd(ExpMu,Sgm,Sgm2)
-X = getMean(ExpMu,Sgm,Sgm2) .* sqrt(exp(Sgm2)-1);
+function X = getStd(ExpMu, Sgm, Sgm2)
+X = getMean(ExpMu, Sgm, Sgm2) .* sqrt(exp(Sgm2)-1);
 end
 
 
 
 
-function X = getPrctile(ExpMu,Sgm,~,P)
+function X = getPrctile(ExpMu, Sgm, ~, P)
 A = -sqrt(2).*erfcinv(2*P);
 X = exp(Sgm.*A) .* ExpMu;
 end

@@ -35,7 +35,7 @@ start = nan(size(ixTseries));
 for i = find(ixTseries)
     start(i) = varargin{i}.start;
 end
-freq(ixTseries) = datfreq(start(ixTseries));
+freq(ixTseries) = DateWrapper.getFrequencyFromNumeric(start(ixTseries));
 ixNan = isnan(freq);
 if sum(~ixNan & ixTseries)>1 ...
         && any( diff(freq(~ixNan & ixTseries))~=0 )

@@ -15,7 +15,7 @@ flag = true;
 switch query
     case {'range', 'first2last', 'start2end', 'first:last', 'start:end'}
         answ = range(this);
-        answ = dates.Date(answ);
+        answ = DateWrapper(answ);
     
         
         
@@ -24,14 +24,14 @@ switch query
         sample = all(~isnan(this.Data(:, :)), 2);
         answ = range(this);
         answ = answ(sample);
-        answ = dates.Date(answ);
+        answ = DateWrapper(answ);
 
     
         
         
         
     case {'start', 'startdate', 'first'}
-        answ = dates.Date(this.Start);
+        answ = DateWrapper(this.Start);
     
         
         
@@ -43,14 +43,14 @@ switch query
         else
             answ = this.Start + find(sample, 1, 'first') - 1;
         end
-        answ = dates.Date(answ);
+        answ = DateWrapper(answ);
         
         
         
         
     case {'end', 'enddate', 'last'}
         answ = endDate(this);
-        answ = dates.Date(answ);
+        answ = DateWrapper(answ);
     
         
         
@@ -62,13 +62,13 @@ switch query
         else
             answ = this.Start + find(sample, 1, 'last') - 1;
         end
-        answ = dates.Date(answ);
+        answ = DateWrapper(answ);
         
         
         
         
     case {'freq', 'frequency', 'per', 'periodicity'}
-        answ = datfreq(this.Start);
+        answ = DateWrapper.getFrequencyFromNumeric(this.Start);
     
         
         

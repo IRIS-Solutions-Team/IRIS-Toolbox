@@ -8,8 +8,8 @@ Blazer:NumberEquationsEndogenized,Number of endogenized names [%g] fails to matc
 Config:InvalidOptionName,This is not a valid IRIS config option: %s 
 Config:InvalidOptionValue,New value for this option failed validation: %s
 Config:ProtectedOption,This option is not customizable: %s
+Datafeed:FeedUnknownFrequency, Date frequency of this Datafeed series unknown; series not loaded: %s
 Dates:CalendarFormatForDaily, Calendar date format (starting with a $) must be specified for daily-frequency dates.
-Dates:InvalidDateFormat,"Invalid date format; must be char, string, cellstr, or struct."
 Dates:MixedFrequency,Mixed frequency date vector not allowed in this context: %s
 Dates:OnlyScalarFormatAllowed, "Only one single DateFormat= allowed in str2dat( )."
 Dates:UnrecognizedFrequency,Unrecognized date frequency.
@@ -19,12 +19,12 @@ Dbase:DbfunReportWarning,Warning occured when processing this database entry: %s
 Dbase:EntrySizeMismatch,This database entry does not match the size of other entries: %s
 Dbase:EntryFrequencyMismatch,This database entry does not match the date frequency requested: %s
 Dbase:EntryNotSeries,This name exists in input database but is not a time series: %s
-Dbase:FeedUnknownFrequency, Cannot determine date frequency of this series; time series not loaded: %s
 Dbase:InvalidLoadFormat, This CSV file contains data in invalid format or no delimiter-separated values: %s
 Dbase:LoadMixedFrequency, This CSV file contains dates with mixed frequencies: %s 
 Dbase:ErrorLoadingUserData, Error when reconstructing user data from this CSV file: %s\nUncle says: %s
 Dbase:InvalidOptionNameFunc, Option NameFunc= must be function returning text string.
 Dbase:NameNotExist,This name does not exist in input database: %s
+DateWrapper:InvalidDateFormat,"Invalid date format; must be char, string, cellstr, or struct."
 Dynamic:EvaluatesToNan,This dynamic equation evaluates to NaN or Inf in period %1: %s
 Equation:InvalidDefinition,This definition has an invalid LHS: %s 
 Equation:InvalidLhsDtrend,Invalid LHS in this dtrend equation: %s 

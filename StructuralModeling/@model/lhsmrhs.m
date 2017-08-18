@@ -1,5 +1,5 @@
 function dcy = lhsmrhs(this, varargin)
-% lhsmrhs  Evaluate the discrepancy between the LHS and RHS for each model equation and given data.
+% lhsmrhs  Discrepancy between the LHS and RHS of each model equation for given data.
 %
 % Syntax for casual evaluation
 % =============================

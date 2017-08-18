@@ -2,24 +2,21 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % loglik  Evaluate minus the log-likelihood function in time or frequency domain.
 %
 %
-% Full syntax
-% ============
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     [Obj,V,F,PE,Delta,PDelta] = loglik(M,Inp,Range,~J,...)
 %
 %
-% Syntax for fast one-off likelihood evaluation
-% ==============================================
+% __Syntax for Fast One-Off Likelihood Evaluation__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     Obj = loglik(M,Inp,Range,~J,...)
 %
 %
-% Syntax for repeated fast likelihood evaluations
-% ================================================
+% __Syntax for Repeated Fast Likelihood Evaluations__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
@@ -40,8 +37,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 %     % ...
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Solved model object.
 %
@@ -56,8 +52,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % is equivalent to using the option `'vary='`, and may be omitted.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Obj` [ numeric ] - Value of minus the log-likelihood function (or
 % other objective function if specified in options).
@@ -79,8 +74,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % parameters.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'objDecomp='` [ `true` | *`false`* ] - Decompose the objective
 % function into the contributions of individual time periods (in time
@@ -93,8 +87,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % See help on [`model/filter`](model/filter) for other options available.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The number of output arguments you request when calling `loglik` affects
 % computational efficiency. Running the function with only the first output
@@ -105,8 +98,8 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % [`model/filter`](model/filter), the only difference is the types and
 % order of output arguments returned.
 %
-% Fast evaluation of likelihood
-% ------------------------------
+%
+% _Fast Evaluation of Likelihood_
 %
 % Every time you change the parameters, you need to update the steady state
 % and solution of the model if necessary by yourself, before calling
@@ -131,8 +124,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % [`sstate`](model/sstate) and then [`solve`](model/solve).
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -160,7 +152,7 @@ else
     pp = inputParser( );
     pp.addRequired('M', @(x) isa(x, 'model'));
     pp.addRequired('Inp', @isstruct);
-    pp.addRequired('Range', @(x) isdatinp(x));
+    pp.addRequired('Range', @DateWrapper.validateDateInput);
     pp.parse(This, Data, Range);
     
     if ischar(Range)
@@ -180,8 +172,7 @@ end
 
 %--------------------------------------------------------------------------
 
-% Evaluate likelihood
-%---------------------
+% _Evaluate likelihood_
 if nargout == 1
     Obj = LIKOPT.minusLogLikFunc(This,DATA,[ ],LIKOPT);
 else

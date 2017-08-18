@@ -53,7 +53,7 @@ if nargin==1
     return
 elseif isequal(range, @all)
     range = Inf;
-elseif isa(range, 'dates.Date')
+elseif isa(range, 'DateWrapper')
     range = double(range);
 end
 
@@ -72,11 +72,11 @@ end
 
 nCol = prod(size_(2:end));
 
-f1 = datfreq(start);
-f2 = datfreq(range);
+f1 = DateWrapper.getFrequencyFromNumeric(start);
+f2 = DateWrapper.getFrequencyFromNumeric(range);
 if ~isequal(range, Inf) && any(f2~=f1)
     f = unique([f1, f2], 'stable');
-    lsFreq = dates.Date.printFreqName(f);
+    lsFreq = DateWrapper.printFreqName(f);
     temp = sprintf('%s x ', lsFreq{:});
     temp(end-2:end) = '';
     throw( ...
