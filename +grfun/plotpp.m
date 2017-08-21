@@ -328,12 +328,10 @@ for i = 1 : nList
         high = bnd.(list{i})(2);
         mean = f([ ], 'mean');
         sgm = f([ ], 'std');
-        mode = f([ ], 'mode');
-        from = min(mean-w*sgm, mode-w*sgm);
-        from = max(from, low);
-        to = max(mean+w*sgm, mode+w*sgm);
+        from = max(mean-w*sgm, low);
+        to = mean+w*sgm;
         if ~isfinite(to)
-            to = max(w*mean, w*mode);
+            to = w*mean;
         end
         to = min(to, high);
     end
