@@ -22,7 +22,7 @@ end
 
 switch lower(varargin{1})
     case {'proper', 'pdf'}
-        y(ix) = x.^(a-1).*exp(-x/b) / (b^a*gamma(a));
+        y(ix) = gampdf(x,a,b);
     case 'info'
         y(ix) = (a - 1)/x.^2;
         y(~ix) = NaN;
