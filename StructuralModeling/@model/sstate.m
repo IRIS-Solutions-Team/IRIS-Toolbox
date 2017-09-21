@@ -1,36 +1,31 @@
 function [this, flag, nPath, eigen] = sstate(this, varargin)
 % sstate  Compute steady state or balance-growth path of the model.
 %
+% __Syntax__
 %
-% Syntax
-% =======
-%
-%     [m, flag] = sstate(m,...)
+%     [M, Flag] = sstate(M, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `m` [ model ] - Parameterised model object.
+% * `M` [ model ] - Parameterized model object.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `m` [ model ] - Model object with newly computed steady state assigned.
+% * `M` [ model ] - Model object with newly computed steady state assigned.
 %
-% * `flag` [ `true` | `false` ] - True for parameter variants where steady
+% * `Flag` [ `true` | `false` ] - True for parameter variants where steady
 % state has been found successfully.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Warning='` [ *`true`* | `false` ] - Display IRIS warning produced by
 % this function.
 %
-% Options for nonlinear models
-% -----------------------------
+%
+% __Options for Nonlinear Models__
 %
 % * `'Blocks='` [ *`true`* | `false` ] - Rearrange steady-state equations
 % in sequential blocks before computing steady state.
@@ -104,18 +99,16 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 % their steady-state levels will not be restricted to either positive or
 % negative values.
 %
-% Options for linear models
-% --------------------------
+% __Options for Linear Models__
 %
 % * `'Solve='` [ `true` | *`false`* ] - Solve model before computing steady
 % state.
 %
 %
-% Description
-% ============
+% __Description__
 %
-% Non-stationary models
-% ----------------------
+%
+% _Non-Stationary Models_
 %
 % For backward compatibility, the option `'Growth='` is set to `false` by
 % default so that either the model is assumed stationary or the
@@ -124,28 +117,28 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 % levels and steady-state growth rates in a balanced-growth model, you need
 % to set the option `'growth=' true`.
 %
-% Lower and upper bounds
-% -----------------------
+%
+% _Lower and Upper Bounds_
 %
 % Use options `'LevelBounds='` and `'GrowthBounds='` to impose lower and/or
 % upper bounds on steady-state levels and/or growth rates of selected
-% variables. Create a struct with a 1-by-2 vector `[lowerBnd,upperBnd]` for
+% variables. Create a struct with a 1-by-2 vector `[lowerBnd, upperBnd]` for
 % each variable that is supposed to be bounded when the steady state is
 % being calculated, and pass the struct into the respective option. User
 % `-Inf` or `Inf` if only one of the bounds is specified. For instance, the
 % following piece of code
 %
 %     bnd = struct( );
-%     bnd.X = [0,10];
-%     bnd.Y = [-Inf,20];
-%     bnd.Z = [5,Inf];
+%     bnd.X = [0, 10];
+%     bnd.Y = [-Inf, 20];
+%     bnd.Z = [5, Inf];
 %
 % specifies lower bounds for variables `X` and `Z`, and upper bounds for
 % variables `X` and `Y`. The variables that are not bounded do not need to
 % be included in the struct.
 %
-% Using @auto in exogenizing/endogenizing variabes/parameters
-% ------------------------------------------------------------
+%
+% _Using @auto in Exogenizing/Endogenizing Variables/Parameters_
 %
 % Use the keyword `@auto` to refer to `!steady_autoexog` definitions when
 % setting the options `'Exogenize='` and `'Exogenize=' in the following
@@ -170,8 +163,7 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 % `!steady_autoexog` definition.
 %
 %
-% Example
-% ========
+% __Example__
 %
 % This example illustrates the use of the keyword `@auto` in
 % exogenizing/endogenizing variabes/parameters. Assume that the underlying
@@ -205,7 +197,7 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 %     m = sstate(m, 'Exogenize=', {'W', 'Z'}, 'Endogenize=', @auto)
 %
 % will calculate the steady state with the two listed variables, `W` and
-% `Z`, exogenized and the corresponding parameters, `alpha` and `delta`,
+% `Z`, exogenized and the corresponding parameters, `alpha` and `delta`, 
 % endogenized.
 %
 % Finally, running the following command
@@ -216,7 +208,7 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 %
 %     m = sstate(m, 'Exogenize=', @auto, 'Endogenize=', {'delta', 'beta'})
 %
-% will calculate the steady state with two variables, `Z` and `Y`,
+% will calculate the steady state with two variables, `Z` and `Y`, 
 % (corresponding to the endogenized parameters listed) exogenized while
 % endogenizing the listed parameters, `alpha` and `delta`.
 %
@@ -225,19 +217,15 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 % Parse options.
-[opt, varargin] = passvalopt('model.Steady', varargin{:});
-
-%--------------------------------------------------------------------------
 
 steady = prepareSteady(this, 'verbose', varargin{:});
 
-vecAlt = 1 : length(this.Variant);
-if ~this.IsLinear
-    % Nonlinear models:
-    [this, flag] = steadyNonlinear(this, steady, vecAlt);
+%--------------------------------------------------------------------------
+
+if this.IsLinear
+    [this, flag, nPath, eigen] = steadyLinear(this, steady, Inf);
 else
-    % Linear models:
-    [this, flag, nPath, eigen] = steadyLinear(this, steady, vecAlt);
+    [this, flag] = steadyNonlinear(this, steady, Inf);
 end
 
 end

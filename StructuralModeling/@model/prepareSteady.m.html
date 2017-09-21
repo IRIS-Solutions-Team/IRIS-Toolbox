@@ -1,0 +1,377 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>~/GoogleDrive/MATLAB/IRIS_Tbx/StructuralModeling/@model/prepareSteady.m.html</title>
+<meta name="Generator" content="Vim/8.0">
+<meta name="plugin-version" content="vim7.4_v2">
+<meta name="syntax" content="matlab">
+<meta name="settings" content="number_lines,use_css,no_foldcolumn,expand_tabs,line_ids,prevent_copy=">
+<meta name="colorscheme" content="none">
+<style type="text/css">
+<!--
+pre { font-family: 'Input Mono', monospace; color: #000000; background-color: #ffffff; }
+body { font-family: 'Input Mono', monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 7pt; }
+.Function { color: #005faf; font-weight: bold; }
+.LineNr { color: #6c6c6c; }
+.String { color: #87005f; }
+.Identifier { color: #008080; }
+.Statement { color: #af5f00; }
+.Comment { color: #008700; }
+.Constant { color: #c00000; }
+-->
+</style>
+
+<script type='text/javascript'>
+<!--
+
+/* function to open any folds containing a jumped-to line before jumping to it */
+function JumpToLine()
+{
+  var lineNum;
+  lineNum = window.location.hash;
+  lineNum = lineNum.substr(1); /* strip off '#' */
+
+  if (lineNum.indexOf('L') == -1) {
+    lineNum = 'L'+lineNum;
+  }
+  lineElem = document.getElementById(lineNum);
+  /* Always jump to new location even if the line was hidden inside a fold, or
+   * we corrected the raw number to a line ID.
+   */
+  if (lineElem) {
+    lineElem.scrollIntoView(true);
+  }
+  return true;
+}
+if ('onhashchange' in window) {
+  window.onhashchange = JumpToLine;
+}
+
+-->
+</script>
+</head>
+<body onload='JumpToLine();'>
+<pre id='vimCodeElement'>
+<span id="L1" class="LineNr">  1 </span><span class="Function">function</span> varargout = prepareSteady(this, displayMode, varargin)
+<span id="L2" class="LineNr">  2 </span><span class="Comment">% prepareSteady  Prepare steady-state solver.</span>
+<span id="L3" class="LineNr">  3 </span><span class="Comment">%</span>
+<span id="L4" class="LineNr">  4 </span><span class="Comment">% Backend IRIS function.</span>
+<span id="L5" class="LineNr">  5 </span><span class="Comment">% No help provided.</span>
+<span id="L6" class="LineNr">  6 </span>
+<span id="L7" class="LineNr">  7 </span><span class="Comment">% -IRIS Macroeconomic Modeling Toolbox.</span>
+<span id="L8" class="LineNr">  8 </span><span class="Comment">% -Copyright (c) 2007-2017 IRIS Solutions Team.</span>
+<span id="L9" class="LineNr">  9 </span>
+<span id="L10" class="LineNr"> 10 </span><span class="Comment">% Run user-supplied steady-state solver:</span>
+<span id="L11" class="LineNr"> 11 </span><span class="Comment">% sstate = @func</span>
+<span id="L12" class="LineNr"> 12 </span><span class="Statement">if</span> length(varargin)<span class="Statement">==</span><span class="Constant">1</span> <span class="Statement">&amp;&amp;</span> isa(varargin{<span class="Constant">1</span>}, <span class="String">'function_handle'</span>)
+<span id="L13" class="LineNr"> 13 </span>    varargout{<span class="Constant">1</span>} = varargin{<span class="Constant">1</span>};
+<span id="L14" class="LineNr"> 14 </span>    <span class="Statement">return</span>
+<span id="L15" class="LineNr"> 15 </span><span class="Statement">end</span>
+<span id="L16" class="LineNr"> 16 </span>
+<span id="L17" class="LineNr"> 17 </span><span class="Comment">% Run user-supplied steady-state solver with extra arguments:</span>
+<span id="L18" class="LineNr"> 18 </span><span class="Comment">% sstate = { @func, arg2, arg3,...}</span>
+<span id="L19" class="LineNr"> 19 </span><span class="Statement">if</span> length(varargin)<span class="Statement">==</span><span class="Constant">1</span> <span class="Statement">&amp;&amp;</span> iscell(varargin{<span class="Constant">1</span>}) <span class="Comment">...</span>
+<span id="L20" class="LineNr"> 20 </span>        <span class="Statement">&amp;&amp;</span> <span class="Statement">~</span>isempty(varargin{<span class="Constant">1</span>}) <span class="Comment">...</span>
+<span id="L21" class="LineNr"> 21 </span>        <span class="Statement">&amp;&amp;</span> isa(varargin{<span class="Constant">1</span>}{<span class="Constant">1</span>}, <span class="String">'function_handle'</span>)
+<span id="L22" class="LineNr"> 22 </span>    varargout{<span class="Constant">1</span>} = varargin{<span class="Constant">1</span>};
+<span id="L23" class="LineNr"> 23 </span>    <span class="Statement">return</span>
+<span id="L24" class="LineNr"> 24 </span><span class="Statement">end</span>
+<span id="L25" class="LineNr"> 25 </span>
+<span id="L26" class="LineNr"> 26 </span><span class="Comment">% Do not run steady-state solver:</span>
+<span id="L27" class="LineNr"> 27 </span><span class="Comment">% sstate = false</span>
+<span id="L28" class="LineNr"> 28 </span><span class="Statement">if</span> length(varargin)<span class="Statement">==</span><span class="Constant">1</span> <span class="Statement">&amp;&amp;</span> isequal(varargin{<span class="Constant">1</span>}, false)
+<span id="L29" class="LineNr"> 29 </span>    varargout{<span class="Constant">1</span>} = false;
+<span id="L30" class="LineNr"> 30 </span>    <span class="Statement">return</span>
+<span id="L31" class="LineNr"> 31 </span><span class="Statement">end</span>
+<span id="L32" class="LineNr"> 32 </span>
+<span id="L33" class="LineNr"> 33 </span><span class="Comment">% Do run steady-state solve with default options:</span>
+<span id="L34" class="LineNr"> 34 </span><span class="Comment">% sstate = true</span>
+<span id="L35" class="LineNr"> 35 </span><span class="Statement">if</span> length(varargin)<span class="Statement">==</span><span class="Constant">1</span> <span class="Statement">&amp;&amp;</span> isequal(varargin{<span class="Constant">1</span>}, true)
+<span id="L36" class="LineNr"> 36 </span>    varargin(<span class="Constant">1</span>) = <span class="Identifier">[</span> <span class="Identifier">]</span>;
+<span id="L37" class="LineNr"> 37 </span><span class="Statement">end</span>
+<span id="L38" class="LineNr"> 38 </span>
+<span id="L39" class="LineNr"> 39 </span><span class="Comment">%--------------------------------------------------------------------------</span>
+<span id="L40" class="LineNr"> 40 </span>
+<span id="L41" class="LineNr"> 41 </span>
+<span id="L42" class="LineNr"> 42 </span><span class="Statement">if</span> this.IsLinear
+<span id="L43" class="LineNr"> 43 </span>    <span class="Comment">% Linear steady state solver</span>
+<span id="L44" class="LineNr"> 44 </span>    <span class="Comment">%----------------------------</span>
+<span id="L45" class="LineNr"> 45 </span>    opt = passvalopt(<span class="String">'model.SteadyLinear'</span>, varargin{:});
+<span id="L46" class="LineNr"> 46 </span>    varargout{<span class="Constant">1</span>} = opt;
+<span id="L47" class="LineNr"> 47 </span><span class="Statement">else</span>
+<span id="L48" class="LineNr"> 48 </span>    <span class="Comment">% Nonlinear steady state solver</span>
+<span id="L49" class="LineNr"> 49 </span>    <span class="Comment">%-------------------------------</span>
+<span id="L50" class="LineNr"> 50 </span>    <span class="Comment">% Capture obsolete syntax with solver options directly passed among other</span>
+<span id="L51" class="LineNr"> 51 </span>    <span class="Comment">% sstate options and not as suboptions through Solver=; these are only used</span>
+<span id="L52" class="LineNr"> 52 </span>    <span class="Comment">% if Solver= is a char.</span>
+<span id="L53" class="LineNr"> 53 </span>    <span class="Identifier">[</span>opt, obsoleteSolverOpt<span class="Identifier">]</span> = passvalopt(<span class="String">'model.SteadyNonlinear'</span>, varargin{:});
+<span id="L54" class="LineNr"> 54 </span>    <span class="Statement">if</span> isequal(opt.Growth, @auto)
+<span id="L55" class="LineNr"> 55 </span>        opt.Growth = this.IsGrowth;
+<span id="L56" class="LineNr"> 56 </span>    <span class="Statement">end</span>
+<span id="L57" class="LineNr"> 57 </span>    <span class="Identifier">[</span>opt.Solver, opt.PrepareGradient<span class="Identifier">]</span> = <span class="Comment">...</span>
+<span id="L58" class="LineNr"> 58 </span>        solver.Options.processOptions(opt.Solver, opt.PrepareGradient, displayMode, obsoleteSolverOpt);
+<span id="L59" class="LineNr"> 59 </span>    blz = createBlocks(this, opt);
+<span id="L60" class="LineNr"> 60 </span>    blz = processFixOpt(this, blz, opt);
+<span id="L61" class="LineNr"> 61 </span>    blz = prepareBounds(this, blz, opt);
+<span id="L62" class="LineNr"> 62 </span>    blz.NanInit = opt.NanInit;
+<span id="L63" class="LineNr"> 63 </span>    blz.Reuse = opt.Reuse;
+<span id="L64" class="LineNr"> 64 </span>    blz.Warning = opt.Warning;
+<span id="L65" class="LineNr"> 65 </span>    varargout{<span class="Constant">1</span>} = blz;
+<span id="L66" class="LineNr"> 66 </span><span class="Statement">end</span>
+<span id="L67" class="LineNr"> 67 </span>
+<span id="L68" class="LineNr"> 68 </span><span class="Statement">end</span>
+<span id="L69" class="LineNr"> 69 </span>
+<span id="L70" class="LineNr"> 70 </span>
+<span id="L71" class="LineNr"> 71 </span>
+<span id="L72" class="LineNr"> 72 </span>
+<span id="L73" class="LineNr"> 73 </span><span class="Function">function</span> blz = processFixOpt(this, blz, opt)
+<span id="L74" class="LineNr"> 74 </span><span class="Comment">% Process the fix, fixallbut, fixlevel, fixlevelallbut, fixgrowth,</span>
+<span id="L75" class="LineNr"> 75 </span><span class="Comment">% and fixgrowthallbut options. All the user-supply information is</span>
+<span id="L76" class="LineNr"> 76 </span><span class="Comment">% combined into fixlevel and fixgrowth.</span>
+<span id="L77" class="LineNr"> 77 </span>TYPE = @int8;
+<span id="L78" class="LineNr"> 78 </span>PTR = @int16;
+<span id="L79" class="LineNr"> 79 </span>
+<span id="L80" class="LineNr"> 80 </span>nQty = length(this.Quantity.Name);
+<span id="L81" class="LineNr"> 81 </span>ixy = this.Quantity.Type<span class="Statement">==</span>TYPE(<span class="Constant">1</span>);
+<span id="L82" class="LineNr"> 82 </span>ixx = this.Quantity.Type<span class="Statement">==</span>TYPE(<span class="Constant">2</span>);
+<span id="L83" class="LineNr"> 83 </span>ixp = this.Quantity.Type<span class="Statement">==</span>TYPE(<span class="Constant">4</span>);
+<span id="L84" class="LineNr"> 84 </span>ixCanBeFixed =  ixy <span class="Statement">|</span> ixx <span class="Statement">|</span> ixp;
+<span id="L85" class="LineNr"> 85 </span>list = {<span class="String">'fix'</span>, <span class="String">'fixlevel'</span>, <span class="String">'fixgrowth'</span>};
+<span id="L86" class="LineNr"> 86 </span><span class="Statement">for</span> i = <span class="Constant">1</span> : length(list)
+<span id="L87" class="LineNr"> 87 </span>    fix = list{i};
+<span id="L88" class="LineNr"> 88 </span>    fixAllBut = <span class="Identifier">[</span>fix, <span class="String">'allbut'</span><span class="Identifier">]</span>;
+<span id="L89" class="LineNr"> 89 </span>
+<span id="L90" class="LineNr"> 90 </span>    <span class="Comment">% Convert charlist to cellstr.</span>
+<span id="L91" class="LineNr"> 91 </span>    <span class="Statement">if</span> ischar(opt.(fix)) <span class="Statement">&amp;&amp;</span> <span class="Statement">~</span>isempty(opt.(fix))
+<span id="L92" class="LineNr"> 92 </span>        opt.(fix) = regexp(opt.(fix), <span class="String">'\w+'</span>, <span class="String">'match'</span>);
+<span id="L93" class="LineNr"> 93 </span>    <span class="Statement">end</span>
+<span id="L94" class="LineNr"> 94 </span>    <span class="Statement">if</span> ischar(opt.(fixAllBut)) <span class="Statement">&amp;&amp;</span> <span class="Statement">~</span>isempty(opt.(fixAllBut))
+<span id="L95" class="LineNr"> 95 </span>        opt.(fixAllBut) = <span class="Comment">...</span>
+<span id="L96" class="LineNr"> 96 </span>            regexp(opt.(fixAllBut), <span class="String">'\w+'</span>, <span class="String">'match'</span>);
+<span id="L97" class="LineNr"> 97 </span>    <span class="Statement">end</span>
+<span id="L98" class="LineNr"> 98 </span>
+<span id="L99" class="LineNr"> 99 </span>    <span class="Comment">% Convert fixAllBut to fix.</span>
+<span id="L100" class="LineNr">100 </span>    <span class="Statement">if</span> <span class="Statement">~</span>isempty(opt.(fixAllBut))
+<span id="L101" class="LineNr">101 </span>        lsNameCanBeFixed = this.Quantity.Name(ixCanBeFixed);
+<span id="L102" class="LineNr">102 </span>        opt.(fix) = setdiff(lsNameCanBeFixed, opt.(fixAllBut));
+<span id="L103" class="LineNr">103 </span>    <span class="Statement">end</span>
+<span id="L104" class="LineNr">104 </span>
+<span id="L105" class="LineNr">105 </span>    <span class="Statement">if</span> <span class="Statement">~</span>isempty(opt.(fix))
+<span id="L106" class="LineNr">106 </span>        ell = lookup(this.Quantity, opt.(fix), <span class="Comment">...</span>
+<span id="L107" class="LineNr">107 </span>            TYPE(<span class="Constant">1</span>), <span class="Comment">...</span>
+<span id="L108" class="LineNr">108 </span>            TYPE(<span class="Constant">2</span>), <span class="Comment">...</span>
+<span id="L109" class="LineNr">109 </span>            TYPE(<span class="Constant">4</span>));
+<span id="L110" class="LineNr">110 </span>        posFix  = ell.PosName;
+<span id="L111" class="LineNr">111 </span>        ixValid = <span class="Statement">~</span>isnan(posFix);
+<span id="L112" class="LineNr">112 </span>        <span class="Statement">if</span> any(<span class="Statement">~</span>ixValid)
+<span id="L113" class="LineNr">113 </span>            throw( exception.Base(<span class="String">'Steady:CANNOT_FIX'</span>, <span class="String">'error'</span>), opt.(fix){<span class="Statement">~</span>ixValid} );
+<span id="L114" class="LineNr">114 </span>        <span class="Statement">end</span>
+<span id="L115" class="LineNr">115 </span>        opt.(fix) = posFix;
+<span id="L116" class="LineNr">116 </span>    <span class="Statement">else</span>
+<span id="L117" class="LineNr">117 </span>        opt.(fix) = <span class="Identifier">[</span> <span class="Identifier">]</span>;
+<span id="L118" class="LineNr">118 </span>    <span class="Statement">end</span>
+<span id="L119" class="LineNr">119 </span><span class="Statement">end</span>
+<span id="L120" class="LineNr">120 </span>
+<span id="L121" class="LineNr">121 </span>fixL = false(<span class="Constant">1</span>, nQty);
+<span id="L122" class="LineNr">122 </span>fixL(opt.fix) = true;
+<span id="L123" class="LineNr">123 </span>fixL(opt.fixlevel) = true;
+<span id="L124" class="LineNr">124 </span>fixG = false(<span class="Constant">1</span>, nQty);
+<span id="L125" class="LineNr">125 </span><span class="Comment">% Fix growth of endogenized parameters to zero.</span>
+<span id="L126" class="LineNr">126 </span>fixG(ixp) = true;
+<span id="L127" class="LineNr">127 </span><span class="Statement">if</span> opt.Growth
+<span id="L128" class="LineNr">128 </span>    fixG(opt.fix) = true;
+<span id="L129" class="LineNr">129 </span>    fixG(opt.fixgrowth) = true;
+<span id="L130" class="LineNr">130 </span><span class="Statement">else</span>
+<span id="L131" class="LineNr">131 </span>    fixG(:) = true;
+<span id="L132" class="LineNr">132 </span><span class="Statement">end</span>
+<span id="L133" class="LineNr">133 </span><span class="Comment">% Fix optimal policy multipliers. The level and growth of</span>
+<span id="L134" class="LineNr">134 </span><span class="Comment">% multipliers will be set to zero in the main loop.</span>
+<span id="L135" class="LineNr">135 </span><span class="Statement">if</span> opt.zeromultipliers
+<span id="L136" class="LineNr">136 </span>    fixL = fixL <span class="Statement">|</span> this.Quantity.IxLagrange;
+<span id="L137" class="LineNr">137 </span>    fixG = fixG <span class="Statement">|</span> this.Quantity.IxLagrange;
+<span id="L138" class="LineNr">138 </span><span class="Statement">end</span>
+<span id="L139" class="LineNr">139 </span>
+<span id="L140" class="LineNr">140 </span>blz.PosFix = struct( );
+<span id="L141" class="LineNr">141 </span>blz.PosFix.Level = PTR( find(fixL) ); <span class="Comment">%#ok&lt;FNDSB&gt;</span>
+<span id="L142" class="LineNr">142 </span>blz.PosFix.Growth = PTR( find(fixG) ); <span class="Comment">%#ok&lt;FNDSB&gt;</span>
+<span id="L143" class="LineNr">143 </span>
+<span id="L144" class="LineNr">144 </span><span class="Comment">% Remove quantities fixed by user and LHS quantities from dynamic links.</span>
+<span id="L145" class="LineNr">145 </span>temp = getActiveLhsPtr(this.Link);
+<span id="L146" class="LineNr">146 </span>posExclude = struct( );
+<span id="L147" class="LineNr">147 </span>posExclude.Level = <span class="Identifier">[</span>blz.PosFix.Level, temp<span class="Identifier">]</span>;
+<span id="L148" class="LineNr">148 </span>posExclude.Growth = <span class="Identifier">[</span>blz.PosFix.Growth, temp<span class="Identifier">]</span>;
+<span id="L149" class="LineNr">149 </span>exclude(blz, posExclude);
+<span id="L150" class="LineNr">150 </span><span class="Statement">end</span>
+<span id="L151" class="LineNr">151 </span>
+<span id="L152" class="LineNr">152 </span>
+<span id="L153" class="LineNr">153 </span>
+<span id="L154" class="LineNr">154 </span>
+<span id="L155" class="LineNr">155 </span><span class="Function">function</span> blz = createBlocks(this, opt)
+<span id="L156" class="LineNr">156 </span>TYPE = @int8;
+<span id="L157" class="LineNr">157 </span>
+<span id="L158" class="LineNr">158 </span>nQty = length(this.Quantity.Name);
+<span id="L159" class="LineNr">159 </span>ixe = this.Quantity.Type<span class="Statement">==</span>TYPE(<span class="Constant">31</span>) <span class="Statement">|</span> this.Quantity.Type<span class="Statement">==</span>TYPE(<span class="Constant">32</span>);
+<span id="L160" class="LineNr">160 </span>ixp = this.Quantity.Type<span class="Statement">==</span>TYPE(<span class="Constant">4</span>);
+<span id="L161" class="LineNr">161 </span>
+<span id="L162" class="LineNr">162 </span><span class="Comment">% Run solver.blazer.Blazer on steady equations.</span>
+<span id="L163" class="LineNr">163 </span>blz = prepareBlazer(this, <span class="String">'steady'</span>, opt);
+<span id="L164" class="LineNr">164 </span>run(blz);
+<span id="L165" class="LineNr">165 </span>
+<span id="L166" class="LineNr">166 </span><span class="Comment">% Prepare solver.block.Blocks for evaluation.</span>
+<span id="L167" class="LineNr">167 </span>prepareBlocks(blz, opt);
+<span id="L168" class="LineNr">168 </span>
+<span id="L169" class="LineNr">169 </span><span class="Statement">if</span> blz.IsSingular
+<span id="L170" class="LineNr">170 </span>    throw( <span class="Comment">...</span>
+<span id="L171" class="LineNr">171 </span>        exception.Base(<span class="String">'Steady:STRUCTURAL_SINGULARITY'</span>, <span class="String">'warning'</span>)<span class="Comment">...</span>
+<span id="L172" class="LineNr">172 </span>        );
+<span id="L173" class="LineNr">173 </span><span class="Statement">end</span>
+<span id="L174" class="LineNr">174 </span>
+<span id="L175" class="LineNr">175 </span><span class="Comment">% Index of level variables that will be always set to zero.</span>
+<span id="L176" class="LineNr">176 </span>ixZero = struct( );
+<span id="L177" class="LineNr">177 </span>ixZero.Level = false(<span class="Constant">1</span>, nQty);
+<span id="L178" class="LineNr">178 </span>ixZero.Level(ixe) = true;
+<span id="L179" class="LineNr">179 </span><span class="Statement">if</span> opt.Growth
+<span id="L180" class="LineNr">180 </span>    ixZero.Growth = false(<span class="Constant">1</span>, nQty);
+<span id="L181" class="LineNr">181 </span>    ixZero.Growth(ixe <span class="Statement">|</span> ixp) = true;
+<span id="L182" class="LineNr">182 </span><span class="Statement">else</span>
+<span id="L183" class="LineNr">183 </span>    ixZero.Growth = true(<span class="Constant">1</span>, nQty);
+<span id="L184" class="LineNr">184 </span><span class="Statement">end</span>
+<span id="L185" class="LineNr">185 </span><span class="Statement">if</span> opt.zeromultipliers
+<span id="L186" class="LineNr">186 </span>    ixZero.Level = ixZero.Level <span class="Statement">|</span> this.Quantity.IxLagrange;
+<span id="L187" class="LineNr">187 </span>    ixZero.Growth = ixZero.Growth <span class="Statement">|</span> this.Quantity.IxLagrange;
+<span id="L188" class="LineNr">188 </span><span class="Statement">end</span>
+<span id="L189" class="LineNr">189 </span>blz.IxZero = ixZero;
+<span id="L190" class="LineNr">190 </span><span class="Statement">end</span>
+<span id="L191" class="LineNr">191 </span>
+<span id="L192" class="LineNr">192 </span>
+<span id="L193" class="LineNr">193 </span>
+<span id="L194" class="LineNr">194 </span>
+<span id="L195" class="LineNr">195 </span><span class="Function">function</span> blz = prepareBounds(this, blz, opt)
+<span id="L196" class="LineNr">196 </span>nQty = length(this.Quantity.Name);
+<span id="L197" class="LineNr">197 </span>nBlk = length(blz.Block);
+<span id="L198" class="LineNr">198 </span>ixValidLevel = true(<span class="Constant">1</span>, nQty);
+<span id="L199" class="LineNr">199 </span>ixValidGrowth = true(<span class="Constant">1</span>, nQty);
+<span id="L200" class="LineNr">200 </span><span class="Statement">for</span> iBlk = <span class="Constant">1</span> : nBlk
+<span id="L201" class="LineNr">201 </span>    blk = blz.Block{iBlk};
+<span id="L202" class="LineNr">202 </span>    <span class="Statement">if</span> blk.Type<span class="Statement">~</span>=solver.block.Type.SOLVE
+<span id="L203" class="LineNr">203 </span>        <span class="Statement">continue</span>
+<span id="L204" class="LineNr">204 </span>    <span class="Statement">end</span>
+<span id="L205" class="LineNr">205 </span>
+<span id="L206" class="LineNr">206 </span>    <span class="Comment">% Level bounds.</span>
+<span id="L207" class="LineNr">207 </span>    lsLevel = this.Quantity.Name(blk.PosQty.Level);
+<span id="L208" class="LineNr">208 </span>    <span class="Identifier">[</span>lbl, ubl, ixValidLevel<span class="Identifier">]</span> = <span class="Comment">...</span>
+<span id="L209" class="LineNr">209 </span>        boundsHere(lsLevel, blk.PosQty.Level, opt.levelbounds, ixValidLevel);
+<span id="L210" class="LineNr">210 </span>
+<span id="L211" class="LineNr">211 </span>    <span class="Comment">% Growth bounds.</span>
+<span id="L212" class="LineNr">212 </span>    lsGrowth = this.Quantity.Name(blk.PosQty.Growth);
+<span id="L213" class="LineNr">213 </span>    <span class="Identifier">[</span>lbg, ubg, ixValidGrowth<span class="Identifier">]</span> = <span class="Comment">...</span>
+<span id="L214" class="LineNr">214 </span>        boundsHere(lsGrowth, blk.PosQty.Growth, opt.growthbounds, ixValidGrowth);
+<span id="L215" class="LineNr">215 </span>
+<span id="L216" class="LineNr">216 </span>    <span class="Comment">% Combine level and growth bounds</span>
+<span id="L217" class="LineNr">217 </span>    blk.Lower = <span class="Identifier">[</span>lbl, lbg<span class="Identifier">]</span>;
+<span id="L218" class="LineNr">218 </span>    blk.Upper = <span class="Identifier">[</span>ubl, ubg<span class="Identifier">]</span>;
+<span id="L219" class="LineNr">219 </span>
+<span id="L220" class="LineNr">220 </span>    <span class="Statement">if</span> isa(blk.Solver, <span class="String">'optim.options.SolverOptions'</span>)
+<span id="L221" class="LineNr">221 </span>        <span class="Comment">% Make sure @lsqnonlin is used when there are some lower/upper bounds.</span>
+<span id="L222" class="LineNr">222 </span>        isBnd = any(<span class="Statement">~</span>isinf(blk.Lower)) <span class="Statement">||</span> any(<span class="Statement">~</span>isinf(blk.Upper));
+<span id="L223" class="LineNr">223 </span>        <span class="Statement">if</span> isBnd
+<span id="L224" class="LineNr">224 </span>            <span class="Statement">if</span> <span class="Statement">~</span>strcmp(blk.Solver.SolverName, <span class="String">'lsqnonlin'</span>)
+<span id="L225" class="LineNr">225 </span>                blk.Solver = blk.Solver(<span class="String">'lsqnonlin'</span>, blk.Solver);
+<span id="L226" class="LineNr">226 </span>            <span class="Statement">end</span>
+<span id="L227" class="LineNr">227 </span>        <span class="Statement">end</span>
+<span id="L228" class="LineNr">228 </span>    <span class="Statement">end</span>
+<span id="L229" class="LineNr">229 </span>
+<span id="L230" class="LineNr">230 </span>    blz.Block{iBlk} = blk;
+<span id="L231" class="LineNr">231 </span><span class="Statement">end</span>
+<span id="L232" class="LineNr">232 </span>
+<span id="L233" class="LineNr">233 </span><span class="Statement">if</span> any(<span class="Statement">~</span>ixValidLevel)
+<span id="L234" class="LineNr">234 </span>    throw( exception.Base(<span class="String">'Steady:WRONG_SIGN_LEVEL_BOUNDS'</span>, <span class="String">'error'</span>), <span class="Comment">...</span>
+<span id="L235" class="LineNr">235 </span>        this.Quantity.Name{<span class="Statement">~</span>ixValidLevel} );
+<span id="L236" class="LineNr">236 </span><span class="Statement">end</span>
+<span id="L237" class="LineNr">237 </span><span class="Statement">if</span> any(<span class="Statement">~</span>ixValidGrowth)
+<span id="L238" class="LineNr">238 </span>    throw( exception.Base(<span class="String">'Steady:WRONG_SIGN_GROWTH_BOUNDS'</span>, <span class="String">'error'</span>), <span class="Comment">...</span>
+<span id="L239" class="LineNr">239 </span>        this.Quantity.Name{<span class="Statement">~</span>ixValidGrowth} );
+<span id="L240" class="LineNr">240 </span><span class="Statement">end</span>
+<span id="L241" class="LineNr">241 </span>
+<span id="L242" class="LineNr">242 </span><span class="Statement">return</span>
+<span id="L243" class="LineNr">243 </span>
+<span id="L244" class="LineNr">244 </span>
+<span id="L245" class="LineNr">245 </span>
+<span id="L246" class="LineNr">246 </span>
+<span id="L247" class="LineNr">247 </span>    <span class="Function">function</span> <span class="Identifier">[</span>vecLb, vecUb, ixValid<span class="Identifier">]</span> = boundsHere(list, nameId, bnd, ixValid)
+<span id="L248" class="LineNr">248 </span>        nList = length(list);
+<span id="L249" class="LineNr">249 </span>        vecLb = <span class="Statement">-</span>inf(<span class="Constant">1</span>, nList);
+<span id="L250" class="LineNr">250 </span>        vecUb = inf(<span class="Constant">1</span>, nList);
+<span id="L251" class="LineNr">251 </span>        <span class="Statement">for</span> jj = <span class="Constant">1</span> : nList
+<span id="L252" class="LineNr">252 </span>            name = list{jj};
+<span id="L253" class="LineNr">253 </span>            <span class="Comment">%{</span>
+<span id="L254" class="LineNr">254 </span><span class="Comment">            isLogPlus = opt.IxLogPlus( nameId(jj) );</span>
+<span id="L255" class="LineNr">255 </span><span class="Comment">            isLogMinus = opt.IxLogMinus( nameId(jj) );</span>
+<span id="L256" class="LineNr">256 </span><span class="Comment">            %}</span>
+<span id="L257" class="LineNr">257 </span>            isLog = blz.IxLog( nameId(jj) );
+<span id="L258" class="LineNr">258 </span>            <span class="Comment">%{</span>
+<span id="L259" class="LineNr">259 </span><span class="Comment">            try</span>
+<span id="L260" class="LineNr">260 </span><span class="Comment">                lb = bnd.(name)(1);</span>
+<span id="L261" class="LineNr">261 </span><span class="Comment">            catch</span>
+<span id="L262" class="LineNr">262 </span><span class="Comment">                if isLogPlus</span>
+<span id="L263" class="LineNr">263 </span><span class="Comment">                    lb = 0;</span>
+<span id="L264" class="LineNr">264 </span><span class="Comment">                else</span>
+<span id="L265" class="LineNr">265 </span><span class="Comment">                    lb = -Inf;</span>
+<span id="L266" class="LineNr">266 </span><span class="Comment">                end</span>
+<span id="L267" class="LineNr">267 </span><span class="Comment">            end</span>
+<span id="L268" class="LineNr">268 </span><span class="Comment">            try</span>
+<span id="L269" class="LineNr">269 </span><span class="Comment">                ub = bnd.(name)(2);</span>
+<span id="L270" class="LineNr">270 </span><span class="Comment">            catch</span>
+<span id="L271" class="LineNr">271 </span><span class="Comment">                if isLogMinus</span>
+<span id="L272" class="LineNr">272 </span><span class="Comment">                    ub = 0;</span>
+<span id="L273" class="LineNr">273 </span><span class="Comment">                else</span>
+<span id="L274" class="LineNr">274 </span><span class="Comment">                    ub = Inf;</span>
+<span id="L275" class="LineNr">275 </span><span class="Comment">                end</span>
+<span id="L276" class="LineNr">276 </span><span class="Comment">            end</span>
+<span id="L277" class="LineNr">277 </span><span class="Comment">            %}</span>
+<span id="L278" class="LineNr">278 </span>            <span class="Statement">try</span>
+<span id="L279" class="LineNr">279 </span>                lb = bnd.(name)(<span class="Constant">1</span>);
+<span id="L280" class="LineNr">280 </span>            <span class="Statement">catch</span>
+<span id="L281" class="LineNr">281 </span>                <span class="Statement">if</span> isLog
+<span id="L282" class="LineNr">282 </span>                    lb = <span class="Constant">0</span>;
+<span id="L283" class="LineNr">283 </span>                <span class="Statement">else</span>
+<span id="L284" class="LineNr">284 </span>                    lb = <span class="Statement">-</span>Inf;
+<span id="L285" class="LineNr">285 </span>                <span class="Statement">end</span>
+<span id="L286" class="LineNr">286 </span>            <span class="Statement">end</span>
+<span id="L287" class="LineNr">287 </span>            <span class="Statement">try</span>
+<span id="L288" class="LineNr">288 </span>                ub = bnd.(name)(<span class="Constant">2</span>);
+<span id="L289" class="LineNr">289 </span>            <span class="Statement">catch</span>
+<span id="L290" class="LineNr">290 </span>                ub = Inf;
+<span id="L291" class="LineNr">291 </span>            <span class="Statement">end</span>
+<span id="L292" class="LineNr">292 </span>            <span class="Comment">%{</span>
+<span id="L293" class="LineNr">293 </span><span class="Comment">            if isLogPlus</span>
+<span id="L294" class="LineNr">294 </span><span class="Comment">                lb = log(lb);</span>
+<span id="L295" class="LineNr">295 </span><span class="Comment">                ub = log(ub);</span>
+<span id="L296" class="LineNr">296 </span><span class="Comment">            elseif isLogMinus</span>
+<span id="L297" class="LineNr">297 </span><span class="Comment">                % Swap lower and upper bounds for log-minus variables.</span>
+<span id="L298" class="LineNr">298 </span><span class="Comment">                ub = log(-lb);</span>
+<span id="L299" class="LineNr">299 </span><span class="Comment">                lb = log(-ub);</span>
+<span id="L300" class="LineNr">300 </span><span class="Comment">            end</span>
+<span id="L301" class="LineNr">301 </span><span class="Comment">            %}</span>
+<span id="L302" class="LineNr">302 </span>            <span class="Statement">if</span> isLog
+<span id="L303" class="LineNr">303 </span>                lb = log(lb);
+<span id="L304" class="LineNr">304 </span>                ub = log(ub);
+<span id="L305" class="LineNr">305 </span>            <span class="Statement">end</span>
+<span id="L306" class="LineNr">306 </span>            <span class="Statement">if</span> imag(lb)<span class="Statement">==</span><span class="Constant">0</span> <span class="Statement">&amp;&amp;</span> imag(ub)<span class="Statement">==</span><span class="Constant">0</span>
+<span id="L307" class="LineNr">307 </span>                <span class="Comment">% Assign only if both lower and upper bound is ok.</span>
+<span id="L308" class="LineNr">308 </span>                vecLb(jj) = lb;
+<span id="L309" class="LineNr">309 </span>                vecUb(jj) = ub;
+<span id="L310" class="LineNr">310 </span>            <span class="Statement">else</span>
+<span id="L311" class="LineNr">311 </span>                <span class="Comment">% Report problem for this variables.</span>
+<span id="L312" class="LineNr">312 </span>                ixValid( nameId(jj) ) = false;
+<span id="L313" class="LineNr">313 </span>            <span class="Statement">end</span>
+<span id="L314" class="LineNr">314 </span>        <span class="Statement">end</span>
+<span id="L315" class="LineNr">315 </span>    <span class="Statement">end</span>
+<span id="L316" class="LineNr">316 </span><span class="Statement">end</span>
+<span id="L317" class="LineNr">317 </span>
+</pre>
+</body>
+</html>
+<!-- vim: set foldmethod=manual : -->

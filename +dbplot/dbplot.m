@@ -269,7 +269,7 @@ for i = 1 : length(q)
             ndb = length(d);
             series = cell(ndb, nSeries);
             for k = 1 : ndb
-                [series{k, :}] = dbeval(d(k), opt.sstate, ch.eval{:});
+                [series{k, :}] = dbeval(d(k), opt.Steady, ch.eval{:});
             end
         else
             % Evaluate expressions in a given list of sub-databases, apply
@@ -283,7 +283,7 @@ for i = 1 : length(q)
             ndb = numel(lsSub);
             series = cell(ndb, nSeries);
             for k = 1 : ndb
-                [series{k, :}] = dbeval(d.(lsSub{k}), opt.sstate, ch.eval{:});
+                [series{k, :}] = dbeval(d.(lsSub{k}), opt.Steady, ch.eval{:});
             end
         end
                 
@@ -386,7 +386,7 @@ end
 
 
 function [vecHFig, vecHAx, plotDb, figTitle] = render(qq, range, opt, varargin)
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 vecHFig = [ ];
 vecHAx = { };
 plotDb = struct( );
@@ -564,6 +564,7 @@ switch func2str(func)
             [~, range, data] = func(inpRange, inpDataCat, varargin{:}, funcArgs{:});
         elseif ~isempty(inpDataCat)
             data = inpDataCat;
+            range = inpRange;
             func(inpRange, inpDataCat, varargin{:}, funcArgs{:});
         else
             % Do nothing.
@@ -585,8 +586,9 @@ switch func2str(func)
         [aa, ~, ~, range, data] ...
             = plotcmp(inpRange, [inpData{:}], varargin{:}, funcArgs{:});
     otherwise
-        func(inpRange, [inpData{:}], varargin{:}, funcArgs{:});
+        data = [inpData{:}];
         range = inpRange;
+        func(inpRange, [inpData{:}], varargin{:}, funcArgs{:});
 end
 
 if opt.tight
@@ -626,7 +628,6 @@ end
 if ~isempty(opt.highlight)
     grfun.highlight(aa, opt.highlight);
 end
-if ~isa(range, 'DateWrapper'), keyboard, end
 
 end 
 

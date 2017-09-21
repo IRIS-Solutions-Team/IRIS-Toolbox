@@ -296,17 +296,13 @@ for iLoop = 1 : nLoop
         % Expansion needed to t+k.
         k = max(1, last) - 1;
         this = expand(this, k);
-        Tf = this.solution{1}(1:nf, :, iLoop);
-        Ta = this.solution{1}(nf+1:end, :, iLoop);
-        R = this.solution{2}(:, :, iLoop);
+        [T, R, K, Z, H, D, U] = sspaceMatrices(this, iLoop);
+        Tf = T(1:nf, :);
+        Ta = T(nf+1:end, :);
         Rf = R(1:nf, 1:ne);
         Ra = R(nf+1:end, 1:ne);
-        Kf = this.solution{3}(1:nf, :, iLoop);
-        Ka = this.solution{3}(nf+1:end, :, iLoop);
-        Z = this.solution{4}(:, :, iLoop);
-        H = this.solution{5}(:, :, iLoop);
-        D = this.solution{6}(:, :, iLoop);
-        U = this.solution{7}(:, :, iLoop);
+        Kf = K(1:nf, :);
+        Ka = K(nf+1:end, :);
         Ut = U.';
         % Swapped system.
         if opt.meanonly
@@ -422,9 +418,9 @@ for iLoop = 1 : nLoop
                 Prhs = Prhs - upd;
                 Plhs = Plhs - N*upd*N.';
                 Pa = Pa - Na*upd*Na.';
-                Prhs = (Prhs+Prhs.')/2;
-                Plhs = (Plhs+Plhs.')/2;
-                Pa = (Pa+Pa.')/2;
+                Prhs = (Prhs + Prhs')/2;
+                Plhs = (Plhs + Plhs')/2;
+                Pa = (Pa + Pa')/2;
             end
         end
         
@@ -560,8 +556,8 @@ return
     function calcPlhsPa( )
         Plhs = N*Prhs*N.';
         Pa = Na*Prhs*Na.';
-        Plhs = (Plhs+Plhs.')/2;
-        Pa = (Pa+Pa.')/2;
+        Plhs = (Plhs + Plhs')/2;
+        Pa = (Pa + Pa')/2;
     end 
 
 
@@ -716,15 +712,15 @@ return
         % sx supplied in Vary= or cond.
         [inpSxRe, inpSxIm] = varyStdCorr(this, range, cond, opt);
 
-        sxRe = this.Variant{iLoop}.StdCorr(:);
-        sxRe = repmat(sxRe, 1, nPer);
+        sxRe = this.Variant.StdCorr(:, :, iLoop);
+        sxRe = repmat(sxRe(:), 1, nPer);
         ixAvail = ~isnan(inpSxRe);
         if any(ixAvail(:))
             sxRe(ixAvail) = inpSxRe(ixAvail);
         end
         
-        sxIm = this.Variant{iLoop}.StdCorr(:);
-        sxIm = repmat(sxIm, 1, nPer);
+        sxIm = this.Variant.StdCorr(:, :, iLoop);
+        sxIm = repmat(sxIm(:), 1, nPer);
         ixAvail = ~isnan(inpSxIm);
         if any(ixAvail(:))
             sxIm(ixAvail) = inpSxIm(ixAvail);

@@ -1,4 +1,4 @@
-function outp = createSourceDbase(this, range, varargin)
+function outputDatabank = createSourceDbase(this, range, varargin)
 % createSourceDbase  Create model specific source database.
 %
 % Backend IRIS function.
@@ -8,46 +8,60 @@ function outp = createSourceDbase(this, range, varargin)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 TYPE = @int8;
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 if ischar(range)
     range = textinp2dat(range);
 end
 
-nCol = [ ];
+numOfColumnsRequested = [ ];
 if ~isempty(varargin) && isnumericscalar(varargin{1})
-    nCol = varargin{1};
+    numOfColumnsRequested = varargin{1};
     varargin(1) = [ ];
 end
 
 opt = passvalopt('model.createSourceDbase', varargin{:});
 
-nDraw = opt.ndraw;
-if isempty(nCol)
-    nCol = opt.ncol;
+numOfDrawsRequested = opt.ndraw;
+if isempty(numOfColumnsRequested)
+    numOfColumnsRequested = opt.ncol;
 end
 
 if ~isequal(opt.randshocks, false)
     opt.shockfunc = @randn;
     % ##### Dec 2015 OBSOLETE and scheduled for removal.
-    throw( exception.Base('Obsolete:OPTION_USE_INSTEAD', 'warning'), ...
-        'randShocks', 'shockFunc'); %#ok<GTARG>
+    throw( ...
+        exception.Base('Obsolete:OptionUseInstead', 'warning'), ...
+        'randShocks', 'shockFunc' ...
+    ); %#ok<GTARG>
 end
 
 %--------------------------------------------------------------------------
 
-nAlt = length(this);
+nv = length(this);
+checkNumOfColumnsRequested = numOfColumnsRequested==1 || nv==1;
+checkNumOfDrawsRequested = numOfDrawsRequested==1 || nv==1;
+assert( ...
+    checkNumOfColumnsRequested && checkNumOfDrawsRequested, ...
+    'model:createSourceDbase', ...
+    'Options NCol= or NDraw= can be used only in models with a single parameter variant.' ...
+);
 
-if (nCol>1 && nAlt>1) || (nDraw>1 && nAlt>1)
-    utils.error('model:mysourcedb', ...
-        ['The options nCol= or nDraw= can be used only with ', ...
-        'single parameterisation models.']);
+% __Extended Range__
+% getActualMinMaxShifts( ) Includes at least one lag for reporting purposes.
+[minSh, maxSh] = getActualMinMaxShifts(this);
+xFrom = range(1);
+xTo = range(end);
+if opt.AppendPresample
+    xFrom = xFrom + minSh;
 end
-
-% Include at least one lag in the source dbase for reporting purposes.
-[xRange, minSh] = getXRange(this, range, opt.AppendPresample, opt.AppendPostsample);
+if opt.AppendPostsample
+    xTo = xTo + maxSh;
+end
+xRange = xFrom : xTo;
 nXPer = length(xRange);
+
 label = getLabelOrName(this.Quantity);
 
 ixy = this.Quantity.Type==TYPE(1);
@@ -60,19 +74,13 @@ ixLog = this.Quantity.IxLog;
 ny = sum(ixy);
 nQty = length(this.Quantity);
 
-if nCol>1 && nAlt>1
-    utils.error('model:mysourcedb', ...
-        ['Input argument NCol can be used only with ', ...
-        'single-parameterisation models.']);
-end
-
-nLoop = max([nAlt, nCol, nDraw]);
-outp = struct( );
+numOfColumnsToCreate = max([nv, numOfColumnsRequested, numOfDrawsRequested]);
+outputDatabank = struct( );
 
 % Deterministic time trend.
 ttrend = dat2ttrend(xRange, this);
 
-X = zeros(nQty, nXPer, nAlt);
+X = zeros(nQty, nXPer, nv);
 if ~opt.deviation
     isDelog = false;
     X(ixyxg, :, :) = createTrendArray(this, Inf, isDelog, posyxg, ttrend);
@@ -85,14 +93,14 @@ end
 
 X(ixLog, :, :) = real(exp( X(ixLog, :, :) ));
 
-if nLoop>1 && nAlt==1
-    X = repmat(X, 1, 1, nLoop);
+if numOfColumnsToCreate>1 && nv==1
+    X = repmat(X, 1, 1, numOfColumnsToCreate);
 end
 
 % Measurement variables, transition, exogenous variables.
 for i = find(ixyxg)
     name = this.Quantity.Name{i};
-    outp.(name) = replace( ...
+    outputDatabank.(name) = replace( ...
         TEMPLATE_SERIES, permute(X(i, :, :), [2, 3, 1]), xRange(1), label{i} ...
         );
 end
@@ -101,24 +109,24 @@ end
 for i = find(ixe)
     name = this.Quantity.Name{i};
     x = X(i, 1-minSh:end, :);
-    outp.(name) = replace( ...
+    outputDatabank.(name) = replace( ...
         TEMPLATE_SERIES, permute(x, [2, 3, 1]), range(1), label{i} ...
-        );
+    );
 end
 
 % Generate random residuals if requested.
 if ~isequal(opt.shockfunc, @zeros)
-    outp = shockdb(this, outp, range, nLoop, 'shockfunc=', opt.shockfunc);
+    outputDatabank = shockdb(this, outputDatabank, range, numOfColumnsToCreate, 'shockfunc=', opt.shockfunc);
 end
 
 % Add parameters.
-outp = addparam(this, outp);
+outputDatabank = addparam(this, outputDatabank);
 
 % Add LHS names from reporting equations.
 nameLhs = this.Reporting.NameLhs;
 for i = 1 : length(nameLhs)
     % TODO: use label or name.
-    outp.(nameLhs{i}) = comment(TEMPLATE_SERIES, nameLhs{i});
+    outputDatabank.(nameLhs{i}) = comment(TEMPLATE_SERIES, nameLhs{i});
 end
 
 end

@@ -11,7 +11,7 @@ opt = passvalopt('latex.compilepdf', varargin{:});
 
 %--------------------------------------------------------------------------
 
-config = irisget( );
+config = iris.get( );
 if isempty(config.PdfLaTeXPath)
     utils.error('latex:compilepdf',...
         'PDF LaTeX engine path unknown. Cannot compile PDF files.');

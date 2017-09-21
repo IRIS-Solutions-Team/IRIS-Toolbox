@@ -1,29 +1,25 @@
-function varargout = omega(this, newOmg, vecAlt)
+function varargout = omega(this, newOmg, variantsRequested)
 % omega  Get or set the covariance matrix of shocks.
 %
-% Syntax for getting covariance matrix
-% =========================================
+% __Syntax for Getting Covariance Matrix__
 %
 %     Omg = omega(M)
 %
 %
-% Syntax for setting covariance matrix
-% =====================================
+% __Syntax for Setting Covariance Matrix__
 %
 %     M = omega(M, Omg)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `M` [ model ] - Model or bkwmodel object.
+% * `M` [ model ] - Model object.
 %
 % * `Omg` [ numeric ] - Covariance matrix that will be converted to new
 % values for std deviations and cross-corr coefficients.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Omg` [ numeric ] - Covariance matrix of shocks or residuals based on
 % the currently assigned std deviations and cross-correlation coefficients.
@@ -32,12 +28,10 @@ function varargout = omega(this, newOmg, vecAlt)
 % cross-corr coefficients based on the input covariance matrix.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -49,36 +43,33 @@ function varargout = omega(this, newOmg, vecAlt)
 TYPE = @int8;
 
 try, newOmg; catch, newOmg = @get; end %#ok<NOCOM>
-try, vecAlt; catch, vecAlt = ':'; end %#ok<NOCOM>
+try, variantsRequested; catch, variantsRequested = ':'; end %#ok<NOCOM>
 
 %--------------------------------------------------------------------------
 
-if isequal(vecAlt, Inf)
-    vecAlt = ':';
+if isequal(variantsRequested, Inf)
+    variantsRequested = ':';
 end
 
 if isequal(newOmg, @get)
     % Return Omega from StdCorr vector.
     ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
     ne = sum(ixe);
-    vecStdCorr = model.Variant.getStdCorr(this.Variant, ':', vecAlt);
+    vecStdCorr = this.Variant.StdCorr(:, :, variantsRequested);
     vecStdCorr = permute(vecStdCorr, [2, 3, 1]);
     newOmg = covfun.stdcorr2cov(vecStdCorr, ne);
     varargout{1} = newOmg;
     varargout{2} = vecStdCorr;
 else
     % Assign StdCorr vector from Omega.
-    nAlt = length(this.Variant);
+    nv = length(this.Variant);
     newOmg = newOmg(:, :, :);
     vecStdCorr = covfun.cov2stdcorr(newOmg);
     vecStdCorr = permute(vecStdCorr, [3, 1, 2]);
-    if size(vecStdCorr, 3)<nAlt
-        vecStdCorr(1, :, end+1:nAlt) = vecStdCorr(1, :, end*ones(1, nAlt-end));
+    if size(vecStdCorr, 3)<nv
+        vecStdCorr(1, :, end+1:nv) = vecStdCorr(1, :, end*ones(1, nv-end));
     end
-    this.Variant = model.Variant.assignStdCorr( ...
-        this.Variant, ':', vecAlt, vecStdCorr, ...
-        this.Quantity.IxStdCorrAllowed ...
-        );
+    this.Variant.StdCorr(:, :, variantsRequested) = vecStdCorr;
     varargout{1} = this;
 end
 

@@ -20,6 +20,4 @@ if ~isa(this.Start, 'DateWrapper')
     this.Start = DateWrapper(this.Start);
 end
 
-this = stampMe(this);
-
 end

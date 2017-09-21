@@ -18,7 +18,7 @@ try, expandMethod; catch, expandMethod = 'RepeatLast'; end %#ok<NOCOM>
 %--------------------------------------------------------------------------
 
 [ny, nxx, nb, nf] = sizeOfSolution(this.Vector);
-nz = nnz(this.Quantity.IxMeasure);
+nz = nnz(this.Quantity.IxObserved);
 nAlt = length(this);
 range = range(1) : range(end);
 nPer = length(range);
@@ -117,19 +117,19 @@ switch lower(req)
         varargout{1} = assembleXData(range);
     case 'yxe'
         data = {assembleYData( ), assembleXData(range), assembleEData( )};
-        nData = max([size(data{1}, 3), size(data{2}, 3), size(data{3}, 3)]);
+        numOfDataSets = max([size(data{1}, 3), size(data{2}, 3), size(data{3}, 3)]);
         % Make the size of all data arrays equal in 3rd dimension.
-        if size(data{1}, 3)<nData
+        if size(data{1}, 3)<numOfDataSets
             data{1} = cat(3, data{1}, ...
-                data{1}(:, :, end*ones(1, nData-size(data{1}, 3))));
+                data{1}(:, :, end*ones(1, numOfDataSets-size(data{1}, 3))));
         end
-        if size(data{2}, 3)<nData
+        if size(data{2}, 3)<numOfDataSets
             data{2} = cat(3, data{2}, ...
-                data{2}(:, :, end*ones(1, nData-size(data{2}, 3))));
+                data{2}(:, :, end*ones(1, numOfDataSets-size(data{2}, 3))));
         end
-        if size(data{3}, 3)<nData
+        if size(data{3}, 3)<numOfDataSets
             data{3} = cat(3, data{3}, ...
-                data{3}(:, :, end*ones(1, nData-size(data{3}, 3))));
+                data{3}(:, :, end*ones(1, numOfDataSets-size(data{3}, 3))));
         end
         varargout = data;
     case 'g'
@@ -146,8 +146,6 @@ if ~isequal(whichSet, ':') && ~isequal(whichSet, Inf)
 end
 
 return
-    
-    
     
     
     function [xbInitMean, lsNanInitMean, xbInitMse, lsNanInitMse] ...
@@ -175,7 +173,7 @@ return
         ixNanInitMean = false(nb, 1);
         ixNanInitMse = false(nb, 1);
         for ii = 1 : size(xbInitMean, 3)
-            ixRequired = this.Variant{min(ii, end)}.IxInit;
+            ixRequired = this.Variant.IxInit(:, :, min(ii, end));
             ixRequired = ixRequired(:);
             ixNanInitMean = ixNanInitMean | ...
                 (isnan(xbInitMean(:, 1, ii)) & ixRequired);
@@ -199,29 +197,27 @@ return
     end 
 
 
-
-
 % Get initial conditions for xb and alpha.
 % Those that are not required are set to `NaN` in `xInitMean, and
 % to 0 when computing `aInitMean`.
     function [alpInitMean, alpInitMse] = convertXbInit2AlpInit( )
         % Transform Mean[Xb] to Mean[Alpha].
-        nData = size(xbInitMean, 3);
-        if nData<nAlt
+        numOfDataSets = size(xbInitMean, 3);
+        if numOfDataSets<nAlt
             xbInitMean(:, 1, end+1:nAlt) = ...
-                xbInitMean(:, 1, end*ones(1, nAlt-nData));
-            nData = nAlt;
+                xbInitMean(:, 1, end*ones(1, nAlt-numOfDataSets));
+            numOfDataSets = nAlt;
         end
         alpInitMean = xbInitMean;
-        for iiData = 1 : nData
-            U = this.solution{7}(:, :, min(iiData, end));
+        for ii = 1 : numOfDataSets
+            U = this.Variant.Solution{7}(:, :, min(ii, end));
             if all(~isnan(U(:)))
-                ixRequired = this.Variant{min(iiData, end)}.IxInit;
-                inx = isnan(xbInitMean(:, 1, iiData)) & ~ixRequired(:);
-                alpInitMean(inx, 1, iiData) = 0;
-                alpInitMean(:, 1, iiData) = U \ alpInitMean(:, 1, iiData);
+                ixRequired = this.Variant.IxInit(:, :, min(ii, end));
+                inx = isnan(xbInitMean(:, 1, ii)) & ~ixRequired(:);
+                alpInitMean(inx, 1, ii) = 0;
+                alpInitMean(:, 1, ii) = U \ alpInitMean(:, 1, ii);
             else
-                alpInitMean(:, 1, iiData) = NaN;
+                alpInitMean(:, 1, ii) = NaN;
             end
         end
         % Transform MSE[Xb] to MSE[Alpha].
@@ -229,25 +225,23 @@ return
             alpInitMse = xbInitMse;
             return
         end
-        nData = size(xbInitMse, 4);
-        if nData<nAlt
+        numOfDataSets = size(xbInitMse, 4);
+        if numOfDataSets<nAlt
             xbInitMse(:, :, 1, end+1:nAlt) = ...
-                xbInitMse(:, :, 1, end*ones(1, nAlt-nData));
-            nData = nAlt;
+                xbInitMse(:, :, 1, end*ones(1, nAlt-numOfDataSets));
+            numOfDataSets = nAlt;
         end
         alpInitMse = xbInitMse;
-        for iiData = 1 : nData
-            U = this.solution{7}(:, :, min(iiData, end));
+        for ii = 1 : numOfDataSets
+            U = this.Variant.Solution{7}(:, :, min(ii, end));
             if all(~isnan(U(:)))
-                alpInitMse(:, :, 1, iiData) = U \ alpInitMse(:, :, 1, iiData);
-                alpInitMse(:, :, 1, iiData) = alpInitMse(:, :, 1, iiData) / U.';
+                alpInitMse(:, :, 1, ii) = U \ alpInitMse(:, :, 1, ii);
+                alpInitMse(:, :, 1, ii) = alpInitMse(:, :, 1, ii) / U.';
             else
-                alpInitMse(:, :, 1, iiData) = NaN;
+                alpInitMse(:, :, 1, ii) = NaN;
             end
         end
     end
-
-
 
 
     function Y = assembleYData( )
@@ -264,13 +258,11 @@ return
         end
     end
 
-
-
     
     function z = assembleZData( )
         % Transition variables marked for measurement.
         if ~isempty(dMean)
-            ixz = this.Quantity.IxMeasure;
+            ixz = this.Quantity.IxObserved;
             sw = struct( );
             sw.LagOrLead = [ ];
             sw.IxLog = this.Quantity.IxLog(ixz);
@@ -280,8 +272,6 @@ return
             z = permute(z, [2, 1, 3]);
         end
     end
-
-
 
     
     function E = assembleEData( )
@@ -302,8 +292,6 @@ return
         eImag(isnan(eImag)) = 0;
         E = eReal + 1i*eImag;
     end
-
-
 
 
     function g = assembleGData( )
@@ -340,8 +328,6 @@ return
     end
 
 
-
-
     function X = assembleXData(range)
         % Get current dates of transition variables.
         % Set lags and leads to NaN.
@@ -363,8 +349,6 @@ return
         end
     end
 
-
-
     
     function A = assembleAlphaData( )
         if ~isempty(dMean)
@@ -380,13 +364,13 @@ return
             A = db2array(dMean, this.Quantity.Name(realId), range, sw);
             A = permute(A, [2, 1, 3]);
         end
-        nData = size(A, 3);
-        if nData<nAlt
-            A(:, :, end+1:nAlt) = A(:, :, end*ones(1, nAlt-nData));
-            nData = nAlt;
+        numOfDataSets = size(A, 3);
+        if numOfDataSets<nAlt
+            A(:, :, end+1:nAlt) = A(:, :, end*ones(1, nAlt-numOfDataSets));
+            numOfDataSets = nAlt;
         end
-        for ii = 1 : nData
-            U = this.solution{7}(:, :, min(ii, end));
+        for ii = 1 : numOfDataSets
+            U = this.Variant.Solution{7}(:, :, min(ii, end));
             if all(~isnan(U(:)))
                 A(:, :, ii) = U\A(:, :, ii);
             else

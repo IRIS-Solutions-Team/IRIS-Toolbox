@@ -21,16 +21,16 @@ classdef DatafeedContainer < handle
             persistent INPUT_PARSER
             if isempty(INPUT_PARSER)
                 INPUT_PARSER = extend.InputParser('DatafeedContainer/DatafeedContainer');
-                INPUT_PARSER.addRequired('NumSeries', @(x) isnumeric(x) && numel(x)==1 && x==round(x));
+                INPUT_PARSER.addRequired('NumOfSeries', @(x) isnumeric(x) && numel(x)==1 && x==round(x));
             end
             INPUT_PARSER.parse(varargin{:});
-            numSeries = INPUT_PARSER.Results.NumSeries;
-            this.Name = repmat({''}, 1, numSeries);
-            this.Frequency = repmat(Frequency.NaF, 1, numSeries);
-            this.Ymd = cell(1, numSeries);
-            this.Data = cell(1, numSeries);
-            this.ColumnNames = repmat({''}, 1, numSeries);
-            this.UserData = cell(1, numSeries);
+            numOfSeries = INPUT_PARSER.Results.NumOfSeries;
+            this.Name = repmat({''}, 1, numOfSeries);
+            this.Frequency = repmat(Frequency.NaF, 1, numOfSeries);
+            this.Ymd = cell(1, numOfSeries);
+            this.Data = cell(1, numOfSeries);
+            this.ColumnNames = repmat({''}, 1, numOfSeries);
+            this.UserData = cell(1, numOfSeries);
         end
 
 
@@ -51,8 +51,8 @@ classdef DatafeedContainer < handle
 
         function outputData = export(this, dateFromSerial, timeSeriesConstructor)
             outputData = struct( );
-            numSeries = length(this);
-            for i = 1 : numSeries
+            numOfSeries = length(this);
+            for i = 1 : numOfSeries
                 ithFrequency = this.Frequency(i);
                 ithYmd = this.Ymd{i};
                 ithSerial = ymd2serial(ithFrequency, ithYmd(:, 1), ithYmd(:, 2), ithYmd(:, 3));

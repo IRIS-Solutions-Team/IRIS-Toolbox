@@ -32,7 +32,7 @@ function [B,CovRes,R2] = regress(This,Lhs,Rhs,varargin)
 % Options
 % ========
 %
-% * `'matrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrices `B`
+% * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrices `B`
 % and `CovRes` as either [`namedmat`](namedmat/Contents) object (i.e.
 % matrices with named rows and columns) or plain numeric arrays.
 %
@@ -67,7 +67,7 @@ if ischar(Rhs)
     Rhs = regexp(Rhs,'[\w\(\)\{\}\d+\-]+','match');
 end
 
-isNamedMat = strcmpi(opt.MatrixFmt,'namedmat');
+isNamedMat = strcmpi(opt.MatrixFormat,'namedmat');
 
 %--------------------------------------------------------------------------
 
@@ -92,7 +92,7 @@ nLhs = length(lhsPos);
 nRhs = length(rhsPos);
 
 p = -min([imag(rhsPos),imag(lhsPos)]);
-C = acf(This,opt.acf{:},'order=',p,'matrixFmt=','plain');
+C = acf(This,opt.acf{:},'order=',p,'MatrixFormat=','plain');
 nc = size(C,1);
 
 % Convert `lhspos` and `rhspos` to positions in

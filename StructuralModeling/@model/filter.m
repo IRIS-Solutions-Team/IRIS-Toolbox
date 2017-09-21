@@ -2,16 +2,14 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % filter  Kalman smoother and estimator of out-of-likelihood parameters.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     [M, Outp, V, Delta, PE, SCov] = filter(M, Inp, Range, ~J, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Solved model object.
 %
@@ -26,8 +24,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % is equivalent to using the option `'vary='`, and may be omitted.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `M` [ model ] - Model object with updates of std devs (if `'relative='`
 % is true) and/or updates of out-of-likelihood parameters (if `'outoflik='`
@@ -51,8 +48,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % at least one observation of measurement variables.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Ahead='` [ numeric | *`1`* ] - Predictions will be computed this number
 % of period ahead.
@@ -132,27 +128,25 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % errors are weighted equally.
 %
 %
-% Options for models with nonlinear equations simulated in prediction step
-% =========================================================================
+% __Options for Models with Nonlinear Equations Simulated in Prediction Step__
 %
-% * `'simulate='` [ *`false`* | cell ] - Use the backend algorithms from
+% * `'Simulate='` [ *`false`* | cell ] - Use the backend algorithms from
 % the [`simulate`](model/simulate) function to run nonlinear simulation for
 % each prediction step; specify options that will be passed into `simulate`
 % when running a prediction step.
 %
 %
-% Description
-% ============
+% __Description__
 %
-% The `'ahead='` and `'rollback='` options cannot be combined with one
-% another, or with multiple data sets, or with multiple parameterisations.
+% The option `'Ahead='` cannot be combined with one another, or with
+% multiple data sets, or with multiple parameterisations.
 %
-% Initial conditions in time domain
-% ----------------------------------
 %
-% By default (with `'initCond=' 'stochastic'`), the Kalman filter starts
+% _Initial Conditions in Time Domain_
+%
+% By default (with `'InitCond=' 'stochastic'`), the Kalman filter starts
 % from the model-implied asymptotic distribution. You can change this
-% behaviour by setting the option `'initCond='` to one of the following
+% behaviour by setting the option `'InitCond='` to one of the following
 % four different values:
 %
 % * `'fixed'` -- the filter starts from the model-implied asymptotic mean
@@ -171,10 +165,10 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % through which you supply the mean and MSE for all the required initial
 % conditions.
 %
-% Contributions of measurement variables to the estimates of all variables
-% -------------------------------------------------------------------------
 %
-% Use the option `'returnCont=' true` to request the decomposition of
+% _Contributions of Measurement Variables to Estimates of All Variables_
+%
+% Use the option `'ReturnCont=' true` to request the decomposition of
 % measurement variables, transition variables, and shocks into the
 % contributions of each individual measurement variable. The resulting
 % output database will include one extra subdatabase called `.cont`. In
@@ -189,8 +183,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % due to the effect of constant terms and deterministic trends.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -212,18 +205,17 @@ chkConflicts( );
 %--------------------------------------------------------------------------
 
 [ny, ~, nb] = sizeOfSolution(this.Vector);
-nz = nnz(this.Quantity.IxMeasure);
+nz = nnz(this.Quantity.IxObserved);
 xRange = range(1)-1 : range(end);
 nXPer = length(xRange);
 
 % Throw a warning if some of the data sets have no observations.
 ixNanData = all( all(isnan(inp), 1), 2 );
-if any(ixNanData)
-    throw( ...
-        exception.Base('Model:NoMeasurementData', 'warning'), ...
-        exception.Base.alt2str(ixNanData, 'Data Variant(s) ') ...
-        ); %#ok<GTARG>
-end
+assert( ...
+    ~any(ixNanData), ...
+    exception.Base('Model:NoMeasurementData', 'warning'), ...
+    exception.Base.alt2str(ixNanData, 'Data Variant(s) ') ...
+); %#ok<GTARG>
 
 % Pre-allocated requested hdata output arguments.
 hData = struct( );

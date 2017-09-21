@@ -1,4 +1,4 @@
-function flag = chkQty(this, vecAlt, varargin)
+function flag = chkQty(this, variantsRequested, varargin)
 % chkQty  Check quantities for missing or log-zero values.
 %
 % Backend IRIS function.
@@ -12,14 +12,14 @@ STEADY_TOLERANCE = this.Tolerance.Steady;
 
 %--------------------------------------------------------------------------
 
-if isequal(vecAlt, Inf)
-    vecAlt = ':';
+if isequal(variantsRequested, Inf)
+    variantsRequested = ':';
 end
 
 for i = 1 : length(varargin)
     switch varargin{i}
         case 'log'
-            lvl = model.Variant.getQuantity(this.Variant, ':', vecAlt);
+            lvl = this.Variant.Values(:, :, variantsRequested);
             ixLogZero = this.Quantity.IxLog & any(abs(lvl)<=STEADY_TOLERANCE, 3);
             flag = ~any(ixLogZero);
             list = this.Quantity.Name(ixLogZero);
@@ -31,7 +31,7 @@ for i = 1 : length(varargin)
             end
         case 'parameters'
             % Throw warning if some parameters are not assigned.
-            [~, list] = isnan(this, 'parameters', vecAlt);
+            [~, list] = isnan(this, 'parameters', variantsRequested);
             flag = isempty(list);
             if ~flag
                 throw( ...
@@ -42,7 +42,7 @@ for i = 1 : length(varargin)
         case 'parameters:dynamic'
             % Throw warning if some parameters are not assigned but occur
             % in dynamic equations.
-            lvl = real(model.Variant.getQuantity(this.Variant, ':', vecAlt));
+            lvl = real( this.Variant.Values(:, :, variantsRequested) );
             ixp = this.Quantity.Type==TYPE(4);
             ixNeeded = across(this.Incidence.Dynamic, 'Eqtn');
             ixNeeded = any(ixNeeded, 2).';
@@ -58,7 +58,7 @@ for i = 1 : length(varargin)
         case 'parameters:steady'
             % Throw warning if some parameters are not assigned but occur
             % in steady equations.
-            lvl = real(model.Variant.getQuantity(this.Variant, ':', vecAlt));
+            lvl = real( this.Variant.Values(:, :, variantsRequested) );
             ixp = this.Quantity.Type==TYPE(4);
             ixNeeded = across(this.Incidence.Steady, 'Eqtn');
             ixNeeded = any(ixNeeded, 2).'; 
@@ -73,7 +73,7 @@ for i = 1 : length(varargin)
             end
         case 'sstate'
             % Throw warning if some steady states are not assigned.
-            [~, list] = isnan(this, 'sstate', vecAlt);
+            [~, list] = isnan(this, 'sstate', variantsRequested);
             flag = isempty(list);
             if ~flag
                 throw( ...

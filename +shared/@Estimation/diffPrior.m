@@ -49,12 +49,12 @@ for ip = 1 : np
     diffObj(ip) = iDiffObj;
     
     % Diff data likelihood.
-    if estOpt.evallik
+    if estOpt.EvalLik
         diffLik(ip) = (lp - 2*l0 + lm) / h2;
     end
     
     % Diff parameter priors.
-    if estOpt.evalpprior
+    if estOpt.EvalPPrior
         d = (pp - 2*p0 + pm) / h2;
         if ~isempty(itr.FnPrior{ip}) && isfunc(itr.FnPrior{ip})
             try %#ok<TRYNC>
@@ -65,7 +65,7 @@ for ip = 1 : np
     end
     
     % Diff system priors.
-    if estOpt.evalsprior
+    if estOpt.EvalSPrior
         diffSystemPrior(ip) = (sp - 2*s0 + sm) / h2;
     end
     
@@ -76,7 +76,7 @@ if isempty(hess{1})
     hess{1}(diagInx) = diffObj;
 end
 
-if estOpt.evalpprior
+if estOpt.EvalPPrior
     % Parameter priors are independent, the off-diagonal elements can be set to
     % zero.
     hess{2} = diag(diffParamPrior);
@@ -84,7 +84,7 @@ else
     hess{2} = zeros(np);
 end
 
-if estOpt.evalsprior
+if estOpt.EvalSPrior
     hess{3} = nan(np);
     hess{3}(diagInx) = diffSystemPrior;
 else

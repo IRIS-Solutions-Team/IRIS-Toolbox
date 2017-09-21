@@ -30,15 +30,9 @@ swap = {
     'exogenize, exogenise', { }, @(x) isempty(x) || iscellstr(x) || ischar(x) || isequal(x, @auto)
     };
 
-if true % ##### MOSW
-    matrixFmt = {
-        'MatrixFmt', 'namedmat', FN_VALID.matrixfmt
-        };
-else
-    matrixFmt = {
-        'MatrixFmt', 'plain', validFn.matrixfmt
-        }; %#ok<UNRCH>
-end
+matrixFormat = {
+    'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat
+    };
 
 select = {
     'select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x)
@@ -60,7 +54,7 @@ def = struct( );
 
 
 def.acf = [
-    matrixFmt
+    matrixFormat
     select
     applyfilter
     {
@@ -68,7 +62,8 @@ def.acf = [
     'nfreq', 256, @isnumericscalar
     'contributions, contribution', false, @islogicalscalar
     'order', 0, @isnumericscalar
-    } ];
+    }
+];
 
 def.autocaption = { ...
     'corr', 'Corr $shock1$ X $shock2$', @ischar, ...
@@ -80,7 +75,8 @@ def.blazer = [
     {
     'kind', 'steady', @(x) ischar(x) && any(strcmpi(x, {'sstate', 'steady', 'dynamic'}))
     'saveas', '', @ischar
-    } ];
+    }
+];
 
 def.bn = [
     deviation_dtrends
@@ -96,74 +92,61 @@ def.chkredundant = { ...
     'chkparam, chkparams, chkparameters', true, @islogicalscalar, ...
     };
 
-def.chksstate = { ...
-    'error', true, @islogicalscalar, ...
-    'warning', true, @islogicalscalar, ...
-    };
+def.chksstate = { 
+    'error', true, @(x) isequal(x, true) || isequal(x, false)
+    'warning', true, @(x) isequal(x, true) || isequal(x, false)
+};
 
 def.mychksstate = {
     'Kind, Type, Eqtn, Equation, Equations', 'dynamic', @(x) ischar(x) && any(strcmpi(x, {'dynamic', 'full', 'steady', 'sstate'}))
     };
 
-def.diffloglik = {...
-    'chksstate', true, FN_VALID.chksstate, ...
-    'progress', false, @islogicalscalar, ...
-    'solve', true, FN_VALID.solve, ...
-    'sstate, sstateopt', false, FN_VALID.sstate, ...
+def.diffloglik = {
+    'ChkSstate', true, @model.validateChksstate
+    'progress', false, @(x) isequal(x, true) || isequal(x, false)
+    'Solve', true, @model.validateSolve
+    'Steady, sstate, sstateopt', false, @model.validateSstate
     };
 
-% Combine model/estimate with shared.Estimation/estimate.
-x = irisopt.Estimation( );
-def.estimate = [
-    matrixFmt
-    x.estimate
-    {
-    'chksstate', true, FN_VALID.chksstate
-    'domain', 'time', @(x) any(strncmpi(x, {'t', 'f'}, 1))
-    'filter, filteropt', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end)))
-    'nosolution', 'error', @(x) (isnumericscalar(x) && x>=1e10) || (ischar(x) && any(strcmpi(x, {'error', 'penalty'})))
-    'solve', true, FN_VALID.solve
-    'Steady, sstate, sstateopt', false, FN_VALID.sstate
-    'zero', false, @islogicalscalar
-    } ];
-
 def.fevd = [
-    matrixFmt
+    matrixFormat
     select
-    ];
+];
 
 def.fmse = [
-    matrixFmt
+    matrixFormat
     select
-    ];
+];
 
 def.ffrf = [
-    matrixFmt
+    matrixFormat
     select
     {
     'include', @all, @(x) isempty(x) || isequal(x, @all) || ischar(x) || iscellstr(x)
     'exclude', { }, @(x) isempty(x) || ischar(x) || iscellstr(x)
-    'maxiter', [ ], @(x) isempty(x) || (isnumericscalar(x) && x>=0)
+    'MaxIter', [ ], @(x) isempty(x) || (isnumericscalar(x) && x>=0)
     'tolerance', [ ], @(x) isempty(x) || (isnumericscalar(x) && x>0)
-    } ];
+    } 
+];
 
 def.filter = [
-    matrixFmt
+    matrixFormat
     {
     'data, output', 'smooth', @(x) ischar(x)
-    } ];
+    } 
+];
 
-def.fisher = { ...
-    'chksgf', false, @islogicalscalar, ...
-    'chksstate', true, FN_VALID.chksstate, ...
-    'deviation', true, @islogicalscalar, ...
-    'epspower', 1/3, @isnumericscalar, ...
-    'exclude', { }, @(x) ischar(x) || iscellstr(x), ...
-    'percent', false, @islogicalscalar, ...
-    'progress', false, @islogicalscalar, ...
-    'solve', true, FN_VALID.solve, ...
-    'sstate, sstateopt', false, FN_VALID.sstate, ...
-    'tolerance', eps( )^(2/3), @isnumericscalar, ...
+def.fisher = {
+    'chksgf', false, @(x) isequal(x, true) || isequal(x, false)
+    'ChkSstate', true, @model.validateChksstate
+    'deviation', true, @(x) isequal(x, true) || isequal(x, false)
+    'epspower', 1/3, @isnumericscalar
+    'exclude', { }, @(x) ischar(x) || iscellstr(x)
+    'percent', false, @(x) isequal(x, true) || isequal(x, false)
+    'progress', false, @(x) isequal(x, true) || isequal(x, false)
+    'Solve', true, @model.validateSolve
+    'Steady, sstate, sstateopt', false, @model.validateSstate
+    'tolerance', eps( )^(2/3), @isnumericscalar
     };
 
 def.jforecast = [
@@ -178,7 +161,8 @@ def.jforecast = [
     'plan, Scenario', [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x)
     'StdScale', complex(1, 0), @(x) (isnumericscalar(x) && real(x)>=0 && imag(x)>=0 && abs(abs(x)-1)<1e-12) || strcmpi(x, 'normalize')
     'vary, std', [ ], @(x) isstruct(x) || isempty(x)
-    } ];
+    }
+];
 
 def.icrf = {
     'delog', true, @islogicalscalar
@@ -186,16 +170,17 @@ def.icrf = {
     };
 
 def.ifrf = [
-    matrixFmt
+    matrixFormat
     select
     ];
 
 def.loglik = [
-    matrixFmt
+    matrixFormat
     {
     'domain', 'time', @(x) any(strncmpi(x, {'t', 'f'}, 1))
     'persist', false, @islogicalscalar
-    } ];
+    }
+];
 
 def.fdlik = [
     deviation_dtrends
@@ -206,7 +191,8 @@ def.fdlik = [
     'outoflik', { }, @(x) ischar(x) || iscellstr(x)
     'relative', true, @islogicalscalar
     'zero', true, @islogicalscalar
-    } ];
+    }
+];
 
 def.lognormal = {
     'fresh', false, @islogicalscalar
@@ -249,7 +235,8 @@ def.kalmanFilter = [
     'meanonly', false, @islogicalscalar
     'returnstd', true, @islogicalscalar
     'returnmse', true, @islogicalscalar
-    } ];
+    }
+];
 
 def.kalman = {
     'InitMedian', [ ], @(x) isempty(x) || isstruct(x) || strcmpi(x, 'InputData')
@@ -270,7 +257,7 @@ def.model = [
     'optimal', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end)))
     'epsilon', [ ], @(x) isempty(x) || (isnumericscalar(x) && x>0 && x<1)
     'removeleads, removelead', false, @islogicalscalar
-    'Linear', false, @islogicalscalar
+    'Linear', false, @(x) isequal(x, true) || isequal(x, false)
     'makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x)
     'OrderLinks', true, @islogicalscalar
     'precision', 'double', @(x) ischar(x) && any(strcmp(x, {'double', 'single'}))
@@ -282,7 +269,8 @@ def.model = [
     'stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumericscalar(x) && x>=0
     'stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumericscalar(x) && x>=0
     'baseyear, torigin', @config, @(x) isequal(x, @config) || isempty(x) || isintscalar(x)
-    } ];
+    }
+];
 
 def.neighbourhood = {
     'plot', true, @islogicalscalar
@@ -297,10 +285,11 @@ def.optimal = {
     };
 
 def.regress = [
-    matrixFmt
+    matrixFormat
     {
     'acf', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
-    } ];
+    }
+];
     
 def.resample = [
     deviation_dtrends
@@ -313,7 +302,8 @@ def.resample = [
     'statevector', 'alpha', @(x) ischar(x) && any(strcmpi(x, {'alpha', 'x'}))
     'vary', [ ], @(x) isempty(x) || isstruct(x)
     'wild', [ ], @(x) isempty(x) || islogicalscalar(x)
-    } ];
+    }
+];
 
 def.shockplot = { ...
     'dbplot', { }, @(x) iscell(x) && iscellstr(x(1:2:end)), ...
@@ -332,12 +322,13 @@ def.simulate = [
     {
     'anticipate', true, @islogicalscalar
     'AppendPresample, AddPresample', false, @islogical
+    'Blocks', true, @islogicalscalar
     'contributions, contribution', false, @islogicalscalar
     'dboverlay, dbextend', false, @(x) islogicalscalar(x) || isstruct(x)
     'Delog', true, @islogicalscalar
     'fast', true, @islogicalscalar
     'ignoreshocks, ignoreshock, ignoreresiduals, ignoreresidual', false, @islogicalscalar
-    'method', 'firstorder', @(x) ischar(x) && any(strcmpi(x, {'firstorder', 'selective', 'global', 'exact'}))
+    'Method', 'FirstOrder', @(x) ischar(x) && any(strcmpi(x, {'FirstOrder', 'Selective', 'Global', 'Exact', 'Stacked'}))
     'missing', NaN, @isnumeric
     'plan, Scenario', [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x)
     'progress', false, @islogicalscalar
@@ -348,12 +339,16 @@ def.simulate = [
     ...
     'nonlinear, nonlinearize, nonlinearise', [ ], @(x) isempty(x) || isnumeric(x) || isequal(x, @all)
     ...
+    ... Stacked time
+    ...
+    'Stacked', 1, @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=1
+    ...
     ... Nonlinear simulations
     ...
-    'display', @auto, FN_VALID.Display
+    'Display', @auto, FN_VALID.Display
     'error', false, @islogicalscalar
     'PrepareGradient', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
-    'optimset', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x)
+    'OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x)
     'Solver', @auto, @(x) isequal(x, @auto) ...
     || (ischar(x) && any(strcmpi(x, {'qad', 'plain', 'lsqnonlin', 'IRIS', 'fsolve'}))) ...
     || isequal(x, @fsolve) || isequal(x, @lsqnonlin) || isequal(x, @qad) ...
@@ -371,36 +366,38 @@ def.simulate = [
     'lambda', 1, @(x) isnumericscalar(x) && all(x>0 & x<=2)
     'noptimlambda, optimlambda', 1, @(x) islogicalscalar(x) || (isintscalar(x) && x>=0)
     'reducelambda, lambdafactor', 0.5, @(x) isnumericscalar(x) && x>0 && x<=1
-    'maxiter', 100, @isnumericscalar
+    'MaxIter', 100, @isnumericscalar
     'nshanks', false, @(x) isempty(x) || (isintscalar(x) && x>0) || isequal(x, false)
     'tolerance', 1e-5, @isnumericscalar
     'upperbound', 1.5, @(x) isnumericscalar(x) && all(x>1)
     ...
     ... Equation-selective nonlinear simulations - Optim Tbx
     ...
-    'optimset', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x)
+    'OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x)
     ...
     ... Global nonlinear simulations
     ...
-    'chksstate', true, FN_VALID.chksstate
+    'ChkSstate', true, @model.validateChksstate
     'ForceRediff', false, @islogicalscalar
     'InitEndog', 'Dynamic', @(x) ischar(x) && any(strcmpi(x, {'Dynamic', 'Static'})) 
-    'solve', true, FN_VALID.solve
-    'sstate, sstateopt', true, FN_VALID.sstate
+    'Solve', true, @model.validateSolve
+    'Steady, sstate, sstateopt', true, @model.validateSstate
     'Unlog', [ ], @(x) isempty(x) || isequal(x, @all) || iscellstr(x) || ischar(x)
     'times', @auto, @(x) isequal(x, @auto) || ( isnumericscalar(x) && x>0 )
     'whenfailed', 'warning', @(x) ischar(x) && any(strcmpi(x, {'error', 'warning'}))
-    } ];
+    }
+];
 
 def.solve = [
     system
     {
+    'error', false, @islogicalscalar
     'expand, forward', 0, @(x) isnumeric(x) && length(x)==1
     'fast', false, @islogicalscalar
-    'error', false, @islogicalscalar
     'progress', false, @islogicalscalar
     'warning', true, @islogicalscalar
-    } ];
+    }
+];
 
 def.symbdiff = { ...
     'simplify', true, @islogicalscalar, ...
@@ -410,19 +407,21 @@ def.createSourceDbase = [
     deviation_dtrends
     {
     'AppendPresample, AddPresample', true, @islogicalscalar
-    'AppendPostsample, AddPostsample', false, @islogicalscalar
+    'AppendPostsample, AddPostsample', true, @islogicalscalar
     'ndraw', 1, @(x) isintscalar(x) && x>=0
     'ncol', 1, @(x) isintscalar(x) && x>=0
     'randshocks, randshock, randomshocks, randomshock', false, @islogicalscalar
     'shockfunc, randfunc, randfn', @zeros, @(x) isa(x, 'function_handle') && any(strcmp(func2str(x), {'randn', 'lhsnorm', 'zeros'}))
-    } ];
+    }
+];
 
 def.srf = [
     select
     {
     'delog, log', true, @islogicalscalar
     'size', @auto, @(x) isequal(x, @auto) || isnumericscalar(x)
-    } ];
+    }
+];
 
 def.sspace = {
     'triangular', true, @islogicalscalar
@@ -430,21 +429,10 @@ def.sspace = {
     };
 
 
-
-
-def.Steady = {
-    'Linear', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
-    };
-
-
-
-
 def.SteadyLinear = {
-    'Solve', false, FN_VALID.solve
+    'Solve', false, @model.validateSolve
     'Warning', true, @islogicalscalar
     };
-
-
 
 
 def.SteadyNonlinear = [
@@ -462,7 +450,7 @@ def.SteadyNonlinear = [
     'growthbounds, growthbnds', [ ], @(x) isempty(x) || isstruct(x)
     'levelbounds, levelbnds', [ ], @(x) isempty(x) || isstruct(x)
     ... 'LogMinus', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all)
-    'optimset', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x)
+    'OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x)
     'NanInit, init', 1, @(x) isnumericscalar(x) && isfinite(x)
     'resetinit', [ ], @(x) isempty(x) || (isnumericscalar(x) && isfinite(x))
     'Reuse', false, @islogicalscalar
@@ -471,7 +459,8 @@ def.SteadyNonlinear = [
     'Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all)
     'Warning', true, @islogicalscalar
     'zeromultipliers', false, @islogicalscalar
-    } ];
+    }
+];
 
 
 
@@ -491,13 +480,15 @@ def.sstatefile = [
     {
     'growthnames, growthname', 'd?', @ischar
     'time', true, @islogicalscalar
-    } ];
+    }
+];
 
 def.system = [
     system
     {
     'sparse', false, @islogicalscalar
-    } ];
+    }
+];
 
 def.trollify = { 
     'SrcTemplate', 'trollify_template.src', @ischar
@@ -515,16 +506,17 @@ def.VAR = {...
     };
 
 def.vma = [
-    matrixFmt
+    matrixFormat
     select
     ];
 
 def.xsf = [
     applyfilter
-    matrixFmt
+    matrixFormat
    	select
     {
     'progress', false, @islogicalscalar, ...
-    } ];
+    }
+];
 
 end

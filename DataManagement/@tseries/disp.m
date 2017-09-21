@@ -32,7 +32,7 @@ dispHeader(this);
 
 data = this.data;
 dataNDim = ndims(data);
-config = irisget( );
+config = iris.get( );
 dispND(start, data, this.Comment, [ ], name, disp2DFunc, dataNDim, config);
 
 disp@shared.UserDataContainer(this, 1);

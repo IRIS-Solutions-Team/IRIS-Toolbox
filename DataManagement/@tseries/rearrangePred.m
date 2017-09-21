@@ -1,6 +1,6 @@
 function y = rearrangePred(x1, x2)
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 
 [data, range] = rangedata([x1, x2]);
 

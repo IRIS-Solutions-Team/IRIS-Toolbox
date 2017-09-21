@@ -4,6 +4,8 @@ classdef Options
         Display = 'iter'
         Lambda = [0.1, 1, 10, 100];
         SolverName = 'IRIS'
+        JacobPattern = logical.empty(0)
+        LargeScale = false
         MaxIterations = 1000
         MaxFunctionEvaluations = @(inp) 100*inp.NumberOfVariables
         StepTolerance = 1e-12

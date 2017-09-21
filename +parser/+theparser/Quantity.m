@@ -67,13 +67,13 @@ classdef Quantity < parser.theparser.Generic
             nQuan = length(tknExt);
             label = cell(1, nQuan);
             name = cell(1, nQuan);
-            ixMeasure = false(1, nQuan);
+            ixObserved = false(1, nQuan);
             strBounds = cell(1, nQuan);
             strAssigned = cell(1, nQuan);
             for i = 1 : nQuan
                 label{i} = code( tknExt{i}(1,1)+1 : tknExt{i}(1,2)-1 );
                 name{i}  = code( tknExt{i}(2,1) : tknExt{i}(2,2)   );
-                ixMeasure(i) = tknExt{i}(3,1)<=tknExt{i}(3,2);
+                ixObserved(i) = tknExt{i}(3,1)<=tknExt{i}(3,2);
                 strBounds{i} = code( tknExt{i}(4,1) : tknExt{i}(4,2) );
                 strAssigned{i} = code( tknExt{i}(5,1)+1 : tknExt{i}(5,2) );
             end
@@ -94,7 +94,7 @@ classdef Quantity < parser.theparser.Generic
                     posUnique = sort(posUnique);
                     posUnique = posUnique(:).';
                     name = name(posUnique);
-                    ixMeasure = ixMeasure(posUnique);
+                    ixObserved = ixObserved(posUnique);
                     label = label(posUnique);
                     strAssigned = strAssigned(posUnique);
                     strBounds = strBounds(posUnique);
@@ -128,7 +128,7 @@ classdef Quantity < parser.theparser.Generic
             [label, alias] = this.splitLabelAlias(label);
             
             qty.Name(end+(1:nQuan)) = name;
-            qty.IxMeasure(end+(1:nQuan)) = ixMeasure;
+            qty.IxObserved(end+(1:nQuan)) = ixObserved;
             qty.Type(end+(1:nQuan)) = repmat(this.Type, 1, nQuan);
             qty.Label(end+(1:nQuan)) = label;
             qty.Alias(end+(1:nQuan)) = alias;

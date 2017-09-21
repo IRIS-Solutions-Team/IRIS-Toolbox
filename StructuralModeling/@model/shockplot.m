@@ -99,8 +99,7 @@ end
 if strcmpi(opt.shocksize, 'Std') ...
         || isequal(opt.shocksize, @auto) ...
         || isequal(opt.shocksize, @std)
-    shkSize = model.Variant.getStdCorr(this.Variant, ixRequest, ':');
-    shkSize = permute(shkSize, [1, 3, 2]);
+    shkSize = permute(this.Variant.StdCorr(:, ixRequest, :), [1, 3, 2]);
 else
     shkSize = opt.shocksize;
 end

@@ -135,7 +135,7 @@ c = cell(1, 40);
 for i = 1 : nQuan
     type = this.Quantity.Type(i);
     name = this.Quantity.Name{i};
-    value = real( this.Variant{1}.Quantity(i) );
+    value = real( this.Variant.Values(:, i, 1) );
     if type==TYPE(4)
         c{type} = [ c{type}, sprintf(fmt4, name, value) ];
     else
@@ -236,7 +236,7 @@ return
             c0 = strrep(c0, '''n', '');
             outp = lookup(this.Quantity, c0);
             c = [c0, opt.SteadyRefSuffix, symbolType4];
-            sref.(c0) = real( this.Variant{1}.Quantity(outp.IxName) );
+            sref.(c0) = real( this.Variant.Values(:, outp.IxName, 1) );
         end
     end
 end

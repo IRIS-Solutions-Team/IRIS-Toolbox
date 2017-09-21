@@ -3,8 +3,8 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 %
 % __Syntax__
 %
-%     S = simulate(M, D, Range)
-%     [S, ExitFlag, AddF, Delta] = simulate(M, D, Range)
+%     S = simulate(M, D, Range, ...)
+%     [S, ExitFlag, AddF, Delta] = simulate(M, D, Range, ...)
 %
 %
 % __Input Arguments__
@@ -287,29 +287,45 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 % [this, inp, range, varargin] = ...
 %     irisinp.parser.parse('model.simulate', varargin{:});
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/simulate.m');
+    INPUT_PARSER.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
+    INPUT_PARSER.addRequired('D', @isstruct);
+    INPUT_PARSER.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
+end
+INPUT_PARSER.parse(this, inp, range);
 
 opt = passvalopt('model.simulate', varargin{:});
 
 % Global (exact) nonlinear simulation of backward-looking models.
-if strcmpi(opt.method, 'global') || strcmpi(opt.method, 'exact')
+if strcmpi(opt.Method, 'global') || strcmpi(opt.Method, 'exact')
     if isequal(opt.Solver, @auto)
         opt.Solver = 'IRIS';
     end
-    [this, inp, range] = ...
-        irisinp.parser.parse('model.run', this, inp, range);
-    [outp, exitFlag]  = simulateNonlinear(this, inp, range, @all, 'Verbose', opt);
-    outp = model.appendData(inp, outp, range, opt);
+    [opt.Solver, opt.PrepareGradient] = ...
+        solver.Options.processOptions(opt.Solver, opt.PrepareGradient, 'Verbose');
+    [outp, exitFlag]  = simulateNonlinear(this, inp, range, @all, opt);
+    outp = this.appendData(inp, outp, range, opt);
+    return
+end
+
+if strcmpi(opt.Method, 'Stacked')
+    if isequal(opt.Solver, @auto)
+        opt.Solver = 'IRIS';
+    end
+    [opt.Solver, opt.PrepareGradient] = ...
+        solver.Options.processOptions(opt.Solver, opt.PrepareGradient, 'Verbose');
+    simulateStacked(this, inp, range, @all, opt);
     return
 end
 
 if isequal(opt.Solver, @auto)
     opt.Solver = 'qad';
 end
-
-[this, inp, range] = ...
-    irisinp.parser.parse('model.simulate', this, inp, range);
 
 if ischar(opt.Solver) && strcmpi(opt.Solver, 'plain')
     opt.Solver = @qad;
@@ -413,7 +429,7 @@ end
 
 % Main loop
 %-----------
-if opt.progress && strcmpi(opt.method, 'FirstOrder')
+if opt.progress && strcmpi(opt.Method, 'FirstOrder')
     s.progress = ProgressBar('IRIS model.simulate progress');
 else
     s.progress = [ ];
@@ -550,7 +566,7 @@ end
 
 % Overlay the input (or user-supplied) database with the simulation
 % database if DbOverlay=true or AppendPresample=true
-outp = model.appendData(inp, outp, range, opt);
+outp = this.appendData(inp, outp, range, opt);
 
 return
 

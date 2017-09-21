@@ -13,61 +13,61 @@ np = length(x0);
 hess = {zeros(np),zeros(np),zeros(np)};
 lmb = [ ];
 
-if ischar(opt.solver)
+if ischar(opt.Solver)
     % Optimization toolbox
     %----------------------
-    if strncmpi(opt.solver,'fmin',4)
+    if strncmpi(opt.Solver,'fmin',4)
         % Unconstrained minimization.
         if all(isinf(lb)) && all(isinf(ub))
             [pStar,objStar,~,~,~,hess{1}] = ...
-                fminunc(fnObj,x0,opt.optimset, ...
+                fminunc(fnObj,x0,opt.OptimSet, ...
                 varargin{:});
             lmb = struct('lower',zeros(np,1),'upper',zeros(np,1));
         else
             % Constrained minimization.
             [pStar,objStar,~,~,lmb,~,hess{1}] = ...
                 fmincon(fnObj,x0, ...
-                [ ],[ ],[ ],[ ],lb,ub,[ ],opt.optimset,...
+                [ ],[ ],[ ],[ ],lb,ub,[ ],opt.OptimSet,...
                 varargin{:});
         end
-    elseif strcmpi(opt.solver,'lsqnonlin')
+    elseif strcmpi(opt.Solver,'lsqnonlin')
         % Nonlinear least squares.
         [pStar,objStar,~,~,~,lmb] = ...
-            lsqnonlin(fnObj,x0,lb,ub,opt.optimset, ...
+            lsqnonlin(fnObj,x0,lb,ub,opt.OptimSet, ...
             varargin{:});
-    elseif strcmpi(opt.solver,'pso')
+    elseif strcmpi(opt.Solver,'pso')
         % IRIS Optimization Toolbox
         %--------------------------
         [pStar,objStar,~,~,~,~,lmb] = ...
             irisoptim.pso(fnObj,x0,lb,ub,...
-            opt.optimset{:},...
+            opt.OptimSet{:},...
             varargin{:});
-    elseif strcmpi(opt.solver,'irismin')
+    elseif strcmpi(opt.Solver,'irismin')
         % IRIS Optimization Toolbox
         %--------------------------
         [pStar,objStar,hess{1}] ...
             = irisoptim.irismin(fnObj,x0,...
-            opt.optimset{:},varargin) ;
-    elseif strcmpi(opt.solver,'alps')
+            opt.OptimSet{:},varargin) ;
+    elseif strcmpi(opt.Solver,'alps')
         % ALPS
         %--------------------------
         [pStar,objStar,lmb] ...
             = irisoptim.alps(fnObj,x0,lb,ub,...
-            opt.optimset{:}) ;
+            opt.OptimSet{:}) ;
     end
 else
     % User-supplied optimisation routine
     %------------------------------------
-    if isa(opt.solver,'function_handle')
+    if isa(opt.Solver,'function_handle')
         % User supplied function handle.
-        f = opt.solver;
+        f = opt.Solver;
         args = { };
     else
         % User supplied cell `{func,arg1,arg2,...}`.
-        f = opt.solver{1};
-        args = opt.solver(2:end);
+        f = opt.Solver{1};
+        args = opt.Solver(2:end);
     end
     [pStar,objStar,hess{1}] = ...
         f(fnObj, ...
-        x0,lb,ub,opt.optimset,args{:});
+        x0,lb,ub,opt.OptimSet,args{:});
 end

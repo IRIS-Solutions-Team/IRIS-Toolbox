@@ -14,9 +14,8 @@ nx = size(s.T, 1);
 nb = size(s.T, 2);
 nf = nx - nb;
 ne = size(s.Ea, 1);
-nPer = s.NPer;
-nAlt = length(this);
-iAlt = min(s.ILoop, nAlt);
+numOfPeriods = s.NPer;
+v = min(s.ILoop, length(this));
 
 % Main loop
 %-----------
@@ -25,8 +24,8 @@ iAlt = min(s.ILoop, nAlt);
 tt = 2;
 
 % Preallocate output data.
-Y = nan(ny,nPer);
-Xx = nan(nx,nPer);
+Y = nan(ny, numOfPeriods);
+Xx = nan(nx, numOfPeriods);
 Ea = s.Ea;
 Eu = s.Eu;
 
@@ -34,21 +33,21 @@ if s.IsRevision
     eqtnN = s.Revision.EqtnN;
     ptrRevision = s.Revision.PtrRevision;
     nPtrRevision = length(ptrRevision);
-    P = nan(nPtrRevision, nPer);
+    P = nan(nPtrRevision, numOfPeriods);
 end
 
-testFn = @(x) ~any(strcmp(x,{'off','none'}));
+testFn = @(x) ~any(strcmp(x, {'off', 'none'}));
 isDisplay = ...
-    (s.IsRevision && testFn(s.Revision.sstate.optimset.Display)) ...
+    (s.IsRevision && testFn(s.Revision.Steady.OptimSet.Display)) ...
     || ...
-    (isequal(s.Method,'global') && testFn(s.OptimSet.Display));
+    (isequal(s.Method, 'global') && testFn(s.OptimSet.Display));
 
 if isDisplay
-    nDec = floor(log10(nPer)) + 1;
+    numOfDecimals = floor(log10(numOfPeriods)) + 1;
     textfun.loosespace( );
 end
 
-for t = 1 : nPer
+for t = 1 : numOfPeriods
     if isDisplay
         rptSolving( );
     end
@@ -60,15 +59,15 @@ for t = 1 : nPer
     % First-order approx simulation first.
     s.Alp0 = s.U \ s.x0;
     
-    ixPer = false(1, nPer);
+    ixPer = false(1, numOfPeriods);
     ixPer(t) = true;
     
     s.M = simulate.linear.multipliers(s);
     switch lower(s.Method)
         case 'firstorder'
-            [s.y,s.x,s.Ea,s.Eu] = simulate.linear.run(s, 1);
+            [s.y, s.x, s.Ea, s.Eu] = simulate.linear.run(s, 1);
         case 'global'
-            [s.y,s.x,s.Ea,s.Eu] = simulate.global.run(s, ixPer);
+            [s.y, s.x, s.Ea, s.Eu] = simulate.global.run(s, ixPer);
         otherwise
             utils.error('model:mysimulateper', ...
                 ['Function simulate( ) with Revision=true ', ...
@@ -76,28 +75,28 @@ for t = 1 : nPer
                 s.Method);
     end
     
-    Y(:,t) = s.y(:,1);
-    Xx(:,t) = s.x(:,1);
-    Ea(:,t) = s.Ea(:,1);
-    Eu(:,t) = s.Eu(:,1);
+    Y(:, t) = s.y(:, 1);
+    Xx(:, t) = s.x(:, 1);
+    Ea(:, t) = s.Ea(:, 1);
+    Eu(:, t) = s.Eu(:, 1);
     
     % Store current parameters, revisions, solution.
     if s.IsRevision
-        P(:, t) = this.Variant{iAlt}.Quantity(1, ptrRevision).';
-        if t < nPer
+        P(:, t) = this.Variant.Values(:, ptrRevision, v).';
+        if t < numOfPeriods
             runRevisions( );
         end
     end
     
     % Prepare next period.
-    s.x0 = s.x(nf+1:end,1);
-    s.Ea(:,1) = [ ];
-    s.Eu(:,1) = [ ];
-    s.G(:,1) = [ ];
+    s.x0 = s.x(nf+1:end, 1);
+    s.Ea(:, 1) = [ ];
+    s.Eu(:, 1) = [ ];
+    s.G(:, 1) = [ ];
     if ~isempty(s.Anch)
-        s.Anch(:,1) = [ ];
-        s.Wght(:,1) = [ ];
-        s.Tune(:,1) = [ ];
+        s.Anch(:, 1) = [ ];
+        s.Wght(:, 1) = [ ];
+        s.Tune(:, 1) = [ ];
     end
 end
 
@@ -111,10 +110,10 @@ return
             rptRevisionParam( );
         end
         
-        xx = [ [nan(nf,1);s.x0], s.x(:,1) ];
-        xx(s.IxXLog,:) = real(exp(xx(s.IxXLog,:)));
-        ee = [ nan(ne,1), s.Ea(:,1)+s.Eu(:,1) ];
-        yy = [ nan(ny,1), s.y(:,1) ];
+        xx = [ [nan(nf, 1);s.x0], s.x(:, 1) ];
+        xx(s.IxXLog, :) = real(exp(xx(s.IxXLog, :)));
+        ee = [ nan(ne, 1), s.Ea(:, 1)+s.Eu(:, 1) ];
+        yy = [ nan(ny, 1), s.y(:, 1) ];
         pp = real(s.Update.Quantity(1, s.NameType==4));
         LL = s.L;
         % Absolute time within the entire nonlinear simulation for sstate
@@ -124,18 +123,18 @@ return
         % Evaluate steady-state revision equations
         %------------------------------------------
         try
-            D = eqtnN(yy,xx,ee,pp,tt,LL,ttAbs);
+            D = eqtnN(yy, xx, ee, pp, tt, LL, ttAbs);
         catch Err
             utils.error('simulate:mysimulateper', ...
                 ['Error evaluating steady-state revision equations at t=%g.\n ', ...
                 '\tUncle says: %s'], ...
-                t,Err.message);
+                t, Err.message);
         end
         
         % Revise steady state
         %---------------------
         D = D(:).';
-        ixNonzero = this.Variant{iAlt}.Quantity(1, ptrRevision)~=D;
+        ixNonzero = this.Variant.Values(:, ptrRevision, v)~=D;
         if any(ixNonzero)
             if isDisplay
                 name = this.Quantity.Name(ptrRevision);
@@ -147,9 +146,9 @@ return
             s.Update.PosStdCorr = nan( size(s.PosQty) );
             % Revise steady state and solution.
             isError = true;
-            this = update(this, D, s.Update, iAlt, s.Revision, isError);
+            this = update(this, D, s.Update, v, s.Revision, isError);
             % Update this model variant in s.
-            s = prepareSimulate2(this, s, iAlt);
+            s = prepareSimulate2(this, s, v);
         else
             if isDisplay
                 rptNoChange( );
@@ -160,21 +159,21 @@ return
     
     
     function rptSolving( )
-        fprintf('=====Period %*g/%*g. Solving equations.\n',nDec,t,nDec,nPer);
+        fprintf('=====Period %*g/%*g. Solving equations.\n', numOfDecimals, t, numOfDecimals, numOfPeriods);
     end
 
     
     
     function rptRevisionParam( )
         fprintf('=====Period %*g/%*g. Revising parameters.', ...
-            nDec,t,nDec,nPer);
+            numOfDecimals, t, numOfDecimals, numOfPeriods);
     end
 
     
     
     function rptChange(List)
         fprintf(' Change in');
-        fprintf(' %s',List{:});
+        fprintf(' %s', List{:});
         fprintf('.\n');
     end
 
@@ -188,6 +187,6 @@ return
     
     function rptRevisionModel( )
         fprintf('=====Period %*g/%*g. Revising steady state and solution.\n', ...
-            nDec, t, nDec, nPer);
+            numOfDecimals, t, numOfDecimals, numOfPeriods);
     end
 end

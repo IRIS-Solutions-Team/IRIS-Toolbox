@@ -34,7 +34,7 @@ if isempty(D)
     D = zeros(ny,1);
 end
 
-symm = @(X) (X+X.')/2;
+symm = @(x) (x + x')/2;
 
 T = [A;eye((p-1)*nx,p*nx)];
 

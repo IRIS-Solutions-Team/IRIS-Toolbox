@@ -23,11 +23,11 @@ TYPE = @int8;
 MSE_TOLERANCE = this.Tolerance.Mse;
 
 [ny, nxx, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
-nz = nnz(this.Quantity.IxMeasure);
+nz = nnz(this.Quantity.IxObserved);
 if nz>0
     ny = nz;
 end
-nAlt = length(this);
+nv = length(this);
 nData = size(inp, 3);
 
 if ~isequal(opt.simulate, false)
@@ -40,11 +40,11 @@ s = struct( );
 s.EIGEN_TOLERANCE = this.Tolerance.Eigen;
 s.DIFFUSE_SCALE = 1e8;
 s.IsSimulate = ~isequal(opt.simulate, false) ...
-    && strcmpi(opt.simulate.method, 'selective') ...
+    && strcmpi(opt.simulate.Method, 'selective') ...
     && opt.simulate.NonlinWindow>0 && any(this.Equation.IxHash);
 s.NAhead = opt.ahead;
 s.IsObjOnly = nargout<=1;
-s.ObjFunPenalty = this.OBJ_FUN_PENALTY;
+s.ObjFunPenalty = this.OBJ_FUNC_PENALTY;
 
 % Out-of-lik params cannot be used with ~opt.dtrends.
 nPOut = length(opt.outoflik);
@@ -69,15 +69,14 @@ s.lastSmooth = opt.lastsmooth;
 
 % Tunes on shock means; model solution is expanded within `prepareLoglik`.
 tune = opt.tune;
-s.IsShkTune = ~isempty(tune) && any( tune(:)~=0 );
-if s.IsShkTune
+maybeShkTunes = ~isempty(tune) && any( tune(:)~=0 );
+if maybeShkTunes
     % Add pre-sample.
-    nTune = size(tune, 3);
-    tune = [zeros(ne, 1, nTune), tune];
+    tune = [zeros(ne, 1, size(tune, 3)), tune];
 end
 
 % Total number of cycles.
-nLoop = max(nData, nAlt);
+nLoop = max(nData, nv);
 s.nPred = max(nLoop, s.NAhead);
 
 % Pre-allocate output data.
@@ -116,19 +115,17 @@ if s.IsSimulate
     prepareSimulate( );
 end
 
-% Main loop
-%-----------
+% __Main Loop__
 
 if ~s.IsObjOnly && opt.progress
     progress = ProgressBar('IRIS Model.kalmanFilter progress');
 end
 
-ixSolved = true(1, nAlt);
+ixSolved = true(1, nv);
 ixValidFactor = true(1, nLoop);
 
 for iLoop = 1 : nLoop
-    % Next data
-    %-----------    
+    % __Next Data__
     % Measurement and exogenous variables, and initial observations of
     % measurement variables. Deterministic trends will be subtracted later on.
     s.y1 = inp(1:ny, :, min(iLoop, end));
@@ -138,28 +135,33 @@ for iLoop = 1 : nLoop
     s.y1 = [nan(ny, 1), s.y1];
     s.g = [nan(ng, 1), s.g];
     
-    % Next model solution
-    %---------------------
-    if iLoop<=nAlt
-        T = this.solution{1}(:, :, iLoop);
-        R = this.solution{2}(:, :, iLoop);
-        k = this.solution{3}(:, 1, iLoop);
-        s.U = this.solution{7}(:, :, iLoop);
+    if maybeShkTunes
+        s.tune = tune(:, :, min(iLoop, end));
+        s.VaryingU = real(s.tune);
+        s.VaryingE = imag(s.tune);
+        s.VaryingU(isnan(s.VaryingU)) = 0;
+        s.VaryingE(isnan(s.VaryingE)) = 0;
+        s.LastVaryingU = max([0, find(any(s.VaryingU, 1), 1, 'last')]);
+        s.LastVaryingE = max([0, find(any(s.VaryingE, 1), 1, 'last')]);
+        s.IsShkTune = s.LastVaryingU>0 || s.LastVaryingE>0;
+    else
+        s.IsShkTune = false;
+    end
+
+
+    % __Next Model Solution__
+    v = min(iLoop, nv);
+    if iLoop<=nv
+        [T, R, k, s.Z, s.H, s.d, s.U, ~, Zb] = sspaceMatrices(this, v);
         if nz>0
             % Transition variables marked for measurement.
-            Zb = this.solution{9}(:, :, iLoop);
             s.Z = Zb*s.U;
             s.H = zeros(nz, ne);
             s.d = zeros(nz, 1);
-        else
-            % Measurement variables.
-            s.Z = this.solution{4}(:, :, iLoop);
-            s.H = this.solution{5}(:, :, iLoop);
-            s.d = this.solution{6}(:, :, iLoop);
         end
 
-        s.IxRequired = this.Variant{iLoop}.IxInit;
-        s.NUnit = sum(this.Variant{iLoop}.Stability==TYPE(1));
+        s.IxRequired = this.Variant.IxInit(:, :, v);
+        s.NUnit = getNumOfUnitRoots(this.Variant, v);
         s.Tf = T(1:nf, :);
         s.Ta = T(nf+1:end, :);
         % Keep forward expansion for computing the effect of tunes on shock
@@ -176,22 +178,11 @@ for iLoop = 1 : nLoop
             s.ka = k(nf+1:end, :);
         end
         
-        % Store `Expand` matrices only if there are tunes on mean of shocks.
-        if ~s.IsShkTune
-            s.Expand = [ ];
-        else
-            s.Expand = cell(size(this.Expand));
-            for i = 1 : numel(s.Expand)
-                s.Expand{i} = this.Expand{i}(:, :, min(iLoop, end));
-            end
-        end
-        
-        % Time-varying StdCorr
-        %----------------------
+        % _Time-Varying StdCorr_
         % Combine currently assigned StdCorr with user-supplied
         % time-varying StdCorr including one presample period used to
         % initialize the filter.
-        sx = combineStdCorr(this.Variant{iLoop}, opt.StdCorr, nPer);
+        sx = combineStdCorr(this.Variant, v, opt.StdCorr, nPer);
         
         % Create covariance matrix from stdcorr vector.
         s.Omg = covfun.stdcorr2cov(sx, ne);
@@ -210,9 +201,9 @@ for iLoop = 1 : nLoop
     if ~ixSolved(iLoop)
         continue
     end
+
     
-    % Deterministic trends
-    %----------------------
+    % __Deterministic Trends__
     % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
     if nz==0 && (nPOut>0 || opt.dtrends)
         [s.D, s.X] = evalDtrends(this, opt.outoflik, s.g, iLoop);
@@ -225,8 +216,8 @@ for iLoop = 1 : nLoop
         s.y1 = s.y1 - s.D;
     end
 
-    % Next tunes on the means of the shocks
-    %---------------------------------------
+
+    % __Next Tunes on the Means of the Shocks__
     % Add the effect of the tunes to the constant vector; recompute the
     % effect whenever the tunes have changed or the model solution has changed
     % or both.
@@ -234,11 +225,15 @@ for iLoop = 1 : nLoop
     % The std dev of the tuned shocks remain unchanged and hence the
     % filtered shocks can differ from its tunes (unless the user specifies zero
     % std dev).
-    if s.IsShkTune
-        s.tune = tune(:, :, min(iLoop, end));
-        [s.d, s.ka, s.kf] = addShockTunes(s, opt);
+    if s.IsShkTune 
+        R = s.R;
+        if s.LastVaryingE>0
+            R = expandFirstOrder(this, v, s.LastVaryingE);
+        end
+        [s.d, s.ka, s.kf] = addShockTunes(s, R, opt);
     end
     
+
     % Make measurement variables with `Inf` measurement shocks look like
     % missing. The `Inf` measurement shocks are detected in `xxomg2sasy`.
     s.y1(s.syinf) = NaN;
@@ -248,19 +243,19 @@ for iLoop = 1 : nLoop
     s.LastObs = max([ 0, find( any(s.yindex, 1), 1, 'last' ) ]);
     s.jyeq = [false, all(s.yindex(:, 2:end)==s.yindex(:, 1:end-1), 1) ];
     
-    % Initialize
-    %------------
+
+    % __Initialize__
     % * Initial mean and MSE
     % * Number of init cond estimated as fixed unknowns
     s = kalman.initialize(s, iLoop, opt);
     
-    % Prediction step
-    %-----------------
+
+    % __Prediction Step__
     % Prepare the struct sn for nonlinear simulations in this round of
     % prediction steps.
     if s.IsSimulate
         sn.ILoop = iLoop;
-        if iLoop<=nAlt
+        if iLoop<=nv
             sn = prepareSimulate2(this, sn, iLoop);
         end
     end
@@ -310,8 +305,8 @@ for iLoop = 1 : nLoop
         s = goAhead(s);
     end
     
-    % Updating step
-    %---------------    
+
+    % __Updating Step__
     if s.retFilter
         if s.retFilterStd || s.retFilterMse
             s = getFilterMse(s);
@@ -319,8 +314,8 @@ for iLoop = 1 : nLoop
         s = getFilterMean(s);
     end
     
-    % Smoother
-    %----------
+    
+    % __Smoother__
     % Run smoother for all variables.
     if s.retSmooth
         if s.retSmoothStd || s.retSmoothMse
@@ -329,14 +324,14 @@ for iLoop = 1 : nLoop
         s = getSmoothMean(s);
     end
     
-    % Contributions of measurement variables
-    %----------------------------------------
+
+    % __Contributions of Measurement Variables__
     if s.retCont
         s = kalman.cont(s);
     end
     
-    % Return requested data
-    %-----------------------
+
+    % __Return Requested Data__
     % Columns in `pe` to be filled.
     if s.NAhead>1
         predCols = 1 : s.NAhead;
@@ -364,12 +359,11 @@ for iLoop = 1 : nLoop
     regOutp.PDelta(:, :, iLoop) = s.PDelta*s.V;
     regOutp.SampleCov(:, :, iLoop) = s.SampleCov;
     
-    % Update progress bar
-    %---------------------
+
+    % __Update Progress Bar__
     if opt.progress
         update(progress, iLoop/nLoop);
     end
-    
 end % for iLoop...
 
 if ~all(ixSolved)
@@ -387,8 +381,6 @@ if any(~ixValidFactor)
 end
 
 return
-
-
 
 
     function requestOutp( )
@@ -648,69 +640,69 @@ end
 
 
 function S = goAhead(S)
-% goAhead  K-step ahead predictions and prediction errors for K>2 when
-% requested by caller. This function must be called after correction for
-% diffuse initial conditions and/or out-of-lik params has been made.
+    % goAhead  K-step ahead predictions and prediction errors for K>2 when
+    % requested by caller. This function must be called after correction for
+    % diffuse initial conditions and/or out-of-lik params has been made.
 
-a0 = permute(S.a0, [1, 3, 4, 2]);
-pe = permute(S.pe, [1, 3, 4, 2]);
-y0 = permute(S.y0, [1, 3, 4, 2]);
-ydelta = permute(S.ydelta, [1, 3, 4, 2]);
+    a0 = permute(S.a0, [1, 3, 4, 2]);
+    pe = permute(S.pe, [1, 3, 4, 2]);
+    y0 = permute(S.y0, [1, 3, 4, 2]);
+    ydelta = permute(S.ydelta, [1, 3, 4, 2]);
 
-% Expand existing prediction vectors.
-a0 = cat(3, a0, nan([size(a0), S.NAhead-1]));
-pe = cat(3, pe, nan([size(pe), S.NAhead-1]));
-y0 = cat(3, y0, nan([size(y0), S.NAhead-1]));
-if S.retPred
-    % `f0` exists and its k-step-ahead predictions need to be calculated only
-    % if `pred` data are requested.
-    f0 = permute(S.f0, [1, 3, 4, 2]);
-    f0 = cat(3, f0, nan([size(f0), S.NAhead-1]));
-end
-
-nPer = size(S.y1, 2);
-for k = 2 : min(S.NAhead, nPer-1)
-    t = 1+k : nPer;
-    repeat = ones(1, numel(t));
-    a0(:, t, k) = S.Ta*a0(:, t-1, k-1);
-    if ~isempty(S.ka)
-        if ~S.IsShkTune
-            a0(:, t, k) = a0(:, t, k) + S.ka(:, repeat);
-        else
-            a0(:, 1, t, k) = a0(:, t, k) + S.ka(:, t);
-        end
-    end
-    y0(:, t, k) = S.Z*a0(:, t, k);
-    if ~isempty(S.d)
-        if ~S.IsShkTune
-            y0(:, t, k) = y0(:, t, k) + S.d(:, repeat);
-        else
-            y0(:, t, k) = y0(:, t, k) + S.d(:, t);
-        end
-    end
+    % Expand existing prediction vectors.
+    a0 = cat(3, a0, nan([size(a0), S.NAhead-1]));
+    pe = cat(3, pe, nan([size(pe), S.NAhead-1]));
+    y0 = cat(3, y0, nan([size(y0), S.NAhead-1]));
     if S.retPred
-        f0(:, t, k) = S.Tf*a0(:, t-1, k-1);
-        if ~isempty(S.kf)
+        % `f0` exists and its k-step-ahead predictions need to be calculated only
+        % if `pred` data are requested.
+        f0 = permute(S.f0, [1, 3, 4, 2]);
+        f0 = cat(3, f0, nan([size(f0), S.NAhead-1]));
+    end
+
+    nPer = size(S.y1, 2);
+    for k = 2 : min(S.NAhead, nPer-1)
+        t = 1+k : nPer;
+        repeat = ones(1, numel(t));
+        a0(:, t, k) = S.Ta*a0(:, t-1, k-1);
+        if ~isempty(S.ka)
             if ~S.IsShkTune
-                f0(:, t, k) = f0(:, t, k) + S.kf(:, repeat);
+                a0(:, t, k) = a0(:, t, k) + S.ka(:, repeat);
             else
-                f0(:, t, k) = f0(:, t, k) + S.kf(:, t);
+                a0(:, 1, t, k) = a0(:, t, k) + S.ka(:, t);
+            end
+        end
+        y0(:, t, k) = S.Z*a0(:, t, k);
+        if ~isempty(S.d)
+            if ~S.IsShkTune
+                y0(:, t, k) = y0(:, t, k) + S.d(:, repeat);
+            else
+                y0(:, t, k) = y0(:, t, k) + S.d(:, t);
+            end
+        end
+        if S.retPred
+            f0(:, t, k) = S.Tf*a0(:, t-1, k-1);
+            if ~isempty(S.kf)
+                if ~S.IsShkTune
+                    f0(:, t, k) = f0(:, t, k) + S.kf(:, repeat);
+                else
+                    f0(:, t, k) = f0(:, t, k) + S.kf(:, t);
+                end
             end
         end
     end
-end
-if S.NPOut>0
-    y0(:, :, 2:end) = y0(:, :, 2:end) + ydelta(:, :, ones(1, S.NAhead-1));
-end
-pe(:, :, 2:end) = S.y1(:, :, ones(1, S.NAhead-1)) - y0(:, :, 2:end);
+    if S.NPOut>0
+        y0(:, :, 2:end) = y0(:, :, 2:end) + ydelta(:, :, ones(1, S.NAhead-1));
+    end
+    pe(:, :, 2:end) = S.y1(:, :, ones(1, S.NAhead-1)) - y0(:, :, 2:end);
 
-S.a0 = ipermute(a0, [1, 3, 4, 2]);
-S.pe = ipermute(pe, [1, 3, 4, 2]);
-S.y0 = ipermute(y0, [1, 3, 4, 2]);
-S.ydelta = ipermute(ydelta, [1, 3, 4, 2]);
-if S.retPred
-    S.f0 = ipermute(f0, [1, 3, 4, 2]);
-end
+    S.a0 = ipermute(a0, [1, 3, 4, 2]);
+    S.pe = ipermute(pe, [1, 3, 4, 2]);
+    S.y0 = ipermute(y0, [1, 3, 4, 2]);
+    S.ydelta = ipermute(ydelta, [1, 3, 4, 2]);
+    if S.retPred
+        S.f0 = ipermute(f0, [1, 3, 4, 2]);
+    end
 
 end 
 
@@ -871,97 +863,67 @@ end
 
 
 function S = getSmoothMean(S)
-% getSmoothMean  Kalman smoother for point estimates of all variables.
-nb = size(S.Ta, 1);
-nf = size(S.Tf, 1);
-ne = size(S.Ra, 2);
-nPer = size(S.y1, 2);
-lastObs = S.LastObs;
-lastSmooth = S.lastSmooth;
-
-% Pre-allocation. Re-use first page of prediction data. Prediction data
-% can have multiple pages if ahead>1.
-S.b2 = S.U*permute(S.a0(:, 1, :, 1), [1, 3, 4, 2]);
-S.f2 = permute(S.f0(:, 1, :, 1), [1, 3, 4, 2]);
-S.e2 = zeros(ne, nPer);
-S.y2 = S.y1(:, :, 1);
-% No need to run the smoother beyond last observation.
-S.y2(:, lastObs+1:end) = permute(S.y0(:, 1, lastObs+1:end, 1), [1, 3, 4, 2]);
-r = zeros(nb, 1);
-for t = lastObs : -1 : lastSmooth
-    j = S.yindex(:, t);
-    d = [ ];
-    if ~isempty(S.d)
-        d = S.d(:, min(t, end));
+    % getSmoothMean  Kalman smoother for point estimates of all variables.
+    nb = size(S.Ta, 1);
+    nf = size(S.Tf, 1);
+    ne = size(S.Ra, 2);
+    nPer = size(S.y1, 2);
+    lastObs = S.LastObs;
+    lastSmooth = S.lastSmooth;
+    % Pre-allocation. Re-use first page of prediction data. Prediction data
+    % can have multiple pages if ahead>1.
+    S.b2 = S.U*permute(S.a0(:, 1, :, 1), [1, 3, 4, 2]);
+    S.f2 = permute(S.f0(:, 1, :, 1), [1, 3, 4, 2]);
+    S.e2 = zeros(ne, nPer);
+    S.y2 = S.y1(:, :, 1);
+    % No need to run the smoother beyond last observation.
+    S.y2(:, lastObs+1:end) = permute(S.y0(:, 1, lastObs+1:end, 1), [1, 3, 4, 2]);
+    r = zeros(nb, 1);
+    for t = lastObs : -1 : lastSmooth
+        j = S.yindex(:, t);
+        d = [ ];
+        if ~isempty(S.d)
+            d = S.d(:, min(t, end));
+        end
+        [y2, f2, b2, e2, r] = ...
+            kalman.oneStepBackMean(S, t, S.pe(:, 1, t, 1), S.a0(:, 1, t, 1), ...
+            S.f0(:, 1, t, 1), S.ydelta(:, 1, t), d, r);
+        S.y2(~j, t) = y2(~j, 1);
+        if nf>0
+            S.f2(:, t) = f2;
+        end
+        S.b2(:, t) = b2;
+        S.e2(:, t) = e2;
     end
-    [y2, f2, b2, e2, r] = ...
-        kalman.oneStepBackMean(S, t, S.pe(:, 1, t, 1), S.a0(:, 1, t, 1), ...
-        S.f0(:, 1, t, 1), S.ydelta(:, 1, t), d, r);
-    S.y2(~j, t) = y2(~j, 1);
-    if nf>0
-        S.f2(:, t) = f2;
-    end
-    S.b2(:, t) = b2;
-    S.e2(:, t) = e2;
-end
 end 
 
 
-
-
-function [D, Ka, Kf] = addShockTunes(s, opt)
-% addShockTunes  Add tunes on shock means to constant terms.
-FN_FIND_LAST = @(x) max([ 0, find(any(any(x, 3), 1), 1, 'last') ]);
-
-ne = size(s.Ra, 2);
-if ne==0
-    return
-end
-
-ny = size(s.Z, 1);
-nf = size(s.Tf, 1);
-nb = size(s.Ta, 1);
-nPer = size(s.y1, 2);
-
-if opt.deviation
-    D = zeros(ny, nPer);
-    Ka = zeros(nb, nPer);
-    Kf = zeros(nf, nPer);
-else
-    D = repmat(s.d, 1, nPer);
-    Ka = repmat(s.ka, 1, nPer);
-    Kf = repmat(s.kf, 1, nPer);
-end
-
-eu = real(s.tune);
-ea = imag(s.tune);
-eu(isnan(eu)) = 0;
-ea(isnan(ea)) = 0;
-
-lastAnt = FN_FIND_LAST(ea~=0);
-lastUnant = FN_FIND_LAST(eu~=0);
-last = max(lastAnt, lastUnant);
-if isempty(last) || last<2
-    return
-end
-
-Rf = s.Rf;
-Ra = s.Ra;
-if lastAnt>0
-    R = [Rf;Ra];
-    R = model.myexpand(R, [ ], lastAnt, s.Expand{:});
+function [D, Ka, Kf] = addShockTunes(s, R,  opt)
+    % addShockTunes  Add tunes on shock means to constant terms.
+    ne = size(s.Ra, 2);
+    ny = size(s.Z, 1);
+    nf = size(s.Tf, 1);
+    nb = size(s.Ta, 1);
+    nPer = size(s.y1, 2);
+    if opt.deviation
+        D = zeros(ny, nPer);
+        Ka = zeros(nb, nPer);
+        Kf = zeros(nf, nPer);
+    else
+        D = repmat(s.d, 1, nPer);
+        Ka = repmat(s.ka, 1, nPer);
+        Kf = repmat(s.kf, 1, nPer);
+    end
     Rf = R(1:nf, :);
     Ra = R(nf+1:end, :);
-end
-H = s.H;
-
-for t = 2 : last
-    ee = [eu(:, t) + ea(:, t), ea(:, t+1:lastAnt)];
-    k = size(ee, 2);
-    D(:, t) = D(:, t) + H*ee(:, 1);
-    Kf(:, t) = Kf(:, t) + Rf(:, 1:ne*k)*ee(:);
-    Ka(:, t) = Ka(:, t) + Ra(:, 1:ne*k)*ee(:);
-end
+    H = s.H;
+    for t = 2 : max(s.LastVaryingU, s.LastVaryingE)
+        e = [s.VaryingU(:, t) + s.VaryingE(:, t), s.VaryingE(:, t+1:s.LastVaryingE)];
+        k = size(e, 2);
+        D(:, t) = D(:, t) + H*e(:, 1);
+        Kf(:, t) = Kf(:, t) + Rf(:, 1:ne*k)*e(:);
+        Ka(:, t) = Ka(:, t) + Ra(:, 1:ne*k)*e(:);
+    end
 end 
 
 
@@ -1054,7 +1016,7 @@ end
 
 Pa0NPa0 = S.Pa0(:, :, T)*N*S.Pa0(:, :, T);
 Pa = S.Pa0(:, :, T) - Pa0NPa0;
-Pa = (Pa + Pa.')/2;
+Pa = (Pa + Pa')/2;
 Pb = kalman.pa2pb(U, Pa);
 Db = diag(Pb);
 
@@ -1062,7 +1024,7 @@ if nf>0 && T>lastSmooth
     % Fwl transition variables.
     Pf = S.Pf0(:, :, T) - S.Pfa0(:, :, T)*N*S.Pfa0(:, :, T).';
     % Pfa2 = s.Pfa0(:, :, t) - Pfa0N*s.Pa0(:, :, t);
-    Pf = (Pf + Pf.')/2;
+    Pf = (Pf + Pf')/2;
     Df = diag(Pf);
 else
     Df = nan(nf, 1);
@@ -1071,7 +1033,7 @@ end
 if ny>0
     % Measurement variables.
     Py = S.F(:, :, T) - S.Z*Pa0NPa0*S.Z.';
-    Py = (Py + Py.')/2;
+    Py = (Py + Py')/2;
     Py(j, :) = 0;
     Py(:, j) = 0;
     Dy = diag(Py);

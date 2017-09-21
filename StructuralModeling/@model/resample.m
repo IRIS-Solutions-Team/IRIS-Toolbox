@@ -1,39 +1,35 @@
 function Outp = resample(varargin)
 % resample  Resample from the model implied distribution.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     outp = resample(m, ~inp, range, ~nDraw, ~j, ...)
+%     Outp = resample(M, ~Inp, Range, ~NDraw, ~J, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `m` [ model ] - Solved model object with single parameterization.
+% * `M` [ model ] - Solved model object with single parameterization.
 %
-% * `inp` [ struct | *empty* ] - Input data (if needed) for the
+% * `Inp` [ struct | *empty* ] - Input data (if needed) for the
 % distributions of initial condition and/or empirical shocks.
 %
-% * `range` [ numeric | char ] - Resampling date range.
+% * `Range` [ numeric | char ] - Resampling date range.
 %
-% * `~nDraw` [ numeric | *`1`* ] - Number of draws; may be omitted.
+% * `~NDraw` [ numeric | *`1`* ] - Number of draws; may be omitted.
 %
-% * `~j` [ struct | *`[ ]`* ] - Database with user-supplied time-varying
-% paths for std deviation, corr coefficients, or medians for shocks; `j`
-% is equivalent to using the option `'vary='`, and may be omitted.
-%
-%
-% Output arguments
-% =================
-%
-% * `outp` [ struct ] - Output database with resampled data.
+% * `~J` [ struct | *`[ ]`* ] - Database with user-supplied time-varying
+% paths for std deviation, corr coefficients, or medians for shocks; `J`
+% is equivalent to using the option `'Vary='`, and may be omitted.
 %
 %
-% Options
-% ========
+% __Output Arguments__
+%
+% * `Outp` [ struct ] - Output database with resampled data.
+%
+%
+% __Options__
 %
 % * `'BootstrapMethod='` [ *`'efron'`* | `'wild'` | numeric ] - Numeric
 % options correspond to block sampling methods. Use a positive integer to
@@ -66,23 +62,20 @@ function Outp = resample(varargin)
 % condition; only applies when `'randomInitCond=' true`.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % When you use wild bootstrap for resampling the initial condition, the
 % results are based on an assumption that the mean of the initial condition
 % is the asymptotic mean implied by the model (i.e. the steady state).
 %
 %
-% References
-% ===========
+% __References__
 %
 % 1. Politis, D. N., & Romano, J. P. (1994). The stationary bootstrap.
 % Journal of the American Statistical Association, 89(428), 1303-1313.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -161,12 +154,12 @@ if any(isnan(T(:)))
     return
 end
 
-nUnit = sum(this.Variant{1}.Stability==TYPE(1));
-nStable = nb - nUnit;
+numOfUnitRoots = getNumOfUnitRoots(this.Variant);
+numOfStableRoots = nb - numOfUnitRoots;
 Ta = T(nf+1:end, :);
 Ra = R(nf+1:end, :);
-Ta2 = Ta(nUnit+1:end, nUnit+1:end);
-Ra2 = Ra(nUnit+1:end, :);
+Ta2 = Ta(numOfUnitRoots+1:end, numOfUnitRoots+1:end);
+Ra2 = Ra(numOfUnitRoots+1:end, :);
 
 % Combine user-supplied stdcorr with model stdcorr.
 usrStdcorr = varyStdCorr(this, range, J, opt);
@@ -221,12 +214,13 @@ else
         Ealp = computeUncMean( );
         Falp = zeros(nb);
         Palp = zeros(nb);
-        Palp(nUnit+1:end, nUnit+1:end) = covfun.acovf(Ta2, Ra2, ...
-            [ ], [ ], [ ], [ ], [ ], Omg, this.Variant{1}.Eigen(nUnit+1:end), 0);
+        stableRoots = getStableRoots(this.Variant, 1);
+        Palp(numOfUnitRoots+1:end, numOfUnitRoots+1:end) = ...
+            covfun.acovf(Ta2, Ra2, [ ], [ ], [ ], [ ], [ ], Omg, stableRoots, 0);
         if strcmpi(opt.statevector, 'alpha')
             % (2bi) Resample the `alpha` vector.
-            Falp(nUnit+1:end, nUnit+1:end) = covfun.factorise( ...
-                Palp(nUnit+1:end, nUnit+1:end), opt.svdonly);
+            Falp(numOfUnitRoots+1:end, numOfUnitRoots+1:end) = ...
+                covfun.factorise(Palp(numOfUnitRoots+1:end, numOfUnitRoots+1:end), opt.svdonly);
         else
             % (2bii) Resample the original `x` vector.
             Ex = U*Ealp;
@@ -245,7 +239,7 @@ if isequal(opt.method, 'bootstrap')
 else
     % (2) Monte Carlo.
     % TODO: Use `combineStdCorr` instead.
-    vecStdCorr = this.Variant{1}.StdCorr;
+    vecStdCorr = this.Variant.StdCorr;
     vecStdCorr = permute(vecStdCorr, [2, 3, 1]);
     vecStdCorr = repmat(vecStdCorr, 1, nPer);
     % Combine the model object stdevs with the user-supplied stdevs.
@@ -332,17 +326,13 @@ Outp = hdata2tseries(hData);
 return
 
 
-
-
     function Ealp = computeUncMean( )
         Ealp = zeros(nb, 1);
         if ~opt.deviation
-            Kalp2 = K(nf+nUnit+1:end, :);
-            Ealp(nUnit+1:end) = (eye(nStable) - Ta2) \ Kalp2;
+            Kalp2 = K(nf+numOfUnitRoots+1:end, :);
+            Ealp(numOfUnitRoots+1:end) = (eye(numOfStableRoots) - Ta2) \ Kalp2;
         end
     end 
-
-
 
 
     function e = drawShocks( )
@@ -415,8 +405,6 @@ return
     end 
 
 
-
-
     function a0 = drawInitCond( )
         % Randomise initial condition for stable alpha.
         if isequal(opt.method, 'bootstrap')
@@ -426,10 +414,10 @@ return
                     % Wild-bootstrap initial condition for alpha from given
                     % sample initial condition. This assumes that the mean is
                     % the unconditional distribution.
-                    Ealp2 = Ealp(nUnit+1:end);
+                    Ealp2 = Ealp(numOfUnitRoots+1:end);
                     a0 = [ ...
-                        srcAlp0(1:nUnit, 1); ...
-                        Ealp2 + randn( )*(srcAlp0(nUnit+1:end, 1) - Ealp2); ...
+                        srcAlp0(1:numOfUnitRoots, 1); ...
+                        Ealp2 + randn( )*(srcAlp0(numOfUnitRoots+1:end, 1) - Ealp2); ...
                         ];
                 else
                     % Efron-bootstrap init cond for alpha from sample.
@@ -464,8 +452,6 @@ return
     end 
 
 
-
-
     function storeDraw( )
         if nInit==0
             init = a0;
@@ -481,8 +467,6 @@ return
             [ ], ...
             [nan(ng, 1), g] });
     end 
-
-
 
 
     function S = getRandBlockSize( )

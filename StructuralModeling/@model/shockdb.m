@@ -53,7 +53,7 @@ function d = shockdb(varargin)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 TYPE = @int8;
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 [this, d, range, nDraw, varargin] = ...
@@ -94,7 +94,7 @@ end
 
 for iLoop = 1 : nLoop
     if iLoop<=nAlt
-        Omg = covfun.stdcorr2cov(this.Variant{iLoop}.StdCorr, ne);
+        Omg = covfun.stdcorr2cov(this.Variant.StdCorr(:, :, iLoop), ne);
         F = covfun.factorise(Omg);
     end
     iS = S(iLoop,:);

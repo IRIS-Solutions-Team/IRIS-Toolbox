@@ -11,7 +11,7 @@ STR_VARIANT = 'parameter variant';
 
 %--------------------------------------------------------------------------
 
-isEmpty = isempty(this.Variant);
+isEmpty = isempty(this.Variant.Values);
 
 if this.IsLinear
     attribute = 'linear';

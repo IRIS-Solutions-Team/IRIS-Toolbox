@@ -1,8 +1,9 @@
 classdef Dynamic < solver.blazer.Blazer
-    properties
+    properties (Constant)
+        BLOCK_CONSTRUCTOR = @solver.block.Dynamic
+        LHS_QUANTITY_FORMAT = 'x(%g,t)'
+        PREAMBLE = '@(x,t,L)'
     end
-    
-    
     
     
     methods

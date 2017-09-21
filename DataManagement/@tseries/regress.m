@@ -1,17 +1,14 @@
-function [B,BStd,E,EStd,YFit,Range,BCov] = regress(Y,X,varargin)
+function [B, BStd, E, EStd, YFit, Range, BCov] = regress(Y, X, varargin)
 % regress  Ordinary or weighted least-square regression.
 %
-%
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [B,BStd,E,EStd,YFit,Range,BCov] = regress(Y,X,~Range,...)
+%     [B, BStd, E, EStd, YFit, Range, BCov] = regress(Y, X, ~Range, ...)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
 % * `Y` [ tseries ] - Tseries object with independent (LHS) variables.
 %
@@ -21,8 +18,7 @@ function [B,BStd,E,EStd,YFit,Range,BCov] = regress(Y,X,varargin)
 % if omitted, the entire range available will be used.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
 % * `B` [ numeric ] - Vector of estimated regression coefficients.
 %
@@ -40,8 +36,7 @@ function [B,BStd,E,EStd,YFit,Range,BCov] = regress(Y,X,varargin)
 % * `bBCov` [ numeric ] - Covariance matrix of the coefficient estimates.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'constant='` [ `true` | *`false`* ] - Include a constant vector in the
 % regression; if `true` the constant will be placed last in the matrix of
@@ -51,18 +46,24 @@ function [B,BStd,E,EStd,YFit,Range,BCov] = regress(Y,X,varargin)
 % observations in individual periods.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % This function calls the built-in `lscov` function.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
+
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('tseries/regress');
+    INPUT_PARSER.addRequired('Y', @(x) isa(x, 'tseries'));
+    INPUT_PARSER.addRequired('X', @(x) isa(x, 'tseries'));
+    INPUT_PARSER.addRequired('Range', @DateWrapper.validateDateInput);
+end
 
 if ~isempty(varargin) && isnumeric(varargin{1})
     Range = varargin{1};
@@ -72,45 +73,41 @@ else
 end
 
 % Parse input arguments.
-pp = inputParser( );
-pp.addRequired('Y',@istseries);
-pp.addRequired('X',@istseries);
-pp.addRequired('Range',@isnumeric);
-pp.parse(Y,X,Range);
+INPUT_PARSER.parse(Y, X, Range);
 
 % Parse options.
-opt = passvalopt('tseries.regress',varargin{:});
+opt = passvalopt('tseries.regress', varargin{:});
 
 %--------------------------------------------------------------------------
 
-if length(Range) == 1 && isinf(Range)
-    Range = get([X,Y],'minRange');
+if length(Range)==1 && isinf(Range)
+    Range = get([X, Y], 'minRange');
 else
     Range = Range(1) : Range(end);
 end
 
-xData = rangedata(X,Range);
-yData = rangedata(Y,Range);
+xData = rangedata(X, Range);
+yData = rangedata(Y, Range);
 if opt.constant
-    xData(:,end+1) = 1;
+    xData(:, end+1) = 1;
 end
 
-rowInx = all(~isnan([xData,yData]),2);
+indexOfRows = all(~isnan([xData, yData]), 2);
 
 if isempty(opt.weighting)
-    [B,BStd,eVar,BCov] = lscov(xData(rowInx,:),yData(rowInx,:));
+    [B, BStd, eVar, BCov] = lscov(xData(indexOfRows, :), yData(indexOfRows, :));
 else
-    w = rangedata(opt.weighting,Range);
-    [B,BStd,eVar,BCov] = lscov(xData(rowInx,:),yData(rowInx,:),w(rowInx,:));
+    w = rangedata(opt.weighting, Range);
+    [B, BStd, eVar, BCov] = lscov(xData(indexOfRows, :), yData(indexOfRows, :), w(indexOfRows, :));
 end
 EStd = sqrt(eVar);
 
 if nargout>2
-    E = replace(Y,yData - xData*B,Range(1));
+    E = replace(Y, yData - xData*B, Range(1));
 end
 
 if nargout>4
-    YFit = replace(Y,xData*B,Range(1));
+    YFit = replace(Y, xData*B, Range(1));
 end
 
 end

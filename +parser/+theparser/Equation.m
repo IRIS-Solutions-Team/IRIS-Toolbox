@@ -10,9 +10,9 @@ classdef Equation < parser.theparser.Generic
     methods
         function [qty, eqn] = parse(this, ~, code, qty, eqn, euc, ~, opt)
             % 'Label' x=0.8*x{-1}+ex !! x=0;
-            SEPARATOR = parser.EquationUnderConstruction.SEPARATOR;
-            LABEL_PATTERN =             '\s*(?<LABEL>"[^\n"]*"|''[^\n'']*'')?';
-            EQUATION_PATTERN =          '(?<EQUATION>[^;]+);';
+            SEPARATOR =        '!!';
+            LABEL_PATTERN =    '\s*(?<LABEL>"[^\n"]*"|''[^\n'']*'')?';
+            EQUATION_PATTERN = '(?<EQUATION>[^;]+);';
                         
             %--------------------------------------------------------------------------
                         

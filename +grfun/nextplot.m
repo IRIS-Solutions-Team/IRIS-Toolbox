@@ -1,21 +1,18 @@
 function varargout = nextplot(varargin)
-% nextplot  Simplify the use of the standard subplot function.
+% nextplot  Simplify use of standard subplot function.
 %
-% Syntax for new figure window with certain subplot division
-% ===========================================================
+% __Syntax for New Figure Window With Certain Subplot Division__
 %
 %     Fig = grfun.nextplot([NumRows, NumColumns], ...)
 %     Fig = grfun.nextplot(NumRows, NumColumns, ...)
 %
 %
-% Syntax for new graph at the next subplot position
-% ==================================================
+% __Syntax for New Graph at Next Subplot Position__
 %
 %     [Axes, Fig, Count]  = grfun.nextplot( )
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `NumRows` [ numeric ] - Number of rows in which graphs will be
 % arranged in the figure window.
@@ -24,8 +21,7 @@ function varargout = nextplot(varargin)
 % be arranged in the figure window.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Fig` [ numeric ] - Handle to the figure window created.
 %
@@ -35,19 +31,16 @@ function varargout = nextplot(varargin)
 % figure window including the next one.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % Any options will be passed into the `figure( )` function when opening a
 % new figure window.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -127,7 +120,7 @@ function hFigure = initialize(varargin)
     numColumns = INPUT_PARSER.Results.NumColumns;
     figureOptions = INPUT_PARSER.Unmatched;
 
-    if INPUT_PARSER.UsingDefaultsStruct.NumColumns
+    if any(strcmp(INPUT_PARSER.UsingDefaults, 'NumColumns'))
         if numel(numRows)==1
             % nextplot(totalCount, ...)
             totalCount = numRows;

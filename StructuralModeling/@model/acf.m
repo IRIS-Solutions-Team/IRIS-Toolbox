@@ -41,7 +41,7 @@ function [CC, RR, lsyx] = acf(this, varargin)
 % * `'Order='` [ numeric | *`0`* ] - Order up to which ACF will be
 % computed.
 %
-% * `'MatrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrices `C` and
+% * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrices `C` and
 % `R` as either [`namedmat`](NamedMat) objects (matrices with
 % named rows and columns) or plain numeric arrays.
 %
@@ -115,59 +115,57 @@ TYPE = @int8;
 opt = passvalopt('model.acf', varargin{:});
 
 isSelect = ~isequal(opt.select, @all);
-isNamedMat = strcmpi(opt.MatrixFmt, 'namedmat');
+isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 
 %--------------------------------------------------------------------------
 
-[ny, nxx, ~, ~, ne] = sizeOfSolution(this.Vector);
-nAlt = length(this);
+[ny, nxi, ~, ~, ne] = sizeOfSolution(this.Vector);
+nv = length(this);
 
 if opt.contributions
-    nCont = ne;
+    numOfContributions = ne;
 else
-    nCont = 1;
+    numOfContributions = 1;
 end
-CC = nan(ny+nxx, ny+nxx, opt.order+1, nCont, nAlt);
+CC = nan(ny+nxi, ny+nxi, opt.order+1, numOfContributions, nv);
 
 % Pre-process filter options.
 lsyx = printSolutionVector(this, 'yx');
 [isFilter, filter, freq, applyTo] = freqdom.applyfilteropt(opt, [ ], lsyx);
 
 % Call timedom package to compute autocovariance function.
-isContributions = opt.contributions;
-acfOrder = opt.order;
-ixSolved = true(1, nAlt);
-for iAlt = 1 : nAlt
+ixSolved = true(1, nv);
+for v = 1 : nv
     isExpand = false;
-    [T, R, ~, Z, H, ~, U, Omg] = sspaceMatrices(this, iAlt, isExpand);
+    [T, R, ~, Z, H, ~, U, Omg] = sspaceMatrices(this, v, isExpand);
 
     % Continue immediately if solution is not available.
-    ixSolved(iAlt) = all(~isnan(T(:)));
-    if ~ixSolved(iAlt)
+    ixSolved(v) = all(~isnan(T(:)));
+    if ~ixSolved(v)
         continue
     end
 
-    for iCont = 1 : nCont
-        if isContributions
+    for iCont = 1 : numOfContributions
+        if opt.contributions
             inx = false(1, ne);
             inx(iCont) = true;
             if Omg(inx, inx) == 0
-                CC(:, :, :, iCont, iAlt) = 0;
+                CC(:, :, :, iCont, v) = 0;
                 continue
             end
         else
             inx = true(1, ne);
         end
         if isFilter
-            nUnit = sum(this.Variant{iAlt}.Stability==TYPE(1));
+            nUnit = sum(this.Variant.EigenStability(:, :, v)==TYPE(1));
             S = freqdom.xsf( ...
                 T, R(:, inx), [ ], Z, H(:, inx), [ ], U, Omg(inx, inx), nUnit, ...
                 freq, filter, applyTo);
-            CC(:, :, :, iCont, iAlt) = freqdom.xsf2acf(S, freq, acfOrder);
+            CC(:, :, :, iCont, v) = freqdom.xsf2acf(S, freq, opt.order);
         else
-            CC(:, :, :, iCont, iAlt) = covfun.acovf( ...
+            CC(:, :, :, iCont, v) = covfun.acovf( ...
                 T, R(:, inx), [ ], Z, H(:, inx), [ ], U, Omg(inx, inx), ...
-                this.Variant{iAlt}.Eigen, acfOrder);
+                this.Variant.EigenValues(:, :, v), opt.order);
         end
     end
 end
@@ -181,7 +179,7 @@ end
 
 % Squeeze the covariance matrices if ~contributions.
 if ~opt.contributions
-    CC = reshape(CC, ny+nxx, ny+nxx, opt.order+1, nAlt);
+    CC = reshape(CC, ny+nxi, ny+nxi, opt.order+1, nv);
 end
 
 % Fix negative variances (in the contemporaneous matrices).

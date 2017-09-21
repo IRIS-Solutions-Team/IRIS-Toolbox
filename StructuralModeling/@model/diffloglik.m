@@ -117,8 +117,8 @@ end
 pri = model.IterateOver( );
 pri.PosQty = posQty;
 pri.PosStdCorr = posStdCorr;
-pri.Quantity = this.Variant{1}.Quantity;
-pri.StdCorr = this.Variant{1}.StdCorr;
+pri.Quantity = this.Variant.Values;
+pri.StdCorr = this.Variant.StdCorr;
 
 % Call low-level diffloglik.
 [minusLogLik, grad, hess, v] = mydiffloglik(this, data, pri, lik, opt);

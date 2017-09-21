@@ -1,4 +1,4 @@
-function [X, YXVec, dbStd] = fmse(this, time, varargin)
+function [X, YXVec, dbankOfStd] = fmse(this, time, varargin)
 % fmse  Forecast mean square error matrices.
 %
 % __Syntax__
@@ -30,7 +30,7 @@ function [X, YXVec, dbStd] = fmse(this, time, varargin)
 %
 % __Options__
 %
-% * `'MatrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
+% * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
 % either a [`namedmat`](namedmat/Contents) object (i.e. matrix with named
 % rows and columns) or a plain numeric array.
 %
@@ -40,19 +40,23 @@ function [X, YXVec, dbStd] = fmse(this, time, varargin)
 %
 % __Description__
 %
+%
 % __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TYPE = @int8;
 
-pp = inputParser( );
-pp.addRequired('M', @(x) isa(x, 'model'));
-pp.addRequired('Time', @DateWrapper.validateDateInput);
-pp.parse(this, time);
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/fmse');
+    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
+    INPUT_PARSER.addRequired('Time', @DateWrapper.validateDateInput);
+end
+INPUT_PARSER.parse(this, time);
 
 opt = passvalopt('model.fmse', varargin{:});
 
@@ -66,54 +70,43 @@ Range = time(1) : time(end);
 nPer = length(Range);
 
 isSelect = ~isequal(opt.select, @all);
-isNamedMat = strcmpi(opt.MatrixFmt, 'namedmat');
+isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 
 %--------------------------------------------------------------------------
 
-ixp = this.Quantity.Type==TYPE(4);
 [ny, nxx] = sizeOfSolution(this.Vector);
-nAlt = length(this);
-X = zeros(ny+nxx, ny+nxx, nPer, nAlt);
+nv = length(this);
+X = zeros(ny+nxx, ny+nxx, nPer, nv);
 
-ixSolved = true(1, nAlt);
-for iAlt = 1 : nAlt
-    [T, R, K, Z, H, dbStd, U, Omg] = sspaceMatrices(this, iAlt, false);
-    
-    % Continue immediately if solution is not available.
-    ixSolved(iAlt) = all(~isnan(T(:)));
-    if ~ixSolved(iAlt)
-        continue
-    end
-    
-    X(:, :, :, iAlt) = timedom.fmse(T, R, K, Z, H, dbStd, U, Omg, nPer);
+indexOfSolutionsAvailable = issolved(this);
+for v = find(indexOfSolutionsAvailable)
+    [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, v, false);
+    X(:, :, :, v) = timedom.fmse(T, R, K, Z, H, D, U, Omg, nPer);
 end
 
-% Report NaN solutions.
-if ~all(ixSolved)
-    utils.warning('model:fmse', ...
-        'Solution(s) not available %s.', ...
-        exception.Base.alt2str(~ixSolved) );
-end
+% Report variants with solutions not available.
+assert( ...
+    all(indexOfSolutionsAvailable), ...
+    exception.Base('Model:SolutionNotAvailable', 'error'), ...
+    exception.Base.alt2str(~indexOfSolutionsAvailable) ...
+);
 
 % Database of std deviations.
-if nargout > 2
+if nargout>2
     % Select only contemporaneous variables.
     id = [this.Vector.Solution{1:2}];
     dbStd = struct( );
     for i = find(imag(id)==0)
         name = this.Quantity.Name{id(i)};
-        dbStd.(name) = TIME_SERIES_CONSTRUCTOR( ...
+        dbankOfStd.(name) = TIME_SERIES_CONSTRUCTOR( ...
             Range, ...
             sqrt( permute(X(i, i, :, :), [3, 4, 1, 2]) ) ...
             );
     end
-    for j = find(ixp)
-        x = model.Variant.getQuantity(this.Variant, j, ':');
-        dbStd.(this.Quantity.Name{j}) = permute(x, [1, 3, 2]);
-    end
+    dbankOfStd = addparam(this, dbankOfStd);
 end
 
-if nargout <= 1 && ~isSelect && ~isNamedMat
+if nargout<=1 && ~isSelect && ~isNamedMat
     return
 end
 

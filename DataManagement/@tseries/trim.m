@@ -9,8 +9,6 @@ function this = trim(this)
 
 %--------------------------------------------------------------------------
 
-this.Stamp = clock( );
-
 x = this.Data;
 if isempty(x)
     return

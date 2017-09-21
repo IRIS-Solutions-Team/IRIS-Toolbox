@@ -1,4 +1,4 @@
-function [x, numericExitFlag] = lm(fnObjective, xInit, opt, varargin)
+function [x, numericExitFlag] = lm(objectiveFunc, xInit, opt)
 % lm  Variant of Levenberg-Marquardt function solver algorithm
 %
 % Backend IRIS function.
@@ -41,20 +41,20 @@ stepUp = opt.StepUp;
 isStepDown = ~isequal(stepDown, false);
 isStepUp = ~isequal(stepUp, false);
 diffStep = opt.FiniteDifferenceStepSize;
-fnDiff = [ ];
+numGradientFunc = [ ];
 if ~opt.SpecifyObjectiveGradient
-    if strcmpi(opt.FiniteDifferenceType, 'forward')
-        fnDiff = @solver.algorithm.fdiff;
+    if opt.LargeScale
+        jacobPattern = opt.JacobPattern;
     else
-        fnDiff = @solver.algorithm.cdiff;
+        jacobPattern = [ ];
     end
 end
 
 xInit = xInit(:);
-nx = numel(xInit);
+numberOfInputs = numel(xInit);
 
 temp = struct( ...
-    'NumberOfVariables', nx ...
+    'NumberOfVariables', numberOfInputs ...
     );
 
 displayLevel = getDisplayLevel( );
@@ -77,6 +77,7 @@ iter = 0;
 fnCount = 0;
 x0 = xInit;
 j = NaN;
+j1= NaN;
 
 if displayLevel.Iter
     displayHeader( );
@@ -87,12 +88,14 @@ warning('off', 'MATLAB:nearlySingularMatrix');
 
 while true
     if opt.SpecifyObjectiveGradient
-        [f, j] = fnObjective(x, varargin{:});
+        [f, j] = objectiveFunc(x);
         fnCount = fnCount + 1;
     else
-        [f] = fnObjective(x, varargin{:});
+        f = objectiveFunc(x);
         fnCount = fnCount + 1;
-        [j, addCount] = fnDiff(fnObjective, x, f, diffStep); %#ok<RHSFN>
+        [j, addCount] = solver.algorithm.finiteDifference( ...
+            objectiveFunc, x, f, diffStep, jacobPattern ...
+        );
         fnCount = fnCount + addCount;
     end
     f = f(:);    
@@ -153,7 +156,7 @@ end
 warning(w);
 
 if displayLevel.Iter
-    isDesktop = getappdata(0, 'IRIS_IS_DESKTOP');
+    isDesktop = getappdata(0, 'IRIS_IsDesktop');
     if isDesktop
         fprintf('<strong>');
     end
@@ -183,7 +186,7 @@ return
         lmb = 0;
         d = -j \ f;
         c = x + step*d;
-        f = fnObjective(c, varargin{:});
+        f = objectiveFunc(c);
         fnCount = fnCount + 1;
         n = fnNorm(f);
     end
@@ -200,7 +203,7 @@ return
             vecLmb0 = [0, vecLmb0]; %#ok<AGROW>
         end
         nlmb0 = numel(vecLmb0);
-        scale = tol * eye(nx);
+        scale = tol * eye(numberOfInputs);
         
         % Optimize lambda.
         dd = cell(1, nlmb0);
@@ -209,7 +212,7 @@ return
         for i = 1 : nlmb0
             dd{i} = -( jj + vecLmb0(i)*scale ) \ j.' * f;
             c = x + step*dd{i};
-            ff{i} = fnObjective(c, varargin{:});
+            ff{i} = objectiveFunc(c);
             fnCount = fnCount + 1;
             nn(i) = fnNorm(ff{i});
         end
@@ -227,7 +230,7 @@ return
         while n>n0 && step>MIN_STEP
             step = stepDown*step;
             c = x + step*d;
-            f = fnObjective(c, varargin{:});
+            f = objectiveFunc(c);
             fnCount = fnCount + 1;
             q = q + 1;
             n = fnNorm(f);
@@ -241,7 +244,7 @@ return
         % Inflate step as far as objective function improves.
         while step<MAX_STEP
             c = x + stepUp*step*d;
-            f = fnObjective(c, varargin{:});
+            f = objectiveFunc(c);
             fnCount = fnCount + 1;
             q = q + 1;
             n1 = fnNorm(f);
@@ -308,7 +311,7 @@ return
             step, ...
             n-n0, ...
             maxabs(x-x0), ...
-            norm(j, 2) ...
+            maxabs(j-j1) ... norm(full(j), 2) ...
             );
     end
 

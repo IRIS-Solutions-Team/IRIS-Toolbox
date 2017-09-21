@@ -12,8 +12,8 @@ TYPE = @int8;
 %--------------------------------------------------------------------------
 
 nQuan = length(qty);
-t0 = zero(this.Incidence.Dynamic);
-nsh = nofShift(this.Incidence.Dynamic);
+sh0 = this.Incidence.Dynamic.PosOfZeroShift;
+nsh = this.Incidence.Dynamic.NumOfShifts;
 ne = sum(qty.Type==TYPE(31) | qty.Type==TYPE(32));
 ixl = eqn.Type==TYPE(4);
 
@@ -39,7 +39,7 @@ try
     else
         fn = mosw.str2func(fn); %#ok<UNRCH>
     end
-    feval(fn, x, t0, L);
+    feval(fn, x, sh0, L);
 catch
     lookup(eqn.Dynamic, ~ixl);
 end
@@ -52,7 +52,7 @@ try
     else
         fn = mosw.str2func(fn); %#ok<UNRCH>
     end
-    feval(fn, x, t0, L);
+    feval(fn, x, sh0, L);
 catch
     lookup(eqn.Steady, ~ixl);
 end
@@ -96,7 +96,7 @@ return
                 end
                 
                 if eqn.Type(iiEq)~=TYPE(4)
-                    feval(fn, x, t0, L);
+                    feval(fn, x, sh0, L);
                 else
                     % Evaluate RHS of dynamic links. They can refer to std or corr names, so we
                     % have to use the `x1` vector.

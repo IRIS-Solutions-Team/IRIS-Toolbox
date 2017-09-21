@@ -1,4 +1,4 @@
-function [Y,Outp,Logbk,Err,Mdl] = x13(X,StartDate,Dummy,Opt)
+function [Y, Outp, Logbk, Err, Mdl] = x13(X, StartDate, Dummy, Opt)
 % x13  [Not a public function] Matlab interface for X13-ARIMA-Seats.
 %
 % Backend IRIS function.
@@ -8,13 +8,13 @@ function [Y,Outp,Logbk,Err,Mdl] = x13(X,StartDate,Dummy,Opt)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 switch lower(Opt.mode)
-    case {0,'mult','m'}
+    case {0, 'mult', 'm'}
         Opt.mode = 'mult';
-    case {1,'add','a'}
+    case {1, 'add', 'a'}
         Opt.mode = 'add';
-    case {2,'pseudo','pseudoadd','p'}
+    case {2, 'pseudo', 'pseudoadd', 'p'}
         Opt.mode = 'pseudoadd';
-    case {3,'log','logadd','l'}
+    case {3, 'log', 'logadd', 'l'}
         Opt.mode = 'logadd';
     otherwise
         Opt.mode = 'auto';
@@ -30,34 +30,34 @@ nOutp = length(Opt.output);
 % Get the entire path to this file.
 x13Dir = fileparts(mfilename('fullpath'));
 
-if strcmpi(Opt.specfile,'default')
-    Opt.specfile = fullfile(x13Dir,'default.spc');
+if strcmpi(Opt.specfile, 'default')
+    Opt.specfile = fullfile(x13Dir, 'default.spc');
 end
 
 %--------------------------------------------------------------------------
 
 kb = Opt.backcast;
 kf = Opt.forecast;
-nPer = size(X,1);
-nx = size(X,2);
+nPer = size(X, 1);
+nx = size(X, 2);
 freq = DateWrapper.getFrequencyFromNumeric(StartDate);
 
 % Preallocate output arguments
 %------------------------------
 % Input data with backcast and forecast appended.
-Y = nan(nPer+kb+kf,nx);
+Y = nan(nPer+kb+kf, nx);
 % Output data.
-Outp = cell(1,nOutp);
-Outp(:) = { nan(nPer,nx) };
+Outp = cell(1, nOutp);
+Outp(:) = { nan(nPer, nx) };
 % Logbook.
-Logbk = cell(1,nx);
+Logbk = cell(1, nx);
 Logbk(:) = {''};
 % Error messages.
-Err = cell(1,nx);
+Err = cell(1, nx);
 Err(:) = {''};
 % ARIMA Model.
-Mdl = struct('mode',NaN,'spec',[ ],'ar',[ ],'ma',[ ]);
-Mdl = repmat(Mdl,1,nx);
+Mdl = struct('mode', NaN, 'spec', [ ], 'ar', [ ], 'ma', [ ]);
+Mdl = repmat(Mdl, 1, nx);
 
 if isnan(freq)
     utils.warning('thirdparty:x13:x13', ...
@@ -79,9 +79,9 @@ is15YearsBcastWarn = false;
 isNanWarn = false;
 for i = 1 : nx
     tmpTitle = tempname(tempDir);
-    first = find(~isnan(X(:,i)),1);
-    last = find(~isnan(X(:,i)),1,'last');
-    data = X(first:last,i);
+    first = find(~isnan(X(:, i)), 1);
+    last = find(~isnan(X(:, i)), 1, 'last');
+    data = X(first:last, i);
     iErrMsg = '';
     if length(data) < 3*freq
         is3YearsWarn = true;
@@ -94,28 +94,28 @@ for i = 1 : nx
             is15YearsBcastWarn = true;
         end
         offset = first - 1;
-        [iOutp,fcast,bcast,ok] = ...
-            xxRunX13(x13Dir,tmpTitle,data,StartDate+offset,Dummy,Opt);
+        [iOutp, fcast, bcast, ok] = ...
+            xxRunX13(x13Dir, tmpTitle, data, StartDate+offset, Dummy, Opt);
         for j = 1 : nOutp
-            Outp{j}(first:last,i) = iOutp(:,j);
+            Outp{j}(first:last, i) = iOutp(:, j);
         end
         % Append forecasts and backcasts to original data.
-        Y(first:last+kb+kf,i) = [bcast;data;fcast];
+        Y(first:last+kb+kf, i) = [bcast;data;fcast];
         % Catch output file.
-        if utils.exist([tmpTitle,'.out'],'file')
-            Logbk{i} = xxReadOutpFile([tmpTitle,'.out']);
+        if utils.exist([tmpTitle, '.out'], 'file')
+            Logbk{i} = xxReadOutpFile([tmpTitle, '.out']);
         end
         % Catch error file.
-        if utils.exist([tmpTitle,'.err'],'file')
-            Err{i} = xxReadOutpFile([tmpTitle,'.err']);
-            iErrMsg = regexp(Err{i},'(?<=ERROR:).*','match','once');
-            iErrMsg = regexprep(iErrMsg,'[\r\n]+','\n');
-            iErrMsg = regexprep(iErrMsg,'[ \t]+',' ');
-            iErrMsg = regexprep(iErrMsg,'\n[ \t\n]+','\n');
+        if utils.exist([tmpTitle, '.err'], 'file')
+            Err{i} = xxReadOutpFile([tmpTitle, '.err']);
+            iErrMsg = regexp(Err{i}, '(?<=ERROR:).*', 'match', 'once');
+            iErrMsg = regexprep(iErrMsg, '[\r\n]+', '\n');
+            iErrMsg = regexprep(iErrMsg, '[ \t]+', ' ');
+            iErrMsg = regexprep(iErrMsg, '\n[ \t\n]+', '\n');
         end
         % Catch ARIMA model specification.
-        if exist([tmpTitle,'.mdl'],'file')
-            Mdl(i) = xxReadModel(Mdl(i),[tmpTitle,'.mdl'],Logbk{i});
+        if exist([tmpTitle, '.mdl'], 'file')
+            Mdl(i) = xxReadModel(Mdl(i), [tmpTitle, '.mdl'], Logbk{i});
         end
         % Delete all X13 files.
         if ~isempty(Opt.saveas)
@@ -123,8 +123,8 @@ for i = 1 : nx
         end
         if Opt.cleanup
             % Java delete does not work with wildcards.
-            delete([tmpTitle,'.*']);
-            if ismac( ) && exist('fort.6','file')
+            delete([tmpTitle, '.*']);
+            if ismac( ) && exist('fort.6', 'file')
                 utils.delete('fort.6');
             end
         end
@@ -146,7 +146,7 @@ doWarn( );
 
 % Clean up newly created directory.
 if isNewTempDir && Opt.cleanup
-    rmdir(tempDir,'s');
+    rmdir(tempDir, 's');
 end
 
 
@@ -182,11 +182,11 @@ end
 
 
     function doSaveAs( )
-        [fPath,fTitle] = fileparts(Opt.saveas);
-        list = dir([tmpTitle,'.*']);
+        [fPath, fTitle] = fileparts(Opt.saveas);
+        list = dir([tmpTitle, '.*']);
         for ii = 1 : length(list)
-            [~,~,fExt] = fileparts(list(ii).name);
-            copyfile(list(ii).name,fullfile(fPath,[fTitle,fExt]));
+            [~, ~, fExt] = fileparts(list(ii).name);
+            copyfile(list(ii).name, fullfile(fPath, [fTitle, fExt]));
         end
     end % doSaveAs( )
 
@@ -198,7 +198,7 @@ end
         if isfunc(tempDir)
             tempDir = tempDir( );
         end
-        isNewTempDir = utils.exist(tempDir,'dir') == 0;
+        isNewTempDir = utils.exist(tempDir, 'dir') == 0;
         if isNewTempDir
             mkdir(tempDir);
         end
@@ -218,10 +218,10 @@ end
 %**************************************************************************
 
 
-function [Data,Fcast,Bcast,Ok] = ...
-    xxRunX13(X13Dir,TempTitle,Data,StartDate,Dummy,Opt)
-Fcast = zeros(0,1);
-Bcast = zeros(0,1);
+function [Data, Fcast, Bcast, Ok] = ...
+    xxRunX13(X13Dir, TempTitle, Data, StartDate, Dummy, Opt)
+Fcast = zeros(0, 1);
+Bcast = zeros(0, 1);
 
 % Flip sign if all values are negative
 % so that multiplicative mode is possible.
@@ -232,13 +232,13 @@ if all(Data < 0)
 end
 
 nonPositive = any(Data <= 0);
-if strcmp(Opt.mode,'auto')
+if strcmp(Opt.mode, 'auto')
     if nonPositive
         Opt.mode = 'add';
     else
         Opt.mode = 'mult';
     end
-elseif strcmp(Opt.mode,'mult') && nonPositive
+elseif strcmp(Opt.mode, 'mult') && nonPositive
     utils.warning('x13:x13', ...
         ['Unable to use multiplicative mode because of ', ...
         'input data combine positive and non-positive numbers; ', ...
@@ -247,7 +247,7 @@ elseif strcmp(Opt.mode,'mult') && nonPositive
 end
 
 % Write a spec file.
-xxSpecFile(TempTitle,Data,StartDate,Dummy,Opt);
+xxSpecFile(TempTitle, Data, StartDate, Dummy, Opt);
 
 % Set up a system command to run the X13 executable, enclosing the command in
 % double quotes.
@@ -280,20 +280,20 @@ end
 
 % Read in-sample results.
 nPer = length(Data);
-[Data,dataOk] = xxGetOutpData(TempTitle,nPer,Opt.output,2);
+[Data, dataOk] = xxGetOutpData(TempTitle, nPer, Opt.output, 2);
 
 % Try to read forecasts.
 fcastOk = true;
 kf = Opt.forecast;
 if kf > 0
-    [Fcast,fcastOk] = xxGetOutpData(TempTitle,kf,{'fct'},4);
+    [Fcast, fcastOk] = xxGetOutpData(TempTitle, kf, {'fct'}, 4);
 end
 
 % Try to read backcasts.
 bcastOk = true;
 kb = Opt.backcast;
 if kb > 0
-    [Bcast,bcastOk] = xxGetOutpData(TempTitle,kb,{'bct'},4);
+    [Bcast, bcastOk] = xxGetOutpData(TempTitle, kb, {'bct'}, 4);
 end
 
 Ok = dataOk && fcastOk && bcastOk;
@@ -309,17 +309,17 @@ end % xxRunX13( )
 %**************************************************************************
 
 
-function xxSpecFile(TempTitle,Data,StartDate,Dummy,Opt)
+function xxSpecFile(TempTitle, Data, StartDate, Dummy, Opt)
 % xxSpecFile  Create and save SPC file based on a template.
-[dataYear,dataPer] = dat2ypf(StartDate);
-[dummyYear,dummyPer] = dat2ypf(StartDate-Opt.backcast);
+[dataYear, dataPer] = dat2ypf(StartDate);
+[dummyYear, dummyPer] = dat2ypf(StartDate-Opt.backcast);
 spec = file2char(Opt.specfile);
 
 % Time series specs
 %-------------------
 % Check for the required placeholders $series_data$ and $x11_save$:
-if length(strfind(spec,'$series_data$')) ~= 1 ...
-        || length(strfind(spec,'$x11_save$')) ~= 1
+if length(strfind(spec, '$series_data$')) ~= 1 ...
+        || length(strfind(spec, '$x11_save$')) ~= 1
     utils.error('x13:x13', ...
         ['Invalid X13 spec file. Some of the required placeholders, ', ...
         '$series_data$ and $x11_save$, are missing or used more than once.']);
@@ -330,115 +330,115 @@ br = '\n';
 % Data
 %------
 format = '%.8f';
-cData = sprintf(['    ',format,br],Data);
-cData = strrep(cData,sprintf(format,-99999),sprintf(format,-99999.01));
-cData = strrep(cData,'NaN','-99999');
-spec = strrep(spec,'$series_data$',cData);
+cData = sprintf(['    ', format, br], Data);
+cData = strrep(cData, sprintf(format, -99999), sprintf(format, -99999.01));
+cData = strrep(cData, 'NaN', '-99999');
+spec = strrep(spec, '$series_data$', cData);
 
 % Seasonal period specs
 %-----------------------
-spec = strrep(spec,'$series_freq$',sprintf('%g',DateWrapper.getFrequencyFromNumeric(StartDate)));
+spec = strrep(spec, '$series_freq$', sprintf('%g', DateWrapper.getFrequencyFromNumeric(StartDate)));
 % Start date.
-spec = strrep(spec,'$series_startyear$',sprintf('%g',round(dataYear)));
-spec = strrep(spec,'$series_startper$',sprintf('%g',round(dataPer)));
-if any(strcmp(Opt.output,'mv'))
+spec = strrep(spec, '$series_startyear$', sprintf('%g', round(dataYear)));
+spec = strrep(spec, '$series_startper$', sprintf('%g', round(dataPer)));
+if any(strcmp(Opt.output, 'mv'))
     % Save missing value adjusted series.
-    spec = strrep(spec,'$series_missingvaladj$','save = (mv)');
-    Opt.output = setdiff(Opt.output,{'mv'});
+    spec = strrep(spec, '$series_missingvaladj$', 'save = (mv)');
+    Opt.output = setdiff(Opt.output, {'mv'});
 else
-    spec = strrep(spec,'$series_missingvaladj$','');
+    spec = strrep(spec, '$series_missingvaladj$', '');
 end    
 
 % Transform specs
 %-----------------
-if any(strcmp(Opt.mode,{'mult','pseudoadd','logadd'}))
+if any(strcmp(Opt.mode, {'mult', 'pseudoadd', 'logadd'}))
     replace = 'log';
 else
     replace = 'none';
 end
-spec = strrep(spec,'$transform_function$',replace);
+spec = strrep(spec, '$transform_function$', replace);
 
 % AUTOMDL specs
 %---------------
-spec = strrep(spec,'$maxorder$',sprintf('%g %g',round(Opt.maxorder)));
+spec = strrep(spec, '$maxorder$', sprintf('%g %g', round(Opt.maxorder)));
 
 % FORECAST specs
 %----------------
-spec = strrep(spec,'$forecast_maxback$',sprintf('%g',Opt.backcast));
-spec = strrep(spec,'$forecast_maxlead$',sprintf('%g',Opt.forecast));
+spec = strrep(spec, '$forecast_maxback$', sprintf('%g', Opt.backcast));
+spec = strrep(spec, '$forecast_maxlead$', sprintf('%g', Opt.forecast));
 
 % REGRESSION specs
 %------------------
 % If there's no REGRESSSION variable, we cannot include
 % the spec in the spec file because X13 would complain. In that case, we
 % keep the entire spec commented out. If tdays is requested but no user
-% dummies are specified, we need to keep the dummy section commented out,
+% dummies are specified, we need to keep the dummy section commented out, 
 % and vice versa.
 if Opt.tdays || ~isempty(Dummy)
     Dummy = real(Dummy);
-    spec = strrep(spec,'#regression ','');
+    spec = strrep(spec, '#regression ', '');
     if Opt.tdays
-        spec = strrep(spec,'#tdays ','');
-        spec = strrep(spec,'$tdays$','td');
+        spec = strrep(spec, '#tdays ', '');
+        spec = strrep(spec, '$tdays$', 'td');
     end
     if ~isempty(Dummy)
-        spec = strrep(spec,'#dummy ','');
-        nDummy = size(Dummy,2);
-        dummyFmt = [ repmat(' %.8f',1,nDummy), br ];
-        name = sprintf(' dummy%g',1:nDummy);
-        spec = strrep(spec,'$dummy_type$',lower(Opt.dummytype));
-        spec = strrep(spec,'$dummy_name$',name);
-        spec = strrep(spec,'$dummy_data$',sprintf(dummyFmt,Dummy.'));
-        spec = strrep(spec,'$dummy_startyear$', ...
-            sprintf('%g',round(dummyYear)));
-        spec = strrep(spec,'$dummy_startper$', ...
-            sprintf('%g',round(dummyPer)));
+        spec = strrep(spec, '#dummy ', '');
+        nDummy = size(Dummy, 2);
+        dummyFmt = [ repmat(' %.8f', 1, nDummy), br ];
+        name = sprintf(' dummy%g', 1:nDummy);
+        spec = strrep(spec, '$dummy_type$', lower(Opt.dummytype));
+        spec = strrep(spec, '$dummy_name$', name);
+        spec = strrep(spec, '$dummy_data$', sprintf(dummyFmt, Dummy.'));
+        spec = strrep(spec, '$dummy_startyear$', ...
+            sprintf('%g', round(dummyYear)));
+        spec = strrep(spec, '$dummy_startper$', ...
+            sprintf('%g', round(dummyPer)));
     end
 end
 
 % ESTIMATION specs
 %------------------
-spec = strrep(spec,'$maxiter$',sprintf('%g',round(Opt.maxiter)));
-spec = strrep(spec,'$tolerance$',sprintf('%e',Opt.tolerance));
+spec = strrep(spec, '$maxiter$', sprintf('%g', round(Opt.MaxIter)));
+spec = strrep(spec, '$tolerance$', sprintf('%e', Opt.tolerance));
 
 % X11 specs
 %-----------
-spec = strrep(spec,'$x11_mode$',Opt.mode);
-spec = strrep(spec,'$x11_save$',sprintf('%s ',Opt.output{:}));
+spec = strrep(spec, '$x11_mode$', Opt.mode);
+spec = strrep(spec, '$x11_save$', sprintf('%s ', Opt.output{:}));
 
 % Write specs to text file
 %--------------------------
-char2file(spec,[TempTitle,'.spc']);
+char2file(spec, [TempTitle, '.spc']);
 end % xxSpecFile( )
 
 
 %**************************************************************************
 
 
-function [Data,Flag] = xxGetOutpData(TempTitle,NPer,Outp,NCol)
+function [Data, Flag] = xxGetOutpData(TempTitle, NPer, Outp, NCol)
 if ischar(Outp)
     Outp = {Outp};
 end
 Flag = true;
-Data = zeros(NPer,0);
-format = repmat(' %f',1,NCol);
+Data = zeros(NPer, 0);
+format = repmat(' %f', 1, NCol);
 nOutp = length(Outp);
 for i = 1 : nOutp
-    file = sprintf('%s.%s',TempTitle,Outp{i});
-    fId = fopen(file,'r');
+    file = sprintf('%s.%s', TempTitle, Outp{i});
+    fId = fopen(file, 'r');
     if fId > -1
         fgetl(fId); % skip first 2 lines
         fgetl(fId);
-        read = fscanf(fId,format);
+        read = fscanf(fId, format);
         fclose(fId);
     else
         read = [ ];
     end
     if length(read) == NCol*NPer
-        read = reshape(read,[NCol,NPer]).';
-        Data(:,end+1) = read(:,2); %#ok<AGROW>
+        read = reshape(read, [NCol, NPer]).';
+        Data(:, end+1) = read(:, 2); %#ok<AGROW>
     else
-        Data(:,end+1) = NaN; %#ok<AGROW>
+        Data(:, end+1) = NaN; %#ok<AGROW>
         Flag = false;
     end
 end
@@ -451,48 +451,48 @@ end % xxGetOutputData( )
 function C = xxReadOutpFile(FName)
 C = file2char(FName);
 C = textfun.removeltel(C);
-C = regexprep(C,'\n\n+','\n\n');
+C = regexprep(C, '\n\n+', '\n\n');
 end % xxReadOutpFile( )
 
 
 %**************************************************************************
 
 
-function Mdl = xxReadModel(Mdl,FName,OuputFile)
+function Mdl = xxReadModel(Mdl, FName, OuputFile)
 C = file2char(FName);
 
 % ARIMA spec block.
-arima = regexp(C,'arima\s*\{\s*model\s*=([^\}]+)\}','once','tokens');
+arima = regexp(C, 'arima\s*\{\s*model\s*=([^\}]+)\}', 'once', 'tokens');
 if isempty(arima) || isempty(arima{1})
     return
 end
 arima = arima{1};
 
 % Non-seasonal and seasonal ARIMA model specification
-spec = regexp(arima,'\((.*?)\)\s*\((.*?)\)','once','tokens');
+spec = regexp(arima, '\((.*?)\)\s*\((.*?)\)', 'once', 'tokens');
 if isempty(spec) || length(spec) ~= 2 ...
         || isempty(spec{1}) || isempty(spec{2})
     return
 end
-specAr = sscanf(spec{1},'%g').';
-specMa = sscanf(spec{2},'%g').';
+specAr = sscanf(spec{1}, '%g').';
+specMa = sscanf(spec{2}, '%g').';
 if isempty(specAr) || isempty(specMa)
     return
 end
 
 % Estimated AR and MA coefficients.
-estAr = regexp(arima,'ar\s*=\s*\((.*?)\)','once','tokens');
-estMa = regexp(arima,'ma\s*=\s*\((.*?)\)','once','tokens');
+estAr = regexp(arima, 'ar\s*=\s*\((.*?)\)', 'once', 'tokens');
+estMa = regexp(arima, 'ma\s*=\s*\((.*?)\)', 'once', 'tokens');
 if isempty(estAr) && isempty(estMa)
     return
 end
 try
-    estAr = sscanf(estAr{1},'%g').';
+    estAr = sscanf(estAr{1}, '%g').';
 catch %#ok<CTCH>
     estAr = [ ];
 end
 try
-    estMa = sscanf(estMa{1},'%g').';
+    estMa = sscanf(estMa{1}, '%g').';
 catch %#ok<CTCH>
     estMa = [ ];
 end
@@ -502,7 +502,7 @@ end
 
 mode = NaN;
 if ~isempty(OuputFile) && ischar(OuputFile)
-    tok = regexp(OuputFile,'Type of run\s*-\s*([\w\-]+)','tokens','once');
+    tok = regexp(OuputFile, 'Type of run\s*-\s*([\w\-]+)', 'tokens', 'once');
     if ~isempty(tok) && ~isempty(tok{1})
         mode = tok{1};
     end
@@ -511,7 +511,7 @@ end
 % Create output struct only after we make sure all pieces have been read in
 % all right.
 Mdl.mode = mode;
-Mdl.spec = {specAr,specMa};
+Mdl.spec = {specAr, specMa};
 Mdl.ar = estAr;
 Mdl.ma = estMa;
 end % xxReadModel( )

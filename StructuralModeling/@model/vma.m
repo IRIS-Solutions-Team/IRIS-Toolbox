@@ -26,7 +26,7 @@ function [phi, list] = vma(this, nPer, varargin)
 % Option
 % =======
 %
-% * `'matrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `Phi`
+% * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `Phi`
 % as either a [`namedmat`](namedmat/Contents) object (i.e. matrix with
 % named rows and columns) or a plain numeric array.
 %
@@ -46,7 +46,7 @@ function [phi, list] = vma(this, nPer, varargin)
 opt = passvalopt('model.vma',varargin{:});
 
 isSelect = ~isequal(opt.select,@all);
-isNamedMat = strcmpi(opt.MatrixFmt,'namedmat');
+isNamedMat = strcmpi(opt.MatrixFormat,'namedmat');
 
 %--------------------------------------------------------------------------
 

@@ -96,7 +96,7 @@ classdef genericobj < handle
                         pos = find(ix);
                         % Validate user option.
                         if isequal(validFunc,@config)
-                            iconfig = irisconfigmaster('get');
+                            iconfig = iris.configMaster('get');
                             validFunc = iconfig.validate.(primaryName);
                         end
                         ok = feval(validFunc,userValue{pos});

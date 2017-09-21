@@ -1,12 +1,6 @@
 classdef Steady < solver.block.Block
     properties (Constant)
         STEADY_SHIFT = 10
-        
-        % Make sure the time array of quantities is a matrix (not a col vector),
-        % so that XX(XX2L) is always a row vector, and reshape works.
-        MAX_FROM_SHIFT = -1
-        
-        MIN_TO_SHIFT = 0
     end
     
     
@@ -19,7 +13,7 @@ classdef Steady < solver.block.Block
                 'Level', [ ], ...
                 'Growth0', [ ], ...
                 'GrowthK', [ ] ...
-                );
+            );
         end
         
         
@@ -40,9 +34,8 @@ classdef Steady < solver.block.Block
             needsRefresh = any(lnk);
             retGradient = this.RetGradient;
             sh = this.Shift;
-            nsh = length(sh);
-            t0 = find(sh==0);
-            fnEval = this.FnEval;
+            nsh = this.NumberOfShifts;
+            t0 = this.PositionOfZeroShift;
             nl = length(posl);
             ixLogZ = [ ixLog(posl), ixLog(posg) ];
             nRow = length(this.PosEqn);
@@ -51,6 +44,9 @@ classdef Steady < solver.block.Block
             if this.Type==solver.block.Type.SOLVE
                 % SOLVE Block
                 %-------------
+
+
+
                 % Initialize endogenous level and growth unknowns.
                 z0 = [ lx(posl), gx(posg) ];
                 % Transform initial conditions for log variables before we check bounds;
@@ -62,7 +58,7 @@ classdef Steady < solver.block.Block
                 chkInitBounds( );
                 % Test all equations in this block for NaNs and Infs.
                 XX = timeArray(0);
-                chk = fnEval(XX, t0);
+                chk = this.EquationsFunc(XX, t0);
                 ix = ~isfinite(chk);
                 if any(ix)
                     error.EvaluatesToNan = this.PosEqn(ix);
@@ -93,7 +89,7 @@ classdef Steady < solver.block.Block
                 fnInv = this.Type.InvTransform;
                 z = [ ];
                 XX = timeArray(0);
-                y0 = fnEval(XX, t0);
+                y0 = this.EquationsFunc(XX, t0);
                 if ~isempty(fnInv)
                     y0 = fnInv(y0);
                 end
@@ -105,7 +101,7 @@ classdef Steady < solver.block.Block
                         z = [ z, imag(y0) ];
                     else
                         XX = timeArray(this.STEADY_SHIFT);
-                        yk = fnEval(XX, t0);
+                        yk = this.EquationsFunc(XX, t0);
                         if ~isempty(fnInv)
                             yk = fnInv(yk);
                         end
@@ -137,15 +133,21 @@ classdef Steady < solver.block.Block
             
             
             
-            function [y, j] = objective(z)
+            function [y, j] = objective(z, positionJacob)
+                j = [ ];
+                if nargin<2
+                    positionJacob = [ ];
+                end
+                analyticalGradientRequest = nargout==2;
                 % Solver is requesting gradient but gradient was not
                 % prepared; this never happens with IRIS or Optim Tbx
                 % solvers as long as PrepareGradient=@auto.
-                if nargout>1 && ~retGradient
+                if analyticalGradientRequest && ~retGradient
                     throw( ...
                         exception.Base('Solver:SteadyGradientRequestedButNotPrepared', 'error') ...
                         ); 
                 end
+
                 % Delogarithmize log variables; variables in steady equations are expected
                 % to be in original levels.
                 z = real(z);
@@ -167,10 +169,15 @@ classdef Steady < solver.block.Block
                     gx(ixLog & gx==0) = 1;
                 end
                 
-                XX = timeArray(0); % An extra row of ones is added as the last row.
-                y = fnEval(XX, t0);
+                XX = timeArray(0); 
+                if isempty(positionJacob)
+                    y = this.EquationsFunc(XX, t0);
+                else
+                    y = this.NumericalJacobFunc{positionJacob}(XX, t0);
+                end
                 
-                if nargout>1 && retGradient
+                if analyticalGradientRequest && retGradient
+                    XX(end+1, :) = 1; % Add an extra row of ones referred to in analytical Jacobian
                     j = cellfun( ...
                         @(Gradient, XX2L, DLevel, DGrowth0) ...
                         Gradient(XX, t0) .* XX(XX2L) * [DLevel, DGrowth0] , ...
@@ -188,10 +195,11 @@ classdef Steady < solver.block.Block
                 if ~isempty(posg)
                     % Some growth rates need to be calculated. Evaluate the model equations at
                     % time t and t+STEADY_SHIFT if at least one growth rate is needed.
-                    XXk = timeArray(this.STEADY_SHIFT);
-                    yk = fnEval(XXk, t0);
+                    XXk = timeArray(this.STEADY_SHIFT); 
+                    yk = this.EquationsFunc(XXk, t0);
                     y = [ y ; yk ];
-                    if nargout>1 && retGradient
+                    if analyticalGradientRequest && retGradient
+                        XXk(end+1, :) = 1; % Add an extra row of ones referred to in analytical Jacobian
                         jk = cellfun( ...
                             @(Gradient, XX2L, DLevel, DGrowthK) ...
                             Gradient(XXk, t0) .* XXk(XX2L) * [DLevel, DGrowthK] , ...
@@ -216,7 +224,6 @@ classdef Steady < solver.block.Block
                 XX = repmat(lx.', 1, nsh);
                 XX(~ixLog, :) = XX(~ixLog, :)  + bsxfun(@times, gx(~ixLog).', sh+k);
                 XX( ixLog, :) = XX( ixLog, :) .* bsxfun(@power, gx( ixLog).', sh+k);
-                XX(end+1, :) = 1;
             end
         end
     end
@@ -227,46 +234,58 @@ classdef Steady < solver.block.Block
     methods       
         function prepareBlock(this, blz, opt)
             prepareBlock@solver.block.Block(this, blz, opt);
-            
             % Prepare function handles and auxiliary matrices for gradients.
             this.RetGradient = opt.PrepareGradient && this.Type==solver.block.Type.SOLVE;
             if this.RetGradient
                 [this.Gradient, this.XX2L, this.D.Level, this.D.Growth0, this.D.GrowthK] = ...
-                    createFnGradient(this, blz, opt);
+                    createAnalyticalJacob(this, blz, opt);
             end
-            
-            
-            % Split PosQty into Level and Growth.
+            % Split PosQty and NumGradient into Level and Growth.
             this.PosQty = struct( ...
                 'Level', this.PosQty, ...
                 'Growth', this.PosQty ...
                 );
+            exclude(this, blz);
         end
         
         
         
         
-        function exclude(this, posExclude)
+        function exclude(this, blz)
             % Exclude levels fixed by user.
-            if ~isempty(posExclude.Level)
-                [this.PosQty.Level, this.D.Level] = ...
-                    do(this.PosQty.Level, posExclude.Level, this.D.Level);
+            if isempty(blz.IdToExclude.Level)
+                indexKeepLevel = ':';
+            else
+                [indexKeepLevel, this.PosQty.Level, this.D.Level] = ...
+                    do(this.PosQty.Level, blz.IdToExclude.Level, this.D.Level);
             end
             % Exclude growth rates fixed by user.
-            if ~isempty(posExclude.Growth) 
-                [this.PosQty.Growth, this.D.Growth0, this.D.GrowthK] = ...
-                    do(this.PosQty.Growth, posExclude.Growth, this.D.Growth0, this.D.GrowthK);
+            if isempty(blz.IdToExclude.Growth) 
+                indexKeepGrowth = ':';
+            else
+                [indexKeepGrowth, this.PosQty.Growth, this.D.Growth0, this.D.GrowthK] = ...
+                    do(this.PosQty.Growth, blz.IdToExclude.Growth, this.D.Growth0, this.D.GrowthK);
             end
-            
+            this.JacobPattern = [ ...
+                this.JacobPattern(:, indexKeepLevel), ...
+                this.JacobPattern(:, indexKeepGrowth), ...
+            ];
+            this.NumericalJacobFunc = [ ...
+                this.NumericalJacobFunc(1, indexKeepLevel), ...
+                this.NumericalJacobFunc(1, indexKeepGrowth), ...
+            ];
             return
+
             
-            function [pos, varargout] = do(pos, posExclude, varargin)
+            function [indexToKeep, id, varargout] = do(id, idToExclude, varargin)
                 varargout = varargin;
-                [pos, keep] = setdiff(pos, posExclude, 'stable');
+                indexToKeep = false(1, numel(id));
+                [id, posToKeep] = setdiff(id, idToExclude, 'stable');
+                indexToKeep(posToKeep) = true;
                 for i = 1 : length(varargout)
                     if ~isempty(varargout{i})
                         D = varargout{i};
-                        D = cellfun(@(x) x(:, keep), D, 'UniformOutput', false);
+                        D = cellfun(@(x) x(:, posToKeep), D, 'UniformOutput', false);
                         varargout{i} = D;
                     end
                 end

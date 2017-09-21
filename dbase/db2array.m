@@ -1,16 +1,14 @@
 function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, sw)
 % db2array  Convert tseries database entries to numeric array.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [x, includedList, range] = db2array(d)
 %     [x, includedList, range] = db2array(d, list)
 %     [x, includedList, range] = db2array(d, list, range, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `d` [ struct ] - Input database with tseries objects that will be
 % converted to a numeric array.
@@ -25,8 +23,7 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 % very first non-NaN observation to the very last non-NaN observation.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `x` [ numeric ] - Numeric array with observations from individual
 % tseries objects in columns.
@@ -38,8 +35,7 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 % useful when the input argument `range` is missing or `Inf`.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The output array, `x`, is always NPer-by-NList-by-NAlt, where NPer is the
 % length of the `range` (the number of periods), NList is the number of
@@ -58,8 +54,7 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 % missing columns.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

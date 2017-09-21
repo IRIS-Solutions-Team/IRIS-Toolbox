@@ -31,7 +31,7 @@ for i = 1 : nLoop
       end
       continue
    end
-   Ci = (C(:,:,i)+C(:,:,i).')/2;
+   Ci = (C(:,:,i)+C(:,:,i)')/2;
    cholFailed = false;
    if ~SvdOnly
       % Unless declined by the user, attempt Cholesky first. Cholesky is

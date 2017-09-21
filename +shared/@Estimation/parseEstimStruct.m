@@ -30,8 +30,6 @@ est = rmfield(est, pri.LsParam);
 return
 
 
-
-
     function doParameters( )
         for ii = 1 : np
             name = pri.LsParam{ii};

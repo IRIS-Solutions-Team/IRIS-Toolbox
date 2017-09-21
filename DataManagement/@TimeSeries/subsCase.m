@@ -1,7 +1,7 @@
 function c = subsCase(start, timeReference)
 
 if isa(timeReference, 'Date')
-    if isnad(timeReference)
+    if isequaln(timeReference, NaN) || isnad(timeReference)
         ref = 'NaD';
     else
         ref = 'Date';
@@ -18,7 +18,7 @@ else
 end
 
 frequency = start.Frequency;
-if isnaf(frequency);
+if isnaf(frequency)
     start = 'NaD';
 elseif isempty(start)
     start = 'Empty';

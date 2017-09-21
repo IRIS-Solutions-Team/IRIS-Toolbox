@@ -18,19 +18,19 @@ ixu = any(this.Equation.Type==TYPE(5));
 ixh = this.Equation.IxHash;
 
 % Bkw compatibility.
-if isfield(opt,'nonlinear') && ~isempty(opt.nonlinear)
+if isfield(opt, 'nonlinear') && ~isempty(opt.nonlinear)
     % ##### Feb 2015 OBSOLETE and scheduled for removal.
     utils.warning('obsolete', ...
         ['Option nonlinear= is obsolete, and ', ...
         'will be removed from IRIS in a future release. ', ...
         'Use new options Method= and NonlinWindow= instead.']);
-    opt.method = 'selective';
+    opt.Method = 'selective';
     opt.NonlinWindow = opt.nonlinear;
 end
 
-s.Method = lower(opt.method);
+s.Method = lower(opt.Method);
 s.Solver = lower(opt.Solver);
-s.Display = lower(opt.display);
+s.Display = lower(opt.Display);
 s.IsDeviation = opt.deviation;
 s.IsAddSstate = opt.addsstate;
 s.IsError = opt.error;
@@ -40,7 +40,7 @@ s.IxYLog = ixLog(real(this.Vector.Solution{1})).';
 s.IxXLog = ixLog(real(this.Vector.Solution{2})).';
 
 s.NPerNonlin = 0;
-if isequal(s.Method,'selective')
+if isequal(s.Method, 'selective')
     if any(ixh)
         s.NPerNonlin = opt.NonlinWindow;
         if isequal(s.NPerNonlin, @all)
@@ -62,7 +62,7 @@ if isequal(s.Method, 'selective')
     s.Selective = struct( );
     s.Selective.IxHash = ixh;
     s.Selective.Tolerance = opt.tolerance;
-    s.Selective.MaxIter = opt.maxiter;
+    s.Selective.MaxIter = opt.MaxIter;
     s.Selective.Lambda = opt.lambda;
     s.Selective.UpperBnd = opt.upperbound;
     s.Selective.IsFillOut = opt.fillout;
@@ -73,19 +73,19 @@ if isequal(s.Method, 'selective')
         
     doEqtnN( );
     
-    if isequal(s.Solver,@auto) ...
-            || ( ischar(s.Solver) && strcmpi(s.Solver,'qad') )
+    if isequal(s.Solver, @auto) ...
+            || ( ischar(s.Solver) && strcmpi(s.Solver, 'qad') )
         s.Solver = @qad;
     end
     s.Display = s.Display;
-    if isequal(s.Solver,@qad)
-        if isequal(s.Display,'off') || isequal(s.Display,'on')        
+    if isequal(s.Solver, @qad)
+        if isequal(s.Display, 'off') || isequal(s.Display, 'on')        
             s.Display = 0;
-        elseif isequal(s.Display,@auto) || ~isnumericscalar(s.Display)
+        elseif isequal(s.Display, @auto) || ~isnumericscalar(s.Display)
             s.Display = 100;
         end
     else
-        if isequal(s.Display,@auto)
+        if isequal(s.Display, @auto)
             s.Display = 'iter';
         end
     end
@@ -94,16 +94,16 @@ if isequal(s.Method, 'selective')
     % equations. These will be combined with positions of exogenized variables
     % in each segment.
     ixXUpdN = false(nxx, 1);
-    tkn = regexp(s.Selective.EqtnNI, '\<xi\>\((\d+),', 'tokens');
+    tkn = regexp(s.Selective.EqtnNI, '\<xi\>\((\d+), ', 'tokens');
     for i = 1 : numel(tkn)
         if isempty(tkn{i})
             continue
         end
         temp = [tkn{i}{:}];
-        ix = eval(['[', sprintf('%s,', temp{:}), ']']);
+        ix = eval(['[', sprintf('%s, ', temp{:}), ']']);
         ixXUpdN(ix) = true;
     end
-    s.Selective.IxUpdN = [false(ny,1); ixXUpdN];
+    s.Selective.IxUpdN = [false(ny, 1); ixXUpdN];
     s.Selective.NOptimLambda = double(opt.noptimlambda);
     s.Selective.NShanks = opt.nshanks;
     
@@ -126,9 +126,9 @@ s.IsRevision = opt.Revision && any(ixu) && any( ptrRevision(ixu)>0 );
 if s.IsRevision
     % Initialize and preprocess sstate, chksstate, solve options.
     s.Revision = struct( );
-    s.Revision.sstate = prepareSteady(this, 'silent', opt.sstate);
-    s.Revision.chksstate = prepareChkSteady(this, 'silent', opt.chksstate);
-    s.Revision.solve = prepareSolve(this, 'silent', opt.solve);
+    s.Revision.Steady = prepareSteady(this, 'silent', opt.Steady);
+    s.Revision.ChkSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
+    s.Revision.Solve = prepareSolve(this, 'silent', opt.Solve);
     ixRevision = ixu & ptrRevision>0;
     eqnRevision = model.createNonlinEqtn(this, ixRevision);
     eqnRevision = [ model.PREAMBLE_HASH, '[', eqnRevision{:}, ']' ];
@@ -137,11 +137,11 @@ if s.IsRevision
     s.Revision.PtrRevision = ptrRevision(ixRevision);
 end
 
-if isequal(s.Solver,@lsqnonlin) || isequal(s.Solver, @fsolve)
+if isequal(s.Solver, @lsqnonlin) || isequal(s.Solver, @fsolve)
     opt.Solver = s.Solver;
-    opt.display = s.Display;
-    opt.tolfun = model.DEFAULT_STEADY_TOLERANCE;
-    opt.tolx = model.DEFAULT_STEADY_TOLERANCE;
+    opt.Display = s.Display;
+    opt.TolFun = model.DEFAULT_STEADY_TOLERANCE;
+    opt.TolX = model.DEFAULT_STEADY_TOLERANCE;
     [~, s.OptimSet] = irisoptim.myoptimopts(opt);
 end
 

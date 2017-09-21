@@ -38,6 +38,17 @@ classdef DateWrapper < double
         end
 
 
+        function this = uminus(this)
+            indexOfInf = isinf(double(this));
+            assert( ...
+                all(indexOfInf), ...
+                'DateWrapper:uminus', ...
+                'DateWrapper/uminus can only be applied to Inf or -Inf.' ...
+            );
+            this = DateWrapper(-double(this));
+        end
+
+
         function this = plus(a, b)
             assert( ...
                 ~isa(a, 'DateWrapper') || ~isa(b, 'DateWrapper'), ...
@@ -71,8 +82,6 @@ classdef DateWrapper < double
         
         
         function this = minus(a, b)
-            %this = double(a) - double(b);
-            %return
             if isa(a, 'DateWrapper') && isa(b, 'DateWrapper')
                 assert( ...
                     all(DateWrapper.getFrequencyFromNumeric(a(:))==DateWrapper.getFrequencyFromNumeric(b(:))), ...
@@ -152,12 +161,54 @@ classdef DateWrapper < double
         end
 
 
+        function this = getFirst(this)
+            this = this(1);
+        end
+
+
+        function this = getLast(this)
+            this = this(end);
+        end
+
+
+        function flag = isnad(this)
+            flag = isequaln(double(this), NaN);
+        end
+
+
+        function n = between(firstDate, lastDate)
+            assert( ...
+                isa(firstDate, 'DateWrapper') && isa(lastDate, 'DateWrapper'), ...
+                'DateWrapper:between', ...
+                'Input arguments into DateWrapper/between must both be scalar DateWrapper objects.' ...
+            );
+            firstFrequency = DateWrapper.getFrequencyFromNumeric(firstDate(:));
+            lastFrequency = DateWrapper.getFrequencyFromNumeric(lastDate(:));
+            assert( ...
+                all(firstFrequency==lastFrequency), ...
+                'DateWrapper:between', ...
+                'All input arguments into DateWrapper/between must be of the same date frequency' ...
+            );
+            n = floor(lastDate) - floor(firstDate) + 1;
+        end
+
+
+        function this = addTo(this, c)
+            assert( ...
+                isa(this, 'DateWrapper') && isnumeric(c) && all(c==round(c)), ...
+                'DateWrapper:addTo', ...
+                'Invalid input arguments into DateWrapper/addTo.' ...
+            );
+            this = DateWrapper(this + c);
+        end
+            
+
         function dt = datetime(this, varargin)
             frequency = DateWrapper.getFrequencyFromNumeric(this);
             assert( ...
                 all(frequency(1)==frequency(:)), ...
                 'DateWrapper:datetime', ...
-                'All DateWrappers in datetime( ) conversion must be of the same frequency.' ...
+                'All DateWrappers in datetime( ) conversion must be of the same date frequency.' ...
             );
             frequency = frequency(1);
             serial = floor(this);
@@ -166,9 +217,12 @@ classdef DateWrapper < double
     end
     
     
-    
-    
     methods (Static)
+        function this = Inf( )
+            this = DateWrapper(Inf);
+        end
+
+
         function frequency = getFrequencyFromNumeric(dat)
             MIN_DAILY_SERIAL = 365244;
             dat = double(dat);
@@ -199,7 +253,7 @@ classdef DateWrapper < double
         end
 
 
-        function chkMixedFrequency(freq)
+        function checkMixedFrequency(freq)
             if isempty(freq)
                 return
             end
@@ -211,13 +265,13 @@ classdef DateWrapper < double
                 throw( ...
                     exception.Base('DateWrapper:MixedFrequency', 'error'), ...
                     temp ...
-                    ); %#ok<GTARG>
+                ); %#ok<GTARG>
             end
         end
         
         
         function prt = printFreqName(f)
-            freqName = irisget('FreqName');            
+            freqName = iris.get('FreqName');            
             if isnumeric(f)
                 f = num2cell(f);
             end
@@ -249,7 +303,7 @@ classdef DateWrapper < double
         if ~isstruct(formats)
             throw( ...
                 exception.Base('DateWrapper:InvalidDateFormat', 'error') ...
-                );
+            );
         end
 
         switch freq

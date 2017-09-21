@@ -1,4 +1,4 @@
-function v = VAR(this, select, range, varargin)
+function outputVAR = VAR(this, select, range, varargin)
 % VAR  Population VAR for selected model variables.
 %
 % __Syntax__
@@ -59,7 +59,7 @@ end
 
 %--------------------------------------------------------------------------
 
-nAlt = length(this);
+nv = length(this);
 nz = length(select);
 p = opt.order;
 C = acf(this, opt.acf{:}, 'order=', p, 'output=', 'numeric');
@@ -75,23 +75,24 @@ C = C(posSpace, posSpace, :, :);
 ixLog = this.Quantity.IxLog(1, posName);
 
 % TODO: Calculate Sigma.
-v = VAR( );
-v.A = nan(nz, nz*p, nAlt);
-v.K = zeros(nz, nAlt);
-v.Omega = nan(nz, nz, nAlt);
-v.Sigma = [ ];
-v.G = nan(nz, 0, nAlt);
-v.Range = range;
-v.IxFitted = true(1, nPer);
-v.IxFitted(1:p) = false;
-v.NHyper = nz*(nk+p*nz);
+outputVAR = VAR( );
+outputVAR.A = nan(nz, nz*p, nv);
+outputVAR.K = zeros(nz, nv);
+outputVAR.Omega = nan(nz, nz, nv);
+outputVAR.Sigma = [ ];
+outputVAR.G = nan(nz, 0, nv);
+outputVAR.Range = range;
+outputVAR.IxFitted = true(1, nPer);
+outputVAR.IxFitted(1:p) = false;
+outputVAR.NHyper = nz*(nk+p*nz);
 
-for iAlt = 1 : nAlt
-    Ci = C(:, :, :, iAlt);
-    zBar = this.Variant{iAlt}.Quantity(1, posName).';
+for v = 1 : nv
+    Ci = C(:, :, :, v);
+    zBar = this.Variant.Values(:, posName, v);
+    zBar = transpose(zBar);
     zBar(ixLog) = log(zBar(ixLog));
     
-    % Put together moment matrices.
+    % __Moment Matrices__
     % M1 := [C1, C2, ...]
     M1 = reshape(Ci(:, :, 2:end), nz, nz*p);
     
@@ -109,34 +110,34 @@ for iAlt = 1 : nAlt
     % Then, tranpose M0' to get M0.
     M0 = M0t.';
     
-    % Compute transition matrix.
+    % __Transition Matrix__
     Ai = M1 / M0;
     
-    % Estimate cov matrix of residuals.
+    % __Cov Matrix of Errors__
     Omgi = Ci(:, :, 1) - M1*Ai.' - Ai*M1.' + Ai*M0*Ai.';
     
-    % Calculate constant vector.
+    % __Vector of Constants__
     Ki = zeros(size(zBar));
     if opt.constant
         Ki = sum(polyn.var2polyn(Ai), 3)*zBar;
     end
     
-    % Populate VAR properties.
-    v.A(:, :, iAlt) = Ai;
-    v.K(:, iAlt) = Ki;
-    v.Omega(:, :, iAlt) = Omgi;
+    % __Populate VAR Properties__
+    outputVAR.A(:, :, v) = Ai;
+    outputVAR.K(:, v) = Ki;
+    outputVAR.Omega(:, :, v) = Omgi;
 end
 
 % Assign variable names.
-v = myynames(v, select);
+outputVAR = myynames(outputVAR, select);
 
 % Create residual names automatically.
-v = myenames(v, [ ]);
+outputVAR = myenames(outputVAR, [ ]);
 
 % Compute triangular representation.
-v = schur(v);
+outputVAR = schur(outputVAR);
 
 % Populate AIC and SBC criteria.
-v = infocrit(v);
+outputVAR = infocrit(outputVAR);
 
 end

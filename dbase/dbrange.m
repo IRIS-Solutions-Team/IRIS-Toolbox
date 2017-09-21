@@ -66,7 +66,7 @@ end
 
 %--------------------------------------------------------------------------
 
-freqList = irisget('freq');
+freqList = iris.get('freq');
 nFreq = length(freqList);
 startDat = cell(1, nFreq);
 endDat = cell(1, nFreq);

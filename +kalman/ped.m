@@ -171,7 +171,7 @@ for t = 2 : nPer
     % and the reduced-form covariance matrix Sa(t). Make sure P is numerically
     % symmetric and does not explode over time.
     P = (Ta*P - K0*ZP)*Tat + Sa;
-    P = (P + P.')/2;
+    P = (P + P')/2;
     
     % Prediction step t|t-1 for measurement variables
     %-------------------------------------------------
@@ -346,7 +346,7 @@ return
         % Predict fwl variables.
         TfPa1 = Tf*s.Pa1(:, :, t-1);
         Pf0 = TfPa1*Tf.' + s.Sf(:, :, min(t, end));
-        Pf0 = (Pf0 + Pf0.')/2;
+        Pf0 = (Pf0 + Pf0')/2;
         if s.retFilter || s.retSmooth
             s.Pf0(:, :, t) = Pf0;
             Pfa0 = TfPa1*Ta.' + s.Sfa(:, :, min(t, end));
@@ -394,7 +394,7 @@ return
         Kc = (Zc*P).' / Fc;
         ac = a + Kc*pec;
         Pc = P - Kc*Zc*P;
-        Pc = (Pc + Pc.')/2;
+        Pc = (Pc + Pc')/2;
         % Index of available non-conditioning observations.
         xy = jy & ~cy;
         if any(xy)

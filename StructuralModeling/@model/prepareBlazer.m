@@ -22,13 +22,12 @@ ixp = this.Quantity.Type==TYPE(4);
 ixm = this.Equation.Type==TYPE(1);
 ixt = this.Equation.Type==TYPE(2);
 ixmt = ixm | ixt;
-nEqn = length(this.Equation);
+numOfEquations = length(this.Equation);
 
+blz.Quantity = this.Quantity;
 switch lower(kind)
     case 'steady'
-        blz = solver.blazer.Steady(nEqn);
-        
-        blz.BlockConstructor = @solver.block.Steady;
+        blz = solver.blazer.Steady(numOfEquations);
         blz.Equation(ixmt) = this.Equation.Steady(ixmt);
         ixCopy = ixmt & cellfun(@isempty, this.Equation.Steady(1, :));        
         blz.Equation(ixCopy) = this.Equation.Dynamic(ixCopy);
@@ -38,23 +37,29 @@ switch lower(kind)
         incid = across(blz.Incidence, 'Shift');
         blz.IxCanBeEndg = (ixy | ixx | ixp) & full(any(incid, 1));
         blz.Assignment = this.Pairing.Assignment.Steady;
-        blz.Preamble = '@(x,t)';
-        blz.IsReduction = false;
-        blz.QtyStrFormat = 'x(%g,t';
+
     case 'dynamic'
-        blz = solver.blazer.Dynamic(nEqn);
-        
-        blz.BlockConstructor = @solver.block.Dynamic;
+        blz = solver.blazer.Dynamic(numOfEquations);
         blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
         blz.Gradient(:, ixmt) = this.Gradient.Dynamic(:, ixmt);
-        blz.Incidence = selectShift(this.Incidence.Dynamic, 0, 0);
-        blz.IxCanBeEndg = ixy | ixx | ixe;
+        blz.Incidence = selectShift(this.Incidence.Dynamic, 0);
+        incid = across(blz.Incidence, 'Shift');
+        blz.IxCanBeEndg = (ixy | ixx | ixe) & full(any(incid, 1));
         blz.Assignment = this.Pairing.Assignment.Dynamic;
-        blz.Preamble = '@(x,t,L)';
-        blz.IsReduction = true;
-        blz.QtyStrFormat = 'x(%g,t)';
+
+    case 'stacked'
+        numOfStackedTimes = opt.Stacked;
+        blz = solver.blazer.Stacked(numOfStackedTimes, numOfEquations);
+        blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
+        blz.Gradient(:, :) = [ ];
+        blz.Incidence = across(this.Incidence, 'Shift');
+        blz.IxCanBeEndg = ixy | ixx;
+        blz.Assignment = this.Pairing.Assignment.Dynamic;
+
     otherwise
-        throw( exception.Base('General:INTERNAL', 'error') );
+        throw( ...
+            exception.Base('General:Internal', 'error') ...
+        );
 end
 
 % Change log status of variables.

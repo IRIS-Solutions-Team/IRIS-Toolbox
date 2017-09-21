@@ -1,14 +1,12 @@
-function [flag, lsMissing] = chkmissing(this, d, start, varargin)
+function [flag, listOfMissing] = chkmissing(this, d, start, varargin)
 % chkmissing  Check for missing initial values in simulation database.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [Ok, Miss] = chkmissing(M, D, Start)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object.
 %
@@ -17,8 +15,7 @@ function [flag, lsMissing] = chkmissing(this, d, start, varargin)
 % * `Start` [ numeric ] - Start date for the simulation.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Ok` [ `true` | `false` ] - True if the input database `D` contains
 % all required initial values for simulating model `M` from date `Start`.
@@ -26,22 +23,19 @@ function [flag, lsMissing] = chkmissing(this, d, start, varargin)
 % * `Miss` [ cellstr ] - List of missing initial values.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'error='` [ *`true`* | `false` ] - Throw an error if one or more
 % initial values are missing.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % This function does not perform any simulation; it only checks for missing
 % initial values in an input database.
 %
 %
-% Example
-% ========
+% __Example_
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -51,15 +45,13 @@ opt = passvalopt('model.chkmissing',varargin{:});
 
 %--------------------------------------------------------------------------
 
-lsMissing = cell(1, 0);
+listOfMissing = cell.empty(1, 0);
 
-nAlt = length(this.Variant);
+nv = length(this);
 [~, ~, nb, nf] = sizeOfSolution(this.Vector);
 vecXb = this.Vector.Solution{2}(nf+1:end);
 
-ixInit = model.Variant.get(this.Variant, 'IxInit', ':');
-
-ixAvailable = true(1, nb);
+indexOfAvailable = true(1, nb);
 for j = 1 : nb
     pos = real( vecXb(j) );
     sh = imag( vecXb(j) );
@@ -68,24 +60,24 @@ for j = 1 : nb
     try
         value = rangedata(d.(name), start+lag);
         value = value(:, :);
-        if numel(value)==1 && nAlt>1
-            value = repmat(value, 1, nAlt);
+        if numel(value)==1 && nv>1
+            value = repmat(value, 1, nv);
         end
-        ix = permute(ixInit(1, j, :), [1, 3, 2]);
-        ixAvailable(j) = all(~isnan(value) | ~ix);
+        jthIsInitial = permute(this.Variant.IxInit(:, j, :), [1, 3, 2]);
+        indexOfAvailable(j) = all(~isnan(value) | ~jthIsInitial);
     catch
-        ixAvailable(j) = false;
+        indexOfAvailable(j) = false;
     end
 end
 
-flag = all(ixAvailable);
+flag = all(indexOfAvailable);
 if ~flag
-    lsMissing = printSolutionVector(this, vecXb(~ixAvailable));
+    listOfMissing = printSolutionVector(this, vecXb(~indexOfAvailable));
     if opt.error
         throw( ...
             exception.Base('Model:MissingInitCond', 'error'), ...
-            lsMissing{:} ...
-            );
+            listOfMissing{:} ...
+        );
     end
 end
 

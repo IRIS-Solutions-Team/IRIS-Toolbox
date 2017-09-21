@@ -35,52 +35,48 @@ c = [c, printEqtns(this, '!transition_equations', find(ixt))];
 end
 
 
-
-
 function c = printNames(this, heading, pos, isValue)
-try
-    isValue; %#ok<VUNUS>
-catch
-    isValue = true;
-end
-if isempty(pos)
-    c = '';
-    return
-end
-BR = sprintf('\n');
-TAB = sprintf('\t');
-c = [BR, heading, BR];
-for i = pos
-    c = [c, TAB, this.Quantity.Name{i}]; %#ok<AGROW>
-    if isValue && ~isnan(this.Variant{1}.Quantity(i))
-        assignReal = real(this.Variant{1}.Quantity(i));
-        assignImag = imag(this.Variant{1}.Quantity(i));
-        c = [c, sprintf('=%.16f', assignReal)]; %#ok<AGROW>
-        if assignImag~=0
-            c = [c, sprintf('%+.16fi', assignImag)]; %#ok<AGROW>
-        end
+    try
+        isValue; %#ok<VUNUS>
+    catch
+        isValue = true;
     end
-    c = [c, BR]; %#ok<AGROW>
+    if isempty(pos)
+        c = '';
+        return
+    end
+    BR = sprintf('\n');
+    TAB = sprintf('\t');
+    c = [BR, heading, BR];
+    for i = pos
+        c = [c, TAB, this.Quantity.Name{i}]; %#ok<AGROW>
+        if isValue && ~isnan(this.Variant.Values(:, i, 1))
+            assignReal = real(this.Variant.Values(:, i, 1));
+            assignImag = imag(this.Variant.Values(:, i, 1));
+            c = [c, sprintf('=%.16f', assignReal)]; %#ok<AGROW>
+            if assignImag~=0
+                c = [c, sprintf('%+.16fi', assignImag)]; %#ok<AGROW>
+            end
+        end
+        c = [c, BR]; %#ok<AGROW>
+    end
 end
-end
-
-
 
 
 function c = printEqtns(this, heading, pos)
-if isempty(pos)
-    c = '';
-    return
-end
-br = sprintf('\n');
-tab = sprintf('\t');
-c = [br, heading, br];
-for i = pos
-    eqtn = this.Equation.Input{i};
-    eqtn = strrep(eqtn, '=', ' = ');
-    eqtn = strrep(eqtn, '= #', ' =# ');
-    eqtn = strrep(eqtn, '!!', [' ...', br, tab, tab, '!! ']);
-    c = [c, tab, eqtn]; %#ok<AGROW>
-    c = [c, br, br]; %#ok<AGROW>
+    if isempty(pos)
+        c = '';
+        return
+    end
+    br = sprintf('\n');
+    tab = sprintf('\t');
+    c = [br, heading, br];
+    for i = pos
+        eqtn = this.Equation.Input{i};
+        eqtn = strrep(eqtn, '=', ' = ');
+        eqtn = strrep(eqtn, '= #', ' =# ');
+        eqtn = strrep(eqtn, '!!', [' ...', br, tab, tab, '!! ']);
+        c = [c, tab, eqtn]; %#ok<AGROW>
+        c = [c, br, br]; %#ok<AGROW>
 end
 end

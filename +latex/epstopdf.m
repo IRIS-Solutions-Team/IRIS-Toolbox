@@ -30,7 +30,7 @@ if ischar(List)
 end
 
 thisDir = pwd( );
-epstopdf = irisget('epstopdfpath');
+epstopdf = iris.get('epstopdfpath');
 if isempty(epstopdf)
     utils.error('latex:epstopdf',...
         'EPSTOPDF path unknown. Cannot convert EPS to PDF files.');

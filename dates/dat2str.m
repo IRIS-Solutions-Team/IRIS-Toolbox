@@ -1,26 +1,22 @@
 function [s, field] = dat2str(dat, varargin)
-% dat2str  Convert IRIS dates to cell array of strings.
+% dat2str  Convert IRIS dates to cell array of strings
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     s = dat2str(dat, ...)
-%
-%
-% Input arguments
-% ================
-%
-% * `dat` [ numeric ] - IRIS serial date number(s).
+%     S = dat2str(Dat, ...)
 %
 %
-% Output arguments
-% =================
+% __Input Arguments__
 %
-% * `s` [ cellstr ] - Cellstr with strings representing the input dates.
+% * `Dat` [ numeric ] - IRIS serial date number(s).
 %
 %
-% Options
-% ========
+% __Output Arguments__
+%
+% * `S` [ cellstr ] - Cellstr with strings representing the input dates.
+%
+%
+% __Options__
 %
 % * `'DateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string, 
 % or array of format strings (possibly different for each date).
@@ -41,8 +37,7 @@ function [s, field] = dat2str(dat, varargin)
 % `'Sat'` | `'Sun'` ] - Day of week that will represent weeks.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % There are two types of date strings in IRIS: year-period strings and
 % calendar date strings. The year-period strings can be printed for dates
@@ -51,8 +46,7 @@ function [s, field] = dat2str(dat, varargin)
 % dates with weekly and daily frequencies. Date formats for calendar date
 % strings must start with a dollar sign, `$`.
 %
-% Year-period date strings
-% -------------------------
+% _Year-Period Date Strings_
 %
 % Regular date formats can include any combination of the following
 % fields:
@@ -99,8 +93,8 @@ function [s, field] = dat2str(dat, varargin)
 %
 % * `'W'` - End-of-month workday; conversion month used for non-monthly dates.
 %
-% Calendar date strings
-% ----------------------
+%
+% _Calendar Date Strings_
 %
 % Calendar date formats must start with a dollar sign, `$`, and can include
 % any combination of the following fields:
@@ -135,16 +129,15 @@ function [s, field] = dat2str(dat, varargin)
 % * `'Aaa'`, `'AAA'` - Three-letter English name of the day of week
 % (`'Mon'`, ..., `'Sun'`).
 %
-% Escaping control letters
-% -------------------------
+%
+% _Escaping Control Letters_
 %
 % To get the format letters printed literally in the date string, use a
 % percent sign as an escape character: `'%Y'`, `'%P'`, `'%F'`, `'%f'`, 
 % `'%M'`, `'%m'`, `'%R'`, `'%r'`, `'%Q'`, `'%q'`, `'%D'`, `'%E'`, `'%D'`.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -203,21 +196,29 @@ nFmt = numel(opt.dateformat);
 prevFreq = NaN;
 
 for iDat = 1 : nDat
-    
-    thisFreq = freq(iDat);
+    ithDoubleDate = double(dat(iDat));
+    if isequal(ithDoubleDate, Inf)
+        s{iDat} = 'Inf';
+        continue
+    elseif isequal(ithDoubleDate, -Inf)
+        s{iDat} = '-Inf';
+        continue
+    end
 
-    if iDat<=nFmt || ~isequaln(thisFreq, prevFreq)
-        fmt = DateWrapper.chooseFormat(opt.dateformat, thisFreq, min(iDat, nFmt));
+    ithFreq = freq(iDat);
+
+    if iDat<=nFmt || ~isequaln(ithFreq, prevFreq)
+        fmt = DateWrapper.chooseFormat(opt.dateformat, ithFreq, min(iDat, nFmt));
         [fmt, field, isCalendar, isMonthNeeded] = parseDateFormat(fmt);
         nField = length(field);
     end
     
-    if ~any( thisFreq==[0, 1, 2, 4, 6, 12, 52, 365] )
+    if ~any( ithFreq==[0, 1, 2, 4, 6, 12, 52, 365] )
         s{iDat} = 'Not-A-Date';
         continue
     end
 
-    if thisFreq==365 && ~isCalendar
+    if ithFreq==365 && ~isCalendar
         throw( ...
             exception.Base('Options:CalendarFormatForDaily', 'error') ...
             );
@@ -287,7 +288,7 @@ for iDat = 1 : nDat
     end
     
     s{iDat} = sprintf(fmt, subs{:});
-    prevFreq = thisFreq;
+    prevFreq = ithFreq;
 end
 
 return
@@ -381,7 +382,7 @@ return
             case 'PP'
                 Subs = sprintf('%02g', iPer);
             case 'P'
-                if thisFreq<10
+                if ithFreq<10
                     Subs = sprintf('%g', iPer);
                 else
                     Subs = sprintf('%02g', iPer);
@@ -510,9 +511,9 @@ return
     function m = calculateMonth( )
         % Non-calendar month.
         m = NaN;
-        switch thisFreq
+        switch ithFreq
             case {1, 2, 4, 6}
-                m = per2month(iPer, thisFreq, opt.ConversionMonth);
+                m = per2month(iPer, ithFreq, opt.ConversionMonth);
             case 12
                 m = iPer;
             case 52
@@ -526,7 +527,7 @@ return
 
     function subs = subsFreqLetter( )
         subs = '';
-        switch thisFreq
+        switch ithFreq
             case 1
                 subs = opt.freqletters(1);
             case 2

@@ -1,102 +1,79 @@
-function fn = invgamma(mean_, std_, a, b)
-% invgamma  Create function proportional to log of square-root-inverse-gamma distribution.
+function F = invgamma(Mean,Std)
+% invgamma  Create function proportional to log of inv-gamma distribution.
 %
 % Syntax
 % =======
 %
-%     fn = logdist.invgamma(mean, stdev)
-%     fn = logdist.invgamma(NaN, NaN, a, b)
-%
+%     F = logdist.invgamma(MEAN,STD)
 %
 % Input arguments
 % ================
 %
-% * `mean` [ numeric ] - Mean of the square-root-inverse-gamma distribution.
+% * `MEAN` [ numeric ] - Mean of the inv-gamma distribution.
 %
-% * `stdev` [ numeric ] - Stdev of the square-root-inverse-gamma distribution.
-%
-% * `a` [ numeric ] - Parameter alpha defining square-root-inverse-gamma distribution.
-%
-% * 'b` [ numeric ] - Parameter beta defining square-root-inverse-gamma distribution.
-%
+% * `STD` [ numeric ] - Std dev of the inv-gamma distribution.
 %
 % Output arguments
 % =================
 %
-% * `fn` [ function_handle ] - Function handle returning a value
-% proportional to the log of the square-root-inverse-gamma density.
-%
+% * `F` [ function_handle ] - Function handle returning a value
+% proportional to the log of the inv-gamma density.
 %
 % Description
 % ============
 %
 % See [help on the logdisk package](logdist/Contents) for details on
-% using the function handle `fn`.
-%
+% using the function handle `F`.
 %
 % Example
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -IRIS Toolbox.
+% -Copyright (c) 2007-2015 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
-if isequaln(mean_, NaN) && isequaln(std_, NaN)
-    mean_ = sqrt(b)*exp(gammaln(a-.5)-gammaln(a));
-    if a>1
-        std_ = sqrt(b/(a-1)-mean_^2);
-    else
-        std_ = Inf;
-    end 
-elseif isinf(std_)
-    a = 1;
-    b = mean_^2/pi;
-else
-    a = fzero(@(x) gammaln(x)-gammaln(x-.5)-log((x-1)*(1+(std_/mean_)^2))/2,[1+eps 1e3]);
-    b = (a-1)*(mean_^2+std_^2);
-end
-mode_ = sqrt((a-.5)/b);
-fn = @(x,varargin) fnInvGamma(x, a, b, mean_, std_, mode_, varargin{:});
+a = 2 + (Mean/Std)^2;
+b = Mean*(a - 1);
+mode = b/(a + 1);
+F = @(x,varargin) xxInvGamma(x,a,b,Mean,Std,mode,varargin{:});
 
 end
 
+% Subfunctions.
 
+%**************************************************************************
+function Y = xxInvGamma(X,A,B,Mean,Std,Mode,varargin)
 
-
-function y = fnInvGamma(x, a, b, mean_, std_, mode_, varargin)
-y = zeros(size(x));
-ix = x>0;
-x = x(ix);
+Y = zeros(size(X));
+inx = X > 0;
+X = X(inx);
 if isempty(varargin)
-    y(ix) = (-2*a-1)*log(x) - b./x.^2 + log(2) - gammaln(a) + a*log(b);
-    y(~ix) = -Inf;
+    Y(inx) = (-A-1)*log(X) - B./X;
+    Y(~inx) = -Inf;
     return
 end
+
 switch lower(varargin{1})
-    case {'proper', 'pdf'}
-        y(ix) = 2*b^a/gamma(a)*x.^(-2*a-1).*exp(-b./x.^2);
+    case {'proper','pdf'}
+        Y(inx) = B^A/gamma(A)*(1./X).^(A+1).*exp(-B./X);
     case 'info'
-        y(ix) = (6*b - x.^2*(2*a + 1))./x.^4;
-        y(~ix) = NaN;
-    case {'a', 'shape'}
-        y = a;
-    case {'b', 'scale'}
-        y = b;
+        Y(inx) = -(X*(A + 1) - 2*B) ./ X.^3;
+    case {'a','location'}
+        Y = A;
+    case {'b','scale'}
+        Y = B;
     case 'mean'
-        y = mean_;
-    case {'sigma', 'sgm', 'std'}
-        y = std_;
+        Y = Mean;
+    case {'sigma','sgm','std'}
+        Y = Std;
     case 'mode'
-        y = mode_;
+        Y = Mode;
     case 'name'
-        y = 'invgamma';
-    case {'rand', 'draw'}
-        y = 1./sqrt(gamrnd(a, 1/b, varargin{2:end}));
-    case 'lower'
-        y = 0;
-    case 'upper'
-        y = Inf;
+        Y = 'invgamma';
+    case 'draw'
+        Y = 1./gamrnd(A,1/B,varargin{2:end});
 end
-end
+
+end % xxInvGamma().

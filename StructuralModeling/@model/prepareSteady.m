@@ -38,15 +38,12 @@ end
 
 %--------------------------------------------------------------------------
 
-
 if this.IsLinear
-    % Linear steady state solver
-    %----------------------------
+    % __Linear Steady State Solver__
     opt = passvalopt('model.SteadyLinear', varargin{:});
     varargout{1} = opt;
 else
-    % Nonlinear steady state solver
-    %-------------------------------
+    % __Nonlinear Steady State Solver__
     % Capture obsolete syntax with solver options directly passed among other
     % sstate options and not as suboptions through Solver=; these are only used
     % if Solver= is a char.
@@ -57,7 +54,6 @@ else
     [opt.Solver, opt.PrepareGradient] = ...
         solver.Options.processOptions(opt.Solver, opt.PrepareGradient, displayMode, obsoleteSolverOpt);
     blz = createBlocks(this, opt);
-    blz = processFixOpt(this, blz, opt);
     blz = prepareBounds(this, blz, opt);
     blz.NanInit = opt.NanInit;
     blz.Reuse = opt.Reuse;
@@ -70,7 +66,7 @@ end
 
 
 
-function blz = processFixOpt(this, blz, opt)
+function processFixOpt(this, blz, opt)
 % Process the fix, fixallbut, fixlevel, fixlevelallbut, fixgrowth,
 % and fixgrowthallbut options. All the user-supply information is
 % combined into fixlevel and fixgrowth.
@@ -107,12 +103,12 @@ for i = 1 : length(list)
             TYPE(1), ...
             TYPE(2), ...
             TYPE(4));
-        posFix  = ell.PosName;
-        ixValid = ~isnan(posFix);
+        positionsFix  = ell.PosName;
+        ixValid = ~isnan(positionsFix);
         if any(~ixValid)
             throw( exception.Base('Steady:CANNOT_FIX', 'error'), opt.(fix){~ixValid} );
         end
-        opt.(fix) = posFix;
+        opt.(fix) = positionsFix;
     else
         opt.(fix) = [ ];
     end
@@ -137,16 +133,13 @@ if opt.zeromultipliers
     fixG = fixG | this.Quantity.IxLagrange;
 end
 
-blz.PosFix = struct( );
-blz.PosFix.Level = PTR( find(fixL) ); %#ok<FNDSB>
-blz.PosFix.Growth = PTR( find(fixG) ); %#ok<FNDSB>
+blz.IdToFix.Level = PTR( find(fixL) ); %#ok<FNDSB>
+blz.IdToFix.Growth = PTR( find(fixG) ); %#ok<FNDSB>
 
 % Remove quantities fixed by user and LHS quantities from dynamic links.
 temp = getActiveLhsPtr(this.Link);
-posExclude = struct( );
-posExclude.Level = [blz.PosFix.Level, temp];
-posExclude.Growth = [blz.PosFix.Growth, temp];
-exclude(blz, posExclude);
+blz.IdToExclude.Level = [blz.IdToFix.Level, temp];
+blz.IdToExclude.Growth = [blz.IdToFix.Growth, temp];
 end
 
 
@@ -161,18 +154,23 @@ ixp = this.Quantity.Type==TYPE(4);
 
 % Run solver.blazer.Blazer on steady equations.
 blz = prepareBlazer(this, 'steady', opt);
+
+% Analyze block-sequential structure.
 run(blz);
+
+% Populate IdToFix and IdToExclude.
+processFixOpt(this, blz, opt);
 
 % Prepare solver.block.Blocks for evaluation.
 prepareBlocks(blz, opt);
 
 if blz.IsSingular
     throw( ...
-        exception.Base('Steady:STRUCTURAL_SINGULARITY', 'warning')...
+        exception.Base('Steady:StructuralSingularity', 'warning')...
         );
 end
 
-% Index of level variables that will be always set to zero.
+% Index of :ariables that will be always set to zero.
 ixZero = struct( );
 ixZero.Level = false(1, nQty);
 ixZero.Level(ixe) = true;

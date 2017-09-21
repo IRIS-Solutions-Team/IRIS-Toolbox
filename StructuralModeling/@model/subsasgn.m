@@ -1,46 +1,41 @@
 function this = subsasgn(this, s, b)
-% subsasgn  Subscripted assignment for model and systemfit objects.
+% subsasgn  Subscripted assignment for model objects.
 %
-% Syntax for assigning parameterisations from other object
-% =========================================================
+% __Syntax for Assigning Parameterisations from Other Object
 %
-%     M(Inx) = N
-%
-%
-% Syntax for deleting specified parameterisations
-% ================================================
-%
-%     M(Inx) = [ ]
+%     M(Index) = N
 %
 %
-% Syntax for assigning parameter values or steady-state values
-% =============================================================
+% __Syntax for Deleting Specified Parameter Variants__
+%
+%     M(Index) = [ ]
+%
+%
+% __Syntax for Assigning Parameter Values or Steady Values__
 %
 %     M.Name = X
-%     M(Inx).Name = X
-%     M.Name(Inx) = X
+%     M(Index).Name = X
+%     M.Name(Index) = X
 %
 %
-% Syntax for assigning std deviations or cross-correlations of shocks
-% ====================================================================
+% __Syntax for Assigning Std Deviations or Cross-Correlations of Shocks__
 %
-%     M.std_Name = X
-%     M.corr_Name1__Name2 = X
+%     M.Std_Name = X
+%     M.Corr_Name1__Name2 = X
 %
-% Note that a double underscore is used to separate the Names of shocks in
-% correlation coefficients.
+% Double underscore is used to separate the names of shocks in correlation
+% coefficients.
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `M` [ model | systemfit ] - Model or systemfit object that will be assigned new
-% parameterisations or new parameter values or new steady-state values.
+% * `M` [ model ] - Model object that will be assigned new parameter
+% variants or new parameter values or new steady values.
 %
-% * `N` [ model | systemfit ] - Model or systemfit object compatible with `M` whose
-% parameterisations will be assigned (copied) into `M`.
+% * `N` [ model ] - Model object compatible with `M` whose parameter
+% variants will be assigned (copied) into `M`.
 %
-% * `Inx` [ numeric ] - Inx of parameterisations that will be assigned
+% * `Index` [ numeric ] - Index of parameter variants that will be assigned
 % or deleted.
 %
 % * `Name`, `Name1`, `Name2` [ char ] - Name of a variable, shock, or
@@ -50,125 +45,113 @@ function this = subsasgn(this, s, b)
 % to a parameter or variable Named `Name`.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `M` [ model | systemfit ] - Model or systemfit object with newly
-% assigned or deleted parameterisations, or with newly assigned parameters,
-% or steady-state values.
+% * `M` [ model ] - Model object with newly assigned or deleted parameter
+% variants, or with newly assigned parameters, or steady values.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
-% Expand the number of parameterisations in a model or systemfit object
-% that has initially just one parameterisation:
+% Expand the number of parameter variants in a model object that has
+% initially just one parameter variant:
 %
 %     m(1:10) = m;
 %
-% The parameterisation is simply copied ten times within the model or
-% systemfit object.
+% The parameter variants is simply copied ten times within the model
+% object.
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 if ~isa(this, 'model') || (~isa(b, 'model') && ~isempty(b) && ~isnumeric(b))
-    utils.error('modelobj:subsasgn', ...
+    utils.error('model:subsasgn', ...
         'Invalid subscripted reference or assignment to model object.');
 end
 
 %--------------------------------------------------------------------------
 
-nAlt = length(this);
+nv = length(this);
 
-% Dot-name assignment m.Name = x
-%--------------------------------
+% __Dot-Name Assignment__
+% m.Name = x
 if isnumeric(b) ...
-        && (numel(b)==1 || numel(b)==nAlt) ...
+        && (numel(b)==1 || numel(b)==nv) ...
         && numel(s)==1 && s(1).type=='.'
     name = s(1).subs;
     ell = lookup(this.Quantity, {name});
     posQty = ell.PosName;
     posStdCorr = ell.PosStdCorr;
-    if isnan(posQty) && isnan(posStdCorr)
+    if ~isnan(posQty)
+        this.Variant.Values(:, posQty, :) = b;
+    elseif ~isnan(posStdCorr)
+        this.Variant.StdCorr(:, posStdCorr, :) = b;
+    else
         if strcmpi(this.Behavior.InvalidDotAssign, 'error')
             throw(exception.Base('Model:InvalidName', 'error'), '', name); %#ok<GTARG>
         elseif strcmpi(this.Behavior.InvalidDotAssign, 'warning')
             throw(exception.Base('Model:InvalidName', 'warning'), '', name); %#ok<GTARG>
-        else
-            return
-        end
-    elseif ~isnan(posQty)
-        this.Variant = model.Variant.assignQuantity( ...
-            this.Variant, posQty, ':', b ...
-            );
-    else
-        this.Variant = model.Variant.assignStdCorr( ...
-            this.Variant, posStdCorr, ':', b, ...
-            this.Quantity.IxStdCorrAllowed ...
-            );
+        end 
     end
     return
 end
 
-nAlt = length(this);
-s = alterSubs(s, nAlt);
+s = checkSubscripted(s, nv);
 
-% Regular assignment
-%--------------------
+% __Regular Assignment__
 % this(ix) = b
 % RHS must be model or empty.
 
 if any(strcmp(s(1).type, {'()', '{}'}))
-    if ~isa(b, 'model') && ~isempty(b)
-        utils.error('modelobj:subsasgn', ...
-            'Invalid subscripted reference or assignment to model object.');
-    end
+    assert( ...
+        isa(b, 'model') || isempty(b), ...
+        'model:subsasgn', ...
+        'Invalid subscripted reference or assignment to model object.' ...
+    );
     
     % Make sure the LHS and RHS model objects are compatible in yvector,
     % xvector, and evector.
-    if isa(b, 'model') && ~iscompatible(this, b)
-        utils.error('modelobj:subsasgn', ...
-            ['Objects A and B are not compatible in ', ...
-            'in subscripted assignment A( ) = B.']);
-    end
+    assert( ...
+        isempty(b) || iscompatible(this, b), ...
+        'model:subsasgn', ...
+        'Model objects A and B are not compatible in subscripted assignment A( ) = B.' ...
+    );
     
     ixA = s(1).subs{1};
     
-    % `This([ ]) = B` leaves `This` unchanged.
+    % `this([ ]) = B` leaves `this` unchanged.
     if isempty(ixA)
         return
     end
     
     if isa(b, 'model') && ~isempty(b)
-        % `This(Inx) = B`
+        % `this(Inx) = B`
         % where `B` is a non-empty model whose length is either 1 or the same as
-        % the length of `This(Inx)`.
-        nb = length(b.Variant);
+        % the length of `this(Inx)`.
+        nb = length(b);
         if nb==1
             ixB = ones(size(ixA));
         else
             ixB = ':';
-            if length(ixA)~=nb && nb>0
-                utils.error('modelobj:subsasgn', ...
-                    ['Number of parameterisations on LHS and RHS ', ...
-                    'of assignment to model object must be the same.']);
-            end
+            assert( ...
+                length(ixA)==nb || nb==0, ...
+                'model:subsasgn', ...
+                'The numbers of parameter variants on LHS and RHS of subscripted assignment must be the same.' ...
+            );
         end
-        this = subsalt(this, ixA, b, ixB);
+        this.Variant = subscripted(this.Variant, ixA, b.Variant, ixB);
     else
-        % `This(Inx) = [ ]` or `This(Inx) = B`
+        % `this(Inx) = [ ]` or `this(Inx) = B`
         % where `B` is an empty model.
-        this = subsalt(this, ixA, [ ]);
+        this.Variant = subscripted(this.Variant, ixA, [ ]);
     end
     
 elseif strcmp(s(1).type, '.')
-    % this.Name = b or this.Name(ix) = b
+    % this.Name(ix) = b
     % RHS must be numeric.
     
     name = s(1).subs;
@@ -180,40 +163,42 @@ elseif strcmp(s(1).type, '.')
     posStdCorr = ell.PosStdCorr;
     % Create `Inx` for the third dimension.
     if length(s)>1
-        % `This.Name(Inx) = B`
-        ix2 = s(2).subs{1};
+        % `this.Name(Inx) = B`
+        v = s(2).subs{1};
     else
-        % `This.Name = B`
-        ix2 = ':';
+        % `this.Name = B`
+        v = ':';
     end
 
     % Assign the value or throw an error.
     if ~isnan(posQty)
         try
-            this.Variant = model.Variant.assignQuantity( ...
-                this.Variant, posQty, ix2, b ...
-                );
+            this.Variant.Values(:, posQty, v) = b;
         catch Err
-            utils.error('modelobj:subsasgn', ...
+            utils.error( ...
+                'model:subsasgn', ...
                 ['Error in model parameter assignment.\n', ...
                 '\tUncle says: %s '], ...
-                Err.message);
+                Err.message ...
+            );
         end
     elseif ~isnan(posStdCorr)
         try
-            this.Variant = model.Variant.assignQuantity( ...
-                this.Variant, posQty, ix2, b ...
-                );
+            this.Variant.StdCorr(:, posStdCorr, v) = b;
         catch Err
-            utils.error('modelobj:subsasgn', ...
+            utils.error( ...
+                'model:subsasgn', ...
                 ['Error in model parameter assignment.\n', ...
                 '\tUncle says: %s '], ...
-                Err.message);
+                Err.message ...
+            );
         end
     else
-        utils.error('modelobj:subsasgn', ...
+        utils.error( ...
+            'model:subsasgn', ...
             'This name does not exist in the model object: %s ', ...
-            name);
+            name ...
+        );
     end
 
 end
@@ -222,45 +207,45 @@ end
 
 
 
-function s = alterSubs(s, n)
+function s = checkSubscripted(s, n)
 % Check and rearrange subscripted reference to models with mutliple parameter variants.
 
 % This function accepts the following subscripts
-%     x(index)
+%     x(subs)
 %     x.name
-%     x.(index)
-%     x.name(index)
-%     x(index).name(index)
-% where index is either logical or numeric or ':'
+%     x.(subs)
+%     x.name(subs)
+%     x(subs).name(subs)
+% where subs is either logical or numeric or ':'
 % and returns
 %     x(numeric)
 %     x.name(numeric)
 
-% Convert x(index1).name(index2) to x.name(index1(index2)).
+% Convert x(subs1).name(subs2) to x.name(subs1(subs2)).
 if length(s)==3 && any(strcmp(s(1).type,{'()','{}'})) ...
         && strcmp(s(2).type,{'.'}) ...
         && any(strcmp(s(3).type,{'()','{}'}))
-    % convert a(index1).name(index2) to a.name(index1(index2))
-    index1 = s(1).subs{1};
-    if strcmp(index1, ':')
-        index1 = 1 : n;
+    % convert a(subs1).name(subs2) to a.name(subs1(subs2))
+    subs1 = s(1).subs{1};
+    if strcmp(subs1, ':')
+        subs1 = 1 : n;
     end
-    index2 = s(3).subs{1};
-    if strcmp(index2, ':')
-        index2 = 1 : length(index1);
+    subs2 = s(3).subs{1};
+    if strcmp(subs2, ':')
+        subs2 = 1 : length(subs1);
     end
     s(1) = [ ];
-    s(2).subs{1} = index1(index2);
+    s(2).subs{1} = subs1(subs2);
 end
 
-% Convert a(index).name to a.name(index).
+% Convert a(subs).name to a.name(subs).
 if length(s)==2 && any(strcmp(s(1).type, {'()', '{}'})) ...
         && strcmp(s(2).type, {'.'})
     s = s([2, 1]);
 end
 
 if length(s)>2
-    utils.error('modelobj:subsasgn', ...
+    utils.error('model:subsasgn', ...
         'Invalid reference to model object.');
 end
 
@@ -274,21 +259,21 @@ if any(strcmp(s(end).type,{'()','{}'}))
     end
 end
 
-% Throw error for mutliple indices
-% a(index1,index2,...) or a.name(index1,index2,...).
+% Throw error for mutliple subscripts
+% a(subs1, subs2, ...) or a.name(subs1, subs2,...).
 if any(strcmp(s(end).type, {'()', '{}'}))
     if length(s(end).subs)~=1 || ~isnumeric(s(end).subs{1})
-        utils.error('modelobj:subsasgn', ...
+        utils.error('model:subsasgn', ...
             'Invalid reference to model object.');
     end
 end
 
-% Throw error if index is not real positive integer.
+% Throw error if subscript is not real positive integer.
 if any(strcmp(s(end).type,{'()','{}'}))
     ix = s(end).subs{1};
     if any(ix<1) || any(round(ix)~=ix) ...
             || any(imag(ix)~=0)
-        utils.error('modelobj:subsasgn', ...
+        utils.error('model:subsasgn', ...
             ['Subscript indices must be ', ...
             'either real positive integers or logicals.']);
     end

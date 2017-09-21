@@ -30,7 +30,6 @@ if sum(ixLoss)==1
     input = euc.RhsDynamic{ixLoss};
     isLoss = true;
     euc.LhsDynamic{ixLoss} = '';
-    euc.Separator{ixLoss} = '';
     euc.RhsSteady{ixLoss} = '';
     euc.SignSteady{ixLoss} = '';
     euc.LhsSteady{ixLoss} = '';
@@ -48,17 +47,21 @@ if sum(ixLoss)==1
     close = textfun.matchbrk(euc.RhsDynamic{ixLoss});
     factor = strtrim(euc.RhsDynamic{ixLoss}(2:close-1));
     if isempty(factor)
-        throw( exception.Base('Equation:LossFuncDiscountEmpty', 'error'), ...
-            input ); %#ok<GTARG>
+        throw( ...
+            exception.Base('Equation:LossFuncDiscountEmpty', 'error'), ...
+            input ...
+        ); %#ok<GTARG>
     end
     % Order the loss function last.
     posFrom = find(ixLoss, 1, 'first');
     posTo = find(ixt, 1, 'last');
     euc = move(euc, posFrom, posTo);
     
-    
 elseif sum(ixLoss)>1
-    throw( exception.Base('Equation:MultipleLossFunc', 'error') );
+    throw( ...
+        exception.Base('Equation:MultipleLossFunc', 'error') ...
+    );
+
 end
 
 end

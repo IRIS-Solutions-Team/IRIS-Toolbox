@@ -15,14 +15,14 @@ catch
     build = 0;
 end
 
-if build<model.LAST_LOADABLE
+if ~isa(this, 'model') || build<model.LAST_LOADABLE
     throw( ...
         exception.Base('Model:CannotLoadFromMat', 'warning'), ...
         sprintf('%i', model.LAST_LOADABLE) ...
-        ); %#ok<GTARG>
-    s = this;
-    this = model( ); %#ok<UNRCH>
-    this = userdata(this, s);
+    ); 
+    loadObjectAsStruct = this;
+    this = model( ); 
+    this.LoadObjectAsStruct = loadObjectAsStruct;
     return
 end
 

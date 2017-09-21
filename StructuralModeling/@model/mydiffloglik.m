@@ -19,9 +19,9 @@ if ~isfield(opt, 'percent')
 end
 
 % Initialise steady-state solver and chksstate options.
-opt.Steady = prepareSteady(this, 'silent', opt.sstate);
-opt.chksstate = prepareChkSteady(this, 'silent', opt.chksstate);
-opt.solve = prepareSolve(this, 'silent, fast', opt.solve);
+opt.Steady = prepareSteady(this, 'silent', opt.Steady);
+opt.ChkSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
+opt.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
 
 %--------------------------------------------------------------------------
 
@@ -40,8 +40,8 @@ se2 = zeros(1, nData);
 p = nan(1, np);
 assignNan = isnan(posQty);
 stdcorrNan = isnan(posStdCorr);
-p(~assignNan) = this.Variant{1}.Quantity(1, posQty(~assignNan));
-p(~stdcorrNan) = this.Variant{1}.StdCorr(1, posStdCorr(~stdcorrNan));
+p(~assignNan) = this.Variant.Values(:, posQty(~assignNan), :);
+p(~stdcorrNan) = this.Variant.StdCorr(1, posStdCorr(~stdcorrNan), :);
 
 step = EPSILON * max([abs(p); ones(size(p))], [ ], 1);
 twoSteps = nan(1, np);

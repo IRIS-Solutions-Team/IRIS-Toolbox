@@ -1,4 +1,4 @@
-function [deriv, ixNanDeriv] = diffFirstOrder(this, eqSelect, iAlt, opt)
+function [deriv, ixNanDeriv] = diffFirstOrder(this, eqSelect, variantRequested, opt)
 % diffFirstOrder  Calculate first-order derivatives of equations.
 %
 % Backend IRIS function.
@@ -16,7 +16,7 @@ isNanDeriv = nargout > 2;
 % Copy last computed derivatives.
 deriv = this.LastSystem.Deriv;
 
-asgn = this.Variant{iAlt}.Quantity;
+asgn = this.Variant.Values(:, :, variantRequested);
 nName = length(this.Quantity);
 nEqtn = length(this.Equation);
 ixy = this.Quantity.Type==TYPE(1);
@@ -33,11 +33,11 @@ ixNanDeriv = false(1, nEqtn);
 
 % Prepare 3D occur array limited to occurences of variables and shocks in
 % measurement and transition equations.
-nsh = nofShift(this.Incidence.Dynamic);
+nsh = this.Incidence.Dynamic.NumOfShifts;
 
 if any(eqSelect)    
     nyxe = sum(ixyxe);
-    t0 = zero(this.Incidence.Dynamic);
+    sh0 = this.Incidence.Dynamic.PosOfZeroShift;
     if opt.symbolic
         ixSymb = ~cellfun(@isempty, this.Gradient.Dynamic(1, :));
     else
@@ -77,8 +77,8 @@ return
 
 
     function calcNumDeriv( )
-        minT = 1 - t0;
-        maxT = nsh - t0;
+        minT = 1 - sh0;
+        maxT = nsh - sh0;
         tVec = minT : maxT;
         
         if this.IsLinear
@@ -88,7 +88,7 @@ return
             h = ones(size(init));
         else
             isDelog = false;
-            init = createTrendArray(this, iAlt, isDelog, 1:nName, tVec);
+            init = createTrendArray(this, variantRequested, isDelog, 1:nName, tVec);
             diffStep = this.Tolerance.DiffStep;
             maxInitOr1 = init;
             maxInitOr1(init<1) = 1;
@@ -121,7 +121,7 @@ return
             
             % Get incidence of variables in this equation.
             nm = real(this.Gradient.Dynamic{2, iiEq});
-            sh = t0 + imag(this.Gradient.Dynamic{2, iiEq});
+            sh = sh0 + imag(this.Gradient.Dynamic{2, iiEq});
 
             % Total number of derivatives to be computed in this equation.
             n = length(nm);
@@ -133,14 +133,14 @@ return
                 gridPlus = init;
                 gridMinus(iNm, iSh) = xMinus(iNm, iSh);
                 gridPlus(iNm, iSh) = xPlus(iNm, iSh);
-                fMinus = fn(gridMinus, t0, L);
-                fPlus =  fn(gridPlus, t0, L);
+                fMinus = fn(gridMinus, sh0, L);
+                fPlus =  fn(gridPlus, sh0, L);
                 value(ii) = (fPlus-fMinus) / step(nm(ii), sh(ii));
             end
             
             % Constant in linear models.
             if this.IsLinear
-                deriv.c(iiEq) = fn(init, t0, L);
+                deriv.c(iiEq) = fn(init, sh0, L);
             end
             
             % Assign values to the array of derivatives.
@@ -166,7 +166,7 @@ return
             L = [ ];
         else
             isDelog = true;
-            x = createTrendArray(this, iAlt, isDelog);
+            x = createTrendArray(this, variantRequested, isDelog);
             % References to steady-state levels.
             L = x;
         end
@@ -174,7 +174,7 @@ return
         for iiEq = find(ixSymb)
             % Get incidence of variables in this equation.
             nm = real(this.Gradient.Dynamic{2, iiEq});
-            sh = t0 + imag(this.Gradient.Dynamic{2, iiEq});
+            sh = sh0 + imag(this.Gradient.Dynamic{2, iiEq});
 
             % Log derivatives need to be multiplied by x. Log-plus and
             % log-minus variables are treated the same way because
@@ -190,7 +190,7 @@ return
             end
             
             % Evaluate all derivatives at once.
-            value = this.Gradient.Dynamic{1, iiEq}(x, t0, L);
+            value = this.Gradient.Dynamic{1, iiEq}(x, sh0, L);
             
             % Multiply derivatives wrt to log variables by x.
             if ~isempty(logMult)
@@ -210,7 +210,7 @@ return
         % Evaluate all equations at x=0, log(x)=0 to get constant terms.
         if this.IsLinear
             fn = str2func([this.PREAMBLE_DYNAMIC, '[', this.Equation.Dynamic{ixSymb}, ']', ]);
-            deriv.c(ixSymb) = fn(x, t0, L);
+            deriv.c(ixSymb) = fn(x, sh0, L);
         end
     end
 end

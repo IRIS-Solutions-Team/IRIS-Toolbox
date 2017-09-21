@@ -16,7 +16,7 @@ switch lower(query)
     case {'baseyear', 'torigin'}
         answ = this.BaseYear;
         if isequal(answ, @config) || isempty(answ)
-            answ = irisget('BaseYear');
+            answ = iris.get('BaseYear');
         end
         
         

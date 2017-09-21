@@ -25,6 +25,7 @@ Dbase:ErrorLoadingUserData, Error when reconstructing user data from this CSV fi
 Dbase:InvalidOptionNameFunc, Option NameFunc= must be function returning text string.
 Dbase:NameNotExist,This name does not exist in input database: %s
 DateWrapper:InvalidDateFormat,"Invalid date format; must be char, string, cellstr, or struct."
+Distribution:InvalidParameterization,"This is not a valid type of parameterization for %s distribution: %s"
 Dynamic:EvaluatesToNan,This dynamic equation evaluates to NaN or Inf in period %1: %s
 Equation:InvalidDefinition,This definition has an invalid LHS: %s 
 Equation:InvalidLhsDtrend,Invalid LHS in this dtrend equation: %s 
@@ -103,6 +104,7 @@ Model:InvalidShockName,This is not a valid shock name: %s
 Model:InvalidVariantName,Cannot find parameter variant with this name: %s
 Model:MissingInitCond,This initial value is missing from input database: %s 
 Model:NoMeasurementData,No data for measurement variables found in input database: %s
+Model:NoMeasurementVariables, This model has no measurement variables.
 Model:RedundantParameter,This parameter does not occur in any model equation: %s 
 Model:RedundantShock,This shock does not occur in any model equation: %s 
 Model:SolutionNotAvailable,Model solution(s) not available: %s

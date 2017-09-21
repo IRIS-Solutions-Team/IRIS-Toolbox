@@ -30,7 +30,7 @@ function [W, list] = ifrf(this, freq, varargin)
 % Options
 % ========
 %
-% * `'matrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `W` as
+% * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `W` as
 % either a [`namedmat`](namedmat/Contents) object (i.e. matrix with named
 % rows and columns) or a plain numeric array.
 %
@@ -57,7 +57,7 @@ pp.parse(freq);
 opt = passvalopt('model.ifrf',varargin{:});
 
 isSelect = ~isequal(opt.select,@all);
-isNamedMat = strcmpi(opt.MatrixFmt,'namedmat');
+isNamedMat = strcmpi(opt.MatrixFormat,'namedmat');
 
 %--------------------------------------------------------------------------
 

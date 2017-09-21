@@ -33,7 +33,7 @@ function d = array2db(X, date, lsName, ixLog, d)
 %#ok<*CTCH>
 %#ok<*VUNUS>
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 try, ixLog; catch, ixLog = [ ]; end %#ok<NOCOM>

@@ -1,13 +1,7 @@
 classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
         Series < tseries
-    properties (Constant)
-        MissingValue = NaN;
-        MissingTest = @isnan;
-    end
-
 
     properties (Dependent)
-        Frequency
         End
         Range
     end
@@ -17,11 +11,6 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
         function this = Series(varargin)
             this = this@tseries(varargin{:});
             this.Start = DateWrapper(this.Start);
-        end
-
-
-        function frequency = get.Frequency(this)
-            frequency = getFrequency(this.Start);
         end
 
 

@@ -3,14 +3,12 @@
 %
 % tseries methods:
 %
-% Constructor
-% ============
+% __Constructor__
 %
 % * [`tseries`](tseries/tseries) - Create new time series (tseries) object.
 %
 %
-% Getting information about tseries objects
-% ==========================================
+% __Getting Information about tseries Objects__
 %
 % * [`endDate`](tseries/endDate) - Date of the last available observation in a tseries object.
 % * [`freq`](tseries/freq) - Date frequency of tseries object.
@@ -24,15 +22,13 @@
 % * [`yearly`](tseries/yearly) - Display tseries object one calendar year per row.
 %
 %
-% Referencing tseries objects
-% ============================
+% __Referencing tseries Objects__
 %
 % * [`subsasgn`](tseries/subsasgn) - Subscripted assignment for tseries objects.
 % * [`subsref`](tseries/subsref) - Subscripted reference function for tseries objects.
 %
 %
-% Maths and statistics functions and operators
-% =============================================
+% __Maths and Statistics Functions and Operators__
 %
 % Some of the following functions require the Statistics Toolbox.
 %
@@ -52,8 +48,7 @@
 % `std`, `sum`, `var`
 %
 %
-% Filters and evaluation
-% =======================
+% __Filters__
 %
 % * [`arf`](tseries/arf) - Run autoregressive function on time series.
 % * [`arma`](tseries/arma) - Apply ARMA model to input series.
@@ -72,8 +67,7 @@
 % * [`x12`](tseries/x12) - Access to X13-ARIMA-SEATS seasonal adjustment program.
 %
 %
-% Estimation and sample characteristics
-% ======================================
+% __Estimation and Sample Characteristics__
 %
 % Note that most of the sample characteristics are listed above in the
 % Maths and statistics functions and operators section.
@@ -85,8 +79,7 @@
 % * [`qtilew`](tseries/qtilew) - 
 %
 %
-% Visualising tseries objects
-% ============================
+% __Visualising Data__
 %
 % * [`area`](tseries/area) - Area graph for tseries objects.
 % * [`band`](tseries/band) - Line-and-band graph for tseries objects.
@@ -103,8 +96,7 @@
 % * [`stem`](tseries/stem) - Plot tseries as discrete sequence data.
 %
 %
-% Manipulating tseries objects
-% =============================
+% __Manipulating tseries Objects__
 %
 % * [`empty`](tseries/empty) - Empty time series preserving the size in 2nd and higher dimensions.
 % * [`flipud`](tseries/flipud) - Flip time series data up to down.
@@ -116,8 +108,7 @@
 % * [`sort`](tseries/sort) - Sort tseries columns by specified criterion.
 %
 %
-% Converting tseries objects
-% ===========================
+% __Converting tseries Objects__
 %
 % * [`convert`](tseries/convert) - Convert tseries object to a different frequency.
 % * [`double`](tseries/double) - Return tseries observations as double-precision numeric array.
@@ -126,8 +117,7 @@
 % * [`singledata`](tseries/singledata) - Convert tseries observations to single precision.
 %
 %
-% Other tseries functions
-% ========================
+% __Other tseries Functions__
 %
 % * [`apct`](tseries/apct) - Annualised percent rate of change.
 % * [`bsxfun`](tseries/bsxfun) - Implement bsxfun for tseries class.
@@ -144,33 +134,29 @@
 % * [`wmean`](tseries/wmean) - Weighted average of time series observations.
 %
 %
-% Getting on-line help on tseries functions
-% ==========================================
-%
-%     help tseries
-%     help tseries/function_name
-%
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
-        tseries < shared.GetterSetter & shared.UserDataContainer 
+        tseries < series.Abstract & shared.GetterSetter & shared.UserDataContainer 
     properties
         Start = NaN % Date of first available observation
         Data = double.empty(0, 1) % Time series data
+        MissingValue = NaN
     end
 
 
+    properties (Dependent)
+        MissingTest
+    end
 
 
     methods
         function this = tseries(varargin)
             % tseries  Create new time series (tseries) object.
             %
-            %
-            % Syntax
-            % =======
+            % __Syntax__
             %
             % Input arguments marked with a `~` sign may be omitted.
             %
@@ -178,8 +164,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             %     X = tseries(Dates, Values, ~ColumnComments, ~UserData)
             %
             %
-            % Input arguments
-            % ================
+            % __Input Arguments__
             %
             % * `Dates` [ numeric | char ] - Dates for which observations will be
             % supplied; `dates` do not need to be sorted in ascending order or create a
@@ -199,18 +184,15 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % object; if omitted, user data will be empty.
             %
             %
-            % Output arguments
-            % =================
+            % __Output Arguments__
             %
             % * `X` [ tseries ] - New times series.
             %
             %
-            % Description
-            % ============
+            % __Description__
             %
             %
-            % Example
-            % ========
+            % __Example__
             %
             
             % -IRIS Macroeconomic Modeling Toolbox.
@@ -241,8 +223,8 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             persistent INPUT_PARSER
             if isempty(INPUT_PARSER)
                 INPUT_PARSER = extend.InputParser('tseries/tseries');
-                INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'DateWrapper') || (isnumeric(x) && all(x==round(x))));
-                INPUT_PARSER.addRequired('Values', @(x) isnumeric(x));
+                INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'DateWrapper') || (isnumeric(x) && all(x==round(x) | isnan(x))));
+                INPUT_PARSER.addRequired('Values', @(x) isnumeric(x) || isa(x, 'function_handle'));
                 INPUT_PARSER.addOptional('ColumnComments', '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x));
                 INPUT_PARSER.addOptional('UserData', [ ], @(x) true);
             end
@@ -266,7 +248,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             
             % Find out the date frequency and check its consistency.
             freq(isnan(freq)) = [ ];
-            DateWrapper.chkMixedFrequency(freq);
+            DateWrapper.checkMixedFrequency(freq);
             
             % Create data from function handle.
             if isa(values, 'function_handle') 
@@ -311,8 +293,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             end
         end
     end
-    
-    
     
     
     methods
@@ -398,19 +378,21 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = x12(varargin)
         varargout = yearly(varargin)
         
+
+        function frequency = getFrequency(this)
+            frequency = DateWrapper.getFrequencyFromNumeric(this.Start);
+        end
+
         
-        
-        
-        % Alias:
         function varargout = startdate(varargin)
             [varargout{1:nargout}] = startDate(varargin{:});
         end
+
+
         function varargout = enddate(varargin)
             [varargout{1:nargout}] = endDate(varargin{:});
         end        
     end
-    
-    
     
     
     methods (Hidden)
@@ -424,18 +406,21 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = destdize(varargin)
         varargout = df(varargin)
         varargout = divisia(varargin)
+        varargout = fill(varargin)
         varargout = implementGet(varargin)
         varargout = maxabs(varargin)
         varargout = normalize(varargin)
         varargout = rearrangePred(varargin)
         varargout = rangedata(varargin)
-        varargout = replace(varargin)
         varargout = saveobj(varargin)
         varargout = trim(varargin)
         varargout = stdize(varargin)
+
+
+        function varargout = replace(varargin)
+            [varargout{1:nargout}] = fill(varargin{:});
+        end
     end
-    
-    
     
     
     methods (Access=protected, Hidden)
@@ -448,13 +433,9 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = catcheck(varargin)
         
         
-        
-        
         function dispComment(varargin)
         end
     end
-    
-    
     
     
     methods (Static, Hidden)
@@ -482,8 +463,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = mystdize(varargin)
         varargout = mytrend(varargin)
     end
-
-    
     
     
     methods (Hidden)
@@ -689,8 +668,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         end
         
         
-        
-        
         % Distribution functions (Stats Toolbox)
         %----------------------------------------
         function x = normcdf(x, varargin)
@@ -823,21 +800,19 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             x = unop(@var, x, dim, flag, dim);
         end
         function q = qtilew(x, varargin)
-            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
             [q, ~, dim] = statfun.qtilew(x.Data, varargin{:});
             if dim>1
                 q = TIME_SERIES_CONSTRUCTOR(x.Start, q);
             end
         end
         function m = meanw(x, varargin)
-            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
             [m, dim] = statfun.meanw(x.Data, varargin{:});
             if dim>1
                 m = TIME_SERIES_CONSTRUCTOR(x.Start, m);
             end
         end
-    
-        
         
         
         % Indexing
@@ -855,6 +830,16 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     end
 
 
+    methods 
+        function missingTest = get.MissingTest(this)
+            missingValue = this.MissingValue;
+            if isequaln(missingValue, NaN)
+                missingTest = @isnan;
+            else
+                missingTest = @(x) x==missingValue;
+            end
+        end
+    end
 
 
     methods (Static)

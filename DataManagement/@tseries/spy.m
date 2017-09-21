@@ -1,15 +1,13 @@
 function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 % spy  Visualise tseries observations that pass a test.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [hAx, hTrue, hFalse] = spy(x, ...)
 %     [hAx, hTrue, hFalse] = spy(range, x, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `x` [ Series ] - Input time series whose observations that pass or fail
 % a test will be plotted as markers.
@@ -18,8 +16,7 @@ function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 % be visualised; if not specified the entire available range will be used.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `hAx` [ Axes ] - Handle to the axes created.
 %
@@ -30,8 +27,7 @@ function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 % that fail the test.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Names='` [ cellstr ] - Names that will be used to annotate individual
 % columns of the input tseries object.
@@ -52,12 +48,10 @@ function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 % `spy` for all options available.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

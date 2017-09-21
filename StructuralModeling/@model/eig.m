@@ -1,64 +1,45 @@
-function [x, stab] = eig(this, vecAlt)
+function [eigenValues, eigenStability] = eig(this, variantsRequested)
 % eig  Eigenvalues of the transition matrix.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [e, stab] = eig(m)
-%
-%
-% Input arguments
-% ================
-%
-% * `m` [ model ] - Model object whose eigenvalues will be returned.
+%     [EigenValues, Stability] = eig(M)
 %
 %
-% Output arguments
-% =================
+% __Input Arguments
 %
-% * `e` [ numeric ] - Array of all eigenvalues associated with the model,
-% i.e. all stable, unit, and unstable roots are included.
-%
-% * `stab` [ int8 ] - Classification of individual eigenvalues in `e`: `0`
-% means a stable root (or a model with no solution), `1` means a unit root,
-% `2` means an unstable root.
+% * `M` [ model ] - Model object whose eigenvalues will be returned.
 %
 %
-% Description
-% ============
+% __Output Arguments__
+%
+% * `EigenValues` [ numeric ] - Array of all eigenvalues associated with
+% the model, i.e. all stable, unit, and unstable roots are included.
+%
+% * `Stability` [ int8 ] - Classification of each root in the `EigenValues`
+% vector: `0` means a stable root, `1` means a unit root, `2` means an
+% unstable root. `Stability` is filled with `0`s in models or parameter
+% variants where no solution has been computed.
 %
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-try
-    if isequal(vecAlt, Inf)
-        vecAlt = ':';
-    end
-catch
-    vecAlt = ':';
-end
-
-if isequal(vecAlt, ':') && numel(this.Variant)==1
-    vecAlt = 1;
+if nargin<2 || isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
+    variantsRequested = ':';
 end
 
 %--------------------------------------------------------------------------
 
-if isnumericscalar(vecAlt)
-    x = this.Variant{vecAlt}.Eigen;
-    if nargout>1
-        stab = this.Variant{vecAlt}.Stability;
-    end
-else
-    x = model.Variant.get(this.Variant, 'Eigen', vecAlt);
-    if nargout>1
-        stab = model.Variant.get(this.Variant, 'Stability', vecAlt);
-    end
+eigenValues = this.Variant.EigenValues(:, :, variantsRequested);
+if nargout>1
+    eigenStability = this.Variant.EigenStability(:, :, variantsRequested);
 end
 
 end

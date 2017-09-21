@@ -1,17 +1,15 @@
-function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(varargin)
+function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(this, inp, range, varargin)
 % estimate  Estimate model parameters by optimising selected objective function.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     [pEst, pos, Cov, Hess, m, V, delta, PDelta] = estimate(m, d, range, est, ~spr, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `m` [ model ] - Model object with single parameterization.
 %
@@ -28,8 +26,7 @@ function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(varargin)
 % [`systempriors`](systempriors/Contents); may be omitted.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `pEst` [ struct ] - Database with point estimates of requested
 % parameters.
@@ -54,8 +51,7 @@ function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(varargin)
 % names.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'ChkSstate='` [ `true` | *`false`* | cell ] - Check steady state in
 % each iteration; works only in non-linear models.
@@ -134,8 +130,7 @@ function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(varargin)
 % estimated parameters.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The parameters that are to be estimated are specified in the input
 % parameter estimation database, `E` in which you can provide the following
@@ -154,8 +149,8 @@ function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(varargin)
 % bounds, or leave the bounds empty or not specify them at all. You can
 % leave the prior distribution empty or not specify it at all.
 %
-% Estimating nonlinear models
-% ----------------------------
+%
+% _Estimating Nonlinear Models__
 %
 % By default, only the first-order solution, but not the steady state is
 % updated (recomputed) in each iteration before the likelihood is
@@ -171,8 +166,8 @@ function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(varargin)
 % use the option `'Chksstate='` to require that a steady-state check for
 % all model equations be performed.
 %
-% User-supplied optimization (minimization) routine
-% --------------------------------------------------
+%
+% __User-supplied Optimization (Minimization) Routine__
 %
 % You can supply a function handle to your own minimization routine through
 % the option `'Optimiser='`. This routine will be used instead of the Optim
@@ -211,8 +206,8 @@ function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(varargin)
 %
 %     [pEst, ObjEst, Hess] = yourminfunc(F, P0, PLow, PHigh, Opt, Arg1, Arg2, ...)
 %
-% User-supplied steady-state solver
-% ----------------------------------
+%
+% _User-Supplied Steady-State Solver__
 %
 % You can supply a function handle to your own steady-state solver (i.e. a
 % function that finds the steady state for given parameters) through the
@@ -244,8 +239,7 @@ function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(varargin)
 %     [m, success] = mysstatesolver(m, 1, 'a', x)
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -253,22 +247,58 @@ function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(varargin)
 
 TYPE = @int8;
 
-[this, inp, range, estSpec, sp, varargin] = ...
-    irisinp.parser.parse('model.estimate', varargin{:});
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/estimate');
+    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
+    INPUT_PARSER.addRequired('InputDatabank', @isstruct);
+    INPUT_PARSER.addRequired('Range', @DateWrapper.validateProperRangeInput);
+    INPUT_PARSER.addRequired('EstimationSpecs', @(x) isstruct(x) && ~isempty(fieldnames(x)));
+    INPUT_PARSER.addOptional('SystemPriors', [ ], @(x) isa(x, 'systempriors'));
 
-estOpt = passvalopt('model.estimate', varargin{:});
+    INPUT_PARSER.addParameter('ChkSstate', true, @model.validateChksstate); 
+    INPUT_PARSER.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
+    INPUT_PARSER.addParameter({'Filter', 'FilterOpt'}, { }, @model.validateFilter);
+    INPUT_PARSER.addParameter('NoSolution', 'error', @(x) (isnumeric(x) && numel(x)==1 && x>=1e10) || any(strcmpi(x, {'error', 'penalty'})));
+    INPUT_PARSER.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @namedmat.validateMatrixFormat);
+    INPUT_PARSER.addParameter({'Solve', 'SolveOpt'}, true, @model.validateSolve);
+    INPUT_PARSER.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSstate);
+    INPUT_PARSER.addParameter('Zero', false, @(x) isequal(x, true) || isequal(x, false));
+
+    INPUT_PARSER.addParameter('Display', 'iter', @(x) isanystri(x, {'iter', 'final', 'none', 'off'}));
+    INPUT_PARSER.addParameter('EpsPower', 1/2, @(x) isnumeric(x) && numel(x)==1 && x>=0);
+    INPUT_PARSER.addParameter('InitVal', 'struct', @(x) isempty(x) || isstruct(x) || isanystri(x, {'struct', 'model'}));
+    INPUT_PARSER.addParameter('MaxIter', 500, @(x) isnumeric(x) && numel(x)==1 && x>=0);
+    INPUT_PARSER.addParameter('MaxFunEvals', 2000, @(x) isnumeric(x) && numel(x)==1 && x>0);
+    INPUT_PARSER.addParameter('OptimSet', { }, @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
+    INPUT_PARSER.addParameter('Penalty', 0, @(x) isnumericscalar(x) && x>=0);
+    INPUT_PARSER.addParameter('EvalLik', true, @(x) isequal(x, true) || isequal(x, false));
+    INPUT_PARSER.addParameter('EvalPPrior', true, @(x) isequal(x, true) || isequal(x, false));
+    INPUT_PARSER.addParameter('EvalSPrior', true, @(x) isequal(x, true) || isequal(x, false));
+    INPUT_PARSER.addParameter('Solver', 'fmin', @(x) (ischar(x) && any(strcmpi(x, {'fmin', 'lsqnonlin', 'pso', 'alps'}))) || iscell(x) || isfunc(x));
+    INPUT_PARSER.addParameter('TolFun', 1e-6, @(x) isnumeric(x) && numel(x)==1 && x>0);
+    INPUT_PARSER.addParameter('TolX', 1e-6, @(x) isnumeric(x) && numel(x)==1 && x>0);
+    INPUT_PARSER.addParameter('UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
+end
+INPUT_PARSER.parse(this, inp, range, varargin{:});
+systemPriors = INPUT_PARSER.Results.SystemPriors;
+estSpec = INPUT_PARSER.Results.EstimationSpecs;
+estOpt = rmfield( ...
+    INPUT_PARSER.Results, ...
+    {'Model', 'InputDatabank', 'Range', 'EstimationSpecs', 'SystemPriors'} ...
+);
 
 % Initialize and preprocess sstate, chksstate, solve options.
 estOpt.Steady = prepareSteady(this, 'silent', estOpt.Steady);
-estOpt.chksstate = prepareChkSteady(this, 'silent', estOpt.chksstate);
-estOpt.solve = prepareSolve(this, 'silent, fast', estOpt.solve);
+estOpt.ChkSstate = prepareChkSteady(this, 'silent', estOpt.ChkSstate);
+estOpt.Solve = prepareSolve(this, 'silent, fast', estOpt.Solve);
 
 % Process likelihood function options and create a likstruct.
-likOpt = prepareLoglik(this, range, estOpt.domain, [ ], estOpt.filter{:});
-estOpt = rmfield(estOpt, 'filter');
+likOpt = prepareLoglik(this, range, estOpt.Domain, [ ], estOpt.Filter{:});
+estOpt = rmfield(estOpt, 'Filter');
 
 % Get first column of measurement and exogenous variables.
-if estOpt.evallik
+if estOpt.EvalLik
     % `Data` includes pre-sample.
     req = [likOpt.domain(1), 'yg*'];
     inp = datarequest(req, this, inp, range, 1);
@@ -283,14 +313,14 @@ ixy = this.Quantity.Type==TYPE(1);
 % Check prior consistency.
 callChkPriors( );
 
-if ~any(ixy)
-    utils.warning('model:estimate', ...
-        'Model does not have any measurement variables.');
-end
+assert( ...
+    any(ixy), ...
+    exception.Base('Model:NoMeasurementVariables', 'warning') ...
+);
 
 % Retrieve names of parameters to be estimated, initial values, lower
 % and upper bounds, penalties, and prior distributions.
-itr = parseEstimStruct(this, estSpec, sp, estOpt.penalty, estOpt.initval);
+itr = parseEstimStruct(this, estSpec, systemPriors, estOpt.Penalty, estOpt.InitVal);
 
 % Run estimation from backend class
 %-----------------------------------
@@ -299,7 +329,7 @@ itr = parseEstimStruct(this, estSpec, sp, estOpt.penalty, estOpt.initval);
 % Assign estimated parameters, refresh dynamic links, and re-compute steady
 % state, solution, and expansion matrices.
 throwError = true;
-estOpt.solve.fast = false;
+estOpt.Solve.fast = false;
 this = update(this, pStar, itr, 1, estOpt, throwError);
 
 % Set up posterior object
@@ -316,7 +346,7 @@ populatePosterObj( );
 V = 1;
 delta = [ ];
 PDelta = [ ];
-if estOpt.evallik && (nargout >= 5 || likOpt.relative)
+if estOpt.EvalLik && (nargout>=5 || likOpt.relative)
     [~, regOutp] = likOpt.minusLogLikFunc(this, inp, [ ], likOpt);
     % Post-process the regular output arguments, update the std parameter
     % in the model object, and refresh if needed.
@@ -357,7 +387,7 @@ return
     function populatePosterObj( )
         % Make sure that draws that fail to solve do not cause an error
         % and hence do not interupt the posterior simulator.
-        estOpt.nosolution = Inf;
+        estOpt.NoSolution = Inf;
 
         p.ParamList = itr.LsParam;
         p.MinusLogPostFunc = @objfunc;

@@ -39,7 +39,7 @@ for t = nPer : -1 : 1
     w2 = outp.w0(:,t) + P(1:nx, :)*r;
     
     Pw2 = outp.Pw0(:,:,t) - PNP(1:nx, 1:nx);
-    Pw2 = (Pw2 + Pw2.')/2;
+    Pw2 = (Pw2 + Pw2')/2;
         
     % Transition shocks.
     e2 = e2 + OOmg*RRa.'*r(ixa);
@@ -69,6 +69,6 @@ N = TT.'*N*TT;
 outp.a2 = a1 + Pa1*r(nf+(1:nb));
 
 Pa2 = Pa1 - Pa1*N(nf+(1:nb), nf+(1:nb))*Pa1;
-outp.Pa2 = (Pa2 + Pa2.')/2;
+outp.Pa2 = (Pa2 + Pa2')/2;
 
 end

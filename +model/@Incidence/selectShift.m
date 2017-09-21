@@ -1,16 +1,23 @@
-function this = selectShift(this, fromShift, toShift)
+function this = selectShift(this, shiftFrom, shiftTo)
 
-[~, nQuan, ~] = size(this);
-posFrom = find(this.Shift==fromShift);
-if isempty(posFrom)
-    posFrom = 1;
-end
-posTo = find(this.Shift==toShift);
-if isempty(posTo)
-    posTo = length(this.Shift);
+[~, numOfQuantities, ~] = size(this);
+
+positionFrom = find(this.Shift==shiftFrom);
+if isempty(positionFrom)
+    positionFrom = 1;
 end
 
-this.Matrix = this.Matrix(:, ((posFrom-1)*nQuan+1) : (posTo*nQuan));
-this.Shift = fromShift : toShift;
+if nargin<3
+    shiftTo = shiftFrom;
+    positionTo = positionFrom;
+else
+    positionTo = find(this.Shift==shiftTo);
+    if isempty(positionTo)
+        positionTo = length(this.Shift);
+    end
+end
+
+this.Matrix = this.Matrix(:, ((positionFrom-1)*numOfQuantities+1) : (positionTo*numOfQuantities));
+this.Shift = shiftFrom : shiftTo;
 
 end

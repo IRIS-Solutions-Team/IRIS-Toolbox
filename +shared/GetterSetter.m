@@ -8,21 +8,15 @@
 
 classdef GetterSetter
     properties (Hidden)
-        Stamp = [ ] % Construction or load time stamp
         Build = '' % IRIS version in which object was constructed
     end
     
     
-    
-    
     methods
         function this = GetterSetter(varargin)
-            this = stampMe(this);
-            this.Build = irisversion( );
+            this.Build = iris.version( );
         end
     end
-    
-    
     
     
     methods
@@ -74,8 +68,6 @@ classdef GetterSetter
         end
         
         
-        
-        
         function this = set(this, varargin)
             usrRequest = varargin(1:2:end);
             value = varargin(2:2:end);
@@ -116,34 +108,13 @@ classdef GetterSetter
                     class(this), usrRequest{~ixValidValue} ); %#ok<GTARG>
             end            
         end        
-        
-        
-        
-        
-        function this = stampMe(this)
-            % stampMe  Time stamp.
-            this.Stamp = clock( );
-        end
-        
-        
-        
-        
-        
-        function this = removeStamp(this)
-            % removeStamp  Remove time stamp.
-            this.Stamp = [ ];
-        end
     end
-        
-    
     
 
     methods (Hidden)
         function flag = chkConsistency(this)
-            flag = isnumeric(this.Stamp) && ischar(this.Build);
+            flag = ischar(this.Build);
         end
-        
-        
         
         
         function this = struct2obj(this, s)
@@ -164,19 +135,15 @@ classdef GetterSetter
         end
         
         
-        
-        
         function disp(this, varargin) %#ok<INUSD>
         end
     end
     
     
-    
-    
     methods (Access=protected, Hidden)
         function ccn = getClickableClassName(this)
             cn = class(this);
-            if getappdata(0, 'IRIS_IS_DESKTOP') % ##### MOSW
+            if getappdata(0, 'IRIS_IsDesktop') % ##### MOSW
                 ccn = sprintf('<a href="matlab: idoc %s">%s</a>', cn, cn);
             else
                 ccn = cn; %#ok<UNRCH>
@@ -185,14 +152,10 @@ classdef GetterSetter
     end
     
     
-    
-    
     methods (Hidden)
         function this = setp(this, prop, value)
             this.(prop) = value;
         end
-        
-        
         
         
         function value = getp(this, prop)
@@ -201,13 +164,9 @@ classdef GetterSetter
     end
     
     
-    
-    
     methods (Static, Hidden)
         function query = myalias(query)
         end
-        
-        
         
         
         function list = getPropList(obj)

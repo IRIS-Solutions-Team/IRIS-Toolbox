@@ -39,31 +39,24 @@ isValidValue = true;
 switch lower(query)
     case {'stdvec', 'vecstd'}
         ne = length(this.Vector.Solution{3});
-        nAlt = length(this.Variant);
+        nv = length(this.Variant);
         if isnumeric(value) && ...
-                (numel(value)==ne || numel(value)==ne*nAlt)
+                (numel(value)==ne || numel(value)==ne*nv)
             if numel(value)==ne
                 value = value(:).';
-                value = repmat(value, 1, nAlt);
+                value = repmat(value, 1, nv);
             elseif size(value, 3)==1
                 value = permute(value, [3, 1, 2]);
             end
-            this.Variant = model.Variant.assignStdCorr( ...
-                this.Variant, 1:ne, ':', value, ...
-                this.Quantity.IxStdCorrAllowed ...
-                );
+            this.Variant.StdCorr(:, 1:ne, :) = value;
         else
             isValidValue = false;
         end
 
         
-        
-        
     case 'userdata'
         this = userdata(this, value);
         
-
-
 
     case 'epsilon'
         if isnumericscalar(value) && value>0
@@ -73,16 +66,12 @@ switch lower(query)
         end
         
 
-
-
     case {'islinear', 'linear'}
         if islogicalscalar(value)
             this.IsLinear = value;
         else
             isValidValue = false;
         end
-
-
 
 
     case 'rlabel'

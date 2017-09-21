@@ -58,7 +58,7 @@ classdef XlsSheet < handle
         
         
         function x = readSeries(this, time, xlsRange)
-            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
             [from, to] = parseXlsRange(this, xlsRange);
             if from(1)~=to(1) && from(2)~=to(2)
                 error('XlsSheet:DataMustBeRowOrColumn', ...
@@ -81,7 +81,7 @@ classdef XlsSheet < handle
         
         
         function d = readDatabase(this, varargin)
-            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
             opt = passvalopt('XlsSheet.retrieveDbase', varargin{:});
             opt = datdefaults(opt, false);
             d = struct( );

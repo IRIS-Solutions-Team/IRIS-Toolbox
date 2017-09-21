@@ -116,7 +116,7 @@ if ~isempty(varargin)
         if ~isempty(validFunc)
             if isequal(validFunc, @config)
                 if isempty(CONFIG)
-                    CONFIG = irisconfigmaster('get');
+                    CONFIG = iris.configMaster('get');
                 end
                 validFunc = CONFIG.validate.(list{i});
             end
@@ -159,7 +159,6 @@ return
         DEF.dates = irisopt.dates( );
         DEF.dbase = irisopt.dbase( );
         DEF.dest = irisopt.dest( );
-        DEF.Estimation = irisopt.Estimation( );
         DEF.FAVAR = irisopt.FAVAR( );
         DEF.fragileobj = irisopt.fragileobj( );
         DEF.freqdom = irisopt.freqdom( );
@@ -176,7 +175,6 @@ return
         DEF.report = irisopt.report( );
         DEF.rpteq = irisopt.rpteq( );
         DEF.solver = irisopt.solver( );
-        DEF.sstate = irisopt.sstate( );
         DEF.textfun = irisopt.textfun( );
         DEF.SVAR = irisopt.SVAR( );
         DEF.systempriors = irisopt.systempriors( );

@@ -133,7 +133,7 @@ dataChar = Num2StrFunc([1:maxPiy;dataTable]);
 
 % Add the frequency letter to period numbers in the header line.
 c = dataChar(1,:);
-f = irisget('freqLetters');
+f = iris.get('freqLetters');
 f = f(freq == [1,2,4,6,12,52]);
 c = regexprep(c,' (\d+)',[f,'$1']);
 dataChar(1,:) = c;

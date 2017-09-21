@@ -1,7 +1,7 @@
 function f = results(outp, quantity, solution)
 
 TYPE = @int8;
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 [ny, ~, nb, nf, ne] = sizeOfSolution(solution);

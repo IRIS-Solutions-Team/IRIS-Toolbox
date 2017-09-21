@@ -75,8 +75,8 @@ for iLoop = 1 : nLoop
     y = inp(1:ny, :, min(iLoop, end));
     % Exogenous variables in dtrend equations.
     g = inp(ny+1:end, :, min(iLoop, end));
-    excl = likOpt.exclude(:) | any(isnan(y), 2);
-    nYIncl = sum(~excl);
+    indexToExclude = likOpt.indexToExcludeude(:) | any(isnan(y), 2);
+    nYIncl = sum(~indexToExclude);
     diagInx = logical(eye(nYIncl));
     
     if iLoop<=nAlt
@@ -84,19 +84,19 @@ for iLoop = 1 : nLoop
         [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, iLoop, false); %#ok<ASGLU>
         [nx, nb] = size(T);
         nf = nx - nb;
-        nUnit = sum(this.Variant{iLoop}.Stability==TYPE(1));
+        numOfUnitRoots = getNumOfUnitRoots(this.Variant, iLoop);
         % Z(1:nunit, :) assumed to be zeros.
-        if any(any( abs(Z(:, 1:nUnit))>STEADY_TOLERANCE ))
+        if any(any( abs(Z(:, 1:numOfUnitRoots))>STEADY_TOLERANCE ))
             utils.error('model:myfdlik', ...
                 ['Cannot evalutate likelihood in frequency domain ', ...
                 'with non-stationary measurement variables.']);
         end
-        T = T(nf+nUnit+1:end, nUnit+1:end);
-        R = R(nf+nUnit+1:end, 1:ne);
-        Z = Z(~excl, nUnit+1:end);
-        H = H(~excl, :);
+        T = T(nf+numOfUnitRoots+1:end, numOfUnitRoots+1:end);
+        R = R(nf+numOfUnitRoots+1:end, 1:ne);
+        Z = Z(~indexToExclude, numOfUnitRoots+1:end);
+        H = H(~indexToExclude, :);
         Sa = R*Omg*transpose(R);
-        Sy = H(~excl, :)*Omg*H(~excl, :).';
+        Sy = H(~indexToExclude, :)*Omg*H(~indexToExclude, :).';
         
         % Fourier transform of steady state.
         isSstate = false;
@@ -143,12 +143,12 @@ for iLoop = 1 : nLoop
         y = y - D;
     end
     
-    % Remove measurement variables excluded from likelihood by the user, or
+    % Remove measurement variables indexToExcludeuded from likelihood by the user, or
     % those that have within-sample NaNs.
-    y = y(~excl, :);
+    y = y(~indexToExclude, :);
     y = y / sqrt(nPer);
     
-    M = M(~excl, :, :);
+    M = M(~indexToExclude, :, :);
     M = M / sqrt(nPer);
     
     L0 = zeros(1, nFrq+1);

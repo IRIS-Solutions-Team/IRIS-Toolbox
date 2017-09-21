@@ -1,33 +1,30 @@
 function dat = qq(varargin)
 % qq  Create quarterly date.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     dat = qq(year, ~quarter)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `year` [ numeric ] - Year of vector of years.
 %
 % * `~quarter` [ numeric ] - Quarter of the year or vector of quarters; if
 % omitted, first quarter is assumed.
 %
-% Output arguments
-% =================
+%
+% __Output arguments__
 %
 % * `dat` [ DateWrapper ] - Quarterly date.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

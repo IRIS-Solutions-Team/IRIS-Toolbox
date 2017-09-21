@@ -11,14 +11,10 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-nQuan = length(this.Quantity.Name);
-%nEqtn = length(this.Equation.Input);
-%quanType = this.Quantity.Type;
+numOfQuantities = length(this.Quantity.Name);
 ny = sum(this.Quantity.Type==TYPE(1));
 nx = sum(this.Quantity.Type==TYPE(2));
 ne = sum(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
-% ixp = this.Quantity.Type==TYPE(4);
-%posp = find(ixp);
 nyxe = ny + nx + ne;
 
 % Reset handle object to last system info.
@@ -27,24 +23,22 @@ resetLastSystem( );
 return
 
 
-
-
     function resetLastSystem( )
+        TYPE = @int8;
         % Reset LastSystem to a new model.LastSystem handle object.
         this.LastSystem = model.LastSystem( );
         
         % Parameters and steady states
         %------------------------------
-        this.LastSystem.Quantity = nan(1, nQuan);
+        this.LastSystem.Values = nan(1, numOfQuantities);
         
         % Derivatives
         %-------------
-        nsh = nofShift(this.Incidence.Dynamic);
-        nDeriv = nsh*nyxe;
-        nEqtn12 = sum(this.Equation.Type<=2);
+        numOfDerivatives = nyxe*this.Incidence.Dynamic.NumOfShifts;
+        nEqtn12 = sum(this.Equation.Type<=TYPE(2));
         deriv = struct( );
         deriv.c = zeros(nEqtn12, 1);
-        deriv.f = sparse(nEqtn12, nDeriv);
+        deriv.f = sparse(nEqtn12, numOfDerivatives);
         tempEye = -eye(nEqtn12);
         deriv.n = tempEye(:,this.Equation.IxHash);
         this.LastSystem.Deriv = deriv;

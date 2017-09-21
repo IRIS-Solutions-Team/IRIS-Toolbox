@@ -9,12 +9,12 @@ function [F, Pe, V, delta, PDelta, sampleCov, this] ...
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 try
-    isNamedMat = strcmpi(opt.MatrixFmt, 'namedmat');
+    isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 catch
     isNamedMat = false;
 end
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 TYPE = @int8;
 
@@ -57,9 +57,7 @@ if isfield(regOutp, 'Delta')
     for i = 1 : length(likOpt.outoflik)
         name = lsDelta{i};
         posQty = likOpt.outoflik(i);
-        this.Variant = model.Variant.assignQuantity( ...
-            this.Variant, posQty, ':', regOutp.Delta(i, :) ...
-            );
+        this.Variant.Values(:, posQty, :) = regOutp.Delta(i, :);
         delta.(name) = regOutp.Delta(i, :);
     end
 end
@@ -84,11 +82,10 @@ end
 % Update the std parameters in the model object.
 if likOpt.relative && nargout>6
     ne = sum(ixe);
-    nAlt = length(this);
+    nv = length(this);
     se = sqrt(V);
-    for iAlt = 1 : nAlt
-        this.Variant{iAlt}.StdCorr(1, 1:ne) = ...
-            this.Variant{iAlt}.StdCorr(1, 1:ne)*se(iAlt);
+    for v = 1 : nv
+        this.Variant.StdCorr(:, 1:ne, v) = this.Variant.StdCorr(:, 1:ne, v)*se(v);
     end
     % Refresh dynamic links after we change std deviations because std devs are
     % allowed in dynamic links.

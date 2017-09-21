@@ -19,7 +19,7 @@ function [s, range, select] = srf(this, time, varargin)
 %
 % __Output Arguments__
 %
-% * `S` [ struct ] - Database with shock response time series.
+% * `S` [ struct ] - Databank with shock response time series.
 %
 %
 % __Options__
@@ -56,59 +56,50 @@ end
 
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32); 
 ne = sum(ixe);
-nv = length(this.Variant);
+nv = length(this);
 lse = this.Quantity.Name(ixe);
 
 % Select shocks.
 if isequal(opt.select, @all)
-    pos = 1 : ne;
+    posOfSelected = 1 : ne;
 else
-    nSel = length(opt.select);
-    pos = nan(1, nSel);
+    numOfSelected = length(opt.select);
+    posOfSelected = nan(1, numOfSelected);
     for i = 1 : length(opt.select)
         x = find( strcmp(opt.select{i}, lse) );
         if length(x)==1
-            pos(i) = x;
+            posOfSelected(i) = x;
         end
     end
-    chkShockSelection( );
+    assert( ...
+        ~any(isnan(posOfSelected)), ...
+        'model:srf', ...
+        exception.Base('Model:InvalidName', 'error'), ...
+        'shock', opt.select{isnan(posOfSelected)} ...
+    );
 end
-select = lse(pos);
-nSel = length(select);
+select = lse(posOfSelected);
+numOfSelected = length(select);
 
 % Set size of shocks.
 if strcmpi(opt.size, 'std') ...
         || isequal(opt.size, @auto) ...
         || isequal(opt.size, @std)
-    shkSize = model.Variant.getStdCorr(this.Variant, pos, ':');
+    sizeOfShocks = this.Variant.StdCorr(:, posOfSelected, :);
 else
-    shkSize = opt.size*ones(1, nSel, nv);
+    sizeOfShocks = opt.size*ones(1, numOfSelected, nv);
 end
 
-func = @(T, R, K, Z, H, D, U, Omg, iAlt, nPer) ...
-    timedom.srf(T, R(:, pos), [ ], Z, H(:, pos), [ ], U, [ ], ...
-    nPer, shkSize(1, :, iAlt));
+func = @(T, R, K, Z, H, D, U, Omg, variantRequested, numOfPeriods) ...
+    timedom.srf(T, R(:, posOfSelected), [ ], Z, H(:, posOfSelected), [ ], U, [ ], ...
+    numOfPeriods, sizeOfShocks(1, :, variantRequested));
 
-[s, range, select] = myrf(this, time, func, select, opt);
+[s, range, select] = responseFunction(this, time, func, select, opt);
 for i = 1 : length(select)
-    s.(select{i}).data(1, i, :) = shkSize(1, i, :);
+    s.(select{i}).data(1, i, :) = sizeOfShocks(1, i, :);
     s.(select{i}) = trim(s.(select{i}));
 end
 
-return
-    
+s = addparam(this, s);
 
-    function chkShockSelection( )
-        if any(isnan(pos))
-            utils.error('model:srf', ...
-                'This is not a valid shock name: %s ', ...
-                opt.select{isnan(pos)});
-        end
-        nonUnique = parser.getMultiple(pos);
-        if ~isempty(nonUnique)
-            utils.error('model:srf', ...
-                'This shock name is requested more than once: %s ', ...
-                opt.select{nonUnique});
-        end
-    end
 end

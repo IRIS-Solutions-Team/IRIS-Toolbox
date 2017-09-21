@@ -28,8 +28,8 @@ posAssign = ell.PosName;
 posStdcorr = ell.PosStdCorr;
 
 % Reset values of parameters and stdcorrs.
-itr.Quantity = this.Variant{1}.Quantity;
-itr.StdCorr = this.Variant{1}.StdCorr;
+itr.Quantity = this.Variant.Values;
+itr.StdCorr = this.Variant.StdCorr;
 
 % Parameters to estimate and their positions; remove names that are not
 % valid parameter names.
@@ -58,9 +58,9 @@ itr.PosStdCorr = posStdcorr(ixValidParName);
 startIfNan = nan(1, np);
 for i = 1 : np
     if ~isnan(itr.PosQty(i))
-        startIfNan(i) = this.Variant{1}.Quantity(itr.PosQty(i));
+        startIfNan(i) = this.Variant.Values(:, itr.PosQty(i), :);
     else
-        startIfNan(i) = this.Variant{1}.StdCorr(itr.PosStdCorr(i));
+        startIfNan(i) = this.Variant.StdCorr(:, itr.PosStdCorr(i), :);
     end
 end
 

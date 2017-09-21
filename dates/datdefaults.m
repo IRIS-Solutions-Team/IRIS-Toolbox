@@ -11,7 +11,7 @@ try, isPlot; catch, isPlot = false; end %#ok<NOCOM,VUNUS>
 
 %--------------------------------------------------------------------------
 
-cfg = irisconfigmaster('get');
+cfg = iris.configMaster('get');
 
 if ~isfield(opt,'dateformat') || isequal(opt.dateformat, @config)
     if ~isPlot

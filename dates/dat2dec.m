@@ -1,31 +1,31 @@
 function dec = dat2dec(dat, pos)
 % dat2dec  Convert dates to decimal grid.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     Dec = dat2dec(Dat)
-%     Dec = dat2dec(Dat,Pos)
+% Input arguments marked with a `~` sign may be omitted.
 %
-% Input arguments
-% ================
+%     Dec = dat2dec(Dat, ~Pos)
+%
+%
+% __Input Arguments__
 %
 % * `Dat` [ numeric ] - IRIS serial date number.
 %
-% * `Pos` [ *`'start'`* | `'centre'` | `'end'` ] - Point within the period
-% that will represent the date; if omitted, `Pos` is set to `'start'`.
+% * `~Pos` [ *`'start'`* | `'centre'` | `'end'` ] - Point within the period
+% that will represent the date; if omitted, `~Pos` is set to `'start'`.
 %
-% Output arguments
-% =================
 %
-% * `Dec` [ numeric ] - Decimal grid representing the input dates,
+% __Output Arguments__
+%
+% * `Dec` [ numeric ] - Decimal grid representing the input dates, 
 % computed as `Year + (Per-1)/Freq`.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -45,7 +45,7 @@ end
 
 [year, per, freq] = dat2ypf(dat);
 
-DateWrapper.chkMixedFrequency(freq);
+DateWrapper.checkMixedFrequency(freq);
 freq = freq(1);
 
 switch freq
@@ -53,9 +53,9 @@ switch freq
         dec = per;
     case {1, 2, 4, 6, 12}
         switch pos
-            case {'s','b'}
+            case {'s', 'b'}
                 adjust = -1;
-            case {'c','m'}
+            case {'c', 'm'}
                 adjust = -1/2;
             case {'e'}
                 adjust = 0;
@@ -79,7 +79,7 @@ switch freq
     otherwise
         throw( ...
             exception.Base('Dates:UnrecognizedFrequency', 'error') ...
-            );        
+        );        
 end
 
 end

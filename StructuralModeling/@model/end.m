@@ -4,12 +4,11 @@ function n = end(this, ~, ~)
 % Backend IRIS function.
 % No help provided.
 
-
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
-n = length(this.Variant);
+n = length(this);
 
 end

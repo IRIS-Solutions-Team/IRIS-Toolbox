@@ -15,23 +15,17 @@ if nAnt>0
     this = expand(this, nAnt);
 end
 
-[nx, nb] = size(this.solution{1});
+[nx, nb] = size(this.Variant.Solution{1});
 nf = nx - nb; %#ok<NASGU>
 
 %@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 % s = this.Solution{1};
 % s = struct( );
 s = model.Solution( );
-s.T = this.solution{1};
-s.R = this.solution{2};
-s.k = this.solution{3};
-s.Z = this.solution{4};
-s.H = this.solution{5};
-s.d = this.solution{6};
-s.U = this.solution{7};
-s.StdCorr = this.Variant{1}.StdCorr;
+[s.T, s.R, s.k, s.Z, s.H, s.d. s.U] = sspaceMatrices(this);
+s.StdCorr = this.Variant.StdCorr;
 s.StateVec = this.Vector.Solution{2};
-s.NUnit = sum(this.Variant{1}.Stability==TYPE(1));
+s.NUnit = getNumOfUnitRoots(this.Variant);
 % s.DIFFUSE_SCALE = 1e8;
 %@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 

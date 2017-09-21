@@ -1,14 +1,12 @@
 function [F, FF, delta, freq, G, step] = fisher(this, nPer, lsPar, varargin)
 % fisher  Approximate Fisher information matrix in frequency domain.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [F, FF, Delta, Freq] = fisher(M, NPer, PList, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Solved model object.
 %
@@ -19,8 +17,7 @@ function [F, FF, delta, freq, G, step] = fisher(this, nPer, lsPar, varargin)
 % likelihood function will be differentiated.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `F` [ numeric ] - Approximation of the Fisher information matrix.
 %
@@ -34,8 +31,7 @@ function [F, FF, delta, freq, G, step] = fisher(this, nPer, lsPar, varargin)
 % information matrix is evaluated.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'ChkSstate='` [ `true` | *`false`* | cell ] - Check steady state in
 % each iteration; works only in non-linear models.
@@ -63,12 +59,10 @@ function [F, FF, delta, freq, G, step] = fisher(this, nPer, lsPar, varargin)
 % cell array with opt used in the `sstate( )` function.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -76,22 +70,24 @@ function [F, FF, delta, freq, G, step] = fisher(this, nPer, lsPar, varargin)
 
 TYPE = @int8;
 
-% Validate required input arguments.
-pp = inputParser( );
-pp.addRequired('M', @(x) isa(x, 'model'));
-pp.addRequired('NPer', @(x) isnumeric(x) && length(x)==1);
-pp.addRequired('PList', @(x) iscellstr(x) || ischar(x));
-pp.parse(this, nPer, lsPar);
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/fisher');
+    INPUT_PARSER.addRequired('M', @(x) isa(x, 'model'));
+    INPUT_PARSER.addRequired('NPer', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>0);
+    INPUT_PARSER.addRequired('PList', @(x) iscellstr(x) || ischar(x));
+end
+INPUT_PARSER.parse(this, nPer, lsPar);
 
 % Read and validate optional input arguments.
 opt = passvalopt('model.fisher', varargin{:});
 
 ixy = this.Quantity.Type==TYPE(1);
 [ny, ~, ~, nf, ne] = sizeOfSolution(this.Vector);
-nAlt = length(this);
+nv = length(this);
 
 % Process the 'exclude' option.
-ixExclude = false(ny, 1);
+indexToExclude = false(ny, 1);
 if ~isempty(opt.exclude)
     if ischar(opt.exclude)
         opt.exclude = regexp(opt.exclude, '\w+', 'match');
@@ -99,7 +95,7 @@ if ~isempty(opt.exclude)
     lsMeasurementVar = this.Quantity.Name(ixy);
     for i = 1 : length(opt.exclude)
         ix = strcmp(lsMeasurementVar, opt.exclude{i});
-        ixExclude(ix) = true;
+        indexToExclude(ix) = true;
     end
 end
 
@@ -109,22 +105,22 @@ if ischar(lsPar)
 end
 
 % Initialise steady-state solver and chksstate options.
-opt.Steady = prepareSteady(this, 'silent', opt.sstate);
-opt.chksstate = prepareChkSteady(this, 'silent', opt.chksstate);
-opt.solve = prepareSolve(this, 'silent, fast', opt.solve);
+opt.Steady = prepareSteady(this, 'silent', opt.Steady);
+opt.ChkSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
+opt.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
 
 EPSILON = eps( )^opt.epspower;
 
 %--------------------------------------------------------------------------
 
-ny = ny - sum(ixExclude);
+ny = ny - sum(indexToExclude);
 if ny==0
     utils.warning('model:fisher', ...
         'No measurement variables included in computing Fisher matrix.');
 end
 
 ixYLog = this.Quantity.IxLog(ixy);
-ixYLog(ixExclude) = [ ];
+ixYLog(indexToExclude) = [ ];
 
 ell = lookup(this.Quantity, lsPar, TYPE(4));
 posQty = ell.PosName;
@@ -140,12 +136,12 @@ if any(~ixValid)
 end
 
 itr = model.IterateOver( );
-itr.Quantity = this.Variant{1}.Quantity;
-itr.StdCorr = this.Variant{1}.StdCorr;
+itr.Quantity = this.Variant.Values;
+itr.StdCorr = this.Variant.StdCorr;
 itr.PosQty = posQty;
 itr.PosStdCorr = posStdCorr;
 
-nPList = length(lsPar);
+numOfParams = length(lsPar);
 nFreq = floor(nPer/2) + 1;
 freq = 2*pi*(0 : nFreq-1)/nPer;
 
@@ -158,8 +154,8 @@ else
     delta(2:end) = 2;
 end
 
-FF = nan(nPList, nPList, nFreq, nAlt);
-F = nan(nPList, nPList, nAlt);
+FF = nan(numOfParams, numOfParams, nFreq, nv);
+F = nan(numOfParams, numOfParams, nv);
 
 % Create a command-window progress bar.
 if opt.progress
@@ -168,9 +164,9 @@ end
 
 throwErr = true;
 
-for iAlt = 1 : nAlt    
+for v = 1 : nv    
     % Fetch the i-th parameterisation.
-    m = this(iAlt);
+    m = this(v);
     
     % Minimum necessary state space.
     [T0, R0, Z0, H0, Omg0, nUnit0] = getSspace( );
@@ -180,17 +176,17 @@ for iAlt = 1 : nAlt
     
     % Compute derivatives of SGF and steady state
     % wrt the selected parameters.
-    dG = nan(ny, ny, nFreq, nPList);
+    dG = nan(ny, ny, nFreq, numOfParams);
     if ~opt.deviation
-        dy = zeros(ny, nPList);
+        dy = zeros(ny, numOfParams);
     end
     % Determine differentiation step.
-    p0 = nan(1, nPList);
-    p0(~ixAssignNan) = m.Variant{1}.Quantity(1, posQty(~ixAssignNan));
-    p0(~ixStdcorrNan) = m.Variant{1}.StdCorr(1, posStdCorr(~ixStdcorrNan));
-    step = max([abs(p0);ones(1, nPList)], [ ], 1)*EPSILON;
+    p0 = nan(1, numOfParams);
+    p0(~ixAssignNan) = m.Variant.Values(:, posQty(~ixAssignNan), :);
+    p0(~ixStdcorrNan) = m.Variant.StdCorr(:, posStdCorr(~ixStdcorrNan), :);
+    step = max([abs(p0);ones(1, numOfParams)], [ ], 1)*EPSILON;
     
-    for i = 1 : nPList
+    for i = 1 : numOfParams
         pp = p0;
         pm = p0;
         pp(i) = pp(i) + step(i);
@@ -222,20 +218,19 @@ for iAlt = 1 : nAlt
         end
         
         % Reset model parameters to `p0`.
-        m.Variant{1}.Quantity(1, posQty(~ixAssignNan)) = p0(1, ~ixAssignNan);
-        m.Variant{1}.StdCorr(1, posStdCorr(~ixStdcorrNan)) = p0(1, ~ixStdcorrNan);
+        m.Variant.Values(:, posQty(~ixAssignNan), :) = p0(1, ~ixAssignNan);
+        m.Variant.StdCorr(:, posStdCorr(~ixStdcorrNan), :) = p0(1, ~ixStdcorrNan);
         
         % Update the progress bar.
         if opt.progress
-            update(progress, ((iAlt-1)*nPList+i)/(nAlt*nPList));
+            update(progress, ((v-1)*numOfParams+i)/(nv*numOfParams));
         end
-        
     end
     
     % Compute Fisher information matrix.
     % Steady-state-independent part.
-    for i = 1 : nPList
-        for j = i : nPList
+    for i = 1 : numOfParams
+        for j = i : numOfParams
             fi = zeros(1, nFreq);
             for k = 1 : nFreq
                 fi(k) = ...
@@ -248,17 +243,17 @@ for iAlt = 1 : nAlt
                 A = dy(:, i)*dy(:, j)';
                 fi(1) = fi(1) + nPer*trace(Gi(:, :, 1)*(A + A'));
             end
-            FF(i, j, :, iAlt) = fi;
-            FF(j, i, :, iAlt) = fi;
+            FF(i, j, :, v) = fi;
+            FF(j, i, :, v) = fi;
             f = delta*fi';
-            F(i, j, iAlt) = f;
-            F(j, i, iAlt) = f;
+            F(i, j, v) = f;
+            F(j, i, v) = f;
         end
     end
 
     if opt.percent
         P0 = diag(p0);
-        F(:, :, iAlt) = P0*F(:, :, iAlt)*P0;
+        F(:, :, v) = P0*F(:, :, v)*P0;
     end
     
 end
@@ -270,113 +265,96 @@ F = F / 2;
 return
 
 
-
-
-    function [T, R, Z, H, Omg, nUnit] = getSspace( )
-        T = m.solution{1};
-        nUnit = sum(this.Variant{1}.Stability==TYPE(1));
-        Z = m.solution{4}(~ixExclude, :);
+    function [T, R, Z, H, Omg, numOfUnitRoots] = getSspace( )
+        [T, R, ~, Z, H, ~, ~, Omg] = sspaceMatrices(m, 1);
         T = T(nf+1:end, :);
-        % Cut off forward expansion.
-        R = m.solution{2}(nf+1:end, 1:ne);
-        H = m.solution{5}(~ixExclude, 1:ne);
-        Omg = omega(m);
+        Z = Z(~indexToExclude, :);
+        R = R(nf+1:end, 1:ne);
+        H = H(~indexToExclude, 1:ne);
+        numOfUnitRoots = getNumOfUnitRoots(m.Variant);
     end 
-
-
 
     
     function y = getSstate( )
-        % Get the steady-state levels for the measurement variables.
-        y = m.Variant{1}.Quantity(ixy);
+        % Get steady-state levels for measurement variables.
+        y = m.Variant.Values(:, ixy, :);
         y = real(y);
-        % Adjust for the excluded measurement variables.
-        y(ixExclude) = [ ];
+        % Adjust for excluded measurement variables.
+        y(indexToExclude) = [ ];
         % Take log of log variables; `ixYLog` has been already adjusted
-        % for the excluded measurement variables.
+        % for excluded measurement variables.
         y(ixYLog) = log(y(ixYLog));
     end 
-
-
-
-
 end 
 
 
-
-
-function [G, Gi] = computeSgfy(T, R, Z, H, Omg, nUnit, freq, opt)
-% Spectrum generating function and its inverse.
-% Computationally optimised for observables.
-[ny, nb] = size(Z);
-nFreq = length(freq(:));
-Sgm1 = R*Omg*R.';
-Sgm2 = H*Omg*H.';
-G = nan(ny, ny, nFreq);
-for i = 1 : nFreq
-    iFreq = freq(i);
-    if iFreq==0 && nUnit>0
-        % Exclude the unit-root part of the transition matrix, and compute SGF only
-        % for the stable part. Stationary variables are unaffected.
-        Z0 = Z(:, nUnit+1:end);
-        T0 = T(nUnit+1:end, nUnit+1:end);
-        R0 = R(nUnit+1:end, :);
-        X = Z0 / (eye(nb-nUnit) - T0);
-        G(:, :, i) = trimSymmetric(X*(R0*Omg*R0.')*X' + Sgm2);
-    else
-        X = Z/(eye(nb) - T*exp(-1i*iFreq));
-        G(:, :, i) = trimSymmetric(X*Sgm1*X' + Sgm2);
-    end
-    
-end
-% Do not divide G by 2*pi.
-% First, this cancels out in Gi*dG*Gi*dG
-% and second, we do not divide the steady-state effect
-% by 2*pi either.
-if nargout>1
-    Gi = nan(ny, ny, nFreq);
-    if opt.chksgf
-        for i = 1 : nFreq
-            Gi(:, :, i) = computePseudoInverse(G(:, :, i), opt.tolerance);
-        end
-    else
-        for i = 1 : nFreq
-            Gi(:, :, i) = inv(G(:, :, i));
+function [G, Gi] = computeSgfy(T, R, Z, H, Omg, numOfUnitRoots, freq, opt)
+    % Spectrum generating function and its inverse.
+    % Computationally optimised for observables.
+    [ny, nb] = size(Z);
+    nFreq = length(freq(:));
+    Sgm1 = R*Omg*R.';
+    Sgm2 = H*Omg*H.';
+    G = nan(ny, ny, nFreq);
+    for i = 1 : nFreq
+        iFreq = freq(i);
+        if iFreq==0 && numOfUnitRoots>0
+            % Exclude the unit-root part of the transition matrix, and compute SGF only
+            % for the stable part. Stationary variables are unaffected.
+            Z0 = Z(:, numOfUnitRoots+1:end);
+            T0 = T(numOfUnitRoots+1:end, numOfUnitRoots+1:end);
+            R0 = R(numOfUnitRoots+1:end, :);
+            X = Z0 / (eye(nb-numOfUnitRoots) - T0);
+            G(:, :, i) = trimSymmetric(X*(R0*Omg*R0.')*X' + Sgm2);
+        else
+            X = Z/(eye(nb) - T*exp(-1i*iFreq));
+            G(:, :, i) = trimSymmetric(X*Sgm1*X' + Sgm2);
         end
     end
-end
+    % Do not divide G by 2*pi.
+    % First, this cancels out in Gi*dG*Gi*dG
+    % and second, we do not divide the steady-state effect
+    % by 2*pi either.
+    if nargout>1
+        Gi = nan(ny, ny, nFreq);
+        if opt.chksgf
+            for i = 1 : nFreq
+                Gi(:, :, i) = computePseudoInverse(G(:, :, i), opt.tolerance);
+            end
+        else
+            for i = 1 : nFreq
+                Gi(:, :, i) = inv(G(:, :, i));
+            end
+        end
+    end
 end 
-
-
 
 
 function x = trimSymmetric(x)
-% Minimise numerical inaccuracy between upper and lower parts
-% of symmetric matrices.
-ix = eye(size(x))==1;
-x = (x + x.')/2;
-x(ix) = real(x(ix));
+    % Minimise numerical inaccuracy between upper and lower parts
+    % of symmetric matrices.
+    indexOfDiagonal = eye(size(x), 'logical');
+    x = (x + x')/2;
+    x(indexOfDiagonal) = real(x(indexOfDiagonal));
 end 
 
 
-
-
 function X = computePseudoInverse(A, Tol)
-c = class(A);
-if isempty(A)
-    X = zeros(size(A'), c);
-    return
-end
-m = size(A, 1);
-s = svd(A);
-r = sum(s/s(1)>Tol);
-if r==0
-    X = zeros(size(A'), c);
-elseif r==m
-    X = inv(A);
-else
-    [U, ~, V] = svd(A, 0);
-    S = diag(1./s(1:r));
-    X = V(:, 1:r)*S*U(:, 1:r)';
-end
+    c = class(A);
+    if isempty(A)
+        X = zeros(size(A'), c);
+        return
+    end
+    sizeOfA = size(A);
+    s = svd(A);
+    r = sum(s/s(1)>Tol);
+    if r==0
+        X = zeros(size(A'), c);
+    elseif r==sizeOfA(1)
+        X = inv(A);
+    else
+        [U, ~, V] = svd(A, 0);
+        S = diag(1./s(1:r));
+        X = V(:, 1:r)*S*U(:, 1:r)';
+    end
 end

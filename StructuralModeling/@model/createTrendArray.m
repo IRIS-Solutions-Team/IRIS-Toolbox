@@ -1,4 +1,4 @@
-function X = createTrendArray(this, vecAlt, needsDelog, id, vecTime)
+function X = createTrendArray(this, variantsRequested, needsDelog, id, vecTime)
 % createTrendArray  Create row-oriented array with steady path for each variable.
 %
 % Backend IRIS function.
@@ -7,39 +7,46 @@ function X = createTrendArray(this, vecAlt, needsDelog, id, vecTime)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-try, vecAlt;     catch, vecAlt = Inf; end %#ok<VUNUS,NOCOM>
-try, needsDelog; catch, needsDelog = true; end %#ok<NOCOM>
-try, id;         catch, id = 1 : length(this.Quantity); end %#ok<VUNUS,NOCOM>
-try, vecTime;    catch, vecTime = this.Incidence.Dynamic.Shift; end %#ok<VUNUS,NOCOM>
+if nargin<2 || isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
+    variantsRequested = 1 : length(this);
+end
+
+if nargin<3
+    needsDelog = true;
+end
+
+if nargin<4
+    id = 1 : length(this.Quantity);
+end
+
+if nargin<5
+    vecTime = this.Incidence.Dynamic.Shift;
+end
 
 %--------------------------------------------------------------------------
 
+nv = length(this);
 vecTime = vecTime(:).';
-nAlt = length(this);
 nPer = length(vecTime);
 nId = length(id);
-if isequal(vecAlt, Inf) || isequal(vecAlt, @all)
-    vecAlt = 1 : nAlt;
-end
-nVecAlt = numel(vecAlt);
+numOfVariantsRequested = numel(variantsRequested);
 
 realId = real(id);
 imagId = imag(id);
 ixLog = this.Quantity.IxLog(realId);
 sh = bsxfun(@plus, imagId(:), vecTime(:).');
 
-X = zeros(nId, nPer, nVecAlt);
-for i = 1 : nVecAlt
-    X(:, :, i) = createTrendArrayForOneAlt( vecAlt(i) );
+X = zeros(nId, nPer, numOfVariantsRequested);
+for i = 1 : numOfVariantsRequested
+    v = min(variantsRequested(i), nv);
+    a = this.Variant.Values(1, realId, v);
+    X(:, :, i) = createTrendArrayForOneVariant(a);
 end
 
 return
 
 
-
-
-    function x = createTrendArrayForOneAlt(iAlt)
-        a = this.Variant{ min(iAlt, nAlt) }.Quantity(1, realId);
+    function x = createTrendArrayForOneVariant(a)
         lx = real(a);
         gx = imag(a);
         

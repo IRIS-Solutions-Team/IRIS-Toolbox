@@ -24,7 +24,7 @@ end
 %--------------------------------------------------------------------------
 
 [ny, ~, nb, nf] = sizeOfSolution(this.Vector);
-nz = nnz(this.Quantity.IxMeasure);
+nz = nnz(this.Quantity.IxObserved);
 nPer = length(range);
 
 % Conditioning measurement variables.

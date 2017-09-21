@@ -1,4 +1,4 @@
-function ixAff = affected(this, iAlt, opt)
+function ixAff = affected(this, variantRequested, opt)
 % affected  Equations affected by parameter changes since last system.
 %
 % Backend IRIS function.
@@ -19,7 +19,7 @@ if ~opt.select
     return
 end
 
-value0 = this.LastSystem.Quantity;
+lastValues = this.LastSystem.Values;
 
 % If last system does not exist, we must select all equations.
 if nnz(this.LastSystem.Deriv.f)==0
@@ -27,14 +27,14 @@ if nnz(this.LastSystem.Deriv.f)==0
 end
 
 % Changes in steady states and parameters.
-ixChanged = this.Variant{iAlt}.Quantity~=value0 ...
-    & (~isnan(this.Variant{iAlt}.Quantity) | ~isnan(value0));
+currentValues = this.Variant.Values(:, :, variantRequested);
+indexOfChanged = currentValues~=lastValues & (~isnan(currentValues) | ~isnan(lastValues));
 if this.IsLinear
     % Only parameter changes matter in linear models.
-    ixChanged = ixChanged & ixp;
+    indexOfChanged = indexOfChanged & ixp;
 end
 
 % Affected equations.
-ixAff = any( this.Incidence.Affected.Matrix(:, ixChanged), 2 ).';
+ixAff = any( this.Incidence.Affected.Matrix(:, indexOfChanged), 2 ).';
 
 end

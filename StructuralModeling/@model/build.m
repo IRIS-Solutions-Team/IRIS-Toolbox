@@ -9,8 +9,6 @@ function this = build(this, opt)
 
 %--------------------------------------------------------------------------
 
-this.Quantity = build(this.Quantity);
-
 asgn = opt.Assign;
 
 % Assign user comment if it is non-empty, otherwise use what has been
@@ -38,15 +36,15 @@ end
 % Assign default stdevs.
 if isequal(opt.std, @auto)
     if this.IsLinear
-        dftStd = opt.stdlinear;
+        defaultStd = opt.stdlinear;
     else
-        dftStd = opt.stdnonlinear;
+        defaultStd = opt.stdnonlinear;
     end
 else
-    dftStd = opt.std;
+    defaultStd = opt.std;
 end
 
-nAlt = 1;
+numOfVariants = 1;
 if ~isempty(asgn) && isstruct(asgn) 
     % Check number of alternative parametrizations in input database.
     lsField = fieldnames(asgn);
@@ -55,7 +53,7 @@ if ~isempty(asgn) && isstruct(asgn)
     for i = 1 : numel(lsField)
         name = lsField{i};
         if isnumeric(asgn.(name))
-            nAlt = max(nAlt, numel(asgn.(name)));
+            numOfVariants = max(numOfVariants, numel(asgn.(name)));
         end
     end
 end
@@ -72,20 +70,21 @@ this = symbDiff(this, opt.symbdiff);
 this = myeqtn2afcn(this);
 
 % Create Deriv to System convertor.
-this = myd2s(this, opt);
+this = createD2S(this, opt);
 
 % Recreate transient properties.
 this = populateTransient(this);
 
-nh = sum(this.Equation.IxHash);
-nExpand = 0;
-template = model.Variant(this.Quantity, this.Vector, nExpand, nh, dftStd);
-this.Variant = repmat({template}, 1, nAlt);
+% Preallocate variants.
+lenOfExpansion = 0;
+numOfHashed = nnz(this.Equation.IxHash);
+numOfObserved = nnz(this.Quantity.IxObserved);
+this.Variant = model.Variant( ...
+    numOfVariants, this.Quantity, this.Vector, lenOfExpansion, numOfHashed, numOfObserved, defaultStd ...
+);
 
-% Preallocate solution matrices. This must be done after populating
-% transient properties because of Vector.System.
-preallocSolution( );
-
+% Assign from input database. This must be done after creating
+% this.Variant.
 this = assign(this, asgn);
 
 % Refresh dynamic links after assigning parameters.
@@ -93,31 +92,4 @@ if opt.Refresh
     this = refresh(this);
 end
 
-return
-
-
-
-
-    function preallocSolution( )
-        [ny, ~, nb, nf, ne, ~] = sizeOfSolution(this.Vector);
-        nz = nnz(this.Quantity.IxMeasure);
-        [~, ~, ~, kf] = sizeOfSystem(this.Vector);
-        
-        this.solution{1} = nan(nf+nb, nb, nAlt); % T
-        this.solution{2} = nan(nf+nb, ne, nAlt); % R
-        this.solution{3} = nan(nf+nb, 1, nAlt); % K
-        this.solution{4} = nan(ny, nb, nAlt); % Z
-        this.solution{5} = nan(ny, ne, nAlt); % H
-        this.solution{6} = nan(ny, 1, nAlt); % D
-        this.solution{7} = nan(nb, nb, nAlt); % U
-        this.solution{8} = nan(nf+nb, nh, nAlt); % Y - nonlin addfactors.
-        this.solution{9} = nan(max(ny, nz), nb, nAlt); % Zb - Untransformed measurement.
-        
-        this.Expand{1} = nan(nb, kf, nAlt); % Xa
-        this.Expand{2} = nan(nf, kf, nAlt); % Xf
-        this.Expand{3} = nan(kf, ne, nAlt); % Ru
-        this.Expand{4} = nan(kf, kf, nAlt); % J
-        this.Expand{5} = nan(kf, kf, nAlt); % J^k
-        this.Expand{6} = nan(kf, nh, nAlt); % Mu -- nonlin addfactors.
-    end
 end

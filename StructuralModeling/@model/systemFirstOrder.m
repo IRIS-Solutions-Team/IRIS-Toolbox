@@ -1,4 +1,4 @@
-function [syst, ixNanDeriv, deriv] = systemFirstOrder(this, iAlt, opt)
+function [syst, indexOfNaNDerivs, deriv] = systemFirstOrder(this, variantRequested, opt)
 % systemFirstOrder  Calculate first-order system matrices.
 %
 % Backend IRIS function.
@@ -21,64 +21,58 @@ ixm = this.Equation.Type==TYPE(1);
 ixt = this.Equation.Type==TYPE(2);
 nm = sum(ixm);
 nt = sum(ixt); 
-eqSelect = affected(this, iAlt, opt);
+eqSelect = affected(this, variantRequested, opt);
 eqSelect = eqSelect & (ixm | ixt);
 
 % Evaluate derivatives of equations wrt parameters
 %--------------------------------------------------
-[deriv, ixNanDeriv] = diffFirstOrder(this, eqSelect, iAlt, opt);
+[deriv, indexOfNaNDerivs] = diffFirstOrder(this, eqSelect, variantRequested, opt);
 
 % Set up system matrices from derivatives
 %-----------------------------------------
 getSystemMatrices( );
 
 % Update handle to last system.
-this.LastSystem.Quantity = this.Variant{iAlt}.Quantity;
+this.LastSystem.Values = this.Variant.Values(:, :, variantRequested);
 this.LastSystem.Deriv = deriv;
 this.LastSystem.System = syst;
 
 return
 
 
-
-
     function getSystemMatrices( )
-        posm = find(eqSelect(1:nm)); % Selected measurement equations.
-        post = find(eqSelect(nm+1:end)); % Selected transition equations.
+        posOfMeasurementEq = find(eqSelect(1:nm)); % Selected measurement equations.
+        posOfTransitionEq = find(eqSelect(nm+1:end)); % Selected transition equations.
         [~, ~, ~, kf] = sizeOfSystem(this.Vector);
-        d2s = this.d2s;
+        D2S = this.D2S;
         
         syst = this.LastSystem.System;
         
-        % Measurement equations
-        %------------------------
+        % __Measurement Equations__
         % A1 y + B1 xb' + E1 e + K1 = 0
-        syst.K{1}(posm) = deriv.c(posm);
-        syst.A{1}(posm, d2s.y) = deriv.f(posm, d2s.y_);
+        syst.K{1}(posOfMeasurementEq) = deriv.c(posOfMeasurementEq);
+        syst.A{1}(posOfMeasurementEq, D2S.SystemY)      = deriv.f(posOfMeasurementEq, D2S.DerivY);
         % Measurement equations include only bwl variables; subtract
-        % therefore the number of fwl variables from the positions of xp1.
-        syst.B{1}(posm, d2s.xp1-kf) = deriv.f(posm, d2s.xp1_);
-        syst.E{1}(posm, d2s.e) = deriv.f(posm, d2s.e_);
+        % therefore the number of fwl variables from the positions of SystemXbMinus.
+        syst.B{1}(posOfMeasurementEq, D2S.SystemXbMinus-kf) = deriv.f(posOfMeasurementEq, D2S.DerivXbMinus);
+        syst.E{1}(posOfMeasurementEq, D2S.SystemE)      = deriv.f(posOfMeasurementEq, D2S.DerivE);
         
-        % Transition equations
-        %----------------------
+        % __Transition Equations__
         % A2 [xf' ; xb'] + B2 [xf ; xb] + E2 e + K2 = 0
-        post_ = nm + post;
-        syst.K{2}(post) = deriv.c(post_);
-        syst.A{2}(post, d2s.xu1) = deriv.f(post_, d2s.xu1_);
-        syst.A{2}(post, d2s.xp1) = deriv.f(post_, d2s.xp1_);
-        syst.B{2}(post, d2s.xu) = deriv.f(post_, d2s.xu_);
-        syst.B{2}(post, d2s.xp) = deriv.f(post_, d2s.xp_);
-        syst.E{2}(post, d2s.e) = deriv.f(post_, d2s.e_);
+        posOfTransitionEqInDeriv = nm + posOfTransitionEq;
+        syst.K{2}(posOfTransitionEq) = deriv.c(posOfTransitionEqInDeriv);
+        syst.A{2}(posOfTransitionEq, D2S.SystemXfMinus) = deriv.f(posOfTransitionEqInDeriv, D2S.DerivXfMinus);
+        syst.A{2}(posOfTransitionEq, D2S.SystemXbMinus) = deriv.f(posOfTransitionEqInDeriv, D2S.DerivXbMinus);
+        syst.B{2}(posOfTransitionEq, D2S.SystemXf)  = deriv.f(posOfTransitionEqInDeriv, D2S.DerivXf);
+        syst.B{2}(posOfTransitionEq, D2S.SystemXb)  = deriv.f(posOfTransitionEqInDeriv, D2S.DerivXb);
+        syst.E{2}(posOfTransitionEq, D2S.SystemE)   = deriv.f(posOfTransitionEqInDeriv, D2S.DerivE);
         
-        % Add dynamic identity matrices
-        %-------------------------------
-        syst.A{2}(nt+1:end, :) = d2s.ident1;
-        syst.B{2}(nt+1:end, :) = d2s.ident;
+        % __Dynamic Identity Matrices__
+        syst.A{2}(nt+1:end, :) = D2S.IdentityA;
+        syst.B{2}(nt+1:end, :) = D2S.IdentityB;
         
-        % Effect of nonlinear equations
-        %--------------------------------
+        % __Effect of Add-Factors in Nonlinear Equations__
         syst.N{1} = [ ];
-        syst.N{2}(post, :) = deriv.n(post_, :); 
+        syst.N{2}(posOfTransitionEq, :) = deriv.n(posOfTransitionEqInDeriv, :); 
     end
 end

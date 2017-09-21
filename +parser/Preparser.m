@@ -21,23 +21,19 @@ classdef Preparser < handle
         EVAL_TEMP_PREFIX = '?.';
         CLONE_PATTERN = '(?<!!)\<([A-Za-z]\w*)\>(?!\()';
         
-        EVAL_WARNING = ...
-            struct( ...
+        EVAL_WARNING = struct( ...
             'If',{{ }}, ...
             'Switch',{{ }}, ...
             'Case',{{ }} ...
-            )
+        )
         
         CODE_SEPARATOR = sprintf('\n\n');
         FILE_NAME_SEPARATOR = ' & ';
         OBSOLETE_SYNTAX = {
             '\$\[', '<'
             '\]\$', '>'
-            };
-
+        };
     end
-    
-    
     
     
     methods
@@ -112,8 +108,6 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function readCodeFromFile(this)
             import parser.Preparser;
             fileName = this.FileName;
@@ -138,8 +132,6 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function fixEmptyLines(this)
             c = this.Code;
             % Remove leading and trailing empty lines.
@@ -149,8 +141,6 @@ classdef Preparser < handle
             c = parser.Preparser.addLineBreak(c);
             this.Code = c;            
         end
-        
-        
         
         
         function f = getFileName(this)
@@ -166,8 +156,6 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function c = createFinalCut(this)
             import parser.Preparser;
             c = '';
@@ -181,13 +169,9 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function c = applyFinalCutCommands(this, c) %#ok<INUSL>
             c = parser.List.parse(c);
         end
-        
-        
         
         
         
@@ -203,8 +187,6 @@ classdef Preparser < handle
                 end
             end
         end
-        
-        
         
         
         function throwEvalWarning(this)
@@ -229,14 +211,10 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function add(this, ctrlDatabase, export)
             addCtrlParameter(this, ctrlDatabase);
-            add(this.Export, export);
+            this.Export = [this.Export, export];
         end
-        
-        
         
         
         function addCtrlParameter(this, add)
@@ -245,8 +223,6 @@ classdef Preparser < handle
             end
             this.CtrlParameters = [ this.CtrlParameters, add ];
         end
-        
-        
         
         
         function addEvalWarning(type, this, message)
@@ -259,8 +235,6 @@ classdef Preparser < handle
         end
 
 
-
-
         function obsoleteSyntax(this)
             n = size(parser.Preparser.OBSOLETE_SYNTAX, 1);
             for i = 1 : n
@@ -270,8 +244,6 @@ classdef Preparser < handle
             end
         end
     end
-    
-    
     
     
     methods (Static)
@@ -303,8 +275,6 @@ classdef Preparser < handle
         end    
         
         
-        
-        
         function c = convertEols(c)
             % convertEols - Convert any style EOLs to Unix style.
             % Windows:
@@ -312,8 +282,6 @@ classdef Preparser < handle
             % Mac:
             c = strrep(c, sprintf('\r'), sprintf('\n'));            
         end
-        
-        
         
         
         function c = addLineBreak(c)
@@ -324,8 +292,6 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function varargout = eval(varargin)
             if isempty(regexp(varargin{1}, '[A-Za-z_\?]', 'once'))
                 varargout{1} = eval(varargin{1});
@@ -334,8 +300,6 @@ classdef Preparser < handle
                 varargout{1} = eval(varargin{1});
             end
         end
-        
-        
         
         
         function evalPopulateWorkspace(expn, assigned, p)
@@ -363,14 +327,10 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function flag = chkCloneString(c)
             flag = ~isempty( strfind(c, '?') ) && ...
                 isvarname( strrep(c, '?', 'x') );
         end
-        
-        
         
         
         function code = cloneAllNames(code, cloneStr)
@@ -389,8 +349,6 @@ classdef Preparser < handle
         end
 
         
-        
-        
         function saveAs(codeToSave, fileName)
             if ~isempty(fileName)
                 try
@@ -402,8 +360,6 @@ classdef Preparser < handle
                 end
             end
         end
-        
-        
         
         
         function code = removeInsignificantWhs(code)

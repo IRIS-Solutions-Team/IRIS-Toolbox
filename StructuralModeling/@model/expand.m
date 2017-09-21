@@ -1,29 +1,28 @@
 function this = expand(this, k)
-% expand  Compute forward expansion of model solution for anticipated shocks.
+% expand  Compute forward expansion of model solution for anticipated shocks
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     M = expand(M, K)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object whose solution will be expanded.
 %
 % * `K` [ numeric ] - Number of periods ahead, t+k, up to which the
 % solution for anticipated shocks will be expanded.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `M` [ model ] - Model object with the solution expanded.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -31,45 +30,44 @@ function this = expand(this, k)
 
 TYPE = @int8;
 
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/expand');
+    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
+    INPUT_PARSER.addRequired('Forward', @(x) isnumeric(x) && numel(x)==1 && x>=0 && x==round(x));
+end
+INPUT_PARSER.parse(this, k);
+
 %--------------------------------------------------------------------------
 
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ne = sum(ixe);
-nn = sum(this.Equation.IxHash);
-nAlt = length(this);
+ne = nnz(ixe);
+nn = nnz(this.Equation.IxHash);
+nv = length(this);
 
 if ne==0 && nn==0
     return
 end
 
-% Impact matrix of structural shocks.
-R = this.solution{2};
-
-% Impact matrix of non-linear add-factors.
-Y = this.solution{8};
-
-% Expansion up to t+k0 available.
-k0 = size(R,2)/ne - 1;
-
-% Expansion up to t+k0 already available.
+R = this.Variant.Solution{2}; % Impact matrix of structural shocks.
+Y = this.Variant.Solution{8}; % Impact matrix of non-linear add-factors.
+k0 = size(R, 2)/ne - 1; % Expansion up to t+k0 available.
 if k0>=k
+    % Requested expansion already available; return.
     return
 end
 
-% Expand the R and Y solution matrices.
-this.solution{2}(:, end+(1:ne*(k-k0)), 1:nAlt) = NaN;
-this.solution{8}(:, end+(1:nn*(k-k0)), 1:nAlt) = NaN;
-for iAlt = 1 : nAlt
-    % m.Expand{5} Jk stores J^(k-1) and needs to be updated after each
-    % expansion.
-    [ this.solution{2}(:,:,iAlt), ...
-        this.solution{8}(:,:,iAlt), ...
-        this.Expand{5}(:,:,iAlt) ] = ...
-        model.myexpand( ...
-        R(:,:,iAlt), Y(:,:,iAlt), k, ...
-        this.Expand{1}(:,:,iAlt), this.Expand{2}(:,:,iAlt), this.Expand{3}(:,:,iAlt), ...
-        this.Expand{4}(:,:,iAlt), this.Expand{5}(:,:,iAlt), this.Expand{6}(:,:,iAlt) ...
-        );
+% Expand the R and Y solution matrices, update Jk, and store the new
+% matrices in the model object.
+
+R(:, end+1:ne*(1+k), :) = NaN;
+Y(:, end+1:nn*(1+k), :) = NaN;
+Jk = this.Variant.Expansion{5};
+for v = 1 : nv
+    [R(:, :, v), Y(:, :, v), Jk(:, :, v)] = expandFirstOrder(this, v, k);
 end
+this.Variant.Solution{2} = R;
+this.Variant.Solution{8} = Y;
+this.Variant.Expansion{5} = Jk;
 
 end

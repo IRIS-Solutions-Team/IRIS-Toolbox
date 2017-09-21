@@ -33,11 +33,11 @@ end
 %-------------------------
 % Search transition equations for loss function; if found move it down to
 % last position among transition equaitons.
-try
+%try
     [eqn, euc, isOptimal] = findLossFunc(eqn, euc);
-catch exc
-    throw( exception.Rethrow(exc) );
-end
+%catch exc
+%    throw( exception.Rethrow(exc) );
+%end
 
 % Max lag and lead
 %------------------
@@ -321,7 +321,7 @@ return
         add.Alias = repmat({''}, 1, nAddQuan);
         add.IxLog = false(1, nAddQuan);
         add.IxLagrange = true(1, nAddQuan);
-        add.IxMeasure = false(1, nAddQuan);
+        add.IxObserved = false(1, nAddQuan);
         add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, nAddQuan);
         qty = insert(qty, add, TYPE(2), 'first');
         

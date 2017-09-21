@@ -1,30 +1,26 @@
 function n = length(this)
-% length  Number of model variants.
+% length  Number of parameter variants within model object.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     N = length(M)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `M` [ model | esteq ] - Model or esteq object.
-%
-%
-% Output arguments
-% =================
-%
-% * `N` [ numeric ] - Number of model variants.
+% * `M` [ model | esteq ] - Model object.
 %
 %
-% Description
-% ============
+% __Output Arguments__
+%
+% * `N` [ numeric ] - Number of parameter variants within the model object,
+% `M`.
 %
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

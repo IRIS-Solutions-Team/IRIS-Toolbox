@@ -18,6 +18,6 @@ PxZt = Px * Z.';
 F = Z*PxZt;
 K = PxZt / F;
 Upd = K*Z*Px;
-Upd = (Upd + Upd.')/2;
+Upd = (Upd + Upd')/2;
 
 end

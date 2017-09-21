@@ -1,20 +1,17 @@
 function [nameBlk, eqtnBlk, blkType, blz] = blazer(this, varargin)
 % blazer  Reorder dynamic or steady equations and variables into sequential block structure.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [NameBlk, EqtnBlk, BlkType] = blazer(M, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `M` [ model ] - Model object with variables and steady-state equations
 % regrouped to create sequential block structure.
@@ -27,21 +24,19 @@ function [nameBlk, eqtnBlk, blkType, blz] = blazer(this, varargin)
 % `ASSIGN`.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'endogenize='` [ cellstr | char ] - List of parameters that will be
+% * `'Endogenize='` [ cellstr | char ] - List of parameters that will be
 % endogenized in steady equations.
 %
-% * `'exogenize='` [ cellstr | char ] - List of transition or measurement
+% * `'Exogenize='` [ cellstr | char ] - List of transition or measurement
 % variables that will be exogenized in steady equations.
 %
-% * `'kind='` [ `'dynamic'` | *`'steady'`* ] - The kind of equations on
+% * `'Kind='` [ `'dynamic'` | *`'steady'`* ] - The kind of equations on
 % which sequential block analysis will be performed.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The reordering algorithm first identifies equations with a single
 % variable in each, and variables occurring in a single equation each, and
@@ -54,8 +49,7 @@ function [nameBlk, eqtnBlk, blkType, blz] = blazer(this, varargin)
 % strings, where Kn is the number of variables and equations in block N.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

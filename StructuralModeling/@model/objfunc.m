@@ -14,9 +14,9 @@ lik = 0; % Minus log data likelihood.
 pp = 0; % Minus log parameter prior.
 sp = 0; % Minus log system prior.
 
-isLik = estOpt.evallik;
-isPPrior = estOpt.evalpprior && any(pri.IxPrior);
-isSPrior = estOpt.evalsprior && ~isempty(pri.SystemPrior);
+isLik = estOpt.EvalLik;
+isPPrior = estOpt.EvalPPrior && any(pri.IxPrior);
+isSPrior = estOpt.EvalSPrior && ~isempty(pri.SystemPrior);
 
 % Evaluate parameter priors.
 if isPPrior
@@ -27,7 +27,7 @@ end
 % Update model with new parameter values; do this before evaluating the
 % system priors.
 if isLik || isSPrior
-    isThrowErr = strcmpi(estOpt.nosolution, 'error');
+    isThrowErr = strcmpi(estOpt.NoSolution, 'error');
     [this,UpdateOk] = update(this, x, pri, 1, estOpt, isThrowErr);
     if ~UpdateOk
         obj = Inf;
@@ -52,8 +52,8 @@ end
 isValid = isnumeric(obj) && length(obj)==1 ...
     && isfinite(obj) && imag(obj)==0;
 if ~isValid
-    if isnumeric(estOpt.nosolution)
-        penalty = estOpt.nosolution;
+    if isnumeric(estOpt.NoSolution)
+        penalty = estOpt.NoSolution;
     else
         penalty = this.OBJ_FUNC_PENALTY;
     end

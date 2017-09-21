@@ -1,9 +1,7 @@
 function [this, lsAssigned] = assign(this, varargin)
-% assign  Assign parameters, steady states, std deviations or cross-correlations.
+% assign  Assign parameters, steady states, std deviations or cross-correlations
 %
-%
-% Syntax
-% =======
+% __Syntax__
 %
 %     [M, Assigned] = assign(M, P)
 %     [M, Assigned] = assign(M, N)
@@ -11,8 +9,7 @@ function [this, lsAssigned] = assign(this, varargin)
 %     [M, Assigned] = assign(M, List, Values)
 %
 %
-% Syntax for fast assign
-% =======================
+% __Syntax for Fast Assign__
 %
 %     % Initialise
 %     assign(M, List);
@@ -24,20 +21,7 @@ function [this, lsAssigned] = assign(this, varargin)
 %     ...
 %
 %
-% Syntax for assigning only steady-state levels
-% ==============================================
-%
-%     M = assign(M, '-level', ...)
-%
-%
-% Syntax for assignin only steady-state growth rates
-% ===================================================
-%
-%     M = assign(M, '-growth', ...)
-%
-%
-% Input arguments
-% ================
+% __Input arguments__
 %
 % * `M` [ model ] - Model object.
 %
@@ -62,8 +46,7 @@ function [this, lsAssigned] = assign(this, varargin)
 % * `Values` [ numeric ] - A vector of values.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
 % * `M` [ model ] - Model object with newly assigned parameters and/or
 % steady states.
@@ -74,22 +57,20 @@ function [this, lsAssigned] = assign(this, varargin)
 % from another model object.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % Calls with `Name`-`Value` or `List`-`Value` pairs throw an error if some
 % names in the list are not valid names in the model object. Calls with a
 % database, `P`, or another model object, `N`, do not perform this check.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-persistent POS_QTY IX_QTY_RHS POS_STDCORR IX_STDCORR_RHS LS_ASSIGNED;
+persistent POS_VALUE IX_VALUE_RHS POS_STDCORR IX_STDCORR_RHS LS_ASSIGNED;
 TYPE = @int8;
 
 %--------------------------------------------------------------------------
@@ -108,8 +89,8 @@ readFlags( );
 n = length(varargin);
 ne = sum(ixe);
 nStdCorr = ne + ne*(ne-1)/2;
-nAlt = length(this.Variant);
-nQty = length(this.Quantity);
+nv = length(this.Variant);
+numOfQuantities = length(this.Quantity);
 lsAllName = cell(1, 0);
 lsInvalidLen = cell(1, 0);
 lsInvalidImag = cell(1, 0);
@@ -117,8 +98,8 @@ lsInvalidLhsName = cell(1, 0);
 
 % `Assign` and `stdcorr` are logical indices of values that have been
 % assigned.
-ixQty = false(1, nQty);
-ixStdCorr = false(1, nStdCorr);
+indexOfValues = false(1, numOfQuantities);
+indexOfStdCorr = false(1, nStdCorr);
 
 if isempty(varargin)
     % Do nothing.
@@ -131,26 +112,19 @@ elseif isa(varargin{1}, 'model')
     
 elseif n==1 && isnumeric(varargin{1})
     % Quick assignment after iniatialization.
-    % m = assign(m,array).
-    if isempty(POS_QTY) && isempty(POS_STDCORR)
-        utils.error('modelobj:assign', ...
-            ['Initialize assign( ) before using the function ', ...
-            'with a single numeric input.']);
+    % m = assign(m, array).
+    assert( ...
+        ~isempty(POS_VALUE) || ~isempty(POS_STDCORR), ...
+        'model:assign', ...
+        'Initialize assign( ) before using the function with a single numeric input.' ...
+    );
+    if any(IX_VALUE_RHS)
+        this.Variant.Values(1, POS_VALUE, :) = varargin{1}(IX_VALUE_RHS);
     end
-    ixQty(POS_QTY) = true;
-    ixStdCorr(POS_STDCORR) = true;
-    
-    this.Variant = model.Variant.assignQuantity( ...
-        this.Variant, POS_QTY, ':', varargin{1}(IX_QTY_RHS) ...
-        );
-    
-    this.Variant = model.Variant.assignStdCorr( ...
-        this.Variant, POS_STDCORR, ':', varargin{1}(IX_STDCORR_RHS), ...
-        this.Quantity.IxStdCorrAllowed ...
-        );
-    
+    if any(IX_STDCORR_RHS)
+        this.Variant.StdCorr(1, POS_STDCORR, :) = varargin{1}(IX_STDCORR_RHS);
+    end
     lsAssigned = LS_ASSIGNED;
-    
     % Keep persistent variables and return immediately.
     return
     
@@ -171,9 +145,9 @@ elseif n<=2 && iscellstr(varargin{1})
     
     if isempty(varargin)
         % Initialize quick-assign access and return.
-        POS_QTY = posQty;
+        POS_VALUE = posQty;
         POS_STDCORR = posStdCorr;
-        IX_QTY_RHS = ixQtyRhs;
+        IX_VALUE_RHS = ixQtyRhs;
         IX_STDCORR_RHS = ixStdCorrRhs;
         listAssigned( );
         LS_ASSIGNED = lsAssigned;
@@ -183,7 +157,11 @@ elseif n<=2 && iscellstr(varargin{1})
     elseif isnumeric(varargin{1})
         value = varargin{1};
         assignListAndValue( );
-        chkLhsNames( );
+        assert( ...
+            isempty(lsInvalidLhsName), ...
+            exception.Base('Model:InvalidName', 'error'), ...
+            '', lsInvalidLhsName{:} ...
+        ); %#ok<GTARG>
     else
         utils.error('modelobj:assign', '#Invalid_assign:model');
     end
@@ -226,7 +204,7 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'rexp'), varargin(1:2:end)))
     nName = length(lsAllName);
     % Remove equal signs from assign(m, 'alpha=', 1).
     for i = 1 : nName
-        lsAllName{i} = strrep(lsAllName{i},' ','');
+        lsAllName{i} = strrep(lsAllName{i}, ' ', '');
         if ~isempty(lsAllName{i}) && lsAllName{i}(end)=='='
             lsAllName{i}(end) = '';
         end
@@ -245,9 +223,9 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'rexp'), varargin(1:2:end)))
             % List of names:
             % A1, A2, B
             % or double-dot list 
-            % A1,..,A2
+            % A1, .., A2
             list = name;
-            if ~isempty(strfind(list, ',..,'))
+            if ~isempty(strfind(list, ', .., '))
                 list = parse(parser.doubledot.Keyword.COMMA, list);
             end
             list = regexp(list, '\w+', 'match');
@@ -263,7 +241,11 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'rexp'), varargin(1:2:end)))
         end
     end
     chkValid( );
-    chkLhsNames( );
+    assert( ...
+        isempty(lsInvalidLhsName), ...
+        exception.Base('Model:InvalidName', 'error'), ...
+        '', lsInvalidLhsName{:} ...
+    ); %#ok<GTARG>
 
 else
     % Throw an invalid assignment error.
@@ -271,25 +253,20 @@ else
 end
 
 % Reset persistent variables in each non-quick-assign calls.
-POS_QTY = [ ];
-IX_QTY_RHS = [ ];
+POS_VALUE = [ ];
+IX_VALUE_RHS = [ ];
 POS_STDCORR = [ ];
 IX_STDCORR_RHS = [ ];
 LS_ASSIGNED = { };
 
 % Steady states cannot be changed from 0+0i.
-ixZeroShock = true(1, ne);
-for iAlt = 1 : nAlt
-    ixZeroShock = ixZeroShock & this.Variant{iAlt}.Quantity(ixe)==0;
-end
-if any(~ixZeroShock)
-    temp = true(1, nQty);
-    temp(ixe) = ixZeroShock;
-    throw( ...
-        exception.Base('Model:CANNOT_CHANGE_STEADY_SHOCKS', 'error'), ...
-        this.Quantity.Name{~temp} ...
-        );
-end
+indexOfNonzeroShocks = false(1, numOfQuantities);
+indexOfNonzeroShocks(ixe) = any(this.Variant.Values(1, ixe, :)~=0, 3);
+assert( ...
+    ~any(indexOfNonzeroShocks), ...
+    exception.Base('Model:CannotChangeSteadyShocks', 'error'), ...
+    this.Quantity.Name{indexOfNonzeroShocks} ...
+);
 
 if nargout<2
     return
@@ -301,8 +278,6 @@ listAssigned( );
 
 return
 
-    
-    
     
     function readFlags( )
         while ~isempty(varargin) && ischar(varargin{1}) ...
@@ -323,8 +298,6 @@ return
     end
 
 
-
-
     function assignFromModelObj( )
         rhs = varargin{1};
         lsToAssign = @all;
@@ -334,15 +307,15 @@ return
                 lsToAssign = regexp(lsToAssign, '\w+', 'match');
             end
         end
-        nAltRhs = length(rhs.Variant);
-        if nAltRhs~=1 && nAltRhs~=nAlt
+        nvRhs = length(rhs.Variant);
+        if nvRhs~=1 && nvRhs~=nv
             utils.error('modelobj:assign', ...
                 ['Cannot assign from object ', ...
                 'with different number of parameterisations.']);
         end
-        nQty = length(this.Quantity);
-        ixMatchingType = true(1, nQty);
-        for ii = 1 : nQty
+        numOfQuantities = length(this.Quantity);
+        indexOfMatchingTypes = true(1, numOfQuantities);
+        for ii = 1 : numOfQuantities
             name = this.Quantity.Name{ii};
             if ~isequal(lsToAssign, @all) && ~any(strcmpi(name, lsToAssign))
                 continue
@@ -352,19 +325,17 @@ return
                 continue
             end
             if rhs.Quantity.Type(ixRhs)==this.Quantity.Type(ii)
-                oldValue = model.Variant.getQuantity(this.Variant, ii, ':');
-                newValue = model.Variant.getQuantity(rhs.Variant, ixRhs, ':');
+                oldValue = this.Variant.Values(1, ii, :);
+                newValue = rhs.Variant.Values(1, ixRhs, :);
                 if flags.Growth
                     newValue = real(oldValue) + 1i*imag(newValue);
                 elseif flags.Level
                     newValue = real(newValue) + 1i*imag(oldValue);
                 end
-                this.Variant = model.Variant.assignQuantity( ...
-                    this.Variant, ii, ':', newValue ...
-                    );
-                ixQty(ii) = true;
+                this.Variant.Values(1, ii, :) = newValue;
+                indexOfValues(ii) = true;
             else
-                ixMatchingType(ii) = false;
+                indexOfMatchingTypes(ii) = false;
             end
         end
         lsStdCorr = [ getStdName(this.Quantity), getCorrName(this.Quantity) ];
@@ -374,42 +345,36 @@ return
             if ~any(ixRhs)
                 continue
             end
-            newValue = model.Variant.getStdCorr(rhs.Variant, ixRhs, ':');
-            this.Variant = model.Variant.assignStdCorr( ...
-                this.Variant, ii, ':', newValue, ...
-                this.Quantity.IxStdCorrAllowed ...
-                );
-            ixStdCorr(ii) = true;
+            this.Variant.StdCorr(1, ii, :) = rhs.Variant.StdCorr(1, ixRhs, :);
+            indexOfStdCorr(ii) = true;
         end
-        if any(~ixMatchingType)
+        if any(~indexOfMatchingTypes)
             utils.warning('modelobj:assign', ...
                 'This name not assigned because of type mismatch: %s ', ...
-                this.Quantity.Name{~ixMatchingType});
+                this.Quantity.Name{~indexOfMatchingTypes});
         end
     end
-
-
 
 
     function assignNameAndValue(name, posQty, posStdCorr, value)
         % One or more names, one value.
         if isempty(posQty) && isempty(posStdCorr)
             ell = lookup(this.Quantity, name);
-            ixQty = ell.IxName;
-            ixStdCorr = ell.IxStdCorr;
-            if ~any(ixQty) && ~any(ixStdCorr)
+            indexOfValues = ell.IxName;
+            indexOfStdCorr = ell.IxStdCorr;
+            if ~any(indexOfValues) && ~any(indexOfStdCorr)
                 if ~isa(lsAllName{i}, 'rexp')
                     lsInvalidLhsName{end+1} = name;
                 end
                 return
             end
-            posQty = find(ixQty);
-            posStdCorr = find(ixStdCorr);
+            posQty = find(indexOfValues);
+            posStdCorr = find(indexOfStdCorr);
         end
         value = value(:);
         value = permute(value, [2, 3, 1]);
         nValue = numel(value);
-        isValidLen = nValue==1 || nValue==nAlt;
+        isValidLen = nValue==1 || nValue==nv;
         if ~isValidLen
             lsInvalidLen{end+1} = name;
             return
@@ -422,40 +387,31 @@ return
             lsInvalidImag{end+1} = name;
             return
         end
-        % Assign Variant{:}.Quantity
+        % Assign Variant.Values.
         for pos = posQty(~isnan(posQty))
             if flags.Level || flags.Growth
-                x = model.Variant.getQuantity( ...
-                    this.Variant, pos, ':' ...
-                    );
+                oldValues = this.Variant.Values(:, pos, :);
                 if flags.Growth
-                    value = real(x) + 1i*value;
+                    value = real(oldValues) + 1i*value;
                 elseif flags.Level
-                    value = value + 1i*imag(x);
+                    value = value + 1i*imag(oldValues);
                 end
             end
-            this.Variant = model.Variant.assignQuantity( ...
-                this.Variant, pos, ':', value ...
-                );
+            this.Variant.Values(:, pos, :) = value;
         end
-        % Assign Variant{:}.StdCorr
+        % Assign Variant.StdCorr.
         for pos = posStdCorr(~isnan(posStdCorr))
-            this.Variant = model.Variant.assignStdCorr( ...
-                this.Variant, pos, ':', value, ...
-                this.Quantity.IxStdCorrAllowed ...
-                );
+            this.Variant.StdCorr(:, pos, :) = value;
         end
     end
 
 
-
-
     function assignListAndValue( )
-        if size(value,2)==1 && nName>1
+        if size(value, 2)==1 && nName>1
             value = repmat(value, 1, nName, 1);
         end
-        if size(value,3)==1 && nAlt>1
-            value = repmat(value, 1, 1, nAlt);
+        if size(value, 3)==1 && nv>1
+            value = repmat(value, 1, 1, nv);
         end
         if (flags.Growth || flags.Level) && any(imag(value(:))~=0)
             utils.error('modelobj:assign', ...
@@ -463,29 +419,22 @@ return
                 'with flag ''-level'' or ''-growth''.']);
         end
         if flags.Level || flags.Growth
-            x = model.Variant.getQuantity(this.Variant, posQty, ':');
+            oldValues = this.Variant(:, posQty, :);
             if flags.Growth
-                value(1, ixQtyRhs, :) = real(x) + 1i*value(1, ixQtyRhs, :);
+                value(:, ixQtyRhs, :) = real(oldValues) + 1i*value(:, ixQtyRhs, :);
             elseif flags.Level
-                value(1, ixQtyRhs, :) = value(1, ixQtyRhs, :) + 1i*imag(x);
+                value(:, ixQtyRhs, :) = value(:, ixQtyRhs, :) + 1i*imag(oldValues);
             end
         end
         if any(ixQtyRhs)
-            ixQty(posQty) = true;
-            this.Variant = model.Variant.assignQuantity( ...
-                this.Variant, posQty, ':', value(1, ixQtyRhs, :) ...
-                );
+            indexOfValues(posQty) = true;
+            this.Variant.Values(:, posQty, :) = value(:, ixQtyRhs, :);
         end
         if any(ixStdCorrRhs)
-            ixStdCorr(posStdCorr) = true;
-            this.Variant = model.Variant.assignStdCorr( ...
-                this.Variant, posStdCorr, ':', value(1, ixStdCorrRhs, :), ...
-                this.Quantity.IxStdCorrAllowed ...
-                );
+            indexOfStdCorr(posStdCorr) = true;
+            this.Variant.StdCorr(:, posStdCorr, :) = value(:, ixStdCorrRhs, :);
         end
     end
-
-
 
 
     function chkValid( )
@@ -503,26 +452,14 @@ return
     end
 
 
-
-
-    function chkLhsNames( )
-        if ~isempty(lsInvalidLhsName)
-            throw( exception.Base('Model:INVALID_NAME', 'error'), ...
-                '', lsInvalidLhsName{:} ); %#ok<GTARG>
-        end
-    end
-
-
-
-
     function listAssigned( )
-        lsAssigned = this.Quantity.Name(ixQty);
+        lsAssigned = this.Quantity.Name(indexOfValues);
         lse = this.Quantity.Name(ixe);
-        lsAssigned = [lsAssigned, strcat('std_', lse(ixStdCorr(1:ne)))];
-        pos = find( tril(ones(ne),-1)==1 );
+        lsAssigned = [lsAssigned, strcat('std_', lse(indexOfStdCorr(1:ne)))];
+        pos = find( tril(ones(ne), -1)==1 );
         temp = zeros(ne);
-        temp(pos(ixStdCorr(ne+1:end))) = 1;
-        [row,col] = find(temp==1);
+        temp(pos(indexOfStdCorr(ne+1:end))) = 1;
+        [row, col] = find(temp==1);
         lsAssigned = [ lsAssigned, ...
             strcat('corr_', lse(row), '__', lse(col)) ];
     end

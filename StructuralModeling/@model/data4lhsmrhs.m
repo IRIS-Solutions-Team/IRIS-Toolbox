@@ -1,18 +1,18 @@
-function [YXEPG, listOfNames, extendedRange] = data4lhsmrhs(this, inp, range)
+function [YXEPG, rowNames, extendedRange] = data4lhsmrhs(this, inputDatabank, baseRange)
 % data4lhsmrhs  Prepare data array for running `lhsmrhs`.
 %
 % __Syntax__
 %
-%     [YXEPG, List, ExtendedRange] = data4lhsmrhs(M, Inp, Range)
+%     [YXEPG, RowNames, ExtendedRange] = data4lhsmrhs(Model, InputDatabank, Range)
 %
 %
 % __Input Arguments__
 %
-% * `M` [ model ] - Model object whose equations will be later evaluated by
-% calling [`lhsmrhs`](model/lhsmrhs).
+% * `Model` [ model ] - Model object whose equations will be later
+% evaluated by calling [`lhsmrhs`](model/lhsmrhs).
 %
-% * `Inp` [ struct ] - Input database with observations on measurement
-% variables, transition variables, and shocks on which
+% * `InputDatabank` [ struct ] - Input database with observations on
+% measurement variables, transition variables, and shocks on which
 % [`lhsmrhs`](model/lhsmrhs) will be evaluated.
 %
 % * `Range` [ DateWrapper ] - Date range on which
@@ -25,8 +25,9 @@ function [YXEPG, listOfNames, extendedRange] = data4lhsmrhs(this, inp, range)
 % measurement variables, transition variables, shocks and exogenous
 % variables (including time trend) organized row-wise.
 %
-% * `List` [ cellstr ] - List of measurement variables, transition
-% variables and shocks in order of their appearance in the rows of `YXEPG`.
+% * `RowNames` [ cellstr ] - List of measurement variables, transition
+% variables, shocks, parameters and exogenous variables in order of their
+% appearance in the rows of `YXEPG`.
 %
 % * `ExtendedRange` [ DateWrapper ] - Extended range including pre-sample
 % and post-sample observations needed to evaluate lags and leads of
@@ -35,13 +36,13 @@ function [YXEPG, listOfNames, extendedRange] = data4lhsmrhs(this, inp, range)
 %
 % __Description__
 %
-% The output array, `YXEPG`, is `nVar` by `nXPer` by `nData`, where `nVar`
-% is the total number of measurement variables, transition variables,
-% shocks and exogenous variables (including time trend), `nXPer` is the
-% number of periods including the pre-sample and post-sample periods needed
-% to evaluate lags and leads, and `nData` is the number of alternative data
-% sets (i.e. the number of columns in each input time series) in the input
-% database, `Inp`.
+% The output array, `YXEPG`, is N-by-T-by-K where N is the total number of
+% all quantities in the `Model` (measurement variables, transition
+% variables, shocks, parameters, and exogenous variables including a time
+% trend), T is the number of periods including the pre-sample and
+% post-sample periods needed to evaluate lags and leads, and K is the
+% number of alternative data sets (i.e. the number of columns in each input
+% time series) in the `InputDatabank`.
 %
 %
 % __Example__
@@ -55,41 +56,39 @@ function [YXEPG, listOfNames, extendedRange] = data4lhsmrhs(this, inp, range)
 
 TYPE = @int8;
 
-pp = inputParser( );
-pp.addRequired('M', @(x) isa(x, 'model'));
-pp.addRequired('Inp', @isstruct);
-pp.addRequired('Range', @DateWrapper.validateDateInput);
-pp.parse(this, inp, range);
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/data4lhsmrhs.m');
+    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
+    INPUT_PARSER.addRequired('InputDatabank', @isstruct);
+    INPUT_PARSER.addRequired('Range', @DateWrapper.validateDateInput);
+end
+INPUT_PARSER.parse(this, inputDatabank, baseRange);
 
-if ischar(range)
-    range = textinp2dat(range);
+if ischar(baseRange)
+    baseRange = textinp2dat(baseRange);
 end
 
 %--------------------------------------------------------------------------
 
-qty = this.Quantity;
-nQty = length(this.Quantity);
-ixy = qty.Type==TYPE(1);
-ixx = qty.Type==TYPE(2);
-ixe = qty.Type==TYPE(31) | qty.Type==TYPE(32);
-ixg = qty.Type==TYPE(5);
-ixyxeg = ixy | ixx | ixe | ixg;
+ixp = this.Quantity.Type==TYPE(4);
+rowNames = this.Quantity.Name;
+numOfQuantities = numel(rowNames);
+rowNamesExceptParameters = rowNames(~ixp);
 
-listOfNames = qty.Name(ixyxeg);
+extendedRange = getExtendedRange(this, baseRange);
+lenOfExtendedRange = length(extendedRange);
 
-extendedRange = getXRange(this, range);
-nXPer = length(extendedRange);
-
-YXEG = db2array(inp, listOfNames, extendedRange);
+YXEG = db2array(inputDatabank, rowNamesExceptParameters, extendedRange);
 YXEG = permute(YXEG, [2, 1, 3]);
 
-ttrend = dat2ttrend(extendedRange, this);
-nData = size(YXEG, 3);
+timeTrend = dat2ttrend(extendedRange, this);
+numOfDataSets = size(YXEG, 3);
 
-YXEPG = nan(nQty, nXPer, nData);
-YXEPG(ixyxeg, :, :) = YXEG;
+YXEPG = nan(numOfQuantities, lenOfExtendedRange, numOfDataSets);
+YXEPG(~ixp, :, :) = YXEG;
 
-ixTtrend = strcmp(qty.Name, model.RESERVED_NAME_TTREND);
-YXEPG(ixTtrend, :, :) = repmat(ttrend, 1, 1, nData);
+indexOfTimeTrend = strcmp(rowNames, model.RESERVED_NAME_TTREND);
+YXEPG(indexOfTimeTrend, :, :) = repmat(timeTrend, 1, 1, numOfDataSets);
 
 end

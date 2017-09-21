@@ -1,18 +1,15 @@
 function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 % sspace  State-space matrices describing the model solution.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [T,R,K,Z,H,D,U,Omg] = sspace(M,...)
+%     [T, R, K, Z, H, D, U, Omg] = sspace(M, ...)
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Solved model object.
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `T` [ numeric ] - Transition matrix.
 %
@@ -32,8 +29,8 @@ function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 %
 % * `Omg` [ numeric ] - Covariance matrix of shocks.
 %
-% Options
-% ========
+%
+% __Options__
 %
 % * `'triangular='` [ *`true`* | `false` ] - If true, the state-space form
 % returned has the transition matrix `T` quasi triangular and the vector of
@@ -41,8 +38,8 @@ function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 % used in IRIS calculations. If false, the state-space system is based on
 % the original vector of transition variables.
 %
-% Description
-% ============
+%
+% __Description__
 %
 % The state-space representation has the following form:
 %
@@ -66,7 +63,7 @@ function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 % Furthremore, the transformed state vector alpha is chosen so that the
 % lower nb-by-nb part of `T` is quasi upper triangular.
 %
-% You can use the `get(m,'xVector')` function to learn about the order of
+% You can use the `get(m, 'xVector')` function to learn about the order of
 % appearance of transition variables and their auxiliary lags and leads in
 % the vectors `xb` and `xf`. The first nf names are the vector `xf`, the
 % remaining nb names are the vector `xb`.
@@ -78,34 +75,18 @@ opt = passvalopt('model.sspace', varargin{:});
 
 %--------------------------------------------------------------------------
 
-[T, R, K, Z, H, D, U, Omg, Zb] = sspaceMatrices(this, ':', true);
-[~, nxx, ~, nf, ne] = sizeOfSolution(this.Vector);
-nAlt = length(this);
+[T, R, K, Z, H, D, U, Omg, Zb] = sspaceMatrices(this, ':', true, opt.triangular);
+[~, nxi, ~, nf, ne] = sizeOfSolution(this.Vector);
+nv = length(this);
 
-if ~opt.triangular
-    % T <- U*T/U;
-    % R <- U*R;
-    % K <- U*K;
-    % Z <- Zb;
-    % U <- eye
-    for iAlt = 1 : nAlt
-        T(:,:,iAlt) = T(:,:,iAlt) / U(:,:,iAlt);
-        T(nf+1:end,:,iAlt) = U(:,:,iAlt)*T(nf+1:end,:,iAlt);
-        R(nf+1:end,:,iAlt) = U(:,:,iAlt)*R(nf+1:end,:,iAlt);
-        K(nf+1:end,:,iAlt) = U(:,:,iAlt)*K(nf+1:end,:,iAlt);
-        Z(:,:,iAlt) = Zb(:,:,iAlt);
-        U(:,:,iAlt) = eye(size(U));
-    end
-end
-
-ixKeep = true(1, ne);
+indexOfShocksToKeep = true(1, ne);
 if opt.removeinactive
-    ixKeep = ~diag( all(Omg==0,3) );
-    R = reshape(R, [nxx, ne, size(R,2)/ne]);
-    R = R(:, ixKeep, :);
+    indexOfShocksToKeep = ~diag( all(Omg==0, 3) );
+    R = reshape(R, [nxi, ne, size(R, 2)/ne]);
+    R = R(:, indexOfShocksToKeep, :);
     R = R(:, :);
-    H = H(:, ixKeep);
-    Omg = Omg(ixKeep, ixKeep);
+    H = H(:, indexOfShocksToKeep);
+    Omg = Omg(indexOfShocksToKeep, indexOfShocksToKeep);
 end
 
 if nargout>8
@@ -114,7 +95,7 @@ if nargout>8
         printSolutionVector(this, 'x'), ...
         printSolutionVector(this, 'e'), ...
         };
-    list{3} = list{3}(ixKeep);
+    list{3} = list{3}(indexOfShocksToKeep);
 end
 
 end

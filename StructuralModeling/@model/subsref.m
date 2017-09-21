@@ -1,32 +1,28 @@
-function x = subsref(this, s)
-% subsref  Subscripted reference for model and systemfit objects.
+function output = subsref(this, s)
+% subsref  Subscripted reference for model objects.
 %
-% Syntax for retrieving object with subset of parameterisations
-% ==============================================================
+% __Syntax for Retrieving Object with Subset of Parameter Variants__
 %
 %     M(Inx)
 %
 %
-% Syntax for retrieving parameters or steady-state values
-% ========================================================
+% __Syntax for Retrieving Parameters or Steady-State Values__
 %
 %     M.Name
 %
 %
-% Syntax to retrieve a std deviation or a cross-correlation of shocks
-% ====================================================================
+% __Syntax to Retrieve Std Deviations or Cross-correlation of Shocks__
 %
 %     M.std_ShockName
 %     M.corr_ShockName1__ShockName2
 %
-% Note that a double underscore is used to separate the names of shocks in
+% A double underscore is used to separate the names of shocks in
 % correlation coefficients.
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `M` [ model | systemfit ] - Model or systemfit object.
+% * `M` [ model ] - Model object.
 %
 % * `Inx` [ numeric | logical ] - Inx of requested parameterisations.
 %
@@ -35,12 +31,10 @@ function x = subsref(this, s)
 % * `ShockName1`, `ShockName2` - Name of a shock.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -54,26 +48,27 @@ if strcmp(s(1).type,'.') && ischar(s(1).subs)
     ell = lookup(this.Quantity, {name});
     posQty = ell.PosName;
     posStdCorr = ell.PosStdCorr;
-    if isnan(posQty) && isnan(posStdCorr)
-        throw( exception.Base('Model:INVALID_NAME', 'error'), '', name ); %#ok<GTARG>
-    end
     if ~isnan(posQty)
         % Quantity.
-        x = model.Variant.getQuantity(this.Variant, posQty, ':');
-    else
+        output = this.Variant.Values(:, posQty, :);
+    elseif ~isnan(posStdCorr)
         % Std or Corr.
-        x = model.Variant.getStdCorr(this.Variant, posStdCorr, ':');
+        output = this.Variant.StdCorr(:, posStdCorr, :);
+    else
+        throw( exception.Base('Model:InvalidName', 'error'), '', name ); %#ok<GTARG>
     end
-    x = permute(x, [1, 3, 2]);
+    output = permute(output, [1, 3, 2]);
     if isa(this.Behavior.DotReferenceFunc, 'function_handle')
-        x = feval(this.Behavior.DotReferenceFunc, x);
+        output = feval(this.Behavior.DotReferenceFunc, output);
     end
     s(1) = [ ];
     if ~isempty(s)
-        x = subsref(x, s);
+        output = subsref(output, s);
     end
+    return
+end
 
-elseif strcmp(s(1).type, '()') && length(s(1).subs)==1 ...
+if strcmp(s(1).type, '()') && length(s(1).subs)==1 ...
         && isnumeric(s(1).subs{1})
     % m(pos)
     subs = s(1).subs{1};
@@ -85,24 +80,18 @@ elseif strcmp(s(1).type, '()') && length(s(1).subs)==1 ...
             exception.Base.alt2str( sort(subs(ixExceeds)) ) ...
             ); %#ok<GTARG>
     end
-    x = subsalt(this, subs);
+    output = this;
+    output.Variant = subscripted(this.Variant, subs);
     s(1) = [ ];
     if ~isempty(s)
-        x = subsref(x, s);
+        output = subsref(output, s);
     end
-    
-elseif strcmp(s(1).type, '{}') && iscellstr(s(1).subs)
-    % m{Name1, Name2}
-    lsName = cellfun(@(x) x.Name, this.Variant, 'UniformOutput', false);
-    pos = textfun.findnames(lsName, s(1).subs);
-    ixNan = isnan(pos);
-    if any(ixNan)
-        throw( ...
-            exception.Base('Model:InvalidVariantName', 'error'), ...
-            s(1).subs{ixNan} ...
-            );
-    end
-    s(1).type = '()';
-    s(1).subs = { pos };
-    x = subsref(this, s);
+    return
+end
+
+throw( ...
+   exception.Base('General:InvalidReference', 'error'), ...
+   class(this) ...
+);
+
 end

@@ -89,7 +89,7 @@ return
             else
                 Pa0stable = ...
                     covfun.lyapunov(s.Ta(ixStable, ixStable),Sa);
-                Pa0stable = (Pa0stable + Pa0stable.')/2;
+                Pa0stable = (Pa0stable + Pa0stable')/2;
             end
             Pa0(ixStable, ixStable) = Pa0stable;
         end

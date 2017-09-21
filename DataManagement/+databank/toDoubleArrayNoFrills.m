@@ -10,14 +10,22 @@ end
 
 outputArray = nan(numberOfDates, numberOfNames);
 for i = 1 : numberOfNames
-    try
-        ts = inputDatabank.(char(names(i)));
-        sizeData = size(ts);
-        nCols = prod(sizeData(2:end));
-        if nCols==1
-            outputArray(:, i) = getDataNoFrills(ts, dates, 1);
-        elseif nCols>1
-            outputArray(:, i) = getDataNoFrills(ts, dates, column);
+    if isa(names, 'string')
+        ithName = char(names(i));
+    else
+        ithName = names{i};
+    end
+    if ~isfield(inputDatabank, ithName) || ~isa(inputDatabank.(ithName), 'series.Abstract')
+        continue
+    end
+    field = inputDatabank.(ithName);
+    sizeData = size(field);
+    numOfColumns = prod(sizeData(2:end));
+    if numOfColumns==1
+        outputArray(:, i) = getDataNoFrills(field, dates, 1);
+    elseif numOfColumns>1
+        try
+            outputArray(:, i) = getDataNoFrills(field, dates, column);
         end
     end
 end

@@ -1,4 +1,4 @@
-function [S, range, select] = icrf(this, time, varargin)
+function [s, range, select] = icrf(this, time, varargin)
 % icrf  Initial-condition response functions, first-order solution only
 %
 % __Syntax__
@@ -20,7 +20,7 @@ function [S, range, select] = icrf(this, time, varargin)
 %
 % __Output Arguments__
 %
-% * `S` [ struct ] - Database with initial condition response series.
+% * `S` [ struct ] - Databank with initial condition response series.
 %
 %
 % __Options__
@@ -59,25 +59,21 @@ opt = passvalopt('model.icrf', varargin{:});
 if isempty(opt.size)
     % Default.
     if this.IsLinear
-        size_ = ones(1, nb);
+        sizeOfDeviation = ones(1, nb);
     else
-        size_ = ones(1, nb)*log(1.01);
+        sizeOfDeviation = ones(1, nb)*log(1.01);
     end
 else
     % User supplied.
-    size_ = ones(1, nb)*opt.size;
+    sizeOfDeviation = ones(1, nb)*opt.size;
 end
 
 select = get(this, 'initCond');
 select = regexprep(select, 'log\((.*?)\)', '$1', 'once');
 
-ixInit = model.Variant.getAnyIxInit(this.Variant, ':');
-ixInit = any(ixInit, 3);
+func = @(T, R, K, Z, H, D, U, Omg, ~, numOfPeriods) ...
+    timedom.icrf(T, [ ], [ ], Z, [ ], [ ], U, [ ], numOfPeriods, sizeOfDeviation);
 
-func = @(T, R, K, Z, H, D, U, Omg, ~, nPer) ...
-    timedom.icrf(T, [ ], [ ], Z, [ ], [ ], U, [ ], ...
-    nPer, size_, ixInit);
-
-[S, range] = responseFunction(this, time, func, select, opt);
+[s, range] = responseFunction(this, time, func, select, opt);
 
 end

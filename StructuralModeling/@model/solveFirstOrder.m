@@ -1,4 +1,4 @@
-function [this, nPath, nanDeriv, sing1, bk] = solveFirstOrder(this, vecAlt, opt)
+function [this, exitFlag, nanDeriv, sing1, bk] = solveFirstOrder(this, variantsRequired, opt)
 % solveFirstOrder  First-order quasi-triangular solution.
 %
 % Backend IRIS function.
@@ -7,8 +7,7 @@ function [this, nPath, nanDeriv, sing1, bk] = solveFirstOrder(this, vecAlt, opt)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-% NPath
-%
+% exitFlag
 % * 1 .. Unique stable solution
 % * 0 .. No stable solution (all explosive)
 % * Inf .. Multiple stable solutions
@@ -24,55 +23,67 @@ SEVN2_TOLERANCE = this.Tolerance.Sevn2Patch;
 
 %--------------------------------------------------------------------------
 
-doT = true; % Do transition equations.
-doM = true; % Do measurement equations.
+doTransition = true; % Do transition equations.
+doMeasurement = true; % Do measurement equations.
 if strcmpi(opt.eqtn, 'transition')
-    doT = true;
-    doM = false;
+    doTransition = true;
+    doMeasurement = false;
 elseif strcmpi(opt.eqtn, 'measurement')
-    doT = false;
-    doM = true;
+    doTransition = false;
+    doMeasurement = true;
 end
 
-ixy = this.Quantity.Type==int8(1);
-ixe = this.Quantity.Type==int8(31) | this.Quantity.Type==int8(32);
+ixy = this.Quantity.Type==TYPE(1);
+ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ixt = this.Equation.Type==1;
 ixh = this.Equation.IxHash;
-nh = sum(ixh);
-nt = sum(ixt);
+numOfHashed = nnz(ixh);
+numOfObserved = nnz(this.Quantity.IxObserved);
+nh = numOfHashed;
+nz = numOfObserved;
+nt = nnz(ixt);
+lenOfExpansion = opt.expand;
 
 [ny, nxi, nb, nf, ne] = sizeOfSolution(this.Vector);
-nz = nnz(this.Quantity.IxMeasure);
 kxi = length(this.Vector.System{2});
 kf = kxi - nb; % Fwl in system.
-ixFKeep = ~this.d2s.remove;
-nAlt = length(this);
-if isequal(vecAlt, Inf)
-    vecAlt = 1 : nAlt;
+indexOfXfToKeep = ~this.D2S.IndexOfXfToRemove;
+nv = length(this);
+if isequal(variantsRequired, Inf)
+    variantsRequired = 1 : nv;
 end
-nVecAlt = length(vecAlt);
+variantsRequired = variantsRequired(:).';
+numOfVariantsRequired = length(variantsRequired);
 
-% Reset icondix, eigenvalues, solution matrices, expansion matrices
-% depending on `isTransition` and `isMeasurement`.
-reset( );
+% Reset solution-dependent information in this.Variant.
+if doTransition
+    this.Variant = resetTransition( ...
+        this.Variant, variantsRequired, this.Vector, lenOfExpansion, numOfHashed, numOfObserved ...
+    );
+end
+if doMeasurement
+    this.Variant = resetMeasurement( ...
+        this.Variant, variantsRequired ...
+    );
+end
 
 % Set `NPATH` to 1 initially to handle correctly the cases when only a
 % subset of parameterisations is solved for.
-nPath = ones(1, nAlt);
-sing1 = false(nt, nAlt);
-nanDeriv = cell(1, nAlt);
-bk = nan(3, nAlt);
+exitFlag = ones(1, nv);
+sing1 = false(nt, nv);
+nanDeriv = cell(1, nv);
+bk = nan(3, nv);
 
 if opt.progress
     progress = ProgressBar('IRIS model.solve progress');
 end
 
-for iAlt = vecAlt(:).'
+for v = variantsRequired
     % Differentiate equations and set up unsolved system matrices; check
     % for NaN derivatives.
-    [syst, nanDeriv{iAlt}] = systemFirstOrder(this, iAlt, opt);
-    if any(nanDeriv{iAlt})
-        nPath(iAlt) = -3;
+    [syst, nanDeriv{v}] = systemFirstOrder(this, v, opt);
+    if any(nanDeriv{v})
+        exitFlag(v) = -3;
         continue
     end
     
@@ -85,7 +96,7 @@ for iAlt = vecAlt(:).'
             || ~isreal(syst.B{2}) ...
             || ~isreal(syst.E{1}) ...
             || ~isreal(syst.E{2})
-        nPath(iAlt) = 1i;
+        exitFlag(v) = 1i;
         continue;
     end
     % Check system matrices for NaNs.
@@ -97,47 +108,45 @@ for iAlt = vecAlt(:).'
             || any(isnan(syst.B{2}(:))) ...
             || any(isnan(syst.E{1}(:))) ...
             || any(isnan(syst.E{2}(:)))
-        nPath(iAlt) = NaN;
+        exitFlag(v) = NaN;
         continue;
     end
     
-    % Schur decomposition and saddle-path check
-    %-------------------------------------------
-    if doT
-        [SS, TT, QQ, ZZ, eqOrd, nUnit, nStable] = computeSchur( );
-        bk(:, iAlt) = [nb; nUnit; nStable] ;
+    % __Schur Decomposition and Saddle-Path Check__
+    if doTransition
+        [SS, TT, QQ, ZZ, eqOrd, numOfUnitRoots, numOfStableRoots] = computeSchur( );
+        bk(:, v) = [nb; numOfUnitRoots; numOfStableRoots] ;
     end
     
-    if nPath(iAlt)==1
+    if exitFlag(v)==1
         if ~this.IsLinear
             % Steady-state levels needed in doTransition( ) and
             % doMeasurement( ).
             isDelog = false;
-            ssY = createTrendArray(this, iAlt, isDelog, find(ixy), 0);
-            ssXf = createTrendArray(this, iAlt, isDelog, ...
+            ssY = createTrendArray(this, v, isDelog, find(ixy), 0);
+            ssXf = createTrendArray(this, v, isDelog, ...
                 this.Vector.Solution{2}(1:nf), [-1, 0]);
-            ssXb = createTrendArray(this, iAlt, isDelog, ...
+            ssXb = createTrendArray(this, v, isDelog, ...
                 this.Vector.Solution{2}(nf+1:end), [-1, 0]);
         end
         
-        % Solution matrices
-        %-------------------
-        flagTrans = true;
-        flagMeas = true;
-        if doM
+        % __Solution Matrices__
+        flagTransition = true;
+        flagMeasurement = true;
+        if doMeasurement
             % Measurement matrices.
-            flagMeas = measurementEquations( );
+            flagMeasurement = measurementEquations( );
         end
-        if doT
+        if doTransition
             % Transition matrices.
-            flagTrans = transitionEquations( );
+            flagTransition = transitionEquations( );
         end
-        if ~flagTrans || ~flagMeas
-            if ~this.IsLinear && ~mychksstate(this, iAlt)
-                nPath(iAlt) = -4;
+        if ~flagTransition || ~flagMeasurement
+            if ~this.IsLinear && ~mychksstate(this, v)
+                exitFlag(v) = -4;
                 continue;
             else
-                nPath(iAlt) = -1;
+                exitFlag(v) = -1;
                 continue;
             end
         end
@@ -146,39 +155,28 @@ for iAlt = vecAlt(:).'
             transformMeasurement( );
         end
         
-        % Forward expansion of solution matrices
-        %----------------------------------------
-        if doT && opt.expand>0
-            [newR, newY, newJk] = model.myexpand( ...
-                this.solution{2}(:, :, iAlt), ...
-                this.solution{8}(:, :, iAlt), ...
-                opt.expand, ...
-                this.Expand{1}(:, :, iAlt), ...
-                this.Expand{2}(:, :, iAlt), ...
-                this.Expand{3}(:, :, iAlt), ...
-                this.Expand{4}(:, :, iAlt), ...
-                this.Expand{5}(:, :, iAlt), ...
-                this.Expand{6}(:, :, iAlt));
-            this.solution{2}(:, :, iAlt) = newR;
-            this.solution{8}(:, :, iAlt) = newY;
-            this.Expand{5}(:, :, iAlt) = newJk;
+        % __Forward Expansion of Solution Matrices__
+        if doTransition && lenOfExpansion>0
+            [newR, newY, newJk] = expandFirstOrder(this, v);
+            this.Variant.Solution{2}(:, :, v) = newR;
+            this.Variant.Solution{8}(:, :, v) = newY;
+            this.Variant.Expansion{5}(:, :, v) = newJk;
         end        
     end
     
     if opt.progress
-        update(progress, iAlt/length(vecAlt));
+        update(progress, v/length(variantsRequired));
     end
 end
 
-nPath = nPath(1, vecAlt);
-nanDeriv = nanDeriv(1, vecAlt);
-sing1 = sing1(:, vecAlt);
+exitFlag = exitFlag(1, variantsRequired);
+nanDeriv = nanDeriv(1, variantsRequired);
+sing1 = sing1(:, variantsRequired);
 
 return
 
 
-
-    function [SS, TT, QQ, ZZ, eqOrd, nUnit, nStable] = computeSchur( )
+    function [SS, TT, QQ, ZZ, eqOrd, numOfUnitRoots, numOfStableRoots] = computeSchur( )
         % Ordered real QZ decomposition.
         fA = full(syst.A{2});
         fB = full(syst.B{2});
@@ -196,14 +194,14 @@ return
             invEigen = invEigen(:).';
             isSevn2 = applySevn2Patch( );
             absInvEigen = abs(invEigen);
-            ixStable = absInvEigen >= (1+EIGEN_TOLERANCE);
-            ixUnit = abs(absInvEigen-1) < EIGEN_TOLERANCE;
+            indexOfStableRoots = absInvEigen >= (1+EIGEN_TOLERANCE);
+            indexOfUnitRoots = abs(absInvEigen-1) < EIGEN_TOLERANCE;
             % Clusters of unit, stable, and unstable eigenvalues.
             clusters = zeros(size(invEigen));
             % Unit roots first.
-            clusters(ixUnit) = 2;
+            clusters(indexOfUnitRoots) = 2;
             % Stable roots second.
-            clusters(ixStable) = 1;
+            clusters(indexOfStableRoots) = 1;
             % Unstable roots last.
             % Re-order by the clusters.
             lastwarn('');
@@ -242,10 +240,10 @@ return
                 'SEVN2 patch applied.'])
         end
         absInvEigen = abs(invEigen);
-        ixStable = absInvEigen >= (1+EIGEN_TOLERANCE);
-        ixUnit = abs(absInvEigen-1) < EIGEN_TOLERANCE;        
-        nUnit = sum(ixUnit);
-        nStable = sum(ixStable);
+        indexOfStableRoots = absInvEigen >= (1+EIGEN_TOLERANCE);
+        indexOfUnitRoots = abs(absInvEigen-1) < EIGEN_TOLERANCE;        
+        numOfUnitRoots = nnz(indexOfUnitRoots);
+        numOfStableRoots = nnz(indexOfStableRoots);
         
         % Undo eigval inversion.
         eigen = invEigen;
@@ -255,23 +253,21 @@ return
         
         % Check BK saddle-path condition.
         if any(isnan(eigen))
-            nPath(iAlt) = -2;
-        elseif nb==nStable+nUnit
-            nPath(iAlt) = 1;
-        elseif nb>nStable+nUnit
-            nPath(iAlt) = 0;
+            exitFlag(v) = -2;
+        elseif nb==numOfStableRoots+numOfUnitRoots
+            exitFlag(v) = 1;
+        elseif nb>numOfStableRoots+numOfUnitRoots
+            exitFlag(v) = 0;
         else
-            nPath(iAlt) = Inf;
+            exitFlag(v) = Inf;
         end
-        this.Variant{iAlt}.Eigen(1, :) = eigen;
-        this.Variant{iAlt}.Stability = repmat(TYPE(0), 1, numel(eigen));
-        this.Variant{iAlt}.Stability(1, ixStable) = TYPE(0);
-        this.Variant{iAlt}.Stability(1, ixUnit) = TYPE(1);
-        this.Variant{iAlt}.Stability(1, ~ixStable & ~ixUnit) = TYPE(2);
+        this.Variant.EigenValues(1, :, v) = eigen;
+        this.Variant.EigenStability(:, :, v) = repmat(TYPE(0), 1, numel(eigen));
+        this.Variant.EigenStability(1, indexOfStableRoots, v) = TYPE(0);
+        this.Variant.EigenStability(1, indexOfUnitRoots, v) = TYPE(1);
+        this.Variant.EigenStability(1, ~indexOfStableRoots & ~indexOfUnitRoots, v) = TYPE(2);
         
         return
-        
-        
         
         
         function flag = applySevn2Patch( )
@@ -308,8 +304,6 @@ return
     end
 
     
-
-    
     function flag = transitionEquations( )
         flag = true;
         isHash = any(ixh);
@@ -319,8 +313,8 @@ return
         T11 = TT(1:nb, 1:nb);
         T12 = TT(1:nb, nb+1:end);
         T22 = TT(nb+1:end, nb+1:end);
-        Z11 = ZZ(ixFKeep, 1:nb);
-        Z12 = ZZ(ixFKeep, nb+1:end);
+        Z11 = ZZ(indexOfXfToKeep, 1:nb);
+        Z12 = ZZ(indexOfXfToKeep, nb+1:end);
         Z21 = ZZ(kf+1:end, 1:nb);
         Z22 = ZZ(kf+1:end, nb+1:end);
         
@@ -483,41 +477,37 @@ return
             Y = [Yf;Ya];
         end
         
-        this.solution{1}(:, :, iAlt) = T;
-        this.solution{2}(:, 1:ne, iAlt) = R;
-        this.solution{3}(:, :, iAlt) = K;
-        this.solution{7}(:, :, iAlt) = U;
+        this.Variant.Solution{1}(:, :, v) = T;
+        this.Variant.Solution{2}(:, 1:ne, v) = R;
+        this.Variant.Solution{3}(:, :, v) = K;
+        this.Variant.Solution{7}(:, :, v) = U;
         if isHash
-            this.solution{8}(:, 1:nh, iAlt) = Y;
+            this.Variant.Solution{8}(:, 1:nh, v) = Y;
         end
         
-        % Necessary initial conditions in xb vector.
         if ~opt.fast
-            this.Variant{iAlt}.IxInit = any(abs(T/U)>SOLVE_TOLERANCE, 1);
-        end
-        
-        if ~isempty(this.Expand)
+            % Necessary initial conditions in xb vector.
+            this.Variant.IxInit(:, :, v) = any(abs(T/U)>SOLVE_TOLERANCE, 1);
+
             % Forward expansion.
-            % a(t) <- -Xa J^(k-1) Ru e(t+k)
-            % xf(t) <- Xf J^k Ru e(t+k)
+            % a(t) <= -Xa J^(k-1) Ru e(t+k)
+            % xf(t) <= Xf J^k Ru e(t+k)
             J = -T22\S22;
             Xa = Xa1 + Xa0*J;
             % Highest computed power of J: e(t+k) requires J^k.
             Jk = eye(size(J));
             
-            this.Expand{1}(:, :, iAlt) = Xa;
-            this.Expand{2}(:, :, iAlt) = Xf;
-            this.Expand{3}(:, :, iAlt) = Ru;
-            this.Expand{4}(:, :, iAlt) = J;
-            this.Expand{5}(:, :, iAlt) = Jk;
+            this.Variant.Expansion{1}(:, :, v) = Xa;
+            this.Variant.Expansion{2}(:, :, v) = Xf;
+            this.Variant.Expansion{3}(:, :, v) = Ru;
+            this.Variant.Expansion{4}(:, :, v) = J;
+            this.Variant.Expansion{5}(:, :, v) = Jk;
             if isHash
-                this.Expand{6}(:, :, iAlt) = Yu;
+                this.Variant.Expansion{6}(:, :, v) = Yu;
             end
         end
     end
 
-    
-    
 
     function flag = measurementEquations( )
         flag = true;
@@ -529,7 +519,7 @@ return
         D = zeros(0, 1);
         if nz>0
             % Transition variables marked for measurement.
-            pos = find(this.Quantity.IxMeasure);
+            pos = find(this.Quantity.IxObserved);
             xbVector = this.Vector.Solution{2}(nf+1:end);
             Zb = zeros(nz, nb);
             ix = bsxfun(@eq, pos(:), xbVector);
@@ -545,7 +535,7 @@ return
                     r = rank(full(syst.A{1}));
                     d = s - r;
                     [u, ~] = svd(full(syst.A{1}));
-                    sing1(:, iAlt) = any( abs(u(:, end-d+1:end))>SOLVE_TOLERANCE, 2 );
+                    sing1(:, v) = any( abs(u(:, end-d+1:end))>SOLVE_TOLERANCE, 2 );
                 end
                 return
             end
@@ -564,113 +554,19 @@ return
                 return
             end
         end
-        % This.solution{4}(:, :, iAlt) is assigned later on.
-        this.solution{5}(:, :, iAlt) = H;
-        this.solution{6}(:, :, iAlt) = D;
-        this.solution{9}(:, :, iAlt) = Zb;
+        % this.Variant.Solution{4}(:, :, v) is assigned la.
+        this.Variant.Solution{5}(:, :, v) = H;
+        this.Variant.Solution{6}(:, :, v) = D;
+        this.Variant.Solution{9}(:, :, v) = Zb;
     end
-
-    
 
     
     function transformMeasurement( )
         % Transform the Zb matrix to Za:
         %     y = Zb*xb -> y = Za*alp
-        Zb = this.solution{9}(:, :, iAlt);
-        U = this.solution{7}(:, :, iAlt);
+        Zb = this.Variant.Solution{9}(:, :, v);
+        U = this.Variant.Solution{7}(:, :, v);
         Za = Zb*U;
-        this.solution{4}(:, :, iAlt) = Za;
-    end
-
-    
-
-
-    function reset( )
-        nExpand = opt.expand;
-        if isempty(this.solution) || isempty(this.solution{1})
-            % Preallocate nonexisting solution matrices.
-            % Transition matrices.
-            this.solution{1} = nan(nxi, nb, nAlt); % T
-            this.solution{2} = nan(nxi, ne*(nExpand+1), nAlt); % R
-            this.solution{3} = nan(nxi, 1, nAlt); % K
-            % Measurement matrices.
-            this.solution{4} = nan(ny, nb, nAlt); % Za
-            this.solution{5} = nan(ny, ne, nAlt); % H
-            this.solution{6} = nan(ny, 1, nAlt); % D
-            % Transformation of the alpha vector.
-            this.solution{7} = nan(nb, nb, nAlt); % U
-            % Effect of nonlinearirities.
-            this.solution{8} = nan(nxi, nh*(nExpand+1), nAlt); % Y
-            % Auxiliary measurement matrix y = Zb*xb;
-            this.solution{9} = nan(max(ny, nz), nb, nAlt); % Zb
-        end
-                    
-        if opt.fast && opt.expand==0
-            % Do not compute expansion matrices (fast calls to mysolve with
-            % no expansion requested); assign an empty cell.
-            this.Expand = { };
-        elseif isempty(this.Expand) || isempty(this.Expand{1})
-            % Preallocate nonexisting expansion matrices.
-            this.Expand{1} = nan(nb, kf, nAlt);
-            this.Expand{2} = nan(nf, kf, nAlt);
-            this.Expand{3} = nan(kf, ne, nAlt);
-            this.Expand{4} = nan(kf, kf, nAlt);
-            this.Expand{5} = nan(kf, kf, nAlt);
-            this.Expand{6} = nan(kf, nh, nAlt);
-        end
-        
-        nVecAlt = length(vecAlt);
-        if doT            
-            % Reset transition properties.
-            this.solution{1}(:, :, vecAlt) = nan(nxi, nb, nVecAlt);
-            n = size(this.solution{2}, 2);
-            if n<ne*(nExpand+1)
-                this.solution{2} = [this.solution{2}, ...
-                    nan(nxi, ne*(nExpand+1)-n, nAlt)];
-                n = ne*(nExpand+1);
-            end
-            this.solution{2}(:, :, vecAlt) = nan(nxi, n, nVecAlt);
-            this.solution{3}(:, :, vecAlt) = nan(nxi, 1, nVecAlt);
-            this.solution{7}(:, :, vecAlt) = nan(nb, nb, nVecAlt);
-            n = size(this.solution{8}, 2);
-            if n<nh*(nExpand+1)
-                this.solution{8}(:, end+1:nh*(nExpand+1), :) = NaN;
-                this.solution{8} = [this.solution{8}, ...
-                    nan(nxi, nh*(nExpand+1)-n, nAlt)];
-                n = nh*(nExpand+1);
-            end
-            this.solution{8}(:, :, vecAlt) = nan(nxi, n, nVecAlt);
-            
-            for iiAlt = vecAlt
-                this.Variant{iiAlt} = ...
-                    resetTransition(this.Variant{iiAlt}, this.Vector, nExpand, nh);            
-            end
-            
-            % Reset expansion matrices.
-            if ~isempty(this.Expand) && kf>0
-                this.Expand{1}(:, :, vecAlt) = NaN;
-                this.Expand{2}(:, :, vecAlt) = NaN;
-                this.Expand{3}(:, :, vecAlt) = NaN;
-                this.Expand{4}(:, :, vecAlt) = NaN;
-                this.Expand{5}(:, :, vecAlt) = NaN;
-                this.Expand{6}(:, :, vecAlt) = NaN;
-            end
-        end
-        
-        if doM
-            % Reset measurement properties.
-            this.solution{5}(:, :, vecAlt) = nan(ny, ne, nVecAlt);
-            this.solution{6}(:, :, vecAlt) = nan(ny, 1, nVecAlt);
-            this.solution{9}(:, :, vecAlt) = nan(max(ny, nz), nb, nAlt);
-            for iiAlt = vecAlt
-                this.Variant{iiAlt} = ...
-                    resetMeasurement(this.Variant{iiAlt}, this.Vector);
-            end
-        end
-        
-        % Reset this.solution{4} no matter what: it depends both on
-        % transition and measurement parameters and needs to be always
-        % updated.
-        this.solution{4}(:, :, vecAlt) = nan(ny, nb, nVecAlt);
+        this.Variant.Solution{4}(:, :, v) = Za;
     end
 end

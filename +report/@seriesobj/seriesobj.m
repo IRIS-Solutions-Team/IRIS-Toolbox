@@ -1,7 +1,7 @@
 classdef seriesobj < report.genericobj & report.condformatobj
     
     properties
-        data = { getappdata(0, 'IRIS_TIME_SERIES_CONSTRUCTOR') };
+        data = { getappdata(0, 'IRIS_TimeSeriesConstructor') };
     end
     
     methods

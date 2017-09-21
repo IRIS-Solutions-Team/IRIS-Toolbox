@@ -1,36 +1,38 @@
 function d = addparam(this, d)
-% addparam  Add model parameters to a database
+% addparam  Add model parameters to databank
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     D = addparam(M, D)
+% Input arguments marked with a `~` sign may be omitted.
+%
+%     D = addparam(M, ~D)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `M` [ model ] - Model object whose parameters will be added to database
+% * `M` [ model ] - Model object whose parameters will be added to databank
 % `D`.
 %
-% * `D` [ struct ] - Database to which the model parameters will be added.
+% * `~D` [ struct ] - Databank to which the model parameters will be added;
+% if omitted, a new databank will be created.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `D` [ struct ] - Database with the model parameters added.
+% * `D` [ struct ] - Databank with the model parameters added.
 %
 %
-% Description
-% ============
+% __Description__
 %
-% Any existing database entries whose names coincide with the names of
+% Function `addparam( )` adds all model parameters, including std
+% deviations and nonzero cross-correlations, to the databank, `D`, as
+% arrays with values for all parameter variants.
+%
+% Any existing databank entries whose names coincide with the names of
 % model parameters will be overwritten.
 %
 %
-% Example
-% ========
+% __Example__
 %
 %     d = struct( );
 %     d = addparam(m, d);
@@ -41,19 +43,14 @@ function d = addparam(this, d)
 
 TYPE = @int8;
 
-try
-    d; %#ok<VUNUS>
-catch
+if nargin<2
     d = struct( );
 end
 
 %--------------------------------------------------------------------------
 
-ixp = this.Quantity.Type==TYPE(4);
-for i = find(ixp)
-    name = this.Quantity.Name{i};
-    value = model.Variant.getQuantity(this.Variant, i, ':');
-    d.(name) = permute(value, [1, 3, 2]);
-end
+d = addplainparam(this, d);
+d = addstd(this, d);
+d = addcorr(this, d);
 
 end

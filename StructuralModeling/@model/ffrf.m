@@ -1,14 +1,12 @@
 function [F, list] = ffrf(this, freq, varargin)
 % ffrf  Filter frequency response function of transition variables to measurement variables.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [F, List] = ffrf(M, Freq, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object for which the frequency response function
 % will be computed.
@@ -17,8 +15,7 @@ function [F, list] = ffrf(this, freq, varargin)
 % function will be computed.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `F` [ namedmat | numeric ] - Array with frequency responses of
 % transition variables (in rows) to measurement variables (in columns).
@@ -27,36 +24,33 @@ function [F, list] = ffrf(this, freq, varargin)
 % matrix, and list of measurement variables in columns of the `F` matrix.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'include='` [ char | cellstr | *`@all`* ] - Include the effect of the
+% * `'Include='` [ char | cellstr | *`@all`* ] - Include the effect of the
 % listed measurement variables only; `@all` means all measurement
 % variables.
 %
-% * `'exclude='` [ char | cellstr | *empty* ] - Remove the effect of the
+% * `'Exclude='` [ char | cellstr | *empty* ] - Remove the effect of the
 % listed measurement variables.
 %
-% * `'maxIter='` [ numeric | *500* ] - Maximum number of iteration when
+% * `'MaxIter='` [ numeric | *500* ] - Maximum number of iteration when
 % computing the steady-state Kalman filter.
 %
-% * `'matrixFmt='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
+% * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
 % either a [`namedmat`](namedmat/Contents) object (i.e. matrix with named
 % rows and columns) or a plain numeric array.
 %
-% * `'select='` [ *`@all`* | char | cellstr ] - Return FFRF for selected
+% * `'Select='` [ *`@all`* | char | cellstr ] - Return FFRF for selected
 % variables only; `@all` means all variables.
 %
-% * `'tolerance='` [ numeric | *`1e-7`* ] - Convergence tolerance when
+% * `'Tolerance='` [ numeric | *`1e-7`* ] - Convergence tolerance when
 % computing the steady-state Kalman filter.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -64,10 +58,13 @@ function [F, list] = ffrf(this, freq, varargin)
 
 TYPE = @int8;
 
-% Parse input arguments.
-pp = inputParser( );
-pp.addRequired('Freq', @isnumeric);
-pp.parse(freq);
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/ffrf');
+    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
+    INPUT_PARSER.addRequired('Freq', @isnumeric);
+end
+INPUT_PARSER.parse(this, freq);
 
 % Parse options.
 opt = passvalopt('model.ffrf', varargin{:});
@@ -91,13 +88,13 @@ if ~isempty(opt.exclude) && ~isequal(opt.include, @all)
 end
 
 isSelect = ~isequal(opt.select, @all);
-isNamedMat = strcmpi(opt.MatrixFmt, 'namedmat');
+isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 
 % TODO: Implement the `'exclude='` option through the `'select='` option.
 
 %--------------------------------------------------------------------------
 
-nAlt = length(this);
+nv = length(this);
 
 % Index of the measurement variables included.
 if isequal(opt.include, @all)
@@ -107,12 +104,12 @@ else
         this.Quantity, ...
         setdiff(opt.include, opt.exclude), ...
         TYPE(1) ...
-        );
+    );
 end
 
 freq = freq(:)';
 nFreq = length(freq);
-F = nan(nxx, ny, nFreq, nAlt);
+F = nan(nxx, ny, nFreq, nv);
 
 if ny>0 && any(ixInclude)
     getFfrf( );
@@ -149,25 +146,21 @@ end
 return
 
     
-    
-    
     function getFfrf( )
-        [flag, ixNanAlt] = isnan(this, 'solution');
-        for iAlt = find(~ixNanAlt)
-            nUnit = sum(this.Variant{iAlt}.Stability==TYPE(1));
-            [T, R, ~, Z, H, ~, U, Omg] = sspaceMatrices(this, iAlt, false);
+        indexOfSolutionsAvailable = issolved(this);
+        numOfUnitRoots = getNumOfUnitRoots(this.Variant);
+        for v = find(indexOfSolutionsAvailable)
+            [T, R, ~, Z, H, ~, U, Omg] = sspaceMatrices(this, v, false);
             % Compute FFRF.
-            F(:, :, :, iAlt) = freqdom.ffrf3( ...
-                T, R, [ ], Z, H, [ ], U, Omg, nUnit, ...
-                freq, ixInclude, opt.tolerance, opt.maxiter);
+            F(:, :, :, v) = freqdom.ffrf3( ...
+                T, R, [ ], Z, H, [ ], U, Omg, numOfUnitRoots(v), ...
+                freq, ixInclude, opt.tolerance, opt.MaxIter);
         end
-        % Solution not available.
-        if flag
-            utils.warning('model:ffrf', ...
-                'Solution not available %s.', ...
-                exception.Base.alt2str(ixNanAlt) );
-        end
+        % Report solutions not available.
+        assert( ...
+            all(indexOfSolutionsAvailable), ...
+            exception.Base('Model:SolutionNotAvailable', 'error'), ...
+            exception.Base.alt2str(~indexOfSolutionsAvailable) ...
+        );
     end
-
-
 end

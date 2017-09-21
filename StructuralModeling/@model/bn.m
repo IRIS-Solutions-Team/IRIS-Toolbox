@@ -47,11 +47,14 @@ function outp = bn(this, inp, range, varargin)
 EYE_TOLERANCE = this.Tolerance.Solve;
 TYPE = @int8;
 
-% Parse required input arguments.
-pp = inputParser( );
-pp.addRequired('Inp', @(x) isstruct(x) || iscell(x));
-pp.addRequired('Range', @DateWrapper.validateDateInput);
-pp.parse(inp, range);
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/bn');
+    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
+    INPUT_PARSER.addRequired('InputDatabank', @isstruct);
+    INPUT_PARSER.addRequired('Range', @DateWrapper.validateDateInput);
+end
+INPUT_PARSER.parse(this, inp, range);
 
 opt = passvalopt('model.bn', varargin{:});
 
@@ -62,82 +65,82 @@ end
 %--------------------------------------------------------------------------
 
 [~, ~, nb, nf, ne] = sizeOfSolution(this.Vector);
-nAlt = length(this);
+nv = length(this);
 range = range(1) : range(end);
 nPer = length(range);
 
 % Alpha vector.
 A = datarequest('alpha', this, inp, range);
-nData = size(A, 3);
+numOfDataSets = size(A, 3);
 
 % Exogenous variables including ttrend.
 G = datarequest('g', this, inp, range);
 
 % Total number of output data sets.
-nLoop = max([nData, nAlt]);
+numOfRuns = max([numOfDataSets, nv]);
 
 % Pre-allocate hdataobj for output data.
-hd = hdataobj(this, range, nLoop, 'IncludeLag=', false);
+hd = hdataobj(this, range, numOfRuns, 'IncludeLag=', false);
 
-ixSolved = true(1, nAlt);
-ixDiffStat = true(1, nAlt);
+ixSolved = true(1, nv);
+indexOfDiffStationary = true(1, nv);
 testEye = @(x) all(all(abs(x - eye(size(x)))<=EYE_TOLERANCE));
 
-for iLoop = 1 : nLoop
+for ithRun = 1 : numOfRuns
     
-    g = G(:, :, min(iLoop, end));
-    if iLoop <= nAlt
-        T = this.solution{1}(:, :, iLoop);
+    g = G(:, :, min(ithRun, end));
+    if ithRun<=nv
+        T = this.Variant.Solution{1}(:, :, ithRun);
         Tf = T(1:nf, :);
         Ta = T(nf+1:end, :);
         
         % Continue immediate if solution is not available.
-        ixSolved(iLoop) = all(~isnan(T(:)));
-        if ~ixSolved(iLoop)
+        ixSolved(ithRun) = all(~isnan(T(:)));
+        if ~ixSolved(ithRun)
             continue
         end
         
-        nUnit = sum(this.Variant{iLoop}.Stability==TYPE(1));
-        if ~testEye(Ta(1:nUnit, 1:nUnit))
-            ixDiffStat(iLoop) = false;
+        numOfUnitRoots = nnz(this.Variant.EigenStability(:, :, ithRun)==TYPE(1));
+        if ~testEye(Ta(1:numOfUnitRoots, 1:numOfUnitRoots))
+            indexOfDiffStationary(ithRun) = false;
             continue
         end
-        Z = this.solution{4}(:, :, iLoop);
-        U = this.solution{7}(:, :, iLoop);
+        Z = this.Variant.Solution{4}(:, :, ithRun);
+        U = this.Variant.Solution{7}(:, :, ithRun);
         if ~opt.deviation
-            Ka = this.solution{3}(nf+1:end, 1, iLoop);
+            Ka = this.Variant.Solution{3}(nf+1:end, 1, ithRun);
             aBar = zeros(nb, 1);
-            aBar(nUnit+1:end) = ...
-                (eye(nb-nUnit) - Ta(nUnit+1:end, nUnit+1:end)) ...
-                \ Ka(nUnit+1:end);
+            aBar(numOfUnitRoots+1:end) = ...
+                (eye(nb-numOfUnitRoots) - Ta(numOfUnitRoots+1:end, numOfUnitRoots+1:end)) ...
+                \ Ka(numOfUnitRoots+1:end);
             aBar = repmat(aBar, 1, nPer);
-            Kf = this.solution{3}(1:nf, 1, iLoop);
+            Kf = this.Variant.Solution{3}(1:nf, 1, ithRun);
             Kf = repmat(Kf, 1, nPer);
-            D = this.solution{6}(:, 1, iLoop);
+            D = this.Variant.Solution{6}(:, 1, ithRun);
             D = repmat(D, 1, nPer);
         end
         if opt.dtrends
-            W = evalDtrends(this, [ ], g, iLoop);
+            W = evalDtrends(this, [ ], g, ithRun);
         end
     end
     
-    a = A(:, :, min(iLoop, end));
+    a = A(:, :, min(ithRun, end));
     if ~opt.deviation
         a = a - aBar;
     end
     
     % Forward cumsum of stable alpha.
-    aCum = (eye(nb-nUnit) - Ta(nUnit+1:end, nUnit+1:end)) ...
-        \ a(nUnit+1:end, :);
+    aCum = (eye(nb-numOfUnitRoots) - Ta(numOfUnitRoots+1:end, numOfUnitRoots+1:end)) ...
+        \ a(numOfUnitRoots+1:end, :);
     
     % Beveridge Nelson for non-stationary variables.
-    a(1:nUnit, :) = a(1:nUnit, :) + ...
-        Ta(1:nUnit, nUnit+1:end)*aCum;
+    a(1:numOfUnitRoots, :) = a(1:numOfUnitRoots, :) + ...
+        Ta(1:numOfUnitRoots, numOfUnitRoots+1:end)*aCum;
     
     if opt.deviation
-        a(nUnit+1:end, :) = 0;
+        a(numOfUnitRoots+1:end, :) = 0;
     else
-        a(nUnit+1:end, :) = aBar(nUnit+1:end, :);
+        a(numOfUnitRoots+1:end, :) = aBar(numOfUnitRoots+1:end, :);
     end
     
     xf = Tf*a;
@@ -155,7 +158,7 @@ for iLoop = 1 : nLoop
     % Store output data #iloop.
     x = [xf;xb];
     e = zeros(ne, nPer);
-    hdataassign(hd, iLoop, { y, x, e, [ ], g } );
+    hdataassign(hd, ithRun, { y, x, e, [ ], g } );
     
 end
 
@@ -167,11 +170,11 @@ if ~all(ixSolved)
 end
 
 % Parameterisations that are not difference-stationary.
-if any(~ixDiffStat)
+if any(~indexOfDiffStationary)
     utils.warning('model:bn', ...
         ['Cannot run Beveridge-Nelson on models with ', ...
         'I(2) or higher processes %s.'], ...
-        exception.Base.alt2str(~ixDiffStat) );
+        exception.Base.alt2str(~indexOfDiffStationary) );
 end
 
 % Create output database from hdataobj.

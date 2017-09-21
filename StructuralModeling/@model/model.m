@@ -25,7 +25,10 @@
 %
 % __Getting Information about Models__
 %
-%   addparam - Add model parameters to a database
+%   addparam - Add model parameters to databank
+%   addplainparam - Add plain parameters to databank
+%   addstd - Add model std deviations to databank
+%   addcorr - Add model cross-correlations to databank
 %   autocaption - Create captions for reporting model variables or parameters
 %   autoexog - Get or set pairs of names in dynamic and steady autoexog
 %   chkredundant - Check for redundant shocks and/or parameters
@@ -43,7 +46,7 @@
 %   isname - True for valid names of variables, parameters, or shocks in model object
 %   issolved - True if model solution exists
 %   isstationary - True if model or specified combination of variables is stationary
-%   length - Number of model variants
+%   length - Number of parameter variants within model object
 %   omega - Get or set the covariance matrix of shocks
 %   sspace - State-space matrices describing the model solution
 %   system - System matrices for unsolved model
@@ -52,13 +55,13 @@
 %
 % __Referencing Model Objects__
 %
-%   subsasgn - Subscripted assignment for model and systemfit objects
-%   subsref - Subscripted reference for model and systemfit objects
+%   subsasgn - Subscripted assignment for model objects
+%   subsref - Subscripted reference for model objects
 %
 %
 % __Changing Model Objects__
 %
-%   alter - Expand or reduce number of model variants
+%   alter - Expand or reduce number of parameter variants in model object
 %   assign - Assign parameters, steady states, std deviations or cross-correlations
 %   disable - Disable dynamic links or steady-state revision equations
 %   enable - Enable dynamic links or revision equations
@@ -133,26 +136,18 @@
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimation
-    
+classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimation & shared.LoadObjectAsStructWrapper
     properties (GetAccess=public, SetAccess=protected, Hidden)
-        FileName = '' % File name of source model file.
-        IsLinear = false % True for linear models.
-        IsGrowth = false % True for models with nonzero deterministic growth in steady state.
-        Tolerance = model.DEFAULT_TOLERANCE_STRUCT % Tolerance levels for different contexts.
+        FileName = '' % File name of source model file
+        IsLinear = false % True for linear models
+        IsGrowth = false % True for models with nonzero deterministic growth in steady state
+        Tolerance = model.DEFAULT_TOLERANCE_STRUCT % Tolerance levels for different contexts
         
-        Reporting = rpteq( ) % Reporting equations.
+        Reporting = rpteq( ) % Reporting equations
 
-        % Derivatives to system matrices conversion.
-        d2s = [ ]
+        D2S = model.D2S( )  % Conversion of derivatives to system matrices
 
-        % Matrices necessary to generate forward expansion of model solution.
-        Expand = { }
-        
-        % Model state-space matrices T, R, K, Z, H, D, U, Y, ZZ.
-        solution = repmat( {zeros(0, 0, 0)}, 1, 9 )
-
-        Quantity = model.Quantity( ) % Variables, shocks, parameters.
+        Quantity = model.Quantity( ) % Variables, shocks, parameters
         
         Equation = model.Equation( ) % Equations, dtrends, links, revisions
        
@@ -160,23 +155,23 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             'Dynamic', model.Incidence( ), ...
             'Steady',  model.Incidence( ), ...
             'Affected', model.Incidence( ) ...
-            ) % Incidence matrices.
+            ) % Incidence matrices
         
-        Link = model.Link( ) % Dynamic links.
+        Link = model.Link( ) % Dynamic links
 
-        Gradient = model.Gradient(0) % Automatic derivatives.
+        Gradient = model.Gradient(0) % Automatic derivatives
         
-        Pairing = model.Pairing(0, 0) % Autoexog, Dtrend, Link, Revision, Assignment.
+        Pairing = model.Pairing(0, 0) % Autoexog, Dtrend, Link, Revision, Assignment
         
-        PreparserControl = struct( ) % Preparser control parameters.
+        PreparserControl = struct( ) % Preparser control parameters
         
-        Vector = model.Vector( ) % System and solution vectors.
+        Vector = model.Vector( ) % System and solution vectors
         
-        Variant = cell(1, 0) % Cell array of model.Variant objects with parameter dependent data.
+        Variant = model.Variant( ) % Parameter dependent properties
         
-        Behavior = model.Behavior( ) % Behavior control.
+        Behavior = model.Behavior( ) % Behavior control
 
-        Export = shared.Export.empty(1, 0) % Export files.
+        Export = shared.Export.empty(1, 0) % Export files
     end
 
     
@@ -191,7 +186,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
 
     
     properties (Constant, Hidden)
-        LAST_LOADABLE = 20170317
+        LAST_LOADABLE = 20170908
         DEFAULT_SOLVE_TOLERANCE = eps( )^(5/9)
         DEFAULT_EIGEN_TOLERANCE = eps( )^(5/9)
         DEFAULT_STEADY_TOLERANCE = eps( )^(5/9)
@@ -221,12 +216,16 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         PREAMBLE_LINK = '@(x,t)'
         PREAMBLE_REVISION = '@(x,t)'
         PREAMBLE_HASH = '@(y,xi,e,p,t,L,T)'
-        OBJ_FUN_PENALTY = 1e+10
+        OBJ_FUNC_PENALTY = 1e+10
     end
     
     
     methods
         varargout = acf(varargin)
+        varargout = addparam(varargin)
+        varargout = addplainparam(varargin)
+        varargout = addstd(varargin)
+        varargout = addcorr(varargin)
         varargout = alter(varargin)
         varargout = altName(varargin)
         varargout = assign(varargin)
@@ -273,6 +272,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = jforecast(varargin)
         varargout = length(varargin)
         varargout = lhsmrhs(varargin)
+        varargout = lp4lhsmrhs(varargin)
         varargout = disable(varargin)
         varargout = loglik(varargin)
         varargout = lognormal(varargin)
@@ -327,7 +327,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
 
         varargout = prepareBlazer(varargin)        
         varargout = prepareChkSteady(varargin)
-        varargout = prepareGlobal(varargin)        
         varargout = prepareGrouping(varargin)
         varargout = prepareSolve(varargin)        
         varargout = prepareSteady(varargin)
@@ -366,6 +365,11 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         function varargout = lookup(this, varargin)
             [varargout{1:nargout}] = lookup(this.Quantity, varargin{:});
         end
+
+
+        function n = numel(varargin)
+            n = 1;
+        end
     end
     
     
@@ -375,15 +379,16 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = chkStructureAfter(varargin)
         varargout = chkStructureBefore(varargin)
         varargout = chkSyntax(varargin)
+        varargout = createD2S(varargin)
         varargout = createSourceDbase(varargin)
         varargout = diffFirstOrder(varargin)        
+        varargout = expandFirstOrder(varargin)
         varargout = file2model(varargin)        
-        varargout = getXRange(varargin)
+        varargout = getActualMinMaxShifts(varargin)
+        varargout = getExtendedRange(varargin)
         varargout = kalmanFilterRegOutp(varargin)
-        varargout = lp4yxe(varargin)
         varargout = myanchors(varargin)
         varargout = mychksstate(varargin)
-        varargout = myd2s(varargin)
         varargout = mydiffloglik(varargin)
         varargout = myeqtn2afcn(varargin)
         varargout = myfind(varargin)
@@ -404,11 +409,9 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = solveFirstOrder(varargin)        
         varargout = steadyLinear(varargin)
         varargout = steadyNonlinear(varargin)
-        varargout = subsalt(varargin)
         varargout = symbDiff(varargin)
         varargout = systemFirstOrder(varargin)
         varargout = varyStdCorr(varargin)
-
     end
     
     
@@ -421,10 +424,43 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = appendData(varargin)
         varargout = createNonlinEqtn(varargin)
         varargout = myalias(varargin)        
-        varargout = myexpand(varargin)
         varargout = myfourierdata(varargin)
         varargout = myoutoflik(varargin)
         varargout = loadobj(varargin)
+
+
+        function flag = validateSolvedModel(input, maxNumOfVariants)
+            if nargin<2
+                numOfVariants = Inf;
+            end
+            flag = isa(input, 'model') && ~isempty(input) && all(issolved(input)) ...
+                && length(input)<=maxNumOfVariants;
+        end
+
+
+        function flag = validateChksstate(input)
+            flag = isequal(input, true) || isequal(input, false) ...
+                || (iscell(input) && iscellstr(input(1:2:end)));
+        end
+
+
+        function flag = validateFilter(input)
+            flag = isempty(input) || (iscell(input) && iscellstr(input(1:2:end)));
+        end
+
+
+        function flag = validateSolve(input)
+            flag = isequal(input, true) || isequal(input, false) ...
+                || (iscell(input) && iscellstr(input(1:2:end)));
+        end
+
+
+        function flag = validateSstate(input)
+            flag = isequal(input, true) || isequal(input, false) ...
+                || (iscell(input) && iscellstr(input(1:2:end))) ...
+                || isa(input, 'function_handle') ...
+                || (iscell(input) && ~isempty(input) && isa(input{1}, 'function_handle'));
+        end
     end
     
     
@@ -614,8 +650,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             end
             
             return
-            
-            
             
             
             function processOptions( )

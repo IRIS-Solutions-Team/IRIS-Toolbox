@@ -1,32 +1,26 @@
-function Flag = issolved(m)
+function flag = issolved(this)
 % issolved  True if model solution exists.
 %
+% __Syntax__
 %
-% Syntax
-% =======
-%
-%     Flag = issolved(M)
+%     flag = issolved(M)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `Flag` [ `true` | `false` ] - True for each parameterisation for which
+% * `flag` [ `true` | `false` ] - True for parameter variants for which
 % a stable unique solution exists currently in the model object.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -34,16 +28,14 @@ function Flag = issolved(m)
 
 %--------------------------------------------------------------------------
 
-T = m.solution{1};
-nAlt = size(T,3);
-
 % Models with no equations return `false`.
-if size(T,1) == 0
-    Flag = false(1,nAlt);
+if isempty(this.Variant.Solution{1});
+    nv = length(this);
+    flag = false(1, nv);
     return
 end
 
-[~,Flag] = isnan(m,'solution');
-Flag = ~Flag;
+[~, flag] = isnan(this, 'solution');
+flag = ~flag;
 
 end

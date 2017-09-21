@@ -1,9 +1,11 @@
-classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) TimeSeries < mixedin.UserDataWrapper
+classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
+    TimeSeries < series.Abstract & mixedin.UserDataWrapper
+
     properties
-        Start Date = Date.NaD
+        Start = Date.NaD
         Data = double.empty(0)
         ColumnNames = string.empty(1, 0)
-        MissingValue (1, 1) = NaN
+        MissingValue = NaN
     end
 
 
@@ -12,7 +14,6 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) TimeSeries < mixe
     properties (Dependent)
         End
         Range
-        Frequency
         FrequencyDisplayName
         MissingTest
     end
@@ -25,10 +26,10 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) TimeSeries < mixe
             persistent INPUT_PARSER
             if isempty(INPUT_PARSER)
                 INPUT_PARSER = extend.InputParser('TimeSeries');
-                INPUT_PARSER.addRequired('Time', @(x) isa(x, 'Date') || isempty(x)); 
+                INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'Date') || isempty(x)); 
                 INPUT_PARSER.addRequired('Data', @(x) isnumeric(x) || islogical(x) || iscell(x) || isstring(x));
-                INPUT_PARSER.addParameter('ColumnNames', '', @(x) isstring(x) || ischar(x) || iscellstr(x));
-                INPUT_PARSER.addParameter('UserData', [ ], @(x) true);
+                INPUT_PARSER.addOptional('ColumnNames', '', @(x) isstring(x) || ischar(x) || iscellstr(x));
+                INPUT_PARSER.addOptional('UserData', [ ], @(x) true);
             end
 
             if nargin==0
@@ -44,23 +45,23 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) TimeSeries < mixe
                 this = varargin{1};
                 return
             end
-            dates = varargin{1};
-            data = varargin{2};
-            INPUT_PARSER.parse(dates, data, varargin{3:end});
+            INPUT_PARSER.parse(varargin{:});
 
-            numDates = numel(dates);
+            dates = INPUT_PARSER.Results.Dates;
+            data = INPUT_PARSER.Results.Data;
+            numOfDates = numel(dates);
             assert( ...
-                numDates==1 || size(data, 1)==1 || (size(data, 1)==numDates), ...
+                numOfDates==1 || size(data, 1)==1 || (size(data, 1)==numOfDates), ...
                 'TimeSeries:TimeSeries:InvalidSizeInTimeDim', ...
                 'Invalid size of input data in time dimension.' ...
             );
-
             if isempty(dates) 
                 dates = Date.NaD;
             else
                 dates = vec(dates);
             end
             this = initData(this, dates, data);
+
             this.ColumnNames = INPUT_PARSER.Results.ColumnNames;
             this.UserData = INPUT_PARSER.Results.UserData;
             this = trim(this);
@@ -86,13 +87,8 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) TimeSeries < mixe
         end
 
 
-        function frequency = get.Frequency(this)
-            frequency = getFrequency(this.Start);
-        end
-
-
         function frequency = getFrequency(this)
-            frequency = this.Frequency;
+            frequency = getFrequency(this.Start);
         end
 
 
@@ -154,7 +150,6 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) TimeSeries < mixe
     methods %(Hidden)
         varargout = disp(varargin)
         varargout = getData(varargin)
-        varargout = getDataNoFrills(varargin)
         varargout = getDataFromAll(varargin)
         varargout = implementPlot(varargin)
         varargout = subsasgn(varargin)
@@ -166,7 +161,7 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) TimeSeries < mixe
         end
 
 
-        function this = fill(this, newData, newStart, newColumnNames)
+        function this = fill(this, newData, newStart, newColumnNames, newUserData)
             assert( ...
                 isequal(class(this.Data), class(newData)), ...
                 'TimeSeries:fill', ...
@@ -181,6 +176,12 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) TimeSeries < mixe
             else
                 this.ColumnNames = "";
             end
+            if nargin>4
+                this.UserData = newUserData;
+            else
+                this.UserData = [ ];
+            end
+            this = trim(this);
         end
 
 

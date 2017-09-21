@@ -7,8 +7,6 @@ classdef Dynamic < solver.block.Block
     
     properties (Constant)
         STEADY_SHIFT = 0
-        MAX_FROM_SHIFT = 0        
-        MIN_TO_SHIFT = 0
     end
     
     
@@ -22,7 +20,7 @@ classdef Dynamic < solver.block.Block
         
         
         
-        function [x, exitStatus, error] = run(this, x, t, L, ixLog)
+        function [X, exitStatus, error] = run(this, X, t, L, ixLog)
             exitStatus = true;
             error = struct( ...
                 'EvaluatesToNan', [ ] ...
@@ -34,19 +32,17 @@ classdef Dynamic < solver.block.Block
             end
             
             retGradient = this.RetGradient;
-            fnEval = this.FnEval;
             ixLogZ = ixLog(posx);
-            nRow = length(this.PosEqn);
-            nCol = length(posx);
+            numOfRows = length(this.PosEqn);
+            numOfColumns = length(posx);
             
             if this.Type==solver.block.Type.SOLVE
-                % SOLVE Block
-                %-------------
+                % __Solve__
                 % Initialize endogenous quantities.
-                z0 = x(posx, t);
+                z0 = X(posx, t);
                 ixNan = isnan(z0);
                 if any(ixNan) && t>1
-                    z0(ixNan) = x(posx(ixNan), t-1);
+                    z0(ixNan) = X(posx(ixNan), t-1);
                 end
                 ixNan = isnan(z0);
                 if any(ixNan)
@@ -58,7 +54,7 @@ classdef Dynamic < solver.block.Block
                 %* Make sure init conditions are within bounds.
                 %* Empty bounds if all are Inf.
                 %* Bounds are in logs for log variables.
-                chkInitBounds( );
+                checkBoundsOnInitCond( );
                 % Test all equations in this block for NaNs and Infs.
                 chk = objective(z0);
                 ix = ~isfinite(chk);
@@ -69,26 +65,22 @@ classdef Dynamic < solver.block.Block
                 [z, exitFlag] = solve(this, @objective, z0);
                 z(ixLogZ) = exp( z(ixLogZ) );
             else
-                % ASSIGN_* Block
-                %----------------
+                % __Assign__
                 z = assign( );
                 exitFlag = 1;
             end
             
-            x(posx, t) = z;
+            X(posx, t) = z;
             exitStatus = all(isfinite(z)) && double(exitFlag)>0;
             
             return
             
             
-            
-            
             function z = assign( )
-                % Assignment
-                %------------
+                % __Assignment__
                 % Vectors posl and posg are each either empty or scalar at this point.
                 fnInv = this.Type.InvTransform;
-                z = fnEval(x, t, L);
+                z = this.EquationsFunc(X, t, L);
                 if ~isempty(fnInv)
                     z = fnInv(z);
                 end
@@ -96,9 +88,7 @@ classdef Dynamic < solver.block.Block
             end
             
             
-            
-            
-            function chkInitBounds( )
+            function checkBoundsOnInitCond( )
                 return
                 ixOutOfBnds = z0<this.Lower | z0>this.Upper;
                 ixLowerInf = isinf(this.Lower);
@@ -121,15 +111,15 @@ classdef Dynamic < solver.block.Block
                 if any(ixLogZ)
                     z(ixLogZ) = exp( z(ixLogZ) );
                 end
-                x(posx, t) = z;
-                xt = x(:, t).';
+                X(posx, t) = z;
                 
-                y = fnEval(x, t, L);
+                y = this.EquationsFunc(X, t, L);
                 
                 if nargout>1 && retGradient
+                    X_t = X(:, t).';
                     j = cellfun( ...
                         @(Gradient, XX2L, D) ...
-                        Gradient(x, t, L) .* xt(XX2L) * D , ...
+                        Gradient(X, t, L) .* X_t(XX2L) * D , ...
                         ...
                         this.Gradient(1, :), ...
                         this.XX2L, ...
@@ -137,7 +127,7 @@ classdef Dynamic < solver.block.Block
                         ...
                         'UniformOutput', false ...
                         );
-                    j = reshape([j{:}], nCol, nRow).';
+                    j = reshape([j{:}], numOfColumns, numOfRows).';
                 end                
             end
         end
@@ -153,9 +143,9 @@ classdef Dynamic < solver.block.Block
             % Prepare function handles and auxiliary matrices for gradients.
             this.RetGradient = opt.PrepareGradient && this.Type==solver.block.Type.SOLVE;
             if this.RetGradient
-                [this.Gradient, this.XX2L, this.D] = ...
-                    createFnGradient(this, blz, opt);
+                [this.Gradient, this.XX2L, this.D] = createAnalyticalJacob(this, blz, opt);
             end
+            exclude(this, blz);
         end
         
         
@@ -163,25 +153,24 @@ classdef Dynamic < solver.block.Block
         
         function exclude(this, posExclude)
             % Exclude levels fixed by user.
-            if ~isempty(posExclude.Level)
-                [this.PosQty.Level, this.D.Level] = ...
-                    do(this.PosQty.Level, posExclude.Level, this.D.Level);
+            if isempty(posExclude)
+                indexKeep = ':';
+            else
+                [indexKeep, this.PosQty, this.D] = do(this.PosQty, posExclude, this.D);
             end
-            % Exclude growth rates fixed by user.
-            if ~isempty(posExclude.Growth) 
-                [this.PosQty.Growth, this.D.Growth0, this.D.GrowthK] = ...
-                    do(this.PosQty.Growth, posExclude.Growth, this.D.Growth0, this.D.GrowthK);
-            end
-            
             return
             
-            function [pos, varargout] = do(pos, posExclude, varargin)
+            
+            function [indexKeep, pos, varargout] = do(pos, posExclude, varargin)
                 varargout = varargin;
-                [pos, keep] = setdiff(pos, posExclude, 'stable');
+                indexKeep = false(1, numel(pos));
+                [pos, positionsKeep] = setdiff(pos, posExclude, 'stable');
+                indexKeep(positionsKeep) = true;
+                numericalGradient = numericalGradient(positionsKeep);
                 for i = 1 : length(varargout)
                     if ~isempty(varargout{i})
                         D = varargout{i};
-                        D = cellfun(@(x) x(:, keep), D, 'UniformOutput', false);
+                        D = cellfun(@(x) x(:, positionsKeep), D, 'UniformOutput', false);
                         varargout{i} = D;
                     end
                 end

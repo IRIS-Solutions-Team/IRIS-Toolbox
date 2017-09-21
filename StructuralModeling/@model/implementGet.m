@@ -17,12 +17,12 @@ if flag
     return
 end
 
-[answ, flag, query] = implementGet(this.Export, query, varargin{:});
+[answ, flag, query] = implementGet@shared.LoadObjectAsStructWrapper(this, query, varargin{:});
 if flag
     return
 end
 
-[answ, flag, query] = implementGet@shared.UserDataContainer(this, query, varargin{:});
+[answ, flag, query] = implementGet(this.Export, query, varargin{:});
 if flag
     return
 end
@@ -87,7 +87,7 @@ end
 ixe = this.Quantity.Type==TYPE(31) ...
     | this.Quantity.Type==TYPE(32);
 ne = sum(ixe);
-nAlt = length(this);
+nv = length(this);
 
 cell2DbaseFunc = @(X) cell2struct( ...
     num2cell(permute(X, [2, 3, 1]), 2), ...
@@ -114,63 +114,28 @@ switch lower(query)
         
         
     case 'param'
-        dbPar = implementGet(this, 'PlainParam');
-        dbStd = implementGet(this, 'Std');
-        dbCorr = implementGet(this, 'NonzeroCorr');
-        answ = dbmerge(dbPar, dbStd, dbCorr);
-          
+        answ = addparam(this);
         
         
-        
-    case {'plainparam'}
-        ixp = this.Quantity.Type==TYPE(4);
-        answ = struct( );
-        for i = find(ixp)
-            name = this.Quantity.Name{i};
-            value = model.Variant.getQuantity(this.Variant, i, ':');
-            answ.(name) = permute(value, [2, 3, 1]);
-        end
-        
-        
-        
-        
-    case 'std'
-        lsStd = getStdName(this.Quantity);
-        vecStd = model.Variant.getAllStd(this.Variant, ':');
-        answ = struct( );
-        for i = 1 : length(lsStd)
-            answ.(lsStd{i}) = permute(vecStd(1, i, :), [2, 3, 1]);
-        end
-        
-        
-        
-        
-    case {'corr', 'nonzerocorr'}
-        isNonzeroOnly = strcmpi(query, 'nonzeroCorr');
-        lsCorr = getCorrName(this.Quantity);
-        vecCorr = model.Variant.getAllCorr(this.Variant, ':');
-        ixCorrAllowed = this.Quantity.IxStdCorrAllowed(ne+1:end);
-        lsCorr = lsCorr(ixCorrAllowed);
-        vecCorr = vecCorr(ixCorrAllowed);
-        if isNonzeroOnly
-            posRemove = find(all(vecCorr==0, 3));
-            vecCorr(:, posRemove, :) = [ ];
-            lsCorr(posRemove) = [ ];
-        end
-        answ = struct( );
-        for i = 1 : length(lsCorr)
-            answ.(lsCorr{i}) = permute(vecCorr(1, i, :), [2, 3, 1]);
-        end
+    case 'plainparam'
+        answ = addplainparam(this);
+ 
 
+    case 'std'
+        answ = addstd(this);
         
+        
+    case 'corr'
+        answ = addcorr(this, struct( ), 'AddZeroCorr=', true);
+
+
+    case 'nonzerocorr'
+        answ = addcorr(this, struct( ), 'AddZeroCorr=', false);
         
         
     case 'stdcorr'
-        dbStd = implementGet(this, 'Std');
-        dbCorr = implementGet(this, 'Corr');
-        answ = dbmerge(dbStd, dbCorr);
-
-        
+        answ = addstd(this);
+        answ = addcorr(this, answ, 'AddZeroCorr=', true);
         
         
     case 'exogenous'
@@ -178,7 +143,7 @@ switch lower(query)
         answ = struct( );
         for i = find(ixg)
             name = this.Quantity.Name{i};
-            value = model.Variant.getQuantity(this.Variant, i, ':');
+            values = this.Variant.Values(:, i, :);
             answ.(name) = permute(value, [2, 3, 1]);
         end        
         
@@ -198,9 +163,9 @@ switch lower(query)
         
         
     case 'stdcorrlist'
-        lsStd = implementGet(this, 'StdList');
-        lsCorr = implementGet(this, 'CorrList');
-        answ = [lsStd, lsCorr];
+        listOfStdNames = implementGet(this, 'StdList');
+        listOfCorrNames = implementGet(this, 'CorrList');
+        answ = [listOfStdNames, listOfCorrNames];
         
         
         
@@ -225,32 +190,20 @@ switch lower(query)
         answ = this.Quantity.Name(~this.Quantity.IxLog);
         
         
-        
-        
     case {'covmat', 'omega'}
         answ = omega(this);
         
         
-        
-        
     case {'stdvec'}
-        x = model.Variant.getAllStd(this.Variant, ':');
-        answ = permute(x, [2, 3, 1]);
-        
-        
+        answ = permute(this.Variant.StdCorr(:, 1:ne, :), [2, 3, 1]);
         
         
     case {'stdcorrvec'}
-        x = model.Variant.getStdCorr(this.Variant, ':', ':');
-        answ = permute(x, [2, 3, 1]);
+        answ = permute(this.Variant.StdCorr, [2, 3, 1]);
         
         
-        
-        
-    case {'nalt'}
-        answ = nAlt;
-        
-        
+    case {'nalt', 'numofvariants'}
+        answ = nv;
         
         
     case {'nametype'}
@@ -392,19 +345,15 @@ switch lower(query)
         getStationary(query);
 
         
-        
-        
     case 'maxlag'
-        maxLagDynamic = getMaxShift(this.Incidence.Dynamic);
-        maxLagSteady = getMaxShift(this.Incidence.Steady);
+        maxLagDynamic = this.Incidence.Dynamic.MinShift;
+        maxLagSteady = this.Incidence.Steady.MinShift;
         answ = min(maxLagDynamic, maxLagSteady);
         
         
-        
-        
     case 'maxlead'
-        [~, maxLeadDynamic] = getMaxShift(this.Incidence.Dynamic);
-        [~, maxLeadSteady] = getMaxShift(this.Incidence.Steady);
+        maxLeadDynamic = this.Incidence.Dynamic.MaxShift;
+        maxLeadSteady = this.Incidence.Steady.MaxShift;
         answ = max(maxLeadDynamic, maxLeadSteady);
         
         
@@ -413,53 +362,44 @@ switch lower(query)
     case {'icond', 'initcond', 'required', 'requiredinitcond'}
         % True initial conditions required at least in one parameter variant.
         vecXb = this.Vector.Solution{2}(nf+1:end);
-        ixInit = model.Variant.get(this.Variant, 'IxInit', ':');
-        ixInit = any(ixInit, 3);
+        ixInit = any(this.Variant.IxInit, 3);
         answ = printSolutionVector(this, vecXb(ixInit)-1i);
         
         
         
         
     case {'forward'}
-        answ = size(this.solution{2}, 2)/ne - 1;
+        answ = size(this.Variant.Solution{2}, 2)/ne - 1;
         needsChkSolution = true;
         
         
-        
-        
     case {'stableroots', 'unitroots', 'unstableroots'}
-        eig_ = model.Variant.get(this.Variant, 'Eigen', ':');
-        stability = model.Variant.get(this.Variant, 'Stability', ':');
+        eigenValues = this.Variant.EigenValues;
+        eigenStability = this.Variant.EigenStability;
         switch query
             case 'stableroots'
-                ixSelect = stability==TYPE(0);
+                ixSelect = eigenStability==TYPE(0);
             case 'unstableroots'
-                ixSelect = stability==TYPE(2);
+                ixSelect = eigenStability==TYPE(2);
             case 'unitroots'
-                ixSelect = stability==TYPE(1);
+                ixSelect = eigenStability==TYPE(1);
         end
-        answ = nan(size(eig_));
-        for iAlt = 1 : nAlt
-            n = sum(ixSelect(1, :, iAlt));
-            answ(1, 1:n, iAlt) = eig_(1, ixSelect(1, :, iAlt), iAlt);
+        answ = nan(size(eigenValues));
+        for v = 1 : nv
+            n = nnz(ixSelect(1, :, v));
+            answ(1, 1:n, v) = eigenValues(1, ixSelect(1, :, v), v);
         end
         answ(:, all(isnan(answ), 3), :) = [ ];
-        
-        
         
         
     case 'epsilon'
         answ = this.Tolerance.DiffStep;
         
         
-        
-        
     case 'userdata'
         answ = userdata(this);
-        
-        
-        
-        
+
+
     % Database of autoexogenise definitions d.variable = 'shock';
     case {'autoexogenise', 'autoexogenised', 'autoexogenize', 'autoexogenized'}
         answ = autoexogenise(this);
@@ -471,25 +411,8 @@ switch lower(query)
         answ = autoexog(this);
 
         
-        
-        
-    case {'activeshocks', 'inactiveshocks'}
-        answ = cell(1, nAlt);
-        for iAlt = 1 : nAlt
-            lsShock = this.Quantity.Name(ixe);
-            vecStd = this.Variant{iAlt}.StdCorr(1, 1:ne);
-            if query(1)=='a'
-                lsShock(vecStd==0) = [ ];
-            else
-                lsShock(vecStd~=0) = [ ];
-            end
-        end
-        answ{iAlt} = lsShock;
-        
     case {'reporting', 'rpteq'}
         answ = this.Reporting;
-        
-        
         
         
     case 'nx'
@@ -499,13 +422,13 @@ switch lower(query)
         
         
     case 'nb'
-        answ = size(this.solution{7}, 1);
+        answ = size(this.Variant.Solution{7}, 1);
         
         
         
         
     case 'nf'
-        answ = length(this.Vector.Solution{2}) - size(this.solution{7}, 1);
+        answ = length(this.Vector.Solution{2}) - size(this.Variant.Solution{7}, 1);
         
         
         
@@ -574,12 +497,12 @@ return
         t0 = imag(vecXb)==0;
         name = this.Quantity.Name( real(vecXb(t0)) );
         [~, ixNanSolution] = isnan(this, 'solution');
-        status = nan([sum(t0), nAlt]);
+        status = nan([sum(t0), nv]);
         for iiAlt = find(~ixNanSolution)
-            ixUnit = this.Variant{iiAlt}.Stability(1:nb)==TYPE(1);
-            dy = any(abs(this.solution{4}(:, ixUnit, iiAlt))>EIGEN_TOLERANCE, 2).';
-            df = any(abs(this.solution{1}(1:nf, ixUnit, iiAlt))>EIGEN_TOLERANCE, 2).';
-            db = any(abs(this.solution{7}(:, ixUnit, iiAlt))>EIGEN_TOLERANCE, 2).';
+            indexOfUnitRoots = this.Variant.EigenStability(:, 1:nb, iiAlt)==TYPE(1);
+            dy = any(abs(this.Variant.Solution{4}(:, indexOfUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
+            df = any(abs(this.Variant.Solution{1}(1:nf, indexOfUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
+            db = any(abs(this.Variant.Solution{7}(:, indexOfUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
             d = [dy, df, db];
             
             if strncmp(query, 's', 1)
@@ -595,12 +518,12 @@ return
         end
         if ~isempty(strfind(query, 'list'))
             % List.
-            if nAlt==1
+            if nv==1
                 answ = name(status==true | status==1);
                 answ = answ(:)';
             else
-                answ = cell([1, nAlt]);
-                for ii = 1 : nAlt
+                answ = cell([1, nv]);
+                for ii = 1 : nv
                     answ{ii} = name(status(:, ii)==true | status(:, ii)==1);
                     answ{ii} = answ{ii}(:).';
                 end
@@ -620,17 +543,17 @@ function [ssLevel, ssGrowth, dtLevel, dtGrowth, ssDtLevel, ssDtGrowth] ...
 TYPE = @int8;
 
 nQty = length(this.Quantity);
-nAlt = length(this.Variant);
+nv = length(this.Variant);
 ixy = this.Quantity.Type==TYPE(1);
 ixLog = this.Quantity.IxLog;
 
 % Steady states.
-ss = model.Variant.getQuantity(this.Variant, ':', ':');
+ss = this.Variant.Values;
 ssLevel = real(ss);
 ssGrowth = imag(ss);
 
 % Fix missing (=zero) growth in steady states of log variables.
-ixLogZero = ssGrowth==0 & repmat(ixLog, 1, 1, nAlt);
+ixLogZero = ssGrowth==0 & repmat(ixLog, 1, 1, nv);
 ssGrowth(ixLogZero) = 1;
 
 if nargout<3
@@ -638,8 +561,8 @@ if nargout<3
 end
 
 % Dtrends alone.
-dtLevel = zeros(1, nQty, nAlt);
-dtGrowth = zeros(1, nQty, nAlt);
+dtLevel = zeros(1, nQty, nv);
+dtGrowth = zeros(1, nQty, nv);
 [dtLevel(:, ixy, :), dtGrowth(:, ixy, :)] = getSteadyDtrends(this);
 
 dtLevel(1, ixLog, :) = real(exp(dtLevel(1, ixLog, :)));
@@ -660,12 +583,11 @@ end
 
 function [Dl, Dg] = getSteadyDtrends(this)
 TYPE = @int8;
-x = model.Variant.getQuantity(this.Variant, ':', ':');
-x = permute(x, [2, 1, 3]);
+x = permute(this.Variant.Values, [2, 1, 3]);
 lx = real(x);
 gx = imag(x);
 
-nAlt = length(this);
+nv = length(this);
 ixy = this.Quantity.Type==TYPE(1); 
 ny = sum(ixy);
 posy = find(ixy);
@@ -675,8 +597,8 @@ qty = this.Quantity;
 
 % Return matrix of deterministic trends, Dl, and gradient of dtrends wrt
 % exogenous variables, Dg.
-Dl = zeros(ny, 1, nAlt);
-Dg = zeros(ny, 1, nAlt);
+Dl = zeros(ny, 1, nv);
+Dg = zeros(ny, 1, nv);
 for iEqn = find(ixd)
     % This equation gives dtrend for measurement variable ptr.
     ptr = this.Pairing.Dtrend(iEqn);

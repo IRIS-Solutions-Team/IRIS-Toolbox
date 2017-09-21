@@ -46,7 +46,7 @@ peFpe = 0;
 for t = 1 : nPer
     w0 = TT*a1(1:nb) + kk;
     Pw0 = TT*Pa1(1:nb, 1:nb)*TT.' + SgmWW;
-    Pw0 = (Pw0 + Pw0.')/2;
+    Pw0 = (Pw0 + Pw0')/2;
     
     a0 = w0(ixa);
     Pa0 = Pw0(ixa, ixa);
@@ -73,14 +73,14 @@ for t = 1 : nPer
         Zj = ZZ(ixyy, :);
         y0j = Zj*a0 + dd(ixyy);
         Fj = Zj*Pa0*Zj.' + SgmYY(ixyy, ixyy);
-        Fj = (Fj + Fj.')/2;
+        Fj = (Fj + Fj')/2;
         
         pe(ixyy) = y1(ixyy) - y0j;
         pej = pe(ixyy);
 
         P = Pw0(:, ixa);
         invFj = inv(Fj);
-        invFj = (invFj + invFj.')/2;
+        invFj = (invFj + invFj')/2;
         
         ZF = Zj.' * invFj;
         Fpe = invFj*pej;
@@ -92,7 +92,7 @@ for t = 1 : nPer
         
         w1 = w0 + P*ZFpe;
         Pw1 = Pw0 - P*ZFZ*P.';
-        Pw1 = (Pw1 + Pw1.')/2;
+        Pw1 = (Pw1 + Pw1')/2;
     end
     
     a1 = w1(ixa);

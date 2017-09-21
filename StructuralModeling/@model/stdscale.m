@@ -1,29 +1,25 @@
 function this = stdscale(this, factor)
 % stdscale  Rescale all std deviations by the same factor.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     This = stdscale(This, Factor)
+%     M = stdscale(M, Factor)
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `This` [ model ] - Model object whose std deviations will be rescaled.
+% * `M` [ model ] - Model object whose std deviations will be rescaled.
 %
 % * `Factor` [ numeric ] - Factor by which all std deviations in the model
-% object `This` will be rescaled.
+% object `M` will be rescaled.
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `This` [ model ] - Model object with all of std deviations rescaled.
+% * `M` [ model ] - Model object with all of std deviations rescaled.
 %
-% Description
-% ============
+% __Description__
 %
-% Example
-% ========
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -33,27 +29,24 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-nAlt = length(this.Variant);
-ne = sum(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
+ne = nnz(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
 
 factor = factor(:);
 if all(factor==1)
     return
 elseif all(factor==0)
-    for iAlt = 1 : nAlt
-        this.Variant{iAlt}.StdCorr(1, 1:ne) = 0;
-    end
+    this.Variant.StdCorr(:, 1:ne, :) = 0;
     return
 end
 
-nFactor = length(factor);
-if nFactor==1 && nAlt>1
-    factor = repmat(factor, 1, nAlt);
+nv = length(this);
+numOfFactors = length(factor);
+if numOfFactors==1 && nv>1
+    factor = repmat(factor, 1, nv);
 end
 
-for iAlt = 1 : nAlt
-    this.Variant{iAlt}.StdCorr(1, 1:ne) = ...
-        this.Variant{iAlt}.StdCorr(1, 1:ne) * factor(iAlt);
+for v = 1 : nv
+    this.Variant.StdCorr(:, 1:ne, v) = this.Variant.StdCorr(:, 1:ne, v) * factor(v);
 end
 
 end

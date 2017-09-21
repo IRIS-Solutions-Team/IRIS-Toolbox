@@ -613,7 +613,7 @@ return
 
 
     function populateDatabase( )
-        TIME_SERIES_CONSTRUCTOR = getappdata(0, 'TIME_SERIES_CONSTRUCTOR');
+        TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
         TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
         count = 0;
         nName = length(nameRow);

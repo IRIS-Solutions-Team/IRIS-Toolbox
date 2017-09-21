@@ -6,19 +6,22 @@
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-classdef Block < handle
+classdef (Abstract) Block < handle
     properties
         Type
+        Id = ''
         Solver
         RetGradient = false % Return gradient from objective function.
         
         PosQty
         PosEqn
-        FnEval
-        FnGradient
-        QtyStrFormat % Format to create string representing an LHS variable to verify the RHS of possible assignments.
+        Equations
+        EquationsFunc
+        NumericalJacobFunc
+        LhsQuantityFormat % Format to create string representing an LHS variable to verify the RHS of possible assignments.
         
         Shift = zeros(1, 0)
+        JacobPattern = logical.empty(0)
         Gradient = cell(2, 0)
         
         XX2L
@@ -29,8 +32,12 @@ classdef Block < handle
         
         RunTime = struct( )
     end
-    
-    
+
+
+    properties (Dependent)
+        NumberOfShifts
+        PositionOfZeroShift
+    end
     
     
     properties (Constant)
@@ -39,9 +46,12 @@ classdef Block < handle
         SAVEAS_INSIDE_ASSIGNMENT_PREFIX = '#'
     end
     
+
+    methods (Abstract)
+        exclude(varargin)
+    end
     
-    
-    
+
     methods
         function this = Block(varargin)
             if nargin==0
@@ -52,8 +62,6 @@ classdef Block < handle
                 return
             end
         end
-        
-        
         
         
         function classify(this, asgn, eqtn)
@@ -70,66 +78,74 @@ classdef Block < handle
         end
         
         
-        
-        
         function flag = chkRhsOfAssignment(this, eqtn)
             % Verify that the LHS quantity does not occur on the RHS of an assignment.
-            c = sprintf(this.QtyStrFormat, this.PosQty);
+            c = sprintf(this.LhsQuantityFormat, this.PosQty);
             rhs = solver.block.Block.removeLhs( eqtn{this.PosEqn} );
             flag = isempty( strfind(rhs, c) );
         end
         
         
-        
-        
-        function prepareBlock(blk, blz, opt)
+        function prepareBlock(this, blz, opt)
             % Prepare function handle to system of equations.
-            createFnEval(blk, blz);
+            createObjectiveFunc(this, blz);
+            createJacobPattern(this, blz);
+            createNumericalJacobFunc(this, blz);
             
             % Create gradient functions in subclasses.
             
             % Set solver options.
-            if blk.Type==solver.block.Type.SOLVE
-                blk.Solver = opt.Solver;
+            if this.Type==solver.block.Type.SOLVE
+                this.Solver = opt.Solver;
                 if isa(opt.Solver, 'optim.options.SolverOptions') ...
                         || isa(opt.Solver, 'solver.Options')
-                    blk.Solver.SpecifyObjectiveGradient = ...
+                    this.Solver.SpecifyObjectiveGradient = ...
                         opt.PrepareGradient && opt.Solver.SpecifyObjectiveGradient;
                 end
             end
         end
         
         
-        
-        
-        function createFnEval(this, blz)
-            preamble = blz.Preamble;
-            eqtn = blz.Equation;
-            pos = this.PosEqn;
-            body = [ eqtn{pos} ];
+        function createObjectiveFunc(this, blz)
+            numberOfQuantitiesInBlock = numel(this.PosEqn);
+            funcToEval = [ blz.Equation{this.PosEqn} ];
+            this.Equations = blz.Equation(this.PosEqn);
             if this.Type==solver.block.Type.SOLVE
                 % Solve-for blocks.
-                if numel(pos)>1
-                    body = [ '[', body, ']' ];
-                end
+                funcToEval = [ '[', funcToEval, ']' ];
             else
                 % Assignment blocks.
-                body = this.removeLhs(body);
+                funcToEval = this.removeLhs(funcToEval);
             end
-            this.FnEval = str2func([preamble, body]);
+            this.EquationsFunc = str2func([blz.PREAMBLE, funcToEval]);
         end
+
+
+        function createJacobPattern(this, blz)
+            incidence = across(blz.Incidence, 'Shift');
+            this.JacobPattern = incidence(this.PosEqn, this.PosQty);
+        end
+
+
+        function createNumericalJacobFunc(this, blz)
+            numberOfEquations = length(this.Equations);
+            numberOfQuantities = length(this.PosQty);
+            this.NumericalJacobFunc = cell(1, numberOfQuantities);
+            for i = 1 : numberOfQuantities
+                activeEquationsString = ['[', this.Equations{this.JacobPattern(:, i)}, ']'];
+                this.NumericalJacobFunc{i} = str2func([blz.PREAMBLE, activeEquationsString]);
+            end
+        end
+            
         
-        
-        
-        
-        function [gr, XX2L, DLevel, DGrowth0, DGrowthK] = createFnGradient(this, blz, opt)
+        function [gr, XX2L, DLevel, DGrowth0, DGrowthK] = createAnalyticalJacob(this, blz, opt)
             [~, nQuan] = size(blz.Incidence);
             nEqtnHere = length(this.PosEqn);
             gr = blz.Gradient(:, this.PosEqn);
             sh = this.Shift;
             nsh = length(sh);
-            t0 = find(this.Shift==0);
-            aux = sub2ind([nQuan+1, nsh], nQuan+1, t0); % Linear index to 1 in last row.
+            sh0 = find(this.Shift==0);
+            aux = sub2ind([nQuan+1, nsh], nQuan+1, sh0); % Linear index to 1 in last row.
             XX2L = cell(1, nEqtnHere);
             DLevel = cell(1, nEqtnHere);
             DGrowth0 = cell(1, nEqtnHere);
@@ -147,7 +163,7 @@ classdef Block < handle
                 XX2L{i}(ixLog) = sub2ind( ...
                     [nQuan+1, nsh], ...
                     real( vecWrt(ixLog) ), ...
-                    t0+imag( vecWrt(ixLog) ) ...
+                    sh0 + imag( vecWrt(ixLog) ) ...
                     );
                 DLevel{i} = double( bsxfun( ...
                     @eq, ...
@@ -160,9 +176,6 @@ classdef Block < handle
                 end
             end
         end
-        
-        
-        
         
         
         function gr = getGradient(this, blz, posEqn, opt)
@@ -179,19 +192,17 @@ classdef Block < handle
             end
             % Redifferentiate this equation wrt quantities needed only.
             d = model.Gradient.diff(blz.Equation{posEqn}, vecWrtNeeded);
-            d = str2func([blz.Preamble, d]);
+            d = str2func([blz.PREAMBLE, d]);
             gr = {d; vecWrtNeeded};
         end
-        
-        
         
         
         function [z, exitFlag] = solve(this, fnObjective, z0)
             if isa(this.Solver, 'optim.options.SolverOptions') ...
                     || isa(this.Solver, 'solver.Options')
+
+                this.Solver.JacobPattern = this.JacobPattern;
                 
-                % this.Solver = optimoptions(this.Solver, 'CheckGradients', true);
-                % this.Solver = optimoptions(this.Solver, 'FiniteDifferenceType', 'central');
                 if strcmpi(this.Solver.SolverName, 'IRIS')
                     [z, exitFlag] = solver.algorithm.lm(fnObjective, z0, this.Solver);
                     
@@ -217,8 +228,6 @@ classdef Block < handle
                 [z, exitFlag] = this.Solver(fnObjective, z0);
             end
         end
-        
-        
         
         
         function c = print(this, iBlk, name, input)
@@ -248,30 +257,36 @@ classdef Block < handle
         end
         
         
-        
-        
         function setShift(this, blz)
             % Return max lag and max lead across all equations in this block.
             incid = selectEquation(blz.Incidence, this.PosEqn);
-            t0 = zero(blz.Incidence);
+            sh0 = blz.Incidence.PosOfZeroShift;
             ixIncid = across(incid, 'Equation');
             ixIncid = any(ixIncid, 1);
-            from = find(ixIncid, 1, 'first') - t0;
-            to = find(ixIncid, 1, 'last') - t0;
-            if from>=this.MAX_FROM_SHIFT
-                from = this.MAX_FROM_SHIFT;
+            from = find(ixIncid, 1, 'first') - sh0;
+            to = find(ixIncid, 1, 'last') - sh0;
+            if from>-1 || isempty(from)
+                from = -1;
             end
-            if to<=this.MIN_TO_SHIFT
-                to = this.MIN_TO_SHIFT;
+            if to<0 || isempty(to)
+                to = 0;
             end
             this.Shift = from : to;
         end
         
         
-        
-        
         function s = size(this)
             s = [1, numel(this.PosEqn)];
+        end
+
+
+        function n = get.NumberOfShifts(this)
+            n = numel(this.Shift);
+        end
+
+
+        function sh0 = get.PositionOfZeroShift(this)
+            sh0 = find(this.Shift==0);
         end
     end
     

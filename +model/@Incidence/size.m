@@ -1,13 +1,18 @@
-function varargout = size(this)
+function varargout = size(this, k)
 
 nEqtn = size(this.Matrix, 1);
 nsh = length(this.Shift);
 nQuan = size(this.Matrix, 2) / nsh;
 
-if nargout<=1
-    varargout{1} = [nEqtn, nQuan, nsh];
+if nargin==1
+    if nargout<=1
+        varargout{1} = [nEqtn, nQuan, nsh];
+    else
+        varargout = {nEqtn, nQuan, nsh};
+    end
 else
-    varargout = {nEqtn, nQuan, nsh};
+    temp = [nEqtn, nQuan, nsh];
+    varargout{1} = temp(k);
 end
 
 end

@@ -1,7 +1,7 @@
 classdef Vector
     properties
-        System
-        Solution
+        System = repmat({double.empty(1, 0)}, 1, 5)
+        Solution = repmat({double.empty(1, 0)}, 1, 5)
     end
     
     

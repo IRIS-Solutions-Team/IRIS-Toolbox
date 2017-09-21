@@ -1,24 +1,4 @@
-function X = irisroot( )
-% irisroot  Current IRIS root folder.
-%
-% Syntax
-% =======
-%
-%     irisroot
-%     X = irisroot( )
-%
-% Output arguments
-% =================
-%
-% * `X` [ char ] - Path to the IRIS root folder.
-%
-% Description
-% ============
-%
-% The `irisroot` function is equivalent to the following call to
-% [`irisget`](config/irisget)
-%
-%     irisget('irisroot')
+function varargout = irisroot(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -26,6 +6,6 @@ function X = irisroot( )
 
 %--------------------------------------------------------------------------
 
-X = irisconfigmaster('get','irisroot');
+[varargout{1:nargout}] = iris.root(varargin{:});
 
 end

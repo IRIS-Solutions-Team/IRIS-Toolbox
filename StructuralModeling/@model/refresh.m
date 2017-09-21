@@ -1,33 +1,29 @@
-function this = refresh(this, vecAlt)
+function this = refresh(this, variantsRequested)
 % refresh  Refresh dynamic links.
 %
-% Syntax
-% =======
+% __Syntax__
+%
+%     M = refresh(M)
+%
+%
+% __Input Arguments__
+%
+% * `M` [ model ] - Model object whose dynamic links will be refreshed.
+%
+%
+% __Output Arguments__
+%
+% * `M` [ model ] - Model object with dynamic links refreshed.
+%
+%
+% __Description__
+%
+%
+% __Example__
 %
 %     m = refresh(m)
 %
-%
-% Input arguments
-% ================
-%
-% * `m` [ model ] - Model object whose dynamic links will be refreshed.
-%
-%
-% Output arguments
-% =================
-%
-% * `m` [ model ] - Model object with dynamic links refreshed.
-%
-%
-% Description
-% ============
-%
-%
-% Example
-% ========
-%
-%     m = refresh(m)
-%
+
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
@@ -37,39 +33,35 @@ if ~any(this.Link)
     return
 end
 
-nAlt = length(this);
+nv = length(this);
 try
-    if isequal(vecAlt, Inf) || isequal(vecAlt, @all)
-        vecAlt = 1 : nAlt;
+    if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
+        variantsRequested = 1 : nv;
     end
 catch %#ok<CTCH>
-    vecAlt = 1 : nAlt;
+    variantsRequested = 1 : nv;
 end
-nVecAlt = length(vecAlt);
 
 %--------------------------------------------------------------------------
 
-nQty = length(this.Quantity);
+numOfQuantities = length(this.Quantity);
 
-% Get a 1-(nQty+nStdCorr)-nAlt matrix of quantities and stdcorrs.
+% Get a 1-(numOfQuantities+numOfStdCorr)-nv matrix of quantities and stdcorrs.
 x = [ ...
-    model.Variant.getQuantity(this.Variant, ':', vecAlt), ...
-    model.Variant.getStdCorr(this.Variant, ':', vecAlt), ...
-    ];
+    this.Variant.Values(:, :, variantsRequested), ...
+    this.Variant.StdCorr(:, :, variantsRequested), ...
+];
 
-% Permute from 1-nQty-nAlt to nQty-nAlt-1.
+% Permute from 1-numOfQuantities-nv to numOfQuantities-nv-1.
 x = permute(x, [2, 3, 1]);
 
 x = refresh(this.Link, x);
 
-% Permute from (nQty+nStdCorr)-nAlt-1 to 1-(nQty+nStdCorr)-nAlt.
+% Permute from (numOfQuantities+numOfStdCorr)-nv-1 to
+% 1-(numOfQuantities+numOfStdCorr)-nv.
 x = ipermute(x, [2, 3, 1]);
 
-this.Variant = model.Variant.assignQuantity( ...
-    this.Variant, ':', ':', x(1, 1:nQty, :) ...
-    );
-this.Variant = model.Variant.assignStdCorr( ...
-    this.Variant, ':', ':', x(1, nQty+1:end, :), ...
-    this.Quantity.IxStdCorrAllowed ...
-    );
+this.Variant.Values(:, :, variantsRequested) = x(:, 1:numOfQuantities, :);
+this.Variant.StdCorr(:, :, variantsRequested) = x(:, numOfQuantities+1:end, :);
+
 end

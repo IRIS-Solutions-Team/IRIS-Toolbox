@@ -8,7 +8,7 @@
 
 classdef LastSystem < handle
     properties
-        Quantity = zeros(1, 0)
+        Values = double.empty(1, 0)
         Deriv = struct([ ])
         System = struct([ ])
     end

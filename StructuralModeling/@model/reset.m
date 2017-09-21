@@ -1,32 +1,28 @@
 function this = reset(this, varargin)
 % reset  Reset specific values within model object.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     m = reset(m)
-%     m = reset(m, req1, req2, ...)
+%     M = reset(M)
+%     M = reset(M, Req1, Req2, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `m` [ model ] -  Model object in which the requested type(s) of values
+% * `M` [ model ] -  Model object in which the requested type(s) of values
 % will be reset.
 %
-% * `req1`, `req2`, ... [ `'Corr'` | `'Parameters'` | `'Sstate'` | `'Std'`
+% * `Req1`, `Req2`, ... [ `'Corr'` | `'Parameters'` | `'Sstate'` | `'Std'`
 % | `'Stdcorr'` ] - Requested type(s) of values that will be reset; if
 % omitted, everything will be reset.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `m` [ model ] - Model object with the requested values reset.
+% * `M` [ model ] - Model object with the requested values reset.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % * `'Corr'` - All cross-correlation coefficients will be reset to `0`.
 %
@@ -40,8 +36,7 @@ function this = reset(this, varargin)
 % * `'Stdcorr'` - Equivalent to `'Std'` and `'Corr'`.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -57,7 +52,6 @@ ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ixp = this.Quantity.Type==TYPE(4);
 ixg = this.Quantity.Type==TYPE(5);
 ne = sum(ixe);
-nAlt = length(this.Variant);
 
 if this.IsLinear
     dftStd = this.DEFAULT_STD_LINEAR;
@@ -97,40 +91,22 @@ end
 return
 
 
-
-
     function resetSteady( )
-        for iAlt = 1 : nAlt
-            this.Variant{iAlt}.Quantity(1, ixx | ixy) = NaN;
-            this.Variant{iAlt}.Quantity(1, ixe) = 0;
-            this.Variant{iAlt}.Quantity(1, ixg) = model.DEFAULT_STEADY_EXOGENOUS;
-        end
+        this.Variant.Values(:, ixx | ixy, :) = NaN;
     end
-
-
 
 
     function resetParams( )
-        for iAlt = 1 : nAlt
-            this.Variant{iAlt}.Quantity(1, ixp) = NaN;
-        end
+        this.Variant.Values(:, ixp, :) = NaN;
     end
-
-
 
 
     function resetStd( )
-        for iAlt = 1 : nAlt
-            this.Variant{iAlt}.StdCorr(:, 1:ne) = dftStd;
-        end
+        this.Variant.StdCorr(:, 1:ne, :) = dftStd;
     end
 
 
-
-
     function resetCorr( )
-        for iAlt = 1 : nAlt
-            this.Variant{iAlt}.StdCorr(:, ne+1:end) = 0;
-        end
+        this.Variant.StdCorr(:, ne+1:end, :) = 0;
     end
 end

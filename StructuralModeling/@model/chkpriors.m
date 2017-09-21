@@ -1,26 +1,23 @@
 function [flag, lsBound, lsPrior, lsNotFound] = chkpriors(this, priorStruct)
 % chkpriors  Check compliance of initial conditions with priors and bounds.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     Flag = chkpriors(M,E)
-%     [Flag,InvalidBound,InvalidPrior,NotFound] = chkpriors(M,E)
+%     Flag = chkpriors(M, E)
+%     [Flag, InvalidBound, InvalidPrior, NotFound] = chkpriors(M, E)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ struct ] - Model object.
 %
 % * `E` [ struct ] - Prior structure. See `model/estimate` for details.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Flag` [ `true` | `false` ] - True if all parameters exist in the model
-% object, and have initial values consistent with lower and upper bounds,
+% object, and have initial values consistent with lower and upper bounds, 
 % and prior distributions.
 %
 % * `InvalidBound` [ cellstr ] - Cell array of parameters whose initial
@@ -33,23 +30,24 @@ function [flag, lsBound, lsPrior, lsNotFound] = chkpriors(this, priorStruct)
 % the model object `M`.
 %
 %
-% Options
-% ========
+% __Options__
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
+%
+
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/chkpriors');
+    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
+    INPUT_PARSER.addRequired('PriorStruct', @isstruct);
+end
+INPUT_PARSER.parse(this, priorStruct);
 
 %--------------------------------------------------------------------------
-
-% Validate input arguments
-pp = inputParser( ) ;
-pp.addRequired('E', @isstruct) ;
-pp.parse(priorStruct) ;
 
 % Check consistency by looping over parameters
 lsp = fields(priorStruct) ;
@@ -64,31 +62,26 @@ posStdCorr = ell.PosStdCorr;
 ixFound = ~isnan(posQty) | ~isnan(posStdCorr);
 
 for iName = find(ixFound)
+    ithParam = priorStruct.(lsp{iName}) ;
     
-    param = priorStruct.(lsp{iName}) ;
-    
-    if isempty(param)
+    if isempty(ithParam)
         initVal = NaN;
     else
-        initVal = param{1};
+        initVal = ithParam{1};
     end
     
     if isnan(initVal)
-        % use initial condition from model object
+        % Use initial condition from model object
         if ~isnan(posQty(iName))
-            initVal = model.Variant.getQuantity( ...
-                this.Variant, posQty(iName), ':' ...
-                );
-        else
-            initVal = model.Variant.getStdCorr( ...
-                this.Variant, posStdCorr(iName), ':' ...
-                );
+            initVal = this.Variant.Values(:, posQty(iName), :);
+        elseif ~isnan(posStdCorr(iName))
+            initVal = this.Variant.Values(:, posStdCorr(iName), :);
         end
     end
     
     % get prior function
-    if numel(param)>3 && ~isempty(param{4})
-        fh = param{4} ;
+    if numel(ithParam)>3 && ~isempty(ithParam{4})
+        fh = ithParam{4} ;
         % check prior consistency
         if ~isa(fh, 'function_handle') || ~isfinite(fh(initVal))
             ixValidPrior(iName) = false ;
@@ -96,10 +89,10 @@ for iName = find(ixFound)
     end
     
     % check bounds consistency
-    if numel(param)<2 || isempty(param{2}) || param{2}<=-realmax
+    if numel(ithParam)<2 || isempty(ithParam{2}) || ithParam{2}<=-realmax
         lowerBound = -Inf;
     else
-        lowerBound = param{2};
+        lowerBound = ithParam{2};
     end
     if ~isequal(lowerBound, -Inf)
         if initVal<lowerBound
@@ -107,10 +100,10 @@ for iName = find(ixFound)
         end
     end
     
-    if numel(param)<3 || isempty(param{3}) || param{3}>=realmax
+    if numel(ithParam)<3 || isempty(ithParam{3}) || ithParam{3}>=realmax
         upperBound = Inf;
     else
-        upperBound = param{3};
+        upperBound = ithParam{3};
     end
     if ~isequal(upperBound, Inf)
         if initVal>upperBound

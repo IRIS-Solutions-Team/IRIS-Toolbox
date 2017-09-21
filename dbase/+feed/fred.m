@@ -1,44 +1,38 @@
-function outputData = fred(varargin)
-% feed.fred  Import data from FRED, Federal Reserve Bank of St. Louis database.
+function outputDatabank = fred(varargin)
+% feed.fred  Import data from FRED, Federal Reserve Bank of St. Louis databank.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%      OutputDatabase = feed.fred(FredSeriesID, ...)
+%      OutputDatabank = feed.fred(FredSeriesID, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `FredSeriesID` [ cellstr | string ] - FRED Series IDs for requested
 % data (not case sensitive).
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `OutputDatabase` [ struct ] - Database containing imported FRED series.
-%
-%
-% Options
-% ========
-%
-% * `'URL='` [ *`'https://research.stlouisfed.org/fred2/'`* | char | string ] - URL for the database.
+% * `OutputDatabank` [ struct ] - Databank containing imported FRED series.
 %
 %
-% Description
-% ============
+% __Options__
+%
+% * `'URL='` [ *`'https://research.stlouisfed.org/fred2/'`* | char | string ] - URL for the databank.
+%
+%
+% __Description__
 %
 % Federal Reserve Economic Data, FRED (https://fred.stlouisfed.org/)
-% is an online database consisting of more than 385, 000 economic data time
+% is an online databank consisting of more than 385, 000 economic data time
 % series from 80 national, international, public, and private sources. 
-% The `feed.fred( )` function provides access to those databases with IRIS.
+% The `feed.fred( )` function provides access to those databanks with IRIS.
 %
 % This function requires the Datafeed Toolbox.
 %
 %
-% Example
-% ========
+% __Example__
 %
 %     d = feed.fred({'GDP', 'PCEC', 'FPI'})
 %  
@@ -53,9 +47,12 @@ function outputData = fred(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-%-----------------------------------------------------------
+timeSeriesConstructor = getappdata(0, 'IRIS_TimeSeriesConstructor');
+dateFromSerial = getappdata(0, 'IRIS_DateFromSerial');
+
+%--------------------------------------------------------------------------
 
 container = DatafeedContainer.fromFred(varargin{:});
-outputData = export(container, @DateWrapper.fromSerial, @tseries);
+outputDatabank = export(container, dateFromSerial, timeSeriesConstructor);
 
 end
