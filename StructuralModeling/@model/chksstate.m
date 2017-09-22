@@ -2,20 +2,17 @@ function [flag, varargout] = chksstate(this, varargin)
 % chksstate  Check if equations hold for currently assigned steady-state values.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [Flag,List] = chksstate(M,...)
-%     [Flag,Discr,List] = chksstate(M,...)
+%     [Flag, List] = chksstate(M, ...)
+%     [Flag, Discr, List] = chksstate(M, ...)
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Flag` [ `true` | `false` ] - True if discrepancy between LHS and RHS
 % is smaller than tolerance level in each equation.
@@ -28,8 +25,7 @@ function [flag, varargout] = chksstate(this, varargin)
 % LHS and RHS is greater than `'tolerance='`.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Error='` [ *`true`* | `false` ] - Throw an error if one or more
 % equations fail to hold up to tolerance level.
@@ -41,12 +37,10 @@ function [flag, varargout] = chksstate(this, varargin)
 % function.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -77,7 +71,7 @@ if opt.warning
     end
 end
 
-nAlt = length(this);
+nv = length(this);
 
 % `dcy` is a matrix of discrepancies; it has two columns when dynamic
 % equations are evaluated, or one column when steady equations are
@@ -101,15 +95,15 @@ if any(~flag) && opt.error
 end
 
 if isSort
-    sortList = cell(1,nAlt);
-    for iAlt = 1 : nAlt
-        [~, ix] = sort(maxAbsDiscr(:,iAlt), 1, 'descend');
-        dcy(:,:,iAlt) = dcy(ix,:,iAlt);
+    sortList = cell(1, nv);
+    for iAlt = 1 : nv
+        [~, ix] = sort(maxAbsDiscr(:, iAlt), 1, 'descend');
+        dcy(:, :, iAlt) = dcy(ix, :, iAlt);
         sortList{iAlt} = this.Equation.Input(ix);
     end
 end
 
-if nAlt==1
+if nv==1
     list = list{1};
     if isSort
         sortList = sortList{1};

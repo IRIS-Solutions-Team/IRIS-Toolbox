@@ -1,4 +1,4 @@
-function [flag, dcy, maxAbsDcy, lsEqtn] = mychksstate(this, variantsRequested, opt)
+function [flag, dcy, maxAbsDcy, listOfEquations] = mychksstate(this, variantsRequested, opt)
 % mychksstate  Discrepancy in steady state of model equtions.
 %
 % Backend IRIS function.
@@ -46,7 +46,7 @@ absDcyWithImag = abs(dcyWithImag); %
 absDcyWithImag = absDcyWithImag(:, :);
 
 flag = true(1, numOfVariantsRequested);
-lsEqtn = cell(1, numOfVariantsRequested);
+listOfEquations = cell(1, numOfVariantsRequested);
 for i = 1 : numOfVariantsRequested
     indexWithinTol = maxAbsDcy(:, i)<=STEADY_TOLERANCE;
     flag(i) = all(indexWithinTol);
@@ -58,9 +58,9 @@ for i = 1 : numOfVariantsRequested
         flag(i) = all(indexWithinTol | indexWithinTolInAssignment);
     end
     if ~flag(i) && nargout>=4
-        lsEqtn{i} = this.Equation.Input(~indexWithinTol & ~indexWithinTolInAssignment);
+        listOfEquations{i} = transpose(this.Equation.Input(~indexWithinTol & ~indexWithinTolInAssignment));
     else
-        lsEqtn{i} = { };
+        listOfEquations{i} = cell.empty(0, 1);
     end
 end
 
