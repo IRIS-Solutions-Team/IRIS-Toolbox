@@ -2,15 +2,13 @@ function this = prior(this, def, priorFunc, varargin)
 % prior  Add new prior to system priors object.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     S = prior(S, Expr, PriorFn, ...)
 %     S = prior(S, Expr, [ ], ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `S` [ systempriors ] - System priors object.
 %
@@ -22,25 +20,21 @@ function this = prior(this, def, priorFunc, varargin)
 % log of prior density; empty prior function, `[ ]`, means a uniform prior.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `S` [ systempriors ] - The system priors object with the new prior
 % added.
 %
-% Options
-% ========
+% __Options__
 %
 % * `'LowerBound='` [ numeric | *`-Inf`* ] - Lower bound for the prior.
 %
 % * `'UpperBound='` [ numeric | *`Inf`* ] - Upper bound for the prior.
 %
 %
-% Description
-% ============
+% __Description__
 %
-% System properties that can be used in `Expr`
-% ---------------------------------------------
+% _System Properties That Can Be Used in `Expr`_
 %
 % * `srf[VarName, ShockName, T]` - Plain shock response function of variables
 % `VarName` to shock `ShockName` in period `T`. Mind the square brackets.
@@ -60,16 +54,15 @@ function this = prior(this, def, priorFunc, varargin)
 % the log of that variables is returned, e.g.
 % `srf[log(VarName), ShockName, T]`. or `ffrf[log(TVarName), MVarName, T]`.
 %
-% Expressions involving combinations or functions of parameters
-% --------------------------------------------------------------
+%
+% _Expressions Involving Combinations or Functions of Parameters_
 %
 % Model parameter names can be referred to in `Expr` preceded by a dot
 % (period), e.g. `.alpha^2 + .beta^2` defines a prior on the sum of squares
 % of the two parameters (`alpha` and `beta`).
 %
 %
-% Example
-% ========
+% __Example__
 %
 % Create a new empty systemprios object based on an existing model.
 %
@@ -109,13 +102,17 @@ function this = prior(this, def, priorFunc, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-pp = inputParser( );
-pp.addRequired('S', @(x) isa(x, 'systempriors'));
-pp.addRequired('Def', @ischar);
-pp.addRequired('PriorFunc', @(x) isempty(x) || isfunc(x));
-pp.parse(this, def, priorFunc);
-
-opt = passvalopt('systempriors.prior', varargin{:});
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('systempriors/prior');
+    INPUT_PARSER.addRequired('SystemPriors', @(x) isa(x, 'systempriors'));
+    INPUT_PARSER.addRequired('Definition', @(x) ischar(x) || (isa(x, 'string') && numel(x)==1));
+    INPUT_PARSER.addRequired('PriorFunc', @(x) isempty(x) || isa(x, 'function_handle'));
+    INPUT_PARSER.addParameter('LowerBound', -Inf, @(x) isnumeric(x) && numel(x)==1 && imag(x)==0);
+    INPUT_PARSER.addParameter('UpperBound', Inf, @(x) isnumeric(x) && numel(x)==1 && imag(x)==0);
+end
+INPUT_PARSER.parse(this, def, priorFunc, varargin{:});
+opt = INPUT_PARSER.Options;
 
 %--------------------------------------------------------------------------
 
@@ -142,128 +139,119 @@ catch %#ok<CTCH>
         inpDef ...
     );
 end
-
 this.PriorFn{end+1} = priorFunc;
-
 this.UserString{end+1} = inpDef;
-
-% Set and verify lower and upper bounds.
-this.Bounds(:, end+1) = [opt.lowerbound; opt.upperbound];
-if this.Bounds(1, end)>=this.Bounds(2, end)
-    throw( ...
-        exception.Base('SystemPriors:LOWER_UPPER_BOUND', 'error'), ...
-        this.Bounds(1, end), this.Bounds(2, end) ...
-    ); %#ok<GTARG>
+this.Bounds(:, end+1) = [opt.LowerBound; opt.UpperBound];
 end
-
-end
-
-
 
 
 function [this, def] = parseSystemFunctions(this, def)
-% Replace variable names in the system function definition `Def`
-% with the positions in the respective matrices (the positions are
-% function-specific), and update the (i) number of simulated periods, (ii)
-% FFRF frequencies, (iii) ACF lags, and (iv) XSF frequencies that need to be
-% computed.
-
-temp = fieldnames(this.SystemFn);
-ptn = sprintf('%s|', temp{:});
-ptn = ['\<(', ptn(1:end-1), ')\['];
-
-while true
-    % The system function names `srf`, `ffrf`, `cov`, `corr`, `pws`, 
-    % `spd` are case insensitive.
-    [start, open] = regexpi(def, ptn, 'start', 'end', 'once');
-    if isempty(open)
-        break
+    % Replace variable names in the system function definition `Def`
+    % with the positions in the respective matrices (the positions are
+    % function-specific), and update the (i) number of simulated periods, (ii)
+    % FFRF frequencies, (iii) ACF lags, and (iv) XSF frequencies that need to be
+    % computed.
+    listOfSystemFunctions = fieldnames(this.SystemFn);
+    ptn = sprintf('%s|', listOfSystemFunctions{:});
+    ptn = ['\<(', ptn(1:end-1), ')[\(\[]'];
+    previousEnd = 1;
+    while true
+        % System function names `srf`, `ffrf`, `cov`, `corr`, `pws`, 
+        % `spd` are case insensitive.
+        [start, open] = regexpi(def(previousEnd+1:end), ptn, 'start', 'end', 'once');
+        if isempty(open)
+            break
+        end
+        start = start + previousEnd;
+        open = open + previousEnd;
+        close = textfun.matchbrk(def, open);
+        if isempty(close)
+            throw( ...
+                exception.Base('SystemPriors:ERROR_PARSING_DEFINITION', 'error'), ...
+                def(start:end) ...
+            );
+        end
+        funcName = def(start:open-1);
+        funcName = lower(funcName);
+        funcArgs = def(open+1:close-1);
+        if ~isfield(this.SystemFn, funcName)
+            throw( ...
+                exception.Base('SystemPriors:INVALID_PRIOR_FUNCTION', 'error'), ...
+                funcName ...
+            );
+        end
+        [this, rpl, isError] = replaceSystemFunc(this, funcName, funcArgs);
+        if isError
+            throw( ...
+                exception.Base('SystemPriors:ERROR_PARSING_DEFINITION', 'error'), ...
+                def(start:close) ...
+            );
+        end
+        def = [def(1:start-1), rpl, def(close+1:end)];
+        previousEnd = close;
     end
-    close = textfun.matchbrk(def, open);
-    if isempty(close)
-        throw( exception.Base('SystemPriors:ERROR_PARSING_DEFINITION', 'error'), ...
-            def(start:end) );
-    end
-    funcName = def(start:open-1);
-    funcName = lower(funcName);
-    funcArgs = def(open+1:close-1);
-    if ~isfield(this.SystemFn, funcName)
-        throw( exception.Base('SystemPriors:INVALID_PRIOR_FUNCTION', 'error'), funcName );
-    end
-    [this, rpl, isError] = replaceSystemFunc(this, funcName, funcArgs);
-    if isError
-        throw( exception.Base('SystemPriors:ERROR_PARSING_DEFINITION', 'error'), ...
-            def(start:close) );
-    end
-    def = [def(1:start-1), rpl, def(close+1:end)];
 end
-
-end
-
-
 
 
 function [this, c, isErr] = replaceSystemFunc(this, funcName, argStr)
-c = '';
-isErr = false;
+    c = '';
+    isErr = false;
 
-% Retrieve the system function struct for convenience.
-s = this.SystemFn.(funcName);
+    % Retrieve the system function struct for convenience.
+    s = this.SystemFn.(funcName);
 
-tok = regexp(argStr, '(.*?),(.*?),(.*)', 'once', 'tokens');
-if isempty(tok)
-    tok = regexp(argStr, '(.*?),(.*?)', 'once', 'tokens');
-    if ~isempty(tok)
-        tok{end+1} = s.defaultPageStr;
-    end
-end
-if length(tok) ~= 3
-    isErr = true;
-    return
-end
-
-rowName = tok{1};
-colName = tok{2};
-% `page` can be a scalar or a vector of pages.
-page = eval(tok{3});
-if ~all(isfinite(page)) || ~s.validatePage(page)
-    isErr = true;
-    return
-end
-
-posRow = find( strcmp(rowName, s.rowName) );
-posCol = find( strcmp(colName, s.colName) );
-chkRowColNames( );
-
-try 
-    % Add all pages requested by the user.
-    pagePosString = '';
-    for iPage = page(:).'
-        pagePos = find(s.page==iPage);
-        if isempty(pagePos)
-            addPage( );
+    tok = regexp(argStr, '(.*?),(.*?),(.*)', 'once', 'tokens');
+    if isempty(tok)
+        tok = regexp(argStr, '(.*?),(.*?)', 'once', 'tokens');
+        if ~isempty(tok)
+            tok{end+1} = s.defaultPageStr;
         end
-        if ~isempty(pagePosString)
-            pagePosString = [pagePosString, ', ']; %#ok<AGROW>
+    end
+    if length(tok)~=3
+        isErr = true;
+        return
+    end
+
+    rowName = tok{1};
+    colName = tok{2};
+    % `page` can be a scalar or a vector of pages.
+    page = eval(tok{3});
+    if ~all(isfinite(page)) || ~s.validatePage(page)
+        isErr = true;
+        return
+    end
+
+    posRow = find( strcmp(rowName, s.rowName) );
+    posCol = find( strcmp(colName, s.colName) );
+    chkRowColNames( );
+
+    try 
+        % Add all pages requested by the user.
+        pagePosString = '';
+        for iPage = page(:).'
+            pagePos = find(s.page==iPage);
+            if isempty(pagePos)
+                addPage( );
+            end
+            if ~isempty(pagePosString)
+                pagePosString = [pagePosString, ', ']; %#ok<AGROW>
+            end
+            pagePosString = [pagePosString, sprintf('%g', pagePos)]; %#ok<AGROW>
         end
-        pagePosString = [pagePosString, sprintf('%g', pagePos)]; %#ok<AGROW>
+        if length(page)~=1
+            pagePosString = ['[', pagePosString, ']'];
+        end
+        
+        c = sprintf('%s(%g, %g, %s)', funcName, posRow, posCol, pagePosString);
+        
+        % Update the system function struct.
+        this.SystemFn.(funcName) = s; 
+    catch %#ok<CTCH>
+        isErr = true;
+        return
     end
-    if length(page) ~= 1
-        pagePosString = ['[', pagePosString, ']'];
-    end
-    
-    c = sprintf('%s(%g, %g, %s)', funcName, posRow, posCol, pagePosString);
-    
-    % Update the system function struct.
-    this.SystemFn.(funcName) = s; 
-catch %#ok<CTCH>
-    isErr = true;
+
     return
-end
-
-return
-
-
 
 
     function addPage( )
@@ -297,43 +285,46 @@ return
     end
 
 
-
-
     function chkRowColNames( )
         if isempty(posRow)
-            throw( exception.Base('SystemPriors:INVALID_ROW', 'error'), rowName );
+            throw( ...
+                exception.Base('SystemPriors:INVALID_ROW', 'error'), ...
+                rowName ...
+            );
         end
         if isempty(posCol)
-            throw( exception.Base('SystemPriors:INVALID_COLUMN', 'error'), colName );
+            throw( ...
+                exception.Base('SystemPriors:INVALID_COLUMN', 'error'), ...
+                colName ...
+            );
         end        
     end
 end
 
 
-
-
 function def = parseNames(this, def)
-% Parse references to parameters and steady-state values of variables.
+    % Parse references to parameters and steady-state values of variables.
 
-lsInvalid = { };
+    lsInvalid = { };
 
-% Dot-references to the names of variables, shocks and parameters names
-% (must not be followed by an opening round bracket).
-ptn = '\.(\<[a-zA-Z]\w*\>(?![\[\(]))';
-if true % ##### MOSW
-    replaceFunc = @replace; %#ok<NASGU>
-    def = regexprep(def, ptn, '${replaceFunc($1)}');
-else
-    def = mosw.dregexprep(def, ptn, @replace, 1); %#ok<UNRCH>
-end
+    % Dot-references to the names of variables, shocks and parameters names
+    % (must not be followed by an opening round bracket).
+    ptn = '\.(\<[a-zA-Z]\w*\>(?![\[\(]))';
+    if true % ##### MOSW
+        replaceFunc = @replace; %#ok<NASGU>
+        def = regexprep(def, ptn, '${replaceFunc($1)}');
+    else
+        def = mosw.dregexprep(def, ptn, @replace, 1); %#ok<UNRCH>
+    end
 
-if ~isempty(lsInvalid)
-    throw( exception.Base('SystemPriors:INVALID_NAME', 'error'), lsInvalid{:} );
-end
+    if ~isempty(lsInvalid)
+        throw( ...
+            exception.Base('SystemPriors:INVALID_NAME', 'error'), ...
+            lsInvalid{:} ...
+        );
+    end
 
-return
-
-
+    return
 
 
     function c1 = replace(c0)

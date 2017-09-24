@@ -1,33 +1,36 @@
 % systempriors  System Priors (systempriors Objects).
 %
+% Description
+% ------------
+%
 % System priors are priors imposed on the system properties of a model as
 % whole, such as shock response functions, frequency response functions, 
 % correlations, or spectral densities; moreover, systempriors objects also
 % allow for priors on combinations of parameters. The system priors can be
 % combined with priors on individual parameters.
 %
-% Systempriors methods:
 %
-% Constructor
-% ============
+% systempriors methods:
+%
+% Functions by Category
+% ----------------------
+%
+% __Constructor__
 %
 % * [`systempriors`](systempriors/systempriors) - Create new empty system priors object.
 %
 %
-% Setting up priors
-% ==================
+% __Setting Up Priors__
 %
 % * [`prior`](systempriors/prior) - Add new prior to system priors object.
 %
 %
-% Evaluating system priors
-% =========================
+% __Evaluating System Priors__
 %
 % * [`eval`](systempriors/eval) - 
 %
 %
-% Getting information about system priors
-% ========================================
+% __Getting Information About System Priors__
 %
 % * [`detail`](systempriors/detail) - Display details of system priors object.
 % * [`isempty`](systempriors/isempty) - True if system priors object is empty.
@@ -43,12 +46,10 @@ classdef systempriors < shared.UserDataContainer & shared.GetterSetter
         PriorFn = cell(1, 0)
         Bounds = zeros(2, 0)
         UserString = cell(1, 0)
-        Quantity = model.Quantity( )
+        Quantity = model.component.Quantity( )
         SystemFn = struct( )
         ShkSize = zeros(1, 0)
     end 
-
-
 
 
     methods
@@ -60,51 +61,42 @@ classdef systempriors < shared.UserDataContainer & shared.GetterSetter
         varargout = length(varargin)        
     end
     
-
-
     
     methods (Access=protected, Hidden)
         varargout = defineSystemFunc(varargin)
     end
 
 
-
-
     methods (Hidden)
         varargout = chkConsistency(varargin)
     end
     
-    
-
 
     methods
         function this = systempriors(varargin)
             % systempriors  Create new empty system priors object.
             %
-            % Syntax
-            % =======
+            % __Syntax__
             %
             %     S = systempriors(M)
             %
             %
-            % Input arguments
-            % ================
+            % __Input Arguments__
             %
             % * `M` [ model ] - Model object on whose system properties the priors will
             % be imposed.
             %
             %
-            % Output arguments
-            % =================
+            % __Output Arguments__
             %
             % * `S` [ systempriors ] - New empty system priors object.
             %
             %
-            % Description
-            % ============
+            % __Description__
             %
-            % Example
-            % ========
+            %
+            % __Example__
+            %
             
             % -IRIS Macroeconomic Modeling Toolbox.
             % -Copyright (c) 2007-2017 IRIS Solutions Team.
@@ -135,4 +127,19 @@ classdef systempriors < shared.UserDataContainer & shared.GetterSetter
             end
         end 
     end 
+
+
+    methods
+        function this = set.Bounds(this, bounds)
+            assert( ...
+                size(bounds, 1)==2, ...
+                'System prior bounds must be a 2xN array.' ...
+            );
+            assert( ...
+                all(bounds(1, :)<bounds(2, :)), ...
+                exception.Base('SystemPriors:LOWER_UPPER_BOUND', 'error') ...
+            );
+            this.Bounds = bounds;
+        end
+    end
 end 

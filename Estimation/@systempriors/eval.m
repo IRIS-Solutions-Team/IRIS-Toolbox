@@ -1,40 +1,35 @@
 function [P, C, X] = eval(this, m)
 % eval  Evaluate minus log of system prior density.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [p, c, x] = eval(s, m)
+%     [P, C, X] = eval(S, M)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `s` [ systempriors ] - System priors object.
+% * `S` [ systempriors ] - System priors object.
 %
-% * `m` [ model ] - Model object on which the system priors will be
+% * `M` [ model ] - Model object on which the system priors will be
 % evaluated.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `p` [ numeric ] - Minus log of system prior density, up to an
+% * `P` [ numeric ] - Minus log of system prior density, up to an
 % integration constant.
 %
-% * `c` [ numeric ] - Contributions of individual system priors to the overall
+% * `C` [ numeric ] - Contributions of individual system priors to the overall
 % log density.
 %
-% * `x` [ numeric ] - Value of each expression defining a system property
-% for which a prior has been defined in the system priors object, `s`.
+% * `X` [ numeric ] - Value of each expression defining a system property
+% for which a prior has been defined in the system priors object, `S`.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -44,43 +39,46 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-nAlt = length(m);
+nv = length(m);
 ns = length(this);
 
-P = nan(1, nAlt);
-C = nan(1, ns, nAlt);
-X = nan(1, ns, nAlt);
+P = nan(1, nv);
+C = nan(1, ns, nv);
+X = nan(1, ns, nv);
 
-for iAlt = 1 : nAlt
+for v = 1 : nv
     % Current state space matrices.
-    [T, R, ~, Z, H, ~, U, Omg] = sspaceMatrices(m, iAlt, false);
-    [eigenVal, stability] = eig(m, iAlt);
-    [asgndQty, asgndStdCorr] = assigned(m, iAlt);
+    [T, R, ~, Z, H, ~, U, Omg] = sspaceMatrices(m, v, false);
+    [eigenVal, stability] = eig(m, v);
+    [assignedValues, assignedStdCorr] = assigned(m, v);
     ny = size(Z, 1);
-    nxx = size(T, 1);
+    nxi = size(T, 1);
     ne = size(H, 2);
 
     % Shock response function.
     SRF = [ ];
     if ~isempty(this, 'srf')
-        nPer = max(this.SystemFn.srf.page);
+        numOfPeriosToSimulate = max(this.SystemFn.srf.page);
         shkSize = this.ShkSize;
-        SRF = nan(ny+nxx, ne, nPer);
+        SRF = nan(ny+nxi, ne, numOfPeriosToSimulate);
         ixActive = this.SystemFn.srf.activeInput;
-        Phi = timedom.srf(T, R(:, ixActive), [ ], Z, H(:, ixActive), [ ], U, [ ], ...
-            nPer, shkSize(ixActive));
+        Phi = timedom.srf( ...
+            T, R(:, ixActive), [ ], Z, H(:, ixActive), [ ], U, [ ], ...
+            numOfPeriosToSimulate, shkSize(ixActive));
         SRF(:, ixActive, :) = Phi(:, :, 2:end);
     end
     
     % Number of unit roots.
-    nUnit = sum(stability==TYPE(1));
+    numOfUnitRoots = nnz(stability==TYPE(1));
 
     % Frequency response function.
     FFRF = [ ];
     if ~isempty(this, 'ffrf')
         freq = this.SystemFn.ffrf.page;
         incl = Inf;
-        FFRF = freqdom.ffrf3(T, R, [ ], Z, H, [ ], U, Omg, nUnit, freq, incl, [ ], [ ]);
+        FFRF = freqdom.ffrf3( ...
+            T, R, [ ], Z, H, [ ], U, Omg, numOfUnitRoots, freq, incl, [ ], [ ] ...
+        );
     end
     
     % Covariance function.
@@ -100,7 +98,7 @@ for iAlt = 1 : nAlt
     PWS = [ ];
     if ~isempty(this, 'pws') || ~isempty(this, 'spd')
         freq = this.SystemFn.pws.page;
-        PWS = freqdom.xsf(T, R, [ ], Z, H, [ ], U, Omg, nUnit, freq);
+        PWS = freqdom.xsf(T, R, [ ], Z, H, [ ], U, Omg, numOfUnitRoots, freq);
     end
     
     % Spectral density function.
@@ -114,7 +112,7 @@ for iAlt = 1 : nAlt
     c = nan(1, ns);
     p = 0;
     for is = 1 : ns
-        x(is) = this.Eval{is}(SRF, FFRF, COV, CORR, PWS, SPD, asgndQty, asgndStdCorr);
+        x(is) = this.Eval{is}(SRF, FFRF, COV, CORR, PWS, SPD, assignedValues, assignedStdCorr);
         if x(is)<this.Bounds(1, is) || x(is)>this.Bounds(2, is)
             c(is) = Inf;
         elseif ~isempty(this.PriorFn{is})
@@ -134,9 +132,9 @@ for iAlt = 1 : nAlt
         end
     end
 
-    P(1, iAlt) = p;
-    C(1, :, iAlt) = c;
-    X(1, :, iAlt) = x;
+    P(1, v) = p;
+    C(1, :, v) = c;
+    X(1, :, v) = x;
 end
 
 end
