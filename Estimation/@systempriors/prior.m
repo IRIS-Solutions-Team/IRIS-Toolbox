@@ -154,7 +154,7 @@ function [this, def] = parseSystemFunctions(this, def)
     listOfSystemFunctions = fieldnames(this.SystemFn);
     ptn = sprintf('%s|', listOfSystemFunctions{:});
     ptn = ['\<(', ptn(1:end-1), ')[\(\[]'];
-    previousEnd = 1;
+    previousEnd = 0;
     while true
         % System function names `srf`, `ffrf`, `cov`, `corr`, `pws`, 
         % `spd` are case insensitive.
