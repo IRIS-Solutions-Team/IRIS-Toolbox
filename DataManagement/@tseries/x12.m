@@ -2,24 +2,21 @@ function varargout = x12(varargin)
 % x12  Access to X13-ARIMA-SEATS seasonal adjustment program.
 %
 %
-% Syntax with a single type of output requested
-% ==============================================
+% __Syntax with a Single Type of Output Requested__
 %
-%     [Y,OutpFile,ErrFile,Model,X] = x12(X,...)
-%     [Y,OutpFile,ErrFile,Model,X] = x12(X,Range,...)
+%     [Y, OutpFile, ErrFile, Model, X] = x12(X, ...)
+%     [Y, OutpFile, ErrFile, Model, X] = x12(X, Range, ...)
 %
 %
-% Syntax with mutliple types of output requested
-% ===============================================
+% __Syntax with Mutliple Types of Output Requested__
 %
-%     [Y1,Y2,...,OutpFile,ErrFile,Model,X] = x12(X,Range,...)
+%     [Y1, Y2, ..., OutpFile, ErrFile, Model, X] = x12(X, Range, ...)
 %
 % See the option `'output='` for the types of output data available from
 % X12.
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `X` [ tseries ] - Input data that will seasonally adjusted or filtered
 % by the Census X12 Arima; `X` must be a quarterly or monthly time series.
@@ -29,8 +26,7 @@ function varargout = x12(varargin)
 % defined; `Range` may be omitted.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Y`, `Y1`, `Y2`, ... [ tseries ] - Requested output data, by default
 % only one type of output is returned, the seasonlly adjusted data; see the
@@ -50,93 +46,90 @@ function varargout = x12(varargin)
 % appended if the options `'forecast='` and/or `'backcast='` are used.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'backcast='` [ numeric | *`0`* ] - Run a backcast based on the fitted
+% * `'Backcast='` [ numeric | *`0`* ] - Run a backcast based on the fitted
 % ARIMA model for this number of periods back to improve on the seasonal
 % adjustment; see help on the `x11` specs in the X13-ARIMA-SEATS manual.
 % The backcast is included in the output argument `X`.
 %
-% * `'cleanup='` [ *`true`* | `false` ] - Delete temporary X12 files
+% * `'Cleanup='` [ *`true`* | `false` ] - Delete temporary X12 files
 % when done; the temporary files are named `iris_x12a.*`.
 %
-% * `'log='` [ `true` | *`false`* ] - Logarithmise the input data before,
+% * `'Log='` [ `true` | *`false`* ] - Logarithmise the input data before, 
 % and de-logarithmise the output data back after, running `x12`.
 %
-% * `'forecast='` [ numeric | *`0`* ] - Run a forecast based on the fitted
+% * `'Forecast='` [ numeric | *`0`* ] - Run a forecast based on the fitted
 % ARIMA model for this number of periods ahead to improve on the seasonal
 % adjustment; see help on the `x11` specs in the X13-ARIMA-SEATS manual. The
 % forecast is included in the output argument `X`.
 %
-% * `'display='` [ `true` | *`false`* ] - Display X12 output messages in
+% * `'Display='` [ `true` | *`false`* ] - Display X12 output messages in
 % command window; if false the messages will be saved in a TXT file.
 %
-% * `'dummy='` [ tseries | *empty* ] - User dummy variable or variables (in
+% * `'Dummy='` [ tseries | *empty* ] - User dummy variable or variables (in
 % case of a multivariate tseries object) used in X13-ARIMA-SEATS regression; the
 % dummy variables must also include values for forecasts and backcasts if
 % you request them; the type of the dummy can be specified in the option
-% `'dummyType='`.
+% `'DummyType='`.
 %
-% * `'dummyType='` [ `'ao'` | *`'holiday'`* | `'td'` ] - Type of the user
-% dummy (which is specified through the option `'dummy='`); the three basic
+% * `'DummyType='` [ `'ao'` | *`'holiday'`* | `'td'` ] - Type of the user
+% dummy (which is specified through the option `'Dummy='`); the three basic
 % types of dummies are additive outlier (`'ao'`), holiday flows
 % (`'holiday'`), and trading days (`'td'`); see the X13-ARIMA-SEATS or X13-ARIMA
 % documentation for more details (available from the U.S.Census Bureau
 % website), look for the section on the REGRESSION spec, options 'user' and
 % 'usertype'.
 %
-% * `'mode='` [ *`'auto'`* | `'add'` | `'logadd'` | `'mult'` |
+% * `'Mode='` [ *`'auto'`* | `'add'` | `'logadd'` | `'mult'` |
 % `'pseudoadd'` | `'sign'` ] - Seasonal adjustment mode (see help on the
 % `x11` specs in the X13-ARIMA-SEATS manual); `'auto'` means that series
 % with only positive or only negative numbers will be adjusted in the
 % `'mult'` (multiplicative) mode, while series with combined positive and
 % negative numbers in the `'add'` (additive) mode.
 %
-% * `'maxIter='` [ numeric | *`1500`* ] - Maximum number of iterations for
+% * `'MaxIter='` [ numeric | *`1500`* ] - Maximum number of iterations for
 % the X12 estimation procedure. See help on the `estimation` specs in the
 % X13-ARIMA-SEATS manual.
 %
-% * `'maxOrder='` [ numeric | *`[2,1]`* ] - A 1-by-2 vector with maximum
+% * `'MaxOrder='` [ numeric | *`[2, 1]`* ] - A 1-by-2 vector with maximum
 % order for the regular ARMA model (can be `1`, `2`, `3`, or `4`) and
 % maximum order for the seasonal ARMA model (can be `1` or `2`). See help
 % on the `automdl` specs in the X13-ARIMA-SEATS manual.
 %
-% * 'missing=' [ `true` | *`false`* ] - Allow for in-sample missing
+% * 'Missing=' [ `true` | *`false`* ] - Allow for in-sample missing
 % observations, and fill in values predicted by an estimated ARIMA process;
 % if `false`, the seasonal adjustment will not run and a warning will be
 % thrown.
 %
-% * `'output='` [ char | cellstr | *`'SA'`* ] - List of requested output
+% * `'Output='` [ char | cellstr | *`'SA'`* ] - List of requested output
 % data; the cellstr or comma-separated list can combine any number of the
 % request specifications listed below in subsection Output request; See
 % also help on the `x11` specs in the X13-ARIMA-SEATS manual.
 %
-% * `'saveAs='` [ char | *empty* ] - Name (or a whole path) under which
+% * `'SaveAs='` [ char | *empty* ] - Name (or a whole path) under which
 % X13-ARIMA-SEATS output files will be saved.
 %
-% * `'specFile='` [ char | *`'default'`* ] - Name of the X13-ARIMA-SEATS spec
+% * `'SpecFile='` [ char | *`'default'`* ] - Name of the X13-ARIMA-SEATS spec
 % file; if `'default'` the IRIS default spec file will be used, see
 % description.
 %
-% * `'tdays='` [ `true` | *`false`* ] - Correct for the number of trading
+% * `'TDays='` [ `true` | *`false`* ] - Correct for the number of trading
 % days. See help on the `x11regression` specs in the X13-ARIMA-SEATS manual.
 %
-% * `'tempDir='` [ char | function_handle | `'.'` ] - Directory in which
+% * `'TempDir='` [ char | function_handle | `'.'` ] - Directory in which
 % X13-ARIMA-SEATS temporary files will be created; if the directory does
 % not exist, it will be created at the beginning and deleted at the end of
 % the execution (unless `'cleanup=' false`).
 %
-% * `'tolerance='` [ numeric | *`1e-5`* ] - Convergence tolerance for the
+% * `'Tolerance='` [ numeric | *`1e-5`* ] - Convergence tolerance for the
 % X13 estimation procedure. See help on the `estimation` specs in the
 % X13-ARIMA-SEATS manual.
 %
 %
-% Description
-% ============
+% __Description__
 %
-% Output requests
-% ----------------
+% _Output Requests__
 % 
 % The option `'output=' can combine any number of the following requests:
 %
@@ -151,8 +144,8 @@ function varargout = x12(varargin)
 % * `'MV'` - the original input series with missing values fitted by
 % running an estimated ARIMA model.
 %
-% Missing observations
-% ---------------------
+%
+% _Missing Observations_
 %
 % If you keep `'missing=' false` (this is the default for backward
 % compatibility), `x12` will not run on series with in-sample missing
@@ -164,8 +157,8 @@ function varargout = x12(varargin)
 % request the series with missing values filled in by including `MV` in the
 % option `'output='`.
 %
-% Spec file
-% ----------
+%
+% _Spec File_
 %
 % The default X13-ARIMA-SEATS spec file is `+thirdparty/x12/default.spc`. You can
 % create your own spec file to include options that are not available
@@ -193,7 +186,7 @@ function varargout = x12(varargin)
 % in the `estimation` spec.
 % * `$maxorder$` is replaced with two numbers separated by a blank space:
 % maximum order of regular ARIMA, and maximum order of seasonal ARIMA.
-% * `$x11_mode$` is replaced with the requested mode: `'add'` for additive,
+% * `$x11_mode$` is replaced with the requested mode: `'add'` for additive, 
 % `'mult'` for multiplicative, `'pseudoadd'` for pseudo-additive, or
 % `'logadd'` for log-additive;
 % * `$x12_save$` is replaced with the list of the requested output
@@ -203,8 +196,8 @@ function varargout = x12(varargin)
 % Two of the placeholders, `'$series_data$` and `$x12_output$`, are
 % required; if they are not found in the spec file, IRIS throws an error.
 %
-% Estimates of ARIMA model parameters
-% ------------------------------------
+%
+% _Estimates of ARIMA Model Parameters_
 %
 % The ARIMA model specification, `Model`, is a struct with three fields:
 %
@@ -220,25 +213,24 @@ function varargout = x12(varargin)
 % (non-seasonal and seasonal).
 %
 %
-% Example
-% ========
+% _Example_
 %
 % Run X12 on the entire range of a time series:
 %
 %     xsa = x12(x);
-%     xsa = x12(x,Inf);
-%     xsa = x12(x,@all);
-%     xsa = x12(x,get(x,'range'));
+%     xsa = x12(x, Inf);
+%     xsa = x12(x, @all);
+%     xsa = x12(x, get(x, 'range'));
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 
-[This,Range,varargin] = irisinp.parser.parse('tseries.filter',varargin{:});
-opt = passvalopt('tseries.x12',varargin{:});
+[this, range, varargin] = irisinp.parser.parse('tseries.filter', varargin{:});
+opt = passvalopt('tseries.x12', varargin{:});
 
-if strcmp(opt.mode,'sign')
+if strcmp(opt.mode, 'sign')
     opt.mode = 'auto';
 end
 
@@ -246,27 +238,28 @@ end
 
 outpRequest( );
 nOutp = length(opt.output);
-co = comment(This);
-inpSize = size(This.data);
-This.data = This.data(:,:);
-[data,Range] = rangedata(This,Range);
+co = comment(this);
+inpSize = size(this.data);
+this.data = this.data(:, :);
+r = range;
+[data, range] = rangedata(this, range);
 
 % Extended range with backcasts and forecasts.
-if ~isempty(Range)
-    startDate = Range(1);
+if ~isempty(range)
+    startDate = range(1);
     xStartDate = startDate - opt.backcast;
-    xRange = xStartDate : Range(end)+opt.forecast;
+    xRange = xStartDate : range(end)+opt.forecast;
 else
     startDate = NaN;
     xStartDate = NaN;
-    xRange = Range;
+    xRange = range;
 end
 
 % Fill in zeros for NaNs in dummy variables on the extended range.
 dummy = [ ];
-if ~isempty(opt.dummy) && isa(opt.dummy,'tseries')
-    dummy = rangedata(opt.dummy,xRange);
-    dummy = dummy(:,:);
+if ~isempty(opt.dummy) && isa(opt.dummy, 'tseries')
+    dummy = rangedata(opt.dummy, xRange);
+    dummy = dummy(:, :);
     chkDummy( );
 end
 
@@ -276,38 +269,36 @@ end
 
 % Run backend X13
 %-----------------
-[y,Outp,Logbk,Err,Mdl] = thirdparty.x13.x13(data,startDate,dummy,opt);
+[y, Outp, Logbk, Err, Mdl] = thirdparty.x13.x13(data, startDate, dummy, opt);
 
 % Convert output data to tseries objects.
 for i = 1 : nOutp
     if opt.log
         Outp{i} = exp(Outp{i});
     end
-    Outp{i} = reshape(Outp{i},[size(Outp{i},1),inpSize(2:end)]);
-    Outp{i} = replace(This,Outp{i},startDate,co);
+    Outp{i} = reshape(Outp{i}, [size(Outp{i}, 1), inpSize(2:end)]);
+    Outp{i} = replace(this, Outp{i}, startDate, co);
 end
 
 % Reshape the model spec struct to match the dimensions and size of input
 % and output tseries.
 if length(inpSize) > 2
-    Mdl = reshape(Mdl,[1,inpSize(2:end)]);
+    Mdl = reshape(Mdl, [1, inpSize(2:end)]);
 end
 
 % Return original series with forecasts and backcasts.
-nXPer = size(y,1);
-This.start = xStartDate;
-This.data = y;
+nXPer = size(y, 1);
+this.start = xStartDate;
+this.data = y;
 if length(inpSize) > 2
-    This.data = reshape(This.data,[nXPer,inpSize(2:end)]);
+    this.data = reshape(this.data, [nXPer, inpSize(2:end)]);
 end
-This = trim(This);
+this = trim(this);
 
 % Combine all output arguments.
-varargout = { Outp{:}, Logbk, Err, Mdl, This }; %#ok<CCAT>
+varargout = { Outp{:}, Logbk, Err, Mdl, this }; %#ok<CCAT>
 
 return
-
-
 
 
     function outpRequest( )
@@ -322,23 +313,21 @@ return
         list = fieldnames(subs);
         for ii = 1 : length(list)
             repl = list{ii};
-            patt = ['\<(',subs.(repl),')\>'];
-            opt.output = regexprep(opt.output,patt,repl);
+            patt = ['\<(', subs.(repl), ')\>'];
+            opt.output = regexprep(opt.output, patt, repl);
         end
         opt.output = strtrim(opt.output);
         % Handle comma-separated char lists.
         if ischar(opt.output)
-            opt.output = regexp(opt.output,'\w+','match');
+            opt.output = regexp(opt.output, '\w+', 'match');
         end
     end 
 
 
-
-
     function chkDummy( )
-        dummyIn = dummy(opt.backcast+1:end-opt.forecast,:);
-        dummyFcast = dummy(end-opt.forecast+1:end,:);
-        dummyBcast = dummy(1:opt.backcast,:);
+        dummyIn = dummy(opt.backcast+1:end-opt.forecast, :);
+        dummyFcast = dummy(end-opt.forecast+1:end, :);
+        dummyBcast = dummy(1:opt.backcast, :);
         if any(isnan(dummyIn(:)))
             utils.warning('tseries:x12', ...
                 ['Dummy variable(s) contain(s) in-sample ', ...

@@ -1,15 +1,13 @@
 function [x, range] = rangedata(this, range)
 % rangedata  Retrieve Series data on continuous range.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [Y, Range] = rangedata(X, Range)
 %     [Y, Range] = rangedata(X, [StartDate, EndDate])
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `X` [ tseries ] - Tseries object.
 %
@@ -21,8 +19,7 @@ function [x, range] = rangedata(this, range)
 % * `EndDate` [ numeric ] - End date of the range.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Y` [ numeric ] - Output data.
 %
@@ -30,8 +27,7 @@ function [x, range] = rangedata(this, range)
 % come.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The function is equivalent to calling
 %
@@ -45,7 +41,8 @@ function [x, range] = rangedata(this, range)
 
 %-------------------------------------------------------------------------- 
 
-start = double(this.Start);
+%start = double(this.Start);
+start = this.Start;
 
 if nargin==1
     x = this.Data;
@@ -53,8 +50,8 @@ if nargin==1
     return
 elseif isequal(range, @all)
     range = Inf;
-elseif isa(range, 'DateWrapper')
-    range = double(range);
+%elseif isa(range, 'DateWrapper')
+%range = double(range);
 end
 
 data = this.Data;

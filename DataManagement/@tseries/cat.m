@@ -42,21 +42,25 @@ end
 nInp = length(inputs);
 
 % Find min start-date and max end-date.
-vecStart = nan(1, nInp);
-vecEnd = nan(1, nInp);
+vecStart = DateWrapper.empty(1, 0);
+vecEnd = DateWrapper.empty(1, 0);
 for i = find(ixSeries)
-    vecStart(i) = startDate(inputs{i});
-    vecEnd(i) = endDate(inputs{i});
+    temp = startDate(inputs{i});
+    if ~isnan(temp)
+        vecStart(1, end+1) = startDate(inputs{i});
+        vecEnd(1, end+1) = endDate(inputs{i});
+    end
 end
-minStart = min( vecStart(~isnan(vecStart)) );
-maxEnd = max( vecEnd(~isnan(vecEnd)) );
-nPer = rnglen( [minStart, maxEnd] );
-
-if ~isempty(minStart)
-    outp.Start = DateWrapper(minStart);
+if ~isempty(vecStart)
+    minStart = min(vecStart);
+    maxEnd = max(vecEnd);
+    nPer = rnglen([minStart, maxEnd]);
 else
-    outp.Start = DateWrapper(NaN);
+    minStart = DateWrapper(NaN);
+    maxEnd = DateWrapper(NaN);
+    nPer = 0;
 end
+outp.Start = minStart;
 
 % Add inputs one by one to output series.
 isEmpty = true;

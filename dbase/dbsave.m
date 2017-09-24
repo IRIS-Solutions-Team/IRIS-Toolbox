@@ -187,12 +187,11 @@ else
             'Input date vector must have homogenous date frequency.');
     end
 end
-vecDat = double(vecDat);
 isRange = all(round(diff(vecDat))==1);
 if ~isempty(vecDat)
-    usrFreq = DateWrapper.getFrequencyFromNumeric(vecDat(1));
+    usrFreq = getFrequency(vecDat);
 else
-    usrFreq = NaN;
+    usrFreq = Frequency.NaF;
 end
 
 % Create saving struct.

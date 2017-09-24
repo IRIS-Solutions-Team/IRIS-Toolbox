@@ -253,21 +253,11 @@ if ~isequal(opt.select, @all)
     end
 end
 
-% Read numeric data from CSV string
-%-----------------------------------
-dates = [ ];
-data = [ ];
-ixMissing = [ ];
-ixNanDate = [ ];
-dateCol = { };
-if ~isempty(file)
-    readNumericData( );
-end
+% __Read Numeric Data from CSV String__
+[data, ixMissing, dateCol] = readNumericData( );
 
-% Parse dates
-%-------------
-dates = nan(1, length(dateCol));
-parseDates( );
+% __Parse dates__
+[dates, ixNanDate] = parseDates( );
 
 if ~isempty(dates)
     maxDate = max(dates);
@@ -277,7 +267,7 @@ if ~isempty(dates)
 else
     nPer = 0;
     dateInx = [ ];
-    minDate = NaN;
+    minDate = DateWrapper(NaN);
 end
 
 % Change variable names.
@@ -294,14 +284,11 @@ if ~isempty(opt.userdata) && isUserData
     createUserdataField( );
 end
 
-% Create database
-%------------------
+% __Create Database__
 % Populate the output database with Series and numeric data.
 populateDatabase( );
 
 return
-
-
 
 
     function readFile( )
@@ -320,8 +307,6 @@ return
             file = func{ii}(file);
         end
     end
-
-
 
 
     function processOptions( )
@@ -347,8 +332,6 @@ return
             opt.commentrow = {opt.commentrow};
         end
     end 
-
-
 
 
     function readHeaders( )
@@ -455,8 +438,6 @@ return
         end
         
         return
-
-        
         
 
         function moveToNextEol( )
@@ -468,8 +449,6 @@ return
             end
         end
 
-        
-        
         
         function Flag = isThisNameRow( )
             if isNameRowDone
@@ -485,9 +464,13 @@ return
     end 
 
 
-
-
-    function readNumericData( )
+    function [data, ixMissing, dateCol] = readNumericData( )
+        data = double.empty(0, 0);
+        ixMissing = logical.empty(1, 0);
+        dateCol = cell.empty(1, 0);
+        if isempty(file)
+            return
+        end
         % Read date column (first column).
         dateCol = regexp(file, '^.*?(,|$)', 'match', 'lineanchors');
         dateCol = strtrim(dateCol);
@@ -567,9 +550,9 @@ return
     end 
 
 
-
-
-    function parseDates( )
+    function [dates, ixNanDate] = parseDates( )
+        numOfDates = numel(dateCol);
+        dates = DateWrapper(nan(1, numOfDates));
         dateCol = dateCol(1:min(end, size(data, 1)));
         if ~isempty(dateCol)
             if strcmpi(opt.Continuous, 'Ascending')
@@ -587,9 +570,9 @@ return
                 'Freq=', opt.freq, ...
                 'FreqLetters=', opt.freqletters);
             if strcmpi(opt.Continuous, 'Ascending')
-                dates(2:end) = dates(1) + (1 : length(dates)-1);
+                dates(2:end) = dates(1) + (1 : numOfDates-1);
             elseif strcmpi(opt.Continuous, 'Descending')
-                dates(end-1:-1:1) = dates(end) - (1 : length(dates)-1);
+                dates(end-1:-1:1) = dates(end) - (1 : numOfDates-1);
             end
         end
         % Exclude NaN dates (that includes also empty dates), but keep all data
@@ -604,7 +587,7 @@ return
                 throw( ...
                     exception.Base('Dbase:LoadMixedFrequency', 'error'), ...
                     FName ...
-                    ); %#ok<GTARG>
+                ); %#ok<GTARG>
             end
         end
     end 
