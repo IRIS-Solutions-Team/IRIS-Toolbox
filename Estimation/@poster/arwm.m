@@ -1,21 +1,20 @@
-function [Theta,LogPost,ArVec,This,SgmVec,FinalCov] = arwm(This,NDraw,varargin)
+function [Theta, LogPost, ArVec, This, SgmVec, FinalCov] = arwm(This, NDraw, varargin)
 % arwm  Adaptive random-walk Metropolis posterior simulator.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [Theta,LogPost,ArVec,PosUpd] = arwm(Pos,NDraw,...)
-%     [Theta,LogPost,ArVec,PosUpd,SgmVec,FinalCov] = arwm(Pos,NDraw,...)
+%     [Theta, LogPost, ArVec, PosUpd] = arwm(Pos, NDraw, ...)
+%     [Theta, LogPost, ArVec, PosUpd, SgmVec, FinalCov] = arwm(Pos, NDraw, ...)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `Pos` [ poster ] - Initialised posterior simulator object.
 %
 % * `NDraw` [ numeric ] - Length of the chain not including burn-in.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `Theta` [ numeric ] - MCMC chain with individual parameters in rows.
 %
@@ -32,64 +31,61 @@ function [Theta,LogPost,ArVec,This,SgmVec,FinalCov] = arwm(This,NDraw,varargin)
 % * `FinalCov` [ numeric ] - Final proposal covariance matrix; the final
 % covariance matrix of the random walk step is Scale(end)^2*FinalCov.
 %
-% Options
-% ========
 %
-% * `'adaptProposalCov='` [ numeric | *`0.5`* ] - Speed of adaptation of
+% __Options__
+%
+% * `'AdaptProposalCov='` [ numeric | *`0.5`* ] - Speed of adaptation of
 % the Cholesky factor of the proposal covariance matrix towards the target
 % acceptanace ratio, `targetAR`; zero means no adaptation.
 %
-% * `'adaptScale='` [ numeric | *`1`* ] - Speed of adaptation of the scale
-% factor to deviations of acceptance ratios from the target ratio,
+% * `'AdaptScale='` [ numeric | *`1`* ] - Speed of adaptation of the scale
+% factor to deviations of acceptance ratios from the target ratio, 
 % `targetAR`.
 %
-% * `'burnin='` [ numeric | *`0.10`* ] - Number of burn-in draws entered
+% * `'BurnIn='` [ numeric | *`0.10`* ] - Number of burn-in draws entered
 % either as a percentage of total draws (between 0 and 1) or directly as a
 % number (integer greater that one). Burn-in draws will be added to the
 % requested number of draws `ndraw` and discarded after the posterior
 % simulation.
 %
-% * `'estTime='` [ `true` | *`false`* ] - Display and update the estimated
-% time to go in the command window.
-%
-% * `'firstPrefetch='` [ numeric | *`Inf`* ] - First draw where
+% * `'FirstPrefetch='` [ numeric | *`Inf`* ] - First draw where
 % parallelised pre-fetching will be used; `Inf` means no pre-fetching.
 %
-% * `'gamma='` [ numeric | *`0.8`* ] - The rate of decay at which the scale
+% * `'Gamma='` [ numeric | *`0.8`* ] - The rate of decay at which the scale
 % and/or the proposal covariance will be adapted with each new draw.
 %
-% * `'initScale='` [ numeric | `1/3` ] - Initial scale factor by which the
+% * `'InitScale='` [ numeric | `1/3` ] - Initial scale factor by which the
 % initial proposal covariance will be multiplied; the initial value will be
 % adapted to achieve the target acceptance ratio.
 %
-% * `'lastAdapt='` [ numeric | *`Inf`* ] - Last point at which the proposal
+% * `'LastAdapt='` [ numeric | *`Inf`* ] - Last point at which the proposal
 % covariance will be adapted; `Inf` means adaptation will continue until
 % the last draw. Can also be entered as a percentage of total draws
 % (a number strictly between 0 and 1). 
 %
-% * `'nStep='` [ numeric | *`1` ] - Number of pre-fetched steps computed in
+% * `'NStep='` [ numeric | *`1` ] - Number of pre-fetched steps computed in
 % parallel; only works with `firstPrefetch=` smaller than `NDraw`.
 %
-% * `'progress='` [ `true` | *`false`* ] - Display progress bar in the
+% * `'Progress='` [ `true` | *`false`* ] - Display progress bar in the
 % command window.
 %
-% * `'saveAs='` [ char | *empty* ] - File name where results will be saved
-% when the option `'saveEvery='` is used.
+% * `'SaveAs='` [ char | *empty* ] - File name where results will be saved
+% when the option `'SaveEvery='` is used.
 %
-% * `'saveEvery='` [ numeric | *`Inf`* ] - Every N draws will be saved to
+% * `'SaveEvery='` [ numeric | *`Inf`* ] - Every N draws will be saved to
 % an HDF5 file, and removed from workspace immediately; no values will be
 % returned in the output arguments `Theta`, `LogPost`, `AR`, `Scale`; the
 % option `'saveAs='` must be used to specify the file name; `Inf` means
 % a normal run with no saving.
 %
-% * `'targetAR='` [ numeric | *`0.234`* ] - Target acceptance ratio.
+% * `'TargetAR='` [ numeric | *`0.234`* ] - Target acceptance ratio.
 %
-% Description
-% ============
+%
+% __Description__
 %
 % The function `poster/arwm` returns the simulated chain of parameters and
 % the corresponding value of the log posterior density. To obtain simulated
-% sample statistics for each parameter (such as posterior mean, median,
+% sample statistics for each parameter (such as posterior mean, median, 
 % percentiles, etc.) use the function [`poster/stats`](poster/stats) to
 % process the simulated chain and calculate the statistics.
 %
@@ -98,8 +94,8 @@ function [Theta,LogPost,ArVec,This,SgmVec,FinalCov] = arwm(This,NDraw,varargin)
 % posterior simulations. This can be used to initialize a next simulation
 % at the point where the previous ended.
 %
-% Parallelised ARWM
-% ------------------
+%
+% _Parallelised ARWM_
 %
 % Set `'nStep='` greater than `1`, and `'firstPrefetch='` smaller than
 % `NDraw` to start a pre-fetching parallelised algorithm (pre-fetched will
@@ -108,7 +104,7 @@ function [Theta,LogPost,ArVec,This,SgmVec,FinalCov] = arwm(This,NDraw,varargin)
 % Toolbox) must be opened before calling `arwm`.
 %
 % With pre-fetching, all possible paths `'nStep='` steps ahead (i.e. all
-% possible combinations of reject/accept) are pre-evaluated in parallel,
+% possible combinations of reject/accept) are pre-evaluated in parallel, 
 % and then the resulting path is selected. Adapation then occurs only every
 % `'nStep='` steps, and hence the results will always somewhat differ from
 % a serial run. Identical results can be obtained by turning down
@@ -116,18 +112,17 @@ function [Theta,LogPost,ArVec,This,SgmVec,FinalCov] = arwm(This,NDraw,varargin)
 % smaller than `'firstPrefetch='` (and, obviously, by re-setting the random
 % number generator).
 % 
-% References
-% ===========
+%
+% __References__
 %
 % * Brockwell, A.E., 2005. "Parallel Markov Chain Monte Carlo Simulation
-% by Pre-Fetching," CMU Statistics Dept. Tech. Report 802.
+% by Pre-Fetching, " CMU Statistics Dept. Tech. Report 802.
 %
 % * Strid, I., 2009. "Efficient parallelisation of Metropolis-Hastings
-% algorithms using a prefetching approach," SSE/EFI Working Paper Series in
+% algorithms using a prefetching approach, " SSE/EFI Working Paper Series in
 % Economics and Finance No. 706.
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -135,12 +130,12 @@ function [Theta,LogPost,ArVec,This,SgmVec,FinalCov] = arwm(This,NDraw,varargin)
 
 % Validate required inputs.
 pp = inputParser( );
-pp.addRequired('Pos',@(x) isa(x,'poster'));
-pp.addRequired('NDraw',@isnumericscalar);
-pp.parse(This,NDraw);
+pp.addRequired('Pos', @(x) isa(x, 'poster'));
+pp.addRequired('NDraw', @isnumericscalar);
+pp.parse(This, NDraw);
 
 % Parse options.
-opt = passvalopt('poster.arwm',varargin{:});
+opt = passvalopt('poster.arwm', varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -155,7 +150,7 @@ realSmall = getrealsmall( );
 nPar = length(This.ParamList);
 
 % Adaptive random walk Metropolis simulator.
-nAlloc = min(NDraw,opt.saveevery);
+nAlloc = min(NDraw, opt.saveevery);
 isSave = opt.saveevery <= NDraw;
 if isSave
     doPrepSave( );
@@ -199,23 +194,20 @@ burnin0 = 0;
 doInit( );
 
 % Pre-allocate output data.
-Theta = zeros(nPar,nAlloc);
-LogPost = zeros(1,nAlloc);
-ArVec = zeros(1,nAlloc);
+Theta = zeros(nPar, nAlloc);
+LogPost = zeros(1, nAlloc);
+ArVec = zeros(1, nAlloc);
 if isAdaptiveScale
-    SgmVec = zeros(1,nAlloc);
+    SgmVec = zeros(1, nAlloc);
 else
     SgmVec = sgm;
 end
 
 if opt.progress
     progress = ProgressBar('IRIS poster.arwm progress');
-elseif opt.esttime
-    eta = esttime('IRIS poster.arwm is running');
 end
 
-% Main loop
-%-----------
+% __Main Loop__
 
 if opt.nstep>1
     % Minimize communication overhead:
@@ -228,7 +220,7 @@ count = 0;
 SaveCount = 0;
 while j <= nDrawTotal
     if j >= opt.firstPrefetch
-        nStep = min(opt.nstep,1+nDrawTotal-j);
+        nStep = min(opt.nstep, 1+nDrawTotal-j);
         nPath = 2^nStep;
     else
         nStep = 1;
@@ -241,9 +233,9 @@ while j <= nDrawTotal
         %-----------------------
         
         % Propose a new theta, and evaluate log posterior.
-        u = randn(nPar,1);
+        u = randn(nPar, 1);
         newTheta = theta + sgm*P*u;
-        [newLogPost,~,~,~,isWithinBounds] = mylogpost(This,newTheta); %#ok<ASGLU>
+        [newLogPost, ~, ~, ~, isWithinBounds] = mylogpost(This, newTheta); %#ok<ASGLU>
         
         % Generate random acceptance.
         randAcc = rand( );
@@ -258,9 +250,9 @@ while j <= nDrawTotal
         
         % Number of steps, number of parallel paths.
                 
-        % Propose new thetas, evaluate log posteriors for all of them in parallel,
+        % Propose new thetas, evaluate log posteriors for all of them in parallel, 
         % and pre-generate random acceptance.
-        [thetaPf,logPostPf,randAccPf,uPf] = doPrefetch( );
+        [thetaPf, logPostPf, randAccPf, uPf] = doPrefetch( );
         
         % Find path through lattice prefetch; `pos0` is a zero-based position
         % beween `0` and `2^nsteps`.
@@ -268,12 +260,12 @@ while j <= nDrawTotal
         
         for iStep = 1 : nStep
             % New proposals.
-            newPos0 = bitset(pos0,iStep);
-            newTheta = thetaPf(:,1+newPos0);
+            newPos0 = bitset(pos0, iStep);
+            newTheta = thetaPf(:, 1+newPos0);
             newLogPost = logPostPf(1+newPos0);
             isWithinBounds = true; %#ok<NASGU>
             randAcc = randAccPf(iStep);
-            u = uPf(:,iStep);
+            u = uPf(:, iStep);
             
             isAccepted = doAcceptStore( );
             
@@ -295,13 +287,9 @@ This.InitParam = theta(:).';
 This.InitProposalCov = FinalCov;
 This.InitProposalChol = P;
 This.InitScale = sgm;
-This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
+This.InitCount = This.InitCount + [nDrawTotal, nAcc, burnin];
 
-
-% Nested functions...
-
-
-%**************************************************************************
+return
 
 
     function doInit( )
@@ -309,7 +297,7 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
         theta = This.InitParam(:);
         
         % Evaluate initial log posterior density.
-        logPost = mylogpost(This,theta);
+        logPost = mylogpost(This, theta);
         if ~isempty(This.InitLogPost) && isfinite(This.InitLogPost) ...
                 && maxabs(logPost - This.InitLogPost) > realSmall
             utils.warning('poster:arwm', ...
@@ -318,7 +306,7 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
         end
         
         % Initial proposal cov matrix and its Cholesky factor.
-        if isequal(opt.initscale,@auto)
+        if isequal(opt.initscale, @auto)
             sgm = This.InitScale;
         else
             sgm = opt.initscale;
@@ -342,9 +330,6 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
         
     end % doInit( )
 
-
-%**************************************************************************
-    
     
     function IsAccepted = doAcceptStore( )
         % doAcceptStore  Accept or reject the current proposal, and store this
@@ -353,7 +338,7 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
         % Prob of new proposal being accepted; `newLogPost` can be `-Inf`, in which
         % case `alpha` is zero. If both `logPost` and `newLogPost` are `-Inf` the
         % inner max function returns `0` and the new proposal is never accepted.
-        alpha = min(1,max(0,exp(newLogPost-logPost)));
+        alpha = min(1, max(0, exp(newLogPost-logPost)));
         
         % Decide if we accept the new theta.
         IsAccepted = randAcc < alpha;
@@ -375,7 +360,7 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
             count = count + 1;
             nAcc = nAcc + double(IsAccepted);
             % Paremeter draws.
-            Theta(:,count) = theta;
+            Theta(:, count) = theta;
             % Value of log posterior at the current draw.
             LogPost(count) = logPost;
             % Acceptance ratio so far.
@@ -393,18 +378,18 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
         
         % Update the progress bar or estimated time.
         if opt.progress
-            update(progress,j/nDrawTotal);
-        elseif opt.esttime
-            update(eta,j/nDrawTotal);
+            update(progress, j/nDrawTotal);
         end
         
+        return
+
         
         function doSave( )
             h5write(opt.saveas, ...
-                '/theta',Theta,[1,SaveCount+1],size(Theta));
+                '/theta', Theta, [1, SaveCount+1], size(Theta));
             h5write(opt.saveas, ...
-                '/logPost',LogPost,[1,SaveCount+1],size(LogPost));
-            SaveCount = SaveCount + size(Theta,2);
+                '/logPost', LogPost, [1, SaveCount+1], size(LogPost));
+            SaveCount = SaveCount + size(Theta, 2);
             n = nDrawTotal - j;
             if n == 0
                 Theta = [ ];
@@ -412,11 +397,11 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
                 ArVec = [ ];
                 SgmVec = [ ];
             elseif n < nAlloc
-                Theta = Theta(:,1:n);
+                Theta = Theta(:, 1:n);
                 LogPost = LogPost(1:n);
                 ArVec = ArVec(1:n);
                 if isAdaptiveScale
-                    SgmVec = SgmVec(:,1:n);
+                    SgmVec = SgmVec(:, 1:n);
                 end
             end
         end % doSave( ).
@@ -433,15 +418,10 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
                 phi2 = k2*phi;
                 unorm2 = u.'*u;
                 z = sqrt(phi2/unorm2)*u;
-                P = cholupdate(P.',P*z).';
+                P = cholupdate(P.', P*z).';
             end
         end % doAdapt( )
-        
-        
     end % doAcceptStore( )
-
-
-%**************************************************************************
 
     
     function doPrepSave( )
@@ -450,19 +430,16 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
                 'The option ''saveas='' must be a valid file name.');
         end
         % Create an HDF5.
-        h5create(opt.saveas,'/theta',[nPar,NDraw],'fillValue',NaN);
-        h5create(opt.saveas,'/logPost',[1,NDraw],'fillValue',NaN);
-        h5writeatt(opt.saveas,'/', ...
-            'paramList',sprintf('%s ',This.ParamList{:}));
-        h5writeatt(opt.saveas,'/','nDraw',NDraw);
-        h5writeatt(opt.saveas,'/','saveEvery',opt.saveevery');
+        h5create(opt.saveas, '/theta', [nPar, NDraw], 'fillValue', NaN);
+        h5create(opt.saveas, '/logPost', [1, NDraw], 'fillValue', NaN);
+        h5writeatt(opt.saveas, '/', ...
+            'paramList', sprintf('%s ', This.ParamList{:}));
+        h5writeatt(opt.saveas, '/', 'nDraw', NDraw);
+        h5writeatt(opt.saveas, '/', 'saveEvery', opt.saveevery');
     end % doPrepSave( )
 
-
-%**************************************************************************
-
     
-    function [ThetaPf,LogPostPf,RandAccPf,uPf] = doPrefetch( )
+    function [ThetaPf, LogPostPf, RandAccPf, uPf] = doPrefetch( )
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %  The wisdom behing the indexing in the prefetching array
         %
@@ -506,55 +483,53 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
         %
         % Moreover, pre-generate a vector of random acceptance in the same sequence
         % of steps as in serial implementation.
-        X = nan(nPar,nStep);
-        RandAccPf = nan(1,nStep);
-        uPf = nan(nPar,nStep);
+        X = nan(nPar, nStep);
+        RandAccPf = nan(1, nStep);
+        uPf = nan(nPar, nStep);
         for iiStep = 1 : nStep
-            uPf(:,iiStep) = randn(nPar,1);
-            X(:,iiStep) = sgm*P*uPf(:,iiStep);
+            uPf(:, iiStep) = randn(nPar, 1);
+            X(:, iiStep) = sgm*P*uPf(:, iiStep);
             RandAccPf(iiStep) = rand( );
         end
         
         % Pre-allocate path-dependent end-points, nPath = 2^nStep.
-        ThetaPf = nan(nPar,nPath);
+        ThetaPf = nan(nPar, nPath);
         
         % Generate all possible paths.
-        doPaths(theta,1,0);
+        doPaths(theta, 1, 0);
         
         % Evaluate log posterior for each path.
-        LogPostPf = nan(nPath,1);
+        LogPostPf = nan(nPath, 1);
         LogPostPf(1) = logPost;
         parfor iPath = 2 : nPath
-            LogPostPf(iPath) = mylogpost(ThisPf.Value,ThetaPf(:,iPath)); %#ok<PFBNS>
+            LogPostPf(iPath) = mylogpost(ThisPf.Value, ThetaPf(:, iPath)); %#ok<PFBNS>
         end
+
+        return
         
-        function doPaths(Theta0,Step,PathSoFar)
+        function doPaths(Theta0, Step, PathSoFar)
             % Proposal rejected.
             thetaRej = Theta0;
             pathRej = PathSoFar;
             % Proposal accepted.
-            thetaAcc = Theta0 + X(:,Step);
-            pathAcc = bitset(PathSoFar,Step);
+            thetaAcc = Theta0 + X(:, Step);
+            pathAcc = bitset(PathSoFar, Step);
             if Step < nStep
                 % Fork the paths.
-                doPaths(thetaRej,Step+1,pathRej);
-                doPaths(thetaAcc,Step+1,pathAcc);
+                doPaths(thetaRej, Step+1, pathRej);
+                doPaths(thetaAcc, Step+1, pathAcc);
             else
                 % Store the end-point.
-                ThetaPf(:,1+pathRej) = thetaRej;
-                ThetaPf(:,1+pathAcc) = thetaAcc;
+                ThetaPf(:, 1+pathRej) = thetaRej;
+                ThetaPf(:, 1+pathAcc) = thetaAcc;
             end
         end
-        
     end % doPrefetch( )
 
 
-%**************************************************************************
-
-    
     function doChkParallel( )
         if opt.firstPrefetch < nDrawTotal && opt.nstep > 1
-            isPCT = license('test','distrib_computing_toolbox');
+            isPCT = license('test', 'distrib_computing_toolbox');
             if isPCT
                 nWorkers = matlabpool('size');
                 if nWorkers <= 1
@@ -573,6 +548,4 @@ This.InitCount = This.InitCount + [nDrawTotal,nAcc,burnin];
             end
         end
     end % doChkParallel( )
-
-
 end

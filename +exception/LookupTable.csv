@@ -177,7 +177,7 @@ SystemPriors:InvalidColumn,This is not a valid column name: %s
 SystemPriors:InvalidName,This is not a valid parameter or steady-state name: %s 
 SystemPriors:InvalidPriorFunction,This is not a valid system prior function name: %s 
 SystemPriors:InvalidRow,This is not a valid row name: %s 
-SystemPriors:LowerUpperBound,Lower bound (%g) must be lower than upper bound (%g).
+SystemPriors:LowerUpperBound,Lower bound must be lower than upper bound.
 TheParser:EmptyEquation,"This equation is empty, and will be removed: %s "
 TheParser:EmptyLhsOrRhs, LHS or RHS of this equation is empty: %s 
 TheParser:EssentialBlocksMissing,Cannot find a nonempty %s block; this is not a valid source file.

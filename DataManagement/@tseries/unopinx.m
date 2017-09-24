@@ -1,4 +1,4 @@
-function [x, pos] = unopinx(func, this, dim, varargin)
+function [x, varargout] = unopinx(func, this, dim, varargin)
 % unopinx  Unary operators and functions on tseries objects with index returned.
 %
 % Backend IRIS function.
@@ -7,16 +7,19 @@ function [x, pos] = unopinx(func, this, dim, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-
 %--------------------------------------------------------------------------
 
-[x, inx] = unop(func, this, dim, varargin{:});
+[x, pos] = unop(func, this, dim, varargin{:});
 
 if dim==1
-    pos = this.Start + pos - 1;
+    if pos==1
+        pos = this.Start;
+    else
+        pos = this.Start + (pos - 1);
+    end
+    varargout{1} = pos;
 else
-    pos = TIME_SERIES_CONSTRUCTOR(this.Start, pos);
+    varargout{1} = fill(this, pos, this.Start, '', [ ]);
 end
 
 end

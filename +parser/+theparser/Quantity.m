@@ -147,7 +147,7 @@ classdef Quantity < parser.theparser.Generic
     methods (Static)
         function numBounds = evalBounds(strBounds)
             nName = length(strBounds);
-            numBounds = repmat(model.Quantity.DEFAULT_BOUNDS, 1, nName);
+            numBounds = repmat(model.component.Quantity.DEFAULT_BOUNDS, 1, nName);
             ixValid = true(1,nName);
             strBounds = strrep(strBounds, ' ', '');
             strBounds = strrep(strBounds, ',]', ',Inf]');

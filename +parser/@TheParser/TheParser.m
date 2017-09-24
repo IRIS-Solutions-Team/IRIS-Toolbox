@@ -45,7 +45,7 @@ classdef TheParser < handle
                 case 'rpteq'
                     setupRpteq(this);
                 otherwise
-                    throw( exception.Base('General:INTERNAL', 'error') );
+                    throw( exception.Base('General:Internal', 'error') );
             end
             this.FName = fileName;
             this.Code = code;

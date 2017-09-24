@@ -799,24 +799,9 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             end
             x = unop(@var, x, dim, flag, dim);
         end
-        function q = qtilew(x, varargin)
-            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-            [q, ~, dim] = statfun.qtilew(x.Data, varargin{:});
-            if dim>1
-                q = TIME_SERIES_CONSTRUCTOR(x.Start, q);
-            end
-        end
-        function m = meanw(x, varargin)
-            TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-            [m, dim] = statfun.meanw(x.Data, varargin{:});
-            if dim>1
-                m = TIME_SERIES_CONSTRUCTOR(x.Start, m);
-            end
-        end
+
         
-        
-        % Indexing
-        %----------
+        % __Indexing__
         function index = end(x, k, n) %#ok<INUSD>
             if k==1
                 index = x.Start + size(x.Data, 1) - 1;

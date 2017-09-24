@@ -142,7 +142,7 @@ for i = 1 : length(list)
     value = opt.(list{i});
     if isa(value,'function_handle') && isequal(value, @auto)
         try %#ok<TRYNC>
-            opt = feval(['irisopt.auto.', list{i}], opt);
+            opt = feval(['iris.options.auto.', list{i}], opt);
         end
     end
 end
@@ -156,33 +156,32 @@ return
 
     function initialize( )
         DEF = struct( );
-        DEF.dates = irisopt.dates( );
-        DEF.dbase = irisopt.dbase( );
-        DEF.dest = irisopt.dest( );
-        DEF.FAVAR = irisopt.FAVAR( );
-        DEF.fragileobj = irisopt.fragileobj( );
-        DEF.freqdom = irisopt.freqdom( );
-        DEF.Global = irisopt.Global( );
-        DEF.HData = irisopt.HData( );
-        DEF.grfun = irisopt.grfun( );
-        DEF.grouping = irisopt.grouping( );
-        DEF.iris = irisopt.IRIS( );
-        DEF.irisoptim = irisopt.irisoptim( );
-        DEF.latex = irisopt.latex( );
-        DEF.model = irisopt.model( );
-        DEF.nnet = irisopt.nnet( );
-        DEF.poster = irisopt.poster( );
-        DEF.report = irisopt.report( );
-        DEF.rpteq = irisopt.rpteq( );
-        DEF.solver = irisopt.solver( );
-        DEF.textfun = irisopt.textfun( );
-        DEF.SVAR = irisopt.SVAR( );
-        DEF.systempriors = irisopt.systempriors( );
-        DEF.theparser = irisopt.theparser( );
-        DEF.tseries = irisopt.tseries( );
-        DEF.VAR = irisopt.VAR( );
-        DEF.varobj = irisopt.varobj( );
-        DEF.XlsSheet = irisopt.XlsSheet( );
+        DEF.dates = iris.options.dates( );
+        DEF.dbase = iris.options.dbase( );
+        DEF.dest = iris.options.dest( );
+        DEF.FAVAR = iris.options.FAVAR( );
+        DEF.fragileobj = iris.options.fragileobj( );
+        DEF.freqdom = iris.options.freqdom( );
+        DEF.Global = iris.options.Global( );
+        DEF.HData = iris.options.HData( );
+        DEF.grfun = iris.options.grfun( );
+        DEF.grouping = iris.options.grouping( );
+        DEF.iris = iris.options.IRIS( );
+        DEF.irisoptim = iris.options.irisoptim( );
+        DEF.latex = iris.options.latex( );
+        DEF.model = iris.options.model( );
+        DEF.nnet = iris.options.nnet( );
+        DEF.poster = iris.options.poster( );
+        DEF.report = iris.options.report( );
+        DEF.rpteq = iris.options.rpteq( );
+        DEF.solver = iris.options.solver( );
+        DEF.textfun = iris.options.textfun( );
+        DEF.SVAR = iris.options.SVAR( );
+        DEF.theparser = iris.options.theparser( );
+        DEF.tseries = iris.options.tseries( );
+        DEF.VAR = iris.options.VAR( );
+        DEF.varobj = iris.options.varobj( );
+        DEF.XlsSheet = iris.options.XlsSheet( );
         lsFolder = fieldnames(DEF);
         for ii = 1 : numel(lsFolder)
             folder = lsFolder{ii};

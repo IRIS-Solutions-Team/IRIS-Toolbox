@@ -191,7 +191,7 @@ classdef (Abstract) Block < handle
                 return
             end
             % Redifferentiate this equation wrt quantities needed only.
-            d = model.Gradient.diff(blz.Equation{posEqn}, vecWrtNeeded);
+            d = model.component.Gradient.diff(blz.Equation{posEqn}, vecWrtNeeded);
             d = str2func([blz.PREAMBLE, d]);
             gr = {d; vecWrtNeeded};
         end

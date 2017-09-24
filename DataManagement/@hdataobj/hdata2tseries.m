@@ -46,7 +46,7 @@ for i = 1 : numel(this.Id)
         end
         sn = size(this.Data.(name));
         if sn(1)~=nXPer
-            throw( exception.Base('General:INTERNAL', 'error') );
+            throw( exception.Base('General:Internal', 'error') );
         end
         if ixLog(j)
             this.Data.(name) = real(exp(this.Data.(name)));

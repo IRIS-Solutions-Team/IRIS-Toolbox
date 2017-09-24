@@ -21,8 +21,8 @@ altSyntax(this);
 % Read individual blocks.
 blockCode = readBlockCode(this);
 
-qty = model.Quantity( );
-eqn = model.Equation( );
+qty = model.component.Quantity( );
+eqn = model.component.Equation( );
 euc = parser.EquationUnderConstruction( );
 puc = parser.PairingUnderConstruction( );
 
@@ -131,7 +131,7 @@ return
 
 
     function addSpecialExogenous( )
-        add = model.Quantity( );
+        add = model.component.Quantity( );
         add.Name = { model.RESERVED_NAME_TTREND };
         add.Label = { model.COMMENT_TTREND };
         add.Alias = {''};
