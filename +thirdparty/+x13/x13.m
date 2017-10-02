@@ -337,7 +337,8 @@ spec = strrep(spec, '$series_data$', cData);
 
 % Seasonal period specs
 %-----------------------
-spec = strrep(spec, '$series_freq$', sprintf('%g', DateWrapper.getFrequencyFromNumeric(StartDate)));
+startDateFreq = DateWrapper.getFrequencyFromNumeric(StartDate);
+spec = strrep(spec, '$series_freq$', sprintf('%g', double(startDateFreq)));
 % Start date.
 spec = strrep(spec, '$series_startyear$', sprintf('%g', round(dataYear)));
 spec = strrep(spec, '$series_startper$', sprintf('%g', round(dataPer)));

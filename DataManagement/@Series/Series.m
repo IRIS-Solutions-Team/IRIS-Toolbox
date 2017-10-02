@@ -27,5 +27,6 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
 
     methods (Static)
         varargout = fromFred(varargin)
+        varargout = linearTrend(varargin)
     end
 end

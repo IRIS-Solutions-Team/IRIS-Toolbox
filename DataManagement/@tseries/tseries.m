@@ -6,6 +6,7 @@
 % __Constructor__
 %
 % * [`tseries`](tseries/tseries) - Create new time series (tseries) object.
+% * [`linearTrend`](tseries/linearTrend) - 
 %
 %
 % __Getting Information about tseries Objects__
@@ -829,5 +830,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
     methods (Static)
         varargout = fromFred(varargin)
+        varargout = linearTrend(varargin)
     end
  end

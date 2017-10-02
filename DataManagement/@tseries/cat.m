@@ -54,7 +54,7 @@ end
 if ~isempty(vecStart)
     minStart = min(vecStart);
     maxEnd = max(vecEnd);
-    nPer = rnglen([minStart, maxEnd]);
+    nPer = rnglen(minStart, maxEnd);
 else
     minStart = DateWrapper(NaN);
     maxEnd = DateWrapper(NaN);

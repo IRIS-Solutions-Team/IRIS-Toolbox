@@ -1,3 +1,3 @@
-function dat = ii(periods)
-    dat = DateWrapper(round(periods));
+function date = ii(input)
+    date = DateWrapper.ii(input);
 end

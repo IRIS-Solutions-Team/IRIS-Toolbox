@@ -1,21 +1,18 @@
 function yaxistight(varargin)
 % yaxistight  Make y-axis tight.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     grfun.yaxistight(Axes)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `Axes` [ numeric ] - Handles to axes objects whose vertical axes will
 % be made tight.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % Behaviour of `grfun.yaxistight` differs from the standard function `axis`
 % in that it disregards `grfun.vline`, `grfun.zeroline` and
@@ -23,8 +20,7 @@ function yaxistight(varargin)
 % vertical axis.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

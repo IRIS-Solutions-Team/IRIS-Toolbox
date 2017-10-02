@@ -1,15 +1,13 @@
 function this = convert(this, newFreq, varargin)
 % convert  Convert tseries object to a different frequency.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     y = convert(x, newFreq, ...)
 %     y = convert(x, newFreq, range, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `x` [ tseries ] - Input tseries object that will be converted to a new
 % frequency, `freq`, aggregating or intrapolating the data.
@@ -23,15 +21,13 @@ function this = convert(this, newFreq, varargin)
 % converted.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `y` [ tseries ] - Output tseries created by converting `x` to the new
 % frequency.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'IgnoreNaN='` [ `true` | *`false`* ] - Exclude NaNs from agreggation.
 %
@@ -39,8 +35,7 @@ function this = convert(this, newFreq, varargin)
 % observations with this value.
 %
 %
-% Options for high- to low-frequency conversion (aggregation)
-% ============================================================
+% __Options for High- to Low-Frequency Conversion (Aggregation)__
 %
 % * `'Method='` [ function_handle | `'first'` | `'last'` | *`@mean`* ] -
 % Method that will be used to aggregate the high frequency data.
@@ -50,8 +45,7 @@ function this = convert(this, newFreq, varargin)
 % will be used.
 %
 %
-% Options for low- to high-frequency conversion (interpolation)
-% ==============================================================
+% __Options for Low- to High-Frequency Conversion (Interpolation)__
 %
 % * `'Method='` [ char | *`'cubic'`* | `'quadsum'` | `'quadavg'` ] -
 % Interpolation method; any option available in the built-in `interp1`
@@ -61,8 +55,7 @@ function this = convert(this, newFreq, varargin)
 % low-frequency date grid.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The function handle that you pass in through the 'method' option when you
 % aggregate the data (convert higher frequency to lower frequency) should
@@ -79,8 +72,7 @@ function this = convert(this, newFreq, varargin)
 % mismatch may occur.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

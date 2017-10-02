@@ -8,8 +8,8 @@ idOfShocks = this.IdOfShocks;
 idOfBackward = this.IdOfStates(nf+1:end);
 [T, R, K, Z, H, D] = this.SolutionMatrices{:};
 
-firstColumn = between(data.FirstDate, from);
-lastColumn = between(data.FirstDate, to);
+firstColumn = rnglen(data.FirstDate, from);
+lastColumn = rnglen(data.FirstDate, to);
 
 lastExpectedShock = find(any(data.YXEPG(idOfShocks, :)~=0, 2));
 if isempty(lastExpectedShock)

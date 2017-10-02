@@ -14,7 +14,7 @@ end
 
 if isnad(this.Start)
     missingValue = this.MissingValue;
-    n = between(from, to);
+    n = rnglen(from, to);
     data = repmat(missingValue, [n, sizeData(2:end)]);
     return
 end
@@ -22,13 +22,13 @@ end
 if isinfFrom
     posFrom = 1;
 else
-    posFrom = between(this.Start, from);
+    posFrom = rnglen(this.Start, from);
 end
 
 if isinfTo
     posTo = sizeData(1);
 else
-    posTo = between(this.Start, to);
+    posTo = rnglen(this.Start, to);
 end
 
 pos = (posFrom : posTo).';

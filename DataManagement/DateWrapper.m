@@ -176,18 +176,25 @@ classdef DateWrapper < double
         end
 
 
-        function n = between(firstDate, lastDate)
+        function n = rnglen(varargin)
+            if nargin==1
+                firstDate = getFirst(varargin{1});
+                lastDate = getLast(varargin{1});
+            else
+                firstDate = varargin{1};
+                lastDate = varargin{2};
+            end
             assert( ...
                 isa(firstDate, 'DateWrapper') && isa(lastDate, 'DateWrapper'), ...
-                'DateWrapper:between', ...
-                'Input arguments into DateWrapper/between must both be scalar DateWrapper objects.' ...
+                'DateWrapper:rnglen', ...
+                'Input arguments into DateWrapper/rnglen must both be scalar DateWrapper objects.' ...
             );
             firstFrequency = DateWrapper.getFrequencyFromNumeric(firstDate(:));
             lastFrequency = DateWrapper.getFrequencyFromNumeric(lastDate(:));
             assert( ...
                 all(firstFrequency==lastFrequency), ...
-                'DateWrapper:between', ...
-                'All input arguments into DateWrapper/between must be of the same date frequency' ...
+                'DateWrapper:rnglen', ...
+                'All input arguments into DateWrapper/rnglen must be of the same date frequency' ...
             );
             n = floor(lastDate) - floor(firstDate) + 1;
         end
@@ -369,6 +376,13 @@ classdef DateWrapper < double
                 flag = false;
                 return
             end
+        end
+    end
+
+
+    methods (Static)
+        function date = ii(input)
+            date = DateWrapper(round(input));
         end
     end
 end

@@ -11,14 +11,14 @@ switch sprintf('%g_%g', isinf(firstDate), isinf(lastDate))
         posOfRhs = 1 : sizeData(1);
     case '1_0'
         % x(-Inf:Date)
-        posLast = between(this.Start, lastDate);
+        posLast = rnglen(this.Start, lastDate);
         posOfRhs = 1 : posLast;
     case '0_1'
         % x(Date:Inf)
-        posFirst = between(this.Start, firstDate);
+        posFirst = rnglen(this.Start, firstDate);
         posOfRhs = posFirst : sizeData(1);
     otherwise
-        posOfRhs = between(this.Start, timeRef);
+        posOfRhs = rnglen(this.Start, timeRef);
 end
 posOfRhs = posOfRhs(:);
 
