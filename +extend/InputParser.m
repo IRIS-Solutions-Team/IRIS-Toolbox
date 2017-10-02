@@ -17,7 +17,7 @@ classdef InputParser < inputParser
 
 
         function parse(this, varargin)
-            ix = cellfun(@(x) ischar(x) || (isstring(x) && isscalar(x)), varargin);
+            ix = cellfun(@(x) ischar(x) || (isa(x, 'string') && isscalar(x)), varargin);
             varargin(ix) = cellfun(@(x) regexprep(x, '=$', ''), varargin(ix), 'UniformOutput', false);
             parse@inputParser(this, varargin{:});
             for i = 1 : numel(this.PrimaryParameterNames)

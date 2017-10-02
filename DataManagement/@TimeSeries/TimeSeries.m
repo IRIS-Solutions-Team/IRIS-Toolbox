@@ -27,8 +27,8 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
             if isempty(INPUT_PARSER)
                 INPUT_PARSER = extend.InputParser('TimeSeries');
                 INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'Date') || isempty(x)); 
-                INPUT_PARSER.addRequired('Data', @(x) isnumeric(x) || islogical(x) || iscell(x) || isstring(x));
-                INPUT_PARSER.addOptional('ColumnNames', '', @(x) isstring(x) || ischar(x) || iscellstr(x));
+                INPUT_PARSER.addRequired('Data', @(x) isnumeric(x) || islogical(x) || iscell(x) || isa(x, 'string'));
+                INPUT_PARSER.addOptional('ColumnNames', '', @(x) isa(x, 'string') || ischar(x) || iscellstr(x));
                 INPUT_PARSER.addOptional('UserData', [ ], @(x) true);
             end
 
@@ -103,7 +103,7 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
                 missingTest = @(data) cellfun(@(y) isequal({y}, missingValue), data);
             elseif islogical(this.Data)
                 missingTest = @(data) data==missingValue;
-            elseif isstring(this.Data) || isa(this.Data, 'double') || isa(this.Data, 'single')
+            elseif isa(this.Data, 'string') || isa(this.Data, 'double') || isa(this.Data, 'single')
                 missingTest = @ismissing;
             else
                 if isnan(missingValue)
@@ -122,7 +122,7 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
                 columnNames = repmat("", expectedSizeOfColumnNames);
             elseif ischar(value)
                 columnNames = repmat(string(value), expectedSizeOfColumnNames);
-            elseif isstring(value) && numel(value)==1
+            elseif isa(value, 'string') && numel(value)==1
                 columnNames = repmat(value, expectedSizeOfColumnNames);
             else
                 columnNames = repmat("", expectedSizeOfColumnNames);
@@ -483,7 +483,7 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
                 miss = { double.empty(0) };
             elseif islogical(data)
                 miss = false;
-            elseif isstring(data)
+            elseif isa(data, 'string')
                 miss = string(missing);
             else
                 miss = ones(1, 1, 'like', data)*NaN;

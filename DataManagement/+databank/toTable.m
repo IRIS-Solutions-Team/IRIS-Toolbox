@@ -4,7 +4,7 @@ persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('databank/toTimetable');
     INPUT_PARSER.addRequired('InputDatabank', @(x) isstruct(x) && numel(x)==1);
-    INPUT_PARSER.addRequired('SourceOfNames', @(x) isa(x, 'model.Abstract') || isstring(x));
+    INPUT_PARSER.addRequired('SourceOfNames', @(x) isa(x, 'model.Abstract') || isa(x, 'string'));
     INPUT_PARSER.addOptional('Dates', Inf, @(x) isequal(x, Inf) || isa(x, 'Date'));
     INPUT_PARSER.addParameter('Timetable', false, @(x) isequal(x, true) || isequal(x, false));
 end

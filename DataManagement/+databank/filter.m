@@ -4,8 +4,8 @@ persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('databank/filter');
     INPUT_PARSER.addRequired('Database', @isstruct);
-    INPUT_PARSER.addParameter('Name', "--all", @(x) ischar(x) || iscellstr(x) || isstring(x));
-    INPUT_PARSER.addParameter('Class', "--all", @(x) ischar(x) || iscellstr(x) || isstring(x));
+    INPUT_PARSER.addParameter('Name', "--all", @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    INPUT_PARSER.addParameter('Class', "--all", @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     INPUT_PARSER.addParameter('Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
 
@@ -21,7 +21,7 @@ tokens = repmat({[]}, size(listOfFields));
 if isequal(opt.Name, "--all")
     ixName = true(size(listOfFields));
 else
-    if ~isstring(opt.Name)
+    if ~isa(opt.Name, 'string')
         opt.Name = string(opt.Name);
     end
     if isscalar(opt.Name) && startsWith(opt.Name, "--rexp:")
@@ -38,7 +38,7 @@ end
 if isequal(opt.Class, "--all")
     ixClass = true(size(listOfFields));
 else
-    if ~isstring(opt.Class)
+    if ~isa(opt.Class, 'string')
         opt.Class = string(opt.Class);
     end
     opt.Class = opt.Class(:).';

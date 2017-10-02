@@ -4,7 +4,7 @@ persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('databank/eval');
     INPUT_PARSER.addRequired('Database', @isstruct);
-    INPUT_PARSER.addRequired('Expression', @(x) cellfun(@(y) ischar(y) || isstring(y), x));
+    INPUT_PARSER.addRequired('Expression', @(x) cellfun(@(y) ischar(y) || isa(y, 'string'), x));
 end
 
 INPUT_PARSER.parse(d, varargin);

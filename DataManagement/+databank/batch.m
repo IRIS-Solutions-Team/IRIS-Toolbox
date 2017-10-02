@@ -4,8 +4,8 @@ persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('databank/batch');
     INPUT_PARSER.addRequired('Databank', @isstruct);
-    INPUT_PARSER.addRequired('NewNameTemplate', @(x) ischar(x) || (isstring(x) && isscalar(x)));
-    INPUT_PARSER.addRequired('Expression', @(x) isa(x, 'function_handle') || ischar(x) || (isstring(x) && isscalar(x)));
+    INPUT_PARSER.addRequired('NewNameTemplate', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    INPUT_PARSER.addRequired('Expression', @(x) isa(x, 'function_handle') || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
 
 INPUT_PARSER.parse(d, newNameTemplate, generator);

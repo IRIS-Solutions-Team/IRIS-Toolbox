@@ -6,7 +6,7 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('TimeSeries/interpolate');
     INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'TimeSeries'));
     INPUT_PARSER.addRequired('InterpDates', @(x) isequal(x, Inf) || isa(x, 'Date'));
-    INPUT_PARSER.addParameter('Method', 'linear', @(x) ischar(x) || isstring(x));
+    INPUT_PARSER.addParameter('Method', 'linear', @(x) ischar(x) || isa(x, 'string'));
 end
 
 INPUT_PARSER.parse(this, newDates, varargin{:});

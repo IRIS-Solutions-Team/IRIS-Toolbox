@@ -35,8 +35,8 @@ sh0 = this.Incidence.Dynamic.PosOfZeroShift;
 % Find max lag `minSh`, and max lead, `maxSh`, for each transition
 % variable.
 [minSh, maxSh] = findMinMaxShift( );
-maxMaxSh = max(maxSh, [ ], 'OmitNan');
-minMinSh = min(minSh, [ ], 'OmitNan');
+maxMaxSh = max(maxSh(~isnan(maxSh)));
+minMinSh = min(minSh(~isnan(minSh)));
 
 % System IDs. These will be used to construct solution IDs.
 this.Vector.System{1} = posy;
@@ -49,7 +49,7 @@ for k = maxMaxSh : -1 : minMinSh
     this.Vector.System{2} = [ ...
         this.Vector.System{2}, ...
         find(k>=minSh & k<maxSh) + 1i*k ...
-        ];
+    ];
 end
 
 nx = length(this.Vector.System{2});

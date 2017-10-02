@@ -86,7 +86,7 @@ persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('tseries/comment');
     INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addOptional('ColumnComments', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x) || isa(x, 'tseries'));
+    INPUT_PARSER.addOptional('ColumnComments', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isa(x, 'tseries'));
 end
 
 INPUT_PARSER.parse(this, varargin{:});
