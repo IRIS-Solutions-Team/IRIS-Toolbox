@@ -320,7 +320,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = diff(varargin)
         varargout = double(varargin)
         varargout = doubledata(varargin)
-        varargout = empty(varargin)
         varargout = endDate(varargin)
         varargout = errorbar(varargin)
         varargout = expsmooth(varargin)
@@ -831,5 +830,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     methods (Static)
         varargout = fromFred(varargin)
         varargout = linearTrend(varargin)
+        varargout = empty(varargin)
     end
  end

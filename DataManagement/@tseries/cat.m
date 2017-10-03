@@ -16,35 +16,38 @@ if length(varargin)==1
 end
 
 % Check classes and frequencies.
-[inputs, ixSeries, ixNumeric] = catcheck(varargin{:});
+[inputs, indexOfSeries, indexOfNumeric] = catcheck(varargin{:});
 
 % Output will be the same class as first time series.
-outp = empty( inputs{find(ixSeries, 1)} );
+posOfFirstSeries = find(indexOfSeries, 1);
+firstSeries = inputs{posOfFirstSeries};
+outp = firstSeries.empty(firstSeries);
 
 % Remove inputs with zero size in 2nd and higher dimensions.
 % Remove empty numeric arrays.
-ixRemove = false(size(inputs));
-for i = 1 : length(inputs)
-    if ixSeries(i) 
-        size_ = size(inputs{i});
-        ixRemove(i) = all(size_(2:end)==0);
-    elseif ixNumeric(i)
-        ixRemove(i) = isempty(inputs{i});
+indexToRemove = false(size(inputs));
+for ithInput = 1 : length(inputs)
+    if indexOfSeries(ithInput) 
+        size_ = size(inputs{ithInput});
+        indexToRemove(ithInput) = all(size_(2:end)==0);
+    elseif indexOfNumeric(ithInput)
+        indexToRemove(ithInput) = isempty(inputs{ithInput});
     end
 end
-inputs(ixRemove) = [ ];
-ixSeries(ixRemove) = [ ];
-ixNumeric(ixRemove) = [ ]; %#ok<NASGU>
+inputs(indexToRemove) = [ ];
+indexOfSeries(indexToRemove) = [ ];
+indexOfNumeric(indexToRemove) = [ ]; %#ok<NASGU>
 
 if isempty(inputs)
     return
 end
-nInp = length(inputs);
+
+numOfInputs = length(inputs);
 
 % Find min start-date and max end-date.
 vecStart = DateWrapper.empty(1, 0);
 vecEnd = DateWrapper.empty(1, 0);
-for i = find(ixSeries)
+for i = find(indexOfSeries)
     temp = startDate(inputs{i});
     if ~isnan(temp)
         vecStart(1, end+1) = startDate(inputs{i});
@@ -64,17 +67,15 @@ outp.Start = minStart;
 
 % Add inputs one by one to output series.
 isEmpty = true;
-for i = 1 : nInp
-    if ixSeries(i)
-        addSeries(inputs{i});
+for ithInput = 1 : numOfInputs
+    if indexOfSeries(ithInput)
+        addSeries( inputs{ithInput} );
     else
-        addNumeric(inputs{i});
+        addNumeric( inputs{ithInput} );
     end
 end
 
 return
-
-
 
 
     function addSeries(x)
@@ -88,8 +89,6 @@ return
             outp.Comment = cat(n, outp.Comment, x.Comment);
         end
     end
-
-
 
 
     function addNumeric(x)

@@ -1,13 +1,12 @@
 function [this, newRange] = resize(this, range)
 % resize  Clip tseries object down to a specified date range.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     X = resize(X, Range)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `X` [ tseries ] - Input tseries object whose date range will be clipped
 % down.
@@ -16,17 +15,17 @@ function [this, newRange] = resize(this, range)
 % will be resized; the range can be specified as a `[startDate, endDate]`
 % vector where `-Inf` and `Inf` can be used for the dates.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `X` [ tseries ] - Output tseries object with its date range clipped
 % down to `Range`.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -44,7 +43,7 @@ INPUT_PARSER.parse(this, range);
 
 if isempty(range) || isnan(this.Start)
     newRange = [ ];
-    this = empty(this);
+    this = this.empty(this);
     return
 elseif all(isinf(range))
     newRange = this.Start + (0 : size(this.Data, 1)-1);

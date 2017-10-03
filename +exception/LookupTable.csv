@@ -160,6 +160,7 @@ Series:InputsRemovedFromCat,Inputs other than time series and numeric removed fr
 Series:InvalidCommentSize,Invalid size of comment array assigned to time series. 
 Series:CannotCatMixedFrequencies,Cannot concatenate time series with different date frequencies.
 Series:FrequencyMismatch,Date frequency mismatch: %s 
+Series:TimeDimMustBeZero,Time dimension must be zero when creating empty time series
 Solver:SteadyGradientRequestedButNotPrepared, Steady-state gradient requested but not prepared; use option PrepareGradient=true
 Steady:BothUnlogLogminus,This name is used in both Unlog= and LogMinus= options: %s 
 Steady:CannotFix,Cannot fix this name: %s 

@@ -10,8 +10,8 @@ function varargout = myfilter(order, inp, range, opt)
 % The function `myfilter` is called from within `hpf`, `llf` and `bwf`.
 
 if isempty(range)
-    varargout{1} = empty(inp);
-    varargout{2} = empty(inp);
+    varargout{1} = inp.empty(inp);
+    varargout{2} = inp.empty(inp);
     varargout{3} = NaN;
     varargout{4} = NaN;
     return

@@ -3,22 +3,23 @@ function this = convert(this, newFreq, varargin)
 %
 % __Syntax__
 %
-%     y = convert(x, newFreq, ...)
-%     y = convert(x, newFreq, range, ...)
+% Input arguments marked with a `~` sign may be omitted.
+%
+%     Y = convert(X, NewFreq, ~Range, ...)
 %
 %
 % __Input Arguments__
 %
-% * `x` [ tseries ] - Input tseries object that will be converted to a new
+% * `X` [ tseries ] - Input tseries object that will be converted to a new
 % frequency, `freq`, aggregating or intrapolating the data.
 %
-% * `newFreq` [ numeric | char ] - New frequency to which the input data
+% * `NewFreq` [ numeric | char ] - New frequency to which the input data
 % will be converted: `1` or `'A'` for yearly, `2` or `'H'` for half-yearly, 
 % `4` or `'Q'` for quarterly, `6` or `'B'` for bi-monthly, and `12` or
 % `'M'` for monthly.
 %
-% * `range` [ DateWrapper ] - Date range on which the input data will be
-% converted.
+% * `Range` [ DateWrapper ] - Date range on which the input data will be
+% converted; if omitted, the conversion will be done on the entire range.
 %
 %
 % __Output Arguments__
@@ -85,10 +86,10 @@ if isempty(this)
 end
 
 if ~isempty(varargin) && isnumeric(varargin{1})
-    Range = varargin{1};
+    range = varargin{1};
     varargin(1) = [ ];
 else
-    Range = Inf;
+    range = Inf;
 end
 
 %--------------------------------------------------------------------------
@@ -97,16 +98,16 @@ if isnan(this.Start) && isempty(this.Data)
     return
 end
 
-if isempty(Range)
-    this = empty(this);
+if isempty(range)
+    this = this.empty(this);
     return
 end
 
-% Resolve range, `Range` is then a vector of dates with no `Inf`.
-if ~all(isinf(Range))
-    this = resize(this, Range);
+% Resolve range, `range` is then a vector of dates with no `Inf`.
+if ~all(isinf(range))
+    this = resize(this, range);
 end
-Range = specrange(this, Range);
+range = specrange(this, range);
 
 newFreq = recognizeFreq(newFreq);
 if isempty(newFreq)
@@ -162,7 +163,7 @@ elseif newFreq~=365
 end
 
 if isa(call, 'function_handle')
-    this = call(this, Range, fromFreq, newFreq, opt);
+    this = call(this, range, fromFreq, newFreq, opt);
 else
     utils.error('tseries:conversion', ...
         'Cannot convert tseries from freq=%g to freq=%g.', ...
@@ -175,18 +176,18 @@ end
 
 
 function freq = recognizeFreq(freq)
-freqNum = [1, 2, 4, 6, 12, 52, 365];
-if ischar(freq)
-    if ~isempty(freq)
-        freqLetter = 'yhqbmwd';
-        freq = lower(freq(1));
-        freq = freqNum(freq==freqLetter);
-    else
+    freqNum = [1, 2, 4, 6, 12, 52, 365];
+    if ischar(freq)
+        if ~isempty(freq)
+            freqLetter = 'yhqbmwd';
+            freq = lower(freq(1));
+            freq = freqNum(freq==freqLetter);
+        else
+            freq = [ ];
+        end
+    elseif ~any(freq==freqNum)
         freq = [ ];
     end
-elseif ~any(freq==freqNum)
-    freq = [ ];
-end
 end
 
 

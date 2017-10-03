@@ -1,81 +1,79 @@
-function X = interp(X,varargin)
+function this = interp(this, varargin)
 % interp  Interpolate missing observations.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     X = interp(X,Range,...)
+%     X = interp(X, Range, ...)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `X` [ tseries ] - Input time series.
 %
 % * `Range` [ numeric | char ] - Date range on which any missing
 % observations (`NaN`) will be interpolated.
 %
-% Output arguments
-% =================
 %
-% * `x` [ tseries ] - Tseries object with the missing observations
+% __Output Arguments__
+%
+% * `X` [ tseries ] - Tseries object with the missing observations
 % interpolated.
 %
-% Options
-% ========
 %
-% * `'method='` [ char | *`'cubic'`* ] - Any valid method accepted by the
+% __Options__
+%
+% * `'Method='` [ char | *`'cubic'`* ] - Any valid method accepted by the
 % built-in `interp1` function.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 if ~isempty(varargin) && DateWrapper.validateDateInput(varargin{1})
-    Range = varargin{1};
+    range = varargin{1};
     varargin(1) = [ ];
-    if ischar(Range)
-        Range = textinp2dat(Range);
+    if ischar(range)
+        range = textinp2dat(range);
     end
 else
-    Range = Inf;
+    range = Inf;
 end
 
-opt = passvalopt('tseries.interp',varargin{:});
+opt = passvalopt('tseries.interp', varargin{:});
 
-if isempty(X)
+if isempty(this)
     return
 end
 
 %--------------------------------------------------------------------------
 
-if isequal(Range,Inf)
-    Range = get(X,'range');
-elseif ~isempty(Range)
-    Range = Range(1) : Range(end);
-    X.data = rangedata(X,Range);
-    X.start = Range(1);
+if isequal(range, Inf)
+    range = get(this, 'range');
+elseif ~isempty(range)
+    range = range(1) : range(end);
+    this.Data = rangedata(this, range);
+    this.Start = range(1);
 else
-    X = empty(X);
+    this = this.empty(this);
     return
 end
 
-data = X.data(:,:);
-grid = dat2dec(Range,'centre');
+data = this.Data(:, :);
+grid = dat2dec(range, 'centre');
 grid = grid - grid(1);
-for i = 1 : size(data,2)
-    inx = ~isnan(data(:,i));
-    if any(~inx)
-        data(~inx,i) = interp1(...
-            grid(inx),data(inx,i),grid(~inx),opt.method,'extrap');
+for i = 1 : size(data, 2)
+    indexOfData = ~isnan(data(:, i));
+    if any(~indexOfData)
+        func = griddedInterpolant(grid(indexOfData), data(indexOfData), opt.method);
+        data(~indexOfData, i) = func(grid(~indexOfData));
     end
 end
-
-X.data(:,:) = data;
+this.Data(:, :) = data;
 
 end

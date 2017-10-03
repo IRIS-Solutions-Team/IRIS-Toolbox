@@ -3,9 +3,9 @@ function this = empty(varargin)
 %
 % __Syntax__
 %
-%     x = tseries.empty([0, size, ...])
-%     x = tseries.empty(0, size, ...)
-%     x = tseries.empty(x)
+%     x = Series.empty([0, size, ...])
+%     x = Series.empty(0, size, ...)
+%     x = Series.empty(x)
 %
 % 
 % __Input Arguments__
@@ -13,14 +13,12 @@ function this = empty(varargin)
 % * `size` [ numeric ] - Size of new time series in 2nd and higher
 % dimensions; first dimenstion (time) must be always 0.
 %
-% * `this` [ tseries ] - Input time series that will be emptied.
+% * `this` [ Series ] - Input time series that will be emptied.
 %
 %
 % __Output Arguments__
 %
-% * `this` [ tseries ] - Empty time series with the 2nd and higher
-% dimensions the same size as the input tseries object, and comments
-% preserved.
+% * `this` [ Series ] - Empty time series with first dimension (time) zero.
 %
 %
 % __Description__
@@ -35,7 +33,7 @@ function this = empty(varargin)
 %--------------------------------------------------------------------------
 
 nanDate = DateWrapper(NaN);
-if nargin==1
+if nargin==1 && isa(varargin{1}, 'series.Abstract')
     this = varargin{1};
     this.Start = nanDate;
     newSize = size(this.Data);
@@ -47,7 +45,7 @@ else
         size(newData, 1)==0, ...
         exception.Base('Series:TimeDimMustBeZero', 'error') ...
     );
-    this = tseries(nanDate, newData);
+    this = Series(nanDate, newData);
 end
 
 end
