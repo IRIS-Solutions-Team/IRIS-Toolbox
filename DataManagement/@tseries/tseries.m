@@ -248,8 +248,10 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             %--------------------------------------------------------------
             
             % Find out the date frequency and check its consistency.
-            freq(isnan(freq)) = [ ];
-            DateWrapper.checkMixedFrequency(freq);
+            freq = freq(~isnan(freq));
+            if ~isempty(freq)
+                DateWrapper.checkMixedFrequency(freq);
+            end
             
             % Create data from function handle.
             if isa(values, 'function_handle') 
