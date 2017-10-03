@@ -35,7 +35,7 @@ function this = empty(varargin)
 %--------------------------------------------------------------------------
 
 nanDate = DateWrapper(NaN);
-if nargin==1
+if nargin==1 && isa(varargin{1}, 'series.Abstract')
     this = varargin{1};
     this.Start = nanDate;
     newSize = size(this.Data);
