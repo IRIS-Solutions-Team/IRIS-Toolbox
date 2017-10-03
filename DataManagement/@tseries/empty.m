@@ -42,12 +42,15 @@ if nargin==1 && isa(varargin{1}, 'series.Abstract')
     newSize(1) = 0;
     this.Data = double.empty(newSize);
 else
+    this = tseries( );
     newData = double.empty(varargin{:});
     assert( ...
         size(newData, 1)==0, ...
         exception.Base('Series:TimeDimMustBeZero', 'error') ...
     );
-    this = tseries(nanDate, newData);
+    this.Start = nanDate;
+    this.Data = newData;
+    this = comment(this, '');
 end
 
 end
