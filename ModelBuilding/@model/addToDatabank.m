@@ -37,6 +37,7 @@ function d = addToDatabank(what, this, varargin)
 %   * 'Std' - add std deviations of model shocks
 %   * 'NonzeroCorr' - add nonzero cross-correlations of model shocks
 %   * 'Corr' - add all cross correlations of model shocks
+%   * 'Default' - equivalent to `{'Parameters', 'Std', 'NonzeroCorr'}`
 %
 % These can be specified as case-insensitive char, strings, or combined in
 % a cellstr or a string array.
@@ -81,6 +82,11 @@ for i = 1 : numel(what)
         addCorr(addZeroCorr);
     elseif strncmpi(ithWhat, 'Corr', min(4, lenOfIthWhat))
         addZeroCorr = true;
+        addCorr(addZeroCorr);
+    elseif strncmpi(ithWhat, 'Default', min(7, lenOfIthWhat))
+        addParameters( );
+        addStd( );
+        addZeroCorr = false;
         addCorr(addZeroCorr);
     else
         throw( ...

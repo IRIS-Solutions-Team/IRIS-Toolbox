@@ -29,7 +29,9 @@ for t = firstColumn : lastColumn
     end
     if t<=lastExpectedShock
         ahead = lastExpectedShock - t + 1;
-        Xi_t = Xi_t + R(:, 1:ahead*ne)*data.YXEPG(idOfShocks, t:lastExpectedShock);
+        vecExpectedShocks = data.YXEPG(idOfShocks, t:lastExpectedShock);
+        vecExpectedShocks = vecExpectedShocks(:);
+        Xi_t = Xi_t + R(:, 1:ahead*ne)*vecExpectedShocks;
     end
     data.YXEPG(linxOfCurrent) = Xi_t(indexOfCurrent);
 

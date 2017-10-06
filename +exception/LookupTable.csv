@@ -200,3 +200,4 @@ TheParser:StdNameWithDoubleUnderscore,Names of shocks cannot include double unde
 VAR:CannotEstimateEmptyVar,Cannot estimate VAR object with no variables.
 VAR:CannotInfRangeInPanel,Cannot use Inf for input range in panel VAR estimation.
 VAR:GroupNotInputData,This group is not contained in the input database: %s 
+VAR:InvalidParameterType,This is not a valid type of VAR parameters: %s

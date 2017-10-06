@@ -15,7 +15,7 @@
 %
 % __Getting Information about VAR Objects__
 %
-% * [`addparam`](VAR/addparam) - Add VAR parameters to a database (struct).
+% * [`addToDatabank`](VAR/addToDatabank) - Add VAR parameters to a database (struct).
 % * [`comment`](VAR/comment) - Get or set user comments in an IRIS object.
 % * [`companion`](VAR/companion) - Matrices of first-order companion VAR.
 % * [`eig`](VAR/eig) - Eigenvalues of a VAR process.
@@ -109,6 +109,7 @@ classdef VAR < varobj
     
     
     methods
+        varargout = addToDatabank(varargin)
         varargout = assign(varargin)
         varargout = acf(varargin)
         varargout = backward(varargin)
