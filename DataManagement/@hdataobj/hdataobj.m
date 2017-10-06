@@ -85,7 +85,7 @@ classdef hdataobj < handle
                 end 
                 
                 if this.IncludeParam
-                    this.ParamDb = addparam(CallerObj);
+                    this.ParamDb = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, CallerObj);
                 end
             end
         end

@@ -134,7 +134,7 @@ classdef Global < handle
                 this.XRange, ...
                 this.Quantity.Name(ixyxe) ...
             );
-            outp = addparam(m, outp);
+            outp = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, m, outp);
         end
         
         
