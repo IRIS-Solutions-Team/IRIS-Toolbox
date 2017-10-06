@@ -89,7 +89,7 @@ end
 return
 
 
-    function addParameters( )
+    function addCoefficients( )
         d.A_ = this.A;
         d.B_ = mybmatrix(this);
         d.K_ = this.K;
