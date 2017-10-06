@@ -126,6 +126,6 @@ for i = find(ixy | ixx | ixe | ixg)
     s.(name) = trim(s.(name));
 end
 
-s = addparam(this, s);
+s = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, s);
 
 end

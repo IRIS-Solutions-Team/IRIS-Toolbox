@@ -1,4 +1,4 @@
-function d = addstd(this, d)
+function varargout = addstd(varargin)
 % addstd  Add model std deviations to databank
 %
 % __Syntax__
@@ -36,19 +36,6 @@ function d = addstd(this, d)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TYPE = @int8;
-
-if nargin<2
-    d = struct( );
-end
-
-%--------------------------------------------------------------------------
-
-listOfStdNames = getStdName(this.Quantity);
-ne = numel(listOfStdNames);
-vecStd = this.Variant.StdCorr(:, 1:ne, :);
-for i = 1 : ne
-    d.(listOfStdNames{i}) = permute(vecStd(1, i, :), [2, 3, 1]);
-end
+[varargout{1:nargout}] = addToDatabank('Std', varargin{:});
 
 end

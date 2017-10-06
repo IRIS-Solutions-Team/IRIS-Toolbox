@@ -140,8 +140,8 @@ if nargout>3
         dbRel.(name{i}) = TIME_SERIES_CONSTRUCTOR(Range, permute(Y(i, :, :, :), [3, 2, 4, 1]), c);
     end
     % Add parameter database.
-    dbAbs = addparam(this, dbAbs);
-    dbRel = addparam(this, dbRel);
+    dbAbs = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, dbAbs);
+    dbRel = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, dbRel);
 end
 
 % Select variables if requested; selection only applies to the matrix

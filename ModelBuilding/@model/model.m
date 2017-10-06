@@ -25,10 +25,7 @@
 %
 % __Getting Information about Models__
 %
-%   addparam - Add model parameters to databank
-%   addplainparam - Add plain parameters to databank
-%   addstd - Add model std deviations to databank
-%   addcorr - Add model cross-correlations to databank
+%   addToDatabank - Add model quantities to databank or create new databank
 %   autocaption - Create captions for reporting model variables or parameters
 %   autoexog - Get or set pairs of names in dynamic and steady autoexog
 %   chkredundant - Check for redundant shocks and/or parameters
@@ -122,7 +119,7 @@
 %
 %   bn - Beveridge-Nelson trends
 %   diffloglik - Approximate gradient and hessian of log-likelihood function
-%   estimate - Estimate model parameters by optimising selected objective function
+%   estimate - Estimate model parameters by optimizing selected objective function
 %   filter - Kalman smoother and estimator of out-of-likelihood parameters
 %   fisher - Approximate Fisher information matrix in frequency domain
 %   lognormal - Characteristics of log-normal distributions returned from filter of forecast
@@ -221,11 +218,16 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
     
     
     methods
-        varargout = acf(varargin)
+        varargout = addToDatabank(varargin)
         varargout = addparam(varargin)
         varargout = addplainparam(varargin)
         varargout = addstd(varargin)
         varargout = addcorr(varargin)
+    end
+
+        
+    methods
+        varargout = acf(varargin)
         varargout = alter(varargin)
         varargout = altName(varargin)
         varargout = assign(varargin)
@@ -469,32 +471,28 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         function this = model(varargin)
             % model  Create new model object from model file.
             %
-            % Syntax
-            % =======
+            % __Syntax__
             %
-            %     M = model(FName, ...)
+            %     M = model(FileName, ...)
             %     M = model(M, ...)
             %
             %
-            % Input arguments
-            % ================
+            % __Input Arguments__
             %
-            % * `FName` [ char | cellstr ] - Name(s) of model file(s) that will be
-            % loaded and converted to a new model object.
+            % * `FileName` [ char | cellstr | string ] - Name(s) of model file(s)
+            % that will be loaded and converted to a new model object.
             %
             % * `M` [ model ] - Rebuild a new model object from an existing one; see
             % Description for when you may need this.
             %
             %
-            % Output arguments
-            % =================
+            % __Output Arguments__
             %
             % * `M` [ model ] - New model object based on the input model code file or
             % files.
             %
             %
-            % Options
-            % ========
+            % __Options__
             %
             % * `'Assign='` [ struct | *empty* ] - Assign model parameters and/or steady
             % states from this database at the time the model objects is being created.
@@ -545,8 +543,10 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             % * `'UserData='` [ ... | *empty* ] - Attach user data to the model object.
             %
             %
-            % Optimal policy options
-            % =======================
+            % __Options for Optimal Policy Models__
+            %
+            % The following options for optimal policy models need to be
+            % nested within the `'Optimal='` option.
             %
             % * `'MultiplierPrefix='` [ char | *`'Mu_'`* ] - Prefix used to
             % create names for lagrange multipliers associated with the
@@ -560,23 +560,22 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             % optimal policy.
             %
             %
-            % Description
-            % ============
+            % __Description__
             %
-            % Loading a model file
-            % ---------------------
+            %
+            % _Loading a Model File_
             %
             % The `model` function can be used to read in a [model
-            % file](modellang/Contents) named `fname`, and create a model object `m`
+            % file](modellang/Contents) named `FileName`, and create a model object `M`
             % based on the model file. You can then work with the model object in your
             % own m-files, using using the IRIS [model functions](model/Contents) and
             % standard Matlab functions.
             %
-            % If `fname` is a cell array of more than one file names then all files are
-            % combined together in order of appearance.
+            % If `FileName` is a cell array of more than one file names
+            % then all files are combined together in order of appearance.
             %
-            % Rebuilding an existing model object
-            % ------------------------------------
+            %
+            % _Rebuilding an Existing Model Object_
             %
             % When calling the function `model` with an existing model object as the
             % first input argument, the model will be rebuilt from scratch. The typical
@@ -585,8 +584,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             % simply rebuilt from the model file.
             %
             %
-            % Example
-            % ========
+            % __Example__
             %
             % Read in a model code file named `my.model`, and declare the model as
             % linear:
@@ -594,8 +592,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             %     m = model('my.model', 'Linear=', true);
             %
             %
-            % Example
-            % ========
+            % __Example__
             %
             % Read in a model code file named `my.model`, declare the model as linear,
             % and assign some of the model parameters:
@@ -608,7 +605,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             %     m = assign(m, P);
             %
             % unless some of the parameters passed in to the `model` fuction are needed
-            % to evaluate [`if`](modellang/if) or [`!switch`](modellang/switch)
+            % to evaluate [`!if`](modellang/if) or [`!switch`](modellang/switch)
             % expressions.
             
             % -IRIS Macroeconomic Modeling Toolbox.
@@ -630,8 +627,9 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
                 % syntax) to model object.
                 this = struct2obj(this, varargin{1});
             elseif nargin>=1
-                if ischar(varargin{1}) || iscellstr(varargin{1})
-                    fileName = strtrim(varargin{1});
+                if ischar(varargin{1}) || iscellstr(varargin{1}) || isa(varargin{1}, 'string')
+                    fileName = cellstr(varargin{1});
+                    fileName = strtrim(fileName);
                     varargin(1) = [ ];
                     processOptions( );
                     this.IsLinear = opt.Linear;

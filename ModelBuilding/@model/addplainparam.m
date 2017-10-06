@@ -1,4 +1,4 @@
-function d = addplainparam(this, d)
+function varargout = addplainparam(varargin)
 % addplainparam  Add plain parameters to databank
 %
 % __Syntax__
@@ -40,18 +40,6 @@ function d = addplainparam(this, d)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TYPE = @int8;
-
-if nargin<2
-    d = struct( );
-end
-
-%--------------------------------------------------------------------------
-
-ixp = this.Quantity.Type==TYPE(4);
-for i = find(ixp)
-    ithName = this.Quantity.Name{i};
-    d.(ithName) = permute(this.Variant.Values(:, i, :), [1, 3, 2]);
-end
+[varargout{1:nargout}] = addToDatabank('Parameters', varargin{:});
 
 end

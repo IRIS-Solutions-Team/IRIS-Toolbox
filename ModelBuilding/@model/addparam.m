@@ -1,4 +1,4 @@
-function d = addparam(this, d)
+function varargout = addparam(varargin)
 % addparam  Add model parameters to databank
 %
 % __Syntax__
@@ -41,16 +41,6 @@ function d = addparam(this, d)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TYPE = @int8;
-
-if nargin<2
-    d = struct( );
-end
-
-%--------------------------------------------------------------------------
-
-d = addplainparam(this, d);
-d = addstd(this, d);
-d = addcorr(this, d);
+[varargout{1:nargout}] = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, varargin{:});
 
 end

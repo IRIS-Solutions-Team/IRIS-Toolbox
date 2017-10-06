@@ -103,7 +103,7 @@ if nargout>2
             sqrt( permute(X(i, i, :, :), [3, 4, 1, 2]) ) ...
             );
     end
-    dbankOfStd = addparam(this, dbankOfStd);
+    dbankOfStd = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, dbankOfStd);
 end
 
 if nargout<=1 && ~isSelect && ~isNamedMat

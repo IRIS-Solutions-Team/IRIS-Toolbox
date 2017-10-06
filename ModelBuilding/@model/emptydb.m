@@ -47,6 +47,6 @@ for i = find(~indexOfParameters)
 end
 
 % Add a value for each parameter.
-d = addparam(this, d);
+d = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, d);
 
 end

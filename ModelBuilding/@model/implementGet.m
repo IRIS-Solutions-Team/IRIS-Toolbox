@@ -114,28 +114,27 @@ switch lower(query)
         
         
     case 'param'
-        answ = addparam(this);
+        answ = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this);
         
         
     case 'plainparam'
-        answ = addplainparam(this);
+        answ = addToDatabank('Parameters', this);
  
 
     case 'std'
-        answ = addstd(this);
+        answ = addToDatabank('Std', this);
         
         
     case 'corr'
-        answ = addcorr(this, struct( ), 'AddZeroCorr=', true);
+        answ = addToDatabank('Corr', this);
 
 
     case 'nonzerocorr'
-        answ = addcorr(this, struct( ), 'AddZeroCorr=', false);
+        answ = addToDatabank('NonzeroCorr', this);
         
         
     case 'stdcorr'
-        answ = addstd(this);
-        answ = addcorr(this, answ, 'AddZeroCorr=', true);
+        answ = addToDatabank({'Std', 'Corr'}, this);
         
         
     case 'exogenous'
@@ -480,7 +479,7 @@ end
 
 % Add parameters, std devs and non-zero cross-corrs.
 if needsAddParams
-    answ = addparam(this, answ);
+    answ = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, answ);
 end
 
 return

@@ -120,7 +120,7 @@ if ~isequal(opt.shockfunc, @zeros)
 end
 
 % Add parameters.
-outputDatabank = addparam(this, outputDatabank);
+outputDatabank = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, outputDatabank);
 
 % Add LHS names from reporting equations.
 nameLhs = this.Reporting.NameLhs;

@@ -100,6 +100,6 @@ for i = 1 : length(select)
     s.(select{i}) = trim(s.(select{i}));
 end
 
-s = addparam(this, s);
+s = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, s);
 
 end

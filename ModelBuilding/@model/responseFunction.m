@@ -106,7 +106,7 @@ for i = find(ixe)
 end
 
 % Parameters.
-s = addparam(this, s);
+s = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, s);
 
 % Exogenous variables.
 g = zeros(numOfPeriods, numOfRuns, nv);

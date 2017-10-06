@@ -58,19 +58,10 @@ d = INPUT_PARSER.Results.Databank;
 
 %--------------------------------------------------------------------------
 
-ne = nnz(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
-listOfCorrNames = getCorrName(this.Quantity);
-vecOfCorr = this.Variant.StdCorr(:, ne+1:end, :);
-indexOfCorrAllowed = this.Variant.IndexOfStdCorrAllowed(ne+1:end);
-listOfCorrNames = listOfCorrNames(indexOfCorrAllowed);
-vecOfCorr = vecOfCorr(:, indexOfCorrAllowed, :);
-if ~INPUT_PARSER.Results.AddZeroCorr
-    posToRemove = find(all(vecOfCorr==0, 3));
-    vecOfCorr(:, posToRemove, :) = [ ];
-    listOfCorrNames(posToRemove) = [ ];
-end
-for i = 1 : length(listOfCorrNames)
-    d.(listOfCorrNames{i}) = permute(vecOfCorr(1, i, :), [2, 3, 1]);
+if INPUT_PARSER.Results.AddZeroCorr
+    d = addToDatabank('Corr', this, d);
+else
+    d = addToDatabank('ZeroCorr', this, d);
 end
 
 end
