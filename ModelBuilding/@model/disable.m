@@ -1,8 +1,7 @@
 function this = disable(this, type, varargin)
 % disable  Disable dynamic links or steady-state revision equations.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     M = disable(M, '!links')
 %     M = disable(M, '!links', Name1, Name2, ...);
@@ -10,8 +9,7 @@ function this = disable(this, type, varargin)
 %     M = disable(M, '!revisions', Name1, Name2, ...);
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object.
 %
@@ -19,17 +17,15 @@ function this = disable(this, type, varargin)
 % will be temporarily disabled.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `M` [ model ] - Model object with dynamic links
 % [`!links`](modellang/links) or steady-state revision equations
-% [`!revisions`](modellang/revisions) temporarily disabled, until
-% [`unlock`](model/unlock).
+% [`!revisions`](modellang/revisions) temporarily disabled until
+% enabled by [`enable`](#enable) again.
 %
 %
 % Example
-% ========
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

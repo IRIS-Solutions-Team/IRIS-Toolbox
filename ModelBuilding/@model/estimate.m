@@ -1,12 +1,13 @@
 function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(this, inp, range, varargin)
-% estimate  Estimate model parameters by optimising selected objective function.
+% estimate  Estimate model parameters by optimizing selected objective function.
 %
 %
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [pEst, pos, Cov, Hess, m, V, delta, PDelta] = estimate(m, d, range, est, ~spr, ...)
+%     [pEst, pos, Cov, Hess, m, V, delta, PDelta] = ...
+%                               estimate(m, d, range, est, ~spr, ...)
 %
 %
 % __Input Arguments__

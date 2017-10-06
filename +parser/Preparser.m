@@ -43,12 +43,8 @@ classdef Preparser < handle
                 return
             end
             if ~isempty(fileName)
-                % Input code from file(s).
-                if ~iscell(fileName)
-                    fileName = { fileName };
-                end
-                nThis = length(fileName);
-                for iThis = 1 : nThis
+                fileName = cellstr(fileName);
+                for iThis = 1 : numel(fileName)
                     % Because Preparser is a handle class we need to create separate instances for
                     % each file name inside the for loop.
                     this(iThis) = parser.Preparser( ); %#ok<AGROW>
@@ -59,11 +55,8 @@ classdef Preparser < handle
                 end
             else
                 % Input code from input string(s) (char or cellstr).
-                if ~iscell(inpCode)
-                    inpCode = { inpCode };
-                end
-                nThis = length(inpCode);
-                for iThis = 1 : nThis
+                inpCode = cellstr(inpCode);
+                for iThis = 1 : numel(inpCode)
                     % Because Preparser is a handle class we need to create separate instances for
                     % each file name inside the for loop.
                     this(iThis) = parser.Preparser( ); %#ok<AGROW>

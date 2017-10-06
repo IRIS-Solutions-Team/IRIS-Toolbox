@@ -1,4 +1,6 @@
 ,Message
+Behavior:InvalidDotAssign, This is not valid behavior for InvalidDotAssign: %s
+Behavior:DotReferenceFunc, Behavior for DotReferenceFunc must be function handle or empty array
 Blazer:CannotAutoendogenize,Cannot autoendogenize this name: %s 
 Blazer:CannotAutoexogenize,Cannot autoexogenize this name: %s 
 Blazer:CannotEndogenize,Cannot endogenize this name: %s 
@@ -64,6 +66,7 @@ Model:CannotLoadFromMatFile,Cannot load model object from MAT file. Recreated mo
 Model:CannotSetNonzeroCorr, Nonzero correlation between measurement and transition shocks is not allowed. 
 Model:InvalidAssignFlag,Invalid assignment flag: %s
 Model:InvalidName,This is not a valid %1name in the model object: %s 
+Model:InvalidQuantityType,This is not a valid type of model quantities: %s
 Model:LogVariableZeroSteady,Steady state for this log variable is numerically close to zero: %s 
 Model:NotDifferenceStationary,Model is not difference stationary; some steady-state growth rates are not fixed numbers: %s
 Model:ParameterNotAssigned,This parameter is not assigned: %s 

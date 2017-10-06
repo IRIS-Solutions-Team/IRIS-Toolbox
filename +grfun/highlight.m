@@ -1,14 +1,13 @@
 function [Pp,Cp] = highlight(varargin)
 % highlight  Highlight specified range or date range in a graph.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [Pt,Cp] = highlight(Range,...)
 %     [Pt,Cp] = highlight(Ax,Range,...)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `Range` [ numeric ] - X-axis range or date range that will be
 % highlighted.
@@ -16,36 +15,36 @@ function [Pp,Cp] = highlight(varargin)
 % * `Ax` [ numeric ] - Handle(s) to axes object(s) in which the highlight
 % will be made.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `Pt` [ numeric ] - Handle to the highlighted area (patch object).
 %
 % * `Cp` [ numeric ] - Handle to the caption (text object).
 %
-% Options
-% ========
 %
-% * `'caption='` [ char ] - Annotate the highlighted area with a text
+% __Options__
+%
+% * `'Caption='` [ char ] - Annotate the highlighted area with a text
 % string.
 %
-% * `'color='` [ numeric | *`0.8`* ] - An RGB color code, a Matlab color
+% * `'Color='` [ numeric | *`0.8`* ] - An RGB color code, a Matlab color
 % name, or a scalar shade of gray.
 %
-% * `'excludeFromLegend='` [ *`true`* | `false` ] - Exclude the highlighted
+% * `'ExcludeFromLegend='` [ *`true`* | `false` ] - Exclude the highlighted
 % area from legend.
 %
-% * `'hPosition='` [ 'center' | 'left' | *'right'* ] - Horizontal position
+% * `'HPosition='` [ 'center' | 'left' | *'right'* ] - Horizontal position
 % of the caption.
 %
-% * `'vPosition='` [ 'bottom' | 'middle' | *'top'* | numeric ] - Vertical
+% * `'VPosition='` [ 'bottom' | 'middle' | *'top'* | numeric ] - Vertical
 % position of the caption.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -122,9 +121,14 @@ for iAx = Ax(:).'
     
     range = range([1, end]);
     around = opt.around;
-    if isequal(getappdata(h, 'IRIS_SERIES'), true)
+    if isa(range, 'DateWrapper')
         freq = DateWrapper.getFrequencyFromNumeric(range(1));
         timeScale = dat2dec(range, 'centre');
+    else
+        freq = Frequency.NaF;
+        timeScale = range;
+    end
+    if isequal(getappdata(h, 'IRIS_SERIES'), true)
         if isempty(timeScale)
             continue
         end
@@ -134,13 +138,12 @@ for iAx = Ax(:).'
                 around = around / freq;
             end
         end
-        timeScale = [timeScale(1)-around, timeScale(end)+around];
     else
         if isnan(around)
             around = 0.5;
         end
-        timeScale = [range(1)-around, range(end)+around];
     end
+    timeScale = [timeScale(1)-around, timeScale(end)+around];
     
     if true % ##### MOSW
         bounds = objbounds(iAx);

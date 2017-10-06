@@ -1,14 +1,12 @@
 function this = set(this, varargin)
 % set  Change settable model object property.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     M = set(M,Request,Value)
-%     M = set(M,Request,Value,Request,Value,...)
+%     M = set(M, Request, Value)
+%     M = set(M, Request, Value, Request, Value, ...)
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
 % * `M` [ model ] - Model object.
 %
@@ -17,66 +15,64 @@ function this = set(this, varargin)
 %
 % * `Value` [ ... ] - Value to which the property will be set.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `M` [ model ] - Model object with the requested property or properties
 % modified.
 %
-% Valid requests to model objects
-% ================================
 %
-% Equation labels and aliases
-% ----------------------------
+% __Valid Requests to Model Objects__
 %
-% * `'yLabels='`, `'xLabels='`, `'dLabels='`, `'lLabels='` [ cellstr ] -
-% Change the labels attached to, respectively, measurement equations (`y`),
-% transition equations (`x`), deterministic trends (`d`), and dynamic links
-% (`d`).
+% _Equation Labels and Aliases_
 %
-% * `'labels='` [ cell ] - Change the labels attached to all equations;
-% needs to be a cellstr matching the size of `get(M,'labels')`.
+% * `'YLabels='`, `'XLabels='`, `'DLabels='`, `'LLabels='` [ cellstr ] -
+% Change the labels attached to, respectively, measurement equations (`Y`), 
+% transition equations (`X`), deterministic trends (`D`), and dynamic links
+% (`D`).
 %
-% * `'yeqtnAlias='`, `'xeqtnAlias='`, `'deqtnAlias='`, `'leqtnAlias='` [
+% * `'Labels='` [ cell ] - Change the labels attached to all equations;
+% needs to be a cellstr matching the size of `get(M, 'labels')`.
+%
+% * `'YeqtnAlias='`, `'XeqtnAlias='`, `'DeqtnAlias='`, `'LeqtnAlias='` [
 % cellstr ] - Change the aliases of, respectively, measurement equations
-% (`y`), transition equations (`x`), deterministic trends (`d`), and
-% dynamic links (`d`).
+% (`Y`), transition equations (`X`), deterministic trends (`D`), and
+% dynamic links (`L`).
 %
-% * `'eqtnAlias='` [ cell ] - Change the aliases of all equations; needs to
-% be a cellstr matching the size of `get(M,'eqtnAlias')`.
+% * `'EqtnAlias='` [ cell ] - Change the aliases of all equations; needs to
+% be a cellstr matching the size of `get(M, 'eqtnAlias')`.
 %
-% Descriptions and aliases of variables, shocks, and parameters
-% --------------------------------------------------------------
 %
-% * `'yDescript='`, `'xDescript='`, `'eDescript='`, `'pDescript='` [
+% _Descriptions and Aliases of Variables, Shocks, and Parameters_
+%
+% * `'YDescript='`, `'XDescript='`, `'EDescript='`, `'PDescript='` [
 % cellstr ] - Change the descriptions of, respectively, measurement
-% variables (`y`), transition variables (`x`), shocks (`e`), and exogenous
-% variables (`g`).
+% variables (`Y`), transition variables (`X`), shocks (`E`), and exogenous
+% variables (`G`).
 %
-% * `'descript='` [ struct ] - Change the descriptions of all variables,
+% * `'Descript='` [ struct ] - Change the descriptions of all variables, 
 % parameters, and shocks; needs to be a struct (database) with fields
 % corresponding to model names.
 %
-% * `'yAlias='`, `'xAlias='`, `'eAlias='`, `'pAlias='` [ cellstr ] - Change
-% the aliases of, respectively, measurement variables (`y`), transition
-% variables (`x`), shocks (`e`), and exogenous variables (`g`).
+% * `'YAlias='`, `'XAlias='`, `'EAlias='`, `'PAlias='` [ cellstr ] - Change
+% the aliases of, respectively, measurement variables (`Y`), transition
+% variables (`X`), shocks (`E`), and exogenous variables (`G`).
 %
-% * `'alias='` [ struct ] - Change the aliases of all variables,
+% * `'Alias='` [ struct ] - Change the aliases of all variables, 
 % parameters, and shocks; needs to be a struct (database) with fields
 % corresponding to model names.
 %
-% Other requests
-% ---------------
+% _Other Requests_
 %
-% * `'nAlt='` [ numeric ] - Change the number of alternative
+% * `'NAlt='` [ numeric ] - Change the number of alternative
 % parameterisations.
 %
-% * `'stdVec='` [ numeric ] - Change the whole vector of std deviations.
+% * `'StdVec='` [ numeric ] - Change the whole vector of std deviations.
 %
-% * `'tOrigin='` [ numeric ] - Change the base year for computing
+% * `'BaseYear='` [ numeric ] - Change the base year for computing
 % deterministic time trends in measurement variables.
 %
-% * `'epsilon='` [ numeric ] - Change the relative differentiation step
+% * `'Epsilon='` [ numeric ] - Change the relative differentiation step
 % when computing Taylor expansion.
 %
 
