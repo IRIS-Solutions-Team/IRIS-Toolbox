@@ -3,7 +3,7 @@ classdef Variant
         Values = double.empty(1, 0, 0)
         StdCorr = double.empty(1, 0, 0)
         Solution = repmat({double.empty(0, 0, 0)}, 1, 9)
-        Expansion = repmat({double.empty(0, 0, 0)}, 1, 6)
+        Expansion = repmat({double.empty(0, 0, 0)}, 1, 5)
         IxInit = logical.empty(1, 0, 0)
         EigenValues = double.empty(1, 0, 0)
         EigenStability = int8.empty(1, 0, 0)
@@ -21,17 +21,17 @@ classdef Variant
         LIST_OF_ARRAY_PROPERTIES = {'Values', 'StdCorr', 'IxInit', 'EigenValues', 'EigenStability'}
         LIST_OF_CELL_PROPERTIES = {'Solution', 'Expansion'}
     end
-    
-    
+
+
     methods
-        function this = Variant(numOfVariants, quantity, vector, lenOfExpansion, numOfHashed, numOfObserved, defaultStd)
+        function this = Variant(numOfVariants, quantity, vector, ahead, numOfHashed, numOfObserved, defaultStd)
             if nargin==0
                 return
             end
             this = createIndexOfStdCorrAllowed(this, quantity);
             this = preallocateValues(this, numOfVariants, quantity);
             this = preallocateStdCorr(this, quantity, defaultStd);
-            this = preallocateSolution(this, vector, lenOfExpansion, numOfHashed, numOfObserved);
+            this = preallocateSolution(this, vector, ahead, numOfHashed, numOfObserved);
         end
 
 
@@ -88,31 +88,29 @@ classdef Variant
         end
 
         
-        function this = preallocateSolution(this, vector, lenOfExpansion, numOfHashed, numOfObserved)
+        function this = preallocateSolution(this, vector, ahead, numOfHashed, numOfObserved)
             TYPE = @int8;
             nv = size(this.Values, 3);
             [ny, nxi, nb, nf, ne] = sizeOfSolution(vector);
             [~, kxi, ~, kf] = sizeOfSystem(vector);
             nh = numOfHashed;
             nz = numOfObserved;
-            nn = 1 + lenOfExpansion;
 
-            this.Solution{1} = nan(nxi, nb, nv);         % T
-            this.Solution{2} = nan(nxi, ne*nn, nv);      % R
-            this.Solution{3} = nan(nxi, 1, nv);          % K
-            this.Solution{4} = nan(ny, nb, nv);          % Z
-            this.Solution{5} = nan(ny, ne, nv);          % H
-            this.Solution{6} = nan(ny, 1, nv);           % D
-            this.Solution{7} = nan(nb, nb, nv);          % U
-            this.Solution{8} = nan(nxi, nh*nn, nv);      % Y - add-factors in hashed equations
-            this.Solution{9} = nan(max(ny, nz), nb, nv); % Zb - non-transformed measurement.
+            this.Solution{1} = nan(nxi, nb, nv);             % T
+            this.Solution{2} = nan(nxi, ne*(1+ahead), nv);   % R
+            this.Solution{3} = nan(nxi, 1, nv);              % K
+            this.Solution{4} = nan(ny, nb, nv);              % Z
+            this.Solution{5} = nan(ny, ne, nv);              % H
+            this.Solution{6} = nan(ny, 1, nv);               % D
+            this.Solution{7} = nan(nb, nb, nv);              % U
+            this.Solution{8} = nan(nxi, nh*(1+ahead), nv);   % Y - add-factors in hashed equations
+            this.Solution{9} = nan(max(ny, nz), nb, nv);     % Zb - non-transformed measurement.
             
             this.Expansion{1} = nan(nb, kf, nv); % Xa
             this.Expansion{2} = nan(nf, kf, nv); % Xf
             this.Expansion{3} = nan(kf, ne, nv); % Ru
             this.Expansion{4} = nan(kf, kf, nv); % J
-            this.Expansion{5} = nan(kf, kf, nv); % J^k
-            this.Expansion{6} = nan(kf, nh, nv); % Mu -- nonlin addfactors.
+            this.Expansion{5} = nan(kf, nh, nv); % Yu -- nonlin addfactors.
             
             this.EigenValues = nan(1, kxi, nv);
             this.EigenStability = zeros(1, kxi, nv, 'int8');
@@ -120,7 +118,7 @@ classdef Variant
         end
         
         
-        function this = resetTransition(this, variantsRequired, vector, lenOfExpansion, numOfHashed, numOfObserved)
+        function this = resetTransition(this, variantsRequested, vector, numOfHashed, numOfObserved)
             TYPE = @int8;
             nv = size(this.Values, 3);
             [~, ~, ~, ~, ne] = sizeOfSolution(vector);
@@ -128,52 +126,52 @@ classdef Variant
             % Preallocate all solution and expansion matrices first if they
             % are missing.
             if isempty(this.Solution{1})
-                this = preallocateSolution(this, vector, lenOfExpansion, numOfHashed, numOfObserved);
+                this = preallocateSolution(this, vector, 0, numOfHashed, numOfObserved);
             end
 
             % Solution matrix R depends on the length of expansion, and
             % needs to be updated.
-            nnActual = size(this.Solution{2}, 2);
-            nnRequired = ne*(1 + lenOfExpansion);
-            if nnActual<nnRequired
-                this.Solution{2} = [this.Solution{2}, nan(nxi, nnRequired-nnActual, nv)];
-            elseif nnActual>nnRequired
-                this.Solution{2} = this.Solution{2}(:, :, 1:nnRequired);
-            end
+            %nnActual = size(this.Solution{2}, 2);
+            %nnRequired = ne*(1 + ahead);
+            %if nnActual<nnRequired
+            %    this.Solution{2} = [this.Solution{2}, nan(nxi, nnRequired-nnActual, nv)];
+            %elseif nnActual>nnRequired
+            %    this.Solution{2} = this.Solution{2}(:, :, 1:nnRequired);
+            %end
 
             % Solution matrix Y depends on the length of expansion, and
             % needs to be updated.
-            nnActual = size(this.Solution{8}, 2);
-            nnRequired = numOfHashed*(1 + lenOfExpansion);
-            if nnActual<nnRequired
-                this.Solution{8} = [this.Solution{8}, nan(nxi, nnRequired-nnActual, nv)];
-            elseif nnActual>nnRequired
-                this.Solution{8} = this.Solution{8}(:, :, 1:nnRequired);
-            end
+            %nnActual = size(this.Solution{8}, 2);
+            %nnRequired = numOfHashed*(1 + ahead);
+            %if nnActual<nnRequired
+            %    this.Solution{8} = [this.Solution{8}, nan(nxi, nnRequired-nnActual, nv)];
+            %elseif nnActual>nnRequired
+            %    this.Solution{8} = this.Solution{8}(:, :, 1:nnRequired);
+            %end
 
             for i = this.SOLUTION_TRANSITION
                 % If Solution{i} is empty, then Solution{i}(:, :, 1) = NaN
                 % creates a non-empty array. Prevent this by assigning
                 % Solution{i}(1:end, 1:end, 1) = NaN.
-                this.Solution{i}(1:end, 1:end, variantsRequired) = NaN;
+                this.Solution{i}(1:end, 1:end, variantsRequested) = NaN;
             end
 
             for i = 1 : numel(this.Expansion)
-                this.Expansion{i}(1:end, 1:end, variantsRequired) = NaN;
+                this.Expansion{i}(1:end, 1:end, variantsRequested) = NaN;
             end
 
-            this.EigenValues(1:end, 1:end, variantsRequired) = NaN;
-            this.EigenStability(1:end, 1:end, variantsRequired) = TYPE(0);
-            this.IxInit(1:end, 1:end, variantsRequired) = true;
+            this.EigenValues(1:end, 1:end, variantsRequested) = NaN;
+            this.EigenStability(1:end, 1:end, variantsRequested) = TYPE(0);
+            this.IxInit(1:end, 1:end, variantsRequested) = true;
         end
 
 
-        function this = resetMeasurement(this, variantsRequired)
+        function this = resetMeasurement(this, variantsRequested)
             % If Solution{i} is empty, then Solution{i}(:, :, 1) = NaN
             % creates a non-empty array. Prevent this by assigning
             % Solution{i}(1:end, 1:end, 1) = NaN.
             for i = this.SOLUTION_MEASUREMENT
-                this.Solution{i}(1:end, 1:end, variantsRequired) = NaN;
+                this.Solution{i}(1:end, 1:end, variantsRequested) = NaN;
             end
         end
 
@@ -287,6 +285,14 @@ classdef Variant
                 'Cross-correlation between measurement and transition shocks cannot be set to nonzero values.' ...
             );
             this.StdCorr = newStdCorr;
+        end
+
+
+        function x = getIthExpansion(this, v)
+            x = cell(size(this.Expansion));
+            for i = 1 : numel(this.Expansion)
+                x{i} = this.Expansion{i}(:, :, v);
+            end
         end
     end
 end

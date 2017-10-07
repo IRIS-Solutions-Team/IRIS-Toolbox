@@ -1,20 +1,10 @@
 classdef Link
     properties
-        Input = cell(1, 0)                          % Input equation
-        LhsPtr = repmat(model.component.Link.TYPE(0), 1, 0)   % LHS pointer
-        RhsExpn = cell(1, 0)                        % RHS expression
-        Order = repmat(model.component.Link.PTR(0), 1, 0)     % Ordering
+        Input = cell.empty(1, 0)    % Input equation
+        LhsPtr = int8.empty(1, 0)   % LHS pointer
+        RhsExpn = cell.empty(1, 0)  % RHS expression
+        Order = int16.empty(1, 0)   % Ordering
     end
-
-
-
-
-    properties (Constant)
-        TYPE = @int8
-        PTR = @int16
-    end
-
-
 
 
     methods
@@ -22,13 +12,9 @@ classdef Link
         varargout = refresh(varargin)
 
 
-
-
         function n = length(this)
             n = length(this.LhsPtr);
         end
-
-
 
 
         function flag = isempty(this)
@@ -36,13 +22,9 @@ classdef Link
         end
 
 
-
-
         function flag = any(this)
             flag = any(this.LhsPtr>0);
         end
-
-
 
 
         function vec = getActiveLhsPtr(this)

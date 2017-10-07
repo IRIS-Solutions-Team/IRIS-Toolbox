@@ -132,7 +132,8 @@ return
             listOfCorrNames(posToRemove) = [ ];
         end
         for i = 1 : length(listOfCorrNames)
-            d.(listOfCorrNames{i}) = permute(vecOfCorr(1, i, :), [2, 3, 1]);
+            ithName = listOfCorrNames{i};
+            d.(ithName) = permute(vecOfCorr(1, i, :), [2, 3, 1]);
         end
     end
 end

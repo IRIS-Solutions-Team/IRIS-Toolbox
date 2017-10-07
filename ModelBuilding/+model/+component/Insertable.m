@@ -1,9 +1,4 @@
 classdef Insertable
-    properties (Constant, Hidden)
-        TYPE = @int8
-    end
-    
-    
     methods
         function [this, ixPre, ixPost] = insert(this, add, type, where)
             lsProp = getInsertableProp(this);

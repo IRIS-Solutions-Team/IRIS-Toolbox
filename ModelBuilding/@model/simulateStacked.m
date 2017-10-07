@@ -13,11 +13,11 @@ TYPE = @int8;
 
 nv = length(this);
 numOfQuantities = length(this.Quantity);
-ixy = this.Quantity.Type==TYPE(1);
-ixx = this.Quantity.Type==TYPE(2);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixg = this.Quantity.Type==TYPE(5);
-ixyxeg = ixy | ixx | ixe | ixg;
+%ixy = this.Quantity.Type==TYPE(1);
+%ixx = this.Quantity.Type==TYPE(2);
+%ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+%ixg = this.Quantity.Type==TYPE(5);
+%ixyxeg = ixy | ixx | ixe | ixg;
 ok = true(1, nv);
 range = range(1) : range(end);
 if isequal(variantsRequested, @all)
@@ -31,10 +31,10 @@ prepareBlocks(blz, opt);
 
 ixLog = blz.IxLog;
 numOfBlocks = numel(blz.Block);
-ixEndg = false(1, numOfQuantities); % Index of all endogenous quantities.
-for i = 1 : numOfBlocks
-    ixEndg(blz.Block{i}.PosQty) = true;
-end
+%ixEndg = false(1, numOfQuantities); % Index of all endogenous quantities.
+%for i = 1 : numOfBlocks
+%    ixEndg(blz.Block{i}.PosQty) = true;
+%end
 
 state = struct( );
 

@@ -227,8 +227,11 @@ for iLoop = 1 : nLoop
     % std dev).
     if s.IsShkTune 
         R = s.R;
-        if s.LastVaryingE>0
-            R = expandFirstOrder(this, v, s.LastVaryingE);
+        currentForward = size(R, 2)/ne - 1;
+        requiredForward = s.LastVaryingE - 2;
+        if requiredForward>currentForward
+            vthExpansion = getIthExpansion(this.Variant, v);
+            R = model.expandFirstOrder(R, [ ], vthExpansion, requiredForward);
         end
         [s.d, s.ka, s.kf] = addShockTunes(s, R, opt);
     end

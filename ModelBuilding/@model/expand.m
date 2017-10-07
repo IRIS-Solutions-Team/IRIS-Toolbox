@@ -42,32 +42,25 @@ INPUT_PARSER.parse(this, k);
 
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ne = nnz(ixe);
-nn = nnz(this.Equation.IxHash);
+nh = nnz(this.Equation.IxHash);
 nv = length(this);
 
-if ne==0 && nn==0
+if ne==0 && nh==0
     return
 end
 
-R = this.Variant.Solution{2}; % Impact matrix of structural shocks.
-Y = this.Variant.Solution{8}; % Impact matrix of non-linear add-factors.
-k0 = size(R, 2)/ne - 1; % Expansion up to t+k0 available.
-if k0>=k
-    % Requested expansion already available; return.
-    return
-end
+R = this.Variant.Solution{2}(:, 1:ne, :); % Impact matrix of structural shocks.
+Y = this.Variant.Solution{8}(:, 1:nh, :); % Impact matrix of non-linear add-factors.
 
-% Expand the R and Y solution matrices, update Jk, and store the new
-% matrices in the model object.
-
-R(:, end+1:ne*(1+k), :) = NaN;
-Y(:, end+1:nn*(1+k), :) = NaN;
-Jk = this.Variant.Expansion{5};
+newR = [R, nan(size(R, 1), ne*k, nv)];
+newY = [Y, nan(size(Y, 1), nh*k, nv)];
 for v = 1 : nv
-    [R(:, :, v), Y(:, :, v), Jk(:, :, v)] = expandFirstOrder(this, v, k);
+    vthR = R(:, :, v);
+    vthY = Y(:, :, v);
+    vthExpansion = getIthExpansion(this.Variant, v);
+    [newR(:, :, v), newY(:, :, v)] = model.expandFirstOrder(R(:, :, v), Y(:, :, v), vthExpansion, k);
 end
-this.Variant.Solution{2} = R;
-this.Variant.Solution{8} = Y;
-this.Variant.Expansion{5} = Jk;
+this.Variant.Solution{2} = newR;
+this.Variant.Solution{8} = newY;
 
 end

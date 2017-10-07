@@ -299,6 +299,10 @@ if isempty(INPUT_PARSER)
 end
 INPUT_PARSER.parse(this, inp, range);
 
+if ~isa(range, 'DateWrapper')
+    range = DateWrapper(range);
+end
+
 opt = passvalopt('model.simulate', varargin{:});
 
 % Global (exact) nonlinear simulation of backward-looking models.
@@ -319,7 +323,14 @@ if strcmpi(opt.Method, 'Stacked')
     end
     [opt.Solver, opt.PrepareGradient] = ...
         solver.Options.processOptions(opt.Solver, opt.PrepareGradient, 'Verbose');
-    simulateStacked(this, inp, range, @all, opt);
+    % simulateStacked(this, inp, range, @all, opt);
+    data = simulate.Data.fromDatabank(this, inp, range);
+    rect = simulate.Rectangular.fromModel(this, 1, opt.anticipate);
+    from = range(1);
+    to = range(end);
+    flat(rect, data, from, to, false);
+    outp = toDatabank(data, this);
+    outp = addToDatabank('Default', this, outp);
     return
 end
 

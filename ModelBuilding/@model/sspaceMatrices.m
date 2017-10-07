@@ -1,4 +1,5 @@
-function [T, R, K, Z, H, D, U, Omega, Zb, Y] = sspaceMatrices(this, variantsRequested, keepExpansion, triangular)
+function [T, R, K, Z, H, D, U, Omega, Zb, Y] = ...
+        sspaceMatrices(this, variantsRequested, keepExpansion, triangular)
 % sspaceMatrices  Return state space matrices for given parameter variant.
 %
 % Backend IRIS function.

@@ -42,7 +42,6 @@ numOfObserved = nnz(this.Quantity.IxObserved);
 nh = numOfHashed;
 nz = numOfObserved;
 nt = nnz(ixt);
-lenOfExpansion = opt.expand;
 
 [ny, nxi, nb, nf, ne] = sizeOfSolution(this.Vector);
 kxi = length(this.Vector.System{2});
@@ -55,16 +54,17 @@ end
 variantsRequired = variantsRequired(:).';
 numOfVariantsRequired = length(variantsRequired);
 
+% Solution matrices will be expanded to the match the existing expansion.
+ahead = size(this.Variant.Solution{2}, 2)/ne - 1;
+
 % Reset solution-dependent information in this.Variant.
 if doTransition
     this.Variant = resetTransition( ...
-        this.Variant, variantsRequired, this.Vector, lenOfExpansion, numOfHashed, numOfObserved ...
+        this.Variant, variantsRequired, this.Vector, numOfHashed, numOfObserved ...
     );
 end
 if doMeasurement
-    this.Variant = resetMeasurement( ...
-        this.Variant, variantsRequired ...
-    );
+    this.Variant = resetMeasurement(this.Variant, variantsRequired);
 end
 
 % Set `NPATH` to 1 initially to handle correctly the cases when only a
@@ -154,14 +154,15 @@ for v = variantsRequired
             % Transformed measurement matrices.
             transformMeasurement( );
         end
-        
-        % __Forward Expansion of Solution Matrices__
-        if doTransition && lenOfExpansion>0
-            [newR, newY, newJk] = expandFirstOrder(this, v);
-            this.Variant.Solution{2}(:, :, v) = newR;
-            this.Variant.Solution{8}(:, :, v) = newY;
-            this.Variant.Expansion{5}(:, :, v) = newJk;
-        end        
+        if doTransition && ahead>0
+            % Expand solution matrices up to t+ahead
+            vthR = this.Variant.Solution{2}(:, 1:ne, v);
+            vthY = this.Variant.Solution{8}(:, 1:nh, v);
+            vthExpansion = getIthExpansion(this.Variant, v);
+            [vthR, vthY] = model.expandFirstOrder(vthR, vthY, vthExpansion, ahead);
+            this.Variant.Solution{2}(:, :, v) = vthR;
+            this.Variant.Solution{8}(:, :, v) = vthY;
+        end
     end
     
     if opt.progress
@@ -501,9 +502,8 @@ return
             this.Variant.Expansion{2}(:, :, v) = Xf;
             this.Variant.Expansion{3}(:, :, v) = Ru;
             this.Variant.Expansion{4}(:, :, v) = J;
-            this.Variant.Expansion{5}(:, :, v) = Jk;
             if isHash
-                this.Variant.Expansion{6}(:, :, v) = Yu;
+                this.Variant.Expansion{5}(:, :, v) = Yu;
             end
         end
     end

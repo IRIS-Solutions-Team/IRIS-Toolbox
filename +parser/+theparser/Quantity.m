@@ -7,15 +7,11 @@ classdef Quantity < parser.theparser.Generic
     end
     
     
-    
-    
     properties (Constant)
         STD_PREFIX = 'std_';
         CORR_PREFIX = 'corr_';
         LOG_PREFIX = 'log_';
     end
-    
-    
     
     
     methods
@@ -140,8 +136,6 @@ classdef Quantity < parser.theparser.Generic
             the.StrAssigned = [the.StrAssigned, strAssigned];
         end
     end
-    
-    
     
     
     methods (Static)

@@ -7,19 +7,21 @@
 
 classdef Rectangular < handle
     properties
-        SolutionMatrices = cell(1, 6)
+        Solution = cell(1, 6)
+        Expansion = cell(1, 5)
         IdOfObserved
-        IdOfEndogenous
         IdOfStates
         IdOfShocks
         IdOfExogenous
+        Expected
+        Unexpected
     end
 
 
     properties (Dependent)
         NumOfObserved
-        NumOfEndogenous
         NumOfStates
+        NumOfForward
         NumOfBackward
         NumOfShocks
         NumOfExogenous
@@ -28,9 +30,30 @@ classdef Rectangular < handle
 
 
     methods
-        function this = Rectangular(model, inputDatabank, simulationRange)
-            
         flat(varargin)
+    end
+
+
+    methods (Static)
+        function this = fromModel(model, variantRequested, anticipate)
+            this = simulate.Rectangular( );
+            keepExpansion = true;
+            triangular = false;
+            [this.Solution{:}] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
+            [this.Expansion{:}] = expansionMatrices(model, variantRequested);
+            solution = get(model, 'Vector:Solution');
+            this.IdOfObserved = solution{1}(:);
+            this.IdOfStates = solution{2}(:);
+            this.IdOfShocks = solution{3}(:);
+            this.IdOfExogenous = solution{5}(:);
+            if anticipate
+                this.Expected = @real;
+                this.Unexpected = @imag;
+            else
+                this.Expected = @imag;
+                this.Unexpected = @real;
+            end
+        end
     end
 
 
@@ -40,18 +63,13 @@ classdef Rectangular < handle
         end
 
         
-        function n = get.NumOfEndogenous(this)
-            n = numel(this.IdOfEndogenous);
-        end
-
-
         function n = get.NumOfStates(this)
             n = numel(this.IdOfStates);
         end
 
 
         function n = get.NumOfBackward(this)
-            n = size(this.SolutionMatrices{1}, 2);
+            n = size(this.Solution{1}, 2);
         end
 
 
@@ -72,7 +90,7 @@ classdef Rectangular < handle
 
         function n = get.LenOfExpansion(this)
             ne = this.NumOfShocks;
-            k = size(this.SolutionMatrices{2}, 2);
+            k = size(this.Solution{2}, 2);
             n = k / ne;
         end
     end

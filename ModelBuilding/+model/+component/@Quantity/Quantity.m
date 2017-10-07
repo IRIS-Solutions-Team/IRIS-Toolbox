@@ -1,18 +1,18 @@
-classdef Quantity < model.component.Insertable
+classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
     properties
-        Name = cell(1, 0) % Quantity names.
-        Type = repmat(model.component.Quantity.TYPE(0), 1, 0) % Quantity type.
-        Label = cell(1, 0) % Description.
-        Alias = cell(1, 0) % LaTeX representation of quantity name or description.
-        IxLog = false(1, 0) % True for log variables.
-        IxLagrange = false(1, 0) % True for Lagrange multipliers in optimal policy models.
-        IxObserved = false(1, 0) % True for transition variables marked as observed and forced into the backward looking vector.
-        Bounds = zeros(4, 0) % Lower and upper bounds on level and growth.
+        Name = cell.empty(1, 0)             % Quantity names
+        Type = int8.empty(1, 0)             % Quantity type
+        Label = cell.empty(1, 0)            % Description
+        Alias = cell.empty(1, 0)            % LaTeX representation of quantity name or description
+        IxLog = logical.empty(1, 0)         % True for log variables
+        IxLagrange = logical.empty(1, 0)    % True for Lagrange multipliers in optimal policy models
+        IxObserved = logical.empty(1, 0)    % True for transition variables marked as observed and forced into the backward looking vector
+        Bounds = double.empty(4, 0)         % Lower and upper bounds on level and growth
     end
     
     
     properties (Constant, Hidden)
-        TYPE_ORDER = model.component.Quantity.TYPE([1, 2, 31, 32, 4, 5])
+        TYPE_ORDER = int8([1, 2, 31, 32, 4, 5])
         DEFAULT_BOUNDS = [-Inf; Inf; -Inf; Inf]
     end
     
@@ -35,9 +35,6 @@ classdef Quantity < model.component.Insertable
         varargout = size(varargin);
         varargout = userSelection2Index(varargin)
     end
-
-    
-    
     
     
     methods (Static)

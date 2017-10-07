@@ -183,7 +183,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
 
     
     properties (Constant, Hidden)
-        LAST_LOADABLE = 20170908
+        LAST_LOADABLE = 20171007
         DEFAULT_SOLVE_TOLERANCE = eps( )^(5/9)
         DEFAULT_EIGEN_TOLERANCE = eps( )^(5/9)
         DEFAULT_STEADY_TOLERANCE = eps( )^(5/9)
@@ -313,6 +313,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = chkConsistency(varargin)
         varargout = createTrendArray(varargin)        
         varargout = evalDtrends(varargin)
+        varargout = expansionMatrices(varargin)
         varargout = hdatainit(varargin)
         varargout = chkQty(varargin)
         varargout = kalmanFilter(varargin)        
@@ -384,7 +385,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = createD2S(varargin)
         varargout = createSourceDbase(varargin)
         varargout = diffFirstOrder(varargin)        
-        varargout = expandFirstOrder(varargin)
         varargout = file2model(varargin)        
         varargout = getActualMinMaxShifts(varargin)
         varargout = getExtendedRange(varargin)
@@ -425,6 +425,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
     methods (Static, Hidden)
         varargout = appendData(varargin)
         varargout = createNonlinEqtn(varargin)
+        varargout = expandFirstOrder(varargin)
         varargout = myalias(varargin)        
         varargout = myfourierdata(varargin)
         varargout = myoutoflik(varargin)

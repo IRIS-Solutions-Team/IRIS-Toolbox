@@ -12,51 +12,55 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-[answ, flag, query] = implementGet@shared.UserDataContainer(this, query, varargin{:});
+[answ, flag] = implementGet@shared.UserDataContainer(this, query, varargin{:});
 if flag
     return
 end
 
-[answ, flag, query] = implementGet@shared.LoadObjectAsStructWrapper(this, query, varargin{:});
+[answ, flag] = implementGet@shared.LoadObjectAsStructWrapper(this, query, varargin{:});
 if flag
     return
 end
 
-[answ, flag, query] = implementGet(this.Export, query, varargin{:});
+[answ, flag] = implementGet(this.Export, query, varargin{:});
 if flag
     return
 end
 
-[answ, flag, query] = implementGet(this.Link, this.Quantity, query, varargin{:});
+[answ, flag] = implementGet(this.Link, this.Quantity, query, varargin{:});
 if flag
     return
 end
 
-[answ, flag, query] = implementGet(this.Quantity, query, varargin{:});
+[answ, flag] = implementGet(this.Quantity, query, varargin{:});
 if flag
     return
 end
 
-[answ, flag, query] = implementGet(this.Equation, this.Quantity, this.Pairing, query, varargin{:});
+[answ, flag] = implementGet(this.Equation, this.Quantity, this.Pairing, query, varargin{:});
 if flag
     return
 end
 
-[answ, flag, query] = implementGet(this.Gradient, query, varargin{:});
+[answ, flag] = implementGet(this.Gradient, query, varargin{:});
 if flag
     return
 end
 
-[answ, flag, query] = model.component.Pairing.implementGet(this.Pairing, this.Quantity, query, varargin{:});
+[answ, flag] = model.component.Pairing.implementGet(this.Pairing, this.Quantity, query, varargin{:});
 if flag
     return
 end
 
-[answ, flag, query] = implementGet(this.Behavior, query, varargin{:});
+[answ, flag] = implementGet(this.Vector, query, varargin{:});
 if flag
     return
 end
 
+[answ, flag] = implementGet(this.Behavior, query, varargin{:});
+if flag
+    return
+end
 
 answ = [ ];
 flag = true;

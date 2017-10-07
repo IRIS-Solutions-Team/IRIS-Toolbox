@@ -11,7 +11,7 @@ function s = prepareSimulate2(this, s, variantRequested)
 
 ixe = this.Quantity.Type==int8(31) | this.Quantity.Type==int8(32);
 ne = sum(ixe);
-nn = sum(this.Equation.IxHash);
+nh = sum(this.Equation.IxHash);
 lastEa = s.LastEa;
 lastEndgA = s.LastEndgA;
 nPerNonlin = s.NPerNonlin;
@@ -24,16 +24,20 @@ s.Update.Quantity = this.Variant.Values(:, :, variantRequested);
 s.Update.StdCorr = this.Variant.StdCorr(:, :, variantRequested);
 
 % Solution matrices expanded forward if needed.
-forward = max([1, lastEa, lastEndgA, nPerNonlin]) - 1;
+requiredForward = max([1, lastEa, lastEndgA, nPerNonlin]) - 1;
 if isequal(s.Method, 'selective')
     [s.T, s.R, s.K, s.Z, s.H, s.D, s.U, ~, ~, s.Q] = sspaceMatrices(this, variantRequested);
-    if forward>0
-        [s.R, s.Q] = expandFirstOrder(this, variantRequested, forward);
+    currentForward = min( size(s.R, 2)/ne, size(s.Q, 2)/nh ) - 1;
+    if requiredForward>currentForward
+        vthExpansion = getIthExpansion(this.Variant, variantRequested);
+        [s.R, s.Q] = model.expandFirstOrder(s.R, s.Q, vthExpansion, requiredForward);
     end
 else
     [s.T, s.R, s.K, s.Z, s.H, s.D, s.U] = sspaceMatrices(this, variantRequested);
-    if forward>0
-        s.R = expandFirstOrder(this, variantRequested, forward);
+    currentForward = size(s.R, 2)/ne - 1;
+    if requiredForward>currentForward
+        vthExpansion = getIthExpansion(this.Variant, variantRequested);
+        s.R = model.expandFirstOrder(s.R, [ ], vthExpansion, requiredForward);
     end
 end
 

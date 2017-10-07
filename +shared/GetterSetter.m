@@ -47,7 +47,9 @@ classdef GetterSetter
                 end
                 
                 % Replace alternate names with the standard ones.
-                query = this.myalias(query);
+                if isempty(strfind(query, '.')) && isempty(strfind(query, ':'))
+                    query = this.myalias(query);
+                end
                 
                 % Remove blank spaces.
                 query(isstrprop(query, 'wspace')) = '';

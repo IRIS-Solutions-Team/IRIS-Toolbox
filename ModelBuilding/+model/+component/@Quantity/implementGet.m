@@ -3,37 +3,44 @@ function [answ, isValid, query] = implementGet(this, query, varargin)
 TYPE = @int8;
 answ = [ ];
 isValid = true;
+compare = @(x, y) any(strcmpi(x, y));
 
-switch lower(query)
-    case {'name', 'list'}
-        answ = this.Name;
-        
-    case {'quantity:name'}
-        answ = this.Name;
-        
-    case {'quantity:type'}
-        answ = this.Type;
-        
-    case { 'ylist', 'xlist', 'elist', 'plist', 'glist', ...
+if strncmpi(query, 'Quantity.', 9)
+    property = query(10:end);
+    try
+        answ = this.(property);
+        return
+    end
+end
+
+if compare(query, {'Name', 'List'})
+    answ = this.Name;
+    return
+
+elseif compare(query, { ...
+            'ylist', 'xlist', 'elist', 'plist', 'glist', ...
             'ydescript', 'xdescript', 'edescript', 'pdescript', 'gdescript', ...
-            'yalias', 'xalias', 'ealias', 'palias', 'galias' }
-        ixType = getType(query);
-        prop = getProperty(query);
-        answ = this.(prop)(ixType);
+            'yalias', 'xalias', 'ealias', 'palias', 'galias' ...
+        })
+    ixType = getType(query);
+    prop = getProperty(query);
+    answ = this.(prop)(ixType);
+    return
         
-    case {'quantity:label', 'descript'}
-        answ = cell2struct(this.Label, this.Name, 2);
+elseif compare(query, 'Descript')
+    answ = cell2struct(this.Label, this.Name, 2);
+    return
         
-    case {'quantity:alias', 'alias'}
-        answ = cell2struct(this.Alias, this.Name, 2);
-        
-    otherwise
-        isValid = false;
+elseif compare(query, 'Alias')
+    answ = cell2struct(this.Alias, this.Name, 2);
+    return
+
+else
+    isValid = false;
+
 end
 
 return
-
-
 
 
     function ixType = getType(query)
@@ -52,9 +59,7 @@ return
     end
 
 
-
-
-    function prop = getProperty(query)
+    function prop = getProperty(query) 
         switch upper( query(2:end) )
             case 'LIST'
                 prop = 'Name';

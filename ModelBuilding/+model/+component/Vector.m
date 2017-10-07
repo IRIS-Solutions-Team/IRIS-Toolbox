@@ -5,8 +5,6 @@ classdef Vector
     end
     
     
-    
-    
     methods
         function [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this)
             ny = length(this.Solution{1});
@@ -16,8 +14,6 @@ classdef Vector
             ne = length(this.Solution{3});
             ng = length(this.Solution{5});
         end
-        
-        
         
         
         function [ky, kxi, kb, kf, ke, kg] = sizeOfSystem(this)
@@ -30,12 +26,26 @@ classdef Vector
         end
         
         
-        
-        
         function flag = isCompatible(this, obj)
             flag = isa(this, 'model.component.Vector') && isa(obj, 'model.component.Vector') ...
                 && isequal(this.System, obj.System) ...
                 && isequal(this.Solution, obj.Solution);
+        end
+
+
+        function [answ, isValid, query] = implementGet(this, query, varargin)
+            TYPE = @int8;
+            answ = [ ];
+            isValid = true;
+            compare = @(x, y) any(strcmpi(x, y));
+            if compare(query, 'Vector:Solution')
+                answ = this.Solution;
+                return
+            elseif compare(query, 'Vector:System')
+                answ = this.System;
+            else
+                isValid = false;
+            end
         end
     end
 end
