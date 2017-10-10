@@ -50,17 +50,16 @@ classdef tableobj < report.tabularobj
             % vertical line drawn after the date, `-1i` means a vertical line drawn
             % before the date.
             rng = this.options.range(:).';
-            inxBefore = imag(rng) < 0;
-            inxAfter = imag(rng) > 0;
+            indexOfVLinesBefore = imag(rng) < 0;
+            indexOfVLinesAfter = imag(rng) > 0;
             rng = real(rng);
             this.options.vlinebefore = ...
                 [this.options.vlinebefore(:).', ...
-                rng(inxBefore)];
+                rng(indexOfVLinesBefore)];
             this.options.vlineafter = ...
                 [this.options.vlineafter(:).', ...
-                rng(inxAfter)];
+                rng(indexOfVLinesAfter)];
             this.options.range = rng;
-            keyboard
             
             isDates = isempty(this.options.colstruct);
             if ~isDates

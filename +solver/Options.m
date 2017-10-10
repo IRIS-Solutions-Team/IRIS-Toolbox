@@ -20,12 +20,13 @@ classdef Options
 
 
     methods
-        function this = Options(varargin)
+        function this = Options(caller, varargin)
             if nargin==0
                 return
             end
-            user = passvalopt(varargin{:});
-            this = copyFromStruct(this, user);
+            spec = ['solver.Iris', caller];
+            struct = passvalopt(spec, varargin{:});
+            this = copyFromStruct(this, struct);
         end
 
 
@@ -53,7 +54,6 @@ classdef Options
                 % 'Solver=' optimoptions( )
                 % 'Solver=' solver.Options( )
                 % Do nothing.
-                
 
             elseif FN_CHKOPTIMTBX(solverOpt) ...
                     || ( iscell(solverOpt) && FN_CHKOPTIMTBX(solverOpt{1}) && iscellstr(solverOpt(2:2:end)) )
@@ -94,11 +94,9 @@ classdef Options
                     % suboption.
                     solverOpt = varargin;
                 end
-                spec = ['solver.Iris', caller];
-                user = passvalopt(spec, solverOpt{:});
-                user.Display = silentDisplay(user.Display, displayMode);
-                solverOpt = solver.Options(spec);
-                solverOpt = copyFromStruct(solverOpt, user);
+                solverOpt = solver.Options(caller, solverOpt{:});
+                solverOpt.Display = silentDisplay(solverOpt.Display, displayMode);
+
                 
             elseif isa(solverOpt, 'function_handle')
                 % 'Solver=' @userFunction

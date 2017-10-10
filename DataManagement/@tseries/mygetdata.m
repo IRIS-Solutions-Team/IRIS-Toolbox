@@ -18,48 +18,50 @@ if ~isempty(varargin)
 end
 
 % References to time dimension.
-start = double(this.Start);
-size_ = size(this.Data);
+start = this.Start;
+sizeOfData = size(this.Data);
 this.Data = this.Data(:, :);
-ixRemove = true(1, size_(1));
-if isnumeric(dates) && ~isequal(dates, Inf)
-    dates = double(dates);
+indexToRemove = true(1, sizeOfData(1));
+if ~isa(dates, 'DateWrapper') && ~isequal(dates, Inf) && ~ischar(dates)
+    dates = DateWrapper(dates);
+end
+if isa(dates, 'DateWrapper') 
     dates = dates(:);
-    data = nan([length(dates), size_(2:end)]);
+    data = nan([length(dates), sizeOfData(2:end)]);
     if ~isempty(this.Data)
         pos = round(dates - start + 1);
-        ixTest = pos>=1 & pos<=size_(1) & freqcmp(start, dates);
+        ixTest = pos>=1 & pos<=sizeOfData(1) & freqcmp(start, dates);
         data(ixTest, :) = this.Data(pos(ixTest), :);
         if nargout>2
-            ixRemove(pos(ixTest)) = false;
+            indexToRemove(pos(ixTest)) = false;
         end
     end
 elseif isequal(dates, Inf) || isequal(dates, ':') || isequal(dates, 'max')
-    dates = start + (0 : size_(1)-1);
+    dates = start + (0 : sizeOfData(1)-1);
     data = this.Data;
     if nargout>2
-        ixRemove(:) = false;
+        indexToRemove(:) = false;
     end
 elseif isequal(dates, 'min')
-    dates = start + (0 : size_(1)-1);
+    dates = start + (0 : sizeOfData(1)-1);
     sample = all(~isnan(this.Data), 2);
     data = this.Data(sample, :);
     if nargout>2
-        ixRemove(sample) = false;
+        indexToRemove(sample) = false;
     end
 else
     data = this.Data([ ], :);
 end
 
-data = reshape(data, [size(data, 1), size_(2:end)]);
+data = reshape(data, [size(data, 1), sizeOfData(2:end)]);
 
 if nargout>2
     if isreal(this.Data)
-        this.Data(ixRemove, :) = NaN;
+        this.Data(indexToRemove, :) = NaN;
     else
-        this.Data(ixRemove, :) = NaN+1i*NaN;
+        this.Data(indexToRemove, :) = NaN+1i*NaN;
     end
-    this.Data = reshape(this.Data, [size(this.Data, 1), size_(2:end)]);
+    this.Data = reshape(this.Data, [size(this.Data, 1), sizeOfData(2:end)]);
     this = trim(this);
 end
 

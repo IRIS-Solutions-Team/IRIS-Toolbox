@@ -142,7 +142,12 @@ classdef DateWrapper < double
             serial = fromSerial : step : toSerial;
             this = DateWrapper.fromSerial(frequency, serial);
         end
-        
+
+
+        function this = real(this)
+            this = DateWrapper(real(double(this)));
+        end
+
         
         function flag = eq(d1, d2)
             flag = round(d1*100)==round(d2*100);

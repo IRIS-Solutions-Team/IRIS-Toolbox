@@ -1,36 +1,31 @@
 function varargout = subsref(this, s, varargin)
 % subsref  Subscripted reference function for tseries objects.
 %
-% Syntax returning numeric array
-% ===============================
+% __Syntax Returning Numeric Array__
 %
-%     ... = x(dates)
-%     ... = x(dates, ...)
-%
-%
-% Syntax returning tseries object
-% ================================
-%
-%     ... = x{dates}
-%     ... = x{dates, ...}
+%     ... = X(Dates)
+%     ... = X(Dates, ...)
 %
 %
-% Input arguments
-% ================
+% __Syntax Returning tseries Object__
 %
-% * `x` [ Series ] - Time series.
+%     ... = X{Dates}
+%     ... = X{Dates, ...}
 %
-% * `dates` [ DateWrapper | numeric ] - Dates for which the time series
+%
+% __Input Arguments__
+%
+% * `X` [ Series ] - Time series object.
+%
+% * `Dates` [ DateWrapper | numeric ] - Dates for which the time series
 % observations will be returned, either as a numeric array or as another
 % tseries object.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
