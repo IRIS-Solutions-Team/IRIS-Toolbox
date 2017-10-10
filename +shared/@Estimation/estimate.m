@@ -1,4 +1,5 @@
-function [this, pStar, objStar, covMat, hess] = estimate(this, data, pri, estOpt, likOpt)
+function [this, pStar, objStar, proposalCov, hessian, validDiff, infoFromLik] = ...
+    estimate(this, data, pri, estOpt, likOpt)
 % estimate  Run parameter estimation.
 %
 % Backend IRIS function.
@@ -16,8 +17,8 @@ np = length(pri.LsParam);
 
 pStar = nan(1, np);
 objStar = NaN;
-hess = {zeros(np), zeros(np), zeros(np)};
-covMat = nan(np);
+hessian = {zeros(np), zeros(np), zeros(np)};
+proposalCov = nan(np);
 
 % Indicator of bounds hit for each parameter: 0 means interior optimum,
 % -1 lower bound hit, +1 upper bound hit.
@@ -29,7 +30,7 @@ if ~isempty(pri.Init)
     % handle returned as an output of `estimate` will be not be affected by
     % re-scaling the std devs in the output model object. Make sure the
     % model is solved in the very first run.
-    [pStar, objStar, hess, lmb] ...
+    [pStar, objStar, hessian, lmb] ...
         = irisoptim.myoptimize( ...
         @(x) objfunc(x, this, data, pri, estOpt, likOpt),...
         pri.Init, pri.Lower, pri.Upper, estOpt) ;
@@ -49,10 +50,9 @@ if ~isempty(pri.Init)
     
     % Initial proposal covariance matrix and contributions of priors to
     % Hessian.
-    [covMat, hess] = diffPrior( ...
-        this, data, pStar, hess, ixBHit, pri, estOpt, likOpt ...
-        );
-    
+    [hessian, proposalCov, validDiff, infoFromLik] = diffObj( ...
+        this, data, pStar, hessian, ixBHit, pri, estOpt, likOpt ...
+    );
 else
     
     % No parameters to be estimated.
@@ -62,8 +62,6 @@ else
 end
 
 return
-
-
 
 
     function chkBounds( )

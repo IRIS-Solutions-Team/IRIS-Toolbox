@@ -55,31 +55,30 @@ for i = 1 : nBlock
 end
 
 if any(~ixValidEssential)
-    throw( exception.ParseTime('TheParser:ESSENTIAL_BLOCKS_MISSING', 'error'), ...
-        lsBlockKey{~ixValidEssential} );
+    throw( ...
+        exception.ParseTime('TheParser:EssentialBlocksMissing', 'error'), ...
+        lsBlockKey{~ixValidEssential} ...
+    );
 end
-
 end
-
-
 
 
 function chkKey(this, lsBlockKey)
-% Allow for double exclamation marks immediately followed by \w; these can
-% be steady equations.
-UNKNOWN_KEY = '(?<!\!)!\w+';
-ix = ~cellfun(@isempty, lsBlockKey);
-lsAllowed = [ lsBlockKey(ix), this.OtherKeyword ];
-lsKey = regexp(this.Code, UNKNOWN_KEY, 'match');
-nKey = length(lsKey);
-ixValid = true(1, nKey);
-for iKey = 1 : nKey
-    ixValid(iKey) = any(strcmp(lsKey{iKey}, lsAllowed));
-end
+    % Allow for double exclamation marks immediately followed by \w; these can
+    % be steady equations.
+    UNKNOWN_KEY = '(?<!\!)!\w+';
+    ix = ~cellfun(@isempty, lsBlockKey);
+    lsAllowed = [ lsBlockKey(ix), this.OtherKeyword ];
+    lsKey = regexp(this.Code, UNKNOWN_KEY, 'match');
+    nKey = length(lsKey);
+    ixValid = true(1, nKey);
+    for iKey = 1 : nKey
+        ixValid(iKey) = any(strcmp(lsKey{iKey}, lsAllowed));
+    end
 
-if any(~ixValid)
-    throw( exception.ParseTime('TheParser:INVALID_KEYWORD', 'error'), ...
-        lsKey{~ixValid} );
-end
+    if any(~ixValid)
+        throw( exception.ParseTime('TheParser:INVALID_KEYWORD', 'error'), ...
+            lsKey{~ixValid} );
+    end
 end
 

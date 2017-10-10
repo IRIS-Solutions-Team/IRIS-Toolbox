@@ -1,4 +1,4 @@
-function  [outp, ok] = simulateStacked(this, inp, range, variantsRequested, opt)
+function  [outputDatabank, ok] = simulateStacked(this, inputDatabank, baseRange, opt)
 % simulateStacked  Simulate stacked-time system.
 %
 % Backend IRIS function.
@@ -11,6 +11,7 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
+ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 nv = length(this);
 numOfQuantities = length(this.Quantity);
 %ixy = this.Quantity.Type==TYPE(1);
@@ -19,17 +20,33 @@ numOfQuantities = length(this.Quantity);
 %ixg = this.Quantity.Type==TYPE(5);
 %ixyxeg = ixy | ixx | ixe | ixg;
 ok = true(1, nv);
-range = range(1) : range(end);
-if isequal(variantsRequested, @all)
-    variantsRequested = 1 : nv;
+
+% Base range is the simulation range requested by the user. Base range plus
+% N is the base range extended to include N additional periods at the end,
+% where N is the number of full nonlinear periods to be simulated in
+% forward-looking blocks. Extended range is the base range plus N, extended
+% to cover max lags and max leads.
+
+N = 50;
+baseRange = baseRange(1) : baseRange(end);
+baseRangePlusN = baseRange(1) : baseRange(end)+(N-1);
+[YXEPG, ~, extendedRange] = data4lhsmrhs(this, inputDatabank, baseRangePlusN);
+for i = find(ixe)
+    e = YXEPG(i, :, :);
+    e(isnan(e)) = 0;
+    YXEPG(i, :, :) = e;
 end
-numOfVariantsRequested = numel(variantsRequested);
+firstColumn = rnglen(extendedRange(1), baseRange(1));
+lastColumn = rnglen(extendedRange(1), baseRange(end));
+numOfColumns = size(YXEPG, 2);
+numOfColumnsSimulated = lastColumn - firstColumn + 1;
 
 blz = prepareBlazer(this, 'Stacked', opt);
 run(blz);
 prepareBlocks(blz, opt);
 
 ixLog = blz.IxLog;
+ixLog(:) = false;
 numOfBlocks = numel(blz.Block);
 %ixEndg = false(1, numOfQuantities); % Index of all endogenous quantities.
 %for i = 1 : numOfBlocks
@@ -38,51 +55,51 @@ numOfBlocks = numel(blz.Block);
 
 state = struct( );
 
-%[YXEPG, ~, extendedRange] = data4lhsmrhs(this, inp, range);
-%firstPeriod = find(datcmp(range(1), data.ExtendedRange), 1);
-%lastPeriod = find(datcmp(range(end), data.ExtendedRange), 1, 'last');
-keyboard
-for i = 1 : numOfVariantsRequested
-    v = variantsRequested(i);
-    data = simulate.Data(this, v, inp, range);
-  
-    X = data.YXEPG(:, :, i);
-    [X, L] = lp4lhsmrhs(this, X, v, [ ]);
-    X(end+1, :, :) = 1; %#ok<AGROW>
+for v = 1 : nv
+    vthData = simulate.Data( );
+    [vthData.YXEPG, vthData.L] = lp4lhsmrhs(this, YXEPG(:, :, v), v, [ ]);
+    vthRect = simulate.Rectangular.fromModel(this, v, opt.anticipate);
+    deviation = false;
+    flat(vthRect, vthData, firstColumn, numOfColumns, deviation);
+    blockExitStatus = ones(numOfBlocks, numOfColumns);
 
-    state.IAlt = v;
-    x0 = X;
-    for t = firstPeriod : lastPeriod
-        state.T = firstPeriod;
-        state.Date = extendedRange(t);
-        state.PrintDate = dat2char(state.Date);
-        blockExitStatus = false(1, numOfBlocks);
-        if strcmpi(opt.InitEndog, 'Static')
-            X(:, 1:t-1) = x0(:, 1:t-1);
-        end
-        for i = 1 : numOfBlocks
-            ithBlock = blz.Block{i};
-            [X, blockExitStatus(i), error] = run(ithBlock, X, t, L, ixLog);
-            if ~isempty(error.EvaluatesToNan)
-                throw( ...
-                    exception.Base('Dynamic:EvaluatesToNan', 'error'), ...
-                    state.PrintDate, ...
-                    this.Equation.Input{error.EvaluatesToNan} ...
-                );
-            end
-        end
-        YXEPG(:, t, i) = X(1:end-1, t);
+    if ~opt.FOTC
+        vthRect = [ ];
     end
-end
 
-outp = array2db( ...
-    YXEPG(ixyxeg, firstPeriod:lastPeriod, :).', ...
-    range, ...
-    this.Quantity.Name(ixyxeg), ...
-    [ ] ...
-    );
+    for i = 1 : numOfBlocks
+        ithBlk = blz.Block{i};
+            if ithBlk.Type~=solver.block.Type.SOLVE || ithBlk.MaxLead==0
+                runColumns = firstColumn : lastColumn;
+                [exitStatus, error] = run(ithBlk, vthData, runColumns, ixLog, [ ]);
+                blockExitStatus(i, runColumns) = exitStatus;
+            else
+                for t = firstColumn %: lastColumn
+                    runColumns = t + (0:N-1);
+                    [exitStatus, error] = run(ithBlk, vthData, runColumns, ixLog, vthRect);
+                    blockExitStatus(i, t) = exitStatus;
+                end
+            end
 
-% Return status only for parameterizations requested in variantsRequested.
-ok = ok(variantsRequested);
+
+        if ~isempty(error.EvaluatesToNan)
+            throw( ...
+                exception.Base('Dynamic:EvaluatesToNan', 'error'), ...
+                '', ...
+                this.Equation.Input{error.EvaluatesToNan} ...
+            );
+        end
+    end % for i
+    blockExitStatus = blockExitStatus(:, firstColumn:lastColumn);
+    ok(v) = all(blockExitStatus(:)==1);
+    YXEPG(:, firstColumn:lastColumn, v) = vthData.YXEPG(:, firstColumn:lastColumn);
+end % for v
+
+names = this.Quantity.Name;
+labels = this.Quantity.Label;
+outputDatabank = databank.fromDoubleArrayNoFrills( ...
+    YXEPG, names, extendedRange(1), labels ...
+);
+
 
 end

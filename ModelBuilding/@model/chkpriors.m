@@ -1,4 +1,4 @@
-function [flag, lsBound, lsPrior, lsNotFound] = chkpriors(this, priorStruct)
+function [flag, boundsViolated, inconsistentPrior, notFound] = chkpriors(this, priorStruct)
 % chkpriors  Check compliance of initial conditions with priors and bounds.
 %
 % __Syntax__
@@ -50,19 +50,20 @@ INPUT_PARSER.parse(this, priorStruct);
 %--------------------------------------------------------------------------
 
 % Check consistency by looping over parameters
-lsp = fields(priorStruct) ;
-np = numel(lsp) ;
+listOfParameters = fields(priorStruct);
+numOfParameters = numel(listOfParameters);
 
-ixValidPrior = true(1, np) ;
-ixValidBound = true(1, np) ;
+indexOfValidPriors = true(1, numOfParameters);
+indexOfValidBounds = true(1, numOfParameters);
 
-ell = lookup(this.Quantity, lsp);
+ell = lookup(this.Quantity, listOfParameters);
 posQty = ell.PosName;
 posStdCorr = ell.PosStdCorr;
 ixFound = ~isnan(posQty) | ~isnan(posStdCorr);
 
-for iName = find(ixFound)
-    ithParam = priorStruct.(lsp{iName}) ;
+for i = find(ixFound)
+    ithName = listOfParameters{i};
+    ithParam = priorStruct.(ithName);
     
     if isempty(ithParam)
         initVal = NaN;
@@ -70,22 +71,27 @@ for iName = find(ixFound)
         initVal = ithParam{1};
     end
     
-    if isnan(initVal)
+    if isequaln(initVal, NaN) || isequal(initVal, @auto)
         % Use initial condition from model object
-        if ~isnan(posQty(iName))
-            initVal = this.Variant.Values(:, posQty(iName), :);
-        elseif ~isnan(posStdCorr(iName))
-            initVal = this.Variant.Values(:, posStdCorr(iName), :);
+        if ~isnan(posQty(i))
+            initVal = this.Variant.Values(:, posQty(i), :);
+        elseif ~isnan(posStdCorr(i))
+            initVal = this.Variant.StdCorr(:, posStdCorr(i), :);
         end
     end
     
     % get prior function
     if numel(ithParam)>3 && ~isempty(ithParam{4})
-        fh = ithParam{4} ;
+        priorLogPdf = ithParam{4};
         % check prior consistency
-        if ~isa(fh, 'function_handle') || ~isfinite(fh(initVal))
-            ixValidPrior(iName) = false ;
+        if isa(priorLogPdf, 'distribution.Abstract')
+            priorValue = priorLogPdf.logPdf(initVal);
+        elseif isa(priorLogPdf, 'function_handle')
+            priorValue = priorLogPdf(initVal);
+        else
+            priorValue = NaN;
         end
+        indexOfValidPriors(i) = isfinite(priorValue);
     end
     
     % check bounds consistency
@@ -93,32 +99,22 @@ for iName = find(ixFound)
         lowerBound = -Inf;
     else
         lowerBound = ithParam{2};
-    end
-    if ~isequal(lowerBound, -Inf)
-        if initVal<lowerBound
-            ixValidBound(iName) = false ;
-        end
+        indexOfValidBounds(i) = initVal>=lowerBound;
     end
     
     if numel(ithParam)<3 || isempty(ithParam{3}) || ithParam{3}>=realmax
         upperBound = Inf;
     else
         upperBound = ithParam{3};
+        indexOfValidBounds(i) = initVal<=upperBound;
     end
-    if ~isequal(upperBound, Inf)
-        if initVal>upperBound
-            ixValidBound(iName) = false ;
-        end
-    end
+    if ~indexOfValidBounds(i), keyboard, end
 end
 
-flag = all(ixValidPrior) && all(ixValidBound) && all(ixFound) ;
-lsPrior = lsp(~ixValidPrior) ;
-lsBound = lsp(~ixValidBound) ;
-lsNotFound = lsp(~ixFound) ;
+flag = all(indexOfValidPriors) && all(indexOfValidBounds) && all(ixFound);
+inconsistentPrior = listOfParameters(~indexOfValidPriors);
+boundsViolated = listOfParameters(~indexOfValidBounds);
+notFound = listOfParameters(~ixFound);
 
 end
-
-
-
 

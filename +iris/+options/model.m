@@ -327,6 +327,7 @@ def.simulate = [
     'dboverlay, dbextend', false, @(x) islogicalscalar(x) || isstruct(x)
     'Delog', true, @islogicalscalar
     'fast', true, @islogicalscalar
+    'FOTC', true, @(x) isequal(x, true) || isequal(x, false)
     'ignoreshocks, ignoreshock, ignoreresiduals, ignoreresidual', false, @islogicalscalar
     'Method', 'FirstOrder', @(x) ischar(x) && any(strcmpi(x, {'FirstOrder', 'Selective', 'Global', 'Exact', 'Stacked'}))
     'missing', NaN, @isnumeric

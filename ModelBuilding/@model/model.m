@@ -184,6 +184,11 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
     
     properties (Constant, Hidden)
         LAST_LOADABLE = 20171007
+        STD_PREFIX = 'std_';
+        CORR_PREFIX = 'corr_';
+        LOG_PREFIX = 'log_';
+        LEVEL_BOUNDS_ALLOWED  = [int8(1), int8(2), int8(4)];
+        GROWTH_BOUNDS_ALLOWED = [int8(1), int8(2)];
         DEFAULT_SOLVE_TOLERANCE = eps( )^(5/9)
         DEFAULT_EIGEN_TOLERANCE = eps( )^(5/9)
         DEFAULT_STEADY_TOLERANCE = eps( )^(5/9)
@@ -225,7 +230,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = addcorr(varargin)
     end
 
-        
+
     methods
         varargout = acf(varargin)
         varargout = alter(varargin)

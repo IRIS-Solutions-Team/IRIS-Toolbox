@@ -11,13 +11,9 @@ classdef Estimation
     end
 
     
-    
-    
     methods
         varargout = neighbourhood(varargin)
     end
-    
-    
     
     
     methods (Abstract)
@@ -25,15 +21,11 @@ classdef Estimation
     end
     
     
-    
-    
     methods (Access=protected, Hidden)
-        varargout = diffPrior(varargin)
+        varargout = diffObj(varargin)
         varargout = run(varargin)
         varargout = parseEstimStruct(varargin)
     end
-    
-    
     
     
     methods (Access=protected, Hidden, Static)

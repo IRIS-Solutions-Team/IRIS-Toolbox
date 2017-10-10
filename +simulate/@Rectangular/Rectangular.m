@@ -9,6 +9,7 @@ classdef Rectangular < handle
     properties
         Solution = cell(1, 6)
         Expansion = cell(1, 5)
+        IndexOfLog
         IdOfObserved
         IdOfStates
         IdOfShocks
@@ -40,12 +41,13 @@ classdef Rectangular < handle
             keepExpansion = true;
             triangular = false;
             [this.Solution{:}] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
-            [this.Expansion{:}] = expansionMatrices(model, variantRequested);
-            solution = get(model, 'Vector:Solution');
-            this.IdOfObserved = solution{1}(:);
-            this.IdOfStates = solution{2}(:);
-            this.IdOfShocks = solution{3}(:);
-            this.IdOfExogenous = solution{5}(:);
+            [this.Expansion{:}] = expansionMatrices(model, variantRequested, triangular);
+            this.IndexOfLog = get(model, 'Quantity.IxLog');
+            solutionVector = get(model, 'Vector.Solution');
+            this.IdOfObserved = solutionVector{1}(:);
+            this.IdOfStates = solutionVector{2}(:);
+            this.IdOfShocks = solutionVector{3}(:);
+            this.IdOfExogenous = solutionVector{5}(:);
             if anticipate
                 this.Expected = @real;
                 this.Unexpected = @imag;

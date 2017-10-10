@@ -5,7 +5,7 @@ answ = [ ];
 isValid = true;
 compare = @(x, y) any(strcmpi(x, y));
 
-if strncmpi(query, 'Quantity.', 9)
+if strncmpi(query, 'Quantity.', 9) || strncmpi(query, 'Quantity:', 9)
     property = query(10:end);
     try
         answ = this.(property);

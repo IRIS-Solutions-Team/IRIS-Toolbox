@@ -1,4 +1,4 @@
-function flat(this, data, from, to, deviation)
+function flat(this, data, firstColumn, lastColumn, deviation)
 
 nxi = this.NumOfStates;
 nf = this.NumOfForward;
@@ -9,9 +9,6 @@ idOfShocks = this.IdOfShocks;
 idOfStates = this.IdOfStates;
 idOfBackward = idOfStates(nf+1:end);
 [T, R, K, Z, H, D] = this.Solution{:};
-
-firstColumn = rnglen(data.FirstDate, from);
-lastColumn = rnglen(data.FirstDate, to);
 
 if ne>0
     expectedShocks = this.Expected( data.YXEPG(idOfShocks, :) );
@@ -33,6 +30,10 @@ linxOfBackward = linxOfStates(nf+1:end);
 indexOfCurrent = imag(idOfStates)==0;
 linxOfCurrent = linxOfStates(indexOfCurrent);
 linxStep = size(data.YXEPG, 1);
+
+if any(this.IndexOfLog)
+    data.YXEPG(this.IndexOfLog, :) = log(data.YXEPG(this.IndexOfLog, :));
+end
 
 for t = firstColumn : lastColumn
     % __Endogenous variables__
@@ -70,6 +71,9 @@ for t = firstColumn : lastColumn
     linxOfCurrent = round(linxOfCurrent + linxStep);
 end
 
+if any(this.IndexOfLog)
+    data.YXEPG(this.IndexOfLog, :) = exp(data.YXEPG(this.IndexOfLog, :));
+end
 
 end
 

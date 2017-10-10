@@ -29,7 +29,7 @@ this.PreparserControl = d;
 % Run the main model-specific parser.
 the = parser.TheParser('model', this.FileName, code, opt.Assign);
 [quantity, equation, euc, puc] = parse(the, opt);
-opt.Assign = the.DbaseAssigned;
+opt.Assign = the.AssignedDatabank;
 
 % Run model-specific postparser.
 this = postparse(this, quantity, equation, euc, puc, opt, optimalOpt);

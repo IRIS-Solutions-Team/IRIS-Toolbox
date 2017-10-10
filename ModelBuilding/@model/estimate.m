@@ -1,4 +1,4 @@
-function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(this, inp, range, varargin)
+function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this, inp, range, varargin)
 % estimate  Estimate model parameters by optimizing selected objective function.
 %
 %
@@ -6,45 +6,44 @@ function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(this, inp,
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [pEst, pos, Cov, Hess, m, V, delta, PDelta] = ...
-%                               estimate(m, d, range, est, ~spr, ...)
+%     [Summary, Poster, Table, Hess, MEst, V, Delta, PDelta] = ...
+%               estimate(M, D, Range, EstimSpec, ~SystemPriors, ...)
 %
 %
 % __Input Arguments__
 %
-% * `m` [ model ] - Model object with single parameterization.
+% * `M` [ model ] - Model object with single parameterization.
 %
-% * `d` [ struct | cell ] - Input database or datapack from which the
+% * `D` [ struct | cell ] - Input database or datapack from which the
 % measurement variables will be taken.
 %
-% * `range` [ struct | char ] - Date range on which the data likelihood
+% * `Range` [ struct | char ] - Date range on which the data likelihood
 % will be evaluated.
 %
-% * `est` [ struct ] - Database with the list of paremeters that will be
+% * `EstimSpec` [ struct ] - Struct with the list of paremeters that will be
 % estimated, and the parameter prior specifications (see below).
 %
-% * `~spr` [ systempriors | *empty* ] - System priors object,
+% * `~SystemPriors` [ systempriors | *empty* ] - System priors object,
 % [`systempriors`](systempriors/Contents); may be omitted.
 %
 %
 % __Output Arguments__
 %
-% * `pEst` [ struct ] - Database with point estimates of requested
-% parameters.
+% * `Summary` [ table ] - Table with summary information.
 %
-% * `pos` [ poster ] - Posterior, [`poster`](poster/Contents), object; this
-% object also gives you access to the value of the objective function at
-% optimum or at any point in the parameter space, see the
+% * `Poster` [ poster ] - Posterior, [`poster`](poster/Contents), object;
+% this object also gives you access to the value of the objective function
+% at optimum or at any point in the parameter space, see the
 % [`poster/eval`](poster/eval) function.
 %
-% * `Cov` [ numeric ] - Approximate covariance matrix for the estimates of
-% parameters with slack bounds based on the asymptotic Fisher information
-% matrix (not on the Hessian returned from the optimization routine).
+% * `Table` [ numeric ] - Summary table with a starting value, point
+% estimate, std error estimate, and lower and upper bounds for each
+% parameter. 
 %
 % * `Hess` [ cell ] - `Hess{1}` is the total hessian of the objective
 % function; `Hess{2}` is the contributions of the priors to the hessian.
 %
-% * `m` [ model ] - Model object solved with the estimated parameters
+% * `MEst` [ model ] - Model object solved with the estimated parameters
 % (including out-of-likelihood parameters and common variance factor).
 %
 % The remaining three output arguments, `V`, `delta`, `PDelta`, are the
@@ -97,6 +96,9 @@ function [estDbase, p, PCov, Hess, this, V, delta, PDelta] = estimate(this, inp,
 % * `'OptimSet='` [ cell | *empty* ] - Cell array used to create the
 % Optimization Toolbox options structure; works only with the option
 % `'Optimiser='` `'default'`.
+%
+% * `'Summary='` [ *`'table'`* | `'struct'` ] - Format of the `Summary`
+% output argument.
 %
 % * `'Solve='` [ *`true`* | `false` | cellstr ] - Re-compute solution in
 % each iteration; you can specify a cell array with options for the `solve`
@@ -277,6 +279,7 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addParameter('EvalPPrior', true, @(x) isequal(x, true) || isequal(x, false));
     INPUT_PARSER.addParameter('EvalSPrior', true, @(x) isequal(x, true) || isequal(x, false));
     INPUT_PARSER.addParameter('Solver', 'fmin', @(x) (ischar(x) && any(strcmpi(x, {'fmin', 'lsqnonlin', 'pso', 'alps'}))) || iscell(x) || isfunc(x));
+    INPUT_PARSER.addParameter('Summary', 'struct', @(x) any(strcmpi(x, {'struct', 'table'})));
     INPUT_PARSER.addParameter('TolFun', 1e-6, @(x) isnumeric(x) && numel(x)==1 && x>0);
     INPUT_PARSER.addParameter('TolX', 1e-6, @(x) isnumeric(x) && numel(x)==1 && x>0);
     INPUT_PARSER.addParameter('UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
@@ -323,9 +326,8 @@ assert( ...
 % and upper bounds, penalties, and prior distributions.
 itr = parseEstimStruct(this, estSpec, systemPriors, estOpt.Penalty, estOpt.InitVal);
 
-% Run estimation from backend class
-%-----------------------------------
-[this, pStar, objStar, PCov, Hess] = estimate@shared.Estimation(this, inp, itr, estOpt, likOpt);
+% _Run Estimation from Backend Class__
+[this, pStar, objStar, propCov, hessian, validDiff, infoFromLik] = estimate@shared.Estimation(this, inp, itr, estOpt, likOpt);
 
 % Assign estimated parameters, refresh dynamic links, and re-compute steady
 % state, solution, and expansion matrices.
@@ -333,15 +335,13 @@ throwError = true;
 estOpt.Solve.fast = false;
 this = update(this, pStar, itr, 1, estOpt, throwError);
 
-% Set up posterior object
-%-------------------------
+% __Set Up Posterior Object__
 % Set up posterior object before we assign out-of-liks and scale std
 % errors in the model object.
 p = poster( );
 populatePosterObj( );
 
-% Re-run loglik for out-of-lik params
-%-------------------------------------
+% __Re-run Loglik for Out-of-lik Params__
 % Re-run the Kalman filter or FD likelihood to get the estimates of V
 % and out-of-lik parameters.
 V = 1;
@@ -357,11 +357,28 @@ if estOpt.EvalLik && (nargout>=5 || likOpt.relative)
 end
 
 % Database with point estimates.
-estDbase = cell2struct(num2cell(pStar(:)'), itr.LsParam, 2);
+if strcmpi(estOpt.Summary, 'struct')
+    summary = cell2struct(num2cell(pStar(:)'), itr.LsParam, 2);
+else
+    std = sqrt(diag(propCov));
+    std(~validDiff) = NaN;
+    numOfParameters = numel(itr.LsParam);
+    priorMean = nan(1, numOfParameters);
+    priorStd = nan(1, numOfParameters);
+    for i = find(itr.IxPrior)
+        try
+            priorMean(i) = itr.FnPrior{i}.Mean;
+            priorStd(i) = itr.FnPrior{i}.Std;
+        end
+    end
+    summary = table( ...
+        pStar(:), std(:), priorMean(:), priorStd(:), infoFromLik(:), itr.Init(:), itr.Lower(:), itr.Upper(:), ...
+        'VariableNames', {'Poster_Mode', 'Poster_Std', 'Prior_Mean', 'Prior_Std', 'Info_from_Lik', 'Start', 'Lower_Bound', 'Upper_Bound'}, ...
+        'RowNames', itr.LsParam(:) ...
+    );
+end
 
 return
-
-
 
 
     function callChkPriors( )
@@ -383,8 +400,6 @@ return
     end 
 
 
-
-
     function populatePosterObj( )
         % Make sure that draws that fail to solve do not cause an error
         % and hence do not interupt the posterior simulator.
@@ -396,7 +411,7 @@ return
         p.InitLogPost = -objStar;
         p.InitParam = pStar;
         try
-            p.InitProposalCov = PCov;
+            p.InitProposalCov = propCov;
         catch Error
             utils.warning('model:estimate', ...
                 ['Posterior simulator object cannot be initialised.', ...

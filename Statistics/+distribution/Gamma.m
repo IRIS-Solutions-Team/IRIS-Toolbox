@@ -1,10 +1,10 @@
-%function fn_ = Gamma(parameterization, varargin)
 % gamma  Function proportional to log density of Gamma distribution
 %
 % __Syntax__
 %
 %     F = distribution.Gamma('AlphaBeta', Alpha, Beta)
 %     F = distribution.Gamma('MeanStd', Mean, Std)
+%     F = distribution.Gamma('MeanVar', Mean, Var)
 %
 %
 % __Input Arguments__
@@ -16,6 +16,8 @@
 % * `Mean` [ numeric ] - Mean of Gamma distribution.
 %
 % * `Std` [ numeric ] - Std deviation of Gamma distribution.
+%
+% * `Var` [ numeric ] - Variance of Gamma distribution.
 %
 %
 % __Output Arguments__
@@ -58,6 +60,8 @@ classdef Gamma < distribution.Abstract
             parameterization = varargin{1};
             if strcmpi(parameterization, 'MeanStd')
                 fromMeanStd(this, varargin{2:3});
+            if strcmpi(parameterization, 'MeanVar')
+                fromMeanVar(this, varargin{2:3});
             elseif strcmpi(parameterization, 'AlphaBeta')
                 fromAlphaBeta(this, varargin{2:3})
             else
@@ -66,32 +70,41 @@ classdef Gamma < distribution.Abstract
                     this.Name, parameterization ...
                 );
             end
+            this.Mode = max(0, (this.Alpha-1)*this.Beta);
+            this.Shape = this.Alpha;
+            this.Scale = this.Beta;
         end
 
 
         function fromAlphaBeta(this, varargin)
-            [this.Shape, this.Scale] = varargin{1:2};
-            this.Alpha = this.Shape;
-            this.Beta = this.Scale;
+            [this.Alpha, this.Beta] = varargin{1:2};
             this.Mean = this.Alpha * this.Beta;
             this.Var = this.Alpha * this.Beta.^2;
             this.Std = sqrt(this.Var);
-            this.Mode = max(0, (this.Alpha-1)*this.Beta);
         end
 
 
         function fromMeanStd(this, varargin)
             [this.Mean, this.Std] = varargin{1:2};
             this.Var = this.Std.^2;
-            this.Scale = this.Var / this.Mean;
-            this.Shape = this.Mean / this.Scale;
-            this.Alpha = this.Shape;
-            this.Beta = this.Scale;
-            this.Mode = max(0, (this.Alpha-1)*this.Beta);
+            alphaBetaFromMeanVar(this);
         end
 
 
-        function y = propToLogPdf(this, x)
+        function fromMeanVar(this, varargin)
+            [this.Mean, this.Var] = varargin{1:2};
+            this.Std = sqrt(this.Var);
+            alphaBetaFromMeanVar(this);
+        end
+
+
+        function alphaBetaFromMeanVar(this)
+            this.Beta = this.Var / this.Mean;
+            this.Alpha = this.Mean / this.Scale;
+        end
+
+
+        function y = logPdf(this, x)
             y = zeros(size(x));
             indexInDomain = inDomain(this, x);
             x = x(indexInDomain);
@@ -114,6 +127,14 @@ classdef Gamma < distribution.Abstract
             a = this.Alpha;
             b = this.Beta;
             y(indexInDomain) = x.^(a-1).*exp(-x/b) / (b^a*gamma(a));
+        end
+
+
+        function y = info(this, x)
+            y = nan(size(x));
+            indexInDomain = inDomain(this, x);
+            x = x(indexInDomain);
+            y(indexInDomain) = (this.Alpha - 1) / x.^2;
         end
     end
 end

@@ -1,5 +1,6 @@
 classdef Steady < solver.block.Block
     properties (Constant)
+        VECTORIZE = false
         STEADY_SHIFT = 10
     end
     

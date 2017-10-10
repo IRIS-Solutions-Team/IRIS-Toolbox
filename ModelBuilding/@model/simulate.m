@@ -299,6 +299,7 @@ if isempty(INPUT_PARSER)
 end
 INPUT_PARSER.parse(this, inp, range);
 
+range = range(1) : range(end);
 if ~isa(range, 'DateWrapper')
     range = DateWrapper(range);
 end
@@ -311,7 +312,7 @@ if strcmpi(opt.Method, 'global') || strcmpi(opt.Method, 'exact')
         opt.Solver = 'IRIS';
     end
     [opt.Solver, opt.PrepareGradient] = ...
-        solver.Options.processOptions(opt.Solver, opt.PrepareGradient, 'Verbose');
+        solver.Options.processOptions(opt.Solver, 'Exact', opt.PrepareGradient, 'Verbose');
     [outp, exitFlag]  = simulateNonlinear(this, inp, range, @all, opt);
     outp = this.appendData(inp, outp, range, opt);
     return
@@ -322,14 +323,8 @@ if strcmpi(opt.Method, 'Stacked')
         opt.Solver = 'IRIS';
     end
     [opt.Solver, opt.PrepareGradient] = ...
-        solver.Options.processOptions(opt.Solver, opt.PrepareGradient, 'Verbose');
-    % simulateStacked(this, inp, range, @all, opt);
-    data = simulate.Data.fromDatabank(this, inp, range);
-    rect = simulate.Rectangular.fromModel(this, 1, opt.anticipate);
-    from = range(1);
-    to = range(end);
-    flat(rect, data, from, to, false);
-    outp = toDatabank(data, this);
+        solver.Options.processOptions(opt.Solver, 'Stacked', opt.PrepareGradient, 'Verbose');
+    [outp, ok] = simulateStacked(this, inp, range, opt);
     outp = addToDatabank('Default', this, outp);
     return
 end

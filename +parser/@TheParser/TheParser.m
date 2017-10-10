@@ -15,15 +15,13 @@ classdef TheParser < handle
         AltKeyword = cell.empty(0, 2)
         AltKeywordWarn = cell.empty(0, 2)
         OtherKeyword = cell.empty(1, 0)
-        DbaseAssigned = struct( )
-        StrAssigned = cell.empty(1, 0)
-        AssignOrd = int8.empty(1, 0) % Order in which values assigned to names will be evaluated.
+        AssignedDatabank = struct( )
+        AssignedString = cell.empty(1, 0)
+        AssignOrder = int8.empty(1, 0) % Order in which values assigned to names will be evaluated.
     end
     
     
     properties (Constant)
-        STD_PREFIX = 'std_';
-        CORR_PREFIX = 'corr_';
         FN_EMPTY_BLOCK = @(x) isempty(x) || all(double(x)<=32);
     end
     
@@ -44,7 +42,7 @@ classdef TheParser < handle
             end
             this.FName = fileName;
             this.Code = code;
-            this.DbaseAssigned = a;
+            this.AssignedDatabank = a;
         end
     end
     

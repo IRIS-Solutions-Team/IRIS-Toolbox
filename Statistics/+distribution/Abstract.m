@@ -30,21 +30,13 @@ classdef (Abstract) Abstract < handle
             end
             INPUT_PARSER.parse(parameterization, varargin);
         end
-
-
-        function output = subsref(this, s)
-            if strcmp(s(1).type, '()') && length(s)==1 && length(s.subs)==1
-                output = propToLogPdf(this, s.subs{1});
-                return
-            end
-            output = builtin('subsref', this, s);
-        end
     end
 
 
     methods (Abstract)
         varargout = inDomain(varargin)
-        varargout = propToLogPdf(varargin)
+        varargout = logPdf(varargin)
         varargout = pdf(varargin)
+        varargout = info(varargin)
     end
 end

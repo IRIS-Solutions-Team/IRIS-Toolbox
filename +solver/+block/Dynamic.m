@@ -1,23 +1,13 @@
 classdef Dynamic < solver.block.Block
-    properties
-    end
-    
-    
-    
-    
     properties (Constant)
-        STEADY_SHIFT = 0
+        VECTORIZE = false
     end
-    
-    
-    
-    
+
+
     methods
         function this = Dynamic(varargin)
             this = this@solver.block.Block(varargin{:});
         end
-        
-        
         
         
         function [X, exitStatus, error] = run(this, X, t, L, ixLog)
@@ -102,8 +92,6 @@ classdef Dynamic < solver.block.Block
             end
             
             
-            
-            
             function [y, j] = objective(z)
                 % Delogarithmize log variables; variables in steady equations are expected
                 % to be in original levels.
@@ -134,8 +122,6 @@ classdef Dynamic < solver.block.Block
     end
     
     
-    
-    
     methods       
         function prepareBlock(this, blz, opt)
             prepareBlock@solver.block.Block(this, blz, opt);
@@ -147,8 +133,6 @@ classdef Dynamic < solver.block.Block
             end
             exclude(this, blz);
         end
-        
-        
         
         
         function exclude(this, posExclude)

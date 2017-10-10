@@ -37,22 +37,19 @@ ixValidParName = ~isnan(posAssign) | ~isnan(posStdcorr);
 % Total number of parameter names to estimate.
 np = sum(ixValidParName);
 
-% System priors
-%---------------
+% __System Priors__
 if isempty(sp)
     itr.SystemPrior = [ ];
 else
     itr.SystemPrior = sp;
 end
 
-% Parameter priors
-%------------------
+% __Parameter Priors__
 itr.LsParam = lsField(ixValidParName);
 itr.PosQty  = posAssign(ixValidParName);
 itr.PosStdCorr = posStdcorr(ixValidParName);
 
-% Starting value
-%----------------
+% __Starting Value__
 % Prepare the value currently assigned in the model object; this is used
 % when the starting value in the estimation struct is `NaN`.
 startIfNan = nan(1, np);
@@ -73,8 +70,6 @@ itr = parseEstimStruct@shared.Estimation( ...
     );
 
 return
-
-
 
 
     function reportInvalidNames( )

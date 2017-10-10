@@ -38,10 +38,10 @@ classdef Vector
             answ = [ ];
             isValid = true;
             compare = @(x, y) any(strcmpi(x, y));
-            if compare(query, 'Vector:Solution')
+            if compare(query, {'Vector.Solution', 'Vector:Solution'})
                 answ = this.Solution;
                 return
-            elseif compare(query, 'Vector:System')
+            elseif compare(query, {'Vector.System', 'Vector:System'})
                 answ = this.System;
             else
                 isValid = false;

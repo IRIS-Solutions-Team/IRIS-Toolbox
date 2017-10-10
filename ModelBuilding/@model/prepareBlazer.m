@@ -52,7 +52,7 @@ switch lower(kind)
         blz = solver.blazer.Stacked(numOfStackedTimes, numOfEquations);
         blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
         blz.Gradient(:, :) = [ ];
-        blz.Incidence = across(this.Incidence, 'Shift');
+        blz.Incidence = this.Incidence.Dynamic;
         blz.IxCanBeEndg = ixy | ixx;
         blz.Assignment = this.Pairing.Assignment.Dynamic;
 

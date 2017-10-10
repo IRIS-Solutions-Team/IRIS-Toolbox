@@ -19,15 +19,14 @@ classdef Options
     end
 
 
-
-
     methods
         function this = Options(varargin)
-            user = passvalopt('solver.SteadyIris', varargin{:});
+            if nargin==0
+                return
+            end
+            user = passvalopt(varargin{:});
             this = copyFromStruct(this, user);
         end
-   
-
 
 
         function this = copyFromStruct(this, user)
@@ -43,9 +42,8 @@ classdef Options
     end
     
     
-    
     methods (Static)
-        function [solverOpt, prepareGradient] = processOptions(solverOpt, prepareGradient, displayMode, varargin)
+        function [solverOpt, prepareGradient] = processOptions(solverOpt, caller,  prepareGradient, displayMode, varargin)
             FN_CHKOPTIMTBX = @(x) ...
                 isequal(x, 'lsqnonlin') || isequal(x, 'fsolve') ...
                 || isequal(x, @lsqnonlin) || isequal(x, @fsolve);
@@ -56,17 +54,19 @@ classdef Options
                 % 'Solver=' solver.Options( )
                 % Do nothing.
                 
+
             elseif FN_CHKOPTIMTBX(solverOpt) ...
                     || ( iscell(solverOpt) && FN_CHKOPTIMTBX(solverOpt{1}) && iscellstr(solverOpt(2:2:end)) )
                 if iscell(solverOpt)
                     % 'Solver=' { 'lsqnonlin', 'Name=', Value, ... }
-                    user = passvalopt('solver.SteadyOptimTbx', solverOpt{2:end});
+                    user = solverOpt(2:end);
                     solverOpt = optimoptions(solverOpt{1});
                 else
                     % 'Solver=' 'lsqnonlin' | 'fsolve'
-                    user = passvalopt('solver.SteadyOptimTbx', varargin{:});
+                    user = varargin;
                     solverOpt = optimoptions(solverOpt);
                 end
+                user = passvalopt(['solver.Optim', caller], user{:});
                 if isequal(user.Display, true)
                     user.Display = 'iter';
                 elseif isequal(user.Display, false)
@@ -87,13 +87,17 @@ classdef Options
                     || ( iscell(solverOpt) && strcmpi(solverOpt{1}, 'IRIS') && iscellstr(solverOpt(2:2:end)) )
                 if iscell(solverOpt)
                     % 'Solver=  { 'IRIS', 'Name=', Value, ... }
-                    user = passvalopt('solver.SteadyIris', solverOpt{2:end});
+                    solverOpt = solverOpt(2:end);
                 else
                     % 'Solver=' 'IRIS'
-                    user = passvalopt('solver.SteadyIris', varargin{:});
+                    % Collect all obsolete options passed outside the
+                    % suboption.
+                    solverOpt = varargin;
                 end
+                spec = ['solver.Iris', caller];
+                user = passvalopt(spec, solverOpt{:});
                 user.Display = silentDisplay(user.Display, displayMode);
-                solverOpt = solver.Options( );
+                solverOpt = solver.Options(spec);
                 solverOpt = copyFromStruct(solverOpt, user);
                 
             elseif isa(solverOpt, 'function_handle')
@@ -101,7 +105,7 @@ classdef Options
                 % Do nothing.
             end
             
-            % High-level option Gradient= is used to prepare gradients within the
+            % High-level option PrepareGradient= is used to prepare gradients within the
             % solver.Block object.
             if isequal(prepareGradient, @auto)
                 if isa(solverOpt, 'optim.options.SolverOptions') ...
@@ -113,8 +117,6 @@ classdef Options
             end
 
             return
-            
-            
             
             
             function display = silentDisplay(display, mode)

@@ -45,10 +45,10 @@ classdef (Abstract) Block < handle
         SAVEAS_HEADER_FORMAT = '%% Block #%g // Number of Equations: %g // Number of Endogenous Quantities: %g\n';
         SAVEAS_INSIDE_ASSIGNMENT_PREFIX = '#'
     end
-    
 
-    methods (Abstract)
-        exclude(varargin)
+
+    properties (Abstract, Constant)
+        VECTORIZE
     end
     
 
@@ -107,7 +107,7 @@ classdef (Abstract) Block < handle
         
         
         function createObjectiveFunc(this, blz)
-            numberOfQuantitiesInBlock = numel(this.PosEqn);
+            numOfQuantitiesInBlock = numel(this.PosEqn);
             funcToEval = [ blz.Equation{this.PosEqn} ];
             this.Equations = blz.Equation(this.PosEqn);
             if this.Type==solver.block.Type.SOLVE
@@ -116,6 +116,9 @@ classdef (Abstract) Block < handle
             else
                 % Assignment blocks.
                 funcToEval = this.removeLhs(funcToEval);
+            end
+            if this.VECTORIZE
+                funcToEval = vectorize(funcToEval);
             end
             this.EquationsFunc = str2func([blz.PREAMBLE, funcToEval]);
         end
@@ -128,11 +131,14 @@ classdef (Abstract) Block < handle
 
 
         function createNumericalJacobFunc(this, blz)
-            numberOfEquations = length(this.Equations);
-            numberOfQuantities = length(this.PosQty);
-            this.NumericalJacobFunc = cell(1, numberOfQuantities);
-            for i = 1 : numberOfQuantities
+            numOfEquations = length(this.Equations);
+            numOfQuantities = length(this.PosQty);
+            this.NumericalJacobFunc = cell(1, numOfQuantities);
+            for i = 1 : numOfQuantities
                 activeEquationsString = ['[', this.Equations{this.JacobPattern(:, i)}, ']'];
+                if this.VECTORIZE
+                    activeEquationsString = vectorize(activeEquationsString);
+                end
                 this.NumericalJacobFunc{i} = str2func([blz.PREAMBLE, activeEquationsString]);
             end
         end

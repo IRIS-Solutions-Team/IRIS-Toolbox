@@ -52,7 +52,7 @@ else
         opt.Growth = this.IsGrowth;
     end
     [opt.Solver, opt.PrepareGradient] = ...
-        solver.Options.processOptions(opt.Solver, opt.PrepareGradient, displayMode, obsoleteSolverOpt);
+        solver.Options.processOptions(opt.Solver, 'Steady', opt.PrepareGradient, displayMode, obsoleteSolverOpt);
     blz = createBlocks(this, opt);
     blz = prepareBounds(this, blz, opt);
     blz.NanInit = opt.NanInit;
