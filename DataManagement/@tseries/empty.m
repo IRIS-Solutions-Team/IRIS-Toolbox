@@ -50,7 +50,8 @@ else
     );
     this.Start = nanDate;
     this.Data = newData;
-    this = comment(this, '');
+    sizeData = size(newData);
+    this.Comment = repmat({''}, [1, sizeData(2:end)]);
 end
 
 end

@@ -393,7 +393,11 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
         function varargout = enddate(varargin)
             [varargout{1:nargout}] = endDate(varargin{:});
-        end        
+        end   
+        
+        function varargout = x13(varargin)
+            [varargout{1:nargout}] = x12(varargin{:});
+        end
     end
     
     

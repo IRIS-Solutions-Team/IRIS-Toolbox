@@ -1,21 +1,22 @@
 % Rectangular
 %
-% Simulate system with rectangular (non-triangular) transition matrix.
+% Simulate system with rectangular (non-triangular) transition matrix off
+% a straight data matrix.
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 classdef Rectangular < handle
     properties
-        Solution = cell(1, 6)
-        Expansion = cell(1, 5)
-        IndexOfLog
-        IdOfObserved
-        IdOfStates
-        IdOfShocks
-        IdOfExogenous
-        Expected
-        Unexpected
+        Solution = cell(1, 6)   % Solution matrices {T, R, K, Z, H, D}
+        Expansion = cell(1, 5)  % Solution expansion matrices {Xa, Xf, Ru, J, Yu}
+        IndexOfLog              % Index of log variables
+        IdOfObserved            % Positions of observed variables
+        IdOfStates              % Positions and shifts of state variables
+        IdOfShocks              % Positions of shocks
+        IdOfExogenous           % Positions of exogenous variables
+        Expected                % Function to retrieve expected shocks from data
+        Unexpected              % Function to retrieve unexpected shocks from data
     end
 
 
