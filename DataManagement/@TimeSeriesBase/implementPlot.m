@@ -1,5 +1,5 @@
 function hPlot = implementPlot(plotFun, varargin)
-% implementPlot  Plot functions for TimeSeries objects.
+% implementPlot  Plot functions for TimeSeriesBase objects.
 %
 % Backend function.
 % No help provided.
@@ -8,12 +8,12 @@ function hPlot = implementPlot(plotFun, varargin)
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser(['TimeSeries/implementPlot', char(plotFun)]);
+    INPUT_PARSER = extend.InputParser(['TimeSeriesBase/implementPlot', char(plotFun)]);
     INPUT_PARSER.KeepUnmatched = true;
     INPUT_PARSER.addRequired('PlotFun', @(x) isequal(x, @plot));
     INPUT_PARSER.addRequired('Axes', @(x) isempty(x) || (isgraphics(x) && length(x)==1));
-    INPUT_PARSER.addRequired('Time', @(x) isa(x, 'Date') || isequal(x, Inf) || isempty(x));
-    INPUT_PARSER.addRequired('Series', @(x) isa(x, 'TimeSeries') && ~iscell(x.Data));
+    INPUT_PARSER.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x));
+    INPUT_PARSER.addRequired('Series', @(x) isa(x, 'TimeSeriesBase') && ~iscell(x.Data));
     INPUT_PARSER.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
     INPUT_PARSER.addParameter('DatePosition', 'middle', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
 end
@@ -25,7 +25,7 @@ else
     hAxes = gca( );
 end
 
-if isa(varargin{1}, 'Date') || isequal(varargin{1}, Inf)
+if isa(varargin{1}, 'Date')  || isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
     time = varargin{1};
     varargin(1) = [ ];
 else
@@ -51,17 +51,18 @@ else
 end
 
 assert( ...
-    validate(this.Start, time), ...
-    'TimeSeries:implementPlot', ...
-    'Inconsistent date frequency.' ...
+    isnan(this.Start) || validateDate(this, time), ...
+    'TimeSeries:implementPlot:IllegalDate', ...
+    'Illegal date or date frequency.' ...
 );
 
 %--------------------------------------------------------------------------
 
 yData = getData(this, time);
+timeFrequency = getFrequency(time);
 
-if time.Frequency==Frequency.INTEGER
-    xData = time.Serial;
+if timeFrequency==Frequency.INTEGER
+    xData = getSerial(time);
 else
     xData = datetime(time, lower(opt.DatePosition));
     if ~isequal(opt.DateFormat, @default)

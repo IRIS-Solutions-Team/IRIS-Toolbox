@@ -8,7 +8,7 @@ noc = nan(1, nList);
 
 for i = 1 : nList
     ithName = list{i};
-    if ~isfield(inputDatabank, ithName) || ~isa(inputDatabank.(ithName), 'series.Abstract')
+    if ~isfield(inputDatabank, ithName) || ~isa(inputDatabank.(ithName), 'TimeSeriesBase')
         continue
     end
     sizeData = size(inputDatabank.(ithName));

@@ -50,24 +50,22 @@ if nargin==1
     return
 elseif isequal(range, @all)
     range = Inf;
-%elseif isa(range, 'DateWrapper')
-%range = double(range);
 end
 
 data = this.Data;
-size_ = size(data);
+sizeData = size(data);
 isEmptyRange =  isempty(range) || isequaln(range, NaN);
 if isEmptyRange
-    x = zeros([0, size_(2:end)]);
+    x = zeros([0, sizeData(2:end)]);
     return
 end
 
 if isnan(start) || isempty(data)
-    x = nan([rnglen(range), size_(2:end)]);
+    x = nan([rnglen(range), sizeData(2:end)]);
     return
 end
 
-nCol = prod(size_(2:end));
+numColumns = prod(sizeData(2:end));
 
 f1 = DateWrapper.getFrequencyFromNumeric(start);
 f2 = DateWrapper.getFrequencyFromNumeric(range);
@@ -82,36 +80,44 @@ if ~isequal(range, Inf) && any(f2~=f1)
         ); %#ok<GTARG>
 end
 
-if isinf(range(1))
+%startRange = getFirst(range);
+%endRange = getLast(range);
+startRange = range(1);
+endRange = range(end);
+
+if isinf(startRange)
     % Range is Inf or [-Inf, ...].
     posStart = 1; 
 else
-    posStart = round(range(1) - start + 1);
+    posStart = double(startRange) - double(start) + 1; 
+    posStart = round(posStart);
 end
 
-if isinf(range(end))
+
+if isinf(endRange)
     % Range is Inf or [..., Inf].
-    posEnd = size_(1);
+    posEnd = sizeData(1);
 else
-    posEnd = round(range(end) - start + 1);
+    posEnd = double(endRange) - double(start) + 1;
+    posEnd = round(posEnd);
 end
 
 if posStart>posEnd
-    x = nan(0, nCol);
-elseif posStart>=1 && posEnd<=size_(1)
+    x = nan(0, numColumns);
+elseif posStart>=1 && posEnd<=sizeData(1)
     x = this.Data(posStart:posEnd, :);
-elseif (posStart<1 && posEnd<1) || (posStart>size_(1) && posEnd>size_(1))
-    x = nan(posEnd-posStart+1, nCol);
+elseif (posStart<1 && posEnd<1) || (posStart>sizeData(1) && posEnd>sizeData(1))
+    x = nan(posEnd-posStart+1, numColumns);
 elseif posStart>=1
-    x = [ data(posStart:end, :); nan(posEnd-size_(1), nCol) ];
-elseif posEnd<=size_(1)
-    x = [ nan(1-posStart, nCol); data(1:posEnd, :) ];
+    x = [ data(posStart:end, :); nan(posEnd-sizeData(1), numColumns) ];
+elseif posEnd<=sizeData(1)
+    x = [ nan(1-posStart, numColumns); data(1:posEnd, :) ];
 else
-    x = [ nan(1-posStart, nCol); data(:, :); nan(posEnd-size_(1), nCol) ];
+    x = [ nan(1-posStart, numColumns); data(:, :); nan(posEnd-sizeData(1), numColumns) ];
 end
 
-if length(size_)>2
-    x = reshape(x, [size(x, 1), size_(2:end)]);
+if length(sizeData)>2
+    x = reshape(x, [size(x, 1), sizeData(2:end)]);
 end
 
 % Return actual range if requested.

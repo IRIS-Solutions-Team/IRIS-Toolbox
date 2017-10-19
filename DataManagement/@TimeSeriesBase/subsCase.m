@@ -1,6 +1,10 @@
-function c = subsCase(start, timeReference)
+function c = subsCase(this, timeReference)
 
-if isa(timeReference, 'Date')
+start = this.Start;
+
+if isequaln(timeReference, NaN)
+    ref = 'NaD';
+elseif isequal(class(start), class(timeReference))
     if isequaln(timeReference, NaN) || isnad(timeReference)
         ref = 'NaD';
     else
@@ -12,12 +16,13 @@ elseif isempty(timeReference)
     ref = '[]';
 else
     error( ...
-        'TimeSeries:subsCase', ...
-        'Invalid subscripted reference or assignment to TimeSeries.' ...
+        'TimeSeriesBase:subsCase:IllegalSubscript', ...
+        'Illegal subscripted reference or assignment to %s object.', ...
+        class(this) ...
     );
 end
 
-frequency = start.Frequency;
+frequency = getFrequency(start);
 if isnaf(frequency)
     start = 'NaD';
 elseif isempty(start)

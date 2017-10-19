@@ -5,8 +5,6 @@ classdef Steady < solver.block.Block
     end
     
     
-    
-    
     methods
         function this = Steady(varargin)
             this = this@solver.block.Block(varargin{:});
@@ -16,8 +14,6 @@ classdef Steady < solver.block.Block
                 'GrowthK', [ ] ...
             );
         end
-        
-        
         
         
         function [lx, gx, exitStatus, error] = run(this, lnk, lx, gx, ixLog)
@@ -43,11 +39,7 @@ classdef Steady < solver.block.Block
             nCol = length(posl) + length(posg);
             
             if this.Type==solver.block.Type.SOLVE
-                % SOLVE Block
-                %-------------
-
-
-
+                % __SOLVE Block__
                 % Initialize endogenous level and growth unknowns.
                 z0 = [ lx(posl), gx(posg) ];
                 % Transform initial conditions for log variables before we check bounds;
@@ -68,8 +60,7 @@ classdef Steady < solver.block.Block
                 [z, exitFlag] = solve(this, @objective, z0);
                 z(ixLogZ) = exp( z(ixLogZ) );
             else
-                % ASSIGN_* Block
-                %----------------
+                % __ASSIGN_* Block__
                 z = assign( );
                 exitFlag = 1;
             end
@@ -79,8 +70,6 @@ classdef Steady < solver.block.Block
             exitStatus = all(isfinite(z)) && double(exitFlag)>0;
             
             return
-            
-            
             
             
             function z = assign( )
@@ -117,8 +106,6 @@ classdef Steady < solver.block.Block
             end
             
             
-            
-            
             function chkInitBounds( )
                 ixOutOfBnds = z0<this.Lower | z0>this.Upper;
                 ixLowerInf = isinf(this.Lower);
@@ -130,8 +117,6 @@ classdef Steady < solver.block.Block
                 ix = ixOutOfBnds & ~ixUpperInf;
                 z0(ix) = this.Upper(ix);
             end
-            
-            
             
             
             function [y, j] = objective(z, positionJacob)
@@ -219,8 +204,6 @@ classdef Steady < solver.block.Block
             end
             
             
-            
-            
             function XX = timeArray(k)
                 XX = repmat(lx.', 1, nsh);
                 XX(~ixLog, :) = XX(~ixLog, :)  + bsxfun(@times, gx(~ixLog).', sh+k);
@@ -250,7 +233,22 @@ classdef Steady < solver.block.Block
         end
         
         
-        
+        function createJacobPattern(this, blz)
+            numEquations = length(this.Equations);
+            numQuantities = length(this.PosQty);
+            acrossShifts = across(blz.Incidence, 'Shifts');
+            this.JacobPattern = acrossShifts(this.PosEqn, this.PosQty);
+            this.NumericalJacobFunc = cell(1, numQuantities);
+            for i = 1 : numQuantities
+                indexActiveEquations = this.JacobPattern(:, i);
+                activeEquationsString = ['[', this.Equations{indexActiveEquations}, ']'];
+                if this.VECTORIZE
+                    activeEquationsString = vectorize(activeEquationsString);
+                end
+                this.NumericalJacobFunc{i} = str2func([blz.PREAMBLE, activeEquationsString]);
+            end
+        end
+            
         
         function exclude(this, blz)
             % Exclude levels fixed by user.
@@ -267,14 +265,16 @@ classdef Steady < solver.block.Block
                 [indexKeepGrowth, this.PosQty.Growth, this.D.Growth0, this.D.GrowthK] = ...
                     do(this.PosQty.Growth, blz.IdToExclude.Growth, this.D.Growth0, this.D.GrowthK);
             end
-            this.JacobPattern = [ ...
-                this.JacobPattern(:, indexKeepLevel), ...
-                this.JacobPattern(:, indexKeepGrowth), ...
-            ];
-            this.NumericalJacobFunc = [ ...
-                this.NumericalJacobFunc(1, indexKeepLevel), ...
-                this.NumericalJacobFunc(1, indexKeepGrowth), ...
-            ];
+            if this.Type==solver.block.Type.SOLVE
+                this.JacobPattern = [ ...
+                    this.JacobPattern(:, indexKeepLevel), ...
+                    this.JacobPattern(:, indexKeepGrowth), ...
+                ];
+                this.NumericalJacobFunc = [ ...
+                    this.NumericalJacobFunc(1, indexKeepLevel), ...
+                    this.NumericalJacobFunc(1, indexKeepGrowth), ...
+                ];
+            end
             return
 
             

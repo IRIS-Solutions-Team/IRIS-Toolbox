@@ -1,5 +1,5 @@
 classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
-    TimeSeries < series.Abstract & mixedin.UserDataWrapper
+    TimeSeries < TimeSeriesBase & shared.UserDataWrapper
 
     properties
         Start = Date.NaD
@@ -9,23 +9,18 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
     end
 
 
-
-
     properties (Dependent)
         End
-        Range
         FrequencyDisplayName
         MissingTest
     end
-
-
 
 
     methods
         function this = TimeSeries(varargin)
             persistent INPUT_PARSER
             if isempty(INPUT_PARSER)
-                INPUT_PARSER = extend.InputParser('TimeSeries');
+                INPUT_PARSER = extend.InputParser('TimeSeries/TimeSeries');
                 INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'Date') || isempty(x)); 
                 INPUT_PARSER.addRequired('Data', @(x) isnumeric(x) || islogical(x) || iscell(x) || isa(x, 'string'));
                 INPUT_PARSER.addOptional('ColumnNames', '', @(x) isa(x, 'string') || ischar(x) || iscellstr(x));
@@ -77,16 +72,6 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
         end
 
 
-        function range = get.Range(this)
-            if isnad(this.Start)
-                range = this.Start;
-                return
-            end
-            vec = transpose(0:size(this.Data, 1)-1);
-            range = addTo(this.Start, vec);
-        end
-
-
         function frequency = getFrequency(this)
             frequency = getFrequency(this.Start);
         end
@@ -133,25 +118,24 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
     end
 
 
-
-
-    methods %(Access=protected, Hidden)
+    methods (Access=protected, Hidden)
         varargout = binary(varargin)
         varargout = getDataFromRange(varargin)
         varargout = initData(varargin)
         varargout = setData(varargin)
         varargout = trim(varargin)
         varargout = unaryDim(varargin)
+        
+
+        function startDate = startDateWhenEmpty(this)
+            startDate = empty(this.Start.Frequency, 0, 0);
+        end
     end
-
-
 
 
     methods %(Hidden)
         varargout = disp(varargin)
-        varargout = getData(varargin)
         varargout = getDataFromAll(varargin)
-        varargout = implementPlot(varargin)
         varargout = subsasgn(varargin)
         varargout = subsref(varargin)
 
@@ -182,17 +166,6 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
                 this.UserData = [ ];
             end
             this = trim(this);
-        end
-
-
-        function this = emptyData(this)
-            if isnad(this.Start) || size(this.Data, 1)==0
-                return
-            end
-            sizeOfData = size(this.Data);
-            newSizeOfData = [0, sizeOfData(2:end)];
-            this.Start = empty(this.Start.Frequency, 0, 0);
-            this.Data = repmat(this.MissingValue, newSizeOfData);
         end
 
 
@@ -231,7 +204,6 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
     methods
         varargout = aggregate(varargin)
         varargout = cat(varargin)
-        varargout = clip(varargin)
         varargout = detrend(varargin)
         varargout = diff(varargin)
         varargout = interpolate(varargin)
@@ -300,9 +272,6 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
 
         #endfor
     end
-    
-
-
 
 
     methods
@@ -337,8 +306,6 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
     end
 
 
-
-
     methods (Static)
         function miss = getDefaultMissingValue(data)
             if iscell(data)
@@ -356,10 +323,7 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
         varargout = fromFred(varargin)
         varargout = shiftedDataFun(varargin)
         varargout = shiftDataKeepRange(varargin)
-        varargout = subsCase(varargin)
     end
-
-
 
 
     methods

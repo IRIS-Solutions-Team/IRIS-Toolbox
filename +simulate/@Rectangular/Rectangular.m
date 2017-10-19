@@ -10,29 +10,41 @@ classdef Rectangular < handle
     properties
         Solution = cell(1, 6)   % Solution matrices {T, R, K, Z, H, D}
         Expansion = cell(1, 5)  % Solution expansion matrices {Xa, Xf, Ru, J, Yu}
-        IndexOfLog              % Index of log variables
-        IdOfObserved            % Positions of observed variables
-        IdOfStates              % Positions and shifts of state variables
-        IdOfShocks              % Positions of shocks
-        IdOfExogenous           % Positions of exogenous variables
+        IndexLog                % Index of log variables
+        IdObserved              % Positions of observed variables
+        IdStates                % Positions and shifts of state variables
+        IdShocks                % Positions of shocks
+        IdExogenous             % Positions of exogenous variables
         Expected                % Function to retrieve expected shocks from data
         Unexpected              % Function to retrieve unexpected shocks from data
-    end
+        
+        NumObserved
+        NumStates
+        NumForward
+        NumBackward
+        NumShocks
+        NumExogenous
+        LenExpansion
+        IdBackward
+        IndexCurrent
+        IdCurrent
 
-
-    properties (Dependent)
-        NumOfObserved
-        NumOfStates
-        NumOfForward
-        NumOfBackward
-        NumOfShocks
-        NumOfExogenous
-        LenOfExpansion
+        LinxBackward
+        LinxCurrent
+        LinxStep
     end
 
 
     methods
         flat(varargin)
+
+
+        function prepareDataDependentProperties(this, data, firstColumn)
+            sizeData = size(data.YXEPG);
+            this.LinxBackward = sub2ind(sizeData, real(this.IdBackward), firstColumn+imag(this.IdBackward));
+            this.LinxCurrent = sub2ind(sizeData, real(this.IdCurrent), firstColumn+imag(this.IdCurrent));
+            this.LinxStep = sizeData(1);
+        end
     end
 
 
@@ -43,12 +55,12 @@ classdef Rectangular < handle
             triangular = false;
             [this.Solution{:}] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
             [this.Expansion{:}] = expansionMatrices(model, variantRequested, triangular);
-            this.IndexOfLog = get(model, 'Quantity.IxLog');
+            this.IndexLog = get(model, 'Quantity.IxLog');
             solutionVector = get(model, 'Vector.Solution');
-            this.IdOfObserved = solutionVector{1}(:);
-            this.IdOfStates = solutionVector{2}(:);
-            this.IdOfShocks = solutionVector{3}(:);
-            this.IdOfExogenous = solutionVector{5}(:);
+            this.IdObserved = solutionVector{1}(:);
+            this.IdStates = solutionVector{2}(:);
+            this.IdShocks = solutionVector{3}(:);
+            this.IdExogenous = solutionVector{5}(:);
             if anticipate
                 this.Expected = @real;
                 this.Unexpected = @imag;
@@ -56,45 +68,21 @@ classdef Rectangular < handle
                 this.Expected = @imag;
                 this.Unexpected = @real;
             end
-        end
-    end
 
-
-    methods
-        function n = get.NumOfObserved(this)
-            n = numel(this.IdOfObserved);
-        end
-
-        
-        function n = get.NumOfStates(this)
-            n = numel(this.IdOfStates);
-        end
-
-
-        function n = get.NumOfBackward(this)
-            n = size(this.Solution{1}, 2);
-        end
-
-
-        function n = get.NumOfForward(this)
-            n = this.NumOfStates - this.NumOfBackward;
-        end
-
-
-        function n = get.NumOfShocks(this)
-            n = numel(this.IdOfShocks);
-        end
-
-
-        function n = get.NumOfExogenous(this)
-            n = numel(this.IdOfExogenous);
-        end
-
-
-        function n = get.LenOfExpansion(this)
-            ne = this.NumOfShocks;
-            k = size(this.Solution{2}, 2);
-            n = k / ne;
+            this.NumObserved = numel(this.IdObserved);
+            this.NumStates = numel(this.IdStates);
+            this.NumBackward = size(this.Solution{1}, 2);
+            this.NumForward = this.NumStates - this.NumBackward;
+            this.NumShocks = numel(this.IdShocks);
+            this.NumExogenous = numel(this.IdExogenous);
+            if this.NumShocks>0
+                this.LenExpansion = size(this.Solution{2}, 2) / this.NumShocks;
+            else
+                this.LenExpansion = 0;
+            end
+            this.IdBackward = this.IdStates(this.NumForward+1:end);
+            this.IndexCurrent = imag(this.IdStates)==0;
+            this.IdCurrent = this.IdStates(this.IndexCurrent);
         end
     end
 end

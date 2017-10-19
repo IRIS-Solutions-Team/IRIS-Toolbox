@@ -43,19 +43,15 @@ isStepUp = ~isequal(stepUp, false);
 diffStep = opt.FiniteDifferenceStepSize;
 numGradientFunc = [ ];
 if ~opt.SpecifyObjectiveGradient
-    if opt.LargeScale
-        jacobPattern = opt.JacobPattern;
-    else
-        jacobPattern = [ ];
-    end
+    jacobPattern = opt.JacobPattern;
 end
 
 xInit = xInit(:);
-numberOfInputs = numel(xInit);
+numUnknowns = numel(xInit);
 
 temp = struct( ...
-    'NumberOfVariables', numberOfInputs ...
-    );
+    'NumberOfVariables', numUnknowns ...
+);
 
 displayLevel = getDisplayLevel( );
 tolX = opt.StepTolerance;
@@ -77,7 +73,7 @@ iter = 0;
 fnCount = 0;
 x0 = xInit;
 j = NaN;
-j1= NaN;
+j0 = NaN;
 
 if displayLevel.Iter
     displayHeader( );
@@ -94,7 +90,7 @@ while true
         f = objectiveFunc(x);
         fnCount = fnCount + 1;
         [j, addCount] = solver.algorithm.finiteDifference( ...
-            objectiveFunc, x, f, diffStep, jacobPattern ...
+            objectiveFunc, x, f, diffStep, jacobPattern, opt.LargeScale ...
         );
         fnCount = fnCount + addCount;
     end
@@ -126,6 +122,7 @@ while true
     x0 = x;
     f0 = f;
     n0 = n;
+    j0 = j;
 
     step = 1;
     if isempty(vecLmb)
@@ -180,8 +177,6 @@ numericExitFlag = double(exitFlag);
 return
 
 
-
-
     function [d, n] = makeNewtonStep( )
         lmb = 0;
         d = -j \ f;
@@ -192,18 +187,23 @@ return
     end
 
 
-
-
     function [d, n] = makeHybridStep( )
         jj = j.'*j;
-        sj = svd(j);
-        tol = max(size(j)) * eps(max(sj));
+        if issparse(j)
+            maxSv = svds(j, 1, 'largest');
+            minSv = svds(j, 1, 'smallest');
+        else
+            sj = svd(j);
+            maxSv = max(sj);
+            minSv = sj(end);
+        end
+        tol = numUnknowns * eps(maxSv);
         vecLmb0 = vecLmb;
-        if sj(end)>tol
+        if minSv>tol
             vecLmb0 = [0, vecLmb0]; %#ok<AGROW>
         end
         nlmb0 = numel(vecLmb0);
-        scale = tol * eye(numberOfInputs);
+        scale = tol * eye(numUnknowns);
         
         % Optimize lambda.
         dd = cell(1, nlmb0);
@@ -280,8 +280,8 @@ return
             'Step-Size', ...
             'Fn-Norm-Chg', ...
             'Max-X-Chg', ...
-            'Jacob-Norm' ...
-            );
+            'Max-Jacob-Chg' ...
+        );
         c2 = sprintf( ...
             FORMAT_HEADER, ...
             '', ...
@@ -292,7 +292,7 @@ return
             '', ...
             '', ...
             strJacobNorm ...
-            );
+        );
         disp(c1);
         disp(c2);
         disp( repmat('-', 1, max(length(c1), length(c2))) );
@@ -302,6 +302,8 @@ return
 
 
     function displayIter( )
+        maxChgX = max(abs(x(:)-x0(:)));
+        maxChgJ = full(max(abs(j(:)-j0(:))));
         fprintf( ...
             FORMAT_ITER, ...
             iter, ...
@@ -310,9 +312,9 @@ return
             lmb, ...
             step, ...
             n-n0, ...
-            maxabs(x-x0), ...
-            maxabs(j-j1) ... norm(full(j), 2) ...
-            );
+            maxChgX, ...
+            maxChgJ ...
+        );
     end
 
 

@@ -10,6 +10,7 @@ classdef (Abstract) Blazer < handle
     properties
         Equation = cell.empty(1, 0)
         Quantity = cell.empty(1, 0)
+        NumPeriods = NaN
         Gradient
         Assignment
         Incidence

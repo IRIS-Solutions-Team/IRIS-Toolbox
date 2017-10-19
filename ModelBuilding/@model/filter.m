@@ -189,32 +189,37 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-[this, inp, range, j, varargin] = irisinp.parser.parse('model.filter', varargin{:});
+[this, inputDatabank, range, j, varargin] = irisinp.parser.parse('model.filter', varargin{:});
 [opt, varargin] = passvalopt('model.filter', varargin{:});
 likOpt = prepareLoglik(this, range, 't', j, varargin{:});
 isOutpData = nargout>1;
 
 % Get measurement and exogenous variables.
-inp = datarequest('yg*', this, inp, range);
-nData = size(inp, 3);
-nAlt = length(this);
+inputArray = datarequest('yg*', this, inputDatabank, range);
+numDataSets = size(inputArray, 3);
+nv = length(this);
 
 % Check option conflicts.
 chkConflicts( );
+
+% Set up data sets for Rolling=.
+if ~isequal(likOpt.Rolling, false)
+    setupRolling( );
+end
 
 %--------------------------------------------------------------------------
 
 [ny, ~, nb] = sizeOfSolution(this.Vector);
 nz = nnz(this.Quantity.IxObserved);
-xRange = range(1)-1 : range(end);
-nXPer = length(xRange);
+extendedRange = range(1)-1 : range(end);
+numExtendedPeriods = length(extendedRange);
 
 % Throw a warning if some of the data sets have no observations.
-ixNanData = all( all(isnan(inp), 1), 2 );
+indexNaNData = all( all(isnan(inputArray), 1), 2 );
 assert( ...
-    ~any(ixNanData), ...
+    ~any(indexNaNData), ...
     exception.Base('Model:NoMeasurementData', 'warning'), ...
-    exception.Base.alt2str(ixNanData, 'Data Variant(s) ') ...
+    exception.Base.alt2str(indexNaNData, 'Data Set(s) ') ...
 ); %#ok<GTARG>
 
 % Pre-allocated requested hdata output arguments.
@@ -222,17 +227,17 @@ hData = struct( );
 preallocHData( );
 
 % Run the Kalman filter.
-[obj, regOutp, hData] = kalmanFilter(this, inp, hData, likOpt); %#ok<ASGLU>
+[obj, regOutp, hData] = kalmanFilter(this, inputArray, hData, likOpt); %#ok<ASGLU>
 
 % If needed, expand the number of model parameterizations to include
 % estimated variance factors and/or out-of=lik parameters.
-if nAlt<regOutp.NLoop && (likOpt.relative || ~isempty(regOutp.Delta))
+if nv<regOutp.NLoop && (likOpt.relative || ~isempty(regOutp.Delta))
     this = alter(this, regOutp.NLoop);
 end
 
 % Postprocess regular (non-hdata) output arguments; update the std
 % parameters in the model object if `'relative=' true`.
-[~, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, xRange, likOpt, opt);
+[~, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, extendedRange, likOpt, opt);
 
 % Post-process hdata output arguments.
 outp = hdataobj.hdatafinal(hData);
@@ -240,22 +245,35 @@ outp = hdataobj.hdatafinal(hData);
 return
 
 
-
-
     function chkConflicts( )
-        if likOpt.ahead>1 && (nData>1 || nAlt>1)
-            utils.error('model:filter', ...
-                ['Cannot combine the option ''ahead='' greater than 1 ', ...
-                'with multiple data sets or parameterisations.']);
-        end
-        if likOpt.returncont && any(likOpt.condition)
-            utils.error('model:filter', ...
-                ['Cannot combine the option ''returnCont=true'' with ', ...
-                'a non-empty option ''condition=''.']);
-        end
+        multiple = numDataSets>1 || nv>1;
+        assert( ...
+            likOpt.ahead==1 || ~multiple, ...
+            'Model:Filter:IllegalAhead', ...
+            'Cannot use option Ahead= with multiple data sets or parameter variants.' ...
+        );
+        assert( ...
+            isequal(likOpt.Rolling, false) || ~multiple, ...
+            'Model:Filter:IllegalRolling', ...
+            'Cannot use option Rolling= with multiple data sets or parameter variants.' ...
+        );
+        assert( ...
+            ~likOpt.returncont || ~any(likOpt.condition), ...
+            'Model:Filter:IllegalCondition', ...
+            'Cannot combine options ReturnCont= and Condition=.' ...
+        );
     end 
 
 
+    function setupRolling( )
+        % No multiple data sets or parameter variants guaranteed here.
+        numRolling = numel(likOpt.RollingColumns);
+        inputArray = repmat(inputArray, 1, 1, numRolling);
+        for i = 1 : numRolling
+            inputArray(:, likOpt.RollingColumns(i)+1:end, i) = NaN;
+        end
+        numDataSets = size(inputArray, 3);
+    end
 
     
     function preallocHData( )
@@ -263,32 +281,31 @@ return
         isPred = ~isempty(strfind(lowerOutput, 'pred'));
         isFilter = ~isempty(strfind(lowerOutput, 'filter'));
         isSmooth = ~isempty(strfind(lowerOutput, 'smooth'));
-        nLoop = max(nData, nAlt);
-        nPred = max(nLoop, likOpt.ahead);
+        numRuns = max(numDataSets, nv);
+        nPred = max(numRuns, likOpt.ahead);
         nCont = max(ny, nz);
         if isOutpData
             
-            % Prediction step
-            %-----------------
+            % __Prediction Step__
             if isPred
-                hData.M0 = hdataobj(this, xRange, nPred, ...
+                hData.M0 = hdataobj(this, extendedRange, nPred, ...
                     'IncludeLag=', false, ...
                     'Precision=', likOpt.precision);
                 if ~likOpt.meanonly
                     if likOpt.returnstd
-                        hData.S0 = hdataobj(this, xRange, nLoop, ...
+                        hData.S0 = hdataobj(this, extendedRange, numRuns, ...
                             'IncludeLag=', false, ...
                             'IsVar2Std=', true, ...
                             'Precision=', likOpt.precision);
                     end
                     if likOpt.returnmse
                         hData.Mse0 = hdataobj( );
-                        hData.Mse0.Data = nan(nb, nb, nXPer, nLoop, ...
+                        hData.Mse0.Data = nan(nb, nb, numExtendedPeriods, numRuns, ...
                             likOpt.precision);
-                        hData.Mse0.Range = xRange;
+                        hData.Mse0.Range = extendedRange;
                     end
                     if likOpt.returncont
-                        hData.predcont = hdataobj(this, xRange, nCont, ....
+                        hData.predcont = hdataobj(this, extendedRange, nCont, ....
                             'IncludeLag=', false, ...
                             'Contributions=', @measurement, ...
                             'Precision', likOpt.precision);
@@ -296,27 +313,26 @@ return
                 end
             end
             
-            % Filter step
-            %-------------
+            % __Filter Step__
             if isFilter
-                hData.M1 = hdataobj(this, xRange, nLoop, ...
+                hData.M1 = hdataobj(this, extendedRange, numRuns, ...
                     'IncludeLag=', false, ...
                     'Precision=', likOpt.precision);
                 if ~likOpt.meanonly
                     if likOpt.returnstd
-                        hData.S1 = hdataobj(this, xRange, nLoop, ...
+                        hData.S1 = hdataobj(this, extendedRange, numRuns, ...
                             'IncludeLag=', false, ...
                             'IsVar2Std=', true, ...
                             'Precision', likOpt.precision);
                     end
                     if likOpt.returnmse
                         hData.Mse1 = hdataobj( );
-                        hData.Mse1.Data = nan(nb, nb, nXPer, nLoop, ...
+                        hData.Mse1.Data = nan(nb, nb, numExtendedPeriods, numRuns, ...
                             likOpt.precision);
-                        hData.Mse1.Range = xRange;
+                        hData.Mse1.Range = extendedRange;
                     end
                     if likOpt.returncont
-                        hData.filtercont = hdataobj(this, xRange, nCont, ...
+                        hData.filtercont = hdataobj(this, extendedRange, nCont, ...
                             'IncludeLag=', false, ...
                             'Contributions=', @measurement, ...
                             'Precision=', likOpt.precision);
@@ -324,25 +340,24 @@ return
                 end
             end
             
-            % Smoother
-            %----------
+            % __Smoother__
             if isSmooth
-                hData.M2 = hdataobj(this, xRange, nLoop, ...
+                hData.M2 = hdataobj(this, extendedRange, numRuns, ...
                     'Precision=', likOpt.precision);
                 if ~likOpt.meanonly
                     if likOpt.returnstd
-                        hData.S2 = hdataobj(this, xRange, nLoop, ...
+                        hData.S2 = hdataobj(this, extendedRange, numRuns, ...
                             'IsVar2Std=', true, ...
                             'Precision=', likOpt.precision);
                     end
                     if likOpt.returnmse
                         hData.Mse2 = hdataobj( );
-                        hData.Mse2.Data = nan(nb, nb, nXPer, nLoop, ...
+                        hData.Mse2.Data = nan(nb, nb, numExtendedPeriods, numRuns, ...
                             likOpt.precision);
-                        hData.Mse2.Range = xRange;
+                        hData.Mse2.Range = extendedRange;
                     end
                     if likOpt.returncont
-                        hData.C2 = hdataobj(this, xRange, nCont, ...
+                        hData.C2 = hdataobj(this, extendedRange, nCont, ...
                             'Contributions=', @measurement, ...
                             'Precision=', likOpt.precision);
                     end

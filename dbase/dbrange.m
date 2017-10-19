@@ -74,12 +74,12 @@ range = cell(1, nFreq);
 nList = numel(list);
 
 for i = 1 : nList
-    if isfield(d, list{i}) && isa(d.(list{i}), 'tseries')
+    if isfield(d, list{i}) && isa(d.(list{i}), 'TimeSeriesBase')
         x = d.(list{i});
         freqInx = freq(x) == freqList;
         if any(freqInx)
-            startDat{freqInx}(end+1) = startDate(x);
-            endDat{freqInx}(end+1) = endDate(x);
+            startDat{freqInx}(end+1) = x.Start;
+            endDat{freqInx}(end+1) = x.End;
         end
     end
 end

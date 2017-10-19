@@ -206,14 +206,14 @@ x = nan(nPer, 0);
 for i = 1 : nList
     name = list{i};
     try
-        nData = max(1, size(x, 3));
+        numDataSets = max(1, size(x, 3));
         if strcmp(name, '!ttrend')
             iX = [ ];
             getTtrend( );
             addData( );
         else
             field = d.(name);
-            if isa(field, 'tseries')
+            if isa(field, 'TimeSeriesBase')
                 iX = [ ];
                 getSeriesData( );
                 addData( );
@@ -248,8 +248,8 @@ return
     function getSeriesData( )
         tmpFreq = freq(field);
         if ~isnan(tmpFreq) && rangeFreq~=tmpFreq
-            nData = max(1, size(x, 3));
-            iX = nan(nPer, nData);
+            numDataSets = max(1, size(x, 3));
+            iX = nan(nPer, numDataSets);
             ixFreqMismatch(i) = true;
         else
             k = 0;
@@ -329,28 +329,28 @@ return
             throw( ...
                 exception.Base('Dbase:NameNotExist', 'warning'), ...
                 list{ixNotFound} ...
-                );
+            );
         end
         
         if sw.Warn.SizeMismatch && any(ixInvalid)
             throw( ...
                 exception.Base('Dbase:EntrySizeMismatch', 'warning'), ...
                 list{ixInvalid} ...
-                );
+            );
         end
         
         if sw.Warn.FreqMismatch && any(ixFreqMismatch)
             throw( ...
                 exception.Base('Dbase:EntryFrequencyMismatch', 'warning'), ...
                 list{ixFreqMismatch} ...
-                );
+            );
         end
         
         if sw.Warn.NonTseries && any(ixNonSeries)
             throw( ...
                 exception.Base('Dbase:EntryNotSeries', 'warning'), ...
                 list{ixNonSeries} ...
-                );
+            );
         end
     end
 end

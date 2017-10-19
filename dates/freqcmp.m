@@ -58,12 +58,12 @@ if isequal(x, @all) || isequal(y, @all) || isequal(x, Inf) || isequal(y, Inf)
     return
 end
 
-if isa(x, 'tseries')
-    x = startDate(x);
+if isa(x, 'TimeSeriesBase')
+    x = x.Start;
 end
 
-if isa(y, 'tseries')
-    y = startDate(y);
+if isa(y, 'TimeSeriesBase')
+    y = y.End;
 end
 
 ixXInf = isinf(x);

@@ -1,4 +1,4 @@
-function [g, addCount] = finiteDifference(objectiveFunc, x, f, step, jacobPattern)
+function [g, addCount] = finiteDifference(objectiveFunc, x, f, step, jacobPattern, largeScale)
 % finiteDifference  Forward finite difference.
 %
 % Backend IRIS function.
@@ -15,11 +15,11 @@ h = step*z;
 
 nf = numel(f);
 nx = numel(x);
-g = zeros(nf, nx);
 
-if isempty(jacobPattern)
+if ~largeScale
     % Evaluate all equations for all quantities regardless of the Jacobian
     % pattern.
+    g = zeros(nf, nx);
     for i = 1 : nx
         xp = x;
         xp(i) = xp(i) + h(i);
@@ -28,7 +28,9 @@ if isempty(jacobPattern)
     end
 else
     % Evaluate equations based on the Jacobian pattern (large scale
-    % problems).
+    % problems). Objective function is expected to return only the
+    % derivatives indicated in the Jacobian pattern matrix.
+    g = sparse(nf, nx);
     for i = 1 : nx
         indexOfEquations = jacobPattern(:, i);
         xp = x;

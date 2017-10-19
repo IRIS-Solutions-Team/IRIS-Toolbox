@@ -13,6 +13,8 @@ classdef (Abstract) Block < handle
         Solver
         RetGradient = false % Return gradient from objective function.
         
+        Names
+
         PosQty
         PosEqn
         Equations
@@ -87,15 +89,12 @@ classdef (Abstract) Block < handle
         
         
         function prepareBlock(this, blz, opt)
-            % Prepare function handle to system of equations.
             createObjectiveFunc(this, blz);
-            createJacobPattern(this, blz);
-            createNumericalJacobFunc(this, blz);
-            
-            % Create gradient functions in subclasses.
-            
-            % Set solver options.
+            this.Names = blz.Quantity.Name(this.PosQty);
+
             if this.Type==solver.block.Type.SOLVE
+                createJacobPattern(this, blz);
+
                 this.Solver = opt.Solver;
                 if isa(opt.Solver, 'optim.options.SolverOptions') ...
                         || isa(opt.Solver, 'solver.Options')
@@ -107,14 +106,11 @@ classdef (Abstract) Block < handle
         
         
         function createObjectiveFunc(this, blz)
-            numOfQuantitiesInBlock = numel(this.PosEqn);
             funcToEval = [ blz.Equation{this.PosEqn} ];
             this.Equations = blz.Equation(this.PosEqn);
             if this.Type==solver.block.Type.SOLVE
-                % Solve-for blocks.
                 funcToEval = [ '[', funcToEval, ']' ];
             else
-                % Assignment blocks.
                 funcToEval = this.removeLhs(funcToEval);
             end
             if this.VECTORIZE
@@ -124,26 +120,6 @@ classdef (Abstract) Block < handle
         end
 
 
-        function createJacobPattern(this, blz)
-            incidence = across(blz.Incidence, 'Shift');
-            this.JacobPattern = incidence(this.PosEqn, this.PosQty);
-        end
-
-
-        function createNumericalJacobFunc(this, blz)
-            numOfEquations = length(this.Equations);
-            numOfQuantities = length(this.PosQty);
-            this.NumericalJacobFunc = cell(1, numOfQuantities);
-            for i = 1 : numOfQuantities
-                activeEquationsString = ['[', this.Equations{this.JacobPattern(:, i)}, ']'];
-                if this.VECTORIZE
-                    activeEquationsString = vectorize(activeEquationsString);
-                end
-                this.NumericalJacobFunc{i} = str2func([blz.PREAMBLE, activeEquationsString]);
-            end
-        end
-            
-        
         function [gr, XX2L, DLevel, DGrowth0, DGrowthK] = createAnalyticalJacob(this, blz, opt)
             [~, nQuan] = size(blz.Incidence);
             nEqtnHere = length(this.PosEqn);
@@ -207,12 +183,12 @@ classdef (Abstract) Block < handle
             if isa(this.Solver, 'optim.options.SolverOptions') ...
                     || isa(this.Solver, 'solver.Options')
 
-                this.Solver.JacobPattern = this.JacobPattern;
-                
                 if strcmpi(this.Solver.SolverName, 'IRIS')
+                    this.Solver.JacobPattern = this.JacobPattern;
                     [z, exitFlag] = solver.algorithm.lm(fnObjective, z0, this.Solver);
                     
                 elseif strcmpi(this.Solver.SolverName, 'lsqnonlin')
+                    this.Solver.JacobPattern = sparse(double(this.JacobPattern));
                     [z, ~, ~, exitFlag] = ...
                         lsqnonlin(fnObjective, z0, this.Lower, this.Upper, this.Solver);
                     if exitFlag==-3
@@ -220,6 +196,10 @@ classdef (Abstract) Block < handle
                     end
                     
                 elseif strcmpi(this.Solver.SolverName, 'fsolve')
+                    %this.Solver.JacobPattern = sparse(double(this.JacobPattern));
+                    this.Solver.Algorithm = 'levenberg-marquardt';
+                    %this.Solver.Algorithm = 'trust-region';
+                    %this.Solver.SubproblemAlgorithm = 'cg';
                     [z, ~, exitFlag] = fsolve(fnObjective, z0, this.Solver);
                     if exitFlag==-3
                         exitFlag = 1;
@@ -295,8 +275,11 @@ classdef (Abstract) Block < handle
             sh0 = find(this.Shift==0);
         end
     end
-    
-    
+
+
+    methods (Abstract)
+       varargout = createJacobPattern(varargin) 
+    end
     
     
     methods (Static)

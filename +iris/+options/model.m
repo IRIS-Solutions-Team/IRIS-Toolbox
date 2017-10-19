@@ -28,7 +28,7 @@ applyfilter = {
 swap = {
     'endogenize, endogenise', { }, @(x) isempty(x) || iscellstr(x) || ischar(x) || isequal(x, @auto)
     'exogenize, exogenise', { }, @(x) isempty(x) || iscellstr(x) || ischar(x) || isequal(x, @auto)
-    };
+};
 
 matrixFormat = {
     'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat
@@ -69,14 +69,6 @@ def.autocaption = { ...
     'corr', 'Corr $shock1$ X $shock2$', @ischar, ...
     'std', 'Std $shock$', @ischar, ...
     };
-
-def.blazer = [
-    swap
-    {
-    'kind', 'steady', @(x) ischar(x) && any(strcmpi(x, {'sstate', 'steady', 'dynamic'}))
-    'saveas', '', @ischar
-    }
-];
 
 def.bn = [
     deviation_dtrends
@@ -214,6 +206,7 @@ def.kalmanFilter = [
     'condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x)
     'fmsecondtol', eps( ), @(x) isnumericscalar(x) && x>0 && x<1
     'returncont, contributions', false, @islogicalscalar
+    'Rolling', false, @(x) isequal(x, false) || isa(x, 'DateWrapper')
     'Init, InitCond', 'Steady', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'Asymptotic', 'Stochastic', 'Steady', 'Fixed'})))
     'InitUnitRoot, InitUnit, InitMeanUnit', 'FixedUnknown', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'})))
     'lastsmooth', Inf, @(x) isempty(x) || isnumericscalar(x)

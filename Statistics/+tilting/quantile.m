@@ -49,7 +49,7 @@ end
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('tilting/quantile');
-    INPUT_PARSER.addRequired('InputData', @(x) isnumeric(x) || isa(x, 'series.Abstract'));
+    INPUT_PARSER.addRequired('InputData', @(x) isnumeric(x) || isa(x, 'TimeSeriesBase'));
     INPUT_PARSER.addRequired('Weights', @isnumeric);
     INPUT_PARSER.addRequired('Tau', @(x) isnumeric(x) && all(x(:)>0 & x(:)<1));
     INPUT_PARSER.addOptional('Dim', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=1);
@@ -57,7 +57,7 @@ end
 INPUT_PARSER.parse(x, w, tau, varargin{:});
 dim = INPUT_PARSER.Results.Dim;
 
-if isa(x, 'series.Abstract')
+if isa(x, 'TimeSeriesBase')
     [x, dim] = applyFunctionAlongDim(x, @tilting.quantile, w, tau, dim);
     return
 end

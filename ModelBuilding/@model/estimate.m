@@ -360,22 +360,7 @@ end
 if strcmpi(estOpt.Summary, 'struct')
     summary = cell2struct(num2cell(pStar(:)'), itr.LsParam, 2);
 else
-    std = sqrt(diag(propCov));
-    std(~validDiff) = NaN;
-    numOfParameters = numel(itr.LsParam);
-    priorMean = nan(1, numOfParameters);
-    priorStd = nan(1, numOfParameters);
-    for i = find(itr.IxPrior)
-        try
-            priorMean(i) = itr.FnPrior{i}.Mean;
-            priorStd(i) = itr.FnPrior{i}.Std;
-        end
-    end
-    summary = table( ...
-        pStar(:), std(:), priorMean(:), priorStd(:), infoFromLik(:), itr.Init(:), itr.Lower(:), itr.Upper(:), ...
-        'VariableNames', {'Poster_Mode', 'Poster_Std', 'Prior_Mean', 'Prior_Std', 'Info_from_Lik', 'Start', 'Lower_Bound', 'Upper_Bound'}, ...
-        'RowNames', itr.LsParam(:) ...
-    );
+    summary = createSummaryTable( );
 end
 
 return
@@ -398,6 +383,30 @@ return
             end
         end
     end 
+
+
+    function summary = createSummaryTable( )
+        posterStd = sqrt(diag(propCov));
+        posterStd(~validDiff) = NaN;
+        numParameters = numel(itr.LsParam);
+        priorName = repmat({''}, 1, numParameters);
+        priorMean = nan(1, numParameters);
+        priorMode = nan(1, numParameters);
+        priorStd = nan(1, numParameters);
+        for i = find(itr.IxPrior)
+            try
+                priorName{i} = itr.FnPrior{i}.Name;
+                priorMean(i) = itr.FnPrior{i}.Mean;
+                priorMode(i) = itr.FnPrior{i}.Mode;
+                priorStd(i) = itr.FnPrior{i}.Std;
+            end
+        end
+        summary = table( ...
+            pStar(:), posterStd(:), priorName(:), priorMean(:), priorMode(:), priorStd(:), infoFromLik(:), itr.Init(:), itr.Lower(:), itr.Upper(:), ...
+            'VariableNames', {'Poster_Mode', 'Poster_Std', 'Prior_Distrib', 'Prior_Mean', 'Prior_Mode', 'Prior_Std', 'Info_from_Lik', 'Start', 'Lower_Bound', 'Upper_Bound'}, ...
+            'RowNames', itr.LsParam(:) ...
+        );
+    end
 
 
     function populatePosterObj( )

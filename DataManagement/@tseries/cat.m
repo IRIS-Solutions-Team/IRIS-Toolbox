@@ -48,10 +48,10 @@ numOfInputs = length(inputs);
 vecStart = DateWrapper.empty(1, 0);
 vecEnd = DateWrapper.empty(1, 0);
 for i = find(indexOfSeries)
-    temp = startDate(inputs{i});
-    if ~isnan(temp)
-        vecStart(1, end+1) = startDate(inputs{i});
-        vecEnd(1, end+1) = endDate(inputs{i});
+    startDate = inputs{i}.Start;
+    if ~isnan(startDate)
+        vecStart(1, end+1) = startDate;
+        vecEnd(1, end+1) = inputs{i}.End;
     end
 end
 if ~isempty(vecStart)

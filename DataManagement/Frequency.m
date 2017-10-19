@@ -52,7 +52,7 @@ classdef Frequency < double
         end
 
 
-        function dtFormat = getDtFormat(this)
+        function dtFormat = getDateTimeFormat(this)
             switch this
                 case Frequency.YEARLY
                     dtFormat = 'uuuu''Y''';
@@ -268,18 +268,18 @@ classdef Frequency < double
         end
 
 
-        function dt = datetime(this, serial, varargin)
+        function dateTimeObject = datetime(this, serial, varargin)
             year = zeros(size(serial));
             month = zeros(size(serial));
             day = zeros(size(serial));
-            ixInf = isinf(serial);
-            [year(~ixInf), month(~ixInf), day(~ixInf)] = serial2ymd(this, serial(~ixInf), varargin{:});
+            indexInf = isinf(serial);
+            [year(~indexInf), month(~indexInf), day(~indexInf)] = serial2ymd(this, serial(~indexInf), varargin{:});
             if this==Frequency.WEEKLY
-                day(~ixInf) = day(~ixInf) - 3; % Return Monday, not Thursday, for display
+                day(~indexInf) = day(~indexInf) - 3; % Return Monday, not Thursday, for display
             end
-            year(ixInf) = serial(ixInf);
-            dt = datetime(year, month, day);
-            dt.Format = getDtFormat(this);
+            year(indexInf) = serial(indexInf);
+            dateTimeObject = datetime(year, month, day);
+            dateTimeObject.Format = getDateTimeFormat(this);
         end
 
 

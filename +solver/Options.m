@@ -79,7 +79,9 @@ classdef Options
                     if isequal(user.(name), @default)
                         continue
                     end
-                    solverOpt = optimoptions(solverOpt, name, user.(name));
+                    try
+                        solverOpt = optimoptions(solverOpt, name, user.(name));
+                    end
                 end
                 
                 

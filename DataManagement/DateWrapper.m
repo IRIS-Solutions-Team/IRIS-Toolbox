@@ -1,4 +1,4 @@
-classdef DateWrapper < double
+classdef DateWrapper < double 
     methods
         function this = DateWrapper(varargin)
             this = this@double(varargin{:});
@@ -211,7 +211,7 @@ classdef DateWrapper < double
                 'DateWrapper:addTo', ...
                 'Invalid input arguments into DateWrapper/addTo.' ...
             );
-            this = DateWrapper(this + c);
+            this = DateWrapper(double(this) + c);
         end
             
 
@@ -222,16 +222,33 @@ classdef DateWrapper < double
                 'DateWrapper:datetime', ...
                 'All DateWrappers in datetime( ) conversion must be of the same date frequency.' ...
             );
-            frequency = frequency(1);
-            serial = floor(this);
-            dt = datetime(frequency, serial, varargin{:});
+            dt = datetime(frequency(1), getSerial(this), varargin{:});
         end
     end
     
     
+    methods (Hidden)
+        function pos = positionOf(dates, start)
+            dates = double(dates);
+            if nargin<2
+                refDate = min(dates(:));
+            else
+                refDate = start;
+            end
+            refDate = double(refDate);
+            pos = round(dates - refDate + 1);
+        end
+    end
+
+
     methods (Static)
         function this = Inf( )
             this = DateWrapper(Inf);
+        end
+
+
+        function this = NaD( )
+            this = DateWrapper(NaN);
         end
 
 

@@ -2,8 +2,6 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
         Series < tseries
 
     properties (Dependent)
-        End
-        Range
     end
 
 
@@ -12,15 +10,12 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
             this = this@tseries(varargin{:});
             this.Start = DateWrapper(this.Start);
         end
+    end
 
 
-        function end_ = get.End(this)
-            end_ = this.Start + size(this.Data, 1) - 1;
-        end
-
-
-        function range = get.Range(this)
-            range = (this.Start : this.End).';
+    methods
+        function varargout = plot(varargin)
+            [varargout{1:nargout}] = plot@TimeSeriesBase(varargin{:});
         end
     end
 

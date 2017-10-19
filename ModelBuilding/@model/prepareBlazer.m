@@ -1,4 +1,4 @@
-function blz = prepareBlazer(this, kind, opt)
+function blz = prepareBlazer(this, kind, numPeriods, varargin)
 % prepareBlazer  Create Blazer object from dynamic or steady equations.
 %
 % Backend IRIS function.
@@ -9,9 +9,21 @@ function blz = prepareBlazer(this, kind, opt)
 
 TYPE = @int8;
 
-try, isBlocks = opt.blocks; catch, isBlocks = true; end %#ok<NOCOM>
-try, lsEndg = opt.endogenize; catch, lsEndg = [ ]; end; %#ok<NOCOM>
-try, lsExg = opt.exogenize; catch, lsExg = [ ]; end; %#ok<NOCOM>
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/prepareBlazer');
+    INPUT_PARSER.KeepUnmatched = true;
+    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
+    INPUT_PARSER.addRequired('Kind', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
+    INPUT_PARSER.addRequired('NumPeriods', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=0);
+    INPUT_PARSER.addParameter('Blocks', true, @(x) isequal(x, true) || isequal(x, false));
+    INPUT_PARSER.addParameter('Exogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
+    INPUT_PARSER.addParameter('Endogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
+end
+INPUT_PARSER.parse(this, kind, numPeriods, varargin{:});
+opt = INPUT_PARSER.Options;
+
+try, listExogenize = opt.exogenize; catch, listExogenize = [ ]; end; %#ok<NOCOM>
 
 %--------------------------------------------------------------------------
 
@@ -24,7 +36,6 @@ ixt = this.Equation.Type==TYPE(2);
 ixmt = ixm | ixt;
 numOfEquations = length(this.Equation);
 
-blz.Quantity = this.Quantity;
 switch lower(kind)
     case 'steady'
         blz = solver.blazer.Steady(numOfEquations);
@@ -61,6 +72,8 @@ switch lower(kind)
             exception.Base('General:Internal', 'error') ...
         );
 end
+blz.Quantity = this.Quantity;
+blz.NumPeriods = numPeriods;
 
 % Change log status of variables.
 if isfield(opt, 'Unlog') && ~isempty(opt.Unlog)
@@ -70,41 +83,48 @@ blz.IxLog = this.Quantity.IxLog;
 
 blz.IxEndg = ixy | ixx;
 blz.IxEqn = ixm | ixt;
-blz.IsBlocks = isBlocks;
+blz.IsBlocks = opt.Blocks;
 
-if isequal(lsExg, @auto) || isequal(lsEndg, @auto)
-    [lsExg, lsEndg] = resolveAutoexog(this, kind, lsExg, lsEndg);
+if isequal(opt.Exogenize, @auto) || isequal(opt.Endogenize, @auto)
+    [listExogenize, listEndogenize] = resolveAutoexog(this, kind, opt.Exogenize, opt.Endogenize);
+else
+    listExogenize = opt.Exogenize;
+    listEndogenize = opt.Endogenize;
 end
 
-if ischar(lsEndg)
-    lsEndg = regexp(lsEndg, '\w+', 'match');
+if ischar(listEndogenize)
+    listEndogenize = regexp(listEndogenize, '\w+', 'match');
+elseif ~iscellstr(listEndogenize)
+    listEndogenize = cellstr(listEndogenize);
 end
-lsEndg = unique(lsEndg);
-if ~isempty(lsEndg)
-    outp = lookup(this.Quantity, lsEndg);
+listEndogenize = unique(listEndogenize);
+if ~isempty(listEndogenize)
+    outp = lookup(this.Quantity, listEndogenize);
     vecEndg = outp.PosName;
     error = endogenize(blz, vecEndg);
     if any(error.IxCannotSwap)
         throw( ...
             exception.Base('Blazer:CannotEndogenize', 'error'), ...
-            lsEndg{error.IxCannotSwap} ...
-            );
+            listEndogenize{error.IxCannotSwap} ...
+        );
     end
 end
 
-if ischar(lsExg)
-    lsExg = regexp(lsExg, '\w+', 'match');
+if ischar(listExogenize)
+    listExogenize = regexp(listExogenize, '\w+', 'match');
+elseif ~iscellstr(listExogenize)
+    listExogenize = cellstr(listExogenize);
 end
-lsExg = unique(lsExg);
-if ~isempty(lsExg)
-    outp = lookup(this.Quantity, lsExg);
+listExogenize = unique(listExogenize);
+if ~isempty(listExogenize)
+    outp = lookup(this.Quantity, listExogenize);
     vecExg = outp.PosName;
     error = exogenize(blz, vecExg);
     if any(error.IxCannotSwap)
         throw( ...
             exception.Base('Blazer:CannotExogenize', 'error'), ...
-            lsExg{error.IxCannotSwap} ...
-            );
+            listExogenize{error.IxCannotSwap} ...
+        );
     end
 end
 

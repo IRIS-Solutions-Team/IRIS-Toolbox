@@ -25,7 +25,7 @@ end
 
 [ny, ~, nb, nf] = sizeOfSolution(this.Vector);
 nz = nnz(this.Quantity.IxObserved);
-nPer = length(range);
+numPeriods = length(range);
 
 % Conditioning measurement variables.
 if nz>0
@@ -71,8 +71,7 @@ if npout>0 && ~likOpt.dtrends
         'with the option ''dtrends='' false.']);
 end
 
-% Options for time domain only
-%------------------------------
+% __Time Domain Options__
 
 if likOpt.domain=='t'
     % Time-varying StdCorr vector 
@@ -81,7 +80,7 @@ if likOpt.domain=='t'
     likOpt.StdCorr = varyStdCorr(this, range, tune, likOpt, '--clip', '--presample');
     
     % User-supplied tunes on the mean of shocks.
-    if isfield(likOpt,'vary')
+    if isfield(likOpt, 'vary')
         tune = likOpt.vary;
     end
     if ~isempty(tune) && isstruct(tune)
@@ -129,11 +128,11 @@ end
 % parameters.
 if likOpt.domain=='t'
     if isequal(likOpt.objrange, @all)
-        likOpt.objrange = true(1,nPer);
+        likOpt.objrange = true(1, numPeriods);
     else
-        start = max(1,round(likOpt.objrange(1) - range(1) + 1));
-        End = min(nPer,round(likOpt.objrange(end) - range(1) + 1));
-        likOpt.objrange = false(1,nPer);
+        start = max(1, round(likOpt.objrange(1) - range(1) + 1));
+        End = min(numPeriods, round(likOpt.objrange(end) - range(1) + 1));
+        likOpt.objrange = false(1, numPeriods);
         likOpt.objrange(start : End) = true;
     end
 end
@@ -142,7 +141,7 @@ end
 if likOpt.domain=='t'
     if isstruct(likOpt.Init)
         [xbInitMean, lsNanInitMean, xbInitMse, lsNanInitMse] = ...
-            datarequest('xbInit', this,likOpt.Init, range);
+            datarequest('xbInit', this, likOpt.Init, range);
         if isempty(xbInitMse)
             nData = size(xbInitMean, 3);
             xbInitMse = zeros(nb, nb, nData);
@@ -162,24 +161,28 @@ end
 
 % Last backward smoothing period. The option  lastsmooth will not be
 % adjusted after we add one pre-sample init condition in `kalman`. This
-% way, one extra period before user-requested lastsmooth will smoothed,
+% way, one extra period before user-requested lastsmooth will smoothed, 
 % which can be then used in `simulate` or `jforecast`.
 if likOpt.domain=='t'
     if isempty(likOpt.lastsmooth) || isequal(likOpt.lastsmooth, Inf)
         likOpt.lastsmooth = 1;
     else
         likOpt.lastsmooth = round(likOpt.lastsmooth - range(1)) + 1;
-        if likOpt.lastsmooth>nPer
-            likOpt.lastsmooth = nPer;
+        if likOpt.lastsmooth>numPeriods
+            likOpt.lastsmooth = numPeriods;
         elseif likOpt.lastsmooth<1
             likOpt.lastsmooth = 1;
         end
     end
 end
 
+likOpt.RollingColumns = [ ];
+if ~isequal(likOpt.Rolling, false)
+    likOpt.RollingColumns = rnglen(range(1), likOpt.Rolling);
+    chkRollingColumns( );
+end
+
 return
-
-
 
 
     function chkNanInit( )
@@ -193,5 +196,15 @@ return
                 'This MSE initial condition is not available: %s ', ...
                 lsNanInitMse{:});
         end        
+    end
+
+
+    function chkRollingColumns( )
+        x = likOpt.RollingColumns;
+        assert( ...
+            all(round(x)==x) && all(x>=1) && all(x<=numPeriods), ...
+            'Model:Filter:IllegalRolling', ...
+            'Illegal dates specified in option Rolling=.' ...
+        );
     end
 end

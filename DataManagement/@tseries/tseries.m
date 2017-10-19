@@ -1,5 +1,15 @@
 % tseries  Time Series (tseries Objects).
 %
+% Time series properties directly accessible:
+%
+% * `.Start` - Start date, i.e. date of first observation.
+%
+% * `.End` - End date, i.e. date of last observation.
+%
+% * `.Data` - Numeric data array.
+%
+% * `.Frequency` - Date frequency.
+%
 %
 % tseries methods:
 %
@@ -11,7 +21,6 @@
 %
 % __Getting Information about tseries Objects__
 %
-% * [`endDate`](tseries/endDate) - Date of the last available observation in a tseries object.
 % * [`freq`](tseries/freq) - Date frequency of tseries object.
 % * [`get`](tseries/get) - Query tseries object property.
 % * [`isequal`](tseries/isequal) - [Not a public function] Compare two tseries objects.
@@ -19,7 +28,6 @@
 % * [`ndims`](tseries/ndims) - Number of dimensions in tseries object data.
 % * [`size`](tseries/size) - Size of tseries object data.
 % * [`specrange`](tseries/specrange) - Time series specific range.
-% * [`startDate`](tseries/startDate) - Date of the first available observation in a tseries object.
 % * [`yearly`](tseries/yearly) - Display tseries object one calendar year per row.
 %
 %
@@ -140,9 +148,9 @@
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
-        tseries < series.Abstract & shared.GetterSetter & shared.UserDataContainer 
+        tseries < TimeSeriesBase & shared.GetterSetter & shared.UserDataContainer 
     properties
-        Start = NaN % Date of first available observation
+        Start = DateWrapper.NaD  % Date of first available observation
         Data = double.empty(0, 1) % Time series data
         MissingValue = NaN
     end
@@ -322,7 +330,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = diff(varargin)
         varargout = double(varargin)
         varargout = doubledata(varargin)
-        varargout = endDate(varargin)
         varargout = errorbar(varargin)
         varargout = expsmooth(varargin)
         varargout = fft(varargin)
@@ -369,7 +376,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = sort(varargin)
         varargout = specrange(varargin)        
         varargout = spy(varargin)
-        varargout = startDate(varargin)
         varargout = stdise(varargin)
         varargout = stem(varargin)
         varargout = subsasgn(varargin)
@@ -386,13 +392,13 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         end
 
         
-        function varargout = startdate(varargin)
-            [varargout{1:nargout}] = startDate(varargin{:});
+        function date = startdate(this)
+            date = this.Start;
         end
+        
 
-
-        function varargout = enddate(varargin)
-            [varargout{1:nargout}] = endDate(varargin{:});
+        function date = enddate(this)
+            date = this.End;
         end   
         
         function varargout = x13(varargin)
@@ -440,6 +446,11 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         
         
         function dispComment(varargin)
+        end
+
+
+        function startDate = startDateWhenEmpty(this, varargin)
+            startDate = DateWrapper.NaD( );
         end
     end
     

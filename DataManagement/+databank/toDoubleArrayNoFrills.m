@@ -15,7 +15,7 @@ for i = 1 : numberOfNames
     else
         ithName = names{i};
     end
-    if ~isfield(inputDatabank, ithName) || ~isa(inputDatabank.(ithName), 'series.Abstract')
+    if ~isfield(inputDatabank, ithName) || ~isa(inputDatabank.(ithName), 'TimeSeriesBase')
         continue
     end
     field = inputDatabank.(ithName);

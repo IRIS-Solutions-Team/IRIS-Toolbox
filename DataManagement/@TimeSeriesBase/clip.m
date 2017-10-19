@@ -2,10 +2,10 @@ function this = clip(this, newStart, newEnd)
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('TimeSeries/clip');
-    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'TimeSeries'));
-    INPUT_PARSER.addRequired('NewStartDate', @(x) isa(x, 'Date') || isequal(x, -Inf));
-    INPUT_PARSER.addRequired('NewEndDate', @(x) isa(x, 'Date') || isequal(x, Inf));
+    INPUT_PARSER = extend.InputParser('TimeSeriesBase/clip');
+    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'TimeSeriesBase'));
+    INPUT_PARSER.addRequired('NewStartDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, -Inf));
+    INPUT_PARSER.addRequired('NewEndDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf));
 end
 
 thisStart = this.Start;
@@ -13,15 +13,15 @@ thisEnd = this.End;
 thisFrequency = this.Frequency;
 
 assert( ...
-    validate(thisStart, newStart) || isequal(newStart, -Inf), ...
+    isequal(newStart, -Inf) || validateDate(this, newStart), ...
     'TimeSeries:clip', ...
-    'Date frequency mismatch.' ...
+    'Illegal start date.' ...
 );
 
 assert( ...
-    validate(thisEnd, newEnd) || isequal(newEnd, Inf), ...
+    isequal(newEnd, Inf) || validateDate(this, newEnd), ...
     'TimeSeries:clip', ...
-    'Date frequency mismatch.' ...
+    'Illegal end date.' ...
 );
 
 if newStart>newEnd
@@ -60,8 +60,7 @@ return
             thisStart = newStart;
             return
         else
-            thisData(:, :) = [ ];
-            thisStart = Date.empty(thisFrequency);
+            this = emptyData(this);
         end
     end
 
@@ -78,8 +77,7 @@ return
             thisData(posNewEnd+1:end, :) = [ ];
             return
         else
-            thisData(:, :) = [ ];
-            thisStart = Date.empty(thisFrequency);
+            this = emptyDate(this);
         end
     end
 end

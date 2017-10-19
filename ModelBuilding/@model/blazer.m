@@ -32,11 +32,25 @@ function [nameBlk, eqtnBlk, blkType, blz] = blazer(this, varargin)
 % * `'Exogenize='` [ cellstr | char ] - List of transition or measurement
 % variables that will be exogenized in steady equations.
 %
-% * `'Kind='` [ `'dynamic'` | *`'steady'`* ] - The kind of equations on
-% which sequential block analysis will be performed.
+% * `'Kind='` [ `'Current'` | `'Stacked'` | *`'Steady'`* ] - The kind of
+% sequential block analysis that will be performed.
 %
 %
 % __Description__
+%
+% Three kinds of sequential block analysis can be performed:
+%
+% * `'Steady'` - Investigate steady-state equations, considering lags and
+% leads to be the same entity as the respective current dated variable.
+%
+% * `'Current'` - Investigate the current dated variables in dynamic
+% equations, taking lags and leads as give.
+%
+% * `'Stacked'` - Investigate a whole structure of time-stacked equations
+% (not available yet).
+%
+%
+% _Reordering Algorithm_
 %
 % The reordering algorithm first identifies equations with a single
 % variable in each, and variables occurring in a single equation each, and
@@ -44,7 +58,10 @@ function [nameBlk, eqtnBlk, blkType, blz] = blazer(this, varargin)
 % permutations (`colamd`) followed by a Dulmage-Mendelsohn permutation
 % (`dmperm`).
 %
-% The output arguments `NameBlk` and `EqtnBlk` are 1-by-N cell arrays,
+%
+% _Output Returned from Blazer_
+%
+% The output arguments `NameBlk` and `EqtnBlk` are 1-by-N cell arrays, 
 % where N is the number of blocks, and each cell is a 1-by-Kn cell array of
 % strings, where Kn is the number of variables and equations in block N.
 %
@@ -55,46 +72,51 @@ function [nameBlk, eqtnBlk, blkType, blz] = blazer(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-opt = passvalopt('model.blazer', varargin{:});
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model/blazer');
+    INPUT_PARSER.KeepUnmatched = true;
+    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
+    INPUT_PARSER.addParameter('Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
+    INPUT_PARSER.addParameter('NumPeriods', 1, @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>0);
+    INPUT_PARSER.addParameter('SaveAs', '', @(x) isempty(x) || ischar(x));
+end
+INPUT_PARSER.parse(this, varargin{:});
+opt = INPUT_PARSER.Options;
 
 %--------------------------------------------------------------------------
 
-nameBlk = cell(1,0); %#ok<PREALL>
-eqtnBlk = cell(1,0); %#ok<PREALL>
+nameBlk = cell(1, 0); %#ok<PREALL>
+eqtnBlk = cell(1, 0); %#ok<PREALL>
 
-if this.IsLinear
-    throw( exception.Base('Blazer:CannotRunLinear', 'warning') );
-    return %#ok<UNRCH>
-end
-
-blz = prepareBlazer(this, opt.kind, opt);
+blz = prepareBlazer(this, opt.Kind, opt.NumPeriods, INPUT_PARSER.Unmatched);
 run(blz);
 
 if blz.IsSingular
-    throw( exception.Base('Steady:StructuralSingularity', 'error') );
+    throw( ...
+        exception.Base('Steady:StructuralSingularity', 'error') ...
+    );
 end
 
 [eqtnBlk, nameBlk, blkType] = getHuman(this, blz);
 
-if ~isempty(opt.saveas)
-    saveAs(blz, this, opt.saveas);
+if ~isempty(opt.SaveAs)
+    saveAs(blz, this, opt.SaveAs);
 end
 
 end
-
-
 
 
 function [blkEqnHuman, blkQtyHuman, blkType] = getHuman(this, blz)
-nBlk = numel(blz.Block);
-blkEqnHuman = cell(1, nBlk);
-blkQtyHuman = cell(1, nBlk);
-blkType = repmat(solver.block.Type.SOLVE, 1, nBlk);
-for i = 1 : nBlk
-    blk = blz.Block{i};
-    blkEqnHuman{i} = this.Equation.Input( blk.PosEqn );
-    blkQtyHuman{i} = this.Quantity.Name( blk.PosQty );
-    blkType(i) = blk.Type;
-end
+    numBlocks = numel(blz.Block);
+    blkEqnHuman = cell(1, numBlocks);
+    blkQtyHuman = cell(1, numBlocks);
+    blkType = repmat(solver.block.Type.SOLVE, 1, numBlocks);
+    for i = 1 : numBlocks
+        ithBlk = blz.Block{i};
+        blkEqnHuman{i} = this.Equation.Input( ithBlk.PosEqn );
+        blkQtyHuman{i} = this.Quantity.Name( ithBlk.PosQty );
+        blkType(i) = ithBlk.Type;
+    end
 end
 

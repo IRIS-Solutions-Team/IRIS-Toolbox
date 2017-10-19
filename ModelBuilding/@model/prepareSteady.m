@@ -153,7 +153,8 @@ ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ixp = this.Quantity.Type==TYPE(4);
 
 % Run solver.blazer.Blazer on steady equations.
-blz = prepareBlazer(this, 'steady', opt);
+numPeriods = 1;
+blz = prepareBlazer(this, 'Steady', numPeriods, opt);
 
 % Analyze block-sequential structure.
 run(blz);
