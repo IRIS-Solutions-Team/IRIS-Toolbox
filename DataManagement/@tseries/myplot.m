@@ -91,7 +91,7 @@ set(hAx, 'xTickMode', 'auto', 'xTickLabelMode', 'auto');
 
 if isequal(opt.xlimmargin, true) ...
         || ( isequal(opt.xlimmargin, @auto) ...
-        && isanyfunc(func, {'bar', 'barcon'}) )
+        && ( isequal(func, @bar) || isequal(func, @barcon) ))
     setappdata(hAx, 'IRIS_XLIM_ADJUST', true);
     peer = getappdata(hAx, 'graphicsPlotyyPeer');
     if ~isempty(peer)

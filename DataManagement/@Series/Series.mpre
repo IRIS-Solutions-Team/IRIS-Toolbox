@@ -1,0 +1,26 @@
+classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
+        Series < tseries
+    methods
+        function this = Series(varargin)
+            this = this@tseries(varargin{:});
+        end
+    end
+
+
+    methods
+        #for FN = {plot, bar, area, stem}
+        function varargout = #(FN)(varargin)
+            [varargout{1:nargout}] = #(FN)@TimeSeriesBase(varargin{:});
+        end
+
+
+        #endfor
+    end
+
+
+    methods (Static)
+        varargout = fromFred(varargin)
+        varargout = linearTrend(varargin)
+        varargout = empty(varargin)
+    end
+end

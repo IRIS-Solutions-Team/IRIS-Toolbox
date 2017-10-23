@@ -1,39 +1,34 @@
 function ax = movetosubplot(ax, varargin)
 % movetosubplot  Move an existing axes object or legend to specified subplot position.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     ax = grfun.movetosubplot(ax, m, n, P)
-%     ax = grfun.movetosubplot(ax, 'bottom')
-%     ax = grfun.movetosubplot(ax, 'top')
+%     Ax = grfun.movetosubplot(Ax, M, N, P)
+%     Ax = grfun.movetosubplot(Ax, 'Bottom')
+%     Ax = grfun.movetosubplot(Ax, 'Top')
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `ax` [ numeric ] - Handle to an existing axes object or legend.
+% * `Ax` [ numeric ] - Handle to an existing axes object or legend.
 %
-% * `m`, `n`, `p` [ numeric ] - Specification of the new position; see help
+% * `M`, `N`, `P` [ numeric ] - Specification of the new position; see help
 % on standard `subplot`.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `ax` [ numeric ] - Handle to the axes or legend moved to the new
+% * `Ax` [ numeric ] - Handle to the axes or legend moved to the new
 % position.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The syntax with `'bottom'` and `'top'` places the axes centered at, 
 % respectively, the bottom or top of the figure window.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -60,7 +55,7 @@ oldPos = get(ax, 'position');
 Fig = get(ax, 'parent');
 set(Fig, 'units', 'normalized');
 
-margin = ishg2(0.01*1, 0.001);
+margin = 0.01; 
 
 if ischar(varargin{1})
     where = varargin{1};

@@ -18,6 +18,6 @@ else
 end
 
 disp@shared.UserDataContainer(this, 1);
-textfun.loosespace( );
+textual.looseLine( );
 
 end

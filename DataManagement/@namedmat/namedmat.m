@@ -1,7 +1,7 @@
 % namedmat  Matrices with Named Rows and Columns (namedmat Objects).
 %
 % Matrices with named rows and columns are returned as output arguments
-% from several IRIS functions, such as [model/acf](model/acf),
+% from several IRIS functions, such as [model/acf](model/acf), 
 % [model/xsf](model/xsf), or [model/fmse](model/fmse), to facilitate easy
 % selection of submatrices by referrring to variable names in rows and
 % columns.
@@ -47,13 +47,13 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
     
 
     methods
-        function this = namedmat(X,varargin)
+        function this = namedmat(X, varargin)
             % namedmat  Create a new matrix with named rows and columns.
             %
             % __Syntax__
             %
-            %     X = namedmat(X,RowNames,ColNames)
-            %     X = namedmat(X,Names)
+            %     X = namedmat(X, RowNames, ColNames)
+            %     X = namedmat(X, Names)
             %
             %
             % __Input Arguments__
@@ -80,8 +80,8 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
             % preserve the names of variables that relate to individual
             % rows and columns, such as in
             %
-            % * `acf( )`, the autocovariance and autocorrelation functions,
-            % * `xsf( )`, the power spectrum and spectral density functions,
+            % * `acf( )`, the autocovariance and autocorrelation functions, 
+            % * `xsf( )`, the power spectrum and spectral density functions, 
             % * `fmse( )`, the forecast mean square error fuctions, etc.
             %
             % You can use the function [`select`](namedmat/select) to
@@ -121,11 +121,11 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
             disp(double(this));
             addspace = false;
             if ~isempty(this.RowNames)
-                disp(['   Rows:',sprintf(' %s',this.RowNames{:})]);
+                disp(['   Rows:', sprintf(' %s', this.RowNames{:})]);
                 addspace = true;
             end
             if ~isempty(this.ColNames)
-                disp(['Columns:',sprintf(' %s',this.ColNames{:})]);
+                disp(['Columns:', sprintf(' %s', this.ColNames{:})]);
                 addspace = true;
             end
             if addspace
@@ -176,7 +176,17 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
     end
     
     
-    methods (Static,Hidden)
+    methods
+        function this = abs(this)
+            rowNames = this.RowNames;
+            columnNames = this.ColNames;
+            this = abs@double(this);
+            this = namedmat(this, rowNames, columnNames);
+        end
+    end
+
+            
+    methods (Static, Hidden)
         varargout = myselect(varargin)
 
 
@@ -184,6 +194,4 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
             flag = any(strcmpi(format, {'Plain', 'Numeric', 'NamedMat'}));
         end
     end
-    
-    
 end

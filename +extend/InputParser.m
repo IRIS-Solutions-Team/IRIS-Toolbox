@@ -6,6 +6,12 @@ classdef InputParser < inputParser
     end
 
 
+    properties (Dependent)
+        UnmatchedInCell
+        UsingDefaultsInStruct
+    end
+
+
     methods
         function this = InputParser(functionName)
             this = this@inputParser( );
@@ -52,6 +58,27 @@ classdef InputParser < inputParser
                 ithName = name{i};
                 this.Aliases.(ithName) = primaryName;
                 addParameter@inputParser(this, ithName, varargin{:});
+            end
+        end
+
+
+        function unmatched = get.UnmatchedInCell(this)
+            names = fieldnames(this.Unmatched);
+            numUnmatched = numel(names);
+            unmatched = cell(2, numUnmatched);
+            for i = 1 : numUnmatched
+                unmatched{1, i} = names{i};
+                unmatched{2, i} = this.Unmatched.(names{i});
+            end
+            unmatched = unmatched(:);
+        end
+
+
+        function usingDefaults = get.UsingDefaultsInStruct(this)
+            usingDefaults = struct( );
+            for i = 1 : numel(this.PrimaryParameterNames)
+                ithName = this.PrimaryParameterNames{i};
+                usingDefaults.(ithName) = any(strcmp(this.UsingDefaults, ithName));
             end
         end
     end

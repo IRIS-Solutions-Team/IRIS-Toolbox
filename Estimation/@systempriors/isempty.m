@@ -1,28 +1,26 @@
-function Flag = isempty(This,varargin)
+function Flag = isempty(this, varargin)
 % isempty  True if system priors object is empty.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     Flag = isempty(S)
 %
-% Input arguments
-% ================
 %
-% * `S` [ systempriors ] - System priors,
+% __Input Arguments__
+%
+% * `S` [ systempriors ] - System priors, 
 % [`systempriors`](systempriors/Contents), object.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `Flag` [ true | false ] - True if the system priors object, `S`, is
 % empty, false otherwise.
 %
-% Description
-% ============
+% __Description__
 %
-% Example
-% ========
+%
+% __Example__
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
@@ -30,9 +28,9 @@ function Flag = isempty(This,varargin)
 %--------------------------------------------------------------------------
 
 if isempty(varargin)
-    Flag = isempty(This.Eval);
+    Flag = isempty(this.Eval);
 else
-    Flag = isempty(This.SystemFn.(lower(varargin{1})).page);
+    Flag = isempty(this.SystemFn.(lower(varargin{1})).page);
 end
 
 end

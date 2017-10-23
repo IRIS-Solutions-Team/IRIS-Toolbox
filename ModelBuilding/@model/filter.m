@@ -194,6 +194,14 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 likOpt = prepareLoglik(this, range, 't', j, varargin{:});
 isOutpData = nargout>1;
 
+% Temporarily rename quantities.
+if ~isempty(opt.Rename)
+    if ~iscellstr(opt.Rename)
+        opt.Rename = cellstr(opt.Rename);
+    end
+    this.Quantity = rename(this.Quantity, opt.Rename{:});
+end
+
 % Get measurement and exogenous variables.
 inputArray = datarequest('yg*', this, inputDatabank, range);
 numDataSets = size(inputArray, 3);
@@ -241,6 +249,10 @@ end
 
 % Post-process hdata output arguments.
 outp = hdataobj.hdatafinal(hData);
+
+if ~isempty(opt.Rename)
+    this.Quantity = resetNames(this.Quantity);
+end
 
 return
 

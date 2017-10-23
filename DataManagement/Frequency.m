@@ -268,7 +268,7 @@ classdef Frequency < double
         end
 
 
-        function dateTimeObject = datetime(this, serial, varargin)
+        function dateTimeObj = datetime(this, serial, varargin)
             year = zeros(size(serial));
             month = zeros(size(serial));
             day = zeros(size(serial));
@@ -278,8 +278,35 @@ classdef Frequency < double
                 day(~indexInf) = day(~indexInf) - 3; % Return Monday, not Thursday, for display
             end
             year(indexInf) = serial(indexInf);
-            dateTimeObject = datetime(year, month, day);
-            dateTimeObject.Format = getDateTimeFormat(this);
+            dateTimeObj = datetime(year, month, day);
+            dateTimeObj.Format = getDateTimeFormat(this);
+        end
+
+
+        function [durationObj, halfDurationObj] = duration(this)
+            switch this
+            case Frequency.YEARLY
+                durationObj = calyears(1);
+                halfDurationObj = calmonths(6);
+            case Frequency.HALFYEARLY
+                durationObj = calmonths(6);
+                halfDurationObj = calmonths(3);
+            case Frequency.QUARTERLY
+                durationObj = calquarters(1);
+                halfDurationObj = caldays(45);
+            case Frequency.MONTHLY
+                durationObj = calmonths(1);
+                halfDurationObj = caldays(15);
+            case Frequency.WEEKLY
+                durationObj = calweeks(1);
+                halfDurationObj = days(3.5);
+            case Frequency.DAILY
+                durationObj = caldays(1);
+                halfDurationObj = days(0.5);
+            otherwise
+                durationObj = NaN;
+                halfDurationObj = NaN;
+            end
         end
 
 

@@ -42,13 +42,16 @@ end
 chkNamingRules( );
 
 % Check for names with multiple occurrences.
-lsMultiple = parser.getMultiple(qty.Name);
-if ~isempty(lsMultiple)
+listDuplicate = parser.getMultiple(qty.Name);
+if ~isempty(listDuplicate)
     throw( ...
         exception.ParseTime('TheParser:MUTLIPLE_NAMES', 'error'), ...
-        lsMultiple{:} ...
-        );
+        listDuplicate{:} ...
+    );
 end
+
+% Store names from source model code.
+qty.OriginalName = qty.Name;
 
 % Add special exogenous variables.
 addSpecialExogenous( );

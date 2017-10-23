@@ -436,16 +436,16 @@ for i = 1 : length(qq)
         finalLegend = createLegend( );
         % Create an entry for the current panel in the output database. Do not
         % if plotting the panel fails.
-        try
+        %try
             [reportRange, data, ok] = callPlot(func, ...
                 funcArgs, aa, range, x, finalLegend, opt, varargin{:});
             if ~ok
                 lsUnknown{end+1} = qq{i}.children{j}.caption; %#ok<AGROW>
             end
-        catch Error
-            lsError{end+1} = qq{i}.children{j}.caption; %#ok<AGROW>
-            lsError{end+1} = Error.message; %#ok<AGROW>
-        end
+        %catch Error
+        %    lsError{end+1} = qq{i}.children{j}.caption; %#ok<AGROW>
+        %    lsError{end+1} = Error.message; %#ok<AGROW>
+        %end
         if ~isempty(tit)
             grfun.title(tit, 'interpreter=', opt.interpreter);
         end
@@ -560,7 +560,7 @@ isOk = true;
 switch func2str(func)
     case {'plot', 'bar', 'barcon', 'stem'}
         inpDataCat = [inpData{:}];
-        if isa(inpDataCat, 'tseries')
+        if isa(inpDataCat, 'TimeSeriesBase')
             [~, range, data] = func(inpRange, inpDataCat, varargin{:}, funcArgs{:});
         elseif ~isempty(inpDataCat)
             data = inpDataCat;
@@ -618,15 +618,15 @@ if any(~cellfun(@isempty, legEnt))
 end
 
 if opt.zeroline
-    grfun.zeroline(aa);
+    visual.zeroline(aa);
 end
 
 if ~isempty(opt.vline)
-    grfun.vline(aa, opt.vline, 'color=', 'black');
+    visual.vline(aa, opt.vline, 'color=', 'black');
 end
 
 if ~isempty(opt.highlight)
-    grfun.highlight(aa, opt.highlight);
+    visual.highlight(aa, opt.highlight);
 end
 
 end 

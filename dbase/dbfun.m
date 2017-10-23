@@ -2,8 +2,7 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 % dbfun  Apply function to database fields.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
@@ -11,8 +10,7 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 %     [D,Flag,ErrList,WarnList] = dbfun(Func,D,~D2,~D3,...,~Dk,...)
 %
 %
-% Input arguments
-% ================
+% __Initialize__
 %
 % * `Func` [ function_handle | char ] - Function that will be applied to
 % each field.
@@ -24,8 +22,7 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 % will be passed into `Func` (`Func` accepts more than one input argument).
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `D` [ struct ] - Output database whose fields will be created by
 % applying `Func` to each field of the input database or databases.
@@ -40,39 +37,36 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 % thrown a warning.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'subdbase='` [ *`true`* | `false` ] - Go through all sub-databases
+% * `'Subdbase='` [ *`true`* | `false` ] - Go through all sub-databases
 % (i.e. struct fields within the input struct), applying the function
 % `Func` to their fields, too.
 %
-% * `'classFilter='` [ cell | cellstr | rexp | *`@all`* ] - Apply `Func`
+% * `'ClassFilter='` [ cell | cellstr | rexp | *`@all`* ] - Apply `Func`
 % only to database fields whose class is on the list or matches the regular
 % expression; `@all` means all fields in the input database `D` will be
 % processed.
 %
-% * `'fresh='` [ `true` | *`false`* ] - Remove unprocessed entries from the
+% * `'Fresh='` [ `true` | *`false`* ] - Remove unprocessed entries from the
 % output database.
 %
-% * `'nameList='` [ cell | cellstr | rexp | *`@all`* ] - Apply `Func` only
+% * `'NameList='` [ cell | cellstr | rexp | *`@all`* ] - Apply `Func` only
 % to this list of database field names or names that match this regular
 % expression; `@all` means all entries in the input database `D` wil be
 % processed.
 %
-% * `'ifError='` [ `'NaN'` | *`'remove'`* ] - What to do with the database
+% * `'IfError='` [ `'NaN'` | *`'remove'`* ] - What to do with the database
 % entry if an error occurs when the entry is being evaluated.
 %
-% * `'ifWarning='` [ *`'keep'`* | `'NaN'` | `'remove'` ] - What to do with
+% * `'IfWarning='` [ *`'keep'`* | `'NaN'` | `'remove'` ] - What to do with
 % the database entry if an error occurs when the entry is being evaluated.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 %     d = struct( );
 %     d.a = [1, 2];
@@ -117,8 +111,7 @@ nField = numel(lsField);
 X = cell(1,nField);
 ixKeep = false(1,nField);
 
-% Process subdatabases
-%----------------------
+% __Process Subdatabases__
 if opt.recursive
     for i = 1 : nField
         name = lsField{i};
@@ -138,9 +131,11 @@ end
 
 %--------------------------------------------------------------------------
 
-lsSelect = dbnames( D{1}, ...
+lsSelect = dbnames( ...
+    D{1}, ...
     'classFilter=', opt.classfilter, ...
-    'nameFilter=', opt.namefilter );
+    'nameFilter=', opt.namefilter ...
+);
 
 lsError = cell(1,nField);
 ixError = false(1,nField);
@@ -204,8 +199,6 @@ end
 return
 
 
-
-
     function reportMatlabErrors( )
         % Throw warnings for Matlab errors.
         errMsg = { };
@@ -224,11 +217,9 @@ return
         throw( ...
             exception.Base('Dbase:DbfunReportError', 'warning'), ...
             errMsg{:} ...
-            );
+        );
     end
 
-    
-    
     
     function reportMatlabWarnings( )
         % Throw warnings for Matlab warnings.
@@ -248,6 +239,6 @@ return
         throw( ...
             exception.Base('Dbase:DbfunReportWarning', 'warning'), ...
             warnMsg{:}...
-            );
+        );
     end
 end

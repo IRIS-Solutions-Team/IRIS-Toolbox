@@ -2,13 +2,12 @@ function [select, tokens] = filter(d, varargin)
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('databank/filter');
+    INPUT_PARSER = extend.InputParser('databank.filter');
     INPUT_PARSER.addRequired('Database', @isstruct);
     INPUT_PARSER.addParameter('Name', "--all", @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     INPUT_PARSER.addParameter('Class', "--all", @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     INPUT_PARSER.addParameter('Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
-
 INPUT_PARSER.parse(d, varargin{:});
 opt = INPUT_PARSER.Results;
 
@@ -33,7 +32,6 @@ else
         ixName = any(opt.Name==listOfFields, 2);
     end
 end
-
 
 if isequal(opt.Class, "--all")
     ixClass = true(size(listOfFields));

@@ -56,7 +56,7 @@ convert = {
 def.convertaggregdaily = [
     convert
     {
-    'ignorenan', true, @(x) isequal(x, true) || isequal(x, false)
+        'ignorenan', true, @(x) isequal(x, true) || isequal(x, false)
     }
 ];
 
@@ -64,7 +64,7 @@ def.convertaggregdaily = [
 def.convertaggreg = [
     convert
     {
-    'ignorenan', true, @(x) isequal(x, true) || isequal(x, false)
+        'ignorenan', true, @(x) isequal(x, true) || isequal(x, false)
     }
 ];
 
@@ -150,87 +150,85 @@ def.normalise = { ...
     'mode', 'mult', @(x) any(strncmpi(x, {'add', 'mult'}, 3)), ...
 };
 
-def.pct = { ...
-    'outputfreq, freq', [ ], @(x) isempty(x) ...
-    || (isnumericscalar(x) && any(x==[1, 2, 4, 6, 12])), ...
+def.pct = {
+    'outputfreq, freq', [ ], @(x) isempty(x) || (isnumericscalar(x) && any(x==[1, 2, 4, 6, 12]))
 };
 
-def.plotcmp = { ...
-    'compare', [-1;1], @isnumeric, ...
-    'cmpcolor, diffcolor', [1, 0.75, 0.75], @(x) isnumeric(x) && length(x)==3 && all(x>=0) && all(x<=1), ...
-    'baseline', true, @islogicalscalar, ...
-    'rhsplotfunc', [ ], @(x) isempty(x) || isanyfunc(x, {'bar', 'area'}), ...
-    'cmpplotfunc, diffplotfunc', @bar, @(x) isanyfunc(x, {'bar', 'area'}), ...
+def.plotcmp = { 
+    'compare', [-1;1], @isnumeric
+    'cmpcolor, diffcolor', [1, 0.75, 0.75], @(x) isnumeric(x) && length(x)==3 && all(x>=0) && all(x<=1)
+    'baseline', true, @(x) isequal(x, true) || isequal(x, false)
+    'rhsplotfunc', [ ], @(x) isempty(x) || isequal(x, @bar) || isequal(x, @area) 
+    'cmpplotfunc, diffplotfunc', @bar, @(x) isequal(x, @bar) || isequal(x, @area)
 };
 
-def.plotpred = { ...
-    'connect', true, @islogicalscalar, ...
-    'firstline', { }, @(x) iscell(x) && iscellstr(x(1:2:end)), ...
-    'predlines', { }, @(x) iscell(x) && iscellstr(x(1:2:end)), ...
-    'firstmarker, firstmarkers, startpoint, startpoints', '.', @(x) ischar(x) ...
-    && any(strcmpi(x, {'none', '+', 'o', '*', '.', 'x', 's', 'd', '^', 'v', '>', '<', 'p', 'h'})), ...
-    'shownanlines', true, @islogicalscalar, ...
+def.plotpred = { 
+    'connect', true, @(x) isequal(x, true) || isequal(x, false)
+    'firstline', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
+    'predlines', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
+    'firstmarker, firstmarkers, startpoint, startpoints', '.', @(x) ischar(x) && any(strcmpi(x, {'none', '+', 'o', '*', '.', 'x', 's', 'd', '^', 'v', '>', '<', 'p', 'h'}))
+    'shownanlines', true, @(x) isequal(x, true) || isequal(x, false)
 };
 
 def.plotyy = [
     def.plot
     {
-    'coincide, coincident', false, @islogicalscalar
-    'highlight', [ ], @isnumeric
-    'lhsplotfunc', @plot, @(x) ischar(x) || isfunc(x)
-    'rhsplotfunc', @plot, @(x) ischar(x) || isfunc(x)
-    'lhstight', false, @islogicalscalar
-    'rhstight', false, @islogicalscalar
+        'coincide, coincident', false, @(x) isequal(x, true) || isequal(x, false)
+        'highlight', [ ], @isnumeric
+        'lhsplotfunc', @plot, @(x) ischar(x) || isfunc(x)
+        'rhsplotfunc', @plot, @(x) ischar(x) || isfunc(x)
+        'lhstight', false, @(x) isequal(x, true) || isequal(x, false)
+        'rhstight', false, @(x) isequal(x, true) || isequal(x, false) 
     }
 ];
 
-def.regress = {...
-    'constant, const', false, @islogical, ...
-    'weighting', [ ], @(x) (isnumeric(x) && isempty(x)) || isa(x, 'tseries'), ...
+def.regress = {
+    'constant, const', false, @(x) isequal(x, true) || isequal(x, false)
+    'weighting', [ ], @(x) (isnumeric(x) && isempty(x)) || isa(x, 'TimeSeriesBase')
 };
 
 def.spy = [
     def.plot
     {
-    'ShowTrue', true, @islogicalscalar
-    'ShowFalse', false, @islogicalscalar
-    'Squeeze', false, @islogicalscalar
-    'Names, Name', { }, @iscellstr
-    'Test', @isfinite, @(x) isfunc(x)
+        'ShowTrue', true, @(x) isequal(x, true) || isequal(x, false)
+        'ShowFalse', false, @(x) isequal(x, true) || isequal(x, false)
+        'Squeeze', false, @(x) isequal(x, true) || isequal(x, false)
+        'Names, Name', { }, @iscellstr
+        'Test', @isfinite, @(x) isfunc(x)
     }
 ];
 
-def.trend = { ...
-    'break', [ ], @isnumeric, ...
-    'connect', true, @islogicalscalar, ...
-    'diff', false, @islogicalscalar, ...
-    'log', false, @islogicalscalar, ...
-    'season', false, @(x) isempty(x) || islogicalscalar(x) || isnumericscalar(x), ...
-    };
+def.trend = { 
+    'break', [ ], @isnumeric
+    'connect', true, @(x) isequal(x, true) || isequal(x, false)
+    'diff', false, @(x) isequal(x, true) || isequal(x, false)
+    'log', false, @(x) isequal(x, true) || isequal(x, false)
+    'season', false, @(x) isempty(x) || (isscalar(x) && (islogical(x) || isnumeric(x)))
+};
 
-def.windex = { ...
-    'log', false, @islogical, ...
-    'method', 'simple', @(x) ischar(x) && any(strcmpi(x, {'simple', 'divisia'})), ...
+def.windex = { 
+    'log', false, @(x) isequal(x, true) || isequal(x, false)
+    'method', 'simple', @(x) ischar(x) && any(strcmpi(x, {'simple', 'divisia'}))
 };
 
 def.x12 = { ...
-    'backcast, backcasts', 0, @(x) isnumericscalar(x), ...
-    'cleanup, deletetempfiles, deletetempfile, deletex12file, deletex12file, delete', true, @islogicalscalar, ...
-    'dummy', [ ], @(x) isempty(x) || isa(x, 'tseries'), ...
-    'dummytype', 'holiday', @(x) ischar(x) && any(strcmpi(x, {'holiday', 'td', 'ao'})), ...
-    'display', false, @islogicalscalar, ...
-    'forecast, forecasts', 0, @(x) isnumericscalar(x), ...
-    'log', false, @islogicalscalar, ...
-    'MaxIter', 1500, @(x) isintscalar(x) && x>0, ...
-    'maxorder', [2, 1], @(x) isnumeric(x) && length(x)==2 && any(x(1)==[1, 2, 3, 4]) && any(x(2)==[1, 2]), ...
-    'missing', false, @islogicalscalar, ...
-    'mode', 'auto', @(x) (isnumeric(x) && any(x==(-1 : 3))) || any(strcmp(x, {'add', 'a', 'mult', 'm', 'auto', 'sign', 'pseudo', 'pseudoadd', 'p', 'log', 'logadd', 'l'})), ...
-    'output', 'd11', @(x) ischar(x) || iscellstr(x), ...
-    'saveas', '', @ischar, ...
-    'specfile', 'default', @(x) ischar(x) || isinf(x), ...
-    'tdays, tday', false, @islogicalscalar, ...
-    'tempdir', '.', @(x) ischar(x) || isfunc(x), ...
-    'tolerance', 1e-5, @(x) isnumericscalar(x) && x>0, ...
+    'backcast, backcasts', 0, @(x) isscalar(x) && isnumeric(x)
+    'cleanup, deletetempfiles, deletetempfile, deletex12file, deletex12file, delete', true, @(x) isequal(x, true) || isequal(x, false)
+    'dummy', [ ], @(x) isempty(x) || isa(x, 'TimeSeriesBase')
+    'dummytype', 'holiday', @(x) ischar(x) && any(strcmpi(x, {'holiday', 'td', 'ao'}))
+    'display', false, @(x) isequal(x, true) || isequal(x, false)
+    'forecast, forecasts', 0, @(x) isscalar(x) && isnumeric(x)
+    'log', false, @(x) isequal(x, true) || isequal(x, false)
+    'MaxIter', 1500, @(x) isscalar(x) && isnumeric(x) && x==round(x) && x>0
+    'maxorder', [2, 1], @(x) isnumeric(x) && length(x)==2 && any(x(1)==[1, 2, 3, 4]) && any(x(2)==[1, 2])
+    'missing', false, @(x) isequal(x, true) || isequal(x, false)
+    'mode', 'auto', @(x) (isnumeric(x) && any(x==(-1 : 3))) || any(strcmp(x, {'add', 'a', 'mult', 'm', 'auto', 'sign', 'pseudo', 'pseudoadd', 'p', 'log', 'logadd', 'l'}))
+    'output', 'd11', @(x) ischar(x) || iscellstr(x)
+    'saveas', '', @ischar
+    'specfile', 'default', @(x) ischar(x) || isinf(x)
+    'tdays, tday', false, @(x) isequal(x, true) || isequal(x, false)
+    'tempdir', '.', @(x) ischar(x) || isfunc(x)
+    'tolerance', 1e-5, @(x) isnumericscalar(x) && x>0
 };
 
 end

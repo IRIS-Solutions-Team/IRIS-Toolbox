@@ -389,7 +389,7 @@ return
         posterStd = sqrt(diag(propCov));
         posterStd(~validDiff) = NaN;
         numParameters = numel(itr.LsParam);
-        priorName = repmat({''}, 1, numParameters);
+        priorName = repmat({'Flat'}, 1, numParameters);
         priorMean = nan(1, numParameters);
         priorMode = nan(1, numParameters);
         priorStd = nan(1, numParameters);
@@ -401,11 +401,24 @@ return
                 priorStd(i) = itr.FnPrior{i}.Std;
             end
         end
+        variables = {
+            pStar(:), 'Poster_Mode', 'Posterior Mode'
+            posterStd(:), 'Poster_Std', 'Posterior Std Deviation'
+            priorName(:), 'Prior_Distrib', 'Prior Distribution Type'
+            priorMean(:), 'Prior_Mean', 'Prior Mean'
+            priorMode(:), 'Prior_Mode', 'Prior Mode'
+            priorStd(:), 'Prior_Std', 'Prior Std Deviation'
+            itr.Lower(:), 'Lower_Bound', 'Lower Bound'
+            itr.Upper(:), 'Upper_Bound', 'Upper Bound'
+            infoFromLik(:), 'Info_from_Data', 'Proportion of Information from Data'
+            itr.Init(:), 'Start', 'Starting Value'
+        };
         summary = table( ...
-            pStar(:), posterStd(:), priorName(:), priorMean(:), priorMode(:), priorStd(:), infoFromLik(:), itr.Init(:), itr.Lower(:), itr.Upper(:), ...
-            'VariableNames', {'Poster_Mode', 'Poster_Std', 'Prior_Distrib', 'Prior_Mean', 'Prior_Mode', 'Prior_Std', 'Info_from_Lik', 'Start', 'Lower_Bound', 'Upper_Bound'}, ...
+            variables{:, 1}, ...
+            'VariableNames', variables(:, 2)', ...
             'RowNames', itr.LsParam(:) ...
         );
+        summary.Properties.VariableDescriptions = variables(:, 3)';
     end
 
 

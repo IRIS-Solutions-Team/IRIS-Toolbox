@@ -14,45 +14,45 @@ flag = true;
 
 switch query
     case {'range', 'first2last', 'start2end', 'first:last', 'start:end'}
-        answ = range(this);
-        answ = DateWrapper(answ);
-    
-        
+        answ = this.Range;
+        if ~isa(answ, 'DateWrapper')
+            answ = DateWrapper(answ);
+        end
         
         
     case {'min', 'minrange', 'nanrange'}
         sample = all(~isnan(this.Data(:, :)), 2);
-        answ = range(this);
+        answ = this.Range;
         answ = answ(sample);
-        answ = DateWrapper(answ);
-
-    
-        
+        if ~isa(answ, 'DateWrapper')
+            answ = DateWrapper(answ);
+        end
         
         
     case {'start', 'startdate', 'first'}
-        answ = DateWrapper(this.Start);
+        answ = this.Start;
+        if ~isa(answ, 'DateWrapper')
+            answ = DateWrapper(answ);
+        end
     
-        
-        
         
     case {'nanstart', 'nanstartdate', 'nanfirst', 'allstart', 'allstartdate'}
         sample = all(~isnan(this.Data(:, :)), 2);
         if isempty(sample)
             answ = NaN;
         else
-            answ = this.Start + find(sample, 1, 'first') - 1;
+            answ = this.Start + (find(sample, 1, 'first') - 1);
         end
-        answ = DateWrapper(answ);
-        
-        
+        if ~isa(answ, 'DateWrapper')
+            answ = DateWrapper(answ);
+        end
         
         
     case {'end', 'enddate', 'last'}
-        answ = endDate(this);
-        answ = DateWrapper(answ);
-    
-        
+        answ = this.End;
+        if ~isa(answ, 'DateWrapper')
+            answ = DateWrapper(answ);
+        end
         
         
     case {'nanend', 'nanenddate', 'nanlast', 'allend', 'allenddate'}
@@ -60,31 +60,25 @@ switch query
         if isempty(sample)
             answ = NaN;
         else
-            answ = this.Start + find(sample, 1, 'last') - 1;
+            answ = this.Start + (find(sample, 1, 'last') - 1);
         end
-        answ = DateWrapper(answ);
-        
-        
+        if ~isa(answ, 'DateWrapper')
+            answ = DateWrapper(answ);
+        end
         
         
     case {'freq', 'frequency', 'per', 'periodicity'}
         answ = DateWrapper.getFrequencyFromNumeric(this.Start);
     
         
-        
-        
     case {'data', 'value', 'values'}
         % Not documented. Use x.Data directly.
         answ = this.Data;
-    
-        
         
         
     case {'comment', 'comments'}
         % Not documented. User x.Comment directly.
         answ = comment(this);
-    
-        
         
         
     otherwise

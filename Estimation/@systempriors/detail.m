@@ -1,25 +1,21 @@
 function detail(this)
 % detail  Display details of system priors object.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     detail(s)
+%     detail(S)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `s` [ systempriors ] - System priors, 
+% * `S` [ systempriors ] - System priors, 
 % [`systempriors`](systempriors/Contents), object.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -27,14 +23,21 @@ function detail(this)
 
 %--------------------------------------------------------------------------
 
-nPrior = length(this.Eval);
-nDigit = 1 + floor(log10(nPrior));
-textfun.loosespace( );
-for i = 1 : nPrior
+numPriors = length(this.Eval);
+numDigits = 1 + floor(log10(numPriors));
+textual.looseLine( );
+for i = 1 : numPriors
     if ~isempty(this.PriorFn{i})
-        priorFuncName = this.PriorFn{i}([ ], 'name');
-        priorMean = this.PriorFn{i}([ ], 'mean');
-        priorStd = this.PriorFn{i}([ ], 'std');
+        ithPrior = this.PriorFn{i};
+        if isa(ithPrior, 'distribution.Abstract')
+            priorFuncName = ithPrior.Name;
+            priorMean = ithPrior.Mean;
+            priorStd = ithPrior.Std;
+        elseif isa(ithPrior, 'function_handle')
+            priorFuncName = this.PriorFn{i}([ ], 'name');
+            priorMean = this.PriorFn{i}([ ], 'mean');
+            priorStd = this.PriorFn{i}([ ], 'std');
+        end
         priorDescript = sprintf('%s Mean=%g Std=%g', ...
             priorFuncName, priorMean, priorStd);
     else
@@ -45,11 +48,11 @@ for i = 1 : nPrior
     else
         boundsDescript = sprintf('Lower=%g Upper=%g', this.Bounds(:, i));
     end
-    fprintf('\t#%*g\n', nDigit, i);
+    fprintf('\t#%*g\n', numDigits, i);
     fprintf('\tSystem Function: %s\n', this.UserString{i});
     fprintf('\tDistribution: %s\n', priorDescript);
     fprintf('\tBounds: %s\n', boundsDescript);
-    textfun.loosespace( );
+    textual.looseLine( );
 end
 
 end

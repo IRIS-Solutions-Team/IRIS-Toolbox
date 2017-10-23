@@ -215,14 +215,20 @@ classdef DateWrapper < double
         end
             
 
-        function dt = datetime(this, varargin)
+        function datetimeObj = datetime(this, varargin)
             frequency = DateWrapper.getFrequencyFromNumeric(this);
             assert( ...
                 all(frequency(1)==frequency(:)), ...
                 'DateWrapper:datetime', ...
                 'All DateWrappers in datetime( ) conversion must be of the same date frequency.' ...
             );
-            dt = datetime(frequency(1), getSerial(this), varargin{:});
+            datetimeObj = datetime(frequency(1), getSerial(this), varargin{:});
+        end
+
+
+        function [durationObj, halfDurationObj] = duration(this)
+            frequency = DateWrapper.getFrequencyFromNumeric(this);
+            [durationObj, halfDurationObj] = duration(frequency);
         end
     end
     

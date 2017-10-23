@@ -53,13 +53,13 @@ classdef Quantity < parser.theparser.Generic
                 end
             end
             
-            nQuan = length(tknExt);
-            label = cell(1, nQuan);
-            name = cell(1, nQuan);
-            indexOfObserved = false(1, nQuan);
-            boundsString = cell(1, nQuan);
-            assignedString = cell(1, nQuan);
-            for i = 1 : nQuan
+            numQuantities = length(tknExt);
+            label = cell(1, numQuantities);
+            name = cell(1, numQuantities);
+            indexOfObserved = false(1, numQuantities);
+            boundsString = cell(1, numQuantities);
+            assignedString = cell(1, numQuantities);
+            for i = 1 : numQuantities
                 label{i} = code( tknExt{i}(1, 1)+1 : tknExt{i}(1, 2)-1 );
                 name{i}  = code( tknExt{i}(2, 1) : tknExt{i}(2, 2)   );
                 indexOfObserved(i) = tknExt{i}(3, 1)<=tknExt{i}(3, 2);
@@ -69,7 +69,7 @@ classdef Quantity < parser.theparser.Generic
             name = strtrim(name);
             label = strtrim(label);
             assignedString = strtrim(assignedString);
-            for i = 1 : nQuan
+            for i = 1 : numQuantities
                 if ~isempty(assignedString{i}) && any(assignedString{i}(end)==[',;', BR])
                     assignedString{i}(end) = '';
                 end
@@ -89,11 +89,11 @@ classdef Quantity < parser.theparser.Generic
                     boundsString = boundsString(posUnique);
                 else
                     % Otherwise, throw an error.
-                    lsMultiple = parser.getMultiple(name);
+                    listDuplicate = parser.getMultiple(name);
                     throw( ...
                         exception.ParseTime('TheParser:MUTLIPLE_NAMES', 'error'), ...
-                        lsMultiple{:} ...
-                        );
+                        listDuplicate{:} ...
+                    );
                 end
             end
             
@@ -112,19 +112,19 @@ classdef Quantity < parser.theparser.Generic
                 end
             end
             
-            nQuan = length(name);
+            numQuantities = length(name);
             bounds = evalBounds(this, boundsString);
             [label, alias] = this.splitLabelAlias(label);
             
-            qty.Name(end+(1:nQuan)) = name;
-            qty.IxObserved(end+(1:nQuan)) = indexOfObserved;
-            qty.Type(end+(1:nQuan)) = repmat(this.Type, 1, nQuan);
-            qty.Label(end+(1:nQuan)) = label;
-            qty.Alias(end+(1:nQuan)) = alias;
-            qty.Bounds(:, end+(1:nQuan)) = bounds;
+            qty.Name(end+(1:numQuantities)) = name;
+            qty.IxObserved(end+(1:numQuantities)) = indexOfObserved;
+            qty.Type(end+(1:numQuantities)) = repmat(this.Type, 1, numQuantities);
+            qty.Label(end+(1:numQuantities)) = label;
+            qty.Alias(end+(1:numQuantities)) = alias;
+            qty.Bounds(:, end+(1:numQuantities)) = bounds;
             
-            qty.IxLog(end+(1:nQuan)) = repmat(this.IsLog, 1, nQuan);
-            qty.IxLagrange(end+(1:nQuan)) = repmat(this.IsLagrange, 1, nQuan);
+            qty.IxLog(end+(1:numQuantities)) = repmat(this.IsLog, 1, numQuantities);
+            qty.IxLagrange(end+(1:numQuantities)) = repmat(this.IsLagrange, 1, numQuantities);
             
             the.AssignedString = [the.AssignedString, assignedString];
         end

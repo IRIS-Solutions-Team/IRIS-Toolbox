@@ -1,7 +1,6 @@
 function this = prior(this, def, priorFunc, varargin)
 % prior  Add new prior to system priors object.
 %
-%
 % __Syntax__
 %
 %     S = prior(S, Expr, PriorFn, ...)
@@ -24,6 +23,7 @@ function this = prior(this, def, priorFunc, varargin)
 %
 % * `S` [ systempriors ] - The system priors object with the new prior
 % added.
+%
 %
 % __Options__
 %
@@ -107,7 +107,7 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('systempriors/prior');
     INPUT_PARSER.addRequired('SystemPriors', @(x) isa(x, 'systempriors'));
     INPUT_PARSER.addRequired('Definition', @(x) ischar(x) || (isa(x, 'string') && numel(x)==1));
-    INPUT_PARSER.addRequired('PriorFunc', @(x) isempty(x) || isa(x, 'function_handle'));
+    INPUT_PARSER.addRequired('PriorFunc', @(x) isempty(x) || isa(x, 'distribution.Abstract') || isa(x, 'function_handle'));
     INPUT_PARSER.addParameter('LowerBound', -Inf, @(x) isnumeric(x) && numel(x)==1 && imag(x)==0);
     INPUT_PARSER.addParameter('UpperBound', Inf, @(x) isnumeric(x) && numel(x)==1 && imag(x)==0);
 end
@@ -246,7 +246,7 @@ function [this, c, isErr] = replaceSystemFunc(this, funcName, argStr)
         
         % Update the system function struct.
         this.SystemFn.(funcName) = s; 
-    catch %#ok<CTCH>
+    catch Error %#ok<CTCH>
         isErr = true;
         return
     end
@@ -271,7 +271,7 @@ function [this, c, isErr] = replaceSystemFunc(this, funcName, argStr)
             case {'ffrf'}
                 s.page(end+1) = iPage;
             case {'pws', 'spd'}
-                s.page{end+1} = iPage;
+                s.page(end+1) = iPage;
                 % Keep pages and active inputs for `pws` and `spd`
                 % identical.
                 this.SystemFn.pws.page = s.page;

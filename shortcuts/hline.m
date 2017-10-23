@@ -1,11 +1,11 @@
 function varargout = hline(varargin)
-% hline  Shortcut for grfun.hline.
+% hline  Shortcut for visual.hline
 %
-% See help on [`grfun.hline`](grfun/hline).
+% See help on [`visual.hline`](visual/hline).
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-[varargout{1:nargout}] = grfun.hline(varargin{:});
+[varargout{1:nargout}] = visual.hline(varargin{:});
 
 end

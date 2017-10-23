@@ -1,28 +1,27 @@
-function N = length(This)
+function n = length(this)
 % length  Number or priors in system priors object.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     N = length(S)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `S` [ systempriors ] - System priors,
 % [`systempriors`](systempriors/Contents) object.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `N` [ numeric ] - Number of priors imposed in the system priors object,
 % `S`.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -30,6 +29,6 @@ function N = length(This)
 
 %--------------------------------------------------------------------------
 
-N = length(This.Eval);
+n = length(this.Eval);
 
 end

@@ -30,7 +30,7 @@ function this = convert(this, newFreq, varargin)
 %
 % __Options__
 %
-% * `'IgnoreNaN='` [ `true` | *`false`* ] - Exclude NaNs from agreggation.
+% * `'IgnoreNaN='` [ *`true`* | `false` ] - Exclude NaNs from agreggation.
 %
 % * `'Missing='` [ numeric | *`NaN`* | `'last'` ] - Replace missing
 % observations with this value.

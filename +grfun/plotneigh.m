@@ -217,8 +217,8 @@ end
 
 %**************************************************************************
     function doCaptions( )
-        if ~isempty(opt.caption) && iscellstr(opt.caption)
-            cp = opt.caption;
+        if ~isempty(opt.Caption) && iscellstr(opt.Caption)
+            cp = opt.Caption;
             ncp = length(cp);
             if ncp > np
                 cp = cp(1:np);

@@ -1,60 +1,64 @@
-function X = pct(X,S,varargin)
+function X = pct(X, varargin)
 % pct  Percent rate of change.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     X = pct(X)
-%     X = pct(X,K,...)
+% Input arguments marked with a `~` sign may be omitted.
 %
-% Input arguments
-% ================
+%     X = pct(X, ~Shift, ...)
+%
+%
+% __Input Arguments__
 %
 % * `X` [ tseries ] - Input tseries object.
 %
-% * `K` [ numeric ] - Time shift over which the rate of change will be
-% computed, i.e. between time t and t+k; if not specified `K` will be set
-% to `-1`.
+% * `~Shift` [ numeric ] - Time shift (lag or lead) over which the rate of
+% change will be computed, i.e. between time t and t+k; if omitted, `Shift`
+% will be set to `-1`.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `X` [ tseries ] - Percentage rate of change in the input data.
 %
-% Options
-% ========
 %
-% * `'outputFreq='` [ `1` | `2` | `4` | `6` | `12` | *empty* ] - Convert
-% the rate of change to the requested date frequency; empty means plain
-% rate of change with no conversion.
+% __Options__
 %
-% Description
-% ============
+% * `'OutputFreq='` [ *empty* | Frequency | `1` | `2` | `4` | `6` | `12` |
+% `52` | `365` ] - Convert the rate of change to the requested date
+% frequency; empty means plain rate of change with no conversion.
 %
-% Example
-% ========
+%
+% __Description__
+%
+%
+% __Example__
 %
 % In this example, `x` is a monthly time series. The following command
 % computes the annualised rate of change between month t and t-1:
 %
-%     pct(x,-1,'outputfreq=',1)
+%     pct(x, -1, 'OutputFreq=', 1)
 %
 % while the following line computes the annualised rate of change between
 % month t and t-3:
 %
-%     pct(x,-3,'outputFreq=',1)
+%     pct(x, -3, 'OutputFreq=', 1)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-try
-    S; %#ok<VUNUS>
-catch %#ok<CTCH>
-    S = -1;
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('tseries/pct');
+    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
+    INPUT_PARSER.addOptional('Shift', -1, @(x) isnumeric(x) && isscalar(x) && x==round(x));
+    INPUT_PARSER.addParameter('OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
 end
-
-opt = passvalopt('tseries.pct',varargin{:});
+INPUT_PARSER.parse(X, varargin{:});
+sh = INPUT_PARSER.Results.Shift;
+outputFreq = INPUT_PARSER.Results.OutputFreq;
+opt = INPUT_PARSER.Options;
 
 %--------------------------------------------------------------------------
 
@@ -63,12 +67,11 @@ if isempty(X.data)
 end
 
 Q = 1;
-if ~isempty(opt.outputfreq)
-    inpFreq = DateWrapper.getFrequencyFromNumeric(X.start);
-    Q = inpFreq / opt.outputfreq / abs(S);
+if ~isempty(opt.OutputFreq)
+    inputFreq = DateWrapper.getFrequencyFromNumeric(X.start);
+    Q = inputFreq / opt.OutputFreq / abs(sh);
 end
 
-% @@@@@ MOSW
-X = unop(@(varargin) tseries.mypct(varargin{:}),X,0,S,Q);
+X = unop(@tseries.implementPercentChange, X, 0, sh, Q);
 
 end

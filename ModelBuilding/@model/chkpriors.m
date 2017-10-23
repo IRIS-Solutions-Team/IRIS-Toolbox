@@ -108,7 +108,6 @@ for i = find(ixFound)
         upperBound = ithParam{3};
         indexOfValidBounds(i) = initVal<=upperBound;
     end
-    if ~indexOfValidBounds(i), keyboard, end
 end
 
 flag = all(indexOfValidPriors) && all(indexOfValidBounds) && all(ixFound);

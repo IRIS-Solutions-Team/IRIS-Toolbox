@@ -1,5 +1,5 @@
-function H = mycaption(Ax,Loc,Cap,VPos,HPos)
-% mycaption  [Not a public function] Place text caption at the edge of an annotating object.
+function H = mycaption(Ax, Loc, Cap, VPos, HPos)
+% mycaption  Place text caption at the edge of an annotating object.
 %
 % Backend IRIS function.
 % No help provided.
@@ -28,11 +28,11 @@ switch lower(HPos)
       x = Loc(end);
    otherwise
       hAlign = 'center';
-      x = (Loc(1) + Loc(end))/2;
+      x = Loc(1) + (Loc(end) - Loc(1))/2;
 end
 
 % Vertical position and alignment.
-ylim = get(Ax,'yLim');
+ylim = get(Ax, 'yLim');
 yspan = ylim(end) - ylim(1);
 switch lower(VPos)
    case 'top'
@@ -41,7 +41,7 @@ switch lower(VPos)
    case 'bottom'
       y = 0.02;
       vAlign = 'bottom';
-   case {'centre','center','middle'}
+   case {'centre', 'center', 'middle'}
       y = 0.5;
       vAlign = 'middle';
    otherwise
@@ -49,10 +49,10 @@ switch lower(VPos)
       vAlign = 'middle';
 end
 
-H = text(x,ylim(1)+y*yspan,Cap, ...
-   'parent',Ax, ...
-   'color',[0,0,0], ...
-   'verticalAlignment',vAlign, ...
-   'horizontalAlignment',hAlign);
+H = text(x, ylim(1)+y*yspan, Cap, ...
+   'parent', Ax, ...
+   'color', [0, 0, 0], ...
+   'verticalAlignment', vAlign, ...
+   'horizontalAlignment', hAlign);
 
 end

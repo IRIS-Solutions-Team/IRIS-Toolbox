@@ -114,17 +114,18 @@ def.ffrf = [
     matrixFormat
     select
     {
-    'include', @all, @(x) isempty(x) || isequal(x, @all) || ischar(x) || iscellstr(x)
-    'exclude', { }, @(x) isempty(x) || ischar(x) || iscellstr(x)
-    'MaxIter', [ ], @(x) isempty(x) || (isnumericscalar(x) && x>=0)
-    'tolerance', [ ], @(x) isempty(x) || (isnumericscalar(x) && x>0)
+        'include', @all, @(x) isempty(x) || isequal(x, @all) || ischar(x) || iscellstr(x)
+        'exclude', { }, @(x) isempty(x) || ischar(x) || iscellstr(x)
+        'MaxIter', [ ], @(x) isempty(x) || (isnumericscalar(x) && x>=0)
+        'tolerance', [ ], @(x) isempty(x) || (isnumericscalar(x) && x>0)
     } 
 ];
 
 def.filter = [
     matrixFormat
     {
-    'data, output', 'smooth', @(x) ischar(x)
+        'data, output', 'smooth', @(x) ischar(x)
+        'Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string')
     } 
 ];
 

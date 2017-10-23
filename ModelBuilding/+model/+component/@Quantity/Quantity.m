@@ -9,6 +9,11 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         IxObserved = logical.empty(1, 0)    % True for transition variables marked as observed and forced into the backward looking vector
         Bounds = double.empty(4, 0)         % Lower and upper bounds on level and growth
     end
+
+
+    properties (Hidden)
+        OriginalName = cell.empty(1, 0)     % Original names from source model file
+    end
     
     
     properties (Constant, Hidden)
@@ -31,9 +36,15 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         varargout = lookup(varargin)
         varargout = pattern4postparse(varargin)
         varargout = remove(varargin)
+        varargout = rename(varargin)
         varargout = saveObject(varargin)
         varargout = size(varargin);
         varargout = userSelection2Index(varargin)
+
+
+        function this = resetNames(this)
+            this.Name = this.OriginalName;
+        end
     end
     
     

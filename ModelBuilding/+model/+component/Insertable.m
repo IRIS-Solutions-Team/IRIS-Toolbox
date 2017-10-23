@@ -1,10 +1,9 @@
 classdef Insertable
     methods
-        function [this, ixPre, ixPost] = insert(this, add, type, where)
-            lsProp = getInsertableProp(this);
-            pivot = lsProp{1};
-            nOld = length(this.(pivot));
-            
+        function [this, indexPre, indexPost] = insert(this, add, type, where)
+            listProperties = getInsertableProp(this);
+            pivot = listProperties{1};
+            numOld = length(this.(pivot));
             
             posType = find(type==this.TYPE_ORDER);
             if strcmp(where, 'first')
@@ -15,14 +14,14 @@ classdef Insertable
                     end
                     posType = posType + 1;
                     if posType>length(this.TYPE_ORDER)
-                        posFirst = nOld+1;
+                        posFirst = numOld+1;
                         break
                     end
                 end
-                ixPre = false(1, nOld);
-                ixPost = false(1, nOld);
-                ixPre(1:posFirst-1) = true;
-                ixPost(posFirst:end) = true;
+                indexPre = false(1, numOld);
+                indexPost = false(1, numOld);
+                indexPre(1:posFirst-1) = true;
+                indexPost(posFirst:end) = true;
             else
                 while true
                     posLast = find(this.Type==this.TYPE_ORDER(posType), 1, 'last');
@@ -35,23 +34,23 @@ classdef Insertable
                         break
                     end
                 end
-                ixPre = false(1, nOld);
-                ixPost = false(1, nOld);
-                ixPre(1:posLast) = true;
-                ixPost(posLast+1:end) = true;
+                indexPre = false(1, numOld);
+                indexPost = false(1, numOld);
+                indexPre(1:posLast) = true;
+                indexPost(posLast+1:end) = true;
             end
             
-            nAdd = length(add.(pivot));
-            nNew = nOld + nAdd;
-            add.Type = repmat(type, 1, nAdd);
-            for i = 1 : length(lsProp)
-                prop = lsProp{i};
-                this.(prop) = [ ...
-                    this.(prop)(:, ixPre), ...
-                    add.(prop), ...
-                    this.(prop)(:, ixPost), ...
+            numToAdd = length(add.(pivot));
+            numNew = numOld + numToAdd;
+            add.Type = repmat(type, 1, numToAdd);
+            for i = 1 : length(listProperties)
+                ithProperty = listProperties{i};
+                this.(ithProperty) = [ ...
+                    this.(ithProperty)(:, indexPre), ...
+                    add.(ithProperty), ...
+                    this.(ithProperty)(:, indexPost), ...
                     ];
-                if size(this.(prop), 2)~=nNew
+                if size(this.(ithProperty), 2)~=numNew
                     throw( exception.Base('General:Internal', 'error') );
                 end
             end
@@ -61,15 +60,15 @@ classdef Insertable
         
         
         function this = delete(this, ixDelete)
-            lsProp = getInsertableProp(this);
-            nProp = numel(lsProp);
-            chkSize = nan(1, nProp);
-            for i = 1 : nProp
-                prop = lsProp{i};
-                this.(prop)(:, ixDelete) = [ ];
-                chkSize(i) = size(this.(prop), 2);
+            listProperties = getInsertableProp(this);
+            numProperties = numel(listProperties);
+            checkSize = nan(1, numProperties);
+            for i = 1 : numProperties
+                ithProperty = listProperties{i};
+                this.(ithProperty)(:, ixDelete) = [ ];
+                checkSize(i) = size(this.(ithProperty), 2);
             end
-            if any( chkSize~=chkSize(1) )
+            if any( checkSize~=checkSize(1) )
                 throw( exception.Base('General:Internal', 'error') );
             end
         end
@@ -77,11 +76,11 @@ classdef Insertable
         
         
         
-        function lsProp = getInsertableProp(this)
+        function listProperties = getInsertableProp(this)
             x = metaclass(this);
             x = x.PropertyList;
             ix = ~[ x.Dependent ] & ~[ x.Constant ] & ~[ x.Hidden ];
-            lsProp = { x(ix).Name };
+            listProperties = { x(ix).Name };
         end
     end
 end

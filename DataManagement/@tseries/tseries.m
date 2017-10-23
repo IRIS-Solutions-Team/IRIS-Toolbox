@@ -458,6 +458,8 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     methods (Static, Hidden)
         varargout = clpf(varargin)
         varargout = loadobj(varargin)        
+        varargout = implementPercentChange(varargin)
+
         varargout = myband(varargin)
         varargout = mybarcon(varargin)
         varargout = mybpass(varargin)
@@ -474,7 +476,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = mynansum(varargin)
         varargout = mynanvar(varargin)
         varargout = myprctile(varargin)
-        varargout = mypct(varargin)
         varargout = myplot(varargin)
         varargout = myshift(varargin)
         varargout = mystdize(varargin)

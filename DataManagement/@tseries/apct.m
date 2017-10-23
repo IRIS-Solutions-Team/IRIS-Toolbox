@@ -1,48 +1,46 @@
-function X = apct(X, Q)
+function X = apct(X, varargin)
 % apct  Annualised percent rate of change.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     X = apct(X)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `X` [ tseries ] - Input tseries object.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `X` [ tseries ] - Annualised percentage rate of change in the input
 % data.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-try
-    Q; %#ok<VUNUS>
-catch %#ok<CTCH>
-    Q = DateWrapper.getFrequencyFromNumeric(X.start);
-    if Q == 0
-        Q = 1;
-    end
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('tseries/apct');
+    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
+    INPUT_PARSER.addOptional('Power', 1, @(x) isscalar(x) && isnumeric(x));
 end
-
-pp = inputParser( );
-pp.addRequired('Q',@isnumericscalar);
-pp.parse(Q);
+INPUT_PARSER.parse(X, varargin{:});
+power = INPUT_PARSER.Results.Power;
 
 %--------------------------------------------------------------------------
 
-% @@@@@ MOSW
-X = unop(@(varargin) tseries.mypct(varargin{:}),X,0,-1,Q);
+if isempty(X.data)
+    return
+end
+
+X = unop(@tseries.implementPercentChange, X, 0, -1, Power);
 
 end

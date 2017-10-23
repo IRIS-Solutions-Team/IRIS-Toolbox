@@ -66,6 +66,7 @@
 %   horzcat - Merge two or more compatible model objects into multiple parameterizations
 %   refresh - Refresh dynamic links
 %   reset - Reset specific values within model object
+%   rename - Rename temporarily model quantities
 %   stdscale - Rescale all std deviations by the same factor
 %   set - Change settable model object property
 %
@@ -285,6 +286,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = lognormal(varargin)
         varargout = kalman(varargin)
         varargout = refresh(varargin)
+        varargout = rename(varargin)
         varargout = reporting(varargin)
         varargout = resample(varargin)
         varargout = reset(varargin)        

@@ -113,10 +113,15 @@ for v = 1 : nv
     p = 0;
     for is = 1 : ns
         x(is) = this.Eval{is}(SRF, FFRF, COV, CORR, PWS, SPD, assignedValues, assignedStdCorr);
+        ithPrior = this.PriorFn{is};
         if x(is)<this.Bounds(1, is) || x(is)>this.Bounds(2, is)
             c(is) = Inf;
-        elseif ~isempty(this.PriorFn{is})
-            c(is) = this.PriorFn{is}(x(is));
+        elseif ~isempty(ithPrior)
+            if isa(ithPrior, 'distribution.Abstract')
+                c(is) = ithPrior.logPdf(x(is));
+            elseif isa(ithPrior, 'function_handle')
+                c(is) = ithPrior(x(is));
+            end
         else
             % Empty prior function handle means uniform distribution.
             c(is) = 0;
