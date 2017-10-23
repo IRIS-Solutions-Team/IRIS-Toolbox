@@ -53,26 +53,13 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSeriesBase
     methods
         varargout = getData(varargin)
         varargout = clip(varargin)
-        function varargout = plot(varargin)
-            [varargout{1:nargout}] = implementPlot(@plot, varargin{:});
+        #for FN = {plot, bar, area, stem}
+        function varargout = #(FN)(varargin)
+            [varargout{1:nargout}] = implementPlot(@#(FN), varargin{:});
         end
 
 
-        function varargout = bar(varargin)
-            [varargout{1:nargout}] = implementPlot(@bar, varargin{:});
-        end
-
-
-        function varargout = area(varargin)
-            [varargout{1:nargout}] = implementPlot(@area, varargin{:});
-        end
-
-
-        function varargout = stem(varargin)
-            [varargout{1:nargout}] = implementPlot(@stem, varargin{:});
-        end
-
-
+        #endfor
         function endDate = get.End(this)
             if isnan(this.Start)
                 endDate = this.Start;
