@@ -239,18 +239,18 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             end
 
             INPUT_PARSER.parse(varargin{:});
-            dat = INPUT_PARSER.Results.Dates;
+            dates = INPUT_PARSER.Results.Dates;
             values = INPUT_PARSER.Results.Values;
             columnComments = INPUT_PARSER.Results.ColumnComments;
             userData = INPUT_PARSER.Results.UserData;
 
-            dat = dat(:);
-            nPer = length(dat);            
+            dates = dates(:);
+            nPer = length(dates);            
 
-            if isa(dat, 'DateWrapper')
-                freq = getFrequency(dat);
+            if isa(dates, 'DateWrapper')
+                freq = getFrequency(dates);
             else
-                [dat, freq] = DateWrapper.fromDouble(dat);
+                [dates, freq] = DateWrapper.fromDouble(dates);
             end
             
             %--------------------------------------------------------------
@@ -275,18 +275,18 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                     values = values(:);
                 elseif length(values)==1 && nPer>1
                     % Expand scalar `Data` point to match more than one of `Dates`.
-                    values = values(ones(size(dat)));
+                    values = values(ones(size(dates)));
                 end
             end
             
             % If `Dates` is scalar and `Data` have multiple rows, treat
             % `Dates` as a start date and expand the dates accordingly.
             if nPer==1 && size(values, 1)>1
-                dat = dat + (0 : size(values, 1)-1);
+                dates = dates + (0 : size(values, 1)-1);
             end
             
             % Initialize the time series start date and data.
-            this = init(this, dat, values);
+            this = init(this, dates, values);
             
             % Populate comments for each column.
             sizeOfData = size(this.Data);

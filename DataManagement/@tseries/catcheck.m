@@ -1,4 +1,4 @@
-function [outp, ixTseries, ixNumeric] = catcheck(varargin)
+function [output, indexTimeSeries, indexNumeric] = catcheck(varargin)
 % catcheck  Check input arguments before concatenating Series objects.
 %
 % Backend IRIS function.
@@ -10,39 +10,39 @@ function [outp, ixTseries, ixNumeric] = catcheck(varargin)
 %--------------------------------------------------------------------------
 
 % Series vs non-Series inputs.
-ixTseries = false(1, nargin);
-ixNumeric = false(1, nargin);
+indexTimeSeries = false(1, nargin);
+indexNumeric = false(1, nargin);
 for i = 1 : nargin
-    ixTseries(i) = isa(varargin{i}, 'tseries');
-    ixNumeric(i) = isnumeric(varargin{i});
+    indexTimeSeries(i) = isa(varargin{i}, 'tseries');
+    indexNumeric(i) = isnumeric(varargin{i});
 end
-ixRemove = ~ixTseries & ~ixNumeric;
+indexToRemove = ~indexTimeSeries & ~indexNumeric;
 
 % Remove non-Series or non-numeric inputs and display warning.
-if any(ixRemove)
+if any(indexToRemove)
     throw( ...
         exception.Base('Series:InputsRemovedFromCat', 'warning') ...
-        );
-    varargin(ixRemove) = [ ]; %#ok<UNRCH>
-    ixTseries(ixRemove) = [ ];
-    ixNumeric(ixRemove) = [ ];
+    );
+    varargin(indexToRemove) = [ ]; %#ok<UNRCH>
+    indexTimeSeries(indexToRemove) = [ ];
+    indexNumeric(indexToRemove) = [ ];
 end
 
 % Check frequencies.
 freq = zeros(size(varargin));
-freq(~ixTseries) = Inf;
-start = nan(size(ixTseries));
-for i = find(ixTseries)
+freq(~indexTimeSeries) = Inf;
+start = nan(size(indexTimeSeries));
+for i = find(indexTimeSeries)
     start(i) = varargin{i}.start;
 end
-freq(ixTseries) = DateWrapper.getFrequencyFromNumeric(start(ixTseries));
-ixNan = isnan(freq);
-if sum(~ixNan & ixTseries)>1 ...
-        && any( diff(freq(~ixNan & ixTseries))~=0 )
+freq(indexTimeSeries) = DateWrapper.getFrequencyFromNumeric(start(indexTimeSeries));
+indexNaN = isnan(freq);
+if sum(~indexNaN & indexTimeSeries)>1 ...
+        && any( diff(freq(~indexNaN & indexTimeSeries))~=0 )
     throw( ...
         exception.Base('Series:CannotCatMixedFrequencies', 'error') ...
-        );
+    );
 end
-outp = varargin;
+output = varargin;
 
 end

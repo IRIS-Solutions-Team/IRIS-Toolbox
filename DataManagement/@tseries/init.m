@@ -16,20 +16,21 @@ else
 end
 
 dates = dates(:);
-numberOfDates = length(dates);
-nObs = size(data, 1);
-sizeOfData = size(data);
-if nObs==0 && (all(isnan(dates)) || numberOfDates==0)
-    sizeOfData(1) = 0;
-    this.Start = NaN;
-    this.Data = zeros(sizeOfData, prec);
+numDates = length(dates);
+numObservations = size(data, 1);
+sizeData = size(data);
+if numObservations==0 && (all(isnan(dates)) || numDates==0)
+    sizeData(1) = 0;
+    this.Start = DateWrapper(NaN);
+    this.Data = zeros(sizeData, prec);
     return
 end
 
-if sizeOfData(1)~=numberOfDates
-    utils.error('tseries:myinit', ...
-        'Number of dates and number of rows of data must match.');
-end
+assert( ...
+    sizeData(1)==numDates, ...
+    'tseries:init', ...
+    'The number of dates and the number of rows of data must match.' ...
+);
 
 data = data(:, :);
 
@@ -42,28 +43,30 @@ end
 
 % No proper date entered, return an empty tseries object.
 if isempty(dates)
-    this.Data = zeros([0, sizeOfData(2:end)]);
-    this.Start = NaN;
+    sizeData(1) = 0;
+    this.Start = DateWrapper(NaN);
+    this.Data = zeros(sizeData);
     return
 end
 
 % Start date is the minimum date found.
-start = min(dates);
+startDate = min(dates);
+endDate = max(dates);
 
 % The actual stretch of the tseries range.
-numberOfDates = round(max(dates) - start + 1);
-if isempty(numberOfDates)
-    numberOfDates = 0;
+numDates = rnglen(startDate, endDate);
+if isempty(numDates)
+    numDates = 0;
 end
-sizeOfData(1) = numberOfDates;
+sizeData(1) = numDates;
 
 % Assign data points at proper dates only.
-this.Data = nan(sizeOfData, prec);
-pos = round(dates - start + 1);
+this.Data = nan(sizeData, prec);
+posData = rnglen(startDate, dates);
 
 % Assign user data to tseries object; note that higher dimensions will be
 % preserved in `this.Data`.
-this.Data(pos, :) = data;
-this.Start = start;
+this.Data(posData, :) = data;
+this.Start = startDate;
 
 end

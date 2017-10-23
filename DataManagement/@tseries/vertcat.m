@@ -1,27 +1,24 @@
 function x = vertcat(varargin)
 % vertcat  Vertical concatenation of tseries objects.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     X = [X1;X2;...;XN]
-%     X = vertcat(X1,X2,...,XN)
+%     X = [X1; X2; ...; XN]
+%     X = vertcat(X1, X2, ..., XN)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `X1`, ..., `XN` [ tseries ] - Input tseries objects that will be
 % vertically concatenated; they all have to have the same size in 2nd and
 % higher dimensions.
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `X` [ tseries ] - Output tseries object created by overlaying `X1` with
 % `X2`, and so on, see description below.
 %
-% Description
-% ============
+% __Description__
 %
 % Any NaN observations in `X1` are replaced with the observations from
 % `X2`. This replacement is performed separately for the real and imaginary
@@ -34,8 +31,7 @@ function x = vertcat(varargin)
 % not. In that case, the scalar tseries are automatically expanded to match
 % the size of the multivariate tseries.
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -43,55 +39,81 @@ function x = vertcat(varargin)
 
 %--------------------------------------------------------------------------
 
-if length(varargin) == 1
+if length(varargin)==1
     x = varargin{1};
     return
 end
 
 % Check classes and frequencies.
-[inputs,ixtseries] = catcheck(varargin{:});
-if any(~ixtseries)
-    error('tseries:vertcat', ...
-        ['Cannot vertically overly tseries objects ', ...
-        'with non-tseries objects.']);
+indexTimeSeries = cellfun(@(x) isa(x, 'TimeSeriesBase'), varargin);
+assert( ...
+    all(indexTimeSeries), ...
+    'tseries:vertcat', ...
+    'Cannot vertically concatenate time series objects with other objects.' ...
+);
+
+% Check date frequency.
+start = cellfun(@(x) x.Start, varargin);
+freq = getFrequency(start);
+indexNaN = isnan(start);
+if any(~indexNaN)
+    first = find(~indexNaN, 1);
+    assert( ...
+        all(freq==freq(first) | indexNaN), ...
+        'tseries:vertcat', ...
+        'Cannot concatenate time series of different date frequencies.' ...
+    );
 end
 
-nInp = length(inputs);
-x = inputs{1};
-xsize = size(x.data);
-x.data = x.data(:,:);
+numInputs = length(varargin);
+x = varargin{1};
+sizeXData = size(x.Data);
+ndimsXData = ndims(x.Data);
+x.Data = x.Data(:, :);
 
-for i = 2 : nInp
-    y = inputs{i};
-    ySize = size(y.data);
-    y.data = y.data(:,:);
-    xsize2 = size(x.data,2);
-    ysize2 = size(y.data,2);
-    if xsize2 ~= ysize2
-        if xsize2 == 1
-            x.data = x.data(:,ones(1,ysize2));
-            xsize = ySize;
-        elseif ysize2 == 1
-            y.data = y.data(:,ones(1,xsize2));
-            y.Comment = y.Comment(1,ones(1,xsize2));
+for i = 2 : numInputs
+    y = varargin{i};
+    sizeYData = size(y.Data);
+    ndimsYData = ndims(y.Data);
+    y.Data = y.Data(:, :);
+    numColumnsX = size(x.Data, 2);
+    numColumnsY = size(y.Data, 2);
+    if numColumnsX~=numColumnsY
+        if numColumnsX==1
+            x.Data = repmat(x.Data, 1, numColumnsY);
+            x.Comment = repmat(x.Comment, 1, numColumnsY);
+            sizeXData = sizeYData;
+            ndimsXData = ndimsYData;
+        elseif numColumnsY==1
+            y.Data = repmat(y.Data, 1, numColumnsX);
+            y.Comment = repmat(y.Comment, 1, numColumnsX);
+            sizeYData = sizeXData;
+            ndimsYData = ndimsXData;
         else
             utils.error('tseries:vertcat', ...
-                ['Vertically overlayed tseries objects', ...
+                ['Vertically concatenated time series objects', ...
                 'must be consistent in 2nd and higher dimensions.']);
         end
     end
-
-    xStart = x.start;
-    yStart = y.start;
+    if isempty(y.Data) || isnan(y.Start)
+        continue
+    end
+    if isempty(x.Data) || isnan(x.Start)
+        x = y;
+        sizeXData = size(x.Data);
+        ndimsXData = ndims(x.Data);
+        x.Data = x.Data(:, :);
+        continue
+    end
 
     % Determine the longest stretch range necessary.
-    startDate = min([xStart,yStart]);
-    endDate = max([xStart+size(x.data,1)-1,yStart+size(y.data,1)-1]);    
+    startDate = min(x.Start, y.Start);
+    endDate = max(x.End, y.End);    
     range = startDate : endDate;
     
     % Get continuous data from both series on the largest stretch range.
-    xData = rangedata(x,range);
-    yData = rangedata(y,range);
+    xData = rangedata(x, range);
+    yData = rangedata(y, range);
     
     % Identify and overlay NaNs separately in the real and imaginary parts of
     % the data.
@@ -99,25 +121,23 @@ for i = 2 : nInp
     yDataReal = real(yData);
     xDataImag = imag(xData);
     yDataImag = imag(yData);
-    ixReal = ~isnan(yDataReal);
-    ixImag = ~isnan(yDataImag);
-    xDataReal(ixReal) = yDataReal(ixReal);
-    xDataImag(ixImag) = yDataImag(ixImag);
+    indexReal = ~isnan(yDataReal);
+    indexImag = ~isnan(yDataImag);
+    xDataReal(indexReal) = yDataReal(indexReal);
+    xDataImag(indexImag) = yDataImag(indexImag);
 
     % Combine the real and imaginary parts of the data again.
-    x.data = xDataReal + 1i*xDataImag;
+    x.Data = xDataReal + 1i*xDataImag;
     
     % Reset the start date.
-    x.start = startDate;
+    x.Start = startDate;
 end
 
-if length(xsize) > 2
-    x.data = reshape(x.data,[size(x.data,1),xsize(2:end)]);
+if ndimsXData>2
+    x.Data = reshape(x.Data, [size(x.Data, 1), sizeXData(2:end)]);
 end
+
 x.Comment = y.Comment;
-
-if ~isempty(x.data) && any(any(isnan(x.data([1,end],:))))
-    x = trim(x);
-end
+x = trim(x);
 
 end
