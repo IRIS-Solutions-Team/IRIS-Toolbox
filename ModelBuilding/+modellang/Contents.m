@@ -1,4 +1,4 @@
-% modellang  Model File Language.
+% Model File Language
 % 
 % Model file language is used to write model files. The model files are
 % plain text files (saved under any filename with any extension) that
@@ -19,92 +19,75 @@
 % [the setup instructions](setup/Contents) for more details.
 %
 %
-% Variables, parameters, substitutions and functions
-% ===================================================
-% 
-% * [`!transition_variables`](modellang/transitionvariables) - List of transition variables.
-% * [`!transition_shocks`](modellang/transitionshocks) - List of transition shocks.
-% * [`!measurement_variables`](modellang/measurementvariables) - List of measurement variables.
-% * [`!measurement_shocks`](modellang/measurementshocks) - List of measurement shocks.
-% * [`!exogenous_variables`](modellang/exogenousvariables) - List of exogenous variables.
-% * [`!parameters`](modellang/parameters) - List of parameters.
-% * [`!dynamic_autogexog`](modellang/dynamicautoexog) - 
-% * [`!steady_autogexog`](modellang/steadyautoexog) - 
-% 
+% Functions by Category
+% ----------------------
 %
-% Equations
-% ==========
+% __Variables, Parameters, Shocks__
 % 
-% * [`!transition_equations`](modellang/transitionequations) - Block of transition equations.
-% * [`!measurement_equations`](modellang/measurementequations) - Block of measurement equations.
-% * [`!dtrends`](modellang/dtrends) - Block of deterministic trend equations.
-% * [`!links`](modellang/links) - Define dynamic links.
-% * [`!revisions`](modellang/revisions) - Block of steady-state revision equations.
-% * [`!reporting_equations`](modellang/reportingequations) - Block of reporting equations.
+%   !transition_variables  - List of transition variables.
+%   !transition_shocks - List of transition shocks.
+%   !measurement_variables - List of measurement variables.
+%   !measurement_shocks - List of measurement shocks.
+%   !exogenous_variables - List of exogenous variables.
+%   !parameters - List of parameters.
+%   !dynamic_autoexog - xx
+%   !steady_autoexog - xx
 % 
 %
-% Linearized and log-linearised variables
-% ========================================
+% __Equations__
 % 
-% * [`!log_variables`](modellang/logvariables) - List of log-linearised variables.
-% * [`!all_but`](modellang/allbut) - Inverse list of log-linearised variables.
-%
-%
-% Special operators
-% ==================
+%   !transition_equations - Block of transition equations.
+%   !measurement_equations - Block of measurement equations.
+%   !dtrends - Block of deterministic trend equations.
+%   !links - Define dynamic links.
+%   !revisions - Block of steady-state revision equations.
+%   !reporting_equations - Block of reporting equations.
 % 
-% * [`!!`](modellang/sstateversion) - Steady-state version of an equation.
-% * [`!ttrend`](modellang/ttrend) - Linear time trend in deterministic trend equations.
-% * [`{...}`](modellang/laglead) - Lag or lead.
-% * [`&`](modellang/sstateref) - Reference to the steady-state level of a variable.
-% * [`=#`](modellang/exactnonlin) - Mark an equation for exact non-linear simulation.
-% * [`'...!!...'`](modellang/alias) - Beginning of aliasing inside descriptions and labels.
+%
+% __Linearized and Log-Linearised Variables__
+% 
+%   !log_variables - List of log-linearised variables.
+%   !all_but - Inverse list of log-linearised variables.
 %
 %
-% Pseudofunctions
-% ================
+% __Special Operators__
+% 
+%   !! (steady_version)  - Steady-state version of an equation.
+%   {...} (shift)  - Lags or leads of transition variables.
+%   & (steady_ref)  - Reference to the steady-state level of a variable.
+%   =# (exact_nonlin)  - Mark an equation for exact non-linear simulation.
+%
+%
+% __Pseudofunctions__
 %
 % Pseudofunctions do not start with an exclamation point.
 %
-% * [`min`](modellang/min) - Define loss function for optimal policy.
-% * [`diff`](modellang/diff) - First difference pseudofunction.
-% * [`dot`](modellang/dot) - Gross rate of growth pseudofunction.
-% * [`difflog`](modellang/difflog) - First log-difference pseudofunction.
-% * [`movavg`](modellang/movavg) - Moving average pseudofunction.
-% * [`movgeom`](modellang/movgeom) - Moving geometric average pseudofunction.
-% * [`movprod`](modellang/movprod) - Moving product pseudofunction.
-% * [`movsum`](modellang/movsum) - Moving sum pseudofunction.
+%   min - Define loss function for optimal policy.
+%   diff - First difference pseudofunction.
+%   dot - Gross rate of growth pseudofunction.
+%   difflog - First log-difference pseudofunction.
+%   movavg - Moving average pseudofunction.
+%   movgeom - Moving geometric average pseudofunction.
+%   movprod - Moving product pseudofunction.
+%   movsum - Moving sum pseudofunction.
+%   ttrend - Linear time trend in deterministic trend equations.
 %
 %
-% Preparser control commands
-% ===========================
+% __Preparser Control Commands__
 % 
-% * [`!substitutions`](modellang/substitutions) - Define text substitutions.
-% * [`<...>`](modellang/interp) - Interpolation.
-% * [`!import`](modellang/import) - Include the content of another model file.
-% * [`!export`](modellang/export) - Create exportable file to be saved in working directory.
-% * [`!function`](modellang/function) - Create exportable m-file function in working directory.
-% * [`!if...!elseif...!else...!end`](modellang/if) - Choose block of code based on logical condition.
-% * [`!switch...!case...!end`](modellang/switch) - Switch among several cases based on expression.
-% * [`!for...!do...!end`](modellang/for) - For loop for automated creation of model code.
-% * [`%`](modellang/linecomments) - Line comments.
-% * [`%{...%}`](modellang/blockcomments) - Block comments.
+%   !substitutions - Define text substitutions.
+%   <...>(interp) - Interpolation.
+%   !import - Include the content of another model file.
+%   !export - Create exportable file to be saved in working directory.
+%   !function - Create exportable m-file function in working directory.
+%   !if - Choose block of code based on logical condition.
+%   !switch - Switch among several cases based on expression.
+%   !for - For loop for automated creation of model code.
+%   %(line_comment) - Line comments.
+%   %{...%}(block_comment) - Block comments.
 %
 %
-% Getting on-line help on model file language
-% ============================================
-%
-% When getting help on model file language, type the names of the keywords
-% and commands without the exclamation point:
-%
-%     help modellang
-%     help modellang/keyword
-%     help modellang/command 
-%     help modellang/pseudofunction
-%
-%
-% Matlab functions and user functions in model files
-% ===================================================
+% __Matlab Functions and User Functions in Model Files__
 %
 % You can use any of the built-in functions (Matlab functions, functions
 % within the Toolboxes you have on your computer, and so on). In addition,
@@ -147,7 +130,7 @@
 %
 %
 % Basic rules IRIS model files
-% =============================
+% -----------------------------
 %
 % * There can be four types of equations in IRIS models: transition equations
 % which are simply the endogenous dynamic equations, measurement equations

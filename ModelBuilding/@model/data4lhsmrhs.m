@@ -3,7 +3,7 @@ function [YXEPG, rowNames, extendedRange] = data4lhsmrhs(this, inputDatabank, ba
 %
 % __Syntax__
 %
-%     [YXEPG, RowNames, ExtendedRange] = data4lhsmrhs(Model, InputDatabank, Range)
+%     [YXEPG, RowNames, ExtRange] = data4lhsmrhs(Model, InpDatabank, Range)
 %
 %
 % __Input Arguments__
@@ -11,7 +11,7 @@ function [YXEPG, rowNames, extendedRange] = data4lhsmrhs(this, inputDatabank, ba
 % * `Model` [ model ] - Model object whose equations will be later
 % evaluated by calling [`lhsmrhs`](model/lhsmrhs).
 %
-% * `InputDatabank` [ struct ] - Input database with observations on
+% * `InpDatabank` [ struct ] - Input database with observations on
 % measurement variables, transition variables, and shocks on which
 % [`lhsmrhs`](model/lhsmrhs) will be evaluated.
 %
@@ -29,7 +29,7 @@ function [YXEPG, rowNames, extendedRange] = data4lhsmrhs(this, inputDatabank, ba
 % variables, shocks, parameters and exogenous variables in order of their
 % appearance in the rows of `YXEPG`.
 %
-% * `ExtendedRange` [ DateWrapper ] - Extended range including pre-sample
+% * `ExtRange` [ DateWrapper ] - Extended range including pre-sample
 % and post-sample observations needed to evaluate lags and leads of
 % transition variables.
 %

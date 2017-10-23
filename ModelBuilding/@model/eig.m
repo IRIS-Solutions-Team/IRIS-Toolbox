@@ -1,24 +1,24 @@
 function [eigenValues, eigenStability] = eig(this, variantsRequested)
-% eig  Eigenvalues of the transition matrix.
+% eig  Eigenvalues of model transition matrix
 %
 % __Syntax__
 %
-%     [EigenValues, Stability] = eig(M)
+%     [EigenVal, Stab] = eig(M)
 %
 %
-% __Input Arguments
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object whose eigenvalues will be returned.
 %
 %
 % __Output Arguments__
 %
-% * `EigenValues` [ numeric ] - Array of all eigenvalues associated with
+% * `EigenVal` [ numeric ] - Array of all eigenvalues associated with
 % the model, i.e. all stable, unit, and unstable roots are included.
 %
-% * `Stability` [ int8 ] - Classification of each root in the `EigenValues`
+% * `Stab` [ int8 ] - Classification of each root in the `EigenValues`
 % vector: `0` means a stable root, `1` means a unit root, `2` means an
-% unstable root. `Stability` is filled with `0`s in models or parameter
+% unstable root. `Stab` is filled with zeros in models or parameter
 % variants where no solution has been computed.
 %
 %

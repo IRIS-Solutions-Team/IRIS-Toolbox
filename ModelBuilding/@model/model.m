@@ -30,7 +30,7 @@
 %   autoexog - Get or set pairs of names in dynamic and steady autoexog
 %   chkredundant - Check for redundant shocks and/or parameters
 %   comment - Get or set user comments in an IRIS object
-%   eig - Eigenvalues of the transition matrix
+%   eig - Eigenvalues of model transition matrix
 %   findeqtn - Find equations by their labels
 %   findname - Find names of variables, shocks, or parameters by their labels
 %   get - Query model object properties
