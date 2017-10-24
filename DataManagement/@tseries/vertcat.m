@@ -52,9 +52,13 @@ assert( ...
 );
 
 % Check date frequency.
-start = cellfun(@(x) x.Start, varargin);
-freq = getFrequency(start);
-indexNaN = isnan(start);
+freq = Frequency.empty(1, 0);
+indexNaN = logical.empty(1, 0);
+for i = 1 : numel(varargin)
+    ithStart = varargin{i}.Start;
+    freq = [freq, getFrequency(ithStart)];
+    indexNaN = [indexNaN, isnan(ithStart)];
+end
 if any(~indexNaN)
     first = find(~indexNaN, 1);
     assert( ...
