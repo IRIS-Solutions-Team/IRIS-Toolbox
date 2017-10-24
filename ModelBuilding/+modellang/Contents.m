@@ -24,67 +24,67 @@
 %
 % __Variables, Parameters, Shocks__
 % 
-%   !transition_variables  - List of transition variables.
-%   !transition_shocks - List of transition shocks.
-%   !measurement_variables - List of measurement variables.
-%   !measurement_shocks - List of measurement shocks.
-%   !exogenous_variables - List of exogenous variables.
-%   !parameters - List of parameters.
-%   !dynamic_autoexog - xx
-%   !steady_autoexog - xx
+%   !transition_variables - List of transition variables
+%   !transition_shocks - List of transition shocks
+%   !measurement_variables - List of measurement variables
+%   !measurement_shocks - List of measurement shocks
+%   !exogenous_variables - List of exogenous variables
+%   !parameters - List of parameters
+%   !dynamic_autoexog - Definitions of variable-shock pairs to be autoexogenized-autoendogenized in dynamic simulations
+%   !steady_autoexog - Definitions of variable-parameter pairs to be autoexogenized-autoendogenized in steady-state calculations
 % 
 %
 % __Equations__
 % 
-%   !transition_equations - Block of transition equations.
-%   !measurement_equations - Block of measurement equations.
-%   !dtrends - Block of deterministic trend equations.
-%   !links - Define dynamic links.
-%   !revisions - Block of steady-state revision equations.
-%   !reporting_equations - Block of reporting equations.
+%   !transition_equations - Block of transition equations
+%   !measurement_equations - Block of measurement equations
+%   !dtrends - Block of deterministic trend equations
+%   !links - Define dynamic links
+%   !revisions - Block of steady-state revision equations
+%   !reporting_equations - Block of reporting equations
 % 
 %
 % __Linearized and Log-Linearised Variables__
 % 
-%   !log_variables - List of log-linearised variables.
-%   !all_but - Inverse list of log-linearised variables.
+%   !log_variables - List of log-linearised variables
+%   !all_but - Inverse list of log-linearised variables
 %
 %
 % __Special Operators__
 % 
-%   !! (steady_version)  - Steady-state version of an equation.
-%   {...} (shift)  - Lags or leads of transition variables.
-%   & (steady_ref)  - Reference to the steady-state level of a variable.
-%   =# (exact_nonlin)  - Mark an equation for exact non-linear simulation.
+%   !! (steady_version) - Steady-state version of an equation
+%   {...} (shift) - Lag or lead
+%   & (steady_ref) - Reference to the steady-state level of a variable
+%   =# (exact_nonlin) - Mark an equation for exact non-linear simulation
 %
 %
 % __Pseudofunctions__
 %
 % Pseudofunctions do not start with an exclamation point.
 %
-%   min - Define loss function for optimal policy.
-%   diff - First difference pseudofunction.
-%   dot - Gross rate of growth pseudofunction.
-%   difflog - First log-difference pseudofunction.
-%   movavg - Moving average pseudofunction.
-%   movgeom - Moving geometric average pseudofunction.
-%   movprod - Moving product pseudofunction.
-%   movsum - Moving sum pseudofunction.
-%   ttrend - Linear time trend in deterministic trend equations.
+%   !min - Define loss function for optimal policy
+%   !diff - First difference pseudofunction
+%   !dot - Gross rate of growth pseudofunction
+%   !difflog - First log-difference pseudofunction
+%   !movavg - Moving average pseudofunction
+%   !movgeom - Moving geometric average pseudofunction
+%   !movprod - Moving product pseudofunction
+%   !movsum - Moving sum pseudofunction
+%   !ttrend - Linear time trend in deterministic trend equations
 %
 %
 % __Preparser Control Commands__
 % 
-%   !substitutions - Define text substitutions.
-%   <...>(interp) - Interpolation.
-%   !import - Include the content of another model file.
-%   !export - Create exportable file to be saved in working directory.
-%   !function - Create exportable m-file function in working directory.
-%   !if - Choose block of code based on logical condition.
-%   !switch - Switch among several cases based on expression.
-%   !for - For loop for automated creation of model code.
-%   %(line_comment) - Line comments.
-%   %{...%}(block_comment) - Block comments.
+%   !substitutions - Define text substitutions
+%   <...> (interp) - Interpolation
+%   !import - Include the content of another model file
+%   !export - Create exportable file to be saved in working directory
+%   !function - Create exportable m-file function to be saved in working directory
+%   !if - Choose block of code based on logical condition
+%   !switch - Switch among several cases based on expression
+%   !for - For loop for automated creation of model code
+%   % (line_comment) - Line comments
+%   %{...%} (block_comment) - Block comments
 %
 %
 % __Matlab Functions and User Functions in Model Files__

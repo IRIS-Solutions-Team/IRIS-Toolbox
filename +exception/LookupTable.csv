@@ -161,6 +161,7 @@ RptEq:SteadyRefNotFoundInModel,Name of this steady-state reference is not found 
 Series:BinopSizeMismatch,The size of the resulting Series object must match the size of one of the input Series objects.
 Series:InputsRemovedFromCat,Inputs other than time series and numeric removed from concatenation.
 Series:InvalidCommentSize,Invalid size of comment array assigned to time series. 
+Series:CannotVertCatNonSeries,Cannot vertically concatenate time series with other types of data. 
 Series:CannotCatMixedFrequencies,Cannot concatenate time series with different date frequencies.
 Series:FrequencyMismatch,Date frequency mismatch: %s 
 Series:TimeDimMustBeZero,Time dimension must be zero when creating empty time series
