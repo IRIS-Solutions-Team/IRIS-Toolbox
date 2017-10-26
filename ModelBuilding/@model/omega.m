@@ -1,4 +1,4 @@
-function Omg = omega(this, newOmg)
+function varargout = omega(this, newOmg)
 % omega  Get or set the covariance matrix of shocks.
 %
 % __Syntax for Getting Covariance Matrix__
@@ -43,7 +43,7 @@ function Omg = omega(this, newOmg)
 %--------------------------------------------------------------------------
 
 if nargin<2
-    Omg = getOmega(this, ':');
+    varargout{1} = getIthOmega(this, ':');
 else
     % Assign StdCorr vector from Omega
     nv = length(this.Variant);
