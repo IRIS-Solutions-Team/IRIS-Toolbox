@@ -266,7 +266,11 @@ for t = flToDates(1) : flToDates(end)
                 iFromX = iFromX(~isnan(iFromX));
             end
             if ~isequal(opt.select, Inf)
-                iFromX = iFromX(opt.select);
+                try
+                    iFromX = iFromX(opt.select);
+                catch
+                    iFromX = [ ];
+                end
             end
             if isempty(iFromX)
                 toX(1, iCol) = NaN;
