@@ -181,12 +181,8 @@ switch lower(query)
             );
         
         
-        
-        
     case {'loglist'}
         answ = this.Quantity.Name(this.Quantity.IxLog);
-        
-        
         
         
     case {'nonloglist'}
@@ -194,7 +190,7 @@ switch lower(query)
         
         
     case {'covmat', 'omega'}
-        answ = omega(this);
+        answ = getIthOmega(this, ':');
         
         
     case {'stdvec'}
@@ -211,27 +207,19 @@ switch lower(query)
         
     case {'nametype'}
         answ = this.Quantity.Type;
-
-        
         
         
     case 'build'
         answ = this.Build;
 
         
-        
-        
     case {'preparser', 'preparsercontrol', 'pset'}
         answ = this.PreparserControl;
 
         
-        
-        
     case {'ss', 'steady'}
         answ = cell2DbaseFunc(ssLevel+1i*ssGrowth);
         % addParams = true;
-        
-        
         
         
     case {'sslevel', 'steadylevel'}
@@ -239,20 +227,14 @@ switch lower(query)
         needsAddParams = true;
         
         
-        
-        
     case {'ssgrowth', 'steadygrowth'}
         answ = cell2DbaseFunc(ssGrowth);
         needsAddParams = true;
         
         
-        
-        
     case 'dt'
         answ = cell2DbaseFunc(dtLevel+1i*dtGrowth);
         needsAddParams = true;
-        
-        
         
         
     case 'dtlevel'

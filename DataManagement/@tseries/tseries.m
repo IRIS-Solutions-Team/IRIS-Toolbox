@@ -1,146 +1,132 @@
-% tseries  Time Series (tseries Objects).
+% Time Series (tseries Objects)
 %
-% Time series properties directly accessible:
+% Time series (tseries) are numeric arrays with their first dimension
+% (rows) dated using the DateWrapper class. The DateWrapper class
+% implements dates of fixed calendar frequency: early, half-yearly,
+% quarterly, monthly, weekly, and daily, plus an undated integer frequency.
+% The size of time series date in 2nd and higher dimensions (columns,
+% pages, etc.) is unrestricted. Time series can be manipulating using most
+% of the common math and statistics operators and functions.
 %
-% * `.Start` - Start date, i.e. date of first observation.
+% __Time Series Properties Directly Accessible__
 %
-% * `.End` - End date, i.e. date of last observation.
-%
-% * `.Data` - Numeric data array.
-%
-% * `.Frequency` - Date frequency.
+%   .Data - Numeric array of time series data
+%   .Start - Date of first observation available
+%   .End - Date of last observation available
+%   .Range - Date range from start date to end date
+%   .Frequency - Date frequency of time series
+%   .MissingValue - Representation of missing value
+%   .MissingTest - Function to test for missing values
 %
 %
 % tseries methods:
 %
 % __Constructor__
 %
-% * [`tseries`](tseries/tseries) - Create new time series (tseries) object.
-% * [`linearTrend`](tseries/linearTrend) - 
+%   tseries - Create new time series (tseries) object
+%   tseries.linearTrend - Create time series with linear trend
+%   tseries.empty - Create empty time series or empty an existing time series
 %
 %
-% __Getting Information about tseries Objects__
+% __Getting Information about Time Series__
 %
-% * [`freq`](tseries/freq) - Date frequency of tseries object.
-% * [`get`](tseries/get) - Query tseries object property.
-% * [`isequal`](tseries/isequal) - [Not a public function] Compare two tseries objects.
-% * [`length`](tseries/length) - Length of tseries object.
-% * [`ndims`](tseries/ndims) - Number of dimensions in tseries object data.
-% * [`size`](tseries/size) - Size of tseries object data.
-% * [`specrange`](tseries/specrange) - Time series specific range.
-% * [`yearly`](tseries/yearly) - Display tseries object one calendar year per row.
-%
-%
-% __Referencing tseries Objects__
-%
-% * [`subsasgn`](tseries/subsasgn) - Subscripted assignment for tseries objects.
-% * [`subsref`](tseries/subsref) - Subscripted reference function for tseries objects.
+%   freq - Date frequency of tseries object
+%   get - Query tseries object property
+%   isequal - Compare two tseries objects
+%   length - Length of time series data in time dimension
+%   ndims - Number of dimensions in tseries object data
+%   size - Size of tseries object data
+%   specrange - Time series specific range
+%   yearly - Display tseries object one calendar year per row
 %
 %
-% __Maths and Statistics Functions and Operators__
+% __Referencing Time Series__
 %
-% Some of the following functions require the Statistics Toolbox.
-%
-% `+`, `-`, `*`, `\`, `/`, `^`, `&`, `|`, `~`, `==`, `~=`, `>=`, `>`, `<`, 
-% `<=`, `abs`, `acos`, `asin`, `atan`, `atan2`, `ceil`, `cos`,  `exp`, 
-% `fix`, `floor`, `imag`, `isinf`, `isnan`, `log`, `log10`, `real`, `round`, 
-% `sin`, `sqrt`, `tan`, `normpdf`, `normcdf`, `prctile`, `lognpdf`, 
-% `logncdf`
-%
-% The behaviour of the following functions depend on the dimension along
-% which they are performed.
-%
-% Some of the following functions require the Statistics Toolbox.
-%
-% `all`, `any`, `cumprod`, `cumsum`, `find`, `geomean`, `max`, `mean`, 
-% `median`, `min`, `mode`, `nanmean`, `nanstd`, `nansum`, `nanvar`, `prod`, 
-% `std`, `sum`, `var`
+%   subsasgn - Subscripted assignment for tseries objects
+%   subsref - Subscripted reference function for tseries objects
 %
 %
 % __Filters__
 %
-% * [`arf`](tseries/arf) - Run autoregressive function on time series.
-% * [`arma`](tseries/arma) - Apply ARMA model to input series.
-% * [`bpass`](tseries/bpass) - Band-pass filter.
-% * [`bwf`](tseries/bwf) - Butterworth filter with tunes.
-% * [`bwf2`](tseries/bwf2) - Swap output arguments of the Butterworth filter with tunes.
-% * [`detrend`](tseries/detrend) - Remove a linear time trend.
-% * [`expsmooth`](tseries/expsmooth) - Exponential smoothing.
-% * [`hpf`](tseries/hpf) - Hodrick-Prescott filter with tunes (aka LRX filter).
-% * [`hpf2`](tseries/hpf2) - Swap output arguments of the Hodrick-Prescott filter with tunes.
-% * [`fft`](tseries/fft) - Discrete Fourier transform of tseries object.
-% * [`llf`](tseries/llf) - Local level filter (aka random walk plus white noise) with tunes.
-% * [`llf2`](tseries/llf2) - Swap output arguments of the local linear trend filter with tunes.
-% * [`moving`](tseries/moving) - Apply function to moving window of observations.
-% * [`trend`](tseries/trend) - Estimate a time trend.
-% * [`x12`](tseries/x12) - Access to X13-ARIMA-SEATS seasonal adjustment program.
+%   arf - Run autoregressive function on time series
+%   arma - Apply ARMA model to input series
+%   bpass - Band-pass filter
+%   detrend - Remove linear time trend from time series data
+%   expsmooth - Exponential smoothing
+%   hpf - Hodrick-Prescott filter with tunes (aka LRX filter)
+%   hpf2 - Swap output arguments of the Hodrick-Prescott filter with tunes
+%   fft - Discrete Fourier transform of tseries object
+%   llf - Local level filter (random walk plus white noise) with tunes
+%   llf2 - Swap output arguments of the local linear trend filter with tunes
+%   moving - Apply function to moving window of observations
+%   trend - Estimate time trend in time series data
+%   x12 - Access to X13-ARIMA-SEATS seasonal adjustment program
 %
 %
 % __Estimation and Sample Characteristics__
 %
-% Note that most of the sample characteristics are listed above in the
-% Maths and statistics functions and operators section.
+% Standard sample characteristics are listed at the end in the Maths and
+% Statistics Functions and Operators section.
 %
-% * [`acf`](tseries/acf) - Sample autocovariance and autocorrelation functions.
-% * [`hpdi`](tseries/hpdi) - Highest probability density interval.
-% * [`chowlin`](tseries/chowlin) - Chow-Lin distribution of low-frequency observations over higher-frequency periods.
-% * [`regress`](tseries/regress) - Ordinary or weighted least-square regression.
-% * [`qtilew`](tseries/qtilew) - 
-%
-%
-% __Visualising Data__
-%
-% * [`area`](tseries/area) - Area graph for tseries objects.
-% * [`band`](tseries/band) - Line-and-band graph for tseries objects.
-% * [`bar`](tseries/bar) - Bar graph for tseries objects.
-% * [`barcon`](tseries/barcon) - Contribution bar graph for tseries objects.
-% * [`bubble`](tseries/bubble) - Bubble graph for tseries objects.
-% * [`errorbar`](tseries/errorbar) - Line plot with error bars.
-% * [`plot`](tseries/plot) - Line graph for tseries objects.
-% * [`plotcmp`](tseries/plotcmp) - Comparison graph for two time series.
-% * [`plotpred`](tseries/plotpred) - Visualize multi-step-ahead predictions.
-% * [`plotyy`](tseries/plotyy) - Line plot function with LHS and RHS axes for time series.
-% * [`scatter`](tseries/scatter) - Scatter graph for tseries objects.
-% * [`spy`](tseries/spy) - Visualise tseries observations that pass a test.
-% * [`stem`](tseries/stem) - Plot tseries as discrete sequence data.
+%   acf - Sample autocovariance and autocorrelation functions
+%   hpdi - Highest probability density interval
+%   chowlin - Chow-Lin distribution of low-frequency observations over higher-frequency periods
+%   regress - Ordinary or weighted least-square regression
 %
 %
-% __Manipulating tseries Objects__
+% __Visualising Time Series__
 %
-% * [`empty`](tseries/empty) - Empty time series preserving the size in 2nd and higher dimensions.
-% * [`flipud`](tseries/flipud) - Flip time series data up to down.
-% * [`permute`](tseries/permute) - Permute dimensions of a tseries object.
-% * [`repmat`](tseries/repmat) - Repeat copies of time series data.
-% * [`redate`](tseries/redate) - Change time dimension of time series.
-% * [`reshape`](tseries/reshape) - Reshape size of time series in 2nd and higher dimensions.
-% * [`resize`](tseries/resize) - Clip tseries object down to a specified date range.
-% * [`sort`](tseries/sort) - Sort tseries columns by specified criterion.
-%
-%
-% __Converting tseries Objects__
-%
-% * [`convert`](tseries/convert) - Convert tseries object to a different frequency.
-% * [`double`](tseries/double) - Return tseries observations as double-precision numeric array.
-% * [`doubledata`](tseries/doubledata) - Convert tseries observations to double precision.
-% * [`single`](tseries/single) - Return tseries observations as single-precision numeric array.
-% * [`singledata`](tseries/singledata) - Convert tseries observations to single precision.
+%   area - Area graph for tseries objects
+%   band - Line-and-band graph for tseries objects
+%   bar - Bar graph for tseries objects
+%   barcon - Contribution bar graph for tseries objects
+%   bubble - Bubble graph for tseries objects
+%   errorbar - Line plot with error bars
+%   plot - Line graph for tseries objects
+%   plotcmp - Comparison graph for two time series
+%   plotpred - Visualize multi-step-ahead predictions
+%   plotyy - Line plot function with LHS and RHS axes for time series
+%   scatter - Scatter graph for tseries objects
+%   spy - Visualise tseries observations that pass a test
+%   stem - Plot tseries as discrete sequence data
 %
 %
-% __Other tseries Functions__
+% __Manipulating Time Series Objects__
 %
-% * [`apct`](tseries/apct) - Annualised percent rate of change.
-% * [`bsxfun`](tseries/bsxfun) - Implement bsxfun for tseries class.
-% * [`cumsumk`](tseries/cumsumk) - Cumulative sum with a k-period leap.
-% * [`destdise`](tseries/destdise) - Destandardise tseries object by applying specified standard deviation and mean to it.
-% * [`diff`](tseries/diff) - First difference.
-% * [`interp`](tseries/interp) - Interpolate missing observations.
-% * [`normalise`](tseries/normalise) - Normalise (or rebase) data to particular date.
-% * [`pct`](tseries/pct) - Percent rate of change.
-% * [`round`](tseries/round) - Round tseries values to specified number of decimals.
-% * [`rmse`](tseries/rmse) - Compute RMSE for given observations and predictions.
-% * [`stdise`](tseries/stdise) - Standardise tseries data by subtracting mean and dividing by std deviation.
-% * [`windex`](tseries/windex) - Simple weighted or Divisia index.
-% * [`wmean`](tseries/wmean) - Weighted average of time series observations.
+%   empty - Create empty time series or empty an existing time series
+%   flipud - Flip time series data up to down
+%   permute - Permute dimensions of a tseries object
+%   repmat - Repeat copies of time series data
+%   redate - Change time dimension of time series
+%   reshape - Reshape size of time series in 2nd and higher dimensions
+%   resize - Clip tseries object down to a specified date range
+%   sort - Sort tseries columns by specified criterion
+%
+%
+% __Converting Time Series__
+%
+%   convert - Convert tseries object to a different frequency
+%   double - Return tseries observations as double-precision numeric array
+%   doubledata - Convert tseries observations to double precision
+%   single - Return tseries observations as single-precision numeric array
+%   singledata - Convert tseries observations to single precision
+%
+%
+% __Other Functions__
+%
+%   apct - Annualised percent rate of change
+%   bsxfun - Implement bsxfun for tseries class
+%   cumsumk - Cumulative sum with a k-period leap
+%   destdise - Destandardise tseries object by applying specified standard deviation and mean to it
+%   diff - First difference
+%   interp - Interpolate missing observations
+%   normalise - Normalise (or rebase) data to particular date
+%   pct - Percent rate of change
+%   round - Round tseries values to specified number of decimals
+%   rmse - Compute RMSE for given observations and predictions
+%   stdise - Standardise tseries data by subtracting mean and dividing by std deviation
+%   windex - Simple weighted or Divisia index
+%   wmean - Weighted average of time series observations
 %
 %
 
@@ -150,14 +136,14 @@
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
         tseries < TimeSeriesBase & shared.GetterSetter & shared.UserDataContainer 
     properties
-        Start = DateWrapper.NaD  % Date of first available observation
-        Data = double.empty(0, 1) % Time series data
-        MissingValue = NaN
+        Start = DateWrapper.NaD % Date of first observation available 
+        Data = double.empty(0, 1) % Numeric array of time series data
+        MissingValue = NaN % Representation of missing value
     end
 
 
     properties (Dependent)
-        MissingTest
+        MissingTest % Function to test for missing values
     end
 
 

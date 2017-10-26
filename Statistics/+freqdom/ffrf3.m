@@ -1,5 +1,5 @@
-function [Y,Count] = ffrf3(T,R,~,Z,H,~,U,Omg,NUnit,Freq,Incl,Tol,MaxIter)
-% ffrf3  [Not a public function] Frequence response function for general state space.
+function [Y, count] = ffrf3(varargin)
+% ffrf3  Frequence response function for general state space.
 %
 % Backend IRIS function.
 % No help provided.
@@ -7,80 +7,74 @@ function [Y,Count] = ffrf3(T,R,~,Z,H,~,U,Omg,NUnit,Freq,Incl,Tol,MaxIter)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-ny = size(Z,1);
-[nx,nb] = size(T);
+if nargin==1
+    systemProperty = varargin{1};
+    [T, R, ~, Z, H, ~, U] = systemProperty.FirstOrderSolution{:};
+    Omega = systemProperty.CovShocks;
+    numUnitRoots = systemProperty.NumUnitRoots;
+    freq = systemProperty.Specifics.Frequencies;
+    indexToInclude = systemProperty.Specifics.IndexToInclude;
+    tolerance = systemProperty.Specifics.Tolerance;
+    maxIter = systemProperty.Specifics.MaxIter;
+else
+    [T, R, ~, Z, H, ~, U, Omega, numUnitRoots, freq, indexToInclude, tolerance, maxIter] = varargin{:};
+end 
+
+ny = size(Z, 1);
+[nx, nb] = size(T);
 nf = nx - nb;
-
-if isempty(Tol)
-    Tol = 1e-7;
-end
-
-if isempty(MaxIter)
-    MaxIter = 500;
-end
-
-if isequal(Incl,Inf)
-    Incl = true(ny,1);
-end
 
 %--------------------------------------------------------------------------
 
-Z1 = Z(Incl,:);
-H1 = H(Incl,:);
-ny1 = sum(Incl);
+Z1 = Z(indexToInclude, :);
+H1 = H(indexToInclude, :);
+ny1 = nnz(indexToInclude);
 
-Freq = Freq(:).';
-nFreq = length(Freq);
-Y = nan(nx,ny,nFreq);
-Count = 0;
+freq = freq(:).';
+numFreq = length(freq);
+Y = complex(nan(nx, ny, numFreq), nan(nx, ny, numFreq));
+count = 0;
 
 % Index of zero frequencies (allow for multiple zeros in the vector).
-zeroFreqInx = Freq == 0;
+indexZeroFreq = freq==0;
 
 % Non-zero frquencies. Evaluate `xsf( )` and compute regressions.
-if any(~zeroFreqInx)
-   doNonzeroFreq( ); 
+if any(~indexZeroFreq)
+   nonzeroFreq( ); 
 end
 
 % We must do zero frequency last, becuase the input state space matrices
 % are modified within `dozerofreq( )`.
-if any(zeroFreqInx)
-    doZeroFreq( );
+if any(indexZeroFreq)
+    zeroFreq( );
 end
 
+return
 
-% Nested functions...
 
-
-%**************************************************************************
-
-    
-    function doNonzeroFreq( )
-        S = freqdom.xsf(T,R,[ ],Z1,H1,[ ],U,Omg,NUnit, ...
-            Freq(~zeroFreqInx),[ ],[ ]);
-        nNonzero = sum(~zeroFreqInx);
-        Yn = zeros(nx,ny1,nNonzero);
-        for i = 1 : nNonzero
-            S11 = S(1:ny1,1:ny1,i);
-            S12 = S(1:ny1,ny1+1:end,i);
-            Yn(:,:,i) = S12' / S11;
+    function nonzeroFreq( )
+        S = freqdom.xsf(T, R, [ ], Z1, H1, [ ], U, Omega, numUnitRoots, ...
+            freq(~indexZeroFreq), [ ], [ ]);
+        numNonzero = nnz(~indexZeroFreq);
+        Yn = zeros(nx, ny1, numNonzero);
+        for i = 1 : numNonzero
+            S11 = S(1:ny1, 1:ny1, i);
+            S12 = S(1:ny1, ny1+1:end, i);
+            Yn(:, :, i) = S12' / S11;
         end
-        Y(:,Incl,~zeroFreqInx) = Yn;
-    end % doNonzeroFreq( )
+        Y(:, indexToInclude, ~indexZeroFreq) = Yn;
+    end 
 
 
-%**************************************************************************
-    
-    
-    function doZeroFreq( )
+    function zeroFreq( )
         % dozerofreq  Compute FFRF for zero frequency by deriving a polynomial
         % representation of steady-state Kalman filter.
-        Tf = T(1:nf,:);
-        Rf = R(1:nf,:);
-        T = T(nf+1:end,:);
-        R = R(nf+1:end,:);
-        Sy = H1*Omg*H1.';
-        ROmg = R*Omg;
+        Tf = T(1:nf, :);
+        Rf = R(1:nf, :);
+        T = T(nf+1:end, :);
+        R = R(nf+1:end, :);
+        Sy = H1*Omega*H1.';
+        ROmg = R*Omega;
         Sa = ROmg*R';
         
         % Compute steady-state Kalman filter. Because the covariance matrix for the
@@ -92,7 +86,7 @@ end
         K = Inf;
         L = Inf;
         Z1t = Z1.';
-        while d > Tol && Count <= MaxIter
+        while d>tolerance && count<=maxIter
             K0 = K;
             PZ1t = P*Z1t;
             F = Z1*PZ1t + Sy;
@@ -101,12 +95,12 @@ end
             P = T*P*L' + Sa;
             P = (P+P')/2;
             d = max(abs(K(:)-K0(:)));
-            Count = Count + 1;
+            count = count + 1;
         end
         
         % Find infinite double-sided polynomial filters
-        %     a(t) = Fa(q) y(t),
-        %     xf(t) = Ff(q) y(t),
+        %     a(t) = Fa(q) y(t), 
+        %     xf(t) = Ff(q) y(t), 
         % where q is the lag operator, and evaluate them for each frequency.
         
         Z1tFi = Z1.' / F;
@@ -115,7 +109,7 @@ end
         Ib = eye(nb);
         Iy = eye(ny1);
         Lt = L';
-        Ff = zeros(nf,ny1);
+        Ff = zeros(nf, ny1);
         
         J = pinv(Ib - T_KZ1) * K;
         A = pinv(Ib - Lt) * (Z1tFi * (Iy - Z1*J));
@@ -132,9 +126,7 @@ end
         else
             Y0 = [Ff;Fa];
         end
-        nZero = sum(zeroFreqInx);
-        Y(:,Incl,zeroFreqInx) = Y0(:,:,ones(1,nZero));
-    end % doZeroFreq( )
-
-
+        numZero = nnz(indexZeroFreq);
+        Y(:, indexToInclude, indexZeroFreq) = Y0(:, :, ones(1, numZero));
+    end 
 end

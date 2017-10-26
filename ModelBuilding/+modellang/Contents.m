@@ -19,8 +19,8 @@
 % [the setup instructions](setup/Contents) for more details.
 %
 %
-% Functions by Category
-% ----------------------
+% Keywords by Category
+% ---------------------
 %
 % __Variables, Parameters, Shocks__
 % 
@@ -56,21 +56,21 @@
 %   {...} (shift) - Lag or lead
 %   & (steady_ref) - Reference to the steady-state level of a variable
 %   =# (exact_nonlin) - Mark an equation for exact non-linear simulation
+%   !ttrend - Linear time trend in deterministic trend equations
 %
 %
 % __Pseudofunctions__
 %
 % Pseudofunctions do not start with an exclamation point.
 %
-%   !min - Define loss function for optimal policy
-%   !diff - First difference pseudofunction
-%   !dot - Gross rate of growth pseudofunction
-%   !difflog - First log-difference pseudofunction
-%   !movavg - Moving average pseudofunction
-%   !movgeom - Moving geometric average pseudofunction
-%   !movprod - Moving product pseudofunction
-%   !movsum - Moving sum pseudofunction
-%   !ttrend - Linear time trend in deterministic trend equations
+%   min - Define loss function for optimal policy
+%   diff - First difference pseudofunction
+%   dot - Gross rate of growth pseudofunction
+%   difflog - First log-difference pseudofunction
+%   movavg - Moving average pseudofunction
+%   movgeom - Moving geometric average pseudofunction
+%   movprod - Moving product pseudofunction
+%   movsum - Moving sum pseudofunction
 %
 %
 % __Preparser Control Commands__

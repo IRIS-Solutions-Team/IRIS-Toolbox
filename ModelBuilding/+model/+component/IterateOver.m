@@ -10,6 +10,6 @@ classdef IterateOver
         Upper
         FnPrior
         IxPrior
-        SystemPrior
+        SystemPriors
     end
 end

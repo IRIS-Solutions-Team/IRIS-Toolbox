@@ -1,4 +1,4 @@
-function [obj, lik, pp, sp] = objfunc(x, this, data, pri, estOpt, likOpt)
+function [obj, lik, paramPriorsEval, systemPriorsMinusLogDensity] = objfunc(x, this, data, pri, estOpt, likOpt)
 % objfunc  Evaluate minus log posterior.
 %
 % Backend IRIS function.
@@ -11,22 +11,22 @@ function [obj, lik, pp, sp] = objfunc(x, this, data, pri, estOpt, likOpt)
 
 obj = 0; % Minus log posterior.
 lik = 0; % Minus log data likelihood.
-pp = 0; % Minus log parameter prior.
-sp = 0; % Minus log system prior.
+paramPriorsEval = 0; % Minus log parameter prior.
+systemPriorsMinusLogDensity = 0; % Minus log system prior.
 
-isLik = estOpt.EvalLik;
-isPPrior = estOpt.EvalPPrior && any(pri.IxPrior);
-isSPrior = estOpt.EvalSPrior && ~isempty(pri.SystemPrior);
+isDataLik = estOpt.EvalLik;
+isParamPriors = estOpt.EvalPPrior && any(pri.IxPrior);
+isSystemPriors = estOpt.EvalSPrior && ~isempty(pri.SystemPriors);
 
-% Evaluate parameter priors.
-if isPPrior
-    pp = shared.Estimation.evalPrior(x, pri);
-    obj = obj + pp;
+% Evaluate parameter priors; they return minus log density.
+if isParamPriors
+    paramPriorsEval = shared.Estimation.evalPrior(x, pri);
+    obj = obj + paramPriorsEval;
 end
 
 % Update model with new parameter values; do this before evaluating the
 % system priors.
-if isLik || isSPrior
+if isDataLik || isSystemPriors
     isThrowErr = strcmpi(estOpt.NoSolution, 'error');
     [this,UpdateOk] = update(this, x, pri, 1, estOpt, isThrowErr);
     if ~UpdateOk
@@ -35,14 +35,14 @@ if isLik || isSPrior
 end
 
 % Evaluate system priors.
-if isfinite(obj) && isSPrior
+if isfinite(obj) && isSystemPriors
     % Function systempriors/eval returns minus log density.
-    sp = eval(pri.SystemPrior, this);
-    obj = obj + sp;
+    systemPriorsMinusLogDensity = eval(pri.SystemPriors, this);
+    obj = obj + systemPriorsMinusLogDensity;
 end
 
 % Evaluate data likelihood.
-if isfinite(obj) && isLik
+if isfinite(obj) && isDataLik
     % Evaluate minus log likelihood; no data output is required.
     lik = likOpt.minusLogLikFunc(this, data, [ ], likOpt);
     % Sum up minus log priors and minus log likelihood.

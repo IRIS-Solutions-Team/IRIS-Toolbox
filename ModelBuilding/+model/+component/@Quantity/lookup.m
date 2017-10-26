@@ -95,16 +95,12 @@ end
 return
 
 
-
-
     function [ixStdCorr, ixShkInName] = getStd(query)
         shkName = query(5:end);
         ixStdCorr = false(1, nStdCorr);
         ixStdCorr(1:ne) = callStrcmpOrRegexp(lse, shkName);
         ixShkInName = callStrcmpOrRegexp(name, shkName);
     end
-
-
 
 
     function [ixStdCorr, ixShk1InName, ixShk2InName] = getCorr(query)
@@ -137,12 +133,10 @@ return
 end
 
 
-
-
 function ix = callStrcmpOrRegexp(list, query)
-if isa(query, 'rexp') || ~isvarname(query)
-    ix = ~cellfun(@isempty, regexp(list, query, 'once'));
-else
-    ix = strcmp(list, query);
-end
+    if isa(query, 'rexp') || ~isvarname(query)
+        ix = ~cellfun(@isempty, regexp(list, query, 'once'));
+    else
+        ix = strcmp(list, query);
+    end
 end

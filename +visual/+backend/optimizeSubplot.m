@@ -1,40 +1,34 @@
 function [numRows, numColumns] = optimizeSubplot(totalCount, varargin)
 % optimizeSubplot  Choose number of rows and columns for subplot given the total count of graphs to be plotted.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [NumRows, NumColumns] = grfun.optimizeSubplot(TotalCount, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `TotalCount` [ numeric ] - Total number of graphs to be plotted in one
 % figure window.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `NumRows` [ numeric ] - Number of rows.
 %
 % * `NumColumns` [ numeric ] - Number of columns.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Orientation='` [ *`'landscape'`* | `'portrait'` ] - Orientation of
 % the figure window.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Examples
-% =========
+% __Examples__
 %
 %     totalCount = 15;
 %     [numRows, numColumns] = grfun.optimize(totalCount);

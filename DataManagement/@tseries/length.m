@@ -1,34 +1,32 @@
-function n = length(x)
-% length  Length of tseries object.
+function n = length(this)
+% length  Length of time series data in time dimension
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     n = length(x)
+%     N = length(X)
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `x` [ tseries ] Tseries object.
+% * `x` [ tseries ] Time series object.
 %
-% Output arguments
-% =================
 %
-% * `n` [ numeric ] - Number of periods from the first to the last
+% __Output Arguments__
+%
+% * `N` [ numeric ] - Number of periods from the first to the last
 % available observation in the input tseries object.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-%**************************************************************************
+%--------------------------------------------------------------------------
 
-n = size(x.data,1);
+n = size(this.Data, 1);
 
 end

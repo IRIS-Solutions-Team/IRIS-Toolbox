@@ -321,6 +321,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = createTrendArray(varargin)        
         varargout = evalDtrends(varargin)
         varargout = expansionMatrices(varargin)
+        varargout = getIthOmega(varargin)
         varargout = hdatainit(varargin)
         varargout = chkQty(varargin)
         varargout = kalmanFilter(varargin)        
@@ -340,6 +341,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = prepareGrouping(varargin)
         varargout = prepareSolve(varargin)        
         varargout = prepareSteady(varargin)
+        varargout = prepareSystemPriors(varargin)
         
 
         %varargout = saveobj(varargin)
@@ -379,6 +381,21 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
 
         function n = numel(varargin)
             n = 1;
+        end
+
+
+        function x = getIthFirstOrderSolution(this, variantsRequested)
+            x = getIthFirstOrderSolution(this.Variant, variantsRequested);
+        end
+
+
+        function x = getIthValues(this, variantsRequested)
+            x = this.Variant.Values(:, :, variantsRequested);
+        end
+
+
+        function x = getIthStdCorr(this, variantsRequested)
+            x = this.Variant.StdCorr(:, :, variantsRequested);
         end
     end
     

@@ -288,7 +288,25 @@ classdef Variant
         end
 
 
+        function x = getIthFirstOrderSolution(this, v)
+            if size(this.Values, 3)==1 ...
+                && (v==1 || v==':')
+                x = this.Solution;
+                return
+            end
+            x = cell(size(this.Solution));
+            for i = 1 : numel(this.Solution)
+                x{i} = this.Solution{i}(:, :, v);
+            end
+        end
+
+
         function x = getIthExpansion(this, v)
+            if size(this.Values, 3)==1 ...
+                && (v==1 || v==':')
+                x = this.Expansion;
+                return
+            end
             x = cell(size(this.Expansion));
             for i = 1 : numel(this.Expansion)
                 x{i} = this.Expansion{i}(:, :, v);

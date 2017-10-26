@@ -104,7 +104,8 @@ function this = prior(this, def, priorFunc, varargin)
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('systempriors/prior');
+    INPUT_PARSER = extend.InputParser('systempriors.prior');
+    INPUT_PARSER.KeepUnmatched = true;
     INPUT_PARSER.addRequired('SystemPriors', @(x) isa(x, 'systempriors'));
     INPUT_PARSER.addRequired('Definition', @(x) ischar(x) || (isa(x, 'string') && numel(x)==1));
     INPUT_PARSER.addRequired('PriorFunc', @(x) isempty(x) || isa(x, 'distribution.Abstract') || isa(x, 'function_handle'));
@@ -113,6 +114,7 @@ if isempty(INPUT_PARSER)
 end
 INPUT_PARSER.parse(this, def, priorFunc, varargin{:});
 opt = INPUT_PARSER.Options;
+unmatched = INPUT_PARSER.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
@@ -139,6 +141,7 @@ catch %#ok<CTCH>
         inpDef ...
     );
 end
+
 this.PriorFn{end+1} = priorFunc;
 this.UserString{end+1} = inpDef;
 this.Bounds(:, end+1) = [opt.LowerBound; opt.UpperBound];

@@ -66,13 +66,18 @@ if ~usingDefaults.Caption
     end
 end
         
+isVertical = strncmpi(direction, 'v', 1);
+
 INF_LIM = 1e10;
 LIM_MULTIPLE = 100;
-Z_COOR = -0.5;
+
+if isVertical
+    Z_COOR = -3;
+else
+    Z_COOR = -2;
+end
 
 %--------------------------------------------------------------------------
-
-isVertical = strncmpi(direction, 'v', 1);
 
 % Check for plotyy peers, and return the background axes object.
 % axesHandles = grfun.mychkforpeers(axesHandles);
@@ -98,6 +103,13 @@ if isVertical
                 end
             end
         end
+    end
+end
+
+% Switch to left y-axis
+try
+    if strcmp(get(axesHandles, 'YAxisLocation'), 'right')
+        yyaxis left
     end
 end
 
@@ -154,12 +166,10 @@ else
     bkgLabel = 'HLine';
 end
 
-%{
 for i = 1 : numel(lineHandles)
-    setappdata(lineHandles(i), 'IRIS_BACKGROUND', bkgLabel);
+    setappdata(lineHandles(i), 'IRIS_BackgroundLevel', Z_COOR);
 end
-grfun.mymovetobkg(axesHandles);
-%}
+visual.backend.moveToBackground(axesHandles);
 
 if opt.ExcludeFromLegend
     grfun.excludefromlegend(lineHandles);

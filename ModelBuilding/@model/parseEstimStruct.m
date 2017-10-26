@@ -1,4 +1,4 @@
-function itr = parseEstimStruct(this, priorStruct, sp, penalty, initVal)
+function itr = parseEstimStruct(this, priorStruct, systemPriors, penalty, initVal)
 % parseEstimStruct  Parse structure with parameter estimation specs.
 %
 % Backend IRIS function.
@@ -38,10 +38,10 @@ ixValidParName = ~isnan(posAssign) | ~isnan(posStdcorr);
 np = sum(ixValidParName);
 
 % __System Priors__
-if isempty(sp)
-    itr.SystemPrior = [ ];
+if isempty(systemPriors)
+    itr.SystemPriors = [ ];
 else
-    itr.SystemPrior = sp;
+    itr.SystemPriors = systemPriors;
 end
 
 % __Parameter Priors__

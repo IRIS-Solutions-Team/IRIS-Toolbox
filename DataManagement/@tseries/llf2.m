@@ -1,7 +1,7 @@
 function varargout = llf2(varargin)
 % llf2  Swap output arguments of the local linear trend filter with tunes.
 %
-% See help on [`tseries/llf`](tseries/llf).
+% See help on [`llf`](#llf).
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.

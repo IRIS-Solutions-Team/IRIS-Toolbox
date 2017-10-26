@@ -51,6 +51,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSeriesBase
 
 
     methods
+        varargout = errorsFromRolling(varargin)
         varargout = getData(varargin)
         varargout = clip(varargin)
         #for FN = {plot, bar, area, stem}

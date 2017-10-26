@@ -5,7 +5,7 @@ function this = linearTrend(range, step, varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%   X = Series.linearTrend(Range, Step, ~Start)
+%     X = tseries.linearTrend(Range, Step, ~Start)
 %
 %
 % __Input Arguments__
@@ -22,7 +22,7 @@ function this = linearTrend(range, step, varargin)
 %
 % __Output Arguments__
 %
-% `X` [ tseries ] - Time series with a linear trend.
+% * `X` [ tseries ] - Time series with a linear trend.
 %
 %
 % __Description__

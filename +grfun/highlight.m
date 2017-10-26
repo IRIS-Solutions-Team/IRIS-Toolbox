@@ -1,7 +1,7 @@
 function varargout = highlight(varargin)
-% highlight  Shortcut for visual.highlight.
+% highlight  Legacy name for visual.highlight.
 %
-% See help on [`visual.highlight`](visual/highlight).
+% See help on visual.highlight.
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.

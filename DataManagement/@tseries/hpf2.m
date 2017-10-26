@@ -1,7 +1,7 @@
 function varargout = hpf2(varargin)
 % hpf2  Swap output arguments of the Hodrick-Prescott filter with tunes.
 %
-% See help on [`tseries/hpf`](tseries/hpf).
+% See help on [`hpf`](#hpf).
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.

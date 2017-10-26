@@ -1,5 +1,5 @@
-function [F, list] = ffrf(this, freq, varargin)
-% ffrf  Filter frequency response function of transition variables to measurement variables.
+function varargout = ffrf(this, frequencies, varargin)
+% ffrf  Filter frequency response function of transition variables to measurement variables
 %
 % __Syntax__
 %
@@ -33,8 +33,8 @@ function [F, list] = ffrf(this, freq, varargin)
 % * `'Exclude='` [ char | cellstr | *empty* ] - Remove the effect of the
 % listed measurement variables.
 %
-% * `'MaxIter='` [ numeric | *500* ] - Maximum number of iteration when
-% computing the steady-state Kalman filter.
+% * `'MaxIter='` [ numeric | *`500`* ] - Maximum number of iteration when
+% calculating a steady-state Kalman filter for zero-frequency FRF.
 %
 % * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
 % either a [`namedmat`](namedmat/Contents) object (i.e. matrix with named
@@ -44,7 +44,7 @@ function [F, list] = ffrf(this, freq, varargin)
 % variables only; `@all` means all variables.
 %
 % * `'Tolerance='` [ numeric | *`1e-7`* ] - Convergence tolerance when
-% computing the steady-state Kalman filter.
+% calculating a steady-state Kalman filter for zero-frequency FRF.
 %
 %
 % __Description__
@@ -60,107 +60,109 @@ TYPE = @int8;
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/ffrf');
+    INPUT_PARSER = extend.InputParser('model.ffrf');
     INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
     INPUT_PARSER.addRequired('Freq', @isnumeric);
+    INPUT_PARSER.addParameter({'Include', 'Select'}, cell.empty(1, 0), @(x) isempty(x) || isequal(x, @all) || ischar(x) || isa(x, 'string') || iscellstr(x));
+    INPUT_PARSER.addParameter('Exclude', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
+    INPUT_PARSER.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    INPUT_PARSER.addParameter('MaxIter', 500, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>=0));
+    INPUT_PARSER.addParameter('Tolerance', 1e-7, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0));
+    INPUT_PARSER.addParameter('PrepareOnly', false, @(x) isequal(x, true) || isequal(x, false));
 end
-INPUT_PARSER.parse(this, freq);
+INPUT_PARSER.parse(this, frequencies, varargin{:});
+opt = INPUT_PARSER.Options;
+usingDefaults = INPUT_PARSER.UsingDefaultsInStruct;
 
-% Parse options.
-opt = passvalopt('model.ffrf', varargin{:});
-
-[ny, nxx] = sizeOfSolution(this.Vector);
-ixy = this.Quantity.Type==TYPE(1);
-
-if isequal(opt.include, @all) && ~isempty(opt.exclude)
-    opt.include = this.Quantity.Name(ixy);
-elseif ischar(opt.include)
-    opt.include = regexp(opt.include, '\w+', 'match');
-end
-
-if ischar(opt.exclude)
-    opt.exclude = regexp(opt.exclude, '\w+', 'match');
-end
-
-if ~isempty(opt.exclude) && ~isequal(opt.include, @all)
-    utils.error('model:ffrf', ...
-        'Options ''include='' and ''exclude='' cannot be combined.');
-end
-
-isSelect = ~isequal(opt.select, @all);
 isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
-
-% TODO: Implement the `'exclude='` option through the `'select='` option.
 
 %--------------------------------------------------------------------------
 
 nv = length(this);
+[ny, nxi] = sizeOfSolution(this.Vector);
 
-% Index of the measurement variables included.
-if isequal(opt.include, @all)
-    ixInclude = true(1, ny);
+assert( ...
+    usingDefaults.Include || usingDefaults.Exclude, ...
+    'model:ffrf:CannotCombineSelectExclude', ...
+    'Options Select= and Exclude= cannot be combined.' ...
+);
+
+ixy = this.Quantity.Type==TYPE(1);
+selectedYNames = this.Quantity.Name(ixy);
+if usingDefaults.Include && usingDefaults.Exclude
+    % Neither Exclude= nor Select= (Include=)
+    indexToInclude = true(1, ny);
 else
-    [~, ixInclude] = userSelection2Index( ...
-        this.Quantity, ...
-        setdiff(opt.include, opt.exclude), ...
-        TYPE(1) ...
-    );
+    % Exclude= option
+    if usingDefaults.Include 
+        indexToExclude = ismember(selectedYNames, opt.Exclude);
+        indexToInclude = ~indexToExclude;
+    else
+        % Select= (or Include=) option
+        indexToInclude = ismember(selectedYNames, opt.Include);
+    end
 end
+selectedYNames = selectedYNames(indexToInclude);
+isSelected = any(~indexToInclude);
 
-freq = freq(:)';
-nFreq = length(freq);
-F = nan(nxx, ny, nFreq, nv);
+systemProperty = system.Property( );
+systemProperty.FirstOrderSolution = cell(size(this.Variant.Solution));
+systemProperty.CovShocks = double.empty(0);
+systemProperty.NumUnitRoots = NaN;
+systemProperty.Specifics.Function = @freqdom.ffrf3;
+systemProperty.Specifics.Names = {printSolutionVector(this, 'x'), printSolutionVector(this, 'y')};
+systemProperty.Specifics.IndexToInclude = indexToInclude;
+systemProperty.Specifics.MaxIter = opt.MaxIter;
+systemProperty.Specifics.Frequencies = frequencies(:)';
+systemProperty.Specifics.Tolerance = opt.Tolerance;
 
-if ny>0 && any(ixInclude)
-    getFfrf( );
-else
-    utils.warning('model:ffrf', ...
-        'No measurement variables included in calculation of FFRF.');
-end
-
-if nargout<=1 && ~isSelect && ~isNamedMat
+if opt.PrepareOnly
+    varargout = cell(1, 1);
+    varargout{1} = systemProperty;
     return
 end
 
-% List of variables in rows and columns of `F`.
-rowNames = printSolutionVector(this, 'x');
-colNames = printSolutionVector(this, 'y');
+numFreq = numel(systemProperty.Specifics.Frequencies);
+F = complex(nan(nxi, ny, numFreq, nv), nan(nxi, ny, numFreq, nv));
 
-% Select requested variables if requested.
-if isSelect
-    [F, pos] = namedmat.myselect(F, rowNames, colNames, opt.select);
+if ny>0 && any(indexToInclude)
+    getFfrf( );
+end
+
+% Select requested variables
+%{
+if isSelected
+    [F, pos] = namedmat.myselect(F, rowNames, columnNames, selectedYNames);
     rowNames = rowNames(pos{1});
-    colNames = colNames(pos{2});
+    columnNames = columnNames(pos{2});
 end
-list = {rowNames, colNames};
+%}
 
-if true % ##### MOSW
-    % Convert output matrix to namedmat object if requested.
-    if isNamedMat
-        F = namedmat(F, rowNames, colNames);
-    end
-else
-    % Do nothing.
+% Convert output matrix to namedmat object if requested
+if isNamedMat
+    F = namedmat(F, systemProperty.Specifics.Names{:});
 end
+
+varargout = cell(1, 2);
+varargout{1} = F;
+varargout{2} = systemProperty.Specifics.Names;
 
 return
 
     
     function getFfrf( )
-        indexOfSolutionsAvailable = issolved(this);
-        numOfUnitRoots = getNumOfUnitRoots(this.Variant);
-        for v = find(indexOfSolutionsAvailable)
-            [T, R, ~, Z, H, ~, U, Omg] = sspaceMatrices(this, v, false);
-            % Compute FFRF.
-            F(:, :, :, v) = freqdom.ffrf3( ...
-                T, R, [ ], Z, H, [ ], U, Omg, numOfUnitRoots(v), ...
-                freq, ixInclude, opt.tolerance, opt.MaxIter);
+        indexSolutionsAvailable = issolved(this);
+        numUnitRoots = getNumOfUnitRoots(this.Variant);
+        for v = find(indexSolutionsAvailable)
+            [systemProperty.FirstOrderSolution{1:7}, systemProperty.CovShocks] = sspaceMatrices(this, v, false);
+            systemProperty.NumUnitRoots = numUnitRoots(v);
+            F(:, :, :, v) = freqdom.ffrf3(systemProperty);
         end
         % Report solutions not available.
         assert( ...
-            all(indexOfSolutionsAvailable), ...
+            all(indexSolutionsAvailable), ...
             exception.Base('Model:SolutionNotAvailable', 'error'), ...
-            exception.Base.alt2str(~indexOfSolutionsAvailable) ...
+            exception.Base.alt2str(~indexSolutionsAvailable) ...
         );
     end
 end

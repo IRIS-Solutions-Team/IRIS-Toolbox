@@ -257,7 +257,7 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addRequired('InputDatabank', @isstruct);
     INPUT_PARSER.addRequired('Range', @DateWrapper.validateProperRangeInput);
     INPUT_PARSER.addRequired('EstimationSpecs', @(x) isstruct(x) && ~isempty(fieldnames(x)));
-    INPUT_PARSER.addOptional('SystemPriors', [ ], @(x) isempty(x) || isa(x, 'systempriors'));
+    INPUT_PARSER.addOptional('SystemPriors', [ ], @(x) isempty(x) || isa(x, 'systempriors') || isa(x, 'SystemPriorWrapper'));
 
     INPUT_PARSER.addParameter('ChkSstate', true, @model.validateChksstate); 
     INPUT_PARSER.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
@@ -324,6 +324,9 @@ assert( ...
 
 % Retrieve names of parameters to be estimated, initial values, lower
 % and upper bounds, penalties, and prior distributions.
+if isa(systemPriors, 'SystemPriorWrapper')
+    seal(systemPriors);
+end
 itr = parseEstimStruct(this, estSpec, systemPriors, estOpt.Penalty, estOpt.InitVal);
 
 % _Run Estimation from Backend Class__

@@ -46,7 +46,8 @@ function [patchHandles, textHandles] = highlight(varargin)
 
 %#ok<*AGROW>
 
-if ~isempty(varargin{1}) && all(ishghandle(varargin{1}))
+if ~isempty(varargin{1}) ...
+    && (isa(varargin{1}, 'matlab.graphics.axis.Axes') || isa(varargin{1}, 'matlab.ui.Figure'))
     axesHandles = varargin{1};
     varargin(1) = [ ];
 else
@@ -115,7 +116,7 @@ if isscalar(opt.Color)
     opt.Color = opt.Color*[1, 1, 1];
 end
 
-Z_COOR = -1;
+Z_COOR = -4;
 LIM_MULTIPLE = 100;
 
 %--------------------------------------------------------------------------
@@ -124,13 +125,9 @@ if ischar(range)
     range = textinp2dat(range);
 end
 
-for iAx = axesHandles(:).'
-    % Preserve the order of figure children.
-    % fg = get(iAx, 'parent');
-    % fgch = get(fg, 'children');
-    
-    % Check for plotyy peers, and return the background axes object.
-    h = grfun.mychkforpeers(iAx);
+for ithAxesHandle = axesHandles(:)'
+    h = ithAxesHandle;
+    h = grfun.mychkforpeers(ithAxesHandle);
     
     % Move grid to the foreground; otherwise, the upper edge of the plot box
     % will be overpainted by the highlight patch.
@@ -183,7 +180,7 @@ for iAx = axesHandles(:).'
     set(h, 'NextPlot', 'Add');
     ithPatchHandle = fill( ...
         xData, yData, opt.Color, ...
-        'ZData', zData, ...
+        ... 'ZData', zData, ...
         'Parent', h, ...
         'YLimInclude', 'off', 'XLimInclude', 'off', ...
         'EdgeColor', 'none', 'FaceAlpha', 1-opt.Transparent, ...
@@ -202,10 +199,10 @@ for iAx = axesHandles(:).'
     end
     
     % Make sure zLim includes zCoor.
-    zLim = get(iAx, 'zLim');
+    zLim = get(ithAxesHandle, 'zLim');
     zLim(1) = min(zLim(1), Z_COOR);
     zLim(2) = max(zLim(2), 0);
-    set(iAx, 'zLim', zLim);
+    set(ithAxesHandle, 'zLim', zLim);
 end
 
 if isempty(patchHandles)
@@ -216,12 +213,10 @@ end
 set(patchHandles, 'tag', 'highlight');
 set(textHandles, 'tag', 'highlight-caption');
 
-%{
 for i = 1 : length(patchHandles)
-    setappdata(patchHandles(i), 'IRIS_BACKGROUND', 'Highlight');
+    setappdata(patchHandles(i), 'IRIS_BackgroundLevel', Z_COOR);
 end
-grfun.mymovetobkg(axesHandles);
-%}
+visual.backend.moveToBackground(axesHandles);
 
 if opt.ExcludeFromLegend
     grfun.excludefromlegend(patchHandles);

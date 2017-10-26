@@ -1,4 +1,4 @@
-function varargout = omega(this, newOmg, variantsRequested)
+function Omg = omega(this, newOmg)
 % omega  Get or set the covariance matrix of shocks.
 %
 % __Syntax for Getting Covariance Matrix__
@@ -40,28 +40,12 @@ function varargout = omega(this, newOmg, variantsRequested)
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-TYPE = @int8;
-
-try, newOmg; catch, newOmg = @get; end %#ok<NOCOM>
-try, variantsRequested; catch, variantsRequested = ':'; end %#ok<NOCOM>
-
 %--------------------------------------------------------------------------
 
-if isequal(variantsRequested, Inf)
-    variantsRequested = ':';
-end
-
-if isequal(newOmg, @get)
-    % Return Omega from StdCorr vector.
-    ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-    ne = sum(ixe);
-    vecStdCorr = this.Variant.StdCorr(:, :, variantsRequested);
-    vecStdCorr = permute(vecStdCorr, [2, 3, 1]);
-    newOmg = covfun.stdcorr2cov(vecStdCorr, ne);
-    varargout{1} = newOmg;
-    varargout{2} = vecStdCorr;
+if nargin<2
+    Omg = getOmega(this, ':');
 else
-    % Assign StdCorr vector from Omega.
+    % Assign StdCorr vector from Omega
     nv = length(this.Variant);
     newOmg = newOmg(:, :, :);
     vecStdCorr = covfun.cov2stdcorr(newOmg);
@@ -69,7 +53,7 @@ else
     if size(vecStdCorr, 3)<nv
         vecStdCorr(1, :, end+1:nv) = vecStdCorr(1, :, end*ones(1, nv-end));
     end
-    this.Variant.StdCorr(:, :, variantsRequested) = vecStdCorr;
+    this.Variant.StdCorr(:, :, :) = vecStdCorr;
     varargout{1} = this;
 end
 

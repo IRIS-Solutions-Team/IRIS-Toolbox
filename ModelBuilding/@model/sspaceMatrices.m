@@ -82,7 +82,7 @@ if ~triangular
 end
 
 if returnOmega
-    Omega = omega(this, @get, variantsRequested);
+    Omega = getIthOmega(this, variantsRequested);
 end
 
 end

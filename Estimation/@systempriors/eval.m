@@ -75,9 +75,9 @@ for v = 1 : nv
     FFRF = [ ];
     if ~isempty(this, 'ffrf')
         freq = this.SystemFn.ffrf.page;
-        incl = Inf;
+        incl = true(1, ny);
         FFRF = freqdom.ffrf3( ...
-            T, R, [ ], Z, H, [ ], U, Omg, numOfUnitRoots, freq, incl, [ ], [ ] ...
+            T, R, [ ], Z, H, [ ], U, Omg, numOfUnitRoots, freq, incl, 1e-7, 500 ...
         );
     end
     
@@ -115,7 +115,7 @@ for v = 1 : nv
         x(is) = this.Eval{is}(SRF, FFRF, COV, CORR, PWS, SPD, assignedValues, assignedStdCorr);
         ithPrior = this.PriorFn{is};
         if x(is)<this.Bounds(1, is) || x(is)>this.Bounds(2, is)
-            c(is) = Inf;
+            c(is) = -Inf;
         elseif ~isempty(ithPrior)
             if isa(ithPrior, 'distribution.Abstract')
                 c(is) = ithPrior.logPdf(x(is));
