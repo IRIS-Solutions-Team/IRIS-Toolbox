@@ -12,7 +12,7 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
 
 
     properties (Hidden)
-        OriginalName = cell.empty(1, 0)     % Original names from source model file
+        OriginalNames = cell.empty(1, 0)     % Original names from source model file
     end
     
     
@@ -43,7 +43,7 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
 
 
         function this = resetNames(this)
-            this.Name = this.OriginalName;
+            this.Name = this.OriginalNames;
         end
     end
     

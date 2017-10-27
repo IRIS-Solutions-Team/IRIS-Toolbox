@@ -73,17 +73,6 @@ x.plan.plan = irisinp.func( ...
 
 
 
-% Rpteq class
-%-------------
-x.rpteq = struct( );
-
-x.rpteq.run = irisinp.func( ...
-    irisinp.rpteq( ), irisinp.dbaseOrEmpty, irisinp.dates, ...
-    irisinp.modelOptional );
-
-
-
-
 % Series class
 %--------------
 x.tseries = struct( );

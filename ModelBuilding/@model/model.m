@@ -635,11 +635,51 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             
             % -IRIS Macroeconomic Modeling Toolbox.
             % -Copyright (c) 2007-2017 IRIS Solutions Team.
-            
+
+            persistent INPUT_PARSER OPTIMAL_OPTIONS PARSER_OPTIONS
+            if isempty(INPUT_PARSER)
+                INPUT_PARSER = extend.InputParser('model.model');
+                INPUT_PARSER.KeepUnmatched = true;
+                INPUT_PARSER.PartialMatching = false;
+                INPUT_PARSER.addParameter('addlead', false, @(x) isequal(x, true) || isequal(x, false));
+                INPUT_PARSER.addParameter('Assign', [ ], @(x) isempty(x) || isstruct(x));
+                INPUT_PARSER.addParameter('chksyntax', true, @(x) isequal(x, true) || isequal(x, false));
+                INPUT_PARSER.addParameter('comment', '', @ischar);
+                INPUT_PARSER.addParameter('Growth', false, @(x) isequal(x, true) || isequal(x, false));
+                INPUT_PARSER.addParameter('optimal', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
+                INPUT_PARSER.addParameter('epsilon', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0 && x<1));
+                INPUT_PARSER.addParameter({'removeleads', 'removelead'}, false, @(x) isequal(x, true) || isequal(x, false));
+                INPUT_PARSER.addParameter('Linear', false, @(x) isequal(x, true) || isequal(x, false));
+                INPUT_PARSER.addParameter('makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
+                INPUT_PARSER.addParameter('OrderLinks', true, @(x) isequal(x, true) || isequal(x, false));
+                INPUT_PARSER.addParameter({'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
+                INPUT_PARSER.addParameter('Refresh', true, @(x) isequal(x, true) || isequal(x, false));
+                INPUT_PARSER.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
+                INPUT_PARSER.addParameter('saveas', '', @ischar);
+                INPUT_PARSER.addParameter({'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
+                INPUT_PARSER.addParameter('std', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
+                INPUT_PARSER.addParameter('stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
+                INPUT_PARSER.addParameter('stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
+                INPUT_PARSER.addParameter({'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
+            end
+            if isempty(PARSER_OPTIONS)
+                PARSER_OPTIONS = extend.InputParser('model.model');
+                PARSER_OPTIONS.KeepUnmatched = true;
+                PARSER_OPTIONS.PartialMatching = false;
+                PARSER_OPTIONS.addParameter('AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
+                PARSER_OPTIONS.addParameter({'SteadyOnly', 'SstateOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
+                PARSER_OPTIONS.addParameter({'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
+            end
+            if isempty(OPTIMAL_OPTIONS)
+                OPTIMAL_OPTIONS = extend.InputParser('model.model');
+                OPTIMAL_OPTIONS.KeepUnmatched = true;
+                OPTIMAL_OPTIONS.PartialMatching = false;
+                OPTIMAL_OPTIONS.addParameter('multiplierprefix', 'Mu_', @ischar);
+                OPTIMAL_OPTIONS.addParameter('nonnegative', cell.empty(1, 0), @(x) isempty(x) || ( ischar(x) && isvarname(x) ));
+                OPTIMAL_OPTIONS.addParameter('type', 'discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
+            end
+                
             %--------------------------------------------------------------------------
-            
-            opt = struct( );
-            optimalOpt = struct( );
             
             if nargin==0
                 % Empty model object.
@@ -656,10 +696,10 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
                     fileName = cellstr(varargin{1});
                     fileName = strtrim(fileName);
                     varargin(1) = [ ];
-                    processOptions( );
+                    [opt, parserOpt, optimalOpt] = processOptions( );
                     this.IsLinear = opt.Linear;
                     this.IsGrowth = opt.Growth;
-                    [this, opt] = file2model(this, fileName, opt, optimalOpt);
+                    [this, opt] = file2model(this, fileName, opt, parserOpt, optimalOpt);
                     this = build(this, opt);
                 elseif isa(varargin{1}, 'model')
                     this = varargin{1};
@@ -667,28 +707,30 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
                     opt = processOptions( );
                     this = build(this, opt);
                 end
-            else
-                utils.error('model:model', ...
-                    'Incorrect number or type of input argument(s).');
             end
             
             return
             
             
-            function processOptions( )
-                [opt, varargin] = passvalopt('model.model', varargin{:});
-                optimalOpt = passvalopt('model.optimal', opt.optimal);
+            function [opt, parserOpt, optimalOpt] = processOptions( )
+                INPUT_PARSER.parse(varargin{:});
+                opt = INPUT_PARSER.Options;
+                PARSER_OPTIONS.parse(INPUT_PARSER.UnmatchedInCell{:});
+                parserOpt = PARSER_OPTIONS.Options;
+                OPTIMAL_OPTIONS.parse(PARSER_OPTIONS.UnmatchedInCell{:});
+                optimalOpt = OPTIMAL_OPTIONS.Options;
+                unmatched = OPTIMAL_OPTIONS.UnmatchedInCell;
                 if ~isstruct(opt.Assign)
-                    % Default for Assign= is an empty array.
+                    % Default for Assign= is an empty array
                     opt.Assign = struct( );
                 end
-                opt.Assign.SteadyOnly = opt.sstateonly;
+                opt.Assign.SteadyOnly = parserOpt.SteadyOnly;
                 opt.Assign.Linear = opt.Linear;
-                % Bkw compatibility:
-                opt.Assign.sstateonly = opt.sstateonly;
-                opt.Assign.linear = opt.Linear;
-                for iArg = 1 : 2 : length(varargin)
-                    opt.Assign.(varargin{iArg}) = varargin{iArg+1};
+                % Legacy options
+                opt.Assign.sstateonly = opt.Assign.SteadyOnly;
+                opt.Assign.linear = opt.Assign.Linear;
+                for i = 1 : 2 : numel(unmatched)
+                    opt.Assign.(unmatched{i}) = unmatched{i+1};
                 end
             end
         end

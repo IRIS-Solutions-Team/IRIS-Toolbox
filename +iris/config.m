@@ -219,7 +219,10 @@ end
 
 function [path, folder] = findTexMf(file)
     % Try FINDTEXMF first.
-    [flag, path] = system(['findtexmf --file-type=.exe ', file]);
+    [flag, path] = system(['findtexmf --file-type=exe ', file]);
+    if flag~=0
+        [flag, path] = system(['findtexmf ', file, '.exe']);
+    end       
     % If FINDTEXMF fails, try to run WHICH on Unix platforms.
     if flag~=0 && isunix( )
         % Unix, macOS

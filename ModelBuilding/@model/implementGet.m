@@ -219,7 +219,7 @@ switch lower(query)
         
     case {'ss', 'steady'}
         answ = cell2DbaseFunc(ssLevel+1i*ssGrowth);
-        % addParams = true;
+        needsAddParams = true;
         
         
     case {'sslevel', 'steadylevel'}

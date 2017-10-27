@@ -333,9 +333,9 @@ end
 function x = trimSymmetric(x)
     % Minimise numerical inaccuracy between upper and lower parts
     % of symmetric matrices.
-    indexOfDiagonal = eye(size(x), 'logical');
+    indexDiagonal = logical(eye(size(x)));
     x = (x + x')/2;
-    x(indexOfDiagonal) = real(x(indexOfDiagonal));
+    x(indexDiagonal) = real(x(indexDiagonal));
 end 
 
 
@@ -345,12 +345,12 @@ function X = computePseudoInverse(A, Tol)
         X = zeros(size(A'), c);
         return
     end
-    sizeOfA = size(A);
+    sizeA = size(A);
     s = svd(A);
     r = sum(s/s(1)>Tol);
     if r==0
         X = zeros(size(A'), c);
-    elseif r==sizeOfA(1)
+    elseif r==sizeA(1)
         X = inv(A);
     else
         [U, ~, V] = svd(A, 0);

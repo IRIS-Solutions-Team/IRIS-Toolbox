@@ -85,7 +85,7 @@ classdef Equation < parser.theparser.Generic
             end
 
             % Use steady equations for dynamic equations if requested by user.
-            if this.IsAppliedSteadyOnlyOpt && opt.sstateonly
+            if this.IsAppliedSteadyOnlyOpt && opt.SteadyOnly
                 ixEmptyDynamic = cellfun(@isempty, lsEqnDynamic);
                 ixEmptySteady = cellfun(@isempty, lsEqnSteady);
                 ixApply = ~ixEmptyDynamic & ~ixEmptySteady;

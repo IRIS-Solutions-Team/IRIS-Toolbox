@@ -195,7 +195,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             
             this = this@shared.UserDataContainer( );
             this = this@shared.GetterSetter( );
-            this.Comment = {''};
+            this.Comment = {char.empty(1, 0)};
             
             % Empty call.
             if nargin==0
@@ -220,7 +220,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 INPUT_PARSER = extend.InputParser('tseries/tseries');
                 INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'DateWrapper') || (isnumeric(x) && all(x==round(x) | isnan(x))));
                 INPUT_PARSER.addRequired('Values', @(x) isnumeric(x) || isa(x, 'function_handle'));
-                INPUT_PARSER.addOptional('ColumnComments', '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+                INPUT_PARSER.addOptional('ColumnComments', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
                 INPUT_PARSER.addOptional('UserData', [ ], @(x) true);
             end
 
@@ -231,7 +231,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             userData = INPUT_PARSER.Results.UserData;
 
             dates = dates(:);
-            nPer = length(dates);            
+            numDates = length(dates);            
 
             if isa(dates, 'DateWrapper')
                 freq = getFrequency(dates);
@@ -250,16 +250,16 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % Create data from function handle.
             if isa(values, 'function_handle') 
                 if isequal(values, @ltrend)
-                    values = (1:nPer).';
+                    values = (1:numDates).';
                 else
-                    values = feval(values, [nPer, 1]);
+                    values = feval(values, [numDates, 1]);
                 end
             elseif isnumeric(values) || islogical(values)
-                if sum(size(values)>1)==1 && length(values)>1 && nPer>1
+                if sum(size(values)>1)==1 && length(values)>1 && numDates>1
                     % Squeeze `Data` if scalar time series is entered as an non-columnwise
                     % vector.
                     values = values(:);
-                elseif length(values)==1 && nPer>1
+                elseif length(values)==1 && numDates>1
                     % Expand scalar `Data` point to match more than one of `Dates`.
                     values = values(ones(size(dates)));
                 end
@@ -267,7 +267,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             
             % If `Dates` is scalar and `Data` have multiple rows, treat
             % `Dates` as a start date and expand the dates accordingly.
-            if nPer==1 && size(values, 1)>1
+            if numDates==1 && size(values, 1)>1
                 dates = dates + (0 : size(values, 1)-1);
             end
             
@@ -275,9 +275,9 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             this = init(this, dates, values);
             
             % Populate comments for each column.
-            sizeOfData = size(this.Data);
-            sizeOfColumnComments = [1, sizeOfData(2:end)];
-            this.Comment = repmat({''}, sizeOfColumnComments);
+            sizeData = size(this.Data);
+            sizeColumnComments = [1, sizeData(2:end)];
+            this.Comment = repmat({char.empty(1, 0)}, sizeColumnComments);
 
             if ~isempty(columnComments)
                 this = comment(this, columnComments);

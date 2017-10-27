@@ -9,21 +9,21 @@ function [hessian, propCov, validDiff, infoFromLik]  = diffObj(this, data, pStar
 
 %--------------------------------------------------------------------------
 
-numOfParameters = length(itr.LsParam);
-indexOfDiagonal = eye(numOfParameters, 'logical');
+numParameters = length(itr.LsParam);
+indexDiagonal = logical(eye(numParameters));
 
 % Diagonal elements of the components of the total Hessian.
-diffTotal = zeros(1, numOfParameters);
-diffLik = zeros(1, numOfParameters);
-diffParamPrior = zeros(1, numOfParameters);
-diffSystemPrior = zeros(1, numOfParameters);
-validDiff = true(1, numOfParameters);
-infoFromLik = nan(1, numOfParameters);
+diffTotal = zeros(1, numParameters);
+diffLik = zeros(1, numParameters);
+diffParamPrior = zeros(1, numParameters);
+diffSystemPrior = zeros(1, numParameters);
+validDiff = true(1, numParameters);
+infoFromLik = nan(1, numParameters);
 
 % Differentiation step size.
 h = eps( )^(1/4) * max(abs(pStar), 1);
 
-for i = 1 : numOfParameters
+for i = 1 : numParameters
     x0 = pStar;
     if ixBHit(i)==-1
         % Lower bound hit; move the centre point up.
@@ -80,8 +80,8 @@ for i = 1 : numOfParameters
 end
 
 if isempty(hessian{1})
-    hessian{1} = nan(numOfParameters);
-    hessian{1}(indexOfDiagonal) = diffTotal;
+    hessian{1} = nan(numParameters);
+    hessian{1}(indexDiagonal) = diffTotal;
 end
 
 if estOpt.EvalPPrior
@@ -89,14 +89,14 @@ if estOpt.EvalPPrior
     % zero.
     hessian{2} = diag(diffParamPrior);
 else
-    hessian{2} = zeros(numOfParameters);
+    hessian{2} = zeros(numParameters);
 end
 
 if estOpt.EvalSPrior
-    hessian{3} = nan(numOfParameters);
-    hessian{3}(indexOfDiagonal) = diffSystemPrior;
+    hessian{3} = nan(numParameters);
+    hessian{3}(indexDiagonal) = diffSystemPrior;
 else
-    hessian{3} = zeros(numOfParameters);
+    hessian{3} = zeros(numParameters);
 end
 
 % Initial proposal covariance matrix is the diagonal of the Hessian.

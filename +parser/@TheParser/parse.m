@@ -1,4 +1,4 @@
-function [qty, eqn, euc, puc] = parse(this, varargin)
+function [qty, eqn, euc, puc] = parse(this, opt)
 % parse  Main parser for model code.
 %
 % Backend IRIS function.
@@ -8,8 +8,6 @@ function [qty, eqn, euc, puc] = parse(this, varargin)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 TYPE = @int8;
-
-[opt, ~] = passvalopt('theparser.parse', varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -26,8 +24,8 @@ eqn = model.component.Equation( );
 euc = parser.EquationUnderConstruction( );
 puc = parser.PairingUnderConstruction( );
 
-nBlk = length(this.Block);
-for i = 1 : nBlk
+numBlocks = length(this.Block);
+for i = 1 : numBlocks
     [qty, eqn] = ...
         parse(this.Block{i}, this, blockCode{i}, qty, eqn, euc, puc, opt);
 end
@@ -35,42 +33,36 @@ end
 % Evaluate and assign strings from code.
 qty = assign(this, qty);
 
-if opt.autodeclareparameters
+if opt.AutodeclareParameters
     autodeclare( );
 end
 
-chkNamingRules( );
+checkNamingRules( );
 
 % Check for names with multiple occurrences.
-listDuplicate = parser.getMultiple(qty.Name);
-if ~isempty(listDuplicate)
+duplicateNames = parser.getMultiple(qty.Name);
+if ~isempty(duplicateNames)
     throw( ...
         exception.ParseTime('TheParser:MUTLIPLE_NAMES', 'error'), ...
-        listDuplicate{:} ...
+        duplicateNames{:} ...
     );
 end
 
-% Store names from source model code.
-qty.OriginalName = qty.Name;
-
-% Add special exogenous variables.
-addSpecialExogenous( );
-
-exception.ParseTime.storeFileName( );
+addSpecialExogenous( ); % Add special exogenous variables.
+qty.OriginalNames = qty.Name; % Store original names from source model code.
+exception.ParseTime.storeFileName( ); % Reset persistent model file name.
 
 return
-
-
 
 
     function autodeclare( )
         % Add names that are not declared to parameters.
         % Look up all names in all equations.
-        lsNamesFound = regexp(eqn.Input, '\<[A-Za-z]\w*\>(?![\(\.])', 'match');
-        lsNamesFound = unique([ lsNamesFound{:} ]);
+        namesFound = regexp(eqn.Input, '\<[A-Za-z]\w*\>(?![\(\.])', 'match');
+        namesFound = unique([ namesFound{:} ]);
         % Determine residual names to be declared as parameters.
         add = struct( );
-        add.Name = setdiff(lsNamesFound, qty.Name);
+        add.Name = setdiff(namesFound, qty.Name);
         if isempty(add.Name)
             return
         end
@@ -83,10 +75,8 @@ return
         qty = insert(qty, add, TYPE(4), 'last');
     end
 
-
-
         
-    function chkNamingRules( )
+    function checkNamingRules( )
         % Names must not start with 0-9 or _.
         lsName = qty.Name;
         if ~isempty(lsName)
@@ -116,7 +106,6 @@ return
                     );
             end
         end
-        
         % Shock names must not contain double scores because of the way
         % cross-correlations are referenced.
         ixe = qty.Type==TYPE(31) | qty.Type==TYPE(32);
@@ -129,8 +118,6 @@ return
             end
         end
     end
-
-
 
 
     function addSpecialExogenous( )

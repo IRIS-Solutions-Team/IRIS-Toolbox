@@ -77,7 +77,7 @@ classdef Quantity < parser.theparser.Generic
             
             [~, posUnique] = unique(name, 'last');
             if length(posUnique)<length(name)
-                if opt.multiple
+                if opt.AllowMultiple
                     % If multiple declaration of the same name is allowed, remove redundant
                     % declarations, and use the last one found.
                     posUnique = sort(posUnique);

@@ -173,11 +173,9 @@ return
         DEF.nnet = iris.options.nnet( );
         DEF.poster = iris.options.poster( );
         DEF.report = iris.options.report( );
-        DEF.rpteq = iris.options.rpteq( );
         DEF.solver = iris.options.solver( );
         DEF.textfun = iris.options.textfun( );
         DEF.SVAR = iris.options.SVAR( );
-        DEF.theparser = iris.options.theparser( );
         DEF.tseries = iris.options.tseries( );
         DEF.VAR = iris.options.VAR( );
         DEF.varobj = iris.options.varobj( );

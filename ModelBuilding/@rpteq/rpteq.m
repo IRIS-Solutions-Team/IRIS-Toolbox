@@ -120,6 +120,24 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer
             % -IRIS Macroeconomic Modeling Toolbox.
             % -Copyright (c) 2007-2017 IRIS Solutions Team.
             
+            persistent INPUT_PARSER PARSER_OPTIONS
+            if isempty(INPUT_PARSER)
+                INPUT_PARSER = extend.InputParser('rpteq.rpteq');
+                INPUT_PARSER.KeepUnmatched = true;
+                INPUT_PARSER.PartialMatching = false;
+                INPUT_PARSER.addRequired('InputEquations', @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
+                INPUT_PARSER.addParameter('Assign', struct( ), @isstruct);
+                INPUT_PARSER.addParameter('saveas', char.empty(1, 0), @(x) ischar(x) || isa(x, 'string'));
+            end
+            if isempty(PARSER_OPTIONS)
+                PARSER_OPTIONS = extend.InputParser('model.model');
+                PARSER_OPTIONS.KeepUnmatched = true;
+                PARSER_OPTIONS.PartialMatching = false;
+                PARSER_OPTIONS.addParameter('AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
+                PARSER_OPTIONS.addParameter({'SteadyOnly', 'SstateOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
+                PARSER_OPTIONS.addParameter({'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
+            end
+
             BR = sprintf('\n');
             
             %--------------------------------------------------------------
@@ -127,38 +145,39 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer
             if nargin==0
                 return
             end
-            
+
             if isa(varargin{1}, 'model.component.Equation')
                 % Preparsed code from model object.
                 eqn = varargin{1};
                 euc = varargin{2};
                 this.FileName = varargin{3};
             elseif ischar(varargin{1}) || iscellstr(varargin{1})
-                inp = varargin{1};
-                varargin(1) = [ ];
-                [opt, varargin] = passvalopt('rpteq.rpteq', varargin{:});
+                INPUT_PARSER.parse(varargin{:});
+                inputEquationts = INPUT_PARSER.InputEquations;
+                opt = INPUT_PARSER.Options;
+                PARSER_OPTIONS.parse(INPUT_PARSER.UnmatchedInCell{:});
+                parserOpt = PARSER_OPTIONS.Options;
+                unmatched = PARSER_OPTIONS.UnmatchedInCell;
                 if ~isstruct(opt.Assign)
                     opt.Assign = struct( );
                 end
-                for iArg = 1 : 2 : length(varargin)
-                    name = varargin{iArg};
-                    value = varargin{iArg+1};
-                    opt.Assign.(name) = value;
+                for i = 1 : 2 : numel(unmatched)
+                    opt.Assign.(umatched{i}) = unmatched{i+1};
                 end
                 % Tell apart equations from file names.
-                if ischar(inp)
-                    inp = { inp };
+                if ~iscellstr(inputEquationts)
+                    inputEquations = cellstr(inputEquations);
                 end
-                ixFName = cellfun(@isempty, strfind(inp, '='));
-                if all(ixFName)
+                indexFileNames = cellfun(@isempty, strfind(inputEquations, '='));
+                if all(indexFileNames)
                     % Input is file name or cellstr of file names.
                     [code, this.FileName, this.Export] = ...
-                        parser.Preparser.parse(inp, [ ], ...
+                        parser.Preparser.parse(inputEquations, [ ], ...
                         opt.Assign, '', '');
-                elseif all(~ixFName)
+                elseif all(~indexFileNames)
                     % Input is equation or cellstr of equations.
                     [code, this.FileName, this.Export] = ...
-                        parser.Preparser.parse([ ], inp, ...
+                        parser.Preparser.parse([ ], inputEquations, ...
                         opt.Assign, '', '');
                 else
                     utils.error('rpteq:rpteq', ...
@@ -172,7 +191,7 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer
                 end
                 % Run theparser on preparsed code.
                 the = parser.TheParser('rpteq', this.FileName, code, opt.Assign);
-                [~, eqn, euc] = parse(the, opt);
+                [~, eqn, euc] = parse(the, parserOpt);
             end
             
             % Run rpteq postparser.

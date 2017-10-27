@@ -1,4 +1,4 @@
-function [this, opt] = file2model(this, fileName, opt, optimalOpt)
+function [this, opt] = file2model(this, fileName, opt, parserOpt, optimalOpt)
 % file2model  Translate model file to model object properties.
 %
 % Backend IRIS function.
@@ -28,7 +28,7 @@ this.PreparserControl = d;
 
 % Run the main model-specific parser.
 the = parser.TheParser('model', this.FileName, code, opt.Assign);
-[quantity, equation, euc, puc] = parse(the, opt);
+[quantity, equation, euc, puc] = parse(the, parserOpt);
 opt.Assign = the.AssignedDatabank;
 
 % Run model-specific postparser.

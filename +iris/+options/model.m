@@ -228,43 +228,10 @@ def.kalman = {
     'UnitFromData', @auto, @(x) isequal(x, @auto) || isequal(x, false) || (isintscalar(x) && x>=0)
     };
 
-x = iris.options.theparser( );
-def.model = [
-    x.parse
-    {
-    'addlead', false, @islogicalscalar
-    'Assign', [ ], @(x) isempty(x) || isstruct(x)
-    'chksyntax', true, @islogicalscalar
-    'comment', '', @ischar
-    'Growth', false, @islogicalscalar
-    'optimal', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end)))
-    'epsilon', [ ], @(x) isempty(x) || (isnumericscalar(x) && x>0 && x<1)
-    'removeleads, removelead', false, @islogicalscalar
-    'Linear', false, @(x) isequal(x, true) || isequal(x, false)
-    'makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x)
-    'OrderLinks', true, @islogicalscalar
-    'precision', 'double', @(x) ischar(x) && any(strcmp(x, {'double', 'single'}))
-    'Refresh', true, @islogicalscalar 
-    'quadratic', false, @islogicalscalar
-    'saveas', '', @ischar
-    'symbdiff, symbolicdiff', true, @(x) islogicalscalar(x) || ( iscell(x) && iscellstr(x(1:2:end)) )
-    'std', @auto, @(x) isequal(x, @auto) || (isnumericscalar(x) && x>=0)
-    'stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumericscalar(x) && x>=0
-    'stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumericscalar(x) && x>=0
-    'baseyear, torigin', @config, @(x) isequal(x, @config) || isempty(x) || isintscalar(x)
-    }
-];
-
 def.neighbourhood = {
     'plot', true, @islogicalscalar
     'progress', false, @islogicalscalar
     'neighbourhood', [ ], @(x) isempty(x) || isstruct(x)
-    };
-
-def.optimal = {
-    'multiplierprefix', 'Mu_', @ischar
-    'nonnegative', { }, @(x) isempty(x) || ( ischar(x) && isvarname(x) )
-    'type', 'discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'}))
     };
 
 def.regress = [

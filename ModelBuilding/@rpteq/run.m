@@ -1,4 +1,4 @@
-function outp = run(varargin)
+function outputDatabank = run(varargin)
 % run  Evaluate reporting equations (rpteq) object.
 %
 %
@@ -104,9 +104,23 @@ function outp = run(varargin)
 TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-[this, inp, dates, m, varargin] = ...
-    irisinp.parser.parse('rpteq.run', varargin{:});
-opt = passvalopt('rpteq.run', varargin{:});
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('rpteq.run');
+    INPUT_PARSER.addRequired('ReportingEquations', @(x) isa(x, 'rpteq'));
+    INPUT_PARSER.addRequired('InputDatabank', @(x) isempty(x) || isstruct(x));
+    INPUT_PARSER.addRequired('SimulationDates', @(x) isa(x, 'DateWrapper') || isnumeric(x));
+    INPUT_PARSER.addOptional('Model', [ ], @(x) isempty(x) || isa(m, 'model'));
+    INPUT_PARSER.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    INPUT_PARSER.addParameter('dboverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    INPUT_PARSER.addParameter('Fresh', false, @(x) isequal(x, true) || isequal(x, false));
+end
+INPUT_PARSER.parse(varargin{:});
+this = INPUT_PARSER.Results.ReportingEquations;
+inputDatabank = INPUT_PARSER.Results.InputDatabank;
+dates = INPUT_PARSER.Results.SimulationDates;
+m = INPUT_PARSER.Results.Model;
+opt = INPUT_PARSER.Options;
 
 %--------------------------------------------------------------------------
 
@@ -168,18 +182,18 @@ for t = runTime
     end
 end
 
-outp = struct( );
+outputDatabank = struct( );
 if ~opt.fresh
-    outp = inp;
+    outputDatabank = inputDatabank;
 end
 
 if isstruct(opt.dboverlay)
-    inp = opt.dboverlay;
+    inputDatabank = opt.dboverlay;
     opt.dboverlay = true;
 end
 
 if ~opt.dboverlay && opt.AppendPresample
-    inp = dbclip(inp, [-Inf, minDate]);
+    inputDatabank = dbclip(inputDatabank, [-Inf, minDate]);
 end
 
 isAppend = opt.dboverlay || opt.AppendPresample;
@@ -188,15 +202,13 @@ for i = 1 : nEqtn
     name = this.NameLhs{i};
     data = D.(name)(-minSh+1:end-maxSh, :);
     cmt = this.Label{i};
-    outp.(name) = replace(TEMPLATE_SERIES, data, minDate, cmt);
-    if isAppend && isfield(inp, name)
-        outp.(name) = [ inp.(name) ; outp.(name) ];
+    outputDatabank.(name) = replace(TEMPLATE_SERIES, data, minDate, cmt);
+    if isAppend && isfield(inputDatabank, name)
+        outputDatabank.(name) = [ inputDatabank.(name) ; outputDatabank.(name) ];
     end 
 end
 
 return
-
-
 
 
     function s = createSteadyRefDbase( )
@@ -222,25 +234,23 @@ return
     end
 
 
-
-
     function chkRhsNames( )
         ixFound = true(1, nNameRhs);
         ixValid = true(1, nNameRhs);
         for ii = 1 : nNameRhs
             nname = this.NameRhs{ii};
-            isField = isfield(inp, nname);
+            isField = isfield(inputDatabank, nname);
             ixFound(ii) = isField || any(strcmp(nname, this.NameLhs));
             if ~isField
                 continue
             end
-            if isa(inp.(nname), 'tseries')
-                D.(nname) = rangedata(inp.(nname), xRange);
+            if isa(inputDatabank.(nname), 'tseries')
+                D.(nname) = rangedata(inputDatabank.(nname), xRange);
                 continue
             end
-            ixValid(ii) = isnumeric(inp.(nname)) && size(inp.(nname), 1)==1;
+            ixValid(ii) = isnumeric(inputDatabank.(nname)) && size(inputDatabank.(nname), 1)==1;
             if ixValid(ii)
-                D.(nname) = inp.(nname);
+                D.(nname) = inputDatabank.(nname);
                 eqtn = regexprep(eqtn, ['\?', nname, '#'], ['?', nname]);
             end
         end
@@ -253,8 +263,6 @@ return
                 this.NameRhs{~ixFound} );
         end        
     end
-
-
 
 
     function preallocLhsNames( )
