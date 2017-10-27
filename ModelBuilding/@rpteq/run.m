@@ -6,7 +6,7 @@ function outputDatabank = run(varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     Outp = run(Q,Inp,Range,~Model,...)
+%     Outp = run(Q, Inp, Range, ~Model, ...)
 %
 %
 % __Input arguments__
@@ -37,7 +37,7 @@ function outputDatabank = run(varargin)
 %
 % * `'Fresh='` [ `true` | *`false`* ] - If `true`, only the LHS reporting
 % variables will be included in the output database, `Outp`; if `false` the
-% output database will also include all entries from the input database,
+% output database will also include all entries from the input database, 
 % `Inp`.
 %
 %
@@ -49,8 +49,8 @@ function outputDatabank = run(varargin)
 %
 % __Example__
 %
-% Note the differences in the three output databases, `d1`, `d2`, `d3`,
-% depending on the options `'dbOverlay='` and `'fresh='`.
+% Note the differences in the three output databases, `d1`, `d2`, `d3`, 
+% depending on the options `AppendPresample=` and `Fresh=`.
 %
 %     >> q = rpteq({ ...
 %         'a = c * a{-1}^0.8 * b{-1}^0.2;', ...
@@ -67,8 +67,8 @@ function outputDatabank = run(varargin)
 %     >> d = struct( );
 %     >> d.a = Series( );
 %     >> d.b = Series( );
-%     >> d.a(qq(2009,4)) = 0.76;
-%     >> d.b(qq(2009,4)) = 0.88;
+%     >> d.a(qq(2009, 4)) = 0.76;
+%     >> d.b(qq(2009, 4)) = 0.88;
 %     >> d.c = 10;
 %     >> d
 %
@@ -77,21 +77,21 @@ function outputDatabank = run(varargin)
 %         b: [1x1 tseries]
 %         c: 10
 %
-%     >> d1 = run(q,d,qq(2010,1):qq(2011,4))
+%     >> d1 = run(q, d, qq(2010, 1):qq(2011, 4))
 %
 %     d1 = 
 %         a: [8x1 tseries]
 %         b: [8x1 tseries]
 %         c: 10
 %
-%     >> d2 = run(q,d,qq(2010,1):qq(2011,4),'dbOverlay=',true)
+%     >> d2 = run(q, d, qq(2010, 1):qq(2011, 4), 'AppendPresample=', true)
 %
 %     d2 = 
 %         a: [9x1 tseries]
 %         b: [9x1 tseries]
 %         c: 10
 %
-%     >> d3 = run(q,d,qq(2010,1):qq(2011,4),'fresh=',true)
+%     >> d3 = run(q, d, qq(2010, 1):qq(2011, 4), 'Fresh=', true)
 % 
 %     d3 = 
 %         a: [8x1 tseries]
@@ -110,9 +110,9 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addRequired('ReportingEquations', @(x) isa(x, 'rpteq'));
     INPUT_PARSER.addRequired('InputDatabank', @(x) isempty(x) || isstruct(x));
     INPUT_PARSER.addRequired('SimulationDates', @(x) isa(x, 'DateWrapper') || isnumeric(x));
-    INPUT_PARSER.addOptional('Model', [ ], @(x) isempty(x) || isa(m, 'model'));
+    INPUT_PARSER.addOptional('Model', [ ], @(x) isempty(x) || isa(x, 'model'));
     INPUT_PARSER.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
-    INPUT_PARSER.addParameter('dboverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    INPUT_PARSER.addParameter('DbOverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
     INPUT_PARSER.addParameter('Fresh', false, @(x) isequal(x, true) || isequal(x, false));
 end
 INPUT_PARSER.parse(varargin{:});
@@ -150,12 +150,12 @@ end
 
 eqtn = strrep(eqtn, '&?', 'S.');
 eqtn = strrep(eqtn, '?', 'D.');
-eqtn = regexprep(eqtn, '\{@(.*?)\}#', '(t$1,:)');
-eqtn = strrep(eqtn, '#', '(t,:)');
+eqtn = regexprep(eqtn, '\{@(.*?)\}#', '(t$1, :)');
+eqtn = strrep(eqtn, '#', '(t, :)');
 
 fn = cell(1, nEqtn);
 for i = 1 : nEqtn
-    fn{i} = mosw.str2func(['@(D,t,S)', eqtn{i}]);
+    fn{i} = mosw.str2func(['@(D, t, S)', eqtn{i}]);
 end
 
 % Evaluate equations sequentially period by period.
@@ -169,11 +169,11 @@ for t = runTime
         catch %#ok<CTCH>
             x = NaN;
         end
-        if size(x,1)>1
+        if size(x, 1)>1
             x = NaN;
         end
         x( isnan(x) ) = this.NaN(iEq);
-        if length(x)>1 && ndims(lhs)==2 && size(lhs,2)==1  %#ok<ISMAT>
+        if length(x)>1 && ndims(lhs)==2 && size(lhs, 2)==1  %#ok<ISMAT>
             newSize = size(x);
             lhs = repmat(lhs, [1, newSize(2:end)]);
         end
@@ -183,27 +183,27 @@ for t = runTime
 end
 
 outputDatabank = struct( );
-if ~opt.fresh
+if ~opt.Fresh
     outputDatabank = inputDatabank;
 end
 
-if isstruct(opt.dboverlay)
-    inputDatabank = opt.dboverlay;
-    opt.dboverlay = true;
+if isstruct(opt.DbOverlay)
+    inputDatabank = opt.DbOverlay;
+    opt.DbOverlay = true;
 end
 
-if ~opt.dboverlay && opt.AppendPresample
+if ~opt.DbOverlay && opt.AppendPresample
     inputDatabank = dbclip(inputDatabank, [-Inf, minDate]);
 end
 
-isAppend = opt.dboverlay || opt.AppendPresample;
+appendPresample = opt.DbOverlay || opt.AppendPresample;
 
 for i = 1 : nEqtn
     name = this.NameLhs{i};
     data = D.(name)(-minSh+1:end-maxSh, :);
     cmt = this.Label{i};
     outputDatabank.(name) = replace(TEMPLATE_SERIES, data, minDate, cmt);
-    if isAppend && isfield(inputDatabank, name)
+    if appendPresample && isfield(inputDatabank, name)
         outputDatabank.(name) = [ inputDatabank.(name) ; outputDatabank.(name) ];
     end 
 end

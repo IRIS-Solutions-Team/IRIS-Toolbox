@@ -125,8 +125,8 @@ if ~isempty(varargin) && isa(varargin{1}, 'tseries')
 else
     % Syntax with one combined tseries, plotpred([X, Y]).
     x2 = x1;
-    x2.data = x2.data(:, 2:end);
-    x1.data = x1.data(:, 1);
+    x2.Data = x2.Data(:, 2:end);
+    x1.Data = x1.Data(:, 1);
 end
 
 [opt, varargin] = passvalopt('tseries.plotpred', varargin);
@@ -134,18 +134,18 @@ end
 %--------------------------------------------------------------------------
 
 if ~isempty(x1)
-    f1 = DateWrapper.getFrequencyFromNumeric(x1.start);
-    f2 = DateWrapper.getFrequencyFromNumeric(x2.start);
+    f1 = DateWrapper.getFrequencyFromNumeric(x1.Start);
+    f2 = DateWrapper.getFrequencyFromNumeric(x2.Start);
     if f1~=f2
         utils.error('tseries:plotpred', ...
             'Input data must have the same date frequency.');
     end
     [data, fullRange] = rangedata( [x1, x2] );
 else
-    nPer = size(x2.data, 1);
+    numPeriods = size(x2.Data, 1);
     x1 = x2;
-    x1.data = nan(nPer, 1);
-    x1.Comment = {''};
+    x1.Data = nan(numPeriods, 1);
+    x1 = resetColumnNames(x1);
     [data, fullRange] = rangedata(x2);
 end
 nAhead = size(data, 2);
@@ -211,14 +211,14 @@ return
 
 
     function data2 = rearrangePredictionData( )
-        nPer = size(data, 1);
+        numPeriods = size(data, 1);
         data = [ data; nan(nAhead-1, nAhead) ];        
-        data2 = nan(nPer+nAhead-1, nPer);
-        for t = 1 : nPer
+        data2 = nan(numPeriods+nAhead-1, numPeriods);
+        for t = 1 : numPeriods
             row = t+(0:nAhead-1);
             data2(row, t, :) = diag( data(t+(0:nAhead-1), :) );
         end
-        data2 = data2(1:nPer, :);    
+        data2 = data2(1:numPeriods, :);    
         % Remove lines with missing starting point.
         if ~opt.shownanlines
             ixDiagNaN = isnan( diag(data2, diagPos) );
@@ -230,14 +230,14 @@ return
 
 
     function startPoint = findStartPoint( )
-        startPoint = nan(nPer+nAhead-1, nPer);
+        startPoint = nan(numPeriods+nAhead-1, numPeriods);
         for iiCol = 1 : size(data2, 2)
             pos = find( ~isnan(data2(:, iiCol)), 1 );
             if ~isempty(pos)
                 startPoint(pos, iiCol) = data2(pos, iiCol);
             end
         end
-        startPoint = replace(x2, startPoint(1:nPer, :), fullRange(1));
+        startPoint = replace(x2, startPoint(1:numPeriods, :), fullRange(1));
     end
 
 

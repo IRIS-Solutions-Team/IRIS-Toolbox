@@ -195,7 +195,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             
             this = this@shared.UserDataContainer( );
             this = this@shared.GetterSetter( );
-            this.Comment = {char.empty(1, 0)};
+            this = resetColumnNames(this);
             
             % Empty call.
             if nargin==0
@@ -422,13 +422,14 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     
     
     methods (Access=protected, Hidden)
+        varargout = binop(varargin)
+        varargout = catcheck(varargin)
         varargout = myfilter(varargin)
         varargout = init(varargin)
         varargout = mylagorlead(varargin)
-        varargout = binop(varargin)
+        varargout = resetColumnNames(varargin)
         varargout = unop(varargin)
         varargout = unopinx(varargin)
-        varargout = catcheck(varargin)
         
         
         function dispComment(varargin)

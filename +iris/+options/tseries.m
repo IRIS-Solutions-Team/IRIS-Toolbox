@@ -206,11 +206,6 @@ def.trend = {
     'season', false, @(x) isempty(x) || (isscalar(x) && (islogical(x) || isnumeric(x)))
 };
 
-def.windex = { 
-    'log', false, @(x) isequal(x, true) || isequal(x, false)
-    'method', 'simple', @(x) ischar(x) && any(strcmpi(x, {'simple', 'divisia'}))
-};
-
 def.x12 = { ...
     'backcast, backcasts', 0, @(x) isscalar(x) && isnumeric(x)
     'cleanup, deletetempfiles, deletetempfile, deletex12file, deletex12file, delete', true, @(x) isequal(x, true) || isequal(x, false)

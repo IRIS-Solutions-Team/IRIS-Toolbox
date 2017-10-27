@@ -51,7 +51,7 @@ else
     this.Start = nanDate;
     this.Data = newData;
     sizeData = size(newData);
-    this.Comment = repmat({''}, [1, sizeData(2:end)]);
+    this = resetColumnNames(this);
 end
 
 end

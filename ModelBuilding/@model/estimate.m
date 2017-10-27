@@ -88,14 +88,14 @@ function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this,
 %
 % * `'NoSolution='` [ *`'error'`* | `'penalty'` | numeric ] - Specifies
 % what happens if solution or steady state fails to solve in an iteration:
-% `'Error='` stops the execution with an error message, `'Penalty='`
-% returns an extreme value, `1e10`, back into the minimization routine; or
-% a user-supplied penalty can be specified as a numeric scalar greater than
-% `1e10`.
+% `NoSolution='Error'` stops the execution with an error message,
+% `NoSolution='Penalty'` returns an extreme value, `1e10`, back to the
+% minimization routine; or a user-supplied penalty can be specified as a
+% numeric scalar greater than `1e10`.
 %
 % * `'OptimSet='` [ cell | *empty* ] - Cell array used to create the
 % Optimization Toolbox options structure; works only with the option
-% `'Optimiser='` `'default'`.
+% `Solver='default'`.
 %
 % * `'Summary='` [ *`'table'`* | `'struct'` ] - Format of the `Summary`
 % output argument.
@@ -104,26 +104,20 @@ function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this,
 % each iteration; you can specify a cell array with options for the `solve`
 % function.
 %
-% * `'Optimiser='` [ *`'default'`* | `'pso'` | cell | function_handle ] -
-% Minimiz ation procedure.
+% * `'Solver='` [ *`'default'`* | cell | function_handle ] - Minimization
+% procedure.
 %
 %     * `'default'`: The Optimization Toolbox function `fminunc` or
 %     `fmincon` will be called depending on the presence or absence of
 %     lower and/or upper bounds.
 % 
-%     * `'alps'`: The age layer population structure evolutionary algorithm
-%     will be used. See irisoptim.alps help for more information. 
-%
-%     * `'pso'`: The particle swarm optimizer will be called. See the
-%     irisoptim.pso help for more information. 
-%
 %     * function_handle or cell: Enter a function handle to your own
 %     optimization procedure, or a cell array with a function handle and
 %     additional input arguments (see below).
 %
 % * `'Sstate='` [ `true` | *`false`* | cell | function_handle ] -
 % Re-compute steady state in each iteration; you can specify a cell array
-% with options for the `sstate` function, or a function handle whose
+% with options for the `sstate( )` function, or a function handle whose
 % behaviour is described below.
 %
 % * `'TolFun='` [ numeric | *`1e-6`* ] - Termination tolerance on the
@@ -157,23 +151,23 @@ function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this,
 %
 % By default, only the first-order solution, but not the steady state is
 % updated (recomputed) in each iteration before the likelihood is
-% evaluated. This behavior is controled by two options, `'Solve='` (`true`
-% by default) and `'Sstate='` (`false` by default). If some of the
+% evaluated. This behavior is controled by two options, `Solve=` (`true`
+% by default) and `Sstate=` (`false` by default). If some of the
 % estimated parameters do affect the steady state of the model, the option
-% '`sstate='` needs to be set to `true` or to a cell array with
+% `Sstate=` needs to be set to `true` or to a cell array with
 % steady-state options, as in the function [`sstate`](model/sstate),
 % otherwise the results will be groslly inaccurate or a valid first-order
 % solution will be impossible to find.
 %
 % When steady state is recomputed in each iteration, you may also want to
-% use the option `'Chksstate='` to require that a steady-state check for
+% use the option `Chksstate=` to require that a steady-state check for
 % all model equations be performed.
 %
 %
 % __User-supplied Optimization (Minimization) Routine__
 %
 % You can supply a function handle to your own minimization routine through
-% the option `'Optimiser='`. This routine will be used instead of the Optim
+% the option `Solver=`. This routine will be used instead of the Optim
 % Tbx's `fminunc` or `fmincon` functions. The user-supplied function is
 % expected to take at least five input arguments and return three output
 % arguments:
@@ -205,7 +199,7 @@ function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this,
 %
 %     {@yourminfunc, Arg1, Arg2, ...}
 %
-% In that case, the optimiser will be called the following way:
+% In that case, the solver will be called the following way:
 %
 %     [pEst, ObjEst, Hess] = yourminfunc(F, P0, PLow, PHigh, Opt, Arg1, Arg2, ...)
 %
@@ -214,7 +208,7 @@ function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this,
 %
 % You can supply a function handle to your own steady-state solver (i.e. a
 % function that finds the steady state for given parameters) through the
-% `'Sstate='` option.
+% `Sstate=` option.
 %
 % The function is expected to take one input argument, the model object
 % with newly assigned parameters, and return at least two output arguments,
@@ -231,7 +225,7 @@ function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this,
 %
 % Alternatively, you can also run the steady-state solver with extra input
 % arguments (with the model object still being the first input argument).
-% In that case, you need to set the option `'Sstate='` to a cell array with
+% In that case, you need to set the option `Sstate='` to a cell array with
 % the function handle in the first cell, and the other input arguments
 % afterwards, e.g.
 %

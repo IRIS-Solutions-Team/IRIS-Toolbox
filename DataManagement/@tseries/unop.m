@@ -39,7 +39,7 @@ else
         [this.data, varargout{1:nargout-1}] = func(this.data, varargin{:});
     end
     dim = size(this.data);
-    this.Comment = repmat({''}, [1, dim(2:end)]);
+    this = resetColumnNames(this);
     this = trim(this);
 end
 

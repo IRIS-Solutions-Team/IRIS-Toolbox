@@ -153,7 +153,7 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer
                 this.FileName = varargin{3};
             elseif ischar(varargin{1}) || iscellstr(varargin{1})
                 INPUT_PARSER.parse(varargin{:});
-                inputEquationts = INPUT_PARSER.InputEquations;
+                inputEquations = INPUT_PARSER.Results.InputEquations;
                 opt = INPUT_PARSER.Options;
                 PARSER_OPTIONS.parse(INPUT_PARSER.UnmatchedInCell{:});
                 parserOpt = PARSER_OPTIONS.Options;
@@ -165,7 +165,7 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer
                     opt.Assign.(umatched{i}) = unmatched{i+1};
                 end
                 % Tell apart equations from file names.
-                if ~iscellstr(inputEquationts)
+                if ~iscellstr(inputEquations)
                     inputEquations = cellstr(inputEquations);
                 end
                 indexFileNames = cellfun(@isempty, strfind(inputEquations, '='));

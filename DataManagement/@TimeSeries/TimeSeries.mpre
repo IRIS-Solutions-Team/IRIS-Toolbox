@@ -130,6 +130,12 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
         function startDate = startDateWhenEmpty(this)
             startDate = empty(this.Start.Frequency, 0, 0);
         end
+
+
+        function this = resetColumnNames(this)
+            % Call set.ColumnNames with empty value
+            this.ColumnNames = "";
+        end
     end
 
 

@@ -15,10 +15,7 @@ if nargin>2
     this.Start = newStart(1);
 end
 
-dataSizeRequired = size(this.Data);
-dataSizeRequired = [1, dataSizeRequired(2:end)];
-this.Comment = cell(dataSizeRequired);
-this.Comment(:) = { '' };
+this = resetColumnNames(this);
 if nargin > 3 
     if iscell(newComment)
         this.Comment(:) = newComment(:);
