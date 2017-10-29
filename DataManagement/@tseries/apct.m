@@ -1,4 +1,4 @@
-function X = apct(X, varargin)
+function this = apct(this, varargin)
 % apct  Annualised percent rate of change.
 %
 % __Syntax__
@@ -30,17 +30,24 @@ persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('tseries/apct');
     INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addOptional('Power', 1, @(x) isscalar(x) && isnumeric(x));
+    INPUT_PARSER.addOptional('Power', @auto, @(x) isscalar(x) && isnumeric(x));
 end
-INPUT_PARSER.parse(X, varargin{:});
+INPUT_PARSER.parse(this, varargin{:});
 power = INPUT_PARSER.Results.Power;
+
+if isequal(power, @auto)
+    power = DateWrapper.getFrequencyFromNumeric(this.Start);
+    if power==0
+        power = 1;
+    end
+end
 
 %--------------------------------------------------------------------------
 
-if isempty(X.data)
+if isempty(this.data)
     return
 end
 
-X = unop(@tseries.implementPercentChange, X, 0, -1, Power);
+this = unop(@tseries.implementPercentChange, this, 0, -1, power);
 
 end
