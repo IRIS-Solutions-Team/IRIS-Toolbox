@@ -94,7 +94,8 @@ end
 currentPosition = currentPosition + 1;
 if ~skipOnePosition
     axesHandle = subplot(numRows, numColumns, currentPosition);
-    grfun.clicktocopy(axesHandle);
+    visual.clickToExpand(axesHandle);
+    set(axesHandle, 'NextPlot', 'Add', 'Box', 'On');
 else
     axesHandle = [ ];
 end

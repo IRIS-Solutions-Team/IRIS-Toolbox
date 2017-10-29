@@ -60,7 +60,7 @@ classdef Gamma < distribution.Abstract
             parameterization = varargin{1};
             if strcmpi(parameterization, 'MeanStd')
                 fromMeanStd(this, varargin{2:3});
-            if strcmpi(parameterization, 'MeanVar')
+            elseif strcmpi(parameterization, 'MeanVar')
                 fromMeanVar(this, varargin{2:3});
             elseif strcmpi(parameterization, 'AlphaBeta')
                 fromAlphaBeta(this, varargin{2:3})
@@ -100,7 +100,7 @@ classdef Gamma < distribution.Abstract
 
         function alphaBetaFromMeanVar(this)
             this.Beta = this.Var / this.Mean;
-            this.Alpha = this.Mean / this.Scale;
+            this.Alpha = this.Mean / this.Beta;
         end
 
 
