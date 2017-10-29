@@ -30,7 +30,7 @@ persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('tseries/apct');
     INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addOptional('Power', @auto, @(x) isscalar(x) && isnumeric(x));
+    INPUT_PARSER.addOptional('Power', @auto, @(x) isequal(x, @auto) || (isscalar(x) && isnumeric(x)) );
 end
 INPUT_PARSER.parse(this, varargin{:});
 power = INPUT_PARSER.Results.Power;
