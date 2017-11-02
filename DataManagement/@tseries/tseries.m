@@ -94,6 +94,7 @@
 % __Manipulating Time Series Objects__
 %
 %   empty - Create empty time series or empty an existing time series
+%   if_ - 
 %   flipud - Flip time series data up to down
 %   permute - Permute dimensions of a tseries object
 %   repmat - Repeat copies of time series data
@@ -428,6 +429,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = init(varargin)
         varargout = mylagorlead(varargin)
         varargout = resetColumnNames(varargin)
+        varargout = recognizeShift(varargin)
         varargout = unop(varargin)
         varargout = unopinx(varargin)
         

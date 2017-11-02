@@ -12,7 +12,11 @@ function this = fill(this, newData, newStart, newComment, newUserData)
 this.Data = newData;
 
 if nargin>2
-    this.Start = newStart(1);
+    newStart = newStart(1);
+    if ~isa(newStart, 'DateWrapper')
+        newStart = DateWrapper(newStart);
+    end
+    this.Start = newStart;
 end
 
 this = resetColumnNames(this);

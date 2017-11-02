@@ -1,15 +1,13 @@
 function this = subsasgn(this, s, y, varargin)
 % subsasgn  Subscripted assignment for tseries objects.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     X(Dates) = Values;
-%     X(Dates, I, J, K, ...) = Values;
+%     X(Dates) = Values
+%     X(Dates, I, J, K, ...) = Values
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `X` [ tseries ] - Tseries object that will be assigned new
 % observations.
@@ -24,18 +22,15 @@ function this = subsasgn(this, s, y, varargin)
 % dates.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `X` [ tseries ] - Tseries object with newly assigned observations.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -57,10 +52,10 @@ switch s(1).type
         % the startdate of `x` will be adjusted within `mylagorlead`.
         sh = 0;
         if length(s)>1 || isa(y, 'tseries')
-            [this, s, sh] = mylagorlead(this, s);
+            [this, s, sh] = recognizeShift(this, s);
         end
         % After a lag or lead, only one ( )-reference is allowed.
-        if length(s) ~= 1 || ~isequal(s(1).type, '()')
+        if length(s)~=1 || ~isequal(s(1).type, '()')
             utils.error('tseries:subsasgn', ...
                 ['Invalid subscripted assignment ', ...
                 'to tseries object.']);
@@ -68,8 +63,8 @@ switch s(1).type
         this = setData(this, s, y);
         this = trim(this);
         % Shift start date back.
-        if sh ~= 0
-            this.start = this.start + sh;
+        if sh~=0
+            this.Start = addTo(this.Start, sh);
         end
     otherwise
         % Give standard access to public properties.

@@ -41,9 +41,9 @@ if isnumeric(s)
     s.subs = [{dates}, varargin];
 end
 
-% Run `mylagorlead` to tell if the first reference is a lag/lead. If yes, 
-% the startdate of `x` will be adjusted within `mylagorlead`.
-[this, s] = mylagorlead(this, s);
+% Run recognizeShift( ) to tell if the first reference is a lag/lead; if yes, 
+% the startdate of `x` will be adjusted within recognizeShift( )
+[this, s] = recognizeShift(this, s);
 if isempty(s)
     varargout{1} = this;
     return

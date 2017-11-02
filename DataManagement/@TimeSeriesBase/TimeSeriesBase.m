@@ -51,9 +51,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSeriesBase
 
 
     methods
-        varargout = errorsFromRolling(varargin)
         varargout = getData(varargin)
-        varargout = clip(varargin)
+        varargout = if_(varargin)
+        varargout = shift(varargin)
+
+
         function varargout = plot(varargin)
             [varargout{1:nargout}] = implementPlot(@plot, varargin{:});
         end
@@ -102,8 +104,8 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSeriesBase
             if isnad(this.Start) || size(this.Data, 1)==0
                 return
             end
-            sizeOfData = size(this.Data);
-            newSizeOfData = [0, sizeOfData(2:end)];
+            sizeData = size(this.Data);
+            newSizeOfData = [0, sizeData(2:end)];
             this.Start = startDateWhenEmpty(this);
             this.Data = repmat(this.MissingValue, newSizeOfData);
         end

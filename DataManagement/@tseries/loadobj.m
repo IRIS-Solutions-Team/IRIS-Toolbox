@@ -1,5 +1,5 @@
 function this = loadobj(this, varargin)
-% loadobj  Prepare tseries object for loading from disk.
+% loadobj  Prepare tseries object for loading from disk
 %
 % Backend IRIS function.
 % No help provided.
