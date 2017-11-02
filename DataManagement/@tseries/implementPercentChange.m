@@ -1,4 +1,4 @@
-function X = implementPercentChange(X, S, Q)
+function data = implementPercentChange(data, sh, power)
 % implementPercentChange  Percent rate of change.
 %
 % Backend IRIS function.
@@ -8,29 +8,29 @@ function X = implementPercentChange(X, S, Q)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 try
-    S; %#ok<VUNUS>
+    sh; %#ok<VUNUS>
 catch %#ok<CTCH>
-    S = -1;
+    sh = -1;
 end
 
 try
-    Q; %#ok<VUNUS>
+    power; %#ok<VUNUS>
 catch %#ok<CTCH>
-    Q = 1;
+    power = 1;
 end
 
 %--------------------------------------------------------------------------
 
-S = S(:).';
+sh = sh(:).';
 
-pos = transpose(1:size(X, 2));
-pos = pos(:, ones(1, length(S)));
+pos = transpose(1:size(data, 2));
+pos = pos(:, ones(1, length(sh)));
 pos = transpose(pos(:));
 
-X = X(:, pos) ./ tseries.myshift(X, S);
-if Q~=1
-    X = X .^ Q;
+data = data(:, pos) ./ tseries.myshift(data, sh);
+if power~=1
+    data = data .^ power;
 end
-X = 100*(X - 1);
+data = 100*(data - 1);
 
 end
