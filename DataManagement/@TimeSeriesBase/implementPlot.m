@@ -13,18 +13,19 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser(['TimeSeriesBase.implementPlot(', char(plotFun), ')']);
     INPUT_PARSER.KeepUnmatched = true;
     INPUT_PARSER.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) || isequal(x, @stem));
-    INPUT_PARSER.addRequired('Axes', @(x) isempty(x) || (isgraphics(x) && length(x)==1));
+    INPUT_PARSER.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
     INPUT_PARSER.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x));
     INPUT_PARSER.addRequired('Series', @(x) isa(x, 'TimeSeriesBase') && ~iscell(x.Data));
+    INPUT_PARSER.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
     INPUT_PARSER.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
     INPUT_PARSER.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ||  any(strcmpi(x, {'start', 'middle', 'end'})));
 end
 
 if isgraphics(varargin{1})
-    handleAxes = varargin{1};
+    axesHandle = varargin{1};
     varargin(1) = [ ];
 else
-    handleAxes = gca( );
+    axesHandle = @gca;
 end
 
 if isa(varargin{1}, 'Date')  || isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
@@ -40,8 +41,9 @@ end
 this = varargin{1};
 varargin(1) = [ ];
 
-INPUT_PARSER.parse(plotFun, handleAxes, time, this, varargin{:});
-opt = INPUT_PARSER.Results;
+INPUT_PARSER.parse(plotFun, axesHandle, time, this, varargin{:});
+specString = INPUT_PARSER.Results.SpecString;
+opt = INPUT_PARSER.Options;
 unmatchedOptions = INPUT_PARSER.UnmatchedInCell;
 
 enforceXLim = true;
@@ -63,24 +65,28 @@ assert( ...
 
 %--------------------------------------------------------------------------
 
+if isa(axesHandle, 'function_handle')
+    axesHandle = axesHandle( );
+end
+
 [yData, time] = getData(this, time);
 timeFrequency = getFrequency(time);
 
 positionWithinPeriod = resolvePositionWithinPeriod( );
 xData = createDateAxis( );
 
-hPlot = plotFun(handleAxes, xData, yData, unmatchedOptions{:});
+hPlot = plotFun(axesHandle, xData, yData, specString{:}, unmatchedOptions{:});
 if enforceXLim
-    set(handleAxes, 'XLim', xData([1, end]));
+    set(axesHandle, 'XLim', xData([1, end]));
 end
 
-setappdata(handleAxes, 'IRIS_PositionWithinPeriod', positionWithinPeriod);
+setappdata(axesHandle, 'IRIS_PositionWithinPeriod', positionWithinPeriod);
 
 return
 
 
     function positionWithinPeriod = resolvePositionWithinPeriod( )
-        axesPositionWithinPeriod = getappdata(handleAxes, 'IRIS_PositionWithinPeriod');
+        axesPositionWithinPeriod = getappdata(axesHandle, 'IRIS_PositionWithinPeriod');
         positionWithinPeriod = opt.PositionWithinPeriod;
         if isempty(axesPositionWithinPeriod) 
             if isequal(positionWithinPeriod, @auto)
