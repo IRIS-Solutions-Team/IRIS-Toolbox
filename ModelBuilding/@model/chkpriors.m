@@ -1,4 +1,4 @@
-function [flag, boundsViolated, inconsistentPrior, notFound] = chkpriors(this, priorStruct)
+function [flag, boundsViolated, inconsistentPrior, notFound] = chkpriors(this, estimationSpecs)
 % chkpriors  Check compliance of initial conditions with priors and bounds.
 %
 % __Syntax__
@@ -11,7 +11,7 @@ function [flag, boundsViolated, inconsistentPrior, notFound] = chkpriors(this, p
 %
 % * `M` [ struct ] - Model object.
 %
-% * `E` [ struct ] - Prior structure. See `model/estimate` for details.
+% * `E` [ struct ] - Estimation specs. See `model/estimate` for details.
 %
 %
 % __Output Arguments__
@@ -45,12 +45,12 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
     INPUT_PARSER.addRequired('PriorStruct', @isstruct);
 end
-INPUT_PARSER.parse(this, priorStruct);
+INPUT_PARSER.parse(this, estimationSpecs);
 
 %--------------------------------------------------------------------------
 
 % Check consistency by looping over parameters
-listOfParameters = fields(priorStruct);
+listOfParameters = fields(estimationSpecs);
 numOfParameters = numel(listOfParameters);
 
 indexOfValidPriors = true(1, numOfParameters);
@@ -63,7 +63,7 @@ ixFound = ~isnan(posQty) | ~isnan(posStdCorr);
 
 for i = find(ixFound)
     ithName = listOfParameters{i};
-    ithParam = priorStruct.(ithName);
+    ithParam = estimationSpecs.(ithName);
     
     if isempty(ithParam)
         initVal = NaN;

@@ -1,4 +1,4 @@
-function paramPriorsMinusLogDensity = myevalpprior(x, pri)
+function mldParamPriors = myevalpprior(x, pri)
 
 paramPriorsLogDensity = 0;
 for i = find(pri.IxPrior)
@@ -15,6 +15,6 @@ for i = find(pri.IxPrior)
         break
     end
 end
-paramPriorsMinusLogDensity = -paramPriorsLogDensity;
+mldParamPriors = -paramPriorsLogDensity;
 
 end

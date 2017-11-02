@@ -1,6 +1,5 @@
-function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this, inp, range, varargin)
+function [summary, p, proposalCov, hessian, this, V, delta, PDelta] = estimate(this, inputDatabank, range, varargin)
 % estimate  Estimate model parameters by optimizing selected objective function.
-%
 %
 % __Syntax__
 %
@@ -147,7 +146,7 @@ function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this,
 % leave the prior distribution empty or not specify it at all.
 %
 %
-% _Estimating Nonlinear Models__
+% _Estimating Nonlinear Models_
 %
 % By default, only the first-order solution, but not the steady state is
 % updated (recomputed) in each iteration before the likelihood is
@@ -164,7 +163,7 @@ function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this,
 % all model equations be performed.
 %
 %
-% __User-supplied Optimization (Minimization) Routine__
+% _User-supplied Optimization (Minimization) Routine_
 %
 % You can supply a function handle to your own minimization routine through
 % the option `Solver=`. This routine will be used instead of the Optim
@@ -204,7 +203,7 @@ function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this,
 %     [pEst, ObjEst, Hess] = yourminfunc(F, P0, PLow, PHigh, Opt, Arg1, Arg2, ...)
 %
 %
-% _User-Supplied Steady-State Solver__
+% _User-Supplied Steady-State Solver_
 %
 % You can supply a function handle to your own steady-state solver (i.e. a
 % function that finds the steady state for given parameters) through the
@@ -244,9 +243,10 @@ function [summary, p, propCov, hessian, this, V, delta, PDelta] = estimate(this,
 
 TYPE = @int8;
 
-persistent INPUT_PARSER
+persistent INPUT_PARSER OUTSIDE_OPTIM_OPTIONS
 if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/estimate');
+    INPUT_PARSER = extend.InputParser('model.estimate');
+    INPUT_PARSER.KeepUnmatched = true;
     INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
     INPUT_PARSER.addRequired('InputDatabank', @isstruct);
     INPUT_PARSER.addRequired('Range', @DateWrapper.validateProperRangeInput);
@@ -256,63 +256,63 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addParameter('ChkSstate', true, @model.validateChksstate); 
     INPUT_PARSER.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
     INPUT_PARSER.addParameter({'Filter', 'FilterOpt'}, { }, @model.validateFilter);
-    INPUT_PARSER.addParameter('NoSolution', 'error', @(x) (isnumeric(x) && numel(x)==1 && x>=1e10) || any(strcmpi(x, {'error', 'penalty'})));
+    INPUT_PARSER.addParameter('NoSolution', 'error', @(x) (isnumeric(x) && isscalar(x) && x>=1e10) || any(strcmpi(x, {'error', 'penalty'})));
     INPUT_PARSER.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @namedmat.validateMatrixFormat);
     INPUT_PARSER.addParameter({'Solve', 'SolveOpt'}, true, @model.validateSolve);
     INPUT_PARSER.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSstate);
     INPUT_PARSER.addParameter('Zero', false, @(x) isequal(x, true) || isequal(x, false));
 
-    INPUT_PARSER.addParameter('Display', 'iter', @(x) isanystri(x, {'iter', 'final', 'none', 'off'}));
-    INPUT_PARSER.addParameter('EpsPower', 1/2, @(x) isnumeric(x) && numel(x)==1 && x>=0);
+    INPUT_PARSER.addParameter('OptimSet', { }, @(x) isempty(x) || isstruct(x) || iscellstr(x(1:2:end)) );
+
+    INPUT_PARSER.addParameter('EpsPower', 1/2, @(x) isnumeric(x) && isscalar(x) && x>=0);
     INPUT_PARSER.addParameter('InitVal', 'struct', @(x) isempty(x) || isstruct(x) || isanystri(x, {'struct', 'model'}));
-    INPUT_PARSER.addParameter('MaxIter', 500, @(x) isnumeric(x) && numel(x)==1 && x>=0);
-    INPUT_PARSER.addParameter('MaxFunEvals', 2000, @(x) isnumeric(x) && numel(x)==1 && x>0);
-    INPUT_PARSER.addParameter('OptimSet', { }, @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
-    INPUT_PARSER.addParameter('Penalty', 0, @(x) isnumericscalar(x) && x>=0);
-    INPUT_PARSER.addParameter('EvalLik', true, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('EvalPPrior', true, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('EvalSPrior', true, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('Solver', 'fmin', @(x) (ischar(x) && any(strcmpi(x, {'fmin', 'lsqnonlin', 'pso', 'alps'}))) || iscell(x) || isfunc(x));
+    INPUT_PARSER.addParameter('Penalty', 0, @(x) isnumeric(x) && isscalar(x) && x>=0);
+    INPUT_PARSER.addParameter({'EvalLik', 'EvaluateData'}, true, @(x) isequal(x, true) || isequal(x, false));
+    INPUT_PARSER.addParameter({'EvalPPrior', 'EvaluateParamPriors'}, true, @(x) isequal(x, true) || isequal(x, false));
+    INPUT_PARSER.addParameter({'EvalSPrior', 'EvaluateSystemPriors'}, true, @(x) isequal(x, true) || isequal(x, false));
+    INPUT_PARSER.addParameter({'Solver', 'Optimizer'}, 'fmin', @(x) isa(x, 'function_handle') || ischar(x) || isa(x, 'string') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle') || isa(x{1}, 'string'))));
     INPUT_PARSER.addParameter('Summary', 'struct', @(x) any(strcmpi(x, {'struct', 'table'})));
-    INPUT_PARSER.addParameter('TolFun', 1e-6, @(x) isnumeric(x) && numel(x)==1 && x>0);
-    INPUT_PARSER.addParameter('TolX', 1e-6, @(x) isnumeric(x) && numel(x)==1 && x>0);
     INPUT_PARSER.addParameter('UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
 end
-INPUT_PARSER.parse(this, inp, range, varargin{:});
+if isempty(OUTSIDE_OPTIM_OPTIONS)
+    OUTSIDE_OPTIM_OPTIONS = extend.InputParser('model.estimate');
+    OUTSIDE_OPTIM_OPTIONS.addParameter('Algorithm', @default, @(x) isequal(x, @default) || ischar(x) || isa(x, 'string'));
+    OUTSIDE_OPTIM_OPTIONS.addParameter('Display', 'iter', @(x) any(strcmpi(x, {'iter', 'final', 'none', 'off'})) );
+    OUTSIDE_OPTIM_OPTIONS.addParameter('MaxFunEvals', 2000, @(x) isnumeric(x) && isscalar(x)  && x>0);
+    OUTSIDE_OPTIM_OPTIONS.addParameter('MaxIter', 500, @(x) isnumeric(x) && isscalar(x) && x>=0);
+    OUTSIDE_OPTIM_OPTIONS.addParameter('TolFun', 1e-6, @(x) isnumeric(x) && isscalar(x) && x>0);
+    OUTSIDE_OPTIM_OPTIONS.addParameter('TolX', 1e-6, @(x) isnumeric(x) && isscalar(x) && x>0);
+end
+INPUT_PARSER.parse(this, inputDatabank, range, varargin{:});
 systemPriors = INPUT_PARSER.Results.SystemPriors;
-estSpec = INPUT_PARSER.Results.EstimationSpecs;
-estOpt = rmfield( ...
-    INPUT_PARSER.Results, ...
-    {'Model', 'InputDatabank', 'Range', 'EstimationSpecs', 'SystemPriors'} ...
-);
+estimationSpecs = INPUT_PARSER.Results.EstimationSpecs;
+opt = INPUT_PARSER.Options;
+OUTSIDE_OPTIM_OPTIONS.parse(INPUT_PARSER.UnmatchedInCell{:});
+outsideOptimOptions = OUTSIDE_OPTIM_OPTIONS.Options;
 
 % Initialize and preprocess sstate, chksstate, solve options.
-estOpt.Steady = prepareSteady(this, 'silent', estOpt.Steady);
-estOpt.ChkSstate = prepareChkSteady(this, 'silent', estOpt.ChkSstate);
-estOpt.Solve = prepareSolve(this, 'silent, fast', estOpt.Solve);
+opt.Steady = prepareSteady(this, 'silent', opt.Steady);
+opt.ChkSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
+opt.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
 
 % Process likelihood function options and create a likstruct.
-likOpt = prepareLoglik(this, range, estOpt.Domain, [ ], estOpt.Filter{:});
-estOpt = rmfield(estOpt, 'Filter');
+likOpt = prepareLoglik(this, range, opt.Domain, [ ], opt.Filter{:});
+opt = rmfield(opt, 'Filter');
 
 % Get first column of measurement and exogenous variables.
-if estOpt.EvalLik
+if opt.EvalLik
     % `Data` includes pre-sample.
     req = [likOpt.domain(1), 'yg*'];
-    inp = datarequest(req, this, inp, range, 1);
+    inputArray = datarequest(req, this, inputDatabank, range, 1);
 else
-    inp = [ ];
+    inputArray = [ ];
 end
 
 %--------------------------------------------------------------------------
 
-ixy = this.Quantity.Type==TYPE(1);
-
-% Check prior consistency.
-callChkPriors( );
-
+% Warning if no measurement variables in the model
 assert( ...
-    any(ixy), ...
+    any(this.Quantity.Type==TYPE(1)), ...
     exception.Base('Model:NoMeasurementVariables', 'warning') ...
 );
 
@@ -321,16 +321,34 @@ assert( ...
 if isa(systemPriors, 'SystemPriorWrapper')
     seal(systemPriors);
 end
-itr = parseEstimStruct(this, estSpec, systemPriors, estOpt.Penalty, estOpt.InitVal);
 
-% _Run Estimation from Backend Class__
-[this, pStar, objStar, propCov, hessian, validDiff, infoFromLik] = estimate@shared.Estimation(this, inp, itr, estOpt, likOpt);
+%{
+itr = parseEstimStruct(this, estimationSpecs, systemPriors, opt.Penalty, opt.InitVal);
+[this, pStar, objStar, propCov, hessian, validDiff, infoFromLik] =...
+    estimate@shared.Estimation(this, inputArray, itr, opt, likOpt);
+%}
+
+% __Set Up Posterior and EstimationWrapper__
+[this, posterior] = preparePosterior(this, estimationSpecs, opt.Penalty, opt.InitVal);
+posterior.ObjectiveFunction = @(x) objfunc(x, this, inputArray, posterior, opt, likOpt);
+posterior.SystemPriors = systemPriors;
+posterior.EvaluateData = opt.EvalLik;
+posterior.EvaluateParamPriors = opt.EvalPPrior;
+posterior.EvaluateSystemPriors = opt.EvalSPrior;
+
+estimationWrapper = EstimationWrapper( );
+estimationWrapper.IsConstrained = posterior.IsConstrained;
+chooseSolver(estimationWrapper, opt.Solver, outsideOptimOptions);
+
+% __Run Optimizer__
+maximizePosteriorMode(posterior, estimationWrapper);
 
 % Assign estimated parameters, refresh dynamic links, and re-compute steady
 % state, solution, and expansion matrices.
+variantRequested = 1;
+opt.Solve.fast = false;
 throwError = true;
-estOpt.Solve.fast = false;
-this = update(this, pStar, itr, 1, estOpt, throwError);
+this = update(this, posterior.Optimum, variantRequested, opt, throwError);
 
 % __Set Up Posterior Object__
 % Set up posterior object before we assign out-of-liks and scale std
@@ -344,76 +362,61 @@ populatePosterObj( );
 V = 1;
 delta = [ ];
 PDelta = [ ];
-if estOpt.EvalLik && (nargout>=5 || likOpt.relative)
-    [~, regOutp] = likOpt.minusLogLikFunc(this, inp, [ ], likOpt);
+if opt.EvalLik && (nargout>=5 || likOpt.relative)
+    [~, regOutp] = likOpt.minusLogLikFunc(this, inputArray, [ ], likOpt);
     % Post-process the regular output arguments, update the std parameter
     % in the model object, and refresh if needed.
     xRange = range(1)-1 : range(end);
     [~, ~, V, delta, PDelta, ~, this] ...
-        = kalmanFilterRegOutp(this, regOutp, xRange, likOpt, estOpt);
+        = kalmanFilterRegOutp(this, regOutp, xRange, likOpt, opt);
 end
 
 % Database with point estimates.
-if strcmpi(estOpt.Summary, 'struct')
-    summary = cell2struct(num2cell(pStar(:)'), itr.LsParam, 2);
+if strcmpi(opt.Summary, 'struct')
+    summary = cell2struct(num2cell(posterior.Optimum(:)'), posterior.ParameterNames, 2);
 else
     summary = createSummaryTable( );
 end
+proposalCov = posterior.ProposalCov;
+hessian = posterior.Hessian;
+
+this.TaskSpecific = [ ];
 
 return
 
 
-    function callChkPriors( )
-        [flag, invalidBounds, invalidPrior] = chkpriors(this, estSpec);
-        if ~flag
-            if ~isempty(invalidBounds)
-                utils.error('model:estimate', ...
-                    ['Initial condition is inconsistent with ', ...
-                    'lower/upper bounds: ''%s''.'], ...
-                    invalidBounds{:});
-            end
-            if ~isempty(invalidPrior)
-                utils.error('model:estimate', ...
-                    ['Initial condition is inconsistent with ', ...
-                    'prior distribution: ''%s''.'], ...
-                    invalidPrior{:});
-            end
-        end
-    end 
-
-
     function summary = createSummaryTable( )
-        posterStd = sqrt(diag(propCov));
-        posterStd(~validDiff) = NaN;
-        numParameters = numel(itr.LsParam);
+        posterStd = sqrt(diag(posterior.ProposalCov));
+        posterStd(~posterior.IndexValidDiff) = NaN;
+        numParameters = posterior.NumParameters;
         priorName = repmat({'Flat'}, 1, numParameters);
         priorMean = nan(1, numParameters);
         priorMode = nan(1, numParameters);
         priorStd = nan(1, numParameters);
-        for i = find(itr.IxPrior)
+        for i = find(posterior.IndexPriors)
             try
-                priorName{i} = itr.FnPrior{i}.Name;
-                priorMean(i) = itr.FnPrior{i}.Mean;
-                priorMode(i) = itr.FnPrior{i}.Mode;
-                priorStd(i) = itr.FnPrior{i}.Std;
+                priorName{i} = posterior.PriorDistributions{i}.Name;
+                priorMean(i) = posterior.PriorDistributions{i}.Mean;
+                priorMode(i) = posterior.PriorDistributions{i}.Mode;
+                priorStd(i) =  posterior.PriorDistributions{i}.Std;
             end
         end
         variables = {
-            pStar(:), 'Poster_Mode', 'Posterior Mode'
+            posterior.Optimum(:), 'Poster_Mode', 'Posterior Mode'
             posterStd(:), 'Poster_Std', 'Posterior Std Deviation'
             priorName(:), 'Prior_Distrib', 'Prior Distribution Type'
             priorMean(:), 'Prior_Mean', 'Prior Mean'
             priorMode(:), 'Prior_Mode', 'Prior Mode'
             priorStd(:), 'Prior_Std', 'Prior Std Deviation'
-            itr.Lower(:), 'Lower_Bound', 'Lower Bound'
-            itr.Upper(:), 'Upper_Bound', 'Upper Bound'
-            infoFromLik(:), 'Info_from_Data', 'Proportion of Information from Data'
-            itr.Init(:), 'Start', 'Starting Value'
+            posterior.LowerBounds(:), 'Lower_Bound', 'Lower Bound'
+            posterior.UpperBounds(:), 'Upper_Bound', 'Upper Bound'
+            posterior.PropOfLineInfoFromData(:), 'Info_from_Data', 'Proportion of Information from Data'
+            posterior.Initial(:), 'Start', 'Starting Value'
         };
         summary = table( ...
             variables{:, 1}, ...
             'VariableNames', variables(:, 2)', ...
-            'RowNames', itr.LsParam(:) ...
+            'RowNames', posterior.ParameterNames(:) ...
         );
         summary.Properties.VariableDescriptions = variables(:, 3)';
     end
@@ -422,22 +425,22 @@ return
     function populatePosterObj( )
         % Make sure that draws that fail to solve do not cause an error
         % and hence do not interupt the posterior simulator.
-        estOpt.NoSolution = Inf;
+        opt.NoSolution = Inf;
 
-        p.ParamList = itr.LsParam;
+        p.ParamList = posterior.ParameterNames;
         p.MinusLogPostFunc = @objfunc;
-        p.MinusLogPostFuncArgs = {this, inp, itr, estOpt, likOpt};
-        p.InitLogPost = -objStar;
-        p.InitParam = pStar;
+        p.MinusLogPostFuncArgs = {this, inputArray, posterior, opt, likOpt};
+        p.InitLogPost = -posterior.ObjectiveAtOptimum;
+        p.InitParam = posterior.Optimum;
         try
-            p.InitProposalCov = propCov;
+            p.InitProposalCov = posterior.ProposalCov;
         catch Error
             utils.warning('model:estimate', ...
                 ['Posterior simulator object cannot be initialised.', ...
                 '\nThe following error occurs:\n\n%s'], ...
                 Error.message);
         end
-        p.Lower = itr.Lower;
-        p.Upper = itr.Upper;
+        p.Lower = posterior.LowerBounds;
+        p.Upper = posterior.UpperBounds;
     end
 end

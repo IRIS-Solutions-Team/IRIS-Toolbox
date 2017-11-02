@@ -69,6 +69,7 @@ Model:InvalidName,This is not a valid %1name in the model object: %s
 Model:InvalidQuantityType,This is not a valid type of model quantities: %s
 Model:LogVariableZeroSteady,Steady state for this log variable is numerically close to zero: %s 
 Model:NotDifferenceStationary,Model is not difference stationary; some steady-state growth rates are not fixed numbers: %s
+Model:NotParameterInEstimationSpecs,This name in estimation specs is not a parameter: %s 
 Model:ParameterNotAssigned,This parameter is not assigned: %s 
 Model:Postparser:DynamicEquationEmpty,Dynamic part of this equation is empty: %s 
 Model:Postparser:ExogenousInOtherThanDtrend,Exogenous variables allowed only in deterministic trends: %s 
@@ -127,6 +128,12 @@ Pairing:InvalidNamesInDynamicAutoexog,This is not a valid pair of names for dyna
 Pairing:InvalidNamesInSteadyAutoexog,This is not a valid pair of names for steady autoexog: %s 
 Pairing:MultipleLhsAutoexog,This name is autoexogenized more than once: %s 
 Pairing:MultipleRhsAutoexog,This name is autoendogenized more than once: %s 
+Posterior:NoParametersToEstimate,There are no parameters to estimate.
+Posterior:RepairToHonorBounds,Final estimate of this parameter repaired to honor its %1 bound: %s
+Posterior:InitialBelowLowerBound,Initial value for this parameter fails to honor its lower bound: %s
+Posterior:InitialAboveUpperBound,Initial value for this parameter fails to honor its upper bound: %s
+Posterior:InvalidPriorAtInitial,Prior distribution fails at initial value for this parameters: %s
+Posterior:InconsistentBounds,The lower and upper bounds for this parameter are inconsistent: %s 
 Preparser:CannotCloseFile,Cannot close this file after reading: %s 
 Preparser:CannotFindFile,Cannot find this file: %s 
 Preparser:CannotOpenFile,Cannot open this file for reading: %s 
@@ -198,6 +205,7 @@ TheParser:InvalidTimeSubscript,Invalid lag or lead: %s
 TheParser:MutlipleNames,This name is declared multiple times: %s 
 TheParser:ReservedName,This is a reserved name in IRIS and cannot be used as a name in models: %s 
 TheParser:StdNameWithDoubleUnderscore,Names of shocks cannot include double underscores: %s 
+TimeSeriesBase:IfTestCompliance, Test function must return logical index of the same size as the input time series.
 VAR:CannotEstimateEmptyVar,Cannot estimate VAR object with no variables.
 VAR:CannotInfRangeInPanel,Cannot use Inf for input range in panel VAR estimation.
 VAR:GroupNotInputData,This group is not contained in the input database: %s 

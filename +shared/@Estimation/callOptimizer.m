@@ -1,5 +1,5 @@
-function [pStar, objStar, hess, lmb] = myoptimize(fnObj, x0, lb, ub, opt, varargin)
-% myoptimize  Call optimizer.
+function [pStar, objStar, hess, lambda] = callOptimizer(fnObj, x0, lb, ub, opt, varargin)
+% callOptimizer  Call optimizer.
 %
 % Backend IRIS function.
 % No help provided.
@@ -9,12 +9,11 @@ function [pStar, objStar, hess, lmb] = myoptimize(fnObj, x0, lb, ub, opt, vararg
 
 %--------------------------------------------------------------------------
 
-np = length(x0);
-hess = {zeros(np), zeros(np), zeros(np)};
-lmb = [ ];
+numPoints = length(x0);
+hess = {zeros(numPoints), zeros(numPoints), zeros(numPoints)};
+lambda = [ ];
 
 if ischar(opt.Solver)
-    % k
     % __Optimization toolbox__
     if strncmpi(opt.Solver, 'fmin', 4)
         % Unconstrained minimization.
@@ -22,23 +21,24 @@ if ischar(opt.Solver)
             [pStar, objStar, ~, ~, ~, hess{1}] = ...
                 fminunc(fnObj, x0, opt.OptimSet, ...
                 varargin{:});
-            lmb = struct('lower', zeros(np, 1), 'upper', zeros(np, 1));
+            lambda = struct('lower', zeros(numPoints, 1), 'upper', zeros(numPoints, 1));
         else
             % Constrained minimization.
-            [pStar, objStar, ~, ~, lmb, ~, hess{1}] = ...
+            keyboard
+            [pStar, objStar, ~, ~, lambda, ~, hess{1}] = ...
                 fmincon(fnObj, x0, ...
                 [ ], [ ], [ ], [ ], lb, ub, [ ], opt.OptimSet, ...
                 varargin{:});
         end
     elseif strcmpi(opt.Solver, 'lsqnonlin')
         % Nonlinear least squares.
-        [pStar, objStar, ~, ~, ~, lmb] = ...
+        [pStar, objStar, ~, ~, ~, lambda] = ...
             lsqnonlin(fnObj, x0, lb, ub, opt.OptimSet, ...
             varargin{:});
     elseif strcmpi(opt.Solver, 'pso')
         % IRIS Optimization Toolbox
         %--------------------------
-        [pStar, objStar, ~, ~, ~, ~, lmb] = ...
+        [pStar, objStar, ~, ~, ~, ~, lambda] = ...
             irisoptim.pso(fnObj, x0, lb, ub, ...
             opt.OptimSet{:}, ...
             varargin{:});
@@ -51,7 +51,7 @@ if ischar(opt.Solver)
     elseif strcmpi(opt.Solver, 'alps')
         % ALPS
         %--------------------------
-        [pStar, objStar, lmb] ...
+        [pStar, objStar, lambda] ...
             = irisoptim.alps(fnObj, x0, lb, ub, ...
             opt.OptimSet{:}) ;
     end

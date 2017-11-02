@@ -1,4 +1,4 @@
-function [F, FF, delta, freq, G, step] = fisher(this, nPer, lsPar, varargin)
+function [F, FF, delta, freq, G, step] = fisher(this, numPeriods, lsPar, varargin)
 % fisher  Approximate Fisher information matrix in frequency domain.
 %
 % __Syntax__
@@ -77,7 +77,7 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addRequired('NPer', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>0);
     INPUT_PARSER.addRequired('PList', @(x) iscellstr(x) || ischar(x));
 end
-INPUT_PARSER.parse(this, nPer, lsPar);
+INPUT_PARSER.parse(this, numPeriods, lsPar);
 
 % Read and validate optional input arguments.
 opt = passvalopt('model.fisher', varargin{:});
@@ -123,39 +123,38 @@ ixYLog = this.Quantity.IxLog(ixy);
 ixYLog(indexToExclude) = [ ];
 
 ell = lookup(this.Quantity, lsPar, TYPE(4));
-posQty = ell.PosName;
+posValues = ell.PosName;
 posStdCorr = ell.PosStdCorr;
-
-ixAssignNan = isnan(posQty);
-ixStdcorrNan = isnan(posStdCorr);
-ixValid = ~ixAssignNan | ~ixStdcorrNan;
-if any(~ixValid)
+indexNaNPosValues = isnan(posValues);
+indexNaNPosStdCorr = isnan(posStdCorr);
+indexValidNames = ~indexNaNPosValues | ~indexNaNPosStdCorr;
+if any(~indexValidNames)
     utils.error('model:fisher', ...
-        'This is not a valid parameter name: ''%s''.', ...
-        lsPar{~ixValid});
+        'This is not a valid parameter name: %s ', ...
+        lsPar{~indexValidNames});
 end
 
-itr = model.component.IterateOver( );
-itr.Quantity = this.Variant.Values;
-itr.StdCorr = this.Variant.StdCorr;
-itr.PosQty = posQty;
-itr.PosStdCorr = posStdCorr;
+this.TaskSpecific = struct( );
+this.TaskSpecific.Update.Values = this.Variant.Values;
+this.TaskSpecific.Update.StdCorr = this.Variant.StdCorr;
+this.TaskSpecific.Update.PosValues = posValues;
+this.TaskSpecific.Update.PosStdCorr = posStdCorr;
 
-numOfParams = length(lsPar);
-nFreq = floor(nPer/2) + 1;
-freq = 2*pi*(0 : nFreq-1)/nPer;
+numParameters = length(lsPar);
+numFreq = floor(numPeriods/2) + 1;
+freq = 2*pi*(0 : numFreq-1)/numPeriods;
 
 % Kronecker delta vector.
 % Different for even or odd number of periods.
-delta = ones(1, nFreq);
-if mod(nPer, 2)==0
+delta = ones(1, numFreq);
+if mod(numPeriods, 2)==0
     delta(2:end-1) = 2;
 else
     delta(2:end) = 2;
 end
 
-FF = nan(numOfParams, numOfParams, nFreq, nv);
-F = nan(numOfParams, numOfParams, nv);
+FF = nan(numParameters, numParameters, numFreq, nv);
+F = nan(numParameters, numParameters, nv);
 
 % Create a command-window progress bar.
 if opt.progress
@@ -176,27 +175,27 @@ for v = 1 : nv
     
     % Compute derivatives of SGF and steady state
     % wrt the selected parameters.
-    dG = nan(ny, ny, nFreq, numOfParams);
+    dG = nan(ny, ny, numFreq, numParameters);
     if ~opt.deviation
-        dy = zeros(ny, numOfParams);
+        dy = zeros(ny, numParameters);
     end
     % Determine differentiation step.
-    p0 = nan(1, numOfParams);
-    p0(~ixAssignNan) = m.Variant.Values(:, posQty(~ixAssignNan), :);
-    p0(~ixStdcorrNan) = m.Variant.StdCorr(:, posStdCorr(~ixStdcorrNan), :);
-    step = max([abs(p0);ones(1, numOfParams)], [ ], 1)*EPSILON;
+    p0 = nan(1, numParameters);
+    p0(~indexNaNPosValues) = m.Variant.Values(:, posValues(~indexNaNPosValues), :);
+    p0(~indexNaNPosStdCorr) = m.Variant.StdCorr(:, posStdCorr(~indexNaNPosStdCorr), :);
+    step = max([abs(p0);ones(1, numParameters)], [ ], 1)*EPSILON;
     
-    for i = 1 : numOfParams
+    for i = 1 : numParameters
         pp = p0;
         pm = p0;
         pp(i) = pp(i) + step(i);
         pm(i) = pm(i) - step(i);
         twoSteps = pp(i) - pm(i);
 
-        isSstate = ~opt.deviation && ~isnan(posQty(i));
+        isSstate = ~opt.deviation && ~isnan(posValues(i));
         
         % Steady state, state space and SGF at p0(i) + step(i).
-        m = update(m, pp, itr, 1, opt, throwErr);
+        m = update(m, pp, 1, opt, throwErr);
         if isSstate
             yp = getSstate( );
         end
@@ -204,7 +203,7 @@ for v = 1 : nv
         Gp = computeSgfy(Tp, Rp, Zp, Hp, Omgp, nUnitp, freq, opt);
         
         % Steady state, state space and SGF at p0(i) - step(i).
-        m = update(m, pm, itr, 1, opt, throwErr);
+        m = update(m, pm, 1, opt, throwErr);
         if isSstate
             ym = getSstate( );
         end
@@ -218,21 +217,21 @@ for v = 1 : nv
         end
         
         % Reset model parameters to `p0`.
-        m.Variant.Values(:, posQty(~ixAssignNan), :) = p0(1, ~ixAssignNan);
-        m.Variant.StdCorr(:, posStdCorr(~ixStdcorrNan), :) = p0(1, ~ixStdcorrNan);
+        m.Variant.Values(:, posValues(~indexNaNPosValues), :) = p0(1, ~indexNaNPosValues);
+        m.Variant.StdCorr(:, posStdCorr(~indexNaNPosStdCorr), :) = p0(1, ~indexNaNPosStdCorr);
         
         % Update the progress bar.
         if opt.progress
-            update(progress, ((v-1)*numOfParams+i)/(nv*numOfParams));
+            update(progress, ((v-1)*numParameters+i)/(nv*numParameters));
         end
     end
     
     % Compute Fisher information matrix.
     % Steady-state-independent part.
-    for i = 1 : numOfParams
-        for j = i : numOfParams
-            fi = zeros(1, nFreq);
-            for k = 1 : nFreq
+    for i = 1 : numParameters
+        for j = i : numParameters
+            fi = zeros(1, numFreq);
+            for k = 1 : numFreq
                 fi(k) = ...
                     trace(real(Gi(:, :, k)*dG(:, :, k, i)*Gi(:, :, k)*dG(:, :, k, j)));
             end
@@ -241,7 +240,7 @@ for v = 1 : nv
                 % We don't divide the effect by 2*pi because
                 % we skip dividing G by 2*pi, too.
                 A = dy(:, i)*dy(:, j)';
-                fi(1) = fi(1) + nPer*trace(Gi(:, :, 1)*(A + A'));
+                fi(1) = fi(1) + numPeriods*trace(Gi(:, :, 1)*(A + A'));
             end
             FF(i, j, :, v) = fi;
             FF(j, i, :, v) = fi;
@@ -261,6 +260,9 @@ end
 
 FF = FF / 2;
 F = F / 2;
+
+% Clean up even though the model object is not returned
+this.TaskSpecific = [ ];
 
 return
 
@@ -292,11 +294,11 @@ function [G, Gi] = computeSgfy(T, R, Z, H, Omg, numOfUnitRoots, freq, opt)
     % Spectrum generating function and its inverse.
     % Computationally optimised for observables.
     [ny, nb] = size(Z);
-    nFreq = length(freq(:));
+    numFreq = length(freq(:));
     Sgm1 = R*Omg*R.';
     Sgm2 = H*Omg*H.';
-    G = nan(ny, ny, nFreq);
-    for i = 1 : nFreq
+    G = nan(ny, ny, numFreq);
+    for i = 1 : numFreq
         iFreq = freq(i);
         if iFreq==0 && numOfUnitRoots>0
             % Exclude the unit-root part of the transition matrix, and compute SGF only
@@ -316,13 +318,13 @@ function [G, Gi] = computeSgfy(T, R, Z, H, Omg, numOfUnitRoots, freq, opt)
     % and second, we do not divide the steady-state effect
     % by 2*pi either.
     if nargout>1
-        Gi = nan(ny, ny, nFreq);
+        Gi = nan(ny, ny, numFreq);
         if opt.chksgf
-            for i = 1 : nFreq
+            for i = 1 : numFreq
                 Gi(:, :, i) = computePseudoInverse(G(:, :, i), opt.tolerance);
             end
         else
-            for i = 1 : nFreq
+            for i = 1 : numFreq
                 Gi(:, :, i) = inv(G(:, :, i));
             end
         end

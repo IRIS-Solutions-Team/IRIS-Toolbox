@@ -116,7 +116,6 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer
             %         user data: empty
             %         export files: [0]
             %
-            
             % -IRIS Macroeconomic Modeling Toolbox.
             % -Copyright (c) 2007-2017 IRIS Solutions Team.
             

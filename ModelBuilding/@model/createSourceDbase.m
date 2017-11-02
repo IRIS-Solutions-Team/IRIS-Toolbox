@@ -51,16 +51,22 @@ assert( ...
 % __Extended Range__
 % getActualMinMaxShifts( ) Includes at least one lag for reporting purposes.
 [minSh, maxSh] = getActualMinMaxShifts(this);
-xFrom = range(1);
-xTo = range(end);
+start = range(1);
+extendedStart = range(1);
+xEnd = range(end);
+if ~isa(range, 'DateWrapper')
+    start = DateWrapper(start);
+    extendedStart = DateWrapper(extendedStart);
+    xEnd = DateWrapper(xEnd);
+end
 if opt.AppendPresample
-    xFrom = xFrom + minSh;
+    extendedStart = addTo(extendedStart, minSh);
 end
 if opt.AppendPostsample
-    xTo = xTo + maxSh;
+    xEnd = addTo(xEnd, maxSh);
 end
-xRange = xFrom : xTo;
-nXPer = length(xRange);
+extendedRange = extendedStart : xEnd;
+nXPer = length(extendedRange);
 
 label = getLabelOrName(this.Quantity);
 
@@ -78,7 +84,7 @@ numOfColumnsToCreate = max([nv, numOfColumnsRequested, numOfDrawsRequested]);
 outputDatabank = struct( );
 
 % Deterministic time trend.
-ttrend = dat2ttrend(xRange, this);
+ttrend = dat2ttrend(extendedRange, this);
 
 X = zeros(nQty, nXPer, nv);
 if ~opt.deviation
@@ -101,8 +107,8 @@ end
 for i = find(ixyxg)
     name = this.Quantity.Name{i};
     outputDatabank.(name) = replace( ...
-        TEMPLATE_SERIES, permute(X(i, :, :), [2, 3, 1]), xRange(1), label{i} ...
-        );
+        TEMPLATE_SERIES, permute(X(i, :, :), [2, 3, 1]), extendedStart, label{i} ...
+    );
 end
 
 % Do not include pre-sample in shock series.
@@ -110,7 +116,7 @@ for i = find(ixe)
     name = this.Quantity.Name{i};
     x = X(i, 1-minSh:end, :);
     outputDatabank.(name) = replace( ...
-        TEMPLATE_SERIES, permute(x, [2, 3, 1]), range(1), label{i} ...
+        TEMPLATE_SERIES, permute(x, [2, 3, 1]), start, label{i} ...
     );
 end
 

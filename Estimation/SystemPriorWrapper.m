@@ -1,3 +1,24 @@
+% System Priors 
+%
+% The `SystemPriorWrapper` class is an interface for creating prior
+% densities associated with the properties of a model as a whole system (as
+% opposed to prior densities associated with individual parameters in
+% isolation), and using them in model estimation. The properties are
+% referred to as system properties, and the priors as system priors.
+%
+% The system properties that can be subjected to prior densities include
+%
+% * model simulations including shock responses
+% * frequency responses
+% * autocovariances and autocorrelations
+% * functions involving any number of individual parameters
+% * any functions or combinations of the above
+%
+%
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2017 IRIS Solutions Team.
+
 classdef SystemPriorWrapper < handle
     properties
         Quantity = model.component.Quantity.empty(1, 0)

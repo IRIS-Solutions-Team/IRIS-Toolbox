@@ -19,7 +19,7 @@ nName = length(this.Quantity.Name);
 
 % __Loop-Dependent Fields__
 % Current values of parameters and steady states.
-s.Update = model.component.IterateOver( );
+s.Update = struct( );
 s.Update.Quantity = this.Variant.Values(:, :, variantRequested);
 s.Update.StdCorr = this.Variant.StdCorr(:, :, variantRequested);
 

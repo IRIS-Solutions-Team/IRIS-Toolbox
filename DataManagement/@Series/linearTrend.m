@@ -35,7 +35,7 @@ function this = linearTrend(range, step, varargin)
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('Series/linearTrend');
+    INPUT_PARSER = extend.InputParser('Series.linearTrend');
     INPUT_PARSER.addRequired('Range', @DateWrapper.validateProperRangeInput);
     INPUT_PARSER.addRequired('Step', @(x) isnumeric(x) && size(x, 1)==1);
     INPUT_PARSER.addOptional('Start', 0, @(x) isnumeric(x) && size(x, 1)==1);
@@ -48,12 +48,12 @@ end
 
 %--------------------------------------------------------------------------
 
-numOfPeriods =  rnglen(range);
+numPeriods =  rnglen(range);
 zeroStart = zeros(size(step));
-step = repmat(step, numOfPeriods-1, 1);
+step = repmat(step, numPeriods-1, 1);
 data = cumsum([zeroStart; step], 1);
 if any(start(:))~=0
-    start = repmat(start, numOfPeriods, 1);
+    start = repmat(start, numPeriods, 1);
     data = data + start;
 end
 this = Series(range(1), data);

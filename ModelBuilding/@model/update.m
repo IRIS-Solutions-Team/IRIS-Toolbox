@@ -1,4 +1,4 @@
-function [this, ok] = update(this, p, itr, variantRequested, opt, isError)
+function [this, ok] = update(this, p, variantRequested, opt, isError)
 % update  Update parameters, sstate, solve, and refresh.
 %
 % Backend IRIS function.
@@ -18,17 +18,17 @@ end
 
 %--------------------------------------------------------------------------
 
-posQty = itr.PosQty;
-posStdCorr = itr.PosStdCorr;
+posValues = this.TaskSpecific.Update.PosValues;
+posStdCorr = this.TaskSpecific.Update.PosStdCorr;
 
-ixNanQty = isnan(posQty);
-posQty = posQty(~ixNanQty);
+ixNanQty = isnan(posValues);
+posValues = posValues(~ixNanQty);
 ixNanStdCorr = isnan(posStdCorr);
 posStdCorr = posStdCorr(~ixNanStdCorr);
 
 % Reset parameters and stdcorrs.
-this.Variant.Values(:, :, variantRequested) = itr.Quantity;
-this.Variant.StdCorr(:, :, variantRequested) = itr.StdCorr;
+this.Variant.Values(:, :, variantRequested) = this.TaskSpecific.Update.Values;
+this.Variant.StdCorr(:, :, variantRequested) = this.TaskSpecific.Update.StdCorr;
 
 runSteady = ~isequal(opt.Steady, false);
 runSolve = ~isequal(opt.Solve, false);
@@ -38,7 +38,7 @@ runChksstate = ~isequal(opt.ChkSstate, false);
 needsRefresh = any(this.Link);
 beenRefreshed = false;
 if any(~ixNanQty)
-    this.Variant.Values(:, posQty, variantRequested) = p(~ixNanQty);
+    this.Variant.Values(:, posValues, variantRequested) = p(~ixNanQty);
 end
 
 % Update stds and corrs.

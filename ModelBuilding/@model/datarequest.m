@@ -19,7 +19,7 @@ try, expandMethod; catch, expandMethod = 'RepeatLast'; end %#ok<NOCOM>
 
 [ny, nxx, nb, nf] = sizeOfSolution(this.Vector);
 nz = nnz(this.Quantity.IxObserved);
-nAlt = length(this);
+nv = length(this);
 range = range(1) : range(end);
 nPer = length(range);
 
@@ -150,7 +150,7 @@ return
     
     function [xbInitMean, lsNanInitMean, xbInitMse, lsNanInitMse] ...
             = assembleXbInit( )
-        xbInitMean = nan(nb, 1, nAlt);
+        xbInitMean = nan(nb, 1, nv);
         xbInitMse = [ ];
         % Xf Mean.
         if ~isempty(dMean)
@@ -203,10 +203,10 @@ return
     function [alpInitMean, alpInitMse] = convertXbInit2AlpInit( )
         % Transform Mean[Xb] to Mean[Alpha].
         numOfDataSets = size(xbInitMean, 3);
-        if numOfDataSets<nAlt
-            xbInitMean(:, 1, end+1:nAlt) = ...
-                xbInitMean(:, 1, end*ones(1, nAlt-numOfDataSets));
-            numOfDataSets = nAlt;
+        if numOfDataSets<nv
+            xbInitMean(:, 1, end+1:nv) = ...
+                xbInitMean(:, 1, end*ones(1, nv-numOfDataSets));
+            numOfDataSets = nv;
         end
         alpInitMean = xbInitMean;
         for ii = 1 : numOfDataSets
@@ -226,10 +226,10 @@ return
             return
         end
         numOfDataSets = size(xbInitMse, 4);
-        if numOfDataSets<nAlt
-            xbInitMse(:, :, 1, end+1:nAlt) = ...
-                xbInitMse(:, :, 1, end*ones(1, nAlt-numOfDataSets));
-            numOfDataSets = nAlt;
+        if numOfDataSets<nv
+            xbInitMse(:, :, 1, end+1:nv) = ...
+                xbInitMse(:, :, 1, end*ones(1, nv-numOfDataSets));
+            numOfDataSets = nv;
         end
         alpInitMse = xbInitMse;
         for ii = 1 : numOfDataSets
@@ -365,9 +365,9 @@ return
             A = permute(A, [2, 1, 3]);
         end
         numOfDataSets = size(A, 3);
-        if numOfDataSets<nAlt
-            A(:, :, end+1:nAlt) = A(:, :, end*ones(1, nAlt-numOfDataSets));
-            numOfDataSets = nAlt;
+        if numOfDataSets<nv
+            A(:, :, end+1:nv) = A(:, :, end*ones(1, nv-numOfDataSets));
+            numOfDataSets = nv;
         end
         for ii = 1 : numOfDataSets
             U = this.Variant.Solution{7}(:, :, min(ii, end));

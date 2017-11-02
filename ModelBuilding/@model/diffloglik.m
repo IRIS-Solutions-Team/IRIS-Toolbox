@@ -1,5 +1,5 @@
 function [minusLogLik, grad, hess, v] ...
-    = diffloglik(this, data, range, listOfParameters, varargin)
+    = diffloglik(this, data, range, parameterNames, varargin)
 % diffloglik  Approximate gradient and hessian of log-likelihood function
 %
 % __Syntax__
@@ -66,7 +66,7 @@ pp = inputParser( );
 pp.addRequired('Inp', @(x) isstruct(x) || iscell(x));
 pp.addRequired('Range', @DateWrapper.validateDateInput);
 pp.addRequired('PList', @(x) ischar(x) || iscellstr(x));
-pp.parse(data, range, listOfParameters);
+pp.parse(data, range, parameterNames);
 
 [opt, varargin] = passvalopt('model.diffloglik', varargin{:});
 
@@ -89,38 +89,41 @@ lik.StdCorr = varyStdCorr(this, range, [ ], lik, '--clip', '--presample');
 lik.retpevec = true;
 lik.retf = true;
 
-if ischar(listOfParameters)
-    listOfParameters = regexp(listOfParameters, '\w+', 'match');
+if ischar(parameterNames)
+    parameterNames = regexp(parameterNames, '\w+', 'match');
 end
 
 %--------------------------------------------------------------------------
 
-nAlt = length(this);
+nv = length(this);
 
 % Multiple parameterizations are not allowed.
-if nAlt>1
+if nv>1
     utils.error('model:diffloglik', ...
         'Cannot run diffloglik( ) on multiple parametrisations.');
 end
 
 % Find parameter names and create parameter index.
-ell = lookup(this.Quantity, listOfParameters, TYPE(4));
-posQty = ell.PosName;
+ell = lookup(this.Quantity, parameterNames, TYPE(4));
+posValues = ell.PosName;
 posStdCorr = ell.PosStdCorr;
-ixValid = ~isnan(posQty) | ~isnan(posStdCorr);
-if any(~ixValid)
+indexValidNames = ~isnan(posValues) | ~isnan(posStdCorr);
+if any(~indexValidNames)
     utils.error('model:diffloglik', ...
         'This is not a valid parameter name: ''%s''.', ...
-        listOfParameters{~ixValid});
+        parameterNames{~indexValidNames});
 end
 
-pri = model.component.IterateOver( );
-pri.PosQty = posQty;
-pri.PosStdCorr = posStdCorr;
-pri.Quantity = this.Variant.Values;
-pri.StdCorr = this.Variant.StdCorr;
+this.TaskSpecific = struct( );
+this.TaskSpecific.Update.Values = this.Variant.Values;
+this.TaskSpecific.Update.StdCorr = this.Variant.StdCorr;
+this.TaskSpecific.Update.PosValues = posValues;
+this.TaskSpecific.Update.PosStdCorr = posStdCorr;
 
 % Call low-level diffloglik.
-[minusLogLik, grad, hess, v] = mydiffloglik(this, data, pri, lik, opt);
+[minusLogLik, grad, hess, v] = mydiffloglik(this, data, lik, opt);
+
+% Clean up even though the model objects is not returned
+this.TaskSpecific = [ ];
 
 end

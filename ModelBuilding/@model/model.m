@@ -170,6 +170,8 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         Behavior = model.component.Behavior( ) % Behavior control
 
         Export = shared.Export.empty(1, 0) % Export files
+
+        TaskSpecific = [ ]; % Temporary task-specific container
     end
 
     
@@ -422,10 +424,10 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = mysimulateper(varargin)
         varargout = operateLock(varargin)
         varargout = optimalPolicy(varargin)
-        varargout = parseEstimStruct(varargin)
         varargout = populateTransient(varargin)
         varargout = postparse(varargin)
         varargout = prepareLoglik(varargin)
+        varargout = preparePosterior(varargin)
         varargout = prepareSimulate1(varargin)
         varargout = prepareSimulate2(varargin)
         varargout = printSolutionVector(varargin)
