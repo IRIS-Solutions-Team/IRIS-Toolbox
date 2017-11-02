@@ -1,7 +1,7 @@
 function varargout = vline(varargin)
 % vline  Legacy name for visual.vline
 %
-% See help on visual.vline.
+% See help on visual.vline
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.

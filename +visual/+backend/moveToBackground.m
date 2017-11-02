@@ -11,26 +11,21 @@ if isempty(axesHandles)
     return
 end
 
-numAxesHandles = length(axesHandles);
-if numAxesHandles>1
-    for i = 1 : numAxesHandles
-        grfun.mymovetobkg(axesHandles(i));
-    end
-    return
-end
-
 %--------------------------------------------------------------------------
 
-children = get(axesHandles, 'children');
-numChildren = numel(children);
-level = zeros(1, numChildren);
-for i = 1 : numChildren
-    ithLevel = getappdata(children(i), 'IRIS_BackgroundLevel');
-    if ~isempty(ithLevel) && isnumeric(ithLevel) && isscalar(ithLevel) && ithLevel<0
-        level(i) = ithLevel;
+numAxesHandles = numel(axesHandles);
+for i = 1 : numAxesHandles
+    children = get(axesHandles(i), 'children');
+    numChildren = numel(children);
+    level = zeros(1, numChildren);
+    for j = 1 : numChildren
+        ithLevel = getappdata(children(j), 'IRIS_BackgroundLevel');
+        if ~isempty(ithLevel) && isnumeric(ithLevel) && isscalar(ithLevel) && ithLevel<0
+            level(j) = ithLevel;
+        end
     end
+    [~, permuted] = sort(level, 'descend');
+    set(axesHandles(i), 'children', children(permuted));
 end
-[~, permuted] = sort(level, 'descend');
-set(axesHandles, 'children', children(permuted));
 
 end

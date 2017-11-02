@@ -1,4 +1,4 @@
-function clicktocopy(axesHandles)
+function clickToExpand(axesHandles)
 % clickToExpand  Axes will expand in a new window when clicked on.
 %
 % __Syntax__
@@ -24,7 +24,7 @@ function clicktocopy(axesHandles)
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('visual.clickToExpand');
-    INPUT_PARSER.addRequired('AxesHandles', @(x) isa(x, 'matlab.graphics.axis.Axes'));
+    INPUT_PARSER.addRequired('AxesHandles', @(x) all(isgraphics(x, 'Axes')));
 end
 INPUT_PARSER.parse(axesHandles);
 

@@ -1,7 +1,7 @@
 function varargout = zeroline(varargin)
-% zeroline  Legacy name for visual.zeroline.
+% zeroline  Legacy name for visual.zeroline
 %
-% See help on visual.zeroline.
+% See help on visual.zeroline
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.

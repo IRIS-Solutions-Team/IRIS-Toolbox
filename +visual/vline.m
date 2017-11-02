@@ -28,18 +28,18 @@ function [lineHandles, textHandles] = vline(varargin)
 %
 % __Options__
 %
-% * `'ExcludeFromLegend='` [ *`true`* | `false` ] - Exclude vline from
-% legend.
+% * `'ExcludeFromLegend='` [ *`true`* | `false` ] - Exclude vline
+% from legend.
 %
 % * `'LinePlacement='` [ *`'exactly'`* | `'before'` | `'after'` ] -
-% Placement of the vertical line relative to the specified date; `'exactly'`
-% means the line is at the date specified, `'before'` means the line is
-% half way between the date specified and the date preceeding it, `'after'`
-% means the line is half way between the date specified and the date
-% follwing it.
+% Placement of the vertical line relative to the specified date;
+% `'exactly'` means the line is at the date specified, `'before'` means the
+% line is half way between the date specified and the date preceeding it,
+% `'after'` means the line is half way between the date specified and the
+% date follwing it.
 %
-% * `'Text='` [ cellstr | char | string ] - Annotate vline with a text
-% string.
+% * `'Text='` [ cellstr | char | string ] - Annotate vline with a
+% text string.
 %
 %
 % __Description__
@@ -53,14 +53,8 @@ function [lineHandles, textHandles] = vline(varargin)
 
 %--------------------------------------------------------------------------
 
-if ~isempty(varargin) && all(ishghandle(varargin{1}))
-    axesHandles = varargin{1};
-    varargin(1) = [ ];
-else
-    axesHandles = gca( );
-end
-
-[lineHandles, textHandles] = ...
-    visual.backend.plotInfiniteLine(axesHandles, 'vertical', varargin{:});
+[lineHandles, textHandles] = visual.backend.plotInfiniteLine('vertical', varargin{:});
+set(lineHandles, 'Tag', 'vline');
+set(textHandles, 'Tag', 'vline-caption');
 
 end

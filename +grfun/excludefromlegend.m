@@ -1,23 +1,11 @@
-function excludefromlegend(h)
-% excludefromlegend  Exclude graphic object from legend.
+function varargout = excludefromlegend(varargin)
+% excludefromlegend  Legacy name fro visual.excludeFromLegend
 %
-% Backend IRIS function.
-% No help provided.
+% See help on visual.excludeFromLegend
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-%--------------------------------------------------------------------------
-
-for i = 1 : numel(h)
-    try %#ok<TRYNC>
-        if true % ##### MOSW
-            set(get(get(h(i), 'Annotation'), 'LegendInformation'),...
-                'IconDisplayStyle', 'Off');
-        else
-            setappdata(h(i), 'IRIS_EXCLUDE_FROM_LEGEND', true); %#ok<UNRCH>
-        end
-    end
-end
+[varargout{1:nargout}] = visual.excludeFromLegend(varargin{:});
 
 end

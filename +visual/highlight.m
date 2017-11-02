@@ -46,40 +46,45 @@ function [patchHandles, textHandles] = highlight(varargin)
 
 %#ok<*AGROW>
 
-if ~isempty(varargin{1}) ...
-    && (isa(varargin{1}, 'matlab.graphics.axis.Axes') || isa(varargin{1}, 'matlab.ui.Figure'))
-    axesHandles = varargin{1};
+patchHandles = gobjects(1, 0); % Handles to patch objects.
+textHandles = gobjects(1, 0); % Handles to caption objects.
+
+if isempty(varargin)
+    return
+end
+
+if isgraphics(varargin{1})
+    axesHandle = varargin{1};
     varargin(1) = [ ];
+    axesHandle = visual.backend.resolveAxesHandles('All', axesHandle);
 else
-    axesHandles = gca( );
+    axesHandle = @gca;
+end
+    
+if isempty(axesHandle) || isempty(varargin)
+    return
 end
 
 range = varargin{1};
 varargin(1) = [ ];
 
-patchHandles = [ ]; % Handles to patch objects.
-textHandles = [ ]; % Handles to caption objects.
-
 if isempty(range)
     return
+elseif ~iscell(range)
+    range = { range };
 end
-
-% Multiple separate ranges.
-if iscell(range)
-    for i = 1 : numel(range)
-        [ithPatchHandle, ithTextHandle] = highlight(axesHandles, range{i}, varargin{:});
-        patchHandles = [patchHandles, ithPatchHandle(:).'];
-        textHandles = [textHandles, ithTextHandle(:).'];
+for i = 1 : numel(range)
+    if ischar(range{i})
+        range{i} = textinp2dat(range{i});
     end
-    return
 end
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('visual.highlight');
     INPUT_PARSER.KeepUnmatched = true;
-    INPUT_PARSER.addRequired('Axes', @(x) isa(x, 'matlab.graphics.axis.Axes'));
-    INPUT_PARSER.addRequired('Range', @(x) isempty(x) || isnumeric(x));
+    INPUT_PARSER.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
+    INPUT_PARSER.addRequired('Range', @(x) all(cellfun(@(y) isa(y, 'DateWrapper') || isnumeric(y), x)));
     INPUT_PARSER.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
     INPUT_PARSER.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
     INPUT_PARSER.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
@@ -91,10 +96,14 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addParameter('VPosition', '');
     INPUT_PARSER.addParameter('HPosition', '');
 end
-INPUT_PARSER.parse(axesHandles, range, varargin{:});
+INPUT_PARSER.parse(axesHandle, range, varargin{:});
 opt = INPUT_PARSER.Options;
 unmatched = INPUT_PARSER.UnmatchedInCell;
 usingDefaults = INPUT_PARSER.UsingDefaultsInStruct;
+
+if isequal(axesHandle, @gca)
+    axesHandle = gca( );
+end
 
 % Handle shortcut syntax for Text=
 if ~iscell(opt.Text) || size(opt.Text, 2)==1
@@ -116,27 +125,74 @@ if isscalar(opt.Color)
     opt.Color = opt.Color*[1, 1, 1];
 end
 
-Z_COOR = -4;
+Z_DATA = -4;
 LIM_MULTIPLE = 100;
 
 %--------------------------------------------------------------------------
 
-if ischar(range)
-    range = textinp2dat(range);
-end
+for a = 1 : numel(axesHandle)
+    h = axesHandle(a);
+    % Legacy test for plotyy
+    h = grfun.mychkforpeers(h);
 
-for ithAxesHandle = axesHandles(:)'
-    h = ithAxesHandle;
-    h = grfun.mychkforpeers(ithAxesHandle);
-    
+    if isnumeric(h)
+        % Handle to axes can be a numeric which passes the isgraphics
+        % test but cannot be called with yyaxis. Convert to graphics here.
+        h = visual.backend.numericToHandle(h);
+    end
+
+    % Switch to left y-axis if needed
+    switchedToLeft = visual.backend.switchToLeft(h);
+
     % Move grid to the foreground; otherwise, the upper edge of the plot box
     % will be overpainted by the highlight patch.
     set(h, 'layer', 'top');
-    
-    % NB: Instead of moving the grid to the foreground, we could use
-    % transparent color for the highligh object (faceAlpha). This is
-    % unfortunately not supported by the Painters renderer.
-    
+
+    yData = getYData(h, LIM_MULTIPLE);
+    for i = 1 : numel(range)
+        xData = getXData(h, range{i});
+        if isempty(xData)
+            continue
+        end
+
+        ithPatchHandle = drawPatch(h, xData, yData, Z_DATA, opt, unmatched);
+        
+        % Add caption to the highlight.
+        if ~isempty(opt.Text)
+            ithTextHandle = visual.backend.createCaption( ...
+                h, xData([1, 2]), opt.Text{:} ...
+            );
+            textHandles = [textHandles, ithTextHandle];
+        end
+        
+        % Make sure zLim includes zCoor.
+        zLim = get(h, 'zLim');
+        zLim(1) = min(zLim(1), Z_DATA);
+        zLim(2) = max(zLim(2), 0);
+        set(h, 'zLim', zLim);
+
+        setappdata(ithPatchHandle, 'IRIS_BackgroundLevel', Z_DATA);
+        patchHandles = [patchHandles, ithPatchHandle];
+    end
+
+    % Tag the highlights and captions for styling
+    set(patchHandles, 'tag', 'highlight');
+    set(textHandles, 'tag', 'highlight-caption');
+
+    visual.backend.moveToBackground(h);
+    if switchedToLeft
+        yyaxis(h, 'right');
+    end
+
+    if opt.ExcludeFromLegend
+        visual.excludeFromLegend(patchHandles);
+    end
+end
+
+end
+
+
+function xData = getXData(h, range)
     if isa(range, 'DateWrapper')
         freq = DateWrapper.getFrequencyFromNumeric(range(1));
         xLim = get(h, 'XLim');
@@ -157,7 +213,7 @@ for ithAxesHandle = axesHandles(:)'
         xData = range([1, end]);
     end
     if isempty(xData)
-        continue
+        return
     end
     if isnumeric(xData)
         around = 0.5;
@@ -168,58 +224,29 @@ for ithAxesHandle = axesHandles(:)'
         end
         xData = [xData(1)-around, xData(2)+around];
     end
+end
 
+
+function yData = getYData(h, LIM_MULTIPLE)
     yData = get(h, 'YLim');
-    yHeight = yData(2) - yData(1);
-    yData = [yData(1)-LIM_MULTIPLE*yHeight, yData(2)+LIM_MULTIPLE*yHeight];
+    height = yData(2) - yData(1);
+    yData = [yData(1)-LIM_MULTIPLE*height, yData(2)+LIM_MULTIPLE*height];
+end
 
+
+function patchHandle = drawPatch(h, xData, yData, Z_DATA, opt, unmatched)
     xData = xData([1, 2, 2, 1]);
     yData = yData([1, 1, 2, 2]);
-    zData = Z_COOR*ones(size(xData));    
+    zData = Z_DATA*ones(size(xData));    
     nextPlot = get(h, 'NextPlot');
     set(h, 'NextPlot', 'Add');
-    ithPatchHandle = fill( ...
+    patchHandle = fill( ...
         xData, yData, opt.Color, ...
-        ... 'ZData', zData, ...
+        'ZData', zData, ...
         'Parent', h, ...
         'YLimInclude', 'off', 'XLimInclude', 'off', ...
         'EdgeColor', 'none', 'FaceAlpha', 1-opt.Transparent, ...
         unmatched{:} ...
     );
-    patchHandles = [patchHandles, ithPatchHandle];
-
     set(h, 'NextPlot', nextPlot);
-    
-    % Add caption to the highlight.
-    if ~isempty(opt.Text)
-        ithTextHandle = visual.backend.createCaption( ...
-            h, xData([1, 2]), opt.Text{:} ...
-        );
-        textHandles = [textHandles, ithTextHandle];
-    end
-    
-    % Make sure zLim includes zCoor.
-    zLim = get(ithAxesHandle, 'zLim');
-    zLim(1) = min(zLim(1), Z_COOR);
-    zLim(2) = max(zLim(2), 0);
-    set(ithAxesHandle, 'zLim', zLim);
-end
-
-if isempty(patchHandles)
-    return
-end
-
-% Tag the highlights and captions for grfun.style.
-set(patchHandles, 'tag', 'highlight');
-set(textHandles, 'tag', 'highlight-caption');
-
-for i = 1 : length(patchHandles)
-    setappdata(patchHandles(i), 'IRIS_BackgroundLevel', Z_COOR);
-end
-visual.backend.moveToBackground(axesHandles);
-
-if opt.ExcludeFromLegend
-    grfun.excludefromlegend(patchHandles);
-end
-
 end

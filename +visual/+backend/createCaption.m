@@ -10,7 +10,7 @@ function captionHandle = createCaption(axesHandle, location, varargin)
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('visual.backend.createCaption');
-    INPUT_PARSER.addRequired('AxesHandles', @(x) isa(x, 'matlab.graphics.axis.Axes') && isscalar(x));
+    INPUT_PARSER.addRequired('AxesHandles', @(x) all(isgraphics(x, 'Axes')) && isscalar(x));
     INPUT_PARSER.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
     INPUT_PARSER.addParameter('String', @(x) ischar(x) || iscellstr(x) || isstring(x));
     INPUT_PARSER.addParameter('HorizontalPosition', 'right', @(x) any(strcmpi(x, {'center', 'centre', 'middle', 'left', 'right'})));

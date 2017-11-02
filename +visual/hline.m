@@ -42,14 +42,7 @@ function lineHandles = hline(varargin)
 
 %--------------------------------------------------------------------------
 
-if ~isempty(varargin) && all(ishghandle(varargin{1}))
-    axesHandles = varargin{1};
-    varargin(1) = [ ];
-else
-    axesHandles = gca( );
-end
-
-lineHandles = ...
-    visual.backend.plotInfiniteLine(axesHandles, 'horizontal', varargin{:});
+lineHandles = visual.backend.plotInfiniteLine('horizontal', varargin{:});
+set(lineHandles, 'Tag', 'hline');
 
 end

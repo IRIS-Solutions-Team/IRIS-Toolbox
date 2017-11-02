@@ -39,24 +39,7 @@ function lineHandles = zeroline(varargin)
 
 %--------------------------------------------------------------------------
 
-if ~isempty(varargin) && all(ishghandle(varargin{1}))
-    axesHandles = varargin{1};
-    varargin(1) = [ ];
-else
-    axesHandles = gca( );
-end
-
-if ~isempty(varargin) 
-    if isequal(varargin{1}, false)
-        return
-    elseif isequal(varargin{1}, true)
-        varargin(1) = [ ];
-    end
-end
-
-lineHandles = ...
-    visual.backend.plotInfiniteLine(axesHandles, 'horizontal', 0, varargin{:});
-
-set(lineHandles, 'tag', 'zeroline');
+lineHandles = visual.backend.plotInfiniteLine('zero', varargin{:});
+set(lineHandles, 'Tag', 'zeroline');
 
 end

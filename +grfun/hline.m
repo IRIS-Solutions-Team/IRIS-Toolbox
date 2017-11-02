@@ -1,7 +1,7 @@
 function varargout = hline(varargin)
 % hline  Legacy name for visual.hline
 %
-% See help on visual.hline.
+% See help on visual.hline
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
