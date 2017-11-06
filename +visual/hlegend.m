@@ -48,6 +48,12 @@ MARGIN = 0.01;
 
 %--------------------------------------------------------------------------
 
+% When called with Axes handles, allow for Figure handles as well, and
+% extract the current Axes from each Figure.
+if ~isempty(varargin) && all(isgraphics(varargin{1}, 'Axes') | isgraphics(varargin{1}, 'Figure'))
+    varargin{1} = visual.backend.resolveAxesHandles('Current', varargin{1});
+end
+
 legendHandle = legend(varargin{:});
 
 if ~isempty(legendHandle)
