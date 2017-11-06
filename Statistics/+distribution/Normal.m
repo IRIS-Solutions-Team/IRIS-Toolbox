@@ -38,7 +38,7 @@
 
 classdef Normal < distribution.Abstract
     properties (Constant)
-        PDF_CONSTANT = 1/sqrt(2*pi);
+        CONSTANT = 1/sqrt(2*pi);
     end
 
 
@@ -61,6 +61,12 @@ classdef Normal < distribution.Abstract
                     this.Name, parameterization ...
                 );
             end
+            if ~isfinite(this.Std)
+                this.Std = sqrt(this.Var);
+            end
+            if ~isfinite(this.Var)
+                this.Var = this.Std^2;
+            end
             this.Location = this.Mean;
             this.Scale = this.Std;
             this.Mode = this.Mean;
@@ -70,13 +76,11 @@ classdef Normal < distribution.Abstract
 
         function fromMeanStd(this, varargin)
             [this.Mean, this.Std] = varargin{1:2};
-            this.Var = this.Std.^2;
         end
 
 
         function fromMeanVar(this, varargin)
             [this.Mean, this.Var] = varargin{1:2};
-            this.Std = sqrt(this.Var);
         end
 
 
@@ -92,7 +96,7 @@ classdef Normal < distribution.Abstract
 
         function y = pdf(this, x)
             y = logPdf(this, x);
-            y = this.PDF_CONSTANT./this.Std * exp(y);
+            y = this.CONSTANT./this.Std * exp(y);
         end
 
 

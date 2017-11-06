@@ -1,28 +1,26 @@
-% gamma  Gamma distribution object
+% gamma  Inverse Gamma distribution object
 %
 % __Syntax__
 %
-%     F = distribution.Gamma('ShapeScale', Alpha, Beta)
-%     F = distribution.Gamma('AlphaBeta', Alpha, Beta)
-%     F = distribution.Gamma('MeanVar', Mean, Var)
-%     F = distribution.Gamma('MeanStd', Mean, Std)
-%     F = distribution.Gamma('ModeVar', Mode, Var)
-%     F = distribution.Gamma('ModeStd', Mode, Std)
+%     F = distribution.InvGamma('ShapeScale', Shape, Scale)
+%     F = distribution.InvGamma('AlphaBeta', Alpha, Beta)
+%     F = distribution.InvGamma('MeanVar', Mean, Var)
+%     F = distribution.InvGamma('MeanStd', Mean, Std)
 %
 %
 % __Input Arguments__
 %
-% * `Alpha` [ numeric ] - Shape parameter of Gamma distribution.
+% * `Alpha` [ numeric ] - Shape parameter Alpha of the underlying Gamma
+% distribution.
 %
-% * `Beta [ numeric ] - Scale parameter of Gamma distribution.
+% * `Beta [ numeric ] - Scale parameter Beta of of the underlying Gamma
+% distribution.
 %
 % * `Mean` [ numeric ] - Mean of Gamma distribution.
 %
 % * `Var` [ numeric ] - Variance of Gamma distribution.
 %
 % * `Std` [ numeric ] - Std deviation of Gamma distribution.
-%
-% * `Mode` [ numeric ] - Mode of Gamma distribution.
 %
 %
 % __Output Arguments__
@@ -46,18 +44,20 @@
 
 %--------------------------------------------------------------------------
 
-classdef Gamma < distribution.Abstract
+classdef InvGamma < distribution.Abstract
     properties (SetAccess=protected)
-        Alpha = NaN       % Shape parameter
-        Beta = NaN        % Scale parameter
-        Constant = NaN    % Integration constant
+        Alpha       % Alpha parameter of underlying Gamma
+        Beta        % Beta parameter of underlying Gamma
+        Constant    % Integration constant
     end
 
 
     methods
-        function this = Gamma(varargin)
+        function this = InvGamma(varargin)
             this = this@distribution.Abstract(varargin{:});
-            this.Name = 'Gamma';
+            this.Name = 'InvGamma';
+            this.Location = NaN;
+            this.Median = NaN;
             if nargin==0
                 return
             end
@@ -66,76 +66,65 @@ classdef Gamma < distribution.Abstract
                 fromMeanStd(this, varargin{2:3});
             elseif strcmpi(parameterization, 'MeanVar')
                 fromMeanVar(this, varargin{2:3});
-            elseif strcmpi(parameterization, 'AlphaBeta') || strcmpi(parameterization, 'ShapeScale')
+            elseif strcmpi(parameterization, 'AlphaBeta') 
                 fromAlphaBeta(this, varargin{2:3})
-            elseif strcmpi(parameterization, 'ModeVar')
-                fromModeVar(this, varargin{2:3});
-            elseif strcmpi(parameterization, 'ModeStd')
-                fromModeStd(this, varargin{2:3});
+            elseif strcmpi(parameterization, 'ShapeScale')
+                fromShapeScale(this, varargin{2:3});
             else
                 throw( ...
                     exception.Base('Distribution:InvalidParameterization', 'error'), ...
                     this.Name, parameterization ...
                 );
             end
-            if ~isfinite(this.Mean)
-                this.Mean = this.Alpha*this.Beta;
+            this.Mode = 1/(this.Beta*(this.Alpha+1));
+            if ~isfinite(this.Mean) && this.Alpha>1
+                this.Mean = 1/(this.Beta*(this.Alpha-1));
             end
-            if ~isfinite(this.Mode)
-                this.Mode = max(0, (this.Alpha-1)*this.Beta);
+            if ~isfinite(this.Var) && this.Alpha>2
+                this.Var = this.Mean^2 / (this.Alpha-2);
             end
             if ~isfinite(this.Std)
                 this.Std = sqrt(this.Var);
             end
-            this.Shape = this.Alpha;
-            this.Scale = this.Beta;
+            if ~isfinite(this.Shape)
+                this.Shape = this.Alpha;
+            end
+            if ~isfinite(this.Scale)
+                this.Scale = 1./this.Beta;
+            end
             this.Constant = 1./(this.Beta^this.Alpha * gamma(this.Alpha));
+        end
+
+
+        function fromShapeScale(this, varargin)
+            [this.Shape, this.Scale] = varargin{1:2};
+            this.Alpha = this.Shape;
+            this.Beta = 1/this.Scale;
         end
 
 
         function fromAlphaBeta(this, varargin)
             [this.Alpha, this.Beta] = varargin{1:2};
-            this.Mean = this.Alpha * this.Beta;
-            this.Var = this.Alpha * this.Beta.^2;
         end
 
 
         function fromMeanStd(this, varargin)
             [this.Mean, this.Std] = varargin{1:2};
-            this.Var = this.Std.^2;
+            this.Var = this.Std^2;
             alphaBetaFromMeanVar(this);
         end
 
 
         function fromMeanVar(this, varargin)
             [this.Mean, this.Var] = varargin{1:2};
+            this.Std = sqrt(this.Var);
             alphaBetaFromMeanVar(this);
         end
 
 
-        function fromModeVar(this, varargin)
-            [this.Mode, this.Var] = varargin{1:2};
-            alphaBetaFromModeVar(this);
-        end
-
-
-        function fromModeStd(this, varargin)
-            [this.Mode, this.Std] = varargin{1:2};
-            this.Var = this.Std^2;
-            alphaBetaFromModeVar(this);
-        end
-
-
         function alphaBetaFromMeanVar(this)
-            this.Beta = this.Var / this.Mean;
-            this.Alpha = this.Mean / this.Beta;
-        end
-
-
-        function alphaBetaFromModeVar(this)
-            k = this.Mode^2/this.Var + 2;
-            this.Alpha = fzero(@(x) x+1/x - k, [1+1e-10, 1e10]);
-            this.Beta = this.Mode/(this.Alpha - 1);
+            this.Alpha = this.Mean^2/this.Var + 2;
+            this.Beta = 1./(this.Mean*(this.Alpha-1));
         end
 
 
@@ -143,7 +132,7 @@ classdef Gamma < distribution.Abstract
             y = zeros(size(x));
             indexInDomain = inDomain(this, x);
             x = x(indexInDomain);
-            y(indexInDomain) = (this.Alpha - 1)*log(x) - x/this.Beta;
+            y(indexInDomain) = (-this.Alpha - 1)*log(x) - 1./(this.Beta * x);
             y(~indexInDomain) = -Inf;
         end
 
@@ -157,7 +146,7 @@ classdef Gamma < distribution.Abstract
             y = zeros(size(x));
             indexInDomain = inDomain(this, x);
             x = x(indexInDomain);
-            y(indexInDomain) = x.^(this.Alpha-1).*exp(-x/this.Beta) * this.Constant;
+            y(indexInDomain) = x.^(-this.Alpha-1).*exp(-1./(this.Beta * x)) * this.Constant;
         end
 
 
@@ -165,7 +154,9 @@ classdef Gamma < distribution.Abstract
             y = nan(size(x));
             indexInDomain = inDomain(this, x);
             x = x(indexInDomain);
-            y(indexInDomain) = (this.Alpha - 1) / x.^2;
+            x2 = x(indexInDomain).^2;
+            x3 = x(indexInDomain).^3;
+            y(indexInDomain) = (-this.Alpha - 1)./x2 + 2./(this.Beta * x3);
         end
     end
 end

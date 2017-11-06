@@ -1,25 +1,20 @@
-function legendHandle = legend(varargin)
-% legend  Horizontal legend displayed at top or bottom of figure window
+function legendHandle = hlegend(location, varargin)
+% hlegend  Horizontal legend displayed at top or bottom of figure window
 %
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     Legend = visual.legend(Location, Entry, Entry, ...)
-%     Legend = visual.legend(~Axes, Location, Entry, Entry, ...)
+%     Legend = visual.hlegend(Location, ...)
 %
 %
 % __Input Arguments__
 %
-% * `~Axes` [ Axes | Figure ] - Handle(s) to either axes objects or figure
-% objects for which bottom legend will be created; if omitted, legend will
-% be created for the current axes.
-%
 % * `Location` [ `'top'` | `'bottom'` ] - Location of the legend within the
 % figure window.
 %
-% * `Entry` [ char | cellstr ] - Legend entries and options; same as in the
-% standard `legend` function.
+% All other input arguments are the same as input arguments into the
+% standard Matlab function `legend( )`.
 %
 %
 % __Output Arguments__
@@ -42,46 +37,18 @@ function legendHandle = legend(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-axesHandle = @gca;
-if all(isgraphics(varargin{1}))
-    axesHandle = varargin{1};
-    varargin(1) = [ ];
-end
-
-location = varargin{1};
-varargin(1) = [ ];
-
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('visual.legend');
-    INPUT_PARSER.KeepUnmatched = true;
     INPUT_PARSER.addRequired('Location', @(x) any(strcmpi(x, {'Top', 'Bottom'})));
-    INPUT_PARSER.addOptional('AxesHandle', @gca, @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes') | isgraphics(x, 'Figure')));
 end
-INPUT_PARSER.parse(location, axesHandle);
-
-% Input handles can be either Axes objects or Figure objects. If they are
-% Figures, get the current Axes from within each Figure, and create top or
-% bottom legend for it.
-if isgraphics(axesHandle)
-    axesHandle = visual.backend.resolveAxesHandles('Current', axesHandle);
-end
+INPUT_PARSER.parse(location);
 
 MARGIN = 0.01;
 
 %--------------------------------------------------------------------------
 
-if isequal(axesHandle, @gca)
-    legendHandle = legend(varargin{:});
-else
-    legendHandle = gobjects(1, 0);
-    for i = 1 : numel(axesHandle)
-        legendHandle = [ ...
-            legendHandle, ...
-            legend(axesHandle(i), varargin{:}) ...
-        ];
-    end
-end
+legendHandle = legend(varargin{:});
 
 if ~isempty(legendHandle)
     set(legendHandle, 'Orientation', 'Horizontal');

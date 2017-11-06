@@ -6,14 +6,14 @@
 classdef (Abstract) Abstract < handle
     properties (SetAccess=protected)
         Name = ''
-        Location
-        Shape
-        Scale
-        Mean
-        Std
-        Var
-        Mode
-        Median
+        Location = NaN
+        Shape = NaN
+        Scale = NaN
+        Mean = NaN
+        Std = NaN
+        Var = NaN
+        Mode = NaN
+        Median = NaN
     end
 
 

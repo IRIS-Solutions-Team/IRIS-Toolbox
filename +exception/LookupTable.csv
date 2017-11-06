@@ -28,6 +28,7 @@ Dbase:InvalidOptionNameFunc, Option NameFunc= must be function returning text st
 Dbase:NameNotExist,This name does not exist in input database: %s
 DateWrapper:InvalidDateFormat,"Invalid date format; must be char, string, cellstr, or struct."
 Distribution:InvalidParameterization,"This is not a valid type of parameterization for %s distribution: %s"
+Distribution:Uniform:LowerUpperBounds, Lower bound of Uniform distribution must be lower than upper bound
 Dynamic:EvaluatesToNan,This dynamic equation evaluates to NaN or Inf in period %1: %s
 Equation:InvalidDefinition,This definition has an invalid LHS: %s 
 Equation:InvalidLhsDtrend,Invalid LHS in this dtrend equation: %s 
