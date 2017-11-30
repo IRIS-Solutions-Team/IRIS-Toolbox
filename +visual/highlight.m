@@ -150,7 +150,7 @@ for a = 1 : numel(axesHandle)
 
     yData = getYData(h, LIM_MULTIPLE);
     for i = 1 : numel(range)
-        xData = getXData(h, range{i});
+        xData = getXData(h, range{i}, opt);
         if isempty(xData)
             continue
         end
@@ -192,7 +192,7 @@ end
 end
 
 
-function xData = getXData(h, range)
+function xData = getXData(h, range, opt)
     if isa(range, 'DateWrapper')
         freq = DateWrapper.getFrequencyFromNumeric(range(1));
         xLim = get(h, 'XLim');
