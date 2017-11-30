@@ -1,4 +1,4 @@
-function F = invgamma(Mean,Std)
+function F = invgamma(Mean,Std,varargin)
 % invgamma  Create function proportional to log of inv-gamma distribution.
 %
 % Syntax
