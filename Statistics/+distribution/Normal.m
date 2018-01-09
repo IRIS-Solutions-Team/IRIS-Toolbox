@@ -1,34 +1,44 @@
-% Normal  Function proportional to log density of Normal distribution
-%
-% __Syntax__
-%
-%     F = distribution.Normal('MeanStd', Mean, Std)
-%     F = distribution.Normal('MeanVar', Mean, Var)
+% Normal  Normal distribution object
 %
 %
-% __Input Arguments__
+% Normal methods:
 %
-% * `Mean` [ numeric ] - Mean of Normal distribution.
+% __Constructors__
 %
-% * `Std` [ numeric ] - Std deviation of Normal distribution.
+%   distribution.Normal.standardized - Standarized Normal distribution
+%   distribution.Normal.fromMeanVar - Normal distribution from mean and variance
+%   distribution.Normal.fromMeanStd - Normal distribution from mean and std deviation
+%   distribution.Normal.fromMedianVar - Normal distribution from median and variance
+%   distribution.Normal.fromMedianStd - Normal distribution from median and std deviation
+%   distribution.Normal.fromModeVar - Normal distribution from mode and variance
+%   distribution.Normal.fromModeStd - Normal distribution from mode and std deviation
 %
-% * `Var` [ numeric ] - Variance of Normal distribution.
+%
+% __Distribution Properties__
+%
+% These properties are directly accessible through the distribution object,
+% followed by a dot and the name of a property.
+%
+%   Lower - Lower bound of distribution domain
+%   Upper - Upper bound of distribution domain
+%   Mean - Mean (expected value) of distribution
+%   Var - Variance of distribution
+%   Std - Standard deviation of distribution
+%   Mode - Mode of distribution
+%   Median - Median of distribution
+%   Location - Location parameter of distribution
+%   Scale - Scale parameter of distribution
 %
 %
-% __Output Arguments__
+% __Density Related Functions__
 %
-% * `F` [ function_handle ] - Function handle returning a value
-% proportional to the log density of the Normal distribution, and giving
-% access to other characteristics of the Normal distribution.
+%   pdf - Probability density function
+%   logPdf - Log of probability density function up to constant
+%   info - Minus second derivative of log of probability density function
+%   inDomain - True for data points within domain of distribution function
 %
 %
 % __Description__
-%
-% See [help on the `distribution` package](distribution/Contents) for details on
-% using the function handle `F`.
-%
-%
-% Example
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -37,8 +47,8 @@
 %--------------------------------------------------------------------------
 
 classdef Normal < distribution.Abstract
-    properties (Constant)
-        CONSTANT = 1/sqrt(2*pi);
+    properties 
+        Constant = NaN
     end
 
 
@@ -46,21 +56,31 @@ classdef Normal < distribution.Abstract
         function this = Normal(varargin)
             this = this@distribution.Abstract(varargin{:});
             this.Name = 'Normal';
-            this.Shape = NaN;
-            if nargin==0
-                return
-            end
-            parameterization = varargin{1};
-            if strcmpi(parameterization, 'MeanStd')
-                fromMeanStd(this, varargin{2:3});
-            elseif strcmpi(parameterization, 'MeanVar')
-                fromMeanVar(this, varargin{2:3})
-            else
-                throw( ...
-                    exception.Base('Distribution:InvalidParameterization', 'error'), ...
-                    this.Name, parameterization ...
-                );
-            end
+            this.Lower = -Inf;
+            this.Upper = Inf;
+        end
+
+
+        function y = logPdf(this, x)
+            y = -0.5*( (x - this.Mean).^2 ./ this.Var );
+        end
+
+
+        function y = pdf(this, x)
+            y = logPdf(this, x);
+            y = this.Constant * exp(y);
+        end
+
+
+        function y = info(this, x)
+            y = 1/this.Var;
+            y = y(ones(size(x)));
+        end
+    end
+
+
+    methods (Access=protected)
+        function populateParameters(this)
             if ~isfinite(this.Std)
                 this.Std = sqrt(this.Var);
             end
@@ -71,38 +91,70 @@ classdef Normal < distribution.Abstract
             this.Scale = this.Std;
             this.Mode = this.Mean;
             this.Median = this.Mean;
+            this.Constant = 1/(sqrt(2*pi)*this.Std);
+        end
+    end
+
+
+    methods (Static)
+        function this = standardized( )
+            % distribution.Normal.standardized  Standardized Normal distribution
+            this = distribution.Normal( );
+            this.Mean = 0;
+            this.Var = 1;
+            populateParameters(this);
         end
 
 
-        function fromMeanStd(this, varargin)
-            [this.Mean, this.Std] = varargin{1:2};
-        end
-
-
-        function fromMeanVar(this, varargin)
+        function this = fromMeanVar(varargin)
+            % distribution.Normal.fromMeanVar  Normal distribution from mean and variance
+            this = distribution.Normal( );
             [this.Mean, this.Var] = varargin{1:2};
+            populateParameters(this);
         end
 
 
-        function y = logPdf(this, x)
-            y = -0.5*( (x - this.Mean).^2 ./ this.Var );
+        function this = fromMeanStd(varargin)
+            % distribution.Normal.fromMeanStd  Normal distribution from mean and std deviation
+            this = distribution.Normal( );
+            [this.Mean, this.Std] = varargin{1:2};
+            populateParameters(this);
         end
 
 
-        function indexInDomain = inDomain(this, x)
-            indexInDomain = true(size(x)); 
+        function this = fromMedianVar(varargin)
+            % distribution.Normal.fromMedianVar  Normal distribution from median and variance
+            this = distribution.Normal( );
+            [this.Median, this.Var] = varargin{1:2};
+            this.Mean = this.Median;
+            populateParameters(this);
         end
 
 
-        function y = pdf(this, x)
-            y = logPdf(this, x);
-            y = this.CONSTANT./this.Std * exp(y);
+        function this = fromMedianStd(varargin)
+            % distribution.Normal.fromMedianStd  Normal distribution from median and std deviation
+            this = distribution.Normal( );
+            [this.Median, this.Std] = varargin{1:2};
+            this.Mean = this.Median;
+            populateParameters(this);
         end
 
 
-        function y = info(this, x)
-            y = 1/this.Var;
-            y = y(ones(size(x)));
+        function this = fromModeVar(varargin)
+            % distribution.Normal.fromModeVar  Normal distribution from mode and variance
+            this = distribution.Normal( );
+            [this.Mode, this.Var] = varargin{1:2};
+            this.Mean = this.Mode;
+            populateParameters(this);
+        end
+
+
+        function this = fromModeStd(varargin)
+            % distribution.Normal.fromModeStd  Normal distribution from mode and std deviation
+            this = distribution.Normal( );
+            [this.Mode, this.Std] = varargin{1:2};
+            this.Mean = this.Mode;
+            populateParameters(this);
         end
     end
 end

@@ -1,42 +1,46 @@
-% gamma  Inverse Gamma distribution object
-%
-% __Syntax__
-%
-%     F = distribution.InvGamma('ShapeScale', Shape, Scale)
-%     F = distribution.InvGamma('AlphaBeta', Alpha, Beta)
-%     F = distribution.InvGamma('MeanVar', Mean, Var)
-%     F = distribution.InvGamma('MeanStd', Mean, Std)
+% InvGamma  Inverse Gamma distribution object
 %
 %
-% __Input Arguments__
+% Inverse Gamma methods:
 %
-% * `Alpha` [ numeric ] - Shape parameter Alpha of the underlying Gamma
-% distribution.
+% __Constructors__
 %
-% * `Beta [ numeric ] - Scale parameter Beta of of the underlying Gamma
-% distribution.
-%
-% * `Mean` [ numeric ] - Mean of Gamma distribution.
-%
-% * `Var` [ numeric ] - Variance of Gamma distribution.
-%
-% * `Std` [ numeric ] - Std deviation of Gamma distribution.
+%   distribution.InvGamma.fromShapeScale - Inverse Gamma distribution from shape and scale parameters
+%   distribution.InvGamma.fromAlphaBeta - Inverse Gamma distribution from alpha and beta parameters of underlying Gamma distribution
+%   distribution.InvGamma.fromMeanVar - Inverse Gamma distribution from mean and variance
+%   distribution.InvGamma.fromMeanStd - Inverse Gamma distribution from mean and std deviation
+%   distribution.InvGamma.fromModeVar - Inverse Gamma distribution from mode and variance
+%   distribution.InvGamma.fromModeStd - Inverse Gamma distribution from mode and std deviation
 %
 %
-% __Output Arguments__
+% __Distribution Properties__
 %
-% * `F` [ function_handle ] - Function handle returning a value
-% proportional to the log density of the Gamma distribution, and giving
-% access to other characteristics of the Gamma distribution.
+% These properties are directly accessible through the distribution object,
+% followed by a dot and the name of a property.
+%
+%   Alpha - (scale) parameter of underlying Gamma distribution
+%   Beta - (shape) parameter of underlying Gamma distribution
+%   Lower - Lower bound of distribution domain
+%   Upper - Upper bound of distribution domain
+%   Mean - Mean (expected value) of distribution
+%   Var - Variance of distribution
+%   Std - Standard deviation of distribution
+%   Mode - Mode of distribution
+%   Median - Median of distribution
+%   Location - Location parameter of distribution
+%   Shape - Shape parameter of distribution
+%   Scale - Scale parameter of distribution
+%
+%
+% __Density Related Functions__
+%
+%   pdf - Probability density function
+%   logPdf - Log of probability density function up to constant
+%   info - Minus second derivative of log of probability density function
+%   inDomain - True for data points within domain of distribution function
 %
 %
 % __Description__
-%
-% See [help on the `distribution` package](distribution/Contents) for details on
-% using the function handle `F`.
-%
-%
-% Example
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -46,9 +50,21 @@
 
 classdef InvGamma < distribution.Abstract
     properties (SetAccess=protected)
-        Alpha       % Alpha parameter of underlying Gamma
-        Beta        % Beta parameter of underlying Gamma
+        % Alpha (scale) parameter of underlying Gamma distribution
+        Alpha       
+
+        % Beta (shape) parameter of underlying Gamma distribution
+        Beta        
+    end
+
+
+    properties (SetAccess=protected, Hidden)
         Constant    % Integration constant
+    end
+
+
+    properties (Constant, Hidden)
+        MAX_ALPHA = 1e10;
     end
 
 
@@ -56,26 +72,42 @@ classdef InvGamma < distribution.Abstract
         function this = InvGamma(varargin)
             this = this@distribution.Abstract(varargin{:});
             this.Name = 'InvGamma';
-            this.Location = NaN;
-            this.Median = NaN;
-            if nargin==0
-                return
-            end
-            parameterization = varargin{1};
-            if strcmpi(parameterization, 'MeanStd')
-                fromMeanStd(this, varargin{2:3});
-            elseif strcmpi(parameterization, 'MeanVar')
-                fromMeanVar(this, varargin{2:3});
-            elseif strcmpi(parameterization, 'AlphaBeta') 
-                fromAlphaBeta(this, varargin{2:3})
-            elseif strcmpi(parameterization, 'ShapeScale')
-                fromShapeScale(this, varargin{2:3});
-            else
-                throw( ...
-                    exception.Base('Distribution:InvalidParameterization', 'error'), ...
-                    this.Name, parameterization ...
-                );
-            end
+            this.Lower = 0;
+            this.Upper = Inf;
+            this.Location = 0;
+        end
+
+
+        function y = logPdf(this, x)
+            y = zeros(size(x));
+            indexInDomain = inDomain(this, x);
+            x = x(indexInDomain);
+            y(indexInDomain) = (-this.Alpha - 1)*log(x) - 1./(this.Beta * x);
+            y(~indexInDomain) = -Inf;
+        end
+
+
+        function y = pdf(this, x)
+            y = zeros(size(x));
+            indexInDomain = inDomain(this, x);
+            x = x(indexInDomain);
+            y(indexInDomain) = x.^(-this.Alpha-1).*exp(-1./(this.Beta * x)) * this.Constant;
+        end
+
+
+        function y = info(this, x)
+            y = nan(size(x));
+            indexInDomain = inDomain(this, x);
+            x = x(indexInDomain);
+            x2 = x(indexInDomain).^2;
+            x3 = x(indexInDomain).^3;
+            y(indexInDomain) = (-this.Alpha - 1)./x2 + 2./(this.Beta * x3);
+        end
+    end
+
+
+    methods (Access=protected)
+        function populateParameters(this)
             this.Mode = 1/(this.Beta*(this.Alpha+1));
             if ~isfinite(this.Mean) && this.Alpha>1
                 this.Mean = 1/(this.Beta*(this.Alpha-1));
@@ -96,67 +128,75 @@ classdef InvGamma < distribution.Abstract
         end
 
 
-        function fromShapeScale(this, varargin)
-            [this.Shape, this.Scale] = varargin{1:2};
-            this.Alpha = this.Shape;
-            this.Beta = 1/this.Scale;
-        end
-
-
-        function fromAlphaBeta(this, varargin)
-            [this.Alpha, this.Beta] = varargin{1:2};
-        end
-
-
-        function fromMeanStd(this, varargin)
-            [this.Mean, this.Std] = varargin{1:2};
-            this.Var = this.Std^2;
-            alphaBetaFromMeanVar(this);
-        end
-
-
-        function fromMeanVar(this, varargin)
-            [this.Mean, this.Var] = varargin{1:2};
-            this.Std = sqrt(this.Var);
-            alphaBetaFromMeanVar(this);
-        end
-
-
         function alphaBetaFromMeanVar(this)
             this.Alpha = this.Mean^2/this.Var + 2;
             this.Beta = 1./(this.Mean*(this.Alpha-1));
         end
 
 
-        function y = logPdf(this, x)
-            y = zeros(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            y(indexInDomain) = (-this.Alpha - 1)*log(x) - 1./(this.Beta * x);
-            y(~indexInDomain) = -Inf;
+        function alphaBetaFromModeVar(this)
+            k = this.Var/this.Mode^2;
+            obj = @(Alpha) (Alpha+1)^2 - k*(Alpha-1)^2*(Alpha-2);
+            this.Alpha = fzero(obj, [2+eps(), this.MAX_ALPHA]);
+            this.Beta = 1./(this.Mode * (this.Alpha+1));
+        end
+    end
+
+
+    methods (Static)
+        function this = fromShapeScale(varargin)
+            % distribution.InvGamma.fromShapeScale  Inverse Gamma distribution from shape and scale parameters
+            this = distribution.InvGamma( );
+            [this.Shape, this.Scale] = varargin{1:2};
+            this.Alpha = this.Shape;
+            this.Beta = 1/this.Scale;
+            populateParameters(this);
         end
 
 
-        function indexInDomain = inDomain(this, x)
-            indexInDomain = x>0;
+        function this = fromAlphaBeta(varargin)
+            % distribution.InvGamma.fromAlphaBeta  Inverse Gamma distribution from alpha and beta parameters of underlying Gamma distribution
+            this = distribution.InvGamma( );
+            [this.Alpha, this.Beta] = varargin{1:2};
+            populateParameters(this);
         end
 
 
-        function y = pdf(this, x)
-            y = zeros(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            y(indexInDomain) = x.^(-this.Alpha-1).*exp(-1./(this.Beta * x)) * this.Constant;
+        function this = fromMeanVar(varargin)
+            % distribution.InvGamma.fromMeanVar  Inverse Gamma distribution from mean and variance
+            this = distribution.InvGamma( );
+            [this.Mean, this.Var] = varargin{1:2};
+            alphaBetaFromMeanVar(this);
+            populateParameters(this);
         end
 
 
-        function y = info(this, x)
-            y = nan(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            x2 = x(indexInDomain).^2;
-            x3 = x(indexInDomain).^3;
-            y(indexInDomain) = (-this.Alpha - 1)./x2 + 2./(this.Beta * x3);
+        function this = fromMeanStd(varargin)
+            % distribution.InvGamma.fromMeanStd  Inverse Gamma distribution from mean and std deviation
+            this = distribution.InvGamma( );
+            [this.Mean, this.Std] = varargin{1:2};
+            this.Var = this.Std^2;
+            alphaBetaFromMeanVar(this);
+            populateParameters(this);
+        end
+
+
+        function this = fromModeVar(varargin)
+            % distribution.InvGamma.fromModeVar  Inverse Gamma distribution from mode and variance
+            this = distribution.InvGamma( );
+            [this.Mode, this.Var] = varargin{1:2};
+            alphaBetaFromModeVar(this);
+            populateParameters(this);
+        end
+
+
+        function this = fromModeStd(varargin)
+            % distribution.InvGamma.fromModeStd  Inverse Gamma distribution from mode and std deviation
+            this = distribution.InvGamma( );
+            [this.Mode, this.Std] = varargin{1:2};
+            this.Var = this.Std^2;
+            alphaBetaFromModeVar(this);
+            populateParameters(this);
         end
     end
 end

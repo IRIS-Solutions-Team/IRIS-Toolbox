@@ -1,35 +1,41 @@
-% Uniform  Function proportional to log density of Uniform distribution
-%
-% __Syntax__
-%
-%     F = distribution.Uniform('MeanStd', Mean, Std)
-%     F = distribution.Uniform('MeanVar', Mean, Var)
+% Uniform  Uniform distribution object
 %
 %
-% __Input Arguments__
+% Uniform methods:
 %
-% * `Mean` [ numeric ] - Mean of Uniform distribution.
+% __Constructors__
 %
-% * `Std` [ numeric ] - Std deviation of Uniform distribution.
+%   distribution.Uniform.fromLowerUpper - Uniform distribution from lower and upper bounds
+%   distribution.Uniform.fromMeanVar - Uniform distribution from mean and variance
+%   distribution.Uniform.fromMeanStd - Uniform distribution from mean and std deviation
+%   distribution.Uniform.fromMedianVar - Uniform distribution from median and variance
+%   distribution.Uniform.fromMedianStd - Uniform distribution from median and std deviation
 %
-% * `Var` [ numeric ] - Variance of Uniform distribution.
+%
+% __Distribution Properties__
+%
+% These properties are directly accessible through the distribution object,
+% followed by a dot and the name of a property.
+%
+%   Lower - Lower bound of distribution domain
+%   Upper - Upper bound of distribution domain
+%   Mean - Mean (expected value) of distribution
+%   Var - Variance of distribution
+%   Std - Standard deviation of distribution
+%   Median - Median of distribution
 %
 %
-% __Output Arguments__
+% __Density Related Functions__
 %
-% * `F` [ function_handle ] - Function handle returning a value
-% proportional to the log density of the Uniform distribution, and giving
-% access to other characteristics of the Uniform distribution.
+%   pdf - Probability density function
+%   logPdf - Log of probability density function up to constant
+%   info - Minus second derivative of log of probability density function
+%   inDomain - True for data points within domain of distribution function
 %
 %
 % __Description__
 %
-% See [help on the `distribution` package](distribution/Contents) for details on
-% using the function handle `F`.
-%
-%
-% Example
-%
+
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
@@ -37,9 +43,7 @@
 %--------------------------------------------------------------------------
 
 classdef Uniform < distribution.Abstract
-    properties (SetAccess=protected)
-        Lower = NaN
-        Upper = NaN
+    properties (SetAccess=protected, Hidden)
         Pdf = NaN
     end
 
@@ -48,79 +52,6 @@ classdef Uniform < distribution.Abstract
         function this = Uniform(varargin)
             this = this@distribution.Abstract(varargin{:});
             this.Name = 'Uniform';
-            if nargin==0
-                return
-            end
-            parameterization = varargin{1};
-            if strcmpi(parameterization, 'LowerUpper')
-                fromLowerUpper(this, varargin{2:3});
-            elseif strcmpi(parameterization, 'MeanStd')
-                fromMeanStd(this, varargin{2:3})
-            elseif strcmpi(parameterization, 'MeanVar')
-                fromMeanVar(this, varargin{2:3})
-            elseif strcmpi(parameterization, 'MedianStd')
-                fromMedianStd(this, varargin{2:3})
-            elseif strcmpi(parameterization, 'MedianVar')
-                fromMedianVar(this, varargin{2:3})
-            else
-                throw( ...
-                    exception.Base('Distribution:InvalidParameterization', 'error'), ...
-                    this.Name, parameterization ...
-                );
-            end
-            this.Pdf = 1./(this.Upper - this.Lower);
-            if ~isfinite(this.Mean)
-                this.Mean = (this.Lower + this.Upper)/2;
-            end
-            if ~isfinite(this.Median)
-                this.Median = (this.Lower + this.Upper)/2;
-            end
-            if ~isfinite(this.Var)
-                this.Variance = (this.Upper - this.Lower)^2/12;
-            end
-            if ~isfinite(this.Std)
-                this.Std = sqrt(this.Var);
-            end
-        end
-
-
-        function fromLowerUpper(this, varargin)
-            [this.Lower, this.Upper] = varargin{:};
-            assert( ...
-                this.Lower<this.Upper, ...
-                exception.Base('distribution:Uniform:LowerUpperBounds', 'error') ...
-            );
-        end
-
-
-        function fromMeanVar(this, varargin)
-            [this.Mean, this.Var] = varargin{1:2};
-            this.Std = sqrt(this.Var);
-            fromMeanStd(this);
-        end
-
-
-        function fromMeanStd(this, varargin)
-            if nargin>1
-                [this.Mean, this.Std] = varargin{1:2};
-            end
-            this.Upper = sqrt(12)*this.Std/2 + this.Mean;
-            this.Lower = 2*this.Mean - this.Upper;
-        end
-
-
-        function fromMedianVar(this, varargin)
-            [this.Median, this.Var] = varargin{1:2};
-            this.Mean = this.Median;
-            this.Std = sqrt(this.Var);
-            fromMeanStd(this);
-        end
-
-
-        function fromMedianStd(this, varargin)
-            [this.Median, this.Std] = varargin{1:2};
-            this.Mean = this.Median;
-            fromMeanStd(this);
         end
 
 
@@ -129,11 +60,6 @@ classdef Uniform < distribution.Abstract
             y = zeros(size(x));
             y(indexInDomain) = 0;
             y(~indexInDomain) = -Inf;
-        end
-
-
-        function indexInDomain = inDomain(this, x)
-            indexInDomain = x>=this.Lower & x<=this.Upper;
         end
 
 
@@ -146,6 +72,84 @@ classdef Uniform < distribution.Abstract
 
         function y = info(this, x)
             y = zeros(size(x));
+        end
+    end
+
+
+    methods (Access=protected)
+        function populateParameters(this)
+            if ~isfinite(this.Mean)
+                this.Mean = (this.Lower + this.Upper)/2;
+            end
+            if ~isfinite(this.Median)
+                this.Median = (this.Lower + this.Upper)/2;
+            end
+            if ~isfinite(this.Var)
+                this.Var = (this.Upper - this.Lower)^2/12;
+            end
+            if ~isfinite(this.Std)
+                this.Std = sqrt(this.Var);
+            end
+            if ~isfinite(this.Location)
+                this.Location = this.Lower;
+            end
+            if ~isfinite(this.Scale)
+                this.Scale = this.Upper - this.Lower;
+            end
+            this.Pdf = 1./this.Scale;
+        end
+    end
+
+
+    methods (Static)
+        function this = fromLowerUpper(varargin)
+            % distribution.Uniform.fromLowerUpper  Uniform distribution from lower and upper bounds
+            this = distribution.Uniform( );
+            [this.Lower, this.Upper] = varargin{:};
+            populateParameters(this);
+        end
+
+
+        function this = fromMeanVar(varargin)
+            % distribution.Uniform.fromMeanVar  Uniform distribution from mean and variance
+            this = distribution.Uniform( );
+            this = distribution.Uniform( );
+            [this.Mean, this.Var] = varargin{1:2};
+            this.Std = sqrt(this.Var);
+            this.fromMeanStd(this);
+        end
+
+
+        function this = fromMeanStd(varargin)
+            % distribution.Uniform.fromMeanVar  Uniform distribution from mean and std deviation
+            if nargin==1
+                this = varargin{1};
+            else
+                this = distribution.Uniform( );
+                [this.Mean, this.Std] = varargin{1:2};
+            end
+            this.Upper = sqrt(12)*this.Std/2 + this.Mean;
+            this.Lower = 2*this.Mean - this.Upper;
+            populateParameters(this);
+        end
+
+
+        function fromMedianVar(varargin)
+            % distribution.Uniform.fromMeanVar  Uniform distribution from median and variance
+            this = distribution.Uniform( );
+            [this.Median, this.Var] = varargin{1:2};
+            this.Mean = this.Median;
+            this.Std = sqrt(this.Var);
+            fromMeanStd(this);
+        end
+
+
+        function fromMedianStd(varargin)
+            % distribution.Uniform.fromMeanVar  Uniform distribution from median and std deviation
+            this = distribution.Uniform( );
+            [this.Median, this.Std] = varargin{1:2};
+            this.Mean = this.Median;
+            fromMeanStd(this);
         end
     end
 end
