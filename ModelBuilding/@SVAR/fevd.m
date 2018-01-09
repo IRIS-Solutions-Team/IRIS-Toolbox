@@ -99,10 +99,10 @@ for iAlt = 1 : nAlt
 end
 
 % Create databases `XX` and `YY` from `X` and `Y`.
-if nargout > 2 && ~isempty(This.YNames)
+if nargout > 2 && ~isempty(This.NamesEndogenous)
     for i = 1 : ny
-        name = This.YNames{i};
-        c = utils.concomment(name,This.ENames);
+        name = This.NamesEndogenous{i};
+        c = utils.concomment(name,This.NamesErrors);
         if nAlt > 1
             % @@@@@ MOSW.
             % Matlab accepts repmat(c,1,1,nAlt), too.
@@ -118,9 +118,9 @@ end
 if true % ##### MOSW
     % Convert output matrices to namedmat objects if requested.
     if isNamedMat
-        X = namedmat(X,This.YNames,This.ENames);
+        X = namedmat(X,This.NamesEndogenous,This.NamesErrors);
         if nargout > 1
-            Y = namedmat(Y,This.YNames,This.ENames);
+            Y = namedmat(Y,This.NamesEndogenous,This.NamesErrors);
         end
     end
 else
