@@ -34,11 +34,25 @@ else
 end
 fprintf('\n');
 
-fprintf('\tvariables: ');
-if ~isempty(this.YNames)
-    fprintf('[%g] %s', length(this.YNames), textfun.displist(this.YNames));
+fprintf('\tendogenous: ');
+if ~isempty(this.NamesEndogenous)
+    fprintf('[%g] %s', length(this.NamesEndogenous), textfun.displist(this.NamesEndogenous));
 else
     fprintf('none');
+end
+fprintf('\n');
+
+% Exogenous inputs.
+fprintf('\texogenous: [%g] ', length(this.NamesExogenous));
+if ~isempty(this.NamesExogenous)
+    fprintf('%s', textfun.displist(this.NamesExogenous));
+end
+fprintf('\n');
+
+% Conditioning instruments.
+fprintf('\tconditioning: [%g] ', length(this.NamesConditioning));
+if ~isempty(this.NamesConditioning)
+    fprintf('%s', textfun.displist(this.NamesConditioning));
 end
 fprintf('\n');
 

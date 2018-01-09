@@ -34,7 +34,7 @@ else
 end
 
 if isInfRange
-    range = dbrange(inp, this.YNames);
+    range = dbrange(inp, this.NamesEndogenous);
 end
 
 sw = struct( );
@@ -43,13 +43,13 @@ sw.BaseYear = this.BaseYear;
 if retY
     sw.Warn.NotFound = mustY;
     sw.Warn.NonTseries = mustY;
-    Y = db2array(inp, range, this.YNames, sw);
+    Y = db2array(inp, range, this.NamesEndogenous, sw);
 end
 
 if retE
     sw.Warn.NotFound = mustE;
     sw.Warn.NonTseries = mustE;
-    E = db2array(inp, range, this.ENames, sw);
+    E = db2array(inp, range, this.NamesErrors, sw);
 end
 
 % Transpose and return data.

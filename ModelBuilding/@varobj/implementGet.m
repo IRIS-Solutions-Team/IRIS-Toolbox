@@ -1,5 +1,5 @@
 function [answ, flag] = implementGet(this, query, varargin)
-% implementGet  Implement get method for varobj objects.
+% implementGet  Implement get method for varobj objects
 %
 % Backend IRIS function.
 % No help provided.
@@ -56,19 +56,30 @@ switch query
         answ = comment(this);
         
     case {'ynames', 'ylist'}
-        answ = this.YNames;
+        answ = this.NamesEndogenous;
         
     case {'enames', 'elist'}
-        answ = this.ENames;
+        answ = this.NamesErrors;
         
     case {'xnames', 'xlist'}
-        answ = this.XNames;
+        answ = this.NamesExogenous;
+
+    case {'inames', 'ilist'}
+        answ = this.NamesConditioning;
+
+    case {'ieqtn'}
+        answ = this.IEqtn;
+        
+    case {'zi'}
+        % The constant term comes first in Zi, but comes last in user
+        % inputs/outputs.
+        answ = [this.Zi(:, 2:end), this.Zi(:, 1)];
         
     case {'names', 'list'}
-        answ = [this.YNames, this.ENames, this.XNames];
+        answ = this.AllNames;
         
     case {'nalt'}
-        answ = nAlt;
+        answ = this.NumVariants;
         
     case {'baseyear'}
         answ = this.BaseYear;

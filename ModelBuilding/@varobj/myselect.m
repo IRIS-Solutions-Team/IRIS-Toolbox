@@ -1,5 +1,5 @@
-function [ix, lsInvalid] = myselect(this, type, select)
-% myselect  [Not a public function] Convert user name selection to a logical index.
+function [indexSelected, namesInvalid] = myselect(this, type, select)
+% myselect  Convert user name selection to logical index
 %
 % Backend IRIS function.
 % No help provided.
@@ -11,46 +11,41 @@ function [ix, lsInvalid] = myselect(this, type, select)
 
 switch lower(type)
     case 'y'
-        list = myynames(this);
+        list = this.NamesEndogenous;
     case 'e'
-        list = myenames(this);
+        list = this.NamesErrors;
 end
 
-N = length(this.YNames);
+numEndogenous = this.NumEndogenous;
 select = select(:).';
-lsInvalid = { };
+namesInvalid = { };
 
-if isequal(select,Inf)
-    ix = true(1,N);
+if isequal(select, Inf) || isequal(select, @all)
+    indexSelected = true(1, numEndogenous);
 elseif isnumeric(select)
-    ix = false(1,N);
-    ix(select) = true;
+    indexSelected = false(1, numEndogenous);
+    indexSelected(select) = true;
 elseif iscellstr(select) || ischar(select)
     if ischar(select)
-        select = regexp(select,'\w+','match');
+        select = regexp(select, '\w+', 'match');
     end
-    ix = false(1,N);
-    nSelect = length(select);
-    for i = 1 : nSelect
-        cmp = strcmp(list,select{i});
-        if any(cmp)
-            ix = ix | cmp;
-        else
-            lsInvalid{end+1} = select{i}; %#ok<AGROW>
-        end
+    select = select(:).';
+    indexSelected = ismember(list, select);
+    indexValid = ismember(select, list);
+    namesInvalid = cell.empty(1, 0);
+    if any(~indexValid)
+        namesInvalid = select(~indexValid);
     end
 elseif islogical(select)
-    ix = select;
+    indexSelected = select(:).'
 else
-    ix = false(1,N);
+    indexSelected = false(1, numEndogenous);
 end
 
-ix = ix(:).';
-
-if length(ix) > N
-    ix = ix(1:N);
-elseif length(ix) < N
-    ix(end+1:N) = false;
+if length(indexSelected)>numEndogenous
+    indexSelected = indexSelected(1:numEndogenous);
+elseif length(indexSelected)<numEndogenous
+    indexSelected(end+1:numEndogenous) = false;
 end
 
 end
