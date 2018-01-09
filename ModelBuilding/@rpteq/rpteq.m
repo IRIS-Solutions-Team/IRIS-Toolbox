@@ -19,17 +19,17 @@
 %
 % __Constructor__
 %
-% * [`rpteq`](rpteq/rpteq) - New reporting equations (rpteq) object.
+%   rpteq - New reporting equations (rpteq) object.
 %
 %
 % __Evaluating Reporting Equations__
 %
-% * [`run`](rpteq/run) - Evaluate reporting equations (rpteq) object.
+%   run - Evaluate reporting equations (rpteq) object.
 %
 %
 % __Evaluating Reporting Equations from Within Model Object__
 %
-% * [`reporting`](model/reporting) - Evaluate reporting equations from within model object.
+%   reporting - Evaluate reporting equations from within model object.
 %
 %
 
@@ -50,8 +50,6 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer
         MinSh = 0
         Export = shared.Export.empty(1, 0)
     end
-    
-    
     
     
     methods
@@ -211,15 +209,11 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer
     end
     
     
-    
-    
     methods (Hidden)
         varargout = chkConsistency(varargin)
         varargout = disp(varargin)
         varargout = implementGet(varargin)
     end
-    
-    
     
     
     methods (Access=protected, Hidden)

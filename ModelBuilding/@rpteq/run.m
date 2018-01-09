@@ -119,21 +119,24 @@ INPUT_PARSER.parse(varargin{:});
 this = INPUT_PARSER.Results.ReportingEquations;
 inputDatabank = INPUT_PARSER.Results.InputDatabank;
 dates = INPUT_PARSER.Results.SimulationDates;
+if ~isa(dates, 'DateWrapper')
+    dates = DateWrapper(dates);
+end
 m = INPUT_PARSER.Results.Model;
 opt = INPUT_PARSER.Options;
 
 %--------------------------------------------------------------------------
 
 eqtn = this.EqtnRhs;
-nEqtn = numel(eqtn);
-nNameRhs = numel(this.NameRhs);
+numEquations = numel(eqtn);
+numRhsNames = numel(this.NameRhs);
 dates = dates(:).';
 minDate = min(dates);
 maxDate = max(dates);
 maxSh = this.MaxSh;
 minSh = this.MinSh;
-xRange = minDate+minSh : maxDate+maxSh;
-nXPer = numel(xRange);
+extendedRange = minDate+minSh : maxDate+maxSh;
+numExtendedPeriods = numel(extendedRange);
 isSteadyRef = ~isempty(this.NameSteadyRef) && isa(m, 'model');
 
 D = struct( );
@@ -142,7 +145,7 @@ S = struct( );
 % Convert tseries to arrays, remove time subscript placeholders # from
 % non-tseries names. Pre-allocate LHS time series not supplied in input
 % database.
-chkRhsNames( );
+checkRhsNames( );
 preallocLhsNames( );
 if isSteadyRef
     S = createSteadyRefDbase( );
@@ -153,17 +156,17 @@ eqtn = strrep(eqtn, '?', 'D.');
 eqtn = regexprep(eqtn, '\{@(.*?)\}#', '(t$1, :)');
 eqtn = strrep(eqtn, '#', '(t, :)');
 
-fn = cell(1, nEqtn);
-for i = 1 : nEqtn
-    fn{i} = mosw.str2func(['@(D, t, S)', eqtn{i}]);
+fn = cell(1, numEquations);
+for i = 1 : numEquations
+    fn{i} = str2func(['@(D, t, S)', eqtn{i}]);
 end
 
 % Evaluate equations sequentially period by period.
 runTime = dates-minDate+1 - minSh;
 for t = runTime
-    for iEq = 1 : nEqtn
-        name = this.NameLhs{iEq};
-        lhs = D.(name);
+    for iEq = 1 : numEquations
+        ithName = this.NameLhs{iEq};
+        lhs = D.(ithName);
         try
             x = fn{iEq}(D, t, S);
         catch %#ok<CTCH>
@@ -178,7 +181,7 @@ for t = runTime
             lhs = repmat(lhs, [1, newSize(2:end)]);
         end
         lhs(t, :) = x;
-        D.(name) = lhs;
+        D.(ithName) = lhs;
     end
 end
 
@@ -198,13 +201,13 @@ end
 
 appendPresample = opt.DbOverlay || opt.AppendPresample;
 
-for i = 1 : nEqtn
-    name = this.NameLhs{i};
-    data = D.(name)(-minSh+1:end-maxSh, :);
-    cmt = this.Label{i};
-    outputDatabank.(name) = replace(TEMPLATE_SERIES, data, minDate, cmt);
-    if appendPresample && isfield(inputDatabank, name)
-        outputDatabank.(name) = [ inputDatabank.(name) ; outputDatabank.(name) ];
+for i = 1 : numEquations
+    ithName = this.NameLhs{i};
+    data = D.(ithName)(-minSh+1:end-maxSh, :);
+    ithComment = this.Label{i};
+    outputDatabank.(ithName) = fill(TEMPLATE_SERIES, data, minDate, ithComment);
+    if appendPresample && isfield(inputDatabank, ithName)
+        outputDatabank.(ithName) = [ inputDatabank.(ithName) ; outputDatabank.(ithName) ];
     end 
 end
 
@@ -212,7 +215,7 @@ return
 
 
     function s = createSteadyRefDbase( )
-        ttrend = dat2ttrend(xRange, m);
+        ttrend = dat2ttrend(extendedRange, m);
         lsName = this.NameSteadyRef;
         ell = lookup(m, this.NameSteadyRef);
         pos = ell.PosName;
@@ -228,48 +231,48 @@ return
         
         s = struct( );
         for ii = 1 : numel(lsName)
-            nname = lsName{ii};
-            s.(nname) = X(:, :, ii);
+            iithName = lsName{ii};
+            s.(iithName) = X(:, :, ii);
         end
     end
 
 
-    function chkRhsNames( )
-        ixFound = true(1, nNameRhs);
-        ixValid = true(1, nNameRhs);
-        for ii = 1 : nNameRhs
-            nname = this.NameRhs{ii};
-            isField = isfield(inputDatabank, nname);
-            ixFound(ii) = isField || any(strcmp(nname, this.NameLhs));
+    function checkRhsNames( )
+        indexFound = true(1, numRhsNames);
+        indexValid = true(1, numRhsNames);
+        for ii = 1 : numRhsNames
+            iithName = this.NameRhs{ii};
+            isField = isfield(inputDatabank, iithName);
+            indexFound(ii) = isField || any(strcmp(iithName, this.NameLhs));
             if ~isField
                 continue
             end
-            if isa(inputDatabank.(nname), 'tseries')
-                D.(nname) = rangedata(inputDatabank.(nname), xRange);
+            if isa(inputDatabank.(iithName), 'tseries')
+                D.(iithName) = rangedata(inputDatabank.(iithName), extendedRange);
                 continue
             end
-            ixValid(ii) = isnumeric(inputDatabank.(nname)) && size(inputDatabank.(nname), 1)==1;
-            if ixValid(ii)
-                D.(nname) = inputDatabank.(nname);
-                eqtn = regexprep(eqtn, ['\?', nname, '#'], ['?', nname]);
+            indexValid(ii) = isnumeric(inputDatabank.(iithName)) && size(inputDatabank.(iithName), 1)==1;
+            if indexValid(ii)
+                D.(iithName) = inputDatabank.(iithName);
+                eqtn = regexprep(eqtn, ['\?', iithName, '#'], ['?', iithName]);
             end
         end
-        if any(~ixFound)
+        if any(~indexFound)
             throw( exception.Base('RptEq:RHS_NAME_DATA_NOT_FOUND', 'error'), ...
-                this.NameRhs{~ixFound} );
+                this.NameRhs{~indexFound} );
         end
-        if any(~ixValid)
+        if any(~indexValid)
             throw( exception.Base('RptEq:RHS_NAME_DATA_INVALID', 'error'), ...
-                this.NameRhs{~ixFound} );
+                this.NameRhs{~indexFound} );
         end        
     end
 
 
     function preallocLhsNames( )
-        for ii = 1 : nEqtn
-            nname = this.NameLhs{ii};
-            if ~isfield(D, nname)
-                D.(nname) = nan(nXPer, 1);
+        for ii = 1 : numEquations
+            iithName = this.NameLhs{ii};
+            if ~isfield(D, iithName)
+                D.(iithName) = nan(numExtendedPeriods, 1);
             end
         end
     end
