@@ -1,5 +1,5 @@
-function [C,Diffuse] = acovf(T,R,~,Z,H,~,U,Omg,Eig,Order)
-% acovf  [Not a public function] Autocovariance function for general state space.
+function [C, indexDiffuse] = acovf(T, R, ~, Z, H, ~, U, Omg, indexUnitRoots, maxOrder)
+% acovf  Autocovariance function for general state space
 %
 % Backend IRIS function.
 % No help provided.
@@ -11,40 +11,46 @@ function [C,Diffuse] = acovf(T,R,~,Z,H,~,U,Omg,Eig,Order)
 
 realSmall = getrealsmall( );
 
-if isempty(Eig)
-    Eig = ordeig(T);
+[nxi, nb] = size(T);
+nf = nxi - nb;
+ne = size(R, 2);
+
+if ~isvector(indexUnitRoots) || length(indexUnitRoots)~=nb
+    throw( ...
+        exception.Base('CovFun:IndexUnitRootsSize', 'error') ...
+    );
 end
 
-nY = size(Z,1);
-[nX,nB] = size(T);
-nF = nX - nB;
-nE = size(R,2);
-
-if nY == 0
-    Z = zeros(0,nB);
-    H = zeros(0,nE);
+if isempty(Z)
+    ny = 0;
+    Z = zeros(0, nb);
+    H = zeros(0, ne);
+else
+    ny = size(Z, 1);
 end
 
-Tf = T(1:nF,:);
-Ta = T(nF+1:end,:);
-Rf = R(1:nF,:);
-Ra = R(nF+1:end,:);
+Tf = T(1:nf, :);
+Ta = T(nf+1:end, :);
+Rf = R(1:nf, :);
+Ra = R(nf+1:end, :);
 
 % Detect unit root elements of y, xf, alpha, and xb.
-unitroots = abs(abs(Eig(1:nB)) - 1) <= realSmall;
-dY = any(abs(Z(:,unitroots)) > realSmall,2).';
-dF = any(abs(Tf(:,unitroots)) > realSmall,2).';
-dA = unitroots;
+% indexUnitRoots = abs(abs(eigenValues(1:nb)) - 1)<=realSmall;
+indexDiffuseY = any(abs(Z(:, indexUnitRoots))>realSmall, 2).';
+indexDiffuseF = any(abs(Tf(:, indexUnitRoots))>realSmall, 2).';
+indexDiffuseA = indexUnitRoots;
 if ~isempty(U)
-    dB = any(abs(U(:,unitroots)) > realSmall,2).';
+    indexDiffuseB = any(abs(U(:, indexUnitRoots))>realSmall, 2).';
 else
-    dB = dA;
+    indexDiffuseB = indexDiffuseA;
 end
-Caa = zeros(nB);
+Caa = zeros(nb);
 
 % Solve Lyapunov equation for the contemporaneous covariance matrix of the
 % stable elements of the vector alpha.
-Caa(~dA,~dA) = covfun.lyapunov(Ta(~dA,~dA),Ra(~dA,:)*Omg*Ra(~dA,:).');
+Caa(~indexDiffuseA, ~indexDiffuseA) = covfun.lyapunov( ...
+    Ta(~indexDiffuseA, ~indexDiffuseA), Ra(~indexDiffuseA, :)*Omg*Ra(~indexDiffuseA, :).' ...
+);
 
 Ra_Omg_Rft = Ra*Omg*Rf.';
 Cff = Tf*Caa*Tf.' + Rf*Omg*Rf.';
@@ -53,30 +59,30 @@ Cyf = Z*Ta*Caa*Tf.' + Z*Ra_Omg_Rft;
 Cya = Z*Caa;
 Cfa = Tf*Caa*Ta.' + Ra_Omg_Rft.';
 
-C = zeros(nY+nF+nB,nY+nF+nB,1+Order);
-C(:,:,1) = [ ...
-    Cyy,Cyf,Cya; ...
-    Cyf',Cff,Cfa; ...
-    Cya',Cfa',Caa; ...
+C = zeros(ny+nf+nb, ny+nf+nb, 1+maxOrder);
+C(:, :, 1) = [ ...
+    Cyy, Cyf, Cya; ...
+    Cyf', Cff, Cfa; ...
+    Cya', Cfa', Caa; ...
     ];
-C(:,:,1) = (C(:,:,1) + C(:,:,1)')/2;
-Diffuse = [dY,dF,dB];
+C(:, :, 1) = (C(:, :, 1) + C(:, :, 1)')/2;
+indexDiffuse = [indexDiffuseY, indexDiffuseF, indexDiffuseB];
 
-if Order > 0
+if maxOrder>0
     TT = [Z*Ta;Tf;Ta];
-    for i = 1 : Order
-        C(1:end,:,i+1) = TT*C(nY+nF+1:end,:,i);
+    for i = 1 : maxOrder
+        C(1:end, :, i+1) = TT*C(ny+nf+1:end, :, i);
     end
 end
 
 if ~isempty(U)
-    for i = 0 : Order
-        C(nY+nF+1:end,:,i+1) = U*C(nY+nF+1:end,:,i+1);
-        C(:,nY+nF+1:end,i+1) = C(:,nY+nF+1:end,i+1)*U.';
+    for i = 0 : maxOrder
+        C(ny+nf+1:end, :, i+1) = U*C(ny+nf+1:end, :, i+1);
+        C(:, ny+nf+1:end, i+1) = C(:, ny+nf+1:end, i+1)*U.';
     end
 end
 
-C(Diffuse,:,:) = Inf;
-C(:,Diffuse,:) = Inf;
+C(indexDiffuse, :, :) = Inf;
+C(:, indexDiffuse, :) = Inf;
 
 end
