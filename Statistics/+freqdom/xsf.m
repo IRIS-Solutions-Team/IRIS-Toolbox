@@ -1,5 +1,5 @@
-function S = xsf(T, R, ~, Z, H, ~, U, Omg, nUnit, Freq, Filter, ApplyTo)
-% xsf  [Not a public function] Power spectrum generating function for general state space.
+function S = xsf(T, R, ~, Z, H, ~, U, Omega, numUnitRoots, freq, filter, applyFilterTo)
+% xsf  Power spectrum generating function for general state space.
 %
 % Backend IRIS function.
 % No help provided.
@@ -8,20 +8,20 @@ function S = xsf(T, R, ~, Z, H, ~, U, Omg, nUnit, Freq, Filter, ApplyTo)
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 try
-    Filter; %#ok<*VUNUS>
+    filter; %#ok<*VUNUS>
 catch %#ok<*CTCH>
-    Filter = [ ];
+    filter = double.empty(1, 0);
 end
 
 try
-    ApplyTo;
+    applyFilterTo;
 catch
-    ApplyTo = [ ];
+    applyFilterTo = logical.empty(1, 0);
 end
 
 %--------------------------------------------------------------------------
 
-isFilter = ~isempty(Filter) && ~isempty(ApplyTo) && any(ApplyTo);
+isFilter = ~isempty(filter) && ~isempty(applyFilterTo) && any(applyFilterTo);
 
 realSmall = getrealsmall( );
 ny = size(Z, 1);
@@ -34,64 +34,63 @@ Rf = R(1:nf, 1:ne);
 Ra = R(nf+1:end, :);
 % Ta11 is an I matrix in difference-stationary models, but not an I matrix
 % in I(2) and higher models.
-Ta11 = T(nf+(1:nUnit), 1:nUnit);
-Ta12 = T(nf+1:nf+nUnit, nUnit+1:end);
-Ta22 = T(nf+nUnit+1:end, nUnit+1:end);
-SgmAA = Ra*Omg*transpose(Ra);
-SgmFF = Rf*Omg*transpose(Rf);
-SgmFA = Rf*Omg*transpose(Ra);
-if ny > 0
-    SgmYY = H*Omg*transpose(H);
+Ta11 = T(nf+(1:numUnitRoots), 1:numUnitRoots);
+Ta12 = T(nf+1:nf+numUnitRoots, numUnitRoots+1:end);
+Ta22 = T(nf+numUnitRoots+1:end, numUnitRoots+1:end);
+SigmaAA = Ra*Omega*transpose(Ra);
+SigmaFF = Rf*Omega*transpose(Rf);
+SigmaFA = Rf*Omega*transpose(Ra);
+if ny>0
+    SigmaYY = H*Omega*transpose(H);
 end
 
-Freq = Freq(:)';
-nFreq = length(Freq);
-S = zeros(ny+nf+nb, ny+nf+nb, nFreq);
-s = zeros(ny+nf+nb, ny+nf+nb);
+numFreq = numel(freq);
+S = zeros(ny+nf+nb, ny+nf+nb, numFreq);
+ithS = zeros(ny+nf+nb, ny+nf+nb);
 
 status = warning( );
 warning('off'); %#ok<WNOFF>
-for i = 1 : nFreq
-    lmb = Freq(i);
-    if isFilter && Filter(i) == 0 && all(ApplyTo) && lmb ~= 0
+for i = 1 : numFreq
+    ithFreq = freq(i);
+    if isFilter && filter(i)==0 && all(applyFilterTo) && ithFreq~=0
         continue
     end
-    ee = exp(-1i*lmb);
+    ee = exp(-1i*ithFreq);
     % F = eye(nf+nb) -  [zeros(nf+nb, nf), T]*exp(-1i*lambda);
-    % xxx = F \ Sigmax / ctranspose(F);
-    s(ny+1:end, ny+1:end) = doInv( );
-    if ny > 0
-        s(1:ny, 1:ny) = Z*s(ny+nf+1:end, ny+nf+1:end)*transpose(Z) + SgmYY;
-        s(1:ny, ny+1:end) = Z*s(ny+nf+1:end, ny+1:end);
-        s(ny+1:end, 1:ny) = s(ny+1:end, ny+nf+1:end)*transpose(Z);
+    % xxx = F \ SigmaX / ctranspose(F);
+    ithS(ny+1:end, ny+1:end) = inverse( );
+    if ny>0
+        ithS(1:ny, 1:ny) = Z*ithS(ny+nf+1:end, ny+nf+1:end)*transpose(Z) + SigmaYY;
+        ithS(1:ny, ny+1:end) = Z*ithS(ny+nf+1:end, ny+1:end);
+        ithS(ny+1:end, 1:ny) = ithS(ny+1:end, ny+nf+1:end)*transpose(Z);
     end
-    if lmb == 0
+    if ithFreq==0
         % Diffuse y.
-        if ny > 0
-            yInx = find(any(abs(Z(:, 1:nUnit)) > realSmall, 2));
-            s(yInx, :) = Inf;
-            s(:, yInx) = Inf;
+        if ny>0
+            yInx = find(any(abs(Z(:, 1:numUnitRoots))>realSmall, 2));
+            ithS(yInx, :) = Inf;
+            ithS(:, yInx) = Inf;
         end
         % Diffuse xf.
-        xfindex = find(any(abs(Tf(:, 1:nUnit)) > realSmall, 2));
-        s(ny+xfindex, :) = Inf;
-        s(:, ny+xfindex) = Inf;
+        xfindex = find(any(abs(Tf(:, 1:numUnitRoots))>realSmall, 2));
+        ithS(ny+xfindex, :) = Inf;
+        ithS(:, ny+xfindex) = Inf;
     end
     if ~isempty(U)
-        s(ny+nf+1:end, :) = U*s(ny+nf+1:end, :);
-        s(:, ny+nf+1:end) = s(:, ny+nf+1:end)*U.';
-        if lmb == 0
+        ithS(ny+nf+1:end, :) = U*ithS(ny+nf+1:end, :);
+        ithS(:, ny+nf+1:end) = ithS(:, ny+nf+1:end)*U.';
+        if ithFreq==0
             % Diffuse xb.
-            xbindex = find(any(abs(U(:, 1:nUnit)) > realSmall, 2));
-            s(ny+nf+xbindex, :) = Inf;
-            s(:, ny+nf+xbindex) = Inf;
+            xbindex = find(any(abs(U(:, 1:numUnitRoots))>realSmall, 2));
+            ithS(ny+nf+xbindex, :) = Inf;
+            ithS(:, ny+nf+xbindex) = Inf;
         end
     end
     if isFilter
-        s(ApplyTo, :) = Filter(i)*s(ApplyTo, :);
-        s(:, ApplyTo) = s(:, ApplyTo)*conj(Filter(i));
+        ithS(applyFilterTo, :) = filter(i)*ithS(applyFilterTo, :);
+        ithS(:, applyFilterTo) = ithS(:, applyFilterTo)*conj(filter(i));
     end
-    S(:, :, i) = s;
+    S(:, :, i) = ithS;
 end
 warning(status);
 
@@ -106,35 +105,35 @@ end
 return
 
 
-    function [Sxx, Saa] = doInv( )
+    function [Sxx, Saa] = inverse( )
         A = Tf*ee;
         % B = inv(eye(nb) - Ta*ee) = inv([A11, A12;0, A22]) where
         %
-        % * A11 = eye(nUnit) - Ta11*ee (Ta11 is eye(nUnit) only in
+        % * A11 = eye(numUnitRoots) - Ta11*ee (Ta11 is eye(numUnitRoots) only in
         % diff-stationary models).
         %
         % * A12 = -Ta12*ee.
         %
         % * A21 is zeros.
         %
-        % * A22 = eye(nb-nUnit) - Ta22*ee.
+        % * A22 = eye(nb-numUnitRoots) - Ta22*ee.
         %
-        B22 = inv(eye(nb-nUnit) - Ta22*ee);
-        if lmb == 0
+        B22 = inv(eye(nb-numUnitRoots) - Ta22*ee);
+        if ithFreq==0
             % Zero frequency; non-stationary variables not defined here.
-            B11 = zeros(nUnit);
-            B12 = zeros(nUnit, nb-nUnit);
+            B11 = zeros(numUnitRoots);
+            B12 = zeros(numUnitRoots, nb-numUnitRoots);
         else
             % Non-zero frequencies.
-            B11 = inv(eye(nUnit) - Ta11*ee);
+            B11 = inv(eye(numUnitRoots) - Ta11*ee);
             d = 1/(1-ee);
             B12 = d*Ta12*B22*ee; %#ok<MINV>
         end
-        B = [B11, B12;zeros(nb-nUnit, nUnit), B22];
-        Saa = B*SgmAA*ctranspose(B);
-        Sfa = SgmFA*ctranspose(B) + A*Saa;
-        X = A*B*transpose(SgmFA);
-        Sff = SgmFF + X + ctranspose(X) + Tf*Saa*transpose(Tf);
+        B = [B11, B12;zeros(nb-numUnitRoots, numUnitRoots), B22];
+        Saa = B*SigmaAA*ctranspose(B);
+        Sfa = SigmaFA*ctranspose(B) + A*Saa;
+        X = A*B*transpose(SigmaFA);
+        Sff = SigmaFF + X + ctranspose(X) + Tf*Saa*transpose(Tf);
         Sxx = [Sff, Sfa;ctranspose(Sfa), Saa];
     end 
 end

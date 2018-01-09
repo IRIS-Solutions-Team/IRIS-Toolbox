@@ -1,5 +1,5 @@
-function [IsFilter,Filter,Freq,ApplyTo] = applyfilteropt(Opt,Freq,SspaceVec)
-% applyfilteropt  [Not a public function] Pre-process filter options in ACF.
+function [isFilter, filter, freq, applyFilterTo] = applyfilteropt(opt, freq, solutionVector)
+% applyfilteropt  Pre-process filter options in ACF.
 %
 % Backend IRIS function.
 % No help provided.
@@ -9,77 +9,70 @@ function [IsFilter,Filter,Freq,ApplyTo] = applyfilteropt(Opt,Freq,SspaceVec)
 
 %--------------------------------------------------------------------------
 
-Nx = length(SspaceVec);
-Filter = Opt.filter;
-ApplyTo = Opt.applyto;
-if ischar(ApplyTo)
-    ApplyTo = regexp(ApplyTo,'\w+','match');
+nyxi = length(solutionVector);
+filter = opt.Filter;
+applyFilterTo = opt.ApplyTo;
+if ischar(applyFilterTo)
+    applyFilterTo = regexp(applyFilterTo, '\w+', 'match');
 end
 
 % Linear filter applied to some variables.
-if isequal(ApplyTo,@all)
-    ApplyTo = true(1,Nx);
-elseif iscellstr(ApplyTo) || ischar(ApplyTo)
-    ApplyTo = ApplyTo(:).';
-    [pos,notFound] = textfun.findnames(SspaceVec,ApplyTo);
+if isequal(applyFilterTo, @all)
+    applyFilterTo = true(1, nyxi);
+elseif iscellstr(applyFilterTo) || ischar(applyFilterTo)
+    applyFilterTo = applyFilterTo(:).';
+    [pos, notFound] = textfun.findnames(solutionVector, applyFilterTo);
     if ~isempty(notFound)
         utils.error('freqdom:applyfilteropt', ...
             'This name does not exist in the state-space vectors: %s.', ...
             notFound{:});
     end
-    ApplyTo = false(1,Nx);
-    ApplyTo(pos) = true;
-elseif isnumeric(ApplyTo)
-    pos = ApplyTo(:).';
-    ApplyTo = false(1,Nx);
-    ApplyTo(pos) = true;
-elseif islogical(ApplyTo)
-    ApplyTo = ApplyTo(:).';
-    if length(ApplyTo) > Nx
-        ApplyTo = ApplyTo(1:Nx);
-    elseif length(ApplyTo) < Nx
-        ApplyTo(end+1:Nx) = false;
+    applyFilterTo = false(1, nyxi);
+    applyFilterTo(pos) = true;
+elseif isnumeric(applyFilterTo)
+    pos = applyFilterTo(:).';
+    applyFilterTo = false(1, nyxi);
+    applyFilterTo(pos) = true;
+elseif islogical(applyFilterTo)
+    applyFilterTo = applyFilterTo(:).';
+    if length(applyFilterTo) > nyxi
+        applyFilterTo = applyFilterTo(1:nyxi);
+    elseif length(applyFilterTo) < nyxi
+        applyFilterTo(end+1:nyxi) = false;
     end
 end
 
-if isfield(Opt,'nfreq') && isempty(Freq)
-    width = pi/Opt.nfreq;
-    Freq = width/2 : width : pi;
+if isfield(opt, 'NFreq') && isempty(freq)
+    width = pi/opt.NFreq;
+    freq = width/2 : width : pi;
 end
 
-if ~isempty(Filter) && any(ApplyTo)
-    IsFilter = true;
-    Filter = xxFdFilter(Filter,Freq);
+if ~isempty(filter) && any(applyFilterTo)
+    isFilter = true;
+    filter = fdFilter(filter, freq);
 else
-    IsFilter = false;
-    Filter = [ ];
-    Freq = [ ];
+    isFilter = false;
+    filter = [ ];
+    freq = [ ];
 end
 
 end
 
 
-% Subfunctions...
-
-
-%**************************************************************************
-
-
-function Filter = xxFdFilter(FString,Freq)
-nFreq = length(Freq);
-frq = Freq; %#ok<NASGU>
-
-% Vectorize *, /, \, ^ operators.
-FString = textfun.vectorize(FString);
-
-% Evaluate frequency response function of filter.
-l = exp(-1i*Freq); %#ok<NASGU>
-per = 2*pi./Freq; %#ok<NASGU>
-Filter = eval(lower(FString));
-if length(Filter) == 1
-    Filter = ones(1,nFreq)*Filter;
-end
-
-% Make sure the result is numeric.
-Filter = +Filter;
-end % xxFdFilter( )
+function filter = fdFilter(filterString, freq)
+    numfreq = length(freq);
+    % Make these name available for user string evaluation:
+    Freq = freq;
+    frq = freq; %#ok<NASGU>
+    % Vectorize *, /, \, ^ operators.
+    filterString = textfun.vectorize(filterString);
+    % Evaluate frequency response function of filter.
+    l = exp(-1i*freq); %#ok<NASGU>
+    per = 2*pi./freq; %#ok<NASGU>
+    filter = eval(lower(filterString));
+    if length(filter) == 1
+        filter = ones(1, numfreq)*filter;
+    end
+    % Make sure the result is numeric.
+    filter = +filter;
+end 

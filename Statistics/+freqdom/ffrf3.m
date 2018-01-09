@@ -1,4 +1,4 @@
-function [Y, count] = ffrf3(varargin)
+function [YY, count] = ffrf3(varargin)
 % ffrf3  Frequence response function for general state space.
 %
 % Backend IRIS function.
@@ -9,7 +9,7 @@ function [Y, count] = ffrf3(varargin)
 
 if nargin==1
     systemProperty = varargin{1};
-    [T, R, ~, Z, H, ~, U] = systemProperty.FirstOrderSolution{:};
+    [T, R, ~, Z, H, ~, U] = systemProperty.FirstOrderTriangular{:};
     Omega = systemProperty.CovShocks;
     numUnitRoots = systemProperty.NumUnitRoots;
     freq = systemProperty.Specifics.Frequencies;
@@ -17,7 +17,8 @@ if nargin==1
     tolerance = systemProperty.Specifics.Tolerance;
     maxIter = systemProperty.Specifics.MaxIter;
 else
-    [T, R, ~, Z, H, ~, U, Omega, numUnitRoots, freq, indexToInclude, tolerance, maxIter] = varargin{:};
+    [T, R, ~, Z, H, ~, U, Omega, numUnitRoots, freq, indexToInclude, tolerance, maxIter] = ...
+        varargin{:};
 end 
 
 ny = size(Z, 1);
@@ -30,23 +31,38 @@ Z1 = Z(indexToInclude, :);
 H1 = H(indexToInclude, :);
 ny1 = nnz(indexToInclude);
 
-freq = freq(:).';
-numFreq = length(freq);
-Y = complex(nan(nx, ny, numFreq), nan(nx, ny, numFreq));
+numFreq = numel(freq);
+YY = complex(nan(nx, ny, numFreq), nan(nx, ny, numFreq));
+
+% Solution not available, return immediately
+if any(isnan(T(:)))
+    if length(systemProperty.Outputs)>=1
+        systemProperty.Outputs{1} = YY;
+    end
+    return
+end
+
 count = 0;
 
 % Index of zero frequencies (allow for multiple zeros in the vector).
 indexZeroFreq = freq==0;
+indexZeroFreq = indexZeroFreq(:);
+numZeroFreq = nnz(indexZeroFreq);
+numNonzeroFreq = nnz(~indexZeroFreq);
 
 % Non-zero frquencies. Evaluate `xsf( )` and compute regressions.
-if any(~indexZeroFreq)
+if numNonzeroFreq>0
    nonzeroFreq( ); 
 end
 
 % We must do zero frequency last, becuase the input state space matrices
-% are modified within `dozerofreq( )`.
-if any(indexZeroFreq)
+% are modified within zeroFreq( ).
+if numZeroFreq>0
     zeroFreq( );
+end
+
+if length(systemProperty.Outputs)>=1
+    systemProperty.Outputs{1} = YY;
 end
 
 return
@@ -55,14 +71,13 @@ return
     function nonzeroFreq( )
         S = freqdom.xsf(T, R, [ ], Z1, H1, [ ], U, Omega, numUnitRoots, ...
             freq(~indexZeroFreq), [ ], [ ]);
-        numNonzero = nnz(~indexZeroFreq);
-        Yn = zeros(nx, ny1, numNonzero);
-        for i = 1 : numNonzero
+        Yn = zeros(nx, ny1, numNonzeroFreq);
+        for i = 1 : numNonzeroFreq
             S11 = S(1:ny1, 1:ny1, i);
             S12 = S(1:ny1, ny1+1:end, i);
             Yn(:, :, i) = S12' / S11;
         end
-        Y(:, indexToInclude, ~indexZeroFreq) = Yn;
+        YY(:, indexToInclude, ~indexZeroFreq) = Yn;
     end 
 
 
@@ -126,7 +141,6 @@ return
         else
             Y0 = [Ff;Fa];
         end
-        numZero = nnz(indexZeroFreq);
-        Y(:, indexToInclude, indexZeroFreq) = Y0(:, :, ones(1, numZero));
+        YY(:, indexToInclude, indexZeroFreq) = Y0(:, :, ones(1, numZeroFreq));
     end 
 end
