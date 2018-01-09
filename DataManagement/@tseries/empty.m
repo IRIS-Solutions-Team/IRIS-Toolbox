@@ -19,7 +19,7 @@ function this = empty(varargin)
 % __Output Arguments__
 %
 % * `this` [ tseries ] - Empty time series with the 2nd and higher
-% dimensions the same size as the input tseries object, and comments
+% dimensions the same size as the input time series, and comments
 % preserved.
 %
 %
@@ -35,7 +35,7 @@ function this = empty(varargin)
 %--------------------------------------------------------------------------
 
 nanDate = DateWrapper(NaN);
-if nargin==1 && isa(varargin{1}, 'tseries')
+if nargin==1 && isa(varargin{1}, 'TimeSubscriptable')
     this = varargin{1};
     this.Start = nanDate;
     newSize = size(this.Data);
@@ -43,14 +43,17 @@ if nargin==1 && isa(varargin{1}, 'tseries')
     this.Data = double.empty(newSize);
 else
     this = tseries( );
-    newData = double.empty(varargin{:});
+    if isempty(varargin)
+        newData = double.empty(0, 1);
+    else
+        newData = double.empty(varargin{:});
+    end
     assert( ...
         size(newData, 1)==0, ...
         exception.Base('Series:TimeDimMustBeZero', 'error') ...
     );
     this.Start = nanDate;
     this.Data = newData;
-    sizeData = size(newData);
     this = resetColumnNames(this);
 end
 

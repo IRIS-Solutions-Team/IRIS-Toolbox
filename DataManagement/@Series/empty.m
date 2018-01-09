@@ -1,5 +1,5 @@
 function this = empty(varargin)
-% empty  Create empty time series or empty an existing time series
+% empty  Create empty time series or empty existing time series
 %
 % __Syntax__
 %
@@ -18,7 +18,9 @@ function this = empty(varargin)
 %
 % __Output Arguments__
 %
-% * `this` [ Series ] - Empty time series with first dimension (time) zero.
+% * `this` [ Series ] - Empty time series with the 2nd and higher
+% dimensions the same size as the input time series, and comments
+% preserved.
 %
 %
 % __Description__
@@ -33,7 +35,7 @@ function this = empty(varargin)
 %--------------------------------------------------------------------------
 
 nanDate = DateWrapper(NaN);
-if nargin==1 && isa(varargin{1}, 'Series')
+if nargin==1 && isa(varargin{1}, 'TimeSubscriptable')
     this = varargin{1};
     this.Start = nanDate;
     newSize = size(this.Data);
@@ -41,14 +43,17 @@ if nargin==1 && isa(varargin{1}, 'Series')
     this.Data = double.empty(newSize);
 else
     this = Series( );
-    newData = double.empty(varargin{:});
+    if isempty(varargin)
+        newData = double.empty(0, 1);
+    else
+        newData = double.empty(varargin{:});
+    end
     assert( ...
         size(newData, 1)==0, ...
         exception.Base('Series:TimeDimMustBeZero', 'error') ...
     );
     this.Start = nanDate;
     this.Data = newData;
-    sizeData = size(newData);
     this = resetColumnNames(this);
 end
 
