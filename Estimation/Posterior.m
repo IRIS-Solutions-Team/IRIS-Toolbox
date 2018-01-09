@@ -153,12 +153,14 @@ classdef Posterior < handle
 
 
         function [indexBelow, indexAbove, namesBelow, namesAbove] = checkBounds(this, x)
-            indexBelow = x<this.LowerBounds;
-            indexAbove = x>this.UpperBounds;
+            indexBelow = x(:)<this.LowerBounds(:);
+            indexAbove = x(:)>this.UpperBounds(:);
             if nargout>2
                 namesBelow = this.ParameterNames(indexBelow);
                 namesAbove = this.ParameterNames(indexAbove);
             end
+            indexBelow = reshape(indexBelow, size(x));
+            indexAbove = reshape(indexAbove, size(x));
         end
 
 
