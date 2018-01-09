@@ -86,7 +86,7 @@ if nargout > 1
     % All VAR output data will be returned as dbase (struct).
     D = struct( );
     for i = 1 : ny
-        name = This.YNames{i};
+        name = This.NamesEndogenous{i};
         data = x(:, i, :);
         D.(name) = replace(TEMPLATE_SERIES, data(:, :), range(1));
     end
@@ -102,7 +102,7 @@ end
 if true % ##### MOSW
     % Convert output matrix to namedmat object if requested.
     if isNamedMat
-        X = namedmat(X, This.YNames, This.YNames);
+        X = namedmat(X, This.NamesEndogenous, This.NamesEndogenous);
     end
 else
     % Do nothing.

@@ -70,8 +70,8 @@ end
 
 A = A(:,:,:);
 
-ny = length(This.YNames);
-nx = length(This.XNames);
+ny = length(This.NamesEndogenous);
+nx = length(This.NamesExogenous);
 nGrp = max(1,length(This.GroupNames));
 nAlt = size(A,3);
 nXPer = length(xRange);

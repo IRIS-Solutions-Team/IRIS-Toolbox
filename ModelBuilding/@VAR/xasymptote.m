@@ -57,7 +57,7 @@ end
 
 %--------------------------------------------------------------------------
 
-nx = length(This.XNames);
+nx = length(This.NamesExogenous);
 nGrp = max(1,length(This.GroupNames));
 nAlt = size(This.A,3);
 

@@ -52,7 +52,7 @@ J = s.J;
 if ~any(ixFixedEffX)
     J = repmat(J, 1, nGrp);
 elseif nGrp>1
-    kx = length(this.XNames);
+    kx = length(this.NamesExogenous);
     jay = cell(1, kx);
     for i = 1 : kx
         if ixFixedEffX(i)

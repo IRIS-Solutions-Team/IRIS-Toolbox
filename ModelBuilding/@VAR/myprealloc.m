@@ -11,7 +11,7 @@ function This = myprealloc(This,Ny,P,NXPer,NAlt,Ng)
 
 This = myprealloc@varobj(This,Ny,P,NXPer,NAlt);
 nGrp = max(1,length(This.GroupNames));
-nx = length(This.XNames);
+nx = length(This.NamesExogenous);
 
 This.K = nan(Ny,nGrp,NAlt);
 This.G = nan(Ny,Ng,NAlt);

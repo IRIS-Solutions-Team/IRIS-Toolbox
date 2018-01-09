@@ -48,7 +48,7 @@ isYInit = nargout>1;
 %--------------------------------------------------------------------------
 
 ny = size(This.A, 1);
-nx = length(This.XNames);
+nx = length(This.NamesExogenous);
 p = size(This.A, 2) / max(ny, 1);
 nAlt = size(This.A, 3);
 nGrp = max(1, length(This.GroupNames));

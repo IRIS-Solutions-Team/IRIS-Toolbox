@@ -79,7 +79,7 @@ end
 %--------------------------------------------------------------------------
 
 ny = size(this.A,1);
-kx = length(this.XNames);
+kx = length(this.NamesExogenous);
 p = size(this.A,2) / max(ny,1);
 nAlt = size(this.A,3);
 
@@ -214,10 +214,10 @@ if any(ixNanResid)
 end
 
 % Return only endogenous variables, not shocks.
-names = [this.YNames, this.ENames];
+names = [this.NamesEndogenous, this.NamesErrors];
 data = [Y;E];
 if kx > 0
-    names = [names, this.XNames];
+    names = [names, this.NamesExogenous];
     data = [data; repmat(x, 1, 1, nDraw)];
 end
 outp = myoutpdata(this, xRange, data, [ ], names);

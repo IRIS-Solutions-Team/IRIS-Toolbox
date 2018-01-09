@@ -10,13 +10,13 @@ function [y, x, range] = getEstimationData(this, d, range, p)
 %--------------------------------------------------------------------------
 
 isPanel = ispanel(this);
-ky = length(this.YNames);
-kx = length(this.XNames);
+ky = length(this.NamesEndogenous);
+kx = length(this.NamesExogenous);
 range = range(:).';
 nGrp = max(1, length(this.GroupNames));
 y = cell(1, nGrp);
 x = cell(1, nGrp);
-lsyx = [this.YNames, this.XNames];
+lsyx = [this.NamesEndogenous, this.NamesExogenous];
 
 sw = struct( );
 sw.BaseYear = this.BaseYear;

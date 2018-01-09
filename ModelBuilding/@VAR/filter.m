@@ -75,7 +75,7 @@ isFilter = false; % ~isempty(strfind(opt.output,'filter'));
 ny = size(This.A,1);
 p = size(This.A,2) / max(ny,1);
 nAlt = size(This.A,3);
-nx = length(This.XNames);
+nx = length(This.NamesExogenous);
 isX = nx > 0;
 isConst = ~opt.deviation;
 

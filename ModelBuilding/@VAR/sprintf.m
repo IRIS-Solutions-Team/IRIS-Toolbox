@@ -75,7 +75,7 @@ end
 %--------------------------------------------------------------------------
 
 ny = size(this.A, 1);
-nx = length(this.XNames);
+nx = length(this.NamesExogenous);
 p = size(this.A, 2) / max(ny, 1);
 nAlt = size(this.A, 3);
 

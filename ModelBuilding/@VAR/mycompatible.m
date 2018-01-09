@@ -1,5 +1,5 @@
-function Flag = mycompatible(V1,V2)
-% mycompatible  [Not a public function] True if two VAR objects can occur together on the LHS and RHS in an assignment.
+function flag = mycompatible(v1, v2)
+% mycompatible  True if two vAR objects can occur together on the LHS and RHS in an assignment
 %
 % Backend IRIS function.
 % No help provided.
@@ -10,14 +10,11 @@ function Flag = mycompatible(V1,V2)
 %--------------------------------------------------------------------------
 
 try
-    Flag = mycompatible@varobj(V1,V2) ...
-        && isequal(class(V1),class(V2)) ...
-        && V1.NHyper == V2.NHyper ...
-        && isequal(V1.XNames,V2.XNames) ...
-        && isequal(V1.INames,V2.INames) ...
-        && isequal(V1.Zi,V2.Zi);
+    flag = mycompatible@varobj(v1, v2) ...
+        && isequal(class(v1), class(v2)) ...
+        && v1.NHyper==v2.NHyper;
 catch %#ok<CTCH>
-    Flag = false;
+    flag = false;
 end
 
 end

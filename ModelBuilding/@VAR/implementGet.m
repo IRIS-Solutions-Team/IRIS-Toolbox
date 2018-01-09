@@ -31,8 +31,6 @@ switch query
         end
         
         
-        
-        
     case 'a*'
         if ~all(size(this.A)==0)
             answ = polyn.var2polyn(this.A);
@@ -42,12 +40,8 @@ switch query
         end
         
         
-        
-        
     case 'a$'
         answ = this.A;
-        
-        
         
         
     case {'const', 'c', 'k'}
@@ -55,33 +49,21 @@ switch query
         answ = this.K;
         
         
-        
-        
     case 'j'
         % Coefficient matrix in front exogenous inputs.
         answ = this.J;
         
         
-        
-        
     case 'g'
         % Estimated coefficients on user-specified cointegration terms.
-        answ = this.G;
-        
-        
-        
         
     case 't'
         % Schur decomposition.
         answ = this.T;
         
         
-        
-        
     case 'u'
         answ = this.U;
-        
-        
         
         
     case {'omega', 'omg'}
@@ -90,14 +72,10 @@ switch query
         answ = this.Omega;
         
         
-        
-        
     case {'cov'}
         % Cov matrix of reduced form residuals in VARs or structural shocks in
         % SVARs.
         answ = this.Omega;
-        
-        
         
         
     case {'sgm', 'sigma', 'covp', 'covparameters'}
@@ -105,12 +83,8 @@ switch query
         answ = this.Sigma;
         
         
-        
-        
     case {'xasymptote', 'x0'}
         answ = this.X0;
-        
-        
         
         
     case 'aic'
@@ -118,13 +92,9 @@ switch query
         answ = this.Aic;
         
         
-        
-        
     case 'sbc'
         % Schwarz bayesian criterion.
         answ = this.Sbc;
-        
-        
         
         
     case {'nfree', 'nhyper'}
@@ -132,13 +102,9 @@ switch query
         answ = this.NHyper;
         
         
-        
-        
     case {'order', 'p'}
         % Order of VAR.
         answ = p;
-        
-        
         
         
     case {'cumlong', 'cumlongrun'}
@@ -154,51 +120,21 @@ switch query
         end
         
         
-        
-        
     case {'constraints', 'restrictions', 'constraint', 'restrict'}
         % Parameter constraints imposed in estimation.
         answ = this.Rr;
-        
-        
-        
-        
-    case {'inames', 'ilist'}
-        answ = this.INames;
-        
-        
-        
-        
-    case {'ieqtn'}
-        answ = this.IEqtn;
-        
-        
-        
-        
-    case {'zi'}
-        % The constant term comes first in Zi, but comes last in user
-        % inputs/outputs.
-        answ = [this.Zi(:, 2:end), this.Zi(:, 1)];
-        
-        
         
         
     case 'ny'
         answ = size(this.A, 1);
         
         
-        
-        
     case 'ne'
         answ = size(this.Omega, 2);
         
         
-        
-        
     case 'ni'
         answ = size(this.Zi, 1);
-        
-        
         
         
     otherwise

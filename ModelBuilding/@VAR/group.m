@@ -70,7 +70,7 @@ try
     if islogical(grp)
         grp = find(grp);
     end
-    nx = length(this.XNames);
+    nx = length(this.NamesExogenous);
     pos = (grp-1)*nx + (1:nx);
     this.J = this.J(:, pos, :);
     

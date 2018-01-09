@@ -28,16 +28,16 @@ end
 sw = struct( );
 sw.BaseYear = this.BaseYear;
 
-if retX && ~isempty(this.XNames)
+if retX && ~isempty(this.NamesExogenous)
     sw.Warn.NotFound = mustX;
     sw.Warn.NonTseries = mustX;
-    X = db2array(inp, range, this.XNames, sw);
+    X = db2array(inp, range, this.NamesExogenous, sw);
 end
 
-if retI && ~isempty(this.INames)
+if retI && ~isempty(this.NamesConditioning)
     sw.Warn.NotFound = mustI;
     sw.Warn.NonTseries = mustI;
-    I = db2array(inp, range, this.INames, sw);
+    I = db2array(inp, range, this.NamesConditioning, sw);
 end
 
 % Transpose and return data.

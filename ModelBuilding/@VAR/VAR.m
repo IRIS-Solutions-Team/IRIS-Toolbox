@@ -82,32 +82,17 @@
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
     
-classdef VAR < varobj
+classdef VAR < varobj & model.Data
     properties
-        K = [ ] % Constant vector.
-        G = [ ] % Coefficients at co-integrating vector in VEC form.
+        G = [ ] % Coefficients at cointegrating vector in VEC form.
         Sigma = [ ] % Cov of parameters.
-        T = [ ] % Shur decomposition of the transition matrix.
-        U = [ ] % Schur transformation of the variables.
         Aic = [ ] % Akaike info criterion.
         Sbc = [ ] % Schwartz bayesian criterion.
         Rr = [ ] % Parameter restrictions.
         NHyper = NaN % Number of estimated hyperparameters.
-        
-        % Exogenous inputs in VARXs.
-        XNames = cell(1, 0) % Names of exogenous inputs.
-        X0 = [ ] % Asymptotic mean assumption for exogenous inputs.
-        J = [ ] % Coefficient matrix for exogenous inputs.
-        
-        % Conditioning instruments.
-        INames = cell(1, 0) % Names of conditioning instruments.
-        IEqtn = cell(1, 0) % Expressions for conditioning instruments.
-        Zi = [ ] % Measurement matrix for conditioning instruments.
     end
-    
-    
-    
-    
+
+
     methods
         varargout = addToDatabank(varargin)
         varargout = assign(varargin)
@@ -122,6 +107,7 @@ classdef VAR < varobj
         varargout = filter(varargin)
         varargout = fmse(varargin)
         varargout = forecast(varargin)
+        varargout = forecast2(varargin)
         varargout = fprintf(varargin)
         varargout = get(varargin)
         varargout = group(varargin)
@@ -131,12 +117,10 @@ classdef VAR < varobj
         varargout = iscompatible(varargin)
         varargout = isexplosive(varargin)
         varargout = isstationary(varargin)
-        varargout = length(varargin)
         varargout = lrtest(varargin)
         varargout = mean(varargin)
         varargout = portest(varargin)
         varargout = resample(varargin)
-        varargout = schur(varargin)
         varargout = simulate(varargin)
         varargout = sprintf(varargin)
         varargout = sspace(varargin)
@@ -146,8 +130,6 @@ classdef VAR < varobj
         varargout = subsref(varargin)
         varargout = subsasgn(varargin)
     end
-    
-    
     
     
     methods (Hidden)
@@ -161,8 +143,6 @@ classdef VAR < varobj
     end
     
     
-    
-    
     methods (Access=protected, Hidden)
         varargout = assignEst(varargin)
         varargout = getEstimationData(varargin)
@@ -173,21 +153,17 @@ classdef VAR < varobj
         varargout = myprealloc(varargin)
         varargout = myrngcmp(varargin);
         varargout = subsalt(varargin)
-        varargout = myxnames(varargin)
         varargout = size(varargin)
         varargout = specdisp(varargin)
         varargout = stackData(varargin)
     end
     
     
-    
-    
     methods (Static, Hidden)
         varargout = myglsq(varargin)
         varargout = restrict(varargin)
+        varargout = smoother(varargin)
     end
-    
-    
     
     
     methods (Access=protected, Hidden)
@@ -196,8 +172,6 @@ classdef VAR < varobj
         varargout = mycovmatrix(varargin)
     end
 
-    
-    
     
     methods
         function this = VAR(varargin)
@@ -273,16 +247,7 @@ classdef VAR < varobj
             elseif nargin==1 && isstruct(varargin{1})
                 this = struct2obj(this, varargin{1});
                 return
-            elseif nargin>=3
-                % VAR(YNames, ...)
-                varargin(1) = [ ];
-                [opt, ~] = passvalopt('VAR.VAR', varargin{:});
-                if ~isempty(opt.exogenous)
-                    this = myxnames(this, opt.exogenous);
-                end
             end
         end
-        
     end
-    
 end

@@ -69,7 +69,7 @@ Freq = Freq(:)';
 nFreq = length(Freq);
 
 % Pre-process filter options.
-[~,filter,~,applyTo] = freqdom.applyfilteropt(opt,Freq,This.YNames);
+[~,filter,~,applyTo] = freqdom.applyfilteropt(opt,Freq,This.NamesEndogenous);
 
 if opt.progress
     progress = ProgressBar('IRIS VAR.xsf progress');

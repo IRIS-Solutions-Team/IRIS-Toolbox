@@ -84,7 +84,7 @@ opt = passvalopt('VAR.forecast',varargin{1:end});
 ny = size(this.A, 1);
 p = size(this.A, 2) / max(ny, 1);
 nAlt = size(this.A, 3);
-kx = length(this.XNames);
+kx = length(this.NamesExogenous);
 ni = size(this.Zi, 1);
 isX = kx>0;
 
@@ -162,8 +162,9 @@ nDataE = size(e, 3);
 nCond = size(condY, 3);
 nInst = size(condI, 3);
 nOmg = size(opt.omega, 3);
+nE = size(opt.E, 3);
 
-nLoop = max([nAlt, nDataY, nDataX, nDataE, nCond, nInst, nOmg]);
+nLoop = max([nAlt, nDataY, nDataX, nDataE, nCond, nInst, nOmg, nE]);
 
 % Stack initial conditions.
 y0 = y(:, 1:p,:);
@@ -191,7 +192,7 @@ s.ahead = 1;
 
 for iLoop = 1 : nLoop
     
-    [iA, iB, iK, iJ, iOmg] = mysystem(this, iLoop);
+    [iA, iB, iK, iJ, iOmg] = mysystem(this, min(iLoop, nAlt));
     
     if ~isempty(opt.omega)
         iOmg(:,:) = opt.omega(:,:, min(iLoop, end));
@@ -213,7 +214,12 @@ for iLoop = 1 : nLoop
     if isX
         iX = x(:, :, min(iLoop, end));
     end
-    iE = e(:,:, min(iLoop, end));
+
+    if isempty(opt.E)
+        iE = e(:,:, min(iLoop, end));
+    else
+        iE = opt.E(:, :, min(iLoop, end));
+    end
     iCondY = condY(:, :, min(iLoop, end));
     iCondI = condI(:, :, min(iLoop, end));
 
@@ -264,13 +270,13 @@ if isBackcast
     P = flip(X, 3);
 end
 
-% Prepare output data.
-names = [this.YNames, this.XNames, this.ENames, this.INames];
+% Prepare output data
+allNames = this.AllNames; 
 data = [Y; X; E; I];
 
 % Output data for endougenous variables, residuals, and instruments.
 if opt.meanonly
-    outp = myoutpdata(this, xRange, data, [ ], names);
+    outp = myoutpdata(this, xRange, data, [ ], allNames);
     if opt.dboverlay
         if ~isfield(inp, 'mean')
             outp = dboverlay(inp, outp);
@@ -279,7 +285,7 @@ if opt.meanonly
         end
     end
 else
-    outp = myoutpdata(this, xRange, data, P, names);
+    outp = myoutpdata(this, xRange, data, P, allNames);
     if opt.dboverlay
         if ~isfield(inp, 'mean')
             outp.mean = dboverlay(inp, outp.mean);

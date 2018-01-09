@@ -148,7 +148,7 @@ pp.addRequired('Inp',@(x) myisvalidinpdata(this, x));
 pp.addRequired('Range', @isnumeric);
 pp.parse(this, inp, range);
 
-if isempty(this.YNames)
+if isempty(this.NamesEndogenous)
     throw( exception.Base('VAR:CANNOT_ESTIMATE_EMPTY_VAR', 'error') );
 end
 
@@ -159,8 +159,12 @@ opt = passvalopt('VAR.estimate',varargin{:});
 
 p = opt.order;
 nGrp = max(1, length(this.GroupNames));
-kx = length(this.XNames);
+kx = length(this.NamesExogenous);
 ixGroupSpec = resolveGroupSpec( );
+
+if ~isempty(opt.a) && p>1 && size(opt.a, 3)==1
+    opt.a = repmat(opt.a, 1, 1, p);
+end
 
 % Get input data for estimation; the user range is supposed to **include**
 % the pre-sample initial condition.
@@ -321,7 +325,7 @@ return
 
 
     function organizeOutpData( )
-        lsyxe = [this.YNames, this.XNames, this.ENames];
+        lsyxe = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
         if ispanel(this)
             % Panel VAR
             %-----------
@@ -344,7 +348,7 @@ return
             % Get columns 1:nXPer from y0 and e0 because they still include the NaNs at
             % the end used as group separators.
             yxe = [y0(:, 1:nXPer, :); inpx{1}(:, 1:nXPer, :); e0(:, 1:nXPer, :)];
-            outp = inp * this.XNames;
+            outp = inp * this.NamesExogenous;
             outp = myoutpdata(this, this.Range, yxe, [ ], lsyxe);
         end
         y0 = [ ];
@@ -370,7 +374,7 @@ return
             opt.groupspec = regexp(opt.groupspec, '\w+', 'match');
         end
         for ii = 1 : kx
-            name = this.XNames{ii};
+            name = this.NamesExogenous{ii};
             ixGroupSpec(1+ii) = any(strcmpi(opt.groupspec, name));
         end
     end
