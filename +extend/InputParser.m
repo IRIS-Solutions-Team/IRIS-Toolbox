@@ -3,6 +3,7 @@ classdef InputParser < inputParser
         PrimaryParameterNames = cell.empty(1, 0)
         Options = struct( )
         Aliases = struct( )
+        HasDateOptions = false
     end
 
 
@@ -38,6 +39,9 @@ classdef InputParser < inputParser
                     && ~any(strcmp(ithAlias, this.UsingDefaults))
                     this.Options.(ithPrimaryName) = this.Results.(ithAlias);
                 end
+            end
+            if this.HasDateOptions
+                resolveDateOptions(this);
             end
         end
 
@@ -79,6 +83,61 @@ classdef InputParser < inputParser
             for i = 1 : numel(this.PrimaryParameterNames)
                 ithName = this.PrimaryParameterNames{i};
                 usingDefaults.(ithName) = any(strcmp(this.UsingDefaults, ithName));
+            end
+        end
+
+
+        function addDateOptions(this)
+            configStruct = iris.get( );
+            this.addParameter('DateFormat', @config, configStruct.validate.DateFormat);
+            this.addParameter({'FreqLetters', 'FreqLetter'}, @config, configStruct.validate.FreqLetters);
+            this.addParameter({'Months', 'Month'}, @config, configStruct.validate.Months);
+            this.addParameter({'ConversionMonth', 'StandInMonth'}, @config, configStruct.validate.ConversionMonth);
+            this.addParameter('WDay', @config, configStruct.validate.WDay);
+            this.HasDateOptions = true;
+        end
+
+
+        function addBaseYearOption(this)
+            configStruct = iris.get( );
+            this.addParameter('BaseYear', @config, configStruct.validate.BaseYear);
+        end
+
+
+        function addUserDataOption(this)
+            this.addParameter('UserData', double.empty(1, 0));
+        end
+
+
+        function resolveDateOptions(this, isPlot)
+            if nargin<2
+                isPlot = false;
+            end
+
+            configStruct = iris.get( );
+
+            if isequal(this.Options.DateFormat, @config)
+                if ~isPlot
+                    this.Options.DateFormat = configStruct.DateFormat;
+                else
+                    this.Options.DateFormat = configStruct.plotDateFormat;
+                end
+            end
+
+            if isequal(this.Options.FreqLetters, @config)
+                this.Options.FreqLetters = configStruct.FreqLetters;
+            end
+
+            if isequal(this.Options.Months, @config)
+                this.Options.Months = configStruct.Months;
+            end
+
+            if isequal(this.Options.ConversionMonth, @config)
+                this.Options.ConversionMonth = configStruct.ConversionMonth;
+            end
+
+            if isequal(this.Options.WDay, @config)
+                this.Options.WDay = configStruct.WDay;
             end
         end
     end
