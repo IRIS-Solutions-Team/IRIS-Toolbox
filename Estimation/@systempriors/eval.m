@@ -49,7 +49,9 @@ X = nan(1, ns, nv);
 for v = 1 : nv
     % Current state space matrices.
     [T, R, ~, Z, H, ~, U, Omg] = sspaceMatrices(m, v, false);
-    [eigenVal, stability] = eig(m, v);
+    [~, eigenStability] = eig(m, v);
+    indexUnitRoots = eigenStability==TYPE(1);
+    numUnitRoots = nnz(indexUnitRoots);
     [assignedValues, assignedStdCorr] = assigned(m, v);
     ny = size(Z, 1);
     nxi = size(T, 1);
@@ -58,26 +60,23 @@ for v = 1 : nv
     % Shock response function.
     SRF = [ ];
     if ~isempty(this, 'srf')
-        numOfPeriosToSimulate = max(this.SystemFn.srf.page);
+        numPeriosToSimulate = max(this.SystemFn.srf.page);
         shkSize = this.ShkSize;
-        SRF = nan(ny+nxi, ne, numOfPeriosToSimulate);
+        SRF = nan(ny+nxi, ne, numPeriosToSimulate);
         ixActive = this.SystemFn.srf.activeInput;
         Phi = timedom.srf( ...
             T, R(:, ixActive), [ ], Z, H(:, ixActive), [ ], U, [ ], ...
-            numOfPeriosToSimulate, shkSize(ixActive));
+            numPeriosToSimulate, shkSize(ixActive));
         SRF(:, ixActive, :) = Phi(:, :, 2:end);
     end
     
-    % Number of unit roots.
-    numOfUnitRoots = nnz(stability==TYPE(1));
-
     % Frequency response function.
     FFRF = [ ];
     if ~isempty(this, 'ffrf')
         freq = this.SystemFn.ffrf.page;
         incl = true(1, ny);
         FFRF = freqdom.ffrf3( ...
-            T, R, [ ], Z, H, [ ], U, Omg, numOfUnitRoots, freq, incl, 1e-7, 500 ...
+            T, R, [ ], Z, H, [ ], U, Omg, numUnitRoots, freq, incl, 1e-7, 500 ...
         );
     end
     
@@ -85,7 +84,7 @@ for v = 1 : nv
     COV = [ ];
     if ~isempty(this, 'cov') || ~isempty(this, 'corr') || ~isempty(this, 'spd')
         order = max(this.SystemFn.cov.page);
-        COV = covfun.acovf(T, R, [ ], Z, H, [ ], U, Omg, eigenVal, order);
+        COV = covfun.acovf(T, R, [ ], Z, H, [ ], U, Omg, indexUnitRoots(1:nb), order);
     end
     
     % Correlation function.
@@ -98,7 +97,7 @@ for v = 1 : nv
     PWS = [ ];
     if ~isempty(this, 'pws') || ~isempty(this, 'spd')
         freq = this.SystemFn.pws.page;
-        PWS = freqdom.xsf(T, R, [ ], Z, H, [ ], U, Omg, numOfUnitRoots, freq);
+        PWS = freqdom.xsf(T, R, [ ], Z, H, [ ], U, Omg, numUnitRoots, freq);
     end
     
     % Spectral density function.

@@ -22,15 +22,20 @@
 classdef SystemPriorWrapper < handle
     properties
         Quantity = model.component.Quantity.empty(1, 0)
-        SystemPrior = system.Prior.empty(1, 0)
-        SystemPropertySpecifics = cell.empty(1, 0)
-        SystemPropertyNames = cell.empty(1, 0)
+        SystemPriors = SystemPrior.empty(1, 0)
+        SystemProperties = SystemProperty.empty(1, 0)
         LogDensityOutOfBounds = -Inf
+    end
+
+
+    properties (SetAccess=protected)
+        Sealed = false
     end
 
 
     properties (Dependent)
         FunctionHeader
+        ListOutputNames
     end
 
 
@@ -47,68 +52,136 @@ classdef SystemPriorWrapper < handle
         end
 
 
-        function addSystemProperty(this, name, sp)
+        function addSystemProperty(this, outputNames, systemProperty)
             persistent INPUT_PARSER
             if isempty(INPUT_PARSER)
                 INPUT_PARSER = extend.InputParser('SystemPriorWrapper.addSystemProperty');
                 INPUT_PARSER.addRequired('SystemPriorWrapper', @(x) isa(x, 'SystemPriorWrapper'));
-                INPUT_PARSER.addRequired('Name', @(x) ischar(x) || isa(x, 'string'));
-                INPUT_PARSER.addRequired('SystemProperty', @(x) isa(x, 'system.Property'));
+                INPUT_PARSER.addRequired('OutputNames', @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
+                INPUT_PARSER.addRequired('SystemProperty', @(x) isa(x, 'SystemProperty'));
             end
-            INPUT_PARSER.parse(this, name, sp);
-            this.SystemPropertyNames{1, end+1} = strtrim(char(name));
-            this.SystemPropertySpecifics{1, end+1} = sp.Specifics;
+            INPUT_PARSER.parse(this, outputNames, systemProperty);
+            assert( ...
+                ~this.Sealed, ...
+                exception.Base('SystemPriorWrapper:SystemPropertyToSealed', 'error') ...
+            );
+            if ~iscellstr(outputNames)
+                outputNames = cellstr(outputNames);
+            end
+            assert( ...
+                all(cellfun(@isvarname, outputNames)), ...
+                exception.Base('SystemPriorWrapper:IllegalOutputName', 'error') ...
+            );
+            indexUnique = checkUniqueNames(this, outputNames);
+            assert( ...
+                all(indexUnique), ...
+                exception.Base('SystemPriorWrapper:NonuniqueOutputName', 'error'), ...
+                outputNames{~indexUnique} ...
+            );
+            numOutputs = numel(outputNames);
+            assert( ...
+                numOutputs<=systemProperty.MaxNumOutputs, ...
+                exception.Base('SystemPriorWrapper:NamesExceedMaxNumOutputs', 'error') ...
+            );
+            systemProperty.OutputNames = outputNames;
+            systemProperty.NumOutputs = numOutputs;
+            this.SystemProperties(1, end+1) = systemProperty;
         end
 
 
-        function addSystemPrior(this, expression, distribution, varargin)
-            persistent INPUT_PARSER
-            if isempty(INPUT_PARSER)
-                INPUT_PARSER = extend.InputParser('SystemPriorWrapper.addSystemPrior');
-                INPUT_PARSER.addRequired('SystemPriorWrapper', @(x) isa(x, 'SystemPriorWrapper'));
-                INPUT_PARSER.addRequired('Expression', @(x) ischar(x) || isa(x, 'string'));
-                INPUT_PARSER.addRequired('Distribution', @(x) isa(x, 'distribution.Abstract'));
-                INPUT_PARSER.addParameter('LowerBound', -Inf, @(x) isnumeric(x) && isscalar(x));
-                INPUT_PARSER.addParameter('UpperBound', Inf, @(x) isnumeric(x) && isscalar(x));
+        function addSystemPrior(this, varargin)
+            if isempty(varargin)
+                return
             end
-            INPUT_PARSER.parse(this, expression, distribution, varargin{:});
-            opt = INPUT_PARSER.Options;
-            this.SystemPrior(1, end+1) = system.Prior( ...
-                expression, distribution, opt.LowerBound, opt.UpperBound ...
+            assert( ...
+                ~this.Sealed, ...
+                exception.Base('SystemPriorWrapper:SystemPriorToSealed', 'error') ...
             );
+            if all(cellfun(@(x) isa(x, 'SystemPrior'), varargin))
+                add = [varargin{:}];
+            else
+                add = SystemPrior(varargin{:});
+            end
+            numAdd = numel(add);
+            this.SystemPriors(1, end+(1:numAdd)) = add;
         end
 
 
         function seal(this)
-            seal(this.SystemPrior, this);
+            seal(this.SystemPriors, this);
+            this.Sealed = true;
+        end
+
+
+        function indexUnique = checkUniqueNames(this, names)
+            listAllNames = [this.Quantity.Name, this.ListOutputNames];
+            indexUnique = ~ismember(names, listAllNames);
+        end
+
+
+        function flag = existsOutputName(this, name)
+            flag = any(strcmp(name, this.ListOutputNames));
+        end
+
+
+        function namedReferences = getNamedReferencesForOutputName(this, name)
+            namedReferences = cell.empty(1, 0);
+            for i = 1 : numel(this.SystemProperties)
+                if any(strcmp(this.SystemProperties(i).OutputNames, name))
+                    namedReferences = this.SystemProperties(i).NamedReferences;
+                    break
+                end
+            end
+        end
+
+
+        function replace = replaceSystemPropertyReferences(systemPriorWrapper, outputName, reference)
+            namedReferences = getNamedReferencesForOutputName(systemPriorWrapper, outputName);
+            arguments = textual.splitArguments(reference);
+            arguments = strtrim(arguments);
+            for i = 1 : min(length(arguments), length(namedReferences))
+                ithIndex = strcmp(arguments{i}, namedReferences{i});
+                if any(ithIndex)
+                    arguments{i} = sprintf('%g', find(ithIndex));
+                end
+            end
+            replace = sprintf('%s,', arguments{:});
+            replace = ['(', replace(1:end-1), ')'];
         end
 
 
         function [minusLogDensity, minusLogDensityContributions, priorEval] = eval(this, model)
             TYPE = @int8;
-            systemProperty = system.Property( );
+            if ~this.Sealed
+                seal(this);
+            end
+            systemProperty = SystemProperty(model);
             nv = length(model);
-            numProperties = numel(this.SystemPropertyNames);
-            numPriors = numel(this.SystemPrior);
+            numProperties = numel(this.SystemProperties);
+            numPriors = numel(this.SystemPriors);
             minusLogDensity = nan(1, 1, nv);
             minusLogDensityContributions = nan(1, numPriors, nv);
             logDensityContributions = nan(1, numPriors, nv);
             priorEval = nan(1, numProperties, nv);
+            listOutputNames = this.ListOutputNames;
+            numOutputs = length(listOutputNames);
             for v = 1 : nv
-                systemProperty.FirstOrderSolution = getIthFirstOrderSolution(model, v);
-                systemProperty.CovShocks = getIthOmega(model, v);
-                [systemProperty.EigenValues, systemProperty.EigenStability] = eig(model, v);
-                systemProperty.NumUnitRoots = nnz(systemProperty.EigenStability==TYPE(1));
-                values = getIthValues(model, v);
-                stdCorr = getIthStdCorr(model, v);
-                propertyEval = cell(1, numProperties);
+                update(systemProperty, model, v);
+                outputs = cell(1, numOutputs);
+                count = 0;
                 for i = 1 : numProperties
-                    systemProperty.Specifics = this.SystemPropertySpecifics{i};
-                    propertyEval{1, i} = systemProperty.Specifics.Function(systemProperty);
+                    systemProperty.Function = this.SystemProperties(i).Function;
+                    systemProperty.MaxNumOutputs = this.SystemProperties(i).MaxNumOutputs;
+                    systemProperty.NumOutputs = this.SystemProperties(i).NumOutputs;
+                    systemProperty.Specifics = this.SystemProperties(i).Specifics;
+                    ithNumOutputs = this.SystemProperties(i).NumOutputs;
+                    eval(systemProperty);
+                    outputs(count+(1:ithNumOutputs)) = systemProperty.Outputs(1:end);
+                    count = count + ithNumOutputs;
                 end
                 for i = 1 : numPriors
-                    p = this.SystemPrior(i); 
-                    x = p.Function(values, stdCorr, propertyEval{:});
+                    p = this.SystemPriors(i); 
+                    x = p.Function(systemProperty.Values, systemProperty.StdCorr, outputs{:});
                     if x>=p.LowerBound && x<=p.UpperBound
                         c = p.Distribution.logPdf(x);
                     else
@@ -125,10 +198,16 @@ classdef SystemPriorWrapper < handle
 
         function h = get.FunctionHeader(this)
             h = 'Value, StdCorr';
-            for i = 1 : numel(this.SystemPropertyNames)
-                h = [h, ', ', this.SystemPropertyNames{i}];
+            listOutputNames = this.ListOutputNames;
+            for i = 1 : numel(listOutputNames)
+                h = [h, ', ', listOutputNames{i}];
             end
             h = ['@(', h, ')'];
+        end
+
+
+        function list = get.ListOutputNames(this)
+            list = [ this.SystemProperties.OutputNames ];
         end
     end
 end
