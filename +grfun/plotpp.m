@@ -19,7 +19,7 @@ function [priorPoints, posterPoints, varargout] = plotpp(inp, varargin)
 % [`estimate`](model/estimate), with prior function handles from the
 % [logdist](logdist/Contents) package.
 %
-% * `est` [ struct | empty ] - Output struct returned from the
+% * `est` [ table | struct | empty ] - Output struct returned from the
 % [`model/estimate`](model/estimate) function; `est` will be used to plot
 % the maximized posterior modes.
 %
@@ -127,10 +127,12 @@ function [priorPoints, posterPoints, varargout] = plotpp(inp, varargin)
 mo = [ ]; % Maximised posterior mode.
 po = [ ]; % Simulated posterior distribution.
 
+inputFields = fieldnames(inp);
+
 if ~isempty(varargin)
     if isempty(varargin{1}) ...
-            || (isstruct(varargin{1}) ...
-            && isequal(fieldnames(inp), fieldnames(varargin{1})))
+            || (isstruct(varargin{1}) && isequal(inputFields, fieldnames(varargin{1}))) ...
+            || (isa(varargin{1}, 'table') && isequal(inputFields, varargin{1}.Properties.RowNames))
         mo = varargin{1};
         varargin(1) = [ ];
     end
@@ -326,9 +328,21 @@ for i = 1 : nList
     if (isnan(from) || isnan(to) ) && ~isempty(f)
         low = bnd.(list{i})(1);
         high = bnd.(list{i})(2);
-        mean = f([ ], 'mean');
-        sgm = f([ ], 'std');
-        mode = f([ ], 'mode');
+        if isa(f, 'distribution.Abstract')
+            mean = f.Mean;
+            sgm = f.Std;
+            mode = f.Mode;
+        else
+            try
+                mean = f([ ], 'mean');
+                sgm = f([ ], 'std');
+                mode = f([ ], 'mode');
+            catch
+                mean = NaN;
+                sgm = NaN;
+                mode = NaN;
+            end
+        end
         from = min(mean-w*sgm, mode-w*sgm);
         from = max(from, low);
         to = max(mean+w*sgm, mode+w*sgm);
@@ -357,7 +371,15 @@ for i = 1 : nList
         from = priorXLim.(list{i})(1);
         to = priorXLim.(list{i})(2);
         x = linspace(from, to, 1000);
-        y = f(x, 'proper');
+        if isa(f, 'distribution.Abstract')
+            y = f.pdf(x);
+        else
+            try
+                y = f(x, 'proper');
+            catch
+                y = nan(size(x));
+            end
+        end
     end
     priorPoints.(list{i}) = {x, y};
 end
@@ -548,12 +570,21 @@ if isempty(mo)
     return
 end
 
-list = fieldnames(mo);
+if isstruct(mo)
+    list = fieldnames(mo);
+else
+    list = mo.Properties.RowNames;
+end
 nList = numel(list);
 modePoints = struct( );
 for i = 1 : nList
+    ithName = list{i};
     try
-        x = mo.(list{i});
+        if isstruct(mo)
+            x = mo.(ithName);
+        else
+            x = mo{ithName, 1};
+        end
         y = 0.98*max_.(list{i});
         if isnan(y)
             % This happens if there's no prior distribution on this
@@ -707,18 +738,22 @@ return
 
     function describePrior( )
         f = priorFunc.(list{iGraph});
+        addToTitle = '';
         if isempty(f)
-            tit{iGraph} = [tit{iGraph}, sprintf('\nprior: flat')];
+            addToTitle = sprintf('\nprior: Flat');
         else
-            try
-                name = f([ ], 'name');
-                mu = f([ ], 'mean');
-                sgm = f([ ], 'std');
-                tit{iGraph} = [tit{iGraph}, ...
-                    sprintf('\nprior: %s {\\mu=}%g {\\sigma=}%g', ...
-                    name, mu, sgm)];
+            if isa(f, 'distribution.Abstract')
+                addToTitle = sprintf('\nprior: %s {\\mu=}%g {\\sigma=}%g', f.Name, f.Mean, f.Std);
+            else
+                try
+                    name = f([ ], 'name');
+                    mu = f([ ], 'mean');
+                    sgm = f([ ], 'std');
+                    addToTitle = sprintf('\nprior: %s {\\mu=}%g {\\sigma=}%g', name, mu, sgm);
+                end
             end
         end
+        tit{iGraph} = [tit{iGraph}, addToTitle];
     end 
 
 
