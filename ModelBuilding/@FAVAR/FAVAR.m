@@ -1,41 +1,41 @@
+% FAVAR  Factor-Augmented Vector Autoregressions (FAVAR Objects).
+%
+% FAVAR methods:
+%
+% Constructor
+% ============
+%
+% * [`FAVAR`](FAVAR/FAVAR) - Create new empty FAVAR object.
+%
+%
+% Getting information about FAVAR objects
+% ========================================
+%
+% * [`comment`](FAVAR/comment) - Get or set user comments in an IRIS object.
+% * [`get`](FAVAR/get) - Query model object properties.
+% * [`isempty`](FAVAR/isempty) - True if VAR based object is empty.
+% * [`userdata`](FAVAR/userdata) - Get or set user data in an IRIS object.
+% * [`VAR`](FAVAR/VAR) - Return a VAR object describing the factor dynamics.
+%
+%
+% Estimation
+% ===========
+%
+% * [`estimate`](FAVAR/estimate) - Estimate FAVAR using static principal components.
+%
+%
+% Filtering and forecasting
+% ==========================
+%
+% * [`filter`](FAVAR/filter) - Re-estimate the factors by Kalman filtering the data taking FAVAR coefficients as given.
+% * [`forecast`](FAVAR/forecast) - Forecast FAVAR factors and observables.
+%
+%
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2017 IRIS Solutions Team.
+    
 classdef FAVAR < varobj
-    % FAVAR  Factor-Augmented Vector Autoregressions (FAVAR Objects).
-    %
-    % Constructor
-    % ============
-    %
-    % * [`FAVAR`](FAVAR/FAVAR) - Create new empty FAVAR object.
-    %
-    % Getting information about FAVAR objects
-    % ========================================
-    %
-    % * [`comment`](FAVAR/comment) - Get or set user comments in an IRIS object.
-    % * [`get`](FAVAR/get) - Query model object properties.
-    % * [`isempty`](FAVAR/isempty) - True if VAR based object is empty.
-    % * [`userdata`](FAVAR/userdata) - Get or set user data in an IRIS object.
-    % * [`VAR`](FAVAR/VAR) - Return a VAR object describing the factor dynamics.
-    %
-    % Estimation
-    % ===========
-    %
-    % * [`estimate`](FAVAR/estimate) - Estimate FAVAR using static principal components.
-    %
-    % Filtering and forecasting
-    % ==========================
-    %
-    % * [`filter`](FAVAR/filter) - Re-estimate the factors by Kalman filtering the data taking FAVAR coefficients as given.
-    % * [`forecast`](FAVAR/forecast) - Forecast FAVAR factors and observables.
-    %
-    % Getting on-line help on FAVAR functions
-    % ========================================
-    %
-    %     help FAVAR
-    %     help FAVAR/function_name
-    %
-    
-    % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2017 IRIS Solutions Team.
-    
     properties
         Mean = [ ] % Vector of estimated means used to standardise the input data.
         Std = [ ] % Vector of estimated stdevs used to standardise the input data.
@@ -43,13 +43,9 @@ classdef FAVAR < varobj
         B = [ ] % Coefficient matrix at orthonormalised shocks in factor VAR.
         C = [ ] % Measurement matrix.
         
-        T = [ ] % Schur decomposition of the transition matrix.
-        U = [ ] % Schur transformation of the factors.
         Sigma = [ ] % Cov of idiosyncratic residuals.
         Cross = NaN;
     end
-    
-    
     
     
     methods
@@ -63,13 +59,9 @@ classdef FAVAR < varobj
     end
     
     
-    
-    
     methods (Hidden)
         varargout = standardise(varargin)
     end
-    
-    
     
     
     methods (Access=protected, Hidden)
@@ -79,16 +71,12 @@ classdef FAVAR < varobj
     end
     
     
-    
-    
     methods (Static, Hidden)
         varargout = pc(varargin)
         varargout = estimatevar(varargin)
         varargout = cc(varargin)
         varargout = destandardise(varargin)
     end
-    
-    
     
     
     methods

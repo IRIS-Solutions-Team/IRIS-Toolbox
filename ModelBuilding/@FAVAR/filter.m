@@ -35,35 +35,34 @@ function [this, d, cc, ff, uu, ee] = filter(this, inp, range, varargin)
 %
 % __Options__
 %
-% * `'Cross='` [ *`true`* | `false` | numeric ] - Run the filter with the
+% * `Cross=true` [ `true` | `false` | numeric ] - Run the filter with the
 % off-diagonal elements in the covariance matrix of idiosyncratic
 % residuals; if false all cross-covariances are reset to zero; if a number
 % between zero and one, all cross-covariances are multiplied by that
 % number.
 %
-% * `'InvFunc='` [ *`'auto'`* | function_handle ] - Inversion method for
+% * `InvFunc='auto'` [ `'auto'` | function_handle ] - Inversion method for
 % the FMSE matrices.
 %
-% * `'MeanOnly='` [ `true` | *`false`* ] - Return only mean data, i.e. point
-% estimates.
+% * `MeanOnly=false` [ `true` | `false` ] - Return only mean data, i.e.
+% point estimates.
 %
-% * `'Persist='` [ `true` | *`false`* ] - If `filter` or `forecast` is used
-% with `'Persist='` set to `true` for the first time, the forecast MSE
+% * `Persist=false` [ `true` | `false` ] - If `filter` or `forecast` is used
+% with `Persist=true` for the first time, the forecast MSE
 % matrices and their inverses will be stored; subsequent calls of the
 % `filter` or `forecast` functions will re-use these matrices until
 % `filter` or `forecast` is called with this option set to `false`.
 %
-% * `'Tolerance='` [ numeric | *`0`* ] - Numerical tolerance under which
-% two FMSE matrices computed in two consecutive periods will be treated as
-% equal and their inversions will be re-used, not re-computed.
+% * `Tolerance=0` [ numeric ] - Numerical tolerance under which two FMSE
+% matrices computed in two consecutive periods will be treated as equal and
+% their inversions will be re-used, not re-computed.
 %
 %
 % __Description__
 %
 % It is the user's responsibility to make sure that `filter` and `forecast`
-% called with `'Persist='` set to true are valid, i.e. that the
-% previously computed FMSE matrices can be really re-used in the current
-% run.
+% called with `Persist=` set to true are valid, i.e. that the previously
+% computed FMSE matrices can be really re-used in the current run.
 %
 %
 % __Example__
@@ -72,6 +71,7 @@ function [this, d, cc, ff, uu, ee] = filter(this, inp, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
+TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
@@ -97,12 +97,13 @@ range = req.Range;
 y = req.Y;
 
 [this, y] = standardise(this, y);
-nPer = size(y, 2);
+numPeriods = size(y, 2);
 
 % Initialise Kalman filter.
 x0 = zeros([p*nx, 1]);
 R = this.U(1:nx, :)'*this.B;
-P0 = covfun.acovf(this.T, R, [ ], [ ], [ ], [ ], this.U, 1, [ ], 0);
+indexUnitRoots = this.EigenStability==TYPE(1);
+P0 = covfun.acovf(this.T, R, [ ], [ ], [ ], [ ], this.U, 1, indexUnitRoots, 0);
 
 Sgm = this.Sigma;
 % Reduce or zero off-diagonal elements in the cov matrix of idiosyncratic
@@ -126,8 +127,7 @@ else
     invFunc = opt.invfunc;
 end
 
-% Run VAR Kalman smoother
-%-------------------------
+% __Run VAR Kalman Smoother__
 % Run Kalman smoother to re-estimate the common factors taking the
 % coefficient matrices as given. If `allobserved` is true then the VAR
 % smoother makes an assumption that the factors are uniquely determined

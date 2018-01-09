@@ -10,7 +10,7 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
     methods
         #for FN = {plot, bar, area, stem}
         function varargout = #(FN)(varargin)
-            [varargout{1:nargout}] = #(FN)@TimeSeriesBase(varargin{:});
+            [varargout{1:nargout}] = #(FN)@TimeSubscriptable(varargin{:});
         end
 
 

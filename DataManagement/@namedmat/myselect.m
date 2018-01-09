@@ -1,5 +1,5 @@
-function [X,Pos] = myselect(X,RowNames,ColNames,varargin)
-% myselect  [Not a public function] Implementation of namedmat selection.
+function [X, Pos] = myselect(X, RowNames, ColNames, varargin)
+% myselect  Implementation of namedmat selection.
 %
 % Backend IRIS function.
 % No help provided.
@@ -19,11 +19,11 @@ else
 end
 
 if ischar(RowSel)
-    RowSel = regexp(RowSel,'[\w\{\}\(\)\+\-]+','match');
+    RowSel = regexp(RowSel, '[\w\{\}\(\)\+\-]+', 'match');
 end
 
 if ischar(ColSel)
-    ColSel = regexp(ColSel,'[\w\{\}\(\)\+\-]+','match');
+    ColSel = regexp(ColSel, '[\w\{\}\(\)\+\-]+', 'match');
 end
 
 usrRowSelect = RowSel;
@@ -31,11 +31,10 @@ usrColSelect = ColSel;
 
 %--------------------------------------------------------------------------
 
-removeLogFunc = @(x) regexprep(strtrim(x),'log\((.*?)\)','$1','once');
-RowSel = removeLogFunc(RowSel(:).');
-ColSel = removeLogFunc(ColSel(:).');
-RowNames = removeLogFunc(RowNames(:).');
-ColNames = removeLogFunc(ColNames(:).');
+RowSel = removeLog(RowSel(:).');
+ColSel = removeLog(ColSel(:).');
+RowNames = removeLog(RowNames(:).');
+ColNames = removeLog(ColNames(:).');
 
 
 rowPos = nan(size(RowSel));
@@ -43,13 +42,13 @@ colPos = nan(size(ColSel));
 
 % Match row and columns selections against row and columns names.
 for i = 1 : length(RowSel)
-    pos = find(strcmp(RowNames,RowSel{i}),1);
+    pos = find(strcmp(RowNames, RowSel{i}), 1);
     if ~isempty(pos)
         rowPos(i) = pos;
     end
 end
 for i = 1 : length(ColSel)
-    pos = find(strcmp(ColNames,ColSel{i}),1);
+    pos = find(strcmp(ColNames, ColSel{i}), 1);
     if ~isempty(pos)
         colPos(i) = pos;
     end
@@ -58,7 +57,7 @@ end
 % Check for not-found positions.
 ixNanRow = isnan(rowPos);
 ixNanCol = isnan(colPos);
-doChkNotFound( );
+checkNotFound( );
 rowPos(ixNanRow) = [ ];
 colPos(ixNanCol) = [ ];
 nRowSel = length(rowPos);
@@ -66,21 +65,17 @@ nColSel = length(colPos);
 
 X = double(X);
 s = size(X);
-X = X(:,:,:);
-X = X(rowPos,colPos,:);
+X = X(:, :, :);
+X = X(rowPos, colPos, :);
 if length(s) > 2
-    X = reshape(X,[nRowSel,nColSel,s(3:end)]);
+    X = reshape(X, [nRowSel, nColSel, s(3:end)]);
 end
-Pos = {rowPos,colPos};
+Pos = {rowPos, colPos};
+
+return
 
 
-% Nested functions...
-
-
-%**************************************************************************
-
-    
-    function doChkNotFound( )
+    function checkNotFound( )
         msg = { };
         if isColSelect
             % Row and column selections entered separately.
@@ -109,7 +104,13 @@ Pos = {rowPos,colPos};
         utils.error('namedmat:myselect', ...
             'This is not a valid %s name: ''%s''.', ...
             msg{:});
-    end % doChkNotFound( )
-
-
+    end 
 end
+
+
+function c = removeLog(c)
+    c = strtrim(c);
+    c = regexprep(c, '^log\((.*?)\)$', '$1', 'once');
+    c = regexprep(c, '^log_(.*?)$', '$1', 'once');
+end
+

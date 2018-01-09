@@ -30,30 +30,29 @@ function this = convert(this, newFreq, varargin)
 %
 % __Options__
 %
-% * `'IgnoreNaN='` [ *`true`* | `false` ] - Exclude NaNs from agreggation.
+% * `IgnoreNaN=true` [ `true` | `false` ] - Exclude NaNs from agreggation.
 %
-% * `'Missing='` [ numeric | *`NaN`* | `'last'` ] - Replace missing
-% observations with this value.
-%
-%
-% __Options for High- to Low-Frequency Conversion (Aggregation)__
-%
-% * `'Method='` [ function_handle | `'first'` | `'last'` | *`@mean`* ] -
-% Method that will be used to aggregate the high frequency data.
-%
-% * `'Select='` [ numeric | *`Inf`* ] - Select only these high-frequency
-% observations within each low-frequency period; Inf means all observations
-% will be used.
+% * `Missing=NaN` [ numeric | `'last'` ] - Replace missing observations
+% with this value.
 %
 %
-% __Options for Low- to High-Frequency Conversion (Interpolation)__
+% __Options for High- to Low-Frequency Aggregation__
 %
-% * `'Method='` [ char | *`'cubic'`* | `'quadsum'` | `'quadavg'` ] -
-% Interpolation method; any option available in the built-in `interp1`
-% function can be used.
+% * `Method=@mean` [ function_handle | `'first'` | `'last'` ] - Aggregation
+% method.
 %
-% * `'Position='` [ *`'centre'`* | `'start'` | `'end'` ] - Position of the
-% low-frequency date grid.
+% * `Select=Inf` [ numeric ] - Select only these high-frequency
+% observations within each low-frequency period; `Inf` means all
+% observations will be used.
+%
+%
+% __Options for Low- to High-Frequency Interpolation__
+%
+% * `Method='cubic'` [ char | `'quadsum'` | `'quadavg'` ] - Interpolation
+% method; any option valid for the built-in function `interp1` can be used.
+%
+% * `Position='centre'` [ `'centre'` | `'start'` | `'end'` ] - Position of
+% the low-frequency date grid.
 %
 %
 % __Description__

@@ -1,5 +1,5 @@
-function [A,B,Omg,T,U,u,Fitted] = estimatevar(X,P,Q)
-% estimatevar  [Not a public function] Estimate VAR(p,q) on factors.
+function [A, B, Omg, u, fitted] = estimatevar(X, P, Q)
+% estimatevar  Estimate VAR(p, q) on factors.
 %
 % Backend IRIS function.
 % No help provided.
@@ -9,26 +9,26 @@ function [A,B,Omg,T,U,u,Fitted] = estimatevar(X,P,Q)
 
 %--------------------------------------------------------------------------
 
-nx = size(X,1);
-nPer = size(X,2);
+nx = size(X, 1);
+nPer = size(X, 2);
 
 % Stack vectors of x(t), x(t-1), etc.
 t = P+1 : nPer;
-presample = nan(nx,P);
-x0 = [presample,X(:,t)];
+presample = nan(nx, P);
+x0 = [presample, X(:, t)];
 x1 = [ ];
 for i = 1 : P
-   x1 = [x1;presample,X(:,t-i)]; %#ok<AGROW>
+   x1 = [x1;presample, X(:, t-i)]; %#ok<AGROW>
 end
 
 % Determine dates with no missing observations.
-Fitted = all(~isnan([x0;x1]));
-nObs = sum(Fitted);
+fitted = all(~isnan([x0;x1]));
+nObs = sum(fitted);
 
 % Estimate VAR and reduced-form residuals.
-A = x0(:,Fitted)/x1(:,Fitted);
+A = x0(:, fitted)/x1(:, fitted);
 e = x0 - A*x1;
-Omg = e(:,Fitted)*e(:,Fitted)'/nObs;
+Omg = e(:, fitted)*e(:, fitted)'/nObs;
 
 % Number of orthonormalised shocks driving the factor VAR.
 if Q > nx
@@ -37,17 +37,10 @@ end
 
 % Compute principal components of reduced-form residuals, back out
 % orthonormalised residuals.
-% e = B u,
+% e = B u, 
 % Euu' = I.
-[B,u] = covfun.orthonorm(Omg,Q,1,e);
-B = B(:,1:Q,:);
-u = u(1:Q,:,:);
-
-% Tringularise FAVAR system.
-%     x = A [x(-1);...;x(-p)] + [B;0] u
-%     a = T a(-1) + U(1:nx,:)' B u.
-% where x = U a.
-AA = [A;eye(nx*(P-1),nx*P)];
-[U,T] = schur(AA);
+[B, u] = covfun.orthonorm(Omg, Q, 1, e);
+B = B(:, 1:Q, :);
+u = u(1:Q, :, :);
 
 end

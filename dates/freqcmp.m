@@ -58,11 +58,11 @@ if isequal(x, @all) || isequal(y, @all) || isequal(x, Inf) || isequal(y, Inf)
     return
 end
 
-if isa(x, 'TimeSeriesBase')
+if isa(x, 'TimeSubscriptable')
     x = x.Start;
 end
 
-if isa(y, 'TimeSeriesBase')
+if isa(y, 'TimeSubscriptable')
     y = y.End;
 end
 

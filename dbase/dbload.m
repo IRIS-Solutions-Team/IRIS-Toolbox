@@ -35,7 +35,7 @@ function d = dbload(varargin)
 % * `'DateFormat='` [ char | *`'YYYYFP'`* ] - Format of dates in first
 % column.
 %
-% * `'Delimiter='` [ char | *`', '`* ] - Delimiter separating the individual
+% * `'Delimiter='` [ char | *`','`* ] - Delimiter separating the individual
 % values (cells) in the CSV file; if different from a comma, all occurences
 % of the delimiter will replaced with commas -- note that this will also
 % affect text in comments.

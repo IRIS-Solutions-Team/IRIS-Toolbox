@@ -1,9 +1,4 @@
 classdef Stacked < solver.blazer.Blazer
-    properties
-        NumOfStackedTimes
-    end
-
-
     properties (Constant)
         BLOCK_CONSTRUCTOR = @solver.block.Stacked
         LHS_QUANTITY_FORMAT = 'x(%g,t)'
@@ -12,9 +7,8 @@ classdef Stacked < solver.blazer.Blazer
     
 
     methods
-        function this = Stacked(numOfStackedTimes, varargin)
+        function this = Stacked(varargin)
             this = this@solver.blazer.Blazer(varargin{:});
-            this.NumOfStackedTimes = numOfStackedTimes;
         end
     end
 end

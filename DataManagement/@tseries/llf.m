@@ -67,10 +67,10 @@ function varargout = llf(varargin)
 % be specified for tseries objects with indeterminate frequency. See
 % Description for default values.
 %
-% * `'Level='` [ tseries ] - Time series with soft and hard tunes on the
+% * `Level=` [ tseries ] - Time series with soft and hard tunes on the
 % level of the trend.
 %
-% * `'Change='` [ tseries ] - Time series with soft and hard tunes on the
+% * `Change=` [ tseries ] - Time series with soft and hard tunes on the
 % change in the trend.
 %
 % * `'Log='` [ `true` | *`false`* ] - Logarithmise the data before
@@ -114,14 +114,14 @@ function varargout = llf(varargin)
 % entered in the option `'gamma='`;
 % * \( a_t \) and \( u_t \) are soft tunes on the level of the trend and the
 % weights associated with these soft level tunes, respectively, entered
-% together as complex numbers in the option `'Level='`;
+% together as complex numbers in the option `Level=`;
 % * \( b_t \) and \( v_t \) are soft tunes on the change in the level of the trend
 % and the weights associated with these soft growth tunes, respectively, 
-% entered together as complex numbers in the option `'Change='`;
+% entered together as complex numbers in the option `Change=`;
 % * \( c_t \) are hard tunes on the level of the trend, entered as real numbers
-% in the option `'Level='`;
+% in the option `Level=`;
 % * \( d_t \) are hard tunes on the change in the level of the trend, entered
-% as real numbers in the option `'Change='`;
+% as real numbers in the option `Change=`;
 % * \( \omega_t \) are lagrange multipliers on the hard level tunes (note that
 % these are computed as part of the optimization problem, not entered by
 % the user);
@@ -138,12 +138,12 @@ function varargout = llf(varargin)
 % _Imposing Tunes on Trend Level and Trend Change_
 %
 % * The soft and hard tunes on the level of the trend are entered as time
-% series through the option `'Level='`.
+% series through the option `Level=`.
 %
 % * The soft and hard tunes on the change in the trend are entered as time
-% series through the option `'change='`.
+% series through the option `Change=`.
 %
-% * In the tseries objects entered through `'Level='` and/or `'change='`, 
+% * In the tseries objects entered through `Level=` and/or `Change=`, 
 % you can combine any number of hard and soft tune. In each particular
 % period, you can obviously specify only a hard tune or only a soft tune.
 % You can think of hard tunes as a special case of soft tunes with
@@ -163,14 +163,14 @@ function varargout = llf(varargin)
 % 
 % Tunes can be imposed also at dates before the first observation of the
 % input series, or after the last observation. In other words, the time
-% series in `'Level='` and/or `'Change='` can have a more extended range
+% series in `Level=` and/or `Change=` can have a more extended range
 % (at either side) than the filtered input series.
 %
 %
 % _Default Smoothing Parameters_
 %
 % If the user does not specify the smoothing parameter using the
-% `'Lambda='` option (or reassigns the default `@auto`), a default value is
+% `Lambda=` option (or reassigns the default `@auto`), a default value is
 % used. The default value is based on common practice and can be calculated
 % using the date frequency of the input time series as \( \lambda = 10f \),
 % where \( f \) is the frequency (yearly=1, half-yearly=2, quarterly=4, 
@@ -179,12 +179,11 @@ function varargout = llf(varargin)
 % * 10 for yearly time series (cut-off periodicity of 19.79 years);
 % * 20 for half-yearly time series (cut-off periodicity of 14.02 years);
 % * 40 for quarterly time series (cut-off periodicity of 9.92 years);
-% * 60 for bi-monthly time series (cut-off periodicity of 8.11 years);
 % * 120 for monthly time series (cut-off periodicity of 5.73 years).
 %
 % Note that there is no default value for data with indeterminate or daily
 % frequency: for these types of time series, you must always use the option
-% `'Lambda=''.
+% `Lambda=`.
 %
 %
 % __Example__

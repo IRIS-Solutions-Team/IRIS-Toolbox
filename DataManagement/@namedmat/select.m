@@ -24,8 +24,8 @@ function [This,Pos] = select(This,RowSelect,ColSelect)
 %
 % * `XX` [ namedmat ] - Submatrix with named rows and columns.
 %
-% * `Pos` [ cell ] - `Pos{1}` is av ector of rows included in the submatrix
-% `XX`, `Pos{2} is a vector of columns included in the submatrix `XX`.
+% * `Pos` [ cell ] - `Pos{1}` is a vector of rows included in the submatrix
+% `XX`, `Pos{2}` is a vector of columns included in the submatrix `XX`.
 %
 % Description
 % ============

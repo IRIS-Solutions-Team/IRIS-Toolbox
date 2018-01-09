@@ -1,5 +1,5 @@
 function [Y, Outp, Logbk, Err, Mdl] = x13(X, StartDate, Dummy, Opt)
-% x13  [Not a public function] Matlab interface for X13-ARIMA-Seats.
+% x13  Matlab interface for X13-ARIMA-Seats.
 %
 % Backend IRIS function.
 % No help provided.
@@ -21,9 +21,9 @@ switch lower(Opt.mode)
 end
 
 if ischar(Opt.output)
-    Opt.output = {Opt.output};
+    Opt.output = { Opt.output };
 elseif ~iscellstr(Opt.output)
-    Opt.output = {'d11'};
+    Opt.output = { 'd11' };
 end
 nOutp = length(Opt.output);
 

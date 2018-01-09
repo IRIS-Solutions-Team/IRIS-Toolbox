@@ -74,7 +74,7 @@ range = cell(1, nFreq);
 nList = numel(list);
 
 for i = 1 : nList
-    if isfield(d, list{i}) && isa(d.(list{i}), 'TimeSeriesBase')
+    if isfield(d, list{i}) && isa(d.(list{i}), 'TimeSubscriptable')
         x = d.(list{i});
         freqInx = freq(x) == freqList;
         if any(freqInx)

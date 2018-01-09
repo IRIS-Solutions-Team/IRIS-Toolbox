@@ -560,7 +560,7 @@ isOk = true;
 switch func2str(func)
     case {'plot', 'bar', 'barcon', 'stem'}
         inpDataCat = [inpData{:}];
-        if isa(inpDataCat, 'TimeSeriesBase')
+        if isa(inpDataCat, 'TimeSubscriptable')
             [~, range, data] = func(inpRange, inpDataCat, varargin{:}, funcArgs{:});
         elseif ~isempty(inpDataCat)
             data = inpDataCat;

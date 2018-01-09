@@ -75,9 +75,9 @@ TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 % Get input data.
 [y, range, lsy] = getEstimationData(this, d, range);
 
-if isempty(this.YNames) && isequal(inpFmt, 'dbase')
+if isempty(this.NamesEndogenous) && isequal(inpFmt, 'dbase')
     % ##### Nov 2013 OBSOLETE and scheduled for removal.
-    this.YNames = lsy;
+    this.NamesEndogenous = lsy;
 end
 
 this.Range = range;
@@ -100,9 +100,11 @@ y0 = y;
     FAVAR.pc(y, crit, opt.method);
 
 % Estimate VAR(p, q) on factors.
-[this.A, this.B, this.Omega, this.T, this.U, E, this.IxFitted] = ...
+[this.A, this.B, this.Omega, E, this.IxFitted] = ...
     FAVAR.estimatevar(FF, opt.order, opt.rank);
-this.EigVal = ordeig(this.T);
+
+% Triangularize transition matrix, compute eigenvalues and stability
+this = schur(this);
 
 % Reduce or zero off-diagonal elements in the cov matrix of idiosyncratic
 % residuals if requested.
