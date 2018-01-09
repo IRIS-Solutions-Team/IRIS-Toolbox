@@ -153,8 +153,11 @@ for t = 1 : nPer
             end
         end
     end
-    Fipe(jy,t) = F(jy,jy,t)\pe(jy,t);
-    G(:,jy,t) = T*Px2(:,1:nz2,t)*Z(jy,:).'/F(jy,jy,t);
+    Fijy = invFunc(F(jy, jy, t));
+    Fipe(jy, t) = Fijy * pe(jy,t);
+    G(:, jy, t) = T*Px2(:,1:nz2,t)*Z(jy,:).' * Fijy;
+    %Fipe(jy,t) = F(jy,jy,t)\pe(jy,t);
+    %G(:,jy,t) = T*Px2(:,1:nz2,t)*Z(jy,:).'/F(jy,jy,t);
     
     doUpdate( );
     
