@@ -2,6 +2,7 @@ classdef Behavior
     properties
         InvalidDotAssign = 'Error'
         DotReferenceFunc = [ ]
+        LogStyleInSolutionVectors = model.LOG_PREFIX
     end
     
     
@@ -41,6 +42,17 @@ classdef Behavior
                     exception.Base('Behavior:DotReferenceFunc', 'error') ...
                 );
             end
+        end
+
+
+        function this = set.LogStyleInSolutionVectors(this, newValue)
+            newValue = char(newValue);
+            assert( ...
+                isequal(newValue, 'log()') || isequal(newValue, model.LOG_PREFIX), ...
+                exception.Base('Behavior:LogStyleInSolutionVectors', 'error'), ...
+                char(newValue) ...
+            );
+            this.LogStyleInSolutionVectors = newValue;
         end
     end
 end

@@ -18,6 +18,9 @@ elseif strcmpi(request, 'Behavior:InvalidDotAssign')
 elseif strcmpi(request, 'Behavior:DotReferenceFunc')
     this.DotReferenceFunc = value;
     return
+
+elseif strcmpi(request, 'Behavior:LogStyleInSolutionVectors')
+    this.LogStyleInSolutionVectors = value;
         
 else
     isValidRequest = false;

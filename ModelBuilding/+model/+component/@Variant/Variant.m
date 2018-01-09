@@ -2,8 +2,8 @@ classdef Variant
     properties
         Values = double.empty(1, 0, 0)
         StdCorr = double.empty(1, 0, 0)
-        Solution = repmat({double.empty(0, 0, 0)}, 1, 9)
-        Expansion = repmat({double.empty(0, 0, 0)}, 1, 5)
+        FirstOrderSolution = repmat({double.empty(0, 0, 0)}, 1, 9)
+        FirstOrderExpansion = repmat({double.empty(0, 0, 0)}, 1, 5)
         IxInit = logical.empty(1, 0, 0)
         EigenValues = double.empty(1, 0, 0)
         EigenStability = int8.empty(1, 0, 0)
@@ -19,7 +19,7 @@ classdef Variant
         SOLUTION_TRANSITION = [1, 2, 3, 4, 7, 8]
         SOLUTION_MEASUREMENT = [4, 5, 6, 9] 
         LIST_OF_ARRAY_PROPERTIES = {'Values', 'StdCorr', 'IxInit', 'EigenValues', 'EigenStability'}
-        LIST_OF_CELL_PROPERTIES = {'Solution', 'Expansion'}
+        LIST_OF_CELL_PROPERTIES = {'FirstOrderSolution', 'FirstOrderExpansion'}
     end
 
 
@@ -96,21 +96,21 @@ classdef Variant
             nh = numOfHashed;
             nz = numOfObserved;
 
-            this.Solution{1} = nan(nxi, nb, nv);             % T
-            this.Solution{2} = nan(nxi, ne*(1+ahead), nv);   % R
-            this.Solution{3} = nan(nxi, 1, nv);              % K
-            this.Solution{4} = nan(ny, nb, nv);              % Z
-            this.Solution{5} = nan(ny, ne, nv);              % H
-            this.Solution{6} = nan(ny, 1, nv);               % D
-            this.Solution{7} = nan(nb, nb, nv);              % U
-            this.Solution{8} = nan(nxi, nh*(1+ahead), nv);   % Y - add-factors in hashed equations
-            this.Solution{9} = nan(max(ny, nz), nb, nv);     % Zb - non-transformed measurement.
+            this.FirstOrderSolution{1} = nan(nxi, nb, nv);             % T
+            this.FirstOrderSolution{2} = nan(nxi, ne*(1+ahead), nv);   % R
+            this.FirstOrderSolution{3} = nan(nxi, 1, nv);              % K
+            this.FirstOrderSolution{4} = nan(ny, nb, nv);              % Z
+            this.FirstOrderSolution{5} = nan(ny, ne, nv);              % H
+            this.FirstOrderSolution{6} = nan(ny, 1, nv);               % D
+            this.FirstOrderSolution{7} = nan(nb, nb, nv);              % U
+            this.FirstOrderSolution{8} = nan(nxi, nh*(1+ahead), nv);   % Y - add-factors in hashed equations
+            this.FirstOrderSolution{9} = nan(max(ny, nz), nb, nv);     % Zb - non-transformed measurement.
             
-            this.Expansion{1} = nan(nb, kf, nv); % Xa
-            this.Expansion{2} = nan(nf, kf, nv); % Xf
-            this.Expansion{3} = nan(kf, ne, nv); % Ru
-            this.Expansion{4} = nan(kf, kf, nv); % J
-            this.Expansion{5} = nan(kf, nh, nv); % Yu -- nonlin addfactors.
+            this.FirstOrderExpansion{1} = nan(nb, kf, nv); % Xa
+            this.FirstOrderExpansion{2} = nan(nf, kf, nv); % Xf
+            this.FirstOrderExpansion{3} = nan(kf, ne, nv); % Ru
+            this.FirstOrderExpansion{4} = nan(kf, kf, nv); % J
+            this.FirstOrderExpansion{5} = nan(kf, nh, nv); % Yu -- nonlin addfactors.
             
             this.EigenValues = nan(1, kxi, nv);
             this.EigenStability = zeros(1, kxi, nv, 'int8');
@@ -125,39 +125,39 @@ classdef Variant
 
             % Preallocate all solution and expansion matrices first if they
             % are missing.
-            if isempty(this.Solution{1})
+            if isempty(this.FirstOrderSolution{1})
                 this = preallocateSolution(this, vector, 0, numOfHashed, numOfObserved);
             end
 
             % Solution matrix R depends on the length of expansion, and
             % needs to be updated.
-            %nnActual = size(this.Solution{2}, 2);
+            %nnActual = size(this.FirstOrderSolution{2}, 2);
             %nnRequired = ne*(1 + ahead);
             %if nnActual<nnRequired
-            %    this.Solution{2} = [this.Solution{2}, nan(nxi, nnRequired-nnActual, nv)];
+            %    this.FirstOrderSolution{2} = [this.FirstOrderSolution{2}, nan(nxi, nnRequired-nnActual, nv)];
             %elseif nnActual>nnRequired
-            %    this.Solution{2} = this.Solution{2}(:, :, 1:nnRequired);
+            %    this.FirstOrderSolution{2} = this.FirstOrderSolution{2}(:, :, 1:nnRequired);
             %end
 
             % Solution matrix Y depends on the length of expansion, and
             % needs to be updated.
-            %nnActual = size(this.Solution{8}, 2);
+            %nnActual = size(this.FirstOrderSolution{8}, 2);
             %nnRequired = numOfHashed*(1 + ahead);
             %if nnActual<nnRequired
-            %    this.Solution{8} = [this.Solution{8}, nan(nxi, nnRequired-nnActual, nv)];
+            %    this.FirstOrderSolution{8} = [this.FirstOrderSolution{8}, nan(nxi, nnRequired-nnActual, nv)];
             %elseif nnActual>nnRequired
-            %    this.Solution{8} = this.Solution{8}(:, :, 1:nnRequired);
+            %    this.FirstOrderSolution{8} = this.FirstOrderSolution{8}(:, :, 1:nnRequired);
             %end
 
             for i = this.SOLUTION_TRANSITION
-                % If Solution{i} is empty, then Solution{i}(:, :, 1) = NaN
+                % If FirstOrderSolution{i} is empty, then FirstOrderSolution{i}(:, :, 1) = NaN
                 % creates a non-empty array. Prevent this by assigning
-                % Solution{i}(1:end, 1:end, 1) = NaN.
-                this.Solution{i}(1:end, 1:end, variantsRequested) = NaN;
+                % FirstOrderSolution{i}(1:end, 1:end, 1) = NaN.
+                this.FirstOrderSolution{i}(1:end, 1:end, variantsRequested) = NaN;
             end
 
-            for i = 1 : numel(this.Expansion)
-                this.Expansion{i}(1:end, 1:end, variantsRequested) = NaN;
+            for i = 1 : numel(this.FirstOrderExpansion)
+                this.FirstOrderExpansion{i}(1:end, 1:end, variantsRequested) = NaN;
             end
 
             this.EigenValues(1:end, 1:end, variantsRequested) = NaN;
@@ -167,11 +167,11 @@ classdef Variant
 
 
         function this = resetMeasurement(this, variantsRequested)
-            % If Solution{i} is empty, then Solution{i}(:, :, 1) = NaN
+            % If FirstOrderSolution{i} is empty, then FirstOrderSolution{i}(:, :, 1) = NaN
             % creates a non-empty array. Prevent this by assigning
-            % Solution{i}(1:end, 1:end, 1) = NaN.
+            % FirstOrderSolution{i}(1:end, 1:end, 1) = NaN.
             for i = this.SOLUTION_MEASUREMENT
-                this.Solution{i}(1:end, 1:end, variantsRequested) = NaN;
+                this.FirstOrderSolution{i}(1:end, 1:end, variantsRequested) = NaN;
             end
         end
 
@@ -223,49 +223,49 @@ classdef Variant
 
         function this = subscripted(this, varargin)
             if numel(varargin)==1
-                % Subscripted reference this(ixLhs).
-                ixLhs = varargin{1};
+                % Subscripted reference this(lhsRef).
+                lhsRef = varargin{1};
                 for i = 1 : length(this.LIST_OF_ARRAY_PROPERTIES)
                     property = this.LIST_OF_ARRAY_PROPERTIES{i};
-                    this.(property) = this.(property)(:, :, ixLhs);
+                    this.(property) = this.(property)(:, :, lhsRef);
                 end
                 for i = 1 : length(this.LIST_OF_CELL_PROPERTIES)
                     property = this.LIST_OF_CELL_PROPERTIES{i};
                     n = numel(this.(property));
                     for j = 1 : n
-                        this.(property){j} = this.(property){j}(:, :, ixLhs);
+                        this.(property){j} = this.(property){j}(:, :, lhsRef);
                     end
                 end
             elseif numel(varargin)==2 && isempty(varargin{2})
-                % Subscripted assignment with empty RHS this(ixLhs) = [ ]
-                ixLhs = varargin{1};
+                % Subscripted assignment with empty RHS this(lhsRef) = [ ]
+                lhsRef = varargin{1};
                 for i = 1 : length(this.LIST_OF_ARRAY_PROPERTIES)
                     property = this.LIST_OF_ARRAY_PROPERTIES{i};
-                    this.(property)(:, :, ixLhs) = [ ];
+                    this.(property)(:, :, lhsRef) = [ ];
                 end
                 for i = 1 : length(this.LIST_OF_CELL_PROPERTIES)
                     property = this.LIST_OF_CELL_PROPERTIES{i};
                     n = numel(this.(property));
                     for j = 1 : n
-                        this.(property){j}(:, :, ixLhs) = [ ];
+                        this.(property){j}(:, :, lhsRef) = [ ];
                     end
                 end
             elseif numel(varargin)==3 ...
                 && isa(this, 'model.component.Variant') && isa(varargin{2}, 'model.component.Variant')
-                % Proper assignment this(ixLhs) = obj(ixRhs)
-                % ixRhs is either ':' or [1, 1, ..., 1] to match ixLhs.
-                ixLhs = varargin{1};
-                rhs = varargin{2};
-                ixRhs = varargin{3};
+                % Proper assignment this(lhsRef) = obj(rhsRef)
+                % rhsRef is either ':' or [1, 1, ..., 1] to match lhsRef.
+                lhsRef = varargin{1};
+                rhsObj = varargin{2};
+                rhsRef = varargin{3};
                 for i = 1 : length(this.LIST_OF_ARRAY_PROPERTIES)
                     property = this.LIST_OF_ARRAY_PROPERTIES{i};
-                    this.(property)(:, :, ixLhs) = rhs.(property)(:, :, ixRhs);
+                    this.(property)(:, :, lhsRef) = rhsObj.(property)(:, :, rhsRef);
                 end
                 for i = 1 : length(this.LIST_OF_CELL_PROPERTIES)
                     property = this.LIST_OF_CELL_PROPERTIES{i};
                     n = numel(this.(property));
                     for j = 1 : n
-                        this.(property){j}(:, :, ixLhs) = rhs.(property){j}(:, :, ixRhs);
+                        this.(property){j}(:, :, lhsRef) = rhsObj.(property){j}(:, :, rhsRef);
                     end
                 end
             else
@@ -288,28 +288,43 @@ classdef Variant
         end
 
 
-        function x = getIthFirstOrderSolution(this, v)
-            if size(this.Values, 3)==1 ...
-                && (v==1 || v==':')
-                x = this.Solution;
-                return
+        function varargout = getIthFirstOrderSolution(this, v)
+            if nargout==1
+                numOutput = numel(this.FirstOrderSolution);
+            else
+                numOutput = nargout;
             end
-            x = cell(size(this.Solution));
-            for i = 1 : numel(this.Solution)
-                x{i} = this.Solution{i}(:, :, v);
+            x = cell(1, numOutput);
+            if size(this.Values, 3)==1 && (v==1 || v==':')
+                x(1:numOutput) = this.FirstOrderSolution(1:numOutput);
+            else
+                for i = 1 : numOutput
+                    x{i} = this.FirstOrderSolution{i}(:, :, v);
+                end
+            end
+            varargout = cell(1, nargout);
+            if nargout==1
+                varargout{1} = x;
+            else
+                varargout(1:nargout) = x(1:nargout);
             end
         end
 
 
-        function x = getIthExpansion(this, v)
-            if size(this.Values, 3)==1 ...
-                && (v==1 || v==':')
-                x = this.Expansion;
-                return
+        function varargout = getIthFirstOrderExpansion(this, v)
+            if size(this.Values, 3)==1 && (v==1 || v==':')
+                x = this.FirstOrderExpansion;
+            else
+                x = cell(size(this.FirstOrderExpansion));
+                for i = 1 : numel(this.FirstOrderExpansion)
+                    x{i} = this.FirstOrderExpansion{i}(:, :, v);
+                end
             end
-            x = cell(size(this.Expansion));
-            for i = 1 : numel(this.Expansion)
-                x{i} = this.Expansion{i}(:, :, v);
+            varargout = cell(1, nargout);
+            if nargout==1
+                varargout{1} = x;
+            else
+                varargout(1:nargout) = x(1:nargout);
             end
         end
     end
