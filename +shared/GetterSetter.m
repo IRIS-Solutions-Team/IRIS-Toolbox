@@ -14,7 +14,11 @@ classdef GetterSetter
     
     methods
         function this = GetterSetter(varargin)
-            this.Build = iris.version( );
+            persistent VERSION
+            if isempty(VERSION)
+                VERSION = iris.version( );
+            end
+            this.Build = VERSION;
         end
     end
     
