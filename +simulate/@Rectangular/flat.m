@@ -16,7 +16,7 @@ linxStep = this.LinxStep;
 %linxBackward = sub2ind(size(data.YXEPG), real(idBackward), firstColumn+imag(idBackward));
 %linxCurrent = sub2ind(size(data.YXEPG), real(idCurrent), firstColumn+imag(idCurrent));
 %linxStep = size(data.YXEPG, 1);
-[T, R, K, Z, H, D] = this.Solution{:};
+[T, R, K, Z, H, D] = this.FirstOrderSolution{:};
 
 if ne>0
     expectedShocks = this.Expected( data.YXEPG(idShocks, :) );
@@ -28,8 +28,8 @@ if ne>0
     currentForward = size(R, 2)/ne - 1;
     requiredForward = lastExpectedShock - firstColumn;
     if requiredForward>currentForward
-        R = model.expandFirstOrder(R, [ ], this.Expansion, requiredForward);
-        this.Solution{2} = R;
+        R = model.expandFirstOrder(R, [ ], this.FirstOrderExpansion, requiredForward);
+        this.FirstOrderSolution{2} = R;
     end
 end
 

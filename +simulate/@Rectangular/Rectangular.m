@@ -8,15 +8,15 @@
 
 classdef Rectangular < handle
     properties
-        Solution = cell(1, 6)   % Solution matrices {T, R, K, Z, H, D}
-        Expansion = cell(1, 5)  % Solution expansion matrices {Xa, Xf, Ru, J, Yu}
-        IndexLog                % Index of log variables
-        IdObserved              % Positions of observed variables
-        IdStates                % Positions and shifts of state variables
-        IdShocks                % Positions of shocks
-        IdExogenous             % Positions of exogenous variables
-        Expected                % Function to retrieve expected shocks from data
-        Unexpected              % Function to retrieve unexpected shocks from data
+        FirstOrderSolution = cell(1, 6)   % First-order solution matrices {T, R, K, Z, H, D}
+        FirstOrderExpansion = cell(1, 5)  % First-order expansion matrices {Xa, Xf, Ru, J, Yu}
+        IndexLog                          % Index of log variables
+        IdObserved                        % Positions of observed variables
+        IdStates                          % Positions and shifts of state variables
+        IdShocks                          % Positions of shocks
+        IdExogenous                       % Positions of exogenous variables
+        Expected                          % Function to retrieve expected shocks from data
+        Unexpected                        % Function to retrieve unexpected shocks from data
         
         NumObserved
         NumStates
@@ -53,8 +53,8 @@ classdef Rectangular < handle
             this = simulate.Rectangular( );
             keepExpansion = true;
             triangular = false;
-            [this.Solution{:}] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
-            [this.Expansion{:}] = expansionMatrices(model, variantRequested, triangular);
+            [this.FirstOrderSolution{:}] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
+            [this.FirstOrderExpansion{:}] = expansionMatrices(model, variantRequested, triangular);
             this.IndexLog = get(model, 'Quantity.IxLog');
             solutionVector = get(model, 'Vector.Solution');
             this.IdObserved = solutionVector{1}(:);
@@ -71,12 +71,12 @@ classdef Rectangular < handle
 
             this.NumObserved = numel(this.IdObserved);
             this.NumStates = numel(this.IdStates);
-            this.NumBackward = size(this.Solution{1}, 2);
+            this.NumBackward = size(this.FirstOrderSolution{1}, 2);
             this.NumForward = this.NumStates - this.NumBackward;
             this.NumShocks = numel(this.IdShocks);
             this.NumExogenous = numel(this.IdExogenous);
             if this.NumShocks>0
-                this.LenExpansion = size(this.Solution{2}, 2) / this.NumShocks;
+                this.LenExpansion = size(this.FirstOrderSolution{2}, 2) / this.NumShocks;
             else
                 this.LenExpansion = 0;
             end
