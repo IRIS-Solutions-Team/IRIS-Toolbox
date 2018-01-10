@@ -22,8 +22,8 @@ matrixFormat = {
 
 
 applyFilter = { 
-    'applyto', @all, @(x) isnumeric(x) || islogical(x) || isequal(x, @all) || iscellstr(x)
-    'filter', '', @ischar
+    'ApplyTo', @all, @(x) isnumeric(x) || islogical(x) || isequal(x, @all) || iscellstr(x)
+    'Filter', '', @ischar
 };
 
 
@@ -36,9 +36,9 @@ Def.acf = [
     applyFilter
     matrixFormat
     {
-    'nfreq', 256, @isnumericscalar
-    'order', 0, @isnumericscalar
-    'progress', false, @islogicalscalar
+    'NFreq', 256, @isnumericscalar
+    'Order', 0, @isnumericscalar
+    'Progress', false, @islogicalscalar
     }; %#ok<*CCAT>
 ];
 
@@ -98,6 +98,8 @@ Def.forecast = [
     'omega', [ ], @isnumeric
     'returninstruments, returninstrument', true, @islogicalscalar
     'returnresiduals, returnresidual', true, @islogicalscalar
+    'E', [ ], @(x) isempty(x) || isnumeric(x) 
+    'Sigma', [ ], @isnumeric
     }
 ];
 
@@ -127,15 +129,6 @@ Def.resample = [
     'progress', false, @islogicalscalar
     'randomise, randomize', false, @islogicalscalar
     'wild', false, @islogicalscalar
-    }
-];
-
-Def.simulate = [
-    outputFmt
-    {
-    'contributions, contribution', false, @islogicalscalar
-    'deviation, deviations', false, @islogicalscalar
-    'returnresiduals, returnresidual', true, @islogicalscalar
     }
 ];
 

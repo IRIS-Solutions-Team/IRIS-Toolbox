@@ -15,6 +15,8 @@ if nargin==0 || isempty(CONFIG)
     mlock( );
 end
 
+CONFIG = updateUpperCase(CONFIG);
+
 if nargin==0
     return
 end
@@ -101,3 +103,12 @@ assert( ...
 end
 
 
+function config = updateUpperCase(config)
+    config.BaseYear = config.baseyear;
+    config.DateFormat = config.dateformat;
+    config.Freq = config.freq;
+    config.FreqLetters = config.freqletters;
+    config.Months = config.months;
+    config.PlotDateFormat = config.plotdateformat;
+    config.WDay = config.Wday;
+end

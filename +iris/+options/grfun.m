@@ -38,7 +38,7 @@ def.plotmat = {
 };
 
 def.plotneigh = { 
-    'caption', [ ], @(x) isempty(x) || iscellstr(x)
+    'Caption', [ ], @(x) isempty(x) || iscellstr(x)
     'plotobj', true, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
     'plotlik', true, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))
     'plotest', {'marker=', '*', 'linestyle=', 'none', 'color=', 'red'}, @(x) isequal(x, true) || isequal(x, false) || iscellstr(x(1:2:end))

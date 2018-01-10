@@ -78,18 +78,9 @@ def.convertinterp = [
     }
 ];
 
-def.cumsumk = { ...
-    'log', false, @islogicalscalar, ...
-};
-
 def.errorbar = { ...
     'excludefromlegend', true, @islogicalscalar, ...
     'relative', true, @islogicalscalar, ...
-};
-
-def.expsmooth = { ...
-    'init', NaN, @isnumeric
-    'log', false, @islogicalscalar
 };
 
 def.fft = { ...
@@ -131,11 +122,6 @@ def.plot = [
 
 def.interp = { ...
     'method', 'pchip', @ischar, ...
-};
-
-def.moving = { ...
-    'window', @auto, @(x) isnumeric(x) || isequal(x, @auto), ...
-    'function', @mean, @isfunc, ...
 };
 
 def.barcon = {
@@ -182,11 +168,6 @@ def.plotyy = [
     }
 ];
 
-def.regress = {
-    'constant, const', false, @(x) isequal(x, true) || isequal(x, false)
-    'weighting', [ ], @(x) (isnumeric(x) && isempty(x)) || isa(x, 'TimeSeriesBase')
-};
-
 def.spy = [
     def.plot
     {
@@ -209,7 +190,7 @@ def.trend = {
 def.x12 = { ...
     'backcast, backcasts', 0, @(x) isscalar(x) && isnumeric(x)
     'cleanup, deletetempfiles, deletetempfile, deletex12file, deletex12file, delete', true, @(x) isequal(x, true) || isequal(x, false)
-    'dummy', [ ], @(x) isempty(x) || isa(x, 'TimeSeriesBase')
+    'dummy', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable')
     'dummytype', 'holiday', @(x) ischar(x) && any(strcmpi(x, {'holiday', 'td', 'ao'}))
     'display', false, @(x) isequal(x, true) || isequal(x, false)
     'forecast, forecasts', 0, @(x) isscalar(x) && isnumeric(x)

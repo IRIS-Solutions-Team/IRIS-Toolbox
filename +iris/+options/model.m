@@ -20,11 +20,6 @@ precision = {
     'precision', 'double', @(x) ischar(x) && any(strcmpi(x, {'double', 'single'}))
     };
 
-applyfilter = {
-    'applyto', @all, @(x) isequal(x, @all) || iscellstr(x)
-    'filter', '', @ischar
-    };
-
 swap = {
     'endogenize, endogenise', { }, @(x) isempty(x) || iscellstr(x) || ischar(x) || isequal(x, @auto)
     'exogenize, exogenise', { }, @(x) isempty(x) || iscellstr(x) || ischar(x) || isequal(x, @auto)
@@ -46,24 +41,8 @@ system = {
     };
 
 
-
-
 def = struct( );
 
-
-
-
-def.acf = [
-    matrixFormat
-    select
-    applyfilter
-    {
-    'acf', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
-    'nfreq', 256, @isnumericscalar
-    'contributions, contribution', false, @islogicalscalar
-    'order', 0, @isnumericscalar
-    }
-];
 
 def.autocaption = { ...
     'corr', 'Corr $shock1$ X $shock2$', @ischar, ...
@@ -274,7 +253,7 @@ def.simulate = [
     'AppendPresample, AddPresample', false, @islogical
     'Blocks', true, @islogicalscalar
     'contributions, contribution', false, @islogicalscalar
-    'dboverlay, dbextend', false, @(x) islogicalscalar(x) || isstruct(x)
+    'DbOverlay, DbExtend', false, @(x) islogicalscalar(x) || isstruct(x)
     'Delog', true, @islogicalscalar
     'fast', true, @islogicalscalar
     'FOTC', true, @(x) isequal(x, true) || isequal(x, false)
@@ -285,6 +264,7 @@ def.simulate = [
     'progress', false, @islogicalscalar
     'sparseshocks, sparseshock', false, @islogicalscalar
     'Revision, Revisions', false, @islogicalscalar
+    'SystemProperty', false, @(x) isequal(x, true) || isequal(x, false)
     ...
     ... Bkw compatibility
     ...
@@ -460,14 +440,5 @@ def.vma = [
     matrixFormat
     select
     ];
-
-def.xsf = [
-    applyfilter
-    matrixFormat
-   	select
-    {
-    'progress', false, @islogicalscalar, ...
-    }
-];
 
 end
