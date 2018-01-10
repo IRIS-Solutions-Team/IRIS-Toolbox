@@ -1,5 +1,5 @@
 classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
-    TimeSeries < TimeSeriesBase & shared.UserDataWrapper
+    TimeSeries < TimeSubscriptable & shared.UserDataWrapper
 
     properties
         Start = Date.NaD
