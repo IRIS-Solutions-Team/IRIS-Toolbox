@@ -178,7 +178,6 @@ return
         DEF.SVAR = iris.options.SVAR( );
         DEF.tseries = iris.options.tseries( );
         DEF.VAR = iris.options.VAR( );
-        DEF.varobj = iris.options.varobj( );
         DEF.XlsSheet = iris.options.XlsSheet( );
         lsFolder = fieldnames(DEF);
         for ii = 1 : numel(lsFolder)
@@ -196,42 +195,42 @@ end
 
 
 function y = list2struct(x)
-y = struct( );
-if isempty(x)
-    return
-end
-if size(x, 1)==1 && size(x, 2)>3
-    x = reshape(x, 3, size(x, 2)/3).';
-end
+    y = struct( );
+    if isempty(x)
+        return
+    end
+    if size(x, 1)==1 && size(x, 2)>3
+        x = reshape(x, 3, size(x, 2)/3).';
+    end
 
-lsName = x(:, 1);
-nName = numel(lsName);
-lsName = regexp(lsName, '[a-zA-Z]\w*', 'match');
-lsPrimaryName = { };
-options = struct( );
-changed = struct( );
-validate = struct( );
+    lsName = x(:, 1);
+    nName = numel(lsName);
+    lsName = regexp(lsName, '[a-zA-Z]\w*', 'match');
+    lsPrimaryName = { };
+    options = struct( );
+    changed = struct( );
+    validate = struct( );
 
-for i = 1 : nName
-    name = lsName{i};
-    primaryName = name{1};
-    n = length(name);
-    % List of primary names.
-    lsPrimaryName = [lsPrimaryName, repmat( { primaryName }, 1, n)]; %#ok<AGROW>
-    options.(name{1}) = x{i, 2};
-    % If this option is changed, save the exact name the user used so that an
-    % error can refer to it should the user value fail to validate.
-    changed.(name{1}) = '';
-    % Anonymous functions to validate user supplied values.
-    validate.(name{1}) = x{i, 3};
-end
+    for i = 1 : nName
+        name = lsName{i};
+        primaryName = name{1};
+        n = length(name);
+        % List of primary names.
+        lsPrimaryName = [lsPrimaryName, repmat( { primaryName }, 1, n)]; %#ok<AGROW>
+        options.(name{1}) = x{i, 2};
+        % If this option is changed, save the exact name the user used so that an
+        % error can refer to it should the user value fail to validate.
+        changed.(name{1}) = '';
+        % Anonymous functions to validate user supplied values.
+        validate.(name{1}) = x{i, 3};
+    end
 
-% List of all possible names; name{i} maps into primaryName{i}.
-lsName = [ lsName{:} ];
+    % List of all possible names; name{i} maps into primaryName{i}.
+    lsName = [ lsName{:} ];
 
-y.Name = lsName; % List of all possible option names.
-y.PrimaryName = lsPrimaryName; % List of corresponding primary names.
-y.Options = options; % Struct with primary names and default values.
-y.Changed = changed; % Struct with empty chars, to be filled with the names used actually by the user.
-y.Validate = validate; % Struct with validating functions.
+    y.Name = lsName; % List of all possible option names.
+    y.PrimaryName = lsPrimaryName; % List of corresponding primary names.
+    y.Options = options; % Struct with primary names and default values.
+    y.Changed = changed; % Struct with empty chars, to be filled with the names used actually by the user.
+    y.Validate = validate; % Struct with validating functions.
 end
