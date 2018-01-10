@@ -9,22 +9,22 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
 
     methods
         function varargout = plot(varargin)
-            [varargout{1:nargout}] = plot@TimeSeriesBase(varargin{:});
+            [varargout{1:nargout}] = plot@TimeSubscriptable(varargin{:});
         end
 
 
         function varargout = bar(varargin)
-            [varargout{1:nargout}] = bar@TimeSeriesBase(varargin{:});
+            [varargout{1:nargout}] = bar@TimeSubscriptable(varargin{:});
         end
 
 
         function varargout = area(varargin)
-            [varargout{1:nargout}] = area@TimeSeriesBase(varargin{:});
+            [varargout{1:nargout}] = area@TimeSubscriptable(varargin{:});
         end
 
 
         function varargout = stem(varargin)
-            [varargout{1:nargout}] = stem@TimeSeriesBase(varargin{:});
+            [varargout{1:nargout}] = stem@TimeSubscriptable(varargin{:});
         end
 
 
