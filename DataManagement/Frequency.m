@@ -18,8 +18,13 @@ classdef Frequency < double
 
 
         function displayName = getDisplayName(this)
+            assert( ...
+                numel(this)==1, ...
+                'Frequency:getDisplayName', ...
+                'Method Frequency.getDisplayName requires scalar input.' ...
+            );
             if this==Frequency.HALFYEARLY
-                displayName = 'Half-Yearly';
+                displayName = 'HalfYearly';
             elseif isnan(this)
                 displayName = 'NaF';
             else
@@ -52,18 +57,18 @@ classdef Frequency < double
         end
 
 
-        function dtFormat = getDateTimeFormat(this)
+        function datetimeFormat = getDateTimeFormat(this)
             switch this
                 case Frequency.YEARLY
-                    dtFormat = 'uuuu''Y''';
+                    datetimeFormat = 'uuuu''Y''';
                 case {Frequency.HALFYEARLY, Frequency.MONTHLY}
-                    dtFormat = 'uuuu''M''MM';
+                    datetimeFormat = 'uuuu''M''MM';
                 case Frequency.QUARTERLY
-                    dtFormat = 'uuuuQQQ';
+                    datetimeFormat = 'uuuuQQQ';
                 case {Frequency.WEEKLY, Frequency.DAILY}
-                    dtFormat = 'uuuu-MM-dd';
+                    datetimeFormat = 'uuuu-MM-dd';
                 otherwise
-                    dtFormat = char.empty(1, 0);
+                    datetimeFormat = char.empty(1, 0);
             end
         end
 
@@ -268,7 +273,11 @@ classdef Frequency < double
         end
 
 
-        function dateTimeObj = datetime(this, serial, varargin)
+        function datetimeObj = datetime(this, serial, varargin)
+            if isequaln(this, Frequency.NaF)
+                datetimeObj = NaT(size(serial));
+                return
+            end
             year = zeros(size(serial));
             month = zeros(size(serial));
             day = zeros(size(serial));
@@ -278,8 +287,8 @@ classdef Frequency < double
                 day(~indexInf) = day(~indexInf) - 3; % Return Monday, not Thursday, for display
             end
             year(indexInf) = serial(indexInf);
-            dateTimeObj = datetime(year, month, day);
-            dateTimeObj.Format = getDateTimeFormat(this);
+            datetimeObj = datetime(year, month, day);
+            datetimeObj.Format = getDateTimeFormat(this);
         end
 
 

@@ -194,8 +194,8 @@ classdef DateWrapper < double
                 'DateWrapper:rnglen', ...
                 'Input arguments into DateWrapper/rnglen must both be scalar DateWrapper objects.' ...
             );
-            firstFrequency = DateWrapper.getFrequencyFromNumeric(firstDate(:));
-            lastFrequency = DateWrapper.getFrequencyFromNumeric(lastDate(:));
+            firstFrequency = DateWrapper.getNumericFrequencyFromNumeric(firstDate(:));
+            lastFrequency = DateWrapper.getNumericFrequencyFromNumeric(lastDate(:));
             assert( ...
                 all(firstFrequency==lastFrequency), ...
                 'DateWrapper:rnglen', ...
@@ -258,13 +258,17 @@ classdef DateWrapper < double
         end
 
 
-        function frequency = getFrequencyFromNumeric(dat)
+        function frequency = getNumericFrequencyFromNumeric(dat)
             MIN_DAILY_SERIAL = 365244;
             dat = double(dat);
             frequency = round(100*(dat - floor(dat)));
-            ixDaily = frequency==0 & dat>=MIN_DAILY_SERIAL;
-            frequency(ixDaily) = 365;
-            frequency = Frequency(frequency);
+            indexDaily = frequency==0 & dat>=MIN_DAILY_SERIAL;
+            frequency(indexDaily) = 365;
+        end
+
+
+        function frequency = getFrequencyFromNumeric(dat)
+            frequency = Frequency( DateWrapper.getNumericFrequencyFromNumeric(dat) );
         end
 
 
@@ -274,7 +278,7 @@ classdef DateWrapper < double
 
 
         function [this, frequency, serial] = fromDouble(x)
-            frequency = DateWrapper.getFrequencyFromNumeric(x);
+            frequency = DateWrapper.getNumericFrequencyFromNumeric(x);
             serial = DateWrapper.getSerialFromNumeric(x);
             this = DateWrapper.fromSerial(frequency, serial);
         end

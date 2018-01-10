@@ -18,28 +18,28 @@ if isreal(x)
     if ~any(any(isnan(x([1, end], :))))
         return
     end
-    ixNan = all(isnan(x(:, :)), 2);
+    indexNaN = all(isnan(x(:, :)), 2);
 else
     realX = real(x);
     imagX = imag(x);
     if ~any(any( isnan(realX([1, end], :)) & isnan(imagX([1, end], :)) ))
         return
     end
-    ixNan = all( isnan(realX(:, :)) & isnan(imagX(:, :)) , 2);
+    indexNaN = all( isnan(realX(:, :)) & isnan(imagX(:, :)) , 2);
 end
 
 newSize = size(x);
-if all(ixNan)
-    this.Start = NaN;
+if all(indexNaN)
+    this.Start = DateWrapper.NaD( );
     newSize(1) = 0;
-    this.Data = zeros(newSize);
+    this.Data = double.empty(newSize);
 else
-    first = find(~ixNan, 1);
-    last = find(~ixNan, 1, 'last');
-    x = x(first:last, :);
-    newSize(1) = last - first + 1;
+    posFirstNaN = find(~indexNaN, 1);
+    posLastNaN = find(~indexNaN, 1, 'last');
+    x = x(posFirstNaN:posLastNaN, :);
+    newSize(1) = posLastNaN - (posFirstNaN - 1);
     this.Data = reshape(x, newSize);
-    this.Start = this.Start + first - 1;
+    this.Start = DateWrapper(double(this.Start) + posFirstNaN - 1);
 end
 
 end

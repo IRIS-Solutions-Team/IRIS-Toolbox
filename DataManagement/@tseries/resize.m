@@ -1,5 +1,5 @@
 function [this, newRange] = resize(this, range)
-% resize  Clip tseries object down to a specified date range.
+% resize  Clip tseries object to specified date range
 %
 % __Syntax__
 %
@@ -8,8 +8,7 @@ function [this, newRange] = resize(this, range)
 %
 % __Input Arguments__
 %
-% * `X` [ tseries ] - Input tseries object whose date range will be clipped
-% down.
+% * `X` [ tseries ] - Input time series whose date range will be clipped.
 %
 % * `Range` [ numeric ] - New date range to which the input tseries object
 % will be resized; the range can be specified as a `[startDate, endDate]`
@@ -18,8 +17,8 @@ function [this, newRange] = resize(this, range)
 %
 % __Output Arguments__
 %
-% * `X` [ tseries ] - Output tseries object with its date range clipped
-% down to `Range`.
+% * `X` [ tseries ] - Output tseries object with its date range clipped to
+% `Range`.
 %
 %
 % __Description__
@@ -35,7 +34,7 @@ persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('tseries/resize');
     INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addRequired('Range', @isnumeric);
+    INPUT_PARSER.addRequired('Range', @DateWrapper.validateRangeInput);
 end
 INPUT_PARSER.parse(this, range);
 
@@ -45,8 +44,8 @@ if isempty(range) || isnan(this.Start)
     newRange = [ ];
     this = this.empty(this);
     return
-elseif all(isinf(range))
-    newRange = this.Start + (0 : size(this.Data, 1)-1);
+elseif all(isinf(range)) || isequal(range, @all)
+    newRange = this.Range;
     return
 end
 
@@ -62,7 +61,7 @@ end
 % and end of new range is after end of input tseries.
 if round(range(1))<=round(this.Start) ...
         && round(range(end))>=round(this.Start + size(this.Data, 1) - 1)
-    newRange = this.Start + (0 : size(this.Data, 1)-1);
+    newRange = this.Range;
     return
 end
 
@@ -73,27 +72,26 @@ else
 end
 
 if isinf(range(end))
-    endDate = this.Start + size(this.Data, 1) - 1;
+    endDate = this.End;
 else
     endDate = range(end);
 end
 
 newRange = startDate : endDate;
-sizeOfData = size(this.Data);
-numberOfDates = sizeOfData(1);
+sizeData = size(this.Data);
+numDates = sizeData(1);
 pos = round(newRange - this.Start + 1);
-ixDeleteRows = pos<1 | pos>numberOfDates;
-newRange(ixDeleteRows) = [ ];
-pos(ixDeleteRows) = [ ];
+indexDeleteRows = pos<1 | pos>numDates;
+newRange(indexDeleteRows) = [ ];
+pos(indexDeleteRows) = [ ];
 
 if ~isempty(pos)
     this.Data = this.Data(:, :);
     this.Data = this.Data(pos, :);
-    this.Data = reshape(this.Data, [length(pos), sizeOfData(2:end)]);
+    this.Data = reshape(this.Data, [length(pos), sizeData(2:end)]);
     this.Start = newRange(1);
 else
-    this.Data = zeros([0, sizeOfData(2:end)]);
-    this.Start = NaN;
+    this = this.empty(this);
 end
 
 end

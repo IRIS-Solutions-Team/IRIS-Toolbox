@@ -131,7 +131,7 @@ function varargout = x12(varargin)
 %
 % _Output Requests__
 % 
-% The option `'output=' can combine any number of the following requests:
+% The option `Output=` can combine any number of the following requests:
 %
 % * `'SA'` - seasonally adjusted series;
 %

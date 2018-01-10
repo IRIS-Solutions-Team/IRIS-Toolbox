@@ -12,7 +12,9 @@ function this = fill(this, newData, newStart, newComment, newUserData)
 this.Data = newData;
 
 if nargin>2
-    newStart = newStart(1);
+    if numel(newStart)>1
+        newStart = newStart(1);
+    end
     if ~isa(newStart, 'DateWrapper')
         newStart = DateWrapper(newStart);
     end

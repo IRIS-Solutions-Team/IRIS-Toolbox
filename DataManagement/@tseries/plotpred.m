@@ -1,4 +1,4 @@
-function [h1, h2, h3, range, data, grid] = plotpred(varargin)
+function [h1, h2, h3, range, data] = plotpred(varargin)
 % plotpred  Visualize multi-step-ahead predictions.
 %
 % Syntax
@@ -184,7 +184,7 @@ set(ax, 'NextPlot', 'add');
 setappdata(ax, 'PlotHoldStyle', true);
 
 % Plot predictions.
-[h2, ~, data2, grid] = plot(ax, range, x2, varargin{:}, opt.predlines{:});
+[h2, ~, data2] = plot(ax, range, x2, varargin{:}, opt.predlines{:});
 set(h2, 'tag', 'plotpred');
 
 % Plot start points.

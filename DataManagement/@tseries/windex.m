@@ -44,8 +44,8 @@ end
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
     INPUT_PARSER = extend.InputParser('tseries.windex');
-    INPUT_PARSER.addRequired('InputSeries', @(x) isa(x, 'TimeSeriesBase'));
-    INPUT_PARSER.addRequired('Weights', @(x) isnumeric(x) || isa(x, 'TimeSeriesBase'));
+    INPUT_PARSER.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    INPUT_PARSER.addRequired('Weights', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
     INPUT_PARSER.addRequired('Range', @(x) isa(x, 'DateWrapper') || isnumeric(x));
     INPUT_PARSER.addParameter('log', false, @(x) isequal(x, true) || isequal(x, false));
     INPUT_PARSER.addParameter('method', 'simple', @(x) any(strcmpi(x, {'simple', 'divisia'})));

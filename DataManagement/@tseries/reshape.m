@@ -1,30 +1,29 @@
-function [x,ss] = reshape(x,s)
+function [this, sizeData] = reshape(this, newSize)
 % reshape  Reshape size of time series in 2nd and higher dimensions.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     x = reshape(x,newsize)
+%     X = reshape(X, NewSize)
 %
-% Input arguments
-% ================
 %
-% * `x` [ tseries ] - Tseries object whose data will be reshaped in 2nd
-% and/or higher dimensions.
+% __Input Arguments__
 %
-% * `newsize` [ numeric ] - New size of the tseries object data; the first
-% dimension (time) must be preserved.
+% * `X` [ TimeSubscriptable ] - Time series  whose data will be reshaped in
+% 2nd and/or higher dimensions.
 %
-% Output arguments
-% =================
+% * `NewSize` [ numeric ] - New size of the time series data; the first
+% dimension (time) must be preserved or may be set to `Inf`.
 %
-% * `x` [ tseries ] - Reshaped tseries object.
 %
-% Description
-% ============
+% __Output Arguments__
 %
-% Example
-% ========
+% * `X` [ TimeSubscriptable ] - Reshaped time series.
+%
+%
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -32,19 +31,19 @@ function [x,ss] = reshape(x,s)
 
 %--------------------------------------------------------------------------
 
-ss = size(x.data);
-if nargin < 2
-   s = prod(ss(2:end));
+sizeData = size(this.Data);
+if nargin<2
+   newSize = prod(sizeData(2:end));
 else
-   if ~isinf(s(1)) && s(1) ~= ss(1)
+   if ~isinf(newSize(1)) && newSize(1)~=sizeData(1)
       utils.error('tseries:reshape', ...
          'First dimension of tseries objects must remain unchanged after RESHAPE.');
    end
-   s(1) = ss(1);
+   newSize(1) = sizeData(1);
 end
 
 % Reshape data and comments.
-x.data = reshape(x.data,s);
-x.Comment = reshape(x.Comment,[1,s(2:end)]);
+this.Data = reshape(this.Data, newSize);
+this.Comment = reshape(this.Comment, [1, newSize(2:end)]);
 
 end
