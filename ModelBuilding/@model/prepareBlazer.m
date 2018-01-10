@@ -59,8 +59,7 @@ switch lower(kind)
         blz.Assignment = this.Pairing.Assignment.Dynamic;
 
     case 'stacked'
-        numOfStackedTimes = opt.Stacked;
-        blz = solver.blazer.Stacked(numOfStackedTimes, numOfEquations);
+        blz = solver.blazer.Stacked(numOfEquations);
         blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
         blz.Gradient(:, :) = [ ];
         blz.Incidence = this.Incidence.Dynamic;

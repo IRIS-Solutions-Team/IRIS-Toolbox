@@ -24,7 +24,7 @@ elseif length(time)==1 && round(time)==time && time>0
     time = 1 : time;
 end
 range = time(1) : time(end);
-numOfPeriods = length(range);
+numPeriods = length(range);
 
 %--------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ nx = sum(ixx);
 [ny, nxx] = sizeOfSolution(this.Vector);
 posx = find(ixx);
 nv = length(this);
-numOfRuns = length(namesOfResponses);
+numRuns = length(namesOfResponses);
 idReal = real([this.Vector.Solution{2}]);
 idImag = imag([this.Vector.Solution{2}]);
 maxLag = -min(idImag);
@@ -45,11 +45,11 @@ maxLag = -min(idImag);
 % __Simulate Response Function__
 % Output data from `timedom.srf` and `timedom.icrf` include the pre-sample
 % period.
-Phi = nan(ny+nxx, numOfRuns, numOfPeriods+1, nv);
+Phi = nan(ny+nxx, numRuns, numPeriods+1, nv);
 indexOfSolutionsAvailable = issolved(this);
 for v = find(indexOfSolutionsAvailable)
     [T, R, K, Z, H, D, U] = sspaceMatrices(this, v, false); %#ok<ASGLU>
-    Phi(:, :, :, v) = func(T, R, [ ], Z, H, [ ], U, [ ], v, numOfPeriods);
+    Phi(:, :, :, v) = func(T, R, [ ], Z, H, [ ], U, [ ], v, numPeriods);
 end
 % Report NaN solutions.
 if any(~indexOfSolutionsAvailable)
@@ -96,7 +96,7 @@ for i = 1 : nx
 end
 
 % Shocks.
-e = zeros(numOfPeriods, numOfRuns, nv);
+e = zeros(numPeriods, numRuns, nv);
 for i = find(ixe)
     name = this.Quantity.Name{i};
     c = utils.concomment(name, namesOfResponses, false);
@@ -109,7 +109,7 @@ end
 s = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, s);
 
 % Exogenous variables.
-g = zeros(numOfPeriods, numOfRuns, nv);
+g = zeros(numPeriods, numRuns, nv);
 for i = find(ixg)
     name = this.Quantity.Name{i};
     c = utils.concomment(name, namesOfResponses, false);

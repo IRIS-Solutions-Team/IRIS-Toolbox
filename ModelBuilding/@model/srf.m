@@ -1,5 +1,5 @@
 function [s, range, select] = srf(this, time, varargin)
-% srf  Shock response functions, first-order solution only
+% srf  First-order shock response functions
 %
 % __Syntax__
 %
@@ -24,13 +24,13 @@ function [s, range, select] = srf(this, time, varargin)
 %
 % __Options__
 %
-% * `'Delog='` [ *`true`* | `false` ] - Delogarithmise shock responses for
+% * `Delog=true` [ `true` | `false` ] - Delogarithmi0e shock responses for
 % log variables afterwards.
 %
-% * `'Select='` [ cellstr | *`@all`* ] - Run the shock response function
+% * `Select=@all` [ cellstr | `@all` ] - Run the shock response function
 % for a selection of shocks only; `@all` means all shocks are simulated.
 %
-% * `'Size='` [ *`@auto`* | numeric ] - Size of the shocks that will be
+% * `'Size=@auto` [ `@auto` | numeric ] - Size of the shocks that will be
 % simulated; `@auto` means that each shock will be set to its std dev
 % currently assigned in the model object `M`.
 %
@@ -63,8 +63,8 @@ lse = this.Quantity.Name(ixe);
 if isequal(opt.select, @all)
     posOfSelected = 1 : ne;
 else
-    numOfSelected = length(opt.select);
-    posOfSelected = nan(1, numOfSelected);
+    numSelected = length(opt.select);
+    posOfSelected = nan(1, numSelected);
     for i = 1 : length(opt.select)
         x = find( strcmp(opt.select{i}, lse) );
         if length(x)==1
@@ -79,7 +79,7 @@ else
     );
 end
 select = lse(posOfSelected);
-numOfSelected = length(select);
+numSelected = length(select);
 
 % Set size of shocks.
 if strcmpi(opt.size, 'std') ...
@@ -87,12 +87,12 @@ if strcmpi(opt.size, 'std') ...
         || isequal(opt.size, @std)
     sizeOfShocks = this.Variant.StdCorr(:, posOfSelected, :);
 else
-    sizeOfShocks = opt.size*ones(1, numOfSelected, nv);
+    sizeOfShocks = opt.size*ones(1, numSelected, nv);
 end
 
-func = @(T, R, K, Z, H, D, U, Omg, variantRequested, numOfPeriods) ...
+func = @(T, R, K, Z, H, D, U, Omg, variantRequested, numPeriods) ...
     timedom.srf(T, R(:, posOfSelected), [ ], Z, H(:, posOfSelected), [ ], U, [ ], ...
-    numOfPeriods, sizeOfShocks(1, :, variantRequested));
+    numPeriods, sizeOfShocks(1, :, variantRequested));
 
 [s, range, select] = responseFunction(this, time, func, select, opt);
 for i = 1 : length(select)

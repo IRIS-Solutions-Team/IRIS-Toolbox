@@ -67,180 +67,178 @@ end
 
 
 function processFixOpt(this, blz, opt)
-% Process the fix, fixallbut, fixlevel, fixlevelallbut, fixgrowth,
-% and fixgrowthallbut options. All the user-supply information is
-% combined into fixlevel and fixgrowth.
-TYPE = @int8;
-PTR = @int16;
+    % Process the fix, fixallbut, fixlevel, fixlevelallbut, fixgrowth,
+    % and fixgrowthallbut options. All the user-supply information is
+    % combined into fixlevel and fixgrowth.
+    TYPE = @int8;
+    PTR = @int16;
 
-nQty = length(this.Quantity.Name);
-ixy = this.Quantity.Type==TYPE(1);
-ixx = this.Quantity.Type==TYPE(2);
-ixp = this.Quantity.Type==TYPE(4);
-ixCanBeFixed =  ixy | ixx | ixp;
-list = {'fix', 'fixlevel', 'fixgrowth'};
-for i = 1 : length(list)
-    fix = list{i};
-    fixAllBut = [fix, 'allbut'];
-    
-    % Convert charlist to cellstr.
-    if ischar(opt.(fix)) && ~isempty(opt.(fix))
-        opt.(fix) = regexp(opt.(fix), '\w+', 'match');
-    end
-    if ischar(opt.(fixAllBut)) && ~isempty(opt.(fixAllBut))
-        opt.(fixAllBut) = ...
-            regexp(opt.(fixAllBut), '\w+', 'match');
-    end
-    
-    % Convert fixAllBut to fix.
-    if ~isempty(opt.(fixAllBut))
-        lsNameCanBeFixed = this.Quantity.Name(ixCanBeFixed);
-        opt.(fix) = setdiff(lsNameCanBeFixed, opt.(fixAllBut));
-    end
-    
-    if ~isempty(opt.(fix))
-        ell = lookup(this.Quantity, opt.(fix), ...
-            TYPE(1), ...
-            TYPE(2), ...
-            TYPE(4));
-        positionsFix  = ell.PosName;
-        ixValid = ~isnan(positionsFix);
-        if any(~ixValid)
-            throw( exception.Base('Steady:CANNOT_FIX', 'error'), opt.(fix){~ixValid} );
+    nQty = length(this.Quantity.Name);
+    ixy = this.Quantity.Type==TYPE(1);
+    ixx = this.Quantity.Type==TYPE(2);
+    ixp = this.Quantity.Type==TYPE(4);
+    ixCanBeFixed =  ixy | ixx | ixp;
+    list = {'fix', 'fixlevel', 'fixgrowth'};
+    for i = 1 : length(list)
+        fix = list{i};
+        fixAllBut = [fix, 'allbut'];
+        
+        % Convert charlist to cellstr.
+        if ischar(opt.(fix)) && ~isempty(opt.(fix))
+            opt.(fix) = regexp(opt.(fix), '\w+', 'match');
         end
-        opt.(fix) = positionsFix;
-    else
-        opt.(fix) = [ ];
+        if ischar(opt.(fixAllBut)) && ~isempty(opt.(fixAllBut))
+            opt.(fixAllBut) = ...
+                regexp(opt.(fixAllBut), '\w+', 'match');
+        end
+        
+        % Convert fixAllBut to fix.
+        if ~isempty(opt.(fixAllBut))
+            lsNameCanBeFixed = this.Quantity.Name(ixCanBeFixed);
+            opt.(fix) = setdiff(lsNameCanBeFixed, opt.(fixAllBut));
+        end
+        
+        if ~isempty(opt.(fix))
+            ell = lookup(this.Quantity, opt.(fix), ...
+                TYPE(1), ...
+                TYPE(2), ...
+                TYPE(4));
+            positionsFix  = ell.PosName;
+            ixValid = ~isnan(positionsFix);
+            if any(~ixValid)
+                throw( exception.Base('Steady:CANNOT_FIX', 'error'), opt.(fix){~ixValid} );
+            end
+            opt.(fix) = positionsFix;
+        else
+            opt.(fix) = [ ];
+        end
     end
-end
 
-fixL = false(1, nQty);
-fixL(opt.fix) = true;
-fixL(opt.fixlevel) = true;
-fixG = false(1, nQty);
-% Fix growth of endogenized parameters to zero.
-fixG(ixp) = true;
-if opt.Growth
-    fixG(opt.fix) = true;
-    fixG(opt.fixgrowth) = true;
-else
-    fixG(:) = true;
-end
-% Fix optimal policy multipliers. The level and growth of
-% multipliers will be set to zero in the main loop.
-if opt.zeromultipliers
-    fixL = fixL | this.Quantity.IxLagrange;
-    fixG = fixG | this.Quantity.IxLagrange;
-end
+    fixL = false(1, nQty);
+    fixL(opt.fix) = true;
+    fixL(opt.fixlevel) = true;
+    fixG = false(1, nQty);
+    % Fix growth of endogenized parameters to zero.
+    fixG(ixp) = true;
+    if opt.Growth
+        fixG(opt.fix) = true;
+        fixG(opt.fixgrowth) = true;
+    else
+        fixG(:) = true;
+    end
+    % Fix optimal policy multipliers. The level and growth of
+    % multipliers will be set to zero in the main loop.
+    if opt.zeromultipliers
+        fixL = fixL | this.Quantity.IxLagrange;
+        fixG = fixG | this.Quantity.IxLagrange;
+    end
 
-blz.IdToFix.Level = PTR( find(fixL) ); %#ok<FNDSB>
-blz.IdToFix.Growth = PTR( find(fixG) ); %#ok<FNDSB>
+    blz.IdToFix.Level = PTR( find(fixL) ); %#ok<FNDSB>
+    blz.IdToFix.Growth = PTR( find(fixG) ); %#ok<FNDSB>
 
-% Remove quantities fixed by user and LHS quantities from dynamic links.
-temp = getActiveLhsPtr(this.Link);
-blz.IdToExclude.Level = [blz.IdToFix.Level, temp];
-blz.IdToExclude.Growth = [blz.IdToFix.Growth, temp];
+    % Remove quantities fixed by user and LHS quantities from dynamic links.
+    temp = getActiveLhsPtr(this.Link);
+    blz.IdToExclude.Level = [blz.IdToFix.Level, temp];
+    blz.IdToExclude.Growth = [blz.IdToFix.Growth, temp];
 end
 
 
 
 
 function blz = createBlocks(this, opt)
-TYPE = @int8;
+    TYPE = @int8;
 
-nQty = length(this.Quantity.Name);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixp = this.Quantity.Type==TYPE(4);
+    nQty = length(this.Quantity.Name);
+    ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+    ixp = this.Quantity.Type==TYPE(4);
 
-% Run solver.blazer.Blazer on steady equations.
-numPeriods = 1;
-blz = prepareBlazer(this, 'Steady', numPeriods, opt);
+    % Run solver.blazer.Blazer on steady equations.
+    numPeriods = 1;
+    blz = prepareBlazer(this, 'Steady', numPeriods, opt);
 
-% Analyze block-sequential structure.
-run(blz);
+    % Analyze block-sequential structure.
+    run(blz);
 
-% Populate IdToFix and IdToExclude.
-processFixOpt(this, blz, opt);
+    % Populate IdToFix and IdToExclude.
+    processFixOpt(this, blz, opt);
 
-% Prepare solver.block.Blocks for evaluation.
-prepareBlocks(blz, opt);
+    % Prepare solver.block.Blocks for evaluation.
+    prepareBlocks(blz, opt);
 
-if blz.IsSingular
-    throw( ...
-        exception.Base('Steady:StructuralSingularity', 'warning')...
-        );
-end
+    if blz.IsSingular
+        throw( ...
+            exception.Base('Steady:StructuralSingularity', 'warning')...
+            );
+    end
 
-% Index of :ariables that will be always set to zero.
-ixZero = struct( );
-ixZero.Level = false(1, nQty);
-ixZero.Level(ixe) = true;
-if opt.Growth
-    ixZero.Growth = false(1, nQty);
-    ixZero.Growth(ixe | ixp) = true;
-else
-    ixZero.Growth = true(1, nQty);
-end
-if opt.zeromultipliers
-    ixZero.Level = ixZero.Level | this.Quantity.IxLagrange;
-    ixZero.Growth = ixZero.Growth | this.Quantity.IxLagrange;
-end
-blz.IxZero = ixZero;
+    % Index of variables that will be always set to zero.
+    ixZero = struct( );
+    ixZero.Level = false(1, nQty);
+    ixZero.Level(ixe) = true;
+    if opt.Growth
+        ixZero.Growth = false(1, nQty);
+        ixZero.Growth(ixe | ixp) = true;
+    else
+        ixZero.Growth = true(1, nQty);
+    end
+    if opt.zeromultipliers
+        ixZero.Level = ixZero.Level | this.Quantity.IxLagrange;
+        ixZero.Growth = ixZero.Growth | this.Quantity.IxLagrange;
+    end
+    blz.IxZero = ixZero;
 end
 
 
 
 
 function blz = prepareBounds(this, blz, opt)
-nQty = length(this.Quantity.Name);
-nBlk = length(blz.Block);
-ixValidLevel = true(1, nQty);
-ixValidGrowth = true(1, nQty);
-for iBlk = 1 : nBlk
-    blk = blz.Block{iBlk};
-    if blk.Type~=solver.block.Type.SOLVE
-        continue
-    end
-    
-    % Level bounds.
-    lsLevel = this.Quantity.Name(blk.PosQty.Level);
-    [lbl, ubl, ixValidLevel] = ...
-        boundsHere(lsLevel, blk.PosQty.Level, opt.levelbounds, ixValidLevel);
-    
-    % Growth bounds.
-    lsGrowth = this.Quantity.Name(blk.PosQty.Growth);
-    [lbg, ubg, ixValidGrowth] = ...
-        boundsHere(lsGrowth, blk.PosQty.Growth, opt.growthbounds, ixValidGrowth);
-    
-    % Combine level and growth bounds
-    blk.Lower = [lbl, lbg];
-    blk.Upper = [ubl, ubg];
-    
-    if isa(blk.Solver, 'optim.options.SolverOptions')
-        % Make sure @lsqnonlin is used when there are some lower/upper bounds.
-        isBnd = any(~isinf(blk.Lower)) || any(~isinf(blk.Upper));
-        if isBnd
-            if ~strcmp(blk.Solver.SolverName, 'lsqnonlin')
-                blk.Solver = blk.Solver('lsqnonlin', blk.Solver);
+    nQty = length(this.Quantity.Name);
+    nBlk = length(blz.Block);
+    ixValidLevel = true(1, nQty);
+    ixValidGrowth = true(1, nQty);
+    for iBlk = 1 : nBlk
+        blk = blz.Block{iBlk};
+        if blk.Type~=solver.block.Type.SOLVE
+            continue
+        end
+        
+        % Level bounds.
+        lsLevel = this.Quantity.Name(blk.PosQty.Level);
+        [lbl, ubl, ixValidLevel] = ...
+            boundsHere(lsLevel, blk.PosQty.Level, opt.levelbounds, ixValidLevel);
+        
+        % Growth bounds.
+        lsGrowth = this.Quantity.Name(blk.PosQty.Growth);
+        [lbg, ubg, ixValidGrowth] = ...
+            boundsHere(lsGrowth, blk.PosQty.Growth, opt.growthbounds, ixValidGrowth);
+        
+        % Combine level and growth bounds
+        blk.Lower = [lbl, lbg];
+        blk.Upper = [ubl, ubg];
+        
+        if isa(blk.Solver, 'optim.options.SolverOptions')
+            % Make sure @lsqnonlin is used when there are some lower/upper bounds.
+            isBnd = any(~isinf(blk.Lower)) || any(~isinf(blk.Upper));
+            if isBnd
+                if ~strcmp(blk.Solver.SolverName, 'lsqnonlin')
+                    blk.Solver = blk.Solver('lsqnonlin', blk.Solver);
+                end
             end
         end
+        
+        blz.Block{iBlk} = blk;
     end
-    
-    blz.Block{iBlk} = blk;
-end
 
-if any(~ixValidLevel)
-    throw( exception.Base('Steady:WRONG_SIGN_LEVEL_BOUNDS', 'error'), ...
-        this.Quantity.Name{~ixValidLevel} );
-end
-if any(~ixValidGrowth)
-    throw( exception.Base('Steady:WRONG_SIGN_GROWTH_BOUNDS', 'error'), ...
-        this.Quantity.Name{~ixValidGrowth} );
-end
+    if any(~ixValidLevel)
+        throw( exception.Base('Steady:WRONG_SIGN_LEVEL_BOUNDS', 'error'), ...
+            this.Quantity.Name{~ixValidLevel} );
+    end
+    if any(~ixValidGrowth)
+        throw( exception.Base('Steady:WRONG_SIGN_GROWTH_BOUNDS', 'error'), ...
+            this.Quantity.Name{~ixValidGrowth} );
+    end
 
-return
-
-
+    return
 
 
     function [vecLb, vecUb, ixValid] = boundsHere(list, nameId, bnd, ixValid)

@@ -1,5 +1,5 @@
 function s = prepareSimulate2(this, s, variantRequested)
-% prepareSimulate2  Prepare i-th simulation round.
+% prepareSimulate2  Prepare i-th simulation round for Selective
 %
 % Backend IRIS function.
 % No help provided.
@@ -12,9 +12,6 @@ function s = prepareSimulate2(this, s, variantRequested)
 ixe = this.Quantity.Type==int8(31) | this.Quantity.Type==int8(32);
 ne = sum(ixe);
 nh = sum(this.Equation.IxHash);
-lastEa = s.LastEa;
-lastEndgA = s.LastEndgA;
-nPerNonlin = s.NPerNonlin;
 nName = length(this.Quantity.Name);
 
 % __Loop-Dependent Fields__
@@ -24,20 +21,12 @@ s.Update.Quantity = this.Variant.Values(:, :, variantRequested);
 s.Update.StdCorr = this.Variant.StdCorr(:, :, variantRequested);
 
 % Solution matrices expanded forward if needed.
-requiredForward = max([1, lastEa, lastEndgA, nPerNonlin]) - 1;
 if isequal(s.Method, 'selective')
     [s.T, s.R, s.K, s.Z, s.H, s.D, s.U, ~, ~, s.Q] = sspaceMatrices(this, variantRequested);
     currentForward = min( size(s.R, 2)/ne, size(s.Q, 2)/nh ) - 1;
-    if requiredForward>currentForward
-        vthExpansion = getIthExpansion(this.Variant, variantRequested);
-        [s.R, s.Q] = model.expandFirstOrder(s.R, s.Q, vthExpansion, requiredForward);
-    end
-else
-    [s.T, s.R, s.K, s.Z, s.H, s.D, s.U] = sspaceMatrices(this, variantRequested);
-    currentForward = size(s.R, 2)/ne - 1;
-    if requiredForward>currentForward
-        vthExpansion = getIthExpansion(this.Variant, variantRequested);
-        s.R = model.expandFirstOrder(s.R, [ ], vthExpansion, requiredForward);
+    if s.RequiredForward>currentForward
+        vthExpansion = getIthFirstOrderExpansion(this.Variant, variantRequested);
+        [s.R, s.Q] = model.expandFirstOrder(s.R, s.Q, vthExpansion, s.RequiredForward);
     end
 end
 

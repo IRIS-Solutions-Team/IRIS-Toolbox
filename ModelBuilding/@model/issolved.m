@@ -28,8 +28,8 @@ function flag = issolved(this)
 
 %--------------------------------------------------------------------------
 
-% Models with no equations return `false`.
-if isempty(this.Variant.Solution{1});
+% Models with no equations return false
+if isempty(this.Variant.FirstOrderSolution{1});
     nv = length(this);
     flag = false(1, nv);
     return

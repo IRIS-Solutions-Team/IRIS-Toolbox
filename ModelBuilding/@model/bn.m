@@ -71,52 +71,49 @@ nPer = length(range);
 
 % Alpha vector.
 A = datarequest('alpha', this, inp, range);
-numOfDataSets = size(A, 3);
+numDataSets = size(A, 3);
 
 % Exogenous variables including ttrend.
 G = datarequest('g', this, inp, range);
 
 % Total number of output data sets.
-numOfRuns = max([numOfDataSets, nv]);
+numRuns = max([numDataSets, nv]);
 
 % Pre-allocate hdataobj for output data.
-hd = hdataobj(this, range, numOfRuns, 'IncludeLag=', false);
+hd = hdataobj(this, range, numRuns, 'IncludeLag=', false);
 
-ixSolved = true(1, nv);
-indexOfDiffStationary = true(1, nv);
+indexSolutionAvailable = true(1, nv);
+indexDiffStationary = true(1, nv);
 testEye = @(x) all(all(abs(x - eye(size(x)))<=EYE_TOLERANCE));
 
-for ithRun = 1 : numOfRuns
-    
+for ithRun = 1 : numRuns
     g = G(:, :, min(ithRun, end));
     if ithRun<=nv
-        T = this.Variant.Solution{1}(:, :, ithRun);
+        [T, ~, K, Z, ~, D, U] = getIthFirstOrderSolution(this.Variant, ithRun);
+        numUnitRoots = getNumOfUnitRoots(this.Variant, ithRun);
+
         Tf = T(1:nf, :);
         Ta = T(nf+1:end, :);
         
         % Continue immediate if solution is not available.
-        ixSolved(ithRun) = all(~isnan(T(:)));
-        if ~ixSolved(ithRun)
+        indexSolutionAvailable(ithRun) = all(~isnan(T(:)));
+        if ~indexSolutionAvailable(ithRun)
             continue
         end
         
-        numOfUnitRoots = nnz(this.Variant.EigenStability(:, :, ithRun)==TYPE(1));
-        if ~testEye(Ta(1:numOfUnitRoots, 1:numOfUnitRoots))
-            indexOfDiffStationary(ithRun) = false;
+        if ~testEye(Ta(1:numUnitRoots, 1:numUnitRoots))
+            indexDiffStationary(ithRun) = false;
             continue
         end
-        Z = this.Variant.Solution{4}(:, :, ithRun);
-        U = this.Variant.Solution{7}(:, :, ithRun);
         if ~opt.deviation
-            Ka = this.Variant.Solution{3}(nf+1:end, 1, ithRun);
+            Ka = K(nf+1:end, 1); 
             aBar = zeros(nb, 1);
-            aBar(numOfUnitRoots+1:end) = ...
-                (eye(nb-numOfUnitRoots) - Ta(numOfUnitRoots+1:end, numOfUnitRoots+1:end)) ...
-                \ Ka(numOfUnitRoots+1:end);
+            aBar(numUnitRoots+1:end) = ...
+                (eye(nb-numUnitRoots) - Ta(numUnitRoots+1:end, numUnitRoots+1:end)) ...
+                \ Ka(numUnitRoots+1:end);
             aBar = repmat(aBar, 1, nPer);
-            Kf = this.Variant.Solution{3}(1:nf, 1, ithRun);
+            Kf = K(1:nf, 1);
             Kf = repmat(Kf, 1, nPer);
-            D = this.Variant.Solution{6}(:, 1, ithRun);
             D = repmat(D, 1, nPer);
         end
         if opt.dtrends
@@ -130,17 +127,17 @@ for ithRun = 1 : numOfRuns
     end
     
     % Forward cumsum of stable alpha.
-    aCum = (eye(nb-numOfUnitRoots) - Ta(numOfUnitRoots+1:end, numOfUnitRoots+1:end)) ...
-        \ a(numOfUnitRoots+1:end, :);
+    aCum = (eye(nb-numUnitRoots) - Ta(numUnitRoots+1:end, numUnitRoots+1:end)) ...
+        \ a(numUnitRoots+1:end, :);
     
     % Beveridge Nelson for non-stationary variables.
-    a(1:numOfUnitRoots, :) = a(1:numOfUnitRoots, :) + ...
-        Ta(1:numOfUnitRoots, numOfUnitRoots+1:end)*aCum;
+    a(1:numUnitRoots, :) = a(1:numUnitRoots, :) + ...
+        Ta(1:numUnitRoots, numUnitRoots+1:end)*aCum;
     
     if opt.deviation
-        a(numOfUnitRoots+1:end, :) = 0;
+        a(numUnitRoots+1:end, :) = 0;
     else
-        a(numOfUnitRoots+1:end, :) = aBar(numOfUnitRoots+1:end, :);
+        a(numUnitRoots+1:end, :) = aBar(numUnitRoots+1:end, :);
     end
     
     xf = Tf*a;
@@ -159,22 +156,21 @@ for ithRun = 1 : numOfRuns
     x = [xf;xb];
     e = zeros(ne, nPer);
     hdataassign(hd, ithRun, { y, x, e, [ ], g } );
-    
 end
 
 % Report NaN solutions.
-if ~all(ixSolved)
+if ~all(indexSolutionAvailable)
     utils.warning('model:bn', ...
         'Solution(s) not available %s.', ...
-        exception.Base.alt2str(~ixSolved) );
+        exception.Base.alt2str(~indexSolutionAvailable) );
 end
 
 % Parameterisations that are not difference-stationary.
-if any(~indexOfDiffStationary)
+if any(~indexDiffStationary)
     utils.warning('model:bn', ...
         ['Cannot run Beveridge-Nelson on models with ', ...
         'I(2) or higher processes %s.'], ...
-        exception.Base.alt2str(~indexOfDiffStationary) );
+        exception.Base.alt2str(~indexDiffStationary) );
 end
 
 % Create output database from hdataobj.

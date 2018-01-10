@@ -128,16 +128,16 @@ for v = 1 : nv
     outputVAR.Omega(:, :, v) = Omgi;
 end
 
-% Assign variable names.
-outputVAR = myynames(outputVAR, select);
+% Assign variable names
+outputVAR.NamesEndogenous = select; 
 
-% Create residual names automatically.
-outputVAR = myenames(outputVAR, [ ]);
+% Create residual names automatically
+outputVAR.NamesErrors = @auto;
 
-% Compute triangular representation.
+% Compute triangular representation
 outputVAR = schur(outputVAR);
 
-% Populate AIC and SBC criteria.
+% Populate AIC and SBC criteria
 outputVAR = infocrit(outputVAR);
 
 end

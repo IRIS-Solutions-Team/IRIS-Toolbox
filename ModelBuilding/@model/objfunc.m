@@ -18,7 +18,7 @@ mldSystemPriors = 0; % Minus log density of system priors
 isSystemPriors = posterior.EvaluateSystemPriors && ~isempty(posterior.SystemPriors);
 
 % Check lower and upper bounds
-if any(x<posterior.LowerBounds) || any(x>posterior.UpperBounds)
+if any(x(:)<posterior.LowerBounds(:)) || any(x(:)>posterior.UpperBounds(:))
     mldPosterior = Inf;
 end
 

@@ -11,7 +11,7 @@ function [ny, nxi, nb, nf, ne, ng, nz] = sizeOfSolution(this)
 
 [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
 if nargout>6
-    nz = nnz(this.Quantity.ixMeasure);
+    nz = nnz(this.Quantity.IxObserved);
 end
 
 end

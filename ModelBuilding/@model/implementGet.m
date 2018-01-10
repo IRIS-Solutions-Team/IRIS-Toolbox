@@ -65,6 +65,8 @@ end
 answ = [ ];
 flag = true;
 
+logStyle = this.Behavior.LogStyleInSolutionVectors;
+
 ssLevel = [ ];
 ssGrowth = [ ];
 dtLevel = [ ];
@@ -242,7 +244,7 @@ switch lower(query)
         needsAddParams = true;
         
     case 'dtgrowth'
-        ixNanSolution = this.Quantity.Type==TYPE(1);
+        indexNaNSolutions = this.Quantity.Type==TYPE(1);
         answ = cell2DbaseFunc(dtGrowth);
         needsAddParams = true;
         
@@ -271,25 +273,25 @@ switch lower(query)
         answ = implementGet(this.Reporting, 'label');
         
     case {'yvector', 'yvec'}
-        answ = printSolutionVector(this, 'y');
+        answ = printSolutionVector(this, 'y', logStyle);
         answ = answ.';
         
     case {'xvector', 'xvec'}
-        answ = printSolutionVector(this, 'x');
+        answ = printSolutionVector(this, 'x', logStyle);
         answ = answ.';
         
     case {'xfvector', 'xfvec'}
-        answ = printSolutionVector(this, 'x');
+        answ = printSolutionVector(this, 'x', logStyle);
         answ = answ(1:nf);
         answ = answ.';
         
     case {'xbvector', 'xbvec'}
-        answ = printSolutionVector(this, 'x');
+        answ = printSolutionVector(this, 'x', logStyle);
         answ = answ(nf+1:end);
         answ = answ.';
         
     case {'evector', 'evec'}
-        answ = printSolutionVector(this, 'e');
+        answ = printSolutionVector(this, 'e', logStyle);
         answ = answ.';
         
     case {'ylog', 'xlog', 'elog', 'plog', 'glog'}
@@ -348,13 +350,13 @@ switch lower(query)
         % True initial conditions required at least in one parameter variant.
         vecXb = this.Vector.Solution{2}(nf+1:end);
         ixInit = any(this.Variant.IxInit, 3);
-        answ = printSolutionVector(this, vecXb(ixInit)-1i);
+        answ = printSolutionVector(this, vecXb(ixInit)-1i, logStyle);
         
         
         
         
     case {'forward'}
-        answ = size(this.Variant.Solution{2}, 2)/ne - 1;
+        answ = size(this.Variant.FirstOrderSolution{2}, 2)/ne - 1;
         needsChkSolution = true;
         
         
@@ -407,13 +409,13 @@ switch lower(query)
         
         
     case 'nb'
-        answ = size(this.Variant.Solution{7}, 1);
+        answ = size(this.Variant.FirstOrderSolution{7}, 1);
         
         
         
         
     case 'nf'
-        answ = length(this.Vector.Solution{2}) - size(this.Variant.Solution{7}, 1);
+        answ = length(this.Vector.Solution{2}) - size(this.Variant.FirstOrderSolution{7}, 1);
         
         
         
@@ -455,11 +457,11 @@ end
 
 if needsChkSolution
     % Report solution(s) not available.
-    [solutionFlag, ixNanSolution] = isnan(this, 'solution');
+    [solutionFlag, indexNaNSolutions] = isnan(this, 'solution');
     if solutionFlag
         utils.warning('model:implementGet', ...
             'Solution(s) not available %s.', ...
-            exception.Base.alt2str(ixNanSolution) );
+            exception.Base.alt2str(indexNaNSolutions) );
     end
 end
 
@@ -481,13 +483,13 @@ return
         vecXb = [this.Vector.Solution{1:2}];
         t0 = imag(vecXb)==0;
         name = this.Quantity.Name( real(vecXb(t0)) );
-        [~, ixNanSolution] = isnan(this, 'solution');
+        [~, indexNaNSolutions] = isnan(this, 'solution');
         status = nan([sum(t0), nv]);
-        for iiAlt = find(~ixNanSolution)
-            indexOfUnitRoots = this.Variant.EigenStability(:, 1:nb, iiAlt)==TYPE(1);
-            dy = any(abs(this.Variant.Solution{4}(:, indexOfUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
-            df = any(abs(this.Variant.Solution{1}(1:nf, indexOfUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
-            db = any(abs(this.Variant.Solution{7}(:, indexOfUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
+        for iiAlt = find(~indexNaNSolutions)
+            indexUnitRoots = this.Variant.EigenStability(:, 1:nb, iiAlt)==TYPE(1);
+            dy = any(abs(this.Variant.FirstOrderSolution{4}(:, indexUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
+            df = any(abs(this.Variant.FirstOrderSolution{1}(1:nf, indexUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
+            db = any(abs(this.Variant.FirstOrderSolution{7}(:, indexUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
             d = [dy, df, db];
             
             if strncmp(query, 's', 1)

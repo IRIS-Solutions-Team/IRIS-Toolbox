@@ -49,18 +49,18 @@ if ne==0 && nh==0
     return
 end
 
-R = this.Variant.Solution{2}(:, 1:ne, :); % Impact matrix of structural shocks.
-Y = this.Variant.Solution{8}(:, 1:nh, :); % Impact matrix of non-linear add-factors.
+R = this.Variant.FirstOrderSolution{2}(:, 1:ne, :); % Impact matrix of structural shocks.
+Y = this.Variant.FirstOrderSolution{8}(:, 1:nh, :); % Impact matrix of non-linear add-factors.
 
 newR = [R, nan(size(R, 1), ne*k, nv)];
 newY = [Y, nan(size(Y, 1), nh*k, nv)];
 for v = 1 : nv
     vthR = R(:, :, v);
     vthY = Y(:, :, v);
-    vthExpansion = getIthExpansion(this.Variant, v);
+    vthExpansion = getIthFirstOrderExpansion(this.Variant, v);
     [newR(:, :, v), newY(:, :, v)] = model.expandFirstOrder(R(:, :, v), Y(:, :, v), vthExpansion, k);
 end
-this.Variant.Solution{2} = newR;
-this.Variant.Solution{8} = newY;
+this.Variant.FirstOrderSolution{2} = newR;
+this.Variant.FirstOrderSolution{8} = newY;
 
 end

@@ -13,6 +13,10 @@ TYPE = @int8;
 
 [ny, nxx] = sizeOfSolution(this.Vector);
 ixLog = this.Quantity.IxLog;
+ixy = this.Quantity.Type==TYPE(1); 
+ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+ixp = this.Quantity.Type==TYPE(4);
+ixg = this.Quantity.Type==TYPE(5); 
 nEqtn = length(this.Equation);
 ixu = any(this.Equation.Type==TYPE(5));
 ixh = this.Equation.IxHash;
@@ -33,11 +37,29 @@ s.Solver = lower(opt.Solver);
 s.Display = lower(opt.Display);
 s.IsDeviation = opt.deviation;
 s.IsAddSstate = opt.addsstate;
+s.IsContributions = opt.contributions;
+s.IsAnticipate = opt.anticipate;
+s.IsDeterministicTrends = opt.dtrends;
+if isequal(s.IsDeterministicTrends, @auto)
+    s.IsDeterministicTrends = ~s.IsDeviation;
+end
 s.IsError = opt.error;
 s.Eqtn = this.Equation.Input;
 s.NameType = this.Quantity.Type;
 s.IxYLog = ixLog(real(this.Vector.Solution{1})).';
 s.IxXLog = ixLog(real(this.Vector.Solution{2})).';
+s.IxObserved = ixy;
+s.IxShocks = ixe;
+s.IxParameters = ixp;
+s.IxExogenous = ixg;
+
+if s.IsDeterministicTrends
+    ixd = this.Equation.Type==TYPE(3);
+    s.DeterministicTrend = struct( );
+    s.DeterministicTrend.Equations = cell(1, nEqtn);
+    s.DeterministicTrend.Equations(ixd) = this.Equation.Dynamic(ixd);
+    s.DeterministicTrend.Pairing = this.Pairing.Dtrend;
+end
 
 s.NPerNonlin = 0;
 if isequal(s.Method, 'selective')
@@ -58,6 +80,8 @@ if isequal(s.Method, 'selective')
     end
 end
 
+s.RequiredForward = max([1, s.LastEa, s.LastEndgA, s.NPerNonlin]) - 1;
+
 if isequal(s.Method, 'selective')
     s.Selective = struct( );
     s.Selective.IxHash = ixh;
@@ -71,7 +95,7 @@ if isequal(s.Method, 'selective')
     label = getLabelOrInput(this.Equation);
     s.Selective.EqtnLabelN = label(ixh);
         
-    doEqtnN( );
+    prepareHashEquations( );
     
     if isequal(s.Solver, @auto) ...
             || ( ischar(s.Solver) && strcmpi(s.Solver, 'qad') )
@@ -112,11 +136,7 @@ if isequal(s.Method, 'selective')
             model.PREAMBLE_HASH, ...
             s.Selective.EqtnNI{ii} ...
             ];
-        if true % ##### MOSW
-            s.Selective.EqtnNI{ii} = str2func(s.Selective.EqtnNI{ii});
-        else
-            s.Selective.EqtnNI{ii} = mosw.str2func(s.Selective.EqtnNI{ii}); %#ok<UNRCH>
-        end
+        s.Selective.EqtnNI{ii} = str2func(s.Selective.EqtnNI{ii});
     end
 end
 
@@ -130,7 +150,7 @@ if s.IsRevision
     s.Revision.ChkSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
     s.Revision.Solve = prepareSolve(this, 'silent', opt.Solve);
     ixRevision = ixu & ptrRevision>0;
-    eqnRevision = model.createNonlinEqtn(this, ixRevision);
+    eqnRevision = createHashEquations(this, ixRevision);
     eqnRevision = [ model.PREAMBLE_HASH, '[', eqnRevision{:}, ']' ];
     eqnRevision = str2func(eqnRevision);
     s.Revision.EqtnN = eqnRevision;
@@ -149,17 +169,13 @@ return
 
 
 
-    function doEqtnN( )
+    function prepareHashEquations( )
         s.Selective.EqtnNI = cell(1, nEqtn);
-        s.Selective.EqtnNI(ixh) = model.createNonlinEqtn(this, ixh);
+        s.Selective.EqtnNI(ixh) = createHashEquations(this, ixh);
         s.Selective.EqtnN = [ ...
             model.PREAMBLE_HASH, ...
             '[', s.Selective.EqtnNI{ixh}, ']' ...
             ];
-        if true % ##### MOSW
-            s.Selective.EqtnN = str2func(s.Selective.EqtnN);
-        else
-            s.Selective.EqtnN = mosw.str2func(s.Selective.EqtnN); %#ok<UNRCH>
-        end
+        s.Selective.EqtnN = str2func(s.Selective.EqtnN);
     end
 end

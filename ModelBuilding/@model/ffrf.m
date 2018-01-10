@@ -68,7 +68,7 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
     INPUT_PARSER.addParameter('MaxIter', 500, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>=0));
     INPUT_PARSER.addParameter('Tolerance', 1e-7, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0));
-    INPUT_PARSER.addParameter('PrepareOnly', false, @(x) isequal(x, true) || isequal(x, false));
+    INPUT_PARSER.addParameter({'SystemProperty', 'PrepareOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
 end
 INPUT_PARSER.parse(this, frequencies, varargin{:});
 opt = INPUT_PARSER.Options;
@@ -102,21 +102,12 @@ else
         indexToInclude = ismember(selectedYNames, opt.Include);
     end
 end
-selectedYNames = selectedYNames(indexToInclude);
-isSelected = any(~indexToInclude);
+solutionVectorX = printSolutionVector(this, 'x', @Behavior);
+solutionVectorY = printSolutionVector(this, 'y', @Behavior);
 
-systemProperty = system.Property( );
-systemProperty.FirstOrderSolution = cell(size(this.Variant.Solution));
-systemProperty.CovShocks = double.empty(0);
-systemProperty.NumUnitRoots = NaN;
-systemProperty.Specifics.Function = @freqdom.ffrf3;
-systemProperty.Specifics.Names = {printSolutionVector(this, 'x'), printSolutionVector(this, 'y')};
-systemProperty.Specifics.IndexToInclude = indexToInclude;
-systemProperty.Specifics.MaxIter = opt.MaxIter;
-systemProperty.Specifics.Frequencies = frequencies(:)';
-systemProperty.Specifics.Tolerance = opt.Tolerance;
+systemProperty = createSystemPropertyObject( );
 
-if opt.PrepareOnly
+if opt.SystemProperty
     varargout = cell(1, 1);
     varargout{1} = systemProperty;
     return
@@ -124,45 +115,38 @@ end
 
 numFreq = numel(systemProperty.Specifics.Frequencies);
 F = complex(nan(nxi, ny, numFreq, nv), nan(nxi, ny, numFreq, nv));
+count = nan(1, nv);
 
 if ny>0 && any(indexToInclude)
-    getFfrf( );
+    indexNaNSolutions = reportNaNSolutions(this);
+    for v = find(~indexNaNSolutions)
+        update(systemProperty, this, v);
+        [vthF, vthCount] = freqdom.ffrf3(systemProperty);
+        F(:, :, :, v) = vthF;
+        count(1, v) = vthCount;
+    end
 end
-
-% Select requested variables
-%{
-if isSelected
-    [F, pos] = namedmat.myselect(F, rowNames, columnNames, selectedYNames);
-    rowNames = rowNames(pos{1});
-    columnNames = columnNames(pos{2});
-end
-%}
 
 % Convert output matrix to namedmat object if requested
 if isNamedMat
-    F = namedmat(F, systemProperty.Specifics.Names{:});
+    F = namedmat(F, solutionVectorX, solutionVectorY);
 end
-
-varargout = cell(1, 2);
+varargout = cell(1, 3);
 varargout{1} = F;
-varargout{2} = systemProperty.Specifics.Names;
+varargout{2} = {solutionVectorX, solutionVectorY};
+varargout{3} = count;
 
 return
 
     
-    function getFfrf( )
-        indexSolutionsAvailable = issolved(this);
-        numUnitRoots = getNumOfUnitRoots(this.Variant);
-        for v = find(indexSolutionsAvailable)
-            [systemProperty.FirstOrderSolution{1:7}, systemProperty.CovShocks] = sspaceMatrices(this, v, false);
-            systemProperty.NumUnitRoots = numUnitRoots(v);
-            F(:, :, :, v) = freqdom.ffrf3(systemProperty);
-        end
-        % Report solutions not available.
-        assert( ...
-            all(indexSolutionsAvailable), ...
-            exception.Base('Model:SolutionNotAvailable', 'error'), ...
-            exception.Base.alt2str(~indexSolutionsAvailable) ...
-        );
+    function systemProperty = createSystemPropertyObject( )
+        systemProperty = SystemProperty(this);
+        systemProperty.Function = @freqdom.ffrf3;
+        systemProperty.MaxNumOutputs = 1;
+        systemProperty.NamedReferences = {solutionVectorX, solutionVectorY};
+        systemProperty.Specifics.IndexToInclude = indexToInclude;
+        systemProperty.Specifics.MaxIter = opt.MaxIter;
+        systemProperty.Specifics.Frequencies = frequencies(:)';
+        systemProperty.Specifics.Tolerance = opt.Tolerance;
     end
 end

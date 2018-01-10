@@ -26,15 +26,13 @@ ixm = equation.Type==TYPE(1);
 ixt = equation.Type==TYPE(2);
 ixd = equation.Type==TYPE(3);
 
-% No transition variable
-%------------------------
+% __No Transition Variable__
 if ~any(ixx)
     exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_VARIABLE', 'error');
     return
 end
 
-% No transition equation
-%------------------------
+% __No Transition Equation__
 if ~any(ixt)
     exc = exception.ParseTime('Model:Postparser:NO_TRANSITION_EQUATION', 'error');
     return
@@ -49,8 +47,7 @@ insxe = across(this.Incidence.Steady, 'Lead');
 ind0 = across(this.Incidence.Dynamic, 'Zero'); % At zero shift.
 ins0 = across(this.Incidence.Steady, 'Zero');
 
-% Lags/leads of measurement variables
-%-------------------------------------
+% __Lags/Leads of Measurement Variables__
 test = any(indxl(:, ixy), 2) | any(insxl(:, ixy), 2);
 if any(test)
     exc = exception.ParseTime('Model:Postparser:MEASUREMENT_SHIFT', 'error');
@@ -58,8 +55,7 @@ if any(test)
     return
 end
 
-% Lags/leads of shocks
-%----------------------
+% __Lags/Leads of Shocks__
 test = any(indxl(:, ixe), 2) | any(insxl(:, ixe), 2);
 if any(test)
     exc = exception.ParseTime('Model:Postparser:SHOCK_SHIFT', 'error');
@@ -67,19 +63,10 @@ if any(test)
     return
 end
 
-% Lags/leads of parameters
-%--------------------------
-test = any(indxl(:, ixp), 2) | any(insxl(:, ixp), 2);
-if any(test)
-    exc = exception.ParseTime('Model:Postparser:PARAMETER_SHIFT', 'error');
-    args = equation.Input(test);
-    return
-end
-
 % Lags and leads of exogenous variables are captured as misplaced time
 % subscripts.
 
-% Measurement variables in transition equations.
+% __Measurement Variables in Transition Equations__
 test = any(indxs(ixt, ixy), 2) | any(insxs(ixt, ixy), 2);
 if any(test)
     eqtn = equation.Input(ixt);
@@ -88,7 +75,7 @@ if any(test)
     return
 end
 
-% No leads of transition variables in measurement equations.
+% __No Leads of Transition Variables in Measurement Equations__
 test = any(indxe(ixm, ixx), 2) | any(insxe(ixm, ixx), 2);
 if any(test)
     eqtn = equation.Input(ixm);
@@ -97,7 +84,7 @@ if any(test)
     return
 end
 
-% No current date of measurement variable in some measurement equation.
+% __No Current Date of Measurement Variable in Some Measurement Equation__
 test = ~any(ind0(ixm, ixy), 2) | ~any(ins0(ixm, ixy), 2);
 if any(test)
     eqtn = equation.Input(ixm);
@@ -107,7 +94,7 @@ if any(test)
 end
 
 if any(ixe)
-    % Find transition shocks in measurement equations.
+    % __Transition Shocks in Measurement Equations__
     test = any(ind0(ixm, ixex), 2) | any(ins0(ixm, ixex), 2);
     if any(test)
         eqtn = equation.Input(ixm);
@@ -115,7 +102,7 @@ if any(ixe)
         args = eqtn(test);
         return
     end
-    % Find measurement shocks in transition equations.
+    % __Measurement Shocks in Transition Equations__
     test = any(ind0(ixt, ixey), 1) | any(ins0(ixt, ixey));
     if any(test)
         eqtn = equation.Input(ixt);
@@ -125,7 +112,7 @@ if any(ixe)
     end
 end
 
-% Names other than parameters and exogenous variables in dtrend equations.
+% __Names Other Than Parameters and Exogenous Variables in DTrend Equations__
 test = any(indxs(ixd, ~ixp & ~ixg), 2) | any(insxs(ixd, ~ixp & ~ixg), 2);
 if any(test)
     eqtn = equation.Input(ixd);

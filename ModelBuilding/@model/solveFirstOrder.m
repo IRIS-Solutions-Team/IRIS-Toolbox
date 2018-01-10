@@ -37,30 +37,30 @@ ixy = this.Quantity.Type==TYPE(1);
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ixt = this.Equation.Type==1;
 ixh = this.Equation.IxHash;
-numOfHashed = nnz(ixh);
-numOfObserved = nnz(this.Quantity.IxObserved);
-nh = numOfHashed;
-nz = numOfObserved;
+numHashed = nnz(ixh);
+numObserved = nnz(this.Quantity.IxObserved);
+nh = numHashed;
+nz = numObserved;
 nt = nnz(ixt);
 
 [ny, nxi, nb, nf, ne] = sizeOfSolution(this.Vector);
 kxi = length(this.Vector.System{2});
 kf = kxi - nb; % Fwl in system.
-indexOfXfToKeep = ~this.D2S.IndexOfXfToRemove;
+indexXfToKeep = ~this.D2S.IndexOfXfToRemove;
 nv = length(this);
 if isequal(variantsRequired, Inf)
     variantsRequired = 1 : nv;
 end
 variantsRequired = variantsRequired(:).';
-numOfVariantsRequired = length(variantsRequired);
+numVariantsRequired = length(variantsRequired);
 
 % Solution matrices will be expanded to the match the existing expansion.
-ahead = size(this.Variant.Solution{2}, 2)/ne - 1;
+ahead = size(this.Variant.FirstOrderSolution{2}, 2)/ne - 1;
 
 % Reset solution-dependent information in this.Variant.
 if doTransition
     this.Variant = resetTransition( ...
-        this.Variant, variantsRequired, this.Vector, numOfHashed, numOfObserved ...
+        this.Variant, variantsRequired, this.Vector, numHashed, numObserved ...
     );
 end
 if doMeasurement
@@ -114,8 +114,8 @@ for v = variantsRequired
     
     % __Schur Decomposition and Saddle-Path Check__
     if doTransition
-        [SS, TT, QQ, ZZ, eqOrd, numOfUnitRoots, numOfStableRoots] = computeSchur( );
-        bk(:, v) = [nb; numOfUnitRoots; numOfStableRoots] ;
+        [SS, TT, QQ, ZZ, eqOrd, numUnitRoots, numStableRoots] = computeSchur( );
+        bk(:, v) = [nb; numUnitRoots; numStableRoots] ;
     end
     
     if exitFlag(v)==1
@@ -156,12 +156,12 @@ for v = variantsRequired
         end
         if doTransition && ahead>0
             % Expand solution matrices up to t+ahead
-            vthR = this.Variant.Solution{2}(:, 1:ne, v);
-            vthY = this.Variant.Solution{8}(:, 1:nh, v);
-            vthExpansion = getIthExpansion(this.Variant, v);
+            vthR = this.Variant.FirstOrderSolution{2}(:, 1:ne, v);
+            vthY = this.Variant.FirstOrderSolution{8}(:, 1:nh, v);
+            vthExpansion = getIthFirstOrderExpansion(this.Variant, v);
             [vthR, vthY] = model.expandFirstOrder(vthR, vthY, vthExpansion, ahead);
-            this.Variant.Solution{2}(:, :, v) = vthR;
-            this.Variant.Solution{8}(:, :, v) = vthY;
+            this.Variant.FirstOrderSolution{2}(:, :, v) = vthR;
+            this.Variant.FirstOrderSolution{8}(:, :, v) = vthY;
         end
     end
     
@@ -177,7 +177,7 @@ sing1 = sing1(:, variantsRequired);
 return
 
 
-    function [SS, TT, QQ, ZZ, eqOrd, numOfUnitRoots, numOfStableRoots] = computeSchur( )
+    function [SS, TT, QQ, ZZ, eqOrd, numUnitRoots, numStableRoots] = computeSchur( )
         % Ordered real QZ decomposition.
         fA = full(syst.A{2});
         fB = full(syst.B{2});
@@ -195,14 +195,14 @@ return
             invEigen = invEigen(:).';
             isSevn2 = applySevn2Patch( );
             absInvEigen = abs(invEigen);
-            indexOfStableRoots = absInvEigen >= (1+EIGEN_TOLERANCE);
-            indexOfUnitRoots = abs(absInvEigen-1) < EIGEN_TOLERANCE;
+            indexStableRoots = absInvEigen>=(1+EIGEN_TOLERANCE);
+            indexUnitRoots = abs(absInvEigen-1) < EIGEN_TOLERANCE;
             % Clusters of unit, stable, and unstable eigenvalues.
             clusters = zeros(size(invEigen));
             % Unit roots first.
-            clusters(indexOfUnitRoots) = 2;
+            clusters(indexUnitRoots) = 2;
             % Stable roots second.
-            clusters(indexOfStableRoots) = 1;
+            clusters(indexStableRoots) = 1;
             % Unstable roots last.
             % Re-order by the clusters.
             lastwarn('');
@@ -224,7 +224,7 @@ return
                 'some eigenvalues are too close to swap, and ', ...
                 'equation re-ordering does not help.']);
         end
-        if opt.warning && eqOrd(1) ~= 1
+        if opt.warning && eqOrd(1)~=1
             utils.warning('model:mysolve', ...
                 ['Numerical instability in QZ decomposition. ', ...
                 'Equations re-ordered %g time(s).'], ...
@@ -241,10 +241,10 @@ return
                 'SEVN2 patch applied.'])
         end
         absInvEigen = abs(invEigen);
-        indexOfStableRoots = absInvEigen >= (1+EIGEN_TOLERANCE);
-        indexOfUnitRoots = abs(absInvEigen-1) < EIGEN_TOLERANCE;        
-        numOfUnitRoots = nnz(indexOfUnitRoots);
-        numOfStableRoots = nnz(indexOfStableRoots);
+        indexStableRoots = absInvEigen>=(1+EIGEN_TOLERANCE);
+        indexUnitRoots = abs(absInvEigen-1) < EIGEN_TOLERANCE;        
+        numUnitRoots = nnz(indexUnitRoots);
+        numStableRoots = nnz(indexStableRoots);
         
         % Undo eigval inversion.
         eigen = invEigen;
@@ -255,18 +255,18 @@ return
         % Check BK saddle-path condition.
         if any(isnan(eigen))
             exitFlag(v) = -2;
-        elseif nb==numOfStableRoots+numOfUnitRoots
+        elseif nb==numStableRoots+numUnitRoots
             exitFlag(v) = 1;
-        elseif nb>numOfStableRoots+numOfUnitRoots
+        elseif nb>numStableRoots+numUnitRoots
             exitFlag(v) = 0;
         else
             exitFlag(v) = Inf;
         end
         this.Variant.EigenValues(1, :, v) = eigen;
         this.Variant.EigenStability(:, :, v) = repmat(TYPE(0), 1, numel(eigen));
-        this.Variant.EigenStability(1, indexOfStableRoots, v) = TYPE(0);
-        this.Variant.EigenStability(1, indexOfUnitRoots, v) = TYPE(1);
-        this.Variant.EigenStability(1, ~indexOfStableRoots & ~indexOfUnitRoots, v) = TYPE(2);
+        this.Variant.EigenStability(1, indexStableRoots, v) = TYPE(0);
+        this.Variant.EigenStability(1, indexUnitRoots, v) = TYPE(1);
+        this.Variant.EigenStability(1, ~indexStableRoots & ~indexUnitRoots, v) = TYPE(2);
         
         return
         
@@ -276,9 +276,9 @@ return
             % Largest eigval less than 1.
             flag = false;
             eigval0 = invEigen;
-            eigval0(abs(invEigen) >= 1-EIGEN_TOLERANCE) = 0;
-            eigval0(imag(invEigen) ~= 0) = 0;
-            if any(eigval0 ~= 0)
+            eigval0(abs(invEigen)>=1-EIGEN_TOLERANCE) = 0;
+            eigval0(imag(invEigen)~=0) = 0;
+            if any(eigval0<=0)
                 [ans, below] = max(abs(eigval0)); %#ok<*NOANS, *ASGLU>
             else
                 below = [ ];
@@ -293,8 +293,8 @@ return
                 above = [ ];
             end
             if ~isempty(below) && ~isempty(above) ...
-                    && abs(invEigen(below) + invEigen(above) - 2) <= EIGEN_TOLERANCE ...
-                    && abs(invEigen(below) - 1) <= SEVN2_TOLERANCE
+                    && abs(invEigen(below) + invEigen(above) - 2)<=EIGEN_TOLERANCE ...
+                    && abs(invEigen(below) - 1)<=SEVN2_TOLERANCE
                 invEigen(below) = sign(invEigen(below));
                 invEigen(above) = sign(invEigen(above));
                 TT(below, below) = sign(TT(below, below))*abs(SS(below, below));
@@ -314,8 +314,8 @@ return
         T11 = TT(1:nb, 1:nb);
         T12 = TT(1:nb, nb+1:end);
         T22 = TT(nb+1:end, nb+1:end);
-        Z11 = ZZ(indexOfXfToKeep, 1:nb);
-        Z12 = ZZ(indexOfXfToKeep, nb+1:end);
+        Z11 = ZZ(indexXfToKeep, 1:nb);
+        Z12 = ZZ(indexXfToKeep, nb+1:end);
         Z21 = ZZ(kf+1:end, 1:nb);
         Z22 = ZZ(kf+1:end, nb+1:end);
         
@@ -478,32 +478,32 @@ return
             Y = [Yf;Ya];
         end
         
-        this.Variant.Solution{1}(:, :, v) = T;
-        this.Variant.Solution{2}(:, 1:ne, v) = R;
-        this.Variant.Solution{3}(:, :, v) = K;
-        this.Variant.Solution{7}(:, :, v) = U;
+        this.Variant.FirstOrderSolution{1}(:, :, v) = T;
+        this.Variant.FirstOrderSolution{2}(:, 1:ne, v) = R;
+        this.Variant.FirstOrderSolution{3}(:, :, v) = K;
+        this.Variant.FirstOrderSolution{7}(:, :, v) = U;
         if isHash
-            this.Variant.Solution{8}(:, 1:nh, v) = Y;
+            this.Variant.FirstOrderSolution{8}(:, 1:nh, v) = Y;
         end
         
         if ~opt.fast
-            % Necessary initial conditions in xb vector.
+            % Necessary initial conditions in xb vector
             this.Variant.IxInit(:, :, v) = any(abs(T/U)>SOLVE_TOLERANCE, 1);
 
-            % Forward expansion.
-            % a(t) <= -Xa J^(k-1) Ru e(t+k)
-            % xf(t) <= Xf J^k Ru e(t+k)
+            % Forward expansion
+            % a(t) <<< -Xa J^(k-1) Ru e(t+k)
+            % xf(t) <<< Xf J^k Ru e(t+k)
             J = -T22\S22;
             Xa = Xa1 + Xa0*J;
             % Highest computed power of J: e(t+k) requires J^k.
             Jk = eye(size(J));
             
-            this.Variant.Expansion{1}(:, :, v) = Xa;
-            this.Variant.Expansion{2}(:, :, v) = Xf;
-            this.Variant.Expansion{3}(:, :, v) = Ru;
-            this.Variant.Expansion{4}(:, :, v) = J;
+            this.Variant.FirstOrderExpansion{1}(:, :, v) = Xa;
+            this.Variant.FirstOrderExpansion{2}(:, :, v) = Xf;
+            this.Variant.FirstOrderExpansion{3}(:, :, v) = Ru;
+            this.Variant.FirstOrderExpansion{4}(:, :, v) = J;
             if isHash
-                this.Variant.Expansion{5}(:, :, v) = Yu;
+                this.Variant.FirstOrderExpansion{5}(:, :, v) = Yu;
             end
         end
     end
@@ -554,19 +554,19 @@ return
                 return
             end
         end
-        % this.Variant.Solution{4}(:, :, v) is assigned la.
-        this.Variant.Solution{5}(:, :, v) = H;
-        this.Variant.Solution{6}(:, :, v) = D;
-        this.Variant.Solution{9}(:, :, v) = Zb;
+        % this.Variant.FirstOrderSolution{4}(:, :, v) is assigned la.
+        this.Variant.FirstOrderSolution{5}(:, :, v) = H;
+        this.Variant.FirstOrderSolution{6}(:, :, v) = D;
+        this.Variant.FirstOrderSolution{9}(:, :, v) = Zb;
     end
 
     
     function transformMeasurement( )
         % Transform the Zb matrix to Za:
         %     y = Zb*xb -> y = Za*alp
-        Zb = this.Variant.Solution{9}(:, :, v);
-        U = this.Variant.Solution{7}(:, :, v);
+        Zb = this.Variant.FirstOrderSolution{9}(:, :, v);
+        U = this.Variant.FirstOrderSolution{7}(:, :, v);
         Za = Zb*U;
-        this.Variant.Solution{4}(:, :, v) = Za;
+        this.Variant.FirstOrderSolution{4}(:, :, v) = Za;
     end
 end

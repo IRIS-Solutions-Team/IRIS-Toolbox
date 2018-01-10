@@ -1,14 +1,12 @@
 function C = autocaption(this, inp, template, varargin)
 % autocaption  Create captions for reporting model variables or parameters.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     C = autocaption(M,X,Template,...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object.
 %
@@ -19,32 +17,29 @@ function C = autocaption(this, inp, template, varargin)
 % Description for details.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `C` [ cellstr ] - Cell array of captions, with one for each model name
 % (variable, shock, parameter) found in `X`, in order of their appearance
 % in `X`.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'corr='` [ char | *`'Corr $shock1$ X $shock2$'`* ] - Template to
-% create `$descript$` and `$alias$` for correlation coefficients based on
+% * `Corr='Corr $shock1$ X $shock2$'` [ char ] - Template to create
+% `$descript$` and `$alias$` for correlation coefficients based on
 % `$descript$` and `$alias$` of the underlying shocks.
 %
-% * `'std='` [ char | *`'Std $shock$'`* ] - Template to create
-% `$descript$` and `$alias$` for std deviation based on `$descript$` and
-% `$alias$` of the underlying shock.
+% * `Std='Std $shock$'` [ char ] - Template to create `$descript$` and
+% `$alias$` for std deviation based on `$descript$` and `$alias$` of the
+% underlying shock.
 %
 %
-% Description
-% ============
+% __Description__
 %
-% The function `autocaption` can be used to supply user-created captions to
+% The function `autocaption( )` is used to supply user-created captions to
 % title graphs in `grfun/plotpp`, `grfun/plotneigh`, `model/shockplot`,
-% and `dbase/dbplot`, through their option `'caption='`.
+% and `dbase/dbplot`, through their option `Caption=`.
 %
 % The `Template` can contain the following substitution strings:
 %
@@ -57,8 +52,8 @@ function C = autocaption(this, inp, template, varargin)
 % * `$alias$` -- will be replaced with the alias of the respective
 % variable, shock, or parameter.
 %
-% The options `'corr='` and `'std='` will be used to create `$descript$`
-% and `$alias$ for std deviations and cross-correlations of shocks (which
+% The options `Corr=` and `Std=` will be used to create `$descript$`
+% and `$alias$` for std deviations and cross-correlations of shocks (which
 % cannot be created in the model code). The options are expected to use the
 % following substitution strings:
 %
@@ -72,8 +67,7 @@ function C = autocaption(this, inp, template, varargin)
 % second underlying shock in a cross correlation.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

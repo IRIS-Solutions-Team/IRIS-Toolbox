@@ -1,5 +1,5 @@
-function [S, D, yxvec, freq] = xsf(this, freq, varargin)
-% xsf  Power spectrum and spectral density of model variables.
+function varargout = xsf(this, freq, varargin)
+% xsf  Power spectrum and spectral density for model variables
 %
 % __Syntax__
 %
@@ -15,7 +15,7 @@ function [S, D, yxvec, freq] = xsf(this, freq, varargin)
 % evaluated.
 %
 % * `NFreq` [ numeric ] - Total number of requested frequencies; the
-% frequencies will be evenly spread between 0 and `pi`.
+% frequencies will be evenly spread between 0 and \(\pi\).
 %
 %
 % __Output Arguments__
@@ -24,8 +24,8 @@ function [S, D, yxvec, freq] = xsf(this, freq, varargin)
 %
 % * `D` [ namedmat | numeric ] - Spectral density matrices.
 %
-% * `List` [ cellstr ] - List of variable in order of appearance in rows
-% and columns of `S` and `D`.
+% * `List` [ cellstr ] - List of variables in order of their appearance in
+% rows and columns of `SS` and `DD`.
 %
 % * `Freq` [ numeric ] - Vector of frequencies at which the XSFs has been
 % evaluated.
@@ -33,23 +33,20 @@ function [S, D, yxvec, freq] = xsf(this, freq, varargin)
 %
 % __Options__
 %
-% * `'ApplyTo='` [ cellstr | char | *`@all`* ] - List of variables to which
-% the option `'filter='` will be applied; `@all` means all variables.
+% * `ApplyTo=@all` [ cellstr | char | `@all` ] - List of variables to which
+% the option `Filter=` will be applied; `@all` means all variables.
 %
-% * `'Filter='` [ char  | *empty* ] - Linear filter that is applied to
-% variables specified by 'applyto'.
+% * `Filter=''` [ char ] - Linear filter that is applied to variables
+% specified by 'applyto'.
 %
-% * `'NFreq='` [ numeric | *`256`* ] - Number of equally spaced frequencies
-% over which the 'filter' is numerically integrated.
+% * `MatrixFormat='NamedMat'` [ `'NamedMat'` | `'Plain'` ] - Return
+% matrices `SS` and `DD` as either [`namedmat`](namedmat/Contents) objects
+% (i.e.  matrices with named rows and columns) or plain numeric arrays.
 %
-% * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrices `S`
-% and `D` as either [`namedmat`](namedmat/Contents) objects (i.e.
-% matrices with named rows and columns) or plain numeric arrays.
+% * `Progress=false` [ `true` | `false` ] - Display progress bar on in
+% the command window.
 %
-% * `'Progress='` [ `true` | *`false`* ] - Display progress bar on in the
-% command window.
-%
-% * `'Select='` [ *`@all`* | char | cellstr ] - Return XSF for selected
+% * `Select=@all` [ cellstr | char | `@all` ] - Return XSF for selected
 % variables only; `@all` means all variables.
 %
 %
@@ -62,83 +59,116 @@ function [S, D, yxvec, freq] = xsf(this, freq, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-TYPE = @int8;
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('model.xsf');
+    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
+    INPUT_PARSER.addRequired('Freq', @isnumeric);
+    INPUT_PARSER.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
+    INPUT_PARSER.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
+    INPUT_PARSER.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
+    INPUT_PARSER.addParameter('Filter', '', @ischar);
+    INPUT_PARSER.addParameter('SystemProperty', false, @(x) isequal(x, true) || isequal(x, false));
+    INPUT_PARSER.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+end
+INPUT_PARSER.parse(this, freq, varargin{:});
+opt = INPUT_PARSER.Options;
 
-opt = passvalopt('model.xsf', varargin{:});
-
-if isintscalar(freq)
-    nFreq = freq;
-    freq = linspace(0, pi, nFreq);
+if isscalar(freq) && freq==round(freq) && freq>=0
+    numFreq = freq;
+    freq = linspace(0, pi, numFreq);
 else
     freq = freq(:).';
-    nFreq = length(freq);
+    numFreq = numel(freq);
 end
 
-isDensity = nargout > 1;
-isSelect = ~isequal(opt.select, @all);
-isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
+isDensity = nargout>=2;
+isSelect = ~isequal(opt.Select, @all);
+isNamedMat = strcmpi(opt.MatrixFormat, 'NamedMat');
 
 %--------------------------------------------------------------------------
 
 [ny, nxi] = sizeOfSolution(this.Vector);
 nv = length(this);
 
-% Pre-process filter options.
-yxvec = printSolutionVector(this, 'yx');
-[~, filter, ~, applyTo] = freqdom.applyfilteropt(opt, freq, yxvec);
+solutionVector = printSolutionVector(this, 'yx', @Behavior);
+[isFilter, filter, ~, applyFilterTo] = freqdom.applyfilteropt(opt, freq, solutionVector);
 
-if opt.progress
-    progress = ProgressBar('IRIS VAR.xsf progress');
+systemProperty = createSystemPropertyObject( );
+
+if opt.SystemProperty
+    varargout = cell(1, 1);
+    varargout{1} = systemProperty;
+    return
 end
 
-S = nan(ny+nxi, ny+nxi, nFreq, nv);
-indexOfSolutionsAvailable = issolved(this);
+[SS, DD] = preallocate( );
+
 numOfUnitRoots = getNumOfUnitRoots(this.Variant);
-for v = find(indexOfSolutionsAvailable)
-    [T, R, ~, Z, H, ~, U, Omega] = sspaceMatrices(this, v, false);
-    S(:, :, :, v) = freqdom.xsf( ...
-        T, R, [ ], Z, H, [ ], U, Omega, numOfUnitRoots(v), ...
-        freq, filter, applyTo ...
-    );
-    if opt.progress
-        update(progress, v/nv);
-    end
+
+indexNaNSolutions = reportNaNSolutions(this);
+
+if opt.Progress
+    progress = ProgressBar('IRIS model.xsf progress');
 end
-S = S / (2*pi);
-
-% Report parameter variants with no solutions available.
-assert( ...
-    all(indexOfSolutionsAvailable), ...
-    exception.Base('Model:SolutionNotAvailable', 'error'), ...
-    exception.Base.alt2str(~indexOfSolutionsAvailable) ...
-);
-
-% Convert power spectrum to spectral density.
-if isDensity
-    C = acf(this);
-    D = freqdom.psf2sdf(S, C);
+for v = find(~indexNaNSolutions)
+    update(systemProperty, this, v);
+    [vthSS, vthDD] = freqdom.wrapper(systemProperty);
+    SS(:, :, :, v) = vthSS;
+    if isDensity
+        DD(:, :, :, v) = vthDD;
+    end
+    if opt.Progress
+        update(progress, v, ~indexNaNSolutions);
+    end
 end
 
 % Select variables if requested.
 if isSelect
-    [S, pos] = namedmat.myselect(S, yxvec, yxvec, opt.select, opt.select);
+    [SS, pos] = namedmat.myselect(SS, solutionVector, solutionVector, opt.Select, opt.Select);
     pos = pos{1};
-    yxvec = yxvec(pos);
+    solutionVector = solutionVector(pos);
     if isDensity
-        D = D(pos, pos, :, :, :);
+        DD = DD(pos, pos, :, :, :);
     end
 end
 
-if true % ##### MOSW
-    % Convert double arrays to namedmat objects if requested.
-    if isNamedMat
-        S = namedmat(S, yxvec, yxvec);
-        try %#ok<TRYNC>
-            D = namedmat(D, yxvec, yxvec);
+% Convert double arrays to namedmat objects if requested.
+if isNamedMat
+    SS = namedmat(SS, solutionVector, solutionVector);
+    if isDensity
+        DD = namedmat(DD, solutionVector, solutionVector);
+    end
+end
+
+varargout = cell(1, nargout);
+varargout{1} = SS;
+varargout{2} = DD;
+varargout{3} = solutionVector;
+varargout{4} = freq;
+
+return
+
+
+    function systemProperty = createSystemPropertyObject( )
+        systemProperty = SystemProperty(this);
+        systemProperty.Function = @freqdom.wrapper;
+        systemProperty.MaxNumOutputs = 2;
+        systemProperty.NamedReferences = {solutionVector, solutionVector};
+        systemProperty.Specifics = struct( );
+        systemProperty.Specifics.Frequencies = freq;
+        systemProperty.Specifics.IsDensity = isDensity;
+        systemProperty.Specifics.IsFilter = isFilter;
+        systemProperty.Specifics.Filter = filter;
+        systemProperty.Specifics.ApplyFilterTo = applyFilterTo;
+    end
+
+
+    function [SS, DD] = preallocate( )
+        SS = nan(ny+nxi, ny+nxi, numFreq, nv);
+        DD = double.empty(0);
+        if isDensity
+            DD = nan(size(SS));
         end
     end
-else
-    % Do nothing.
-end
-
 end

@@ -210,7 +210,7 @@ return
         end
         alpInitMean = xbInitMean;
         for ii = 1 : numOfDataSets
-            U = this.Variant.Solution{7}(:, :, min(ii, end));
+            U = this.Variant.FirstOrderSolution{7}(:, :, min(ii, end));
             if all(~isnan(U(:)))
                 ixRequired = this.Variant.IxInit(:, :, min(ii, end));
                 inx = isnan(xbInitMean(:, 1, ii)) & ~ixRequired(:);
@@ -233,7 +233,7 @@ return
         end
         alpInitMse = xbInitMse;
         for ii = 1 : numOfDataSets
-            U = this.Variant.Solution{7}(:, :, min(ii, end));
+            U = this.Variant.FirstOrderSolution{7}(:, :, min(ii, end));
             if all(~isnan(U(:)))
                 alpInitMse(:, :, 1, ii) = U \ alpInitMse(:, :, 1, ii);
                 alpInitMse(:, :, 1, ii) = alpInitMse(:, :, 1, ii) / U.';
@@ -370,7 +370,7 @@ return
             numOfDataSets = nv;
         end
         for ii = 1 : numOfDataSets
-            U = this.Variant.Solution{7}(:, :, min(ii, end));
+            U = this.Variant.FirstOrderSolution{7}(:, :, min(ii, end));
             if all(~isnan(U(:)))
                 A(:, :, ii) = U\A(:, :, ii);
             else

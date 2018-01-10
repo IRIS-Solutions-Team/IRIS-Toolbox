@@ -91,7 +91,7 @@
 %   shockplot - Short-cut for running and plotting plain shock simulation
 %   simulate - Simulate model
 %   solve - Calculate first-order accurate solution of the model
-%   srf - Shock response functions, first-order solution only
+%   srf - First-order shock response functions
 %   tolerance - Get or set model-specific tolerance levels
 %
 %
@@ -134,7 +134,7 @@
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimation & shared.LoadObjectAsStructWrapper
+classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimation & shared.LoadObjectAsStructWrapper & model.Data
     properties (GetAccess=public, SetAccess=protected, Hidden)
         FileName = '' % File name of source model file
         IsLinear = false % True for linear models
@@ -154,10 +154,12 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             'Steady',  model.component.Incidence( ), ...
             'Affected', model.component.Incidence( ) ...
             ) % Incidence matrices
-        
-        Link = model.component.Link( ) % Dynamic links
 
-        Gradient = model.component.Gradient(0) % Automatic derivatives
+        % Link  Dynamic links
+        Link = model.component.Link( ) 
+
+        % Gradient  Symbolic gradients of model equations
+        Gradient = model.component.Gradient(0) 
         
         Pairing = model.component.Pairing(0, 0) % Autoexog, Dtrend, Link, Revision, Assignment
         
@@ -171,10 +173,9 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
 
         Export = shared.Export.empty(1, 0) % Export files
 
-        TaskSpecific = [ ]; % Temporary task-specific container
+        % TaskSpecific  Temporary task-specific container
+        TaskSpecific = [ ] 
     end
-
-    
 
     
     properties(GetAccess=public, SetAccess=protected, Hidden, Transient)
@@ -182,16 +183,19 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         LastSystem = model.component.LastSystem( )
     end
 
-    
+
+    properties (Dependent)
+        NumVariants
+    end
 
     
     properties (Constant, Hidden)
-        LAST_LOADABLE = 20171007
-        STD_PREFIX = 'std_';
-        CORR_PREFIX = 'corr_';
-        LOG_PREFIX = 'log_';
-        LEVEL_BOUNDS_ALLOWED  = [int8(1), int8(2), int8(4)];
-        GROWTH_BOUNDS_ALLOWED = [int8(1), int8(2)];
+        LAST_LOADABLE = 20171115
+        STD_PREFIX = 'std_'
+        CORR_PREFIX = 'corr_'
+        LOG_PREFIX = 'log_'
+        LEVEL_BOUNDS_ALLOWED  = [int8(1), int8(2), int8(4)]
+        GROWTH_BOUNDS_ALLOWED = [int8(1), int8(2)]
         DEFAULT_SOLVE_TOLERANCE = eps( )^(5/9)
         DEFAULT_EIGEN_TOLERANCE = eps( )^(5/9)
         DEFAULT_STEADY_TOLERANCE = eps( )^(5/9)
@@ -206,8 +210,8 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             'DiffStep',  model.DEFAULT_DIFF_STEP, ...
             'Sevn2Patch', model.DEFAULT_SEVN2PATCH_TOLERANCE ...
             )
-        DEFAULT_STEADY_EXOGENOUS = NaN;
-        DEFAULT_STD_LINEAR = 1;
+        DEFAULT_STEADY_EXOGENOUS = NaN
+        DEFAULT_STD_LINEAR = 1
         DEFAULT_STD_NONLINEAR = log(1.01)
         RESERVED_NAME_TTREND = 'ttrend'
         COMMENT_TTREND = 'Time trend'
@@ -320,6 +324,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
     methods (Hidden)
         varargout = cat(varargin)        
         varargout = chkConsistency(varargin)
+        varargout = createHashEquations(varargin)
         varargout = createTrendArray(varargin)        
         varargout = evalDtrends(varargin)
         varargout = expansionMatrices(varargin)
@@ -386,8 +391,15 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         end
 
 
-        function x = getIthFirstOrderSolution(this, variantsRequested)
-            x = getIthFirstOrderSolution(this.Variant, variantsRequested);
+        function varargout = getIthFirstOrderSolution(this, variantsRequested)
+            [varargout{1:nargout}] = ...
+                getIthFirstOrderSolution(this.Variant, variantsRequested);
+        end
+
+
+        function varargout = getIthFirstOrderExpansion(this, variantsRequested)
+            [varargout{1:nargout}] = ... 
+                getIthFirstOrderExpansion(this.Variant, variantsRequested);
         end
 
 
@@ -421,7 +433,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = myeqtn2afcn(varargin)
         varargout = myfind(varargin)
         varargout = myforecastswap(varargin)
-        varargout = mysimulateper(varargin)
         varargout = operateLock(varargin)
         varargout = optimalPolicy(varargin)
         varargout = populateTransient(varargin)
@@ -431,6 +442,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         varargout = prepareSimulate1(varargin)
         varargout = prepareSimulate2(varargin)
         varargout = printSolutionVector(varargin)
+        varargout = reportNaNSolutions(varargin)
         varargout = responseFunction(varargin)
         varargout = simulateNonlinear(varargin)
         varargout = solveFail(varargin)
@@ -449,8 +461,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
     
     
     methods (Static, Hidden)
-        varargout = appendData(varargin)
-        varargout = createNonlinEqtn(varargin)
         varargout = expandFirstOrder(varargin)
         varargout = myalias(varargin)        
         varargout = myfourierdata(varargin)
@@ -521,53 +531,54 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             %
             % __Options__
             %
-            % * `'Assign='` [ struct | *empty* ] - Assign model parameters and/or steady
+            % * `Assign=struct( )` [ struct | *empty* ] - Assign model parameters and/or steady
             % states from this database at the time the model objects is being created.
             %
-            % * `'AutoDeclareParameters='` [ `true` | *`false`* ] - If `true`, skip
+            % * `AutoDeclareParameters=false` [ `true` | `false` ] - If `true`, skip
             % parameter declaration in the model file, and determine the list of
             % parameters automatically as residual names found in equations but not
             % declared.
             %
-            % * `'BaseYear='` [ numeric | *2000* ] - Base year for constructing
-            % deterministic time trends.
+            % * `BaseYear=@config` [ numeric | `@config` ] - Base year for constructing
+            % deterministic time trends; `@config` means the base year will
+            % be read from iris configuration.
             %
-            % * `'Comment='` [ char | *empty* ] - Text comment attached to the model
+            % * `Comment=''` [ char ] - Text comment attached to the model
             % object.
             %
-            % * `'Epsilon='` [ numeric | *eps^(1/4)* ] - The minimum relative step size
-            % for numerical differentiation.
+            % * `Epsilon=eps^(1/4)` [ numeric ] - The minimum relative step
+            % size for numerical differentiation.
             %
-            % * `'Linear='` [ `true` | *`false`* ] - Indicate linear models.
+            % * `Linear=false` [ `true` | `false` ] - Indicate linear models.
             %
-            % * `'MakeBkw='` [ *`@auto`* | `@all` | cellstr | char ] -
+            % * `MakeBkw=@auto` [ `@auto` | `@all` | cellstr | char ] -
             % Variables included in the list will be made part of the
             % vector of backward-looking variables; `@auto` means
             % the variables that do not have any lag in model equations
             % will be put in the vector of forward-looking variables.
             %
-            % * `'Multiple='` [ true | *false* ] - Allow each variable, shock, or
+            % * `AllowMultiple=false` [ true | false ] - Allow each variable, shock, or
             % parameter name to be declared (and assigned) more than once in the model
             % file.
             %
-            % * `'Optimal='` [ cellstr ] - Specify optimal policy options,
+            % * `Optimal={ }` [ cellstr ] - Specify optimal policy options,
             % see below; only applies when the keyword
             % [`min`](modellang/min) is used in the model file.
             %
-            % * `'OrderLinks='` [ *`true`* | `false` ] - Reorder !links so that they
+            % * `OrderLinks=true` [ `true` | `false` ] - Reorder `!links` so that they
             % can be executed sequentially.
             %
-            % * `'RemoveLeads='` [ `true` | *`false`* ] - Remove all leads from the
+            % * `RemoveLeads=false` [ `true` | `false` ] - Remove all leads from the
             % state-space vector, keep included only current dates and lags.
             %
-            % * `'SstateOnly='` [ `true` | *`false`* ] - Read in only the steady-state
+            % * `SstateOnly=false` [ `true` | `false` ] - Read in only the steady-state
             % versions of equations (if available).
             %
-            % * `'Std='` [ numeric | `@auto` ] - Default standard deviation for model
+            % * `Std=@auto` [ numeric | `@auto` ] - Default standard deviation for model
             % shocks; `@auto` means `1` for linear models and `log(1.01)` for nonlinear
             % models.
             %
-            % * `'UserData='` [ ... | *empty* ] - Attach user data to the model object.
+            % * `UserData=[ ]` [ ... ] - Attach user data to the model object.
             %
             %
             % __Options for Optimal Policy Models__
@@ -575,16 +586,19 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             % The following options for optimal policy models need to be
             % nested within the `'Optimal='` option.
             %
-            % * `'MultiplierPrefix='` [ char | *`'Mu_'`* ] - Prefix used to
+            % * `MultiplierPrefix='Mu_'` [ char ] - Prefix used to
             % create names for lagrange multipliers associated with the
             % optimal policy problem; the prefix is followed by the
             % equation number.
             %
-            % * `'Nonnegative='` [ cellstr ] - List of variables
+            % * `Nonnegative={ }` [ cellstr ] - List of variables
             % constrained to be nonnegative.
             %
-            % * `'Type='` [ `'commitment'` | *`'discretion'`* ] - Type of
-            % optimal policy.
+            % * `Type='discretion'` [ `'commitment'` | `'discretion'` ] - Type of
+            % optimal policy; `'discretion'` means leads (expectations) are
+            % taken as given and not differentiated w.r.t. whereas
+            % `'commitment'` means both lags and leads are differentiated
+            % w.r.t.
             %
             %
             % __Description__
@@ -607,7 +621,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             % When calling the function `model` with an existing model object as the
             % first input argument, the model will be rebuilt from scratch. The typical
             % instance where you may need to call the constructor this way is changing
-            % the `'removeLeads='` option. Alternatively, the new model object can be
+            % the `RemoveLeads=` option. Alternatively, the new model object can be
             % simply rebuilt from the model file.
             %
             %
@@ -735,6 +749,11 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
                     opt.Assign.(unmatched{i}) = unmatched{i+1};
                 end
             end
+        end
+
+
+        function n = get.NumVariants(this)
+            n = length(this);
         end
     end
 end

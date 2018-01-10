@@ -21,20 +21,9 @@ end
 returnOmega = nargout>7;
 returnY = nargout>9;
 
-T  = this.Variant.Solution{1}(:, :, variantsRequested);
-R  = this.Variant.Solution{2}(:, :, variantsRequested); % Forward expansion.
-K  = this.Variant.Solution{3}(:, :, variantsRequested);
-Z  = this.Variant.Solution{4}(:, :, variantsRequested);
-H  = this.Variant.Solution{5}(:, :, variantsRequested);
-D  = this.Variant.Solution{6}(:, :, variantsRequested);
-U  = this.Variant.Solution{7}(:, :, variantsRequested);
-Zb = this.Variant.Solution{9}(:, :, variantsRequested);
-if returnY
-    Y  = this.Variant.Solution{8}(:, :, variantsRequested); %#ok<NASGU>
-end
-
+[T, R, K, Z, H, D, U, Y, Zb] = getIthFirstOrderSolution(this.Variant, variantsRequested);
 [~, nxi, nb, nf, ne] = sizeOfSolution(this.Vector);
-numOfVariantsRequested = numel(variantsRequested);
+numVariantsRequested = numel(variantsRequested);
 nn = nnz(this.Equation.IxHash);
 
 if ~keepExpansion
@@ -45,19 +34,19 @@ if ~keepExpansion
 end
 
 if isempty(Z)    
-    Z = zeros(0, nb, numOfVariantsRequested);
+    Z = zeros(0, nb, numVariantsRequested);
 end
 
 if isempty(Zb)
-    Zb = zeros(0, nb, numOfVariantsRequested);
+    Zb = zeros(0, nb, numVariantsRequested);
 end
 
 if isempty(H)
-    H = zeros(0, ne, numOfVariantsRequested);
+    H = zeros(0, ne, numVariantsRequested);
 end
 
 if isempty(D)
-    D = zeros(0, 1, numOfVariantsRequested);
+    D = zeros(0, 1, numVariantsRequested);
 end
 
 if ~triangular
@@ -67,7 +56,7 @@ if ~triangular
     % Z <- Zb;
     % U <- eye
     % Y <- U*Y
-    for v = 1 : numOfVariantsRequested
+    for v = 1 : numVariantsRequested
         vthU = U(:, :, v);
         T(:, :, v) = T(:, :, v) / vthU;
         T(nf+1:end, :, v) = vthU*T(nf+1:end, :, v);
@@ -78,7 +67,7 @@ if ~triangular
             Y(nf+1:end, :, v) = vthU*Y(nf+1:end, :, v);
         end
     end
-    U = repmat(eye(nb), 1, 1, numOfVariantsRequested);
+    U = repmat(eye(nb), 1, 1, numVariantsRequested);
 end
 
 if returnOmega

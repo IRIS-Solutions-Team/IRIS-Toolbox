@@ -106,15 +106,15 @@ else
     end
 end
 
-% `nInit` is the number of pre-sample periods used to resample the initial
+% `numInit` is the number of pre-sample periods used to resample the initial
 % condition if user does not wish to factorise the covariance matrix.
-nInit = 0;
+numInit = 0;
 if isnumeric(opt.randominitcond)
     if isequal(opt.method, 'bootstrap') && opt.wild
         utils.error('model:resample', ...
             'Cannot pre-simulate initial conditions in wild bootstrap.');
     else
-        nInit = round(opt.randominitcond);
+        numInit = round(opt.randominitcond);
         opt.randominitcond = false;
     end
 end
@@ -130,8 +130,8 @@ end
 
 %--------------------------------------------------------------------------
 
-nPer = length(range);
-xRange = range(1)-1 : range(end);
+numPeriods = length(range);
+extendedRange = range(1)-1 : range(end);
 
 ixd = this.Equation.Type==TYPE(3);
 isDTrends = opt.dtrends && any(ixd);
@@ -143,7 +143,7 @@ if opt.deviation
 end
 
 % Pre-allocate output data.
-hData = hdataobj(this, xRange, nDraw);
+hData = hdataobj(this, extendedRange, nDraw);
 
 % Return immediately if solution is not available.
 if any(isnan(T(:)))
@@ -154,12 +154,12 @@ if any(isnan(T(:)))
     return
 end
 
-numOfUnitRoots = getNumOfUnitRoots(this.Variant);
-numOfStableRoots = nb - numOfUnitRoots;
+numUnitRoots = getNumOfUnitRoots(this.Variant);
+numStableRoots = nb - numUnitRoots;
 Ta = T(nf+1:end, :);
 Ra = R(nf+1:end, :);
-Ta2 = Ta(numOfUnitRoots+1:end, numOfUnitRoots+1:end);
-Ra2 = Ra(numOfUnitRoots+1:end, :);
+Ta2 = Ta(numUnitRoots+1:end, numUnitRoots+1:end);
+Ra2 = Ra(numUnitRoots+1:end, :);
 
 % Combine user-supplied stdcorr with model stdcorr.
 usrStdcorr = varyStdCorr(this, range, J, opt);
@@ -214,13 +214,13 @@ else
         Ealp = computeUncMean( );
         Falp = zeros(nb);
         Palp = zeros(nb);
-        stableRoots = getStableRoots(this.Variant, 1);
-        Palp(numOfUnitRoots+1:end, numOfUnitRoots+1:end) = ...
-            covfun.acovf(Ta2, Ra2, [ ], [ ], [ ], [ ], [ ], Omg, stableRoots, 0);
+        indexUnitRoots = false(1, size(Ta2, 1)); % Ta2 is stable part of Ta (and T), no unit roots
+        Palp(numUnitRoots+1:end, numUnitRoots+1:end) = ...
+            covfun.acovf(Ta2, Ra2, [ ], [ ], [ ], [ ], [ ], Omg, indexUnitRoots, 0);
         if strcmpi(opt.statevector, 'alpha')
             % (2bi) Resample the `alpha` vector.
-            Falp(numOfUnitRoots+1:end, numOfUnitRoots+1:end) = ...
-                covfun.factorise(Palp(numOfUnitRoots+1:end, numOfUnitRoots+1:end), opt.svdonly);
+            Falp(numUnitRoots+1:end, numUnitRoots+1:end) = ...
+                covfun.factorise(Palp(numUnitRoots+1:end, numUnitRoots+1:end), opt.svdonly);
         else
             % (2bii) Resample the original `x` vector.
             Ex = U*Ealp;
@@ -241,34 +241,34 @@ else
     % TODO: Use `combineStdCorr` instead.
     vecStdCorr = this.Variant.StdCorr;
     vecStdCorr = permute(vecStdCorr, [2, 3, 1]);
-    vecStdCorr = repmat(vecStdCorr, 1, nPer);
+    vecStdCorr = repmat(vecStdCorr, 1, numPeriods);
     % Combine the model object stdevs with the user-supplied stdevs.
     if any(usrStdcorrInx(:))
         vecStdCorr(usrStdcorrInx) = usrStdcorr(usrStdcorrInx);
     end
     % Add model-object std devs for pre-sample if random initial conditions
     % are obtained by simulation.
-    if nInit>0
-        vecStdCorr = [vecStdCorr(:, ones(1, nInit)), vecStdCorr];
+    if numInit>0
+        vecStdCorr = [vecStdCorr(:, ones(1, numInit)), vecStdCorr];
     end
     
     % Periods in which corr coeffs are all zero. In these periods, we simply
     % mutliply the standard normal shocks by std devs one by one. In all
     % other periods, we need to compute and factorize the entire cov matrix.
-    ixZeroCorr = all(vecStdCorr(ne+1:end, :)==0, 1);
-    if any(~ixZeroCorr)
-        Pe = nan(ne, ne, nInit+nPer);
-        Fe = nan(ne, ne, nInit+nPer);
-        Pe(:, :, ~ixZeroCorr) = ...
-            covfun.stdcorr2cov(vecStdCorr(:, ~ixZeroCorr), ne);
-        Fe(:, :, ~ixZeroCorr) = covfun.factorise(Pe(:, :, ~ixZeroCorr));
+    indexZeroCorr = all(vecStdCorr(ne+1:end, :)==0, 1);
+    if any(~indexZeroCorr)
+        Pe = nan(ne, ne, numInit+numPeriods);
+        Fe = nan(ne, ne, numInit+numPeriods);
+        Pe(:, :, ~indexZeroCorr) = ...
+            covfun.stdcorr2cov(vecStdCorr(:, ~indexZeroCorr), ne);
+        Fe(:, :, ~indexZeroCorr) = covfun.factorise(Pe(:, :, ~indexZeroCorr));
     end
     
     % If user supplies sampler, sample all shocks and inital conditions at
     % once. This allows for advanced user-supplied simulation methods, e.g.
     % latin hypercube.
     if isa(opt.method, 'function_handle')
-        presampledE = opt.method(ne*(nInit+nPer), nDraw);
+        presampledE = opt.method(ne*(numInit+numPeriods), nDraw);
         if opt.randominitcond
             presampledInitNoise = opt.method(nb, nDraw);
         end
@@ -294,15 +294,15 @@ for iDraw = 1 : nDraw
     end
     a0 = drawInitCond( );
     % Simulate transition variables.
-    w = nan(nxx, nInit+nPer);
+    w = nan(nxx, numInit+numPeriods);
     w(:, 1) = T*a0 + R(:, ixR)*e(ixR, 1) + K;
-    for t = 2 : nInit+nPer
+    for t = 2 : numInit+numPeriods
         w(:, t) = T*w(nf+1:end, t-1) + R(:, ixR)*e(ixR, t) + K;
     end
     % Simulate measurement variables.
-    y = Z*w(nf+1:end, nInit+1:end) + H(:, ixH)*e(ixH, nInit+1:end);
+    y = Z*w(nf+1:end, numInit+1:end) + H(:, ixH)*e(ixH, numInit+1:end);
     if ~opt.deviation
-        y = y + D(:, ones(1, nPer));
+        y = y + D(:, ones(1, numPeriods));
     end
     % Add dtrends to simulated data.
     if isDTrends
@@ -329,8 +329,8 @@ return
     function Ealp = computeUncMean( )
         Ealp = zeros(nb, 1);
         if ~opt.deviation
-            Kalp2 = K(nf+numOfUnitRoots+1:end, :);
-            Ealp(numOfUnitRoots+1:end) = (eye(numOfStableRoots) - Ta2) \ Kalp2;
+            Kalp2 = K(nf+numUnitRoots+1:end, :);
+            Ealp(numUnitRoots+1:end) = (eye(numStableRoots) - Ta2) \ Kalp2;
         end
     end 
 
@@ -341,8 +341,8 @@ return
             if strcmpi(opt.bootstrapMethod, 'wild')
                 % Wild bootstrap
                 %----------------
-                % `nInit` is always zero for wild boostrap.
-                draw = randn(1, nPer);
+                % `numInit` is always zero for wild boostrap.
+                draw = randn(1, numPeriods);
                 % To reproduce input sample: draw = ones(1, nper);
                 e = srcE.*draw(ones(1, ne), :);
             elseif isnumeric(opt.bootstrapMethod) ...
@@ -352,33 +352,33 @@ return
                 isRandom = ~isintscalar(opt.bootstrapMethod) ;
                 bs = NaN;
                 if ~isRandom
-                    bs = min(nPer, opt.bootstrapMethod) ;
+                    bs = min(numPeriods, opt.bootstrapMethod) ;
                 end
                 draw = [ ] ;
                 ii = 1 ;
-                while ii<=nInit+nPer
+                while ii<=numInit+numPeriods
                     % Sample block starting point.
-                    sPoint = randi([1, nPer], 1) ;
+                    sPoint = randi([1, numPeriods], 1) ;
                     if isRandom
                         bs = getRandBlockSize( ) ;
                     end
                     draw = [draw, sPoint:sPoint+bs-1] ; %#ok<AGROW>
                     ii = ii + bs ;
                 end
-                draw = draw(1:nInit+nPer) ;
-                % Take care of references to periods beyond nPer.
-                % Make draws circular: nPer+1 -> 1, etc.
-                ixBeyond = draw>nPer ;
-                while any(ixBeyond)
-                    draw(ixBeyond) = draw(ixBeyond) - nPer ;
-                    ixBeyond = draw>nPer ;
+                draw = draw(1:numInit+numPeriods) ;
+                % Take care of references to periods beyond numPeriods.
+                % Make draws circular: numPeriods+1 -> 1, etc.
+                indexBeyond = draw>numPeriods ;
+                while any(indexBeyond)
+                    draw(indexBeyond) = draw(indexBeyond) - numPeriods ;
+                    indexBeyond = draw>numPeriods ;
                 end
                 e = srcE(:, draw) ;
             else
                 % Standard Efron bootstrap
                 %--------------------------
                 % `draw` is uniform on [1, nper].
-                draw = randi([1, nPer], [1, nInit+nPer]);
+                draw = randi([1, numPeriods], [1, numInit+numPeriods]);
                 % To reproduce input sample: draw = 0 : nper-1;
                 e = srcE(:, draw);
             end
@@ -386,18 +386,18 @@ return
             if isa(opt.method, 'function_handle')
                 % Fetch and reshape the presampled shocks.
                 thisSampleE = presampledE(:, iDraw);
-                thisSampleE = reshape(thisSampleE, [ne, nInit+nPer]);
+                thisSampleE = reshape(thisSampleE, [ne, numInit+numPeriods]);
             else
                 % Draw shocks from standardised normal.
-                thisSampleE = randn(ne, nInit+nPer);
+                thisSampleE = randn(ne, numInit+numPeriods);
             end
             % Scale standardised normal by the std devs.
-            e = zeros(ne, nInit+nPer);
-            e(:, ixZeroCorr) = ...
-                vecStdCorr(1:ne, ixZeroCorr) .* thisSampleE(:, ixZeroCorr);
-            if any(~ixZeroCorr)
+            e = zeros(ne, numInit+numPeriods);
+            e(:, indexZeroCorr) = ...
+                vecStdCorr(1:ne, indexZeroCorr) .* thisSampleE(:, indexZeroCorr);
+            if any(~indexZeroCorr)
                 % Cross-corrs are non-zero in some periods.
-                for i = find(~ixZeroCorr)
+                for i = find(~indexZeroCorr)
                     e(:, i) = Fe(:, :, i)*thisSampleE(:, i);
                 end
             end
@@ -414,14 +414,14 @@ return
                     % Wild-bootstrap initial condition for alpha from given
                     % sample initial condition. This assumes that the mean is
                     % the unconditional distribution.
-                    Ealp2 = Ealp(numOfUnitRoots+1:end);
+                    Ealp2 = Ealp(numUnitRoots+1:end);
                     a0 = [ ...
-                        srcAlp0(1:numOfUnitRoots, 1); ...
-                        Ealp2 + randn( )*(srcAlp0(numOfUnitRoots+1:end, 1) - Ealp2); ...
+                        srcAlp0(1:numUnitRoots, 1); ...
+                        Ealp2 + randn( )*(srcAlp0(numUnitRoots+1:end, 1) - Ealp2); ...
                         ];
                 else
                     % Efron-bootstrap init cond for alpha from sample.
-                    draw = randi([1, nPer], 1);
+                    draw = randi([1, numPeriods], 1);
                     a0 = srcAlp(:, draw);
                 end
             else
@@ -453,28 +453,28 @@ return
 
 
     function storeDraw( )
-        if nInit==0
+        if numInit==0
             init = a0;
         else
-            init = w(nf+1:end, nInit);
+            init = w(nf+1:end, numInit);
         end
-        xf = [nan(nf, 1), w(1:nf, nInit+1:end)];
-        xb = U*[init, w(nf+1:end, nInit+1:end)];
+        xf = [nan(nf, 1), w(1:nf, numInit+1:end)];
+        xb = U*[init, w(nf+1:end, numInit+1:end)];
         hdataassign(hData, iDraw, ...
             { [nan(ny, 1), y], ...
             [xf;xb], ...
-            [nan(ne, 1), e(:, nInit+1:end)], ...
+            [nan(ne, 1), e(:, numInit+1:end)], ...
             [ ], ...
             [nan(ng, 1), g] });
     end 
 
 
     function S = getRandBlockSize( )
-        % Block size determined by geo distribution, must be smaller than nPer.
+        % Block size determined by geo distribution, must be smaller than numPeriods.
         p = opt.bootstrapMethod ;
         while true
             S = ceil(log(rand)/log(1-p)) ;
-            if S<=nPer
+            if S<=numPeriods
                 break
             end
         end

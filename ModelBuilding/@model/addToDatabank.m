@@ -33,11 +33,11 @@ function d = addToDatabank(what, this, varargin)
 %
 % Specify one of the following to choose what model quantities to add:
 %
-%   * 'Parameters' - add model parameters
-%   * 'Std' - add std deviations of model shocks
-%   * 'NonzeroCorr' - add nonzero cross-correlations of model shocks
-%   * 'Corr' - add all cross correlations of model shocks
-%   * 'Default' - equivalent to `{'Parameters', 'Std', 'NonzeroCorr'}`
+%   * `'Parameters'` - add model parameters
+%   * `'Std'` - add std deviations of model shocks
+%   * `'NonzeroCorr'` - add nonzero cross-correlations of model shocks
+%   * `'Corr'` - add all cross correlations of model shocks
+%   * `'Default'` - equivalent to `{'Parameters', 'Std', 'NonzeroCorr'}`
 %
 % These can be specified as case-insensitive char, strings, or combined in
 % a cellstr or a string array.

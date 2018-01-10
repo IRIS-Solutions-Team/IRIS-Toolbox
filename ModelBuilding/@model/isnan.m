@@ -66,61 +66,61 @@ end
 
 if strcmpi(request, 'All')
     x = this.Variant.Values(:, :, variantsRequested);
-    ixNan = any(isnan(x), 3);
+    indexNaN = any(isnan(x), 3);
     if nargout>1
-        list = this.Quantity.Name(ixNan);
+        list = this.Quantity.Name(indexNaN);
     end
-    flag = any(ixNan);
+    flag = any(indexNaN);
 
 elseif strcmpi(request, 'Parameters')
     x = this.Variant.Values(:, :, variantsRequested);
-    ixNan = any(isnan(x), 3);
-    ixNan = ixNan & this.Quantity.Type==TYPE(4);
+    indexNaN = any(isnan(x), 3);
+    indexNaN = indexNaN & this.Quantity.Type==TYPE(4);
     if nargout>1
-        list = this.Quantity.Name(ixNan);
+        list = this.Quantity.Name(indexNaN);
     end
-    flag = any(ixNan);
+    flag = any(indexNaN);
 
 elseif any(strcmpi(request, {'Steady', 'SState'}))
     % Check for NaNs in transition and measurement variables.
     x = this.Variant.Values(:, :, variantsRequested);
-    ixNan = any(isnan(x), 3);
-    ixNan = ixNan & ...
+    indexNaN = any(isnan(x), 3);
+    indexNaN = indexNaN & ...
         (this.Quantity.Type==TYPE(1) ...
         | this.Quantity.Type==TYPE(2));
     if nargout>1
-        list = this.Quantity.Name(ixNan);
+        list = this.Quantity.Name(indexNaN);
     end
-    flag = any(ixNan);
+    flag = any(indexNaN);
 
 elseif strcmpi(request, 'Solution')
-    T = this.Variant.Solution{1}(:, :, variantsRequested);
-    R = this.Variant.Solution{2}(:, :, variantsRequested);
+    T = this.Variant.FirstOrderSolution{1}(:, :, variantsRequested);
+    R = this.Variant.FirstOrderSolution{2}(:, :, variantsRequested);
     % Transition matrix can be empty in 2nd dimension (no lagged
     % variables).
     if size(T, 1)>0 && size(T, 2)==0
-        ixNan = false(1, size(T, 3));
+        indexNaN = false(1, size(T, 3));
     else
-        ixNan = any(any(isnan(T), 1), 2) | any(any(isnan(R), 1), 2);
-        ixNan = ixNan(:).';
+        indexNaN = any(any(isnan(T), 1), 2) | any(any(isnan(R), 1), 2);
+        indexNaN = indexNaN(:).';
     end
-    flag = any(ixNan);
+    flag = any(indexNaN);
     if nargout>1
-        list = ixNan;
+        list = indexNaN;
     end
 
 elseif strcmpi(request, 'Derivatives')
-    nAlt = length(this);
-    nEqtn = length(this.Equation);
-    eqSelect = true(1, nEqtn);
-    list = false(1, nEqtn);
+    nv = length(this);
+    numEquations = length(this.Equation);
+    eqSelect = true(1, numEquations);
+    list = false(1, numEquations);
     flag = false;
     opt = struct( );
     opt.select = true;
-    for iAlt = 1 : nAlt
-        [~, ~, ixNanDeriv] = diffFirstOrder(this, eqSelect, iAlt, opt);
-        flag = flag || any(ixNanDeriv);
-        list(ixNanDeriv) = true;
+    for v = 1 : nv
+        [~, ~, indexNaNDeriv] = diffFirstOrder(this, eqSelect, v, opt);
+        flag = flag || any(indexNaNDeriv);
+        list(indexNaNDeriv) = true;
     end
     list = this.Equation.Input(list);
 end

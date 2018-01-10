@@ -77,8 +77,6 @@ for v = 1 : nv
         %        blockExitStatus(i, t) = exitStatus;
         %    end
         %end
-
-
         if ~isempty(error.EvaluatesToNan)
             throw( ...
                 exception.Base('Dynamic:EvaluatesToNan', 'error'), ...

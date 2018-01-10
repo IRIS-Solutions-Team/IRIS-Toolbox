@@ -13,14 +13,13 @@ TYPE = @int8;
 
 exception.ParseTime.storeFileName(this.FileName);
 
-% Reporting equations
-%---------------------
+% __Reporting Equations__
 % Check for name conflicts between LHS names in reporting equations and
 % model names.
 if any(eqn.Type==TYPE(6))
     this.Reporting = rpteq(eqn, euc, this.FileName);
-    chkList = [qty.Name, this.Reporting.NameLhs];
-    lsConflict = parser.getMultiple(chkList);
+    checkList = [qty.Name, this.Reporting.NameLhs];
+    lsConflict = parser.getMultiple(checkList);
     if ~isempty(lsConflict)
         throw( ...
             exception.ParseTime('Model:Postparser:REPORTING_NAME_CONFLICT', 'error'), ...
@@ -29,18 +28,16 @@ if any(eqn.Type==TYPE(6))
     end
 end
 
-% Check for loss function
-%-------------------------
+% __Check for Loss Function__
 % Search transition equations for loss function; if found move it down to
 % last position among transition equaitons.
-%try
+try
     [eqn, euc, isOptimal] = findLossFunc(eqn, euc);
-%catch exc
-%    throw( exception.Rethrow(exc) );
-%end
+catch exc
+    throw( exception.Rethrow(exc) );
+end
 
-% Max lag and lead
-%------------------
+% __Max Lag and Lead__
 ixmt = eqn.Type==TYPE(1) | eqn.Type==TYPE(2);
 maxSh = max([ euc.MaxShDynamic(ixmt), euc.MaxShSteady(ixmt) ]);
 minSh = min([ euc.MinShDynamic(ixmt), euc.MinShSteady(ixmt) ]);
@@ -51,8 +48,7 @@ if isOptimal
     minSh = minSh - maxSh;    
 end
 
-% Read measurement and transition equations
-%-------------------------------------------
+% __Read Measurement and Transition Equations__
 try
     eqn = readEquations(eqn, euc);
 catch exc
@@ -62,10 +58,9 @@ end
 % Check for empty dynamic parts in measurement and transition equations.
 % This may occur if the user types a semicolon between the full equations
 % and its steady state version.
-chkEmptyEqtn( );
+checkEmptyEqtn( );
 
-% Placeholders for optimal policy equations
-%-------------------------------------------
+% __Placeholders for Optimal Policy Equations__
 % Position of loss function.
 posLossEqtn = NaN;
 % Presence of a nonnegativity constraint.
@@ -89,8 +84,7 @@ if  isOptimal
     createPlaceholdersForOptimal( );
 end
 
-% Read dtrends, links, revisions, autoexog
-%------------------------------------------
+% __Read DTrends, Links, Revisions, Autoexog__
 % Read them after placeholders for optimal policy have been created.
 try
     [eqn, this.Pairing.Dtrend] = readDtrends(eqn, euc, qty);
@@ -102,8 +96,7 @@ catch exc
     throw( exception.Rethrow(exc) );
 end
 
-% Postprocess equations
-%-----------------------
+% __Postprocess Equations__
 nQuan = numel(qty.Name);
 nEqtn = numel(eqn.Input);
 ixm = eqn.Type==TYPE(1);
@@ -130,10 +123,9 @@ for iEq = 1 : length(eqn.Input)
     end
 end
 
-% Postparse equations
-%---------------------
+% __Postparse Equations__
 % Check for sstate references occuring in wrong places.
-chkSstateRef( );
+checkSstateRef( );
 
 try
     eqn = postparse(eqn, qty);
@@ -152,7 +144,7 @@ end
 
 % Check for orphan { and & after we have substituted for the valid
 % references.
-chkTimeSsref( );
+checkTimeSsref( );
 
 % Find the occurences of variable, shocks, and parameters in individual
 % equations, including the loss function and its discount factor. The
@@ -242,7 +234,7 @@ return
     
     
     
-    function chkTimeSsref( )
+    function checkTimeSsref( )
         % Check for { in dynamic and steady equations.
         ixOrphan = ~cellfun( @isempty, strfind(eqn.Dynamic, '{') ) ...
             | ~cellfun( @isempty,strfind(eqn.Steady, '{') ) ;
@@ -266,7 +258,7 @@ return
 
 
 
-    function chkSstateRef( )
+    function checkSstateRef( )
         % Check for sstate references in wrong places.
         func = @(c) ~cellfun(@(x) isempty(strfind(x, '&')), c);
         ixSstateRef = func(eqn.Dynamic) | func(eqn.Steady);
@@ -370,7 +362,7 @@ return
 
 
 
-    function chkEmptyEqtn( )
+    function checkEmptyEqtn( )
         ixtm = eqn.Type==TYPE(1) | eqn.Type==TYPE(2);
         ixEmpty = cellfun(@isempty, eqn.Dynamic) & ixtm;
         if any(ixEmpty)

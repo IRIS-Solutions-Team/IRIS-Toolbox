@@ -47,7 +47,7 @@ EIGEN_TOLERANCE = this.Tolerance.Eigen;
 
 %--------------------------------------------------------------------------
 
-if isempty(this.Variant.Solution{1})
+if isempty(this.Variant.FirstOrderSolution{1})
     flag = NaN;
     return
 end

@@ -230,7 +230,7 @@ for iLoop = 1 : nLoop
         currentForward = size(R, 2)/ne - 1;
         requiredForward = s.LastVaryingE - 2;
         if requiredForward>currentForward
-            vthExpansion = getIthExpansion(this.Variant, v);
+            vthExpansion = getIthFirstOrderExpansion(this.Variant, v);
             R = model.expandFirstOrder(R, [ ], vthExpansion, requiredForward);
         end
         [s.d, s.ka, s.kf] = addShockTunes(s, R, opt);
