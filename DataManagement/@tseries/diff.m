@@ -1,52 +1,49 @@
-function X = diff(X,K)
-% diff  First difference.
+function x = diff(x, shifts)
+% diff  First difference
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     X = diff(X)
-%     X = diff(X,K)
+% Input arguments marked with a `~` sign may be omitted.
 %
-% Input arguments
-% ================
+%     X = diff(X, ~Shift)
 %
-% * `X` [ tseries ] - Input tseries object.
 %
-% * `K` [ numeric ] - Number of periods over which the first difference
-% will be computed; `Y = X - X{K}`. Note that `K` must be a negative number
-% for the usual backward differencing. If not specified, `K` will be set to
-% `-1`.
+% __Input Arguments__
 %
-% Output arguments
-% =================
+% * `X` [ tseries ] - Input time series.
 %
-% * `X` [ tseries ] - First difference of the input data.
+% * `~Shift` [ numeric ] - Number of periods over which the first difference
+% will be computed; `Y = X - X{Shift}`; `Shift` is a negative number
+% for the usual backward differencing; if omitted, `Shift=1`.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Output Arguments__
+%
+% * `X` [ tseries ] - First difference of the input time series.
+%
+%
+% __Description__
+%
+%
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2017 IRIS Solutions Team
 
 % diff, df, pct, apct
 
-try
-    K; %#ok<VUNUS>
-catch %#ok<CTCH>
-    K = -1;
+if nargin<2
+    shifts = -1;
 end
 
-pp = inputParser( );
-pp.addRequired('K',@isnumericscalar);
-pp.parse(K);
+if isempty(shifts)
+    x = apply.empty(x, 2);
+    return
+end
 
 %--------------------------------------------------------------------------
 
-% @@@@@ MOSW
-X = unop(@(varargin) tseries.mydiff(varargin{:}),X,0,K);
+x = unop(@apply.diff, x, 0, shifts);
 
 end

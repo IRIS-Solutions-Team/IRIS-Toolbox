@@ -8,24 +8,25 @@
 % pages, etc.) is unrestricted. Time series can be manipulating using most
 % of the common math and statistics operators and functions.
 %
-% __Time Series Properties Directly Accessible__
-%
-%   .Data - Numeric array of time series data
-%   .Start - Date of first observation available
-%   .End - Date of last observation available
-%   .Range - Date range from start date to end date
-%   .Frequency - Date frequency of time series
-%   .MissingValue - Representation of missing value
-%   .MissingTest - Function to test for missing values
-%
 %
 % tseries methods:
 %
-% __Constructor__
+% __Constructors__
 %
 %   tseries - Create new time series (tseries) object
 %   tseries.linearTrend - Create time series with linear trend
 %   tseries.empty - Create empty time series or empty an existing time series
+%
+%
+% __Time Series Properties Directly Accessible__
+%
+%   Data - -  Numeric array of time series data
+%   Start - -  Date of first observation available 
+%   End - tseries/Enda property
+%   Range - tseries/Rangea property
+%   Frequency - tseries/Frequencya property
+%   MissingValue - -  Representation of missing value
+%   MissingTest - -  Function to test for missing values
 %
 %
 % __Getting Information about Time Series__
@@ -52,7 +53,7 @@
 %   arma - Apply ARMA model to input series
 %   bpass - Band-pass filter
 %   detrend - Remove linear time trend from time series data
-%   expsmooth - Exponential smoothing
+%   expsm - Exponential smoothing
 %   hpf - Hodrick-Prescott filter with tunes (aka LRX filter)
 %   hpf2 - Swap output arguments of the Hodrick-Prescott filter with tunes
 %   fft - Discrete Fourier transform of tseries object
@@ -94,7 +95,7 @@
 % __Manipulating Time Series Objects__
 %
 %   empty - Create empty time series or empty an existing time series
-%   if_ - 
+%   if_ - Replace time series values based on a test condition
 %   flipud - Flip time series data up to down
 %   permute - Permute dimensions of a tseries object
 %   repmat - Repeat copies of time series data
@@ -125,7 +126,7 @@
 %   pct - Percent rate of change
 %   round - Round tseries values to specified number of decimals
 %   rmse - Compute RMSE for given observations and predictions
-%   stdise - Standardise tseries data by subtracting mean and dividing by std deviation
+%   standardize - Standardise tseries data by subtracting mean and dividing by std deviation
 %   windex - Simple weighted or Divisia index
 %   wmean - Weighted average of time series observations
 %
@@ -135,7 +136,7 @@
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
-        tseries < TimeSeriesBase & shared.GetterSetter & shared.UserDataContainer 
+        tseries < TimeSubscriptable & shared.GetterSetter & shared.UserDataContainer 
     properties
         Start = DateWrapper.NaD % Date of first observation available 
         Data = double.empty(0, 1) % Numeric array of time series data
@@ -144,7 +145,11 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
 
     properties (Dependent)
-        MissingTest % Function to test for missing values
+        % MissingTest  Test for missing values
+        MissingTest 
+
+        % ColumnNames  Comments attached to each column of time series
+        ColumnNames
     end
 
 
@@ -228,7 +233,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             INPUT_PARSER.parse(varargin{:});
             dates = INPUT_PARSER.Results.Dates;
             values = INPUT_PARSER.Results.Values;
-            columnComments = INPUT_PARSER.Results.ColumnComments;
+            columnNames = INPUT_PARSER.Results.ColumnComments;
             userData = INPUT_PARSER.Results.UserData;
 
             dates = dates(:);
@@ -277,11 +282,12 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             
             % Populate comments for each column.
             sizeData = size(this.Data);
-            sizeColumnComments = [1, sizeData(2:end)];
-            this.Comment = repmat({char.empty(1, 0)}, sizeColumnComments);
+            sizeColumnNames = [1, sizeData(2:end)];
+            this.Comment = cell(sizeColumnNames);
+            this.Comment(:) = {char.empty(1, 0)};
 
-            if ~isempty(columnComments)
-                this = comment(this, columnComments);
+            if ~isempty(columnNames)
+                this.ColumnNames = columnNames;
             end
             
             this = userdata(this, userData);
@@ -318,7 +324,14 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = double(varargin)
         varargout = doubledata(varargin)
         varargout = errorbar(varargin)
-        varargout = expsmooth(varargin)
+
+
+        varargout = expsm(varargin)
+        function varargout = expsmooth(varargin)
+            [varargout{1:nargout}] = expsm(varargin{:});
+        end
+
+
         varargout = fft(varargin)
         varargout = find(varargin)
         varargout = flipud(varargin)
@@ -349,8 +362,8 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = plotpred(varargin)
         varargout = range(varargin)
         varargout = rebase(varargin)
-        varargout = repmat(varargin)
         varargout = regress(varargin)
+        varargout = repmat(varargin)
         varargout = reshape(varargin)
         varargout = resize(varargin)
         varargout = rmse(varargin)
@@ -363,7 +376,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = sort(varargin)
         varargout = specrange(varargin)        
         varargout = spy(varargin)
-        varargout = stdise(varargin)
         varargout = stem(varargin)
         varargout = subsasgn(varargin)
         varargout = subsref(varargin)
@@ -405,19 +417,27 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = destdize(varargin)
         varargout = df(varargin)
         varargout = divisia(varargin)
+
+
         varargout = fill(varargin)
+        function varargout = replace(varargin)
+            [varargout{1:nargout}] = fill(varargin{:});
+        end
+
+
         varargout = implementGet(varargin)
         varargout = maxabs(varargin)
         varargout = normalize(varargin)
         varargout = rearrangePred(varargin)
+        varargout = resetColumnNames(varargin)
         varargout = rangedata(varargin)
         varargout = saveobj(varargin)
         varargout = trim(varargin)
+
+
         varargout = stdize(varargin)
-
-
-        function varargout = replace(varargin)
-            [varargout{1:nargout}] = fill(varargin{:});
+        function varargout = stdise(varargin)
+            [varargout{1:nargout}] = stdize(varargin{:});
         end
     end
     
@@ -428,7 +448,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = myfilter(varargin)
         varargout = init(varargin)
         varargout = mylagorlead(varargin)
-        varargout = resetColumnNames(varargin)
         varargout = recognizeShift(varargin)
         varargout = unop(varargin)
         varargout = unopinx(varargin)
@@ -447,27 +466,20 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     methods (Static, Hidden)
         varargout = clpf(varargin)
         varargout = loadobj(varargin)        
-        varargout = implementPercentChange(varargin)
 
         varargout = myband(varargin)
         varargout = mybarcon(varargin)
         varargout = mybpass(varargin)
         varargout = mychristianofitzgerald(varargin)
-        varargout = mycumsumk(varargin)
         varargout = mydestdize(varargin)
-        varargout = mydiff(varargin)
-        varargout = myexpsmooth(varargin)
         varargout = myhpdi(varargin)
         varargout = myerrorbar(varargin)
-        varargout = mymoving(varargin)
         varargout = mynanmean(varargin)
         varargout = mynanstd(varargin)
         varargout = mynansum(varargin)
         varargout = mynanvar(varargin)
         varargout = myprctile(varargin)
         varargout = myplot(varargin)
-        varargout = myshift(varargin)
-        varargout = mystdize(varargin)
         varargout = mytrend(varargin)
     end
     
@@ -830,6 +842,39 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             else
                 missingTest = @(x) x==missingValue;
             end
+        end
+
+
+        function value = get.ColumnNames(this)
+            value = this.Comment;
+        end
+
+
+        function this = set.ColumnNames(this, newValue)
+            thisValue = this.Comment;
+            newValue = strrep(newValue, '"', '');
+            if ischar(newValue)
+                thisValue(:) = {newValue};
+            else
+                sizeData = size(this.Data);
+                sizeColumnNames = size(newValue);
+                expectedSizeColumnNames = [1, sizeData(2:end)];
+                if isequal(sizeColumnNames, expectedSizeColumnNames)
+                    thisValue = newValue;
+                elseif isequal(sizeColumnNames, [1, 1])
+                    thisValue = repmat(newValue, expectedSizeColumnNames);
+                else
+                    throw( ...
+                        exception.Base('Series:InvalidSizeColumnNames', 'error') ...
+                    );
+                end
+            end
+            if ~iscellstr(thisValue)
+                throw( ...
+                    exception.Base('Series:InvalidValueColumnNames', 'error') ...
+                );
+            end
+            this.Comment = thisValue;
         end
     end
 

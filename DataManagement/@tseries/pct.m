@@ -1,5 +1,5 @@
-function X = pct(X, varargin)
-% pct  Percent rate of change.
+function this = pct(this, varargin)
+% pct  Percent rate of change
 %
 % __Syntax__
 %
@@ -13,8 +13,8 @@ function X = pct(X, varargin)
 % * `X` [ tseries ] - Input tseries object.
 %
 % * `~Shift` [ numeric ] - Time shift (lag or lead) over which the rate of
-% change will be computed, i.e. between time t and t+k; if omitted, `Shift`
-% will be set to `-1`.
+% change will be computed, i.e. between time t and t+k; if omitted,
+% `Shift=-1`.
 %
 %
 % __Output Arguments__
@@ -34,15 +34,15 @@ function X = pct(X, varargin)
 %
 % __Example__
 %
-% In this example, `x` is a monthly time series. The following command
+% In this example, `X` is a monthly time series. The following command
 % computes the annualised rate of change between month t and t-1:
 %
-%     pct(x, -1, 'OutputFreq=', 1)
+%     pct(X, -1, 'OutputFreq=', 1)
 %
 % while the following line computes the annualised rate of change between
 % month t and t-3:
 %
-%     pct(x, -3, 'OutputFreq=', 1)
+%     pct(X, -3, 'OutputFreq=', 1)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -55,23 +55,23 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addOptional('Shift', -1, @(x) isnumeric(x) && isscalar(x) && x==round(x));
     INPUT_PARSER.addParameter('OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
 end
-INPUT_PARSER.parse(X, varargin{:});
+INPUT_PARSER.parse(this, varargin{:});
 sh = INPUT_PARSER.Results.Shift;
 outputFreq = INPUT_PARSER.Results.OutputFreq;
 opt = INPUT_PARSER.Options;
 
 %--------------------------------------------------------------------------
 
-if isempty(X.data)
+if isempty(this.data)
     return
 end
 
 Q = 1;
 if ~isempty(opt.OutputFreq)
-    inputFreq = DateWrapper.getFrequencyFromNumeric(X.start);
+    inputFreq = DateWrapper.getFrequencyFromNumeric(this.start);
     Q = inputFreq / opt.OutputFreq / abs(sh);
 end
 
-X = unop(@tseries.implementPercentChange, X, 0, sh, Q);
+this = unop(@apply.pct, this, 0, sh, Q);
 
 end
