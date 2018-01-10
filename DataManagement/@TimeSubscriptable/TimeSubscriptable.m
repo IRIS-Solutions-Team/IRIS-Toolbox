@@ -43,18 +43,15 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
                 flag = true;
                 return
             end
-            if getFrequency(this.Start)==getFrequency(date)
-                flag = true;
-            end
+            flag = all(getFrequency(this.Start)==getFrequency(date));
         end
     end
 
 
     methods
         varargout = getData(varargin)
-        varargout = if_(varargin)
+        varargout = ifelse(varargin)
         varargout = ellpea(varargin)
-        varargout = regress(varargin)
         varargout = shift(varargin)
 
 

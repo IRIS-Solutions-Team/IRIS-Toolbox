@@ -95,7 +95,7 @@
 % __Manipulating Time Series Objects__
 %
 %   empty - Create empty time series or empty an existing time series
-%   if_ - Replace time series values based on a test condition
+%   ifelse - Replace time series values based on a test condition
 %   flipud - Flip time series data up to down
 %   permute - Permute dimensions of a tseries object
 %   repmat - Repeat copies of time series data
