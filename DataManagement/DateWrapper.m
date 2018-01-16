@@ -370,19 +370,37 @@ classdef DateWrapper < double
 
 
         function flag = validateDateInput(input)
-            flag = ...
-                isa(input, 'DateWrapper') ...
-                || isa(input, 'double') ...
-                || isequal(input, @all) ...
-                || ( ischar(input) && ~isempty(input) && any(isstrprop(input, 'alpha')) ...
-                    && any(isstrprop(input, 'digit')) && ~any(input=='=') );
+            if isa(input, 'DateWrapper')
+                flag = true;
+                return
+            end
+            if isa(input, 'double')
+                flag = true;
+                return
+            end
+            if isequal(input, @all)
+                flag = true;
+                return
+            end
+            if ~(ischar(input) || isa(input, 'string')) || isempty(input)
+                flag = false;
+                return
+            end
+            flag = isstrprop(input(1), 'digit') && any(isstrprop(input, 'alpha')) ...
+                && ~any(input=='=');
         end
 
 
         function flag = validateRangeInput(input)
+            if isequal(input, Inf) || isequal(input, @all)
+                flag = true;
+                return
+            end
             flag = DateWrapper.validateDateInput(input); 
-            if flag && ~isequal(input, Inf) && ~isequal(input, @all) ...
-                    && ~isinf(input(1)) && ~isinf(input(end))
+            if ~flag
+                return
+            end
+            if ~isinf(input(1)) && ~isinf(input(end))
                 if ischar(input)
                     input = textinp2dat(input);
                 end
