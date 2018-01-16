@@ -131,16 +131,16 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
     
     methods
         function this = varobj(varargin)
-            persistent INPUT_PARSER
-            if isempty(INPUT_PARSER)
-                INPUT_PARSER = extend.InputParser('varobj.varobj');
-                INPUT_PARSER.addRequired('EndogenousNames', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                INPUT_PARSER.addParameter('Comment', '', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-                INPUT_PARSER.addParameter({'ExogenousNames', 'Exogenous'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                INPUT_PARSER.addParameter({'GroupNames', 'Groups'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                INPUT_PARSER.addParameter('Reporting', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                INPUT_PARSER.addUserDataOption( );
-                INPUT_PARSER.addBaseYearOption( );
+            persistent inputParser
+            if isempty(inputParser)
+                inputParser = extend.InputParser('varobj.varobj');
+                inputParser.addRequired('EndogenousNames', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                inputParser.addParameter('Comment', '', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+                inputParser.addParameter({'ExogenousNames', 'Exogenous'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                inputParser.addParameter({'GroupNames', 'Groups'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                inputParser.addParameter('Reporting', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                inputParser.addUserDataOption( );
+                inputParser.addBaseYearOption( );
             end
 
             if isempty(varargin)
@@ -152,11 +152,11 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
                 return
             end
             
-            INPUT_PARSER.parse(varargin{:});
+            inputParser.parse(varargin{:});
 
             % Create Reporting before all other names so that AllNames
             % include reporting names when checking for uniqueness
-            reportingFiles = INPUT_PARSER.Results.Reporting;
+            reportingFiles = inputParser.Results.Reporting;
             if ~iscellstr(reportingFiles)
                 reportingFiles = cellstr(reportingFiles);
             end
@@ -166,8 +166,8 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
                 end
             end
 
-            opt = INPUT_PARSER.Options;
-            this.NamesEndogenous = INPUT_PARSER.Results.EndogenousNames;
+            opt = inputParser.Options;
+            this.NamesEndogenous = inputParser.Results.EndogenousNames;
             this.NamesErrors = @auto;
             this.NamesExogenous = opt.ExogenousNames;
             this.GroupNames = opt.GroupNames;
@@ -196,7 +196,9 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
 
         function names = get.NamesEndogenous(this)
             names = this.YNames;
-            if isempty(names)
+            if ~isempty(names)
+                names = names(:)';
+            else
                 names = cell.empty(1, 0);
             end
         end
@@ -206,7 +208,9 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
             names = this.ENames;
             if isequal(names, @auto)
                 names = strcat(this.PREFIX_ERRORS, this.NamesEndogenous);
-            elseif isempty(names)
+            elseif ~isempty(names)
+                names = names(:)';
+            else
                 names = cell.empty(1, 0);
             end
         end
@@ -214,7 +218,9 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
 
         function names = get.NamesExogenous(this)
             names = this.XNames;
-            if isempty(names)
+            if ~isempty(names)
+                names = names(:)';
+            else
                 names = cell.empty(1, 0);
             end
         end
@@ -222,7 +228,9 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
 
         function names = get.NamesConditioning(this)
             names = this.INames;
-            if isempty(names)
+            if ~isempty(names)
+                names = names(:)';
+            else
                 names = cell.empty(1, 0);
             end
         end
@@ -230,7 +238,9 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
 
         function names = get.NamesGroups(this)
             names = this.GroupNames;
-            if isempty(names)
+            if ~isempty(names)
+                names = names(:)';
+            else
                 names = cell.empty(1, 0);
             end
         end
@@ -288,6 +298,7 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
                 'varobj:set:NamesEndogenous', ...
                 'Illegal number of names for endogenous variables.' ...
             );
+            newNames = newNames(:)';
             this.YNames = newNames;
             checkNames(this);
         end
@@ -305,6 +316,9 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
                 'varobj:set:NamesErrors', ...
                 'Illegal number of names for error terms.' ...
             );
+            if ~isequal(newNames, @auto)
+                newNames = newNames(:)';
+            end
             this.ENames = newNames;
             checkNames(this);
         end
@@ -326,6 +340,7 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
                 'varobj:set:NamesExogenous', ...
                 'Illegal number of names for exogenous variables.' ...
             );
+            newNames = newNames(:)';
             this.XNames = newNames;
             checkNames(this);
         end
@@ -336,6 +351,7 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
                 this.INames = cell.empty(1, 0);
                 return
             end
+            newNames = newNames(:)';
             this.INames = newNames;
             checkNames(this);
         end
