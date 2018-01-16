@@ -4,7 +4,7 @@ function x = normalize(varargin)
 % See help on [`tseries/normalise`](tseries/normalise).
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

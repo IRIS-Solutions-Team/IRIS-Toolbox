@@ -132,7 +132,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimation & shared.LoadObjectAsStructWrapper & model.Data
     properties (GetAccess=public, SetAccess=protected, Hidden)
@@ -190,7 +190,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
 
     
     properties (Constant, Hidden)
-        LAST_LOADABLE = 20171115
+        LAST_LOADABLE = 20180116
         STD_PREFIX = 'std_'
         CORR_PREFIX = 'corr_'
         LOG_PREFIX = 'log_'
@@ -650,7 +650,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             % expressions.
             
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2017 IRIS Solutions Team.
+            % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
             persistent INPUT_PARSER OPTIMAL_OPTIONS PARSER_OPTIONS
             if isempty(INPUT_PARSER)

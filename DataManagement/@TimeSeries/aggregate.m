@@ -41,24 +41,25 @@ function low = aggregate(high, lowFreq, varargin)
 %
 %
 
-% -Copyright (c) 2017 OGResearch Ltd.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent INPUT_PARSER 
+persistent inputParser 
 
-if isequal(INPUT_PARSER, [ ])
-    INPUT_PARSER = extend.InputParser('TimeSeries/aggregate');
-    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'TimeSeries'));
-    INPUT_PARSER.addRequired('LowFreq', @(x) isa(x, 'Frequency') || isa(Frequency(x), 'Frequency'))
-    INPUT_PARSER.addParameter('Missing', 'keep', @(x) any(strcmpi(x, {'keep', 'remove'})));
-    INPUT_PARSER.addParameter( ...
+if isequal(inputParser, [ ])
+    inputParser = extend.InputParser('TimeSeries/aggregate');
+    inputParser.addRequired('TimeSeries', @(x) isa(x, 'TimeSeries'));
+    inputParser.addRequired('LowFreq', @(x) isa(x, 'Frequency') || isa(Frequency(x), 'Frequency'))
+    inputParser.addParameter('Missing', 'keep', @(x) any(strcmpi(x, {'keep', 'remove'})));
+    inputParser.addParameter( ...
         'Function', @mean, ...
         @(x) isa(x, 'function_handle') || (isnumeric(x) && all(round(x)==x)) || islogical(x) || isequal(x, 'end') ...
     );
-    INPUT_PARSER.addParameter('Error', 'missing', @(x) any(strcmpi(x, {'missing', 'throw'})));
+    inputParser.addParameter('Error', 'missing', @(x) any(strcmpi(x, {'missing', 'throw'})));
 end
 
-INPUT_PARSER.parse(high, lowFreq, varargin{:});
-opt = INPUT_PARSER.Results;
+inputParser.parse(high, lowFreq, varargin{:});
+opt = inputParser.Results;
 
 TIME_SERIES = template(high);
 

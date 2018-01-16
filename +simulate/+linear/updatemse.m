@@ -5,7 +5,7 @@ function Upd = updatemse(Z,Px)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % Update Px = Cov(X) subject to Z X = fixed
 % Px = Px - Upd

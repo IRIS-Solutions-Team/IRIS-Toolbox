@@ -5,7 +5,7 @@ function [flag, dcy, maxAbsDcy, listOfEquations] = mychksstate(this, variantsReq
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % The input struct Opt is expected to include field .Kind, a switch between
 % evaluating full dynamic versus steady-state equations.

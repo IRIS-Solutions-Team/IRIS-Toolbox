@@ -5,7 +5,7 @@ function [this, datFitted] = assignEst(this, s, ixFixedEff, iLoop, opt)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

@@ -66,7 +66,7 @@ function [F, FF, delta, freq, G, step] = fisher(this, numPeriods, lsPar, varargi
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 TYPE = @int8;
 

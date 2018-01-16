@@ -275,7 +275,7 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % [this, inp, range, varargin] = ...
 %     irisinp.parser.parse('model.simulate', varargin{:});

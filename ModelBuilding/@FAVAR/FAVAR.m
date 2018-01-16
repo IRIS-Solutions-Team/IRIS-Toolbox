@@ -33,7 +33,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
     
 classdef FAVAR < varobj
     properties
@@ -121,7 +121,7 @@ classdef FAVAR < varobj
             %
             
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2017 IRIS Solutions Team.
+            % -Copyright (c) 2007-2018 IRIS Solutions Team.
             
             this = this@varobj(varargin{:});
             if length(varargin)==1

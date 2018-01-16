@@ -28,7 +28,7 @@ function d = array2db(X, date, lsName, ixLog, d)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %#ok<*CTCH>
 %#ok<*VUNUS>

@@ -5,7 +5,7 @@ function outp = myred2struct(this, inp, opt)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % Panel SVARs.
 if ispanel(this)

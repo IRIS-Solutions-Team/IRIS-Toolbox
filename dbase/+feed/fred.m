@@ -45,7 +45,7 @@ function outputDatabank = fred(varargin)
 % 
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 timeSeriesConstructor = getappdata(0, 'IRIS_TimeSeriesConstructor');
 dateFromSerial = getappdata(0, 'IRIS_DateFromSerial');

@@ -40,7 +40,7 @@ function [Cof,Cop] = cutoff(F,Freq,Cog)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %#ok<*VUNUS>
 %#ok<*CTCH>

@@ -4,7 +4,7 @@ function y = shift(x, shifts)
 % Backend IRIS function.
 % No help provided.
 
-% -Copyright (c) 2007-2017 IRIS Solutions Team
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 % -IRIS Macroeconomic Modeling Toolbox
 
 if nargin<2

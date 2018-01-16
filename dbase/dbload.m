@@ -166,7 +166,7 @@ function d = dbload(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if isstruct(varargin{1})
     d = varargin{1};

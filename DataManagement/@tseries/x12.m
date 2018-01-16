@@ -224,7 +224,7 @@ function varargout = x12(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 
 [this, range, varargin] = irisinp.parser.parse('tseries.filter', varargin{:});

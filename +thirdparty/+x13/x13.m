@@ -5,7 +5,7 @@ function [Y, Outp, Logbk, Err, Mdl] = x13(X, StartDate, Dummy, Opt)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 switch lower(Opt.mode)
     case {0, 'mult', 'm'}

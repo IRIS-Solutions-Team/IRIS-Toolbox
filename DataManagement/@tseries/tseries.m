@@ -133,7 +133,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
         tseries < TimeSubscriptable & shared.GetterSetter & shared.UserDataContainer 
@@ -197,7 +197,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             %
             
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2017 IRIS Solutions Team.
+            % -Copyright (c) 2007-2018 IRIS Solutions Team.
             
             this = this@shared.UserDataContainer( );
             this = this@shared.GetterSetter( );

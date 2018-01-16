@@ -42,7 +42,7 @@ function newDat = convert(dat, toFreq, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % Parse options.
 opt = passvalopt('dates.convert', varargin{:});

@@ -33,7 +33,7 @@ function [P, C, X] = eval(this, m)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 TYPE = @int8;
 

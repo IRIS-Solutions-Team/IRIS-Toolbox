@@ -1,7 +1,7 @@
 % distribution.Abstract
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 classdef (Abstract) Abstract < handle
     properties (SetAccess=protected)

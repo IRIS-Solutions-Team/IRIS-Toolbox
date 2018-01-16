@@ -1,10 +1,11 @@
 function [outp, dim] = unaryDim(fun, dimArg, this, varargin)
 % unaryDim  Unary operators on TimeSeries applied along selected dimension.
 %
-% Backend function.
-% No help provided.
+% Backend function
+% No help provided
 
-% -Copyright (c) 2017 OGResearch Ltd.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 

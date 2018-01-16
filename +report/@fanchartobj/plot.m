@@ -5,7 +5,7 @@ function leg = plot(this, hAx)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team & Sergey Plotnikov.
+% -Copyright (c) 2007-2018 IRIS Solutions Team & Sergey Plotnikov.
 
 %--------------------------------------------------------------------------
 

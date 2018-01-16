@@ -22,4 +22,4 @@
 %         x = rho*x{-1} %{ this is a valid block comment %} + epsilon;
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.

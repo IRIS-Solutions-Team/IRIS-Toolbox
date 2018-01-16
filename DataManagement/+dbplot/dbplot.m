@@ -5,7 +5,7 @@ function [ff, aa, pp] = dbplot(fileName, d, range, varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 [opt, varargin] = passvalopt('dbase.dbplot', varargin{:});
 

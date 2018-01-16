@@ -29,7 +29,7 @@ function [eigenValues, eigenStability] = eig(this, variantsRequested)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if nargin<2 || isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     variantsRequested = ':';

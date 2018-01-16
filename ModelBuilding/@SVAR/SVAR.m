@@ -40,7 +40,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
     
 classdef SVAR < VAR
     properties
@@ -151,7 +151,7 @@ classdef SVAR < VAR
             %
             
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2017 IRIS Solutions Team.
+            % -Copyright (c) 2007-2018 IRIS Solutions Team.
             
             This = This@VAR( );
             if nargin == 0

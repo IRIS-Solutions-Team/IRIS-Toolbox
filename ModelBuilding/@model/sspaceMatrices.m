@@ -6,7 +6,7 @@ function [T, R, K, Z, H, D, U, Omega, Zb, Y] = ...
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if nargin<3
     keepExpansion = true;

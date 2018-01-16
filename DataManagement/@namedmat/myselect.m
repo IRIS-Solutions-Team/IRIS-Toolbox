@@ -5,7 +5,7 @@ function [X, Pos] = myselect(X, RowNames, ColNames, varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 RowSel = varargin{1};
 varargin(1) = [ ];

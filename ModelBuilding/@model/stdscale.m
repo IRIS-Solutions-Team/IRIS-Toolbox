@@ -23,7 +23,7 @@ function this = stdscale(this, factor)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 TYPE = @int8;
 

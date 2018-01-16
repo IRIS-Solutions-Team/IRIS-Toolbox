@@ -36,7 +36,7 @@ classdef grouping < shared.UserDataContainer & shared.GetterSetter
     %
     
     % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2017 IRIS Solutions Team.
+    % -Copyright (c) 2007-2018 IRIS Solutions Team.
     
     properties (Hidden)
         Type = ''
@@ -107,7 +107,7 @@ classdef grouping < shared.UserDataContainer & shared.GetterSetter
             %
             
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2017 IRIS Solutions Team.
+            % -Copyright (c) 2007-2018 IRIS Solutions Team.
             
             this = this@shared.UserDataContainer( );
             this = this@shared.GetterSetter( );

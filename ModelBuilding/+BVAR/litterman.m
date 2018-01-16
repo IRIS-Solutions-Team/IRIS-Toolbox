@@ -34,7 +34,7 @@ function [This,Y0,K0,Y1,G1] = litterman(Rho,Mu,Lmb,varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('Rho',@(x) isnumeric(x) && all(x >= 0 & x <= 1));

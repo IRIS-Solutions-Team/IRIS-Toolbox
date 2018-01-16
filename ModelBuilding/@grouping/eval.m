@@ -50,7 +50,7 @@ function [s, lg] = eval(this, s, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('S', @isstruct);

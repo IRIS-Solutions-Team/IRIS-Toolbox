@@ -4,7 +4,7 @@ function y = fnGamma(x, a, b, mean_, std_, mode_, varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % A: shape
 % B: scale

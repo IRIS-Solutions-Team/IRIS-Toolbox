@@ -46,7 +46,7 @@ function [c, d] = fprintf(this, fileName, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('fileName', @(x) ischar(x) || (iscellstr(x) && length(this)==numel(x)));

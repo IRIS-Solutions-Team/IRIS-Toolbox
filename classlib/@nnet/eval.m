@@ -32,7 +32,7 @@ function OutData = eval(This,InData,Range,varargin)
 % * `'Output='` [ *`'tseries'`* | `'dbase'` ] - Display progress bar if possible.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if nargin<3
     Range = Inf ;

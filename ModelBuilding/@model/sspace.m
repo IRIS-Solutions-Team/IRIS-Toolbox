@@ -69,7 +69,7 @@ function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 % remaining nb names are the vector `xb`.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 opt = passvalopt('model.sspace', varargin{:});
 

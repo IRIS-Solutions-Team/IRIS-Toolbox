@@ -34,7 +34,7 @@ function x = rebase(x, date, b)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 try, date; catch, date = 'NanStart'; end %#ok<VUNUS,NOCOM>
 try, b; catch, b = 1; end %#ok<VUNUS,NOCOM>

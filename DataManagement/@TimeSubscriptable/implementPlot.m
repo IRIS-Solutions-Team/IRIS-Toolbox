@@ -4,21 +4,22 @@ function [handlePlot, time, yData] = implementPlot(plotFun, varargin)
 % Backend function.
 % No help provided.
 
-% -Copyright (c) 2017 OGResearch Ltd.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 IS_ROUND = @(x) isnumeric(x) && all(x==round(x));
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser(['TimeSubscriptable.implementPlot(', char(plotFun), ')']);
-    INPUT_PARSER.KeepUnmatched = true;
-    INPUT_PARSER.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) || isequal(x, @stem));
-    INPUT_PARSER.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
-    INPUT_PARSER.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x));
-    INPUT_PARSER.addRequired('Series', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
-    INPUT_PARSER.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
-    INPUT_PARSER.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
-    INPUT_PARSER.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ||  any(strcmpi(x, {'start', 'middle', 'end'})));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser(['TimeSubscriptable.implementPlot(', char(plotFun), ')']);
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) || isequal(x, @stem));
+    inputParser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
+    inputParser.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x));
+    inputParser.addRequired('Series', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
+    inputParser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
+    inputParser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
+    inputParser.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ||  any(strcmpi(x, {'start', 'middle', 'end'})));
 end
 
 if isgraphics(varargin{1})
@@ -41,10 +42,10 @@ end
 this = varargin{1};
 varargin(1) = [ ];
 
-INPUT_PARSER.parse(plotFun, axesHandle, time, this, varargin{:});
-specString = INPUT_PARSER.Results.SpecString;
-opt = INPUT_PARSER.Options;
-unmatchedOptions = INPUT_PARSER.UnmatchedInCell;
+inputParser.parse(plotFun, axesHandle, time, this, varargin{:});
+specString = inputParser.Results.SpecString;
+opt = inputParser.Options;
+unmatchedOptions = inputParser.UnmatchedInCell;
 
 enforceXLim = true;
 if isequal(time, Inf)

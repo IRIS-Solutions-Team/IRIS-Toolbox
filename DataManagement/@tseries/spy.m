@@ -55,7 +55,7 @@ function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if all(ishghandle(varargin{1})) ...
         && strcmpi(get(varargin{1}(1), 'type'), 'axes')

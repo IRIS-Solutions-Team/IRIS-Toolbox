@@ -6,7 +6,7 @@ function [X2,Px2,E,U,Y2,Py2,YInx,Y0,F,Y1,Py1] = ...
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % The VAR-based state-space system is given by
 %

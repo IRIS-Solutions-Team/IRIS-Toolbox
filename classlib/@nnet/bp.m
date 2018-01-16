@@ -10,7 +10,7 @@ function [This,pErr] = bp(This,InData,OutData,options)
 %     M = bp(M,InData,OutData,...)
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % Parse options
 Range = range(InData) ;

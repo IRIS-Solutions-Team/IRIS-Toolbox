@@ -5,7 +5,7 @@ function outp = mygroupmethod(func, this, inp, varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % Empty input data are allowed in `resample`.
 isEmptyInp = isempty(inp);

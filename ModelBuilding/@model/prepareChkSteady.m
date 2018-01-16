@@ -5,7 +5,7 @@ function opt = prepareChkSteady(this, mode, varargin) %#ok<INUSL>
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if length(varargin)==1 && isequal(varargin{1}, false)
     opt = false;

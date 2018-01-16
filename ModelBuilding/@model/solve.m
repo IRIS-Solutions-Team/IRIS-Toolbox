@@ -69,7 +69,7 @@ function [this, nPath, eigenValues] = solve(this, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox. 2008/10/20.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 TYPE = @int8;
 

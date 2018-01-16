@@ -6,7 +6,7 @@ function recurs = mysameio(This)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 
 inVars = unique(cellfun(@(x) x{1},regexp(This.Inputs,'\{[-\+]?\d*}','split'),'UniformOutput',false)) ;

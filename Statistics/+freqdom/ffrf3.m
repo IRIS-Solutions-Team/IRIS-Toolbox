@@ -5,7 +5,7 @@ function [YY, count] = ffrf3(varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if nargin==1
     systemProperty = varargin{1};

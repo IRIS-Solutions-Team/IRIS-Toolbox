@@ -5,7 +5,7 @@ function [body, args] = solveFail(this, nPath, ixNanDeriv, sing2, bk)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %#ok<*AGROW>
 

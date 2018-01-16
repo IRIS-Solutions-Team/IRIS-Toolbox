@@ -5,7 +5,7 @@ function [obj, regOutp, hData] = kalmanFilter(this, inp, hData, opt, varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % This Kalman filter handles the following special cases:
 % * non-stationary initial conditions (treated as fixed numbers);

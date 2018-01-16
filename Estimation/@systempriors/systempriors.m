@@ -38,7 +38,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 classdef systempriors < shared.UserDataContainer & shared.GetterSetter
     properties
@@ -99,7 +99,7 @@ classdef systempriors < shared.UserDataContainer & shared.GetterSetter
             %
             
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2017 IRIS Solutions Team.
+            % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
             TYPE = @int8;
 

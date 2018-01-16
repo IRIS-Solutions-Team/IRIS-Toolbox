@@ -80,7 +80,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
     
 classdef VAR < varobj & model.Data
     properties
@@ -233,7 +233,7 @@ classdef VAR < varobj & model.Data
             % `d.z`.
             
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2017 IRIS Solutions Team.
+            % -Copyright (c) 2007-2018 IRIS Solutions Team.
             
             %--------------------------------------------------------------------------
             

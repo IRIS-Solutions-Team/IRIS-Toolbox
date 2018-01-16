@@ -187,7 +187,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 [this, inputDatabank, range, j, varargin] = irisinp.parser.parse('model.filter', varargin{:});
 [opt, varargin] = passvalopt('model.filter', varargin{:});

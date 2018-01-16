@@ -60,7 +60,7 @@ function this = redate(this, oldDate, newDate)
 
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('x',@(x) isa(x,'tseries'));

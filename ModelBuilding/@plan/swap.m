@@ -52,7 +52,7 @@ function This = swap(This,ExogList,EndogList,Dates,varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %#ok<*VUNUS>
 %#ok<*CTCH>

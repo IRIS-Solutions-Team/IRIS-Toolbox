@@ -29,7 +29,7 @@ function [This,Y0,K0,Y1,G1] = covmat(C,Rep,varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % Parse input arguments.
 pp = inputParser( );

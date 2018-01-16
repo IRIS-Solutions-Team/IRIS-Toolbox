@@ -5,7 +5,7 @@ function [MLL, score, info, se2] = mydiffloglik(this, data, likOpt, opt)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 TYPE = @int8;
 EPSILON = eps( )^(1/3);
