@@ -59,6 +59,6 @@ if isempty(this.data)
     return
 end
 
-this = unop(@apply.pct, this, 0, shift, power);
+this = unop(@numeric.pct, this, 0, shift, power);
 
 end

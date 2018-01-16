@@ -48,6 +48,6 @@ normalize = INPUT_PARSER.Results.Normalize;
 
 %--------------------------------------------------------------------------
 
-[this.Data, meanX, stdX] = apply.stdize(this.Data, normalize);
+[this.Data, meanX, stdX] = numeric.stdize(this.Data, normalize);
 
 end

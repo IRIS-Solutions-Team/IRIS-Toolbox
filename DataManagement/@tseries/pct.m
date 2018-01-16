@@ -72,6 +72,6 @@ if ~isempty(opt.OutputFreq)
     Q = inputFreq / opt.OutputFreq / abs(sh);
 end
 
-this = unop(@apply.pct, this, 0, sh, Q);
+this = unop(@numeric.pct, this, 0, sh, Q);
 
 end

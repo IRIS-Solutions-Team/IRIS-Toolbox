@@ -58,28 +58,45 @@ else
     range = @all;
 end
 
-% Parse options.
-opt = passvalopt('tseries.trend', varargin{:});
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.trend');
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    inputParser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
+end
+inputParser.parse(this, varargin{:});
+opt = inputParser.Options;
+trendOpt = inputParser.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
 [data, range] = rangedata(this, range);
-size_ = size(data);
+if isempty(range)
+    this = this.empty(this);
+    return
+end
+startDate = range(1);
+
+sizeData = size(data);
+ndimsData = ndims(data);
 data = data(:, :);
 
-% Compute the trend.
-[data, ttData, tsData] = tseries.mytrend(data, range(1), opt);
-data = reshape(data, size_);
+[data, tt, ts] = numeric.trend(data, 'StartDate=', startDate, trendOpt{:});
 
-% Output data.
+if ndimsData>2
+    data = reshape(data, sizeData);
+    tt = reshape(tt, sizeData);
+    ts = reshape(ts, sizeData);
+end
+
+% Output data
 this = replace(this, data, range(1));
 this = trim(this);
 if nargout>1
-    tt = replace(this, reshape(ttData, size_));
-    tt = trim(tt);
+    tt = replace(this, tt, range(1));
     if nargout>2
-        ts = replace(this, reshape(tsData, size_));
-        ts = trim(ts);
+        ts = replace(this, ts, range(1));
     end
 end
 

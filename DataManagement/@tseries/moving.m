@@ -42,35 +42,34 @@ function this = moving(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('tseries.moving');
-    INPUT_PARSER.addRequired('InputTimeSeries', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
-    INPUT_PARSER.addParameter('Function', @mean, @(x) isa(x, 'function_handle'));
-    INPUT_PARSER.addParameter('Window', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && all(x==round(x))));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.moving');
+    inputParser.addRequired('InputTimeSeries', @(x) isa(x, 'tseries'));
+    inputParser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
+    inputParser.addParameter('Function', @mean, @(x) isa(x, 'function_handle'));
+    inputParser.addParameter('Window', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && all(x==round(x))));
 end
-INPUT_PARSER.parse(this, varargin{:});
-range = INPUT_PARSER.Results.Range;
-opt = INPUT_PARSER.Options;
+inputParser.parse(this, varargin{:});
+range = inputParser.Results.Range;
+opt = inputParser.Options;
 
 %--------------------------------------------------------------------------
 
 if isequal(opt.Window, @auto)
     freq = DateWrapper.getFrequencyFromNumeric(this.start);
-    if freq==0
-        utils.error('tseries:moving', ...
-            ['Option Window= must be used when input time series is ', ...
-            'integer date frequency.']);
-    else
-        opt.Window = (-freq+1):0;
-    end
+    assert( ...
+        freq~=0, ...
+        [class(this), ':moving'], ...
+        'Option Window= must be specified when input time series is of integer date frequency.' ...
+    );
+    opt.Window = (-freq+1):0;
 end
 
 if ~isequal(range, @all) && ~isequal(range, Inf)
     this = resize(this, range);
 end
 
-this = unop(@apply.moving, this, 0, opt.Window, opt.Function);
+this = unop(@numeric.moving, this, 0, opt.Window, opt.Function);
 
 end

@@ -1,55 +1,52 @@
-function This = hpdi(This,Prob,Dim)
-% hpdi  Highest probability density interval.
+function int = hpdi(this, coverage, varargin)
+% hpdi  Highest probability density interval
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     int = hpdi(x,prob)
+% Input arguments marked with a `~` sign may be omitted.
 %
-% Input arguments
-% ================
+%     Int = hpdi(X, Coverage, ~Dim)
 %
-% * `x` [ tseries ] - Input data with random draws in each period.
 %
-% * `prob` [ numeric ] - Percent coverage of the computed interval, between
-% 0 and 100.
+% __Input Arguments__
 %
-% Output arguments
-% =================
+% * `X` [ tseries ] - Input time series; HPDIs will be calculated
+% separately for each set of data along dimension `Dim`.
 %
-% * `int` [ tseries ] - Output tseries object with two columns, i.e. lower
-% bounds and upper bounds for each period.
+% * `Coverage` [ numeric ] - Percent coverage of the calculated interval,
+% between 0 and 100.
 %
-% Description
-% ============
+% * `~Dim=1` [ numeric ] - Dimension along which the percentiles will be
+% calculated.
 %
-% Example
-% ========
+%
+% __Output Arguments__
+%
+% * `Int` [ tseries ] - Output array (if `Dim==1`) or output time series
+% (if `Dim>1`) with the lower and upper bounds of the HPDIs.
+%
+%
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-try
-    Dim; %#ok<VUNUS>
-catch
-    Dim = 1;
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.hpdi');
+    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    inputParser.addRequired('Coverage', @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=100);
+    inputParser.addOptional('Dim', 2, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
 end
-
-if Dim > 2
-    Dim = 2;
-end
+inputParser.parse(this, coverage, varargin{:});
+dim = inputParser.Results.Dim;
 
 %--------------------------------------------------------------------------
 
-[low,high] = tseries.myhpdi(This.data(:,:),Prob,Dim);
-
-if Dim == 1
-    This = [low;high];
-else
-    This.data = [low,high];
-    This.Comment = {'HPDI low','HPDI high'};
-    This = trim(This);
-end
+int = unop(@numeric.hpdi, this, dim, coverage, dim);
 
 end

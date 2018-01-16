@@ -1,4 +1,4 @@
-function [this, trend] = bpass(this, band, range, varargin)
+function [this, trend] = bpass(this, band, varargin)
 % bpass  Band-pass filter.
 %
 % __Syntax__
@@ -17,32 +17,30 @@ function [this, trend] = bpass(this, band, range, varargin)
 %
 % * `X` [ tseries ] - Input tseries object that will be filtered.
 %
+% * `Band` [ numeric ] - Band of periodicities to be retained in the output
+% data, `Band = [Low, High]`.
+%
 % * `Range` [ numeric | Inf ] Date range on which the data will be
 % filtered.
-%
-% * `Band` [ numeric ] - Band of periodicities to be retained in the output
-% data, `Band = [LOW, HIGH]`.
 %
 %
 % __Options__
 %
-% * `'AddTrend='` [ *`true`* | `false` ] - Add the estimated linear time trend
-% back to filtered output series if `band` includes Inf.
+%  `AddTrend=true` [ `true` | `false` ] - Add the estimated linear time
+%  trend back to filtered output series if `band` includes Inf.
 %
-% * `'Detrend='` [ *`true`* | `false` ] - Remove an estimated time trend from
-% the data before filtering.
+%  `Detrend=true` [ `true` | `false` | cell ] - Remove an estimated time
+%  trend from the data before filtering; specify options for detrending in
+%  a cell array; see [`trend`](tseries/trend).
 %
-% * `'Log='` [ `true` | *`false`* ] - Logarithmise the data before filtering, 
-% de-logarithmise afterwards.
+%  `Log=false` [ `true` | `false` ] - Logarithmize the data before
+%  filtering, de-logarithmize afterwards.
 %
-% * `'Method='` [ *`'cf'`* | `'hwfsf'` ] - Type of band-pass filter:
+%  `Method='cf'` [ `'cf'` | `'hwfsf'` ] - Type of band-pass filter:
 % Christiano-Fitzgerald, or h-windowed frequency-selective filter.
 %
-% * `'UnitRoot='` [ *`true`* | `false` ] - Assume unit root in the input
+%  `UnitRoot=true` [ `true` | `false` ] - Assume unit root in the input
 % data.
-%
-% See help on [`tseries/trend`](tseries/trend) for other options available
-% when `'detrend='` is set to true.
 %
 %
 % __Description__
@@ -60,49 +58,44 @@ function [this, trend] = bpass(this, band, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2017 IRIS Solutions Team.
 
-if nargin<3
-    range = Inf;
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.bpass');
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    inputParser.addRequired('Band', @(x) isnumeric(x) && numel(x)==2);
+    inputParser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
 end
-
-if length(band)~=2 && length(range)==2
-    % Swap input arguments.
-    [range, band] = deal(band, range);
-end
-
-% Parse input arguments.
-pp = inputParser( );
-pp.addRequired('Band', @(x) isnumeric(x) && length(x)==2);
-pp.addRequired('Range', @isnumeric);
-pp.parse(band, range);
-
-% Parse options.
-[opt, varargin] = passvalopt('tseries.bpass', varargin{:});
-trendOpt = passvalopt('tseries.trend', varargin{:});
+inputParser.parse(this, band, varargin{:});
+range = inputParser.Results.Range;
+unmatched = inputParser.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
-if isempty(range) || isnan(this.Start)
+if isempty(range) || isnan(this.Start) || isempty(this.Data)
     this = this.empty(this);
     trend = this;
     return
 end
 
-sizeOfInputData = size(this.Data);
 [inputData, range] = rangedata(this, range);
-inputData = inputData(:, :);
-start = range(1);
+startDate = range(1);
 
-% Run the band-pass filter.
-[filterData, trendData] = tseries.mybpass(inputData, start, band, opt, trendOpt);
+% Run the band-pass filter
+[filterData, trendData] = numeric.bpass( ...
+    inputData, band, ...
+    'StartDate=', startDate, ...
+    unmatched{:} ...
+);
 
-% Output data.
-this.Data = reshape(filterData, sizeOfInputData);
-this.Start = range(1);
+% Output data
+this.Data = filterData;
+this.Start = startDate;
 this = trim(this);
 
-% Time trend data.
+% Time trend data
 if nargout>1
-    trend = replace(this, reshape(trendData, sizeOfInputData));
+    trend = fill(this, trendData);
     trend = trim(trend);
 end
 

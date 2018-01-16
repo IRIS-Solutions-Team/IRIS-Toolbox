@@ -20,13 +20,13 @@
 %
 % __Time Series Properties Directly Accessible__
 %
-%   Data - -  Numeric array of time series data
-%   Start - -  Date of first observation available 
+%   Data - Numeric array of time series data
+%   Start - Date of first observation available 
 %   End - tseries/Enda property
 %   Range - tseries/Rangea property
 %   Frequency - tseries/Frequencya property
-%   MissingValue - -  Representation of missing value
-%   MissingTest - -  Function to test for missing values
+%   MissingValue - Representation of missing value
+%   MissingTest - Function to test for missing values
 %
 %
 % __Getting Information about Time Series__
@@ -88,7 +88,7 @@
 %   plotpred - Visualize multi-step-ahead predictions
 %   plotyy - Line plot function with LHS and RHS axes for time series
 %   scatter - Scatter graph for tseries objects
-%   spy - Visualise tseries observations that pass a test
+%   spy - Visualize tseries observations that pass a test
 %   stem - Plot tseries as discrete sequence data
 %
 %
@@ -116,17 +116,17 @@
 %
 % __Other Functions__
 %
-%   apct - Annualised percent rate of change
+%   apct - Annualized percent rate of change
 %   bsxfun - Implement bsxfun for tseries class
 %   cumsumk - Cumulative sum with a k-period leap
-%   destdise - Destandardise tseries object by applying specified standard deviation and mean to it
+%   destdize - Destandardize tseries object by applying specified standard deviation and mean to it
 %   diff - First difference
 %   interp - Interpolate missing observations
-%   normalise - Normalise (or rebase) data to particular date
+%   normalize - Normalize (or rebase) data to particular date
 %   pct - Percent rate of change
 %   round - Round tseries values to specified number of decimals
 %   rmse - Compute RMSE for given observations and predictions
-%   standardize - Standardise tseries data by subtracting mean and dividing by std deviation
+%   standardize - Standardize tseries data by subtracting mean and dividing by std deviation
 %   windex - Simple weighted or Divisia index
 %   wmean - Weighted average of time series observations
 %
@@ -203,19 +203,19 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             this = this@shared.GetterSetter( );
             this = resetColumnNames(this);
             
-            % Empty call.
+            % Empty call
             if nargin==0
                 return
             end
             
-            % Tseries input.
+            % tseries input
             if nargin==1 && isa(varargin{1}, 'tseries')
                 this = varargin{1};
                 return
             end
             
             % Struct input; called from within load( ), loadobj( ), loadstruct( ), cat( ), 
-            % hdataouput( ).
+            % hdataouput( )
             if nargin==1 && isstruct(varargin{1})
                 this = struct2obj(this, varargin{1});
                 return
@@ -224,7 +224,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             persistent INPUT_PARSER
             if isempty(INPUT_PARSER)
                 INPUT_PARSER = extend.InputParser('tseries/tseries');
-                INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'DateWrapper') || (isnumeric(x) && all(x==round(x) | isnan(x))));
+                INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'DateWrapper') || (isnumeric(x) && all(x==round(x) | isnan(x))) || ischar(x) || isa(x, 'string'));
                 INPUT_PARSER.addRequired('Values', @(x) isnumeric(x) || isa(x, 'function_handle'));
                 INPUT_PARSER.addOptional('ColumnComments', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
                 INPUT_PARSER.addOptional('UserData', [ ], @(x) true);
@@ -236,8 +236,11 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             columnNames = INPUT_PARSER.Results.ColumnComments;
             userData = INPUT_PARSER.Results.UserData;
 
+            if ischar(dates) || isa(dates, 'string')
+                dates = textinp2dat(dates);
+            end
             dates = dates(:);
-            numDates = length(dates);            
+            numDates = numel(dates);            
 
             if isa(dates, 'DateWrapper')
                 freq = getFrequency(dates);
@@ -318,7 +321,14 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = conbar(varargin)
         varargout = convert(varargin)
         varargout = cumsumk(varargin)
-        varargout = destdise(varargin)
+
+
+        varargout = destdize(varargin)
+        function varargout = destdise(varargin)
+            [varargout{1:nargout}] = destdize(varargin{:});
+        end
+
+
         varargout = detrend(varargin)
         varargout = diff(varargin)
         varargout = double(varargin)
@@ -376,6 +386,14 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = sort(varargin)
         varargout = specrange(varargin)        
         varargout = spy(varargin)
+
+
+        varargout = stdize(varargin)
+        function varargout = stdise(varargin)
+            [varargout{1:nargout}] = stdize(varargin{:});
+        end
+
+
         varargout = stem(varargin)
         varargout = subsasgn(varargin)
         varargout = subsref(varargin)
@@ -414,7 +432,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = mygetdata(varargin)        
         varargout = cat(varargin)
         varargout = cut(varargin)
-        varargout = destdize(varargin)
         varargout = df(varargin)
         varargout = divisia(varargin)
 
@@ -433,12 +450,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = rangedata(varargin)
         varargout = saveobj(varargin)
         varargout = trim(varargin)
-
-
-        varargout = stdize(varargin)
-        function varargout = stdise(varargin)
-            [varargout{1:nargout}] = stdize(varargin{:});
-        end
     end
     
     
@@ -469,18 +480,12 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
         varargout = myband(varargin)
         varargout = mybarcon(varargin)
-        varargout = mybpass(varargin)
-        varargout = mychristianofitzgerald(varargin)
-        varargout = mydestdize(varargin)
-        varargout = myhpdi(varargin)
         varargout = myerrorbar(varargin)
         varargout = mynanmean(varargin)
         varargout = mynanstd(varargin)
         varargout = mynansum(varargin)
         varargout = mynanvar(varargin)
-        varargout = myprctile(varargin)
         varargout = myplot(varargin)
-        varargout = mytrend(varargin)
     end
     
     
@@ -779,21 +784,19 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             end
             x = unop(@mode, x, dim, dim);
         end
+
+
         function x = prctile(x, p, dim)
-            if nargin<2
-                p = [25, 50, 75];
-            end
             if nargin<3
                 dim = 2;
             end
-            % @@@@@ MOSW
-            x = unop(@(varargin) tseries.myprctile(varargin{:}), ...
-                x, dim, p, dim);
+            x = unop(@numeric.prctile, x, dim, p, dim);
         end
-        % Alias for prctile.
         function varargout = pctile(varargin)
             [varargout{1:nargout}] = prctile(varargin{:});
         end
+
+
         function x = std(x, flag, dim)
             if nargin<2
                 flag = 0;

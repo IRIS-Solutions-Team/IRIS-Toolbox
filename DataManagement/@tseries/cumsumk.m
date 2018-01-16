@@ -13,14 +13,15 @@ function this = cumsumk(this, varargin)
 % * `X` [ tseries ] - Input time series.
 %
 % * `~K` [ numeric ] - Number of periods that will be leapt the cumulative
-% sum will be taken; if omitted, `K` is chosen to match the frequency
-% of the input data (e.g. `K=-4` for quarterly data), or `K=-1` for
-% integer frequency.
+% sum will be taken; if omitted, `K` is chosen to match the frequency of
+% the input data (e.g. `K=-4` for quarterly data), or `K=-1` for integer
+% frequency.
 %
-% * `Rho` [ numeric ] - Autoregressive coefficient; if omitted, `Rho=1`.
+% * `~Rho` [ numeric ] - Autoregressive coefficient; if omitted, `Rho=1`.
 %
-% * `Range` [ numeric ] - Range on which the cumulative sum will be
-% computed and the output time series returned.
+% * `~Range` [ numeric ] - Range on which the cumulative sum will be
+% computed and the output time series returned; if omitted, the entire
+% input time series range will be used.
 %
 %
 % __Output Arguments__
@@ -101,7 +102,7 @@ if opt.Log
     data = log(data);
 end
 
-data = apply.cumsumk(data, opt.K, opt.Rho);
+data = numeric.cumsumk(data, opt.K, opt.Rho);
 
 if opt.Log
     data = exp(data);

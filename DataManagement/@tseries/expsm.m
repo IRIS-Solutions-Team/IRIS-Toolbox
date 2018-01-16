@@ -1,9 +1,11 @@
-function [this, sse, beta] = expsm(this, beta, range, varargin)
+function this = expsm(this, beta, varargin)
 % expsm  Exponential smoothing
 %
 % __Syntax__
 %
-%     X = expsm(X, Beta, ...)
+% Input arguments marked with a `~` sign may be omitted.
+%
+%     X = expsm(X, Beta, ~Range, ...)
 %
 %
 % __Input Arguments__
@@ -11,6 +13,9 @@ function [this, sse, beta] = expsm(this, beta, range, varargin)
 % * `X` [ tseries ] - Input time series.
 %
 % * `Beta` [ numeric ] - Exponential factor.
+%
+% * `~Range` [ DateWrapper ] - Range on which the exponential smoothing will
+% be performed; if omitted, the entire time series range is used.
 %
 %
 % __Output Arguments__
@@ -20,8 +25,8 @@ function [this, sse, beta] = expsm(this, beta, range, varargin)
 %
 % __Options__
 %
-% * `Init=NaN` [ numeric ] - Add this value before the first observation to
-% initialise the smoothing.
+% * `Init=NaN` [ numeric ] - Use this value before the first observation to
+% initialize the smoothing.
 %
 % * `Log=false` [ `true` | `false` ] - Logarithmize the data before
 % filtering, de-logarithmize afterwards.
@@ -44,14 +49,13 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
     INPUT_PARSER.addParameter('Init', NaN, @(x) isnumeric(x) && isscalar(x));
     INPUT_PARSER.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('ForecastHorizon', 0, @(x) isnumeric(x) && isscalar(x) && x>=0 && x==round(x));
 end
 INPUT_PARSER.parse(this, beta, varargin{:});
-opt = INPUT_PARSER.Options;
 range = INPUT_PARSER.Results.Range; 
-if ischar(range)
+if ischar(range) || isa(range, 'string')
     range = textinp2dat(range);
 end
+opt = INPUT_PARSER.Options;
 
 %--------------------------------------------------------------------------
 
@@ -61,7 +65,7 @@ if opt.Log
     data = 100*log(data);
 end
 
-[data, sse] = apply.expsm(data, beta, opt.Init, opt.ForecastHorizon);
+data = numeric.expsm(data, beta, opt.Init);
 
 if opt.Log
     data = exp(data/100);

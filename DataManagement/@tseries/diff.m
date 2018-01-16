@@ -38,12 +38,12 @@ if nargin<2
 end
 
 if isempty(shifts)
-    x = apply.empty(x, 2);
+    x = numeric.empty(x, 2);
     return
 end
 
 %--------------------------------------------------------------------------
 
-x = unop(@apply.diff, x, 0, shifts);
+x = unop(@numeric.diff, x, 0, shifts);
 
 end

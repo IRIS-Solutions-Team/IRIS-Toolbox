@@ -1,4 +1,4 @@
-function [smooth, sse] = expsm(x, beta, init, h)
+function smooth = expsm(x, beta, varargin)
 % expsm  Apply exponential smoothing to numeric data
 %
 % Backend IRIS function
@@ -6,6 +6,16 @@ function [smooth, sse] = expsm(x, beta, init, h)
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2017 IRIS Solutions Team
+
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('numeric.expsm');
+    inputParser.addRequired('InputData', @isnumeric);
+    inputParser.addRequired('Beta', @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1);
+    inputParser.addOptional('Init', NaN, @(x) isnumeric(x) && isscalar(x));
+end
+inputParser.parse(x, beta, varargin{:});
+init = inputParser.Results.Init;
 
 %--------------------------------------------------------------------------
 
@@ -15,52 +25,36 @@ if beta<0 || beta>1
 end
 
 sizeX = size(x);
+ndimsX = ndims(x);
 x = x(:, :);
 numColumns = size(x, 2);
 
-if isempty(init)
-    init = nan(1, numColumns);
-else
-    init = init(:).';
-    if length(init)<numColumns
-        init(end+1:numColumns) = init(end);
-    end
-end
-
 smooth = nan(size(x));
 numPeriods0 = NaN;
+isInit = ~isnan(init);
 for i = 1 : numColumns
-    data = x(:, i);    
-    ixNaNData = isnan(data);
+    ithX = x(:, i);    
+    ixNaNData = isnan(ithX);
     first = find(~ixNaNData, 1);
     last = find(~ixNaNData, 1, 'last');
-    data = data(first:last);
-    isInit = ~isnan(init(i));
+    ithX = ithX(first:last);
     if isInit
-        data = [init(i); data]; %#ok<AGROW>
+        ithX = [init; ithX]; %#ok<AGROW>
     end
-    numPeriods = size(data, 1);
+    numPeriods = size(ithX, 1);
     if numPeriods~=numPeriods0
         w = TimeSubscriptable.getExpSmoothMatrix(beta, numPeriods);
     end
-    data = w*data;
+    ithX = w*ithX;
     if isInit
-        data = data(2:end);
+        ithX = ithX(2:end);
     end
-    smooth(first:last, i) = data;
+    smooth(first:last, i) = ithX;
     numPeriods0 = numPeriods;
 end
 
-if length(sizeX)>2
-    x = reshape(x, sizeX);
+if ndimsX>2
     smooth = reshape(smooth, sizeX);
-end
-
-if nargout>1
-    forecast = nan(size(smooth));
-    forecast(h+1:end, :) = smooth(1:end-h, :);
-    forecastError = forecast - x;
-    sse = sum(forecastError(~isnan(forecastError)).^2);
 end
 
 end
