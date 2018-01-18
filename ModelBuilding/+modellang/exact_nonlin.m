@@ -1,21 +1,16 @@
-% =#  Mark an equation for exact non-linear simulation.
+% =#  Mark equations for equation-selective nonlinear simulations
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     LHS =# RHS;
+%     Lhs =# Rhs;
 %
-% Description
-% ============
 %
-% Equations that have the equal sign marked with an `#` can be simulated in
-% an exact non-linear mode.
+% __Description__
 %
-% Why is it the channels sign, `#`, that is used to mark the equations for
-% exact non-linear simulations? Because if you associate your model file
-% extension with the Matlab editor, the channel signs are displayed red
-% making it easier to spot them.
+% Equations that have the equal sign followed by an `#` will be preserved
+% in their nonlinear form when the model is simulated using an
+% equation-selective nonlinear algorithm.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team

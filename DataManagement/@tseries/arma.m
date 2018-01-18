@@ -5,7 +5,7 @@ function X = arma(varargin)
 % Syntax
 % =======
 %
-%     Y = arma(X,E,Ar,Ma,Range)
+%     Y = arma(X, E, AR, MA, Range)
 %
 %
 % Input arguments
@@ -17,11 +17,11 @@ function X = arma(varargin)
 % * `E` [ tseries ] - Input time series with innovations; `NaN` values in
 % `E` on `Range` will be replaced with `0`.
 %
-% * `Ar` [ numeric | empty ] - Row vector of AR polynominal coefficients;
-% if empty, `Ar = 1`; see Description.
+% * `AR` [ numeric | empty ] - Row vector of AR polynominal coefficients;
+% if empty, `AR = 1`; see Description.
 %
-% * `Ma` [ numeric | empty ] - Row vector of MA polynominal coefficients;
-% if empty, `Ma = 1`; see Description.
+% * `MA` [ numeric | empty ] - Row vector of MA polynominal coefficients;
+% if empty, `MA = 1`; see Description.
 %
 % * `Range` [ numeric | char ] - Range on which the output series
 % observations will be constructed.
@@ -46,14 +46,14 @@ function X = arma(varargin)
 %
 % $$ A(L) X_t = M(L) E_t $$
 %
-% where $A(L) = A_0 + A_1 L + \cdots$ and $M(L)=M_0 + M_1 L + \cdots$ are
-% polynomials in lag operator $L$ defined by the vectors `Ar` and `Ma`. In
-% other words,
+% where \(A(L) = A_0 + A_1 L + \cdots\) and \(M(L)=M_0 + M_1 L + \cdots\) are
+% polynomials in lag operator \(L\) defined by the vectors `AR` and `MA`:
 %
 % $$ X_t = \frac{1}{A_1} \left( -A_2 X_{t-1} - A_3 X_{t-2} - \cdots
-%            + M_0 E_t + M_1 E_{t-1} + \cdots \right) . $$
+% + M_0 E_t + M_1 E_{t-1} + \cdots \right) $$ .
 %
-% Note that the coefficient $A_0$ is `Ar(1)`, $A_1$ is `Ar(2)`, and so on.
+% Note that the coefficient \(A_0\) is `AR(1)`, \(A_1\) is `AR(2)`, and so
+% on.
 %
 %
 % Example
@@ -62,50 +62,50 @@ function X = arma(varargin)
 % Construct an AR(1) process with autoregression coefficient 0.8, built
 % from normally distributed innovations:
 %
-%     X = Series(0:20,0);
-%     E = Series(1:20,@randn);
-%     X = arma(X,E,[1,-0.8],[ ],1:20);
+%     X = Series(0:20, 0);
+%     E = Series(1:20, @randn);
+%     X = arma(X, E, [1, -0.8], [ ], 1:20);
 %     plot(X);
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-[X,E,Ar,Ma,Range,varargin] = ...
-    irisinp.parser.parse('tseries.arma',varargin{:}); %#ok<ASGLU>
+[X, E, AR, MA, Range, varargin] = ...
+    irisinp.parser.parse('tseries.arma', varargin{:}); %#ok<ASGLU>
 
-Ar = Ar(:).';
-if isempty(Ar)
-    Ar = 1;
-elseif Ar(1)~=1
-    Ar = Ar / Ar(1);
+AR = AR(:).';
+if isempty(AR)
+    AR = 1;
+elseif AR(1)~=1
+    AR = AR / AR(1);
 end
 
-Ma = Ma(:).';
-if isempty(Ma)
-    Ma = 1;
+MA = MA(:).';
+if isempty(MA)
+    MA = 1;
 end
 
 %--------------------------------------------------------------------------
 
-pa = length(Ar) - 1;
-pm = length(Ma) - 1;
-p = max(pa,pm);
+pa = length(AR) - 1;
+pm = length(MA) - 1;
+p = max(pa, pm);
 
 nPer = length(Range);
 xRange = Range(1)-p : Range(end);
 nXPer = length(xRange);
 
-XData = rangedata(X,xRange);
-EData = rangedata(E,xRange);
+XData = rangedata(X, xRange);
+EData = rangedata(E, xRange);
 EData(isnan(EData)) = 0;
 for t = p+1 : nXPer
-    XData(t,:) = ...
-        -Ar(2:end)*XData(t-1:-1:t-pa,:) ...
-        + Ma*EData(t:-1:t-pm,:);
+    XData(t, :) = ...
+        -AR(2:end)*XData(t-1:-1:t-pa, :) ...
+        + MA*EData(t:-1:t-pm, :);
 end
 
-XData(1:end-nPer-pa,:) = [ ];
-X = replace(X,XData,Range(1)-pa);
+XData(1:end-nPer-pa, :) = [ ];
+X = replace(X, XData, Range(1)-pa);
 
 end

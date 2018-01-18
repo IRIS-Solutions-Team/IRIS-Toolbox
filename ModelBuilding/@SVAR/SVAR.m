@@ -1,77 +1,120 @@
-% SVAR  Structural Vector Autoregressions (SVAR Objects).
+% SVAR  Structural Vector Autoregressions
 %
+% This section describes the `SVAR` class of objects.
+%
+% Description
+% ------------
+%
+% Structural autoregressions are VAR models with a vector of the original
+% forecast errors transformed into a vector of structural errors. The
+% structural errors are uncorrelated, and have an impact matrix associated
+% with them:
+%
+% \[
+% y_t = \sum_{k=1}^{p} A_k\, y_{t-k} + K + J g_t + B u_t
+% \]
+%
+% where \(u_t\) is a vector of structural errors; compare the [reduced-form
+% VARs](VAR/index.html#Description), and 
+%
+% \[
+% \mathrm{E} [u_t u_t'] = \mathrm{diag}(\sigma_1^2, ..., \sigma_n^2) .
+% \]
+%
+% The transformation \( B \) is not unique: there are infinitely many
+% possible transformations that give rise to uncorrelated errors. To chose
+% among them, the user needs to specify a set of identifying restrictions.
+% IRIS supports the following types of identifying restrictions:
+%
+% * triangular impact matrix by Cholesky factorization;
+% * triangular matrix of long-run multipliers;
+% * reduced-rank singular value decomposition;
+% * random Householder transformations satisfying user restrictions.
 %
 % SVAR methods:
 %
-% Constructor
-% ============
 %
-% * [`SVAR`](SVAR/SVAR) - Convert reduced-form VAR to structural VAR.
-%
-% SVAR objects can call any of the [VAR](VAR/Contents) functions. In
-% addition, the following functions are available for SVAR objects.
+% SVAR objects inherit all properties and methods (functions) from the underlying VAR objects, and
+% add those described here. See [`VAR`](VAR/index.html) to get  help on the properties and methods
+% inherited from VAR.
 %
 %
-% Getting information about SVAR objects
-% =======================================
+% Categorical List
+% -----------------
 %
-% * [`get`](SVAR/get) - Query SVAR object properties.
+% __Constructor__
 %
+%   SVAR - Create structural VAR by identifying reduced-form VAR
 %
-% Simulation
-% ===========
+% __Properties Directly Accessible__
 %
-% * [`srf`](SVAR/srf) - Shock (impulse) response function.
-%
-%
-% Stochastic properties
-% ======================
-%
-% * [`fevd`](SVAR/fevd) - Forecast error variance decomposition for SVAR variables.
+%   B - Impact matrix of structural errors
+%   Std - Std deviations of structural errors
+%   Method - Identification method
+%   Rank - Rank of covariance matrix
 %
 %
-% Manipulating SVAR objects
-% ==========================
+% __Getting Information about SVAR Objects__
 %
-% * [`sort`](SVAR/sort) - Sort SVAR parameterisations by squared distance of shock reponses to median.
+%   get - Query SVAR object properties
 %
-% See help on [VAR](VAR/Contents) objects for other functions available.
+%
+% __Simulation__
+%
+%   srf - Shock response function
+%
+%
+% __Stochastic Properties__
+%
+%   fevd - Forecast error variance decomposition for SVAR variables
+%
+%
+% __Manipulating SVAR Objects__
+%
+%   sort - Sort SVAR parameterisations by squared distance of shock reponses to median
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
     
-classdef SVAR < VAR
+classdef (CaseInsensitiveProperties=true) ...
+    SVAR < VAR
     properties
-        B = [ ]; % Coefficient matrix in front of structural residuals.
-        Std = [ ]; % Std dev of structural residuals.
-        Method = { }; % Identification method.
-        Rank = Inf;        
+        % B  Impact matrix of structural errors
+        B = double.empty(0)
+
+        % Std  Std deviations of structural errors
+        Std = double.empty(0)
+
+        % Method  Identification method
+        Method = cell.empty(1, 0)
+
+        % Rank  Rank of covariance matrix
+        Rank = Inf
     end
     
     
     
     
     methods
-        function This = SVAR(varargin)
-            % SVAR  Convert reduced-form VAR to structural VAR.
+        function this = SVAR(varargin)
+            % SVAR  Create structural VAR by identifying reduced-form VAR
             %
-            % Syntax
-            % =======
+            % __Syntax__
             %
-            %     [S,DATA,B,COUNT] = SVAR(V,DATA,...)
+            %     [S, DATA, B, COUNT] = SVAR(V, DATA, ...)
             %
-            % Input arguments
-            % ================
+            %
+            % __Input Arguments__
             %
             % * `V` [ VAR ] - Reduced-form VAR object.
             %
             % * `DATA` [ struct | tseries ] - Data associated with the input VAR
             % object.
             %
-            % Output arguments
-            % =================
+            %
+            % __Output Arguments__
             %
             % * `S` [ VAR ] - Structural VAR object.
             %
@@ -83,8 +126,8 @@ classdef SVAR < VAR
             % * `COUNT` [ numeric ] - Number of draws actually performed (both
             % successful and unsuccessful) when `'method'='draw'`; otherwise `COUNT=1`.
             %
-            % Options
-            % ========
+            %
+            % __Options__
             %
             % * `'maxIter='` [ numeric | *`0`* ] - Maximum number of attempts when
             % `'method'='draw'`.
@@ -124,11 +167,10 @@ classdef SVAR < VAR
             % evaluate to `true` will be kept. See Description for more on how to write
             % the option `'test='`.
             %
-            % Description
-            % ============
             %
-            % Identification random Householder transformations
-            % --------------------------------------------------
+            % __Description__
+            %
+            % _Identify SVAR by Random Householder Transformations_
             %
             % The structural impact matrices `B` are randomly generated using a
             % Householder transformation algorithm. Each matrix is tested by evaluating
@@ -138,26 +180,25 @@ classdef SVAR < VAR
             %
             % The `test` string can refer to the following characteristics:
             %
-            % * `S` -- the impulse (or shock) response function; the `S(i,j,k)` element
+            % * `S` -- the impulse (or shock) response function; the `S(i, j, k)` element
             % is the response of the `i`-th variable to the `j`-th shock in
             % period `k`.
             %
-            % * `Y` -- the asymptotic cumulative response function; the `Y(i,j)`
+            % * `Y` -- the asymptotic cumulative response function; the `Y(i, j)`
             % element is the asumptotic (long-run) cumulative response of the `i`-th
             % variable to the `j`-th shock.
             %
-            % Example
-            % ========
+            % __Example__
             %
             
-            % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2018 IRIS Solutions Team.
+            % -IRIS Macroeconomic Modeling Toolbox
+            % -Copyright (c) 2007-2018 IRIS Solutions Team
             
-            This = This@VAR( );
-            if nargin == 0
+            this = this@VAR( );
+            if nargin==0
                 return
-            elseif nargin == 1 && isa(varargin{1},'SVAR')
-                This = varargin{1};
+            elseif nargin==1 && isa(varargin{1}, 'SVAR')
+                this = varargin{1};
                 return
             end
             % The case with a VAR object as the first input argument is
@@ -166,8 +207,6 @@ classdef SVAR < VAR
             % constructors).
         end
     end
-    
-    
     
     
     methods
@@ -180,18 +219,14 @@ classdef SVAR < VAR
     end
     
     
-    
-    
     methods (Hidden)
-        varargout = myidentify(varargin)        
-        varargout = myred2struct(varargin)        
+        varargout = identify(varargin)        
+        varargout = red2struct(varargin)        
         varargout = implementGet(varargin)
     end
     
     
-    
-    
-    methods (Access=protected,Hidden)
+    methods (Access=protected, Hidden)
         varargout = mybmatrix(varargin)
         varargout = mycompatible(varargin)
         varargout = mycovmatrix(varargin)

@@ -19,8 +19,8 @@
 % [the setup instructions](setup/Contents) for more details.
 %
 %
-% Keywords by Category
-% ---------------------
+% Categorical List
+% -----------------
 %
 % __Variables, Parameters, Shocks__
 % 
@@ -55,7 +55,7 @@
 %   !! (steady_version) - Steady-state version of an equation
 %   {...} (shift) - Lag or lead
 %   & (steady_ref) - Reference to the steady-state level of a variable
-%   =# (exact_nonlin) - Mark an equation for exact non-linear simulation
+%   =# (exact_nonlin) - Mark equations for equation-selective nonlinear simulations
 %   !ttrend - Linear time trend in deterministic trend equations
 %
 %
@@ -175,5 +175,5 @@
 % effect on the respective measurement variable is linear.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team

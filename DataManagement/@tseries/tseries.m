@@ -1,5 +1,8 @@
 % Time Series (tseries Objects)
 %
+% Description
+% ------------
+%
 % Time series (tseries) are numeric arrays with their first dimension
 % (rows) dated using the DateWrapper class. The DateWrapper class
 % implements dates of fixed calendar frequency: early, half-yearly,
@@ -11,6 +14,10 @@
 %
 % tseries methods:
 %
+%
+% Categorical List 
+% -----------------
+%
 % __Constructors__
 %
 %   tseries - Create new time series (tseries) object
@@ -18,15 +25,15 @@
 %   tseries.empty - Create empty time series or empty an existing time series
 %
 %
-% __Time Series Properties Directly Accessible__
+% __Properties Directly Accessible__
 %
-%   Data - Numeric array of time series data
-%   Start - Date of first observation available 
+%   Data - -  Numeric array of time series data
+%   Start - -  Date of first observation available 
 %   End - tseries/Enda property
 %   Range - tseries/Rangea property
 %   Frequency - tseries/Frequencya property
-%   MissingValue - Representation of missing value
-%   MissingTest - Function to test for missing values
+%   MissingValue - -  Representation of missing value
+%   MissingTest - Test for missing values
 %
 %
 % __Getting Information about Time Series__
@@ -59,7 +66,7 @@
 %   fft - Discrete Fourier transform of tseries object
 %   llf - Local level filter (random walk plus white noise) with tunes
 %   llf2 - Swap output arguments of the local linear trend filter with tunes
-%   moving - Apply function to moving window of observations
+%   moving - Apply function to moving window of time series observations
 %   trend - Estimate time trend in time series data
 %   x12 - Access to X13-ARIMA-SEATS seasonal adjustment program
 %
@@ -88,7 +95,7 @@
 %   plotpred - Visualize multi-step-ahead predictions
 %   plotyy - Line plot function with LHS and RHS axes for time series
 %   scatter - Scatter graph for tseries objects
-%   spy - Visualize tseries observations that pass a test
+%   spy - Visualise tseries observations that pass a test
 %   stem - Plot tseries as discrete sequence data
 %
 %
@@ -101,7 +108,7 @@
 %   repmat - Repeat copies of time series data
 %   redate - Change time dimension of time series
 %   reshape - Reshape size of time series in 2nd and higher dimensions
-%   resize - Clip tseries object down to a specified date range
+%   resize - Clip tseries object to specified date range
 %   sort - Sort tseries columns by specified criterion
 %
 %
@@ -119,21 +126,21 @@
 %   apct - Annualized percent rate of change
 %   bsxfun - Implement bsxfun for tseries class
 %   cumsumk - Cumulative sum with a k-period leap
-%   destdize - Destandardize tseries object by applying specified standard deviation and mean to it
+%   destdize - Destandardize time series by multiplying it by std dev and adding mean
 %   diff - First difference
 %   interp - Interpolate missing observations
-%   normalize - Normalize (or rebase) data to particular date
+%   normalize - Normalise (or rebase) data to particular date
 %   pct - Percent rate of change
 %   round - Round tseries values to specified number of decimals
 %   rmse - Compute RMSE for given observations and predictions
-%   standardize - Standardize tseries data by subtracting mean and dividing by std deviation
+%   stdize - Standardize tseries data by subtracting mean and dividing by std deviation
 %   windex - Simple weighted or Divisia index
 %   wmean - Weighted average of time series observations
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
         tseries < TimeSubscriptable & shared.GetterSetter & shared.UserDataContainer 
@@ -362,7 +369,14 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = llf2(varargin)
         varargout = moving(varargin)
         varargout = ndims(varargin)
-        varargout = normalise(varargin)
+
+
+        varargout = normalize(varargin)
+        function varargout = normalise(varargin)
+            [varargout{1:nargout}] = normalize(varargin{:});
+        end
+
+
         varargout = pct(varargin)
         varargout = pctmean(varargin)
         varargout = permute(varargin)
@@ -444,7 +458,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
         varargout = implementGet(varargin)
         varargout = maxabs(varargin)
-        varargout = normalize(varargin)
         varargout = rearrangePred(varargin)
         varargout = resetColumnNames(varargin)
         varargout = rangedata(varargin)

@@ -1,5 +1,5 @@
 function this = linearTrend(range, step, varargin)
-% linearTrend  Create time series with linear trend.
+% linearTrend  Create time series with linear trend
 %
 % __Syntax__
 %
@@ -33,15 +33,15 @@ function this = linearTrend(range, step, varargin)
 
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('tseries/linearTrend');
-    INPUT_PARSER.addRequired('Range', @DateWrapper.validateProperRangeInput);
-    INPUT_PARSER.addRequired('Step', @(x) isnumeric(x) && size(x, 1)==1);
-    INPUT_PARSER.addOptional('Start', 0, @(x) isnumeric(x) && size(x, 1)==1);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries/linearTrend');
+    inputParser.addRequired('Range', @DateWrapper.validateProperRangeInput);
+    inputParser.addRequired('Step', @(x) isnumeric(x) && size(x, 1)==1);
+    inputParser.addOptional('Start', 0, @(x) isnumeric(x) && size(x, 1)==1);
 end
-INPUT_PARSER.parse(range, step, varargin{:});
-start = INPUT_PARSER.Results.Start;
+inputParser.parse(range, step, varargin{:});
+start = inputParser.Results.Start;
 if ~isa(range, 'DateWrapper')
     range = DateWrapper(range);
 end

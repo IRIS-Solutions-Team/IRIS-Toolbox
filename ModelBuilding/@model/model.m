@@ -2,6 +2,7 @@
 %
 % This section describes the `Model` class of objects.
 %
+%
 % Description
 % ------------
 %
@@ -12,11 +13,11 @@
 % assign or estimate model parameters, run model simulations, calculate its
 % stochastic properties, etc.
 %
-%
 % model methods:
 %
-% Functions by Category
-% ----------------------
+%
+% Categorical List 
+% -----------------
 %
 % __Constructor__
 %
@@ -113,7 +114,7 @@
 %   ffrf - Filter frequency response function of transition variables to measurement variables
 %   fmse - Forecast mean square error matrices
 %   vma - Vector moving average representation of the model
-%   xsf - Power spectrum and spectral density of model variables
+%   xsf - Power spectrum and spectral density for model variables
 %
 %
 % __Identification, Estimation and Filtering__

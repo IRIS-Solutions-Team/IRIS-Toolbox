@@ -1,12 +1,13 @@
-% varobj  Superclass for VAR based model objects.
+% varobj  Superclass for VAR based model objects
 %
-% Backend IRIS class.
-% No help provided.
+% Backend IRIS class
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-classdef varobj < shared.UserDataContainer & shared.GetterSetter
+classdef (CaseInsensitiveProperties=true) ...
+    varobj < shared.UserDataContainer & shared.GetterSetter
     properties
         % YNames  Names of endogenous variables
         YNames = cell.empty(1, 0) 
@@ -23,10 +24,10 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
         % IEqtn  Expressions for conditioning variables
         IEqtn = cell.empty(1, 0) 
 
-        % A  Transition matrices
+        % A  Transition matrices with higher orders concatenated horizontally
         A = double.empty(0) 
 
-        % K  Constant vector
+        % K  Vector of intercepts (constant terms)
         K = double.empty(0, 1)
 
         T = double.empty(0) % Schur quasitriangular matrix
@@ -38,15 +39,22 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
         % X0  Asymptotic mean assumption for exogenous variables
         X0 = zeros(0, 1)
 
-        % J  Coefficient matrix for exogenous variables
+        % J  Impact matrix of exogenous variables
         J = zeros(0)
 
-        Omega = double.empty(0) % Covariance matrix of reduced-form residuals
+        % Omega  Covariance matrix of reduced-form forecast errors
+        Omega = double.empty(0) 
+
         EigVal = double.empty(1, 0) % Eigenvalues
-        EigenStability = int8.empty(1, 0) % Stability of eigenvalues
+
+        % EigenStability  Stability indicator for each eigenvalue
+        EigenStability = int8.empty(1, 0) 
         
-        Range = double.empty(1, 0) % Estimation range
-        IxFitted = logical.empty(1, 0) % Index of periods actually fitted
+        % Range  Estimation range entered by user
+        Range = double.empty(1, 0) 
+
+        % IxFitted  Logical index of dates in estimation range acutally fitted
+        IxFitted = logical.empty(1, 0) 
         
         GroupNames = cell.empty(1, 0) % Groups in panel objects
 
@@ -56,20 +64,49 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
 
     properties (Dependent)
         NumVariants
+
+        % EigenValues  Eigenvalues of VAR transition matrix
         EigenValues
+        
+        % AllNames  List of all names in VAR: endogenous, errors, exogenous, conditioning, reporting
         AllNames
+
+        % NamesEndogenous  Names of endogenous variables
         NamesEndogenous
+
+        % NamesErrors  Names of errors
         NamesErrors
+
+        % NamesExogenous  Names of exogenous variables
         NamesExogenous
+
+        % NamesConditioning  Names of conditioning instruments
         NamesConditioning
+
+        % NamesGroups  Names of groups in panel VARs
         NamesGroups
+
         NamesReporting
+
+        % NumEndogenous  Number of endogenous variables
         NumEndogenous
+        
+        % NumErrors  Number of errors
         NumErrors
+
+        % NumExogenous  Number of exogenous variables
         NumExogenous
+
+        % NumConditioning  Number of conditioning instruments
         NumConditioning
+
+        % NumGroups  Number of groups in panel VARs
         NumGroups
+
         NumReporting
+        
+        % IndexFitted  Logical index of dates in estimation range acutally fitted
+        IndexFitted = logical.empty(1, 0) 
     end
 
 
@@ -282,6 +319,11 @@ classdef varobj < shared.UserDataContainer & shared.GetterSetter
 
         function num = get.NumGroups(this)
             num = numel(this.GroupNames);
+        end
+
+
+        function index = get.IndexFitted(this)
+            index = this.IxFitted;
         end
 
 

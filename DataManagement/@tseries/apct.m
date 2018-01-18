@@ -4,7 +4,7 @@ function this = apct(this, varargin)
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
-
+%
 %     X = apct(X, ~Shift)
 %
 %

@@ -1,93 +1,152 @@
-% VAR  Vector Autoregressions (VAR Objects).
+% VAR  Vector Autoregressions
+%
+% This section describes the `VAR` class of objects.
+%
+% Description
+% ------------
 %
 % VAR objects can be constructed as plain VARs or simple panel VARs (with
 % fixed effect), and estimated without or with prior dummy observations
-% (quasi-bayesian VARs). VAR objects are reduced-form models; they are also
+% (quasi-bayesian VARs). VAR objects are reduced-form models but they are also
 % the point of departure for identifying structural VARs
-% ([`SVAR`](SVAR/Contents) objects).
+% ([`SVAR`](SVAR/index.html) objects).
+%
+% VAR models in IRIS have the following form:
+%
+% \[
+% y_t = \sum_{k=1}^{p} A_k\, y_{t-k} + K + J g_t + \epsilon_t
+% \]
+%
+% where
+%
+% * \(y_t\) is an \(n\)-by-1 vector of endogenous variables;
+% * \(A_k\) are transition matrices at lags 1, ..., k;
+% * \(K\) is a vector of intercepts;
+% * \(g_t\) is a vector of exogenous variables;
+% * \(J\) is the impact matrix of exogenous variables;
+% * \(\epsilon_t\) is a vector of forecast (reduced-form) errors, with
+% \(\Omega=\mathrm{E}[\epsilon_t \epsilon_t']\).
+%
 %
 % VAR methods:
 %
+%
+% Categorical List 
+% -----------------
+%
 % __Constructor__
 %
-% * [`VAR`](VAR/VAR) - Create new empty reduced-form VAR object.
+%   VAR - Create new empty reduced-form VAR object
+%
+%
+% __Properties Directly Accessible__
+%
+%   A - Transition matrices with higher orders concatenated horizontally
+%   K - Vector of intercepts (constant terms)
+%   J - Impact matrix of exogenous variables
+%   Omega - Covariance matrix of forecast errors
+%   Sigma - Covariance matrix of parameter estimates
+%   AIC - Akaike information criterion
+%   SBC - Schwarz bayesian criterion
+%   EigenValues - Eigenvalues of VAR transition matrix
+%   EigenStability - Stability indicator for each eigenvalue
+%   Range - Estimation range entered by user
+%   IndexFitted - Logical index of dates in estimation range acutally fitted
+%   NamesEndogenous - Names of endogenous variables
+%   NamesErrors - Names of errors
+%   NamesExogenous - Names of exogenous variables
+%   NamesGroups - Names of groups in panel VARs
+%   NamesConditioning - Names of conditioning instruments
+%   NumEndogenous - Number of endogenous variables
+%   NumErrors - Number of errors
+%   NumExogenous - Number of exogenous variables
+%   NumGroups - Number of groups in panel VARs
+%   NumConditioning - Number of conditioning instruments
 %
 %
 % __Getting Information about VAR Objects__
 %
-% * [`addToDatabank`](VAR/addToDatabank) - Add VAR parameters to a database (struct).
-% * [`comment`](VAR/comment) - Get or set user comments in an IRIS object.
-% * [`companion`](VAR/companion) - Matrices of first-order companion VAR.
-% * [`eig`](VAR/eig) - Eigenvalues of a VAR process.
-% * [`fprintf`](VAR/fprintf) - Write VAR model as formatted model code to text file.
-% * [`get`](VAR/get) - Query VAR object properties.
-% * [`iscompatible`](VAR/iscompatible) - True if two VAR objects can occur together on the LHS and RHS in an assignment.
-% * [`isexplosive`](VAR/isexplosive) - True if any eigenvalue is outside unit circle.
-% * [`ispanel`](VAR/ispanel) - True for panel VAR objects.
-% * [`isstationary`](VAR/isstationary) - True if all eigenvalues are within unit circle.
-% * [`length`](VAR/length) - Number of alternative parameterisations in VAR object.
-% * [`mean`](VAR/mean) - Mean of VAR process.
-% * [`nfitted`](VAR/nfitted) - Number of data points fitted in VAR estimation.
-% * [`rngcmp`](VAR/rngcmp) - True if two VAR objects have been estimated using the same dates.
-% * [`sprintf`](VAR/sprintf) - Print VAR model as formatted model code.
-% * [`sspace`](VAR/sspace) - Quasi-triangular state-space representation of VAR.
-% * [`userdata`](VAR/userdata) - Get or set user data in an IRIS object.
+%   addToDatabank - Add VAR parameters to databank or create new databank
+%   comment - Get or set user comments in an IRIS object
+%   companion - Matrices of first-order companion VAR
+%   eig - Eigenvalues of a VAR process
+%   fprintf - Write VAR model as formatted model code to text file
+%   get - Query VAR object properties
+%   iscompatible - True if two VAR objects can occur together on the LHS and RHS in an assignment
+%   isexplosive - True if any eigenvalue is outside unit circle
+%   ispanel - True for panel VAR objects
+%   isstationary - True if all eigenvalues are within unit circle
+%   length - Number of parameter variants in VAR object
+%   mean - Asymptotic mean of VAR process
+%   nfitted - Number of data points fitted in VAR estimation
+%   rngcmp - True if two VAR objects have been estimated using the same dates
+%   sprintf - Print VAR model as formatted model code
+%   sspace - Quasi-triangular state-space representation of VAR
+%   userdata - Get or set user data in an IRIS object
 %
 %
 % __Referencing VAR Objects__
 %
-% * [`group`](VAR/group) - Retrieve VAR object from panel VAR for specified group of data.
-% * [`subsasgn`](VAR/subsasgn) - Subscripted assignment for VAR objects.
-% * [`subsref`](VAR/subsref) - Subscripted reference for VAR objects.
+%   group - Retrieve VAR object from panel VAR for specified group of data
+%   subsasgn - Subscripted assignment for VAR objects
+%   subsref - Subscripted reference for VAR objects
 %
 %
 % __Simulation, Forecasting and Filtering__
 %
-% * [`ferf`](VAR/ferf) - Forecast error response function.
-% * [`filter`](VAR/filter) - Filter data using a VAR model.
-% * [`forecast`](VAR/forecast) - Unconditional or conditional VAR forecasts.
-% * [`instrument`](VAR/instrument) - Define forecast conditioning instruments in VAR models.
-% * [`resample`](VAR/resample) - Resample from a VAR object.
-% * [`simulate`](VAR/simulate) - Simulate VAR model.
+%   ferf - Forecast error response function
+%   filter - Filter data using a VAR model
+%   forecast - Unconditional or conditional VAR forecasts
+%   instrument - Define forecast conditioning instruments in VAR models
+%   resample - Resample from a VAR object
+%   simulate - Simulate VAR model
 %
 %
 % __Manipulating VARs__
 %
-% * [`assign`](VAR/assign) - Manually assign system matrices to VAR object.
-% * [`alter`](VAR/alter) - Expand or reduce the number of alternative parameterisations within a VAR object.
-% * [`backward`](VAR/backward) - Backward VAR process.
-% * [`demean`](VAR/demean) - Remove constant and the effect of exogenous inputs from VAR object.
-% * [`horzcat`](VAR/horzcat) - Combine two compatible VAR objects in one object with multiple parameterisations.
-% * [`integrate`](VAR/integrate) - Integrate VAR process and data associated with it.
-% * [`xasymptote`](VAR/xasymptote) - Set or get asymptotic assumptions for exogenous inputs.
+%   assign - Manually assign system matrices to VAR object
+%   alter - Expand or reduce the number of alternative parameterisations within a VAR object
+%   backward - Backward VAR process
+%   demean - Remove constant and the effect of exogenous inputs from VAR object
+%   horzcat - Combine two compatible VAR objects in one object with multiple parameterisations
+%   integrate - Integrate VAR process and data associated with it
+%   xasymptote - Set or get asymptotic assumptions for exogenous inputs
 %
 %
 % __Stochastic Properties__
 %
-% * [`acf`](VAR/acf) - Autocovariance and autocorrelation functions for VAR variables.
-% * [`fmse`](VAR/fmse) - Forecast mean square error matrices.
-% * [`vma`](VAR/vma) - Matrices describing the VMA representation of a VAR process.
-% * [`xsf`](VAR/xsf) - Power spectrum and spectral density functions for VAR variables.
+%   acf - Autocovariance and autocorrelation functions for VAR variables
+%   fmse - Forecast mean square error matrices
+%   vma - Matrices describing the VMA representation of a VAR process
+%   xsf - Power spectrum and spectral density functions for VAR variables
 %
 %
 % __Estimation, Identification, and Statistical Tests__
 %
-% * [`estimate`](VAR/estimate) - Estimate a reduced-form VAR or BVAR.
-% * [`infocrit`](VAR/infocrit) - Populate information criteria for a parameterised VAR.
-% * [`lrtest`](VAR/lrtest) - Likelihood ratio test for VAR models.
-% * [`portest`](VAR/portest) - Portmanteau test for autocorrelation in VAR residuals.
-% * [`schur`](VAR/schur) - Compute and store triangular representation of VAR.
+%   estimate - Estimate a reduced-form VAR or BVAR
+%   infocrit - Populate information criteria for a parameterised VAR
+%   lrtest - Likelihood ratio test for VAR models
+%   portest - Portmanteau test for autocorrelation in VAR residuals
+%   schur - Compute and store triangular representation of VAR
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
     
-classdef VAR < varobj & model.Data
+classdef (CaseInsensitiveProperties=true) ...
+    VAR < varobj & model.Data
     properties
         G = [ ] % Coefficients at cointegrating vector in VEC form.
-        Sigma = [ ] % Cov of parameters.
-        Aic = [ ] % Akaike info criterion.
-        Sbc = [ ] % Schwartz bayesian criterion.
+
+        % Sigma  Covariance matrix of parameter estimates
+        Sigma = double(0)
+
+        % Aic  Akaike information criterion
+        AIC = double.empty(1, 0)
+
+        % SBC  Schwarz bayesian criterion
+        SBC = double.empty(1, 0)
+
         Rr = [ ] % Parameter restrictions.
         NHyper = NaN % Number of estimated hyperparameters.
     end
