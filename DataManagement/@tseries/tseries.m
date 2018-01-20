@@ -1,5 +1,8 @@
 % Time Series (tseries Objects)
 %
+% This section describes the `tseries` class of objects.
+%
+%
 % Description
 % ------------
 %
@@ -21,8 +24,12 @@
 % __Constructors__
 %
 %   tseries - Create new time series (tseries) object
-%   tseries.linearTrend - Create time series with linear trend
-%   tseries.empty - Create empty time series or empty an existing time series
+%
+% The following are static constructors and need to be called with
+% `tseries.` preceding their names.
+%
+%   linearTrend - Create time series with linear trend
+%   empty - Create empty time series or empty an existing time series
 %
 %
 % __Properties Directly Accessible__
