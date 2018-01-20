@@ -31,12 +31,12 @@
 %
 % __Constructor__
 %
-%   DFM - Create new empty dynamic factor model
+%   DFM - Create new empty DFM object
 %
 %
 % __Properties Directly Accessible__
 %
-%   A - Transition matrices in factor VAR with higher orders concatenated horizontally
+%   A - Transition matrices with higher orders concatenated horizontally
 %   K - Vector of intercepts (constant terms)
 %   B - Impact matrix of orthonormalized errors in factor VAR
 %   C - Factor loading matrix

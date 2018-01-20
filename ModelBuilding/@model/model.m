@@ -653,47 +653,47 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             % -IRIS Macroeconomic Modeling Toolbox.
             % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-            persistent INPUT_PARSER OPTIMAL_OPTIONS PARSER_OPTIONS
-            if isempty(INPUT_PARSER)
-                INPUT_PARSER = extend.InputParser('model.model');
-                INPUT_PARSER.KeepUnmatched = true;
-                INPUT_PARSER.PartialMatching = false;
-                INPUT_PARSER.addParameter('addlead', false, @(x) isequal(x, true) || isequal(x, false));
-                INPUT_PARSER.addParameter('Assign', [ ], @(x) isempty(x) || isstruct(x));
-                INPUT_PARSER.addParameter('chksyntax', true, @(x) isequal(x, true) || isequal(x, false));
-                INPUT_PARSER.addParameter('comment', '', @ischar);
-                INPUT_PARSER.addParameter('Growth', false, @(x) isequal(x, true) || isequal(x, false));
-                INPUT_PARSER.addParameter('optimal', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
-                INPUT_PARSER.addParameter('epsilon', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0 && x<1));
-                INPUT_PARSER.addParameter({'removeleads', 'removelead'}, false, @(x) isequal(x, true) || isequal(x, false));
-                INPUT_PARSER.addParameter('Linear', false, @(x) isequal(x, true) || isequal(x, false));
-                INPUT_PARSER.addParameter('makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
-                INPUT_PARSER.addParameter('OrderLinks', true, @(x) isequal(x, true) || isequal(x, false));
-                INPUT_PARSER.addParameter({'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
-                INPUT_PARSER.addParameter('Refresh', true, @(x) isequal(x, true) || isequal(x, false));
-                INPUT_PARSER.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
-                INPUT_PARSER.addParameter('saveas', '', @ischar);
-                INPUT_PARSER.addParameter({'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
-                INPUT_PARSER.addParameter('std', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
-                INPUT_PARSER.addParameter('stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
-                INPUT_PARSER.addParameter('stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
-                INPUT_PARSER.addParameter({'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
+            persistent inputParser optimalParser parserParser
+            if isempty(inputParser)
+                inputParser = extend.InputParser('model.model');
+                inputParser.KeepUnmatched = true;
+                inputParser.PartialMatching = false;
+                inputParser.addParameter('addlead', false, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter('Assign', [ ], @(x) isempty(x) || isstruct(x));
+                inputParser.addParameter('chksyntax', true, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter('comment', '', @ischar);
+                inputParser.addParameter('Growth', false, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter('optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
+                inputParser.addParameter('epsilon', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0 && x<1));
+                inputParser.addParameter({'removeleads', 'removelead'}, false, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter('Linear', false, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter('makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
+                inputParser.addParameter('OrderLinks', true, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter({'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
+                inputParser.addParameter('Refresh', true, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter('saveas', '', @ischar);
+                inputParser.addParameter({'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
+                inputParser.addParameter('std', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
+                inputParser.addParameter('stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
+                inputParser.addParameter('stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
+                inputParser.addParameter({'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
             end
-            if isempty(PARSER_OPTIONS)
-                PARSER_OPTIONS = extend.InputParser('model.model');
-                PARSER_OPTIONS.KeepUnmatched = true;
-                PARSER_OPTIONS.PartialMatching = false;
-                PARSER_OPTIONS.addParameter('AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
-                PARSER_OPTIONS.addParameter({'SteadyOnly', 'SstateOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
-                PARSER_OPTIONS.addParameter({'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
+            if isempty(parserParser)
+                parserParser = extend.InputParser('model.model');
+                parserParser.KeepUnmatched = true;
+                parserParser.PartialMatching = false;
+                parserParser.addParameter('AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
+                parserParser.addParameter({'SteadyOnly', 'SstateOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
+                parserParser.addParameter({'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
             end
-            if isempty(OPTIMAL_OPTIONS)
-                OPTIMAL_OPTIONS = extend.InputParser('model.model');
-                OPTIMAL_OPTIONS.KeepUnmatched = true;
-                OPTIMAL_OPTIONS.PartialMatching = false;
-                OPTIMAL_OPTIONS.addParameter('multiplierprefix', 'Mu_', @ischar);
-                OPTIMAL_OPTIONS.addParameter('nonnegative', cell.empty(1, 0), @(x) isempty(x) || ( ischar(x) && isvarname(x) ));
-                OPTIMAL_OPTIONS.addParameter('type', 'discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
+            if isempty(optimalParser)
+                optimalParser = extend.InputParser('model.model');
+                optimalParser.KeepUnmatched = true;
+                optimalParser.PartialMatching = false;
+                optimalParser.addParameter('multiplierprefix', 'Mu_', @ischar);
+                optimalParser.addParameter('nonnegative', cell.empty(1, 0), @(x) isempty(x) || ( ischar(x) && isvarname(x) ));
+                optimalParser.addParameter('type', 'discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
             end
                 
             %--------------------------------------------------------------------------
@@ -730,13 +730,17 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             
             
             function [opt, parserOpt, optimalOpt] = processOptions( )
-                INPUT_PARSER.parse(varargin{:});
-                opt = INPUT_PARSER.Options;
-                PARSER_OPTIONS.parse(INPUT_PARSER.UnmatchedInCell{:});
-                parserOpt = PARSER_OPTIONS.Options;
-                OPTIMAL_OPTIONS.parse(PARSER_OPTIONS.UnmatchedInCell{:});
-                optimalOpt = OPTIMAL_OPTIONS.Options;
-                unmatched = OPTIMAL_OPTIONS.UnmatchedInCell;
+                inputParser.parse(varargin{:});
+                opt = inputParser.Options;
+                % Optimal policy options
+                optimalParser.parse(opt.optimal{:});
+                optimalOpt = optimalParser.Options;
+                disp(optimalOpt.type);
+                % IRIS parser options
+                parserParser.parse(inputParser.UnmatchedInCell{:});
+                parserOpt = parserParser.Options;
+                % Control parameters
+                unmatched = parserParser.UnmatchedInCell;
                 if ~isstruct(opt.Assign)
                     % Default for Assign= is an empty array
                     opt.Assign = struct( );

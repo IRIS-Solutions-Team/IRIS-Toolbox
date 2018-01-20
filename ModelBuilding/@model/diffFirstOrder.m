@@ -48,11 +48,11 @@ if any(eqSelect)
     
     if any(ixSymb)
         % Symbolic derivatives.
-        calcSymbDeriv( );
+        symbDeriv( );
     end
     if any(ixNum)
         % Numerical derivatives.
-        calcNumDeriv( );
+        numDeriv( );
     end
     
     % Reset the add-factors in nonlinear equations to 1.
@@ -75,8 +75,7 @@ end
 return
 
 
-
-    function calcNumDeriv( )
+    function numDeriv( )
         minT = 1 - sh0;
         maxT = nsh - sh0;
         tVec = minT : maxT;
@@ -155,8 +154,7 @@ return
     end
 
     
-    
-    function calcSymbDeriv( )
+    function symbDeriv( )
         if this.IsLinear
             x = zeros(nName, 1);
             x(ixLog) = 1;
