@@ -5,12 +5,15 @@
 %
 % __Constructors__
 %
-%   distribution.InvGamma.fromShapeScale - Inverse Gamma distribution from shape and scale parameters
-%   distribution.InvGamma.fromAlphaBeta - Inverse Gamma distribution from alpha and beta parameters of underlying Gamma distribution
-%   distribution.InvGamma.fromMeanVar - Inverse Gamma distribution from mean and variance
-%   distribution.InvGamma.fromMeanStd - Inverse Gamma distribution from mean and std deviation
-%   distribution.InvGamma.fromModeVar - Inverse Gamma distribution from mode and variance
-%   distribution.InvGamma.fromModeStd - Inverse Gamma distribution from mode and std deviation
+% The following are static constructors and need to be called with
+% `distribution.InvGamma.` preceding their names.
+%
+%   fromShapeScale - Inverse Gamma distribution from shape and scale parameters
+%   fromAlphaBeta - Inverse Gamma distribution from alpha and beta parameters of underlying Gamma distribution
+%   fromMeanVar - Inverse Gamma distribution from mean and variance
+%   fromMeanStd - Inverse Gamma distribution from mean and std deviation
+%   fromModeVar - Inverse Gamma distribution from mode and variance
+%   fromModeStd - Inverse Gamma distribution from mode and std deviation
 %
 %
 % __Distribution Properties__
@@ -145,7 +148,7 @@ classdef InvGamma < distribution.Abstract
 
     methods (Static)
         function this = fromShapeScale(varargin)
-            % distribution.InvGamma.fromShapeScale  Inverse Gamma distribution from shape and scale parameters
+            % fromShapeScale  Inverse Gamma distribution from shape and scale parameters
             this = distribution.InvGamma( );
             [this.Shape, this.Scale] = varargin{1:2};
             this.Alpha = this.Shape;
@@ -155,7 +158,7 @@ classdef InvGamma < distribution.Abstract
 
 
         function this = fromAlphaBeta(varargin)
-            % distribution.InvGamma.fromAlphaBeta  Inverse Gamma distribution from alpha and beta parameters of underlying Gamma distribution
+            % fromAlphaBeta  Inverse Gamma distribution from alpha and beta parameters of underlying Gamma distribution
             this = distribution.InvGamma( );
             [this.Alpha, this.Beta] = varargin{1:2};
             populateParameters(this);
@@ -163,7 +166,7 @@ classdef InvGamma < distribution.Abstract
 
 
         function this = fromMeanVar(varargin)
-            % distribution.InvGamma.fromMeanVar  Inverse Gamma distribution from mean and variance
+            % fromMeanVar  Inverse Gamma distribution from mean and variance
             this = distribution.InvGamma( );
             [this.Mean, this.Var] = varargin{1:2};
             alphaBetaFromMeanVar(this);
@@ -172,7 +175,7 @@ classdef InvGamma < distribution.Abstract
 
 
         function this = fromMeanStd(varargin)
-            % distribution.InvGamma.fromMeanStd  Inverse Gamma distribution from mean and std deviation
+            % fromMeanStd  Inverse Gamma distribution from mean and std deviation
             this = distribution.InvGamma( );
             [this.Mean, this.Std] = varargin{1:2};
             this.Var = this.Std^2;
@@ -182,7 +185,7 @@ classdef InvGamma < distribution.Abstract
 
 
         function this = fromModeVar(varargin)
-            % distribution.InvGamma.fromModeVar  Inverse Gamma distribution from mode and variance
+            % fromModeVar  Inverse Gamma distribution from mode and variance
             this = distribution.InvGamma( );
             [this.Mode, this.Var] = varargin{1:2};
             alphaBetaFromModeVar(this);
@@ -191,7 +194,7 @@ classdef InvGamma < distribution.Abstract
 
 
         function this = fromModeStd(varargin)
-            % distribution.InvGamma.fromModeStd  Inverse Gamma distribution from mode and std deviation
+            % fromModeStd  Inverse Gamma distribution from mode and std deviation
             this = distribution.InvGamma( );
             [this.Mode, this.Std] = varargin{1:2};
             this.Var = this.Std^2;

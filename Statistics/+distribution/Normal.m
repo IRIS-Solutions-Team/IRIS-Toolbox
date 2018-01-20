@@ -5,13 +5,16 @@
 %
 % __Constructors__
 %
-%   distribution.Normal.standardized - Standarized Normal distribution
-%   distribution.Normal.fromMeanVar - Normal distribution from mean and variance
-%   distribution.Normal.fromMeanStd - Normal distribution from mean and std deviation
-%   distribution.Normal.fromMedianVar - Normal distribution from median and variance
-%   distribution.Normal.fromMedianStd - Normal distribution from median and std deviation
-%   distribution.Normal.fromModeVar - Normal distribution from mode and variance
-%   distribution.Normal.fromModeStd - Normal distribution from mode and std deviation
+% The following are static constructors and need to be called with
+% `distribution.Normal.` preceding their names.
+%
+%   standardized - Standardized Normal distribution
+%   fromMeanVar - Normal distribution from mean and variance
+%   fromMeanStd - Normal distribution from mean and std deviation
+%   fromMedianVar - Normal distribution from median and variance
+%   fromMedianStd - Normal distribution from median and std deviation
+%   fromModeVar - Normal distribution from mode and variance
+%   fromModeStd - Normal distribution from mode and std deviation
 %
 %
 % __Distribution Properties__
@@ -98,7 +101,7 @@ classdef Normal < distribution.Abstract
 
     methods (Static)
         function this = standardized( )
-            % distribution.Normal.standardized  Standardized Normal distribution
+            % standardized  Standardized Normal distribution
             this = distribution.Normal( );
             this.Mean = 0;
             this.Var = 1;
@@ -107,7 +110,7 @@ classdef Normal < distribution.Abstract
 
 
         function this = fromMeanVar(varargin)
-            % distribution.Normal.fromMeanVar  Normal distribution from mean and variance
+            % fromMeanVar  Normal distribution from mean and variance
             this = distribution.Normal( );
             [this.Mean, this.Var] = varargin{1:2};
             populateParameters(this);
@@ -115,7 +118,7 @@ classdef Normal < distribution.Abstract
 
 
         function this = fromMeanStd(varargin)
-            % distribution.Normal.fromMeanStd  Normal distribution from mean and std deviation
+            % fromMeanStd  Normal distribution from mean and std deviation
             this = distribution.Normal( );
             [this.Mean, this.Std] = varargin{1:2};
             populateParameters(this);
@@ -123,7 +126,7 @@ classdef Normal < distribution.Abstract
 
 
         function this = fromMedianVar(varargin)
-            % distribution.Normal.fromMedianVar  Normal distribution from median and variance
+            % fromMedianVar  Normal distribution from median and variance
             this = distribution.Normal( );
             [this.Median, this.Var] = varargin{1:2};
             this.Mean = this.Median;
@@ -132,7 +135,7 @@ classdef Normal < distribution.Abstract
 
 
         function this = fromMedianStd(varargin)
-            % distribution.Normal.fromMedianStd  Normal distribution from median and std deviation
+            % fromMedianStd  Normal distribution from median and std deviation
             this = distribution.Normal( );
             [this.Median, this.Std] = varargin{1:2};
             this.Mean = this.Median;
@@ -141,7 +144,7 @@ classdef Normal < distribution.Abstract
 
 
         function this = fromModeVar(varargin)
-            % distribution.Normal.fromModeVar  Normal distribution from mode and variance
+            % fromModeVar  Normal distribution from mode and variance
             this = distribution.Normal( );
             [this.Mode, this.Var] = varargin{1:2};
             this.Mean = this.Mode;
@@ -150,7 +153,7 @@ classdef Normal < distribution.Abstract
 
 
         function this = fromModeStd(varargin)
-            % distribution.Normal.fromModeStd  Normal distribution from mode and std deviation
+            % fromModeStd  Normal distribution from mode and std deviation
             this = distribution.Normal( );
             [this.Mode, this.Std] = varargin{1:2};
             this.Mean = this.Mode;

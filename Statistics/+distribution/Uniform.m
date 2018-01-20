@@ -5,11 +5,14 @@
 %
 % __Constructors__
 %
-%   distribution.Uniform.fromLowerUpper - Uniform distribution from lower and upper bounds
-%   distribution.Uniform.fromMeanVar - Uniform distribution from mean and variance
-%   distribution.Uniform.fromMeanStd - Uniform distribution from mean and std deviation
-%   distribution.Uniform.fromMedianVar - Uniform distribution from median and variance
-%   distribution.Uniform.fromMedianStd - Uniform distribution from median and std deviation
+% The following are static constructors and need to be called with
+% `distribution.Uniform.` preceding their names.
+%
+%   fromLowerUpper - Uniform distribution from lower and upper bounds
+%   fromMeanVar - Uniform distribution from mean and variance
+%   fromMeanStd - Uniform distribution from mean and std deviation
+%   fromMedianVar - Uniform distribution from median and variance
+%   fromMedianStd - Uniform distribution from median and std deviation
 %
 %
 % __Distribution Properties__
@@ -103,7 +106,7 @@ classdef Uniform < distribution.Abstract
 
     methods (Static)
         function this = fromLowerUpper(varargin)
-            % distribution.Uniform.fromLowerUpper  Uniform distribution from lower and upper bounds
+            % fromLowerUpper  Uniform distribution from lower and upper bounds
             this = distribution.Uniform( );
             [this.Lower, this.Upper] = varargin{:};
             populateParameters(this);
@@ -111,7 +114,7 @@ classdef Uniform < distribution.Abstract
 
 
         function this = fromMeanVar(varargin)
-            % distribution.Uniform.fromMeanVar  Uniform distribution from mean and variance
+            % fromMeanVar  Uniform distribution from mean and variance
             this = distribution.Uniform( );
             this = distribution.Uniform( );
             [this.Mean, this.Var] = varargin{1:2};
@@ -121,7 +124,7 @@ classdef Uniform < distribution.Abstract
 
 
         function this = fromMeanStd(varargin)
-            % distribution.Uniform.fromMeanVar  Uniform distribution from mean and std deviation
+            % fromMeanVar  Uniform distribution from mean and std deviation
             if nargin==1
                 this = varargin{1};
             else
@@ -135,7 +138,7 @@ classdef Uniform < distribution.Abstract
 
 
         function fromMedianVar(varargin)
-            % distribution.Uniform.fromMeanVar  Uniform distribution from median and variance
+            % fromMeanVar  Uniform distribution from median and variance
             this = distribution.Uniform( );
             [this.Median, this.Var] = varargin{1:2};
             this.Mean = this.Median;
@@ -145,7 +148,7 @@ classdef Uniform < distribution.Abstract
 
 
         function fromMedianStd(varargin)
-            % distribution.Uniform.fromMeanVar  Uniform distribution from median and std deviation
+            % fromMeanVar  Uniform distribution from median and std deviation
             this = distribution.Uniform( );
             [this.Median, this.Std] = varargin{1:2};
             this.Mean = this.Median;

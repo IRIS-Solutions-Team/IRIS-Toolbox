@@ -5,12 +5,15 @@
 %
 % __Constructors__
 %
-%   distribution.Gamma.fromShapeScale - Gamma distribution from shape and scale parameters
-%   distribution.Gamma.fromAlphaBeta - Gamma distribution from alpha and beta parameters
-%   distribution.Gamma.fromMeanVar - Gamma distribution from mean and variance
-%   distribution.Gamma.fromMeanStd - Gamma distribution from mean and std deviation
-%   distribution.Gamma.fromModeVar - Gamma distribution from mode and variance
-%   distribution.Gamma.fromModeStd - Gamma distribution from mode and std deviation
+% The following are static constructors and need to be called with
+% `distribution.Gamma.` preceding their names.
+%
+%   fromShapeScale - Gamma distribution from shape and scale parameters
+%   fromAlphaBeta - Gamma distribution from alpha and beta parameters
+%   fromMeanVar - Gamma distribution from mean and variance
+%   fromMeanStd - Gamma distribution from mean and std deviation
+%   fromModeVar - Gamma distribution from mode and variance
+%   fromModeStd - Gamma distribution from mode and std deviation
 %
 %
 % __Distribution Properties__
@@ -135,13 +138,13 @@ classdef Gamma < distribution.Abstract
 
     methods (Static)
         function this = fromShapeScale(varargin)
-            % distribution.Gamma.fromShapeScale  Gamma distribution from shape and scale parameters
+            % fromShapeScale  Gamma distribution from shape and scale parameters
             this = distribution.Gamma.fromAlphaBeta(varargin{:});
         end
 
 
         function this = fromAlphaBeta(varargin)
-            % distribution.Gamma.fromAlphaBeta  Gamma distribution from alpha and beta parameters
+            % fromAlphaBeta  Gamma distribution from alpha and beta parameters
             this = distribution.Gamma( );
             [this.Alpha, this.Beta] = varargin{1:2};
             populateParameters(this);
@@ -149,7 +152,7 @@ classdef Gamma < distribution.Abstract
 
 
         function this = fromMeanVar(varargin)
-            % distribution.Gamma.fromMeanVar  Gamma distribution from mean and variance
+            % fromMeanVar  Gamma distribution from mean and variance
             this = distribution.Gamma( );
             [this.Mean, this.Var] = varargin{1:2};
             alphaBetaFromMeanVar(this);
@@ -158,7 +161,7 @@ classdef Gamma < distribution.Abstract
 
 
         function this = fromMeanStd(varargin)
-            % distribution.Gamma.fromMeanStd  Gamma distribution from mean and std deviation
+            % fromMeanStd  Gamma distribution from mean and std deviation
             this = distribution.Gamma( );
             [this.Mean, this.Std] = varargin{1:2};
             this.Var = this.Std.^2;
@@ -168,7 +171,7 @@ classdef Gamma < distribution.Abstract
 
 
         function this = fromModeVar(varargin)
-            % distribution.Gamma.fromModeStd  Gamma distribution from mode and variance
+            % fromModeStd  Gamma distribution from mode and variance
             this = distribution.Gamma( );
             [this.Mode, this.Var] = varargin{1:2};
             alphaBetaFromModeVar(this);
@@ -177,7 +180,7 @@ classdef Gamma < distribution.Abstract
 
 
         function this = fromModeStd(varargin)
-            % distribution.Gamma.fromModeStd  Gamma distribution from mode and std deviation
+            % fromModeStd  Gamma distribution from mode and std deviation
             this = distribution.Gamma( );
             [this.Mode, this.Std] = varargin{1:2};
             this.Var = this.Std^2;

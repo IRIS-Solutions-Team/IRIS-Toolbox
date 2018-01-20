@@ -5,13 +5,17 @@
 %
 % __Constructors__
 %
-%   distribution.Student.standardized - Standardized Student distribution
-%   distribution.Student.fromMeanVar - Student distribution from mean and variance
-%   distribution.Student.fromMeanStd - Student distribution from mean and std deviation
-%   distribution.Student.fromMedianVar - Student distribution from median and variance
-%   distribution.Student.fromMedianStd - Student distribution from median and std deviation
-%   distribution.Student.fromModeVar - Student distribution from mode and variance
-%   distribution.Student.fromModeStd - Student distribution from mode and std deviation
+% The following are static constructors and need to be called with
+% `distribution.Student.` preceding their names.
+%
+%   standardized - Standardized Student distribution
+%   fromLocationScale - 
+%   fromMeanVar - Student distribution from mean and variance
+%   fromMeanStd - Student distribution from mean and std deviation
+%   fromMedianVar - Student distribution from median and variance
+%   fromMedianStd - Student distribution from median and std deviation
+%   fromModeVar - Student distribution from mode and variance
+%   fromModeStd - Student distribution from mode and std deviation
 %
 %
 % __Distribution Properties__
@@ -159,7 +163,7 @@ classdef Student < distribution.Abstract
 
     methods (Static)
         function this = standardized(varargin)
-            % distribution.Student.standardized  Standardized Student distribution
+            % standardized  Standardized Student distribution
             this = distribution.Student( );
             this.DegreesFreedom = varargin{1};
             this.Mu = 0;
@@ -169,7 +173,7 @@ classdef Student < distribution.Abstract
 
 
         function this = fromLocationScale(varargin)
-            % distribution.Student.fromLocaionScale  Student distribution from location and scale parameters
+            % fromLocationScale  Student distribution from location and scale parameters
             this = distribution.Student( );
             this.DegreesFreedom = varargin{1};
             [this.Mu, this.Sigma] = varargin{2:3};
@@ -178,7 +182,7 @@ classdef Student < distribution.Abstract
 
 
         function this = fromMeanVar(varargin)
-            % distribution.Student.fromMeanVar  Student distribution from mean and variance
+            % fromMeanVar  Student distribution from mean and variance
             this = distribution.Student( );
             this.DegreesFreedom = varargin{1};
             [this.Mean, this.Var] = varargin{2:3};
@@ -188,7 +192,7 @@ classdef Student < distribution.Abstract
 
 
         function this = fromMeanStd(varargin)
-            % distribution.Student.fromMeanStd  Student distribution from mean and std deviation
+            % fromMeanStd  Student distribution from mean and std deviation
             this = distribution.Student( );
             this.DegreesFreedom = varargin{1};
             [this.Mean, this.Std] = varargin{2:3};
@@ -199,7 +203,7 @@ classdef Student < distribution.Abstract
 
 
         function this = fromMedianVar(varargin)
-            % distribution.Student.fromMedianVar  Student distribution from median and variance
+            % fromMedianVar  Student distribution from median and variance
             this = distribution.Student( );
             this.DegreesFreedom = varargin{1};
             [this.Median, this.Var] = varargin{2:3};
@@ -210,7 +214,7 @@ classdef Student < distribution.Abstract
 
 
         function this = fromMedianStd(varargin)
-            % distribution.Student.fromMedianStd  Student distribution from median and std deviation
+            % fromMedianStd  Student distribution from median and std deviation
             this.DegreesFreedom = varargin{1};
             [this.Median, this.Std] = varargin{2:3};
             this.Mean = this.Median;
@@ -221,7 +225,7 @@ classdef Student < distribution.Abstract
 
 
         function this = fromModeVar(varargin)
-            % distribution.Student.fromModeVar  Student distribution from mode and variance
+            % fromModeVar  Student distribution from mode and variance
             this = distribution.Student( );
             this.DegreesFreedom = varargin{1};
             [this.Mode, this.Var] = varargin{2:3};
@@ -232,7 +236,7 @@ classdef Student < distribution.Abstract
 
 
         function this = fromModeStd(varargin)
-            % distribution.Student.fromModeStd  Student distribution from mode and std deviation
+            % fromModeStd  Student distribution from mode and std deviation
             this.DegreesFreedom = varargin{1};
             [this.Mode, this.Std] = varargin{2:3};
             this.Mean = this.Mode;

@@ -5,11 +5,14 @@
 %
 % __Constructors__
 %
-%   distribution.Beta.fromABeta - Beta distribution from parameters A and B
-%   distribution.Beta.fromMeanVar - Beta distribution from mean and variance
-%   distribution.Beta.fromMeanStd - Beta distribution from mean and std deviation
-%   distribution.Beta.fromModeVar - Beta distribution from mode and variance
-%   distribution.Beta.fromModeStd - Beta distribution from mode and std deviation
+% The following are static constructors and need to be called with
+% `distribution.Beta.` preceding their names.
+%
+%   fromAB - Beta distribution from parameters A and B
+%   fromMeanVar - Beta distribution from mean and variance
+%   fromMeanStd - Beta distribution from mean and std deviation
+%   fromModeVar - Beta distribution from mode and variance
+%   fromModeStd - Beta distribution from mode and std deviation
 %
 %
 % __Distribution Properties__
@@ -18,7 +21,7 @@
 % followed by a dot and the name of a property.
 %
 %   A - Parameter A of Beta distribution
-%   Beta - Parameter B of Beta distribution
+%   Beta - Beta distribution object
 %   Lower - Lower bound of distribution domain
 %   Upper - Upper bound of distribution domain
 %   Mean - Mean (expected value) of distribution
@@ -142,7 +145,7 @@ classdef Beta < distribution.Abstract
 
     methods (Static)
         function this = fromAB(varargin)
-            % distribution.Beta.fromAB  Beta distribution from parameters A and B
+            % fromAB  Beta distribution from parameters A and B
             this = distribution.Beta( );
             [this.A, this.B] = varargin{1:2};
             populateParameters(this);
@@ -150,7 +153,7 @@ classdef Beta < distribution.Abstract
 
 
         function this = fromMeanVar(varargin)
-            % distribution.Beta.fromMeanVar  Beta distribution from mean and variance
+            % fromMeanVar  Beta distribution from mean and variance
             this = distribution.Beta( );
             [this.Mean, this.Var] = varargin{1:2};
             ABFromMeanVar(this);
@@ -159,7 +162,7 @@ classdef Beta < distribution.Abstract
 
 
         function this = fromMeanStd(varargin)
-            % distribution.Beta.fromMeanStd  Beta distribution from mean and std deviation
+            % fromMeanStd  Beta distribution from mean and std deviation
             this = distribution.Beta( );
             [this.Mean, this.Std] = varargin{1:2};
             this.Var = this.Std.^2;
@@ -169,7 +172,7 @@ classdef Beta < distribution.Abstract
 
 
         function this = fromModeVar(varargin)
-            % distribution.Beta.fromModeVar  Beta distribution from mode and variance
+            % fromModeVar  Beta distribution from mode and variance
             this = distribution.Beta( );
             [this.Mode, this.Var] = varargin{1:2};
             ABFromModeVar(this);
@@ -178,7 +181,7 @@ classdef Beta < distribution.Abstract
 
 
         function fromModeStd(varargin)
-            % distribution.Beta.fromModeStd  Beta distribution from mode and std deviation
+            % fromModeStd  Beta distribution from mode and std deviation
             [this.Mode, this.Std] = varargin{1:2};
             this.Var = this.Std^2;
             ABFromModeVar(this);
