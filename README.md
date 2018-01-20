@@ -50,4 +50,4 @@ Matlab R2017a : <a href="https://teamcity.igpmn.org/viewType.html?buildTypeId=Ir
   <img src="https://teamcity.igpmn.org/app/rest/builds/buildType:(id:IrisToolbox_Linux_R2017a),branch:default:true/statusIcon"/>
 </a>
 
-### Mac OS X
+### macOS
