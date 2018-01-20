@@ -44,7 +44,7 @@
 %   A - Transition matrices with higher orders concatenated horizontally
 %   K - Vector of intercepts (constant terms)
 %   J - Impact matrix of exogenous variables
-%   Omega - Covariance matrix of forecast errors
+%   Omega - Covariance matrix of reduced-form forecast errors
 %   Sigma - Covariance matrix of parameter estimates
 %   AIC - Akaike information criterion
 %   SBC - Schwarz bayesian criterion
