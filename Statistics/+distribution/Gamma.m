@@ -63,6 +63,7 @@ classdef Gamma < distribution.Abstract
 
     properties (SetAccess=protected, Hidden)
         Constant = NaN    % Integration constant
+        LogConstant = NaN % Log of integration constant
     end
 
 
@@ -89,7 +90,8 @@ classdef Gamma < distribution.Abstract
             y = zeros(size(x));
             indexInDomain = inDomain(this, x);
             x = x(indexInDomain);
-            y(indexInDomain) = x.^(this.Alpha-1).*exp(-x/this.Beta) * this.Constant;
+            % y(indexInDomain) = x.^(this.Alpha-1).*exp(-x/this.Beta) * this.Constant;
+            y(indexInDomain) = exp( logPdf(this, x) + this.LogConstant );
         end
 
 
@@ -118,6 +120,7 @@ classdef Gamma < distribution.Abstract
             end
             this.Shape = this.Alpha;
             this.Scale = this.Beta;
+            this.LogConstant = -(this.Alpha*log(this.Beta) + gammaln(this.Alpha));
             this.Constant = 1./(this.Beta^this.Alpha * gamma(this.Alpha));
         end
 

@@ -79,27 +79,27 @@ for i = 1 : numel(range)
     end
 end
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('visual.highlight');
-    INPUT_PARSER.KeepUnmatched = true;
-    INPUT_PARSER.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
-    INPUT_PARSER.addRequired('Range', @(x) all(cellfun(@(y) isa(y, 'DateWrapper') || isnumeric(y), x)));
-    INPUT_PARSER.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
-    INPUT_PARSER.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
-    INPUT_PARSER.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
-    INPUT_PARSER.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
-    INPUT_PARSER.addParameter('Transparent', 0, @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1 );
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('visual.highlight');
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
+    inputParser.addRequired('Range', @(x) all(cellfun(@(y) isa(y, 'DateWrapper') || isnumeric(y), x)));
+    inputParser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
+    inputParser.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
+    inputParser.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
+    inputParser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
+    inputParser.addParameter('Transparent', 0, @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1 );
 
     % Legacy options
-    INPUT_PARSER.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
-    INPUT_PARSER.addParameter('VPosition', '');
-    INPUT_PARSER.addParameter('HPosition', '');
+    inputParser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
+    inputParser.addParameter('VPosition', '');
+    inputParser.addParameter('HPosition', '');
 end
-INPUT_PARSER.parse(axesHandle, range, varargin{:});
-opt = INPUT_PARSER.Options;
-unmatched = INPUT_PARSER.UnmatchedInCell;
-usingDefaults = INPUT_PARSER.UsingDefaultsInStruct;
+inputParser.parse(axesHandle, range, varargin{:});
+opt = inputParser.Options;
+unmatched = inputParser.UnmatchedInCell;
+usingDefaults = inputParser.UsingDefaultsInStruct;
 
 if isequal(axesHandle, @gca)
     axesHandle = gca( );
