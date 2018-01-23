@@ -735,7 +735,6 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
                 % Optimal policy options
                 optimalParser.parse(opt.optimal{:});
                 optimalOpt = optimalParser.Options;
-                disp(optimalOpt.type);
                 % IRIS parser options
                 parserParser.parse(inputParser.UnmatchedInCell{:});
                 parserOpt = parserParser.Options;

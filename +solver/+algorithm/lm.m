@@ -1,8 +1,8 @@
 function [x, numericExitFlag] = lm(objectiveFunc, xInit, opt)
 % lm  Variant of Levenberg-Marquardt function solver algorithm
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.

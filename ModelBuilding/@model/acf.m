@@ -108,22 +108,22 @@ function varargout = acf(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model.acf');
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addParameter('NFreq', 256, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
-    INPUT_PARSER.addParameter({'Contributions', 'Contribution'}, false, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('Order', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    INPUT_PARSER.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
-    INPUT_PARSER.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
-    INPUT_PARSER.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
-    INPUT_PARSER.addParameter('Filter', '', @ischar);
-    INPUT_PARSER.addParameter('SystemProperty', false, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.acf');
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addParameter('NFreq', 256, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
+    inputParser.addParameter({'Contributions', 'Contribution'}, false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Order', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    inputParser.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
+    inputParser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
+    inputParser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
+    inputParser.addParameter('Filter', '', @ischar);
+    inputParser.addParameter('SystemProperty', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
 end
-INPUT_PARSER.parse(this, varargin{:});
-opt = INPUT_PARSER.Options;
+inputParser.parse(this, varargin{:});
+opt = inputParser.Options;
 
 isSelect = ~isequal(opt.Select, @all);
 isNamedMat = strcmpi(opt.MatrixFormat, 'NamedMat');
