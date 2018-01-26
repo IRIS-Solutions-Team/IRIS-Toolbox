@@ -134,6 +134,11 @@ classdef Date
         end
 
 
+        function n = rnglen(startDate, endDate)
+            n = positionOf(endDate, startDate);
+        end
+
+
         function k = end(this, varargin)
             temp = true(size(this.Serial));
             k = builtin('end', temp, varargin{:});

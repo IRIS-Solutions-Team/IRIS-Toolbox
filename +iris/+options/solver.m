@@ -1,11 +1,11 @@
 function opt = solver( )
-% solver  Default options for solvers.
+% solver  Default options for IRIS solvers
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 FN_VALID = iris.options.validfn;
 
@@ -17,7 +17,7 @@ shared = {
     'Display', 'iter*', FN_VALID.Display
     'JacobPattern', [ ], @(x) isempty(x) || (islogical(x) && issparse(x)) 
     'MaxIterations, MaxIter', @default, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0)
-    'MaxFunctionEvaluations, MaxFunEvals', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && round(x)==x && x>0)
+    'MaxFunctionEvaluations, MaxFunEvals', @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0)
     'FiniteDifferenceStepSize', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0)
     'FiniteDifferenceType', 'forward', @(x) any(strcmpi(x, {'finite', 'central'}))
     'FunctionTolerance, TolFun', 1e-12, @(x) isnumericscalar(x) && x>0
