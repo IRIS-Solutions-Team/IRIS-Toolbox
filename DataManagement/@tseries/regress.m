@@ -57,12 +57,12 @@ function [B, BStd, E, EStd, YFit, Range, BCov] = regress(Y, X, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('tseries/regress');
-    INPUT_PARSER.addRequired('Y', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addRequired('X', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addRequired('Range', @DateWrapper.validateDateInput);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.regress');
+    inputParser.addRequired('Y', @(x) isa(x, 'tseries'));
+    inputParser.addRequired('X', @(x) isa(x, 'tseries'));
+    inputParser.addRequired('Range', @DateWrapper.validateDateInput);
 end
 
 if ~isempty(varargin) && isnumeric(varargin{1})
@@ -73,7 +73,7 @@ else
 end
 
 % Parse input arguments.
-INPUT_PARSER.parse(Y, X, Range);
+inputParser.parse(Y, X, Range);
 
 % Parse options.
 opt = passvalopt('tseries.regress', varargin{:});

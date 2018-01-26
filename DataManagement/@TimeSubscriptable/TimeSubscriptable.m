@@ -32,19 +32,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
         varargout = getDataNoFrills(varargin)
         varargout = implementPlot(varargin)
         varargout = subsCase(varargin)
-
-
-        function flag = validateDate(this, date)
-            if ~isequal(class(this.Start), class(date))
-                flag = false;
-                return
-            end
-            if isnan(this.Start)
-                flag = true;
-                return
-            end
-            flag = all(getFrequency(this.Start)==getFrequency(date));
-        end
     end
 
 
@@ -111,9 +98,30 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
 
         function output = applyFunctionAlongDim(this, func, varargin)
-            [output, dim] = func(x.Data, varargin{:});
+            [output, dim] = func(this.Data, varargin{:});
             if dim>1
                 output = fill(this, output, '', [ ]);
+            end
+        end
+
+
+        function flag = validateDate(this, date)
+            if ~isequal(class(this.Start), class(date)) ...
+                && ~(isnumeric(date) && all(date==round(date)))
+                flag = false;
+                return
+            end
+            if isnan(this.Start)
+                flag = true;
+                return
+            end
+            if isa(date, 'DateWrapper')
+                dateFrequency = getFrequency(date);
+            else
+                dateFrequency = DateWrapper.getFrequencyFromNumeric(date);
+            end
+            if getFrequency(this.Start)==dateFrequency
+                flag = true;
             end
         end
     end

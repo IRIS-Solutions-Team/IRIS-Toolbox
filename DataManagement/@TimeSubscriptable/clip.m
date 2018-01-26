@@ -1,12 +1,14 @@
 function this = clip(this, newStart, newEnd)
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('TimeSubscriptable/clip');
-    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'TimeSubscriptable'));
-    INPUT_PARSER.addRequired('NewStartDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, -Inf));
-    INPUT_PARSER.addRequired('NewEndDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('TimeSubscriptable/clip');
+    inputParser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    inputParser.addRequired('NewStartDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, -Inf));
+    inputParser.addRequired('NewEndDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf));
 end
+
+%--------------------------------------------------------------------------
 
 thisStart = this.Start;
 thisEnd = this.End;
@@ -33,13 +35,13 @@ if thisStart>=newStart && thisEnd<=newEnd
     return
 end
 
-sizeOfData = size(this.Data);
-ndimsOfData = ndims(this.Data);
+sizeData = size(this.Data);
+ndimsData = ndims(this.Data);
 thisData = this.Data(:, :);
 clipStart( );
 clipEnd( );
-if ndimsOfData>2
-    thisData = reshape(thisData, [size(thisData, 1), sizeOfData(2:end)]);
+if ndimsData>2
+    thisData = reshape(thisData, [size(thisData, 1), sizeData(2:end)]);
 end
 this.Start = thisStart;
 this.Data = thisData;
@@ -55,7 +57,7 @@ return
             return
         end
         if newStart<=thisEnd
-            posNewStart = positionOf(newStart, thisStart);
+            posNewStart = rnglen(thisStart, newStart);
             thisData(1:posNewStart-1, :) = [ ];
             thisStart = newStart;
             return
@@ -73,7 +75,7 @@ return
             return
         end
         if newEnd>=thisStart
-            posNewEnd = positionOf(newEnd, thisStart);
+            posNewEnd = rnglen(thisStart, newEnd);
             thisData(posNewEnd+1:end, :) = [ ];
             return
         else

@@ -38,16 +38,16 @@ function this = ifelse(this, test, ifTrue, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('TimeSubscriptable.ifelse');
-    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'TimeSubscriptable'));
-    INPUT_PARSER.addRequired('Test', @(x) isa(x, 'function_handle'));
-    INPUT_PARSER.addRequired('IfTrue');
-    INPUT_PARSER.addOptional('IfFalse', [ ]);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('TimeSubscriptable.ifelse');
+    inputParser.addRequired('TimeSeries', @(x) isa(x, 'TimeSubscriptable'));
+    inputParser.addRequired('Test', @(x) isa(x, 'function_handle'));
+    inputParser.addRequired('IfTrue');
+    inputParser.addOptional('IfFalse', [ ]);
 end
-INPUT_PARSER.parse(this, test, ifTrue, varargin{:});
-ifFalse = INPUT_PARSER.Results.IfFalse;
+inputParser.parse(this, test, ifTrue, varargin{:});
+ifFalse = inputParser.Results.IfFalse;
 
 %--------------------------------------------------------------------------
 
