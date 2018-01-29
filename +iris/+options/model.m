@@ -220,20 +220,6 @@ def.regress = [
     }
 ];
     
-def.resample = [
-    deviation_dtrends
-    {
-    'bootstrapMethod', 'efron', @(x) (ischar(x) && any(strcmpi(x, {'efron', 'wild'}))) || isintscalar(x) || isnumericscalar(x, 0, 1)
-    'method', 'montecarlo', @(x) isfunc(x) || (ischar(x) && any(strcmpi(x, {'montecarlo', 'bootstrap'})))
-    'progress', false, @islogicalscalar
-    'randominitcond, randomiseinitcond, randomizeinitcond, randomise, randomize', true, @(x) islogicalscalar(x) || (isnumericscalar(x) && x>=0)
-    'svdonly', false, @islogicalscalar
-    'statevector', 'alpha', @(x) ischar(x) && any(strcmpi(x, {'alpha', 'x'}))
-    'vary', [ ], @(x) isempty(x) || isstruct(x)
-    'wild', [ ], @(x) isempty(x) || islogicalscalar(x)
-    }
-];
-
 def.shockplot = { ...
     'dbplot', { }, @(x) iscell(x) && iscellstr(x(1:2:end)), ...
     'deviation', true, @islogicalscalar, ...

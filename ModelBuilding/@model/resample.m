@@ -1,4 +1,4 @@
-function Outp = resample(varargin)
+function Outp = resample(this, varargin)
 % resample  Resample from the model implied distribution.
 %
 % __Syntax__
@@ -12,16 +12,12 @@ function Outp = resample(varargin)
 %
 % * `M` [ model ] - Solved model object with single parameterization.
 %
-% * `Inp` [ struct | *empty* ] - Input data (if needed) for the
-% distributions of initial condition and/or empirical shocks.
+% * `~Inp=[ ]` [ struct | empty ] - Input data (if needed) for the distributions of
+% initial condition and/or empirical shocks.
 %
-% * `Range` [ numeric | char ] - Resampling date range.
+% * `Range` [ DateWrapper ] - Resampling date range.
 %
-% * `~NDraw` [ numeric | *`1`* ] - Number of draws; may be omitted.
-%
-% * `~J` [ struct | *`[ ]`* ] - Database with user-supplied time-varying
-% paths for std deviation, corr coefficients, or medians for shocks; `J`
-% is equivalent to using the option `'Vary='`, and may be omitted.
+% * `~NDraw=1` [ numeric ] - Number of draws; may be omitted.
 %
 %
 % __Output Arguments__
@@ -61,6 +57,10 @@ function Outp = resample(varargin)
 % use SVD to factorize the covariance matrix when resampling initial
 % condition; only applies when `'randomInitCond=' true`.
 %
+% * `Vary=[ ]` [ struct | empty ] - Database with user-supplied
+% time-varying paths for std deviations, correlation coefficients, or
+% medians for shocks.
+%
 %
 % __Description__
 %
@@ -78,54 +78,56 @@ function Outp = resample(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
-[this, inp, range, nDraw, J, varargin] = ...
-    irisinp.parser.parse('model.resample', varargin{:});
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.resample');
+    inputParser.addRequired('Model', @(x) isa(x, 'model') && length(x)==1 && issolved(x));
 
-% Parse options.
-opt = passvalopt('model.resample', varargin{:});
+    inputParser.addOptional('InitCondition', [ ], @(x) isempty(x) || isstruct(x));
+    inputParser.addOptional('Range', [ ], @DateWrapper.validateProperRangeInput);
+    inputParser.addOptional('NumDraws', 1, @(x) isnumeric(x) && isscalar(x) && x>=1);
+    inputParser.addOptional('LegacyVary', [ ], @(x) isempty(x) || isstruct(x));
 
-if isempty(opt.wild)
-    opt.wild = strcmpi(opt.bootstrapMethod, 'wild') ;
-else
-    % ##### Jan 2015 OBSOLETE and scheduled for removal.
-    utils.warning('obsolete', ...
-        ['Option ''wild='' is obsolete, and', ...
-        'will be removed from IRIS in a future release. ', ...
-        'Use ''bootstrapMethod='' instead.']);
+    inputParser.addParameter('BootstrapMethod', 'efron', @(x) (ischar(x) && any(strcmpi(x, {'efron', 'wild'}))) || isintscalar(x) || isnumericscalar(x, 0, 1));
+    inputParser.addParameter('Method', 'montecarlo', @(x) isa(x, 'function_handle') || (ischar(x) && any(strcmpi(x, {'montecarlo', 'bootstrap'}))));
+    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter({'RandomInitCond', 'RandomiseInitCond', 'RandomizeInitCond', 'Randomise', 'Randomize'}, true, @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0));
+    inputParser.addParameter('SvdOnly', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('StateVector', 'alpha', @(x) ischar(x) && any(strcmpi(x, {'alpha', 'x'})));
+    inputParser.addParameter('Vary', [ ], @(x) isempty(x) || isstruct(x));
     
-    if ~strcmpi(opt.bootstrapMethod, 'wild') && opt.wild
-        utils.error('model:resample', ...
-            'Cannot combine wild bootstrap with other methods.') ;
-    elseif opt.wild
-        opt.bootstrapMethod = 'wild' ;
-    end
+    inputParser.addDeviationOptions(false);
 end
+inputParser.parse(this, varargin{:});
+inputParser.resolveDeviationOptions( );
+inp = inputParser.Results.InitCondition;
+range = inputParser.Results.Range;
+numDraws = inputParser.Results.NumDraws;
+legacyVary = inputParser.Results.LegacyVary;
+opt = inputParser.Options;
 
 % `numInit` is the number of pre-sample periods used to resample the initial
 % condition if user does not wish to factorise the covariance matrix.
+isWild = strcmpi(opt.BootstrapMethod, 'wild');
 numInit = 0;
-if isnumeric(opt.randominitcond)
-    if isequal(opt.method, 'bootstrap') && opt.wild
+if isnumeric(opt.RandomInitCond)
+    if strcmpi(opt.Method, 'Bootstrap') && isWild
         utils.error('model:resample', ...
             'Cannot pre-simulate initial conditions in wild bootstrap.');
     else
-        numInit = round(opt.randominitcond);
-        opt.randominitcond = false;
+        numInit = round(opt.RandomInitCond);
+        opt.RandomInitCond = false;
     end
 end
 
-if isequal(opt.method, 'bootstrap') && isempty(inp)
+if strcmpi(opt.Method, 'Bootstrap') && isempty(inp)
     utils.error('model:resample', ...
         'Cannot bootstrap when there are no input data.');
-end
-
-if ischar(opt.method)
-    opt.method = lower(opt.method);
 end
 
 %--------------------------------------------------------------------------
@@ -134,16 +136,16 @@ numPeriods = length(range);
 extendedRange = range(1)-1 : range(end);
 
 ixd = this.Equation.Type==TYPE(3);
-isDTrends = opt.dtrends && any(ixd);
+isDTrends = opt.DTrends && any(ixd);
 [ny, nxx, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
 [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, 1, false);
-if opt.deviation
+if opt.Deviation
     K(:) = 0;
     D(:) = 0;
 end
 
 % Pre-allocate output data.
-hData = hdataobj(this, extendedRange, nDraw);
+hData = hdataobj(this, extendedRange, numDraws);
 
 % Return immediately if solution is not available.
 if any(isnan(T(:)))
@@ -162,26 +164,25 @@ Ta2 = Ta(numUnitRoots+1:end, numUnitRoots+1:end);
 Ra2 = Ra(numUnitRoots+1:end, :);
 
 % Combine user-supplied stdcorr with model stdcorr.
-usrStdcorr = varyStdCorr(this, range, J, opt);
+usrStdcorr = varyStdCorr(this, range, legacyVary, opt);
 usrStdcorrInx = ~isnan(usrStdcorr);
 
-% Get tunes on the mean of shocks.
+% Get variation in medians of shocks
 isShkMean = false;
-if ~isempty(J)
-    shkMean = datarequest('e', this, J, range, 1);
+if ~isempty(legacyVary)
+    shkMean = datarequest('e', this, legacyVary, range, 1);
     isShkMean = any(shkMean(:)~=0);
 end
 
 % Get exogenous variables including ttrend.
 G = datarequest('g', this, inp, range);
 
-% Describe the distribution of initial conditions
-%-------------------------------------------------
-if isequal(opt.randominitcond, false)
+% __Describe Distribution of Initial Conditions__
+if isequal(opt.RandomInitCond, false)
     Ealp = computeUncMean( );
-elseif isequal(opt.method, 'bootstrap')
+elseif strcmpi(opt.Method, 'Bootstrap')
     % (1) Bootstrap.
-    switch opt.bootstrapMethod
+    switch opt.BootstrapMethod
         case 'wild'
             % (1a) Wild bootstrap.
             srcAlp0 = datarequest('init', this, inp, range, 1);
@@ -197,16 +198,16 @@ else
         [Ealp, ~, ~, Palp] = datarequest('init', this, inp, range, 1);
         Ex = U*Ealp;
         if isempty(Palp)
-            opt.randominitcond = false;
+            opt.RandomInitCond = false;
         else
-            if strcmpi(opt.statevector, 'alpha')
+            if strcmpi(opt.StateVector, 'alpha')
                 % (2ai) Resample `alpha` vector.
-                Falp = covfun.factorise(Palp, opt.svdonly);
+                Falp = covfun.factorise(Palp, opt.SvdOnly);
             else
                 % (2aii) Resample original `x` vector.
                 Px = U*Palp*U.';
                 Ui = inv(U);
-                Fx = covfun.factorise(Px, opt.svdonly);
+                Fx = covfun.factorise(Px, opt.SvdOnly);
             end
         end
     else
@@ -217,23 +218,22 @@ else
         indexUnitRoots = false(1, size(Ta2, 1)); % Ta2 is stable part of Ta (and T), no unit roots
         Palp(numUnitRoots+1:end, numUnitRoots+1:end) = ...
             covfun.acovf(Ta2, Ra2, [ ], [ ], [ ], [ ], [ ], Omg, indexUnitRoots, 0);
-        if strcmpi(opt.statevector, 'alpha')
+        if strcmpi(opt.StateVector, 'alpha')
             % (2bi) Resample the `alpha` vector.
             Falp(numUnitRoots+1:end, numUnitRoots+1:end) = ...
-                covfun.factorise(Palp(numUnitRoots+1:end, numUnitRoots+1:end), opt.svdonly);
+                covfun.factorise(Palp(numUnitRoots+1:end, numUnitRoots+1:end), opt.SvdOnly);
         else
             % (2bii) Resample the original `x` vector.
             Ex = U*Ealp;
             Px = U*Palp*U.';
             Ui = inv(U);
-            Fx = covfun.factorise(Px, opt.svdonly);
+            Fx = covfun.factorise(Px, opt.SvdOnly);
         end
     end
 end
 
-% Describe the distribution of shocks
-%-------------------------------------
-if isequal(opt.method, 'bootstrap')
+% __Describe Distribution of Shocks__
+if strcmpi(opt.Method, 'Bootstrap')
     % (1) Bootstrap.
     srcE = datarequest('e', this, inp, range, 1);
 else
@@ -267,10 +267,10 @@ else
     % If user supplies sampler, sample all shocks and inital conditions at
     % once. This allows for advanced user-supplied simulation methods, e.g.
     % latin hypercube.
-    if isa(opt.method, 'function_handle')
-        presampledE = opt.method(ne*(numInit+numPeriods), nDraw);
-        if opt.randominitcond
-            presampledInitNoise = opt.method(nb, nDraw);
+    if isa(opt.Method, 'function_handle')
+        presampledE = opt.Method(ne*(numInit+numPeriods), numDraws);
+        if opt.RandomInitCond
+            presampledInitNoise = opt.Method(nb, numDraws);
         end
     end
 end
@@ -280,14 +280,13 @@ ixR = any(abs(R(:, 1:ne))>0, 1);
 ixH = any(abs(H(:, 1:ne))>0, 1);
 
 % Create a command-window progress bar.
-if opt.progress
+if opt.Progress
     progress = ProgressBar('IRIS model.resample progress');
 end
 
-% Simulate nDraw draws of data
-%------------------------------
+% __Simulate__
 g = [ ];
-for iDraw = 1 : nDraw
+for iDraw = 1 : numDraws
     e = drawShocks( );
     if isShkMean
         e = e + shkMean;
@@ -301,7 +300,7 @@ for iDraw = 1 : nDraw
     end
     % Simulate measurement variables.
     y = Z*w(nf+1:end, numInit+1:end) + H(:, ixH)*e(ixH, numInit+1:end);
-    if ~opt.deviation
+    if ~opt.Deviation
         y = y + D(:, ones(1, numPeriods));
     end
     % Add dtrends to simulated data.
@@ -315,8 +314,8 @@ for iDraw = 1 : nDraw
     % Store this draw.
     storeDraw( );
     % Update the progress bar.
-    if opt.progress
-        update(progress, iDraw/nDraw);
+    if opt.Progress
+        update(progress, iDraw/numDraws);
     end
 end
 
@@ -328,7 +327,7 @@ return
 
     function Ealp = computeUncMean( )
         Ealp = zeros(nb, 1);
-        if ~opt.deviation
+        if ~opt.Deviation
             Kalp2 = K(nf+numUnitRoots+1:end, :);
             Ealp(numUnitRoots+1:end) = (eye(numStableRoots) - Ta2) \ Kalp2;
         end
@@ -337,22 +336,20 @@ return
 
     function e = drawShocks( )
         % Resample residuals.
-        if isequal(opt.method, 'bootstrap')
-            if strcmpi(opt.bootstrapMethod, 'wild')
-                % Wild bootstrap
-                %----------------
+        if strcmpi(opt.Method, 'Bootstrap')
+            if strcmpi(opt.BootstrapMethod, 'wild')
+                % _Wild Bootstrap_
                 % `numInit` is always zero for wild boostrap.
                 draw = randn(1, numPeriods);
                 % To reproduce input sample: draw = ones(1, nper);
                 e = srcE.*draw(ones(1, ne), :);
-            elseif isnumeric(opt.bootstrapMethod) ...
-                    && opt.bootstrapMethod ~= 1
-                % Fixed or random block size
-                %----------------------------
-                isRandom = ~isintscalar(opt.bootstrapMethod) ;
+            elseif isnumeric(opt.BootstrapMethod) ...
+                    && opt.BootstrapMethod ~= 1
+                % _Fixed or Random Block Size_
+                isRandom = ~isintscalar(opt.BootstrapMethod) ;
                 bs = NaN;
                 if ~isRandom
-                    bs = min(numPeriods, opt.bootstrapMethod) ;
+                    bs = min(numPeriods, opt.BootstrapMethod) ;
                 end
                 draw = [ ] ;
                 ii = 1 ;
@@ -375,15 +372,14 @@ return
                 end
                 e = srcE(:, draw) ;
             else
-                % Standard Efron bootstrap
-                %--------------------------
+                % _Standard Efron Bootstrap__
                 % `draw` is uniform on [1, nper].
                 draw = randi([1, numPeriods], [1, numInit+numPeriods]);
                 % To reproduce input sample: draw = 0 : nper-1;
                 e = srcE(:, draw);
             end
         else
-            if isa(opt.method, 'function_handle')
+            if isa(opt.Method, 'function_handle')
                 % Fetch and reshape the presampled shocks.
                 thisSampleE = presampledE(:, iDraw);
                 thisSampleE = reshape(thisSampleE, [ne, numInit+numPeriods]);
@@ -407,10 +403,10 @@ return
 
     function a0 = drawInitCond( )
         % Randomise initial condition for stable alpha.
-        if isequal(opt.method, 'bootstrap')
+        if strcmpi(opt.Method, 'Bootstrap')
             % Bootstrap from empirical distribution.
-            if opt.randominitcond
-                if opt.wild
+            if opt.RandomInitCond
+                if isWild
                     % Wild-bootstrap initial condition for alpha from given
                     % sample initial condition. This assumes that the mean is
                     % the unconditional distribution.
@@ -430,15 +426,15 @@ return
             end
         else
             % Gaussian Monte Carlo from theoretical distribution.
-            if opt.randominitcond
-                if isa(opt.method, 'function_handle')
+            if opt.RandomInitCond
+                if isa(opt.Method, 'function_handle')
                     % Fetch the pre-sampled initial conditions.
                     initNoise = presampledInitNoise(:, iDraw);
                 else
                     % Draw from standardised normal.
                     initNoise = randn(nb, 1);
                 end
-                if strcmpi(opt.statevector, 'alpha')
+                if strcmpi(opt.StateVector, 'alpha')
                     a0 = Ealp + Falp*initNoise;
                 else
                     x0 = Ex + Fx*initNoise;
@@ -471,7 +467,7 @@ return
 
     function S = getRandBlockSize( )
         % Block size determined by geo distribution, must be smaller than numPeriods.
-        p = opt.bootstrapMethod ;
+        p = opt.BootstrapMethod ;
         while true
             S = ceil(log(rand)/log(1-p)) ;
             if S<=numPeriods

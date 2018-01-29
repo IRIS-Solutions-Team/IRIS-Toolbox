@@ -25,8 +25,7 @@ if isempty(range)
     return
 end
 
-d = [ ];
-processTimeVarying( );
+d = processOptionVary( );
 
 range = range(1) : range(end);
 if isPresample 
@@ -74,11 +73,12 @@ end
 return
 
 
-
-
-    function processTimeVarying( )
+    function d = processOptionVary( )
+        d = [ ];
         if isfield(opt, 'vary') && ~isempty(opt.vary)
             d = opt.vary;
+        elseif isfield(opt, 'Vary') && ~isempty(opt.Vary)
+            d = opt.Vary;
         end
         if ~isempty(j)
             if isempty(d)
