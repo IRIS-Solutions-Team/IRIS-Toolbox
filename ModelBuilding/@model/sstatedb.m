@@ -18,16 +18,16 @@ function [d, isDev] = sstatedb(this, range, varargin)
 % balanced-growth-path database will be created on a range that also
 % automatically includes all the necessary lags.
 %
-% * `~NCol` [ numeric | *`1`* ] - Number of columns created in the time
+% * `~NCol=1` [ numeric ] - Number of columns created in the time
 % series object for each variable; the input argument `NCol` can be only
 % used on models with one parameterisation; if omitted `NCol=1`.
 %
 %
 % __Options__
 %
-% * `'ShockFunc='` [ `@lhsnorm` | `@randn` | *`@zeros`* ] - Function used
-% to generate data for shocks. If `@zeros`, the shocks will simply be filled
-% with zeros. Otherwise, the random numbers will be drawn using the
+% * `ShockFunc=@zeros` [ `@lhsnorm` | `@randn` | `@zeros` ] - Function used
+% to generate data for shocks. If `@zeros`, the shocks will simply be
+% filled with zeros. Otherwise, the random numbers will be drawn using the
 % specified function and adjusted by the respective covariance matrix
 % implied by the current model parameterization.
 %

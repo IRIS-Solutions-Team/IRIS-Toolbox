@@ -422,7 +422,7 @@ else
 end
 
 if opt.progress && strcmpi(opt.Method, 'FirstOrder')
-    s.progress = ProgressBar('IRIS model.simulate progress');
+    s.progress = ProgressBar('IRIS model.simulate Progress');
 else
     s.progress = [ ];
 end

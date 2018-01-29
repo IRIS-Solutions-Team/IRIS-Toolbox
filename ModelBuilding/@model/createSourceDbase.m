@@ -1,8 +1,8 @@
 function outputDatabank = createSourceDbase(this, range, varargin)
-% createSourceDbase  Create model specific source database.
+% createSourceDbase  Create model specific source database
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
@@ -15,17 +15,17 @@ if ischar(range)
     range = textinp2dat(range);
 end
 
-numOfColumnsRequested = [ ];
+numColumnsRequested = [ ];
 if ~isempty(varargin) && isnumericscalar(varargin{1})
-    numOfColumnsRequested = varargin{1};
+    numColumnsRequested = varargin{1};
     varargin(1) = [ ];
 end
 
 opt = passvalopt('model.createSourceDbase', varargin{:});
 
-numOfDrawsRequested = opt.ndraw;
-if isempty(numOfColumnsRequested)
-    numOfColumnsRequested = opt.ncol;
+numDrawsRequested = opt.ndraw;
+if isempty(numColumnsRequested)
+    numColumnsRequested = opt.ncol;
 end
 
 if ~isequal(opt.randshocks, false)
@@ -40,10 +40,10 @@ end
 %--------------------------------------------------------------------------
 
 nv = length(this);
-checkNumOfColumnsRequested = numOfColumnsRequested==1 || nv==1;
-checkNumOfDrawsRequested = numOfDrawsRequested==1 || nv==1;
+checkNumColumnsRequested = numColumnsRequested==1 || nv==1;
+checkNumDrawsRequested = numDrawsRequested==1 || nv==1;
 assert( ...
-    checkNumOfColumnsRequested && checkNumOfDrawsRequested, ...
+    checkNumColumnsRequested && checkNumDrawsRequested, ...
     'model:createSourceDbase', ...
     'Options NCol= or NDraw= can be used only in models with a single parameter variant.' ...
 );
@@ -80,7 +80,7 @@ ixLog = this.Quantity.IxLog;
 ny = sum(ixy);
 nQty = length(this.Quantity);
 
-numOfColumnsToCreate = max([nv, numOfColumnsRequested, numOfDrawsRequested]);
+numColumnsToCreate = max([nv, numColumnsRequested, numDrawsRequested]);
 outputDatabank = struct( );
 
 % Deterministic time trend.
@@ -99,8 +99,8 @@ end
 
 X(ixLog, :, :) = real(exp( X(ixLog, :, :) ));
 
-if numOfColumnsToCreate>1 && nv==1
-    X = repmat(X, 1, 1, numOfColumnsToCreate);
+if numColumnsToCreate>1 && nv==1
+    X = repmat(X, 1, 1, numColumnsToCreate);
 end
 
 % Measurement variables, transition, exogenous variables.
@@ -122,7 +122,7 @@ end
 
 % Generate random residuals if requested.
 if ~isequal(opt.shockfunc, @zeros)
-    outputDatabank = shockdb(this, outputDatabank, range, numOfColumnsToCreate, 'shockfunc=', opt.shockfunc);
+    outputDatabank = shockdb(this, outputDatabank, range, numColumnsToCreate, 'shockfunc=', opt.shockfunc);
 end
 
 % Add parameters.

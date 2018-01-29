@@ -243,52 +243,51 @@ function [summary, p, proposalCov, hessian, this, V, delta, PDelta] = estimate(t
 
 TYPE = @int8;
 
-persistent INPUT_PARSER OUTSIDE_OPTIM_OPTIONS
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model.estimate');
-    INPUT_PARSER.KeepUnmatched = true;
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addRequired('InputDatabank', @isstruct);
-    INPUT_PARSER.addRequired('Range', @DateWrapper.validateProperRangeInput);
-    INPUT_PARSER.addRequired('EstimationSpecs', @(x) isstruct(x) && ~isempty(fieldnames(x)));
-    INPUT_PARSER.addOptional('SystemPriors', [ ], @(x) isempty(x) || isa(x, 'systempriors') || isa(x, 'SystemPriorWrapper'));
+persistent inputParser outsideOptimOptions
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.estimate');
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addRequired('InputDatabank', @isstruct);
+    inputParser.addRequired('Range', @DateWrapper.validateProperRangeInput);
+    inputParser.addRequired('EstimationSpecs', @(x) isstruct(x) && ~isempty(fieldnames(x)));
+    inputParser.addOptional('SystemPriors', [ ], @(x) isempty(x) || isa(x, 'systempriors') || isa(x, 'SystemPriorWrapper'));
 
-    INPUT_PARSER.addParameter('ChkSstate', true, @model.validateChksstate); 
-    INPUT_PARSER.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
-    INPUT_PARSER.addParameter({'Filter', 'FilterOpt'}, { }, @model.validateFilter);
-    INPUT_PARSER.addParameter('NoSolution', 'error', @(x) (isnumeric(x) && isscalar(x) && x>=1e10) || any(strcmpi(x, {'error', 'penalty'})));
-    INPUT_PARSER.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @namedmat.validateMatrixFormat);
-    INPUT_PARSER.addParameter({'Solve', 'SolveOpt'}, true, @model.validateSolve);
-    INPUT_PARSER.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSstate);
-    INPUT_PARSER.addParameter('Zero', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('ChkSstate', true, @model.validateChksstate); 
+    inputParser.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
+    inputParser.addParameter({'Filter', 'FilterOpt'}, { }, @model.validateFilter);
+    inputParser.addParameter('NoSolution', 'error', @(x) (isnumeric(x) && isscalar(x) && x>=1e10) || any(strcmpi(x, {'error', 'penalty'})));
+    inputParser.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @namedmat.validateMatrixFormat);
+    inputParser.addParameter({'Solve', 'SolveOpt'}, true, @model.validateSolve);
+    inputParser.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSstate);
+    inputParser.addParameter('Zero', false, @(x) isequal(x, true) || isequal(x, false));
 
-    INPUT_PARSER.addParameter('OptimSet', { }, @(x) isempty(x) || isstruct(x) || iscellstr(x(1:2:end)) );
+    inputParser.addParameter('OptimSet', { }, @(x) isempty(x) || isstruct(x) || iscellstr(x(1:2:end)) );
 
-    INPUT_PARSER.addParameter('EpsPower', 1/2, @(x) isnumeric(x) && isscalar(x) && x>=0);
-    INPUT_PARSER.addParameter('InitVal', 'struct', @(x) isempty(x) || isstruct(x) || isanystri(x, {'struct', 'model'}));
-    INPUT_PARSER.addParameter('Penalty', 0, @(x) isnumeric(x) && isscalar(x) && x>=0);
-    INPUT_PARSER.addParameter({'EvalLik', 'EvaluateData'}, true, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter({'EvalPPrior', 'EvaluateParamPriors'}, true, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter({'EvalSPrior', 'EvaluateSystemPriors'}, true, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter({'Solver', 'Optimizer'}, 'fmin', @(x) isa(x, 'function_handle') || ischar(x) || isa(x, 'string') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle') || isa(x{1}, 'string'))));
-    INPUT_PARSER.addParameter('Summary', 'struct', @(x) any(strcmpi(x, {'struct', 'table'})));
-    INPUT_PARSER.addParameter('UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
+    inputParser.addParameter('EpsPower', 1/2, @(x) isnumeric(x) && isscalar(x) && x>=0);
+    inputParser.addParameter('InitVal', 'struct', @(x) isempty(x) || isstruct(x) || isanystri(x, {'struct', 'model'}));
+    inputParser.addParameter('Penalty', 0, @(x) isnumeric(x) && isscalar(x) && x>=0);
+    inputParser.addParameter({'EvalLik', 'EvaluateData'}, true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter({'EvalPPrior', 'EvaluateParamPriors'}, true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter({'EvalSPrior', 'EvaluateSystemPriors'}, true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter({'Solver', 'Optimizer'}, 'fmin', @(x) isa(x, 'function_handle') || ischar(x) || isa(x, 'string') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle') || isa(x{1}, 'string'))));
+    inputParser.addParameter('Summary', 'struct', @(x) any(strcmpi(x, {'struct', 'table'})));
+    inputParser.addParameter('UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
 end
-if isempty(OUTSIDE_OPTIM_OPTIONS)
-    OUTSIDE_OPTIM_OPTIONS = extend.InputParser('model.estimate');
-    OUTSIDE_OPTIM_OPTIONS.addParameter('Algorithm', @default, @(x) isequal(x, @default) || ischar(x) || isa(x, 'string'));
-    OUTSIDE_OPTIM_OPTIONS.addParameter('Display', 'iter', @(x) any(strcmpi(x, {'iter', 'final', 'none', 'off'})) );
-    OUTSIDE_OPTIM_OPTIONS.addParameter('MaxFunEvals', 2000, @(x) isnumeric(x) && isscalar(x)  && x>0);
-    OUTSIDE_OPTIM_OPTIONS.addParameter('MaxIter', 500, @(x) isnumeric(x) && isscalar(x) && x>=0);
-    OUTSIDE_OPTIM_OPTIONS.addParameter('TolFun', 1e-6, @(x) isnumeric(x) && isscalar(x) && x>0);
-    OUTSIDE_OPTIM_OPTIONS.addParameter('TolX', 1e-6, @(x) isnumeric(x) && isscalar(x) && x>0);
+if isempty(outsideOptimOptions)
+    outsideOptimOptions = extend.InputParser('model.estimate');
+    outsideOptimOptions.addParameter('Algorithm', @default, @(x) isequal(x, @default) || ischar(x) || isa(x, 'string'));
+    outsideOptimOptions.addParameter('Display', 'iter', @(x) any(strcmpi(x, {'iter', 'final', 'none', 'off'})) );
+    outsideOptimOptions.addParameter('MaxFunEvals', 2000, @(x) isnumeric(x) && isscalar(x)  && x>0);
+    outsideOptimOptions.addParameter('MaxIter', 500, @(x) isnumeric(x) && isscalar(x) && x>=0);
+    outsideOptimOptions.addParameter('TolFun', 1e-6, @(x) isnumeric(x) && isscalar(x) && x>0);
+    outsideOptimOptions.addParameter('TolX', 1e-6, @(x) isnumeric(x) && isscalar(x) && x>0);
 end
-INPUT_PARSER.parse(this, inputDatabank, range, varargin{:});
-systemPriors = INPUT_PARSER.Results.SystemPriors;
-estimationSpecs = INPUT_PARSER.Results.EstimationSpecs;
-opt = INPUT_PARSER.Options;
-OUTSIDE_OPTIM_OPTIONS.parse(INPUT_PARSER.UnmatchedInCell{:});
-outsideOptimOptions = OUTSIDE_OPTIM_OPTIONS.Options;
+inputParser.parse(this, inputDatabank, range, varargin{:});
+systemPriors = inputParser.Results.SystemPriors;
+estimationSpecs = inputParser.Results.EstimationSpecs;
+opt = inputParser.Options;
+outsideOptimOptions.parse(inputParser.UnmatchedInCell{:});
 
 % Initialize and preprocess sstate, chksstate, solve options.
 opt.Steady = prepareSteady(this, 'silent', opt.Steady);
@@ -338,7 +337,7 @@ posterior.EvaluateSystemPriors = opt.EvalSPrior;
 
 estimationWrapper = EstimationWrapper( );
 estimationWrapper.IsConstrained = posterior.IsConstrained;
-chooseSolver(estimationWrapper, opt.Solver, outsideOptimOptions);
+chooseSolver(estimationWrapper, opt.Solver, outsideOptimOptions.Options);
 
 % __Run Optimizer__
 maximizePosteriorMode(posterior, estimationWrapper);
