@@ -98,6 +98,12 @@ classdef InputParser < inputParser
         end
 
 
+        function addDeviationOptions(this, deviationDefault)
+            this.addParameter({'Deviation', 'Deviations'}, deviationDefault, @(x) isequal(x, true) || isequal(x, false));
+            this.addParameter({'DTrends', 'DTrend'}, @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+        end
+
+
         function addBaseYearOption(this)
             configStruct = iris.get( );
             this.addParameter('BaseYear', @config, configStruct.validate.BaseYear);
@@ -138,6 +144,13 @@ classdef InputParser < inputParser
 
             if isequal(this.Options.WDay, @config)
                 this.Options.WDay = configStruct.WDay;
+            end
+        end
+
+
+        function resolveDeviationOptions(this)
+            if isequal(this.Options.DTrends, @auto)
+                this.Options.DTrends = ~this.Options.Deviation;
             end
         end
     end
