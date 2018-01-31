@@ -1,13 +1,11 @@
-function  [this, ixOk] = steadyNonlinear(this, blz, variantsRequested)
-% steadyNonlinear  Solve steady equations in nonlinear models.
+function  [this, indexOk] = steadyNonlinear(this, blz, variantsRequested)
+% steadyNonlinear  Solve steady equations in nonlinear models
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
-
-PTR = @int16;
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 nv = length(this);
 if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
@@ -15,7 +13,7 @@ if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
 else
     variantsRequested = variantsRequested(:).';
 end
-ixOk = true(1, nv);
+indexOk = true(1, nv);
 
 if isequal(blz, false)
     return
@@ -74,10 +72,10 @@ for v = variantsRequested
     this.Variant.Values(:, :, v) = lx + 1i*gx;
     
     % Check for zero log variables.
-    ixOk(v) = chkQty(this, v, 'log') && all(blockExitStatus);
+    indexOk(v) = chkQty(this, v, 'log') && all(blockExitStatus);
     
     % TODO: Report more details on failed equations and variables.
-    if blz.Warning && ~ixOk(v)
+    if blz.Warning && ~indexOk(v)
         utils.warning('model:mysstatenonlin', ...
             'Steady state inaccurate or not returned for some variables.');
     end
@@ -93,7 +91,7 @@ if needsRefresh
 end
 
 % Return status only for parameterizations requested in variantsRequested.
-ixOk = ixOk(variantsRequested);
+indexOk = indexOk(variantsRequested);
 
 return
 
@@ -147,7 +145,7 @@ return
             throw( ...
                 exception.Base('Steady:LevelFixedToNan', 'error'), ...
                 this.Quantity.Name{indexOfNaN} ...
-                );
+            );
         end
         % __Check for Growth Rates Fixed to NaN__
         idToFix = blz.IdToFix.Growth;
@@ -158,24 +156,24 @@ return
             throw( ...
                 exception.Base('Steady:GrowthFixedToNan', 'error'), ...
                 this.Quantity.Name{indexOfNaN} ...
-                );
+            );
         end
     end
 
 
     function checkExogenizedToNaN( )
-        % Parameter or exogenous variable occurs in steady equations.
-        ixNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
-        ixNeeded = full(ixNeeded);
-        % Level or growth is endogenous and NaN.
-        ixNan = (isnan(real(asgn)) & ~ixEndg.Level) ...
-            | (isnan(imag(asgn)) & ~ixEndg.Growth);
-        ixRpt = ixNeeded & ixNan;
-        if any(ixRpt)
+        % Parameter or exogenous variable occurs in steady equations
+        indexNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
+        indexNeeded = full(indexNeeded);
+        % Level or growth is endogenous and NaN
+        indexNaN = ( any(isnan(real(asgn)), 3) & ~ixEndg.Level ) ...
+            | ( any(isnan(imag(asgn)), 3) & ~ixEndg.Growth );
+        indexToReport = indexNeeded & indexNaN;
+        if any(indexToReport)
             throw( ...
                 exception.Base('Steady:ExogenousNan', 'warning'), ...
-                this.Quantity.Name{ixRpt} ...
-                );
+                this.Quantity.Name{indexToReport} ...
+            );
         end
     end
 end

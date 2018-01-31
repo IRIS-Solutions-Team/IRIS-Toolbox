@@ -59,64 +59,64 @@ function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 
 TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/fevd');
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addRequired('Time', @DateWraINPUT_PARSERer.validateDateInput);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model/fevd');
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addRequired('Time', @DateWrapper.validateDateInput);
+    inputParser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    inputParser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
 end
-INPUT_PARSER.parse(this, time);
+inputParser.parse(this, time, varargin{:});
+opt = inputParser.Options;
 
-% Parse options.
-opt = passvalopt('model.fevd', varargin{:});
-
-% Tell whether time is nPer or Range.
+% Tell whether time is numPeriods or Range.
 if ischar(time)
     time = textinp2dat(time);
-elseif length(time)==1 && round(time)==time && time > 0
+elseif length(time)==1 && round(time)==time && time>0
     time = 1 : time;
 end
-Range = time(1) : time(end);
-nPer = length(Range);
+range = time(1) : time(end);
+numPeriods = numel(range);
 
-isSelect = ~isequal(opt.select, @all);
+isSelect = ~isequal(opt.Select, @all);
 isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 
 %--------------------------------------------------------------------------
 
 [ny, nxx, ~, ~, ne] = sizeOfSolution(this.Vector);
 nv = length(this);
-X = nan(ny+nxx, ne, nPer, nv);
-Y = nan(ny+nxx, ne, nPer, nv);
+X = nan(ny+nxx, ne, numPeriods, nv);
+Y = nan(ny+nxx, ne, numPeriods, nv);
 
-indexOfZeroCorr = true(1, nv);
-indexOfSolutionsAvailable = issolved(this);
-for v = find(indexOfSolutionsAvailable)
+indexZeroCorr = true(1, nv);
+indexSolutionsAvailable = issolved(this);
+for v = find(indexSolutionsAvailable)
     % Continue immediately if some cross-corrs are non-zero.
-    indexOfZeroCorr(v) = all(this.Variant.StdCorr(1, ne+1:end, v)==0);
-    if ~indexOfZeroCorr(v)
+    indexZeroCorr(v) = all(this.Variant.StdCorr(1, ne+1:end, v)==0);
+    if ~indexZeroCorr(v)
         continue
     end
     [T, R, K, Z, H, D, Za, Omg] = sspaceMatrices(this, v, false);
     % Continue immediately if solution is not available.
-    [Xi, Yi] = timedom.fevd(T, R, K, Z, H, D, Za, Omg, nPer);
+    [Xi, Yi] = timedom.fevd(T, R, K, Z, H, D, Za, Omg, numPeriods);
     X(:, :, :, v) = Xi;
     Y(:, :, :, v) = Yi;
 end
 
 % Report NaN solutions.
-if ~all(indexOfSolutionsAvailable)
+if ~all(indexSolutionsAvailable)
     utils.warning('model:fevd', ...
         'Solution(s) not available %s.', ...
-        exception.Base.alt2str(~indexOfSolutionsAvailable) );
+        exception.Base.alt2str(~indexSolutionsAvailable) );
 end
 
 % Report non-zero cross-correlations.
-if ~all(indexOfZeroCorr)
+if ~all(indexZeroCorr)
     utils.warning('model:fevd', ...
         ['Cannot compute FEVD with ', ...
         'nonzero cross-correlations %s.'], ...
-        exception.Base.alt2str(~indexOfZeroCorr) );
+        exception.Base.alt2str(~indexZeroCorr) );
 end
 
 if nargout<=2 && ~isSelect && ~isNamedMat
@@ -136,8 +136,8 @@ if nargout>3
     dbRel = struct( );
     for i = find(imag(id)==0)
         c = strcat(rowNames{i}, ' <-- ', colNames);
-        dbAbs.(name{i}) = TIME_SERIES_CONSTRUCTOR(Range, permute(X(i, :, :, :), [3, 2, 4, 1]), c);
-        dbRel.(name{i}) = TIME_SERIES_CONSTRUCTOR(Range, permute(Y(i, :, :, :), [3, 2, 4, 1]), c);
+        dbAbs.(name{i}) = TIME_SERIES_CONSTRUCTOR(range, permute(X(i, :, :, :), [3, 2, 4, 1]), c);
+        dbRel.(name{i}) = TIME_SERIES_CONSTRUCTOR(range, permute(Y(i, :, :, :), [3, 2, 4, 1]), c);
     end
     % Add parameter database.
     dbAbs = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, dbAbs);
@@ -147,7 +147,7 @@ end
 % Select variables if requested; selection only applies to the matrix
 % outputs, `X` and `Y`, and not to the database outputs, `x` and `y`.
 if isSelect
-    [X, pos] = namedmat.myselect(X, rowNames, colNames, opt.select);
+    [X, pos] = namedmat.myselect(X, rowNames, colNames, opt.Select);
     rowNames = rowNames(pos{1});
     colNames = colNames(pos{2});
     if nargout > 1

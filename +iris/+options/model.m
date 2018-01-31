@@ -79,11 +79,6 @@ def.diffloglik = {
     'Steady, sstate, sstateopt', false, @model.validateSstate
     };
 
-def.fevd = [
-    matrixFormat
-    select
-];
-
 def.fmse = [
     matrixFormat
     select
