@@ -73,6 +73,20 @@ classdef Frequency < double
         end
 
 
+        function output = colon(a, b, varargin)
+            if isa(a, 'Frequency')
+                a = double(a);
+            end
+            if isa(b, 'Frequency')
+                b = double(b);
+            end
+            if nargin>=3 && isa(varargin{1}, 'Frequency')
+                varargin{1} = double(varargin{1});
+            end
+            output = colon(a, b, varargin{:});
+        end
+
+
         function serial = serialize(this, varargin)
             switch this
                 case Frequency.INTEGER
