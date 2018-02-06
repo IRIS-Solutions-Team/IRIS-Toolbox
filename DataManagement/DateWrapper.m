@@ -396,36 +396,54 @@ classdef DateWrapper < double
                 flag = true;
                 return
             end
-            flag = DateWrapper.validateDateInput(input); 
-            if ~flag
-                return
+            if ischar(input) || isa(input, 'string')
+                input = textinp2dat(input);
             end
-            if ~isinf(input(1)) && ~isinf(input(end))
-                if ischar(input)
-                    input = textinp2dat(input);
-                end
-                flag = all(freqcmp(input));
-            end
-        end
-
-
-        function flag = validateProperRangeInput(input)
-            flag = true;
             if ~DateWrapper.validateDateInput(input)
                 flag = false;
                 return
             end
-            if ischar(input)
-                input = textinp2dat(input);
-            end
-            if isequal(input, @all) || isempty(input) || ( isnumeric(input) && all(isinf(input)) )
-                flag = false;
+            if numel(input)==1
+                flag = true;
                 return
+            end
+            if numel(input)==2
+                if (isinf(input(1)) || isinf(input(2)))
+                    flag = true;
+                    return
+                elseif all(freqcmp(input))
+                    flag = true;
+                    return
+                else
+                    flag = false;
+                    return
+                end
             end
             if ~all(freqcmp(input))
                 flag = false;
                 return
             end
+            if ~all(round(diff(input))==1)
+                flag = false;
+                return
+            end
+            flag = true;
+        end
+
+
+        function flag = validateProperRangeInput(input)
+        if ischar(input) || isa(input, 'string')
+                input = textinp2dat(input);
+            end
+            if ~DateWrapper.validateRangeInput(input)
+                flag = false;
+                return
+            end
+            if isequal(input, @all) || isempty(input) || any(isinf(input))
+                flag = false;
+                return
+            end
+            flag = true;
         end
     end
 
