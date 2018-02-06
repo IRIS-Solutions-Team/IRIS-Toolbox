@@ -1,9 +1,11 @@
-function this = windex(this, weights, range, varargin)
-% windex  Simple weighted or Divisia index.
+function [this, weights] = windex(this, weights, varargin)
+% windex  Plain weighted or Divisia index
 %
 % __Syntax__
 %
-%     Y = windex(X, Weights, Range)
+% Input arguments marked with a `~` sign may be omitted.
+%
+%     Y = windex(X, Weights, ~Range, ...)
 %
 %
 % __Input Arguments__
@@ -13,7 +15,8 @@ function this = windex(this, weights, range, varargin)
 % * `Weights` [ tseries | numeric ] - Fixed or time-varying weights on the
 % input time series.
 %
-% * `Range` [ numeric ] - Range on which the Divisia index is computed.
+% * `~Range=Inf` [ DateWrapper | `Inf` ] - Range on which the weighted index
+% is computed.
 %
 %
 % __Output arguments__
@@ -22,10 +25,10 @@ function this = windex(this, weights, range, varargin)
 %
 % __Options__
 %
-% * `'Method='` [ `'divisia'` | *`'simple'`* ] - Weighting method.
+% * `Method='plain'` [ `'divisia'` | `'plain'` ] - Weighting method.
 %
-% * `'Log='` [ `true` | *`false`* ] - Logarithmise the input data before
-% computing the index, delogarithmise the output data.
+% * `Log=false` [ `true` | `false` ] - Logarithmize the input inputData before
+% computing the index, delogarithmize the output inputData.
 %
 %
 % __Description__
@@ -34,78 +37,40 @@ function this = windex(this, weights, range, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-if nargin<3
-    range = Inf;
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.windex');
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    inputParser.addRequired('Weights', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
+    inputParser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
 end
-
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('tseries.windex');
-    INPUT_PARSER.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    INPUT_PARSER.addRequired('Weights', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
-    INPUT_PARSER.addRequired('Range', @(x) isa(x, 'DateWrapper') || isnumeric(x));
-    INPUT_PARSER.addParameter('log', false, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('method', 'simple', @(x) any(strcmpi(x, {'simple', 'divisia'})));
-end
-INPUT_PARSER.parse(this, weights, range, varargin{:});
-opt = INPUT_PARSER.Options;
+inputParser.parse(this, weights, varargin{:});
+range = inputParser.Results.Range;
+unmatched = inputParser.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
-this.Data = this.Data(:, :);
-temp = this;
-if isa(weights, 'tseries')
-    weights.data = weights.data(:, :);
-    temp = trim([temp, weights]);
+[inputData, range] = getData(this, range);
+if isa(weights, 'TimeSubscriptable')
+    weightsData = getData(weights, range);
+else
+    weightsData = weights;
 end
 
-% Generate the range.
-range = specrange(temp, range);
-data = rangedata(this, range);
-numPeriods = length(range);
+[outputData, weightsData] = numeric.windex(inputData, weightsData, unmatched{:});
 
-% Get the weights.
-if isa(weights, 'tseries')
-    weights = rangedata(weights, range);
-elseif size(weights, 1)==1
-    weights = weights(ones(1, numPeriods), :);
-end
-weights = weights(:, :);
+weights = this;
+weights.Start = range(1);
+weights.Data = weightsData;
+weights = resetColumnNames(weights);
+weights = trim(weights);
 
-wSum = sum(weights, 2);
-if size(weights, 2)==size(data, 2)
-    % Normalise weights.
-    for i = 1 : size(weights, 2)
-        weights(:, i) = weights(:, i) ./ wSum(:);
-    end
-elseif size(weights, 2)==size(data, 2)-1
-    % Add the last weight.
-    weights = [weights, 1-wSum];
-end
-
-switch lower(options.method)
-    case 'simple'
-        if options.log
-            data = log(data);
-        end
-        data = sum(weights .* data, 2);
-        if options.log
-            data = exp(data);
-        end
-    case 'divisia'
-        % Compute the average weights between t and t-1.
-        wavg = (weights(2:end, :) + weights(1:end-1, :))/2;
-        % Construct the Divisia index.
-        data = sum(wavg .* log(data(2:end, :)./data(1:end-1, :)), 2);
-        % Set the first observation to 1 and cumulate back.
-        data = exp(cumsum([0; data]));
-end
-
-this.Data = data;
 this.Start = range(1);
+this.Data = outputData;
 this = resetColumnNames(this);
 this = trim(this);
 
