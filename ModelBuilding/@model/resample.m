@@ -281,7 +281,7 @@ ixH = any(abs(H(:, 1:ne))>0, 1);
 
 % Create a command-window progress bar.
 if opt.Progress
-    progress = ProgressBar('IRIS model.resample progress');
+    progress = ProgressBar('IRIS model.resample Progress');
 end
 
 % __Simulate__
