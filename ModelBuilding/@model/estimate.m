@@ -1,4 +1,4 @@
-function [summary, p, proposalCov, hessian, this, V, delta, PDelta] = estimate(this, inputDatabank, range, varargin)
+function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] = estimate(this, inputDatabank, range, varargin)
 % estimate  Estimate model parameters by optimizing selected objective function.
 %
 % __Syntax__
@@ -381,6 +381,12 @@ hessian = posterior.Hessian;
 
 this.TaskSpecific = [ ];
 
+if nargout>8
+    % ##### Feb 2018 OBSOLETE and scheduled for removal.
+    throw( exception.Base('Obsolete:Estimate8', 'warning') );
+    varargout = {delta, PDelta};
+end
+
 return
 
 
@@ -401,6 +407,7 @@ return
             end
         end
         variables = {
+            posterior.ParameterNames(:), 'Name', 'Name'
             posterior.Optimum(:), 'Poster_Mode', 'Posterior Mode'
             posterStd(:), 'Poster_Std', 'Posterior Std Deviation'
             priorName(:), 'Prior_Distrib', 'Prior Distribution Type'
@@ -414,8 +421,7 @@ return
         };
         summary = table( ...
             variables{:, 1}, ...
-            'VariableNames', variables(:, 2)', ...
-            'RowNames', posterior.ParameterNames(:) ...
+            'VariableNames', variables(:, 2)' ...
         );
         summary.Properties.VariableDescriptions = variables(:, 3)';
     end
