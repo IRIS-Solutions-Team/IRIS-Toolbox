@@ -1,94 +1,94 @@
-function [S,D] = xsf(This,Freq,varargin)
-% xsf  Power spectrum and spectral density functions for VAR variables.
+function [S, D] = xsf(this, freq, varargin)
+% xsf  Power spectrum and spectral density functions for VAR variables
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [S,D] = xsf(V,Freq,...)
+%     [S, D] = xsf(VARModel, Freq, ...)
 %
-% Input arguments
-% ================
 %
-% * `V` [ VAR ] - VAR object.
+% __Input Arguments__
 %
-% * `Freq` [ numeric ] - Vector of Frequencies at which the XSFs will be
+% * `VARModel` [ VAR ] - VAR object.
+%
+% * `Freq` [ numeric ] - Vector of frequencies at which the XSFs will be
 % evaluated.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `S` [ numeric ] - Power spectrum matrices.
 %
 % * `D` [ numeric ] - Spectral density matrices.
 %
-% Options
-% ========
 %
-% * `'applyTo='` [ cellstr | char | *`@all`* ] - List of variables to which
-% the `'filter='` will be applied; `@all` means all variables.
+% __Options__
 %
-% * `'filter='` [ char  | *empty* ] - Linear filter that is applied to
-% variables specified by 'applyto'.
+% * `ApplyTo=@all` [ cellstr | char | `@all` ] - List of variables to which
+% the `Filter=` will be applied; `@all` means all variables.
 %
-% * `'nFreq='` [ numeric | *256* ] - Number of equally spaced frequencies
-% over which the 'filter' is numerically integrated.
-%
-% * `'progress='` [ `true` | *`false`* ] - Display progress bar in the command
+% * `Filter=''` [ char  | empty ] - Linear filter that is applied to
+% variables specified by `ApplyTo=`.
+
+% * `Progress=false` [ `true` | `false` ] - Display progress bar in the command
 % window.
 %
-% Description
-% ============
+%
+% __Description__
 %
 % The output matrices, `S` and `D`, are `N`-by-`N`-by-`K`, where `N` is the
 % number of VAR variables and `K` is the number of frequencies (i.e. the
-% length of the vector `freq`).
+% length of the vector of frequencies `Freq`).
 %
-% The k-th page is the `S` matrix, i.e. `S(:,:,k)`, is the cross-spectrum
+% The k-th page is the `S` matrix, i.e. `S(:, :, k)`, is the cross-spectrum
 % matrix for the VAR variables at the k-th frequency. Similarly, the `k`-th
-% page in `D`, i.e. `D(:,:,k)`, is the cross-density matrix.
+% page in `D`, i.e. `D(:, :, k)`, is the cross-density matrix.
 %
-% Example
-% ========
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-% Parse input arguments.
-pp = inputParser( );
-pp.addRequired('freq',@isnumeric);
-pp.parse(Freq);
-
-opt = passvalopt('VAR.xsf',varargin{:});
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('VAR.xsf');
+    inputParser.addRequired('VARModel', @(x) isa(x, 'VAR'));
+    inputParser.addRequired('Freq', @isnumeric);
+    inputParser.addParameter('ApplyTo', @all, @(x) isnumeric(x) || islogical(x) || isequal(x, @all) || iscellstr(x));
+    inputParser.addParameter('Filter', '', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+end
+inputParser.parse(this, freq, varargin{:});
+opt = inputParser.Options;
 
 %--------------------------------------------------------------------------
 
-ny = size(This.A,1);
-nAlt = size(This.A,3);
-Freq = Freq(:)';
-nFreq = length(Freq);
+ny = size(this.A, 1);
+nv = size(this.A, 3);
+numFreq = numel(freq);
 
 % Pre-process filter options.
-[~,filter,~,applyTo] = freqdom.applyfilteropt(opt,Freq,This.NamesEndogenous);
+[~, filter, ~, applyTo] = freqdom.applyfilteropt(opt, freq, this.NamesEndogenous);
 
-if opt.progress
-    progress = ProgressBar('IRIS VAR.xsf progress');
+if opt.Progress
+    progress = ProgressBar('IRIS VAR.xsf Progress');
 end
 
-S = nan(ny,ny,nFreq,nAlt);
-for iAlt = 1 : nAlt
+S = nan(ny, ny, numFreq, nv);
+for v = 1 : nv
     % Compute power spectrum function.
-    S(:,:,:,iAlt) = freqdom.xsfvar( ...
-        This.A(:,:,iAlt),This.Omega(:,:,iAlt),Freq,filter,applyTo);
-    if opt.progress
-        update(progress,iAlt/nAlt);
+    S(:, :, :, v) = freqdom.xsfvar( ...
+        this.A(:, :, v), this.Omega(:, :, v), freq, filter, applyTo);
+    if opt.Progress
+        update(progress, v/nv);
     end
 end
 S = S / (2*pi);
 
-if nargout > 1
+if nargout>1
     % Convert power spectrum to spectral density.
-    D = freqdom.psf2sdf(S,acf(This));
+    C = acf(this);
+    D = freqdom.psf2sdf(S, C);
 end
 
 end

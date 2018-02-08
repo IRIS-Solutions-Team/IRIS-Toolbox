@@ -1,11 +1,11 @@
 function [isFilter, filter, freq, applyFilterTo] = applyfilteropt(opt, freq, solutionVector)
-% applyfilteropt  Pre-process filter options in ACF.
+% applyfilteropt  Pre-process filter options in ACF
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -45,6 +45,9 @@ end
 if isfield(opt, 'NFreq') && isempty(freq)
     width = pi/opt.NFreq;
     freq = width/2 : width : pi;
+elseif isfield(opt, 'NumFreq') && isempty(freq)
+    width = pi/opt.NumFreq;
+    freq = width/2 : width : pi;
 end
 
 if ~isempty(filter) && any(applyFilterTo)
@@ -60,7 +63,7 @@ end
 
 
 function filter = fdFilter(filterString, freq)
-    numfreq = length(freq);
+    numfreq = numel(freq);
     % Make these name available for user string evaluation:
     Freq = freq;
     frq = freq; %#ok<NASGU>

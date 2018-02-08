@@ -222,3 +222,4 @@ VAR:CannotInfRangeInPanel,Cannot use Inf for input range in panel VAR estimation
 VAR:GroupNotInputData,This group is not contained in the input database: %s 
 VAR:InvalidParameterType,This is not a valid type of VAR parameters: %s
 VAR:NonuniqueName,This name occurs more than once in VAR object: %s 
+VAR:CannotHandleUnstable, Cannot calculate %1 for unstable parameter variants: %s

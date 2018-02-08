@@ -1,28 +1,25 @@
-function [this, outp, fitted, Rr, count] = estimate(this, inp, range, varargin)
-% estimate  Estimate a reduced-form VAR or BVAR.
+function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range, varargin)
+% estimate  Estimate reduced-form VAR model
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [V,VData,Fitted] = estimate(V,Inp,Range,...)
+%     [VARModel, VData, Fitted] = estimate(VARModel, InputData, Range, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `V` [ VAR ] - Empty VAR object.
+% * `VARModel` [ VAR ] - Empty VAR object.
 %
-% * `Inp` [ struct ] - Input database.
+% * `InputData` [ struct ] - Input database.
 %
 % * `Range` [ numeric ] - Estimation range, including `P` pre-sample
 % periods, where `P` is the order of the VAR.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `V` [ VAR ] - Estimated reduced-form VAR object.
+% * `VARModel` [ VAR ] - Estimated reduced-form VAR object.
 %
 % * `VData` [ struct ] - Output database with the endogenous
 % variables and the estimated residuals.
@@ -31,99 +28,103 @@ function [this, outp, fitted, Rr, count] = estimate(this, inp, range, varargin)
 % calculated.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'A='` [ numeric | *empty* ] - Restrictions on the individual values in
-% the transition matrix, `A`.
+% * `Diff=false` [ `true` | `false` ] - Difference the series before
+%  estimating the VAR; integrate the series back afterwards.
 %
-% * `'BVAR='` [ numeric ] - Prior dummy observations for estimating a BVAR;
-% construct the dummy observations using the one of the `BVAR` functions.
+% * `Cointeg=[ ]` [ numeric | empty ] - Co-integrating vectors (in rows)
+%  that will be imposed on the estimated VAR.
 %
-% * `'C='` [ numeric | *empty* ] - Restrictions on the individual values in
-% the constant vector, `C`.
-%
-% * `'J='` [ numeric | *empty* ] - Restrictions on the individual values in
-% the coefficient matrix in front of exogenous inputs, `J`.
-%
-% * `'diff='` [ `true` | *`false`* ] - Difference the series before
-% estimating the VAR; integrate the series back afterwards.
-%
-% * `'G='` [ numeric | *empty* ] - Restrictions on the individual values in
-% the coefficient matrix in front of the co-integrating vector, `G`.
-%
-% * `'cointeg='` [ numeric | *empty* ] - Co-integrating vectors (in rows)
-% that will be imposed on the estimated VAR.
-%
-% * `'comment='` [ char | `Inf` ] - Assign comment to the estimated VAR
+% * `Comment=Inf` [ char | `Inf` ] - Assign comment to the estimated VAR
 % object; `Inf` means the existing comment will be preserved.
 %
-% * `'constraints='` [ char | cellstr ] - General linear constraints on the
-% VAR parameters.
+% * `Intercept=true` [ `true` | `false` ] - Include an intercept in the
+% VAR equations.
 %
-% * `'constant='` [ *`true`* | `false` ] - Include a constant vector in the
-% VAR.
+% * `CovParam=false` [ `true` | `false` ] - Calculate and store the
+%  covariance matrix of estimated parameters.
 %
-% * `'covParam='` [ `true` | *`false`* ] - Calculate and store the
-% covariance matrix of estimated parameters.
+% * `EqtnByEqtn=false` [ `true` | `false` ] - Estimate the VAR equation by
+%  equation.
 %
-% * `'eqtnByEqtn='` [ `true` | *`false`* ] - Estimate the VAR equation by
-% equation.
+% * `Order=1` [ numeric ] - Order of the VAR (number of lags of endogenous
+% variables included on the RHS).
 %
-% * `'maxIter='` [ numeric | *`1`* ] - Maximum number of iterations when
-% generalised least squares algorithm is involved.
-%
-% * `'mean='` [ numeric | *empty* ] - Impose a particular asymptotic mean
-% on the VAR process.
-%
-% * `'order='` [ numeric | *`1`* ] - Order of the VAR.
-%
-% * `'progress='` [ `true` | *`false`* ] - Display progress bar in the
+% * `Progress=false` [ `true` | `false` ] - Display progress bar in the
 % command window.
 %
-% * `'schur='` [ *`true`* | `false` ] - Calculate triangular (Schur)
-% representation of the estimated VAR straight away.
+% * `Schur=true` [ `true` | `false` ] - Calculate triangular (Schur)
+% representation of the estimated VAR immediately.
 %
-% * `'stdize='` [ `true` | *`false`* ] - Adjust the prior dummy
-% observations by the std dev of the observations.
+% * `TimeWeights=[ ]` [ tseries | empty ] - Time series with weights
+% applied to individual periods in the estimation range.
 %
-% * `'timeWeights=`' [ tseries | empty ] - Time series of weights applied
-% to individual periods in the estimation range.
-%
-% * `'tolerance='` [ numeric | *`1e-5`* ] - Convergence tolerance when
-% generalised least squares algorithm is involved.
-%
-% * `'warning='` [ *`true`* | `false` ] - Display warnings produced by this
+% * `Warning=true` [ `true` | `false` ] - Display warnings produced by this
 % function.
 %
 %
-% Options for panel VAR
-% ======================
+% _Options for Parameter Constraints_
 %
-% * `'fixedEff='` [ *`true`* | `false` | cellstr ] - Allow for fixed
+% * `A=[ ]` [ numeric | empty ] - Restrictions on the individual values in
+% the transition matrix, `A`.
+%
+% * `C=[ ]` [ numeric | empty ] - Restrictions on the individual values in
+% the constant vector, `C`.
+%
+% * `Constraints=''` [ char | cellstr | empty ] - General linear
+% constraints on the VAR parameters.
+%
+% * `J=[ ]` [ numeric | empty ] - Restrictions on the individual values in
+% the coefficient matrix in front of exogenous inputs, `J`.
+%
+% * `G=[ ]` [ numeric | empty ] - Restrictions on the individual values in
+% the coefficient matrix in front of the co-integrating vector, `G`.
+%
+% * `MaxIter=1` [ numeric ] - Maximum number of iterations when generalized
+%  least squares algorithm is used (estimation with parameter constraints).
+%
+%  `Mean=[ ]` [ numeric | empty ] - Impose a particular asymptotic mean
+% on the VAR process.
+%
+% * `Tolerance=1e-5` [ numeric ] - Convergence tolerance when generalized
+% least squares algorithm is used.
+%
+%
+% _Options for Prior Dummy Observations_
+%
+% * `PriorDummies=[ ]` [ numeric | empty ] - Prior dummy observations for
+% estimating a quasi-Bayesian VAR; construct the dummy observations using
+% the one of the `BVAR` functions.
+%
+% * `Standardize=false` [ `true` | `false` ] - Adjust the prior dummy
+% observations by the std dev of the observations.
+%
+%
+% _Options for Panel VAR_
+%
+% * `FixedEff=true` [ `true` | `false` | cellstr ] - Allow for fixed
 % effect.
 %
-% * `'groupSpec='` [ `true` | *`false`* | cellstr ] - Allow for
+% * `GroupSpec=false` [ `true` | `false` | cellstr ] - Allow for
 % group-specific coefficients at exogenous regressors. Values `true` or
 % `false` apply to all exogenous regressors en bloc. To allow for
 % group-specific coefficients at selected regressors only, assign a list of
 % names of exogenous regressors.
 %
-% * `'groupWeights='` [ numeric | *empty* ] - A 1-by-NGrp vector of weights
+% * `GroupWeights=[ ]` [ numeric | empty ] - A 1-by-NGrp vector of weights
 % applied to groups in panel estimation, where NGrp is the number of
-% groups; the weights will be rescaled so as to sum up to `1`.
+% groups; the weights will be rescaled to add up to `1`.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Estimating a panel VAR
-% -----------------------
+% _Estimating a Panel VAR_
 %
 % Panel VAR objects are created by calling the function [`VAR`](VAR/VAR)
 % with two input arguments: the list of variables, and the list of group
-% names. To estimate a panel VAR, the input data, `Inp`, must be organised
+% names. To estimate a panel VAR, the input data, `InputData`, must be organised
 % a super-database with sub-databases for each group, and time series for
 % each variables within each group:
 %
@@ -135,122 +136,150 @@ function [this, outp, fitted, Rr, count] = estimate(this, inp, range, varargin)
 %     ...
 %
 %
-% Example
-% ========
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-pp = inputParser( );
-pp.addRequired('V', @(x) isa(x, 'VAR'));
-pp.addRequired('Inp',@(x) myisvalidinpdata(this, x));
-pp.addRequired('Range', @isnumeric);
-pp.parse(this, inp, range);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('VAR.estimate');
+    inputParser.addRequired('VARModel', @(x) isa(x, 'VAR'));
+    inputParser.addRequired('InputData', @(x) myisvalidinpdata(this, x));
+    inputParser.addRequired('Range', @DateWrapper.validateRangeInput);
+    inputParser.addParameter('Diff', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Order', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    inputParser.addParameter('Cointeg', [ ], @isnumeric);
+    inputParser.addParameter('Comment', '', @(x) ischar(x) || isa(x, 'string') || isequal(x, Inf));
+    inputParser.addParameter({'Constraints', 'Constraint'}, '', @(x) ischar(x) || isa(x, 'string') || iscellstr(x) || isnumeric(x));
+    inputParser.addParameter({'Intercept', 'Constant', 'Const', 'Constants'}, true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter({'CovParameters', 'CovParameter', 'CovParam'}, false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('EqtnByEqtn', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Schur', true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter({'StartDate', 'Start'}, 'Presample', @(x) any(strcmpi(x, {'Presample', 'Fit', 'Fitted'})));
+    inputParser.addParameter('TimeWeights', [ ], @(x) isempty(x) || isa(x, 'tseries'));
+    inputParser.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
+    % Parameter constraints
+    inputParser.addParameter('A', [ ], @isnumeric);
+    inputParser.addParameter('C', [ ], @isnumeric);    
+    inputParser.addParameter('G', [ ], @isnumeric);
+    inputParser.addParameter('J', [ ], @isnumeric);
+    inputParser.addParameter('Mean', [ ], @(x) isempty(x) || isnumeric(x));
+    inputParser.addParameter('MaxIter', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    inputParser.addParameter('Tolerance', 1e-5, @(x) isnumeric(x) && isscalar(x) && x>0);
+    % Prior dummy observations
+    inputParser.addParameter({'PriorDummies', 'BVAR'}, [ ], @(x) isempty(x) || isa(x, 'BVAR.bvarobj'));
+    inputParser.addParameter({'Standardize', 'Stdize'}, false, @(x) isequal(x, true) || isequal(x, false));
+    % Panel VAR
+    inputParser.addParameter({'FixedEff', 'FixedEffect'}, true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('GroupWeights', [ ], @(x) isempty(x) || isnumeric(x));
+    inputParser.addParameter('GroupSpec', false, @(x) islogicalscalar(x) || iscellstr(x) || ischar(x));
+end
+inputParser.parse(this, inputData, range, varargin{:});
+opt = inputParser.Options;
 
 if isempty(this.NamesEndogenous)
     throw( exception.Base('VAR:CANNOT_ESTIMATE_EMPTY_VAR', 'error') );
 end
 
-% Pass and validate options.
-opt = passvalopt('VAR.estimate',varargin{:});
-
 %--------------------------------------------------------------------------
 
-p = opt.order;
-nGrp = max(1, length(this.GroupNames));
+p = opt.Order;
+numGroups = max(1, length(this.GroupNames));
 kx = length(this.NamesExogenous);
-ixGroupSpec = resolveGroupSpec( );
+indexGroupSpec = resolveGroupSpec( );
 
-if ~isempty(opt.a) && p>1 && size(opt.a, 3)==1
-    opt.a = repmat(opt.a, 1, 1, p);
+if ~isempty(opt.A) && p>1 && size(opt.A, 3)==1
+    opt.A = repmat(opt.A, 1, 1, p);
 end
 
-% Get input data for estimation; the user range is supposed to **include**
-% the pre-sample initial condition.
-[inpy, inpx, xRange] = getEstimationData(this, inp, range, p);
+
+% Get input data for estimation and determine extended range (including
+% pre-sample)
+[inputEndogenous, inputExogenous, extendedRange] = getEstimationData(this, inputData, range, p, opt.StartDate);
 
 % Create components of the LHS and RHS data. Panel VARs create data by
 % concatenting individual groups next to each other separated by a total of
 % p extra NaNs.
-if ~isempty(opt.cointeg)
-    opt.diff = true;
+if ~isempty(opt.Cointeg)
+    opt.Diff = true;
 end
-[y0, k0, x0, y1, g1, ci] = stackData(this, inpy, inpx, ixGroupSpec, opt);
+[y0, k0, x0, y1, g1, ci] = stackData(this, inputEndogenous, inputExogenous, indexGroupSpec, opt);
 
-this.Range = xRange;
-nXPer = length(xRange);
+this.Range = extendedRange;
+numExtendedPeriods = length(extendedRange);
 
-ng = size(g1, 1);
-nk = size(k0, 1);
-ny = size(y0, 1);
-nx = size(x0, 1); % Total number of rows in x0 depends on kx and ixFixedEff.
-nData = size(y0, 3);
+numCointeg = size(g1, 1);
+numIntercepts = size(k0, 1);
+numEndogenous = size(y0, 1);
+numExogenous = size(x0, 1); % Total number of rows in x0 depends on kx and ixFixedEff.
+numDataSets = size(y0, 3);
 
-if ~isempty(opt.mean)
-    if length(opt.mean)==1
-        opt.mean = opt.mean(ones(ny, 1));
+if ~isempty(opt.Mean)
+    if length(opt.Mean)==1
+        opt.Mean = opt.Mean(ones(numEndogenous, 1));
     else
-        opt.mean = opt.mean(:);
+        opt.Mean = opt.Mean(:);
     end
 end
 
-if ~isempty(opt.mean)
-    opt.constant = false;
+if ~isempty(opt.Mean)
+    opt.Intercept = false;
 end
 
 % Read parameter restrictions, and set up their hyperparameter form.
 % They are organised as follows:
-% * Rr = [R,r],
+% * Rr = [R, r], 
 % * beta = R*gamma + r.
-this.Rr = VAR.restrict(ny, nk, nx, ng, opt);
+this.Rr = VAR.restrict(numEndogenous, numIntercepts, numExogenous, numCointeg, opt);
 
 % Get the number of hyperparameters.
 if isempty(this.Rr)
     % Unrestricted VAR.
-    if ~opt.diff
-        % Level VAR.
-        this.NHyper = ny*(nk+nx+p*ny+ng);
+    if ~opt.Diff
+        % Level VAR
+        this.NHyper = numEndogenous*(numIntercepts+numExogenous+p*numEndogenous+numCointeg);
     else
-        % Difference VAR or VEC.
-        this.NHyper = ny*(nk+nx+(p-1)*ny+ng);
+        % Difference VAR or VEC
+        this.NHyper = numEndogenous*(numIntercepts+numExogenous+(p-1)*numEndogenous+numCointeg);
     end
 else
     % Parameter restrictions in the hyperparameter form:
     % beta = R*gamma + r;
     % The number of hyperparams is given by the number of columns of R.
-    % The Rr matrix is [R,r], so we need to subtract 1.
-    this.NHyper = size(this.Rr,2) - 1;
+    % The Rr matrix is [R, r], so we need to subtract 1.
+    this.NHyper = size(this.Rr, 2) - 1;
 end
 
-nLoop = nData;
+numRuns = numDataSets;
 
 % Estimate reduced-form VAR parameters. The size of coefficient matrices
 % will always be determined by p whether this is a~level VAR or
 % a~difference VAR.
-e0 = nan(ny, size(y0, 2), nLoop);
-fitted = cell(1, nLoop);
-count = zeros(1, nLoop);
+e0 = nan(numEndogenous, size(y0, 2), numRuns);
+fitted = cell(1, numRuns);
+count = zeros(1, numRuns);
 
 % Pre-allocate VAR matrices.
-this = myprealloc(this, ny, p, nXPer, nLoop, ng);
+this = myprealloc(this, numEndogenous, p, numExtendedPeriods, numRuns, numCointeg);
 
 % Create command-window progress bar.
-if opt.progress
+if opt.Progress
     progress = ProgressBar('IRIS VAR.estimate progress');
 end
 
-% Main loop
-%-----------
+% __Main Loop__
 s = struct( );
 s.Rr = this.Rr;
 s.ci = ci;
 s.order = p;
-% Weighted GLSQ; the function is different for VARs and panel VARs, becuase
+% Weighted GLSQ; the function is different for VARs and panel VARs, because
 % Panel VARs possibly combine weights on time periods and weights on groups.
 s.w = myglsqweights(this, opt);
 
-for iLoop = 1 : nLoop
+for iLoop = 1 : numRuns
     s.y0 = y0(:, :, min(iLoop, end));
     s.y1 = y1(:, :, min(iLoop, end));
     s.k0 = k0(:, :, min(iLoop, end));
@@ -258,21 +287,21 @@ for iLoop = 1 : nLoop
     s.g1 = g1(:, :, min(iLoop, end));
     
     % Run generalised least squares.
-    s = VAR.myglsq(s,opt);
+    s = VAR.myglsq(s, opt);
 
     % Assign estimated coefficient matrices to the VAR object.
-    [this, fitted{iLoop}] = assignEst(this, s, ixGroupSpec, iLoop, opt);
+    [this, fitted{iLoop}] = assignEst(this, s, indexGroupSpec, iLoop, opt);
     
     e0(:, :, iLoop) = s.resid;
     count(iLoop) = s.count;
 
-    if opt.progress
-        update(progress, iLoop/nLoop);
+    if opt.Progress
+        update(progress, iLoop/numRuns);
     end 
 end
 
 % Calculate triangular representation.
-if opt.schur
+if opt.Schur
     this = schur(this);
 end
 
@@ -281,39 +310,37 @@ this = infocrit(this);
 
 % Expand output data to match the size of residuals if necessary.
 n = size(y0, 3);
-if n<nLoop
-    y0(:, :, end+1:nLoop) = repmat(y0, 1, 1, nLoop-n);
-    if nx>0
-        x0(:, :, end+1:nLoop) = repmat(x0, 1, 1, nLoop-n);
+if n<numRuns
+    y0(:, :, end+1:numRuns) = repmat(y0, 1, 1, numRuns-n);
+    if numExogenous>0
+        x0(:, :, end+1:numRuns) = repmat(x0, 1, 1, numRuns-n);
     end
 end
 
 % Report observations that could not be fitted.
 chkObsNotFitted( );
 
-if nargout > 1
+if nargout>1
     organizeOutpData( );
 end
 
-if nargout > 2
+if nargout>2
     Rr = this.Rr;
 end
 
-if ~isequal(opt.comment,Inf)
-    this = comment(this, opt.comment);
+if ~isequal(opt.Comment, Inf)
+    this = comment(this, opt.Comment);
 end
 
 return
 
 
-
-
     function chkObsNotFitted( )
-        allFitted = all(all(this.IxFitted, 1),3);
-        if opt.warning && any(~allFitted(p+1:end))
+        allFitted = all(all(this.IxFitted, 1), 3);
+        if opt.Warning && any(~allFitted(p+1:end))
             missing = this.Range(p+1:end);
             missing = missing(~allFitted(p+1:end));
-            [~,consec] = datconsecutive(missing);
+            [~, consec] = datconsecutive(missing);
             utils.warning('VAR:estimate', ...
                 ['These periods not fitted ', ...
                 'because of missing observations: %s.'], ...
@@ -322,34 +349,30 @@ return
     end 
 
 
-
-
     function organizeOutpData( )
         lsyxe = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
         if ispanel(this)
-            % Panel VAR
-            %-----------
-            % `nx` is #row in the array `x`. In panel VARs with fixed effect, each
+            % _Panel VAR_
+            % `numExogenous` is #row in the array `x`. In panel VARs with fixed effect, each
             % group has its own block of exogenous variables, so that the total row
             % count is #exogenous variables times #groups. The true number of exogenous
-            % variables is therefore `nx/nGrp`.
-            nGrp = length(this.GroupNames);
-            outp = struct( );
-            for iiGrp = 1 : nGrp
-                yxe = [y0(:, 1:nXPer, :); inpx{iiGrp}; e0(:, 1:nXPer, :)];
-                name = this.GroupNames{iiGrp};
-                outp.(name) = myoutpdata(this, this.Range, yxe, [ ], lsyxe);
-                y0(:, 1:nXPer+p,:) = [ ];
-                e0(:, 1:nXPer+p,:) = [ ];
+            % variables is therefore `numExogenous/numGroups`.
+            numGroups = length(this.GroupNames);
+            outputData = struct( );
+            for iiGroup = 1 : numGroups
+                yxe = [y0(:, 1:numExtendedPeriods, :); inputExogenous{iiGroup}; e0(:, 1:numExtendedPeriods, :)];
+                name = this.GroupNames{iiGroup};
+                outputData.(name) = myoutpdata(this, this.Range, yxe, [ ], lsyxe);
+                y0(:, 1:numExtendedPeriods+p, :) = [ ];
+                e0(:, 1:numExtendedPeriods+p, :) = [ ];
             end
         else
-            % Non-panel VAR
-            %---------------
-            % Get columns 1:nXPer from y0 and e0 because they still include the NaNs at
+            % _Plain VAR_
+            % Get columns 1:numExtendedPeriods from y0 and e0 because they still include the NaNs at
             % the end used as group separators.
-            yxe = [y0(:, 1:nXPer, :); inpx{1}(:, 1:nXPer, :); e0(:, 1:nXPer, :)];
-            outp = inp * this.NamesExogenous;
-            outp = myoutpdata(this, this.Range, yxe, [ ], lsyxe);
+            yxe = [y0(:, 1:numExtendedPeriods, :); inputExogenous{1}(:, 1:numExtendedPeriods, :); e0(:, 1:numExtendedPeriods, :)];
+            outputData = inputData * this.NamesExogenous;
+            outputData = myoutpdata(this, this.Range, yxe, [ ], lsyxe);
         end
         y0 = [ ];
         x0 = [ ];
@@ -357,25 +380,23 @@ return
     end 
 
 
-
-
-    function ixGroupSpec = resolveGroupSpec( )
-        ixGroupSpec = false(1, 1+kx);
-        if ~ispanel(this) || nGrp==1 || ...
-                ( isequal(opt.fixedeff, false) && isequal(opt.groupspec, false) )
+    function indexGroupSpec = resolveGroupSpec( )
+        indexGroupSpec = false(1, 1+kx);
+        if ~ispanel(this) || numGroups==1 || ...
+                ( isequal(opt.FixedEff, false) && isequal(opt.GroupSpec, false) )
             return
         end
-        ixGroupSpec(1) = opt.fixedeff;
-        if islogicalscalar(opt.groupspec)
-            ixGroupSpec(2:end) = opt.groupspec;
+        indexGroupSpec(1) = opt.FixedEff;
+        if islogicalscalar(opt.GroupSpec)
+            indexGroupSpec(2:end) = opt.GroupSpec;
             return
         end
-        if ischar(opt.groupspec)
-            opt.groupspec = regexp(opt.groupspec, '\w+', 'match');
+        if ischar(opt.GroupSpec)
+            opt.GroupSpec = regexp(opt.GroupSpec, '\w+', 'match');
         end
         for ii = 1 : kx
             name = this.NamesExogenous{ii};
-            ixGroupSpec(1+ii) = any(strcmpi(opt.groupspec, name));
+            indexGroupSpec(1+ii) = any(strcmpi(opt.GroupSpec, name));
         end
     end
 end

@@ -18,7 +18,7 @@ ny = size(yInp{1}, 1);
 kx = size(xInp{1}, 1);
 nAlt = size(yInp{1}, 3);
 nXPer = size(yInp{1}, 2); % nXPer is the same for each group because Range cannot be Inf for panel VARs.
-p = opt.order;
+p = opt.Order;
 
 
 % Endogenous variables
@@ -35,7 +35,7 @@ n = size(Y0, 2);
 % Constant including fixed effect
 %---------------------------------
 K0 = zeros(0, n);
-if opt.constant
+if opt.Intercept
     if nGrp==1 || ~ixGroupSpecConst
         % Constant term in non-panels or estimated for all groups.
         K0 = ones(1, n);
@@ -84,7 +84,7 @@ end
 % Cointegrating vectors and difference
 %--------------------------------------
 % Only one set of cointegrating vectors allowed.
-CI = opt.cointeg;
+CI = opt.Cointeg;
 if isempty(CI)
     CI = zeros(0, 1+ny);
 else
@@ -94,7 +94,7 @@ else
 end
 ng = size(CI, 1);
 G1 = zeros(ng, n, nAlt);
-if ~opt.diff
+if ~opt.Diff
     % Level VAR
     %-----------
     Y1 = nan(p*ny, n, nAlt);

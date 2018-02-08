@@ -1,73 +1,68 @@
-function W = myglsqweights(This,Opt)
-% myglsqweights  [Not a public function] Vector of period weights for VAR estimation.
+function W = myglsqweights(this, opt)
+% myglsqweights  Vector of period weights for VAR estimation
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-xRange = This.Range;
-nXPer = length(xRange);
-p = Opt.order;
+extendedRange = this.Range;
+numExtendedPeriods = length(extendedRange);
+p = opt.Order;
 
-if ispanel(This)
-    nGrp = length(This.GroupNames);
+if ispanel(this)
+    numGroups = length(this.GroupNames);
 else
-    nGrp = 1;
+    numGroups = 1;
 end
 
-isTimeWeights = ~isempty(Opt.timeweights) && isa(Opt.timeweights,'tseries');
-isGrpWeights = ~isempty(Opt.groupweights);
+isTimeWeights = ~isempty(opt.TimeWeights) && isa(opt.TimeWeights, 'tseries');
+isGrpWeights = ~isempty(opt.GroupWeights);
 
 if ~isTimeWeights && ~isGrpWeights
     W = [ ];
     return
 end
 
-% Time weights.
+% Time weights
 if isTimeWeights
-    Wt = Opt.timeweights(xRange,:);
+    Wt = opt.TimeWeights(extendedRange, :);
     Wt = Wt(:).';
-    Wt = repmat(Wt,1,nGrp);
+    Wt = repmat(Wt, 1, numGroups);
 else
-    Wt = ones(1,nXPer);
+    Wt = ones(1, numExtendedPeriods);
 end
 
-% Group weights.
+% Group weights
 if isGrpWeights
-    Wg = Opt.groupweights(:).';
-    doChkGrpweights( );
+    Wg = opt.GroupWeights(:).';
+    checkGroupWeights( );
 else
-    Wg = ones(1,nGrp);
+    Wg = ones(1, numGroups);
 end
 
-% Total weights.
+% Total weights
 W = [ ];
-for iGrp = 1 : nGrp
-    W = [W,Wt*Wg(iGrp),nan(1,p)]; %#ok<AGROW>
+for iGrp = 1 : numGroups
+    W = [W, Wt*Wg(iGrp), nan(1, p)]; %#ok<AGROW>
 end
 W(W == 0) = NaN;
 if all(isnan(W(:)))
     W = [ ];
 end
    
+return
 
-% Nested functions...
 
-
-%**************************************************************************
-    
-    
-    function doChkGrpweights( )
-        if length(Wg) ~= nGrp
+    function checkGroupWeights( )
+        if length(Wg) ~= numGroups
             utils.error('VAR:myglsqweights', ...
                 ['The length of the vector of group weights (%g) must ', ...
                 'match the number of groups in the panel VAR object (%g).'], ...
-                length(Wg),nGrp);
+                length(Wg), numGroups);
         end
-    end % doChkGrpWeights( )
-
+    end 
 end

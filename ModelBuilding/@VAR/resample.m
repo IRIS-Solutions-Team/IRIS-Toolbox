@@ -1,14 +1,13 @@
 function outp = resample(this, inp, range, nDraw, varargin)
-% resample  Resample from a VAR object.
+% resample  Resample from VAR model
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     Outp = resample(V,Inp,Range,NDraw,...)
-%     Outp = resample(V,[ ],Range,NDraw,...)
+%     Outp = resample(V, Inp, Range, NDraw, ...)
+%     Outp = resample(V, [ ], Range, NDraw, ...)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `V` [ VAR ] - VAR object to resample from.
 %
@@ -17,43 +16,43 @@ function outp = resample(this, inp, range, nDraw, varargin)
 %
 % * `Range` [ numeric ] - Range for which data will be returned.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `Outp` [ struct | tseries ] - Resampled output database or tseries.
 %
-% Options
-% ========
 %
-% * `'deviation='` [ `true` | *`false`* ] - Do not include the constant
-% term in simulations.
+% __Options__
 %
-% * `'group='` [ numeric | *`NaN`* ] - Choose group whose parameters will
-% be used in resampling; required in VAR objects with multiple groups when
-% `'deviation=' false`.
+% * `Deviation=false` [ `true` | `false` ] - Do not include the intercept
+% in the simulation.
 %
-% * `'method='` [ `'bootstrap'` | *`'montecarlo'`* | function_handle ] -
-% Bootstrap from estimated residuals, resample from normal distribution, or
-% use user-supplied sampler.
+% * `Group=NaN` [ numeric | `NaN` ] - Choose group whose parameters will be
+% used in resampling; required in VAR objects with multiple groups when
+% `Deviation=false`.
 %
-% * `'progress='` [ `true` | *`false`* ] - Display progress bar in the
-% command window.
+% * `Method='montecarlo'` [ `'bootstrap'` | `'montecarlo'` |
+% function_handle ] - Bootstrap from estimated residuals, resample from
+% normal distribution, or use user-supplied sampler.
 %
-% * `'randomise='` [ `true` | *`false`* ] - Randomise or fix pre-sample
+%  `Progress=false` [ `true` | `false` ] - Display progress bar in the
+%  command window.
+%
+%  `Randomize=false` [ `true` | `false` ] - Randomize or fix pre-sample
 % initial condition.
 %
-% * `'wild='` [ `true` | *`false`* ] - Use wild bootstrap instead of
-% standard Efron bootstrap when `'method=' 'bootstrap'`.
+% * `Wild=false` [ `true` | `false` ] - Use wild bootstrap instead of
+% standard Efron bootstrap when `Method='bootstrap'`.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 % Panel VAR.
 if ispanel(this)
@@ -63,7 +62,7 @@ end
 
 % Parse required input arguments.
 pp = inputParser( );
-pp.addRequired('V',@(x) isa(x, 'VAR'));
+pp.addRequired('V', @(x) isa(x, 'VAR'));
 pp.addRequired('Inp', @isstruct);
 pp.addRequired('Range', @isnumeric);
 pp.addRequired('NDraw', @(x) isintscalar(x) && x >= 0);
@@ -78,10 +77,10 @@ end
 
 %--------------------------------------------------------------------------
 
-ny = size(this.A,1);
+ny = size(this.A, 1);
 kx = length(this.NamesExogenous);
-p = size(this.A,2) / max(ny,1);
-nAlt = size(this.A,3);
+p = size(this.A, 2) / max(ny, 1);
+nv = size(this.A, 3);
 
 % Check for multiple parameterisations.
 chkMultipleParams( );
@@ -95,18 +94,17 @@ nXPer = numel(xRange);
 
 % Input data
 %------------
-req = datarequest('y*,x,e', this, inp, xRange);
+req = datarequest('y*, x, e', this, inp, xRange);
 y = req.Y;
 x = req.X;
 e = req.E;
-nData = size(y,3);
+nData = size(y, 3);
 if nData > 1
     utils.error('VAR:resample', ...
         'Cannot resample from multiple data sets.')
 end
 
-% Pre-allocate an array for resampled data and initialise
-%---------------------------------------------------------
+% __Pre-allocate an array for resampled data and initialize__
 Y = nan(ny, nXPer, nDraw);
 if opt.deviation
     Y(:, 1:p, :) = 0;
@@ -120,19 +118,18 @@ else
         x(:, 1:p) = NaN;
     else
         % Initial condition from pre-sample data.
-        Y(:, 1:p, :) = repmat(y(:,1:p), 1, 1, nDraw);
+        Y(:, 1:p, :) = repmat(y(:, 1:p), 1, 1, nDraw);
     end
 end
 
-% TODO: randomise initial condition
+% TODO: randomize initial condition
 %{
-if options.randomise
+if options.randomize
 else
 end
 %}
 
-% System matrices
-%-----------------
+% __System matrices__
 [A, ~, K, J] = mysystem(this);
 [B, isIdentified] = mybmatrix(this);
 
@@ -145,15 +142,19 @@ if kx>0
     KJ = KJ + J*x;
 end
 
-% Back out reduced-form residuals if needed. The B matrix is then
-% discarded, and only the covariance matrix of reduced-form residuals is
-% used.
+% Back out reduced-form errors from structural errors if this is a
+% structural VAR. The B matrix is then discarded, and only the covariance
+% matrix of reduced-form residuals is used.
 if isIdentified
+    % Structural VAR
     Be = B*e;
+else
+    % Reduced-form VAR
+    Be = e;
 end
 
-if ~isequal(opt.method,'bootstrap')
-    % Safely factorise (chol/svd) the covariance matrix of reduced-form
+if ~isequal(opt.method, 'bootstrap')
+    % Safely factorize (chol/svd) the covariance matrix of reduced-form
     % residuals so that we can draw from uncorrelated multivariate normal.
     F = covfun.factorise(this.Omega);
     if isa(opt.method, 'function_handle')
@@ -168,16 +169,15 @@ if opt.progress
     progress = ProgressBar('IRIS VAR.resample progress');
 end
 
-% Simulate
-%----------
+% __Simulate__
 ixNanInit = false(1, nDraw);
 ixNanResid = false(1, nDraw);
 E = nan(ny, nXPer, nDraw);
 for iDraw = 1 : nDraw
     iBe = zeros(ny, nXPer);
     iBe(:, p+1:end) = drawResiduals( );
-    iY = Y(:,:,iDraw);
-    if any(any(isnan(iY(:,1:p))))
+    iY = Y(:, :, iDraw);
+    if any(any(isnan(iY(:, 1:p))))
         ixNanInit(iDraw) = true;
     end
     if any(isnan(iBe(:)))
@@ -187,15 +187,15 @@ for iDraw = 1 : nDraw
         iYInit = iY(:, t-(1:p));
         iY(:, t) = A*iYInit(:) + KJ(:, t) + iBe(:, t);
     end
-    Y(:,:,iDraw) = iY;
+    Y(:, :, iDraw) = iY;
     iE = iBe;
     if isIdentified
         iE = B\iE;
     end
-    E(:, p+1:end,iDraw) = iE(:, p+1:end);
+    E(:, p+1:end, iDraw) = iE(:, p+1:end);
     % Update the progress bar.
     if opt.progress
-        update(progress,iDraw/nDraw);
+        update(progress, iDraw/nDraw);
     end
 end
 
@@ -216,7 +216,7 @@ end
 % Return only endogenous variables, not shocks.
 names = [this.NamesEndogenous, this.NamesErrors];
 data = [Y;E];
-if kx > 0
+if kx>0
     names = [names, this.NamesExogenous];
     data = [data; repmat(x, 1, 1, nDraw)];
 end
@@ -224,19 +224,15 @@ outp = myoutpdata(this, xRange, data, [ ], names);
 
 return
 
-
-
     
     function chkMultipleParams( )
-        % Works only with single parameterisation and single group.
-        if nAlt>1
+        % Works only with single parameterization and single group.
+        if nv>1
             utils.error('VAR:resample', ...
                 ['Cannot resample from VAR objects ', ...
-                'with multiple parameterisations.']);
+                'with multiple parameterizations.']);
         end
     end 
-
-
 
 
     function X = drawResiduals( )

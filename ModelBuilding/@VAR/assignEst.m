@@ -1,11 +1,11 @@
 function [this, datFitted] = assignEst(this, s, ixFixedEff, iLoop, opt)
-% assignEst Assign estimated coefficient to VAR object.
+% assignEst  Assign estimated coefficient to VAR object
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -22,11 +22,11 @@ ng = size(G,2);
 nGrp = max(1,length(this.GroupNames));
 
 p = s.order; 
-if opt.diff
+if opt.Diff
     p = p - 1;
 end
 
-if opt.constant
+if opt.Intercept
     K = s.K;
     if ~ixFixedEffConst && nGrp>1
         % No fixed effect in panel regression; repeat the estimated constant vector
@@ -38,8 +38,8 @@ else
 end
 
 % Add the user-imposed mean to the VAR process.
-if ~isempty(opt.mean)
-    m = opt.mean;
+if ~isempty(opt.Mean)
+    m = opt.Mean;
     if nGrp>1
         m = repmat(m, 1, nGrp);
     end
@@ -71,7 +71,7 @@ elseif nGrp>1
 end
 
 % Convert VEC to co-integrated VAR.
-if opt.diff
+if opt.Diff
     % Add the constant from the co-integrating vector to the constant vector.
     if ng>0
         L = G*ci(:,1);

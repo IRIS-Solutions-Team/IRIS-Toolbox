@@ -1,14 +1,14 @@
 function [C, Q] = acf(this, varargin)
-% acf  Autocovariance and autocorrelation functions for VAR variables.
+% acf  Autocovariance and autocorrelation functions for VAR variables
 %
 % __Syntax__
 %
-%     [C, R] = acf(V, ...)
+%     [C, R] = acf(VARModel, ...)
 %
 %
 % __Input Arguments__
 %
-% * `V` [ VAR ] - VAR object for which the ACF will be computed.
+% * `VARModel` [ VAR ] - VAR object for which the ACF will be computed.
 %
 %
 % __Output Arguments__
@@ -36,8 +36,9 @@ function [C, Q] = acf(this, varargin)
 % * `Order=0` [ numeric ] - Order up to which ACF will be
 % computed.
 %
-% * `Progress=false` [ `true` | `false` ] - Display progress bar in the command
-% window.
+% * `Progress=false` [ `true` | `false` ] - Display progress bar in the
+% command window.
+%
 %
 % __Description__
 %
@@ -45,14 +46,14 @@ function [C, Q] = acf(this, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
 opt = passvalopt('VAR.acf', varargin{:});
 
-isCorrelations = nargout > 1;
+returnCorrelations = nargout>1;
 isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 
 %--------------------------------------------------------------------------
@@ -68,13 +69,13 @@ maxOrder = opt.Order;
 C = nan(ny, ny, maxOrder+1, nv);
 
 % Find explosive parameterisations.
-indexExploding = isexplosive(this);
+indexUnstable = isexplosive(this);
 
 if opt.Progress
     pBar = ProgressBar('IRIS VAR.acf progress');
 end
 
-for v = find(~indexExploding)
+for v = find(~indexUnstable)
     [T, R, ~, ~, ~, ~, U, Omega] = sspace(this, v);
     eigenStability = this.EigenStability(:, :, v);
     indexUnitRoots = eigenStability==TYPE(1);
@@ -93,7 +94,7 @@ for v = find(~indexExploding)
             c(:, :, end+1:maxOrder+1) = 0;
         elseif maxOrder>p-1
             % Compute higher-order acfs using Yule-Walker equations.
-            c = xxAcovYW(this.A(:, :, v), c, maxOrder);
+            c = yuleWalker(this.A(:, :, v), c, maxOrder);
         else
             c = c(:, :, 1:1+maxOrder);
         end
@@ -101,23 +102,23 @@ for v = find(~indexExploding)
     end
     % Update the progress bar.
     if opt.Progress
-        update(pBar, v/sum(~indexExploding));
+        update(pBar, v/sum(~indexUnstable));
     end
 end
 
-assert( ...
-    all(~indexExploding), ...
-    'VAR:acf', ...
-    'Cannot compute ACF for exploding parameter variants %s ', ...
-    exception.Base.alt2str(indexExploding) ...
-);
+if any(indexUnstable)
+    throw( ...
+        exception.Base('VAR:CannotHandleUnstable', 'warning'), ...
+        'ACF', exception.Base.alt2str(indexUnstable) ...
+    );
+end
 
 % Fix entries with negative variances.
 C = timedom.fixcov(C);
 
-% Autocorrelation function.
-if isCorrelations
-    % Convert covariances to correlations.
+% Autocorrelation function
+if returnCorrelations
+    % Convert covariances to correlations
     Q = covfun.cov2corr(C);
 end
 
@@ -132,7 +133,7 @@ end
 end
 
 
-function C = xxAcovYW(A, C, P)
+function C = yuleWalker(A, C, P)
     [ny, pNy] = size(A);
     p = pNy/ny;
 

@@ -1,15 +1,15 @@
-function Def = VAR( )
-% VAR  Default options for VAR class functions.
+function def = VAR( )
+% VAR  Default options for VAR class functions
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-Def = struct( );
+def = struct( );
 
 outputFmt = {
     'output', 'auto', @(x) any(strcmpi(x, {'auto', 'dbase', 'tseries', 'array'}))
@@ -32,7 +32,7 @@ tolerance = {
 };
 
 
-Def.acf = [
+def.acf = [
     applyFilter
     matrixFormat
     {
@@ -43,9 +43,7 @@ Def.acf = [
 ];
 
 
-Def.estimate = [ 
-    outputFmt
-    {
+def.estimate = {
     'a', [ ], @isnumeric
     'bvar', [ ], @(x) isempty(x) || isa(x, 'BVAR.bvarobj')
     'c', [ ], @isnumeric    
@@ -72,10 +70,10 @@ Def.estimate = [
     'fixedeff, fixedeffect', true, @islogicalscalar
     'groupweights', [ ], @(x) isempty(x) || isnumeric(x)
     'groupspec', false, @(x) islogicalscalar(x) || iscellstr(x) || ischar(x)
-    }
-];
+};
 
-Def.filter = {
+
+def.filter = {
     'ahead', 1, @(x) isnumeric(x) || isround(x) || x >= 1
     'cross', true, @(x) islogicalscalar(x) || (isnumericscalar(x) && x >=0 && x <= 1)
     'deviation, deviations', false, @islogicalscalar
@@ -84,11 +82,11 @@ Def.filter = {
     'output', 'smooth', @ischar    
 };
 
-Def.fmse = [
+def.fmse = [
     matrixFormat
 ]; %#ok<CCAT1>
 
-Def.forecast = [
+def.forecast = [
     outputFmt
     {
     'cross', true, @(x) islogicalscalar(x) || (isnumericscalar(x) && x >=0 && x <= 1)
@@ -103,24 +101,24 @@ Def.forecast = [
     }
 ];
 
-Def.integrate = {
+def.integrate = {
     'applyto', Inf, @(x) isnumeric(x) || islogical(x)
     };
 
-Def.isexplosive = [
+def.isexplosive = [
     tolerance
 ]; %#ok<CCAT1>
 
-Def.isstationary = [
+def.isstationary = [
     tolerance
 ]; %#ok<CCAT1>
 
 
-Def.portest = {
+def.portest = {
     'level', 0.05, @(x) isnumericscalar(x) && x > 0 && x < 1
     };
 
-Def.resample = [
+def.resample = [
     outputFmt
     {
     'deviation, deviations', false, @islogicalscalar   
@@ -132,7 +130,7 @@ Def.resample = [
     }
 ];
 
-Def.sprintf = {
+def.sprintf = {
     'constant, constants, const', true, @islogicalscalar
     'decimal', [ ], @(x) isempty(x) || isnumericscalar(x)
     'declare', false, @islogicalscalar
@@ -143,20 +141,13 @@ Def.sprintf = {
     'ynames, yname', [ ], @(x) isempty(x) || iscellstr(x)
     };
 
-Def.response = {
+def.response = {
     'presample', false, @islogicalscalar
     'select', Inf, @(x) isequal(x, Inf) || islogical(x) || isnumeric(x) || ischar(x) || iscellstr(x)
     };
 
-Def.VAR = {
+def.VAR = {
     'exogenous', { }, @(x) ischar(x) || iscellstr(x)
     };
-
-Def.xsf = [
-    applyFilter
-    {
-    'progress', false, @islogicalscalar
-    }
-];
 
 end
