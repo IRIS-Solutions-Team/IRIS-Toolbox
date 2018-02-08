@@ -1,4 +1,4 @@
-function outp = resample(this, inp, range, nDraw, varargin)
+function [outputData, draws] = resample(this, inp, range, numDraws, varargin)
 % resample  Resample from VAR model
 %
 % __Syntax__
@@ -56,7 +56,7 @@ function outp = resample(this, inp, range, nDraw, varargin)
 
 % Panel VAR.
 if ispanel(this)
-    outp = mygroupmethod(@resample, this, inp, range, nDraw, varargin{:});
+    outputData = mygroupmethod(@resample, this, inp, range, numDraws, varargin{:});
     return
 end
 
@@ -66,7 +66,7 @@ pp.addRequired('V', @(x) isa(x, 'VAR'));
 pp.addRequired('Inp', @isstruct);
 pp.addRequired('Range', @isnumeric);
 pp.addRequired('NDraw', @(x) isintscalar(x) && x >= 0);
-pp.parse(this, inp, range, nDraw);
+pp.parse(this, inp, range, numDraws);
 
 % Parse options.
 opt = passvalopt('VAR.resample', varargin{:});
@@ -89,12 +89,12 @@ if isequal(range, Inf)
     range = this.Range(1) + p : this.Range(end);
 end
 
-xRange = range(1)-p : range(end);
-nXPer = numel(xRange);
+extendedRange = range(1)-p : range(end);
+numExtendedPeriods = numel(extendedRange);
 
 % Input data
 %------------
-req = datarequest('y*, x, e', this, inp, xRange);
+req = datarequest('y*, x, e', this, inp, extendedRange);
 y = req.Y;
 x = req.X;
 e = req.E;
@@ -105,20 +105,20 @@ if nData > 1
 end
 
 % __Pre-allocate an array for resampled data and initialize__
-Y = nan(ny, nXPer, nDraw);
+Y = nan(ny, numExtendedPeriods, numDraws);
 if opt.deviation
     Y(:, 1:p, :) = 0;
 else
     if isempty(inp)
         % Asymptotic initial condition.
         [~, init] = mean(this);
-        Y(:, 1:p, :) = repmat(init, 1, 1, nDraw);
+        Y(:, 1:p, :) = repmat(init, 1, 1, numDraws);
         x = this.X0;
-        x = repmat(x, 1, nXPer);
+        x = repmat(x, 1, numExtendedPeriods);
         x(:, 1:p) = NaN;
     else
         % Initial condition from pre-sample data.
-        Y(:, 1:p, :) = repmat(y(:, 1:p), 1, 1, nDraw);
+        Y(:, 1:p, :) = repmat(y(:, 1:p), 1, 1, numDraws);
     end
 end
 
@@ -134,9 +134,9 @@ end
 [B, isIdentified] = mybmatrix(this);
 
 % Collect all deterministic terms (constant and exogenous inputs).
-KJ = zeros(ny, nXPer);
+KJ = zeros(ny, numExtendedPeriods);
 if ~opt.deviation
-    KJ = KJ + repmat(K, 1, nXPer);
+    KJ = KJ + repmat(K, 1, numExtendedPeriods);
 end
 if kx>0
     KJ = KJ + J*x;
@@ -158,9 +158,9 @@ if ~isequal(opt.method, 'bootstrap')
     % residuals so that we can draw from uncorrelated multivariate normal.
     F = covfun.factorise(this.Omega);
     if isa(opt.method, 'function_handle')
-        allSampleE = opt.method(ny*(nXPer-p), nDraw);
+        allSampleE = opt.method(ny*(numExtendedPeriods-p), numDraws);
     else
-        allSampleE = randn(ny*(nXPer-p), nDraw);
+        allSampleE = randn(ny*(numExtendedPeriods-p), numDraws);
     end
 end
 
@@ -170,32 +170,35 @@ if opt.progress
 end
 
 % __Simulate__
-ixNanInit = false(1, nDraw);
-ixNanResid = false(1, nDraw);
-E = nan(ny, nXPer, nDraw);
-for iDraw = 1 : nDraw
-    iBe = zeros(ny, nXPer);
-    iBe(:, p+1:end) = drawResiduals( );
-    iY = Y(:, :, iDraw);
+ixNanInit = false(1, numDraws);
+ixNanResid = false(1, numDraws);
+E = nan(ny, numExtendedPeriods, numDraws);
+draws = nan(1, numExtendedPeriods, numDraws);
+for v = 1 : numDraws
+    iBe = zeros(ny, numExtendedPeriods);
+    vthDraw = nan(1, numExtendedPeriods);
+    [iBe(:, p+1:end), vthDraw(:, p+1:end)] = drawResiduals( );
+    iY = Y(:, :, v);
     if any(any(isnan(iY(:, 1:p))))
-        ixNanInit(iDraw) = true;
+        ixNanInit(v) = true;
     end
     if any(isnan(iBe(:)))
-        ixNanResid(iDraw) = true;
+        ixNanResid(v) = true;
     end
-    for t = p+1 : nXPer
+    for t = p+1 : numExtendedPeriods
         iYInit = iY(:, t-(1:p));
         iY(:, t) = A*iYInit(:) + KJ(:, t) + iBe(:, t);
     end
-    Y(:, :, iDraw) = iY;
+    Y(:, :, v) = iY;
     iE = iBe;
     if isIdentified
         iE = B\iE;
     end
-    E(:, p+1:end, iDraw) = iE(:, p+1:end);
+    E(:, p+1:end, v) = iE(:, p+1:end);
+    draws(1, :, v) = vthDraw;
     % Update the progress bar.
     if opt.progress
-        update(progress, iDraw/nDraw);
+        update(progress, v/numDraws);
     end
 end
 
@@ -215,12 +218,13 @@ end
 
 % Return only endogenous variables, not shocks.
 names = [this.NamesEndogenous, this.NamesErrors];
-data = [Y;E];
+data = [Y; E];
 if kx>0
     names = [names, this.NamesExogenous];
-    data = [data; repmat(x, 1, 1, nDraw)];
+    data = [data; repmat(x, 1, 1, numDraws)];
 end
-outp = myoutpdata(this, xRange, data, [ ], names);
+outputData = myoutpdata(this, extendedRange, data, [ ], names);
+draws = Series(extendedRange, permute(draws, [2, 3, 1]));
 
 return
 
@@ -235,23 +239,24 @@ return
     end 
 
 
-    function X = drawResiduals( )
+    function [X, draw] = drawResiduals( )
+        draw = nan(1, numExtendedPeriods-p);
         if isequal(opt.method, 'bootstrap')
             if opt.wild
                 % Wild bootstrap.
                 % Setting draw = ones(1, nper-p) would reproduce sample.
-                draw = randn(1, nXPer-p);
+                draw(1, :) = randn(1, numExtendedPeriods-p);
                 X = Be(:, p+1:end).*draw(ones(1, ny), :);
             else
                 % Standard Efron bootstrap.
                 % Setting draw = 1 : nper-p would reproduce sample;
                 % draw is uniform integer [1, nper-p].
-                draw = randi([1, nXPer-p], [1, nXPer-p]);
+                draw(1, :) = randi([1, numExtendedPeriods-p], [1, numExtendedPeriods-p]);
                 X = Be(:, p+draw);
             end
         else
-            u = allSampleE(:, iDraw);
-            u = reshape(u, [ny, nXPer-p]);
+            u = allSampleE(:, v);
+            u = reshape(u, [ny, numExtendedPeriods-p]);
             X = F*u;
         end
     end 
