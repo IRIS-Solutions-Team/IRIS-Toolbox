@@ -1,14 +1,13 @@
 function [this, posterior] = preparePosterior(this, estimationSpecs, penalty, initialDatabank)
 % preparePosterior  Parse estimation specs and prepare Posterior object
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
-
 
 % Remove empty entries from estimation specs
 fields = fieldnames(estimationSpecs).';
@@ -110,13 +109,12 @@ return
                 if isa(ithSpec{4}, 'distribution.Abstract')
                     ithPriorDistribution = ithSpec{4};
                 elseif isa(ithSpec{4},'function_handle')
-                    % The 4th element is a prior distribution function handle.
+                    % The 4th element is a prior distribution function handle
                     ithPriorDistribution = ithSpec{4};
-                %elseif isnumeric(ithSpec{4}) && isscalar(ithSpec{4}) && penalty>0
-                %    % The 4th element is a penalty function.
-                %    indexPenaltyFunction(ii) = true;
-                %    ithPriorDistribution = ...
-                %        penalty2Prior(ithSpec, p0, defaultInitial(ii), penalty);
+                elseif isnumeric(ithSpec{4}) && isscalar(ithSpec{4}) && penalty>0
+                    % The 4th element is a penalty function
+                    ithPriorDistribution = ...
+                        penaltyToDistribution(ithSpec, p0, defaultInitial(ii), penalty);
                 end
             end
             
@@ -129,8 +127,7 @@ return
 end
 
 
-%{
-function priorDistribution = penalty2Prior(spec, p0, defaultInitial, penalty)
+function priorDistribution = penaltyToDistribution(spec, p0, defaultInitial, penalty)
     % The 4th entry is a penalty function, compute the
     % total weight including the `'penalty='` option.
     totalWeight = spec{4}(1)*penalty;
@@ -152,6 +149,5 @@ function priorDistribution = penalty2Prior(spec, p0, defaultInitial, penalty)
     % 1/sqrt(2*w).
     %
     sgm = 1/sqrt(2*totalWeight);
-    priorDistribution = distribution.Normal('MeanStd', pBar, sgm);
+    priorDistribution = distribution.Normal.fromMeanStd(pBar, sgm);
 end
-%}
