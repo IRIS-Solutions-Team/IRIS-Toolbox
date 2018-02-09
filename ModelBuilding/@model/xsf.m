@@ -59,20 +59,20 @@ function varargout = xsf(this, freq, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model.xsf');
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addRequired('Freq', @isnumeric);
-    INPUT_PARSER.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
-    INPUT_PARSER.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
-    INPUT_PARSER.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
-    INPUT_PARSER.addParameter('Filter', '', @ischar);
-    INPUT_PARSER.addParameter('SystemProperty', false, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.xsf');
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addRequired('Freq', @isnumeric);
+    inputParser.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
+    inputParser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
+    inputParser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
+    inputParser.addParameter('Filter', '', @ischar);
+    inputParser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
+    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
 end
-INPUT_PARSER.parse(this, freq, varargin{:});
-opt = INPUT_PARSER.Options;
+inputParser.parse(this, freq, varargin{:});
+opt = inputParser.Options;
 
 if isscalar(freq) && freq==round(freq) && freq>=0
     numFreq = freq;
@@ -94,11 +94,11 @@ nv = length(this);
 solutionVector = printSolutionVector(this, 'yx', @Behavior);
 [isFilter, filter, ~, applyFilterTo] = freqdom.applyfilteropt(opt, freq, solutionVector);
 
+% _System Property_
 systemProperty = createSystemPropertyObject( );
-
-if opt.SystemProperty
-    varargout = cell(1, 1);
-    varargout{1} = systemProperty;
+if ~isequal(opt.SystemProperty, false)
+    systemProperty.OutputNames = opt.SystemProperty;
+    varargout = { systemProperty };
     return
 end
 

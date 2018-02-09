@@ -49,44 +49,25 @@ classdef SystemPriorWrapper < handle
                 return
             end
             this = prepareSystemPriors(varargin{1}, this);
-        end
+        end%
 
 
-        function addSystemProperty(this, outputNames, systemProperty)
+        function addSystemProperty(this, systemProperty)
             persistent INPUT_PARSER
             if isempty(INPUT_PARSER)
                 INPUT_PARSER = extend.InputParser('SystemPriorWrapper.addSystemProperty');
                 INPUT_PARSER.addRequired('SystemPriorWrapper', @(x) isa(x, 'SystemPriorWrapper'));
-                INPUT_PARSER.addRequired('OutputNames', @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
                 INPUT_PARSER.addRequired('SystemProperty', @(x) isa(x, 'SystemProperty'));
             end
-            INPUT_PARSER.parse(this, outputNames, systemProperty);
+            INPUT_PARSER.parse(this, systemProperty);
             assert( ...
                 ~this.Sealed, ...
                 exception.Base('SystemPriorWrapper:SystemPropertyToSealed', 'error') ...
             );
-            if ~iscellstr(outputNames)
-                outputNames = cellstr(outputNames);
-            end
-            assert( ...
-                all(cellfun(@isvarname, outputNames)), ...
-                exception.Base('SystemPriorWrapper:IllegalOutputName', 'error') ...
-            );
-            indexUnique = checkUniqueNames(this, outputNames);
-            assert( ...
-                all(indexUnique), ...
-                exception.Base('SystemPriorWrapper:NonuniqueOutputName', 'error'), ...
-                outputNames{~indexUnique} ...
-            );
-            numOutputs = numel(outputNames);
-            assert( ...
-                numOutputs<=systemProperty.MaxNumOutputs, ...
-                exception.Base('SystemPriorWrapper:NamesExceedMaxNumOutputs', 'error') ...
-            );
-            systemProperty.OutputNames = outputNames;
-            systemProperty.NumOutputs = numOutputs;
+            outputNames = systemProperty.OutputNames;
+            checkUniqueNames(this, systemProperty.OutputNames);
             this.SystemProperties(1, end+1) = systemProperty;
-        end
+        end%
 
 
         function addSystemPrior(this, varargin)
@@ -104,24 +85,29 @@ classdef SystemPriorWrapper < handle
             end
             numAdd = numel(add);
             this.SystemPriors(1, end+(1:numAdd)) = add;
-        end
+        end%
 
 
         function seal(this)
             seal(this.SystemPriors, this);
             this.Sealed = true;
-        end
+        end%
 
 
-        function indexUnique = checkUniqueNames(this, names)
+        function checkUniqueNames(this, names)
             listAllNames = [this.Quantity.Name, this.ListOutputNames];
             indexUnique = ~ismember(names, listAllNames);
-        end
+            assert( ...
+                all(indexUnique), ...
+                exception.Base('SystemPriorWrapper:NonuniqueOutputName', 'error'), ...
+                names{~indexUnique} ...
+            );
+        end%
 
 
         function flag = existsOutputName(this, name)
             flag = any(strcmp(name, this.ListOutputNames));
-        end
+        end%
 
 
         function namedReferences = getNamedReferencesForOutputName(this, name)
@@ -132,7 +118,7 @@ classdef SystemPriorWrapper < handle
                     break
                 end
             end
-        end
+        end%
 
 
         function replace = replaceSystemPropertyReferences(systemPriorWrapper, outputName, reference)
@@ -147,7 +133,7 @@ classdef SystemPriorWrapper < handle
             end
             replace = sprintf('%s,', arguments{:});
             replace = ['(', replace(1:end-1), ')'];
-        end
+        end%
 
 
         function [minusLogDensity, minusLogDensityContributions, priorEval] = eval(this, model)
@@ -172,7 +158,7 @@ classdef SystemPriorWrapper < handle
                 for i = 1 : numProperties
                     systemProperty.Function = this.SystemProperties(i).Function;
                     systemProperty.MaxNumOutputs = this.SystemProperties(i).MaxNumOutputs;
-                    systemProperty.NumOutputs = this.SystemProperties(i).NumOutputs;
+                    systemProperty.OutputNames = this.SystemProperties(i).OutputNames;
                     systemProperty.Specifics = this.SystemProperties(i).Specifics;
                     ithNumOutputs = this.SystemProperties(i).NumOutputs;
                     eval(systemProperty);
@@ -193,7 +179,7 @@ classdef SystemPriorWrapper < handle
             end
             minusLogDensityContributions = -logDensityContributions;
             minusLogDensity = sum(minusLogDensityContributions, 2);
-        end
+        end%
 
 
         function h = get.FunctionHeader(this)
@@ -203,11 +189,11 @@ classdef SystemPriorWrapper < handle
                 h = [h, ', ', listOutputNames{i}];
             end
             h = ['@(', h, ')'];
-        end
+        end%
 
 
         function list = get.ListOutputNames(this)
             list = [ this.SystemProperties.OutputNames ];
-        end
+        end%
     end
 end

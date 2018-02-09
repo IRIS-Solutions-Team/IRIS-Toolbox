@@ -58,21 +58,21 @@ function varargout = ffrf(this, frequencies, varargin)
 
 TYPE = @int8;
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model.ffrf');
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addRequired('Freq', @isnumeric);
-    INPUT_PARSER.addParameter({'Include', 'Select'}, cell.empty(1, 0), @(x) isempty(x) || isequal(x, @all) || ischar(x) || isa(x, 'string') || iscellstr(x));
-    INPUT_PARSER.addParameter('Exclude', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
-    INPUT_PARSER.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
-    INPUT_PARSER.addParameter('MaxIter', 500, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>=0));
-    INPUT_PARSER.addParameter('Tolerance', 1e-7, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0));
-    INPUT_PARSER.addParameter({'SystemProperty', 'PrepareOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.ffrf');
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addRequired('Freq', @isnumeric);
+    inputParser.addParameter({'Include', 'Select'}, cell.empty(1, 0), @(x) isempty(x) || isequal(x, @all) || ischar(x) || isa(x, 'string') || iscellstr(x));
+    inputParser.addParameter('Exclude', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
+    inputParser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    inputParser.addParameter('MaxIter', 500, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>=0));
+    inputParser.addParameter('Tolerance', 1e-7, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0));
+    inputParser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
 end
-INPUT_PARSER.parse(this, frequencies, varargin{:});
-opt = INPUT_PARSER.Options;
-usingDefaults = INPUT_PARSER.UsingDefaultsInStruct;
+inputParser.parse(this, frequencies, varargin{:});
+opt = inputParser.Options;
+usingDefaults = inputParser.UsingDefaultsInStruct;
 
 isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 
@@ -105,11 +105,11 @@ end
 solutionVectorX = printSolutionVector(this, 'x', @Behavior);
 solutionVectorY = printSolutionVector(this, 'y', @Behavior);
 
+% _System Property_
 systemProperty = createSystemPropertyObject( );
-
-if opt.SystemProperty
-    varargout = cell(1, 1);
-    varargout{1} = systemProperty;
+if ~isequal(opt.SystemProperty, false)
+    systemProperty.OutputNames = opt.SystemProperty;
+    varargout = { systemProperty };
     return
 end
 

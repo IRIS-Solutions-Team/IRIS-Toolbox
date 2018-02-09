@@ -1,6 +1,15 @@
 function [CC, RR] = wrapper(systemProperty)
+% wrapper  Calculate ACF and wrap it in a system property object
+%
+% Backend IRIS function
+% No help provided
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
+
+%--------------------------------------------------------------------------
 
 ny = systemProperty.NumObserved;
 nxi = systemProperty.NumStates;
@@ -14,7 +23,7 @@ Omega = systemProperty.CovShocks;
 maxOrder = systemProperty.Specifics.MaxOrder;
 isContributions = systemProperty.Specifics.IsContributions;
 isCorrelations = isequal(systemProperty.Specifics.IsCorrelations, true) ...
-    || length(systemProperty.Outputs)>=2;
+    || systemProperty.NumOutputs>=2;
 isFilter = systemProperty.Specifics.IsFilter;
 numContributions = systemProperty.Specifics.NumContributions;
 if isFilter

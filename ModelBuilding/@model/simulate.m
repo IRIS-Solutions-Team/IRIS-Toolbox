@@ -456,7 +456,8 @@ for ithRun = 1 : numRuns
             printSolutionVector(this, 'e', @Behavior) ...
         ];
         systemProperty.Specifics = s;
-        if opt.SystemProperty
+        if ~isequal(opt.SystemProperty, false)
+            systemProperty.OutputNames = opt.SystemProperty;
             outp = systemProperty;
             return
         end

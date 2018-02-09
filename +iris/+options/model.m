@@ -245,7 +245,7 @@ def.simulate = [
     'progress', false, @islogicalscalar
     'sparseshocks, sparseshock', false, @islogicalscalar
     'Revision, Revisions', false, @islogicalscalar
-    'SystemProperty', false, @(x) isequal(x, true) || isequal(x, false)
+    'SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x))
     ...
     ... Bkw compatibility
     ...

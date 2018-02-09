@@ -119,7 +119,7 @@ if isempty(inputParser)
     inputParser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
     inputParser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
     inputParser.addParameter('Filter', '', @ischar);
-    inputParser.addParameter('SystemProperty', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
     inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
 end
 inputParser.parse(this, varargin{:});
@@ -145,11 +145,11 @@ end
 solutionVector = printSolutionVector(this, 'yx', @Behavior);
 [isFilter, filter, freq, applyFilterTo] = freqdom.applyfilteropt(opt, [ ], solutionVector);
 
+% _System Property_
 systemProperty = createSystemPropertyObject( );
-
-if opt.SystemProperty
-    varargout = cell(1, 1);
-    varargout{1} = systemProperty;
+if ~isequal(opt.SystemProperty, false)
+    systemProperty.OutputNames = opt.SystemProperty;
+    varargout = { systemProperty };
     return
 end
 
@@ -160,6 +160,7 @@ indexNaNSolutions = reportNaNSolutions(this);
 if opt.Progress
     progress = ProgressBar('IRIS model.acf progress');
 end
+
 for v = find(~indexNaNSolutions)
     update(systemProperty, this, v);
     [vthCC, vthRR] = covfun.wrapper(systemProperty);
@@ -219,7 +220,7 @@ return
         systemProperty.Specifics.Filter = filter;
         systemProperty.Specifics.ApplyFilterTo = applyFilterTo;
         systemProperty.Specifics.Frequencies = freq;
-    end
+    end%
 
 
     function [CC, RR] = preallocate( )
@@ -232,5 +233,6 @@ return
         if isCorrelations
             RR = nan(size(CC));
         end
-    end
-end
+    end%
+end%
+
