@@ -1,25 +1,27 @@
-function this = normalize(this, normDate, varargin)
-% normalize  Normalise (or rebase) data to particular date
+function this = normalize(this, varargin)
+% normalize  Normalize (or rebase) data to particular date
 %
 %
 % __Syntax__
 %
-%     X = normalize(X, NormDate, ...)
+% Input arguments marked with a `~` sign may be omitted.
+%
+%     X = normalize(X, ~NormDate, ...)
 %
 %
 % __Input arguments__
 %
 % * `X` [ tseries ] -  Input time series that will be normalized.
 %
-% * `NormDate` [ numeric | `'start'` | `'end'` | `'nanStart'` | `'nanEnd'`
-% ] - Date relative to which the input data will be normalized; if not
-% specified, `'nanStart'` (the first date for which all columns have an
-% observation) will be used.
+% * `~NormDate='NaNStart'` [ DateWrapper | `'Start'` | `'End'` |
+% `'NanStart'` | `'NanEnd'` ] - Date relative to which the input data will
+% be normalize; see help on `tseries.get` to understand `'Start'`, `'End'`,
+% `'NaNStart'`, `'NaNEnd'`.
 %
 %
 % __Output arguments__
 %
-% * `X` [ tseries ] - Normalised time series.
+% * `X` [ tseries ] - Normalized time series.
 %
 %
 % __Options__
@@ -37,25 +39,35 @@ function this = normalize(this, normDate, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-opt = passvalopt('tseries.normalize', varargin{:});
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.normalize');
+    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    inputParser.addOptional('NormDate', 'NaNStart', @(x) any(strcmpi(x, {'Start', 'End', 'NaNStart', 'NaNEnd'})) || DateWrapper.validateDateInput(x));
+    inputParser.addParameter('Mode', 'Mult', @(x) any(strncmpi(x, {'Add', 'Mul'}, 3)));
+end
+inputParser.parse(this, varargin{:});
+normDate = inputParser.Results.NormDate;
+opt = inputParser.Options;
 
 if ischar(normDate)
-    if DateWrapper.validateDateInput(normDate)
-        normDate = textinp2dat(normDate);
-    else
+    if any(strcmpi(normDate, {'Start', 'End', 'NaNStart', 'NaNEnd'}))
         normDate = get(this, normDate);
+    else
+        normDate = textinp2dat(normDate);
     end
 end
 
 %--------------------------------------------------------------------------
 
-if strncmpi(opt.mode, 'add', 3)
+if strncmpi(opt.Mode, 'Add', 3)
     func = @minus;
 else
     func = @rdivide;
 end
 
-sizeOfData = size(this.Data);
+sizeData = size(this.Data);
+ndimsData = ndims(this.Data);
 this.Data = this.Data(:, :);
 
 y = mygetdata(this, normDate);
@@ -63,10 +75,11 @@ for i = 1 : size(this.Data, 2)
     this.Data(:, i) = func(this.Data(:, i), y(i));
 end
 
-if length(sizeOfData) > 2
-    this.Data = reshape(this.Data, sizeOfData);
+if ndimsData>2
+    this.Data = reshape(this.Data, sizeData);
 end
 
 this = trim(this);
 
-end
+end%
+

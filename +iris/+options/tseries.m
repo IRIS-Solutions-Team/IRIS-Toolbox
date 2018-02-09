@@ -123,10 +123,6 @@ def.barcon = {
     || isnumeric(x), ...
 };
 
-def.normalise = { ...
-    'mode', 'mult', @(x) any(strncmpi(x, {'add', 'mult'}, 3)), ...
-};
-
 def.pct = {
     'outputfreq, freq', [ ], @(x) isempty(x) || (isnumericscalar(x) && any(x==[1, 2, 4, 6, 12]))
 };

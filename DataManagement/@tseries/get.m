@@ -1,44 +1,40 @@
 function varargout = get(this, varargin)
-% get  Query tseries object property.
+% get  Query tseries object property
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     Ans = get(X, Query)
 %     [Ans, Ans, ...] = get(X, Query, Query, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `X` [ model ] - Tseries object.
+% * `X` [ model ] - Queried time series.
 %
-% * `Query` [ char ] - Query to the tseries object.
+% * `Query` [ char ] - Query.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Ans` [ ... ] - Answer to the query.
 %
 %
-% Valid queries to tseries objects
-% =================================
+% __Valid Queries__
 %
 % * `'End='` Returns [ numeric ] the date of the last observation.
 %
 % * `'Freq='` Returns [ numeric ] the frequency (periodicity) of the time
 % series.
 %
-% * `'NanEnd='` Returns [ numeric ] the last date at which observations are
+% * `'NaNEnd='` Returns [ numeric ] the last date at which observations are
 % available in all columns; for scalar tseries, this query always returns
 % the same as `'end'`.
 %
-% * `'NanRange='` Returns [ numeric ] the date range from `'nanstart'` to
+% * `'NaNRange='` Returns [ numeric ] the date range from `'nanstart'` to
 % `'nanend'`; for scalar time series, this query always returns the same as
 % `'range'`.
 %
-% * `'NanStart='` Returns [ numeric ] the first date at which observations are
+% * `'NaNStart='` Returns [ numeric ] the first date at which observations are
 % available in all columns; for scalar tseries, this query always returns
 % the same as `'start'`.
 %
@@ -48,8 +44,7 @@ function varargout = get(this, varargin)
 % * `'Start='` Returns [ numeric ] the date of the first observation.
 %
 %
-% Description
-% ============
+% __Description__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

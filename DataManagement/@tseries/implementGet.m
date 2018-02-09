@@ -1,11 +1,11 @@
 function [answ, flag] = implementGet(this, query, varargin)
-% implementGet  Implement get method for tseries objects.
+% implementGet  Implement get method for tseries objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
