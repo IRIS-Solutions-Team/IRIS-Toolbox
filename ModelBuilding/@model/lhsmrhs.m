@@ -43,7 +43,7 @@ function dcy = lhsmrhs(this, varargin)
 % RHS in each model equation; each lead is replaced with the actual
 % observation supplied in the input data. The function `lhsmrhs` does not
 % work for models with [references to steady state
-% values](modellang/sstateref).
+% values](irislang/sstateref).
 %
 % The first syntax, with the array `YXET` pre-built in a prior call to
 % [`data4lhsmrhs`](model/data4lhsmrhs) is computationally more efficient if

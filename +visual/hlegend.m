@@ -5,7 +5,7 @@ function legendHandle = hlegend(location, varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     Legend = visual.hlegend(Location, ...)
+%     HandleLegend = visual.hlegend(Location, ...)
 %
 %
 % __Input Arguments__
@@ -19,7 +19,7 @@ function legendHandle = hlegend(location, varargin)
 %
 % __Output Arguments__
 %
-% * `Legend` [ numeric ] - Handle to legend objects created.
+% * `HandleLegend` [ numeric ] - Handle to legend objects created.
 %
 %
 % __Options__
@@ -37,12 +37,12 @@ function legendHandle = hlegend(location, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('visual.legend');
-    INPUT_PARSER.addRequired('Location', @(x) any(strcmpi(x, {'Top', 'Bottom'})));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('visual.legend');
+    inputParser.addRequired('Location', @(x) any(strcmpi(x, {'Top', 'Bottom'})));
 end
-INPUT_PARSER.parse(location);
+inputParser.parse(location);
 
 MARGIN = 0.01;
 

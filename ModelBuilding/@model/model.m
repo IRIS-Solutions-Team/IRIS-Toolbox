@@ -564,7 +564,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             %
             % * `Optimal={ }` [ cellstr ] - Specify optimal policy options,
             % see below; only applies when the keyword
-            % [`min`](modellang/min) is used in the model file.
+            % [`min`](irislang/min) is used in the model file.
             %
             % * `OrderLinks=true` [ `true` | `false` ] - Reorder `!links` so that they
             % can be executed sequentially.
@@ -608,7 +608,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             % _Loading a Model File_
             %
             % The `model` function can be used to read in a [model
-            % file](modellang/Contents) named `FileName`, and create a model object `M`
+            % file](irislang/Contents) named `FileName`, and create a model object `M`
             % based on the model file. You can then work with the model object in your
             % own m-files, using using the IRIS [model functions](model/Contents) and
             % standard Matlab functions.
@@ -647,7 +647,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             %     m = assign(m, P);
             %
             % unless some of the parameters passed in to the `model` fuction are needed
-            % to evaluate [`!if`](modellang/if) or [`!switch`](modellang/switch)
+            % to evaluate [`!if`](irislang/if) or [`!switch`](irislang/switch)
             % expressions.
             
             % -IRIS Macroeconomic Modeling Toolbox.

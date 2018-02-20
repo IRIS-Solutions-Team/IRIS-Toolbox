@@ -29,30 +29,30 @@ function varargout = get(this, varargin)
 %
 % _Steady State_
 %
-% * `'Sstate'` - Returns [ struct ] a database with the steady states for all
+% * `'Steady'` - Returns [ struct ] a database with the steady states for all
 % model variables. The steady states are described by complex numbers in
 % which the real part is the level and the imaginary part is the growth
 % rate.
 %
-% * `'SstateLevel'` - Returns [ struct ] a database with the steady-state
+% * `'SteadyLevel'` - Returns [ struct ] a database with the steady-state
 % levels for all model variables.
 %
-% * `'SstateGrowth'` - Returns [ struct ] a database with steady-state growth
-% (first difference for linearised variables, gross rate of growth for
-% log-linearised variables) for all model variables.
+% * `'SteadyGrowth'` - Returns [ struct ] a database with steady-state
+% growth (first difference for linearised variables, gross rate of growth
+% for log-linearised variables) for all model variables.
 %
-% * `'Dtrends'` - Returns [ struct ] a database with the effect of the
+% * `'DTrends'` - Returns [ struct ] a database with the effect of the
 % deterministic trends on the measurement variables. The effect is
 % described by complex numbers the same way as the steady state.
 %
-% * `'DtrendsLevel'` - Returns [ struct ] a database with the effect of the
+% * `'DTrendsLevel'` - Returns [ struct ] a database with the effect of the
 % deterministic trends on the steady-state levels of the measurement
 % variables.
 %
-% * `'DtrendsGrowth'` - Returns [ struct ] a database with the effect of
+% * `'DTrendsGrowth'` - Returns [ struct ] a database with the effect of
 % deterministic trends on steady-state growth of the measurement variables.
 %
-% * `'Sstate+Dtrends'` - Returns [ struct ] the same as 'Sstate' except
+% * `'Steady+DTrends'` - Returns [ struct ] the same as 'Sstate' except
 % that the measurement variables are corrected for the effect of the
 % deterministic trends.
 %

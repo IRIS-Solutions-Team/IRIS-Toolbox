@@ -34,8 +34,13 @@ query = regexprep(query, 'labels', 'label');
 
 % Alias dtrend, dtrends, dt.
 query = regexprep(query, 'dtrends?', 'dt');
+
 % Alias ss, sstate, steadystate.
-query = regexprep(query, 's(teady)?state', 'ss');
+query = regexprep(query, 's(teady)?state', 'steady');
+query = regexprep(query, '\<ss\>', 'steady');
+query = regexprep(query, '\<ssgrowth\>', 'SteadyGrowth');
+query = regexprep(query, '\<sslevel\>', 'SteadyLevel');
+
 % Alias level, levels.
 query = regexprep(query, 'levels', 'level');
 % Alias ss_dt, ss+dt.

@@ -397,7 +397,12 @@ classdef DateWrapper < double
                 return
             end
             if ischar(input) || isa(input, 'string')
-                input = textinp2dat(input);
+                try
+                    input = textinp2dat(input);
+                catch
+                    flag = false;
+                    return
+                end
             end
             if ~DateWrapper.validateDateInput(input)
                 flag = false;

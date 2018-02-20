@@ -41,17 +41,7 @@ classdef (Abstract) Abstract < handle
 
 
     methods
-        function this = Abstract(parameterization, varargin)
-            persistent INPUT_PARSER
-            if nargin==0
-                return
-            end
-            if isempty(INPUT_PARSER)
-                INPUT_PARSER = extend.InputParser('distribution/Abstract');
-                INPUT_PARSER.addRequired('ParameterizationType', @(x) ischar(x) || isa(x, 'string'));
-                INPUT_PARSER.addRequired('Parameters', @(x) all(cellfun(@isnumeric, x)));
-            end
-            INPUT_PARSER.parse(parameterization, varargin);
+        function this = Abstract( )
         end
     end
 

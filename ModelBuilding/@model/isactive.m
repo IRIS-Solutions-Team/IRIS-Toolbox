@@ -24,11 +24,11 @@ function this = isactive(this, type, varargin)
 % =================
 %
 % * `d` [ cellstr ] - Database with the status (`true` means active,
-% `false` means inactive) for each LHS name in [`!links`](modellang/links)
-% or [`!revisions`](modellang/revisions) equations.
+% `false` means inactive) for each LHS name in [`!links`](irislang/links)
+% or [`!revisions`](irislang/revisions) equations.
 %
 % * `flag` [ `true` | `false` ] - Returns `true` for active
-% [`!links`](modellang/links) or [`!revisions`](modellang/revisions),
+% [`!links`](irislang/links) or [`!revisions`](irislang/revisions),
 % `false` for inactive (disabled).
 %
 %

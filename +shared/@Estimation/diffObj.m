@@ -1,11 +1,11 @@
 function [hessian, propCov, validDiff, infoFromLik]  = diffObj(this, data, pStar, hessian, ixBHit, itr, estOpt, likOpt)
-% diffObj  Contributions of objective function components to Hessian and proposal covariance.
+% diffObj  Contributions of objective function components to Hessian and proposal covariance
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 

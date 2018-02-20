@@ -377,6 +377,7 @@ else
     summary = createSummaryTable( );
 end
 proposalCov = posterior.ProposalCov;
+
 hessian = posterior.Hessian;
 
 this.TaskSpecific = [ ];

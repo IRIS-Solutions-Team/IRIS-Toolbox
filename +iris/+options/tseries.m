@@ -166,24 +166,4 @@ def.spy = [
     }
 ];
 
-def.x12 = { ...
-    'backcast, backcasts', 0, @(x) isscalar(x) && isnumeric(x)
-    'cleanup, deletetempfiles, deletetempfile, deletex12file, deletex12file, delete', true, @(x) isequal(x, true) || isequal(x, false)
-    'dummy', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable')
-    'dummytype', 'holiday', @(x) ischar(x) && any(strcmpi(x, {'holiday', 'td', 'ao'}))
-    'display', false, @(x) isequal(x, true) || isequal(x, false)
-    'forecast, forecasts', 0, @(x) isscalar(x) && isnumeric(x)
-    'log', false, @(x) isequal(x, true) || isequal(x, false)
-    'MaxIter', 1500, @(x) isscalar(x) && isnumeric(x) && x==round(x) && x>0
-    'maxorder', [2, 1], @(x) isnumeric(x) && length(x)==2 && any(x(1)==[1, 2, 3, 4]) && any(x(2)==[1, 2])
-    'missing', false, @(x) isequal(x, true) || isequal(x, false)
-    'mode', 'auto', @(x) (isnumeric(x) && any(x==(-1 : 3))) || any(strcmp(x, {'add', 'a', 'mult', 'm', 'auto', 'sign', 'pseudo', 'pseudoadd', 'p', 'log', 'logadd', 'l'}))
-    'output', 'd11', @(x) ischar(x) || iscellstr(x)
-    'saveas', '', @ischar
-    'specfile', 'default', @(x) ischar(x) || isinf(x)
-    'tdays, tday', false, @(x) isequal(x, true) || isequal(x, false)
-    'tempdir', '.', @(x) ischar(x) || isfunc(x)
-    'tolerance', 1e-5, @(x) isnumericscalar(x) && x>0
-};
-
 end

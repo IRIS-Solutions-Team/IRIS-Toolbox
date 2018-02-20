@@ -23,8 +23,8 @@ function this = enable(this, type, varargin)
 % =================
 %
 % * `M` [ model ] - Model object with dynamic links
-% [`!links`](modellang/links) or steady-state revision equations
-% [`!revisions`](modellang/revisions) enabled.
+% [`!links`](irislang/links) or steady-state revision equations
+% [`!revisions`](irislang/revisions) enabled.
 %
 %
 % Example

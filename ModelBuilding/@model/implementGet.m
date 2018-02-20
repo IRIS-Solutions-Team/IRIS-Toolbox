@@ -1,11 +1,11 @@
 function [answ, flag, query] = implementGet(this, query, varargin)
-% implementGet  Implement get method for model objects.
+% implementGet  Implement get method for model objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
 TYPE = @int8;
@@ -77,11 +77,11 @@ ssDtGrowth = [ ];
 % Query relates to steady state.
 steadyList = { ...
     'ss', 'steady', 'sslevel', 'level', 'ssgrowth', 'growth', ...
-    'steadylevel', 'steadygrowth', ...
+    'steady', 'steadyLevel', 'steadyGrowth', ...
     };
 dtrendList = { ...
-    'dt', 'dtlevel', 'dtgrowth', ...
-    'ss+dt', 'sslevel+dtlevel', 'ssgrowth+dtgrowth', ...
+    'dt', 'dtLevel', 'dtGrowth', ...
+    'steady+dt', 'steadyLevel+dtLevel', 'steadyGrowth+dtGrowth', ...
     };
 if any(strcmpi(query, dtrendList))
     [ssLevel, ssGrowth, dtLevel, dtGrowth, ssDtLevel, ssDtGrowth] = getSteady(this);
@@ -90,8 +90,7 @@ elseif any(strcmpi(query, steadyList))
 end
 
 [~, ~, nb, nf] = sizeOfSolution(this.Vector);
-ixe = this.Quantity.Type==TYPE(31) ...
-    | this.Quantity.Type==TYPE(32);
+ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ne = sum(ixe);
 nv = length(this);
 
@@ -219,17 +218,17 @@ switch lower(query)
         answ = this.PreparserControl;
 
         
-    case {'ss', 'steady'}
+    case 'steady'
         answ = cell2DbaseFunc(ssLevel+1i*ssGrowth);
         needsAddParams = true;
         
         
-    case {'sslevel', 'steadylevel'}
+    case 'steadylevel'
         answ = cell2DbaseFunc(ssLevel);
         needsAddParams = true;
         
         
-    case {'ssgrowth', 'steadygrowth'}
+    case 'steadygrowth'
         answ = cell2DbaseFunc(ssGrowth);
         needsAddParams = true;
         
@@ -248,15 +247,15 @@ switch lower(query)
         answ = cell2DbaseFunc(dtGrowth);
         needsAddParams = true;
         
-    case 'ss+dt'
+    case 'steady+dt'
         answ = cell2DbaseFunc(ssDtLevel+1i*ssDtGrowth);
         needsAddParams = true;
         
-    case 'sslevel+dtlevel'
+    case 'steadylevel+dtlevel'
         answ = cell2DbaseFunc(ssDtLevel);
         needsAddParams = true;
         
-    case 'ssgrowth+dtgrowth'
+    case 'steadygrowth+dtgrowth'
         answ = cell2DbaseFunc(ssDtGrowth);
         needsAddParams = true;
         

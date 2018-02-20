@@ -29,7 +29,7 @@ function outp = bn(this, inp, range, varargin)
 %
 % * `'Dtrends='` [ *`@auto`* | `true` | `false` ] - Measurement variables
 % in input and output data include deterministic trends specified in
-% [`!dtrends`](modellang/dtrends) equations.
+% [`!dtrends`](irislang/dtrends) equations.
 %
 %
 % __Description__

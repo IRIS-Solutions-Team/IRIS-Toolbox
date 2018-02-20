@@ -7,7 +7,7 @@
 % There are three basic ways to create
 % reporting equations objects:
 %
-% * in the [`!reporting_equations`](modellang/reportingequations)
+% * in the [`!reporting_equations`](irislang/reportingequations)
 % section of a model file;
 %
 % * in a separate reporting equations file;

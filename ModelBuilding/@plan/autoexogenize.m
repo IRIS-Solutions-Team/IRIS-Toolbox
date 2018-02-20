@@ -15,7 +15,7 @@ function this = autoexogenize(this, lsExog, dates, sigma)
 %
 % * `List` [ cellstr | char | `@all` ] - List of variables that will be
 % exogenized; these variables must have their corresponding shocks definid
-% in the [`!dynamic_autoxeog`](modellang/dynamicautoexog) section of the
+% in the [`!dynamic_autoxeog`](irislang/dynamicautoexog) section of the
 % model file; `@all` means all autoexogenized variables defined in the
 % model object will be exogenized.
 %
@@ -65,7 +65,7 @@ function this = autoexogenize(this, lsExog, dates, sigma)
 %     p = autoexogenize(p, @all, range(1:5));
 %
 % will exogenize all three variables defined in the
-% [`!dynamic_autoexog`](modellang/dynamicautoexog) section, i.e. `X`, `Y`
+% [`!dynamic_autoexog`](irislang/dynamicautoexog) section, i.e. `X`, `Y`
 % and `Z`, and endogenize all three corresponding shocks `a`, `b`, and `c`.
 %
 

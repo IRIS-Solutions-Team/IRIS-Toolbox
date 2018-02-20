@@ -53,7 +53,7 @@ classdef Posterior < handle
             end
             numParameters = varargin{1};
             initialize(this, numParameters);
-        end
+        end%
 
 
         function initialize(this, numParameters)
@@ -72,7 +72,7 @@ classdef Posterior < handle
             this.LineInfoFromData = zeros(1, numParameters);
             this.LineInfoFromOwnPrior = zeros(1, numParameters);
             this.LineInfoFromSystemPriors = zeros(1, numParameters);
-        end
+        end%
             
 
         function maximizePosteriorMode(this, estimationWrapper)
@@ -94,7 +94,7 @@ classdef Posterior < handle
 
             repairToHonorBounds(this);
             diffObjectiveAtOptimum(this);
-        end
+        end%
             
 
         function [mldParamPriors, p] = evalParamPriors(this, x)
@@ -114,7 +114,7 @@ classdef Posterior < handle
                 end
             end
             mldParamPriors = -sum(p); % Minus log density
-        end
+        end%
     end
 
 
@@ -127,7 +127,7 @@ classdef Posterior < handle
                 exception.Base('Posterior:InconsistentBounds', 'error'), ...
                 this.ParameterNames(~indexConsistent) ...
             );
-        end
+        end%
 
         
         function checkInitial(this)
@@ -149,7 +149,7 @@ classdef Posterior < handle
                 exception.Base('Posterior:InvalidPriorAtInitial', 'error'), ...
                 this.ParameterNames{~indexValidPriors} ...
             );
-        end
+        end%
 
 
         function [indexBelow, indexAbove, namesBelow, namesAbove] = checkBounds(this, x)
@@ -161,7 +161,7 @@ classdef Posterior < handle
             end
             indexBelow = reshape(indexBelow, size(x));
             indexAbove = reshape(indexAbove, size(x));
-        end
+        end%
 
 
         function repairToHonorBounds(this)
@@ -180,7 +180,7 @@ classdef Posterior < handle
                     'upper', namesAbove{:} ...
                 );
             end
-        end
+        end%
 
 
         function diffObjectiveAtOptimum(this)
@@ -247,18 +247,18 @@ classdef Posterior < handle
                 this.Hessian{3} = zeros(numParameters);
             end
         end
-    end
+    end%
 
 
     methods % Dependent properties, get and set methods for properties
         function flag = get.IsConstrained(this)
             flag = any(~isinf(this.LowerBounds)) || any(~isinf(this.UpperBounds));
-        end
+        end%
 
 
         function n = get.NumParameters(this)
             n = length(this.Initial);
-        end
+        end%
 
 
         function p = get.PropOfLineInfoFromData(this)
@@ -266,11 +266,11 @@ classdef Posterior < handle
             indexPositiveLineInfo = this.LineInfo>0;
             p = this.LineInfoFromData(indexPositiveLineInfo) ./ this.LineInfo(indexPositiveLineInfo);
             p(p<0 | ~isfinite(p)) = NaN;
-        end
+        end%
 
 
         function c = get.ProposalCov(this)
             c = diag(1 ./ this.LineInfo);
-        end
+        end%
     end
 end

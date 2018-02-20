@@ -111,7 +111,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % * If the model is linear, you only need to call [`solve`](model/solve).
 %
 % * The only exception to rules #2 and #3 is when the model has [`dynamic
-% links`](modellang/links) with references to some steady state values. In
+% links`](irislang/links) with references to some steady state values. In
 % that case, you must also run [`sstate`](model/sstate) after
 % [`solve`](model/solve) in linear models to update the steady state.
 %

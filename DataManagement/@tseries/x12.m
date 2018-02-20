@@ -1,4 +1,4 @@
-function varargout = x12(varargin)
+function varargout = x12(this, varargin)
 % x12  Access to X13-ARIMA-SEATS seasonal adjustment program.
 %
 %
@@ -223,12 +223,37 @@ function varargout = x12(varargin)
 %     xsa = x12(x, get(x, 'range'));
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 
-[this, range, varargin] = irisinp.parser.parse('tseries.filter', varargin{:});
-opt = passvalopt('tseries.x12', varargin{:});
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.x12');
+    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    inputParser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
+    inputParser.addParameter({'backcast', 'backcasts'}, 0, @(x) isscalar(x) && isnumeric(x));
+    inputParser.addParameter({'cleanup', 'deletetempfiles', 'deletetempfile', 'deletex12files', 'deletex12file', 'delete'}, true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('dummy', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    inputParser.addParameter('dummytype', 'holiday', @(x) ischar(x) && any(strcmpi(x, {'holiday', 'td', 'ao'})));
+    inputParser.addParameter('display', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter({'forecast', 'forecasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    inputParser.addParameter('log', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('MaxIter', 1500, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
+    inputParser.addParameter('maxorder', [2, 1], @(x) isnumeric(x) && length(x)==2 && any(x(1)==[1, 2, 3, 4]) && any(x(2)==[1, 2]));
+    inputParser.addParameter('missing', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('mode', 'auto', @(x) (isnumeric(x) && any(x==(-1 : 3))) || any(strcmp(x, {'add', 'a', 'mult', 'm', 'auto', 'sign', 'pseudo', 'pseudoadd', 'p', 'log', 'logadd', 'l'})));
+    inputParser.addParameter('output', 'd11', @(x) ischar(x) || iscellstr(x));
+    inputParser.addParameter('saveas', '', @ischar);
+    inputParser.addParameter('specfile', 'default', @(x) ischar(x) || isinf(x));
+    inputParser.addParameter({'tdays', 'tday'}, false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('tempdir', '.', @(x) ischar(x) || isa(x, 'function_handle'));
+    inputParser.addParameter('tolerance', 1e-5, @(x) isnumeric(x) && isscalar(x) && x>0);
+    inputParser.addParameter('Executable', @auto, @(x) isequal(x, @auto) || strcmpi(x, 'x12awin.exe'));
+end
+inputParser.parse(this, varargin{:});
+range = inputParser.Results.Range;
+opt = inputParser.Options;
 
 if strcmp(opt.mode, 'sign')
     opt.mode = 'auto';
@@ -241,8 +266,7 @@ nOutp = length(opt.output);
 co = comment(this);
 inpSize = size(this.data);
 this.data = this.data(:, :);
-r = range;
-[data, range] = rangedata(this, range);
+[data, range] = getData(this, range);
 
 % Extended range with backcasts and forecasts.
 if ~isempty(range)
@@ -267,8 +291,7 @@ if opt.log
     data = log(data);
 end
 
-% Run backend X13
-%-----------------
+% __Run Backend X13__
 [y, Outp, Logbk, Err, Mdl] = thirdparty.x13.x13(data, startDate, dummy, opt);
 
 % Convert output data to tseries objects.

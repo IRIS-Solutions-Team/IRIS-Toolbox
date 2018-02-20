@@ -20,8 +20,8 @@ function this = disable(this, type, varargin)
 % __Output Arguments__
 %
 % * `M` [ model ] - Model object with dynamic links
-% [`!links`](modellang/links) or steady-state revision equations
-% [`!revisions`](modellang/revisions) temporarily disabled until
+% [`!links`](irislang/links) or steady-state revision equations
+% [`!revisions`](irislang/revisions) temporarily disabled until
 % enabled by [`enable`](#enable) again.
 %
 %
