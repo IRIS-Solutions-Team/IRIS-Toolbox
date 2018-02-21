@@ -88,12 +88,11 @@ classdef InputParser < inputParser
 
 
         function addDateOptions(this)
-            configStruct = iris.get( );
-            this.addParameter('DateFormat', @config, configStruct.validate.DateFormat);
-            this.addParameter({'FreqLetters', 'FreqLetter'}, @config, configStruct.validate.FreqLetters);
-            this.addParameter({'Months', 'Month'}, @config, configStruct.validate.Months);
-            this.addParameter({'ConversionMonth', 'StandInMonth'}, @config, configStruct.validate.ConversionMonth);
-            this.addParameter('WDay', @config, configStruct.validate.WDay);
+            this.addParameter('DateFormat', @config, @iris.Configuration.validateDateFormat);
+            this.addParameter({'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
+            this.addParameter({'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
+            this.addParameter({'ConversionMonth', 'StandInMonth'}, @config, @iris.Configuration.validateConversionMonth);
+            this.addParameter('WDay', @config, @iris.Configuration.validateWDay);
             this.HasDateOptions = true;
         end
 
@@ -105,8 +104,7 @@ classdef InputParser < inputParser
 
 
         function addBaseYearOption(this)
-            configStruct = iris.get( );
-            this.addParameter('BaseYear', @config, configStruct.validate.BaseYear);
+            this.addParameter('BaseYear', @config, @iris.Configuration.validateBaseYear);
         end
 
 

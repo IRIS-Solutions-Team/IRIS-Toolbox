@@ -10,14 +10,14 @@ function varargout = passvalopt(spec, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-persistent DEF CONFIG;
+persistent DEF 
 
 if (nargin==0 && nargout==0) || isempty(DEF)
     % Initialise default options, and store them as a persistent struct.
-    munlock( );
-    clear passvalopt;
+    munlock
+    clear passvalopt
     initialize( );
-    mlock( );
+    mlock
 end
 
 if nargout==0
@@ -114,12 +114,6 @@ if ~isempty(varargin)
         value = opt.(list{i});
         validFunc = validate.(list{i});
         if ~isempty(validFunc)
-            if isequal(validFunc, @config)
-                if isempty(CONFIG)
-                    CONFIG = iris.configMaster('get');
-                end
-                validFunc = CONFIG.validate.(list{i});
-            end
             if ~feval(validFunc,value)
                 lsInvalid{end+1} = changed.(list{i}); %#ok<AGROW>
                 lsInvalid{end+1} = func2str(validate.(list{i})); %#ok<AGROW>

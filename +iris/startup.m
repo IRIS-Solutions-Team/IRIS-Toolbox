@@ -81,12 +81,11 @@ addpath(thisRoot, '-begin');
 iris.pathManager('addroot', thisRoot);
 iris.pathManager('addcurrentsubs', thisRoot);
 
-% Reset default options in `passvalopt`.
 try %#ok<TRYNC>
-    munlock passvalop;
+    munlock passvalopt
 end
 try %#ok<TRYNC>
-    munlock iris.configMaster;
+    munlock iris.configMaster
 end
 
 setEnvironment( );

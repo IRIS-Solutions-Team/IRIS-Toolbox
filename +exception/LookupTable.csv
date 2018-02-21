@@ -10,7 +10,7 @@ Blazer:CannotRunLinear,Cannot run Blazer on linear models.
 Blazer:NumberEquationsEndogenized,Number of endogenized names [%g] fails to match number of equations [%g].
 Config:InvalidOptionName,This is not a valid IRIS config option: %s 
 Config:InvalidOptionValue,New value for this option failed validation: %s
-Config:ProtectedOption,This option is not customizable: %s
+Config:ProtectedOption,This configuration option is not customizable: %s
 CovFun:IndexUnitRootsSize,Incorrect dimensions of unit root index
 Datafeed:FeedUnknownFrequency, Date frequency of this Datafeed series unknown; series not loaded: %s
 Dates:CalendarFormatForDaily, Calendar date format (starting with a $) must be specified for daily-frequency dates.

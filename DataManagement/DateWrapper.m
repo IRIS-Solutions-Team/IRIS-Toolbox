@@ -310,7 +310,7 @@ classdef DateWrapper < double
         
         
         function prt = printFreqName(f)
-            freqName = iris.get('FreqName');            
+            freqName = iris.get('FreqNames');
             if isnumeric(f)
                 f = num2cell(f);
             end

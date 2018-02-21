@@ -12,11 +12,11 @@ function def = dates( )
 def = struct( );
 
 def.dates = {
-    'dateformat', @config, @config
-    'freqletters, freqletter', @config, @config
-    'months, month', @config, @config
-    'ConversionMonth, standinmonth', @config, @config
-    'Wday', @config, @config
+    'dateformat', @config, @iris.Configuration.validateDateFormat
+    'freqletters, freqletter', @config, @iris.Configuration.validateFreqLetters
+    'months, month', @config, @iris.Configuration.validateMonths
+    'ConversionMonth, standinmonth', @config, @iris.Configuration.validateConversionMonth
+    'Wday', @config, @iris.Configuration.validateWDay
     };
 
 def.convert = [
