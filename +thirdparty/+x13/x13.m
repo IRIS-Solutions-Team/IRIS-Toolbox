@@ -1,4 +1,4 @@
-function [Y, Outp, Logbk, Err, Mdl] = x13(X, StartDate, Dummy, Opt)
+function [Y, Outp, Logbk, Err, arimaModel] = x13(X, StartDate, Dummy, opt)
 % x13  Matlab interface for X13-ARIMA-Seats.
 %
 % Backend IRIS function.
@@ -7,37 +7,37 @@ function [Y, Outp, Logbk, Err, Mdl] = x13(X, StartDate, Dummy, Opt)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-switch lower(Opt.mode)
+switch lower(opt.Mode)
     case {0, 'mult', 'm'}
-        Opt.mode = 'mult';
+        opt.Mode = 'mult';
     case {1, 'add', 'a'}
-        Opt.mode = 'add';
+        opt.Mode = 'add';
     case {2, 'pseudo', 'pseudoadd', 'p'}
-        Opt.mode = 'pseudoadd';
+        opt.Mode = 'pseudoadd';
     case {3, 'log', 'logadd', 'l'}
-        Opt.mode = 'logadd';
+        opt.Mode = 'logadd';
     otherwise
-        Opt.mode = 'auto';
+        opt.Mode = 'auto';
 end
 
-if ischar(Opt.output)
-    Opt.output = { Opt.output };
-elseif ~iscellstr(Opt.output)
-    Opt.output = { 'd11' };
+if ischar(opt.Output)
+    opt.Output = { opt.Output };
+elseif ~iscellstr(opt.Output)
+    opt.Output = { 'd11' };
 end
-nOutp = length(Opt.output);
+nOutp = length(opt.Output);
 
 % Get the entire path to this file.
 x13Dir = fileparts(mfilename('fullpath'));
 
-if strcmpi(Opt.specfile, 'default')
-    Opt.specfile = fullfile(x13Dir, 'default.spc');
+if strcmpi(opt.SpecFile, 'default')
+    opt.SpecFile = fullfile(x13Dir, 'default.spc');
 end
 
 %--------------------------------------------------------------------------
 
-kb = Opt.backcast;
-kf = Opt.forecast;
+kb = opt.Backcast;
+kf = opt.Forecast;
 nPer = size(X, 1);
 nx = size(X, 2);
 freq = DateWrapper.getFrequencyFromNumeric(StartDate);
@@ -55,9 +55,14 @@ Logbk(:) = {''};
 % Error messages.
 Err = cell(1, nx);
 Err(:) = {''};
+
 % ARIMA Model.
-Mdl = struct('mode', NaN, 'spec', [ ], 'ar', [ ], 'ma', [ ]);
-Mdl = repmat(Mdl, 1, nx);
+arimaModel = struct( );
+arimaModel.Mode = NaN;
+arimaModel.Spec = [ ];
+arimaModel.AR = [ ];
+arimaModel.MA = [ ];
+arimaModel = repmat(arimaModel, 1, nx);
 
 if isnan(freq)
     utils.warning('thirdparty:x13:x13', ...
@@ -69,7 +74,7 @@ elseif freq ~= 4 && freq ~= 12
     return
 end
 
-tempDir = Opt.tempdir;
+tempDir = opt.TempDir;
 isNewTempDir = false;
 doTempDir( );
 
@@ -83,19 +88,19 @@ for i = 1 : nx
     last = find(~isnan(X(:, i)), 1, 'last');
     data = X(first:last, i);
     iErrMsg = '';
-    if length(data) < 3*freq
+    if length(data)<3*freq
         is3YearsWarn = true;
-    elseif length(data) > 70*freq
+    elseif length(data)>70*freq
         is70YearsWarn = true;
-    elseif ~Opt.missing && any(isnan(data))
+    elseif ~opt.AllowMissing && any(isnan(data))
         isNanWarn = true;
     else
-        if length(data) > 15*freq && kb > 0
+        if length(data)>15*freq && kb>0
             is15YearsBcastWarn = true;
         end
         offset = first - 1;
         [iOutp, fcast, bcast, ok] = ...
-            runX13(x13Dir, tmpTitle, data, StartDate+offset, Dummy, Opt);
+            runX13(x13Dir, tmpTitle, data, StartDate+offset, Dummy, opt);
         for j = 1 : nOutp
             Outp{j}(first:last, i) = iOutp(:, j);
         end
@@ -115,13 +120,13 @@ for i = 1 : nx
         end
         % Catch ARIMA model specification.
         if exist([tmpTitle, '.mdl'], 'file')
-            Mdl(i) = xxReadModel(Mdl(i), [tmpTitle, '.mdl'], Logbk{i});
+            arimaModel(i) = readModel(arimaModel(i), [tmpTitle, '.mdl'], Logbk{i});
         end
         % Delete all X13 files.
-        if ~isempty(Opt.saveas)
+        if ~isempty(opt.SaveAs)
             doSaveAs( );
         end
-        if Opt.cleanup
+        if opt.CleanUp
             % Java delete does not work with wildcards.
             delete([tmpTitle, '.*']);
             if ismac( ) && exist('fort.6', 'file')
@@ -145,7 +150,7 @@ end
 doWarn( );
 
 % Clean up newly created directory.
-if isNewTempDir && Opt.cleanup
+if isNewTempDir && opt.CleanUp
     rmdir(tempDir, 's');
 end
 
@@ -175,7 +180,7 @@ return
 
 
     function doSaveAs( )
-        [fPath, fTitle] = fileparts(Opt.saveas);
+        [fPath, fTitle] = fileparts(opt.SaveAs);
         list = dir([tmpTitle, '.*']);
         for ii = 1 : length(list)
             [~, ~, fExt] = fileparts(list(ii).name);
@@ -188,7 +193,7 @@ return
         if isfunc(tempDir)
             tempDir = tempDir( );
         end
-        isNewTempDir = utils.exist(tempDir, 'dir') == 0;
+        isNewTempDir = utils.exist(tempDir, 'dir')==0;
         if isNewTempDir
             mkdir(tempDir);
         end
@@ -200,39 +205,39 @@ return
 end%
 
 
-function [Data, Fcast, Bcast, Ok] = runX13(X13Dir, TempTitle, Data, StartDate, Dummy, Opt)
+function [Data, Fcast, Bcast, Ok] = runX13(X13Dir, TempTitle, Data, StartDate, Dummy, opt)
     Fcast = zeros(0, 1);
     Bcast = zeros(0, 1);
 
     % Flip sign if all values are negative
     % so that multiplicative mode is possible.
     flipSign = false;
-    if all(Data < 0)
+    if all(Data<0)
         Data = -Data;
         flipSign = true;
     end
 
     nonPositive = any(Data <= 0);
-    if strcmp(Opt.mode, 'auto')
+    if strcmp(opt.Mode, 'auto')
         if nonPositive
-            Opt.mode = 'add';
+            opt.Mode = 'add';
         else
-            Opt.mode = 'mult';
+            opt.Mode = 'mult';
         end
-    elseif strcmp(Opt.mode, 'mult') && nonPositive
+    elseif strcmp(opt.Mode, 'mult') && nonPositive
         utils.warning('x13:x13', ...
             ['Unable to use multiplicative mode because of ', ...
             'input data combine positive and non-positive numbers; ', ...
             'switching to additive mode.']);
-        Opt.mode = 'add';
+        opt.Mode = 'add';
     end
 
     % Write a spec file.
-    xxSpecFile(TempTitle, Data, StartDate, Dummy, Opt);
+    xxSpecFile(TempTitle, Data, StartDate, Dummy, opt);
 
     % Set up a system command to run the X13 executable, enclosing the command in
     % double quotes.
-    if isequal(Opt.Executable, @auto)
+    if isequal(opt.Executable, @auto)
         if ispc( )
             executableName = 'x13aswin.exe';
         elseif ismac( )
@@ -245,14 +250,14 @@ function [Data, Fcast, Bcast, Ok] = runX13(X13Dir, TempTitle, Data, StartDate, D
                 'and choose the appropriate X13 executable.']);
         end
     else
-        executableName = Opt.Executable;
+        executableName = opt.Executable;
     end
     cmd = [ '"', fullfile(X13Dir, executableName), '"' ];
 
     cmd = [ cmd, ' "', TempTitle, '"' ];
     [status, result] = system(cmd);
 
-    if Opt.display
+    if opt.Display
         disp(result);
     end
 
@@ -267,19 +272,19 @@ function [Data, Fcast, Bcast, Ok] = runX13(X13Dir, TempTitle, Data, StartDate, D
 
     % Read in-sample results.
     nPer = length(Data);
-    [Data, dataOk] = xxGetOutpData(TempTitle, nPer, Opt.output, 2);
+    [Data, dataOk] = xxGetOutpData(TempTitle, nPer, opt.Output, 2);
 
     % Try to read forecasts.
     fcastOk = true;
-    kf = Opt.forecast;
-    if kf > 0
+    kf = opt.Forecast;
+    if kf>0
         [Fcast, fcastOk] = xxGetOutpData(TempTitle, kf, {'fct'}, 4);
     end
 
     % Try to read backcasts.
     bcastOk = true;
-    kb = Opt.backcast;
-    if kb > 0
+    kb = opt.Backcast;
+    if kb>0
         [Bcast, bcastOk] = xxGetOutpData(TempTitle, kb, {'bct'}, 4);
     end
 
@@ -293,11 +298,11 @@ function [Data, Fcast, Bcast, Ok] = runX13(X13Dir, TempTitle, Data, StartDate, D
 end%
 
 
-function xxSpecFile(TempTitle, Data, StartDate, Dummy, Opt)
+function xxSpecFile(TempTitle, Data, StartDate, Dummy, opt)
     % xxSpecFile  Create and save SPC file based on a template.
     [dataYear, dataPer] = dat2ypf(StartDate);
-    [dummyYear, dummyPer] = dat2ypf(StartDate-Opt.backcast);
-    spec = file2char(Opt.specfile);
+    [dummyYear, dummyPer] = dat2ypf(StartDate-opt.Backcast);
+    spec = file2char(opt.SpecFile);
 
     % Time series specs
     %-------------------
@@ -326,17 +331,17 @@ function xxSpecFile(TempTitle, Data, StartDate, Dummy, Opt)
     % Start date.
     spec = strrep(spec, '$series_startyear$', sprintf('%g', round(dataYear)));
     spec = strrep(spec, '$series_startper$', sprintf('%g', round(dataPer)));
-    if any(strcmp(Opt.output, 'mv'))
+    if any(strcmp(opt.Output, 'mv'))
         % Save missing value adjusted series.
         spec = strrep(spec, '$series_missingvaladj$', 'save = (mv)');
-        Opt.output = setdiff(Opt.output, {'mv'});
+        opt.Output = setdiff(opt.Output, {'mv'});
     else
         spec = strrep(spec, '$series_missingvaladj$', '');
     end    
 
     % Transform specs
     %-----------------
-    if any(strcmp(Opt.mode, {'mult', 'pseudoadd', 'logadd'}))
+    if any(strcmp(opt.Mode, {'mult', 'pseudoadd', 'logadd'}))
         replace = 'log';
     else
         replace = 'none';
@@ -345,12 +350,12 @@ function xxSpecFile(TempTitle, Data, StartDate, Dummy, Opt)
 
     % AUTOMDL specs
     %---------------
-    spec = strrep(spec, '$maxorder$', sprintf('%g %g', round(Opt.maxorder)));
+    spec = strrep(spec, '$maxorder$', sprintf('%g %g', round(opt.MaxOrder)));
 
     % FORECAST specs
     %----------------
-    spec = strrep(spec, '$forecast_maxback$', sprintf('%g', Opt.backcast));
-    spec = strrep(spec, '$forecast_maxlead$', sprintf('%g', Opt.forecast));
+    spec = strrep(spec, '$forecast_maxback$', sprintf('%g', opt.Backcast));
+    spec = strrep(spec, '$forecast_maxlead$', sprintf('%g', opt.Forecast));
 
     % REGRESSION specs
     %------------------
@@ -359,10 +364,10 @@ function xxSpecFile(TempTitle, Data, StartDate, Dummy, Opt)
     % keep the entire spec commented out. If tdays is requested but no user
     % dummies are specified, we need to keep the dummy section commented out, 
     % and vice versa.
-    if Opt.tdays || ~isempty(Dummy)
+    if opt.TDays || ~isempty(Dummy)
         Dummy = real(Dummy);
         spec = strrep(spec, '#regression ', '');
-        if Opt.tdays
+        if opt.TDays
             spec = strrep(spec, '#tdays ', '');
             spec = strrep(spec, '$tdays$', 'td');
         end
@@ -371,7 +376,7 @@ function xxSpecFile(TempTitle, Data, StartDate, Dummy, Opt)
             nDummy = size(Dummy, 2);
             dummyFmt = [ repmat(' %.8f', 1, nDummy), br ];
             name = sprintf(' dummy%g', 1:nDummy);
-            spec = strrep(spec, '$dummy_type$', lower(Opt.dummytype));
+            spec = strrep(spec, '$dummy_type$', lower(opt.DummyType));
             spec = strrep(spec, '$dummy_name$', name);
             spec = strrep(spec, '$dummy_data$', sprintf(dummyFmt, Dummy.'));
             spec = strrep(spec, '$dummy_startyear$', ...
@@ -382,12 +387,12 @@ function xxSpecFile(TempTitle, Data, StartDate, Dummy, Opt)
     end
 
     % ESTIMATION specs
-    spec = strrep(spec, '$maxiter$', sprintf('%g', round(Opt.MaxIter)));
-    spec = strrep(spec, '$tolerance$', sprintf('%e', Opt.tolerance));
+    spec = strrep(spec, '$maxiter$', sprintf('%g', round(opt.MaxIter)));
+    spec = strrep(spec, '$tolerance$', sprintf('%e', opt.Tolerance));
 
     % X11 specs
-    spec = strrep(spec, '$x11_mode$', Opt.mode);
-    spec = strrep(spec, '$x11_save$', sprintf('%s ', Opt.output{:}));
+    spec = strrep(spec, '$x11_mode$', opt.Mode);
+    spec = strrep(spec, '$x11_save$', sprintf('%s ', opt.Output{:}));
 
     % Write specs to text file
     char2file(spec, [TempTitle, '.spc']);
@@ -405,7 +410,7 @@ function [Data, Flag] = xxGetOutpData(TempTitle, NPer, Outp, NCol)
     for i = 1 : nOutp
         file = sprintf('%s.%s', TempTitle, Outp{i});
         fId = fopen(file, 'r');
-        if fId > -1
+        if fId>-1
             fgetl(fId); % skip first 2 lines
             fgetl(fId);
             read = fscanf(fId, format);
@@ -413,7 +418,7 @@ function [Data, Flag] = xxGetOutpData(TempTitle, NPer, Outp, NCol)
         else
             read = [ ];
         end
-        if length(read) == NCol*NPer
+        if length(read)==NCol*NPer
             read = reshape(read, [NCol, NPer]).';
             Data(:, end+1) = read(:, 2); %#ok<AGROW>
         else
@@ -431,7 +436,7 @@ function C = xxReadOutpFile(FName)
 end%
 
 
-function Mdl = xxReadModel(Mdl, FName, OuputFile)
+function arimaModel = readModel(arimaModel, FName, OuputFile)
     C = file2char(FName);
 
     % ARIMA spec block.
@@ -483,8 +488,8 @@ function Mdl = xxReadModel(Mdl, FName, OuputFile)
 
     % Create output struct only after we make sure all pieces have been read in
     % all right.
-    Mdl.mode = mode;
-    Mdl.spec = {specAr, specMa};
-    Mdl.ar = estAr;
-    Mdl.ma = estMa;
+    arimaModel.Mode = mode;
+    arimaModel.Spec = {specAr, specMa};
+    arimaModel.AR = estAr;
+    arimaModel.MA = estMa;
 end%
