@@ -23,72 +23,72 @@ function d = dbload(varargin)
 %
 % __Options__
 %
-% * `'Case='` [ `'lower'` | `'upper'` | *empty* ] - Change case of variable
+% * `Case=''` [ `'lower'` | `'upper'` | empty ] - Change case of variable
 % names.
 %
-% * `'CommentRow='` [ char | cellstr | *`{'comment', 'comments'}`* ] - Label
-% at the start of row that will be used to create Series object comments.
+% * `CommentRow={'Comment', 'Comments'}` [ char | cellstr ] - Label at the
+% start of row that will be used to create comments in time series.
 %
-% * `'Continuous='` [ false | `'Descending'` | `'Ascending'` ] - Indicate
-% that dates are a continuous range, either acending or descending.
+% * `Continuous=false` [ false | `'Descending'` | `'Ascending'` ] -
+% Indicate that dates are a continuous range, either acending or
+% descending.
 %
-% * `'DateFormat='` [ char | *`'YYYYFP'`* ] - Format of dates in first
-% column.
+% * `DateFormat='YYYYFP'` [ char ] - Format of dates in first column.
 %
-% * `'Delimiter='` [ char | *`','`* ] - Delimiter separating the individual
-% values (cells) in the CSV file; if different from a comma, all occurences
-% of the delimiter will replaced with commas -- note that this will also
-% affect text in comments.
+% * `Delimiter=','` [ char ] - Delimiter separating the individual values
+% (cells) in the CSV file; if different from a comma, all occurences of the
+% delimiter will replaced with commas -- note that this will also affect
+% text in comments.
 %
-% * `'FirstDateOnly='` [ `true` | *`false`* ] - Read and parse only the
+% * `FirstDateOnly=false` [ `true` | `false` ] - Read and parse only the
 % first date string, and fill in the remaining dates assuming a range of
 % consecutive dates.
 %
-% * `'Freq='` [ `0` | `1` | `2` | `4` | `6` | `12` | `365` | `'daily'` |
-% *empty* ] - Advise frequency of dates; if empty, frequency will be
+% * `Freq=[ ]` [ `0` | `1` | `2` | `4` | `6` | `12` | `365` | `'daily'` | empty ]
+% - Advise frequency of dates; if empty, frequency will be
 % automatically recognised.
 %
-% * `'FreqLetters='` [ char | *`'YHQBM'`* ] - Letters representing frequency
-% of dates in date column.
+% * `FreqLetters=@config` [ char | @config ] - Letters representing
+% frequency of dates in date column.
 %
-% * `'InputFormat='` [ *`'auto'`* | `'csv'` | `'xls'` ] - Format of input
+% * `InputFormat='auto'` [ `'auto'` | `'csv'` | `'xls'` ] - Format of input
 % data file; `'auto'` means the format will be determined by the file
 % extension.
 %
-% * `'NameRow='` [ char | numeric | *`{'', 'Variables'}`* ] - String, or
+% * `NameRow={'', Variables'}` [ char | cellstr | numeric ] - String, or
 % cell array of possible strings, that is found at the beginning (in the
 % first cell) of the row with variable names, or the line number at which
 % the row with variable names appears (first row is numbered 1).
 %
-% * `'NameFunc='` [ cell | function_handle | *empty* ] - Function used to
+% * `NameFunc=[ ]` [ cell | function_handle | empty ] - Function used to
 % change or transform the variable names. If a cell array of function
 % handles, each function will be applied in the given order.
 %
-% * `'Nan='` [ char | *`NaN`* ] - String representing missing observations
-% (case insensitive).
+% * `NaN='NaN'` [ char ] - String representing missing observations (case
+% insensitive).
 %
-% * `'PreProcess='` [ function_handle | cell | *empty* ] - Apply this
-% function, or cell array of functions, to the raw text file before
-% parsing the data.
+% * `PreProcess=[ ]` [ function_handle | cell | empty ] - Apply this
+% function, or cell array of functions, to the raw text file before parsing
+% the data.
 %
-% * `'Select='` [ char | cellstr | *empty* ] - Only database entries
+% * `Select={ }` [ char | cellstr | empty ] - Only database entries
 % included on this list will be read in and returned in the output database
 % `D`; entries not on this list will be discarded.
 %
-% * `'SkipRows='` [ char | cellstr | numeric | *empty* ] - Skip rows whose
-% first cell matches the string or strings (regular expressions);
-% or, skip a vector of row numbers.
+% * `SkipRows=[ ]` [ char | cellstr | numeric | empty ] - Skip rows whose
+% first cell matches the string or strings (regular expressions); or, skip
+% a vector of row numbers.
 %
-% * `'UserData='` [ char | *`Inf`* ] - Field name under which the database
+% * `UserData=Inf` [ char | `Inf` ] - Field name under which the database
 % userdata loaded from the CSV file (if they exist) will be stored in the
 % output database; `Inf` means the field name will be read from the CSV
 % file (and will be thus identical to the originally saved database).
 %
-% * `'UserDataField='` [ char | *`'.'`* ] - A leading character denoting
-% userdata fields for individual time series; if empty, no userdata fields
-% will be read in and created.
+% * `UserDataField='.'` [ char ] - A leading character denoting userdata
+% fields for individual time series; if empty, no userdata fields will be
+% read in and created.
 %
-% * `'UserDataFieldList='` [ cellstr | numeric | empty ] - List of row
+% * `UserDataFieldList={ }` [ cellstr | numeric | empty ] - List of row
 % headers, or vector of row numbers, that will be included as user data in
 % each time series.
 %

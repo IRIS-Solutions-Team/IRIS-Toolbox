@@ -1,19 +1,19 @@
 classdef (CaseInsensitiveProperties=true) ...
     Configuration 
     properties (SetAccess=protected)
-        % IrisRoot  IRIS root folder
+        % IrisRoot  IRIS root folder (not customizable)
         IrisRoot = fileparts(which('irisping.m'))
 
-        % Version  IRIS version (release date)
+        % Version  IRIS version (not customizable)
         Version = iris.Configuration.getIrisVersion( )
 
-        % Freq  Numeric representation of date frequencies
+        % Freq  Numeric representation of date frequencies (not customizable)
         Freq = iris.Configuration.DEFAULT_FREQ
 
-        % FreqNames  Names of date frequencies
+        % FreqNames  Names of date frequencies (not customizable)
         FreqNames = containers.Map(iris.Configuration.DEFAULT_FREQ, iris.Configuration.DEFAULT_FREQ_NAMES)
 
-        % UserConfigPath  Path to the user config file
+        % UserConfigPath  Path to the user config file (not customizable)
         UserConfigPath = ''
     end
         
@@ -22,10 +22,10 @@ classdef (CaseInsensitiveProperties=true) ...
         % FreqLetters  One-letter representation of each date frequency
         FreqLetters = iris.Configuration.DEFAULT_FREQ_LETTERS
 
-        % DateFormat  Date format
+        % DateFormat  Default date format
         DateFormat = iris.Configuration.DEFAULT_DATE_FORMAT
 
-        % PlotDateFormat  Date format in graphs
+        % PlotDateFormat  Default date format in graphs
         PlotDateFormat = iris.Configuration.DEFAULT_PLOT_DATE_FORMAT
 
         % BaseYear  Base year for linear trends

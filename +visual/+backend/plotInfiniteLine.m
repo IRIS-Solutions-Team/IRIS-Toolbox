@@ -1,11 +1,11 @@
 function [lineHandles, textHandles] = plotnfiniteLine(direction, varargin)
 % plotInfiniteLine  Add infintely stretched vertical or horizontal line at specified position
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 lineHandles = gobjects(1 ,0);
 textHandles = gobjects(1 ,0);
@@ -29,7 +29,8 @@ else
     end
     location = varargin{1};
     varargin(1) = [ ];
-    if iscellstr(location)
+    if ischar(location) || isa(location, 'str') || iscellstr(location)
+        location = cellstr(location);
         for i = 1 : numel(location)
             location{i} = textinp2dat(location{i});
         end
@@ -50,7 +51,6 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
     INPUT_PARSER.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
     INPUT_PARSER.addParameter({'LinePlacement', 'TimePosition'}, 'exactly', @(x) any(strcmpi(x, {'exactly', 'middle', 'before', 'after'})));
-
     % Legacy options
     INPUT_PARSER.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x(1:2:end)));
     INPUT_PARSER.addParameter('VPosition', '');

@@ -57,4 +57,5 @@ function [lineHandles, textHandles] = vline(varargin)
 set(lineHandles, 'Tag', 'vline');
 set(textHandles, 'Tag', 'vline-caption');
 
-end
+end%
+

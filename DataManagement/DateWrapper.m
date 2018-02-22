@@ -370,6 +370,7 @@ classdef DateWrapper < double
 
 
         function flag = validateDateInput(input)
+            freqLetters = iris.get('FreqLetters');
             if isa(input, 'DateWrapper')
                 flag = true;
                 return
@@ -386,9 +387,10 @@ classdef DateWrapper < double
                 flag = false;
                 return
             end
-            flag = isstrprop(input(1), 'digit') && any(isstrprop(input, 'alpha')) ...
-                && ~any(input=='=');
-        end
+            input = strtrim(cellstr(input));
+            match = regexpi(input, ['\d+[', freqLetters, ']\d*'], 'Once');
+            flag = all(~cellfun('isempty', match));
+        end%
 
 
         function flag = validateRangeInput(input)

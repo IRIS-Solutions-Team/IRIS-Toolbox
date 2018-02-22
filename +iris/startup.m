@@ -1,5 +1,5 @@
 function startup(varargin)
-% iris.startup  Start IRIS session.
+% iris.startup  Start IRIS session
 %
 % __Syntax__
 %
@@ -45,8 +45,8 @@ function startup(varargin)
 % * `--TimeSeries` - Use the `TimeSeries` class as the default time series
 % class.
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 MATLAB_RELEASE_OR_HIGHER = 'R2014b';
 
@@ -140,7 +140,7 @@ return
         end
         setappdata(0, 'IRIS_TimeSeriesConstructor', timeSeriesConstructor);
         setappdata(0, 'IRIS_DateFromSerial', dateFromSerial);
-    end
+    end%
 
 
     function deleteProgress( )
@@ -150,7 +150,7 @@ return
         else
             fprintf('\n\n');
         end
-    end
+    end%
 
 
     function displayMessage( )
@@ -225,9 +225,7 @@ return
         end
         
         fprintf('\n');
-    end
-
-
+    end%
 
 
     function chkId( )
@@ -263,8 +261,6 @@ return
 end
 
 
-
-
 function r = getMatlabRelease( )
     r = uint16(0);
     try %#ok<TRYNC>
@@ -278,9 +274,7 @@ function r = getMatlabRelease( )
             end
         end
     end
-end
-
-
+end%
 
 
 function n = release2num(r)
@@ -295,7 +289,7 @@ function n = release2num(r)
     end
     ab = 1 + double(r(6)) - double('a');
     n = uint16(10*year + ab);
-end
+end%
 
 
 function options = resolveInputOptions(varargin)
@@ -328,4 +322,4 @@ function options = resolveInputOptions(varargin)
     if ~options.tseries && ~options.Series && ~options.TimeSeries
         options.Series = true;
     end
-end
+end%
