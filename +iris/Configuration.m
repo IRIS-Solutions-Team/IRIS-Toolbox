@@ -393,7 +393,7 @@ classdef (CaseInsensitiveProperties=true) ...
             if length(list)==1
                 fPath = fullfile(folder, list.name);
             else
-                fPath = findTexMf(file);
+                fPath = iris.Configuration.findTexMf(file);
             end
         end%
 
