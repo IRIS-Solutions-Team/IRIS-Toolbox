@@ -471,77 +471,99 @@ classdef Ad
             else
                 mode = 2;
             end
-            nWrt = numel(lsWrt);
+            numWrt = numel(lsWrt);
             
-            lsVar = unique( regexp(expn, '(?<![''\.@])(\<[a-zA-Z]\w*\>)(?![\.\(])', 'match') );
+            listVariables = unique( regexp(expn, '(?<![''\.@])(\<[a-zA-Z]\w*\>)(?![\.\(])', 'match') );
             D = struct( );
-            for i = 1:numel(lsVar)
-                name = lsVar{i};
+            for i = 1:numel(listVariables)
+                name = listVariables{i};
                 tmp = TEMPLATE;
                 tmp.Input.Expression = name;
                 if mode==1
                     tmp.Diff = { Ad.X0 };
                 else
-                    tmp.Diff = repmat( { Ad.X0 }, 1, nWrt);
+                    tmp.Diff = repmat( { Ad.X0 }, 1, numWrt);
                 end
                 D.(name) = tmp;
             end
             
-            if nWrt==1
+            if numWrt==1
                 D.(lsWrt{1}).Diff = { Ad.X1 };
             else
-                wrt = repmat('0,', 1, nWrt);
+                wrt = repmat('0,', 1, numWrt);
                 if mode==1
-                    for i = 1:nWrt
+                    for i = 1:numWrt
                         name = lsWrt{i};
                         wrt(2*i-1) = '1';
                         D.(name).Diff{1}.Expression = ['[', wrt(1:end-1), ']'];
                         wrt(2*i-1) = '0';
                     end
                 else
-                    for i = 1:nWrt
+                    for i = 1:numWrt
                         name = lsWrt{i};
                         D.(name).Diff{i}.Expression = 1;
                     end
                 end
             end
             
-            lsFunc = regexp( ...
+            if mode==1
+                stringNumDiff = '1';
+            else
+                stringNumDiff = sprintf('%g', numWrt);
+            end
+
+            listFunctions = regexp( ...
                 expn, ...
                 '\<[a-zA-Z][\w\.]*\>(?=\()', ...
                 'match' ...
-                );
-            lsFunc = unique(lsFunc);
-            for i = 1:numel(lsFunc)
-                if any(strcmp(lsFunc{i}, Ad.LS_FUNC))
+            );
+            listFunctions = unique(listFunctions);
+            for i = 1:numel(listFunctions)
+                if any(strcmp(listFunctions{i}, Ad.LS_FUNC))
                     continue
                 end
-                name = lsFunc{i};
-                expn = strrep(expn, [name, '(',], ['Ad.f(''', name, ''',']);
+                name = listFunctions{i};
+                expn = strrep(expn, [name, '(',], ['Ad.f(''', name, ''',', stringNumDiff, ',']);
             end
             
-            nVar = numel(lsVar);
-            for i = 1:nVar
-                name = lsVar{i};
-                expn = regexprep( expn, ...
+            for i = 1:numel(listVariables)
+                name = listVariables{i};
+                expn = regexprep( ...
+                    expn, ...
                     ['(?<![''\.@])(\<', name, '\>)(?![\.\(])'], ...
-                    ['D___.', name] );
+                    ['D___.', name] ...
+                );
             end
             
+            % Ad.eval returns an Ad object (most of the time), or a
+            % numerical value if the expression does not involve any
+            % unknown.
             y = Ad.eval(D, expn);
+
             if mode==1
-                d = y.Diff{1}.Expression;
-                if isnumeric(d)
-                    d = sprintf('%.16g', d);
+                if isa(y, 'Ad')
+                    d = y.Diff{1}.Expression;
+                    if isnumeric(d)
+                        d = sprintf('%.16g', d);
+                    end
+                else
+                    % If Ad.eval returned a numerical value, all
+                    % derivatives are zero.
+                    d = '0';
                 end
             else
-                nd = numel(y.Diff);
-                d = cell(lsWrt);
-                for i = 1 : nd
-                    d{i} = y.Diff{i}.Expression;
-                    if isnumeric(d{i})
-                        d{i} = sprintf('%.16g', d{i});
+                if isa(y, 'Ad')
+                    d = cell(lsWrt);
+                    for i = 1 : numWrt
+                        d{i} = y.Diff{i}.Expression;
+                        if isnumeric(d{i})
+                            d{i} = sprintf('%.16g', d{i});
+                        end
                     end
+                else
+                    % If Ad.eval returned a numerical value, all
+                    % derivatives are zero.
+                    d = repmat({'0'}, 1, numWrt);
                 end
             end
         end
@@ -833,12 +855,13 @@ classdef Ad
             c = [c, ')'];
             y.Expression = c;
             y.Level = 0;
-        end
+        end%
         
         
         
         
-        function this = f(name, varargin)
+        function this = f(name, nd, varargin)
+            % nd is either 1 (mode=1) or numWrt (mode=2)
             persistent TEMPLATE
             if ~isa(TEMPLATE, 'Ad')
                 TEMPLATE = Ad( );
@@ -852,13 +875,6 @@ classdef Ad
                 varargin(1:2) = [ ];
             end
             n = numel(varargin);
-            nd = NaN;
-            for i = 1 : n
-                if isa(varargin{i}, 'Ad')
-                    nd = numel(varargin{i}.Diff);
-                    break
-                end
-            end
             for i = 1 : n
                 if isnumeric(varargin{i})
                     varargin{i} = Ad.createNumber(varargin{i}, nd);
@@ -880,10 +896,7 @@ classdef Ad
                 y.Level = Ad.LEVEL_PLUS;
                 this.Diff{i} = y;
             end
-        end
-        
-        
-        
+        end%
         
         
         varargout = d(varargin)

@@ -81,21 +81,12 @@ addpath(thisRoot, '-begin');
 iris.pathManager('addroot', thisRoot);
 iris.pathManager('addcurrentsubs', thisRoot);
 
-try %#ok<TRYNC>
-    munlock passvalopt
-end
-try %#ok<TRYNC>
-    munlock iris.configMaster
-end
-
-setEnvironment( );
-
-% Reset m-files with persistent variables.
-munlock iris.configMaster;
-munlock passvalopt;
-iris.configMaster( );
+% __IRIS Configuration and Environment__
 iris.reset( );
-icfg = iris.get( );
+setEnvironment( );
+config = getappdata(0, 'IRIS_Configuration');
+
+% __Reset Default Function Options__
 passvalopt( );
 
 version = iris.get('version');
@@ -173,12 +164,12 @@ return
         
         % User config file used
         fprintf('\tUser Config File: ');
-        if isempty(icfg.userconfigpath)
+        if isempty(config.userconfigpath)
             fprintfx('<a href="matlab: idoc config/irisuserconfighelp">');
             fprintfx('No user config file found</a>');
         else
             fprintfx('<a href="matlab: edit %s">%s</a>', ...
-                icfg.userconfigpath, icfg.userconfigpath);
+                config.userconfigpath, config.userconfigpath);
         end
         fprintf('\n');
         
@@ -190,18 +181,14 @@ return
         
         % LaTeX engine
         fprintf('\tLaTeX Engine: ');
-        if isempty(icfg.PdfLaTeXPath)
+        if isempty(config.PdfLaTeXPath)
             fprintf('No PDF LaTeX engine found');
         else
-            if true % ##### MOSW
-                fprintfx( ...
-                    '<a href="file:///%s">%s</a>', ...
-                    fileparts(icfg.PdfLaTeXPath), ...
-                    icfg.PdfLaTeXPath ...
-                    );
-            else
-                fprintf('%s', config.PdfLaTeXPath); %#ok<UNRCH>
-            end
+            fprintfx( ...
+                '<a href="file:///%s">%s</a>', ...
+                fileparts(config.PdfLaTeXPath), ...
+                config.PdfLaTeXPath ...
+            );
         end
         fprintf('\n');
         

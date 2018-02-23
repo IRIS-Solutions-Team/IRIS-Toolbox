@@ -1,24 +1,24 @@
 function varargout = get(varargin)
-% iris.get  Query current IRIS config options.
+% iris.get  Query current IRIS configuration settings
 %
 % __Syntax__
 %
-%     Value = iris.get(Option)
-%     S = iris.get( )
+%     [Value, Value, ...] = iris.get(Query, Query, ...)
+%     Config = iris.get( )
 %
 %
 % __Input Arguments__
 %
-% * `Option` [ char ] - Name of the queried IRIS configuration option.
+% * `Query` [ char ] - Name of the queried IRIS configuration settings.
 %
 %
 % __Output Arguments__
 %
 % * `Value` [ ... ] - Current value of the queried configuration
-% option.
+% settings.
 %
-% * `S` [ struct ] - Structure with all configuration options and their
-% current values.
+% * `Config` [ iris.Configuration ] - Configuration object with all current
+% configuration settings.
 %
 %
 % __Description__
@@ -27,20 +27,21 @@ function varargout = get(varargin)
 % [`irisset`](config/irisset), plus the following non-modifiable ones
 % (these cannot be changed by the user):
 %
-% * `'userConfigPath='` [ char ] - The path to the user configuration file
+% * `'UserConfigPath'` [ char ] - The path to the user configuration file
 % called by the last executed `iris.startup`.
 %
-% * `'irisRoot='` [ char ] - The current IRIS root directory.
+% * `'IrisRoot'` [ char ] - The current IRIS root directory.
 %
-% * `'version='` [ char ] - The current IRIS version string.
+% * `'Version'` [ char ] - The current IRIS version string.
 %
-% When called without any input arguments, the `irisget` function returns a
+% When called without any input arguments, the `iris.get( )` function returns a
 % struct with all options and their current values.
 %
-% When used as input arguments in the `irisget` function, the option names
-% are case-insensitive. When referring to field names of an output struct
-% returned by the `irisget` function, all option names are lower-case and
-% case-sensitive.
+% When used as input arguments in the `iris.get( )` function, the option
+% names are case-insensitive. When referring to field names of an output
+% struct returned by the `iris.get( )` function, all option names are
+% lower-case and case-sensitive.
+%
 %
 % __Example__
 %
@@ -54,11 +55,25 @@ function varargout = get(varargin)
 %     YFP
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-[varargout{1:max(nargout, 1)}] = iris.configMaster('get', varargin{:});
-
+irisConfig = getappdata(0, 'IRIS_Configuration');
+if isempty(irisConfig)
+    irisConfig = iris.reset( );
 end
+
+if nargin==0
+    varargout = { irisConfig };
+    return
+end
+
+varargout = cell(1, nargin);
+for i = 1 : nargin
+    ithOptionName = varargin{i};
+    varargout{i} = irisConfig.(ithOptionName);
+end
+
+end%

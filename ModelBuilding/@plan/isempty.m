@@ -1,4 +1,4 @@
-function flag = isempty(this,query)
+function flag = isempty(this, query)
 
 switch query
     case 'tunes'

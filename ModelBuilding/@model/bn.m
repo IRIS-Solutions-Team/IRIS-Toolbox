@@ -1,17 +1,17 @@
 function outp = bn(this, inp, range, varargin)
-% bn  Beveridge-Nelson trends.
+% bn  Beveridge-Nelson trends
 %
 % __Syntax__
 %
-%     Outp = bn(M, Inp, Range, ...)
+%     Outp = bn(SolvedModel, InputData, Range, ...)
 %
 %
 % __Input Arguments__
 %
-% * `M` [ model ] - Solved model object.
+% * `SolvedModel` [ model ] - Solved model object.
 %
-% * `Inp` [ struct | cell ] - Input data on which the BN trends will be
-% computed.
+% * `InputData` [ struct | cell ] - Input data on which the BN trends will
+% be computed.
 %
 % * `Range` [ numeric | char ] - Date range on which the BN trends will be
 % computed.
@@ -24,10 +24,10 @@ function outp = bn(this, inp, range, varargin)
 %
 % __Options__
 %
-% * `'Deviations='` [ `true` | *`false`* ] - Input and output data are
-% deviations from balanced-growth paths.
+% * `Deviation=false` [ `true` | `false` ] - Input and output data are
+% deviations from steady-state paths.
 %
-% * `'Dtrends='` [ *`@auto`* | `true` | `false` ] - Measurement variables
+% * `DTrends=@auto` [ `@auto` | `true` | `false` ] - Measurement variables
 % in input and output data include deterministic trends specified in
 % [`!dtrends`](irislang/dtrends) equations.
 %
@@ -41,22 +41,22 @@ function outp = bn(this, inp, range, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 EYE_TOLERANCE = this.Tolerance.Solve;
 TYPE = @int8;
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/bn');
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
-    INPUT_PARSER.addRequired('InputDatabank', @isstruct);
-    INPUT_PARSER.addRequired('Range', @DateWrapper.validateDateInput);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.bn');
+    inputParser.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
+    inputParser.addRequired('InputDatabank', @isstruct);
+    inputParser.addRequired('Range', @DateWrapper.validateDateInput);
+    inputParser.addDeviationOptions(false);
 end
-INPUT_PARSER.parse(this, inp, range);
-
-opt = passvalopt('model.bn', varargin{:});
+inputParser.parse(this, inp, range, varargin{:});
+opt = inputParser.Options;
 
 if ischar(range)
     range = textinp2dat(range);
@@ -67,7 +67,7 @@ end
 [~, ~, nb, nf, ne] = sizeOfSolution(this.Vector);
 nv = length(this);
 range = range(1) : range(end);
-nPer = length(range);
+numPeriods = length(range);
 
 % Alpha vector.
 A = datarequest('alpha', this, inp, range);
@@ -105,24 +105,24 @@ for ithRun = 1 : numRuns
             indexDiffStationary(ithRun) = false;
             continue
         end
-        if ~opt.deviation
+        if ~opt.Deviation
             Ka = K(nf+1:end, 1); 
             aBar = zeros(nb, 1);
             aBar(numUnitRoots+1:end) = ...
                 (eye(nb-numUnitRoots) - Ta(numUnitRoots+1:end, numUnitRoots+1:end)) ...
                 \ Ka(numUnitRoots+1:end);
-            aBar = repmat(aBar, 1, nPer);
+            aBar = repmat(aBar, 1, numPeriods);
             Kf = K(1:nf, 1);
-            Kf = repmat(Kf, 1, nPer);
-            D = repmat(D, 1, nPer);
+            Kf = repmat(Kf, 1, numPeriods);
+            D = repmat(D, 1, numPeriods);
         end
-        if opt.dtrends
+        if opt.DTrends
             W = evalDtrends(this, [ ], g, ithRun);
         end
     end
     
     a = A(:, :, min(ithRun, end));
-    if ~opt.deviation
+    if ~opt.Deviation
         a = a - aBar;
     end
     
@@ -134,7 +134,7 @@ for ithRun = 1 : numRuns
     a(1:numUnitRoots, :) = a(1:numUnitRoots, :) + ...
         Ta(1:numUnitRoots, numUnitRoots+1:end)*aCum;
     
-    if opt.deviation
+    if opt.Deviation
         a(numUnitRoots+1:end, :) = 0;
     else
         a(numUnitRoots+1:end, :) = aBar(numUnitRoots+1:end, :);
@@ -144,17 +144,17 @@ for ithRun = 1 : numRuns
     xb = U*a;
     y = Z*a;
     
-    if ~opt.deviation
+    if ~opt.Deviation
         xf = xf + Kf;
         y = y + D;
     end
-    if opt.dtrends
+    if opt.DTrends
         y = y + W;
     end
     
     % Store output data #iloop.
     x = [xf;xb];
-    e = zeros(ne, nPer);
+    e = zeros(ne, numPeriods);
     hdataassign(hd, ithRun, { y, x, e, [ ], g } );
 end
 

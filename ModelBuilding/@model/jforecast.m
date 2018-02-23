@@ -3,14 +3,14 @@ function outp = jforecast(this, inp, range, varargin)
 %
 % __Syntax__
 %
-%     F = jforecast(M, D, Range, ...)
+%     F = jforecast(SolvedModel, InputData, Range, ...)
 %
 %
 % __Input Arguments__
 %
-% * `M` [ model ] - Solved model object.
+% * `SolvedModel` [ model ] - Solved model object.
 %
-% * `D` [ struct ] - Input data from which the initial condition is taken.
+% * `InputData` [ struct ] - Input data from which the initial condition is taken.
 %
 % * `Range` [ numeric ] - Forecast range.
 %
@@ -22,35 +22,35 @@ function outp = jforecast(this, inp, range, varargin)
 %
 % __Options__
 %
-% * `'Anticipate='` [ *`true`* | `false` ] - If true, real future shocks are
-% anticipated, imaginary are unanticipated; vice versa if false.
+% * `Anticipate=true` [ `true` | `false` ] - If true, real future shocks
+% are anticipated, imaginary are unanticipated; vice versa if false.
 %
-% * `'CurrentOnly='` [ *`true`* | `false` ] - If `true`, MSE matrices will
+% * `CurrentOnly=true` [ `true` | `false` ] - If `true`, MSE matrices will
 % be computed only for the current-dated variables, not for their lags or
 % leads (expectations).
 %
-% * `'Deviation='` [ `true` | *`false`* ] - Treat input and output data as
+% * `Deviation=false` [ `true` | `false` ] - Treat input and output data as
 % deviations from balanced-growth path.
 %
-% * `'Dtrends='` [ *`@auto`* | `true` | `false` ] - Measurement data
+% * `Dtrends=@auto` [ `@auto` | `true` | `false` ] - Measurement data
 % contain deterministic trends.
 %
-% * `'InitCond='` [ *`'data'`* | `'fixed'` ] - Use the MSE for the initial
-% conditions if found in the input data or treat the initical conditions as
-% fixed.
+% * `InitCond='data'` [ `'data'` | `'fixed'` ] - Use the MSE for the
+% initial conditions if found in the input data or treat the initical
+% conditions as fixed.
 %
-% * `'MeanOnly='` [ `true` | *`false`* ] - Return only mean data, i.e. point
-% estimates.
+%  `MeanOnly=false` [ `true` | `false` ] - Return only mean data, i.e.
+%  point estimates.
 %
-% * `'Plan='` [ Plan ] - Forecast plan specifying exogenized variables,
-% endogenized shocks, and conditioning variables.
+% * `Plan=[ ]` [ plan | empty ] - Forecast plan specifying exogenized
+% variables, endogenized shocks, and conditioning variables.
 %
-% * `'StdScale='` [ *1* | `'normalize'` | numeric | complex ] - Scale
-% standard deviations of shocks by this factor; if `StdScale=` is a complex
-% number, stdevs for anticipated and unanticipated shocks will be scaled
+% * `StdScale=1` [ numeric | complex | `'normalize'` ] - Scale standard
+% deviations of shocks by this factor; if `StdScale=` is a complex number,
+% stdevs for anticipated and unanticipated shocks will be scaled
 % differently. See Description/Std Deviations.
 %
-% * `'Vary='` [ struct | *empty* ] - Database with time-varying std
+% * `Vary=[ ]` [ struct | empty ] - Database with time-varying std
 % deviations or cross-correlations of shocks.
 %
 %
@@ -62,7 +62,7 @@ function outp = jforecast(this, inp, range, varargin)
 % * `jforecast( )` returns also standard deviations for the forecasts of
 % model variables;
 %
-% * `jforecast( )` can use conditioning (specified in a `Scenario` object)
+% * `jforecast( )` can use conditioning (specified in a `plan` object)
 % techniques in addition to exogenizing techniques; conditiong and
 % exogenizing techniques can be combined together.
 %
@@ -72,51 +72,59 @@ function outp = jforecast(this, inp, range, varargin)
 %
 % _Anticipated and Unanticipated Shocks_
 %
-% When adjusting the mean of shocks (in the input database, `inp`) or the
-% std deviations of shocks (in the option `'Vary='`), you can use real and
-% imaginary numbers to distinguish between anticipated and unanticipated
-% shocks (depending on the `'Anticipate='` option):
+% When adjusting the mean of shocks (in the input database, `InputData`) or
+% the std deviations of shocks (in the option `Vary=`), you can use real
+% and imaginary numbers to distinguish between anticipated and
+% unanticipated shocks (depending on the `Anticipate=` option):
 %
-% * if `'Anticipate='` is `true` then real numbers describe anticipated
-% shocks and imaginary numbers describe unanticipated shocks;
+% * if `Anticipate=true` then real numbers describe anticipated shocks and
+% imaginary numbers describe unanticipated shocks;
 %
-% * if `'Anticipate='` is `false` then real numbers describe unanticipated
-% shocks and imaginary numbers describe anticipated shocks;
+% * if `Anticipate=false` then real numbers describe unanticipated shocks
+% and imaginary numbers describe anticipated shocks;
 %
 %
 % __Example__
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-pp = inputParser( );
-pp.addRequired('Inp', @(x) isstruct(x) || iscell(x));
-pp.addRequired('Range', @DateWrapper.validateDateInput);
-pp.parse(inp, range);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.jforecast');
+    inputParser.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
+    inputParser.addRequired('InputData', @(x) isstruct(x) || iscell(x));
+    inputParser.addRequired('Range', @DateWrapper.validateDateInput);
+    inputParser.addOptional('ConditioningData', [ ], @(x) isequal(x, [ ]) || isstruct(x));
+
+    inputParser.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('CurrentOnly', true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('InitCond', '}data', @(x) isnumeric(x) || (ischar(x) && any(strcmpi(x, {'data', 'fixed'}))));
+    inputParser.addParameter('MeanOnly', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Precision', 'double', @(x) any(strcmpi(x, {'double', 'single'})));
+    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Plan', [ ], @(x) isequal(x, [ ]) || isa(x, 'plan'));
+    inputParser.addParameter('StdScale', complex(1, 0), @(x) (isnumeric(x) && isscalar(x) && real(x)>=0 && imag(x)>=0 && abs(abs(x)-1)<1e-12) || strcmpi(x, 'normalize'));
+    inputParser.addParameter({'Vary', 'Std'}, [ ], @(x) isstruct(x) || isempty(x));
+
+    inputParser.addDeviationOptions(false);
+end
+inputParser.parse(this, inp, range, varargin{:});
+cond = inputParser.Results.ConditioningData;
+opt = inputParser.Options;
 
 if ischar(range)
     range = textinp2dat(range);
 end
 range = range(1) : range(end);
 
-if ~isempty(varargin) && ~ischar(varargin{1})
-    cond = varargin{1};
-    varargin(1) = [ ];
-    isCond = true;
-else
-    cond = [ ];
-    isCond = false;
-end
-
-opt = passvalopt('model.jforecast', varargin{:});
-
-isPlanCond = isa(opt.plan, 'plan') && ~isempty(opt.plan, 'cond');
-isCond = isCond || isPlanCond;
+isPlanCond = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'cond');
+isCond = (isstruct(cond) && ~isempty(cond) && ~isempty(fieldnames(cond))) || isPlanCond;
 
 % Tunes.
-isSwap = isa(opt.plan, 'plan') && ~isempty(opt.plan, 'tunes');
+isSwap = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'tunes');
 
 % TODO: Remove 'missing', 'contributions' options from jforecast, 
 % 'anticipate' scalar.
@@ -131,7 +139,7 @@ xRange = range(1)-1 : range(end);
 nXPer = length(xRange);
 
 % Current-dated variables in the original state vector.
-if opt.currentonly
+if opt.CurrentOnly
     ixXCurr = imag(this.Vector.Solution{2})==0;
 else
     ixXCurr = true(size(this.Vector.Solution{2}));
@@ -151,7 +159,7 @@ chkInitCond( );
 nInit = size(aInit, 3);
 nInitMse = size(aInitMse, 4);
 
-if opt.anticipate
+if opt.Anticipate
     fnAn = @real;
     fnUn = @imag;
 else
@@ -178,7 +186,7 @@ lastOrZeroFunc = @(x) max([0, find(any(x, 1), 1, 'last')]);
 if isSwap || isPlanCond
     % Anchors for exogenized `AnchX` and conditioning `AnchC` variables.
     [yAnchX, xAnchX, eaAnchX, euAnchX, yAnchC, xAnchC] = ...
-        myanchors(this, opt.plan, range, opt.anticipate);
+        myanchors(this, opt.Plan, range, opt.Anticipate);
 end
 
 if isSwap
@@ -269,17 +277,17 @@ end
 % Create and initialize output hdataobj.
 hData = struct( );
 hData.mean = hdataobj(this, xRange, nLoop, ...
-    'Precision=', opt.precision);
-if ~opt.meanonly
+    'Precision=', opt.Precision);
+if ~opt.MeanOnly
     hData.std = hdataobj(this, xRange, nLoop, ...
         'IsVar2Std=', true, ...
-        'Precision=', opt.precision);
+        'Precision=', opt.Precision);
 end
 
 % Main loop
 %-----------
 
-if opt.progress
+if opt.Progress
     % Create progress bar.
     progress = ProgressBar('IRIS model.solve progress');
 end
@@ -288,7 +296,7 @@ for iLoop = 1 : nLoop
     
     % Get exogenous data and compute deterministic trends if requested.
     g = G(:, :, min(iLoop, end));
-    if opt.dtrends
+    if opt.DTrends
         W = evalDtrends(this, [ ], g, iLoop);
     end
     
@@ -305,7 +313,7 @@ for iLoop = 1 : nLoop
         Ka = K(nf+1:end, :);
         Ut = U.';
         % Swapped system.
-        if opt.meanonly
+        if opt.MeanOnly
             [M, Ma] = myforecastswap(this, iLoop, ixExog, ixEndg, last);
         else
             [M, Ma, N, Na] = myforecastswap(this, iLoop, ixExog, ixEndg, last);
@@ -321,7 +329,7 @@ for iLoop = 1 : nLoop
     % Initial condition.
     a0 = aInit(:, 1, min(iLoop, end));
     x0 = xInit(:, 1, min(end, iLoop));
-    if isempty(aInitMse) || isequal(opt.initcond, 'fixed')
+    if isempty(aInitMse) || isequal(opt.InitCond, 'fixed')
         Pa0 = zeros(nb);
         Dxinit = zeros(nb, 1);
     else
@@ -336,7 +344,7 @@ for iLoop = 1 : nLoop
     if isSwap
         % Tunes on measurement variables.
         y = inpY(:, 1:last, min(end, iLoop));
-        if opt.dtrends
+        if opt.DTrends
             y = y - W(:, 1:last);
         end
         % Tunes on transition variables.
@@ -351,7 +359,7 @@ for iLoop = 1 : nLoop
     xCurr = nan(nXCurr, nPer);
     
     % Pre-allocate variance arrays.
-    if ~opt.meanonly
+    if ~opt.MeanOnly
         Dy = nan(ny, nPer);
         DxCurr = nan(nXCurr, nPer);
         Du = nan(ne, nPer);
@@ -362,7 +370,7 @@ for iLoop = 1 : nLoop
     if last > 0
         eu1 = eu(:, 1:last);
         ea1 = ea(:, 1:last);
-        const = double(~opt.deviation);
+        const = double(~opt.Deviation);
         % inp := [const;a0;vec(eu);vec(ea)].
         inp = [ ...
             const ; ...
@@ -382,14 +390,14 @@ for iLoop = 1 : nLoop
         a = Ma*rhs;
         
         Prhs = [ ];
-        if ~opt.meanonly || isCond
+        if ~opt.MeanOnly || isCond
             % Prhs is the MSE/Cov matrix of the RHS in the swapped system.
             calcPrhs( );
         end
 
         Plhs = [ ];
         Pa = [ ];
-        if ~opt.meanonly
+        if ~opt.MeanOnly
             % Plhs is the cov matrix of the LHS in the swapped system.
             calcPlhsPa( );
         end
@@ -397,7 +405,7 @@ for iLoop = 1 : nLoop
         if isCond
             Yd = Y(:, :, min(end, iLoop));
             Yd(~yAnchC) = NaN;
-            if opt.dtrends
+            if opt.DTrends
                 Yd = Yd - W(:, 1:last);
             end
             Xd = X(:, :, min(end, iLoop));
@@ -411,7 +419,7 @@ for iLoop = 1 : nLoop
             rhs = rhs + upd;
             lhs = lhs + M*upd;
             a = a + Ma*upd;
-            if ~opt.meanonly
+            if ~opt.MeanOnly
                 % Update forecast MSE.
                 z = N(ixCondNotExog, :);
                 upd = simulate.linear.updatemse(z, Prhs);
@@ -430,7 +438,7 @@ for iLoop = 1 : nLoop
         eu = zeros(ne, last);
         ea = zeros(ne, last);
         a = a0;
-        if ~opt.meanonly
+        if ~opt.MeanOnly
             Pa = Pa0;
         end
     end
@@ -443,14 +451,14 @@ for iLoop = 1 : nLoop
     Pa = [ ];
     
     % Add measurement detereministic trends.
-    if opt.dtrends
+    if opt.DTrends
         y = y + W;
     end
     
     % Store final results.
     assignOutp( );
     
-    if opt.progress
+    if opt.Progress
         % Update progress bar.
         update(progress, iLoop/nLoop);
     end
@@ -497,11 +505,11 @@ return
                 yxVec{inx});
         end
         % Check number of exogenized and endogenized data points.
-        if nnzexog(opt.plan)~=nnzendog(opt.plan)
+        if nnzexog(opt.Plan)~=nnzendog(opt.Plan)
             utils.warning('model:jforecast', ...
                 ['The number of exogenized data points (%g) does not match ', ...
                 'the number of endogenized data points (%g).'], ...
-                nnzexog(opt.plan), nnzendog(opt.plan));
+                nnzexog(opt.Plan), nnzendog(opt.Plan));
         end
     end 
 
@@ -584,7 +592,7 @@ return
         ea = reshape(inp(1:ne*last), [ne, last]);
         inp(1:ne*last) = [ ];
         
-        if opt.meanonly
+        if opt.MeanOnly
             return
         end
         
@@ -657,20 +665,20 @@ return
         for t = last+1 : nPer
             xfCurr = TfCurr*a;
             a = Ta*a;
-            if ~opt.deviation
+            if ~opt.Deviation
                 xfCurr = xfCurr + KfCurr;
                 a = a + Ka;
             end
             xCurr(:, t) = [xfCurr;UCurr*a];
             if ny > 0
                 y(:, t) = Z*a;
-                if ~opt.deviation
+                if ~opt.Deviation
                     y(:, t) = y(:, t) + D;
                 end
             end
         end
         
-        if opt.meanonly
+        if opt.MeanOnly
             return
         end
         
@@ -747,7 +755,7 @@ return
         sxRe = sxRe * real(scale);
         sxIm = sxIm * imag(scale);
 
-        if opt.anticipate
+        if opt.Anticipate
             varargout = { sxRe, sxIm };
         else
             varargout = { sxIm, sxRe };
@@ -765,7 +773,7 @@ return
         outpX(ixXCurr, 2:end) = xCurr;
         outpX(nf+1:end, 1) = x0;
         
-        if opt.anticipate
+        if opt.Anticipate
             realOutpE = ea;
             imagOutpE = eu;
         else
@@ -784,12 +792,12 @@ return
             { outpY, outpX, outpE, [ ], outpG });
         
         % Final std forecast.
-        if ~opt.meanonly
+        if ~opt.MeanOnly
             outpDy = [ nan(ny, 1), Dy ];
             outpDx = nan(nxx, nPer);
             outpDx(ixXCurr, :) = DxCurr;
             outpDx = [ [nan(nf, 1);Dxinit], outpDx ];
-            if opt.anticipate
+            if opt.Anticipate
                 outpDe = De + 1i*Du;
             else
                 outpDe = Du + 1i*De;
@@ -807,7 +815,7 @@ return
 
     function returnOutp( )
         outp = struct( );
-        if opt.meanonly
+        if opt.MeanOnly
             outp = hdata2tseries(hData.mean);
         else
             outp.mean = hdata2tseries(hData.mean);

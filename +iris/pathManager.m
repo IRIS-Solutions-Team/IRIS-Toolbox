@@ -37,7 +37,6 @@ switch lower(req)
         varargout = cell(1, 2);
         varargout{1} = reportRootsRemoved;
         varargout{2} = thisRoot;
-        clear functions;
     
     case 'addroot'
         % Add the specified root to the temporary search paths.

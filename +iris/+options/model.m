@@ -49,10 +49,6 @@ def.autocaption = { ...
     'std', 'Std $shock$', @ischar, ...
     };
 
-def.bn = [
-    deviation_dtrends
-    ]; %#ok<NBRAK>
-
 def.chkmissing = { ...
     'error', true, @islogicalscalar, ...
     };
@@ -104,21 +100,6 @@ def.fisher = {
     'Steady, sstate, sstateopt', false, @model.validateSstate
     'tolerance', eps( )^(2/3), @isnumericscalar
     };
-
-def.jforecast = [
-    deviation_dtrends
-    {
-    'anticipate', true, @islogicalscalar
-    'currentonly', true, @islogicalscalar
-    'initcond', 'data', @(x) isnumeric(x) || (ischar(x) && any(strcmpi(x, {'data', 'fixed'})))
-    'meanonly', false, @islogicalscalar
-    'precision', 'double', @(x) ischar(x) && any(strcmpi(x, {'double', 'single'}))
-    'progress', false, @islogicalscalar
-    'plan, Scenario', [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x)
-    'StdScale', complex(1, 0), @(x) (isnumericscalar(x) && real(x)>=0 && imag(x)>=0 && abs(abs(x)-1)<1e-12) || strcmpi(x, 'normalize')
-    'vary, std', [ ], @(x) isstruct(x) || isempty(x)
-    }
-];
 
 def.icrf = {
     'delog', true, @islogicalscalar

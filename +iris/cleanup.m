@@ -1,8 +1,8 @@
-% iriscleanup  Remove IRIS from Matlab and clean up.
+% iriscleanup  Remove IRIS from Matlab and clean up
 %
 % __Syntax__
 %
-%     iriscleanup
+%     iris.cleanup
 %
 %
 % __Description__
@@ -13,25 +13,15 @@
 % removed from the path.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-% Clear container.
-try %#ok<TRYNC>
-    clear(container( ));
-end
+% Clean up appdata(0) and persistent workspaces
+iris.cleanupPersistent( )
 
-% Clear optional input argument struct.
-munlock passvalopt;
-clear passvalopt;
-
-% Clear iris config master file.
-munlock iris.configMaster;
-clear iris.configMaster;
-
-% Remove IRIS from the permanent Matlab search path.
+% Remove IRIS from the permanent Matlab search path
 [reportRootsRemoved, thisRoot] = iris.pathManager('cleanup');
 reportRootsRemoved = [reportRootsRemoved, thisRoot];
 

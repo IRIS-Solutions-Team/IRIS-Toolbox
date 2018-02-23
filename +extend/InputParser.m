@@ -4,6 +4,7 @@ classdef InputParser < inputParser
         Options = struct( )
         Aliases = struct( )
         HasDateOptions = false
+        HasDeviationOptions = false
     end
 
 
@@ -42,6 +43,9 @@ classdef InputParser < inputParser
             end
             if this.HasDateOptions
                 resolveDateOptions(this);
+            end
+            if this.HasDeviationOptions
+                resolveDeviationOptions(this);
             end
         end
 
@@ -100,6 +104,7 @@ classdef InputParser < inputParser
         function addDeviationOptions(this, deviationDefault)
             this.addParameter({'Deviation', 'Deviations'}, deviationDefault, @(x) isequal(x, true) || isequal(x, false));
             this.addParameter({'DTrends', 'DTrend'}, @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+            this.HasDeviationOptions = true;
         end
 
 

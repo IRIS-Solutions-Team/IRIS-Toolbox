@@ -27,35 +27,35 @@ function Outp = resample(this, varargin)
 %
 % __Options__
 %
-% * `'BootstrapMethod='` [ *`'efron'`* | `'wild'` | numeric ] - Numeric
+% * `BootstrapMethod='Efron'` [ `'Efron'` | `'Wild'` | numeric ] - Numeric
 % options correspond to block sampling methods. Use a positive integer to
 % specify a fixed block length, or a value strictly between zero and one to
 % specify random block lengths based on a geometric distribution.
 %
-% * `'Deviation='` [ `true` | *`false`* ] - Treat input and output data as
+% * `Deviation=false` [ `true` | `false` ] - Treat input and output data as
 % deviations from balanced-growth path.
 %
-% * `'Dtrends='` [ *`@auto`* | `true` | `false` ] - Add deterministic
+% * `Dtrends=@auto` [ `@auto` | `true` | `false` ] - Add deterministic
 % trends to measurement variables.
 %
-% * `'Method='` [ `'bootstrap'` | *`'montecarlo'`* ] - Method of
-% randomising shocks and initial condition.
+% * `Method='MonteCarlo'` [ `'Bootstrap'` | `'mOnteCarlo'` ] - Method of
+% randomizing shocks and initial condition.
 %
-% * `'Progress='` [ `true` | *`false`* ] - Display progress bar in the
+% * `Progress=false` [ `true` | `false` ] - Display progress bar in the
 % command window.
 %
-% * `'RandomInitCond='` [ *`true`* | `false` | numeric ] - Randomise
+% * `RandomInitCond=true'` [ `true` | `false` | numeric ] - Randomise
 % initial condition; a number means the initial condition will be simulated
 % using the specified number of extra pre-sample periods.
 %
-% * `'StateVector='` [ *`'alpha'`* | `'x'` ] - When resampling initial
-% condition, use the transformed state vector, `alpha`, or the vector of
-% original variables, `x`; this option is meant to guarantee replicability
+% * `StateVector='Alpha'` [ `'Alpha'` | `'X'` ] - When resampling initial
+% condition, use the transformed state vector, `Alpha`, or the vector of
+% original variables, `X`; this option is meant to guarantee replicability
 % of results.
 %
-% * `'SvdOnly='` [ `true` | *`false`* ] - Do not attempt Cholesky and only
+% * `SvdOnly=false` [ `true` | `false` ] - Do not attempt Cholesky and only
 % use SVD to factorize the covariance matrix when resampling initial
-% condition; only applies when `'randomInitCond=' true`.
+% condition; only applies when `RandomInitCond=true`.
 %
 % * `Vary=[ ]` [ struct | empty ] - Database with user-supplied
 % time-varying paths for std deviations, correlation coefficients, or
@@ -104,7 +104,6 @@ if isempty(inputParser)
     inputParser.addDeviationOptions(false);
 end
 inputParser.parse(this, varargin{:});
-inputParser.resolveDeviationOptions( );
 inp = inputParser.Results.InitCondition;
 range = inputParser.Results.Range;
 numDraws = inputParser.Results.NumDraws;

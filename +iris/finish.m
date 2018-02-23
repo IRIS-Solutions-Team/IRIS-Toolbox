@@ -19,26 +19,16 @@ function finish(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
 thisRoot = iris.configMaster('get', 'irisroot');
 shutup = any(strcmpi(varargin, '--shutup'));
 
-% Clear container.
-try %#ok<TRYNC>
-   clear(container( ));
-end
-
-% Clear optional input argument struct.
-munlock passvalopt;
-clear passvalopt;
-
-% Clear iris config master file.
-munlock iris.configMaster;
-clear iris.configMaster;
+% Clean up appdata(0) and persistent workspaces
+iris.cleanupPersistent( )
 
 % Clear Matlab path.
 reportSubfoldersRemoved = iris.pathManager('removeCurrentSubs', thisRoot);

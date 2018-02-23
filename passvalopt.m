@@ -4,26 +4,29 @@ function varargout = passvalopt(spec, varargin)
 % output arguments, it passes out unused option names-values and does not
 % throw a warning.
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent DEF 
+% Force resetting the default options structure
+if (nargin==0 && nargout==0) 
+    defaultOptionsStruct = initialize( );
+    setappdata(0, 'IRIS_DefaultFunctionOptions', defaultOptionsStruct);
+    return
+end
 
-if (nargin==0 && nargout==0) || isempty(DEF)
-    % Initialise default options, and store them as a persistent struct.
-    munlock
-    clear passvalopt
-    initialize( );
-    mlock
+defaultOptionsStruct = getappdata(0, 'IRIS_DefaultFunctionOptions');
+if isempty(defaultOptionsStruct)
+    defaultOptionsStruct = initialize( );
+    setappdata(0, 'IRIS_DefaultFunctionOptions', defaultOptionsStruct);
 end
 
 if nargout==0
     return
 elseif nargin==0
-    varargout{1} = DEF;
+    varargout{1} = defaultOptionsStruct;
     return
 end
 
@@ -31,7 +34,7 @@ end
 
 if ischar(spec)
     spl = strsplit(spec, '.');
-    spec = DEF.(spl{1}).(spl{2});
+    spec = defaultOptionsStruct.(spl{1}).(spl{2});
 else
     spec = list2struct(spec);
 end
@@ -43,7 +46,7 @@ validate = spec.Validate;
 opt = spec.Options;
 
 % Return list of unused options.
-lsUnused = cell(1, 0);
+listUnused = cell(1, 0);
 
 if ~isempty(varargin)
     if iscellstr(varargin(1:2:end))
@@ -92,15 +95,15 @@ if ~isempty(varargin)
             opt.(name) = userValue{i};
             changed.(name) = userName{i};
         else
-            lsUnused{end+1} = userName{i}; %#ok<AGROW>
-            lsUnused{end+1} = userValue{i}; %#ok<AGROW>
+            listUnused{end+1} = userName{i}; %#ok<AGROW>
+            listUnused{end+1} = userValue{i}; %#ok<AGROW>
         end
     end
     
-    if nargout==1 && ~isempty(lsUnused)
+    if nargout==1 && ~isempty(listUnused)
         throw( ...
             exception.Base('Options:InvalidObsolete', 'error'), ...
-            lsUnused{1:2:end} ...
+            listUnused{1:2:end} ...
             );
     end
     
@@ -125,12 +128,11 @@ if ~isempty(varargin)
         throw( ...
             exception.Base('Options:FailsValidation', 'error'), ....
             lsInvalid{:} ...
-            );
+        );
     end
 end
 
-% Evaluate @auto options
-%------------------------
+% __Evaluate @auto Options__
 list = fieldnames(opt);
 for i = 1 : length(list)
     value = opt.(list{i});
@@ -141,51 +143,46 @@ for i = 1 : length(list)
     end
 end
 
-varargout = { opt, lsUnused };
+varargout = { opt, listUnused };
 
-return
-
-
+end%
 
 
-    function initialize( )
-        DEF = struct( );
-        DEF.dates = iris.options.dates( );
-        DEF.dbase = iris.options.dbase( );
-        DEF.dest = iris.options.dest( );
-        DEF.FAVAR = iris.options.FAVAR( );
-        DEF.fragileobj = iris.options.fragileobj( );
-        DEF.freqdom = iris.options.freqdom( );
-        DEF.Global = iris.options.Global( );
-        DEF.HData = iris.options.HData( );
-        DEF.grfun = iris.options.grfun( );
-        DEF.grouping = iris.options.grouping( );
-        DEF.iris = iris.options.IRIS( );
-        DEF.irisoptim = iris.options.irisoptim( );
-        DEF.latex = iris.options.latex( );
-        DEF.model = iris.options.model( );
-        DEF.nnet = iris.options.nnet( );
-        DEF.poster = iris.options.poster( );
-        DEF.report = iris.options.report( );
-        DEF.solver = iris.options.solver( );
-        DEF.textfun = iris.options.textfun( );
-        DEF.SVAR = iris.options.SVAR( );
-        DEF.tseries = iris.options.tseries( );
-        DEF.VAR = iris.options.VAR( );
-        DEF.XlsSheet = iris.options.XlsSheet( );
-        lsFolder = fieldnames(DEF);
-        for ii = 1 : numel(lsFolder)
-            folder = lsFolder{ii};
-            lsFunc = fieldnames(DEF.(folder));
-            for jj = 1 : numel(lsFunc)
-                func = lsFunc{jj};
-                DEF.(folder).(func) = list2struct(DEF.(folder).(func));
-            end
+function defaultOptionsStruct = initialize( )
+    defaultOptionsStruct = struct( );
+    defaultOptionsStruct.dates = iris.options.dates( );
+    defaultOptionsStruct.dbase = iris.options.dbase( );
+    defaultOptionsStruct.dest = iris.options.dest( );
+    defaultOptionsStruct.FAVAR = iris.options.FAVAR( );
+    defaultOptionsStruct.fragileobj = iris.options.fragileobj( );
+    defaultOptionsStruct.freqdom = iris.options.freqdom( );
+    defaultOptionsStruct.Global = iris.options.Global( );
+    defaultOptionsStruct.HData = iris.options.HData( );
+    defaultOptionsStruct.grfun = iris.options.grfun( );
+    defaultOptionsStruct.grouping = iris.options.grouping( );
+    defaultOptionsStruct.iris = iris.options.IRIS( );
+    defaultOptionsStruct.irisoptim = iris.options.irisoptim( );
+    defaultOptionsStruct.latex = iris.options.latex( );
+    defaultOptionsStruct.model = iris.options.model( );
+    defaultOptionsStruct.nnet = iris.options.nnet( );
+    defaultOptionsStruct.poster = iris.options.poster( );
+    defaultOptionsStruct.report = iris.options.report( );
+    defaultOptionsStruct.solver = iris.options.solver( );
+    defaultOptionsStruct.textfun = iris.options.textfun( );
+    defaultOptionsStruct.SVAR = iris.options.SVAR( );
+    defaultOptionsStruct.tseries = iris.options.tseries( );
+    defaultOptionsStruct.VAR = iris.options.VAR( );
+    defaultOptionsStruct.XlsSheet = iris.options.XlsSheet( );
+    lsFolder = fieldnames(defaultOptionsStruct);
+    for ii = 1 : numel(lsFolder)
+        folder = lsFolder{ii};
+        lsFunc = fieldnames(defaultOptionsStruct.(folder));
+        for jj = 1 : numel(lsFunc)
+            func = lsFunc{jj};
+            defaultOptionsStruct.(folder).(func) = list2struct(defaultOptionsStruct.(folder).(func));
         end
     end
-end
-
-
+end%
 
 
 function y = list2struct(x)
@@ -227,4 +224,5 @@ function y = list2struct(x)
     y.Options = options; % Struct with primary names and default values.
     y.Changed = changed; % Struct with empty chars, to be filled with the names used actually by the user.
     y.Validate = validate; % Struct with validating functions.
-end
+end%
+

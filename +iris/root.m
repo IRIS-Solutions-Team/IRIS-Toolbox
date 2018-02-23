@@ -17,14 +17,14 @@ function thisRoot = root( )
 % The `irisroot` function is equivalent to the following call to
 % [`irisget`](config/irisget)
 %
-%     iris.get('irisroot')
+%     iris.get('IrisRoot')
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-thisRoot = iris.configMaster('get', 'irisroot');
+root = iris.get('IrisRoot');
 
 end
