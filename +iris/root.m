@@ -1,4 +1,4 @@
-function thisRoot = root( )
+function irisRoot = root( )
 % iris.root  Current IRIS root folder
 %
 % __Syntax__
@@ -25,6 +25,6 @@ function thisRoot = root( )
 
 %--------------------------------------------------------------------------
 
-root = iris.get('IrisRoot');
+irisRoot = iris.get('IrisRoot');
 
 end
