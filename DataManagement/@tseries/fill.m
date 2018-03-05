@@ -1,11 +1,11 @@
 function this = fill(this, newData, newStart, newComment, newUserData)
-% fill  Safely replace tseries object properties.
+% fill  Safely replace time series data 
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ if nargin>2
 end
 
 this = resetColumnNames(this);
-if nargin > 3 
+if nargin>3 
     if iscell(newComment)
         this.Comment(:) = newComment(:);
     elseif ischar(newComment)

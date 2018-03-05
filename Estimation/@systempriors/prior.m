@@ -49,7 +49,7 @@ function this = prior(this, def, priorFunc, varargin)
 % * `spd[VarName1, VarName2, Freq]` - Spectral density between
 % variables `VarName1` and `VarName2` at frequency `Freq`.
 %
-% If a variable is declared as a [`log variable`](modellang/logvariables), 
+% If a variable is declared as a [`log variable`](irislang/logvariables), 
 % it must be referred to as `log(VarName)` in the above expressions, and
 % the log of that variables is returned, e.g.
 % `srf[log(VarName), ShockName, T]`. or `ffrf[log(TVarName), MVarName, T]`.
