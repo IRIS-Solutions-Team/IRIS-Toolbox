@@ -427,10 +427,22 @@ else
     s.progress = [ ];
 end
 
+% Prepare SystemProperty
+systemProperty = SystemProperty(this);
+systemProperty.Function = @simulate.linear.wrapper;
+systemProperty.MaxNumOutputs = 1;
+systemProperty.NamedReferences = cell(1, 1);
+systemProperty.NamedReferences{1} = [ ...
+    printSolutionVector(this, 'y', @Behavior), ...
+    printSolutionVector(this, 'xi', @Behavior), ...
+    printSolutionVector(this, 'e', @Behavior) ...
+];
+
 % __Main Loop__
 for ithRun = 1 : numRuns
     s.ILoop = ithRun;
     variantRunningNow = min(ithRun, nv);
+    indexInitial = getIthIndexInitial(this.Variant, variantRunningNow);
 
     % Get current initial condition for the transformed state vector, 
     % current shocks, and measurement and transition tunes.
@@ -444,24 +456,16 @@ for ithRun = 1 : numRuns
     s.w = [ ]; % Transformed transition variables, w := [xf;alpha].
     s.v = [ ]; % Correction vector for nonlinear equations.
     s.M = [ ];
+
+    systemProperty.Specifics = s;
+    if ~isequal(opt.SystemProperty, false)
+        systemProperty.OutputNames = opt.SystemProperty;
+        outp = systemProperty;
+        return
+    end
+    update(systemProperty, this, variantRunningNow); 
     
     if strcmpi(s.Method, 'FirstOrder')
-        systemProperty = SystemProperty(this);
-        systemProperty.Function = @simulate.linear.wrapper;
-        systemProperty.MaxNumOutputs = 1;
-        systemProperty.NamedReferences = cell(1, 1);
-        systemProperty.NamedReferences{1} = [ ...
-            printSolutionVector(this, 'y', @Behavior), ...
-            printSolutionVector(this, 'xi', @Behavior), ...
-            printSolutionVector(this, 'e', @Behavior) ...
-        ];
-        systemProperty.Specifics = s;
-        if ~isequal(opt.SystemProperty, false)
-            systemProperty.OutputNames = opt.SystemProperty;
-            outp = systemProperty;
-            return
-        end
-        update(systemProperty, this, variantRunningNow); 
         s = simulate.linear.wrapper(systemProperty);
 
     elseif strcmpi(s.Method, 'Selective')
@@ -654,6 +658,9 @@ return
     function getData( )        
         % Get current initial conditions and and current shocks
         s.XbInit = xbInit(:, 1, min(ithRun, end));
+        indexNaNInit = isnan(s.XbInit);
+        s.XbInit(indexNaNInit & ~indexInitial(:)) = 0;
+        s.XbInit = s.XbInit;
         if opt.ignoreshocks
             s.Ea = zeros(ne, nPer);
             s.Eu = zeros(ne, nPer);

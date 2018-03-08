@@ -15,6 +15,7 @@ classdef SystemProperty < handle
 
         SizeSolution = nan(1, 7);
         FirstOrderTriangular = cell(1, 9)
+        IndexInitial = logical.empty(1, 0, 0)
         FirstOrderExpansion = cell(1, 5)
         CovShocks = double.empty(0)
         Values = double.empty(1, 0)
@@ -54,6 +55,7 @@ classdef SystemProperty < handle
                 variantRequested = 1;
             end
             this.FirstOrderTriangular = getIthFirstOrderSolution(model, variantRequested);
+            this.IndexInitial = getIthIndexInitial(model, variantRequested);
             this.FirstOrderExpansion = getIthFirstOrderExpansion(model, variantRequested);
             this.CovShocks = getIthOmega(model, variantRequested);
             [this.EigenValues, this.EigenStability] = eig(model, variantRequested);

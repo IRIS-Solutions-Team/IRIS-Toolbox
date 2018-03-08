@@ -389,29 +389,35 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
 
         function n = numel(varargin)
             n = 1;
-        end
+        end%
 
 
         function varargout = getIthFirstOrderSolution(this, variantsRequested)
             [varargout{1:nargout}] = ...
                 getIthFirstOrderSolution(this.Variant, variantsRequested);
-        end
+        end%
+
+
+        function varargout = getIthIndexInitial(this, variantsRequested)
+            [varargout{1:nargout}] = ...
+                getIthIndexInitial(this.Variant, variantsRequested);
+        end%
 
 
         function varargout = getIthFirstOrderExpansion(this, variantsRequested)
             [varargout{1:nargout}] = ... 
                 getIthFirstOrderExpansion(this.Variant, variantsRequested);
-        end
+        end%
 
 
         function x = getIthValues(this, variantsRequested)
             x = this.Variant.Values(:, :, variantsRequested);
-        end
+        end%
 
 
         function x = getIthStdCorr(this, variantsRequested)
             x = this.Variant.StdCorr(:, :, variantsRequested);
-        end
+        end%
     end
     
     

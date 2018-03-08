@@ -104,17 +104,18 @@ if numColumnsToCreate>1 && nv==1
 end
 
 % Measurement variables, transition, exogenous variables.
-for i = find(ixyxg)
+for i = find(ixx | ixg)
     name = this.Quantity.Name{i};
     outputDatabank.(name) = replace( ...
         TEMPLATE_SERIES, permute(X(i, :, :), [2, 3, 1]), extendedStart, label{i} ...
     );
 end
 
-% Do not include pre-sample in shock series.
-for i = find(ixe)
+% Do not include pre-sample or post-sample in measurement variables and
+% shocks.
+for i = find(ixy | ixe)
     name = this.Quantity.Name{i};
-    x = X(i, 1-minSh:end, :);
+    x = X(i, 1-minSh:end-maxSh, :);
     outputDatabank.(name) = replace( ...
         TEMPLATE_SERIES, permute(x, [2, 3, 1]), start, label{i} ...
     );

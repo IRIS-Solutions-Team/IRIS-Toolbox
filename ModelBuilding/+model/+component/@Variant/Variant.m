@@ -311,6 +311,11 @@ classdef Variant
         end
 
 
+        function indexInitial = getIthIndexInitial(this, v)
+            indexInitial = this.IxInit(:, :, v);
+        end
+
+
         function varargout = getIthFirstOrderExpansion(this, v)
             if size(this.Values, 3)==1 && (v==1 || v==':')
                 x = this.FirstOrderExpansion;
