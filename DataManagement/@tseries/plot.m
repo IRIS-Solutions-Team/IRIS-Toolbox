@@ -1,15 +1,14 @@
 function varargout = plot(varargin)
-% plot  Line graph for tseries objects.
+% plot  Line graph for tseries objects
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [H, Range] = plot(X, ...)
 %     [H, Range] = plot(Range, X, ...)
 %     [H, Range] = plot(Ax, Range, X, ...)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `Ax` [ numeric ] - Handle to axes in which the graph will be plotted;
 % if not specified, the current axes will used.
@@ -20,51 +19,55 @@ function varargout = plot(varargin)
 % * `X` [ tseries ] - Input tseries object whose columns will be plotted as
 % a line graph.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `H` [ numeric ] - Handles to lines plotted.
 %
 % * `Range` [ numeric ] - Actually plotted date range.
 %
-% Options
-% ========
 %
-% * `'datePosition='` [ *`'centre'`* | `'end'` | `'start'` ] - Position of
-% each date point within a given period span.
+% __Options__
 %
-% * `'dateTick='` [ numeric | *`Inf`* ] - Vector of dates locating tick
+% * `DatePosition='centre'` [ `'centre'` | `'end'` | `'start'` ] - Position
+% of each date point within a given period span.
+%
+% * `DateTick=Inf` [ numeric | `Inf` ] - Vector of dates locating tick
 % marks on the X-axis; Inf means they will be created automatically.
 %
-% * `'tight='` [ `true` | *`false`* ] - Make the y-axis tight.
+%  `Tight=false` [ `true` | `false` ] - Make the y-axis tight.
 %
 % See help on built-in `plot` function for other options available.
 %
-% Date format options
-% ====================
+%
+% _Date Format Options_
 %
 % See [`dat2str`](dates/dat2str) for details on date format options.
 %
-% * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string, 
-% or array of format strings (possibly different for each date).
+% * `DateFormat=@config` [ char | `@config` ] - Date format string, or
+% array of format strings (possibly different for each date); `@config`
+% means the date format from the current IRIS configuration will be used.
 %
-% * `'freqLetters='` [ char | *`'YHQBMW'`* ] - Six letters used to
+% * `FreqLetters=@config` [ char | `@config` ] - Six letters used to
 % represent the six possible frequencies of IRIS dates, in this order:
 % yearly, half-yearly, quarterly, bi-monthly, monthly,  and weekly (such as
-% the `'Q'` in `'2010Q1'`).
+% the `'Q'` in `'2010Q1'`); `@config` means the frequence letters from the
+% current IRIS configuration will be used..
 %
-% * `'months='` [ cellstr | *`{'January', ..., 'December'}`* ] - Twelve
-% strings representing the names of the twelve months.
+% * `Months={'January', ..., 'December'}` [ cellstr | string | `@config` ] - Twelve
+% strings representing the names of the twelve months; `@config` means the
+% month names from the current IRIS configuration will be used.
 %
-% * `'ConversionMonth='` [ numeric | `'last'` | *`1`* ] - Month that will
+% * `ConversionMonth=@config` [ numeric | `'last'` | `@config` ] - Month that will
 % represent a lower-than-monthly-frequency date if the month is part of the
-% date format string.
+% date format string; `@config` means the conversion month from the current
+% IRIS configuration will be used.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

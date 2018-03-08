@@ -4,6 +4,12 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
         function this = Series(varargin)
             this = this@tseries(varargin{:});
         end
+
+
+        function obj = tseries(this)
+            obj = tseries( );
+            obj = struct2obj(obj, this);
+        end
     end
 
 
@@ -28,6 +34,7 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
         end
 
 
+        varargout = barcon(varargin)
     end
 
 

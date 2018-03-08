@@ -49,6 +49,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
 
         #endfor
+        function varargout = barcon(varargin)
+            [varargout{1:nargout}] = implementPlot(@numeric.barcon, varargin{:});
+        end
+
+
         function endDate = get.End(this)
             if isnan(this.Start)
                 endDate = this.Start;

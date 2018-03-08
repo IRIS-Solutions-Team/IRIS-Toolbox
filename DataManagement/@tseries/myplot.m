@@ -136,9 +136,9 @@ for ih = hPlot(:).'
 end
 
 if true % ##### MOSW
-    % Use IRIS datatip cursor function in this figure; in `utils.datacursor', 
-    % we also handle cases where the current figure includes both tseries and
-    % non-tseries graphs.
+    % Use IRIS datatip cursor function in this figure; in
+    % `utils.datacursor` we also handle cases where the current figure
+    % includes both tseries and non-tseries graphs.
     obj = datacursormode(gcf( ));
     set(obj, 'UpdateFcn', @utils.datacursor);
 else

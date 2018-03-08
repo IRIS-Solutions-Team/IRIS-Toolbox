@@ -223,14 +223,13 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             end
             
             % tseries input
-            if nargin==1 && isa(varargin{1}, 'tseries')
+            if nargin==1 && isequal(class(varargin{1}), 'tseries')
                 this = varargin{1};
                 return
             end
-            
-            % Struct input; called from within load( ), loadobj( ), loadstruct( ), cat( ), 
-            % hdataouput( )
-            if nargin==1 && isstruct(varargin{1})
+
+            % Cast struct or Series as tseries
+            if nargin==1 && isstruct(varargin{1}) 
                 this = struct2obj(this, varargin{1});
                 return
             end
@@ -401,6 +400,14 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = round(varargin)
         varargout = scatter(varargin)
         varargout = select(varargin)
+
+
+        function obj = Series(this)
+            obj = Series( );
+            obj = struct2obj(obj, this);
+        end
+
+
         varargout = single(varargin)
         varargout = singledata(varargin)
         varargout = size(varargin)

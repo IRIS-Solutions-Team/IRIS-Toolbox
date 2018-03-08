@@ -1,11 +1,11 @@
 function [H,Colors] = mybarcon(Ax,X,Y,varargin)
-% mybarcon  [Not a public function] Contribution bar graph.
+% mybarcon  Contribution bar graph
 %
 % Backend IRIS function.
-% No help provided.
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if isempty(X) || isempty(Y)
     H = [ ];

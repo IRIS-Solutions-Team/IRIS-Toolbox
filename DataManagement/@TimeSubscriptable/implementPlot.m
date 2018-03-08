@@ -1,8 +1,8 @@
 function [handlePlot, time, yData] = implementPlot(plotFun, varargin)
 % implementPlot  Plot functions for TimeSubscriptable objects
 %
-% Backend function.
-% No help provided.
+% Backend function
+% No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
@@ -13,7 +13,7 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser(['TimeSubscriptable.implementPlot(', char(plotFun), ')']);
     inputParser.KeepUnmatched = true;
-    inputParser.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) || isequal(x, @stem));
+    inputParser.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) || isequal(x, @stem) || isequal(x, @numeric.barcon));
     inputParser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
     inputParser.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x));
     inputParser.addRequired('Series', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
@@ -60,7 +60,7 @@ end
 
 assert( ...
     isnan(this.Start) || validateDate(this, time), ...
-    'TimeSeries:implementPlot:IllegalDate', ...
+    'TimeSubscriptable:implementPlot:IllegalDate', ...
     'Illegal date or date frequency.' ...
 );
 
@@ -71,19 +71,15 @@ if isa(axesHandle, 'function_handle')
 end
 
 [yData, time] = getData(this, time);
-timeFrequency = getFrequency(time);
 
 if ndims(yData)>2
     yData = yData(:, :);
 end
 
 positionWithinPeriod = resolvePositionWithinPeriod( );
-xData = createDateAxis( );
+xData = createDateAxis(time);
 
 handlePlot = plotFun(axesHandle, xData, yData, specString{:}, unmatchedOptions{:});
-if enforceXLim
-    set(axesHandle, 'XLim', xData([1, end]));
-end
 
 setappdata(axesHandle, 'IRIS_PositionWithinPeriod', positionWithinPeriod);
 setappdata(axesHandle, 'IRIS_TimeSeriesPlot', true);
@@ -108,17 +104,24 @@ return
                 );
             end
         end
-    end
+    end%
 
 
-    function xData = createDateAxis( )
+    function xData = createDateAxis(time)
+        if isempty(time)
+            xData = datetime.empty(size(time));
+            return
+        end
+        timeFrequency = getFrequency(time(1));
         if timeFrequency==Frequency.INTEGER
             xData = getSerial(time);
         else
             xData = datetime(time, lower(positionWithinPeriod));
-            if ~isequal(opt.DateFormat, @default)
-                xData.Format = opt.DateFormat;
+            if isequal(opt.DateFormat, @config) || isequal(opt.DateFormat, @default)
+                temp = iris.get('PlotDateTimeFormat');
+                opt.DateFormat = temp.(char(timeFrequency));
             end
+            xData.Format = opt.DateFormat;
         end
-    end
-end
+    end%
+end%

@@ -81,13 +81,11 @@ addpath(thisRoot, '-begin');
 iris.pathManager('addroot', thisRoot);
 iris.pathManager('addcurrentsubs', thisRoot);
 
-% __IRIS Configuration and Environment__
-iris.reset( );
-setEnvironment( );
-config = getappdata(0, 'IRIS_Configuration');
-
-% __Reset Default Function Options__
+% Reset Default Function Options
 passvalopt( );
+
+config = iris.reset( );
+setEnvironment( );
 
 version = iris.get('version');
 if isIdChk
@@ -95,7 +93,6 @@ if isIdChk
 end
 
 if ~options.shutup
-    % Delete progress message.
     deleteProgress( );
     displayMessage( );
 end
