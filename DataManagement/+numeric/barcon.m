@@ -37,22 +37,21 @@ isHold = ishold(handleAxes);
 
 % Plot positive values
 handlePositive = bar(handleAxes, time, positiveData, 'stack', unmatchedOptions{:});
-colorOrderIndex = get(handleAxes, 'ColorOrderIndex');
+if isequal(opt.ColorMap, lines( )) && ~opt.EvenlySpread
+    colorOrderIndex = get(handleAxes, 'ColorOrderIndex');
+else
+    colorOrderIndex = 1;
+end
 
 % Plot negative values
 hold(handleAxes, 'on');
 handleNegative = bar(handleAxes, time, negativeData, 'stack', unmatchedOptions{:});
 set(handleAxes, 'ColorOrderIndex', colorOrderIndex);
+if ~isHold
+    hold(handleAxes, 'off');
+end
 
-linkedProperties = {
-    'FaceColor'
-    'EdgeColor'
-    'FaceAlpha'
-    'EdgeAlpha'
-    'LineStyle'
-    'LineWidth'
-    'CData'
-};
+linkedProperties = getLinkedProperties( );
 
 if opt.EvenlySpread
     positionInColorMap = linspace(1, numColorMap, numData);
@@ -76,4 +75,27 @@ end
 
 visual.excludeFromLegend(handleNegative);
 
+return
+
+
+    function linkedProperties = getLinkedProperties( )
+        linkedProperties = {
+            'FaceColor'
+            'EdgeColor'
+            'FaceAlpha'
+            'EdgeAlpha'
+            'LineStyle'
+            'LineWidth'
+            'CData'
+        };
+        indexValid = true(size(linkedProperties));
+        for i = 1 : numel(linkedProperties)
+            try
+                get(handlePositive, linkedProperties{i});
+            catch
+                indexValid(i) = false;
+            end
+        end
+        linkedProperties = linkedProperties(indexValid);
+    end%
 end%

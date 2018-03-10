@@ -26,13 +26,20 @@ classdef Base
     
     
     methods
-        function this = Base(identifier, throwAs)
+        function this = Base(specs, throwAs)
             if nargin==0
                 return
             end
+            if nargin==1
+                throwAs = 'error';
+            end
             this.ThrowAs = throwAs;
-            [this.Identifier, this.Message] = ...
-                exception.Base.lookupException(identifier);
+            if iscellstr(specs)
+                this.Identifier = specs{1};
+                this.Message = specs{2};
+            else
+                [this.Identifier, this.Message] = exception.Base.lookupException(specs);
+            end
             this.Identifier = [this.IRIS_IDENTIFIER, this.Identifier];
             this.NeedsHighlight = true;
         end
@@ -48,11 +55,7 @@ classdef Base
         function throw(this, varargin)
             header = createHeader(this);
             message = this.Message;
-            if true % ##### MOSW
-                message = strrep(message, '$ENGINE$', 'Matlab');
-            else
-                message = strrep(message, '$ENGINE$', 'Octave'); %#ok<UNRCH>
-            end
+            message = strrep(message, '$ENGINE$', 'Matlab');
             if this.NeedsHighlight
                 message = [this.HIGHLIGHT, message];
             end

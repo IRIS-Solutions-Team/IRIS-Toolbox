@@ -1,5 +1,5 @@
 function clickToExpand(axesHandles)
-% clickToExpand  Axes will expand in a new window when clicked on.
+% clickToExpand  Axes will expand in a new window when clicked on
 %
 % __Syntax__
 %
@@ -18,8 +18,8 @@ function clickToExpand(axesHandles)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)
@@ -36,7 +36,7 @@ set(h, 'ButtonDownFcn', @copyAxes);
 h = findobj(axesHandles, 'Tag', 'vline');
 set(h, 'ButtonDownFcn', @copyAxes);
 
-end
+end%
 
 
 function copyAxes(h, varargin)
@@ -50,4 +50,4 @@ function copyAxes(h, varargin)
         'Units', 'normalized', ...
         'ButtonDownFcn', '' ...
     );
-end
+end%

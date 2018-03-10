@@ -34,6 +34,46 @@ classdef Frequency < double
         end
 
 
+        function d = getCalendarDuration(this)
+            switch this
+                case Frequency.YEARLY
+                    d = calendarDuration(1, 0, 0);
+                case Frequency.HALFYEARLY
+                    d = calendarDuration(0, 6, 0);
+                case Frequency.QUARTERLY
+                    d = calendarDuration(0, 3, 0);
+                case Frequency.MONTHLY
+                    d = calendarDuration(0, 1, 0);
+                case Frequency.WEEKLY
+                    d = calendarDuration(0, 0, 7);
+                case Frequency.DAILY
+                    d = calendarDuration(0, 0, 1);
+                case Frequency.INTEGER
+                    d = 1;
+            end
+        end%
+
+
+        function d = getXLimMarginCalendarDuration(this)
+            switch this
+                case Frequency.YEARLY
+                    d = calendarDuration(0, 6, 0);
+                case Frequency.HALFYEARLY
+                    d = calendarDuration(0, 3, 0);
+                case Frequency.QUARTERLY
+                    d = calendarDuration(0, 1, 15);
+                case Frequency.MONTHLY
+                    d = calendarDuration(0, 0, 15);
+                case Frequency.WEEKLY
+                    d = calendarDuration(0, 0, 3);
+                case Frequency.DAILY
+                    d = calendarDuration(0, 0, 1);
+                case Frequency.INTEGER
+                    d = 0.5;
+            end
+        end%
+
+
         function periodsPerYear = getPeriodsPerYear(this)
             switch this
                 case {Frequency.YEARLY, Frequency.HALFYEARLY, ...
@@ -171,7 +211,7 @@ classdef Frequency < double
 
         function [year, month, day] = serial2ymd(this, serial, position)
             if nargin<3
-                position = 'start';
+                position = 'Start';
             end
             assert( ...
                 any(strncmpi(position, {'s', 'm', 'e'}, 1)), ...
@@ -340,14 +380,14 @@ classdef Frequency < double
 
         function [highExtStartSerial, highExtEndSerial, lowStartSerial, lowEndSerial, ixHighInLowBins] = ...
                 aggregateRange(highFreq, highStartSerial, highEndSerial, lowFreq)
-            [year1, month1, day1] = serial2ymd(highFreq, highStartSerial, 'start');
+            [year1, month1, day1] = serial2ymd(highFreq, highStartSerial, 'Start');
             lowStartSerial = ymd2serial(lowFreq, year1, month1, day1);
-            [year2, month2, day2] = serial2ymd(lowFreq, lowStartSerial, 'start');
+            [year2, month2, day2] = serial2ymd(lowFreq, lowStartSerial, 'Start');
             highExtStartSerial = ymd2serial(highFreq, year2, month2, day2);
 
-            [year3, month3, day3] = serial2ymd(highFreq, highEndSerial, 'end');
+            [year3, month3, day3] = serial2ymd(highFreq, highEndSerial, 'End');
             lowEndSerial = ymd2serial(lowFreq, year3, month3, day3);
-            [year4, month4, day4] = serial2ymd(lowFreq, lowEndSerial, 'end');
+            [year4, month4, day4] = serial2ymd(lowFreq, lowEndSerial, 'End');
             highExtEndSerial = ymd2serial(highFreq, year4, month4, day4);
 
             highExtRangeSerial = highExtStartSerial : highExtEndSerial;

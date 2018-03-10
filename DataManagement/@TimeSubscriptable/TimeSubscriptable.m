@@ -127,7 +127,9 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
             end
             if getFrequency(this.Start)==dateFrequency
                 flag = true;
+                return
             end
+            flag = false;
         end
     end
 
