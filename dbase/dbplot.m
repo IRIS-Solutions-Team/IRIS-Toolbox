@@ -5,25 +5,24 @@ function [ff, aa, pp] = dbplot(d, varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [FF, AA, PDb] = dbplot(D, ~Range, ~List, ...)
+%     [FF, AA, PDb] = dbplot(InputDatabase, ~Range, ~List, ...)
 %
 %
 % __Input Arguments__
 %
-% * `D` [ struct ] - Database (struct) or an array of structs with input data.
+% * `InputDatabase` [ struct ] - Database (struct) or an array of structs with input data.
 %
-% * `~Range=@auto` [ DateWrapper | cell | numeric ] - Date range or a cell
-% array of date ranges for different date frequencies; if not specified,
-% the function [`dbrange`](dbase/dbrange) will be used to determined the
-% range plotted (so that it is the same for all time series of a given date
-% frequency).
+% * `~Range=@auto` [ DateWrapper | cell | `@auto` ] - Date range or a cell
+% array of date ranges (for different date frequencies); `@auto` means the
+% function [`dbrange`](dbase/dbrange) will be used to determined the range
+% plotted, different for each date frequency found in the database.
 %
 % * `~List=@all` [ cellstr | rexp ] - List of expressions (or labelled
 % expressions) that will be evaluated and plotted in separate graphs; if
-% not specified, all time series name found in the input database `D` will
-% be plotted. Alternatively, `List` can be a regular expression (rexp
-% object), which will be matched against all time series names in the input
-% database.
+% not specified, all time series name found in the input database
+% `InputDatabase` will be plotted. Alternatively, `List` can be a regular
+% expression (rexp object), which will be matched against all time series
+% names in the input database.
 %
 %
 % __Output Arguments__
@@ -152,9 +151,26 @@ function [ff, aa, pp] = dbplot(d, varargin)
 % value minus the base period value).
 %
 %
-% _Mixed Frequencies_
+% _Mixed Date Frequencies_
 %
-% 
+% If the input database, `InputDatabase`, comprises time series of
+% different date frequencies (for instance, monthly and quarterly), specify
+% the range to be plotted as a cell array of date ranges, one for each date
+% frequency. If a range is not specified for a certain date frequency, the
+% time series of that frequency are plotted with an `Inf` range (see
+% below).
+%
+% Two special range specifications can be used in `dbplot( )`:
+%
+% 1. `@auto` means that the entire database is first searched, and for each
+% date frequency, the earliest start date and the latest end date are
+% found among the time series of that frequency. The time series of the
+% same date frequency are then plotted on this very same range each.
+%
+% 2. `Inf` means that each time series will be plotted on its own entire
+% range. Time series of the same date frequency may therefore end up being
+% plotted on different ranges.
+%
 %
 % __Example__
 %
@@ -255,6 +271,73 @@ function [ff, aa, pp] = dbplot(d, varargin)
 %     dbplot(s, range, ...
 %         { '[c, ctrend]', '[y, ytrend]', '[k, ktrend]' }, ....
 %         'Captions=', {'Consumption', 'Output', 'Capital'} );
+%
+%
+% __Example__
+%
+% The database `d` comprises four series. Two quarterly series, `ShortQ`
+% and `LongQ`, range from `2001Q1` to `2010Q4` and from `1991Q1` to
+% `2020Q4`, respectively. Two monthly series,`ShortM` and `LongM`, range
+% from `2001M01` to `2010M12` and from `1991M01` to `2020M12`, respectivel.
+%
+% The range specification `Inf`
+%
+%     dbplot(d, Inf, ...
+%         {'ShortQ', 'LongQ', 'ShortM'm, 'LongM'});
+%
+% plots the series each on its entire range available:
+%
+% * `ShortQ`: `2001Q1` to `2010Q4`
+% * `LongQ`:  `1991Q1` to `2020Q4`
+% * `ShortM`: `2001M01` to `2010M12`
+% * `LongM`:  `1991M01` to `2020M12`
+%
+% The range specification `@auto`
+%
+%     dbplot(d, Inf, ...
+%         {'ShortQ', 'LongQ', 'ShortM'm, 'LongM'});
+%
+% plots the series of the same frequency on the same range (created from
+% the earliest start date to the latest end date among that date
+% frequency):
+%
+% * `ShortQ`: `1991Q1` to `2020Q4`
+% * `LongQ`:  `1991Q1` to `2020Q4`
+% * `ShortM`: `1991M01` to `2020M12`
+% * `LongM`:  `1991M01` to `2020M12`
+%
+% If a range is specified for one frequency only,
+%
+%     dbplot(d, qq(2005,1):qq(2009,4), ...
+%         {'ShortQ', 'LongQ', 'ShortM'm, 'LongM'});
+%
+% or equivalently
+%
+%     dbplot(d, { qq(2005,1):qq(2009,4) }, ...
+%         {'ShortQ', 'LongQ', 'ShortM'm, 'LongM'});
+%
+% the time series of the other frequency (or frequencies) are plotted as if
+% with `Inf`:
+%
+% * `ShortQ`: `2005Q1` to `2009Q4`
+% * `LongQ`:  `2005Q1` to `2009Q4`
+% * `ShortM`: `2001M01` to `2010M12`
+% * `LongM`:  `1991M01` to `2020M12`
+%
+% Finally, date ranges can be specified for more than one frequency using a
+% cell array (the order of the ranges within the cell array does not
+% matter):
+%
+%     dbplot(d, { qq(2005,1):qq(2009,4), mm(1995,1):mm(2030,12) }, ...
+%         {'ShortQ', 'LongQ', 'ShortM'm, 'LongM'});
+%
+% In that case, the time series will be plotted on those ranges
+% accordingly:
+%
+% * `ShortQ`: `2005Q1` to `2009Q4`
+% * `LongQ`:  `2005Q1` to `2009Q4`
+% * `ShortM`: `1995M01` to `2030M12`
+% * `LongM`:  `1995M01` to `2030M12`
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
