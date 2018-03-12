@@ -10,7 +10,8 @@ function [ff, aa, pp] = dbplot(d, varargin)
 %
 % __Input Arguments__
 %
-% * `InputDatabase` [ struct ] - Database (struct) or an array of structs with input data.
+% * `InputDatabase` [ struct ] - Database (struct) or an array of structs
+% with input data.
 %
 % * `~Range=@auto` [ DateWrapper | cell | `@auto` ] - Date range or a cell
 % array of date ranges (for different date frequencies); `@auto` means the
@@ -153,9 +154,13 @@ function [ff, aa, pp] = dbplot(d, varargin)
 %
 % _Mixed Date Frequencies_
 %
+% Time series with different date frequencies (yearly, quarterly, monthly,
+% and so forth) can also be plotted by `dbplot( )` as long as different
+% frequencies are not combined in one chart.
+%
 % If the input database, `InputDatabase`, comprises time series of
 % different date frequencies (for instance, monthly and quarterly), specify
-% the range to be plotted as a cell array of date ranges, one for each date
+% the plot range as a cell array of date ranges, one for each date
 % frequency. If a range is not specified for a certain date frequency, the
 % time series of that frequency are plotted with an `Inf` range (see
 % below).
