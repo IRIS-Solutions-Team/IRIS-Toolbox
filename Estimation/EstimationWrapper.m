@@ -22,6 +22,7 @@ classdef EstimationWrapper < handle
             if iscell(solver)
                 solverName = char(solver{1});
                 solverOptions = solver(2:end);
+                solverOptions(1:2:end) = regexp(solverOptions(1:2:end), '\w+', 'Match', 'Once');
             elseif isa(solver, 'optim.options.SolverOptions')
                 solverName = solver.SolverName;
                 solverOptions = solver;
