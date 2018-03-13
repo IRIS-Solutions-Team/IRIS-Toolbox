@@ -30,7 +30,7 @@ end
 
 % __Check for Loss Function__
 % Search transition equations for loss function; if found move it down to
-% last position among transition equaitons.
+% last position among transition equations
 try
     [eqn, euc, isOptimal] = findLossFunc(eqn, euc);
 catch exc

@@ -1,11 +1,11 @@
 function [equation, euc, isLoss] = findLossFunc(equation, euc)
-% findLossFunc  Find loss function ion equations.
+% findLossFunc  Find loss function equation and move them down to last position
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -55,6 +55,7 @@ if sum(ixLoss)==1
     % Order the loss function last.
     posFrom = find(ixLoss, 1, 'first');
     posTo = find(ixt, 1, 'last');
+    equation = move(equation, posFrom, posTo);
     euc = move(euc, posFrom, posTo);
     
 elseif sum(ixLoss)>1

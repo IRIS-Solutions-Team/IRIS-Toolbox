@@ -15,17 +15,17 @@ classdef EquationUnderConstruction < handle
     
     
     methods
-        function this = move(this, FromPos, ToPos)
-            list = properties(this);
-            pivot = list{1};
-            n = length(this.(pivot));
-            reord = 1 : n;
-            reord(FromPos) = [ ];
-            reord = [ reord(1:ToPos-1), FromPos, reord(ToPos:end) ];
-            for i = 1 : length(list)
-                this.(list{i}) = this.(list{i})(reord);
+        function this = move(this, fromPos, toPos)
+            listProperties = properties(this);
+            numProperties = numel(listProperties);
+            reorder = 1 : numel(this.(listProperties{1}));
+            reorder(fromPos) = [ ];
+            reorder = [ reorder(1:toPos-1), fromPos, reorder(toPos:end) ];
+            for i = 1 : numProperties
+                ithProperty = listProperties{i};
+                this.(ithProperty) = this.(ithProperty)(reorder);
             end
-        end
+        end%
         
 
         function this = insert(this, add, ixPre, ixPost)
@@ -49,6 +49,6 @@ classdef EquationUnderConstruction < handle
                     exception.Base('General:Internal', 'error') ...
                 );
             end
-        end
+        end%
     end
 end

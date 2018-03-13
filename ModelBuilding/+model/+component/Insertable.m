@@ -54,9 +54,7 @@ classdef Insertable
                     throw( exception.Base('General:Internal', 'error') );
                 end
             end
-        end
-        
-        
+        end%
         
         
         function this = delete(this, ixDelete)
@@ -71,9 +69,20 @@ classdef Insertable
             if any( checkSize~=checkSize(1) )
                 throw( exception.Base('General:Internal', 'error') );
             end
-        end
+        end%
         
         
+        function this = move(this, fromPos, toPos)
+            listProperties = getInsertableProp(this);
+            numProperties = numel(listProperties);
+            reorder = 1 : numel(this.(listProperties{1}));
+            reorder(fromPos) = [ ];
+            reorder = [ reorder(1:toPos-1), fromPos, reorder(toPos:end) ];
+            for i = 1 : numProperties
+                ithProperty = listProperties{i};
+                this.(ithProperty) = this.(ithProperty)(reorder);
+            end
+        end%
         
         
         function listProperties = getInsertableProp(this)
@@ -81,6 +90,6 @@ classdef Insertable
             x = x.PropertyList;
             ix = ~[ x.Dependent ] & ~[ x.Constant ] & ~[ x.Hidden ];
             listProperties = { x(ix).Name };
-        end
+        end%
     end
 end
