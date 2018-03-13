@@ -47,7 +47,7 @@ convert = {
 def.convertaggregdaily = [
     convert
     {
-        'ignorenan', true, @(x) isequal(x, true) || isequal(x, false)
+        'ignorenan', false, @(x) isequal(x, true) || isequal(x, false)
     }
 ];
 
@@ -55,7 +55,7 @@ def.convertaggregdaily = [
 def.convertaggreg = [
     convert
     {
-        'ignorenan', true, @(x) isequal(x, true) || isequal(x, false)
+        'ignorenan', false, @(x) isequal(x, true) || isequal(x, false)
     }
 ];
 
@@ -63,7 +63,7 @@ def.convertaggreg = [
 def.convertinterp = [
     convert
     {
-    'ignorenan', true, @(x) isequal(x, true) || isequal(x, false)
+    'ignorenan', false, @(x) isequal(x, true) || isequal(x, false)
     'method', 'pchip', @(x) ischar(x)
     'position', 'centre', @(x) ischar(x) && any(strncmpi(x, {'c', 's', 'e'}, 1))
     }
