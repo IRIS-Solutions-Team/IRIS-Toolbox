@@ -1,16 +1,16 @@
 function this = resetColumnNames(this)
-% resetColumnNames  Reset commments to empty in tseries object.
+% resetColumnNames  Reset comments to empty in time series
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
 sizeData = size(this.Data);
 sizeComments = [1, sizeData(2:end)];
-this.Comment = repmat({char.empty(1, 0)}, sizeComments);
+this.Comment = repmat({this.EMPTY_COMMENT}, sizeComments);
 
 end

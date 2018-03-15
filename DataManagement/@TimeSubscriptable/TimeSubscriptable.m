@@ -18,6 +18,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
     end
 
 
+    properties (Constant)
+        EMPTY_COMMENT = char.empty(1, 0)
+    end
+
+
     methods (Abstract)
         varargout = getFrequency(varargin)
     end
