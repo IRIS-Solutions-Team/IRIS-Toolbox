@@ -1,9 +1,9 @@
-function d = array2db(X, date, lsName, ixLog, d)
-% array2db  Convert numeric array to database.
+function d = array2db(X, date, list, varargin)
+% array2db  Convert numeric array to database
 %
 % __Syntax__
 %
-%     D = array2db(X, Range, List)
+%     D = array2db(X, Range, List, ...)
 %
 %
 % __Input arguments__
@@ -21,14 +21,21 @@ function d = array2db(X, date, lsName, ixLog, d)
 % * `D` [ struct ] - Output database.
 %
 %
+% __Options__
+%
+% * `Comments={ }` [ cellstr | string ] - Cell array or array of strings to
+% be assigned to the time series created; number of `Comments` can be
+% smaller than the number of names in `List`.
+%
+%
 % __Description__
 %
 %
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %#ok<*CTCH>
 %#ok<*VUNUS>
@@ -36,19 +43,24 @@ function d = array2db(X, date, lsName, ixLog, d)
 TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-try, ixLog; catch, ixLog = [ ]; end %#ok<NOCOM>
-try, d; catch, d = struct( ); end %#ok<NOCOM>
-
-if ischar(lsName)
-    lsName = regexp(lsName, '\w+', 'match');
+if ischar(list)
+    list = regexp(list, '\w+', 'match');
 end
 
-pp = inputParser( );
-pp.addRequired('X', @isnumeric);
-pp.addRequired('Dates', @isnumeric);
-pp.addRequired('IxLog', @(x) isempty(x) || islogical(x) || isstruct(x));
-pp.addRequired('D', @isstruct);
-pp.parse(X, date, ixLog, d);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('dbase.array2db');
+    inputParser.addRequired('InputArray', @isnumeric);
+    inputParser.addRequired('Dates', @isnumeric);
+    inputParser.addRequired('List', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    inputParser.addOptional('IndexLog', [ ], @(x) isempty(x) || islogical(x) || isstruct(x));
+    inputParser.addOptional('Databank', struct( ), @isstruct);
+    inputParser.addParameter('Comments', cell.empty(1, 0), @iscellstr);
+end
+inputParser.parse(X, date, list, varargin{:});
+ixLog = inputParser.Results.IndexLog;
+d = inputParser.Results.Databank;
+opt = inputParser.Options;
 
 % TODO: Allow for unsorted dates.
 
@@ -56,14 +68,25 @@ pp.parse(X, date, ixLog, d);
 
 nx = size(X, 2);
 date = date(:).';
-nDate = length(date);
-minDate = min(date);
-maxDate = max(date);
-range = minDate : maxDate;
-nPer = length(range);
-nList = length(lsName);
-posDates = round(date - minDate + 1);
-isRange = isequal(posDates, 1:nPer);
+numDates = length(date);
+nList = length(list);
+if numDates==1
+    isContinuous = true;
+    minDate = date;
+else
+    minDate = min(date);
+    maxDate = max(date);
+    range = minDate : maxDate;
+    nPer = length(range);
+    posDates = round(date - minDate + 1);
+    isContinuous = isequal(posDates, 1:nPer);
+end
+
+if ~iscellstr(opt.Comments)
+    opt.Comments = cellstr(opt.Comments);
+end
+numComments = numel(opt.Comments);
+
 
 if nx~=nList
     utils.error('dbase:array2db', ...
@@ -71,7 +94,7 @@ if nx~=nList
         'number of variable names.']);
 end
 
-if size(X, 1)~=nDate
+if numDates~=1 && size(X, 1)~=numDates
     utils.error('dbase:array2db', ...
         ['Number of rows in input array must match ', ...
         'number of periods.']);
@@ -79,19 +102,22 @@ end
 
 sizeX = size(X);
 ndimsX = length(sizeX);
-
 ref = repmat({':'}, 1, ndimsX);
 
 for i = 1 : nx
-    name = lsName{i};
+    name = list{i};
     ref{2} = i;
     iX = squeeze(X(ref{:}));
     if ~isempty(ixLog) && getIsLog( )
         iX = exp(iX);
     end
-    if isRange
+    comment = '';
+    if numComments>=i
+        comment = opt.Comments{i};
+    end
+    if isContinuous
         % Continuous range.
-        d.(name) = replace(TEMPLATE_SERIES, iX, minDate);
+        d.(name) = fill(TEMPLATE_SERIES, iX, minDate, comment);
     else
         % Vector of dates.
         if i==1
@@ -99,7 +125,7 @@ for i = 1 : nx
             iData(end+1:nPer, :) = NaN;
         end
         iData(posDates, :) = iX;
-        d.(name) = replace(TEMPLATE_SERIES, iData, minDate);
+        d.(name) = fill(TEMPLATE_SERIES, iData, minDate, comment);
     end
 end
 
@@ -122,5 +148,5 @@ return
             isLog = ixLog.(name);
             return
         end
-    end
-end
+    end%
+end%
