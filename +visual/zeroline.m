@@ -25,6 +25,9 @@ function lineHandles = zeroline(varargin)
 % * `'ExcludeFromLegend='` [ *`true`* | `false` ] - Exclude the line from
 % legend.
 %
+% * `HandleVisibility=false` [ `true` | `false` ] - Visibility of the
+% handle to the line and text (caption)  object(s) created.
+%
 % Any options valid for the standard `plot` function.
 %
 %
@@ -39,7 +42,6 @@ function lineHandles = zeroline(varargin)
 
 %--------------------------------------------------------------------------
 
-lineHandles = visual.backend.plotInfiniteLine('zero', varargin{:});
-set(lineHandles, 'Tag', 'zeroline');
+lineHandles = visual.backend.plotInfiniteLine('zeroline', varargin{:});
 
 end

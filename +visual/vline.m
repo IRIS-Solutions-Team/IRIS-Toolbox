@@ -31,6 +31,9 @@ function [lineHandles, textHandles] = vline(varargin)
 % * `'ExcludeFromLegend='` [ *`true`* | `false` ] - Exclude vline
 % from legend.
 %
+% * `HandleVisibility=false` [ `true` | `false` ] - Visibility of the
+% handle to the line and text (caption)  object(s) created.
+%
 % * `'LinePlacement='` [ *`'exactly'`* | `'before'` | `'after'` ] -
 % Placement of the vertical line relative to the specified date;
 % `'exactly'` means the line is at the date specified, `'before'` means the
@@ -53,9 +56,7 @@ function [lineHandles, textHandles] = vline(varargin)
 
 %--------------------------------------------------------------------------
 
-[lineHandles, textHandles] = visual.backend.plotInfiniteLine('vertical', varargin{:});
-set(lineHandles, 'Tag', 'vline');
-set(textHandles, 'Tag', 'vline-caption');
+[lineHandles, textHandles] = visual.backend.plotInfiniteLine('vline', varargin{:});
 
 end%
 

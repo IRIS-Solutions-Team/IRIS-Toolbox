@@ -1,4 +1,4 @@
-function [lineHandles, textHandles] = plotnfiniteLine(direction, varargin)
+function [lineHandles, textHandles] = plotnfiniteLine(caller, varargin)
 % plotInfiniteLine  Add infintely stretched vertical or horizontal line at specified position
 %
 % Backend IRIS function
@@ -21,7 +21,7 @@ else
     axesHandle = @gca;
 end
     
-if strcmp(direction, 'zero')
+if strcmp(caller, 'zeroline')
     location = 0;
 else
     if isempty(varargin)
@@ -41,25 +41,26 @@ else
     end
 end
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('visual.backend.plotInfiniteLine');
-    INPUT_PARSER.KeepUnmatched = true;
-    INPUT_PARSER.addRequired('AxesHandles', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
-    INPUT_PARSER.addRequired('Direction', @(x) any(strcmpi(x, {'vertical', 'horizontal', 'zero'})));
-    INPUT_PARSER.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
-    INPUT_PARSER.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
-    INPUT_PARSER.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
-    INPUT_PARSER.addParameter({'LinePlacement', 'TimePosition'}, 'exactly', @(x) any(strcmpi(x, {'exactly', 'middle', 'before', 'after'})));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('visual.backend.plotInfiniteLine');
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('AxesHandles', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
+    inputParser.addRequired('Caller', @(x) any(strcmpi(x, {'vline', 'hline', 'zeroline'})));
+    inputParser.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
+    inputParser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
+    inputParser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
+    inputParser.addParameter('HandleVisibility', 'Off', @(x) any(strcmpi(x, {'On', 'Off'})));
+    inputParser.addParameter({'LinePlacement', 'TimePosition'}, 'exactly', @(x) any(strcmpi(x, {'exactly', 'middle', 'before', 'after'})));
     % Legacy options
-    INPUT_PARSER.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x(1:2:end)));
-    INPUT_PARSER.addParameter('VPosition', '');
-    INPUT_PARSER.addParameter('HPosition', '');
+    inputParser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x(1:2:end)));
+    inputParser.addParameter('VPosition', '');
+    inputParser.addParameter('HPosition', '');
 end
-INPUT_PARSER.parse(axesHandle, direction, location, varargin{:});
-opt = INPUT_PARSER.Options;
-unmatched = INPUT_PARSER.UnmatchedInCell;
-usingDefaults = INPUT_PARSER.UsingDefaultsInStruct;
+inputParser.parse(axesHandle, caller, location, varargin{:});
+opt = inputParser.Options;
+unmatched = inputParser.UnmatchedInCell;
+usingDefaults = inputParser.UsingDefaultsInStruct;
 
 if isequal(axesHandle, @gca)
     axesHandle = gca( );
@@ -81,7 +82,7 @@ if ~usingDefaults.Caption
     end
 end
         
-isVertical = strncmpi(direction, 'v', 1);
+isVertical = strncmpi(caller, 'v', 1);
 
 INF_LIM = 1e10;
 LIM_MULTIPLE = 100;
@@ -188,6 +189,21 @@ for a = 1 : numAxes
         visual.excludeFromLegend(lineHandles);
     end
 
+    if ~isempty(lineHandles)
+        set( ...
+            lineHandles, ...
+            'HandleVisibility', opt.HandleVisibility, ...
+            'Tag', caller ...
+        );
+    end
+
+    if ~isempty(textHandles)
+        set( ...
+            textHandles, ...
+            'HandleVisibility', opt.HandleVisibility, ...
+            'Tag', [caller, '-caption'] ...
+        );
+    end
 end
 
 return
@@ -206,5 +222,5 @@ return
             [~, halfDuration] = duration(location);
             datetimeLocation = datetimeLocation + halfDuration;
         end
-    end
-end
+    end%
+end%

@@ -25,14 +25,17 @@ function [patchHandles, textHandles] = highlight(varargin)
 %
 % __Options__
 %
-% * `'Text='` [ cellstr | char | string ] - Annotate the highlighted area
+% * `Text=''` [ cellstr | char | string ] - Annotate the highlighted area
 % with a text string.
 %
-% * `'Color='` [ numeric | *`0.8`* ] - An RGB color code, a Matlab color
+% * `Color=0.8` [ numeric | char ] - An RGB color code, a Matlab color
 % name, or a scalar shade of gray.
 %
-% * `'ExcludeFromLegend='` [ *`true`* | `false` ] - Exclude the highlighted
+% * `ExcludeFromLegend=true` [ `true` | `false` ] - Exclude the highlighted
 % area from legend.
+%
+% * `HandleVisibility=false` [ `true` | `false` ] - Visibility of the
+% handle to the patch object(s) created.
 %
 %
 % __Description__
@@ -85,11 +88,14 @@ if isempty(inputParser)
     inputParser.KeepUnmatched = true;
     inputParser.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
     inputParser.addRequired('Range', @(x) all(cellfun(@(y) isa(y, 'DateWrapper') || isnumeric(y), x)));
-    inputParser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
+
+    inputParser.addParameter('Alpha', 1, @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1 );
     inputParser.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
     inputParser.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
     inputParser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
-    inputParser.addParameter('Transparent', 0, @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1 );
+    inputParser.addParameter('HandleVisibility', 'Off', @(x) any(strcmpi(x, {'On', 'Off'})));
+    inputParser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
+    inputParser.addParameter('ZCoor', -4, @(x) isnumeric(x) && isscalar(x) && x<=0);
 
     % Legacy options
     inputParser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
@@ -125,7 +131,7 @@ if isscalar(opt.Color)
     opt.Color = opt.Color*[1, 1, 1];
 end
 
-Z_DATA = -4;
+Z_DATA = opt.ZCoor;
 LIM_MULTIPLE = 100;
 
 %--------------------------------------------------------------------------
@@ -189,7 +195,9 @@ for a = 1 : numel(axesHandle)
     end
 end
 
-end
+set(patchHandles, 'HandleVisibility', opt.HandleVisibility);
+
+end%
 
 
 function xData = getXData(h, range, opt)
@@ -224,29 +232,38 @@ function xData = getXData(h, range, opt)
         end
         xData = [xData(1)-around, xData(2)+around];
     end
-end
+end%
 
 
 function yData = getYData(h, LIM_MULTIPLE)
     yData = get(h, 'YLim');
     height = yData(2) - yData(1);
     yData = [yData(1)-LIM_MULTIPLE*height, yData(2)+LIM_MULTIPLE*height];
-end
+end%
 
 
-function patchHandle = drawPatch(h, xData, yData, Z_DATA, opt, unmatched)
+function handlePatch = drawPatch(handleAxes, xData, yData, zData, opt, unmatched)
     xData = xData([1, 2, 2, 1]);
     yData = yData([1, 1, 2, 2]);
-    zData = Z_DATA*ones(size(xData));    
-    nextPlot = get(h, 'NextPlot');
-    set(h, 'NextPlot', 'Add');
-    patchHandle = fill( ...
+    zData = zData*ones(size(xData));    
+    nextPlot = get(handleAxes, 'NextPlot');
+    set(handleAxes, 'NextPlot', 'Add');
+    handlePatch = fill( ...
         xData, yData, opt.Color, ...
         'ZData', zData, ...
-        'Parent', h, ...
+        'Parent', handleAxes, ...
         'YLimInclude', 'off', 'XLimInclude', 'off', ...
-        'EdgeColor', 'none', 'FaceAlpha', 1-opt.Transparent, ...
+        'EdgeColor', 'none', 'FaceAlpha', opt.Alpha, ...
         unmatched{:} ...
     );
-    set(h, 'NextPlot', nextPlot);
-end
+    set(handleAxes, 'NextPlot', nextPlot);
+    if zData==0
+        children = get(handleAxes, 'Children');
+        if numel(children)>1
+            index = children==handlePatch;
+            children = [children(~index); children(index)];
+            set(handleAxes, 'Children', children);
+        end
+    end
+end%
+

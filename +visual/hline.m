@@ -14,6 +14,9 @@ function lineHandles = hline(varargin)
 % figure window in which the the horizontal line will be added; if omitted
 % the line will be added to the current axes.
 %
+% * `HandleVisibility=false` [ `true` | `false` ] - Visibility of the
+% handle to the line and text (caption)  object(s) created.
+%
 % * `'Location`' [ numeric ] - Vertical position or vector of positions at
 % which the horizontal line(s) will be drawn.
 %
@@ -42,7 +45,6 @@ function lineHandles = hline(varargin)
 
 %--------------------------------------------------------------------------
 
-lineHandles = visual.backend.plotInfiniteLine('horizontal', varargin{:});
-set(lineHandles, 'Tag', 'hline');
+lineHandles = visual.backend.plotInfiniteLine('hline', varargin{:});
 
 end

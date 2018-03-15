@@ -89,9 +89,11 @@ end
 set(hAx, 'xTickMode', 'auto', 'xTickLabelMode', 'auto');
 [hPlot, isTimeAxis] = callPlotFunc( );
 
-if isequal(opt.xlimmargin, true) ...
-        || ( isequal(opt.xlimmargin, @auto) ...
-        && ( isequal(func, @bar) || isequal(func, @barcon) ))
+isBar = isequal(func, @bar) ...
+    || isequal(func, @barcon) ...
+    || isequal(func, @numeric.barcon);
+
+if isequal(opt.xlimmargin, true) || (isequal(opt.xlimmargin, @auto) && isBar)
     setappdata(hAx, 'IRIS_XLIM_ADJUST', true);
     peer = getappdata(hAx, 'graphicsPlotyyPeer');
     if ~isempty(peer)
@@ -170,11 +172,11 @@ return
 
 
     function [h, isTimeAxis] = callPlotFunc( )
-        FuncStr = func;
-        if isfunc(FuncStr)
-            FuncStr = func2str(FuncStr);
+        stringPlotFunc = func;
+        if isfunc(stringPlotFunc)
+            stringPlotFunc = func2str(stringPlotFunc);
         end
-        switch FuncStr
+        switch stringPlotFunc
             case {'scatter'}
                 if nx==2
                     h = scatter(hAx, data(:, 1), data(:, 2), plotSpec{:});
@@ -194,9 +196,10 @@ return
             case {'histogram'}
                 h = histogram(hAx, data, plotSpec{:});
                 isTimeAxis = false;
-            case {'barcon'}
+            case {'barcon', 'numeric.barcon'}
                 % Do not pass `plotspecs` but do pass user options.
-                h = tseries.mybarcon(hAx, xCoor, data, varargin{:});
+                % h = tseries.mybarcon(hAx, xCoor, data, varargin{:});
+                h = numeric.barcon(hAx, xCoor, data, varargin{:});
                 isTimeAxis = true;
             otherwise
                 DataInf = grfun.myreplacenancols(data, Inf);

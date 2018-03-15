@@ -16,11 +16,16 @@ if isempty(inputParser)
     inputParser.addRequired('Data', @isnumeric);
     inputParser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
     inputParser.addParameter('ColorMap', lines( ), @(x) isnumeric(x) && ismatrix(x) && size(x, 2)==3);
-    inputParser.addParameter('EvenlySpread', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('EvenlySpread', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
 end
 inputParser.parse(handleAxes, time, data, varargin{:});
 opt = inputParser.Options;
 unmatchedOptions = inputParser.UnmatchedInCell;
+
+linesColorMap = lines( );
+if isequal(opt.EvenlySpread, @auto)
+    opt.EvenlySpread = ~isequal(opt.ColorMap, linesColorMap);
+end
 
 %--------------------------------------------------------------------------
 
@@ -37,7 +42,7 @@ isHold = ishold(handleAxes);
 
 % Plot positive values
 handlePositive = bar(handleAxes, time, positiveData, 'stack', unmatchedOptions{:});
-if isequal(opt.ColorMap, lines( )) && ~opt.EvenlySpread
+if isequal(opt.ColorMap, linesColorMap) && ~opt.EvenlySpread
     colorOrderIndex = get(handleAxes, 'ColorOrderIndex');
 else
     colorOrderIndex = 1;
@@ -51,28 +56,14 @@ if ~isHold
     hold(handleAxes, 'off');
 end
 
-linkedProperties = getLinkedProperties( );
-
-if opt.EvenlySpread
-    positionInColorMap = linspace(1, numColorMap, numData);
-    positionInColorMap = round(positionInColorMap);
-else
-    positionInColorMap = 1 + mod((1:numData)-1, numColorMap);
-end
-
+positionsInColorMap = getPositionsInColorMap( );
 for i = 1 : numData
-    faceColor = opt.ColorMap(positionInColorMap(i), :);
+    faceColor = opt.ColorMap(positionsInColorMap(i), :);
     set(handlePositive(i), 'FaceColor', faceColor);
 end
 
-for i = 1 : numData
-    p = get(handlePositive(i), linkedProperties);
-    set(handleNegative(i), linkedProperties, p);
-    linkObject = linkprop([handlePositive(i), handleNegative(i)], linkedProperties);
-    set(handlePositive(i), 'UserData', linkObject);
-    set(handleNegative(i), 'UserData', linkObject);
-end
-
+linkedProperties = getLinkedProperties( );
+linkProperties( );
 visual.excludeFromLegend(handleNegative);
 
 return
@@ -97,5 +88,26 @@ return
             end
         end
         linkedProperties = linkedProperties(indexValid);
+    end%
+
+
+    function positionsInColorMap = getPositionsInColorMap( )
+        if opt.EvenlySpread
+            positionsInColorMap = linspace(1, numColorMap, numData);
+            positionsInColorMap = round(positionsInColorMap);
+        else
+            positionsInColorMap = 1 + mod((1:numData)-1, numColorMap);
+        end
+    end%
+
+
+    function linkProperties( )
+        for i = 1 : numData
+            p = get(handlePositive(i), linkedProperties);
+            set(handleNegative(i), linkedProperties, p);
+            linkObject = linkprop([handlePositive(i), handleNegative(i)], linkedProperties);
+            set(handlePositive(i), 'UserData', linkObject);
+            set(handleNegative(i), 'UserData', linkObject);
+        end
     end%
 end%
