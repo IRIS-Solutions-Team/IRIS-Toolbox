@@ -43,10 +43,6 @@ function d = array2db(X, date, list, varargin)
 TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-if ischar(list)
-    list = regexp(list, '\w+', 'match');
-end
-
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('dbase.array2db');
@@ -61,6 +57,12 @@ inputParser.parse(X, date, list, varargin{:});
 ixLog = inputParser.Results.IndexLog;
 d = inputParser.Results.Databank;
 opt = inputParser.Options;
+
+if ischar(list)
+    list = regexp(list, '\w+', 'match');
+elseif ~iscell(list)
+    list = cellstr(list);
+end
 
 % TODO: Allow for unsorted dates.
 
