@@ -1,11 +1,11 @@
 function [syst, indexOfNaNDerivs, deriv] = systemFirstOrder(this, variantRequested, opt)
-% systemFirstOrder  Calculate first-order system matrices.
+% systemFirstOrder  Calculate first-order system matrices
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 % opt.select
 % opt.eqtn
@@ -25,11 +25,9 @@ eqSelect = affected(this, variantRequested, opt);
 eqSelect = eqSelect & (ixm | ixt);
 
 % Evaluate derivatives of equations wrt parameters
-%--------------------------------------------------
 [deriv, indexOfNaNDerivs] = diffFirstOrder(this, eqSelect, variantRequested, opt);
 
 % Set up system matrices from derivatives
-%-----------------------------------------
 getSystemMatrices( );
 
 % Update handle to last system.
@@ -74,5 +72,5 @@ return
         % __Effect of Add-Factors in Nonlinear Equations__
         syst.N{1} = [ ];
         syst.N{2}(posOfTransitionEq, :) = deriv.n(posOfTransitionEqInDeriv, :); 
-    end
-end
+    end%
+end%

@@ -1,23 +1,20 @@
 function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 % system  System matrices for unsolved model.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [A,B,C,D,F,G,H,J,List,Nf] = system(M)
+%     [A, B, C, D, F, G, H, J, List, Nf] = system(M)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `M` [ model ] - Model object whose system matrices will be returned.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `A`, `B`, `C`, `D`, `F`, `G`, `H` ,`J`  [ numeric ] - Matrices
-% describing the unsolved system, see Description.
+% * `A`, `B`, `C`, `D`, `F`, `G`, `H` , `J`  [ numeric ] - Matrices
+% of the unsolved system, see Description.
 %
 % * `List` [ cell ] - Lists of measurement variables, transition variables
 % includint their auxiliary lags and leads, and shocks as they appear in
@@ -28,20 +25,18 @@ function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 % `A` and `B`).
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Select='` [ *`true`* | `false` ] - Automatically detect which
 % equations need to be re-differentiated based on parameter changes from
 % the last time the system matrices were calculated.
 %
-% * `'Sparse='` [ `true` | *`false`* ] - Return matrices `A`, `B`, `D`,
+% * `'Sparse='` [ `true` | *`false`* ] - Return matrices `A`, `B`, `D`, 
 % `F`, `G`, and `J` as sparse matrices; can be set to `true` only in models
 % with one parameterization.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The system before the model is solved has the following form:
 %
@@ -56,8 +51,7 @@ function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 % measurement shocks.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -67,9 +61,9 @@ opt = passvalopt('model.system', varargin{:});
 
 %--------------------------------------------------------------------------
 
-nAlt = length(this);
+nv = length(this);
 
-if opt.sparse && nAlt>1
+if opt.sparse && nv>1
     utils.warning('model:system', ...
         ['Cannot return system matrices as sparse matrices in models ', ...
         'with multiple parameterizations. Returning full matrices instead.']);
@@ -77,7 +71,7 @@ if opt.sparse && nAlt>1
 end
 
 % System matrices.
-if opt.sparse && nAlt==1
+if opt.sparse && nv==1
     [syst, ~, deriv] = systemFirstOrder(this, 1, opt);
     F = syst.A{1}; %#ok<*AGROW>
     G = syst.B{1};
@@ -88,16 +82,16 @@ if opt.sparse && nAlt==1
     C = syst.K{2};
     D = syst.E{2};
 else
-    for iAlt = 1 : nAlt
-        [syst, ~, deriv] = systemFirstOrder(this, iAlt, opt);
-        F(:, :, iAlt) = full(syst.A{1}); %#ok<*AGROW>
-        G(:, :, iAlt) = full(syst.B{1});
-        H(:, 1, iAlt) = full(syst.K{1});
-        J(:, :, iAlt) = full(syst.E{1});
-        A(:, :, iAlt) = full(syst.A{2});
-        B(:, :, iAlt) = full(syst.B{2});
-        C(:, 1, iAlt) = full(syst.K{2});
-        D(:, :, iAlt) = full(syst.E{2});
+    for v = 1 : nv
+        [syst, ~, deriv] = systemFirstOrder(this, v, opt);
+        F(:, :, v) = full(syst.A{1}); %#ok<*AGROW>
+        G(:, :, v) = full(syst.B{1});
+        H(:, 1, v) = full(syst.K{1});
+        J(:, :, v) = full(syst.E{1});
+        A(:, :, v) = full(syst.A{2});
+        B(:, :, v) = full(syst.B{2});
+        C(:, 1, v) = full(syst.K{2});
+        D(:, :, v) = full(syst.E{2});
     end
 end
 

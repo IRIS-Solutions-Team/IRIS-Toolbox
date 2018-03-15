@@ -146,24 +146,16 @@ end
 % references.
 checkTimeSsref( );
 
-% Find the occurences of variable, shocks, and parameters in individual
+% Find the occurences of variables, shocks, and parameters in individual
 % equations, including the loss function and its discount factor. The
 % occurences in the loss function will be replaced later with the
 % occurences in the Lagrangian derivatives.
 this.Incidence.Dynamic = model.component.Incidence(nEqtn, nQuan, minSh, maxSh);
 this.Incidence.Steady = model.component.Incidence(nEqtn, nQuan, minSh, maxSh);
-this.Incidence.Affected = model.component.Incidence(nEqtn, nQuan, 0, 0);
-steadyRef = model.component.Incidence(nEqtn, nQuan, minSh, maxSh);
-this.Incidence.Dynamic = ...
-    fill(this.Incidence.Dynamic, qty, eqn.Dynamic, ixmtd); % 1/
-this.Incidence.Steady = ...
-    fill(this.Incidence.Steady, qty, eqn.Steady, ixmt);
+this.Incidence.Dynamic = fill(this.Incidence.Dynamic, qty, eqn.Dynamic, ixmtd); % 1/
+this.Incidence.Steady = fill(this.Incidence.Steady, qty, eqn.Steady, ixmt);
 ixCopy = ixmt & cellfun(@isempty, eqn.Steady);   
 this.Incidence.Steady.Matrix(ixCopy, :) = this.Incidence.Dynamic.Matrix(ixCopy, :); 
-steadyRef = fill(steadyRef, qty, eqn.Dynamic, ixmt, 'L');
-this.Incidence.Affected.Matrix = ...
-    across(this.Incidence.Dynamic, 'Shifts') ...
-    | across(steadyRef, 'Shifts');
 
 % 1/ Do not create Incidence matrix for !links because they can have std_
 % and corr_ on both LHS and RHS for which Incidence matrix does not have
@@ -202,13 +194,15 @@ if isOptimal
     % Update the nonlinear equation flags.
     eqn.IxHash(posLossEqtn:last) = new.IxHash(posLossEqtn:last);
     
-    % Update occ arrays to include the new equations.
-    ix = false(size(eqn.Input));
-    ix(posLossEqtn:last) = true;
-    this.Incidence.Dynamic = ...
-        fill(this.Incidence.Dynamic, qty, eqn.Dynamic, ix);
-    this.Incidence.Steady = ...
-        fill(this.Incidence.Steady, qty, eqn.Steady, ix);
+    % Update incidence matrices to include the new equations.
+    indexUpdateIncidence = false(size(eqn.Input));
+    indexUpdateIncidence(posLossEqtn:last) = true;
+    this.Incidence.Dynamic = fill( ...
+        this.Incidence.Dynamic, qty, eqn.Dynamic, indexUpdateIncidence ...
+    );
+    this.Incidence.Steady = fill( ...
+        this.Incidence.Steady, qty, eqn.Steady, indexUpdateIncidence ...
+    );
 end
 
 % Check the model structure after the loss function is processed.

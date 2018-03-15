@@ -1,24 +1,39 @@
-function plot(This,Ax)
-% plot  [Not a public function] Draw highlight objects.
+function plot(this, Ax)
+% plot  Draw highlight objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-x = This.location;
+x = this.location;
 
-if isempty(This.location) ...
-        || ~(isnumeric(x) || (iscell(x) && all(cellfun(@isnumeric,x))))
+if isempty(this.location) ...
+        || ~(isnumeric(x) || (iscell(x) && all(cellfun(@isnumeric, x))))
     return
 end
 
-grfun.highlight(Ax,This.location, ...
-    'caption',This.caption, ...
-    'vPosition',This.options.vposition, ...
-    'hPosition',This.options.hposition);
+zCoor = cell.empty(1, 0);
+if isfield(this.options, 'zcoor')
+    zCoor = {'ZCoor=', this.options.zcoor};
+end
+
+visual.highlight( ...
+    Ax, this.location, ...
+    zCoor{:}, ...
+    'caption', this.caption, ...
+    'vPosition', this.options.vposition, ...
+    'hPosition', this.options.hposition ...
+);
+
+%{
+grfun.highlight(Ax, this.location, ...
+    'caption', this.caption, ...
+    'vPosition', this.options.vposition, ...
+    'hPosition', this.options.hposition);
+%}
 
 end

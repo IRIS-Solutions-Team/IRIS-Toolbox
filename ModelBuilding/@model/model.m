@@ -150,29 +150,35 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         
         Equation = model.component.Equation( ) % Equations, dtrends, links, revisions
        
+        % Incidence  Incidence matrices for dynamic and steady equations
         Incidence = struct( ...
             'Dynamic', model.component.Incidence( ), ...
-            'Steady',  model.component.Incidence( ), ...
-            'Affected', model.component.Incidence( ) ...
-            ) % Incidence matrices
+            'Steady',  model.component.Incidence( ) ...
+        ) 
 
         % Link  Dynamic links
         Link = model.component.Link( ) 
 
         % Gradient  Symbolic gradients of model equations
         Gradient = model.component.Gradient(0) 
-        
-        Pairing = model.component.Pairing(0, 0) % Autoexog, Dtrend, Link, Revision, Assignment
-        
-        PreparserControl = struct( ) % Preparser control parameters
-        
-        Vector = model.component.Vector( ) % System and solution vectors
-        
-        Variant = model.component.Variant( ) % Parameter dependent properties
-        
-        Behavior = model.component.Behavior( ) % Behavior control
 
-        Export = shared.Export.empty(1, 0) % Export files
+        % Pairing  Definition of pairs in autoexog, dtrends, links, and assignment equations
+        Pairing = model.component.Pairing(0, 0) 
+        
+        % PreparserControl  Preparser control parameters
+        PreparserControl = struct( ) 
+        
+        % Vector  Vectors of variables in rows of system and solution matrices
+        Vector = model.component.Vector( ) 
+        
+        % Variant  Parameter variant dependent properties
+        Variant = model.component.Variant( ) 
+        
+        % Behavior  Settings to control behavior of model objects
+        Behavior = model.component.Behavior( ) 
+
+        % Export  Export files
+        Export = shared.Export.empty(1, 0)
 
         % TaskSpecific  Temporary task-specific container
         TaskSpecific = [ ] 
@@ -180,8 +186,11 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
 
     
     properties(GetAccess=public, SetAccess=protected, Hidden, Transient)
-        % Handle to last derivatives and system matrices.
+        % LastSystem  Handle to last derivatives and system matrices
         LastSystem = model.component.LastSystem( )
+
+        % Affected  Logical array of equations affected by changes in parameters and steady-state values
+        Affected = logical.empty(0)
     end
 
 

@@ -1,11 +1,11 @@
 function this = populateTransient(this)
-% populateTransient  Recreate transient properties in model object.
+% populateTransient  Recreate transient properties in model object
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -17,8 +17,12 @@ nx = sum(this.Quantity.Type==TYPE(2));
 ne = sum(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
 nyxe = ny + nx + ne;
 
-% Reset handle object to last system info.
+% Reset handle object to last system info
 resetLastSystem( );
+
+% Create logical array for detecting equations affected by changes in
+% parameters and/or steady-state values
+this = createAffected(this);
 
 return
 

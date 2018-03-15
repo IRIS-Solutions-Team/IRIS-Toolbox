@@ -1,9 +1,9 @@
 function new = optimalPolicy(this, quantity, equation, ...
     posLossEqtn, lossDisc, posNnegName, posNnegMult, type)
-% optimalPolicy  Derive equations for optimal policy.
+% optimalPolicy  Derive equations for optimal policy
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
@@ -68,10 +68,11 @@ new.IxHash = false(size(eqtn));
 
 % Get the list of all variables and shocks (current dates, lags, leads) in
 % equations.
-% ixyxe = quantity.Type==TYPE(1) ...
-%     | quantity.Type==TYPE(2) ...
-%     | quantity.Type==TYPE(31) ...
-%     | quantity.Type==TYPE(32);
+%
+%     ixyxe = quantity.Type==TYPE(1) ...
+%         | quantity.Type==TYPE(2) ...
+%         | quantity.Type==TYPE(31) ...
+%         | quantity.Type==TYPE(32);
 
 for eq = first : posLossEqtn
     vecWrt = find(this.Incidence.Dynamic, eq, ixx);
@@ -83,33 +84,20 @@ for eq = first : posLossEqtn
         % differentiate wrt.
         vecWrt( imag(vecWrt)>0 ) = [ ];
     end
-    nWrt = length(vecWrt);
+    numWrt = numel(vecWrt);
     
     % Write a cellstr with the symbolic names of variables wrt which we will
     % differentiate.
-    unknown = cell(1, nWrt);
-    vecNm = real(vecWrt);
-    vecSh = imag(vecWrt);
-    for j = 1 : nWrt
-        if vecSh(j)==0
-            % Time index==0: replace x(1,23,t) with x23.
-            unknown{j} = sprintf('x%g', vecNm(j));
-        elseif vecSh(j)<0
-            % Time index<0: replace x(1,23,t-1) with x23m1.
-            unknown{j} = sprintf('x%gm%g', vecNm(j), -vecSh(j));
-        elseif vecSh(j)>0
-            % Time index>0: replace x(1,23,t+1) with x23p1.
-            unknown{j} = sprintf('x%gp%g', vecNm(j), vecSh(j));
-        end
-    end
+    vecNames = real(vecWrt);
+    vecShifts = imag(vecWrt);
+    unknown = createListOfUnknowns(vecNames, vecShifts);
         
     d = Ad.diff(eqtn{eq}, unknown);
     d = strcat('(', d, ')');
 
-    for j = 1 : nWrt
-
-        newEq = vecNm(j);
-        sh = vecSh(j);
+    for j = 1 : numWrt
+        newEq = vecNames(j);
+        sh = vecShifts(j);
 
         % Multiply derivatives wrt lags and leads by the discount factor.
         if sh==0
@@ -150,7 +138,6 @@ for eq = first : posLossEqtn
         % itself has been introduced by min#( ) and not min( ).
         isNonlin = equation.IxHash(eq) && ~isequal(dEqtn, '0');
         new.IxHash(newEq) = new.IxHash(newEq) || isNonlin;
-        
     end
 end
 
@@ -162,6 +149,10 @@ if isNneg
     new.Input{posLossEqtn} = sprintf('min(x%g,x%g)', posNnegName, posNnegMult);
     new.IxHash(posLossEqtn) = true;
 end
+
+% Find multipliers that are always zero, and replace them with hard zeros
+% in all equations.
+new = simplifyZeroMultipliers(new);
 
 new.Dynamic = model.component.Gradient.symb2array(new.Input);
 new.Steady = model.component.Gradient.symb2array(new.Input);
@@ -175,5 +166,40 @@ new.Steady(pos) = strcat(new.Steady(pos), ';');
 
 % Replace = with #= in nonlinear human equations.
 new.Input(new.IxHash) = strrep(new.Input(new.IxHash), '=0;', '=#0;');
-    
-end
+end%
+
+
+function unknown = createListOfUnknowns(vecNames, vecShifts)
+    numWrt = numel(vecNames);
+    unknown = cell(1, numWrt);
+    for j = 1 : numWrt
+        if vecShifts(j)==0
+            % Time index==0: replace x(1,23,t) with x23.
+            unknown{j} = sprintf('x%g', vecNames(j));
+        elseif vecShifts(j)<0
+            % Time index<0: replace x(1,23,t-1) with x23m1.
+            unknown{j} = sprintf('x%gm%g', vecNames(j), -vecShifts(j));
+        elseif vecShifts(j)>0
+            % Time index>0: replace x(1,23,t+1) with x23p1.
+            unknown{j} = sprintf('x%gp%g', vecNames(j), vecShifts(j));
+        end
+    end
+end%
+
+
+function new = simplifyZeroMultipliers(new)
+    numInput = numel(new.Input);
+    [match, tokens] = regexp(new.Input, '^\(\-?1\)\*(x\d+)$', 'Match', 'Tokens', 'Once');
+    indexFound = ~cellfun('isempty', match);
+    for pos = find(indexFound)
+        name = tokens{pos}{1};
+        new.Input{pos} = name;
+        new.IxHash(pos) = false;
+        otherEquations = 1 : numInput;
+        otherEquations(pos) = [ ];
+        new.Input(otherEquations) = regexprep( ...
+            new.Input(otherEquations), ['\<', name, '([pm]\d+)?\>'], '0' ...
+        );
+    end
+end%
+

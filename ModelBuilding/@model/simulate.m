@@ -464,7 +464,7 @@ for ithRun = 1 : numRuns
         return
     end
     update(systemProperty, this, variantRunningNow); 
-    
+
     if strcmpi(s.Method, 'FirstOrder')
         s = simulate.linear.wrapper(systemProperty);
 
