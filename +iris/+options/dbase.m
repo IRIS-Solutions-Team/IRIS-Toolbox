@@ -96,7 +96,7 @@ Def.dbsave = [
     'SaveSubdb', false, @islogicalscalar
     'UserData', 'userdata', @(x) ischar(x) && isvarname(x)
     'UnitsHeader', 'Units ->', @(x) ischar(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"'))
-    'Delimiter', ', ', @ischar
+    'Delimiter', ',', @ischar
     } ]; %#ok<CCAT>
 
 Def.dbsplit = { ...
