@@ -1,5 +1,5 @@
 function x = vertcat(varargin)
-% vertcat  Vertical concatenation of tseries objects.
+% vertcat  Vertical concatenation of tseries objects
 %
 % __Syntax__
 %
@@ -34,8 +34,8 @@ function x = vertcat(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -46,25 +46,24 @@ end
 
 % Check classes and frequencies.
 indexTimeSeries = cellfun(@(x) isa(x, 'TimeSubscriptable'), varargin);
-assert( ...
-    all(indexTimeSeries), ...
-    exception.Base('Series:CannotVertCatNonSeries', 'error') ...
-);
-
-% Check date frequency.
-freq = Frequency.empty(1, 0);
-indexNaN = logical.empty(1, 0);
-for i = 1 : numel(varargin)
-    ithStart = varargin{i}.Start;
-    freq = [freq, getFrequency(ithStart)];
-    indexNaN = [indexNaN, isnan(ithStart)];
+if ~all(indexTimeSeries)
+    throw( exception.Base('Series:CannotVertCatNonSeries', 'error') );
 end
+
+% Check date frequency
+freq = nan(1, nargin);
+for i = 1 : numel(varargin)
+    freq(i) = double(getFrequency(varargin{i}.Start));
+end
+indexNaN = isnan(freq);
 if any(~indexNaN)
     first = find(~indexNaN, 1);
-    assert( ...
-        all(freq==freq(first) | indexNaN), ...
-        exception.Base('Series:CannotCatMixedFrequencies', 'error') ...
-    );
+    if ~all(freq(~indexNaN)==freq(first))
+        throw( exception.Base('Series:CannotCatMixedFrequencies', 'error') );
+    end
+    freq = freq(first);
+else
+    freq = Frequency.NaF;
 end
 
 numInputs = length(varargin);
@@ -73,6 +72,7 @@ sizeXData = size(x.Data);
 ndimsXData = ndims(x.Data);
 x.Data = x.Data(:, :);
 
+serialXStart = round(x.Start);
 for i = 2 : numInputs
     y = varargin{i};
     sizeYData = size(y.Data);
@@ -97,28 +97,31 @@ for i = 2 : numInputs
                 'must be consistent in 2nd and higher dimensions.']);
         end
     end
-    if isempty(y.Data) || isnan(y.Start)
+    serialYStart = round(y.Start);
+    if isempty(y.Data) || isnan(serialYStart)
         continue
     end
-    if isempty(x.Data) || isnan(x.Start)
+    if isempty(x.Data) || isnan(serialXStart)
         x = y;
+        serialXStart = serialYStart;
         sizeXData = size(x.Data);
         ndimsXData = ndims(x.Data);
         x.Data = x.Data(:, :);
         continue
     end
 
-    % Determine the longest stretch range necessary.
-    startDate = min(x.Start, y.Start);
-    endDate = max(x.End, y.End);    
-    range = startDate : endDate;
+    % Determine the range necessary
+    serialStart = min(serialXStart, serialYStart);
+    serialXEnd = round(x.End);
+    serialYEnd = round(y.End);
+    serialEnd = max(serialXEnd, serialYEnd);
     
-    % Get continuous data from both series on the largest stretch range.
-    xData = rangedata(x, range);
-    yData = rangedata(y, range);
+    % Get continuous data from both series on the largest stretch range
+    xData = getDataFromTo(x, serialStart, serialEnd);
+    yData = getDataFromTo(y, serialStart, serialEnd);
     
     % Identify and overlay NaNs separately in the real and imaginary parts of
-    % the data.
+    % the data
     xDataReal = real(xData);
     yDataReal = real(yData);
     xDataImag = imag(xData);
@@ -128,12 +131,13 @@ for i = 2 : numInputs
     xDataReal(indexReal) = yDataReal(indexReal);
     xDataImag(indexImag) = yDataImag(indexImag);
 
-    % Combine the real and imaginary parts of the data again.
+    % Combine the real and imaginary parts of the data again
     x.Data = xDataReal + 1i*xDataImag;
-    
-    % Reset the start date.
-    x.Start = startDate;
+
+    % Update start date for the output series
+    serialXStart = serialStart;
 end
+x.Start = DateWrapper.fromSerial(freq, serialXStart);
 
 if ndimsXData>2
     x.Data = reshape(x.Data, [size(x.Data, 1), sizeXData(2:end)]);

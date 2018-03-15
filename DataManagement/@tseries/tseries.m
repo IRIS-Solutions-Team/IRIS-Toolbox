@@ -470,6 +470,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         end
 
 
+        varargout = getDataFromTo(varargin)
         varargout = implementGet(varargin)
         varargout = maxabs(varargin)
         varargout = rearrangePred(varargin)

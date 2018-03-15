@@ -1,5 +1,5 @@
 function [x, range] = rangedata(this, range)
-% rangedata  Retrieve Series data on continuous range.
+% rangedata  Retrieve Series data on continuous range
 %
 % __Syntax__
 %
@@ -36,8 +36,8 @@ function [x, range] = rangedata(this, range)
 % but it is more efficient for the special case of contiunous date ranges.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %-------------------------------------------------------------------------- 
 
@@ -120,7 +120,7 @@ if length(sizeData)>2
     x = reshape(x, [size(x, 1), sizeData(2:end)]);
 end
 
-% Return actual range if requested.
+% Return actual range if requested
 if nargout>1
     range = start + (posStart : posEnd) - 1;
 end

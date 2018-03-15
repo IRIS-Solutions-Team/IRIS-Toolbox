@@ -29,7 +29,7 @@ if isa(dates, 'DateWrapper')
     dates = dates(:);
     data = nan([length(dates), sizeOfData(2:end)]);
     if ~isempty(this.Data)
-        pos = round(dates - start + 1);
+        pos = round(dates) - round(start) + 1;
         ixTest = pos>=1 & pos<=sizeOfData(1) & freqcmp(start, dates);
         data(ixTest, :) = this.Data(pos(ixTest), :);
         if nargout>2
