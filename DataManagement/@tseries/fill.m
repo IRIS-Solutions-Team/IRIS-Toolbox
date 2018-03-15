@@ -24,8 +24,12 @@ end
 this = resetColumnNames(this);
 if nargin>3 
     if iscell(newComment)
-        this.Comment(:) = newComment(:);
-    elseif ischar(newComment)
+        indexEmpty = cellfun('isempty', newComment);
+        if any(~indexEmpty)
+            newComment(indexEmpty) = { TimeSubscriptable.EMPTY_COMMENT };
+            this.Comment(:) = newComment(:);
+        end
+    elseif ischar(newComment) && ~isempty(newComment)
         this.Comment(:) = { newComment };
     end
 end
