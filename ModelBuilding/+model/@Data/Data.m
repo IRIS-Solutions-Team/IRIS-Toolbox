@@ -1,6 +1,7 @@
 classdef (Abstract) Data
     properties (Abstract, Dependent)
         NumVariants
+        NamesAppendable
     end
 
 

@@ -69,20 +69,21 @@ if ispanel(this)
     return
 end
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('VAR.simulate');
-    INPUT_PARSER.addRequired('VAR', @(x) isa(x, 'VAR'));
-    INPUT_PARSER.addRequired('InputDatabank', @isstruct);
-    INPUT_PARSER.addRequired('Range', @DateWrapper.validateProperRangeInput);
-    INPUT_PARSER.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
-    INPUT_PARSER.addParameter('DbOverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
-    INPUT_PARSER.addParameter({'Deviation', 'Deviations'}, false, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('Reporting', true, @(x) isequal(x, true) || isequal(x, false));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('VAR.simulate');
+    inputParser.addRequired('VAR', @(x) isa(x, 'VAR'));
+    inputParser.addRequired('InputDatabank', @isstruct);
+    inputParser.addRequired('Range', @DateWrapper.validateProperRangeInput);
+    inputParser.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    inputParser.addParameter('AppendPostsample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    inputParser.addParameter('DbOverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    inputParser.addParameter({'Deviation', 'Deviations'}, false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Reporting', true, @(x) isequal(x, true) || isequal(x, false));
 end
-INPUT_PARSER.parse(this, inputDatabank, range, varargin{:});
-opt = INPUT_PARSER.Options;
+inputParser.parse(this, inputDatabank, range, varargin{:});
+opt = inputParser.Options;
 if ischar(range)
     range = textinp2dat(range);
 end

@@ -63,6 +63,7 @@ classdef (CaseInsensitiveProperties=true) ...
     
 
     properties (Dependent)
+        % NumVariants  Number of parameter variants
         NumVariants
 
         % EigenValues  Eigenvalues of VAR transition matrix
@@ -107,6 +108,9 @@ classdef (CaseInsensitiveProperties=true) ...
         
         % IndexFitted  Logical index of dates in estimation range acutally fitted
         IndexFitted = logical.empty(1, 0) 
+
+        % NamesAppendable
+        NamesAppendable
     end
 
 
@@ -325,6 +329,11 @@ classdef (CaseInsensitiveProperties=true) ...
         function index = get.IndexFitted(this)
             index = this.IxFitted;
         end
+
+
+        function names = get.NamesAppendable(this)
+            names = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
+        end%
 
 
         function this = set.NamesEndogenous(this, newNames)

@@ -213,6 +213,7 @@ def.simulate = [
     {
     'anticipate', true, @islogicalscalar
     'AppendPresample, AddPresample', false, @islogical
+    'AppendPostsample, AddPostsample', false, @islogical
     'Blocks', true, @islogicalscalar
     'contributions, contribution', false, @islogicalscalar
     'DbOverlay, DbExtend', false, @(x) islogicalscalar(x) || isstruct(x)

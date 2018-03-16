@@ -283,14 +283,14 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/simulate.m');
-    INPUT_PARSER.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
-    INPUT_PARSER.addRequired('D', @isstruct);
-    INPUT_PARSER.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model/simulate.m');
+    inputParser.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
+    inputParser.addRequired('D', @isstruct);
+    inputParser.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
 end
-INPUT_PARSER.parse(this, inp, range);
+inputParser.parse(this, inp, range);
 
 range = range(1) : range(end);
 if ~isa(range, 'DateWrapper')

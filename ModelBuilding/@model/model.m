@@ -195,7 +195,11 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
 
 
     properties (Dependent)
+        % NumVariants  Number of parameter variants
         NumVariants
+
+        % NamesAppendable  Variable names that can be appended pre-sample or post-sample database
+        NamesAppendable
     end
 
     
@@ -773,6 +777,17 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
 
         function n = get.NumVariants(this)
             n = length(this);
-        end
+        end%
+
+
+        function list = get.NamesAppendable(this)
+            TYPE = @int8;
+            indexYXEG = this.Quantity.Type==TYPE(1) ...
+                | this.Quantity.Type==TYPE(2) ...
+                | this.Quantity.Type==TYPE(31) ...
+                | this.Quantity.Type==TYPE(32) ...
+                | this.Quantity.Type==TYPE(5);
+            list = this.Quantity.Name(indexYXEG);
+        end%
     end
 end
