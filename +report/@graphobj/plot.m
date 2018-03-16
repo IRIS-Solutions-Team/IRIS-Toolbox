@@ -1,11 +1,11 @@
 function plot(this, ax)
-% plot  Draw report/graph object.
+% plot  Draw report/graph object
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ end
 % Make the y-axis tight if requested by the user. Only after that the vline
 % children can be plotted.
 if this.options.tight
-    grfun.yaxistight(ax(end));
+    visual.backend.setAxesTight(ax(end));
 end
 
 % Add title and subtitle (must be done before the legend).

@@ -494,20 +494,15 @@ function [actualRange, data, isOk] = callPlot(func, funcArgs, aa, inputRange, in
     end
 
     if opt.Tight
-        isTseries = getappdata(aa(1), 'IRIS_SERIES');
-        if isequal(isTseries, true)
-            grfun.yaxistight(aa(1));
-        else
-            axis(aa, 'tight');
-        end
+        visual.backend.setAxesTight(aa);
     end
 
     if isXGrid
-        set(aa, 'xgrid', 'on');
+        set(aa, 'XGrid', 'On');
     end
 
     if isYGrid
-        set(aa, 'ygrid', 'on');
+        set(aa, 'YGrid', 'On');
     end
 
     if opt.AddClick
@@ -524,7 +519,7 @@ function [actualRange, data, isOk] = callPlot(func, funcArgs, aa, inputRange, in
     end
 
     if ~isempty(opt.VLine)
-        visual.vline(aa, opt.VLine, 'color=', 'black');
+        visual.vline(aa, opt.VLine, 'Color=', 'Black');
     end
 
     if ~isempty(opt.Highlight)

@@ -1,5 +1,5 @@
-function yaxistight(varargin)
-% yaxistight  Make y-axis tight.
+function yaxistight(handlesAxes)
+% yaxistight  Make y-axis tight
 %
 % __Syntax__
 %
@@ -26,15 +26,21 @@ function yaxistight(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-if ~isempty(varargin) && all(ishghandle(varargin{1}))
-    handlesToAxes = varargin{1}(:).';
-    varargin(1) = [ ]; %#ok<NASGU>
-else
-    handlesToAxes = gca( );
+if nargin==0
+    handlesAxes = visual.backend.getCurrentAxesIfExists( );
 end
 
 %--------------------------------------------------------------------------
 
+if isempty(handlesAxes)
+    return
+end
+
+set(handlesAxes, 'YLimSpec', 'Tight');
+
+end
+
+%{
 for ithAxes = handlesToAxes
     [yMin, yMax] = getActualYDataLimits(ithAxes);
     if isinf(yMin) && isinf(yMax)
@@ -67,4 +73,6 @@ function [yMin, yMax] = getActualYDataLimits(ax)
         yMin = min(yMin, min(ithYData(:)));
         yMax = max(yMax, max(ithYData(:)));
     end
+    keyboard
 end
+%}

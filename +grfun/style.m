@@ -502,12 +502,7 @@ return
                 
             case 'tight'
                 if isequal(value, true) || isequal(lower(value), 'on')
-                    grfun.yaxistight(h);
-                    isTseriesOld = getappdata(h, 'IRIS_SERIES');
-                    isTimeSeriesNew = getappdata(h, 'IRIS_TimeSeriesPlot');
-                    if ~isequal(isTseriesOld, true) && ~isequal(isTimeSeriesNew, true)
-                        grfun.xaxistight(h);
-                    end
+                    visual.backend.setAxesTight(h);
                 end
                 
             case 'clicktocopy'
