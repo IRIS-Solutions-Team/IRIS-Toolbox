@@ -36,12 +36,22 @@ if length(varargin)==1 && isequal(varargin{1}, true)
     varargin(1) = [ ];
 end
 
+persistent inputParserLinear inputParserNonlinear
+
+if isempty(inputParserLinear)
+    inputParserLinear = extend.InputParser('model.prepareSteady');
+    inputParserLinear.addRequired('Model', @(x) isa(x, 'model'));
+    inputParserLinear.addParameter('Growth', true, @(x) isequal(x, true) || isequal(x, false));
+    inputParserLinear.addParameter('Solve', false, @(x) isequal(x, true) || isequal(x, false)); 
+    inputParserLinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false)); 
+end
+
 %--------------------------------------------------------------------------
 
 if this.IsLinear
     % __Linear Steady State Solver__
-    opt = passvalopt('model.SteadyLinear', varargin{:});
-    varargout{1} = opt;
+    inputParserLinear.parse(this, varargin{:});
+    varargout{1} = inputParserLinear.Options;
 else
     % __Nonlinear Steady State Solver__
     % Capture obsolete syntax with solver options directly passed among other

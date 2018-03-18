@@ -1,4 +1,5 @@
 function style(handles, specs, varargin)
+% visual.style  Style graphics objects
 
 persistent inputParser
 if isempty(inputParser)

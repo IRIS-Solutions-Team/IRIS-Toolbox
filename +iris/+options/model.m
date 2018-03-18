@@ -322,13 +322,6 @@ def.sspace = {
     'removeinactive', false, @islogicalscalar
     };
 
-
-def.SteadyLinear = {
-    'Solve', false, @model.validateSolve
-    'Warning', true, @islogicalscalar
-    };
-
-
 def.SteadyNonlinear = [
     swap
     {

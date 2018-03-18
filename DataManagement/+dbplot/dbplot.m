@@ -533,6 +533,10 @@ function postMortem(ff, aa, plotDb, fifTitle, opt) %#ok<INUSL>
         grfun.style(opt.Style, ff);
     end
 
+    if isstruct(opt.VisualStyle) && ~isempty(fieldnames(opt.VisualStyle))
+        visual.style(ff, opt.VisualStyle);
+    end
+
     if opt.AddClick
         visual.clickToExpand([aa{:}]);
     end

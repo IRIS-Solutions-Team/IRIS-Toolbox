@@ -1,11 +1,11 @@
 function  [this, ixSuccess, nPath, eigen] = steadyLinear(this, steady, variantsRequested)
-% steadyLinear  Calculate steady state in linear models.
+% steadyLinear  Calculate steady state in linear models
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
 STEADY_TOLERANCE = this.Tolerance.Steady;
@@ -69,7 +69,7 @@ for v = variantsRequested
     lvl = nan(1, nQty);
     grw = zeros(1, nQty);
     if ixSolution(v)
-        [lvl, grw, ixDiffStat(v)] = getSstate( );
+        [lvl, grw, ixDiffStat(v)] = getSteady( );
         if any(ixLog)
             lvl(1, ixLog) = real(exp(lvl(1, ixLog)));
             grw(1, ixLog) = real(exp(grw(1, ixLog)));
@@ -97,7 +97,7 @@ end
 return
 
 
-    function [lvl, grw, isDiffStat] = getSstate( )
+    function [lvl, grw, isDiffStat] = getSteady( )
         [T, ~, K, Z, ~, D, U] = sspaceMatrices(this, v);
         [nx, nb] = size(T);
         numOfUnitRoots = getNumOfUnitRoots(this.Variant, v);
@@ -108,17 +108,16 @@ return
         Kf = K(1:nf, 1);
         Ka = K(nf+1:end, 1);
         
-        % Alpha vector
-        %--------------
+        % __Alpha Vector__
         isDiffStat = all(all(abs(Ta(1:numOfUnitRoots,1:numOfUnitRoots)-eye(numOfUnitRoots))<EIGEN_TOLERANCE));
         if isDiffStat
-            % I(0) or I(1) systems (stationary or difference stationary).
+            % I(0) or I(1) systems (stationary or difference stationary)
             a2 = (eye(numOfStableRoots) - Ta(numOfUnitRoots+1:end,numOfUnitRoots+1:end)) ...
                 \ Ka(numOfUnitRoots+1:end, 1);
             da1 = Ta(1:numOfUnitRoots, numOfUnitRoots+1:end)*a2 + Ka(1:numOfUnitRoots, 1);
         else
             % I(2) or higher-order systems. Write the steady-state system at two
-            % different times: t and t+d.
+            % different times: t and t+d
             d = 10;
             E1 = [eye(nb), zeros(nb); eye(nb), d*eye(nb)];
             E2 = [Ta, -Ta; Ta, (d-1)*Ta];
@@ -127,8 +126,7 @@ return
             da1 = temp(nb+(1:numOfUnitRoots));
         end
         
-        % Transition variables
-        %----------------------
+        % __Transition Variables__
         x = [ Tf*[-da1; a2]+Kf; U(:, numOfUnitRoots+1:end)*a2 ];
         dx = [ Tf(:, 1:numOfUnitRoots)*da1; U(:, 1:numOfUnitRoots)*da1 ];
         x( abs(x)<=STEADY_TOLERANCE ) = 0;
@@ -138,8 +136,7 @@ return
         lvl(1, posxx) = x(:).';
         grw(1, posxx) = dx(:).';
         
-        % Measurement variables
-        %-----------------------
+        % __Measurement Variables__
         if ny > 0
             y = Z(:, numOfUnitRoots+1:end)*a2 + D;
             dy = Z(:, 1:numOfUnitRoots)*da1;

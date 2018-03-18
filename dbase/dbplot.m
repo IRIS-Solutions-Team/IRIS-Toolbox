@@ -380,6 +380,7 @@ if isempty(inputParser)
     inputParser.addParameter('SaveAs', '', @ischar);
     inputParser.addParameter({'Steady', 'SState'}, struct( ), @(x) isempty(x) || isstruct(x) || isa(x, 'model'));
     inputParser.addParameter('Style', struct( ), @(x) isempty(x) || isstruct(x) || (iscellstr(x) && length(x)==1));
+    inputParser.addParameter('VisualStyle', struct( ), @(x) isempty(x) || isstruct(x) || (iscellstr(x) && length(x)==1));
     inputParser.addParameter({'SubDatabase', 'SubDbase'}, [ ], @(x) isempty(x) || iscellstr(x) || ischar(x));
     inputParser.addParameter('SubPlot', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && numel(x)==2 && all(round(x)==x) && all(x>0)));
     inputParser.addParameter('Tight', false, @(x) isequal(x, true) || isequal(x, false));
