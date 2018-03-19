@@ -86,7 +86,7 @@ function [flag, test] = isCointegrated(this, expn, EIGEN_TOLERANCE)
     numOfUnitRoots = getNumOfUnitRoots(this.Variant);
     for v = 1 : nv
         [T, ~, ~, ~, ~, ~, U] = sspaceMatrices(this, v);
-        test{v} = w*[ Tf(1:nf, 1:numOfUnitRoots(v)); U(:, 1:numOfUnitRoots(v)) ];
+        test{v} = w*[ T(1:nf, 1:numOfUnitRoots(v)); U(:, 1:numOfUnitRoots(v)) ];
         flag(v) = all( abs(test{v})<=EIGEN_TOLERANCE );
     end
 end
