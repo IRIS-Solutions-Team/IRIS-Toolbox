@@ -61,14 +61,14 @@ for i = 1 : numel(list)
     if isstruct(preDatabank)
         if isfield(preDatabank, ithName) ...
             && isa(preDatabank.(ithName), 'TimeSubscriptable') ...
-            || round(preDatabank.(ithName).Frequency)~=freq
+            && round(preDatabank.(ithName).Frequency)==freq
             preSeries = preDatabank.(ithName);
         end
     end
     if isstruct(postDatabank)
         if isfield(postDatabank, ithName) ...
             && isa(postDatabank.(ithName), 'TimeSubscriptable') ...
-            || round(postDatabank.(ithName).Frequency)~=freq
+            && round(postDatabank.(ithName).Frequency)==freq
             postSeries = postDatabank.(ithName);
         end
     end
