@@ -182,7 +182,8 @@ Series:TimeDimMustBeZero,Time dimension must be zero when creating empty time se
 Solver:SteadyGradientRequestedButNotPrepared, Steady-state gradient requested but not prepared; use option PrepareGradient=true
 Steady:BothUnlogLogminus,This name is used in both Unlog= and LogMinus= options: %s 
 Steady:CannotFix,Cannot fix this name: %s 
-Steady:ExogenousNan,This parameter or exogenized variable is not assigned: %s 
+Steady:ExogenousLevelNan,This parameter or the level of this exogenized variable is not assigned: %s 
+Steady:ExogenousGrowthNan,The growth rate of this exogenized variable is not assigned: %s 
 Steady:InvalidLogminus,This name cannot be used in LogMinus= option: %s 
 Steady:InvalidUnlog,This name cannot be used in Unlog= option: %s 
 Steady:StructuralSingularity,System of steady equations is structurally singular.

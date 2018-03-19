@@ -135,44 +135,52 @@ return
 
 
     function checkFixedToNaN( )
-        numOfQuantities = length(this.Quantity);
+        numQuantities = length(this.Quantity);
         % __Check for Levels Fixed to NaN__
         idToFix = blz.IdToFix.Level;
-        indexToFix = false(1, numOfQuantities);
+        indexToFix = false(1, numQuantities);
         indexToFix(idToFix) = true;
-        indexOfNaN = any(isnan(real(asgn)), 3) & indexToFix & ~blz.IxZero.Level;
-        if any(indexOfNaN)
+        indexNaN = any(isnan(real(asgn)), 3) & indexToFix & ~blz.IxZero.Level;
+        if any(indexNaN)
             throw( ...
                 exception.Base('Steady:LevelFixedToNan', 'error'), ...
-                this.Quantity.Name{indexOfNaN} ...
+                this.Quantity.Name{indexNaN} ...
             );
         end
         % __Check for Growth Rates Fixed to NaN__
         idToFix = blz.IdToFix.Growth;
-        indexToFix = false(1, numOfQuantities);
+        indexToFix = false(1, numQuantities);
         indexToFix(idToFix) = true;
-        indexOfNaN = any(isnan(imag(asgn)), 3) & indexToFix & ~blz.IxZero.Growth;
-        if any(indexOfNaN)
+        indexNaN = any(isnan(imag(asgn)), 3) & indexToFix & ~blz.IxZero.Growth;
+        if any(indexNaN)
             throw( ...
                 exception.Base('Steady:GrowthFixedToNan', 'error'), ...
-                this.Quantity.Name{indexOfNaN} ...
+                this.Quantity.Name{indexNaN} ...
             );
         end
     end
 
 
     function checkExogenizedToNaN( )
-        % Parameter or exogenous variable occurs in steady equations
         indexNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
         indexNeeded = full(indexNeeded);
-        % Level or growth is endogenous and NaN
-        indexNaN = ( any(isnan(real(asgn)), 3) & ~ixEndg.Level ) ...
-            | ( any(isnan(imag(asgn)), 3) & ~ixEndg.Growth );
-        indexToReport = indexNeeded & indexNaN;
-        if any(indexToReport)
+        indexLevelNeeded = indexNeeded & ~ixEndg.Level & ~ixZero.Level;
+        indexGrowthNeeded = indexNeeded & ~ixEndg.Growth & ~ixZero.Growth;
+        % Level or growth is endogenous, not fixed, and NaN
+        indexLevelNaN = any(isnan(real(asgn)), 3);
+        indexGrowthNaN = any(isnan(imag(asgn)), 3);
+        indexLevelToReport = indexLevelNeeded & indexLevelNaN;
+        indexGrowthToReport = indexGrowthNeeded & indexGrowthNaN;
+        if any(indexLevelToReport)
             throw( ...
-                exception.Base('Steady:ExogenousNan', 'warning'), ...
-                this.Quantity.Name{indexToReport} ...
+                exception.Base('Steady:ExogenousLevelNan', 'warning'), ...
+                this.Quantity.Name{indexLevelToReport} ...
+            );
+        end
+        if any(indexGrowthToReport)
+            throw( ...
+                exception.Base('Steady:ExogenousGrowthNan', 'warning'), ...
+                this.Quantity.Name{indexGrowthToReport} ...
             );
         end
     end
