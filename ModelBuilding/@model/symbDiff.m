@@ -30,8 +30,7 @@ ixpg = ixp | ixg;
 nEqtn = numel(this.Equation.Input);
 this.Gradient = model.component.Gradient(nEqtn);
 
-% Deterministic trends
-%----------------------
+% __Deterministic Trends__
 % Differentiate dtrends w.r.t. parameters and exogenous variables.
 for iEq = find(ixd)
     vecWrt = find(this.Incidence.Dynamic, iEq, ixpg);
@@ -43,10 +42,9 @@ for iEq = find(ixd)
     this.Gradient.Dynamic(:, iEq) = {d; vecWrt};
 end
 
-% Measurement and transition equations
-%--------------------------------------
+% __Measurement and Transition Equations__
 % Differentiate equations w.r.t. variables and shocks.
-ixyxe = this.Quantity.Type==TYPE(1) ...
+indexYXE = this.Quantity.Type==TYPE(1) ...
     | this.Quantity.Type==TYPE(2) ...
     | this.Quantity.Type==TYPE(31) ...
     | this.Quantity.Type==TYPE(32);
@@ -54,14 +52,14 @@ ixyxe = this.Quantity.Type==TYPE(1) ...
 for iEq = find(ixm | ixt)
     % Differentiate one equation wrt all names at a time. The result will be
     % a single vector of derivatives.
-    vecWrt = find(this.Incidence.Dynamic, iEq, ixyxe);
+    vecWrt = find(this.Incidence.Dynamic, iEq, indexYXE);
     d = [ ];
     if ~isequal(optSymbDiff, false)
         d = model.component.Gradient.diff(this.Equation.Dynamic{iEq}, vecWrt);    
     end
     this.Gradient.Dynamic(:, iEq) = {d; vecWrt};
     if ~isempty(this.Equation.Steady{iEq})
-        vecWrt = find(this.Incidence.Steady, iEq, ixyxe);
+        vecWrt = find(this.Incidence.Steady, iEq, indexYXE);
         d = [ ];
         if ~isequal(optSymbDiff, false)
             d = model.component.Gradient.diff(this.Equation.Steady{iEq}, vecWrt);

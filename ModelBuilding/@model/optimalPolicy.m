@@ -96,8 +96,18 @@ for eq = first : posLossEqtn
     d = strcat('(', d, ')');
 
     for j = 1 : numWrt
+        if strcmp(d{j}, '(0)')
+            continue
+        end
+
         newEq = vecNames(j);
         sh = vecShifts(j);
+
+        % Earmark the derivative for non-linear simulation if at least one equation
+        % in it is nonlinear and the derivative is nonzero. The derivative of the
+        % loss function is supposed to be treated as nonlinear if the loss function
+        % itself has been introduced by min#( ) and not min( ).
+        new.IxHash(newEq) = new.IxHash(newEq) || equation.IxHash(eq);
 
         % Multiply derivatives wrt lags and leads by the discount factor.
         if sh==0
@@ -131,13 +141,6 @@ for eq = first : posLossEqtn
             sign = '';
         end
         new.Input{newEq} = [d{j}, sign, new.Input{newEq}];
-
-        % Earmark the derivative for non-linear simulation if at least one equation
-        % in it is nonlinear and the derivative is nonzero. The derivative of the
-        % loss function is supposed to be treated as nonlinear if the loss function
-        % itself has been introduced by min#( ) and not min( ).
-        isNonlin = equation.IxHash(eq) && ~isequal(dEqtn, '0');
-        new.IxHash(newEq) = new.IxHash(newEq) || isNonlin;
     end
 end
 
