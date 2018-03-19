@@ -136,6 +136,7 @@ function processFixOpt(this, blz, opt)
     else
         fixG(:) = true;
     end
+
     % Fix optimal policy multipliers. The level and growth of
     % multipliers will be set to zero in the main loop.
     if opt.zeromultipliers
@@ -178,7 +179,7 @@ function blz = createBlocks(this, opt)
     if blz.IsSingular
         throw( ...
             exception.Base('Steady:StructuralSingularity', 'warning')...
-            );
+        );
     end
 
     % Index of variables that will be always set to zero.
