@@ -839,7 +839,7 @@ classdef Ad
                 if isnumeric(a)
                     string = sprintf('%.16g', a);
                 elseif ischar(a)
-                    string = a;
+                    string = ['''', a, ''''];
                 elseif isa(a, 'Ad')
                     if isnumeric(a.Input.Expression)
                         string = sprintf('%.16g', a.Input.Expression);
