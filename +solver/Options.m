@@ -4,6 +4,8 @@ classdef Options
         Display = 'iter'
         Lambda = [0.1, 1, 10, 100];
         SolverName = 'IRIS'
+        JacobPattern = logical.empty(0)
+        LargeScale = false
         MaxIterations = 1000
         MaxFunctionEvaluations = @(inp) 100*inp.NumberOfVariables
         StepTolerance = 1e-12
@@ -17,15 +19,15 @@ classdef Options
     end
 
 
-
-
     methods
-        function this = Options(varargin)
-            user = passvalopt('solver.SteadyIris', varargin{:});
-            this = copyFromStruct(this, user);
+        function this = Options(caller, varargin)
+            if nargin==0
+                return
+            end
+            spec = ['solver.Iris', caller];
+            struct = passvalopt(spec, varargin{:});
+            this = copyFromStruct(this, struct);
         end
-   
-
 
 
         function this = copyFromStruct(this, user)
@@ -41,9 +43,8 @@ classdef Options
     end
     
     
-    
     methods (Static)
-        function [solverOpt, prepareGradient] = processOptions(solverOpt, prepareGradient, displayMode, varargin)
+        function [solverOpt, prepareGradient] = processOptions(solverOpt, caller,  prepareGradient, displayMode, varargin)
             FN_CHKOPTIMTBX = @(x) ...
                 isequal(x, 'lsqnonlin') || isequal(x, 'fsolve') ...
                 || isequal(x, @lsqnonlin) || isequal(x, @fsolve);
@@ -53,18 +54,19 @@ classdef Options
                 % 'Solver=' optimoptions( )
                 % 'Solver=' solver.Options( )
                 % Do nothing.
-                
+
             elseif FN_CHKOPTIMTBX(solverOpt) ...
                     || ( iscell(solverOpt) && FN_CHKOPTIMTBX(solverOpt{1}) && iscellstr(solverOpt(2:2:end)) )
                 if iscell(solverOpt)
                     % 'Solver=' { 'lsqnonlin', 'Name=', Value, ... }
-                    user = passvalopt('solver.SteadyOptimTbx', solverOpt{2:end});
+                    user = solverOpt(2:end);
                     solverOpt = optimoptions(solverOpt{1});
                 else
                     % 'Solver=' 'lsqnonlin' | 'fsolve'
-                    user = passvalopt('solver.SteadyOptimTbx', varargin{:});
+                    user = varargin;
                     solverOpt = optimoptions(solverOpt);
                 end
+                user = passvalopt(['solver.Optim', caller], user{:});
                 if isequal(user.Display, true)
                     user.Display = 'iter';
                 elseif isequal(user.Display, false)
@@ -77,7 +79,9 @@ classdef Options
                     if isequal(user.(name), @default)
                         continue
                     end
-                    solverOpt = optimoptions(solverOpt, name, user.(name));
+                    try
+                        solverOpt = optimoptions(solverOpt, name, user.(name));
+                    end
                 end
                 
                 
@@ -85,21 +89,23 @@ classdef Options
                     || ( iscell(solverOpt) && strcmpi(solverOpt{1}, 'IRIS') && iscellstr(solverOpt(2:2:end)) )
                 if iscell(solverOpt)
                     % 'Solver=  { 'IRIS', 'Name=', Value, ... }
-                    user = passvalopt('solver.SteadyIris', solverOpt{2:end});
+                    solverOpt = solverOpt(2:end);
                 else
                     % 'Solver=' 'IRIS'
-                    user = passvalopt('solver.SteadyIris', varargin{:});
+                    % Collect all obsolete options passed outside the
+                    % suboption.
+                    solverOpt = varargin;
                 end
-                user.Display = silentDisplay(user.Display, displayMode);
-                solverOpt = solver.Options( );
-                solverOpt = copyFromStruct(solverOpt, user);
+                solverOpt = solver.Options(caller, solverOpt{:});
+                solverOpt.Display = silentDisplay(solverOpt.Display, displayMode);
+
                 
             elseif isa(solverOpt, 'function_handle')
                 % 'Solver=' @userFunction
                 % Do nothing.
             end
             
-            % High-level option Gradient= is used to prepare gradients within the
+            % High-level option PrepareGradient= is used to prepare gradients within the
             % solver.Block object.
             if isequal(prepareGradient, @auto)
                 if isa(solverOpt, 'optim.options.SolverOptions') ...
@@ -111,8 +117,6 @@ classdef Options
             end
 
             return
-            
-            
             
             
             function display = silentDisplay(display, mode)

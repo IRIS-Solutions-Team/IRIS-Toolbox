@@ -20,22 +20,19 @@ classdef White
         end
         
         
-        
-        
         function code = whiteOutParenth(code, level)
             import parser.White;
+            code = [code, White.WHITEOUT_CHAR];
             x = zeros(1, length(code), 'int8');
             x( code=='(' ) = 1;
-            x( code==')' ) = -1;
+            x( find(code==')')+1 ) = -1;
             code( cumsum(x)>=level ) = White.WHITEOUT_CHAR;
             x = zeros(1, length(code), 'int8');
             x( code=='[' ) = 1;
-            x( code==']' ) = -1;
+            x( find(code==']')+1 ) = -1;
             code( cumsum(x)>=level ) = White.WHITEOUT_CHAR;
-
+            code(end) = '';
         end
-        
-        
         
             
         function c = whiteOut(c, from, to, white)

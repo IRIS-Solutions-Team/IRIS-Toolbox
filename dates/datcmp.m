@@ -41,7 +41,7 @@ function flag = datcmp(dat1, dat2)
 %         0     0     0     0     1     0     0     0
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % Parse required input arguments.
 pp = inputParser( );

@@ -28,7 +28,7 @@ function D = dbcomment(D,M)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ list = fieldnames(D);
 c = get(M,'descript');
 for i = 1 : length(list)
     name = list{i};
-    if ~istseries(D.(name)) && ~isfield(c,name)
+    if ~isa(D.(name), 'tseries') && ~isfield(c,name)
         continue
     end
     try %#ok<TRYNC>

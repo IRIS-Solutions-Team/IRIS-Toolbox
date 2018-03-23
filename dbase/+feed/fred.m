@@ -1,83 +1,58 @@
-function d = fred(varargin)
-% feed.fred  Import data from FRED, Federal Reserve Bank of St. Louis.
+function outputDatabank = fred(varargin)
+% feed.fred  Import data from FRED, Federal Reserve Bank of St. Louis databank.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%      d = feed.fred(series1, series2, ...)
-%
-%
-% Input arguments
-% ================
-%
-% * `series1`, `series2`, ... [ char ] - Names of FRED series
-% (not case sensitive).
+%      OutputDatabank = feed.fred(FredSeriesID, ...)
 %
 %
-% Output arguments
-% =================
+% __Input Arguments__
 %
-% * `d` [ struct ] - Database containing imported FRED series.
+% * `FredSeriesID` [ cellstr | string ] - FRED Series IDs for requested
+% data (not case sensitive).
 %
 %
-% Description
-% ============
+% __Output Arguments__
+%
+% * `OutputDatabank` [ struct ] - Databank containing imported FRED series.
+%
+%
+% __Options__
+%
+% * `'URL='` [ *`'https://research.stlouisfed.org/fred2/'`* | char | string ] - URL for the databank.
+%
+%
+% __Description__
 %
 % Federal Reserve Economic Data, FRED (https://fred.stlouisfed.org/)
-% is an online database consisting of more than 385, 000 economic data time
+% is an online databank consisting of more than 385, 000 economic data time
 % series from 80 national, international, public, and private sources. 
-% The `feed.fred( )` function provides access to those databases with IRIS.
+% The `feed.fred( )` function provides access to those databanks with IRIS.
 %
 % This function requires the Datafeed Toolbox.
 %
 %
-% Example
-% ========
+% __Example__
 %
-% d = feed.fred('GDP', 'PCEC', 'FPI')
+%     d = feed.fred({'GDP', 'PCEC', 'FPI'})
+%  
+%     d = 
+%       struct with fields:
+%     
+%          GDP: [281x1 Series]
+%         PCEC: [281x1 Series]
+%          FPI: [281x1 Series]
 % 
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-c = fred('https://research.stlouisfed.org/fred2/');
-data = fetch(c, varargin);
-close(c);
+timeSeriesConstructor = getappdata(0, 'IRIS_TimeSeriesConstructor');
+dateFromSerial = getappdata(0, 'IRIS_DateFromSerial');
 
-d = struct( );
-nData = numel(data);
-lsUnknownFreq = cell(1, 0);
-for i = 1 : nData
-    freq = regexp(data(i).Frequency, '\w+', 'match', 'once');
-    v = datevec(data(i).Data(:, 1));
-    switch freq
-        case 'Daily'
-            dates = data(i).Data(:, 1);
-        case 'Weekly'
-            dates = ww(v(:, 1), v(:, 2), v(:, 3));
-        case 'Monthly'
-            dates = mm(v(:, 1), v(:, 2));
-        case 'Quarterly'
-            dates = qq(v(:, 1), month2per(v(:, 2), 4));
-        case 'Semiannual'
-            dates = hh(v(:, 1), month2per(v(:, 2), 2));
-        case 'Annual'
-            dates = yy(v(:, 1));
-        otherwise
-            lsUnknownFreq{end+1} = varargin{i};
-            continue
-    end
-    name = strtrim(data(i).SeriesID);
-    comment = strtrim(data(i).Title);
-    userData = rmfield(data(i), 'Data');
-    d.(name) = Series(dates, data(i).Data(:, 2), comment, userData);
-end
+%--------------------------------------------------------------------------
 
-if ~isempty(lsUnknownFreq)
-    throw( ...
-        exception.Base('Dbase:FeedUnknownFrequency', 'warning'), ...
-        lsUnknownFreq ...
-        );
-end
+container = DatafeedContainer.fromFred(varargin{:});
+outputDatabank = export(container, dateFromSerial, timeSeriesConstructor);
 
 end

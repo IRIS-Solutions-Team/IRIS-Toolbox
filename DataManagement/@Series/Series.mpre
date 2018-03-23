@@ -1,0 +1,33 @@
+classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
+        Series < tseries
+    methods
+        function this = Series(varargin)
+            this = this@tseries(varargin{:});
+        end
+
+
+        function obj = tseries(this)
+            obj = tseries( );
+            obj = struct2obj(obj, this);
+        end
+    end
+
+
+    methods
+        #for FN = {plot, bar, area, stem}
+        function varargout = #(FN)(varargin)
+            [varargout{1:nargout}] = #(FN)@TimeSubscriptable(varargin{:});
+        end
+
+
+        #endfor
+        varargout = barcon(varargin)
+    end
+
+
+    methods (Static)
+        varargout = fromFred(varargin)
+        varargout = linearTrend(varargin)
+        varargout = empty(varargin)
+    end
+end

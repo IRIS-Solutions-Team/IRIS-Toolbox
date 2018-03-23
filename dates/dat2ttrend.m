@@ -1,16 +1,14 @@
 function [trend, baseYear] = dat2ttrend(range, baseYear)
 % dat2ttrend  Construct linear time trend from date range.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [trend, baseDate] = dat2ttrend(range)
 %     [trend, baseDate] = dat2ttrend(range, baseYear)
 %     [trend, baseDate] = dat2ttrend(range, obj)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `range` [ numeric ] - Date range from which an integer linear time
 % trend will be constructed.
@@ -20,11 +18,10 @@ function [trend, baseYear] = dat2ttrend(range, baseYear)
 %
 % * `obj` [ model | VAR ] - Model or VAR object whose base year will be
 % used to construct the time trend; if both `BaseYear` and `Obj` are
-% omitted, the base year from `irisget('baseYear')` will be used.
+% omitted, the base year from `iris.get('baseYear')` will be used.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `trend` [ numeric ] - Integer linear time trend, unique to the input
 % date range `Range` and the base year.
@@ -33,8 +30,7 @@ function [trend, baseYear] = dat2ttrend(range, baseYear)
 % range; see Description.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % For regular date frequencies, the time trend is constructed the following
 % way. First, a base date is created first period in the base year of a
@@ -49,12 +45,11 @@ function [trend, baseYear] = dat2ttrend(range, baseYear)
 % time trend is simply the input date range.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 try
     if ~isintscalar(baseYear)
@@ -67,14 +62,14 @@ end
 %--------------------------------------------------------------------------
 
 if ~isintscalar(baseYear)
-    baseYear = irisget('baseYear');
+    baseYear = iris.get('baseYear');
 end
 
 if isempty(range)
     trend = range;
 else
-    freq = datfreq(range);
-    dates.Date.chkMixedFrequency(freq);
+    freq = DateWrapper.getFrequencyFromNumeric(range);
+    DateWrapper.checkMixedFrequency(freq);
     freq = freq(1);
     if freq==0
         trend = range;

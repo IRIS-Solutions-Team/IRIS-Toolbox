@@ -53,7 +53,7 @@ classdef Type
                 case solver.block.Type.ASSIGN_UMINUS
                     c = strcat('-', c);
                 otherwise
-                    throw( exception.Base('General:INTERNAL', 'error') );
+                    throw( exception.Base('General:Internal', 'error') );
             end
         end
     end
@@ -71,7 +71,7 @@ classdef Type
                     return
                 end
             end
-            throw( exception.Base('General:INTERNAL', 'error') );
+            throw( exception.Base('General:Internal', 'error') );
         end
     end
 end

@@ -1,12 +1,11 @@
 function varargout = highlight(varargin)
-% highlight  Shortcut for grfun.highlight.
+% highlight  Shortcut for visual.highlight.
 %
-% See help on [`grfun.highlight`](grfun/highlight).
-%
+% See help on [`visual.highlight`](visual/highlight).
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-[varargout{1:nargout}] = grfun.highlight(varargin{:});
+[varargout{1:nargout}] = visual.highlight(varargin{:});
 
 end

@@ -1,21 +1,18 @@
 function varargout = dbeval(d, varargin)
 % dbeval  Evaluate expression in specified database.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [Value1, Value2, ...] = dbeval(D, Exn1, Exn2, ...)
 %     [Value1, Value2, ...] = dbeval(M, Exn1, Exn2, ...)
 %
 %
-% Syntax with steady-state references
-% ====================================
+% __Syntax with Steady-State References
 %
 %     [Value1, Value2, ...] = dbeval(D, Steady, Exn1, Exn2, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `D` [ struct ] - Input database within which the expressions will be
 % evaluated.
@@ -30,18 +27,15 @@ function varargout = dbeval(d, varargin)
 % values will be taken to replace steady-state references in expressions.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `Value1`, `Value2`, ... [ ... ] - Resulting values.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 % Create a database with two fields and one subdatabase with one field,
 %
@@ -64,7 +58,7 @@ function varargout = dbeval(d, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if ~isempty(varargin) && (isstruct(varargin{1}) || isa(varargin{1}, 'model'))
     ss = varargin{1};
@@ -74,29 +68,31 @@ else
 end
 
 % Parse required input arguments.
-pp = inputParser( );
-pp.addRequired('D', @(x) isstruct(x) || isa(x, 'model'));
-pp.addRequired('Steady', @(x) isstruct(x) || isa(x, 'model'));
-pp.addRequired('Exn', @(x) isempty(x) || iscellstr(x{1}) || iscellstr(x));
-pp.parse(d, ss, varargin);
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    INPUT_PARSER = extend.InputParser('dbase/dbeval');
+    INPUT_PARSER.addRequired('InputDatabank', @(x) isstruct(x) || isa(x, 'model'));
+    INPUT_PARSER.addOptional('Steady', [ ], @(x) isempty(x) || isstruct(x) || isa(x, 'model'));
+    INPUT_PARSER.addOptional('Expression', [ ], @(x) isempty(x) || iscellstr(x{1}) || iscellstr(x));
+end
+INPUT_PARSER.parse(d, ss, varargin);
+exn = INPUT_PARSER.Results.Expression;
 
-if isempty(varargin)
-    varargout = { };
+if isempty(exn)
     return
-elseif iscellstr(varargin{1})
-    exn = varargin{1};
-    isMultiple = false;
-else
-    exn = varargin;
-    isMultiple = true;
+end
+
+isSingleInput = iscellstr(exn{1});
+if isSingleInput
+    exn = exn{1};
 end
 
 if isa(d, 'model')
-    d = get(d, 'steadyLevel');
+    d = get(d, 'SteadyLevel');
 end
 
 if isa(ss, 'model')
-    ss = get(ss, 'steadyLevel');
+    ss = get(ss, 'SteadyLevel');
 end
 
 %--------------------------------------------------------------------------
@@ -114,7 +110,7 @@ prefix2 = [char(2), '.'];
 for i = 1 : length(list2)
     exn = regexprep(...
         exn, ...
-        ['&\<' , list2{i}, '\>'], ...
+        ['[&$]\<' , list2{i}, '\>'], ...
         [prefix2, list2{i}] ...
         );
 end
@@ -145,7 +141,7 @@ for i = 1 : nExn
     end
 end
 
-if ~isMultiple
+if isSingleInput
     varargout{1} = varargout;
     varargout(2:end) = [ ];
 end

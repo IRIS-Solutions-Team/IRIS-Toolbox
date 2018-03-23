@@ -5,7 +5,7 @@ classdef rexp
     % No help provided.
     
     % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2017 IRIS Solutions Team.
+    % -Copyright (c) 2007-2018 IRIS Solutions Team.
     
     
     
@@ -22,7 +22,7 @@ classdef rexp
             if isempty(varargin)
                 return
             end
-            if length(varargin) == 1 && isrexp(varargin{1})
+            if length(varargin) == 1 && isa(varargin{1}, 'rexp')
                 this = varargin{1};
                 return
             end
@@ -116,7 +116,7 @@ classdef rexp
         
         
         function varargout = apply(Fn, varargin)
-            ix = cellfun(@(x) isrexp(x), varargin);
+            ix = cellfun(@(x) isa(x, 'rexp'), varargin);
             for i = find(ix)
                 varargin{i} = varargin{i}.String;
             end 
@@ -134,7 +134,7 @@ classdef rexp
         
         
         function flag = eq(varargin)
-            ix = cellfun(@(x) isrexp(x), varargin);
+            ix = cellfun(@(x) isa(x, 'rexp'), varargin);
             for i = find(ix)
                 varargin{i} = varargin{i}.String;
             end 

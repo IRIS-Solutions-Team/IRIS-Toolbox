@@ -5,7 +5,7 @@ function leg = plot(this, hAx)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team & Sergey Plotnikov.
+% -Copyright (c) 2007-2018 IRIS Solutions Team & Sergey Plotnikov.
 
 %--------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ set(hAx, 'nextPlot', 'add');
 pt = nan(1, nint);
 stdata = stdata.*this.options.factor;
 asym = this.options.asym;
-if istseries(asym)
+if isa(asym, 'tseries')
     asym = asym(time);
     asym(isnan(asym)) = 1;
 end

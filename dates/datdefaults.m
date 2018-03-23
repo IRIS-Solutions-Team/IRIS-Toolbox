@@ -5,36 +5,36 @@ function opt = datdefaults(opt, isPlot)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 try, isPlot; catch, isPlot = false; end %#ok<NOCOM,VUNUS>
 
 %--------------------------------------------------------------------------
 
-cfg = irisconfigmaster('get');
+irisConfig = iris.get( );
 
 if ~isfield(opt,'dateformat') || isequal(opt.dateformat, @config)
     if ~isPlot
-        opt.dateformat = cfg.dateformat;
+        opt.dateformat = irisConfig.dateformat;
     else
-        opt.dateformat = cfg.plotdateformat;
+        opt.dateformat = irisConfig.plotdateformat;
     end
 end
 
 if ~isfield(opt,'freqletters') || isequal(opt.freqletters, @config)
-    opt.freqletters = cfg.freqletters;
+    opt.freqletters = irisConfig.freqletters;
 end
 
 if ~isfield(opt,'months') || isequal(opt.months, @config)
-    opt.months = cfg.months;
+    opt.months = irisConfig.months;
 end
 
-if ~isfield(opt,'standinmonth') || isequal(opt.standinmonth, @config)
-    opt.standinmonth = cfg.standinmonth;
+if ~isfield(opt, 'ConversionMonth') || isequal(opt.ConversionMonth, @config)
+    opt.ConversionMonth = irisConfig.ConversionMonth;
 end
 
-if ~isfield(opt,'wwday') || isequal(opt.wwday, @config)
-    opt.wwday = cfg.wwday;
+if ~isfield(opt, 'Wday') || isequal(opt.Wday, @config)
+    opt.Wday = irisConfig.Wday;
 end
 
 end

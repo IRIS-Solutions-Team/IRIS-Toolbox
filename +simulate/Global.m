@@ -4,7 +4,7 @@
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 classdef Global < handle
     properties
@@ -26,8 +26,6 @@ classdef Global < handle
     end
     
     
-    
-    
     methods
         function outp = run(this, m, opt)
             nAlt = size(this.X, 3);
@@ -39,7 +37,7 @@ classdef Global < handle
                 'Time', 0, ...
                 'StrTime', '', ...
                 'IBlk', 0 ...
-                );
+            );
             % Cycle over all parameter variants.
             for iAlt = 1 : nAlt
                 state.IAlt = iAlt;
@@ -78,20 +76,14 @@ classdef Global < handle
         end
         
         
-        
-        
         function deviation2level(this, L0, iAlt)
             convertDeviation(this, L0, iAlt, @plus, @times);
         end
-        
-
         
         
         function level2deviation(this, L0, iAlt)
             convertDeviation(this, L0, iAlt, @minus, @rdivide);
         end
-        
-        
         
         
         function convertDeviation(this, L0, iAlt, fnPlain, fnLog)
@@ -106,8 +98,6 @@ classdef Global < handle
         end
         
         
-        
-        
         function assignParametersUntilEnd(this, m, iAlt, t)
             TYPE = @int8;
             ixp = this.Quantity.Type==TYPE(4);
@@ -116,8 +106,6 @@ classdef Global < handle
             a = a(1, ixp, min(end, iAlt)).';
             this.X(ixp, t:nXPer, iAlt) = repmat(a, 1, nXPer-t+1);            
         end
-        
-        
         
         
         function L = assignSteadyRef(this, m, iAlt)
@@ -135,8 +123,6 @@ classdef Global < handle
         end
         
         
-        
-        
         function outp = createOutputDatabase(this, m)
             TYPE = @int8;
             ixy = this.Quantity.Type==TYPE(1);
@@ -147,11 +133,9 @@ classdef Global < handle
                 permute(this.X(ixyxe, :, :), [2, 1, 3]), ...
                 this.XRange, ...
                 this.Quantity.Name(ixyxe) ...
-                );
-            outp = addparam(m, outp);
+            );
+            outp = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, m, outp);
         end
-        
-        
         
         
         function assignBlock(this, blk, state)
@@ -159,14 +143,12 @@ classdef Global < handle
             alt = state.IAlt;
             pos = blk.PosQty;
             invTransform = blk.Type.InvTransform;
-            xt = blk.FnEval(this.X(:,:,alt), t, this.L(:,:,alt));
+            xt = blk.EquationsFunc(this.X(:,:,alt), t, this.L(:,:,alt));
             if ~isempty(invTransform)
                 xt = invTransform(xt);
             end
             this.X(pos, t, alt) = xt;
         end
-        
-        
         
         
         function solveBlock(this, blk, state)
@@ -177,7 +159,7 @@ classdef Global < handle
             X = this.X(:, 1:t, alt); %#ok<PROPLC>
             L = this.L(:, 1:t, alt); %#ok<PROPLC>
             
-            fnEval = blk.FnEval;
+            fnEval = blk.EquationsFunc;
             
             xt0 = setInitValues( );
             
@@ -192,8 +174,6 @@ classdef Global < handle
             this.X(pos, t, alt) = X(pos, end); %#ok<PROPLC>
             
             return
-            
-            
             
             
             function xt0 = setInitValues( )
@@ -211,8 +191,6 @@ classdef Global < handle
                 xt0(ixLog) = log(xt0(ixLog));              
             end
             
-            
-            
             function y = objective(x)
                 x(ixLog) = exp( x(ixLog) );
                 X(pos, end) = x; %#ok<PROPLC>
@@ -229,8 +207,6 @@ classdef Global < handle
             end
             
             
-            
-            
             function reportFailure( )
                 if isequal(this.OptimSet.Display, 'none')
                     disp( outp.message );
@@ -241,10 +217,8 @@ classdef Global < handle
                     exception.Base('Global:SOLVE_BLOCK_FAILED', this.WhenFailed), ...
                     state.StrTime, alt, max(abs(res)), ...
                     this.Equation.Input{pos(posFail)} ...
-                    ); %#ok<GTARG>
+                ); %#ok<GTARG>
             end
-            
-            
             
             
             function reportEvalNaNInfImag(lsEqtn)
@@ -252,7 +226,7 @@ classdef Global < handle
                     exception.Base('Global:EVALUATES_TO_NAN_INF_IMAG', 'error'), ...
                     state.StrTime, state.StrAlt, ...
                     lsEqtn{:} ...
-                    );
+                );
             end
         end
     end

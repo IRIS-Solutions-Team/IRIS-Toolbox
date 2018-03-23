@@ -10,9 +10,9 @@ classdef Equation < parser.theparser.Generic
     methods
         function [qty, eqn] = parse(this, ~, code, qty, eqn, euc, ~, opt)
             % 'Label' x=0.8*x{-1}+ex !! x=0;
-            SEPARATOR = parser.EquationUnderConstruction.SEPARATOR;
-            LABEL_PATTERN =             '\s*(?<LABEL>"[^\n"]*"|''[^\n'']*'')?';
-            EQUATION_PATTERN =          '(?<EQUATION>[^;]+);';
+            SEPARATOR =        '!!';
+            LABEL_PATTERN =    '\s*(?<LABEL>"[^\n"]*"|''[^\n'']*'')?';
+            EQUATION_PATTERN = '(?<EQUATION>[^;]+);';
                         
             %--------------------------------------------------------------------------
                         
@@ -85,7 +85,7 @@ classdef Equation < parser.theparser.Generic
             end
 
             % Use steady equations for dynamic equations if requested by user.
-            if this.IsAppliedSteadyOnlyOpt && opt.sstateonly
+            if this.IsAppliedSteadyOnlyOpt && opt.SteadyOnly
                 ixEmptyDynamic = cellfun(@isempty, lsEqnDynamic);
                 ixEmptySteady = cellfun(@isempty, lsEqnSteady);
                 ixApply = ~ixEmptyDynamic & ~ixEmptySteady;

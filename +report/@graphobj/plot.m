@@ -1,11 +1,11 @@
 function plot(this, ax)
-% plot  Draw report/graph object.
+% plot  Draw report/graph object
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ end
 % Make the y-axis tight if requested by the user. Only after that the vline
 % children can be plotted.
 if this.options.tight
-    grfun.yaxistight(ax(end));
+    visual.backend.setAxesTight(ax(end));
 end
 
 % Add title and subtitle (must be done before the legend).
@@ -163,8 +163,6 @@ end
 return
 
 
-
-
     function openRhsAxes( )
         ax = plotyy(ax, NaN, NaN, NaN, NaN);
         delete(get(ax(1), 'children'));
@@ -190,8 +188,6 @@ return
             % Do nothing.
         end
     end
-
-
 
 
     function doPlot( )
@@ -229,8 +225,6 @@ return
     end
 
 
-
-
     function isLhsOrRhsOrAnnotate( )
         for ii = 1 : nChild
             ch = this.children{ii};
@@ -248,14 +242,17 @@ return
     end
 
 
-
-
     function chkPlotFunc( )
         invalid = { };
         for ii = find(lhsInx | rhsInx)
             ch = this.children{ii};
-            if ~isanyfunc(ch.options.plotfunc, ...
-                    {'plot', 'bar', 'stem', 'area'})
+            plotFunc = ch.options.plotfunc;
+            if ~( ...
+                    isequal(plotFunc, @plot) ...
+                    || isequal(plotFunc, @bar) ...
+                    || isequal(plotFunc, @stem) ...
+                    || isequal(plotFunc, @area) ...
+                )
                 invalid{end+1} = func2str(ch.options.plotfunc); %#ok<AGROW>
             end
         end
@@ -266,8 +263,6 @@ return
                 invalid{:});
         end
     end
-
-
 
 
     function getLegendLocation( )

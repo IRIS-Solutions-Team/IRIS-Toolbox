@@ -6,7 +6,7 @@ function [X2,Px2,E,U,Y2,Py2,YInx,Y0,F,Y1,Py1] = ...
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % The VAR-based state-space system is given by
 %
@@ -34,7 +34,7 @@ if isempty(D)
     D = zeros(ny,1);
 end
 
-symm = @(X) (X+X.')/2;
+symm = @(x) (x + x')/2;
 
 T = [A;eye((p-1)*nx,p*nx)];
 
@@ -153,8 +153,11 @@ for t = 1 : nPer
             end
         end
     end
-    Fipe(jy,t) = F(jy,jy,t)\pe(jy,t);
-    G(:,jy,t) = T*Px2(:,1:nz2,t)*Z(jy,:).'/F(jy,jy,t);
+    Fijy = invFunc(F(jy, jy, t));
+    Fipe(jy, t) = Fijy * pe(jy,t);
+    G(:, jy, t) = T*Px2(:,1:nz2,t)*Z(jy,:).' * Fijy;
+    %Fipe(jy,t) = F(jy,jy,t)\pe(jy,t);
+    %G(:,jy,t) = T*Px2(:,1:nz2,t)*Z(jy,:).'/F(jy,jy,t);
     
     doUpdate( );
     

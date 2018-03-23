@@ -1,42 +1,38 @@
 function [d, list0, list, flag] = dbbatch(d, newName, expn, varargin)
 % dbbatch  Run a batch job to create new database fields.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [d, lsProcessed, lsAdded] = dbbatch(d, newName, expn, ...)
+%     [D, ListProcessed, ListAdded] = dbbatch(D, NewName, Expression, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `d` [ struct ] - Input database.
+% * `D` [ struct ] - Input database.
 %
-% * `newName` [ char ] - Pattern that will be used to create names for new
+% * `NewName` [ char ] - Pattern that will be used to create names for new
 % database fields based on the existing ones; use `'$0'` to refer to the
 % name of the currently processed database field; use `'$1'`, `'$2'`, etc.
 % to refer to tokens captured in regular expression specified in the
-% `'Namefilter='` option.
+% `'NameFilter='` option.
 %
-% * `expn` [ char ] - Expression that will be evaluated on a selection of
-% existing database entries to create new database entries; the expression
-% can include `'$0'`, `'$1'`, etc.
-%
-%
-% Output arguments
-% =================
-%
-% * `d` [ struct ] - Output database.
-%
-% * `lsProcessed` [ cellstr ] - List of database fields that have been used
-% to create new fields.
-%
-% * `lsAdded` [ cellstr ] - List of new database fields created by
-% evaluating `Expr` on the corresponding field in `Processed`.
+% * `Expression` [ char ] - Expression that will be evaluated on a
+% selection of existing database entries to create new database entries;
+% the expression can include `'$0'`, `'$1'`, etc.
 %
 %
-% Options
-% ========
+% __Output Arguments__
+%
+% * `D` [ struct ] - Output database.
+%
+% * `ListProcessed` [ cellstr ] - List of database fields that have been
+% used to create new fields.
+%
+% * `ListAdded` [ cellstr ] - List of new database fields created by
+% evaluating `Expression` on the corresponding field in `ListProcessed`.
+%
+%
+% __Options__
 %
 % * `'ClassFilter='` [ char | *`Inf`* ] - From the existing database entries, 
 % select only those that are objects of the specified class or classes, and
@@ -59,8 +55,7 @@ function [d, list0, list, flag] = dbbatch(d, newName, expn, varargin)
 % `'NameList='`, and/or `'ClassFilter='` to narrow the selection.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % This function is primarily meant to create new database fields, each
 % based on an existing one. If you, on the otherhand, only wish to modify a
@@ -75,8 +70,8 @@ function [d, list0, list, flag] = dbbatch(d, newName, expn, varargin)
 % case, use the dot or colon syntax: `$.0`, `$.1`, `$.2` for ower case, and
 % `$:0`, `$:1`, `$:2` for upper case.
 %
-% Failure
-% --------
+%
+% _Failure_
 %
 % The function `dbbatch` will *always* fail when called on a sub-database
 % from within a function (as opposed to a script). A sub-database is a
@@ -99,8 +94,7 @@ function [d, list0, list, flag] = dbbatch(d, newName, expn, varargin)
 %     end
 %
 %
-% Example
-% ========
+% __Example__
 %
 % For each field (all assumed to be tseries) create a first difference, and
 % name the new series `DX` where `X` is the name of the original series.
@@ -111,8 +105,7 @@ function [d, list0, list, flag] = dbbatch(d, newName, expn, varargin)
 % with the newly created ones.
 %
 %
-% Example
-% ========
+% __Example__
 %
 % Suppose that in database `D` you want to seasonally adjust all time
 % series whose names end with `_u`, and give these seasonally adjusted series
@@ -129,7 +122,7 @@ function [d, list0, list, flag] = dbbatch(d, newName, expn, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % TODO: Streamline dbquery/unmask.
 
@@ -254,7 +247,6 @@ lsNameFilter = opt.namefilter;
 lsName = opt.namelist;
 vecFreq = opt.freqfilter;
 lsString = opt.stringlist;
-
 if isempty(lsString)
     list0 = fieldnames(d).';
 else
@@ -262,12 +254,10 @@ else
 end
 tkn = cell(size(list0));
 tkn(:) = {{ }};
-
 % Name list.
 if iscellstr(lsName)
     list0 = intersect(list0, lsName);
 end
-
 % Name filter.
 if ~isequal(lsNameFilter, Inf) && ~isempty(lsNameFilter)
     if lsNameFilter(1) ~= '^'
@@ -279,7 +269,6 @@ if ~isequal(lsNameFilter, Inf) && ~isempty(lsNameFilter)
     [ixPass, ~, tkn] = textfun.matchindex(list0, lsNameFilter);
     list0 = list0(ixPass);
 end
-
 % Class list.
 if ~isequal(lsClass, @all) && ~isequal(lsClass, Inf)
     ixPass = false(size(list0));
@@ -290,8 +279,7 @@ if ~isequal(lsClass, @all) && ~isequal(lsClass, Inf)
     list0 = list0(ixPass);
     tkn = tkn(ixPass);
 end
-
-% Frequency filter.
+% Date frequency filter.
 if ~isequal(vecFreq, Inf)
     ixPass = false(size(list0));
     for i = 1 : numel(list0)
@@ -307,38 +295,38 @@ end
 
 
 function [list1, expr] = parse(namePatt, exprPatt, list0, tkn)
-% Create new names from the pattern.
-if ~isempty(namePatt)
-    list1 = cell(size(list0));
-    for i = 1 : numel(list0)
-        list1{i} = parseOne(namePatt, list0{i}, tkn{i}{:});
-    end
-else
-    list1(1:length(list0)) = {''};
-end
-% Create expressions from the pattern.
-if ~isempty(exprPatt)
-    expr = cell(size(list0));
-    for i = 1 : numel(list0)
-        if ~isempty(exprPatt)
-            expr{i} = parseOne(exprPatt, list0{i}, tkn{i}{:});
+    % Create new names from the pattern.
+    if ~isempty(namePatt)
+        list1 = cell(size(list0));
+        for i = 1 : numel(list0)
+            list1{i} = parseOne(namePatt, list0{i}, tkn{i}{:});
         end
+    else
+        list1(1:length(list0)) = {''};
     end
-else
-    expr(1:length(list0)) = {''};
-end
+    % Create expressions from the pattern.
+    if ~isempty(exprPatt)
+        expr = cell(size(list0));
+        for i = 1 : numel(list0)
+            if ~isempty(exprPatt)
+                expr{i} = parseOne(exprPatt, list0{i}, tkn{i}{:});
+            end
+        end
+    else
+        expr(1:length(list0)) = {''};
+    end
 end
 
 
 
 
 function c = parseOne(c, varargin)
-for i = 1 : length(varargin)
-    c = strrep(c, sprintf('$.%g', i-1), lower(varargin{i}));
-    c = strrep(c, sprintf('$:%g', i-1), upper(varargin{i}));
-    c = strrep(c, sprintf('lower($%g)', i-1), lower(varargin{i}));
-    c = strrep(c, sprintf('upper($%g)', i-1), upper(varargin{i}));
-    c = strrep(c, sprintf('$%g', i-1), varargin{i});
-end
-c = regexprep(c, '\$\d*', '');
+    for i = 1 : length(varargin)
+        c = strrep(c, sprintf('$.%g', i-1), lower(varargin{i}));
+        c = strrep(c, sprintf('$:%g', i-1), upper(varargin{i}));
+        c = strrep(c, sprintf('lower($%g)', i-1), lower(varargin{i}));
+        c = strrep(c, sprintf('upper($%g)', i-1), upper(varargin{i}));
+        c = strrep(c, sprintf('$%g', i-1), varargin{i});
+    end
+    c = regexprep(c, '\$\d*', '');
 end

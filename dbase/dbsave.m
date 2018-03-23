@@ -1,144 +1,137 @@
 function lsSaved = dbsave(inp, fileName, varargin)
 % dbsave  Save database to CSV file.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     listSaved = dbsave(d, fileName)
-%     listSaved = dbsave(d, fileName, dates, ...)
-%
-%
-% Output arguments
-% =================
-%
-% * `listSaved` [ cellstr ] - List of actually saved database entries.
+%     ListSaved = dbsave(D, FileName)
+%     ListSaved = dbsave(D, FileName, Dates, ...)
 %
 %
-% Input arguments
-% ================
+% __Output Arguments__
 %
-% * `d` [ struct ] - Database whose tseries and numeric entries will be
+% * `ListSaved` [ cellstr ] - List of actually saved database entries.
+%
+%
+% __Input Arguments__
+%
+% * `D` [ struct ] - Database whose tseries and numeric entries will be
 % saved.
 %
-% * `fileName` [ char ] - Filename under which the CSV will be saved, 
+% * `FileName` [ char ] - Filename under which the CSV will be saved, 
 % including its extension.
 %
-% * `dates` [ numeric | *`Inf`* ] Dates or date range on which the tseries
+% * `Dates` [ numeric | *`Inf`* ] Dates or date range on which the tseries
 % objects will be saved.
 %
-% Options
-% ========
 %
-% * `'VariablesHeader='` [ *`'Variables ->'`* | char ] - String that will
-% be put in the top-left corncer (cell A1).
+% __Options__
 %
-% * `'Class='` [ *`true`* | false ] - Include a row with class and size
+% * `VariablesHeader='Variables->'` [ char ] - String that will be put in
+% the top-left corncer (cell A1).
+%
+% * `Class=true` [ `true` | `false` ] - Include a row with class and size
 % specifications.
 %
-% * `'Comment='` [ *`true`* | `false` ] - Include a row with comments for tseries
-% objects.
+% * `Comment=true` [ `true` | `false` ] - Include a row with comments for
+% time series.
 %
-% * `'Decimal='` [ numeric | *empty* ] - Number of decimals up to which the
-% data will be saved; if empty the option `'Format='` is used.
+% * `Decimal=[ ]` [ numeric ] - Number of decimals up to which the data
+% will be saved; if empty the option `Format=` is used.
 %
-% * `'Format='` [ char | *`'%.8e'`* ] - Numeric format that will be used to
+% * `Format='%.8e'` [ char ] - Numeric format that will be used to
 % represent the data, see `sprintf` for details on formatting, The format
 % must start with a `'%'`, and must not include identifiers specifying
 % order of processing, i.e. the `'$'` signs, or left-justify flags, the
 % `'-'` signs.
 %
-% * `'FreqLetters='` [ char | *`'YHQBMW'`* ] - Six letters to represent the
-% five possible date frequencies except daily and unspecified (annual,
-% semi-annual, quarterly, bimonthly, monthly, weekly).
+% * `FreqLetters=@config` [ `@config` | char ] - Six letters to represent
+% the five possible date frequencies except daily and integer (annual,
+% semi-annual, quarterly, bimonthly, monthly, weekly); `@config` means the
+% frequency letters will be read from the current IRIS configuration.
 %
-% * `'MatchFreq='` [ `true` | *`false`* ] - Save only the tseries whose
-% date frequencies match the input vector of dates, `dates`.
+% * `MatchFreq=false` [ `true` | `false` ] - Save only those time series
+% whose date frequencies match the input vector of dates, `Dates`.
 %
-% * `'NaN='` [ char | *`'NaN'`* ] - String that will be used to represent
-% NaNs.
+% * `NaN='NaN'` [ char ] - String that will be used to represent NaNs.
 %
-% * `'SaveSubdb='` [ `true` | *`false`* ] - Save sub-databases (structs
-% found within the input struct `d`); the sub-databases will be saved to
-% separate CSF files.
+% * `SaveSubdb=false` [ `true` | `false` ] - Save sub-databases (structs
+% found within the input struct `D`); the sub-databases will be saved to
+% separate CSV files.
 %
-% * `'UserData='` [ char | *'userdata'* ] - Field name from which
-% any kind of userdata will be read and saved in the CSV file.
+% * `UserData='userdata'` [ char ] - Field name from which any kind of
+% userdata will be read and saved in the CSV file.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The data saved include also imaginary parts of complex numbers.
 %
 %
-% Saving user data with the database
-% ------------------------------------
+% _Saving user data with the database_
 %
-% If your database contains field named `'userdata='`, this will be saved
-% in the CSV file on a separate row. The `'userdata='` field can be any
+% If your database contains field named `UserData=`, this will be saved
+% in the CSV file on a separate row. The `UserData=` field can be any
 % combination of numeric, char, and cell arrays and 1-by-1 structs.
 %
-% You can use the `'userdata='` field to describe the database or preserve
+% You can use the `UserData=` field to describe the database or preserve
 % any sort of metadata. To change the name of the field that is treated as
-% user data, use the `'userData='` option.
+% user data, use the `UserData=` option.
 %
 %
-% Example
-% ========
+% __Example__
 %
 % Create a simple database with two time series.
 %
-%     d = struct( );
-%     d.x = tseries(qq(2010, 1):qq(2010, 4), @rand);
-%     d.y = tseries(qq(2010, 1):qq(2010, 4), @rand);
+%     D = struct( );
+%     D.x = tseries(qq(2010, 1):qq(2010, 4), @rand);
+%     D.y = tseries(qq(2010, 1):qq(2010, 4), @rand);
 %
 % Add your own description of the database, e.g.
 %
-%     d.UserData = {'My database', datestr(now( ))};
+%     D.UserData = {'My database', datestr(now( ))};
 %
 % Save the database as CSV using `dbsave`, 
 %
-%     dbsave(d, 'mydatabase.csv');
+%     dbsave(D, 'mydatabase.csv');
 %
 % When you later load the database, 
 %
-%     d = dbload('mydatabase.csv')
+%     D = dbload('mydatabase.csv')
 %
-%     d = 
+%     D = 
 %
 %        userdata: {'My database'  '23-Sep-2011 14:10:17'}
 %               x: [4x1 tseries]
 %               y: [4x1 tseries]
 %
-% the database will preserve the `'userdata='` field.
+% the database will preserve the `'UserData''` field.
 %
 %
-% Example
-% ========
+% __Example__
 %
 % To change the field name under which you store your own user data, use
-% the `'userdata='` option when running `dbsave`, 
+% the option `UserData=` when running `dbsave`, 
 %
-%     d = struct( );
-%     d.x = tseries(qq(2010, 1):qq(2010, 4), @rand);
-%     d.y = tseries(qq(2010, 1):qq(2010, 4), @rand);
-%     d.MYUSERDATA = {'My database', datestr(now( ))};
-%     dbsave(d, 'mydatabase.csv', Inf, 'userData=', 'MYUSERDATA');
+%     D = struct( );
+%     D.x = tseries(qq(2010, 1):qq(2010, 4), @rand);
+%     D.y = tseries(qq(2010, 1):qq(2010, 4), @rand);
+%     D.MYUSERDATA = {'My database', datestr(now( ))};
+%     dbsave(D, 'mydatabase.csv', Inf, 'userData=', 'MYUSERDATA');
 %
 % The name of the user data field is also kept in the CSV file so that
 % `dbload` works fine in this case, too, and returns a database identical
 % to the saved one, 
 %
-%     d = dbload('mydatabase.csv')
+%     D = dbload('mydatabase.csv')
 %
-%     d = 
+%     D = 
 %
 %        MYUSERDATA: {'My database'  '23-Sep-2011 14:10:17'}
 %                 x: [4x1 tseries]
 %                 y: [4x1 tseries]
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
 
@@ -153,7 +146,7 @@ catch %#ok<CTCH>
     vecDat = Inf;
 end
 
-% Allow both dbsave(D, fileName) and dbsave(fileName, D).
+% Allow both dbsave(d, fileName) and dbsave(fileName, d).
 if ischar(inp) && isstruct(fileName)
     [inp, fileName] = deal(fileName, inp);
 end
@@ -194,12 +187,11 @@ else
             'Input date vector must have homogenous date frequency.');
     end
 end
-vecDat = double(vecDat);
 isRange = all(round(diff(vecDat))==1);
 if ~isempty(vecDat)
-    usrFreq = datfreq(vecDat(1));
+    usrFreq = getFrequency(vecDat);
 else
-    usrFreq = NaN;
+    usrFreq = Frequency.NaF;
 end
 
 % Create saving struct.

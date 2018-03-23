@@ -1,39 +1,33 @@
 function dat = str2dat(string, varargin)
-% str2dat  Convert strings to IRIS serial date numbers.
+% str2dat  Convert strings to IRIS DateWrapper objects
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     dat = str2dat(s, ...)
+%     Dat = str2dat(S, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `s` [ char | cellstr ] - Cell array of strings representing dates.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `dat` [ dates.Dte ] - Dates.
+% * `Dat` [ DateWrapper ] - Dates.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'Freq='` [ `1` | `2` | `4` | `6` | `12` | `52` | `365` | *empty* ] -
+% * `Freq=[ ]` [ `1` | `2` | `4` | `6` | `12` | `52` | `365` | empty ] -
 % Enforce frequency.
 %
 % See help on [`dat2str`](dates/dat2str) for other options available.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 %     d = str2dat('04-2010','dateFormat=','MM-YYYY');
 %     dat2str(d)
@@ -47,18 +41,26 @@ function dat = str2dat(string, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-opt = passvalopt('dates.str2dat',varargin{:});
-opt = datdefaults(opt);
+persistent INPUT_PARSER
+if isempty(INPUT_PARSER)
+    configStruct = iris.get( );
+    INPUT_PARSER = extend.InputParser('dates.str2dat');
+    INPUT_PARSER.addRequired('InputString', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    INPUT_PARSER.addParameter({'EnforceFrequency', 'Freq'}, [ ], @(x) isempty(x) || strcmpi(x, 'Daily') || (isnumeric(x) && isscalar(x) && any(x==configStruct.Freq)));
+    INPUT_PARSER.addDateOptions( );
+end
+INPUT_PARSER.parse(string, varargin{:});
+opt = INPUT_PARSER.Options;
 
 %--------------------------------------------------------------------------
 
-parseDateFormat( );
+parseDateFormatOption( );
 
-longMonthList = sprintf('%s|',opt.months{:});
+longMonthList = sprintf('%s|',opt.Months{:});
 longMonthList(end) = '';
-shortMonthList = regexp(opt.months,'\w{1,3}','match','once');
+shortMonthList = regexp(opt.Months,'\w{1,3}','match','once');
 shortMonthList = sprintf('%s|',shortMonthList{:});
 shortMonthList(end) = '';
 romanList = 'xii|xi|x|ix|viii|vii|vi|v|iv|iii|ii|i|iv|v|x';
@@ -101,7 +103,7 @@ if any(ixPeriod)
         year(ixPeriod), ...
         per(ixPeriod) ...
         );
-    % Try indeterminate frequency for NaN dates.
+    % Try Indeterminate frequency for NaN dates.
     ixNan = ixPeriod & isnan(dat);
     for i = find(ixNan(:).')
         aux = sscanf(string{i}, '%g');
@@ -112,88 +114,75 @@ if any(ixPeriod)
     end
 end
 
-dat = dates.Date(dat);
+if ~isa(dat, 'DateWrapper')
+    dat = DateWrapper(dat);
+end
 
 return
 
 
-
-
     function x = parsePattern( )
-        x = upper(opt.dateformat);
+        x = upper(opt.DateFormat);
         x = regexptranslate('escape', x);
         x = regexprep(x,'(?<!%)\*', '.*?');
         x = regexprep(x,'(?<!%)\?', '.');
-        escapeLongMonth = '%L%O%N%G%M%O%N%T%H';
-        escapeShortMonth ='%S%H%O%R%T%M%O%N%T%H';
-        escapeFreq = '%F%R%E%Q%U%E%N%C%Y';
-        escapeRomanMonth = '%R%O%M%A%N%M%O%N%T%H';
-        escapeRomanPer = '%R%O%M%A%N%P%E%R';
         subs = { ...
-            '(?<!%)YYYY', '(?<longyear>\\d{4})'; ... Four-digit year
-            '(?<!%)YY', '(?<shortyear>\\d{2})'; ... Last two digits of year
-            '(?<!%)Y', '(?<longyear>\\d{0,4})'; ... One to four digits of year
-            '(?<!%)PP', '(?<longperiod>\\d{2})'; ... Two-digit period
-            '(?<!%)P', '(?<shortperiod>\\d*)'; ... Any number of digits of period
-            '(?<!%)MMMM', escapeLongMonth; ... Full name of months
-            '(?<!%)MMM', escapeShortMonth; ... Three-letter name of month
-            '(?<!%)MM', '(?<numericmonth>\\d{2})'; ... Two-digit month
-            '(?<!%)M', '(?<numericmonth>\\d{1,2})'; ... One- or two-digit month
-            '(?<!%)Q', escapeRomanMonth; ... Roman numerals for month
-            '(?<!%)R', escapeRomanPer; ... Roman numerals for period
-            '(?<!%)I', '(?<indeterminate>\\d+)'; ... Any number of digits for indeterminate frequency
-            '(?<!%)DD', '(?<longday>\\d{2})'; ... Two-digit day
-            '(?<!%)D', '(?<varday>\\d{1,2})'; ... One- or two-digit day
-            '(?<!%)F', escapeFreq; ... Frequency letter
-            };
-        
+            '(?<!%)YYYY', '(?<LongYear>\d{4})'; ... Four-digit year
+            '(?<!%)YY', '(?<ShortYear>\d{2})'; ... Last two digits of year
+            '(?<!%)Y', '(?<LongYear>\d{0,4})'; ... One to four digits of year
+            '(?<!%)PP', '(?<LongPeriod>\d{2})'; ... Two-digit period
+            '(?<!%)P', '(?<ShortPeriod>\d*)'; ... Any number of digits of period
+            '(?<!%)MMMM', ['(?<Month>', longMonthList, ')']; ... Full name of month
+            '(?<!%)MMM', ['(?<Month>', shortMonthList, ')']; ... Three-letter name of month
+            '(?<!%)MM', '(?<NumericMonth>\d{2})'; ... Two-digit month
+            '(?<!%)M', '(?<NumericMonth>\d{1,2})'; ... One- or two-digit month
+            '(?<!%)Q', ['(?<RomanMonth>', romanList, ')']; ... Roman numerals for month
+            '(?<!%)R', ['(?<RomanPeriod>', romanList, ')']; ... Roman numerals for period
+            '(?<!%)I', '(?<Indeterminate>\d+)'; ... Any number of digits for Indeterminate frequency
+            '(?<!%)DD', '(?<LongDay>\d{2})'; ... Two-digit day
+            '(?<!%)D', '(?<VarDay>\d{1,2})'; ... One- or two-digit day
+            '(?<!%)F', ['(?<FreqLetter>[', opt.FreqLetters, '])']; ... Frequency letter
+        };
         for ii = 1 : size(subs, 1)
-            x = regexprep(x, subs{ii,1}, subs{ii,2});
+            x = regexprep(x, subs{ii, 1}, char(1000+ii));
         end
-        x = strrep(x, escapeLongMonth, ['(?<month>', longMonthList, ')']);
-        x = strrep(x, escapeShortMonth, ['(?<month>', shortMonthList, ')']);
-        x = strrep(x, escapeRomanMonth, ['(?<romanmonth>', romanList, ')']);
-        x = strrep(x, escapeRomanPer, ['(?<romanperiod>', romanList, ')']);
-        x = strrep(x, escapeFreq, ['(?<freqletter>[', opt.freqletters, '])']);
-        
+        for ii = 1 : size(subs, 1)
+            x = strrep(x, char(1000+ii), subs{ii, 2});
+        end
         x = regexprep(x,'%(\w)', '$1');
     end
 
 
-
-
-    function parseDateFormat( )
-        if isequal(opt.freq, 'daily')
-            opt.freq = 365;
+    function parseDateFormatOption( )
+        if strcmpi(opt.EnforceFrequency, 'Daily')
+            opt.EnforceFrequency = 365;
         end
         
-        if (isstruct(opt.dateformat) || iscell(opt.dateformat)) ...
-            && numel(opt.dateformat)~=1
+        if (isstruct(opt.DateFormat) || iscell(opt.DateFormat)) ...
+            && numel(opt.DateFormat)~=1
             throw( ...
                 exception.Base('Dates:OnlyScalarFormatAllowed', 'error') ...
                 );
         end
 
-        if isstruct(opt.dateformat)
-            if isempty(opt.freq)
-                opt.dateformat = opt.dateformat.qq;
+        if isstruct(opt.DateFormat)
+            if isempty(opt.EnforceFrequency)
+                opt.DateFormat = opt.DateFormat.qq;
             else
-                opt.dateformat = dates.Date.chooseFormat(opt.dateformat, opt.freq);
+                opt.DateFormat = DateWrapper.chooseFormat(opt.DateFormat, opt.EnforceFrequency);
             end
         end
         
-        if strncmp(opt.dateformat, '$', 1) && ...
-                ( isempty(opt.freq) || isequal(opt.freq, 0) )
-            opt.freq = 365;
+        if strncmp(opt.DateFormat, '$', 1) && ...
+                ( isempty(opt.EnforceFrequency) || isequal(opt.EnforceFrequency, 0) )
+            opt.EnforceFrequency = 365;
         end
         
-        if strncmp(opt.dateformat, '$', 1)
-            opt.dateformat(1) = '';
+        if strncmp(opt.DateFormat, '$', 1)
+            opt.DateFormat(1) = '';
         end
     end
 end
-
-
 
 
 function [year, per, day, month, freq, ixPeriod] = parseDates(cellToken, opt)
@@ -216,63 +205,64 @@ for i = 1 : length(cellToken)
         continue
     end
     
-    if isfield(tkn, 'indeterminate') ...
-            && ~isempty(tkn.indeterminate)
+    if isfield(tkn, 'Indeterminate') ...
+            && ~isempty(tkn.Indeterminate)
         freq(i) = 0;
-        per(i) = sscanf(tkn.indeterminate, '%g');
+        per(i) = sscanf(tkn.Indeterminate, '%g');
         continue
     end
 
-    if isfield(tkn, 'freqletter') && ~isempty(tkn.freqletter)
-        ix = upper(opt.freqletters)==upper(tkn.freqletter);
+    if isfield(tkn, 'FreqLetter') && ~isempty(tkn.FreqLetter)
+        ix = upper(opt.FreqLetters)==upper(tkn.FreqLetter);
         if any(ix)
             freq(i) = vecFreq(ix);
         end
     end
     
-    if isfield(tkn, 'shortyear')
-        yeari = sscanf(tkn.shortyear,'%g');
-        yeari = yeari + thisCentury;
-        if yeari - thisYear>20
-            yeari = yeari - 100;
-        elseif yeari - thisYear<=-80
-            yeari = yeari + 100;
+    if isfield(tkn, 'ShortYear')
+        ithYear = sscanf(tkn.ShortYear,'%g');
+        ithYear = ithYear + thisCentury;
+        if ithYear - thisYear>20
+            ithYear = ithYear - 100;
+        elseif ithYear - thisYear<=-80
+            ithYear = ithYear + 100;
         end
-        year(i) = yeari;
+        year(i) = ithYear;
     end
-    if isfield(tkn, 'longyear')
-        yeari = sscanf(tkn.longyear, '%g');
-        if ~isempty(yeari)
-            year(i) = yeari;
+
+    if isfield(tkn, 'LongYear')
+        ithYear = sscanf(tkn.LongYear, '%g');
+        if ~isempty(ithYear)
+            year(i) = ithYear;
         end
     end
     
-    if isfield(tkn, 'shortperiod')
-        if ~isempty(tkn.shortperiod)
-            per(i) = sscanf(tkn.shortperiod, '%g');
+    if isfield(tkn, 'ShortPeriod')
+        if ~isempty(tkn.ShortPeriod)
+            per(i) = sscanf(tkn.ShortPeriod, '%g');
         else
             per(i) = 1;
         end
     end
     
-    if isfield(tkn, 'longperiod')
-        per(i) = sscanf(tkn.longperiod, '%g');
+    if isfield(tkn, 'LongPeriod')
+        per(i) = sscanf(tkn.LongPeriod, '%g');
     end
     
-    if isfield(tkn, 'romanperiod')
-        per(i) = roman2num(tkn.romanperiod);
+    if isfield(tkn, 'RomanPeriod')
+        per(i) = roman2num(tkn.RomanPeriod);
     end
     
-    if isfield(tkn, 'romanmonth')
-        month(i) = roman2num(tkn.romanmonth);
+    if isfield(tkn, 'RomanMonth')
+        month(i) = roman2num(tkn.RomanMonth);
     end
     
-    if isfield(tkn, 'numericmonth')
-        month(i) = sscanf(tkn.numericmonth, '%g');
+    if isfield(tkn, 'NumericMonth')
+        month(i) = sscanf(tkn.NumericMonth, '%g');
     end
     
-    if isfield(tkn, 'month')
-        ix = strncmpi(tkn.month, opt.months, length(tkn.month));
+    if isfield(tkn, 'Month')
+        ix = strncmpi(tkn.Month, opt.Months, length(tkn.Month));
         if any(ix)
             month(i) = find(ix, 1);
         end
@@ -281,21 +271,21 @@ for i = 1 : length(cellToken)
         month(i) = NaN;
     end
     
-    if isfield(tkn, 'varday')
-        day(i) = sscanf(tkn.varday, '%g');
+    if isfield(tkn, 'VarDay')
+        day(i) = sscanf(tkn.VarDay, '%g');
     end
-    if isfield(tkn, 'longday')
-        day(i) = sscanf(tkn.longday, '%g');
+    if isfield(tkn, 'LongDay')
+        day(i) = sscanf(tkn.LongDay, '%g');
     end
     
-    if ~isempty(opt.freq)
-        freq(i) = opt.freq;
+    if ~isempty(opt.EnforceFrequency)
+        freq(i) = opt.EnforceFrequency;
     end
     
     ixPeriod(i) = freq(i)~=365 ...
-        && ( isfield(tkn, 'longperiod') ...
-        || isfield(tkn, 'shortperiod') ...
-        || isfield(tkn, 'romanperiod') );
+        && ( isfield(tkn, 'LongPeriod') ...
+        || isfield(tkn, 'ShortPeriod') ...
+        || isfield(tkn, 'RomanPeriod') );
     
     if ~ixPeriod(i) && ~isnan(month(i))
         if isnan(freq(i)) || freq(i)==12

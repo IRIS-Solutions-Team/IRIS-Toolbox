@@ -5,7 +5,7 @@ function mydatxtick(h, range, time, freq, userRange, opt)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if numel(h)>1
     for i = 1 : numel(h)
@@ -175,7 +175,7 @@ adjustXLim( );
         % date format for each date frequency. Fetch the right date format
         % now, and pass it into `dat2str( )`.
         if isstruct(opt.dateformat)
-            opt.dateformat = dates.Date.chooseFormat(opt.dateformat, freq);
+            opt.dateformat = DateWrapper.chooseFormat(opt.dateformat, freq);
         end
         if freq==0 && strcmp(opt.dateformat, 'P')
             return

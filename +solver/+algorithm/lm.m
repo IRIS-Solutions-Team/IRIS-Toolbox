@@ -1,11 +1,11 @@
-function [x, numericExitFlag] = lm(fnObjective, xInit, opt, varargin)
+function [x, numericExitFlag] = lm(objectiveFunc, xInit, opt)
 % lm  Variant of Levenberg-Marquardt function solver algorithm
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s %13s';
 FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g';
@@ -41,21 +41,17 @@ stepUp = opt.StepUp;
 isStepDown = ~isequal(stepDown, false);
 isStepUp = ~isequal(stepUp, false);
 diffStep = opt.FiniteDifferenceStepSize;
-fnDiff = [ ];
+numGradientFunc = [ ];
 if ~opt.SpecifyObjectiveGradient
-    if strcmpi(opt.FiniteDifferenceType, 'forward')
-        fnDiff = @solver.algorithm.fdiff;
-    else
-        fnDiff = @solver.algorithm.cdiff;
-    end
+    jacobPattern = opt.JacobPattern;
 end
 
 xInit = xInit(:);
-nx = numel(xInit);
+numUnknowns = numel(xInit);
 
 temp = struct( ...
-    'NumberOfVariables', nx ...
-    );
+    'NumberOfVariables', numUnknowns ...
+);
 
 displayLevel = getDisplayLevel( );
 tolX = opt.StepTolerance;
@@ -77,6 +73,7 @@ iter = 0;
 fnCount = 0;
 x0 = xInit;
 j = NaN;
+j0 = NaN;
 
 if displayLevel.Iter
     displayHeader( );
@@ -87,12 +84,14 @@ warning('off', 'MATLAB:nearlySingularMatrix');
 
 while true
     if opt.SpecifyObjectiveGradient
-        [f, j] = fnObjective(x, varargin{:});
+        [f, j] = objectiveFunc(x);
         fnCount = fnCount + 1;
     else
-        [f] = fnObjective(x, varargin{:});
+        f = objectiveFunc(x);
         fnCount = fnCount + 1;
-        [j, addCount] = fnDiff(fnObjective, x, f, diffStep); %#ok<RHSFN>
+        [j, addCount] = solver.algorithm.finiteDifference( ...
+            objectiveFunc, x, f, diffStep, jacobPattern, opt.LargeScale ...
+        );
         fnCount = fnCount + addCount;
     end
     f = f(:);    
@@ -123,6 +122,7 @@ while true
     x0 = x;
     f0 = f;
     n0 = n;
+    j0 = j;
 
     step = 1;
     if isempty(vecLmb)
@@ -153,7 +153,7 @@ end
 warning(w);
 
 if displayLevel.Iter
-    isDesktop = getappdata(0, 'IRIS_IS_DESKTOP');
+    isDesktop = getappdata(0, 'IRIS_IsDesktop');
     if isDesktop
         fprintf('<strong>');
     end
@@ -177,30 +177,33 @@ numericExitFlag = double(exitFlag);
 return
 
 
-
-
     function [d, n] = makeNewtonStep( )
         lmb = 0;
         d = -j \ f;
         c = x + step*d;
-        f = fnObjective(c, varargin{:});
+        f = objectiveFunc(c);
         fnCount = fnCount + 1;
         n = fnNorm(f);
     end
 
 
-
-
     function [d, n] = makeHybridStep( )
         jj = j.'*j;
-        sj = svd(j);
-        tol = max(size(j)) * eps(max(sj));
+        if issparse(j)
+            maxSv = svds(j, 1, 'largest');
+            minSv = svds(j, 1, 'smallest');
+        else
+            sj = svd(j);
+            maxSv = max(sj);
+            minSv = sj(end);
+        end
+        tol = numUnknowns * eps(maxSv);
         vecLmb0 = vecLmb;
-        if sj(end)>tol
+        if minSv>tol
             vecLmb0 = [0, vecLmb0]; %#ok<AGROW>
         end
         nlmb0 = numel(vecLmb0);
-        scale = tol * eye(nx);
+        scale = tol * eye(numUnknowns);
         
         % Optimize lambda.
         dd = cell(1, nlmb0);
@@ -209,7 +212,7 @@ return
         for i = 1 : nlmb0
             dd{i} = -( jj + vecLmb0(i)*scale ) \ j.' * f;
             c = x + step*dd{i};
-            ff{i} = fnObjective(c, varargin{:});
+            ff{i} = objectiveFunc(c);
             fnCount = fnCount + 1;
             nn(i) = fnNorm(ff{i});
         end
@@ -227,7 +230,7 @@ return
         while n>n0 && step>MIN_STEP
             step = stepDown*step;
             c = x + step*d;
-            f = fnObjective(c, varargin{:});
+            f = objectiveFunc(c);
             fnCount = fnCount + 1;
             q = q + 1;
             n = fnNorm(f);
@@ -241,7 +244,7 @@ return
         % Inflate step as far as objective function improves.
         while step<MAX_STEP
             c = x + stepUp*step*d;
-            f = fnObjective(c, varargin{:});
+            f = objectiveFunc(c);
             fnCount = fnCount + 1;
             q = q + 1;
             n1 = fnNorm(f);
@@ -277,8 +280,8 @@ return
             'Step-Size', ...
             'Fn-Norm-Chg', ...
             'Max-X-Chg', ...
-            'Jacob-Norm' ...
-            );
+            'Max-Jacob-Chg' ...
+        );
         c2 = sprintf( ...
             FORMAT_HEADER, ...
             '', ...
@@ -289,7 +292,7 @@ return
             '', ...
             '', ...
             strJacobNorm ...
-            );
+        );
         disp(c1);
         disp(c2);
         disp( repmat('-', 1, max(length(c1), length(c2))) );
@@ -299,6 +302,8 @@ return
 
 
     function displayIter( )
+        maxChgX = max(abs(x(:)-x0(:)));
+        maxChgJ = full(max(abs(j(:)-j0(:))));
         fprintf( ...
             FORMAT_ITER, ...
             iter, ...
@@ -307,9 +312,9 @@ return
             lmb, ...
             step, ...
             n-n0, ...
-            maxabs(x-x0), ...
-            norm(j, 2) ...
-            );
+            maxChgX, ...
+            maxChgJ ...
+        );
     end
 
 
@@ -325,8 +330,8 @@ return
     function displayLevel = getDisplayLevel( )
         displayLevel.Any = ...
             ~isequal(opt.Display, false) ...
-            && ~isequal(opt.Display, 'none') ...
-            && ~isequal(opt.Display, 'off');
+            && ~strcmpi(opt.Display, 'none') ...
+            && ~strcmpi(opt.Display, 'off');
         displayLevel.Final = displayLevel.Any;
         displayLevel.Iter = ...
             isequal(opt.Display, true) ...

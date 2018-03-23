@@ -19,7 +19,7 @@ ixWithinBounds = true(1, np);
 ixPenaltyFunction = false(1, np);
 
 doParameters( );
-chkBounds( );
+reportViolationOfBounds( );
 
 % Penalty specification is obsolete.
 reportPenaltyFunc( );
@@ -30,8 +30,6 @@ est = rmfield(est, pri.LsParam);
 return
 
 
-
-
     function doParameters( )
         for ii = 1 : np
             name = pri.LsParam{ii};
@@ -40,33 +38,32 @@ return
                 spec = num2cell(spec);
             end
             
-            % Starting value.
+            % __Starting Value__
             if isstruct(initVal) ...
                     && isfield(initVal,name) ...
-                    && isnumericscalar(initVal.(name))
+                    && isnumeric(initVal.(name)) && numel(initVal.(name))==1
                 p0 = initVal.(name);
             elseif ischar(initVal) && strcmpi(initVal, 'struct') ...
-                    && ~isempty(spec) && isnumericscalar(spec{1})
+                    && ~isempty(spec) && isnumeric(spec{1}) && numel(spec{1})==1
                 p0 = spec{1};
             else
                 p0 = NaN;
             end
             % If the starting value is `NaN` at this point, use the currently assigned
-            % value from the model object, `assignIfNan`.
-            if isnan(p0)
+            % value from the model object, `startIfNan`.
+            if isequaln(p0, NaN)
                 p0 = startIfNan(ii);
             end
             
-            % Lower and upper bounds
-            %------------------------
+            % __Lower and Upper Bounds__
             % Lower bound.
-            if length(spec)>1 && isnumericscalar(spec{2})
+            if length(spec)>1 && isnumeric(spec{2}) && numel(spec{2})==1
                 pl = spec{2};
             else
                 pl = -Inf;
             end
             % Upper bound.
-            if length(spec)>2  && isnumericscalar(spec{3})
+            if length(spec)>2  && isnumeric(spec{3}) && numel(spec{3})==1
                 pu = spec{3};
             else
                 pu = Inf;
@@ -82,9 +79,7 @@ return
                 continue
             end
             
-            % Prior distribution function
-            %-----------------------------
-            
+            % __Prior Distribution Function__
             % The 4th element in the estimation struct can be either a prior
             % distribution function (a function_handle) or penalty function, i.e. a
             % numeric vector [weight] or [weight,pbar]. The latter option is only for
@@ -92,19 +87,22 @@ return
             isPrior = false;
             fnPrior = [ ];
             if length(spec)>3 && ~isempty(spec{4})
-                isPrior = true;
-                if isa(spec{4},'function_handle')
+                if isa(spec{4}, 'distribution.Abstract')
+                    fnPrior = spec{4};
+                    isPrior = true;
+                elseif isa(spec{4},'function_handle')
                     % The 4th element is a prior distribution function handle.
                     fnPrior = spec{4};
-                elseif isnumeric(spec{4}) && penalty>0
+                    isPrior = true;
+                elseif isnumeric(spec{4}) && numel(spec{4})==1  && penalty>0
                     % The 4th element is a penalty function.
                     ixPenaltyFunction(ii) = true;
                     fnPrior = penalty2Prior(spec, p0, startIfNan(ii), penalty);
+                    isPrior = true;
                 end
             end
             
-            % Populate the `Pri` struct
-            %---------------------------
+            % __Populate the `Pri` struct__
             pri.Init(ii) = p0;
             pri.Lower(ii) = pl;
             pri.Upper(ii) = pu;
@@ -114,9 +112,7 @@ return
     end
 
 
-
-
-    function chkBounds( )
+    function reportViolationOfBounds( )
         % Report bounds where lower>=upper.
         if any(~ixValidBounds)
             utils.error(class(this), ...
@@ -134,8 +130,6 @@ return
     end
 
 
-
-
     function reportPenaltyFunc( )
         if any(ixPenaltyFunction)
             paramPenaltyList = pri.LsParam(ixPenaltyFunction);
@@ -151,29 +145,27 @@ return
 end
 
 
-
-
 function fnPrior = penalty2Prior(spec, p0, startIfNan, penalty)
-% The 4th entry is a penalty function, compute the
-% total weight including the `'penalty='` option.
-totalWeight = spec{4}(1)*penalty;
-if numel(spec{4})==1
-    % Only the weight specified. The centre of penalty
-    % function is then set identical to the starting
-    % value.
-    pBar = p0;
-else
-    % Both the weight and the centre specified.
-    pBar = spec{4}(2);
-end
-if isnan(pBar)
-    pBar = startIfNan;
-end
-% Convert penalty function to a normal prior:
-%
-% w*(p - pbar)^2==1/2*((p - pbar)/sgm)^2 => sgm =
-% 1/sqrt(2*w).
-%
-sgm = 1/sqrt(2*totalWeight);
-fnPrior = logdist.normal(pBar, sgm);
+    % The 4th entry is a penalty function, compute the
+    % total weight including the `'penalty='` option.
+    totalWeight = spec{4}(1)*penalty;
+    if numel(spec{4})==1
+        % Only the weight specified. The centre of penalty
+        % function is then set identical to the starting
+        % value.
+        pBar = p0;
+    else
+        % Both the weight and the centre specified.
+        pBar = spec{4}(2);
+    end
+    if isnan(pBar)
+        pBar = startIfNan;
+    end
+    % Convert penalty function to a normal prior:
+    %
+    % w*(p - pbar)^2==1/2*((p - pbar)/sgm)^2 => sgm =
+    % 1/sqrt(2*w).
+    %
+    sgm = 1/sqrt(2*totalWeight);
+    fnPrior = distribution.Normal('MeanStd', pBar, sgm);
 end

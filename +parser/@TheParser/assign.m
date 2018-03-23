@@ -5,18 +5,18 @@ function quantity = assign(this, quantity)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
-a = this.DbaseAssigned;
+a = this.AssignedDatabank;
 lsInvalidStdCorrAssigned = cell(1, 0);
 
 % Evaluate values assigned in the model code and/or in the `assign`
 % database. Go backward from evaluating parameters first so that they are
 % available for steady-state expressions.
-for i = 1 : length(this.AssignOrd)
-    ixType = quantity.Type==this.AssignOrd(i);
+for i = 1 : numel(this.AssignOrder)
+    ixType = quantity.Type==this.AssignOrder(i);
     if ~any(ixType)
         continue
     end
@@ -28,7 +28,7 @@ for i = 1 : length(this.AssignOrd)
             continue
         end
         
-        s = strtrim(this.StrAssigned{iName});
+        s = this.AssignedString{iName};
         if isempty(s)
             continue
         end
@@ -50,8 +50,8 @@ end
 
 % Remove the declared `std_` and `corr_` names from the list of names
 % after values in the model file have been assigned.
-ixStd = strncmp(quantity.Name, this.STD_PREFIX, length(this.STD_PREFIX));
-ixCorr = strncmp(quantity.Name, this.CORR_PREFIX, length(this.CORR_PREFIX));
+ixStd = strncmp(quantity.Name, model.STD_PREFIX, length(model.STD_PREFIX));
+ixCorr = strncmp(quantity.Name, model.CORR_PREFIX, length(model.CORR_PREFIX));
 ixStdCorr = ixStd | ixCorr;
 if any(ixStdCorr)
     % Check if all declared std_ and corr_ names are valid.
@@ -69,6 +69,6 @@ if ~isempty(lsInvalidStdCorrAssigned)
         lsInvalidStdCorrAssigned{:} );
 end
 
-this.DbaseAssigned = a;
+this.AssignedDatabank = a;
 
 end

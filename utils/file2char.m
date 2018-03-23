@@ -5,7 +5,9 @@ function [C,Flag] = file2char(FName,Type)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
+
+UTF = char([239, 187, 191]);
 
 try
     Type; %#ok<VUNUS>
@@ -43,6 +45,11 @@ if fclose(fid)==-1
         'Cannot close file ''%s'' after reading.',FName);
 end
 
+% Remove UTF-8 CSV mark.
+if strncmp(file, UTF, length(UTF))
+    file = file(length(UTF)+1:end);
+end
+
 % Convert any EOLs to \n.
 file = textfun.converteols(file);
 
@@ -51,7 +58,7 @@ if isequal(Type,'char')
     return
 elseif isequal(Type,'cellstr')
     % Read individual lines into cellstr and remove EOLs.
-    eol = strfind(file,sprintf('\n'));
+    eol = strfind(file, sprintf('\n'));
     C = cell(1,length(eol)+1);
     xEol = [0,eol,length(file)+1];
     for i = 1 : length(xEol)-1

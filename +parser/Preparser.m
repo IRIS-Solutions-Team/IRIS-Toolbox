@@ -1,16 +1,16 @@
 classdef Preparser < handle
     properties
-        FileName = '' % Input file name.
-        UserComment = '' % User comment line read from code.
-        Code = '' % Code being preparsed.
-        White = '' % Code with all labels whited out.
-        Assigned = struct( ) % Database with control parameters.
-        CloneTemplate = '' % Template to clone model names.
-        Exported = cell(2, 0) % Files to be saved into working folder.
+        FileName = char.empty(1, 0)  % Input file name.
+        UserComment = char.empty(1, 0)  % User comment line read from code.
+        Code = char.empty(1, 0)  % Code being preparsed.
+        White = char.empty(1, 0)  % Code with all labels whited out.
+        Assigned = struct.empty( ) % Database with control parameters.
+        CloneTemplate = char.empty(1, 0)  % Template to clone model names.
+        Export = shared.Export.empty(1, 0) % Files to be saved into working folder.
         CtrlParameters = cell(1, 0) % List of parameter names occuring in control expressions and interpolations.
         EvalWarning = parser.Preparser.EVAL_WARNING % List of if/elseif/switch/case conditions/expressions producing errors.
         
-        StoreForCtrl = cell(0, 2) % Store !for control variable replacements.
+        StoreForCtrl = cell.empty(0, 2) % Store !for control variable replacements.
     end
     
     
@@ -21,23 +21,19 @@ classdef Preparser < handle
         EVAL_TEMP_PREFIX = '?.';
         CLONE_PATTERN = '(?<!!)\<([A-Za-z]\w*)\>(?!\()';
         
-        EVAL_WARNING = ...
-            struct( ...
+        EVAL_WARNING = struct( ...
             'If',{{ }}, ...
             'Switch',{{ }}, ...
             'Case',{{ }} ...
-            )
+        )
         
         CODE_SEPARATOR = sprintf('\n\n');
         FILE_NAME_SEPARATOR = ' & ';
         OBSOLETE_SYNTAX = {
             '\$\[', '<'
             '\]\$', '>'
-            };
-
+        };
     end
-    
-    
     
     
     methods
@@ -47,12 +43,8 @@ classdef Preparser < handle
                 return
             end
             if ~isempty(fileName)
-                % Input code from file(s).
-                if ~iscell(fileName)
-                    fileName = { fileName };
-                end
-                nThis = length(fileName);
-                for iThis = 1 : nThis
+                fileName = cellstr(fileName);
+                for iThis = 1 : numel(fileName)
                     % Because Preparser is a handle class we need to create separate instances for
                     % each file name inside the for loop.
                     this(iThis) = parser.Preparser( ); %#ok<AGROW>
@@ -63,11 +55,8 @@ classdef Preparser < handle
                 end
             else
                 % Input code from input string(s) (char or cellstr).
-                if ~iscell(inpCode)
-                    inpCode = { inpCode };
-                end
-                nThis = length(inpCode);
-                for iThis = 1 : nThis
+                inpCode = cellstr(inpCode);
+                for iThis = 1 : numel(inpCode)
                     % Because Preparser is a handle class we need to create separate instances for
                     % each file name inside the for loop.
                     this(iThis) = parser.Preparser( ); %#ok<AGROW>
@@ -112,8 +101,6 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function readCodeFromFile(this)
             import parser.Preparser;
             fileName = this.FileName;
@@ -138,8 +125,6 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function fixEmptyLines(this)
             c = this.Code;
             % Remove leading and trailing empty lines.
@@ -149,8 +134,6 @@ classdef Preparser < handle
             c = parser.Preparser.addLineBreak(c);
             this.Code = c;            
         end
-        
-        
         
         
         function f = getFileName(this)
@@ -166,8 +149,6 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function c = createFinalCut(this)
             import parser.Preparser;
             c = '';
@@ -181,13 +162,9 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function c = applyFinalCutCommands(this, c) %#ok<INUSL>
             c = parser.List.parse(c);
         end
-        
-        
         
         
         
@@ -203,8 +180,6 @@ classdef Preparser < handle
                 end
             end
         end
-        
-        
         
         
         function throwEvalWarning(this)
@@ -229,14 +204,10 @@ classdef Preparser < handle
         end
         
         
-        
-        
-        function add(this, ctrlDatabase, exported)
+        function add(this, ctrlDatabase, export)
             addCtrlParameter(this, ctrlDatabase);
-            addExported(this, exported);
+            this.Export = [this.Export, export];
         end
-        
-        
         
         
         function addCtrlParameter(this, add)
@@ -247,25 +218,6 @@ classdef Preparser < handle
         end
         
         
-        
-        
-        function addExported(this, varargin)
-            if length(varargin)==1
-                this.Exported = [ ...
-                    this.Exported, ...
-                    varargin{1}, ...
-                    ];
-            elseif length(varargin)==2
-                this.Exported = [ ...
-                    this.Exported, ...
-                    [ varargin(1); varargin(2) ], ...
-                    ];
-            end
-        end
-        
-        
-        
-        
         function addEvalWarning(type, this, message)
             if isa(message,'parser.Preparser')
                 add = message.EvalWarning;
@@ -274,8 +226,6 @@ classdef Preparser < handle
             end
             this.EvalWarning.(type){end+1} = message;
         end
-
-
 
 
         function obsoleteSyntax(this)
@@ -289,10 +239,8 @@ classdef Preparser < handle
     end
     
     
-    
-    
     methods (Static)
-        function [finalCut, fileName, exported, ctrlParameters, userComment] ...
+        function [finalCut, fileName, export, ctrlParameters, userComment] ...
                 = parse(fileName, inpCode, assigned, saveAs, cloneStr)
             import parser.Preparser;
             
@@ -310,7 +258,7 @@ classdef Preparser < handle
             % Return list of control parameters.
             ctrlParameters = unique( [ this(:).CtrlParameters ] );
             % Merge all exported files.
-            exported = [ this(:).Exported ];
+            export = [ this(:).Export ];
             % First-line comment from the first file.
             userComment = this(1).UserComment;
             % Save preparsed code to disk file if requested.
@@ -318,8 +266,6 @@ classdef Preparser < handle
                 Preparser.saveAs(finalCut, saveAs);
             end
         end    
-        
-        
         
         
         function c = convertEols(c)
@@ -331,16 +277,12 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function c = addLineBreak(c)
             BR = sprintf('\n');
             if isempty(c) || c(end)~=BR
                 c = [c,BR];
             end        
         end
-        
-        
         
         
         function varargout = eval(varargin)
@@ -351,8 +293,6 @@ classdef Preparser < handle
                 varargout{1} = eval(varargin{1});
             end
         end
-        
-        
         
         
         function evalPopulateWorkspace(expn, assigned, p)
@@ -380,14 +320,10 @@ classdef Preparser < handle
         end
         
         
-        
-        
         function flag = chkCloneString(c)
             flag = ~isempty( strfind(c, '?') ) && ...
                 isvarname( strrep(c, '?', 'x') );
         end
-        
-        
         
         
         function code = cloneAllNames(code, cloneStr)
@@ -406,8 +342,6 @@ classdef Preparser < handle
         end
 
         
-        
-        
         function saveAs(codeToSave, fileName)
             if ~isempty(fileName)
                 try
@@ -419,8 +353,6 @@ classdef Preparser < handle
                 end
             end
         end
-        
-        
         
         
         function code = removeInsignificantWhs(code)

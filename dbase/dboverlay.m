@@ -1,51 +1,46 @@
 function d = dboverlay(d, varargin)
-% dboverlay  Combine time series observations from two or more databases.
+% dboverlay  Combine time series observations from two or more databases
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     D = dboverlay(D, D1, D2,...)
+%     D = dboverlay(D, D1, D2, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `D` [ struct ] - Primary input database.
 %
-% * `D1`, `D2`, ... [ struct ] - Databases whose tseries observations will
-% be used to extend or overwrite observations in the tseries objects of the
+% * `D1`, `D2`, ... [ struct ] - Databases whose time series observations will
+% be used to extend or overwrite observations in the time series of the
 % same name in the primary database.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `D` [ struct ] - Output database.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % If more than two databases are combined then they are processed
 % one-by-one: the first is combined with the second, then the result is
 % combined with the third, and so on, using the following rules:
 %
-% * If two non-empty tseries objects with the same frequency are combined,
+% * If two non-empty time series with the same frequency are combined, 
 % the observations are spliced together. If some of the observations
-% overlap the observations from the second tseries are used.
-% * If two empty tseries objects are combined the first is used.
-% * If a non-empty tseries is combined with an empty tseries, the non-empty
-% one is used.
-% * If two objects are combined of which at least one is a non-tseries
-% object, the second input object is used.
+% overlap the observations from the second time series are used.
+% * If two empty time series are combined the first is used.
+% * If a non-empty time series is combined with an empty time series, the
+% non-empty one is used.
+% * If two objects are combined of which at least one is not a time series,
+% the second input object is used.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if ~isstruct(d) || any(~cellfun(@isstruct, varargin))
     utils.error('dbase:dboverlay', ...
@@ -75,7 +70,7 @@ for j = 1 : numel(combList)
     end
     x = d.(combList{j});
     y = s.(combList{j});
-    if istseries(x) && istseries(y)
+    if isa(x, 'tseries') && isa(y, 'tseries')
         if freq(x)==freq(y)
             % Two non-empty time series with the same frequency.
             d.(combList{j}) = vertcat(x, y);

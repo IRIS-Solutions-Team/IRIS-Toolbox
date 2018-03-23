@@ -5,7 +5,7 @@ function [answ, flag, query] = implementGet(this, query, varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ switch lower(query)
     case {'baseyear', 'torigin'}
         answ = this.BaseYear;
         if isequal(answ, @config) || isempty(answ)
-            answ = irisget('BaseYear');
+            answ = iris.get('BaseYear');
         end
         
         

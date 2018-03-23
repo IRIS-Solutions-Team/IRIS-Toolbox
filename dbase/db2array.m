@@ -1,16 +1,14 @@
 function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, sw)
 % db2array  Convert tseries database entries to numeric array.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [x, includedList, range] = db2array(d)
 %     [x, includedList, range] = db2array(d, list)
 %     [x, includedList, range] = db2array(d, list, range, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `d` [ struct ] - Input database with tseries objects that will be
 % converted to a numeric array.
@@ -25,8 +23,7 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 % very first non-NaN observation to the very last non-NaN observation.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `x` [ numeric ] - Numeric array with observations from individual
 % tseries objects in columns.
@@ -38,8 +35,7 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 % useful when the input argument `range` is missing or `Inf`.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The output array, `x`, is always NPer-by-NList-by-NAlt, where NPer is the
 % length of the `range` (the number of periods), NList is the number of
@@ -58,12 +54,11 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 % missing columns.
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %#ok<*VUNUS>
 %#ok<*CTCH>
@@ -197,7 +192,7 @@ else
 end
 
 range = startDate : endDate;
-rangeFreq = datfreq(startDate);
+rangeFreq = DateWrapper.getFrequencyFromNumeric(startDate);
 nPer = numel(range);
 
 
@@ -211,14 +206,14 @@ x = nan(nPer, 0);
 for i = 1 : nList
     name = list{i};
     try
-        nData = max(1, size(x, 3));
+        numDataSets = max(1, size(x, 3));
         if strcmp(name, '!ttrend')
             iX = [ ];
             getTtrend( );
             addData( );
         else
             field = d.(name);
-            if istseries(field)
+            if isa(field, 'TimeSubscriptable')
                 iX = [ ];
                 getSeriesData( );
                 addData( );
@@ -253,8 +248,8 @@ return
     function getSeriesData( )
         tmpFreq = freq(field);
         if ~isnan(tmpFreq) && rangeFreq~=tmpFreq
-            nData = max(1, size(x, 3));
-            iX = nan(nPer, nData);
+            numDataSets = max(1, size(x, 3));
+            iX = nan(nPer, numDataSets);
             ixFreqMismatch(i) = true;
         else
             k = 0;
@@ -334,28 +329,28 @@ return
             throw( ...
                 exception.Base('Dbase:NameNotExist', 'warning'), ...
                 list{ixNotFound} ...
-                );
+            );
         end
         
         if sw.Warn.SizeMismatch && any(ixInvalid)
             throw( ...
                 exception.Base('Dbase:EntrySizeMismatch', 'warning'), ...
                 list{ixInvalid} ...
-                );
+            );
         end
         
         if sw.Warn.FreqMismatch && any(ixFreqMismatch)
             throw( ...
                 exception.Base('Dbase:EntryFrequencyMismatch', 'warning'), ...
                 list{ixFreqMismatch} ...
-                );
+            );
         end
         
         if sw.Warn.NonTseries && any(ixNonSeries)
             throw( ...
                 exception.Base('Dbase:EntryNotSeries', 'warning'), ...
                 list{ixNonSeries} ...
-                );
+            );
         end
     end
 end

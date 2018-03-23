@@ -28,7 +28,7 @@ function newDat = convert(dat, toFreq, varargin)
 % Options
 % ========
 %
-% * `'StandinMonth='` [ numeric | `'last'` | *`1`* ] - Month that will be
+% * `'ConversionMonth='` [ numeric | `'last'` | *`1`* ] - Month that will be
 % used to represent a certain period of time in low- to high-frequency
 % conversions.
 %
@@ -42,7 +42,7 @@ function newDat = convert(dat, toFreq, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % Parse options.
 opt = passvalopt('dates.convert', varargin{:});
@@ -56,7 +56,7 @@ pp.parse(dat, toFreq);
 
 %--------------------------------------------------------------------------
 
-fromFreq = datfreq(dat);
+fromFreq = DateWrapper.getFrequencyFromNumeric(dat);
 ixFromZero = fromFreq==0;
 ixFromDaily = fromFreq==365;
 ixFromWeekly = fromFreq==52;
@@ -69,7 +69,7 @@ if any(ixFromRegular(:))
     [fromYear, fromPer, fromFreq] = dat2ypf(dat(ixFromRegular));
     toYear = fromYear;
     % First, convert the original period to a corresponding month.
-    toMon = per2month(fromPer, fromFreq, opt.standinmonth);
+    toMon = per2month(fromPer, fromFreq, opt.ConversionMonth);
     % Then, convert the month to the corresponding period of the request
     % frequnecy.
     toPer = ceil(toMon.*toFreq./12);
@@ -83,7 +83,7 @@ end
 
 if any(ixFromWeekly(:))
     if toFreq==365
-        x = ww2day(dat(ixFromWeekly), opt.wwday);
+        x = ww2day(dat(ixFromWeekly), opt.Wday);
         newDat(ixFromWeekly) = x;
     else
         x = ww2day(dat(ixFromWeekly), 'Thu');
@@ -105,6 +105,6 @@ if any(ixFromDaily(:))
     end
 end
 
-newDat = dates.Date(newDat);
+newDat = DateWrapper(newDat);
 
 end

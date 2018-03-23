@@ -4,7 +4,7 @@
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 classdef UserDataContainer
     properties %(GetAccess=public, SetAccess=protected, Hidden)
@@ -13,8 +13,6 @@ classdef UserDataContainer
         Caption = '' % User captions used to title graphs
         BaseYear = @config % Base year for time trends
     end
-    
-    
     
     
     methods
@@ -31,8 +29,6 @@ classdef UserDataContainer
     end
     
     
-    
-    
     methods
         varargout = caption(varargin)
         varargout = comment(varargin)
@@ -41,14 +37,10 @@ classdef UserDataContainer
     end
     
     
-    
-    
     methods (Hidden)
         varargout = chkConsistency(varargin)
         varargout = implementGet(varargin)
         varargout = implementSet(varargin)
-        
-        
         
         
         function disp(this, varargin)
@@ -61,14 +53,10 @@ classdef UserDataContainer
     end
     
     
-    
-    
     methods (Access=protected, Hidden)
         function dispComment(this)
             fprintf('\tcomment: ''%s''\n', this.Comment);
         end
-        
-        
         
         
         function dispUserData(this)
@@ -77,6 +65,7 @@ classdef UserDataContainer
             elseif isstruct(this.UserData)
                 msg = [ ] ;
                 fprintf('\tuser data: \n') ;
+                %{
                 names = fields(this.UserData) ;
                 K = numel(names) ;
                 for jj = 1:K
@@ -88,6 +77,8 @@ classdef UserDataContainer
                     end
                     fprintf('\t\t%s: %s\n', names{jj}, str) ;
                 end
+                %}
+                disp(this.UserData);
             else
                 msg = catchUnknown(this.UserData) ;
             end
@@ -96,8 +87,6 @@ classdef UserDataContainer
             end
 
             return
-            
-            
             
             
             function str = catchUnknown(x)

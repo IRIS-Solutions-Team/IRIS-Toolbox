@@ -1,53 +1,47 @@
-function [Rad,Per] = frf2phase(F,varargin)
+function [rad, per] = frf2phase(F, varargin)
 % frf2phase  Phase shift of frequence response function.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [Rad,Per] = frf2phase(F)
+%     [Rad, Per] = frf2phase(F)
 %
-% Input arguments
-% ================
+%
+% __Input arguments__
 %
 % * `F` [ numeric ] - Frequency response matrices computed by `ffrf`.
 %
-% Output arguments
-% =================
+%
+% __Output arguments__
 %
 % * `Rad` [ numeric ] - Phase shift in radians.
 %
 % * `Per` [ numeric ] - Phase shift in periods.
 %
-% Options
-% ========
+%
+% __Options__
 %
 % See help on `xsf2phase` for options available.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
-isNamed = isnamedmat(F);
+[rad, per] = xsf2phase(F, varargin{:});
 
-if isNamed
+if isa(F, 'namedmat')
     rowNames = rownames(F);
     colNames = colnames(F);
-end
-
-[Rad,Per] = xsf2phase(F,varargin{:});
-
-if isNamed
-    Rad = namedmat(Rad,rowNames,colNames);
-    if nargin > 1 && ~isempty(Per)
-        Per = namedmat(Per,rowNames,colNames);
+    rad = namedmat(rad, rowNames, colNames);
+    if nargin>1 && ~isempty(per)
+        per = namedmat(per, rowNames, colNames);
     end
 end
 

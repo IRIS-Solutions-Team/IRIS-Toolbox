@@ -64,7 +64,7 @@ function varargout = plotneigh(d,varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 opt = passvalopt('grfun.plotneigh',varargin{:});
 
@@ -217,8 +217,8 @@ end
 
 %**************************************************************************
     function doCaptions( )
-        if ~isempty(opt.caption) && iscellstr(opt.caption)
-            cp = opt.caption;
+        if ~isempty(opt.Caption) && iscellstr(opt.Caption)
+            cp = opt.Caption;
             ncp = length(cp);
             if ncp > np
                 cp = cp(1:np);

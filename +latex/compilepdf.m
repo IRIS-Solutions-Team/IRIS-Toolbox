@@ -5,13 +5,13 @@ function [pdf, count] = compilepdf(inpFile, varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 opt = passvalopt('latex.compilepdf', varargin{:});
 
 %--------------------------------------------------------------------------
 
-config = irisget( );
+config = iris.get( );
 if isempty(config.PdfLaTeXPath)
     utils.error('latex:compilepdf',...
         'PDF LaTeX engine path unknown. Cannot compile PDF files.');

@@ -1,17 +1,17 @@
 % ProgressBar  Display command line progress bar.
 %
-% Backend IRIS class.
-% No help provided.
+% Backend IRIS class
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef ProgressBar < handle    
     properties
-        title = '';
-        nProgress = 40;
-        nBar = 0;
-        display = '*';
+        Title = '';
+        NumProgress = 40;
+        NumBars = 0;
+        Display = '*';
     end
     
     
@@ -20,13 +20,13 @@ classdef ProgressBar < handle
     methods
         function this = ProgressBar(varargin)
             if nargin>0
-                this.title = varargin{1};
+                this.Title = varargin{1};
             end
             x = '-';
-            screen = ['[', x(ones(1, this.nProgress)), ']'];
-            if ~isempty(this.title)
-                this.title = this.title(1:min(end, this.nProgress-4));
-                screen(3+(1:length(this.title))) = this.title;
+            screen = ['[', x(ones(1, this.NumProgress)), ']'];
+            if ~isempty(this.Title)
+                this.Title = this.Title(1:min(end, this.NumProgress-4));
+                screen(3+(1:length(this.Title))) = this.Title;
             end
             textfun.loosespace( );
             disp(screen);
@@ -36,17 +36,27 @@ classdef ProgressBar < handle
         
         
         
-        function this = update(this, n)
-            x = this.nBar;
-            this.nBar = round(this.nProgress*n);
-            if this.nBar>x
-                c = this.display(1);
+        function this = update(this, varargin)
+            oldNumBars = this.NumBars;
+            if numel(varargin)==1
+                fraction = varargin{1};
+            else
+                position = varargin{1};
+                index = varargin{2};
+                fraction = nnz(index(1:position)) / nnz(index);
+            end
+            if ~isfinite(fraction)
+                fraction = 1;
+            end
+            this.NumBars = round(this.NumProgress*fraction);
+            if this.NumBars>oldNumBars
+                c = this.Display(1);
                 fprintf('\b');
-                fprintf(c(ones(1, this.nBar-x)));
+                fprintf(c(ones(1, this.NumBars-oldNumBars)));
                 fprintf(']');
-                if this.nBar>=this.nProgress
+                if this.NumBars>=this.NumProgress
                     fprintf('\n');
-                    textfun.loosespace( );
+                    textual.looseLine( );
                 end
             end
         end

@@ -5,7 +5,7 @@ function delete(X)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 
 if usejava('jvm') && isempty(strfind(X, '*')) && isempty(strfind(X, '?'))

@@ -38,7 +38,7 @@ function flag = freqcmp(x, y)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 try
     y; %#ok<VUNUS>
@@ -58,12 +58,12 @@ if isequal(x, @all) || isequal(y, @all) || isequal(x, Inf) || isequal(y, Inf)
     return
 end
 
-if isa(x, 'tseries')
-    x = startDate(x);
+if isa(x, 'TimeSubscriptable')
+    x = x.Start;
 end
 
-if isa(y, 'tseries')
-    y = startDate(y);
+if isa(y, 'TimeSubscriptable')
+    y = y.End;
 end
 
 ixXInf = isinf(x);
@@ -72,8 +72,8 @@ ixYInf = isinf(y);
 fx = inf(size(x));
 fy = inf(size(y));
 
-fx(~ixXInf) = datfreq(x(~ixXInf));
-fy(~ixYInf) = datfreq(y(~ixYInf));
+fx(~ixXInf) = DateWrapper.getFrequencyFromNumeric(x(~ixXInf));
+fy(~ixYInf) = DateWrapper.getFrequencyFromNumeric(y(~ixYInf));
 
 flag = fx==fy | isinf(fx-fy);
 

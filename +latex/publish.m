@@ -2,98 +2,93 @@ function publish(inpFile, varargin)
 % publish  Publish m-file or model file to PDF.
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     latex.publish(InpFile)
 %     latex.publish(InpFile,...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `InpFile` [ char | cellstr ] - Input file name; can be either an
 % m-file, a model file, or a cellstr combining a number of them.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% General options
-% ----------------
 %
-% * `'cleanup='` [ *`true`* | `false` ] - Delete all temporary files
+% _General Options_
+%
+% * `'Cleanup='` [ *`true`* | `false` ] - Delete all temporary files
 % (LaTeX and eps) at the end.
 %
-% * `'closeAll='` [ *`true`* | `false` ] - Close all figure windows at the
+% * `'CloseAll='` [ *`true`* | `false` ] - Close all figure windows at the
 % end.
 %
-% * `'display='` [ *`true`* | `false` ] - Display pdflatex compiler report.
+% * `'Display='` [ *`true`* | `false` ] - Display pdflatex compiler report.
 %
-% * `'evalCode='` [ *`true`* | `false` ] - Evaluate code when publishing the
+% * `'EvalCode='` [ *`true`* | `false` ] - Evaluate code when publishing the
 % file; the option is only available with m-files.
 %
-% * `'useNewFigure='` [ `true` | *`false`* ] - Open a new figure window for each
+% * `'UseNewFigure='` [ `true` | *`false`* ] - Open a new figure window for each
 % graph plotted.
 %
-% Content-related options
-% ------------------------
 %
-% * `'author='` [ char | *empty* ] - Author that will be included on the
+% _Content Related Options_
+%
+% * `'Author='` [ char | *empty* ] - Author that will be included on the
 % title page.
 %
-% * `'date='` [ char | *'\today' ] - Publication date that will be included
+% * `'Date='` [ char | *'\today' ] - Publication date that will be included
 % on the title page.
 %
-% * `'event='` [ char | *empty* ] - Event (conference, workshop) that will
+% * `'Event='` [ char | *empty* ] - Event (conference, workshop) that will
 % be included on the title page.
 %
-% * `'figureFrame='` [ `true` | *`false`* ] - Draw frames around figures.
+% * `'FigureFrame='` [ `true` | *`false`* ] - Draw frames around figures.
 %
-% * `'figureScale='` [ numeric | *`1`* ] - Factor by which the graphics
+% * `'FigureScale='` [ numeric | *`1`* ] - Factor by which the graphics
 % will be scaled.
 %
-% * `'figureTrim='` [ numeric | *`[50,200,50,150]`* ] - Trim excessive
+% * `'FigureTrim='` [ numeric | *`[50,200,50,150]`* ] - Trim excessive
 % white margines around figures by the specified amount of points left,
 % bottom, right, top.
 %
-% * `'irisVersion='` [ *`true`* | `false` ] - Display the current IRIS version
+% * `'IrisVersion='` [ *`true`* | `false` ] - Display the current IRIS version
 % in the header on the title page.
 %
-% * `'lineSpread='` [ numeric | *'auto'*] - Line spacing.
+% * `'LineSpread='` [ numeric | *'auto'*] - Line spacing.
 %
-% * `'matlabVersion='` - Display the current Matlab version in the header on
+% * `'MatlabVersion='` - Display the current Matlab version in the header on
 % the title page.
 %
-% * `'numbered='` - [ *`true`* | `false` ] - Number sections.
+% * `'Numbered='` - [ *`true`* | `false` ] - Number sections.
 %
-% * `'package='` - [ cellstr | char | *`'inconsolata'`* ] - List of
+% * `'Package='` - [ cellstr | char | *`'inconsolata'`* ] - List of
 % packages that will be loaded in the preamble.
 %
-% * `'paperSize='` -  [ 'a4paper' | *'letterpaper'* ] - Paper size.
+% * `'PaperSize='` -  [ 'a4paper' | *'letterpaper'* ] - Paper size.
 %
-% * `'preamble='` - [ char | *empty* ] - LaTeX commands
+% * `'Preamble='` - [ char | *empty* ] - LaTeX commands
 % that will be included in the preamble of the document.
 %
-% * `'template='` - [ *'paper'* | 'present' ] - Paper-like or
+% * `'Template='` - [ *'paper'* | 'present' ] - Paper-like or
 % presentation-like format.
 %
-% * `'textScale='` - [ numeric | *0.70* ] - Proportion of the paper used for
+% * `'TextScale='` - [ numeric | *0.70* ] - Proportion of the paper used for
 % the text body.
 %
-% * `'toc='` - [ *`true`* | `false` ] - Include the table of contents.
+% * `'Toc='` - [ *`true`* | `false` ] - Include the table of contents.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('InpFile', @ischar);
@@ -276,7 +271,7 @@ else
 end
 if opt.irisversion
     c = strrep(c,'$irisversion$', ...
-        ['IRIS: ',irisversion( )]);
+        ['IRIS: ',iris.version( )]);
 else
     c = strrep(c,'$irisversion$','');
 end

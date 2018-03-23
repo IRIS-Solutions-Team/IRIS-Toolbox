@@ -3,6 +3,6 @@ classdef tseries < irisinp.generic
         ReportName = 'Time Series';  
         Value = NaN;
         Omitted = @error;
-        ValidFn = @istseries;
+        ValidFn = @(x) isa(x, 'tseries');
     end
 end

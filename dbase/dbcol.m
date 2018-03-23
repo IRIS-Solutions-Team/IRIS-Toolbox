@@ -1,13 +1,12 @@
-function varargout = dbcol(This,varargin)
+function varargout = dbcol(this, varargin)
 % dbcol  Retrieve the specified column or columns from database entries.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     D = dbpage(D,K)
+%     D = dbpage(D, K)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `D` [ struct ] - Input database with (possibly) multivariate tseries
 % objects and numeric arrays.
@@ -16,24 +15,24 @@ function varargout = dbcol(This,varargin)
 % retrieved from each tseries object or numeric array in in the input
 % database, `D`, and returned in the output database.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `D` [ struct ] - Output database with tseries objects and numeric
 % arrays reduced to the specified column.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
-[varargout{1:nargout}] = dbdimretrieve(This,2,varargin{:});
+[varargout{1:nargout}] = dbdimretrieve(this, 2, varargin{:});
 
 end

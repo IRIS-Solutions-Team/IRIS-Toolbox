@@ -1,11 +1,11 @@
 function varargout = vline(varargin)
-% vline  Shortcut for grfun.vline.
+% vline  Legacy name for visual.vline
 %
-% See help on [`grfun.vline`](grfun/vline).
+% See help on visual.vline
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-[varargout{1:nargout}] = grfun.vline(varargin{:});
+[varargout{1:nargout}] = visual.vline(varargin{:});
 
 end

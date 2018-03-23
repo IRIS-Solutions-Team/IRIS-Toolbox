@@ -10,7 +10,7 @@ function dat = yytoday( )
 % Output arguments
 % =================
 %
-% * `dat` [ dates.Date ]  - IRIS serial date number for current year.
+% * `dat` [ DateWrapper ]  - IRIS serial date number for current year.
 %
 %
 % Description
@@ -22,7 +22,7 @@ function dat = yytoday( )
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

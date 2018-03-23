@@ -5,7 +5,7 @@ function [V, Dcy, Exit] = qad(EvalFn, V0, Opt)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 N_OPTIM_LAMBDA = 10;
 MIN_ITER_SHANKS = 10;

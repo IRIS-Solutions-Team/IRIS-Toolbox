@@ -1,26 +1,24 @@
-function multiple = getMultiple(list)
-% getMultiple  Find entries with multiple occurrence in list of names.
+function listDuplicate = getMultiple(list)
+% getMultiple  Find entries with multiple occurrences in a list of names.
 %
 % Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
-multiple = cell(1,0);
-
-nn = length(list); % Number of non-unique names.
-[lsu, posu, posn] = unique(list);
-nu = length(posu); % Number of unique names.
-
-if nu<nn
-    posn = repmat(posn, 1, nu);
-    match = repmat(1:nu, nn, 1);
-    ixMultiple = sum(posn==match, 1)>1;
-    multiple = lsu(ixMultiple);
-    multiple = fliplr(multiple); % Matlab reports last occurrences in posn, flip to fix the order.
+numNames = length(list); % Number of all names.
+listDuplicate = cell(1, 0);
+[listUnique, posUnique, posDuplicate] = unique(list);
+numUnique = length(posUnique); % Number of unique names.
+if numUnique<numNames
+    posDuplicate = repmat(posDuplicate, 1, numUnique);
+    match = repmat(1:numUnique, numNames, 1);
+    indexDuplicate = sum(posDuplicate==match, 1)>1;
+    listDuplicate = listUnique(indexDuplicate);
+    listDuplicate = fliplr(listDuplicate); % Matlab reports last occurrences in posDuplicate, flip to fix the order.
 end
 
 end

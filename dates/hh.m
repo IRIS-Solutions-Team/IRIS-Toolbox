@@ -29,11 +29,11 @@ function dat = hh(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
 dat = datcode(2, varargin{:});
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

@@ -1,28 +1,23 @@
-function list = dbnames(varargin)
+function listFields = dbnames(varargin)
 % dbnames  List of database entries filtered by name and/or class.
 %
+% __Syntax__
 %
-% Syntax
-% =======
-%
-%     list = dbnames(d, ...)
+%     List = dbnames(D, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
-% * `d` [ struct ] - Input database.
-%
-%
-% Output arguments
-% =================
-%
-% * `list` [ cellstr ] - List of input database entries that pass the name
-% or class test.
+% * `D` [ struct ] - Input database.
 %
 %
-% Options
-% ========
+% __Output Arguments__
+%
+% * `List` [ cellstr ] - List of input database entries that pass the name,
+% class or user test.
+%
+%
+% __Options__
 %
 % * `'NameFilter='` [ cellstr | char | rexp | *`@all`* ] - List of names or
 % regular expression against which the database entry names will be
@@ -32,13 +27,14 @@ function list = dbnames(varargin)
 % or regular expression against which the database entry class names will
 % be matched; `@all` means all classes will be matched.
 %
+% * `'UserFilter='` [ function_handle ] - Function that accepts one input
+% argument (the tested database entry) and returns `true` or `false`.
 %
-% Description
-% ============
+%
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 % Notice the differences in the following calls to `dbnames`:
 %
@@ -60,58 +56,82 @@ function list = dbnames(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 [D, varargin] = irisinp.parser.parse('dbase.dbnames', varargin{:});
 opt = passvalopt('dbase.dbnames', varargin{:});
 
 %--------------------------------------------------------------------------
 
-% Empty name filter and empty class filter returns empty list.
+% Empty name filter and empty class filter returns empty listFields.
 if isempty(opt.namefilter) && isempty(opt.classfilter)
-    list = cell(1, 0);
+    listFields = cell(1, 0);
     return
 end
 
 if ( isequal(opt.namefilter, @all) || isequal(opt.namefilter, Inf) ) ...
         && ( isequal(opt.classfilter, @all) || isequal(opt.classfilter, Inf) )
-    list = fieldnames(D);
+    listFields = fieldnames(D);
     return
 end
 
-% Get the database entry names and classes. Make sure order of names
-% corresponds to order of classes (not guaranteed by Matlab in general).
-c = structfun(@class, D, 'UniformOutput', false);
-list = fieldnames(c).';
-c = struct2cell(c).';
-c = strrep(c, 'Series', 'tseries');
+if ischar(opt.classfilter) || isa(opt.classfilter, 'string')
+    opt.classfilter = cellstr(opt.classfilter);
+end
 
-ixClassTest = validate(c, opt.classfilter);
-ixNameTest = validate(list, opt.namefilter);
+listFields = fieldnames(D);
+listFields = listFields(:)';
+indexClassTest = validateClasses(D, listFields, opt.classfilter);
+indexNameTest = validateNames(listFields, opt.namefilter);
 
 % Return the names that pass both tests.
-list = list(ixNameTest & ixClassTest);
+listFields = listFields(indexNameTest & indexClassTest);
 
 end
 
 
-
-
-function ixTest = validate(list, filter)
-ixTest = true(size(list));
-if isequal(filter, @all)
-    ixTest(:) = true;
-    return
-elseif isempty(filter)
-    ixTest(:) = false;
-    return
-elseif ischar(filter) || isrexp(filter)
-    x = regexp(list, filter, 'once');
-    ixTest = ~cellfun(@isempty, x);
-    return
-elseif iscellstr(filter)
-    for i = 1 : numel(list)
-        ixTest(i) = any(strcmp(list{i}, filter));
+function indexTest = validateNames(listFields, nameFilter)
+    indexTest = true(size(listFields));
+    if isequal(nameFilter, @all)
+        indexTest(:) = true;
+        return
+    elseif isempty(nameFilter)
+        indexTest(:) = false;
+        return
+    elseif ischar(nameFilter) || isa(nameFilter, 'rexp')
+        x = regexp(listFields, nameFilter, 'once');
+        indexTest = ~cellfun(@isempty, x);
+        return
+    elseif iscellstr(nameFilter)
+        for i = 1 : numel(listFields)
+            indexTest(i) = any(strcmp(listFields{i}, nameFilter));
+        end
     end
 end
+
+
+function indexTest = validateClasses(D, listFields, classFilter)
+    indexTest = false(size(listFields));
+    if isequal(classFilter, @all)
+        indexTest(:) = true;
+        return
+    end
+    if isempty(classFilter)
+        indexTest(:) = true;
+    end
+    numFields = numel(listFields);
+    if iscellstr(classFilter)
+        for i = 1 : numFields
+            for j = 1 : numel(classFilter)
+                indexTest(i) = indexTest(i) | isa(D.(listFields{i}), classFilter{j});
+            end
+        end
+    elseif isa(classFilter, 'rexp')
+        for i = 1 : numFields
+            ithClass = class(D.(listFields{i}));
+            x = regexp(ithClass, classFilter, 'once');
+            indexTest(i) = ~isempty(x);
+        end
+    end
 end
+

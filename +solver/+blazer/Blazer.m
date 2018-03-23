@@ -4,16 +4,15 @@
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-classdef Blazer < handle
+classdef (Abstract) Blazer < handle
     properties
-        BlockConstructor
-        
-        Equation
+        Equation = cell.empty(1, 0)
+        Quantity = cell.empty(1, 0)
+        NumPeriods = NaN
         Gradient
         Assignment
-        Preamble
         Incidence
         IxLog
         IxEqn
@@ -21,8 +20,6 @@ classdef Blazer < handle
         IxCanBeEndg
         IsBlocks = true
         IsSingular = false
-        IsReduction = false
-        QtyStrFormat % Format to create string representing an LHS variable to verify the RHS of possible assignments.
         NanInit % Values assigned to NaN initial conditions.
         
         Block
@@ -36,13 +33,18 @@ classdef Blazer < handle
         SAVEAS_FILE_HEADER = '% IRIS Blazer File $TimeStamp$';
     end
     
+
+    properties (Abstract, Constant)
+        BLOCK_CONSTRUCTOR 
+        LHS_QUANTITY_FORMAT % Format to create string representing an LHS variable to verify the RHS of possible assignments.
+        PREAMBLE
+    end
     
-    
-    
+
     methods
-        function this = Blazer(nEqn)
-            this.Equation = cell(1, nEqn);
-            this.Gradient = cell(2, nEqn);        
+        function this = Blazer(numOfEquationsInModel)
+            this.Equation = cell(1, numOfEquationsInModel);
+            this.Gradient = cell(2, numOfEquationsInModel);        
         end
         
         
@@ -86,37 +88,33 @@ classdef Blazer < handle
         
         function run(this)
             PTR = @int16;
-            nEqn = sum(this.IxEqn);
-            nEndg = sum(this.IxEndg);
-            if nEqn~=nEndg
-                throw( exception.Base('Blazer:NumberEquationsEndogenized', 'error'), ...
-                    nEqn, nEndg ); %#ok<GTARG>
+            numOfEquations = sum(this.IxEqn);
+            numOfEndogenous = sum(this.IxEndg);
+            if numOfEquations~=numOfEndogenous
+                throw( ...
+                    exception.Base('Blazer:NumberEquationsEndogenized', 'error'), ...
+                    numOfEquations, numOfEndogenous ...
+                ); %#ok<GTARG>
             end
-            posEqn = PTR(find(this.IxEqn)); %#ok<FNDSB>
-            posQty = PTR(find(this.IxEndg)); %#ok<FNDSB>
-            ixIncid = across(this.Incidence, 'Shift');
+            [inc, idEqn, idQty] = prepareIncidenceMatrix(this);
             if this.IsBlocks
                 [ordInc, ordPosEqn, ordPosQty] = ...
-                    solver.blazer.Blazer.reorder( ...
-                    ixIncid(this.IxEqn, this.IxEndg), ...
-                    posEqn, posQty ...
-                    );
+                    this.reorder(inc, idEqn, idQty);
                 this.IsSingular = sprank(ordInc)<min(size(ordInc));
-                [blkEqn, blkQty] = ...
-                    solver.blazer.Blazer.getBlocks(ordInc, ordPosEqn, ordPosQty);
+                [blkEqn, blkQty] = this.getBlocks(ordInc, ordPosEqn, ordPosQty);
             else
-                blkEqn = { posEqn };
-                blkQty = { posQty };
+                blkEqn = { idEqn };
+                blkQty = { idQty };
             end
             
             % Create solver.block.Block objects for each block.
-            nBlk = numel(blkEqn);
-            this.Block = cell(1, nBlk);
-            for i = 1 : nBlk
-                blk = this.BlockConstructor( );
+            numOfBlocks = numel(blkEqn);
+            this.Block = cell(1, numOfBlocks);
+            for i = 1 : numOfBlocks
+                blk = this.BLOCK_CONSTRUCTOR( );
                 blk.PosQty = blkQty{i};
                 blk.PosEqn = blkEqn{i};
-                blk.QtyStrFormat = this.QtyStrFormat;
+                blk.LhsQuantityFormat = this.LHS_QUANTITY_FORMAT;
                 classify(blk, this.Assignment, this.Equation); % Classify block as SOLVE or ASSIGNMENT.
                 setShift(blk, this); % Find max lag and lead within equations in this block.
                 this.Block{i} = blk;
@@ -124,83 +122,78 @@ classdef Blazer < handle
         end
         
         
-        
         function prepareBlocks(this, opt)
-            nBlk = numel(this.Block);
-            for i = 1 : nBlk
+            numOfBlocks = numel(this.Block);
+            for i = 1 : numOfBlocks
+                this.Block{i}.Id = sprintf('%g', i);
                 prepareBlock(this.Block{i}, this, opt);
             end
         end
         
         
-        
-        
-        function exclude(this, posExclude)
-            nBlk = numel(this.Block);
-            for i = 1 : nBlk
-                exclude(this.Block{i}, posExclude);
-            end
-        end
-        
-        
-        
-        
-       function saveAs(this, m, fileName)
+        function saveAs(this, m, fileName)
             BR = sprintf('\n');
-            nBlk = numel(this.Block);
+            numOfBlocks = numel(this.Block);
             c = [ ...
                 strrep(solver.blazer.Blazer.SAVEAS_FILE_HEADER, '$TimeStamp$', datestr(now( ))), ...
-                sprintf('\n%% Number of Blocks: %g', nBlk), ...
+                sprintf('\n%% Number of Blocks: %g', numOfBlocks), ...
                 sprintf('\n%% Number of Equations: %g', sum(this.IxEqn)), ...
                 sprintf('\n%% Number of Endogenous Quantities: %g\n\n\n', sum(this.IxEndg)), ...
                 ];
-            for i = 1 : nBlk
+            for i = 1 : numOfBlocks
                 c = [c, print(this.Block{i}, i, m.Quantity.Name, m.Equation.Input) ]; %#ok<AGROW>
-                if i<nBlk
+                if i<numOfBlocks
                     c = [c, BR, BR, BR]; %#ok<AGROW>
                 end
             end
             char2file(c, fileName);
         end        
+    
+    
+        function [inc, idEqn, idQty] = prepareIncidenceMatrix(this)
+            PTR = @int16;
+            inc = across(this.Incidence, 'Shift');
+            inc = inc(this.IxEqn, this.IxEndg);
+            idEqn = PTR( find(this.IxEqn) ); %#ok<FNDSB>
+            idQty = PTR( find(this.IxEndg) ); %#ok<FNDSB>
+        end
     end
-    
-    
-    
-    
+
+
     methods (Static)
-        function [inc, posEqn, posQty] = reorder(inc, posEqn, posQty)
+        function [inc, idEqn, idQty] = reorder(inc, idEqn, idQty)
             if isempty(inc)
                 return
             end
             
             c1 = colamd(inc);
             inc = inc(:, c1);
-            posQty = posQty(c1);
+            idQty = idQty(c1);
             
             r1 = colamd(inc.');
             inc = inc(r1, :);
-            posEqn = posEqn(r1);
+            idEqn = idEqn(r1);
             
             [r2, c2] = dmperm(inc);
             inc = inc(r2, c2);
-            posQty = posQty(c2);
-            posEqn = posEqn(r2);
+            idQty = idQty(c2);
+            idEqn = idEqn(r2);
         end
         
         
         
         
-        function [blkEqn, blkQty] = getBlocks(incid, posEqn, posQty)
+        function [blkEqn, blkQty] = getBlocks(ordInc, idEqn, idQty)
             PTR = @int16;
-            n = size(incid, 1);
+            n = size(ordInc, 1);
             blkEqn = cell(1, 0);
             blkQty = cell(1, 0);
             currBlkEqn = repmat(PTR(0), 1, 0);
             currBlkQty = repmat(PTR(0), 1, 0);
             for i = n : -1 : 1
-                currBlkQty(end+1) = posQty(i); %#ok<AGROW>
-                currBlkEqn(end+1) = posEqn(i); %#ok<AGROW>
-                if ~any( any( incid(i:end, 1:i-1) ) )
+                currBlkQty(end+1) = idQty(i); %#ok<AGROW>
+                currBlkEqn(end+1) = idEqn(i); %#ok<AGROW>
+                if ~any( any( ordInc(i:end, 1:i-1) ) )
                     blkQty{end+1} = fliplr(currBlkQty); %#ok<AGROW>
                     blkEqn{end+1} = fliplr(currBlkEqn); %#ok<AGROW>
                     currBlkQty = repmat(PTR(0), 1, 0);

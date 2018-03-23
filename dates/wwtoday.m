@@ -22,12 +22,12 @@ function dat = wwtoday( )
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
 today = floor(now( ));
 dat = day2ww(today);
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

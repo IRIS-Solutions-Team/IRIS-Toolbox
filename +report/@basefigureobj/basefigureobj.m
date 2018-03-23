@@ -13,7 +13,7 @@ classdef basefigureobj < report.tabularobj
             else
                 IsVisibleDefault = true; %#ok<UNRCH>
             end
-            validFn = irisopt.validfn;
+            validFn = iris.options.validfn;
             This = This@report.tabularobj(varargin{:});
             This.childof = {'report','align'};
             This.default = [This.default,{ ...

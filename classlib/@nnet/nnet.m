@@ -28,7 +28,7 @@ classdef ( InferiorClasses={?matlab.graphics.axis.Axes} ) nnet < shared.UserData
     %
     
     % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2017 IRIS Solutions Team.
+    % -Copyright (c) 2007-2018 IRIS Solutions Team.
     
     properties
         % cell array of variables
@@ -144,7 +144,7 @@ classdef ( InferiorClasses={?matlab.graphics.axis.Axes} ) nnet < shared.UserData
             % Journal of Forecasting. 
             %
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2017 IRIS Solutions Team.
+            % -Copyright (c) 2007-2018 IRIS Solutions Team.
             
             pp = inputParser( ) ;
             pp.addRequired('Inputs',@(x) iscellstr(x) || ischar(x)) ;

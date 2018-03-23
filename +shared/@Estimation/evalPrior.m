@@ -1,13 +1,20 @@
-function pp = myevalpprior(x, pri)
+function mldParamPriors = myevalpprior(x, pri)
 
-pp = 0;
+paramPriorsLogDensity = 0;
 for i = find(pri.IxPrior)
-    pp = pp + pri.FnPrior{i}(x(i));
-    if ~isfinite(pp) || length(pp) ~= 1
-        pp = -Inf;
+    if isa(pri.FnPrior{i}, 'distribution.Abstract')
+        ithPriorLogDensity = pri.FnPrior{i}.logPdf(x(i));
+    elseif isa(pri.FnPrior{i}, 'function_handle')
+        ithPriorLogDensity = pri.FnPrior{i}(x(i));
+    else
+        ithPriorLogDensity = NaN;
+    end
+    paramPriorsLogDensity = paramPriorsLogDensity + ithPriorLogDensity;
+    if ~isfinite(paramPriorsLogDensity) || length(paramPriorsLogDensity)~=1
+        paramPriorsLogDensity = -Inf;
         break
     end
 end
-pp = -pp;
+mldParamPriors = -paramPriorsLogDensity;
 
 end

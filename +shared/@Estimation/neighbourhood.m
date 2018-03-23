@@ -1,6 +1,6 @@
 function [d, figH, axH, objH, likH, estH, bH] ...
     = neighbourhood(this, pos, pct, varargin)
-% neighbourhood  Evaluate the local behaviour of the objective function around the estimated parameter values.
+% neighbourhood  Local behaviour of the objective function around the estimated parameters.
 %
 % Syntax
 % =======
@@ -74,7 +74,7 @@ function [d, figH, axH, objH, likH, estH, bH] ...
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % Parse required input arguments.
 pp = inputParser( );

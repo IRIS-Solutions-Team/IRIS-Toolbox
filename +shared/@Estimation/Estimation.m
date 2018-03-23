@@ -4,20 +4,16 @@
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 classdef Estimation
     properties
     end
 
     
-    
-    
     methods
         varargout = neighbourhood(varargin)
     end
-    
-    
     
     
     methods (Abstract)
@@ -25,15 +21,11 @@ classdef Estimation
     end
     
     
-    
-    
     methods (Access=protected, Hidden)
-        varargout = diffPrior(varargin)
+        varargout = diffObj(varargin)
         varargout = run(varargin)
         varargout = parseEstimStruct(varargin)
     end
-    
-    
     
     
     methods (Access=protected, Hidden, Static)

@@ -6,7 +6,7 @@ function Range = myrange(This,InData,Range)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if isinf(Range)
 	if isstruct(InData)

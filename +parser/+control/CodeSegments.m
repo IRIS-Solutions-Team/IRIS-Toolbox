@@ -108,7 +108,7 @@ classdef CodeSegments < handle
                     c = c([ ]);
                     sh = sh([ ]);
                 otherwise
-                    throw( exception.Base('General:INTERNAL', 'error') );
+                    throw( exception.Base('General:Internal', 'error') );
             end
         end
         
@@ -137,7 +137,7 @@ classdef CodeSegments < handle
                 case Keyword.SWITCH
                     body{end+1} = Switch(c1, sh1);
                 otherwise
-                    throw( exception.Base('General:INTERNAL', 'error') );                    
+                    throw( exception.Base('General:Internal', 'error') );                    
             end
             keyClose = Keyword(sh(close));
             c = c(close+len(keyClose):end);

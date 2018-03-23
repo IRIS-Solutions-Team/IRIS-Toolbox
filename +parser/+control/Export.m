@@ -27,10 +27,11 @@ classdef Export < parser.control.ExternalFile
                 fileName = For.substitute(fileName, p);
             end
             fileName = strtrim(fileName);
-            content = writeFinal(this.Body, p, varargin{:});
-            content = textfun.removeltel(content);
-            content = completeFileContents(this, content);
-            addExported(p, fileName, content);
+            contents = writeFinal(this.Body, p, varargin{:});
+            contents = textfun.removeltel(contents);
+            contents = completeFileContents(this, contents);
+            addExport = shared.Export(fileName, contents);
+            p.Export = [p.Export, addExport];
         end
         
         

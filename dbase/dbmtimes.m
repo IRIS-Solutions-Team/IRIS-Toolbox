@@ -32,7 +32,7 @@ function this = dbmtimes(this, list)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('d', @isstruct);

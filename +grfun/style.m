@@ -100,7 +100,7 @@ function style(GS,H,varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 % Parse options.
 opt = passvalopt('grfun.style', varargin{:});
@@ -502,11 +502,7 @@ return
                 
             case 'tight'
                 if isequal(value, true) || isequal(lower(value), 'on')
-                    grfun.yaxistight(h);
-                    isTseries = getappdata(h, 'IRIS_SERIES');
-                    if ~isequal(isTseries, true)
-                        grfun.xaxistight(h);
-                    end
+                    visual.backend.setAxesTight(h);
                 end
                 
             case 'clicktocopy'

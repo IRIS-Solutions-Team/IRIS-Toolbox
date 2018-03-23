@@ -66,7 +66,7 @@ function [This,xF,Obj] = estimate(This,Data,Range,varargin)
 % neural transfer functions," Neural Computing Surveys 2.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 pp = inputParser( ) ;
 pp.addRequired('This',@(x) isa(x,'nnet')) ;

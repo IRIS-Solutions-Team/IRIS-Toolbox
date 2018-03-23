@@ -43,34 +43,38 @@ function d = haver(hpath, varargin)
 % 
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
+
+TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+
+%-----------------------------------------------------------
 
 data = {}; meta = []; i=2; %#ok<*AGROW>
 for dbfile = varargin(1:2:end)
     h = haver([hpath dbfile{1} '.dat']);
-    data = [data fetch(h,varargin{i})];
-    meta = [meta info(h,varargin{i})];
+    data = [data fetch(h, varargin{i})];
+    meta = [meta info(h, varargin{i})];
     close(h); i=i+2;
 end
 
 d = struct;
-for i=1:size(data,2)
-    [Y,M,D] = datevec(data{i}(:,1));
+for i=1:size(data, 2)
+    [Y, M, D] = datevec(data{i}(:, 1));
     switch meta(i).Frequency
         case 'D'
-            dates=data{i}(:,1);
-        case {'MON','TUE','WED','THU','FRI','SAT','SUN'}
-            dates=ww(Y,M,D);
+            dates=data{i}(:, 1);
+        case {'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'}
+            dates=ww(Y, M, D);
         case 'M'
-            dates=mm(Y,M);
+            dates=mm(Y, M);
         case 'Q'
-            dates=qq(Y,M/3);
-        case {'Y','A'}
+            dates=qq(Y, M/3);
+        case {'Y', 'A'}
             dates=yy(Y);
         otherwise
-            error('unknown freq: %s',meta(i).Frequency)
+            error('unknown freq: %s', meta(i).Frequency)
     end
-    d.(meta(i).VarName)=userdata(tseries(dates,data{i}(:,2),meta(i).Descriptor),meta(i));
+    d.(meta(i).VarName)= TIME_SERIES_CONSTRUCTOR(dates, data{i}(:, 2), meta(i).Descriptor, meta(i));
 end
 
 end

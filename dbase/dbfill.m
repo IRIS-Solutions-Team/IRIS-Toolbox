@@ -1,33 +1,28 @@
 function d = dbfill(d, with)
 % dbfill  Fill all database entries with specified value.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     d = dbfill(d, with)
-%
-%
-% Input arguments
-% ================
-%
-% * `d` [ struct ] - Input database.
-%
-% * `with` [ any ] - Value with which all existing entries in the input
-% database `d` will replaced with.
+%     D = dbfill(D, With)
 %
 %
-% Output arguments
-% =================
+% __Input Arguments__
 %
-% * `d` [ struct ] - Output database with all entries replaced.
+% * `D` [ struct ] - Input database.
 %
-%
-% Description
-% ============
+% * `With` [ any ] - Value with which all existing entries in the input
+% database `D` will replaced with.
 %
 %
-% Example
-% ========
+% __Output Arguments__
+%
+% * `D` [ struct ] - Output database with all entries replaced.
+%
+%
+% __Description__
+%
+%
+% __Example__
 %
 %     d = struct('a', 1, 'b', tseries(1:10, @rand))
 %     d = 
@@ -40,7 +35,7 @@ function d = dbfill(d, with)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

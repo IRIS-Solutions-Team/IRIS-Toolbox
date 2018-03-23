@@ -1,108 +1,105 @@
 function d = dbload(varargin)
 % dbload  Create database by loading CSV file.
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     d = dbload(fileName, ...)
-%     d = dbload(d, fileName, ...)
+%     D = dbload(FileName, ...)
+%     D = dbload(D, FileName, ...)
 %
 %
-% Input arguments
-% ================
+% __Input arguments__
 %
-% * `fileName` [ char | cellstr ] - Name of the Input CSV data file or a cell
+% * `FileName` [ char | cellstr ] - Name of the Input CSV data file or a cell
 % array of CSV file names that will be combined.
 %
-% * `d` [ struct ] - An existing database (struct) to which the new entries
+% * `D` [ struct ] - An existing database (struct) to which the new entries
 % from the input CSV data file entries will be added.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
-% * `d` [ struct ] - Database created from the input CSV file(s).
+% * `D` [ struct ] - Database created from the input CSV file(s).
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'Case='` [ `'lower'` | `'upper'` | *empty* ] - Change case of variable
+% * `Case=''` [ `'lower'` | `'upper'` | empty ] - Change case of variable
 % names.
 %
-% * `'CommentRow='` [ char | cellstr | *`{'comment', 'comments'}`* ] - Label
-% at the start of row that will be used to create Series object comments.
+% * `CommentRow={'Comment', 'Comments'}` [ char | cellstr ] - Label at the
+% start of row that will be used to create comments in time series.
 %
-% * `'DateFormat='` [ char | *`'YYYYFP'`* ] - Format of dates in first
-% column.
+% * `Continuous=false` [ false | `'Descending'` | `'Ascending'` ] -
+% Indicate that dates are a continuous range, either acending or
+% descending.
 %
-% * `'Delimiter='` [ char | *`', '`* ] - Delimiter separating the individual
-% values (cells) in the CSV file; if different from a comma, all occurences
-% of the delimiter will replaced with commas -- note that this will also
-% affect text in comments.
+% * `DateFormat='YYYYFP'` [ char ] - Format of dates in first column.
 %
-% * `'FirstDateOnly='` [ `true` | *`false`* ] - Read and parse only the
+% * `Delimiter=','` [ char ] - Delimiter separating the individual values
+% (cells) in the CSV file; if different from a comma, all occurences of the
+% delimiter will replaced with commas -- note that this will also affect
+% text in comments.
+%
+% * `FirstDateOnly=false` [ `true` | `false` ] - Read and parse only the
 % first date string, and fill in the remaining dates assuming a range of
 % consecutive dates.
 %
-% * `'Freq='` [ `0` | `1` | `2` | `4` | `6` | `12` | `365` | `'daily'` |
-% *empty* ] - Advise frequency of dates; if empty, frequency will be
+% * `Freq=[ ]` [ `0` | `1` | `2` | `4` | `6` | `12` | `365` | `'daily'` | empty ]
+% - Advise frequency of dates; if empty, frequency will be
 % automatically recognised.
 %
-% * `'FreqLetters='` [ char | *`'YHQBM'`* ] - Letters representing frequency
-% of dates in date column.
+% * `FreqLetters=@config` [ char | @config ] - Letters representing
+% frequency of dates in date column.
 %
-% * `'InputFormat='` [ *`'auto'`* | `'csv'` | `'xls'` ] - Format of input
+% * `InputFormat='auto'` [ `'auto'` | `'csv'` | `'xls'` ] - Format of input
 % data file; `'auto'` means the format will be determined by the file
 % extension.
 %
-% * `'NameRow='` [ char | numeric | *`{'', 'Variables'}`* ] - String, or
+% * `NameRow={'', Variables'}` [ char | cellstr | numeric ] - String, or
 % cell array of possible strings, that is found at the beginning (in the
 % first cell) of the row with variable names, or the line number at which
 % the row with variable names appears (first row is numbered 1).
 %
-% * `'NameFunc='` [ cell | function_handle | *empty* ] - Function used to
+% * `NameFunc=[ ]` [ cell | function_handle | empty ] - Function used to
 % change or transform the variable names. If a cell array of function
 % handles, each function will be applied in the given order.
 %
-% * `'Nan='` [ char | *`NaN`* ] - String representing missing observations
-% (case insensitive).
+% * `NaN='NaN'` [ char ] - String representing missing observations (case
+% insensitive).
 %
-% * `'PreProcess='` [ function_handle | cell | *empty* ] - Apply this
-% function, or cell array of functions, to the raw text file before
-% parsing the data.
+% * `PreProcess=[ ]` [ function_handle | cell | empty ] - Apply this
+% function, or cell array of functions, to the raw text file before parsing
+% the data.
 %
-% * `'Select='` [ char | cellstr | *empty* ] - Only database entries
+% * `Select={ }` [ char | cellstr | empty ] - Only database entries
 % included on this list will be read in and returned in the output database
 % `D`; entries not on this list will be discarded.
 %
-% * `'SkipRows='` [ char | cellstr | numeric | *empty* ] - Skip rows whose
-% first cell matches the string or strings (regular expressions);
-% or, skip a vector of row numbers.
+% * `SkipRows=[ ]` [ char | cellstr | numeric | empty ] - Skip rows whose
+% first cell matches the string or strings (regular expressions); or, skip
+% a vector of row numbers.
 %
-% * `'UserData='` [ char | *`Inf`* ] - Field name under which the database
+% * `UserData=Inf` [ char | `Inf` ] - Field name under which the database
 % userdata loaded from the CSV file (if they exist) will be stored in the
 % output database; `Inf` means the field name will be read from the CSV
 % file (and will be thus identical to the originally saved database).
 %
-% * `'UserDataField='` [ char | *`'.'`* ] - A leading character denoting
-% userdata fields for individual time series; if empty, no userdata fields
-% will be read in and created.
+% * `UserDataField='.'` [ char ] - A leading character denoting userdata
+% fields for individual time series; if empty, no userdata fields will be
+% read in and created.
 %
-% * `'UserDataFieldList='` [ cellstr | numeric | empty ] - List of row
+% * `UserDataFieldList={ }` [ cellstr | numeric | empty ] - List of row
 % headers, or vector of row numbers, that will be included as user data in
 % each time series.
 %
 %
-% Description
-% ============
+% __Description__
 %
-% Use the `'freq='` option whenever there is ambiguity in intepreting
+% Use the `'Freq='` option whenever there is ambiguity in intepreting
 % the date strings, and IRIS is not able to determine the frequency
 % correctly (see Example).
 %
-% Structure of CSV database files
-% --------------------------------
+% _Structure of CSV database files_
 %
 % The minimalist structure of a CSV database file has a leading row with
 % variables names, a leading column with dates in the basic IRIS format, 
@@ -158,19 +155,18 @@ function d = dbload(varargin)
 %     |         |         |         |
 %
 %
-% Example
-% ========
+% __Example__
 %
-% Typical example of using the `'freq='` option is a quarterly database
+% Typical example of using the `'Freq='` option is a quarterly database
 % with dates represented by the corresponding months, such as a sequence
 % 2000-01-01, 2000-04-01, 2000-07-01, 2000-10-01, etc. In this case, you
 % can use the following options:
 %
-%     d = dbload('filename.csv', 'dateFormat', 'YYYY-MM-01', 'freq', 4);
+%     D = dbload('filename.csv', 'DateFormat=', 'YYYY-MM-01', 'Freq=', 4);
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if isstruct(varargin{1})
     d = varargin{1};
@@ -199,6 +195,10 @@ end
 
 opt = passvalopt('dbase.dbload', varargin{1:end});
 opt = datdefaults(opt);
+
+if isequal(opt.firstdateonly, true)
+    opt.Continuous = 'Ascending';
+end
 
 % Pre-process options.
 processOptions( );
@@ -253,21 +253,11 @@ if ~isequal(opt.select, @all)
     end
 end
 
-% Read numeric data from CSV string
-%-----------------------------------
-dates = [ ];
-data = [ ];
-ixMissing = [ ];
-ixNanDate = [ ];
-dateCol = { };
-if ~isempty(file)
-    readNumericData( );
-end
+% __Read Numeric Data from CSV String__
+[data, ixMissing, dateCol] = readNumericData( );
 
-% Parse dates
-%-------------
-dates = nan(1, length(dateCol));
-parseDates( );
+% __Parse dates__
+[dates, ixNanDate] = parseDates( );
 
 if ~isempty(dates)
     maxDate = max(dates);
@@ -277,7 +267,7 @@ if ~isempty(dates)
 else
     nPer = 0;
     dateInx = [ ];
-    minDate = NaN;
+    minDate = DateWrapper(NaN);
 end
 
 % Change variable names.
@@ -294,14 +284,11 @@ if ~isempty(opt.userdata) && isUserData
     createUserdataField( );
 end
 
-% Create database
-%------------------
+% __Create Database__
 % Populate the output database with Series and numeric data.
 populateDatabase( );
 
 return
-
-
 
 
     function readFile( )
@@ -320,8 +307,6 @@ return
             file = func{ii}(file);
         end
     end
-
-
 
 
     function processOptions( )
@@ -347,8 +332,6 @@ return
             opt.commentrow = {opt.commentrow};
         end
     end 
-
-
 
 
     function readHeaders( )
@@ -455,8 +438,6 @@ return
         end
         
         return
-
-        
         
 
         function moveToNextEol( )
@@ -468,8 +449,6 @@ return
             end
         end
 
-        
-        
         
         function Flag = isThisNameRow( )
             if isNameRowDone
@@ -485,12 +464,17 @@ return
     end 
 
 
-
-
-    function readNumericData( )
+    function [data, ixMissing, dateCol] = readNumericData( )
+        data = double.empty(0, 0);
+        ixMissing = logical.empty(1, 0);
+        dateCol = cell.empty(1, 0);
+        if isempty(file)
+            return
+        end
         % Read date column (first column).
-        dateCol = regexp(file, '^[^,\n]*', 'match', 'lineanchors');
+        dateCol = regexp(file, '^.*?(,|$)', 'match', 'lineanchors');
         dateCol = strtrim(dateCol);
+        dateCol = strrep(dateCol, ',', '');
         
         % Remove leading or trailing single or double quotes.
         % Some programs save any text cells with single or double quotes.
@@ -558,28 +542,37 @@ return
             isMaybeMissing1 = isnan(real(data1));
             ixMissing(isMaybeMissing & isMaybeMissing1) = true;
         end
+        if strcmpi(opt.Continuous, 'Descending')
+            data = flipud(data);
+            ixMissing = flipud(ixMissing);
+            dateCol = dateCol(end:-1:1);
+        end
     end 
 
 
-
-
-    function parseDates( )
+    function [dates, ixNanDate] = parseDates( )
+        numOfDates = numel(dateCol);
+        dates = DateWrapper(nan(1, numOfDates));
         dateCol = dateCol(1:min(end, size(data, 1)));
         if ~isempty(dateCol)
-            if opt.firstdateonly
+            if strcmpi(opt.Continuous, 'Ascending')
                 dateCol(2:end) = {''};
+            elseif strcmpi(opt.Continuous, 'Descending')
+                dateCol(1:end-1) = {''};
             end
             % Rows with empty dates.
-            emptyDate = cellfun(@isempty, dateCol);
+            ixEmptyDate = cellfun(@isempty, dateCol);
         end
         % Convert date strings.
-        if ~isempty(dateCol) && ~all(emptyDate)
-            dates(~emptyDate) = str2dat(dateCol(~emptyDate), ...
+        if ~isempty(dateCol) && ~all(ixEmptyDate)
+            dates(~ixEmptyDate) = str2dat(dateCol(~ixEmptyDate), ...
                 'DateFormat=', opt.dateformat, ...
                 'Freq=', opt.freq, ...
                 'FreqLetters=', opt.freqletters);
-            if opt.firstdateonly
-                dates(2:end) = dates(1) + (1 : length(dates)-1);
+            if strcmpi(opt.Continuous, 'Ascending')
+                dates(2:end) = dates(1) + (1 : numOfDates-1);
+            elseif strcmpi(opt.Continuous, 'Descending')
+                dates(end-1:-1:1) = dates(end) - (1 : numOfDates-1);
             end
         end
         % Exclude NaN dates (that includes also empty dates), but keep all data
@@ -589,12 +582,12 @@ return
         
         % Check for mixed frequencies.
         if ~isempty(dates)
-            x = datfreq(dates);
+            x = DateWrapper.getFrequencyFromNumeric(dates);
             if any(x(1)~=x)
                 throw( ...
                     exception.Base('Dbase:LoadMixedFrequency', 'error'), ...
                     FName ...
-                    ); %#ok<GTARG>
+                ); %#ok<GTARG>
             end
         end
     end 
@@ -603,7 +596,8 @@ return
 
 
     function populateDatabase( )
-        TEMPLATE_SERIES = Series( );
+        TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+        TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
         count = 0;
         nName = length(nameRow);
         seriesUserdataList = fieldnames(seriesUserdata);
@@ -663,7 +657,7 @@ return
                 % Convert the series to requested frequency if it isn't it yet.
 %                 if ~isempty(opt.convert) ...
 %                         && ~isnan(D.(name).start) ...
-%                         && datfreq(D.(name).start)~=opt.convert{1}
+%                         && DateWrapper.getFrequencyFromNumeric(D.(name).start)~=opt.convert{1}
 %                     D.(name) = convert(D.(name), opt.convert{:});
 %                 end
             elseif ~isempty(tmpSize)

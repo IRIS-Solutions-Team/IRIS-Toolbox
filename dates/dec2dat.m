@@ -1,37 +1,32 @@
 function dat = dec2dat(dec, freq, pos)
 % dec2dat  Convert decimal representation of date to IRIS serial date number.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     dat = dec2dat(dec, freq)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `dec` [ numeric ] - Decimal numbers representing dates.
 %
 % * `freq` [ freq ] - Date frequency.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `dat` [ numeric ] - IRIS serial date numbers corresponding to the
 % decimal representations `dec`.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 if nargin<3
     pos = 's';
@@ -40,7 +35,7 @@ pos = lower(pos(1));
 
 %--------------------------------------------------------------------------
 
-dates.Date.chkMixedFrequency(freq);
+DateWrapper.checkMixedFrequency(freq);
 freq = freq(1);
 
 switch freq

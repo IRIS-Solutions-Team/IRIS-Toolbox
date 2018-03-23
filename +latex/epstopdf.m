@@ -5,7 +5,7 @@ function epstopdf(List,CmdArgs,varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 try
     CmdArgs; %#ok<VUNUS>
@@ -30,7 +30,7 @@ if ischar(List)
 end
 
 thisDir = pwd( );
-epstopdf = irisget('epstopdfpath');
+epstopdf = iris.get('epstopdfpath');
 if isempty(epstopdf)
     utils.error('latex:epstopdf',...
         'EPSTOPDF path unknown. Cannot convert EPS to PDF files.');

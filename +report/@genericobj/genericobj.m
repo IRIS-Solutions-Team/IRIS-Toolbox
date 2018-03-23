@@ -5,7 +5,7 @@ classdef genericobj < handle
     % No help provided.
     
     % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2017 IRIS Solutions Team.
+    % -Copyright (c) 2007-2018 IRIS Solutions Team.
     
     properties
         parent = [ ];
@@ -96,7 +96,7 @@ classdef genericobj < handle
                         pos = find(ix);
                         % Validate user option.
                         if isequal(validFunc,@config)
-                            iconfig = irisconfigmaster('get');
+                            iconfig = iris.configMaster('get');
                             validFunc = iconfig.validate.(primaryName);
                         end
                         ok = feval(validFunc,userValue{pos});
@@ -160,14 +160,14 @@ classdef genericobj < handle
             % @auto or {@auto,Subtitle}
             if isequal(Title,@auto)
                 try
-                    if istseries(This.data{1})
+                    if isa(This.data{1}, 'tseries')
                         x = comment(This.data{1});
                         Title = x{1};
                     end
                 catch
                     try
                         ch = This.children{1};
-                        if istseries(ch.data{1})
+                        if isa(ch.data{1}, 'tseries')
                             x = comment(ch.data{1});
                             Title = x{1};
                         end

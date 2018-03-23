@@ -15,7 +15,7 @@ classdef Base
         BASE_ERROR_HEADER_FORMAT = 'IRIS Toolbox Error'
         BASE_WARNING_HEADER_FORMAT = 'IRIS Toolbox Warning'
         MAX_LEN = 40;
-        STRING_CONTINUATION_MARK = getappdata(0, 'IRIS_STRING_CONTINUATION_MARK');
+        STRING_CONTINUATION_MARK = getappdata(0, 'IRIS_StringContinuationMark');
         
         ALT2STR_FORMAT = '#%g';
         ALT2STR_FROM_TO_STRING = '-';
@@ -26,28 +26,36 @@ classdef Base
     
     
     methods
-        function this = Base(identifier, throwAs)
+        function this = Base(specs, throwAs)
             if nargin==0
                 return
             end
+            if nargin==1
+                throwAs = 'error';
+            end
             this.ThrowAs = throwAs;
-            [this.Identifier, this.Message] = ...
-                exception.Base.lookupException(identifier);
+            if iscellstr(specs)
+                this.Identifier = specs{1};
+                this.Message = specs{2};
+            else
+                [this.Identifier, this.Message] = exception.Base.lookupException(specs);
+            end
             this.Identifier = [this.IRIS_IDENTIFIER, this.Identifier];
             this.NeedsHighlight = true;
         end
         
         
-        
-        
+        function assert(condition, this, varargin)
+            if ~condition
+                throw(this, varargin{:});
+            end
+        end
+
+
         function throw(this, varargin)
             header = createHeader(this);
             message = this.Message;
-            if true % ##### MOSW
-                message = strrep(message, '$ENGINE$', 'Matlab');
-            else
-                message = strrep(message, '$ENGINE$', 'Octave'); %#ok<UNRCH>
-            end
+            message = strrep(message, '$ENGINE$', 'Matlab');
             if this.NeedsHighlight
                 message = [this.HIGHLIGHT, message];
             end
@@ -117,13 +125,13 @@ classdef Base
     methods (Static)
         function [stack, n] = reduceStack(adj)
             stack = dbstack('-completenames');
-            [~, irisFolder] = fileparts( irisget('irisroot') );
+            [~, irisFolder] = fileparts( iris.get('irisroot') );
             irisFolder = lower(irisFolder);
             testFolder = fullfile(irisFolder, '^iristest');
             n = length(stack);
             x = [ stack(:).file ];
             if ~isempty( strfind(x, '^iristest') ) ...
-                    || isequal(getappdata(0, 'IRIS_REDUCE_DBSTACK'), false)
+                    || isequal(getappdata(0, 'IRIS_ReduceStack'), false)
                 return
             end
             while n > 0 && (...

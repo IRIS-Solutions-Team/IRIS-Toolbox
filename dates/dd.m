@@ -41,7 +41,7 @@ function dat = dd(year, month, day)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
@@ -73,6 +73,6 @@ elseif strcmpi(day, 'end')
 end
 
 dat = datenum(year, month, day);
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

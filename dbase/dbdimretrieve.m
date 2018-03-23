@@ -1,54 +1,56 @@
-function varargout = dbdimretrieve(This,Dim,Ix)
+function varargout = dbdimretrieve(this, dimension, pos)
 % dbdimretrieve  Retrieve specified slices in specified dimension from database entries.
 %
 % Backend IRIS function.
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
-list = fieldnames(This);
-if isempty(list)
-    varargout{1} = This;
+listOfFields = fieldnames(this);
+if isempty(listOfFields)
+    varargout{1} = this;
     return
 end
-isEnd = isequal(Ix,'end');
-nList = length(list);
-ixSuccess = false(1,nList);
+numOfFields = length(listOfFields);
+indexOfSuccess = false(1, numOfFields);
 
-for i = 1 : nList
-    name = list{i};
-    s = size(This.(name));
-    if Dim > length(s)
-        s(end+1:Dim) = 1;
+for i = 1 : numOfFields
+    ithName = listOfFields{i};
+    sizeOfField = size(this.(ithName));
+    ndimsOfField = length(sizeOfField);
+    if dimension>ndimsOfField
+        sizeOfField(end+1:dimension) = 1;
     end
-    ref = cell(1,length(s));
-    ref(:) = {':'};
-    if isEnd
-        ref{Dim} = s(Dim);
+    reference = cell(1, ndimsOfField);
+    reference(:) = {':'};
+    if isequal(pos, 'end')
+        reference{dimension} = sizeOfField(dimension);
+    elseif sizeOfField(dimension)==1
+        reference{dimension} = 1;
     else
-        ref{Dim} = Ix;
+        reference{dimension} = pos;
     end
-    if istseries(This.(name))
+    if isa(this.(ithName), 'tseries')
         try %#ok<TRYNC>
-            This.(name) = This.(name){ref{:}};
-            ixSuccess(i) = true;
+            this.(ithName) = this.(ithName){reference{:}};
+            indexOfSuccess(i) = true;
         end
-    elseif isnumeric(This.(name)) ...
-            || islogical(This.(name)) ...
-            || iscell(This.(name))
+    elseif isnumeric(this.(ithName)) ...
+            || islogical(this.(ithName)) ...
+            || iscell(this.(ithName))
         try %#ok<TRYNC>
-            This.(name) = This.(name)(ref{:});
-            ixSuccess(i) = true;
+            this.(ithName) = this.(ithName)(reference{:});
+            indexOfSuccess(i) = true;
         end
     end
 end
 
-if any(~ixSuccess)
-    This = rmfield(This,list(~ixSuccess));
+if any(~indexOfSuccess)
+    this = rmfield(this, listOfFields(~indexOfSuccess));
 end
-varargout{1} = This;
+varargout{1} = this;
 
 end

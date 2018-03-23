@@ -29,12 +29,12 @@ function dat = datbom(dat)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
 [y, m] = datevec( double(dat) );
 dat = datenum([y, m, 1]);
-dat = dates.Date(dat);
+dat = DateWrapper(dat);
 
 end

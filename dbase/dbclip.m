@@ -56,7 +56,7 @@ function D = dbclip(D,Range)
 %         y: [4x1 tseries]
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2017 IRIS Solutions Team.
+% -Copyright (c) 2007-2018 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('D',@isstruct);
@@ -78,7 +78,7 @@ for i = 1 : nList
     name = list{i};
     if isa(D.(name),'tseries') && ~isempty(D.(name))
         % Clip a tseries entry.
-        xFreq = datfreq(D.(name).start);
+        xFreq = DateWrapper.getFrequencyFromNumeric(D.(name).start);
         pos = find(xFreq == inpFreq,1);
         if isempty(pos)
             freqMatched(i) = false;

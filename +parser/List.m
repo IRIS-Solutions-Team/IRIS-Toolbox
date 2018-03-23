@@ -7,7 +7,7 @@ classdef List < handle
             parser.List.DELIMITER, ...
             parser.List.SUFFIX_PATTERN, ...
             ')\s*\)', ...
-            ];
+        ];
         WRAP = 75;
     end
     
@@ -22,11 +22,12 @@ classdef List < handle
             c = regexprep(c, [this.DELIMITER, this.SUFFIX_PATTERN], '');
             
             
-            function rpl = replace(c1)
-                ls = regexp(c, ['\w+', c1], 'match');
-                ls = strrep(ls, c1, '');
-                ls = unique(ls);
-                rpl = textfun.delimlist(ls, 'Wrap=', this.WRAP);
+            function listOfNames = replace(c1)
+                listOfNames = cell.empty(1, 0);
+                listOfNames = regexp(c, ['\w+', c1], 'match');
+                listOfNames = strrep(listOfNames, c1, '');
+                listOfNames = unique(listOfNames, 'stable');
+                listOfNames = textfun.delimlist(listOfNames, 'Wrap=', this.WRAP);
             end
         end
     end
