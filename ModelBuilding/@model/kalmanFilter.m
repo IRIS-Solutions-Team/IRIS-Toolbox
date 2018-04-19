@@ -226,7 +226,6 @@ for iLoop = 1 : nLoop
     % filtered shocks can differ from its tunes (unless the user specifies zero
     % std dev).
     if s.IsShkTune 
-        R = s.R;
         currentForward = size(R, 2)/ne - 1;
         requiredForward = s.LastVaryingE - 2;
         if requiredForward>currentForward
@@ -235,7 +234,6 @@ for iLoop = 1 : nLoop
         end
         [s.d, s.ka, s.kf] = addShockTunes(s, R, opt);
     end
-    
 
     % Make measurement variables with `Inf` measurement shocks look like
     % missing. The `Inf` measurement shocks are detected in `xxomg2sasy`.
@@ -251,7 +249,6 @@ for iLoop = 1 : nLoop
     % * Initial mean and MSE
     % * Number of init cond estimated as fixed unknowns
     s = kalman.initialize(s, iLoop, opt);
-    
 
     % __Prediction Step__
     % Prepare the struct sn for nonlinear simulations in this round of
@@ -307,7 +304,7 @@ for iLoop = 1 : nLoop
     if s.NAhead>1 && s.storePredict
         s = goAhead(s);
     end
-    
+
 
     % __Updating Step__
     if s.retFilter
@@ -664,21 +661,23 @@ function S = goAhead(S)
     end
 
     nPer = size(S.y1, 2);
+    bsxfunKa = size(S.ka, 2)==1;
+    bsxfunD = size(S.d, 2)==1;
     for k = 2 : min(S.NAhead, nPer-1)
         t = 1+k : nPer;
         repeat = ones(1, numel(t));
         a0(:, t, k) = S.Ta*a0(:, t-1, k-1);
         if ~isempty(S.ka)
-            if ~S.IsShkTune
-                a0(:, t, k) = a0(:, t, k) + S.ka(:, repeat);
+            if bsxfunKa
+                a0(:, t, k) = bsxfun(@plus, a0(:, t, k), S.ka);
             else
-                a0(:, 1, t, k) = a0(:, t, k) + S.ka(:, t);
+                a0(:, t, k) = a0(:, t, k) + S.ka(:, t);
             end
         end
         y0(:, t, k) = S.Z*a0(:, t, k);
         if ~isempty(S.d)
-            if ~S.IsShkTune
-                y0(:, t, k) = y0(:, t, k) + S.d(:, repeat);
+            if bsxfunD
+                y0(:, t, k) = bsxfun(@plus, y0(:, t, k), S.d);
             else
                 y0(:, t, k) = y0(:, t, k) + S.d(:, t);
             end
@@ -902,7 +901,7 @@ end
 
 
 function [D, Ka, Kf] = addShockTunes(s, R,  opt)
-    % addShockTunes  Add tunes on shock means to constant terms.
+    % addShockTunes  Add tunes on shock means to constant terms
     ne = size(s.Ra, 2);
     ny = size(s.Z, 1);
     nf = size(s.Tf, 1);
@@ -927,9 +926,7 @@ function [D, Ka, Kf] = addShockTunes(s, R,  opt)
         Kf(:, t) = Kf(:, t) + Rf(:, 1:ne*k)*e(:);
         Ka(:, t) = Ka(:, t) + Ra(:, 1:ne*k)*e(:);
     end
-end 
-
-
+end%
 
 
 function s = convertOmg2SaSy(s, sx)
