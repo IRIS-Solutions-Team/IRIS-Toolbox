@@ -1,6 +1,6 @@
 function outputData = fromFred(varargin)
 
 container = DatafeedContainer.fromFred(varargin{:});
-outputData = export(container, @DateWrapper.fromSerial, @Series);
+outputData = export(container, struct( ), @DateWrapper.fromSerial, @Series);
 
 end

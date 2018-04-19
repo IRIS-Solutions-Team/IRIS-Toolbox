@@ -18,13 +18,13 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
 
     methods
         function this = TimeSeries(varargin)
-            persistent INPUT_PARSER
-            if isempty(INPUT_PARSER)
-                INPUT_PARSER = extend.InputParser('TimeSeries/TimeSeries');
-                INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'Date') || isempty(x)); 
-                INPUT_PARSER.addRequired('Data', @(x) isnumeric(x) || islogical(x) || iscell(x) || isa(x, 'string'));
-                INPUT_PARSER.addOptional('ColumnNames', '', @(x) isa(x, 'string') || ischar(x) || iscellstr(x));
-                INPUT_PARSER.addOptional('UserData', [ ], @(x) true);
+            persistent inputParser
+            if isempty(inputParser)
+                inputParser = extend.InputParser('TimeSeries/TimeSeries');
+                inputParser.addRequired('Dates', @(x) isa(x, 'Date') || isempty(x)); 
+                inputParser.addRequired('Data', @(x) isnumeric(x) || islogical(x) || iscell(x) || isa(x, 'string'));
+                inputParser.addOptional('ColumnNames', '', @(x) isa(x, 'string') || ischar(x) || iscellstr(x));
+                inputParser.addOptional('UserData', [ ], @(x) true);
             end
 
             if nargin==0
@@ -40,10 +40,10 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
                 this = varargin{1};
                 return
             end
-            INPUT_PARSER.parse(varargin{:});
+            inputParser.parse(varargin{:});
 
-            dates = INPUT_PARSER.Results.Dates;
-            data = INPUT_PARSER.Results.Data;
+            dates = inputParser.Results.Dates;
+            data = inputParser.Results.Data;
             numOfDates = numel(dates);
             assert( ...
                 numOfDates==1 || size(data, 1)==1 || (size(data, 1)==numOfDates), ...
@@ -57,8 +57,8 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?Date}) ...
             end
             this = initData(this, dates, data);
 
-            this.ColumnNames = INPUT_PARSER.Results.ColumnNames;
-            this.UserData = INPUT_PARSER.Results.UserData;
+            this.ColumnNames = inputParser.Results.ColumnNames;
+            this.UserData = inputParser.Results.UserData;
             this = trim(this);
         end
 
