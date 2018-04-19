@@ -56,7 +56,7 @@ end
 
 % Parse required input arguments.
 pp = inputParser( );
-pp.addRequired('List',@(x) ischar(x) || iscellstr(x) );
+pp.addRequired('List',@(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
 pp.addRequired('Dates',@(x) isnumeric(x) || isequal(x,@all) );
 pp.addRequired('Weight', ...
     @(x) isnumericscalar(x) && ~(real(x) ~=0 && imag(x) ~=0) ...
@@ -66,6 +66,8 @@ pp.parse(List,Dates,Sigma);
 % Convert char list to cell of str.
 if ischar(List)
     List = regexp(List,'[A-Za-z]\w*','match');
+elseif isa(List, 'string')
+    List = cellstr(List);
 end
 
 if isempty(List)

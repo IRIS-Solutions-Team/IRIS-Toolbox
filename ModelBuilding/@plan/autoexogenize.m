@@ -1,4 +1,4 @@
-function this = autoexogenize(this, lsExog, dates, sigma)
+function this = autoexogenize(this, namesToExogenize, dates, sigma)
 % autoexogenize  Exogenize variables and automatically endogenize corresponding shocks.
 %
 % Syntax
@@ -82,67 +82,70 @@ catch
     sigma = 1;
 end
 
-if isnumeric(lsExog) && (ischar(dates) || iscellstr(dates))
-    [lsExog, dates] = deal(dates, lsExog);
+if isnumeric(namesToExogenize) && (ischar(dates) || iscellstr(dates))
+    [namesToExogenize, dates] = deal(dates, namesToExogenize);
 end
 
 % Parse required input arguments.
 pp = inputParser( );
-pp.addRequired('List', @(x) ischar(x) || iscellstr(x) || isequal(x,@all));
+pp.addRequired('List', @(x) ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x,@all));
 pp.addRequired('Dates', @isnumeric);
 pp.addRequired('Sigma', ...
     @(x) isnumericscalar(x) && ~(real(x)~=0 && imag(x)~=0) ...
     && real(x)>=0 && imag(x)>=0 && x~=0);
-pp.parse(lsExog, dates, sigma);
+pp.parse(namesToExogenize, dates, sigma);
 
 % Convert char list to cell of str.
-if ischar(lsExog)
-    lsExog = regexp(lsExog, '[A-Za-z]\w*', 'match');
+if ischar(namesToExogenize)
+    namesToExogenize = regexp(namesToExogenize, '[A-Za-z]\w*', 'match');
+elseif isa(namesToExogenize, 'string')
+    namesToExogenize = cellstr(namesToExogenize);
 end
 
-if isempty(lsExog)
+if isempty(namesToExogenize)
     return
 end
 
 %--------------------------------------------------------------------------
 
 n = length(this.XList);
-nList = numel(lsExog);
-ixValid = true(1, nList);
-ixExg = false(1, n);
-ixEndg = false(1, n);
+nList = numel(namesToExogenize);
+indexToExogenize = false(1, n);
+indexToEndogenize = false(1, n);
+invalidNames = cell.empty(1, 0);
 
-if isequal(lsExog, @all)
-    ixExg = ~isnan(this.AutoX);
+if isequal(namesToExogenize, @all)
+    indexToExogenize = ~isnan(this.AutoX);
 else
     for i = 1 : nList
-        xPos = find(strcmp(this.XList, lsExog{i}));
-        if isempty(xPos)
-            ixValid(i) = false;
+        posX = find(strcmp(this.XList, namesToExogenize{i}));
+        if isempty(posX)
+            invalidNames(1, end+1) = namesToExogenize(i);
             continue
         end
-        ixExg(xPos) = true;
+        indexToExogenize(posX) = true;
     end
 end
 
-for i = find(ixExg)
-    nPos = this.AutoX(i);
-    if isnan(nPos)
-        ixValid(i) = false;
+for i = find(indexToExogenize)
+    posN = this.AutoX(i);
+    if isnan(posN)
+        invalidNames(1, end+1) = this.XList(i);
         continue
     end
-    ixEndg(nPos) = true;
+    indexToEndogenize(posN) = true;
 end
 
-if any(~ixValid)
+if ~isempty(invalidNames)
+    invalidNames = unique(invalidNames);
     utils.error('plan:autoexogenize', ...
         'Cannot autoexogenize this name: %s ', ...
-        lsExog{~ixValid});
+        invalidNames{:});
 end
 
-if any(ixExg)
-    this = exogenize(this, this.XList(ixExg), dates);
-    this = endogenize(this, this.NList(ixEndg), dates, sigma);
+if any(indexToExogenize)
+    this = exogenize(this, this.XList(indexToExogenize), dates);
+    this = endogenize(this, this.NList(indexToEndogenize), dates, sigma);
 end
 
 end
