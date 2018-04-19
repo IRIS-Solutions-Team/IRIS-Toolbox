@@ -1,9 +1,9 @@
-function C = autocaption(this, inp, template, varargin)
+function captions = autocaption(this, inp, template, varargin)
 % autocaption  Create captions for reporting model variables or parameters.
 %
 % __Syntax__
 %
-%     C = autocaption(M,X,Template,...)
+%     C = autocaption(M, X, Template, ...)
 %
 %
 % __Input Arguments__
@@ -19,9 +19,9 @@ function C = autocaption(this, inp, template, varargin)
 %
 % __Output Arguments__
 %
-% * `C` [ cellstr ] - Cell array of captions, with one for each model name
-% (variable, shock, parameter) found in `X`, in order of their appearance
-% in `X`.
+% * `C` [ cellstr | string ] - Cell array or string array of captions, with
+% one for each model name (variable, shock, parameter) found in `X`, in
+% order of their appearance in `X`.
 %
 %
 % __Options__
@@ -38,12 +38,12 @@ function C = autocaption(this, inp, template, varargin)
 % __Description__
 %
 % The function `autocaption( )` is used to supply user-created captions to
-% title graphs in `grfun/plotpp`, `grfun/plotneigh`, `model/shockplot`,
+% title graphs in `grfun/plotpp`, `grfun/plotneigh`, `model/shockplot`, 
 % and `dbase/dbplot`, through their option `Caption=`.
 %
 % The `Template` can contain the following substitution strings:
 %
-% * `$name$` -- will be replaced with the name of the respective variable,
+% * `$name$` -- will be replaced with the name of the respective variable, 
 % shock, or parameter;
 %
 % * `$label$` -- will be replaced with the description of the respective
@@ -70,10 +70,12 @@ function C = autocaption(this, inp, template, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-opt = passvalopt('model.autocaption',varargin{:});
-C = generateAutocaption(this.Quantity, inp, template, opt);
+%--------------------------------------------------------------------------
+
+opt = passvalopt('model.autocaption', varargin{:});
+captions = generateAutocaption(this.Quantity, inp, template, opt);
 
 end

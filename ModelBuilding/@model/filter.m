@@ -21,19 +21,19 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 %
 % * `~J` [ struct | *empty* ] - Database with user-supplied time-varying
 % paths for std deviation, corr coefficients, or medians for shocks; `~J`
-% is equivalent to using the option `'vary='`, and may be omitted.
+% is equivalent to using the option `Vary=`, and may be omitted.
 %
 %
 % __Output Arguments__
 %
-% * `M` [ model ] - Model object with updates of std devs (if `'relative='`
-% is true) and/or updates of out-of-likelihood parameters (if `'outoflik='`
+% * `M` [ model ] - Model object with updates of std devs (if `Relative=`
+% is true) and/or updates of out-of-likelihood parameters (if `OutOfLik=`
 % is non-empty).
 %
 % * `Outp` [ struct | cell ] - Output struct with smoother or prediction
 % data.
 %
-% * `V` [ numeric ] - Estimated variance scale factor if the `'relative='`
+% * `V` [ numeric ] - Estimated variance scale factor if the `Relative=`
 % options is true; otherwise `V` is 1.
 %
 % * `Delta` [ struct ] - Database with estimates of out-of-likelihood
@@ -44,93 +44,90 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 %
 % * `SCov` [ numeric ] - Sample covariance matrix of smoothed shocks;
 % the covariance matrix is computed using shock estimates in periods that
-% are included in the option `'objrange='` and, at the same time, contain
+% are included in the option `ObjRange=` and, at the same time, contain
 % at least one observation of measurement variables.
 %
 %
 % __Options__
 %
-% * `'Ahead='` [ numeric | *`1`* ] - Predictions will be computed this number
-% of period ahead.
+% * `Ahead=1` [ numeric ] - Calculate predictions up to `Ahead` periods
+% ahead..
 %
-% * `'ChkFmse='` [ `true` | *`false`* ] - Check the condition number of the
-% forecast MSE matrix in each step of the Kalman filter, and return
+% * `ChkFmse=false` [ `true` | `false` ] - Check the condition number of
+% the forecast MSE matrix in each step of the Kalman filter, and return
 % immediately if the matrix is ill-conditioned; see also the option
-% `'FmseCondTol='`.
+% `FmseCondTol=`.
 %
-% * `'Condition='` [ char | cellstr | *empty* ] - List of conditioning
+% * `Condition={ }` [ char | cellstr | empty ] - List of conditioning
 % measurement variables. Condition time t|t-1 prediction errors (that enter
 % the likelihood function) on time t observations of these measurement
 % variables.
 %
-% * `'Deviation='` [ `true` | *`false`* ] - Treat input and output data as
+% * `Deviation=false` [ `true` | `false` ] - Treat input and output data as
 % deviations from balanced-growth path.
 %
-% * `'Dtrends='` [ *`@auto`* | `true` | `false` ] - Measurement data
-% contain deterministic trends.
+% * `Dtrends=@auto` [ `@auto` | `true` | `false` ] - Measurement data
+% contain deterministic trends; `@auto` means `DTrends=` will be set
+% consistently with `Deviation=`.
 %
-% * `'Output='` [ `'predict'` | `'filter'` | *`'smooth'`* ] - Return
+% * `Output='Smooth'` [ `'Predict'` | `'Filter'` | `'Smooth'` ] - Return
 % smoother data or filtered data or prediction data or any combination of
 % them.
 %
-% * `'FmseCondTol='` [ *`eps( )`* | numeric ] - Tolerance for the FMSE
-% condition number test; not used unless `'ChkFmse=' true`.
+% * `FmseCondTol=eps( )` [ numeric ] - Tolerance for the FMSE condition
+% number test; not used unless `ChkFmse=true`.
 %
-% * `'InitCond='` [ `'fixed'` | `'optimal'` | *`'stochastic'`* | struct ] -
-% Method or data to initialise the Kalman filter; user-supplied initial
-% condition must be a mean database or a struct containing `.mean` and
-% `.mse` fields.
+% * `InitCond='Stochastic'` [ `'fixed'` | `'optimal'` | `'stochastic'` |
+% struct ] - Method or data to initialise the Kalman filter; user-supplied
+% initial condition must be a mean database or a struct containing `.mean`
+% and `.mse` fields.
 %
-% * `'InitUnit='` [ `'ApproxDiffuse'` | *`'FixedUknown'`* ] - Method of
-% initializing unit root variables.
+% * `InitUnit='FixedUnknown'` [ `'ApproxDiffuse'` | `'FixedUknown'` ] -
+% Method of initializing unit root variables.
 %
-% * `'LastSmooth='` [ numeric | *`Inf`* ] - Last date up to which to smooth
-% data backward from the end of the range; if `Inf` smoother will run on the
-% entire range.
+% * `LastSmooth=Inf` [ numeric ] - Last date up to which to smooth data
+% backward from the end of the range; `Inf` means the smoother will run on
+% the entire range.
 %
-% * `'MeanOnly='` [ `true` | *`false`* ] - Return a plain database with
-% mean data only; this option overrides the `'return*='` options, i.e.
-% `'returnCont='`, `'returnMse='`, `'returnStd='`.
+% * `MeanOnly=false` [ `true` | `false` ] - Return a plain database with
+% mean data only; this option overrides options `ReturnCont=`,
+% `ReturnMse=`, `ReturnStd=`.
 %
-% * `'OutOfLik='` [ cellstr | empty ] - List of parameters in deterministic
-% trends that will be estimated by concentrating them out of the likelihood
-% function.
+% * `OutOfLik={ }` [ cellstr | empty ] - List of parameters in
+% deterministic trends that will be estimated by concentrating them out of
+% the likelihood function.
 %
-% * `'ObjFunc='` [ *`'-loglik'`* | `'prederr'` ] - Objective function
+% * `ObjFunc='-LogLik'` [ `'-LogLik'` | `'PredErr'` ] - Objective function
 % computed; can be either minus the log likelihood function or weighted sum
 % of prediction errors.
 %
-% * `'ObjRange='` [ numeric | *`Inf`* ] - The objective function will be
+% * `ObjRange=Inf` [ DateWrapper | `Inf` ] - The objective function will be
 % computed on the specified range only; `Inf` means the entire filter
 % range.
 %
-% * `'Precision='` [ *`'double'`* | `'single'` ] - Numeric precision to which
-% output data will be stored; all calculations themselves always run to
-% double precision.
+% * `Relative=true` [ `true` | `false` ] - Std devs of shocks assigned in
+% the model object will be treated as relative std devs, and a common
+% variance scale factor will be estimated.
 %
-% * `'Relative='` [ *`true`* | `false` ] - Std devs of shocks assigned in the
-% model object will be treated as relative std devs, and a common variance
-% scale factor will be estimated.
+% * `ReturnCont=false` [ `true` | `false` ] - Return contributions of
+%  prediction errors in measurement variables to the estimates of all
+%  variables and shocks.
 %
-% * `'ReturnCont='` [ `true` | *`false`* ] - Return contributions of
-% prediction errors in measurement variables to the estimates of all
-% variables and shocks.
+% * `ReturnMse=true` [ `true` | `false` ] - Return MSE matrices for
+%  predetermined state variables; these can be used for settin up initial
+%  condition in subsequent call to another `filter( )` or `jforecast( )`.
 %
-% * `'ReturnMse='` [ *`true`* | `false` ] - Return MSE matrices for
-% predetermined state variables; these can be used for settin up initial
-% condition in subsequent call to another `filter` or `jforecast`.
-%
-% * `'ReturnStd='` [ *`true`* | `false` ] - Return database with std devs
+% * `ReturnStd=true` [ `true` | `false` ] - Return database with std devs
 % of model variables.
 %
-% * `'Weighting='` [ numeric | *empty* ] - Weighting vector or matrix for
-% prediction errors when `'objective=' 'prederr'`; empty means prediction
+% * `Weighting=[ ]` [ numeric | empty ] - Weighting vector or matrix for
+% prediction errors when `Objective='PredErr'`; empty means prediction
 % errors are weighted equally.
 %
 %
 % __Options for Models with Nonlinear Equations Simulated in Prediction Step__
 %
-% * `'Simulate='` [ *`false`* | cell ] - Use the backend algorithms from
+% * `Simulate=false` [ `false` | cell ] - Use the backend algorithms from
 % the [`simulate`](model/simulate) function to run nonlinear simulation for
 % each prediction step; specify options that will be passed into `simulate`
 % when running a prediction step.
@@ -138,22 +135,22 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 %
 % __Description__
 %
-% The option `'Ahead='` cannot be combined with one another, or with
-% multiple data sets, or with multiple parameterisations.
+% The option `Ahead=` cannot be combined with one another, or with multiple
+% data sets, or with multiple parameterisations.
 %
 %
 % _Initial Conditions in Time Domain_
 %
-% By default (with `'InitCond=' 'stochastic'`), the Kalman filter starts
+% By default (with `InitCond='Stochastic'`), the Kalman filter starts
 % from the model-implied asymptotic distribution. You can change this
-% behaviour by setting the option `'InitCond='` to one of the following
+% behaviour by setting the option `InitCond=` to one of the following
 % four different values:
 %
-% * `'fixed'` -- the filter starts from the model-implied asymptotic mean
+% * `'Fixed'` -- the filter starts from the model-implied asymptotic mean
 % (steady state) but with no initial uncertainty. The initial condition is
 % treated as a vector of fixed, non-stochastic, numbers.
 %
-% * `'optimal'` -- the filter starts from a vector of fixed numbers that
+% * `'Optimal'` -- the filter starts from a vector of fixed numbers that
 % is estimated optimally (likelihood maximising).
 %
 % * database (i.e. struct with fields for individual model variables) -- a
@@ -168,7 +165,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 %
 % _Contributions of Measurement Variables to Estimates of All Variables_
 %
-% Use the option `'ReturnCont=' true` to request the decomposition of
+% Use the option `ReturnCont=true` to request the decomposition of
 % measurement variables, transition variables, and shocks into the
 % contributions of each individual measurement variable. The resulting
 % output database will include one extra subdatabase called `.cont`. In
@@ -224,11 +221,12 @@ numExtendedPeriods = length(extendedRange);
 
 % Throw a warning if some of the data sets have no observations.
 indexNaNData = all( all(isnan(inputArray), 1), 2 );
-assert( ...
-    ~any(indexNaNData), ...
-    exception.Base('Model:NoMeasurementData', 'warning'), ...
-    exception.Base.alt2str(indexNaNData, 'Data Set(s) ') ...
-); %#ok<GTARG>
+if any(indexNaNData)
+    throw( ...
+        exception.Base('Model:NoMeasurementData', 'warning'), ...
+        exception.Base.alt2str(indexNaNData, 'Data Set(s) ') ...
+    ); 
+end
 
 % Pre-allocated requested hdata output arguments.
 hData = struct( );
@@ -244,7 +242,7 @@ if nv<regOutp.NLoop && (likOpt.relative || ~isempty(regOutp.Delta))
 end
 
 % Postprocess regular (non-hdata) output arguments; update the std
-% parameters in the model object if `'relative=' true`.
+% parameters in the model object if `Relative=' true`.
 [~, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, extendedRange, likOpt, opt);
 
 % Post-process hdata output arguments.
@@ -259,22 +257,25 @@ return
 
     function chkConflicts( )
         multiple = numDataSets>1 || nv>1;
-        assert( ...
-            likOpt.ahead==1 || ~multiple, ...
-            'Model:Filter:IllegalAhead', ...
-            'Cannot use option Ahead= with multiple data sets or parameter variants.' ...
-        );
-        assert( ...
-            isequal(likOpt.Rolling, false) || ~multiple, ...
-            'Model:Filter:IllegalRolling', ...
-            'Cannot use option Rolling= with multiple data sets or parameter variants.' ...
-        );
-        assert( ...
-            ~likOpt.returncont || ~any(likOpt.condition), ...
-            'Model:Filter:IllegalCondition', ...
-            'Cannot combine options ReturnCont= and Condition=.' ...
-        );
-    end 
+        if likOpt.ahead>1 && multiple
+            throw( ...
+                'Model:Filter:IllegalAhead', ...
+                'Cannot use option Ahead= with multiple data sets or parameter variants.' ...
+            );
+        end
+        if ~isequal(likOpt.Rolling, false) && multiple
+            throw( ...
+                'Model:Filter:IllegalRolling', ...
+                'Cannot use option Rolling= with multiple data sets or parameter variants.' ...
+            );
+        end
+        if likOpt.returncont && any(likOpt.condition)
+            throw( ...
+                'Model:Filter:IllegalCondition', ...
+                'Cannot combine options ReturnCont= and Condition=.' ...
+            );
+        end
+    end% 
 
 
     function setupRolling( )
@@ -285,7 +286,7 @@ return
             inputArray(:, likOpt.RollingColumns(i)+1:end, i) = NaN;
         end
         numDataSets = size(inputArray, 3);
-    end
+    end%
 
     
     function preallocHData( )
@@ -376,5 +377,5 @@ return
                 end
             end
         end
-    end
-end
+    end%
+end%

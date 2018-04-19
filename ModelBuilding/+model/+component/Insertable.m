@@ -1,27 +1,27 @@
 classdef Insertable
     methods
-        function [this, indexPre, indexPost] = insert(this, add, type, where)
+        function [this, indexOfPre, indexOfPost] = insert(this, add, type, where)
             listProperties = getInsertableProp(this);
             pivot = listProperties{1};
-            numOld = length(this.(pivot));
+            numOfOld = length(this.(pivot));
             
             posType = find(type==this.TYPE_ORDER);
             if strcmp(where, 'first')
                 while true
-                    posFirst = find(this.Type==this.TYPE_ORDER(posType), 1);
-                    if ~isempty(posFirst)
+                    posOfFirst = find(this.Type==this.TYPE_ORDER(posType), 1);
+                    if ~isempty(posOfFirst)
                         break
                     end
                     posType = posType + 1;
                     if posType>length(this.TYPE_ORDER)
-                        posFirst = numOld+1;
+                        posOfFirst = numOfOld+1;
                         break
                     end
                 end
-                indexPre = false(1, numOld);
-                indexPost = false(1, numOld);
-                indexPre(1:posFirst-1) = true;
-                indexPost(posFirst:end) = true;
+                indexOfPre = false(1, numOfOld);
+                indexOfPost = false(1, numOfOld);
+                indexOfPre(1:posOfFirst-1) = true;
+                indexOfPost(posOfFirst:end) = true;
             else
                 while true
                     posLast = find(this.Type==this.TYPE_ORDER(posType), 1, 'last');
@@ -34,23 +34,23 @@ classdef Insertable
                         break
                     end
                 end
-                indexPre = false(1, numOld);
-                indexPost = false(1, numOld);
-                indexPre(1:posLast) = true;
-                indexPost(posLast+1:end) = true;
+                indexOfPre = false(1, numOfOld);
+                indexOfPost = false(1, numOfOld);
+                indexOfPre(1:posLast) = true;
+                indexOfPost(posLast+1:end) = true;
             end
             
             numToAdd = length(add.(pivot));
-            numNew = numOld + numToAdd;
+            numOfNew = numOfOld + numToAdd;
             add.Type = repmat(type, 1, numToAdd);
             for i = 1 : length(listProperties)
                 ithProperty = listProperties{i};
                 this.(ithProperty) = [ ...
-                    this.(ithProperty)(:, indexPre), ...
+                    this.(ithProperty)(:, indexOfPre), ...
                     add.(ithProperty), ...
-                    this.(ithProperty)(:, indexPost), ...
+                    this.(ithProperty)(:, indexOfPost), ...
                     ];
-                if size(this.(ithProperty), 2)~=numNew
+                if size(this.(ithProperty), 2)~=numOfNew
                     throw( exception.Base('General:Internal', 'error') );
                 end
             end
