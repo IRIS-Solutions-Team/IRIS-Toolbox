@@ -1,15 +1,15 @@
 function [data, dates, this] = mygetdata(this, dates, varargin)
-% mygetdata  Get time series data for specific dates.
+% mygetdata  Get time series data for specific dates
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-% References to 2nd and higher dimensions.
+% References to 2nd and higher dimensions
 if ~isempty(varargin)
     this.Data = this.Data(:, varargin{:});
     if nargout>2
@@ -27,7 +27,8 @@ if ~isa(dates, 'DateWrapper') && ~isequal(dates, Inf) && ~ischar(dates)
 end
 if isa(dates, 'DateWrapper') 
     dates = dates(:);
-    data = nan([length(dates), sizeOfData(2:end)]);
+    numberOfDates = numel(dates);
+    data = repmat(this.MissingValue, [numberOfDates, sizeOfData(2:end)]);
     if ~isempty(this.Data)
         pos = round(dates) - round(start) + 1;
         ixTest = pos>=1 & pos<=sizeOfData(1) & freqcmp(start, dates);
@@ -56,10 +57,11 @@ end
 data = reshape(data, [size(data, 1), sizeOfData(2:end)]);
 
 if nargout>2
+    missingValue = this.MissingValue;
     if isreal(this.Data)
-        this.Data(indexToRemove, :) = NaN;
+        this.Data(indexToRemove, :) = missingValue;
     else
-        this.Data(indexToRemove, :) = NaN+1i*NaN;
+        this.Data(indexToRemove, :) = missingValue + 1i*missingValue;
     end
     this.Data = reshape(this.Data, [size(this.Data, 1), sizeOfData(2:end)]);
     this = trim(this);
