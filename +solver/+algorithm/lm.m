@@ -4,8 +4,8 @@ function [x, numericExitFlag] = lm(objectiveFunc, xInit, opt)
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s %13s';
 FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g';

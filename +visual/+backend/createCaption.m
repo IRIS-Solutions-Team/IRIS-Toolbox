@@ -7,17 +7,19 @@ function captionHandle = createCaption(axesHandle, location, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('visual.backend.createCaption');
-    INPUT_PARSER.addRequired('AxesHandles', @(x) all(isgraphics(x, 'Axes')) && isscalar(x));
-    INPUT_PARSER.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
-    INPUT_PARSER.addParameter('String', @(x) ischar(x) || iscellstr(x) || isstring(x));
-    INPUT_PARSER.addParameter('HorizontalPosition', 'right', @(x) any(strcmpi(x, {'center', 'centre', 'middle', 'left', 'right'})));
-    INPUT_PARSER.addParameter('VerticalPosition', 'top', @(x) any(strcmpi(x, {'center', 'centre', 'middle', 'top', 'bottom'})));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('visual.backend.createCaption');
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('AxesHandles', @(x) all(isgraphics(x, 'Axes')) && isscalar(x));
+    inputParser.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
+    inputParser.addParameter('String', @(x) ischar(x) || iscellstr(x) || isstring(x));
+    inputParser.addParameter('HorizontalPosition', 'right', @(x) any(strcmpi(x, {'center', 'centre', 'middle', 'left', 'right'})));
+    inputParser.addParameter('VerticalPosition', 'top', @(x) any(strcmpi(x, {'center', 'centre', 'middle', 'top', 'bottom'})));
 end
-INPUT_PARSER.parse(axesHandle, location, varargin{:});
-opt = INPUT_PARSER.Options;
+inputParser.parse(axesHandle, location, varargin{:});
+opt = inputParser.Options;
+unmatched = inputParser.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
@@ -63,10 +65,11 @@ end
 
 captionHandle = text( ...
     x, yLim(1)+y*ySpan, opt.String, ...
-   'parent', axesHandle, ...
-   'color', [0, 0, 0], ...
-   'verticalAlignment', verticalAlignment, ...
-   'horizontalAlignment', horizontalAlignment ...
+   'Parent', axesHandle, ...
+   'Color', [0, 0, 0], ...
+   'VerticalAlignment', verticalAlignment, ...
+   'HorizontalAlignment', horizontalAlignment, ...
+   unmatched{:} ...
 );
 
 end

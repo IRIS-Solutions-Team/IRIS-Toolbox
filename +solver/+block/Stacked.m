@@ -22,9 +22,8 @@ classdef Stacked < solver.block.Block
         
         function [exitStatus, error] = run(this, data, t, ixLog, rect)
             exitStatus = true;
-            error = struct( ...
-                'EvaluatesToNan', [ ] ...
-                );
+            error = struct( );
+            error.EvaluatesToNan = [ ];
             
             if isempty(this.PosQty)
                 return

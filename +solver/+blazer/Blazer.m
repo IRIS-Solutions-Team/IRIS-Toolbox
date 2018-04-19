@@ -45,7 +45,7 @@ classdef (Abstract) Blazer < handle
         function this = Blazer(numOfEquationsInModel)
             this.Equation = cell(1, numOfEquationsInModel);
             this.Gradient = cell(2, numOfEquationsInModel);        
-        end
+        end%
         
         
         
@@ -53,7 +53,7 @@ classdef (Abstract) Blazer < handle
         function error = endogenize(this, vecEndg)
             testFunc = @(this, pos) this.IxCanBeEndg(pos);
             error = swap(this, vecEndg, true, testFunc);
-        end
+        end%
         
         
         
@@ -61,7 +61,7 @@ classdef (Abstract) Blazer < handle
         function error = exogenize(this, vecExg)
             testFunc = @(this, pos) this.IxEndg(pos);
             error = swap(this, vecExg, false, testFunc);
-        end
+        end%
         
         
         
@@ -81,7 +81,7 @@ classdef (Abstract) Blazer < handle
                 this.IxEndg(pos) = setIxEndgTo;
             end
             error.IxCannotSwap = ~ixValid;
-        end
+        end%
         
         
         
@@ -98,8 +98,7 @@ classdef (Abstract) Blazer < handle
             end
             [inc, idEqn, idQty] = prepareIncidenceMatrix(this);
             if this.IsBlocks
-                [ordInc, ordPosEqn, ordPosQty] = ...
-                    this.reorder(inc, idEqn, idQty);
+                [ordInc, ordPosEqn, ordPosQty] = this.reorder(inc, idEqn, idQty);
                 this.IsSingular = sprank(ordInc)<min(size(ordInc));
                 [blkEqn, blkQty] = this.getBlocks(ordInc, ordPosEqn, ordPosQty);
             else
@@ -119,7 +118,7 @@ classdef (Abstract) Blazer < handle
                 setShift(blk, this); % Find max lag and lead within equations in this block.
                 this.Block{i} = blk;
             end
-        end
+        end%%
         
         
         function prepareBlocks(this, opt)
@@ -128,11 +127,10 @@ classdef (Abstract) Blazer < handle
                 this.Block{i}.Id = sprintf('%g', i);
                 prepareBlock(this.Block{i}, this, opt);
             end
-        end
+        end%%
         
         
         function saveAs(this, m, fileName)
-            BR = sprintf('\n');
             numOfBlocks = numel(this.Block);
             c = [ ...
                 strrep(solver.blazer.Blazer.SAVEAS_FILE_HEADER, '$TimeStamp$', datestr(now( ))), ...
@@ -143,11 +141,11 @@ classdef (Abstract) Blazer < handle
             for i = 1 : numOfBlocks
                 c = [c, print(this.Block{i}, i, m.Quantity.Name, m.Equation.Input) ]; %#ok<AGROW>
                 if i<numOfBlocks
-                    c = [c, BR, BR, BR]; %#ok<AGROW>
+                    c = [c, sprintf('\n\n\n')]; %#ok<AGROW>
                 end
             end
             char2file(c, fileName);
-        end        
+        end%        
     
     
         function [inc, idEqn, idQty] = prepareIncidenceMatrix(this)
@@ -156,7 +154,7 @@ classdef (Abstract) Blazer < handle
             inc = inc(this.IxEqn, this.IxEndg);
             idEqn = PTR( find(this.IxEqn) ); %#ok<FNDSB>
             idQty = PTR( find(this.IxEndg) ); %#ok<FNDSB>
-        end
+        end%
     end
 
 
@@ -178,9 +176,7 @@ classdef (Abstract) Blazer < handle
             inc = inc(r2, c2);
             idQty = idQty(c2);
             idEqn = idEqn(r2);
-        end
-        
-        
+        end%
         
         
         function [blkEqn, blkQty] = getBlocks(ordInc, idEqn, idQty)
@@ -200,6 +196,6 @@ classdef (Abstract) Blazer < handle
                     currBlkEqn = repmat(PTR(0), 1, 0);
                 end
             end
-        end
+        end%
     end
 end
