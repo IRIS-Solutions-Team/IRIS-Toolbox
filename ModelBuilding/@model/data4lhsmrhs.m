@@ -1,9 +1,9 @@
-function [YXEPG, rowNames, extendedRange] = data4lhsmrhs(this, inputDatabank, baseRange)
+function [YXEPG, rowNames, extendedRange, minShift, maxShift] = data4lhsmrhs(this, inputDatabank, startOfBaseRange, varargin)
 % data4lhsmrhs  Prepare data array for running `lhsmrhs`.
 %
 % __Syntax__
 %
-%     [YXEPG, RowNames, ExtRange] = data4lhsmrhs(Model, InpDatabank, Range)
+%     [YXEPG, RowNames, ExtendedRange] = data4lhsmrhs(Model, InpDatabank, StartDate, EndDate)
 %
 %
 % __Input Arguments__
@@ -15,7 +15,10 @@ function [YXEPG, rowNames, extendedRange] = data4lhsmrhs(this, inputDatabank, ba
 % measurement variables, transition variables, and shocks on which
 % [`lhsmrhs`](model/lhsmrhs) will be evaluated.
 %
-% * `Range` [ DateWrapper ] - Date range on which
+% * `StartDate` [ DateWrapper ] - Start date of the range on which
+% [`lhsmrhs`](model/lhsmrhs) will be evaluated.
+%
+% * `EndDate` [ DateWrapper ] - End date of the range on which
 % [`lhsmrhs`](model/lhsmrhs) will be evaluated.
 %
 %
@@ -29,7 +32,7 @@ function [YXEPG, rowNames, extendedRange] = data4lhsmrhs(this, inputDatabank, ba
 % variables, shocks, parameters and exogenous variables in order of their
 % appearance in the rows of `YXEPG`.
 %
-% * `ExtRange` [ DateWrapper ] - Extended range including pre-sample
+% * `ExtendedRange` [ DateWrapper ] - Extended range including pre-sample
 % and post-sample observations needed to evaluate lags and leads of
 % transition variables.
 %
@@ -56,17 +59,28 @@ function [YXEPG, rowNames, extendedRange] = data4lhsmrhs(this, inputDatabank, ba
 
 TYPE = @int8;
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/data4lhsmrhs.m');
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addRequired('InputDatabank', @isstruct);
-    INPUT_PARSER.addRequired('Range', @DateWrapper.validateDateInput);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model/data4lhsmrhs.m');
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addRequired('InputDatabank', @isstruct);
+    inputParser.addRequired('StartOfBaseRange', @DateWrapper.validateProperRangeInput);
+    inputParser.addOptional('EndOfBaseRange', [ ],  @(x) isempty(x) || DateWrapper.validateDateInput(x));
 end
-INPUT_PARSER.parse(this, inputDatabank, baseRange);
+inputParser.parse(this, inputDatabank, startOfBaseRange, varargin{:});
+endOfBaseRange = inputParser.Results.EndOfBaseRange;
 
-if ischar(baseRange)
-    baseRange = textinp2dat(baseRange);
+if ischar(startOfBaseRange) || isa(startOfBaseRange, 'string')
+    startOfBaseRange = textinp2dat(startOfBaseRange);
+end
+
+if ischar(endOfBaseRange) || isa(endOfBaseRange, 'string')
+    endOfBaseRange = textinp2dat(endOfBaseRange);
+end
+
+if isempty(endOfBaseRange)
+    endOfBaseRange = startOfBaseRange(end);
+    startOfBaseRange = startOfBaseRange(1);
 end
 
 %--------------------------------------------------------------------------
@@ -76,8 +90,9 @@ rowNames = this.Quantity.Name;
 numOfQuantities = numel(rowNames);
 rowNamesExceptParameters = rowNames(~ixp);
 
-extendedRange = getExtendedRange(this, baseRange);
-lenOfExtendedRange = length(extendedRange);
+[startOfExtendedRange, endOfExtendedRange, minShift, maxShift] = getExtendedRange(this, startOfBaseRange, endOfBaseRange);
+lenOfExtendedRange = rnglen(startOfExtendedRange, endOfExtendedRange);
+extendedRange = startOfExtendedRange:endOfExtendedRange;
 
 YXEG = db2array(inputDatabank, rowNamesExceptParameters, extendedRange);
 YXEG = permute(YXEG, [2, 1, 3]);
