@@ -90,15 +90,12 @@ end
 stdE = sqrt(eVar);
 
 if nargout>2
+    startDate = getFirst(dates);
     dataFit = dataX*b;
     dataE = dataY - dataFit;
-    e = init(Y, dates, dataE);
-    e = resetColumnNames(e);
-    e = trim(e);
+    e = fill(Y, dataE, startDate, '');
     if nargout>4
-        fit = init(Y, dates, dataFit);
-        fit = resetColumnNames(fit);
-        fit = trim(fit);
+        fit = fill(Y, dataFit, startDate, '');
     end
 end
 
