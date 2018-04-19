@@ -34,6 +34,11 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
         end
 
 
+        function varargout = errorbar(varargin)
+            [varargout{1:nargout}] = errorbar@TimeSubscriptable(varargin{:});
+        end
+
+
         varargout = barcon(varargin)
     end
 
