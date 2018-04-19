@@ -43,7 +43,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
     methods
         varargout = getData(varargin)
         varargout = ifelse(varargin)
-        varargout = ellpea(varargin)
+        varargout = ellone(varargin)
         varargout = shift(varargin)
 
 
@@ -69,6 +69,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
         function varargout = barcon(varargin)
             [varargout{1:nargout}] = implementPlot(@numeric.barcon, varargin{:});
+        end
+
+
+        function varargout = errorbar(varargin)
+            [varargout{1:nargout}] = implementPlot(@numeric.errorbar, varargin{:});
         end
 
 
@@ -141,5 +146,10 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
     methods (Static)
         varargout = getExpSmoothMatrix(varargin)
+    end
+
+
+    methods (Static, Access=protected)
+        varargout = trimRows(varargin)
     end
 end

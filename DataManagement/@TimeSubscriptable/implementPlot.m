@@ -9,19 +9,6 @@ function [handlePlot, time, yData] = implementPlot(plotFunc, varargin)
 
 IS_ROUND = @(x) isnumeric(x) && all(x==round(x));
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser(['TimeSubscriptable.implementPlot(', char(plotFunc), ')']);
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) || isequal(x, @stem) || isequal(x, @numeric.barcon));
-    inputParser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
-    inputParser.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x));
-    inputParser.addRequired('Series', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
-    inputParser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
-    inputParser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
-    inputParser.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ||  any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)));
-end
-
 if isgraphics(varargin{1})
     handleAxes = varargin{1};
     varargin(1) = [ ];
@@ -29,10 +16,10 @@ else
     handleAxes = @gca;
 end
 
-if isa(varargin{1}, 'Date')  || isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
+if isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
     time = varargin{1};
     varargin(1) = [ ];
-elseif ~isequal(varargin{1}, Inf) && IS_ROUND(varargin{1})
+elseif isnumeric(varargin{1})
     time = DateWrapper.fromDouble(varargin{1});
     varargin(1) = [ ];
 else
@@ -41,6 +28,19 @@ end
 
 this = varargin{1};
 varargin(1) = [ ];
+
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser(['TimeSubscriptable.implementPlot(', char(plotFunc), ')']);
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) || isequal(x, @stem) || isequal(x, @numeric.barcon) || isequal(x, @numeric.errorbar));
+    inputParser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
+    inputParser.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x));
+    inputParser.addRequired('Series', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
+    inputParser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
+    inputParser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
+    inputParser.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ||  any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)));
+end
 
 inputParser.parse(plotFunc, handleAxes, time, this, varargin{:});
 specString = inputParser.Results.SpecString;
@@ -73,7 +73,11 @@ if isa(handleAxes, 'function_handle')
 end
 
 [yData, time] = getData(this, time);
-timeFrequency = getFrequency(time(1));
+if ~isempty(time)
+    timeFrequency = getFrequency(time(1));
+else
+    timeFrequency = Frequency.NaF;
+end
 
 if ndims(yData)>2
     yData = yData(:, :);
@@ -91,6 +95,7 @@ handlePlot = plotFunc(handleAxes, xData, yData, specString{:}, unmatchedOptions{
 addXLimConstraints( );
 setXLim( );
 setXTickLabelFormat( );
+set(handleAxes, 'XTickLabelRotation', 0);
 
 setappdata(handleAxes, 'IRIS_PositionWithinPeriod', positionWithinPeriod);
 setappdata(handleAxes, 'IRIS_TimeSeriesPlot', true);
@@ -182,7 +187,9 @@ return
             xLimNew = xLimBefore;
         end
         xLimActual = getXLimActual(xLimNew);
-        set(handleAxes, 'XLim', xLimActual);
+        if ~isempty(xLimActual)
+            set(handleAxes, 'XLim', xLimActual);
+        end
         setappdata(handleAxes, 'IRIS_XLim', xLimNew);
         setappdata(handleAxes, 'IRIS_EnforceXLim', enforceXLimNew);
     end%

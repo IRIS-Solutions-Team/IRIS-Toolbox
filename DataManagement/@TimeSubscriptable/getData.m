@@ -1,8 +1,8 @@
 function [data, dates] = getData(this, timeRef)
 % getData  Get data on specified range from TimeSubscriptable object
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
