@@ -66,7 +66,7 @@ for v = variantsRequested
             throw( ...
                 exception.Base('Steady:EvaluatesToNan', 'error'), ...
                 this.Equation.Input{error.EvaluatesToNan} ...
-                );
+            );
         end
     end
     this.Variant.Values(:, :, v) = lx + 1i*gx;
@@ -97,8 +97,7 @@ return
 
 
     function [lx, gx] = initialize( )
-        % Initialise levels of endogenous quantities
-        %--------------------------------------------
+        % __Initialise levels of endogenous quantities__
         lx = real(this.Variant.Values(:, :, v));
         % Level variables that are set to zero (all shocks).
         lx(ixZero.Level) = 0;
@@ -112,8 +111,7 @@ return
         % Use option NanInit= to assign NaNs.
         lx(ix) = real(blz.NanInit);
         
-        % Initialise growth rates of endogenous quantities
-        %--------------------------------------------------
+        % __Initialise growth rates of endogenous quantities__
         gx = imag(this.Variant.Values(:, :, v));
         % Variables with zero growth (all variables if 'growth=' false).
         gx(ixZero.Growth) = 0;
