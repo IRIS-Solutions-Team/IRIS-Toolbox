@@ -28,21 +28,21 @@ function [lineHandles, textHandles] = vline(varargin)
 %
 % __Options__
 %
-% * `'ExcludeFromLegend='` [ *`true`* | `false` ] - Exclude vline
-% from legend.
+% * `ExcludeFromLegend=true` [ `true` | `false` ] - Exclude vline from
+% legend.
 %
 % * `HandleVisibility=false` [ `true` | `false` ] - Visibility of the
 % handle to the line and text (caption)  object(s) created.
 %
-% * `'LinePlacement='` [ *`'exactly'`* | `'before'` | `'after'` ] -
+% * `LinePlacement='Exactly'` [ `'exactly'` | `'before'` | `'after'` ] -
 % Placement of the vertical line relative to the specified date;
-% `'exactly'` means the line is at the date specified, `'before'` means the
+% `'Exactly'` means the line is at the date specified, `'Before'` means the
 % line is half way between the date specified and the date preceeding it,
-% `'after'` means the line is half way between the date specified and the
+% `'After'` means the line is half way between the date specified and the
 % date follwing it.
 %
-% * `'Text='` [ cellstr | char | string ] - Annotate vline with a
-% text string.
+% * `Text=''` [ cellstr | char | string ] - Annotate vline with a text
+% string.
 %
 %
 % __Description__
