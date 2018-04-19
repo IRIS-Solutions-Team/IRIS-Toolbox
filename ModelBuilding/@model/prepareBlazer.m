@@ -1,29 +1,26 @@
 function blz = prepareBlazer(this, kind, numPeriods, varargin)
-% prepareBlazer  Create Blazer object from dynamic or steady equations.
+% prepareBlazer  Create Blazer object from dynamic or steady equations
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/prepareBlazer');
-    INPUT_PARSER.KeepUnmatched = true;
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addRequired('Kind', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
-    INPUT_PARSER.addRequired('NumPeriods', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=0);
-    INPUT_PARSER.addParameter('Blocks', true, @(x) isequal(x, true) || isequal(x, false));
-    INPUT_PARSER.addParameter('Exogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
-    INPUT_PARSER.addParameter('Endogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.prepareBlazer');
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addRequired('Kind', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
+    inputParser.addRequired('NumPeriods', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=0);
+    inputParser.addParameter('Blocks', true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addSwapOptions( );
 end
-INPUT_PARSER.parse(this, kind, numPeriods, varargin{:});
-opt = INPUT_PARSER.Options;
-
-try, listExogenize = opt.exogenize; catch, listExogenize = [ ]; end; %#ok<NOCOM>
+inputParser.parse(this, kind, numPeriods, varargin{:});
+opt = inputParser.Options;
 
 %--------------------------------------------------------------------------
 
@@ -49,7 +46,7 @@ switch lower(kind)
         blz.IxCanBeEndg = (ixy | ixx | ixp) & full(any(incid, 1));
         blz.Assignment = this.Pairing.Assignment.Steady;
 
-    case 'dynamic'
+    case 'period'
         blz = solver.blazer.Dynamic(numOfEquations);
         blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
         blz.Gradient(:, ixmt) = this.Gradient.Dynamic(:, ixmt);
@@ -67,9 +64,7 @@ switch lower(kind)
         blz.Assignment = this.Pairing.Assignment.Dynamic;
 
     otherwise
-        throw( ...
-            exception.Base('General:Internal', 'error') ...
-        );
+        throw( exception.Base('General:Internal', 'error') );
 end
 blz.Quantity = this.Quantity;
 blz.NumPeriods = numPeriods;

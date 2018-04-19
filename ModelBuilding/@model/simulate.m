@@ -311,7 +311,7 @@ if strcmpi(opt.Method, 'global') || strcmpi(opt.Method, 'exact')
     return
 end
 
-if strcmpi(opt.Method, 'Stacked')
+if strcmpi(opt.Method, 'Stacked') || strcmpi(opt.Method, 'Period')
     if isequal(opt.Solver, @auto)
         opt.Solver = 'IRIS';
     end
