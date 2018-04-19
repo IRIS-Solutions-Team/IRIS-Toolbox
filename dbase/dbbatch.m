@@ -205,8 +205,6 @@ end
 return
 
 
-
-
     function processOptions( )
         % Bkw compatibility.
         % Deprecated options 'merge' and 'append'.
@@ -235,61 +233,61 @@ return
         if ischar(opt.classlist)
             opt.classlist = regexp(opt.classlist, '\w+', 'match');
         end
-    end 
-end
+    end%
+end%
 
 
 
 
 function [list0, tkn] = query(d, opt)
-lsClass = opt.classlist;
-lsNameFilter = opt.namefilter;
-lsName = opt.namelist;
-vecFreq = opt.freqfilter;
-lsString = opt.stringlist;
-if isempty(lsString)
-    list0 = fieldnames(d).';
-else
-    list0 = lsString;
-end
-tkn = cell(size(list0));
-tkn(:) = {{ }};
-% Name list.
-if iscellstr(lsName)
-    list0 = intersect(list0, lsName);
-end
-% Name filter.
-if ~isequal(lsNameFilter, Inf) && ~isempty(lsNameFilter)
-    if lsNameFilter(1) ~= '^'
-        lsNameFilter = ['^', lsNameFilter];
+    lsClass = opt.classlist;
+    lsNameFilter = opt.namefilter;
+    lsName = opt.namelist;
+    vecFreq = opt.freqfilter;
+    lsString = opt.stringlist;
+    if isempty(lsString)
+        list0 = fieldnames(d).';
+    else
+        list0 = lsString;
     end
-    if lsNameFilter(end) ~= '$'
-        lsNameFilter = [lsNameFilter, '$'];
+    tkn = cell(size(list0));
+    tkn(:) = {{ }};
+    % Name list.
+    if iscellstr(lsName)
+        list0 = intersect(list0, lsName);
     end
-    [ixPass, ~, tkn] = textfun.matchindex(list0, lsNameFilter);
-    list0 = list0(ixPass);
-end
-% Class list.
-if ~isequal(lsClass, @all) && ~isequal(lsClass, Inf)
-    ixPass = false(size(list0));
-    for i = 1 : numel(list0)
-        x = d.(list0{i});
-        ixPass(i) = any(cellfun(@(cls) isa(x, cls), lsClass));
+    % Name filter.
+    if ~isequal(lsNameFilter, Inf) && ~isempty(lsNameFilter)
+        if lsNameFilter(1) ~= '^'
+            lsNameFilter = ['^', lsNameFilter];
+        end
+        if lsNameFilter(end) ~= '$'
+            lsNameFilter = [lsNameFilter, '$'];
+        end
+        [ixPass, ~, tkn] = textfun.matchindex(list0, lsNameFilter);
+        list0 = list0(ixPass);
     end
-    list0 = list0(ixPass);
-    tkn = tkn(ixPass);
-end
-% Date frequency filter.
-if ~isequal(vecFreq, Inf)
-    ixPass = false(size(list0));
-    for i = 1 : numel(list0)
-        ixPass(i) = ~isa(d.(list0{i}), 'tseries') ...
-            || any(freq(d.(list0{i})) == vecFreq);
+    % Class list.
+    if ~isequal(lsClass, @all) && ~isequal(lsClass, Inf)
+        ixPass = false(size(list0));
+        for i = 1 : numel(list0)
+            x = d.(list0{i});
+            ixPass(i) = any(cellfun(@(cls) isa(x, cls), lsClass));
+        end
+        list0 = list0(ixPass);
+        tkn = tkn(ixPass);
     end
-    list0 = list0(ixPass);
-    tkn = tkn(ixPass);
-end
-end
+    % Date frequency filter.
+    if ~isequal(vecFreq, Inf)
+        ixPass = false(size(list0));
+        for i = 1 : numel(list0)
+            ixPass(i) = ~isa(d.(list0{i}), 'tseries') ...
+                || any(freq(d.(list0{i})) == vecFreq);
+        end
+        list0 = list0(ixPass);
+        tkn = tkn(ixPass);
+    end
+end%
 
 
 
@@ -315,7 +313,7 @@ function [list1, expr] = parse(namePatt, exprPatt, list0, tkn)
     else
         expr(1:length(list0)) = {''};
     end
-end
+end%
 
 
 
@@ -329,4 +327,4 @@ function c = parseOne(c, varargin)
         c = strrep(c, sprintf('$%g', i-1), varargin{i});
     end
     c = regexprep(c, '\$\d*', '');
-end
+end%
