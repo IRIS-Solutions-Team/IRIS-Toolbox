@@ -1,5 +1,5 @@
 function [this, newRange] = resize(this, range)
-% resize  Clip tseries object to specified date range
+% resize  Clip time series range
 %
 % __Syntax__
 %
