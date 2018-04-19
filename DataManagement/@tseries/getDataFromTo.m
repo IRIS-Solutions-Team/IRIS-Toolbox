@@ -15,13 +15,14 @@ if nargin==1
     return
 end
 
-freq = getFrequency(this.Start);
+frequency = getFrequency(this.Start);
 serialStart = round(this.Start);
 data = this.Data;
-sizeData = size(data);
+sizeOfData = size(data);
+missingValue = this.MissingValue;
 
 if ~isinf(serialFrom) && ~isinf(serialTo) && serialTo<serialFrom
-    x = zeros([0, sizeData(2:end)]);
+    x = repmat(missingValue, [0, sizeOfData(2:end)]);
     return
 end
 
@@ -32,34 +33,38 @@ else
 end
 
 if isinf(serialTo)
-    posTo = sizeData(1);
+    posTo = sizeOfData(1);
 else
     posTo = round(serialTo - serialStart + 1);
 end
 
 if isnan(serialStart) || isempty(data)
-    lenRange = round(posTo - posFrom + 1);
-    x = nan([lenRange, sizeData(2:end)]);
+    lenOfRange = round(posTo - posFrom + 1);
+    x = repmat(this.MissingValue, [lenOfRange, sizeOfData(2:end)]);
     return
 end
 
-numColumns = prod(sizeData(2:end));
+numberOfColumns = prod(sizeOfData(2:end));
 if posFrom>posTo
-    x = nan(0, numColumns);
-elseif posFrom>=1 && posTo<=sizeData(1)
+    x = repmat(missingValue, 0, numberOfColumns);
+elseif posFrom>=1 && posTo<=sizeOfData(1)
     x = this.Data(posFrom:posTo, :);
-elseif (posFrom<1 && posTo<1) || (posFrom>sizeData(1) && posTo>sizeData(1))
-    x = nan(posTo-posFrom+1, numColumns);
+elseif (posFrom<1 && posTo<1) || (posFrom>sizeOfData(1) && posTo>sizeOfData(1))
+    x = repmat(missingValue, posTo-posFrom+1, numberOfColumns);
 elseif posFrom>=1
-    x = [ data(posFrom:end, :); nan(posTo-sizeData(1), numColumns) ];
-elseif posTo<=sizeData(1)
-    x = [ nan(1-posFrom, numColumns); data(1:posTo, :) ];
+    addMissingAfter = repmat(missingValue, posTo-sizeOfData(1), numberOfColumns);
+    x = [ data(posFrom:end, :); addMissingAfter ];
+elseif posTo<=sizeOfData(1)
+    addMissingBefore = repmat(missingValue, 1-posFrom, numberOfColumns);
+    x = [ addMissingBefore; data(1:posTo, :) ];
 else
-    x = [ nan(1-posFrom, numColumns); data(:, :); nan(posTo-sizeData(1), numColumns) ];
+    addMissingBefore = repmat(missingValue, 1-posFrom, numberOfColumns);
+    addMissingAfter = repmat(missingValue, posTo-sizeOfData(1), numberOfColumns);
+    x = [ addMissingBefore; data(:, :); addMissingAfter ];
 end
 
-if length(sizeData)>2
-    x = reshape(x, [size(x, 1), sizeData(2:end)]);
+if length(sizeOfData)>2
+    x = reshape(x, [size(x, 1), sizeOfData(2:end)]);
 end
 
 if nargout>1
