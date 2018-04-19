@@ -116,6 +116,7 @@ Model:NoMeasurementVariables, This model has no measurement variables.
 Model:RedundantParameter,This parameter does not occur in any model equation: %s 
 Model:RedundantShock,This shock does not occur in any model equation: %s 
 Model:SolutionNotAvailable,Model solution(s) not available: %s
+Model:StackedSimulationFailed,Some blocks in stacked simulation failed to converge %s
 Model:SteadyNotAvailable,Steady state is not available for this variable: %s 
 Model:SteadyErrorInDynamic,Steady-state values not consistent with this dynamic equation %s: %s
 Model:SteadyErrorInSteady,Steady-state values not consistent with this steady equation %s: %s
@@ -171,6 +172,10 @@ RptEq:InvalidLhs,Invalid LHS name in this reporting equation: %s
 RptEq:RhsNameDataNotFound,This name is not found in input database: %s 
 RptEq:RhsNameDataInvalid,Input data for this name are invalid: %s 
 RptEq:SteadyRefNotFoundInModel,Name of this steady-state reference is not found in model: %s 
+Scenario:NameNotFound, This is not a valid name in Scenario: %s
+Scenario:CannotExogenizeName, This name cannot be exogenized in Scenario: %s
+Scenario:CannotEndogenizeName, This name cannot be endogenized in Scenario: %s
+Series:DatesDataDimensionMismatch,Number of dates must match number of rows of observations when creating a new time series.
 Series:BinopSizeMismatch,The size of the resulting Series object must match the size of one of the input Series objects.
 Series:InputsRemovedFromCat,Inputs other than time series and numeric removed from concatenation.
 Series:InvalidSizeColumnNames,Column names assigned to time series have invalid dimensions. 
@@ -204,6 +209,7 @@ SystemPriorWrapper:SystemPriorToSealed,Cannot add SystemPrior to a sealed System
 SystemPriorWrapper:IllegalOutputName,SystemProperty output names must be legal variable names
 SystemPriorWrapper:NonuniqueOutputName,This output name assigned to SystemProperty is not unique: %s
 SystemPriorWrapper:NamesExceedMaxNumOutputs, Number of SystemProperty names exceeds maximum number of output arguments
+TimeSubscriptable:IfElseTest,The if test must produce a logical array of the same size as the time series data
 TheParser:EmptyEquation,"This equation is empty, and will be removed: %s "
 TheParser:EmptyLhsOrRhs, LHS or RHS of this equation is empty: %s 
 TheParser:EssentialBlocksMissing,Cannot find a nonempty %s block; this is not a valid source file.
@@ -226,3 +232,5 @@ VAR:GroupNotInputData,This group is not contained in the input database: %s
 VAR:InvalidParameterType,This is not a valid type of VAR parameters: %s
 VAR:NonuniqueName,This name occurs more than once in VAR object: %s 
 VAR:CannotHandleUnstable, Cannot calculate %1 for unstable parameter variants: %s
+VintageSeries:DatesDataDimensionMismatch,Number of vintage dates must match number of columns of observations when creating a new vintage time series.
+VintageSeries:NonexistentVintage,Reference to nonexistent vintage date: %s
