@@ -40,10 +40,10 @@ classdef Rectangular < handle
 
 
         function prepareDataDependentProperties(this, data, firstColumn)
-            sizeData = size(data.YXEPG);
-            this.LinxBackward = sub2ind(sizeData, real(this.IdBackward), firstColumn+imag(this.IdBackward));
-            this.LinxCurrent = sub2ind(sizeData, real(this.IdCurrent), firstColumn+imag(this.IdCurrent));
-            this.LinxStep = sizeData(1);
+            sizeOfData = size(data.YXEPG);
+            this.LinxBackward = sub2ind(sizeOfData, real(this.IdBackward), firstColumn+imag(this.IdBackward));
+            this.LinxCurrent = sub2ind(sizeOfData, real(this.IdCurrent), firstColumn+imag(this.IdCurrent));
+            this.LinxStep = sizeOfData(1);
         end
     end
 
