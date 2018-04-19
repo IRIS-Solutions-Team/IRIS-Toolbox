@@ -514,6 +514,17 @@ return
         % Define white spaces.
         whiteSpace = sprintf(' \b\r\t');
         
+        % Remove single and double quotes from the data part of the file
+        if ~isempty(opt.RemoveFromData)
+            list = opt.RemoveFromData;
+            if ~iscellstr(list)
+                list = cellstr(list);
+            end
+            for i = 1 : numel(list)
+                file = strrep(file, list{i}, '');
+            end
+        end
+
         % Read numeric data; empty cells will be treated either as `NaN` or
         % `NaN+NaNi` depending on the presence or absence of complex
         % numbers in the rest of that particular row.
