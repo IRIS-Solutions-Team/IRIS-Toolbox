@@ -39,7 +39,7 @@
 %   End - tseries/Enda property
 %   Range - tseries/Rangea property
 %   Frequency - tseries/Frequencya property
-%   MissingValue - -  Representation of missing value
+%   MissingValue - Representation of missing value
 %   MissingTest - Test for missing values
 %
 %
@@ -234,31 +234,33 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 return
             end
 
-            persistent INPUT_PARSER
-            if isempty(INPUT_PARSER)
-                INPUT_PARSER = extend.InputParser('tseries/tseries');
-                INPUT_PARSER.addRequired('Dates', @(x) isa(x, 'DateWrapper') || (isnumeric(x) && all(x==round(x) | isnan(x))) || ischar(x) || isa(x, 'string'));
-                INPUT_PARSER.addRequired('Values', @(x) isnumeric(x) || isa(x, 'function_handle'));
-                INPUT_PARSER.addOptional('ColumnComments', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-                INPUT_PARSER.addOptional('UserData', [ ], @(x) true);
+            persistent inputParser
+            if isempty(inputParser)
+                inputParser = extend.InputParser('tseries.tseries');
+                inputParser.addRequired('Dates', @(x) isa(x, 'DateWrapper') || (isnumeric(x) && all(x==round(x) | isnan(x))) || ischar(x) || isa(x, 'string'));
+                inputParser.addRequired('Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle'));
+                inputParser.addOptional('ColumnComments', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+                inputParser.addOptional('UserData', [ ], @(x) true);
             end
 
-            INPUT_PARSER.parse(varargin{:});
-            dates = INPUT_PARSER.Results.Dates;
-            values = INPUT_PARSER.Results.Values;
-            columnNames = INPUT_PARSER.Results.ColumnComments;
-            userData = INPUT_PARSER.Results.UserData;
+            inputParser.parse(varargin{:});
+            dates = inputParser.Results.Dates;
+            values = inputParser.Results.Values;
+            columnNames = inputParser.Results.ColumnComments;
+            userData = inputParser.Results.UserData;
 
             if ischar(dates) || isa(dates, 'string')
                 dates = textinp2dat(dates);
             end
             dates = dates(:);
-            numDates = numel(dates);            
+            numberOfDates = numel(dates);            
 
             if isa(dates, 'DateWrapper')
-                freq = getFrequency(dates);
+                freq = getFrequency(getFirst(dates));
+                serials = getSerial(dates);
             else
-                [dates, freq] = DateWrapper.fromDouble(dates);
+                freq = DateWrapper.getFrequencyFromNumeric(dates(1));
+                serials = dates;
             end
             
             %--------------------------------------------------------------
@@ -272,34 +274,37 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % Create data from function handle.
             if isa(values, 'function_handle') 
                 if isequal(values, @ltrend)
-                    values = (1:numDates).';
+                    values = (1:numberOfDates).';
                 else
-                    values = feval(values, [numDates, 1]);
+                    values = feval(values, [numberOfDates, 1]);
                 end
             elseif isnumeric(values) || islogical(values)
-                if sum(size(values)>1)==1 && length(values)>1 && numDates>1
+                if sum(size(values)>1)==1 && length(values)>1 && numberOfDates>1
                     % Squeeze `Data` if scalar time series is entered as an non-columnwise
                     % vector.
                     values = values(:);
-                elseif length(values)==1 && numDates>1
-                    % Expand scalar `Data` point to match more than one of `Dates`.
-                    values = values(ones(size(dates)));
+                elseif length(values)==1 && numberOfDates>1
+                    % Expand scalar observation to match more than one of `Dates`.
+                    values = repmat(values, size(serials));
                 end
             end
+
+            this = initMissingValue(this, values);
             
             % If `Dates` is scalar and `Data` have multiple rows, treat
             % `Dates` as a start date and expand the dates accordingly.
-            if numDates==1 && size(values, 1)>1
-                dates = dates + (0 : size(values, 1)-1);
+            numberOfRowsInValues = size(values, 1);
+            if numberOfDates==1 && numberOfRowsInValues>1
+                serials = serials + (0 : numberOfRowsInValues-1);
             end
             
             % Initialize the time series start date and data.
-            this = init(this, dates, values);
+            this = init(this, freq, serials, values);
             
             % Populate comments for each column.
-            sizeData = size(this.Data);
-            sizeColumnNames = [1, sizeData(2:end)];
-            this.Comment = cell(sizeColumnNames);
+            sizeOfData = size(this.Data);
+            sizeOfColumnNames = [1, sizeOfData(2:end)];
+            this.Comment = cell(sizeOfColumnNames);
             this.Comment(:) = {char.empty(1, 0)};
 
             if ~isempty(columnNames)
@@ -308,7 +313,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             
             this = userdata(this, userData);
 
-            if ~isempty(this.Data) && any(any(isnan(this.Data([1, end], :))))
+            if ~isempty(this.Data) 
                 this = trim(this);
             end
         end
@@ -330,6 +335,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = bwf2(varargin)
         varargout = bsxfun(varargin)
         varargout = chowlin(varargin)
+        varargout = clip(varargin)
         varargout = comment(varargin)
         varargout = conbar(varargin)
         varargout = convert(varargin)
@@ -499,6 +505,17 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         function startDate = startDateWhenEmpty(this, varargin)
             startDate = DateWrapper.NaD( );
         end
+
+
+        function this = initMissingValue(this, values)
+            if isa(values, 'single')
+                this.MissingValue = single(NaN);
+            elseif isa(values, 'logical')
+                this.MissingValue = false;
+            else
+                this.MissingValue = NaN;
+            end
+        end%
     end
     
     
@@ -852,16 +869,20 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
         
         % __Indexing__
-        function index = end(x, k, n) %#ok<INUSD>
+
+
+        function index = end(this, k, varargin)
             if k==1
-                index = x.Start + size(x.Data, 1) - 1;
+                index = addTo(this.Start, size(this.Data, 1)-1);
             else
-                index = size(x.Data, k);
+                index = size(this.Data, k);
             end
-        end
+        end%
+        
+
         function n = numel(~, varargin)
             n = 1;
-        end
+        end%
     end
 
 
@@ -887,12 +908,12 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             if ischar(newValue)
                 thisValue(:) = {newValue};
             else
-                sizeData = size(this.Data);
-                sizeColumnNames = size(newValue);
-                expectedSizeColumnNames = [1, sizeData(2:end)];
-                if isequal(sizeColumnNames, expectedSizeColumnNames)
+                sizeOfData = size(this.Data);
+                sizeOfColumnNames = size(newValue);
+                expectedSizeColumnNames = [1, sizeOfData(2:end)];
+                if isequal(sizeOfColumnNames, expectedSizeColumnNames)
                     thisValue = newValue;
-                elseif isequal(sizeColumnNames, [1, 1])
+                elseif isequal(sizeOfColumnNames, [1, 1])
                     thisValue = repmat(newValue, expectedSizeColumnNames);
                 else
                     throw( ...

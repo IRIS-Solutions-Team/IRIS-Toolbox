@@ -1,5 +1,5 @@
 function this = subsasgn(this, s, y, varargin)
-% subsasgn  Subscripted assignment for tseries objects.
+% subsasgn  Subscripted assignment for time series
 %
 % __Syntax__
 %
@@ -33,10 +33,16 @@ function this = subsasgn(this, s, y, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
+
+if isstruct(s) && isequal(s(1).type, '.')
+    % Give standard dot access to properties
+    this = builtin('subsasgn', this, s, y);
+    return
+end
 
 if ~isstruct(s)
     % Simplified syntax: subsasgn(x, dates, y, ref2, ref3, ...)
@@ -48,8 +54,8 @@ end
 
 switch s(1).type
     case {'()', '{}'}
-        % Run `mylagorlead` to tell if the first reference is a lag/lead. If yes, 
-        % the startdate of `x` will be adjusted within `mylagorlead`.
+        % Run recognizeShift( ) to tell if the first reference is a lag/lead. If yes, 
+        % the startdate `x` will be adjusted within recognizeShift( )
         sh = 0;
         if length(s)>1 || isa(y, 'tseries')
             [this, s, sh] = recognizeShift(this, s);
@@ -66,14 +72,9 @@ switch s(1).type
         if sh~=0
             this.Start = addTo(this.Start, sh);
         end
-    otherwise
-        % Give standard access to public properties.
-        this = builtin('subsasgn', this, s, y);
 end
 
-end
-
-
+end%
 
 
 function this = setData(this, s, y)
@@ -138,9 +139,7 @@ end
 if isempty(y) && strcmp(s.subs{1}, ':')
     this.Comment = subsasgn(this.Comment, s, y);
 end
-end
-
-
+end%
 
 
 function [this, s, dates, freqTest] = expand(this, s)
@@ -159,6 +158,7 @@ end
 % * Inf and ':' produce the entire tseries range.
 % * Convert subscripts in 1st dimension from dates to indices.
 % * We cannot use `isequal(S.subs{1}, ':')` because `isequal(58, ':')`
+% Give standartd dot access to properties
 % produces `true`.
 if (ischar(s.subs{1}) && strcmp(s.subs{1}, ':')) ...
         || isequal(s.subs{1}, Inf)
@@ -245,5 +245,5 @@ if isReshaped
             'Attempt to grow tseries data array along ambiguous dimension.');
     end
 end
-end 
+end%
 

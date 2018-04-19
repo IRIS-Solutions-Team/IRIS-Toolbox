@@ -1,5 +1,5 @@
 function varargout = subsref(this, s, varargin)
-% subsref  Subscripted reference function for tseries objects.
+% subsref  Subscripted reference function for time series
 %
 % __Syntax Returning Numeric Array__
 %
@@ -28,12 +28,18 @@ function varargout = subsref(this, s, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-if isnumeric(s)
+if isstruct(s) && isequal(s(1).type, '.')
+    % Give standartd dot access to properties
+    [varargout{1:nargout}] = builtin('subsref', this, s);
+    return
+end
+
+if ~isstruct(s)
     % Simplified syntax: subsref(X, Dates, Ref2, Ref3, ...)
     dates = s;
     s = struct( );
@@ -64,9 +70,6 @@ switch s(1).type
         else
             varargout{1} = subsref(this, s);
         end
-    otherwise
-        % Give standard access to public properties.
-        varargout{1} = builtin('subsref', this, s);
 end
 
-end
+end%
