@@ -40,7 +40,7 @@ if nargin==1 && isa(varargin{1}, 'TimeSubscriptable')
     this.Start = nanDate;
     newSize = size(this.Data);
     newSize(1) = 0;
-    this.Data = double.empty(newSize);
+    this.Data = repmat(this.MissingValue, newSize);
 else
     this = tseries( );
     if isempty(varargin)
@@ -48,10 +48,9 @@ else
     else
         newData = double.empty(varargin{:});
     end
-    assert( ...
-        size(newData, 1)==0, ...
-        exception.Base('Series:TimeDimMustBeZero', 'error') ...
-    );
+    if size(newData, 1)~=0
+        throw( exception.Base('Series:TimeDimMustBeZero', 'error') );
+    end
     this.Start = nanDate;
     this.Data = newData;
     this = resetColumnNames(this);
