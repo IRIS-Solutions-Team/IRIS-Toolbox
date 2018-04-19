@@ -135,14 +135,6 @@ def.plotcmp = {
     'cmpplotfunc, diffplotfunc', @bar, @(x) isequal(x, @bar) || isequal(x, @area)
 };
 
-def.plotpred = { 
-    'connect', true, @(x) isequal(x, true) || isequal(x, false)
-    'firstline', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
-    'predlines', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
-    'firstmarker, firstmarkers, startpoint, startpoints', '.', @(x) ischar(x) && any(strcmpi(x, {'none', '+', 'o', '*', '.', 'x', 's', 'd', '^', 'v', '>', '<', 'p', 'h'}))
-    'shownanlines', true, @(x) isequal(x, true) || isequal(x, false)
-};
-
 def.plotyy = [
     def.plot
     {

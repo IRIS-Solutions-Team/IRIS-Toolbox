@@ -20,11 +20,6 @@ precision = {
     'precision', 'double', @(x) ischar(x) && any(strcmpi(x, {'double', 'single'}))
     };
 
-swap = {
-    'endogenize, endogenise', { }, @(x) isempty(x) || iscellstr(x) || ischar(x) || isequal(x, @auto)
-    'exogenize, exogenise', { }, @(x) isempty(x) || iscellstr(x) || ischar(x) || isequal(x, @auto)
-};
-
 matrixFormat = {
     'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat
     };
@@ -219,9 +214,8 @@ def.simulate = [
     'DbOverlay, DbExtend', false, @(x) islogicalscalar(x) || isstruct(x)
     'Delog', true, @islogicalscalar
     'fast', true, @islogicalscalar
-    'FOTC', true, @(x) isequal(x, true) || isequal(x, false)
     'ignoreshocks, ignoreshock, ignoreresiduals, ignoreresidual', false, @islogicalscalar
-    'Method', 'FirstOrder', @(x) ischar(x) && any(strcmpi(x, {'FirstOrder', 'Selective', 'Global', 'Exact', 'Stacked'}))
+    'Method', 'FirstOrder', @(x) ischar(x) && any(strcmpi(x, {'FirstOrder', 'Selective', 'Global', 'Exact', 'Stacked', 'Period'}))
     'missing', NaN, @isnumeric
     'plan, Scenario', [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x)
     'progress', false, @islogicalscalar
@@ -322,35 +316,6 @@ def.sspace = {
     'removeinactive', false, @islogicalscalar
     };
 
-def.SteadyNonlinear = [
-    swap
-    {
-    'blocks, block', true, @islogicalscalar
-    'fix', { }, @(x) isempty(x) || iscellstr(x) || ischar(x)
-    'fixallbut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x)
-    'fixlevel', { }, @(x) isempty(x) || iscellstr(x) || ischar(x)
-    'fixlevelallbut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x)
-    'fixgrowth', { }, @(x) isempty(x) || iscellstr(x) || ischar(x)
-    'fixgrowthallbut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x)
-    'ForceRediff', false, @islogicalscalar
-    'Growth', @auto, @(x) isequal(x, @auto) || islogicalscalar(x)
-    'growthbounds, growthbnds', [ ], @(x) isempty(x) || isstruct(x)
-    'levelbounds, levelbnds', [ ], @(x) isempty(x) || isstruct(x)
-    ... 'LogMinus', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all)
-    'OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x)
-    'NanInit, init', 1, @(x) isnumericscalar(x) && isfinite(x)
-    'resetinit', [ ], @(x) isempty(x) || (isnumericscalar(x) && isfinite(x))
-    'Reuse', false, @islogicalscalar
-    'Solver', 'IRIS', @(x) ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle')))
-    'PrepareGradient', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
-    'Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all)
-    'Warning', true, @islogicalscalar
-    'zeromultipliers', false, @islogicalscalar
-    }
-];
-
-
-
 
 def.lhsmrhs = { ...
     'kind', 'dynamic', @(x) ischar(x) && any(strcmpi(x, {'dynamic', 'steady'})), ...
@@ -361,14 +326,6 @@ def.shockdb = { ...
     @(x) isa(x, 'function_handle') ...
     && any(strcmp(func2str(x), {'randn', 'lhsnorm', 'zeros'})), ...
     };
-
-def.sstatefile = [
-    swap
-    {
-    'growthnames, growthname', 'd?', @ischar
-    'time', true, @islogicalscalar
-    }
-];
 
 def.system = [
     system
