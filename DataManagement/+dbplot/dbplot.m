@@ -120,6 +120,10 @@ function [inp, s] = getNext(inp, opt)
 
     % Expressions and legends.
     [s.eval, s.legend] = readBody(body);
+    if ~isempty(opt.Preprocess)
+        s.eval{1} = opt.Preprocess(s.eval{1});
+    end
+        
 
     return
 
@@ -307,11 +311,11 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
         func = qq.children{j}.func;
         funcArgs = qq.children{j}.funcArgs;
         
-        % If `'overflow='` is true we automatically open a new figure when the
-        % subplot count overflows; this is the default behaviour for `dbplot`.
-        % Otherwise, an error occurs; this is the default behaviour for `qplot`.
+        % If Overflow=true we automatically open a new figure when the
+        % subplot count overflows; this is the default behaviour for
+        % dbplot( )
         if pos>nRow*nCol && opt.Overflow
-            % Open a new figure and reset the subplot position `pos`.
+            % Open a new figure and reset the subplot position
             createNewFigure( );
         end
         
@@ -420,12 +424,11 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
 
 
     function createNewFigure( )
-        if isempty(opt.FigureOpt)
+        if isempty(opt.Figure)
             ff = opt.FigureFunc( );
         else
-            figureOpt = opt.FigureOpt;
-            figureOpt(1:2:end) = strrep(figureOpt(1:2:end), '=', '');
-            ff = figure( figureOpt{:} );
+            opt.Figure(1:2:end) = strrep(opt.Figure(1:2:end), '=', '');
+            ff = figure( opt.Figure{:} );
         end
         set(ff, 'SelectionType', 'Open');
         vecHFig = [vecHFig, ff];
@@ -446,7 +449,9 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
 end%
 
 
-function [actualRange, data, isOk] = callPlot(func, funcArgs, aa, inputRange, inputData, inputDataCat, legEnt, opt, varargin)
+function [actualRange, data, isOk] = callPlot( func, funcArgs, aa, ...
+                                               inputRange, inputData, inputDataCat, ...
+                                               legEnt, opt, varargin )
     isXGrid = opt.Grid;
     isYGrid = opt.Grid;
 
@@ -481,7 +486,7 @@ function [actualRange, data, isOk] = callPlot(func, funcArgs, aa, inputRange, in
             otherwise
                 h = func(inputRange, inputDataCat, varargin{:}, funcArgs{:});
                 data = inputDataCat;
-                actualRange = h.XData;
+                actualRange = h(1).XData;
         end
     else
         if isequal(inputRange, Inf)
@@ -528,13 +533,9 @@ function [actualRange, data, isOk] = callPlot(func, funcArgs, aa, inputRange, in
 end%
 
 
-function postMortem(ff, aa, plotDb, fifTitle, opt) %#ok<INUSL>
+function postMortem(ff, aa, plotDb, figureTitle, opt) %#ok<INUSL>
     if ~isempty(opt.Style)
         grfun.style(opt.Style, ff);
-    end
-
-    if isstruct(opt.VisualStyle) && ~isempty(fieldnames(opt.VisualStyle))
-        visual.style(ff, opt.VisualStyle);
     end
 
     if opt.AddClick
@@ -545,7 +546,7 @@ function postMortem(ff, aa, plotDb, fifTitle, opt) %#ok<INUSL>
         aa = [ aa{:} ];
         aa = aa(opt.Clear);
         if ~isempty(aa)
-            tt = get(aa, 'title');
+            tt = get(aa, 'Title');
             if iscell(tt)
                 tt = [tt{:}];
             end
@@ -554,12 +555,20 @@ function postMortem(ff, aa, plotDb, fifTitle, opt) %#ok<INUSL>
         end
     end
 
-    for i = 1 : length(fifTitle)
+    for i = 1 : length(figureTitle)
         % Figure titles must be created last because the `subplot` commands clear
         % figures.
-        if ~isempty(fifTitle{i})
-            grfun.ftitle(ff(i), fifTitle{i});
+        if ~isempty(figureTitle{i})
+            grfun.ftitle(ff(i), figureTitle{i});
         end
+    end
+
+    if isstruct(opt.VisualStyle) && ~isempty(fieldnames(opt.VisualStyle))
+        visual.style(ff, opt.VisualStyle);
+    end
+
+    if ~isempty(opt.AddToPages)
+        add(opt.AddToPages, ff);
     end
 
     if opt.DrawNow
@@ -599,8 +608,8 @@ function saveAs(ff, plotDb, opt)
     end
     if strcmpi(opt.SaveAsformat, '.pdf')
         [filePath, fileTitle, fileExtension] = fileparts(opt.SaveAs);
-        numberOfFigures = numel(ff);
-        for ithFigure = 1 : numberOfFigures
+        numFigures = numel(ff);
+        for ithFigure = 1 : numFigures
             figure(ff(ithFigure));
             orient landscape;
             print('-dpdf', '-fillpage', fullfile(filePath, sprintf('%s_F%g%s', fileTitle, ithFigure, fileExtension)));
