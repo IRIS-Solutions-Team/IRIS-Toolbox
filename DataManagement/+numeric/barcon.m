@@ -14,7 +14,6 @@ if isempty(inputParser)
     inputParser.addRequired('Axes', @(x) isscalar(x) && isgraphics(x, 'Axes'));
     inputParser.addRequired('Time', @(x) isnumeric(x) || isa(x, 'datetime'));
     inputParser.addRequired('Data', @isnumeric);
-    inputParser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
     inputParser.addParameter('ColorMap', lines( ), @(x) isnumeric(x) && ismatrix(x) && size(x, 2)==3);
     inputParser.addParameter('EvenlySpread', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
 end
