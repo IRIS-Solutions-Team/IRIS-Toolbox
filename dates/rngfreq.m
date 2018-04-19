@@ -1,41 +1,39 @@
-function Freq = rngfreq(Range)
-% rngfreq  [Not a public function] Date frequency of a date range.
+function rangeFrequencies = rngfreq(range)
+% rngfreq  Determine date frequencies of input ranges or cell array of ranges
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-if iscell(Range)
-    Freq = nan(size(Range));
-    for i = 1 : numel(Range)
-        Freq(i) = rngfreq(Range{i});
+if iscell(range)
+    rangeFrequencies = nan(size(range));
+    for i = 1 : numel(range)
+        rangeFrequencies(i) = rngfreq(range{i});
     end
     return
 end
 
 %--------------------------------------------------------------------------
 
-Range = Range(:).';
-
-if any(isnan(Range))
-    Freq = NaN;
+if any(isnan(range))
+    rangeFrequencies = NaN;
     return
 end
 
-if all(isinf(Range))
-    Freq = Inf;
+if all(isinf(range))
+    rangeFrequencies = Inf;
     return
 end
 
-Range = Range(~isinf(Range));
+range = range(~isinf(range));
 
-freq = DateWrapper.getFrequencyFromNumeric(Range);
-if all(freq == freq(1))
-    Freq = freq(1);
+freq = DateWrapper.getFrequencyFromNumeric(range);
+if all(freq==freq(1))
+    rangeFrequencies = freq(1);
 else
-    Freq = NaN;
+    rangeFrequencies = NaN;
 end
 
 end
