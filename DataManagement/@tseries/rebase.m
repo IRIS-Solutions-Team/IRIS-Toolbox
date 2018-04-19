@@ -1,30 +1,33 @@
-function x = rebase(x, date, b)
+function this = rebase(this, varargin)
 % rebase  Rebase times seris data to specified period.
 %
 %
 % __Syntax__
 %
-%     X = rebase(X, Date, B...)
+% Input arguments marked with a `~` sign may be omitted.
+%
+%     X = rebase(X, ~BasePeriod, ~BaseValue, ...)
 %
 %
-% __Input arguments__
+% __Input Arguments__
 %
-% * `X` [ Series | tseries ] -  Input time series that will be normalized.
+% * `X` [ Series | tseries ] -  Input time series that will be rebased.
 %
-% * `Date` [ DateWrapper | `'start'` | `'end'` | `'nanStart'` | `'nanEnd'`
-% ] - Date relative to which the input data will be normalized; if not
-% specified, `'nanStart'` (the first date for which all columns have an
-% observation) will be used.
-%
-% * `B` [ `0` | `1` | `100` ] - Rebasing mode: `B=0` means additive
-% rebasing with `0` in the base period; `B=1` means multiplicative rebasing
-% with `1` in the base period; `B=100` means multiplicative rebasing with
-% `100` in the base period;
+% * `~BasePeriod='AllStart'` [ DateWrapper | `'AllStart'` | `'AllEnd'` ] -
+% Date relative to which the input data will be rebased (baseValue period);
+% `'AllStart'` means the first date for which all time series columns have
+% a NaN observation; `'AllEnd'` means the last such date.
 %
 %
-% __Output arguments__
+% * `~BaseValue=1` [ `0` | `1` | `100` ] - Rebasing mode: `B=0` means
+% additive rebasing with `0` in the baseValue period; `B=1` means
+% multiplicative rebasing with `1` in the baseValue period; `B=100` means
+% multiplicative rebasing with `100` in the baseValue period.
 %
-% * `X` [ Series | tseries ] - Normalized time series.
+%
+% __Output Arguments__
+%
+% * `X` [ Series | tseries ] - Rebased time series.
 %
 %
 % __Description__
@@ -33,49 +36,58 @@ function x = rebase(x, date, b)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-try, date; catch, date = 'NanStart'; end %#ok<VUNUS,NOCOM>
-try, b; catch, b = 1; end %#ok<VUNUS,NOCOM>
-
-if ischar(date)
-    if DateWrapper.validateDateInput(date)
-        date = textinp2dat(date);
-    else
-        date = get(x, date);
-    end
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.rebase');
+    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    inputParser.addOptional('BasePeriod', 'AllStart', @(x) any(strcmpi(x, {'AllStart', 'AllEnd'})) || DateWrapper.validateDateInput(x));
+    inputParser.addOptional('BaseValue', 1, @(x) isnumeric(x) && isscalar(x));
 end
+inputParser.parse(this, varargin{:});
+basePeriod = inputParser.Results.BasePeriod;
+baseValue = inputParser.Results.BaseValue;
 
 %--------------------------------------------------------------------------
 
-if b==0
+if baseValue==0
     func = @minus;
-    value = 0;
-elseif b==1
+else
     func = @rdivide;
-    value = 1;
-elseif b==100
-    func = @rdivide;
-    value = 100;
 end
 
-xSize = size(x.data);
-x.data = x.data(:,:);
-
-y = mygetdata(x, date);
-for i = 1 : size(x.data, 2)
-    x.data(:,i) = func(x.data(:,i), y(i));
+if ischar(basePeriod) || isa(basePeriod, 'string')
+    if any(strcmpi(basePeriod, {'AllStart', 'AllEnd'}))
+        basePeriod = get(this, basePeriod);
+    else
+        basePeriod = textinp2dat(basePeriod);
+    end
 end
 
-if length(xSize)>2
-    x.data = reshape(x.data, xSize);
+if isnan(basePeriod) || getFrequency(basePeriod)~=this.Frequency
+    this = this.empty(this);
+    return
 end
 
-if value==100
-    x.data = x.data * value;
+sizeData = size(this.Data);
+ndimsData = ndims(this.Data);
+this.Data = this.Data(:,:);
+
+y = getDataFromTo(this, basePeriod, basePeriod);
+for i = 1 : size(this.Data, 2)
+    this.Data(:,i) = func(this.Data(:,i), y(i));
 end
 
-x = trim(x);
-
+if ndimsData>2
+    this.Data = reshape(this.Data, sizeData);
 end
+
+if baseValue~=0 && baseValue~=1
+    this.Data = this.Data * baseValue;
+end
+
+this = trim(this);
+
+end%

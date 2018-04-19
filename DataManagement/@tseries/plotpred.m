@@ -1,16 +1,14 @@
 function [h1, h2, h3, range, data] = plotpred(varargin)
-% plotpred  Visualize multi-step-ahead predictions.
+% plotpred  Visualize multi-step-ahead prediction
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     [Hx, Hy, Hm] = plotpred(X, Y, ...)
-%     [Hx, Hy, Hm] = plotpred(Ax, X, Y, ...)
-%     [Hx, Hy, Hm] = plotpred(Ax, Range, X, Y, ...)
+% Input arguments marked with a `~` sign may be omitted.
+%
+%     [Hx, Hy, Hm] = plotpred(~Ax, ~Range, X, Y, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `X` [ tseries ] - Input data with time series observations.
 %
@@ -18,15 +16,14 @@ function [h1, h2, h3, range, data] = plotpred(varargin)
 % prediction data returned from a Kalman filter can be used, see Example
 % below.
 %
-% * `Ax` [ numeric ] - Handle to axes object in which the data will be
+% * `~Ax` [ numeric ] - Handle to axes object in which the data will be
 % plotted.
 %
-% * `Range` [ numeric | Inf ] - Date range on which the input data will be
+% * `~Range` [ numeric | Inf ] - Date range on which the input data will be
 % plotted.
 %
 %
-% Output arguments
-% =================
+% __Output arguments__
 %
 % * `Hx` [ numeric ] - Handles to a line object showing the time series
 % observations (the first column, `X`, in the input data).
@@ -38,24 +35,28 @@ function [h1, h2, h3, range, data] = plotpred(varargin)
 % marker at the start of each line.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'connect='` [ *`true`* | `false` ] - Connect the prediction lines, 
+% * `Connect=true` [ `true` | `false` ] - Connect the prediction lines, 
 % `Y`,  with the corresponding observation in `X`.
 %
-% * `'firstMarker='` [ *`'none'`* | char ] - Type of marker displayed at
+% * `FirstMarker='None'` [ `'None'` | char ] - Type of marker displayed at
 % the start of each prediction line.
 %
-% * `'showNaNLines='` [ *`true`* | `false` ] - Show or remove lines with
-% whose starting points are NaN (missing observations).
+% * `HandleVisibility={'on', 'on', 'on'}` [ cellstr ] - Visibility of
+% handles to the lines created; the first element sets the visibility for
+% the first line `Hx`, the second element sets the visibility for for the
+% prediction lines `Hy` and the third element sets the visibility of the
+% starting point markers, `Hm`.
+%
+% * `ShowNaNLines=true` [ `true` | `false` ] - Show or remove lines with
+% whose starting points are `NaN` (missing observations).
 %
 % See help on [`plot`](tseries/plot) and on the built-in function
 % `plot` for options available.
 %
 %
-% Description
-% ============
+% __Description__
 %
 % The input data `Y` need to be a multicolumn time series (tseries object), 
 % with one-step-ahead predictions `x(t|t-1)` in the first column, 
@@ -71,8 +72,7 @@ function [h1, h2, h3, range, data] = plotpred(varargin)
 %     plotpred(x, p);
 %
 %
-% Example
-% ========
+% __Example__
 %
 % The `plotpred( )` function can be used with prediction-step data returned
 % from a Kalman filter, [`filter`](model/filter). The prediction-step data
@@ -88,27 +88,26 @@ function [h1, h2, h3, range, data] = plotpred(varargin)
 %     plotpred(startdate:enddate, d.x, g.pred.x); 
 %
 
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if isempty(varargin)
     return
 end
 
-% Handle to axes object.
+% Handle to axes object
 if length(varargin{1})==1 && ishandle(varargin{1})
-    ax = varargin{1};
+    handleAxes = varargin{1};
     varargin(1) = [ ];
 else
-    ax = get(gcf( ), 'currentAxes');
-    if isempty(ax)
-        ax = axes('box', 'on');
+    handleAxes = visual.backend.getCurrentAxesIfExists( );
+    if isempty(handleAxes)
+        handleAxes = axes('Box', 'On');
     end
 end
 
-% Range.
-if isnumeric(varargin{1})
+% Plot range
+if DateWrapper.validateRangeInput(varargin{1})
     range = varargin{1};
     varargin(1) = [ ];
 else
@@ -118,18 +117,31 @@ end
 % Input data.
 x1 = varargin{1};
 varargin(1) = [ ];
-if ~isempty(varargin) && isa(varargin{1}, 'tseries')
-    % Syntax with two separate tseries, plotpred(X, Y).
+if ~isempty(varargin) && isa(varargin{1}, 'TimeSubscriptable')
+    % Syntax with two separate time series, plotpred(X, Y)
     x2 = varargin{1};
     varargin(1) = [ ];
 else
-    % Syntax with one combined tseries, plotpred([X, Y]).
+    % Syntax with one combined time series, plotpred([X, Y])
     x2 = x1;
     x2.Data = x2.Data(:, 2:end);
     x1.Data = x1.Data(:, 1);
 end
 
-[opt, varargin] = passvalopt('tseries.plotpred', varargin);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.plotpred');
+    inputParser.KeepUnmatched = true;
+    inputParser.addParameter('Connect', true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('FirstLine', { }, @(x) iscell(x) && iscellstr(x(1:2:end)));
+    inputParser.addParameter('HandleVisibility', {'on', 'on', 'on'}, @(x) iscellstr(x) && numel(x)==3 && any(strcmpi(x{1}, {'on', 'off'})) && any(strcmpi(x{2}, {'on', 'off'})) && any(strcmpi(x{3}, {'on', 'off'})));
+    inputParser.addParameter('PredLines', { }, @(x) iscell(x) && iscellstr(x(1:2:end)));
+    inputParser.addParameter({'FirstMarker', 'FirstMarkers', 'Startpoint', 'StartPoints'}, '.', @(x) ischar(x) && any(strcmpi(x, {'none', '+', 'o', '*', '.', 'x', 's', 'd', '^', 'v', '>', '<', 'p', 'h'})));
+    inputParser.addParameter('ShowNaNLines', true, @(x) isequal(x, true) || isequal(x, false));
+end
+inputParser.parse(varargin{:});
+opt = inputParser.Options;
+unmatched = inputParser.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
@@ -140,17 +152,17 @@ if ~isempty(x1)
         utils.error('tseries:plotpred', ...
             'Input data must have the same date frequency.');
     end
-    [data, fullRange] = rangedata( [x1, x2] );
+    [data, fullRange] = rangedata([x1, x2], range);
 else
     numPeriods = size(x2.Data, 1);
     x1 = x2;
     x1.Data = nan(numPeriods, 1);
     x1 = resetColumnNames(x1);
-    [data, fullRange] = rangedata(x2);
+    [data, fullRange] = rangedata(x2, range);
 end
-nAhead = size(data, 2);
+numAhead = size(data, 2);
 
-if opt.connect
+if opt.Connect
     diagPos = 0;
 else
     diagPos = -1;
@@ -170,67 +182,60 @@ determinePlotRange( );
 x2 = replace(x2, data2, fullRange(1));
 
 % Store current `hold` settings.
-fig = get(ax, 'parent');
-figNextPlot = get(fig, 'nextPlot');
-axNextPlot = get(ax, 'nextPlot');
-appPlotHoldStyle = getappdata(ax, 'PlotHoldStyle');
+isHold = ishold(handleAxes);
 
 % Plot the actual data.
-[h1, ~, data1] = plot(ax, range, x1, varargin{:}, opt.firstline{:});
+[h1, ~, data1] = plot(handleAxes, range, x1, unmatched{:}, opt.FirstLine{:});
 
 % Hold all.
-set(fig, 'NextPlot', 'add');
-set(ax, 'NextPlot', 'add');
-setappdata(ax, 'PlotHoldStyle', true);
+hold(handleAxes, 'on');
 
 % Plot predictions.
-[h2, ~, data2] = plot(ax, range, x2, varargin{:}, opt.predlines{:});
+[h2, ~, data2] = plot(handleAxes, range, x2, unmatched{:}, opt.PredLines{:});
 set(h2, 'tag', 'plotpred');
 
 % Plot start points.
 H2color = get(h2, 'color');
-h3 = plot(ax, range, startPoint);
-set(h3, {'color'}, H2color, 'marker', opt.firstmarker);
+h3 = plot(handleAxes, range, startPoint);
+set(h3, {'color'}, H2color, 'marker', opt.FirstMarker);
 
 % Restore hold settings.
-set(fig, 'NextPlot', figNextPlot);
-set(ax, 'NextPlot', axNextPlot);
-setappdata(ax, 'PlotHoldStyle', appPlotHoldStyle);
+if ~isHold
+    hold(handleAxes, 'off');
+end
 
 if ~isempty(h1) && ~isempty(h2) ...
-        && ~any( strcmpi(varargin(1:2:end), 'linestyle') ) ...
-        && ~any( strcmpi(opt.predlines(1:2:end), 'linestyle') )
+        && ~any( strcmpi(unmatched(1:2:end), 'linestyle') ) ...
+        && ~any( strcmpi(opt.PredLines(1:2:end), 'linestyle') )
     set(h2, 'linestyle', '--');
 end
 
 data = [ data1, data2 ];
 
+setHandleVisibility( );
+
 return
-
-
 
 
     function data2 = rearrangePredictionData( )
         numPeriods = size(data, 1);
-        data = [ data; nan(nAhead-1, nAhead) ];        
-        data2 = nan(numPeriods+nAhead-1, numPeriods);
+        data = [ data; nan(numAhead-1, numAhead) ];        
+        data2 = nan(numPeriods+numAhead-1, numPeriods);
         for t = 1 : numPeriods
-            row = t+(0:nAhead-1);
-            data2(row, t, :) = diag( data(t+(0:nAhead-1), :) );
+            row = t+(0:numAhead-1);
+            data2(row, t, :) = diag( data(t+(0:numAhead-1), :) );
         end
         data2 = data2(1:numPeriods, :);    
         % Remove lines with missing starting point.
-        if ~opt.shownanlines
+        if ~opt.ShowNaNLines
             ixDiagNaN = isnan( diag(data2, diagPos) );
             data2(:, ixDiagNaN) = NaN;
         end
-    end
-
-
+    end%
 
 
     function startPoint = findStartPoint( )
-        startPoint = nan(numPeriods+nAhead-1, numPeriods);
+        startPoint = nan(numPeriods+numAhead-1, numPeriods);
         for iiCol = 1 : size(data2, 2)
             pos = find( ~isnan(data2(:, iiCol)), 1 );
             if ~isempty(pos)
@@ -238,19 +243,34 @@ return
             end
         end
         startPoint = replace(x2, startPoint(1:numPeriods, :), fullRange(1));
-    end
-
-
+    end%
 
 
     function determinePlotRange( )
-        range = [ range(1), range(end) ];
-        if ~isfinite(range(1))
-            range(1) = fullRange(1);
+        if isfinite(range(1))
+            startDate = range(1);
+        else
+            startDate = fullRange(1);
         end
-        if ~isfinite(range(end))
-            range(end) = fullRange(end);
+        if isfinite(range(end))
+            endDate = range(end);
+        else
+            endDate = fullRange(end);
         end
-        range = range(1) : range(end);
-    end
-end
+        range = startDate : endDate;
+    end%
+
+
+    function setHandleVisibility( )
+        opt.HandleVisibility = lower(opt.HandleVisibility);
+        if ~isempty(h1)
+            set(h1, 'HandleVisibility', opt.HandleVisibility{1});
+        end
+        if ~isempty(h2)
+            set(h2, 'HandleVisibility', opt.HandleVisibility{2});
+        end
+        if ~isempty(h3)
+            set(h3, 'HandleVisibility', opt.HandleVisibility{3});
+        end
+    end%
+end%
