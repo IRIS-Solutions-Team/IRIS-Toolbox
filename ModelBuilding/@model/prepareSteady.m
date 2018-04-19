@@ -1,11 +1,11 @@
 function varargout = prepareSteady(this, displayMode, varargin)
-% prepareSteady  Prepare steady-state solver.
+% prepareSteady  Prepare steady-state solver
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 % Run user-supplied steady-state solver:
 % sstate = @func
@@ -46,6 +46,33 @@ if isempty(inputParserLinear)
     inputParserLinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false)); 
 end
 
+if isempty(inputParserNonlinear)
+    inputParserNonlinear = extend.InputParser('model.prepareSteady');
+    inputParserNonlinear.addRequired('Model', @(x) isa(x, 'model'));
+    inputParserNonlinear.KeepUnmatched = true;
+    inputParserNonlinear.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
+    inputParserNonlinear.addParameter('Fix', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
+    inputParserNonlinear.addParameter('FixAllBut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
+    inputParserNonlinear.addParameter('FixLevel', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
+    inputParserNonlinear.addParameter('FixLevelAllBut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
+    inputParserNonlinear.addParameter('FixGrowth', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
+    inputParserNonlinear.addParameter('FixGrowthAllBut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
+    inputParserNonlinear.addParameter('ForceRediff', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParserNonlinear.addParameter('Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    inputParserNonlinear.addParameter({'GrowthBounds', 'GrowthBnds'}, [ ], @(x) isempty(x) || isstruct(x));
+    inputParserNonlinear.addParameter({'LevelBounds', 'LevelBnds'}, [ ], @(x) isempty(x) || isstruct(x));
+    inputParserNonlinear.addParameter('OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x));
+    inputParserNonlinear.addParameter({'NanInit', 'Init'}, 1, @(x) isnumeric(x) && isscalar(x) && isfinite(x));
+    inputParserNonlinear.addParameter('ResetInit', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && isfinite(x)));
+    inputParserNonlinear.addParameter('Reuse', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParserNonlinear.addParameter('Solver', 'IRIS', @(x) ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle'))));
+    inputParserNonlinear.addParameter('PrepareGradient', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    inputParserNonlinear.addParameter('Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
+    inputParserNonlinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
+    inputParserNonlinear.addParameter('ZeroMultipliers', true, @(x) isequal(x, true) || isequal(x, false));
+    inputParserNonlinear.addSwapOptions( );
+end
+
 %--------------------------------------------------------------------------
 
 if this.IsLinear
@@ -57,7 +84,9 @@ else
     % Capture obsolete syntax with solver options directly passed among other
     % sstate options and not as suboptions through Solver=; these are only used
     % if Solver= is a char.
-    [opt, obsoleteSolverOpt] = passvalopt('model.SteadyNonlinear', varargin{:});
+    inputParserNonlinear.parse(this, varargin{:});
+    opt = inputParserNonlinear.Options;
+    obsoleteSolverOpt = inputParserNonlinear.UnmatchedInCell;
     if isequal(opt.Growth, @auto)
         opt.Growth = this.IsGrowth;
     end
@@ -71,9 +100,7 @@ else
     varargout{1} = blz;
 end
 
-end
-
-
+end%
 
 
 function processFixOpt(this, blz, opt)
@@ -88,10 +115,10 @@ function processFixOpt(this, blz, opt)
     ixx = this.Quantity.Type==TYPE(2);
     ixp = this.Quantity.Type==TYPE(4);
     ixCanBeFixed =  ixy | ixx | ixp;
-    list = {'fix', 'fixlevel', 'fixgrowth'};
+    list = {'Fix', 'FixLevel', 'FixGrowth'};
     for i = 1 : length(list)
         fix = list{i};
-        fixAllBut = [fix, 'allbut'];
+        fixAllBut = [fix, 'AllBut'];
         
         % Convert charlist to cellstr.
         if ischar(opt.(fix)) && ~isempty(opt.(fix))
@@ -125,21 +152,21 @@ function processFixOpt(this, blz, opt)
     end
 
     fixL = false(1, nQty);
-    fixL(opt.fix) = true;
-    fixL(opt.fixlevel) = true;
+    fixL(opt.Fix) = true;
+    fixL(opt.FixLevel) = true;
     fixG = false(1, nQty);
     % Fix growth of endogenized parameters to zero.
     fixG(ixp) = true;
     if opt.Growth
-        fixG(opt.fix) = true;
-        fixG(opt.fixgrowth) = true;
+        fixG(opt.Fix) = true;
+        fixG(opt.FixGrowth) = true;
     else
         fixG(:) = true;
     end
 
     % Fix optimal policy multipliers. The level and growth of
     % multipliers will be set to zero in the main loop.
-    if opt.zeromultipliers
+    if opt.ZeroMultipliers
         fixL = fixL | this.Quantity.IxLagrange;
         fixG = fixG | this.Quantity.IxLagrange;
     end
@@ -151,9 +178,7 @@ function processFixOpt(this, blz, opt)
     temp = getActiveLhsPtr(this.Link);
     blz.IdToExclude.Level = [blz.IdToFix.Level, temp];
     blz.IdToExclude.Growth = [blz.IdToFix.Growth, temp];
-end
-
-
+end%
 
 
 function blz = createBlocks(this, opt)
@@ -177,9 +202,7 @@ function blz = createBlocks(this, opt)
     prepareBlocks(blz, opt);
 
     if blz.IsSingular
-        throw( ...
-            exception.Base('Steady:StructuralSingularity', 'warning')...
-        );
+        throw( exception.Base('Steady:StructuralSingularity', 'warning') );
     end
 
     % Index of variables that will be always set to zero.
@@ -192,14 +215,12 @@ function blz = createBlocks(this, opt)
     else
         ixZero.Growth = true(1, nQty);
     end
-    if opt.zeromultipliers
+    if opt.ZeroMultipliers
         ixZero.Level = ixZero.Level | this.Quantity.IxLagrange;
         ixZero.Growth = ixZero.Growth | this.Quantity.IxLagrange;
     end
     blz.IxZero = ixZero;
-end
-
-
+end%
 
 
 function blz = prepareBounds(this, blz, opt)
@@ -216,12 +237,12 @@ function blz = prepareBounds(this, blz, opt)
         % Level bounds.
         lsLevel = this.Quantity.Name(blk.PosQty.Level);
         [lbl, ubl, ixValidLevel] = ...
-            boundsHere(lsLevel, blk.PosQty.Level, opt.levelbounds, ixValidLevel);
+            boundsHere(lsLevel, blk.PosQty.Level, opt.LevelBounds, ixValidLevel);
         
         % Growth bounds.
         lsGrowth = this.Quantity.Name(blk.PosQty.Growth);
         [lbg, ubg, ixValidGrowth] = ...
-            boundsHere(lsGrowth, blk.PosQty.Growth, opt.growthbounds, ixValidGrowth);
+            boundsHere(lsGrowth, blk.PosQty.Growth, opt.GrowthBounds, ixValidGrowth);
         
         % Combine level and growth bounds
         blk.Lower = [lbl, lbg];
@@ -321,5 +342,5 @@ function blz = prepareBounds(this, blz, opt)
             end
         end
     end
-end
+end%
 
