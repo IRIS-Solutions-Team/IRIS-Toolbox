@@ -30,63 +30,58 @@ classdef Quantity < parser.theparser.Generic
             end
             
             code = [code, sprintf('\n')];
-            whCode = code;
+            whiteCode = code;
             
             % White out the inside of labels (single or double qouted text), keeping
             % the quotation marks.
-            whCode = White.whiteOutLabel(whCode);
+            whiteCode = White.whiteOutLabel(whiteCode);
             
             % White out first-level round and square brackets. This is to handle
             % assignments containing function calls with multiple arguments separated
             % with commas (commas are valid separator of parameters).
-            whCode = White.whiteOutParenth(whCode, 1);
+            whiteCode = White.whiteOutParenth(whiteCode, 1);
             
-            tknExt = regexp(whCode, NAME_PATTERN, 'tokenExtents');
-            
-            if true % ##### MOSW
-                % Do nothing.
-            else
-                for i = 1 : length(tknExt) %#ok<UNRCH>
-                    if size(tknExt{i}, 1)==2
-                        tknExt{i} = [ {[1, 0]}; tknExt{i} ];
-                    end
+            tokenExtents = regexp(whiteCode, NAME_PATTERN, 'tokenExtents');
+            for i = 1 : length(tokenExtents) %#ok<UNRCH>
+                if size(tokenExtents{i}, 1)==2
+                    tokenExtents{i} = [ {[1, 0]}; tokenExtents{i} ];
                 end
             end
             
-            numQuantities = length(tknExt);
-            label = cell(1, numQuantities);
-            name = cell(1, numQuantities);
-            indexOfObserved = false(1, numQuantities);
-            boundsString = cell(1, numQuantities);
-            assignedString = cell(1, numQuantities);
-            for i = 1 : numQuantities
-                label{i} = code( tknExt{i}(1, 1)+1 : tknExt{i}(1, 2)-1 );
-                name{i}  = code( tknExt{i}(2, 1) : tknExt{i}(2, 2)   );
-                indexOfObserved(i) = tknExt{i}(3, 1)<=tknExt{i}(3, 2);
-                boundsString{i} = code( tknExt{i}(4, 1) : tknExt{i}(4, 2) );
-                assignedString{i} = code( tknExt{i}(5, 1)+1 : tknExt{i}(5, 2) );
+            numOfQuantities = length(tokenExtents);
+            label = cell(1, numOfQuantities);
+            name = cell(1, numOfQuantities);
+            indexOfObserved = false(1, numOfQuantities);
+            boundsString = cell(1, numOfQuantities);
+            assignedString = cell(1, numOfQuantities);
+            for i = 1 : numOfQuantities
+                label{i} = code( tokenExtents{i}(1, 1)+1 : tokenExtents{i}(1, 2)-1 );
+                name{i}  = code( tokenExtents{i}(2, 1) : tokenExtents{i}(2, 2)   );
+                indexOfObserved(i) = tokenExtents{i}(3, 1)<=tokenExtents{i}(3, 2);
+                boundsString{i} = code( tokenExtents{i}(4, 1) : tokenExtents{i}(4, 2) );
+                assignedString{i} = code( tokenExtents{i}(5, 1)+1 : tokenExtents{i}(5, 2) );
             end
             name = strtrim(name);
             label = strtrim(label);
             assignedString = strtrim(assignedString);
-            for i = 1 : numQuantities
+            for i = 1 : numOfQuantities
                 if ~isempty(assignedString{i}) && any(assignedString{i}(end)==[',;', BR])
                     assignedString{i}(end) = '';
                 end
             end
             
-            [~, posUnique] = unique(name, 'last');
-            if length(posUnique)<length(name)
+            [~, posOfUnique] = unique(name, 'last');
+            if length(posOfUnique)<length(name)
                 if opt.AllowMultiple
                     % If multiple declaration of the same name is allowed, remove redundant
                     % declarations, and use the last one found.
-                    posUnique = sort(posUnique);
-                    posUnique = posUnique(:).';
-                    name = name(posUnique);
-                    indexOfObserved = indexOfObserved(posUnique);
-                    label = label(posUnique);
-                    assignedString = assignedString(posUnique);
-                    boundsString = boundsString(posUnique);
+                    posOfUnique = sort(posOfUnique);
+                    posOfUnique = posOfUnique(:).';
+                    name = name(posOfUnique);
+                    indexOfObserved = indexOfObserved(posOfUnique);
+                    label = label(posOfUnique);
+                    assignedString = assignedString(posOfUnique);
+                    boundsString = boundsString(posOfUnique);
                 else
                     % Otherwise, throw an error.
                     listDuplicate = parser.getMultiple(name);
@@ -100,31 +95,32 @@ classdef Quantity < parser.theparser.Generic
             if this.IsReservedPrefix
                 % Report all names starting with STD_PREFIX, CORR_PREFIX, 
                 % LOG_PREFIX.
-                ixStd = strncmp(name, model.STD_PREFIX, length(model.STD_PREFIX));
-                ixCorr = strncmp(name, model.CORR_PREFIX, length(model.CORR_PREFIX));
-                ixLog = strncmp(name, model.LOG_PREFIX, length(model.LOG_PREFIX));
-                ixPrefix = ixStd | ixCorr | ixLog;
-                if any(ixPrefix)
+                indexOfStd = strncmp(name, model.STD_PREFIX, length(model.STD_PREFIX));
+                indexOfCorr = strncmp(name, model.CORR_PREFIX, length(model.CORR_PREFIX));
+                indexOfLog = strncmp(name, model.LOG_PREFIX, length(model.LOG_PREFIX));
+                indexOfFloor = strncmp(name, model.FLOOR_PREFIX, length(model.FLOOR_PREFIX));
+                indexOfReservedPrefix = indexOfStd | indexOfCorr | indexOfLog | indexOfFloor;
+                if any(indexOfReservedPrefix)
                     throw( ...
                         exception.ParseTime('TheParser:ReservedPrefixDeclared', 'error'), ...
-                        name{ixPrefix} ...
+                        name{indexOfReservedPrefix} ...
                     );
                 end
             end
             
-            numQuantities = length(name);
+            numOfQuantities = length(name);
             bounds = evalBounds(this, boundsString);
             [label, alias] = this.splitLabelAlias(label);
             
-            qty.Name(end+(1:numQuantities)) = name;
-            qty.IxObserved(end+(1:numQuantities)) = indexOfObserved;
-            qty.Type(end+(1:numQuantities)) = repmat(this.Type, 1, numQuantities);
-            qty.Label(end+(1:numQuantities)) = label;
-            qty.Alias(end+(1:numQuantities)) = alias;
-            qty.Bounds(:, end+(1:numQuantities)) = bounds;
+            qty.Name(end+(1:numOfQuantities)) = name;
+            qty.IxObserved(end+(1:numOfQuantities)) = indexOfObserved;
+            qty.Type(end+(1:numOfQuantities)) = repmat(this.Type, 1, numOfQuantities);
+            qty.Label(end+(1:numOfQuantities)) = label;
+            qty.Alias(end+(1:numOfQuantities)) = alias;
+            qty.Bounds(:, end+(1:numOfQuantities)) = bounds;
             
-            qty.IxLog(end+(1:numQuantities)) = repmat(this.IsLog, 1, numQuantities);
-            qty.IxLagrange(end+(1:numQuantities)) = repmat(this.IsLagrange, 1, numQuantities);
+            qty.IxLog(end+(1:numOfQuantities)) = repmat(this.IsLog, 1, numOfQuantities);
+            qty.IxLagrange(end+(1:numOfQuantities)) = repmat(this.IsLagrange, 1, numOfQuantities);
             
             the.AssignedString = [the.AssignedString, assignedString];
         end
