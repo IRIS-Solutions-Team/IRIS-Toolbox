@@ -13,7 +13,7 @@ if strncmpi(query, 'Quantity.', 9) || strncmpi(query, 'Quantity:', 9)
     end
 end
 
-if compare(query, {'Name', 'List'})
+if compare(query, {'Name', 'Names', 'List'})
     answ = this.Name;
     return
 
@@ -33,6 +33,14 @@ elseif compare(query, 'Descript')
         
 elseif compare(query, 'Alias')
     answ = cell2struct(this.Alias, this.Name, 2);
+    return
+
+elseif compare(query, 'CanBeExogenized:Simulate')
+    answ = this.Type==TYPE(1) | this.Type==TYPE(2);
+    return
+
+elseif compare(query, 'CanBeEndogenized:Simulate')
+    answ = this.Type==TYPE(31) | this.Type==TYPE(32);
     return
 
 else

@@ -1,4 +1,4 @@
-function [answ, isValid, query] = implementGet(eqn, qty, pai, query, varargin)
+function [answ, isValid, query] = implementGet(this, qty, pai, query, varargin)
 
 TYPE = @int8;
 PTR = @int16;
@@ -7,41 +7,29 @@ isValid = true;
 query1 = regexprep(query, '[^\w]', '');
 
 
-
-
 if strcmpi(query1, 'Eqtn')
-    answ = eqn.Input;
+    answ = this.Input;
     answ = answ.';
-    
-    
-    
-    
+
+
 elseif any(strcmpi(query1, {'EqtnLabel', 'Label'}))
-    answ = eqn.Label;
+    answ = this.Label;
     answ = answ.';
-    
-    
     
     
 elseif any(strcmpi(query1, {'EqtnAlias'}))
-    answ = eqn.Alias;
+    answ = this.Alias;
     answ = answ.';
-    
-    
     
     
 elseif strcmpi(query1, 'EqtnSteady')
-    answ = model.component.Equation.extractInput(eqn.Input, 'Steady');
+    answ = model.component.Equation.extractInput(this.Input, 'Steady');
     answ = answ.';
-    
-    
     
     
 elseif strcmpi(query1, 'EqtnDynamic')
-    answ = model.component.Equation.extractInput(eqn.Input, 'Dynamic');
+    answ = model.component.Equation.extractInput(this.Input, 'Dynamic');
     answ = answ.';
-    
-    
     
     
 elseif any(strcmpi(query1, ...
@@ -50,24 +38,22 @@ elseif any(strcmpi(query1, ...
         'YEqtnAlias', 'XEqtnAlias', 'DEqtnAlias', 'LEqtnAlias', 'UEqtnAlias', 'NEqtnAlias'} ...
         ))
     if strncmpi(query1, 'N', 1)
-        ix = eqn.IxHash;
+        ix = this.IxHash;
     else
-        ix = eqn.Type==TYPE(find(strncmpi(query1, {'Y', 'X', 'D', 'L', 'U'}, 1))); %#ok<FNDSB>
+        ix = this.Type==TYPE(find(strncmpi(query1, {'Y', 'X', 'D', 'L', 'U'}, 1))); %#ok<FNDSB>
     end
     if strcmpi(query1(2:end), 'Eqtn')
-        answ = eqn.Input(ix);
+        answ = this.Input(ix);
     elseif strcmpi(query1(2:end), 'Label')
-        answ = eqn.Label(ix);
+        answ = this.Label(ix);
     elseif strcmpi(query1(2:end), 'EqtnAlias')
-        answ = eqn.Alias(ix);
+        answ = this.Alias(ix);
     end
     answ = answ.';
-    
-    
     
 
 else
     isValid = false;
 end
 
-end
+end%

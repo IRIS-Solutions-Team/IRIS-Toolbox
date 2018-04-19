@@ -1,11 +1,11 @@
 function outp = lookup(this, query, varargin)
-% lookup  Look up names or stdcorr names.
+% lookup  Look up names or stdcorr names
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
