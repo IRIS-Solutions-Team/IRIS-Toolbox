@@ -289,7 +289,7 @@ if ~isequal(vecFreq, Inf)
     list0 = list0(ixPass);
     tkn = tkn(ixPass);
 end
-end
+end%
 
 
 
