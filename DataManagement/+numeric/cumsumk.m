@@ -47,6 +47,13 @@ for i = 1 : size(x, 2)
     end
 end
 
+% Remove presample or postsample
+if k<0
+    x = x(1-k:end, :);
+elseif k>0
+    x = x(1:end-k, :);
+end
+
 if ndimsX>2
     x = reshape(x, sizeX);
 end

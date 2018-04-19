@@ -1,38 +1,39 @@
-function this = cumsumk(this, varargin)
+function this = cumsumk(this, range, varargin)
 % cumsumk  Cumulative sum with a k-period leap
 %
 % __Syntax__
 %
-% Input arguments marked with a `~` sign may be omitted.
-%
-%     Y = cumsumk(X, ~K, ~Rho, ~Range)
+%     Y = cumsumk(X, Range, ...)
 %
 %
 % __Input Arguments__
 %
 % * `X` [ tseries ] - Input time series.
 %
-% * `~K` [ numeric ] - Number of periods that will be leapt the cumulative
-% sum will be taken; if omitted, `K` is chosen to match the frequency of
-% the input data (e.g. `K=-4` for quarterly data), or `K=-1` for integer
-% frequency.
-%
-% * `~Rho` [ numeric ] - Autoregressive coefficient; if omitted, `Rho=1`.
-%
-% * `~Range` [ numeric ] - Range on which the cumulative sum will be
-% computed and the output time series returned; if omitted, the entire
-% input time series range will be used.
+% * `Range` [ DateWrapper | Inf ] - Range on which the cumulative sum
+% will be computed and the output time series returned, not including the
+% presample or postsample needed.
 %
 %
 % __Output Arguments__
 %
-% * `X` [ tseries ] - Output time series constructed as described below.
+% * `X` [ tseries ] - Output time series constructed as described below;
+% the time series is returned for the `Range`, without the presample or
+% postsample data used for initial or terminal condition.
 %
 %
 % __Options__
 %
+% * `K=@auto` [ numeric | `@auto` ] - Number of periods that will be leapt
+% the cumulative sum will be taken; `@auto` means `K` is chosen to match
+% the frequency of the input series (e.g. `K=-4` for quarterly data), or
+% `K=-1` for integer
+% frequency.
+%
 % * `Log=false` [ `true` | `false` ] - Logarithmize the input data before, 
 % and de-logarithmize the output data back afterwards.
+%
+% * `Rho=1` [ numeric ] - Autoregressive coefficient.
 %
 %
 % __Description__
@@ -70,18 +71,17 @@ function this = cumsumk(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('tseries.cumsumk');
-    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
-    INPUT_PARSER.addParameter('K', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x)));
-    INPUT_PARSER.addParameter('Rho', 1, @(x) isnumeric(x) && isscalar(x));
-    INPUT_PARSER.addParameter('Log', false, @(x) islogical(x) && isscalar(x));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.cumsumk');
+    inputParser.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
+    inputParser.addRequired('Range', @DateWrapper.validateRangeInput);
+    inputParser.addParameter('K', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x)));
+    inputParser.addParameter('Rho', 1, @(x) isnumeric(x) && isscalar(x));
+    inputParser.addParameter('Log', false, @(x) islogical(x) && isscalar(x));
 end
-INPUT_PARSER.parse(this, varargin{:});
-range = INPUT_PARSER.Results.Range;
-opt = INPUT_PARSER.Options;
+inputParser.parse(this, range, varargin{:});
+opt = inputParser.Options;
 
 if isequal(opt.K, @auto)
     opt.K = -max(1, DateWrapper.getFrequencyFromNumeric(this.Start));
@@ -93,7 +93,11 @@ end
 
 %--------------------------------------------------------------------------
 
-[data, range] = getData(this, range);
+start = getFirst(range);
+extendedStart = addTo(start, min(0, opt.K));
+extendedEnd = addTo(getLast(range), max(0, opt.K));
+[data, range] = getDataFromTo(this, extendedStart, extendedEnd);
+
 sizeData = size(data);
 ndimsData = ndims(data);
 data = data(:, :);
@@ -108,7 +112,7 @@ if opt.Log
     data = exp(data);
 end
 
-this.Start = range(1);
+this.Start = start;
 if ndimsData>2
     sizeData(1) = size(data, 1);
     data = reshape(data, sizeData);
