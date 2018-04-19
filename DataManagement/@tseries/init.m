@@ -1,72 +1,68 @@
-function this = init(this, dates, data)
-% init  Create start date and data for new tseries object.
+function this = init(this, freq, serials, observations)
+% init  Create start date and observations for new time series
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-if isa(data, 'single')
-    prec = 'single';
-else
-    prec = 'double';
-end
-
-dates = dates(:);
-numDates = length(dates);
-numObservations = size(data, 1);
-sizeData = size(data);
-if numObservations==0 && (all(isnan(dates)) || numDates==0)
-    sizeData(1) = 0;
-    this.Start = DateWrapper(NaN);
-    this.Data = zeros(sizeData, prec);
+serials = serials(:);
+numberOfDates = numel(serials);
+sizeOfObservations = size(observations);
+if sizeOfObservations(1)==0 && (all(isnan(serials)) || numberOfDates==0)
+    % No observations entered, return empty series
+    this = createEmptySeries(this, sizeOfObservations);
     return
 end
 
-assert( ...
-    sizeData(1)==numDates, ...
-    'tseries:init', ...
-    'The number of dates and the number of rows of data must match.' ...
-);
-
-data = data(:, :);
-
-% Remove NaN dates.
-ixNanDates = isnan(dates);
-if any(ixNanDates)
-    data(ixNanDates, :) = [ ];
-    dates(ixNanDates) = [ ];
+if sizeOfObservations(1)~=numberOfDates
+    throw( exception.Base('Series:DatesDataDimensionMismatch', 'error') );
 end
 
-% No proper date entered, return an empty tseries object.
-if isempty(dates)
-    sizeData(1) = 0;
-    this.Start = DateWrapper(NaN);
-    this.Data = zeros(sizeData);
+ndimsOfData = ndims(observations);
+observations = observations(:, :);
+
+% Remove NaN serials
+indexOfNaNSerials = isnan(serials);
+if any(indexOfNaNSerials)
+    observations(indexOfNaNSerials, :) = [ ];
+    serials(indexOfNaNSerials) = [ ];
+end
+
+if isempty(serials)
+    % No proper date entered, return empty series
+    this = createEmptySeries(this, sizeOfObservations);
     return
 end
 
-% Start date is the minimum date found.
-startDate = min(dates);
-endDate = max(dates);
+% Start date is the minimum date found
+startSerial = min(serials);
+endSerial = max(serials);
 
-% The actual stretch of the tseries range.
-numDates = rnglen(startDate, endDate);
-if isempty(numDates)
-    numDates = 0;
+% The actual stretch of the time series range
+numberOfDates = round(endSerial - startSerial + 1);
+if isempty(numberOfDates)
+    numberOfDates = 0;
 end
-sizeData(1) = numDates;
+sizeOfObservations(1) = numberOfDates;
 
-% Assign data points at proper dates only.
-this.Data = nan(sizeData, prec);
-posData = rnglen(startDate, dates);
+this.Data = repmat(this.MissingValue, sizeOfObservations);
+posOfObservations = round(serials - startSerial + 1);
 
-% Assign user data to tseries object; note that higher dimensions will be
-% preserved in `this.Data`.
-this.Data(posData, :) = data;
-this.Start = startDate;
+% Assign user observations; higher dimensions will be preserved in
+% this.Data
+this.Data(posOfObservations, :) = observations;
+this.Start = DateWrapper.fromSerial(freq, startSerial);
 
-end
+end%
+
+
+function this = createEmptySeries(this, sizeOfObservations)
+    sizeOfObservations(1) = 0;
+    this.Start = DateWrapper(NaN);
+    this.Data = repmat(this.MissingValue, sizeOfObservations);
+end%
+
