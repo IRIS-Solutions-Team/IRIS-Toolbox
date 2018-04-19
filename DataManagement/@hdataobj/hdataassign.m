@@ -37,10 +37,10 @@ for i = 1 : min(nPack, nData)
     if this.IncludeLag && maxLag>0
         % Each variable has been allocated an (nPer+maxLag)-by-nCol array. Get
         % pre-sample data from auxiliary lags.
-        for j = find(imagId < 0)
-            jLag = -imagId(j);
+        for j = find(imagId<0)
+            jthLag = -imagId(j);
             this.Data.( this.Name{realId(j)} ) ...
-                (maxLag+1-jLag, pos) = X(1, :, j);
+                (maxLag+1-jthLag, pos) = X(1, :, j);
         end
         % Assign current dates.
         for j = find(imagId==0)
@@ -70,5 +70,5 @@ return
             X(ixNeg) = 0;
         end
         X = sqrt(X);
-    end
-end
+    end%
+end%
