@@ -21,7 +21,7 @@ classdef InputParser < inputParser
             if nargin>0
                 this.FunctionName = char(functionName);
             end
-        end
+        end%
 
 
         function parse(this, varargin)
@@ -47,7 +47,7 @@ classdef InputParser < inputParser
             if this.HasDeviationOptions
                 resolveDeviationOptions(this);
             end
-        end
+        end%
 
 
         function addParameter(this, name, varargin)
@@ -67,7 +67,7 @@ classdef InputParser < inputParser
                 this.Aliases.(ithName) = primaryName;
                 addParameter@inputParser(this, ithName, varargin{:});
             end
-        end
+        end%
 
 
         function unmatched = get.UnmatchedInCell(this)
@@ -79,7 +79,7 @@ classdef InputParser < inputParser
                 unmatched{2, i} = this.Unmatched.(names{i});
             end
             unmatched = unmatched(:);
-        end
+        end%
 
 
         function usingDefaults = get.UsingDefaultsInStruct(this)
@@ -88,7 +88,7 @@ classdef InputParser < inputParser
                 ithName = this.PrimaryParameterNames{i};
                 usingDefaults.(ithName) = any(strcmp(this.UsingDefaults, ithName));
             end
-        end
+        end%
 
 
         function addDateOptions(this)
@@ -98,24 +98,30 @@ classdef InputParser < inputParser
             this.addParameter({'ConversionMonth', 'StandInMonth'}, @config, @iris.Configuration.validateConversionMonth);
             this.addParameter('WDay', @config, @iris.Configuration.validateWDay);
             this.HasDateOptions = true;
-        end
+        end%
 
 
         function addDeviationOptions(this, deviationDefault)
             this.addParameter({'Deviation', 'Deviations'}, deviationDefault, @(x) isequal(x, true) || isequal(x, false));
             this.addParameter({'DTrends', 'DTrend'}, @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
             this.HasDeviationOptions = true;
-        end
+        end%
 
 
         function addBaseYearOption(this)
             this.addParameter('BaseYear', @config, @iris.Configuration.validateBaseYear);
-        end
+        end%
 
 
         function addUserDataOption(this)
             this.addParameter('UserData', double.empty(1, 0));
-        end
+        end%
+
+
+        function addSwapOptions(this)
+            this.addParameter('Exogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
+            this.addParameter('Endogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
+        end%
 
 
         function resolveDateOptions(this, isPlot)
@@ -148,13 +154,13 @@ classdef InputParser < inputParser
             if isequal(this.Options.WDay, @config)
                 this.Options.WDay = configStruct.WDay;
             end
-        end
+        end%
 
 
         function resolveDeviationOptions(this)
             if isequal(this.Options.DTrends, @auto)
                 this.Options.DTrends = ~this.Options.Deviation;
             end
-        end
+        end%
     end
 end
