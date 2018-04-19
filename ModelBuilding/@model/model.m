@@ -132,8 +132,8 @@
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimation & shared.LoadObjectAsStructWrapper & model.Data
     properties (GetAccess=public, SetAccess=protected, Hidden)
@@ -208,6 +208,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
         STD_PREFIX = 'std_'
         CORR_PREFIX = 'corr_'
         LOG_PREFIX = 'log_'
+        FLOOR_PREFIX = 'floor_'
         LEVEL_BOUNDS_ALLOWED  = [int8(1), int8(2), int8(4)]
         GROWTH_BOUNDS_ALLOWED = [int8(1), int8(2)]
         DEFAULT_SOLVE_TOLERANCE = eps( )^(5/9)
@@ -710,9 +711,9 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
                 optimalParser = extend.InputParser('model.model');
                 optimalParser.KeepUnmatched = true;
                 optimalParser.PartialMatching = false;
-                optimalParser.addParameter('multiplierprefix', 'Mu_', @ischar);
-                optimalParser.addParameter('nonnegative', cell.empty(1, 0), @(x) isempty(x) || ( ischar(x) && isvarname(x) ));
-                optimalParser.addParameter('type', 'discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
+                optimalParser.addParameter('MultiplierPrefix', 'Mu_', @ischar);
+                optimalParser.addParameter({'Floor', 'NonNegative'}, cell.empty(1, 0), @(x) isempty(x) || ( ischar(x) && isvarname(x) ));
+                optimalParser.addParameter('Type', 'Discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
             end
                 
             %--------------------------------------------------------------------------

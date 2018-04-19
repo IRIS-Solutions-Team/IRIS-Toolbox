@@ -61,21 +61,21 @@ end
 checkEmptyEqtn( );
 
 % __Placeholders for Optimal Policy Equations__
-% Position of loss function.
-posLossEqtn = NaN;
-% Presence of a nonnegativity constraint.
-isNneg = false;
-% Positions of the nonnegative variable and nonnegative multiplier in
-% quantity.Name.
-posNnegName = [ ];
-posNnegMult = [ ];
+% Position of loss function
+posOfLossEqtn = NaN;
+% Presence of a floor constraint
+isFloor = false;
+% Positions of the floor variable, floor multiplier and floor parameter
+posOfFloorVariable = [ ];
+posOfFloorMultiplier = [ ];
+posOfFloorParameter = [ ];
 % Name of the multiplier associated with nonegativity constraint.
-nnegMultName = '';
+floorVariableName = '';
 if  isOptimal
     % Create placeholders for new transition names (mutlipliers) and new
     % transition equations (derivatives of the loss function wrt existing
     % variables).
-    prefix = optimalOpt.multiplierprefix;
+    prefix = optimalOpt.MultiplierPrefix;
     ixInvalidRef = strncmp(qty.Name, prefix, length(prefix));
     if any(ixInvalidRef)
         throw( exception.ParseTime('Model:Postparser:PREFIX_MULTIPLIER', 'error'), ...
@@ -136,10 +136,10 @@ end
 if isOptimal
     % Retrieve and remove the expression for the discount factor from the
     % parsed optimal policy equation.
-    close = textfun.matchbrk(eqn.Dynamic{posLossEqtn});
+    close = textfun.matchbrk(eqn.Dynamic{posOfLossEqtn});
     % Discount factor has been already checked for empty.
-    lossDisc = eqn.Dynamic{posLossEqtn}(2:close-1);
-    eqn.Dynamic{posLossEqtn} = eqn.Dynamic{posLossEqtn}(close+1:end);
+    lossDisc = eqn.Dynamic{posOfLossEqtn}(2:close-1);
+    eqn.Dynamic{posOfLossEqtn} = eqn.Dynamic{posOfLossEqtn}(close+1:end);
 end
 
 % Check for orphan { and & after we have substituted for the valid
@@ -179,24 +179,26 @@ if isOptimal
     % Lagrangian wrt to the original transition variables. These `naddeqtn` new
     % equation will be put in place of the loss function and the `naddeqtn-1`
     % empty placeholders.
-    new = optimalPolicy(this, qty, eqn, ...
-        posLossEqtn, lossDisc, posNnegName, posNnegMult, optimalOpt.type); 
+    new = optimalPolicy( this, qty, eqn, ...
+                         posOfLossEqtn, lossDisc, ...
+                         posOfFloorVariable, posOfFloorMultiplier, posOfFloorParameter, ...
+                         optimalOpt.Type ); 
 
     % Update the placeholders for optimal policy equations in the model object, and parse them.
     last = find(eqn.Type==2, 1, 'last');
-    eqn.Input(posLossEqtn:last) = new.Input(posLossEqtn:last);
-    eqn.Dynamic(posLossEqtn:last) = new.Dynamic(posLossEqtn:last);
+    eqn.Input(posOfLossEqtn:last) = new.Input(posOfLossEqtn:last);
+    eqn.Dynamic(posOfLossEqtn:last) = new.Dynamic(posOfLossEqtn:last);
     
     % Add steady equations. Note that we must at least replace the old equation
     % in `lossPos` position (which was the objective function) with the new
     % equation (which is a derivative wrt to the first variables).
-    eqn.Steady(posLossEqtn:last) = new.Steady(posLossEqtn:last);
+    eqn.Steady(posOfLossEqtn:last) = new.Steady(posOfLossEqtn:last);
     % Update the nonlinear equation flags.
-    eqn.IxHash(posLossEqtn:last) = new.IxHash(posLossEqtn:last);
+    eqn.IxHash(posOfLossEqtn:last) = new.IxHash(posOfLossEqtn:last);
     
     % Update incidence matrices to include the new equations.
     indexUpdateIncidence = false(size(eqn.Input));
-    indexUpdateIncidence(posLossEqtn:last) = true;
+    indexUpdateIncidence(posOfLossEqtn:last) = true;
     this.Incidence.Dynamic = fill( ...
         this.Incidence.Dynamic, qty, eqn.Dynamic, indexUpdateIncidence ...
     );
@@ -280,50 +282,71 @@ return
         % derivatives of the lagrangian wrt to the individual variables.
         nAddEqtn = sum(qty.Type==TYPE(2)) - 1;
         nAddQuan = sum(eqn.Type==TYPE(2)) - 1;
-        % The default name is `Mu_Eq%g` but can be changed through the
-        % option `'multiplierName='`.
+        % The default name is 'Mu_Eq%g' but can be changed through the
+        % option MultiplierPrefix=
         newName = cell(1, nAddQuan);
         for ii = 1 : nAddQuan
             newName{ii} = [ ...
-                optimalOpt.multiplierprefix, ...
+                optimalOpt.MultiplierPrefix, ...
                 sprintf('Eq%g', ii) ...
                 ];
         end
-        isNneg = ~isempty(optimalOpt.nonnegative);
-        if isNneg
+        isFloor = ~isempty(optimalOpt.Floor);
+        if isFloor
             nAddEqtn = nAddEqtn + 1;
             nAddQuan = nAddQuan + 1;
-            nnegMultName = [ ...
-                optimalOpt.multiplierprefix, ...
-                optimalOpt.nonnegative ...
-                ];
-            newName{end+1} = nnegMultName;
+            floorVariableName = [ ...
+                optimalOpt.MultiplierPrefix, ...
+                optimalOpt.Floor ...
+            ];
+            newName{end+1} = floorVariableName;
         end
         % Insert the new names between at the beginning of the block of existing
         % transition variables.
         add = model.component.Quantity( );
         add.Name = newName;
-        add.Label = repmat({''}, 1, nAddQuan);
-        add.Alias = repmat({''}, 1, nAddQuan);
+        add.Label = repmat({char.empty(1, 0)}, 1, nAddQuan);
+        add.Alias = repmat({char.empty(1, 0)}, 1, nAddQuan);
         add.IxLog = false(1, nAddQuan);
         add.IxLagrange = true(1, nAddQuan);
         add.IxObserved = false(1, nAddQuan);
         add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, nAddQuan);
         qty = insert(qty, add, TYPE(2), 'first');
+        if isFloor
+            floorParameterName = [model.FLOOR_PREFIX, optimalOpt.Floor];
+            indexOfFloorParameter = strcmp(qty.Name, floorParameterName);
+            % Floor parameter may be declared by the user
+            if any(indexOfFloorParameter)
+                posOfFloorParameter = find(indexOfFloorParameter);
+            else
+                add = model.component.Quantity( );
+                add.Name = {floorParameterName};
+                add.Label = {['Floor for ', optimalOpt.Floor]};
+                add.Alias = {char.empty(1, 0)};
+                add.IxLog = false(1, 1);
+                add.IxLagrange = false(1, 1);
+                add.IxObserved = false(1, 1);
+                add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, 1);
+                [qty, indexOfPre] = insert(qty, add, TYPE(4), 'last');
+                posOfFloorParameter = find(indexOfPre, 1, 'last') + 1;
+            end
+        end
         
         % Loss function is always moved to last position among transition equations.
-        posLossEqtn = length(eqn.Input);
-        if isNneg
-            % Find the position of nonnegative variables in the list of names AFTER we
+        posOfLossEqtn = length(eqn.Input);
+        if isFloor
+            % Find the position of floored variables in the list of names AFTER we
             % have inserted placeholders.
-            ixNonneg = strcmp(optimalOpt.nonnegative, qty.Name);
-            if ~any(ixNonneg) ...
-                    || qty.Type(ixNonneg)~=int8(2)
-                throw( exception.ParseTime('Model:Postparser:NAME_CANNOT_BE_NONNEGATIVE', 'error'), ...
-                    optimalOpt.nonnegative );
+            indexOfFloorVariable = strcmp(optimalOpt.Floor, qty.Name);
+            if ~any(indexOfFloorVariable) ...
+                    || qty.Type(indexOfFloorVariable)~=int8(2)
+                throw( ...
+                    exception.ParseTime('Model:Postparser:NAME_CANNOT_BE_NONNEGATIVE', 'error'), ...
+                    optimalOpt.Floor ...
+                );
             end
-            posNnegName = find(ixNonneg);
-            posNnegMult = find( strcmp(qty.Name, nnegMultName) );
+            posOfFloorVariable = find(indexOfFloorVariable);
+            posOfFloorMultiplier = find( strcmp(qty.Name, floorVariableName) );
         end
         
         % Add a total of `nAddEqtn` new transition equations, i.e. the

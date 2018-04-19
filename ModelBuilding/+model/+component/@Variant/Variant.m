@@ -24,13 +24,16 @@ classdef Variant
 
 
     methods
-        function this = Variant(numOfVariants, quantity, vector, ahead, numOfHashed, numOfObserved, defaultStd)
+        function this = Variant( numOfVariants, quantity, vector, ahead, ...
+                                 numOfHashed, numOfObserved, ...
+                                 defaultStd, defaultFloor )
             if nargin==0
                 return
             end
             this = createIndexOfStdCorrAllowed(this, quantity);
             this = preallocateValues(this, numOfVariants, quantity);
             this = preallocateStdCorr(this, quantity, defaultStd);
+            this = preallocateFloors(this, quantity, defaultFloor);
             this = preallocateSolution(this, vector, ahead, numOfHashed, numOfObserved);
         end
 
@@ -66,7 +69,7 @@ classdef Variant
             % Steady state of ttrend cannot be changed from 0+1i.
             indexOfTimeTrend = strcmp(quantity.Name, model.RESERVED_NAME_TTREND);
             this.Values(1, indexOfTimeTrend, :) = model.STEADY_TTREND;
-        end
+        end%
 
 
         function this = preallocateStdCorr(this, quantity, defaultStd)
@@ -85,7 +88,16 @@ classdef Variant
             if isnumeric(defaultStd) && numel(defaultStd)==1 && defaultStd>=0
                 this.StdCorr(1, 1:ne, :) = defaultStd;
             end
-        end
+        end%
+
+
+        function this = preallocateFloors(this, quantity, defaultFloor)
+            TYPE = @int8;
+            indexOfFloors = ...
+                strncmp(quantity.Name, model.FLOOR_PREFIX, length(model.FLOOR_PREFIX)) ...
+                & quantity.Type==TYPE(4);
+            this.Values(1, indexOfFloors, :) = defaultFloor;
+        end%
 
         
         function this = preallocateSolution(this, vector, ahead, numOfHashed, numOfObserved)

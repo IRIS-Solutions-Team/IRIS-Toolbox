@@ -26,10 +26,10 @@ end
 this.BaseYear = opt.baseyear;
 
 if any(this.Equation.IxHash)
-    % Do not remove leads from state space vector if there are
-    % nonlinearised equations.
-    % TODO: More sophisticated check which leads are actually needed in
-    % non-linerised equations.
+    % Do not remove leads from state-space vector if there are hashed
+    % equations
+    % TODO: More sophisticated check which leads are needed in hashed
+    % equations
     opt.removeleads = false;
 end
 
@@ -79,8 +79,11 @@ this = populateTransient(this);
 lenOfExpansion = 0;
 numOfHashed = nnz(this.Equation.IxHash);
 numOfObserved = nnz(this.Quantity.IxObserved);
+defaultFloor = 0;
 this.Variant = model.component.Variant( ...
-    numOfVariants, this.Quantity, this.Vector, lenOfExpansion, numOfHashed, numOfObserved, defaultStd ...
+    numOfVariants, this.Quantity, this.Vector, lenOfExpansion, ...
+    numOfHashed, numOfObserved, ...
+    defaultStd, defaultFloor ...
 );
 
 % Assign from input database. This must be done after creating

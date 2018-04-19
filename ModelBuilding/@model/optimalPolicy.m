@@ -1,5 +1,7 @@
-function new = optimalPolicy(this, quantity, equation, ...
-    posLossEqtn, lossDisc, posNnegName, posNnegMult, type)
+function new = optimalPolicy( this, quantity, equation, ...
+                              posLossEqtn, lossDisc, ...
+                              posOfFloorVariable, posOfFloorMultiplier, posOfFloorParameter, ...
+                              type )
 % optimalPolicy  Derive equations for optimal policy
 %
 % Backend IRIS function
@@ -27,7 +29,7 @@ TYPE = @int8;
 
 new = struct( );
 
-isNneg = ~isempty(posNnegName);
+isFloor = ~isempty(posOfFloorVariable);
 ixy = quantity.Type==TYPE(1);
 ixx = quantity.Type==TYPE(2);
 ixyx = ixy | ixx;
@@ -147,9 +149,10 @@ end
 % Add nonnegativity multiplier to RHS of derivative wrt nonegative
 % equation, and create complementary slack condition, which is always
 % placed where loss function was.
-if isNneg
-    new.Input{posNnegName} = [new.Input{posNnegName}, sprintf('-x%g', posNnegMult)];
-    new.Input{posLossEqtn} = sprintf('min(x%g,x%g)', posNnegName, posNnegMult);
+if isFloor
+    new.Input{posOfFloorVariable} = [new.Input{posOfFloorVariable}, sprintf('-x%g', posOfFloorMultiplier)];
+    new.Input{posLossEqtn} = sprintf( 'min(x%g-x%g,x%g)', ...
+                                      posOfFloorVariable, posOfFloorParameter, posOfFloorMultiplier );
     new.IxHash(posLossEqtn) = true;
 end
 
