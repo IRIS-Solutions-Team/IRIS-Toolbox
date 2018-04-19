@@ -18,6 +18,8 @@ switch query
         if ~isa(answ, 'DateWrapper')
             answ = DateWrapper(answ);
         end
+        % Bkw compatibility
+        answ = answ(:)';
         
         
     case {'min', 'minrange', 'nanrange'}
@@ -37,14 +39,16 @@ switch query
     
         
     case {'nanstart', 'nanstartdate', 'nanfirst', 'allstart', 'allstartdate'}
-        sample = all(~isnan(this.Data(:, :)), 2);
-        if isempty(sample)
-            answ = NaN;
+        if isnan(this.Start) || isempty(this.Data)
+            answ = DateWrapper.NaD;
         else
-            answ = this.Start + (find(sample, 1, 'first') - 1);
-        end
-        if ~isa(answ, 'DateWrapper')
-            answ = DateWrapper(answ);
+            sample = all(~isnan(this.Data(:, :)), 2);
+            if isempty(sample) || ~any(sample)
+                answ = DateWrapper.NaD;
+            else
+                pos = find(sample, 1, 'first');
+                answ = addTo(this.Start, pos-1);
+            end
         end
         
         
@@ -56,14 +60,16 @@ switch query
         
         
     case {'nanend', 'nanenddate', 'nanlast', 'allend', 'allenddate'}
-        sample = all(~isnan(this.Data(:, :)), 2);
-        if isempty(sample)
-            answ = NaN;
+        if isnan(this.Start) || isempty(this.Data)
+            answ = DateWrapper.NaD;
         else
-            answ = this.Start + (find(sample, 1, 'last') - 1);
-        end
-        if ~isa(answ, 'DateWrapper')
-            answ = DateWrapper(answ);
+            sample = all(~isnan(this.Data(:, :)), 2);
+            if isempty(sample) || ~any(sample)
+                answ = DateWrapper.NaD;
+            else
+                pos = find(sample, 1, 'last');
+                answ = addTo(this.Start, pos-1);
+            end
         end
         
         
