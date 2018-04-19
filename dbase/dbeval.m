@@ -1,5 +1,5 @@
 function varargout = dbeval(d, varargin)
-% dbeval  Evaluate expression in specified database.
+% dbeval  Evaluate expression in specified database
 %
 % __Syntax__
 %
@@ -7,7 +7,7 @@ function varargout = dbeval(d, varargin)
 %     [Value1, Value2, ...] = dbeval(M, Exn1, Exn2, ...)
 %
 %
-% __Syntax with Steady-State References
+% __Syntax with Steady-State References__
 %
 %     [Value1, Value2, ...] = dbeval(D, Steady, Exn1, Exn2, ...)
 %
@@ -24,7 +24,7 @@ function varargout = dbeval(d, varargin)
 % within the context of the input database.
 %
 % * `Steady` [ struct | model ] - Database or model object from which
-% values will be taken to replace steady-state references in expressions.
+% values will be taken to fill in  steady-state references in expressions.
 %
 %
 % __Output Arguments__
@@ -57,8 +57,8 @@ function varargout = dbeval(d, varargin)
 %           7
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if ~isempty(varargin) && (isstruct(varargin{1}) || isa(varargin{1}, 'model'))
     ss = varargin{1};
@@ -67,16 +67,15 @@ else
     ss = struct([ ]);
 end
 
-% Parse required input arguments.
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('dbase/dbeval');
-    INPUT_PARSER.addRequired('InputDatabank', @(x) isstruct(x) || isa(x, 'model'));
-    INPUT_PARSER.addOptional('Steady', [ ], @(x) isempty(x) || isstruct(x) || isa(x, 'model'));
-    INPUT_PARSER.addOptional('Expression', [ ], @(x) isempty(x) || iscellstr(x{1}) || iscellstr(x));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('dbase/dbeval');
+    inputParser.addRequired('InputDatabank', @(x) isstruct(x) || isa(x, 'model'));
+    inputParser.addOptional('Steady', [ ], @(x) isempty(x) || isstruct(x) || isa(x, 'model'));
+    inputParser.addOptional('Expression', [ ], @(x) isempty(x) || iscellstr(x{1}) || iscellstr(x) || isa(x, 'string'));
 end
-INPUT_PARSER.parse(d, ss, varargin);
-exn = INPUT_PARSER.Results.Expression;
+inputParser.parse(d, ss, varargin);
+exn = inputParser.Results.Expression;
 
 if isempty(exn)
     return

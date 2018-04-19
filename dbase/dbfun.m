@@ -6,8 +6,8 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [D,Flag,ErrList,WarnList] = dbfun(Func,D,...)
-%     [D,Flag,ErrList,WarnList] = dbfun(Func,D,~D2,~D3,...,~Dk,...)
+%     [D, Flag, ErrList, WarnList] = dbfun(Func, D, ...)
+%     [D, Flag, ErrList, WarnList] = dbfun(Func, D, ~D2, ~D3, ..., ~Dk, ...)
 %
 %
 % __Initialize__
@@ -39,27 +39,27 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 %
 % __Options__
 %
-% * `'Subdbase='` [ *`true`* | `false` ] - Go through all sub-databases
+% * `Subdbase=true` [ `true` | `false` ] - Cycle through all sub-databases
 % (i.e. struct fields within the input struct), applying the function
 % `Func` to their fields, too.
 %
-% * `'ClassFilter='` [ cell | cellstr | rexp | *`@all`* ] - Apply `Func`
+% * `ClassFilter=@all` [ cell | cellstr | rexp | `@all` ] - Apply `Func`
 % only to database fields whose class is on the list or matches the regular
 % expression; `@all` means all fields in the input database `D` will be
 % processed.
 %
-% * `'Fresh='` [ `true` | *`false`* ] - Remove unprocessed entries from the
-% output database.
+% * `Fresh=false` [ `true` | `false` ] - Remove unprocessed entries from
+% the output database.
 %
-% * `'NameList='` [ cell | cellstr | rexp | *`@all`* ] - Apply `Func` only
+% * `NameList=@all` [ cell | cellstr | rexp | `@all` ] - Apply `Func` only
 % to this list of database field names or names that match this regular
 % expression; `@all` means all entries in the input database `D` wil be
 % processed.
 %
-% * `'IfError='` [ `'NaN'` | *`'remove'`* ] - What to do with the database
-% entry if an error occurs when the entry is being evaluated.
+% * `IfError='Remove'` [ `NaN` | `'Remove'` ] - What to do with the
+% database entry if an error occurs when the entry is being evaluated.
 %
-% * `'IfWarning='` [ *`'keep'`* | `'NaN'` | `'remove'` ] - What to do with
+% * `IfWarning='Keep'` [ `'Keep'` | `NaN` | `'Remove'` ] - What to do with
 % the database entry if an error occurs when the entry is being evaluated.
 %
 %
@@ -70,7 +70,7 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 %
 %     d = struct( );
 %     d.a = [1, 2];
-%     d.b = Series(1:3,@ones);
+%     d.b = Series(1:3, @ones);
 %     d = dbfun( @(x) 2*x, d)
 %
 %     d = 
@@ -95,7 +95,7 @@ D = cell(1, nargin);
 [Fn, D{1}, varargin] = irisinp.parser.parse('dbase.dbfun', varargin{:});
 
 % Find last secondary input database in varargin.
-nSecDb = max([ 0, find(cellfun(@isstruct,varargin), 1, 'last') ]);
+nSecDb = max([ 0, find(cellfun(@isstruct, varargin), 1, 'last') ]);
 nDb = nSecDb + 1;
 D(1+(1:nSecDb)) = varargin(1:nSecDb);
 D(nDb+1:end) = [ ];
@@ -108,8 +108,8 @@ opt = passvalopt('dbase.dbfun', varargin{:});
 lsField = fieldnames(D{1});
 lsField = lsField(:).';
 nField = numel(lsField);
-X = cell(1,nField);
-ixKeep = false(1,nField);
+X = cell(1, nField);
+ixKeep = false(1, nField);
 
 % __Process Subdatabases__
 if opt.recursive
@@ -118,7 +118,7 @@ if opt.recursive
         if ~isstruct(D{1}.(name))
             continue
         end
-        argList = cell(1,nDb);
+        argList = cell(1, nDb);
         for iDb = 1 : nDb
             argList{iDb} = D{iDb}.(name);
         end
@@ -137,10 +137,10 @@ lsSelect = dbnames( ...
     'nameFilter=', opt.namefilter ...
 );
 
-lsError = cell(1,nField);
-ixError = false(1,nField);
-lsWarning = cell(1,nField);
-ixWarning = false(1,nField);
+lsError = cell(1, nField);
+ixError = false(1, nField);
+lsWarning = cell(1, nField);
+ixWarning = false(1, nField);
 
 % Index of fields to be processed; exclude sub-databases (processed
 % earlier) and fields not on the select list.
@@ -208,7 +208,7 @@ return
             switch lower(opt.iferror)
             end
         end
-        if strcmpi(opt.iferror,'nan')
+        if isequaln(opt.iferror, NaN)
             X(ixError) = { NaN };
         else
             ixKeep(ixError) = false;
@@ -218,7 +218,7 @@ return
             exception.Base('Dbase:DbfunReportError', 'warning'), ...
             errMsg{:} ...
         );
-    end
+    end%
 
     
     function reportMatlabWarnings( )
@@ -227,18 +227,17 @@ return
         for ii = find(ixWarning)
             warnMsg{end+1} = lsField{ii}; %#ok<AGROW>
             warnMsg{end+1} = lsWarning{ii}; %#ok<AGROW>
-            switch lower(opt.ifwarning)
-                case 'nan'
-                    X{ii} = NaN;
-                case 'remove'
-                    ixKeep(ii) = false;
-                otherwise
-                    % Do nothing.
+            if isequaln(opt.ifwarning)
+                X{ii} = NaN;
+            elseif strcmpi(opt.ifwarning, 'Remove')
+                ixKeep(ii) = false;
+            else
+                % Do nothing
             end
         end
         throw( ...
             exception.Base('Dbase:DbfunReportWarning', 'warning'), ...
             warnMsg{:}...
         );
-    end
-end
+    end%
+end%
