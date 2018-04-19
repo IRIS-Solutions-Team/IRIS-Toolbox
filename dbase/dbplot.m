@@ -354,9 +354,10 @@ if isempty(inputParser)
     inputParser.KeepUnmatched = true;
     inputParser.addRequired('InputDatabase', @isstruct);
     inputParser.addOptional('Range', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x) || (iscell(x) && ~iscellstr(x)));
-    inputParser.addOptional('List', @all, @(x) isequal(x, @all) || iscellstr(x) || isa(x, 'rexp'));
+    inputParser.addOptional('List', @all, @(x) isequal(x, @all) || iscellstr(x) || isa(x, 'rexp') || isa(x, 'string'));
     
     inputParser.addParameter('AddClick', true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('AddToPages', [ ], @(x) isempty(x) || isa(x, 'pages.New'));
     inputParser.addParameter({'Caption', 'Captions', 'Title', 'Titles'}, { }, @(x) isempty(x) || iscellstr(x) || isfunc(x));
     inputParser.addParameter('Clear', [ ], @isnumeric);
     inputParser.addParameter('Clone', '', @ischar);
@@ -367,7 +368,7 @@ if isempty(inputParser)
     inputParser.addParameter('IncludeInLegend', true, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('Grid', true, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('FigureFunc', @figure, @(x) isa(x, 'function_handle'));
-    inputParser.addParameter({'FigureOpt', 'FigureOptions', 'Figure'}, cell.empty(1, 0), @(x) iscell(x) && iscellstr(x(1:2:end)));
+    inputParser.addParameter({'Figure', 'FigureOpt', 'FigureOptions'}, cell.empty(1, 0), @(x) iscell(x) && iscellstr(x(1:2:end)));
     inputParser.addParameter('Highlight', [ ], @(x) isnumeric(x) || (iscell(x) && all(cellfun(@isnumeric, x))));
     inputParser.addParameter('Interpreter', 'none', @(x) any(strcmpi(x, {'latex', 'tex', 'none'})));
     inputParser.addParameter('Mark', cell.empty(1, 0), @iscellstr);
@@ -376,6 +377,7 @@ if isempty(inputParser)
     inputParser.addParameter({'PageNumber', 'PageNumbers'}, false, @(x) isequal(x, true) || isequal(x, false));    
     inputParser.addParameter({'PlotFunc', 'PlotFn'}, @plot, @(x) isfunc(x) || ischar(x) || (iscell(x) && isfunc(x{1}) && iscellstr(x(2:2:end))));
     inputParser.addParameter('Prefix', 'P%g_', @ischar);
+    inputParser.addParameter('Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
     inputParser.addParameter('Round', Inf, @(x) isnumeric(x) && isscalar(x) && x>=0 && round(x)==x);
     inputParser.addParameter('SaveAs', '', @ischar);
     inputParser.addParameter({'Steady', 'SState'}, struct( ), @(x) isempty(x) || isstruct(x) || isa(x, 'model'));
@@ -402,6 +404,8 @@ if isequal(list, @all)
 elseif isa(list, 'rexp')
     % Regular expression.
     list = dbnames(d, 'NameFilter=', list, 'ClassFilter=', 'TimeSubscriptable');
+elseif isa(list, 'string')
+    list = cellstr(list);
 end
 
 if isequal(range, @auto)
