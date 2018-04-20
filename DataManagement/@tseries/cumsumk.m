@@ -75,10 +75,11 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('tseries.cumsumk');
     inputParser.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    inputParser.addRequired('Range', @DateWrapper.validateRangeInput);
+    inputParser.addRequired('Range', @DateWrapper.validateProperRangeInput);
     inputParser.addParameter('K', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x)));
     inputParser.addParameter('Rho', 1, @(x) isnumeric(x) && isscalar(x));
     inputParser.addParameter('Log', false, @(x) islogical(x) && isscalar(x));
+    inputParser.addParameter('NaNInit', 0, @isnumeric);
 end
 inputParser.parse(this, range, varargin{:});
 opt = inputParser.Options;
@@ -89,6 +90,10 @@ end
 
 if opt.K==0
     return
+end
+
+if ~isa(range, 'DateWrapper')
+    range = DateWrapper.fromDouble(range);
 end
 
 %--------------------------------------------------------------------------
@@ -106,7 +111,7 @@ if opt.Log
     data = log(data);
 end
 
-data = numeric.cumsumk(data, opt.K, opt.Rho);
+data = numeric.cumsumk(data, opt.K, opt.Rho, opt.NaNInit);
 
 if opt.Log
     data = exp(data);
