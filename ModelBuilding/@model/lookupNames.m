@@ -16,6 +16,7 @@ ell = lookup(this.Quantity, query);
 listOfMatches = cell.empty(1, 0);
 
 if any(ell.IxName)
+    % Add names of variables, shocks, parameters
     listOfMatches = [ listOfMatches, ...
                       this.Quantity.Name(ell.IxName) ];
 end
@@ -25,10 +26,12 @@ if any(ell.IxStdCorr)
     indexOfShocks = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
     numOfShocks = nnz(indexOfShocks);
     if any(ell.IxStdCorr(1:numOfShocks))
+        % Add names of std deviations
         listOfMatches = [ listOfMatches, ...
                           getStdName(this.Quantity, ell.IxStdCorr(1:numOfShocks)) ];
     end
     if any(ell.IxStdCorr(numOfShocks+1:end))
+        % Add names of correlations
         listOfMatches = [ listOfMatches, ...
                           getCorrName(this.Quantity, ell.IxStdCorr(numOfShocks+1:end)) ];
     end
