@@ -16,14 +16,14 @@ outp = struct( );
 ixe = this.Type==TYPE(31) | this.Type==TYPE(32);
 lse = this.Name(ixe);
 ne = length(lse);
-nStdCorr = ne + ne*(ne-1)/2;
+numOfStdCorr = ne + ne*(ne-1)/2;
 
 names = this.Name;
-numQuantities = length(names);
+numOfQuantities = length(names);
 doStdCorr = true;
-ixKeep = true(1, numQuantities);
+ixKeep = true(1, numOfQuantities);
 if ~isempty(varargin)
-    ixKeep = false(1, numQuantities);
+    ixKeep = false(1, numOfQuantities);
     for i = 1 : length(varargin)
         ixKeep = ixKeep | this.Type==varargin{i};
     end
@@ -39,8 +39,8 @@ if iscellstr(query)
     outp.PosStdCorr = nan(1, nQuery);
     outp.PosShk1 = nan(1, nQuery);
     outp.PosShk2 = nan(1, nQuery);
-    outp.IxName = false(1, numQuantities);
-    outp.IxStdCorr = false(1, nStdCorr);
+    outp.IxName = false(1, numOfQuantities);
+    outp.IxStdCorr = false(1, numOfStdCorr);
     for i = 1 : nQuery
         ixName = [ ];
         ixStdCorr = [ ];
@@ -73,11 +73,14 @@ if iscellstr(query)
             outp.PosShk2(i) = find(ixShk2);
         end
     end
-elseif ischar(query) || isa(query, 'rexp')
+elseif ischar(query) || isa(query, 'rexp') || isa(query, 'string')
     % Single input can be regular expression. Return logical index of all
     % possible matches. No shock1, shock2 indices needed.
-    outp.IxName = false(1, numQuantities);
-    outp.IxStdCorr = false(1, nStdCorr);
+    if isa(query, 'string')
+        query = char(query);
+    end
+    outp.IxName = false(1, numOfQuantities);
+    outp.IxStdCorr = false(1, numOfStdCorr);
     if length(query)>=5 && strncmp(query, 'std_', 4)
         if doStdCorr
             shkName = query(5:end);
@@ -97,16 +100,16 @@ return
 
     function [ixStdCorr, ixShkInName] = getStd(query)
         shkName = query(5:end);
-        ixStdCorr = false(1, nStdCorr);
+        ixStdCorr = false(1, numOfStdCorr);
         ixStdCorr(1:ne) = callStrcmpOrRegexp(lse, shkName);
         ixShkInName = callStrcmpOrRegexp(names, shkName);
-    end
+    end%
 
 
     function [ixStdCorr, ixShk1InName, ixShk2InName] = getCorr(query)
-        ixStdCorr = false(1, nStdCorr);
-        ixShk1InName = false(1, numQuantities);
-        ixShk2InName = false(1, numQuantities);
+        ixStdCorr = false(1, numOfStdCorr);
+        ixShk1InName = false(1, numOfQuantities);
+        ixShk2InName = false(1, numOfQuantities);
         % Break down the corr coeff names corr_SHOCK1__SHOCK2 into SHOCK1 and SHOCK2.
         shkName = regexp(query(6:end), '^(.*?)__([^_].*)$', 'tokens', 'once');
         if isempty(shkName) || isempty(shkName{1}) || isempty(shkName{2})
@@ -129,8 +132,8 @@ return
             p = ne + sum((ne-1):-1:(ne-posCol(k)+1)) + (posRow(k)-posCol(k));
             ixStdCorr(p) = true;
         end
-    end
-end
+    end%
+end%
 
 
 function ix = callStrcmpOrRegexp(list, query)
@@ -139,4 +142,5 @@ function ix = callStrcmpOrRegexp(list, query)
     else
         ix = strcmp(list, query);
     end
-end
+end%
+

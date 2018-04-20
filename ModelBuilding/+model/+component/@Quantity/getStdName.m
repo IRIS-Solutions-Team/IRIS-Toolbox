@@ -1,20 +1,20 @@
-function lsStd = getStdName(this, request)
-% getStdName  Get names of standard deviations of shocks.
+function namesOfStd = getStdName(this, request)
+% getStdName  Get names of standard deviations of shocks
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
+
+TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-ixe = this.Type==int8(31) | this.Type==int8(32);
-lsStd = this.Name(ixe);
-lsStd = strcat('std_', lsStd);
-
+indexOfShocks = this.Type==TYPE(31) | this.Type==TYPE(32);
+namesOfStd = strcat('std_', this.Name(indexOfShocks));
 if nargin>1
-    lsStd = lsStd(request);
+    namesOfStd = namesOfStd(request);
 end
 
 end

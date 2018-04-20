@@ -246,6 +246,8 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
     
     methods
         varargout = addToDatabank(varargin)
+        varargout = lookupNames(varargin)
+
         varargout = addparam(varargin)
         varargout = addplainparam(varargin)
         varargout = addstd(varargin)
