@@ -54,33 +54,33 @@ Def.dbload = [
     'userdatafieldlist', { }, @(x) isempty(x) || iscellstr(x) || isnumeric(x)
     } ]; %#ok<CCAT>
 
-Def.dbminuscontrol = { ...
-    'fresh', true, @islogicalscalar, ...
-    };
+Def.dbminuscontrol = { 
+    'fresh', true, @islogicalscalar
+};
 
-Def.dbnames = { ...
-    'classfilter, classlist', @all, ...
-    @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'rexp'), ...
-    'namefilter, namelist', @all, ...
-    @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'rexp'), ...
-    };
+Def.dbnames = { 
+    'classfilter, classlist', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'rexp')
+    'namefilter, namelist', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'rexp')
+};
 
-Def.dbfun = { ...
-    'recursive, cascade', true, @islogicalscalar, ...
-    'fresh', false, @islogicalscalar, ...
-    'iferror, onerror', 'remove', @(x) ischar(x) && any(strcmpi(x, {'remove', 'nan'})), ...
-    'ifwarning, onwarning', 'keep', @(x) ischar(x) && any(strcmpi(x, {'remove', 'keep', 'nan'})), ...
-    Def.dbnames{:}, ...
-    }; %#ok<CCAT>
+Def.dbfun = [
+    Def.dbnames
+    { 
+    'recursive, cascade', true, @(x) isequal(x, true) || isequal(x, false)
+    'fresh', false, @islogicalscalar
+    'iferror, onerror', 'remove', @(x) (ischar(x) && any(strcmpi(x, {'remove', 'nan'}))) || isequaln(x, NaN)
+    'ifwarning, onwarning', 'keep', @(x) (ischar(x) && any(strcmpi(x, {'remove', 'keep', 'nan'}))) || isequal(x, NaN)
+    }
+];
 
-Def.dbprintuserdata = { ...
-    'output', 'prompt', @(x) ischar(x) && any(strcmpi(x, {'html', 'prompt'})), ...
-    };
+Def.dbprintuserdata = { 
+    'output', 'prompt', @(x) ischar(x) && any(strcmpi(x, {'html', 'prompt'}))
+};
 
-Def.dbrange = { ...
-    'startdate', 'maxrange', @(x) ischar(x) && any(strcmpi(x, {'maxrange', 'minrange', 'balanced', 'unbalanced'})), ...
-    'enddate', 'maxrange', @(x) ischar(x) && any(strcmpi(x, {'maxrange', 'minrange', 'balanced', 'unbalanced'})), ...
-    };
+Def.dbrange = {
+    'startdate', 'maxrange', @(x) ischar(x) && any(strcmpi(x, {'maxrange', 'minrange', 'balanced', 'unbalanced'}))
+    'enddate', 'maxrange', @(x) ischar(x) && any(strcmpi(x, {'maxrange', 'minrange', 'balanced', 'unbalanced'}))
+};
 
 Def.dbsave = [
     dateformat
@@ -98,7 +98,8 @@ Def.dbsave = [
     'UserData', 'userdata', @(x) ischar(x) && isvarname(x)
     'UnitsHeader', 'Units ->', @(x) ischar(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"'))
     'Delimiter', ',', @ischar
-    } ]; %#ok<CCAT>
+    }
+]; %#ok<CCAT>
 
 Def.dbsplit = { ...
     'discard', true, @islogicalscalar, ...
