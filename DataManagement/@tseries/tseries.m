@@ -483,6 +483,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = resetColumnNames(varargin)
         varargout = rangedata(varargin)
         varargout = saveobj(varargin)
+        varargout = setData(varargin)
         varargout = trim(varargin)
     end
     

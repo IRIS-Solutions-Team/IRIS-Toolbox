@@ -10,15 +10,15 @@ function this = init(this, freq, serials, observations)
 %--------------------------------------------------------------------------
 
 serials = serials(:);
-numberOfDates = numel(serials);
+numOfDates = numel(serials);
 sizeOfObservations = size(observations);
-if sizeOfObservations(1)==0 && (all(isnan(serials)) || numberOfDates==0)
+if sizeOfObservations(1)==0 && (all(isnan(serials)) || numOfDates==0)
     % No observations entered, return empty series
     this = createEmptySeries(this, sizeOfObservations);
     return
 end
 
-if sizeOfObservations(1)~=numberOfDates
+if sizeOfObservations(1)~=numOfDates
     throw( exception.Base('Series:DatesDataDimensionMismatch', 'error') );
 end
 
@@ -43,11 +43,11 @@ startSerial = min(serials);
 endSerial = max(serials);
 
 % The actual stretch of the time series range
-numberOfDates = round(endSerial - startSerial + 1);
-if isempty(numberOfDates)
-    numberOfDates = 0;
+numOfDates = round(endSerial - startSerial + 1);
+if isempty(numOfDates)
+    numOfDates = 0;
 end
-sizeOfObservations(1) = numberOfDates;
+sizeOfObservations(1) = numOfDates;
 
 this.Data = repmat(this.MissingValue, sizeOfObservations);
 posOfObservations = round(serials - startSerial + 1);
