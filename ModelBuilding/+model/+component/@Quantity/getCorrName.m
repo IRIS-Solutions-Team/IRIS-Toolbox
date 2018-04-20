@@ -14,7 +14,7 @@ TYPE = @int8;
 indexOfShocks = this.Type==TYPE(31) | this.Type==TYPE(32);
 namesOfShocks = this.Name(indexOfShocks);
 ne = sum(indexOfShocks);
-[row, col] = find(tril(true(ne)));
+[row, col] = find(tril(true(ne), -1));
 
 if nargin<2
     request = 1 : numel(row);
