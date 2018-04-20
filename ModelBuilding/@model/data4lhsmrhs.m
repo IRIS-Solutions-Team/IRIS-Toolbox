@@ -83,14 +83,23 @@ if isempty(endOfBaseRange)
     startOfBaseRange = startOfBaseRange(1);
 end
 
+if ~isa(startOfBaseRange, 'DateWrapper')
+    startOfBaseRange = DateWrapper.fromDouble(startOfBaseRange);
+end
+
+if ~isa(endOfBaseRange, 'DateWrapper')
+    endOfBaseRange = DateWrapper.fromDouble(endOfBaseRange);
+end
+
 %--------------------------------------------------------------------------
 
-ixp = this.Quantity.Type==TYPE(4);
+indexOfParameters = this.Quantity.Type==TYPE(4);
 rowNames = this.Quantity.Name;
 numOfQuantities = numel(rowNames);
-rowNamesExceptParameters = rowNames(~ixp);
+rowNamesExceptParameters = rowNames(~indexOfParameters);
 
-[startOfExtendedRange, endOfExtendedRange, minShift, maxShift] = getExtendedRange(this, startOfBaseRange, endOfBaseRange);
+[startOfExtendedRange, endOfExtendedRange, minShift, maxShift] = ...
+    getExtendedRange(this, startOfBaseRange, endOfBaseRange);
 lenOfExtendedRange = rnglen(startOfExtendedRange, endOfExtendedRange);
 extendedRange = startOfExtendedRange:endOfExtendedRange;
 
@@ -101,7 +110,7 @@ timeTrend = dat2ttrend(extendedRange, this);
 numOfDataSets = size(YXEG, 3);
 
 YXEPG = nan(numOfQuantities, lenOfExtendedRange, numOfDataSets);
-YXEPG(~ixp, :, :) = YXEG;
+YXEPG(~indexOfParameters, :, :) = YXEG;
 
 indexOfTimeTrend = strcmp(rowNames, model.RESERVED_NAME_TTREND);
 YXEPG(indexOfTimeTrend, :, :) = repmat(timeTrend, 1, 1, numOfDataSets);

@@ -1,4 +1,5 @@
-function [startOfExtRange, endOfExtRange, minShift, maxShift] = getExtendedRange(this, startOfBaseRange, endOfBaseRange)
+function [startOfExtRange, endOfExtRange, minShift, maxShift] = ...
+    getExtendedRange(this, startOfBaseRange, endOfBaseRange)
 % getExtendedRange  Extend base range for dynamic simulations to include presample and postsample
 %
 % Backend IRIS function
@@ -13,11 +14,17 @@ function [startOfExtRange, endOfExtRange, minShift, maxShift] = getExtendedRange
 [minShift, maxShift] = getActualMinMaxShifts(this);
 
 startOfExtRange = startOfBaseRange;
+if ~isa(startOfExtRange, 'DateWrapper')
+    startOfExtRange = DateWrapper.fromDouble(startOfExtRange);
+end
 if minShift<0
     startOfExtRange = addTo(startOfExtRange, minShift);
 end
 
 endOfExtRange = endOfBaseRange;
+if ~isa(endOfExtRange, 'DateWrapper')
+    endOfExtRange = DateWrapper.fromDouble(endOfExtRange);
+end
 if maxShift>0
     endOfExtRange = addTo(endOfExtRange, maxShift);
 end
