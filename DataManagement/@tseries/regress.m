@@ -93,9 +93,13 @@ if nargout>2
     startDate = getFirst(dates);
     dataFit = dataX*b;
     dataE = dataY - dataFit;
-    e = fill(Y, dataE, startDate, '');
+    e = Y.empty(Y);
+    e = setData(e, dates, dataE);
+    e = resetColumnNames(e);
     if nargout>4
-        fit = fill(Y, dataFit, startDate, '');
+        fit = Y.empty(Y);
+        fit = setData(fit, dates, dataFit);
+        fit = resetColumnNames(fit);
     end
 end
 
