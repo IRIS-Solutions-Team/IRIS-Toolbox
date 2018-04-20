@@ -138,9 +138,9 @@ lsSelect = dbnames( ...
 );
 
 lsError = cell(1, nField);
-ixError = false(1, nField);
+indexOfErrors = false(1, nField);
 lsWarning = cell(1, nField);
-ixWarning = false(1, nField);
+indexOfWarnings = false(1, nField);
 
 % Index of fields to be processed; exclude sub-databases (processed
 % earlier) and fields not on the select list.
@@ -154,25 +154,26 @@ for i = find(ixProcess)
     try
         fnArgList = cellfun( ...
             @(d) d.(lsField{i}), D, ...
-            'UniformOutput', false );
+            'UniformOutput', false ...
+        );
         lastwarn('');
         X{i} = feval(Fn, fnArgList{:});
         if ~isempty( lastwarn( ) )
             lsWarning{i} = lastwarn( );
-            ixWarning(i) = true;
+            indexOfWarnings(i) = true;
         end
     catch Exc
         lsError{i} = Exc.message;
-        ixError(i) = true;
+        indexOfErrors(i) = true;
     end
 end
 
 % Report Matlab errors and warnings.
-if any(ixWarning)
+if any(indexOfWarnings)
     reportMatlabWarnings( );
 end
-flag = ~any(ixError);
-if any(ixError)
+flag = ~any(indexOfErrors);
+if any(indexOfErrors)
     reportMatlabErrors( );
 end
 
@@ -201,43 +202,41 @@ return
 
     function reportMatlabErrors( )
         % Throw warnings for Matlab errors.
-        errMsg = { };
-        for ii = find(ixError)
-            errMsg{end+1} = lsField{ii}; %#ok<AGROW>
-            errMsg{end+1} = lsError{ii}; %#ok<AGROW>
-            switch lower(opt.iferror)
-            end
+        errorMessage = cell.empty(1, 0);
+        for ii = find(indexOfErrors)
+            errorMessage{end+1} = lsField{ii}; %#ok<AGROW>
+            errorMessage{end+1} = lsError{ii}; %#ok<AGROW>
         end
-        if isequaln(opt.iferror, NaN)
-            X(ixError) = { NaN };
+        if isequaln(opt.iferror, NaN) || strcmpi(opt.iferror, 'NaN')
+            X(indexOfErrors) = { NaN };
         else
-            ixKeep(ixError) = false;
-            D{1} = rmfield(D{1}, lsField(ixError));
+            ixKeep(indexOfErrors) = false;
+            D{1} = rmfield(D{1}, lsField(indexOfErrors));
         end
         throw( ...
             exception.Base('Dbase:DbfunReportError', 'warning'), ...
-            errMsg{:} ...
+            errorMessage{:} ...
         );
     end%
 
     
     function reportMatlabWarnings( )
         % Throw warnings for Matlab warnings.
-        warnMsg = { };
-        for ii = find(ixWarning)
-            warnMsg{end+1} = lsField{ii}; %#ok<AGROW>
-            warnMsg{end+1} = lsWarning{ii}; %#ok<AGROW>
-            if isequaln(opt.ifwarning)
-                X{ii} = NaN;
-            elseif strcmpi(opt.ifwarning, 'Remove')
-                ixKeep(ii) = false;
-            else
-                % Do nothing
-            end
+        warningMessage = cell.empty(1, 0);
+        for ii = find(indexOfWarnings)
+            warningMessage{end+1} = lsField{ii}; %#ok<AGROW>
+            warningMessage{end+1} = lsWarning{ii}; %#ok<AGROW>
+        end
+        if isequaln(opt.ifwarning, NaN) || strcmpi(opt.ifwarning, 'NaN')
+            X(indexOfWarnings) = { NaN };
+        elseif strcmpi(opt.ifwarning, 'Remove')
+            ixKeep(indexOfWarnings) = false;
+        else
+            % Do nothing
         end
         throw( ...
             exception.Base('Dbase:DbfunReportWarning', 'warning'), ...
-            warnMsg{:}...
+            warningMessage{:}...
         );
     end%
 end%
