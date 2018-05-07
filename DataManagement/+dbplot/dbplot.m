@@ -52,12 +52,6 @@ function qq = inp2Struct(inp, opt)
         end
         opt.SubPlot = [numRows, numColumns];
     end
-    if ~isempty(opt.Clone)
-        labels = fragileobj(c);
-        [c, labels] = protectquotes(c, labels);
-        c = Preparser.cloneAllNames(c, opt.Clone);
-        c = restore(c, labels);
-    end
 
     qq = struct( );
     qq.func = 'figure';
@@ -118,8 +112,11 @@ function [inp, s] = getNext(inp, opt)
         return
     end
 
-    % Expressions and legends.
+    % Expressions and legends; clone expressionx
     [s.eval, s.legend] = readBody(body);
+    if ~isempty(opt.Clone)
+        s.eval = parser.Preparser.cloneAllNames(s.eval, opt.Clone);
+    end
     if ~isempty(opt.Preprocess)
         s.eval{1} = opt.Preprocess(s.eval{1});
     end
