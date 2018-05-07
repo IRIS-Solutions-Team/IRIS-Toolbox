@@ -20,6 +20,7 @@ classdef Keyword < int8
         IMPORT      ( 11 )
         INCLUDE     ( 12 )
         INPUT       ( 13 )
+        CLONE       ( 16 )
         
         RETURN      ( 14 )
         STOP        ( 15 )

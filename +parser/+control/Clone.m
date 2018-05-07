@@ -1,13 +1,20 @@
-classdef Import < parser.control.ExternalFile
+classdef Clone < parser.control.ExternalFile
+    properties
+        CloneString = ''
+    end
+
+
     methods
-        function this = Import(varargin)
-            if isempty(varargin)
+        function this = Clone(inBrackets)
+            if nargin==0
                 return
             end
-            this.FileName = varargin{1};
-        end
-        
-        
+            temp = split(inBrackets, ',');
+            this.FileName = strtrim(temp{1});
+            if numel(temp)>=2
+                this.CloneString = strtrim(temp{2});
+            end
+        end%
         
         
         function c = writeFinal(this, p, varargin)
@@ -19,13 +26,15 @@ classdef Import < parser.control.ExternalFile
             end
             fileName = strtrim(fileName);
             if ~isempty(fileName)
-                [c, ~, exportable, ctrlParameters] = Preparser.parse(fileName, [ ], 'Assigned=', p.Assigned);
+                [c, ~, exportable, ctrlParameters] = Preparser.parse( fileName, [ ], ...
+                                                                      'Assigned=', p.Assigned, ...
+                                                                      'CloneString=', this.CloneString );
                 add(p, ctrlParameters, exportable);
                 % Reset file name back to caller file.
                 exception.ParseTime.storeFileName(p.FileName);
             else
                 c = '';
             end
-        end
+        end%
     end
 end

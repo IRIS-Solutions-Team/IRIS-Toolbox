@@ -104,6 +104,9 @@ classdef CodeSegments < handle
                 case { Keyword.IMPORT, Keyword.INCLUDE, Keyword.INPUT }
                     [arg, c, sh] = Import.getBracketArg(key, c, sh);
                     body{end+1} = Import(arg);
+                case { Keyword.CLONE }
+                    [arg, c, sh] = Clone.getBracketArg(key, c, sh);
+                    body{end+1} = Clone(arg);
                 case { Keyword.RETURN }
                     c = c([ ]);
                     sh = sh([ ]);
