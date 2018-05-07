@@ -215,8 +215,7 @@ if ~strcmp(opt.delimiter, ',')
     file = strrep(file, sprintf(opt.delimiter), ',');
 end
 
-% Read headers
-%--------------
+% __Read Headers__
 nameRow = { };
 classRow = { };
 cmtRow = { };
@@ -273,10 +272,10 @@ end
 % Change variable names.
 % * Apply user function to variables names.
 % * Convert variable name case.
-chgNames( );
+changeNames( );
 
 % Make sure the database entry names are all valid and unique Matlab names.
-chkNames( );
+checkNames( );
 
 % Populated the userdata field; this is NOT Series userdata, but a
 % separate entry in the output database.
@@ -528,15 +527,12 @@ return
         % Read numeric data; empty cells will be treated either as `NaN` or
         % `NaN+NaNi` depending on the presence or absence of complex
         % numbers in the rest of that particular row.
-        data = textscan(file, '', -1, ...
-            'Delimiter', ',', 'WhiteSpace', whiteSpace, ...
-            'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', -Inf, ...
-            'CommentStyle', 'Matlab', 'CollectOutput', true);
+        data = textscan( file, '', -1, ...
+                         'Delimiter', ',', 'WhiteSpace', whiteSpace, ...
+                         'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', -Inf, ...
+                         'CommentStyle', 'Matlab', 'CollectOutput', true );
         if isempty(data)
-            throw( ...
-                exception.Base('Dbase:InvalidLoadFormat', 'error'), ...
-                FName ...
-                ); %#ok<GTARG>
+            throw( exception.Base('Dbase:InvalidLoadFormat', 'error'), FName ); %#ok<GTARG>
         end
         data = data{1};
         ixMissing = false(size(data));
@@ -545,10 +541,10 @@ return
         % values represented by `NaN` this time to pin down missing values.
         isMaybeMissing = real(data)==-Inf;
         if any(isMaybeMissing(:))
-            data1 = textscan(file, '', -1, ...
-                'Delimiter', ',', 'WhiteSpace', whiteSpace, ...
-                'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', NaN, ...
-                'CommentStyle', 'Matlab', 'CollectOutput', true);
+            data1 = textscan( file, '', -1, ...
+                              'Delimiter', ',', 'WhiteSpace', whiteSpace, ...
+                              'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', NaN, ...
+                              'CommentStyle', 'Matlab', 'CollectOutput', true );
             data1 = data1{1};
             isMaybeMissing1 = isnan(real(data1));
             ixMissing(isMaybeMissing & isMaybeMissing1) = true;
@@ -709,7 +705,7 @@ return
 
 
 
-    function chgNames( )
+    function changeNames( )
         % Apply user function(s) to each name.
         if ~isempty(opt.namefunc)
             func = opt.namefunc;
@@ -723,23 +719,19 @@ return
             end
         end
         if ~iscellstr(nameRow)
-            throw( ...
-                exception.Base('Dbase:InvalidOptionNameFunc', 'error') ...
-                );
+            throw( exception.Base('Dbase:InvalidOptionNameFunc', 'error') );
         end
-        % Switch lower/upper case.
-        switch lower(opt.case)
-            case 'lower'
-                nameRow = lower(nameRow);
-            case 'upper'
-                nameRow = upper(nameRow);
+        if strcmpi(opt.case, 'lower')
+            nameRow = lower(nameRow);
+        elseif strcmpi(opt.case, 'upper')
+            nameRow = upper(nameRow);
         end
     end 
 
 
 
 
-    function chkNames( )
+    function checkNames( )
         ixEmpty = cellfun(@isempty, nameRow);
         ixValid = cellfun(@isvarname, nameRow);
         % Index of non-empty, invalid names that need to be regenerated.
