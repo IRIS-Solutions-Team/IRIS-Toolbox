@@ -1,28 +1,27 @@
-function Dat = ddtoday( )
-% ddtoday  Matlab serial date number for today's date.
+function dat = ddtoday( )
+% ddtoday  DateWrapper for today's daily date
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     Dat = ddtoday( )
+%     dat = ddtoday( )
 %
-% Output arguments
-% =================
 %
-% * `Dat` [ numeric ]  - Matlab serial date number for today's date.
+% __Output Arguments__
 %
-% Description
-% ============
+% * `dat` [ DateWrapper ]  - DateWrapper for today's daily date.
 %
-% Example
-% ========
+%
+% __Description__
+%
+%
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-Dat = floor(now( ));
+dat = DateWrapper.fromSerial(Frequency.DAILY, floor(now( )));
 
 end
