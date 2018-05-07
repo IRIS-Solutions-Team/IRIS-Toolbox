@@ -1,17 +1,19 @@
 function [this, opt] = file2model(this, fileName, opt, parserOpt, optimalOpt)
-% file2model  Translate model file to model object properties.
+% file2model  Translate model file to model object properties
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-% Run the parser.
+% Run the preparser
 [code, this.FileName, this.Export, ctrlParameters, this.Comment] = ...
-    parser.Preparser.parse(fileName, [ ], opt.Assign, opt.saveas, '');
+    parser.Preparser.parse( fileName, [ ], ...
+                            'Assigned=', opt.Assign, ...
+                            'SaveAs=', opt.saveas );
 
 % Export files; they must be available before we run the postparser because
 % we check for syntax errors by evaluating model equations which may refer
