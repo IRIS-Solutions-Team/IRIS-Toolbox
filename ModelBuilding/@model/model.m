@@ -696,7 +696,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
                 inputParser.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
                 inputParser.addParameter('saveas', '', @ischar);
                 inputParser.addParameter({'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
-                inputParser.addParameter('std', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
+                inputParser.addParameter({'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
                 inputParser.addParameter('stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
                 inputParser.addParameter('stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
                 inputParser.addParameter({'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));

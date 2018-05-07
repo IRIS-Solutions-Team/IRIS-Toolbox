@@ -33,15 +33,15 @@ if any(this.Equation.IxHash)
     opt.removeleads = false;
 end
 
-% Assign default stdevs.
-if isequal(opt.std, @auto)
+% Assign default std deviations
+if isequal(opt.DefaultStd, @auto)
     if this.IsLinear
         defaultStd = opt.stdlinear;
     else
         defaultStd = opt.stdnonlinear;
     end
 else
-    defaultStd = opt.std;
+    defaultStd = opt.DefaultStd;
 end
 
 numOfVariants = 1;
