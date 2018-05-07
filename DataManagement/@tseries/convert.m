@@ -32,7 +32,7 @@ function this = convert(this, newFreq, varargin)
 %
 % * `IgnoreNaN=false` [ `true` | `false` ] - Exclude NaNs from agreggation.
 %
-% * `Missing=NaN` [ numeric | `'last'` ] - Replace missing observations
+% * `Missing=NaN` [ numeric | `'previous'` ] - Replace missing observations
 % with this value.
 %
 %
@@ -233,15 +233,14 @@ function [toData, toStart] = aggregate(this, range, fromFreq, toFreq, opt)
     for t = 1 : size(fromData, 1)
         ix = isnan(fromData(t, :));
         if any(ix)
-            switch opt.missing
-                case 'last'
-                    if t>1
-                        fromData(t, ix) = fromData(t-1, ix);
-                    else
-                        fromData(t, ix) = NaN;
-                    end
-                otherwise
-                    fromData(t, ix) = opt.missing;
+            if any(strcmpi(opt.Missing, {'last', 'previous'}))
+                if t>1
+                    fromData(t, ix) = fromData(t-1, ix);
+                else
+                    fromData(t, ix) = NaN;
+                end
+            else
+                fromData(t, ix) = opt.Missing;
             end
         end
     end
