@@ -1,17 +1,55 @@
 function listOfMatches = lookupNames(this, query)
 % lookupNames  Look up names based on regular expression
+%
+% __Syntax__
+%
+%     listOfMatches = lookupNames(Model, Query)
+%
+%
+% __Input Arguments__
+%
+% * `Model` [ model ] - Model object whose names (variables, shocks,
+% parameters) will be queried.
+%
+% * `Query` [ cellstr | char | rexp | string ] - Regular expression (or
+% expressions) that will be matched.
+%
+%
+% __Output Arguments__
+%
+% * `ListOfMatches` [ cellstr ] - Names from the model object matching the
+% regular expression or expressions specified in `Query`.
+%
+%
+% __Description__
+%
+%
+% __Example__
+%
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('model.lookup');
     inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('Query', @(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp'));
+    inputParser.addRequired('Query', @(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp') || iscellstr(x));
 end
 inputParser.parse(this, query);
 
 %--------------------------------------------------------------------------
 
-ell = lookup(this.Quantity, query);
+query = cellstr(query);
+numOfQueries = numel(query);
+
+% Combine the results of all queries into one
+ell = lookup(this.Quantity, query{1});
+for i = 2 : numOfQueries
+    ithEll = lookup(this.Quantity, query{i});
+    ell.IxName = ell.IxName | ithEll.IxName;
+    ell.IxStdCorr = ell.IxStdCorr | ithEll.IxStdCorr;
+end
 
 listOfMatches = cell.empty(1, 0);
 
