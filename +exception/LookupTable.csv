@@ -29,6 +29,9 @@ Dbase:ErrorLoadingUserData, Error when reconstructing user data from this CSV fi
 Dbase:InvalidOptionNameFunc, Option NameFunc= must be function returning text string.
 Dbase:NameNotExist,This name does not exist in input database: %s
 DateWrapper:InvalidDateFormat,"Invalid date format; must be char, string, cellstr, or struct."
+DateWrapper:InvalidInputsIntoPlus, "Invalid input arguments into a DateWrapper plus expression."
+DateWrapper:InvalidInputsIntoMinus, "Invalid input arguments into a DateWrapper minus expression."
+DateWrapper:InvalidInputsIntoAddTo, "Invalid input arguments into a DateWrapper addTo expression."
 Distribution:InvalidParameterization,"This is not a valid type of parameterization for %s distribution: %s"
 Distribution:Abstract:LowerUpperBounds, Lower bound of distribution domain must be below upper bound
 Distribution:Abstract:UpperLowerBounds, Upper bound of distribution domain must be above lower bound
@@ -209,6 +212,7 @@ SystemPriorWrapper:SystemPriorToSealed,Cannot add SystemPrior to a sealed System
 SystemPriorWrapper:IllegalOutputName,SystemProperty output names must be legal variable names
 SystemPriorWrapper:NonuniqueOutputName,This output name assigned to SystemProperty is not unique: %s
 SystemPriorWrapper:NamesExceedMaxNumOutputs, Number of SystemProperty names exceeds maximum number of output arguments
+TimeSubscriptable:IllegalPlotRangeFrequency, Plot range and input time series must have the same date frequency.
 TimeSubscriptable:IfElseTest,The if test must produce a logical array of the same size as the time series data
 TheParser:EmptyEquation,"This equation is empty, and will be removed: %s "
 TheParser:EmptyLhsOrRhs, LHS or RHS of this equation is empty: %s 
