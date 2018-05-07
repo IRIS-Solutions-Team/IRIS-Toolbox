@@ -92,7 +92,7 @@ classdef Preparser < handle
                 fixEmptyLines(p);
                 % Clone preparsed code.
                 if ~isempty(cloneTemplate)
-                    p.Code = cloneAllNames(p.Code, p.CloneTemplate);
+                    p.Code = parser.Preparser.cloneAllNames(p.Code, p.CloneTemplate);
                 end
                 throwEvalWarning(p);
             end     
@@ -240,13 +240,21 @@ classdef Preparser < handle
     
     
     methods (Static)
-        function [finalCut, fileName, export, ctrlParameters, userComment] ...
-                = parse(fileName, inpCode, assigned, saveAs, cloneStr)
-            import parser.Preparser;
-            
-            try, assigned; catch, assigned = struct( ); end %#ok<NOCOM,VUNUS>
-            try, saveAs; catch, saveAs = ''; end %#ok<NOCOM,VUNUS>
-            try, cloneStr; catch, cloneStr = ''; end %#ok<NOCOM,VUNUS>
+        function [finalCut, fileName, export, ctrlParameters, userComment] = parse(fileName, inpCode, varargin)
+            import parser.Preparser
+            persistent inputParser
+            if isempty(inputParser)
+                inputParser = extend.InputParser('Preparser.parse');
+                inputParser.addRequired('FileName', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
+                inputParser.addRequired('InputCode', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
+                inputParser.addParameter('Assigned', struct( ), @(x) isempty(x) || isstruct(x));
+                inputParser.addParameter('SaveAs', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
+                inputParser.addParameter('CloneString', '', @(x) isempty(x) || ischar(x) || isa(x, 'string')); 
+            end
+            inputParser.parse(fileName, inpCode, varargin{:});
+            assigned = inputParser.Results.Assigned;
+            saveAs = inputParser.Results.SaveAs;
+            cloneStr = inputParser.Results.CloneString;
             
             this = parser.Preparser(fileName, inpCode, assigned, cloneStr);
             % Combine file names.
@@ -320,25 +328,31 @@ classdef Preparser < handle
         end
         
         
-        function flag = chkCloneString(c)
-            flag = ~isempty( strfind(c, '?') ) && ...
-                isvarname( strrep(c, '?', 'x') );
+        function flag = checkCloneString(c)
+            if ~isempty(strfind(c, '$'))
+                flag = isvarname(strrep(c, '$', 'x'));
+                return
+            elseif ~isempty(strfind(c, '?'))
+                flag = isvarname(strrep(c, '$', 'x'));
+                return
+            else
+                flag = false;
+                return
+            end
         end
         
         
         function code = cloneAllNames(code, cloneStr)
             import parser.Preparser;
-            if ~Preparser.chkCloneString(cloneStr)
-                throw( ...
-                    exception.ParseTime('Preparser:CLONE_STRING_INVALID', 'error'), ...
-                    cloneStr); %#ok<GTARG>
+            if ~Preparser.checkCloneString(cloneStr)
+                throw( exception.ParseTime('Preparser:CLONE_STRING_INVALID', 'error'), ...
+                       cloneStr ); %#ok<GTARG>
             end
+            cloneStr = strrep(cloneStr, '$', '$1');
             cloneStr = strrep(cloneStr, '?', '$1');
-            code = regexprep( ...
-                code, ...
-                Preparser.CLONE_PATTERN, ...
-                cloneStr ...
-                );
+            code = regexprep( code, ...
+                              Preparser.CLONE_PATTERN, ...
+                              cloneStr );
         end
 
         
