@@ -162,20 +162,15 @@ classdef rpteq < shared.GetterSetter & shared.UserDataContainer
                     opt.Assign.(umatched{i}) = unmatched{i+1};
                 end
                 % Tell apart equations from file names.
-                if ~iscellstr(inputEquations)
-                    inputEquations = cellstr(inputEquations);
-                end
-                indexFileNames = cellfun(@isempty, strfind(inputEquations, '='));
-                if all(indexFileNames)
+                indexOfFileNames = cellfun(@isempty, strfind(cellstr(inputEquations), '='));
+                if all(indexOfFileNames)
                     % Input is file name or cellstr of file names.
-                    [code, this.FileName, this.Export] = ...
-                        parser.Preparser.parse(inputEquations, [ ], ...
-                        opt.Assign, '', '');
-                elseif all(~indexFileNames)
+                    [code, this.FileName, this.Export] = parser.Preparser.parse( inputEquations, [ ], ...
+                                                                                 'Assigned=', opt.Assign );
+                elseif all(~indexOfFileNames)
                     % Input is equation or cellstr of equations.
-                    [code, this.FileName, this.Export] = ...
-                        parser.Preparser.parse([ ], inputEquations, ...
-                        opt.Assign, '', '');
+                    [code, this.FileName, this.Export] = parser.Preparser.parse( [ ], inputEquations, ...
+                                                                                 'Assigned=', opt.Assign );
                 else
                     utils.error('rpteq:rpteq', ...
                         ['Input to rpteq( ) must be either file name(s), ', ...
