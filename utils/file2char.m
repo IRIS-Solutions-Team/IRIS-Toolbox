@@ -1,11 +1,11 @@
-function [C,Flag] = file2char(FName,Type)
-% file2char  [Not a public function] Read text file.
+function [c, flag] = file2char(fileName, Type)
+% file2char  Read text file
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 UTF = char([239, 187, 191]);
 
@@ -17,55 +17,56 @@ end
 
 %--------------------------------------------------------------------------
 
-Flag = true;
-C = '';
+flag = true;
+c = '';
 
-if iscellstr(FName) && length(FName)==1
-    C = FName{1};
+if iscellstr(fileName) && length(fileName)==1
+    c = fileName{1};
     return
 end
 
-% Open, read, and close file.
-fid = fopen(FName,'r');
+% Open, read, and close file
+fid = fopen(fileName, 'r');
 if fid==-1
-    if ~utils.exist(FName,'file')
+    if ~exist(fileName, 'file')
         utils.error('utils:file2char', ...
-            'Cannot find file ''%s''.',FName);
+            'Cannot find this file: %s ', fileName);
     else
         utils.error('utils:file2char', ...
-            'Cannot open file ''%s'' for reading.',FName);
+            'Cannot open this file for reading: %s ', fileName);
     end
 end
-file = fread(fid,'char').';
+file = fread(fid, 'char').';
 if ~ischar(file)
     file = char(file);
 end
 if fclose(fid)==-1
     utils.warning('utils:file2char', ...
-        'Cannot close file ''%s'' after reading.',FName);
+        'Cannot close this file after reading: %s ', fileName);
 end
 
-% Remove UTF-8 CSV mark.
+% Remove UTF-8 CSV mark
 if strncmp(file, UTF, length(UTF))
     file = file(length(UTF)+1:end);
 end
 
-% Convert any EOLs to \n.
+% Convert any EOLs to \n
 file = textfun.converteols(file);
 
-if isequal(Type,'char')
-    C = file;
+if isequal(Type, 'char')
+    c = file;
     return
-elseif isequal(Type,'cellstr')
-    % Read individual lines into cellstr and remove EOLs.
+elseif isequal(Type, 'cellstr')
+    % Read individual lines into cellstr and remove EOLs
     eol = strfind(file, sprintf('\n'));
-    C = cell(1,length(eol)+1);
-    xEol = [0,eol,length(file)+1];
+    c = cell(1, length(eol)+1);
+    xEol = [0, eol, length(file)+1];
     for i = 1 : length(xEol)-1
         first = xEol(i)+1;
         last = xEol(i+1)-1;
-        C{i} = file(first:last);
+        c{i} = file(first:last);
     end
 end
 
-end
+end%
+
