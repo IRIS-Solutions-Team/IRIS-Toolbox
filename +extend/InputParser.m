@@ -3,8 +3,12 @@ classdef InputParser < inputParser
         PrimaryParameterNames = cell.empty(1, 0)
         Options = struct( )
         Aliases = struct( )
+
         HasDateOptions = false
         HasDeviationOptions = false
+        HasSwapOptions = false
+        HasOptionalRangeStartEnd = false
+        HasStartEndOptions = false
     end
 
 
@@ -46,6 +50,12 @@ classdef InputParser < inputParser
             end
             if this.HasDeviationOptions
                 resolveDeviationOptions(this);
+            end
+            if this.HasOptionalRangeStartEnd
+                resolveOptionalRangeStartEnd(this);
+            end
+            if this.HasStartEndOptions
+                resolveStartEndOptions(this);
             end
         end%
 
@@ -121,6 +131,21 @@ classdef InputParser < inputParser
         function addSwapOptions(this)
             this.addParameter('Exogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
             this.addParameter('Endogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
+            this.HasSwapOptions = true;
+        end%
+
+
+        function addOptionalRangeStartEnd(this)
+            this.addOptional('Range', @auto, @(x) isequal(x, @auto) || isequal(x, Inf) || DateWrapper.validateRangeInput(x));
+            this.addStartEndOptions( );
+            this.HasOptionalRangeStartEnd = true;
+        end%
+
+
+        function addStartEndOptions(this)
+            this.addParameter('Start', -Inf, @(x) isequal(x, -Inf) || DateWrapper.validateDateInput(x));
+            this.addParameter('End', Inf, @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
+            this.HasStartEndOptions = true;
         end%
 
 
@@ -161,6 +186,34 @@ classdef InputParser < inputParser
             if isequal(this.Options.DTrends, @auto)
                 this.Options.DTrends = ~this.Options.Deviation;
             end
+        end%
+
+
+        function resolveOptionalRangeStartEnd(this)
+            if isequal(this.Results.Range, @auto)
+                return
+            end
+            if isequal(this.Results.Range, Inf)
+                this.Options.Start = -Inf;
+                this.Options.End = Inf;
+                return
+            end
+            this.Options.Start = this.Results.Range(1);
+            this.Options.End = this.Results.Range(end);
+        end
+
+
+        function resolveStartEndOptions(this)
+            if isfield(this.Results, 'InputSeries')
+                if ~validateDateOrInf(this.Results.InputSeries, this.Options.Start)
+                    throw( exception.Base('InputParser:InvalidStartOption', 'error') );
+                end
+                if ~validateDateOrInf(this.Results.InputSeries, this.Options.End)
+                    throw( exception.Base('InputParser:InvalidEndOption', 'error') );
+                end
+            end
+            this.Options.SerialOfStart = DateWrapper.getSerialFromNumeric(this.Options.Start);
+            this.Options.SerialOfEnd = DateWrapper.getSerialFromNumeric(this.Options.End);
         end%
     end
 end
