@@ -124,7 +124,16 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
                 return
             end
             flag = false;
-        end
+        end%
+
+
+        function flag = validateDateOrInf(this, date)
+            if isequal(date, Inf) || isequal(date, -Inf)
+                flag = true;
+                return
+            end
+            flag = validateDate(this, date);
+        end%
     end
 
 

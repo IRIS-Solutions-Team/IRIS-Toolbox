@@ -26,6 +26,14 @@ else
     time = Inf;
 end
 
+plotFromDate = DateWrapper.empty(1, 0);
+plotToDate = DateWrapper.empty(1, 0);
+if isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
+    plotFromDate = time;
+    plotToDate = varargin{1};
+    varargin(1) = [ ];
+end
+
 this = varargin{1};
 varargin(1) = [ ];
 
@@ -36,18 +44,23 @@ if isempty(inputParser)
     inputParser.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) || isequal(x, @stem) || isequal(x, @numeric.barcon) || isequal(x, @numeric.errorbar));
     inputParser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
     inputParser.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x));
-    inputParser.addRequired('Series', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
+    inputParser.addRequired('PlotFromDate', @(x) isa(x, 'DateWrapper') || isequal(x, -Inf) || isequal(x, Inf));
+    inputParser.addRequired('PlotToDate', @(x) isa(x, 'DateWrapper') || isequal(x, -Inf) || isequal(x, Inf));
+    inputParser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
     inputParser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
     inputParser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
     inputParser.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ||  any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)));
 end
 
-inputParser.parse(plotFunc, handleAxes, time, this, varargin{:});
+inputParser.parse(plotFunc, handleAxes, time, plotFromDate, plotToDate, this, varargin{:});
 specString = inputParser.Results.SpecString;
 opt = inputParser.Options;
 unmatchedOptions = inputParser.UnmatchedInCell;
 
 enforceXLimHere = true;
+if (isequal(plotFromDate, Inf) || isequal(plotFromDate, -Inf)) && isequal(plotToDate, Inf)
+    time = Inf;
+end
 if isequal(time, Inf)
     time = this.Range;
     enforceXLimHere = false;
@@ -58,12 +71,14 @@ else
     time = time(:);
 end
 
-validFrequencies = isnan(this.Start) || validateDate(this, time);
+if isempty(plotFromDate)
+    validFrequencies = isnan(this.Start) || validateDate(this, time);
+else
+    validFrequencies = isnan(this.Start) ...
+                       || (validateDateOrInf(this, plotFromDate) && validateDateOrInf(this, plotToDate));
+end
 if ~validFrequencies
-    throw(exception.Base( ...
-        { 'TimeSubscriptable:implementPlot:IllegalDate'
-          'Plot range and input time series need to have the same date frequency.' } ...
-    ));
+    throw( exception.Base('TimeSubscriptable:IllegalPlotRangeFrequency', 'error') );
 end
 
 %--------------------------------------------------------------------------
@@ -72,7 +87,15 @@ if isa(handleAxes, 'function_handle')
     handleAxes = handleAxes( );
 end
 
-[yData, time] = getData(this, time);
+if ~isempty(plotFromDate)
+    [yData, time] = getDataFromTo( this, ...
+                                   DateWrapper.getSerialFromNumeric(plotFromDate), ...
+                                   DateWrapper.getSerialFromNumeric(plotToDate) ...
+                                 );
+else
+    [yData, time] = getData(this, time);
+end
+
 if ~isempty(time)
     timeFrequency = getFrequency(time(1));
 else
