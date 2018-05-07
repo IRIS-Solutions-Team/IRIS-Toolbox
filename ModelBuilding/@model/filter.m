@@ -186,6 +186,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
+% TODO Input parser
 [this, inputDatabank, range, j, varargin] = irisinp.parser.parse('model.filter', varargin{:});
 [opt, varargin] = passvalopt('model.filter', varargin{:});
 likOpt = prepareLoglik(this, range, 't', j, varargin{:});
@@ -290,6 +291,8 @@ return
 
     
     function preallocHData( )
+        % TODO Make .Output the primary option, allow for cellstr or string
+        % inputs
         lowerOutput = lower(opt.data);
         isPred = ~isempty(strfind(lowerOutput, 'pred'));
         isFilter = ~isempty(strfind(lowerOutput, 'filter'));
