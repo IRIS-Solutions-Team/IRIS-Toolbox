@@ -17,7 +17,7 @@ classdef Keyword
     
     
     properties (Constant)
-        PATTERN_NUMBERS = '(?<=[a-zA-Z])\d+';
+        PATTERN_NUMBERS = '(?<=[a-zA-Z_])\d+';
     end
     
     
@@ -87,10 +87,8 @@ classdef Keyword
                     || any(~strcmp(firstNumbers{1}, firstNumbers)) ...
                     || isempty(lastNumbers) ...
                     || any(~strcmp(lastNumbers{1}, lastNumbers))
-                throwCode( ...
-                    exception.ParseTime('Preparser:INVALID_DOUBLEDOT_PATTERN', 'error'), ...
-                    match ...
-                    );
+                throwCode( exception.ParseTime('Preparser:INVALID_DOUBLEDOT_PATTERN', 'error'), ...
+                           match );
             end
             pattern = firstPattern;
             from = sscanf(firstNumbers{1}, '%i');
