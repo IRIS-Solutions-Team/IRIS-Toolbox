@@ -1,5 +1,5 @@
 function this = interp(this, varargin)
-% interp  Interpolate missing observations.
+% interp  Interpolate missing observations
 %
 % __Syntax__
 %
@@ -10,8 +10,9 @@ function this = interp(this, varargin)
 %
 % * `X` [ tseries ] - Input time series.
 %
-% * `Range` [ numeric | char ] - Date range on which any missing
-% observations (`NaN`) will be interpolated.
+% * `Range` [ numeric | char ] - Date range within which any missing
+% observations (`NaN`) will be interpolated using observations available
+% within that range.
 %
 %
 % __Output Arguments__
@@ -22,8 +23,8 @@ function this = interp(this, varargin)
 %
 % __Options__
 %
-% * `'Method='` [ char | *`'cubic'`* ] - Any valid method accepted by the
-% built-in `interp1` function.
+% * `Method='Cubic'` [ char | `'Cubic'` ] - Any valid method accepted by the
+% built-in `interp1( )` function.
 %
 %
 % __Description__
@@ -32,48 +33,44 @@ function this = interp(this, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
-
-if ~isempty(varargin) && DateWrapper.validateDateInput(varargin{1})
-    range = varargin{1};
-    varargin(1) = [ ];
-    if ischar(range)
-        range = textinp2dat(range);
-    end
-else
-    range = Inf;
-end
-
-opt = passvalopt('tseries.interp', varargin{:});
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if isempty(this)
     return
 end
 
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('tseries.interp');
+    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    inputParser.addOptionalRangeStartEnd( );
+    inputParser.addParameter('Method', 'pchip', @(x) ischar(x) || isa(x, 'string'));
+end
+inputParser.parse(this, varargin{:});
+opt = inputParser.Options;
+
 %--------------------------------------------------------------------------
 
-if isequal(range, Inf)
-    range = get(this, 'range');
-elseif ~isempty(range)
-    range = range(1) : range(end);
-    this.Data = rangedata(this, range);
-    this.Start = range(1);
-else
+[data, range] = getDataFromTo(this, opt.SerialOfStart, opt.SerialOfEnd);
+
+if isempty(data)
     this = this.empty(this);
     return
 end
 
-data = this.Data(:, :);
-grid = dat2dec(range, 'centre');
-grid = grid - grid(1);
-for i = 1 : size(data, 2)
+sizeOfData = size(data);
+numOfPeriods = sizeOfData(1);
+numOfColumns = prod( sizeOfData(2:end) );
+grid = transpose(1 : numOfPeriods);
+for i = 1 : numOfColumns
     indexOfData = ~isnan(data(:, i));
     if any(~indexOfData)
-        func = griddedInterpolant(grid(indexOfData), data(indexOfData), opt.method);
+        func = griddedInterpolant(grid(indexOfData), data(indexOfData, i), opt.Method);
         data(~indexOfData, i) = func(grid(~indexOfData));
     end
 end
-this.Data(:, :) = data;
+
+this = fill(this, data, getFirst(range));
 
 end
