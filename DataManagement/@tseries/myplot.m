@@ -1,12 +1,12 @@
 function [hAx, hPlot, rng, data, xCoor, usrRng, freq] ...
     = myplot(func, hAx, rng, comprise, this, plotSpec, opt, varargin)
-% myplot  Master plot function for tseries objects.
+% myplot  Master plot function for tseries objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 % If the caller supplies empty `Func`, the graph will not be actually
 % rendered. This is a dry call to `myplot` used from within `plotyy`.
@@ -38,6 +38,8 @@ rng = specrange(this, rng);
 
 hPlot = [ ];
 if isempty(rng)
+    data = this.data([ ], :);
+    xCoor = double.empty(1, 0);
     utils.warning('tseries:myplot', ...
         'No graph displayed because date range is empty.');
     return
