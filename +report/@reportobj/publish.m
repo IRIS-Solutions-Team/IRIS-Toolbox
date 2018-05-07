@@ -1,4 +1,4 @@
-function [OutpFile,Info] = publish(This,OutpFile,varargin)
+function [outputFileName, infoStruct] = publish(this, outputFileName, varargin)
 % publish  Help provided in +report/publish.
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -9,23 +9,23 @@ function [OutpFile,Info] = publish(This,OutpFile,varargin)
 % * `'display='`
 % * `'rerun='`
 % and we need to capture them in output varargin.
-[opt,compilePdfOpt] = passvalopt('report.publish',varargin{:});
-This.options.progress = opt.progress;
+[opt, compilePdfOpt] = passvalopt('report.publish', varargin{:});
+this.options.progress = opt.progress;
 
-if isempty(strfind(opt.papersize,'paper'))
-    opt.papersize = [opt.papersize,'paper'];
+if isempty(strfind(opt.papersize, 'paper'))
+    opt.papersize = [opt.papersize, 'paper'];
 end
 
-if ~isequal(opt.title,Inf)
+if ~isequal(opt.title, Inf)
     utils.warning('report', ...
         ['The option ''title='' is obsolete in report/publish( ), ', ...
         'and will be removed from future versions of IRIS. ', ...
         'Use the Caption input argument in report/new( ) instead.']);
-    This.caption = opt.title;
+    this.caption = opt.title;
 end
 
 % Obsolete options.
-This.options = dbmerge(This.options,opt);
+this.options = dbmerge(this.options, opt);
 
 %--------------------------------------------------------------------------
 
@@ -33,47 +33,47 @@ This.options = dbmerge(This.options,opt);
 doCreateTempDir( );
 
 thisDir = fileparts(mfilename('fullpath'));
-templateFile = fullfile(thisDir,'report.tex');
+templateFile = fullfile(thisDir, 'report.tex');
 
 % Pass the publish options on to the report object and align objects
 % either of which can be a parent of figure.
 c = file2char(templateFile);
 
 % Create LaTeX code for the entire report.
-doc = latexcode(This);
+doc = latexcode(this);
 
 % Get the list of extra packages that needs to be loaded by LaTeX.
 pkg = { };
 doExtraPkg( );
 
 % Insert the LaTeX code into the template.
-c = strrep(c,'$document$',doc);
+c = strrep(c, '$document$', doc);
 
 % Document substitutions.
-c = report.reportobj.insertDocSubstitutions(This,c,pkg);
+c = report.reportobj.insertDocSubstitutions(this, c, pkg);
 
 % Create a temporary tex name and save the LaTeX file.
 latexFile = '';
 doSaveLatexFile( );
 
-[outputPath,outputTitle,outputExt] = fileparts(OutpFile);
+[outputPath, outputTitle, outputExt] = fileparts(outputFileName);
 if isempty(outputExt)
-    OutpFile = fullfile(outputPath,[outputTitle,'.pdf']);
+    outputFileName = fullfile(outputPath, [outputTitle, '.pdf']);
 end
 
 if opt.compile
     doCompile( );
 end
 
-[latexPath,latexTitle] = fileparts(latexFile);
-addtempfile(This,fullfile(latexPath,[latexTitle,'.*']));
+[latexPath, latexTitle] = fileparts(latexFile);
+addtempfile(this, fullfile(latexPath, [latexTitle, '.*']));
 
 if opt.cleanup
-    cleanup(This);
+    cleanup(this);
 end
 
-% Copy output information fields to a struct.
-Info = outpstruct(This.hInfo);
+% Copy output information fields to a struct
+infoStruct = outpstruct(this.hInfo);
 
 return
 
@@ -81,14 +81,14 @@ return
 
 
     function doExtraPkg( )
-        pkg = This.options.package;
+        pkg = this.options.package;
         if ischar(pkg)
-            pkg = regexp(pkg,'\w+','match');
+            pkg = regexp(pkg, '\w+', 'match');
         end
-        list = fieldnames(This.hInfo.package);
+        list = fieldnames(this.hInfo.package);
         for i = 1 : length(list)
             name = list{i};
-            if This.hInfo.package.(name)
+            if this.hInfo.package.(name)
                 pkg{end+1} = name; %#ok<AGROW>
             end
         end
@@ -113,16 +113,16 @@ return
                     tempDir);
             end
         end
-        This.hInfo.tempDir = tempDir;
+        this.hInfo.tempDir = tempDir;
     end
 
 
 
 
     function doSaveLatexFile( )
-        tempDir = This.hInfo.tempDir;
-        latexFile = [tempname(tempDir),'.tex'];
-        char2file(c,latexFile);
+        tempDir = this.hInfo.tempDir;
+        latexFile = [tempname(tempDir), '.tex'];
+        char2file(c, latexFile);
     end
 
 
@@ -131,18 +131,18 @@ return
         % Use try-catch to make sure the helper files are deleted at the
         % end of `publish`.
         try
-            [pdfName,count] = latex.compilepdf(latexFile,compilePdfOpt{:});
-            This.hInfo.latexRun = count;
-            movefile(pdfName,OutpFile);
+            [pdfName, count] = latex.compilepdf(latexFile, compilePdfOpt{:});
+            this.hInfo.latexRun = count;
+            movefile(pdfName, outputFileName);
         catch Error
-            msg = regexprep(Error.message,'\s+',' ');
-            if ~isempty(strfind(msg,'The process cannot access'))
-                cleanup(This);
+            msg = regexprep(Error.message, '\s+', ' ');
+            if ~isempty(strfind(msg, 'The process cannot access'))
+                cleanup(this);
                 utils.error('report', ...
                     ['Cannot create ''%s'' file because ', ...
                     'the file used by another process ', ...
                     '-- most likely open and locked.'], ...
-                    OutpFile);
+                    outputFileName);
             else
                 utils.warning('report', ...
                     ['Error compiling LaTeX and/or PDF files.\n', ...
