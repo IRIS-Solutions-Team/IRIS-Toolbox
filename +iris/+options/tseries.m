@@ -37,7 +37,7 @@ def.chowlin = { ...
 
 convert = {
     'function', [ ], @(x) isempty(x) || isfunc(x) || ischar(x)
-    'missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'last'}))) || isnumericscalar(x)
+    'Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'last', 'previous'}))) || isnumericscalar(x)
     'method', @mean, @(x) isfunc(x) || (ischar(x) && any(strcmpi(x, {'first', 'last'})))
     'select', Inf, @(x) isnumeric(x)
     'ConversionMonth, standinmonth', 1, @(x) isnumericscalar(x) || isequal(x, 'first') || isequal(x, 'last')
@@ -110,10 +110,6 @@ def.plot = [
     'xlimmargin', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
     }
 ];
-
-def.interp = { ...
-    'method', 'pchip', @ischar, ...
-};
 
 def.barcon = {
     'barwidth', 0.8, @isnumericscalar, ...

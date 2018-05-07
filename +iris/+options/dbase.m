@@ -41,8 +41,8 @@ Def.dbload = [
     'delimiter', ', ', @(x) ischar(x) && length(sprintf(x))==1
     'firstdateonly', false, @islogicalscalar
     'inputformat', 'auto', @(x) ischar(x) && (strcmpi(x, 'auto') || strcmpi(x, 'csv') || strncmpi(x, 'xl', 2))
-    'namerow, leadingrow', {'', 'variables'}, @(x) ischar(x) || iscellstr(x) || isnumericscalar(x)
-    'namefunc', [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x)))
+    'namerow, namesrow, leadingrow', {'', 'variables'}, @(x) ischar(x) || iscellstr(x) || isnumericscalar(x)
+    'namefunc, namesFunc', [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x)))
     'freq', [ ], @(x) isempty(x) || (ischar(x) && strcmpi(x, 'daily')) || (length(x)==1 && isnan(x)) || (isnumeric(x) && length(x)==1 && any(x==[0, 1, 2, 4, 6, 12, 52, 365]))
     'nan', 'NaN', @(x) ischar(x)
     'preprocess', [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x)))

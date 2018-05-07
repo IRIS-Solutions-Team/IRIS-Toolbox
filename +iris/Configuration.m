@@ -1,5 +1,4 @@
-classdef (CaseInsensitiveProperties=true) ...
-    Configuration 
+classdef (CaseInsensitiveProperties=true) Configuration 
     properties (SetAccess=protected)
         % IrisRoot  IRIS root folder (not customizable)
         IrisRoot = fileparts(which('irisping.m'))
@@ -15,6 +14,9 @@ classdef (CaseInsensitiveProperties=true) ...
 
         % UserConfigPath  Path to the user config file (not customizable)
         UserConfigPath = ''
+
+        % Fred API 
+        FredApiKey = '951f01181da86ccb9045ce8716f82f43'
     end
         
 
