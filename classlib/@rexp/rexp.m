@@ -1,20 +1,16 @@
+% rexp  Wrapper for Regular Expressions (rexp Objects)
+%
+% Backend IRIS class
+% No help provided
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
+
+
 classdef rexp
-    % rexp  Wrapper for Regular Expressions (rexp Objects).
-    %
-    % Backend IRIS class.
-    % No help provided.
-    
-    % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2018 IRIS Solutions Team.
-    
-    
-    
-    
     properties
-        String = '';
+        String = ''
     end
-    
-    
     
     
     methods
@@ -22,97 +18,96 @@ classdef rexp
             if isempty(varargin)
                 return
             end
-            if length(varargin) == 1 && isa(varargin{1}, 'rexp')
+            if length(varargin)==1 && isa(varargin{1}, 'rexp')
                 this = varargin{1};
                 return
             end
             if ischar(varargin{1}) || isa(varargin{1}, 'string')
                 this.String = varargin{1};
             end
-        end
+        end%
     end
-
-    
     
     
     methods
         function varargout = char(this)
             varargout{1} = this.String;
-        end
+        end%
+
+
+        function varargout = cellstr(this)
+            varargout{1} = cellstr(this.String);
+        end%
         
         
         function varargout = isempty(this, varargin)
             [varargout{1:nargout}] = isempty(this.String, varargin{:});
-        end
+        end%
         
         
         function varargout = length(this, varargin)
             [varargout{1:nargout}] = length(this.String, varargin{:});
-        end
+        end%
         
         
         function varargout = size(this, varargin)
             [varargout{1:nargout}] = size(this.String, varargin{:});
-        end
+        end%
         
         
         function varargout = strcmp(varargin)
             [varargout{1:nargout}] = apply(@strcmp, varargin{:});
-        end
+        end%
         
         
         function varargout = strcmpi(varargin)
             [varargout{1:nargout}] = apply(@strcmpi, varargin{:});
-        end
+        end%
         
         
         function varargout = strncmp(varargin)
             [varargout{1:nargout}] = apply(@strncmp, varargin{:});
-
-        end
-        
+        end% 
         
         function varargout = strncmpi(varargin)
             [varargout{1:nargout}] = apply(@strncmpi, varargin{:});
-
-        end
+        end%
         
         
         function this = strrep(this, varargin)
             this.String = strrep(this.String, varargin{:});
-        end
+        end%
         
         
         function this = strtrim(this, varargin)
             this.String = strtrim(this.String, varargin{:});
-        end
+        end%
         
         
         function varargout = regexp(varargin)
             [varargout{1:nargout}] = apply(@regexp, varargin{:});
-
-        end
+        end%
         
         
         function varargout = regexprep(varargin)
             [varargout{1:nargout}] = apply(@regexprep, varargin{:});
-        end
+        end%
         
         
         function varargout = regexprepi(varargin)
             [varargout{1:nargout}] = apply(@regexprepi, varargin{:});
-        end
+        end%
         
         
         function varargout = regexptranslate(varargin)
             [varargout{1:nargout}] = apply(@regexptranslate, varargin{:});
             varargout{1} = rexp(varargout{1});
-        end
+        end%
         
                 
         function varargout = sprintf(varargin)
             [varargout{1:nargout}] = apply(@sprintf, varargin{:});
-        end
+        end%
         
         
         function varargout = apply(Fn, varargin)
@@ -121,16 +116,14 @@ classdef rexp
                 varargin{i} = varargin{i}.String;
             end 
             [varargout{1:nargout}] = Fn(varargin{:});
-        end        
+        end%
     end
-    
-    
     
     
     methods
         function K = end(this, varargin)
             K = length(this.String);
-        end
+        end%
         
         
         function flag = eq(varargin)
@@ -139,19 +132,17 @@ classdef rexp
                 varargin{i} = varargin{i}.String;
             end 
             flag = eq(varargin{:});
-        end
+        end%
         
         
         function this = subsref(this, varargin)
             this.String = subsref(this.String, varargin{:});
-        end
+        end%
         
         
         function this = subsasgn(this, varargin)
             this.String = subsasgn(this.String, varargin{:});
-        end
-
-
+        end%
 
         
         function s = minus(s, this)
@@ -163,9 +154,7 @@ classdef rexp
                 list = dbnames(s, 'NameFilter=', this);
                 s = dbminus(s, list);
             end
-        end
-
-
+        end%
 
 
         function d = mtimes(d, this)
@@ -173,6 +162,6 @@ classdef rexp
                 list = dbnames(d, 'NameFilter=', this);
                 d = dbmtimes(d, list);
             end
-        end
+        end%
     end
 end
