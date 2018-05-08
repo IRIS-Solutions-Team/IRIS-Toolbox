@@ -67,8 +67,8 @@ flag = true;
 
 logStyle = this.Behavior.LogStyleInSolutionVectors;
 
-ssLevel = [ ];
-ssGrowth = [ ];
+steadyLevel = [ ];
+steadyGrowth = [ ];
 dtLevel = [ ];
 dtGrowth = [ ];
 ssDtLevel = [ ];
@@ -84,9 +84,9 @@ dtrendList = { ...
     'steady+dt', 'steadyLevel+dtLevel', 'steadyGrowth+dtGrowth', ...
     };
 if any(strcmpi(query, dtrendList))
-    [ssLevel, ssGrowth, dtLevel, dtGrowth, ssDtLevel, ssDtGrowth] = getSteady(this);
+    [steadyLevel, steadyGrowth, dtLevel, dtGrowth, ssDtLevel, ssDtGrowth] = getSteady(this);
 elseif any(strcmpi(query, steadyList))
-    [ssLevel, ssGrowth] = getSteady(this);
+    [steadyLevel, steadyGrowth] = getSteady(this);
 end
 
 [~, ~, nb, nf] = sizeOfSolution(this.Vector);
@@ -99,7 +99,7 @@ cell2DbaseFunc = @(X) cell2struct( ...
     this.Quantity.Name(:), 1);
 
 needsToCheckSolution = false;
-needsAddParams = false;
+needsToAddToDatabank = cell.empty(1, 0);
 
 if strncmpi(query, 'Equations:ParameterValues', length('Equations:ParameterValues'))
     answ = this.Equation.Input';
@@ -117,13 +117,9 @@ else
                 );
             
             
-        
-            
         case 'file'
             answ = this.FileName;
 
-            
-            
             
         case 'param'
             answ = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this);
@@ -226,45 +222,46 @@ else
 
             
         case 'steady'
-            answ = cell2DbaseFunc(ssLevel+1i*ssGrowth);
-            needsAddParams = true;
+            answ = cell2DbaseFunc(steadyLevel+1i*steadyGrowth);
+            needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
             
         case 'steadylevel'
-            answ = cell2DbaseFunc(ssLevel);
-            needsAddParams = true;
+            answ = cell2DbaseFunc(steadyLevel);
+            needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
             
         case 'steadygrowth'
-            answ = cell2DbaseFunc(ssGrowth);
-            needsAddParams = true;
-            
-            
+            answ = cell2DbaseFunc(steadyGrowth);
+            needsToAddToDatabank = {'Std', 'NonzeroCorr'};
+
+
         case 'dt'
             answ = cell2DbaseFunc(dtLevel+1i*dtGrowth);
-            needsAddParams = true;
+            needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
             
         case 'dtlevel'
             answ = cell2DbaseFunc(dtLevel);
-            needsAddParams = true;
+            needsToAddToDatabank = {'Std', 'NonzeroCorr'};
+
             
         case 'dtgrowth'
             indexNaNSolutions = this.Quantity.Type==TYPE(1);
             answ = cell2DbaseFunc(dtGrowth);
-            needsAddParams = true;
+            needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
         case 'steady+dt'
             answ = cell2DbaseFunc(ssDtLevel+1i*ssDtGrowth);
-            needsAddParams = true;
+            needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
         case 'steadylevel+dtlevel'
             answ = cell2DbaseFunc(ssDtLevel);
-            needsAddParams = true;
+            needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
         case 'steadygrowth+dtgrowth'
             answ = cell2DbaseFunc(ssDtGrowth);
-            needsAddParams = true;
+            needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
         case {'eig', 'eigval', 'roots'}
             answ = eig(this);
@@ -474,8 +471,8 @@ if needsToCheckSolution
 end
 
 % Add parameters, std devs and non-zero cross-corrs.
-if needsAddParams
-    answ = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, answ);
+if ~isempty(needsToAddToDatabank)
+    answ = addToDatabank(needsToAddToDatabank, this, answ);
 end
 
 return
@@ -529,44 +526,45 @@ return
 end%
 
 
-function [ssLevel, ssGrowth, dtLevel, dtGrowth, ssDtLevel, ssDtGrowth] ...
-        = getSteady(this)
+function [ steadyLevel, steadyGrowth, ...
+           dtLevel, dtGrowth, ...
+           ssDtLevel, ssDtGrowth ] = getSteady(this)
     TYPE = @int8;
 
-    nQty = length(this.Quantity);
+    numOfQuantities = length(this.Quantity);
     nv = length(this.Variant);
     ixy = this.Quantity.Type==TYPE(1);
-    ixLog = this.Quantity.IxLog;
+    indexOfLog = this.Quantity.IxLog;
 
     % Steady states.
     ss = this.Variant.Values;
-    ssLevel = real(ss);
-    ssGrowth = imag(ss);
+    steadyLevel = real(ss);
+    steadyGrowth = imag(ss);
 
     % Fix missing (=zero) growth in steady states of log variables.
-    ixLogZero = ssGrowth==0 & repmat(ixLog, 1, 1, nv);
-    ssGrowth(ixLogZero) = 1;
+    ixLogZero = steadyGrowth==0 & repmat(indexOfLog, 1, 1, nv);
+    steadyGrowth(ixLogZero) = 1;
 
     if nargout<3
         return
     end
 
     % Dtrends alone.
-    dtLevel = zeros(1, nQty, nv);
-    dtGrowth = zeros(1, nQty, nv);
+    dtLevel = zeros(1, numOfQuantities, nv);
+    dtGrowth = zeros(1, numOfQuantities, nv);
     [dtLevel(:, ixy, :), dtGrowth(:, ixy, :)] = getSteadyDtrends(this);
 
-    dtLevel(1, ixLog, :) = real(exp(dtLevel(1, ixLog, :)));
-    dtGrowth(1, ixLog, :) = exp(dtGrowth(1, ixLog, :));
+    dtLevel(1, indexOfLog, :) = real(exp(dtLevel(1, indexOfLog, :)));
+    dtGrowth(1, indexOfLog, :) = exp(dtGrowth(1, indexOfLog, :));
 
     % Steady state plus dtrends.
-    ssDtLevel = ssLevel;
-    ssDtLevel(1, ~ixLog, :) = ssDtLevel(1, ~ixLog, :) + dtLevel(1, ~ixLog, :);
-    ssDtLevel(1, ixLog, :) = ssDtLevel(1, ixLog, :) .* dtLevel(1, ixLog, :);
+    ssDtLevel = steadyLevel;
+    ssDtLevel(1, ~indexOfLog, :) = ssDtLevel(1, ~indexOfLog, :) + dtLevel(1, ~indexOfLog, :);
+    ssDtLevel(1, indexOfLog, :) = ssDtLevel(1, indexOfLog, :) .* dtLevel(1, indexOfLog, :);
 
-    ssDtGrowth = ssGrowth;
-    ssDtGrowth(1, ~ixLog, :) = ssDtGrowth(1, ~ixLog, :) + dtGrowth(1, ~ixLog, :);
-    ssDtGrowth(1, ixLog, :) = ssDtGrowth(1, ixLog, :) .* dtGrowth(1, ixLog, :);
+    ssDtGrowth = steadyGrowth;
+    ssDtGrowth(1, ~indexOfLog, :) = ssDtGrowth(1, ~indexOfLog, :) + dtGrowth(1, ~indexOfLog, :);
+    ssDtGrowth(1, indexOfLog, :) = ssDtGrowth(1, indexOfLog, :) .* dtGrowth(1, indexOfLog, :);
 end%
 
 
@@ -628,4 +626,9 @@ function equations = printParameterValues(this, equations, format)
     equations = regexprep(equations, names, values);
 end%
 
+
+%{
+function steadyTable = getSteadyTable(this, values)
+    names = this.Quantity.Name(
+%}
 
