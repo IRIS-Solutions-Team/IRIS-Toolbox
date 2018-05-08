@@ -118,7 +118,7 @@ if isequal(s.Method, 'selective')
     % equations. These will be combined with positions of exogenized variables
     % in each segment.
     ixXUpdN = false(nxx, 1);
-    tkn = regexp(s.Selective.EqtnNI, '\<xi\>\((\d+), ', 'tokens');
+    tkn = regexp(s.Selective.EqtnNI, '\<xi\>\((\d+)', 'tokens');
     for i = 1 : numel(tkn)
         if isempty(tkn{i})
             continue
