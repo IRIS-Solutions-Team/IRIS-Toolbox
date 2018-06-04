@@ -121,9 +121,9 @@ for i = find(ixy | ixe)
     );
 end
 
-% Generate random residuals if requested.
+% Generate random residuals if requested
 if ~isequal(opt.shockfunc, @zeros)
-    outputDatabank = shockdb(this, outputDatabank, range, numColumnsToCreate, 'shockfunc=', opt.shockfunc);
+    outputDatabank = shockdb(this, outputDatabank, range, numColumnsToCreate, 'shockFunc=', opt.shockfunc);
 end
 
 % Add parameters.

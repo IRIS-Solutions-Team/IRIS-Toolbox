@@ -25,7 +25,7 @@ function [d, isDev] = zerodb(this, range, varargin)
 %
 % __Options__
 %
-% * `'shockFunc='` [ `@lhsnorm` | `@randn` | *`@zeros`* ] - Function used
+% * `ShockFunc=@zeros` [ `@lhsnorm` | `@randn` | `@zeros` ] - Function used
 % to generate data for shocks. If `@zeros`, the shocks will simply be
 % filled with zeros. Otherwise, the random numbers will be drawn using the
 % specified function and adjusted by the respective covariance matrix

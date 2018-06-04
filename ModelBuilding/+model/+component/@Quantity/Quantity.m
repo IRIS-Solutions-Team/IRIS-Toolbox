@@ -20,6 +20,11 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         TYPE_ORDER = int8([1, 2, 31, 32, 4, 5])
         DEFAULT_BOUNDS = [-Inf; Inf; -Inf; Inf]
     end
+
+
+    properties (Dependent)
+        NumOfQuantities
+    end
     
     
     methods
@@ -44,7 +49,12 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
 
         function this = resetNames(this)
             this.Name = this.OriginalNames;
-        end
+        end%
+
+
+        function n = get.NumOfQuantities(this)
+            n = numel(this.Name);
+        end%
     end
     
     

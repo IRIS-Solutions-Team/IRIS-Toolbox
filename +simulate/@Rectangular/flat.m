@@ -1,79 +1,77 @@
-function flat(this, data, firstColumn, lastColumn, deviation, observed)
+function flat(this, data)
 
-nxi = this.NumStates;
-nf = this.NumForward;
-ny = this.NumObserved;
-ne = this.NumShocks;
-idObserved = this.IdObserved;
-idShocks = this.IdShocks;
-idStates = this.IdStates;
-idBackward = this.IdBackward;
-indexCurrent = this.IndexCurrent;
-idCurrent = this.IdCurrent;
-linxBackward = this.LinxBackward;
-linxCurrent = this.LinxCurrent;
-linxStep = this.LinxStep;
-%linxBackward = sub2ind(size(data.YXEPG), real(idBackward), firstColumn+imag(idBackward));
-%linxCurrent = sub2ind(size(data.YXEPG), real(idCurrent), firstColumn+imag(idCurrent));
-%linxStep = size(data.YXEPG, 1);
+nf = this.NumOfForward;
+ny = this.NumOfObserved;
+ne = this.NumOfShocks;
+
+idOfObserved = this.IdOfObserved;
+idOfShocks = this.IdOfShocks;
+indexOfCurrent = this.IndexOfCurrent;
+
+sizeOfData = size(data.YXEPG);
+firstColumn = this.FirstColumn;
+lastColumn = this.LastColumn;
+
+linxOfBackward = this.LinxOfBackward;
+linxOfCurrent = this.LinxOfCurrent;
+stepForLinx = this.NumOfQuantities;
+
+deviation = this.Deviation;
+simulateObserved = this.SimulateObserved;
+
 [T, R, K, Z, H, D] = this.FirstOrderSolution{:};
 
 if ne>0
-    expectedShocks = this.Expected( data.YXEPG(idShocks, :) );
-    unexpectedShocks = this.Unexpected( data.YXEPG(idShocks, :) );
-    lastExpectedShock = find(any(expectedShocks~=0, 1), 1, 'last');
+    retrieveExpected = this.RetrieveExpected( data.YXEPG(idOfShocks, :) );
+    retrieveUnexpected = this.RetrieveUnexpected( data.YXEPG(idOfShocks, :) );
+    lastExpectedShock = find(any(retrieveExpected~=0, 1), 1, 'last');
     if isempty(lastExpectedShock)
         lastExpectedShock = 0;
     end
-    currentForward = size(R, 2)/ne - 1;
     requiredForward = lastExpectedShock - firstColumn;
-    if requiredForward>currentForward
-        R = model.expandFirstOrder(R, [ ], this.FirstOrderExpansion, requiredForward);
-        this.FirstOrderSolution{2} = R;
-    end
 end
 
-if any(this.IndexLog)
-    data.YXEPG(this.IndexLog, :) = log(data.YXEPG(this.IndexLog, :));
+if any(this.IndexOfLog)
+    data.YXEPG(this.IndexOfLog, :) = log( data.YXEPG(this.IndexOfLog, :) );
 end
 
 for t = firstColumn : lastColumn
     % __Endogenous variables__
-    Xi_t = T*data.YXEPG(linxBackward-linxStep);
+    Xi_t = T*data.YXEPG(linxOfBackward-stepForLinx);
     if ~deviation
         Xi_t = Xi_t + K;
     end
     if ne>0
         if t<=lastExpectedShock
             ahead = lastExpectedShock - t + 1;
-            shocks = expectedShocks(:, t:lastExpectedShock);
-            shocks(:, 1) = shocks(:, 1) + unexpectedShocks(:, t);
+            shocks = retrieveExpected(:, t:lastExpectedShock);
+            shocks(:, 1) = shocks(:, 1) + retrieveUnexpected(:, t);
             Xi_t = Xi_t + R(:, 1:ahead*ne)*shocks(:);
         else
-            Xi_t = Xi_t + R(:, 1:ne)*unexpectedShocks(:, t);
+            Xi_t = Xi_t + R(:, 1:ne)*retrieveUnexpected(:, t);
         end
     end
-    data.YXEPG(linxCurrent) = Xi_t(indexCurrent);
+    data.YXEPG(linxOfCurrent) = Xi_t(indexOfCurrent);
 
     % __Observables__
-    if observed && ny>0
+    if simulateObserved && ny>0
         Y_t = Z*Xi_t(nf+1:end);
         if ne>0
-            Y_t = Y_t + H*(expectedShocks(:, t) + unexpectedShocks(:, t));
+            Y_t = Y_t + H*(retrieveExpected(:, t) + retrieveUnexpected(:, t));
         end
         if ~deviation
             Y_t = Y_t + D;
         end
-        data.YXEPG(idObserved, t) = Y_t;
+        data.YXEPG(idOfObserved, t) = Y_t;
     end
 
     % Update linear indexes by one column ahead.
-    linxBackward = round(linxBackward + linxStep);
-    linxCurrent = round(linxCurrent + linxStep);
+    linxOfBackward = round(linxOfBackward + stepForLinx);
+    linxOfCurrent = round(linxOfCurrent + stepForLinx);
 end
 
-if any(this.IndexLog)
-    data.YXEPG(this.IndexLog, :) = exp(data.YXEPG(this.IndexLog, :));
+if any(this.IndexOfLog)
+    data.YXEPG(this.IndexOfLog, :) = exp( data.YXEPG(this.IndexOfLog, :) );
 end
 
 end

@@ -1,25 +1,22 @@
-classdef Preparser < handle
+classdef Preparser < model.File
     properties
-        FileName = char.empty(1, 0)  % Input file name.
-        UserComment = char.empty(1, 0)  % User comment line read from code.
-        Code = char.empty(1, 0)  % Code being preparsed.
-        White = char.empty(1, 0)  % Code with all labels whited out.
-        Assigned = struct.empty( ) % Database with control parameters.
-        CloneTemplate = char.empty(1, 0)  % Template to clone model names.
-        Export = shared.Export.empty(1, 0) % Files to be saved into working folder.
-        CtrlParameters = cell(1, 0) % List of parameter names occuring in control expressions and interpolations.
-        EvalWarning = parser.Preparser.EVAL_WARNING % List of if/elseif/switch/case conditions/expressions producing errors.
+        UserComment = char.empty(1, 0)  % User comment line read from code
+        White = char.empty(1, 0)  % Code with all labels whited out
+        Assigned = struct.empty( ) % Database with control parameters
+        CloneTemplate = char.empty(1, 0)  % Template to clone model names
+        Export = shared.Export.empty(1, 0) % Files to be saved into working folder
+        CtrlParameters = cell(1, 0) % List of parameter names occuring in control expressions and interpolations
+        EvalWarning = parser.Preparser.EVAL_WARNING % List of if/elseif/switch/case conditions/expressions producing errors
         
-        StoreForCtrl = cell.empty(0, 2) % Store !for control variable replacements.
+        StoreForCtrl = cell.empty(0, 2) % Store !for control variable replacements
     end
     
     
     
     
     properties (Constant)
-        EVAL_DBASE_PREFIX = 'varargin{2}.';
-        EVAL_TEMP_PREFIX = '?.';
-        CLONE_PATTERN = '(?<!!)\<([A-Za-z]\w*)\>(?!\()';
+        EVAL_DBASE_PREFIX = 'varargin{2}.'
+        EVAL_TEMP_PREFIX = '?.'
         
         EVAL_WARNING = struct( ...
             'If',{{ }}, ...
@@ -37,46 +34,54 @@ classdef Preparser < handle
     
     
     methods
-        function this = Preparser(fileName, inpCode, assigned, cloneTemplate)
-            import parser.Preparser;
+        function this = Preparser(modelFile, inpCode, assigned, cloneTemplate)
+            import parser.Preparser
             if nargin==0
                 return
             end
-            if ~isempty(fileName)
-                fileName = cellstr(fileName);
-                for iThis = 1 : numel(fileName)
+            if ~isempty(modelFile)
+                if ~isa(modelFile, 'model.File')
+                    fileName = cellstr(modelFile);
+                    numOfModelFiles = numel(fileName);
+                    modelFile = model.File.empty(1, 0);
+                    for i = 1 : numOfModelFiles
+                        modelFile = [modelFile, model.File(fileName{i})];
+                    end
+                end
+                for i = 1 : numel(modelFile)
                     % Because Preparser is a handle class we need to create separate instances for
-                    % each file name inside the for loop.
-                    this(iThis) = parser.Preparser( ); %#ok<AGROW>
-                    this(iThis).FileName = fileName{iThis}; %#ok<AGROW>
-                    readCodeFromFile( this(iThis) );
-                    this(iThis).Assigned = assigned; %#ok<AGROW>
-                    this(iThis).CloneTemplate = cloneTemplate; %#ok<AGROW>
+                    % each file name inside the loop
+                    this(i) = parser.Preparser( ); %#ok<AGROW>
+                    this(i).FileName = modelFile(i).FileName;
+                    this(i).Code = modelFile(i).Code;
                 end
             else
                 % Input code from input string(s) (char or cellstr).
                 inpCode = cellstr(inpCode);
-                for iThis = 1 : numel(inpCode)
+                for i = 1 : numel(inpCode)
                     % Because Preparser is a handle class we need to create separate instances for
                     % each file name inside the for loop.
-                    this(iThis) = parser.Preparser( ); %#ok<AGROW>
-                    this(iThis).Code = inpCode{iThis}; %#ok<AGROW>
-                    this(iThis).Assigned = assigned; %#ok<AGROW>
-                    this(iThis).CloneTemplate = cloneTemplate; %#ok<AGROW>
+                    this(i) = parser.Preparser( ); %#ok<AGROW>
+                    this(i).Code = inpCode{i}; %#ok<AGROW>
                 end
             end
-            nThis = length(this);
-            for iThis = 1 : nThis
-                p = this(iThis);
-                % Store parsed file name.
+
+            for i = 1 : numel(this)
+                this(i).Assigned = assigned; %#ok<AGROW>
+                this(i).CloneTemplate = cloneTemplate; %#ok<AGROW>
+            end
+
+            for i = 1 : numel(this)
+                p = this(i);
+                % Store parsed file name
                 exception.ParseTime.storeFileName(p.FileName);
                 if isempty(p.Code)
                     continue
                 end
                 
-                % Handle obsolete syntax.
+                % Handle obsolete syntax
                 obsoleteSyntax(p);
-                % Preparse individual components.
+                % Preparse individual components
                 parser.UserComment.parse(p);
                 parser.Comment.parse(p);
                 parser.control.Control.parse(p);
@@ -88,56 +93,32 @@ classdef Preparser < handle
                 parser.substitution.Substitution.parse(p);
                 parser.pseudofunc.Pseudofunc.parse(p);
                 parser.doubledot.DoubleDot.parse(p);
-                % Check leading and trailing empty lines.
+                % Check leading and trailing empty lines
                 fixEmptyLines(p);
-                % Clone preparsed code.
+                % Clone preparsed code
                 if ~isempty(cloneTemplate)
-                    p.Code = parser.Preparser.cloneAllNames(p.Code, p.CloneTemplate);
+                    p.Code = model.File.cloneAllNames(p.Code, p.CloneTemplate);
                 end
                 throwEvalWarning(p);
             end     
             % Reset parsed file name.
             exception.ParseTime.storeFileName( );            
-        end
-        
-        
-        function readCodeFromFile(this)
-            import parser.Preparser;
-            fileName = this.FileName;
-            fid = fopen(fileName,'r');
-            if fid==-1
-                if ~utils.exist(fileName,'file')
-                    throw( exception.ParseTime('Preparser:CANNOT_FIND_FILE', 'error'), ...
-                        fileName ); %#ok<GTARG>
-                else
-                    throw( exception.ParseTime('Preparser:CANNOT_READ_FILE', 'error'), ...
-                        fileName ); %#ok<GTARG>
-                end
-            end
-            c = char(fread(fid,'char').');
-            if fclose(fid)==-1
-                throw( exception.ParseTime('Preparser:CANNOT_CLOSE_FILE', 'warning'), ...
-                    fileName ); %#ok<GTARG>
-            end
-            c = Preparser.convertEols(c);
-            c = Preparser.addLineBreak(c);
-            this.Code = c;
-        end
+        end%
         
         
         function fixEmptyLines(this)
             c = this.Code;
-            % Remove leading and trailing empty lines.
+            % Remove leading and trailing empty lines
             c = regexprep(c, '^\s*\n', '');
             c = regexprep(c, '\n\s*$', '');
-            % Add line break at the end of the preparsed code.
-            c = parser.Preparser.addLineBreak(c);
+            % Add line break at the end if there is none
+            c = model.File.addLineBreak(c);
             this.Code = c;            
-        end
+        end%
         
         
         function f = getFileName(this)
-            import parser.Preparser;            
+            import parser.Preparser
             f = '';
             nThis = length(this);
             for iThis = 1 : nThis
@@ -146,7 +127,7 @@ classdef Preparser < handle
                     f = [ f, Preparser.FILE_NAME_SEPARATOR ]; %#ok<AGROW>
                 end
             end 
-        end
+        end%
         
         
         function c = createFinalCut(this)
@@ -159,13 +140,12 @@ classdef Preparser < handle
                     c = [ c, Preparser.CODE_SEPARATOR ]; %#ok<AGROW>
                 end
             end
-        end
+        end%
         
         
         function c = applyFinalCutCommands(this, c) %#ok<INUSL>
             c = parser.List.parse(c);
-        end
-        
+        end%
         
         
         function d = createCtrlDatabase(this)
@@ -179,7 +159,7 @@ classdef Preparser < handle
                     d.(name) = assigned.(name);
                 end
             end
-        end
+        end%
         
         
         function throwEvalWarning(this)
@@ -201,13 +181,13 @@ classdef Preparser < handle
                     this.EvalWarning.Case{:} ...
                     );
             end
-        end
+        end%
         
         
         function add(this, ctrlDatabase, export)
             addCtrlParameter(this, ctrlDatabase);
             this.Export = [this.Export, export];
-        end
+        end%
         
         
         function addCtrlParameter(this, add)
@@ -215,7 +195,7 @@ classdef Preparser < handle
                 add = { add };
             end
             this.CtrlParameters = [ this.CtrlParameters, add ];
-        end
+        end%
         
         
         function addEvalWarning(type, this, message)
@@ -225,7 +205,7 @@ classdef Preparser < handle
                 return
             end
             this.EvalWarning.(type){end+1} = message;
-        end
+        end%
 
 
         function obsoleteSyntax(this)
@@ -235,28 +215,28 @@ classdef Preparser < handle
                 new = parser.Preparser.OBSOLETE_SYNTAX{i, 2};
                 this.Code = regexprep(this.Code, old, new); 
             end
-        end
+        end%
     end
     
     
     methods (Static)
-        function [finalCut, fileName, export, ctrlParameters, userComment] = parse(fileName, inpCode, varargin)
+        function [finalCut, fileName, export, ctrlParameters, userComment] = parse(modelFile, inpCode, varargin)
             import parser.Preparser
             persistent inputParser
             if isempty(inputParser)
                 inputParser = extend.InputParser('Preparser.parse');
-                inputParser.addRequired('FileName', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
+                inputParser.addRequired('ModelFile', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x) || isa(x, 'model.File'));
                 inputParser.addRequired('InputCode', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
                 inputParser.addParameter('Assigned', struct( ), @(x) isempty(x) || isstruct(x));
                 inputParser.addParameter('SaveAs', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
                 inputParser.addParameter('CloneString', '', @(x) isempty(x) || ischar(x) || isa(x, 'string')); 
             end
-            inputParser.parse(fileName, inpCode, varargin{:});
+            inputParser.parse(modelFile, inpCode, varargin{:});
             assigned = inputParser.Results.Assigned;
             saveAs = inputParser.Results.SaveAs;
-            cloneStr = inputParser.Results.CloneString;
+            cloneString = inputParser.Results.CloneString;
             
-            this = parser.Preparser(fileName, inpCode, assigned, cloneStr);
+            this = parser.Preparser(modelFile, inpCode, assigned, cloneString);
             % Combine file names.
             fileName = getFileName(this); 
             % Compose final code.
@@ -273,7 +253,7 @@ classdef Preparser < handle
             if ~isempty(saveAs)
                 Preparser.saveAs(finalCut, saveAs);
             end
-        end    
+        end%
         
         
         function c = convertEols(c)
@@ -282,15 +262,7 @@ classdef Preparser < handle
             c = strrep(c, sprintf('\r\n'), sprintf('\n'));
             % Mac:
             c = strrep(c, sprintf('\r'), sprintf('\n'));            
-        end
-        
-        
-        function c = addLineBreak(c)
-            BR = sprintf('\n');
-            if isempty(c) || c(end)~=BR
-                c = [c,BR];
-            end        
-        end
+        end%
         
         
         function varargout = eval(varargin)
@@ -300,7 +272,7 @@ classdef Preparser < handle
                 parser.Preparser.evalPopulateWorkspace(varargin{:});
                 varargout{1} = eval(varargin{1});
             end
-        end
+        end%
         
         
         function evalPopulateWorkspace(expn, assigned, p)
@@ -325,53 +297,24 @@ classdef Preparser < handle
             if nargin>2 && any(ixControl)
                 addCtrlParameter(p, lsAssigned(ixControl));
             end
-        end
+        end%
         
-        
-        function flag = checkCloneString(c)
-            if ~isempty(strfind(c, '$'))
-                flag = isvarname(strrep(c, '$', 'x'));
-                return
-            elseif ~isempty(strfind(c, '?'))
-                flag = isvarname(strrep(c, '$', 'x'));
-                return
-            else
-                flag = false;
-                return
-            end
-        end
-        
-        
-        function code = cloneAllNames(code, cloneStr)
-            import parser.Preparser;
-            if ~Preparser.checkCloneString(cloneStr)
-                throw( exception.ParseTime('Preparser:CLONE_STRING_INVALID', 'error'), ...
-                       cloneStr ); %#ok<GTARG>
-            end
-            cloneStr = strrep(cloneStr, '$', '$1');
-            cloneStr = strrep(cloneStr, '?', '$1');
-            code = regexprep( code, ...
-                              Preparser.CLONE_PATTERN, ...
-                              cloneStr );
-        end
-
         
         function saveAs(codeToSave, fileName)
             if ~isempty(fileName)
                 try
                     char2file(codeToSave, fileName);
                 catch
-                    throw( ...
-                        exception.ParseTime('Preparser:CANNOT_SAVE', 'error'), ...
-                        fileName ); %#ok<GTARG>
+                    throw( exception.ParseTime('Preparser:CANNOT_SAVE', 'error'), ...
+                           fileName ); %#ok<GTARG>
                 end
             end
-        end
+        end%
         
         
         function code = removeInsignificantWhs(code)
             code = strtrim(code);
             code = regexprep(code,'\s+',' ');
-        end
+        end%
     end
 end

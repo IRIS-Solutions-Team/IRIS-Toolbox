@@ -3,24 +3,24 @@ classdef Stacked < solver.block.Block
         Rectangular
         MaxLag = double.empty(1, 0)    % Max lag of each quantity in this block
         MaxLead = double.empty(1, 0)   % Max lead of each quantity in this block
-        FirstTime = double.empty(1, 0) % First time (1..numPeriods) to evaluate equations in for ith unknown (1..numQuantitiesInBlock*numPeriods)
+        FirstTime = double.empty(1, 0) % First time (1..numOfPeriods) to evaluate equations in for ith unknown (1..numOfQuantitiesInBlock*numOfPeriods)
         LastTime = double.empty(1, 0)  % Last time dtto
         NumActiveEquations
     end
 
 
     properties (Constant)
-        VECTORIZE = true;
+        VECTORIZE = true
     end
 
 
     methods
         function this = Stacked(varargin)
             this = this@solver.block.Block(varargin{:});
-        end
+        end%
         
         
-        function [exitStatus, error] = run(this, data, t, ixLog, rect)
+        function [exitStatus, error] = run(this, data, columnsToRun, ixLog, rect)
             exitStatus = true;
             error = struct( );
             error.EvaluatesToNan = [ ];
@@ -28,18 +28,18 @@ classdef Stacked < solver.block.Block
             if isempty(this.PosQty)
                 return
             end
-            numQuantitiesInBlock = numel(this.PosQty);
-            numEquationsInBlock = numel(this.PosEqn);
-            numColumnsSimulated = numel(t);
-            firstColumn = t(1);
-            lastColumn = t(end);
+            numOfQuantitiesInBlock = numel(this.PosQty);
+            numOfEquationsInBlock = numel(this.PosEqn);
+            numColumnsSimulated = numel(columnsToRun);
+            firstColumn = columnsToRun(1);
+            lastColumn = columnsToRun(end);
             numColumns = lastColumn - firstColumn + 1;
 
             % Create linear index of unkowns in data
             linx = sub2ind( ...
                 size(data.YXEPG), ...
                 repmat(this.PosQty(:), 1, numColumnsSimulated), ...
-                repmat(firstColumn:lastColumn, numQuantitiesInBlock, 1) ...
+                repmat(firstColumn:lastColumn, numOfQuantitiesInBlock, 1) ...
             );
             linx = linx(:);
 
@@ -54,12 +54,8 @@ classdef Stacked < solver.block.Block
                 % __Solve__
                 deviation = false;
                 observed = false;
-                % Initialize endogenous quantities.
+                % Initialize endogenous quantities
                 z0 = data.YXEPG(linx);
-                %ixNan = isnan(z0);
-                %if any(any(ixNan))
-                %    z0(ixNan) = data.YXEPG(posx(ixNan), t-1);
-                %end
                 ixNan = isnan(z0);
                 if any(ixNan)
                     z0(ixNan) = 1;
@@ -76,7 +72,7 @@ classdef Stacked < solver.block.Block
                 % checkBoundsOnInitCond( );
                 % Test all equations in this block for NaNs and Infs.
                 checkObjective = objective(z0);
-                checkObjective = reshape(checkObjective, numEquationsInBlock, numColumnsSimulated);
+                checkObjective = reshape(checkObjective, numOfEquationsInBlock, numColumnsSimulated);
                 indexInvalidData = ~isfinite(checkObjective);
                 if any(indexInvalidData(:))
                     indexInvalidEquationsInBlock = any(indexInvalidData, 2);
@@ -102,14 +98,14 @@ classdef Stacked < solver.block.Block
                 % __Assignment__
                 isInvTransform = ~isempty(this.Type.InvTransform);
                 for i = 1 : numColumnsSimulated
-                    z = this.EquationsFunc(data.YXEPG, t(i), data.L);
+                    z = this.EquationsFunc(data.YXEPG, columnsToRun(i), data.L);
                     if isInvTransform
                         z = this.Type.InvTransform(z);
                     end
                     data.YXEPG(linx(i)) = z;
                 end
                 exitStatus = all(isfinite(data.YXEPG(linx)));
-            end
+            end%
             
             
             function y = objective(z, ithJacob)
@@ -123,14 +119,12 @@ classdef Stacked < solver.block.Block
                 data.YXEPG(linx) = z;
                 
                 if runFotc
-                    % First-order terminal condition.
-                    firstColumnFotc = t(end)+1;
-                    lastColumnFotc = t(end)+maxMaxLead;
-                    flat(rect, data, firstColumnFotc, lastColumnFotc, deviation, observed);
+                    % First-order terminal condition
+                    flat(rect, data);
                 end
 
                 if isempty(ithJacob)
-                    y = this.EquationsFunc(data.YXEPG, t, data.L);
+                    y = this.EquationsFunc(data.YXEPG, columnsToRun, data.L);
                     y = y(:);
                 else
                     firstColumnJacob = firstColumn + this.FirstTime(ithJacob) - 1;
@@ -140,31 +134,31 @@ classdef Stacked < solver.block.Block
                         y = [y; this.NumericalJacobFunc{ithJacob}(data.YXEPG, column, data.L)];
                     end
                 end
-            end
-        end
+            end%
+        end%
     end
     
     
     methods       
         function prepareBlock(this, blz, opt)
             prepareBlock@solver.block.Block(this, blz, opt);
-        end
+        end%
 
 
         function createJacobPattern(this, blz)
-            numQuantitiesInBlock = numel(this.PosQty);
-            numEquationsInBlock = numel(this.PosEqn);
-            numPeriods = blz.NumPeriods;
-            numUnknowns = numQuantitiesInBlock * numPeriods;
+            numOfQuantitiesInBlock = numel(this.PosQty);
+            numOfEquationsInBlock = numel(this.PosEqn);
+            numOfPeriods = blz.NumPeriods;
+            numOfUnknownsInBlock = numOfQuantitiesInBlock * numOfPeriods;
             % Incidence matrix numQuantities-by-numShifts
             acrossEquations = across(blz.Incidence, 'Equations');
             acrossEquations = acrossEquations(this.PosQty, :);
             % Incidence matrix numEquations-by-numQuantities
             acrossShifts = across(blz.Incidence, 'Shifts');
             acrossShifts = acrossShifts(this.PosEqn, this.PosQty);
-            this.MaxLag = nan(1, numQuantitiesInBlock);
-            this.MaxLead = nan(1, numQuantitiesInBlock);
-            for i = 1 : numQuantitiesInBlock
+            this.MaxLag = nan(1, numOfQuantitiesInBlock);
+            this.MaxLead = nan(1, numOfQuantitiesInBlock);
+            for i = 1 : numOfQuantitiesInBlock
                 this.MaxLag(i) = find(acrossEquations(i, :), 1, 'first');
                 this.MaxLead(i) = find(acrossEquations(i, :), 1, 'last');
             end
@@ -173,25 +167,25 @@ classdef Stacked < solver.block.Block
             this.MaxLead = this.MaxLead - sh0;
             maxMaxLead = max(this.MaxLead);
 
-            this.JacobPattern = false(numEquationsInBlock*numPeriods, numQuantitiesInBlock*numPeriods);
-            this.FirstTime = nan(1, numQuantitiesInBlock*numPeriods);
-            this.LastTime = nan(1, numQuantitiesInBlock*numPeriods);
-            this.NumericalJacobFunc = cell(1, numUnknowns);
-            this.NumActiveEquations = nan(1, numUnknowns);
-            for t = 1 : numPeriods
-               for q = 1 : numQuantitiesInBlock
-                    posUnknown = (t-1)*numQuantitiesInBlock + q;
-                    pattern = false(numEquationsInBlock, numPeriods);
+            this.JacobPattern = false(numOfEquationsInBlock*numOfPeriods, numOfQuantitiesInBlock*numOfPeriods);
+            this.FirstTime = nan(1, numOfQuantitiesInBlock*numOfPeriods);
+            this.LastTime = nan(1, numOfQuantitiesInBlock*numOfPeriods);
+            this.NumericalJacobFunc = cell(1, numOfUnknownsInBlock);
+            this.NumActiveEquations = nan(1, numOfUnknownsInBlock);
+            for t = 1 : numOfPeriods
+               for q = 1 : numOfQuantitiesInBlock
+                    posUnknown = (t-1)*numOfQuantitiesInBlock + q;
+                    pattern = false(numOfEquationsInBlock, numOfPeriods);
                     firstTime = t - this.MaxLead(q);
-                    if t-this.MaxLag(q)<=numPeriods
+                    if t-this.MaxLag(q)<=numOfPeriods
                         % This value does not affect linear terminal
                         % condition.
                         lastTime = t - this.MaxLag(q);
                         if firstTime<1
                             firstTime = 1;
                         end
-                        if lastTime>numPeriods
-                            lastTime = numPeriods;
+                        if lastTime>numOfPeriods
+                            lastTime = numOfPeriods;
                         end
                         numTimes = lastTime - firstTime + 1;
                         indexActiveEquations = acrossShifts(:, q);
@@ -200,19 +194,19 @@ classdef Stacked < solver.block.Block
                             this.NumericalJacobFunc{posUnknown} = getNumericalJacobFunc( );
                         else
                             this.NumericalJacobFunc{posUnknown} = ...
-                                this.NumericalJacobFunc{posUnknown-numQuantitiesInBlock};
+                                this.NumericalJacobFunc{posUnknown-numOfQuantitiesInBlock};
                         end
                     else
                         % This value may affect linear terminal condition,
                         % so we have to differentiate all periods back to
                         % the max lead that can see the terminal condition.
-                        firstTime = min(firstTime, numPeriods-maxMaxLead);
+                        firstTime = min(firstTime, numOfPeriods-maxMaxLead);
                         if firstTime<1
                             firstTime = 1;
                         end
-                        lastTime = numPeriods;
+                        lastTime = numOfPeriods;
                         pattern(:, firstTime:end) = true;
-                        indexActiveEquations = true(numEquationsInBlock, 1);
+                        indexActiveEquations = true(numOfEquationsInBlock, 1);
                         this.NumericalJacobFunc{posUnknown} = getNumericalJacobFunc( );
                     end
                     this.NumActiveEquations(posUnknown) = sum(indexActiveEquations);
@@ -235,7 +229,7 @@ classdef Stacked < solver.block.Block
                     %activeEquationsString = vectorize(activeEquationsString);
                 end
                 f = str2func([blz.PREAMBLE, activeEquationsString]);
-            end
-        end
+            end%
+        end%
     end
 end

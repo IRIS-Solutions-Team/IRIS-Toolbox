@@ -1,4 +1,4 @@
-function [this, opt] = file2model(this, fileName, opt, parserOpt, optimalOpt)
+function [this, opt] = file2model(this, modelFile, opt, parserOpt, optimalOpt)
 % file2model  Translate model file to model object properties
 %
 % Backend IRIS function
@@ -11,7 +11,7 @@ function [this, opt] = file2model(this, fileName, opt, parserOpt, optimalOpt)
 
 % Run the preparser
 [code, this.FileName, this.Export, ctrlParameters, this.Comment] = ...
-    parser.Preparser.parse( fileName, [ ], ...
+    parser.Preparser.parse( modelFile, [ ], ...
                             'Assigned=', opt.Assign, ...
                             'SaveAs=', opt.saveas );
 

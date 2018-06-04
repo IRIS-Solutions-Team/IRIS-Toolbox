@@ -442,7 +442,7 @@ systemProperty.NamedReferences{1} = [ ...
 for ithRun = 1 : numRuns
     s.ILoop = ithRun;
     variantRunningNow = min(ithRun, nv);
-    indexInitial = getIthIndexInitial(this.Variant, variantRunningNow);
+    indexOfRequiredInitials = getIthIndexInitial(this.Variant, variantRunningNow);
 
     % Get current initial condition for the transformed state vector, 
     % current shocks, and measurement and transition tunes.
@@ -658,8 +658,8 @@ return
     function getData( )        
         % Get current initial conditions and and current shocks
         s.XbInit = xbInit(:, 1, min(ithRun, end));
-        indexNaNInit = isnan(s.XbInit);
-        s.XbInit(indexNaNInit & ~indexInitial(:)) = 0;
+        indexOfNaNInitials = isnan(s.XbInit);
+        s.XbInit(indexOfNaNInitials & ~indexOfRequiredInitials(:)) = 0;
         s.XbInit = s.XbInit;
         if opt.ignoreshocks
             s.Ea = zeros(ne, nPer);

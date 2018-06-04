@@ -112,7 +112,7 @@ classdef For < parser.control.Control
             % doCode = regexprep(doCode, '\n\s*$', '');
             controlName = this.ControlName;
             
-            for i = 1 : length(this.Token)
+            for i = 1 : numel(this.Token)
                 p.StoreForCtrl(end+1, :) = { controlName, this.Token{i} };
                 c1 = writeFinal(this.DoBody, p, varargin{:});
                 c = [c, c1]; %#ok<AGROW>

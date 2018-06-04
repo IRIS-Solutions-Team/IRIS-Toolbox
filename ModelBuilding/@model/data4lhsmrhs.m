@@ -1,5 +1,5 @@
 function [YXEPG, rowNames, extendedRange, minShift, maxShift] = data4lhsmrhs(this, inputDatabank, startOfBaseRange, varargin)
-% data4lhsmrhs  Prepare data array for running `lhsmrhs`.
+% data4lhsmrhs  Prepare data array for running `lhsmrhs`
 %
 % __Syntax__
 %
@@ -54,8 +54,8 @@ function [YXEPG, rowNames, extendedRange, minShift, maxShift] = data4lhsmrhs(thi
 %     d = lhsmrhs(m, YXEPG);
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 

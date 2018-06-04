@@ -115,7 +115,7 @@ function [inp, s] = getNext(inp, opt)
     % Expressions and legends; clone expressionx
     [s.eval, s.legend] = readBody(body);
     if ~isempty(opt.Clone)
-        s.eval = parser.Preparser.cloneAllNames(s.eval, opt.Clone);
+        s.eval = model.File.cloneAllNames(s.eval, opt.Clone);
     end
     if ~isempty(opt.Preprocess)
         s.eval{1} = opt.Preprocess(s.eval{1});

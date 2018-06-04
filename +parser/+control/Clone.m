@@ -21,14 +21,21 @@ classdef Clone < parser.control.ExternalFile
             import parser.Preparser;
             import parser.control.For;
             fileName = this.FileName;
-            if ~isempty(p.StoreForCtrl) && ~isempty(strfind(fileName, '?'))
-                fileName = For.substitute(fileName, p);
+            cloneString = this.CloneString;
+            if ~isempty(p.StoreForCtrl) 
+                if ~isempty(strfind(fileName, '?'))
+                    fileName = For.substitute(fileName, p);
+                end
+                if ~isempty(strfind(cloneString, '?'))
+                    cloneString = For.substitute(cloneString, p);
+                end
             end
             fileName = strtrim(fileName);
+            cloneString = strtrim(cloneString);
             if ~isempty(fileName)
                 [c, ~, exportable, ctrlParameters] = Preparser.parse( fileName, [ ], ...
-                                                                      'Assigned=', p.Assigned, ...
-                                                                      'CloneString=', this.CloneString );
+                                                                      'assigned=', p.Assigned, ...
+                                                                      'cloneString=', cloneString );
                 add(p, ctrlParameters, exportable);
                 % Reset file name back to caller file.
                 exception.ParseTime.storeFileName(p.FileName);

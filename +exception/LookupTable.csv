@@ -126,6 +126,8 @@ Model:SteadyErrorInSteady,Steady-state values not consistent with this steady eq
 Model:TrollifyInvalidName,Cannot trollify model because this name is not alllowed in TROLL/FAME: %s
 Model:UnknownInputData,Invalid format of input data.
 Model:ZeroVarianceFactor,Common variance factor estimate is zero because all observations match their one-step-ahead predictions; run Kalman filter with Relative=false instead: %s 
+Model:File:CannotOpenTextFile, Cannot open this text file for writing: %s 
+Model:File:CannotWriteToTextFile, Cannot write to this text file: %s 
 Obsolete:KeywordUseInstead,"The keyword %s is obsolete, and will be removed from IRIS in a future version. Use %s instead."
 Obsolete:ObsoleteMatFile,"The model object in this MAT file was saved by an older, incompatible IRIS. It will no be possible to load it in a future version. Rebuild the model object from its model file."
 Obsolete:OptionUseInstead,"The option %s= is obsolete, and will be removed from IRIS in a future version. Use %s= instead."

@@ -58,7 +58,7 @@ inputParser.parse(x, w, tau, varargin{:});
 dim = inputParser.Results.Dim;
 
 if isa(x, 'TimeSubscriptable')
-    [x, dim] = applyFunctionAlongDim(x, @tilting.quantile, w, tau, dim);
+    [q, dim] = applyFunctionAlongDim(x, @tilting.quantile, w, tau, dim);
     return
 end
 

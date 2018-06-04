@@ -90,7 +90,7 @@ n = length(varargin);
 ne = sum(ixe);
 nStdCorr = ne + ne*(ne-1)/2;
 nv = length(this.Variant);
-numQuantities = length(this.Quantity);
+numOfQuantities = length(this.Quantity);
 inputNames = cell(1, 0);
 invalidLength = cell(1, 0);
 invalidImag = cell(1, 0);
@@ -98,7 +98,7 @@ invalidLhsNames = cell(1, 0);
 
 % `Assign` and `stdcorr` are logical indices of values that have been
 % assigned.
-indexValues = false(1, numQuantities);
+indexValues = false(1, numOfQuantities);
 indexStdCorr = false(1, nStdCorr);
 
 if isempty(varargin)
@@ -149,7 +149,7 @@ elseif n<=2 && iscellstr(varargin{1})
         POS_STDCORR = posStdCorr;
         INDEX_VALUES_RHS = indexQuantityRhs;
         INDEX_STDCORR_RHS = indexStdCorrRhs;
-        listNamesAssigned( );
+        getNamesAssigned( );
         NAMES_ASSIGNED = namesAssigned;
         
         % Keep persistent variables and return immediately.
@@ -185,7 +185,7 @@ elseif n<=2 && (isstruct(varargin{1}) || isa(varargin{1}, 'table'))
     end
     if ~isempty(varargin) && ~isempty(varargin{1})
         cloneTemplate = varargin{1};
-        inputNames = parser.Preparser.cloneAllNames(inputNames, cloneTemplate);
+        inputNames = model.File.cloneAllNames(inputNames, cloneTemplate);
     end
     numNames = length(inputNames);
     invalidLength = cell(1, 0);
@@ -274,13 +274,12 @@ INDEX_STDCORR_RHS = [ ];
 NAMES_ASSIGNED = { };
 
 % Steady states cannot be changed from 0+0i.
-indexNonzeroShocks = false(1, numQuantities);
-indexNonzeroShocks(ixe) = any(this.Variant.Values(1, ixe, :)~=0, 3);
-assert( ...
-    ~any(indexNonzeroShocks), ...
-    exception.Base('Model:CannotChangeSteadyShocks', 'error'), ...
-    this.Quantity.Name{indexNonzeroShocks} ...
-);
+indexOfNonzeroShocks = false(1, numOfQuantities);
+indexOfNonzeroShocks(ixe) = any(this.Variant.Values(1, ixe, :)~=0, 3);
+if any(indexOfNonzeroShocks)
+    throw( exception.Base('Model:CannotChangeSteadyShocks', 'error'), ...
+           this.Quantity.Name{indexOfNonzeroShocks} );
+end
 
 if nargout<2
     return
@@ -288,7 +287,7 @@ end
 
 % Put together list of parameters, steady states, std deviations, and
 % correlations that have been assigned.
-listNamesAssigned( );
+getNamesAssigned( );
 
 return
 
@@ -309,7 +308,7 @@ return
             end
             varargin(1) = [ ];
         end
-    end
+    end%
 
 
     function assignFromModelObj( )
@@ -321,20 +320,29 @@ return
                 namesToAssign = regexp(namesToAssign, '\w+', 'match');
             end
         end
+        inputNames = rhs.Quantity.Name;
+        cloneTemplate = '';
+        if n>2
+            cloneTemplate = varargin{3};
+            if ~isequal(namesToAssign, @all)
+                namesToAssign = model.File.cloneAllNames(namesToAssign, cloneTemplate);
+            end
+            inputNames = model.File.cloneAllNames(inputNames, cloneTemplate);
+        end
         nvRhs = length(rhs.Variant);
         if nvRhs~=1 && nvRhs~=nv
-            utils.error('modelobj:assign', ...
-                ['Cannot assign from object ', ...
-                'with different number of parameterisations.']);
+            utils.error( 'modelobj:assign', ...
+                         ['Cannot assign from object ', ...
+                         'with different number of parameterisations.'] );
         end
-        numQuantities = length(this.Quantity);
-        indexMatchingTypes = true(1, numQuantities);
-        for ii = 1 : numQuantities
+        numOfQuantities = length(this.Quantity);
+        indexOfMatchingTypes = true(1, numOfQuantities);
+        for ii = 1 : numOfQuantities
             name = this.Quantity.Name{ii};
             if ~isequal(namesToAssign, @all) && ~any(strcmpi(name, namesToAssign))
                 continue
             end
-            ixRhs = strcmp(name, rhs.Quantity.Name);
+            ixRhs = strcmp(name, inputNames);
             if ~any(ixRhs)
                 continue
             end
@@ -349,25 +357,28 @@ return
                 this.Variant.Values(1, ii, :) = newValue;
                 indexValues(ii) = true;
             else
-                indexMatchingTypes(ii) = false;
+                indexOfMatchingTypes(ii) = false;
             end
         end
-        lsStdCorr = [ getStdName(this.Quantity), getCorrName(this.Quantity) ];
-        lsStdCorrRhs = [ getStdName(rhs.Quantity), getCorrName(rhs.Quantity) ];
-        for ii = 1 : length(lsStdCorr)
-            ixRhs = strcmpi(lsStdCorr{ii}, lsStdCorrRhs);
+        listOfStdCorr = [ getStdName(this.Quantity), getCorrName(this.Quantity) ];
+        listOfStdCorrRhs = [ getStdName(rhs.Quantity), getCorrName(rhs.Quantity) ];
+        if ~isempty(cloneTemplate)
+            listOfStdCorrRhs = model.File.cloneAllNames(listOfStdCorrRhs, cloneTemplate);
+        end
+        for ii = 1 : length(listOfStdCorr)
+            ixRhs = strcmpi(listOfStdCorr{ii}, listOfStdCorrRhs);
             if ~any(ixRhs)
                 continue
             end
             this.Variant.StdCorr(1, ii, :) = rhs.Variant.StdCorr(1, ixRhs, :);
             indexStdCorr(ii) = true;
         end
-        if any(~indexMatchingTypes)
-            utils.warning('modelobj:assign', ...
-                'This name not assigned because of type mismatch: %s ', ...
-                this.Quantity.Name{~indexMatchingTypes});
+        if any(~indexOfMatchingTypes)
+            utils.warning( 'modelobj:assign', ...
+                           'This name not assigned because of type mismatch: %s ', ...
+                           this.Quantity.Name{~indexOfMatchingTypes} );
         end
-    end
+    end%
 
 
     function assignNameAndValue(name, posQuantity, posStdCorr, value)
@@ -417,7 +428,7 @@ return
         for pos = posStdCorr(~isnan(posStdCorr))
             this.Variant.StdCorr(:, pos, :) = value;
         end
-    end
+    end%
 
 
     function assignListAndValue( )
@@ -448,7 +459,7 @@ return
             indexStdCorr(posStdCorr) = true;
             this.Variant.StdCorr(:, posStdCorr, :) = value(:, indexStdCorrRhs, :);
         end
-    end
+    end%
 
 
     function reportInvalid( )
@@ -463,10 +474,10 @@ return
                 'This name cannot be assigned complex or imag number: %s ', ...
                 invalidImag{:} );
         end
-    end
+    end%
 
 
-    function listNamesAssigned( )
+    function getNamesAssigned( )
         namesAssigned = this.Quantity.Name(indexValues);
         lse = this.Quantity.Name(ixe);
         namesAssigned = [namesAssigned, strcat('std_', lse(indexStdCorr(1:ne)))];
@@ -476,5 +487,5 @@ return
         [row, col] = find(temp==1);
         namesAssigned = [ namesAssigned, ...
             strcat('corr_', lse(row), '__', lse(col)) ];
-    end
-end
+    end%
+end%

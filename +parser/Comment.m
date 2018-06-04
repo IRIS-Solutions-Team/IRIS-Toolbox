@@ -8,11 +8,9 @@ classdef Comment < parser.White
     end
     
     
-    
-    
     methods (Static)
         function c = parse(p)
-            import parser.Comment;
+            import parser.Comment
             isCharInp = ischar(p);
             if isCharInp
                 c = p;
@@ -30,13 +28,11 @@ classdef Comment < parser.White
                 p.Code = c;
                 p.White = wh;
             end
-        end
-        
-        
+        end%
         
         
         function b = whiteOutBlockComment(b)
-            import parser.Comment;
+            import parser.Comment
             sh = zeros(1, length(b), 'int8');
             posOpen = strfind(b, Comment.BLOCK_COMMENT_OPEN);
             if ~isempty(posOpen)
@@ -48,28 +44,23 @@ classdef Comment < parser.White
                 sh(posClose) = -1;
             end
             b(cumsum(sh)>0) = Comment.COMMENT_WHITEOUT;
-        end
-        
-        
+        end%
         
         
         
         function wh = whiteOutLineComment(wh)
-            import parser.Comment;
+            import parser.Comment
             s = regexptranslate('escape', Comment.LINE_COMMENT);
             [from, to] = regexp(wh, [s,'[^\n]*'], 'start', 'end');  
             wh = Comment.whiteOut(wh, from, to, Comment.COMMENT_WHITEOUT);
-        end
-        
-        
+        end%
         
         
         function b = whiteOutLineContinuation(b)
-            import parser.Comment;
+            import parser.Comment
             s = regexptranslate('escape', Comment.LINE_CONTINUATION);
             [from, to] = regexp(b, [s,'[^\n]*\n?'], 'start', 'end');  
             b = Comment.whiteOut(b, from, to, Comment.COMMENT_WHITEOUT);
-        end
+        end%
     end
-    
 end

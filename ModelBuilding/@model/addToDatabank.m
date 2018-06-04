@@ -1,11 +1,12 @@
-function d = addToDatabank(what, this, varargin)
+function d = addToDatabank(what, this, d, varargin)
 % addToDatabank  Add model quantities to databank or create new databank
 %
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     D = addToDatabank(What, M, ~D)
+%     D = addToDatabank(What, M, D, ...)
+%     D = addToDatabank(What, M, D, Range, ...)
 %
 %
 % __Input Arguments__
@@ -16,8 +17,10 @@ function d = addToDatabank(what, this, varargin)
 % * `M` [ model ] - Model object whose parameters will be added to databank
 % `D`.
 %
-% * `~D` [ struct ] - Databank to which the model parameters will be added;
-% if omitted, a new databank will be created.
+% * `D` [ struct ] - Databank to which the model parameters will be added.
+%
+% * `~Range` [ DateWrapper ] - Date range on which time series will be
+% created; needs to be specified for `Shocks`.
 %
 %
 % __Output Arguments__
@@ -37,6 +40,7 @@ function d = addToDatabank(what, this, varargin)
 %   * `'Std'` - add std deviations of model shocks
 %   * `'NonzeroCorr'` - add nonzero cross-correlations of model shocks
 %   * `'Corr'` - add all cross correlations of model shocks
+%   * `'Shocks'` - add time series for model shocks
 %   * `'Default'` - equivalent to `{'Parameters', 'Std', 'NonzeroCorr'}`
 %
 % These can be specified as case-insensitive char, strings, or combined in
@@ -52,20 +56,24 @@ function d = addToDatabank(what, this, varargin)
 %     d = addToDatabank('Parameters', m, d);
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/addToDatabank');
-    INPUT_PARSER.addRequired('What', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addOptional('Databank', struct( ), @isstruct);
+if nargin<3
+    d = struct( );
 end
-INPUT_PARSER.parse(what, this, varargin{:});
-d = INPUT_PARSER.Results.Databank;
+
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model/addToDatabank');
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('What', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addRequired('Databank', @isstruct);
+end
+inputParser.parse(what, this, d);
 
 %--------------------------------------------------------------------------
 
@@ -83,16 +91,16 @@ for i = 1 : numel(what)
     elseif strncmpi(ithWhat, 'Corr', min(4, lenOfIthWhat))
         addZeroCorr = true;
         addCorr(addZeroCorr);
+    elseif strncmpi(ithWhat, 'Shock', min(5, lenOfIthWhat));
+        addShocks( );
     elseif strncmpi(ithWhat, 'Default', min(7, lenOfIthWhat))
         addParameters( );
         addStd( );
         addZeroCorr = false;
         addCorr(addZeroCorr);
     else
-        throw( ...
-            exception.Base('Model:InvalidQuantityType', 'error'), ...
-            ithWhat ...
-        );
+        throw( exception.Base('Model:InvalidQuantityType', 'error'), ...
+               ithWhat );
     end
 end
 
@@ -105,7 +113,7 @@ return
             ithName = this.Quantity.Name{i};
             d.(ithName) = permute(this.Variant.Values(:, i, :), [1, 3, 2]);
         end
-    end
+    end%
 
 
     function addStd( )
@@ -116,7 +124,7 @@ return
             ithName = listOfStdNames{i};
             d.(ithName) = permute(vecStd(1, i, :), [2, 3, 1]);
         end
-    end
+    end%
 
 
     function addCorr(addZeroCorr)
@@ -135,5 +143,10 @@ return
             ithName = listOfCorrNames{i};
             d.(ithName) = permute(vecOfCorr(1, i, :), [2, 3, 1]);
         end
-    end
-end
+    end%
+
+
+    function addShocks( )
+        d = shockdb(this, d, varargin{:});
+    end%
+end%

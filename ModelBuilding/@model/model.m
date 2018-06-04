@@ -534,6 +534,7 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             % __Syntax__
             %
             %     M = model(FileName, ...)
+            %     M = model(ModelFile, ...)
             %     M = model(M, ...)
             %
             %
@@ -541,6 +542,8 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
             %
             % * `FileName` [ char | cellstr | string ] - Name(s) of model file(s)
             % that will be loaded and converted to a new model object.
+            %
+            % * `ModelFile` [ model.File ] - Object of model.File class.
             %
             % * `M` [ model ] - Rebuild a new model object from an existing one; see
             % Description for when you may need this.
@@ -731,14 +734,14 @@ classdef model < shared.GetterSetter & shared.UserDataContainer & shared.Estimat
                 % syntax) to model object.
                 this = struct2obj(this, varargin{1});
             elseif nargin>=1
-                if ischar(varargin{1}) || iscellstr(varargin{1}) || isa(varargin{1}, 'string')
-                    fileName = cellstr(varargin{1});
-                    fileName = strtrim(fileName);
+                if ischar(varargin{1}) || iscellstr(varargin{1}) || isa(varargin{1}, 'string') ...
+                   || isa(varargin{1}, 'model.File')
+                    modelFile = varargin{1};
                     varargin(1) = [ ];
                     [opt, parserOpt, optimalOpt] = processOptions( );
                     this.IsLinear = opt.Linear;
                     this.IsGrowth = opt.Growth;
-                    [this, opt] = file2model(this, fileName, opt, parserOpt, optimalOpt);
+                    [this, opt] = file2model(this, modelFile, opt, parserOpt, optimalOpt);
                     this = build(this, opt);
                 elseif isa(varargin{1}, 'model')
                     this = varargin{1};

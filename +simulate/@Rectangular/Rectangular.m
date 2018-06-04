@@ -1,37 +1,48 @@
 % Rectangular
 %
 % Simulate system with rectangular (non-triangular) transition matrix off
-% a straight data matrix.
+% a straight yxepg matrix.
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef Rectangular < handle
     properties
         FirstOrderSolution = cell(1, 6)   % First-order solution matrices {T, R, K, Z, H, D}
         FirstOrderExpansion = cell(1, 5)  % First-order expansion matrices {Xa, Xf, Ru, J, Yu}
-        IndexLog                          % Index of log variables
-        IdObserved                        % Positions of observed variables
-        IdStates                          % Positions and shifts of state variables
-        IdShocks                          % Positions of shocks
-        IdExogenous                       % Positions of exogenous variables
-        Expected                          % Function to retrieve expected shocks from data
-        Unexpected                        % Function to retrieve unexpected shocks from data
+        IndexOfLog                        % Index of log variables
+        IdOfObserved                      % Ids of observed variables
+        IdOfStates                        % Ids (including shifts) of state variables
+        IdOfShocks                        % Ids of shocks
+        IdOfExogenous                     % Ids of exogenous variables
+        RetrieveExpected                  % Function to retrieve expected shocks from yxepg
+        RetrieveUnexpected                % Function to retrieve unexpected shocks from yxepg
         
-        NumObserved
-        NumStates
-        NumForward
-        NumBackward
-        NumShocks
-        NumExogenous
-        LenExpansion
-        IdBackward
-        IndexCurrent
-        IdCurrent
+        NumOfQuantities
+        NumOfObserved
+        NumOfStates
+        NumOfForward
+        NumOfBackward
+        NumOfShocks
+        NumOfExogenous
+        LenOfExpansion
+        IdOfBackward
+        IndexOfCurrent
+        IdOfCurrent
 
-        LinxBackward
-        LinxCurrent
-        LinxStep
+        LinxOfBackward
+        LinxOfCurrent
+
+        Anticipate = NaN
+        Deviation = false
+        SimulateObserved = true
+        FirstColumn = NaN
+        LastColumn = NaN
+    end
+
+
+    properties (Dependent)
+        CurrentForward
     end
 
 
@@ -39,51 +50,76 @@ classdef Rectangular < handle
         flat(varargin)
 
 
-        function prepareDataDependentProperties(this, data, firstColumn)
-            sizeOfData = size(data.YXEPG);
-            this.LinxBackward = sub2ind(sizeOfData, real(this.IdBackward), firstColumn+imag(this.IdBackward));
-            this.LinxCurrent = sub2ind(sizeOfData, real(this.IdCurrent), firstColumn+imag(this.IdCurrent));
-            this.LinxStep = sizeOfData(1);
-        end
+        function ensureExpansion(this, requiredForward)
+            if requiredForward>this.CurrentForward
+                R = model.expandFirstOrder(R, [ ], this.FirstOrderExpansion, requiredForward);
+                this.FirstOrderSolution{2} = R;
+            end
+        end%
+
+
+        function currentForward = get.CurrentForward(this)
+            R = this.FirstOrderSolution{2};
+            currentForward = size(R, 2)/ne - 1;
+        end%
+
+
+        function this = set.FirstColumn(this, firstColumn)
+            this.FirstColumn = firstColumn;
+            pretendSizeOfData = [this.NumOfQuantities, firstColumn];
+            this.LinxOfBackward = sub2ind( pretendSizeOfData, ...
+                                           real(this.IdOfBackward), ...
+                                           firstColumn + imag(this.IdOfBackward) );
+            this.LinxOfCurrent = sub2ind( pretendSizeOfData, ...
+                                          real(this.IdOfCurrent), ...
+                                          firstColumn + imag(this.IdOfCurrent) );
+        end%
+
+
+        function this = set.Anticipate(this, anticipate)
+            this.Anticipate = anticipate;
+            if anticipate
+                this.RetrieveExpected = @real;
+                this.RetrieveUnexpected = @imag;
+            else
+                this.RetrieveExpected = @imag;
+                this.RetrieveUnexpected = @real;
+            end
+        end%
     end
 
 
     methods (Static)
-        function this = fromModel(model, variantRequested, anticipate)
+        function this = fromModel(model, variantRequested)
             this = simulate.Rectangular( );
             keepExpansion = true;
             triangular = false;
             [this.FirstOrderSolution{:}] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
             [this.FirstOrderExpansion{:}] = expansionMatrices(model, variantRequested, triangular);
-            this.IndexLog = get(model, 'Quantity.IxLog');
+            numOfQuantities = get(model, 'Quantity.NumOfQuantities');
+            this.IndexOfLog = get(model, 'Quantity.IxLog');
             solutionVector = get(model, 'Vector.Solution');
-            this.IdObserved = solutionVector{1}(:);
-            this.IdStates = solutionVector{2}(:);
-            this.IdShocks = solutionVector{3}(:);
-            this.IdExogenous = solutionVector{5}(:);
-            if anticipate
-                this.Expected = @real;
-                this.Unexpected = @imag;
-            else
-                this.Expected = @imag;
-                this.Unexpected = @real;
-            end
+            this.IdOfObserved = solutionVector{1}(:);
+            this.IdOfStates = solutionVector{2}(:);
+            this.IdOfShocks = solutionVector{3}(:);
+            this.IdOfExogenous = solutionVector{5}(:);
 
-            this.NumObserved = numel(this.IdObserved);
-            this.NumStates = numel(this.IdStates);
-            this.NumBackward = size(this.FirstOrderSolution{1}, 2);
-            this.NumForward = this.NumStates - this.NumBackward;
-            this.NumShocks = numel(this.IdShocks);
-            this.NumExogenous = numel(this.IdExogenous);
-            if this.NumShocks>0
-                this.LenExpansion = size(this.FirstOrderSolution{2}, 2) / this.NumShocks;
+            this.NumOfObserved = numel(this.IdOfObserved);
+            this.NumOfStates = numel(this.IdOfStates);
+            this.NumOfBackward = size(this.FirstOrderSolution{1}, 2);
+            this.NumOfForward = this.NumOfStates - this.NumOfBackward;
+            this.NumOfShocks = numel(this.IdOfShocks);
+            this.NumOfExogenous = numel(this.IdOfExogenous);
+            if this.NumOfShocks>0
+                this.LenOfExpansion = size(this.FirstOrderSolution{2}, 2) / this.NumOfShocks;
             else
-                this.LenExpansion = 0;
+                this.LenOfExpansion = 0;
             end
-            this.IdBackward = this.IdStates(this.NumForward+1:end);
-            this.IndexCurrent = imag(this.IdStates)==0;
-            this.IdCurrent = this.IdStates(this.IndexCurrent);
-        end
+            this.IdOfBackward = this.IdOfStates(this.NumOfForward+1:end);
+            this.IndexOfCurrent = imag(this.IdOfStates)==0;
+            this.IdOfCurrent = this.IdOfStates(this.IndexOfCurrent);
+            this.NumOfQuantities = numOfQuantities;
+        end%
     end
 end
 

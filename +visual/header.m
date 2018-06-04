@@ -18,7 +18,7 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('visual.header');
     inputParser.KeepUnmatched = true;
-    inputParser.addRequired('String', @(x) ischar(x) || isa(x, 'string'));
+    inputParser.addRequired('String', @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
     inputParser.addOptional('HandleFigure', gobjects(0), @(x) all(isgraphics(x)));
 end
 inputParser.parse(varargin{:});

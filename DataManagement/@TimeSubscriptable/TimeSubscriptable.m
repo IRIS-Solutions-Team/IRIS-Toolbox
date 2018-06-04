@@ -112,10 +112,10 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
         end
 
 
-        function output = applyFunctionAlongDim(this, func, varargin)
+        function [output, dim] = applyFunctionAlongDim(this, func, varargin)
             [output, dim] = func(this.Data, varargin{:});
             if dim>1
-                output = fill(this, output, '', [ ]);
+                output = fill(this, output, this.Start, '', [ ]);
             end
         end
 

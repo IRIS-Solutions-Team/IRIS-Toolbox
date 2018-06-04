@@ -1,11 +1,11 @@
 function [obj, regOutp, hData] = kalmanFilter(this, inp, hData, opt, varargin)
-% kalmanFilter  Run Kalman filter.
+% kalmanFilter  Run Kalman filter
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 % This Kalman filter handles the following special cases:
 % * non-stationary initial conditions (treated as fixed numbers);
@@ -41,7 +41,7 @@ s.EIGEN_TOLERANCE = this.Tolerance.Eigen;
 s.DIFFUSE_SCALE = 1e8;
 s.IsSimulate = ~isequal(opt.simulate, false) ...
     && strcmpi(opt.simulate.Method, 'selective') ...
-    && opt.simulate.NonlinWindow>0 && any(this.Equation.IxHash);
+    && ~isequal(opt.simulate.NonlinWindow, 0) && any(this.Equation.IxHash);
 s.NAhead = opt.ahead;
 s.IsObjOnly = nargout<=1;
 s.ObjFunPenalty = this.OBJ_FUNC_PENALTY;
@@ -633,7 +633,7 @@ return
         sn.LastEndgU = 0;
         sn.LastEa = 0;
         sn = prepareSimulate1(this, sn, opt.simulate);
-    end
+    end%
 end
 
 

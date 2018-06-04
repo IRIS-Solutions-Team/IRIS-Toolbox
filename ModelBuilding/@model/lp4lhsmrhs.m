@@ -6,7 +6,7 @@ nv = length(this);
 ixy = this.Quantity.Type==TYPE(1);
 ixx = this.Quantity.Type==TYPE(2);
 ixp = this.Quantity.Type==TYPE(4);
-nXPer = size(YXEPG, 2);
+numOfExtendedPeriods = size(YXEPG, 2);
 numOfDataSets = size(YXEPG, 3);
 
 if isequal(variantsRequested, @all) || isequal(variantsRequested, Inf)
@@ -28,7 +28,7 @@ end
 
 P = this.Variant.Values(:, ixp, variantsRequested);
 P = permute(P, [2, 1, 3]);
-P = repmat(P, 1, nXPer, 1);
+P = repmat(P, 1, numOfExtendedPeriods, 1);
 if numOfDataSets>numOfVariantsRequested && numOfVariantsRequested==1
     P = repmat(P, 1, 1, numOfDataSets);
     if nargout>1
@@ -37,11 +37,10 @@ if numOfDataSets>numOfVariantsRequested && numOfVariantsRequested==1
 elseif numOfVariantsRequested>numOfDataSets && numOfDataSets==1
     YXEPG = repmat(YXEPG, 1, 1, numOfVariantsRequested);
 elseif numOfVariantsRequested~=numOfDataSets
-    throw( ...
-        exception.Base('Model:InconsistentParamData', 'error'), ...
-        numOfVariantsRequested, numOfDataSets ...
-        ); %#ok<GTARG>
+    throw( exception.Base('Model:InconsistentParamData', 'error'), ...
+           numOfVariantsRequested, numOfDataSets );
 end
 YXEPG(ixp, :, :) = P;
 
-end
+end%
+

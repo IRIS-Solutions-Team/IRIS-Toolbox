@@ -1,12 +1,12 @@
-function d = shockdb(varargin)
-% shockdb  Create model-specific database with random shocks.
+function d = shockdb(this, d, range, varargin)
+% shockdb  Create model-specific database with random shocks
 %
 %
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     OutputData = shockdb(M, InputData, Range, ~NumberOfDraws,...)
+%     OutputData = shockdb(M, InputData, Range, ...)
 %
 %
 % __Input arguments__
@@ -23,11 +23,6 @@ function d = shockdb(varargin)
 % going before or after `Range`, these will be clipped down to `Range` in
 % the output database.
 %
-% * `~NumberOfDraws` [ numeric ] - Number of draws (i.e. columns) generated
-% for each shock; if omitted, the number of draws is equal to the number of
-% alternative parameterizations in the model `M`, or to the number of
-% columns in shock series existing in the input database, `InputData`.
-%
 %
 % __Output arguments__
 %
@@ -36,8 +31,14 @@ function d = shockdb(varargin)
 %
 % __Options__
 %
-% * `'ShockFunc='` [ `@lhsnorm` | `@randn` | *`@zeros`* ] - Function used to
-% generate random draws for new shock time series; if `@zeros`, the new
+% * `NumOfDraws=@auto` [ numeric | @auto ] - Number of draws (i.e. columns)
+% generated for each shock; if `@auto`, the number of draws is equal to the
+% number of alternative parameterizations in the model `M`, or to the
+% number of columns in shock series existing in the input database,
+% `InputData`.
+%
+% * `ShockFunc=@zeros` [ `@lhsnorm` | `@randn` | `@zeros` ] - Function used
+% to generate random draws for new shock time series; if `@zeros`, the new
 % shocks will simply be filled with zeros; the random numbers will be
 % adjusted by the respective covariance matrix implied by the current model
 % parameterization.
@@ -49,90 +50,104 @@ function d = shockdb(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-[this, d, range, nDraw, varargin] = ...
-    irisinp.parser.parse('model.shockdb', varargin{:});
-opt = passvalopt('model.shockdb', varargin{:});
+
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.shockdb');
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addRequired('InputDatabank', @(x) isempty(x) || isstruct(x));
+    inputParser.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
+    inputParser.addOptional('NumOfDrawsOptional', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
+    inputParser.addParameter('NumOfDraws', @auto, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
+    inputParser.addParameter('ShockFunc', @(x) isa(x, 'function_handle'));
+end
+inputParser.parse(this, d, range, varargin{:});
+numOfDrawsOptional = inputParser.Results.NumOfDrawsOptional;
+opt = inputParser.Options;
+if ~isequal(numOfDrawsOptional, @auto)
+    opt.NumOfDraws = numOfDrawsOptional;
+end
 
 %--------------------------------------------------------------------------
 
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ne = sum(ixe);
-nPer = length(range);
-nAlt = length(this);
+nv = length(this);
+numOfPeriods = numel(range);
 lsName = this.Quantity.Name(ixe);
 lsLabel = getLabelOrName(this.Quantity);
 lsLabel = lsLabel(ixe);
 
-if isempty(d)
-    E = zeros(ne, nPer);
+if isempty(d) || isequal(d, struct( ))
+    E = zeros(ne, numOfPeriods);
 else
     E = datarequest('e', this, d, range);
 end
-nShock = size(E, 3);
+numOfShocks = size(E, 3);
 
-doChkSize( );
+if isequal(opt.NumOfDraws, @auto)
+    opt.NumOfDraws = max(nv, numOfShocks);
+end
+checkNumOfDraws( );
 
-nLoop = max([nAlt, nShock, nDraw]);
-if nShock==1 && nLoop>1
-    E = repmat(E, 1, 1, nLoop);
+numOfLoops = max([nv, numOfShocks, opt.NumOfDraws]);
+if numOfShocks==1 && numOfLoops>1
+    E = repmat(E, 1, 1, numOfLoops);
 end
 
-strShockFunc = func2str(opt.shockfunc);
-switch strShockFunc
-    case 'lhsnorm'
-        S = lhsnorm(sparse(1,ne*nPer), speye(ne*nPer), nLoop);
-    otherwise
-        S = opt.shockfunc(nLoop, ne*nPer);
+if isequal(opt.ShockFunc, @lhsnorm)
+    S = lhsnorm(sparse(1, ne*numOfPeriods), speye(ne*numOfPeriods), numOfLoops);
+else
+    S = opt.ShockFunc(numOfLoops, ne*numOfPeriods);
 end
 
-for iLoop = 1 : nLoop
-    if iLoop<=nAlt
-        Omg = covfun.stdcorr2cov(this.Variant.StdCorr(:, :, iLoop), ne);
+for ithLoop = 1 : numOfLoops
+    if ithLoop<=nv
+        Omg = covfun.stdcorr2cov(this.Variant.StdCorr(:, :, ithLoop), ne);
         F = covfun.factorise(Omg);
     end
-    iS = S(iLoop,:);
-    iS = reshape(iS, ne, nPer);
-    E(:,:,iLoop) = E(:,:,iLoop) + F*iS;
+    iS = S(ithLoop, :);
+    iS = reshape(iS, ne, numOfPeriods);
+    E(:, :, ithLoop) = E(:, :, ithLoop) + F*iS;
 end
 
-% `E` is ne-by-nPer-by-nLoop, permute to nPer-by-nLoop-by-ne.
-E = permute(E, [2,3,1]);
+% `E` is ne-by-numOfPeriods-by-numOfLoops, permute to numOfPeriods-by-numOfLoops-by-ne.
+E = permute(E, [2, 3, 1]);
 
 for i = 1 : ne
     name = lsName{i};
-    d.(name) = replace(TEMPLATE_SERIES, E(:,:,i), range(1), lsLabel{i});
+    d.(name) = replace(TEMPLATE_SERIES, E(:, :, i), range(1), lsLabel{i});
 end
 
 return
 
 
-
-
-    function doChkSize( )
-        if nAlt>1 && nDraw>1 && nAlt~=nDraw
+    function checkNumOfDraws( )
+        if nv>1 && opt.NumOfDraws>1 && nv~=opt.NumOfDraws
             utils.error('model:shockdb', ...
                 ['Input argument NDraw is not compatible with the number ', ...
                 'of alternative parameterizations in the model object.']);
         end
         
-        if nShock>1 && nDraw>1 && nShock~=nDraw
+        if numOfShocks>1 && opt.NumOfDraws>1 && numOfShocks~=opt.NumOfDraws
             utils.error('model:shockdb', ...
                 ['Input argument NDraw is not compatible with the number ', ...
                 'of alternative data sets in the input database.']);
         end
         
-        if nShock>1 && nAlt>1 && nAlt~=nShock
+        if numOfShocks>1 && nv>1 && nv~=numOfShocks
             utils.error('model:shockdb', ...
                 ['The number of alternative data sets in the input database ', ...
                 'is not compatible with the number ', ...
                 'of alternative parameterizations in the model object.']);
         end
-    end
-end
+    end%
+end%
+
