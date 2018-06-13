@@ -34,7 +34,7 @@ function [lineHandles, textHandles] = vline(varargin)
 % * `HandleVisibility=false` [ `true` | `false` ] - Visibility of the
 % handle to the line and text (caption)  object(s) created.
 %
-% * `LinePlacement='Exactly'` [ `'exactly'` | `'before'` | `'after'` ] -
+% * `Placement='Exactly'` [ `'Exactly'` | `'Before'` | `'After'` ] -
 % Placement of the vertical line relative to the specified date;
 % `'Exactly'` means the line is at the date specified, `'Before'` means the
 % line is half way between the date specified and the date preceeding it,

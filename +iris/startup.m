@@ -152,8 +152,7 @@ return
         fprintf('Release %s', version);
         fprintf('\n');
         fprintf('\tCopyright (c) 2007-%s ', datestr(now, 'YYYY'));
-        fprintfx('<a href="https://code.google.com/p/iris-toolbox-project/wiki/ist">');
-        fprintfx('IRIS Solutions Team</a>');
+        fprintfx('IRIS Solutions Team');
         fprintf('\n\n');
         
         % IRIS root folder
@@ -185,6 +184,19 @@ return
                 '<a href="file:///%s">%s</a>', ...
                 fileparts(config.PdfLaTeXPath), ...
                 config.PdfLaTeXPath ...
+            );
+        end
+        fprintf('\n');
+
+        % Ghostscript
+        fprintf('\tGhostscript Engine: ');
+        if isempty(config.GhostscriptPath)
+            fprintf('No Ghostscript engine found');
+        else
+            fprintfx( ...
+                '<a href="file:///%s">%s</a>', ...
+                fileparts(config.GhostscriptPath), ...
+                config.GhostscriptPath ...
             );
         end
         fprintf('\n');

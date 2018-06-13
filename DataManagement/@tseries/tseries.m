@@ -806,6 +806,10 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             end
             x = unop(@cumsum, x, 0, dim);
         end
+        function output = fillmissing(x, varargin)
+            dim = 1;
+            output = unop(@fillmissing, x, dim, varargin{:}, dim);
+        end%
         function a = geomean(x, dim)
             if nargin<2
                 dim = 1;

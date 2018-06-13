@@ -57,13 +57,20 @@ classdef (CaseInsensitiveProperties=true) Configuration
         % EpsToPdfpath  Path to the EPSTOPDF executable
         EpsToPdfPath = iris.Configuration.DEFAULT_LATEX_PATHS{2}
 
+        % PsToPdfPath  Path to the PSTOPDF executable
+        PsToPdfPath = iris.Configuration.DEFAULT_LATEX_PATHS{3}
+
+        % GhostscriptPath  Path to the GS executable
+        GhostscriptPath = iris.Configuration.DEFAULT_GHOSTSCRIPT_PATH
+
         % UserData  Any kind of user data
         UserData = [ ]
     end
 
 
     properties (Dependent)
-        NumFrequencies
+        NumOfFrequencies
+        ConvertPsToPdf
     end
 
 
@@ -142,6 +149,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         DEFAULT_LATEX_PATHS = iris.Configuration.findTexFiles( )
 
+        DEFAULT_GHOSTSCRIPT_PATH = iris.Configuration.findGhostscript( )
+
         NUM_FREQUENCIES = numel(iris.Configuration.DEFAULT_FREQ)
 
         DATE_FORMAT_STRUCT_FIELDS = {
@@ -175,10 +184,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: FreqLetters' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: FreqLetters' );
             end
             this.FreqLetters = newValue;
         end%
@@ -191,10 +198,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: DateFormat' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: DateFormat' );
             end
             this.DateFormat = newValue;
         end%
@@ -207,10 +212,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: PlotDateFormat' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: PlotDateFormat' );
             end
             this.PlotDateFormat = newValue;
         end%
@@ -223,10 +226,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: BaseYear' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: BaseYear' );
             end
             this.BaseYear = newValue;
         end%
@@ -239,10 +240,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: Months' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: Months' );
             end
             this.Months = newValue;
         end%
@@ -255,10 +254,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: ConversionMonth' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: ConversionMonth' );
             end
             this.ConversionMonth = newValue;
         end%
@@ -271,10 +268,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: WDay' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: WDay' );
             end
             this.WDay = newValue;
         end%
@@ -287,10 +282,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: TSeriesFormat' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: TSeriesFormat' );
             end
             this.TSeriesFormat = newValue;
         end%
@@ -303,10 +296,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: TSeriesMaxWSpace' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: TSeriesMaxWSpace' );
             end
             this.TSeriesMaxWSpace = newValue;
         end%
@@ -319,10 +310,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: PdfLatexPath' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: PdfLatexPath' );
             end
             this.PdfLatexPath = newValue;
         end%
@@ -335,17 +324,46 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( ...
-                    'IRIS:Config:NewOptionFailedValidation', ...
-                    'The value being assigned to this configuration option is invalid: EpsToPdfPath' ...
-                );
+                error( 'IRIS:Config:NewOptionFailedValidation', ...
+                       'The value being assigned to this configuration option is invalid: EpsToPdfPath' );
             end
             this.EpsToPdfPath = newValue;
         end%
      
 
-        function n = get.NumFrequencies(this)
+        function n = get.NumOfFrequencies(this)
             n = numel(iris.Configuration.DEFAULT_FREQ);
+        end%
+
+
+        function conversionFunction = get.ConvertPsToPdf(this)
+            if ~isempty(this.PsToPdfPath)
+                pstopdfPath = this.PsToPdfPath;
+                conversionFunction = @pstopdf;
+            elseif ~isempty(this.GhostscriptPath)
+                ghostscriptPath = this.GhostscriptPath;
+                conversionFunction = @gs;
+            else
+                conversionFunction = [ ];
+            end
+
+            return
+
+                function pstopdf(inputFile, outputFile)
+                    command = sprintf( '"%s" "%s" -o "%s"', ...
+                                       char(pstopdfPath), ...
+                                       char(inputFile), ...
+                                       char(outputFile) );
+                    system(command);
+                end%
+
+                function gs(inputFile, outputFile)
+                    command = sprintf('"%s" -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile="%s" -f "%s"', ...
+                                       char(ghostscriptPath), ...
+                                       char(outputFile), ...
+                                       char(inputFile) );
+                    system(command);
+                end%
         end%
     end
 
@@ -353,9 +371,11 @@ classdef (CaseInsensitiveProperties=true) Configuration
     methods (Static)
         function paths = findTexFiles( )
             [pdfLatexPath, folder] = iris.Configuration.findTexMf('pdflatex');
-            epsToPdfPath = iris.Configuration.findEpsToPdf(folder);
-            paths = {pdfLatexPath, epsToPdfPath};
-        end
+            epstopdfPath = iris.Configuration.findPath(folder, 'epstopdf');
+            pstopdfPath = iris.Configuration.findPath(folder, 'pstopdf');
+            paths = {pdfLatexPath, epstopdfPath, pstopdfPath};
+        end%
+
 
         function [path, folder] = findTexMf(file)
             % Try FINDTEXMF first.
@@ -398,17 +418,72 @@ classdef (CaseInsensitiveProperties=true) Configuration
         end%
 
 
-        function fPath = findEpsToPdf(folder)
-            file = 'epstopdf';
+        function fPath = findPath(folder, whatToFind)
             if ispc( )
-                list = dir(fullfile(folder, [file, '.exe']));
+                list = dir(fullfile(folder, [whatToFind, '.exe']));
             else
-                list = dir(fullfile(folder, file));
+                list = dir(fullfile(folder, whatToFind));
             end
             if length(list)==1
                 fPath = fullfile(folder, list.name);
             else
-                fPath = iris.Configuration.findTexMf(file);
+                fPath = iris.Configuration.findTexMf(whatToFind);
+            end
+        end%
+
+
+        function ghostscriptPath = findGhostscript( )
+            ghostscriptPath = '';
+            if ispc( )
+                list = dir('C:\Program Files\gs');
+                if numel(list)<3
+                    list = dir('C:\Program Files (x86)\gs');
+                    if numel(list)<3
+                        return
+                    end
+                end
+                lenOfList = numel(list);
+                versions = zeros(1, lenOfList);
+                for i = 1 : lenOfList
+                    temp = sscanf(list(i).name, 'gs%g');
+                    if isnumeric(temp) && isscalar(temp)
+                        versions(i) = temp;
+                    end
+                end
+                [~, sorted] = sort(versions, 'descend');
+                for pos = sorted(:)'
+                    if versions(pos)==0
+                        continue
+                    end
+                    latestDir = fullfile(list(pos).folder, list(pos).name, 'bin');
+                    latestExe = fullfile(latestDir, 'gswin64c.exe');
+                    if ~isempty(dir(latestExe))
+                        ghostscriptPath = latestExe;
+                        return
+                    else
+                        latestExe = fullfile(latestDir, 'gswin32c.exe');
+                        if ~isempty(dir(latestExe))
+                            ghostscriptPath = latestExe;
+                            return
+                        end
+                    end
+                end
+                % Failed to find gs, return
+                return
+            else
+                ghostscriptPath = '/usr/bin/gs';
+                list = dir(ghostscriptPath);
+                if ~isempty(list)
+                    return
+                end
+                ghostscriptPath = '/usr/local/bin/gs';
+                list = dir(ghostscriptPath);
+                if ~isempty(list)
+                    return
+                end
+                % Failed to find gs, return
+                ghostscriptPath = '';
+                return
             end
         end%
 

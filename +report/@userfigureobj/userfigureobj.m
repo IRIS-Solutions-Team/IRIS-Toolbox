@@ -50,7 +50,7 @@ classdef userfigureobj < report.basefigureobj
                 fid = fopen(figFile);
                 This.savefig = fread(fid);
                 fclose(fid);
-                utils.delete(figFile);
+                delete(figFile);
             end
         end
         

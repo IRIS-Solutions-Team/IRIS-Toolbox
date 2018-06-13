@@ -364,7 +364,7 @@ function C = insertImg(X)
 fName = latex.xml.xpath(X,'@src','string');
 [~,fTitle,fExt] = fileparts(fName);
 C = '';
-if ~utils.exist([fTitle,fExt])
+if exist([fTitle, fExt]), 'file')~=2
     utils.warning('xml', ...
         'Image file not found: %s.',[fTitle,fExt]);
     return

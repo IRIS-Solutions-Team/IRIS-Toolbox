@@ -110,7 +110,7 @@ try %#ok<TRYNC>
     system('xls2csv.js');
 end
 
-utils.delete('xls2csv.js');
+delete('xls2csv.js');
 if ~isempty(inpDir)
     cd(thisDir);
 end

@@ -53,12 +53,18 @@ end%
 
 
 function errors = apply(handle, type, specs, j, errors)
-    errors = extra('PreStyle', handle, type, specs, j, errors); 
+    persistent listOfExtras
+    if isempty(listOfExtras)
+        listOfExtras = { 'Line.ShowValues', 'showValues' 
+                         'Bar.ShowValues',  'showValues' };
+    end
+
+    errors = runPreAndPost('Prestyle', handle, type, specs, j, errors); 
     propertyNames = fieldnames(specs);
     numProperties = numel(propertyNames);
     for i = 1 : numProperties
         ithPropertyName = propertyNames{i};
-        if any(strcmpi(ithPropertyName, {'PreStyle', 'PostStyle'}))
+        if any(strcmpi(ithPropertyName, {'Prestyle', 'Poststyle'}))
             continue
         end
         ithPropertyValue = specs.(ithPropertyName);
@@ -74,17 +80,23 @@ function errors = apply(handle, type, specs, j, errors)
                 continue
             end
         end
+        index = strcmpi([type, '.', ithPropertyName], listOfExtras(:, 1));
         try
-            set(handle, ithPropertyName, assignValue);
+            if any(index)
+                extraFunctionName = listOfExtras{index, 2};
+                feval(extraFunctionName, handle, ithPropertyValue);
+            else
+                set(handle, ithPropertyName, assignValue);
+            end
         catch
             errors{end+1, 1} = sprintf('%s.%s', type, ithPropertyName);
         end
     end
-    errors = extra('PostStyle', handle, type, specs, j, errors); 
+    errors = runPreAndPost('Poststyle', handle, type, specs, j, errors); 
 end%
 
 
-function errors = extra(which, handle, type, specs, i, errors)
+function errors = runPreAndPost(which, handle, type, specs, i, errors)
     propertyNames = fieldnames(specs);
     index = strcmpi(propertyNames, which);
     if ~any(index)
@@ -107,5 +119,16 @@ function errors = extra(which, handle, type, specs, i, errors)
             errors{end+1, 1} = sprintf('%s.%s', type, which);
         end
     end
+end%
+
+
+function showValues(handle, ithPropertyValue)
+    if isequal(ithPropertyValue, false)
+        return
+    end
+    if isequal(ithPropertyValue, true)
+        ithPropertyValue = cell.empty(1, 0);
+    end
+    visual.values(handle, ithPropertyValue{:});
 end%
 

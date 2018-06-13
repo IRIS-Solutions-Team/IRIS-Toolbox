@@ -43,7 +43,7 @@ for i = 1 : numberOfSeries
     spyString(~indexOfNaNs) = 'X';
     spyString(indexOfZeros) = 'O';
     positionOfLastObs = find(~indexOfNaNs, 1, 'Last');
-    spyString(positionOfLastObs+1:end) = ' ';
+    spyString(positionOfLastObs+1:end) = '.';
     fprintf('%s\n', spyString);
 end
 

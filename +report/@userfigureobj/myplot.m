@@ -26,7 +26,7 @@ if ~isempty(This.savefig)
     fclose(fid);
     h = hgload(figFile);
     set(h,'visible',visibleFlag);
-    utils.delete(figFile);
+    delete(figFile);
     This.handle = h;
     if true % ##### MOSW
         % Matlab only

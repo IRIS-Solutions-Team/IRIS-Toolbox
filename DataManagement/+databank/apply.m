@@ -12,7 +12,7 @@ if isempty(inputParser)
     inputParser.addParameter('RemovePrefix', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('RemoveSuffix', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('List', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-    inputParser.addParameter('AddTo', struct( ), @isstruct);
+    inputParser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || isstruct(x));
 end
 inputParser.parse(func, inputDatabank, varargin{:});
 opt = inputParser.Options;
@@ -35,7 +35,11 @@ newNames = repmat({''}, size(namesOfFields));
 lenOfHasPrefix = length(opt.HasPrefix);
 lenOfHasSuffix = length(opt.HasSuffix);
 
-outputDatabank = opt.AddTo;
+outputDatabank = opt.AddToDatabank;
+if isequal(outputDatabank, @auto)
+    outputDatabank = inputDatabank;
+end
+
 indexOfApplied = false(size(namesOfFields));
 for i = 1 : numOfFields
     ithName = namesOfFields{i};

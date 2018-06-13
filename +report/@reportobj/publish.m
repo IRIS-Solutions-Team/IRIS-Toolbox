@@ -105,7 +105,7 @@ return
             tempDir = opt.tempdir;
         end
         % Try to create the temp dir.
-        if ~utils.exist(tempDir)
+        if exist(tempDir, 'dir')~=7
             status = mkdir(tempDir);
             if ~status
                 utils.error('report', ...

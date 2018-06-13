@@ -594,7 +594,7 @@ function saveAs(ff, plotDb, opt)
         [~, fTitle] = fileparts(opt.SaveAs);
         psfile = fullfile([fTitle, '.ps']);
         if exist(psfile, 'file')
-            utils.delete(psfile);
+            delete(psfile);
         end
         for f = ff(:).'
             figure(f);

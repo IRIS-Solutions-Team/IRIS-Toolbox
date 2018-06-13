@@ -1,38 +1,37 @@
-function varargout = size(This,varargin)
-% size  Size of tseries object data.
+function varargout = size(this, varargin)
+% size  Size of time series data
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     S = size(X)
-%     [S1,S2,...,Sn] = size(X)
+%     [S1, S2, ..., Sn] = size(X)
 %
-% Input arguments
-% ================
 %
-% * `X` [ tseries ] - Tseries object whose size will be returned.
+% __Input Arguments__
 %
-% Output arguments
-% =================
+% * `X` [ TimeSubscriptable ] - Time series whose size will be returned.
 %
-% * `S` [ numeric ] - Vector of sizes of the tseries object data in each
-% dimension, `S = [S1,S2,...,Sn]`.
 %
-% * `S1`, `S2`, ..., `Sn` [ numeric ] - Sizes of the tseries object data in
+% __Output Arguments__
+%
+% * `S` [ numeric ] - Vector of sizes of the time series data in each
+% dimension, `S = [S1, S2, ..., Sn]`.
+%
+% * `S1`, `S2`, ..., `Sn` [ numeric ] - Size of the time series data in
 % each dimension.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-[varargout{1:nargout}] = size(This.data,varargin{:});
+[varargout{1:nargout}] = size(this.data, varargin{:});
 
 end

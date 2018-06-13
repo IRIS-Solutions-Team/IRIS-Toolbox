@@ -51,7 +51,7 @@ if isempty(inputParser)
     inputParser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
     inputParser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
     inputParser.addParameter('HandleVisibility', 'Off', @(x) any(strcmpi(x, {'On', 'Off'})));
-    inputParser.addParameter({'LinePlacement', 'TimePosition'}, 'exactly', @(x) any(strcmpi(x, {'exactly', 'middle', 'before', 'after'})));
+    inputParser.addParameter({'Placement', 'LinePlacement', 'TimePosition'}, 'Exactly', @(x) any(strcmpi(x, {'Exactly', 'Middle', 'Before', 'After'})));
     % Legacy options
     inputParser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x(1:2:end)));
     inputParser.addParameter('VPosition', '');
@@ -107,14 +107,14 @@ for a = 1 : numAxes
         if isa(location, 'DateWrapper')
             xLim = get(h, 'XLim');
             if isa(xLim, 'datetime')
-                location = resolveLinePlacement( );
+                location = resolvePlacement( );
             else
                 location = dat2dec(location, 'centre');
                 freq = getappdata(h, 'IRIS_FREQ');
                 if ~isempty(freq) && isnumeric(freq) && isscalar(freq) ...
                         && any(freq==[0, 1, 2, 4, 6, 12, 52])
                     dx = 0.5 / max(1, freq);
-                    switch opt.LinePlacement
+                    switch opt.Placement
                     case 'before'
                         location = location - dx;
                     case 'after'
@@ -209,16 +209,16 @@ end
 return
 
 
-    function datetimeLocation = resolveLinePlacement( )
+    function datetimeLocation = resolvePlacement( )
         axesPositionWithinPeriod = getappdata(h, 'IRIS_PositionWithinPeriod');
         if isempty(axesPositionWithinPeriod)
             axesPositionWithinPeriod = 'start';
         end
         datetimeLocation = datetime(location, axesPositionWithinPeriod);
-        if strcmpi(opt.LinePlacement, 'before')
+        if strcmpi(opt.Placement, 'before')
             [~, halfDuration] = duration(location);
             datetimeLocation = datetimeLocation - halfDuration;
-        elseif strcmpi(opt.LinePlacement, 'after')
+        elseif strcmpi(opt.Placement, 'after')
             [~, halfDuration] = duration(location);
             datetimeLocation = datetimeLocation + halfDuration;
         end

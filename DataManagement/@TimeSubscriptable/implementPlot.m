@@ -41,15 +41,17 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser(['TimeSubscriptable.implementPlot(', char(plotFunc), ')']);
     inputParser.KeepUnmatched = true;
-    inputParser.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) || isequal(x, @stem) || isequal(x, @numeric.barcon) || isequal(x, @numeric.errorbar));
+    inputParser.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) ...
+                            || isequal(x, @stem) || isequal(x, @numeric.barcon) || isequal(x, @numeric.errorbar));
     inputParser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
-    inputParser.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x));
+    inputParser.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x) );
     inputParser.addRequired('PlotFromDate', @(x) isa(x, 'DateWrapper') || isequal(x, -Inf) || isequal(x, Inf));
     inputParser.addRequired('PlotToDate', @(x) isa(x, 'DateWrapper') || isequal(x, -Inf) || isequal(x, Inf));
     inputParser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
     inputParser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
     inputParser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
-    inputParser.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ||  any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)));
+    inputParser.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
+                             || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)));
 end
 
 inputParser.parse(plotFunc, handleAxes, time, plotFromDate, plotToDate, this, varargin{:});
@@ -189,7 +191,6 @@ return
     end
 
 
-
     function setXLim( )
         xLimHere = [min(xData), max(xData)];
         xLimOld = getappdata(handleAxes, 'IRIS_XLim');
@@ -245,15 +246,13 @@ return
 
 
     function resetAxes( )
-        list = {
-           'IRIS_PositionWithinPeriod'
-           'IRIS_TimeSeriesPlot'
-           'IRIS_XLim'
-           'IRIS_EnforceXLim'
-           'IRIS_XLimConstraints'
-           'IRIS_XLim'
-           'IRIS_XLim'
-        };
+        list = { 'IRIS_PositionWithinPeriod'
+                 'IRIS_TimeSeriesPlot'
+                 'IRIS_XLim'
+                 'IRIS_EnforceXLim'
+                 'IRIS_XLimConstraints'
+                 'IRIS_XLim'
+                 'IRIS_XLim' };
         for i = 1 : numel(list)
             try
                 rmappdata(handleAxes, list{i});

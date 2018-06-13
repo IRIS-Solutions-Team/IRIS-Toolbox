@@ -28,7 +28,7 @@ function lineHandles = hline(varargin)
 %
 % __Options__
 %
-% * `'ExcludeFromLegend='` [ *`true`* | `false` ] - Exclude the line from
+% * `ExcludeFromLegend=true` [ `true` | `false` ] - Exclude the line from
 % legend.
 %
 % Any options valid for the standard `plot` function.

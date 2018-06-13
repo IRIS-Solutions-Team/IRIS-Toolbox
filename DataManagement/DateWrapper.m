@@ -102,6 +102,16 @@ classdef DateWrapper < double
         function this = colon(varargin)
             if nargin==2
                 [from, to] = varargin{:};
+                if isequal(from, -Inf) || isequal(to, Inf)
+                    if ~isa(from, 'DateWrapper')
+                        from = DateWrapper(from);
+                    end
+                    if ~isa(to, 'DateWrapper')
+                        to = DateWrapper(to);
+                    end
+                    this = [from, to];
+                    return
+                end
                 step = 1;
             elseif nargin==3
                 [from, step, to] = varargin{:};
@@ -261,7 +271,7 @@ classdef DateWrapper < double
             frequency = DateWrapper.getNumericFrequencyFromNumeric(x);
             serial = DateWrapper.getSerialFromNumeric(x);
             this = DateWrapper.fromSerial(frequency, serial);
-        end
+        end%
 
 
         function this = fromSerial(frequency, serial)
@@ -269,7 +279,13 @@ classdef DateWrapper < double
             addFrequency = zeros(size(frequency));
             addFrequency(ixAddFrequency) = double(frequency(ixAddFrequency))/100;
             this = DateWrapper(serial + addFrequency);
-        end
+        end%
+
+
+        function this = fromDatetime(frequency, dt)
+            serial = ymd2serial(frequency, year(dt), month(dt), day(dt));
+            this = DateWrapper.fromSerial(frequency, serial);
+        end%
 
 
         function checkMixedFrequency(freq)

@@ -12,6 +12,9 @@ Config:InvalidOptionName,This is not a valid IRIS config option: %s
 Config:InvalidOptionValue,New value for this option failed validation: %s
 Config:ProtectedOption,This configuration option is not customizable: %s
 CovFun:IndexUnitRootsSize,Incorrect dimensions of unit root index
+Databank:InvalidSeriesId, This is not a valid FRED series ID: %s 
+Databank:FailedToRetrieveData, Failed to retrieve data for this series: %s 
+Databank:CannotDetermineFrequencyFromJson, Cannot determine date frequency from FRED JSON file
 Datafeed:FeedUnknownFrequency, Date frequency of this Datafeed series unknown; series not loaded: %s
 Dates:CalendarFormatForDaily, Calendar date format (starting with a $) must be specified for daily-frequency dates.
 Dates:MixedFrequency,Mixed frequency date vector not allowed in this context: %s
@@ -136,6 +139,8 @@ Obsolete:Estimate8, "Calling estimate( ) function with more than 8 output argume
 Obsolete:BPassInputs, "Calling bpass( ) with a date range placed a second input argument is obsolete, and will be disallowed in a future version; see documentation."
 Options:FailsValidation,Value assigned to option %s= fails validation: %s
 Options:InvalidObsolete,Invalid or obsolete option: %s=
+Pages:Wrapper:InvalidPaperType, Invalid paper type: %s
+Pages:Wrapper:InvalidOrientation, Invalid paper orientation: %s
 Pairing:InvalidNamesInDynamicAutoexog,This is not a valid pair of names for dynamic autoexog: %s 
 Pairing:InvalidNamesInSteadyAutoexog,This is not a valid pair of names for steady autoexog: %s 
 Pairing:MultipleLhsAutoexog,This name is autoexogenized more than once: %s 
@@ -177,9 +182,9 @@ RptEq:InvalidLhs,Invalid LHS name in this reporting equation: %s
 RptEq:RhsNameDataNotFound,This name is not found in input database: %s 
 RptEq:RhsNameDataInvalid,Input data for this name are invalid: %s 
 RptEq:SteadyRefNotFoundInModel,Name of this steady-state reference is not found in model: %s 
-Scenario:NameNotFound, This is not a valid name in Scenario: %s
-Scenario:CannotExogenizeName, This name cannot be exogenized in Scenario: %s
-Scenario:CannotEndogenizeName, This name cannot be endogenized in Scenario: %s
+Scenario:Wrapper:NameNotFound, This is not a valid name in Scenario: %s
+Scenario:Wrapper:CannotExogenizeName, This name cannot be exogenized in Scenario: %s
+Scenario:Wrapper:CannotEndogenizeName, This name cannot be endogenized in Scenario: %s
 Series:DatesDataDimensionMismatch,Number of dates must match number of rows of observations when creating a new time series.
 Series:BinopSizeMismatch,The size of the resulting Series object must match the size of one of the input Series objects.
 Series:InputsRemovedFromCat,Inputs other than time series and numeric removed from concatenation.

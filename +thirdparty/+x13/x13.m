@@ -107,11 +107,11 @@ for i = 1 : nx
         % Append forecasts and backcasts to original data.
         Y(first:last+kb+kf, i) = [bcast;data;fcast];
         % Catch output file.
-        if utils.exist([tmpTitle, '.out'], 'file')
+        if exist([tmpTitle, '.out'], 'file')==2
             Logbk{i} = xxReadOutpFile([tmpTitle, '.out']);
         end
         % Catch error file.
-        if utils.exist([tmpTitle, '.err'], 'file')
+        if exist([tmpTitle, '.err'], 'file')==2
             Err{i} = xxReadOutpFile([tmpTitle, '.err']);
             iErrMsg = regexp(Err{i}, '(?<=ERROR:).*', 'match', 'once');
             iErrMsg = regexprep(iErrMsg, '[\r\n]+', '\n');
@@ -130,7 +130,7 @@ for i = 1 : nx
             % Java delete does not work with wildcards.
             delete([tmpTitle, '.*']);
             if ismac( ) && exist('fort.6', 'file')
-                utils.delete('fort.6');
+                delete('fort.6');
             end
         end
         if ~ok
@@ -193,7 +193,7 @@ return
         if isfunc(tempDir)
             tempDir = tempDir( );
         end
-        isNewTempDir = utils.exist(tempDir, 'dir')==0;
+        isNewTempDir = exist(tempDir, 'dir')==0;
         if isNewTempDir
             mkdir(tempDir);
         end
