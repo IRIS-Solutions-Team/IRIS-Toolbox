@@ -7,13 +7,11 @@ function def = model( )
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-FN_VALID = iris.options.validfn;
-
 %--------------------------------------------------------------------------
 
 deviation_dtrends = {
-    'deviation, deviations', false, @islogicalscalar
-    'dtrends, dtrend', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
+    'Deviation, Deviations', false, @islogicalscalar
+    'DTrends, DTrend', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
     };
 
 precision = {
@@ -27,14 +25,6 @@ matrixFormat = {
 select = {
     'select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x)
     };
-
-system = {
-    'eqtn, equations', @all, @(x) isequal(x, @all) || ischar(x)
-    'normalize, normalise', true, @islogicalscalar
-    'select', true, @islogicalscalar
-    'symbolic', true, @islogicalscalar
-    };
-
 
 def = struct( );
 
@@ -75,18 +65,11 @@ def.fmse = [
     select
 ];
 
-def.filter = [
-    matrixFormat
-    {
-        'data, output', 'smooth', @(x) ischar(x)
-        'Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string')
-    } 
-];
 
 def.fisher = {
     'chksgf', false, @(x) isequal(x, true) || isequal(x, false)
     'ChkSstate', true, @model.validateChksstate
-    'deviation', true, @(x) isequal(x, true) || isequal(x, false)
+    'Deviation', true, @(x) isequal(x, true) || isequal(x, false)
     'epspower', 1/3, @isnumericscalar
     'exclude', { }, @(x) ischar(x) || iscellstr(x)
     'percent', false, @(x) isequal(x, true) || isequal(x, false)
@@ -173,14 +156,14 @@ def.kalmanFilter = [
 
 def.kalman = {
     'InitMedian', [ ], @(x) isempty(x) || isstruct(x) || strcmpi(x, 'InputData')
-    'NAhead', 0, @(x) isnumericscalar(x) && x>=0 && round(x)==x
-    'RescaleVar', false, @islogicalscalar
+    'NAhead', 0, @(x) isnumeric(x) && isscalar(x) && x>=0 && round(x)==x
+    'RescaleVar', false, @(x) isequal(x, true) || isequal(x, false)
     'UnitFromData', @auto, @(x) isequal(x, @auto) || isequal(x, false) || (isintscalar(x) && x>=0)
     };
 
 def.neighbourhood = {
-    'plot', true, @islogicalscalar
-    'progress', false, @islogicalscalar
+    'plot', true, @(x) isequal(x, true) || isequal(x, false)
+    'progress', false, @(x) isequal(x, true) || isequal(x, false)
     'neighbourhood', [ ], @(x) isempty(x) || isstruct(x)
     };
 
@@ -193,99 +176,12 @@ def.regress = [
     
 def.shockplot = { ...
     'dbplot', { }, @(x) iscell(x) && iscellstr(x(1:2:end)), ...
-    'deviation', true, @islogicalscalar, ...
-    'dtrends, dtrend', @auto, @(x) islogicalscalar(x) || isequal(x, @auto), ...
+    'Deviation', true, @islogicalscalar, ...
+    'DTrends, DTrend', @auto, @(x) islogicalscalar(x) || isequal(x, @auto), ...
     'simulate', { }, @(x) iscell(x) && iscellstr(x(1:2:end)), ...
     'shocksize, size', 'std', @(x) isnumeric(x) ...
     || (ischar(x) && strcmpi(x, 'std')), ...
     };
-
-
-
-
-def.simulate = [
-    deviation_dtrends
-    {
-    'anticipate', true, @islogicalscalar
-    'AppendPresample, AddPresample', false, @islogical
-    'AppendPostsample, AddPostsample', false, @islogical
-    'Blocks', true, @islogicalscalar
-    'contributions, contribution', false, @islogicalscalar
-    'DbOverlay, DbExtend', false, @(x) islogicalscalar(x) || isstruct(x)
-    'Delog', true, @islogicalscalar
-    'fast', true, @islogicalscalar
-    'ignoreshocks, ignoreshock, ignoreresiduals, ignoreresidual', false, @islogicalscalar
-    'Method', 'FirstOrder', @(x) ischar(x) && any(strcmpi(x, {'FirstOrder', 'Selective', 'Global', 'Exact', 'Stacked', 'Period'}))
-    'missing', NaN, @isnumeric
-    'plan, Scenario', [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x)
-    'progress', false, @islogicalscalar
-    'sparseshocks, sparseshock', false, @islogicalscalar
-    'Revision, Revisions', false, @islogicalscalar
-    'SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x))
-    ...
-    ... Bkw compatibility
-    ...
-    'nonlinear, nonlinearize, nonlinearise', [ ], @(x) isempty(x) || isnumeric(x) || isequal(x, @all)
-    ...
-    ... Stacked time
-    ...
-    'Stacked', 1, @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=1
-    ...
-    ... Nonlinear simulations
-    ...
-    'Display', @auto, FN_VALID.Display
-    'error', false, @islogicalscalar
-    'PrepareGradient', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
-    'OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x)
-    'Solver', @auto, @(x) isequal(x, @auto) ...
-    || (ischar(x) && any(strcmpi(x, {'qad', 'plain', 'lsqnonlin', 'IRIS', 'fsolve'}))) ...
-    || isequal(x, @fsolve) || isequal(x, @lsqnonlin) || isequal(x, @qad) ...
-    || ( iscell(x) && iscellstr(x(2:2:end)) )
-    ...
-    ... Equation-selective simulations
-    ...
-    'NonlinWindow, nonlinper', @all, @(x) isequal(x, @all) || (isnumeric(x) && isscalar(x) && x>=0)
-    'maxnumeljv', 1e6, @(x) isintscalar(x) && x>=0
-    ...
-    ... Equation-selective nonlinear simulations - QaD
-    ...
-    'addsstate', true, @islogicalscalar
-    'fillout', false, @islogicalscalar
-    'lambda', 1, @(x) isnumericscalar(x) && all(x>0 & x<=2)
-    'noptimlambda, optimlambda', 1, @(x) islogicalscalar(x) || (isintscalar(x) && x>=0)
-    'reducelambda, lambdafactor', 0.5, @(x) isnumericscalar(x) && x>0 && x<=1
-    'MaxIter', 100, @isnumericscalar
-    'nshanks', false, @(x) isempty(x) || (isintscalar(x) && x>0) || isequal(x, false)
-    'tolerance', 1e-5, @isnumericscalar
-    'upperbound', 1.5, @(x) isnumericscalar(x) && all(x>1)
-    ...
-    ... Equation-selective nonlinear simulations - Optim Tbx
-    ...
-    'OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x)
-    ...
-    ... Global nonlinear simulations
-    ...
-    'ChkSstate', true, @model.validateChksstate
-    'ForceRediff', false, @islogicalscalar
-    'InitEndog', 'Dynamic', @(x) ischar(x) && any(strcmpi(x, {'Dynamic', 'Static'})) 
-    'Solve', true, @model.validateSolve
-    'Steady, sstate, sstateopt', true, @model.validateSstate
-    'Unlog', [ ], @(x) isempty(x) || isequal(x, @all) || iscellstr(x) || ischar(x)
-    'times', @auto, @(x) isequal(x, @auto) || ( isnumericscalar(x) && x>0 )
-    'whenfailed', 'warning', @(x) ischar(x) && any(strcmpi(x, {'error', 'warning'}))
-    }
-];
-
-def.solve = [
-    system
-    {
-    'error', false, @islogicalscalar
-    'expand, forward', 0, @(x) isnumeric(x) && length(x)==1
-    'fast', false, @islogicalscalar
-    'progress', false, @islogicalscalar
-    'warning', true, @islogicalscalar
-    }
-];
 
 def.symbdiff = { ...
     'simplify', true, @islogicalscalar, ...
@@ -298,7 +194,6 @@ def.createSourceDbase = [
     'AppendPostsample, AddPostsample', true, @islogicalscalar
     'ndraw', 1, @(x) isintscalar(x) && x>=0
     'ncol', 1, @(x) isintscalar(x) && x>=0
-    'randshocks, randshock, randomshocks, randomshock', false, @islogicalscalar
     'shockfunc, randfunc, randfn', @zeros, @(x) isa(x, 'function_handle') && any(strcmp(func2str(x), {'randn', 'lhsnorm', 'zeros'}))
     }
 ];
@@ -320,13 +215,6 @@ def.sspace = {
 def.lhsmrhs = { ...
     'kind', 'dynamic', @(x) ischar(x) && any(strcmpi(x, {'dynamic', 'steady'})), ...
     };
-
-def.system = [
-    system
-    {
-    'sparse', false, @islogicalscalar
-    }
-];
 
 def.trollify = { 
     'SrcTemplate', 'trollify_template.src', @ischar

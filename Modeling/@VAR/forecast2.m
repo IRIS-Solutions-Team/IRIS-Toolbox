@@ -30,21 +30,21 @@ function outp = forecast(this, inp, range, varargin)
 % Options
 % ========
 %
-% * `'cross='` [ numeric | *`1`* ] - Multiply the off-diagonal elements of
-% the covariance matrix (cross-covariances) by this factor; `'cross='` must
-% be equal to or smaller than `1`.
+% * `Cross=1` [ numeric ] - Multiply the off-diagonal elements of the
+% covariance matrix (cross-covariances) by this factor; `Cross=` must be
+% equal to or smaller than `1`.
 %
-% * `'dbOverlay='` [ `true` | *`false`* ] - Combine the output data with the
+%  `DbOverlay=false` [ `true` | `false` ] - Combine the output data with the
 % input data; works only if the input data is a database.
 %
-% * `'deviation='` [ `true` | *`false`* ] - Both input and output data are
+% `Deviation=false` [ `true` | `false` ] - Both input and output data are
 % deviations from the unconditional mean.
 %
-% * `'meanOnly='` [ `true` | *`false`* ] - Return a plain database with mean
+%  `MeanOnly=false` [ `true` | `false` ] - Return a plain database with mean
 % forecasts only.
 %
-% * `'omega='` [ numeric | *empty* ] - Modify the covariance matrix of
-% residuals for this forecast.
+% * `Omega=[ ]` [ numeric ] - Modify the covariance matrix of residuals for
+% this forecast.
 %
 % Description
 % ============

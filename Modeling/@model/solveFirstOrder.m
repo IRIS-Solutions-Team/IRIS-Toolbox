@@ -1,11 +1,11 @@
 function [this, exitFlag, nanDeriv, sing1, bk] = solveFirstOrder(this, variantsRequired, opt)
-% solveFirstOrder  First-order quasi-triangular solution.
+% solveFirstOrder  First-order quasi-triangular solution
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 % exitFlag
 % * 1 .. Unique stable solution
@@ -25,10 +25,10 @@ SEVN2_TOLERANCE = this.Tolerance.Sevn2Patch;
 
 doTransition = true; % Do transition equations.
 doMeasurement = true; % Do measurement equations.
-if strcmpi(opt.eqtn, 'transition')
+if strcmpi(opt.Eqtn, 'transition')
     doTransition = true;
     doMeasurement = false;
-elseif strcmpi(opt.eqtn, 'measurement')
+elseif strcmpi(opt.Eqtn, 'measurement')
     doTransition = false;
     doMeasurement = true;
 end
@@ -74,7 +74,7 @@ sing1 = false(nt, nv);
 nanDeriv = cell(1, nv);
 bk = nan(3, nv);
 
-if opt.progress
+if opt.Progress
     progress = ProgressBar('IRIS model.solve progress');
 end
 
@@ -165,7 +165,7 @@ for v = variantsRequired
         end
     end
     
-    if opt.progress
+    if opt.Progress
         update(progress, v/length(variantsRequired));
     end
 end
@@ -224,7 +224,7 @@ return
                 'some eigenvalues are too close to swap, and ', ...
                 'equation re-ordering does not help.']);
         end
-        if opt.warning && eqOrd(1)~=1
+        if opt.Warning && eqOrd(1)~=1
             utils.warning('model:mysolve', ...
                 ['Numerical instability in QZ decomposition. ', ...
                 'Equations re-ordered %g time(s).'], ...
@@ -235,7 +235,7 @@ return
         invEigen = -ordeig(SS, TT);
         invEigen = invEigen(:).';
         isSevn2 = applySevn2Patch( ) | isSevn2;
-        if opt.warning && isSevn2
+        if opt.Warning && isSevn2
             utils.warning('model:mysolve', ...
                 ['Numerical instability in QZ decomposition. ', ...
                 'SEVN2 patch applied.'])
@@ -486,7 +486,7 @@ return
             this.Variant.FirstOrderSolution{8}(:, 1:nh, v) = Y;
         end
         
-        if ~opt.fast
+        if ~opt.Fast
             % Necessary initial conditions in xb vector
             this.Variant.IxInit(:, :, v) = any(abs(T/U)>SOLVE_TOLERANCE, 1);
 

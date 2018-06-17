@@ -15,7 +15,7 @@ ixp = this.Quantity.Type==TYPE(4);
 nEqtn = length(this.Equation.Input);
 
 indexEquationsAffected = true(1, nEqtn);
-if ~opt.select
+if ~opt.Select
     return
 end
 

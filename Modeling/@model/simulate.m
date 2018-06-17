@@ -1,4 +1,4 @@
-function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, varargin)
+function [outputData, exitFlag, finalAddf, finalDcy] = simulate(this, inputData, range, varargin)
 % simulate  Simulate model
 %
 % __Syntax__
@@ -274,51 +274,63 @@ function [outp, exitFlag, finalAddf, finalDcy] = simulate(this, inp, range, vara
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
-
-% [this, inp, range, varargin] = ...
-%     irisinp.parser.parse('model.simulate', varargin{:});
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 persistent inputParser
 if isempty(inputParser)
-    inputParser = extend.InputParser('model/simulate.m');
+    inputParser = extend.InputParser('model.simulate');
     inputParser.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
     inputParser.addRequired('D', @isstruct);
     inputParser.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
 end
-inputParser.parse(this, inp, range);
+inputParser.parse(this, inputData, range);
+opt = parseSimulateOptions(this, varargin{:});
 
 range = range(1) : range(end);
+
+% Convert plain numeric range into DateWrapper range
 if ~isa(range, 'DateWrapper')
     range = DateWrapper(range);
 end
 
-opt = passvalopt('model.simulate', varargin{:});
-
-% Global (exact) nonlinear simulation of backward-looking models.
+% Global (exact) nonlinear simulation of backward-looking models
 if strcmpi(opt.Method, 'global') || strcmpi(opt.Method, 'exact')
     if isequal(opt.Solver, @auto)
         opt.Solver = 'IRIS';
     end
     [opt.Solver, opt.PrepareGradient] = ...
         solver.Options.processOptions(opt.Solver, 'Exact', opt.PrepareGradient, 'Verbose');
-    [outp, exitFlag]  = simulateNonlinear(this, inp, range, @all, opt);
-    outp = appendData(this, inp, outp, range, opt);
+    [outputData, exitFlag]  = simulateNonlinear(this, inputData, range, @all, opt);
+    outputData = appendData(this, inputData, outputData, range, opt);
     return
 end
 
+% Stacked-time simulation
 if strcmpi(opt.Method, 'Stacked') || strcmpi(opt.Method, 'Period')
     if isequal(opt.Solver, @auto)
         opt.Solver = 'IRIS';
     end
-    [opt.Solver, opt.PrepareGradient] = ...
-        solver.Options.processOptions(opt.Solver, 'Stacked', opt.PrepareGradient, 'Verbose');
-    [outp, exitFlag] = simulateStacked(this, inp, range, opt);
-    outp = addToDatabank('Default', this, outp);
+    [ opt.Solver, ...
+      opt.PrepareGradient ] = solver.Options.processOptions( opt.Solver, 'Stacked', ...
+                                                             opt.PrepareGradient, 'Verbose' );
+    [outputData, exitFlag] = simulateStacked(this, inputData, range, opt);
+    outputData = addToDatabank('Default', this, outputData);
+    return
+end
+
+% Conditional simulation
+isCond = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'cond');
+if isCond
+    outputData = jforecast( this, inputData, range, ...
+                            'Plan=', opt.Plan, ...
+                            'Anticipate=', opt.Anticipate, ...
+                            'Deviation=', opt.Deviation, ...
+                            'DTrends=', opt.DTrends, ...
+                            'MeanOnly=', true );
     return
 end
 
@@ -342,31 +354,31 @@ nPer = length(range);
 s.NPer = nPer;
 s.TTrend = dat2ttrend(range, this);
 
-% Simulation plan.
-isSwap = isa(opt.plan, 'plan') ...
-    && nnzendog(opt.plan)>0 && nnzexog(opt.plan)>0;
+% Simulation plan., ignoreresiduals, ignoreresidual',
+isSwap = isa(opt.Plan, 'plan') ...
+    && nnzendog(opt.Plan)>0 && nnzexog(opt.Plan)>0;
 
 % Get initial condition for alpha.
 % alpha is always expanded to match nv within datarequest(...).
-[xbInit, listInitMissing] = datarequest('xbinit', this, inp, range);
+[xbInit, listInitMissing] = datarequest('xbinit', this, inputData, range);
 if ~isempty(listInitMissing)
-    if isnan(opt.missing)
+    if isnan(opt.Missing)
         listInitMissing = unique(listInitMissing);
         utils.error('model:simulate', ...
             'This initial condition is missing from input databank: %s ', ...
             listInitMissing{:});
     else
-        xbInit(isnan(xbInit)) = opt.missing;
+        xbInit(isnan(xbInit)) = opt.Missing;
     end
 end
 numOfInitDataSets = size(xbInit, 3);
 
 % Get shocks; both reals and imags are checked for NaNs within
 % datarequest(...).
-if ~opt.ignoreshocks
-    eInp = datarequest('e', this, inp, range);
+if ~opt.IgnoreShocks
+    eInp = datarequest('e', this, inputData, range);
     % Find the last anticipated shock to determine t+k for expansion.
-    if opt.anticipate
+    if opt.Anticipate
         lastEa = utils.findlast(real(eInp));
     else
         lastEa = utils.findlast(imag(eInp));
@@ -398,7 +410,7 @@ s.LastEndgA = lastEndgA;
 s.LastEndgU = lastEndgU;
 
 % Get exogenous variables in dtrend equations.
-G = datarequest('g', this, inp, range);
+G = datarequest('g', this, inputData, range);
 numExogDataSets = size(G, 3);
 
 % Total number of cycles.
@@ -421,7 +433,7 @@ else
     hData = hdataobj(this, extendedRange, ne+2, 'Contributions=', @shock);
 end
 
-if opt.progress && strcmpi(opt.Method, 'FirstOrder')
+if opt.Progress && strcmpi(opt.Method, 'FirstOrder')
     s.progress = ProgressBar('IRIS model.simulate Progress');
 else
     s.progress = [ ];
@@ -460,7 +472,7 @@ for ithRun = 1 : numRuns
     systemProperty.Specifics = s;
     if ~isequal(opt.SystemProperty, false)
         systemProperty.OutputNames = opt.SystemProperty;
-        outp = systemProperty;
+        outputData = systemProperty;
         return
     end
     update(systemProperty, this, variantRunningNow); 
@@ -551,11 +563,11 @@ end
 
 % Convert hdataobj to struct. The comments assigned to the output series
 % depend on whether contributions=true or false.
-outp = hdata2tseries(hData, 'Delog=', opt.Delog);
+outputData = hdata2tseries(hData, 'Delog=', opt.Delog);
 
 % Overlay the input (or user-supplied) database with the simulation
 % database if DbOverlay=true or AppendPresample=true
-outp = appendData(this, inp, outp, range, opt);
+outputData = appendData(this, inputData, outputData, range, opt);
 
 return
 
@@ -577,11 +589,11 @@ return
 
 
     function chkDetermined( )
-        if nnzexog(opt.plan) ~= nnzendog(opt.plan)
+        if nnzexog(opt.Plan) ~= nnzendog(opt.Plan)
             utils.warning('model:simulate', ...
                 ['The number of exogenised data points (%g) does not ', ...
                 'match the number of endogenised data points (%g).'], ...
-                nnzexog(opt.plan), nnzendog(opt.plan));
+                nnzexog(opt.Plan), nnzendog(opt.Plan));
         end
     end 
 
@@ -603,7 +615,7 @@ return
             g = s.ExogenousData;
         end
         % Add current results to output data.
-        if opt.anticipate
+        if opt.Anticipate
             e = s.Ea + 1i*s.Eu;
         else
             e = s.Eu + 1i*s.Ea;
@@ -622,7 +634,7 @@ return
     function chkConflicts( )
         % The option 'contributions=' option cannot be used with the 'plan='
         % option, with multiple parameterisations, or multiple data sets.
-        if opt.contributions
+        if opt.Contributions
             if nv>1 || numOfInitDataSets>1 || numOfShockDataSets>1
                 utils.error('model:simulate', ...
                     ['Cannot simulate(...) ', ...
@@ -660,12 +672,11 @@ return
         s.XbInit = xbInit(:, 1, min(ithRun, end));
         indexOfNaNInitials = isnan(s.XbInit);
         s.XbInit(indexOfNaNInitials & ~indexOfRequiredInitials(:)) = 0;
-        s.XbInit = s.XbInit;
-        if opt.ignoreshocks
+        if opt.IgnoreShocks
             s.Ea = zeros(ne, nPer);
             s.Eu = zeros(ne, nPer);
         else
-            if opt.anticipate
+            if opt.Anticipate
                 s.Ea = real(eInp(:, :, min(ithRun, end)));
                 s.Eu = imag(eInp(:, :, min(ithRun, end)));
             else
@@ -673,7 +684,7 @@ return
                 s.Eu = real(eInp(:, :, min(ithRun, end)));
             end
         end
-        if opt.sparseshocks
+        if opt.SparseShocks
             s.Ea = sparse(s.Ea);
         end
         % Current tunes on measurement and transition variables.
@@ -692,14 +703,14 @@ return
 
     function getPlanData( )
         [yAnch, xAnch, eaAnch, euAnch, ~, ~, eaWght, euWght] = ...
-            myanchors(this, opt.plan, range, opt.anticipate);
+            myanchors(this, opt.Plan, range, opt.Anticipate);
         s.Anch = [yAnch;xAnch;eaAnch;euAnch];
         s.Wght = [eaWght;euWght];
         % Get values for exogenised data points.
         if any(yAnch(:))
             % Retrieve all data for measurement variables, but zero all non-anchored
             % data points so that they do not affect position of last anchor.
-            yTune = datarequest('y', this, inp, range);
+            yTune = datarequest('y', this, inputData, range);
             yTune(~yAnch) = 0;
         else
             yTune = zeros(ny, nPer);
@@ -707,7 +718,7 @@ return
         if any(xAnch(:))
             % Retrieve all data for transition variables, but zero all non-anchored
             % data points so that they do not affect position of last anchor.
-            xTune = datarequest('x', this, inp, range);
+            xTune = datarequest('x', this, inputData, range);
             xTune(~xAnch) = 0;
         else
             xTune = zeros(nxx, nPer);
@@ -717,5 +728,6 @@ return
         numSwapDataSets = max(size(yTune, 3), size(xTune, 3));
         lastEndgA = utils.findlast(eaAnch);
         lastEndgU = utils.findlast(euAnch);
-    end 
-end
+    end%
+end%
+

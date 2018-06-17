@@ -127,8 +127,15 @@ classdef Options
                         display = 'iter';
                     end
                 end
-            end
-        end
-        
+            end%
+        end%
+
+
+        function flag = validateDisplay(x)
+            flag = isequal(x, @auto) || isequal(x, @default) ...
+                   || isequal(x, true) || isequal(x, false) ...
+                   || (isnumeric(x) && isscalar(x) && x==round(x) && x>=0) ...
+                   || any(strcmpi(x, {'iter*', 'iter', 'final', 'none', 'notify', 'off'}));
+        end%
     end
 end

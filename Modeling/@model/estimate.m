@@ -333,7 +333,7 @@ maximizePosteriorMode(posterior, estimationWrapper);
 % Assign estimated parameters, refresh dynamic links, and re-compute steady
 % state, solution, and expansion matrices.
 variantRequested = 1;
-opt.Solve.fast = false;
+opt.Solve.Fast = false;
 throwError = true;
 this = update(this, posterior.Optimum, variantRequested, opt, throwError);
 
@@ -396,7 +396,6 @@ return
             end
         end
         variables = {
-            posterior.ParameterNames(:), 'Name', 'Name'
             posterior.Optimum(:), 'Poster_Mode', 'Posterior Mode'
             posterStd(:), 'Poster_Std', 'Posterior Std Deviation'
             priorName(:), 'Prior_Distrib', 'Prior Distribution Type'
@@ -408,10 +407,9 @@ return
             posterior.PropOfLineInfoFromData(:), 'Info_from_Data', 'Proportion of Information from Data'
             posterior.Initial(:), 'Start', 'Starting Value'
         };
-        summary = table( ...
-            variables{:, 1}, ...
-            'VariableNames', variables(:, 2)' ...
-        );
+        summary = table( variables{:, 1}, ...
+                         'RowNames', posterior.ParameterNames, ...
+                         'VariableNames', variables(:, 2)' );
         summary.Properties.VariableDescriptions = variables(:, 3)';
     end
 

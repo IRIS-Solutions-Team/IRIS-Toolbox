@@ -1,26 +1,26 @@
 function [d, isDev] = zerodb(this, range, varargin)
-% zerodb  Create model-specific zero-deviation database.
+% zerodb  Create model-specific zero-deviation database
 %
 %
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [D, IsDev] = zerodb(M, Range, ~NCol, ...)
+%     [D, IsDev] = zerodb(Model, SimulationRange, ~NumOfColumns, ...)
 %
 %
 % __Input Arguments__
 %
-% * `M` [ model ] - Model object for which the zero database will be
+% * `Model` [ model ] - Model object for which the zero database will be
 % created.
 %
-% * `Range` [ numeric ] - Intended simulation range; the zero database will
-% be created on a range that also automatically includes all the necessary
-% lags.
+% * `SimulationRange` [ numeric ] - Intended simulation range; the zero
+% database will be created on a range that also automatically includes all
+% the necessary lags.
 %
-% * `~NCol` [ numeric | *`1`* ] - Number of columns created in the time
-% series object for each variable; the input argument `NCol` can be only
-% used on models with one parameterisation; may be omitted.
+% * `~NumOfColumns` [ numeric | *`1`* ] - Number of columns created in the
+% time series object for each variable; the input argument `NumOfColumns`
+% can be only used on models with one parameterisation; may be omitted.
 %
 %
 % __Options__
@@ -40,7 +40,7 @@ function [d, isDev] = zerodb(this, range, varargin)
 % assigned values for each model parameter.
 %
 % * `IsDev` [ `true` ] - The second output argument is always `true`, and
-% can be used to set the option `'deviation='` in
+% can be used to set the option `Deviation=` in
 % [`model/simulate`](model/simulate).
 %
 %
@@ -50,19 +50,21 @@ function [d, isDev] = zerodb(this, range, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 % zerodb, sstatedb
 
-pp = inputParser( );
-pp.addRequired('M', @(x) isa(x, 'model'));
-pp.addRequired('Range', @DateWrapper.validateDateInput);
-pp.parse(this, range);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.zerodb');
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
+end
+inputParser.parse(this, range);
 
 %--------------------------------------------------------------------------
 
-isDev = true;
-d = createSourceDbase(this, range, varargin{:}, 'Deviation=', isDev);
+d = createSourceDbase(this, range, varargin{:}, 'Deviation=', true);
 
 end

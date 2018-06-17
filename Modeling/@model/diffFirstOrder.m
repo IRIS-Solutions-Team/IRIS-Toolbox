@@ -1,11 +1,11 @@
 function [deriv, ixNanDeriv] = diffFirstOrder(this, eqSelect, variantRequested, opt)
-% diffFirstOrder  Calculate first-order derivatives of equations.
+% diffFirstOrder  Calculate first-order derivatives of equations
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -38,7 +38,7 @@ nsh = this.Incidence.Dynamic.NumOfShifts;
 if any(eqSelect)    
     nyxe = sum(ixyxe);
     sh0 = this.Incidence.Dynamic.PosOfZeroShift;
-    if opt.symbolic
+    if opt.Symbolic
         ixSymb = ~cellfun(@isempty, this.Gradient.Dynamic(1, :));
     else
         ixSymb = false(1, nEqtn);
@@ -60,7 +60,7 @@ if any(eqSelect)
     deriv.n(eqSelect, :) = tempEye(eqSelect, this.Equation.IxHash);
     
     % Normalize derivatives by largest number in nonlinear models.
-    if ~this.IsLinear && opt.normalize
+    if ~this.IsLinear && opt.Normalize
         for iEq = find(eqSelect)
             ix = deriv.f(iEq, :)~=0;
             if any(ix)

@@ -30,9 +30,10 @@ end
 nPath = [ ];
 eigen = [ ];
 if ~isequal(steady.Solve, false)
-    % Solve the model first if requested by the user.
-    solveOpt = prepareSolve(this, 'verbose', steady.Solve);    
-    [this, nPath, eigen] = solve(this, solveOpt);
+    if isequal(steady.Solve, true)
+        steady.Solve = cell.empty(1, 0);
+    end
+    [this, nPath, eigen] = solve(this, steady.Solve{:});
 end
 
 ixy = this.Quantity.Type==TYPE(1);

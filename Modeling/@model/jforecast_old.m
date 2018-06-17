@@ -1,4 +1,4 @@
-function outp = jforecast(this, inp, range, varargin)
+function outp = jforecast_old(this, inp, range, varargin)
 % jforecast  Forecast with judgmental adjustments (conditional forecasts).
 %
 % __Syntax__
@@ -36,14 +36,10 @@ function outp = jforecast(this, inp, range, varargin)
 % contain deterministic trends.
 %
 % * `InitCond='data'` [ `'data'` | `'fixed'` ] - Use the MSE for the
-% initial conditions if found in the input data or treat the initial
+% initial conditions if found in the input data or treat the initical
 % conditions as fixed.
 %
-% * `InitCondMSE=@auto` [ `@auto` | numeric | `0` ] - MSE for the initial
-% condition of the vector of backward looking variables, including their
-% auxiliary lags.
-%
-% * `MeanOnly=false` [ `true` | `false` ] - Return only mean data, i.e.
+%  `MeanOnly=false` [ `true` | `false` ] - Return only mean data, i.e.
 %  point estimates.
 %
 % * `Plan=[ ]` [ plan | empty ] - Forecast plan specifying exogenized
@@ -105,8 +101,7 @@ if isempty(inputParser)
 
     inputParser.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('CurrentOnly', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('InitCond', 'data', @(x) isnumeric(x) || (ischar(x) && any(strcmpi(x, {'data', 'fixed'}))));
-    inputParser.addParameter('InitCondMSE', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && size(x, 1)==size(x, 2)));
+    inputParser.addParameter('InitCond', '}data', @(x) isnumeric(x) || (ischar(x) && any(strcmpi(x, {'data', 'fixed'}))));
     inputParser.addParameter('MeanOnly', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('Precision', 'double', @(x) any(strcmpi(x, {'double', 'single'})));
     inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
@@ -125,11 +120,10 @@ if ischar(range)
 end
 range = range(1) : range(end);
 
-% Conditioning
 isPlanCond = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'cond');
 isCond = (isstruct(cond) && ~isempty(cond) && ~isempty(fieldnames(cond))) || isPlanCond;
 
-% Exogenizing
+% Tunes.
 isSwap = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'tunes');
 
 % TODO: Remove 'missing', 'contributions' options from jforecast, 
@@ -154,23 +148,16 @@ nXCurr = sum(ixXCurr);
 ixXfCurr = ixXCurr(1:nf);
 ixXbCurr = ixXCurr(nf+1:end);
 
-% Get initial condition for the xb vector, and check for missing initial
-% conditions
-[xbInit, nanInit, xbInitMse] = datarequest('xbinit', this, inp, range);
-% TODO
-%{
-if ~isequal(opt.InitCondMSE, @auto)
-    if isequal(opt.InitCondMSE, 0)
-        xbInitMse = zeros(nb);
-    elseif size(opt.InitCondMSE, 1)==nb && size(opt.InitCondMSE, 2)==nb
-        xbInitMse = opt.InitCondMSE;
-    else
-        error( 'model:jforecast', ...
-               'Invalid size of matrix in option InitCondMSE.' );
-    end
-end
-%}
-checkInitCond( );
+% Get initial condition for the alpha vector. The `datarequest` function
+% always expands the `alpha` vector to match `nalt`. The `ainitmse` and
+% `xinitmse` matrices can be empty.
+[aInit, xInit, nanInit, aInitMse, xInitMse] = ...
+    datarequest('init', this, inp, range);
+
+% Check for availability of all initial conditions.
+chkInitCond( );
+nInit = size(aInit, 3);
+nInitMse = size(aInitMse, 4);
 
 if opt.Anticipate
     fnAn = @real;
@@ -189,9 +176,10 @@ inpEu = fnUn(inpE);
 
 % Get exogenous variables includig ttrend.
 G = datarequest('g', this, inp, range);
+nExog = size(G, 3);
 
 % Determine the total number of cycles.
-numOfRuns = max([nAlt, size(xbInit, 3), size(xbInitMse, 4), nData, size(G, 3)]);
+nLoop = max([nAlt, nInit, nInitMse, nData, nExog]);
 
 lastOrZeroFunc = @(x) max([0, find(any(x, 1), 1, 'last')]);
 
@@ -206,7 +194,7 @@ if isSwap
     xAnchX = xAnchX(ixXCurr, :);
     % Check for NaNs in exogenized variables, and check the number of
     % exogenized and endogenized data points.
-    checkExogenizedForNaN( );
+    chkExogenized( );
     lastEaAnchX = lastOrZeroFunc(eaAnchX);
     lastEuAnchX = lastOrZeroFunc(euAnchX);
     lastYAnchX = lastOrZeroFunc(yAnchX);
@@ -245,7 +233,7 @@ if isCond
     isCond = lastYAnchC > 0 || lastXAnchC > 0;
     % Check for overlaps between shocks from input data and shocks from
     % conditioning data, and add up the overlapping shocks.
-    checkOverlap( );
+    chkOverlap( );
 else
     lastYAnchC = 0;
     lastXAnchC = 0;
@@ -288,10 +276,10 @@ end
 
 % Create and initialize output hdataobj.
 hData = struct( );
-hData.mean = hdataobj(this, xRange, numOfRuns, ...
+hData.mean = hdataobj(this, xRange, nLoop, ...
     'Precision=', opt.Precision);
 if ~opt.MeanOnly
-    hData.std = hdataobj(this, xRange, numOfRuns, ...
+    hData.std = hdataobj(this, xRange, nLoop, ...
         'IsVar2Std=', true, ...
         'Precision=', opt.Precision);
 end
@@ -304,7 +292,7 @@ if opt.Progress
     progress = ProgressBar('IRIS model.solve progress');
 end
 
-for iLoop = 1 : numOfRuns
+for iLoop = 1 : nLoop
     
     % Get exogenous data and compute deterministic trends if requested.
     g = G(:, :, min(iLoop, end));
@@ -316,20 +304,19 @@ for iLoop = 1 : numOfRuns
         % Expansion needed to t+k.
         k = max(1, last) - 1;
         this = expand(this, k);
-        keepExpansion = true;
-        triangular = false;
-        [T, R, K, Z, H, D] = sspaceMatrices(this, iLoop, keepExpansion, triangular);
+        [T, R, K, Z, H, D, U] = sspaceMatrices(this, iLoop);
         Tf = T(1:nf, :);
-        Tb = T(nf+1:end, :);
+        Ta = T(nf+1:end, :);
         Rf = R(1:nf, 1:ne);
         Ra = R(nf+1:end, 1:ne);
         Kf = K(1:nf, :);
         Ka = K(nf+1:end, :);
-        % Swapped system
+        Ut = U.';
+        % Swapped system.
         if opt.MeanOnly
-            [M, Mxb] = swapForecast(this, iLoop, ixExog, ixEndg, last);
+            [M, Ma] = myforecastswap(this, iLoop, ixExog, ixEndg, last);
         else
-            [M, Mxb, N, Nxb] = swapForecast(this, iLoop, ixExog, ixEndg, last);
+            [M, Ma, N, Na] = myforecastswap(this, iLoop, ixExog, ixEndg, last);
         end
         [sxAn, sxUn] = createStdCorr( );
     end
@@ -339,14 +326,15 @@ for iLoop = 1 : numOfRuns
         continue
     end
     
-    % Initial condition
-    xb0 = xbInit(:, 1, min(end, iLoop));
-    if isempty(xbInitMse) || isequal(opt.InitCond, 'fixed')
-        Pxb0 = zeros(nb);
+    % Initial condition.
+    a0 = aInit(:, 1, min(iLoop, end));
+    x0 = xInit(:, 1, min(end, iLoop));
+    if isempty(aInitMse) || isequal(opt.InitCond, 'fixed')
+        Pa0 = zeros(nb);
         Dxinit = zeros(nb, 1);
     else
-        Pxb0 = xbInitMse(:, :, 1, min(iLoop, end));
-        Dxinit = diag(Pxb0);
+        Pa0 = aInitMse(:, :, 1, min(iLoop, end));
+        Dxinit = diag(xInitMse(:, :, min(iLoop, end)));
     end
     
     % Anticipated and unanticipated shocks.
@@ -383,11 +371,13 @@ for iLoop = 1 : numOfRuns
         eu1 = eu(:, 1:last);
         ea1 = ea(:, 1:last);
         const = double(~opt.Deviation);
-        % inp := [ const; xb0; vec(eu); vec(ea) ]
-        inp = [ const
-                xb0(:)
-                eu1(:)
-                ea1(:) ];
+        % inp := [const;a0;vec(eu);vec(ea)].
+        inp = [ ...
+            const ; ...
+            a0(:) ; ...
+            eu1(:) ; ...
+            ea1(:) ; ...
+            ];
         
         % outp := [y;x].
         outp = [ y(:) ; x(:) ];
@@ -397,7 +387,7 @@ for iLoop = 1 : numOfRuns
         % lhs := [outp(~exi);inp(endi)].
         rhs = [ inp(~ixEndg) ; outp(ixExog) ];
         lhs = M*rhs;
-        xb = Mxb*rhs;
+        a = Ma*rhs;
         
         Prhs = [ ];
         if ~opt.MeanOnly || isCond
@@ -406,7 +396,7 @@ for iLoop = 1 : numOfRuns
         end
 
         Plhs = [ ];
-        Pxb = [ ];
+        Pa = [ ];
         if ~opt.MeanOnly
             % Plhs is the cov matrix of the LHS in the swapped system.
             calcPlhsPa( );
@@ -428,17 +418,17 @@ for iLoop = 1 : numOfRuns
             upd = simulate.linear.updatemean(z, Prhs, pe);
             rhs = rhs + upd;
             lhs = lhs + M*upd;
-            xb = xb + Mxb*upd;
+            a = a + Ma*upd;
             if ~opt.MeanOnly
                 % Update forecast MSE.
                 z = N(ixCondNotExog, :);
                 upd = simulate.linear.updatemse(z, Prhs);
                 Prhs = Prhs - upd;
                 Plhs = Plhs - N*upd*N.';
-                Pxb = Pxb - Nxb*upd*Nxb.';
+                Pa = Pa - Na*upd*Na.';
                 Prhs = (Prhs + Prhs')/2;
                 Plhs = (Plhs + Plhs')/2;
-                Pxb = (Pxb + Pxb')/2;
+                Pa = (Pa + Pa')/2;
             end
         end
         
@@ -447,9 +437,9 @@ for iLoop = 1 : numOfRuns
     else
         eu = zeros(ne, last);
         ea = zeros(ne, last);
-        xb = xb0;
+        a = a0;
         if ~opt.MeanOnly
-            Pxb = Pxb0;
+            Pa = Pa0;
         end
     end
     
@@ -457,8 +447,8 @@ for iLoop = 1 : numOfRuns
     beyond( );
     
     % Free memory.
-    xb = [ ];
-    Pxb = [ ];
+    a = [ ];
+    Pa = [ ];
     
     % Add measurement detereministic trends.
     if opt.DTrends
@@ -470,7 +460,7 @@ for iLoop = 1 : numOfRuns
     
     if opt.Progress
         % Update progress bar.
-        update(progress, iLoop/numOfRuns);
+        update(progress, iLoop/nLoop);
     end
 end
 % End of main loop.
@@ -486,24 +476,23 @@ return
 
 
 
-    function checkInitCond( )
+    function chkInitCond( )
         if ~isempty(nanInit)
-            utils.error( 'model:jforecast', ...
-                         'This initial condition is not available: %s ', ...
-                         nanInit{:} );
+            utils.error('model:jforecast', ...
+                'This initial condition is not available: ''%s''.', ...
+                nanInit{:});
         end
-    end%
+    end
 
 
 
 
-    function checkExogenizedForNaN( )
+    function chkExogenized( )
         % Check for NaNs in exogenized variables, and check the number of
         % exogenized and endogenized data points.
-        ix1 = [ yAnchX
-                xAnchX ];
-        ix2 = [ any(isnan(inpY), 3)
-                any(isnan(inpX(ixXCurr, :, :)), 3) ];
+        ix1 = [yAnchX;xAnchX];
+        ix2 = [any(isnan(inpY), 3); ...
+            any(isnan(inpX(ixXCurr, :, :)), 3)];
         inx = any(ix1 & ix2, 2);
         if any(inx)
             yVec = printSolutionVector(this, 'y');
@@ -522,12 +511,12 @@ return
                 'the number of endogenized data points (%g).'], ...
                 nnzexog(opt.Plan), nnzendog(opt.Plan));
         end
-    end%
+    end 
 
 
 
 
-    function checkOverlap( )
+    function chkOverlap( )
         isWarnOverlap = false;
         if any(Ea(:)~=0) && any(inpEa(:)~=0)
             inpEa = bsxfun(@plus, inpEa, Ea);
@@ -542,7 +531,7 @@ return
                 ['Both input data and conditioning data include ', ...
                 'structural shocks, and they will be added up together.']);
         end
-    end%
+    end 
 
 
 
@@ -550,7 +539,7 @@ return
     function calcPrhs( )
         % Prhs is the MSE/Cov matrix of the RHS in the swapped system.
         Prhs = zeros(1+nb+2*ne*last);
-        Prhs(1+(1:nb), 1+(1:nb)) = Pxb0;
+        Prhs(1+(1:nb), 1+(1:nb)) = Pa0;
         Pu = covfun.stdcorr2cov(sxUn(:, 1:last), ne);
         Pe = covfun.stdcorr2cov(sxAn(:, 1:last), ne);
         pos = 1+nb+(1:ne);
@@ -574,9 +563,9 @@ return
 
     function calcPlhsPa( )
         Plhs = N*Prhs*N.';
-        Pxb = Nxb*Prhs*Nxb.';
+        Pa = Na*Prhs*Na.';
         Plhs = (Plhs + Plhs')/2;
-        Pxb = (Pxb + Pxb')/2;
+        Pa = (Pa + Pa')/2;
     end 
 
 
@@ -596,7 +585,7 @@ return
         outp(1:nXCurr*last) = [ ];
         
         inp(1) = [ ];
-        xb0 = inp(1:nb);
+        x0 = U*inp(1:nb);
         inp(1:nb) = [ ];
         eu = reshape(inp(1:ne*last), [ne, last]);
         inp(1:ne*last) = [ ];
@@ -634,7 +623,8 @@ return
         
         Pinp(1, :) = [ ];
         Pinp(:, 1) = [ ];
-        Dxinit = diag(Pinp(1:nb, 1:nb));
+        Pxinit = U*Pinp(1:nb, 1:nb)*Ut;
+        Dxinit = diag(Pxinit);
         Pinp(1:nb, :) = [ ];
         Pinp(:, 1:nb) = [ ];
         
@@ -669,19 +659,19 @@ return
         y(1:end, last+1:nPer) = 0;
         ea(1:end, last+1:nPer) = 0;
         eu(1:end, last+1:nPer) = 0;        
+        UCurr = U(ixXbCurr, :);
         TfCurr = Tf(ixXfCurr, :);
         KfCurr = Kf(ixXfCurr, :);
         for t = last+1 : nPer
-            xfCurr = TfCurr*xb;
-            xb = Tb*xb;
+            xfCurr = TfCurr*a;
+            a = Ta*a;
             if ~opt.Deviation
                 xfCurr = xfCurr + KfCurr;
-                xb = xb + Ka;
+                a = a + Ka;
             end
-            xCurr(:, t) = [ xfCurr
-                            xb(ixXbCurr, :) ];
-            if ny>0
-                y(:, t) = Z*xb;
+            xCurr(:, t) = [xfCurr;UCurr*a];
+            if ny > 0
+                y(:, t) = Z*a;
                 if ~opt.Deviation
                     y(:, t) = y(:, t) + D;
                 end
@@ -698,12 +688,12 @@ return
         for t = last+1 : nPer
             Pue = covfun.stdcorr2cov(sxUn(:, t), ne) ...
                 + covfun.stdcorr2cov(sxAn(:, t), ne);
-            PxfCurr = TfCurr*Pxb*TfCurr.' + RfCurr*Pue*RfCurr.';
-            Pxb = Tb*Pxb*Tb.' + Ra*Pue*Ra.';
-            PxbCurr = Pxb(ixXbCurr, ixXbCurr); 
+            PxfCurr = TfCurr*Pa*TfCurr.' + RfCurr*Pue*RfCurr.';
+            Pa = Ta*Pa*Ta.' + Ra*Pue*Ra.';
+            PxbCurr = UCurr*Pa*UCurr.';
             DxCurr(:, t) = [diag(PxfCurr);diag(PxbCurr)];
             if ny > 0
-                Py = Z*Pxb*Z.' + H*Pue*H.';
+                Py = Z*Pa*Z.' + H*Pue*H.';
                 Dy(:, t) = diag(Py);
             end
         end
@@ -781,7 +771,7 @@ return
         
         outpX = nan(nxx, nXPer);
         outpX(ixXCurr, 2:end) = xCurr;
-        outpX(nf+1:end, 1) = xb0;
+        outpX(nf+1:end, 1) = x0;
         
         if opt.Anticipate
             realOutpE = ea;
@@ -806,7 +796,7 @@ return
             outpDy = [ nan(ny, 1), Dy ];
             outpDx = nan(nxx, nPer);
             outpDx(ixXCurr, :) = DxCurr;
-            outpDx = [ [nan(nf, 1); Dxinit], outpDx ];
+            outpDx = [ [nan(nf, 1);Dxinit], outpDx ];
             if opt.Anticipate
                 outpDe = De + 1i*Du;
             else

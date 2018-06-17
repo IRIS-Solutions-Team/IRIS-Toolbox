@@ -10,9 +10,8 @@ function outputTable = table(this, query, varargin)
 %
 % * `Model` [ model ] - Model object.
 %
-% * `Request` [ `'Parameters'` | `'Steady'` | `'SteadyLevel'` |
-% `'SteadyGrowth'` | `'Std'` | `'Corr'` | `'NonzeroCorr'` ] - Requested
-% values.
+% * `Request` [ char ] - Requested values; see Description for the list of
+% valid requests.
 %
 % 
 % __Output Arguments__
@@ -33,6 +32,9 @@ function outputTable = table(this, query, varargin)
 %
 % __Description__
 %
+% The `Request` can be one of the following:
+%
+% * ``
 %
 % __Example__
 %
@@ -64,12 +66,14 @@ if strcmpi(query, 'Steady')
     steadyLevel = table(this, 'SteadyLevel', varargin{:});
     steadyChange = table(this, 'SteadyGrowth', varargin{:});
     outputTable = [steadyLevel, steadyChange];
+
 elseif strcmpi(query, 'SteadyLevel')
     values = this.Variant.Values;
     values = real(values);
     values = permute(values, [2, 3, 1]);
     names = this.Quantity.Name;
     outputTable = table(values, 'VariableNames', {'SteadyLevel'}, 'RowNames', names);
+
 elseif any(strcmpi(query, 'SteadyGrowth'))
     namesOfAll = this.Quantity.Name;
     indexOfLog = this.Quantity.IxLog;
@@ -83,6 +87,7 @@ elseif any(strcmpi(query, 'SteadyGrowth'))
     outputTable = table( valuesDiff, valuesRate, ...
                          'VariableNames', {'SteadyDifference', 'SteadyRateOfChange'}, ...
                          'RowNames', namesOfAll );
+
 elseif strcmpi(query, 'Parameters')
     values = this.Variant.Values;
     values = values(1, indexOfParameters, :);
@@ -91,13 +96,15 @@ elseif strcmpi(query, 'Parameters')
     outputTable = table( values, ...
                          'VariableNames', {'ParameterValue'}, ...
                          'RowNames', namesOfParameters );
+
 elseif strcmpi(query, 'Std')
     namesOfStd = getStdNames(this.Quantity);
     numOfShocks = numel(namesOfStd);
     valuesOfStd = permute( this.Variant.StdCorr(1, 1:numOfShocks, :), [2, 3, 1] );
     outputTable = table( valuesOfStd, ...
-                         'VariableNames', {'StdValue'}, ...
+                         'VariableNames', {'StdValues'}, ...
                          'RowNames', namesOfStd );
+
 elseif strcmpi(query, 'Corr') || strcmpi(query, 'NonzeroCorr')
     namesOfCorr = getCorrNames(this.Quantity);
     numOfShocks = nnz(indexOfShocks);
@@ -108,8 +115,33 @@ elseif strcmpi(query, 'Corr') || strcmpi(query, 'NonzeroCorr')
         valuesOfCorr = valuesOfCorr(indexOfNonzero, :);
     end
     outputTable = table( valuesOfCorr, ...
-                         'VariableNames', {'CorrValue'}, ...
+                         'VariableNames', {'CorrValues'}, ...
                          'RowNames', namesOfCorr );
+
+elseif any(strcmpi(query, {'Roots', 'AllRoots', 'EigenValues', 'AllEigenValues'}))
+    values = get(this, 'Roots');
+    values = values(:);
+    outputTable = table( values, abs(values), ...
+                         'VariableNames', {'AllRoots', 'Magnitudes'} );
+
+elseif any(strcmpi(query, {'StableRoots', 'StableEigenValues'}))
+    values = get(this, 'StableRoots');
+    values = values(:);
+    outputTable = table( values, abs(values), ...
+                         'VariableNames', {'StableRoots', 'Magnitudes'} );
+
+elseif any(strcmpi(query, {'UnstableRoots', 'UnstableEigenValues'}))
+    values = get(this, 'UnstableRoots');
+    values = values(:);
+    outputTable = table( values, abs(values), ...
+                         'VariableNames', {'UnstableRoots', 'Magnitudes'} );
+
+elseif any(strcmpi(query, {'UnitRoots', 'UnitEigenValues'}))
+    values = get(this, 'UnitRoots');
+    values = values(:);
+    outputTable = table( values, abs(values), ...
+                         'VariableNames', {'UnitRoots', 'Magnitudes'} );
+
 end
 
 if ~isempty(opt.WriteTable)

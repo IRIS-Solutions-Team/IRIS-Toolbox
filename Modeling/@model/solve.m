@@ -19,27 +19,27 @@ function [this, nPath, eigenValues] = solve(this, varargin)
 %
 % __Options__
 %
-% * `'Expand='` [ numeric | *`0`* | `NaN` ] - Number of periods ahead up to
-% which the model solution will be expanded; if `NaN` the matrices needed
-% to support solution expansion are not calculated and stored at all and
-% the model cannot be used later in simulations or forecasts with
-% anticipated shocks or plans.
+% * `Expand=0` [ numeric | `NaN` ] - Number of periods ahead up to which
+% the model solution will be expanded; if `NaN` the matrices needed to
+% support solution expansion are not calculated and stored at all and the
+% model cannot be used later in simulations or forecasts with anticipated
+% shocks or plans.
 %
-% * `'Eqtn='` [ *`all`* | `'measurement'` | `'transition'` ] - Update
+% * `Eqtn=@all` [ `@all` | `'measurement'` | `'transition'` ] - Update
 % existing solution in the measurement block, or the transition block, or
 % both.
 %
-% * `'Error='` [ `true` | *`false`* ] - Throw an error if no unique stable
+% * `Error=false` [ `true` | `false` ] - Throw an error if no unique stable
 % solution exists; if `false`, a warning message only will be displayed.
 %
-% * `'Progress='` [ `true` | *`false`* ] - Display progress bar in the
+% * `Progress=false` [ `true` | `false` ] - Display progress bar in the
 % command window.
 %
-% * `'Select='` [ *`true`* | `false` ] - Automatically detect which
+% * `Select=true` [ `true` | `false` ] - Automatically detect which
 % equations need to be re-differentiated based on parameter changes from
 % the last time the system matrices were calculated.
 %
-% * `'Warning='` [ *`true`* | `false` ] - Display warnings produced by this
+% * `Warning=true` [ `true` | `false` ] - Display warnings produced by this
 % function.
 %
 %
@@ -73,8 +73,16 @@ function [this, nPath, eigenValues] = solve(this, varargin)
 
 TYPE = @int8;
 
-opt = passvalopt('model.solve', varargin{:});
-opt = prepareSolve(this, 'verbose', opt);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.solve');
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+end
+inputParser.parse(this);
+
+% Do not unfold varargin to varargin{:} here because prepareSolve expectes
+% the options to be folded.
+opt = prepareSolve(this, 'verbose', varargin);
 
 %--------------------------------------------------------------------------
 
@@ -83,7 +91,7 @@ if any(this.Link)
     this = refresh(this);
 end
 
-if opt.warning
+if opt.Warning
     % Warning if some parameters are NaN, or some log-lin variables have
     % non-positive steady state.
     chkList = { 'parameters.dynamic', 'log' };
@@ -97,7 +105,7 @@ end
 % matrices.
 [this, nPath, nanDeriv, sing2, bk] = solveFirstOrder(this, Inf, opt);
 
-if (opt.warning || opt.error) && any(nPath~=1)
+if (opt.Warning || opt.Error) && any(nPath~=1)
     throwErrWarn( );
 end
 
@@ -107,13 +115,14 @@ end
 
 return
 
+
     function throwErrWarn( )
-        if opt.error
+        if opt.Error
             msgFunc = @(varargin) utils.error(varargin{:});
         else
             msgFunc = @(varargin) utils.warning(varargin{:});
         end
         [body, args] = solveFail(this, nPath, nanDeriv, sing2, bk);
         msgFunc('model:solve', body, args{:});
-    end
-end
+    end%
+end%

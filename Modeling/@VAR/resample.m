@@ -106,7 +106,7 @@ end
 
 % __Pre-allocate an array for resampled data and initialize__
 Y = nan(ny, numExtendedPeriods, numDraws);
-if opt.deviation
+if opt.Deviation
     Y(:, 1:p, :) = 0;
 else
     if isempty(inp)
@@ -135,7 +135,7 @@ end
 
 % Collect all deterministic terms (constant and exogenous inputs).
 KJ = zeros(ny, numExtendedPeriods);
-if ~opt.deviation
+if ~opt.Deviation
     KJ = KJ + repmat(K, 1, numExtendedPeriods);
 end
 if kx>0

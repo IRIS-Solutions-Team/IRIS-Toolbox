@@ -37,7 +37,7 @@ function outp = forecast(this, inp, range, varargin)
 % * `'dbOverlay='` [ `true` | *`false`* ] - Combine the output data with the
 % input data; works only if the input data is a database.
 %
-% * `'deviation='` [ `true` | *`false`* ] - Both input and output data are
+% * `Deviation=false` [ `true` | `false` ] - Both input and output data are
 % deviations from the unconditional mean.
 %
 % * `'meanOnly='` [ `true` | *`false`* ] - Return a plain database with mean
@@ -234,7 +234,7 @@ for iLoop = 1 : nLoop
 
     % Collect all deterministic terms (constant and exogenous inputs).
     iKJ = zeros(ny, nPer);
-    if ~opt.deviation
+    if ~opt.Deviation
         iKJ = iKJ + repmat(iK, 1, nPer);
     end    
     if isX

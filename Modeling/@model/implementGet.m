@@ -74,6 +74,11 @@ dtGrowth = [ ];
 ssDtLevel = [ ];
 ssDtGrowth = [ ];
 
+% Replace alternate names with the default names
+if isempty(strfind(query, '.')) && isempty(strfind(query, ':'))
+    query = this.myalias(query);
+end
+
 % Query relates to steady state.
 steadyList = { ...
     'ss', 'steady', 'sslevel', 'level', 'ssgrowth', 'growth', ...

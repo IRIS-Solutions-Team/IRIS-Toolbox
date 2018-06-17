@@ -31,7 +31,7 @@ function [This,Outp] = filter(This,Inp,Range,varargin)
 % the covariance matrix (cross-covariances) by this factor; `'cross='` must
 % be equal to or smaller than `1`.
 %
-% * `'deviation='` [ `true` | *`false`* ] - Both input and output data are
+% * `Deviation=false` [ `true` | `false` ] - Both input and output data are
 % deviations from the unconditional mean.
 %
 % * `'meanOnly='` [ `true` | *`false`* ] - Return a plain database with mean
@@ -77,7 +77,7 @@ p = size(This.A,2) / max(ny,1);
 nAlt = size(This.A,3);
 nx = length(This.NamesExogenous);
 isX = nx > 0;
-isConst = ~opt.deviation;
+isConst = ~opt.Deviation;
 
 Range = Range(1) : Range(end);
 xRange = Range(1)-p : Range(end);

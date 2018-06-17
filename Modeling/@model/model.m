@@ -136,7 +136,8 @@
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef (InferiorClasses={?table, ?timetable}) model ...
-    < shared.GetterSetter & shared.UserDataContainer & shared.Estimation & shared.LoadObjectAsStructWrapper & model.Data
+    < shared.GetterSetter & shared.UserDataContainer & shared.Estimation ...
+      & shared.LoadObjectAsStructWrapper & model.Data
     properties (GetAccess=public, SetAccess=protected, Hidden)
         FileName = '' % File name of source model file
         IsLinear = false % True for linear models
@@ -186,7 +187,7 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
     end
 
     
-    properties(GetAccess=public, SetAccess=protected, Hidden, Transient)
+    properties (GetAccess=public, SetAccess=protected, Hidden, Transient)
         % LastSystem  Handle to last derivatives and system matrices
         LastSystem = model.component.LastSystem( )
 
@@ -253,6 +254,8 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         varargout = addplainparam(varargin)
         varargout = addstd(varargin)
         varargout = addcorr(varargin)
+
+        varargout = getExtendedRange(varargin)
     end
 
 
@@ -288,6 +291,7 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         varargout = forecast(varargin)
         varargout = fprintf(varargin)
         varargout = get(varargin)
+        varargout = getActualMinMaxShifts(varargin)
         varargout = horzcat(varargin)        
         varargout = icrf(varargin)
         varargout = ifrf(varargin)
@@ -302,6 +306,7 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         varargout = issolved(varargin)
         varargout = isstationary(varargin)
         varargout = jforecast(varargin)
+        varargout = jforecast_old(varargin)
         varargout = length(varargin)
         varargout = lhsmrhs(varargin)
         varargout = lp4lhsmrhs(varargin)
@@ -362,6 +367,7 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         varargout = isempty(varargin)
         
 
+        varargout = parseSimulateOptions(varargin)
         varargout = prepareBlazer(varargin)        
         varargout = prepareChkSteady(varargin)
         varargout = prepareGrouping(varargin)
@@ -381,10 +387,10 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         varargout = vertcat(varargin)
 
 
-        function listOfAllNames = properties(this)
-            listOfAllNames = [ this.Quantity.Name, ...
-                               getStdNames(this.Quantity), ...
-                               getCorrNames(this.Quantity) ];
+        function allNames = properties(this)
+            allNames = [ this.Quantity.Name, ...
+                         getStdNames(this.Quantity), ...
+                         getCorrNames(this.Quantity) ];
         end%
         
 
@@ -447,8 +453,6 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         varargout = createSourceDbase(varargin)
         varargout = diffFirstOrder(varargin)        
         varargout = file2model(varargin)        
-        varargout = getActualMinMaxShifts(varargin)
-        varargout = getExtendedRange(varargin)
         varargout = kalmanFilterRegOutp(varargin)
         varargout = myanchors(varargin)
         varargout = mychksstate(varargin)
@@ -456,6 +460,7 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         varargout = myeqtn2afcn(varargin)
         varargout = myfind(varargin)
         varargout = myforecastswap(varargin)
+        varargout = swapForecast(varargin)
         varargout = operateLock(varargin)
         varargout = optimalPolicy(varargin)
         varargout = populateTransient(varargin)
@@ -513,8 +518,8 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
 
         function flag = validateSolve(input)
             flag = isequal(input, true) || isequal(input, false) ...
-                || (iscell(input) && iscellstr(input(1:2:end)));
-        end
+                   || (iscell(input) && iscellstr(input(1:2:end)));
+        end%
 
 
         function flag = validateSstate(input)

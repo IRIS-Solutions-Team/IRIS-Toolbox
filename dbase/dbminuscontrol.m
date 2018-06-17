@@ -1,12 +1,12 @@
-function [Dmc,C] = dbminuscontrol(varargin)
+function [dmc, C] = dbminuscontrol(varargin)
 % dbminuscontrol  Create simulation-minus-control database.
 %
 %
 % Syntax
 % =======
 %
-%    [D,C] = dbminuscontrol(M,D)
-%    [D,C] = dbminuscontrol(M,D,C)
+%    [D, C] = dbminuscontrol(M, D)
+%    [D, C] = dbminuscontrol(M, D, C)
 %
 %
 % Input arguments
@@ -51,18 +51,18 @@ function [Dmc,C] = dbminuscontrol(varargin)
 % balanced-growth-path) database as input, and then compute the deviations
 % from the steady state.
 %
-%     d = sstatedb(m,1:40);
+%     d = sstatedb(m, 1:40);
 %     ... % Set up a shock or shocks here.
-%     s = simulate(m,d,1:40);
-%     s = dboverlay(d,s);
-%     s = dbminuscontrol(m,s,d);
+%     s = simulate(m, d, 1:40);
+%     s = dboverlay(d, s);
+%     s = dbminuscontrol(m, s, d);
 %
 % The above block of code is equivalent to this one:
 %
-%     d = zerodb(m,1:40);
+%     d = zerodb(m, 1:40);
 %     ... % Set up a shock or shocks here.
-%     s = simulate(m,d,1:40,'deviation=',true);
-%     s = dboverlay(d,s);
+%     s = simulate(m, d, 1:40, 'deviation=', true);
+%     s = dboverlay(d, s);
 %
 
 % -The IRIS Toolbox.
@@ -71,37 +71,35 @@ function [Dmc,C] = dbminuscontrol(varargin)
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-[This,D,C,varargin] = irisinp.parser.parse('dbase.dbminuscontrol',varargin{:});
-opt = passvalopt('dbase.dbminuscontrol',varargin{:});
+[This, D, C, varargin] = irisinp.parser.parse('dbase.dbminuscontrol', varargin{:});
+opt = passvalopt('dbase.dbminuscontrol', varargin{:});
 
 %--------------------------------------------------------------------------
 
-list = [get(This,'YList'),get(This,'XList'),get(This,'EList')];
-isLog = get(This,'IsLog');
+list = [get(This, 'YList'), get(This, 'XList'), get(This, 'EList')];
+isLog = get(This, 'IsLog');
 
 if isempty(C)
-    range = dbrange(D,list, ...
-        'StartDate=','MaxRange','EndDate=','MaxRange');
-    C = sstatedb(This,range);
+    range = dbrange(D, list, ...
+        'StartDate=', 'MaxRange', 'EndDate=', 'MaxRange');
+    C = sstatedb(This, range);
 end
 
-Dmc = D;
+dmc = D;
 ixKeep = true(size(list));
 for i = 1 : length(list)
     name = list{i};
-    if isfield(D,name) && isfield(C,name)
+    if isfield(D, name) && isfield(C, name)
         if isLog.(name)
             func = @rdivide;
         else
             func = @minus;
         end
         try
-            Dmc.(name) = bsxfun( ...
-                func, ...
-                real(D.(name)), ...
-                real(C.(name)) ...
-                );
-            Dmc.(name) = comment(Dmc.(name),D.(name));
+            dmc.(name) = bsxfun( func, ...
+                                 real(D.(name)), ...
+                                 real(C.(name)) );
+            dmc.(name) = comment(dmc.(name), D.(name));
         catch %#ok<CTCH>
             ixKeep(i) = false;
         end
@@ -111,7 +109,7 @@ for i = 1 : length(list)
 end
 
 if opt.fresh && any(~ixKeep)
-    Dmc = rmfield(Dmc,list(~ixKeep));
+    dmc = rmfield(dmc, list(~ixKeep));
 end
 
 end

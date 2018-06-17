@@ -65,10 +65,10 @@ else
 end
 likOpt.outoflik = likOpt.outoflik(:).';
 npout = length(likOpt.outoflik);
-if npout>0 && ~likOpt.dtrends
+if npout>0 && ~likOpt.DTrends
     utils.error('model:prepareLoglik', ...
         ['Cannot estimate out-of-likelihood parameters ', ...
-        'with the option ''dtrends='' false.']);
+        'with the option DTrends=false.']);
 end
 
 % __Time Domain Options__

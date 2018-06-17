@@ -149,6 +149,11 @@ classdef InputParser < inputParser
         end%
 
 
+        function addDisplayOption(this, defaultDisplay)
+            this.addParameter('Display', defaultDisplay, @solver.Options.validateDisplay);
+        end%
+
+
         function resolveDateOptions(this, isPlot)
             if nargin<2
                 isPlot = false;

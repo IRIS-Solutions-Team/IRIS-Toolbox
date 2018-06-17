@@ -4,10 +4,14 @@ TYPE = @int8;
 PTR = @int16;
 answ = [ ];
 isValid = true;
-query1 = regexprep(query, '[^\w]', '');
 
+query1 = query;
+query1 = lower(query1);
+query1 = strrep(query1, 'eqtns', 'eqtn');
+query1 = strrep(query1, 'labels', 'label');
+query1 = regexprep(query1, '[^\w]', '');
 
-if strcmpi(query1, 'Eqtn')
+if any(strcmpi(query1, {'eqtn', 'equations', 'allEquations'}))
     answ = this.Input;
     answ = answ.';
 

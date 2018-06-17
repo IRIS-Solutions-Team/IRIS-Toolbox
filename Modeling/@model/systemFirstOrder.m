@@ -7,9 +7,9 @@ function [syst, indexOfNaNDerivs, deriv] = systemFirstOrder(this, variantRequest
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-% opt.select
-% opt.eqtn
-% opt.symbolic
+% opt.Select
+% opt.Eqtn
+% opt.Symbolic
 
 TYPE = @int8;
 

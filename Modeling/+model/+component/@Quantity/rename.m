@@ -1,12 +1,12 @@
 function this = rename(this, varargin)
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model.component.Quantity.rename');
-    INPUT_PARSER.addRequired('Quantity', @(x) isa(x, 'model.component.Quantity'));
-    INPUT_PARSER.addRequired('RenamePairs', @iscellstr);
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.component.Quantity.rename');
+    inputParser.addRequired('Quantity', @(x) isa(x, 'model.component.Quantity'));
+    inputParser.addRequired('RenamePairs', @iscellstr);
 end
-INPUT_PARSER.parse(this, varargin);
+inputParser.parse(this, varargin);
 
 if isempty(this.OriginalNames)
     this.OriginalNames = this.Name;

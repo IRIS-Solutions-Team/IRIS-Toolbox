@@ -69,7 +69,7 @@ function qq = inp2Struct(inp, opt)
     function x = getSubPlot(C)
         % doGetSubPlot  Convert subplot string to vector or `@auto`.
         x = sscanf(C, '%gx%g');
-        if isnumeric(x) && length(x)==2 && all(~isnan(x) & x>0 & isround(x))
+        if isnumeric(x) && length(x)==2 && all(~isnan(x) & x>0 & x==round(x))
             x = x(:).';
         else
             x = @auto;

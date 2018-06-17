@@ -22,7 +22,7 @@ s = struct( );
 s.srf.rowName = [yVec, xVec];
 s.srf.colName = eVec;
 s.srf.defaultPageStr = '1';
-s.srf.validatePage = @(x) isnumeric(x) && all(x >= 1) && all(isround(x));
+s.srf.validatePage = @(x) isnumeric(x) && all(x >= 1) && all(x==round(x));
 s.srf.page = zeros(1, 0);
 s.srf.activeInput = false(1, length(s.srf.colName));
 
@@ -38,7 +38,7 @@ s.ffrf.activeInput = false(1, length(s.ffrf.colName));
 s.cov.rowName = [yVec, xVec];
 s.cov.colName = [yVec, xVec];
 s.cov.defaultPageStr = '0';
-s.cov.validatePage = @(x) isnumeric(x) && all(x >= 0) && all(isround(x));
+s.cov.validatePage = @(x) isnumeric(x) && all(x >= 0) && all(x==round(x));
 s.cov.page = zeros(1, 0);
 s.cov.activeInput = false(1, length(s.cov.colName));
 
@@ -46,7 +46,7 @@ s.cov.activeInput = false(1, length(s.cov.colName));
 s.corr.rowName = [yVec, xVec];
 s.corr.colName = [yVec, xVec];
 s.corr.defaultPageStr = '0';
-s.corr.validatePage = @(x) isnumeric(x) && all(x >= 0) && all(isround(x));
+s.corr.validatePage = @(x) isnumeric(x) && all(x >= 0) && all(x==round(x));
 s.corr.page = zeros(1, 0);
 s.corr.activeInput = false(1, length(s.corr.colName));
 

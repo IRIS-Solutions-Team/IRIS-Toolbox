@@ -16,7 +16,7 @@ def = struct( );
 def.arwm = {
     'adaptscale', 1, @(x) isnumericscalar(x) && x >= 0
     'adaptproposalcov', 0.5, @(x) isnumericscalar(x) && x >= 0
-    'burnin', 0.10, @(x) isnumericscalar(x)  && ((x >= 0 && x < 1) || (x > 1 && isround(x)))
+    'burnin', 0.10, @(x) isnumeric(x) && isscalar(x)  && ( (x>=0 && x<1) || (x>1 && x==round(x)) )
     'firstPrefetch, firstParallel', 1, @isintscalar
     'gamma', 0.8, @(x) isnumericscalar(x) && ( (x > 0.5 && x <= 1) || isnan(x) || isinf(x) )
     'initscale', @auto, @(x) isequal(x, @auto) || (isnumericscalar(x) && x > 0)

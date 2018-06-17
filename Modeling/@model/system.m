@@ -1,14 +1,15 @@
 function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
-% system  System matrices for unsolved model.
+% system  System matrices for unsolved model
 %
 % __Syntax__
 %
-%     [A, B, C, D, F, G, H, J, List, Nf] = system(M)
+%     [A, B, C, D, F, G, H, J, List, Nf] = system(Model)
 %
 %
 % __Input Arguments__
 %
-% * `M` [ model ] - Model object whose system matrices will be returned.
+% * `Model` [ model ] - Model object whose system matrices will be
+% returned.
 %
 %
 % __Output Arguments__
@@ -27,11 +28,11 @@ function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 %
 % __Options__
 %
-% * `'Select='` [ *`true`* | `false` ] - Automatically detect which
+% * `Select=true` [ `true` | `false` ] - Automatically detect which
 % equations need to be re-differentiated based on parameter changes from
 % the last time the system matrices were calculated.
 %
-% * `'Sparse='` [ `true` | *`false`* ] - Return matrices `A`, `B`, `D`, 
+% * `Sparse=false` [ `true` | `false` ] - Return matrices `A`, `B`, `D`,
 % `F`, `G`, and `J` as sparse matrices; can be set to `true` only in models
 % with one parameterization.
 %
@@ -54,24 +55,35 @@ function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-opt = passvalopt('model.system', varargin{:});
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.system');
+    inputParser.addRequired('Model', @(x) isa(x, 'model'));
+    inputParser.addParameter({'Eqtn', 'Equations'}, @all, @(x) isequal(x, @all) || ischar(x));
+    inputParser.addParameter({'Normalize', 'Normalise'}, true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Select', true, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Sparse', false, @(x) isequal(x, true) || isequal(x, false));
+    inputParser.addParameter('Symbolic', true, @(x) isequal(x, true) || isequal(x, false));
+end
+inputParser.parse(this, varargin{:});
+opt = inputParser.Options;
 
 %--------------------------------------------------------------------------
 
 nv = length(this);
 
-if opt.sparse && nv>1
+if opt.Sparse && nv>1
     utils.warning('model:system', ...
         ['Cannot return system matrices as sparse matrices in models ', ...
         'with multiple parameterizations. Returning full matrices instead.']);
-    opt.sparse = false;
+    opt.Sparse = false;
 end
 
 % System matrices.
-if opt.sparse && nv==1
+if opt.Sparse && nv==1
     [syst, ~, deriv] = systemFirstOrder(this, 1, opt);
     F = syst.A{1}; %#ok<*AGROW>
     G = syst.B{1};

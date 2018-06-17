@@ -42,7 +42,7 @@ if isempty(inputParserLinear)
     inputParserLinear = extend.InputParser('model.prepareSteady');
     inputParserLinear.addRequired('Model', @(x) isa(x, 'model'));
     inputParserLinear.addParameter('Growth', true, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    inputParserLinear.addParameter('Solve', false, @(x) isequal(x, true) || isequal(x, false)); 
+    inputParserLinear.addParameter('Solve', false, @model.validateSolve);
     inputParserLinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false)); 
 end
 

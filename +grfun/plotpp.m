@@ -1,27 +1,27 @@
-function [priorPoints, posterPoints, varargout] = plotpp(inp, varargin)
+function [priorPoints, posterPoints, varargout] = plotpp(estSpecs, varargin)
 % plotpp  Plot prior and/or posterior distributions and/or posterior mode.
 %
 % Syntax
 % =======
 %
-%     [priorPoints, posterPoints, H] = grfun.plotpp(inp, [ ], [ ], ...)
-%     [priorPoints, posterPoints, H] = grfun.plotpp(inp, est, [ ], ...)
-%     [priorPoints, posterPoints, H] = grfun.plotpp(inp, [ ], theta, ...)
-%     [priorPoints, posterPoints, H] = grfun.plotpp(inp, [ ], stats, ...)
-%     [priorPoints, posterPoints, H] = grfun.plotpp(inp, est, theta, ...)
-%     [priorPoints, posterPoints, H] = grfun.plotpp(inp, est, stats, ...)
+%     [priorPoints, posterPoints, H] = grfun.plotpp(estSpecs, [ ], [ ], ...)
+%     [priorPoints, posterPoints, H] = grfun.plotpp(estSpecs, summary, [ ], ...)
+%     [priorPoints, posterPoints, H] = grfun.plotpp(estSpecs, [ ], theta, ...)
+%     [priorPoints, posterPoints, H] = grfun.plotpp(estSpecs, [ ], stats, ...)
+%     [priorPoints, posterPoints, H] = grfun.plotpp(estSpecs, summary, theta, ...)
+%     [priorPoints, posterPoints, H] = grfun.plotpp(estSpecs, summary, stats, ...)
 %
 %
 % Input arguments
 % ================
 %
-% * `inp` [ struct ] - Estimation input struct, see
+% * `estSpecs` [ struct ] - Estimation specification struct, see
 % [`estimate`](model/estimate), with prior function handles from the
 % [logdist](logdist/Contents) package.
 %
-% * `est` [ table | struct | empty ] - Output struct returned from the
-% [`model/estimate`](model/estimate) function; `est` will be used to plot
-% the maximized posterior modes.
+% * `summary` [ table | struct | empty ] - Summary returned from the
+% [`model/estimate`](model/estimate) function; `summary` will be used to
+% plot the maximized posterior modes.
 %
 % * `theta` [ numeric | empty ] - Array with the chain of draws from the
 % posterior simulator [`arwm`](poster/arwm).
@@ -73,7 +73,7 @@ function [priorPoints, posterPoints, varargout] = plotpp(inp, varargin)
 % distributions.
 %
 % * `'PlotMode='` [ *`true`* | `false` | cell ] - Plot maximised posterior
-% modes as vertical stems; the modes are taken from  `est` (and not from
+% modes as vertical stems; the modes are taken from  `summary` (and not from
 % `stats` or `theta`).
 %
 % * `'PlotPoster='` [ *`true`* | `false` | cell ] - Plot posterior
@@ -121,18 +121,18 @@ function [priorPoints, posterPoints, varargout] = plotpp(inp, varargin)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-mo = [ ]; % Maximised posterior mode.
-po = [ ]; % Simulated posterior distribution.
+mo = [ ]; % Maximised posterior mode
+po = [ ]; % Simulated posterior distribution
 
-inputFields = fieldnames(inp);
+estSpecsFields = fieldnames(estSpecs);
 
 if ~isempty(varargin)
     if isempty(varargin{1}) ...
-            || (isstruct(varargin{1}) && isequal(inputFields, fieldnames(varargin{1}))) ...
-            || (isa(varargin{1}, 'table') && isequal(inputFields, varargin{1}.Properties.RowNames))
+            || ( isstruct(varargin{1}) && all(ismember(estSpecsFields, fieldnames(varargin{1}))) ) ...
+            || ( isa(varargin{1}, 'table') && all(ismember(estSpecsFields, varargin{1}.Properties.RowNames)) ) ...
         mo = varargin{1};
         varargin(1) = [ ];
     end
@@ -164,10 +164,10 @@ if isempty(po)
 end
 
 % Get lower and upper bounds for individual params.
-bnd = getBounds(inp);
+bnd = getBounds(estSpecs);
 
 % Get prior function handles.
-priorFunc = getPriorFunc(inp);
+priorFunc = getPriorFunc(estSpecs);
 
 % Get x-limits for individual priors.
 priorXLim = getPriorXLim(priorFunc, bnd, opt);
@@ -186,7 +186,7 @@ max_ = getMax(priorPoints, posterPoints);
 modePoints = getModePoints(mo, max_);
 
 % Get starting values for posterior mode maximization.
-initPoints = getInitPoints(inp, max_);
+initPoints = getInitPoints(estSpecs, max_);
 
 % Get x-limits for posteriors.
 posterXLim = getPosterXLim(posterPoints); %#ok<NASGU>
@@ -214,7 +214,7 @@ if ~isequal(opt.Title, false)
 end
 
 % Create graphs.
-[fig, ax, tit] = createGraphs(inp, descript, opt);
+[fig, ax, tit] = createGraphs(estSpecs, descript, opt);
 
 % Plot priors.
 if ~isequal(opt.PlotPrior, false)
@@ -265,12 +265,12 @@ end
 
 
 
-function bnd = getBounds(inp)
-list = fieldnames(inp);
+function bnd = getBounds(estSpecs)
+list = fieldnames(estSpecs);
 nlist = numel(list);
 bnd = struct( );
 for i = 1 : nlist
-    temp = inp.(list{i});
+    temp = estSpecs.(list{i});
     low = NaN;
     upp = NaN;
     try
@@ -294,13 +294,13 @@ end
 
 
 
-function priorFunc = getPriorFunc(inp)
-list = fieldnames(inp);
+function priorFunc = getPriorFunc(estSpecs)
+list = fieldnames(estSpecs);
 nList = numel(list);
 priorFunc = struct( );
 for i = 1 : nList
     try
-        priorFunc.(list{i}) = inp.(list{i}){4};
+        priorFunc.(list{i}) = estSpecs.(list{i}){4};
     catch
         priorFunc.(list{i}) = [ ];
     end
@@ -388,8 +388,8 @@ end
 
 
 
-function [fig, ax, tit] = createGraphs(inp, descript, opt)
-list = fieldnames(inp);
+function [fig, ax, tit] = createGraphs(estSpecs, descript, opt)
+list = fieldnames(estSpecs);
 nList = numel(list);
 
 nSub = opt.Subplot;
@@ -678,12 +678,12 @@ end
 
 
 
-function initPoints = getInitPoints(inp, max_)
-list = fieldnames(inp);
+function initPoints = getInitPoints(estSpecs, max_)
+list = fieldnames(estSpecs);
 nList = numel(list);
 initPoints = struct( );
 for i = 1 : nList
-    temp = inp.(list{i});
+    temp = estSpecs.(list{i});
     if isempty(temp)
         x = NaN;
     elseif isnumeric(temp)

@@ -31,7 +31,7 @@ nv = length(this);
 nData = size(inp, 3);
 
 if ~isequal(opt.simulate, false)
-    opt.simulate = passvalopt('model.simulate', opt.simulate{:});
+    opt.simulate = parseSimulateOptions(this, opt.simulate{:});
 end
 
 %--------------------------------------------------------------------------
@@ -46,7 +46,7 @@ s.NAhead = opt.ahead;
 s.IsObjOnly = nargout<=1;
 s.ObjFunPenalty = this.OBJ_FUNC_PENALTY;
 
-% Out-of-lik params cannot be used with ~opt.dtrends.
+% Out-of-lik params cannot be used with ~opt.DTrends.
 nPOut = length(opt.outoflik);
 
 % Extended number of periods including pre-sample.
@@ -169,7 +169,7 @@ for iLoop = 1 : nLoop
         s.Rf = R(1:nf, :);
         s.Ra = R(nf+1:end, :);
         s.Zt = s.Z.';
-        if opt.deviation
+        if opt.Deviation
             s.ka = [ ];
             s.kf = [ ];
             s.d = [ ];
@@ -205,7 +205,7 @@ for iLoop = 1 : nLoop
     
     % __Deterministic Trends__
     % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
-    if nz==0 && (nPOut>0 || opt.dtrends)
+    if nz==0 && (nPOut>0 || opt.DTrends)
         [s.D, s.X] = evalDtrends(this, opt.outoflik, s.g, iLoop);
     else
         s.D = [ ];
@@ -272,12 +272,12 @@ for iLoop = 1 : nLoop
     end
     
     % Prediction errors unadjusted (uncorrected) for estimated init cond
-    % and dtrends; these are needed for contributions.
+    % and DTrends; these are needed for contributions.
     if s.retCont
         s.peUnc = s.pe;
     end
     
-    % Correct prediction errors for estimated initial conditions and dtrends
+    % Correct prediction errors for estimated initial conditions and DTrends
     % parameters.
     if s.NInit>0 || nPOut>0
         est = [s.delta; s.init];
@@ -907,7 +907,7 @@ function [D, Ka, Kf] = addShockTunes(s, R,  opt)
     nf = size(s.Tf, 1);
     nb = size(s.Ta, 1);
     nPer = size(s.y1, 2);
-    if opt.deviation
+    if opt.Deviation
         D = zeros(ny, nPer);
         Ka = zeros(nb, nPer);
         Kf = zeros(nf, nPer);

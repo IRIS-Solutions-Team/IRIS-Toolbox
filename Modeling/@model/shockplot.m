@@ -104,7 +104,7 @@ else
     shkSize = opt.shocksize;
 end
 
-if opt.deviation
+if opt.Deviation
     d = zerodb(this, range);
 else
     d = sstatedb(this, range);
@@ -112,8 +112,8 @@ end
 
 d.(shockName)(1, :) = shkSize;
 s = simulate(this,d,range, ...
-    'Deviation=', opt.deviation, ...
-    'DTrends=', opt.dtrends, ...
+    'Deviation=', opt.Deviation, ...
+    'DTrends=', opt.DTrends, ...
     'AppendPresample=', true, ...
     opt.simulate{:});
 

@@ -1,5 +1,5 @@
-function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
-% filter  Kalman smoother and estimator of out-of-likelihood parameters.
+function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRange, varargin)
+% filter  Kalman smoother and estimator of out-of-likelihood parameters
 %
 %
 % __Syntax__
@@ -16,10 +16,10 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % * `Inp` [ struct | cell ] - Input database from which observations for
 % measurement variables will be taken.
 %
-% * `Range` [ numeric | char ] - Date range on which the Kalman filter will
+% * `Range` [ numeric | char ] - Date filterRange on which the Kalman filter will
 % be run.
 %
-% * `~J` [ struct | *empty* ] - Database with user-supplied time-varying
+% * `~J=[ ]` [ struct | empty ] - Database with user-supplied time-varying
 % paths for std deviation, corr coefficients, or medians for shocks; `~J`
 % is equivalent to using the option `Vary=`, and may be omitted.
 %
@@ -86,8 +86,8 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % Method of initializing unit root variables.
 %
 % * `LastSmooth=Inf` [ numeric ] - Last date up to which to smooth data
-% backward from the end of the range; `Inf` means the smoother will run on
-% the entire range.
+% backward from the end of the filterRange; `Inf` means the smoother will run on
+% the entire filterRange.
 %
 % * `MeanOnly=false` [ `true` | `false` ] - Return a plain database with
 % mean data only; this option overrides options `ReturnCont=`,
@@ -102,8 +102,8 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % of prediction errors.
 %
 % * `ObjRange=Inf` [ DateWrapper | `Inf` ] - The objective function will be
-% computed on the specified range only; `Inf` means the entire filter
-% range.
+% computed on the specified filterRange only; `Inf` means the entire filter
+% filterRange.
 %
 % * `Relative=true` [ `true` | `false` ] - Std devs of shocks assigned in
 % the model object will be treated as relative std devs, and a common
@@ -183,14 +183,28 @@ function [this, outp, V, Delta, Pe, SCov] = filter(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-% TODO Input parser
-[this, inputDatabank, range, j, varargin] = irisinp.parser.parse('model.filter', varargin{:});
-[opt, varargin] = passvalopt('model.filter', varargin{:});
-likOpt = prepareLoglik(this, range, 't', j, varargin{:});
-isOutpData = nargout>1;
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('model.filter');
+    inputParser.KeepUnmatched = true;
+    inputParser.addRequired('SolvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
+    inputParser.addRequired('InputDatabank', @isstruct);
+    inputParser.addRequired('FilterRange', @DateWrapper.validateProperRangeInput);
+    inputParser.addOptional('TuneDatabank', [ ], @(x) isempty(x) || isstruct(x));
+    inputParser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    inputParser.addParameter({'Data', 'Output'}, 'smooth', @ischar);
+    inputParser.addParameter('Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
+end
+inputParser.parse(this, inputDatabank, filterRange, varargin{:});
+j = inputParser.Results.TuneDatabank;
+opt = inputParser.Options;
+unmatched = inputParser.UnmatchedInCell;
+
+likOpt = prepareLoglik(this, filterRange, 't', j, unmatched{:});
+isOutputData = nargout>1;
 
 % Temporarily rename quantities.
 if ~isempty(opt.Rename)
@@ -201,12 +215,12 @@ if ~isempty(opt.Rename)
 end
 
 % Get measurement and exogenous variables.
-inputArray = datarequest('yg*', this, inputDatabank, range);
-numDataSets = size(inputArray, 3);
+inputArray = datarequest('yg*', this, inputDatabank, filterRange);
+numOfDataSets = size(inputArray, 3);
 nv = length(this);
 
 % Check option conflicts.
-chkConflicts( );
+checkConflicts( );
 
 % Set up data sets for Rolling=.
 if ~isequal(likOpt.Rolling, false)
@@ -217,16 +231,14 @@ end
 
 [ny, ~, nb] = sizeOfSolution(this.Vector);
 nz = nnz(this.Quantity.IxObserved);
-extendedRange = range(1)-1 : range(end);
+extendedRange = filterRange(1)-1 : filterRange(end);
 numExtendedPeriods = length(extendedRange);
 
 % Throw a warning if some of the data sets have no observations.
-indexNaNData = all( all(isnan(inputArray), 1), 2 );
-if any(indexNaNData)
-    throw( ...
-        exception.Base('Model:NoMeasurementData', 'warning'), ...
-        exception.Base.alt2str(indexNaNData, 'Data Set(s) ') ...
-    ); 
+indexOfNaNData = all( all(isnan(inputArray), 1), 2 );
+if any(indexOfNaNData)
+    throw( exception.Base('Model:NoMeasurementData', 'warning'), ...
+           exception.Base.alt2str(indexOfNaNData, 'Data Set(s) ') ); 
 end
 
 % Pre-allocated requested hdata output arguments.
@@ -256,8 +268,8 @@ end
 return
 
 
-    function chkConflicts( )
-        multiple = numDataSets>1 || nv>1;
+    function checkConflicts( )
+        multiple = numOfDataSets>1 || nv>1;
         if likOpt.ahead>1 && multiple
             throw( ...
                 'Model:Filter:IllegalAhead', ...
@@ -286,21 +298,21 @@ return
         for i = 1 : numRolling
             inputArray(:, likOpt.RollingColumns(i)+1:end, i) = NaN;
         end
-        numDataSets = size(inputArray, 3);
+        numOfDataSets = size(inputArray, 3);
     end%
 
     
     function preallocHData( )
         % TODO Make .Output the primary option, allow for cellstr or string
         % inputs
-        lowerOutput = lower(opt.data);
+        lowerOutput = lower(opt.Data);
         isPred = ~isempty(strfind(lowerOutput, 'pred'));
         isFilter = ~isempty(strfind(lowerOutput, 'filter'));
         isSmooth = ~isempty(strfind(lowerOutput, 'smooth'));
-        numRuns = max(numDataSets, nv);
-        nPred = max(numRuns, likOpt.ahead);
+        numOfRuns = max(numOfDataSets, nv);
+        nPred = max(numOfRuns, likOpt.ahead);
         nCont = max(ny, nz);
-        if isOutpData
+        if isOutputData
             
             % __Prediction Step__
             if isPred
@@ -309,14 +321,14 @@ return
                     'Precision=', likOpt.precision);
                 if ~likOpt.meanonly
                     if likOpt.returnstd
-                        hData.S0 = hdataobj(this, extendedRange, numRuns, ...
+                        hData.S0 = hdataobj(this, extendedRange, numOfRuns, ...
                             'IncludeLag=', false, ...
                             'IsVar2Std=', true, ...
                             'Precision=', likOpt.precision);
                     end
                     if likOpt.returnmse
                         hData.Mse0 = hdataobj( );
-                        hData.Mse0.Data = nan(nb, nb, numExtendedPeriods, numRuns, ...
+                        hData.Mse0.Data = nan(nb, nb, numExtendedPeriods, numOfRuns, ...
                             likOpt.precision);
                         hData.Mse0.Range = extendedRange;
                     end
@@ -331,19 +343,19 @@ return
             
             % __Filter Step__
             if isFilter
-                hData.M1 = hdataobj(this, extendedRange, numRuns, ...
+                hData.M1 = hdataobj(this, extendedRange, numOfRuns, ...
                     'IncludeLag=', false, ...
                     'Precision=', likOpt.precision);
                 if ~likOpt.meanonly
                     if likOpt.returnstd
-                        hData.S1 = hdataobj(this, extendedRange, numRuns, ...
+                        hData.S1 = hdataobj(this, extendedRange, numOfRuns, ...
                             'IncludeLag=', false, ...
                             'IsVar2Std=', true, ...
                             'Precision', likOpt.precision);
                     end
                     if likOpt.returnmse
                         hData.Mse1 = hdataobj( );
-                        hData.Mse1.Data = nan(nb, nb, numExtendedPeriods, numRuns, ...
+                        hData.Mse1.Data = nan(nb, nb, numExtendedPeriods, numOfRuns, ...
                             likOpt.precision);
                         hData.Mse1.Range = extendedRange;
                     end
@@ -358,17 +370,17 @@ return
             
             % __Smoother__
             if isSmooth
-                hData.M2 = hdataobj(this, extendedRange, numRuns, ...
+                hData.M2 = hdataobj(this, extendedRange, numOfRuns, ...
                     'Precision=', likOpt.precision);
                 if ~likOpt.meanonly
                     if likOpt.returnstd
-                        hData.S2 = hdataobj(this, extendedRange, numRuns, ...
+                        hData.S2 = hdataobj(this, extendedRange, numOfRuns, ...
                             'IsVar2Std=', true, ...
                             'Precision=', likOpt.precision);
                     end
                     if likOpt.returnmse
                         hData.Mse2 = hdataobj( );
-                        hData.Mse2.Data = nan(nb, nb, numExtendedPeriods, numRuns, ...
+                        hData.Mse2.Data = nan(nb, nb, numExtendedPeriods, numOfRuns, ...
                             likOpt.precision);
                         hData.Mse2.Range = extendedRange;
                     end

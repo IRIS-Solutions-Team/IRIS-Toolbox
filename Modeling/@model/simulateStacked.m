@@ -43,7 +43,7 @@ for v = 1 : nv
     [vthData.YXEPG, vthData.L] = lp4lhsmrhs(this, YXEPG(:, :, v), v, [ ]);
     vthRect = simulate.Rectangular.fromModel(this, v);
 
-    vthRect.Anticipate = opt.anticipate;
+    vthRect.Anticipate = opt.Anticipate;
     vthRect.Deviation = false;
     vthRect.SimulateObserved = false;
     vthRect.FirstColumn = firstColumnToRun;

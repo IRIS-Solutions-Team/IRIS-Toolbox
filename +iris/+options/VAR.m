@@ -74,10 +74,10 @@ def.estimate = {
 
 
 def.filter = {
-    'ahead', 1, @(x) isnumeric(x) || isround(x) || x >= 1
-    'cross', true, @(x) islogicalscalar(x) || (isnumericscalar(x) && x >=0 && x <= 1)
-    'deviation, deviations', false, @islogicalscalar
-    'meanonly', false, @islogicalscalar
+    'ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1
+    'cross', true, @(x) (islogical(x) && isscalar(x)) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1)
+    'Deviation, Deviations', false, @(x) islogical(x) && isscalar(x)
+    'meanonly', false, @(x) islogical(x) && isscalar(x)
     'omega', [ ], @isnumeric
     'output', 'smooth', @ischar    
 };
@@ -91,7 +91,7 @@ def.forecast = [
     {
     'cross', true, @(x) islogicalscalar(x) || (isnumericscalar(x) && x >=0 && x <= 1)
     'dboverlay, dbextend', false, @islogicalscalar
-    'deviation, deviations', false, @islogicalscalar
+    'Deviation, Deviations', false, @islogicalscalar
     'meanonly', false, @islogicalscalar
     'omega', [ ], @isnumeric
     'returninstruments, returninstrument', true, @islogicalscalar
@@ -121,7 +121,7 @@ def.portest = {
 def.resample = [
     outputFmt
     {
-    'deviation, deviations', false, @islogicalscalar   
+    'Deviation, Deviations', false, @islogicalscalar   
     'method', 'montecarlo', @(x) isfunc(x) ...
     || (ischar(x) && any(strcmpi(x, {'montecarlo', 'bootstrap'})))
     'progress', false, @islogicalscalar

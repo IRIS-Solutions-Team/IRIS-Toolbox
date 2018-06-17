@@ -21,29 +21,19 @@ nEqtn = length(this.Equation);
 ixu = any(this.Equation.Type==TYPE(5));
 ixh = this.Equation.IxHash;
 
-% Bkw compatibility.
-if isfield(opt, 'nonlinear') && ~isempty(opt.nonlinear)
-    % ##### Feb 2015 OBSOLETE and scheduled for removal.
-    utils.warning('obsolete', ...
-        ['Option nonlinear= is obsolete, and ', ...
-        'will be removed from IRIS in a future release. ', ...
-        'Use new options Method= and NonlinWindow= instead.']);
-    opt.Method = 'selective';
-    opt.NonlinWindow = opt.nonlinear;
-end
-
 s.Method = lower(opt.Method);
+
 s.Solver = lower(opt.Solver);
 s.Display = lower(opt.Display);
-s.IsDeviation = opt.deviation;
-s.IsAddSstate = opt.addsstate;
-s.IsContributions = opt.contributions;
-s.IsAnticipate = opt.anticipate;
-s.IsDeterministicTrends = opt.dtrends;
+s.IsDeviation = opt.Deviation;
+s.IsAddSstate = opt.AddSteady;
+s.IsContributions = opt.Contributions;
+s.IsAnticipate = opt.Anticipate;
+s.IsDeterministicTrends = opt.DTrends;
 if isequal(s.IsDeterministicTrends, @auto)
     s.IsDeterministicTrends = ~s.IsDeviation;
 end
-s.IsError = opt.error;
+s.IsError = opt.Error;
 s.Eqtn = this.Equation.Input;
 s.NameType = this.Quantity.Type;
 s.IxYLog = ixLog(real(this.Vector.Solution{1})).';
@@ -85,13 +75,13 @@ s.RequiredForward = max([1, s.LastEa, s.LastEndgA, s.NPerNonlin]) - 1;
 if isequal(s.Method, 'selective')
     s.Selective = struct( );
     s.Selective.IxHash = ixh;
-    s.Selective.Tolerance = opt.tolerance;
+    s.Selective.Tolerance = opt.Tolerance;
     s.Selective.MaxIter = opt.MaxIter;
-    s.Selective.Lambda = opt.lambda;
-    s.Selective.UpperBnd = opt.upperbound;
-    s.Selective.IsFillOut = opt.fillout;
-    s.Selective.ReduceLmb = opt.reducelambda;
-    s.Selective.MaxNumelJv = opt.maxnumeljv;
+    s.Selective.Lambda = opt.Lambda;
+    s.Selective.UpperBnd = opt.UpperBound;
+    s.Selective.IsFillOut = opt.FillOut;
+    s.Selective.ReduceLmb = opt.ReduceLambda;
+    s.Selective.MaxNumelJv = opt.MaxNumelJv;
     label = getLabelOrInput(this.Equation);
     s.Selective.EqtnLabelN = label(ixh);
         
@@ -128,8 +118,8 @@ if isequal(s.Method, 'selective')
         ixXUpdN(ix) = true;
     end
     s.Selective.IxUpdN = [false(ny, 1); ixXUpdN];
-    s.Selective.NOptimLambda = double(opt.noptimlambda);
-    s.Selective.NShanks = opt.nshanks;
+    s.Selective.NOptimLambda = double(opt.NOptimLambda);
+    s.Selective.NShanks = opt.NShanks;
     
     for ii = find(ixh)
         s.Selective.EqtnNI{ii} = [ ...

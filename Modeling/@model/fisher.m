@@ -176,7 +176,7 @@ for v = 1 : nv
     % Compute derivatives of SGF and steady state
     % wrt the selected parameters.
     dG = nan(ny, ny, numFreq, numParameters);
-    if ~opt.deviation
+    if ~opt.Deviation
         dy = zeros(ny, numParameters);
     end
     % Determine differentiation step.
@@ -192,7 +192,7 @@ for v = 1 : nv
         pm(i) = pm(i) - step(i);
         twoSteps = pp(i) - pm(i);
 
-        isSstate = ~opt.deviation && ~isnan(posValues(i));
+        isSstate = ~opt.Deviation && ~isnan(posValues(i));
         
         % Steady state, state space and SGF at p0(i) + step(i).
         m = update(m, pp, 1, opt, throwErr);
@@ -235,7 +235,7 @@ for v = 1 : nv
                 fi(k) = ...
                     trace(real(Gi(:, :, k)*dG(:, :, k, i)*Gi(:, :, k)*dG(:, :, k, j)));
             end
-            if ~opt.deviation
+            if ~opt.Deviation
                 % Add steady-state effect to zero frequency.
                 % We don't divide the effect by 2*pi because
                 % we skip dividing G by 2*pi, too.

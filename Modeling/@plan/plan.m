@@ -1,72 +1,72 @@
+% plan  Model Simulation Plans (plan Objects)
+%
+% Simulation plans complement the use of the
+% [`model/simulate`](model/simulate) or
+% [`model/jforecast`](model/jforecast) functions.
+%
+% You need to use a simulation plan object to set up the following types of
+% more complex simulations or forecasts (or a combination of these):
+%
+% * simulations or forecasts with some of the model variables temporarily
+% exogenized;
+%
+% * simulations with some of the non-linear equations solved in an exact
+% non-linear mode;
+%
+% * forecasts conditioned upon some variables;
+%
+% The plan object is passed to the [`model/simulate`](model/simulate) or
+% [`model/jforecast`](model/jforecast) functions through the `'plan='`
+% option.
+%
+% Plan methods:
+%
+%
+% Constructor
+% ============
+%
+%
+% * [`plan`](plan/plan) - Create new empty simulation plan object.
+%
+%
+% Getting information about simulation plans
+% ===========================================
+%
+% * [`detail`](plan/detail) - Display details of a simulation plan.
+% * [`get`](plan/get) - Query to plan object.
+% * [`nnzcond`](plan/nnzcond) - Number of conditioning data points.
+% * [`nnzendog`](plan/nnzendog) - Number of endogenized data points.
+% * [`nnzexog`](plan/nnzexog) - Number of exogenized data points.
+%
+%
+% Setting up simulation plans
+% ============================
+%
+% * [`autoexogenize`](plan/autoexogenize) - Exogenize variables and automatically endogenize corresponding shocks.
+% * [`condition`](plan/condition) - Condition forecast upon the specified variables at the specified dates.
+% * [`endogenize`](plan/endogenize) - Endogenize shocks or re-endogenize variables at the specified dates.
+% * [`exogenize`](plan/exogenize) - Exogenize variables or re-exogenize shocks at the specified dates.
+% * [`reset`](plan/reset) - Remove all endogenized, exogenized, autoexogenized and conditioned upon data points from simulation plan.
+% * [`swap`](plan/swap) - Swap endogeneity and exogeneity of variables and shocks.
+%
+%
+% Referencing plan objects
+% ==========================
+%
+% * [`subsref`](plan/subsref) - Subscripted reference for plan objects.
+%
+%
+% Getting on-line help on simulation plans
+% =========================================
+%
+%     help plan
+%     help plan/function_name
+%
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
+   
 classdef plan < shared.UserDataContainer & shared.GetterSetter
-    % plan  Model Simulation Plans (plan Objects).
-    %
-    % Simulation plans complement the use of the
-    % [`model/simulate`](model/simulate) or
-    % [`model/jforecast`](model/jforecast) functions.
-    %
-    % You need to use a simulation plan object to set up the following types of
-    % more complex simulations or forecasts (or a combination of these):
-    %
-    % * simulations or forecasts with some of the model variables temporarily
-    % exogenized;
-    %
-    % * simulations with some of the non-linear equations solved in an exact
-    % non-linear mode;
-    %
-    % * forecasts conditioned upon some variables;
-    %
-    % The plan object is passed to the [`model/simulate`](model/simulate) or
-    % [`model/jforecast`](model/jforecast) functions through the `'plan='`
-    % option.
-    %
-    % Plan methods:
-    %
-    %
-    % Constructor
-    % ============
-    %
-    %
-    % * [`plan`](plan/plan) - Create new empty simulation plan object.
-    %
-    %
-    % Getting information about simulation plans
-    % ===========================================
-    %
-    % * [`detail`](plan/detail) - Display details of a simulation plan.
-    % * [`get`](plan/get) - Query to plan object.
-    % * [`nnzcond`](plan/nnzcond) - Number of conditioning data points.
-    % * [`nnzendog`](plan/nnzendog) - Number of endogenized data points.
-    % * [`nnzexog`](plan/nnzexog) - Number of exogenized data points.
-    %
-    %
-    % Setting up simulation plans
-    % ============================
-    %
-    % * [`autoexogenize`](plan/autoexogenize) - Exogenize variables and automatically endogenize corresponding shocks.
-    % * [`condition`](plan/condition) - Condition forecast upon the specified variables at the specified dates.
-    % * [`endogenize`](plan/endogenize) - Endogenize shocks or re-endogenize variables at the specified dates.
-    % * [`exogenize`](plan/exogenize) - Exogenize variables or re-exogenize shocks at the specified dates.
-    % * [`reset`](plan/reset) - Remove all endogenized, exogenized, autoexogenized and conditioned upon data points from simulation plan.
-    % * [`swap`](plan/swap) - Swap endogeneity and exogeneity of variables and shocks.
-    %
-    %
-    % Referencing plan objects
-    % ==========================
-    %
-    % * [`subsref`](plan/subsref) - Subscripted reference for plan objects.
-    %
-    %
-    % Getting on-line help on simulation plans
-    % =========================================
-    %
-    %     help plan
-    %     help plan/function_name
-    %
-    
-    % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2018 IRIS Solutions Team.
-    
     properties
         Start = NaN
         End = NaN
@@ -86,7 +86,6 @@ classdef plan < shared.UserDataContainer & shared.GetterSetter
     methods
         function this = plan(varargin)
             % plan  Create new empty simulation plan object.
-            %
             %
             % Syntax
             % =======

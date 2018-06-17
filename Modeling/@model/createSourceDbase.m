@@ -28,15 +28,6 @@ if isempty(numColumnsRequested)
     numColumnsRequested = opt.ncol;
 end
 
-if ~isequal(opt.randshocks, false)
-    opt.shockfunc = @randn;
-    % ##### Dec 2015 OBSOLETE and scheduled for removal.
-    throw( ...
-        exception.Base('Obsolete:OptionUseInstead', 'warning'), ...
-        'randShocks', 'shockFunc' ...
-    ); %#ok<GTARG>
-end
-
 %--------------------------------------------------------------------------
 
 nv = length(this);
@@ -87,12 +78,12 @@ outputDatabank = struct( );
 ttrend = dat2ttrend(extendedRange, this);
 
 X = zeros(nQty, nXPer, nv);
-if ~opt.deviation
+if ~opt.Deviation
     isDelog = false;
     X(ixyxg, :, :) = createTrendArray(this, Inf, isDelog, posyxg, ttrend);
 end
 
-if opt.dtrends
+if opt.DTrends
     W = evalDtrends(this, [ ], X(ixg, :, :), @all);
     X(1:ny, :, :) = X(1:ny, :, :) + W;
 end

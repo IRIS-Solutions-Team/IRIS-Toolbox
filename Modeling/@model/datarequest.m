@@ -165,7 +165,7 @@ return
             xbInitMean = permute(xbInitMean, [2, 1, 3]);
         end
         % Xf MSE.
-        if nargout >= 3 && ~isempty(dMse)
+        if nargout>=3 && ~isempty(dMse)
             xbInitMse = rangedata(dMse, range(1)-1);
             xbInitMse = ipermute(xbInitMse, [3, 2, 1, 4]);
         end
@@ -198,7 +198,7 @@ return
 
 
 % Get initial conditions for xb and alpha.
-% Those that are not required are set to `NaN` in `xInitMean, and
+% Those that are not required are set to `NaN` in `xInitMean`, and
 % to 0 when computing `aInitMean`.
     function [alpInitMean, alpInitMse] = convertXbInit2AlpInit( )
         % Transform Mean[Xb] to Mean[Alpha].

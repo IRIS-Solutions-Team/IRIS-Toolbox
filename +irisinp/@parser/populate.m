@@ -40,20 +40,6 @@ x.irisoptim.alps = irisinp.func( ...
 
 
 
-% Model class
-%-------------
-x.model = struct( );
-
-x.model.simulate = irisinp.func( ...
-    irisinp.modelSolved, irisinp.dbase, irisinp.rangeProper );
-
-x.model.filter = irisinp.func( ...
-    irisinp.modelSolved, irisinp.dbase, irisinp.rangeProper, ...
-    irisinp.dbaseOptional );
-
-
-
-
 % Scenario class
 %----------------
 x.plan = struct( );

@@ -50,11 +50,6 @@ classdef GetterSetter
                     query = tkn{2};
                 end
                 
-                % Replace alternate names with the standard ones.
-                if isempty(strfind(query, '.')) && isempty(strfind(query, ':'))
-                    query = this.myalias(query);
-                end
-                
                 % Remove blank spaces.
                 query(isstrprop(query, 'wspace')) = '';
                 

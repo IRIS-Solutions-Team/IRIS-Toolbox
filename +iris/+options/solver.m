@@ -7,14 +7,12 @@ function opt = solver( )
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-FN_VALID = iris.options.validfn;
-
 %--------------------------------------------------------------------------
 
 opt = struct( );
 
 shared = { 
-    'Display', 'iter*', FN_VALID.Display
+    'Display', 'iter*', @solver.Options.validateDisplay
     'JacobPattern', [ ], @(x) isempty(x) || (islogical(x) && issparse(x)) 
     'MaxIterations, MaxIter', @default, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0)
     'MaxFunctionEvaluations, MaxFunEvals', @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0)

@@ -1,49 +1,48 @@
-function [Y,Xx,Ea,Eu] = contributions(S,NPer)
-% simulate.linear.contributions  Compute contributions of shocks, ...
-% initial condition, const, and nonlinearities.
+function [y, xx, ea, eu] = contributions(s, numOfPeriods)
+% contributions  Compute contributions of shocks, initial condition, const, and nonlinearities
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-ny = size(S.Z,1);
-nx = size(S.T,1);
-nb = size(S.T,2);
-ne = size(S.Ea,1);
-if isequal(NPer,Inf)
-    NPer = size(S.Ea,2);
+ny = size(s.Z, 1);
+nx = size(s.T, 1);
+nb = size(s.T, 2);
+ne = size(s.Ea, 1);
+if isequal(numOfPeriods, Inf)
+    numOfPeriods = size(s.Ea, 2);
 end
 
-Y = zeros(ny,NPer,ne+2);
-Xx = zeros(nx,NPer,ne+2); % := [xf;alp]
+y = zeros(ny, numOfPeriods, ne+2);
+xx = zeros(nx, numOfPeriods, ne+2); % := [xf;alp]
 
-% Pre-allocate space for output contributions.
-Ea = zeros(size(S.Ea,1),size(S.Ea,2),ne+2);
-Eu = zeros(size(S.Eu,1),size(S.Eu,2),ne+2);
+% Pre-allocate space for output contributions
+ea = zeros(size(s.Ea, 1), size(s.Ea, 2), ne+2);
+eu = zeros(size(s.Eu, 1), size(s.Eu, 2), ne+2);
 
-% Contributions of individual shocks.
-isDeviation = S.IsDeviation;
-S.IsDeviation = true;
-alp0 = zeros(nb,1);
+% Contributions of individual shocks
+isDeviation = s.IsDeviation;
+s.IsDeviation = true;
+alp0 = zeros(nb, 1);
 for ii = 1 : ne
-    Ea(ii,:,ii) = S.Ea(ii,:);
-    Eu(ii,:,ii) = S.Eu(ii,:);
-    [y,xx] = simulate.linear.plain(S, ...
-        S.IsDeviation,alp0,Ea(:,:,ii),Eu(:,:,ii),NPer);
-    Y(:,:,ii) = y;
-    Xx(:,:,ii) = xx;
+    ea(ii, :, ii) = s.Ea(ii, :);
+    eu(ii, :, ii) = s.Eu(ii, :);
+    [yi, xxi] = simulate.linear.plain( s, s.IsDeviation, alp0, ...
+                                       ea(:, :, ii), eu(:, :, ii), numOfPeriods );
+    y(:, :, ii) = yi;
+    xx(:, :, ii) = xxi;
 end
-S.IsDeviation = isDeviation;
+s.IsDeviation = isDeviation;
 
-% Contribution of initial condition and constant; no shocks included.
-[y,xx] = simulate.linear.plain(S,S.IsDeviation,S.Alp0,[ ],[ ],NPer);
-Y(:,:,ne+1) = y;
-Xx(:,:,ne+1) = xx;
+% Contribution of initial condition and constant; no shocks included
+[yi, xxi] = simulate.linear.plain(s, s.IsDeviation, s.Alp0, [ ], [ ], numOfPeriods);
+y(:, :, ne+1) = yi;
+xx(:, :, ne+1) = xxi;
 
-% Leave contributions of nonlinearities zeros.
+% Leave contributions of nonlinearities zeros
 
 end

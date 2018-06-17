@@ -1,11 +1,11 @@
 function [MLL, score, info, se2] = mydiffloglik(this, data, likOpt, opt)
-% mydiffloglik  Gradient and hessian of log-likelihood function.
+% mydiffloglik  Gradient and hessian of log-likelihood function
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 EPSILON = eps( )^(1/3);

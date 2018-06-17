@@ -220,13 +220,19 @@ classdef Preparser < model.File
     
     
     methods (Static)
-        function [finalCut, fileName, export, ctrlParameters, userComment] = parse(modelFile, inpCode, varargin)
+        function [ finalCut, ...
+                   fileName, ...
+                   export, ...
+                   ctrlParameters, ...
+                   userComment ] = parse(modelFile, inpCode, varargin)
+
             import parser.Preparser
+
             persistent inputParser
             if isempty(inputParser)
                 inputParser = extend.InputParser('Preparser.parse');
                 inputParser.addRequired('ModelFile', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x) || isa(x, 'model.File'));
-                inputParser.addRequired('InputCode', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
+                inputParser.addRequired('InputCode', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
                 inputParser.addParameter('Assigned', struct( ), @(x) isempty(x) || isstruct(x));
                 inputParser.addParameter('SaveAs', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
                 inputParser.addParameter('CloneString', '', @(x) isempty(x) || ischar(x) || isa(x, 'string')); 

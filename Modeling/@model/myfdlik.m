@@ -69,11 +69,10 @@ if ~s.isObjOnly
 end
 
 for iLoop = 1 : nLoop
-    % Next data
-    %-----------
+    % __Next Data__
     % Measurement variables.
     y = inp(1:ny, :, min(iLoop, end));
-    % Exogenous variables in dtrend equations.
+    % Exogenous variables in DTrend equations.
     g = inp(ny+1:end, :, min(iLoop, end));
     indexToExclude = likOpt.indexToExcludeude(:) | any(isnan(y), 2);
     nYIncl = sum(~indexToExclude);
@@ -100,7 +99,7 @@ for iLoop = 1 : nLoop
         
         % Fourier transform of steady state.
         isSstate = false;
-        if ~likOpt.deviation
+        if ~likOpt.Deviation
             id = find(ixy);
             isDelog = false;
             S = createTrendArray(this, iLoop, isDelog, id, 1:nPer);
@@ -117,7 +116,7 @@ for iLoop = 1 : nLoop
     % Fourier transform of deterministic trends.
     isDtrends = false;
     nOutOfLik = 0;
-    if likOpt.dtrends
+    if likOpt.DTrends
         [D, M] = evalDtrends(this, likOpt.outoflik, g, iLoop);
         isDtrends = any(D(:) ~= 0);
         if isDtrends
@@ -134,12 +133,12 @@ for iLoop = 1 : nLoop
         
     % Subtract sstate trends from observations; note that fft(y-s)
     % equals fft(y) - fft(s).
-    if ~likOpt.deviation && isSstate
+    if ~likOpt.Deviation && isSstate
         y = y - S;
     end
     
     % Subtract deterministic trends from observations.
-    if likOpt.dtrends && isDtrends
+    if likOpt.DTrends && isDtrends
         y = y - D;
     end
     
