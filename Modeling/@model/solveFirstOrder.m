@@ -486,7 +486,7 @@ return
             this.Variant.FirstOrderSolution{8}(:, 1:nh, v) = Y;
         end
         
-        if ~opt.Fast
+        if true %~opt.Fast
             % Necessary initial conditions in xb vector
             this.Variant.IxInit(:, :, v) = any(abs(T/U)>SOLVE_TOLERANCE, 1);
 
