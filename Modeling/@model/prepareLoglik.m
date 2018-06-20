@@ -23,7 +23,7 @@ end
 
 %--------------------------------------------------------------------------
 
-[ny, ~, nb, nf] = sizeOfSolution(this.Vector);
+[ny, ~, nb] = sizeOfSolution(this.Vector);
 nz = nnz(this.Quantity.IxObserved);
 numPeriods = length(range);
 
@@ -59,7 +59,7 @@ else
     ixNan = isnan(pos);
     if any(ixNan)
         throw( exception.Base('Model:INVALID_NAME', 'error'), ...
-            'parameter ', likOpt.outoflik{ixNan} );
+               'parameter ', likOpt.outoflik{ixNan} ); %#ok<GTARG>
     end
     likOpt.outoflik = pos;
 end

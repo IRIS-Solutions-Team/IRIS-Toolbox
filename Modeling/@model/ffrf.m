@@ -26,25 +26,25 @@ function varargout = ffrf(this, frequencies, varargin)
 %
 % __Options__
 %
-% * `'Include='` [ char | cellstr | *`@all`* ] - Include the effect of the
+% * `Include=@all` [ char | cellstr | `@all` ] - Include the effect of the
 % listed measurement variables only; `@all` means all measurement
 % variables.
 %
-% * `'Exclude='` [ char | cellstr | *empty* ] - Remove the effect of the
+% * `Exclude=[ ]` [ char | cellstr | empty ] - Remove the effect of the
 % listed measurement variables.
 %
-% * `'MaxIter='` [ numeric | *`500`* ] - Maximum number of iteration when
+% * `MaxIter=500` [ numeric ] - Maximum number of iteration when
 % calculating a steady-state Kalman filter for zero-frequency FRF.
 %
-% * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
-% either a [`namedmat`](namedmat/Contents) object (i.e. matrix with named
-% rows and columns) or a plain numeric array.
+% * `MatrixFormat='NamedMat'` [ `'NamedMat'` | `'Plain'` ] - Return matrix
+% `F` as either a [`namedmat`](namedmat/Contents) object (i.e. matrix with
+% named rows and columns) or a plain numeric array.
 %
-% * `'Select='` [ *`@all`* | char | cellstr ] - Return FFRF for selected
+% * `Select=@all` [ `@all` | char | cellstr ] - Return FFRF for selected
 % variables only; `@all` means all variables.
 %
-% * `'Tolerance='` [ numeric | *`1e-7`* ] - Convergence tolerance when
-% calculating a steady-state Kalman filter for zero-frequency FRF.
+% * `Tolerance=1e-7` [ numeric ] - Convergence tolerance when calculating a
+% steady-state Kalman filter for zero-frequency FRF.
 %
 %
 % __Description__
@@ -53,8 +53,8 @@ function varargout = ffrf(this, frequencies, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -88,18 +88,18 @@ assert( ...
 );
 
 ixy = this.Quantity.Type==TYPE(1);
-selectedYNames = this.Quantity.Name(ixy);
+selectedNames = this.Quantity.Name(ixy);
 if usingDefaults.Include && usingDefaults.Exclude
     % Neither Exclude= nor Select= (Include=)
     indexToInclude = true(1, ny);
 else
     % Exclude= option
     if usingDefaults.Include 
-        indexToExclude = ismember(selectedYNames, opt.Exclude);
+        indexToExclude = ismember(selectedNames, opt.Exclude);
         indexToInclude = ~indexToExclude;
     else
         % Select= (or Include=) option
-        indexToInclude = ismember(selectedYNames, opt.Include);
+        indexToInclude = ismember(selectedNames, opt.Include);
     end
 end
 solutionVectorX = printSolutionVector(this, 'x', @Behavior);
@@ -118,8 +118,8 @@ F = complex(nan(nxi, ny, numFreq, nv), nan(nxi, ny, numFreq, nv));
 count = nan(1, nv);
 
 if ny>0 && any(indexToInclude)
-    indexNaNSolutions = reportNaNSolutions(this);
-    for v = find(~indexNaNSolutions)
+    indexOfNaNSolutions = reportNaNSolutions(this);
+    for v = find(~indexOfNaNSolutions)
         update(systemProperty, this, v);
         [vthF, vthCount] = freqdom.ffrf3(systemProperty);
         F(:, :, :, v) = vthF;
@@ -148,5 +148,5 @@ return
         systemProperty.Specifics.MaxIter = opt.MaxIter;
         systemProperty.Specifics.Frequencies = frequencies(:)';
         systemProperty.Specifics.Tolerance = opt.Tolerance;
-    end
-end
+    end%
+end%

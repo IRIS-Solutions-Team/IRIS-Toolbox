@@ -41,7 +41,6 @@ stepUp = opt.StepUp;
 isStepDown = ~isequal(stepDown, false);
 isStepUp = ~isequal(stepUp, false);
 diffStep = opt.FiniteDifferenceStepSize;
-numGradientFunc = [ ];
 if ~opt.SpecifyObjectiveGradient
     jacobPattern = opt.JacobPattern;
 end
