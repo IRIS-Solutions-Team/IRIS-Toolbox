@@ -33,7 +33,7 @@ elseif compare(query1, { ...
     answ = this.(prop)(ixType);
     return
         
-elseif compare(query1, 'Descript')
+elseif compare(query1, {'Descript', 'Desc', 'Description', 'Descriptions'})
     answ = cell2struct(this.Label, this.Name, 2);
     return
         

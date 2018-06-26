@@ -11,6 +11,7 @@ query1 = strrep(query1, 'eqtns', 'eqtn');
 query1 = strrep(query1, 'labels', 'label');
 query1 = regexprep(query1, '[^\w]', '');
 
+
 if any(strcmpi(query1, {'eqtn', 'equations', 'allEquations'}))
     answ = this.Input;
     answ = answ.';
