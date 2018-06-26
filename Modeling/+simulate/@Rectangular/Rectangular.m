@@ -49,6 +49,22 @@ classdef Rectangular < handle
     methods
         flat(varargin)
 
+        
+        function update(this, model, variantRequested)
+            if nargin<3
+                variantRequested = 1;
+            end
+            keepExpansion = true;
+            triangular = false;
+            [this.FirstOrderSolution{:}] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
+            [this.FirstOrderExpansion{:}] = expansionMatrices(model, variantRequested, triangular);
+            if this.NumOfShocks>0
+                this.LenOfExpansion = size(this.FirstOrderSolution{2}, 2) / this.NumOfShocks;
+            else
+                this.LenOfExpansion = 0;
+            end
+        end%
+
 
         function ensureExpansion(this, requiredForward)
             if requiredForward>this.CurrentForward
@@ -91,6 +107,9 @@ classdef Rectangular < handle
 
     methods (Static)
         function this = fromModel(model, variantRequested)
+            if nargin<2
+                variantRequested = 1;
+            end
             this = simulate.Rectangular( );
             keepExpansion = true;
             triangular = false;
