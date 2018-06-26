@@ -238,7 +238,6 @@ return
     end%
 
 
-
     function makeStepDown( )
         % Shrink step until objective function improves.
         while n>n0 && step>MIN_STEP
@@ -251,8 +250,6 @@ return
             n = fnNorm(fx);
         end
     end
-
-
 
 
     function makeStepUp( )
@@ -273,16 +270,12 @@ return
     end        
 
 
-
-
     function flag = hasConverged( )
         flag = all( maxabs(fx)<=tolFun );
         if iter>0
             flag = flag && all( maxabs(x-x0)<=tolX );
         end
     end
-
-
 
 
     function displayHeader( )
@@ -312,9 +305,7 @@ return
         disp(c1);
         disp(c2);
         disp( repmat('-', 1, max(length(c1), length(c2))) );
-    end
-
-
+    end%
 
 
     function displayIter( )
@@ -331,16 +322,12 @@ return
             maxChgX, ...
             maxChgJ ...
         );
-    end
-
-
+    end%
 
 
     function displayFinal( )
         print(exitFlag);
-    end
-
-
+    end%
 
 
     function displayLevel = getDisplayLevel( )
@@ -353,5 +340,5 @@ return
             isequal(opt.Display, true) ...
             || strcmpi(opt.Display, 'iter') ...
             || strcmpi(opt.Display, 'iter*');
-    end
-end
+    end%
+end%

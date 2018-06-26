@@ -326,7 +326,6 @@ maximizePosteriorMode(posterior, estimationWrapper);
 % Assign estimated parameters, refresh dynamic links, and re-compute steady
 % state, solution, and expansion matrices.
 variantRequested = 1;
-opt.Solve.Fast = false;
 this = update(this, posterior.Optimum, variantRequested);
 
 % __Set Up Posterior Object__

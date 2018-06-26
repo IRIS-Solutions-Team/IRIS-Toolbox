@@ -44,8 +44,4 @@ if ~isempty( strfind(mode, 'silent') )
     opt.Warning = false;
 end
 
-if ~isempty( strfind(mode, 'fast') )
-    opt.Fast = true;
-end
-
 end

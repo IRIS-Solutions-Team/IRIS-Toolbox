@@ -486,25 +486,23 @@ return
             this.Variant.FirstOrderSolution{8}(:, 1:nh, v) = Y;
         end
         
-        if true %~opt.Fast
-            % Necessary initial conditions in xb vector
-            this.Variant.IxInit(:, :, v) = any(abs(T/U)>SOLVE_TOLERANCE, 1);
+        % Necessary initial conditions in xb vector
+        this.Variant.IxInit(:, :, v) = any(abs(T/U)>SOLVE_TOLERANCE, 1);
 
-            % Forward expansion
-            % a(t) <<< -Xa J^(k-1) Ru e(t+k)
-            % xf(t) <<< Xf J^k Ru e(t+k)
-            J = -T22\S22;
-            Xa = Xa1 + Xa0*J;
-            % Highest computed power of J: e(t+k) requires J^k.
-            Jk = eye(size(J));
-            
-            this.Variant.FirstOrderExpansion{1}(:, :, v) = Xa;
-            this.Variant.FirstOrderExpansion{2}(:, :, v) = Xf;
-            this.Variant.FirstOrderExpansion{3}(:, :, v) = Ru;
-            this.Variant.FirstOrderExpansion{4}(:, :, v) = J;
-            if isHash
-                this.Variant.FirstOrderExpansion{5}(:, :, v) = Yu;
-            end
+        % Forward expansion
+        % a(t) <<< -Xa J^(k-1) Ru e(t+k)
+        % xf(t) <<< Xf J^k Ru e(t+k)
+        J = -T22\S22;
+        Xa = Xa1 + Xa0*J;
+        % Highest computed power of J: e(t+k) requires J^k.
+        Jk = eye(size(J));
+        
+        this.Variant.FirstOrderExpansion{1}(:, :, v) = Xa;
+        this.Variant.FirstOrderExpansion{2}(:, :, v) = Xf;
+        this.Variant.FirstOrderExpansion{3}(:, :, v) = Ru;
+        this.Variant.FirstOrderExpansion{4}(:, :, v) = J;
+        if isHash
+            this.Variant.FirstOrderExpansion{5}(:, :, v) = Yu;
         end
     end
 

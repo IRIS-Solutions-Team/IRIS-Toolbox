@@ -44,7 +44,7 @@ this.Update.PosOfValues = posOfValues;
 this.Update.PosOfStdCorr = posOfStdCorr;
 this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
 this.Update.CheckSteady = prepareChkSteady(this, 'silent', opt.ChkSstate);
-this.Update.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
+this.Update.Solve = prepareSolve(this, 'silent', opt.Solve);
 this.Update.ThrowError = true;
 
 % __Starting Values__
