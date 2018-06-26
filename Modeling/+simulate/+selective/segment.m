@@ -30,8 +30,7 @@ isAnch = ~isempty(s.Anch) && any(s.Anch(:));
 % update, call recursive linear simulation instead.
 isFastUpd = ~isempty(s.Selective.Jv) && ~isempty(s.Selective.Je);
 
-% Prepare exogenized/endogenized update
-%---------------------------------------
+% __Prepare Exogenized/Endogenized Update__
 lastExg = 0;
 if isAnch
     % `eaAnch`, `euAnch` do not include init cond.
@@ -90,14 +89,23 @@ p = real( s.Update.Quantity(1, s.NameType==4) );
 tVecAbs = -s.MinT + s.First + rangeNonl - 1;
 L = s.L;
 
-if isequal(s.Solver,@qad)
-    % QaD algorithm
-    %---------------
+if isequal(s.Solver, @qad)
+    % __QaD Solver__
     [v,dcy,exit] = simulate.selective.qad(@doEvalDcy,v0,s.Selective);
+
 else
-    % Optimization Tbx
-    %------------------
-    if isequal(s.Solver,@fsolve)
+    keyboard
+    % __IRIS Solver__
+    if strcmpi(s.Solver, 'IRIS')
+        opt = solver.Options( 'Steady', ...
+                              'SpecifyObjectiveGradient', false, ...
+                              'MaxFunctionEvaluations', 5000, ...
+                              'MaxIterations', 10000 );
+        [v, flag] = solver.algorithm.lm(@doEvalDcy, v0, opt);
+        dcy = zeros(size(v0));
+    
+    % __Optimization Tbx__
+    elseif isequal(s.Solver, @fsolve)
         [v,dcy,flag] = fsolve(@doEvalDcy,v0,s.OptimSet);
     elseif isequal(s.Solver,@lsqnonlin)
         [v,~,dcy,flag] = lsqnonlin(@doEvalDcy,v0,[ ],[ ],s.OptimSet);
@@ -110,8 +118,7 @@ else
     end
 end
 
-% Failed to converge
-%--------------------
+% __Failed to Converge__
 if exit < 0
     doRptFailure( );
 end
