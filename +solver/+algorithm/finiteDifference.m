@@ -1,4 +1,4 @@
-function [g, addCount] = finiteDifference(objectiveFunc, x, f, step, jacobPattern, largeScale)
+function [g, addCount] = finiteDifference(objectiveFuncReshaped, x, f, step, jacobPattern, largeScale)
 % finiteDifference  Forward finite difference
 %
 % Backend IRIS function
@@ -23,7 +23,8 @@ if ~largeScale
     for i = 1 : nx
         xp = x;
         xp(i) = xp(i) + h(i);
-        fnPlus = objectiveFunc(xp);
+        fnPlus = objectiveFuncReshaped(xp);
+        fnPlus = fnPlus(:);
         g(:, i) = (fnPlus - f) / h(i);
     end
 else
@@ -35,7 +36,9 @@ else
         indexOfEquations = jacobPattern(:, i);
         xp = x;
         xp(i) = xp(i) + h(i);
-        fnPlus = objectiveFunc(xp, i);
+        fnPlus = objectiveFuncReshaped(xp, i);
+        fnPlus = fnPlus(:);
+        % TODO: Replace sparse matrix indexing
         g(indexOfEquations, i) = (fnPlus - f(indexOfEquations)) / h(i);
     end
 end

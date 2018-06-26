@@ -15,6 +15,7 @@ CovFun:IndexUnitRootsSize,Incorrect dimensions of unit root index
 Databank:InvalidSeriesId, This is not a valid FRED series ID: %s 
 Databank:FailedToRetrieveData, Failed to retrieve data for this series: %s 
 Databank:CannotDetermineFrequencyFromJson, Cannot determine date frequency from FRED JSON file
+DataCube:CannotReadTimelessAsSeries, Cannot read this timeless name as Series: %s
 DataCube:FileExists, File with this name already exists; needs to be deleted first before using for DataCube storage: %s
 DataCube:OutOfBoundsReference, Subscripted reference or assignment to DataCube is out of bounds.
 DataCube:NameNotFound, This name does not exist in DataCube: %s

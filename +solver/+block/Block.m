@@ -213,7 +213,7 @@ classdef (Abstract) Block < handle
                 % User-supplied solver:
                 [z, exitFlag] = this.Solver(fnObjective, z0);
             end
-        end
+        end%
         
         
         function c = print(this, iBlk, name, input)

@@ -18,9 +18,7 @@ classdef Steady < solver.block.Block
         
         function [lx, gx, exitStatus, error] = run(this, lnk, lx, gx, ixLog)
             exitStatus = true;
-            error = struct( ...
-                'EvaluatesToNan', [ ] ...
-                );
+            error = struct( 'EvaluatesToNan', [ ] );
             
             posl = this.PosQty.Level;
             posg = this.PosQty.Growth;

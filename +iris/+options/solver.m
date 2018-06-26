@@ -18,8 +18,8 @@ shared = {
     'MaxFunctionEvaluations, MaxFunEvals', @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0)
     'FiniteDifferenceStepSize', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0)
     'FiniteDifferenceType', 'forward', @(x) any(strcmpi(x, {'finite', 'central'}))
-    'FunctionTolerance, TolFun', 1e-12, @(x) isnumericscalar(x) && x>0
-    'StepTolerance, TolX', 1e-12, @(x) isnumericscalar(x) && x>0
+    'FunctionTolerance, TolFun', model.DEFAULT_STEADY_TOLERANCE, @(x) isnumericscalar(x) && x>0
+    'StepTolerance, TolX', model.DEFAULT_STEADY_TOLERANCE, @(x) isnumericscalar(x) && x>0
 };
 
 optimShared = {
@@ -37,13 +37,17 @@ irisShared = {
 };
 
 steadyShared = {
-    'SpecifyObjectiveGradient', true, @islogicalscalar
+    'SpecifyObjectiveGradient', true, @(x) isequal(x, true) || isequal(x, false)
+};
+
+selectiveShared = {
+    'SpecifyObjectiveGradient', false, @(x) isequal(x, true) || isequal(x, false)
 };
 
 exactShared = steadyShared;
 
 stackedShared = {
-    'SpecifyObjectiveGradient', false, @islogicalscalar
+    'SpecifyObjectiveGradient', false, @(x) isequal(x, true) || isequal(x, false)
 };
 
 opt.OptimSteady = [
@@ -64,6 +68,12 @@ opt.OptimStacked = [
     stackedShared
 ];
 
+opt.OptimSelective = [
+    shared
+    optimShared
+    selectiveShared
+];
+
 opt.IrisSteady = [
     shared
     irisShared
@@ -80,6 +90,12 @@ opt.IrisStacked = [
     shared
     irisShared
     stackedShared
+];
+
+opt.IrisSelective = [
+    shared
+    irisShared
+    selectiveShared
 ];
 
 end

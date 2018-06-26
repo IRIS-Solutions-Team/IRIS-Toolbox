@@ -45,6 +45,13 @@ if ~opt.SpecifyObjectiveGradient
     jacobPattern = opt.JacobPattern;
 end
 
+sizeOfX = size(xInit);
+if any(sizeOfX(2:end)>1)
+    objectiveFuncReshaped = @(x) objectiveFunc(reshape(x, sizeOfX));
+else
+    objectiveFuncReshaped = @(x) objectiveFunc(x);
+end
+
 xInit = xInit(:);
 numUnknowns = numel(xInit);
 
@@ -83,18 +90,19 @@ warning('off', 'MATLAB:nearlySingularMatrix');
 
 while true
     if opt.SpecifyObjectiveGradient
-        [f, j] = objectiveFunc(x);
+        [fx, j] = objectiveFuncReshaped(x);
+        fx = fx(:);
         fnCount = fnCount + 1;
     else
-        f = objectiveFunc(x);
+        fx = objectiveFuncReshaped(x);
+        fx = fx(:);
         fnCount = fnCount + 1;
-        [j, addCount] = solver.algorithm.finiteDifference( ...
-            objectiveFunc, x, f, diffStep, jacobPattern, opt.LargeScale ...
-        );
+        [j, addCount] = solver.algorithm.finiteDifference( objectiveFuncReshaped, ...
+                                                           x, fx, diffStep, ...
+                                                           jacobPattern, opt.LargeScale );
         fnCount = fnCount + addCount;
     end
-    f = f(:);    
-    n = fnNorm(f);
+    n = fnNorm(fx);
     
     if hasConverged( ) 
         % Convergence reached, exit.
@@ -119,7 +127,7 @@ while true
         fprintf('\n');
     end
     x0 = x;
-    f0 = f;
+    % f0 = f;
     n0 = n;
     j0 = j;
 
@@ -178,12 +186,13 @@ return
 
     function [d, n] = makeNewtonStep( )
         lmb = 0;
-        d = -j \ f;
+        d = -j \ fx;
         c = x + step*d;
-        f = objectiveFunc(c);
+        fx = objectiveFuncReshaped(c);
+        fx = fx(:);
         fnCount = fnCount + 1;
-        n = fnNorm(f);
-    end
+        n = fnNorm(fx);
+    end%
 
 
     function [d, n] = makeHybridStep( )
@@ -197,30 +206,36 @@ return
             minSv = sj(end);
         end
         tol = numUnknowns * eps(maxSv);
-        vecLmb0 = vecLmb;
+        vecOfLambdas0 = vecLmb;
         if minSv>tol
-            vecLmb0 = [0, vecLmb0]; %#ok<AGROW>
+            vecOfLambdas0 = [0, vecOfLambdas0];
         end
-        nlmb0 = numel(vecLmb0);
+        nlmb0 = numel(vecOfLambdas0);
         scale = tol * eye(numUnknowns);
         
-        % Optimize lambda.
+        % Optimize lambda
         dd = cell(1, nlmb0);
         nn = nan(1, nlmb0);
         ff = cell(1, nlmb0);
         for i = 1 : nlmb0
-            dd{i} = -( jj + vecLmb0(i)*scale ) \ j.' * f;
+            if vecOfLambdas0(i)==0
+                % Lambda=0; run Newton step
+                dd{i} = -j \ fx;
+            else
+                % Lambda>0; run hybrid step
+                dd{i} = -( jj + vecOfLambdas0(i)*scale ) \ j.' * fx;
+            end
             c = x + step*dd{i};
-            ff{i} = objectiveFunc(c);
+            ff{i} = objectiveFuncReshaped(c);
             fnCount = fnCount + 1;
             nn(i) = fnNorm(ff{i});
         end
         [~, pos] = min(nn);
-        lmb = vecLmb0(pos);
-        d = dd{i};
-        f = ff{i};
-        n = nn(i);
-    end 
+        lmb = vecOfLambdas0(pos);
+        d = dd{pos};
+        fx = ff{pos};
+        n = nn(pos);
+    end%
 
 
 
@@ -229,10 +244,11 @@ return
         while n>n0 && step>MIN_STEP
             step = stepDown*step;
             c = x + step*d;
-            f = objectiveFunc(c);
+            fx = objectiveFuncReshaped(c);
+            fx = fx(:);
             fnCount = fnCount + 1;
             q = q + 1;
-            n = fnNorm(f);
+            n = fnNorm(fx);
         end
     end
 
@@ -243,10 +259,11 @@ return
         % Inflate step as far as objective function improves.
         while step<MAX_STEP
             c = x + stepUp*step*d;
-            f = objectiveFunc(c);
+            fx = objectiveFuncReshaped(c);
+            fx = fx(:);
             fnCount = fnCount + 1;
             q = q + 1;
-            n1 = fnNorm(f);
+            n1 = fnNorm(fx);
             if n1>=n || q>=40
                 break
             end
@@ -259,7 +276,7 @@ return
 
 
     function flag = hasConverged( )
-        flag = all( maxabs(f)<=tolFun );
+        flag = all( maxabs(fx)<=tolFun );
         if iter>0
             flag = flag && all( maxabs(x-x0)<=tolX );
         end
