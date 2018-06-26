@@ -87,8 +87,7 @@ if isequal(s.Method, 'selective')
         
     prepareHashEquations( );
     
-    if isequal(s.Solver, @auto) ...
-            || ( ischar(s.Solver) && strcmpi(s.Solver, 'qad') )
+    if isequal(s.Solver, @auto) || ( ischar(s.Solver) && strcmpi(s.Solver, 'qad') )
         s.Solver = @qad;
     end
     s.Display = s.Display;
@@ -102,6 +101,12 @@ if isequal(s.Method, 'selective')
         if isequal(s.Display, @auto)
             s.Display = 'iter';
         end
+        prepareGradient = false;
+        displayMode = 'verbose';
+        opt.Solver = solver.Options.processOptions( opt.Solver, ...
+                                                    'Selective', ...
+                                                    prepareGradient, ...
+                                                    displayMode );
     end
     s.Selective.Display = s.Display;
     % Positions of variables in [y;xx] vector that occur in nonlinear
@@ -130,33 +135,7 @@ if isequal(s.Method, 'selective')
     end
 end
 
-% Steady-state revisions.
-ptrRevision = this.Pairing.Revision;
-s.IsRevision = opt.Revision && any(ixu) && any( ptrRevision(ixu)>0 );
-if s.IsRevision
-    % Initialize and preprocess sstate, chksstate, solve options.
-    s.Revision = struct( );
-    s.Revision.Steady = prepareSteady(this, 'silent', opt.Steady);
-    s.Revision.ChkSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
-    s.Revision.Solve = prepareSolve(this, 'silent', opt.Solve);
-    ixRevision = ixu & ptrRevision>0;
-    eqnRevision = createHashEquations(this, ixRevision);
-    eqnRevision = [ model.PREAMBLE_HASH, '[', eqnRevision{:}, ']' ];
-    eqnRevision = str2func(eqnRevision);
-    s.Revision.EqtnN = eqnRevision;
-    s.Revision.PtrRevision = ptrRevision(ixRevision);
-end
-
-if isequal(s.Solver, @lsqnonlin) || isequal(s.Solver, @fsolve)
-    opt.Solver = s.Solver;
-    opt.Display = s.Display;
-    opt.TolFun = model.DEFAULT_STEADY_TOLERANCE;
-    opt.TolX = model.DEFAULT_STEADY_TOLERANCE;
-    [~, s.OptimSet] = irisoptim.myoptimopts(opt);
-end
-
 return
-
 
 
     function prepareHashEquations( )
@@ -167,5 +146,6 @@ return
             '[', s.Selective.EqtnNI{ixh}, ']' ...
             ];
         s.Selective.EqtnN = str2func(s.Selective.EqtnN);
-    end
-end
+    end%
+end%
+

@@ -1,5 +1,5 @@
 function this = subsasgn(this, s, b)
-% subsasgn  Subscripted assignment for model objects.
+% subsasgn  Subscripted assignment for model objects
 %
 % __Syntax for Assigning Parameterisations from Other Object
 %
@@ -65,10 +65,11 @@ function this = subsasgn(this, s, b)
 % object.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-if ~isa(this, 'model') || (~isa(b, 'model') && ~isempty(b) && ~isnumeric(b))
+if ~isa(this, 'model') ...
+   || ( ~isa(b, 'model') && ~isempty(b) && ~isnumeric(b) && ~islogical(b) )
     utils.error('model:subsasgn', ...
         'Invalid subscripted reference or assignment to model object.');
 end

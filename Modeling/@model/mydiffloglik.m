@@ -18,18 +18,13 @@ if ~isfield(opt, 'percent')
     opt.percent = false;
 end
 
-% Initialise steady-state solver and chksstate options.
-opt.Steady = prepareSteady(this, 'silent', opt.Steady);
-opt.ChkSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
-opt.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
-
 %--------------------------------------------------------------------------
 
-posValues = this.TaskSpecific.Update.PosValues;
-posStdCorr = this.TaskSpecific.Update.PosStdCorr;
+posOfValues = this.Update.PosOfValues;
+posOfStdCorr = this.Update.PosOfStdCorr;
 
 ny = sum(this.Quantity.Type==TYPE(1));
-numParameters = length(posValues);
+numParameters = length(posOfValues);
 [~, numPeriods, numDataSets] = size(data);
 
 MLL = zeros(1, numDataSets);
@@ -38,10 +33,10 @@ info = zeros(numParameters, numParameters, numDataSets);
 se2 = zeros(1, numDataSets);
 
 p = nan(1, numParameters);
-indexNaNPosValues = isnan(posValues);
-indexNaNPosStdCorr = isnan(posStdCorr);
-p(~indexNaNPosValues) = this.Variant.Values(:, posValues(~indexNaNPosValues), :);
-p(~indexNaNPosStdCorr) = this.Variant.StdCorr(1, posStdCorr(~indexNaNPosStdCorr), :);
+indexNaNPosValues = isnan(posOfValues);
+indexNaNPosStdCorr = isnan(posOfStdCorr);
+p(~indexNaNPosValues) = this.Variant.Values(:, posOfValues(~indexNaNPosValues), :);
+p(~indexNaNPosStdCorr) = this.Variant.StdCorr(1, posOfStdCorr(~indexNaNPosStdCorr), :);
 
 step = EPSILON * max([abs(p); ones(size(p))], [ ], 1);
 twoSteps = nan(1, numParameters);
@@ -56,10 +51,10 @@ for i = 1 : numParameters
     pp(i) = pp(i) + step(i);
     mp(i) = mp(i) - step(i);
     twoSteps(i) = pp(i) - mp(i);
-    ix = 1 + 2*(i-1) + 1;
-    this(ix) = update(this(ix), pp, 1, opt, throwErr);
-    ix = 1 + 2*(i-1) + 2;
-    this(ix) = update(this(ix), mp, 1, opt, throwErr);
+    variantRequested = 1 + 2*(i-1) + 1;
+    this = update(this, pp, variantRequested);
+    variantRequested = 1 + 2*(i-1) + 2;
+    this = update(this, mp, variantRequested);
 end
 
 % Horizontal vectorisation.

@@ -1,4 +1,4 @@
-function d = shockdb(this, d, range, varargin)
+function [d, YXEPG] = shockdb(this, d, range, varargin)
 % shockdb  Create model-specific database with random shocks
 %
 %
@@ -66,7 +66,7 @@ if isempty(inputParser)
     inputParser.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
     inputParser.addOptional('NumOfDrawsOptional', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
     inputParser.addParameter('NumOfDraws', @auto, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
-    inputParser.addParameter('ShockFunc', @(x) isa(x, 'function_handle'));
+    inputParser.addParameter('ShockFunc', @zeros, @(x) isa(x, 'function_handle'));
 end
 inputParser.parse(this, d, range, varargin{:});
 numOfDrawsOptional = inputParser.Results.NumOfDrawsOptional;
@@ -77,13 +77,14 @@ end
 
 %--------------------------------------------------------------------------
 
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ne = sum(ixe);
+numOfQuantities = numel(this.Quantity.Name);
+indexOfShocks = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+ne = sum(indexOfShocks);
 nv = length(this);
 numOfPeriods = numel(range);
-lsName = this.Quantity.Name(ixe);
+lsName = this.Quantity.Name(indexOfShocks);
 lsLabel = getLabelOrName(this.Quantity);
-lsLabel = lsLabel(ixe);
+lsLabel = lsLabel(indexOfShocks);
 
 if isempty(d) || isequal(d, struct( ))
     E = zeros(ne, numOfPeriods);
@@ -118,12 +119,18 @@ for ithLoop = 1 : numOfLoops
     E(:, :, ithLoop) = E(:, :, ithLoop) + F*iS;
 end
 
-% `E` is ne-by-numOfPeriods-by-numOfLoops, permute to numOfPeriods-by-numOfLoops-by-ne.
-E = permute(E, [2, 3, 1]);
-
-for i = 1 : ne
-    name = lsName{i};
-    d.(name) = replace(TEMPLATE_SERIES, E(:, :, i), range(1), lsLabel{i});
+if nargout==1
+    for i = 1 : ne
+        name = lsName{i};
+        e = permute(E(i, :, :), [2, 3, 1]);
+        d.(name) = replace(TEMPLATE_SERIES, e, range(1), lsLabel{i});
+    end
+elseif nargout==2
+    [minShift, maxShift] = getActualMinMaxShifts(this);
+    numOfExtendedPeriods = numOfPeriods-minShift+maxShift;
+    baseColumns = (1:numOfPeriods) - minShift;
+    YXEPG = nan(numOfQuantities, numOfExtendedPeriods, numOfLoops);
+    YXEPG(indexOfShocks, baseColumns, :) = E;
 end
 
 return

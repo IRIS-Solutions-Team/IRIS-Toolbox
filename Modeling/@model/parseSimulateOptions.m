@@ -34,7 +34,7 @@ if isempty(inputParser)
     inputParser.addParameter('Error', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('PrepareGradient', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto));
     inputParser.addParameter('OptimSet', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x));
-    inputParser.addParameter('Solver', @auto, @validateSolver);
+    inputParser.addParameter('Solver', @auto, @validateSolverOption);
     
     % Equation Selective Method Options
     inputParser.addParameter({'NonlinWindow', 'NonlinPer'}, @all, @(x) isequal(x, @all) || (isnumeric(x) && isscalar(x) && x>=0));
@@ -66,10 +66,14 @@ opt = inputParser.Options;
 end%
 
 
-function flag = validateSolver(x)
-    flag = isequal(x, @auto) ...
-        || (ischar(x) && any(strcmpi(x, {'qad', 'plain', 'lsqnonlin', 'IRIS', 'fsolve'}))) ...
-        || isequal(x, @fsolve) || isequal(x, @lsqnonlin) || isequal(x, @qad) ...
-        || (iscell(x) && iscellstr(x(2:2:end))) ;
+function flag = validateSolverOption(x)
+    flag = isequal(x, @auto) || validateSolverName(x) ...
+           || (iscell(x) && validateSolverName(x{1}) && iscellstr(x(2:2:end)));
+end%
+
+
+function flag = validateSolverName(x)
+    flag = (ischar(x) && any(strcmpi(x, {'qad', 'lsqnonlin', 'IRIS', 'fsolve'}))) ...
+           || isequal(x, @fsolve) || isequal(x, @lsqnonlin) || isequal(x, @qad);
 end%
 

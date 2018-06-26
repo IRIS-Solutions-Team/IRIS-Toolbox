@@ -104,11 +104,6 @@ if ischar(lsPar)
     lsPar = regexp(lsPar, '\w+', 'match');
 end
 
-% Initialise steady-state solver and chksstate options.
-opt.Steady = prepareSteady(this, 'silent', opt.Steady);
-opt.ChkSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
-opt.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
-
 EPSILON = eps( )^opt.epspower;
 
 %--------------------------------------------------------------------------
@@ -123,10 +118,10 @@ ixYLog = this.Quantity.IxLog(ixy);
 ixYLog(indexToExclude) = [ ];
 
 ell = lookup(this.Quantity, lsPar, TYPE(4));
-posValues = ell.PosName;
-posStdCorr = ell.PosStdCorr;
-indexNaNPosValues = isnan(posValues);
-indexNaNPosStdCorr = isnan(posStdCorr);
+posOfValues = ell.PosName;
+posOfStdCorr = ell.PosStdCorr;
+indexNaNPosValues = isnan(posOfValues);
+indexNaNPosStdCorr = isnan(posOfStdCorr);
 indexValidNames = ~indexNaNPosValues | ~indexNaNPosStdCorr;
 if any(~indexValidNames)
     utils.error('model:fisher', ...
@@ -134,34 +129,37 @@ if any(~indexValidNames)
         lsPar{~indexValidNames});
 end
 
-this.TaskSpecific = struct( );
-this.TaskSpecific.Update.Values = this.Variant.Values;
-this.TaskSpecific.Update.StdCorr = this.Variant.StdCorr;
-this.TaskSpecific.Update.PosValues = posValues;
-this.TaskSpecific.Update.PosStdCorr = posStdCorr;
+this.Update = struct( );
+this.Update.Values = this.Variant.Values;
+this.Update.StdCorr = this.Variant.StdCorr;
+this.Update.PosOfValues = posOfValues;
+this.Update.PosOfStdCorr = posOfStdCorr;
+this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
+this.Update.CheckSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
+this.Update.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
+this.Update.ThrowError = true;
 
-numParameters = length(lsPar);
-numFreq = floor(numPeriods/2) + 1;
-freq = 2*pi*(0 : numFreq-1)/numPeriods;
+numOfParameters = length(lsPar);
+numOfFreq = floor(numPeriods/2) + 1;
+freq = 2*pi*(0 : numOfFreq-1)/numPeriods;
 
 % Kronecker delta vector.
 % Different for even or odd number of periods.
-delta = ones(1, numFreq);
+delta = ones(1, numOfFreq);
 if mod(numPeriods, 2)==0
     delta(2:end-1) = 2;
 else
     delta(2:end) = 2;
 end
 
-FF = nan(numParameters, numParameters, numFreq, nv);
-F = nan(numParameters, numParameters, nv);
+FF = nan(numOfParameters, numOfParameters, numOfFreq, nv);
+F = nan(numOfParameters, numOfParameters, nv);
 
 % Create a command-window progress bar.
 if opt.progress
     progress = ProgressBar('IRIS model.fisher progress');
 end
 
-throwErr = true;
 
 for v = 1 : nv    
     % Fetch the i-th parameterisation.
@@ -175,27 +173,27 @@ for v = 1 : nv
     
     % Compute derivatives of SGF and steady state
     % wrt the selected parameters.
-    dG = nan(ny, ny, numFreq, numParameters);
+    dG = nan(ny, ny, numOfFreq, numOfParameters);
     if ~opt.Deviation
-        dy = zeros(ny, numParameters);
+        dy = zeros(ny, numOfParameters);
     end
     % Determine differentiation step.
-    p0 = nan(1, numParameters);
-    p0(~indexNaNPosValues) = m.Variant.Values(:, posValues(~indexNaNPosValues), :);
-    p0(~indexNaNPosStdCorr) = m.Variant.StdCorr(:, posStdCorr(~indexNaNPosStdCorr), :);
-    step = max([abs(p0);ones(1, numParameters)], [ ], 1)*EPSILON;
+    p0 = nan(1, numOfParameters);
+    p0(~indexNaNPosValues) = m.Variant.Values(:, posOfValues(~indexNaNPosValues), :);
+    p0(~indexNaNPosStdCorr) = m.Variant.StdCorr(:, posOfStdCorr(~indexNaNPosStdCorr), :);
+    step = max([abs(p0);ones(1, numOfParameters)], [ ], 1)*EPSILON;
     
-    for i = 1 : numParameters
+    for i = 1 : numOfParameters
         pp = p0;
         pm = p0;
         pp(i) = pp(i) + step(i);
         pm(i) = pm(i) - step(i);
         twoSteps = pp(i) - pm(i);
 
-        isSstate = ~opt.Deviation && ~isnan(posValues(i));
+        isSstate = ~opt.Deviation && ~isnan(posOfValues(i));
         
         % Steady state, state space and SGF at p0(i) + step(i).
-        m = update(m, pp, 1, opt, throwErr);
+        m = update(m, pp, 1);
         if isSstate
             yp = getSstate( );
         end
@@ -203,7 +201,7 @@ for v = 1 : nv
         Gp = computeSgfy(Tp, Rp, Zp, Hp, Omgp, nUnitp, freq, opt);
         
         % Steady state, state space and SGF at p0(i) - step(i).
-        m = update(m, pm, 1, opt, throwErr);
+        m = update(m, pm, 1);
         if isSstate
             ym = getSstate( );
         end
@@ -217,21 +215,21 @@ for v = 1 : nv
         end
         
         % Reset model parameters to `p0`.
-        m.Variant.Values(:, posValues(~indexNaNPosValues), :) = p0(1, ~indexNaNPosValues);
-        m.Variant.StdCorr(:, posStdCorr(~indexNaNPosStdCorr), :) = p0(1, ~indexNaNPosStdCorr);
+        m.Variant.Values(:, posOfValues(~indexNaNPosValues), :) = p0(1, ~indexNaNPosValues);
+        m.Variant.StdCorr(:, posOfStdCorr(~indexNaNPosStdCorr), :) = p0(1, ~indexNaNPosStdCorr);
         
         % Update the progress bar.
         if opt.progress
-            update(progress, ((v-1)*numParameters+i)/(nv*numParameters));
+            update(progress, ((v-1)*numOfParameters+i)/(nv*numOfParameters));
         end
     end
     
     % Compute Fisher information matrix.
     % Steady-state-independent part.
-    for i = 1 : numParameters
-        for j = i : numParameters
-            fi = zeros(1, numFreq);
-            for k = 1 : numFreq
+    for i = 1 : numOfParameters
+        for j = i : numOfParameters
+            fi = zeros(1, numOfFreq);
+            for k = 1 : numOfFreq
                 fi(k) = ...
                     trace(real(Gi(:, :, k)*dG(:, :, k, i)*Gi(:, :, k)*dG(:, :, k, j)));
             end
@@ -262,7 +260,7 @@ FF = FF / 2;
 F = F / 2;
 
 % Clean up even though the model object is not returned
-this.TaskSpecific = [ ];
+this.Update = this.EMPTY_UPDATE;
 
 return
 
@@ -294,11 +292,11 @@ function [G, Gi] = computeSgfy(T, R, Z, H, Omg, numOfUnitRoots, freq, opt)
     % Spectrum generating function and its inverse.
     % Computationally optimised for observables.
     [ny, nb] = size(Z);
-    numFreq = length(freq(:));
+    numOfFreq = length(freq(:));
     Sgm1 = R*Omg*R.';
     Sgm2 = H*Omg*H.';
-    G = nan(ny, ny, numFreq);
-    for i = 1 : numFreq
+    G = nan(ny, ny, numOfFreq);
+    for i = 1 : numOfFreq
         iFreq = freq(i);
         if iFreq==0 && numOfUnitRoots>0
             % Exclude the unit-root part of the transition matrix, and compute SGF only
@@ -318,13 +316,13 @@ function [G, Gi] = computeSgfy(T, R, Z, H, Omg, numOfUnitRoots, freq, opt)
     % and second, we do not divide the steady-state effect
     % by 2*pi either.
     if nargout>1
-        Gi = nan(ny, ny, numFreq);
+        Gi = nan(ny, ny, numOfFreq);
         if opt.chksgf
-            for i = 1 : numFreq
+            for i = 1 : numOfFreq
                 Gi(:, :, i) = computePseudoInverse(G(:, :, i), opt.tolerance);
             end
         else
-            for i = 1 : numFreq
+            for i = 1 : numOfFreq
                 Gi(:, :, i) = inv(G(:, :, i));
             end
         end

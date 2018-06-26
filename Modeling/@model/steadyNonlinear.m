@@ -63,10 +63,8 @@ for v = variantsRequested
             fprintf('    Block %g of %g failed to solve.\n', iBlk, nBlk);
         end
         if ~isempty(error.EvaluatesToNan)
-            throw( ...
-                exception.Base('Steady:EvaluatesToNan', 'error'), ...
-                this.Equation.Input{error.EvaluatesToNan} ...
-            );
+            throw( exception.Base('Steady:EvaluatesToNan', 'error'), ...
+                   this.Equation.Input{error.EvaluatesToNan} );
         end
     end
     this.Variant.Values(:, :, v) = lx + 1i*gx;
@@ -80,7 +78,7 @@ for v = variantsRequested
             'Steady state inaccurate or not returned for some variables.');
     end
     
-    % Store current values to initialise next parameterisation.
+    % Store current values to initialize next parameterisation.
     lx0 = lx;
     gx0 = gx;
     firstAlt = false;
@@ -97,7 +95,7 @@ return
 
 
     function [lx, gx] = initialize( )
-        % __Initialise levels of endogenous quantities__
+        % __Initialize levels of endogenous quantities__
         lx = real(this.Variant.Values(:, :, v));
         % Level variables that are set to zero (all shocks).
         lx(ixZero.Level) = 0;
@@ -111,14 +109,13 @@ return
         % Use option NanInit= to assign NaNs.
         lx(ix) = real(blz.NanInit);
         
-        % __Initialise growth rates of endogenous quantities__
+        % __Initialize growth rates of endogenous quantities__
         gx = imag(this.Variant.Values(:, :, v));
         % Variables with zero growth (all variables if 'growth=' false).
         gx(ixZero.Growth) = 0;
         if any(~ixZero.Growth)
             % Assign NaN growth initial conditions. First, assign values from
-            % the previous iteration, if they exist and option 'reuse=' is
-            % `true`.
+            % the previous iteration if they exist and `reuse=true`
             ix = isnan(gx) & ixEndg.Growth;
             if ~firstAlt && blz.Reuse && any(ix) && ~isempty(gx0)
                 gx(ix) = gx0(ix);
@@ -129,7 +126,7 @@ return
         end
         % Reset zero growth to 1 for *all* log quantities (not only endogenous).
         gx(ixLog & gx==0) = 1;
-    end
+    end%
 
 
     function checkFixedToNaN( )
@@ -156,7 +153,7 @@ return
                 this.Quantity.Name{indexNaN} ...
             );
         end
-    end
+    end%
 
 
     function checkExogenizedToNaN( )
@@ -181,5 +178,5 @@ return
                 this.Quantity.Name{indexGrowthToReport} ...
             );
         end
-    end
+    end%
 end

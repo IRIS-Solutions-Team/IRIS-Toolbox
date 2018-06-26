@@ -114,16 +114,21 @@ if any(~indexValidNames)
         parameterNames{~indexValidNames});
 end
 
-this.TaskSpecific = struct( );
-this.TaskSpecific.Update.Values = this.Variant.Values;
-this.TaskSpecific.Update.StdCorr = this.Variant.StdCorr;
-this.TaskSpecific.Update.PosValues = posValues;
-this.TaskSpecific.Update.PosStdCorr = posStdCorr;
+% Populate temporary Update container
+this.Update = this.EMPTY_UPDATE;
+this.Update.Values = this.Variant.Values;
+this.Update.StdCorr = this.Variant.StdCorr;
+this.Update.PosOfValues = posValues;
+this.Update.PosOfStdCorr = posStdCorr;
+this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
+this.Update.CheckSteady = prepareChkSteady(this, 'silent', opt.ChkSstate);
+this.Update.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
+this.Update.ThrowError = true;
 
 % Call low-level diffloglik.
 [minusLogLik, grad, hess, v] = mydiffloglik(this, data, lik, opt);
 
 % Clean up even though the model objects is not returned
-this.TaskSpecific = [ ];
+this.Update = this.EMPTY_UPDATE;
 
 end

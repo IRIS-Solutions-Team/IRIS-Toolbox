@@ -334,14 +334,6 @@ if isCond
     return
 end
 
-if isequal(opt.Solver, @auto)
-    opt.Solver = 'qad';
-end
-
-if ischar(opt.Solver) && strcmpi(opt.Solver, 'plain')
-    opt.Solver = @qad;
-end
-
 %--------------------------------------------------------------------------
 
 % Input struct to the backend functions in `+simulate` package.

@@ -1,5 +1,5 @@
 function [this, flag, nPath, eigen] = sstate(this, varargin)
-% sstate  Compute steady state or balance-growth path of the model.
+% sstate  Compute steady state or balance-growth path of the model
 %
 % __Syntax__
 %
@@ -213,10 +213,8 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 % endogenizing the listed parameters, `alpha` and `delta`.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
-
-% Parse options.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 steady = prepareSteady(this, 'verbose', varargin{:});
 

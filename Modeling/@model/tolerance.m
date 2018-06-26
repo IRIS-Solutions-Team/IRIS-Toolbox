@@ -1,5 +1,5 @@
 function varargout = tolerance(this, varargin)
-% tolerance  Get or set model-specific tolerance levels.
+% tolerance  Get or set model-specific tolerance levels
 %
 %
 % Syntax for getting tolerance
@@ -23,8 +23,8 @@ function varargout = tolerance(this, varargin)
 %
 % * `M` [ model ] - Model object.
 %
-% * `Scope` [ `'solve'` | `'steady'` | `'eigen'` | `'mse'` ] - Scope
-% in which the new tolerance level will be used.
+% * `Scope` [ `'solve'` | `'eigen'` | `'mse'` ] - Scope in which the new
+% tolerance level will be used.
 %
 % * `Tol` [ numeric ] - New tolerance level used to detect singularities
 % and unit roots; if `@default` tolerance will be set to its default value.
@@ -49,8 +49,8 @@ function varargout = tolerance(this, varargin)
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 template = model.DEFAULT_TOLERANCE_STRUCT;
 lsField = fieldnames(template);
@@ -91,9 +91,6 @@ switch lower(scope)
     case {'eigen', 'unitroot'}
         scope = 'Eigen';
         def = model.DEFAULT_EIGEN_TOLERANCE;
-    case {'steady', 'steadystate', 'sstate'}
-        scope = 'Steady';
-        def = model.DEFAULT_STEADY_TOLERANCE;
     case {'mse'}
         scope = 'Mse';
         def = model.DEFAULT_MSE_TOLERANCE;

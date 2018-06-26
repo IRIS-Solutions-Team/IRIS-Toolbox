@@ -2,11 +2,11 @@ function [mldPosterior, mldData, mldParamPriors, mldSystemPriors] = ...
     objfunc(x, this, data, posterior, estOpt, likOpt)
 % objfunc  Evaluate minus log posterior
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
     
 %--------------------------------------------------------------------------
 
@@ -34,9 +34,9 @@ end
 % system priors.
 if isfinite(mldPosterior)
     if posterior.EvaluateData || isSystemPriors
-        isThrowErr = strcmpi(estOpt.NoSolution, 'error');
+        this.Update.ThrowError = strcmpi(estOpt.NoSolution, 'error');
         variantRequested = 1;
-        [this, UpdateOk] = update(this, x, variantRequested, estOpt, isThrowErr);
+        [this, UpdateOk] = update(this, x, variantRequested);
         if ~UpdateOk
             mldPosterior = Inf;
         end

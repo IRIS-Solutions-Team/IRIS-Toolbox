@@ -280,15 +280,9 @@ if isempty(outsideOptimOptions)
     outsideOptimOptions.addParameter('TolX', 1e-6, @(x) isnumeric(x) && isscalar(x) && x>0);
 end
 inputParser.parse(this, inputDatabank, range, varargin{:});
-SystemPriorWrapper = inputParser.Results.SystemPriors;
 estimationSpecs = inputParser.Results.EstimationSpecs;
 opt = inputParser.Options;
 outsideOptimOptions.parse(inputParser.UnmatchedInCell{:});
-
-% Initialize and preprocess sstate, chksstate, solve options.
-opt.Steady = prepareSteady(this, 'silent', opt.Steady);
-opt.ChkSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
-opt.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
 
 % Process likelihood function options and create a likstruct.
 likOpt = prepareLoglik(this, range, opt.Domain, [ ], opt.Filter{:});
@@ -311,17 +305,16 @@ if opt.EvalLik && ~any(this.Quantity.Type==TYPE(1))
     throw( exception.Base('Model:NoMeasurementVariables', 'warning') );
 end
 
-if isa(SystemPriorWrapper, 'SystemPriorWrapper') && ~SystemPriorWrapper.Sealed
-    seal(SystemPriorWrapper);
-end
-
-% __Set Up Posterior and EstimationWrapper__
-[this, posterior] = preparePosterior(this, estimationSpecs, opt.Penalty, opt.InitVal);
+% __Prepare Posterior object, model.Update, and EstimationWrapper__
+[this, posterior] = preparePosteriorAndUpdate(this, estimationSpecs, opt);
 posterior.ObjectiveFunction = @(x) objfunc(x, this, inputArray, posterior, opt, likOpt);
-posterior.SystemPriors = SystemPriorWrapper;
+posterior.SystemPriors = inputParser.Results.SystemPriors;
 posterior.EvaluateData = opt.EvalLik;
 posterior.EvaluateParamPriors = opt.EvalPPrior;
 posterior.EvaluateSystemPriors = opt.EvalSPrior;
+if isa(posterior.SystemPriors, 'SystemPriorWrapper')
+    seal(SystemPriorWrapper);
+end
 
 estimationWrapper = EstimationWrapper( );
 estimationWrapper.IsConstrained = posterior.IsConstrained;
@@ -334,8 +327,7 @@ maximizePosteriorMode(posterior, estimationWrapper);
 % state, solution, and expansion matrices.
 variantRequested = 1;
 opt.Solve.Fast = false;
-throwError = true;
-this = update(this, posterior.Optimum, variantRequested, opt, throwError);
+this = update(this, posterior.Optimum, variantRequested);
 
 % __Set Up Posterior Object__
 % Set up posterior object before we assign out-of-liks and scale std
@@ -368,7 +360,7 @@ proposalCov = posterior.ProposalCov;
 
 hessian = posterior.Hessian;
 
-this.TaskSpecific = [ ];
+this.Update = this.EMPTY_UPDATE;
 
 if nargout>8
     % ##### Feb 2018 OBSOLETE and scheduled for removal.

@@ -1,8 +1,8 @@
 function [flag, dcy, maxAbsDcy, listOfEquations] = mychksstate(this, variantsRequested, opt)
-% mychksstate  Discrepancy in steady state of model equtions.
+% mychksstate  Discrepancy in steady state of model equtions
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.

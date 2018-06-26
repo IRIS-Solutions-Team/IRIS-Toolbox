@@ -48,7 +48,7 @@ if isequal(s.Method, 'selective')
     end
 end
 
-if s.IsRevision || isequal(s.Method, 'selective')
+if isequal(s.Method, 'selective')
     % Steady state references.
     minSh = this.Incidence.Dynamic.Shift(1);
     maxSh = this.Incidence.Dynamic.Shift(end);

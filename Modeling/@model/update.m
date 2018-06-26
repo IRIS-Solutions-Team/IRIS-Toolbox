@@ -1,49 +1,44 @@
-function [this, ok] = update(this, p, variantRequested, opt, isError)
-% update  Update parameters, sstate, solve, and refresh.
+function [this, ok] = update(this, p, variantRequested)
+% update  Update parameters, sstate, solve, and refresh
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-PTR = @int16;
-
-% `IsError`: Throw error if update fails.
-try
-    isError; %#ok<VUNUS>
-catch %#ok<CTCH>
-    isError = true;
+if nargin<3
+    variantRequested = 1;
 end
 
 %--------------------------------------------------------------------------
 
-posValues = this.TaskSpecific.Update.PosValues;
-posStdCorr = this.TaskSpecific.Update.PosStdCorr;
+posOfValues = this.Update.PosOfValues;
+posOfStdCorr = this.Update.PosOfStdCorr;
 
-ixNanQty = isnan(posValues);
-posValues = posValues(~ixNanQty);
-ixNanStdCorr = isnan(posStdCorr);
-posStdCorr = posStdCorr(~ixNanStdCorr);
+indexOfValues = ~isnan(posOfValues);
+posOfValues = posOfValues(indexOfValues);
+indexOfStdCorr = ~isnan(posOfStdCorr);
+posOfStdCorr = posOfStdCorr(indexOfStdCorr);
 
 % Reset parameters and stdcorrs.
-this.Variant.Values(:, :, variantRequested) = this.TaskSpecific.Update.Values;
-this.Variant.StdCorr(:, :, variantRequested) = this.TaskSpecific.Update.StdCorr;
+this.Variant.Values(:, :, variantRequested) = this.Update.Values;
+this.Variant.StdCorr(:, :, variantRequested) = this.Update.StdCorr;
 
-runSteady = ~isequal(opt.Steady, false);
-runSolve = ~isequal(opt.Solve, false);
-runChksstate = ~isequal(opt.ChkSstate, false);
+runSteady = ~isequal(this.Update.Steady, false);
+runSolve = ~isequal(this.Update.Solve, false);
+runCheckSteady = ~isequal(this.Update.CheckSteady, false);
 
 % Update regular parameters and run refresh if needed.
 needsRefresh = any(this.Link);
 beenRefreshed = false;
-if any(~ixNanQty)
-    this.Variant.Values(:, posValues, variantRequested) = p(~ixNanQty);
+if any(indexOfValues)
+    this.Variant.Values(:, posOfValues, variantRequested) = p(indexOfValues);
 end
 
 % Update stds and corrs.
-if any(~ixNanStdCorr)
-    this.Variant.StdCorr(:, posStdCorr, variantRequested) = p(~ixNanStdCorr);
+if any(indexOfStdCorr)
+    this.Variant.StdCorr(:, posOfStdCorr, variantRequested) = p(indexOfStdCorr);
 end
 
 % Refresh dynamic links. The links can refer/define std devs and
@@ -56,7 +51,7 @@ end
 % If only stds or corrs have been changed, no values have been
 % refreshed, and no user preprocessor is called, return immediately as
 % there is no need to re-solve or re-sstate the model.
-if all(ixNanQty) && ~isa(opt.Steady, 'function_handle') && ~beenRefreshed
+if ~any(indexOfValues) && ~isa(this.Update.Steady, 'function_handle') && ~beenRefreshed
     ok = true;
     return
 end
@@ -64,71 +59,73 @@ end
 if this.IsLinear
     % __Linear Models__
     if runSolve
-        [this, nPth, nanDerv, sing2, bk] = solveFirstOrder(this, variantRequested, opt.Solve);
+        [this, numOfStablePaths, nanDerv, sing2, bk] = solveFirstOrder( this, ...
+                                                                        variantRequested, ...
+                                                                        this.Update.Solve );
     else
-        nPth = 1;
+        numOfStablePaths = 1;
     end
     if runSteady
-        this = steadyLinear(this, opt.Steady, variantRequested);
+        this = steadyLinear(this, this.Update.Steady, variantRequested);
         if needsRefresh
             this = refresh(this, variantRequested);
         end
     end
     okSteady = true;
-    okChkSteady = true;
+    okCheckSteady = true;
 	sstateErrList = { };
 else
     % __Nonlinear Models__
     okSteady = true;
     sstateErrList = { };
-    okChkSteady = true;
+    okCheckSteady = true;
     nanDerv = [ ];
     sing2 = false;
     if runSteady
-        if isa(opt.Steady, 'function_handle')
+        if isa(this.Update.Steady, 'function_handle')
             % Call to a user-supplied sstate solver.
             m = this(variantRequested);
-            [m, okSteady] = feval(opt.Steady, m);
+            [m, okSteady] = feval(this.Update.Steady, m);
             this(variantRequested) = m;
-        elseif iscell(opt.Steady) && isa(opt.Steady{1}, 'function_handle')
+        elseif iscell(this.Update.Steady) && isa(this.Update.Steady{1}, 'function_handle')
             %  Call to a user-supplied sstate solver with extra arguments.
             m = this(variantRequested);
-            [m, okSteady] = feval(opt.Steady{1}, m, opt.Steady{2:end});
+            [m, okSteady] = feval(this.Update.Steady{1}, m, this.Update.Steady{2:end});
             this(variantRequested) = m;
         else
              % Call to the IRIS sstate solver.
-            [this, okSteady] = steadyNonlinear(this, opt.Steady, variantRequested);
+            [this, okSteady] = steadyNonlinear(this, this.Update.Steady, variantRequested);
         end
         if needsRefresh
             m = refresh(m, variantRequested);
         end
     end
     % Run chksstate only if steady state recomputed.
-    if runSteady && runChksstate
-        [~, ~, ~, sstateErrList] = mychksstate(this, variantRequested, opt.ChkSstate);
+    if runSteady && runCheckSteady
+        [~, ~, ~, sstateErrList] = mychksstate(this, variantRequested, this.Update.CheckSteady);
         sstateErrList = sstateErrList{1};
-        okChkSteady = isempty(sstateErrList);
+        okCheckSteady = isempty(sstateErrList);
     end
-    if okSteady && okChkSteady && runSolve
-        [this, nPth, nanDerv, sing2, bk] = solveFirstOrder(this, variantRequested, opt.Solve);
+    if okSteady && okCheckSteady && runSolve
+        [this, numOfStablePaths, nanDerv, sing2, bk] = solveFirstOrder( this, ...
+                                                            variantRequested, ...
+                                                            this.Update.Solve );
     else
-        nPth = 1;
+        numOfStablePaths = 1;
     end
 end
 
-ok = nPth==1 && okSteady && okChkSteady;
+ok = numOfStablePaths==1 && okSteady && okCheckSteady;
 
-if ~isError
+if ~this.Update.ThrowError
     return
 end
 
 if ~ok
     % Throw error and give access to the failed model object.
     m = this(variantRequested);
-    model.failed( ...
-        m, okSteady, okChkSteady, sstateErrList, ...
-        nPth, nanDerv, sing2, bk ...
-    );
+    model.failed( m, okSteady, okCheckSteady, sstateErrList, ...
+                  numOfStablePaths, nanDerv, sing2, bk );
 end
 
 end
