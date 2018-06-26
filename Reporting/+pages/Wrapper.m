@@ -182,16 +182,16 @@ classdef Wrapper < handle
                 masterFigureNumber = masterFigureNumber - 1;
             end
             this.MasterFigureHandle = figure(masterFigureNumber);
-            set(this.MasterFigureHandle, 'Visible', false);
-            this.PageHeading = annotation( 'TextBox', 'Visible', false, ...
+            set(this.MasterFigureHandle, 'Visible', 'off');
+            this.PageHeading = annotation( 'TextBox', 'Visible', 'off', ...
                                            this.DEFAULT_PAGE_HEADING{:} );
-            this.LeftHeader = annotation( 'TextBox', 'Visible', false, ...
+            this.LeftHeader = annotation( 'TextBox', 'Visible', 'off', ...
                                           this.DEFAULT_LEFT_HEADER{:} );
-            this.RightHeader = annotation( 'TextBox', 'Visible', false, ...
+            this.RightHeader = annotation( 'TextBox', 'Visible', 'off', ...
                                            this.DEFAULT_RIGHT_HEADER{:} );
-            this.LeftFooter = annotation( 'TextBox', 'Visible', false, ...
+            this.LeftFooter = annotation( 'TextBox', 'Visible', 'off', ...
                                           this.DEFAULT_LEFT_FOOTER{:} );
-            this.RightFooter = annotation( 'TextBox', 'Visible', false, ...
+            this.RightFooter = annotation( 'TextBox', 'Visible', 'off', ...
                                            this.DEFAULT_RIGHT_FOOTER{:} );
         end%
 
@@ -214,7 +214,7 @@ classdef Wrapper < handle
         end%
 
 
-        function copyFromMaster(this, figureHandle, annotationHandle, default)
+        function copyFromMaster(this, figureHandle, annotationHandle, ~)
             string = annotationHandle.String;
             if isempty(string)
                 return
@@ -225,7 +225,7 @@ classdef Wrapper < handle
             end
             temp = annotation(figureHandle, 'TextBox', 'Visible', 'Off');
             newAnnotationHandle = copyobj(annotationHandle, get(temp, 'Parent'));
-            set(newAnnotationHandle, 'String', string, 'Visible', true);
+            set(newAnnotationHandle, 'String', string, 'Visible', 'On');
             delete(temp);
         end%
 
@@ -283,7 +283,7 @@ classdef Wrapper < handle
         end%
 
 
-        function this = set.PageHeading(this, value)
+        function set.PageHeading(this, value)
             if ischar(value) || isa(value, 'string')
                 this.PageHeading.String = string(value);
                 return
@@ -293,7 +293,7 @@ classdef Wrapper < handle
         end%
 
 
-        function this = set.LeftHeader(this, value)
+        function set.LeftHeader(this, value)
             if ischar(value) || isa(value, 'string')
                 this.LeftHeader.String = string(value);
                 return
@@ -303,7 +303,7 @@ classdef Wrapper < handle
         end%
 
 
-        function this = set.RightHeader(this, value)
+        function set.RightHeader(this, value)
             if ischar(value) || isa(value, 'string')
                 this.RightHeader.String = string(value);
                 return
@@ -313,7 +313,7 @@ classdef Wrapper < handle
         end%
 
 
-        function this = set.LeftFooter(this, value)
+        function set.LeftFooter(this, value)
             if ischar(value) || isa(value, 'string')
                 this.LeftFooter.String = string(value);
                 return
@@ -323,7 +323,7 @@ classdef Wrapper < handle
         end%
 
 
-        function this = set.RightFooter(this, value)
+        function set.RightFooter(this, value)
             if ischar(value) || isa(value, 'string')
                 this.RightFooter.String = string(value);
                 return
@@ -339,14 +339,12 @@ function validateFileName(fileName)
     if strlength(fileName)==0
         return
     end
-    [path, title, ext] = fileparts(fileName);
+    [~, ~, ext] = fileparts(fileName);
     if strlength(ext)==0
         return
     end
-    error( ...
-        'pages:Wrapper:validateFileName', ...
-        'FileName must have no extension' ...
-    );
+    error( 'pages:Wrapper:validateFileName', ...
+           'FileName must have no extension' );
 end%
 
 
