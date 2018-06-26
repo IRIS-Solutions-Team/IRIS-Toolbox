@@ -216,20 +216,24 @@ classdef Base
         
         
         function [id, msg] = lookupException(id)
-            persistent LOOKUP_TABLE;
-            if ~isa(LOOKUP_TABLE, 'table')
-                pathToHere = fileparts(mfilename('fullpath'));
-                fileName = fullfile(pathToHere, 'LookupTable.csv');
-                LOOKUP_TABLE = readtable( ...
-                    fileName, ...
-                    'Delimiter', ',', ...
-                    'ReadVariableNames', true, ...
-                    'ReadRowNames', true ...
-                    );
+            exceptionLookupTable = getappdata(0, 'IRIS_ExceptionLookupTable');
+            if ~isa(exceptionLookupTable, 'table')
+                exceptionLookupTable = exception.Base.resetLookupTable( );
             end
             id = exception.Base.underscore2capital(id);
-            msg = LOOKUP_TABLE{id, :}{1};
-        end
+            msg = exceptionLookupTable{id, :}{1};
+        end%
+
+
+        function exceptionLookupTable = resetLookupTable( )
+            pathToHere = fileparts(mfilename('fullpath'));
+            fileName = fullfile(pathToHere, 'LookupTable.csv');
+            exceptionLookupTable = readtable( fileName, ...
+                                              'Delimiter', ',', ...
+                                              'ReadVariableNames', true, ...
+                                              'ReadRowNames', true );
+            setappdata(0, 'IRIS_ExceptionLookupTable', exceptionLookupTable);
+        end%
         
         
         
