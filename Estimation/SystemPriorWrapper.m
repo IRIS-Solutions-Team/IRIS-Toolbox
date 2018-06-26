@@ -103,6 +103,9 @@ classdef SystemPriorWrapper < handle
 
 
         function seal(this)
+            if this.Sealed
+                return
+            end
             seal(this.SystemPriors, this);
             this.Sealed = true;
         end%

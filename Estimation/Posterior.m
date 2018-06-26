@@ -115,6 +115,21 @@ classdef Posterior < handle
             end
             mldParamPriors = -sum(p); % Minus log density
         end%
+
+
+        function x = drawParameters(this, numOfDraws)
+            numOfParameters = this.NumParameters;
+            x = nan(numOfDraws, numOfParameters);
+            for i = 1 : numOfParameters
+                x(:, i) = this.PriorDistributions{i}(numOfDraws, 1);
+                indexWithin = x(:, i)>=this.LowerBounds(i) & x(:, i)<=this.UpperBounds(i);
+                while ~all(indexWithin)
+                    pos = find(~indexWithin, 1);
+                    x(pos, i) = this.PriorDistributions{i}( );
+                    indexWithin(pos) = x(pos, i)>=this.LowerBounds(i) & x(pos, i)<=this.UpperBounds(i);
+                end
+            end
+        end%
     end
 
 
