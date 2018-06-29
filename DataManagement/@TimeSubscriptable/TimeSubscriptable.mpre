@@ -50,17 +50,26 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
         #for FN = {plot, bar, area, stem}
         function varargout = #(FN)(varargin)
             [varargout{1:nargout}] = implementPlot(@#(FN), varargin{:});
-        end
+        end%
 
 
         #endfor
         #for FN = {barcon, errorbar}
         function varargout = #(FN)(varargin)
             [varargout{1:nargout}] = implementPlot(@numeric.#(FN), varargin{:});
-        end
+        end%
 
 
         #endfor
+        function varargout = binscatter(varargin)
+            [~, time, yData, axesHandle, xData, unmatched] = implementPlot([ ], varargin{:});
+            indexOfNaN = any(isnan(yData), 2);
+            plotHandle = binscatter(yData(~indexOfNaN, 1), yData(~indexOfNaN, 2), unmatched{:});
+            varargout = {plotHandle, time, yData, axesHandle, xData};
+        end%
+
+
+
         function endDate = get.End(this)
             if isnan(this.Start)
                 endDate = this.Start;

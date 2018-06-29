@@ -49,32 +49,40 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
         function varargout = plot(varargin)
             [varargout{1:nargout}] = implementPlot(@plot, varargin{:});
-        end
+        end%
 
 
         function varargout = bar(varargin)
             [varargout{1:nargout}] = implementPlot(@bar, varargin{:});
-        end
+        end%
 
 
         function varargout = area(varargin)
             [varargout{1:nargout}] = implementPlot(@area, varargin{:});
-        end
+        end%
 
 
         function varargout = stem(varargin)
             [varargout{1:nargout}] = implementPlot(@stem, varargin{:});
-        end
+        end%
 
 
         function varargout = barcon(varargin)
             [varargout{1:nargout}] = implementPlot(@numeric.barcon, varargin{:});
-        end
+        end%
 
 
         function varargout = errorbar(varargin)
             [varargout{1:nargout}] = implementPlot(@numeric.errorbar, varargin{:});
-        end
+        end%
+
+
+        function varargout = binscatter(varargin)
+            [~, time, yData, axesHandle, xData, unmatched] = implementPlot([ ], varargin{:});
+            plotHandle = binscatter(yData(:, 1), yData(:, 2), unmatched{:});
+            varargout = {plotHandle, time, yData, axesHandle, xData};
+        end%
+
 
 
         function endDate = get.End(this)

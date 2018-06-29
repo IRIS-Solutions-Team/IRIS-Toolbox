@@ -1,4 +1,4 @@
-function [handlePlot, time, yData] = implementPlot(plotFunc, varargin)
+function [handlePlot, time, yData, handleAxes, xData, unmatchedOptions] = implementPlot(plotFunc, varargin)
 % implementPlot  Plot functions for TimeSubscriptable objects
 %
 % Backend function
@@ -41,8 +41,8 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser(['TimeSubscriptable.implementPlot(', char(plotFunc), ')']);
     inputParser.KeepUnmatched = true;
-    inputParser.addRequired('PlotFun', @(x) isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) ...
-                            || isequal(x, @stem) || isequal(x, @numeric.barcon) || isequal(x, @numeric.errorbar));
+    inputParser.addRequired( 'PlotFun', @(x) isempty(x) || isequal(x, @plot) || isequal(x, @bar) || isequal(x, @area) ...
+                             || isequal(x, @stem) || isequal(x, @numeric.barcon) || isequal(x, @numeric.errorbar) );
     inputParser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
     inputParser.addRequired('Time', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x) );
     inputParser.addRequired('PlotFromDate', @(x) isa(x, 'DateWrapper') || isequal(x, -Inf) || isequal(x, Inf));
@@ -50,8 +50,8 @@ if isempty(inputParser)
     inputParser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
     inputParser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
     inputParser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
-    inputParser.addParameter('PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
-                             || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)));
+    inputParser.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
+                              || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
 end
 
 inputParser.parse(plotFunc, handleAxes, time, plotFromDate, plotToDate, this, varargin{:});
@@ -74,11 +74,19 @@ else
 end
 
 if isempty(plotFromDate)
-    validFrequencies = isnan(this.Start) || validateDate(this, time);
+    if numel(time)==1
+        validFrequencies = isnan(this.Start) || validateDateOrInf(this, time);
+    elseif numel(time)==2
+        validFrequencies = isnan(this.Start) ...
+                           || (validateDateOrInf(this, time(1)) && validateDateOrInf(this, time(2)));
+    else
+        validFrequencies = isnan(this.Start) || validateDate(this, time);
+    end
 else
     validFrequencies = isnan(this.Start) ...
                        || (validateDateOrInf(this, plotFromDate) && validateDateOrInf(this, plotToDate));
 end
+
 if ~validFrequencies
     throw( exception.Base('TimeSubscriptable:IllegalPlotRangeFrequency', 'error') );
 end
@@ -89,11 +97,16 @@ if isa(handleAxes, 'function_handle')
     handleAxes = handleAxes( );
 end
 
-if ~isempty(plotFromDate)
+if isempty(plotFromDate) && numel(time)==2 ...
+   && isequal(time(1), -Inf) || isequal(time(2), Inf)
+    plotFromDate = time(1);
+    plotToDate = time(2);
+end
+
+if ~isempty(plotFromDate) ...
     [yData, time] = getDataFromTo( this, ...
                                    DateWrapper.getSerialFromNumeric(plotFromDate), ...
-                                   DateWrapper.getSerialFromNumeric(plotToDate) ...
-                                 );
+                                   DateWrapper.getSerialFromNumeric(plotToDate) );
 else
     [yData, time] = getData(this, time);
 end
@@ -110,6 +123,11 @@ end
 
 positionWithinPeriod = resolvePositionWithinPeriod( );
 xData = createDateAxisData( );
+
+if isempty(plotFunc)
+    handlePlot = gobjects(0);
+    return
+end
 
 if ~ishold(handleAxes)
     resetAxes( );
@@ -139,10 +157,8 @@ return
             if isequal(positionWithinPeriod, @auto)
                 positionWithinPeriod = axesPositionWithinPeriod;
             elseif ~isequal(axesPositionWithinPeriod, positionWithinPeriod)
-                warning( ...
-                    'TimeSubscriptable:implementPlot:DifferentPositionWithinPeriod', ...
-                    'Option PositionWithinPeriod= differs from the value set in the current Axes.' ...
-                );
+                warning( 'TimeSubscriptable:implementPlot:DifferentPositionWithinPeriod', ...
+                         'Option PositionWithinPeriod= differs from the value set in the current Axes.' );
             end
         end
     end%
