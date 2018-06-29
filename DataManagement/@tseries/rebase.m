@@ -18,7 +18,6 @@ function this = rebase(this, varargin)
 % `'AllStart'` means the first date for which all time series columns have
 % a NaN observation; `'AllEnd'` means the last such date.
 %
-%
 % * `~BaseValue=1` [ `0` | `1` | `100` ] - Rebasing mode: `B=0` means
 % additive rebasing with `0` in the baseValue period; `B=1` means
 % multiplicative rebasing with `1` in the baseValue period; `B=100` means

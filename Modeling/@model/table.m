@@ -81,9 +81,9 @@ elseif any(strcmpi(query, 'SteadyGrowth'))
     values = imag(values);
     values = permute(values, [2, 3, 1]);
     valuesDiff = values;
-    valuesDiff(indexOfLog | indexOfParameters) = NaN;
+    valuesDiff(indexOfLog | indexOfParameters, :) = NaN;
     valuesRate = values;
-    valuesRate(~indexOfLog | indexOfParameters) = NaN;
+    valuesRate(~indexOfLog | indexOfParameters, :) = NaN;
     outputTable = table( valuesDiff, valuesRate, ...
                          'VariableNames', {'SteadyDifference', 'SteadyRateOfChange'}, ...
                          'RowNames', namesOfAll );

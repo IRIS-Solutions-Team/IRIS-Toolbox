@@ -67,7 +67,7 @@ function d = dbload(varargin)
 % * `NaN='NaN'` [ char ] - String representing missing observations (case
 % insensitive).
 %
-% * `PreProcess=[ ]` [ function_handle | cell | empty ] - Apply this
+% * `Preprocess=[ ]` [ function_handle | cell | empty ] - Apply this
 % function, or cell array of functions, to the raw text file before parsing
 % the data.
 %
