@@ -1,15 +1,15 @@
 function [select, tokens] = filter(d, varargin)
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('databank.filter');
-    INPUT_PARSER.addRequired('Database', @isstruct);
-    INPUT_PARSER.addParameter('Name', "--all", @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    INPUT_PARSER.addParameter('Class', "--all", @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    INPUT_PARSER.addParameter('Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
+persistent inputParser
+if isempty(inputParser)
+    inputParser = extend.InputParser('databank.filter');
+    inputParser.addRequired('Database', @isstruct);
+    inputParser.addParameter('Name', "--all", @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    inputParser.addParameter('Class', "--all", @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    inputParser.addParameter('Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
-INPUT_PARSER.parse(d, varargin{:});
-opt = INPUT_PARSER.Results;
+inputParser.parse(d, varargin{:});
+opt = inputParser.Results;
 
 %--------------------------------------------------------------------------
 

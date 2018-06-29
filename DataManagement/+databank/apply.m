@@ -3,7 +3,7 @@ function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank,
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('databank.apply');
-    inputParser.addRequired('Function', @(x) isa(x, 'function_handle'));
+    inputParser.addRequired('Function', @(x) isempty(x) || isa(x, 'function_handle'));
     inputParser.addRequired('InputDatabank', @isstruct);
     inputParser.addParameter('HasPrefix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     inputParser.addParameter('HasSuffix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
@@ -68,7 +68,11 @@ for i = 1 : numOfFields
     end
     newNames{i} = ithNewName;
     inputSeries = inputDatabank.(ithName);
-    outputDatabank.(ithNewName) = func(inputSeries);
+    if isempty(func)
+        outputDatabank.(ithNewName) = inputSeries;
+    else
+        outputDatabank.(ithNewName) = func(inputSeries);
+    end
 end
 
 appliedToNames = namesOfFields(indexOfApplied);
