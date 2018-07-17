@@ -71,9 +71,17 @@ end
 
 % Patch Matlab bug when months are nonpositive
 index = month<=0;
-yearOffset = ceil(month(index)/12) - 1;
-year(index) = year(index) + yearOffset;
-month(index) = mod(month(index)-1, 12) + 1;
+if any(index)
+    if numel(year)==1 && numel(month)>1
+        year = repmat(year, size(month));
+    elseif numel(month)==1 && numel(year)>1
+        month = repmat(month, size(year));
+        index = repmat(index, size(year));
+    end
+    yearOffset = ceil(month(index)/12) - 1;
+    year(index) = year(index) + yearOffset;
+    month(index) = mod(month(index)-1, 12) + 1;
+end
 
 dat = datenum(year, month, day);
 dat = DateWrapper(dat);
