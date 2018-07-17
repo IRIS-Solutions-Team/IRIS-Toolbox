@@ -40,24 +40,22 @@ function dat = dd(year, month, day)
 %         '2010-Dec-03'
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-if nargin < 2
+if nargin<2
     month = 1;
-elseif ischar(month)
-    monthList = { ...
-        'jan', 'feb', 'mar', 'apr', 'may', 'jun', ...
-        'jul', 'aug', 'sep', 'oct', 'nov', 'dec', ...
-        };
-    month = find(strncmpi(month, monthList, 3));
-elseif iscellstr(month)
-    monthList = { ...
-        'jan', 'feb', 'mar', 'apr', 'may', 'jun', ...
-        'jul', 'aug', 'sep', 'oct', 'nov', 'dec', ...
-        };
+end
+
+if ischar(month)
+    month = cellstr(month);
+end
+
+if iscellstr(month)
+    monthList = { 'jan', 'feb', 'mar', 'apr', 'may', 'jun', ...
+                  'jul', 'aug', 'sep', 'oct', 'nov', 'dec'  };
     temp = month;
     month = nan(size(temp));
     for i = 1 : numel(month)
@@ -65,12 +63,17 @@ elseif iscellstr(month)
     end
 end
 
-
 if nargin<3
     day = 1;
 elseif strcmpi(day, 'end')
     day = eomday(year, month);
 end
+
+% Patch Matlab bug when months are nonpositive
+index = month<=0;
+yearOffset = ceil(month(index)/12) - 1;
+year(index) = year(index) + yearOffset;
+month(index) = mod(month(index)-1, 12) + 1;
 
 dat = datenum(year, month, day);
 dat = DateWrapper(dat);
