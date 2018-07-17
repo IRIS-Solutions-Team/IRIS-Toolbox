@@ -63,12 +63,6 @@ if iscellstr(month)
     end
 end
 
-if nargin<3
-    day = 1;
-elseif strcmpi(day, 'end')
-    day = eomday(year, month);
-end
-
 % Patch Matlab bug when months are nonpositive
 index = month<=0;
 if any(index)
@@ -81,6 +75,12 @@ if any(index)
     yearOffset = ceil(month(index)/12) - 1;
     year(index) = year(index) + yearOffset;
     month(index) = mod(month(index)-1, 12) + 1;
+end
+
+if nargin<3
+    day = 1;
+elseif strcmpi(day, 'end')
+    day = eomday(year, month);
 end
 
 dat = datenum(year, month, day);
