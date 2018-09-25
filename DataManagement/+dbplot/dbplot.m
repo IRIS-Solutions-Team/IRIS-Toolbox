@@ -642,33 +642,38 @@ function tt = getTitle(titleOpt, x)
 end%
 
 
+
+
 function x = computeDeviationFrom(x, basePer, isMultiplicative, isAdditive, times)
     if isAdditive
         x = times*(x - x(basePer));
     elseif isMultiplicative
         x = times*(x./x(basePer) - 1);
     end
-end
+end%
+
+
 
 
 function appropriateRange = selectAppropriateRange(range, inputSeries)
     if isa(inputSeries, 'TimeSubscriptable')
-        frequency = inputSeries.Frequency;
+        freq = inputSeries.Frequency;
     else
-        frequency = Frequency.INTEGER;
+        freq = Frequency.INTEGER;
     end
     appropriateRange = Inf;
     for i = 1 : numel(range)
         if isa(range{i}, 'DateWrapper')
-            ithFrequency = getFrequency(range{i});
+            firstOfRange = getFirst(range{i});
         elseif isnumeric(range{i})
-            ithFrequency = Frequency.INTEGER;
+            firstOfRange = range{i}(1);
         else
             continue
         end
-        if frequency==ithFrequency
+        ithFreq = DateWrapper.getFrequencyAsNumeric(firstOfRange);
+        if freq==ithFreq
             appropriateRange = range{i};
             return
         end
     end
-end
+end%
