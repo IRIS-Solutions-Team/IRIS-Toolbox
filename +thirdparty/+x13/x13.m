@@ -1,11 +1,11 @@
-function [Y, Outp, Logbk, Err, arimaModel] = x13(X, StartDate, Dummy, opt)
-% x13  Matlab interface for X13-ARIMA-Seats.
+function [Y, Outp, Logbk, Err, arimaModel] = x13(inputData, startDate, dummy, opt)
+% x13  Matlab interface for X13-ARIMA-Seats
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 switch lower(opt.Mode)
     case {0, 'mult', 'm'}
@@ -38,9 +38,9 @@ end
 
 kb = opt.Backcast;
 kf = opt.Forecast;
-nPer = size(X, 1);
-nx = size(X, 2);
-freq = DateWrapper.getFrequencyFromNumeric(StartDate);
+nPer = size(inputData, 1);
+nx = size(inputData, 2);
+freq = DateWrapper.getFrequencyAsNumeric(startDate);
 
 % Preallocate output arguments
 %------------------------------
@@ -68,7 +68,7 @@ if isnan(freq)
     utils.warning('thirdparty:x13:x13', ...
         'Input tseries is empty, cannot run X13.');    
     return
-elseif freq ~= 4 && freq ~= 12
+elseif freq~=4 && freq~=12
     utils.warning('thirdparty:x13:x13', ...
         'X13 runs only on quarterly or monthly data.');
     return
@@ -84,9 +84,9 @@ is15YearsBcastWarn = false;
 isNanWarn = false;
 for i = 1 : nx
     tmpTitle = tempname(tempDir);
-    first = find(~isnan(X(:, i)), 1);
-    last = find(~isnan(X(:, i)), 1, 'last');
-    data = X(first:last, i);
+    first = find(~isnan(inputData(:, i)), 1);
+    last = find(~isnan(inputData(:, i)), 1, 'last');
+    data = inputData(first:last, i);
     iErrMsg = '';
     if length(data)<3*freq
         is3YearsWarn = true;
@@ -100,7 +100,7 @@ for i = 1 : nx
         end
         offset = first - 1;
         [iOutp, fcast, bcast, ok] = ...
-            runX13(x13Dir, tmpTitle, data, StartDate+offset, Dummy, opt);
+            runX13(x13Dir, tmpTitle, data, startDate+offset, dummy, opt);
         for j = 1 : nOutp
             Outp{j}(first:last, i) = iOutp(:, j);
         end
@@ -205,7 +205,7 @@ return
 end%
 
 
-function [Data, Fcast, Bcast, Ok] = runX13(X13Dir, TempTitle, Data, StartDate, Dummy, opt)
+function [Data, Fcast, Bcast, Ok] = runX13(X13Dir, TempTitle, Data, startDate, dummy, opt)
     Fcast = zeros(0, 1);
     Bcast = zeros(0, 1);
 
@@ -233,7 +233,7 @@ function [Data, Fcast, Bcast, Ok] = runX13(X13Dir, TempTitle, Data, StartDate, D
     end
 
     % Write a spec file.
-    xxSpecFile(TempTitle, Data, StartDate, Dummy, opt);
+    xxSpecFile(TempTitle, Data, startDate, dummy, opt);
 
     % Set up a system command to run the X13 executable, enclosing the command in
     % double quotes.
@@ -298,10 +298,10 @@ function [Data, Fcast, Bcast, Ok] = runX13(X13Dir, TempTitle, Data, StartDate, D
 end%
 
 
-function xxSpecFile(TempTitle, Data, StartDate, Dummy, opt)
+function xxSpecFile(TempTitle, Data, startDate, dummy, opt)
     % xxSpecFile  Create and save SPC file based on a template.
-    [dataYear, dataPer] = dat2ypf(StartDate);
-    [dummyYear, dummyPer] = dat2ypf(StartDate-opt.Backcast);
+    [dataYear, dataPer] = dat2ypf(startDate);
+    [dummyYear, dummyPer] = dat2ypf(startDate-opt.Backcast);
     spec = file2char(opt.SpecFile);
 
     % Time series specs
@@ -326,8 +326,8 @@ function xxSpecFile(TempTitle, Data, StartDate, Dummy, opt)
 
     % Seasonal period specs
     %-----------------------
-    startDateFreq = DateWrapper.getFrequencyFromNumeric(StartDate);
-    spec = strrep(spec, '$series_freq$', sprintf('%g', double(startDateFreq)));
+    freqOfStart = DateWrapper.getFrequencyAsNumeric(startDate);
+    spec = strrep(spec, '$series_freq$', sprintf('%g', freqOfStart));
     % Start date.
     spec = strrep(spec, '$series_startyear$', sprintf('%g', round(dataYear)));
     spec = strrep(spec, '$series_startper$', sprintf('%g', round(dataPer)));
@@ -364,21 +364,21 @@ function xxSpecFile(TempTitle, Data, StartDate, Dummy, opt)
     % keep the entire spec commented out. If tdays is requested but no user
     % dummies are specified, we need to keep the dummy section commented out, 
     % and vice versa.
-    if opt.TDays || ~isempty(Dummy)
-        Dummy = real(Dummy);
+    if opt.TDays || ~isempty(dummy)
+        dummy = real(dummy);
         spec = strrep(spec, '#regression ', '');
         if opt.TDays
             spec = strrep(spec, '#tdays ', '');
             spec = strrep(spec, '$tdays$', 'td');
         end
-        if ~isempty(Dummy)
+        if ~isempty(dummy)
             spec = strrep(spec, '#dummy ', '');
-            nDummy = size(Dummy, 2);
+            nDummy = size(dummy, 2);
             dummyFmt = [ repmat(' %.8f', 1, nDummy), br ];
             name = sprintf(' dummy%g', 1:nDummy);
             spec = strrep(spec, '$dummy_type$', lower(opt.DummyType));
             spec = strrep(spec, '$dummy_name$', name);
-            spec = strrep(spec, '$dummy_data$', sprintf(dummyFmt, Dummy.'));
+            spec = strrep(spec, '$dummy_data$', sprintf(dummyFmt, dummy.'));
             spec = strrep(spec, '$dummy_startyear$', ...
                 sprintf('%g', round(dummyYear)));
             spec = strrep(spec, '$dummy_startper$', ...
