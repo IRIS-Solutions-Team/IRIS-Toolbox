@@ -8,9 +8,9 @@ if isNewStartInf && isNewEndInf
 end
 
 if ~isNewStartInf
-    frequency = DateWrapper.getFrequencyFromNumeric(newStart);
+    freq = DateWrapper.getFrequencyAsNumeric(newStart);
 else
-    frequency = DateWrapper.getFrequencyFromNumeric(newEnd);
+    freq = DateWrapper.getFrequencyAsNumeric(newEnd);
 end
 
 listOfFields = fieldnames(d);
@@ -18,7 +18,7 @@ numberOfFields = numel(listOfFields);
 for i = 1 : numberOfFields
     ithField = listOfFields{i};
     if isa(d.(ithField), 'TimeSubscriptable')
-        if d.(ithField).Frequency==frequency
+        if d.(ithField).FrequencyAsNumeric==freq
             d.(ithField) = clip(d.(ithField), newStart, newEnd);
         end
         continue
@@ -28,4 +28,5 @@ for i = 1 : numberOfFields
     end
 end
 
-end
+end%
+

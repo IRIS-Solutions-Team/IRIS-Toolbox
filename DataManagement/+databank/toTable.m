@@ -1,17 +1,16 @@
 function outputTable = toTable(inputDatabank, sourceOfNames, varargin)
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('databank/toTimetable');
-    INPUT_PARSER.addRequired('InputDatabank', @(x) isstruct(x) && numel(x)==1);
-    INPUT_PARSER.addRequired('SourceOfNames', @(x) isa(x, 'model.Abstract') || isa(x, 'string'));
-    INPUT_PARSER.addOptional('Dates', Inf, @(x) isequal(x, Inf) || isa(x, 'Date'));
-    INPUT_PARSER.addParameter('Timetable', false, @(x) isequal(x, true) || isequal(x, false));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('databank/toTimetable');
+    parser.addRequired('InputDatabank', @(x) isstruct(x) && numel(x)==1);
+    parser.addRequired('SourceOfNames', @(x) isa(x, 'model.Abstract') || isa(x, 'string'));
+    parser.addOptional('Dates', Inf, @(x) isequal(x, Inf) || isa(x, 'Date'));
+    parser.addParameter('Timetable', false, @(x) isequal(x, true) || isequal(x, false));
 end
-
-INPUT_PARSER.parse(inputDatabank, sourceOfNames, varargin{:});
-dates = INPUT_PARSER.Results.Dates;
-isTimetable = INPUT_PARSER.Results.Timetable;
+parser.parse(inputDatabank, sourceOfNames, varargin{:});
+dates = parser.Results.Dates;
+isTimetable = parser.Results.Timetable;
 
 %--------------------------------------------------------------------------
 
@@ -31,8 +30,7 @@ end
 data = cell(size(ts));
 [dates, data{:}] = getDataFromAll(dates, ts{:});
 dates = vec(dates);
-dt = datetime(dates);
-%dt.Format = [dt.Format, ':'];
+dt = DateWrapper.toDatetime(dates);
 
 if isTimetable
     outputTable = timetable(dt, data{:}, 'VariableNames', cellstr(names));
