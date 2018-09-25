@@ -1,5 +1,5 @@
-function [x, numericExitFlag] = lm(objectiveFunc, xInit, opt)
-% lm  Variant of Levenberg-Marquardt function solver algorithm
+function [x, numericExitFlag] = qnsd(objectiveFunc, xInit, opt)
+% qnsd  Quasi-Newton-Steepest-Descent algorithm
 %
 % Backend IRIS function
 % No help provided
