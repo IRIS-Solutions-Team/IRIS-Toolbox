@@ -22,8 +22,8 @@ else
     );
 end
 
-frequency = getFrequency(start);
-if isnaf(frequency)
+freq = DateWrapper.getFrequencyAsNumeric(start);
+if isnan(freq)
     start = 'NaD';
 elseif isempty(start)
     start = 'Empty';

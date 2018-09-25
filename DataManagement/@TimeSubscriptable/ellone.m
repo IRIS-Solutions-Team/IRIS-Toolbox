@@ -15,7 +15,7 @@ endDate = inputParser.Results.EndDate;
 
 %--------------------------------------------------------------------------
 
-[data, range] = getDataFromTo(this, round(startDate), round(endDate));
+[data, newStart] = getDataFromTo(this, startDate, endDate);
 numPeriods = size(data, 1);
 
 d = eye(numPeriods-order, numPeriods);
@@ -33,8 +33,7 @@ bound = repmat(lambda, numPeriods-order, 1);
 nu = quadprog(H, f, [ ], [ ], [ ], [ ], -bound, bound);
 trendData = data - D'*nu;
 
-newStart = getFirst(range);
 trend = fill(this, trendData, newStart);
 rem = fill(this, data - trendData, newStart);
 
-end
+end%

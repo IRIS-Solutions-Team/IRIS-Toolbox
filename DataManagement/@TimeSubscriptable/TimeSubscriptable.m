@@ -1,14 +1,39 @@
 classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscriptable
     properties (Abstract)
+        % Start  Date of first observation in time series
         Start
+
+        % Data  Array of time series data
         Data
+
+        % MissingValue  Value representing missing observations in time series
         MissingValue
     end
 
 
     properties (Dependent)
+        % StartAsNumeric  Date of first observation in time series returned as numeric value (double)
+        StartAsNumeric
+
+        % StartAsDateWrapper  Date of first observation in time series returned as DateWrapper
+        StartAsDateWrapper
+
+        % End  Date of last observation in time series
         End
+
+        % EndAsNumeric  Date of last observation in time series returned as numeric value (double)
+        EndAsNumeric
+
+        % EndAsDateWrapper  Date of last observation in time series returned as DateWrapper
+        EndAsDateWrapper
+
+        % Frequency  Date frequency of time series
         Frequency
+
+        % FrequencyAsNumeric  Date frequency of times series returned as numeric value (double)
+        FrequencyAsNumeric
+
+        % Range  Date range from first to last observation in time series
         Range
     end
 
@@ -23,11 +48,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
     end
 
 
-    methods (Abstract)
-        varargout = getFrequency(varargin)
-    end
-
-
     methods (Abstract, Access=protected, Hidden)
         varargout = startDateWhenEmpty(varargin)
     end
@@ -36,6 +56,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
     methods (Access=protected)
         varargout = getDataNoFrills(varargin)
         varargout = implementPlot(varargin)
+        varargout = resolveRange(varargin)
         varargout = subsCase(varargin)
     end
 
@@ -67,6 +88,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
         end%
 
 
+        function varargout = stairs(varargin)
+            [varargout{1:nargout}] = implementPlot(@stairs, varargin{:});
+        end%
+
+
         function varargout = barcon(varargin)
             [varargout{1:nargout}] = implementPlot(@numeric.barcon, varargin{:});
         end%
@@ -79,11 +105,25 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
         function varargout = binscatter(varargin)
             [~, time, yData, axesHandle, xData, unmatched] = implementPlot([ ], varargin{:});
-            plotHandle = binscatter(yData(:, 1), yData(:, 2), unmatched{:});
+            indexOfNaN = any(isnan(yData), 2);
+            plotHandle = binscatter(yData(~indexOfNaN, 1), yData(~indexOfNaN, 2), unmatched{:});
             varargout = {plotHandle, time, yData, axesHandle, xData};
         end%
 
 
+
+        function startDateAsNumeric = get.StartAsNumeric(this)
+            startDateAsNumeric = double(this.Start);
+        end%
+         
+
+        function startDateAsDateWrapper = get.StartAsDateWrapper(this)
+            startDateAsDateWrapper = this.Start;
+            if ~isa(startDateAsDateWrapper, 'DateWrapper')
+                startDateAsDateWrapper = DateWrapper(startDateAsDateWrapper);
+            end
+        end%
+         
 
         function endDate = get.End(this)
             if isnan(this.Start)
@@ -91,12 +131,35 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
                 return
             end
             endDate = addTo(this.Start, size(this.Data, 1)-1);
-        end
+        end%
 
+
+        function endDateAsNumeric = get.EndAsNumeric(this)
+            endDateAsNumeric = double(this.End);
+        end%
+         
+
+        function endDateAsDateWrapper = get.EndAsDateWrapper(this)
+            endDateAsDateWrapper = this.End;
+            if ~isa(endDateAsDateWrapper, 'DateWrapper')
+                endDateAsDateWrapper = DateWrapper(endDateAsDateWrapper);
+            end
+        end%
+         
 
         function frequency = get.Frequency(this)
-            frequency = getFrequency(this);
-        end
+            frequency = DateWrapper.getFrequency(this.Start);
+        end%
+
+
+        function frequency = get.FrequencyAsNumeric(this)
+            frequency = DateWrapper.getFrequencyAsNumeric(this.Start);
+        end%
+
+
+        function frequency = getFrequency(this)
+            frequency = DateWrapper.getFrequency(this.Start);
+        end%
 
 
         function range = get.Range(this)
@@ -106,7 +169,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
             end
             vec = transpose(0:size(this.Data, 1)-1);
             range = addTo(this.Start, vec);
-        end
+        end%
 
 
         function this = emptyData(this)
@@ -117,7 +180,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
             newSizeOfData = [0, sizeData(2:end)];
             this.Start = startDateWhenEmpty(this);
             this.Data = repmat(this.MissingValue, newSizeOfData);
-        end
+        end%
 
 
         function [output, dim] = applyFunctionAlongDim(this, func, varargin)
@@ -125,7 +188,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
             if dim>1
                 output = fill(this, output, this.Start, '', [ ]);
             end
-        end
+        end%
 
 
         function flag = validateDate(this, date)
@@ -138,12 +201,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
                 flag = true;
                 return
             end
-            if isa(date, 'DateWrapper')
-                dateFrequency = getFrequency(date);
-            else
-                dateFrequency = DateWrapper.getFrequencyFromNumeric(date);
-            end
-            if getFrequency(this.Start)==dateFrequency
+            if DateWrapper.getFrequency(this.Start)==DateWrapper.getFrequency(date);
                 flag = true;
                 return
             end

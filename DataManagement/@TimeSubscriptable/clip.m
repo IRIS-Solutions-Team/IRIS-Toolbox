@@ -1,11 +1,11 @@
 function this = clip(this, newStart, newEnd)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('TimeSubscriptable/clip');
-    inputParser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    inputParser.addRequired('NewStartDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, -Inf));
-    inputParser.addRequired('NewEndDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('TimeSubscriptable.clip');
+    parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    parser.addRequired('NewStartDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, -Inf));
+    parser.addRequired('NewEndDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf));
 end
 
 %--------------------------------------------------------------------------
