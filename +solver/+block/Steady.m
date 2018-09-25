@@ -127,9 +127,7 @@ classdef Steady < solver.block.Block
                 % prepared; this never happens with IRIS or Optim Tbx
                 % solvers as long as PrepareGradient=@auto.
                 if analyticalGradientRequest && ~retGradient
-                    throw( ...
-                        exception.Base('Solver:SteadyGradientRequestedButNotPrepared', 'error') ...
-                        ); 
+                    throw( exception.Base('Solver:GradientRequestedButNotPrepared', 'error') )
                 end
 
                 % Delogarithmize log variables; variables in steady equations are expected

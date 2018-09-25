@@ -1,9 +1,10 @@
 classdef ExitFlag
     enumeration
-        CONVERGED (1, 'Successfully converged. Both step tolerance and function tolerance satisfied.')
-        MAX_ITER (-1, 'Failed. Maximum number of iterations reached.') 
+        ITERATING     (0,  '')
+        CONVERGED     (1,  'Successfully converged. Both step tolerance and function tolerance satisfied.')
+        MAX_ITER      (-1, 'Failed. Maximum number of iterations reached.') 
         MAX_FUN_EVALS (-2, 'Failed. Maximum number of function evaluations reached.') 
-        NO_PROGRESS (-3, 'Failed. Cannot make any further progress.')
+        NO_PROGRESS   (-3, 'Failed. Cannot make any further progress.')
     end
     
     

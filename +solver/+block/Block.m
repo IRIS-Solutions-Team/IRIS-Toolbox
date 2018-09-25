@@ -1,10 +1,10 @@
-% Block  Blazer block object.
+% Block  Blazer block object
 %
-% Backend IRIS class.
-% No help provided.
+% Backend IRIS class
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef (Abstract) Block < handle
     properties
@@ -180,22 +180,22 @@ classdef (Abstract) Block < handle
         
         
         function [z, exitFlag] = solve(this, fnObjective, z0)
-            if isa(this.Solver, 'optim.options.SolverOptions') ...
-                    || isa(this.Solver, 'solver.Options')
+            if isa(this.Solver, 'solver.Options')
+                % __IRIS Solver__
+                this.Solver.JacobPattern = this.JacobPattern;
+                [z, ~, exitFlag] = solver.algorithm.qnsd(fnObjective, z0, this.Solver);
 
-                if strcmpi(this.Solver.SolverName, 'IRIS')
-                    this.Solver.JacobPattern = this.JacobPattern;
-                    [z, exitFlag] = solver.algorithm.lm(fnObjective, z0, this.Solver);
-                    
-                elseif strcmpi(this.Solver.SolverName, 'lsqnonlin')
+            elseif isa(this.Solver, 'optim.options.SolverOptions')
+                % __Optim Tbx__
+                solverName = this.Solver.SolverName;
+                if strcmpi(solverName, 'lsqnonlin')
                     this.Solver.JacobPattern = sparse(double(this.JacobPattern));
                     [z, ~, ~, exitFlag] = ...
                         lsqnonlin(fnObjective, z0, this.Lower, this.Upper, this.Solver);
                     if exitFlag==-3
                         exitFlag = 1;
                     end
-                    
-                elseif strcmpi(this.Solver.SolverName, 'fsolve')
+                elseif strcmpi(solverName, 'fsolve')
                     %this.Solver.JacobPattern = sparse(double(this.JacobPattern));
                     this.Solver.Algorithm = 'levenberg-marquardt';
                     %this.Solver.Algorithm = 'trust-region';
@@ -205,13 +205,12 @@ classdef (Abstract) Block < handle
                         exitFlag = 1;
                     end
                 end
-                
                 z = real(z);
                 z( abs(z)<=this.Solver.StepTolerance ) = 0;
                 
             elseif isa(this.Solver, 'function_handle')
-                % User-supplied solver:
-                [z, exitFlag] = this.Solver(fnObjective, z0);
+                % __User-Supplied Solver__
+                [z, ~, exitFlag] = this.Solver(fnObjective, z0);
             end
         end%
         
