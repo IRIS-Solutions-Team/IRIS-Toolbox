@@ -3,6 +3,7 @@ classdef InputParser < inputParser
         PrimaryParameterNames = cell.empty(1, 0)
         Options = struct( )
         Aliases = struct( )
+        Conditional = inputParser.empty(0)
 
         HasDateOptions = false
         HasDeviationOptions = false
@@ -14,6 +15,7 @@ classdef InputParser < inputParser
 
     properties (Dependent)
         UnmatchedInCell
+        PrimaryOptionsInCell
         UsingDefaultsInStruct
     end
 
@@ -57,6 +59,14 @@ classdef InputParser < inputParser
             if this.HasStartEndOptions
                 resolveStartEndOptions(this);
             end
+
+            if ~isempty(this.Conditional)
+                numOfParameters = numel(this.Conditional.Parameters);
+                args = cell(1, 2*numOfParameters);
+                args(1:2:end) = this.Conditional.Parameters;
+                args(2:2:end) = { this.Results };
+                parse(this.Conditional, args{:});
+            end
         end%
 
 
@@ -80,6 +90,15 @@ classdef InputParser < inputParser
         end%
 
 
+        function addConditional(this, name, default, validator)
+            addParameter(this, name, default);
+            if isempty(this.Conditional)
+                this.Conditional = extend.InputParser(this.FunctionName);
+            end
+            addParameter(this.Conditional, name, default, validator);
+        end%
+
+
         function unmatched = get.UnmatchedInCell(this)
             names = fieldnames(this.Unmatched);
             numUnmatched = numel(names);
@@ -88,7 +107,7 @@ classdef InputParser < inputParser
                 unmatched{1, i} = names{i};
                 unmatched{2, i} = this.Unmatched.(names{i});
             end
-            unmatched = unmatched(:);
+            unmatched = unmatched(:).';
         end%
 
 
@@ -101,13 +120,32 @@ classdef InputParser < inputParser
         end%
 
 
+        function value = get.PrimaryOptionsInCell(this)
+            listOfPrimaryOptions = fieldnames(this.Options);
+            numOfPrimaryOptions = numel(listOfPrimaryOptions);
+            value = cell(1, 2*numOfPrimaryOptions);
+            value(1:2:end) = listOfPrimaryOptions;
+            value(2:2:end) = struct2cell(this.Options);
+        end%
+
+
         function addDateOptions(this)
             this.addParameter('DateFormat', @config, @iris.Configuration.validateDateFormat);
             this.addParameter({'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
             this.addParameter({'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
             this.addParameter({'ConversionMonth', 'StandInMonth'}, @config, @iris.Configuration.validateConversionMonth);
             this.addParameter('WDay', @config, @iris.Configuration.validateWDay);
+            this.addParameter('DatePosition', 'c', @(x) ischar(x) && ~isempty(x) && any(x(1) == 'sec'));
+            % Backward compatibility options for datxtick( )
+            this.addParameter({'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isfunc(x));
             this.HasDateOptions = true;
+        end%
+
+
+        function addPlotOptions(this)
+            this.addParameter('Function', [ ], @(x) isempty(x) || isfunc(x));
+            this.addParameter('Tight', false, @(x) isequal(x, true) || isequal(x, false));
+            this.addParameter('XLimMargin', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto));
         end%
 
 
@@ -217,8 +255,47 @@ classdef InputParser < inputParser
                     throw( exception.Base('InputParser:InvalidEndOption', 'error') );
                 end
             end
-            this.Options.SerialOfStart = DateWrapper.getSerialFromNumeric(this.Options.Start);
-            this.Options.SerialOfEnd = DateWrapper.getSerialFromNumeric(this.Options.End);
+            this.Options.SerialOfStart = DateWrapper.getSerial(this.Options.Start);
+            this.Options.SerialOfEnd = DateWrapper.getSerial(this.Options.End);
+        end%
+    end
+
+
+    methods (Static)
+        function dateOptionsInCell = extractDateOptionsFromStruct(opt)
+            listOfFields = fieldnames(opt);
+            dateOptionsInCell = cell.empty(1, 0);
+            index = strcmpi(listOfFields, 'DateFormat');
+            if any(index)
+                pos = find(index, 1, 'last');
+                temp = listOfFields{pos};
+                dateOptionsInCell = [dateOptionsInCell, {'DateFormat', opt.(listOfFields{pos})}];
+            end
+            index = strncmpi(listOfFields, 'FreqLetter', 10);
+            if any(index)
+                pos = find(index, 1, 'last');
+                temp = listOfFields{pos};
+                dateOptionsInCell = [dateOptionsInCell, {'FreqLetters', opt.(listOfFields{pos})}];
+            end
+            index = strncmpi(listOfFields, 'Month', 5);
+            if any(index)
+                pos = find(index, 1, 'last');
+                temp = listOfFields{pos};
+                dateOptionsInCell = [dateOptionsInCell, {'Months', opt.(listOfFields{pos})}];
+            end
+            index = strcmpi(listOfFields, 'ConversionMonth') | strcmpi(listOfFields, 'StandInMonth');
+            if any(index)
+                pos = find(index, 1, 'last');
+                temp = listOfFields{pos};
+                dateOptionsInCell = [dateOptionsInCell, {'ConversionMonth', opt.(listOfFields{pos})}];
+            end
+            index = strcmpi(listOfFields, 'WDay');
+            if any(index)
+                pos = find(index, 1, 'last');
+                temp = listOfFields{pos};
+                dateOptionsInCell = [dateOptionsInCell, {'WDay', opt.(listOfFields{pos})}];
+            end
         end%
     end
 end
+
