@@ -9,8 +9,6 @@ function def = tseries( )
 
 %--------------------------------------------------------------------------
 
-dates = iris.options.dates( );
-
 def = struct( );
 
 def.acf = { ...
@@ -33,41 +31,6 @@ def.chowlin = { ...
     'rho', 'estimate', @(x) any(strcmpi(x, {'auto', 'estimate', 'negative', 'positive'})) || (isnumericscalar(x) && x>-1 && x<1)
     'timetrend', false, @islogicalscalar
 };
-
-
-convert = {
-    'function', [ ], @(x) isempty(x) || isfunc(x) || ischar(x)
-    'Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'last', 'previous'}))) || isnumericscalar(x)
-    'method', @mean, @(x) isfunc(x) || (ischar(x) && any(strcmpi(x, {'first', 'last'})))
-    'select', Inf, @(x) isnumeric(x)
-    'ConversionMonth, standinmonth', 1, @(x) isnumericscalar(x) || isequal(x, 'first') || isequal(x, 'last')
-};
-
-
-def.convertaggregdaily = [
-    convert
-    {
-        'ignorenan', false, @(x) isequal(x, true) || isequal(x, false)
-    }
-];
-
-
-def.convertaggreg = [
-    convert
-    {
-        'ignorenan', false, @(x) isequal(x, true) || isequal(x, false)
-    }
-];
-
-
-def.convertinterp = [
-    convert
-    {
-    'ignorenan', false, @(x) isequal(x, true) || isequal(x, false)
-    'method', 'pchip', @(x) ischar(x)
-    'position', 'centre', @(x) ischar(x) && any(strncmpi(x, {'c', 's', 'e'}, 1))
-    }
-];
 
 def.errorbar = { ...
     'excludefromlegend', true, @islogicalscalar, ...
@@ -102,15 +65,6 @@ def.clpf = {
     'Drift', 0, @isnumeric
 };
 
-def.plot = [
-    dates.datxtick
-    {
-    'function', [ ], @(x) isempty(x) || isfunc(x)
-    'tight', false, @islogicalscalar
-    'xlimmargin', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
-    }
-];
-
 def.barcon = {
     'barwidth', 0.8, @isnumericscalar, ...
     'colormap', [ ], @isnumeric, ...
@@ -131,27 +85,4 @@ def.plotcmp = {
     'cmpplotfunc, diffplotfunc', @bar, @(x) isequal(x, @bar) || isequal(x, @area)
 };
 
-def.plotyy = [
-    def.plot
-    {
-        'coincide, coincident', false, @(x) isequal(x, true) || isequal(x, false)
-        'highlight', [ ], @isnumeric
-        'lhsplotfunc', @plot, @(x) ischar(x) || isfunc(x)
-        'rhsplotfunc', @plot, @(x) ischar(x) || isfunc(x)
-        'lhstight', false, @(x) isequal(x, true) || isequal(x, false)
-        'rhstight', false, @(x) isequal(x, true) || isequal(x, false) 
-    }
-];
-
-def.spy = [
-    def.plot
-    {
-        'ShowTrue', true, @(x) isequal(x, true) || isequal(x, false)
-        'ShowFalse', false, @(x) isequal(x, true) || isequal(x, false)
-        'Squeeze', false, @(x) isequal(x, true) || isequal(x, false)
-        'Names, Name', { }, @iscellstr
-        'Test', @isfinite, @(x) isfunc(x)
-    }
-];
-
-end
+end%
