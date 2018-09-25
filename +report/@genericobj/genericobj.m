@@ -1,12 +1,12 @@
+% genericobj  Generic report object
+%
+% Backend IRIS class
+% No help provided
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
+    
 classdef genericobj < handle
-    % genericobj  [Not a public class] Generic report object.
-    %
-    % Backend IRIS class.
-    % No help provided.
-    
-    % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2018 IRIS Solutions Team.
-    
     properties
         parent = [ ];
         children = { };
@@ -94,11 +94,6 @@ classdef genericobj < handle
                     ix = strcmpi(optName,userName);
                     if any(ix)
                         pos = find(ix);
-                        % Validate user option.
-                        if isequal(validFunc,@config)
-                            iconfig = iris.configMaster('get');
-                            validFunc = iconfig.validate.(primaryName);
-                        end
                         ok = feval(validFunc,userValue{pos});
                         if ok
                             This.options.(primaryName) = userValue{pos};

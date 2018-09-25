@@ -24,12 +24,12 @@ end
 
 switch lower(solverName)
     case {'pso', 'alps'}
-        if strcmpi(opt.NoSolution, 'error')
+        if strcmpi(opt.NoSolution, 'Error')
             utils.warning('irisoptim:myoptimopts', ...
                 ['Global optimization algorithm, ', ...
-                'switching from ''noSolution=error'' to ', ...
-                '''noSolution=penalty''.']);
-            opt.NoSolution = 'penalty';
+                'switching from NoSolution=''Error'' to ', ...
+                'NoSolution=''penalty''.']);
+            opt.NoSolution = 'Penalty';
         end
     case {'fmin', 'fmincon', 'fminunc', 'lsqnonlin', 'fsolve'}
         switch lower(solverName)
@@ -83,4 +83,5 @@ switch lower(solverName)
         OO = optimset( );
 end
 
-end
+end%
+
