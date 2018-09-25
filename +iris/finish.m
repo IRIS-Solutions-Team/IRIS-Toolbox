@@ -1,5 +1,5 @@
 function finish(varargin)
-% iris.finish  Close the current IRIS session.
+% iris.finish  Close the current IRIS session
 %
 % __Syntax__
 %
@@ -22,16 +22,17 @@ function finish(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
-
-thisRoot = iris.configMaster('get', 'irisroot');
 shutup = any(strcmpi(varargin, '--shutup'));
 
-% Clean up appdata(0) and persistent workspaces
+%--------------------------------------------------------------------------
+
+irisRoot = iris.get('IRISRoot');
+
+% Clear appdata(0) and container
 iris.cleanupPersistent( )
 
-% Clear Matlab path.
-reportSubfoldersRemoved = iris.pathManager('removeCurrentSubs', thisRoot);
+% Clear Matlab path
+reportSubfoldersRemoved = iris.pathManager('removeCurrentSubs', irisRoot);
 
 if shutup
    return
@@ -44,4 +45,4 @@ if ~isempty(reportSubfoldersRemoved)
    fprintf('\n\n');
 end
 
-end
+end%

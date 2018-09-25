@@ -10,15 +10,15 @@ function cleanupPersistent( )
 %--------------------------------------------------------------------------
 
 try
-   clear(container( ));
+    rmappdata(0, 'IRIS_Configuration')
+end
+
+try
+    rmappdata(0, 'IRIS_ExceptionLookupTable');
 end
 
 try
     rmappdata(0, 'IRIS_DefaultFunctionOptions')
-end
-
-try
-    rmappdata(0, 'IRIS_Configuration')
 end
 
 try
@@ -35,6 +35,10 @@ end
 
 try
     rmappdata(0, 'IRIS_DateFromSerial')
+end
+
+try
+    clear(container( ));
 end
 
 end

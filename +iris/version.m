@@ -27,7 +27,7 @@ function [c, n] = version( )
 % accessible through the Matlab ver( ) command. In each session, the
 % version is refreshed by `iris.Configuration( )`.
 
-c = iris.configMaster('get', 'Version');
+c = iris.get('Version');
 if nargout>1
     n = sscanf(c, '%g', 1);
 end
