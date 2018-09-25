@@ -209,12 +209,14 @@ end
 return
 
 
+
+
     function datetimeLocation = resolvePlacement( )
         axesPositionWithinPeriod = getappdata(h, 'IRIS_PositionWithinPeriod');
         if isempty(axesPositionWithinPeriod)
             axesPositionWithinPeriod = 'start';
         end
-        datetimeLocation = datetime(location, axesPositionWithinPeriod);
+        datetimeLocation = DateWrapper.toDatetime(location, axesPositionWithinPeriod);
         if strcmpi(opt.Placement, 'before')
             [~, halfDuration] = duration(location);
             datetimeLocation = datetimeLocation - halfDuration;

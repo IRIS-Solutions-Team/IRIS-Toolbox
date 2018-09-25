@@ -1,5 +1,5 @@
 function [patchHandles, textHandles] = highlight(varargin)
-% highlight  Highlight specified range or date range in a graph.
+% highlight  Highlight specified range or date range in a graph
 %
 % __Syntax__
 %
@@ -44,8 +44,8 @@ function [patchHandles, textHandles] = highlight(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %#ok<*AGROW>
 
@@ -82,30 +82,30 @@ for i = 1 : numel(range)
     end
 end
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('visual.highlight');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
-    inputParser.addRequired('Range', @(x) all(cellfun(@(y) isa(y, 'DateWrapper') || isnumeric(y), x)));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('visual.highlight');
+    parser.KeepUnmatched = true;
+    parser.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
+    parser.addRequired('Range', @(x) all(cellfun(@(y) isa(y, 'DateWrapper') || isnumeric(y), x)));
 
-    inputParser.addParameter('Alpha', 1, @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1 );
-    inputParser.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
-    inputParser.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
-    inputParser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
-    inputParser.addParameter('HandleVisibility', 'Off', @(x) any(strcmpi(x, {'On', 'Off'})));
-    inputParser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
-    inputParser.addParameter('ZCoor', -4, @(x) isnumeric(x) && isscalar(x) && x<=0);
+    parser.addParameter('Alpha', 1, @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1 );
+    parser.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
+    parser.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
+    parser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
+    parser.addParameter('HandleVisibility', 'Off', @(x) any(strcmpi(x, {'On', 'Off'})));
+    parser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
+    parser.addParameter('ZCoor', -4, @(x) isnumeric(x) && isscalar(x) && x<=0);
 
     % Legacy options
-    inputParser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
-    inputParser.addParameter('VPosition', '');
-    inputParser.addParameter('HPosition', '');
+    parser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
+    parser.addParameter('VPosition', '');
+    parser.addParameter('HPosition', '');
 end
-inputParser.parse(axesHandle, range, varargin{:});
-opt = inputParser.Options;
-unmatched = inputParser.UnmatchedInCell;
-usingDefaults = inputParser.UsingDefaultsInStruct;
+parser.parse(axesHandle, range, varargin{:});
+opt = parser.Options;
+unmatched = parser.UnmatchedInCell;
+usingDefaults = parser.UsingDefaultsInStruct;
 
 if isequal(axesHandle, @gca)
     axesHandle = gca( );
@@ -202,22 +202,28 @@ end%
 
 function xData = getXData(h, range, opt)
     if isa(range, 'DateWrapper')
-        freq = DateWrapper.getFrequencyFromNumeric(range(1));
+        startOfRange = double( getFirst(range) );
+        endOfRange = double( getLast(range) );
+        freq = DateWrapper.getFrequencyAsNumeric(startOfRange);
         xLim = get(h, 'XLim');
         if isa(xLim, 'datetime')
             switch lower(opt.DatePosition)
-            case 'start'
-                xData = [datetime(range(1)-1, 'middle'), datetime(range(end), 'middle')];
-            case 'middle'
-                xData = [datetime(range(1), 'start'), datetime(range(end), 'end')];
-            case 'end'
-                xData = [datetime(range(1), 'middle'), datetime(range(end)+1, 'middle')];
+                case 'start'
+                    xData = [ DateWrapper.toDatetime(startOfRange-1, 'middle'), ...
+                              DateWrapper.toDatetime(endOfRange, 'middle') ];
+                case 'middle'
+                    xData = [ DateWrapper.toDatetime(startOfRange, 'start'), ...
+                              DateWrapper.toDatetime(endOfRange, 'end') ];
+                case 'end'
+                    xData = [ DateWrapper.toDatetime(startOfRange, 'middle'), ...
+                              DateWrapper.toDatetime(endOfRange+1, 'middle') ];
             end
         else
-            xData = dat2dec(range([1, end]), 'centre');
+            xData = [ dat2dec(startOfRange, 'centre'), ...
+                      dat2dec(endOfRange, 'centre') ];
         end
     else
-        freq = Frequency.NaF;
+        freq = NaN;
         xData = range([1, end]);
     end
     if isempty(xData)
