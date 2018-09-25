@@ -1,14 +1,15 @@
-function dat = ddtoday( )
-% ddtoday  DateWrapper for today's daily date
+function outputDate = ddtoday( )
+% ddtoday  IRIS date for current day
 %
 % __Syntax__
 %
-%     dat = ddtoday( )
+%     outputDate = ddtoday( )
 %
 %
 % __Output Arguments__
 %
-% * `dat` [ DateWrapper ]  - DateWrapper for today's daily date.
+% * `outputDate` [ DateWrapper ] - IRIS date (DateWrapper object) for the
+% current day.
 %
 %
 % __Description__
@@ -22,6 +23,7 @@ function dat = ddtoday( )
 
 %--------------------------------------------------------------------------
 
-dat = DateWrapper.fromSerial(Frequency.DAILY, floor(now( )));
+dateCode = numeric.ddtoday( );
+outputDate = DateWrapper(dateCode);
 
-end
+end%

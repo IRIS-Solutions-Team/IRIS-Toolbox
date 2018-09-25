@@ -1,4 +1,4 @@
-function dat = mm(varargin)
+function outputDate = mm(year, varargin)
 % mm  IRIS serial date number for monthly date.
 %
 % Syntax
@@ -27,12 +27,13 @@ function dat = mm(varargin)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-dat = datcode(12, varargin{:});
-dat = DateWrapper(dat);
+dateCode = numeric.mm(year, varargin{:});
+outputDate = DateWrapper(dateCode);
 
-end
+end%
+

@@ -1,32 +1,29 @@
-function dat = mmtoday( )
-% mmtoday  IRIS serial date number for current month.
+function outputDate = mmtoday( )
+% mmtoday  IRIS date for current month
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     dat = mmtoday( )
-%
-%
-% Output arguments
-% =================
-%
-% * `dat` [ numeric ]  - IRIS serial date number for current month.
+%     outputDate = mmtoday( )
 %
 %
-% Description
-% ============
+% __Output arguments__
+%
+% * `outputDate` [ DateWrapper ]  - IRIS date (DateWrapper object) for the
+% current month.
 %
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-[year, month] = datevec(now( ));
-dat = mm(year, month);
+dateCode = numeric.mmtoday( );
+outputDate = DateWrapper(dateCode);
 
-end
+end%

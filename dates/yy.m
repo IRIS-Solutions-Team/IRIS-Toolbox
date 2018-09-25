@@ -1,5 +1,5 @@
-function dat = yy(varargin)
-% yy  IRIS serial date number for yearly date.
+function outputDate = yy(year, varargin)
+% yy  IRIS yearly date
 %
 % Syntax
 % =======
@@ -32,7 +32,7 @@ function dat = yy(varargin)
 
 %--------------------------------------------------------------------------
 
-dat = datcode(1, varargin{:});
-dat = DateWrapper(dat);
+dateCode = numeric.yy(year, varargin{:});
+outputDate = DateWrapper(dateCode);
 
 end

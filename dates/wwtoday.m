@@ -1,33 +1,29 @@
-function dat = wwtoday( )
-% wwtoday  IRIS serial date number for current week.
+function outputDate = wwtoday( )
+% wwtoday  IRIS date for current week
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     dat = wwtoday( )
-%
-%
-% Output arguments
-% =================
-%
-% * `dat` [ numeric ]  - IRIS serial date number for current week.
+%     outputDate = wwtoday( )
 %
 %
-% Description
-% ============
+% __Output arguments__
+%
+% * `outputDate` [ DateWrapper ]  - IRIS date (DateWrapper object) for the
+% current week.
 %
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-today = floor(now( ));
-dat = day2ww(today);
-dat = DateWrapper(dat);
+dateCode = numeric.wwtoday( );
+outputDate = DateWrapper(dateCode);
 
-end
+end%

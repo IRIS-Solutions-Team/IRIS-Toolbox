@@ -1,10 +1,10 @@
 function flag = freqcmp(x, y)
-% freqcmp  Compare date frequencies.
+% freqcmp  Compare date frequencies
 %
 % Syntax
 % =======
 %
-%     Flag = freqcmp(D1,D2)
+%     Flag = freqcmp(D1, D2)
 %
 %
 % Input arguments
@@ -37,8 +37,8 @@ function flag = freqcmp(x, y)
 %          1
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 try
     y; %#ok<VUNUS>
@@ -66,15 +66,16 @@ if isa(y, 'TimeSubscriptable')
     y = y.End;
 end
 
-ixXInf = isinf(x);
-ixYInf = isinf(y);
+indexOfXInf = isinf(x);
+indexOfYInf = isinf(y);
 
 fx = inf(size(x));
 fy = inf(size(y));
 
-fx(~ixXInf) = DateWrapper.getFrequencyFromNumeric(x(~ixXInf));
-fy(~ixYInf) = DateWrapper.getFrequencyFromNumeric(y(~ixYInf));
+fx(~indexOfXInf) = DateWrapper.getFrequencyAsNumeric( x(~indexOfXInf) );
+fy(~indexOfYInf) = DateWrapper.getFrequencyAsNumeric( y(~indexOfYInf) );
 
 flag = fx==fy | isinf(fx-fy);
 
-end
+end%
+

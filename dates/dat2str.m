@@ -140,30 +140,29 @@ function [s, field] = dat2str(dat, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-if ~isempty(varargin) && isstruct(varargin{1})
-    opt = varargin{1};
-else
-    % Parse options.
-    opt = passvalopt('dates.dat2str', varargin{1:end});
-    % Run dates/datdefaults to substitute the default (irisget) date
-    % format options for `@config`.
-    opt = datdefaults(opt);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dates.dat2str');
+    parser.addRequired('InputDate', @(x) isa(x, 'DateWrapper') || isnumeric(x));
+    parser.addDateOptions( );
 end
 
-upperRomans = { ...
-    'I', 'II', 'III', 'IV', 'V', 'VI', ...
-    'VII', 'VIII', 'IX', 'X', 'XI', 'XII', ...
-    };
+% Bkw compatibility, called from within mydatxtick( ) and dbsave( )
+if ~isempty(varargin) && isstruct(varargin{1})
+    varargin = extend.InputParser.extractDateOptionsFromStruct(varargin{1});
+end
+parser.parse(dat, varargin{:});
+opt = parser.Options;
+
+upperRomans = { 'I', 'II', 'III', 'IV', 'V', 'VI', ...
+                'VII', 'VIII', 'IX', 'X', 'XI', 'XII' };
 lowerRomans = lower(upperRomans);
 
-daysOfWeek = { ...
-    'Sunday', 'Monday', 'Tuesday', 'Wednesday', ...
-    'Thursday', 'Friday', 'Saturday', ...
-    };
-
+daysOfWeek = { 'Sunday', 'Monday', 'Tuesday', 'Wednesday', ...
+               'Thursday', 'Friday', 'Saturday' };
 
 %--------------------------------------------------------------------------
 
@@ -184,7 +183,7 @@ dayC = nan(size(dat));
 dowC = nan(size(dat)); %% Day of week: 'Mon' through 'Sun'.
 if any(ixMsd(:))
     msd(ixDaily) = dat(ixDaily);
-    msd(ixWeekly) = ww2day(dat(ixWeekly), opt.Wday);
+    msd(ixWeekly) = ww2day(dat(ixWeekly), opt.WDay);
     [yearC(ixMsd), monC(ixMsd), dayC(ixMsd)] = datevec( double(msd(ixMsd)) );
     dowC(ixMsd) = weekday(msd(ixMsd));
 end
@@ -192,7 +191,7 @@ end
 s = cell(size(year));
 s(:) = {''};
 nDat = numel(year);
-nFmt = numel(opt.dateformat);
+nFmt = numel(opt.DateFormat);
 prevFreq = NaN;
 
 for iDat = 1 : nDat
@@ -208,9 +207,9 @@ for iDat = 1 : nDat
     ithFreq = freq(iDat);
 
     if iDat<=nFmt || ~isequaln(ithFreq, prevFreq)
-        fmt = DateWrapper.chooseFormat(opt.dateformat, ithFreq, min(iDat, nFmt));
+        fmt = DateWrapper.chooseFormat(opt.DateFormat, ithFreq, min(iDat, nFmt));
         [fmt, field, isCalendar, isMonthNeeded] = parseDateFormat(fmt);
-        nField = length(field);
+        numOfFields = length(field);
     end
     
     if ~any( ithFreq==[0, 1, 2, 4, 6, 12, 52, 365] )
@@ -219,15 +218,13 @@ for iDat = 1 : nDat
     end
 
     if ithFreq==365 && ~isCalendar
-        throw( ...
-            exception.Base('Options:CalendarFormatForDaily', 'error') ...
-            );
+        throw( exception.Base('Options:CalendarFormatForDaily', 'error') );
     end
 
-    subs = cell(1, nField);
+    subs = cell(1, numOfFields);
     subs(:) = {''};
     
-    % Year-period.
+    % Year-period
     iYear = year(iDat);
     iPer = per(iDat);
     iMsd = msd(iDat);
@@ -244,7 +241,7 @@ for iDat = 1 : nDat
         iMon = calculateMonth( );
     end
     
-    for j = 1 : nField
+    for j = 1 : numOfFields
         switch field{j}(1)
             case 'Y'
                 if isCalendar
@@ -408,7 +405,7 @@ return
         end
         switch field{j}
             case {'MMMM', 'Mmmm', 'MMM', 'Mmm'}
-                Subs = opt.months{M};
+                Subs = opt.Months{M};
                 if field{j}(1)=='M'
                     Subs(1) = upper(Subs(1));
                 else
@@ -529,17 +526,17 @@ return
         subs = '';
         switch ithFreq
             case 1
-                subs = opt.freqletters(1);
+                subs = opt.FreqLetters(1);
             case 2
-                subs = opt.freqletters(2);
+                subs = opt.FreqLetters(2);
             case 4
-                subs = opt.freqletters(3);
+                subs = opt.FreqLetters(3);
             case 6
-                subs = opt.freqletters(4);
+                subs = opt.FreqLetters(4);
             case 12
-                subs = opt.freqletters(5);
+                subs = opt.FreqLetters(5);
             case 52
-                subs = opt.freqletters(6);
+                subs = opt.FreqLetters(6);
         end
         if isequal(field{j}, 'f')
             subs = lower(subs);

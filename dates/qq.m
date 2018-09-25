@@ -1,11 +1,11 @@
-function dat = qq(varargin)
-% qq  Create quarterly date.
+function outputDate = qq(year, varargin)
+% qq  Quarterly date
 %
 % __Syntax__
 %
-% Input arguments marked with a `~` sign may be omitted.
+% Input arguments marked with a `~` sign may be omitted
 %
-%     dat = qq(year, ~quarter)
+%     OutputDate = qq(Year, ~Quarter)
 %
 %
 % __Input Arguments__
@@ -18,7 +18,7 @@ function dat = qq(varargin)
 %
 % __Output arguments__
 %
-% * `dat` [ DateWrapper ] - Quarterly date.
+% * `OutputDate` [ DateWrapper | double ] - Quarterly date.
 %
 %
 % __Description__
@@ -27,12 +27,12 @@ function dat = qq(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-dat = datcode(4, varargin{:});
-dat = DateWrapper(dat);
+dateCode = numeric.qq(year, varargin{:});
+outputDate = DateWrapper(dateCode);
 
-end
+end%

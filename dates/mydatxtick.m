@@ -1,11 +1,11 @@
 function mydatxtick(h, range, time, freq, userRange, opt)
-% mydatxtick  Set up x-axis for Series object graphs.
+% mydatxtick  Set up x-axis for time series graphs
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if numel(h)>1
     for i = 1 : numel(h)
@@ -42,9 +42,9 @@ xLim = [ ];
 setXLim( );
 
 % Allow temporarily auto ticks and labels.
-set(h, ...
-    'xTickMode', 'auto', ...
-    'xTickLabelMode', 'auto');
+set( h, ...
+     'XTickMode', 'Auto', ...
+     'XTickLabelMode', 'Auto' );
 
 xTick = get(h(1), 'xTick');
 xTickDates = [ ];
@@ -58,18 +58,20 @@ end
 % Adjust x-limits if the graph includes bars.
 adjustXLim( );
 
+return
+
 
 
 
     function setXLim( )
         if isequal(userRange, Inf)
             if isZero
-                firstDate = range(1);
-                lastDate = range(end);
+                firstDate = double(range(1));
+                lastDate = double(range(end));
                 xLim = [firstDate, lastDate];
             elseif isWeekly
-                firstDate = range(1);
-                lastDate = range(end);
+                firstDate = double(range(1));
+                lastDate = double(range(end));
                 xLim = [time(1), time(end)];
             elseif isDaily
                 % First day in first plotted month to last day in last plotted month.
@@ -78,23 +80,23 @@ adjustXLim( );
                 xLim = [firstDate, lastDate];
             else
                 % First period in first plotted year to last period in last plotted year.
-                firstDate = double( datcode(freq, floor(time(1)), 1) );
-                lastDate = double( datcode(freq, floor(time(end)), freq) );
+                firstDate = numeric.datecode(freq, floor(time(1)), 1);
+                lastDate = numeric.datecode(freq, floor(time(end)), freq);
                 xLim = dat2dec([firstDate, lastDate], opt.DatePosition);
             end
         else
-            firstDate = userRange(1);
-            lastDate = userRange(end);
+            firstDate = double(userRange(1));
+            lastDate = double(userRange(end));
             xLim = dat2dec([firstDate, lastDate], opt.DatePosition);
         end
         xLim = double(xLim);
         while xLim(2)<=xLim(1)
             xLim(2) = xLim(2) + 0.5;
         end
-        set([h, peer], ...
-            'xLim', xLim, ...
-            'xLimMode', 'manual');
-    end 
+        set( [h, peer], ...
+             'XLim', xLim, ...
+             'XLimMode', 'Manual' );
+    end%
 
 
 
@@ -139,7 +141,7 @@ adjustXLim( );
         end
         xTick = dat2dec(xTickDates, opt.DatePosition);
         setXTickLabel( );
-    end 
+    end%
 
 
 
@@ -160,31 +162,27 @@ adjustXLim( );
         end
         xTickDates = xTick;
         setXTickLabel( );
-    end 
+    end%
 
 
 
     
     function setXTickLabel( )
-        set(h, ...
-            'xTick', xTick, ...
-            'xTickMode', 'manual');
-        % Set xTickLabel.
-        opt = datdefaults(opt, true);
+        set( h, ...
+             'xTick', xTick, ...
+             'xTickMode', 'manual' );
         % Default value for '.plotDateFormat' is a struct with a different
         % date format for each date frequency. Fetch the right date format
-        % now, and pass it into `dat2str( )`.
-        if isstruct(opt.dateformat)
-            opt.dateformat = DateWrapper.chooseFormat(opt.dateformat, freq);
-        end
-        if freq==0 && strcmp(opt.dateformat, 'P')
+        % now, and pass it into dat2str( ).
+        opt.DateFormat = DateWrapper.chooseFormat(opt.DateFormat, freq);
+        if freq==0 && strcmp(opt.DateFormat, 'P')
             return
         end
         xTickLabel = dat2str(xTickDates, opt);
-        set(h, ...
-            'xTickLabel', xTickLabel, ...
-            'xTickLabelMode', 'manual');
-    end 
+        set( h, ...
+             'xTickLabel', xTickLabel, ...
+             'xTickLabelMode', 'manual' );
+    end%
 
 
 
@@ -205,5 +203,6 @@ adjustXLim( );
                 setappdata(peer, 'IRIS_TRUE_XLIM', xLim);
             end
         end
-    end 
-end
+    end%
+end%
+

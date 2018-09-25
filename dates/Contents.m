@@ -3,8 +3,6 @@
 % Creating IRIS serial date numbers
 % ==================================
 %
-% * [`bb`](dates/bb) - IRIS serial date number for bimonthly date.
-% * [`bbtoday`](dates/bbtoday) - IRIS serial date number for current bi-month.
 % * [`hh`](dates/hh) - IRIS serial date number for half-yearly date.
 % * [`hhtoday`](dates/hhtoday) - IRIS serial date number for current half-year.
 % * [`mm`](dates/mm) - IRIS serial date number for monthly date.
@@ -33,7 +31,6 @@
 %
 % * [`datrange`](dates/datrange) - Numerically safe way to create a date range.
 % * [`dat2ttrend`](dates/dat2ttrend) - Construct linear time trend from date range.
-% * [`datxtick`](dates/datxtick) - Change ticks, labels and/or date frequency on x-axis in existing tseries graphs.
 %
 %
 % Converting dates

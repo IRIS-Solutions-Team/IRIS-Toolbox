@@ -7,19 +7,19 @@ function [T, TT, TS, season] = trend(x, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('numeric.trend');
-    inputParser.addRequired('InputData', @isnumeric);
-    inputParser.addParameter('Break', [ ], @(x) isempty(x) || (isnumeric(x) && all(x==round(x)) && all(x>=1)) || DateWrapper.validateDateInput(x));
-    inputParser.addParameter('Season', [ ], @(x) isempty(x) || isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>0));
-    inputParser.addParameter('Connect', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Diff', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('StartDate', [ ], @(x) isempty(x) || (DateWrapper.validateDateInput(x) && isscalar(x)));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('numeric.trend');
+    parser.addRequired('InputData', @isnumeric);
+    parser.addParameter('Break', [ ], @(x) isempty(x) || (isnumeric(x) && all(x==round(x)) && all(x>=1)) || DateWrapper.validateDateInput(x));
+    parser.addParameter('Season', [ ], @(x) isempty(x) || isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>0));
+    parser.addParameter('Connect', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Diff', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('StartDate', [ ], @(x) isempty(x) || (DateWrapper.validateDateInput(x) && isscalar(x)));
 end
-inputParser.parse(x, varargin{:});
-opt = inputParser.Options;
+parser.parse(x, varargin{:});
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
@@ -60,9 +60,9 @@ function [breakPoints, season] =  preprocessOptions(opt, numPeriods)
     % Seasonals
     if ~isempty(opt.StartDate)
         if isequal(opt.Season, true)
-            freq = DateWrapper.getFrequencyFromNumeric(opt.StartDate);
+            freq = DateWrapper.getFrequencyAsNumeric(opt.StartDate);
             if any(freq==[2, 4, 12])
-                season = double(freq);
+                season = freq;
             end
         elseif isequal(opt.Season, false)
             season = [ ];

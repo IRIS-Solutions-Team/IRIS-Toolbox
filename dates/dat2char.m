@@ -1,4 +1,4 @@
-function C = dat2char(Dat,varargin)
+function c = dat2char(Dat,varargin)
 % dat2char  Convert dates to character array.
 %
 % Syntax
@@ -46,7 +46,6 @@ function C = dat2char(Dat,varargin)
 
 %--------------------------------------------------------------------------
 
-datStr = dat2str(Dat,varargin{1:end});
-C = char(datStr);
+c = char( dat2str(Dat, varargin{:}) );
 
-end
+end%

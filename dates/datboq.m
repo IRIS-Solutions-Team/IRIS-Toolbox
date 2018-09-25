@@ -1,5 +1,5 @@
 function boq = datboq(dat)
-% datboq  Beginning of quarter for the specified daily date.
+% datboq  Beginning of quarter for the specified daily date
 %
 % Syntax
 % =======
@@ -10,13 +10,13 @@ function boq = datboq(dat)
 % Input arguments
 % ================
 %
-% * `dat` [ numeric ] - Daily serial date number.
+% * `dat` [ DateWrapper | double ] - Daily date.
 %
 %
 % Output arguments
 % =================
 %
-% * `boq` [ numeric ] - Daily serial date number for the first day of the
+% * `boq` [ DateWrapper | double ] - Daily date for the first day of the
 % same quarter as `D`.
 %
 %
@@ -28,13 +28,23 @@ function boq = datboq(dat)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
+
+if isa(dat, 'DateWrapper')
+    outputClass = 'DateWrapper';
+else
+    outputClass = 'double';
+end
 
 [y, m] = datevec( double(dat) );
 m = 3*(ceil(m/3)-1) + 1;
 boq = datenum([y, m, 1]);
+
+if strcmpi(outputClass, 'DateWrapper')
+    dat = DateWrapper(dat);
+end
 
 end

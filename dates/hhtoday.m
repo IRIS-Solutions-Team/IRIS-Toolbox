@@ -1,32 +1,29 @@
-function dat = hhtoday( )
-% hhtoday  IRIS serial date number for current half-year.
+function outputDate = hhtoday( )
+% hhtoday  IRIS date for current half-year
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     dat = hhtoday( )
-%
-%
-% Output arguments
-% =================
-%
-% * `dat` [ numeric ] - IRIS serial date number for current half-year.
+%     outputDate = hhtoday( )
 %
 %
-% Description
-% ============
+% __Output arguments__
+%
+% * `outputDate` [ DateWrapper ]  - IRIS date (DateWrapper object) for the
+% current half-year.
 %
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-[year, month] = datevec(now( ));
-dat = hh(year, 1+floor((month-1)/6));
+dateCode = numeric.hhtoday( );
+outputDate = DateWrapper(dateCode);
 
-end
+end%

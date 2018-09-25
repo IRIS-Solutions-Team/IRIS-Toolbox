@@ -1,32 +1,29 @@
-function dat = yytoday( )
-% yytoday  IRIS serial date number for current year.
+function outputDate = yytoday( )
+% yytoday  IRIS date for current year
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     dat = yytoday( )
-%
-%
-% Output arguments
-% =================
-%
-% * `dat` [ DateWrapper ]  - IRIS serial date number for current year.
+%     outputDate = yytoday( )
 %
 %
-% Description
-% ============
+% __Output arguments__
+%
+% * `outputDate` [ DateWrapper ]  - IRIS date (DateWrapper object) for the
+% current year.
 %
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-[year, ~] = datevec(now( ));
-dat = yy(year);
+dateCode = numeric.yytoday( );
+outputDate = DateWrapper(dateCode);
 
-end
+end%

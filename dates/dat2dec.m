@@ -1,5 +1,5 @@
 function dec = dat2dec(dat, pos)
-% dat2dec  Convert dates to decimal grid.
+% dat2dec  Convert dates to decimal grid
 %
 % __Syntax__
 %
@@ -28,8 +28,8 @@ function dec = dat2dec(dat, pos)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if nargin<2
     pos = 's';
@@ -77,9 +77,7 @@ switch freq
         x = ww2day(dat, standinDay);
         dec = day2dec(x);
     otherwise
-        throw( ...
-            exception.Base('Dates:UnrecognizedFrequency', 'error') ...
-        );        
+        throw( exception.Base('Dates:UnrecognizedFrequency', 'error') );        
 end
 
-end
+end%

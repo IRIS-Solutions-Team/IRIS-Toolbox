@@ -1,5 +1,5 @@
 function [trend, baseYear] = dat2ttrend(range, baseYear)
-% dat2ttrend  Construct linear time trend from date range.
+% dat2ttrend  Construct linear time trend from date range
 %
 % __Syntax__
 %
@@ -48,8 +48,10 @@ function [trend, baseYear] = dat2ttrend(range, baseYear)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
+
+DATECODE_TOLERANCE = 0.001;
 
 try
     if ~isintscalar(baseYear)
@@ -66,21 +68,28 @@ if ~isintscalar(baseYear)
 end
 
 if isempty(range)
-    trend = range;
+    trend = double(range);
 else
-    freq = DateWrapper.getFrequencyFromNumeric(range);
+    freq = DateWrapper.getFrequencyAsNumeric(range);
     DateWrapper.checkMixedFrequency(freq);
     freq = freq(1);
     if freq==0
-        trend = range;
+        trend = double(range);
         baseYear = 0;
     elseif freq==365
-        baseDate = dd(baseYear, 1, 1);
-        trend = round(range - baseDate);
+        baseDate = numeric.dd(baseYear, 1, 1);
+        trend = double(range) - baseDate;
     else
-        baseDate = datcode(freq, baseYear, 1);
-        trend = round(range - baseDate);
+        baseDate = numeric.datecode(freq, baseYear, 1);
+        trend = double(range) - baseDate;
     end
 end
 
+trend0 = trend;
+trend = round(trend);
+if any(abs(trend0-trend)>DATECODE_TOLERANCE)
+    throw( exception.Base('Dates:FrequencyMismatch', 'error') );
 end
+
+end%
+

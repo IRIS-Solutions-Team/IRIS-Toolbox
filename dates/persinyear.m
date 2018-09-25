@@ -1,43 +1,23 @@
-function N = persinyear(Year,Freq)
-% weeksinyear  Number of periods of given date frequency in year.
+function numOfPeriods = persinyear(year, freq)
+% persinyear  Number of periods of given date frequency in year
 %
-% Syntax
-% =======
-%
-%     N = persinyear(Year)
-%
-% Input arguments
-% ================
-%
-% * `Year` [ numeric ] - Year.
-%
-% Output arguments
-% =================
-%
-% * `N` [ numeric ] - Number of periods of giver date frequency in year
-% `Year`.
-%
-% Description
-% ============
-%
-% Example
-% ========
-%
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-switch Freq
-    case {0,1,2,4,6,12}
-        N = Freq*ones(size(Year));
+switch double(freq)
+    case {0, 1, 2, 4, 6, 12}
+        numOfPeriods = freq*ones(size(year));
     case 52
-        N = weeksinyear(Year);
+        numOfPeriods = weeksinyear(year);
     case 365
-        N = daysinyear(Year);
+        numOfPeriods = daysinyear(year);
     otherwise
-        N = nan(size(Year));
+        numOfPeriods = nan(size(year));
 end
 
-end
+end%

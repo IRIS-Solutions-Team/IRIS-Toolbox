@@ -1,5 +1,5 @@
-function dat = hh(varargin)
-% hh  IRIS serial date number for half-yearly date.
+function outputDate = hh(year, varargin)
+% hh  IRIS serial date number for half-yearly date
 %
 % Syntax
 % =======
@@ -8,7 +8,7 @@ function dat = hh(varargin)
 %     Dat = hh(Y,H)
 %
 % Input arguments
-% ================
+% ===============
 %
 % * `Y` [ numeric ] - Year.
 %
@@ -28,12 +28,13 @@ function dat = hh(varargin)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-dat = datcode(2, varargin{:});
-dat = DateWrapper(dat);
+dateCode = numeric.hh(year, varargin{:});
+outputDate = DateWrapper(dateCode);
 
-end
+end%
+

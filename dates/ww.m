@@ -1,11 +1,11 @@
-function dat = ww(year, varargin)
-% ww  IRIS serial date number for weekly date.
+function outputDate = ww(year, varargin)
+% ww  IRIS serial date number for weekly date
 %
 % Syntax
 % =======
 %
-%     dat = ww(year, week)
-%     dat = ww(year, month, day)
+%     outputDate = ww(year, week)
+%     outputDate = ww(year, month, day)
 %
 %
 % Input arguments
@@ -23,7 +23,7 @@ function dat = ww(year, varargin)
 % Output arguments
 % =================
 %
-% * `dat` [ DateWrapper ] - IRIS serial date numbers.
+% * `outputDate` [ DateWrapper ] - IRIS serial date numbers.
 %
 %
 % Description
@@ -41,21 +41,13 @@ function dat = ww(year, varargin)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-if nargin==3
-    % * ww(year, month, day)
-    x = datenum(year, varargin{:});
-    dat = day2ww(x);
-else
-    % * ww(year, week)
-    % * ww(year)
-    dat = datcode(52, year, varargin{:});
-end
+dateCode = numeric.ww(year, varargin{:});
+outputDate = DateWrapper(dateCode);
 
-dat = DateWrapper(dat);
+end%
 
-end

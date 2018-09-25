@@ -1,33 +1,29 @@
-function dat = qqtoday( )
-% qqtoday  IRIS serial date number for current quarter.
+function outputDate = qqtoday( )
+% qqtoday  IRIS date for current quarter
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     dat = qqtoday( )
-%
-%
-% Output arguments
-% =================
+%     outputDate = qqtoday( )
 %
 %
-% * `dat` [ numeric ]  - IRIS serial date number for current quarter.
+% __Output arguments__
+%
+% * `outputDate` [ DateWrapper ]  - IRIS date (DateWrapper object) for the
+% current quarter.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-[year, month] = datevec(now( ));
-dat = qq(year, 1+floor((month-1)/3));
+dateCode = numeric.qqtoday( );
+outputDate = DateWrapper(dateCode);
 
-end
+end%
