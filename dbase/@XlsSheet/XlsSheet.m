@@ -82,15 +82,22 @@ classdef XlsSheet < handle
         
         function d = readDatabase(this, varargin)
             TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-            opt = passvalopt('XlsSheet.retrieveDbase', varargin{:});
-            opt = datdefaults(opt, false);
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('XlsSheet.readDatabase');
+                parser.addRequired('XlsSheet', @(x) isa(x, XlsSheet));
+                parser.addParameter({'EnforceFrequency', 'Freq'}, [ ], @(x) isempty(x) || strcmpi(x, 'Daily') || (isnumeric(x) && isscalar(x) && any(x==configStruct.Freq)));
+                parser.addDateOptions( );
+            end
+            parser.parse(this, varargin{:});
+            opt = parser.Options;
             d = struct( );
             range = this.Raw(2:end, 1);
-            if isequal(opt.dateformat, @excel)
-                opt.dateformat = 'yyyy/mm/dd';
+            if isequal(opt.DateFormat, @excel)
+                opt.DateFormat = 'yyyy/mm/dd';
                 range = [ range{:} ];
                 range = datetime(range, 'ConvertFrom', 'Excel');
-                range = datestr(range, opt.dateformat);
+                range = datestr(range, opt.DateFormat);
                 range = cellstr(range);
             end
             range = str2dat(range, opt);
@@ -102,7 +109,7 @@ classdef XlsSheet < handle
                 name = this.Raw{1, iCol};
                 d.(name) = TIME_SERIES_CONSTRUCTOR(range, data(:, iCol));
             end
-        end
+        end%
         
         
         
