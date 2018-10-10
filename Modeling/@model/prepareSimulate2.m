@@ -20,25 +20,22 @@ s.Update = struct( );
 s.Update.Quantity = this.Variant.Values(:, :, variantRequested);
 s.Update.StdCorr = this.Variant.StdCorr(:, :, variantRequested);
 
-% Solution matrices expanded forward if needed.
-if isequal(s.Method, 'selective')
+nPerMax = s.NPer;
+
+% Solution matrices expanded forward if needed
+if strcmpi(s.Method, 'Selective')
     [s.T, s.R, s.K, s.Z, s.H, s.D, s.U, ~, ~, s.Q] = sspaceMatrices(this, variantRequested);
     currentForward = min( size(s.R, 2)/ne, size(s.Q, 2)/nh ) - 1;
     if s.RequiredForward>currentForward
         vthExpansion = getIthFirstOrderExpansion(this.Variant, variantRequested);
         [s.R, s.Q] = model.expandFirstOrder(s.R, s.Q, vthExpansion, s.RequiredForward);
     end
-end
 
-% Effect of nonlinear add-factors in selective nonlinear simulations.
-nPerMax = s.NPer;
-if isequal(s.Method, 'selective')
+    % Effect of nonlinear add-factors in selective nonlinear simulations
     nPerMax = nPerMax + s.NPerNonlin - 1;
-end
 
-% Get steady state lines that will be added to simulated paths to evaluate
-% nonlinear equations; the steady state lines include pre-sample init cond.
-if isequal(s.Method, 'selective')
+    % Get steady state lines that will be added to simulated paths to evaluate
+    % nonlinear equations; the steady state lines include pre-sample init cond.
     if s.IsDeviation && s.IsAddSstate
         isDelog = false;
         s.XBar = createTrendArray(this, variantRequested, ...
@@ -46,9 +43,7 @@ if isequal(s.Method, 'selective')
         s.YBar = createTrendArray(this, variantRequested, ...
             isDelog, this.Vector.Solution{1}, 0:nPerMax);
     end
-end
 
-if isequal(s.Method, 'selective')
     % Steady state references.
     minSh = this.Incidence.Dynamic.Shift(1);
     maxSh = this.Incidence.Dynamic.Shift(end);
@@ -59,4 +54,4 @@ if isequal(s.Method, 'selective')
     s.L = createTrendArray(this, variantRequested, isDelog, id, tVec);
 end
 
-end
+end%
