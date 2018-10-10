@@ -1,6 +1,6 @@
-function [ax, hLhs, hRhs, rangeLhs, dataLhs, timeLhs, rangeRhs, dataRhs, timeRhs] ...
-    = plotyy(varargin)
-% plotyy  Line plot function with LHS and RHS axes for time series.
+function [ ax, hLhs, hRhs, rangeLhs, dataLhs, ...
+           timeLhs, rangeRhs, dataRhs, timeRhs ] = plotyy(varargin)
+% plotyy  Line plot function with LHS and RHS axes for time series
 %
 % __Syntax__
 %
@@ -61,12 +61,12 @@ function [ax, hLhs, hRhs, rangeLhs, dataLhs, timeLhs, rangeRhs, dataRhs, timeRhs
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 % AREA, BAND, BAR, BARCON, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM
 
-% range for LHS time series.
+% Range for LHS time series
 if DateWrapper.validateDateInput(varargin{1})
     rangeLhs = varargin{1};
     varargin(1) = [ ];
@@ -90,7 +90,24 @@ end
 XRhs = varargin{1};
 varargin(1) = [ ];
 
-[opt, varargin] = passvalopt('tseries.plotyy', varargin{:});
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('tseries.plotyy');
+    parser.addRequired('LhsRange', @DateWrapper.validateDateInput);
+    parser.addRequired('RhsRange', @DateWrapper.validateDateInput);
+    parser.addRequired('LhsSeries', @(x) isa(x, 'tseries'));
+    parser.addRequired('RhsSeries', @(x) isa(x, 'tseries'));
+    parser.addParameter({'Coincide', 'Coincident'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Highlight', [ ], @isnumeric);
+    parser.addParameter('LhsPlotFunc', @plot, @(x) ischar(x) || isa(x, 'function_handle'));
+    parser.addParameter('RhsPlotFunc', @plot, @(x) ischar(x) || isa(x, 'function_handle'));
+    parser.addParameter('LhsTight', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('RhsTight', false, @(x) isequal(x, true) || isequal(x, false) );
+    parser.addDateOptions( );
+    parser.addPlotOptions( );
+end
+parser.parse(rangeLhs, rangeRhs, XLhs, XRhs, varargin{:});
+opt = parser.Options;
 
 if ischar(rangeLhs)
     rangeLhs = textinp2dat(rangeLhs);
@@ -104,8 +121,8 @@ end
 % Check consistency of ranges and time series.
 % LHS.
 if ~all(isinf(rangeLhs)) && ~isempty(rangeLhs) && ~isempty(XLhs) ...
-        && isa(XLhs, 'tseries')
-    if DateWrapper.getFrequencyFromNumeric(rangeLhs(1)) ~= get(XLhs, 'freq')
+        && isa(XLhs, 'TimeSubscriptable')
+    if DateWrapper.getFrequencyAsNumeric(rangeLhs(1))~=XLhs.FrequencyAsNumeric
         utils.error('tseries:plotyy', ...
             ['LHS range and LHS time series must have ', ...
             'the same date frequency.']);
@@ -114,7 +131,7 @@ end
 % RHS.
 if ~all(isinf(rangeRhs)) && ~isempty(rangeRhs) && ~isempty(XRhs) ...
         && isa(XRhs, 'tseries')
-    if DateWrapper.getFrequencyFromNumeric(rangeRhs(1)) ~= get(XRhs, 'freq')
+    if DateWrapper.getFrequencyAsNumeric(rangeRhs(1))~=XRhs.FrequencyAsNumeric
         utils.error('tseries:plotyy', ...
             ['RHS range and RHS time series must have ', ...
             'the same date frequency.']);
@@ -133,16 +150,16 @@ comprise = timeRhs([1, end]);
 % Plot now.
 dataLhsPlot = grfun.myreplacenancols(dataLhs, Inf);
 dataRhsPlot = grfun.myreplacenancols(dataRhs, Inf);
-lhsPlotFuncStr = opt.lhsplotfunc;
-rhsPlotFuncStr = opt.rhsplotfunc;
+lhsPlotFuncStr = opt.LhsPlotFunc;
+rhsPlotFuncStr = opt.RhsPlotFunc;
 if isfunc(lhsPlotFuncStr)
     lhsPlotFuncStr = func2str(lhsPlotFuncStr);
 end
 if isfunc(rhsPlotFuncStr)
     rhsPlotFuncStr = func2str(rhsPlotFuncStr);
 end
-[ax, hLhs, hRhs] = plotyy(timeLhs, dataLhsPlot, timeRhs, dataRhsPlot, ...
-    lhsPlotFuncStr, rhsPlotFuncStr);
+[ax, hLhs, hRhs] = plotyy( timeLhs, dataLhsPlot, timeRhs, dataRhsPlot, ...
+                           lhsPlotFuncStr, rhsPlotFuncStr );
 
 % Apply line properties passed in by the user as optional arguments. Do
 % it separately for `hl` and `hr` because they each can be different types.
@@ -187,15 +204,15 @@ mydatxtick(ax(1), rangeLhs, timeLhs, freqLhs, userRangeLhs, opt);
 
 % For bkw compatibility only, not documented. Use of `highlight` outside
 % `plotyy` is now safe.
-if ~isempty(opt.highlight)
-    highlight(ax(1), opt.highlight);
+if ~isempty(opt.Highlight)
+    highlight(ax(1), opt.Highlight);
 end
 
-if opt.lhstight || opt.tight
+if opt.LhsTight || opt.Tight
     grfun.yaxistight(ax(1));
 end
 
-if opt.rhstight || opt.tight
+if opt.RhsTight || opt.Tight
     grfun.yaxistight(ax(2));
 end
 
@@ -203,7 +220,7 @@ end
 % `plotcmp` graphs.
 grfun.swaplhsrhs(ax(1), ax(2));
 
-if ~opt.coincide
+if ~opt.Coincide
     set(ax, 'YTickMode', 'Auto');
 end
 
@@ -220,11 +237,12 @@ end
 
 if true % ##### MOSW
     % Use IRIS datatip cursor function in this figure; in
-    % `utils.datacursor', we also handle cases where the current figure
+    % utils.datacursor, we also handle cases where the current figure
     % includes both tseries and non-tseries graphs.
     obj = datacursormode(gcf( ));
     set(obj, 'UpdateFcn', @utils.datacursor);
 else
     % Do nothing.
 end
-end
+
+end%
