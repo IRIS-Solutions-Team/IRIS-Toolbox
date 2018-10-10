@@ -1,5 +1,5 @@
 function this = convert(this, newFreq, varargin)
-% convert  Convert tseries object to a different frequency.
+% convert  Convert tseries object to a different frequency
 %
 % __Syntax__
 %
@@ -30,7 +30,7 @@ function this = convert(this, newFreq, varargin)
 %
 % __Options__
 %
-% * `IgnoreNaN=false` [ `true` | `false` ] - Exclude NaNs from agreggation.
+% * `RemoveNaN=false` [ `true` | `false` ] - Exclude NaNs from agreggation.
 %
 % * `Missing=NaN` [ numeric | `'previous'` ] - Replace missing observations
 % with this value.
@@ -38,8 +38,9 @@ function this = convert(this, newFreq, varargin)
 %
 % __Options for High- to Low-Frequency Aggregation__
 %
-% * `Method=@mean` [ function_handle | `'first'` | `'last'` ] - Aggregation
-% method.
+% * `Method=@mean` [ function_handle | `'first'` | `'last'` | `'random'` ]
+% - Aggregation method; `'first'`, `'last'` and `'random'` select the
+% first, last of a random observation from the period.
 %
 % * `Select=Inf` [ numeric ] - Select only these high-frequency
 % observations within each low-frequency period; `Inf` means all
@@ -48,11 +49,14 @@ function this = convert(this, newFreq, varargin)
 %
 % __Options for Low- to High-Frequency Interpolation__
 %
-% * `Method='cubic'` [ char | `'quadsum'` | `'quadavg'` ] - Interpolation
-% method; any option valid for the built-in function `interp1` can be used.
+% * `Method='pchip'` [ char | `'quadsum'` | `'quadavg'` ] - Interpolation
+% method; any option valid for the built-in function `interp1` can be used,
+% or `'quadsum'` or `'quadavg'`; these two options use quadratic
+% interpolation preserving the sum or the average of observations within
+% each period.
 %
-% * `Position='centre'` [ `'centre'` | `'start'` | `'end'` ] - Position of
-% the low-frequency date grid.
+% * `Position='center'` [ `'center'` | `'start'` | `'end'` ] - Position of
+% dates within each period in the low-frequency date grid.
 %
 %
 % __Description__
@@ -75,21 +79,34 @@ function this = convert(this, newFreq, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if isempty(this)
-    utils.warning('tseries:convert', ...
-        'Tseries object is empty, no conversion performed.');
     return
 end
 
 if ~isempty(varargin) && isnumeric(varargin{1})
-    range = varargin{1};
+    range = double(varargin{1});
     varargin(1) = [ ];
 else
     range = Inf;
 end
+
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('TimeSubscriptable.convert');
+    parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    parser.addRequired('NewFreq', @Frequency.validateProperFrequency);
+    parser.addParameter({'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || isequal(x, 'first') || isequal(x, 'last'));
+    parser.addParameter({'RemoveNaN', 'IgnoreNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'last', 'previous'}))) || isnumericscalar(x));
+    parser.addParameter({'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || ischar(x) || isa(x, 'string'));
+    parser.addParameter('Position', 'center', @(x) ischar(x) && any(strncmpi(x, {'c', 's', 'e'}, 1)));
+    parser.addParameter('Select', Inf, @(x) isnumeric(x));
+end
+parser.parse(this, newFreq, varargin{:});
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
@@ -102,75 +119,49 @@ if isempty(range)
     return
 end
 
-% Resolve range, `range` is then a vector of dates with no `Inf`.
-if ~all(isinf(range))
-    this = resize(this, range);
-end
-range = specrange(this, range);
-
 newFreq = recognizeFreq(newFreq);
 if isempty(newFreq)
     utils.error('tseries:convert', ...
         'Cannot determine output frequency.');
 end
 
-fromFreq = DateWrapper.getFrequencyFromNumeric(this.Start);
+oldFreq = DateWrapper.getFrequencyAsNumeric(this.Start);
 
-if fromFreq==0 || newFreq==0
-    utils.error('tseries:convert', ...
-        'Cannot convert tseries from or to integer frequency.');
+if oldFreq==newFreq
+    return
 end
 
-call = [ ];
-if fromFreq==newFreq
-    return
-elseif fromFreq==365
-    % Aggregation of daily series to lower frequencies.
-    opt = passvalopt('tseries.convertaggregdaily', varargin{:});
-    call = @aggregate;
-elseif fromFreq==52
-    if newFreq==365
-        utils.error('tseries:convert', ...
-            'Conversion from weekly to daily tseries not implemented yet.');
+if oldFreq==0 || newFreq==0
+    throw( exception.Base('Series:CannotConvertIntegerFreq', 'error') )
+end
+
+if oldFreq>newFreq
+    % Aggregate
+    conversionFunc = @aggregate;
+else
+    % Weekly to daily intepolation not implemented
+    if oldFreq==52 && newFreq==365
+        throw( exception.Base('Series:CannotConvertWeeklyToDaily', 'error') )
+    end
+    % Interpolate matching sum or average
+    if any(strcmpi(opt.Method, {'quadsum', 'quadavg'}))
+        conversionFunc = @interpolateAndMatch;
     else
-        % Aggregation of weekly series to lower frequencies.
-        opt = passvalopt('tseries.convertaggregdaily', varargin{:});
-        call = @aggregate;
-    end 
-elseif newFreq~=365
-    % Conversion of Y, Z, Q, B, or M series.
-    if fromFreq>newFreq
-        % Aggregate.
-        opt = passvalopt('tseries.convertaggreg', varargin{:});
-        if ~isempty(opt.function)
-            opt.method = opt.function;
-        end
-        call = @aggregate;
-    else
-        % Interpolate.
-        opt = passvalopt('tseries.convertinterp', varargin{:});
-        if any(strcmpi(opt.method, {'quadsum', 'quadavg'}))
-            if newFreq ~= 52
-                % Quadratic interpolation matching sum or average.
-                call = @interpolateAndMatch;
-            end
-        else
-            % Built-in interp1.
-            call = @interpolate;
-        end
+        % Built-in interp1
+        conversionFunc = @interpolate;
     end
 end
 
-if isa(call, 'function_handle')
-    [newData, newStart] = call(this, range, fromFreq, newFreq, opt);
-    this = fill(this, newData, newStart, this.Comment, this.UserData);
-else
-    utils.error('tseries:conversion', ...
-        'Cannot convert tseries from freq=%g to freq=%g.', ...
-        fromFreq, newFreq);
-end
+[oldStart, oldEnd] = resolveRange(this, range(1), range(end));
+[newData, newStart] = conversionFunc(this, oldStart, oldEnd, oldFreq, newFreq, opt);
+this = fill(this, newData, newStart, this.Comment, this.UserData);
 
 end%
+
+
+%
+% Local functions
+%
 
 
 function freq = recognizeFreq(freq)
@@ -181,211 +172,215 @@ function freq = recognizeFreq(freq)
             freq = lower(freq(1));
             freq = freqNum(freq==freqLetter);
         else
-            freq = [ ];
+            freq = double.empty(1, 0);
         end
-    elseif ~any(freq==freqNum)
-        freq = [ ];
+    else
+        freq = double(freq);
+        if ~any(freq==freqNum)
+            freq = double.empty(1, 0);
+        end
     end
 end%
 
 
-function [toData, toStart] = aggregate(this, range, fromFreq, toFreq, opt)
-    if ischar(opt.method)
-        methodStr = lower(opt.method);
-        if true % ##### MOSW
-            opt.method = str2func(lower(opt.method));
-        else
-            Opt.method = mosw.str2func(lower(Opt.method)); %#ok<UNRCH>
+
+
+function [newData, newStart] = aggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+    if isa(opt.Method, 'function_handle')
+        charMethod = char(opt.Method);
+        if strcmpi(charMethod, 'default')
+            opt.Method = @mean;
+        elseif any(strcmpi(charMethod, {'first', 'last', 'random'}))
+            opt.Method = char(opt.Method);
         end
-    else
-        methodStr = lower(func2str(opt.method));
     end
 
     % Stretch the original range from the beginning of first year until the end
-    % of last year.
-    if fromFreq==365
-        [fromFirstYear, ~, ~] = datevec( double(range(1)) );
-        [fromLastYear, ~, ~] = datevec( double(range(end)) );
-        fromFirstDay = dd(fromFirstYear, 1, 1);
-        fromLastDay = dd(fromLastYear, 12, 'end');
-        range = fromFirstDay : fromLastDay;
-        if toFreq==52
-            toDates = day2ww(range);
+    % of last year
+    if oldFreq==365
+        [oldStartYear, ~, ~] = datevec(oldStart);
+        [oldEndYear, ~, ~] = datevec(oldEnd);
+        oldStart = numeric.dd(oldStartYear, 1, 1);
+        oldEnd = numeric.dd(oldEndYear, 12, 'end');
+        if newFreq==52
+            newDates = numeric.day2ww(oldStart:oldEnd);
         else
-            [year, month] = datevec( double(range) );
-            toDates = datcode(toFreq, year, ceil(toFreq*month/12));
+            [newYears, newMonths] = datevec(oldStart:oldEnd);
+            newDates = numeric.datecode(newFreq, newYears, ceil(newFreq*newMonths/12));
         end
     else
-        fromFirstYear = dat2ypf(range(1));
-        fromLastYear = dat2ypf(range(end));
-        fromFirstDate = datcode(fromFreq, fromFirstYear, 1);
-        fromLastDate = datcode(fromFreq, fromLastYear, 'end');
-        range = fromFirstDate : fromLastDate;
-        toDates = convert(range, toFreq, 'ConversionMonth=', opt.ConversionMonth);
+        oldStartYear = dat2ypf(oldStart);
+        oldEndYear = dat2ypf(oldEnd);
+        oldStart = numeric.datecode(oldFreq, oldStartYear, 1);
+        oldEnd = numeric.datecode(oldFreq, oldEndYear, 'end');
+        newDates = numeric.convert( oldStart:oldEnd, newFreq, ...
+                                    'ConversionMonth=', opt.ConversionMonth );
     end
 
-    fromData = rangedata(this, range);
-    fromSize = size(fromData);
-    fromData = fromData(:, :);
-    nCol = size(fromData, 2);
+    oldData = getDataFromTo(this, oldStart, oldEnd);
+    oldSize = size(oldData);
+    oldData = oldData(:, :);
+    numOfColumns = size(oldData, 2);
 
-    % Treat missing observations in input daily series.
-    for t = 1 : size(fromData, 1)
-        ix = isnan(fromData(t, :));
-        if any(ix)
+    % Treat missing observations in input daily series
+    for row = 1 : size(oldData, 1)
+        inxOfNaN = isnan(oldData(row, :));
+        if any(inxOfNaN)
             if any(strcmpi(opt.Missing, {'last', 'previous'}))
-                if t>1
-                    fromData(t, ix) = fromData(t-1, ix);
+                if row>1
+                    oldData(row, inxOfNaN) = oldData(row-1, inxOfNaN);
                 else
-                    fromData(t, ix) = NaN;
+                    oldData(row, inxOfNaN) = NaN;
                 end
             else
-                fromData(t, ix) = opt.Missing;
+                oldData(row, inxOfNaN) = opt.Missing;
             end
         end
     end
 
-    flToDates = floor(toDates);
-    nToPer = flToDates(end) - flToDates(1) + 1;
+    newDatesSerial = DateWrapper.getSerial(newDates);
+    newStartSerial = newDatesSerial(1);
+    newEndSerial = newDatesSerial(end);
+    numOfNewPeriods = newEndSerial - newStartSerial + 1;
 
-    toStart = toDates(1);
-    toData = nan(0, nCol);
-    for t = flToDates(1) : flToDates(end)
-        ix = t==flToDates;
-        toX = nan(1, nCol);
-        if any(ix)
-            fromX = fromData(ix, :);
-            for iCol = 1 : nCol
-                iFromX = fromX(:, iCol);
-                if opt.ignorenan
-                    iFromX = iFromX(~isnan(iFromX));
+    % Apply function period by period, column by column
+    newData = nan(0, numOfColumns);
+    for newSerial = newStartSerial : newEndSerial
+        inxOfRows = newSerial==newDatesSerial;
+        newAdd = nan(1, numOfColumns);
+        if any(inxOfRows)
+            oldAdd = oldData(inxOfRows, :);
+            for col = 1 : numOfColumns
+                ithCol = oldAdd(:, col);
+                if opt.RemoveNaN
+                    ithCol = ithCol(~isnan(ithCol));
                 end
-                if ~isequal(opt.select, Inf)
+                if ~isequal(opt.Select, Inf)
                     try
-                        iFromX = iFromX(opt.select);
+                        ithCol = ithCol(opt.Select);
                     catch
-                        iFromX = [ ];
+                        ithCol = [ ];
                     end
                 end
-                if isempty(iFromX)
-                    toX(1, iCol) = NaN;
+                if isempty(ithCol)
+                    newAdd(1, col) = NaN;
                 else
                     try
-                        switch methodStr
-                            case 'first'
-                                toX(1, iCol) = iFromX(1, :);
-                            case 'last'
-                                toX(1, iCol) = iFromX(end, :);
-                            otherwise
-                                toX(1, iCol) = opt.method(iFromX, 1);
+                        newAdd(1, col) = feval(opt.Method, ithCol, 1);
+                    catch
+                        try
+                            newAdd(1, col) = feval(opt.Method, ithCol);
+                        catch
+                            newAdd(1, col) = NaN;
                         end
-                    catch %#ok<CTCH>
-                        toX(1, iCol) = opt.method(iFromX);
                     end
                 end
             end
         end
-        toData = [toData; toX]; %#ok<AGROW>
+        %if ~isnan(newAdd), keyboard; end
+        newData = [newData; newAdd]; %#ok<AGROW>
     end
 
-    if length(fromSize)>2
-        toSize = fromSize;
-        toSize(1) = nToPer;
-        toData = reshape(toData, toSize);
+    if length(oldSize)>2
+        newSize = oldSize;
+        newSize(1) = numOfNewPeriods;
+        newData = reshape(newData, newSize);
     end
+    newStart = DateWrapper.getDateCodeFromSerial(newFreq, newStartSerial);
 end%
 
 
 
 
-function [xData2, newStart] = interpolate(this, range1, fromFreq, toFreq, opt)
-    [xData, range1] = mygetdata(this, range1);
-    xSize = size(xData);
-    xData = xData(:, :);
+function [newData, newStart] = interpolate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+    if isequal(opt.Method, @default)
+        opt.Method = 'pchip';
+    end
 
-    [startYear1, startPer1] = dat2ypf(range1(1));
-    [endYear1, endPer1] = dat2ypf(range1(end));
+    oldData = getDataFromTo(this, oldStart, oldEnd);
+    oldSize = size(oldData);
+    oldData = oldData(:, :);
 
-    if toFreq==52
-        startMonth1 = per2month(startPer1, fromFreq, 'first');
-        endMonth1 = per2month(endPer1, fromFreq, 'last');
-        startDay1 = datenum(startYear1, startMonth1, 1);
-        endDay1 = datenum(endYear1, endMonth1, eomday(endYear1, endMonth1));
-        startDate2 = day2ww(startDay1);
-        endDate2 = day2ww(endDay1);
+    [oldStartYear, oldStartPer] = dat2ypf(oldStart);
+    [oldEndYear, oldEndPer] = dat2ypf(oldEnd);
+
+    if newFreq==52
+        oldStartMonth = per2month(oldStartPer, oldFreq, 'first');
+        oldEndMonth = per2month(oldEndPer, oldFreq, 'last');
+        oldStartDay = datenum(oldStartYear, oldStartMonth, 1);
+        oldEndDay = datenum(oldEndYear, oldEndMonth, eomday(oldEndYear, oldEndMonth));
+        newStart = numeric.day2ww(oldStartDay);
+        newEnd = numeric.day2ww(oldEndDay);
         % Cut off the very first and very last week; it helps handle some weird
-        % cases.
-        startDate2 = startDate2 + 1;
-        endDate2 = endDate2 - 1;
+        % cases
+        newStart = newStart + 1;
+        newEnd = newEnd - 1;
     else
-        startYear2 = startYear1;
-        endYear2 = endYear1;
+        newStartYear = oldStartYear;
+        newEndYear = oldEndYear;
         % Find the earliest freq2 period contained (at least partially) in freq1
         % start period.
-        startPer2 = 1 + floor((startPer1-1)*toFreq/fromFreq);
+        newStartPer = 1 + floor((oldStartPer-1)*newFreq/oldFreq);
         % Find the latest freq2 period contained (at least partially) in freq1 end
         % period.
-        endper2 = ceil((endPer1)*toFreq/fromFreq);
-        startDate2 = datcode(toFreq, startYear2, startPer2);
-        endDate2 = datcode(toFreq, endYear2, endper2);
+        newEndPer = ceil((oldEndPer)*newFreq/oldFreq);
+        newStart = numeric.datecode(newFreq, newStartYear, newStartPer);
+        newEnd = numeric.datecode(newFreq, newEndYear, newEndPer);
     end
 
-    range2 = startDate2 : endDate2;
-
-    grid1 = dat2dec(range1, opt.position);
-    grid2 = dat2dec(range2, opt.position);
-    xData2 = interp1(grid1, xData, grid2, opt.method, 'extrap');
-    if size(xData2, 1)==1 && size(xData2, 2)==length(range2)
-        xData2 = xData2(:);
+    numOfNewPeriods = floor(newEnd) - floor(newStart) + 1;
+    oldGrid = dat2dec(oldStart:oldEnd, opt.Position);
+    newGrid = dat2dec(newStart:newEnd, opt.Position);
+    newData = interp1(oldGrid, oldData, newGrid, opt.Method, 'extrap');
+    if size(newData, 1)==1 && size(newData, 2)==numOfNewPeriods
+        newData = newData(:);
     else
-        xData2 = reshape(xData2, [size(xData2, 1), xSize(2:end)]);
+        newData = reshape(newData, [size(newData, 1), oldSize(2:end)]);
     end
-    newStart = range2(1);
 end%
 
 
-function [xData2, newStart] = interpolateAndMatch(this, range1, fromFreq, toFreq, opt)
-    n = toFreq/fromFreq;
+
+
+function [newData, newStart] = interpolateAndMatch(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+    n = newFreq/oldFreq;
     if n~=round(n)
         utils.error('tseries:convert', ...
             ['Source and target frequencies are incompatible ', ...
             'in ''%s'' interpolation.'], ...
-            opt.method);
+            opt.Method);
     end
 
-    [xData, range1] = mygetdata(this, range1);
-    xSize = size(xData);
-    xData = xData(:, :);
+    oldData = getDataFromTo(this, oldStart, oldEnd);
+    oldSize = size(oldData);
+    oldData = oldData(:, :);
 
-    [startYear1, startPer1] = dat2ypf(range1(1));
-    [endYear1, endPer1] = dat2ypf(range1(end));
+    [oldStartYear, oldStartPer] = dat2ypf(oldStart);
+    [oldEndYear, oldEndPer] = dat2ypf(oldEnd);
 
-    startYear2 = startYear1;
-    endYear2 = endYear1;
+    newStartYear = oldStartYear;
+    newEndYear = oldEndYear;
     % Find the earliest freq2 period contained (at least partially) in freq1
-    % start period.
-    startPer2 = 1 + floor((startPer1-1)*toFreq/fromFreq);
+    % start period
+    newStartPer = 1 + floor((oldStartPer-1)*newFreq/oldFreq);
     % Find the latest freq2 period contained (at least partially) in freq1 end
-    % period.
-    endPer2 = ceil((endPer1)*toFreq/fromFreq);
-    firstDate2 = datcode(toFreq, startYear2, startPer2);
-    lastDate2 = datcode(toFreq, endYear2, endPer2);
-    range2 = firstDate2 : lastDate2;
+    % period
+    newStart = numeric.datecode(newFreq, newStartYear, newStartPer);
 
-    [xData2, flag] = interpolateAndMatchEval(xData, n);
+    [newData, flag] = interpolateAndMatchEval(oldData, n);
     if ~flag
         utils.warning('tseries:convert', ...
             ['Cannot compute ''%s'' interpolation for series ', ...
             'with in-sample NaNs.'], ...
-            opt.method);
+            opt.Method);
     end
-    if strcmpi(opt.method, 'quadavg')
-        xData2 = xData2*n;
+    if strcmpi(opt.Method, 'quadavg')
+        newData = newData*n;
     end
-
-    xData2 = reshape(xData2, [size(xData2, 1), xSize(2:end)]);
-    newStart = range2(1);
+    newData = reshape(newData, [size(newData, 1), oldSize(2:end)]);
 end% 
+
+
 
 
 function [y2, flag] = interpolateAndMatchEval(y1, n)
@@ -421,6 +416,33 @@ function [y2, flag] = interpolateAndMatchEval(y1, n)
         iSample = iSample(ones(1, n), :);
         iSample = iSample(:);
         y2(iSample, i) = iY2(:);
+    end
+end%
+
+
+
+
+function data = first(data, varargin)
+    data = data(1, :);
+end%
+
+
+
+
+function data = last(data, varargin)
+    data = data(end, :);
+end%
+
+
+
+
+function data = random(data, varargin)
+    numOfRows = size(data, 1);
+    if numOfRows==1
+        return
+    else
+        pos = randi(numOfRows);
+        data = data(pos, :);
     end
 end%
 
