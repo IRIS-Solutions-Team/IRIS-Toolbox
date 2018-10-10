@@ -119,8 +119,8 @@ end
 nPer1 = length(range1);
 
 % Set up High-frequency range.
-start2 = convert(range1(1), f2, 'ConversionMonth', 'first');
-end2 = convert(range1(end), f2, 'ConversionMonth', 'last');
+start2 = numeric.convert(range1(1), f2, 'ConversionMonth', 'first');
+end2 = numeric.convert(range1(end), f2, 'ConversionMonth', 'last');
 range2 = start2 : end2;
 nPer2 = length(range2);
 

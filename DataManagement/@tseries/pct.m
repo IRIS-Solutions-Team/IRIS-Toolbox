@@ -45,20 +45,20 @@ function this = pct(this, varargin)
 %     pct(X, -3, 'OutputFreq=', 1)
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('tseries/pct');
-    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addOptional('Shift', -1, @(x) isnumeric(x) && isscalar(x) && x==round(x));
-    INPUT_PARSER.addParameter('OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('tseries/pct');
+    parser.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
+    parser.addOptional('Shift', -1, @(x) isnumeric(x) && isscalar(x) && x==round(x));
+    parser.addParameter('OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
 end
-INPUT_PARSER.parse(this, varargin{:});
-sh = INPUT_PARSER.Results.Shift;
-outputFreq = INPUT_PARSER.Results.OutputFreq;
-opt = INPUT_PARSER.Options;
+parser.parse(this, varargin{:});
+sh = parser.Results.Shift;
+outputFreq = parser.Results.OutputFreq;
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
@@ -68,10 +68,11 @@ end
 
 Q = 1;
 if ~isempty(opt.OutputFreq)
-    inputFreq = DateWrapper.getFrequencyFromNumeric(this.start);
+    inputFreq = DateWrapper.getFrequencyAsNumeric(this.Start);
     Q = inputFreq / opt.OutputFreq / abs(sh);
 end
 
 this = unop(@numeric.pct, this, 0, sh, Q);
 
-end
+end%
+

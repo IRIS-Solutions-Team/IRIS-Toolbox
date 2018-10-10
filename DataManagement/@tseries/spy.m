@@ -54,8 +54,8 @@ function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if all(ishghandle(varargin{1})) ...
         && strcmpi(get(varargin{1}(1), 'type'), 'axes')
@@ -75,14 +75,22 @@ end
 this = varargin{1};
 varargin(1) = [ ];
 
-% Parse input arguments.
-P = inputParser( );
-P.addRequired('range', @isnumeric);
-P.addRequired('x', @(x) isa(x, 'tseries'));
-P.parse(range, this);
-
-% Parse options.
-[opt, varargin] = passvalopt('tseries.spy', varargin{:});
+persistent parse
+if isempty(parser)
+    parser = extend.InputParser('tseries.spy');
+    parser.addRequired('Axes', @(x) all(ishandle(x)));
+    parser.addRequired('Range', @DateWrapper.validateDateInput);
+    parser.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
+    parser.addParameter('ShowTrue', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('ShowFalse', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Squeeze', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'Names', 'Name'}, { }, @iscellstr);
+    parser.addParameter('Test', @isfinite, @(x) isa(x, 'function_handle'));
+    parser.addPlotOptions( );
+    parser.addDateOptions( );
+end
+parser.parse(hAx, range, this, varargin{:});
+opt = parser.Options;
 freq = get(this, 'freq');
 
 %--------------------------------------------------------------------------
@@ -113,11 +121,11 @@ markerSize = get(gcf( ), 'DefaultLineMarkerSize')*1.5;
 holdStatus = ishold(hAx);
 hPlotTrue = plot(hAx, xCoor(x), yCoor(x), ...
     'LineStyle', 'None', 'Marker', markerTrue, 'MarkerSize', markerSize);
-hold on;
+hold on
 hPlotFalse = plot(hAx, xCoor(~x), yCoor(~x), ...
     'LineStyle', 'None', 'Marker', markerFalse, 'MarkerSize', markerSize);
 if ~holdStatus
-    hold off;
+    hold off
 end
 set( gca( ), 'YDir', 'Reverse', 'YLim', [0, size(x, 1)+1], ...
     'XLim', round([xCoor(1)-0.5, xCoor(end)+0.5]) );
@@ -158,4 +166,4 @@ if ~isempty(varargin)
     set(hPlotTrue, varargin{:});
 end
 
-end
+end%

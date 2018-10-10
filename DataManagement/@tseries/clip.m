@@ -32,14 +32,14 @@ function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser([class(this), '.clip']);
-    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
-    inputParser.addRequired('NewStart', @(x) DateWrapper.validateDateInput(x) && isscalar(x));
-    inputParser.addRequired('NewEnd', @(x) DateWrapper.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser([class(this), '.clip']);
+    parser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    parser.addRequired('NewStart', @(x) DateWrapper.validateDateInput(x) && isscalar(x));
+    parser.addRequired('NewEnd', @(x) DateWrapper.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf));
 end
-inputParser.parse(this, newStart, newEnd);
+parser.parse(this, newStart, newEnd);
 
 %--------------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ end
 
 serialXStart = round(this.Start);
 serialXEnd = serialXStart + size(this.Data, 1) - 1;
-freqX = getFrequency(this.Start);
+freqOfX = DateWrapper.getFrequencyAsNumeric(this.Start);
 
 serialNewStart = getSerialNewStart( );
 serialNewEnd = getSerialNewEnd( );
@@ -81,12 +81,12 @@ if serialNewStart>serialNewEnd
     return
 end
 
-sizeData = size(this.Data);
-ndimsData = ndims(this.Data);
+sizeOfData = size(this.Data);
+ndimsOfData = ndims(this.Data);
 if serialNewStart>serialXStart
     numRowsToRemove = serialNewStart - serialXStart;
     this.Data(1:numRowsToRemove, :) = [ ];
-    this.Start = DateWrapper.fromSerial(freqX, serialNewStart);
+    this.Start = DateWrapper.fromSerial(freqOfX, serialNewStart);
 end
 
 if serialNewEnd<serialXEnd
@@ -94,9 +94,9 @@ if serialNewEnd<serialXEnd
     this.Data(end-numRowsToRemove+1:end, :) = [ ];
 end
 
-if ndimsData>2
-    sizeData(1) = size(this.Data, 1);
-    this.Data = reshape(this.Data, sizeData);
+if ndimsOfData>2
+    sizeOfData(1) = size(this.Data, 1);
+    this.Data = reshape(this.Data, sizeOfData);
 end
 
 return
@@ -106,16 +106,10 @@ return
         if isStartInf
             serialNewStart = serialXStart;
         else
-            if ~isa(newStart, 'DateWrapper')
-                freqNewStart = Frequency.INTEGER;
-            else
-                freqNewStart = getFrequency(newStart);
-            end
-            if freqNewStart~=freqX
-                throw( ...
-                    exception.Base('Series:FrequencyMismatch', 'error'), ...
-                    [char(freqX), ' ', char(freqNewStart)] ...
-                );
+            freqOfNewStart = DateWrapper.getFrequencyAsNumeric(newStart);
+            if freqOfNewStart~=freqOfX
+                throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
+                       Frequency.toChar(freqOfX), Frequency.toChar(freqOfNewStart) );
             end
             serialNewStart = round(newStart);
         end
@@ -126,16 +120,10 @@ return
         if isEndInf
             serialNewEnd = serialXEnd;
         else
-            if ~isa(newEnd, 'DateWrapper')
-                freqNewEnd = Frequency.INTEGER;
-            else
-                freqNewEnd = getFrequency(newEnd);
-            end
-            if freqNewEnd~=freqX
-                throw( ...
-                    exception.Base('Series:FrequencyMismatch', 'error'), ...
-                    [char(freqX), ' ', char(freqNewEnd)] ...
-                );
+            freqOfNewEnd = DateWrapper.getFrequencyAsNumeric(newEnd);
+            if freqOfNewEnd~=freqOfX
+                throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
+                       Frequency.toChar(freqOfX), Frequency.toChar(freqOfNewEnd) );
             end
             serialNewEnd = round(newEnd);
         end

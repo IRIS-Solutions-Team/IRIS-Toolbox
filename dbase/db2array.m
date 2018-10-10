@@ -1,4 +1,4 @@
-function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, sw)
+function [x, inxOfIncluded, range, inxOfNotFound, inxOfNonSeries] = db2array(d, list, range, sw)
 % db2array  Convert tseries database entries to numeric array.
 %
 % __Syntax__
@@ -57,8 +57,8 @@ function [x, ixIncl, range, ixNotFound, ixNonSeries] = db2array(d, list, range, 
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %#ok<*VUNUS>
 %#ok<*CTCH>
@@ -140,11 +140,14 @@ if isnumeric(list) && (iscellstr(range) || ischar(range))
     [list, range] = deal(range, list);
 end
 
-pp = inputParser( );
-pp.addRequired('d', @isstruct);
-pp.addRequired('list', @(x) iscellstr(x) || ischar(x) || isa(x, 'rexp') || isequal(x, @all));
-pp.addRequired('range', @isnumeric);
-pp.parse(d, list, range);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dbase.db2array');
+    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('List', @(x) iscellstr(x) || ischar(x) || isa(x, 'rexp') || isequal(x, @all));
+    parser.addRequired('Range', @DateWrapper.validateRangeInput);
+end
+parser.parse(d, list, range);
 
 %--------------------------------------------------------------------------
 
@@ -158,11 +161,11 @@ end
 list = list(:).';
 
 nList = length(list);
-ixInvalid = false(1, nList);
-ixIncl = false(1, nList);
-ixFreqMismatch = false(1, nList);
-ixNotFound = false(1, nList);
-ixNonSeries = false(1, nList);
+inxOfInvalid = false(1, nList);
+inxOfIncluded = false(1, nList);
+inxOfFreqMismatch = false(1, nList);
+inxOfNotFound = false(1, nList);
+inxOfNonSeries = false(1, nList);
 
 range2 = [ ];
 if any(isinf(range([1, end])))
@@ -192,52 +195,51 @@ else
 end
 
 range = startDate : endDate;
-rangeFreq = DateWrapper.getFrequencyFromNumeric(startDate);
-nPer = numel(range);
+freqOfRange = DateWrapper.getFrequencyAsNumeric(startDate);
+numOfPeriods = numel(range);
 
-
-% If all existing tseries have the same size in 2nd and higher dimensions, 
-% reshape the output array to match that size. Otherwise, return a 2D
-% array.
-outpSize = [ ];
+% If all existing time series have the same size in 2nd and higher
+% dimensions, reshape the output array to match that size; otherwise,
+% return a 2D array.
+sizeOfOutput = [ ];
 isReshape = true;
 
-x = nan(nPer, 0);
+x = nan(numOfPeriods, 0);
 for i = 1 : nList
     name = list{i};
     try
-        numDataSets = max(1, size(x, 3));
+        numOfDataSets = max(1, size(x, 3));
         if strcmp(name, '!ttrend')
-            iX = [ ];
+            ithX = [ ];
             getTtrend( );
             addData( );
         else
             field = d.(name);
             if isa(field, 'TimeSubscriptable')
-                iX = [ ];
+                ithX = [ ];
                 getSeriesData( );
                 addData( );
             else
-                ixNonSeries(i) = true;
+                inxOfNonSeries(i) = true;
             end
         end
     catch
-        ixNotFound(i) = true;
+        inxOfNotFound(i) = true;
         continue
     end
 end
 
-ixIncl = list(ixIncl);
+inxOfIncluded = list(inxOfIncluded);
 
 throwWarning( );
 
 if isempty(x)
-    x = nan(nPer, nList);
+    x = nan(numOfPeriods, nList);
 end
 
 if isReshape
-    outpSize = [ size(x, 1), size(x, 2), outpSize ];
-    x = reshape(x, outpSize);
+    sizeOfOutput = [ size(x, 1), size(x, 2), sizeOfOutput ];
+    x = reshape(x, sizeOfOutput);
 end
 
 return
@@ -246,28 +248,28 @@ return
 
 
     function getSeriesData( )
-        tmpFreq = freq(field);
-        if ~isnan(tmpFreq) && rangeFreq~=tmpFreq
-            numDataSets = max(1, size(x, 3));
-            iX = nan(nPer, numDataSets);
-            ixFreqMismatch(i) = true;
+        freqOfSeries = field.FrequencyAsNumeric;
+        if ~isnan(freqOfSeries) && freqOfRange~=freqOfSeries
+            numOfDataSets = max(1, size(x, 3));
+            ithX = nan(numOfPeriods, numOfDataSets);
+            inxOfFreqMismatch(i) = true;
         else
             k = 0;
             if ~isempty(sw.LagOrLead)
                 k = sw.LagOrLead(i);
             end
-            iX = rangedata(field, range+k);
-            iSize = size(iX);
+            ithX = rangedata(field, range+k);
+            iSize = size(ithX);
             iSize(1) = [ ];
-            if isempty(outpSize)
-                outpSize = iSize;
+            if isempty(sizeOfOutput)
+                sizeOfOutput = iSize;
             else
-                isReshape = isReshape && isequal(outpSize, iSize);
+                isReshape = isReshape && isequal(sizeOfOutput, iSize);
             end
-            % Make sure iX is processed as 2D array.
-            iX = iX(:, :);
+            % Make sure ithX is processed as 2D array.
+            ithX = ithX(:, :);
         end
-    end 
+    end% 
 
 
 
@@ -277,40 +279,38 @@ return
         if ~isempty(sw.LagOrLead)
             k = sw.LagOrLead(i);
         end
-        iX = dat2ttrend(range+k, sw.BaseYear);
-        iX = iX(:);
-    end 
+        ithX = dat2ttrend(range+k, sw.BaseYear);
+        ithX = ithX(:);
+    end%
 
 
 
 
     function addData( )
         if isempty(x)
-            x = nan(nPer, nList, size(iX, 2));
+            x = nan(numOfPeriods, nList, size(ithX, 2));
         end
-        iX = permute(iX, [1, 3, 2]);
+        ithX = permute(ithX, [1, 3, 2]);
         nAltX = size(x, 3);
-        nAltXi = size(iX, 3);
+        nAltXi = size(ithX, 3);
         % If needed, expand number of alternatives in current array or current
         % addition.
         if nAltX==1 && nAltXi>1
             x = expand(x, nAltXi);
         elseif nAltX>1 && nAltXi==1
-            iX = expand(iX, nAltX);
+            ithX = expand(ithX, nAltX);
         end
         nAltX = size(x, 3);
-        nAltXi = size(iX, 3);
+        nAltXi = size(ithX, 3);
         if nAltX==nAltXi
             if ~isempty(sw.IxLog) && sw.IxLog(i)
-                iX = log(iX);
+                ithX = log(ithX);
             end
-            x(:, i, 1:nAltXi) = iX;
-            ixIncl(i) = true;
+            x(:, i, 1:nAltXi) = ithX;
+            inxOfIncluded(i) = true;
         else
-            ixInvalid(i) = true;
+            inxOfInvalid(i) = true;
         end
-        
-        
         
         
         function x = expand(x, n)
@@ -318,39 +318,31 @@ return
             if strcmpi(sw.ExpandMethod, 'NaN')
                 x(:, :, 2:end) = NaN;
             end
-        end
-    end 
+        end%
+    end%
 
 
 
 
     function throwWarning( )
-        if sw.Warn.NotFound && any(ixNotFound)
-            throw( ...
-                exception.Base('Dbase:NameNotExist', 'warning'), ...
-                list{ixNotFound} ...
-            );
+        if sw.Warn.NotFound && any(inxOfNotFound)
+            throw( exception.Base('Dbase:NameNotExist', 'warning'), ...
+                   list{inxOfNotFound} );
         end
         
-        if sw.Warn.SizeMismatch && any(ixInvalid)
-            throw( ...
-                exception.Base('Dbase:EntrySizeMismatch', 'warning'), ...
-                list{ixInvalid} ...
-            );
+        if sw.Warn.SizeMismatch && any(inxOfInvalid)
+            throw( exception.Base('Dbase:EntrySizeMismatch', 'warning'), ...
+                   list{inxOfInvalid} );
         end
         
-        if sw.Warn.FreqMismatch && any(ixFreqMismatch)
-            throw( ...
-                exception.Base('Dbase:EntryFrequencyMismatch', 'warning'), ...
-                list{ixFreqMismatch} ...
-            );
+        if sw.Warn.FreqMismatch && any(inxOfFreqMismatch)
+            throw( exception.Base('Dbase:EntryFrequencyMismatch', 'warning'), ...
+                   list{inxOfFreqMismatch} );
         end
         
-        if sw.Warn.NonTseries && any(ixNonSeries)
-            throw( ...
-                exception.Base('Dbase:EntryNotSeries', 'warning'), ...
-                list{ixNonSeries} ...
-            );
+        if sw.Warn.NonTseries && any(inxOfNonSeries)
+            throw( exception.Base('Dbase:EntryNotSeries', 'warning'), ...
+                   list{inxOfNonSeries} );
         end
-    end
-end
+    end%
+end%

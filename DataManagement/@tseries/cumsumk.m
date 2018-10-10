@@ -68,24 +68,25 @@ function this = cumsumk(this, range, varargin)
 % with `x1 = cumsumk(x)`.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('tseries.cumsumk');
-    inputParser.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    inputParser.addRequired('Range', @DateWrapper.validateProperRangeInput);
-    inputParser.addParameter('K', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x)));
-    inputParser.addParameter('Rho', 1, @(x) isnumeric(x) && isscalar(x));
-    inputParser.addParameter('Log', false, @(x) islogical(x) && isscalar(x));
-    inputParser.addParameter('NaNInit', 0, @isnumeric);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('tseries.cumsumk');
+    parser.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
+    parser.addRequired('Range', @DateWrapper.validateProperRangeInput);
+    parser.addParameter('K', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x)));
+    parser.addParameter('Rho', 1, @(x) isnumeric(x) && isscalar(x));
+    parser.addParameter('Log', false, @(x) islogical(x) && isscalar(x));
+    parser.addParameter('NaNInit', 0, @isnumeric);
 end
-inputParser.parse(this, range, varargin{:});
-opt = inputParser.Options;
+parser.parse(this, range, varargin{:});
+opt = parser.Options;
 
 if isequal(opt.K, @auto)
-    opt.K = -max(1, DateWrapper.getFrequencyFromNumeric(this.Start));
+    freqOfInput = DateWrapper.getFrequencyAsNumeric(this.Start);
+    opt.K = -max(1, freqOfInput);
 end
 
 if opt.K==0
@@ -93,15 +94,15 @@ if opt.K==0
 end
 
 if ~isa(range, 'DateWrapper')
-    range = DateWrapper.fromDouble(range);
+    range = DateWrapper.fromDateCode(range);
 end
 
 %--------------------------------------------------------------------------
 
-start = getFirst(range);
+start = range(1);
 extendedStart = addTo(start, min(0, opt.K));
 extendedEnd = addTo(getLast(range), max(0, opt.K));
-[data, range] = getDataFromTo(this, extendedStart, extendedEnd);
+data = getDataFromTo(this, extendedStart, extendedEnd);
 
 sizeData = size(data);
 ndimsData = ndims(data);
