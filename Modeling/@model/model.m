@@ -193,7 +193,10 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
 
         % Affected  Logical array of equations affected by changes in parameters and steady-state values
         Affected = logical.empty(0)
+    end
 
+
+    properties (GetAccess=public, SetAccess=protected, Hidden)
         % Update  Temporary container for repeated updates of model solutions
         Update = model.EMPTY_UPDATE
     end
@@ -253,7 +256,7 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
                                'Solve', [ ], ...
                                'Steady', [ ], ...
                                'CheckSteady', [ ], ...
-                               'ThrowError', [ ] );
+                               'NoSolution', [ ] );
     end
     
     
@@ -364,6 +367,7 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         varargout = evalDtrends(varargin)
         varargout = expansionMatrices(varargin)
         varargout = getIthOmega(varargin)
+        varargout = getVariant(varargin)
         varargout = hdatainit(varargin)
         varargout = chkQty(varargin)
         varargout = kalmanFilter(varargin)        
@@ -411,14 +415,19 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         end%
 
 
-        function value = getp(this, prop)
-            value = this.(prop);
-        end
+        function value = getp(this, varargin)
+            value = this.(varargin{1});
+            varargin(1) = [ ];
+            while ~isempty(varargin)
+                value = value.(varargin{1});
+                varargin(1) = [ ];
+            end
+        end%
 
 
         function varargout = lookup(this, varargin)
             [varargout{1:nargout}] = lookup(this.Quantity, varargin{:});
-        end
+        end%
 
 
         function n = numel(varargin)
