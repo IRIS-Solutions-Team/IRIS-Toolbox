@@ -123,12 +123,12 @@ this.Update.PosOfStdCorr = posStdCorr;
 this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
 this.Update.CheckSteady = prepareChkSteady(this, 'silent', opt.ChkSstate);
 this.Update.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
-this.Update.ThrowError = true;
+this.Update.NoSolution = 'Error';
 
 % Call low-level diffloglik.
 [minusLogLik, grad, hess, v] = mydiffloglik(this, data, lik, opt);
 
-% Clean up even though the model objects is not returned
+% Clean up 
 this.Update = this.EMPTY_UPDATE;
 
 end
