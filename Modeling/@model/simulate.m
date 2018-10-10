@@ -288,7 +288,7 @@ if isempty(inputParser)
     inputParser.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
 end
 inputParser.parse(this, inputData, range);
-opt = parseSimulateOptions(this, varargin{:});
+[opt, legacyOpt] = parseSimulateOptions(this, varargin{:});
 
 range = range(1) : range(end);
 
@@ -299,11 +299,11 @@ end
 
 % Global (exact) nonlinear simulation of backward-looking models
 if strcmpi(opt.Method, 'global') || strcmpi(opt.Method, 'exact')
-    if isequal(opt.Solver, @auto)
-        opt.Solver = 'IRIS';
-    end
-    [opt.Solver, opt.PrepareGradient] = ...
-        solver.Options.processOptions(opt.Solver, 'Exact', opt.PrepareGradient, 'Verbose');
+    [ opt.Solver, ...
+      opt.PrepareGradient ] = solver.Options.parseOptions( opt.Solver, ...
+                                                           'Exact', ...
+                                                           opt.PrepareGradient, ...
+                                                           'Verbose' );
     [outputData, exitFlag]  = simulateNonlinear(this, inputData, range, @all, opt);
     outputData = appendData(this, inputData, outputData, range, opt);
     return
@@ -311,12 +311,11 @@ end
 
 % Stacked-time simulation
 if strcmpi(opt.Method, 'Stacked') || strcmpi(opt.Method, 'Period')
-    if isequal(opt.Solver, @auto)
-        opt.Solver = 'IRIS';
-    end
     [ opt.Solver, ...
-      opt.PrepareGradient ] = solver.Options.processOptions( opt.Solver, 'Stacked', ...
-                                                             opt.PrepareGradient, 'Verbose' );
+      opt.PrepareGradient ] = solver.Options.parseOptions( opt.Solver, ...
+                                                           'Stacked', ...
+                                                           opt.PrepareGradient, ...
+                                                           'Verbose' );
     [outputData, exitFlag] = simulateStacked(this, inputData, range, opt);
     outputData = addToDatabank('Default', this, outputData);
     return
@@ -366,7 +365,7 @@ end
 numOfInitDataSets = size(xbInit, 3);
 
 % Get shocks; both reals and imags are checked for NaNs within
-% datarequest(...).
+% datarequest( )
 if ~opt.IgnoreShocks
     eInp = datarequest('e', this, inputData, range);
     % Find the last anticipated shock to determine t+k for expansion.
@@ -413,7 +412,8 @@ exitFlag = cell(1, numRuns);
 finalAddf = cell(1, numRuns);
 finalDcy = cell(1, numRuns);
 
-s = prepareSimulate1(this, s, opt);
+displayMode = 'Verbose';
+s = prepareSimulate1(this, s, opt, displayMode, legacyOpt{:});
 s.IsSwap = isSwap;
 chkNonlinConflicts( );
 
@@ -425,10 +425,12 @@ else
     hData = hdataobj(this, extendedRange, ne+2, 'Contributions=', @shock);
 end
 
-if opt.Progress && strcmpi(opt.Method, 'FirstOrder')
-    s.progress = ProgressBar('IRIS model.simulate Progress');
-else
-    s.progress = [ ];
+s.progress = [ ];
+if opt.Progress
+    if strcmpi(opt.Method, 'FirstOrder') ...
+       || (strcmpi(opt.Method, 'Selective') && opt.Solver.Display==0)
+        s.progress = ProgressBar('IRIS model.simulate Progress');
+    end
 end
 
 % Prepare SystemProperty
@@ -521,7 +523,7 @@ for ithRun = 1 : numRuns
     % Beyond this point, only `s.y`, `s.xx`, `s.Ea` and `s.Eu` are used
     
     % Diagnostics output arguments for selective nonlinear simulations.
-    if isequal(s.Method, 'selective')
+    if strcmpi(s.Method, 'Selective')
         exitFlag{ithRun} = exit;
         finalDcy{ithRun} = dcy;
         finalAddf{ithRun} = addf;
@@ -531,7 +533,7 @@ for ithRun = 1 : numRuns
     assignOutp( );
     
     % Add equation labels to add-factor and discrepancy series.
-    if isequal(s.Method, 'selective') && nargout>2
+    if strcmpi(s.Method, 'Selective') && nargout>2
         label = s.Selective.EqtnLabelN;
         finalDcy{ithRun} = permute(finalDcy{ithRun}, [2, 1, 3]);
         finalDcy{ithRun} = TIME_SERIES_CONSTRUCTOR( range(1), finalDcy{ithRun}, label );
@@ -646,17 +648,16 @@ return
             'model:simulate:SystemPropertyFirstOrder', ...
             'Only first-order simulations are permitted as system property.' ...
         );
-    end 
+    end% 
 
 
     function chkNonlinConflicts( )
-        if isequal(s.Method, 'selective') ...
-                && lastEndgU>0 && lastEndgA>0
+        if strcmpi(s.Method, 'selective') && lastEndgU>0 && lastEndgA>0
             utils.error('model:simulate', ...
                 ['Cannot simulate(...) with option method=selective and ', ...
                 'both anticipated and unanticipated exogenized shocks.']);
         end
-    end 
+    end%
 
 
     function getData( )        
@@ -690,7 +691,7 @@ return
         end
         % Exogenous variables in dtrend equations.
         s.ExogenousData = G(:, :, min(ithRun, end));
-    end 
+    end%
 
 
     function getPlanData( )
