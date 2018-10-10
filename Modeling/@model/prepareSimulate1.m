@@ -1,11 +1,11 @@
-function s = prepareSimulate1(this, s, opt)
-% prepareSimulate1  Prepare loop-independent data.
+function s = prepareSimulate1(this, s, opt, displayMode, varargin)
+% prepareSimulate1  Prepare loop-independent data
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -21,10 +21,7 @@ nEqtn = length(this.Equation);
 ixu = any(this.Equation.Type==TYPE(5));
 ixh = this.Equation.IxHash;
 
-s.Method = lower(opt.Method);
-
-s.Solver = lower(opt.Solver);
-s.Display = lower(opt.Display);
+s.Method = opt.Method;
 s.IsDeviation = opt.Deviation;
 s.IsAddSstate = opt.AddSteady;
 s.IsContributions = opt.Contributions;
@@ -52,7 +49,7 @@ if s.IsDeterministicTrends
 end
 
 s.NPerNonlin = 0;
-if isequal(s.Method, 'selective')
+if strcmpi(s.Method, 'Selective')
     if any(ixh)
         s.NPerNonlin = opt.NonlinWindow;
         if isequal(s.NPerNonlin, @all)
@@ -60,24 +57,21 @@ if isequal(s.Method, 'selective')
         end
         s.ZerothSegment = 0;
         if s.NPerNonlin==0
-            s.Method = 'firstorder';
+            s.Method = 'FirstOrder';
         end
     else
         utils.warning('model:prepareSimulate1', ...
             ['No nonlinear equations marked in the model file. ', ...
             'Switching to first-order simulation.']);
-        s.Method = 'firstorder';
+        s.Method = 'FirstOrder';
     end
 end
 
 s.RequiredForward = max([1, s.LastEa, s.LastEndgA, s.NPerNonlin]) - 1;
 
-if isequal(s.Method, 'selective')
+if strcmpi(s.Method, 'Selective')
     s.Selective = struct( );
     s.Selective.IxHash = ixh;
-    s.Selective.Tolerance = opt.Tolerance;
-    s.Selective.MaxIter = opt.MaxIter;
-    s.Selective.Lambda = opt.Lambda;
     s.Selective.UpperBnd = opt.UpperBound;
     s.Selective.IsFillOut = opt.FillOut;
     s.Selective.ReduceLmb = opt.ReduceLambda;
@@ -86,29 +80,14 @@ if isequal(s.Method, 'selective')
     s.Selective.EqtnLabelN = label(ixh);
         
     prepareHashEquations( );
-    
-    if isequal(s.Solver, @auto) || ( ischar(s.Solver) && strcmpi(s.Solver, 'qad') )
-        s.Solver = @qad;
-    end
-    s.Display = s.Display;
-    if isequal(s.Solver, @qad)
-        if isequal(s.Display, 'off') || isequal(s.Display, 'on')        
-            s.Display = 0;
-        elseif isequal(s.Display, @auto) || ~isnumericscalar(s.Display)
-            s.Display = 100;
-        end
-    else
-        if isequal(s.Display, @auto)
-            s.Display = 'iter';
-        end
-        prepareGradient = false;
-        displayMode = 'verbose';
-        opt.Solver = solver.Options.processOptions( opt.Solver, ...
-                                                    'Selective', ...
-                                                    prepareGradient, ...
-                                                    displayMode );
-    end
-    s.Selective.Display = s.Display;
+
+    context = 'Selective';
+    prepareGradient = false;
+    s.Solver = solver.Options.parseOptions( opt.Solver, ...
+                                            context, ...
+                                            prepareGradient, ...
+                                            displayMode, ...
+                                            varargin{:} );
     % Positions of variables in [y;xx] vector that occur in nonlinear
     % equations. These will be combined with positions of exogenized variables
     % in each segment.
@@ -127,10 +106,8 @@ if isequal(s.Method, 'selective')
     s.Selective.NShanks = opt.NShanks;
     
     for ii = find(ixh)
-        s.Selective.EqtnNI{ii} = [ ...
-            model.PREAMBLE_HASH, ...
-            s.Selective.EqtnNI{ii} ...
-            ];
+        s.Selective.EqtnNI{ii} = [ model.PREAMBLE_HASH, ...
+                                   s.Selective.EqtnNI{ii} ];
         s.Selective.EqtnNI{ii} = str2func(s.Selective.EqtnNI{ii});
     end
 end
