@@ -117,12 +117,10 @@ function varargout = band(varargin)
 [Ax,Rng,X,Lo,Hi,PlotSpec,varargin] = ...
     irisinp.parser.parse('tseries.band',varargin{:});
 [bandOpt,varargin] = passvalopt('tseries.band',varargin{:});
-[plotOpt,varargin] = passvalopt('tseries.plot',varargin{:});
 
 %--------------------------------------------------------------------------
 
-[ax,h,range,cData,xCoor] = ...
-    tseries.myplot(@plot,Ax,Rng,[ ],X,PlotSpec,plotOpt,varargin{:});
+[ax,h,range,cData,xCoor] = tseries.myplot(@plot,Ax,Rng,[ ],X,PlotSpec,varargin{:});
 
 loData = rangedata(Lo,range);
 hiData = rangedata(Hi,range);

@@ -55,11 +55,9 @@ function varargout = scatter(varargin)
 % TODO: Add help on date format related options.
 
 [Ax,Rng,X,PlotSpec,varargin] = irisinp.parser.parse('tseries.plot',varargin{:});
-[opt,varargin] = passvalopt('tseries.plot',varargin{:});
 
 %--------------------------------------------------------------------------
 
-[~,varargout{1:nargout}] = ...
-    tseries.myplot(@scatter,Ax,Rng,[ ],X,PlotSpec,opt,varargin{:});
+[~,varargout{1:nargout}] = tseries.myplot(@scatter,Ax,Rng,[ ],X,PlotSpec,varargin{:});
 
-end
+end%

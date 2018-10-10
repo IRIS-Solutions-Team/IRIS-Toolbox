@@ -1,5 +1,5 @@
-function [hAx, hPlot, rng, data, xCoor, usrRng, freq] ...
-    = myplot(func, hAx, rng, comprise, this, plotSpec, opt, varargin)
+function [ axesHandle, hPlot, inputRange, data, ...
+           xCoor, usrRng, freq ] = myplot(plotFunc, axesHandle, inputRange, comprise, this, plotSpec, varargin)
 % myplot  Master plot function for tseries objects
 %
 % Backend IRIS function
@@ -11,17 +11,29 @@ function [hAx, hPlot, rng, data, xCoor, usrRng, freq] ...
 % If the caller supplies empty `Func`, the graph will not be actually
 % rendered. This is a dry call to `myplot` used from within `plotyy`.
 
-usrRng = rng;
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('tseries.myplot');
+    parser.KeepUnmatched = true;
+    parser.addPlotOptions( );
+    parser.addDateOptions( );
+end
+parser.parse(varargin{:});
+opt = parser.Options;
+varargin = parser.UnmatchedInCell;
+usrRng = inputRange;
+
+%--------------------------------------------------------------------------
 
 % Resize input time series to input range if needed.
-if ~isequal(rng, Inf) && ~isequal(rng, @all) && ~isnan(this.Start)
-    rng = rng(:).';    
-    if ~all( freqcmp(this, rng) )
+if ~isequal(inputRange, Inf) && ~isequal(inputRange, @all) && ~isnan(this.Start)
+    inputRange = inputRange(:).';    
+    if ~all( freqcmp(this, inputRange) )
         utils.error('tseries:myplot', ...
             ['Date frequency mismatch between ', ...
             'input range and input time series.']);
     end
-    this = resize(this, rng);
+    this = resize(this, inputRange);
 end
 
 if isempty(plotSpec)
@@ -30,14 +42,12 @@ elseif ischar(plotSpec)
     plotSpec = { plotSpec };
 end
 
-%--------------------------------------------------------------------------
-
 this.data = this.data(:, :);
 [~, nx] = size(this.data);
-rng = specrange(this, rng);
+inputRange = specrange(this, inputRange);
 
 hPlot = [ ];
-if isempty(rng)
+if isempty(inputRange)
     data = this.data([ ], :);
     xCoor = double.empty(1, 0);
     utils.warning('tseries:myplot', ...
@@ -45,59 +55,59 @@ if isempty(rng)
     return
 end
 
-freq = DateWrapper.getFrequencyFromNumeric( rng(1) );
+freq = DateWrapper.getFrequencyAsNumeric( inputRange(1) );
 
-if ~isempty(func) && isa(hAx, 'function_handle')
-    hAx = hAx( );
+if ~isempty(plotFunc) && isa(axesHandle, 'function_handle')
+    axesHandle = axesHandle( );
 end
 
 % If hold==on, make sure the new range comprises thes existing dates if
-% the existing graph is a tseries graph.
-if ~isempty(func) ...
-        && ~isempty(rng) && strcmp(get(hAx, 'nextPlot'), 'add') ...
-        && isequal(getappdata(hAx, 'IRIS_SERIES'), true)
-    oldFreq = getappdata(hAx, 'IRIS_FREQ');
-    if (oldFreq==365 && freq ~= 365) ...
-            || (oldFreq ~= 365 && freq==365)
+% the existing graph is a tseries graph
+if ~isempty(plotFunc) ...
+        && ~isempty(inputRange) && strcmp(get(axesHandle, 'nextPlot'), 'add') ...
+        && isequal(getappdata(axesHandle, 'IRIS_SERIES'), true)
+    oldFreq = getappdata(axesHandle, 'IRIS_FREQ');
+    if (oldFreq==365 && freq~=365) ...
+       || (oldFreq~=365 && freq==365)
         utils.error('tseries:myplot', ...
             'Cannot combined daily and non-daily tseries in one graph.');
     end
     % Original x-axis limits.
-    if isequal(getappdata(hAx, 'IRIS_XLIM_ADJUST'), true)
-        xLim0 = getappdata(hAx, 'IRIS_TRUE_XLIM');
+    if isequal(getappdata(axesHandle, 'IRIS_XLIM_ADJUST'), true)
+        xLim0 = getappdata(axesHandle, 'IRIS_TRUE_XLIM');
     else
-        xLim0 = get(hAx, 'xLim');
+        xLim0 = get(axesHandle, 'xLim');
     end
-    rng = mergeRange(rng([1, end]), xLim0);
+    inputRange = mergeRange(inputRange([1, end]), xLim0);
 end
 
 % Make sure the new range and `UsrRng` both comprise the `Comprise`
 % dates; this is used in `plotyy`.
 if ~isempty(comprise)
-    rng = mergeRange(rng, comprise);
+    inputRange = mergeRange(inputRange, comprise);
     if ~isequal(usrRng, Inf)
         usrRng = mergeRange(usrRng, comprise);
     end
 end
 
-data = mygetdata(this, rng);
-xCoor = dat2dec(rng, opt.DatePosition);
+data = mygetdata(this, inputRange);
+xCoor = dat2dec(inputRange, opt.DatePosition);
 
-if isempty(func)
+if isempty(plotFunc)
     return
 end
 
 % Do the actual plot.
-set(hAx, 'xTickMode', 'auto', 'xTickLabelMode', 'auto');
+set(axesHandle, 'xTickMode', 'auto', 'xTickLabelMode', 'auto');
 [hPlot, isTimeAxis] = callPlotFunc( );
 
-isBar = isequal(func, @bar) ...
-    || isequal(func, @barcon) ...
-    || isequal(func, @numeric.barcon);
+isBar = isequal(plotFunc, @bar) ...
+    || isequal(plotFunc, @barcon) ...
+    || isequal(plotFunc, @numeric.barcon);
 
-if isequal(opt.xlimmargin, true) || (isequal(opt.xlimmargin, @auto) && isBar)
-    setappdata(hAx, 'IRIS_XLIM_ADJUST', true);
-    peer = getappdata(hAx, 'graphicsPlotyyPeer');
+if isequal(opt.XLimMargin, true) || (isequal(opt.XLimMargin, @auto) && isBar)
+    setappdata(axesHandle, 'IRIS_XLIM_ADJUST', true);
+    peer = getappdata(axesHandle, 'graphicsPlotyyPeer');
     if ~isempty(peer)
         setappdata(peer, 'IRIS_XLIM_ADJUST', true);
     end
@@ -114,21 +124,21 @@ end
 % Set up the x-axis with proper dates. Do not do this if `time` is NaN, 
 % which happens with empty tseries.
 if isTimeAxis && ~isTimeNan
-    setappdata(hAx, 'IRIS_SERIES', true);
-    setappdata(hAx, 'IRIS_FREQ', freq);
-    setappdata(hAx, 'IRIS_RANGE', rng);
-    setappdata(hAx, 'IRIS_DATE_POSITION', opt.DatePosition);
-    mydatxtick(hAx, rng, xCoor, freq, usrRng, opt);
+    setappdata(axesHandle, 'IRIS_SERIES', true);
+    setappdata(axesHandle, 'IRIS_FREQ', freq);
+    setappdata(axesHandle, 'IRIS_RANGE', inputRange);
+    setappdata(axesHandle, 'IRIS_DATE_POSITION', opt.DatePosition);
+    mydatxtick(axesHandle, inputRange, xCoor, freq, usrRng, opt);
 end
 
 % Perform user supplied function.
-if ~isempty(opt.function)
-    opt.function(hPlot);
+if ~isempty(opt.Function)
+    opt.Function(hPlot);
 end
 
 % Make the y-axis tight.
-if opt.tight
-    grfun.yaxistight(hAx);
+if opt.Tight
+    grfun.yaxistight(axesHandle);
 end
 
 % Datatip cursor
@@ -136,7 +146,7 @@ end
 % Store the dates within each plotted object for later retrieval by
 % datatip cursor.
 for ih = hPlot(:).'
-    setappdata(ih, 'IRIS_DATELINE', rng);
+    setappdata(ih, 'IRIS_DATELINE', inputRange);
 end
 
 if true % ##### MOSW
@@ -174,18 +184,18 @@ return
 
 
     function [h, isTimeAxis] = callPlotFunc( )
-        stringPlotFunc = func;
+        stringPlotFunc = plotFunc;
         if isfunc(stringPlotFunc)
             stringPlotFunc = func2str(stringPlotFunc);
         end
         switch stringPlotFunc
             case {'scatter'}
                 if nx==2
-                    h = scatter(hAx, data(:, 1), data(:, 2), plotSpec{:});
+                    h = scatter(axesHandle, data(:, 1), data(:, 2), plotSpec{:});
                 elseif nx==3
-                    h = scatter(hAx, data(:, 1), data(:, 2), data(:, 3), plotSpec{:});
+                    h = scatter(axesHandle, data(:, 1), data(:, 2), data(:, 3), plotSpec{:});
                 elseif nx==4
-                    h = scatter(hAx, data(:, 1), data(:, 2), data(:, 3), data(:, 4), plotSpec{:});
+                    h = scatter(axesHandle, data(:, 1), data(:, 2), data(:, 3), data(:, 4), plotSpec{:});
                 else
                     utils.error('tseries:myplot', ...
                         ['Scatter plot input data must have ', ...
@@ -196,16 +206,16 @@ return
                 end
                 isTimeAxis = false;
             case {'histogram'}
-                h = histogram(hAx, data, plotSpec{:});
+                h = histogram(axesHandle, data, plotSpec{:});
                 isTimeAxis = false;
             case {'barcon', 'numeric.barcon'}
                 % Do not pass `plotspecs` but do pass user options.
-                % h = tseries.mybarcon(hAx, xCoor, data, varargin{:});
-                h = numeric.barcon(hAx, xCoor, data, varargin{:});
+                % h = tseries.mybarcon(axesHandle, xCoor, data, varargin{:});
+                h = numeric.barcon(axesHandle, xCoor, data, varargin{:});
                 isTimeAxis = true;
             otherwise
                 DataInf = grfun.myreplacenancols(data, Inf);
-                h = feval(func, hAx, xCoor, DataInf, plotSpec{:});
+                h = feval(plotFunc, axesHandle, xCoor, DataInf, plotSpec{:});
                 if ~isempty(varargin)
                     set(h, varargin{:});
                 end

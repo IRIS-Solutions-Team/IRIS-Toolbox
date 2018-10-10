@@ -99,12 +99,10 @@ function [H1,H2,Range,Data] = errorbar(varargin)
 [Ax,Range,X,Lo,Hi,PlotSpec,varargin] = ...
     irisinp.parser.parse('tseries.errorbar',varargin{:});
 [errorbarOpt,varargin] = passvalopt('tseries.errorbar',varargin{:});
-[plotOpt,varargin] = passvalopt('tseries.plot',varargin{:});
 
 %--------------------------------------------------------------------------
 
-[~,H1,Range,Data,time] = ...
-    tseries.myplot(@plot,Ax,Range,[ ],X,PlotSpec,plotOpt,varargin{:});
+[~,H1,Range,Data,time] = tseries.myplot(@plot,Ax,Range,[ ],X,PlotSpec,varargin{:});
 
 status = get(gca( ),'nextPlot');
 set(gca( ),'nextPlot','add');

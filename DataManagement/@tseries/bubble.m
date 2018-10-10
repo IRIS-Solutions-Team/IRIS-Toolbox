@@ -54,7 +54,6 @@ function [h1, h2, range] = bubble(varargin)
 % AREA, BAND, BAR, BARCON, BUBBLE, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM
 
 [ax, range, this, plotSpec, varargin] = irisinp.parser.parse('tseries.plot', varargin{:});
-[opt, varargin] = passvalopt('tseries.plot', varargin{:}); %#ok<ASGLU>
 
 % Store current `hold` settings.
 fig = get(ax, 'parent');
