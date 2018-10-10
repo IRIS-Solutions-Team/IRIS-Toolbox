@@ -193,9 +193,13 @@ classdef (CaseInsensitiveProperties=true) Options
                                                               displayMode, ...
                                                               varargin )
 
+            % Resolve solverOpt=@auto depending on context
+            if isequal(solverOpt, @auto)
+                solverOpt = resolveAutoSolver(solverOpt, context);
+            end
             
-            if isa(solverOpt, 'optim.options.SolverOptions') ...
-                    || isa(solverOpt, 'solver.Options')
+            if isa(solverOpt, 'optim.options.SolverOptions') || ...
+               isa(solverOpt, 'solver.Options')
                 % Options object already prepared
                 % Solver= optimoptions( )
                 % Solver= solver.Options( )
@@ -215,7 +219,7 @@ classdef (CaseInsensitiveProperties=true) Options
                     userOpt = varargin;
                 end
                 solverOpt = solver.Options( solverName, ...
-                                            'Context', context, ...
+                                            'Context=', context, ...
                                             'DisplayMode=', displayMode, ...
                                             userOpt{:} );
                 
@@ -234,6 +238,23 @@ end
 %
 % Local functions
 %
+
+
+function solverOpt = resolveAutoSolver(solverOpt, context)
+    if strcmpi(context, 'Steady')
+        solverOpt = 'IRIS-qnsd';
+    elseif strcmpi(context, 'Exact')
+        solverOpt = 'IRIS-qnsd';
+    elseif strcmpi(context, 'Stacked')
+        solverOpt = 'IRIS-newton';
+    elseif strcmpi(context, 'Selective')
+        solverOpt = 'IRIS-qad';
+    else
+        solverOpt = 'IRIS-qnsd';
+    end
+end%
+
+
 
 
 function solverOpt = parseOptimTbx(solverOpt, context, displayMode, varargin)
