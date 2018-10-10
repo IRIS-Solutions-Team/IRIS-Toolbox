@@ -14,24 +14,7 @@ classdef Frequency < double
     methods
         function this = Frequency(varargin)
             this = this@double(varargin{:});
-        end
-
-
-        function displayName = getDisplayName(this)
-            assert( ...
-                numel(this)==1, ...
-                'Frequency:getDisplayName', ...
-                'Method Frequency.getDisplayName requires scalar input.' ...
-            );
-            if this==Frequency.HALFYEARLY
-                displayName = 'HalfYearly';
-            elseif isnan(this)
-                displayName = 'NaF';
-            else
-                displayName = char(this);
-                displayName(2:end) = lower(displayName(2:end));
-            end
-        end
+        end%
 
 
         function d = getCalendarDuration(this)
@@ -213,11 +196,10 @@ classdef Frequency < double
             if nargin<3
                 position = 'Start';
             end
-            assert( ...
-                any(strncmpi(position, {'s', 'm', 'e'}, 1)), ...
-                'Frequency:serial2ymd', ...
-                'Invalid within-period position for Date conversion.' ...
-            );
+            if ~any(strncmpi(position, {'s', 'm', 'e'}, 1))
+                error( 'Frequency:serial2ymd', ...
+                       'Invalid within-period position for Date conversion.' );
+            end
             position = lower(position);
             switch this
             case Frequency.YEARLY
@@ -336,7 +318,8 @@ classdef Frequency < double
             month = zeros(size(serial));
             day = zeros(size(serial));
             indexInf = isinf(serial);
-            [year(~indexInf), month(~indexInf), day(~indexInf)] = serial2ymd(this, serial(~indexInf), varargin{:});
+            [year(~indexInf), month(~indexInf), day(~indexInf)] = ...
+                serial2ymd(this, serial(~indexInf), varargin{:});
             if this==Frequency.WEEKLY
                 day(~indexInf) = day(~indexInf) - 3; % Return Monday, not Thursday, for display
             end
@@ -402,13 +385,34 @@ classdef Frequency < double
 
             lowStartSerial = uniqueLowRangeSerial(1);
             lowEndSerial = uniqueLowRangeSerial(end);
-        end
+        end%
+
+
+        function c = cellstr(this)
+            c = arrayfun(@(x) char(x), this, 'UniformOutput', false);
+        end%
     end
 
 
 
 
     methods (Static)
+        function c = toChar(freq)
+            if ~isa(freq, 'Frequency')
+                freq = Frequency(freq);
+            end
+            c = char(freq);
+        end%
+
+
+        function c = toCellstr(freq)
+            if ~isa(freq, 'Frequency')
+                freq = Frequency(freq);
+            end
+            c = cellstr(freq);
+        end%
+
+
         function sh = shiftToThursday(dailySerial)
             sh = zeros(size(dailySerial));
             dayOfWeek = weekday(dailySerial);
@@ -419,7 +423,7 @@ classdef Frequency < double
             sh(dayOfWeek==5) = +0; % Thursday
             sh(dayOfWeek==6) = -1; % Friday
             sh(dayOfWeek==7) = -2; % Saturday
-        end
+        end%
 
 
         function day = firstThursdayOfYear(year)
@@ -441,12 +445,12 @@ classdef Frequency < double
             offset(ixFri) = 6;
             offset(ixSat) = 5;
             day = 1 + offset;
-        end
+        end%
 
 
         function x = empty(varargin)
             x = repmat(Frequency.NaF, varargin{:});
-        end
+        end%
 
 
         function this = fromString(string)
@@ -466,7 +470,31 @@ classdef Frequency < double
                 otherwise
                     this = Frequency.NaF;
             end
-        end
+        end%
+
+
+        function flag = validateFrequency(input)
+            if isa(input, 'Frequency')
+                flag = true;
+                return
+            end
+            if isnumeric(input)
+                try
+                    Frequency(input);
+                    flag = true;
+                    return
+                catch
+                    flag = false;
+                    return
+                end
+            end
+            flag = false;
+        end%
+
+
+        function flag = validateProperFrequency(input)
+            flag = Frequency.validateFrequency(input) && ~isnan(input);
+        end%
     end
 end
 
