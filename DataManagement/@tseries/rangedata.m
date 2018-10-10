@@ -65,55 +65,48 @@ if isnan(start) || isempty(data)
     return
 end
 
-numColumns = prod(sizeData(2:end));
+numOfColumns = prod(sizeData(2:end));
 
-f1 = DateWrapper.getFrequencyFromNumeric(start);
-f2 = DateWrapper.getFrequencyFromNumeric(range);
+f1 = DateWrapper.getFrequencyAsNumeric(start);
+f2 = DateWrapper.getFrequencyAsNumeric(range);
 if ~isequal(range, Inf) && any(f2~=f1)
-    f = unique([f1, f2], 'stable');
-    lsFreq = DateWrapper.printFreqName(f);
-    temp = sprintf('%s x ', lsFreq{:});
-    temp(end-2:end) = '';
-    throw( ...
-        exception.Base('Series:FrequencyMismatch', 'error'), ...
-        temp ...
-        ); %#ok<GTARG>
+    cellstrOfFreq = cellstr( unique([f1, f2], 'stable') );
+    throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
+           cellstrOfFreq{:} );
 end
 
-%startRange = getFirst(range);
-%endRange = getLast(range);
-startRange = range(1);
-endRange = range(end);
+rangeFirst = range(1);
+rangeLast = range(end);
 
-if isinf(startRange)
+if isinf(rangeFirst)
     % Range is Inf or [-Inf, ...].
     posStart = 1; 
 else
-    posStart = double(startRange) - double(start) + 1; 
+    posStart = double(rangeFirst) - double(start) + 1; 
     posStart = round(posStart);
 end
 
 
-if isinf(endRange)
+if isinf(rangeLast)
     % Range is Inf or [..., Inf].
     posEnd = sizeData(1);
 else
-    posEnd = double(endRange) - double(start) + 1;
+    posEnd = double(rangeLast) - double(start) + 1;
     posEnd = round(posEnd);
 end
 
 if posStart>posEnd
-    x = nan(0, numColumns);
+    x = nan(0, numOfColumns);
 elseif posStart>=1 && posEnd<=sizeData(1)
     x = this.Data(posStart:posEnd, :);
 elseif (posStart<1 && posEnd<1) || (posStart>sizeData(1) && posEnd>sizeData(1))
-    x = nan(posEnd-posStart+1, numColumns);
+    x = nan(posEnd-posStart+1, numOfColumns);
 elseif posStart>=1
-    x = [ data(posStart:end, :); nan(posEnd-sizeData(1), numColumns) ];
+    x = [ data(posStart:end, :); nan(posEnd-sizeData(1), numOfColumns) ];
 elseif posEnd<=sizeData(1)
-    x = [ nan(1-posStart, numColumns); data(1:posEnd, :) ];
+    x = [ nan(1-posStart, numOfColumns); data(1:posEnd, :) ];
 else
-    x = [ nan(1-posStart, numColumns); data(:, :); nan(posEnd-sizeData(1), numColumns) ];
+    x = [ nan(1-posStart, numOfColumns); data(:, :); nan(posEnd-sizeData(1), numOfColumns) ];
 end
 
 if length(sizeData)>2
