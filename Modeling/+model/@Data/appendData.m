@@ -49,9 +49,16 @@ else
     post = false;
 end
 
-freq = round(getFrequency(range(1)));
-serialRangeStart = round(range(1));
-serialRangeEnd = round(range(end));
+if isa(range, 'DateWrapper')
+    startOfRange = getFirst(range);
+    endOfRange = getLast(range);
+else
+    startOfRange = range(1);
+    endOfRange = range(end);
+end
+freq = round(DateWrapper.getFrequencyAsNumeric(startOfRange));
+serialRangeStart = DateWrapper.getSerial(startOfRange);
+serialRangeEnd = DateWrapper.getSerial(endOfRange);
 
 list = this.NamesAppendable;
 for i = 1 : numel(list)
