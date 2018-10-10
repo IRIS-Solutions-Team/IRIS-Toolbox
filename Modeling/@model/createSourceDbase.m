@@ -4,8 +4,8 @@ function outputDatabank = createSourceDbase(this, range, varargin)
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
@@ -92,7 +92,7 @@ if numColumnsToCreate>1 && nv==1
     X = repmat(X, 1, 1, numColumnsToCreate);
 end
 
-% Measurement variables, transition, exogenous variables.
+% Transition variables, exogenous variables
 for i = find(ixx | ixg)
     name = this.Quantity.Name{i};
     outputDatabank.(name) = replace( TEMPLATE_SERIES, ...
@@ -102,24 +102,24 @@ for i = find(ixx | ixg)
 end
 
 % Do not include pre-sample or post-sample in measurement variables and
-% shocks.
+% shocks
 for i = find(ixy | ixe)
     name = this.Quantity.Name{i};
-    %x = X(i, 1-minSh:end-maxSh, :);
-    x = X(i, :, :);
+    x = X(i, 1-minSh:end-maxSh, :);
     outputDatabank.(name) = replace( TEMPLATE_SERIES, ...
                                      permute(x, [2, 3, 1]), ...
-                                     extendedStart, ...
+                                     start, ...
                                      label{i} );
 end
 
 % Generate random residuals if requested
 if ~isequal(opt.shockfunc, @zeros)
-    outputDatabank = shockdb(this, outputDatabank, range, numColumnsToCreate, 'shockFunc=', opt.shockfunc);
+    outputDatabank = shockdb( this, outputDatabank, range, numColumnsToCreate, ...
+                              'shockFunc=', opt.shockfunc );
 end
 
 % Add parameters.
-outputDatabank = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, outputDatabank);
+outputDatabank = addToDatabank( {'Parameters', 'Std', 'NonzeroCorr'}, this, outputDatabank);
 
 % Add LHS names from reporting equations.
 nameLhs = this.Reporting.NameLhs;
