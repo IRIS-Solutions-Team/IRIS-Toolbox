@@ -3,13 +3,14 @@ classdef Wrapper < handle
         DisplayName(1, 1) string = ""
     end
 
+
     properties (SetAccess=protected)
         StartDate(1, 1) DateWrapper = DateWrapper.NaD
         EndDate(1, 1) DateWrapper = DateWrapper.NaD
         Names(1, :) string = string.empty(1, 0)
 
-        IndexOfEndogenizable(1, :) logical = logical.empty(1, 0)
-        IndexOfExogenizable(1, :) logical = logical.empty(1, 0)
+        InxOfEndogenizable(1, :) logical = logical.empty(1, 0)
+        InxOfExogenizable(1, :) logical = logical.empty(1, 0)
 
         Frames(1, :) scenario.Frames = scenario.Frames.empty(1, 0)
     end
@@ -23,6 +24,8 @@ classdef Wrapper < handle
         NumOfExogenized
         NumOfEndogenized
         Determinacy
+        NamesOfEndogenous
+        NamesOfExogenous
     end
 
 
@@ -32,15 +35,15 @@ classdef Wrapper < handle
                 return
             end
 
-            persistent inputParser
-            if isempty(inputParser)
-                inputParser = extend.InputParser('scenario.Wrapper');
-                inputParser.addRequired('Model', @(x) isa(x, 'model'));
-                inputParser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
-                inputParser.addOptional('EndDate', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x));
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('scenario.Wrapper');
+                parser.addRequired('Model', @(x) isa(x, 'model'));
+                parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
+                parser.addOptional('EndDate', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x));
             end
-            inputParser.parse(model, simulationRange, varargin{:});
-            endDate = inputParser.EndDate;
+            parser.parse(model, simulationRange, varargin{:});
+            endDate = parser.EndDate;
             if isequal(endDate, @auto)
                 startDate = simulationRange(1);
                 endDate = simulationRange(end);
@@ -51,8 +54,8 @@ classdef Wrapper < handle
             this.Names = string( get(model, 'Names') );
             this.StartDate = startDate;
             this.EndDate = endDate;
-            this.IndexOfExogenizable = get(model, 'CanBeExogenized:Simulate');
-            this.IndexOfEndogenizable = get(model, 'CanBeEndogenized:Simulate');
+            this.InxOfExogenizable = get(model, 'CanBeExogenized:Simulate');
+            this.InxOfEndogenizable = get(model, 'CanBeEndogenized:Simulate');
             this.Frames = scenario.Frames(this.NumOfNames, this.NumOfPeriods);
         end%
 
@@ -60,29 +63,38 @@ classdef Wrapper < handle
         function exogenize(this, names, varargin)
             [posNames, posFromDate, posToDate, posFromFrame, posToFrame] = ...
                 getPositions(this, names, varargin{:});
-            indexOfValidNames = this.IndexOfExogenizable(posNames);
-            if any(~indexOfValidNames)
+            inxOfValidNames = this.InxOfExogenizable(posNames);
+            if any(~inxOfValidNames)
                 throw( exception.Base('Scenario:Wrapper:CannotExogenizeName', 'error'), ...
-                       errornames{~indexOfValidNames} );
+                       errornames{~inxOfValidNames} );
             end
-            exogenize(this.Frames, posNames, posFromDate, posToDate, posFromFrame, posToFrame);
+            % Call scenario.Frames
+            exogenize( this.Frames, posNames, ...
+                       posFromDate, posToDate, ...
+                       posFromFrame, posToFrame );
         end%
 
 
         function endogenize(this, names, varargin)
             [posNames, posFromDate, posToDate, posFromFrame, posToFrame] = ...
                 getPositions(this, names, varargin{:});
-            indexOfValidNames = this.IndexOfEndogenizable(posNames);
-            if any(~indexOfValidNames)
+            inxOfValidNames = this.InxOfEndogenizable(posNames);
+            if any(~inxOfValidNames)
                 throw( exception.Base('Scenario:Wrapper:CannotEndogenizeName', 'error'), ...
-                       names{~indexOfValidNames} );
+                       names{~inxOfValidNames} );
             end
-            endogenize(this.Frames, posNames, posFromDate, posToDate, posFromFrame, posToFrame);
+            % Call scenario.Frames
+            endogenize( this.Frames, posNames, ...
+                        posFromDate, posToDate, ...
+                        posFromFrame, posToFrame );
         end%
 
 
-        function [posNames, posFromDate, posToDate, posFromFrame, posToFrame] = ...
-            getPositions(this, names, fromDate, toDate, fromFrame, toFrame)
+        function [ posNames, ...
+                   posFromDate, posToDate, ...
+                   posFromFrame, posToFrame ] = getPositions( this, names, ...
+                                                              fromDate, toDate, ...
+                                                              fromFrame, toFrame )
             numPeriods = this.NumOfPeriods;
             posNames = getPosOfNames(this, names); 
             posFromDate = getDatePosition(this, fromDate);
@@ -105,20 +117,18 @@ classdef Wrapper < handle
                 pos = 1;
             elseif isequal(date, Inf) || strcmpi(date, "End")
                 pos = this.NumOfPeriods;
-            elseif isa(date, 'DateWrapper')
-                pos = rnglen(this.StartDate, date);
-            elseif isnumeric(date) && isscalar(date) && date==round(date)
-                pos = date;
+            else
+                pos = numeric.rnglen(this.StartDate, date);
             end
         end%
 
 
         function pos = getPosOfNames(this, names)
             [~, pos] = ismember(names, this.Names);
-            indexOfValidNames= pos>0;
-            if any(~indexOfValidNames)
+            inxOfValidNames = pos>0;
+            if any(~inxOfValidNames)
                 throw( exception.Base('Scenario:Wrapper:NameNotFound', 'error'), ...
-                       names{~indexOfValidNames} );
+                       names{~inxOfValidNames} );
             end
         end%
     end
@@ -158,5 +168,16 @@ classdef Wrapper < handle
         function determinacy = get.Determinacy(this)
             determinacy = this.Frames.Determinacy;
         end%
+
+
+        function names = get.NamesOfEndogenous(this)
+            names = this.Names(this.InxOfExogenizable);
+        end%
+
+
+        function names = get.NamesOfExogenous(this)
+            names = this.Names(this.InxOfEndogenizable);
+        end%
     end
 end
+
