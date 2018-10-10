@@ -34,18 +34,17 @@
 %
 % __Properties Directly Accessible__
 %
-%   Data - -  Numeric array of time series data
-%   Start - -  Date of first observation available 
-%   End - tseries/Enda property
-%   Range - tseries/Rangea property
-%   Frequency - tseries/Frequencya property
+%   Data - Numeric array of time series data
+%   Start - Date of first observation available 
+%   End - 
+%   Range - 
+%   Frequency - 
 %   MissingValue - Representation of missing value
 %   MissingTest - Test for missing values
 %
 %
 % __Getting Information about Time Series__
 %
-%   freq - Date frequency of tseries object
 %   get - Query tseries object property
 %   isequal - Compare two tseries objects
 %   length - Length of time series data in time dimension
@@ -234,56 +233,55 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 return
             end
 
-            persistent inputParser
-            if isempty(inputParser)
-                inputParser = extend.InputParser('tseries.tseries');
-                inputParser.addRequired('Dates', @(x) isa(x, 'DateWrapper') || (isnumeric(x) && all(x==round(x) | isnan(x))) || ischar(x) || isa(x, 'string'));
-                inputParser.addRequired('Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle'));
-                inputParser.addOptional('ColumnComments', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-                inputParser.addOptional('UserData', [ ], @(x) true);
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('tseries.tseries');
+                parser.addRequired('Dates', @(x) isa(x, 'DateWrapper') || (isnumeric(x) && all(x==round(x) | isnan(x))) || ischar(x) || isa(x, 'string'));
+                parser.addRequired('Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle'));
+                parser.addOptional('ColumnComments', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+                parser.addOptional('UserData', [ ], @(x) true);
             end
 
-            inputParser.parse(varargin{:});
-            dates = inputParser.Results.Dates;
-            values = inputParser.Results.Values;
-            columnNames = inputParser.Results.ColumnComments;
-            userData = inputParser.Results.UserData;
+            parser.parse(varargin{:});
+            dates = parser.Results.Dates;
+            values = parser.Results.Values;
+            columnNames = parser.Results.ColumnComments;
+            userData = parser.Results.UserData;
 
             if ischar(dates) || isa(dates, 'string')
                 dates = textinp2dat(dates);
             end
-            dates = dates(:);
-            numberOfDates = numel(dates);            
+            numOfDates = numel(dates);            
 
-            if isa(dates, 'DateWrapper')
-                freq = getFrequency(getFirst(dates));
-                serials = getSerial(dates);
+            if isempty(dates)
+                freq = double.empty(1, 0);
             else
-                freq = DateWrapper.getFrequencyFromNumeric(dates(1));
-                serials = dates;
-            end
-            
-            %--------------------------------------------------------------
-            
-            % Find out the date frequency and check its consistency.
-            freq = freq(~isnan(freq));
-            if ~isempty(freq)
+                if isa(dates, 'DateWrapper')
+                    freq = DateWrapper.getFrequencyAsNumeric(getFirst(dates));
+                else
+                    freq = DateWrapper.getFrequencyAsNumeric(dates(1));
+                end
+                freq = freq(~isnan(freq));
                 DateWrapper.checkMixedFrequency(freq);
             end
+            serials = DateWrapper.getSerial(dates);
+            serials = serials(:);
+            
+            %--------------------------------------------------------------
             
             % Create data from function handle.
             if isa(values, 'function_handle') 
                 if isequal(values, @ltrend)
-                    values = (1:numberOfDates).';
+                    values = (1:numOfDates).';
                 else
-                    values = feval(values, [numberOfDates, 1]);
+                    values = feval(values, [numOfDates, 1]);
                 end
             elseif isnumeric(values) || islogical(values)
-                if sum(size(values)>1)==1 && length(values)>1 && numberOfDates>1
+                if sum(size(values)>1)==1 && length(values)>1 && numOfDates>1
                     % Squeeze `Data` if scalar time series is entered as an non-columnwise
                     % vector.
                     values = values(:);
-                elseif length(values)==1 && numberOfDates>1
+                elseif numel(values)==1 && numOfDates>1
                     % Expand scalar observation to match more than one of `Dates`.
                     values = repmat(values, size(serials));
                 end
@@ -293,9 +291,9 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             
             % If `Dates` is scalar and `Data` have multiple rows, treat
             % `Dates` as a start date and expand the dates accordingly.
-            numberOfRowsInValues = size(values, 1);
-            if numberOfDates==1 && numberOfRowsInValues>1
-                serials = serials + (0 : numberOfRowsInValues-1);
+            numOfRowsInValues = size(values, 1);
+            if numOfDates==1 && numOfRowsInValues>1
+                serials = serials + (0 : numOfRowsInValues-1);
             end
             
             % Initialize the time series start date and data.
@@ -316,7 +314,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             if ~isempty(this.Data) 
                 this = trim(this);
             end
-        end
+        end%
     end
     
     
@@ -364,7 +362,14 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = fft(varargin)
         varargout = find(varargin)
         varargout = flipud(varargin)
-        varargout = freq(varargin)
+
+
+        % Backward compatibility
+        function varargout = freq(this)
+            varargout = { this.Frequency };
+        end%
+
+
         varargout = get(varargin)
         varargout = histogram(varargin)
         varargout = horzcat(varargin)
@@ -425,7 +430,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = stdize(varargin)
         function varargout = stdise(varargin)
             [varargout{1:nargout}] = stdize(varargin{:});
-        end
+        end%
 
 
         varargout = stem(varargin)
@@ -438,23 +443,19 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = yearly(varargin)
         
 
-        function frequency = getFrequency(this)
-            frequency = DateWrapper.getFrequencyFromNumeric(this.Start);
-        end
-
-        
         function date = startdate(this)
             date = this.Start;
-        end
+        end%
         
 
         function date = enddate(this)
             date = this.End;
-        end   
+        end%   
+
         
         function varargout = x13(varargin)
             [varargout{1:nargout}] = x12(varargin{:});
-        end
+        end%
     end
     
     
@@ -473,7 +474,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = fill(varargin)
         function varargout = replace(varargin)
             [varargout{1:nargout}] = fill(varargin{:});
-        end
+        end%
 
 
         varargout = getDataFromTo(varargin)
@@ -500,12 +501,12 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         
         
         function dispComment(varargin)
-        end
+        end%
 
 
         function startDate = startDateWhenEmpty(this, varargin)
             startDate = DateWrapper.NaD( );
-        end
+        end%
 
 
         function this = initMissingValue(this, values)
@@ -538,89 +539,89 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     methods (Hidden)
         function x = abs(x)
             x.Data = abs(x.Data);
-        end
+        end%
         function x = acos(x)
             x.Data = acos(x.Data);
             x = trim(x);
-        end
+        end%
         function x = and(x, y)
             x = binop(@and, x, y);
-        end
+        end%
         function x = asin(x)
             x.Data = asin(x.Data);
             x = trim(x);
-        end
+        end%
         function x = atan(x)
             x.Data = atan(x.Data);
             x = trim(x);
-        end
+        end%
         function x = atan2(x)
             x.Data = atan2(x.Data);
             x = trim(x);
-        end
+        end%
         function x = ceil(x)
             x.Data = ceil(x.Data);
-        end
+        end%
         function x = complex(x)
             x.Data = complex(x.Data);
-        end
+        end%
         function x = cos(x)
             x.Data = cos(x.Data);
             x = trim(x);
-        end
+        end%
         function x = eq(a, b)
             x = binop(@eq, a, b);
-        end
+        end%
         function x = exp(x)
             x.Data = exp(x.Data);
             x = trim(x);
-        end
+        end%
         function x = fix(x)
             x.Data = fix(x.Data);
             x = trim(x);
-        end
+        end%
         function x = floor(x)
             x.Data = floor(x.Data);
-        end
+        end%
         function x = ge(a, b)
             x = binop(@ge, a, b);
-        end
+        end%
         function x = gt(a, b)
             x = binop(@gt, a, b);
-        end
+        end%
         function x = imag(x)
             x = unop(@imag, x, 0);
             x = trim(x);
-        end
+        end%
         function x = isinf(x)
             x.Data = isinf(x.Data);
-        end
+        end%
         function x = isnan(x)
             x.Data = isnan(x.Data);
-        end
+        end%
         function flag = isreal(x)
             flag = isreal(x.Data);
-        end
+        end%
         function x = ldivide(a, b)
             x = binop(@ldivide, a, b);
-        end
+        end%
         function x = le(a, b)
             x = binop(@le, a, b);
-        end
+        end%
         function x = log(x)
             x.Data = log(x.Data);
             x = trim(x);
-        end
+        end%
         function x = log10(x)
             x.Data = log10(x.Data);
             x = trim(x);
-        end
+        end%
         function x = lt(a, b)
             x = binop(@lt, a, b);
-        end
+        end%
         function x = minus(a, b)
             x = binop(@minus, a, b);
-        end
+        end%
         function x = mldivide(x, y)
             if (isa(x, 'tseries') && isa(y, 'tseries')) ...
                     || (isnumeric(y) && length(y)==1)
@@ -628,10 +629,10 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             else
                 x = binop(@mldivide, x, y);
             end
-        end
+        end%
         function x = mpower(x, y)
             x = binop(@power, x, y);
-        end
+        end%
         function x = mrdivide(x, y)
             if (isa(x, 'tseries') && isa(y, 'tseries')) ...
                     || (isnumeric(x) && length(x)==1)
@@ -639,14 +640,14 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             else
                 x = binop(@mrdivide, x, y);
             end
-        end
+        end%
         function x = mtimes(x, y)
             if isa(x, 'tseries') && isa(y, 'tseries')
                 x = binop(@times, x, y);
             else
                 x = binop(@mtimes, x, y);
             end
-        end
+        end%
         function x = nanmean(x, dim)
             if nargin<2
                 dim = 1;
@@ -654,7 +655,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % @@@@@ MOSW
             x = unop(@(varargin) tseries.mynanmean(varargin{:}), ...
                 x, dim, dim);
-        end
+        end%
         function This = nanstd(This, Flag, Dim)
             if nargin<2
                 Flag = 0;
@@ -665,7 +666,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % @@@@@ MOSW
             This = unop(@(varargin) tseries.mynanstd(varargin{:}), ...
                 This, Dim, Flag, Dim);
-        end
+        end%
         function This = nansum(This, Dim)
             if nargin<2
                 Dim = 1;
@@ -673,7 +674,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % @@@@@ MOSW
             This = unop(@(varargin) tseries.mynansum(varargin{:}), ...
                 This, Dim, Dim);
-        end
+        end%
         function This = nanvar(This, Flag, Dim)
             if nargin<2
                 Flag = 0;
@@ -684,58 +685,58 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % @@@@@ MOSW
             This = unop(@(varargin) tseries.mynanvar(varargin{:}), ...
                 This, Dim, Flag, Dim);
-        end
+        end%
         function This = ne(This, Y)
             This = binop(@ne, This, Y);
-        end
+        end%
         function x = norm(x, varargin)
             x = norm(x.Data, varargin{:}) ;
-        end
+        end%
         function x = not(x)
             x.Data = not(x.Data);
-        end
+        end%
         function x = or(x, y)
             x = binop(@or, x, y);
-        end
+        end%
         function x = plus(x, y)
             x = binop(@plus, x, y);
-        end
+        end%
         function x = power(x, y)
             x = binop(@power, x, y);
-        end
+        end%
         function x = prod(x, dim)
             if nargin<2
                 dim = 1;
             end
             x = unop(@prod, x, dim, dim);
-        end
+        end%
         function x = rdivide(x, y)
             x = binop(@rdivide, x, y);
-        end
+        end%
         function x = real(x)
             x.Data = real(x.Data);
             x = trim(x);
-        end
+        end%
         function x = sin(x)
             x.Data = sin(x.Data);
             x = trim(x);
-        end
+        end%
         function x = sqrt(x)
             x.Data = sqrt(x.Data);
             x = trim(x);
-        end
+        end%
         function x = tan(x)
             x.Data = tan(x.Data);
             x = trim(x);
-        end
+        end%
         function x = times(x, y)
             x = binop(@times, x, y);
-        end
+        end%
         function x = uminus(x)
             x.Data = -x.Data;
-        end
+        end%
         function x = uplus(x)
-        end
+        end%
         
         
         % Distribution functions (Stats Toolbox)
@@ -743,39 +744,39 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         function x = normcdf(x, varargin)
             x.Data = normcdf(x.Data, varargin{:});
             x = trim(x);
-        end
+        end%
         function x = normpdf(x, varargin)
             x.Data = normpdf(x.Data, varargin{:});
             x = trim(x);
-        end
+        end%
         function x = norminv(x, varargin)
             x.Data = norminv(x.Data, varargin{:});
             x = trim(x);
-        end
+        end%
         function x = logncdf(x, varargin)
             x.Data = logncdf(x.Data, varargin{:});
             x = trim(x);
-        end
+        end%
         function x = lognpdf(x, varargin)
             x.Data = lognpdf(x.Data, varargin{:});
             x = trim(x);
-        end
+        end%
         function x = logninv(x, varargin)
             x.Data = logninv(x.Data, varargin{:});
             x = trim(x);
-        end
+        end%
         function x = gevcdf(x, varargin)
             x.Data = gevcdf(x.Data, varargin{:});
             x = trim(x);
-        end
+        end%
         function x = gevpdf(x, varargin)
             x.Data = gevpdf(x.Data, varargin{:});
             x = trim(x);
-        end
+        end%
         function x = gevinv(x, varargin)
             x.Data = gevinv(x.Data, varargin{:});
             x = trim(x);
-        end
+        end%
         
         
         
@@ -787,25 +788,25 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 dim = 1;
             end
             x = unop(@any, x, dim, dim);
-        end
+        end%
         function x = all(x, dim)
             if nargin<2
                 dim = 1;
             end
             x = unop(@all, x, dim, dim);
-        end
+        end%
         function x = cumprod(x, dim)
             if nargin<2
                 dim = 1;
             end
             x = unop(@cumprod, x, 0, dim);
-        end
+        end%
         function x = cumsum(x, dim)
             if nargin<2
                 dim = 1;
             end
             x = unop(@cumsum, x, 0, dim);
-        end
+        end%
         function output = fillmissing(x, varargin)
             dim = 1;
             output = unop(@fillmissing, x, dim, varargin{:}, dim);
@@ -815,25 +816,25 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 dim = 1;
             end
             a = unop(@geomean, x, dim, dim);
-        end
+        end%
         function x = mean(x, dim)
             if nargin <2
                 dim = 1;
             end
             x = unop(@mean, x, dim, dim);
-        end
+        end%
         function x = median(x, dim)
             if nargin <2
                 dim = 1;
             end
             x = unop(@median, x, dim, dim);
-        end
+        end%
         function x = mode(x, dim)
             if nargin <2
                 dim = 1;
             end
             x = unop(@mode, x, dim, dim);
-        end
+        end%
 
 
         function x = prctile(x, p, dim)
@@ -841,10 +842,10 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 dim = 2;
             end
             x = unop(@numeric.prctile, x, dim, p, dim);
-        end
+        end%
         function varargout = pctile(varargin)
             [varargout{1:nargout}] = prctile(varargin{:});
-        end
+        end%
 
 
         function x = std(x, flag, dim)
@@ -855,13 +856,13 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 dim = 1;
             end
             x = unop(@std, x, dim, flag, dim);
-        end
+        end%
         function x = sum(x, dim)
             if nargin<2
                 dim = 1;
             end
             x = unop(@sum, x, dim, dim);
-        end
+        end%
         function x = var(x, flag, dim)
             if nargin<2
                 flag = 0;
@@ -870,11 +871,11 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 dim = 1;
             end
             x = unop(@var, x, dim, flag, dim);
-        end
+        end%
 
-        
-        % __Indexing__
-
+        %
+        % Indexing
+        %
 
         function index = end(this, k, varargin)
             if k==1
@@ -899,12 +900,12 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             else
                 missingTest = @(x) x==missingValue;
             end
-        end
+        end%
 
 
         function value = get.ColumnNames(this)
             value = this.Comment;
-        end
+        end%
 
 
         function this = set.ColumnNames(this, newValue)
@@ -932,7 +933,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 );
             end
             this.Comment = thisValue;
-        end
+        end%
     end
 
 
