@@ -45,7 +45,7 @@ this.Update.PosOfStdCorr = posOfStdCorr;
 this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
 this.Update.CheckSteady = prepareChkSteady(this, 'silent', opt.ChkSstate);
 this.Update.Solve = prepareSolve(this, 'silent', opt.Solve);
-this.Update.ThrowError = true;
+this.Update.NoSolution = opt.NoSolution;
 
 % __Starting Values__
 % Prepare the value currently assigned in the model object; this is used

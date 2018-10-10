@@ -34,7 +34,6 @@ end
 % system priors.
 if isfinite(mldPosterior)
     if posterior.EvaluateData || isSystemPriors
-        this.Update.ThrowError = strcmpi(estOpt.NoSolution, 'error');
         variantRequested = 1;
         [this, UpdateOk] = update(this, x, variantRequested);
         if ~UpdateOk
@@ -62,8 +61,8 @@ isValid = isnumeric(mldPosterior) && length(mldPosterior)==1 ...
     && isfinite(mldPosterior) && imag(mldPosterior)==0;
 
 if ~isValid
-    if isnumeric(estOpt.NoSolution)
-        penalty = estOpt.NoSolution;
+    if isnumeric(this.Update.NoSolution)
+        penalty = this.Update.NoSolution;
     else
         penalty = this.OBJ_FUNC_PENALTY;
     end
@@ -73,4 +72,5 @@ end
 % Make sure Obj is a double, otherwise Optim Tbx will complain.
 mldPosterior = double(mldPosterior);
 
-end
+end%
+
