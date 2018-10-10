@@ -71,17 +71,8 @@ end
 if strcmp(s(1).type, '()') && length(s(1).subs)==1 ...
         && isnumeric(s(1).subs{1})
     % m(pos)
-    subs = s(1).subs{1};
-    nAlt = length(this);
-    ixExceeds = subs>nAlt;
-    if any(ixExceeds)
-        throw( ...
-            exception.Base('Model:IndexExceedsVariants', 'error'), ...
-            exception.Base.alt2str( sort(subs(ixExceeds)) ) ...
-            ); %#ok<GTARG>
-    end
-    output = this;
-    output.Variant = subscripted(this.Variant, subs);
+    variantsRequested = s(1).subs{1};
+    output = getVariant(this, variantsRequested);
     s(1) = [ ];
     if ~isempty(s)
         output = subsref(output, s);
@@ -89,9 +80,7 @@ if strcmp(s(1).type, '()') && length(s(1).subs)==1 ...
     return
 end
 
-throw( ...
-   exception.Base('General:InvalidReference', 'error'), ...
-   class(this) ...
-);
+throw( exception.Base('General:InvalidReference', 'error'), ...
+       class(this) );
 
-end
+end%
