@@ -35,6 +35,9 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
         % Range  Date range from first to last observation in time series
         Range
+
+        % Range  Date range from first to last observation in time series returned as numeric value
+        RangeAsNumeric
     end
 
 
@@ -148,6 +151,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
             end
             vec = transpose(0:size(this.Data, 1)-1);
             range = addTo(this.Start, vec);
+        end%
+
+
+        function range = get.RangeAsNumeric(this)
+            range = double(this.Range);
         end%
 
 
