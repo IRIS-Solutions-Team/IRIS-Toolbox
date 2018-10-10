@@ -265,11 +265,11 @@ end
 if ~isempty(dates)
     maxDate = max(dates);
     minDate = min(dates);
-    nPer = 1 + round(maxDate - minDate);
-    inxOfDates = 1 + round(dates - minDate);
+    numOfPeriods = 1 + round(maxDate - minDate);
+    posOfDates = 1 + round(dates - minDate);
 else
-    nPer = 0;
-    inxOfDates = [ ];
+    numOfPeriods = 0;
+    posOfDates = [ ];
     minDate = DateWrapper(NaN);
 end
 
@@ -467,6 +467,8 @@ return
     end 
 
 
+
+
     function [data, ixMissing, dateCol] = readNumericData( )
         data = double.empty(0, 0);
         ixMissing = logical.empty(1, 0);
@@ -596,7 +598,7 @@ return
         % Homogeneous frequency check
         if ~isempty(dates)
             freqOfDates = DateWrapper.getFrequencyAsNumeric(dates);
-            DateWrapper.checkMixedFrequency(freqOfDates);
+            DateWrapper.checkMixedFrequency(freqOfDates, [ ], 'in CSV data files');
         end
     end% 
 
@@ -644,12 +646,12 @@ return
                     else
                         unit = 1 + 1i;
                     end
-                    iData = nan(nPer, nCol)*unit;
-                    iMiss = false(nPer, nCol);
-                    iData(inxOfDates, :) = data(~inxOfNaNDates, count+(1:nCol));
-                    iMiss(inxOfDates, :) = ixMissing(~inxOfNaNDates, count+(1:nCol));
+                    iData = nan(numOfPeriods, nCol)*unit;
+                    iMiss = false(numOfPeriods, nCol);
+                    iData(posOfDates, :) = data(~inxOfNaNDates, count+(1:nCol));
+                    iMiss(posOfDates, :) = ixMissing(~inxOfNaNDates, count+(1:nCol));
                     iData(iMiss) = NaN*unit;
-                    iData = reshape(iData, [nPer, tmpSize(2:end)]);
+                    iData = reshape(iData, [numOfPeriods, tmpSize(2:end)]);
                     cmt = cmtRow(count+(1:nCol));
                     cmt = reshape(cmt, [1, tmpSize(2:end)]);
                     d.(name) = replace(TEMPLATE_SERIES, iData, minDate, cmt);
