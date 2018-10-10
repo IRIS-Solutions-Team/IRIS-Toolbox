@@ -15,6 +15,11 @@ classdef Equation < model.component.Insertable
     end
 
 
+    properties (Dependent)
+        NumOfHashEquations
+    end
+
+
     methods
         varargout = getLabelOrInput(varargin)
         varargout = implementDisp(varargin)
@@ -29,6 +34,13 @@ classdef Equation < model.component.Insertable
         varargout = saveObject(varargin)
         varargout = selectType(varargin)
         varargout = size(varargin)
+    end
+
+
+    methods
+        function n = get.NumOfHashEquations(this)
+            n = nnz(this.IxHash);
+        end%
     end
     
     
