@@ -65,13 +65,16 @@ if ischar(basePeriod) || isa(basePeriod, 'string')
     end
 end
 
-if isnan(basePeriod) || getFrequency(basePeriod)~=this.Frequency
+% Frequency check
+freqOfBasePeriod = DateWrapper.getFrequencyAsNumeric(basePeriod);
+freqOfInput = this.FrequencyAsNumeric;
+if isnan(basePeriod) || freqOfBasePeriod~=freqOfInput
     this = this.empty(this);
     return
 end
 
-sizeData = size(this.Data);
-ndimsData = ndims(this.Data);
+sizeOfData = size(this.Data);
+ndimsOfData = ndims(this.Data);
 this.Data = this.Data(:,:);
 
 y = getDataFromTo(this, basePeriod, basePeriod);
@@ -79,8 +82,8 @@ for i = 1 : size(this.Data, 2)
     this.Data(:,i) = func(this.Data(:,i), y(i));
 end
 
-if ndimsData>2
-    this.Data = reshape(this.Data, sizeData);
+if ndimsOfData>2
+    this.Data = reshape(this.Data, sizeOfData);
 end
 
 if baseValue~=0 && baseValue~=1
