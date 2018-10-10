@@ -15,8 +15,11 @@ if nargin>2
     if numel(newStart)>1
         newStart = newStart(1);
     end
-    if ~isa(newStart, 'DateWrapper')
+    % Make new start date the same class as the old start date
+    if isa(this.Start, 'DateWrapper') && ~isa(newStart, 'DateWrapper')
         newStart = DateWrapper(newStart);
+    elseif isa(this.Start, 'double') && ~isa(newStart, 'double')
+        newStart = double(newStart);
     end
     this.Start = newStart;
 end
