@@ -2,51 +2,50 @@ classdef DateWrapper < double
     methods
         function this = DateWrapper(varargin)
             this = this@double(varargin{:});
-        end
+        end%
 
 
-        function frequency = getFrequency(this)
-            frequency = DateWrapper.getFrequencyFromNumeric(double(this));
-        end
-
-
-        function serial = getSerial(this)
-            serial = DateWrapper.getSerialFromNumeric(double(this));
-        end
-        
-        
         function disp(this)
-            sizeString = sprintf('%gx', size(this));
+            sizeOfThis = size(this);
+            sizeString = sprintf('%gx', sizeOfThis);
             sizeString(end) = '';
-            freq = getFrequency(this);
-            if isempty(freq)
+            empty = any(sizeOfThis==0);
+            if empty
                 frequencyDisplayName = 'Empty';
-            elseif all(freq(1)==freq(:))
-                frequencyDisplayName = getDisplayName(freq(1));
             else
-                frequencyDisplayName = 'Mixed Frequency';
+                freq = DateWrapper.getFrequency(this);
+                firstOfFreq = freq(1);
+                if all(firstOfFreq==freq(:))
+                    frequencyDisplayName = char(firstOfFreq);
+                else
+                    frequencyDisplayName = 'Mixed Frequency';
+                end
             end
             fprintf('  %s %s Date(s)\n', sizeString, frequencyDisplayName);
-            textfun.loosespace( );
-            x = dat2str(this);
-            disp(x);
-            textfun.loosespace( );
-        end
+            if ~empty
+                textfun.loosespace( )
+                disp( dat2str(this) )
+            end
+            textfun.loosespace( )
+        end%
         
         
+        function dt = not(this)
+            dt = DateWrapper.toDatetime(this);
+        end%
+
+
         function this = uplus(this)
-        end
+        end%
 
 
         function this = uminus(this)
-            indexOfInf = isinf(double(this));
-            assert( ...
-                all(indexOfInf), ...
-                'DateWrapper:uminus', ...
-                'DateWrapper/uminus can only be applied to Inf or -Inf.' ...
-            );
+            inxOfInf = isinf(double(this));
+            if ~all(inxOfInf)
+                throw( exception.Base('DateWrapper:InvalidInputsIntoUminus', 'error') );
+            end
             this = DateWrapper(-double(this));
-        end
+        end%
 
 
         function this = plus(a, b)
@@ -59,7 +58,7 @@ classdef DateWrapper < double
             x = double(a) + double(b);
             x = round(x*100)/100;
             try
-                frequency = DateWrapper.getFrequencyFromNumeric(x);
+                freq = DateWrapper.getFrequencyAsNumeric(x);
             catch
                 throw( exception.Base('DateWrapper:InvalidInputsIntoPlus', 'error') );
             end
@@ -67,14 +66,14 @@ classdef DateWrapper < double
                 this = DateWrapper.empty(size(x));
             else
                 serial = floor(x);
-                this = DateWrapper.fromSerial(frequency(1), serial); 
+                this = DateWrapper.fromSerial(freq(1), serial); 
             end
-        end
+        end%
         
         
         function this = minus(a, b)
             if isa(a, 'DateWrapper') && isa(b, 'DateWrapper')
-                if ~all(DateWrapper.getFrequencyFromNumeric(a(:))==DateWrapper.getFrequencyFromNumeric(b(:)))
+                if ~all(DateWrapper.getFrequencyAsNumeric(a(:))==DateWrapper.getFrequencyAsNumeric(b(:)))
                     throw( exception.Base('DateWrapper:InvalidInputsIntoMinus', 'error') );
                 end
                 this = floor(a) - floor(b);
@@ -86,17 +85,17 @@ classdef DateWrapper < double
             x = double(a) - double(b);
             x = round(x*100)/100;
             try
-                frequency = DateWrapper.getFrequencyFromNumeric(x);
+                frequency = DateWrapper.getFrequency(x);
             catch
                 throw( exception.Base('DateWrapper:InvalidInputsIntoMinus', 'error') );
             end
             if isempty(x)
                 this = DateWrapper.empty(size(x));
             else
-                serial = DateWrapper.getSerialFromNumeric(x);
+                serial = DateWrapper.getSerial(x);
                 this = DateWrapper.fromSerial(frequency(1), serial); 
             end
-        end
+        end%
         
         
         function this = colon(varargin)
@@ -116,61 +115,57 @@ classdef DateWrapper < double
             elseif nargin==3
                 [from, step, to] = varargin{:};
             end
-            assert( ...
-                isnumeric(from) && isnumeric(to) ...
-                && numel(from)==1 && numel(to)==1 ...
-                && DateWrapper.getFrequencyFromNumeric(from)==DateWrapper.getFrequencyFromNumeric(to), ...
-                'DateWrapper:colon', ...
-                'Start and end dates in a DateWrapper colon expression must be scalar dates of the same frequencies.' ...
-            );
-            assert( ...
-                isnumeric(step) && numel(step)==1 && step==round(step), ...
-                'DateWrapper:colon', ...
-                'Step in a DateWrapper colon expression must be a scalar integer.' ...
-            );
-            frequency = DateWrapper.getFrequencyFromNumeric(from);
+            if ~isnumeric(from) || ~isnumeric(to) ...
+                || numel(from)~=1 || numel(to)~=1 ...
+                || DateWrapper.getFrequencyAsNumeric(from)~=DateWrapper.getFrequencyAsNumeric(to)
+                throw( exception.Base('DateWrapper:InvalidStartEndInColon', 'error') );
+            end
+            if ~isnumeric(step) || numel(step)~=1 || step~=round(step)
+                throw( exception.Base('DateWrapper:InvalidStepInColon', 'error') );
+            end
+            freq = DateWrapper.getFrequencyAsNumeric(from);
             fromSerial = floor(from);
             toSerial = floor(to);
             serial = fromSerial : step : toSerial;
-            this = DateWrapper.fromSerial(frequency, serial);
-        end
+            this = DateWrapper.fromSerial(freq, serial);
+        end%
 
 
         function this = real(this)
             this = DateWrapper(real(double(this)));
-        end
+        end%
 
         
         function flag = eq(d1, d2)
             flag = round(d1*100)==round(d2*100);
-        end
+        end%
 
 
         function this = min(varargin)
             minDouble = min@double(varargin{:});
             this = DateWrapper(minDouble);
-        end
+        end%
 
 
         function this = max(varargin)
             maxDouble = max@double(varargin{:});
             this = DateWrapper(maxDouble);
-        end
+        end%
 
 
         function this = getFirst(this)
             this = this(1);
-        end
+        end%
 
 
         function this = getLast(this)
             this = this(end);
-        end
+        end%
 
 
         function flag = isnad(this)
             flag = isequaln(double(this), NaN);
-        end
+        end%
 
 
         function n = rnglen(varargin)
@@ -181,20 +176,16 @@ classdef DateWrapper < double
                 firstDate = varargin{1};
                 lastDate = varargin{2};
             end
-            assert( ...
-                isa(firstDate, 'DateWrapper') && isa(lastDate, 'DateWrapper'), ...
-                'DateWrapper:rnglen', ...
-                'Input arguments into DateWrapper/rnglen must both be scalar DateWrapper objects.' ...
-            );
-            firstFrequency = DateWrapper.getNumericFrequencyFromNumeric(firstDate(:));
-            lastFrequency = DateWrapper.getNumericFrequencyFromNumeric(lastDate(:));
-            assert( ...
-                all(firstFrequency==lastFrequency), ...
-                'DateWrapper:rnglen', ...
-                'All input arguments into DateWrapper/rnglen must be of the same date frequency' ...
-            );
+            if ~isa(firstDate, 'DateWrapper') || ~isa(lastDate, 'DateWrapper')
+                throw( exception.Base('DateWrapper:InvalidInputsIntoRnglen', 'error') );
+            end
+            firstFrequency = DateWrapper.getFrequencyAsNumeric(firstDate(:));
+            lastFrequency = DateWrapper.getFrequencyAsNumeric(lastDate(:));
+            if ~all(firstFrequency==lastFrequency)
+                throw( exception.Base('DateWrapper:InvalidInputsIntoRnglen', 'error') );
+            end
             n = floor(lastDate) - floor(firstDate) + 1;
-        end
+        end%
 
 
         function this = addTo(this, c)
@@ -202,24 +193,18 @@ classdef DateWrapper < double
                 throw( exception.Base('DateWrapper:InvalidInputsIntoAddTo', 'error') );
             end
             this = DateWrapper(double(this) + c);
-        end
+        end%
             
 
         function datetimeObj = datetime(this, varargin)
-            frequency = DateWrapper.getFrequencyFromNumeric(this);
-            assert( ...
-                all(frequency(1)==frequency(:)), ...
-                'DateWrapper:datetime', ...
-                'All DateWrappers in datetime( ) conversion must be of the same date frequency.' ...
-            );
-            datetimeObj = datetime(frequency(1), getSerial(this), varargin{:});
-        end
+            datetimeObj = DateWrapper.toDatetime(this, varargin{:});
+        end%
 
 
         function [durationObj, halfDurationObj] = duration(this)
-            frequency = DateWrapper.getFrequencyFromNumeric(this);
+            frequency = DateWrapper.getFrequency(this);
             [durationObj, halfDurationObj] = duration(frequency);
-        end
+        end%
     end
     
     
@@ -233,7 +218,7 @@ classdef DateWrapper < double
             end
             refDate = double(refDate);
             pos = round(dates - refDate + 1);
-        end
+        end%
     end
 
 
@@ -248,37 +233,57 @@ classdef DateWrapper < double
         end
 
 
-        function frequency = getNumericFrequencyFromNumeric(dat)
+        function frequency = getFrequencyAsNumeric(dateCode)
             MIN_DAILY_SERIAL = 365244;
-            dat = double(dat);
-            frequency = round(100*(dat - floor(dat)));
-            indexDaily = frequency==0 & dat>=MIN_DAILY_SERIAL;
-            frequency(indexDaily) = 365;
-        end
+            dateCode = double(dateCode);
+            frequency = round(100*(dateCode - floor(dateCode)));
+            inxOfDaily = frequency==0 & dateCode>=MIN_DAILY_SERIAL;
+            frequency(inxOfDaily) = 365;
+        end%
 
 
-        function frequency = getFrequencyFromNumeric(dat)
-            frequency = Frequency( DateWrapper.getNumericFrequencyFromNumeric(dat) );
-        end
+        function frequency = getFrequency(dateCode)
+            numericFrequency = DateWrapper.getFrequencyAsNumeric(dateCode);
+            frequency = Frequency(numericFrequency);
+        end%
 
 
-        function serial = getSerialFromNumeric(dat)
-            serial = floor(dat);
-        end
+        function serial = getSerial(input)
+            serial = floor(double(input));
+        end%
 
 
-        function [this, frequency, serial] = fromDouble(x)
-            frequency = DateWrapper.getNumericFrequencyFromNumeric(x);
-            serial = DateWrapper.getSerialFromNumeric(x);
+        function varargout = fromDouble(varargin)
+            [varargout{1:nargout}] = DateWrapper.fromDateCode(varargin{:});            
+        end%
+
+
+        function [this, frequency, serial] = fromDateCode(x)
+            frequency = DateWrapper.getFrequencyAsNumeric(x);
+            serial = DateWrapper.getSerial(x);
             this = DateWrapper.fromSerial(frequency, serial);
         end%
 
 
-        function this = fromSerial(frequency, serial)
-            ixAddFrequency = frequency~=Frequency.INTEGER & frequency~=Frequency.DAILY;
-            addFrequency = zeros(size(frequency));
-            addFrequency(ixAddFrequency) = double(frequency(ixAddFrequency))/100;
-            this = DateWrapper(serial + addFrequency);
+        function this = fromSerial(varargin)
+            dateCode = DateWrapper.getDateCodeFromSerial(varargin{:});
+            this = DateWrapper(dateCode);
+        end%
+
+
+        function dateCode = getDateCodeFromSerial(freq, serial)
+            serial0 = serial;
+            serial = round(serial);
+            inxOfRound = serial==serial0 | isnan(serial);
+            if any(~inxOfRound)
+                report = num2cell( serial0(~inxOfRound) );
+                throw( exception.Base('Dates:NonIntegerSerialNumber', 'error'), ...
+                       report{:} );
+            end
+            inxOfFreqCodes = freq~=Frequency.INTEGER & freq~=Frequency.DAILY;
+            freqCode = zeros(size(freq));
+            freqCode(inxOfFreqCodes) = double(freq(inxOfFreqCodes)) / 100;
+            dateCode = serial + freqCode;
         end%
 
 
@@ -288,81 +293,81 @@ classdef DateWrapper < double
         end%
 
 
-        function checkMixedFrequency(freq)
-            if isempty(freq)
+        function datetimeObj = toDatetime(input, varargin)
+            frequency = DateWrapper.getFrequency(input);
+            if ~all(frequency(1)==frequency(:))
+                throw( exception.Base('DateWrapper:InvalidInputsIntoDatetime', 'error') )
+            end
+            datetimeObj = datetime(frequency(1), DateWrapper.getSerial(input), varargin{:});
+        end%
+
+
+        function checkMixedFrequency(freq1, freq2)
+            if isempty(freq1)
                 return
             end
-            if any(freq(1)~=freq)
-                freq = unique(freq, 'stable');
-                lsFreq = DateWrapper.printFreqName(freq);
-                temp = sprintf('%s x ', lsFreq{:});
-                temp(end-2:end) = '';
-                throw( ...
-                    exception.Base('DateWrapper:MixedFrequency', 'error'), ...
-                    temp ...
-                ); %#ok<GTARG>
+            if nargin==1 
+                if isscalar(freq1)
+                    return
+                end
+                freq1 = freq1(1);
+                freq2 = freq1(2:end);
             end
-        end
+            if any(freq1~=freq2)
+                freq = unique([freq1, freq2], 'stable');
+                cellstrOfFreq = Frequency.toCellstr(freq);
+                throw( exception.Base('Dates:MixedFrequency', 'error'), ...
+                       cellstrOfFreq{:} ); %#ok<GTARG>
+            end
+        end%
         
         
-        function prt = printFreqName(f)
-            freqName = iris.get('FreqNames');
-            if isnumeric(f)
-                f = num2cell(f);
-            end
-            prt = values(freqName, f);
-        end
-
-
         function formats = chooseFormat(formats, freq, k)
-        if nargin<3
-            k = 1;
-        elseif k>numel(formats)
-            k = numel(formats);
-        end
+            if nargin<3
+                k = 1;
+            elseif k>numel(formats)
+                k = numel(formats);
+            end
 
-        if ischar(formats)
-            return
-        end
+            if ischar(formats)
+                return
+            end
 
-        if iscellstr(formats)
-            formats = formats{k};
-            return
-        end
+            if iscellstr(formats)
+                formats = formats{k};
+                return
+            end
 
-        if isa(formats, 'string')
-            formats = formats(k);
-            return
-        end
+            if isa(formats, 'string')
+                formats = formats(k);
+                return
+            end
 
-        if ~isstruct(formats)
-            throw( ...
-                exception.Base('DateWrapper:InvalidDateFormat', 'error') ...
-            );
-        end
+            if ~isstruct(formats)
+                throw( exception.Base('DateWrapper:InvalidDateFormat', 'error') );
+            end
 
-        switch freq
-            case 0
-                formats = formats(k).integer;
-            case 1
-                formats = formats(k).yy;
-            case 2
-                formats = formats(k).hh;
-            case 4
-                formats = formats(k).qq;
-            case 6
-                formats = formats(k).bb;
-            case 12
-                formats = formats(k).mm;
-            case 52
-                formats = formats(k).ww;
-            case 365
-                formats = formats(k).dd;
-            otherwise
-                formats = '';
-        end
-
-        end
+            switch freq
+                case 0
+                    formats = formats(k).integer;
+                case 1
+                    formats = formats(k).yy;
+                case 2
+                    formats = formats(k).hh;
+                case 4
+                    formats = formats(k).qq;
+                case 6
+                    formats = formats(k).bb;
+                case 12
+                    formats = formats(k).mm;
+                case 52
+                    formats = formats(k).ww;
+                case 365
+                    formats = formats(k).dd;
+                otherwise
+                    formats = '';
+            end
+        end%
 
 
         function flag = validateDateInput(input)
