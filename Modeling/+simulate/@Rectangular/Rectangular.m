@@ -8,9 +8,9 @@
 
 classdef Rectangular < handle
     properties
-        FirstOrderSolution = cell(1, 6)   % First-order solution matrices {T, R, K, Z, H, D}
+        FirstOrderSolution = cell(1, 7)   % First-order solution matrices {T, R, K, Z, H, D, Y}
         FirstOrderExpansion = cell(1, 5)  % First-order expansion matrices {Xa, Xf, Ru, J, Yu}
-        IndexOfLog                        % Index of log variables
+        InxOfLog                        % Index of log variables
         IdOfObserved                      % Ids of observed variables
         IdOfStates                        % Ids (including shifts) of state variables
         IdOfShocks                        % Ids of shocks
@@ -27,7 +27,7 @@ classdef Rectangular < handle
         NumOfExogenous
         LenOfExpansion
         IdOfBackward
-        IndexOfCurrent
+        InxOfCurrent
         IdOfCurrent
 
         LinxOfBackward
@@ -56,7 +56,9 @@ classdef Rectangular < handle
             end
             keepExpansion = true;
             triangular = false;
-            [this.FirstOrderSolution{:}] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
+            [ this.FirstOrderSolution{1:6}, ...
+              ~, ~, ...
+              this.FirstOrderSolution{7} ] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
             [this.FirstOrderExpansion{:}] = expansionMatrices(model, variantRequested, triangular);
             if this.NumOfShocks>0
                 this.LenOfExpansion = size(this.FirstOrderSolution{2}, 2) / this.NumOfShocks;
@@ -111,13 +113,10 @@ classdef Rectangular < handle
                 variantRequested = 1;
             end
             this = simulate.Rectangular( );
-            keepExpansion = true;
-            triangular = false;
-            [this.FirstOrderSolution{:}] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
-            [this.FirstOrderExpansion{:}] = expansionMatrices(model, variantRequested, triangular);
-            numOfQuantities = get(model, 'Quantity.NumOfQuantities');
-            this.IndexOfLog = get(model, 'Quantity.IxLog');
-            solutionVector = get(model, 'Vector.Solution');
+            update(this, model variantRequested);
+            numOfQuantities = getp(model, 'Quantity', 'NumOfQuantities');
+            this.InxOfLog = getp(model, 'Quantity', 'IxLog');
+            solutionVector = getp(model, 'Vector', 'Solution');
             this.IdOfObserved = solutionVector{1}(:);
             this.IdOfStates = solutionVector{2}(:);
             this.IdOfShocks = solutionVector{3}(:);
@@ -129,14 +128,10 @@ classdef Rectangular < handle
             this.NumOfForward = this.NumOfStates - this.NumOfBackward;
             this.NumOfShocks = numel(this.IdOfShocks);
             this.NumOfExogenous = numel(this.IdOfExogenous);
-            if this.NumOfShocks>0
-                this.LenOfExpansion = size(this.FirstOrderSolution{2}, 2) / this.NumOfShocks;
-            else
-                this.LenOfExpansion = 0;
-            end
+            this.NumOfHashEquations = getp(model, 'Equation', 'NumOfHashEquations');
             this.IdOfBackward = this.IdOfStates(this.NumOfForward+1:end);
-            this.IndexOfCurrent = imag(this.IdOfStates)==0;
-            this.IdOfCurrent = this.IdOfStates(this.IndexOfCurrent);
+            this.InxOfCurrent = imag(this.IdOfStates)==0;
+            this.IdOfCurrent = this.IdOfStates(this.InxOfCurrent);
             this.NumOfQuantities = numOfQuantities;
         end%
     end
