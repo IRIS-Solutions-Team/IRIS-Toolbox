@@ -252,7 +252,7 @@ else
 
             
         case 'dtgrowth'
-            indexNaNSolutions = this.Quantity.Type==TYPE(1);
+            inxOfNaNSolutions = this.Quantity.Type==TYPE(1);
             answ = cell2DbaseFunc(dtGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
@@ -467,11 +467,11 @@ end
 
 if needsToCheckSolution
     % Report solution(s) not available.
-    [solutionFlag, indexNaNSolutions] = isnan(this, 'solution');
+    [solutionFlag, inxOfNaNSolutions] = isnan(this, 'solution');
     if solutionFlag
         utils.warning('model:implementGet', ...
             'Solution(s) not available %s.', ...
-            exception.Base.alt2str(indexNaNSolutions) );
+            exception.Base.alt2str(inxOfNaNSolutions) );
     end
 end
 
@@ -483,6 +483,8 @@ end
 return
 
 
+
+
     function getStationary(query)
         needsToCheckSolution = true;
         if strncmpi(query, 'is', 2)
@@ -491,13 +493,13 @@ return
         vecXb = [this.Vector.Solution{1:2}];
         t0 = imag(vecXb)==0;
         name = this.Quantity.Name( real(vecXb(t0)) );
-        [~, indexNaNSolutions] = isnan(this, 'solution');
+        [~, inxOfNaNSolutions] = isnan(this, 'solution');
         status = nan([sum(t0), nv]);
-        for iiAlt = find(~indexNaNSolutions)
-            indexUnitRoots = this.Variant.EigenStability(:, 1:nb, iiAlt)==TYPE(1);
-            dy = any(abs(this.Variant.FirstOrderSolution{4}(:, indexUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
-            df = any(abs(this.Variant.FirstOrderSolution{1}(1:nf, indexUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
-            db = any(abs(this.Variant.FirstOrderSolution{7}(:, indexUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
+        for iiAlt = find(~inxOfNaNSolutions)
+            inxOfUnitRoots = this.Variant.EigenStability(:, 1:nb, iiAlt)==TYPE(1);
+            dy = any(abs(this.Variant.FirstOrderSolution{4}(:, inxOfUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
+            df = any(abs(this.Variant.FirstOrderSolution{1}(1:nf, inxOfUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
+            db = any(abs(this.Variant.FirstOrderSolution{7}(:, inxOfUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
             d = [dy, df, db];
             
             if strncmp(query, 's', 1)
@@ -539,7 +541,7 @@ function [ steadyLevel, steadyGrowth, ...
     numOfQuantities = length(this.Quantity);
     nv = length(this.Variant);
     ixy = this.Quantity.Type==TYPE(1);
-    indexOfLog = this.Quantity.IxLog;
+    inxOfLog = this.Quantity.IxLog;
 
     % Steady states.
     ss = this.Variant.Values;
@@ -547,7 +549,7 @@ function [ steadyLevel, steadyGrowth, ...
     steadyGrowth = imag(ss);
 
     % Fix missing (=zero) growth in steady states of log variables.
-    ixLogZero = steadyGrowth==0 & repmat(indexOfLog, 1, 1, nv);
+    ixLogZero = steadyGrowth==0 & repmat(inxOfLog, 1, 1, nv);
     steadyGrowth(ixLogZero) = 1;
 
     if nargout<3
@@ -559,18 +561,20 @@ function [ steadyLevel, steadyGrowth, ...
     dtGrowth = zeros(1, numOfQuantities, nv);
     [dtLevel(:, ixy, :), dtGrowth(:, ixy, :)] = getSteadyDtrends(this);
 
-    dtLevel(1, indexOfLog, :) = real(exp(dtLevel(1, indexOfLog, :)));
-    dtGrowth(1, indexOfLog, :) = exp(dtGrowth(1, indexOfLog, :));
+    dtLevel(1, inxOfLog, :) = real(exp(dtLevel(1, inxOfLog, :)));
+    dtGrowth(1, inxOfLog, :) = exp(dtGrowth(1, inxOfLog, :));
 
     % Steady state plus dtrends.
     ssDtLevel = steadyLevel;
-    ssDtLevel(1, ~indexOfLog, :) = ssDtLevel(1, ~indexOfLog, :) + dtLevel(1, ~indexOfLog, :);
-    ssDtLevel(1, indexOfLog, :) = ssDtLevel(1, indexOfLog, :) .* dtLevel(1, indexOfLog, :);
+    ssDtLevel(1, ~inxOfLog, :) = ssDtLevel(1, ~inxOfLog, :) + dtLevel(1, ~inxOfLog, :);
+    ssDtLevel(1, inxOfLog, :) = ssDtLevel(1, inxOfLog, :) .* dtLevel(1, inxOfLog, :);
 
     ssDtGrowth = steadyGrowth;
-    ssDtGrowth(1, ~indexOfLog, :) = ssDtGrowth(1, ~indexOfLog, :) + dtGrowth(1, ~indexOfLog, :);
-    ssDtGrowth(1, indexOfLog, :) = ssDtGrowth(1, indexOfLog, :) .* dtGrowth(1, indexOfLog, :);
+    ssDtGrowth(1, ~inxOfLog, :) = ssDtGrowth(1, ~inxOfLog, :) + dtGrowth(1, ~inxOfLog, :);
+    ssDtGrowth(1, inxOfLog, :) = ssDtGrowth(1, inxOfLog, :) .* dtGrowth(1, inxOfLog, :);
 end%
+
+
 
 
 function [Dl, Dg] = getSteadyDtrends(this)
