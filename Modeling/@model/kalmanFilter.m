@@ -632,7 +632,8 @@ return
         sn.LastEndgA = 0;
         sn.LastEndgU = 0;
         sn.LastEa = 0;
-        sn = prepareSimulate1(this, sn, opt.simulate);
+        displayMode = 'Silent';
+        sn = prepareSimulate1(this, sn, opt.simulate, displayMode);
     end%
 end
 
