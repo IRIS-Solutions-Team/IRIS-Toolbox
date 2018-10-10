@@ -9,14 +9,14 @@ function varargout = prepareSteady(this, displayMode, varargin)
 
 % Run user-supplied steady-state solver:
 % sstate = @func
-if length(varargin)==1 && isa(varargin{1}, 'function_handle')
+if numel(varargin)==1 && isa(varargin{1}, 'function_handle')
     varargout{1} = varargin{1};
     return
 end
 
 % Run user-supplied steady-state solver with extra arguments:
 % sstate = { @func, arg2, arg3,...}
-if length(varargin)==1 && iscell(varargin{1}) ...
+if numel(varargin)==1 && iscell(varargin{1}) ...
         && ~isempty(varargin{1}) ...
         && isa(varargin{1}{1}, 'function_handle')
     varargout{1} = varargin{1};
@@ -25,19 +25,23 @@ end
 
 % Do not run steady-state solver:
 % sstate = false
-if length(varargin)==1 && isequal(varargin{1}, false)
+if numel(varargin)==1 && isequal(varargin{1}, false)
     varargout{1} = false;
     return
 end
 
 % Do run steady-state solve with default options:
 % sstate = true
-if length(varargin)==1 && isequal(varargin{1}, true)
+if numel(varargin)==1 && isequal(varargin{1}, true)
     varargin(1) = [ ];
 end
 
-persistent inputParserLinear inputParserNonlinear
+% Unfold options entered as one cell array
+if numel(varargin)==1 && iscell(varargin{1})
+    varargin = { varargin{1}{:} };
+end
 
+persistent inputParserLinear inputParserNonlinear
 if isempty(inputParserLinear)
     inputParserLinear = extend.InputParser('model.prepareSteady');
     inputParserLinear.addRequired('Model', @(x) isa(x, 'model'));
@@ -48,8 +52,8 @@ end
 
 if isempty(inputParserNonlinear)
     inputParserNonlinear = extend.InputParser('model.prepareSteady');
-    inputParserNonlinear.addRequired('Model', @(x) isa(x, 'model'));
     inputParserNonlinear.KeepUnmatched = true;
+    inputParserNonlinear.addRequired('Model', @(x) isa(x, 'model'));
     inputParserNonlinear.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
     inputParserNonlinear.addParameter('Fix', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
     inputParserNonlinear.addParameter('FixAllBut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
@@ -65,7 +69,7 @@ if isempty(inputParserNonlinear)
     inputParserNonlinear.addParameter({'NanInit', 'Init'}, 1, @(x) isnumeric(x) && isscalar(x) && isfinite(x));
     inputParserNonlinear.addParameter('ResetInit', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && isfinite(x)));
     inputParserNonlinear.addParameter('Reuse', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParserNonlinear.addParameter('Solver', 'IRIS', @(x) ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle'))));
+    inputParserNonlinear.addParameter('Solver', 'IRIS-qnsd', @(x) ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle'))));
     inputParserNonlinear.addParameter('PrepareGradient', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     inputParserNonlinear.addParameter('Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
     inputParserNonlinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
@@ -91,11 +95,11 @@ else
         opt.Growth = this.IsGrowth;
     end
     [ opt.Solver, ...
-      opt.PrepareGradient] = solver.Options.processOptions( opt.Solver, ...
-                                                            'Steady', ...
-                                                            opt.PrepareGradient, ...
-                                                            displayMode, ...
-                                                            obsoleteSolverOpt );
+      opt.PrepareGradient] = solver.Options.parseOptions( opt.Solver, ...
+                                                          'Steady', ...
+                                                          opt.PrepareGradient, ...
+                                                          displayMode, ...
+                                                          obsoleteSolverOpt{:} );
     blz = createBlocks(this, opt);
     blz = prepareBounds(this, blz, opt);
     blz.NanInit = opt.NanInit;
