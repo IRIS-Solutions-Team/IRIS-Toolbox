@@ -25,9 +25,12 @@ DataCube4Model:InconsistentNumOfDataSets, Number of data sets in databank is not
 DataCube4Model:InvalidDotReference, Invalid dot-reference or dot-assignment to DataCube; indices must delineate a continuous cube.
 Datafeed:FeedUnknownFrequency, Date frequency of this Datafeed series unknown; series not loaded: %s
 Dates:CalendarFormatForDaily, Calendar date format (starting with a $) must be specified for daily-frequency dates.
-Dates:MixedFrequency,Mixed frequency date vector not allowed in this context: %s
+Dates:MixedFrequency,Dates with mixed date frequencies are not allowed in this context: %s
 Dates:OnlyScalarFormatAllowed, "Only one single DateFormat= allowed in str2dat( )."
 Dates:UnrecognizedFrequency,Unrecognized date frequency.
+Dates:InvalidOutputClass, "Output class in date creation functions must be 'DateWrapper' or 'double'
+Dates:FrequencyMismatch, "Date frequency mismatch"
+Dates:NonIntegerSerialNumber, "Serial number must be integer: %g"
 Dbase:CannotDetermineRange,Cannot determine range because no time series entries have been found in input database
 Dbase:DbfunReportError,Error occured when processing this database entry: %s \n$ENGINE$ says: %s
 Dbase:DbfunReportWarning,Warning occured when processing this database entry: %s \n$ENGINE$ says: %s
@@ -42,7 +45,12 @@ Dbase:NameNotExist,This name does not exist in input database: %s
 DateWrapper:InvalidDateFormat,"Invalid date format; must be char, string, cellstr, or struct."
 DateWrapper:InvalidInputsIntoPlus, "Invalid input arguments into a DateWrapper plus expression."
 DateWrapper:InvalidInputsIntoMinus, "Invalid input arguments into a DateWrapper minus expression."
-DateWrapper:InvalidInputsIntoAddTo, "Invalid input arguments into a DateWrapper addTo expression."
+DateWrapper:InvalidInputsIntoAddTo, "Invalid input arguments into DateWrapper.addTo( )"
+DateWrapper:InvalidInputsIntoRnglen, "Input arguments into DateWrapper.rnglen( ) must be dates of the same date frequency"
+DateWrapper:InvalidInputsIntoUminus, "Unary minus can only be applied to Inf or -Inf dates"
+DateWrapper:InvalidStartEndInColon, "Start and end dates in a DateWrapper colon expression must be scalar dates of the the same date frequency"
+DateWrapper:InvalidStepInColon, "Step in a DateWrapper colon expression must be a scalar integer"
+DateWrapper:InvalidInputsIntoDatetime, "Input arguments into DateWrapper.datetime( ) must be dates of the same date frequency"
 Distribution:InvalidParameterization,"This is not a valid type of parameterization for %s distribution: %s"
 Distribution:Abstract:LowerUpperBounds, Lower bound of distribution domain must be below upper bound
 Distribution:Abstract:UpperLowerBounds, Upper bound of distribution domain must be above lower bound
@@ -79,6 +87,7 @@ Grouping:InvalidName, This is not a valid %1 name in the grouping object: %s
 Link:LinksNotSequential,Dynamic links cannot be reordered sequentially
 Model:CannotCatInOtherDim,Cannot concatenate model objects other than horizontally; use horizontal concatenation to merge models into multiple parameter variants.
 Model:CannotChangeSteadyShocks,Steady levels for shocks cannot be changed from zero: %s 
+Model:CannotCompareTable:Option Compare=true can be only used in models with more than one parameter variant.
 Model:CannotSteadyLinear,Cannot compute linear steady state because first-order solution is not available: %s
 Model:CannotLoadFromMatFile,Cannot load model object from MAT file. Recreated model object from its model file.
 Model:CannotSetNonzeroCorr, Nonzero correlation between measurement and transition shocks is not allowed. 
@@ -88,6 +97,7 @@ Model:InvalidQuantityType,This is not a valid type of model quantities: %s
 Model:LogVariableZeroSteady,Steady state for this log variable is numerically close to zero: %s 
 Model:NotDifferenceStationary,Model is not difference stationary; some steady-state growth rates are not fixed numbers: %s
 Model:NotParameterInEstimationSpecs,This name in estimation specs is not a parameter: %s 
+Model:NumOfColumnsNumOfDraws,"Options NCol= and NDraw= can be used only in models with a single parameter variant"
 Model:ParameterNotAssigned,This parameter is not assigned: %s 
 Model:Postparser:DynamicEquationEmpty,Dynamic part of this equation is empty: %s 
 Model:Postparser:ExogenousInOtherThanDtrend,Exogenous variables allowed only in deterministic trends: %s 
@@ -134,6 +144,7 @@ Model:StackedSimulationFailed,Some blocks in stacked simulation failed to conver
 Model:SteadyNotAvailable,Steady state is not available for this variable: %s 
 Model:SteadyErrorInDynamic,Steady-state values not consistent with this dynamic equation %s: %s
 Model:SteadyErrorInSteady,Steady-state values not consistent with this steady equation %s: %s
+Model:SteadyInaccurate, Steady state inaccurate or not returned for some variables 
 Model:TrollifyInvalidName,Cannot trollify model because this name is not alllowed in TROLL/FAME: %s
 Model:UnknownInputData,Invalid format of input data.
 Model:ZeroVarianceFactor,Common variance factor estimate is zero because all observations match their one-step-ahead predictions; run Kalman filter with Relative=false instead: %s 
@@ -198,11 +209,14 @@ Series:BinopSizeMismatch,The size of the resulting Series object must match the 
 Series:InputsRemovedFromCat,Inputs other than time series and numeric removed from concatenation.
 Series:InvalidSizeColumnNames,Column names assigned to time series have invalid dimensions. 
 Series:InvalidValueColumnNames,Column names assigned to time series must be text strings. 
+Series:InconsistentSizeVertCat,Size of vertically concatenated time series must be consistent in 2nd and higher dimension
 Series:CannotVertCatNonSeries,Cannot vertically concatenate time series with other types of data. 
 Series:CannotCatMixedFrequencies,Cannot concatenate time series with different date frequencies.
-Series:FrequencyMismatch,Date frequency mismatch: %s 
+Series:FrequencyMismatch,Date frequency or time series frequency mismatch: %s 
 Series:TimeDimMustBeZero,Time dimension must be zero when creating empty time series
-Solver:SteadyGradientRequestedButNotPrepared, Steady-state gradient requested but not prepared; use option PrepareGradient=true
+Series:CannotConvertIntegerFreq, Cannot covert times series from or to INTEGER frequency
+Series:CannotConvertWeeklyToDaily, Cannot convert time series from WEEKLY to DAILY frequency
+Solver:GradientRequestedButNotPrepared, Gradient requested but not prepared; use option PrepareGradient=true
 Steady:BothUnlogLogminus,This name is used in both Unlog= and LogMinus= options: %s 
 Steady:CannotFix,Cannot fix this name: %s 
 Steady:ExogenousLevelNan,This parameter or the level of this exogenized variable is not assigned: %s 
