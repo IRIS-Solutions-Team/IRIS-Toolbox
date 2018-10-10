@@ -1,4 +1,4 @@
-function [F, FF, delta, freq, G, step] = fisher(this, numPeriods, lsPar, varargin)
+function [F, FF, delta, freq, G, step] = fisher(this, numOfPeriods, lsPar, varargin)
 % fisher  Approximate Fisher information matrix in frequency domain.
 %
 % __Syntax__
@@ -77,7 +77,7 @@ if isempty(INPUT_PARSER)
     INPUT_PARSER.addRequired('NPer', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>0);
     INPUT_PARSER.addRequired('PList', @(x) iscellstr(x) || ischar(x));
 end
-INPUT_PARSER.parse(this, numPeriods, lsPar);
+INPUT_PARSER.parse(this, numOfPeriods, lsPar);
 
 % Read and validate optional input arguments.
 opt = passvalopt('model.fisher', varargin{:});
@@ -129,7 +129,7 @@ if any(~indexValidNames)
         lsPar{~indexValidNames});
 end
 
-this.Update = struct( );
+this.Update = this.EMPTY_UPDATE;
 this.Update.Values = this.Variant.Values;
 this.Update.StdCorr = this.Variant.StdCorr;
 this.Update.PosOfValues = posOfValues;
@@ -137,16 +137,16 @@ this.Update.PosOfStdCorr = posOfStdCorr;
 this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
 this.Update.CheckSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
 this.Update.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
-this.Update.ThrowError = true;
+this.Update.NoSolution = 'Error';
 
 numOfParameters = length(lsPar);
-numOfFreq = floor(numPeriods/2) + 1;
-freq = 2*pi*(0 : numOfFreq-1)/numPeriods;
+numOfFreq = floor(numOfPeriods/2) + 1;
+freq = 2*pi*(0 : numOfFreq-1)/numOfPeriods;
 
 % Kronecker delta vector.
 % Different for even or odd number of periods.
 delta = ones(1, numOfFreq);
-if mod(numPeriods, 2)==0
+if mod(numOfPeriods, 2)==0
     delta(2:end-1) = 2;
 else
     delta(2:end) = 2;
@@ -163,7 +163,7 @@ end
 
 for v = 1 : nv    
     % Fetch the i-th parameterisation.
-    m = this(v);
+    m = getVariant(this, v);
     
     % Minimum necessary state space.
     [T0, R0, Z0, H0, Omg0, nUnit0] = getSspace( );
@@ -230,15 +230,14 @@ for v = 1 : nv
         for j = i : numOfParameters
             fi = zeros(1, numOfFreq);
             for k = 1 : numOfFreq
-                fi(k) = ...
-                    trace(real(Gi(:, :, k)*dG(:, :, k, i)*Gi(:, :, k)*dG(:, :, k, j)));
+                fi(k) = trace( real(Gi(:, :, k)*dG(:, :, k, i)*Gi(:, :, k)*dG(:, :, k, j)) );
             end
             if ~opt.Deviation
                 % Add steady-state effect to zero frequency.
                 % We don't divide the effect by 2*pi because
                 % we skip dividing G by 2*pi, too.
                 A = dy(:, i)*dy(:, j)';
-                fi(1) = fi(1) + numPeriods*trace(Gi(:, :, 1)*(A + A'));
+                fi(1) = fi(1) + numOfPeriods*trace(Gi(:, :, 1)*(A + A'));
             end
             FF(i, j, :, v) = fi;
             FF(j, i, :, v) = fi;

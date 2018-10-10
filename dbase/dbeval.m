@@ -96,7 +96,7 @@ end
 
 %--------------------------------------------------------------------------
 
-nExn = numel(exn);
+numOfExn = numel(exn);
 exn = strtrim(exn);
 
 % Remove backtick-type marks.
@@ -106,19 +106,15 @@ list1 = fieldnames(d).';
 list2 = fieldnames(ss).';
 prefix1 = [char(1), '.'];
 prefix2 = [char(2), '.'];
-for i = 1 : length(list2)
-    exn = regexprep(...
-        exn, ...
-        ['[&$]\<' , list2{i}, '\>'], ...
-        [prefix2, list2{i}] ...
-        );
+for i = 1 : numel(list2)
+    exn = regexprep( exn, ...
+                     ['[&$]\<' , list2{i}, '\>'], ...
+                     [prefix2, list2{i}] );
 end
-for i = 1 : length(list1)
-    exn = regexprep( ...
-        exn, ...
-        ['(?<!\.)\<' , list1{i}, '\>'], ...
-        [prefix1, list1{i}] ...
-        );
+for i = 1 : numel(list1)
+    exn = regexprep( exn, ...
+                     ['(?<!\.)\<' , list1{i}, '\>'], ...
+                     [prefix1, list1{i}] );
 end
 exn = strrep(exn, prefix1, 'd.');
 exn = strrep(exn, prefix2, 'ss.');
@@ -132,7 +128,7 @@ replaceEqualSigns( );
 handleLhsRhs( );
 
 varargout = cell(size(exn));
-for i = 1 : nExn
+for i = 1 : numOfExn
     try
         varargout{i} = eval(exn{i});
     catch %#ok<CTCH>
@@ -148,44 +144,40 @@ end
 return
 
 
-
-
     function replaceEqualSigns( )
-        % NB: strrep is much faster than regexprep.
+        % NB: strrep is much faster than regexprep
         exn = strrep(exn, '==' , '=');
         exn = strrep(exn, '=#' , '=');
-        % Dtrend equations.
+        % Dtrend equations
         exn = strrep(exn, '+=' , '=');
         exn = strrep(exn, '*=' , '=');
         % Identities.
         exn = strrep(exn, ':=' , '=');
-        % Cut off steady part after the first occurrence of !!.
+        % Cut off steady part after the first occurrence of !!
         pos = strfind(exn, '!!');
         ixEmpty = ~cellfun(@isempty, pos);
         if any(ixEmpty)
             exn(~ixEmpty) = regexprep(exn(~ixEmpty), '!![^;]*', '');
         end
-    end
-
-
+    end%
 
 
     function handleLhsRhs( )
-        % NB: strrep is much faster than regexprep.        
-        for ii = 1 : nExn
+        % NB: strrep is much faster than regexprep        
+        for ii = 1 : numOfExn
             c = exn{ii};
             posEqualSign = strfind(c, '=');
-            if length(posEqualSign)==1
-                % Remove trailing semicolons before combining LHS and RHS.
+            if numel(posEqualSign)==1
+                % Remove trailing semicolons before combining LHS and RHS
                 while ~isempty(c) && c(end)==';'
                     c(end) = '';
                 end
                 c = [c(1:posEqualSign-1), '-(' , c(posEqualSign+1:end), ');'];
             elseif isempty(c) || c(end)~=';'
-                % Add semicolon if needed.
+                % Add semicolon if needed
                 c = [c, ';']; %#ok<AGROW>
             end
             exn{ii} = c;
         end
-    end
-end
+    end%
+end%

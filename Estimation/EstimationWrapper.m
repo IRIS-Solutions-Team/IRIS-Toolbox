@@ -85,7 +85,7 @@ classdef EstimationWrapper < handle
                     this.SolverOptions = optimset(this.SolverOptions, solverOptions);
                 end
             end
-        end
+        end%
 
 
         function run(this, objectiveFunction, initial, lowerBounds, upperBounds)
@@ -132,6 +132,6 @@ classdef EstimationWrapper < handle
                 this.IndexLowerBoundsHit(:) = this.Optimum<=lowerBounds;
                 this.IndexUpperBoundsHit(:) = this.Optimum>=upperBounds;
             end
-        end
+        end%
     end
 end

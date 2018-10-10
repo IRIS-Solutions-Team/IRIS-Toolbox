@@ -74,7 +74,7 @@ switch query
         
         
     case {'freq', 'frequency', 'per', 'periodicity'}
-        answ = DateWrapper.getFrequencyFromNumeric(this.Start);
+        answ = DateWrapper.getFrequency(this.Start);
     
         
     case {'data', 'value', 'values'}

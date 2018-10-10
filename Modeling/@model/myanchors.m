@@ -1,16 +1,17 @@
 function [YA, XA, Ea, Eu, YC, XC, wReal, wImag] = myanchors(this, p, rng, isAnt)
-% myanchors  [Not a public function] Get simulation plan anchors for model variables.
+% myanchors  Get simulation plan anchors for model variables
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
-% Check date frequencies.
-if DateWrapper.getFrequencyFromNumeric(p.Start)~=DateWrapper.getFrequencyFromNumeric(rng(1)) || DateWrapper.getFrequencyFromNumeric(p.End)~=DateWrapper.getFrequencyFromNumeric(rng(end))
+% Check date frequencies
+if DateWrapper.getFrequencyAsNumeric(p.Start)~=DateWrapper.getFrequencyAsNumeric(rng(1)) ...
+   || DateWrapper.getFrequencyAsNumeric(p.End)~=DateWrapper.getFrequencyAsNumeric(rng(end))
     utils.error('model:myanchors', ...
         'Simulation range and plan range must be the same frequency.');
 end

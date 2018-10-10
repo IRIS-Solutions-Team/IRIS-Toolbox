@@ -1,5 +1,5 @@
-function this = init(this, freq, serials, observations)
-% init  Create start date and observations for new time series
+function this = init(this, freq, serials, data)
+% init  Create start date and data for new time series
 %
 % Backend IRIS function
 % No help provided
@@ -11,30 +11,30 @@ function this = init(this, freq, serials, observations)
 
 serials = serials(:);
 numOfDates = numel(serials);
-sizeOfObservations = size(observations);
-if sizeOfObservations(1)==0 && (all(isnan(serials)) || numOfDates==0)
-    % No observations entered, return empty series
-    this = createEmptySeries(this, sizeOfObservations);
+sizeOfData = size(data);
+if sizeOfData(1)==0 && (all(isnan(serials)) || numOfDates==0)
+    % No data entered, return empty series
+    this = createEmptySeries(this, sizeOfData);
     return
 end
 
-if sizeOfObservations(1)~=numOfDates
+if sizeOfData(1)~=numOfDates
     throw( exception.Base('Series:DatesDataDimensionMismatch', 'error') );
 end
 
-ndimsOfData = ndims(observations);
-observations = observations(:, :);
+ndimsOfData = ndims(data);
+data = data(:, :);
 
 % Remove NaN serials
-indexOfNaNSerials = isnan(serials);
-if any(indexOfNaNSerials)
-    observations(indexOfNaNSerials, :) = [ ];
-    serials(indexOfNaNSerials) = [ ];
+inxOfNaNSerials = isnan(serials);
+if any(inxOfNaNSerials)
+    data(inxOfNaNSerials, :) = [ ];
+    serials(inxOfNaNSerials) = [ ];
 end
 
 if isempty(serials)
     % No proper date entered, return empty series
-    this = createEmptySeries(this, sizeOfObservations);
+    this = createEmptySeries(this, sizeOfData);
     return
 end
 
@@ -47,22 +47,25 @@ numOfDates = round(endSerial - startSerial + 1);
 if isempty(numOfDates)
     numOfDates = 0;
 end
-sizeOfObservations(1) = numOfDates;
+sizeOfData(1) = numOfDates;
 
-this.Data = repmat(this.MissingValue, sizeOfObservations);
-posOfObservations = round(serials - startSerial + 1);
+this.Data = repmat(this.MissingValue, sizeOfData);
+posOfData = round(serials - startSerial + 1);
 
-% Assign user observations; higher dimensions will be preserved in
+% Assign user data; higher dimensions will be preserved in
 % this.Data
-this.Data(posOfObservations, :) = observations;
+this.Data(posOfData, :) = data;
 this.Start = DateWrapper.fromSerial(freq, startSerial);
 
 end%
 
+%
+% Local functions
+%
 
-function this = createEmptySeries(this, sizeOfObservations)
-    sizeOfObservations(1) = 0;
+function this = createEmptySeries(this, sizeOfData)
+    sizeOfData(1) = 0;
     this.Start = DateWrapper(NaN);
-    this.Data = repmat(this.MissingValue, sizeOfObservations);
+    this.Data = repmat(this.MissingValue, sizeOfData);
 end%
 

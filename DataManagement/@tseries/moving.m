@@ -39,30 +39,25 @@ function this = moving(this, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('tseries.moving');
-    inputParser.addRequired('InputTimeSeries', @(x) isa(x, 'tseries'));
-    inputParser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
-    inputParser.addParameter('Function', @mean, @(x) isa(x, 'function_handle'));
-    inputParser.addParameter('Window', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && all(x==round(x))));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('tseries.moving');
+    parser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    parser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
+    parser.addParameter('Function', @mean, @(x) isa(x, 'function_handle'));
+    parser.addConditional('Window', @auto, @validateWindow);
 end
-inputParser.parse(this, varargin{:});
-range = inputParser.Results.Range;
-opt = inputParser.Options;
+parser.parse(this, varargin{:});
+range = parser.Results.Range;
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
 if isequal(opt.Window, @auto)
-    freq = DateWrapper.getFrequencyFromNumeric(this.start);
-    assert( ...
-        freq~=0, ...
-        [class(this), ':moving'], ...
-        'Option Window= must be specified when input time series is of integer date frequency.' ...
-    );
+    freq = DateWrapper.getFrequencyAsNumeric(this.Start);
     opt.Window = (-freq+1):0;
 end
 
@@ -72,4 +67,20 @@ end
 
 this = unop(@numeric.moving, this, 0, opt.Window, opt.Function);
 
-end
+end%
+
+
+%
+% Validators
+%
+
+
+function flag = validateWindow(input)
+    freq = DateWrapper.getFrequencyAsNumeric(input.InputSeries.Start);
+    if isequal(input.Window, @auto)
+        flag = freq>0;
+        return
+    end
+    flag = isnumeric(input.Window) && all(input.Window==round(input.Window));
+end%
+

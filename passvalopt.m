@@ -150,7 +150,6 @@ end%
 
 function defaultOptionsStruct = initialize( )
     defaultOptionsStruct = struct( );
-    defaultOptionsStruct.dates = iris.options.dates( );
     defaultOptionsStruct.dbase = iris.options.dbase( );
     defaultOptionsStruct.dest = iris.options.dest( );
     defaultOptionsStruct.FAVAR = iris.options.FAVAR( );
@@ -167,19 +166,17 @@ function defaultOptionsStruct = initialize( )
     defaultOptionsStruct.nnet = iris.options.nnet( );
     defaultOptionsStruct.poster = iris.options.poster( );
     defaultOptionsStruct.report = iris.options.report( );
-    defaultOptionsStruct.solver = iris.options.solver( );
     defaultOptionsStruct.textfun = iris.options.textfun( );
     defaultOptionsStruct.SVAR = iris.options.SVAR( );
     defaultOptionsStruct.tseries = iris.options.tseries( );
     defaultOptionsStruct.VAR = iris.options.VAR( );
-    defaultOptionsStruct.XlsSheet = iris.options.XlsSheet( );
-    lsFolder = fieldnames(defaultOptionsStruct);
-    for ii = 1 : numel(lsFolder)
-        folder = lsFolder{ii};
-        lsFunc = fieldnames(defaultOptionsStruct.(folder));
-        for jj = 1 : numel(lsFunc)
-            func = lsFunc{jj};
-            defaultOptionsStruct.(folder).(func) = list2struct(defaultOptionsStruct.(folder).(func));
+    list = fieldnames(defaultOptionsStruct);
+    for ii = 1 : numel(list)
+        name = list{ii};
+        listOfFunctions = fieldnames(defaultOptionsStruct.(name));
+        for jj = 1 : numel(listOfFunctions)
+            func = listOfFunctions{jj};
+            defaultOptionsStruct.(name).(func) = list2struct(defaultOptionsStruct.(name).(func));
         end
     end
 end%

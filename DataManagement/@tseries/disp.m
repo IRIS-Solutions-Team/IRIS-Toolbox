@@ -13,8 +13,8 @@ catch %#ok<CTCH>
     name = '';
 end
 
-start = this.start;
-freq = DateWrapper.getFrequencyFromNumeric(start);
+start = this.Start;
+freq = DateWrapper.getFrequencyAsNumeric(start);
 
 try
     disp2DFunc; %#ok<VUNUS>
@@ -30,7 +30,7 @@ end
 
 dispHeader(this);
 
-data = this.data;
+data = this.Data;
 dataNDim = ndims(data);
 config = iris.get( );
 dispND(start, data, this.Comment, [ ], name, disp2DFunc, dataNDim, config);
@@ -39,12 +39,15 @@ disp@shared.UserDataContainer(this, 1);
 textfun.loosespace( );
 end%
 
+%
+% Local functions
+%
 
 function dispHeader(this)
-    tmpSize = size(this.data);
+    tmpSize = size(this.Data);
     nPer = tmpSize(1);
     fprintf('\t');
-    if isempty(this.data)
+    if isempty(this.Data)
        fprintf('empty ');
     end
     ccn = getClickableClassName(this);
@@ -100,16 +103,14 @@ function x = disp2d(start, data, tab, sep, num2strFunc)
     nPer = size(data, 1);
     range = start + (0 : nPer-1);
     dates = strjust(dat2char(range));
-    if DateWrapper.getFrequencyFromNumeric(range(1))==52
+    if DateWrapper.getFrequencyAsNumeric(start)==52
         dateFormatW = '$ (Aaa DD-Mmm-YYYY)';
-        dates = [dates, ...
-            strjust(dat2char(range, 'dateFormat=', dateFormatW))];
+        dates = [ dates, ...
+                  strjust(dat2char(range, 'dateFormat=', dateFormatW)) ];
     end
-    dates = [ ...
-        tab(ones(1, nPer), :), ...
-        dates, ...
-        sep(ones(1, nPer), :), ...
-        ];
+    dates = [ tab(ones(1, nPer), :), ...
+              dates, ...
+              sep(ones(1, nPer), :) ];
     dataChar = num2strFunc(data);
     x = [dates, dataChar];
 end%

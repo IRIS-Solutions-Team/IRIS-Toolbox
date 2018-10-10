@@ -4,7 +4,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 %
 % __Syntax__
 %
-% Input arguments marked with a `~` sign may be omitted.
+% Input arguments marked with a `~` sign may be omitted
 %
 %     [M, Outp, V, Delta, PE, SCov] = filter(M, Inp, Range, ~J, ...)
 %
@@ -186,22 +186,22 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.filter');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('SolvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
-    inputParser.addRequired('InputDatabank', @isstruct);
-    inputParser.addRequired('FilterRange', @DateWrapper.validateProperRangeInput);
-    inputParser.addOptional('TuneDatabank', [ ], @(x) isempty(x) || isstruct(x));
-    inputParser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
-    inputParser.addParameter({'Data', 'Output'}, 'smooth', @ischar);
-    inputParser.addParameter('Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.filter');
+    parser.KeepUnmatched = true;
+    parser.addRequired('SolvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
+    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('FilterRange', @DateWrapper.validateProperRangeInput);
+    parser.addOptional('TuneDatabank', [ ], @(x) isempty(x) || isstruct(x));
+    parser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    parser.addParameter({'Data', 'Output'}, 'smooth', @ischar);
+    parser.addParameter('Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
 end
-inputParser.parse(this, inputDatabank, filterRange, varargin{:});
-j = inputParser.Results.TuneDatabank;
-opt = inputParser.Options;
-unmatched = inputParser.UnmatchedInCell;
+parser.parse(this, inputDatabank, filterRange, varargin{:});
+j = parser.Results.TuneDatabank;
+opt = parser.Options;
+unmatched = parser.UnmatchedInCell;
 
 likOpt = prepareLoglik(this, filterRange, 't', j, unmatched{:});
 isOutputData = nargout>1;

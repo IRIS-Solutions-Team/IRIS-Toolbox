@@ -1,5 +1,5 @@
 function this = redate(this, oldDate, newDate)
-% redate  Change time dimension of time series.
+% redate  Change time dimension of time series
 %
 % Syntax
 % =======
@@ -36,7 +36,7 @@ function this = redate(this, oldDate, newDate)
 % outside the original time series range) changes into `2009Q4` (which will
 % again be a date outside the new time series range).
 %
-%     >> x = tseries(qq(2000,1):qq(2000,4),1:4)
+%     >> x = tseries(qq(2000, 1):qq(2000, 4), 1:4)
 %     x =
 %         tseries object: 4-by-1
 %         2000Q1:  1
@@ -46,7 +46,7 @@ function this = redate(this, oldDate, newDate)
 %         ''
 %         user data: empty
 %         export files: [0]
-%     >> redate(x,qq(1999,4),qq(2009,4))
+%     >> redate(x, qq(1999, 4), qq(2009, 4))
 %     ans =
 %         tseries object: 4-by-1
 %         2010Q1:  1
@@ -59,26 +59,29 @@ function this = redate(this, oldDate, newDate)
 %
 
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-pp = inputParser( );
-pp.addRequired('x',@(x) isa(x,'tseries'));
-pp.addRequired('oldDate',@isnumericscalar);
-pp.addRequired('newDate',@isnumericscalar);
-pp.parse(this,oldDate,newDate);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('tseries.redate');
+    parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    parser.addRequired('OldDate', @DateWrapper.validateDateInput);
+    parser.addRequired('NewDate', @DateWrapper.validateDateInput);
+end
+parser.parse(this, oldDate, newDate);
 
 %--------------------------------------------------------------------------
 
-xFreq = get(this,'freq');
-oldFreq = DateWrapper.getFrequencyFromNumeric(oldDate);
+freqOfSeries = this.FrequencyAsNumeric;
+oldFreq = DateWrapper.getFrequencyAsNumeric(oldDate);
 
-if oldFreq ~= xFreq
-   utils.error('tseries:redate', ...
-      'Time series frequency and base date frequency must match.');
+if oldFreq~=freqOfSeries
+    throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
+           char(Frequency(freqOfSeries)), char(Frequency(oldFreq)) );
 end
 
-sh = round(this.start - oldDate);
-this.start = newDate + sh;
+shift = round(this.Start - oldDate);
+this.Start = newDate + shift;
 
-end
+end%

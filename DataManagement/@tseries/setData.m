@@ -27,14 +27,14 @@ if isa(y, 'tseries')
 end
 
 % Convert LHS tseries NaNs to complex if LHS is real and RHS is complex.
-if isreal(this.data) && ~isreal(y)
-    this.data(isnan(this.data)) = NaN + 1i*NaN;
+if isreal(this.Data) && ~isreal(y)
+    this.Data(isnan(this.Data)) = NaN + 1i*NaN;
 end
 
 % If RHS has only one row but multiple cols (or size>1 in other dims), 
 % tseries is multivariate, and assigned are multiple dates, then expand RHS
 % in 1st dimension.
-xSize = size(this.data);
+xSize = size(this.Data);
 ySize = size(y);
 if length(y)>1 && size(y, 1)==1 ...
         && length(s.subs{1})>1 ...
@@ -56,7 +56,7 @@ if any(~freqTest)
 end
 
 try
-    this.data = subsasgn(this.data, s, y);
+    this.Data = subsasgn(this.Data, s, y);
 catch Err
     msg = Err.message;
     if ~isempty(msg) && msg(end)=='.'
@@ -69,8 +69,8 @@ catch Err
 end
 
 % Make sure empty tseries have start date set to NaN no matter what.
-if isempty(this.data)
-    this.start = NaN;
+if isempty(this.Data)
+    this.Start = NaN;
 end
 
 % If RHS is empty and first index is ':', then some of the columns could
@@ -86,7 +86,7 @@ end%
 
 function [this, s, dates, freqTest] = expand(this, s)
     % If LHS data are complex, use NaN+NaNi to pad missing observations.
-    if isreal(this.data)
+    if isreal(this.Data)
         unit = 1;
     else
         unit = 1 + 1i;
@@ -94,7 +94,7 @@ function [this, s, dates, freqTest] = expand(this, s)
 
     % Replace x(dates) with x(dates, :, ..., :).
     if length(s.subs)==1
-        s.subs(2:ndims(this.data)) = {':'};
+        s.subs(2:ndims(this.Data)) = {':'};
     end
 
     % * Inf and ':' produce the entire tseries range.
@@ -105,26 +105,26 @@ function [this, s, dates, freqTest] = expand(this, s)
     if (ischar(s.subs{1}) && strcmp(s.subs{1}, ':')) ...
             || isequal(s.subs{1}, Inf)
         s.subs{1} = ':';
-        if isnan(this.start)
+        if isnan(this.Start)
             % LHS is empty.
             dates = [ ];
         else
-            dates = this.start + (0 : size(this.data, 1)-1);
+            dates = this.Start + (0 : size(this.Data, 1)-1);
         end
         freqTest = true(size(dates));
     elseif isnumeric(s.subs{1}) && ~isempty(s.subs{1})
         dates = s.subs{1};
         if ~isempty(dates)
-            f2 = DateWrapper.getFrequencyFromNumeric(dates);
-            if isnan(this.start)
+            f2 = DateWrapper.getFrequencyAsNumeric(dates);
+            if isnan(this.Start)
                 % If LHS series is empty tseries, set start date to the minimum
                 % date with the same frequency as the first date.
-                this.start = min(dates(f2==f2(1)));
+                this.Start = min(dates(f2==f2(1)));
             end
-            f1 = DateWrapper.getFrequencyFromNumeric(this.Start);
+            f1 = DateWrapper.getFrequencyAsNumeric(this.Start);
             freqTest = f1==f2;
             dates(~freqTest) = [ ];
-            s.subs{1} = round(dates - this.start + 1);
+            s.subs{1} = round(dates - this.Start + 1);
         end
     else
         dates = [ ];
@@ -132,15 +132,15 @@ function [this, s, dates, freqTest] = expand(this, s)
     end
 
     % Reshape tseries data to reduce number of dimensions if called with
-    % fewer dimensions. Eg x.data is Nx2x2, and assignment is for x(:, 3).
+    % fewer dimensions. Eg x.Data is Nx2x2, and assignment is for x(:, 3).
     % This mimicks standard Matlab behavior.
     nSubs = length(s.subs);
     isReshaped = false;
-    if nSubs<ndims(this.data)
+    if nSubs<ndims(this.Data)
         tempSubs = cell([1, nSubs]);
         tempSubs(:) = {':'};
-        tempSize = size(this.data);
-        this.data = this.data(tempSubs{:});
+        tempSize = size(this.Data);
+        this.Data = this.Data(tempSubs{:});
         this.Comment = this.Comment(tempSubs{:});
         isReshaped = true;
     end
@@ -153,20 +153,20 @@ function [this, s, dates, freqTest] = expand(this, s)
         % Non-positive index in 1st dimension.
         if i==1 && any(s.subs{1}<1)
             n = 1 - min(s.subs{1});
-            currentSize = size(this.data);
+            currentSize = size(this.Data);
             currentSize(1) = n;
-            this.data = [nan(currentSize)*unit;this.data];
-            this.start = this.start - n;
+            this.Data = [nan(currentSize)*unit;this.Data];
+            this.Start = this.Start - n;
             s.subs{1} = s.subs{1} + n;
         end
         % If index exceeds current size, add NaNs. This is different than
         % standard Matlab behavior: Matlab adds zeros.
-        if any(s.subs{i}>size(this.data, i))
-            currentSize = size(this.data);
+        if any(s.subs{i}>size(this.Data, i))
+            currentSize = size(this.Data);
             currentSize(end+1:nSubs) = 1;
             addSize = currentSize;
             addSize(i) = max(s.subs{i}) - addSize(i);
-            this.data = cat(i, this.data, nan(addSize)*unit);
+            this.Data = cat(i, this.Data, nan(addSize)*unit);
             if i>1
                 % Add an appropriate empty cellstr to comments if tseries data
                 % are expanded in 2nd or higher dimensions.
@@ -180,7 +180,7 @@ function [this, s, dates, freqTest] = expand(this, s)
     % Try to reshape tseries data array back.
     if isReshaped
         try
-            this.data = reshape(this.data, tempSize);
+            this.Data = reshape(this.Data, tempSize);
             this.Comment = reshape(this.Comment, [1, tempSize(2:end)]);
         catch %#ok<CTCH>
             utils.error('tseries:subsasgn', ...

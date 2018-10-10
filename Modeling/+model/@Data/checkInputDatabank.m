@@ -13,13 +13,9 @@ elseif isa(optionalNames, 'string')
     optionalNames = cellstr(optionalNames);
 end
 
-frequency = getFrequency(range);
-assert( ...
-    all(frequency==frequency(1)), ...
-    'model:Data:checkInputDatabank', ...
-    'Input range must be homogeneous date frequency.' ...
-);
-requiredFrequency = frequency(1);
+freq = DateWrapper.getFrequencyAsNumeric(range);
+DateWrapper.checkMixedFrequency(freq);
+requiredFreq = freq(1);
 
 allNames = [requiredNames, optionalNames];
 indexOptionalNames = [false(size(requiredNames)), true(size(optionalNames))];
@@ -33,7 +29,7 @@ for i = 1 : numel(allNames)
         checkIncluded(i) = ~indexRequiredNames(i);
         continue
     end
-    checkFrequency(i) = inputDatabank.(ithName).Frequency==requiredFrequency;
+    checkFrequency(i) = inputDatabank.(ithName).Frequency==requiredFreq;
 end
 
 assert( ...

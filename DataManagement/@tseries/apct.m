@@ -28,37 +28,38 @@ function this = apct(this, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('tseries.apct');
-    INPUT_PARSER.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    INPUT_PARSER.addOptional('Shift', -1, @(x) isnumeric(x) && isscalar(x) && x==round(x));
-    INPUT_PARSER.addOptional('Power', @auto, @(x) isequal(x, @auto) || (isscalar(x) && isnumeric(x)) );
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('tseries.apct');
+    parser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    parser.addOptional('Shift', -1, @(x) isnumeric(x) && isscalar(x) && x==round(x));
+    parser.addOptional('Power', @auto, @(x) isequal(x, @auto) || (isscalar(x) && isnumeric(x)) );
 end
-INPUT_PARSER.parse(this, varargin{:});
-shift = INPUT_PARSER.Results.Shift;
-power = INPUT_PARSER.Results.Power;
+parser.parse(this, varargin{:});
+shift = parser.Results.Shift;
+power = parser.Results.Power;
 
 if isequal(power, @auto)
-    frequency = DateWrapper.getFrequencyFromNumeric(this.Start);
-    if frequency==0
+    freq = DateWrapper.getFrequencyAsNumeric(this.Start);
+    if freq==0
         power = 1;
     elseif abs(shift)==1
-        power = frequency;
+        power = freq;
     else
-        power = frequency / abs(shift);
+        power = freq / abs(shift);
     end
 end
 
 %--------------------------------------------------------------------------
 
-if isempty(this.data)
+if isempty(this.Data)
     return
 end
 
 this = unop(@numeric.pct, this, 0, shift, power);
 
-end
+end%
+

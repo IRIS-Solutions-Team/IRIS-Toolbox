@@ -58,17 +58,17 @@ function D = dbclip(D, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('dbase:dbclip');
-    inputParser.addRequired('Databank', @isstruct);
-    inputParser.addRequired('RangeOrStartDate', @(x) (iscell(x) && all(cellfun(@(y) DateWrapper.validateRangeInput(y), x))) || DateWrapper.validateRangeInput(x));
-    inputParser.addOptional('EndDate', [ ], @(x) isempty(x) || (iscell(x) && all(cellfun(@(y) DateWrapper.validateDateInput(y), x))) || DateWrapper.validateDateInput(x));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dbase.dbclip');
+    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('RangeOrStartDate', @(x) (iscell(x) && all(cellfun(@(y) DateWrapper.validateRangeInput(y), x))) || DateWrapper.validateRangeInput(x));
+    parser.addOptional('EndDate', [ ], @(x) isempty(x) || (iscell(x) && all(cellfun(@(y) DateWrapper.validateDateInput(y), x))) || DateWrapper.validateDateInput(x));
 end
-inputParser.parse(D, varargin{:});
-endDate = inputParser.Results.EndDate;
+parser.parse(D, varargin{:});
+endDate = parser.Results.EndDate;
 if isempty(endDate)
-    range = inputParser.Results.RangeOrStartDate;
+    range = parser.Results.RangeOrStartDate;
     if ~iscell(range)
         range = { range };
     end
@@ -79,7 +79,7 @@ if isempty(endDate)
         endDate{i} = range{i}(end);
     end
 else
-    startDate = inputParser.Results.RangeOrStartDate;
+    startDate = parser.Results.RangeOrStartDate;
     if ~iscell(startDate)
         startDate = { startDate };
     end
@@ -94,29 +94,29 @@ end
 
 %--------------------------------------------------------------------------
 
-freqStart = rngfreq(startDate);
-freqEnd = rngfreq(endDate);
+freqOfStart = cellfun(@DateWrapper.getFrequencyAsNumeric, startDate);
+freqOfEnd = cellfun(@DateWrapper.getFrequencyAsNumeric, endDate);
 
 list = fieldnames(D);
 numList = numel(list);
 for i = 1 : numList
     name = list{i};
     if isa(D.(name), 'tseries') && ~isempty(D.(name))
-        freqX = DateWrapper.getFrequencyFromNumeric(D.(name).start);
-        posStart = find(freqX==freqStart, 1);
-        posEnd = find(freqX==freqEnd, 1);
-        if isempty(posStart) && isempty(posEnd)
+        freqX = DateWrapper.getFrequencyAsNumeric(D.(name).start);
+        posOfStart = find(freqX==freqOfStart, 1);
+        posOfEnd = find(freqX==freqOfEnd, 1);
+        if isempty(posOfStart) && isempty(posOfEnd)
             continue
         end
-        if isempty(posStart)
+        if isempty(posOfStart)
             ithStartDate = -Inf;
         else
-            ithStartDate = startDate{posStart}(1);
+            ithStartDate = startDate{posOfStart}(1);
         end
-        if isempty(posEnd)
+        if isempty(posOfEnd)
             ithEndDate = Inf;
         else
-            ithEndDate = endDate{posEnd}(1);
+            ithEndDate = endDate{posOfEnd}(1);
         end
         D.(name) = clip(D.(name), ithStartDate, ithEndDate);
     elseif isstruct(D.(name))

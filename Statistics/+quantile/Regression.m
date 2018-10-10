@@ -219,9 +219,9 @@ classdef Regression < shared.UserDataContainer
 
         function y = getOutputData(this, d, vecDat)
             vecDat = vecDat(:);
-            nPer = numel(vecDat);
+            numOfPeriods = numel(vecDat);
             nh = numel(this.Horizon);
-            y = nan(nPer, nh);
+            y = nan(numOfPeriods, nh);
             name = this.OutputSeries;
             for i = 1 : nh
                 h = this.Horizon(i);
@@ -235,23 +235,23 @@ classdef Regression < shared.UserDataContainer
         function data = getInputData(this, d, vecDat)
             list = this.InputSeries;
             vecDat = vecDat(:);
-            datFreq = DateWrapper.getFrequencyFromNumeric(vecDat(1));
-            nPer = numel(vecDat);
-            data = zeros(nPer, 0);
+            dateFreq = DateWrapper.getFrequencyAsNumeric(vecDat(1));
+            numOfPeriods = numel(vecDat);
+            data = zeros(numOfPeriods, 0);
             nList = numel(list);
             i = 1;
             while i<=nList
                 name = list{i};
                 i = i + 1;
                 x = d.(name);
-                xFreq = DateWrapper.getFrequencyFromNumeric(x.Start);
+                xFreq = DateWrapper.getFrequencyAsNumeric(x.Start);
                 vecSh = 0;
                 if i<=nList && isnumeric(list{i})
                     vecSh = list{i};
                     i = i + 1;
                 end
                 temp = vecDat;
-                if xFreq>datFreq
+                if xFreq>dateFreq
                     temp = convert(temp, xFreq, 'ConversionMonth=', 'last');
                 end
                 for sh = vecSh(:).'
@@ -265,10 +265,10 @@ classdef Regression < shared.UserDataContainer
 
         function c = getDetermData(this, d, vecDat);
             vecDat = vecDat(:);
-            nPer = numel(vecDat);
-            c = zeros(nPer, 0);
+            numOfPeriods = numel(vecDat);
+            c = zeros(numOfPeriods, 0);
             if this.IsConstant
-                c = [c, ones(nPer, 1)];
+                c = [c, ones(numOfPeriods, 1)];
             end
             if this.IsTrend
                 c = [c, dat2ttrend(vecDat)];

@@ -1,5 +1,6 @@
-function varargout = failed(this, okSstate, okChkSstate, lsSstateErr, ...
-    nPath, nanDerv, sing2, bk)
+function varargout = failed( this, ...
+                             okSteady, okCheckSteady, steadyErrors, ...
+                             numOfPaths, nanDerv, sing2, bk )
 % failed  Give access to the last failed model object.
 %
 % Syntax
@@ -13,7 +14,7 @@ function varargout = failed(this, okSstate, okChkSstate, lsSstateErr, ...
 %
 % * `m` [ numeric ] - The model object with the parameterisation that
 % failed to converge on steady state or to solve during one of the
-% following functions: [`model/estimate`](model/estimate),
+% following functions: [`model/estimate`](model/estimate), 
 % [`model/diffloglik`](model/diffloglik), [`model/fisher`](model/fisher).
 %
 %
@@ -30,33 +31,34 @@ function varargout = failed(this, okSstate, okChkSstate, lsSstateErr, ...
 
 %--------------------------------------------------------------------------
 
-persistent STORE;
+persistent store
 
 if nargin==0
-    varargout{1} = STORE;
+    varargout{1} = store;
     return
 end
 
-STORE = this;
+store = this;
 
-if ~okSstate
-    c = utils.error('model:failed', ...
+if ~okSteady
+    c = utils.error('Model:Failed', ...
         'Steady state failed to converge on current parameters.');
-elseif ~okChkSstate
-    c = utils.error('model:failed', ...
+elseif ~okCheckSteady
+    c = utils.error('Model:Failed', ...
         'Steady-state error in this equation: ''%s''.', ...
-        lsSstateErr{:});
+        steadyErrors{:});
 else
-    [body, args] = solveFail(this, nPath, nanDerv, sing2, bk);
-    c = utils.error('model:failed',body,args{:});
+    [body, args] = solveFail(this, numOfPaths, nanDerv, sing2, bk);
+    c = utils.error('Model:Failed', body, args{:});
 end
 
-utils.error('model:failed', ...
-    ['The model failed to update parameters and solution.',...
+utils.error('Model:Failed', ...
+    ['The model failed to update parameters and solution ', ...
     '\n\n', ...
-    'Type <a href="matlab: x = model.failed( );">', ...
-    'x = model.failed( );', ...
-    '</a> to get the model object that failed to solve.',...
-    '\n\n',c,]);
+    'Type ', ...
+    'x = model.failed( ) ', ...
+    'to retrieve the model object that failed to solve ', ...
+    '\n\n', c, ]);
 
-end
+end%
+

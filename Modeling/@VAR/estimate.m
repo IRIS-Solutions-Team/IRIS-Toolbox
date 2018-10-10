@@ -142,43 +142,43 @@ function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('VAR.estimate');
-    inputParser.addRequired('VARModel', @(x) isa(x, 'VAR'));
-    inputParser.addRequired('InputData', @(x) myisvalidinpdata(this, x));
-    inputParser.addRequired('Range', @DateWrapper.validateRangeInput);
-    inputParser.addParameter('Diff', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Order', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    inputParser.addParameter('Cointeg', [ ], @isnumeric);
-    inputParser.addParameter('Comment', '', @(x) ischar(x) || isa(x, 'string') || isequal(x, Inf));
-    inputParser.addParameter({'Constraints', 'Constraint'}, '', @(x) ischar(x) || isa(x, 'string') || iscellstr(x) || isnumeric(x));
-    inputParser.addParameter({'Intercept', 'Constant', 'Const', 'Constants'}, true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter({'CovParameters', 'CovParameter', 'CovParam'}, false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('EqtnByEqtn', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Schur', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter({'StartDate', 'Start'}, 'Presample', @(x) any(strcmpi(x, {'Presample', 'Fit', 'Fitted'})));
-    inputParser.addParameter('TimeWeights', [ ], @(x) isempty(x) || isa(x, 'tseries'));
-    inputParser.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('VAR.estimate');
+    parser.addRequired('VARModel', @(x) isa(x, 'VAR'));
+    parser.addRequired('InputData', @(x) myisvalidinpdata(this, x));
+    parser.addRequired('Range', @DateWrapper.validateRangeInput);
+    parser.addParameter('Diff', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Order', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    parser.addParameter('Cointeg', [ ], @isnumeric);
+    parser.addParameter('Comment', '', @(x) ischar(x) || isa(x, 'string') || isequal(x, Inf));
+    parser.addParameter({'Constraints', 'Constraint'}, '', @(x) ischar(x) || isa(x, 'string') || iscellstr(x) || isnumeric(x));
+    parser.addParameter({'Intercept', 'Constant', 'Const', 'Constants'}, true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'CovParameters', 'CovParameter', 'CovParam'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('EqtnByEqtn', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Schur', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'StartDate', 'Start'}, 'Presample', @(x) any(strcmpi(x, {'Presample', 'Fit', 'Fitted'})));
+    parser.addParameter('TimeWeights', [ ], @(x) isempty(x) || isa(x, 'tseries'));
+    parser.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
     % Parameter constraints
-    inputParser.addParameter('A', [ ], @isnumeric);
-    inputParser.addParameter('C', [ ], @isnumeric);    
-    inputParser.addParameter('G', [ ], @isnumeric);
-    inputParser.addParameter('J', [ ], @isnumeric);
-    inputParser.addParameter('Mean', [ ], @(x) isempty(x) || isnumeric(x));
-    inputParser.addParameter('MaxIter', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    inputParser.addParameter('Tolerance', 1e-5, @(x) isnumeric(x) && isscalar(x) && x>0);
+    parser.addParameter('A', [ ], @isnumeric);
+    parser.addParameter('C', [ ], @isnumeric);    
+    parser.addParameter('G', [ ], @isnumeric);
+    parser.addParameter('J', [ ], @isnumeric);
+    parser.addParameter('Mean', [ ], @(x) isempty(x) || isnumeric(x));
+    parser.addParameter('MaxIter', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    parser.addParameter('Tolerance', 1e-5, @(x) isnumeric(x) && isscalar(x) && x>0);
     % Prior dummy observations
-    inputParser.addParameter({'PriorDummies', 'BVAR'}, [ ], @(x) isempty(x) || isa(x, 'BVAR.bvarobj'));
-    inputParser.addParameter({'Standardize', 'Stdize'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'PriorDummies', 'BVAR'}, [ ], @(x) isempty(x) || isa(x, 'BVAR.bvarobj'));
+    parser.addParameter({'Standardize', 'Stdize'}, false, @(x) isequal(x, true) || isequal(x, false));
     % Panel VAR
-    inputParser.addParameter({'FixedEff', 'FixedEffect'}, true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('GroupWeights', [ ], @(x) isempty(x) || isnumeric(x));
-    inputParser.addParameter('GroupSpec', false, @(x) islogicalscalar(x) || iscellstr(x) || ischar(x));
+    parser.addParameter({'FixedEff', 'FixedEffect'}, true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('GroupWeights', [ ], @(x) isempty(x) || isnumeric(x));
+    parser.addParameter('GroupSpec', false, @(x) islogicalscalar(x) || iscellstr(x) || ischar(x));
 end
-inputParser.parse(this, inputData, range, varargin{:});
-opt = inputParser.Options;
+parser.parse(this, inputData, range, varargin{:});
+opt = parser.Options;
 
 if isempty(this.NamesEndogenous)
     throw( exception.Base('VAR:CANNOT_ESTIMATE_EMPTY_VAR', 'error') );

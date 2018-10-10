@@ -59,9 +59,9 @@ for v = variantsRequested
     for iBlk = 1 : nBlk
         blk = blz.Block{iBlk};
         [lx, gx, blockExitStatus(iBlk), error] = run(blk, this.Link, lx, gx, ixLog);
-        if ~blockExitStatus(iBlk)
-            fprintf('    Block %g of %g failed to solve.\n', iBlk, nBlk);
-        end
+        %if ~blockExitStatus(iBlk)
+        %    fprintf('    Block %g of %g failed to solve.\n', iBlk, nBlk);
+        %end
         if ~isempty(error.EvaluatesToNan)
             throw( exception.Base('Steady:EvaluatesToNan', 'error'), ...
                    this.Equation.Input{error.EvaluatesToNan} );
@@ -72,10 +72,9 @@ for v = variantsRequested
     % Check for zero log variables.
     indexOk(v) = chkQty(this, v, 'log') && all(blockExitStatus);
     
-    % TODO: Report more details on failed equations and variables.
+    % TODO: Report more details on failed equations and variables
     if blz.Warning && ~indexOk(v)
-        utils.warning('model:mysstatenonlin', ...
-            'Steady state inaccurate or not returned for some variables.');
+        throw( exception.Base('Model:SteadyInaccurate', 'warning') );
     end
     
     % Store current values to initialize next parameterisation.

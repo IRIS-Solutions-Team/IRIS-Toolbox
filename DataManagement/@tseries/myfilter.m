@@ -1,11 +1,11 @@
 function varargout = myfilter(order, inp, range, opt)
-% myfilter  Low/high-pass filter with soft and hard tunes.
+% myfilter  Low/high-pass filter with soft and hard tunes
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 % The function `myfilter` is called from within `hpf`, `llf` and `bwf`.
 
@@ -20,7 +20,7 @@ end
 defaultLambdaFunc = @(freq, order) (10*freq)^order;
 lambdaFunc = @(cutoff, order) (2*sin(pi./cutoff)).^(-2*order);
 cutoffFunc = @(lambda, order) pi./asin(0.5*lambda.^(-1/(2*order)));
-freq = DateWrapper.getFrequencyFromNumeric(inp.Start);
+freq = DateWrapper.getFrequencyAsNumeric(inp.Start);
 
 if ~isempty(opt.CutOffYear)
     cutoff = opt.CutOffYear * freq;

@@ -35,7 +35,7 @@ run(blz);
 prepareBlocks(blz, opt);
 
 ixLog = blz.IxLog;
-ixLog(:) = false;
+% ixLog(:) = false;
 numBlocks = numel(blz.Block);
 blockExitStatus = repmat({ones(numBlocks, numOfDataColumns)}, 1, nv);
 for v = 1 : nv

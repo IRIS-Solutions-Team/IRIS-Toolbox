@@ -1,24 +1,25 @@
 function d = dbload(varargin)
-% dbload  Create database by loading CSV file.
+% dbload  Create databank by loading CSV file
 %
 % __Syntax__
 %
-%     D = dbload(FileName, ...)
-%     D = dbload(D, FileName, ...)
+%     outputDatabank = dbload(fileName, ...)
+%     outputDatabank = dbload(inputDatabank, fileName, ...)
 %
 %
 % __Input arguments__
 %
-% * `FileName` [ char | cellstr ] - Name of the Input CSV data file or a cell
-% array of CSV file names that will be combined.
+% * `fileName` [ char | cellstr ] - Name of the Input CSV data file or a
+% cell array of CSV file names that will be combined.
 %
-% * `D` [ struct ] - An existing database (struct) to which the new entries
-% from the input CSV data file entries will be added.
+% * `inputDatabank` [ struct ] - An existing databank (struct) to which the
+% new entries from the input CSV data file entries will be added.
 %
 %
 % __Output arguments__
 %
-% * `D` [ struct ] - Database created from the input CSV file(s).
+% * `outputDatabank` [ struct ] - Database created from the input CSV
+% file(s).
 %
 %
 % __Options__
@@ -71,18 +72,18 @@ function d = dbload(varargin)
 % function, or cell array of functions, to the raw text file before parsing
 % the data.
 %
-% * `Select={ }` [ char | cellstr | empty ] - Only database entries
-% included on this list will be read in and returned in the output database
-% `D`; entries not on this list will be discarded.
+% * `Select={ }` [ char | cellstr | empty ] - Only databank entries
+% included on this list will be read in and returned in the output databank
+% `outputDatabank`; entries not on this list will be discarded.
 %
 % * `SkipRows=[ ]` [ char | cellstr | numeric | empty ] - Skip rows whose
 % first cell matches the string or strings (regular expressions); or, skip
 % a vector of row numbers.
 %
-% * `UserData=Inf` [ char | `Inf` ] - Field name under which the database
+% * `UserData=Inf` [ char | `Inf` ] - Field name under which the databank
 % userdata loaded from the CSV file (if they exist) will be stored in the
-% output database; `Inf` means the field name will be read from the CSV
-% file (and will be thus identical to the originally saved database).
+% output databank; `Inf` means the field name will be read from the CSV
+% file (and will be thus identical to the originally saved databank).
 %
 % * `UserDataField='.'` [ char ] - A leading character denoting userdata
 % fields for individual time series; if empty, no userdata fields will be
@@ -99,9 +100,9 @@ function d = dbload(varargin)
 % the date strings, and IRIS is not able to determine the frequency
 % correctly (see Example).
 %
-% _Structure of CSV database files_
+% _Structure of CSV data files_
 %
-% The minimalist structure of a CSV database file has a leading row with
+% The minimalist structure of a CSV data file has a leading row with
 % variables names, a leading column with dates in the basic IRIS format, 
 % and individual columns with numeric data:
 %
@@ -117,7 +118,7 @@ function d = dbload(varargin)
 % You can add a comment row (must be placed before the data part, and start
 % with a label 'Comment' in the first cell) that will also be read in and
 % assigned as comments to the individual Series objects created in the
-% output database.
+% output databank.
 %
 %     +---------+---------+---------+--
 %     |         |       Y |       P |
@@ -157,7 +158,7 @@ function d = dbload(varargin)
 %
 % __Example__
 %
-% Typical example of using the `'Freq='` option is a quarterly database
+% Typical example of using the `'Freq='` option is a quarterly databank
 % with dates represented by the corresponding months, such as a sequence
 % 2000-01-01, 2000-04-01, 2000-07-01, 2000-10-01, etc. In this case, you
 % can use the following options:
@@ -165,8 +166,8 @@ function d = dbload(varargin)
 %     D = dbload('filename.csv', 'DateFormat=', 'YYYY-MM-01', 'Freq=', 4);
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if isstruct(varargin{1})
     d = varargin{1};
@@ -175,20 +176,23 @@ else
     d = struct( );
 end
 
-FName = varargin{1};
+fileName = varargin{1};
 varargin(1) = [ ];
 
-P = inputParser( );
-P.addRequired('d', @isstruct);
-P.addRequired('fname', @(x) ischar(x) || iscellstr(x));
-P.parse(d, FName);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dbase.dbload');
+    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('FileName', @(x) ischar(x) || iscellstr(x));
+end
+parser.parse(d, fileName);
 
-% Loop over all input databases subcontracting `dbload` and merging the
-% resulting databases in one.
-if iscellstr(FName)
-    nFName = length(FName);
+% Loop over all input databanks subcontracting `dbload` and merging the
+% resulting databanks in one.
+if iscellstr(fileName)
+    nFName = length(fileName);
     for i = 1 : nFName
-        d = dbload(d, FName{i}, varargin{:});
+        d = dbload(d, fileName{i}, varargin{:});
         return
     end
 end
@@ -256,16 +260,16 @@ end
 [data, ixMissing, dateCol] = readNumericData( );
 
 % __Parse dates__
-[dates, ixNanDate] = parseDates( );
+[dates, inxOfNaNDates] = parseDates( );
 
 if ~isempty(dates)
     maxDate = max(dates);
     minDate = min(dates);
     nPer = 1 + round(maxDate - minDate);
-    dateInx = 1 + round(dates - minDate);
+    inxOfDates = 1 + round(dates - minDate);
 else
     nPer = 0;
-    dateInx = [ ];
+    inxOfDates = [ ];
     minDate = DateWrapper(NaN);
 end
 
@@ -274,17 +278,17 @@ end
 % * Convert variable name case.
 changeNames( );
 
-% Make sure the database entry names are all valid and unique Matlab names.
+% Make sure the databank entry names are all valid and unique Matlab names.
 checkNames( );
 
 % Populated the userdata field; this is NOT Series userdata, but a
-% separate entry in the output database.
+% separate entry in the output databank.
 if ~isempty(opt.userdata) && isUserData
     createUserdataField( );
 end
 
 % __Create Database__
-% Populate the output database with Series and numeric data.
+% Populate the output databank with Series and numeric data.
 populateDatabase( );
 
 return
@@ -292,7 +296,7 @@ return
 
     function readFile( )
         % Read CSV file to char.
-        file = file2char(FName);
+        file = file2char(fileName);
         file = textfun.converteols(file);
         if isempty(opt.preprocess)
             return
@@ -532,7 +536,7 @@ return
                          'HeaderLines', 0, 'HeaderColumns', 1, 'EmptyValue', -Inf, ...
                          'CommentStyle', 'Matlab', 'CollectOutput', true );
         if isempty(data)
-            throw( exception.Base('Dbase:InvalidLoadFormat', 'error'), FName ); %#ok<GTARG>
+            throw( exception.Base('Dbase:InvalidLoadFormat', 'error'), fileName ); %#ok<GTARG>
         end
         data = data{1};
         ixMissing = false(size(data));
@@ -554,10 +558,12 @@ return
             ixMissing = flipud(ixMissing);
             dateCol = dateCol(end:-1:1);
         end
-    end 
+    end% 
 
 
-    function [dates, ixNanDate] = parseDates( )
+
+
+    function [dates, inxOfNaNDates] = parseDates( )
         numOfDates = numel(dateCol);
         dates = DateWrapper(nan(1, numOfDates));
         dateCol = dateCol(1:min(end, size(data, 1)));
@@ -583,21 +589,16 @@ return
             end
         end
         % Exclude NaN dates (that includes also empty dates), but keep all data
-        % rows. This is because of non-Series data.
-        ixNanDate = isnan(dates);
-        dates(ixNanDate) = [ ];
+        % rows; this is because of non-time-series data
+        inxOfNaNDates = isnan(dates);
+        dates(inxOfNaNDates) = [ ];
         
-        % Check for mixed frequencies.
+        % Homogeneous frequency check
         if ~isempty(dates)
-            x = DateWrapper.getFrequencyFromNumeric(dates);
-            if any(x(1)~=x)
-                throw( ...
-                    exception.Base('Dbase:LoadMixedFrequency', 'error'), ...
-                    FName ...
-                ); %#ok<GTARG>
-            end
+            freqOfDates = DateWrapper.getFrequencyAsNumeric(dates);
+            DateWrapper.checkMixedFrequency(freqOfDates);
         end
-    end 
+    end% 
 
 
 
@@ -638,15 +639,15 @@ return
                 end
                 nCol = prod(tmpSize(2:end));
                 if ~isempty(data)
-                    if isreal(data(~ixNanDate, count+(1:nCol)))
+                    if isreal(data(~inxOfNaNDates, count+(1:nCol)))
                         unit = 1;
                     else
                         unit = 1 + 1i;
                     end
                     iData = nan(nPer, nCol)*unit;
                     iMiss = false(nPer, nCol);
-                    iData(dateInx, :) = data(~ixNanDate, count+(1:nCol));
-                    iMiss(dateInx, :) = ixMissing(~ixNanDate, count+(1:nCol));
+                    iData(inxOfDates, :) = data(~inxOfNaNDates, count+(1:nCol));
+                    iMiss(inxOfDates, :) = ixMissing(~inxOfNaNDates, count+(1:nCol));
                     iData(iMiss) = NaN*unit;
                     iData = reshape(iData, [nPer, tmpSize(2:end)]);
                     cmt = cmtRow(count+(1:nCol));
@@ -661,12 +662,6 @@ return
                 if nSeriesUserdata>0
                     d.(name) = userdata(d.(name), thisUserData);
                 end
-                % Convert the series to requested frequency if it isn't it yet.
-%                 if ~isempty(opt.convert) ...
-%                         && ~isnan(D.(name).start) ...
-%                         && DateWrapper.getFrequencyFromNumeric(D.(name).start)~=opt.convert{1}
-%                     D.(name) = convert(D.(name), opt.convert{:});
-%                 end
             elseif ~isempty(tmpSize)
                 % Numeric data.
                 nCol = prod(tmpSize(2:end));
@@ -754,10 +749,8 @@ return
         try
             d.(dbUserdataFieldName) = eval(dbUserdata);
         catch err
-            throw( ...
-                exception.Base('Dbase:ErrorLoadingUserData', 'error'), ...
-                FName, err.message ...
-                ); %#ok<GTARG>
+            throw( exception.Base('Dbase:ErrorLoadingUserData', 'error'), ...
+                   fileName, err.message ); %#ok<GTARG>
         end
     end
 end

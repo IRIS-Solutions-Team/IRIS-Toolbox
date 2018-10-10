@@ -252,7 +252,7 @@ if isempty(inputParser)
     inputParser.addParameter('ChkSstate', true, @model.validateChksstate); 
     inputParser.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
     inputParser.addParameter({'Filter', 'FilterOpt'}, { }, @model.validateFilter);
-    inputParser.addParameter('NoSolution', 'error', @(x) (isnumeric(x) && isscalar(x) && x>=1e10) || any(strcmpi(x, {'error', 'penalty'})));
+    inputParser.addParameter('NoSolution', 'Error', @(x) (isnumeric(x) && isscalar(x) && x>=1e10) || any(strcmpi(x, {'error', 'penalty'})));
     inputParser.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @namedmat.validateMatrixFormat);
     inputParser.addParameter({'Solve', 'SolveOpt'}, true, @model.validateSolve);
     inputParser.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSstate);
@@ -370,6 +370,8 @@ end
 return
 
 
+
+
     function summary = createSummaryTable( )
         posterStd = sqrt(diag(posterior.ProposalCov));
         posterStd(~posterior.IndexValidDiff) = NaN;
@@ -402,13 +404,15 @@ return
                          'RowNames', posterior.ParameterNames, ...
                          'VariableNames', variables(:, 2)' );
         summary.Properties.VariableDescriptions = variables(:, 3)';
-    end
+    end%
+
+
 
 
     function populatePosterObj( )
         % Make sure that draws that fail to solve do not cause an error
         % and hence do not interupt the posterior simulator.
-        opt.NoSolution = Inf;
+        this.Update.NoSolution = Inf;
 
         p.ParamList = posterior.ParameterNames;
         p.MinusLogPostFunc = @objfunc;
@@ -425,5 +429,6 @@ return
         end
         p.Lower = posterior.LowerBounds;
         p.Upper = posterior.UpperBounds;
-    end
-end
+    end%
+end%
+

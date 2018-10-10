@@ -16,7 +16,7 @@ ixGroupSpecX = ixGroupSpec(2:end);
 nGrp = length(yInp);
 ny = size(yInp{1}, 1);
 kx = size(xInp{1}, 1);
-nAlt = size(yInp{1}, 3);
+nv = size(yInp{1}, 3);
 nXPer = size(yInp{1}, 2); % nXPer is the same for each group because Range cannot be Inf for panel VARs.
 p = opt.Order;
 
@@ -27,7 +27,7 @@ p = opt.Order;
 Y0 = [ ];
 for iGrp = 1 : nGrp
     % Separate groups by a total of p NaNs.
-    Y0 = [Y0, yInp{iGrp}, nan(ny, p, nAlt)]; %#ok<AGROW>
+    Y0 = [Y0, yInp{iGrp}, nan(ny, p, nv)]; %#ok<AGROW>
 end
 n = size(Y0, 2);
 
@@ -81,9 +81,8 @@ if kx>0
 end
 
 
-% Cointegrating vectors and difference
-%--------------------------------------
-% Only one set of cointegrating vectors allowed.
+% __Cointegrating Vectors and Difference__
+% Only one set of cointegrating vectors allowed
 CI = opt.Cointeg;
 if isempty(CI)
     CI = zeros(0, 1+ny);
@@ -93,31 +92,29 @@ else
     end
 end
 ng = size(CI, 1);
-G1 = zeros(ng, n, nAlt);
+G1 = zeros(ng, n, nv);
 if ~opt.Diff
-    % Level VAR
-    %-----------
-    Y1 = nan(p*ny, n, nAlt);
+    % __Level VAR__
+    Y1 = nan(p*ny, n, nv);
     for i = 1 : p
         Y1((i-1)*ny+(1:ny),1+i:end,:) = Y0(:,1:end-i,:);
     end  
 else
-    % VEC or difference VAR
-    %-----------------------
+    % __VEC or Difference VAR__
     dY0 = nan(size(Y0));
     dY0(:,2:end,:) = Y0(:,2:end,:) - Y0(:,1:end-1,:);
-    % Current dated and lagged differences of endogenous variables.
-    % Add the co-integrating vector and differentiate data.
+    % Current dated and lagged differences of endogenous variables
+    % Add the co-integrating vector and differentiate data
     kg = ones(1, n);
     if ~isempty(CI)
-        for iLoop = 1 : nAlt
+        for iLoop = 1 : nv
             y = nan(ny, n);
             y(:,2:end) = Y0(:, 1:end-1, iLoop);
             % Lag of the co-integrating vector.
             G1(:,:,iLoop) = CI*[kg; y];
         end
     end
-    dY1 = nan((p-1)*ny, n, nAlt);
+    dY1 = nan((p-1)*ny, n, nv);
     for i = 1 : p-1
         dY1((i-1)*ny+(1:ny), 1+i:end, :) = dY0(:, 1:end-i, :);
     end
@@ -125,4 +122,5 @@ else
     Y1 = dY1;
 end
 
-end
+end%
+

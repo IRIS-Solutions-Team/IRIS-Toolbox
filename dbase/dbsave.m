@@ -189,9 +189,9 @@ else
 end
 isRange = all(round(diff(vecDat))==1);
 if ~isempty(vecDat)
-    usrFreq = getFrequency(vecDat);
+    userFreq = DateWrapper.getFrequencyAsNumeric(vecDat);
 else
-    usrFreq = Frequency.NaF;
+    userFreq = NaN;
 end
 
 % Create saving struct.
@@ -227,8 +227,8 @@ for i = 1 : nList
     name = list{i};
     
     if isa(inp.(name), 'tseries')
-        iFreq = freq(inp.(name));
-        if opt.MatchFreq && usrFreq~=iFreq
+        ithFreq = inp.(name).FrequencyAsNumeric;
+        if opt.MatchFreq && userFreq~=ithFreq
             continue
         end
         if isRange

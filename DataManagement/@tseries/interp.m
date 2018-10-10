@@ -64,13 +64,13 @@ numOfPeriods = sizeOfData(1);
 numOfColumns = prod( sizeOfData(2:end) );
 grid = transpose(1 : numOfPeriods);
 for i = 1 : numOfColumns
-    indexOfData = ~isnan(data(:, i));
-    if any(~indexOfData)
-        func = griddedInterpolant(grid(indexOfData), data(indexOfData, i), opt.Method);
-        data(~indexOfData, i) = func(grid(~indexOfData));
+    inxOfData = ~isnan(data(:, i));
+    if any(~inxOfData)
+        func = griddedInterpolant(grid(inxOfData), data(inxOfData, i), opt.Method);
+        data(~inxOfData, i) = func(grid(~inxOfData));
     end
 end
 
-this = fill(this, data, getFirst(range));
+this = fill(this, data, range(1));
 
-end
+end%

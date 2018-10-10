@@ -39,62 +39,58 @@ function x = vertcat(varargin)
 
 %--------------------------------------------------------------------------
 
-if length(varargin)==1
-    x = varargin{1};
+numOfInputs = length(varargin);
+x = varargin{1};
+
+if numOfInputs==1
     return
 end
 
-% Check classes and frequencies.
-indexTimeSeries = cellfun(@(x) isa(x, 'TimeSubscriptable'), varargin);
-if ~all(indexTimeSeries)
-    throw( exception.Base('Series:CannotVertCatNonSeries', 'error') );
+% All inputs must be TimeSubscriptable
+for i = 1 : nargin
+    if ~isa(varargin{i}, 'TimeSubscriptable')
+        throw( exception.Base('Series:CannotVertCatNonSeries', 'error') )
+    end
 end
 
 % Check date frequency
 freq = nan(1, nargin);
-for i = 1 : numel(varargin)
-    freq(i) = double(getFrequency(varargin{i}.Start));
+for i = 1 : nargin
+    freq(i) = DateWrapper.getFrequencyAsNumeric(varargin{i}.Start);
 end
-indexNaN = isnan(freq);
-if any(~indexNaN)
-    first = find(~indexNaN, 1);
-    if ~all(freq(~indexNaN)==freq(first))
-        throw( exception.Base('Series:CannotCatMixedFrequencies', 'error') );
-    end
-    freq = freq(first);
+inxOfNaNFreq = isnan(freq);
+if any(~inxOfNaNFreq)
+    DateWrapper.checkMixedFrequency(freq(~inxOfNaNFreq));
+    freq = freq( find(~inxOfNaNFreq, 1) );
 else
-    freq = Frequency.NaF;
+    freq = NaN;
 end
 
-numInputs = length(varargin);
-x = varargin{1};
-sizeXData = size(x.Data);
-ndimsXData = ndims(x.Data);
+sizeOfXData = size(x.Data);
+ndimsOfXData = ndims(x.Data);
 x.Data = x.Data(:, :);
 
 serialXStart = round(x.Start);
-for i = 2 : numInputs
+for i = 2 : numOfInputs
     y = varargin{i};
-    sizeYData = size(y.Data);
-    ndimsYData = ndims(y.Data);
+    sizeOfYData = size(y.Data);
+    ndimsOfYData = ndims(y.Data);
     y.Data = y.Data(:, :);
-    numColumnsX = size(x.Data, 2);
-    numColumnsY = size(y.Data, 2);
-    if numColumnsX~=numColumnsY
-        if numColumnsX==1
-            x.Data = repmat(x.Data, 1, numColumnsY);
-            x.Comment = repmat(x.Comment, 1, numColumnsY);
-            sizeXData = sizeYData;
-            ndimsXData = ndimsYData;
-        elseif numColumnsY==1
-            y.Data = repmat(y.Data, 1, numColumnsX);
-            y.Comment = repmat(y.Comment, 1, numColumnsX);
-            sizeYData = sizeXData;
-            ndimsYData = ndimsXData;
+    numOfColumnsX = size(x.Data, 2);
+    numOfColumnsY = size(y.Data, 2);
+    if numOfColumnsX~=numOfColumnsY
+        if numOfColumnsX==1
+            x.Data = repmat(x.Data, 1, numOfColumnsY);
+            x.Comment = repmat(x.Comment, 1, numOfColumnsY);
+            sizeOfXData = sizeOfYData;
+            ndimsOfXData = ndimsOfYData;
+        elseif numOfColumnsY==1
+            y.Data = repmat(y.Data, 1, numOfColumnsX);
+            y.Comment = repmat(y.Comment, 1, numOfColumnsX);
+            sizeOfYData = sizeOfXData;
+            ndimsOfYData = ndimsOfXData;
         else
-            utils.error('tseries:vertcat', ...
-                ['Vertically concatenated time series objects', ...
-                'must be consistent in 2nd and higher dimensions.']);
+            throw( exception.Base('Series:InconsistentSizeVertCat', 'error') )
         end
     end
     serialYStart = round(y.Start);
@@ -104,8 +100,8 @@ for i = 2 : numInputs
     if isempty(x.Data) || isnan(serialXStart)
         x = y;
         serialXStart = serialYStart;
-        sizeXData = size(x.Data);
-        ndimsXData = ndims(x.Data);
+        sizeOfXData = size(x.Data);
+        ndimsOfXData = ndims(x.Data);
         x.Data = x.Data(:, :);
         continue
     end
@@ -139,11 +135,11 @@ for i = 2 : numInputs
 end
 x.Start = DateWrapper.fromSerial(freq, serialXStart);
 
-if ndimsXData>2
-    x.Data = reshape(x.Data, [size(x.Data, 1), sizeXData(2:end)]);
+if ndimsOfXData>2
+    x.Data = reshape(x.Data, [size(x.Data, 1), sizeOfXData(2:end)]);
 end
+x.Comment(:) = y.Comment(:);
 
-x.Comment = y.Comment;
 x = trim(x);
 
 end

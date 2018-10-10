@@ -1,11 +1,11 @@
-function [body, args] = solveFail(this, nPath, ixNanDeriv, sing2, bk)
-% solveFail  Create error/warning message when function solve fails.
+function [body, args] = solveFail(this, numOfPaths, ixNanDeriv, sing2, bk)
+% solveFail  Create error/warning message when function solve fails
 %
 % Backend IRIS function.
 % No help provided.
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %#ok<*AGROW>
 
@@ -15,10 +15,10 @@ BRX = sprintf('\n    ');
 
 body = 'Solution not available for some parameter variant(s)';
 args = { };
-ixReportBK = nPath==0 | isinf(nPath);
+ixReportBK = numOfPaths==0 | isinf(numOfPaths);
 
 while true
-    ix = nPath==-4;
+    ix = numOfPaths==-4;
     if any(ix)
         body = [body, BRX, ...
             'Model declared nonlinear, fails to solve ', ...
@@ -28,7 +28,7 @@ while true
         continue
     end
     
-    ix = nPath==-2;
+    ix = numOfPaths==-2;
     if any(ix)
         body = [body, BRX, ...
             'Singularity or linear dependency in some equations %s'];
@@ -37,7 +37,7 @@ while true
         continue
     end
     
-    ix = nPath==0;
+    ix = numOfPaths==0;
     if any(ix)
         body = [body, BRX, 'No stable solution %s'];
         args{end+1} = exception.Base.alt2str(ix);
@@ -45,7 +45,7 @@ while true
         continue
     end
     
-    ix = isinf(nPath);
+    ix = isinf(numOfPaths);
     if any(ix)
         body = [body, BRX, 'Multiple stable solutions %s'];
         args{end+1} = exception.Base.alt2str(ix);
@@ -53,7 +53,7 @@ while true
         continue
     end
     
-    ix = imag(nPath)~=0;
+    ix = imag(numOfPaths)~=0;
     if any(ix)
         body = [body, BRX, 'Complex derivatives %s'];
         args{end+1} = exception.Base.alt2str(ix);
@@ -61,7 +61,7 @@ while true
         continue
     end
     
-    ix = isnan(nPath);
+    ix = isnan(numOfPaths);
     if any(ix)
         body = [body, BRX, 'NaNs in system matrices %s'];
         args{end+1} = exception.Base.alt2str(ix);
@@ -70,7 +70,7 @@ while true
     end
     
     % Singularity in state space or steady state problem
-    ix = nPath==-1;
+    ix = numOfPaths==-1;
     if any(ix)
         if any(sing2(:))
             pos = find(any(sing2, 2));
@@ -95,7 +95,7 @@ while true
         continue
     end
     
-    ix = nPath==-3;
+    ix = numOfPaths==-3;
     if any(ix)
         args = { };
         for ii = find(ix)
@@ -125,9 +125,7 @@ end
 return
 
 
-
-
     function markAsProcessed( )
-        nPath(ix) = 1;
-    end
-end
+        numOfPaths(ix) = 1;
+    end%
+end%
