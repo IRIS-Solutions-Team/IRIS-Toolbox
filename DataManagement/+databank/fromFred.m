@@ -131,6 +131,8 @@ success = all(validSeriesId) && all(dataRetrieved);
 end%
 
 
+
+
 function outputSeries = extractDataFromJson(jsonInfo, jsonData, opt)
     outputSeries = [ ];
     frequency = getFrequencyFromJsonInfo(jsonInfo, opt);
@@ -147,6 +149,8 @@ function outputSeries = extractDataFromJson(jsonInfo, jsonData, opt)
     end
     outputSeries = Series(dates, values, jsonInfo.seriess.title, jsonInfo.seriess);
 end%
+
+
 
 
 function frequency = getFrequencyFromJsonInfo(jsonInfo, opt)
@@ -171,3 +175,4 @@ function frequency = getFrequencyFromJsonInfo(jsonInfo, opt)
             end
     end
 end%
+

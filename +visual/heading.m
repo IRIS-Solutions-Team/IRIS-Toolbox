@@ -42,13 +42,15 @@ end
 
 for i = 1 : numel(handleFigure)
     textHandles = [ textHandles
-                    printHeader(handleFigure(i), string, unmatched{:}) ];
+                    printHeading(handleFigure(i), string, unmatched{:}) ]; %#ok<AGROW>
 end
 
 end%
 
 
-function textHandles = printHeader(handleFigure, string, varargin)
+
+
+function textHandles = printHeading(handleFigure, string, varargin)
     textHandles = annotation( handleFigure, ...
                               'TextBox', [0, 1, 1, 0], ...
                               'String', string, ...
