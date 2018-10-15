@@ -38,16 +38,8 @@ classdef Figure < reptile.Base
 
         function sub = resolveSubplot(this)
             if isequal(this.Options.Subplot, @auto)
-                n = ceil(sqrt(this.NumChildren));
-                if n>0 && n*(n-1)>=this.NumChildren
-                    if strcmp(this.Options.Orientation, 'landscape')
-                        sub = [n-1, n];
-                    else
-                        sub = [n, n-1];
-                    end
-                else
-                    sub = [n, n];
-                end
+                [numOfRows, numOfCols] = visual.backend.optimizeSubplot(this.NumChildren);
+                sub = [numOfRows, numOfCols];
             else
                 sub = this.Options.Subplot;
             end
