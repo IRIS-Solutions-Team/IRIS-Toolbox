@@ -1,5 +1,5 @@
 function [numRows, numColumns] = optimizeSubplot(totalCount, varargin)
-% optimizeSubplot  Choose number of rows and columns for subplot given the total count of graphs to be plotted.
+% optimizeSubplot  Choose number of rows and columns for subplot given the total count of graphs to be plotted
 %
 % __Syntax__
 %
@@ -21,8 +21,8 @@ function [numRows, numColumns] = optimizeSubplot(totalCount, varargin)
 %
 % __Options__
 %
-% * `'Orientation='` [ *`'landscape'`* | `'portrait'` ] - Orientation of
-% the figure window.
+% * `Orientation='landscape'` [ `'landscape'` | `'portrait'` ] -
+% Orientation of the figure window.
 %
 %
 % __Description__
@@ -38,23 +38,22 @@ function [numRows, numColumns] = optimizeSubplot(totalCount, varargin)
 %     end
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('grfun/optimizeSubplot');
-    INPUT_PARSER.addRequired('TotalCount', @(x) isnumeric(x) && numel(x)==1 && x==round(x));
-    INPUT_PARSER.addOptional('Orientation', 'landscape', @(x) any(strcmpi(x, {'landscape', 'portrait'})));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('grfun/optimizeSubplot');
+    parser.addRequired('TotalCount', @(x) isnumeric(x) && numel(x)==1 && x==round(x));
+    parser.addOptional('Orientation', 'landscape', @(x) any(strcmpi(x, {'landscape', 'portrait'})));
 end
-
-INPUT_PARSER.parse(totalCount, varargin{:});
+parser.parse(totalCount, varargin{:});
 
 %--------------------------------------------------------------------------
 
 s = ceil(sqrt(totalCount));
-if s*(s-1)>=totalCount
-    if strcmpi(INPUT_PARSER.Results.Orientation, 'landscape')
+if s>0 && s*(s-1)>=totalCount
+    if strcmpi(parser.Results.Orientation, 'landscape')
         numRows = s-1;
         numColumns = s;
     else
@@ -66,4 +65,4 @@ else
     numColumns = s;
 end
 
-end
+end%
