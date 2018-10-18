@@ -14,8 +14,8 @@ classdef Base
         HIGHLIGHT = '*** '
         BASE_ERROR_HEADER_FORMAT = 'IRIS Toolbox Error'
         BASE_WARNING_HEADER_FORMAT = 'IRIS Toolbox Warning'
-        MAX_LEN = 40;
-        STRING_CONTINUATION_MARK = getappdata(0, 'IRIS_StringContinuationMark');
+        MAX_LEN = 40
+        ELLIPSIS = iris.get('Ellipsis')
         
         ALT2STR_FORMAT = '#%g';
         ALT2STR_FROM_TO_STRING = '-';
@@ -108,10 +108,8 @@ classdef Base
             varargin = regexprep(varargin, '[ ]{2,}', ' '); % Replace multiple spaces with one space.
             for i = 1 : length(varargin)
                 if length(varargin{i})>this.MAX_LEN
-                    varargin{i} = [ ...
-                        varargin{i}(1:this.MAX_LEN), ...
-                        this.STRING_CONTINUATION_MARK, ...
-                        ];
+                    varargin{i} = [ varargin{i}(1:this.MAX_LEN), ...
+                                    this.ELLIPSIS ];
                 end
             end
             varargin = strtrim(varargin);
