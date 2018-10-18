@@ -451,6 +451,12 @@ else
 
 
 
+
+        case {'isgrowth', 'growth'}
+            answ = this.IsGrowth;
+
+
+
             
         case {'lastsyst', 'lastsystem'}
             answ = this.LastSystem;
