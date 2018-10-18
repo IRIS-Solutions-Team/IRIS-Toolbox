@@ -49,10 +49,6 @@ def.chksstate = {
     'warning', true, @(x) isequal(x, true) || isequal(x, false)
 };
 
-def.mychksstate = {
-    'Kind, Type, Eqtn, Equation, Equations', 'dynamic', @(x) ischar(x) && any(strcmpi(x, {'dynamic', 'full', 'steady', 'sstate'}))
-    };
-
 def.diffloglik = {
     'ChkSstate', true, @model.validateChksstate
     'progress', false, @(x) isequal(x, true) || isequal(x, false)
