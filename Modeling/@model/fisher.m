@@ -135,7 +135,7 @@ this.Update.StdCorr = this.Variant.StdCorr;
 this.Update.PosOfValues = posOfValues;
 this.Update.PosOfStdCorr = posOfStdCorr;
 this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
-this.Update.CheckSstate = prepareChkSteady(this, 'silent', opt.ChkSstate);
+this.Update.CheckSstate = prepareCheckSteady(this, 'silent', opt.ChkSstate);
 this.Update.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
 this.Update.NoSolution = 'Error';
 

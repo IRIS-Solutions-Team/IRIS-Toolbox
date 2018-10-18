@@ -384,7 +384,7 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
 
         varargout = parseSimulateOptions(varargin)
         varargout = prepareBlazer(varargin)        
-        varargout = prepareChkSteady(varargin)
+        varargout = prepareCheckSteady(varargin)
         varargout = prepareGrouping(varargin)
         varargout = preparePosteriorAndUpdate(varargin)
         varargout = prepareSolve(varargin)        
@@ -476,7 +476,7 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         varargout = file2model(varargin)        
         varargout = kalmanFilterRegOutp(varargin)
         varargout = myanchors(varargin)
-        varargout = mychksstate(varargin)
+        varargout = checkSteady(varargin)
         varargout = mydiffloglik(varargin)
         varargout = myeqtn2afcn(varargin)
         varargout = myfind(varargin)

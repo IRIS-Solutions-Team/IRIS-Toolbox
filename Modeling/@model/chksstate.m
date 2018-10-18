@@ -51,8 +51,8 @@ TYPE = @int8;
 [opt, varargin] = passvalopt('model.chksstate', varargin{:});
 isSort = nargout>3;
 
-% Pre-process options passed to `mychksstate`.
-chksstateOpt = prepareChkSteady(this, 'verbose', varargin{:});
+% Pre-process options passed to checkSteady(~)
+chksstateOpt = prepareCheckSteady(this, 'verbose', varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -76,7 +76,7 @@ nv = length(this);
 % `dcy` is a matrix of discrepancies; it has two columns when dynamic
 % equations are evaluated, or one column when steady equations are
 % evaluated.
-[flag, dcy, maxAbsDiscr, list] = mychksstate(this, Inf, chksstateOpt);
+[flag, dcy, maxAbsDiscr, list] = checkSteady(this, Inf, chksstateOpt);
 
 if any(~flag) && opt.error
     tmp = { };
@@ -120,4 +120,4 @@ elseif nargout>2
     end
 end
 
-end
+end%

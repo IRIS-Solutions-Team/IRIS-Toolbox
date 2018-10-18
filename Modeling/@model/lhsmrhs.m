@@ -121,8 +121,8 @@ if strcmpi(opt.kind, 'Dynamic')
     eqtn = this.Equation.Dynamic;
 else
     eqtn = this.Equation.Steady;
-    indexToCopy = ixmt & cellfun(@isempty, eqtn);
-    eqtn(indexToCopy) = this.Equation.Dynamic(indexToCopy);
+    inxToCopy = ixmt & cellfun(@isempty, eqtn);
+    eqtn(inxToCopy) = this.Equation.Dynamic(inxToCopy);
 end
 
 [minSh, maxSh] = getActualMinMaxShifts(this);
@@ -137,4 +137,5 @@ for v = 1 : numOfVariantsRequested
     dcy = cat(3, dcy, q);
 end
 
-end
+end%
+
