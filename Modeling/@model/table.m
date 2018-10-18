@@ -30,10 +30,9 @@ function outputTable = table(this, request, varargin)
 % be printed on the screen in the command window, and captured in a text
 % file under this file name.
 %
-% * `ShowDescription=false` [ `true` | `false` | numeric ] - Add an extra
-% column with the descriptions of the variables (from the model file); if a
-% number, a description column will be shown abbreviated not to exceed this
-% length.
+% * `ShowDescription=false` [ `true` | `false` | numeric ] - Add an extra column with
+% the descriptions of the variables (from the model file); if a number, a
+% description column will be shown abbreviated not to exceed this length.
 %
 % * `WriteTable=''` [ char | string ] - If not empty, the table will be
 % exported to a text or spreadsheet file under this file name using the
