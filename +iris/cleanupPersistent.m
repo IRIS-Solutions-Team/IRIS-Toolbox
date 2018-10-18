@@ -26,14 +26,6 @@ try
 end
 
 try
-    rmappdata(0, 'IRIS_IsDesktop')
-end
-
-try
-    rmappdata(0, 'IRIS_StringContinuationMark')
-end
-
-try
     rmappdata(0, 'IRIS_DateFromSerial')
 end
 

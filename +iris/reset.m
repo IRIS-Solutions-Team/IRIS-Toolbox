@@ -25,7 +25,11 @@ function irisConfig = reset( )
 
 %--------------------------------------------------------------------------
 
+try
+    rmappdata(0, 'IRIS_Configuration');
+end
 irisConfig = iris.Configuration( );
 setappdata(0, 'IRIS_Configuration', irisConfig);
 
-end
+end%
+

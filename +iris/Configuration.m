@@ -6,6 +6,12 @@ classdef (CaseInsensitiveProperties=true) Configuration
         % Version  IRIS version (not customizable)
         Version = iris.Configuration.getIrisVersion( )
 
+        % DesktopStatus  True if Matlab is running in Java desktop
+        DesktopStatus = iris.Configuration.getDesktopStatus( )
+
+        % Ellipsis  Ellipsis character
+        Ellipsis = iris.Configuration.getEllipsis( )
+
         % Freq  Numeric representation of date frequencies (not customizable)
         Freq = iris.Configuration.DEFAULT_FREQ
 
@@ -153,16 +159,14 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         NUM_FREQUENCIES = numel(iris.Configuration.DEFAULT_FREQ)
 
-        DATE_FORMAT_STRUCT_FIELDS = {
-            'integer'
-            'yy'
-            'hh'
-            'qq'
-            'bb'
-            'mm'
-            'ww'
-            'dd'
-        }
+        DATE_FORMAT_STRUCT_FIELDS = { 'integer'
+                                      'yy'
+                                      'hh'
+                                      'qq'
+                                      'bb'
+                                      'mm'
+                                      'ww'
+                                      'dd'        }
     end
 
 
@@ -510,6 +514,25 @@ classdef (CaseInsensitiveProperties=true) Configuration
                     'Cannot determine the current version of IRIS.' ...
                 );
                 irisVersion = '???';
+            end
+        end%
+
+
+        function isDesktop = getDesktopStatus( )
+            try
+                jDesktop = com.mathworks.mde.desk.MLDesktop.getInstance;
+                isDesktop = ~isempty(jDesktop.getClient('Command Window'));
+            catch
+                isDesktop = false;
+            end
+        end%
+
+
+        function ellipsis = getEllipsis( )
+            if iris.Configuration.getDesktopStatus( )
+                ellipsis = char(8230);
+            else
+                ellipsis = '~';
             end
         end%
 

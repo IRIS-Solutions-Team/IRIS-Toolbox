@@ -29,6 +29,7 @@ ITER_STRUCT = struct( 'Iter',     NaN, ...
 
 %--------------------------------------------------------------------------
 
+desktopStatus = iris.get('DesktopStatus');
 maxChgFunc = @(x, x0) full(max(abs(x(:)-x0(:))));
 
 vecOfLambdas = opt.Lambda;
@@ -287,12 +288,11 @@ end
 warning(w);
 
 if displayLevel.Iter && exitFlag~=solver.ExitFlag.NO_PROGRESS
-    isDesktop = getappdata(0, 'IRIS_IsDesktop');
-    if isDesktop
+    if desktopStatus
         fprintf('<strong>');
     end
     reportIter( );
-    if isDesktop
+    if desktopStatus
         fprintf('</strong>');
     end
     fprintf('\n');

@@ -101,21 +101,6 @@ return
 
 
     function setEnvironment( )
-        try
-            jDesktop = com.mathworks.mde.desk.MLDesktop.getInstance;
-            isDesktop = ~isempty(jDesktop.getClient('Command Window'));
-        catch
-            isDesktop = false;
-        end
-        setappdata(0, 'IRIS_IsDesktop', isDesktop);
-
-        if isDesktop
-            scm = char(8230);
-        else
-            scm = ' etc...';
-        end
-        setappdata(0, 'IRIS_StringContinuationMark', scm);
-
         if options.TimeSeries
             timeSeriesConstructor = @TimeSeries;
             dateFromSerial = @Date.fromSerial;
@@ -132,7 +117,7 @@ return
 
 
     function deleteProgress( )
-        if getappdata(0, 'IRIS_IsDesktop')
+        if config.DesktopStatus
             progress(1:end) = sprintf('\b');
             fprintf(progress);
         else
@@ -142,7 +127,7 @@ return
 
 
     function displayMessage( )
-        if getappdata(0, 'IRIS_IsDesktop')
+        if config.DesktopStatus
             fprintfx = @(varargin) fprintf(varargin{:});       
         else
             fprintfx = @(varargin) fprintf('%s', textfun.removeTags(sprintf(varargin{:})));

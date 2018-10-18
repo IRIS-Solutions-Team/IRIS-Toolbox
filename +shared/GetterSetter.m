@@ -1,10 +1,10 @@
-% GetterSetter  Helper class to implement some shared properties of IRIS objects.
+% GetterSetter  Helper class to implement some shared properties of IRIS objects
 %
-% Backend IRIS class.
-% No help provided.
+% Backend IRIS class
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef GetterSetter
     properties (Hidden)
@@ -144,7 +144,7 @@ classdef GetterSetter
     methods (Access=protected, Hidden)
         function ccn = getClickableClassName(this)
             cn = class(this);
-            if getappdata(0, 'IRIS_IsDesktop') % ##### MOSW
+            if iris.get('DesktopStatus')
                 ccn = sprintf('<a href="matlab: idoc %s">%s</a>', cn, cn);
             else
                 ccn = cn; %#ok<UNRCH>
