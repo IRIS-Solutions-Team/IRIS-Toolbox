@@ -30,8 +30,9 @@ function outputTable = table(this, request, varargin)
 % be printed on the screen in the command window, and captured in a text
 % file under this file name.
 %
-% * `ShowDescription=false` [ `true` | `false` ] - Add an extra column with
-% the descriptions of the variables (from the model file).
+% * `ShowDescription=false` [ `true` | `false` | numeric ] - Add an extra column with
+% the descriptions of the variables (from the model file); if a number, a
+% description column will be shown abbreviated not to exceed this length.
 %
 % * `WriteTable=''` [ char | string ] - If not empty, the table will be
 % exported to a text or spreadsheet file under this file name using the
@@ -60,7 +61,7 @@ if isempty(parser)
     parser.addRequired('Request', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter('Compare', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter('ShowDescription', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('ShowDescription', false, @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>0 && x==round(x)));
     parser.addParameter('ShowLog', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('WriteTable', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
@@ -192,8 +193,8 @@ end
 if opt.ShowLog
     outputTable = addLogColumn(this, outputTable, inxOfLog);
 end
-if opt.ShowDescription
-    outputTable = addDescriptionColumn(this, outputTable);
+if ~isequal(opt.ShowDescription, false)
+    outputTable = addDescriptionColumn(this, outputTable, opt.ShowDescription);
 end
 
 % Write table to text or spreadsheet file
@@ -252,16 +253,33 @@ end%
 
 
 
-function outputTable = addDescriptionColumn(this, outputTable)
-    list = outputTable.Properties.RowNames;
-    descriptStruct = get(this, 'Description');
-    descriptColumn = cell(size(list));
-    for i = 1 : numel(list)
-        ithName = list{i};
-        descriptColumn{i} = descriptStruct.(ithName);
+function outputTable = addDescriptionColumn(this, outputTable, userLength)
+    if ~isnumeric(userLength)
+        userLength = Inf;
     end
+    rowNames = outputTable.Properties.RowNames;
+    descriptStruct = get(this, 'Description');
+    descriptColumn = cell(size(rowNames));
+    descriptColumn = cellfun( @(name) abbreviate(descriptStruct.(name), userLength), ...
+                              rowNames, ...
+                              'UniformOutput', false );
     outputTable = addvars( outputTable, descriptColumn, ...
                            'Before', 1, ...
                            'NewVariableNames', 'Description' );
+    return
+
+
+    function c = abbreviate(c, maxLength)
+        ELLIPSIS = iris.get('Ellipsis');
+        if ischar(c)
+            if length(c)>maxLength
+                c = [c(1:maxLength), ELLIPSIS];
+            end
+        elseif isa(c, 'string')
+            if strlength(c)>maxLength
+                c = replaceBetween(c, maxLength+1, strlength(c), ELLIPSIS);
+            end
+        end
+    end%
 end%
 
