@@ -454,33 +454,52 @@ classdef Frequency < double
 
 
         function this = fromString(string)
+            if ~ischar(string) && ~(isa(string, 'string') && isscalar(string))
+                throw( exception.Base('Frequency:InvalidConversionFromString', 'error') );
+            end
             switch upper(char(string))
-                case {'DAILY', 'DAY', 'DD'}
+                case {'INTEGER', 'II', 'I'}
+                    this = Frequency.INTEGER;
+                case {'DAILY', 'DAY', 'DD', 'D'}
                     this = Frequency.DAILY;
-                case {'WEEKLY', 'WEEK', 'WW'}
+                case {'WEEKLY', 'WEEK', 'WW', 'W'}
                     this = Frequency.WEEKLY;
-                case {'MONTHLY', 'MONTH', 'MM'}
+                case {'MONTHLY', 'MONTH', 'MM', 'M'}
                     this = Frequency.MONTHLY;
-                case {'QUARTERLY', 'QUARTER', 'QQ'}
+                case {'QUARTERLY', 'QUARTER', 'QQ', 'Q'}
                     this = Frequency.QUARTERLY;
-                case {'HALFYEARLY', 'HALFYEAR', 'SEMIANNUAL', 'SEMIANNUALLY', 'HH'}
+                case {'HALFYEARLY', 'HALFYEAR', 'SEMIANNUAL', 'SEMIANNUALLY', 'HH', 'H'}
                     this = Frequency.HALFYEARLY;
-                case {'YEARLY', 'YEAR', 'ANNUAL', 'ANNUALLY', 'YY'}
+                case {'YEARLY', 'YEAR', 'ANNUAL', 'ANNUALLY', 'YY', 'Y'}
                     this = Frequency.YEARLY;
-                otherwise
+                case {'NAF', 'NAN', 'N'}
                     this = Frequency.NaF;
+                otherwise
+                    throw( exception.Base('Frequency:InvalidConversionFromString', 'error') );
             end
         end%
 
 
-        function flag = validateFrequency(input)
+        function [flag, this] = validateFrequency(input)
             if isa(input, 'Frequency')
                 flag = true;
+                this = input;
                 return
             end
             if isnumeric(input)
+                this = Frequency.NaF;
                 try
-                    Frequency(input);
+                    this = Frequency.fromNumeric(input);
+                    flag = true;
+                    return
+                catch
+                    flag = false;
+                    return
+                end
+            elseif ischar(input) || (isa(input, 'string') && isscalar(input))
+                this = Frequency.NaF;
+                try
+                    this = Frequency.fromString(input);
                     flag = true;
                     return
                 catch
@@ -492,8 +511,20 @@ classdef Frequency < double
         end%
 
 
-        function flag = validateProperFrequency(input)
-            flag = Frequency.validateFrequency(input) && ~isnan(input);
+        function [flag, this] = validateProperFrequency(input)
+            [flag, this] = Frequency.validateFrequency(input);
+            if flag
+                flag = ~isempty(this) && ~isnan(this) && this~=Frequency.INTEGER;
+            end
+        end%
+
+
+        function this = fromNumeric(input)
+            try
+                this = Frequency(input);
+            catch
+                throw( exception.Base('Frequency:InvalidConversionFromNumeric', 'error') );
+            end
         end%
     end
 end

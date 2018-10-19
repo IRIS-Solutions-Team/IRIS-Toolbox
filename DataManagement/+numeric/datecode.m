@@ -11,6 +11,13 @@ if nargin<3
     per = 1;
 end
 
+if ~isempty(varargin)
+    day = varargin{1};
+    varargin(1) = [ ];
+else
+    day = 1;
+end
+
 %--------------------------------------------------------------------------
 
 % Determine the size of the resulting date array.
@@ -18,6 +25,10 @@ temp = nan(size(freq)) + nan(size(year));
 if isnumeric(per)
     temp = temp + nan(size(per));
 end
+if isnumeric(day)
+    temp = temp + nan(size(day));
+end
+
 dat = nan(size(temp));
 
 if numel(freq)==1
@@ -32,11 +43,16 @@ if numel(per)==1
     per = repmat(per, size(temp));
 end
 
+if numel(day)==1
+    day = repmat(day, size(temp));
+end
+
 inxOfZero    = freq==0;
+inxOfDaily   = freq==365;
 inxOfWeekly  = freq==52;
 inxOfRegular = freq==1 | freq==2 | freq==4 | freq==6 | freq==12;
 
-if any(~inxOfRegular & ~inxOfZero & ~inxOfWeekly)
+if any(~inxOfRegular & ~inxOfZero & ~inxOfDaily & ~inxOfWeekly)
     throw( exception.Base('Dates:UnrecognizedFrequency', 'error') );
 end
 
@@ -51,6 +67,10 @@ end
 
 if any(inxOfZero)
     dat(inxOfZero) = round( per(inxOfZero) );
+end
+
+if any(inxOfDaily)
+    dat(inxOfDaily) = dd(year, per, day);
 end
 
 if any(inxOfWeekly)

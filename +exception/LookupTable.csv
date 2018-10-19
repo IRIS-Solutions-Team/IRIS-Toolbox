@@ -68,6 +68,8 @@ Equation:MultipleLhsDtrend,Mutliple dtrend equations for this measurement variab
 Equation:MultipleLossFunc,Multiple loss functions found.
 Equation:StdCorrInOtherThanLink,Std_ or corr_ name '%s' cannot be used in equations other than dynamic links: %s 
 Equation:UndeclaredMistypedName,Undeclared or mistyped name '%s' in this equation: %s 
+Frequency:InvalidConversionFromString, Invalid conversion from string to Frequency
+Frequency:InvalidConversionFromNumeric, Invalid conversion from numeric to Frequency
 General:Internal,Internal IRIS error. Please report this error to IRIS Solutions Team.
 General:InvalidAssignment,Invalid assignment to a %1 object.
 General:InvalidInput,Expecting input argument <%s> but none found or its value fails validation.

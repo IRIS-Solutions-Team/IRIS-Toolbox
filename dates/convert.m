@@ -8,16 +8,16 @@ function outputDate = convert(inputDate, toFreq, varargin)
 %
 % __Input Arguments__
 %
-% * `inputDate` [ DateWrapper ] - IRIS serial date numbers that will be
+% * `InputDate` [ DateWrapper ] - IRIS serial date numbers that will be
 % converted to the new frequency, `NewFreq`.
 %
-% * `newFreq` [ `1` | `2` | `4` | `6` | `12` | `52` | `365` ] - New
+% * `NewFreq` [ `1` | `2` | `4` | `6` | `12` | `52` | `365` ] - New
 % frequency to which the dates `d1` will be converted.
 %
 %
 % __Output Arguments__
 %
-% * `outputDate` [ DateWrapper ] - IRIS serial date numbers representing
+% * `OutputDate` [ DateWrapper ] - IRIS serial date numbers representing
 % the new frequency.
 %
 %
@@ -37,6 +37,14 @@ function outputDate = convert(inputDate, toFreq, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dates.convert');
+    parser.addRequired('InputDate', @DateWrapper.validateDateInput);
+    parser.addRequired('NewFreq', @Frequency.validateFrequency);
+end
+parser.parse(inputDate, toFreq);
+
 %--------------------------------------------------------------------------
 
 if isa(inputDate, 'DateWrapper')
@@ -45,10 +53,12 @@ else
     outputClass = 'double';
 end
 
-outputDate = numeric.convert(inputDate, toFreq, varargin{:});
+[flag, toFreq] = Frequency.validateFrequency(toFreq);
+outputDate = numeric.convert(inputDate, double(toFreq), varargin{:});
 
 if strcmpi(outputClass, 'DateWrapper')
     outputDate = DateWrapper(outputDate);
 end
 
 end%
+
