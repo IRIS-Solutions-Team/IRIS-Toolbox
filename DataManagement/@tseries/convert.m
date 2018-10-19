@@ -13,10 +13,9 @@ function this = convert(this, newFreq, varargin)
 % * `X` [ tseries ] - Input tseries object that will be converted to a new
 % frequency, `freq`, aggregating or intrapolating the data.
 %
-% * `NewFreq` [ numeric | char ] - New frequency to which the input data
-% will be converted: `1` or `'A'` for yearly, `2` or `'H'` for half-yearly, 
-% `4` or `'Q'` for quarterly, `6` or `'B'` for bi-monthly, and `12` or
-% `'M'` for monthly.
+% * `NewFreq` [ Frequency | numeric | char ] - New frequency to which the
+% input data will be converted; see Description for frequency formats
+% allowed.
 %
 % * `Range` [ DateWrapper ] - Date range on which the input data will be
 % converted; if omitted, the conversion will be done on the entire range.
@@ -70,10 +69,28 @@ function this = convert(this, newFreq, varargin)
 % * the dimension along which the aggregation is calculated.
 %
 % The function will be called with the second input argument set to 1, as
-% the data are processed en block columnwise. If this call fails, `convert`
-% will attempt to call the function with just one input argument, the data, 
-% but this is not a safe option under some circumstances since dimension
-% mismatch may occur.
+% the data are processed en block columnwise. If this call fails,
+% `convert(~)` will attempt to call the function with just one input
+% argument, the data, but this is not a safe option under some
+% circumstances since dimension mismatch may occur.
+%
+%
+% _Frequency Format_
+%
+% The new frequency, `NewFreq`, needs to be a proper frequency (yearly,
+% half-yearly, quarterly, monthly, weekly, daily, but not integer or `NaF`)
+% and can be specified in one of the following three formats; for each
+% format:
+%
+% * as a Frequency enumeration: `Frequency.YEARLY`, `Frequency.HALFYEARLY`,
+% `Frequency.QUARTERLY`, `Frequency.MONTHLY`, `Frequency.WEEKLY`,
+% `Frequency.DAILY`;
+%
+% * as a numeric value (indicating the number of periods within a calendar
+% year): `1`, `2`, `4`, `12`, `52`, `365`;
+%
+% * as a letter (the first letter of the respective frequency name): `y`,
+% `h`, `q`, `m`, `w`, `d`.
 %
 %
 % __Example__
@@ -108,6 +125,11 @@ end
 parser.parse(this, newFreq, varargin{:});
 opt = parser.Options;
 
+% Make sure newFreq is a Frequency object
+if ~isa(newFreq, 'Frequency')
+    [~, newFreq] = Frequency.validateProperFrequency(newFreq);
+end
+
 %--------------------------------------------------------------------------
 
 if isnan(this.Start) && isempty(this.Data)
@@ -117,12 +139,6 @@ end
 if isempty(range)
     this = this.empty(this);
     return
-end
-
-newFreq = recognizeFreq(newFreq);
-if isempty(newFreq)
-    utils.error('tseries:convert', ...
-        'Cannot determine output frequency.');
 end
 
 oldFreq = DateWrapper.getFrequencyAsNumeric(this.Start);
@@ -158,32 +174,9 @@ this = fill(this, newData, newStart, this.Comment, this.UserData);
 
 end%
 
-
 %
 % Local functions
 %
-
-
-function freq = recognizeFreq(freq)
-    freqNum = [1, 2, 4, 6, 12, 52, 365];
-    if ischar(freq)
-        if ~isempty(freq)
-            freqLetter = 'yhqbmwd';
-            freq = lower(freq(1));
-            freq = freqNum(freq==freqLetter);
-        else
-            freq = double.empty(1, 0);
-        end
-    else
-        freq = double(freq);
-        if ~any(freq==freqNum)
-            freq = double.empty(1, 0);
-        end
-    end
-end%
-
-
-
 
 function [newData, newStart] = aggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     if isa(opt.Method, 'function_handle')
