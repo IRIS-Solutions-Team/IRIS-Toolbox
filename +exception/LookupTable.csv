@@ -27,7 +27,7 @@ Datafeed:FeedUnknownFrequency, Date frequency of this Datafeed series unknown; s
 Dates:CalendarFormatForDaily, Calendar date format (starting with a $) must be specified for daily-frequency dates.
 Dates:MixedFrequency,Dates with mixed date frequencies are not allowed %1: %s
 Dates:OnlyScalarFormatAllowed, "Only one single DateFormat= allowed in str2dat( )."
-Dates:UnrecognizedFrequency,Unrecognized date frequency.
+Dates:UnrecognizedFrequency,Invalid or unrecognized date frequency
 Dates:InvalidOutputClass, "Output class in date creation functions must be 'DateWrapper' or 'double'
 Dates:FrequencyMismatch, "Date frequency mismatch"
 Dates:NonIntegerSerialNumber, "Serial number must be integer: %g"
