@@ -75,7 +75,7 @@ end
 this = varargin{1};
 varargin(1) = [ ];
 
-persistent parse
+persistent parser
 if isempty(parser)
     parser = extend.InputParser('tseries.spy');
     parser.addRequired('Axes', @(x) all(ishandle(x)));
