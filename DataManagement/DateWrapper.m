@@ -383,7 +383,12 @@ classdef DateWrapper < double
                 return
             end
             if isa(input, 'double')
-                flag = true;
+                try
+                    DateWrapper.getFrequency(input);
+                    flag = true;
+                catch
+                    flag = false;
+                end
                 return
             end
             if isequal(input, @all)

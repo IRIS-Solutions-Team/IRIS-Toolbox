@@ -236,7 +236,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('tseries.tseries');
-                parser.addRequired('Dates', @(x) isa(x, 'DateWrapper') || (isnumeric(x) && all(x==round(x) | isnan(x))) || ischar(x) || isa(x, 'string'));
+                parser.addRequired('Dates', @DateWrapper.validateDateInput);
                 parser.addRequired('Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle'));
                 parser.addOptional('ColumnComments', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
                 parser.addOptional('UserData', [ ], @(x) true);
