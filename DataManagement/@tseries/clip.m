@@ -54,7 +54,7 @@ if isStartInf && isEndInf
 end
 
 serialXStart = round(this.Start);
-serialXEnd = serialXStart + size(this.Data, 1) - 1;
+serialXEnd = round(serialXStart + size(this.Data, 1) - 1);
 freqOfX = DateWrapper.getFrequencyAsNumeric(this.Start);
 
 serialNewStart = getSerialNewStart( );
@@ -70,9 +70,13 @@ if serialNewStart<=serialXStart && serialNewEnd>=serialXEnd
     return
 end
 
-% Return immediately an empty time series if the new start is after the new
-% end
-if serialNewStart>serialNewEnd
+% Return immediately an empty time series if 
+% * the new start is after the new end
+% * both the new start and end are before the start of the series
+% * both the new start and end are after the end of the series
+if serialNewStart>serialNewEnd ...
+   || (serialNewStart<serialXStart && serialNewEnd<serialXStart) ...
+   || (serialNewStart>serialXEnd && serialNewEnd>serialXEnd)
     this = this.empty(this);
     if nargout>1
         newStart = this.Start;
@@ -80,6 +84,7 @@ if serialNewStart>serialNewEnd
     end
     return
 end
+
 
 sizeOfData = size(this.Data);
 ndimsOfData = ndims(this.Data);
