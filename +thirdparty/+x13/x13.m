@@ -168,7 +168,7 @@ return
         end
         if is15YearsBcastWarn
             utils.warning('x13:x13', ...
-                'X13 does not produce backcasts for time seris longer than 15 years.');
+                'X13 does not produce backcasts for time series longer than 15 years.');
         end
         if isNanWarn
             utils.warning('x13:x13', ...
