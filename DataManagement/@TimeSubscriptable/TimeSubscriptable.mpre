@@ -208,6 +208,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
     methods (Static)
         varargout = getExpSmoothMatrix(varargin)
+        varargout = createDateAxisData(varargin)
     end
 
 

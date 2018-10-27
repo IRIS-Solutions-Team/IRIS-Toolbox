@@ -1,4 +1,4 @@
-function [handlePlot, time, yData, handleAxes, xData, unmatchedOptions] = implementPlot(plotFunc, varargin)
+function [handlePlot, time, yData, axesHandle, xData, unmatchedOptions] = implementPlot(plotFunc, varargin)
 % implementPlot  Plot functions for TimeSubscriptable objects
 %
 % Backend function
@@ -10,10 +10,10 @@ function [handlePlot, time, yData, handleAxes, xData, unmatchedOptions] = implem
 IS_ROUND = @(x) isnumeric(x) && all(x==round(x));
 
 if isgraphics(varargin{1})
-    handleAxes = varargin{1};
+    axesHandle = varargin{1};
     varargin(1) = [ ];
 else
-    handleAxes = @gca;
+    axesHandle = @gca;
 end
 
 if isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
@@ -38,12 +38,13 @@ if isempty(inputParser)
     inputParser.addRequired('Dates', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x) );
     inputParser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
     inputParser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
+    inputParser.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x));
     inputParser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
     inputParser.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
                               || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
 end
 
-inputParser.parse(plotFunc, handleAxes, time, this, varargin{:});
+inputParser.parse(plotFunc, axesHandle, time, this, varargin{:});
 specString = inputParser.Results.SpecString;
 opt = inputParser.Options;
 unmatchedOptions = inputParser.UnmatchedInCell;
@@ -74,8 +75,8 @@ end
 
 %--------------------------------------------------------------------------
 
-if isa(handleAxes, 'function_handle')
-    handleAxes = handleAxes( );
+if isa(axesHandle, 'function_handle')
+    axesHandle = axesHandle( );
 end
 
 if numel(time)==2 && all(isinf(time))
@@ -93,74 +94,41 @@ if ndims(yData)>2
     yData = yData(:, :);
 end
 
-positionWithinPeriod = resolvePositionWithinPeriod( );
-xData = createDateAxisData( );
+[ xData, ...
+  positionWithinPeriod, ...
+  dateFormat ] = TimeSubscriptable.createDateAxisData( axesHandle, ...
+                                                       time, ...
+                                                       opt.PositionWithinPeriod, ...
+                                                       opt.DateFormat );
 
 if isempty(plotFunc)
     handlePlot = gobjects(0);
     return
 end
 
-if ~ishold(handleAxes)
+if ~ishold(axesHandle)
     resetAxes( );
 end
 
-set(handleAxes, 'XLimMode', 'auto', 'XTickMode', 'auto');
-handlePlot = plotFunc(handleAxes, xData, yData, specString{:}, unmatchedOptions{:});
+set(axesHandle, 'XLimMode', 'auto', 'XTickMode', 'auto');
+handlePlot = plotFunc(axesHandle, xData, yData, specString{:}, unmatchedOptions{:});
 addXLimConstraints( );
 setXLim( );
+setXTick( );
 setXTickLabelFormat( );
-set(handleAxes, 'XTickLabelRotation', 0);
+set(axesHandle, 'XTickLabelRotation', 0);
 
-setappdata(handleAxes, 'IRIS_PositionWithinPeriod', positionWithinPeriod);
-setappdata(handleAxes, 'IRIS_TimeSeriesPlot', true);
+setappdata(axesHandle, 'IRIS_PositionWithinPeriod', positionWithinPeriod);
+setappdata(axesHandle, 'IRIS_TimeSeriesPlot', true);
 
 return
 
 
-    function positionWithinPeriod = resolvePositionWithinPeriod( )
-        axesPositionWithinPeriod = getappdata(handleAxes, 'IRIS_PositionWithinPeriod');
-        positionWithinPeriod = opt.PositionWithinPeriod;
-        if isempty(axesPositionWithinPeriod) 
-            if isequal(positionWithinPeriod, @auto)
-                positionWithinPeriod = 'Start';
-            end
-        else
-            if isequal(positionWithinPeriod, @auto)
-                positionWithinPeriod = axesPositionWithinPeriod;
-            elseif ~isequal(axesPositionWithinPeriod, positionWithinPeriod)
-                warning( 'TimeSubscriptable:implementPlot:DifferentPositionWithinPeriod', ...
-                         'Option PositionWithinPeriod= differs from the value set in the current Axes.' );
-            end
-        end
-    end%
-
-
-    function xData = createDateAxisData( )
-        if isempty(time)
-            xData = datetime.empty(size(time));
-            return
-        end
-        if timeFrequency==Frequency.INTEGER
-            xData = DateWrapper.getSerial(time);
-        else
-            xData = DateWrapper.toDatetime(time, lower(positionWithinPeriod));
-            if isequal(opt.DateFormat, @config) || isequal(opt.DateFormat, @default)
-                temp = iris.get('PlotDateTimeFormat');
-                nameOfFreq = Frequency.toChar(timeFrequency);
-                opt.DateFormat = temp.(nameOfFreq);
-            end
-            xData.Format = opt.DateFormat;
-            try
-                handleAxes.XAxis.TickLabelFormat = opt.DateFormat;
-            end
-        end
-    end%
 
 
     function addXLimConstraints( )
         if isequal(plotFunc, @bar) || isequal(plotFunc, @numeric.barcon)
-            xLimConstrOld = getappdata(handleAxes, 'IRIS_XLimConstraints');
+            xLimConstrOld = getappdata(axesHandle, 'IRIS_XLimConstraints');
             margin = getXLimMarginCalendarDuration(timeFrequency);
             xLimConstrHere = [ xData(1)-margin
                                xData(:)+margin ];
@@ -171,15 +139,15 @@ return
                                   xLimConstrHere ];
             end
             xLimConstrNew = sort(unique(xLimConstrNew));
-            setappdata(handleAxes, 'IRIS_XLimConstraints', xLimConstrNew);
+            setappdata(axesHandle, 'IRIS_XLimConstraints', xLimConstrNew);
         end
     end
 
 
     function setXLim( )
         xLimHere = [min(xData), max(xData)];
-        xLimOld = getappdata(handleAxes, 'IRIS_XLim');
-        enforceXLimOld = getappdata(handleAxes, 'IRIS_EnforceXLim');
+        xLimOld = getappdata(axesHandle, 'IRIS_XLim');
+        enforceXLimOld = getappdata(axesHandle, 'IRIS_EnforceXLim');
         if ~islogical(enforceXLimOld)
             enforceXLimOld = false;
         end
@@ -193,14 +161,25 @@ return
         elseif enforceXLimHere
             xLimNew = xLimHere;
         else
-            xLimNew = xLimBefore;
+            xLimNew = xLimOld;
         end
         xLimActual = getXLimActual(xLimNew);
         if ~isempty(xLimActual)
-            set(handleAxes, 'XLim', xLimActual);
+            set(axesHandle, 'XLim', xLimActual);
         end
-        setappdata(handleAxes, 'IRIS_XLim', xLimNew);
-        setappdata(handleAxes, 'IRIS_EnforceXLim', enforceXLimNew);
+        setappdata(axesHandle, 'IRIS_XLim', xLimNew);
+        setappdata(axesHandle, 'IRIS_EnforceXLim', enforceXLimNew);
+    end%
+
+
+    function setXTick( )
+        if isequal(opt.DateTick, @auto) || isempty(opt.DateTick)
+            return
+        end
+        try
+            dateTick = DateWrapper.toDatetime(opt.DateTick);
+            set(axesHandle, 'XTick', dateTick);
+        end
     end%
 
 
@@ -209,13 +188,13 @@ return
             return
         end
         try
-            handleAxes.XAxis.TickLabelFormat = opt.DateFormat;
+            axesHandle.XAxis.TickLabelFormat = dateFormat;
         end
     end%
 
 
     function xLim = getXLimActual(xLim)
-        xLimConstr = getappdata(handleAxes, 'IRIS_XLimConstraints');
+        xLimConstr = getappdata(axesHandle, 'IRIS_XLimConstraints');
         if isempty(xLimConstr)
             return
         end
@@ -240,7 +219,7 @@ return
                  'IRIS_XLim' };
         for i = 1 : numel(list)
             try
-                rmappdata(handleAxes, list{i});
+                rmappdata(axesHandle, list{i});
             end
         end
     end%

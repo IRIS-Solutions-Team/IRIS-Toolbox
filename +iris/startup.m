@@ -4,7 +4,7 @@ function startup(varargin)
 % __Syntax__
 %
 %     iris.startup
-%     iris.startup --option
+%     iris.startup('--option')
 %
 %
 % __Description__

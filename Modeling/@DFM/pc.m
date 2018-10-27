@@ -29,14 +29,14 @@ nanInx = isnan(Y);
 Sample = all(~nanInx, 1);
 nObs = sum(Sample);
 if nObs == 2
-    utils.error('DFM', 'No observations available to estimate DFM.');
+    utils.error('DFM:pc', 'No observations available to estimate DFM.');
 end
 
 % Covariance matrix of input series.
 % The matrix is needed whatever method.
 yCov = Y(:, Sample)*Y(:, Sample)'/nObs;
 if any(isinf(yCov(:)) | isnan(yCov(:)))
-    utils.error('Sample covariance matrix contains NaNs or Infs.');
+    utils.error('DFM:pc', 'Sample covariance matrix contains NaNs or Infs.');
 end
 
 if Method == 1

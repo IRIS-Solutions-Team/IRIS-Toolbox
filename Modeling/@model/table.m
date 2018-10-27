@@ -199,12 +199,16 @@ for i = 1 : numOfRequests
 
     elseif any(strcmpi(requests{i}, {'Parameter', 'Parameters'}))
         inxOfParameters = this.Quantity.Type==TYPE(4);
-        addTable = tableValues(this, @real, false, inxOfParameters, 'Parameter');
+        compare = false;
+        setNaN = '';
+        addTable = tableValues(this, @real, compare, inxOfParameters, setNaN, 'Parameter');
 
 
     elseif any(strcmpi(requests{i}, {'CompareParameter', 'CompareParameters'}))
         inxOfParameters = this.Quantity.Type==TYPE(4);
-        addTable = tableValues(this, @real, true, inxOfParameters, 'CompareParameters');
+        compare = true;
+        setNaN = '';
+        addTable = tableValues(this, @real, compare, inxOfParameters, setNaN, 'CompareParameters');
 
 
     elseif any(strcmpi(requests{i}, {'Description', 'Descriptions'}))

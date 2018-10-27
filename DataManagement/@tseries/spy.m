@@ -78,6 +78,7 @@ varargin(1) = [ ];
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('tseries.spy');
+    parser.KeepUnmatched = true;
     parser.addRequired('Axes', @(x) all(ishandle(x)));
     parser.addRequired('Range', @DateWrapper.validateDateInput);
     parser.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
@@ -92,6 +93,7 @@ end
 parser.parse(hAx, range, this, varargin{:});
 opt = parser.Options;
 freq = get(this, 'freq');
+unmatched = parser.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
@@ -162,8 +164,8 @@ if opt.Squeeze
 end
 
 xlabel('');
-if ~isempty(varargin)
-    set(hPlotTrue, varargin{:});
+if ~isempty(unmatched)
+    set(hPlotTrue, unmatched{:});
 end
 
 end%
