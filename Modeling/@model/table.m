@@ -1,4 +1,4 @@
-function outputTable = table(this, request, varargin)
+function outputTable = table(this, requests, varargin)
 % table  Extract requested values from model to table
 %
 % __Syntax__
@@ -10,8 +10,8 @@ function outputTable = table(this, request, varargin)
 %
 % * `Model` [ model ] - Model object.
 %
-% * `Request` [ char ] - Requested values; see Description for the list of
-% valid requests.
+% * `Requests` [ char | cellstr | string ] - Requested columns for the
+% table; see Description for the list of valid requests.
 %
 % 
 % __Output Arguments__
@@ -21,30 +21,96 @@ function outputTable = table(this, request, varargin)
 %
 % __Options__
 %
-% * `Compare=false` [ `true` | `false` ] - Compare reported values by
-% including a difference or percent difference column for the second and
-% furthere parameterizations; only works for models with multiple parameter
-% variants.
-%
 % * `Diary=''` [ char | string ] - If `Diary=` is not empty, the table will
 % be printed on the screen in the command window, and captured in a text
 % file under this file name.
 %
-% * `ShowDescription=false` [ `true` | `false` | numeric ] - Add an extra
-% column with the descriptions of the variables (from the model file); if a
-% number, a description column will be shown abbreviated not to exceed this
-% length.
-%
 % * `WriteTable=''` [ char | string ] - If not empty, the table will be
-% exported to a text or spreadsheet file under this file name using the
-% standard `writetable( )` function.
+% exported to a text or spreadsheet file (depending on the file extension
+% provided) under this file name using the standard `writetable( )`
+% function.
 %
 %
 % __Description__
 %
-% The `Request` can be one of the following:
+% This is the list of valid requests that can be combined in one call of
+% the `table(~)` function:
 %
-% * ``
+% * `'SteadyLevel'` - Steady-state level for each model variable.
+%
+% * `'SteadyChange'` - Steady-state difference (for nonlog-variables) or
+% steady-state gross rate of change (for log-variables) for each model
+% variables.
+%
+% * `'SteadyDiff'` - Steady-state difference for each model variable not
+% declared as log-variables; `NaN` for log-variables.
+%
+% * `'SteadyRate'` - Steady-state gross rate of growth for each model
+% variable declared as log-variables; `NaN` for nonlog-variables.
+%
+% * `'Form'` - Indicator of the form in which steady-state change and/or
+% comparison are reported for each model variable: `'Diff-'` (meaning a
+% first difference when reporting steady-state growth, or a difference
+% between two steady states when reporting steady-state comparison) for
+% each nonlog-variable, and `'Rate/'` for each log-variable.
+%
+% * `'CompareSteadyLevel'` - Steady-state level for each model variable
+% compared to the first parameter variant (a difference for each
+% nonlog-variable, a ratio for each log-variable).
+%
+% * `'CompareSteadyChange'` - Steady-state difference (for
+% nonlog-variables) or steady-state gross rate of change (for
+% log-variables) for each model variables compared to the first parameter
+% variant (a difference for each nonlog-variable, a ratio for each
+% log-variable).
+%
+% * `'CompareSteadyDiff'` - Steady-state difference for each model variable
+% not declared as log-variables, compared to the first parameter variant;
+% `NaN` for log-variables.
+%
+% * `'SteadyRate'` - Steady-state gross rate of growth for each model
+% variable declared as log-variables, compared to the first parameter
+% variant; `NaN` for nonlog-variables.
+%
+% * `'Description'` - Description text from the model file.
+%
+% * `'Log'` - Indicator of log-variables: `true` for each model variable
+% declared as a log-variable, `false` otherwise.
+%
+% This is the list of valid requests that can be called individually:
+%
+% * `'Parameters'` - The currently assigned value for each parameter; this
+% request can be combined with `'Description'`.
+%
+% * `'Std'` - The currently assigned value for the standard deviation of
+% each model shock.
+%
+% * `'Corr'` - The currently assigned value for the cross-correlation
+% coefficient of each pair of model shocks.
+%
+% * `'CompareParameters'` - The currently assigned value for each parameter
+% compared to the first parameter variant (a difference); this request can
+% be combined with `'Description'`.
+%
+% * `'CompareStd'` - The currently assigned value for the standard
+% deviation of each model shock compared to the first parameter variant (a
+% difference).
+%
+% * `'CompareCorr'` - The currently assigned value for the cross-correlation
+% coefficient of each pair of model shocks compared to the first parameter
+% variant (a difference).
+%
+% * `'AllRoots'` - All eigenvalues associated with the current solution.
+%
+% * `'StableRoots'` - All stable eigenvalues (smaller than `1` in
+% magnitude) associated with the current solution.
+%
+% * `'UnitRoots'` - All unit eigenvalues (equal `1` in magnitude)
+% associated with the current solution.
+%
+% * `'UnstableRoots'` - All unstable eigenvalues (greater than `1` in
+% magnitude) associated with the current solution.
+%
 %
 % __Example__
 %
@@ -59,148 +125,188 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.table');
     parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('Request', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter('Compare', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addRequired('Request', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     parser.addParameter('Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter('ShowDescription', false, @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>0 && x==round(x)));
-    parser.addParameter('ShowLog', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('WriteTable', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
-parser.parse(this, request, varargin{:});
+parser.parse(this, requests, varargin{:});
 opt = parser.Options;
 
-nv = numel(this.Variant);
-if opt.Compare && nv<=1
-    throw( exception.Base('Model:CannotCompareTable', 'error') );
+if ischar(requests)
+    requests = regexp(requests, '\w+', 'match');
+else
+    requests = cellstr(requests);
 end
+
+nv = numel(this.Variant);
 
 %--------------------------------------------------------------------------
 
-inxOfParameters = this.Quantity.Type==TYPE(4);
+numOfRequests = numel(requests);
 inxOfShocks = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 
-if strcmpi(request, 'Steady')
-    steadyLevel = table(this, 'SteadyLevel', varargin{:}, 'Compare=', false);
-    steadyChange = table(this, 'SteadyGrowth', varargin{:}, 'Compare=', false);
-    outputTable = [steadyLevel, steadyChange];
-    inxOfLog = this.Quantity.IxLog; 
+outputTable = table(this.Quantity.Name(:), 'VariableNames', {'Name'});
+
+for i = 1 : numOfRequests
+
+    if any(strcmpi(requests{i}, {'SteadyLevel', 'SteadyLevels'}))
+        compare = false;
+        addTable = tableValues(this, @real, compare, [ ], '', 'SteadyLevel');
 
 
-elseif strcmpi(request, 'SteadyLevel')
-    values = this.Variant.Values;
-    values = real(values);
-    values = permute(values, [2, 3, 1]);
-    names = this.Quantity.Name;
-    outputTable = table(values, 'VariableNames', {'SteadyLevel'}, 'RowNames', names);
-    inxOfLog = this.Quantity.IxLog; 
+    elseif any(strcmpi(requests{i}, {'CompareSteadyLevel', 'CompareSteadyLevels'}))
+        compare = true;
+        addTable = tableValues(this, @real, compare, [ ], '', 'CompareSteadyLevel');
+
+        
+    elseif any(strcmpi(requests{i}, {'SteadyChange', 'SteadyChanges'}))
+        compare = false;
+        addTable = tableValues(this, @imag, compare, [ ], '', 'SteadyChange');
 
 
-elseif any(strcmpi(request, {'SteadyGrowth', 'SteadyChange'}))
-    namesOfAll = this.Quantity.Name;
-    inxOfLog = this.Quantity.IxLog;
-    values = this.Variant.Values;
-    values = imag(values);
-    values = permute(values, [2, 3, 1]);
-    valuesDiff = values;
-    valuesDiff(inxOfLog | inxOfParameters, :) = NaN;
-    valuesRate = values;
-    valuesRate(~inxOfLog | inxOfParameters, :) = NaN;
-    outputTable = table( valuesDiff, valuesRate, ...
-                         'VariableNames', {'SteadyDifference', 'SteadyRateOfChng'}, ...
-                         'RowNames', namesOfAll );
-    inxOfLog = this.Quantity.IxLog; 
+    elseif any(strcmpi(requests{i}, {'CompareSteadyChange', 'CompareSteadyChanges'}))
+        compare = true;
+        addTable = tableValues(this, @imag, compare, [ ], '', 'CompareSteadyChange');
+
+        
+    elseif any(strcmpi(requests{i}, {'SteadyDiff', 'SteadyDiffs'}))
+        compare = false;
+        setNaN = 'log';
+        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'SteadyDiff');
 
 
-elseif strcmpi(request, 'Parameters')
-    values = this.Variant.Values;
-    values = values(1, inxOfParameters, :);
-    values = permute(values, [2, 3, 1]);
-    namesOfParameters = this.Quantity.Name(inxOfParameters);
-    outputTable = table( values, ...
-                         'VariableNames', {'ParameterValue'}, ...
-                         'RowNames', namesOfParameters );
-    inxOfLog = false(size(values, 1), 1);
+    elseif any(strcmpi(requests{i}, {'CompareSteadyDiff', 'CompareSteadyDiffs'}))
+        compare = true;
+        setNaN = 'log';
+        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'CompareSteadyDiff');
+
+        
+    elseif strcmpi(requests{i}, 'SteadyRate')
+        compare = false;
+        setNaN = 'nonlog';
+        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'SteadyRate');
 
 
-elseif strcmpi(request, 'Std')
-    namesOfStd = getStdNames(this.Quantity);
-    numOfShocks = numel(namesOfStd);
-    valuesOfStd = permute( this.Variant.StdCorr(1, 1:numOfShocks, :), [2, 3, 1] );
-    outputTable = table( valuesOfStd, ...
-                         'VariableNames', {'StdValues'}, ...
-                         'RowNames', namesOfStd );
-    inxOfLog = false(size(valuesOfStd, 1), 1);
+    elseif strcmpi(requests{i}, 'CompareSteadyRate')
+        compare = true;
+        setNaN = 'nonlog';
+        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'CompareSteadyRate');
 
 
-elseif strcmpi(request, 'Corr') || strcmpi(request, 'NonzeroCorr')
-    namesOfCorr = getCorrNames(this.Quantity);
-    numOfShocks = nnz(inxOfShocks);
-    valuesOfCorr = permute( this.Variant.StdCorr(1, numOfShocks+1:end, :), [2, 3, 1] );
-    if strcmpi(request, 'NonzeroCorr')
-        inxOfNonzero = any(valuesOfCorr~=0, 2);
-        namesOfCorr = namesOfCorr(inxOfNonzero);
-        valuesOfCorr = valuesOfCorr(inxOfNonzero, :);
+    elseif strcmpi(requests{i}, 'Form')
+        addTable = tableForm(this);
+
+
+    elseif any(strcmpi(requests{i}, {'Parameter', 'Parameters'}))
+        inxOfParameters = this.Quantity.Type==TYPE(4);
+        addTable = tableValues(this, @real, false, inxOfParameters, 'Parameter');
+
+
+    elseif any(strcmpi(requests{i}, {'CompareParameter', 'CompareParameters'}))
+        inxOfParameters = this.Quantity.Type==TYPE(4);
+        addTable = tableValues(this, @real, true, inxOfParameters, 'CompareParameters');
+
+
+    elseif any(strcmpi(requests{i}, {'Description', 'Descriptions'}))
+        addTable = tableDescription(this);
+
+
+    elseif any(strcmpi(requests{i}, {'Log'}))
+        addTable = tableLog(this);
+
+
+    elseif any(strcmpi(requests{i}, {'Std', 'StdDeviation', 'StdDeviations'}))
+        compare = false;
+        outputTable = tableStd(this, compare);
+        break
+
+    elseif any(strcmpi(requests{i}, {'CompareStd', 'CompareStdDeviation', 'CompareStdDeviations'}))
+        compare = true;
+        outputTable = tableStd(this, compare);
+        break
+
+
+    elseif any(strcmpi(requests{i}, {'Corr', 'CorrCoeff', 'CorrCoeffs'}))
+        nonzero = false;
+        compare = false;
+        outputTable = tableCorr(this, nonzero, compare);
+        break
+
+
+    elseif any(strcmpi(requests{i}, {'NonzeroCorr', 'NonzeroCorrCoeff', 'NonzeroCorrCoeffs'}))
+        nonzero = true;
+        compare = false;
+        outputTable = tableCorr(this, nonzero, compare);
+        break
+
+
+    elseif any(strcmpi(requests{i}, {'CompareCorr', 'CompareCorrCoeff', 'CompareCorrCoeffs'}))
+        nonzero = false;
+        compare = true;
+        outputTable = tableCorr(this, nonzero, compare);
+        break
+
+
+    elseif any(strcmpi(requests{i}, {'CompareNonzeroCorr', 'CompareNonzeroCorrCoeff', 'CompareNonzeroCorrCoeffs'}))
+        nonzero = true;
+        compare = true;
+        outputTable = tableCorr(this, nonzero, compare);
+        break
+
+
+    elseif any(strcmpi(requests{i}, {'Roots', 'AllRoots', 'EigenValues', 'AllEigenValues'}))
+        values = get(this, 'Roots');
+        values = values(:);
+        outputTable = table( values, abs(values), ...
+                             'VariableNames', {'AllRoots', 'Magnitudes'} );
+        break
+
+
+    elseif any(strcmpi(requests{i}, {'StableRoots', 'StableEigenValues'}))
+        values = get(this, 'StableRoots');
+        values = values(:);
+        outputTable = table( values, abs(values), ...
+                             'VariableNames', {'StableRoots', 'Magnitudes'} );
+        break
+
+
+    elseif any(strcmpi(requests{i}, {'UnstableRoots', 'UnstableEigenValues'}))
+        values = get(this, 'UnstableRoots');
+        values = values(:);
+        outputTable = table( values, abs(values), ...
+                             'VariableNames', {'UnstableRoots', 'Magnitudes'} );
+        break
+
+
+    elseif any(strcmpi(requests{i}, {'UnitRoots', 'UnitEigenValues'}))
+        values = get(this, 'UnitRoots');
+        values = values(:);
+        outputTable = table( values, abs(values), ...
+                             'VariableNames', {'UnitRoots', 'Magnitudes'} );
+        break
+
+
+    else
+        throw( exception.Base('Model:TableInvalidRequest', 'error'), ...
+               requests{i} );
     end
-    outputTable = table( valuesOfCorr, ...
-                         'VariableNames', {'CorrValues'}, ...
-                         'RowNames', namesOfCorr );
-    inxOfLog = false(size(valuesOfCorr, 1), 1);
 
-
-elseif any(strcmpi(request, {'Roots', 'AllRoots', 'EigenValues', 'AllEigenValues'}))
-    values = get(this, 'Roots');
-    values = values(:);
-    outputTable = table( values, abs(values), ...
-                         'VariableNames', {'AllRoots', 'Magnitudes'} );
-    inxOfLog = false(size(values, 1), 1);
-
-
-elseif any(strcmpi(request, {'StableRoots', 'StableEigenValues'}))
-    values = get(this, 'StableRoots');
-    values = values(:);
-    outputTable = table( values, abs(values), ...
-                         'VariableNames', {'StableRoots', 'Magnitudes'} );
-    inxOfLog = false(size(values, 1), 1);
-
-
-elseif any(strcmpi(request, {'UnstableRoots', 'UnstableEigenValues'}))
-    values = get(this, 'UnstableRoots');
-    values = values(:);
-    outputTable = table( values, abs(values), ...
-                         'VariableNames', {'UnstableRoots', 'Magnitudes'} );
-    inxOfLog = false(size(values, 1), 1);
-
-
-elseif any(strcmpi(request, {'UnitRoots', 'UnitEigenValues'}))
-    values = get(this, 'UnitRoots');
-    values = values(:);
-    outputTable = table( values, abs(values), ...
-                         'VariableNames', {'UnitRoots', 'Magnitudes'} );
-    inxOfLog = false(size(values, 1), 1);
-
-else
-    throw( exception.Base('Model:TableInvalidRequest', 'error'), ...
-           request );
-
+    if i==1
+        outputTable = addTable;
+    else
+        outputTable = innerjoin(outputTable, addTable, 'Keys', 'Name');
+    end
 end
 
-% Add comparison columns for each parameterization
-if opt.Compare
-    outputTable = addCompareColumns(this, outputTable, inxOfLog);
-end
-
-% Add description and log columns last so that it does not interfere with
-% compare columns
-if opt.ShowLog
-    outputTable = addLogColumn(this, outputTable, inxOfLog);
-end
-if ~isequal(opt.ShowDescription, false)
-    outputTable = addDescriptionColumn(this, outputTable, opt.ShowDescription);
+if any(strcmp(outputTable.Properties.VariableNames, 'Name'))
+    outputTable.Properties.RowNames = outputTable.Name;
+    outputTable = removevars(outputTable, 'Name');
 end
 
 % Write table to text or spreadsheet file
 if ~isempty(opt.WriteTable)
-    writetable(outputTable, opt.WriteTable);
+    writeRowNames = isempty(outputTable.Properties.RowNames);
+    writetable(outputTable, opt.WriteTable, 'WriteRowNames', writeRowNames);
 end
 
 % Print table to screen and capture output in diary
@@ -215,72 +321,93 @@ end
 
 end%
 
-
 %
 % Local Functions
 %
 
-
-function outputTable = addCompareColumns(this, outputTable, inxOfLog)
-    list = outputTable.Properties.VariableNames;
-    for i = 1 : numel(list)
-        name = list{i};
-        newName = ['Compare', name];
-        values = outputTable.(name);
-        firstColumn = values(:, 1);
-        newValues = nan(size(values, 1), size(values, 2));
-        newValues(~inxOfLog, :) = bsxfun( @minus, ...
-                                          values(~inxOfLog, :), ...
-                                          firstColumn(~inxOfLog, :) );
-        newValues(inxOfLog, :)  = bsxfun( @rdivide, ...
-                                          values(inxOfLog, :), ...
-                                          firstColumn(inxOfLog, :) );
-        outputTable = addvars( outputTable, newValues, ...
-                               'NewVariableNames', newName );
+function addTable = tableValues(this, retrieve, compare, inx, setNaN, columnName)
+    inxOfLog = this.Quantity.IxLog;
+    inxOfLog = inxOfLog(:);
+    values = this.Variant.Values;
+    values = retrieve(values);
+    values = permute(values, [2, 3, 1]);
+    if ~isempty(inx)
+        inxOfLog = inxOfLog(inx);
+        values = values(inx, :);
     end
+    if isequal(compare, true)
+        values(~inxOfLog, :) = bsxfun(@minus, values(~inxOfLog, :), values(~inxOfLog, 1));
+        values(inxOfLog, :) = bsxfun(@rdivide, values(inxOfLog, :), values(inxOfLog, 1));
+    end
+    if strcmpi(setNaN, 'log')
+        values(inxOfLog, :) = NaN;
+    elseif strcmpi(setNaN, 'nonlog')
+        values(~inxOfLog, :) = NaN;
+    end
+    addTable = tableTopic(this, {columnName}, inx, values);
 end%
 
 
-
-
-function outputTable = addLogColumn(this, outputTable, inxOfLog)
-    list = outputTable.Properties.RowNames;
-    logColumn = inxOfLog(:);
-    outputTable = addvars( outputTable, logColumn, ...
-                           'Before', 1, ...
-                           'NewVariableNames', 'Log' );
+function addTable = tableForm(this)
+    inxOfLog = this.Quantity.IxLog;
+    inxOfLog = inxOfLog(:);
+    values = cell(size(inxOfLog));
+    values(~inxOfLog) = {'Diff-'};
+    values(inxOfLog) = {'Rate/'};
+    addTable = tableTopic(this, {'Form'}, [ ], values);
 end%
 
 
+function addTable = tableDescription(this)
+    values = this.Quantity.Label(:);
+    addTable = tableTopic(this, {'Description'}, [ ], values);
+end%
 
 
-function outputTable = addDescriptionColumn(this, outputTable, userLength)
-    if ~isnumeric(userLength)
-        userLength = Inf;
+function addTable = tableLog(this)
+    values = this.Quantity.IxLog(:);
+    addTable = tableTopic(this, {'Log'}, [ ], values);
+end%
+
+
+function addTable = tableTopic(this, columnNames, inx, varargin)
+    names = this.Quantity.Name(:);
+    if ~isempty(inx)
+        names = names(inx);
     end
-    rowNames = outputTable.Properties.RowNames;
-    descriptStruct = get(this, 'Description');
-    descriptColumn = cell(size(rowNames));
-    descriptColumn = cellfun( @(name) abbreviate(descriptStruct.(name), userLength), ...
-                              rowNames, ...
-                              'UniformOutput', false );
-    outputTable = addvars( outputTable, descriptColumn, ...
-                           'Before', 1, ...
-                           'NewVariableNames', 'Description' );
-    return
+    columnNames = [{'Name'}, columnNames];
+    addTable = table( names, varargin{:}, ...
+                      'VariableNames', columnNames );
+end%
 
 
-    function c = abbreviate(c, maxLength)
-        ELLIPSIS = iris.get('Ellipsis');
-        if ischar(c)
-            if length(c)>maxLength
-                c = [c(1:maxLength), ELLIPSIS];
-            end
-        elseif isa(c, 'string')
-            if strlength(c)>maxLength
-                c = replaceBetween(c, maxLength+1, strlength(c), ELLIPSIS);
-            end
+function addTable = tableStd(this, compare)
+    names = getStdNames(this.Quantity);
+    names = names(:);
+    numOfShocks = numel(names);
+    values = permute( this.Variant.StdCorr(1, 1:numOfShocks, :), [2, 3, 1] );
+    if compare
+        values = bsxfun(@minus, values, values(:, 1));
+    end
+    columnNames = {'Name', 'StdDeviation'};
+    addTable = table( names, values, ...
+                      'VariableNames', columnNames );
+end%
+
+
+function addTable = tableCorr(this, compare, nonzero)
+        names = getCorrNames(this.Quantity);
+        numOfShocks = nnz(inxOfShocks);
+        values = permute( this.Variant.StdCorr(1, numOfShocks+1:end, :), [2, 3, 1] );
+        if nonzero
+            inxOfNonzero = any(values~=0, 2);
+            names = names(inxOfNonzero);
+            values = values(inxOfNonzero, :);
         end
-    end%
+        if compare
+            values = bsxfun(@minus, values, values(:, 1));
+        end
+        addTable = table( names, values, ...
+                          'VariableNames', {'Names', 'CorrValues'} );
 end%
 
