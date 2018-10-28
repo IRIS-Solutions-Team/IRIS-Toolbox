@@ -66,7 +66,7 @@ if isempty(parser)
     parser.KeepUnmatched = true;
     parser.addRequired('Axes', @(x) all(ishandle(x)));
     parser.addRequired('Range', @DateWrapper.validateRangeInput);
-    parser.addDateOptions( );
+    parser.addDateOptions('tseries');
 end
 parser.parse(ax, newRange);
 opt = parser.Options;

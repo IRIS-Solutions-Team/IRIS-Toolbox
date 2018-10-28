@@ -16,27 +16,32 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
     methods
         function varargout = plot(varargin)
             [varargout{1:nargout}] = plot@TimeSubscriptable(varargin{:});
-        end
+        end%
 
 
         function varargout = bar(varargin)
             [varargout{1:nargout}] = bar@TimeSubscriptable(varargin{:});
-        end
+        end%
 
 
         function varargout = area(varargin)
             [varargout{1:nargout}] = area@TimeSubscriptable(varargin{:});
-        end
+        end%
 
 
         function varargout = stem(varargin)
             [varargout{1:nargout}] = stem@TimeSubscriptable(varargin{:});
-        end
+        end%
 
 
         function varargout = errorbar(varargin)
             [varargout{1:nargout}] = errorbar@TimeSubscriptable(varargin{:});
-        end
+        end%
+
+
+        function varargout = spy(varargin)
+            [varargout{1:nargout}] = spy@TimeSubscriptable(varargin{:});
+        end%
 
 
         varargout = barcon(varargin)

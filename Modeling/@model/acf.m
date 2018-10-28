@@ -1,14 +1,14 @@
 function varargout = acf(this, varargin)
-% acf  Autocovariance and autocorrelation function for model variables.
+% acf  Autocovariance and autocorrelation function for model variables
 %
 % __Syntax__
 %
-%     [C, R, List] = acf(M, ...)
+%     [C, R, list] = acf(model, ...)
 %
 %
 % __Input Arguments__
 %
-% * `M` [ model ] - Solved model object for which the autocorrelation
+% * `model` [ model ] - A solved model object for which the autocorrelation
 % function will be computed.
 %
 %
@@ -18,14 +18,14 @@ function varargout = acf(this, varargin)
 %
 % * `R` [ namedmat | numeric ] - Correlation matrices.
 %
-% * `List` [ cellstr ] - List of variables in rows and columns of `C` and
+% * `list` [ cellstr ] - List of variables in rows and columns of `C` and
 % `R`.
 %
 %
 % __Options__
 %
 % * `ApplyTo=@all` [ cellstr | char | `@all` ] - List of variables to which
-% the `'Filter='` will be applied; `@all` means all variables.
+% the `Filter=` will be applied; `@all` means all variables.
 %
 % * `Contributions=false` [ `true` | `false` ] - If `true` the
 % contributions of individual shocks to ACFs will be computed and stored in
@@ -105,25 +105,25 @@ function varargout = acf(this, varargin)
 %     [C, R] = acf(m, 'Filter=', 'per>=4 & per<=40')
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.acf');
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addParameter('NFreq', 256, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
-    inputParser.addParameter({'Contributions', 'Contribution'}, false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Order', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    inputParser.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
-    inputParser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
-    inputParser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
-    inputParser.addParameter('Filter', '', @ischar);
-    inputParser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
-    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.acf');
+    parser.addRequired('Model', @(x) isa(x, 'model'));
+    parser.addParameter('NFreq', 256, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
+    parser.addParameter({'Contributions', 'Contribution'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Order', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    parser.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
+    parser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
+    parser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
+    parser.addParameter('Filter', '', @ischar);
+    parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
+    parser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
 end
-inputParser.parse(this, varargin{:});
-opt = inputParser.Options;
+parser.parse(this, varargin{:});
+opt = parser.Options;
 
 isSelect = ~isequal(opt.Select, @all);
 isNamedMat = strcmpi(opt.MatrixFormat, 'NamedMat');

@@ -103,7 +103,7 @@ if isempty(parser)
     parser.addParameter('RhsPlotFunc', @plot, @(x) ischar(x) || isa(x, 'function_handle'));
     parser.addParameter('LhsTight', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('RhsTight', false, @(x) isequal(x, true) || isequal(x, false) );
-    parser.addDateOptions( );
+    parser.addDateOptions('tseries');
     parser.addPlotOptions( );
 end
 parser.parse(rangeLhs, rangeRhs, XLhs, XRhs, varargin{:});

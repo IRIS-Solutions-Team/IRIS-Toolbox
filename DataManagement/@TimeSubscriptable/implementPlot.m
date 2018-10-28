@@ -42,6 +42,7 @@ if isempty(inputParser)
     inputParser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
     inputParser.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
                               || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
+    inputParser.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
 end
 
 inputParser.parse(plotFunc, axesHandle, time, this, varargin{:});
@@ -112,7 +113,7 @@ end
 
 set(axesHandle, 'XLimMode', 'auto', 'XTickMode', 'auto');
 handlePlot = plotFunc(axesHandle, xData, yData, specString{:}, unmatchedOptions{:});
-addXLimConstraints( );
+addXLimMargins( );
 setXLim( );
 setXTick( );
 setXTickLabelFormat( );
@@ -126,22 +127,31 @@ return
 
 
 
-    function addXLimConstraints( )
-        if isequal(plotFunc, @bar) || isequal(plotFunc, @numeric.barcon)
-            xLimConstrOld = getappdata(axesHandle, 'IRIS_XLimConstraints');
-            margin = getXLimMarginCalendarDuration(timeFrequency);
-            xLimConstrHere = [ xData(1)-margin
-                               xData(:)+margin ];
-            if isempty(xLimConstrOld)
-                xLimConstrNew = xLimConstrHere;
-            else
-                xLimConstrNew = [ xLimConstrOld
-                                  xLimConstrHere ];
-            end
-            xLimConstrNew = sort(unique(xLimConstrNew));
-            setappdata(axesHandle, 'IRIS_XLimConstraints', xLimConstrNew);
+    function addXLimMargins( )
+        % Leave a half period on either side of the horizontal axis around
+        % the currently added data
+        if isequal(opt.XLimMargins, false)
+            return
         end
-    end
+        if isequal(opt.XLimMargins, @auto) ...
+           && ~(isequal(plotFunc, @bar) || isequal(plotFunc, @numeric.barcon))
+           return
+        end
+        xLimMarginsOld = getappdata(axesHandle, 'IRIS_XLimMargins');
+        margin = getXLimMarginCalendarDuration(timeFrequency);
+        xLimMarginsHere = [ xData(1)-margin
+                            xData(:)+margin ];
+        if isempty(xLimMarginsOld)
+            xLimMarginsNew = xLimMarginsHere;
+        else
+            xLimMarginsNew = [ xLimMarginsOld
+                              xLimMarginsHere ];
+        end
+        xLimMarginsNew = sort(unique(xLimMarginsNew));
+        setappdata(axesHandle, 'IRIS_XLimMargins', xLimMarginsNew);
+    end%
+
+
 
 
     function setXLim( )
@@ -172,6 +182,8 @@ return
     end%
 
 
+
+
     function setXTick( )
         if isequal(opt.DateTick, @auto) || isempty(opt.DateTick)
             return
@@ -181,6 +193,8 @@ return
             set(axesHandle, 'XTick', dateTick);
         end
     end%
+
+
 
 
     function xData = setXTickLabelFormat( )
@@ -193,20 +207,24 @@ return
     end%
 
 
+
+
     function xLim = getXLimActual(xLim)
-        xLimConstr = getappdata(axesHandle, 'IRIS_XLimConstraints');
-        if isempty(xLimConstr)
+        xLimMargins = getappdata(axesHandle, 'IRIS_XLimMargins');
+        if isempty(xLimMargins)
             return
         end
-        if xLim(1)>xLimConstr(1) && xLim(1)<xLimConstr(end)
-            pos = find(xLim(1)<xLimConstr, 1) - 1;
-            xLim(1) = xLimConstr(pos);
+        if xLim(1)>xLimMargins(1) && xLim(1)<xLimMargins(end)
+            pos = find(xLim(1)<xLimMargins, 1) - 1;
+            xLim(1) = xLimMargins(pos);
         end
-        if xLim(2)>xLimConstr(2) && xLim(2)<xLimConstr(end)
-            pos = find(xLim(2)>xLimConstr, 1, 'last') + 1;
-            xLim(2) = xLimConstr(pos);
+        if xLim(2)>xLimMargins(2) && xLim(2)<xLimMargins(end)
+            pos = find(xLim(2)>xLimMargins, 1, 'last') + 1;
+            xLim(2) = xLimMargins(pos);
         end
     end%
+
+
 
 
     function resetAxes( )
@@ -214,7 +232,7 @@ return
                  'IRIS_TimeSeriesPlot'
                  'IRIS_XLim'
                  'IRIS_EnforceXLim'
-                 'IRIS_XLimConstraints'
+                 'IRIS_XLimMargins'
                  'IRIS_XLim'
                  'IRIS_XLim' };
         for i = 1 : numel(list)
@@ -226,7 +244,7 @@ return
 end%
 
 %
-% Local validation functions
+% Local Validation Functions
 %
 
 function flag = validatePlotFunction(x)

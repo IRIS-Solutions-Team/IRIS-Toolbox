@@ -1,4 +1,4 @@
-classdef InputParser < inputParser
+classdef InputParser < inputParser 
     properties
         PrimaryParameterNames = cell.empty(1, 0)
         Options = struct( )
@@ -6,6 +6,7 @@ classdef InputParser < inputParser
         Conditional = inputParser.empty(0)
 
         HasDateOptions = false
+        DateOptionsContext = ''
         HasDeviationOptions = false
         HasSwapOptions = false
         HasOptionalRangeStartEnd = false
@@ -129,7 +130,7 @@ classdef InputParser < inputParser
         end%
 
 
-        function addDateOptions(this)
+        function addDateOptions(this, context)
             this.addParameter('DateFormat', @config, @iris.Configuration.validateDateFormat);
             this.addParameter({'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
             this.addParameter({'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
@@ -139,13 +140,17 @@ classdef InputParser < inputParser
             % Backward compatibility options for datxtick( )
             this.addParameter({'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isfunc(x));
             this.HasDateOptions = true;
+            if nargin>1
+                % Context can be one of {'', 'tseries', 'TimeSubscriptable'}
+                this.DateOptionsContext = context;
+            end
         end%
 
 
         function addPlotOptions(this)
             this.addParameter('Function', [ ], @(x) isempty(x) || isfunc(x));
             this.addParameter('Tight', false, @(x) isequal(x, true) || isequal(x, false));
-            this.addParameter('XLimMargin', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto));
+            this.addParameter('XLimMargins', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto));
         end%
 
 
@@ -200,10 +205,13 @@ classdef InputParser < inputParser
             configStruct = iris.get( );
 
             if isequal(this.Options.DateFormat, @config)
-                if ~isPlot
-                    this.Options.DateFormat = configStruct.DateFormat;
-                else
-                    this.Options.DateFormat = configStruct.plotDateFormat;
+                switch this.DateOptionsContext
+                    case 'TimeSubscriptable'
+                        this.Options.DateFormat = configStruct.PlotDateTimeFormat;
+                    case 'tseries'
+                        this.Options.DateFormat = configStruct.PlotDateFormat;
+                    otherwise
+                        this.Options.DateFormat = configStruct.DateFormat;
                 end
             end
 

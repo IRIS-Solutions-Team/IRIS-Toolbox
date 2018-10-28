@@ -1,10 +1,10 @@
-function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
+function [axesHandle, hPlotTrue, hPlotFalse] = spy(varargin)
 % spy  Visualise tseries observations that pass a test.
 %
 % __Syntax__
 %
-%     [hAx, hTrue, hFalse] = spy(x, ...)
-%     [hAx, hTrue, hFalse] = spy(range, x, ...)
+%     [axesHandle, hTrue, hFalse] = spy(x, ...)
+%     [axesHandle, hTrue, hFalse] = spy(range, x, ...)
 %
 %
 % __Input Arguments__
@@ -18,7 +18,7 @@ function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 %
 % __Output Arguments__
 %
-% * `hAx` [ Axes ] - Handle to the axes created.
+% * `axesHandle` [ Axes ] - Handle to the axes created.
 %
 % * `hTrue` [ Line ] - Handle to the marks plotted for the observations
 % that pass the test.
@@ -57,12 +57,14 @@ function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
+MARKER_SIZE_MULTIPLIER = 1.5;
+
 if all(ishghandle(varargin{1})) ...
         && strcmpi(get(varargin{1}(1), 'type'), 'axes')
-    hAx = varargin{1}(1);
+    axesHandle = varargin{1}(1);
     varargin(1) = [ ];
 else
-    hAx = gca( );
+    axesHandle = gca( );
 end
 
 if isnumeric(varargin{1})
@@ -88,89 +90,105 @@ if isempty(parser)
     parser.addParameter('Interpreter', 'none', @(x) ischar(x) || isa(x, string));
     parser.addParameter({'Names', 'Name'}, { }, @iscellstr);
     parser.addParameter('Test', @isfinite, @(x) isa(x, 'function_handle'));
-    parser.addPlotOptions( );
-    parser.addDateOptions('tseries');
+    parser.addDateOptions('TimeSubscriptable');
 end
-parser.parse(hAx, range, this, varargin{:});
+parser.parse(axesHandle, range, this, varargin{:});
 opt = parser.Options;
 freq = get(this, 'freq');
 unmatched = parser.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
-[x, range] = rangedata(this, range);
-x = x(:, :, 1);
-x = opt.Test(x.');
+this.Data = this.Data(:, :);
+if ~isequal(range, Inf)
+    this = clip(this, range(1), range(end));
+end
+x = opt.Test(this.Data);
 if ~islogical(x)
     x = logical(x);
 end
-time = dat2dec(range, 'centre');
-xCoor = repmat(1 : size(x, 2), size(x, 1), 1);
-xCoor = time(xCoor);
-yCoor = repmat(1 : size(x, 1), 1, size(x, 2));
+numOfPeriods = size(this.Data, 1);
+numOfColumns = size(this.Data, 2);
+this.Data = repmat(1:numOfColumns, numOfPeriods, 1);
 
+colorOrder = get(axesHandle, 'ColorOrder');
+colorOrderIndex = get(axesHandle, 'ColorOrderIndex');
+markerSize = get(gcf( ), 'DefaultLineMarkerSize') * MARKER_SIZE_MULTIPLIER;
+
+colorTrue = colorOrder(colorOrderIndex, :);
+colorOrderIndex = colorOrderIndex + 1;
 if opt.ShowTrue
     markerTrue = '.';
 else
     markerTrue = 'none';
 end
+
+colorFalse = colorOrder(colorOrderIndex, :);
+colorOrderIndex = colorOrderIndex + 1;
 if opt.ShowFalse
     markerFalse = '.';
 else
     markerFalse = 'none';
 end
-markerSize = get(gcf( ), 'DefaultLineMarkerSize')*1.5;
 
-holdStatus = ishold(hAx);
-hPlotTrue = plot(hAx, xCoor(x), yCoor(x), ...
-    'LineStyle', 'None', 'Marker', markerTrue, 'MarkerSize', markerSize);
+holdStatus = ishold(axesHandle);
+
+thisTrue = this;
+thisTrue.Data(~x) = NaN;
+hPlotTrue = plot( axesHandle, thisTrue.Range, thisTrue, ...
+                  'XLimMargins', true, ...
+                  'LineStyle', 'None', ...
+                  'Color', colorTrue, ...
+                  'Marker', markerTrue, ...
+                  'MarkerSize', markerSize, ...
+                  unmatched{:} );
+
 hold on
-hPlotFalse = plot(hAx, xCoor(~x), yCoor(~x), ...
-    'LineStyle', 'None', 'Marker', markerFalse, 'MarkerSize', markerSize);
+
+thisFalse = this;
+thisFalse.Data(x) = NaN;
+hPlotFalse = plot( axesHandle, thisFalse.Range, thisFalse, ...
+                   'XLimMargins', true, ...
+                   'LineStyle', 'None', ...
+                   'Color', colorFalse, ...
+                   'Marker', markerFalse, ...
+                   'MarkerSize', markerSize, ...
+                   unmatched{:} );
+
 if ~holdStatus
     hold off
 end
-set( gca( ), 'YDir', 'Reverse', 'YLim', [0, size(x, 1)+1], ...
-    'XLim', round([xCoor(1)-0.5, xCoor(end)+0.5]) );
+
+set( axesHandle, ...
+     'ColorOrderIndex', colorOrderIndex, ...
+     'YDir', 'Reverse', ...
+     'YLim', [0.5, numOfColumns+0.5] );
 
 if ~opt.ShowTrue
-    grfun.excludefromlegend(hPlotTrue);
+    visual.excludeFromLegend(hPlotTrue);
 end
 if ~opt.ShowFalse
-    grfun.excludefromlegend(hPlotFalse);
+    visual.excludeFromLegend(hPlotFalse);
 end
 
-setappdata(hAx, 'IRIS_SERIES', true);
-setappdata(hAx, 'IRIS_FREQ', freq);
-setappdata(hAx, 'IRIS_XLIM_ADJUST', true);
-mydatxtick(hAx, range, time, freq, range, opt);
-
-set(hAx, 'GridLineStyle', ':');
-yLim = [1, size(x, 1)];
+set(axesHandle, 'GridLineStyle', ':');
+yLim = [1, numOfColumns];
 if ~isempty(opt.Names)
-    set( hAx, 'YTick', yLim(1):yLim(end), 'YTickMode', 'Manual', ...
-        'YTickLabel', opt.Names, ...
-        'yTickLabelMode', 'Manual', ...
+    set( axesHandle, 'YTick', yLim(1):yLim(end), 'YTickMode', 'Manual', ...
+        'YTickLabel', opt.Names, 'yTickLabelMode', 'Manual', ...
         'YLim', [0.5, yLim(end)+0.5], 'YLimMode', 'Manual', ...
-        'PlotBoxAspectRatio', [size(x,2)+1, size(x,1)+1, 1] );
-    try
-        set(hAx, 'TickLabelInterpreter', opt.Intepreter);
-    end
+        'PlotBoxAspectRatio', [numOfPeriods+1, numOfColumns+1, 1] );
 else
-    yTick = get(hAx, 'YTick');
+    yTick = get(axesHandle, 'YTick');
     yTick(yTick<1) = [ ];
-    yTick(yTick>size(x, 1)) = [ ];
+    yTick(yTick>numOfColumns) = [ ];
     yTick(yTick~=round(yTick)) = [ ];
-    set(hAx, 'YTick', yTick, 'YTickMode', 'Manual');
+    set(axesHandle, 'YTick', yTick, 'YTickMode', 'Manual');
 end
 
 if opt.Squeeze
-    set(hAx, 'PlotBoxAspectRatio', [size(x, 2)+5, size(x, 1)+2, 1]);
-end
-
-xlabel('');
-if ~isempty(unmatched)
-    set(hPlotTrue, unmatched{:});
+    set(axesHandle, 'PlotBoxAspectRatio', [numOfPeriods+5, numOfColumns+2, 1]);
 end
 
 end%
+

@@ -69,6 +69,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
         varargout = ifelse(varargin)
         varargout = ellone(varargin)
         varargout = shift(varargin)
+        varargout = spy(varargin)
 
 
         function varargout = plot(varargin)

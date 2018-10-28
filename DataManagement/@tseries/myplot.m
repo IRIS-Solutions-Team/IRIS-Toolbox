@@ -16,7 +16,7 @@ if isempty(parser)
     parser = extend.InputParser('tseries.myplot');
     parser.KeepUnmatched = true;
     parser.addPlotOptions( );
-    parser.addDateOptions( );
+    parser.addDateOptions('tseries');
 end
 parser.parse(varargin{:});
 opt = parser.Options;
@@ -105,7 +105,7 @@ isBar = isequal(plotFunc, @bar) ...
     || isequal(plotFunc, @barcon) ...
     || isequal(plotFunc, @numeric.barcon);
 
-if isequal(opt.XLimMargin, true) || (isequal(opt.XLimMargin, @auto) && isBar)
+if isequal(opt.XLimMargins, true) || (isequal(opt.XLimMargins, @auto) && isBar)
     setappdata(axesHandle, 'IRIS_XLIM_ADJUST', true);
     peer = getappdata(axesHandle, 'graphicsPlotyyPeer');
     if ~isempty(peer)
