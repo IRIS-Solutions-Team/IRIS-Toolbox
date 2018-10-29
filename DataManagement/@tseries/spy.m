@@ -1,10 +1,10 @@
-function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
+function [axesHandle, hPlotTrue, hPlotFalse] = spy(varargin)
 % spy  Visualise tseries observations that pass a test.
 %
 % __Syntax__
 %
-%     [hAx, hTrue, hFalse] = spy(x, ...)
-%     [hAx, hTrue, hFalse] = spy(range, x, ...)
+%     [axesHandle, hTrue, hFalse] = spy(x, ...)
+%     [axesHandle, hTrue, hFalse] = spy(range, x, ...)
 %
 %
 % __Input Arguments__
@@ -18,7 +18,7 @@ function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 %
 % __Output Arguments__
 %
-% * `hAx` [ Axes ] - Handle to the axes created.
+% * `axesHandle` [ Axes ] - Handle to the axes created.
 %
 % * `hTrue` [ Line ] - Handle to the marks plotted for the observations
 % that pass the test.
@@ -59,10 +59,10 @@ function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
 
 if all(ishghandle(varargin{1})) ...
         && strcmpi(get(varargin{1}(1), 'type'), 'axes')
-    hAx = varargin{1}(1);
+    axesHandle = varargin{1}(1);
     varargin(1) = [ ];
 else
-    hAx = gca( );
+    axesHandle = gca( );
 end
 
 if isnumeric(varargin{1})
@@ -91,7 +91,7 @@ if isempty(parser)
     parser.addPlotOptions( );
     parser.addDateOptions('tseries');
 end
-parser.parse(hAx, range, this, varargin{:});
+parser.parse(axesHandle, range, this, varargin{:});
 opt = parser.Options;
 freq = get(this, 'freq');
 unmatched = parser.UnmatchedInCell;
@@ -121,11 +121,11 @@ else
 end
 markerSize = get(gcf( ), 'DefaultLineMarkerSize')*1.5;
 
-holdStatus = ishold(hAx);
-hPlotTrue = plot(hAx, xCoor(x), yCoor(x), ...
+holdStatus = ishold(axesHandle);
+hPlotTrue = plot(axesHandle, xCoor(x), yCoor(x), ...
     'LineStyle', 'None', 'Marker', markerTrue, 'MarkerSize', markerSize);
 hold on
-hPlotFalse = plot(hAx, xCoor(~x), yCoor(~x), ...
+hPlotFalse = plot(axesHandle, xCoor(~x), yCoor(~x), ...
     'LineStyle', 'None', 'Marker', markerFalse, 'MarkerSize', markerSize);
 if ~holdStatus
     hold off
@@ -140,32 +140,35 @@ if ~opt.ShowFalse
     grfun.excludefromlegend(hPlotFalse);
 end
 
-setappdata(hAx, 'IRIS_SERIES', true);
-setappdata(hAx, 'IRIS_FREQ', freq);
-setappdata(hAx, 'IRIS_XLIM_ADJUST', true);
-mydatxtick(hAx, range, time, freq, range, opt);
+setappdata(axesHandle, 'IRIS_SERIES', true);
+setappdata(axesHandle, 'IRIS_FREQ', freq);
+setappdata(axesHandle, 'IRIS_XLIM_ADJUST', true);
+mydatxtick(axesHandle, range, time, freq, range, opt);
 
-set(hAx, 'GridLineStyle', ':');
+set(axesHandle, 'GridLineStyle', ':');
 yLim = [1, size(x, 1)];
 if ~isempty(opt.Names)
-    set( hAx, 'YTick', yLim(1):yLim(end), 'YTickMode', 'Manual', ...
-        'YTickLabel', opt.Names, ...
-        'yTickLabelMode', 'Manual', ...
-        'YLim', [0.5, yLim(end)+0.5], 'YLimMode', 'Manual', ...
-        'PlotBoxAspectRatio', [size(x,2)+1, size(x,1)+1, 1] );
     try
-        set(hAx, 'TickLabelInterpreter', opt.Intepreter);
+        set(axesHandle, 'TickLabelInterpreter', opt.Interpreter);
     end
+    set( axesHandle, ...
+         'YTick', yLim(1):yLim(end), ...
+         'YTickMode', 'Manual', ...
+         'YTickLabel', opt.Names, ...
+         'yTickLabelMode', 'Manual', ...
+         'YLim', [0.5, yLim(end)+0.5], ...
+         'YLimMode', 'Manual', ...
+         'PlotBoxAspectRatio', [size(x,2)+1, size(x,1)+1, 1] );
 else
-    yTick = get(hAx, 'YTick');
+    yTick = get(axesHandle, 'YTick');
     yTick(yTick<1) = [ ];
     yTick(yTick>size(x, 1)) = [ ];
     yTick(yTick~=round(yTick)) = [ ];
-    set(hAx, 'YTick', yTick, 'YTickMode', 'Manual');
+    set(axesHandle, 'YTick', yTick, 'YTickMode', 'Manual');
 end
 
 if opt.Squeeze
-    set(hAx, 'PlotBoxAspectRatio', [size(x, 2)+5, size(x, 1)+2, 1]);
+    set(axesHandle, 'PlotBoxAspectRatio', [size(x, 2)+5, size(x, 1)+2, 1]);
 end
 
 xlabel('');

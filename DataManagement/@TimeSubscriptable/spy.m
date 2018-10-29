@@ -88,7 +88,7 @@ if isempty(parser)
     parser.addParameter('ShowFalse', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Squeeze', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Interpreter', 'none', @(x) ischar(x) || isa(x, string));
-    parser.addParameter({'Names', 'Name'}, { }, @iscellstr);
+    parser.addParameter({'Names', 'Name'}, { }, @(x) ischar(x) || iscellstr(x) || isa(x, string));
     parser.addParameter('Test', @isfinite, @(x) isa(x, 'function_handle'));
     parser.addDateOptions('TimeSubscriptable');
 end
@@ -96,6 +96,9 @@ parser.parse(axesHandle, range, this, varargin{:});
 opt = parser.Options;
 freq = get(this, 'freq');
 unmatched = parser.UnmatchedInCell;
+if ~iscellstr(opt.Names)
+    opt.Names = cellstr(opt.Names);
+end
 
 %--------------------------------------------------------------------------
 
@@ -174,10 +177,17 @@ end
 set(axesHandle, 'GridLineStyle', ':');
 yLim = [1, numOfColumns];
 if ~isempty(opt.Names)
-    set( axesHandle, 'YTick', yLim(1):yLim(end), 'YTickMode', 'Manual', ...
-        'YTickLabel', opt.Names, 'yTickLabelMode', 'Manual', ...
-        'YLim', [0.5, yLim(end)+0.5], 'YLimMode', 'Manual', ...
-        'PlotBoxAspectRatio', [numOfPeriods+1, numOfColumns+1, 1] );
+    try
+        set(axesHandle, 'TickLabelInterpreter', opt.Interpreter);
+    end
+    set( axesHandle, ...
+         'YTick', yLim(1):yLim(end), ...
+         'YTickMode', 'Manual', ...
+         'YTickLabel', opt.Names, ...
+         'yTickLabelMode', 'Manual', ...
+         'YLim', [0.5, yLim(end)+0.5], ...
+         'YLimMode', 'Manual', ...
+         'PlotBoxAspectRatio', [numOfPeriods+1, numOfColumns+1, 1] );
 else
     yTick = get(axesHandle, 'YTick');
     yTick(yTick<1) = [ ];
