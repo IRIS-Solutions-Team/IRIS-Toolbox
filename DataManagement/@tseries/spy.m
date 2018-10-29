@@ -29,6 +29,11 @@ function [axesHandle, hPlotTrue, hPlotFalse] = spy(varargin)
 %
 % __Options__
 %
+% * `'Interpreter='` [ `@auto` | char | string ] - Value assigned to the
+% axes property `TickLabelInterpreter` to interpret the strings entered
+% throught `Names=`; `@uato` means `TickLabelInterpreter` will not be
+% changed.
+%
 % * `'Names='` [ cellstr ] - Names that will be used to annotate individual
 % columns of the input tseries object.
 %
@@ -85,7 +90,7 @@ if isempty(parser)
     parser.addParameter('ShowTrue', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('ShowFalse', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Squeeze', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Interpreter', 'none', @(x) ischar(x) || isa(x, string));
+    parser.addParameter('Interpreter', 'none', @(x) isequal(x, @auto) || ischar(x) || isa(x, string));
     parser.addParameter({'Names', 'Name'}, { }, @iscellstr);
     parser.addParameter('Test', @isfinite, @(x) isa(x, 'function_handle'));
     parser.addPlotOptions( );
@@ -148,17 +153,7 @@ mydatxtick(axesHandle, range, time, freq, range, opt);
 set(axesHandle, 'GridLineStyle', ':');
 yLim = [1, size(x, 1)];
 if ~isempty(opt.Names)
-    try
-        set(axesHandle, 'TickLabelInterpreter', opt.Interpreter);
-    end
-    set( axesHandle, ...
-         'YTick', yLim(1):yLim(end), ...
-         'YTickMode', 'Manual', ...
-         'YTickLabel', opt.Names, ...
-         'yTickLabelMode', 'Manual', ...
-         'YLim', [0.5, yLim(end)+0.5], ...
-         'YLimMode', 'Manual', ...
-         'PlotBoxAspectRatio', [size(x,2)+1, size(x,1)+1, 1] );
+    printRowNames( );
 else
     yTick = get(axesHandle, 'YTick');
     yTick(yTick<1) = [ ];
@@ -176,4 +171,20 @@ if ~isempty(unmatched)
     set(hPlotTrue, unmatched{:});
 end
 
+return
+
+
+    function printRowNames( )
+        try
+            set(axesHandle, 'TickLabelInterpreter', opt.Interpreter);
+        end
+        set( axesHandle, ...
+             'YTick', yLim(1):yLim(end), ...
+             'YTickMode', 'Manual', ...
+             'YTickLabel', opt.Names, ...
+             'yTickLabelMode', 'Manual', ...
+             'YLim', [0.5, yLim(end)+0.5], ...
+             'YLimMode', 'Manual', ...
+             'PlotBoxAspectRatio', [size(x,2)+1, size(x,1)+1, 1] );
+    end%
 end%

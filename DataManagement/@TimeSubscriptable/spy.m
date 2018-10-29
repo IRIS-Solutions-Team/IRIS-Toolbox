@@ -29,6 +29,11 @@ function [axesHandle, hPlotTrue, hPlotFalse] = spy(varargin)
 %
 % __Options__
 %
+% * `'Interpreter='` [ `@auto` | char | string ] - Value assigned to the
+% axes property `TickLabelInterpreter` to interpret the strings entered
+% throught `Names=`; `@uato` means `TickLabelInterpreter` will not be
+% changed.
+%
 % * `'Names='` [ cellstr ] - Names that will be used to annotate individual
 % columns of the input tseries object.
 %
@@ -87,7 +92,7 @@ if isempty(parser)
     parser.addParameter('ShowTrue', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('ShowFalse', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Squeeze', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Interpreter', 'none', @(x) ischar(x) || isa(x, string));
+    parser.addParameter('Interpreter', 'none', @(x) isequal(x, @auto) || ischar(x) || isa(x, string));
     parser.addParameter({'Names', 'Name'}, { }, @(x) ischar(x) || iscellstr(x) || isa(x, string));
     parser.addParameter('Test', @isfinite, @(x) isa(x, 'function_handle'));
     parser.addDateOptions('TimeSubscriptable');
@@ -177,17 +182,7 @@ end
 set(axesHandle, 'GridLineStyle', ':');
 yLim = [1, numOfColumns];
 if ~isempty(opt.Names)
-    try
-        set(axesHandle, 'TickLabelInterpreter', opt.Interpreter);
-    end
-    set( axesHandle, ...
-         'YTick', yLim(1):yLim(end), ...
-         'YTickMode', 'Manual', ...
-         'YTickLabel', opt.Names, ...
-         'yTickLabelMode', 'Manual', ...
-         'YLim', [0.5, yLim(end)+0.5], ...
-         'YLimMode', 'Manual', ...
-         'PlotBoxAspectRatio', [numOfPeriods+1, numOfColumns+1, 1] );
+    printRowNames( );
 else
     yTick = get(axesHandle, 'YTick');
     yTick(yTick<1) = [ ];
@@ -200,5 +195,23 @@ if opt.Squeeze
     set(axesHandle, 'PlotBoxAspectRatio', [numOfPeriods+5, numOfColumns+2, 1]);
 end
 
+return
+
+
+    function printRowNames( )
+        try
+            if ~isequal(opt.Interpreter, @auto)
+                set(axesHandle, 'TickLabelInterpreter', opt.Interpreter);
+            end
+        end
+        set( axesHandle, ...
+             'YTick', yLim(1):yLim(end), ...
+             'YTickMode', 'Manual', ...
+             'YTickLabel', opt.Names, ...
+             'yTickLabelMode', 'Manual', ...
+             'YLim', [0.5, yLim(end)+0.5], ...
+             'YLimMode', 'Manual', ...
+             'PlotBoxAspectRatio', [numOfPeriods+1, numOfColumns+1, 1] );
+    end%
 end%
 
