@@ -9,14 +9,59 @@ function likOpt = prepareLoglik(this, range, domain, tune, varargin)
 
 TYPE = @int8;
 
+persistent parserTimeDomain parserFreqDomain
+if isempty(parserTimeDomain)
+    parserTimeDomain = extend.InputParser('model.prepareLoglik');
+    parserTimeDomain.addParameter('ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
+    parserTimeDomain.addParameter('chkexact', false, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('chkfmse', false, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x));
+    parserTimeDomain.addParameter('fmsecondtol', eps( ), @(x) isnumeric(x) && isscalar(x) && x>0 && x<1);
+    parserTimeDomain.addParameter({'returncont', 'contributions'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('Rolling', false, @(x) isequal(x, false) || isa(x, 'DateWrapper'));
+    parserTimeDomain.addParameter({'Init', 'InitCond'}, 'Steady', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'Asymptotic', 'Stochastic', 'Steady', 'Fixed'}))));
+    parserTimeDomain.addParameter({'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'FixedUnknown', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'}))));
+    parserTimeDomain.addParameter('lastsmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
+    parserTimeDomain.addParameter('outoflik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    parserTimeDomain.addParameter('objdecomp', false, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter({'objfunc', 'objective'}, 'loglik', @(x) ischar(x) && any(strcmpi(x, {'loglik', 'mloglik', '-loglik', 'prederr'})));
+    parserTimeDomain.addParameter({'objrange', 'objectivesample'}, @all, @(x) isnumeric(x) || isequal(x, @all));
+    parserTimeDomain.addParameter('pedindonly', false, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter({'plan', 'Scenario'}, [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x));
+    parserTimeDomain.addParameter('progress', false, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('relative', true, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter({'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || isstruct(x));
+    parserTimeDomain.addParameter('simulate', false, @(x) isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
+    parserTimeDomain.addParameter('symmetric', true, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('tolerance', eps( )^(2/3), @isnumeric);
+    parserTimeDomain.addParameter('tolmse', 0, @(x) (isnumeric(x) && isscalar(x)) || (ischar(x) && strcmpi(x, 'auto')));
+    parserTimeDomain.addParameter('weighting', [ ], @isnumeric);
+    parserTimeDomain.addParameter('meanonly', false, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('returnstd', true, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('returnmse', true, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addDeviationOptions(false);
+end  
+if isempty(parserFreqDomain)
+    parserFreqDomain = extend.InputParser('model.prepareLoglik');
+    parserFreqDomain.addParameter('band', [2, Inf], @(x) isnumeric(x) && length(x)==2);
+    parserFreqDomain.addParameter('exclude', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || islogical(x));
+    parserFreqDomain.addParameter({'objdecomp', 'objcont'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parserFreqDomain.addParameter('outoflik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    parserFreqDomain.addParameter('relative', true, @(x) isequal(x, true) || isequal(x, false));
+    parserFreqDomain.addParameter('zero', true, @(x) isequal(x, true) || isequal(x, false));
+    parserFreqDomain.addDeviationOptions(false);
+end
+
 if strncmpi(domain, 't', 1)
-    % Time domain opt.
-    likOpt = passvalopt('model.kalmanFilter', varargin{:});
+    % Time domain options
+    parserTimeDomain.parse(varargin{:});
+    likOpt = parserTimeDomain.Options;
     likOpt.domain = 't';
     likOpt.minusLogLikFunc = @kalmanFilter;
 elseif strncmpi(domain, 'f', 1)
-    % Freq domain opt.
-    likOpt = passvalopt('model.fdlik', varargin{:});
+    % Freq domain options
+    parserFreqDomain.parse(varargin{:});
+    likOpt = parserFreqDomain.Options;
     likOpt.domain = 'f';
     likOpt.minusLogLikFunc = @myfdlik;
 end
@@ -80,8 +125,8 @@ if likOpt.domain=='t'
     likOpt.StdCorr = varyStdCorr(this, range, tune, likOpt, '--clip', '--presample');
     
     % User-supplied tunes on the mean of shocks.
-    if isfield(likOpt, 'vary')
-        tune = likOpt.vary;
+    if isfield(likOpt, 'TimeVarying')
+        tune = likOpt.TimeVarying;
     end
     if ~isempty(tune) && isstruct(tune)
         % Request shock data.

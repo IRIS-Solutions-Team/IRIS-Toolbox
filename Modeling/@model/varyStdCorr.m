@@ -1,11 +1,11 @@
 function [sxReal, sxImag] = varyStdCorr(this, range, j, opt, varargin)
-% varyStdCorr  Convert the option vary= or tune database to stdcorr vector.
+% varyStdCorr  Convert time-varying std and corr to stdcorr vector
 %
 % Backend IRIS function.
 % No help provided.
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -24,19 +24,20 @@ if isempty(range)
     sxImag = nan(nsx, 0);
     return
 end
-
-d = processOptionVary( );
-
-range = range(1) : range(end);
+range = DateWrapper.getSerial(range);
+startOfRange = range(1);
+endOfRange = range(end);
 if isPresample 
-    % Add one presample period if requested.
-    range = [range(1)-1, range];
+    % Add one presample period if requested
+    startOfRange = startOfRange - 1;
 end
-nPer = length(range);
+numOfPeriods = round(endOfRange - startOfRange + 1);
 
-sxReal = nan(nsx, nPer);
+d = processTimeVaryingOption( );
+
+sxReal = nan(nsx, numOfPeriods);
 if isImag
-    sxImag = nan(nsx, nPer);
+    sxImag = nan(nsx, numOfPeriods);
 end
 if ~isempty(d)
     c = fieldnames(d);
@@ -44,8 +45,8 @@ if ~isempty(d)
     pos = ell.PosStdCorr;
     for i = find(~isnan(pos))
         x = d.(c{i});
-        if isa(x, 'tseries')
-            x = rangedata(x, range);
+        if isa(x, 'TimeSubscriptable')
+            x = getDataFromTo(x, startOfRange, endOfRange);
             x = x(:, 1);
             x = x(:).';
         end
@@ -56,7 +57,7 @@ if ~isempty(d)
     end
 end
  
-% Remove trailing NaNs if requested.
+% Remove trailing NaNs if requested
 if isClip 
     ixSxReal = ~isnan(sxReal);
     if isImag
@@ -73,23 +74,19 @@ end
 return
 
 
-    function d = processOptionVary( )
+    function d = processTimeVaryingOption( )
         d = [ ];
-        if isfield(opt, 'vary') && ~isempty(opt.vary)
-            d = opt.vary;
-        elseif isfield(opt, 'Vary') && ~isempty(opt.Vary)
-            d = opt.Vary;
+        if isfield(opt, 'TimeVarying') && ~isempty(opt.TimeVarying)
+            d = opt.TimeVarying;
         end
         if ~isempty(j)
             if isempty(d)
                 d = j;
             else
-                utils.error( ...
-                    'model:varyStdCorr', ...
-                    'Cannot combine a conditioning database and the option Vary=.' ...
-                );
+                utils.error( 'model:varyStdCorr', ...
+                             'Cannot combine a conditioning database and the option TimeVarying=' );
             end
         end
-    end
-end
-        
+    end%
+end%
+

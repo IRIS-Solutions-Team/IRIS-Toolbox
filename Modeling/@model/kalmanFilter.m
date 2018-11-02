@@ -39,18 +39,22 @@ end
 s = struct( );
 s.EIGEN_TOLERANCE = this.Tolerance.Eigen;
 s.DIFFUSE_SCALE = 1e8;
-s.IsSimulate = ~isequal(opt.simulate, false) ...
-    && strcmpi(opt.simulate.Method, 'selective') ...
-    && ~isequal(opt.simulate.NonlinWindow, 0) && any(this.Equation.IxHash);
 s.NAhead = opt.ahead;
 s.IsObjOnly = nargout<=1;
 s.ObjFunPenalty = this.OBJ_FUNC_PENALTY;
+
+s.IsSimulate = false;
+if ~isequal(opt.simulate, false)
+    s.IsSimulate = strcmpi(opt.simulate.Method, 'selective') ...
+                   && ~isequal(opt.simulate.NonlinWindow, 0) ...
+                   && any(this.Equation.IxHash);
+end
 
 % Out-of-lik params cannot be used with ~opt.DTrends.
 nPOut = length(opt.outoflik);
 
 % Extended number of periods including pre-sample.
-nPer = size(inp, 2) + 1;
+numOfPeriods = size(inp, 2) + 1;
 
 % Struct with currently processed information. Initialise the invariant
 % fields.
@@ -87,26 +91,21 @@ end
 % Pre-allocate the non-hdata output arguments.
 nObj = 1;
 if opt.objdecomp
-    nObj = nPer;
+    nObj = numOfPeriods;
 end
-obj = nan(nObj, nLoop, opt.precision);
+obj = nan(nObj, nLoop);
 
 if ~s.IsObjOnly
     % Regular (non-hdata) output arguments.
     regOutp = struct( );
-    regOutp.F = nan(ny, ny, nPer, nLoop, opt.precision);
-    regOutp.Pe = nan(ny, nPer, s.nPred, opt.precision);
-    regOutp.V = nan(1, nLoop, opt.precision);
-    regOutp.Delta = nan(nPOut, nLoop, opt.precision);
-    regOutp.PDelta = nan(nPOut, nPOut, nLoop, opt.precision);
+    regOutp.F = nan(ny, ny, numOfPeriods, nLoop);
+    regOutp.Pe = nan(ny, numOfPeriods, s.nPred);
+    regOutp.V = nan(1, nLoop);
+    regOutp.Delta = nan(nPOut, nLoop);
+    regOutp.PDelta = nan(nPOut, nPOut, nLoop);
     regOutp.SampleCov = nan(ne, ne, nLoop);
     regOutp.NLoop = nLoop;
 end
-
-% Measurement and transition shocks within all shocks.
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-s.IxEm = this.Quantity.Type(ixe)==TYPE(31);
-s.IxEt = this.Quantity.Type(ixe)==TYPE(32);
 
 % Prepare struct and options for non-linear simulations (prediction
 % step).
@@ -121,7 +120,7 @@ if ~s.IsObjOnly && opt.progress
     progress = ProgressBar('IRIS Model.kalmanFilter progress');
 end
 
-ixSolved = true(1, nv);
+inxOfSolved = true(1, nv);
 ixValidFactor = true(1, nLoop);
 
 for iLoop = 1 : nLoop
@@ -152,7 +151,7 @@ for iLoop = 1 : nLoop
     % __Next Model Solution__
     v = min(iLoop, nv);
     if iLoop<=nv
-        [T, R, k, s.Z, s.H, s.d, s.U, ~, Zb] = sspaceMatrices(this, v);
+        [T, R, k, s.Z, s.H, s.d, s.U, ~, Zb, ~, s.InxET, s.InxEM] = sspaceMatrices(this, v);
         if nz>0
             % Transition variables marked for measurement.
             s.Z = Zb*s.U;
@@ -182,7 +181,7 @@ for iLoop = 1 : nLoop
         % Combine currently assigned StdCorr with user-supplied
         % time-varying StdCorr including one presample period used to
         % initialize the filter.
-        sx = combineStdCorr(this.Variant, v, opt.StdCorr, nPer);
+        sx = combineStdCorr(this.Variant, v, opt.StdCorr, numOfPeriods);
         
         % Create covariance matrix from stdcorr vector.
         s.Omg = covfun.stdcorr2cov(sx, ne);
@@ -197,8 +196,8 @@ for iLoop = 1 : nLoop
     
     % Continue immediately if solution is not available; report NaN solutions
     % post mortem.
-    ixSolved(iLoop) = all(~isnan(T(:)));
-    if ~ixSolved(iLoop)
+    inxOfSolved(iLoop) = all(~isnan(T(:)));
+    if ~inxOfSolved(iLoop)
         continue
     end
 
@@ -209,7 +208,7 @@ for iLoop = 1 : nLoop
         [s.D, s.X] = evalDtrends(this, opt.outoflik, s.g, iLoop);
     else
         s.D = [ ];
-        s.X = zeros(ny, 0, nPer);
+        s.X = zeros(ny, 0, numOfPeriods);
     end
     % Subtract fixed deterministic trends from measurement variables
     if ~isempty(s.D)
@@ -364,23 +363,21 @@ for iLoop = 1 : nLoop
     if opt.progress
         update(progress, iLoop/nLoop);
     end
-end % for iLoop...
+end 
 
-if ~all(ixSolved)
-    throw( ...
-        exception.Base('Model:SolutionNotAvailable', 'warning'), ...
-        exception.Base.alt2str(~ixSolved) ...
-        ); %#ok<GTARG>
+if ~all(inxOfSolved)
+    throw( exception.Base('Model:SolutionNotAvailable', 'warning'), ...
+           exception.Base.alt2str(~inxOfSolved) ); %#ok<GTARG>
 end
 
 if any(~ixValidFactor)
-    throw( ...
-        exception.Base('Model:ZeroVarianceFactor', 'warning'), ...
-        exception.Base.alt2str(~ixValidFactor) ...
-        ); %#ok<GTARG>        
+    throw( exception.Base('Model:ZeroVarianceFactor', 'warning'), ...
+           exception.Base.alt2str(~ixValidFactor) ); %#ok<GTARG>        
 end
 
 return
+
+
 
 
     function requestOutp( )
@@ -401,7 +398,7 @@ return
         s.retSmooth = s.retSmoothMean || s.retSmoothStd || s.retSmoothMse;
         s.retCont = s.retPredCont || s.retFilterCont || s.retSmoothCont;
         s.storePredict = s.NAhead>1 || s.retPred || s.retFilter || s.retSmooth;
-    end
+    end%
 
 
 
@@ -428,7 +425,7 @@ return
             ff = permute(s.f0, [1, 3, 4, 2]);
             xx = [ff;bb];
             % Shock predictions are always zeros.
-            ee = zeros(ne, nPer, s.NAhead);
+            ee = zeros(ne, numOfPeriods, s.NAhead);
             % Set predictions for the pre-sample period to `NaN`.
             xx(:, 1, :) = NaN;
             ee(:, 1, :) = NaN;
@@ -473,10 +470,10 @@ return
             xx(:, 1, :) = NaN;
             ee = s.ec0;
             ee = permute(ee, [1, 3, 2, 4]);
-            gg = [nan(ng, 1), zeros(ng, nPer-1)];
+            gg = [nan(ng, 1), zeros(ng, numOfPeriods-1)];
             hdataassign(hData.predcont, ':', { yy, xx, ee, [ ], gg } );
         end
-    end 
+    end%
 
 
 
@@ -512,7 +509,7 @@ return
             xx = permute(xx, [1, 3, 2, 4]);
             ee = s.ec1;
             ee = permute(ee, [1, 3, 2, 4]);
-            gg = [nan(ng, 1), zeros(ng, nPer-1)];
+            gg = [nan(ng, 1), zeros(ng, numOfPeriods-1)];
             hdataassign(hData.filtercont, ':', { yy, xx, ee, [ ], gg } );
         end
         
@@ -536,7 +533,7 @@ return
             %s.Pb1(:, :, 1) = NaN;
             hData.Mse1.Data(:, :, :, iLoop) = s.Pb1*s.V;
         end
-    end 
+    end%
 
 
 
@@ -601,7 +598,7 @@ return
             ee = permute(ee, [1, 3, 2, 4]);
             size3 = size(xx, 3);
             size4 = size(xx, 4);
-            gg = [nan(ng, 1, size3, size4), zeros(ng, nPer-1, size3, size4)];
+            gg = [nan(ng, 1, size3, size4), zeros(ng, numOfPeriods-1, size3, size4)];
             hdataassign(hData.C2, ':', { yy, xx, ee, [ ], gg } );
         end
         
@@ -613,7 +610,7 @@ return
             s.Pb2(:, :, 1:s.lastSmooth-1) = NaN;
             hData.Mse2.Data(:, :, :, iLoop) = s.Pb2*s.V;
         end
-    end
+    end%
 
 
 
@@ -635,7 +632,7 @@ return
         displayMode = 'Silent';
         sn = prepareSimulate1(this, sn, opt.simulate, displayMode);
     end%
-end
+end%
 
 
 
@@ -661,11 +658,11 @@ function S = goAhead(S)
         f0 = cat(3, f0, nan([size(f0), S.NAhead-1]));
     end
 
-    nPer = size(S.y1, 2);
+    numOfPeriods = size(S.y1, 2);
     bsxfunKa = size(S.ka, 2)==1;
     bsxfunD = size(S.d, 2)==1;
-    for k = 2 : min(S.NAhead, nPer-1)
-        t = 1+k : nPer;
+    for k = 2 : min(S.NAhead, numOfPeriods-1)
+        t = 1+k : numOfPeriods;
         repeat = ones(1, numel(t));
         a0(:, t, k) = S.Ta*a0(:, t-1, k-1);
         if ~isempty(S.ka)
@@ -706,8 +703,7 @@ function S = goAhead(S)
     if S.retPred
         S.f0 = ipermute(f0, [1, 3, 4, 2]);
     end
-
-end 
+end%
 
 
 
@@ -715,152 +711,152 @@ end
 function S = getPredXfMean(S)
 % getPredXfMean  Point prediction step for fwl transition variables. The
 % MSE matrices are computed in `xxSmoothMse` only when needed.
-nf = size(S.Tf, 1);
-nPer = size(S.y1, 2);
+    nf = size(S.Tf, 1);
+    numOfPeriods = size(S.y1, 2);
 
-% Pre-allocate state vectors.
-if nf==0
-    return
-end
-
-for t = 2 : nPer
-    % Prediction step.
-    jy1 = S.yindex(:, t-1);
-    S.f0(:, 1, t) = S.Tf*(S.a0(:, 1, t-1) + S.K1(:, jy1, t-1)*S.pe(jy1, 1, t-1, 1));
-    if ~isempty(S.kf)
-        S.f0(:, 1, t) = S.f0(:, 1, t) + S.kf(:, min(t, end));
+    % Pre-allocate state vectors.
+    if nf==0
+        return
     end
-end
-end
+
+    for t = 2 : numOfPeriods
+        % Prediction step.
+        jy1 = S.yindex(:, t-1);
+        S.f0(:, 1, t) = S.Tf*(S.a0(:, 1, t-1) + S.K1(:, jy1, t-1)*S.pe(jy1, 1, t-1, 1));
+        if ~isempty(S.kf)
+            S.f0(:, 1, t) = S.f0(:, 1, t) + S.kf(:, min(t, end));
+        end
+    end
+end%
 
 
 
 
 function S = getFilterMean(S)
-nb = size(S.Ta, 1);
-nf = size(S.Tf, 1);
-ne = size(S.Ra, 2);
-nPer = size(S.y1, 2);
-yInx = S.yindex;
-lastObs = S.LastObs;
+    nb = size(S.Ta, 1);
+    nf = size(S.Tf, 1);
+    ne = size(S.Ra, 2);
+    numOfPeriods = size(S.y1, 2);
+    yInx = S.yindex;
+    lastObs = S.LastObs;
 
-% Pre-allocation. Re-use first page of prediction data. Prediction data
-% can have multiple pages if `ahead`>1.
-S.b1 = nan(nb, nPer);
-S.f1 = nan(nf, nPer);
-S.e1 = nan(ne, nPer);
-% Note that `S.y1` already exists.
+    % Pre-allocation. Re-use first page of prediction data. Prediction data
+    % can have multiple pages if `ahead`>1.
+    S.b1 = nan(nb, numOfPeriods);
+    S.f1 = nan(nf, numOfPeriods);
+    S.e1 = nan(ne, numOfPeriods);
+    % Note that `S.y1` already exists.
 
-S.e1(:, 2:end) = 0;
-if lastObs<nPer
-    S.b1(:, lastObs+1:end) = S.U*permute(S.a0(:, 1, lastObs+1:end, 1), [1, 3, 4, 2]);
-    S.f1(:, lastObs+1:end) = S.f0(:, 1, lastObs+1:end, 1);
-    S.y1(:, lastObs+1:end) = ipermute(S.y0(:, 1, lastObs+1:end, 1), [1, 3, 4, 2]);
-end
-
-for t = lastObs : -1 : 2
-    j = yInx(:, t);
-    d = [ ];
-    if ~isempty(S.d)
-        d = S.d(:, min(t, end));
+    S.e1(:, 2:end) = 0;
+    if lastObs<numOfPeriods
+        S.b1(:, lastObs+1:end) = S.U*permute(S.a0(:, 1, lastObs+1:end, 1), [1, 3, 4, 2]);
+        S.f1(:, lastObs+1:end) = S.f0(:, 1, lastObs+1:end, 1);
+        S.y1(:, lastObs+1:end) = ipermute(S.y0(:, 1, lastObs+1:end, 1), [1, 3, 4, 2]);
     end
-    [y1, f1, b1, e1] = ...
-        kalman.oneStepBackMean(S, t, S.pe(:, 1, t, 1), S.a0(:, 1, t, 1), ...
-        S.f0(:, 1, t, 1), S.ydelta(:, 1, t), d, 0);    
-    S.y1(~j, t) = y1(~j, 1);
-    if nf>0
-        S.f1(:, t) = f1;
+
+    for t = lastObs : -1 : 2
+        j = yInx(:, t);
+        d = [ ];
+        if ~isempty(S.d)
+            d = S.d(:, min(t, end));
+        end
+        [y1, f1, b1, e1] = ...
+            kalman.oneStepBackMean(S, t, S.pe(:, 1, t, 1), S.a0(:, 1, t, 1), ...
+            S.f0(:, 1, t, 1), S.ydelta(:, 1, t), d, 0);    
+        S.y1(~j, t) = y1(~j, 1);
+        if nf>0
+            S.f1(:, t) = f1;
+        end
+        S.b1(:, t) = b1;
+        S.e1(:, t) = e1;
     end
-    S.b1(:, t) = b1;
-    S.e1(:, t) = e1;
-end
-end
+end%
 
 
 
 
 function S = getFilterMse(S)
-% getFilterMse  MSE matrices for updating step.
-ny = size(S.Z, 1);
-nf = size(S.Tf, 1);
-nb = size(S.Ta, 1);
-ng = size(S.g, 1);
-nPer = size(S.y1, 2);
-lastObs = S.LastObs;
+    % getFilterMse  MSE matrices for updating step.
+    ny = size(S.Z, 1);
+    nf = size(S.Tf, 1);
+    nb = size(S.Ta, 1);
+    ng = size(S.g, 1);
+    numOfPeriods = size(S.y1, 2);
+    lastObs = S.LastObs;
 
-% Pre-allocation.
-if S.retFilterMse
-    S.Pb1 = nan(nb, nb, nPer);
-end
-S.Db1 = nan(nb, nPer); % Diagonal of Pb2.
-S.Df1 = nan(nf, nPer); % Diagonal of Pf2.
-S.Dy1 = nan(ny, nPer); % Diagonal of Py2.
-S.Dg1 = [nan(ng, 1), zeros(ng, nPer-1)];
-
-if lastObs<nPer
+    % Pre-allocation.
     if S.retFilterMse
-        S.Pb1(:, :, lastObs+1:nPer) = S.Pb0(:, :, lastObs+1:nPer);
+        S.Pb1 = nan(nb, nb, numOfPeriods);
     end
-    S.Dy1(:, lastObs+1:nPer) = S.Dy0(:, lastObs+1:nPer);
-    S.Df1(:, lastObs+1:nPer) = S.Df0(:, lastObs+1:nPer);
-    S.Db1(:, lastObs+1:nPer) = S.Db0(:, lastObs+1:nPer);
-end
+    S.Db1 = nan(nb, numOfPeriods); % Diagonal of Pb2.
+    S.Df1 = nan(nf, numOfPeriods); % Diagonal of Pf2.
+    S.Dy1 = nan(ny, numOfPeriods); % Diagonal of Py2.
+    S.Dg1 = [nan(ng, 1), zeros(ng, numOfPeriods-1)];
 
-for t = lastObs : -1 : 2
-    [Pb1, Dy1, Df1, Db1] = oneStepBackMse(S, t, 0);
-    if S.retFilterMse
-        S.Pb1(:, :, t) = Pb1;
+    if lastObs<numOfPeriods
+        if S.retFilterMse
+            S.Pb1(:, :, lastObs+1:numOfPeriods) = S.Pb0(:, :, lastObs+1:numOfPeriods);
+        end
+        S.Dy1(:, lastObs+1:numOfPeriods) = S.Dy0(:, lastObs+1:numOfPeriods);
+        S.Df1(:, lastObs+1:numOfPeriods) = S.Df0(:, lastObs+1:numOfPeriods);
+        S.Db1(:, lastObs+1:numOfPeriods) = S.Db0(:, lastObs+1:numOfPeriods);
     end
-    S.Dy1(:, t) = Dy1;
-    if nf>0 && t>1
-        S.Df1(:, t) = Df1;
+
+    for t = lastObs : -1 : 2
+        [Pb1, Dy1, Df1, Db1] = oneStepBackMse(S, t, 0);
+        if S.retFilterMse
+            S.Pb1(:, :, t) = Pb1;
+        end
+        S.Dy1(:, t) = Dy1;
+        if nf>0 && t>1
+            S.Df1(:, t) = Df1;
+        end
+        S.Db1(:, t) = Db1;
     end
-    S.Db1(:, t) = Db1;
-end
-end
+end%
 
 
 
 
 function S = getSmoothMse(S)
-% getSmoothMse  Smoother for MSE matrices of all variables.
-ny = size(S.Z, 1);
-nf = size(S.Tf, 1);
-nb = size(S.Ta, 1);
-ng = size(S.g, 1);
-nPer = size(S.y1, 2);
-lastSmooth = S.lastSmooth;
-lastObs = S.LastObs;
+    % getSmoothMse  Smoother for MSE matrices of all variables.
+    ny = size(S.Z, 1);
+    nf = size(S.Tf, 1);
+    nb = size(S.Ta, 1);
+    ng = size(S.g, 1);
+    numOfPeriods = size(S.y1, 2);
+    lastSmooth = S.lastSmooth;
+    lastObs = S.LastObs;
 
-% Pre-allocation.
-if S.retSmoothMse
-    S.Pb2 = nan(nb, nb, nPer);
-end
-S.Db2 = nan(nb, nPer); % Diagonal of Pb2.
-S.Df2 = nan(nf, nPer); % Diagonal of Pf2.
-S.Dy2 = nan(ny, nPer); % Diagonal of Py2.
-S.Dg2 = [nan(ng, 1), zeros(ng, nPer-1)];
-
-if lastObs<nPer
-    S.Pb2(:, :, lastObs+1:nPer) = S.Pb0(:, :, lastObs+1:nPer);
-    S.Dy2(:, lastObs+1:nPer) = S.Dy0(:, lastObs+1:nPer);
-    S.Df2(:, lastObs+1:nPer) = S.Df0(:, lastObs+1:nPer);
-    S.Db2(:, lastObs+1:nPer) = S.Db0(:, lastObs+1:nPer);
-end
-
-N = 0;
-for t = lastObs : -1 : lastSmooth
-    [Pb2, Dy2, Df2, Db2, N] = oneStepBackMse(S, t, N);
+    % Pre-allocation.
     if S.retSmoothMse
-        S.Pb2(:, :, t) = Pb2;
+        S.Pb2 = nan(nb, nb, numOfPeriods);
     end
-    S.Dy2(:, t) = Dy2;
-    if nf>0 && t>lastSmooth
-        S.Df2(:, t) = Df2;
+    S.Db2 = nan(nb, numOfPeriods); % Diagonal of Pb2.
+    S.Df2 = nan(nf, numOfPeriods); % Diagonal of Pf2.
+    S.Dy2 = nan(ny, numOfPeriods); % Diagonal of Py2.
+    S.Dg2 = [nan(ng, 1), zeros(ng, numOfPeriods-1)];
+
+    if lastObs<numOfPeriods
+        S.Pb2(:, :, lastObs+1:numOfPeriods) = S.Pb0(:, :, lastObs+1:numOfPeriods);
+        S.Dy2(:, lastObs+1:numOfPeriods) = S.Dy0(:, lastObs+1:numOfPeriods);
+        S.Df2(:, lastObs+1:numOfPeriods) = S.Df0(:, lastObs+1:numOfPeriods);
+        S.Db2(:, lastObs+1:numOfPeriods) = S.Db0(:, lastObs+1:numOfPeriods);
     end
-    S.Db2(:, t) = Db2;
-end
-end 
+
+    N = 0;
+    for t = lastObs : -1 : lastSmooth
+        [Pb2, Dy2, Df2, Db2, N] = oneStepBackMse(S, t, N);
+        if S.retSmoothMse
+            S.Pb2(:, :, t) = Pb2;
+        end
+        S.Dy2(:, t) = Dy2;
+        if nf>0 && t>lastSmooth
+            S.Df2(:, t) = Df2;
+        end
+        S.Db2(:, t) = Db2;
+    end
+end%
 
 
 
@@ -870,14 +866,14 @@ function S = getSmoothMean(S)
     nb = size(S.Ta, 1);
     nf = size(S.Tf, 1);
     ne = size(S.Ra, 2);
-    nPer = size(S.y1, 2);
+    numOfPeriods = size(S.y1, 2);
     lastObs = S.LastObs;
     lastSmooth = S.lastSmooth;
     % Pre-allocation. Re-use first page of prediction data. Prediction data
     % can have multiple pages if ahead>1.
     S.b2 = S.U*permute(S.a0(:, 1, :, 1), [1, 3, 4, 2]);
     S.f2 = permute(S.f0(:, 1, :, 1), [1, 3, 4, 2]);
-    S.e2 = zeros(ne, nPer);
+    S.e2 = zeros(ne, numOfPeriods);
     S.y2 = S.y1(:, :, 1);
     % No need to run the smoother beyond last observation.
     S.y2(:, lastObs+1:end) = permute(S.y0(:, 1, lastObs+1:end, 1), [1, 3, 4, 2]);
@@ -898,7 +894,9 @@ function S = getSmoothMean(S)
         S.b2(:, t) = b2;
         S.e2(:, t) = e2;
     end
-end 
+end%
+
+
 
 
 function [D, Ka, Kf] = addShockTunes(s, R,  opt)
@@ -907,15 +905,15 @@ function [D, Ka, Kf] = addShockTunes(s, R,  opt)
     ny = size(s.Z, 1);
     nf = size(s.Tf, 1);
     nb = size(s.Ta, 1);
-    nPer = size(s.y1, 2);
+    numOfPeriods = size(s.y1, 2);
     if opt.Deviation
-        D = zeros(ny, nPer);
-        Ka = zeros(nb, nPer);
-        Kf = zeros(nf, nPer);
+        D = zeros(ny, numOfPeriods);
+        Ka = zeros(nb, numOfPeriods);
+        Kf = zeros(nf, numOfPeriods);
     else
-        D = repmat(s.d, 1, nPer);
-        Ka = repmat(s.ka, 1, nPer);
-        Kf = repmat(s.kf, 1, nPer);
+        D = repmat(s.d, 1, numOfPeriods);
+        Ka = repmat(s.ka, 1, numOfPeriods);
+        Kf = repmat(s.kf, 1, numOfPeriods);
     end
     Rf = R(1:nf, :);
     Ra = R(nf+1:end, :);
@@ -930,113 +928,118 @@ function [D, Ka, Kf] = addShockTunes(s, R,  opt)
 end%
 
 
+
+
 function s = convertOmg2SaSy(s, sx)
-% Convert the structural covariance matrix `Omg` to reduced-form
-% covariance matrices `Sa` and `Sy`. Detect `Inf` std deviations and remove
-% the corresponding observations.
-ny = size(s.Z, 1);
-nf = size(s.Tf, 1);
-nb = size(s.Ta, 1);
-ne = size(s.Ra, 2);
-nPer = size(s.y1, 2);
-lastOmg = size(s.Omg, 3);
-ixet = s.IxEt;
-ixem = s.IxEm;
+    % Convert the structural covariance matrix `Omg` to reduced-form
+    % covariance matrices `Sa` and `Sy`. Detect `Inf` std deviations and remove
+    % the corresponding observations.
+    ny = size(s.Z, 1);
+    nf = size(s.Tf, 1);
+    nb = size(s.Ta, 1);
+    ne = size(s.Ra, 2);
+    numOfPeriods = size(s.y1, 2);
+    lastOmg = size(s.Omg, 3);
+    inxET = s.InxET;
+    inxEM = s.InxEM;
 
-% Periods where Omg(t) is the same as Omg(t-1).
-omgEqual = [false, all(sx(:, 1:end-1)==sx(:, 2:end), 1)];
+    % Periods where Omg(t) is the same as Omg(t-1).
+    omgEqual = [false, all(sx(:, 1:end-1)==sx(:, 2:end), 1)];
 
-% Cut off forward expansion.
-Ra = s.Ra(:, 1:ne);
-Rf = s.Rf(:, 1:ne);
-Ra = Ra(:, ixet);
-Rf = Rf(:, ixet);
+    % Cut off forward expansion.
+    Ra = s.Ra(:, 1:ne);
+    Rf = s.Rf(:, 1:ne);
+    Ra = Ra(:, inxET);
+    Rf = Rf(:, inxET);
 
-H = s.H(:, ixem);
-Ht = s.H(:, ixem).';
+    H = s.H(:, inxEM);
+    Ht = s.H(:, inxEM).';
 
-s.Sa = nan(nb, nb, lastOmg);
-s.Sf = nan(nf, nf, lastOmg);
-s.Sfa = nan(nf, nb, lastOmg);
-s.Sy = nan(ny, ny, lastOmg);
-s.syinf = false(ny, lastOmg);
+    s.Sa = nan(nb, nb, lastOmg);
+    s.Sf = nan(nf, nf, lastOmg);
+    s.Sfa = nan(nf, nb, lastOmg);
+    s.Sy = nan(ny, ny, lastOmg);
+    s.syinf = false(ny, lastOmg);
 
-for t = 1 : lastOmg
-    % If Omg(t) is the same as Omg(t-1), do not compute anything and
-    % only copy the previous results.
-    if omgEqual(t)
-        s.Sa(:, :, t) = s.Sa(:, :, t-1);
-        s.Sf(:, :, t) = s.Sf(:, :, t-1);
-        s.Sfa(:, :, t) = s.Sfa(:, :, t-1);
-        s.Sy(:, :, t) = s.Sy(:, :, t-1);
-        s.syinf(:, t) = s.syinf(:, t-1);
-        continue
+    for t = 1 : lastOmg
+        % If Omg(t) is the same as Omg(t-1), do not compute anything and
+        % only copy the previous results.
+        if omgEqual(t)
+            s.Sa(:, :, t) = s.Sa(:, :, t-1);
+            s.Sf(:, :, t) = s.Sf(:, :, t-1);
+            s.Sfa(:, :, t) = s.Sfa(:, :, t-1);
+            s.Sy(:, :, t) = s.Sy(:, :, t-1);
+            s.syinf(:, t) = s.syinf(:, t-1);
+            continue
+        end
+        Omg = s.Omg(:, :, t);
+        OmgT = Omg(inxET, inxET);
+        OmgM = Omg(inxEM, inxEM);
+        s.Sa(:, :, t) = Ra*OmgT*Ra.';
+        s.Sf(:, :, t) = Rf*OmgT*Rf.';
+        s.Sfa(:, :, t) = Rf*OmgT*Ra.';
+        omgMInf = isinf(diag(OmgM));
+        if ~any(omgMInf)
+            % No `Inf` std devs.
+            s.Sy(:, :, t) = H*OmgM*Ht;
+        else
+            % Some std devs are `Inf`, we will remove the corresponding observations.
+            s.Sy(:, :, t) = ...
+                H(:, ~omgMInf)*OmgM(~omgMInf, ~omgMInf)*Ht(~omgMInf, :);
+            s.syinf(:, t) = diag(H(:, omgMInf)*Ht(omgMInf, :)) ~= 0;
+        end
     end
-    Omg = s.Omg(:, :, t);
-    OmgT = Omg(ixet, ixet);
-    OmgM = Omg(ixem, ixem);
-    s.Sa(:, :, t) = Ra*OmgT*Ra.';
-    s.Sf(:, :, t) = Rf*OmgT*Rf.';
-    s.Sfa(:, :, t) = Rf*OmgT*Ra.';
-    omgMInf = isinf(diag(OmgM));
-    if ~any(omgMInf)
-        % No `Inf` std devs.
-        s.Sy(:, :, t) = H*OmgM*Ht;
-    else
-        % Some std devs are `Inf`, we will remove the corresponding observations.
-        s.Sy(:, :, t) = ...
-            H(:, ~omgMInf)*OmgM(~omgMInf, ~omgMInf)*Ht(~omgMInf, :);
-        s.syinf(:, t) = diag(H(:, omgMInf)*Ht(omgMInf, :)) ~= 0;
+
+    % Expand `syinf` in 2nd dimension to match the number of periods. This
+    % is because we use `syinf` to remove observations from `y1` on the whole
+    % filter range.
+    if lastOmg<numOfPeriods
+        s.syinf(:, end+1:numOfPeriods) = s.syinf(:, ones(1, numOfPeriods-lastOmg));
     end
-end
-
-% Expand `syinf` in 2nd dimension to match the number of periods. This
-% is because we use `syinf` to remove observations from `y1` on the whole
-% filter range.
-if lastOmg<nPer
-    s.syinf(:, end+1:nPer) = s.syinf(:, ones(1, nPer-lastOmg));
-end
-end
+end%
 
 
+%
+% Local Functions
+%
 
 
 function [Pb, Dy, Df, Db, N] = oneStepBackMse(S, T, N)
-% xxOneStepBackMse  One-step backward smoothing for MSE matrices.
-ny = size(S.Z, 1);
-nf = size(S.Tf, 1);
-lastSmooth = S.lastSmooth;
-j = S.yindex(:, T);
-U = S.U;
+    % xxOneStepBackMse  One-step backward smoothing for MSE matrices.
+    ny = size(S.Z, 1);
+    nf = size(S.Tf, 1);
+    lastSmooth = S.lastSmooth;
+    j = S.yindex(:, T);
+    U = S.U;
 
-if isempty(N) || all(N(:)==0)
-    N = (S.Z(j, :).'/S.F(j, j, T))*S.Z(j, :);
-else
-    N = (S.Z(j, :).'/S.F(j, j, T))*S.Z(j, :) + S.L(:, :, T).'*N*S.L(:, :, T);
-end
+    if isempty(N) || all(N(:)==0)
+        N = (S.Z(j, :).'/S.F(j, j, T))*S.Z(j, :);
+    else
+        N = (S.Z(j, :).'/S.F(j, j, T))*S.Z(j, :) + S.L(:, :, T).'*N*S.L(:, :, T);
+    end
 
-Pa0NPa0 = S.Pa0(:, :, T)*N*S.Pa0(:, :, T);
-Pa = S.Pa0(:, :, T) - Pa0NPa0;
-Pa = (Pa + Pa')/2;
-Pb = kalman.pa2pb(U, Pa);
-Db = diag(Pb);
+    Pa0NPa0 = S.Pa0(:, :, T)*N*S.Pa0(:, :, T);
+    Pa = S.Pa0(:, :, T) - Pa0NPa0;
+    Pa = (Pa + Pa')/2;
+    Pb = kalman.pa2pb(U, Pa);
+    Db = diag(Pb);
 
-if nf>0 && T>lastSmooth
-    % Fwl transition variables.
-    Pf = S.Pf0(:, :, T) - S.Pfa0(:, :, T)*N*S.Pfa0(:, :, T).';
-    % Pfa2 = s.Pfa0(:, :, t) - Pfa0N*s.Pa0(:, :, t);
-    Pf = (Pf + Pf')/2;
-    Df = diag(Pf);
-else
-    Df = nan(nf, 1);
-end
+    if nf>0 && T>lastSmooth
+        % Fwl transition variables.
+        Pf = S.Pf0(:, :, T) - S.Pfa0(:, :, T)*N*S.Pfa0(:, :, T).';
+        % Pfa2 = s.Pfa0(:, :, t) - Pfa0N*s.Pa0(:, :, t);
+        Pf = (Pf + Pf')/2;
+        Df = diag(Pf);
+    else
+        Df = nan(nf, 1);
+    end
 
-if ny>0
-    % Measurement variables.
-    Py = S.F(:, :, T) - S.Z*Pa0NPa0*S.Z.';
-    Py = (Py + Py')/2;
-    Py(j, :) = 0;
-    Py(:, j) = 0;
-    Dy = diag(Py);
-end
-end
+    if ny>0
+        % Measurement variables.
+        Py = S.F(:, :, T) - S.Z*Pa0NPa0*S.Z.';
+        Py = (Py + Py')/2;
+        Py(j, :) = 0;
+        Py(:, j) = 0;
+        Dy = diag(Py);
+    end
+end%

@@ -1,4 +1,4 @@
-function [T, R, K, Z, H, D, U, Omega, Zb, Y] = ...
+function [T, R, K, Z, H, D, U, Omega, Zb, Y, inxTE, inxME] = ...
         sspaceMatrices(this, variantsRequested, keepExpansion, triangular)
 % sspaceMatrices  Return state space matrices for given parameter variant
 %
@@ -7,6 +7,8 @@ function [T, R, K, Z, H, D, U, Omega, Zb, Y] = ...
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
+
+TYPE = @int8;
 
 if nargin<3
     keepExpansion = true;
@@ -76,4 +78,10 @@ if returnOmega
     Omega = getIthOmega(this, variantsRequested);
 end
 
-end
+% Make sure measurement errors have zeros in transition equations and vice
+% versa
+ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+inxTE = this.Quantity.Type(ixe)==TYPE(31);
+inxME = this.Quantity.Type(ixe)==TYPE(32);
+
+end%

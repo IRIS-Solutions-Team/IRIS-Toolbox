@@ -63,9 +63,9 @@ obj = nan(nObj, nLoop);
 
 if ~s.isObjOnly
     regOutp = struct( );
-    regOutp.V = nan(1, nLoop, likOpt.precision);
-    regOutp.Delta = nan(s.noutoflik, nLoop, likOpt.precision);
-    regOutp.PDelta = nan(s.noutoflik, s.noutoflik, nLoop, likOpt.precision);
+    regOutp.V = nan(1, nLoop);
+    regOutp.Delta = nan(s.noutoflik, nLoop);
+    regOutp.PDelta = nan(s.noutoflik, s.noutoflik);
 end
 
 for iLoop = 1 : nLoop

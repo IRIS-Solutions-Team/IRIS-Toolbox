@@ -14,10 +14,6 @@ deviation_dtrends = {
     'DTrends, DTrend', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
     };
 
-precision = {
-    'precision', 'double', @(x) ischar(x) && any(strcmpi(x, {'double', 'single'}))
-    };
-
 matrixFormat = {
     'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat
     };
@@ -93,18 +89,6 @@ def.loglik = [
     }
 ];
 
-def.fdlik = [
-    deviation_dtrends
-    {
-    'band', [2, Inf], @(x) isnumeric(x) && length(x)==2
-    'exclude', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x)
-    'objdecomp, objcont', false, @islogicalscalar
-    'outoflik', { }, @(x) ischar(x) || iscellstr(x)
-    'relative', true, @islogicalscalar
-    'zero', true, @islogicalscalar
-    }
-];
-
 def.lognormal = {
     'fresh', false, @islogicalscalar
     'mean', true, @islogicalscalar
@@ -115,47 +99,12 @@ def.lognormal = {
     'std', true, @islogicalscalar
     };
 
-def.kalmanFilter = [
-    deviation_dtrends
-    precision
-    {
-    'ahead', 1, @(x) isintscalar(x) && x>0
-    'chkexact', false, @islogicalscalar
-    'chkfmse', false, @islogicalscalar
-    'condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x)
-    'fmsecondtol', eps( ), @(x) isnumericscalar(x) && x>0 && x<1
-    'returncont, contributions', false, @islogicalscalar
-    'Rolling', false, @(x) isequal(x, false) || isa(x, 'DateWrapper')
-    'Init, InitCond', 'Steady', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'Asymptotic', 'Stochastic', 'Steady', 'Fixed'})))
-    'InitUnitRoot, InitUnit, InitMeanUnit', 'FixedUnknown', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'})))
-    'lastsmooth', Inf, @(x) isempty(x) || isnumericscalar(x)
-    ... 'nonlinear, nonlinearise, nonlinearize', 0, @(x) isintscalar(x) && x>=0
-    'outoflik', { }, @(x) ischar(x) || iscellstr(x)
-    'objdecomp', false, @islogicalscalar
-    'objfunc, objective', 'loglik', @(x) ischar(x) && any(strcmpi(x, {'loglik', 'mloglik', '-loglik', 'prederr'}))
-    'objrange, objectivesample', @all, @(x) isnumeric(x) || isequal(x, @all)
-    'pedindonly', false, @islogicalscalar
-    'plan, Scenario', [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x)
-    'progress', false, @islogicalscalar
-    'relative', true, @islogicalscalar
-    'vary, std', [ ], @(x) isempty(x) || isstruct(x)
-    'simulate', false, @(x) isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end)))
-    'symmetric', true, @islogicalscalar
-    'tolerance', eps( )^(2/3), @isnumeric
-    'tolmse', 0, @(x) isnumericscalar(x) || (ischar(x) && strcmpi(x, 'auto'))
-    'weighting', [ ], @isnumeric
-    'meanonly', false, @islogicalscalar
-    'returnstd', true, @islogicalscalar
-    'returnmse', true, @islogicalscalar
-    }
-];
-
-def.kalman = {
-    'InitMedian', [ ], @(x) isempty(x) || isstruct(x) || strcmpi(x, 'InputData')
-    'NAhead', 0, @(x) isnumeric(x) && isscalar(x) && x>=0 && round(x)==x
-    'RescaleVar', false, @(x) isequal(x, true) || isequal(x, false)
-    'UnitFromData', @auto, @(x) isequal(x, @auto) || isequal(x, false) || (isintscalar(x) && x>=0)
-    };
+%def.kalman = {
+%    'InitMedian', [ ], @(x) isempty(x) || isstruct(x) || strcmpi(x, 'InputData')
+%    'NAhead', 0, @(x) isnumeric(x) && isscalar(x) && x>=0 && round(x)==x
+%    'RescaleVar', false, @(x) isequal(x, true) || isequal(x, false)
+%    'UnitFromData', @auto, @(x) isequal(x, @auto) || isequal(x, false) || (isintscalar(x) && x>=0)
+%    };
 
 def.neighbourhood = {
     'plot', true, @(x) isequal(x, true) || isequal(x, false)

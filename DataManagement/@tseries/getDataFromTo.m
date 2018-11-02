@@ -14,7 +14,8 @@ function [x, actualFrom, actualTo] = getDataFromTo(this, from, to)
 
 if nargin==1
     x = this.Data;
-    range = this.Range;
+    actualFrom = this.Start;
+    actualTo = this.End;
     return
 end
 
@@ -35,7 +36,8 @@ missingValue = this.MissingValue;
 
 if ~isinf(serialFrom) && ~isinf(serialTo) && serialTo<serialFrom
     x = repmat(missingValue, [0, sizeOfData(2:end)]);
-    range = double.empty(1, 0);
+    actualStart = DateWrapper.empty(0, 0);
+    actualEnd = DateWrapper.empty(0, 0);
     return
 end
 
@@ -54,7 +56,8 @@ end
 if isnan(serialOfStart) || isempty(data)
     lenOfRange = round(posTo - posFrom + 1);
     x = repmat(this.MissingValue, [lenOfRange, sizeOfData(2:end)]);
-    range = double.empty(1, 0);
+    actualStart = DateWrapper.empty(0, 0);
+    actualEnd = DateWrapper.empty(0, 0);
     return
 end
 

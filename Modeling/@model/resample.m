@@ -57,7 +57,7 @@ function Outp = resample(this, varargin)
 % use SVD to factorize the covariance matrix when resampling initial
 % condition; only applies when `RandomInitCond=true`.
 %
-% * `Vary=[ ]` [ struct | empty ] - Database with user-supplied
+% * `TimeVarying=[ ]` [ struct | empty ] - Database with user-supplied
 % time-varying paths for std deviations, correlation coefficients, or
 % medians for shocks.
 %
@@ -99,7 +99,7 @@ if isempty(inputParser)
     inputParser.addParameter({'RandomInitCond', 'RandomiseInitCond', 'RandomizeInitCond', 'Randomise', 'Randomize'}, true, @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0));
     inputParser.addParameter('SvdOnly', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('StateVector', 'alpha', @(x) ischar(x) && any(strcmpi(x, {'alpha', 'x'})));
-    inputParser.addParameter('Vary', [ ], @(x) isempty(x) || isstruct(x));
+    inputParser.addParameter({'TimeVarying', 'Vary'}, [ ], @(x) isempty(x) || isstruct(x));
     
     inputParser.addDeviationOptions(false);
 end
@@ -131,7 +131,7 @@ end
 
 %--------------------------------------------------------------------------
 
-numPeriods = length(range);
+numOfPeriods = length(range);
 extendedRange = range(1)-1 : range(end);
 
 ixd = this.Equation.Type==TYPE(3);
@@ -240,7 +240,7 @@ else
     % TODO: Use `combineStdCorr` instead.
     vecStdCorr = this.Variant.StdCorr;
     vecStdCorr = permute(vecStdCorr, [2, 3, 1]);
-    vecStdCorr = repmat(vecStdCorr, 1, numPeriods);
+    vecStdCorr = repmat(vecStdCorr, 1, numOfPeriods);
     % Combine the model object stdevs with the user-supplied stdevs.
     if any(usrStdcorrInx(:))
         vecStdCorr(usrStdcorrInx) = usrStdcorr(usrStdcorrInx);
@@ -256,8 +256,8 @@ else
     % other periods, we need to compute and factorize the entire cov matrix.
     indexZeroCorr = all(vecStdCorr(ne+1:end, :)==0, 1);
     if any(~indexZeroCorr)
-        Pe = nan(ne, ne, numInit+numPeriods);
-        Fe = nan(ne, ne, numInit+numPeriods);
+        Pe = nan(ne, ne, numInit+numOfPeriods);
+        Fe = nan(ne, ne, numInit+numOfPeriods);
         Pe(:, :, ~indexZeroCorr) = ...
             covfun.stdcorr2cov(vecStdCorr(:, ~indexZeroCorr), ne);
         Fe(:, :, ~indexZeroCorr) = covfun.factorise(Pe(:, :, ~indexZeroCorr));
@@ -267,7 +267,7 @@ else
     % once. This allows for advanced user-supplied simulation methods, e.g.
     % latin hypercube.
     if isa(opt.Method, 'function_handle')
-        presampledE = opt.Method(ne*(numInit+numPeriods), numDraws);
+        presampledE = opt.Method(ne*(numInit+numOfPeriods), numDraws);
         if opt.RandomInitCond
             presampledInitNoise = opt.Method(nb, numDraws);
         end
@@ -292,15 +292,15 @@ for iDraw = 1 : numDraws
     end
     a0 = drawInitCond( );
     % Simulate transition variables.
-    w = nan(nxx, numInit+numPeriods);
+    w = nan(nxx, numInit+numOfPeriods);
     w(:, 1) = T*a0 + R(:, ixR)*e(ixR, 1) + K;
-    for t = 2 : numInit+numPeriods
+    for t = 2 : numInit+numOfPeriods
         w(:, t) = T*w(nf+1:end, t-1) + R(:, ixR)*e(ixR, t) + K;
     end
     % Simulate measurement variables.
     y = Z*w(nf+1:end, numInit+1:end) + H(:, ixH)*e(ixH, numInit+1:end);
     if ~opt.Deviation
-        y = y + D(:, ones(1, numPeriods));
+        y = y + D(:, ones(1, numOfPeriods));
     end
     % Add dtrends to simulated data.
     if isDTrends
@@ -330,7 +330,7 @@ return
             Kalp2 = K(nf+numUnitRoots+1:end, :);
             Ealp(numUnitRoots+1:end) = (eye(numStableRoots) - Ta2) \ Kalp2;
         end
-    end 
+    end%
 
 
     function e = drawShocks( )
@@ -339,7 +339,7 @@ return
             if strcmpi(opt.BootstrapMethod, 'wild')
                 % _Wild Bootstrap_
                 % `numInit` is always zero for wild boostrap.
-                draw = randn(1, numPeriods);
+                draw = randn(1, numOfPeriods);
                 % To reproduce input sample: draw = ones(1, nper);
                 e = srcE.*draw(ones(1, ne), :);
             elseif isnumeric(opt.BootstrapMethod) ...
@@ -348,32 +348,32 @@ return
                 isRandom = ~isintscalar(opt.BootstrapMethod) ;
                 bs = NaN;
                 if ~isRandom
-                    bs = min(numPeriods, opt.BootstrapMethod) ;
+                    bs = min(numOfPeriods, opt.BootstrapMethod) ;
                 end
                 draw = [ ] ;
                 ii = 1 ;
-                while ii<=numInit+numPeriods
+                while ii<=numInit+numOfPeriods
                     % Sample block starting point.
-                    sPoint = randi([1, numPeriods], 1) ;
+                    sPoint = randi([1, numOfPeriods], 1) ;
                     if isRandom
                         bs = getRandBlockSize( ) ;
                     end
                     draw = [draw, sPoint:sPoint+bs-1] ; %#ok<AGROW>
                     ii = ii + bs ;
                 end
-                draw = draw(1:numInit+numPeriods) ;
-                % Take care of references to periods beyond numPeriods.
-                % Make draws circular: numPeriods+1 -> 1, etc.
-                indexBeyond = draw>numPeriods ;
+                draw = draw(1:numInit+numOfPeriods) ;
+                % Take care of references to periods beyond numOfPeriods.
+                % Make draws circular: numOfPeriods+1 -> 1, etc.
+                indexBeyond = draw>numOfPeriods ;
                 while any(indexBeyond)
-                    draw(indexBeyond) = draw(indexBeyond) - numPeriods ;
-                    indexBeyond = draw>numPeriods ;
+                    draw(indexBeyond) = draw(indexBeyond) - numOfPeriods ;
+                    indexBeyond = draw>numOfPeriods ;
                 end
                 e = srcE(:, draw) ;
             else
                 % _Standard Efron Bootstrap__
                 % `draw` is uniform on [1, nper].
-                draw = randi([1, numPeriods], [1, numInit+numPeriods]);
+                draw = randi([1, numOfPeriods], [1, numInit+numOfPeriods]);
                 % To reproduce input sample: draw = 0 : nper-1;
                 e = srcE(:, draw);
             end
@@ -381,13 +381,13 @@ return
             if isa(opt.Method, 'function_handle')
                 % Fetch and reshape the presampled shocks.
                 thisSampleE = presampledE(:, iDraw);
-                thisSampleE = reshape(thisSampleE, [ne, numInit+numPeriods]);
+                thisSampleE = reshape(thisSampleE, [ne, numInit+numOfPeriods]);
             else
                 % Draw shocks from standardised normal.
-                thisSampleE = randn(ne, numInit+numPeriods);
+                thisSampleE = randn(ne, numInit+numOfPeriods);
             end
             % Scale standardised normal by the std devs.
-            e = zeros(ne, numInit+numPeriods);
+            e = zeros(ne, numInit+numOfPeriods);
             e(:, indexZeroCorr) = ...
                 vecStdCorr(1:ne, indexZeroCorr) .* thisSampleE(:, indexZeroCorr);
             if any(~indexZeroCorr)
@@ -397,7 +397,7 @@ return
                 end
             end
         end
-    end 
+    end%
 
 
     function a0 = drawInitCond( )
@@ -416,7 +416,7 @@ return
                         ];
                 else
                     % Efron-bootstrap init cond for alpha from sample.
-                    draw = randi([1, numPeriods], 1);
+                    draw = randi([1, numOfPeriods], 1);
                     a0 = srcAlp(:, draw);
                 end
             else
@@ -444,7 +444,7 @@ return
                 a0 = Ealp;
             end
         end
-    end 
+    end%
 
 
     function storeDraw( )
@@ -461,17 +461,17 @@ return
             [nan(ne, 1), e(:, numInit+1:end)], ...
             [ ], ...
             [nan(ng, 1), g] });
-    end 
+    end%
 
 
     function S = getRandBlockSize( )
-        % Block size determined by geo distribution, must be smaller than numPeriods.
+        % Block size determined by geo distribution, must be smaller than numOfPeriods.
         p = opt.BootstrapMethod ;
         while true
             S = ceil(log(rand)/log(1-p)) ;
-            if S<=numPeriods
+            if S<=numOfPeriods
                 break
             end
         end
-    end
-end
+    end%
+end%

@@ -50,7 +50,7 @@ function outp = jforecast_old(this, inp, range, varargin)
 % stdevs for anticipated and unanticipated shocks will be scaled
 % differently. See Description/Std Deviations.
 %
-% * `Vary=[ ]` [ struct | empty ] - Database with time-varying std
+% * `TimeVarying=[ ]` [ struct | empty ] - Database with time-varying std
 % deviations or cross-correlations of shocks.
 %
 %
@@ -107,7 +107,7 @@ if isempty(inputParser)
     inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('Plan', [ ], @(x) isequal(x, [ ]) || isa(x, 'plan'));
     inputParser.addParameter('StdScale', complex(1, 0), @(x) (isnumeric(x) && isscalar(x) && real(x)>=0 && imag(x)>=0 && abs(abs(x)-1)<1e-12) || strcmpi(x, 'normalize'));
-    inputParser.addParameter({'Vary', 'Std'}, [ ], @(x) isstruct(x) || isempty(x));
+    inputParser.addParameter({'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isstruct(x) || isempty(x));
 
     inputParser.addDeviationOptions(false);
 end

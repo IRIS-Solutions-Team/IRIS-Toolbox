@@ -52,7 +52,7 @@ opt = inputParser.Options;
 
 %--------------------------------------------------------------------------
 
-[data, range] = getDataFromTo(this, opt.SerialOfStart, opt.SerialOfEnd);
+[data, actualStart] = getDataFromTo(this, opt.SerialOfStart, opt.SerialOfEnd);
 
 if isempty(data)
     this = this.empty(this);
@@ -71,6 +71,6 @@ for i = 1 : numOfColumns
     end
 end
 
-this = fill(this, data, range(1));
+this = fill(this, data, actualStart);
 
 end%

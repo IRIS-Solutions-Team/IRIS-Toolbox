@@ -57,8 +57,6 @@ if isequal(time, Inf)
 elseif isempty(time) || isnad(time)
     time = this.Start;
     time = time([ ], 1);
-else
-    time = time(:);
 end
 
 if numel(time)==1
@@ -83,7 +81,19 @@ end
 if numel(time)==2 && all(isinf(time))
     time = Inf;
 end
-[yData, time] = getData(this, time);
+
+if numel(time)==2 && any(isinf(time))
+    [yData, fromTime, toTime] = getDataFromTo(this, time(1), time(2));
+    if isempty(fromTime) || isempty(toTime)
+        time = DateWrapper.empty(0, 1);
+    else
+        time = fromTime : toTime;
+        time = time(:);
+    end
+else
+    time = time(:);
+    [yData, time] = getData(this, time);
+end
 
 if ~isempty(time)
     timeFrequency = DateWrapper.getFrequency(time(1));

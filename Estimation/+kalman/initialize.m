@@ -78,11 +78,11 @@ return
             % R matrix with rows corresponding to stable Alpha and columns
             % corresponding to transition shocks.
             RR = s.Ra(:, 1:ne);
-            RR = RR(ixStable, s.IxEt);
+            RR = RR(ixStable, s.InxET);
             % Reduced form covariance corresponding to stable alpha. Use the structural
             % shock covariance sub-matrix corresponding to transition shocks only in
             % the pre-sample period.
-            Sa = RR*s.Omg(s.IxEt, s.IxEt, 1)*RR.';
+            Sa = RR*s.Omg(s.InxET, s.InxET, 1)*RR.';
             % Compute asymptotic initial condition.
             if sum(ixStable)==1
                 Pa0stable = Sa / (1 - s.Ta(ixStable, ixStable).^2);

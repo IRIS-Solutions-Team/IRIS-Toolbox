@@ -1,5 +1,5 @@
 function [data, dates] = getData(this, timeRef)
-% getData  Get data on specified range from TimeSubscriptable object
+% getData  Get data for vector of dates from TimeSubscriptable object
 %
 % Backend IRIS function
 % No help provided
@@ -9,9 +9,9 @@ function [data, dates] = getData(this, timeRef)
 
 % timeRef can be one of the following
 %
-% * ':', Inf - data from the entire range available are returned
+% * ':', Inf - data for the entire range available are returned
 % * empty - empty data are returned
-% * DateWrapper or integer - data from the specified range are returned
+% * DateWrapper or integer - data for the specified date vector are returned
 
 %--------------------------------------------------------------------------
 

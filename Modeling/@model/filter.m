@@ -21,7 +21,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 %
 % * `~J=[ ]` [ struct | empty ] - Database with user-supplied time-varying
 % paths for std deviation, corr coefficients, or medians for shocks; `~J`
-% is equivalent to using the option `Vary=`, and may be omitted.
+% is equivalent to using the option `TimeVarying=`, and may be omitted.
 %
 %
 % __Output Arguments__
@@ -119,6 +119,10 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 %
 % * `ReturnStd=true` [ `true` | `false` ] - Return database with std devs
 % of model variables.
+%
+% * `TimeVarying=[ ]` [ struct | empty ] - Database with user-supplied
+% time-varying paths for std deviations, correlation coefficients, or
+% medians of shocks.
 %
 % * `Weighting=[ ]` [ numeric | empty ] - Weighting vector or matrix for
 % prediction errors when `Objective='PredErr'`; empty means prediction
@@ -316,78 +320,66 @@ return
             
             % __Prediction Step__
             if isPred
-                hData.M0 = hdataobj(this, extendedRange, nPred, ...
-                    'IncludeLag=', false, ...
-                    'Precision=', likOpt.precision);
+                hData.M0 = hdataobj( this, extendedRange, nPred, ...
+                                     'IncludeLag=', false );
                 if ~likOpt.meanonly
                     if likOpt.returnstd
-                        hData.S0 = hdataobj(this, extendedRange, numOfRuns, ...
-                            'IncludeLag=', false, ...
-                            'IsVar2Std=', true, ...
-                            'Precision=', likOpt.precision);
+                        hData.S0 = hdataobj( this, extendedRange, numOfRuns, ...
+                                             'IncludeLag=', false, ...
+                                             'IsVar2Std=', true );
                     end
                     if likOpt.returnmse
                         hData.Mse0 = hdataobj( );
-                        hData.Mse0.Data = nan(nb, nb, numExtendedPeriods, numOfRuns, ...
-                            likOpt.precision);
+                        hData.Mse0.Data = nan(nb, nb, numExtendedPeriods, numOfRuns);
                         hData.Mse0.Range = extendedRange;
                     end
                     if likOpt.returncont
-                        hData.predcont = hdataobj(this, extendedRange, nCont, ....
-                            'IncludeLag=', false, ...
-                            'Contributions=', @measurement, ...
-                            'Precision', likOpt.precision);
+                        hData.predcont = hdataobj( this, extendedRange, nCont, ....
+                                                   'IncludeLag=', false, ...
+                                                   'Contributions=', @measurement );
                     end
                 end
             end
             
             % __Filter Step__
             if isFilter
-                hData.M1 = hdataobj(this, extendedRange, numOfRuns, ...
-                    'IncludeLag=', false, ...
-                    'Precision=', likOpt.precision);
+                hData.M1 = hdataobj( this, extendedRange, numOfRuns, ...
+                                     'IncludeLag=', false );
                 if ~likOpt.meanonly
                     if likOpt.returnstd
-                        hData.S1 = hdataobj(this, extendedRange, numOfRuns, ...
-                            'IncludeLag=', false, ...
-                            'IsVar2Std=', true, ...
-                            'Precision', likOpt.precision);
+                        hData.S1 = hdataobj( this, extendedRange, numOfRuns, ...
+                                             'IncludeLag=', false, ...
+                                             'IsVar2Std=', true);
                     end
                     if likOpt.returnmse
                         hData.Mse1 = hdataobj( );
-                        hData.Mse1.Data = nan(nb, nb, numExtendedPeriods, numOfRuns, ...
-                            likOpt.precision);
+                        hData.Mse1.Data = nan(nb, nb, numExtendedPeriods, numOfRuns);
                         hData.Mse1.Range = extendedRange;
                     end
                     if likOpt.returncont
-                        hData.filtercont = hdataobj(this, extendedRange, nCont, ...
-                            'IncludeLag=', false, ...
-                            'Contributions=', @measurement, ...
-                            'Precision=', likOpt.precision);
+                        hData.filtercont = hdataobj( this, extendedRange, nCont, ...
+                                                     'IncludeLag=', false, ...
+                                                     'Contributions=', @measurement );
                     end
                 end
             end
             
             % __Smoother__
             if isSmooth
-                hData.M2 = hdataobj(this, extendedRange, numOfRuns, ...
-                    'Precision=', likOpt.precision);
+                hData.M2 = hdataobj(this, extendedRange, numOfRuns);
                 if ~likOpt.meanonly
                     if likOpt.returnstd
-                        hData.S2 = hdataobj(this, extendedRange, numOfRuns, ...
-                            'IsVar2Std=', true, ...
-                            'Precision=', likOpt.precision);
+                        hData.S2 = hdataobj( this, extendedRange, numOfRuns, ...
+                                             'IsVar2Std=', true );
                     end
                     if likOpt.returnmse
                         hData.Mse2 = hdataobj( );
-                        hData.Mse2.Data = nan(nb, nb, numExtendedPeriods, numOfRuns, ...
-                            likOpt.precision);
+                        hData.Mse2.Data = nan(nb, nb, numExtendedPeriods, numOfRuns);
                         hData.Mse2.Range = extendedRange;
                     end
                     if likOpt.returncont
-                        hData.C2 = hdataobj(this, extendedRange, nCont, ...
-                            'Contributions=', @measurement, ...
-                            'Precision=', likOpt.precision);
+                        hData.C2 = hdataobj( this, extendedRange, nCont, ...
+                                             'Contributions=', @measurement );
                     end
                 end
             end
