@@ -340,7 +340,7 @@ populatePosterObj( );
 V = 1;
 delta = [ ];
 PDelta = [ ];
-if opt.EvalLik && (nargout>=5 || likOpt.relative)
+if opt.EvalLik && (nargout>=5 || likOpt.Relative)
     [~, regOutp] = likOpt.minusLogLikFunc(this, inputArray, [ ], likOpt);
     % Post-process the regular output arguments, update the std parameter
     % in the model object, and refresh if needed.

@@ -2,8 +2,6 @@ function backward(s, inp, outp)
 
 nPer = size(inp.y, 2);
 nAnt = size(inp.y, 3)-1;
-% y = inp.y(:,:,1);
-% nAhead = max(outp.NAhead, nAnt);
 [nx, nb] = size(s.T);
 nf = nx - nb;
 [ny, ne] = size(s.H);

@@ -2,7 +2,7 @@ function forward(s, inp, outp)
 
 y = inp.y;
 nAnt = size(y, 3)-1;
-nAhead = max(outp.NAhead, nAnt);
+nAhead = max(outp.Ahead, nAnt);
 
 nPer = size(y, 2);
 [ny, ne] = size(s.H);
@@ -167,10 +167,10 @@ return
 
 
     function storeAhead( )
-        n = 1 + outp.NAhead;
+        n = 1 + outp.Ahead;
         outp.w00(:,t,:) = reshape(w1(1:n*nx), nx, 1, n);
         outp.y00(:,t,:) = reshape(y1(1:n*ny), ny, 1, n);
-        if outp.NAhead<nAnt
+        if outp.Ahead<nAnt
             outp.e00(:,t,:) = reshape(e1(1:n*ne), ne, 1, n);
         else
             outp.e00(:,t,:) = 0;

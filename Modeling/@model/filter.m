@@ -51,7 +51,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % __Options__
 %
 % * `Ahead=1` [ numeric ] - Calculate predictions up to `Ahead` periods
-% ahead..
+% ahead.
 %
 % * `ChkFmse=false` [ `true` | `false` ] - Check the condition number of
 % the forecast MSE matrix in each step of the Kalman filter, and return
@@ -254,7 +254,7 @@ preallocHData( );
 
 % If needed, expand the number of model parameterizations to include
 % estimated variance factors and/or out-of=lik parameters.
-if nv<regOutp.NLoop && (likOpt.relative || ~isempty(regOutp.Delta))
+if nv<regOutp.NLoop && (likOpt.Relative || ~isempty(regOutp.Delta))
     this = alter(this, regOutp.NLoop);
 end
 
@@ -274,7 +274,7 @@ return
 
     function checkConflicts( )
         multiple = numOfDataSets>1 || nv>1;
-        if likOpt.ahead>1 && multiple
+        if likOpt.Ahead>1 && multiple
             error( ...
                 'Model:Filter:IllegalAhead', ...
                 'Cannot use option Ahead= with multiple data sets or parameter variants.' ...
@@ -286,7 +286,7 @@ return
                 'Cannot use option Rolling= with multiple data sets or parameter variants.' ...
             );
         end
-        if likOpt.returncont && any(likOpt.condition)
+        if likOpt.ReturnCont && any(likOpt.condition)
             error( ...
                 'Model:Filter:IllegalCondition', ...
                 'Cannot combine options ReturnCont= and Condition=.' ...
@@ -314,7 +314,7 @@ return
         isFilter = ~isempty(strfind(lowerOutput, 'filter'));
         isSmooth = ~isempty(strfind(lowerOutput, 'smooth'));
         numOfRuns = max(numOfDataSets, nv);
-        nPred = max(numOfRuns, likOpt.ahead);
+        nPred = max(numOfRuns, likOpt.Ahead);
         nCont = max(ny, nz);
         if isOutputData
             
@@ -322,18 +322,18 @@ return
             if isPred
                 hData.M0 = hdataobj( this, extendedRange, nPred, ...
                                      'IncludeLag=', false );
-                if ~likOpt.meanonly
-                    if likOpt.returnstd
+                if ~likOpt.MeanOnly
+                    if likOpt.ReturnStd
                         hData.S0 = hdataobj( this, extendedRange, numOfRuns, ...
                                              'IncludeLag=', false, ...
                                              'IsVar2Std=', true );
                     end
-                    if likOpt.returnmse
+                    if likOpt.ReturnMSE
                         hData.Mse0 = hdataobj( );
                         hData.Mse0.Data = nan(nb, nb, numExtendedPeriods, numOfRuns);
                         hData.Mse0.Range = extendedRange;
                     end
-                    if likOpt.returncont
+                    if likOpt.ReturnCont
                         hData.predcont = hdataobj( this, extendedRange, nCont, ....
                                                    'IncludeLag=', false, ...
                                                    'Contributions=', @measurement );
@@ -345,18 +345,18 @@ return
             if isFilter
                 hData.M1 = hdataobj( this, extendedRange, numOfRuns, ...
                                      'IncludeLag=', false );
-                if ~likOpt.meanonly
-                    if likOpt.returnstd
+                if ~likOpt.MeanOnly
+                    if likOpt.ReturnStd
                         hData.S1 = hdataobj( this, extendedRange, numOfRuns, ...
                                              'IncludeLag=', false, ...
                                              'IsVar2Std=', true);
                     end
-                    if likOpt.returnmse
+                    if likOpt.ReturnMSE
                         hData.Mse1 = hdataobj( );
                         hData.Mse1.Data = nan(nb, nb, numExtendedPeriods, numOfRuns);
                         hData.Mse1.Range = extendedRange;
                     end
-                    if likOpt.returncont
+                    if likOpt.ReturnCont
                         hData.filtercont = hdataobj( this, extendedRange, nCont, ...
                                                      'IncludeLag=', false, ...
                                                      'Contributions=', @measurement );
@@ -367,17 +367,17 @@ return
             % __Smoother__
             if isSmooth
                 hData.M2 = hdataobj(this, extendedRange, numOfRuns);
-                if ~likOpt.meanonly
-                    if likOpt.returnstd
+                if ~likOpt.MeanOnly
+                    if likOpt.ReturnStd
                         hData.S2 = hdataobj( this, extendedRange, numOfRuns, ...
                                              'IsVar2Std=', true );
                     end
-                    if likOpt.returnmse
+                    if likOpt.ReturnMSE
                         hData.Mse2 = hdataobj( );
                         hData.Mse2.Data = nan(nb, nb, numExtendedPeriods, numOfRuns);
                         hData.Mse2.Range = extendedRange;
                     end
-                    if likOpt.returncont
+                    if likOpt.ReturnCont
                         hData.C2 = hdataobj( this, extendedRange, nCont, ...
                                              'Contributions=', @measurement );
                     end

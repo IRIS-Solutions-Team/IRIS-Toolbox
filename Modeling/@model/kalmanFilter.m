@@ -28,7 +28,7 @@ if nz>0
     ny = nz;
 end
 nv = length(this);
-nData = size(inp, 3);
+numOfDataSets = size(inp, 3);
 
 if ~isequal(opt.simulate, false)
     opt.simulate = parseSimulateOptions(this, opt.simulate{:});
@@ -39,7 +39,7 @@ end
 s = struct( );
 s.EIGEN_TOLERANCE = this.Tolerance.Eigen;
 s.DIFFUSE_SCALE = 1e8;
-s.NAhead = opt.ahead;
+s.Ahead = opt.Ahead;
 s.IsObjOnly = nargout<=1;
 s.ObjFunPenalty = this.OBJ_FUNC_PENALTY;
 
@@ -80,8 +80,8 @@ if maybeShkTunes
 end
 
 % Total number of cycles.
-nLoop = max(nData, nv);
-s.nPred = max(nLoop, s.NAhead);
+nLoop = max(numOfDataSets, nv);
+s.nPred = max(nLoop, s.Ahead);
 
 % Pre-allocate output data.
 if ~s.IsObjOnly
@@ -151,7 +151,7 @@ for iLoop = 1 : nLoop
     % __Next Model Solution__
     v = min(iLoop, nv);
     if iLoop<=nv
-        [T, R, k, s.Z, s.H, s.d, s.U, ~, Zb, ~, s.InxET, s.InxEM] = sspaceMatrices(this, v);
+        [T, R, k, s.Z, s.H, s.d, s.U, ~, Zb, ~, s.InxOfEM, s.InxOfET] = sspaceMatrices(this, v);
         if nz>0
             % Transition variables marked for measurement.
             s.Z = Zb*s.U;
@@ -300,7 +300,7 @@ for iLoop = 1 : nLoop
     end
     
     % Add k-step-ahead predictions.
-    if s.NAhead>1 && s.storePredict
+    if s.Ahead>1 && s.storePredict
         s = goAhead(s);
     end
 
@@ -332,8 +332,8 @@ for iLoop = 1 : nLoop
 
     % __Return Requested Data__
     % Columns in `pe` to be filled.
-    if s.NAhead>1
-        predCols = 1 : s.NAhead;
+    if s.Ahead>1
+        predCols = 1 : s.Ahead;
     else
         predCols = iLoop;
     end
@@ -397,7 +397,7 @@ return
         s.retFilter = s.retFilterMean || s.retFilterStd || s.retFilterMse;
         s.retSmooth = s.retSmoothMean || s.retSmoothStd || s.retSmoothMse;
         s.retCont = s.retPredCont || s.retFilterCont || s.retSmoothCont;
-        s.storePredict = s.NAhead>1 || s.retPred || s.retFilter || s.retSmooth;
+        s.storePredict = s.Ahead>1 || s.retPred || s.retFilter || s.retSmooth;
     end%
 
 
@@ -414,7 +414,7 @@ return
             yy = permute(s.y0, [1, 3, 4, 2]);
             yy(:, 1, :) = NaN;
             if ~isempty(s.D)
-                yy = yy + repmat(s.D, 1, 1, s.NAhead);
+                yy = yy + repmat(s.D, 1, 1, s.Ahead);
             end
             % Convert `alpha` predictions to `xb` predictions. The
             % `a0` may contain k-step-ahead predictions in 3rd dimension.
@@ -425,14 +425,14 @@ return
             ff = permute(s.f0, [1, 3, 4, 2]);
             xx = [ff;bb];
             % Shock predictions are always zeros.
-            ee = zeros(ne, numOfPeriods, s.NAhead);
+            ee = zeros(ne, numOfPeriods, s.Ahead);
             % Set predictions for the pre-sample period to `NaN`.
             xx(:, 1, :) = NaN;
             ee(:, 1, :) = NaN;
             % Add fixed deterministic trends back to measurement vars.
             % Add shock tunes to shocks.
             if s.IsShkTune
-                ee = ee + repmat(s.tune, 1, 1, s.NAhead);
+                ee = ee + repmat(s.tune, 1, 1, s.Ahead);
             end
             % Do not use lags in the prediction output data.
             hdataassign(hData.M0, predCols, { yy, xx, ee, [ ], [ ] } );
@@ -648,20 +648,20 @@ function S = goAhead(S)
     ydelta = permute(S.ydelta, [1, 3, 4, 2]);
 
     % Expand existing prediction vectors.
-    a0 = cat(3, a0, nan([size(a0), S.NAhead-1]));
-    pe = cat(3, pe, nan([size(pe), S.NAhead-1]));
-    y0 = cat(3, y0, nan([size(y0), S.NAhead-1]));
+    a0 = cat(3, a0, nan([size(a0), S.Ahead-1]));
+    pe = cat(3, pe, nan([size(pe), S.Ahead-1]));
+    y0 = cat(3, y0, nan([size(y0), S.Ahead-1]));
     if S.retPred
         % `f0` exists and its k-step-ahead predictions need to be calculated only
         % if `pred` data are requested.
         f0 = permute(S.f0, [1, 3, 4, 2]);
-        f0 = cat(3, f0, nan([size(f0), S.NAhead-1]));
+        f0 = cat(3, f0, nan([size(f0), S.Ahead-1]));
     end
 
     numOfPeriods = size(S.y1, 2);
     bsxfunKa = size(S.ka, 2)==1;
     bsxfunD = size(S.d, 2)==1;
-    for k = 2 : min(S.NAhead, numOfPeriods-1)
+    for k = 2 : min(S.Ahead, numOfPeriods-1)
         t = 1+k : numOfPeriods;
         repeat = ones(1, numel(t));
         a0(:, t, k) = S.Ta*a0(:, t-1, k-1);
@@ -692,9 +692,9 @@ function S = goAhead(S)
         end
     end
     if S.NPOut>0
-        y0(:, :, 2:end) = y0(:, :, 2:end) + ydelta(:, :, ones(1, S.NAhead-1));
+        y0(:, :, 2:end) = y0(:, :, 2:end) + ydelta(:, :, ones(1, S.Ahead-1));
     end
-    pe(:, :, 2:end) = S.y1(:, :, ones(1, S.NAhead-1)) - y0(:, :, 2:end);
+    pe(:, :, 2:end) = S.y1(:, :, ones(1, S.Ahead-1)) - y0(:, :, 2:end);
 
     S.a0 = ipermute(a0, [1, 3, 4, 2]);
     S.pe = ipermute(pe, [1, 3, 4, 2]);
@@ -940,8 +940,8 @@ function s = convertOmg2SaSy(s, sx)
     ne = size(s.Ra, 2);
     numOfPeriods = size(s.y1, 2);
     lastOmg = size(s.Omg, 3);
-    inxET = s.InxET;
-    inxEM = s.InxEM;
+    inxOfET = s.InxOfET;
+    inxOfEM = s.InxOfEM;
 
     % Periods where Omg(t) is the same as Omg(t-1).
     omgEqual = [false, all(sx(:, 1:end-1)==sx(:, 2:end), 1)];
@@ -949,11 +949,11 @@ function s = convertOmg2SaSy(s, sx)
     % Cut off forward expansion.
     Ra = s.Ra(:, 1:ne);
     Rf = s.Rf(:, 1:ne);
-    Ra = Ra(:, inxET);
-    Rf = Rf(:, inxET);
+    Ra = Ra(:, inxOfET);
+    Rf = Rf(:, inxOfET);
 
-    H = s.H(:, inxEM);
-    Ht = s.H(:, inxEM).';
+    H = s.H(:, inxOfEM);
+    Ht = s.H(:, inxOfEM).';
 
     s.Sa = nan(nb, nb, lastOmg);
     s.Sf = nan(nf, nf, lastOmg);
@@ -973,8 +973,8 @@ function s = convertOmg2SaSy(s, sx)
             continue
         end
         Omg = s.Omg(:, :, t);
-        OmgT = Omg(inxET, inxET);
-        OmgM = Omg(inxEM, inxEM);
+        OmgT = Omg(inxOfET, inxOfET);
+        OmgM = Omg(inxOfEM, inxOfEM);
         s.Sa(:, :, t) = Ra*OmgT*Ra.';
         s.Sf(:, :, t) = Rf*OmgT*Rf.';
         s.Sfa(:, :, t) = Rf*OmgT*Ra.';

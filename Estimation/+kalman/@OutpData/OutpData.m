@@ -5,7 +5,7 @@ classdef OutpData < handle
         StoreSmooth = false
         StoreAhead = false
         RescaleVar = false
-        NAhead = 0
+        Ahead = 0
         
         Range = [ ]                  % Filter range
         aInit = [ ]
@@ -76,8 +76,8 @@ classdef OutpData < handle
             this.Py1 = nan(ny, ny, nPer);
             this.Py2 = nan(ny, ny, nPer);
 
-            if this.NAhead>0
-                n = 1 + this.NAhead;
+            if this.Ahead>0
+                n = 1 + this.Ahead;
                 this.yy1 = nan(ny, nPer, n);
                 this.ww1 = nan(nx, nPer, n);
                 this.ee1 = nan(ne, nPer, n);

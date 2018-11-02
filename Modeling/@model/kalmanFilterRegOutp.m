@@ -80,7 +80,7 @@ if isfield(regOutp, 'SampleCov')
 end
 
 % Update the std parameters in the model object.
-if likOpt.relative && nargout>6
+if likOpt.Relative && nargout>6
     ne = sum(ixe);
     nv = length(this);
     se = sqrt(V);

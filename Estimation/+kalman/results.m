@@ -24,7 +24,7 @@ end
 if outp.StoreSmooth
     f.Smooth.Median = outp2dbase(outp.y2, outp.w2, outp.e2, outp.a2);
 end
-if outp.NAhead>0
+if outp.Ahead>0
     f.Ahead.Median = outp2dbase(outp.yy1, outp.ww1, outp.ee1, [ ]);
 end
 
@@ -85,5 +85,5 @@ return
                 d.(name) = replace(tseries, data, start);
             end
         end
-    end
-end
+    end%
+end%

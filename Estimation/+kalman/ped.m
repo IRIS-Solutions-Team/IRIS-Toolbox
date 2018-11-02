@@ -1,11 +1,11 @@
 function [obj, s] = ped(s, sn, opt)
-% ped  Prediction error decomposition and objective function evaluation.
+% ped  Prediction error decomposition and objective function evaluation
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -119,7 +119,7 @@ a = s.InitMean;
 P = s.InitMse;
 
 % Number of actually observed data points.
-nObs = zeros(1, nPer);
+numOfObs = zeros(1, nPer);
 
 status = 'ok';
 
@@ -241,9 +241,9 @@ for t = 2 : nPer
         
         if isEst
             Mxt = Mx.';
-            if opt.objfunc==1
+            if opt.ObjFunc==1
                 MtFi = Mxt/Fx;
-            elseif opt.objfunc==2
+            elseif opt.ObjFunc==2
                 W = opt.weighting(xy, xy);
                 MtFi = Mxt*W;
             else
@@ -255,12 +255,12 @@ for t = 2 : nPer
         
         % Compute components of the objective function if this period is included
         % in the user specified objective range.
-        nObs(1, t) = sum(double(xy));
-        if opt.objfunc==1
+        numOfObs(1, t) = sum(double(xy));
+        if opt.ObjFunc==1
             % Likelihood function.
             peFipe(1, t) = (pex.'/Fx)*pex;
             logdetF(1, t) = log(det(Fx));
-        elseif opt.objfunc==2
+        elseif opt.ObjFunc==2
             % Weighted sum of prediction errors.
             W = opt.weighting(xy, xy);
             peFipe(1, t) = pex.'*W*pex;
@@ -284,8 +284,7 @@ switch status
     otherwise % status=='ok'
         % Evaluate common variance scalar, out-of-lik parameters, fixed init
         % conditions, and concentrated likelihood function.
-        [obj, V, est, Pest] = ...
-            kalman.oolik(logdetF, peFipe, MtFiM, MtFipe, nObs, opt);
+        [obj, V, est, Pest] = kalman.oolik(logdetF, peFipe, MtFiM, MtFipe, numOfObs, opt);
 end
 
 % Store estimates of out-of-lik parameters, `delta`, cov matrix of
@@ -319,7 +318,7 @@ return
         if s.storePredict
             storePredict( );
         end
-    end
+    end%
 
     
     
@@ -364,7 +363,7 @@ return
         if isEst && s.retCont
             s.MtFi(:, xy, t) = MtFi;
         end
-    end
+    end%
 
     
     
@@ -418,5 +417,5 @@ return
                 Mx = zeros(0, nPOut+nInit);
             end
         end
-    end
-end
+    end%
+end%

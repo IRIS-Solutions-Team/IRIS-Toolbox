@@ -12,7 +12,7 @@ function s = initialize(s, iLoop, opt)
 nUnit = s.NUnit;
 nb = s.nb;
 ne = s.ne;
-ixStable = [false(1, nUnit), true(1, nb-nUnit)];
+inxOfStable = [false(1, nUnit), true(1, nb-nUnit)];
 
 s.InitMean = getInitMean( );
 s.InitMse = getInitMse( );
@@ -40,7 +40,7 @@ return
             % the unstable part is kept at zero initially.
             I = eye(nb - nUnit);
             a1 = zeros(nUnit, 1);
-            a2 = (I - s.Ta(ixStable, ixStable)) \ s.ka(ixStable, 1);
+            a2 = (I - s.Ta(inxOfStable, inxOfStable)) \ s.ka(inxOfStable, 1);
             a0 = [a1; a2];
         end
         if nUnit>0 && isnumeric(opt.InitUnitRoot)
@@ -74,27 +74,27 @@ return
             end
             return
         end
-        if any(ixStable)
+        if any(inxOfStable)
             % R matrix with rows corresponding to stable Alpha and columns
             % corresponding to transition shocks.
             RR = s.Ra(:, 1:ne);
-            RR = RR(ixStable, s.InxET);
+            RR = RR(inxOfStable, s.InxOfET);
             % Reduced form covariance corresponding to stable alpha. Use the structural
             % shock covariance sub-matrix corresponding to transition shocks only in
             % the pre-sample period.
-            Sa = RR*s.Omg(s.InxET, s.InxET, 1)*RR.';
+            Sa = RR*s.Omg(s.InxOfET, s.InxOfET, 1)*RR.';
             % Compute asymptotic initial condition.
-            if sum(ixStable)==1
-                Pa0stable = Sa / (1 - s.Ta(ixStable, ixStable).^2);
+            if sum(inxOfStable)==1
+                Pa0stable = Sa / (1 - s.Ta(inxOfStable, inxOfStable).^2);
             else
                 Pa0stable = ...
-                    covfun.lyapunov(s.Ta(ixStable, ixStable),Sa);
+                    covfun.lyapunov(s.Ta(inxOfStable, inxOfStable),Sa);
                 Pa0stable = (Pa0stable + Pa0stable')/2;
             end
-            Pa0(ixStable, ixStable) = Pa0stable;
+            Pa0(inxOfStable, inxOfStable) = Pa0stable;
         end
         if strcmpi(opt.InitUnitRoot, 'ApproxDiffuse')
-            if any(ixStable)
+            if any(inxOfStable)
                 diagStable = diag(Pa0stable);
                 maxVar = max(diagStable(:)); % Largest stable variance.
             elseif ~isempty(s.Omg)
@@ -103,7 +103,7 @@ return
             else
                 maxVar = 1;
             end
-            Pa0(~ixStable, ~ixStable) = eye(nUnit) * maxVar * s.DIFFUSE_SCALE;
+            Pa0(~inxOfStable, ~inxOfStable) = eye(nUnit) * maxVar * s.DIFFUSE_SCALE;
         end
     end
 

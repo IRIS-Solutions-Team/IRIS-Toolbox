@@ -12,33 +12,33 @@ TYPE = @int8;
 persistent parserTimeDomain parserFreqDomain
 if isempty(parserTimeDomain)
     parserTimeDomain = extend.InputParser('model.prepareLoglik');
-    parserTimeDomain.addParameter('ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
+    parserTimeDomain.addParameter('Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
     parserTimeDomain.addParameter('chkexact', false, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter('chkfmse', false, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter('condition', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || islogical(x));
     parserTimeDomain.addParameter('fmsecondtol', eps( ), @(x) isnumeric(x) && isscalar(x) && x>0 && x<1);
-    parserTimeDomain.addParameter({'returncont', 'contributions'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter({'ReturnCont', 'Contributions'}, false, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter('Rolling', false, @(x) isequal(x, false) || isa(x, 'DateWrapper'));
     parserTimeDomain.addParameter({'Init', 'InitCond'}, 'Steady', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'Asymptotic', 'Stochastic', 'Steady', 'Fixed'}))));
     parserTimeDomain.addParameter({'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'FixedUnknown', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'}))));
     parserTimeDomain.addParameter('lastsmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
     parserTimeDomain.addParameter('outoflik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     parserTimeDomain.addParameter('objdecomp', false, @(x) isequal(x, true) || isequal(x, false));
-    parserTimeDomain.addParameter({'objfunc', 'objective'}, 'loglik', @(x) ischar(x) && any(strcmpi(x, {'loglik', 'mloglik', '-loglik', 'prederr'})));
+    parserTimeDomain.addParameter({'ObjFunc', 'objective'}, 'loglik', @(x) ischar(x) && any(strcmpi(x, {'loglik', 'mloglik', '-loglik', 'prederr'})));
     parserTimeDomain.addParameter({'objrange', 'objectivesample'}, @all, @(x) isnumeric(x) || isequal(x, @all));
     parserTimeDomain.addParameter('pedindonly', false, @(x) isequal(x, true) || isequal(x, false));
-    parserTimeDomain.addParameter({'plan', 'Scenario'}, [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x));
+    parserTimeDomain.addParameter({'Plan', 'Scenario'}, [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x));
     parserTimeDomain.addParameter('progress', false, @(x) isequal(x, true) || isequal(x, false));
-    parserTimeDomain.addParameter('relative', true, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('Relative', true, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter({'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || isstruct(x));
     parserTimeDomain.addParameter('simulate', false, @(x) isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
     parserTimeDomain.addParameter('symmetric', true, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter('tolerance', eps( )^(2/3), @isnumeric);
     parserTimeDomain.addParameter('tolmse', 0, @(x) (isnumeric(x) && isscalar(x)) || (ischar(x) && strcmpi(x, 'auto')));
     parserTimeDomain.addParameter('weighting', [ ], @isnumeric);
-    parserTimeDomain.addParameter('meanonly', false, @(x) isequal(x, true) || isequal(x, false));
-    parserTimeDomain.addParameter('returnstd', true, @(x) isequal(x, true) || isequal(x, false));
-    parserTimeDomain.addParameter('returnmse', true, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('MeanOnly', false, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('ReturnStd', true, @(x) isequal(x, true) || isequal(x, false));
+    parserTimeDomain.addParameter('ReturnMSE', true, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addDeviationOptions(false);
 end  
 if isempty(parserFreqDomain)
@@ -140,10 +140,10 @@ end
 
 % Objective function.
 if likOpt.domain=='t'
-    switch lower(likOpt.objfunc)
+    switch lower(likOpt.ObjFunc)
         case {'prederr'}
             % Weighted prediction errors.
-            likOpt.objfunc = 2;
+            likOpt.ObjFunc = 2;
             if isempty(likOpt.weighting)
                 likOpt.weighting = sparse(eye(ny));
             elseif numel(likOpt.weighting)==1
@@ -159,11 +159,11 @@ if likOpt.domain=='t'
             end
         case {'loglik', 'mloglik', '-loglik'}
             % Minus log likelihood.
-            likOpt.objfunc = 1;
+            likOpt.ObjFunc = 1;
         otherwise
             utils.error('model:prepareLoglik', ...
                 'Unknown objective function: ''%s''.', ...
-                likOpt.objfunc);
+                likOpt.ObjFunc);
     end
 end
 
