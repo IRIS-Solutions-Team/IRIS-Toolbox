@@ -9,18 +9,18 @@ function blz = prepareBlazer(this, kind, numPeriods, varargin)
 
 TYPE = @int8;
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.prepareBlazer');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('Kind', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
-    inputParser.addRequired('NumPeriods', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=0);
-    inputParser.addParameter('Blocks', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addSwapOptions( );
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.prepareBlazer');
+    parser.KeepUnmatched = true;
+    parser.addRequired('Model', @(x) isa(x, 'model'));
+    parser.addRequired('Kind', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
+    parser.addRequired('NumPeriods', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=0);
+    parser.addParameter('Blocks', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addSwapOptions( );
 end
-inputParser.parse(this, kind, numPeriods, varargin{:});
-opt = inputParser.Options;
+parser.parse(this, kind, numPeriods, varargin{:});
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
@@ -69,9 +69,9 @@ end
 blz.Quantity = this.Quantity;
 blz.NumPeriods = numPeriods;
 
-% Change log status of variables.
+% Change log status of variables
 if isfield(opt, 'Unlog') && ~isempty(opt.Unlog)
-    this.Quantity = chgLogStatus(this.Quantity, opt.Unlog, false);
+    this.Quantity = changeLogStatus(this.Quantity, opt.Unlog, false);
 end
 blz.IxLog = this.Quantity.IxLog;
 

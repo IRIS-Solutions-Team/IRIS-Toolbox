@@ -1,11 +1,11 @@
 function flag = chkConsistency(pai, qty, eqn)
-% chkConsistency  Check consistency of model.component.Pairing objects.
+% chkConsistency  Check consistency of model.component.Pairing objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ return
             | qty.Type(ix)==TYPE(2) );
         ptr = abs( pai.Autoexog.Steady(ix) );
         flag = flag && all( qty.Type(ptr)==TYPE(4) );
-    end
+    end%
 
 
 
@@ -43,7 +43,7 @@ return
         ptr = abs( pai.Autoexog.Dynamic(ixPtr) );
         flag = flag && all( qty.Type(ptr)==TYPE(31) ...
             | qty.Type(ptr)==TYPE(32) );
-    end
+    end%
 
 
 
@@ -71,7 +71,7 @@ return
                 return
             end
         end
-    end
+    end%
 
 
 
@@ -88,5 +88,5 @@ return
                 return
             end
         end
-    end
-end
+    end%
+end%

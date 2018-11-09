@@ -28,8 +28,8 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
     
     
     methods
-        varargout = chgLogStatus(varargin)
-        varargout = chkConsistency(varargin)
+        varargout = changeLogStatus(varargin)
+        varargout = checkConsistency(varargin)
         varargout = createTemplateDbase(varargin)
         varargout = getCorrNames(varargin)
         varargout = getLabelOrName(varargin)
