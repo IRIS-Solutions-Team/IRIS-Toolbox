@@ -80,8 +80,10 @@ end
 
 % Make sure measurement errors have zeros in transition equations and vice
 % versa
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-inxTE = this.Quantity.Type(ixe)==TYPE(31);
-inxME = this.Quantity.Type(ixe)==TYPE(32);
+if nargout>=11
+    ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+    inxTE = this.Quantity.Type(ixe)==TYPE(31);
+    inxME = this.Quantity.Type(ixe)==TYPE(32);
+end
 
 end%
