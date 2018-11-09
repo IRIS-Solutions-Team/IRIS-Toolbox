@@ -138,6 +138,7 @@
 classdef (InferiorClasses={?table, ?timetable}) model ...
     < shared.GetterSetter & shared.UserDataContainer & shared.Estimation ...
       & shared.LoadObjectAsStructWrapper & model.Data
+
     properties (GetAccess=public, SetAccess=protected, Hidden)
         FileName = '' % File name of source model file
         IsLinear = false % True for linear models
@@ -153,10 +154,8 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         Equation = model.component.Equation( ) % Equations, dtrends, links, revisions
        
         % Incidence  Incidence matrices for dynamic and steady equations
-        Incidence = struct( ...
-            'Dynamic', model.component.Incidence( ), ...
-            'Steady',  model.component.Incidence( ) ...
-        ) 
+        Incidence = struct( 'Dynamic', model.component.Incidence( ), ...
+                            'Steady',  model.component.Incidence( ) ) 
 
         % Link  Dynamic links
         Link = model.component.Link( ) 
@@ -170,6 +169,9 @@ classdef (InferiorClasses={?table, ?timetable}) model ...
         % PreparserControl  Preparser control parameters
         PreparserControl = struct( ) 
         
+        % Substitutions  Struct with substitution names and bodies
+        Substitutions = struct( )
+
         % Vector  Vectors of variables in rows of system and solution matrices
         Vector = model.component.Vector( ) 
         

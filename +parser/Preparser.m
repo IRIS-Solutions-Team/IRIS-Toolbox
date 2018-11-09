@@ -9,6 +9,7 @@ classdef Preparser < model.File
         EvalWarning = parser.Preparser.EVAL_WARNING % List of if/elseif/switch/case conditions/expressions producing errors
         
         StoreForCtrl = cell.empty(0, 2) % Store !for control variable replacements
+        StoreSubstitutions = struct( ) % Store substitution names and bodies
     end
     
     
@@ -18,18 +19,14 @@ classdef Preparser < model.File
         EVAL_DBASE_PREFIX = 'varargin{2}.'
         EVAL_TEMP_PREFIX = '?.'
         
-        EVAL_WARNING = struct( ...
-            'If',{{ }}, ...
-            'Switch',{{ }}, ...
-            'Case',{{ }} ...
-        )
+        EVAL_WARNING = struct( 'If',{{ }}, ...
+                               'Switch',{{ }}, ...
+                               'Case',{{ }} )
         
         CODE_SEPARATOR = sprintf('\n\n');
         FILE_NAME_SEPARATOR = ' & ';
-        OBSOLETE_SYNTAX = {
-            '\$\[', '<'
-            '\]\$', '>'
-        };
+        OBSOLETE_SYNTAX = { '\$\[', '<'
+                            '\]\$', '>' }
     end
     
     
@@ -56,11 +53,11 @@ classdef Preparser < model.File
                     this(i).Code = modelFile(i).Code;
                 end
             else
-                % Input code from input string(s) (char or cellstr).
+                % Input code from input string(s) (char or cellstr)
                 inpCode = cellstr(inpCode);
                 for i = 1 : numel(inpCode)
                     % Because Preparser is a handle class we need to create separate instances for
-                    % each file name inside the for loop.
+                    % each file name inside the for loop
                     this(i) = parser.Preparser( ); %#ok<AGROW>
                     this(i).Code = inpCode{i}; %#ok<AGROW>
                 end
@@ -101,7 +98,7 @@ classdef Preparser < model.File
                 end
                 throwEvalWarning(p);
             end     
-            % Reset parsed file name.
+            % Reset parsed file name
             exception.ParseTime.storeFileName( );            
         end%
         
@@ -164,22 +161,16 @@ classdef Preparser < model.File
         
         function throwEvalWarning(this)
             if ~isempty(this.EvalWarning.If)
-                throwCode( ...
-                    exception.ParseTime('Preparser:CTRL_EVAL_IF_FAILED', 'warning'), ...
-                    this.EvalWarning.If{:} ...
-                    );
+                throwCode( exception.ParseTime('Preparser:CTRL_EVAL_IF_FAILED', 'warning'), ...
+                           this.EvalWarning.If{:} );
             end
             if ~isempty(this.EvalWarning.Switch)
-                throwCode( ...
-                    exception.ParseTime('Preparser:CTRL_EVAL_SWITCH_FAILED', 'warning'), ...
-                    this.EvalWarning.Switch{:} ...
-                    );
+                throwCode( exception.ParseTime('Preparser:CTRL_EVAL_SWITCH_FAILED', 'warning'), ...
+                           this.EvalWarning.Switch{:} );
             end
             if ~isempty(this.EvalWarning.Case)
-                throwCode( ...
-                    exception.ParseTime('Preparser:CTRL_EVAL_CASE_FAILED', 'warning'), ...
-                    this.EvalWarning.Case{:} ...
-                    );
+                throwCode( exception.ParseTime('Preparser:CTRL_EVAL_CASE_FAILED', 'warning'), ...
+                           this.EvalWarning.Case{:} );
             end
         end%
         
@@ -216,6 +207,17 @@ classdef Preparser < model.File
                 this.Code = regexprep(this.Code, old, new); 
             end
         end%
+
+
+        function substitutions = mergeSubstitutions(this)
+            substitutions = struct( );
+            for i = 1 : numel(this)
+                list = fieldnames(this(i).StoreSubstitutions);
+                for j = 1 : numel(list)
+                    substitutions.(list{j}) = this(i).StoreSubstitutions.(list{j});
+                end
+            end
+        end%
     end
     
     
@@ -224,7 +226,8 @@ classdef Preparser < model.File
                    fileName, ...
                    export, ...
                    ctrlParameters, ...
-                   userComment ] = parse(modelFile, inpCode, varargin)
+                   userComment, ...
+                   substitutions ] = parse(modelFile, inpCode, varargin)
 
             import parser.Preparser
 
@@ -243,19 +246,21 @@ classdef Preparser < model.File
             cloneString = inputParser.Results.CloneString;
             
             this = parser.Preparser(modelFile, inpCode, assigned, cloneString);
-            % Combine file names.
+            % Combine file names
             fileName = getFileName(this); 
-            % Compose final code.
+            % Compose final code
             finalCut = createFinalCut(this);
-            % Apply preparsing commands to the final cut.
+            % Apply preparsing commands to the final cut
             finalCut = applyFinalCutCommands(this, finalCut);
-            % Return list of control parameters.
+            % Return list of control parameters
             ctrlParameters = unique( [ this(:).CtrlParameters ] );
-            % Merge all exported files.
+            % Merge all exported files
             export = [ this(:).Export ];
-            % First-line comment from the first file.
+            % First-line comment from the first file
             userComment = this(1).UserComment;
-            % Save preparsed code to disk file if requested.
+            % Return database of substitutions
+            substitutions = mergeSubstitutions(this);
+            % Save preparsed code to disk file if requested
             if ~isempty(saveAs)
                 Preparser.saveAs(finalCut, saveAs);
             end
@@ -287,10 +292,9 @@ classdef Preparser < model.File
             shadowExpn = strrep(shadowExpn, '!', '');
             lsAssigned = fieldnames(assigned);
             lsAssigned = lsAssigned(:).';
-            lsExpn = regexp( ...
-                shadowExpn, ...
-                '(?<!\.)\<[a-zA-Z]\w*\>(?![\(\.])', ...
-                'match');
+            lsExpn = regexp( shadowExpn, ...
+                             '(?<!\.)\<[a-zA-Z]\w*\>(?![\(\.])', ...
+                             'match' );
             ixControl = false(size(lsAssigned));
             for i = 1 : length(lsExpn)
                 name = lsExpn{i};

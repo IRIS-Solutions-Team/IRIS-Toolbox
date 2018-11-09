@@ -225,6 +225,10 @@ else
         case {'preparser', 'preparsercontrol', 'pset'}
             answ = this.PreparserControl;
 
+
+        case {'substitutions'}
+            answ = this.Substitutions;
+
             
         case 'steady'
             answ = cell2DbaseFunc(steadyLevel+1i*steadyGrowth);

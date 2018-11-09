@@ -1,18 +1,16 @@
 classdef Substitution < handle
     properties
-        Block % Substitution definition blocks.
-        Name % List of substitution names.
-        Body % Liest of substitution bodie.
-        Code % Code with substition blocks removed.
+        Block = cell.empty(1, 0) % Substitution definition blocks
+        Name = cell.empty(1, 0)  % Substitution names
+        Body = cell.empty(1, 0)  % Substitution bodies
+        Code = cell.empty(1, 0)  % Code with substition blocks removed
     end
     
     
     
     properties (Constant)
-        SUBSTITUTION_PATTERN = [ ...
-            parser.substitution.Keyword.SUBSTITUTION, ...
-            '(.*?)(?=![a-zA-Z]|$)', ...
-            ];
+        SUBSTITUTION_PATTERN = [ parser.substitution.Keyword.SUBSTITUTION, ...
+                                 '(.*?)(?=![a-zA-Z]|$)' ];
         NAME_BODY_PATTERN = '(\<[a-zA-Z]\w*\>)\s*:?\s*=\s*([^;]*)\s*;';
     end
     
@@ -28,32 +26,30 @@ classdef Substitution < handle
             readBlock(this);
             readNameBody(this);
             chkUnique(this);
-        end
+        end%
         
         
         
         
         function readBlock(this)
             import parser.substitution.Substitution;
-            block = { };
+            block = cell.empty(1, 0);
             % Read the blocks one by one to preserve their order in the
             % model code. Remove the substitution blocks from the code.
             c = this.Code;
             while true
-                [tok,start,finish] = regexp( ...
-                    c, ...
-                    Substitution.SUBSTITUTION_PATTERN, ...
-                    'tokens','start','end','once' ...
-                    );
+                [tok,start,finish] = regexp( c, ...
+                                             Substitution.SUBSTITUTION_PATTERN, ...
+                                             'tokens','start','end','once' );
                 if isempty(start)
                     break
                 end
-                block{end+1} = strtrim(tok{1}); %#ok<AGROW>
+                block{1, end+1} = strtrim(tok{1}); %#ok<AGROW>
                 c(start:finish) = '';
             end
             this.Code = c;
             this.Block = block;
-        end
+        end%
         
         
         
@@ -61,49 +57,46 @@ classdef Substitution < handle
         function readNameBody(this)
             % Read substitution names and bodies; do block by block to preserve their
             % order.
-            name = { };
-            body = { };
-            leftover = { };
+            name = cell.empty(1, 0);
+            body = cell.empty(1, 0);
+            leftover = cell.empty(1, 0);
             for i = 1 : length(this.Block)
                 b = this.Block{i};
                 while true
-                    [tkn, from, to] = ...
-                        regexp(b, this.NAME_BODY_PATTERN, ...
-                        'tokens', 'start', 'end', 'once');
+                    [tkn, from, to] = regexp( b, this.NAME_BODY_PATTERN, ...
+                                              'tokens', 'start', 'end', 'once' );
                     if isempty(from)
                         break
                     end
-                    name{end+1} = tkn{1}; %#ok<AGROW>
-                    body{end+1} = tkn{2}; %#ok<AGROW>
+                    name{1, end+1} = tkn{1}; %#ok<AGROW>
+                    body{1, end+1} = tkn{2}; %#ok<AGROW>
                     b(from:to) = '';
                 end
                 b = strtrim(b);
                 if ~isempty(b)
-                    leftover{end+1} = b; %#ok<AGROW>
+                    leftover{1, end+1} = b; %#ok<AGROW>
                 end
             end
             if ~isempty(leftover)
-                throwCode( ...
-                    exception.ParseTime('Preparser:SUBS_LEFTOVER', 'error'), ...
-                    leftover{:} );
+                throwCode( exception.ParseTime('Preparser:SUBS_LEFTOVER', 'error'), ...
+                           leftover{:} );
             end
             this.Name = name;
             this.Body = body;
-        end
-        
-        
-        
+        end% 
+
+
+
         
         function chkUnique(this)
             [~,pos] = unique(this.Name);
             nName = length(this.Name);
             if length(pos)~=nName
                 pos = unique(setdiff(1:nName,pos));
-                throw( ...
-                    exception.ParseTime('Preparser:SUBS_NAME_MULTIPLE', 'error'), ...
-                    this.Name{pos} );
+                throw( exception.ParseTime('Preparser:SUBS_NAME_MULTIPLE', 'error'), ...
+                       this.Name{pos} );
             end
-        end
+        end%
         
         
         
@@ -128,7 +121,7 @@ classdef Substitution < handle
             end
             this.Code = c;
             chkUndefined(this);
-        end
+        end%
         
         
         
@@ -137,22 +130,22 @@ classdef Substitution < handle
             c = this.Code;
             undefined = regexp(c,'\$\<[A-Za-z]\w*\>\$','match');
             if ~isempty(undefined)
-                throw( ...
-                    exception.ParseTime('Preparser:SUBS_UNDEFINED', 'error'), ...
-                    undefined{:} );
+                throw( exception.ParseTime('Preparser:SUBS_UNDEFINED', 'error'), ...
+                       undefined{:} );
             end
-        end
+        end%
     end
     
     
     
     methods (Static)
         function parse(p)
-            import parser.substitution.*;
+            import parser.substitution.*
             c = p.Code;
             s = Substitution(c); % Construct substitution object.
             c = writeFinal(s); % Write final code.
             p.Code = c;
-        end
+            p.StoreSubstitutions = cell2struct(s.Body, s.Name, 2);
+        end%
     end
 end
