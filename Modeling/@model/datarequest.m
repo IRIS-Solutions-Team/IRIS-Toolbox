@@ -1,11 +1,11 @@
 function varargout = datarequest(req, this, data, range, whichSet, expandMethod)
-% datarequest  Request model specific data from database.
+% datarequest  Request model specific data from database
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %#ok<*CTCH>
 %#ok<*VUNUS>
@@ -17,11 +17,11 @@ try, expandMethod; catch, expandMethod = 'RepeatLast'; end %#ok<NOCOM>
 
 %--------------------------------------------------------------------------
 
-[ny, nxx, nb, nf] = sizeOfSolution(this.Vector);
-nz = nnz(this.Quantity.IxObserved);
+[ny, nxi, nb, nf, ~, ~, nz] = sizeOfSolution(this);
 nv = length(this);
+range = double(range);
 range = range(1) : range(end);
-nPer = length(range);
+numOfPeriods = length(range);
 
 if isempty(data)
     data = struct( );
@@ -260,7 +260,7 @@ return
 
     
     function z = assembleZData( )
-        % Transition variables marked for measurement.
+        % Transition variables marked for measurement
         if ~isempty(dMean)
             ixz = this.Quantity.IxObserved;
             sw = struct( );
@@ -271,7 +271,7 @@ return
             z = db2array(dMean, this.Quantity.Name(ixz), range, sw);
             z = permute(z, [2, 1, 3]);
         end
-    end
+    end%
 
     
     function E = assembleEData( )
@@ -316,10 +316,10 @@ return
                 gxq = db2array(dMean, lsgxq, range, sw);
                 gxq = permute(gxq, [2, 1, 3]);
             else
-                gxq = nan(ngxq, nPer);
+                gxq = nan(ngxq, numOfPeriods);
             end
             size3d = size(gxq, 3); 
-            g = nan(ng, nPer, size3d);
+            g = nan(ng, numOfPeriods, size3d);
             g(posgxq, :, :) = gxq;
             g(posq, :, :) = repmat(ttrend, 1, 1, size3d);
         else
@@ -344,7 +344,7 @@ return
             sw.ExpandMethod = expandMethod;
             x = db2array(dMean, this.Quantity.Name(realId), range, sw);
             x = permute(x, [2, 1, 3]);
-            X = nan(nxx, size(x, 2), size(x, 3));
+            X = nan(nxi, size(x, 2), size(x, 3));
             X(currentInx, :, :) = x;
         end
     end

@@ -21,12 +21,14 @@ function [obj, regOutp, hData] = kalmanFilter(this, inp, hData, opt, varargin)
 
 TYPE = @int8;
 MSE_TOLERANCE = this.Tolerance.Mse;
+EIGEN_TOLERANCE = this.Tolerance.Eigen;
+DIFFUSE_SCALE = 1e8;
 
-[ny, nxx, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
-nz = nnz(this.Quantity.IxObserved);
+[ny, nxx, nb, nf, ne, ng, nz] = sizeOfSolution(this);
 if nz>0
     ny = nz;
 end
+
 nv = length(this);
 numOfDataSets = size(inp, 3);
 
@@ -37,8 +39,8 @@ end
 %--------------------------------------------------------------------------
 
 s = struct( );
-s.EIGEN_TOLERANCE = this.Tolerance.Eigen;
-s.DIFFUSE_SCALE = 1e8;
+s.EIGEN_TOLERANCE = EIGEN_TOLERANCE;
+s.DIFFUSE_SCALE = DIFFUSE_SCALE;
 s.Ahead = opt.Ahead;
 s.IsObjOnly = nargout<=1;
 s.ObjFunPenalty = this.OBJ_FUNC_PENALTY;
@@ -153,7 +155,7 @@ for iLoop = 1 : nLoop
     if iLoop<=nv
         [T, R, k, s.Z, s.H, s.d, s.U, ~, Zb, ~, s.InxOfEM, s.InxOfET] = sspaceMatrices(this, v);
         if nz>0
-            % Transition variables marked for measurement.
+            % Transition variables marked for measurement
             s.Z = Zb*s.U;
             s.H = zeros(nz, ne);
             s.d = zeros(nz, 1);
