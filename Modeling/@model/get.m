@@ -95,6 +95,9 @@ function varargout = get(this, varargin)
 % deviations and cross-correlation coefficients for the shocks in order of
 % the appearance of the corresponding shocks in the model code.
 %
+% * `'Substitutions'` - Returns [ struct ] a struct with the names and
+% bodies of substitutions defined in the source model file(s).
+%
 %
 % _Equations_
 %

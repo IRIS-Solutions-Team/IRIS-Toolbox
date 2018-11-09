@@ -1,23 +1,23 @@
-function [dmc, C] = dbminuscontrol(varargin)
-% dbminuscontrol  Create simulation-minus-control database.
+function [dmc, controlData] = dbminuscontrol(varargin)
+% dbminuscontrol  Create simulation-minus-control database
 %
 %
 % Syntax
 % =======
 %
-%    [D, C] = dbminuscontrol(M, D)
-%    [D, C] = dbminuscontrol(M, D, C)
+%    [inputData, controlData] = dbminuscontrol(M, inputData)
+%    [inputData, controlData] = dbminuscontrol(M, inputData, controlData)
 %
 %
 % Input arguments
 % ================
 %
-% * `M` [ model ] - Model object on which the databases `D` and `C` are
+% * `M` [ model ] - Model object on which the databases `inputData` and `controlData` are
 % based.
 %
-% * `D` [ struct ] - Simulation database.
+% * `inputData` [ struct ] - Simulation database.
 %
-% * `C` [ struct ] - Control database; if the input argument `C` is
+% * `controlData` [ struct ] - Control database; if the input argument `controlData` is
 % omitted the steady-state database of the model `M` is used for the
 % control database.
 %
@@ -25,10 +25,10 @@ function [dmc, C] = dbminuscontrol(varargin)
 % Output arguments
 % =================
 %
-% * `D` [ struct ] - Simulation-minus-control database, in which all
+% * `inputData` [ struct ] - Simulation-minus-control database, in which all
 % log variables are `d.x/c.x`, and all other variables are `d.x-c.x`.
 %
-% * `C` [ struct ] - Control database.
+% * `controlData` [ struct ] - Control database.
 %
 %
 % Options
@@ -71,25 +71,25 @@ function [dmc, C] = dbminuscontrol(varargin)
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-[This, D, C, varargin] = irisinp.parser.parse('dbase.dbminuscontrol', varargin{:});
+[this, inputData, controlData, varargin] = irisinp.parser.parse('dbase.dbminuscontrol', varargin{:});
 opt = passvalopt('dbase.dbminuscontrol', varargin{:});
 
 %--------------------------------------------------------------------------
 
-list = [get(This, 'YList'), get(This, 'XList'), get(This, 'EList')];
-isLog = get(This, 'IsLog');
+list = [get(this, 'YList'), get(this, 'XList'), get(this, 'EList')];
+isLog = get(this, 'IsLog');
 
-if isempty(C)
-    range = dbrange(D, list, ...
+if isempty(controlData)
+    range = dbrange(inputData, list, ...
         'StartDate=', 'MaxRange', 'EndDate=', 'MaxRange');
-    C = sstatedb(This, range);
+    controlData = sstatedb(this, range);
 end
 
-dmc = D;
+dmc = inputData;
 ixKeep = true(size(list));
 for i = 1 : length(list)
     name = list{i};
-    if isfield(D, name) && isfield(C, name)
+    if isfield(inputData, name) && isfield(controlData, name)
         if isLog.(name)
             func = @rdivide;
         else
@@ -97,9 +97,9 @@ for i = 1 : length(list)
         end
         try
             dmc.(name) = bsxfun( func, ...
-                                 real(D.(name)), ...
-                                 real(C.(name)) );
-            dmc.(name) = comment(dmc.(name), D.(name));
+                                 real(inputData.(name)), ...
+                                 real(controlData.(name)) );
+            dmc.(name) = comment(dmc.(name), inputData.(name));
         catch %#ok<CTCH>
             ixKeep(i) = false;
         end
@@ -112,4 +112,4 @@ if opt.fresh && any(~ixKeep)
     dmc = rmfield(dmc, list(~ixKeep));
 end
 
-end
+end%

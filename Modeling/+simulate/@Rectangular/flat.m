@@ -34,8 +34,9 @@ if ne>0
     requiredForward = lastExpectedShock - firstColumn;
 end
 
+% Nonlinear addfactors
 lastNlaf = 0;
-nlafExist = ~isempty(Y) && ~isempty(nlaf) && any(nlaf(:)~=0)
+nlafExist = ~isempty(Y) && ~isempty(nlaf) && any(nlaf(:)~=0);
 if nlafExist
     lastNlaf = find(any(nlaf~=0, 1), 1, 'last');
     if isempty(lastNlaf)

@@ -8,11 +8,9 @@ classdef Steady < solver.block.Block
     methods
         function this = Steady(varargin)
             this = this@solver.block.Block(varargin{:});
-            this.D = struct( ...
-                'Level', [ ], ...
-                'Growth0', [ ], ...
-                'GrowthK', [ ] ...
-            );
+            this.D = struct( 'Level', [ ], ...
+                             'Growth0', [ ], ...
+                             'GrowthK', [ ] );
         end
         
         
@@ -142,10 +140,10 @@ classdef Steady < solver.block.Block
                 lx(posl) = z(1:nl);
                 gx(posg) = z(nl+1:end);
                 
-                % Refresh all dynamic links in each iteration if needed.
+                % Refresh all dynamic links in each iteration if needed
                 if needsRefresh
                     temp = lx + 1i*gx;
-                    temp = refresh(lnk, temp);
+                    temp = refresh(lnk, temp(:));
                     lx = real(temp);
                     gx = imag(temp);
                     gx(ixLog & gx==0) = 1;

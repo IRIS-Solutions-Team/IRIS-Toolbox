@@ -67,15 +67,15 @@ else
     ss = struct([ ]);
 end
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('dbase/dbeval');
-    inputParser.addRequired('InputDatabank', @(x) isstruct(x) || isa(x, 'model'));
-    inputParser.addOptional('Steady', [ ], @(x) isempty(x) || isstruct(x) || isa(x, 'model'));
-    inputParser.addOptional('Expression', [ ], @(x) isempty(x) || iscellstr(x{1}) || iscellstr(x) || isa(x, 'string'));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dbase/dbeval');
+    parser.addRequired('InputDatabank', @(x) isstruct(x) || isa(x, 'model'));
+    parser.addOptional('Steady', [ ], @(x) isempty(x) || isstruct(x) || isa(x, 'model'));
+    parser.addOptional('Expression', [ ], @(x) isempty(x) || iscellstr(x{1}) || iscellstr(x) || isa(x, 'string'));
 end
-inputParser.parse(d, ss, varargin);
-exn = inputParser.Results.Expression;
+parser.parse(d, ss, varargin);
+exn = parser.Results.Expression;
 
 if isempty(exn)
     return

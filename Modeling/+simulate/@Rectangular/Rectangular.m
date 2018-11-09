@@ -25,6 +25,7 @@ classdef Rectangular < handle
         NumOfBackward
         NumOfShocks
         NumOfExogenous
+        NumOfHashEquations
         LenOfExpansion
         IdOfBackward
         InxOfCurrent
@@ -113,7 +114,7 @@ classdef Rectangular < handle
                 variantRequested = 1;
             end
             this = simulate.Rectangular( );
-            update(this, model variantRequested);
+            update(this, model, variantRequested);
             numOfQuantities = getp(model, 'Quantity', 'NumOfQuantities');
             this.InxOfLog = getp(model, 'Quantity', 'IxLog');
             solutionVector = getp(model, 'Vector', 'Solution');
