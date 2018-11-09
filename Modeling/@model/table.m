@@ -25,6 +25,9 @@ function outputTable = table(this, requests, varargin)
 % be printed on the screen in the command window, and captured in a text
 % file under this file name.
 %
+% * `Round=Inf` [ `Inf` | numeric ] - Round numeric entries in the table to
+% the specified number of digits; `Inf` means no rounding.
+%
 % * `WriteTable=''` [ char | string ] - If not empty, the table will be
 % exported to a text or spreadsheet file (depending on the file extension
 % provided) under this file name using the standard `writetable( )`
@@ -127,6 +130,7 @@ if isempty(parser)
     parser.addRequired('Model', @(x) isa(x, 'model'));
     parser.addRequired('Request', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     parser.addParameter('Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter('Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
     parser.addParameter('WriteTable', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
 parser.parse(this, requests, varargin{:});
@@ -307,9 +311,14 @@ if any(strcmp(outputTable.Properties.VariableNames, 'Name'))
     outputTable = removevars(outputTable, 'Name');
 end
 
+% Round numeric entries
+if ~isinf(opt.Round)
+    outputTable = roundTable(outputTable, opt.Round);
+end
+
 % Write table to text or spreadsheet file
 if ~isempty(opt.WriteTable)
-    writeRowNames = isempty(outputTable.Properties.RowNames);
+    writeRowNames = ~isempty(outputTable.Properties.RowNames);
     writetable(outputTable, opt.WriteTable, 'WriteRowNames', writeRowNames);
 end
 
@@ -414,4 +423,20 @@ function addTable = tableCorr(this, compare, nonzero)
         addTable = table( names, values, ...
                           'VariableNames', {'Names', 'CorrValues'} );
 end%
+
+
+function outputTable = roundTable(outputTable, decimals)
+    list = outputTable.Properties.VariableNames;
+    for i = 1 : numel(list)
+        name = list{i};
+        x = outputTable.(name);
+        if ~isnumeric(x)
+            continue
+        end
+        x = round(x, decimals);
+        outputTable.(name) = x;
+    end
+end%
+
+
 
