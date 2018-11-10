@@ -20,8 +20,8 @@ if nargout>1
     if isequal(howToCreateL, Inf)
         L = YXEPG(posyx, :, :);
     else
-        indexOfTimeTrend = strcmp(this.Quantity.Name, model.RESERVED_NAME_TTREND);
-        timeTrend = YXEPG(indexOfTimeTrend, :, 1);
+        inxOfTimeTrend = strcmp(this.Quantity.Name, model.RESERVED_NAME_TTREND);
+        timeTrend = YXEPG(inxOfTimeTrend, :, 1);
         L = createTrendArray(this, variantsRequested, needsDelog, posyx, timeTrend);
     end
 end

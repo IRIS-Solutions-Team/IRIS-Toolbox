@@ -34,15 +34,15 @@ function legendHandle = hlegend(location, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('visual.legend');
-    inputParser.addRequired('Location', @(x) any(strcmpi(x, {'Top', 'Bottom'})));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('visual.hlegend');
+    parser.addRequired('Location', @(x) any(strcmpi(x, {'Top', 'Bottom'})));
 end
-inputParser.parse(location);
+parser.parse(location);
 
 MARGIN = 0.01;
 

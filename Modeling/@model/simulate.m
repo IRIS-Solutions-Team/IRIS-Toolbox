@@ -280,14 +280,14 @@ function [outputData, exitFlag, finalAddf, finalDcy] = simulate(this, inputData,
 TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.simulate');
-    inputParser.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
-    inputParser.addRequired('D', @isstruct);
-    inputParser.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.simulate');
+    parser.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
+    parser.addRequired('D', @isstruct);
+    parser.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
 end
-inputParser.parse(this, inputData, range);
+parser.parse(this, inputData, range);
 [opt, legacyOpt] = parseSimulateOptions(this, varargin{:});
 
 range = range(1) : range(end);
@@ -438,11 +438,9 @@ systemProperty = SystemProperty(this);
 systemProperty.Function = @simulate.linear.wrapper;
 systemProperty.MaxNumOutputs = 1;
 systemProperty.NamedReferences = cell(1, 1);
-systemProperty.NamedReferences{1} = [ ...
-    printSolutionVector(this, 'y', @Behavior), ...
-    printSolutionVector(this, 'xi', @Behavior), ...
-    printSolutionVector(this, 'e', @Behavior) ...
-];
+systemProperty.NamedReferences{1} = [ printSolutionVector(this, 'y', @Behavior), ...
+                                      printSolutionVector(this, 'xi', @Behavior), ...
+                                      printSolutionVector(this, 'e', @Behavior) ];
 
 % __Main Loop__
 for ithRun = 1 : numRuns

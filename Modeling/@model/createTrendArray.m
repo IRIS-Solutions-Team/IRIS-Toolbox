@@ -1,11 +1,11 @@
 function X = createTrendArray(this, variantsRequested, needsDelog, id, vecTime)
-% createTrendArray  Create row-oriented array with steady path for each variable.
+% createTrendArray  Create row-oriented array with steady path for each variable
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if nargin<2 || isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     variantsRequested = 1 : length(this);
@@ -27,7 +27,7 @@ end
 
 nv = length(this);
 vecTime = vecTime(:).';
-nPer = length(vecTime);
+numOfPeriods = length(vecTime);
 nId = length(id);
 numOfVariantsRequested = numel(variantsRequested);
 
@@ -36,7 +36,7 @@ imagId = imag(id);
 ixLog = this.Quantity.IxLog(realId);
 sh = bsxfun(@plus, imagId(:), vecTime(:).');
 
-X = zeros(nId, nPer, numOfVariantsRequested);
+X = zeros(nId, numOfPeriods, numOfVariantsRequested);
 for i = 1 : numOfVariantsRequested
     v = min(variantsRequested(i), nv);
     a = this.Variant.Values(1, realId, v);
@@ -50,27 +50,28 @@ return
         lx = real(a);
         gx = imag(a);
         
-        % Zero or no imag means zero growth also for log variables.
+        % Zero or no imag means zero growth also for log variables
         gx(ixLog & gx==0) = 1;
         
         ixGrw = (~ixLog & gx~=0) | (ixLog & gx~=1);
         
         % Level can be negative and log(level) complex for log variables; growth
-        % must be positive for log variables.
+        % must be positive for log variables
         lx(ixLog) = log( lx(ixLog) );
         gx(ixLog) = reallog( gx(ixLog) );
         
         lx = lx.';
         gx = gx.';
         
-        x = repmat(lx, 1, nPer);
+        x = repmat(lx, 1, numOfPeriods);
         if any(ixGrw)
             x(ixGrw, :) = x(ixGrw, :) + bsxfun(@times, gx(ixGrw), sh(ixGrw, :));
         end
         
-        % Delog only if requested.
+        % Delog only if requested
         if needsDelog
             x(ixLog, :) = real(exp( x(ixLog, :) ));
         end
-    end
-end
+    end%
+end%
+
