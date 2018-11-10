@@ -1,4 +1,4 @@
-function [d, isDev] = zerodb(this, range, varargin)
+function [d, deviation] = zerodb(this, range, varargin)
 % zerodb  Create model-specific zero-deviation database
 %
 %
@@ -55,16 +55,17 @@ function [d, isDev] = zerodb(this, range, varargin)
 
 % zerodb, sstatedb
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.zerodb');
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.zerodb');
+    parser.addRequired('Model', @(x) isa(x, 'model'));
+    parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
 end
-inputParser.parse(this, range);
+parser.parse(this, range);
 
 %--------------------------------------------------------------------------
 
 d = createSourceDbase(this, range, varargin{:}, 'Deviation=', true);
+deviation = true;
 
-end
+end%
