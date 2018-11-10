@@ -1,4 +1,4 @@
-function [YXEPG, rowNames, extendedRange, minShift, maxShift] = data4lhsmrhs(this, inputDatabank, startOfBaseRange, varargin)
+function [YXEPG, rowNames, extendedRange, minShift, maxShift, timeTrend] = data4lhsmrhs(this, inputDatabank, startOfBaseRange, varargin)
 % data4lhsmrhs  Prepare data array for running `lhsmrhs`
 %
 % __Syntax__
@@ -59,16 +59,16 @@ function [YXEPG, rowNames, extendedRange, minShift, maxShift] = data4lhsmrhs(thi
 
 TYPE = @int8;
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model/data4lhsmrhs.m');
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('InputDatabank', @isstruct);
-    inputParser.addRequired('StartOfBaseRange', @DateWrapper.validateProperRangeInput);
-    inputParser.addOptional('EndOfBaseRange', [ ],  @(x) isempty(x) || DateWrapper.validateDateInput(x));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model/data4lhsmrhs.m');
+    parser.addRequired('Model', @(x) isa(x, 'model'));
+    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('StartOfBaseRange', @DateWrapper.validateProperRangeInput);
+    parser.addOptional('EndOfBaseRange', [ ],  @(x) isempty(x) || DateWrapper.validateDateInput(x));
 end
-inputParser.parse(this, inputDatabank, startOfBaseRange, varargin{:});
-endOfBaseRange = inputParser.Results.EndOfBaseRange;
+parser.parse(this, inputDatabank, startOfBaseRange, varargin{:});
+endOfBaseRange = parser.Results.EndOfBaseRange;
 
 if ischar(startOfBaseRange) || isa(startOfBaseRange, 'string')
     startOfBaseRange = textinp2dat(startOfBaseRange);
@@ -93,10 +93,10 @@ end
 
 %--------------------------------------------------------------------------
 
-indexOfParameters = this.Quantity.Type==TYPE(4);
+inxOfParameters = this.Quantity.Type==TYPE(4);
 rowNames = this.Quantity.Name;
-numOfQuantities = numel(rowNames);
-rowNamesExceptParameters = rowNames(~indexOfParameters);
+numOfQuants = numel(rowNames);
+rowNamesExceptParameters = rowNames(~inxOfParameters);
 
 [startOfExtendedRange, endOfExtendedRange, minShift, maxShift] = ...
     getExtendedRange(this, startOfBaseRange, endOfBaseRange);
@@ -109,10 +109,11 @@ YXEG = permute(YXEG, [2, 1, 3]);
 timeTrend = dat2ttrend(extendedRange, this);
 numOfDataSets = size(YXEG, 3);
 
-YXEPG = nan(numOfQuantities, lenOfExtendedRange, numOfDataSets);
-YXEPG(~indexOfParameters, :, :) = YXEG;
+YXEPG = nan(numOfQuants, lenOfExtendedRange, numOfDataSets);
+YXEPG(~inxOfParameters, :, :) = YXEG;
 
-indexOfTimeTrend = strcmp(rowNames, model.RESERVED_NAME_TTREND);
-YXEPG(indexOfTimeTrend, :, :) = repmat(timeTrend, 1, 1, numOfDataSets);
+inxOfTimeTrend = strcmp(rowNames, model.RESERVED_NAME_TTREND);
+YXEPG(inxOfTimeTrend, :, :) = repmat(timeTrend, 1, 1, numOfDataSets);
 
-end
+end%
+

@@ -1,10 +1,21 @@
 classdef Stacked < solver.block.Block
     properties
+        % Rectangular  Rectangular simulation object
         Rectangular
-        MaxLag = double.empty(1, 0)    % Max lag of each quantity in this block
-        MaxLead = double.empty(1, 0)   % Max lead of each quantity in this block
-        FirstTime = double.empty(1, 0) % First time (1..numOfPeriods) to evaluate equations in for ith unknown (1..numOfQuantitiesInBlock*numOfPeriods)
-        LastTime = double.empty(1, 0)  % Last time dtto
+
+        % MaxLab  Max lag of each quantity in this block
+        MaxLag = double.empty(1, 0)    
+
+        % MaxLead  Max lead of each quantity in this block
+        MaxLead = double.empty(1, 0)   
+
+        % FirstTime  First time (1..numOfPeriods) to evaluate equations in for ith unknown (1..numOfQuantitiesInBlock*numOfPeriods)
+        FirstTime = double.empty(1, 0) 
+
+        % LastTime  Last time (1..numOfPeriods) to evaluate equations in for ith unknown (1..numOfQuantitiesInBlock*numOfPeriods)
+        LastTime = double.empty(1, 0)  
+
+        % NumActiveEquations  Number of active equations
         NumActiveEquations
     end
 
@@ -36,11 +47,9 @@ classdef Stacked < solver.block.Block
             numColumns = lastColumn - firstColumn + 1;
 
             % Create linear index of unkowns in data
-            linx = sub2ind( ...
-                size(data.YXEPG), ...
-                repmat(this.PosQty(:), 1, numColumnsSimulated), ...
-                repmat(firstColumn:lastColumn, numOfQuantitiesInBlock, 1) ...
-            );
+            linx = sub2ind( size(data.YXEPG), ...
+                            repmat(this.PosQty(:), 1, numColumnsSimulated), ...
+                            repmat(firstColumn:lastColumn, numOfQuantitiesInBlock, 1) );
             linx = linx(:);
 
             % Create index of logs within linx
@@ -188,8 +197,8 @@ classdef Stacked < solver.block.Block
                             lastTime = numOfPeriods;
                         end
                         numTimes = lastTime - firstTime + 1;
-                        indexActiveEquations = acrossShifts(:, q);
-                        pattern(:, firstTime:lastTime) = repmat(indexActiveEquations, 1, numTimes);
+                        inxOfActiveEquations = acrossShifts(:, q);
+                        pattern(:, firstTime:lastTime) = repmat(inxOfActiveEquations, 1, numTimes);
                         if t==1
                             this.NumericalJacobFunc{posUnknown} = getNumericalJacobFunc( );
                         else
@@ -206,10 +215,10 @@ classdef Stacked < solver.block.Block
                         end
                         lastTime = numOfPeriods;
                         pattern(:, firstTime:end) = true;
-                        indexActiveEquations = true(numOfEquationsInBlock, 1);
+                        inxOfActiveEquations = true(numOfEquationsInBlock, 1);
                         this.NumericalJacobFunc{posUnknown} = getNumericalJacobFunc( );
                     end
-                    this.NumActiveEquations(posUnknown) = sum(indexActiveEquations);
+                    this.NumActiveEquations(posUnknown) = sum(inxOfActiveEquations);
                     this.JacobPattern(:, posUnknown) = pattern(:);
                     this.FirstTime(posUnknown) = firstTime;
                     this.LastTime(posUnknown) = lastTime;
@@ -224,7 +233,7 @@ classdef Stacked < solver.block.Block
 
 
             function f = getNumericalJacobFunc( )
-                activeEquationsString = ['[', this.Equations{indexActiveEquations}, ']'];
+                activeEquationsString = ['[', this.Equations{inxOfActiveEquations}, ']'];
                 if this.VECTORIZE
                     %activeEquationsString = vectorize(activeEquationsString);
                 end

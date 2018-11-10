@@ -47,12 +47,11 @@ if isAnch
     ixUpdN = [ false(ny+nxx, 1), repmat(s.Selective.IxUpdN, 1, nPerNonl) ];
 end
 
-% Prepare nonlinear update
-%--------------------------
+% __Prepare Nonlinear Update__
 nPerUpd = max(nPerNonl, lastExg);
 [y, xx] = simulate.linear.plain(s, ...
     s.IsDeviation, s.Alp0, s.Ea, s.Eu, nPerUpd, [ ]);
-% Add init condition.
+% Add init condition
 yxx = [ [ nan(ny, 1); nan(nf, 1); s.U*s.Alp0 ] , [y; xx] ];
 if s.IsDeviation && s.IsAddSstate
     yxx = yxx + [ 
