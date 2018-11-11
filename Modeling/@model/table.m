@@ -129,6 +129,7 @@ if isempty(parser)
     parser = extend.InputParser('model.table');
     parser.addRequired('Model', @(x) isa(x, 'model'));
     parser.addRequired('Request', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    parser.addParameter('CompareFirstColumn', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter('Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
     parser.addParameter('WriteTable', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
@@ -155,46 +156,46 @@ for i = 1 : numOfRequests
 
     if any(strcmpi(requests{i}, {'SteadyLevel', 'SteadyLevels'}))
         compare = false;
-        addTable = tableValues(this, @real, compare, [ ], '', 'SteadyLevel');
+        addTable = tableValues(this, @real, compare, [ ], '', 'SteadyLevel', opt);
 
 
     elseif any(strcmpi(requests{i}, {'CompareSteadyLevel', 'CompareSteadyLevels'}))
         compare = true;
-        addTable = tableValues(this, @real, compare, [ ], '', 'CompareSteadyLevel');
+        addTable = tableValues(this, @real, compare, [ ], '', 'CompareSteadyLevel', opt);
 
         
     elseif any(strcmpi(requests{i}, {'SteadyChange', 'SteadyChanges'}))
         compare = false;
-        addTable = tableValues(this, @imag, compare, [ ], '', 'SteadyChange');
+        addTable = tableValues(this, @imag, compare, [ ], '', 'SteadyChange', opt);
 
 
     elseif any(strcmpi(requests{i}, {'CompareSteadyChange', 'CompareSteadyChanges'}))
         compare = true;
-        addTable = tableValues(this, @imag, compare, [ ], '', 'CompareSteadyChange');
+        addTable = tableValues(this, @imag, compare, [ ], '', 'CompareSteadyChange', opt);
 
         
     elseif any(strcmpi(requests{i}, {'SteadyDiff', 'SteadyDiffs'}))
         compare = false;
         setNaN = 'log';
-        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'SteadyDiff');
+        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'SteadyDiff', opt);
 
 
     elseif any(strcmpi(requests{i}, {'CompareSteadyDiff', 'CompareSteadyDiffs'}))
         compare = true;
         setNaN = 'log';
-        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'CompareSteadyDiff');
+        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'CompareSteadyDiff', opt);
 
         
     elseif strcmpi(requests{i}, 'SteadyRate')
         compare = false;
         setNaN = 'nonlog';
-        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'SteadyRate');
+        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'SteadyRate', opt);
 
 
     elseif strcmpi(requests{i}, 'CompareSteadyRate')
         compare = true;
         setNaN = 'nonlog';
-        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'CompareSteadyRate');
+        addTable = tableValues(this, @imag, compare, [ ], setNaN, 'CompareSteadyRate', opt);
 
 
     elseif strcmpi(requests{i}, 'Form')
@@ -205,14 +206,14 @@ for i = 1 : numOfRequests
         inxOfParameters = this.Quantity.Type==TYPE(4);
         compare = false;
         setNaN = '';
-        addTable = tableValues(this, @real, compare, inxOfParameters, setNaN, 'Parameter');
+        addTable = tableValues(this, @real, compare, inxOfParameters, setNaN, 'Parameter', opt);
 
 
     elseif any(strcmpi(requests{i}, {'CompareParameter', 'CompareParameters'}))
         inxOfParameters = this.Quantity.Type==TYPE(4);
         compare = true;
         setNaN = '';
-        addTable = tableValues(this, @real, compare, inxOfParameters, setNaN, 'CompareParameters');
+        addTable = tableValues(this, @real, compare, inxOfParameters, setNaN, 'CompareParameters', opt);
 
 
     elseif any(strcmpi(requests{i}, {'Description', 'Descriptions'}))
@@ -338,7 +339,7 @@ end%
 % Local Functions
 %
 
-function addTable = tableValues(this, retrieve, compare, inx, setNaN, columnName)
+function addTable = tableValues(this, retrieve, compare, inx, setNaN, columnName, opt)
     inxOfLog = this.Quantity.IxLog;
     inxOfLog = inxOfLog(:);
     values = this.Variant.Values;
@@ -351,6 +352,9 @@ function addTable = tableValues(this, retrieve, compare, inx, setNaN, columnName
     if isequal(compare, true)
         values(~inxOfLog, :) = bsxfun(@minus, values(~inxOfLog, :), values(~inxOfLog, 1));
         values(inxOfLog, :) = bsxfun(@rdivide, values(inxOfLog, :), values(inxOfLog, 1));
+        if ~opt.CompareFirstColumn
+            values(:, 1) = [ ];
+        end
     end
     if strcmpi(setNaN, 'log')
         values(inxOfLog, :) = NaN;
@@ -437,6 +441,4 @@ function outputTable = roundTable(outputTable, decimals)
         outputTable.(name) = x;
     end
 end%
-
-
 
