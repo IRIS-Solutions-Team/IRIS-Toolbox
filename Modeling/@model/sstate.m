@@ -226,4 +226,5 @@ else
     [this, flag] = steadyNonlinear(this, steady, Inf);
 end
 
-end
+end%
+

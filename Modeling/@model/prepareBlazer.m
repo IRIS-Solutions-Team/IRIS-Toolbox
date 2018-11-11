@@ -33,38 +33,37 @@ ixt = this.Equation.Type==TYPE(2);
 ixmt = ixm | ixt;
 numOfEquations = length(this.Equation);
 
-switch lower(kind)
-    case 'steady'
-        blz = solver.blazer.Steady(numOfEquations);
-        blz.Equation(ixmt) = this.Equation.Steady(ixmt);
-        ixCopy = ixmt & cellfun(@isempty, this.Equation.Steady(1, :));        
-        blz.Equation(ixCopy) = this.Equation.Dynamic(ixCopy);
-        blz.Gradient(:, ixmt) = this.Gradient.Steady(:, ixmt);
-        blz.Gradient(:, ixCopy) = this.Gradient.Dynamic(:, ixCopy);
-        blz.Incidence = this.Incidence.Steady;
-        incid = across(blz.Incidence, 'Shift');
-        blz.IxCanBeEndg = (ixy | ixx | ixp) & full(any(incid, 1));
-        blz.Assignment = this.Pairing.Assignment.Steady;
+if strcmpi(kind, 'Steady')
+    blz = solver.blazer.Steady(numOfEquations);
+    blz.Equation(ixmt) = this.Equation.Steady(ixmt);
+    ixCopy = ixmt & cellfun(@isempty, this.Equation.Steady(1, :));        
+    blz.Equation(ixCopy) = this.Equation.Dynamic(ixCopy);
+    blz.Gradient(:, ixmt) = this.Gradient.Steady(:, ixmt);
+    blz.Gradient(:, ixCopy) = this.Gradient.Dynamic(:, ixCopy);
+    blz.Incidence = this.Incidence.Steady;
+    incid = across(blz.Incidence, 'Shift');
+    blz.IxCanBeEndg = (ixy | ixx | ixp) & full(any(incid, 1));
+    blz.Assignment = this.Pairing.Assignment.Steady;
 
-    case 'period'
-        blz = solver.blazer.Dynamic(numOfEquations);
-        blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
-        blz.Gradient(:, ixmt) = this.Gradient.Dynamic(:, ixmt);
-        blz.Incidence = selectShift(this.Incidence.Dynamic, 0);
-        incid = across(blz.Incidence, 'Shift');
-        blz.IxCanBeEndg = (ixy | ixx | ixe) & full(any(incid, 1));
-        blz.Assignment = this.Pairing.Assignment.Dynamic;
+elseif strcmpi(kind, 'Period')
+    blz = solver.blazer.Dynamic(numOfEquations);
+    blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
+    blz.Gradient(:, ixmt) = this.Gradient.Dynamic(:, ixmt);
+    blz.Incidence = selectShift(this.Incidence.Dynamic, 0);
+    incid = across(blz.Incidence, 'Shift');
+    blz.IxCanBeEndg = (ixy | ixx | ixe) & full(any(incid, 1));
+    blz.Assignment = this.Pairing.Assignment.Dynamic;
 
-    case 'stacked'
-        blz = solver.blazer.Stacked(numOfEquations);
-        blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
-        blz.Gradient(:, :) = [ ];
-        blz.Incidence = this.Incidence.Dynamic;
-        blz.IxCanBeEndg = ixy | ixx;
-        blz.Assignment = this.Pairing.Assignment.Dynamic;
+elseif strcmpi(kind, 'Stacked')
+    blz = solver.blazer.Stacked(numOfEquations);
+    blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
+    blz.Gradient(:, :) = [ ];
+    blz.Incidence = this.Incidence.Dynamic;
+    blz.IxCanBeEndg = ixy | ixx;
+    blz.Assignment = this.Pairing.Assignment.Dynamic;
 
-    otherwise
-        throw( exception.Base('General:Internal', 'error') );
+else
+    throw( exception.Base('General:Internal', 'error') );
 end
 blz.Quantity = this.Quantity;
 blz.NumPeriods = numPeriods;

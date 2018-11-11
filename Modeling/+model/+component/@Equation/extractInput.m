@@ -1,4 +1,19 @@
 function s = extractInput(s, kind)
+% extractInput  Extract dynamic or steady part from input equation
+%
+% IRIS backed function
+% No help provided
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
+
+inputClass = class(s);
+
+if ~iscellstr(s)
+    s = cellstr(s);
+end
 
 pos = strfind(s, '!!');
 ixFor = find( ~cellfun(@isempty, pos) );
@@ -20,4 +35,11 @@ else
     throw( exception.Base('General:Internal', 'error') );
 end
 
+if strcmpi(inputClass, 'char')
+    s = char(s);
+elseif strcmpi(inputClass, 'string')
+    s = string(s);
 end
+
+end%
+

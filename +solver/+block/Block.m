@@ -63,7 +63,7 @@ classdef (Abstract) Block < handle
                 this = varargin{1};
                 return
             end
-        end
+        end%
         
         
         function classify(this, asgn, eqtn)
@@ -77,7 +77,7 @@ classdef (Abstract) Block < handle
             if this.PosQty==lhs && chkRhsOfAssignment(this, eqtn)
                 this.Type = type;
             end
-        end
+        end%
         
         
         function flag = chkRhsOfAssignment(this, eqtn)
@@ -85,7 +85,7 @@ classdef (Abstract) Block < handle
             c = sprintf(this.LhsQuantityFormat, this.PosQty);
             rhs = solver.block.Block.removeLhs( eqtn{this.PosEqn} );
             flag = isempty( strfind(rhs, c) );
-        end
+        end%
         
         
         function prepareBlock(this, blz, opt)
@@ -102,7 +102,7 @@ classdef (Abstract) Block < handle
                         opt.PrepareGradient && opt.Solver.SpecifyObjectiveGradient;
                 end
             end
-        end
+        end%
         
         
         function createObjectiveFunc(this, blz)
@@ -117,22 +117,22 @@ classdef (Abstract) Block < handle
                 funcToEval = vectorize(funcToEval);
             end
             this.EquationsFunc = str2func([blz.PREAMBLE, funcToEval]);
-        end
+        end%
 
 
         function [gr, XX2L, DLevel, DGrowth0, DGrowthK] = createAnalyticalJacob(this, blz, opt)
-            [~, nQuan] = size(blz.Incidence);
-            nEqtnHere = length(this.PosEqn);
+            [~, numOfQuants] = size(blz.Incidence);
+            numOfEqtnsHere = length(this.PosEqn);
             gr = blz.Gradient(:, this.PosEqn);
             sh = this.Shift;
             nsh = length(sh);
             sh0 = find(this.Shift==0);
-            aux = sub2ind([nQuan+1, nsh], nQuan+1, sh0); % Linear index to 1 in last row.
-            XX2L = cell(1, nEqtnHere);
-            DLevel = cell(1, nEqtnHere);
-            DGrowth0 = cell(1, nEqtnHere);
-            DGrowthK = cell(1, nEqtnHere);
-            for i = 1 : nEqtnHere
+            aux = sub2ind([numOfQuants+1, nsh], numOfQuants+1, sh0); % Linear index to 1 in last row.
+            XX2L = cell(1, numOfEqtnsHere);
+            DLevel = cell(1, numOfEqtnsHere);
+            DGrowth0 = cell(1, numOfEqtnsHere);
+            DGrowthK = cell(1, numOfEqtnsHere);
+            for i = 1 : numOfEqtnsHere
                 posEqn = this.PosEqn(i);
                 gr(:, i) = getGradient(this, blz, posEqn, opt);
                 vecWrt = gr{2, i};
@@ -142,22 +142,18 @@ classdef (Abstract) Block < handle
                 ixLog = blz.IxLog(real(vecWrt));
                 vecWrt(ixOutOfSh) = NaN;
                 ixLog(ixOutOfSh) = false;
-                XX2L{i}(ixLog) = sub2ind( ...
-                    [nQuan+1, nsh], ...
-                    real( vecWrt(ixLog) ), ...
-                    sh0 + imag( vecWrt(ixLog) ) ...
-                    );
-                DLevel{i} = double( bsxfun( ...
-                    @eq, ...
-                    this.PosQty, ...
-                    real(vecWrt).' ...
-                    ) );
+                XX2L{i}(ixLog) = sub2ind( [numOfQuants+1, nsh], ...
+                                          real( vecWrt(ixLog) ), ...
+                                          sh0 + imag( vecWrt(ixLog) ) );
+                DLevel{i} = double( bsxfun( @eq, ...
+                                            this.PosQty, ...
+                                            real(vecWrt).' ) );
                 if nargout>3
                     DGrowth0{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).');
-                    DGrowthK{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).' + this.STEADY_SHIFT);
+                    DGrowthK{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).' + this.SteadyShift);
                 end
             end
-        end
+        end%
         
         
         function gr = getGradient(this, blz, posEqn, opt)
@@ -176,7 +172,7 @@ classdef (Abstract) Block < handle
             d = model.component.Gradient.diff(blz.Equation{posEqn}, vecWrtNeeded);
             d = str2func([blz.PREAMBLE, d]);
             gr = {d; vecWrtNeeded};
-        end
+        end%
         
         
         function [z, exitFlag] = solve(this, fnObjective, z0)
@@ -239,7 +235,7 @@ classdef (Abstract) Block < handle
             end
             header = sprintf(HEADER_FORMAT, iBlk, numel(this.PosEqn), numel(this.PosQty));
             c = [header, c];
-        end
+        end%
         
         
         function setShift(this, blz)
@@ -257,22 +253,22 @@ classdef (Abstract) Block < handle
                 to = 0;
             end
             this.Shift = from : to;
-        end
+        end%
         
         
         function s = size(this)
             s = [1, numel(this.PosEqn)];
-        end
+        end%
 
 
         function n = get.NumberOfShifts(this)
             n = numel(this.Shift);
-        end
+        end%
 
 
         function sh0 = get.PositionOfZeroShift(this)
             sh0 = find(this.Shift==0);
-        end
+        end%
     end
 
 
@@ -288,6 +284,6 @@ classdef (Abstract) Block < handle
             if eqtn(1)=='+'
                 eqtn(1) = '';
             end
-        end
+        end%
     end
 end

@@ -18,6 +18,6 @@ classdef Steady < solver.blazer.Blazer
     methods
         function this = Steady(varargin)
             this = this@solver.blazer.Blazer(varargin{:});
-        end
+        end%
     end
 end

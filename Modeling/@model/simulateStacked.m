@@ -54,17 +54,20 @@ for v = 1 : nv
     vthRect = simulate.Rectangular.fromModel(this, v);
 
     vthRect.Anticipate = opt.Anticipate;
-    vthRect.Deviation = false
+    vthRect.Deviation = false;
     vthRect.SimulateObserved = false;
-    vthRect.FirstColumn = firstColumnToRun;
-    vthRect.LastColumn = numOfDataColumns;
 
-    % Simulate on the simulation range to get initial values
-    flat(vthRect, vthData);
+    if strcmpi(opt.Initial, 'FirstOrder')
+        % Simulate on the simulation range to get initial values
+        vthRect.FirstColumn = firstColumnToRun;
+        vthRect.LastColumn = numOfDataColumns;
+        flat(vthRect, vthData);
+    end
 
     if needsFotc
         % Reset the Rectangular object for simulation of terminal condition
         vthRect.FirstColumn = lastColumnToRun + 1;
+        vthRect.LastColumn = numOfDataColumns;
     else
         vthRect = [ ];
     end

@@ -42,14 +42,14 @@ classdef Base
             end
             this.Identifier = [this.IRIS_IDENTIFIER, this.Identifier];
             this.NeedsHighlight = true;
-        end
+        end%
         
         
         function assert(condition, this, varargin)
             if ~condition
                 throw(this, varargin{:});
             end
-        end
+        end%
 
 
         function throw(this, varargin)
@@ -85,7 +85,7 @@ classdef Base
                 case 'warning'
                     exception.Base.throwAsWarning(this.Identifier, message);
             end
-        end
+        end%
         
         
         
@@ -97,7 +97,7 @@ classdef Base
                 case 'warning'
                     header = this.BASE_WARNING_HEADER_FORMAT;
             end
-        end
+        end%
         
         
         
@@ -114,7 +114,7 @@ classdef Base
             end
             varargin = strtrim(varargin);
             throw(this, varargin{:});
-        end
+        end%
     end
     
     
@@ -140,7 +140,7 @@ classdef Base
             end
             n = n + adj;
             stack = stack(n:end);
-        end
+        end%
         
         
         
@@ -153,7 +153,7 @@ classdef Base
                 'stack', stack ...
                 );
             error(errorStruct);
-        end
+        end%
         
         
         
@@ -168,7 +168,7 @@ classdef Base
                 [~, n] = exception.Base.reduceStack(-1);
                 dbstack(n);
             end
-        end
+        end%
         
         
         
@@ -208,7 +208,7 @@ classdef Base
             
             % [P#1 #5-#10 #100].
             s = [ '[', label, strtrim(s), ']' ];
-        end
+        end%
         
         
         
@@ -247,6 +247,6 @@ classdef Base
                 c(pos) = '';
                 id = [id(1:posLast), c];
             end
-        end
+        end%
     end
 end

@@ -47,6 +47,9 @@ if isempty(parser)
     parser.addParameter('NShanks', false, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x) && x>0) || isequal(x, false));
     parser.addParameter('UpperBound', 1.5, @(x) isnumeric(x) && isscalar(x) && all(x>1));
     
+    % Stacked Time Method
+    parser.addParameter('Initial', 'FirstOrder', @(x) any(strcmpi(x, {'InputData', 'FirstOrder'})));
+
     % TODO Consolidate the following options
     % Global Nonlinear Simulations
     parser.addParameter('ChkSstate', true, @model.validateChksstate);

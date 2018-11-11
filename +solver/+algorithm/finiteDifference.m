@@ -33,16 +33,17 @@ else
     % derivatives indicated in the Jacobian pattern matrix.
     g = sparse(nf, nx);
     for i = 1 : nx
-        indexOfEquations = jacobPattern(:, i);
+        inxOfEquations = jacobPattern(:, i);
         xp = x;
         xp(i) = xp(i) + h(i);
         fnPlus = objectiveFuncReshaped(xp, i);
         fnPlus = fnPlus(:);
         % TODO: Replace sparse matrix indexing
-        g(indexOfEquations, i) = (fnPlus - f(indexOfEquations)) / h(i);
+        g(inxOfEquations, i) = (fnPlus - f(inxOfEquations)) / h(i);
     end
 end
 
 addCount = nx;
 
-end
+end%
+

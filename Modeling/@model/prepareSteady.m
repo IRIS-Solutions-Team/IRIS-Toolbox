@@ -41,56 +41,54 @@ if numel(varargin)==1 && iscell(varargin{1})
     varargin = { varargin{1}{:} };
 end
 
-persistent inputParserLinear inputParserNonlinear
-if isempty(inputParserLinear)
-    inputParserLinear = extend.InputParser('model.prepareSteady');
-    inputParserLinear.addRequired('Model', @(x) isa(x, 'model'));
-    inputParserLinear.addParameter('Growth', true, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    inputParserLinear.addParameter('Solve', false, @model.validateSolve);
-    inputParserLinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false)); 
+persistent parserLinear parserNonlinear
+if isempty(parserLinear)
+    parserLinear = extend.InputParser('model.prepareSteady');
+    parserLinear.addRequired('Model', @(x) isa(x, 'model'));
+    parserLinear.addParameter('Growth', true, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    parserLinear.addParameter('Solve', false, @model.validateSolve);
+    parserLinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false)); 
 end
 
-if isempty(inputParserNonlinear)
-    inputParserNonlinear = extend.InputParser('model.prepareSteady');
-    inputParserNonlinear.KeepUnmatched = true;
-    inputParserNonlinear.addRequired('Model', @(x) isa(x, 'model'));
-    inputParserNonlinear.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
-    inputParserNonlinear.addParameter('Fix', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
-    inputParserNonlinear.addParameter('FixAllBut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
-    inputParserNonlinear.addParameter('FixLevel', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
-    inputParserNonlinear.addParameter('FixLevelAllBut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
-    inputParserNonlinear.addParameter('FixGrowth', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
-    inputParserNonlinear.addParameter('FixGrowthAllBut', { }, @(x) isempty(x) || iscellstr(x) || ischar(x));
-    inputParserNonlinear.addParameter('ForceRediff', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParserNonlinear.addParameter('Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    inputParserNonlinear.addParameter({'GrowthBounds', 'GrowthBnds'}, [ ], @(x) isempty(x) || isstruct(x));
-    inputParserNonlinear.addParameter({'LevelBounds', 'LevelBnds'}, [ ], @(x) isempty(x) || isstruct(x));
-    inputParserNonlinear.addParameter('OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x));
-    inputParserNonlinear.addParameter({'NanInit', 'Init'}, 1, @(x) isnumeric(x) && isscalar(x) && isfinite(x));
-    inputParserNonlinear.addParameter('ResetInit', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && isfinite(x)));
-    inputParserNonlinear.addParameter('Reuse', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParserNonlinear.addParameter('Solver', 'IRIS-qnsd', @(x) ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle'))));
-    inputParserNonlinear.addParameter('PrepareGradient', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    inputParserNonlinear.addParameter('Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
-    inputParserNonlinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParserNonlinear.addParameter('ZeroMultipliers', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParserNonlinear.addSwapOptions( );
+if isempty(parserNonlinear)
+    parserNonlinear = extend.InputParser('model.prepareSteady');
+    parserNonlinear.KeepUnmatched = true;
+    parserNonlinear.addRequired('Model', @(x) isa(x, 'model'));
+    parserNonlinear.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
+    parserNonlinear.addParameter('Fix', { }, @(x) isempty(x) || isa(x, 'AllBut') || iscellstr(x) || ischar(x));
+    parserNonlinear.addParameter('FixLevel', { }, @(x) isempty(x) || isa(x, 'AllBut') || iscellstr(x) || ischar(x));
+    parserNonlinear.addParameter('FixGrowth', { }, @(x) isempty(x) || isa(x, 'AllBut') || iscellstr(x) || ischar(x));
+    parserNonlinear.addParameter('ForceRediff', false, @(x) isequal(x, true) || isequal(x, false));
+    parserNonlinear.addParameter('Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    parserNonlinear.addParameter({'GrowthBounds', 'GrowthBnds'}, [ ], @(x) isempty(x) || isstruct(x));
+    parserNonlinear.addParameter({'LevelBounds', 'LevelBnds'}, [ ], @(x) isempty(x) || isstruct(x));
+    parserNonlinear.addParameter('OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x));
+    parserNonlinear.addParameter({'NanInit', 'Init'}, 1, @(x) isnumeric(x) && isscalar(x) && isfinite(x));
+    parserNonlinear.addParameter('ResetInit', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && isfinite(x)));
+    parserNonlinear.addParameter('Reuse', false, @(x) isequal(x, true) || isequal(x, false));
+    parserNonlinear.addParameter('Solver', 'IRIS-qnsd', @(x) ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle'))));
+    parserNonlinear.addParameter('SteadyShift', 3, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);    
+    parserNonlinear.addParameter('PrepareGradient', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    parserNonlinear.addParameter('Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
+    parserNonlinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
+    parserNonlinear.addParameter('ZeroMultipliers', true, @(x) isequal(x, true) || isequal(x, false));
+    parserNonlinear.addSwapOptions( );
 end
 
 %--------------------------------------------------------------------------
 
 if this.IsLinear
     % __Linear Steady State Solver__
-    inputParserLinear.parse(this, varargin{:});
-    varargout{1} = inputParserLinear.Options;
+    parserLinear.parse(this, varargin{:});
+    varargout{1} = parserLinear.Options;
 else
     % __Nonlinear Steady State Solver__
     % Capture obsolete syntax with solver options directly passed among other
     % sstate options and not as suboptions through Solver=; these are only used
     % if Solver= is a char.
-    inputParserNonlinear.parse(this, varargin{:});
-    opt = inputParserNonlinear.Options;
-    obsoleteSolverOpt = inputParserNonlinear.UnmatchedInCell;
+    parserNonlinear.parse(this, varargin{:});
+    opt = parserNonlinear.Options;
+    obsoleteSolverOpt = parserNonlinear.UnmatchedInCell;
     if isequal(opt.Growth, @auto)
         opt.Growth = this.IsGrowth;
     end
@@ -118,52 +116,53 @@ function processFixOpt(this, blz, opt)
     TYPE = @int8;
     PTR = @int16;
 
-    nQty = length(this.Quantity.Name);
+    numOfQuants = length(this.Quantity.Name);
     ixy = this.Quantity.Type==TYPE(1);
     ixx = this.Quantity.Type==TYPE(2);
     ixp = this.Quantity.Type==TYPE(4);
-    ixCanBeFixed =  ixy | ixx | ixp;
+    inxCanBeFixed =  ixy | ixx;
+    namesCanBeFixed = this.Quantity.Name(inxCanBeFixed);
     list = {'Fix', 'FixLevel', 'FixGrowth'};
-    for i = 1 : length(list)
+    for i = 1 : numel(list)
         fix = list{i};
-        fixAllBut = [fix, 'AllBut'];
+        temp = opt.(fix);
+
+        if isempty(temp)
+            opt.(fix) = double.empty(1, 0);
+            continue
+        end
+
+        if isa(temp, 'AllBut')
+            temp = convert(temp, namesCanBeFixed);
+        end
+
+        if (ischar(temp) && ~isempty(temp)) ...
+           || (isa(temp, 'string') && isscalar(string) && strlength(sting)>0)
+            temp = regexp(temp, '\w+', 'match');
+            temp = cellstr(temp);
+        end
         
-        % Convert charlist to cellstr.
-        if ischar(opt.(fix)) && ~isempty(opt.(fix))
-            opt.(fix) = regexp(opt.(fix), '\w+', 'match');
+        if isempty(temp)
+            opt.(fix) = double.empty(1, 0);
+            continue
         end
-        if ischar(opt.(fixAllBut)) && ~isempty(opt.(fixAllBut))
-            opt.(fixAllBut) = ...
-                regexp(opt.(fixAllBut), '\w+', 'match');
+
+        ell = lookup( this.Quantity, temp, ...
+                      TYPE(1), TYPE(2), TYPE(4) );
+        posToFix = ell.PosName;
+        inxOfValid = ~isnan(posToFix);
+        if any(~inxOfValid)
+            throw( exception.Base('Steady:CANNOT_FIX', 'error'), ...
+                   temp{~inxOfValid} );
         end
-        
-        % Convert fixAllBut to fix.
-        if ~isempty(opt.(fixAllBut))
-            lsNameCanBeFixed = this.Quantity.Name(ixCanBeFixed);
-            opt.(fix) = setdiff(lsNameCanBeFixed, opt.(fixAllBut));
-        end
-        
-        if ~isempty(opt.(fix))
-            ell = lookup(this.Quantity, opt.(fix), ...
-                TYPE(1), ...
-                TYPE(2), ...
-                TYPE(4));
-            positionsFix  = ell.PosName;
-            ixValid = ~isnan(positionsFix);
-            if any(~ixValid)
-                throw( exception.Base('Steady:CANNOT_FIX', 'error'), opt.(fix){~ixValid} );
-            end
-            opt.(fix) = positionsFix;
-        else
-            opt.(fix) = [ ];
-        end
+        opt.(fix) = posToFix;
     end
 
-    fixL = false(1, nQty);
+    fixL = false(1, numOfQuants);
     fixL(opt.Fix) = true;
     fixL(opt.FixLevel) = true;
-    fixG = false(1, nQty);
-    % Fix growth of endogenized parameters to zero.
+    fixG = false(1, numOfQuants);
+    % Fix growth of endogenized parameters to zero
     fixG(ixp) = true;
     if opt.Growth
         fixG(opt.Fix) = true;
@@ -172,8 +171,8 @@ function processFixOpt(this, blz, opt)
         fixG(:) = true;
     end
 
-    % Fix optimal policy multipliers. The level and growth of
-    % multipliers will be set to zero in the main loop.
+    % Fix optimal policy multipliers; the level and change of
+    % multipliers will be set to zero in the main loop
     if opt.ZeroMultipliers
         fixL = fixL | this.Quantity.IxLagrange;
         fixG = fixG | this.Quantity.IxLagrange;
@@ -182,7 +181,7 @@ function processFixOpt(this, blz, opt)
     blz.IdToFix.Level = PTR( find(fixL) ); %#ok<FNDSB>
     blz.IdToFix.Growth = PTR( find(fixG) ); %#ok<FNDSB>
 
-    % Remove quantities fixed by user and LHS quantities from dynamic links.
+    % Remove quantities fixed by user and LHS quantities from dynamic links
     temp = getActiveLhsPtr(this.Link);
     blz.IdToExclude.Level = [blz.IdToFix.Level, temp];
     blz.IdToExclude.Growth = [blz.IdToFix.Growth, temp];
@@ -192,7 +191,7 @@ end%
 function blz = createBlocks(this, opt)
     TYPE = @int8;
 
-    nQty = length(this.Quantity.Name);
+    numOfQuants = length(this.Quantity.Name);
     ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
     ixp = this.Quantity.Type==TYPE(4);
 
@@ -215,13 +214,13 @@ function blz = createBlocks(this, opt)
 
     % Index of variables that will be always set to zero.
     ixZero = struct( );
-    ixZero.Level = false(1, nQty);
+    ixZero.Level = false(1, numOfQuants);
     ixZero.Level(ixe) = true;
     if opt.Growth
-        ixZero.Growth = false(1, nQty);
+        ixZero.Growth = false(1, numOfQuants);
         ixZero.Growth(ixe | ixp) = true;
     else
-        ixZero.Growth = true(1, nQty);
+        ixZero.Growth = true(1, numOfQuants);
     end
     if opt.ZeroMultipliers
         ixZero.Level = ixZero.Level | this.Quantity.IxLagrange;
@@ -232,11 +231,11 @@ end%
 
 
 function blz = prepareBounds(this, blz, opt)
-    nQty = length(this.Quantity.Name);
-    nBlk = length(blz.Block);
-    ixValidLevel = true(1, nQty);
-    ixValidGrowth = true(1, nQty);
-    for iBlk = 1 : nBlk
+    numOfQuants = length(this.Quantity.Name);
+    numOfBlocks = length(blz.Block);
+    inxOfValidLevels = true(1, numOfQuants);
+    inxOfValidChanges = true(1, numOfQuants);
+    for iBlk = 1 : numOfBlocks
         blk = blz.Block{iBlk};
         if blk.Type~=solver.block.Type.SOLVE
             continue
@@ -244,13 +243,13 @@ function blz = prepareBounds(this, blz, opt)
         
         % Level bounds.
         lsLevel = this.Quantity.Name(blk.PosQty.Level);
-        [lbl, ubl, ixValidLevel] = ...
-            boundsHere(lsLevel, blk.PosQty.Level, opt.LevelBounds, ixValidLevel);
+        [lbl, ubl, inxOfValidLevels] = ...
+            boundsHere(lsLevel, blk.PosQty.Level, opt.LevelBounds, inxOfValidLevels);
         
         % Growth bounds.
         lsGrowth = this.Quantity.Name(blk.PosQty.Growth);
-        [lbg, ubg, ixValidGrowth] = ...
-            boundsHere(lsGrowth, blk.PosQty.Growth, opt.GrowthBounds, ixValidGrowth);
+        [lbg, ubg, inxOfValidChanges] = ...
+            boundsHere(lsGrowth, blk.PosQty.Growth, opt.GrowthBounds, inxOfValidChanges);
         
         % Combine level and growth bounds
         blk.Lower = [lbl, lbg];
@@ -269,19 +268,19 @@ function blz = prepareBounds(this, blz, opt)
         blz.Block{iBlk} = blk;
     end
 
-    if any(~ixValidLevel)
+    if any(~inxOfValidLevels)
         throw( exception.Base('Steady:WRONG_SIGN_LEVEL_BOUNDS', 'error'), ...
-            this.Quantity.Name{~ixValidLevel} );
+               this.Quantity.Name{~inxOfValidLevels} );
     end
-    if any(~ixValidGrowth)
+    if any(~inxOfValidChanges)
         throw( exception.Base('Steady:WRONG_SIGN_GROWTH_BOUNDS', 'error'), ...
-            this.Quantity.Name{~ixValidGrowth} );
+               this.Quantity.Name{~inxOfValidChanges} );
     end
 
     return
 
 
-    function [vecLb, vecUb, ixValid] = boundsHere(list, nameId, bnd, ixValid)
+    function [vecLb, vecUb, inxOfValid] = boundsHere(list, nameId, bnd, inxOfValid)
         nList = length(list);
         vecLb = -inf(1, nList);
         vecUb = inf(1, nList);
@@ -346,7 +345,7 @@ function blz = prepareBounds(this, blz, opt)
                 vecUb(jj) = ub;
             else
                 % Report problem for this variables.
-                ixValid( nameId(jj) ) = false;
+                inxOfValid( nameId(jj) ) = false;
             end
         end
     end

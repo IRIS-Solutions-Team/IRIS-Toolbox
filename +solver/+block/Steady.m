@@ -1,7 +1,11 @@
 classdef Steady < solver.block.Block
+    properties 
+        SteadyShift
+    end
+
+
     properties (Constant)
         VECTORIZE = false
-        STEADY_SHIFT = 10
     end
     
     
@@ -11,7 +15,7 @@ classdef Steady < solver.block.Block
             this.D = struct( 'Level', [ ], ...
                              'Growth0', [ ], ...
                              'GrowthK', [ ] );
-        end
+        end%
         
         
         function [lx, gx, exitStatus, error] = run(this, lnk, lx, gx, ixLog)
@@ -86,20 +90,20 @@ classdef Steady < solver.block.Block
                     if imag(y0)~=0
                         z = [ z, imag(y0) ];
                     else
-                        XX = timeArray(this.STEADY_SHIFT);
+                        XX = timeArray(this.SteadyShift);
                         yk = this.EquationsFunc(XX, t0);
                         if ~isempty(fnInv)
                             yk = fnInv(yk);
                         end
                         if ixLog(posg)
-                            z = [ z, (yk/y0)^(1/this.STEADY_SHIFT) ];
+                            z = [ z, (yk/y0)^(1/this.SteadyShift) ];
                         else
-                            z = [ z, (yk-y0)/this.STEADY_SHIFT ];
+                            z = [ z, (yk-y0)/this.SteadyShift ];
                         end
                     end
                 end
                 exitFlag = 1;
-            end
+            end%
             
             
             function chkInitBounds( )
@@ -112,7 +116,7 @@ classdef Steady < solver.block.Block
                 z0(ix) = this.Lower(ix);
                 ix = ixOutOfBnds & ~ixUpperInf;
                 z0(ix) = this.Upper(ix);
-            end
+            end%
             
             
             function [y, j] = objective(z, positionJacob)
@@ -174,8 +178,8 @@ classdef Steady < solver.block.Block
                 
                 if ~isempty(posg)
                     % Some growth rates need to be calculated. Evaluate the model equations at
-                    % time t and t+STEADY_SHIFT if at least one growth rate is needed.
-                    XXk = timeArray(this.STEADY_SHIFT); 
+                    % time t and t+SteadyShift if at least one growth rate is needed.
+                    XXk = timeArray(this.SteadyShift); 
                     yk = this.EquationsFunc(XXk, t0);
                     y = [ y ; yk ];
                     if analyticalGradientRequest && retGradient
@@ -195,15 +199,15 @@ classdef Steady < solver.block.Block
                         j = [ j; jk ];
                     end
                 end
-            end
+            end%
             
             
             function XX = timeArray(k)
                 XX = repmat(lx.', 1, nsh);
                 XX(~ixLog, :) = XX(~ixLog, :)  + bsxfun(@times, gx(~ixLog).', sh+k);
                 XX( ixLog, :) = XX( ixLog, :) .* bsxfun(@power, gx( ixLog).', sh+k);
-            end
-        end
+            end%
+        end%
     end
     
     
@@ -214,17 +218,16 @@ classdef Steady < solver.block.Block
             prepareBlock@solver.block.Block(this, blz, opt);
             % Prepare function handles and auxiliary matrices for gradients.
             this.RetGradient = opt.PrepareGradient && this.Type==solver.block.Type.SOLVE;
+            this.SteadyShift = opt.SteadyShift;
             if this.RetGradient
                 [this.Gradient, this.XX2L, this.D.Level, this.D.Growth0, this.D.GrowthK] = ...
                     createAnalyticalJacob(this, blz, opt);
             end
             % Split PosQty and NumGradient into Level and Growth.
-            this.PosQty = struct( ...
-                'Level', this.PosQty, ...
-                'Growth', this.PosQty ...
-                );
+            this.PosQty = struct( 'Level', this.PosQty, ...
+                                  'Growth', this.PosQty );
             exclude(this, blz);
-        end
+        end%
         
         
         function createJacobPattern(this, blz)
@@ -241,7 +244,7 @@ classdef Steady < solver.block.Block
                 end
                 this.NumericalJacobFunc{i} = str2func([blz.PREAMBLE, activeEquationsString]);
             end
-        end
+        end%
             
         
         function exclude(this, blz)
@@ -284,7 +287,7 @@ classdef Steady < solver.block.Block
                         varargout{i} = D;
                     end
                 end
-            end
-        end
+            end%
+        end%
     end
 end
