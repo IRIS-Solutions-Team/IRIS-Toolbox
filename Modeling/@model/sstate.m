@@ -27,95 +27,88 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 %
 % __Options for Nonlinear Models__
 %
-% * `'Blocks='` [ *`true`* | `false` ] - Rearrange steady-state equations
+% * `Blocks=true` [ `true` | `false` ] - Rearrange steady-state equations
 % in sequential blocks before computing steady state.
 %
-% * `'Display='` [ *`'iter'`* | `'final'` | `'notify'` | `'off'` ] - Level
-% of screen output, see Optim Tbx.
+% * `Display='iter'` [ `'iter'` | `'final'` | `'notify'` | `'off'` ] -
+% Level of screen output.
 %
-% * `'Endogenize='` [ `@auto` | cellstr | char | *empty* ] - List of
+% * `Endogenize=[ ]` [ `@auto` | cellstr | char | *empty* ] - List of
 % parameters that will be endogenized when computing the steady state; the
 % number of endogenized parameters must match the number of transtion
-% variables exogenized in the `'Exogenized='` option. The use of the
-% keyword `@auto` is explained in Description.
+% variables exogenized in the `Exogenize=` option; the use of the keyword
+% `@auto` is explained in Description.
 %
-% * `'Exogenize='` [ `@auto` | cellstr | char | *empty* ] - List of
+% * `Exogenize=` [ `@auto` | cellstr | char | *empty* ] - List of
 % transition variables that will be exogenized when computing the steady
 % state; the number of exogenized variables must match the number of
-% parameters exogenized in the `'Exogenize='` option. The use of the
+% parameters exogenized in the `'Exogenize='` option; the use of the
 % keyword `@auto` is explained in Description.
 %
-% * `'Fix='` [ cellstr | *empty* ] - List of variables whose steady state
-% will not be computed and kept fixed to the currently assigned values.
+% * `Fix=[ ]` [ cellstr | `AllBut` | *empty* ] - List of variables whose
+% steady state (both level and change) will not be computed and kept fixed
+% to the currently assigned values; alternatively an `AllBut` wrapper
+% object can be used to specify that all variables are to be fixed except
+% those listed.
 %
-% * `'FixAllBut='` [ cellstr | *empty* ] - Inverse list of variables whose
-% steady state will not be computed and kept fixed to the currently
-% assigned values.
+% * `FixGrowth=[ ]` [ cellstr | *empty* ] - Same as `Fix=` except that this
+% option fixes only the steady-state first difference (variables not declared as
+% log) or the steady-state rates of change (variables declared as log) of
+% each variables listed.
 %
-% * `'FixGrowth='` [ cellstr | *empty* ] - List of variables whose
-% steady-state growth will not be computed and kept fixed to the currently
-% assigned values.
+% * `FixLevel=[ ]` [ cellstr | *empty* ] - Same as `Fix=` except that this
+% option fixes only the steady-state level of each variable listed.
 %
-% * `'FixGrowthAllBut='` [ cellstr | *empty* ] - Inverse list of variables
-% whose steady-state growth will not be computed and kept fixed to the
-% currently assigned values.
+% * `Growth=false` [ `true` | `false` ] - If `true`, both the steady-state
+% levels and growth rates will be computed; if `false`, only the levels
+% will be computed assuming that either all model variables are stationary,
+% have stochastic trend without deterministic drift, or that the correct
+% steady-state changes are already assigned in the model object.
 %
-% * `'FixLevel='` [ cellstr | *empty* ] - List of variables whose
-% steady-state levels will not be computed and kept fixed to the currently
-% assigned values.
-%
-% * `'FixLevelAllBut='` [ cellstr | *empty* ] - Inverse list of variables
-% whose steady-state levels will not be computed and kept fixed to the
-% currently assigned values.
-%
-% * `'Growth='` [ `true` | *`false`* ] - If `true`, both the steady-state levels
-% and growth rates will be computed; if `false`, only the levels will be
-% computed assuming that the model is either stationary or that the
-% correct steady-state growth rates are already assigned in the model
-% object.
-%
-% * `'LogMinus='` [ cell | char | *empty* ] - List of log variables whose
-% steady state will be restricted to negative values in this run of
+% * `LogMinus=empty` [ cell | char | *empty* ] - List of log variables
+% whose steady state will be restricted to negative values in this run of
 % `sstate`.
 %
-% * `'OptimSet='` [ cell | struct | *empty* ] - Name-value pairs in a cell
-% array or struct to supply Optim Tbx settings; see `help optimset` for
-% details on these settings.
+% * `Reuse=` [ `true` | `false` ] - Reuse the steady-state values
+% calculated for one parameter variant to initialize the steady-state
+% calculation for the next parameter variant.
 %
-% * `'Reuse='` [ `true` | *`false`* ] - Reuse the steady-state values
-% calculated for a parameterisation to initialise the next
-% parameterisation.
+% * `Solver='IRIS-Qnsd'` [ `'IRIS-Qnsd'` | `'IRIS-Newton'` | `'fsolve'` |
+% `'lsqnonlin'` | cell ] - Numerical routine to solve the steady state of
+% nonlinear models complemented possibly with its options; see Description.
 %
-% * `'Solver='` [ `'fsolve'` | *`'lsqnonlin'`* ] - Numerical routine to
-% solve for steady state of nonlinear models; it can be one of the two
-% Optimization Tbx functions.
+% * `Unlog=[ ]` [ cell | char | *empty* ] - List of log variables that will
+% be temporarily treated as non-log variables in this run of `sstate(~)`,
+% i.e.  their steady-state levels will not be restricted to either positive
+% or negative values.
 %
-% * `'Sstate='` [ `true` | *`false`* | cell ] - If `true` or a cell array, the
-% steady state is re-computed in each iteration; the cell array can be used
-% to modify the default options with which the `sstate` function is called.
-%
-% * `'Unlog='` [ cell | char | *empty* ] - List of log variables that will
-% be temporarily treated as non-log variables in this run of `sstate`, i.e.
-% their steady-state levels will not be restricted to either positive or
-% negative values.
 %
 % __Options for Linear Models__
 %
-% * `'Solve='` [ `true` | *`false`* ] - Solve model before computing steady
-% state.
+% * `Solve=false` [ `true` | `false` ] - Calculate first-order solution
+% before steady state.
 %
 %
 % __Description__
 %
 %
-% _Non-Stationary Models_
+% _Option Growth=_
 %
-% For backward compatibility, the option `'Growth='` is set to `false` by
-% default so that either the model is assumed stationary or the
-% steady-state growth rates have been already pre-assigned to the model
-% object. To use the `sstate` function for computing both the steady-state
-% levels and steady-state growth rates in a balanced-growth model, you need
-% to set the option `'growth=' true`.
+% The option `Growth=` is `false` by default which is consistent with one
+% of the following situations:
+%
+% * all model variables are either stationary or have stochastic trend but
+% no deterministic trend (no deterministic trend: the simplest example is a
+% plain vanilla random walk with no drift);
+%
+% * the steady-state first differences (for variables not declared as log)
+% and steady-state rates of growth (for variables declared as log) have
+% been assigned (as imaginary parts) in the model object for all variables
+% before running `sstate(~)`.
+%
+% If some variables have an unknown deterministic trend (drift) in steady
+% state (for instance, a balanced growth path model), `sstate(~)` needs to
+% be run with `Growth=true`.
 %
 %
 % _Lower and Upper Bounds_
@@ -138,29 +131,49 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 % be included in the struct.
 %
 %
-% _Using @auto in Exogenizing/Endogenizing Variables/Parameters_
+% _Using @auto in Options Exogenize= and Endogenize=_
 %
-% Use the keyword `@auto` to refer to `!steady_autoexog` definitions when
-% setting the options `'Exogenize='` and `'Exogenize=' in the following
-% three possible combinations:
+% The keyword `@auto` refers to `!steady_autoexog` definitions and can be
+% used in the options `Exogenize=` and `Exogenize=` in the following three
+% possible combinations:
 %
-% * Setting both `'Exogenize='` and `'Endogenize='` to `@auto` will
+% * Setting both `Exogenize=` and `Endogenize=` to `@auto` will
 % exogenize all variables from `!steady_autoexog` definitions and
 % endogenize all corresponding parameters.
 %
-% * Assigning the option '`exogenize='` an explicit list of variables while
-% setting `'Endogenize='` to `@auto` will exogenize only the listed
+% * Assigning the option `Exogenize=` an explicit list of variables while
+% setting `Endogenize=` to `@auto` will exogenize only the listed
 % variables while endogenizing the same number of the corresponding
 % parameters from `!steady_autoexoge` definitions. The listed variables
 % must each be found on the left-hand sides of a `!steady_autoexog`
 % definition.
 %
-% * Setting '`exogenize='` to `@auto` while assigning the option
-% `'endogenize=`' an explicit list of parameters will exogenize only the
+% * Setting `Exogenize=` to `@auto` while assigning the option
+% `Endogenize=` an explicit list of parameters will exogenize only the
 % variables that occur on the left-hand sides of those `!steady_autoexog`
 % definitions that have the listed parameters on their right-hand sides.
 % The listed parameters must each be found on the right-hand side of a
 % `!steady_autoexog` definition.
+%
+%
+% _Options Fix=, FixLevel= and FixGrowth=_
+%
+% Options `Fix=`, `FixLevel=` and `FixGrowth=` can be used for fixing the
+% steady state of a subset of variables (their steady-state levels,
+% changes, or both) to values supplied by the user before running
+% `sstate(~)`. The fixed values need to be assigned to the respective
+% variables directly in the model object, and obviously need to be the
+% correct steady-state values. The variables are excluded from the list of
+% unknowns when the steady-state equations are being solved.
+%
+% The list of variables assigned to the three options can be also defined
+% inversely using a `AllBut` wrapper object, constructed by passing the
+% list of variables that are _not_ to be fixed. For instance, in
+%
+%     sstate(m, 'FixGrowth=', AllBut('x', 'y'))
+%
+%  the steady-state growth of all variables except `x` and `y` will be
+%  fixed (and needs to be supplied before calling this `sstate(~)`).
 %
 %
 % __Example__
@@ -171,6 +184,7 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 %
 %     !variables
 %         W, X, Y, Z
+%
 %     !parameters
 %         alpha, beta, gamma, delta
 %
