@@ -69,7 +69,7 @@ function [this, flag, nPath, eigen] = sstate(this, varargin)
 % whose steady state will be restricted to negative values in this run of
 % `sstate`.
 %
-% * `Reuse=` [ `true` | `false` ] - Reuse the steady-state values
+% * `Reuse=false` [ `true` | `false` ] - Reuse the steady-state values
 % calculated for one parameter variant to initialize the steady-state
 % calculation for the next parameter variant.
 %
