@@ -1,15 +1,15 @@
 function style(handles, specs, varargin)
 % visual.style  Style graphics objects
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('visual.style');
-    inputParser.addRequired('Handle', @(x) isempty(x) || all(isgraphics(x)));
-    inputParser.addRequired('Specs', @isstruct);
-    inputParser.addParameter('StyleChildren', true, @(x) isequal(x, true) || isequal(x, false));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('visual.style');
+    parser.addRequired('Handle', @(x) isempty(x) || all(isgraphics(x)));
+    parser.addRequired('Specs', @isstruct);
+    parser.addParameter('StyleChildren', true, @(x) isequal(x, true) || isequal(x, false));
 end
-inputParser.parse(handles, specs, varargin{:});
-opt = inputParser.Options;
+parser.parse(handles, specs, varargin{:});
+opt = parser.Options;
 
 if isempty(handles)
     return
@@ -17,11 +17,11 @@ end
 
 %--------------------------------------------------------------------------
 
-numHandles = numel(handles);
+numOfHandles = numel(handles);
 specsTypes = fieldnames(specs);
 errors = cell.empty(0, 1);
 count = struct( );
-for i = numHandles : -1 : 1
+for i = numOfHandles : -1 : 1
     ithHandle = handles(i);
     handleVisible = get(ithHandle, 'HandleVisibility');
     if ~strcmpi(handleVisible, 'On')
@@ -61,8 +61,8 @@ function errors = apply(handle, type, specs, j, errors)
 
     errors = runPreAndPost('Prestyle', handle, type, specs, j, errors); 
     propertyNames = fieldnames(specs);
-    numProperties = numel(propertyNames);
-    for i = 1 : numProperties
+    numOfProperties = numel(propertyNames);
+    for i = 1 : numOfProperties
         ithPropertyName = propertyNames{i};
         if any(strcmpi(ithPropertyName, {'Prestyle', 'Poststyle'}))
             continue
