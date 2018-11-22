@@ -281,8 +281,8 @@ end
 
 % Fill in zeros for NaNs in dummy variables on the extended range.
 dummy = [ ];
-if ~isempty(opt.Dummy) && isa(opt.Dummy, 'tseries')
-    dummy = rangedata(opt.Dummy, xRange);
+if ~isempty(opt.Dummy) && isa(opt.Dummy, 'TimeSubscriptable')
+    dummy = getData(opt.Dummy, xRange);
     dummy = dummy(:, :);
     checkDummy( );
 end
@@ -292,7 +292,7 @@ if opt.Log
 end
 
 % __Run Backend X13__
-[y, Outp, Logbk, Err, Mdl] = thirdparty.x13.x13(data, startDate, dummy, opt);
+[y, Outp, Logbk, Err, Mdl] = numeric.x13(data, startDate, dummy, opt);
 
 % Convert output data to time series
 for i = 1 : numOfOutputs
@@ -319,7 +319,7 @@ end
 this = trim(this);
 
 % Combine all output arguments
-varargout = [ Outp(:), {Logbk, Err, Mdl, this} ];
+varargout = [ Outp, {Logbk, Err, Mdl, this} ];
 
 return
 
