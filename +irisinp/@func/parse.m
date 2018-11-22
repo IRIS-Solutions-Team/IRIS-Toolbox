@@ -1,5 +1,7 @@
 function varargout = parse(this, varargin)
 
+iseven = @(x) mod(x, 2)==0;
+
 nInp = length(this.Inp);
 
 state = struct( );

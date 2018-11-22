@@ -9,6 +9,7 @@ function this = setData(this, s, y)
 
 ERROR_ASSIGNMENT = { 'TimeSubscriptable:ErrorAssigning'
                      'Error when assigning to a time seris\nMatlab says: %s ' };
+testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
 
 % Simplified call
 if isa(s, 'DateWrapper') || isnumeric(s)
@@ -82,7 +83,7 @@ end
 
 % If RHS is empty and first index is ':', then some of the columns could
 % have been deleted, and the comments must be adjusted accordingly
-if isempty(y) && strcmp(s.subs{1}, ':')
+if isempty(y) && testColon(s.subs{1});
     this.Comment = subsasgn(this.Comment, s, y);
 end
 
@@ -99,6 +100,7 @@ end%
 function [this, s, dates, freqTest] = expand(this, s)
     ERROR_GROW_AMBIGUOUS_DIM = { 'TimeSubscriptale:subsasgn', ...
                                  'Attempt to grow time series data array along ambiguous dimension' };
+    testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
 
     needsConvertToDateWrapper = isa(this.Start, 'DateWrapper');
     startOfThis = double(this.Start);
@@ -121,8 +123,7 @@ function [this, s, dates, freqTest] = expand(this, s)
     % We cannot use isequal(s.subs{1}, ':') because isequal(58, ':')
     % Give standartd dot access to properties
     timeRef = s.subs{1};
-    if ((ischar(timeRef) || isa(timeRef, 'string')) && strcmp(timeRef, ':')) ...
-       || isequal(timeRef, Inf) || isequal(timeRef, [-Inf, Inf])
+    if testColon(timeRef) || isequal(timeRef, Inf) || isequal(timeRef, [-Inf, Inf])
         s.subs{1} = ':';
         if isnan(startOfThis)
             % LHS is empty

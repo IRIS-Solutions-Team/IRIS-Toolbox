@@ -35,4 +35,5 @@ function varargout = dbcol(this, varargin)
 
 [varargout{1:nargout}] = dbdimretrieve(this, 2, varargin{:});
 
-end
+end%
+

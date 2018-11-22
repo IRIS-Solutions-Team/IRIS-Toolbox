@@ -1,5 +1,5 @@
 function varargout = dbdimretrieve(this, dimension, pos)
-% dbdimretrieve  Retrieve specified slices in specified dimension from database entries.
+% dbdimretrieve  Retrieve specified slices in specified dimension from database entries
 %
 % Backend IRIS function.
 % No help provided.
@@ -15,7 +15,7 @@ if isempty(listOfFields)
     return
 end
 numOfFields = length(listOfFields);
-indexOfSuccess = false(1, numOfFields);
+inxOfSuccess = false(1, numOfFields);
 
 for i = 1 : numOfFields
     ithName = listOfFields{i};
@@ -33,23 +33,23 @@ for i = 1 : numOfFields
     else
         reference{dimension} = pos;
     end
-    if isa(this.(ithName), 'tseries')
+    if isa(this.(ithName), 'TimeSubscriptable')
         try %#ok<TRYNC>
             this.(ithName) = this.(ithName){reference{:}};
-            indexOfSuccess(i) = true;
+            inxOfSuccess(i) = true;
         end
     elseif isnumeric(this.(ithName)) ...
             || islogical(this.(ithName)) ...
             || iscell(this.(ithName))
         try %#ok<TRYNC>
             this.(ithName) = this.(ithName)(reference{:});
-            indexOfSuccess(i) = true;
+            inxOfSuccess(i) = true;
         end
     end
 end
 
-if any(~indexOfSuccess)
-    this = rmfield(this, listOfFields(~indexOfSuccess));
+if any(~inxOfSuccess)
+    this = rmfield(this, listOfFields(~inxOfSuccess));
 end
 varargout{1} = this;
 

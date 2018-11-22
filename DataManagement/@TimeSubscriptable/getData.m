@@ -7,28 +7,26 @@ function [data, dates, this] = getData(this, timeRef, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-% timeRef can be one of the following
-%
-% * ':', Inf - data for the entire range available are returned
-% * empty - empty data are returned
-% * DateWrapper or integer - data for the specified date vector are returned
-
 ERROR_INVALID_FREQUENCY = { 'TimeSeries:subsref:InvalidFrequency'
                             'Illegal date frequency in subscripted reference to %s object' };
+testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
 
 %--------------------------------------------------------------------------
 
 % References to 2nd and higher dimensions
 if ~isempty(varargin)
     this.Data = this.Data(:, varargin{:});
-    this.Comment = this.Comment(:, varargin{:});
+    if nargout>=3
+        this.Comment = this.Comment(:, varargin{:});
+        this = trim(this);
+    end 
 end
 
 sizeOfData = size(this.Data);
 serialOfStart = DateWrapper.getSerial(this.Start);
 freqOfStart = DateWrapper.getFrequencyAsNumeric(this.Start);
 
-if nargin<2 || isequal(timeRef, ':') || isequal(timeRef, Inf)
+if nargin<2 || testColon(timeRef) || isequal(timeRef, Inf)
     data = this.Data;
     dates = this.Range;
     return
@@ -90,5 +88,43 @@ switch subsCase(this, timeRef)
         end
 end
 
+end%
+
+
+%
+% Local Functions
+%
+
+
+function c = subsCase(this, timeRef)
+    ERROR_INVALID_SUBSCRIPT = { 'TimeSubscriptable:subsCase:IllegalSubscript'
+                                'Illegal subscripted reference or assignment to %s object' };
+    testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
+
+    %--------------------------------------------------------------------------
+
+    start = this.Start;
+
+    if isequaln(timeRef, NaN)
+        ref = 'NaD';
+    elseif isempty(timeRef)
+        ref = '[]';
+    elseif testColon(timeRef) || isequal(timeRef, Inf)
+        ref = ':';
+    elseif isnumeric(timeRef)
+        ref = 'Date';
+    else
+        throw( exception.Base(ERROR_INVALID_SUBSCRIPT, 'error'), ...
+               class(this) );
+    end
+
+    freq = DateWrapper.getFrequencyAsNumeric(start);
+    if isnan(freq) || isempty(start)
+        start = 'NaD';
+    else
+        start = 'Date';
+    end
+
+    c = [start, '_', ref];
 end%
 

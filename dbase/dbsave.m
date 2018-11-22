@@ -226,13 +226,13 @@ for i = 1 : nList
     
     name = list{i};
     
-    if isa(inp.(name), 'tseries')
+    if isa(inp.(name), 'TimeSubscriptable')
         ithFreq = inp.(name).FrequencyAsNumeric;
         if opt.MatchFreq && userFreq~=ithFreq
             continue
         end
         if isRange
-            iData = getDataFromTo(inp.(name), dates(1), dates(2));
+            iData = getDataFromTo(inp.(name), dates(1), dates(end));
         else
             iData = getData(inp.(name), dates);
         end
@@ -472,11 +472,9 @@ function saveCsvData(oo, fileName, opt)
     if isempty(strDat)
         % If there is no time series in the input database, create a vector 1:N in
         % the first column instead of dates.
-        strDat = cellfun( ...
-            @(x) sprintf('%g', x), ...
-            num2cell(1:nRow), ...
-            'UniformOutput', false ...
-            );
+        strDat = cellfun( @(x) sprintf('%g', x), ...
+                          num2cell(1:nRow), ...
+                          'UniformOutput', false );
     end
 
     % Transpose data in cellData so that they are read correctly in sprintf.

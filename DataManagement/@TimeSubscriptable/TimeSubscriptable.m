@@ -63,7 +63,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
         varargout = getDataNoFrills(varargin)
         varargout = implementPlot(varargin)
         varargout = resolveRange(varargin)
-        varargout = subsCase(varargin)
     end
 
 

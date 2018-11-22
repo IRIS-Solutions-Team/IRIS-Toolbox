@@ -3,7 +3,7 @@ classdef plotspec < irisinp.generic
         ReportName = 'Plot Specs';  
         Value = NaN;
         Omitted = { };
-        ValidFn = @(x, state) ischar(x) && ~iseven(state.NUserLeft);
+        ValidFn = @(x, state) ischar(x) && mod(state.NUserLeft, 2)==1
     end
     
     

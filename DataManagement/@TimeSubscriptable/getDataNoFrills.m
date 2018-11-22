@@ -51,7 +51,7 @@ else
     temp = data;
     data = repmat(this.MissingValue, [numOfTimes, sizeOfData(2:end)]);
     data(inxWithinRange, :) = temp(posOfTimes(inxWithinRange), :);
-    if nargout>3
+    if nargout>=4
         createOutputSeries( );
     end
 end
