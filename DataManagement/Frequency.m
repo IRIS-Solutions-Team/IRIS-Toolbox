@@ -1,13 +1,15 @@
 classdef Frequency < double
     enumeration
-        INTEGER     (  0) 
-        YEARLY      (  1) 
-        HALFYEARLY  (  2) 
-        QUARTERLY   (  4) 
-        MONTHLY     ( 12) 
-        WEEKLY      ( 52) 
-        DAILY       (365) 
-        NaF         (NaN) 
+        INTEGER           (  0) 
+        YEARLY            (  1) 
+        HALFYEARLY        (  2) 
+        QUARTERLY         (  4) 
+        MONTHLY           ( 12) 
+        WEEKLY            ( 52) 
+        DAILY             (365) 
+        NaF               (NaN) 
+
+        MIN_DAILY_SERIAL  (365244)
     end
 
 
@@ -33,26 +35,6 @@ classdef Frequency < double
                     d = calendarDuration(0, 0, 1);
                 case Frequency.INTEGER
                     d = 1;
-            end
-        end%
-
-
-        function d = getXLimMarginCalendarDuration(this)
-            switch this
-                case Frequency.YEARLY
-                    d = calendarDuration(0, 6, 0);
-                case Frequency.HALFYEARLY
-                    d = calendarDuration(0, 3, 0);
-                case Frequency.QUARTERLY
-                    d = calendarDuration(0, 1, 15);
-                case Frequency.MONTHLY
-                    d = calendarDuration(0, 0, 15);
-                case Frequency.WEEKLY
-                    d = calendarDuration(0, 0, 3);
-                case Frequency.DAILY
-                    d = calendarDuration(0, 0, 1);
-                case Frequency.INTEGER
-                    d = 0.5;
             end
         end%
 
@@ -397,6 +379,26 @@ classdef Frequency < double
 
 
     methods (Static)
+        function d = getXLimMarginCalendarDuration(input)
+            switch input
+                case Frequency.YEARLY
+                    d = calendarDuration(0, 6, 0);
+                case Frequency.HALFYEARLY
+                    d = calendarDuration(0, 3, 0);
+                case Frequency.QUARTERLY
+                    d = calendarDuration(0, 1, 15);
+                case Frequency.MONTHLY
+                    d = calendarDuration(0, 0, 15);
+                case Frequency.WEEKLY
+                    d = calendarDuration(0, 0, 3);
+                case Frequency.DAILY
+                    d = calendarDuration(0, 0, 1);
+                case Frequency.INTEGER
+                    d = 0.5;
+            end
+        end%
+        
+
         function c = toChar(freq)
             if ~isa(freq, 'Frequency')
                 freq = Frequency(freq);

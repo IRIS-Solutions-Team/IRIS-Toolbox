@@ -1,12 +1,12 @@
-function [C,R] = acf(varargin)
+function [C, R] = acf(varargin)
 % acf  Sample autocovariance and autocorrelation functions.
 %
 %
 % Syntax
 % =======
 %
-%     [C,R] = acf(X)
-%     [C,R] = acf(X,Dates,...)
+%     [C, R] = acf(X)
+%     [C, R] = acf(X, Dates, ...)
 %
 %
 % Input arguments
@@ -53,20 +53,20 @@ function [C,R] = acf(varargin)
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-[This,Dates,varargin] = irisinp.parser.parse('tseries.acf',varargin{:});
-opt = passvalopt('tseries.acf',varargin{:});
+[this, dates, varargin] = irisinp.parser.parse('tseries.acf', varargin{:});
+opt = passvalopt('tseries.acf', varargin{:});
 
 %--------------------------------------------------------------------------
 
-data = mygetdata(This,Dates);
+data = getData(this, dates);
 
 if ndims(data) > 3
-    data = data(:,:,:);
+    data = data(:, :, :);
 end
 
-C = covfun.acovfsmp(data,opt);
+C = covfun.acovfsmp(data, opt);
 if nargout>1
     R = covfun.cov2corr(C);
 end
 
-end
+end%

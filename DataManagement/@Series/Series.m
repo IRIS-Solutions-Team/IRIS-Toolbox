@@ -3,13 +3,13 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
     methods
         function this = Series(varargin)
             this = this@tseries(varargin{:});
-        end
+        end%
 
 
         function obj = tseries(this)
             obj = tseries( );
             obj = struct2obj(obj, this);
-        end
+        end%
     end
 
 

@@ -1,36 +1,32 @@
-function c = subsCase(this, timeReference)
+function c = subsCase(this, timeRef)
+
+ERROR_INVALID_SUBSCRIPT = { 'TimeSubscriptable:subsCase:IllegalSubscript'
+                            'Illegal subscripted reference or assignment to %s object' };
+
+%--------------------------------------------------------------------------
 
 start = this.Start;
 
-if isequaln(timeReference, NaN)
+if isequaln(timeRef, NaN)
     ref = 'NaD';
-elseif isequal(class(start), class(timeReference))
-    if isequaln(timeReference, NaN) || isnad(timeReference)
-        ref = 'NaD';
-    else
-        ref = 'Date';
-    end
-elseif isequal(timeReference, ':') || isequal(timeReference, Inf)
-    ref = ':';
-elseif isempty(timeReference)
+elseif isempty(timeRef)
     ref = '[]';
+elseif isequal(timeRef, ':') || isequal(timeRef, Inf)
+    ref = ':';
+elseif isnumeric(timeRef)
+    ref = 'Date';
 else
-    error( ...
-        'TimeSubscriptable:subsCase:IllegalSubscript', ...
-        'Illegal subscripted reference or assignment to %s object.', ...
-        class(this) ...
-    );
+    throw( exception.Base(ERROR_INVALID_SUBSCRIPT, 'error'), ...
+           class(this) );
 end
 
 freq = DateWrapper.getFrequencyAsNumeric(start);
-if isnan(freq)
+if isnan(freq) || isempty(start)
     start = 'NaD';
-elseif isempty(start)
-    start = 'Empty';
 else
     start = 'Date';
 end
 
 c = [start, '_', ref];
 
-end
+end%

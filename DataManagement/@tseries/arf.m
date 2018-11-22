@@ -100,28 +100,28 @@ xData = xData(:, :);
 
 % Do noting if effective range is empty.
 nPer = length(Range);
-if nPer <= order
+if nPer<=order
     return
 end
 
 % Get exogenous (z) data.
-if isa(Z, 'tseries')
-    zdata = mygetdata(Z, Range);
-    zdata = zdata(:, :);
-    % expand zdata in 2nd dimension if needed
+if isa(Z, 'TimeSubscriptable')
+    zData = getData(Z, Range);
+    zData = zData(:, :);
+    % expand zData in 2nd dimension if needed
 else
     if isempty(Z)
         Z = 0;
     end
-    zdata = Z(ones([1, nPer]), :);
+    zData = repmat(zData, nPer, 1);
 end
-if size(zdata, 2) == 1 && size(xData, 2) > 1
-    zdata = zdata(:, ones([1, size(xData, 2)]));
+if size(zData, 2)==1 && size(xData, 2)>1
+    zData = repmat(zData, 1, size(xData, 2));
 end
 
 % Normalise polynomial vector.
 if A(1) ~= 1
-    zdata = zdata / A(1);
+    zData = zData / A(1);
     A = A / A(1);
 end
 
@@ -136,11 +136,12 @@ end
 
 for i = 1 : size(xData, 2)
     for t = timeVec
-        xData(t, i) = -A(2:end)*xData(t+shifts, i) + zdata(t, i);
+        xData(t, i) = -A(2:end)*xData(t+shifts, i) + zData(t, i);
     end
 end
 
 % Update output series.
 X = subsasgn(X, Range, reshape(xData, [size(xData, 1), xSize(2:end)]));
 
-end
+end%
+

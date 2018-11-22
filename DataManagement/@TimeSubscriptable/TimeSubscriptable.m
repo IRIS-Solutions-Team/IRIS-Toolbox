@@ -36,8 +36,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
         % Range  Date range from first to last observation in time series
         Range
 
-        % Range  Date range from first to last observation in time series returned as numeric value
+        % RangeAsDateWrapper  Date range from first to last observation in time series returned as numeric value
         RangeAsNumeric
+
+        % RangeAsDateWrapper  Date range from first to last observation in time series returned as DateWrapper
+        RangeAsDateWrapper
     end
 
 
@@ -65,6 +68,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
 
     methods
+        varargout = clip(varargin)
         varargout = getData(varargin)
         varargout = ifelse(varargin)
         varargout = ellone(varargin)
@@ -167,17 +171,23 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
 
         function range = get.Range(this)
-            if isnan(this.Start)
-                range = this.Start;
-                return
-            end
-            vec = transpose(0:size(this.Data, 1)-1);
-            range = addTo(this.Start, vec);
+            range = this.RangeAsNumeric;
+            if isa(this.Start, 'DateWrapper')
+               range = DateWrapper.fromDateCode(range);
+            end 
         end%
 
 
-        function range = get.RangeAsNumeric(this)
-            range = double(this.Range);
+        function numericRange = get.RangeAsNumeric(this)
+            numericStart = double(this.Start);
+            numericRange = numericStart + (0 : size(this.Data, 1)-1);
+            numericRange = transpose(numericRange);
+        end%
+
+
+        function range = get.RangeAsDateWrapper(this)
+            range = this.RangeAsNumeric;
+            range = DateWrapper.fromDateCode(range);
         end%
 
 
@@ -185,8 +195,8 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
             if isnan(this.Start) || size(this.Data, 1)==0
                 return
             end
-            sizeData = size(this.Data);
-            newSizeOfData = [0, sizeData(2:end)];
+            sizeOfData = size(this.Data);
+            newSizeOfData = [0, sizeOfData(2:end)];
             this.Start = startDateWhenEmpty(this);
             this.Data = repmat(this.MissingValue, newSizeOfData);
         end%
@@ -200,30 +210,30 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
         end%
 
 
-        function flag = validateDate(this, date)
-            if ~isequal(class(this.Start), class(date)) ...
-                && ~(isnumeric(date) && all(date==round(date)))
-                flag = false;
-                return
-            end
+        function flag = validateFrequency(this, dates)
             if isnan(this.Start)
-                flag = true;
+                flag = true(size(dates));
                 return
             end
-            if DateWrapper.getFrequency(this.Start)==DateWrapper.getFrequency(date);
-                flag = true;
-                return
-            end
-            flag = false;
+            flag = DateWrapper.getFrequencyAsNumeric(this.Start)==DateWrapper.getFrequencyAsNumeric(dates) ...
+                 | isnan(dates);
         end%
 
 
-        function flag = validateDateOrInf(this, date)
-            if isequal(date, Inf) || isequal(date, -Inf)
-                flag = true;
-                return
+        function flag = validateFrequencyOrInf(this, dates)
+            flag = isinf(dates) | validateFrequency(this, dates);
+        end%
+
+
+        function checkFrequencyOrInf(this, dates)
+            if any(~validateFrequencyOrInf(this, dates))
+                freqOfThis = DateWrapper.getFrequencyAsNumeric(this.Start);
+                freqOfDates = DateWrapper.getFrequencyAsNumeric(dates);
+                freqOfDates = unique(freqOfDates, 'stable');
+                charFreqOfDates = arrayfun(@Frequency.toChar, freqOfDates, 'UniformOutput', false);
+                throw( exception.Base('TimeSubscriptable:FrequencyMismatch', 'error'), ...
+                       Frequency.toChar(freqOfThis),charFreqOfDates{:} );
             end
-            flag = validateDate(this, date);
         end%
     end
 

@@ -66,19 +66,19 @@ else
     func = @rdivide;
 end
 
-sizeData = size(this.Data);
-ndimsData = ndims(this.Data);
+sizeOfData = size(this.Data);
+ndimsOfData = ndims(this.Data);
 this.Data = this.Data(:, :);
 
-y = mygetdata(this, normDate);
+checkFrequencyOrInf(this, normDate);
+y = getData(this, normDate);
 for i = 1 : size(this.Data, 2)
     this.Data(:, i) = func(this.Data(:, i), y(i));
 end
 
-if ndimsData>2
-    this.Data = reshape(this.Data, sizeData);
+if ndimsOfData>2
+    this.Data = reshape(this.Data, sizeOfData);
 end
-
 this = trim(this);
 
 end%

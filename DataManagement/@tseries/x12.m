@@ -226,34 +226,33 @@ function varargout = x12(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('tseries.x12');
-    inputParser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
-    inputParser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
-    inputParser.addParameter({'Backcast', 'Backcasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    inputParser.addParameter({'CleanUp', 'DeleteTempFiles', 'DeleteTempFile', 'DeleteX12Files', 'DeleteX12File', 'Delete'}, true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Dummy', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
-    inputParser.addParameter('DummyType', 'Holiday', @(x) ischar(x) && any(strcmpi(x, {'Holiday', 'TD', 'AO'})));
-    inputParser.addParameter('Display', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter({'Forecast', 'Forecasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    inputParser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('MaxIter', 1500, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
-    inputParser.addParameter('MaxOrder', [2, 1], @(x) isnumeric(x) && length(x)==2 && any(x(1)==[1, 2, 3, 4]) && any(x(2)==[1, 2]));
-    inputParser.addParameter({'AllowMissing', 'Missing'}, false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Mode', 'auto', @(x) (isnumeric(x) && any(x==(-1 : 3))) || any(strcmp(x, {'add', 'a', 'mult', 'm', 'auto', 'sign', 'pseudo', 'pseudoadd', 'p', 'log', 'logadd', 'l'})));
-    inputParser.addParameter('Output', 'd11', @(x) ischar(x) || iscellstr(x));
-    inputParser.addParameter('SaveAs', '', @ischar);
-    inputParser.addParameter('SpecFile', 'default', @(x) ischar(x) || isinf(x));
-    inputParser.addParameter({'TDays', 'TDay'}, false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('TempDir', '.', @(x) ischar(x) || isa(x, 'function_handle'));
-    inputParser.addParameter('Tolerance', 1e-5, @(x) isnumeric(x) && isscalar(x) && x>0);
-    inputParser.addParameter('Executable', @auto, @(x) isequal(x, @auto) || strcmpi(x, 'x12awin.exe'));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('tseries.x12');
+    parser.addRequired('InputSeries', @(x) isa(x, 'tseries'));
+    parser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
+    parser.addParameter({'Backcast', 'Backcasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    parser.addParameter({'CleanUp', 'DeleteTempFiles', 'DeleteTempFile', 'DeleteX12Files', 'DeleteX12File', 'Delete'}, true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Dummy', [ ], @(x) isempty(x) || isa(x, 'TimeSubscriptable'));
+    parser.addParameter('DummyType', 'Holiday', @(x) ischar(x) && any(strcmpi(x, {'Holiday', 'TD', 'AO'})));
+    parser.addParameter('Display', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'Forecast', 'Forecasts'}, 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    parser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('MaxIter', 1500, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
+    parser.addParameter('MaxOrder', [2, 1], @(x) isnumeric(x) && length(x)==2 && any(x(1)==[1, 2, 3, 4]) && any(x(2)==[1, 2]));
+    parser.addParameter({'AllowMissing', 'Missing'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Mode', 'auto', @(x) (isnumeric(x) && any(x==(-1 : 3))) || any(strcmp(x, {'add', 'a', 'mult', 'm', 'auto', 'sign', 'pseudo', 'pseudoadd', 'p', 'log', 'logadd', 'l'})));
+    parser.addParameter('Output', 'd11', @(x) ischar(x) || iscellstr(x));
+    parser.addParameter('SaveAs', '', @ischar);
+    parser.addParameter('SpecFile', 'default', @(x) ischar(x) || isinf(x));
+    parser.addParameter({'TDays', 'TDay'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('TempDir', '.', @(x) ischar(x) || isa(x, 'function_handle'));
+    parser.addParameter('Tolerance', 1e-5, @(x) isnumeric(x) && isscalar(x) && x>0);
+    parser.addParameter('Executable', @auto, @(x) isequal(x, @auto) || strcmpi(x, 'x12awin.exe'));
 end
-inputParser.parse(this, varargin{:});
-range = inputParser.Results.Range;
-opt = inputParser.Options;
+parser.parse(this, varargin{:});
+range = parser.Results.Range;
+opt = parser.Options;
 
 if strcmp(opt.Mode, 'sign')
     opt.Mode = 'auto';
@@ -262,11 +261,12 @@ end
 %--------------------------------------------------------------------------
 
 outputRequest( );
-nOutp = length(opt.Output);
+numOfOutputs = length(opt.Output);
 co = comment(this);
-inpSize = size(this.data);
-this.data = this.data(:, :);
+sizeOfData = size(this.data);
+checkFrequencyOrInf(this, range);
 [data, range] = getData(this, range);
+data = data(:, :);
 
 % Extended range with backcasts and forecasts.
 if ~isempty(range)
@@ -294,32 +294,32 @@ end
 % __Run Backend X13__
 [y, Outp, Logbk, Err, Mdl] = thirdparty.x13.x13(data, startDate, dummy, opt);
 
-% Convert output data to tseries objects.
-for i = 1 : nOutp
+% Convert output data to time series
+for i = 1 : numOfOutputs
     if opt.Log
         Outp{i} = exp(Outp{i});
     end
-    Outp{i} = reshape(Outp{i}, [size(Outp{i}, 1), inpSize(2:end)]);
+    Outp{i} = reshape(Outp{i}, [size(Outp{i}, 1), sizeOfData(2:end)]);
     Outp{i} = replace(this, Outp{i}, startDate, co);
 end
 
 % Reshape the model spec struct to match the dimensions and size of input
-% and output tseries.
-if length(inpSize) > 2
-    Mdl = reshape(Mdl, [1, inpSize(2:end)]);
+% and output time series
+if length(sizeOfData)>2
+    Mdl = reshape(Mdl, [1, sizeOfData(2:end)]);
 end
 
-% Return original series with forecasts and backcasts.
-nXPer = size(y, 1);
-this.start = xStartDate;
-this.data = y;
-if length(inpSize) > 2
-    this.data = reshape(this.data, [nXPer, inpSize(2:end)]);
+% Return input time series with forecasts and backcasts
+numOfExtendedPeriods = size(y, 1);
+this.Start = xStartDate;
+this.Data = y;
+if numel(sizeOfData)>2
+    this.Data = reshape(this.Data, [numOfExtendedPeriods, sizeOfData(2:end)]);
 end
 this = trim(this);
 
-% Combine all output arguments.
-varargout = { Outp{:}, Logbk, Err, Mdl, this }; %#ok<CCAT>
+% Combine all output arguments
+varargout = [ Outp(:), {Logbk, Err, Mdl, this} ];
 
 return
 

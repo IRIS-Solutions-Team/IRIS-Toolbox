@@ -1,15 +1,15 @@
-function [H1,H2,Range,Data] = errorbar(varargin)
+function [H1, H2, Range, Data] = errorbar(varargin)
 % errorbar  Line plot with error bars.
 %
 % Syntax
 % =======
 %
-%     [LL,EE,Range] = errorbar(X,W,...)
-%     [LL,EE,Range] = errorbar(Range,X,W,...)
-%     [LL,EE,Range] = errorbar(AA,Range,X,W,...)
-%     [LL,EE,Range] = errorbar(X,Lo,Hi,...)
-%     [LL,EE,Range] = errorbar(Range,X,Lo,Hi,...)
-%     [LL,EE,Range] = errorbar(AA,Range,X,Lo,Hi,...)
+%     [LL, EE, Range] = errorbar(X, W, ...)
+%     [LL, EE, Range] = errorbar(Range, X, W, ...)
+%     [LL, EE, Range] = errorbar(AA, Range, X, W, ...)
+%     [LL, EE, Range] = errorbar(X, Lo, Hi, ...)
+%     [LL, EE, Range] = errorbar(Range, X, Lo, Hi, ...)
+%     [LL, EE, Range] = errorbar(AA, Range, X, Lo, Hi, ...)
 %
 % Input arguments
 % ================
@@ -78,17 +78,17 @@ function [H1,H2,Range,Data] = errorbar(varargin)
 % x = varargin{1};
 % varargin(1) = [ ];
 % 
-% if isempty(varargin) || ~isa(varargin{1},'tseries')
+% if isempty(varargin) || ~isa(varargin{1}, 'tseries')
 %     low = x;
-%     low.data = low.data(:,2:2:end);
-%     low.Comment = low.comment(:,2:2:end);
+%     low.data = low.data(:, 2:2:end);
+%     low.Comment = low.comment(:, 2:2:end);
 %     high = low;
-%     x.data = x.data(:,1:2:end);
-%     x.Comment = x.comment(:,1:2:end);
+%     x.data = x.data(:, 1:2:end);
+%     x.Comment = x.comment(:, 1:2:end);
 % else
 %     low = varargin{1};
 %     varargin(1) = [ ];
-%     if ~isempty(varargin) && isa(varargin{1},'tseries')
+%     if ~isempty(varargin) && isa(varargin{1}, 'tseries')
 %         high = varargin{1};
 %         varargin(1) = [ ];
 %     else
@@ -96,29 +96,30 @@ function [H1,H2,Range,Data] = errorbar(varargin)
 %     end
 % end
 
-[Ax,Range,X,Lo,Hi,PlotSpec,varargin] = ...
-    irisinp.parser.parse('tseries.errorbar',varargin{:});
-[errorbarOpt,varargin] = passvalopt('tseries.errorbar',varargin{:});
+[Ax, Range, X, Lo, Hi, PlotSpec, varargin] = ...
+    irisinp.parser.parse('tseries.errorbar', varargin{:});
+[errorbarOpt, varargin] = passvalopt('tseries.errorbar', varargin{:});
 
 %--------------------------------------------------------------------------
 
-[~,H1,Range,Data,time] = tseries.myplot(@plot,Ax,Range,[ ],X,PlotSpec,varargin{:});
+[~, H1, Range, Data, time] = tseries.myplot(@plot, Ax, Range, [ ], X, PlotSpec, varargin{:});
 
-status = get(gca( ),'nextPlot');
-set(gca( ),'nextPlot','add');
-loData = mygetdata(Lo,Range);
-if ~isa(Hi,'tseries')
+status = get(gca( ), 'nextPlot');
+set(gca( ), 'nextPlot', 'add');
+loData = getdata(Lo, Range);
+if ~isa(Hi, 'tseries')
     Hi = Lo;
 end
-hiData = mygetdata(Hi,Range);
-H2 = tseries.myerrorbar(time,Data,loData,hiData,errorbarOpt);
-set(gca( ),'nextPlot',status);
+hiData = getdata(Hi, Range);
+H2 = tseries.myerrorbar(time, Data, loData, hiData, errorbarOpt);
+set(gca( ), 'nextPlot', status);
 
 % link = cell(size(h1));
 for i = 1 : numel(H1)
-    set(H2(i),'color',get(H1(i),'color'));
-    % link{i} = linkprop([h1(i),h2(i)],'color');
+    set(H2(i), 'color', get(H1(i), 'color'));
+    % link{i} = linkprop([h1(i), h2(i)], 'color');
 end
-% setappdata(ax,'link',link);
+% setappdata(ax, 'link', link);
 
-end
+end%
+

@@ -90,7 +90,8 @@ if ~isempty(comprise)
     end
 end
 
-data = mygetdata(this, inputRange);
+checkFrequencyOrInf(this, inputRange);
+data = getData(this, inputRange);
 xCoor = dat2dec(inputRange, opt.DatePosition);
 
 if isempty(plotFunc)

@@ -57,13 +57,11 @@ end
 
 switch s(1).type
     case '()'
-        % Return numeric array.
-        [data, range] = mygetdata(this, s(1).subs{:});
-        varargout{1} = data;
-        varargout{2} = range;
+        % Return numeric array
+        [varargout{1:2}] = getData(this, s(1).subs{:});
     case '{}'
-        % Return Series object.
-        [~, ~, this] = mygetdata(this, s(1).subs{:});
+        % Return time series
+        [~, ~, this] = getData(this, s(1).subs{:});
         s(1) = [ ];
         if isempty(s)
             varargout{1} = this;

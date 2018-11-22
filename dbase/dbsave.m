@@ -135,15 +135,15 @@ function lsSaved = dbsave(inp, fileName, varargin)
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
 
-if ~isempty(varargin) && isnumeric(varargin{1})
-    vecDat = varargin{1};
+if ~isempty(varargin) && (isa(varargin{1}, 'DateWrapper') || isnumeric(varargin{1}))
+    dates = double(varargin{1});
     varargin(1) = [ ];
 end
 
 try
-    vecDat;
+    dates;
 catch %#ok<CTCH>
-    vecDat = Inf;
+    dates = Inf;
 end
 
 % Allow both dbsave(d, fileName) and dbsave(fileName, d).
@@ -155,8 +155,8 @@ end
 pp = inputParser( );
 pp.addRequired('d', @isstruct);
 pp.addRequired('fileName', @ischar);
-pp.addRequired('dates', @isnumeric);
-pp.parse(inp, fileName, vecDat);
+pp.addRequired('dates', @DateWrapper.validateDateInput);
+pp.parse(inp, fileName, dates);
 
 % Parse options.
 opt = passvalopt('dbase.dbsave', varargin{:});
@@ -174,22 +174,22 @@ end
 
 %--------------------------------------------------------------------------
 
-if isequal(vecDat, Inf)
-    vecDat = dbrange(inp);
-    if iscell(vecDat)
+if isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
+    dates = dbrange(inp);
+    if iscell(dates)
         utils.error('dbase:dbsave', ...
             'Cannot save database with mixed date frequencies.');
     end
 else
-    vecDat = vecDat(:)';
-    if ~isempty(vecDat) && any(~freqcmp(vecDat))
+    dates = transpose(dates(:));
+    if ~isempty(dates) && any(~freqcmp(dates))
         utils.error('dbase:dbsave', ...
             'Input date vector must have homogenous date frequency.');
     end
 end
-isRange = all(round(diff(vecDat))==1);
-if ~isempty(vecDat)
-    userFreq = DateWrapper.getFrequencyAsNumeric(vecDat);
+isRange = all(round(diff(dates))==1);
+if ~isempty(dates)
+    userFreq = DateWrapper.getFrequencyAsNumeric(dates);
 else
     userFreq = NaN;
 end
@@ -213,7 +213,7 @@ list = fieldnames(inp).';
 % Initialise the data matrix as a N-by-1 vector of NaNs to mimic the Dates.
 % This first column will fill in all entries.
 nList = numel(list);
-data = cell(1, nList); % nan(length(vecDat), 1);
+data = cell(1, nList); % nan(length(dates), 1);
 nRows = zeros(1, nList, 'int32');
 
 nameRow = { };
@@ -232,9 +232,9 @@ for i = 1 : nList
             continue
         end
         if isRange
-            iData = rangedata(inp.(name), vecDat);
+            iData = getDataFromTo(inp.(name), dates(1), dates(2));
         else
-            iData = mygetdata(inp.(name), vecDat);
+            iData = getData(inp.(name), dates);
         end
         iComment = comment(inp.(name));
         ixSaved(i) = true;
@@ -289,7 +289,7 @@ lsSaved = list(ixSaved);
 
 % We need to remove double quotes from the date format string because the
 % double quotes are used to delimit the CSV cells.
-o.StrDat = dat2str(vecDat(:), opt);
+o.StrDat = dat2str(dates(:), opt);
 o.StrDat = strrep(o.StrDat, '"', '');
 
 o.Data = data;
@@ -320,197 +320,198 @@ return
         for ii = find(ixSubdb)
             iiName = list{ii};
             iifileName = fullfile(fPath, [fTit, '_', iiName], fExt);
-            saved = dbsave(inp.(iiName), iifileName, vecDat, varargin{:});
+            saved = dbsave(inp.(iiName), iifileName, dates, varargin{:});
             lsSaved{end+1} = saved; %#ok<AGROW>
         end
-    end
-end
+    end%
+end%
 
 
+%
+% Local Functions
+%
 
 
 function saveCsvData(oo, fileName, opt)
-nameRow = oo.NameRow;
-strDat = oo.StrDat;
-data = oo.Data;
+    nameRow = oo.NameRow;
+    strDat = oo.StrDat;
+    data = oo.Data;
 
-if isfield(oo, 'Delimiter')
-    delimiter = oo.Delimiter;
-else
-    delimiter = ', ';
-end
-fstr = [delimiter, '"%s"'];
-
-if isfield(oo, 'CommentRow')
-    commentRow = oo.CommentRow;
-else
-    commentRow = { };
-end
-isCommentRow = ~isempty(commentRow);
-
-if isfield(oo, 'ClassRow')
-    classRow = oo.ClassRow;
-else
-    classRow = { };
-end
-isClassRow = ~isempty(classRow);
-
-if isfield(oo, 'UnitRow')
-    unitRow = oo.UnitRow;
-else
-    unitRow = { };
-end
-isUnitRow = ~isempty(unitRow);
-
-if isfield(oo, 'NanString')
-    nanString = oo.NanString;
-else
-    nanString = 'NaN';
-end
-isNanString = ~strcmpi(nanString, 'NaN');
-
-if isfield(oo, 'Format')
-    format = oo.Format;
-else
-    format = '%.8e';
-end
-
-if isfield(oo, 'Highlight')
-    highlight = oo.Highlight;
-else
-    highlight = [ ];
-end
-isHighlight = ~isempty(highlight);
-
-isUserData = isfield(oo, 'UserData');
-
-%--------------------------------------------------------------------------
-
-% Create an empty buffer.
-c = '';
-br = sprintf('\n');
-
-% Write database user data.
-if isUserData
-    userData = utils.any2str(oo.UserData);
-    userData = strrep(userData, '"', '''');
-    c = [c, '"Userdata[', oo.UserDataFieldName, '] ->"', delimiter, '"', userData, '"', br];
-end
-
-% Write name row.
-if isHighlight
-    nameRow = [{''}, nameRow];
-end
-c = [c, sprintf('"%s"', opt.VariablesHeader), printCharCells(nameRow)];
-
-% Write comments.
-if isCommentRow
-    if isHighlight
-        commentRow = [{''}, commentRow];
+    if isfield(oo, 'Delimiter')
+        delimiter = oo.Delimiter;
+    else
+        delimiter = ', ';
     end
-    c = [c, br, sprintf('"%s"', opt.CommentsHeader), printCharCells(commentRow)];
-end
+    fstr = [delimiter, '"%s"'];
 
-% Write units.
-if isUnitRow
-    if isHighlight
-        unitRow = [{''}, unitRow];
+    if isfield(oo, 'CommentRow')
+        commentRow = oo.CommentRow;
+    else
+        commentRow = { };
     end
-    c = [c, br, sprintf('"%s"', opt.UnitsHeader), printCharCells(unitRow)];
-end
+    isCommentRow = ~isempty(commentRow);
 
-% Write classes.
-if isClassRow
-    if isHighlight
-        classRow = [{''}, classRow];
+    if isfield(oo, 'ClassRow')
+        classRow = oo.ClassRow;
+    else
+        classRow = { };
     end
-    c = [c, br, sprintf('"%s"', opt.ClassHeader), printCharCells(classRow)];
-end
+    isClassRow = ~isempty(classRow);
 
-% Handle escape characters.
-strDat = strrep(strDat, '\', '\\');
-strDat = strrep(strDat, '%', '%%');
+    if isfield(oo, 'UnitRow')
+        unitRow = oo.UnitRow;
+    else
+        unitRow = { };
+    end
+    isUnitRow = ~isempty(unitRow);
 
-% Create format string fot the imaginary parts of data; they need to be
-% always printed with a plus or minus sign.
-iFormat = [format, 'i'];
-if isempty(strfind(iFormat, '%+')) && isempty(strfind(iFormat, '%0+'))
-    iFormat = strrep(iFormat, '%', '%+');
-end
+    if isfield(oo, 'NanString')
+        nanString = oo.NanString;
+    else
+        nanString = 'NaN';
+    end
+    isNanString = ~strcmpi(nanString, 'NaN');
 
-% Find columns that have at least one non-zero imag. These column will
-% be printed as complex numbers.
-nRow = size(data, 1);
-nCol = size(data, 2);
+    if isfield(oo, 'Format')
+        format = oo.Format;
+    else
+        format = '%.8e';
+    end
 
-% Combine real and imag columns in an extended data matrix.
-xData = zeros(nRow, 2*nCol);
-xData(:, 1:2:end) = real(data);
-iData = imag(data);
-xData(:, 2:2:end) = iData;
+    if isfield(oo, 'Highlight')
+        highlight = oo.Highlight;
+    else
+        highlight = [ ];
+    end
+    isHighlight = ~isempty(highlight);
 
-% Find imag columns and create positions of zero-only imag columns that
-% will be removed.
-iCol = any(iData ~= 0, 1);
-removeCol = 2*(1 : nCol);
-removeCol(iCol) = [ ];
-% Check for the occurence of imaginary NaNs.
-isImagNan = any(isnan(iData(:)));
-% Remove zero-only imag columns from the extended data matrix.
-xData(:, removeCol) = [ ];
-% Create a sequence of formats for one line.
-formatLine = cell(1, nCol);
-% Format string for columns that have imaginary numbers.
-formatLine(iCol) = {[delimiter, format, iFormat]};
-% Format string for columns that only have real numbers.
-formatLine(~iCol) = {[delimiter, format]};
-formatLine = [formatLine{:}];
+    isUserData = isfield(oo, 'UserData');
 
-if isempty(strDat)
-    % If there is no time series in the input database, create a vector 1:N in
-    % the first column instead of dates.
-    strDat = cellfun( ...
-        @(x) sprintf('%g', x), ...
-        num2cell(1:nRow), ...
-        'UniformOutput', false ...
-        );
-end
+    %--------------------------------------------------------------------------
 
-% Transpose data in cellData so that they are read correctly in sprintf.
-cellData = cell(1+size(xData, 2), nRow);
-nDat = numel(strDat);
-cellData(1, 1:nDat) = strDat(:);
-cellData(2:end, :) = num2cell(xData.');
-cc = sprintf(['\n"%s"', formatLine], cellData{:});
+    % Create an empty buffer.
+    c = '';
+    br = sprintf('\n');
 
-% NaNi is never printed with the leading sign. Replace NaNi with +NaNi. We
-% should also control for the occurence of NaNi in date strings but we
-% don't as this is quite unlikely (and would not be easy).
-if isImagNan
-    cc = strrep(cc, 'NaNi', '+NaNi');
-end
+    % Write database user data.
+    if isUserData
+        userData = utils.any2str(oo.UserData);
+        userData = strrep(userData, '"', '''');
+        c = [c, '"Userdata[', oo.UserDataFieldName, '] ->"', delimiter, '"', userData, '"', br];
+    end
 
-% Replace NaNs in the date/data matrix with a user-supplied string. We
-% don't protect NaNs in date strings; these too will be replaced.
-if isNanString
-    cc = strrep(cc, 'NaN', nanString);
-end
+    % Write name row.
+    if isHighlight
+        nameRow = [{''}, nameRow];
+    end
+    c = [c, sprintf('"%s"', opt.VariablesHeader), printCharCells(nameRow)];
 
-% Splice the headings and the data, and save the buffer. No need to put
-% a line break between `c` and `cc` because that the `cc` does start
-% with a line break.
-char2file([c, cc], fileName);
-
-return
-
-
-
-
-    function s = printCharCells(c)
-        s = '';
-        if isempty(c) || ~iscellstr(c)
-            return
+    % Write comments.
+    if isCommentRow
+        if isHighlight
+            commentRow = [{''}, commentRow];
         end
-        s = sprintf(fstr, c{:});
+        c = [c, br, sprintf('"%s"', opt.CommentsHeader), printCharCells(commentRow)];
     end
-end
+
+    % Write units.
+    if isUnitRow
+        if isHighlight
+            unitRow = [{''}, unitRow];
+        end
+        c = [c, br, sprintf('"%s"', opt.UnitsHeader), printCharCells(unitRow)];
+    end
+
+    % Write classes.
+    if isClassRow
+        if isHighlight
+            classRow = [{''}, classRow];
+        end
+        c = [c, br, sprintf('"%s"', opt.ClassHeader), printCharCells(classRow)];
+    end
+
+    % Handle escape characters.
+    strDat = strrep(strDat, '\', '\\');
+    strDat = strrep(strDat, '%', '%%');
+
+    % Create format string fot the imaginary parts of data; they need to be
+    % always printed with a plus or minus sign.
+    iFormat = [format, 'i'];
+    if isempty(strfind(iFormat, '%+')) && isempty(strfind(iFormat, '%0+'))
+        iFormat = strrep(iFormat, '%', '%+');
+    end
+
+    % Find columns that have at least one non-zero imag. These column will
+    % be printed as complex numbers.
+    nRow = size(data, 1);
+    nCol = size(data, 2);
+
+    % Combine real and imag columns in an extended data matrix.
+    xData = zeros(nRow, 2*nCol);
+    xData(:, 1:2:end) = real(data);
+    iData = imag(data);
+    xData(:, 2:2:end) = iData;
+
+    % Find imag columns and create positions of zero-only imag columns that
+    % will be removed.
+    iCol = any(iData ~= 0, 1);
+    removeCol = 2*(1 : nCol);
+    removeCol(iCol) = [ ];
+    % Check for the occurence of imaginary NaNs.
+    isImagNan = any(isnan(iData(:)));
+    % Remove zero-only imag columns from the extended data matrix.
+    xData(:, removeCol) = [ ];
+    % Create a sequence of formats for one line.
+    formatLine = cell(1, nCol);
+    % Format string for columns that have imaginary numbers.
+    formatLine(iCol) = {[delimiter, format, iFormat]};
+    % Format string for columns that only have real numbers.
+    formatLine(~iCol) = {[delimiter, format]};
+    formatLine = [formatLine{:}];
+
+    if isempty(strDat)
+        % If there is no time series in the input database, create a vector 1:N in
+        % the first column instead of dates.
+        strDat = cellfun( ...
+            @(x) sprintf('%g', x), ...
+            num2cell(1:nRow), ...
+            'UniformOutput', false ...
+            );
+    end
+
+    % Transpose data in cellData so that they are read correctly in sprintf.
+    cellData = cell(1+size(xData, 2), nRow);
+    nDat = numel(strDat);
+    cellData(1, 1:nDat) = strDat(:);
+    cellData(2:end, :) = num2cell(xData.');
+    cc = sprintf(['\n"%s"', formatLine], cellData{:});
+
+    % NaNi is never printed with the leading sign. Replace NaNi with +NaNi. We
+    % should also control for the occurence of NaNi in date strings but we
+    % don't as this is quite unlikely (and would not be easy).
+    if isImagNan
+        cc = strrep(cc, 'NaNi', '+NaNi');
+    end
+
+    % Replace NaNs in the date/data matrix with a user-supplied string. We
+    % don't protect NaNs in date strings; these too will be replaced.
+    if isNanString
+        cc = strrep(cc, 'NaN', nanString);
+    end
+
+    % Splice the headings and the data, and save the buffer. No need to put
+    % a line break between `c` and `cc` because that the `cc` does start
+    % with a line break.
+    char2file([c, cc], fileName);
+
+    return
+
+
+        function s = printCharCells(c)
+            s = '';
+            if isempty(c) || ~iscellstr(c)
+                return
+            end
+            s = sprintf(fstr, c{:});
+        end%
+end%

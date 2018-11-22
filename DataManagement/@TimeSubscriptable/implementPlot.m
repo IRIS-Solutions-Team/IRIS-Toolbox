@@ -7,6 +7,9 @@ function [handlePlot, time, yData, axesHandle, xData, unmatchedOptions] = implem
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
+ERROR_INVALID_FREQUENCY = { 'TimeSubscriptable:InvalidPlotRangeFrequency'
+                            'Plot range and input time series must have the same date frequency' };
+
 IS_ROUND = @(x) isnumeric(x) && all(x==round(x));
 
 if isgraphics(varargin{1})
@@ -50,26 +53,16 @@ specString = inputParser.Results.SpecString;
 opt = inputParser.Options;
 unmatchedOptions = inputParser.UnmatchedInCell;
 
+time = double(time);
 enforceXLimHere = true;
-if isequal(time, Inf)
-    time = this.Range;
+if isequal(time, Inf) || isequal(time, [-Inf, Inf])
+    time = this.RangeAsNumeric;
     enforceXLimHere = false;
-elseif isempty(time) || isnad(time)
-    time = this.Start;
-    time = time([ ], 1);
-end
-
-if numel(time)==1
-    validFrequencies = isnan(this.Start) || validateDateOrInf(this, time);
-elseif numel(time)==2
-    validFrequencies = isnan(this.Start) ...
-                       || (validateDateOrInf(this, time(1)) && validateDateOrInf(this, time(2)));
+elseif isempty(time) || all(isnan(time))
+    time = double.empty(0, 1);
 else
-    validFrequencies = isnan(this.Start) || validateDate(this, time);
-end
-
-if ~validFrequencies
-    throw( exception.Base('TimeSubscriptable:IllegalPlotRangeFrequency', 'error') )
+    time = time(:);
+    checkUserFrequency(this, time);
 end
 
 %--------------------------------------------------------------------------
@@ -78,27 +71,12 @@ if isa(axesHandle, 'function_handle')
     axesHandle = axesHandle( );
 end
 
-if numel(time)==2 && all(isinf(time))
-    time = Inf;
-end
-
-if numel(time)==2 && any(isinf(time))
-    [yData, fromTime, toTime] = getDataFromTo(this, time(1), time(2));
-    if isempty(fromTime) || isempty(toTime)
-        time = DateWrapper.empty(0, 1);
-    else
-        time = fromTime : toTime;
-        time = time(:);
-    end
-else
-    time = time(:);
-    [yData, time] = getData(this, time);
-end
+[yData, time] = getData(this, time);
 
 if ~isempty(time)
-    timeFrequency = DateWrapper.getFrequency(time(1));
+    timeFrequency = DateWrapper.getFrequencyAsNumeric(time(1));
 else
-    timeFrequency = Frequency.NaF;
+    timeFrequency = NaN;
 end
 
 if ndims(yData)>2
@@ -148,7 +126,7 @@ return
            return
         end
         xLimMarginsOld = getappdata(axesHandle, 'IRIS_XLimMargins');
-        margin = getXLimMarginCalendarDuration(timeFrequency);
+        margin = Frequency.getXLimMarginCalendarDuration(timeFrequency);
         xLimMarginsHere = [ xData(1)-margin
                             xData(:)+margin ];
         if isempty(xLimMarginsOld)
@@ -262,3 +240,18 @@ function flag = validatePlotFunction(x)
     flag = any( cellfun(@(y) isequal(x, y), list) );
 end%
 
+
+function checkUserFrequency(this, time)
+    ERROR_INVALID_FREQUENCY = { 'TimeSubscriptable:InvalidPlotRangeFrequency'
+                                'Plot range and input time series must have the same date frequency' };
+
+    if numel(time)==1 || numel(time)==2
+        validFrequencies = isnan(this.Start) || all(validateFrequencyOrInf(this, time));
+    else
+        validFrequencies = isnan(this.Start) || all(validateFrequency(this, time));
+    end
+
+    if ~validFrequencies
+        throw( exception.Base(ERROR_INVALID_FREQUENCY, 'error') );
+    end
+end%

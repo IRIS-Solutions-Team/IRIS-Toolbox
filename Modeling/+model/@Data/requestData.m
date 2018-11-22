@@ -9,24 +9,26 @@ function X = requestData(this, check, inputDatabank, range, names)
 
 %--------------------------------------------------------------------------
 
-numNames = numel(names);
-numPeriods = length(range);
-numDataSets = check.NumDataSets;
+numOfNames = numel(names);
+numOfPeriods = length(range);
+numOfDataSets = check.NumDataSets;
 
-X = nan(numNames, numPeriods, numDataSets);
+X = nan(numOfNames, numOfPeriods, numOfDataSets);
 
-for i = 1 : numNames
+for i = 1 : numOfNames
     ithName = names{i};
     if ~isfield(inputDatabank, ithName) ...
         || ~isa(inputDatabank.(ithName), 'TimeSubscriptable')
         continue
     end
-    ithData = getData(inputDatabank.(ithName), range);
+    ithSeries = inputDatabank.(ithName);
+    checkFrequencyOrInf(ithSeries, range);
+    ithData = getData(ithSeries, range);
     ithData = ithData(:, :);
-    if size(ithData, 2)==1 && numDataSets>1
-        ithData = ithData(:, ones(1, numDataSets));
+    if size(ithData, 2)==1 && numOfDataSets>1
+        ithData = ithData(:, ones(1, numOfDataSets));
     end
     X(i, :, :) = permute(ithData, [3, 1, 2]);
 end
 
-end
+end%
