@@ -333,7 +333,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = bwf2(varargin)
         varargout = bsxfun(varargin)
         varargout = chowlin(varargin)
-        varargout = clip(varargin)
         varargout = comment(varargin)
         varargout = conbar(varargin)
         varargout = convert(varargin)
@@ -505,7 +504,11 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
 
         function startDate = startDateWhenEmpty(this, varargin)
-            startDate = DateWrapper.NaD( );
+            if isa(this.Start, 'DateWrapper')
+                startDate = DateWrapper.NaD( );
+            else
+                startDate = NaN;
+            end
         end%
 
 
@@ -879,7 +882,11 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
         function index = end(this, k, varargin)
             if k==1
-                index = addTo(this.Start, size(this.Data, 1)-1);
+                numericStart = double(this.Start);
+                index = numericStart + size(this.Data, 1) - 1;
+                if isa(this.Start, 'DateWrapper')
+                    index = DateWrapper.fromDateCode(index);
+                end
             else
                 index = size(this.Data, k);
             end

@@ -1,87 +1,135 @@
-function this = clip(this, newStart, newEnd)
+function [this, newStart, newEnd] = clip(this, newStart, newEnd)
+% resize  Clip time series range
+%
+% __Syntax__
+%
+%     X = resize(X, NewStart, NewEnd)
+%
+%
+% __Input Arguments__
+%
+% * `X` [ tseries ] - Input time series whose date range will be clipped.
+%
+% * `NewStart` [ DateWrapper | `-Inf` ] - New start date; `-Inf` means keep
+% the current start date.
+%
+% * `NewEnd` [ DateWrapper | `Inf` ] - New end date; `Inf` means keep
+% the current enddate.
+%
+%
+% __Output Arguments__
+%
+% * `X` [ tseries ] - Output time series  with its date range clipped to
+% the new range from `NewStart` to `NewEnd`.
+%
+%
+% __Description__
+%
+%
+% __Example__
+%
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('TimeSubscriptable.clip');
     parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addRequired('NewStartDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, -Inf));
-    parser.addRequired('NewEndDate', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf));
+    parser.addRequired('NewStart', @(x) DateWrapper.validateDateInput(x) && isscalar(x));
+    parser.addRequired('NewEnd', @(x) DateWrapper.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf));
 end
+parser.parse(this, newStart, newEnd);
 
 %--------------------------------------------------------------------------
 
-thisStart = this.Start;
-thisEnd = this.End;
-thisFrequency = this.Frequency;
-
-assert( ...
-    isequal(newStart, -Inf) || validateDate(this, newStart), ...
-    'TimeSeries:clip', ...
-    'Illegal start date.' ...
-);
-
-assert( ...
-    isequal(newEnd, Inf) || validateDate(this, newEnd), ...
-    'TimeSeries:clip', ...
-    'Illegal end date.' ...
-);
-
-if newStart>newEnd
-    this = emptyData(this);
+isStartInf = isequal(newStart, -Inf) || isequal(newStart, Inf);
+isEndInf = isequal(newEnd, Inf);
+if isStartInf && isEndInf
+    if nargout>1
+        newStart = this.Start;
+        newEnd = this.End;
+    end
     return
 end
 
-if thisStart>=newStart && thisEnd<=newEnd
+serialXStart = round(this.Start);
+serialXEnd = round(serialXStart + size(this.Data, 1) - 1);
+freqOfX = DateWrapper.getFrequencyAsNumeric(this.Start);
+
+serialNewStart = getSerialNewStart( );
+serialNewEnd = getSerialNewEnd( );
+
+% Return immediately the input time series if the new start is before the
+% input start and the new end is after the input end
+if serialNewStart<=serialXStart && serialNewEnd>=serialXEnd
+    if nargout>1
+        newStart = this.Start;
+        newEnd = this.End;
+    end
     return
 end
 
-sizeData = size(this.Data);
-ndimsData = ndims(this.Data);
-thisData = this.Data(:, :);
-clipStart( );
-clipEnd( );
-if ndimsData>2
-    thisData = reshape(thisData, [size(thisData, 1), sizeData(2:end)]);
+% Return immediately an empty time series if 
+% * the new start is after the new end
+% * both the new start and end are before the start of the series
+% * both the new start and end are after the end of the series
+if serialNewStart>serialNewEnd ...
+   || (serialNewStart<serialXStart && serialNewEnd<serialXStart) ...
+   || (serialNewStart>serialXEnd && serialNewEnd>serialXEnd)
+    this = this.empty(this);
+    if nargout>1
+        newStart = this.Start;
+        newENd = this.End;
+    end
+    return
 end
-this.Start = thisStart;
-this.Data = thisData;
+
+sizeOfData = size(this.Data);
+ndimsOfData = ndims(this.Data);
+if serialNewStart>serialXStart
+    numRowsToRemove = round(serialNewStart - serialXStart);
+    this.Data(1:numRowsToRemove, :) = [ ];
+    this.Start = DateWrapper.fromSerial(freqOfX, serialNewStart);
+end
+
+if serialNewEnd<serialXEnd
+    numRowsToRemove = round(serialXEnd - serialNewEnd);
+    this.Data(end-numRowsToRemove+1:end, :) = [ ];
+end
+
+if ndimsOfData>2
+    sizeOfData(1) = size(this.Data, 1);
+    this.Data = reshape(this.Data, sizeOfData);
+end
 
 return
 
 
-    function clipStart( )
-        if size(thisData, 1)==0
-            return
-        end
-        if thisStart>newStart
-            return
-        end
-        if newStart<=thisEnd
-            posNewStart = rnglen(thisStart, newStart);
-            thisData(1:posNewStart-1, :) = [ ];
-            thisStart = newStart;
-            return
+    function serialNewStart = getSerialNewStart( )
+        if isStartInf
+            serialNewStart = serialXStart;
         else
-            this = emptyData(this);
+            freqOfNewStart = DateWrapper.getFrequencyAsNumeric(newStart);
+            if freqOfNewStart~=freqOfX
+                throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
+                       Frequency.toChar(freqOfX), Frequency.toChar(freqOfNewStart) );
+            end
+            serialNewStart = round(newStart);
         end
-    end
+    end%
 
 
-    function clipEnd( )
-        if size(thisData, 1)==0
-            return
-        end
-        if thisEnd<newEnd
-            return
-        end
-        if newEnd>=thisStart
-            posNewEnd = rnglen(thisStart, newEnd);
-            thisData(posNewEnd+1:end, :) = [ ];
-            return
+    function serialNewEnd = getSerialNewEnd( )
+        if isEndInf
+            serialNewEnd = serialXEnd;
         else
-            this = emptyDate(this);
+            freqOfNewEnd = DateWrapper.getFrequencyAsNumeric(newEnd);
+            if freqOfNewEnd~=freqOfX
+                throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
+                       Frequency.toChar(freqOfX), Frequency.toChar(freqOfNewEnd) );
+            end
+            serialNewEnd = round(newEnd);
         end
-    end
-end
-
-
+    end%
+end%

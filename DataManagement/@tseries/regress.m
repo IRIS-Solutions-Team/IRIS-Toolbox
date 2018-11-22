@@ -58,34 +58,38 @@ function [b, stdB, e, stdE, fit, dates, covB] = regress(Y, X, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('tseries.regress');
-    inputParser.addRequired('Y', @(x) isa(x, 'tseries'));
-    inputParser.addRequired('X', @(x) isa(x, 'tseries'));
-    inputParser.addOptional('Dates', Inf, @DateWrapper.validateDateInput);
-    inputParser.addParameter({'Intercept', 'Constant'}, false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter({'Weights', 'Weighting'}, [ ] , @(x) isempty(x) || isa(x, 'tseries'));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('tseries.regress');
+    parser.addRequired('Y', @(x) isa(x, 'tseries'));
+    parser.addRequired('X', @(x) isa(x, 'tseries'));
+    parser.addOptional('Dates', Inf, @DateWrapper.validateDateInput);
+    parser.addParameter({'Intercept', 'Constant'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'Weights', 'Weighting'}, [ ] , @(x) isempty(x) || isa(x, 'tseries'));
 end
-inputParser.parse(Y, X, varargin{:});
-dates = inputParser.Results.Dates;
-opt = inputParser.Options;
+parser.parse(Y, X, varargin{:});
+dates = parser.Results.Dates;
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
+dates = double(dates);
+checkFrequencyOrInf(Y, dates);
 [dataY, dates] = getData(Y, dates);
+checkFrequencyOrInf(X, dates);
 dataX = getData(X, dates);
 if opt.Intercept
     dataX(:, end+1) = 1;
 end
 
 if isempty(opt.Weights)
-    indexRows = all(~isnan([dataX, dataY]), 2);
-    [b, stdB, eVar, covB] = lscov(dataX(indexRows, :), dataY(indexRows, :));
+    inxOfRows = all(~isnan([dataX, dataY]), 2);
+    [b, stdB, eVar, covB] = lscov(dataX(inxOfRows, :), dataY(inxOfRows, :));
 else
+    checkFrequencyOrInf(opt.Weights, dates);
     dataWeights = getData(opt.Weights, dates);
-    indexRows = all(~isnan([dataX, dataY, dataWeights]), 2);
-    [b, stdB, eVar, covB] = lscov(dataX(indexRows, :), dataY(indexRows, :), dataWeights(indexRows, :));
+    inxOfRows = all(~isnan([dataX, dataY, dataWeights]), 2);
+    [b, stdB, eVar, covB] = lscov(dataX(inxOfRows, :), dataY(inxOfRows, :), dataWeights(inxOfRows, :));
 end
 stdE = sqrt(eVar);
 

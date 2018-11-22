@@ -3,13 +3,13 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
     methods
         function this = Series(varargin)
             this = this@tseries(varargin{:});
-        end
+        end%
 
 
         function obj = tseries(this)
             obj = tseries( );
             obj = struct2obj(obj, this);
-        end
+        end%
     end
 
 
@@ -17,7 +17,7 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
         #for FN = {plot, bar, area, stem, errorbar}
         function varargout = #(FN)(varargin)
             [varargout{1:nargout}] = #(FN)@TimeSubscriptable(varargin{:});
-        end
+        end%
 
 
         #endfor

@@ -216,6 +216,7 @@ Series:InconsistentSizeVertCat,Size of vertically concatenated time series must 
 Series:CannotVertCatNonSeries,Cannot vertically concatenate time series with other types of data. 
 Series:CannotCatMixedFrequencies,Cannot concatenate time series with different date frequencies.
 Series:FrequencyMismatch,Date frequency or time series frequency mismatch: %s 
+TimeSubscriptable:FrequencyMismatch,Date frequency or time series frequency mismatch: %s 
 Series:TimeDimMustBeZero,Time dimension must be zero when creating empty time series
 Series:CannotConvertIntegerFreq, Cannot covert times series from or to INTEGER frequency
 Series:CannotConvertWeeklyToDaily, Cannot convert time series from WEEKLY to DAILY frequency
@@ -244,7 +245,6 @@ SystemPriorWrapper:SystemPriorToSealed,Cannot add SystemPrior to a sealed System
 SystemPriorWrapper:IllegalOutputName,SystemProperty output names must be legal variable names
 SystemPriorWrapper:NonuniqueOutputName,This output name assigned to SystemProperty is not unique: %s
 SystemPriorWrapper:NamesExceedMaxNumOutputs, Number of SystemProperty names exceeds maximum number of output arguments
-TimeSubscriptable:IllegalPlotRangeFrequency, Plot range and input time series must have the same date frequency.
 TimeSubscriptable:IfElseTest,The if test must produce a logical array of the same size as the time series data
 TheParser:EmptyEquation,"This equation is empty, and will be removed: %s "
 TheParser:EmptyLhsOrRhs, LHS or RHS of this equation is empty: %s 

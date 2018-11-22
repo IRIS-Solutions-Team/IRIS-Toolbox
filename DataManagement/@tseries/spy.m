@@ -1,5 +1,5 @@
 function [hAx, hPlotTrue, hPlotFalse] = spy(varargin)
-% spy  Visualise tseries observations that pass a test.
+% spy  Visualise tseries observations that pass a test
 %
 % __Syntax__
 %
@@ -81,7 +81,7 @@ if isempty(parser)
     parser.KeepUnmatched = true;
     parser.addRequired('Axes', @(x) all(ishandle(x)));
     parser.addRequired('Range', @DateWrapper.validateDateInput);
-    parser.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
+    parser.addRequired('TimeSeries', @(x) isa(x, 'TimeSubscriptable'));
     parser.addParameter('ShowTrue', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('ShowFalse', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Squeeze', false, @(x) isequal(x, true) || isequal(x, false));

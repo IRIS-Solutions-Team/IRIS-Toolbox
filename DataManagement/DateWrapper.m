@@ -225,20 +225,38 @@ classdef DateWrapper < double
     methods (Static)
         function this = Inf( )
             this = DateWrapper(Inf);
-        end
+        end%
 
 
         function this = NaD( )
             this = DateWrapper(NaN);
-        end
+        end%
+
+
+        function decimal = getDecimal(dateCode)
+            dateCode = double(dateCode);
+            decimal = round(100*(dateCode - floor(dateCode)));
+        end%
+
+
+        function flag = validateDecimal(dateCode)
+            decimal = DateWrapper.getDecimal(dateCode);
+            flag = decimal==0 ...
+                 | decimal==1 ...
+                 | decimal==2 ...
+                 | decimal==4 ...
+                 | decimal==12 ...
+                 | decimal==52 ;
+        end%
 
 
         function frequency = getFrequencyAsNumeric(dateCode)
-            MIN_DAILY_SERIAL = 365244;
-            dateCode = double(dateCode);
-            frequency = round(100*(dateCode - floor(dateCode)));
-            inxOfDaily = frequency==0 & dateCode>=MIN_DAILY_SERIAL;
-            frequency(inxOfDaily) = 365;
+            frequency = DateWrapper.getDecimal(dateCode);
+            inxOfZero = frequency==0;
+            if any(inxOfZero)
+                inxOfDaily = frequency==0 & floor(dateCode)>=Frequency.MIN_DAILY_SERIAL;
+                frequency(inxOfDaily) = 365;
+            end
         end%
 
 

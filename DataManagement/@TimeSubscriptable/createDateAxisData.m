@@ -16,9 +16,9 @@ end
 positionWithinPeriod = resolvePositionWithinPeriod(axesHandle, positionWithinPeriod);
 
 if ~isempty(time)
-    timeFrequency = DateWrapper.getFrequency(time(1));
+    timeFrequency = DateWrapper.getFrequencyAsNumeric(time(1));
 else
-    timeFrequency = Frequency.NaF;
+    timeFrequency = NaN;
 end
 
 if isempty(time)

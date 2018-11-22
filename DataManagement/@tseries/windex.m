@@ -40,22 +40,24 @@ function [this, weights] = windex(this, weights, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('tseries.windex');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    inputParser.addRequired('Weights', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
-    inputParser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('tseries.windex');
+    parser.KeepUnmatched = true;
+    parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    parser.addRequired('Weights', @(x) isnumeric(x) || isa(x, 'TimeSubscriptable'));
+    parser.addOptional('Range', Inf, @DateWrapper.validateRangeInput);
 end
-inputParser.parse(this, weights, varargin{:});
-range = inputParser.Results.Range;
-unmatched = inputParser.UnmatchedInCell;
+parser.parse(this, weights, varargin{:});
+range = parser.Results.Range;
+unmatched = parser.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
+checkFrequencyOrInf(this, range);
 [inputData, range] = getData(this, range);
 if isa(weights, 'TimeSubscriptable')
+    checkFrequencyOrInf(weights, range);
     weightsData = getData(weights, range);
 else
     weightsData = weights;

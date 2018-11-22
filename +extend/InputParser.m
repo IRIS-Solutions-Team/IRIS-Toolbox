@@ -248,10 +248,10 @@ classdef InputParser < inputParser
 
         function resolveStartEndOptions(this)
             if isfield(this.Results, 'InputSeries')
-                if ~validateDateOrInf(this.Results.InputSeries, this.Options.Start)
+                if ~validateFrequencyOrInf(this.Results.InputSeries, this.Options.Start)
                     throw( exception.Base('InputParser:InvalidStartOption', 'error') );
                 end
-                if ~validateDateOrInf(this.Results.InputSeries, this.Options.End)
+                if ~validateFrequencyOrInf(this.Results.InputSeries, this.Options.End)
                     throw( exception.Base('InputParser:InvalidEndOption', 'error') );
                 end
             end
