@@ -1,4 +1,4 @@
-function [d, list0, list, flag] = dbbatch(d, newName, expn, varargin)
+function [d, list0, list, flag] = dbbatch(d, newName, userExpression, varargin)
 % dbbatch  Run a batch job to create new database fields.
 %
 % __Syntax__
@@ -46,10 +46,10 @@ function [d, list0, list, flag] = dbbatch(d, newName, expn, varargin)
 % entries, select only those that match this regular expression, and
 % evaluate the expression `Expr` on these.
 %
-% * `'NameList='` [ cellstr | *`Inf`* ] - Evaluate the expression `expn` on
+% * `'NameList='` [ cellstr | *`Inf`* ] - Evaluate the expression `userExpression` on
 % this list of existing database entries.
 %
-% * `'StringList='` [ cellstr | *empty* ] - Evaluate the expression `expn`
+% * `'StringList='` [ cellstr | *empty* ] - Evaluate the expression `userExpression`
 % on this list of strings; the strings do not need to be names existing in
 % the database; this options can  be comined with `'NameFilter='`, 
 % `'NameList='`, and/or `'ClassFilter='` to narrow the selection.
@@ -126,25 +126,39 @@ function [d, list0, list, flag] = dbbatch(d, newName, expn, varargin)
 
 % TODO: Streamline dbquery/unmask.
 
-pp = inputParser( );
-pp.addRequired('d', @isstruct);
-pp.addRequired('newName', @ischar);
-pp.addRequired('expn', @ischar);
-pp.parse(d, newName, expn);
+WARNING_ERROR_EVALUATING = { 'Databank:ErrorEvaluatingExpression', ... 
+                             [ 'Error evaluating this expression in dbbatch(~): %s \n', ...
+                               '\h$ENGINE$ says: %s' ] };
+WARNING_WARNING_EVALUATING = { 'Databank:WarningEvaluatingExpression', ...
+                               'The above warning occurred when evaluating this expression in dbbatch(~): %s ' };
 
-opt = passvalopt('dbase.dbbatch', varargin{:});
-
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dbase.dbbatch');
+    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('NewName', @(x) ischar(x) || isa(x, 'string'));
+    parser.addRequired('Expression', @(x) ischar(x) || isa(x, 'string'));
+    parser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || isempty(x) || isstruct(x));
+    parser.addParameter({'ClassList', 'ClassFilter'}, @all, @(x) isequal(x, @all) || isequal(x, Inf) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    parser.addParameter('FreqFilter', Inf, @isnumeric);
+    parser.addParameter('NameFilter', '', @(x) isempty(x) || isequal(x, Inf) || ischar(x) || isa(x, 'string'));
+    parser.addParameter('NameList', Inf, @(x) isequal(x, Inf) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    parser.addParameter('Fresh', false, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false) || isstruct(x));
+    parser.addParameter('StringList', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
+end
+parser.parse(d, newName, userExpression, varargin{:});
+opt = parser.Options;
 processOptions( ); 
 
 %--------------------------------------------------------------------------
 
-expn = strrep(expn, '"', '''');
+userExpression = strrep(userExpression, '"', '''');
 
 % Get the list of requested names.
 [list0, tokens] = query(d, opt);
 
 % Parse the new name patterns and the expression patterns.
-[list, expn] = parse(newName, expn, list0, tokens);
+[list, userExpression] = parse(newName, userExpression, list0, tokens);
 
 flag = true;
 
@@ -159,137 +173,131 @@ flag = true;
 % `dbbatch(d.e, ...)` or `dbbatch(d{1}, ...)` or `dbbatch(d(1), ...)`, etc.
 % from within a function.
 
-inpDbName = inputname(1);
-expr2eval = expn;
-if ~isempty(inpDbName)
-    tempDbName = tempname('.');
-    tempDbName(1:2) = '';
-    assignin('caller', tempDbName, d);
-    expr2eval = regexprep(expr2eval, ['\<', inpDbName, '\>'], tempDbName);
+% Create a temporary databank in the caller workspace whenever possible
+expressionToEval = userExpression;
+inputDatabankName = inputname(1);
+createTempDatabank = ~isempty(inputDatabankName);
+if createTempDatabank
+    tempDatabankName = tempname('.');
+    tempDatabankName(1:2) = '';
+    assignin('caller', tempDatabankName, d);
+    expressionToEval = regexprep(expressionToEval, ['\<', inputDatabankName, '\>'], tempDatabankName);
 end
 
-if opt.fresh
-    d = struct( );
+if ~isequal(opt.AddToDatabank, @auto)
+    d = opt.AddToDatabank;
+end
+if ~isequal(opt.Fresh, @auto)
+    if isequal(opt.Fresh, true)
+        d = struct( );
+    elseif isstruct(opt.Fresh)
+        d = opt.Fresh;
+    end
 end
 
-errList = { };
+listOfErrors = cell.empty(1, 0);
 for i = 1 : length(list0)
     try
         lastwarn('');
-        value = evalin('caller', expr2eval{i});
+        value = evalin('caller', expressionToEval{i});
         d.(list{i}) = value;
         msg = lastwarn( );
         if ~isempty(msg)
             textfun.loosespace( );
-            utils.warning('dbase:dbbatch', ...
-                ['The above warning occurred when dbbatch( ) ', ...
-                'attempted to evaluate ''%s''.'], ...
-                expn{i});
+            throw( exception.Base(WARNING_WARNING_EVALUATING, 'warning'), ...
+                   userExpression{i} );
         end
     catch Error
         msg = Error.message;
         msg = regexprep(msg, '^Error:\s*', '', 'once');
         msg = strtrim(msg);
-        errList(end+(1:2)) = {expn{i}, msg}; %#ok<AGROW>
+        listOfErrors = [listOfErrors, userExpression(i), {msg}]; %#ok<AGROW>
     end
 end
 
-if ~isempty(errList)
+if ~isempty(listOfErrors)
     flag = false;   
-    utils.warning('dbase:dbbatch', ...
-        ['Error evaluating this expression in dbbatch( ): ''%s''.\n', ...
-        '\tUncle says: %s'], ...
-        errList{:});
+    throw( exception.Base(WARNING_ERROR_EVALUATING, 'warning'), ...
+           listOfErrors{:} );
+end
+
+% Clean up
+if createTempDatabank
+    evalin('caller', ['clear ', tempDatabankName]);
 end
 
 return
 
 
     function processOptions( )
-        % Bkw compatibility.
-        % Deprecated options 'merge' and 'append'.
-        if ~isempty(opt.merge)
-            opt.fresh = ~opt.merge;
-            utils.warning('dbase:dbbatch', ...
-                ['The option ''merge='' is deprecated and ', ...
-                'will be removed from IRIS in a future version. ', ...
-                'Use ''fresh='' instead.']);
-        elseif ~isempty(opt.append)
-            opt.fresh = ~opt.append;
-            utils.warning('dbase:dbbatch', ...
-                ['The option ''append='' is obsolete and ', ...
-                'will be removed from IRIS in a future version. ', ...
-                'Use ''fresh='' instead.']);
+        if ischar(opt.NameList)
+            opt.NameList = regexp(opt.NameList, '\w+', 'match');
+        elseif isa(opt.NameList, 'string')
+            opt.NameList = cellstr(opt.NameList);
         end
-        
-        if ischar(opt.namelist)
-            opt.namelist = regexp(opt.namelist, '\w+', 'match');
+        if ischar(opt.StringList)
+            opt.StringList = regexp(opt.StringList, '\w+', 'match');
+        elseif isa(opt.StringList, 'string')
+            opt.StringList = cellstr(opt.StringList);
         end
-        
-        if ischar(opt.stringlist)
-            opt.stringlist = regexp(opt.stringlist, '\w+', 'match');
-        end
-        
-        if ischar(opt.classlist)
-            opt.classlist = regexp(opt.classlist, '\w+', 'match');
+        if ischar(opt.ClassList)
+            opt.ClassList = regexp(opt.ClassList, '\w+', 'match');
+        elseif isa(opt.ClassList, 'string')
+            opt.ClassList = cellstr(opt.ClassList);
         end
     end%
 end%
 
 
-
-
 function [list0, tkn] = query(d, opt)
-    lsClass = opt.classlist;
-    lsNameFilter = opt.namefilter;
-    lsName = opt.namelist;
-    vecFreq = opt.freqfilter;
-    lsString = opt.stringlist;
-    if isempty(lsString)
+    classList = opt.ClassList;
+    nameFilter = opt.NameFilter;
+    nameList = opt.NameList;
+    freqFilter = opt.FreqFilter;
+    stringList = opt.StringList;
+    if isempty(stringList)
         list0 = fieldnames(d).';
     else
-        list0 = lsString;
+        list0 = stringList;
     end
     tkn = cell(size(list0));
     tkn(:) = {{ }};
-    % Name list.
-    if iscellstr(lsName)
-        list0 = intersect(list0, lsName);
+    % Name list
+    if iscellstr(nameList)
+        list0 = intersect(list0, nameList);
     end
-    % Name filter.
-    if ~isequal(lsNameFilter, Inf) && ~isempty(lsNameFilter)
-        if lsNameFilter(1) ~= '^'
-            lsNameFilter = ['^', lsNameFilter];
+    % Name filter
+    if ~isequal(nameFilter, Inf) && ~isempty(nameFilter)
+        if nameFilter(1) ~= '^'
+            nameFilter = ['^', nameFilter];
         end
-        if lsNameFilter(end) ~= '$'
-            lsNameFilter = [lsNameFilter, '$'];
+        if nameFilter(end) ~= '$'
+            nameFilter = [nameFilter, '$'];
         end
-        [ixPass, ~, tkn] = textfun.matchindex(list0, lsNameFilter);
-        list0 = list0(ixPass);
+        [inxOfPassed, ~, tkn] = textfun.matchindex(list0, nameFilter);
+        list0 = list0(inxOfPassed);
     end
     % Class list.
-    if ~isequal(lsClass, @all) && ~isequal(lsClass, Inf)
-        ixPass = false(size(list0));
+    if ~isequal(classList, @all) && ~isequal(classList, Inf)
+        inxOfPassed = false(size(list0));
         for i = 1 : numel(list0)
             x = d.(list0{i});
-            ixPass(i) = any(cellfun(@(cls) isa(x, cls), lsClass));
+            inxOfPassed(i) = any(cellfun(@(cls) isa(x, cls), classList));
         end
-        list0 = list0(ixPass);
-        tkn = tkn(ixPass);
+        list0 = list0(inxOfPassed);
+        tkn = tkn(inxOfPassed);
     end
     % Date frequency filter.
-    if ~isequal(vecFreq, Inf)
-        ixPass = false(size(list0));
+    if ~isequal(freqFilter, Inf)
+        inxOfPassed = false(size(list0));
         for i = 1 : numel(list0)
-            ixPass(i) = ~isa(d.(list0{i}), 'tseries') ...
-                || any(freq(d.(list0{i})) == vecFreq);
+            inxOfPassed(i) = ~isa(d.(list0{i}), 'tseries') ...
+                || any(freq(d.(list0{i})) == freqFilter);
         end
-        list0 = list0(ixPass);
-        tkn = tkn(ixPass);
+        list0 = list0(inxOfPassed);
+        tkn = tkn(inxOfPassed);
     end
 end%
-
-
 
 
 function [list1, expr] = parse(namePatt, exprPatt, list0, tkn)
@@ -314,8 +322,6 @@ function [list1, expr] = parse(namePatt, exprPatt, list0, tkn)
         expr(1:length(list0)) = {''};
     end
 end%
-
-
 
 
 function c = parseOne(c, varargin)
