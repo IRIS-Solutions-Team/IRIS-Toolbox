@@ -41,6 +41,18 @@ if ~isinf(serialFrom) && ~isinf(serialTo) && serialTo<serialFrom
     return
 end
 
+if isnan(serialOfStart) 
+    if isinf(serialFrom) || isinf(serialTo)
+        lenOfRange = 0;
+    else
+        lenOfRange = round(serialTo - serialFrom + 1);
+    end
+    x = repmat(missingValue, [lenOfRange, sizeOfData(2:end)]);
+    actualStart = DateWrapper.empty(0, 0);
+    actualEnd = DateWrapper.empty(0, 0);
+    return
+end
+
 if isinf(serialFrom)
     posFrom = 1; 
 else
@@ -53,30 +65,22 @@ else
     posTo = round(serialTo - serialOfStart + 1);
 end
 
-if isnan(serialOfStart) || isempty(data)
-    lenOfRange = round(posTo - posFrom + 1);
-    x = repmat(this.MissingValue, [lenOfRange, sizeOfData(2:end)]);
-    actualStart = DateWrapper.empty(0, 0);
-    actualEnd = DateWrapper.empty(0, 0);
-    return
-end
-
-numberOfColumns = prod(sizeOfData(2:end));
+numOfColumns = prod(sizeOfData(2:end));
 if posFrom>posTo
-    x = repmat(missingValue, 0, numberOfColumns);
+    x = repmat(missingValue, 0, numOfColumns);
 elseif posFrom>=1 && posTo<=sizeOfData(1)
     x = this.Data(posFrom:posTo, :);
 elseif (posFrom<1 && posTo<1) || (posFrom>sizeOfData(1) && posTo>sizeOfData(1))
-    x = repmat(missingValue, posTo-posFrom+1, numberOfColumns);
+    x = repmat(missingValue, posTo-posFrom+1, numOfColumns);
 elseif posFrom>=1
-    addMissingAfter = repmat(missingValue, posTo-sizeOfData(1), numberOfColumns);
+    addMissingAfter = repmat(missingValue, posTo-sizeOfData(1), numOfColumns);
     x = [ data(posFrom:end, :); addMissingAfter ];
 elseif posTo<=sizeOfData(1)
-    addMissingBefore = repmat(missingValue, 1-posFrom, numberOfColumns);
+    addMissingBefore = repmat(missingValue, 1-posFrom, numOfColumns);
     x = [ addMissingBefore; data(1:posTo, :) ];
 else
-    addMissingBefore = repmat(missingValue, 1-posFrom, numberOfColumns);
-    addMissingAfter = repmat(missingValue, posTo-sizeOfData(1), numberOfColumns);
+    addMissingBefore = repmat(missingValue, 1-posFrom, numOfColumns);
+    addMissingAfter = repmat(missingValue, posTo-sizeOfData(1), numOfColumns);
     x = [ addMissingBefore; data(:, :); addMissingAfter ];
 end
 

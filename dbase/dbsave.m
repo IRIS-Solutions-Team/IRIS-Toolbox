@@ -153,9 +153,9 @@ end
 
 % Parse input arguments.
 pp = inputParser( );
-pp.addRequired('d', @isstruct);
-pp.addRequired('fileName', @ischar);
-pp.addRequired('dates', @DateWrapper.validateDateInput);
+pp.addRequired('InputDatabank', @isstruct);
+pp.addRequired('FileName', @ischar);
+pp.addRequired('Dates', @DateWrapper.validateDateInput);
 pp.parse(inp, fileName, dates);
 
 % Parse options.
@@ -180,7 +180,10 @@ if isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
         utils.error('dbase:dbsave', ...
             'Cannot save database with mixed date frequencies.');
     end
+    dates = double(dates);
+    userFreq = DateWrapper.getFrequencyAsNumeric(dates);
 else
+    dates = double(dates);
     dates = transpose(dates(:));
     if ~isempty(dates) && any(~freqcmp(dates))
         utils.error('dbase:dbsave', ...
