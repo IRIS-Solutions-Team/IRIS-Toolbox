@@ -31,6 +31,7 @@ if isempty(parserTimeDomain)
     parserTimeDomain.addParameter('progress', false, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter('Relative', true, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter({'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || isstruct(x));
+    parserTimeDomain.addParameter('StdScale', [ ], @(x) isempty(x) || isstruct(x));
     parserTimeDomain.addParameter('simulate', false, @(x) isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
     parserTimeDomain.addParameter('symmetric', true, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter('tolerance', eps( )^(2/3), @isnumeric);
@@ -122,7 +123,7 @@ if likOpt.domain=='t'
     % Time-varying StdCorr vector 
     % * --clip means trailing NaNs will be removed
     % * --presample means one presample period will be added
-    likOpt.StdCorr = varyStdCorr(this, range, tune, likOpt, '--clip', '--presample');
+    [likOpt.StdCorr, ~, likOpt.StdScale] = varyStdCorr(this, range, tune, likOpt, '--clip', '--presample');
     
     % User-supplied tunes on the mean of shocks.
     if isfield(likOpt, 'TimeVarying')

@@ -1,8 +1,8 @@
-function [sxReal, sxImag] = varyStdCorr(this, range, j, opt, varargin)
+function [sxReal, sxImag, stdScale] = varyStdCorr(this, range, j, opt, varargin)
 % varyStdCorr  Convert time-varying std and corr to stdcorr vector
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
@@ -20,8 +20,9 @@ ne = sum(ixe);
 nsx = ne + ne*(ne-1)/2;
 
 if isempty(range)
-    sxReal = nan(nsx, 0);
-    sxImag = nan(nsx, 0);
+    sxReal = double.empty(nsx, 0);
+    sxImag = double.empty(nsx, 0);
+    stdScale = double.empty(ne, 0);
     return
 end
 range = DateWrapper.getSerial(range);
@@ -33,7 +34,7 @@ if isPresample
 end
 numOfPeriods = round(endOfRange - startOfRange + 1);
 
-d = processTimeVaryingOption( );
+d = processTimeVaryingOption(j, opt);
 
 sxReal = nan(nsx, numOfPeriods);
 if isImag
@@ -47,8 +48,7 @@ if ~isempty(d)
         x = d.(c{i});
         if isa(x, 'TimeSubscriptable')
             x = getDataFromTo(x, startOfRange, endOfRange);
-            x = x(:, 1);
-            x = x(:).';
+            x = transpose(x(:, 1));
         end
         sxReal(pos(i), :) = real(x);
         if isImag
@@ -56,37 +56,68 @@ if ~isempty(d)
         end
     end
 end
- 
+
+stdScale = nan(ne, numOfPeriods);
+if isfield(opt, 'StdScale') && isstruct(opt.StdScale)
+    stdNames = getStdNames(this.Quantity);
+    for i = 1 : ne
+        name = stdNames{i};
+        if ~isfield(opt.StdScale, name)
+            continue
+        end
+        x = opt.StdScale.(name);
+        if isa(x, 'TimeSubscriptable')
+            x = getDataFromTo(opt.StdScale.(name), startOfRange, endOfRange);
+            x = transpose(x(:, 1));
+        end
+        stdScale(i, :) = real(x);
+    end
+end
+
 % Remove trailing NaNs if requested
 if isClip 
-    ixSxReal = ~isnan(sxReal);
+    sxReal = clip(sxReal);
     if isImag
-        ixScImag = ~isnan(sxImag);
+        sxImag = clip(sxImag);
     end
-    last = find(any(ixSxReal, 1), 1, 'last');
-    sxReal = sxReal(:, 1:last);
-    if isImag
-        last = find(any(ixScImag, 1), 1, 'last');
-        sxImag = sxImag(:, 1:last);
-    end
+    stdScale = clip(stdScale);
 end
 
 return
 
 
-    function d = processTimeVaryingOption( )
-        d = [ ];
-        if isfield(opt, 'TimeVarying') && ~isempty(opt.TimeVarying)
-            d = opt.TimeVarying;
+end%
+
+
+%
+% Local Functions
+%
+
+
+function d = processTimeVaryingOption(j, opt)
+    d = [ ];
+    if isfield(opt, 'TimeVarying') && ~isempty(opt.TimeVarying)
+        d = opt.TimeVarying;
+    end
+    if ~isempty(j)
+        if isempty(d)
+            d = j;
+        else
+            ERROR_CANNOT_COMBINE = { 'Model:CannotCombineTuneAndOption' 
+                                     'Cannot combine a nonempty conditioning databank and option TimeVarying=' };
+            throw( exception.Base(ERROR_CANNOT_COMBINE, 'error') );
         end
-        if ~isempty(j)
-            if isempty(d)
-                d = j;
-            else
-                utils.error( 'model:varyStdCorr', ...
-                             'Cannot combine a conditioning database and the option TimeVarying=' );
-            end
-        end
-    end%
+    end
+end%
+
+
+function x = clip(x)
+    inxOfNaN = isnan(x);
+    if all(inxOfNaN(:))
+        x = double.empty(size(x, 1), 0);
+        return
+    end
+    last = find(any(~inxOfNaN, 1), 1, 'last');
+    x = x(:, 1:last);
 end%
 

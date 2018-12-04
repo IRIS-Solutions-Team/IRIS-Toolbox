@@ -44,11 +44,11 @@ classdef Variant
             ne = nnz(ixe);
             typeOfShocks = quantity.Type(ixe);
             ix31 = typeOfShocks==TYPE(31);
-            indexOfCorrAllowed = true(ne);
-            indexOfCorrAllowed(ix31, ~ix31) = false;
-            indexOfCorrAllowed(~ix31, ix31) = false;
-            indexOfTril = tril(ones(ne), -1)==1;
-            this.IndexOfStdCorrAllowed = [true(1, ne), indexOfCorrAllowed(indexOfTril).'];
+            inxOfCorrAllowed = true(ne);
+            inxOfCorrAllowed(ix31, ~ix31) = false;
+            inxOfCorrAllowed(~ix31, ix31) = false;
+            inxOfTril = tril(ones(ne), -1)==1;
+            this.IndexOfStdCorrAllowed = [true(1, ne), inxOfCorrAllowed(inxOfTril).'];
         end
         
 
@@ -67,8 +67,8 @@ classdef Variant
             ixg = quantity.Type==TYPE(5);
             this.Values(1, ixg, :) = model.DEFAULT_STEADY_EXOGENOUS;
             % Steady state of ttrend cannot be changed from 0+1i.
-            indexOfTimeTrend = strcmp(quantity.Name, model.RESERVED_NAME_TTREND);
-            this.Values(1, indexOfTimeTrend, :) = model.STEADY_TTREND;
+            inxOfTimeTrend = strcmp(quantity.Name, model.RESERVED_NAME_TTREND);
+            this.Values(1, inxOfTimeTrend, :) = model.STEADY_TTREND;
         end%
 
 
@@ -93,10 +93,10 @@ classdef Variant
 
         function this = preallocateFloors(this, quantity, defaultFloor)
             TYPE = @int8;
-            indexOfFloors = ...
+            inxOfFloors = ...
                 strncmp(quantity.Name, model.FLOOR_PREFIX, length(model.FLOOR_PREFIX)) ...
                 & quantity.Type==TYPE(4);
-            this.Values(1, indexOfFloors, :) = defaultFloor;
+            this.Values(1, inxOfFloors, :) = defaultFloor;
         end%
 
         
@@ -199,19 +199,36 @@ classdef Variant
 
         function stableRoots = getStableRoots(this, variantRequested)
             TYPE = @int8;
-            indexOfStableRoots = this.EigenStability(:, :, variantRequested)==TYPE(0);
-            stableRoots = this.EigenValues(indexOfStableRoots);
+            inxOfStableRoots = this.EigenStability(:, :, variantRequested)==TYPE(0);
+            stableRoots = this.EigenValues(inxOfStableRoots);
         end
 
 
-        function sx = combineStdCorr(this, variantsRequested, userStdCorr, numOfPeriods)
+        function sx = combineStdCorr(this, variantsRequested, stdCorr, stdScale, numOfPeriods)
             thisStdCorr = this.StdCorr(:, :, variantsRequested);
             thisStdCorr = permute(thisStdCorr, [2, 1, 3]);
-            indexOfUserStdCorr = ~isnan(userStdCorr);
-            if any(indexOfUserStdCorr(:))
-                lastUser = max(1, size(userStdCorr, 2));
-                sx = repmat(thisStdCorr, 1, lastUser);
-                sx(indexOfUserStdCorr) = userStdCorr(indexOfUserStdCorr);
+            if ~isempty(stdCorr) || ~isempty(stdScale)
+                sizeOfStdCorr = size(stdCorr, 2);
+                sizeOfStdScale = size(stdScale, 2);
+                last = max([1, sizeOfStdCorr, sizeOfStdScale]);
+                if sizeOfStdCorr<last
+                    stdCorr = [stdCorr, nan(size(stdCorr, 1), last-sizeOfStdCorr)];
+                end
+                if sizeOfStdScale<last
+                    stdScale = [stdScale, nan(size(stdScale, 1), last-sizeOfStdScale)];
+                end
+                sx = repmat(thisStdCorr, 1, last);
+                inxOfStdScale = ~isnan(stdScale);
+                if any(inxOfStdScale(:))
+                    ne = size(stdScale, 1);
+                    temp = sx(1:ne, :, :);
+                    temp(inxOfStdScale) = temp(inxOfStdScale) .* stdScale(inxOfStdScale);
+                    sx(1:ne, :, :) = temp;
+                end
+                inxOfStdCorr = ~isnan(stdCorr);
+                if any(inxOfStdCorr(:))
+                    sx(inxOfStdCorr) = stdCorr(inxOfStdCorr);
+                end
                 % Add model StdCorr if the last user-supplied data point is before
                 % the end of the sample.
                 if size(sx, 2)<numOfPeriods

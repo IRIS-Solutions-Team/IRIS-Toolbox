@@ -179,13 +179,13 @@ for iLoop = 1 : nLoop
             s.ka = k(nf+1:end, :);
         end
         
-        % _Time-Varying StdCorr_
+        % _Time-Varying StdCorr and StdScale_
         % Combine currently assigned StdCorr with user-supplied
-        % time-varying StdCorr including one presample period used to
-        % initialize the filter.
-        sx = combineStdCorr(this.Variant, v, opt.StdCorr, numOfPeriods);
+        % time-varying StdCorr and StdScale including one presample period
+        % used to initialize the filter
+        sx = combineStdCorr(this.Variant, v, opt.StdCorr, opt.StdScale, numOfPeriods);
         
-        % Create covariance matrix from stdcorr vector.
+        % Create covariance matrix from stdcorr vector
         s.Omg = covfun.stdcorr2cov(sx, ne);
         
         % Create reduced form covariance matrices `Sa` and `Sy`, and find
