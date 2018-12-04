@@ -141,6 +141,7 @@ if isempty(parser)
     parser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || isempty(x) || isstruct(x));
     parser.addParameter({'ClassList', 'ClassFilter'}, @all, @(x) isequal(x, @all) || isequal(x, Inf) || ischar(x) || iscellstr(x) || isa(x, 'string'));
     parser.addParameter('FreqFilter', Inf, @isnumeric);
+    parser.addParameter('InputDatabankName', @auto, @(x) isequal(x, @auto) || ischar(x) || isa(x, 'string'));
     parser.addParameter('NameFilter', '', @(x) isempty(x) || isequal(x, Inf) || ischar(x) || isa(x, 'string'));
     parser.addParameter('NameList', Inf, @(x) isequal(x, Inf) || ischar(x) || iscellstr(x) || isa(x, 'string'));
     parser.addParameter('Fresh', false, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false) || isstruct(x));
@@ -169,31 +170,27 @@ flag = true;
 % substruct or an element in cell array (in which case `inputname(1)`
 % returns an empty string).
 %
-% NB: `dbbatch( )` will ***always fail*** when called on a subdatabase, i.e.
+% `dbbatch( )` will ***always fail*** when called on a subdatabase, i.e.
 % `dbbatch(d.e, ...)` or `dbbatch(d{1}, ...)` or `dbbatch(d(1), ...)`, etc.
 % from within a function.
 
 % Create a temporary databank in the caller workspace whenever possible
 expressionToEval = userExpression;
-inputDatabankName = inputname(1);
-createTempDatabank = ~isempty(inputDatabankName);
-if createTempDatabank
+inputDatabankName = opt.InputDatabankName;
+tempDatabankName = '';
+if isequal(inputDatabankName, @auto)
+    inputDatabankName = inputname(1);
+end
+if ~isempty(inputDatabankName);
     tempDatabankName = tempname('.');
     tempDatabankName(1:2) = '';
     assignin('caller', tempDatabankName, d);
-    expressionToEval = regexprep(expressionToEval, ['\<', inputDatabankName, '\>'], tempDatabankName);
+    expressionToEval = regexprep( expressionToEval, ...
+                                  ['\<', inputDatabankName, '\>'], ...
+                                  tempDatabankName );
 end
 
-if ~isequal(opt.AddToDatabank, @auto)
-    d = opt.AddToDatabank;
-end
-if ~isequal(opt.Fresh, @auto)
-    if isequal(opt.Fresh, true)
-        d = struct( );
-    elseif isstruct(opt.Fresh)
-        d = opt.Fresh;
-    end
-end
+initializeOutputDatabank( );
 
 listOfErrors = cell.empty(1, 0);
 for i = 1 : length(list0)
@@ -222,7 +219,7 @@ if ~isempty(listOfErrors)
 end
 
 % Clean up
-if createTempDatabank
+if ~isempty(tempDatabankName)
     evalin('caller', ['clear ', tempDatabankName]);
 end
 
@@ -244,6 +241,20 @@ return
             opt.ClassList = regexp(opt.ClassList, '\w+', 'match');
         elseif isa(opt.ClassList, 'string')
             opt.ClassList = cellstr(opt.ClassList);
+        end
+    end%
+
+
+    function initializeOutputDatabank( )
+        if ~isequal(opt.AddToDatabank, @auto)
+            d = opt.AddToDatabank;
+        end
+        if ~isequal(opt.Fresh, @auto)
+            if isequal(opt.Fresh, true)
+                d = struct( );
+            elseif isstruct(opt.Fresh)
+                d = opt.Fresh;
+            end
         end
     end%
 end%
