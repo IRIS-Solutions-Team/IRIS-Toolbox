@@ -388,6 +388,13 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 if flag~=0
                     [flag, path] = system(['findtexmf --file-type=exe ', file]);
                 end       
+                if flag==0
+                    path = strtrim(path);
+                    lastEOL = find(path==char(10) | path==char(13), 1, 'last');
+                    if ~isempty(lastEOL)
+                        path = path(lastEOL+1:end);
+                    end
+                end
             else
                 % __Unix, macOS__
                 tryThese = { '/Library/TeX/texbin', '/usr/texbin', '/usr/local/bin' };
