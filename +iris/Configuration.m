@@ -382,24 +382,28 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
         function [path, folder] = findTexMf(file)
-            % Try FINDTEXMF first.
-            [flag, path] = system(['findtexmf --file-type=exe ', file]);
-            if flag~=0
+            if ispc( )
+                % __Windows__
                 [flag, path] = system(['findtexmf ', file, '.exe']);
-            end       
-            % If FINDTEXMF fails, try to run WHICH on Unix platforms.
-            if flag~=0 && isunix( )
-                % Unix, macOS
-                [flag, path] = iris.Configuration.tryFolder('/usr/texbin', file);
                 if flag~=0
-                    [flag, path] = iris.Configuration.tryFolder('/Library/TeX/texbin', file);
-                    if flag~=0
-                        [flag, path] = system(['which ', file]);
+                    [flag, path] = system(['findtexmf --file-type=exe ', file]);
+                end       
+            else
+                % __Unix, macOS__
+                tryThese = { '/Library/TeX/texbin', '/usr/texbin', '/usr/local/bin' };
+                flag = NaN;
+                for i = 1 : numel(tryThese)
+                    [flag, path] = iris.Configuration.tryFolder(tryThese{i}, file);
+                    if flag==0
+                        break
                     end
+                end
+                if flag~=0
+                    [flag, path] = system(['which ', file]);
                 end
             end
             if flag==0
-                % Use the correctly spelled path and the right file separators.
+                % Use the correctly spelled path and the right file separators
                 path = strtrim(path);
                 [folder, ttl, ext] = fileparts(path);
                 path = fullfile(folder, [ttl, ext]);
