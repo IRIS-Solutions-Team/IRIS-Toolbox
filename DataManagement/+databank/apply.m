@@ -40,7 +40,7 @@ if isequal(outputDatabank, @auto)
     outputDatabank = inputDatabank;
 end
 
-indexOfApplied = false(size(namesOfFields));
+inxOfApplied = false(size(namesOfFields));
 for i = 1 : numOfFields
     ithName = namesOfFields{i};
     if ~isequal(opt.List, @all) && ~any(strcmpi(ithName, opt.List))
@@ -52,7 +52,7 @@ for i = 1 : numOfFields
     if ~isempty(opt.HasSuffix) && ~strncmpi(fliplr(ithName), fliplr(opt.HasSuffix), lenOfHasSuffix)
         continue
     end
-    indexOfApplied(i) = true;
+    inxOfApplied(i) = true;
     ithNewName = ithName;
     if opt.RemovePrefix
         ithNewName(1:lenOfHasPrefix) = '';
@@ -75,8 +75,8 @@ for i = 1 : numOfFields
     end
 end
 
-appliedToNames = namesOfFields(indexOfApplied);
-newNames = newNames(indexOfApplied);
+appliedToNames = namesOfFields(inxOfApplied);
+newNames = newNames(inxOfApplied);
 
 end%
 
