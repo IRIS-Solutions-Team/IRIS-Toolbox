@@ -1,30 +1,34 @@
 function outputDate = mm(year, varargin)
-% mm  IRIS serial date number for monthly date.
+% mm  Create DateWrapper object representing a monthly date
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     Dat = mm(Y)
-%     Dat = mm(Y,M)
+% Input arguments marked with a `~` sign may be omitted
+%
+%     dw = mm(year, ~month)
 %
 % Input arguments
 % ================
 %
-% * `Y` [ numeric ] - Year.
+% * `year` [ numeric ] - Year.
 %
-% * `M` [ numeric ] - Month; if omitted, first month (January) is assumed.
+% * `month` [ numeric | char | string ] - Numeric month or three-letter
+% abbreviation of a month name (English); if omitted, `month=1`.
 %
-% Output arguments
-% =================
 %
-% * `Dat` [ numeric ] - IRIS serial date number representing the monthly
+% __Output Arguments__
+%
+% * `dw` [ numeric ] - IRIS serial date number representing the monthly
 % date.
 %
-% Description
-% ============
+% __Description__
 %
-% Example
-% ========
+% The `mm(~)` function returns a DateWrapper object representing a monthly
+% date. To obtain a plain numeric representation, use the low-level
+% function `numeric.mm(~)` with the same input arguments.
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
