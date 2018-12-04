@@ -59,6 +59,7 @@ classdef Base
             if this.NeedsHighlight
                 message = [this.HIGHLIGHT, message];
             end
+            message = strrep(message, '\h', repmat(' ', 1, length(this.HIGHLIGHT)));
             if ~isempty(varargin)
                 % Look for shared arguments %1, %2, ...
                 for i = 1 : length(varargin)
