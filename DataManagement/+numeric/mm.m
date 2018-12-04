@@ -47,6 +47,10 @@ function month = convertMonth(monthText)
     month = nan(size(monthText));
     inxOfValid = true(size(monthText));
     for i = 1 : numOfMonths
+        if strcmpi(monthText{i}, 'end')
+            month(i) = 12;
+            continue
+        end
         temp = find(strncmpi(monthText{i}, listOfMonths, 3));
         if numel(temp)~=1
             inxOfValid(i) = false;
