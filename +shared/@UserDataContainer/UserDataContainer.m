@@ -1,10 +1,10 @@
-% UserDataContainer  Helper class to implement user data and comments.
+% UserDataContainer  Helper class to implement user data and comments
 %
-% Backend IRIS class.
-% No help provided.
+% Backend IRIS class
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef UserDataContainer
     properties %(GetAccess=public, SetAccess=protected, Hidden)
@@ -25,7 +25,7 @@ classdef UserDataContainer
             else
                 this.UserData = varargin{1};
             end
-        end
+        end%
     end
     
     
