@@ -35,7 +35,7 @@ classdef Variant
             this = preallocateStdCorr(this, quantity, defaultStd);
             this = preallocateFloors(this, quantity, defaultFloor);
             this = preallocateSolution(this, vector, ahead, numOfHashed, numOfObserved);
-        end
+        end%
 
 
         function this = createIndexOfStdCorrAllowed(this, quantity)
@@ -49,7 +49,7 @@ classdef Variant
             inxOfCorrAllowed(~ix31, ix31) = false;
             inxOfTril = tril(ones(ne), -1)==1;
             this.IndexOfStdCorrAllowed = [true(1, ne), inxOfCorrAllowed(inxOfTril).'];
-        end
+        end%
         
 
         function this = preallocateValues(this, numOfVariants, quantity)
@@ -127,7 +127,7 @@ classdef Variant
             this.EigenValues = nan(1, kxi, nv);
             this.EigenStability = zeros(1, kxi, nv, 'int8');
             this.IxInit = true(1, nb, nv);
-        end
+        end%
         
         
         function this = resetTransition(this, variantsRequested, vector, numOfHashed, numOfObserved)
@@ -175,7 +175,7 @@ classdef Variant
             this.EigenValues(1:end, 1:end, variantsRequested) = NaN;
             this.EigenStability(1:end, 1:end, variantsRequested) = TYPE(0);
             this.IxInit(1:end, 1:end, variantsRequested) = true;
-        end
+        end%
 
 
         function this = resetMeasurement(this, variantsRequested)
@@ -185,7 +185,7 @@ classdef Variant
             for i = this.SOLUTION_MEASUREMENT
                 this.FirstOrderSolution{i}(1:end, 1:end, variantsRequested) = NaN;
             end
-        end
+        end%
 
 
         function numOfUnitRoots = getNumOfUnitRoots(this, variantsRequested)
@@ -194,14 +194,14 @@ classdef Variant
                 variantsRequested = ':';
             end
             numOfUnitRoots = sum(this.EigenStability(:, :, variantsRequested)==TYPE(1), 2);
-        end
+        end%
 
 
         function stableRoots = getStableRoots(this, variantRequested)
             TYPE = @int8;
             inxOfStableRoots = this.EigenStability(:, :, variantRequested)==TYPE(0);
             stableRoots = this.EigenValues(inxOfStableRoots);
-        end
+        end%
 
 
         function sx = combineStdCorr(this, variantsRequested, stdCorr, stdScale, numOfPeriods)
@@ -237,17 +237,17 @@ classdef Variant
             else
                 sx = thisStdCorr;
             end
-        end
+        end%
 
 
         function n = length(this)
             n = size(this.Values, 3);
-        end
+        end%
 
 
         function n = numel(this)
             n = size(this.Values, 3);
-        end
+        end%
 
 
         function this = subscripted(this, varargin)
@@ -303,7 +303,7 @@ classdef Variant
                     'model' ...
                 ); %#ok<GTARG>
             end
-        end
+        end%
 
 
         function this = set.StdCorr(this, newStdCorr)
@@ -314,7 +314,7 @@ classdef Variant
                 'Cross-correlation between measurement and transition shocks cannot be set to nonzero values.' ...
             );
             this.StdCorr = newStdCorr;
-        end
+        end%
 
 
         function varargout = getIthFirstOrderSolution(this, v)
@@ -337,12 +337,12 @@ classdef Variant
             else
                 varargout(1:nargout) = x(1:nargout);
             end
-        end
+        end%
 
 
         function indexInitial = getIthIndexInitial(this, v)
             indexInitial = this.IxInit(:, :, v);
-        end
+        end%
 
 
         function varargout = getIthFirstOrderExpansion(this, v)
@@ -360,9 +360,14 @@ classdef Variant
             else
                 varargout(1:nargout) = x(1:nargout);
             end
-        end
+        end%
     end
 end
+
+
+%
+% Local Functions
+%
 
 
 function flag = checkSize(obj, size2)
@@ -375,4 +380,4 @@ function flag = checkSize(obj, size2)
         size2(end+1:ndims1) = 1;
     end
     flag = all(size1==size2);
-end
+end%
