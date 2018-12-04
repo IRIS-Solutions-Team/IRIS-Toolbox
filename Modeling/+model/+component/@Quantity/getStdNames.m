@@ -11,10 +11,11 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-indexOfShocks = this.Type==TYPE(31) | this.Type==TYPE(32);
-namesOfStd = strcat('std_', this.Name(indexOfShocks));
+inxOfShocks = this.Type==TYPE(31) | this.Type==TYPE(32);
+namesOfStd = strcat('std_', this.Name(inxOfShocks));
 if nargin>1
     namesOfStd = namesOfStd(request);
 end
 
-end
+end%
+
