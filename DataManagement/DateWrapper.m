@@ -481,13 +481,27 @@ classdef DateWrapper < double
                 return
             end
             flag = true;
-        end
-    end
+        end%
 
 
-    methods (Static)
+        function pos = getRelativePosition(ref, dates)
+            ERROR_MIXED_FREQ = { 'DateWrapper:CannotRelativePositionForMixedFrequencies', ...
+                                 'Relative positions can be only calculated for dates of the same frequencies' };
+            ref = double(ref);
+            dates =  double(dates);
+            refFreq = DateWrapper.getFrequencyAsNumeric(ref);
+            datesFreq = DateWrapper.getFrequencyAsNumeric(dates);
+            if ~all(datesFreq==refFreq)
+                throw( excepion.Base(ERROR_MIXED_FREQ, 'error') );
+            end
+            refSerial = DateWrapper.getSerial(ref);
+            datesSerial = DateWrapper.getSerial(dates);
+            pos = round(datesSerial - refSerial + 1);
+        end%
+
+
         function date = ii(input)
             date = DateWrapper(round(input));
-        end
+        end%
     end
 end
