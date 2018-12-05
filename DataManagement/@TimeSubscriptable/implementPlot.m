@@ -1,4 +1,6 @@
-function [handlePlot, time, yData, axesHandle, xData, unmatchedOptions] = implementPlot(plotFunc, varargin)
+function [ handlePlot, time, yData, ...
+           axesHandle, xData, ...
+           unmatchedOptions ] = implementPlot(plotFunc, varargin)
 % implementPlot  Plot functions for TimeSubscriptable objects
 %
 % Backend function
@@ -32,26 +34,26 @@ end
 this = varargin{1};
 varargin(1) = [ ];
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser(['TimeSubscriptable.implementPlot(', char(plotFunc), ')']);
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('PlotFun', @validatePlotFunction);
-    inputParser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
-    inputParser.addRequired('Dates', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x) );
-    inputParser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
-    inputParser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
-    inputParser.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x));
-    inputParser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
-    inputParser.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
-                              || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
-    inputParser.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser(['TimeSubscriptable.implementPlot(', char(plotFunc), ')']);
+    parser.KeepUnmatched = true;
+    parser.addRequired('PlotFun', @validatePlotFunction);
+    parser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
+    parser.addRequired('Dates', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x) );
+    parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
+    parser.addOptional('SpecString', cell.empty(1, 0), @(x) iscellstr(x)  && numel(x)<=1);
+    parser.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x));
+    parser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
+    parser.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
+                         || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
+    parser.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
 end
 
-inputParser.parse(plotFunc, axesHandle, time, this, varargin{:});
-specString = inputParser.Results.SpecString;
-opt = inputParser.Options;
-unmatchedOptions = inputParser.UnmatchedInCell;
+parser.parse(plotFunc, axesHandle, time, this, varargin{:});
+specString = parser.Results.SpecString;
+opt = parser.Options;
+unmatchedOptions = parser.UnmatchedInCell;
 
 time = double(time);
 enforceXLimHere = true;

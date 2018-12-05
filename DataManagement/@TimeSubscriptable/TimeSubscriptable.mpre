@@ -61,7 +61,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
     methods (Access=protected)
         varargout = getDataNoFrills(varargin)
-        varargout = implementPlot(varargin)
         varargout = resolveRange(varargin)
     end
 
@@ -77,20 +76,20 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
         #for FN = {plot, bar, area, stem, stairs}
         function varargout = #(FN)(varargin)
-            [varargout{1:nargout}] = implementPlot(@#(FN), varargin{:});
+            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@#(FN), varargin{:});
         end%
 
 
         #endfor
         #for FN = {barcon, errorbar}
         function varargout = #(FN)(varargin)
-            [varargout{1:nargout}] = implementPlot(@numeric.#(FN), varargin{:});
+            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@numeric.#(FN), varargin{:});
         end%
 
 
         #endfor
         function varargout = binscatter(varargin)
-            [~, time, yData, axesHandle, xData, unmatched] = implementPlot([ ], varargin{:});
+            [~, time, yData, axesHandle, xData, unmatched] = TimeSubscriptable.implementPlot([ ], varargin{:});
             indexOfNaN = any(isnan(yData), 2);
             plotHandle = binscatter(yData(~indexOfNaN, 1), yData(~indexOfNaN, 2), unmatched{:});
             varargout = {plotHandle, time, yData, axesHandle, xData};
@@ -219,6 +218,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
     methods (Static)
         varargout = getExpSmoothMatrix(varargin)
         varargout = createDateAxisData(varargin)
+        varargout = implementPlot(varargin)
     end
 
 

@@ -61,7 +61,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
     methods (Access=protected)
         varargout = getDataNoFrills(varargin)
-        varargout = implementPlot(varargin)
         varargout = resolveRange(varargin)
     end
 
@@ -76,42 +75,42 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
 
         function varargout = plot(varargin)
-            [varargout{1:nargout}] = implementPlot(@plot, varargin{:});
+            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@plot, varargin{:});
         end%
 
 
         function varargout = bar(varargin)
-            [varargout{1:nargout}] = implementPlot(@bar, varargin{:});
+            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@bar, varargin{:});
         end%
 
 
         function varargout = area(varargin)
-            [varargout{1:nargout}] = implementPlot(@area, varargin{:});
+            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@area, varargin{:});
         end%
 
 
         function varargout = stem(varargin)
-            [varargout{1:nargout}] = implementPlot(@stem, varargin{:});
+            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@stem, varargin{:});
         end%
 
 
         function varargout = stairs(varargin)
-            [varargout{1:nargout}] = implementPlot(@stairs, varargin{:});
+            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@stairs, varargin{:});
         end%
 
 
         function varargout = barcon(varargin)
-            [varargout{1:nargout}] = implementPlot(@numeric.barcon, varargin{:});
+            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@numeric.barcon, varargin{:});
         end%
 
 
         function varargout = errorbar(varargin)
-            [varargout{1:nargout}] = implementPlot(@numeric.errorbar, varargin{:});
+            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@numeric.errorbar, varargin{:});
         end%
 
 
         function varargout = binscatter(varargin)
-            [~, time, yData, axesHandle, xData, unmatched] = implementPlot([ ], varargin{:});
+            [~, time, yData, axesHandle, xData, unmatched] = TimeSubscriptable.implementPlot([ ], varargin{:});
             indexOfNaN = any(isnan(yData), 2);
             plotHandle = binscatter(yData(~indexOfNaN, 1), yData(~indexOfNaN, 2), unmatched{:});
             varargout = {plotHandle, time, yData, axesHandle, xData};
@@ -240,6 +239,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
     methods (Static)
         varargout = getExpSmoothMatrix(varargin)
         varargout = createDateAxisData(varargin)
+        varargout = implementPlot(varargin)
     end
 
 
