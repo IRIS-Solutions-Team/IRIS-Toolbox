@@ -102,15 +102,23 @@ function [H1, H2, Range, Data] = errorbar(varargin)
 
 %--------------------------------------------------------------------------
 
-[~, H1, Range, Data, time] = tseries.myplot(@plot, Ax, Range, [ ], X, PlotSpec, varargin{:});
+if isempty(PlotSpec)
+    PlotSpec = '';
+else
+    PlotSpec = PlotSpec{1};
+end
+if isa(Ax, 'function_handle')
+    Ax = Ax( );
+end
+[~, H1, Range, Data, time] = tseries.implementPlot(@plot, Ax, Range, X, PlotSpec, varargin{:});
 
 status = get(gca( ), 'nextPlot');
 set(gca( ), 'nextPlot', 'add');
-loData = getdata(Lo, Range);
+loData = getData(Lo, Range);
 if ~isa(Hi, 'tseries')
     Hi = Lo;
 end
-hiData = getdata(Hi, Range);
+hiData = getData(Hi, Range);
 H2 = tseries.myerrorbar(time, Data, loData, hiData, errorbarOpt);
 set(gca( ), 'nextPlot', status);
 

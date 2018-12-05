@@ -4,9 +4,9 @@ function varargout = stem(varargin)
 % Syntax
 % =======
 %
-%     [H,Range] = stem(X,...)
-%     [H,Range] = stem(Range,X,...)
-%     [H,Range] = stem(Ax,Range,X,...)
+%     [H, Range] = stem(X, ...)
+%     [H, Range] = stem(Range, X, ...)
+%     [H, Range] = stem(Ax, Range, X, ...)
 %
 % Input arguments
 % ================
@@ -45,10 +45,9 @@ function varargout = stem(varargin)
 
 % AREA, BAND, BAR, BARCON, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM
 
-[Ax,Rng,X,PlotSpec,varargin] = irisinp.parser.parse('tseries.plot',varargin{:});
-
 %--------------------------------------------------------------------------
 
-[~,varargout{1:nargout}] = tseries.myplot(@stem,Ax,Rng,[ ],X,PlotSpec,varargin{:});
+[~, varargout{1:nargout}] = tseries.implementPlot(@stem, varargin{:});
 
-end
+end%
+

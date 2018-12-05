@@ -4,15 +4,15 @@ function varargout = scatter(varargin)
 % Syntax
 % =======
 %
-%     [H,Range] = scatter([X,Y],...)
-%     [H,Range] = scatter([X,Y,Z],...)
-%     [H,Range] = scatter([X,Y,Z,C],...)
-%     [H,Range] = scatter(Range,[X,Y],...)
-%     [H,Range] = scatter(Range,[X,Y,Z],...)
-%     [H,Range] = scatter(Range,[X,Y,Z,C],...)
-%     [H,Range] = scatter(Ax,Range,[X,Y],...)
-%     [H,Range] = scatter(Ax,Range,[X,Y,Z],...)
-%     [H,Range] = scatter(Ax,Range,[X,Y,Z,C],...)
+%     [H, Range] = scatter([X, Y], ...)
+%     [H, Range] = scatter([X, Y, Z], ...)
+%     [H, Range] = scatter([X, Y, Z, C], ...)
+%     [H, Range] = scatter(Range, [X, Y], ...)
+%     [H, Range] = scatter(Range, [X, Y, Z], ...)
+%     [H, Range] = scatter(Range, [X, Y, Z, C], ...)
+%     [H, Range] = scatter(Ax, Range, [X, Y], ...)
+%     [H, Range] = scatter(Ax, Range, [X, Y, Z], ...)
+%     [H, Range] = scatter(Ax, Range, [X, Y, Z, C], ...)
 %
 % Input arguments
 % ================
@@ -54,10 +54,9 @@ function varargout = scatter(varargin)
 
 % TODO: Add help on date format related options.
 
-[Ax,Rng,X,PlotSpec,varargin] = irisinp.parser.parse('tseries.plot',varargin{:});
-
 %--------------------------------------------------------------------------
 
-[~,varargout{1:nargout}] = tseries.myplot(@scatter,Ax,Rng,[ ],X,PlotSpec,varargin{:});
+[~, varargout{1:nargout}] = tseries.implementPlot(@scatter, varargin{:});
 
 end%
+

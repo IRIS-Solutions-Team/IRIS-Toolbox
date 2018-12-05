@@ -4,9 +4,9 @@ function varargout = bar(varargin)
 % Syntax
 % =======
 %
-%     [H,Range] = bar(X,...)
-%     [H,Range] = bar(Range,X,...)
-%     [H,Range] = bar(Ax,Range,X,...)
+%     [H, Range] = bar(X, ...)
+%     [H, Range] = bar(Range, X, ...)
+%     [H, Range] = bar(Ax, Range, X, ...)
 %
 % Input arguments
 % ================
@@ -45,10 +45,9 @@ function varargout = bar(varargin)
 
 % AREA, BAND, BAR, BARCON, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM
 
-[Ax,Rng,X,PlotSpec,varargin] = irisinp.parser.parse('tseries.plot',varargin{:});
-
 %--------------------------------------------------------------------------
 
-[~,varargout{1:nargout}] = tseries.myplot(@bar,Ax,Rng,[ ],X,PlotSpec,varargin{:});
+[~, varargout{1:nargout}] = tseries.implementPlot(@bar, varargin{:});
 
-end
+end%
+

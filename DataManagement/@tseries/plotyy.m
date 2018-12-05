@@ -138,14 +138,15 @@ if ~all(isinf(rangeRhs)) && ~isempty(rangeRhs) && ~isempty(XRhs) ...
     end
 end
 
-% Mimic plotting the RHS graph without creating an axes object.
+% Mimic plotting the RHS graph without creating an axes object
+opt.Comprise = [ ];
 [~, ~, rangeRhs, dataRhs, timeRhs, userRangeRhs, freqRhs] = ...
-    tseries.myplot([ ], [ ], rangeRhs, [ ], XRhs, '', opt); %#ok<ASGLU>
+    tseries.implementPlot([ ], gobjects(0), rangeRhs, XRhs, '', opt); %#ok<ASGLU>
 
-% Mimic plotting the LHS graph without creating an axes object.
-comprise = timeRhs([1, end]);
+% Mimic plotting the LHS graph without creating an axes object
+opt.Comprise = timeRhs([1, end]);
 [~, ~, rangeLhs, dataLhs, timeLhs, userRangeLhs, freqLhs] = ...
-    tseries.myplot([ ], [ ], rangeLhs, comprise, XLhs, '', opt);
+    tseries.implementPlot([ ], gobjects(0), rangeLhs, XLhs, '', opt);
 
 % Plot now.
 dataLhsPlot = grfun.myreplacenancols(dataLhs, Inf);

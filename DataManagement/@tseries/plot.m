@@ -80,10 +80,9 @@ function varargout = plot(varargin)
 % TODO: Document the use of half-ranges in plot functions [-Inf, date], 
 % [date, Inf].
 
-[Ax, Rng, X, PlotSpec, varargin] = irisinp.parser.parse('tseries.plot', varargin{:});
-
 %--------------------------------------------------------------------------
 
-[~, varargout{1:nargout}] = tseries.myplot(@plot, Ax, Rng, [ ], X, PlotSpec, varargin{:});
+[~, varargout{1:nargout}] = tseries.implementPlot(@plot, varargin{:});
 
-end
+end%
+

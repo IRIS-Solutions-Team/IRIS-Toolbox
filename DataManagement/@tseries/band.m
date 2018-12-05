@@ -4,9 +4,9 @@ function varargout = band(varargin)
 % Syntax
 % =======
 %
-%     [Ln,Bd,Range] = band(X,Low,High...)
-%     [Ln,Bd,Range] = band(Range,X,Low,High,...)
-%     [Ln,Bd,Range] = band(Ax,Range,X,Low,High,...)
+%     [Ln, Bd, Range] = band(X, Low, High...)
+%     [Ln, Bd, Range] = band(Range, X, Low, High, ...)
+%     [Ln, Bd, Range] = band(Ax, Range, X, Low, High, ...)
 %
 % Input arguments
 % ================
@@ -66,7 +66,7 @@ function varargout = band(varargin)
 %
 % See [`dat2str`](dates/dat2str) for details on date format options.
 %
-% * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string,
+% * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string, 
 % or array of format strings (possibly different for each date).
 %
 % * `'freqLetters='` [ char | *`'YHQBMW'`* ] - Six letters used to
@@ -74,7 +74,7 @@ function varargout = band(varargin)
 % yearly, half-yearly, quarterly, bi-monthly, monthly,  and weekly (such as
 % the `'Q'` in `'2010Q1'`).
 %
-% * `'months='` [ cellstr | *`{'January',...,'December'}`* ] - Twelve
+% * `'months='` [ cellstr | *`{'January', ..., 'December'}`* ] - Twelve
 % strings representing the names of the twelve months.
 %
 % * `'ConversionMonth='` [ numeric | `'last'` | *`1`* ] - Month that will
@@ -84,7 +84,7 @@ function varargout = band(varargin)
 % Description
 % ============
 %
-% If one (or more) of the input time series, `X`, `Low`, or `High`,
+% If one (or more) of the input time series, `X`, `Low`, or `High`, 
 % consists of more than one column, the graph is constructructed as
 % follows:
 %
@@ -111,21 +111,29 @@ function varargout = band(varargin)
 
 % TODO: Add help on date format related options.
 
-% TODO: Document the use of half-ranges in plot functions [-Inf,date],
-% [date,Inf].
+% TODO: Document the use of half-ranges in plot functions [-Inf, date], 
+% [date, Inf].
 
-[Ax,Rng,X,Lo,Hi,PlotSpec,varargin] = ...
-    irisinp.parser.parse('tseries.band',varargin{:});
-[bandOpt,varargin] = passvalopt('tseries.band',varargin{:});
+[Ax, Rng, X, Lo, Hi, PlotSpec, varargin] = ...
+    irisinp.parser.parse('tseries.band', varargin{:});
+[bandOpt, varargin] = passvalopt('tseries.band', varargin{:});
 
 %--------------------------------------------------------------------------
 
-[ax,h,range,cData,xCoor] = tseries.myplot(@plot,Ax,Rng,[ ],X,PlotSpec,varargin{:});
+if isempty(PlotSpec)
+    PlotSpec = '';
+else
+    PlotSpec = PlotSpec{1};
+end
+if isa(Ax, 'function_handle')
+    Ax = Ax( );
+end
+[ax, h, range, cData, xCoor] = tseries.implementPlot(@plot, Ax, Rng, X, PlotSpec, varargin{:});
 
-loData = rangedata(Lo,range);
-hiData = rangedata(Hi,range);
-pt = tseries.myband(ax,h,cData,xCoor,loData,hiData,bandOpt);
-set(ax,'Layer',bandOpt.grid);
+loData = getData(Lo, range);
+hiData = getData(Hi, range);
+pt = tseries.myband(ax, h, cData, xCoor, loData, hiData, bandOpt);
+set(ax, 'Layer', bandOpt.grid);
 
 % Output arguments passed back to user.
 varargout = { h, pt, range, cData, xCoor };

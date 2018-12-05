@@ -4,9 +4,9 @@ function varargout = barcon(varargin)
 % Syntax
 % =======
 %
-%     [H,Range] = barcon(X,...)
-%     [H,Range] = barcon(Range,X,...)
-%     [H,Range] = barcon(Ax,Range,X,...)
+%     [H, Range] = barcon(X, ...)
+%     [H, Range] = barcon(Range, X, ...)
+%     [H, Range] = barcon(Ax, Range, X, ...)
 %
 % Input arguments
 % ================
@@ -33,10 +33,10 @@ function varargout = barcon(varargin)
 % * `'barWidth='` [ numeric | *`0.8`* ] - Width of bars as a percentage of
 % the space each period occupies on the x-axis.
 %
-% * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string,
+% * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string, 
 % or array of format strings (possibly different for each date).
 %
-% * `'colorMap='` [ numeric | *`get(gcf( ),'colorMap')`* ] - Color map used
+% * `'colorMap='` [ numeric | *`get(gcf( ), 'colorMap')`* ] - Color map used
 % to fill the contribution bars.
 %
 % * `'evenlySpread='` [ *`true`* | `false` ] - Colors picked for the
@@ -61,10 +61,9 @@ function varargout = barcon(varargin)
 
 % AREA, BAND, BAR, BARCON, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM
 
-[Ax,Rng,X,PlotSpec,varargin] = irisinp.parser.parse('tseries.plot',varargin{:});
-
 %--------------------------------------------------------------------------
 
-[~,varargout{1:nargout}] = tseries.myplot(@barcon,Ax,Rng,[ ],X,PlotSpec,varargin{:});
+[~, varargout{1:nargout}] = tseries.implementPlot(@barcon, varargin{:});
 
-end
+end%
+

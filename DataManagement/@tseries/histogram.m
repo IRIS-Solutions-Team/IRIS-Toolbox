@@ -83,10 +83,9 @@ function varargout = histogram(varargin)
 % TODO: Document the use of half-ranges in plot functions [-Inf,date],
 % [date,Inf].
 
-[ax, range, x, plotSpec, varargin] = irisinp.parser.parse('tseries.plot',varargin{:});
-
 %--------------------------------------------------------------------------
 
-[~, varargout{1:nargout}] = tseries.myplot(@histogram, ax, range, [ ], x, plotSpec, varargin{:});
+[~, varargout{1:nargout}] = tseries.implementPlot(@histogram, arargin{:});
 
-end
+end%
+

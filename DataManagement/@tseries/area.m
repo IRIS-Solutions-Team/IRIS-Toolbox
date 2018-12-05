@@ -45,10 +45,9 @@ function varargout = area(varargin)
 
 % AREA, BAND, BAR, BARCON, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM
 
-[Ax,Rng,X,PlotSpec,varargin] = irisinp.parser.parse('tseries.plot',varargin{:});
-
 %--------------------------------------------------------------------------
 
-[~,varargout{1:nargout}] = tseries.myplot(@area,Ax,Rng,[ ],X,PlotSpec,varargin{:});
+[~, varargout{1:nargout}] = tseries.implementPlot(@area, varargin{:});
 
-end
+end%
+

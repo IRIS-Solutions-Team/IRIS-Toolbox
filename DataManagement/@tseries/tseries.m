@@ -534,7 +534,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = mynanstd(varargin)
         varargout = mynansum(varargin)
         varargout = mynanvar(varargin)
-        varargout = myplot(varargin)
     end
     
     
@@ -946,6 +945,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     methods (Static)
         varargout = fromFred(varargin)
         varargout = linearTrend(varargin)
+        varargout = implementPlot(varargin)
         varargout = empty(varargin)
     end
  end
