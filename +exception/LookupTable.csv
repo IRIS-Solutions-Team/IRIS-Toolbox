@@ -31,17 +31,17 @@ Dates:UnrecognizedFrequency,Invalid or unrecognized date frequency
 Dates:InvalidOutputClass, "Output class in date creation functions must be 'DateWrapper' or 'double'
 Dates:FrequencyMismatch, "Date frequency mismatch"
 Dates:NonIntegerSerialNumber, "Serial number must be integer: %g"
-Dbase:CannotDetermineRange,Cannot determine range because no time series entries have been found in input database
-Dbase:DbfunReportError,Error occured when processing this database entry: %s \n$ENGINE$ says: %s
-Dbase:DbfunReportWarning,Warning occured when processing this database entry: %s \n$ENGINE$ says: %s
-Dbase:EntrySizeMismatch,This database entry does not match the size of other entries: %s
-Dbase:EntryFrequencyMismatch,This database entry does not match the date frequency requested: %s
-Dbase:EntryNotSeries,This name exists in input database but is not a time series: %s
+Dbase:CannotDetermineRange,Cannot determine range because no time series entries have been found in input databank
+Dbase:DbfunReportError,Error occured when processing this databank entry: %s \n$ENGINE$ says: %s
+Dbase:DbfunReportWarning,Warning occured when processing this databank entry: %s \n$ENGINE$ says: %s
+Dbase:EntrySizeMismatch,This databank entry does not match the size of other entries: %s
+Dbase:EntryFrequencyMismatch,This databank entry does not match the date frequency requested: %s
+Dbase:EntryNotSeries,This name exists in input databank but is not a time series: %s
 Dbase:InvalidLoadFormat, This CSV file contains data in invalid format or no delimiter-separated values: %s
 Dbase:LoadMixedFrequency, This CSV file contains dates with mixed frequencies: %s 
 Dbase:ErrorLoadingUserData, Error when reconstructing user data from this CSV file: %s\nUncle says: %s
 Dbase:InvalidOptionNameFunc, Option NameFunc= must be function returning text string.
-Dbase:NameNotExist,This name does not exist in input database: %s
+Dbase:NameNotExist,This name does not exist in input databank: %s
 DateWrapper:InvalidDateFormat,"Invalid date format; must be char, string, cellstr, or struct."
 DateWrapper:InvalidInputsIntoPlus, "Invalid input arguments into a DateWrapper plus expression."
 DateWrapper:InvalidInputsIntoMinus, "Invalid input arguments into a DateWrapper minus expression."
@@ -136,12 +136,12 @@ Model:InconsistentParamData,Number of parameter variants [%g] is not consistent 
 Model:IndexExceedsVariants,Index exceeds the number of parameter variants: %s
 Model:InvalidShockName,This is not a valid shock name: %s 
 Model:InvalidVariantName,Cannot find parameter variant with this name: %s
-Model:MissingInitCond,This initial value is missing from input database: %s 
-Model:NoMeasurementData,No data for measurement variables found in input database: %s
+Model:MissingInitCond,Values for this initial condition are missing from input databank: %s 
+Model:NoMeasurementData,No data for measurement variables found in input databank: %s
 Model:NoMeasurementVariables, This model has no measurement variables.
 Model:RedundantParameter,This parameter does not occur in any model equation: %s 
 Model:RedundantShock,This shock does not occur in any model equation: %s 
-Model:SolutionNotAvailable,Model solution(s) not available: %s
+Model:SolutionNotAvailable,Model solution(s) not available for these parameter variants: %s
 Model:StackedSimulationFailed,Some blocks in stacked simulation failed to converge %s
 Model:SteadyNotAvailable,Steady state is not available for this variable: %s 
 Model:SteadyErrorInDynamic,Steady-state values not consistent with this dynamic equation %s: %s
@@ -153,6 +153,7 @@ Model:UnknownInputData,Invalid format of input data.
 Model:ZeroVarianceFactor,Common variance factor estimate is zero because all observations match their one-step-ahead predictions; run Kalman filter with Relative=false instead: %s 
 Model:File:CannotOpenTextFile, Cannot open this text file for writing: %s 
 Model:File:CannotWriteToTextFile, Cannot write to this text file: %s 
+Model:MissingExogenized, Some values for this exogenized variable are missing from input databank: %s
 Obsolete:KeywordUseInstead,"The keyword %s is obsolete, and will be removed from IRIS in a future version. Use %s instead."
 Obsolete:ObsoleteMatFile,"The model object in this MAT file was saved by an older, incompatible IRIS. It will no be possible to load it in a future version. Rebuild the model object from its model file."
 Obsolete:OptionUseInstead,"The option %s= is obsolete, and will be removed from IRIS in a future version. Use %s= instead."
@@ -201,7 +202,7 @@ Quantity:InvalidStdCorrInLink,This is not a valid std_ or corr_ name in a !links
 Quantity:UserSelectionMustCharCellstr,User selection of names must be cellstr or char
 Report:InvalidLegendEntries,Invalid legend entries
 RptEq:InvalidLhs,Invalid LHS name in this reporting equation: %s 
-RptEq:RhsNameDataNotFound,This name is not found in input database: %s 
+RptEq:RhsNameDataNotFound,This name is not found in input databank: %s 
 RptEq:RhsNameDataInvalid,Input data for this name are invalid: %s 
 RptEq:SteadyRefNotFoundInModel,Name of this steady-state reference is not found in model: %s 
 Scenario:Wrapper:NameNotFound, This is not a valid name in Scenario: %s
@@ -264,7 +265,7 @@ TheParser:StdNameWithDoubleUnderscore,Names of shocks cannot include double unde
 TimeSeriesBase:IfTestCompliance, Test function must return logical index of the same size as the input time series.
 VAR:CannotEstimateEmptyVar,Cannot estimate VAR object with no variables.
 VAR:CannotInfRangeInPanel,Cannot use Inf for input range in panel VAR estimation.
-VAR:GroupNotInputData,This group is not contained in the input database: %s 
+VAR:GroupNotInputData,This group is missing from input databank: %s 
 VAR:InvalidParameterType,This is not a valid type of VAR parameters: %s
 VAR:NonuniqueName,This name occurs more than once in VAR object: %s 
 VAR:CannotHandleUnstable, Cannot calculate %1 for unstable parameter variants: %s

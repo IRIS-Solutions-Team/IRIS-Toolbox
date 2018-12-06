@@ -30,7 +30,7 @@ if isempty(parserTimeDomain)
     parserTimeDomain.addParameter({'Plan', 'Scenario'}, [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x));
     parserTimeDomain.addParameter('progress', false, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter('Relative', true, @(x) isequal(x, true) || isequal(x, false));
-    parserTimeDomain.addParameter({'TimeVarying', 'Override', 'Vary', 'Std'}, [ ], @(x) isempty(x) || isstruct(x));
+    parserTimeDomain.addParameter({'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || isstruct(x));
     parserTimeDomain.addParameter('Multiply', [ ], @(x) isempty(x) || isstruct(x));
     parserTimeDomain.addParameter('simulate', false, @(x) isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
     parserTimeDomain.addParameter('symmetric', true, @(x) isequal(x, true) || isequal(x, false));
@@ -102,19 +102,19 @@ else
     likOpt.outoflik = likOpt.outoflik(:)';
     ell = lookup(this.Quantity, likOpt.outoflik, TYPE(4));
     pos = ell.PosName;
-    ixNan = isnan(pos);
-    if any(ixNan)
-        throw( exception.Base('Model:INVALID_NAME', 'error'), ...
-               'parameter ', likOpt.outoflik{ixNan} ); %#ok<GTARG>
+    inxOfNaN = isnan(pos);
+    if any(inxOfNaN)
+        throw( exception.Base('Model:InvalidName', 'error'), ...
+               'parameter ', likOpt.outoflik{inxOfNaN} ); %#ok<GTARG>
     end
     likOpt.outoflik = pos;
 end
 likOpt.outoflik = likOpt.outoflik(:).';
 npout = length(likOpt.outoflik);
 if npout>0 && ~likOpt.DTrends
-    utils.error('model:prepareLoglik', ...
-        ['Cannot estimate out-of-likelihood parameters ', ...
-        'with the option DTrends=false.']);
+    THIS_ERROR  = { 'Model:CannotEstimateOutOfLik'
+                    'Cannot estimate out-of-likelihood parameters with the option DTrends=false' };
+    throw( exception.Base(THIS_ERROR, 'error') );
 end
 
 % __Time Domain Options__
@@ -125,9 +125,9 @@ if likOpt.domain=='t'
     % * --presample means one presample period will be added
     [likOpt.StdCorr, ~, likOpt.StdScale] = varyStdCorr(this, range, tune, likOpt, '--clip', '--presample');
     
-    % User-supplied tunes on the mean of shocks.
-    if isfield(likOpt, 'TimeVarying')
-        tune = likOpt.TimeVarying;
+    % User-supplied tunes on the mean of shocks
+    if isfield(likOpt, 'Override')
+        tune = likOpt.Override;
     end
     if ~isempty(tune) && isstruct(tune)
         % Request shock data.
@@ -154,17 +154,18 @@ if likOpt.domain=='t'
             end
             if ndims(likOpt.weighting) > 2 ...
                     || any( size(likOpt.weighting)~=ny ) %#ok<ISMAT>
-                utils.error('model:prepareLoglik', ...
-                    ['Size of prediction error weighting matrix ', ...
-                    'must match number of observables.']);
+                    THIS_ERROR = { 'Model:InvalidPredErrMatrixSize'
+                                   'Size of prediction error weighting matrix fails to match number of observables' };
+                    throw( exception.Base(THIS_ERROR, 'error') );
             end
         case {'loglik', 'mloglik', '-loglik'}
             % Minus log likelihood.
             likOpt.ObjFunc = 1;
         otherwise
-            utils.error('model:prepareLoglik', ...
-                'Unknown objective function: ''%s''.', ...
-                likOpt.ObjFunc);
+            THIS_ERROR = { 'Model:UnknownObjFunction'
+                           'Unknown objective function: %s ' };
+            throw( exception.Base(THIS_ERROR, 'error'), ...
+                   likOpt.ObjFunc );
     end
 end
 
@@ -186,7 +187,7 @@ end
 % Initialize Kalman filter.
 if likOpt.domain=='t'
     if isstruct(likOpt.Init)
-        [xbInitMean, lsNanInitMean, xbInitMse, lsNanInitMse] = ...
+        [xbInitMean, listOfMissingMeanInit, xbInitMse, listOfMissingMSEInit] = ...
             datarequest('xbInit', this, likOpt.Init, range);
         if isempty(xbInitMse)
             nData = size(xbInitMean, 3);
@@ -197,9 +198,9 @@ if likOpt.domain=='t'
     end
     % Initial mean for unit root elements of Alpha.
     if isstruct(likOpt.InitUnitRoot)
-        [xbInitMean, lsNanInitMean] = ...
+        [xbInitMean, listOfMissingMeanInit] = ...
             datarequest('xbInit', this, likOpt.InitUnitRoot, range);
-        lsNanInitMse = { };
+        listOfMissingMSEInit = cell.empty(1, 0);
         chkNanInit( );
         likOpt.InitUnitRoot = xbInitMean;
     end
@@ -232,17 +233,19 @@ return
 
 
     function chkNanInit( )
-        if ~isempty(lsNanInitMean)
-            utils.error('model:prepareLoglik', ...
-                'This mean initial condition is not available: %s ', ...
-                lsNanInitMean{:});
+        if ~isempty(listOfMissingMeanInit)
+            THIS_ERROR = { 'Model:MissingMeanInitial'
+                           'The value for this mean initial condition is missing from input databank: %s ' };
+            throw( exception.Base(THIS_ERROR, 'error'), ...
+                   listOfMissingMeanInit{:} );
         end
-        if ~isempty(lsNanInitMse)
-            utils.error('model:prepareLoglik', ...
-                'This MSE initial condition is not available: %s ', ...
-                lsNanInitMse{:});
+        if ~isempty(listOfMissingMSEInit)
+            THIS_ERROR = { 'Model:MissingMeanInitial'
+                           'The value for this MSE initial condition is missing from input databank: %s ' };
+            throw( exception.Base(THIS_ERROR, 'error'), ...
+                   listOfMissingMSEInit{:} );
         end        
-    end
+    end%
 
 
     function chkRollingColumns( )

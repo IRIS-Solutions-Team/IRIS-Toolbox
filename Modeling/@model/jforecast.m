@@ -112,7 +112,7 @@ if isempty(inputParser)
     inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('Plan', [ ], @(x) isequal(x, [ ]) || isa(x, 'plan'));
     inputParser.addParameter('StdScale', complex(1, 0), @(x) (isnumeric(x) && isscalar(x) && real(x)>=0 && imag(x)>=0 && abs(abs(x)-1)<1e-12) || strcmpi(x, 'normalize'));
-    inputParser.addParameter({'TimeVarying', 'Override', 'Vary', 'Std'}, [ ], @(x) isstruct(x) || isempty(x));
+    inputParser.addParameter({'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isstruct(x) || isempty(x));
 
     inputParser.addDeviationOptions(false);
 end
@@ -156,7 +156,7 @@ ixXbCurr = ixXCurr(nf+1:end);
 
 % Get initial condition for the xb vector, and check for missing initial
 % conditions
-[xbInit, nanInit, xbInitMse] = datarequest('xbinit', this, inp, range);
+[xbInit, listOfNaNInitials, xbInitMse] = datarequest('xbinit', this, inp, range);
 % TODO
 %{
 if ~isequal(opt.InitCondMSE, @auto)
@@ -284,7 +284,7 @@ if isCond
 end
 
 % Index of parameterisation with solutions not available.
-[~, ixNanSol] = isnan(this, 'solution');
+[~, inxOfNaNSolutions] = isnan(this, 'solution');
 
 % Create and initialize output hdataobj.
 hData = struct( );
@@ -335,7 +335,7 @@ for iLoop = 1 : numOfRuns
     end
     
     % Solution not available.
-    if ixNanSol(min(iLoop, end));
+    if inxOfNaNSolutions(min(iLoop, end));
         continue
     end
     
@@ -476,7 +476,7 @@ end
 % End of main loop.
 
 % Report parameterisation with solutions not available.
-chkNanSol( );
+checkNaNSolutions( );
 
 % Create output database from hdataobj.
 returnOutp( );
@@ -487,10 +487,9 @@ return
 
 
     function checkInitCond( )
-        if ~isempty(nanInit)
-            utils.error( 'model:jforecast', ...
-                         'This initial condition is not available: %s ', ...
-                         nanInit{:} );
+        if ~isempty(listOfNaNInitials)
+            throw( exception.Base('Model:MissingInitCond', 'error'), ...
+                   listOfNaNInitials{:} );
         end
     end%
 
@@ -511,16 +510,16 @@ return
             xVec = xVec(ixXCurr);
             yxVec = [yVec, xVec];
             % Some of the variables are exogenized to NaNs.
-            utils.error('model:jforecast', ...
-                'This variable is exogenized to NaN: ''%s''.', ...
-                yxVec{inx});
+            throw( exception.Base('Model:MissingExogenized', 'error'), ...
+                   yxVec{inx} );
         end
         % Check number of exogenized and endogenized data points.
         if nnzexog(opt.Plan)~=nnzendog(opt.Plan)
-            utils.warning('model:jforecast', ...
-                ['The number of exogenized data points (%g) does not match ', ...
-                'the number of endogenized data points (%g).'], ...
-                nnzexog(opt.Plan), nnzendog(opt.Plan));
+            WARNING_MISMATCH_EXOG_ENDOG = { 'Model:MismatchExogenizedEndogenized' 
+                                             [ 'Number of exogenized data points (%g) fails to match ', ...
+                                               'number of endogenized data points (%g)' ] };
+            throw( exception.Base(WARNING_MISMATCH_EXOG_ENDOG, 'warning'), ...
+                   nnzexog(opt.Plan), nnzendog(opt.Plan) );
         end
     end%
 
@@ -538,9 +537,10 @@ return
             isWarnOverlap = true;
         end        
         if isWarnOverlap
-            utils.warning('model:jforecast', ...
-                ['Both input data and conditioning data include ', ...
-                'structural shocks, and they will be added up together.']);
+            WARNING_OVERLAP = { 'Model:ShockOverlap'
+                                [ 'Both input data and conditioning data include ', ...
+                                  'structural shocks, and they will be added up together'] };
+            exception.Base( WARNING_OVERLAP, 'warning' );
         end
     end%
 
@@ -707,19 +707,17 @@ return
                 Dy(:, t) = diag(Py);
             end
         end
-    end 
+    end% 
 
 
 
     
-    function chkNanSol( )
-        % Report parameterisations with solutions not available.
-        if any(ixNanSol)
-            utils.warning('model:jforecast', ...
-                'Solution(s) not available %s.', ...
-                exception.Base.alt2str(ixNanSol) );
+    function checkNaNSolutions( )
+        if any(inxOfNaNSolutions)
+            throw( exception.Base('Model:SolutionNotAvailable', 'warning'), ...
+                   exception.Base.alt2str(inxOfNaNSolutions) );
         end
-    end
+    end%
 
 
 
@@ -727,48 +725,48 @@ return
     function varargout = createStdCorr( )
         % TODO: use `combineStdCorr` here
         % Combine sx from the current parameterisation and
-        % sx supplied in TimeVarying= or cond
-        [inpSxRe, inpSxIm] = varyStdCorr(this, range, cond, opt);
+        % sx supplied in Override= or cond
+        [overrideStdCorrReal, overrideStdCorrImag] = varyStdCorr(this, range, cond, opt);
 
-        sxRe = this.Variant.StdCorr(:, :, iLoop);
-        sxRe = repmat(sxRe(:), 1, nPer);
-        ixAvail = ~isnan(inpSxRe);
-        if any(ixAvail(:))
-            sxRe(ixAvail) = inpSxRe(ixAvail);
+        stdCorrReal = this.Variant.StdCorr(:, :, iLoop);
+        stdCorrReal = repmat(stdCorrReal(:), 1, nPer);
+        inxOfNaN = isnan(overrideStdCorrReal);
+        if ~all(inxOfNaN(:))
+            stdCorrReal(~inxOfNaN) = overrideStdCorrReal(~inxOfNaN);
         end
         
-        sxIm = this.Variant.StdCorr(:, :, iLoop);
-        sxIm = repmat(sxIm(:), 1, nPer);
-        ixAvail = ~isnan(inpSxIm);
-        if any(ixAvail(:))
-            sxIm(ixAvail) = inpSxIm(ixAvail);
+        stdCorrImag = this.Variant.StdCorr(:, :, iLoop);
+        stdCorrImag = repmat(stdCorrImag(:), 1, nPer);
+        inxOfNaN = isnan(overrideStdCorrImag);
+        if ~all(inxOfNaN(:))
+            stdCorrImag(~inxOfNaN) = overrideStdCorrImag(~inxOfNaN);
         end
         
         % Set the stdevs of endogenized shocks to zero. Otherwise an
         % anticipated endogenized shock would have a non-zero unanticipated
         % stdev, and vice versa.
         if isSwap
-            temp = sxRe(1:ne, 1:last);
+            temp = stdCorrReal(1:ne, 1:last);
             temp(eaAnchX) = 0;
             temp(euAnchX) = 0;
-            sxRe(1:ne, 1:last) = temp;
-            temp = sxIm(1:ne, 1:last);
+            stdCorrReal(1:ne, 1:last) = temp;
+            temp = stdCorrImag(1:ne, 1:last);
             temp(eaAnchX) = 0;
             temp(euAnchX) = 0;
-            sxIm(1:ne, 1:last) = temp;
+            stdCorrImag(1:ne, 1:last) = temp;
         end
         
         scale = opt.StdScale;
         if strcmpi(scale, 'normalize')
             scale = complex(1/sqrt(2), 1/sqrt(2));
         end
-        sxRe = sxRe * real(scale);
-        sxIm = sxIm * imag(scale);
+        stdCorrReal = stdCorrReal * real(scale);
+        stdCorrImag = stdCorrImag * imag(scale);
 
         if opt.Anticipate
-            varargout = { sxRe, sxIm };
+            varargout = { stdCorrReal, stdCorrImag };
         else
-            varargout = { sxIm, sxRe };
+            varargout = { stdCorrImag, stdCorrReal };
         end            
     end 
 

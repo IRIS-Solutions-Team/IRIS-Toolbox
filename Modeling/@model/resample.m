@@ -99,7 +99,7 @@ if isempty(inputParser)
     inputParser.addParameter({'RandomInitCond', 'RandomiseInitCond', 'RandomizeInitCond', 'Randomise', 'Randomize'}, true, @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0));
     inputParser.addParameter('SvdOnly', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('StateVector', 'alpha', @(x) ischar(x) && any(strcmpi(x, {'alpha', 'x'})));
-    inputParser.addParameter({'TimeVarying', 'Override', 'Vary'}, [ ], @(x) isempty(x) || isstruct(x));
+    inputParser.addParameter({'Override', 'TimeVarying', 'Vary'}, [ ], @(x) isempty(x) || isstruct(x));
     
     inputParser.addDeviationOptions(false);
 end
@@ -163,8 +163,8 @@ Ta2 = Ta(numUnitRoots+1:end, numUnitRoots+1:end);
 Ra2 = Ra(numUnitRoots+1:end, :);
 
 % Combine user-supplied stdcorr with model stdcorr.
-usrStdcorr = varyStdCorr(this, range, legacyVary, opt);
-usrStdcorrInx = ~isnan(usrStdcorr);
+overrideStdCorr = varyStdCorr(this, range, legacyVary, opt);
+usrStdcorrInx = ~isnan(overrideStdCorr);
 
 % Get variation in medians of shocks
 isShkMean = false;
@@ -236,14 +236,14 @@ if strcmpi(opt.Method, 'Bootstrap')
     % (1) Bootstrap.
     srcE = datarequest('e', this, inp, range, 1);
 else
-    % (2) Monte Carlo.
+    % (2) Monte Carlo
     % TODO: Use `combineStdCorr` instead.
     vecStdCorr = this.Variant.StdCorr;
     vecStdCorr = permute(vecStdCorr, [2, 3, 1]);
     vecStdCorr = repmat(vecStdCorr, 1, numOfPeriods);
     % Combine the model object stdevs with the user-supplied stdevs.
     if any(usrStdcorrInx(:))
-        vecStdCorr(usrStdcorrInx) = usrStdcorr(usrStdcorrInx);
+        vecStdCorr(usrStdcorrInx) = overrideStdCorr(usrStdcorrInx);
     end
     % Add model-object std devs for pre-sample if random initial conditions
     % are obtained by simulation.

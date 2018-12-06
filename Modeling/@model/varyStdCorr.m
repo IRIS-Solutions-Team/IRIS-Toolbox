@@ -34,7 +34,7 @@ if isPresample
 end
 numOfPeriods = round(endOfRange - startOfRange + 1);
 
-d = processTimeVaryingOption(j, opt);
+d = processOverrideOption(j, opt);
 
 stdCorrReal = nan(nsx, numOfPeriods);
 if isImag
@@ -94,17 +94,17 @@ end%
 %
 
 
-function d = processTimeVaryingOption(j, opt)
+function d = processOverrideOption(j, opt)
     d = [ ];
-    if isfield(opt, 'TimeVarying') && ~isempty(opt.TimeVarying)
-        d = opt.TimeVarying;
+    if isfield(opt, 'Override') && ~isempty(opt.Override)
+        d = opt.Override;
     end
     if ~isempty(j)
         if isempty(d)
             d = j;
         else
             ERROR_CANNOT_COMBINE = { 'Model:CannotCombineTuneAndOption' 
-                                     'Cannot combine a nonempty conditioning databank and option TimeVarying=' };
+                                     'Cannot combine a nonempty conditioning databank and option Override=' };
             throw( exception.Base(ERROR_CANNOT_COMBINE, 'error') );
         end
     end
