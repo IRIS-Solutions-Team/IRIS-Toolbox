@@ -19,9 +19,10 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % * `Range` [ numeric | char ] - Date filterRange on which the Kalman filter will
 % be run.
 %
-% * `~J=[ ]` [ struct | empty ] - Database with user-supplied time-varying
-% paths for std deviation, corr coefficients, or medians for shocks; `~J`
-% is equivalent to using the option `TimeVarying=`, and may be omitted.
+% * `~J=[ ]` [ struct | empty ] - For backward compatibility: Database with
+% user-supplied time-varying paths for std deviation, corr coefficients, or
+% medians for shocks; `~J` is equivalent to using the option `Override=`,
+% and should be omitted.
 %
 %
 % __Output Arguments__
@@ -120,13 +121,23 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % * `ReturnStd=true` [ `true` | `false` ] - Return database with std devs
 % of model variables.
 %
-% * `TimeVarying=[ ]` [ struct | empty ] - Database with user-supplied
-% time-varying paths for std deviations, correlation coefficients, or
-% medians of shocks.
-%
 % * `Weighting=[ ]` [ numeric | empty ] - Weighting vector or matrix for
 % prediction errors when `Objective='PredErr'`; empty means prediction
 % errors are weighted equally.
+%
+%
+% __Options for Time Variation in Std Deviation, Correlations and Means of Shocks__
+%
+% * `Multiply=[ ]` [ struct | empty ] - Database with time series of
+% possibly time-varying multipliers for std deviations of shocks; the
+% numbers supplied will be multiplied by the std deviations assigned in
+% the model object to calculate the std deviations used in the filter. See
+% Description.
+% 
+% * `Override=[ ]` [ struct | empty ] - Database with time series for
+% possibly time-varying paths for std deviations, correlations
+% coefficients, or medians of shocks; these paths will override the values
+% assigned in the model object. See Description.
 %
 %
 % __Options for Models with Nonlinear Equations Simulated in Prediction Step__
@@ -182,6 +193,33 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % difference between the actual path for a particular variable and the sum
 % of the contributions (or their product in the case of log varibles) is
 % due to the effect of constant terms and deterministic trends.
+%
+%
+% _Time Variation in Std Deviations, Correlations and Means of Shocks_
+%
+% The options `Multiply=` and `Override=` modify the std deviations,
+% correlation coefficients or medians of shocks within the filter range,
+% allowing them also to vary over time. Create a time series and specify
+% observations for each std deviation, correlation coefficient, or median
+% (mean) that you want to deviate from the values currently assigned in the
+% model object. The time series supplied do not need to stretch over the
+% entire filter range: in the periods not specified, the values currently
+% assigned in the model object will be assumed. 
+%
+% The option `Override=` simply overrides the std deviations, correlations
+% or medians (means) of the shocks whenever specified. 
+% 
+% The option `Mutliply=` can be used to supply multipliers for std
+% deviations. The numbers entered will be multiplied by the std deviations
+% to obtain the final std deviations used in the filter.
+% 
+% To alter the median (mean) of a shock, supply a time series named after
+% the shock itself. To alter the std deviation of a shock, use the name of
+% that std deviation, i.e. `std_xxx` where `xxx` is the name of the shock.
+% To alter the correlation coefficient between two shocks, use the name of
+% that correlation coefficient, i.e. `corr_xxx__yyy` where `xxx` and `yyy`
+% are the names of the shocks (mind the double underscore between `xxx` and
+% `yyy`).
 %
 %
 % __Example__

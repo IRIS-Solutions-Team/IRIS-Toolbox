@@ -1,4 +1,4 @@
-function [sxReal, sxImag, stdScale] = varyStdCorr(this, range, j, opt, varargin)
+function [stdCorrReal, stdCorrImag, stdMultipliers] = varyStdCorr(this, range, j, opt, varargin)
 % varyStdCorr  Convert time-varying std and corr to stdcorr vector
 %
 % Backend IRIS function
@@ -20,9 +20,9 @@ ne = sum(ixe);
 nsx = ne + ne*(ne-1)/2;
 
 if isempty(range)
-    sxReal = double.empty(nsx, 0);
-    sxImag = double.empty(nsx, 0);
-    stdScale = double.empty(ne, 0);
+    stdCorrReal = double.empty(nsx, 0);
+    stdCorrImag = double.empty(nsx, 0);
+    stdMultipliers = double.empty(ne, 0);
     return
 end
 range = DateWrapper.getSerial(range);
@@ -36,9 +36,9 @@ numOfPeriods = round(endOfRange - startOfRange + 1);
 
 d = processTimeVaryingOption(j, opt);
 
-sxReal = nan(nsx, numOfPeriods);
+stdCorrReal = nan(nsx, numOfPeriods);
 if isImag
-    sxImag = nan(nsx, numOfPeriods);
+    stdCorrImag = nan(nsx, numOfPeriods);
 end
 if ~isempty(d)
     c = fieldnames(d);
@@ -50,37 +50,37 @@ if ~isempty(d)
             x = getDataFromTo(x, startOfRange, endOfRange);
             x = transpose(x(:, 1));
         end
-        sxReal(pos(i), :) = real(x);
+        stdCorrReal(pos(i), :) = real(x);
         if isImag
-            sxImag(pos(i), :) = imag(x);
+            stdCorrImag(pos(i), :) = imag(x);
         end
     end
 end
 
-stdScale = nan(ne, numOfPeriods);
-if isfield(opt, 'StdScale') && isstruct(opt.StdScale)
+stdMultipliers = nan(ne, numOfPeriods);
+if isfield(opt, 'Multiply') && isstruct(opt.Multiply)
     stdNames = getStdNames(this.Quantity);
     for i = 1 : ne
         name = stdNames{i};
-        if ~isfield(opt.StdScale, name)
+        if ~isfield(opt.Multiply, name)
             continue
         end
-        x = opt.StdScale.(name);
+        x = opt.Multiply.(name);
         if isa(x, 'TimeSubscriptable')
-            x = getDataFromTo(opt.StdScale.(name), startOfRange, endOfRange);
+            x = getDataFromTo(opt.Multiply.(name), startOfRange, endOfRange);
             x = transpose(x(:, 1));
         end
-        stdScale(i, :) = real(x);
+        stdMultipliers(i, :) = real(x);
     end
 end
 
 % Remove trailing NaNs if requested
 if isClip 
-    sxReal = clip(sxReal);
+    stdCorrReal = clip(stdCorrReal);
     if isImag
-        sxImag = clip(sxImag);
+        stdCorrImag = clip(stdCorrImag);
     end
-    stdScale = clip(stdScale);
+    stdMultipliers = clip(stdMultipliers);
 end
 
 return

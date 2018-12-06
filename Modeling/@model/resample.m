@@ -57,9 +57,9 @@ function Outp = resample(this, varargin)
 % use SVD to factorize the covariance matrix when resampling initial
 % condition; only applies when `RandomInitCond=true`.
 %
-% * `TimeVarying=[ ]` [ struct | empty ] - Database with user-supplied
+% * `Override=[ ]` [ struct | empty ] - Database with user-supplied
 % time-varying paths for std deviations, correlation coefficients, or
-% medians for shocks.
+% medians (means) of shocks.
 %
 %
 % __Description__
@@ -99,7 +99,7 @@ if isempty(inputParser)
     inputParser.addParameter({'RandomInitCond', 'RandomiseInitCond', 'RandomizeInitCond', 'Randomise', 'Randomize'}, true, @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0));
     inputParser.addParameter('SvdOnly', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('StateVector', 'alpha', @(x) ischar(x) && any(strcmpi(x, {'alpha', 'x'})));
-    inputParser.addParameter({'TimeVarying', 'Vary'}, [ ], @(x) isempty(x) || isstruct(x));
+    inputParser.addParameter({'TimeVarying', 'Override', 'Vary'}, [ ], @(x) isempty(x) || isstruct(x));
     
     inputParser.addDeviationOptions(false);
 end

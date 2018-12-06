@@ -77,7 +77,7 @@ s.lastSmooth = opt.lastsmooth;
 tune = opt.tune;
 maybeShkTunes = ~isempty(tune) && any( tune(:)~=0 );
 if maybeShkTunes
-    % Add pre-sample.
+    % Add pre-sample
     tune = [zeros(ne, 1, size(tune, 3)), tune];
 end
 

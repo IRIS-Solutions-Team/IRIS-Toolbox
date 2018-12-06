@@ -30,8 +30,8 @@ if isempty(parserTimeDomain)
     parserTimeDomain.addParameter({'Plan', 'Scenario'}, [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x));
     parserTimeDomain.addParameter('progress', false, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter('Relative', true, @(x) isequal(x, true) || isequal(x, false));
-    parserTimeDomain.addParameter({'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || isstruct(x));
-    parserTimeDomain.addParameter('StdScale', [ ], @(x) isempty(x) || isstruct(x));
+    parserTimeDomain.addParameter({'TimeVarying', 'Override', 'Vary', 'Std'}, [ ], @(x) isempty(x) || isstruct(x));
+    parserTimeDomain.addParameter('Multiply', [ ], @(x) isempty(x) || isstruct(x));
     parserTimeDomain.addParameter('simulate', false, @(x) isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
     parserTimeDomain.addParameter('symmetric', true, @(x) isequal(x, true) || isequal(x, false));
     parserTimeDomain.addParameter('tolerance', eps( )^(2/3), @isnumeric);
