@@ -303,7 +303,7 @@ for i = 1 : numOfRequests
     if i==1
         outputTable = addTable;
     else
-        outputTable = innerjoin(outputTable, addTable, 'Keys', 'Name');
+        outputTable = innerjoin(outputTable, addTable);
     end
 end
 
@@ -335,9 +335,19 @@ end
 
 end%
 
+
 %
 % Local Functions
 %
+
+
+function outputTable = innerjoin(inputTable1, inputTable2)
+    keys1 = inputTable1{:, 1};
+    keys2 = inputTable2{:, 1};
+    [newKeys, pos1, pos2] = intersect(keys1, keys2, 'stable');
+    outputTable = [inputTable1(pos1, :), inputTable2(pos2, 2:end)];
+end%
+
 
 function addTable = tableValues(this, retrieve, compare, inx, setNaN, columnName, opt)
     inxOfLog = this.Quantity.IxLog;
