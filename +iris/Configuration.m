@@ -382,41 +382,45 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
         function [path, folder] = findTexMf(file)
-            if ispc( )
-                % __Windows__
-                [flag, path] = system(['findtexmf ', file, '.exe']);
-                if flag~=0
-                    [flag, path] = system(['findtexmf --file-type=exe ', file]);
-                end       
-                if flag==0
-                    path = strtrim(path);
-                    lastEOL = find(path==char(10) | path==char(13), 1, 'last');
-                    if ~isempty(lastEOL)
-                        path = path(lastEOL+1:end);
-                    end
-                end
-            else
-                % __Unix, macOS__
-                tryThese = { '/Library/TeX/texbin', '/usr/texbin', '/usr/local/bin' };
-                flag = NaN;
-                for i = 1 : numel(tryThese)
-                    [flag, path] = iris.Configuration.tryFolder(tryThese{i}, file);
+            path = '';
+            folder = '';
+            try
+                if ispc( )
+                    % __Windows__
+                    [flag, path] = system(['findtexmf ', file, '.exe']);
+                    if flag~=0
+                        [flag, path] = system(['findtexmf --file-type=exe ', file]);
+                    end       
                     if flag==0
-                        break
+                        path = strtrim(path);
+                        lastEOL = find(path==char(10) | path==char(13), 1, 'last');
+                        if ~isempty(lastEOL)
+                            path = path(lastEOL+1:end);
+                        end
+                    end
+                else
+                    % __Unix, macOS__
+                    tryThese = { '/Library/TeX/texbin', '/usr/texbin', '/usr/local/bin' };
+                    flag = NaN;
+                    for i = 1 : numel(tryThese)
+                        [flag, path] = iris.Configuration.tryFolder(tryThese{i}, file);
+                        if flag==0
+                            break
+                        end
+                    end
+                    if flag~=0
+                        [flag, path] = system(['which ', file]);
                     end
                 end
-                if flag~=0
-                    [flag, path] = system(['which ', file]);
+                if flag==0
+                    % Use the correctly spelled path and the right file separators
+                    path = strtrim(path);
+                    [folder, ttl, ext] = fileparts(path);
+                    path = fullfile(folder, [ttl, ext]);
+                else
+                    path = '';
+                    folder = '';
                 end
-            end
-            if flag==0
-                % Use the correctly spelled path and the right file separators
-                path = strtrim(path);
-                [folder, ttl, ext] = fileparts(path);
-                path = fullfile(folder, [ttl, ext]);
-            else
-                path = '';
-                folder = '';
             end
         end%
 
@@ -449,56 +453,58 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         function ghostscriptPath = findGhostscript( )
             ghostscriptPath = '';
-            if ispc( )
-                list = dir('C:\Program Files\gs');
-                if numel(list)<3
-                    list = dir('C:\Program Files (x86)\gs');
+            try
+                if ispc( )
+                    list = dir('C:\Program Files\gs');
                     if numel(list)<3
-                        return
-                    end
-                end
-                lenOfList = numel(list);
-                versions = zeros(1, lenOfList);
-                for i = 1 : lenOfList
-                    temp = sscanf(list(i).name, 'gs%g');
-                    if isnumeric(temp) && isscalar(temp)
-                        versions(i) = temp;
-                    end
-                end
-                [~, sorted] = sort(versions, 'descend');
-                for pos = sorted(:)'
-                    if versions(pos)==0
-                        continue
-                    end
-                    latestDir = fullfile(list(pos).folder, list(pos).name, 'bin');
-                    latestExe = fullfile(latestDir, 'gswin64c.exe');
-                    if ~isempty(dir(latestExe))
-                        ghostscriptPath = latestExe;
-                        return
-                    else
-                        latestExe = fullfile(latestDir, 'gswin32c.exe');
-                        if ~isempty(dir(latestExe))
-                            ghostscriptPath = latestExe;
+                        list = dir('C:\Program Files (x86)\gs');
+                        if numel(list)<3
                             return
                         end
                     end
-                end
-                % Failed to find gs, return
-                return
-            else
-                ghostscriptPath = '/usr/bin/gs';
-                list = dir(ghostscriptPath);
-                if ~isempty(list)
+                    lenOfList = numel(list);
+                    versions = zeros(1, lenOfList);
+                    for i = 1 : lenOfList
+                        temp = sscanf(list(i).name, 'gs%g');
+                        if isnumeric(temp) && isscalar(temp)
+                            versions(i) = temp;
+                        end
+                    end
+                    [~, sorted] = sort(versions, 'descend');
+                    for pos = sorted(:)'
+                        if versions(pos)==0
+                            continue
+                        end
+                        latestDir = fullfile(list(pos).folder, list(pos).name, 'bin');
+                        latestExe = fullfile(latestDir, 'gswin64c.exe');
+                        if ~isempty(dir(latestExe))
+                            ghostscriptPath = latestExe;
+                            return
+                        else
+                            latestExe = fullfile(latestDir, 'gswin32c.exe');
+                            if ~isempty(dir(latestExe))
+                                ghostscriptPath = latestExe;
+                                return
+                            end
+                        end
+                    end
+                    % Failed to find gs, return
+                    return
+                else
+                    ghostscriptPath = '/usr/bin/gs';
+                    list = dir(ghostscriptPath);
+                    if ~isempty(list)
+                        return
+                    end
+                    ghostscriptPath = '/usr/local/bin/gs';
+                    list = dir(ghostscriptPath);
+                    if ~isempty(list)
+                        return
+                    end
+                    % Failed to find gs, return
+                    ghostscriptPath = '';
                     return
                 end
-                ghostscriptPath = '/usr/local/bin/gs';
-                list = dir(ghostscriptPath);
-                if ~isempty(list)
-                    return
-                end
-                % Failed to find gs, return
-                ghostscriptPath = '';
-                return
             end
         end%
 

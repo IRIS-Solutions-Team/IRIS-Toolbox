@@ -247,7 +247,7 @@ SystemPriorWrapper:IllegalOutputName,SystemProperty output names must be legal v
 SystemPriorWrapper:NonuniqueOutputName,This output name assigned to SystemProperty is not unique: %s
 SystemPriorWrapper:NamesExceedMaxNumOutputs, Number of SystemProperty names exceeds maximum number of output arguments
 TimeSubscriptable:IfElseTest,The if test must produce a logical array of the same size as the time series data
-TheParser:EmptyEquation,"This equation is empty, and will be removed: %s "
+TheParser:EmptyEquation,"This equation is empty and will be removed: %s "
 TheParser:EmptyLhsOrRhs, LHS or RHS of this equation is empty: %s 
 TheParser:EssentialBlocksMissing,Cannot find a nonempty %s block; this is not a valid source file.
 TheParser:InconsistentAllBut,The keyword !all_but may be used in either all or none of the !log_variables declaration blocks.
