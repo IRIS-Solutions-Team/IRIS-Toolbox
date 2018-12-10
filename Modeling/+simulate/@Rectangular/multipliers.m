@@ -1,4 +1,4 @@
-function multipliers(this, anticipate)
+function multipliers(this, scenario, anticipate)
 % multipliers  Get shock multipliers for one simulation frame
 %
 % Backend IRIS function
@@ -9,10 +9,8 @@ function multipliers(this, anticipate)
 
 %--------------------------------------------------------------------------
 
-ny = this.NumOfObserved;
-nf = this.NumOfForward;
-nb = this.NumOfBackward;
-idOfAll = [this.IdOfObserved; this.IdOfStates];
+[ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
+idOfYXi = [ this.SolutionVector{1:2} ];
 
 % Simulation columns
 firstColumn = this.FirstColumn;
@@ -21,15 +19,13 @@ numOfPeriods = lastColumn - firstColumn + 1;
 
 % Period of last endogenized and last exogenized point within simulation
 % columns
-inxOfExogenized = this.InxOfExogenized(:, firstColumn:lastColumn);
-inxOfEndogenized = this.InxOfEndogenizedShocks(:, firstColumn:lastColumn);
-inxOfAnyExogenized = any(inxOfExogenized, 1);
-inxOfAnyEndogenized = any(inxOfEndogenized, 1);
-periodOfLastExogenized = max([0, find(inxOfAnyExogenized, 1, 'Last')]);
-periodOfLastEndogenized = max([0, find(inxOfAnyEndogenized, 1, 'Last')]);
+inxOfAnyExogenizedYX = any(this.InxOfExogenizedYX(:, firstColumn:lastColumn), 1);
+inxOfAnyEndogenizedE = any(this.InxOfEndogenizedE(:, firstColumn:lastColumn), 1);
+periodOfLastExogenizedYX = max([0, find(inxOfAnyExogenizedYX, 1, 'Last')]);
+periodOfLastEndogenizedE = max([0, find(inxOfAnyEndogenizedE, 1, 'Last')]);
 
-vecInxOfEndogenized = inxOfEndogenized(:);
-numOfEndogenized = nnz(vecInxOfEndogenized);
+vecInxOfEndogenizedE = inxOfEndogenized(:);
+numOfEndogenized = nnz(vecInxOfEndogenizedE);
 
 [T, R, K, Z, H, D] = this.FirstOrderSolution{:};
 Tf = T(1:nf, :);
@@ -43,11 +39,11 @@ H = [H, zeros(ny, ne*(numOfPeriods-1))];
 
 M = zeros(0, numOfEndogenized);
 xb = zeros(size(Rb));
-for t = 1 : periodOfLastExogenized
+for t = 1 : periodOfLastExogenizedYX
     xf = Tf*xb;
     xb = Tb*xb;
     y = Z*xb;
-    if t<=periodOfLastEndogenized
+    if t<=periodOfLastEndogenizedE
         xb = xb + Rb;
         xf = xf + Rf;
         y = y + H;
@@ -60,9 +56,9 @@ for t = 1 : periodOfLastExogenized
         continue
     end
     addToM = [y; xf; xb];
-    % Find the rows in which idOfExogenized occur in idOfAll
-    [~, rows] = ismember(idOfExogenized, idOfAll);
-    addToM = addToM(rows, vecInxOfEndogenized);
+    % Find the rows in which idOfExogenized occur in idOfYXi
+    [~, rows] = ismember(idOfExogenized, idOfYXi);
+    addToM = addToM(rows, vecInxOfEndogenizedE);
     M = [M; addToM];
 end
 

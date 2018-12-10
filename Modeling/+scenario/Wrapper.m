@@ -1,23 +1,23 @@
 classdef Wrapper < handle
     properties
-        DisplayName(1, 1) string = ""
+        DisplayName = ''
     end
 
 
     properties (SetAccess=protected)
-        StartDate(1, 1) DateWrapper = DateWrapper.NaD
-        EndDate(1, 1) DateWrapper = DateWrapper.NaD
-        Names(1, :) string = string.empty(1, 0)
+        StartDate = DateWrapper.NaD
+        EndDate = DateWrapper.NaD
 
-        InxOfEndogenizable(1, :) logical = logical.empty(1, 0)
-        InxOfExogenizable(1, :) logical = logical.empty(1, 0)
+        InputNames = cell.empty(1, 0)
+        OutputNames = cell.emtpy(1, 0)
 
-        Frames(1, :) scenario.Frames = scenario.Frames.empty(1, 0)
+        Frames = scenario.Frames.empty(1, 0)
     end
 
 
     properties (Dependent)
-        NumOfNames
+        NumOfInputNames
+        NumOfOutputNames
         NumOfPeriods
         Segments
         NumOfSegments
@@ -56,7 +56,7 @@ classdef Wrapper < handle
             this.EndDate = endDate;
             this.InxOfExogenizable = get(model, 'CanBeExogenized:Simulate');
             this.InxOfEndogenizable = get(model, 'CanBeEndogenized:Simulate');
-            this.Frames = scenario.Frames(this.NumOfNames, this.NumOfPeriods);
+            this.Frames = scenario.Frames(this.NumOfInputNames, this.NumOfOutputNames, this.NumOfPeriods);
         end%
 
         

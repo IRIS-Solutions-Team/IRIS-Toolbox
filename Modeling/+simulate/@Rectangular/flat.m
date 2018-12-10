@@ -2,21 +2,19 @@ function flat(this, data, nlaf)
 
 vec = @(x) x(:);
 
-nf = this.NumOfForward;
-ny = this.NumOfObserved;
-ne = this.NumOfShocks;
+[ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
 nh = this.NumOfHashEquations;
 
-idOfObserved = this.IdOfObserved;
-idOfShocks = this.IdOfShocks;
-inxOfCurrent = this.InxOfCurrent;
+posOfY = this.IdOfObserved;
+posOfE = this.IdOfShocks;
+inxOfCurrentWithinXi = this.InxOfCurrentWithinXi;
 
 sizeOfData = size(data.YXEPG);
 firstColumn = this.FirstColumn;
 lastColumn = this.LastColumn;
 
-linxOfBackward = this.LinxOfBackward;
-linxOfCurrent = this.LinxOfCurrent;
+linxOfXib = this.LinxOfXib;
+linxOfCurrentXi = this.LinxOfCurrentXi;
 stepForLinx = this.NumOfQuantities;
 
 deviation = this.Deviation;
@@ -25,8 +23,8 @@ simulateObserved = this.SimulateObserved;
 [T, R, K, Z, H, D, Y] = this.FirstOrderSolution{:};
 
 if ne>0
-    expectedShocks = this.RetrieveExpected( data.YXEPG(idOfShocks, :) );
-    unexpectedShocks = this.RetrieveUnexpected( data.YXEPG(idOfShocks, :) );
+    expectedShocks = this.RetrieveExpected( data.YXEPG(posOfE, :) );
+    unexpectedShocks = this.RetrieveUnexpected( data.YXEPG(posOfE, :) );
     lastExpectedShock = find(any(expectedShocks~=0, 1), 1, 'last');
     if isempty(lastExpectedShock)
         lastExpectedShock = 0;
@@ -50,7 +48,7 @@ end
 
 for t = firstColumn : lastColumn
     % __Endogenous variables__
-    Xi_t = T*data.YXEPG(linxOfBackward-stepForLinx);
+    Xi_t = T*data.YXEPG(linxOfXib-stepForLinx);
 
     if ~deviation
         % Add constant
@@ -76,7 +74,7 @@ for t = firstColumn : lastColumn
     end
 
     % Update current column in data matrix
-    data.YXEPG(linxOfCurrent) = Xi_t(inxOfCurrent);
+    data.YXEPG(linxOfCurrentXi) = Xi_t(inxOfCurrentWithinXi);
 
     % __Observables__
     if simulateObserved && ny>0
@@ -90,12 +88,12 @@ for t = firstColumn : lastColumn
             Y_t = Y_t + H*(expectedShocks(:, t) + unexpectedShocks(:, t));
         end
         % Update current column in data matrix
-        data.YXEPG(idOfObserved, t) = Y_t;
+        data.YXEPG(posOfY, t) = Y_t;
     end
 
     % Update linear indexes by one column ahead
-    linxOfBackward = round(linxOfBackward + stepForLinx);
-    linxOfCurrent = round(linxOfCurrent + stepForLinx);
+    linxOfXi = round(linxOfXi + stepForLinx);
+    linxOfCurrentXi = round(linxOfCurrentXi + stepForLinx);
 end
 
 if any(this.InxOfLog)

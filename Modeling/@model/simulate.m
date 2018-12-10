@@ -382,7 +382,7 @@ end
 s.LastEa = lastEa;
 
 % Check for option conflicts.
-chkConflicts( );
+checkConflicts( );
 
 yTune = [ ];
 xTune = [ ];
@@ -415,7 +415,7 @@ finalDcy = cell(1, numRuns);
 displayMode = 'Verbose';
 s = prepareSimulate1(this, s, opt, displayMode, legacyOpt{:});
 s.IsSwap = isSwap;
-chkNonlinConflicts( );
+checkConflictsSelective( );
 
 % Initialise handle to output data.
 extendedRange = range(1)-1 : range(end);
@@ -612,20 +612,17 @@ return
         else
             e = s.Eu + 1i*s.Ea;
         end
-        hdataassign(hData, pos, ...
-            { ...
-            [nan(ny, 1, n), s.y], ...
-            [xf;xb], ...
-            [nan(ne, 1, n), e], ...
-            [ ], ...
-            [nan(ng, 1, n), g], ...
-            });
+        hdataassign( hData, pos, { [nan(ny, 1, n), s.y], ...
+                                   [xf ; xb], ...
+                                   [nan(ne, 1, n), e], ...
+                                   [ ], ...
+                                   [nan(ng, 1, n), g]  } );
     end 
 
 
-    function chkConflicts( )
+    function checkConflicts( )
         % The option 'contributions=' option cannot be used with the 'plan='
-        % option, with multiple parameterisations, or multiple data sets.
+        % option, with multiple parameter variants, or multiple data sets.
         if opt.Contributions
             if nv>1 || numOfInitDataSets>1 || numOfShockDataSets>1
                 utils.error('model:simulate', ...
@@ -649,11 +646,11 @@ return
     end% 
 
 
-    function chkNonlinConflicts( )
-        if strcmpi(s.Method, 'selective') && lastEndgU>0 && lastEndgA>0
+    function checkConflictsSelective( )
+        if strcmpi(s.Method, 'Selective') && lastEndgU>0 && lastEndgA>0
             utils.error('model:simulate', ...
                 ['Cannot simulate(...) with option method=selective and ', ...
-                'both anticipated and unanticipated exogenized shocks.']);
+                'both anticipated and unanticipated endogenized shocks.']);
         end
     end%
 

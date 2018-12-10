@@ -10,29 +10,20 @@ classdef Rectangular < handle
     properties
         FirstOrderSolution = cell(1, 7)   % First-order solution matrices {T, R, K, Z, H, D, Y}
         FirstOrderExpansion = cell(1, 5)  % First-order expansion matrices {Xa, Xf, Ru, J, Yu}
-        InxOfLog                        % Index of log variables
-        IdOfObserved                      % Ids of observed variables
-        IdOfStates                        % Ids (including shifts) of state variables
-        IdOfShocks                        % Ids of shocks
-        IdOfExogenous                     % Ids of exogenous variables
+        InxOfLog                          % Index of log variables
+
         RetrieveExpected                  % Function to retrieve expected shocks from yxepg
         RetrieveUnexpected                % Function to retrieve unexpected shocks from yxepg
+
+        SolutionVector
         
         NumOfQuantities
-        NumOfObserved
-        NumOfStates
-        NumOfForward
-        NumOfBackward
-        NumOfShocks
-        NumOfExogenous
         NumOfHashEquations
         LenOfExpansion
-        IdOfBackward
-        InxOfCurrent
-        IdOfCurrent
 
-        LinxOfBackward
-        LinxOfCurrent
+        InxOfCurrentWithinXi
+        LinxOfXib
+        LinxOfCurrentXi
 
         Anticipate = NaN
         Deviation = false
@@ -52,14 +43,17 @@ classdef Rectangular < handle
 
         
         function update(this, model, variantRequested)
+        % update  Update first-order solution matrices and available expansion
             if nargin<3
                 variantRequested = 1;
             end
             keepExpansion = true;
             triangular = false;
             [ this.FirstOrderSolution{1:6}, ...
-              ~, ~, ...
-              this.FirstOrderSolution{7} ] = sspaceMatrices(model, variantRequested, keepExpansion, triangular);
+              ~, ~, this.FirstOrderSolution{7} ] = sspaceMatrices( model, ...
+                                                                   variantRequested, ...
+                                                                   keepExpansion, ...
+                                                                   triangular );
             [this.FirstOrderExpansion{:}] = expansionMatrices(model, variantRequested, triangular);
             if this.NumOfShocks>0
                 this.LenOfExpansion = size(this.FirstOrderSolution{2}, 2) / this.NumOfShocks;
@@ -77,6 +71,15 @@ classdef Rectangular < handle
         end%
 
 
+        function [ny, nx, nb, nf, ne, ng] = sizeOfSolution(this)
+            ny = numel(this.SolutionVector{1});
+            [nxi, nb] = size(this.FirstOrderSolution{1});
+            nf = nxi - nb;
+            ne = numel(this.SolutionVector{3});
+            ng = numel(this.SolutionVector{5});
+        end%
+
+
         function currentForward = get.CurrentForward(this)
             R = this.FirstOrderSolution{2};
             currentForward = size(R, 2)/ne - 1;
@@ -84,14 +87,17 @@ classdef Rectangular < handle
 
 
         function this = set.FirstColumn(this, firstColumn)
+            [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
+            idOfXib = this.SolutionVector{2}(nf+1:end);
+            idOfCurrentXi = this.SolutionVector{2}(this.InxOfCurrentWithinXi);
             this.FirstColumn = firstColumn;
             pretendSizeOfData = [this.NumOfQuantities, firstColumn];
-            this.LinxOfBackward = sub2ind( pretendSizeOfData, ...
-                                           real(this.IdOfBackward), ...
-                                           firstColumn + imag(this.IdOfBackward) );
-            this.LinxOfCurrent = sub2ind( pretendSizeOfData, ...
-                                          real(this.IdOfCurrent), ...
-                                          firstColumn + imag(this.IdOfCurrent) );
+            this.LinxOfXib = sub2ind( pretendSizeOfData, ...
+                                      real(idOfXib), ...
+                                      firstColumn + imag(idOfXib) );
+            this.LinxOfCurrentXi = sub2ind( pretendSizeOfData, ...
+                                            real(idOfCurrentXi), ...
+                                            firstColumn + imag(idOfCurrentXi) );
         end%
 
 
@@ -114,26 +120,20 @@ classdef Rectangular < handle
                 variantRequested = 1;
             end
             this = simulate.Rectangular( );
-            update(this, model, variantRequested);
-            numOfQuantities = getp(model, 'Quantity', 'NumOfQuantities');
-            this.InxOfLog = getp(model, 'Quantity', 'IxLog');
-            solutionVector = getp(model, 'Vector', 'Solution');
-            this.IdOfObserved = solutionVector{1}(:);
-            this.IdOfStates = solutionVector{2}(:);
-            this.IdOfShocks = solutionVector{3}(:);
-            this.IdOfExogenous = solutionVector{5}(:);
 
-            this.NumOfObserved = numel(this.IdOfObserved);
-            this.NumOfStates = numel(this.IdOfStates);
-            this.NumOfBackward = size(this.FirstOrderSolution{1}, 2);
-            this.NumOfForward = this.NumOfStates - this.NumOfBackward;
-            this.NumOfShocks = numel(this.IdOfShocks);
-            this.NumOfExogenous = numel(this.IdOfExogenous);
+            % Get first-order solution matrices and expansion matrices
+            update(this, model, variantRequested);
+
+            % Quantity
+            quantity = getp(model, 'Quantity');
+            this.NumOfQuantities = numel(quantity.Name);
+            this.InxOfLog = quantity.IxLog;
+
+            % Solution vector
+            this.SolutionVector = getp(model, 'Vector', 'Solution');
+
             this.NumOfHashEquations = getp(model, 'Equation', 'NumOfHashEquations');
-            this.IdOfBackward = this.IdOfStates(this.NumOfForward+1:end);
-            this.InxOfCurrent = imag(this.IdOfStates)==0;
-            this.IdOfCurrent = this.IdOfStates(this.InxOfCurrent);
-            this.NumOfQuantities = numOfQuantities;
+            this.InxOfCurrentWithinXi = imag(this.SolutionVector{2})==0;
         end%
     end
 end
