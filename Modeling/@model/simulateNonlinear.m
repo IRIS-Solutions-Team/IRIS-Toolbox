@@ -25,7 +25,7 @@ if isequal(variantsRequested, @all)
 end
 numOfVariantsRequested = numel(variantsRequested);
 
-blz = prepareBlazer(this, 'Current', 1, opt);
+blz = prepareBlazer(this, 'Current', opt);
 run(blz);
 prepareBlocks(blz, opt);
 

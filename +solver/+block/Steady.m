@@ -73,8 +73,7 @@ classdef Steady < solver.block.Block
             
             
             function z = assign( )
-                % Assignment
-                %------------
+                % __Assignment__
                 % Vectors posl and posg are each either empty or scalar at this point.
                 fnInv = this.Type.InvTransform;
                 z = [ ];
@@ -140,14 +139,16 @@ classdef Steady < solver.block.Block
                 end
                 
                 % Split the input vector of unknows into levels and growth rates; nlx is
-                % the number of levels in the input vector.
+                % the number of levels in the input vector
                 lx(posl) = z(1:nl);
                 gx(posg) = z(nl+1:end);
                 
                 % Refresh all dynamic links in each iteration if needed
                 if needsRefresh
                     temp = lx + 1i*gx;
-                    temp = refresh(lnk, temp(:));
+                    temp = temp(:);
+                    temp = refresh(lnk, temp);
+                    temp = transpose(temp);
                     lx = real(temp);
                     gx = imag(temp);
                     gx(ixLog & gx==0) = 1;
@@ -203,7 +204,7 @@ classdef Steady < solver.block.Block
             
             
             function XX = timeArray(k)
-                XX = repmat(lx.', 1, nsh);
+                XX = repmat(transpose(lx), 1, nsh);
                 XX(~ixLog, :) = XX(~ixLog, :)  + bsxfun(@times, gx(~ixLog).', sh+k);
                 XX( ixLog, :) = XX( ixLog, :) .* bsxfun(@power, gx( ixLog).', sh+k);
             end%

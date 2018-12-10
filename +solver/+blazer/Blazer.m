@@ -1,32 +1,28 @@
-% Blazer  Sequential block analysis object.
+% Blazer  Sequential block analysis object
 %
-% Backend IRIS class.
-% No help provided.
+% Backend IRIS class
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef (Abstract) Blazer < handle
     properties
         Equation = cell.empty(1, 0)
-        Quantity = cell.empty(1, 0)
-        NumPeriods = NaN
+        Quantity = model.component.Quantity.empty(1, 0)
         Gradient
         Assignment
         Incidence
-        IxLog
-        IxEqn
-        IxEndg
-        IxCanBeEndg
+        InxEquations
+        InxEndogenous
+        InxCanBeEndogenous
         IsBlocks = true
         IsSingular = false
-        NanInit % Values assigned to NaN initial conditions.
+        NanInit % Values assigned to NaN initial conditions
         
         Block
         AppData = struct( )
     end
-    
-    
     
     
     properties (Constant)
@@ -41,6 +37,11 @@ classdef (Abstract) Blazer < handle
     end
     
 
+    methods (Abstract)
+        varargout = prepareIncidenceMatrix(varargin)
+    end
+
+
     methods
         function this = Blazer(numOfEquationsInModel)
             this.Equation = cell(1, numOfEquationsInModel);
@@ -51,7 +52,7 @@ classdef (Abstract) Blazer < handle
         
         
         function error = endogenize(this, vecEndg)
-            testFunc = @(this, pos) this.IxCanBeEndg(pos);
+            testFunc = @(this, pos) this.InxCanBeEndogenous(pos);
             error = swap(this, vecEndg, true, testFunc);
         end%
         
@@ -59,7 +60,7 @@ classdef (Abstract) Blazer < handle
         
         
         function error = exogenize(this, vecExg)
-            testFunc = @(this, pos) this.IxEndg(pos);
+            testFunc = @(this, pos) this.InxEndogenous(pos);
             error = swap(this, vecExg, false, testFunc);
         end%
         
@@ -76,7 +77,7 @@ classdef (Abstract) Blazer < handle
                     ixValid(i) = false;
                     continue
                 end
-                this.IxEndg(pos) = setIxEndgTo;
+                this.InxEndogenous(pos) = setIxEndgTo;
             end
             error.IxCannotSwap = ~ixValid;
         end%
@@ -86,8 +87,8 @@ classdef (Abstract) Blazer < handle
         
         function run(this)
             PTR = @int16;
-            numOfEquations = sum(this.IxEqn);
-            numOfEndogenous = sum(this.IxEndg);
+            numOfEquations = nnz(this.InxEquations);
+            numOfEndogenous = sum(this.InxEndogenous);
             if numOfEquations~=numOfEndogenous
                 throw( exception.Base('Blazer:NumberEquationsEndogenized', 'error'), ...
                        numOfEquations, numOfEndogenous ); %#ok<GTARG>
@@ -102,7 +103,7 @@ classdef (Abstract) Blazer < handle
                 blkQty = { idQty };
             end
             
-            % Create solver.block.Block objects for each block.
+            % Create solver.block.Block objects for each block
             numOfBlocks = numel(blkEqn);
             this.Block = cell(1, numOfBlocks);
             for i = 1 : numOfBlocks
@@ -114,24 +115,24 @@ classdef (Abstract) Blazer < handle
                 setShift(blk, this); % Find max lag and lead within equations in this block.
                 this.Block{i} = blk;
             end
-        end%%
+        end%
         
         
-        function prepareBlocks(this, opt)
+        function prepareBlocks(this, opt, varargin)
             numOfBlocks = numel(this.Block);
             for i = 1 : numOfBlocks
                 this.Block{i}.Id = sprintf('%g', i);
-                prepareBlock(this.Block{i}, this, opt);
+                prepareBlock(this.Block{i}, this, opt, varargin{:});
             end
-        end%%
+        end%
         
         
         function saveAs(this, m, fileName)
             numOfBlocks = numel(this.Block);
             c = [ strrep(solver.blazer.Blazer.SAVEAS_FILE_HEADER, '$TimeStamp$', datestr(now( ))), ...
                   sprintf('\n%% Number of Blocks: %g', numOfBlocks), ...
-                  sprintf('\n%% Number of Equations: %g', sum(this.IxEqn)), ...
-                  sprintf('\n%% Number of Endogenous Quantities: %g\n\n\n', sum(this.IxEndg)) ];
+                  sprintf('\n%% Number of Equations: %g', sum(this.InxEquations)), ...
+                  sprintf('\n%% Number of Endogenous Quantities: %g\n\n\n', sum(this.InxEndogenous)) ];
             for i = 1 : numOfBlocks
                 c = [c, print(this.Block{i}, i, m.Quantity.Name, m.Equation.Input) ]; %#ok<AGROW>
                 if i<numOfBlocks
@@ -140,15 +141,6 @@ classdef (Abstract) Blazer < handle
             end
             char2file(c, fileName);
         end%        
-    
-    
-        function [inc, idEqn, idQty] = prepareIncidenceMatrix(this)
-            PTR = @int16;
-            inc = across(this.Incidence, 'Shift');
-            inc = inc(this.IxEqn, this.IxEndg);
-            idEqn = PTR( find(this.IxEqn) ); %#ok<FNDSB>
-            idQty = PTR( find(this.IxEndg) ); %#ok<FNDSB>
-        end%
     end
 
 
@@ -156,6 +148,12 @@ classdef (Abstract) Blazer < handle
         function [inc, idEqn, idQty] = reorder(inc, idEqn, idQty)
             if isempty(inc)
                 return
+            end
+            if nargin<2 || isempty(idEqn)
+                idEqn = 1 : size(inc, 1);
+            end
+            if nargin<3 || isempty(idQty)
+                idQty = 1 : size(inc, 2);
             end
             
             c1 = colamd(inc);

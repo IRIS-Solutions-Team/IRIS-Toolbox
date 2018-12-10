@@ -72,30 +72,27 @@ function [nameBlk, eqtnBlk, blkType, blz] = blazer(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('model/blazer');
-    INPUT_PARSER.KeepUnmatched = true;
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addParameter('Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
-    INPUT_PARSER.addParameter('NumPeriods', 1, @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>0);
-    INPUT_PARSER.addParameter('SaveAs', '', @(x) isempty(x) || ischar(x));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model/blazer');
+    parser.KeepUnmatched = true;
+    parser.addRequired('Model', @(x) isa(x, 'model'));
+    parser.addParameter('Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
+    parser.addParameter('SaveAs', '', @(x) isempty(x) || ischar(x));
 end
-INPUT_PARSER.parse(this, varargin{:});
-opt = INPUT_PARSER.Options;
+parser.parse(this, varargin{:});
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
 nameBlk = cell(1, 0); %#ok<PREALL>
 eqtnBlk = cell(1, 0); %#ok<PREALL>
 
-blz = prepareBlazer(this, opt.Kind, opt.NumPeriods, INPUT_PARSER.Unmatched);
+blz = prepareBlazer(this, opt.Kind, parser.Unmatched);
 run(blz);
 
 if blz.IsSingular
-    throw( ...
-        exception.Base('Steady:StructuralSingularity', 'error') ...
-    );
+    throw( exception.Base('Steady:StructuralSingularity', 'error') );
 end
 
 [eqtnBlk, nameBlk, blkType] = getHuman(this, blz);
@@ -104,7 +101,7 @@ if ~isempty(opt.SaveAs)
     saveAs(blz, this, opt.SaveAs);
 end
 
-end
+end%
 
 
 function [blkEqnHuman, blkQtyHuman, blkType] = getHuman(this, blz)
@@ -118,5 +115,5 @@ function [blkEqnHuman, blkQtyHuman, blkType] = getHuman(this, blz)
         blkQtyHuman{i} = this.Quantity.Name( ithBlk.PosQty );
         blkType(i) = ithBlk.Type;
     end
-end
+end%
 

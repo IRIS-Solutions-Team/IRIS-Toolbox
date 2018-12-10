@@ -196,8 +196,7 @@ function blz = createBlocks(this, opt)
     ixp = this.Quantity.Type==TYPE(4);
 
     % Run solver.blazer.Blazer on steady equations.
-    numPeriods = 1;
-    blz = prepareBlazer(this, 'Steady', numPeriods, opt);
+    blz = prepareBlazer(this, 'Steady', opt);
 
     % Analyze block-sequential structure.
     run(blz);
@@ -290,7 +289,7 @@ function blz = prepareBounds(this, blz, opt)
             isLogPlus = opt.IxLogPlus( nameId(jj) );
             isLogMinus = opt.IxLogMinus( nameId(jj) );
             %}
-            isLog = blz.IxLog( nameId(jj) );
+            isLog = blz.Quantity.IxLog( nameId(jj) );
             %{
             try
                 lb = bnd.(name)(1);

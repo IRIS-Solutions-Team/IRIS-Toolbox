@@ -139,7 +139,7 @@ classdef (Abstract) Block < handle
                 nWrt = length(vecWrt);
                 ixOutOfSh = imag(vecWrt)<sh(1) | imag(vecWrt)>sh(end);
                 XX2L{i} = ones(1, nWrt)*aux;
-                ixLog = blz.IxLog(real(vecWrt));
+                ixLog = blz.Quantity.IxLog(real(vecWrt));
                 vecWrt(ixOutOfSh) = NaN;
                 ixLog(ixOutOfSh) = false;
                 XX2L{i}(ixLog) = sub2ind( [numOfQuants+1, nsh], ...

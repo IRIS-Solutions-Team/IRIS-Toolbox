@@ -1,4 +1,4 @@
-function blz = prepareBlazer(this, kind, numPeriods, varargin)
+function blz = prepareBlazer(this, kind, varargin)
 % prepareBlazer  Create Blazer object from dynamic or steady equations
 %
 % Backend IRIS function
@@ -15,11 +15,10 @@ if isempty(parser)
     parser.KeepUnmatched = true;
     parser.addRequired('Model', @(x) isa(x, 'model'));
     parser.addRequired('Kind', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
-    parser.addRequired('NumPeriods', @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=0);
     parser.addParameter('Blocks', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addSwapOptions( );
 end
-parser.parse(this, kind, numPeriods, varargin{:});
+parser.parse(this, kind, varargin{:});
 opt = parser.Options;
 
 %--------------------------------------------------------------------------
@@ -36,13 +35,13 @@ numOfEquations = length(this.Equation);
 if strcmpi(kind, 'Steady')
     blz = solver.blazer.Steady(numOfEquations);
     blz.Equation(ixmt) = this.Equation.Steady(ixmt);
-    ixCopy = ixmt & cellfun(@isempty, this.Equation.Steady(1, :));        
-    blz.Equation(ixCopy) = this.Equation.Dynamic(ixCopy);
+    inxCopy = ixmt & cellfun(@isempty, this.Equation.Steady(1, :));        
+    blz.Equation(inxCopy) = this.Equation.Dynamic(inxCopy);
     blz.Gradient(:, ixmt) = this.Gradient.Steady(:, ixmt);
-    blz.Gradient(:, ixCopy) = this.Gradient.Dynamic(:, ixCopy);
+    blz.Gradient(:, inxCopy) = this.Gradient.Dynamic(:, inxCopy);
     blz.Incidence = this.Incidence.Steady;
     incid = across(blz.Incidence, 'Shift');
-    blz.IxCanBeEndg = (ixy | ixx | ixp) & full(any(incid, 1));
+    blz.InxCanBeEndogenous = ixy | ixx | ixp;
     blz.Assignment = this.Pairing.Assignment.Steady;
 
 elseif strcmpi(kind, 'Period')
@@ -51,7 +50,7 @@ elseif strcmpi(kind, 'Period')
     blz.Gradient(:, ixmt) = this.Gradient.Dynamic(:, ixmt);
     blz.Incidence = selectShift(this.Incidence.Dynamic, 0);
     incid = across(blz.Incidence, 'Shift');
-    blz.IxCanBeEndg = (ixy | ixx | ixe) & full(any(incid, 1));
+    blz.InxCanBeEndogenous = ixy | ixx | ixe;
     blz.Assignment = this.Pairing.Assignment.Dynamic;
 
 elseif strcmpi(kind, 'Stacked')
@@ -59,23 +58,21 @@ elseif strcmpi(kind, 'Stacked')
     blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
     blz.Gradient(:, :) = [ ];
     blz.Incidence = this.Incidence.Dynamic;
-    blz.IxCanBeEndg = ixy | ixx;
+    blz.InxCanBeEndogenous = ixy | ixx | ixe;
     blz.Assignment = this.Pairing.Assignment.Dynamic;
 
 else
     throw( exception.Base('General:Internal', 'error') );
 end
 blz.Quantity = this.Quantity;
-blz.NumPeriods = numPeriods;
 
 % Change log status of variables
 if isfield(opt, 'Unlog') && ~isempty(opt.Unlog)
-    this.Quantity = changeLogStatus(this.Quantity, opt.Unlog, false);
+    blz.Quantity = changeLogStatus(blz.Quantity, opt.Unlog, false);
 end
-blz.IxLog = this.Quantity.IxLog;
 
-blz.IxEndg = ixy | ixx;
-blz.IxEqn = ixm | ixt;
+blz.InxEndogenous = ixy | ixx;
+blz.InxEquations = ixm | ixt;
 blz.IsBlocks = opt.Blocks;
 
 if isequal(opt.Exogenize, @auto) || isequal(opt.Endogenize, @auto)
@@ -92,14 +89,12 @@ elseif ~iscellstr(listEndogenize)
 end
 listEndogenize = unique(listEndogenize);
 if ~isempty(listEndogenize)
-    outp = lookup(this.Quantity, listEndogenize);
+    outp = lookup(blz.Quantity, listEndogenize);
     vecEndg = outp.PosName;
     error = endogenize(blz, vecEndg);
     if any(error.IxCannotSwap)
-        throw( ...
-            exception.Base('Blazer:CannotEndogenize', 'error'), ...
-            listEndogenize{error.IxCannotSwap} ...
-        );
+        throw( exception.Base('Blazer:CannotEndogenize', 'error'), ...
+               listEndogenize{error.IxCannotSwap} );
     end
 end
 
@@ -110,15 +105,14 @@ elseif ~iscellstr(listExogenize)
 end
 listExogenize = unique(listExogenize);
 if ~isempty(listExogenize)
-    outp = lookup(this.Quantity, listExogenize);
+    outp = lookup(blz.Quantity, listExogenize);
     vecExg = outp.PosName;
     error = exogenize(blz, vecExg);
     if any(error.IxCannotSwap)
-        throw( ...
-            exception.Base('Blazer:CannotExogenize', 'error'), ...
-            listExogenize{error.IxCannotSwap} ...
-        );
+        throw( exception.Base('Blazer:CannotExogenize', 'error'), ...
+               listExogenize{error.IxCannotSwap} );
     end
 end
 
-end
+end%
+

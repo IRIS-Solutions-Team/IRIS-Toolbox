@@ -28,11 +28,14 @@ resetNaNShocks( );
 
 firstColumnToRun = rnglen(extendedRange(1), startOfBaseRange);
 lastColumnToRun = rnglen(extendedRange(1), endOfBaseRange);
-numOfColumnsToRun = lastColumnToRun - firstColumnToRun + 1;
+columnsToRun = firstColumnToRun : lastColumnToRun;
 numOfDataColumns = size(YXEPG, 2);
 
-blz = prepareBlazer(this, opt.Method, numOfColumnsToRun, opt);
+% __Prepare and Run blazer.Stacked__
+blz = prepareBlazer(this, opt.Method, opt);
+keyboard
 run(blz);
+blz.ColumnsToRun = columnsToRun;
 prepareBlocks(blz, opt);
 
 inxOfLog = blz.IxLog;
@@ -72,19 +75,20 @@ for v = 1 : nv
         vthRect = [ ];
     end
 
+    vthRect.LastColumn = lastColumnToRun + maxMaxLead;
     for i = 1 : numOfBlocks
         ithBlk = blz.Block{i};
+        ithBlk.Terminal = vthRect;
         maxMaxLead = max(ithBlk.MaxLead);
-        vthRect.LastColumn = lastColumnToRun + maxMaxLead;
         if strcmpi(opt.Method, 'Stacked')
             % Stacked time
             columnsToRun = firstColumnToRun : lastColumnToRun;
-            [exitStatus, error] = run(ithBlk, vthData, columnsToRun, inxOfLog, vthRect);
+            [exitStatus, error] = run(ithBlk, vthData, columnsToRun, inxOfLog);
             blockExitStatus{v}(i, columnsToRun) = exitStatus;
         else
             % Period by period
             for t = firstColumnToRun : lastColumnToRun
-                [exitStatus, error] = run(ithBlk, vthData, t, inxOfLog, vthRect);
+                [exitStatus, error] = run(ithBlk, vthData, t, inxOfLog);
                 blockExitStatus{v}(i, t) = exitStatus;
             end
         end

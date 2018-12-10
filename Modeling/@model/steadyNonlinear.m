@@ -19,7 +19,7 @@ if isequal(blz, false)
     return
 end
 
-ixLog = blz.IxLog;
+ixLog = blz.Quantity.IxLog;
 ixZero = blz.IxZero;
 
 %--------------------------------------------------------------------------

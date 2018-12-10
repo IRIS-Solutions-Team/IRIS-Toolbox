@@ -1,7 +1,10 @@
 classdef Stacked < solver.block.Block
     properties
-        % Rectangular  Rectangular simulation object
-        Rectangular
+        % LinearIndex  Linear index of endogenous quantities
+        LinearIndex
+
+        % Terminal  Rectangular simulation object for first-order terminal condition
+        Terminal = simulate.Rectangular.empty(0)
 
         % MaxLab  Max lag of each quantity in this block
         MaxLag = double.empty(1, 0)    
@@ -15,8 +18,8 @@ classdef Stacked < solver.block.Block
         % LastTime  Last time (1..numOfPeriods) to evaluate equations in for ith unknown (1..numOfQuantitiesInBlock*numOfPeriods)
         LastTime = double.empty(1, 0)  
 
-        % NumActiveEquations  Number of active equations
-        NumActiveEquations
+        % NumOfActiveEquations  Number of active equations
+        NumOfActiveEquations
     end
 
 
@@ -31,7 +34,7 @@ classdef Stacked < solver.block.Block
         end%
         
         
-        function [exitStatus, error] = run(this, data, columnsToRun, ixLog, rect)
+        function [exitStatus, error] = run(this, data, columnsToRun, ixLog)
             exitStatus = true;
             error = struct( );
             error.EvaluatesToNan = [ ];
@@ -41,28 +44,26 @@ classdef Stacked < solver.block.Block
             end
             numOfQuantitiesInBlock = numel(this.PosQty);
             numOfEquationsInBlock = numel(this.PosEqn);
-            numColumnsSimulated = numel(columnsToRun);
+            numOfColumnsToRun = numel(columnsToRun);
             firstColumn = columnsToRun(1);
             lastColumn = columnsToRun(end);
             numColumns = lastColumn - firstColumn + 1;
 
             % Create linear index of unkowns in data
             linx = sub2ind( size(data.YXEPG), ...
-                            repmat(this.PosQty(:), 1, numColumnsSimulated), ...
+                            repmat(this.PosQty(:), 1, numOfColumnsToRun), ...
                             repmat(firstColumn:lastColumn, numOfQuantitiesInBlock, 1) );
             linx = linx(:);
 
             % Create index of logs within linx
             linxLog = ixLog(this.PosQty);
-            linxLog = repmat(linxLog(:), numColumnsSimulated, 1);
+            linxLog = repmat(linxLog(:), numOfColumnsToRun, 1);
 
             maxMaxLead = max(this.MaxLead);
             runFotc = this.Type==solver.block.Type.SOLVE && maxMaxLead>0;
 
             if this.Type==solver.block.Type.SOLVE
                 % __Solve__
-                deviation = false;
-                observed = false;
                 % Initialize endogenous quantities
                 z0 = data.YXEPG(linx);
                 ixNan = isnan(z0);
@@ -81,7 +82,7 @@ classdef Stacked < solver.block.Block
                 % checkBoundsOnInitCond( );
                 % Test all equations in this block for NaNs and Infs.
                 checkObjective = objective(z0);
-                checkObjective = reshape(checkObjective, numOfEquationsInBlock, numColumnsSimulated);
+                checkObjective = reshape(checkObjective, numOfEquationsInBlock, numOfColumnsToRun);
                 indexInvalidData = ~isfinite(checkObjective);
                 if any(indexInvalidData(:))
                     indexInvalidEquationsInBlock = any(indexInvalidData, 2);
@@ -89,24 +90,20 @@ classdef Stacked < solver.block.Block
                     return
                 end
                 [z, exitStatus] = solve(this, @objective, z0);
-                if anyLog
-                    z(linxLog) = exp( z(linxLog) );
-                end
-                data.YXEPG(linx) = z;
+                writeEndogenousToData(z);
             else
                 % __Assign__
-                [z, exitStatus] = assign( );
+                [z, exitStatus] = assign(z);
             end
             
             exitStatus = all(isfinite(z)) && double(exitStatus)>0;
-            
             return
             
             
-            function [z, exitStatus] = assign( )
+            function [z, exitStatus] = assign(z)
                 % __Assignment__
                 isInvTransform = ~isempty(this.Type.InvTransform);
-                for i = 1 : numColumnsSimulated
+                for i = 1 : numOfColumnsToRun
                     z = this.EquationsFunc(data.YXEPG, columnsToRun(i), data.L);
                     if isInvTransform
                         z = this.Type.InvTransform(z);
@@ -121,15 +118,11 @@ classdef Stacked < solver.block.Block
                 if nargin<2
                     ithJacob = [ ];
                 end
-                z = real(z);
-                if anyLog
-                    z(linxLog) = exp( z(linxLog) );
-                end
-                data.YXEPG(linx) = z;
+                writeEndogenousToData(z);
                 
                 if runFotc
                     % First-order terminal condition
-                    flat(rect, data);
+                    flat(this.Terminal, data);
                 end
 
                 if isempty(ithJacob)
@@ -144,6 +137,16 @@ classdef Stacked < solver.block.Block
                     end
                 end
             end%
+
+
+            function writeEndogenousToData(z)
+                z = real(z);
+                if anyLog
+                    z(linxLog) = exp(z(linxLog));
+                end
+                data.YXEPG(linx) = z;
+            end%
+                
         end%
     end
     
@@ -151,6 +154,22 @@ classdef Stacked < solver.block.Block
     methods       
         function prepareBlock(this, blz, opt)
             prepareBlock@solver.block.Block(this, blz, opt);
+            % Remove auxiliary equations added to construct
+            % exogenize/endogenize
+            lastEquation = find(blz.InxEquations, 1, 'last');
+            inxToRemove = this.PosEqn>lastEquation;
+            this.PosEqn(inxToRemove) = [ ];
+            % Create linear index to endogenous quantities
+            numOfColumnsToRun = numel(blz.ColumnsToRun);
+            numOfQuantitiesInBlock = numel(this.PosQty);
+            linx = sub2ind( size(data.YXEPG), ...
+                            repmat(this.PosQty(:), 1, numOfColumnsToRun), ...
+                            repmat(blz.ColumnsToRun, numOfQuantitiesInBlock, 1) );
+            this.LinearIndex = linx(:);
+
+            % Create index of logs within linx
+            linxLog = ixLog(this.PosQty);
+            linxLog = repmat(linxLog(:), numOfColumnsToRun, 1);
         end%
 
 
@@ -180,7 +199,7 @@ classdef Stacked < solver.block.Block
             this.FirstTime = nan(1, numOfQuantitiesInBlock*numOfPeriods);
             this.LastTime = nan(1, numOfQuantitiesInBlock*numOfPeriods);
             this.NumericalJacobFunc = cell(1, numOfUnknownsInBlock);
-            this.NumActiveEquations = nan(1, numOfUnknownsInBlock);
+            this.NumOfActiveEquations = nan(1, numOfUnknownsInBlock);
             for t = 1 : numOfPeriods
                for q = 1 : numOfQuantitiesInBlock
                     posUnknown = (t-1)*numOfQuantitiesInBlock + q;
@@ -218,11 +237,11 @@ classdef Stacked < solver.block.Block
                         inxOfActiveEquations = true(numOfEquationsInBlock, 1);
                         this.NumericalJacobFunc{posUnknown} = getNumericalJacobFunc( );
                     end
-                    this.NumActiveEquations(posUnknown) = sum(inxOfActiveEquations);
+                    this.NumOfActiveEquations(posUnknown) = sum(inxOfActiveEquations);
                     this.JacobPattern(:, posUnknown) = pattern(:);
                     this.FirstTime(posUnknown) = firstTime;
                     this.LastTime(posUnknown) = lastTime;
-                    %check = this.NumActiveEquations(posUnknown) * (lastTime-firstTime+1);
+                    %check = this.NumOfActiveEquations(posUnknown) * (lastTime-firstTime+1);
                     %if sum(this.JacobPattern(:, posUnknown))~=check
                     %    keyboard
                     %end
