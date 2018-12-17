@@ -60,9 +60,8 @@ freq = round(DateWrapper.getFrequencyAsNumeric(startOfRange));
 serialRangeStart = DateWrapper.getSerial(startOfRange);
 serialRangeEnd = DateWrapper.getSerial(endOfRange);
 
-list = this.NamesAppendable;
-for i = 1 : numel(list)
-    ithName = list{i};
+for i = 1 : numel(this.NamesOfAppendablesInData)
+    ithName = this.NamesOfAppendablesInData{i};
     preSeries = [ ];
     postSeries = [ ];
     if isstruct(preDatabank)

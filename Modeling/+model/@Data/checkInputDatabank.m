@@ -1,15 +1,16 @@
-function output = ...
-    checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames)
+function output = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames)
     
-nv = this.NumVariants;
+nv = this.NumOfVariants;
 
-if isa(requiredNames, 'string')
+if isempty(requiredNames)
+    requiredNames = cell.empty(1, 0);
+elseif ~iscellstr(requiredNames)
     requiredNames = cellstr(requiredNames);
 end
 
-if nargin<5
+if nargin<5 || isempty(optionalNames)
     optionalNames = cell.empty(1, 0);
-elseif isa(optionalNames, 'string')
+elseif ~iscellstr(optionalNames)
     optionalNames = cellstr(optionalNames);
 end
 
@@ -18,46 +19,47 @@ DateWrapper.checkMixedFrequency(freq);
 requiredFreq = freq(1);
 
 allNames = [requiredNames, optionalNames];
-indexOptionalNames = [false(size(requiredNames)), true(size(optionalNames))];
-indexRequiredNames = [true(size(requiredNames)), false(size(optionalNames))];
+inxOfOptionalNames = [false(size(requiredNames)), true(size(optionalNames))];
+inxOfRequiredNames = [true(size(requiredNames)), false(size(optionalNames))];
 
 checkIncluded = true(size(allNames));
 checkFrequency = true(size(allNames));
 for i = 1 : numel(allNames)
     ithName = allNames{i};
     if ~isfield(inputDatabank, ithName) || ~isa(inputDatabank.(ithName), 'TimeSubscriptable')
-        checkIncluded(i) = ~indexRequiredNames(i);
+        checkIncluded(i) = ~inxOfRequiredNames(i);
         continue
     end
     checkFrequency(i) = inputDatabank.(ithName).Frequency==requiredFreq;
 end
 
-assert( ...
-    all(checkIncluded), ...
-    'model:Abstract:checkInputDatabank', ...
-    'This time series is missing from input databank: %s \n', ...
-    allNames{~checkIncluded} ...
-);
+if ~all(checkIncluded)
+    THIS_ERROR = { 'model:Abstract:checkInputDatabank', ...
+                   'This time series is missing from input databank: %s ' };
+    throw( exception.Base(THIS_ERROR, 'error'), ...
+           allNames{~checkIncluded} );
+end
 
-assert( ...
-    all(checkFrequency), ...
-    'model:Abstract:checkInputDatabank', ...
-    'This time series has wrong date frequency in input databank: %s \n', ...
-    allNames{~checkFrequency} ...
-);
+if ~all(checkFrequency)
+    THIS_ERROR = { 'model:Abstract:checkInputDatabank', ...
+                   'This time series has the wrong date frequency in input databank: %s ' };
+    throw( exception.Base(THIS_ERROR, 'error'), ...
+           allNames{~checkFrequency} );
+end
 
-numDataSets = databank.numColumns(inputDatabank, allNames);
-numDataSets(isnan(numDataSets) & indexOptionalNames) = 0;
+numOfDataSets = databank.numColumns(inputDatabank, allNames);
+numOfDataSets(isnan(numOfDataSets) & inxOfOptionalNames) = 0;
 
-checkNumOfDataSetsAndVariants = numDataSets==1 | numDataSets==0 | numDataSets==nv;
-assert( ...
-    all(checkNumOfDataSetsAndVariants), ...
-    'model:Abstract:checkInputDatabank', ...
-    'This time series has an invalid number of data sets: %s \n', ...
-    allNames{~checkNumOfDataSetsAndVariants} ...
-);
+checkNumOfDataSetsAndVariants = numOfDataSets==1 | numOfDataSets==0 | numOfDataSets==nv;
+if ~all(checkNumOfDataSetsAndVariants)
+    THIS_ERROR = { 'model:Abstract:checkInputDatabank'
+                   'This time series has an invalid number of data sets: %s ' };
+    throw( exception.Base(THIS_ERROR, 'error'), ...
+           allNames{~checkNumOfDataSetsAndVariants} );
+end
 
 output = struct( );
-output.NumDataSets = int64(max(numDataSets));
+output.NumDataSets = max(max(numOfDataSets), 1);
 
-end
+end%
+

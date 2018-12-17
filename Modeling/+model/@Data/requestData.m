@@ -18,15 +18,15 @@ X = nan(numOfNames, numOfPeriods, numOfDataSets);
 for i = 1 : numOfNames
     ithName = names{i};
     if ~isfield(inputDatabank, ithName) ...
-        || ~isa(inputDatabank.(ithName), 'TimeSubscriptable')
+       || ~isa(inputDatabank.(ithName), 'TimeSubscriptable')
         continue
     end
     ithSeries = inputDatabank.(ithName);
-    checkFrequencyOrInf(ithSeries, range);
+    % checkFrequencyOrInf(ithSeries, range);
     ithData = getData(ithSeries, range);
     ithData = ithData(:, :);
     if size(ithData, 2)==1 && numOfDataSets>1
-        ithData = ithData(:, ones(1, numOfDataSets));
+        ithData = repmat(ithData, 1, numOfDataSets);
     end
     X(i, :, :) = permute(ithData, [3, 1, 2]);
 end

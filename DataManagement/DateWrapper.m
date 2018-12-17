@@ -469,7 +469,7 @@ classdef DateWrapper < double
 
 
         function flag = validateProperRangeInput(input)
-        if ischar(input) || isa(input, 'string')
+            if ischar(input) || isa(input, 'string')
                 input = textinp2dat(input);
             end
             if ~DateWrapper.validateRangeInput(input)
@@ -484,19 +484,33 @@ classdef DateWrapper < double
         end%
 
 
-        function pos = getRelativePosition(ref, dates)
-            ERROR_MIXED_FREQ = { 'DateWrapper:CannotRelativePositionForMixedFrequencies', ...
-                                 'Relative positions can be only calculated for dates of the same frequencies' };
+        function pos = getRelativePosition(ref, dates, bounds, context)
             ref = double(ref);
             dates =  double(dates);
             refFreq = DateWrapper.getFrequencyAsNumeric(ref);
             datesFreq = DateWrapper.getFrequencyAsNumeric(dates);
             if ~all(datesFreq==refFreq)
-                throw( excepion.Base(ERROR_MIXED_FREQ, 'error') );
+                THIS_ERROR= { 'DateWrapper:CannotRelativePositionForMixedFrequencies', ...
+                              'Relative positions can be only calculated for dates of the same frequencies' };
+                throw( excepion.Base(THIS_ERROR, 'error') );
             end
             refSerial = DateWrapper.getSerial(ref);
             datesSerial = DateWrapper.getSerial(dates);
             pos = round(datesSerial - refSerial + 1);
+            % Check lower and upper bounds on the positions
+            if nargin>=3 && ~isempty(bounds)
+                inxOutOfRange = pos<bounds(1) | pos>bounds(2);
+                if any(inxOutOfRange)
+                    if nargin<4
+                        context = 'range';
+                    end
+                    THIS_ERROR = { 'DateWrapper:DateOutOfRange'
+                                   'This date is out of %1: %s ' };
+                    temp = dat2str(dates(inxOutOfRange));
+                    throw( exception.Base(THIS_ERROR, 'error'), ...
+                           context, temp{:} );
+                end
+            end
         end%
 
 

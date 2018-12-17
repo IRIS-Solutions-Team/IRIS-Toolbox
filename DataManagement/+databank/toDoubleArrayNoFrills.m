@@ -1,15 +1,15 @@
 function outputArray = toDoubleArrayNoFrills(inputDatabank, names, dates, column)
 
-numberOfNames = numel(names);
-numberOfDates = numel(dates);
+numOfNames = numel(names);
+numOfDates = numel(dates);
 
-if numberOfNames==0
-    outputArray = double.empty(numberOfDates, 0);
+if numOfNames==0
+    outputArray = double.empty(numOfDates, 0);
     return
 end
 
-outputArray = nan(numberOfDates, numberOfNames);
-for i = 1 : numberOfNames
+outputArray = nan(numOfDates, numOfNames);
+for i = 1 : numOfNames
     if isa(names, 'string')
         ithName = char(names(i));
     else

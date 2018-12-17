@@ -5,8 +5,8 @@ function [this, pStar, objStar, proposalCov, hessian, validDiff, infoFromLik] = 
 % Backend IRIS function.
 % No help provided.
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 % Set Optimization Toolbox options structure.
 estOpt = irisoptim.myoptimopts(estOpt) ;
@@ -50,9 +50,9 @@ if ~isempty(pri.Init)
     
     % Initial proposal covariance matrix and contributions of priors to
     % Hessian.
-    [hessian, proposalCov, validDiff, infoFromLik] = diffObj( ...
-        this, data, pStar, hessian, ixBHit, pri, estOpt, likOpt ...
-    );
+    [hessian, proposalCov, validDiff, infoFromLik] = diffObj( this, data, ...
+                                                              pStar, hessian, ...
+                                                              ixBHit, pri, estOpt, likOpt );
 else
     
     % No parameters to be estimated.

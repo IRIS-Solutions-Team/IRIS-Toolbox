@@ -104,7 +104,7 @@ classdef Stacked < solver.block.Block
                 % __Assignment__
                 isInvTransform = ~isempty(this.Type.InvTransform);
                 for i = 1 : numOfColumnsToRun
-                    z = this.EquationsFunc(data.YXEPG, columnsToRun(i), data.L);
+                    z = this.EquationsFunc(data.YXEPG, columnsToRun(i), data.BarYX);
                     if isInvTransform
                         z = this.Type.InvTransform(z);
                     end
@@ -126,14 +126,14 @@ classdef Stacked < solver.block.Block
                 end
 
                 if isempty(ithJacob)
-                    y = this.EquationsFunc(data.YXEPG, columnsToRun, data.L);
+                    y = this.EquationsFunc(data.YXEPG, columnsToRun, data.BarYX);
                     y = y(:);
                 else
                     firstColumnJacob = firstColumn + this.FirstTime(ithJacob) - 1;
                     lastColumnJacob = firstColumn + this.LastTime(ithJacob) - 1;
                     y = [ ];
                     for column = firstColumnJacob : lastColumnJacob
-                        y = [y; this.NumericalJacobFunc{ithJacob}(data.YXEPG, column, data.L)];
+                        y = [y; this.NumericalJacobFunc{ithJacob}(data.YXEPG, column, data.BarYX)];
                     end
                 end
             end%

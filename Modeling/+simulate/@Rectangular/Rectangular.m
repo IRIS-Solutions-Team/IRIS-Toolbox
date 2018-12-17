@@ -8,28 +8,28 @@
 
 classdef Rectangular < handle
     properties
-        FirstOrderSolution = cell(1, 7)   % First-order solution matrices {T, R, K, Z, H, D, Y}
+        FirstOrderSolution = cell(1, 7)   % First-order solution matrices {T, R, K, Z, H, D, Y}, discard U, Zb
         FirstOrderExpansion = cell(1, 5)  % First-order expansion matrices {Xa, Xf, Ru, J, Yu}
-        InxOfLog                          % Index of log variables
 
-        RetrieveExpected                  % Function to retrieve expected shocks from yxepg
-        RetrieveUnexpected                % Function to retrieve unexpected shocks from yxepg
+        % FirstOrderMultipliers  First-order multipliers for endogenized shocks
+        FirstOrderMultipliers = double(0) 
+        MultipliersExogenizedYX = logical.empty(0)
+        MultipliersEndogenizedE = logical.empty(0)
 
         SolutionVector
         
-        NumOfQuantities
+        Quantity
         NumOfHashEquations
-        LenOfExpansion
 
         InxOfCurrentWithinXi
         LinxOfXib
         LinxOfCurrentXi
 
-        Anticipate = NaN
         Deviation = false
-        SimulateObserved = true
+        SimulateY = true
         FirstColumn = NaN
         LastColumn = NaN
+        TimeFrame = NaN
     end
 
 
@@ -54,24 +54,38 @@ classdef Rectangular < handle
                                                                    variantRequested, ...
                                                                    keepExpansion, ...
                                                                    triangular );
-            [this.FirstOrderExpansion{:}] = expansionMatrices(model, variantRequested, triangular);
-            if this.NumOfShocks>0
-                this.LenOfExpansion = size(this.FirstOrderSolution{2}, 2) / this.NumOfShocks;
-            else
-                this.LenOfExpansion = 0;
-            end
+            [this.FirstOrderExpansion{:}] = expansionMatrices( model, ...
+                                                               variantRequested, ...
+                                                               triangular );
+        end%
+
+
+        function ensureExpansionForData(this, data)
+            lastAnticipatedE = getLastAnticipatedE(data);
+            lastEndogenizedE = getLastEndogenizedE(data);
+            requiredForward = max([ 0, ...
+                                    lastAnticipatedE-this.FirstColumn, ...
+                                    lastEndogenizedE-this.FirstColumn ]);
+            ensureExpansion(this, requiredForward);
         end%
 
 
         function ensureExpansion(this, requiredForward)
-            if requiredForward>this.CurrentForward
-                R = model.expandFirstOrder(R, [ ], this.FirstOrderExpansion, requiredForward);
-                this.FirstOrderSolution{2} = R;
+            R = this.FirstOrderSolution{2};
+            if size(R, 2)==0
+                % No shocks in the model, return immediately
+                return
             end
+            if requiredForward<=this.CurrentForward
+                % Current expansion sufficient, return immediately
+                return
+            end
+            R = model.expandFirstOrder(R, [ ], this.FirstOrderExpansion, requiredForward);
+            this.FirstOrderSolution{2} = R;
         end%
 
 
-        function [ny, nx, nb, nf, ne, ng] = sizeOfSolution(this)
+        function [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this)
             ny = numel(this.SolutionVector{1});
             [nxi, nb] = size(this.FirstOrderSolution{1});
             nf = nxi - nb;
@@ -82,34 +96,30 @@ classdef Rectangular < handle
 
         function currentForward = get.CurrentForward(this)
             R = this.FirstOrderSolution{2};
+            if size(R, 2)==0
+                % No shocks in the model, return immediately
+                currentForward = 0;
+                return
+            end
+            ne = numel(this.SolutionVector{3});
             currentForward = size(R, 2)/ne - 1;
         end%
 
 
         function this = set.FirstColumn(this, firstColumn)
+            VEC = @(x) x(:);
             [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
-            idOfXib = this.SolutionVector{2}(nf+1:end);
-            idOfCurrentXi = this.SolutionVector{2}(this.InxOfCurrentWithinXi);
+            idOfXib = VEC(this.SolutionVector{2}(nf+1:end));
+            idOfCurrentXi = VEC(this.SolutionVector{2}(this.InxOfCurrentWithinXi));
+            numOfQuants = length(this.Quantity.Name);
             this.FirstColumn = firstColumn;
-            pretendSizeOfData = [this.NumOfQuantities, firstColumn];
+            pretendSizeOfData = [numOfQuants, firstColumn];
             this.LinxOfXib = sub2ind( pretendSizeOfData, ...
                                       real(idOfXib), ...
                                       firstColumn + imag(idOfXib) );
             this.LinxOfCurrentXi = sub2ind( pretendSizeOfData, ...
                                             real(idOfCurrentXi), ...
                                             firstColumn + imag(idOfCurrentXi) );
-        end%
-
-
-        function this = set.Anticipate(this, anticipate)
-            this.Anticipate = anticipate;
-            if anticipate
-                this.RetrieveExpected = @real;
-                this.RetrieveUnexpected = @imag;
-            else
-                this.RetrieveExpected = @imag;
-                this.RetrieveUnexpected = @real;
-            end
         end%
     end
 
@@ -124,10 +134,8 @@ classdef Rectangular < handle
             % Get first-order solution matrices and expansion matrices
             update(this, model, variantRequested);
 
-            % Quantity
-            quantity = getp(model, 'Quantity');
-            this.NumOfQuantities = numel(quantity.Name);
-            this.InxOfLog = quantity.IxLog;
+            % Quantities
+            this.Quantity = getp(model, 'Quantity');
 
             % Solution vector
             this.SolutionVector = getp(model, 'Vector', 'Solution');

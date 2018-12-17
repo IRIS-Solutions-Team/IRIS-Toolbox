@@ -1,13 +1,24 @@
-function flat(this, data, nlaf)
+function flat(this, data)
+% flat  Flat rectangular simulation
+%
+% Backend IRIS function
+% No help provided
 
-vec = @(x) x(:);
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
+
+TYPE = @int8;
+VEC = @(x) x(:);
+
+%--------------------------------------------------------------------------
 
 [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
 nh = this.NumOfHashEquations;
 
-posOfY = this.IdOfObserved;
-posOfE = this.IdOfShocks;
+inxOfY = getIndexByType(this.Quantity, TYPE(1));
+inxOfE = getIndexByType(this.Quantity, TYPE(31) , TYPE(32));
 inxOfCurrentWithinXi = this.InxOfCurrentWithinXi;
+inxOfLog = this.Quantity.InxOfLog;
 
 sizeOfData = size(data.YXEPG);
 firstColumn = this.FirstColumn;
@@ -15,24 +26,27 @@ lastColumn = this.LastColumn;
 
 linxOfXib = this.LinxOfXib;
 linxOfCurrentXi = this.LinxOfCurrentXi;
-stepForLinx = this.NumOfQuantities;
+stepForLinx = size(data.YXEPG, 1);
 
 deviation = this.Deviation;
-simulateObserved = this.SimulateObserved;
+simulateY = this.SimulateY;
 
-[T, R, K, Z, H, D, Y] = this.FirstOrderSolution{:};
+anticipatedE = data.AnticipatedE;
+unanticipatedE = data.UnanticipatedE;
 
+lastAnticipatedE = 0;
 if ne>0
-    expectedShocks = this.RetrieveExpected( data.YXEPG(posOfE, :) );
-    unexpectedShocks = this.RetrieveUnexpected( data.YXEPG(posOfE, :) );
-    lastExpectedShock = find(any(expectedShocks~=0, 1), 1, 'last');
-    if isempty(lastExpectedShock)
-        lastExpectedShock = 0;
+    if ~data.MixinUnanticipated
+        unanticipatedE(:, firstColumn+1:end) = 0;
     end
-    requiredForward = lastExpectedShock - firstColumn;
+    lastAnticipatedE = getLastAnticipatedE(data);
 end
 
-% Nonlinear addfactors
+% Retrieve first-order solution after making sure expansion is sufficient
+[T, R, K, Z, H, D, Y] = this.FirstOrderSolution{:};
+
+% Nonlinear add-factors
+nlaf = data.NonlinAddfactors;
 lastNlaf = 0;
 nlafExist = ~isempty(Y) && ~isempty(nlaf) && any(nlaf(:)~=0);
 if nlafExist
@@ -42,13 +56,20 @@ if nlafExist
     end
 end
 
-if any(this.InxOfLog)
-    data.YXEPG(this.InxOfLog, :) = log( data.YXEPG(this.InxOfLog, :) );
+if any(inxOfLog)
+    data.YXEPG(inxOfLog, :) = log( data.YXEPG(inxOfLog, :) );
 end
 
+% Initial condition
+Xi_0 = data.YXEPG(linxOfXib-stepForLinx);
+
+% Required initial conditions already checked for NaNs; here reset any
+% remaining (seeming) initial conditions 
+Xi_0(isnan(Xi_0)) = 0;
+
 for t = firstColumn : lastColumn
-    % __Endogenous variables__
-    Xi_t = T*data.YXEPG(linxOfXib-stepForLinx);
+    % __Transition Variables__
+    Xi_t = T*Xi_0;
 
     if ~deviation
         % Add constant
@@ -57,27 +78,27 @@ for t = firstColumn : lastColumn
     
     if ne>0
         % Add expected and unexpected shocks
-        if t<=lastExpectedShock
-            ahead = lastExpectedShock - t + 1;
-            shocks = expectedShocks(:, t:lastExpectedShock);
-            shocks(:, 1) = shocks(:, 1) + unexpectedShocks(:, t);
-            Xi_t = Xi_t + R(:, 1:ahead*ne)*shocks(:);
+        if t<=lastAnticipatedE
+            ahead = lastAnticipatedE - t + 1;
+            combinedE = anticipatedE(:, t:lastAnticipatedE);
+            combinedE(:, 1) = combinedE(:, 1) + unanticipatedE(:, t);
+            Xi_t = Xi_t + R(:, 1:ahead*ne)*combinedE(:);
         else
-            Xi_t = Xi_t + R(:, 1:ne)*unexpectedShocks(:, t);
+            Xi_t = Xi_t + R(:, 1:ne)*unanticipatedE(:, t);
         end
     end
 
     if t<=lastNlaf
         % Add nonlinear add-factors
         ahead = lastNlaf - t + 1;
-        Xi_t = Xi_t + Y(:, 1:ahead*nh)*vec(nlaf(:, t:lastNlaf));
+        Xi_t = Xi_t + Y(:, 1:ahead*nh)*VEC(nlaf(:, t:lastNlaf));
     end
 
     % Update current column in data matrix
     data.YXEPG(linxOfCurrentXi) = Xi_t(inxOfCurrentWithinXi);
 
     % __Observables__
-    if simulateObserved && ny>0
+    if simulateY && ny>0
         Y_t = Z*Xi_t(nf+1:end);
         if ~deviation
             % Add constant
@@ -85,19 +106,21 @@ for t = firstColumn : lastColumn
         end
         if ne>0
             % Add shocks
-            Y_t = Y_t + H*(expectedShocks(:, t) + unexpectedShocks(:, t));
+            Y_t = Y_t + H*(anticipatedE(:, t) + unanticipatedE(:, t));
         end
         % Update current column in data matrix
-        data.YXEPG(posOfY, t) = Y_t;
+        data.YXEPG(inxOfY, t) = Y_t;
     end
 
     % Update linear indexes by one column ahead
-    linxOfXi = round(linxOfXi + stepForLinx);
+    linxOfXib = round(linxOfXib + stepForLinx);
     linxOfCurrentXi = round(linxOfCurrentXi + stepForLinx);
+
+    Xi_0 = data.YXEPG(linxOfXib-stepForLinx);
 end
 
-if any(this.InxOfLog)
-    data.YXEPG(this.InxOfLog, :) = exp( data.YXEPG(this.InxOfLog, :) );
+if any(inxOfLog)
+    data.YXEPG(inxOfLog, :) = exp( data.YXEPG(inxOfLog, :) );
 end
 
 end%

@@ -7,7 +7,7 @@
 % ------------
 %
 % `AllBut` objects are used to create lists of names (typically model
-% variables) inversely in some specific contexts. This means that we list
+% variables) inversely in some specific contexts. This means that we resolvedNames
 % the names that are be excluded specifying thus that the function or
 % option will be applied to all the other names, except those entered
 % through an `AllBut`.
@@ -30,7 +30,7 @@ classdef AllBut
 
     properties (Constant, Hidden)
         ERROR_INVALID_LIST = { 'AllBut:InvalidInputList'
-                               'AllBut input list must be char, cellstr or string' }
+                               'AllBut input resolvedNames must be char, cellstr or string' }
     end
 
 
@@ -43,11 +43,19 @@ classdef AllBut
         end%
 
 
-        function list = convert(this, allNames)
+        function resolvedNames = resolve(this, allNames)
+            convertToString = isa(this.List, 'string') || isa(allNames, 'string');
             if ~iscellstr(allNames)
                 allNames = cellstr(allNames);
             end
-            list = setdiff(allNames, this.List, 'stable');
+            if isempty(this.List)
+                resolvedNames = allNames;
+            else
+                resolvedNames = setdiff(allNames, this.List, 'stable');
+            end
+            if convertToString && ~isa(resolvedNames, 'string')
+                resolvedNames = string(resolvedNames);
+            end
         end%
 
 

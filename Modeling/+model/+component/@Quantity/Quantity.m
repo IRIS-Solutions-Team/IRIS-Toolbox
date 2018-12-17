@@ -23,6 +23,7 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
 
 
     properties (Dependent)
+        InxOfLog
         NumOfQuantities
     end
     
@@ -52,11 +53,32 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         end%
 
 
+        function value = get.InxOfLog(this)
+            value = this.IxLog;
+        end%
+
+
         function n = get.NumOfQuantities(this)
             n = numel(this.Name);
         end%
     end
-    
+
+
+    methods
+        function index = getIndexByType(this, varargin)
+            index = false(size(this.Name));
+            for i = 1 : numel(varargin)
+                index = index | this.Type==varargin{i};
+            end
+        end%
+
+
+        function list = getNamesByType(this, varargin)
+            index = getIndexByType(this, varargin{:});
+            list = this.Name(index);
+        end%
+    end
+
     
     methods (Static)
         varargout = loadObject(varargin)
