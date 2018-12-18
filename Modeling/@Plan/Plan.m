@@ -153,14 +153,23 @@ classdef Plan
 
 
         function this = swap(this, dates, varargin)
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('Plan.swap');
+                parser.addRequired('Plan', @(x) isa(x, 'Plan'));
+                parser.addRequired('DatesToSwap', @DateWrapper.validateDateInput);
+                parser.addRequired('PairsToSwap', @validatePairsToSwap);
+            end
+            parser.parse(this, dates, varargin);
             setToValue = true;
             if numel(varargin)==1 && isstruct(varargin{1})
-                namesToExogenize = fieldnames(varargin{1});
-                numOfNamesToExogenize = numel(namesToExogenize);
-                pairsToSwap = cell(size(namesToExogenize));
-                for i = 1 : numOfNamesToExogenize
+                inputStruct = varargin{1};
+                namesToExogenize = fieldnames(inputStruct);
+                numOfPairs = numel(namesToExogenize);
+                pairsToSwap = cell(1, numOfPairs);
+                for i = 1 : numOfPairs
                     pairsToSwap{i} = { namesToExogenize{i}, ...
-                                       varargin{1}.(namesToExogenize{i}) };
+                                       inputStruct.(namesToExogenize{i}) };
                 end
             else
                 pairsToSwap = varargin;
@@ -357,4 +366,23 @@ classdef Plan
         end%
     end
 end
+
+
+%
+% Local Functions
+%
+
+
+function flag = validatePairsToSwap(pairs)
+    if numel(pairs)==1 && isstruct(pairs{1})
+        flag = true;
+        return
+    end
+    tempValidate = @(x) (iscellstr(x) || isa(x, 'string')) && numel(x)==2;
+    if iscell(pairs) && all(cellfun(tempValidate, pairs))
+        flag = true;
+        return
+    end
+    flag = false;
+end%
 
