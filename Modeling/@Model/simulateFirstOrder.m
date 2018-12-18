@@ -92,7 +92,7 @@ end%
 
 
 function timeFrames = splitIntoTimeFrames(data, plan);
-    [~, unanticipatedE] = retrieveE(data);   
+    [anticipatedE, unanticipatedE] = retrieveE(data);   
     inxOfUnanticipatedE = unanticipatedE~=0;
     posOfUnanticipated = find(any( inxOfUnanticipatedE ...
                                    | plan.InxOfUnanticipatedEndogenized, 1 ));
