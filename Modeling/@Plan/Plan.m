@@ -154,8 +154,19 @@ classdef Plan
 
         function this = swap(this, dates, varargin)
             setToValue = true;
-            for i = 1 : numel(varargin)
-                [nameToExogenize, nameToEndogenize] = varargin{i}{:};
+            if numel(varargin)==1 && isstruct(varargin{1})
+                namesToExogenize = fieldnames(varargin{1});
+                numOfNamesToExogenize = numel(namesToExogenize);
+                pairsToSwap = cell(size(namesToExogenize));
+                for i = 1 : numOfNamesToExogenize
+                    pairsToSwap{i} = { namesToExogenize{i}, ...
+                                       varargin{1}.(namesToExogenize{i}) };
+                end
+            else
+                pairsToSwap = varargin;
+            end
+            for i = 1 : numel(pairsToSwap)
+                [nameToExogenize, nameToEndogenize] = pairsToSwap{i}{:};
                 [this, anticipationStatus] = implementEndogenize( this, ...
                                                                   dates, ...
                                                                   nameToEndogenize, ...
