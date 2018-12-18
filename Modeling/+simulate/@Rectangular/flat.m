@@ -39,7 +39,7 @@ if ne>0
     if ~data.MixinUnanticipated
         unanticipatedE(:, firstColumn+1:end) = 0;
     end
-    lastAnticipatedE = getLastAnticipatedE(data);
+    lastAnticipatedE = data.LastAnticipatedE;
 end
 
 % Retrieve first-order solution after making sure expansion is sufficient

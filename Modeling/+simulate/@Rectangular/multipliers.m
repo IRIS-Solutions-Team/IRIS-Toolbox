@@ -27,19 +27,19 @@ numOfPeriods = lastColumn - firstColumn + 1;
 
 % Period of last endogenized and last exogenized point within simulation
 % columns
-anyExogenized = any(data.Exogenized, 1);
+anyExogenized = any(data.InxOfExogenized, 1);
 lastExogenizedYX = max([0, find(anyExogenized, 1, 'Last')]);
-lastEndogenizedE = getLastEndogenizedE(data);
+lastEndogenizedE = data.LastEndogenizedE;
 
-endogenizedE = data.Endogenized(data.InxOfE, firstColumn:lastEndogenizedE);
-exogenizedYX = data.Exogenized(data.InxOfYX, firstColumn:lastExogenizedYX);
+inxOfEndogenizedE = data.InxOfEndogenized(data.InxOfE, firstColumn:lastEndogenizedE);
+inxOfExogenizedYX = data.InxOfExogenized(data.InxOfYX, firstColumn:lastExogenizedYX);
 
 if tryExistingMultipliers( )
     return
 end
 
-vecEndogenizedE = VEC(endogenizedE);
-vecExogenizedYX = VEC(exogenizedYX);
+vecEndogenizedE = VEC(inxOfEndogenizedE);
+vecExogenizedYX = VEC(inxOfExogenizedYX);
 numOfEndogenizedE = nnz(vecEndogenizedE);
 
 [T, R, K, Z, H, D] = this.FirstOrderSolution{:};
@@ -68,7 +68,7 @@ for t = firstColumn : lastExogenizedYX
         Rf = [zeros(nf, ne), Rf(:, 1:end-ne)];
         H = [zeros(ny, ne), H(:, 1:end-ne)];
     end
-    idOfExogenized = find(data.Exogenized(:, t));
+    idOfExogenized = find(data.InxOfExogenized(:, t));
     if isempty(idOfExogenized)
         continue
     end
@@ -80,8 +80,8 @@ for t = firstColumn : lastExogenizedYX
 end
 
 this.FirstOrderMultipliers = M;
-this.MultipliersEndogenizedE = data.Endogenized(data.InxOfE, firstColumn:lastEndogenizedE);
-this.MultipliersExogenizedYX = data.Exogenized(data.InxOfYX, firstColumn:lastExogenizedYX);
+this.MultipliersEndogenizedE = data.InxOfEndogenized(data.InxOfE, firstColumn:lastEndogenizedE);
+this.MultipliersExogenizedYX = data.InxOfExogenized(data.InxOfYX, firstColumn:lastExogenizedYX);
 
 return
 
@@ -91,23 +91,23 @@ return
             flag = false;
             return
         end
-        sizeExogenizedYX = size(exogenizedYX, 2);
-        sizeEndogenizedE = size(endogenizedE, 2);
+        sizeExogenizedYX = size(inxOfExogenizedYX, 2);
+        sizeEndogenizedE = size(inxOfEndogenizedE, 2);
         if sizeExogenizedYX>size(this.MultipliersExogenizedYX, 2) ...
            || sizeEndogenizedE>size(this.MultipliersEndogenizedE, 2)
             flag = false;
            return
         end
-        if ~isequal(exogenizedYX, this.MultipliersExogenizedYX(:, 1:sizeExogenizedYX)) ...
-           || ~isequal(endogenizedE, this.MultipliersEndogenizedE(:, 1:sizeEndogenizedE))
+        if ~isequal(inxOfExogenizedYX, this.MultipliersExogenizedYX(:, 1:sizeExogenizedYX)) ...
+           || ~isequal(inxOfEndogenizedE, this.MultipliersEndogenizedE(:, 1:sizeEndogenizedE))
             flag = false;
             return
         end
-        numOfExogenizedYX = nnz(exogenizedYX);
-        numOfEndogenizedE = nnz(endogenizedE);
+        numOfExogenizedYX = nnz(inxOfExogenizedYX);
+        numOfEndogenizedE = nnz(inxOfEndogenizedE);
         this.FirstOrderMultipliers = this.FirstOrderMultipliers(1:numOfExogenizedYX, 1:numOfEndogenizedE);
-        this.MultipliersExogenizedYX = exogenizedYX;
-        this.MultipliersEndogenizedE = endogenizedE;
+        this.MultipliersExogenizedYX = inxOfExogenizedYX;
+        this.MultipliersEndogenizedE = inxOfEndogenizedE;
         flag = true;
    end%
 end%

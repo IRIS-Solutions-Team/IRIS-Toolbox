@@ -1,4 +1,4 @@
-function outputDatabank = simulateFirstOrder(this, inputDatabank, baseRange, plan, opt)
+function outputData = simulateFirstOrder(this, inputData, baseRange, plan, opt)
 % simulateFirstOrder  Simulate first-order system
 %
 % Backend IRIS function
@@ -11,12 +11,7 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-inxOfYX = this.Quantity.Type==TYPE(1) | this.Quantity.Type==TYPE(2);
-inxOfE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-inxOfLogInModel = this.Quantity.IxLog;
-posOfYX = find(inxOfYX);
 nv = length(this);
-ok = true(1, nv);
 
 % Get all data from input databank
 baseRange = double(baseRange);
@@ -24,65 +19,97 @@ startOfBaseRange = baseRange(1);
 endOfBaseRange = baseRange(end);
 [ YXEPG, ~, extendedRange, ~, ...
   maxShift, extendedTimeTrend ] = data4lhsmrhs( this, ...
-                                                inputDatabank, ...
+                                                inputData, ...
                                                 baseRange, ...
                                                 'ResetShocks=', true );
 startOfExtendedRange = extendedRange(1);
-firstColumnToRun = round(startOfBaseRange - startOfExtendedRange + 1);
-lastColumnToRun = round(endOfBaseRange - startOfExtendedRange + 1); 
-columnsToRun = firstColumnToRun : lastColumnToRun;
+firstColumnOfSimulation = round(startOfBaseRange - startOfExtendedRange + 1);
+lastColumnOfSimulation = round(endOfBaseRange - startOfExtendedRange + 1); 
 numOfDataColumns = size(YXEPG, 2);
 
 % Report missing initial conditions
-inxOfNaNPresample = any(isnan(YXEPG(:, 1:firstColumnToRun-1, :)), 3);
-checkInitialConditions(this, inxOfNaNPresample, firstColumnToRun);
+inxOfNaNPresample = any(isnan(YXEPG(:, 1:firstColumnOfSimulation-1, :)), 3);
+checkInitialConditions(this, inxOfNaNPresample, firstColumnOfSimulation);
 
 for v = 1 : nv
     % Set up simulation @Data from @Model and @Plan and update parameters and steady trends
-    vthData = simulate.Data.fromModelAndPlan(this, v, plan, YXEPG, firstColumnToRun);
+    vthData = simulate.Data.fromModelAndPlan(this, v, plan, YXEPG);
+    vthData.FirstColumnOfSimulation = firstColumnOfSimulation;
+    vthData.LastColumnOfSimulation = lastColumnOfSimulation;
+    updateE(vthData);
 
     % Set up @Rectangular object for simulation
     vthRect = simulate.Rectangular.fromModel(this, v);
     vthRect.Deviation = opt.Deviation;
     vthRect.SimulateY = true;
 
+    % Split simulation range into time frames
+    timeFrames = splitIntoTimeFrames(vthData, plan);
+
     % __Switchboard__
     % Simulate @Rectangular object
-    vthRect.FirstColumn = firstColumnToRun;
-    vthRect.LastColumn = lastColumnToRun;
-    vthRect.TimeFrame = 1;
-    vthData.FirstColumn = firstColumnToRun;
-    vthData.LastColumn = lastColumnToRun;
-    vthData.TimeFrame = 1;
-    updateExogenizedEndogenizedTarget(vthData, plan);
-    retrieveE(vthData);
-    ensureExpansionForData(vthRect, vthData);
-    if plan.NumOfExogenizedPoints==0
-        vthData.MixinUnanticipated = true;
-        flat(vthRect, vthData);
-    else
-        vthData.MixinUnanticipated = false;
-        swapped(vthRect, vthData);
+    numOfTimeFrames = numel(timeFrames);
+    for i = 1 : numOfTimeFrames
+        setTimeFrame(vthRect, timeFrames{i});
+        setTimeFrame(vthData, timeFrames{i});
+        updateSwap(vthData, plan);
+        ensureExpansionForData(vthRect, vthData);
+        if vthData.NumOfExogenizedPoints==0
+            % vthData.MixinUnanticipated = true;
+            flat(vthRect, vthData);
+        else
+            % vthData.MixinUnanticipated = false;
+            swapped(vthRect, vthData);
+        end
     end
 
-    % Set all data points in presample to NaN except intial conditions
-    resetOutsideBaseRange(vthData, firstColumnToRun, lastColumnToRun);
+    % Set all data points in YXEPG in presample and postsample to NaN except intial conditions
+    resetOutsideBaseRange(vthData, this);
 
     % Update output data
     YXEPG(:, :, v) = vthData.YXEPG;
 end
 
-YXEPG = YXEPG(:, 1:lastColumnToRun, :);
-names = this.Quantity.Name;
-labels = this.Quantity.Label;
-inxToInclude = ~getIndexByType(this.Quantity, TYPE(4));
-outputDatabank = databank.fromDoubleArrayNoFrills( YXEPG, ...
+% Convert output data to databank if requested
+if strcmpi(opt.OutputData, 'Databank')
+    names = this.Quantity.Name;
+    labels = this.Quantity.Label;
+    inxToInclude = ~getIndexByType(this.Quantity, TYPE(4));
+    outputData = databank.fromDoubleArrayNoFrills( YXEPG(:, 1:lastColumnOfSimulation, :), ...
                                                    names, ...
                                                    startOfExtendedRange, ...
                                                    labels, ...
                                                    inxToInclude );
+    outputData = addToDatabank('Default', this, outputData);
+end
 
-outputDatabank = addToDatabank('Default', this, outputDatabank);
+end%
 
+
+%
+% Local Functions
+%
+
+
+function timeFrames = splitIntoTimeFrames(data, plan);
+    [~, unanticipatedE] = retrieveE(data);   
+    inxOfUnanticipatedE = unanticipatedE~=0;
+    posOfUnanticipated = find(any( inxOfUnanticipatedE ...
+                                   | plan.InxOfUnanticipatedEndogenized, 1 ));
+    if ~any(posOfUnanticipated==data.FirstColumnOfSimulation)
+        posOfUnanticipated = [data.FirstColumnOfSimulation, posOfUnanticipated];
+    end
+    lastAnticipatedExogenizedYX = plan.LastAnticipatedExogenized;
+    numOfTimeFrames = numel(posOfUnanticipated);
+    timeFrames = cell(1, numOfTimeFrames);
+    for i = 1 : numOfTimeFrames
+        startOfTimeFrame = posOfUnanticipated(i);
+        if i==numOfTimeFrames
+            endOfTimeFrame = data.LastColumnOfSimulation;
+        else
+            endOfTimeFrame = max([posOfUnanticipated(i+1)-1, lastAnticipatedExogenizedYX]);
+        end
+        timeFrames{i} = [startOfTimeFrame, endOfTimeFrame];
+    end
 end%
 

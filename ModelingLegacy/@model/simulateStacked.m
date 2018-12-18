@@ -45,33 +45,35 @@ numOfBlocks = numel(blz.Block);
 blockExitStatus = repmat({ones(numOfBlocks, numOfDataColumns)}, 1, nv);
 for v = 1 : nv
     % Set up simulation data including parameters and steady trends
-    vthData = simulate.Data.fromModel(this, v, YXEPG);
+    plan = true;
+    vthData = simulate.Data.fromModel(this, v, plan, YXEPG);
     if opt.Deviation
         vhtData.YXEPG = addSteadyTrends(vthData, vthData.YXEPG);
     end
 
     % Set up Rectangural for first-order terminal condition simulation
     vthRect = simulate.Rectangular.fromModel(this, v);
-
     vthRect.Deviation = false;
     vthRect.SimulateY = false;
 
     if strcmpi(opt.Initial, 'FirstOrder')
         % Simulate on the simulation range to get initial values
-        vthRect.FirstColumn = firstColumnToRun;
-        vthRect.LastColumn = numOfDataColumns;
+        setTimeFrame(vthRect, firstColumnToRun, numOfDataColumns);
+        vthData.FirstColumnOfSimulation = firstColumnToRun;
+        vthData.LastColumnOfSimulation = numOfDataColumns;
+        setTimeFrame(vthData);
         flat(vthRect, vthData);
     end
 
     if needsFotc
-        % Reset the Rectangular object for simulation of terminal condition
-        vthRect.FirstColumn = lastColumnToRun + 1;
-        vthRect.LastColumn = numOfDataColumns;
+        % Reset range in @Rectangular and @simulate.Data for simulation of terminal condition
+        setTimeFrame(vthRect, lastColumnToRun+1, lastColumnToRun+maxMaxLead);
+        setTimeFrame(vthData, lastColumnToRun+1, lastColumnToRun+maxMaxLead);
     else
         vthRect = [ ];
     end
 
-    vthRect.LastColumn = lastColumnToRun + maxMaxLead;
+    %%%% vthRect.LastColumn = lastColumnToRun + maxMaxLead;
     for i = 1 : numOfBlocks
         ithBlk = blz.Block{i};
         ithBlk.Terminal = vthRect;

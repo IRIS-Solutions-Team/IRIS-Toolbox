@@ -27,9 +27,12 @@ classdef Rectangular < handle
 
         Deviation = false
         SimulateY = true
+    end
+
+
+    properties (SetAccess=protected)
         FirstColumn = NaN
         LastColumn = NaN
-        TimeFrame = NaN
     end
 
 
@@ -61,11 +64,13 @@ classdef Rectangular < handle
 
 
         function ensureExpansionForData(this, data)
-            lastAnticipatedE = getLastAnticipatedE(data);
-            lastEndogenizedE = getLastEndogenizedE(data);
-            requiredForward = max([ 0, ...
-                                    lastAnticipatedE-this.FirstColumn, ...
+            lastAnticipatedE = data.LastAnticipatedE;
+            lastEndogenizedE = data.LastEndogenizedE;
+            requiredForward = max([ lastAnticipatedE-this.FirstColumn, ...
                                     lastEndogenizedE-this.FirstColumn ]);
+            if isempty(requiredForward) || requiredForward==0
+                return
+            end
             ensureExpansion(this, requiredForward);
         end%
 
@@ -106,20 +111,21 @@ classdef Rectangular < handle
         end%
 
 
-        function this = set.FirstColumn(this, firstColumn)
+        function setTimeFrame(this, timeFrame)
             VEC = @(x) x(:);
+            this.FirstColumn = timeFrame(1);
+            this.LastColumn = timeFrame(end);
             [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
             idOfXib = VEC(this.SolutionVector{2}(nf+1:end));
             idOfCurrentXi = VEC(this.SolutionVector{2}(this.InxOfCurrentWithinXi));
             numOfQuants = length(this.Quantity.Name);
-            this.FirstColumn = firstColumn;
-            pretendSizeOfData = [numOfQuants, firstColumn];
+            pretendSizeOfData = [numOfQuants, this.FirstColumn];
             this.LinxOfXib = sub2ind( pretendSizeOfData, ...
                                       real(idOfXib), ...
-                                      firstColumn + imag(idOfXib) );
+                                      this.FirstColumn + imag(idOfXib) );
             this.LinxOfCurrentXi = sub2ind( pretendSizeOfData, ...
                                             real(idOfCurrentXi), ...
-                                            firstColumn + imag(idOfCurrentXi) );
+                                            this.FirstColumn + imag(idOfCurrentXi) );
         end%
     end
 

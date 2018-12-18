@@ -6,11 +6,17 @@ classdef Plan
         BaseEnd = double.empty(0)
         ExtendedStart = double.empty(0)
         ExtendedEnd = double.empty(0)
-        DefaultAnticipate = true
 
         AnticipationStatusOfExogenous = logical.empty(0)
-        Endogenized = logical.empty(0, 0, 0)
-        Exogenized = logical.empty(0, 0, 0)
+        InxOfAnticipatedEndogenized = logical.empty(0, 0, 0)
+        InxOfUnanticipatedEndogenized = logical.empty(0, 0, 0)
+        InxOfAnticipatedExogenized = logical.empty(0, 0, 0)
+        InxOfUnanticipatedExogenized = logical.empty(0, 0, 0)
+    end
+
+
+    properties (SetAccess=protected)
+        DefaultAnticipate = true
     end
 
 
@@ -31,78 +37,71 @@ classdef Plan
             this.BaseEnd = double(parser.Results.SimulationRange(end));
             this = preparePlan(parser.Results.Model, this, [this.BaseStart, this.BaseEnd]);
             this.DefaultAnticipate = parser.Results.Anticipate;
-            this.Exogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods, this.NumOfExtendedPeriods);
-            this.Endogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods, this.NumOfExtendedPeriods);
+            this.InxOfAnticipatedExogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods);
+            this.InxOfUnanticipatedExogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods);
+            this.InxOfAnticipatedEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
+            this.InxOfUnanticipatedEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
         end%
 
 
-        function this = anticipate(this, names)
-            setToValue = true;
-            this = implementAnticipate(this, names, setToValue);
-        end%
-
-
-        function this = unanticipate(this, names)
-            setToValue = false;
-            this = implementAnticipate(this, names, setToValue);
-        end%
-
-
-        function this = implementAnticipate(this, names, setToValue)
+        function this = anticipate(this, names, anticipationStatus)
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.anticipate');
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
-                parser.addRequired('NamesToAnticipate', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+                parser.addRequired('NamesOfExogenous', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+                parser.addRequired('AnticipationStatus', @(x) isequal(x, true) || isequal(x, false));
             end
-            if nnz(this.Endogenized)>0
+            if this.NumOfEndogenizedPoints>0
                 THIS_ERROR = { 'Plan:CannotChangeAnticipateAfterEndogenize'
-                               'Cannot change anticipation status after some names have been exogenized' };
+                               'Cannot change anticipation status after some names have been already endogenized' };
                 throw( exception.Base(THIS_ERROR, 'error') );
             end
-            parser.parse(this, names);
-            if isequal(setToValue, true)
-                context = 'anticipate';
-            else
-                context = 'unanticipate';
-            end
+            parser.parse(this, names, anticipationStatus);
+            context = 'be assigned anticipation status';
             inxOfExogenous = this.resolveNames(names, this.NamesOfExogenous, context);
-            this.AnticipationStatusOfExogenous(inxOfExogenous) = setToValue;
+            this.AnticipationStatusOfExogenous(inxOfExogenous) = anticipationStatus;
         end%
 
 
-        function this = exogenize(this, names, dates, anticipate)
+        function this = exogenize(this, names, dates, varargin)
             setToValue = true;
-            this = implementExogenize(this, names, dates, anticipate, setToValue);
+            this = implementExogenize(this, names, dates, setToValue, varargin{:});
         end%
 
 
-        function this = unexogenize(this, names, dates, anticipate)
+        function this = unexogenize(this, names, dates, varargin)
             setToValue = false;
-            this = implementExogenize(this, names, dates, anticipate, setToValue);
+            this = implementExogenize(this, names, dates, setToValue, varargin{:});
         end%
 
 
-        function this = implementExogenize(this, names, dates, anticipate, setToValue)
+        function this = implementExogenize(this, names, dates, setToValue, varargin)
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.exogenize');
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
                 parser.addRequired('NamesToExogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
                 parser.addRequired('DatesToExogenize', @DateWrapper.validateDateInput);
+                parser.addRequired('SetToValue', @(x) isequal(x, true) || isequal(x, false));
+                parser.addParameter('Anticipate', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
             end
-            parser.parse(this, names, dates);
+            parser.parse(this, names, dates, setToValue, varargin{:});
+            opt = parser.Options;
+            if isequal(opt.Anticipate, @auto)
+                opt.Anticipate = this.DefaultAnticipate;
+            end
             if isequal(setToValue, true)
-                context = 'exogenize';
+                context = 'be exogenized';
             else
-                context = 'unexogenize';
+                context = 'be unexogenized';
             end 
             inxOfDates = resolveDates(this, dates);
-            inxOfEndogenous = this.resolveNames(names, this.NamesOfEndogenous, context);
-            if anticipate
-                this.Exogenized = assignAnticipated(this, this.Exogenized, inxOfEndogenous, inxOfDates, setToValue);
+            inxOfNames = this.resolveNames(names, this.NamesOfEndogenous, context);
+            if opt.Anticipate
+                this.InxOfAnticipatedExogenized(inxOfNames, inxOfDates) = setToValue;
             else
-                this.Exogenized = assignUnanticipated(this, this.Exogenized, inxOfEndogenous, inxOfDates, setToValue);
+                this.InxOfUnanticipatedExogenized(inxOfNames, inxOfDates) = setToValue;
             end
         end%
 
@@ -119,7 +118,7 @@ classdef Plan
         end%
 
 
-        function this = implementEndogenize(this, names, dates, setToValue)
+        function [this, anticipate] = implementEndogenize(this, names, dates, setToValue)
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.endogenize');
@@ -129,26 +128,41 @@ classdef Plan
             end
             parser.parse(this, names, dates);
             if isequal(setToValue, true)
-                context = 'endogenize';
+                context = 'be endogenized';
             else
-                context = 'unendogenize';
+                context = 'be unendogenized';
             end 
             inxOfDates = resolveDates(this, dates);
-            inxOfExogenous = this.resolveNames(names, this.NamesOfExogenous, context);
-            if ~any(inxOfExogenous)
+            inxOfNames = this.resolveNames(names, this.NamesOfExogenous, context);
+            if ~any(inxOfNames)
                 return
             end
-            anticipate = this.AnticipationStatusOfExogenous(inxOfExogenous);
+            anticipate = this.AnticipationStatusOfExogenous(inxOfNames);
             if ~all(anticipate==anticipate(1))
                 THIS_ERROR = { 'Plan:CannotEndogenizeWithDifferentAnticipate'
-                               'All names that are to be endogenized within one call must have the same anticipation status' };
+                               'All names within one endogenize(~) or swap(~) command must have the same anticipation status' };
                 throw( exception.Base(THIS_ERROR, 'error') );
             end
-            if anticipate(1)
-                this.Endogenized = assignAnticipated(this, this.Endogenized, inxOfExogenous, inxOfDates, setToValue);
+            anticipate = anticipate(1);
+            if anticipate
+                this.InxOfAnticipatedEndogenized(inxOfNames, inxOfDates) = setToValue;
             else
-                this.Endogenized = assignUnanticipated(this, this.Endogenized, inxOfExogenous, inxOfDates, setToValue);
+                this.InxOfUnanticipatedEndogenized(inxOfNames, inxOfDates) = setToValue;
             end
+        end%
+
+
+        function this = swap(this, namesToExogenized, namesToEndogenized, dates)
+            setToValue = true;
+            [this, anticipationStatus] = implementEndogenize( this, ...
+                                                              namesToEndogenized, ...
+                                                              dates, ...
+                                                              setToValue );
+            this = implementExogenize( this, ...
+                                       namesToExogenized, ...
+                                       dates, ...
+                                       setToValue, ...
+                                       'Anticipate=', anticipationStatus );
         end%
     end
 
@@ -160,10 +174,15 @@ classdef Plan
         NumOfExogenous
         NumOfBasePeriods
         NumOfExtendedPeriods
-        NumOfEndogenizedPoints
         NumOfExogenizedPoints
+        NumOfAnticipatedExogenizedPoints
+        NumOfUnanticipatedExogenizedPoints
+        NumOfEndogenizedPoints
+        NumOfAnticipatedEndogenizedPoints
+        NumOfUnanticipatedEndogenizedPoints
         PosOfBaseStart
         PosOfBaseEnd
+        LastAnticipatedExogenized
     end
 
 
@@ -226,12 +245,34 @@ classdef Plan
 
 
         function value = get.NumOfExogenizedPoints(this)
-            value = nnz(this.Exogenized);
+            value = this.NumOfAnticipatedExogenizedPoints ...
+                  + this.NumOfUnanticipatedExogenizedPoints;
+        end%
+
+
+        function value = get.NumOfAnticipatedExogenizedPoints(this)
+            value = nnz(this.InxOfAnticipatedExogenized);
+        end%
+
+
+        function value = get.NumOfUnanticipatedExogenizedPoints(this)
+            value = nnz(this.InxOfUnanticipatedExogenized);
         end%
 
 
         function value = get.NumOfEndogenizedPoints(this)
-            value = nnz(this.Endogenized);
+            value = this.NumOfAnticipatedEndogenizedPoints ...
+                  + this.NumOfUnanticipatedEndogenizedPoints;
+        end%
+
+
+        function value = get.NumOfAnticipatedEndogenizedPoints(this)
+            value = nnz(this.InxOfAnticipatedEndogenized);
+        end%
+
+
+        function value = get.NumOfUnanticipatedEndogenizedPoints(this)
+            value = nnz(this.InxOfUnanticipatedEndogenized);
         end%
 
 
@@ -242,6 +283,11 @@ classdef Plan
 
         function value = get.PosOfBaseEnd(this)
             value = round(this.BaseEnd - this.ExtendedStart + 1);
+        end%
+
+
+        function value = get.LastAnticipatedExogenized(this)
+            value = find(any(this.InxOfAnticipatedExogenized, 1), 1, 'last');
         end%
     end
 
@@ -288,7 +334,7 @@ classdef Plan
             [inxOfValidNames, posOfNames] = ismember(selectNames, allNames);
             if any(~inxOfValidNames)
                 THIS_ERROR = { 'Plan:InvalidNameInContext'
-                               'This name cannot be %1 in simulation plan: %s ' };
+                               'This name cannot %1 in simulation plan: %s ' };
                 throw( exception.Base(THIS_ERROR, 'error'), ...
                        context, selectNames{~inxOfValidNames} );
             end

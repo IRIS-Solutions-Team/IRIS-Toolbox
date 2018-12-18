@@ -27,11 +27,8 @@ classdef Data < handle
         % MixinUnanticipated  True if anticipated and unanticipated shocks are simulated in one run
         MixinUnanticipated = false
 
-        % InxOfInitInPresample  True for initial conditions in presample array
-        InxOfInitInPresample = logical.empty(0)
-
-        Exogenized = logical.empty(0)
-        Endogenized = logical.empty(0)
+        InxOfExogenized = logical.empty(0)
+        InxOfEndogenized = logical.empty(0)
         Target = double.empty(0)
 
         % AnticipatedE  Values of anticipated shocks within the current simulation range
@@ -40,48 +37,49 @@ classdef Data < handle
         % UnanticipatedE  Values of unanticipated shocks within the current simulation range
         UnanticipatedE = double.empty(0)
 
-        FirstColumn
-        LastColumn
-        TimeFrame
+        FirstColumnOfSimulation
+        LastColumnOfSimulation
     end
 
 
-    properties (Dependent)
-        NumOfQuantities
-        NumOfYX
-        NumOfE
-        NumOfExtendedPeriods
+    properties (SetAccess=protected)
+        FirstColumn
+        LastColumn
     end
 
 
     methods
-        function updateExogenizedEndogenizedTarget(this, plan)
+        function updateSwap(this, plan)
             firstColumn = this.FirstColumn;
-            lastColumn = this.LastColumn;
-            timeFrame = this.TimeFrame;
-            this.Exogenized = false(size(this.YXEPG));
-            this.Endogenized = false(size(this.YXEPG));
+            lastColumnOfSimulation = this.LastColumnOfSimulation;
+            this.InxOfExogenized = false(size(this.YXEPG));
+            this.InxOfEndogenized = false(size(this.YXEPG));
             this.Target = nan(size(this.YXEPG));
-            if ~isempty(plan.Exogenized)
-                this.Exogenized(this.InxOfYX, firstColumn:lastColumn) = plan.Exogenized(:, firstColumn:lastColumn, timeFrame);
+            if plan.NumOfExogenizedPoints>0
+                this.InxOfExogenized(this.InxOfYX, firstColumn) = plan.InxOfAnticipatedExogenized(:, firstColumn) ...
+                                                                | plan.InxOfUnanticipatedExogenized(:, firstColumn);
+                this.InxOfExogenized(this.InxOfYX, firstColumn+1:lastColumnOfSimulation) = plan.InxOfAnticipatedExogenized(:, firstColumn+1:lastColumnOfSimulation);
             end
-            if ~isempty(plan.Endogenized)
-                this.Endogenized(this.InxOfE, firstColumn:lastColumn) = plan.Endogenized(:, firstColumn:lastColumn, timeFrame);
+            if plan.NumOfEndogenizedPoints>0
+                this.InxOfEndogenized(this.InxOfE, firstColumn) = plan.InxOfAnticipatedEndogenized(:, firstColumn) ...
+                                                                | plan.InxOfUnanticipatedEndogenized(:, firstColumn);
+                this.InxOfEndogenized(this.InxOfE, firstColumn+1:lastColumnOfSimulation) = plan.InxOfAnticipatedEndogenized(:, firstColumn+1:lastColumnOfSimulation);
             end
-            if nnz(this.Exogenized)>0
-                this.Target(this.Exogenized) = this.YXEPG(this.Exogenized);
+            if this.NumOfExogenizedPoints>0
+                this.Target(this.InxOfExogenized) = this.YXEPG(this.InxOfExogenized);
             end
         end%
 
 
-        function resetOutsideBaseRange(this, firstColumnToRun, lastColumnToRun)
+        function resetOutsideBaseRange(this, model)
             numOfDataSets = size(this.YXEPG, 3);
+            inxOfInitInPresample = getInxOfInitInPresample(model, this.FirstColumnOfSimulation);
             for i = 1 : numOfDataSets
-                temp = this.YXEPG(:, 1:firstColumnToRun-1, i);
-                temp(~this.InxOfInitInPresample) = NaN;
-                this.YXEPG(:, 1:firstColumnToRun-1, i) = temp;
+                temp = this.YXEPG(:, 1:this.FirstColumnOfSimulation-1, i);
+                temp(~inxOfInitInPresample) = NaN;
+                this.YXEPG(:, 1:this.FirstColumnOfSimulation-1, i) = temp;
             end
-            this.YXEPG(:, lastColumnToRun+1:end, :) = NaN;
+            this.YXEPG(:, this.LastColumnOfSimulation+1:end, :) = NaN;
         end%
 
             
@@ -103,26 +101,8 @@ classdef Data < handle
         end%
 
 
-        function lastAnticipatedE = getLastAnticipatedE(this)
-            lastAnticipatedE = find(any(this.AnticipatedE~=0, 1), 1, 'last');
-            if isempty(lastAnticipatedE)
-                lastAnticipatedE = 0;
-            end
-        end%
-
-
-        function lastEndogenizedE = getLastEndogenizedE(this)
-            lastEndogenizedE = find(any(this.Endogenized(this.InxOfE, :), 1), 1, 'last');
-            if isempty(lastEndogenizedE)
-                lastEndogenizedE = 0;
-            end
-        end%
-
-
-        function retrieveE(this)
+        function [anticipatedE, unanticipatedE] = retrieveE(this)
             [numOfQuants, numOfPeriods] = size(this.YXEPG);
-            firstColumn = this.FirstColumn;
-            lastColumn = this.LastColumn;
             numOfE = nnz(this.InxOfE);
             if numOfE==0
                 % No shocks in model, return immediately
@@ -154,13 +134,44 @@ classdef Data < handle
                 unanticipatedE(~this.AnticipationStatusOfE, :) = real( this.YXEPG(inxOfUnxE, :) );
             end
             % Reset shocks outside the current simulation range to zero
-            anticipatedE(:, [1:firstColumn-1, lastColumn+1:end]) = 0;
-            unanticipatedE(:, [1:firstColumn-1, lastColumn+1:end]) = 0;
+            anticipatedE(:, [1:this.FirstColumnOfSimulation-1, this.LastColumnOfSimulation+1:end]) = 0;
+            unanticipatedE(:, [1:this.FirstColumnOfSimulation-1, this.LastColumnOfSimulation+1:end]) = 0;
+        end%
+
+
+        function updateE(this)
+            [anticipatedE, unanticipatedE] = retrieveE(this);
             this.AnticipatedE = anticipatedE;
             this.UnanticipatedE = unanticipatedE;
         end%
 
 
+        function setTimeFrame(this, timeFrame)
+            if nargin<2
+                this.FirstColumn = this.FirstColumnOfSimulation;
+                this.LastColumn = this.LastColumnOfSimulation;
+                return
+            end
+            this.FirstColumn = timeFrame(1);
+            this.LastColumn = timeFrame(end);
+        end%
+    end
+
+
+    properties (Dependent)
+        NumOfQuantities
+        NumOfYX
+        NumOfE
+        NumOfExtendedPeriods
+        NumOfExogenizedPoints
+        NumOfEndogenizedPoints
+        LastAnticipatedE
+        LastEndogenizedE
+        LastExogenizedYX
+    end
+
+
+    methods
         function value = get.NumOfQuantities(this)
             value = size(this.YXEPG, 1);
         end%
@@ -179,11 +190,45 @@ classdef Data < handle
         function value = get.NumOfExtendedPeriods(this)
             value = size(this.YXEPG, 2);
         end%
+
+
+        function value = get.NumOfExogenizedPoints(this)
+            value = nnz(this.InxOfExogenized);
+        end%
+
+
+        function value = get.NumOfEndogenizedPoints(this)
+            value = nnz(this.InxOfEndogenized);
+        end%
+
+
+        function value = get.LastAnticipatedE(this)
+            value = find(any(this.AnticipatedE~=0, 1), 1, 'last');
+            if isempty(value)
+                value = 0;
+            end
+        end%
+
+
+        function value = get.LastEndogenizedE(this)
+            value = find(any(this.InxOfEndogenized(this.InxOfE, :), 1), 1, 'last');
+            if isempty(value)
+                value = 0;
+            end
+        end%
+
+
+        function value = get.LastExogenizedYX(this)
+            value = find(any(this.InxOfExogenized(this.InxOfYX, :), 1), 1, 'last');
+            if isempty(value)
+                value = 0;
+            end
+        end%
     end
 
 
     methods (Static)
-        function this = fromModelAndPlan(model, variantRequested, plan, YXEPG, firstColumnToRun)
+        function this = fromModelAndPlan(model, variantRequested, plan, YXEPG)
             TYPE = @int8;
 
             this = simulate.Data( );
@@ -193,10 +238,9 @@ classdef Data < handle
             this.InxOfYX = getIndexByType(quantity, TYPE(1), TYPE(2));
             this.InxOfE = getIndexByType(quantity, TYPE(31), TYPE(32));
             this.InxOfLog = quantity.IxLog;
-            this.InxOfInitInPresample = getInxOfInitInPresample(model, firstColumnToRun);
 
-            this.Exogenized = false(size(YXEPG));
-            this.Endogenized = false(size(YXEPG));
+            this.InxOfExogenized = false(size(YXEPG));
+            this.InxOfEndogenized = false(size(YXEPG));
 
             if isa(plan, 'Plan')
                 this.AnticipationStatusOfE = plan.AnticipationStatusOfExogenous;

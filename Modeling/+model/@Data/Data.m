@@ -1,4 +1,4 @@
-classdef (Abstract) Data
+classdef Data
     properties (Abstract, Dependent)
         NumOfVariants
         NamesOfAppendablesInData
