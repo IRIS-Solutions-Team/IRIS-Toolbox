@@ -1,5 +1,5 @@
 function outputData = simulateFirstOrder(this, inputData, baseRange, plan, opt)
-% simulateFirstOrder  Simulate first-order system
+% simulateFirstOrder  Simulate model using FirstOrder or Selective method
 %
 % Backend IRIS function
 % No help provided
@@ -17,11 +17,17 @@ nv = length(this);
 baseRange = double(baseRange);
 startOfBaseRange = baseRange(1);
 endOfBaseRange = baseRange(end);
+endOfBaseRangeWindow = endOfBaseRange + opt.Window - 1;
 [ YXEPG, ~, extendedRange, ~, ...
   maxShift, extendedTimeTrend ] = data4lhsmrhs( this, ...
                                                 inputData, ...
-                                                baseRange, ...
-                                                'ResetShocks=', true );
+                                                [startOfBaseRange, endOfBaseRangeWindow], ...
+                                                'ResetShocks=', true, ...
+                                                'NumOfDummyPeriods', opt.Window-1 );
+if opt.Window>1
+    plan = extendWithDummies(plan, opt.Window-1);
+end
+
 startOfExtendedRange = extendedRange(1);
 firstColumnOfSimulation = round(startOfBaseRange - startOfExtendedRange + 1);
 lastColumnOfSimulation = round(endOfBaseRange - startOfExtendedRange + 1); 
@@ -44,7 +50,7 @@ for v = 1 : nv
     vthRect.SimulateY = true;
 
     % Split simulation range into time frames
-    timeFrames = splitIntoTimeFrames(vthData, plan);
+    timeFrames = splitIntoTimeFrames(vthData, plan, opt.Window);
 
     % __Switchboard__
     % Simulate @Rectangular object
@@ -91,7 +97,7 @@ end%
 %
 
 
-function timeFrames = splitIntoTimeFrames(data, plan);
+function timeFrames = splitIntoTimeFrames(data, plan, window)
     [anticipatedE, unanticipatedE] = retrieveE(data);   
     inxOfUnanticipatedE = unanticipatedE~=0;
     posOfUnanticipated = find(any( inxOfUnanticipatedE ...
@@ -109,7 +115,13 @@ function timeFrames = splitIntoTimeFrames(data, plan);
         else
             endOfTimeFrame = max([posOfUnanticipated(i+1)-1, lastAnticipatedExogenizedYX]);
         end
-        timeFrames{i} = [startOfTimeFrame, endOfTimeFrame];
+        lenOfTimeFrame = endOfTimeFrame - startOfTimeFrame + 1;
+        numOfDummyPeriods = 0;
+        if lenOfTimeFrame<window
+            numOfDummyPeriods = window - lenOfTimeFrame;
+            endOfTimeFrame = endOfTimeFrame + numOfDummyPeriods;
+        end
+        timeFrames{i} = [startOfTimeFrame, endOfTimeFrame, numOfDummyPeriods];
     end
 end%
 

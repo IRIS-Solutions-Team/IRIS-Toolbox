@@ -65,6 +65,7 @@ if isempty(parser)
     parser.addRequired('InputDatabank', @isstruct);
     parser.addRequired('BaseRange', @DateWrapper.validateProperRangeInput);
     parser.addParameter('ResetShocks', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('NumOfDummyPeriods', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
 end
 parser.parse(this, inputDatabank, baseRange, varargin{:});
 opt = parser.Options;
@@ -99,32 +100,40 @@ YXEG = requestData(this, check, inputDatabank, extendedRange, rowNamesExceptPara
 extendedTimeTrend = dat2ttrend(extendedRange, this);
 numOfDataSets = size(YXEG, 3);
 
+if opt.NumOfDummyPeriods>0
+    % Reset the last N periods to NaN
+    resetDummyPeriods( );
+end
+
 YXEPG = nan(numOfQuants, lenOfExtendedRange, numOfDataSets);
 YXEPG(~inxOfP, :, :) = YXEG;
+
+if opt.ResetShocks
+    % Reset NaN shocks to 0
+    resetShocks( );
+end
 
 inxOfTimeTrend = strcmp(rowNames, model.RESERVED_NAME_TTREND);
 YXEPG(inxOfTimeTrend, :, :) = repmat(extendedTimeTrend, 1, 1, numOfDataSets);
 
-if opt.ResetShocks
-    % Reset NaN shocks to 0 within base range
-    resetShocksWithinBaseRange( );
-end
-
 return
 
 
-    function resetShocksWithinBaseRange( )
+    function resetDummyPeriods( )
+        inxToReset = false(1, lenOfExtendedRange);
+        inxToReset(end-opt.NumOfDummyPeriods+1:end) = true;
+        YXEG(:, inxToReset, :) = NaN;
+    end%
+
+
+    function resetShocks( )
         inxOfNaN = isnan(YXEPG);
         if nnz(inxOfNaN)==0
             return
         end
-        inxOfBaseE = true(size(YXEPG));
-        inxOfBaseE(~inxOfE, :, :) = false;
-        firstBaseColumn = round(startOfBaseRange - startOfExtendedRange + 1);
-        lastBaseColumn = round(endOfBaseRange - startOfExtendedRange + 1);
-        inxOfBaseE(:, 1:firstBaseColumn-1, :) = false;
-        inxOfBaseE(:, lastBaseColumn+1:end, :) = false;
-        inxToReset = inxOfBaseE & inxOfNaN;
+        inxToReset = true(size(YXEPG));
+        inxToReset(~inxOfE, :, :) = false;
+        inxToReset = inxToReset & inxOfNaN;
         if nnz(inxToReset)==0
             return
         end

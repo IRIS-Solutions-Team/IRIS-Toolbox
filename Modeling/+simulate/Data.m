@@ -3,6 +3,9 @@ classdef Data < handle
         % YXEPG  NumOfQuants-by-NumOfPeriods matrix of [observed; endogenous; expected shocks; parameters; exogenous]
         YXEPG = double.empty(0) 
 
+        % InitYX  NumOfYX-by-NumOfPeriods matrix of original input data for YX
+        InitYX = double.empty(0)
+
         % BarYX  NumOfYX-by-NumOfPeriods matrix of steady levels for [observed; endogenous]
         BarYX = double.empty(0) 
 
@@ -27,8 +30,8 @@ classdef Data < handle
         % MixinUnanticipated  True if anticipated and unanticipated shocks are simulated in one run
         MixinUnanticipated = false
 
-        InxOfExogenized = logical.empty(0)
-        InxOfEndogenized = logical.empty(0)
+        InxOfExogenizedYX = logical.empty(0)
+        InxOfEndogenizedE = logical.empty(0)
         Target = double.empty(0)
 
         % AnticipatedE  Values of anticipated shocks within the current simulation range
@@ -39,6 +42,7 @@ classdef Data < handle
 
         FirstColumnOfSimulation
         LastColumnOfSimulation
+        NumOfDummyPeriods
     end
 
 
@@ -52,21 +56,21 @@ classdef Data < handle
         function updateSwap(this, plan)
             firstColumn = this.FirstColumn;
             lastColumnOfSimulation = this.LastColumnOfSimulation;
-            this.InxOfExogenized = false(size(this.YXEPG));
-            this.InxOfEndogenized = false(size(this.YXEPG));
-            this.Target = nan(size(this.YXEPG));
+            this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfExtendedPeriods);
+            this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfExtendedPeriods);
+            this.Target = nan(this.NumOfYX, this.NumOfExtendedPeriods);
             if plan.NumOfExogenizedPoints>0
-                this.InxOfExogenized(this.InxOfYX, firstColumn) = plan.InxOfAnticipatedExogenized(:, firstColumn) ...
-                                                                | plan.InxOfUnanticipatedExogenized(:, firstColumn);
-                this.InxOfExogenized(this.InxOfYX, firstColumn+1:lastColumnOfSimulation) = plan.InxOfAnticipatedExogenized(:, firstColumn+1:lastColumnOfSimulation);
+                this.InxOfExogenizedYX(:, firstColumn) = plan.InxOfAnticipatedExogenized(:, firstColumn) ...
+                                                       | plan.InxOfUnanticipatedExogenized(:, firstColumn);
+                this.InxOfExogenizedYX(:, firstColumn+1:lastColumnOfSimulation) = plan.InxOfAnticipatedExogenized(:, firstColumn+1:lastColumnOfSimulation);
             end
             if plan.NumOfEndogenizedPoints>0
-                this.InxOfEndogenized(this.InxOfE, firstColumn) = plan.InxOfAnticipatedEndogenized(:, firstColumn) ...
-                                                                | plan.InxOfUnanticipatedEndogenized(:, firstColumn);
-                this.InxOfEndogenized(this.InxOfE, firstColumn+1:lastColumnOfSimulation) = plan.InxOfAnticipatedEndogenized(:, firstColumn+1:lastColumnOfSimulation);
+                this.InxOfEndogenizedE(:, firstColumn) = plan.InxOfAnticipatedEndogenized(:, firstColumn) ...
+                                                      | plan.InxOfUnanticipatedEndogenized(:, firstColumn);
+                this.InxOfEndogenizedE(:, firstColumn+1:lastColumnOfSimulation) = plan.InxOfAnticipatedEndogenized(:, firstColumn+1:lastColumnOfSimulation);
             end
             if this.NumOfExogenizedPoints>0
-                this.Target(this.InxOfExogenized) = this.YXEPG(this.InxOfExogenized);
+                this.Target(this.InxOfExogenizedYX) = this.InitYX(this.InxOfExogenizedYX);
             end
         end%
 
@@ -150,10 +154,12 @@ classdef Data < handle
             if nargin<2
                 this.FirstColumn = this.FirstColumnOfSimulation;
                 this.LastColumn = this.LastColumnOfSimulation;
+                this.NumOfDummyPeriods = 0;
                 return
             end
             this.FirstColumn = timeFrame(1);
-            this.LastColumn = timeFrame(end);
+            this.LastColumn = timeFrame(2);
+            this.NumOfDummyPeriods = timeFrame(3);
         end%
     end
 
@@ -193,17 +199,18 @@ classdef Data < handle
 
 
         function value = get.NumOfExogenizedPoints(this)
-            value = nnz(this.InxOfExogenized);
+            value = nnz(this.InxOfExogenizedYX);
         end%
 
 
         function value = get.NumOfEndogenizedPoints(this)
-            value = nnz(this.InxOfEndogenized);
+            value = nnz(this.InxOfEndogenizedE);
         end%
 
 
         function value = get.LastAnticipatedE(this)
-            value = find(any(this.AnticipatedE~=0, 1), 1, 'last');
+            temp = any(this.AnticipatedE~=0, 1);
+            value = find(temp, 1, 'last');
             if isempty(value)
                 value = 0;
             end
@@ -211,7 +218,8 @@ classdef Data < handle
 
 
         function value = get.LastEndogenizedE(this)
-            value = find(any(this.InxOfEndogenized(this.InxOfE, :), 1), 1, 'last');
+            temp = any(this.InxOfEndogenizedE, 1);
+            value = find(temp, 1, 'last');
             if isempty(value)
                 value = 0;
             end
@@ -219,7 +227,8 @@ classdef Data < handle
 
 
         function value = get.LastExogenizedYX(this)
-            value = find(any(this.InxOfExogenized(this.InxOfYX, :), 1), 1, 'last');
+            temp = any(this.InxOfExogenizedYX, 1);
+            value = find(temp, 1, 'last');
             if isempty(value)
                 value = 0;
             end
@@ -239,8 +248,9 @@ classdef Data < handle
             this.InxOfE = getIndexByType(quantity, TYPE(31), TYPE(32));
             this.InxOfLog = quantity.IxLog;
 
-            this.InxOfExogenized = false(size(YXEPG));
-            this.InxOfEndogenized = false(size(YXEPG));
+            this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfExtendedPeriods);
+            this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfExtendedPeriods);
+            this.InitYX = this.YXEPG(this.InxOfYX, :);
 
             if isa(plan, 'Plan')
                 this.AnticipationStatusOfE = plan.AnticipationStatusOfExogenous;
@@ -251,3 +261,17 @@ classdef Data < handle
         end%
     end
 end
+
+
+%
+% Local Functions
+%
+
+
+function inx = correctInxForDummies(inx, n)
+    if n==0
+        return
+    end
+    inx(:, end-n+1:end) = false;
+end%
+

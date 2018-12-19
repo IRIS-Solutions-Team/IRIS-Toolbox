@@ -7,7 +7,7 @@ function [opt, legacyOpt] = parseSimulateOptions(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-persistent parser legacyParser
+persistent parser 
 
 if isempty(parser)
     parser = extend.InputParser('model.simulate');

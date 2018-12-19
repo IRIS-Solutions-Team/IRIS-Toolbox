@@ -8,10 +8,10 @@ classdef Plan
         ExtendedEnd = double.empty(0)
 
         AnticipationStatusOfExogenous = logical.empty(0)
-        InxOfAnticipatedEndogenized = logical.empty(0, 0, 0)
-        InxOfUnanticipatedEndogenized = logical.empty(0, 0, 0)
-        InxOfAnticipatedExogenized = logical.empty(0, 0, 0)
-        InxOfUnanticipatedExogenized = logical.empty(0, 0, 0)
+        InxOfAnticipatedEndogenized = logical.empty(0, 0)
+        InxOfUnanticipatedEndogenized = logical.empty(0, 0)
+        InxOfAnticipatedExogenized = logical.empty(0, 0)
+        InxOfUnanticipatedExogenized = logical.empty(0, 0)
     end
 
 
@@ -186,6 +186,17 @@ classdef Plan
                                            setToValue, ...
                                            'Anticipate=', anticipationStatus );
             end
+        end%
+
+
+        function this = extendWithDummies(this, numOfPeriods)
+            if numOfPeriods==0
+                return
+            end
+            this.InxOfAnticipatedEndogenized(:, end+(1:numOfPeriods)) = false;
+            this.InxOfUnanticipatedEndogenized(:, end+(1:numOfPeriods)) = false;
+            this.InxOfAnticipatedExogenized(:, end+(1:numOfPeriods)) = false;
+            this.InxOfUnanticipatedExogenized(:, end+(1:numOfPeriods)) = false;
         end%
     end
 

@@ -16,34 +16,37 @@ end%
 function updateEndogenizedE(this, data)
 % Evaluate discrepancy between the inxOfExogenized values and their targets,
 % and calculate the implied increments to the endogenized shocks
-    inxOfEndogenized = data.InxOfEndogenized;
+    inxOfEndogenizedE = data.InxOfEndogenizedE;
     discrepancy = evaluateDiscrepancy(data);
-    addE = this.FirstOrderMultipliers \ discrepancy(:);
-    temp = data.YXEPG(inxOfEndogenized);
+    addToE = this.FirstOrderMultipliers \ discrepancy(:);
+    E = data.YXEPG(data.InxOfE, :);
+    temp = E(inxOfEndogenizedE);
     tempImag = imag(temp);
     tempReal = real(temp);
-    tempReal = tempReal + addE;
+    tempReal = tempReal + addToE;
     if nnz(tempImag~=0)
-        data.YXEPG(inxOfEndogenized) = complex(tempReal, tempImag);
+        E(inxOfEndogenizedE) = complex(tempReal, tempImag);
     else
-        data.YXEPG(inxOfEndogenized) = tempReal;
+        E(inxOfEndogenizedE) = tempReal;
     end
+    data.YXEPG(data.InxOfE, :) = E;
     updateE(data);
 end%
 
 
 function discrepancy = evaluateDiscrepancy(data)
 % Evaluate discrepancy between the inxOfExogenized values and their targets
-    inxOfExogenized = data.InxOfExogenized;
-    target = data.Target(inxOfExogenized);
-    YXEPG = data.YXEPG(inxOfExogenized);
+    inxOfExogenizedYX = data.InxOfExogenizedYX;
+    target = data.Target(inxOfExogenizedYX);
+    actual = data.YXEPG(data.InxOfYX, :);
+    actual = actual(inxOfExogenizedYX);
     if any(data.InxOfLog)
         % Take care of log-variables if there are any
-        inxOfLog = repmat(data.InxOfLog, 1, data.NumOfExtendedPeriods);
-        inxOfLogExogenized = inxOfLog(inxOfExogenized);
-        target(inxOfLogExogenized) = log(target(inxOfLogExogenized));
-        YXEPG(inxOfLogExogenized) = log(YXEPG(inxOfLogExogenized));
+        inxOfLogYX = repmat(data.InxOfLog(data.InxOfYX), 1, data.NumOfExtendedPeriods);
+        inxOfLogExogenizedYX = inxOfLogYX(inxOfExogenizedYX);
+        target(inxOfLogExogenizedYX) = log(target(inxOfLogExogenizedYX));
+        actual(inxOfLogExogenizedYX) = log(actual(inxOfLogExogenizedYX));
     end
-    discrepancy = target - YXEPG;
+    discrepancy = target - actual;
 end%
 

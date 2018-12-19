@@ -33,6 +33,7 @@ classdef Rectangular < handle
     properties (SetAccess=protected)
         FirstColumn = NaN
         LastColumn = NaN
+        NumOfDummyPeriods = NaN
     end
 
 
@@ -114,7 +115,8 @@ classdef Rectangular < handle
         function setTimeFrame(this, timeFrame)
             VEC = @(x) x(:);
             this.FirstColumn = timeFrame(1);
-            this.LastColumn = timeFrame(end);
+            this.LastColumn = timeFrame(2);
+            this.NumOfDummyPeriods = timeFrame(3);
             [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
             idOfXib = VEC(this.SolutionVector{2}(nf+1:end));
             idOfCurrentXi = VEC(this.SolutionVector{2}(this.InxOfCurrentWithinXi));

@@ -27,12 +27,12 @@ numOfPeriods = lastColumn - firstColumn + 1;
 
 % Period of last endogenized and last exogenized point within simulation
 % columns
-anyExogenized = any(data.InxOfExogenized, 1);
+anyExogenized = any(data.InxOfExogenizedYX, 1);
 lastExogenizedYX = max([0, find(anyExogenized, 1, 'Last')]);
 lastEndogenizedE = data.LastEndogenizedE;
 
-inxOfEndogenizedE = data.InxOfEndogenized(data.InxOfE, firstColumn:lastEndogenizedE);
-inxOfExogenizedYX = data.InxOfExogenized(data.InxOfYX, firstColumn:lastExogenizedYX);
+inxOfEndogenizedE = data.InxOfEndogenizedE(:, lastEndogenizedE);
+inxOfExogenizedYX = data.InxOfExogenizedYX(:, firstColumn:lastExogenizedYX);
 
 if tryExistingMultipliers( )
     return
@@ -56,6 +56,8 @@ H = [H, zeros(ny, ne*(numOfPeriods-1))];
 
 M = zeros(0, numOfEndogenizedE);
 xb = zeros(size(Rb));
+idOfAll = 1 : size(data.YXEPG, 1);
+idOfYX = idOfAll(data.InxOfYX);
 for t = firstColumn : lastExogenizedYX
     xf = Tf*xb;
     xb = Tb*xb;
@@ -68,20 +70,20 @@ for t = firstColumn : lastExogenizedYX
         Rf = [zeros(nf, ne), Rf(:, 1:end-ne)];
         H = [zeros(ny, ne), H(:, 1:end-ne)];
     end
-    idOfExogenized = find(data.InxOfExogenized(:, t));
-    if isempty(idOfExogenized)
+    idOfExogenizedYX = idOfYX(data.InxOfExogenizedYX(:, t));
+    if isempty(idOfExogenizedYX)
         continue
     end
     addToM = [y; xf; xb];
-    % Find the rows in which idOfExogenized occur in idOfYXi
-    [~, rows] = ismember(idOfExogenized, idOfYXi);
+    % Find the rows in which idOfExogenizedYX occur in idOfYXi
+    [~, rows] = ismember(idOfExogenizedYX, idOfYXi);
     addToM = addToM(rows, vecEndogenizedE);
     M = [M; addToM];
 end
 
 this.FirstOrderMultipliers = M;
-this.MultipliersEndogenizedE = data.InxOfEndogenized(data.InxOfE, firstColumn:lastEndogenizedE);
-this.MultipliersExogenizedYX = data.InxOfExogenized(data.InxOfYX, firstColumn:lastExogenizedYX);
+this.MultipliersEndogenizedE = data.InxOfEndogenizedE(:, firstColumn:lastEndogenizedE);
+this.MultipliersExogenizedYX = data.InxOfExogenizedYX(:, firstColumn:lastExogenizedYX);
 
 return
 
