@@ -8,18 +8,19 @@
 
 classdef Rectangular < handle
     properties
+        Method
         FirstOrderSolution = cell(1, 7)   % First-order solution matrices {T, R, K, Z, H, D, Y}, discard U, Zb
         FirstOrderExpansion = cell(1, 5)  % First-order expansion matrices {Xa, Xf, Ru, J, Yu}
 
         % FirstOrderMultipliers  First-order multipliers for endogenized shocks
-        FirstOrderMultipliers = double(0) 
+        FirstOrderMultipliers = double.empty(0) 
+        InvFirstOrderMultipliers = double.empty(0)
         MultipliersExogenizedYX = logical.empty(0)
         MultipliersEndogenizedE = logical.empty(0)
 
         SolutionVector
         
         Quantity
-        NumOfHashEquations
 
         InxOfCurrentWithinXi
         LinxOfXib
@@ -27,6 +28,9 @@ classdef Rectangular < handle
 
         Deviation = false
         SimulateY = true
+
+        HashEquationsFunction
+        NumOfHashEquations = NaN
     end
 
 
@@ -53,22 +57,27 @@ classdef Rectangular < handle
             end
             keepExpansion = true;
             triangular = false;
-            [ this.FirstOrderSolution{1:6}, ...
-              ~, ~, this.FirstOrderSolution{7} ] = sspaceMatrices( model, ...
-                                                                   variantRequested, ...
-                                                                   keepExpansion, ...
-                                                                   triangular );
+            [ this.FirstOrderSolution{1:6}, ~, ~, ~, ...
+              this.FirstOrderSolution{7} ] = sspaceMatrices( model, ...
+                                             variantRequested, ...
+                                             keepExpansion, ...
+                                             triangular );
             [this.FirstOrderExpansion{:}] = expansionMatrices( model, ...
                                                                variantRequested, ...
                                                                triangular );
         end%
 
 
-        function ensureExpansionForData(this, data)
+        function ensureExpansionGivenData(this, data)
             lastAnticipatedE = data.LastAnticipatedE;
             lastEndogenizedE = data.LastEndogenizedE;
+            window = 0;
+            if strcmpi(this.Method, 'Selective')
+                window = round(data.LastColumn - data.FirstColumn + 1);
+            end
             requiredForward = max([ lastAnticipatedE-this.FirstColumn, ...
-                                    lastEndogenizedE-this.FirstColumn ]);
+                                    lastEndogenizedE-this.FirstColumn, ...
+                                    window ]);
             if isempty(requiredForward) || requiredForward==0
                 return
             end
@@ -78,16 +87,18 @@ classdef Rectangular < handle
 
         function ensureExpansion(this, requiredForward)
             R = this.FirstOrderSolution{2};
-            if size(R, 2)==0
-                % No shocks in the model, return immediately
+            Y = this.FirstOrderSolution{7};
+            if size(R, 2)==0  && size(Y, 2)==0
+                % No shocks or hash equations in the model, return immediately
                 return
             end
             if requiredForward<=this.CurrentForward
                 % Current expansion sufficient, return immediately
                 return
             end
-            R = model.expandFirstOrder(R, [ ], this.FirstOrderExpansion, requiredForward);
+            [R, Y] = model.expandFirstOrder(R, Y, this.FirstOrderExpansion, requiredForward);
             this.FirstOrderSolution{2} = R;
+            this.FirstOrderSolution{7} = Y;
         end%
 
 
@@ -129,7 +140,18 @@ classdef Rectangular < handle
                                             real(idOfCurrentXi), ...
                                             this.FirstColumn + imag(idOfCurrentXi) );
         end%
+
+
+        function this = set.FirstOrderMultipliers(this, value)
+            this.FirstOrderMultipliers = value;
+            if strcmpi(this.Method, 'Selective')
+                this.InvFirstOrderMultipliers = inv(value);
+            else
+                this.InvFirstOrderMultipliers = double.empty(0);
+            end
+        end%
     end
+
 
 
     methods (Static)
@@ -148,8 +170,9 @@ classdef Rectangular < handle
             % Solution vector
             this.SolutionVector = getp(model, 'Vector', 'Solution');
 
-            this.NumOfHashEquations = getp(model, 'Equation', 'NumOfHashEquations');
             this.InxOfCurrentWithinXi = imag(this.SolutionVector{2})==0;
+
+            [this.HashEquationsFunction, this.NumOfHashEquations] = prepareHashEquations(model);
         end%
     end
 end

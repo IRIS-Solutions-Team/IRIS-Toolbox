@@ -20,8 +20,8 @@ end
 parser.parse(this, inputData, baseRange, varargin{:});
 opt = parser.Options;
 
-opt.Window = parseWindow(opt.Window, opt.Method, baseRange);
-opt.Solver = parseSolver(opt.Solver, opt.Method);
+opt.Window = parseWindowOption(opt.Window, opt.Method, baseRange);
+opt.Solver = parseSolverOption(opt.Solver, opt.Method);
 
 %--------------------------------------------------------------------------
 
@@ -73,35 +73,35 @@ function flag = validateSolverName(x)
 end%
 
 
-function window = parseWindow(window, method, baseRange)
-    if isequal(window, @auto)
-        if strcmpi(method, 'FirstOrder')
-            window = 1;
-        elseif strcmpi(method, 'Selective')
-            window = @max;
+function windowOption = parseWindowOption(windowOption, methodOption, baseRange)
+    if isequal(windowOption, @auto)
+        if strcmpi(methodOption, 'FirstOrder')
+            windowOption = 1;
+        elseif strcmpi(methodOption, 'Selective')
+            windowOption = @max;
         end
     end
     baseRange = double(baseRange);
     lenOfBaseRange = round(baseRange(end) - baseRange(1) + 1);
-    if isequal(window, @max)
-        window = lenOfBaseRange;
-    elseif isnumeric(window) && window>lenOfBaseRange
+    if isequal(windowOption, @max)
+        windowOption = lenOfBaseRange;
+    elseif isnumeric(windowOption) && windowOption>lenOfBaseRange
         THIS_ERROR = { 'Model:WindowCannotExceedRangeLength'
-                       'Simulation window cannot exceed number of simulation periods' };
+                       'Simulation windowOption cannot exceed number of simulation periods' };
         throw( exception.Base(THIS_ERROR, 'error') );
     end
 end%
 
 
-function solver = parseSolver(solver, method)
-    if strcmpi(method, 'FirstOrder')
-        solver = [ ];
+function solverOption = parseSolverOption(solverOption, methodOption)
+    if strcmpi(methodOption, 'FirstOrder')
+        solverOption = [ ];
         return
     end
-    if strcmpi(method, 'Selective')
+    if strcmpi(methodOption, 'Selective')
         prepareGradient = false;
         displayMode = 'Verbose';
-        solver = solver.Options.parserOptions(solver, method, prepareGradient, displayMode);
+        solverOption = solver.Options.parseOptions(solverOption, methodOption, prepareGradient, displayMode);
         return
     end
 end%

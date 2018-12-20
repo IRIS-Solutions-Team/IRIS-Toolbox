@@ -1,4 +1,4 @@
-function [R, Y] = expandFirstOrder(R, Y, expansion, k)
+function [R, Y] = expandFirstOrder(R0, Y0, expansion, k)
 % expandFirstOrder  Reconstruct forward expansion up to t+k for one parameter variant
 %
 % Backend IRIS function
@@ -25,8 +25,8 @@ if ne==0 && nh==0
 end
 
 % Pre-allocate NaNs.
-R = [R, nan(size(R, 1), ne*k)];
-Y = [Y, nan(size(Y, 1), nh*k)];
+R = [R0(:, 1:ne), nan(size(R0, 1), ne*k)];
+Y = [Y0(:, 1:nh), nan(size(Y0, 1), nh*k)];
 
 % Expansion matrices not available.
 if any(any(isnan(Xa))) || k==0

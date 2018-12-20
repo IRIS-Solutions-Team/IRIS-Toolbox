@@ -75,7 +75,7 @@ inxOfY = getIndexByType(this.Quantity, TYPE(1));
 inxOfX = getIndexByType(this.Quantity, TYPE(2));
 inxOfM = this.Equation.Type==TYPE(1);
 inxOfT = this.Equation.Type==TYPE(2);
-inxOfMT = inxOfM | inxOfT;
+inxOfEquations = inxOfM | inxOfT;
 
 variantsRequested = Inf;
 if isnumeric(varargin{1})
@@ -99,7 +99,7 @@ elseif isstruct(varargin{1})
     varargin(1) = [ ];
     range = double(range);
     if isempty(range)
-        dcy = zeros(sum(inxOfMT), 0, nv);
+        dcy = zeros(nnz(inxOfEquations), 0, nv);
         return
     end
     howToCreateL = [ ];
@@ -107,6 +107,10 @@ elseif isstruct(varargin{1})
 end
 
 opt = passvalopt('model.lhsmrhs', varargin{:});
+
+if opt.HashEquationsOnly
+    inxOfEquations = inxOfEquations & this.Equation.InxOfHashEquations;
+end
 
 if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     nv = length(this);
@@ -122,13 +126,13 @@ if strcmpi(opt.kind, 'Dynamic')
     eqtn = this.Equation.Dynamic;
 else
     eqtn = this.Equation.Steady;
-    inxToCopy = inxOfMT & cellfun(@isempty, eqtn);
+    inxToCopy = inxOfEquations & cellfun(@isempty, eqtn);
     eqtn(inxToCopy) = this.Equation.Dynamic(inxToCopy);
 end
 
 [minSh, maxSh] = getActualMinMaxShifts(this);
 
-temp = [ eqtn{inxOfMT} ];
+temp = [ eqtn{inxOfEquations} ];
 temp = vectorize(temp);
 fn = str2func([this.PREAMBLE_DYNAMIC, '[', temp, ']']);
 t = 1-minSh : nXPer-maxSh;

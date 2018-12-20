@@ -16,6 +16,7 @@ classdef Equation < model.component.Insertable
 
 
     properties (Dependent)
+        InxOfHashEquations
         NumOfHashEquations
     end
 
@@ -38,8 +39,13 @@ classdef Equation < model.component.Insertable
 
 
     methods
-        function n = get.NumOfHashEquations(this)
-            n = nnz(this.IxHash);
+        function value = get.InxOfHashEquations(this)
+            value = this.IxHash;
+        end%
+
+
+        function value = get.NumOfHashEquations(this)
+            value = nnz(this.IxHash);
         end%
     end
     

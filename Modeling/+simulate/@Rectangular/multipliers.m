@@ -31,7 +31,7 @@ anyExogenized = any(data.InxOfExogenizedYX, 1);
 lastExogenizedYX = max([0, find(anyExogenized, 1, 'Last')]);
 lastEndogenizedE = data.LastEndogenizedE;
 
-inxOfEndogenizedE = data.InxOfEndogenizedE(:, lastEndogenizedE);
+inxOfEndogenizedE = data.InxOfEndogenizedE(:, firstColumn:lastEndogenizedE);
 inxOfExogenizedYX = data.InxOfExogenizedYX(:, firstColumn:lastExogenizedYX);
 
 if tryExistingMultipliers( )

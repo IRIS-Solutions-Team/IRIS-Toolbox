@@ -18,7 +18,11 @@ function updateEndogenizedE(this, data)
 % and calculate the implied increments to the endogenized shocks
     inxOfEndogenizedE = data.InxOfEndogenizedE;
     discrepancy = evaluateDiscrepancy(data);
-    addToE = this.FirstOrderMultipliers \ discrepancy(:);
+    if ~isempty(this.InvFirstOrderMultipliers)
+        addToE = this.InvFirstOrderMultipliers * discrepancy(:);
+    else
+        addToE = this.FirstOrderMultipliers \ discrepancy(:);
+    end
     E = data.YXEPG(data.InxOfE, :);
     temp = E(inxOfEndogenizedE);
     tempImag = imag(temp);

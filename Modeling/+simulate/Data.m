@@ -43,6 +43,8 @@ classdef Data < handle
         FirstColumnOfSimulation
         LastColumnOfSimulation
         NumOfDummyPeriods
+
+        Deviation = false
     end
 
 

@@ -10,8 +10,8 @@ function def = model( )
 %--------------------------------------------------------------------------
 
 deviation_dtrends = {
-    'Deviation, Deviations', false, @islogicalscalar
-    'DTrends, DTrend', @auto, @(x) islogicalscalar(x) || isequal(x, @auto)
+    'Deviation, Deviations', false, @(x) isequal(x, true) || isequal(x, false)
+    'DTrends, DTrend', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto)
     };
 
 matrixFormat = {
@@ -30,14 +30,14 @@ def.autocaption = { ...
     'std', 'Std $shock$', @ischar, ...
     };
 
-def.chkmissing = { ...
-    'error', true, @islogicalscalar, ...
+def.chkmissing = { 
+    'error', true, @(x) isequal(x, true) || isequal(x, false)
     };
 
-def.chkredundant = { ...
-    'warning', true, @islogicalscalar, ...
-    'chkshock, chkshocks', true, @islogicalscalar, ...
-    'chkparam, chkparams, chkparameters', true, @islogicalscalar, ...
+def.chkredundant = {
+    'warning', true, @(x) isequal(x, true) || isequal(x, false)
+    'chkshock, chkshocks', true, @(x) isequal(x, true) || isequal(x, false)
+    'chkparam, chkparams, chkparameters', true, @(x) isequal(x, true) || isequal(x, false)
     };
 
 def.chksstate = { 
@@ -157,8 +157,9 @@ def.sspace = {
     };
 
 
-def.lhsmrhs = { ...
-    'kind', 'dynamic', @(x) ischar(x) && any(strcmpi(x, {'dynamic', 'steady'})), ...
+def.lhsmrhs = { 
+    'HashEquationsOnly', false, @(x) isequal(x, true) || isequal(x, false)
+    'kind', 'dynamic', @(x) ischar(x) && any(strcmpi(x, {'dynamic', 'steady'})) 
     };
 
 def.trollify = { 
@@ -173,7 +174,7 @@ def.trollify = {
 def.VAR = {...
     'acf', { }, @(x) iscell(x) && iscellstr(x(1:2:end))
     'order', 1, @isnumericscalar
-    'constant, const', true, @islogicalscalar
+    'constant, const', true, @(x) isequal(x, true) || isequal(x, false)
     };
 
 def.vma = [

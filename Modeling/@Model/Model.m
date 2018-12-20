@@ -51,6 +51,7 @@ classdef Model < model
         varargout = checkInitialConditions(varargin)
         varargout = getIdOfInitialConditions(varargin)
         varargout = getInxOfInitInPresample(varargin)
+        varargout = prepareHashEquations(varargin)
         varargout = simulateFirstOrder(varargin)
     end
 end
