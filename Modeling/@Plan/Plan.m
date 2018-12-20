@@ -41,6 +41,11 @@ classdef Plan
             this.InxOfUnanticipatedExogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods);
             this.InxOfAnticipatedEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
             this.InxOfUnanticipatedEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
+            if this.DefaultAnticipate
+                this.AnticipationStatusOfExogenous = true(this.NumOfExogenous, 1);
+            else
+                this.AnticipationStatusOfExogenous = false(this.NumOfExogenous, 1);
+            end
         end%
 
 
@@ -227,7 +232,7 @@ classdef Plan
                 return
             end
             value = this.BaseStart : this.BaseEnd;
-            value = DateWrapper.fromSerial(value);
+            value = DateWrapper.fromDateCode(value);
         end%
 
 
@@ -237,18 +242,9 @@ classdef Plan
                 return
             end
             value = this.ExtendedStart : this.ExtendedEnd;
-            value = DateWrapper.fromSerial(value);
+            value = DateWrapper.fromDateCode(value);
         end%
 
-
-        function this = set.DefaultAnticipate(this, value)
-            this.DefaultAnticipate = value;
-            if value
-                this.AnticipationStatusOfExogenous = true(this.NumOfExogenous, 1);
-            else
-                this.AnticipationStatusOfExogenous = false(this.NumOfExogenous, 1);
-            end
-        end%
 
         function value = get.NumOfEndogenous(this)
             value = numel(this.NamesOfEndogenous);

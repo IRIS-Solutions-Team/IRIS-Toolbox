@@ -165,6 +165,7 @@ while true
     jacobUpdate = iter<=lastJacobUpdate;
     if jacobUpdate
         if opt.SpecifyObjectiveGradient
+
             [current.F, current.J] = objectiveFuncReshaped(current.X);
             fnCount = fnCount + 1;
             current.F = current.F(:);
