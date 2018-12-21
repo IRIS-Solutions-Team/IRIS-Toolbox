@@ -56,9 +56,12 @@ else
     startOfRange = range(1);
     endOfRange = range(end);
 end
-freq = round(DateWrapper.getFrequencyAsNumeric(startOfRange));
+freq = DateWrapper.getFrequencyAsNumeric(startOfRange);
 serialRangeStart = DateWrapper.getSerial(startOfRange);
 serialRangeEnd = DateWrapper.getSerial(endOfRange);
+
+previousSerialXStart = [ ];
+previousXStart = [ ];
 
 for i = 1 : numel(this.NamesOfAppendablesInData)
     ithName = this.NamesOfAppendablesInData{i};
@@ -66,15 +69,15 @@ for i = 1 : numel(this.NamesOfAppendablesInData)
     postSeries = [ ];
     if isstruct(preDatabank)
         if isfield(preDatabank, ithName) ...
-            && isa(preDatabank.(ithName), 'TimeSubscriptable') ...
-            && round(preDatabank.(ithName).Frequency)==freq
+           && isa(preDatabank.(ithName), 'TimeSubscriptable') ...
+           && getFrequencyAsNumeric(preDatabank.(ithName))==freq
             preSeries = preDatabank.(ithName);
         end
     end
     if isstruct(postDatabank)
         if isfield(postDatabank, ithName) ...
             && isa(postDatabank.(ithName), 'TimeSubscriptable') ...
-            && round(postDatabank.(ithName).Frequency)==freq
+            && getFrequencyAsNumeric(postDatabank.(ithName))==freq
             postSeries = postDatabank.(ithName);
         end
     end
@@ -103,8 +106,13 @@ for i = 1 : numel(this.NamesOfAppendablesInData)
         appendPostsample( );
     end
 
-    if serialXStart~=serialXStart0
-        x.Start = DateWrapper.fromSerial(freq, serialXStart);
+    if ~isempty(previousSerialXStart) && serialXStart==previousSerialXStart
+        x.Start = previousXStart;
+    elseif serialXStart~=serialXStart0
+        newStart = DateWrapper.fromSerial(freq, serialXStart);
+        x.Start = newStart;
+        previousSerialXStart = serialXStart;
+        previousXStart = newStart;
     end
     x.Data = xData;
     x = trim(x);

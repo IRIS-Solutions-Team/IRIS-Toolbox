@@ -1,4 +1,13 @@
 function [data, start, first, last] = trimRows(data, start, missingValue, missingTest)
+% trimRows  Trim leading and trailing rows with only NaNs in them
+%
+% Backend IRIS function
+% No help provided
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
 
 first = [ ];
 last = [ ];
@@ -19,7 +28,7 @@ if all(indexOfMissing)
     first = 1;
     last = 0;
     data = repmat(missingValue, [0, sizeOfData(2:end)]);
-    start = DateWrapper.NaD( );
+    start = NaN;
     return
 end
 
@@ -27,6 +36,8 @@ first = find(~indexOfMissing, 1);
 last = find(~indexOfMissing, 1, 'last');
 n = last - first + 1;
 data = reshape(data(first:last, :), [n, sizeOfData(2:end)]);
-start = addTo(start, first-1);
+start = double(start);
+start = start + first - 1; 
 
-end
+end%
+

@@ -174,6 +174,7 @@ classdef Data < handle
         NumOfExogenizedPoints
         NumOfEndogenizedPoints
         LastAnticipatedE
+        LastUnanticipatedE
         LastEndogenizedE
         LastExogenizedYX
     end
@@ -212,6 +213,15 @@ classdef Data < handle
 
         function value = get.LastAnticipatedE(this)
             temp = any(this.AnticipatedE~=0, 1);
+            value = find(temp, 1, 'last');
+            if isempty(value)
+                value = 0;
+            end
+        end%
+
+
+        function value = get.LastUnanticipatedE(this)
+            temp = any(this.UnanticipatedE~=0, 1);
             value = find(temp, 1, 'last');
             if isempty(value)
                 value = 0;

@@ -93,15 +93,13 @@ if opt.K==0
     return
 end
 
-if ~isa(range, 'DateWrapper')
-    range = DateWrapper.fromDateCode(range);
-end
+range = double(range);
 
 %--------------------------------------------------------------------------
 
 start = range(1);
-extendedStart = addTo(start, min(0, opt.K));
-extendedEnd = addTo(getLast(range), max(0, opt.K));
+extendedStart = start + min(0, opt.K); 
+extendedEnd = range(end) + max(0, opt.K); 
 data = getDataFromTo(this, extendedStart, extendedEnd);
 
 sizeData = size(data);
@@ -118,13 +116,11 @@ if opt.Log
     data = exp(data);
 end
 
-this.Start = start;
 if ndimsData>2
     sizeData(1) = size(data, 1);
     data = reshape(data, sizeData);
 end
-this.Data = data;
+this = fill(this, data, start);
 
-this = trim(this);
+end%
 
-end

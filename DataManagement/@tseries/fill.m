@@ -13,6 +13,7 @@ this.Data = newData;
 
 if nargin>2
     if numel(newStart)>1
+        newStart = double(newStart);
         newStart = newStart(1);
     end
     % Make new start date the same class as the old start date

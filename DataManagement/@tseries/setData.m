@@ -21,7 +21,7 @@ end
 
 %--------------------------------------------------------------------------
 
-needsConvertToDateWrapper = isa(this.Start, 'DateWrapper');
+convertToDateWrapper = isa(this.Start, 'DateWrapper');
 
 % Pad LHS tseries data with NaNs to comply with references.
 % Remove the rows from dates that do not pass the frequency test.
@@ -74,7 +74,7 @@ end
 
 % Make sure empty time series have start date set to NaN no matter what
 if isempty(this.Data)
-    if needsConvertToDateWrapper
+    if convertToDateWrapper
         this.Start = DateWrapper.NaD;
     else
         this.Start = NaN;
@@ -102,7 +102,7 @@ function [this, s, dates, freqTest] = expand(this, s)
                                  'Attempt to grow time series data array along ambiguous dimension' };
     testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
 
-    needsConvertToDateWrapper = isa(this.Start, 'DateWrapper');
+    convertToDateWrapper = isa(this.Start, 'DateWrapper');
     startOfThis = double(this.Start);
     freqOfThis = DateWrapper.getFrequencyAsNumeric(startOfThis);
 
@@ -207,8 +207,8 @@ function [this, s, dates, freqTest] = expand(this, s)
         end
     end
 
-    if needsConvertToDateWrapper && ~isa(startOfThis, 'DateWrapper')
-        startOfThis = DateWrapper.fromDateCode(startOfThis);
+    if convertToDateWrapper && ~isa(startOfThis, 'DateWrapper')
+        startOfThis = DateWrapper(startOfThis);
     end
     this.Start = startOfThis;
 

@@ -298,6 +298,7 @@ classdef DateWrapper < double
                 throw( exception.Base('Dates:NonIntegerSerialNumber', 'error'), ...
                        report{:} );
             end
+            freq = double(freq);
             inxOfFreqCodes = freq~=Frequency.INTEGER & freq~=Frequency.DAILY;
             freqCode = zeros(size(freq));
             freqCode(inxOfFreqCodes) = double(freq(inxOfFreqCodes)) / 100;

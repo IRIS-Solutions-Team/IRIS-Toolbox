@@ -154,24 +154,29 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
          
 
         function frequency = get.Frequency(this)
-            frequency = DateWrapper.getFrequency(this.Start);
+            frequency = DateWrapper.getFrequency(double(this.Start));
         end%
 
 
         function frequency = get.FrequencyAsNumeric(this)
-            frequency = DateWrapper.getFrequencyAsNumeric(this.Start);
+            frequency = DateWrapper.getFrequencyAsNumeric(double(this.Start));
         end%
 
 
         function frequency = getFrequency(this)
-            frequency = DateWrapper.getFrequency(this.Start);
+            frequency = DateWrapper.getFrequency(double(this.Start));
+        end%
+
+
+        function frequency = getFrequencyAsNumeric(this)
+            frequency = DateWrapper.getFrequencyAsNumeric(double(this.Start));
         end%
 
 
         function range = get.Range(this)
             range = this.RangeAsNumeric;
             if isa(this.Start, 'DateWrapper')
-               range = DateWrapper.fromDateCode(range);
+               range = DateWrapper(range);
             end 
         end%
 
@@ -185,7 +190,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
         function range = get.RangeAsDateWrapper(this)
             range = this.RangeAsNumeric;
-            range = DateWrapper.fromDateCode(range);
+            range = DateWrapper(range);
         end%
 
 

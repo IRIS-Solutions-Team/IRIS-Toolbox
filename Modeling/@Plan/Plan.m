@@ -232,7 +232,7 @@ classdef Plan
                 return
             end
             value = this.BaseStart : this.BaseEnd;
-            value = DateWrapper.fromDateCode(value);
+            value = DateWrapper(value);
         end%
 
 
@@ -242,7 +242,7 @@ classdef Plan
                 return
             end
             value = this.ExtendedStart : this.ExtendedEnd;
-            value = DateWrapper.fromDateCode(value);
+            value = DateWrapper(value);
         end%
 
 

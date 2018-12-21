@@ -12,7 +12,7 @@ try
 catch
     timeSeriesConstructor = iris.get('DefaultTimeSeriesConstructor');
 end
-TIME_SERIES = timeSeriesConstructor( );
+TIME_SERIES_TEMPLATE = timeSeriesConstructor( );
 
 %--------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ for i = find(inxToInclude)
     ithData = permute(ithData, [2, 3, 1]);
     ithName = listOfNames{i};
     ithComment = comments{i};
-    outputDatabank.(ithName) = fill(TIME_SERIES, ithData, start, ithComment);
+    outputDatabank.(ithName) = fill(TIME_SERIES_TEMPLATE, ithData, start, ithComment);
 end
 
 end%

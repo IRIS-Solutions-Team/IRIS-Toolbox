@@ -35,26 +35,32 @@ anticipatedE = data.AnticipatedE;
 unanticipatedE = data.UnanticipatedE;
 
 lastAnticipatedE = 0;
+lastUnanticipatedE = 0;
 if ne>0
     if ~data.MixinUnanticipated
         unanticipatedE(:, firstColumn+1:end) = 0;
     end
     lastAnticipatedE = data.LastAnticipatedE;
+    lastUnanticipatedE = data.LastUnanticipatedE;
 end
 
+
 % Retrieve first-order solution after making sure expansion is sufficient
-[T, R, K, Z, H, D, Y] = this.FirstOrderSolution{:};
+[T, R, K, Z, H, D, Q] = this.FirstOrderSolution{:};
+R0 = R(:, 1:ne);
+lenOfR = size(R, 2);
 
 % Nonlinear add-factors
 nlaf = data.NonlinAddfactors;
 lastNlaf = 0;
-nlafExist = ~isempty(Y) && ~isempty(nlaf) && any(nlaf(:)~=0);
+nlafExist = ~isempty(Q) && ~isempty(nlaf) && any(nlaf(:)~=0);
 if nlafExist
     lastNlaf = find(any(nlaf~=0, 1), 1, 'last');
     if isempty(lastNlaf)
         lastNlaf = 0;
     end
-    YY = Y(:, 1:(lastNlaf-firstColumn+1)*nh);
+    Q = Q(:, 1:(lastNlaf-firstColumn+1)*nh);
+    lenOfQ = size(Q, 2);
 end
 
 if any(inxOfLog)
@@ -79,20 +85,25 @@ for t = firstColumn : lastColumn
     
     if ne>0
         % Add expected and unexpected shocks
+        if t<=lastUnanticipatedE
+            Xi_t = Xi_t + R0*unanticipatedE(:, t);
+        end
         if t<=lastAnticipatedE
-            ahead = lastAnticipatedE - t + 1;
-            combinedE = anticipatedE(:, t:lastAnticipatedE);
-            combinedE(:, 1) = combinedE(:, 1) + unanticipatedE(:, t);
-            Xi_t = Xi_t + R(:, 1:ahead*ne)*combinedE(:);
-        else
-            Xi_t = Xi_t + R(:, 1:ne)*unanticipatedE(:, t);
+            anticipatedE_t = anticipatedE(:, t:lastAnticipatedE);
+            anticipatedE_t = anticipatedE_t(:);
+            lenToAdd = lenOfR - numel(anticipatedE_t);
+            anticipatedE_t = [anticipatedE_t; zeros(lenToAdd, 1)];
+            Xi_t = Xi_t + R*anticipatedE_t;
         end
     end
 
     if t<=lastNlaf
         % Add nonlinear add-factors
-        ahead = lastNlaf - t + 1;
-        Xi_t = Xi_t + Y(:, 1:ahead*nh)*VEC(nlaf(:, t:lastNlaf));
+        nlaf_t = nlaf(:, t:lastNlaf);
+        nlaf_t = nlaf_t(:);
+        lenToAdd = lenOfQ - numel(nlaf_t);
+        nlaf_t = [nlaf_t; zeros(lenToAdd, 1)];
+        Xi_t = Xi_t + Q*nlaf_t;
     end
 
     % Update current column in data matrix

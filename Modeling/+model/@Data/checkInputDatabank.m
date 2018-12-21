@@ -30,7 +30,7 @@ for i = 1 : numel(allNames)
         checkIncluded(i) = ~inxOfRequiredNames(i);
         continue
     end
-    checkFrequency(i) = inputDatabank.(ithName).Frequency==requiredFreq;
+    checkFrequency(i) = getFrequencyAsNumeric(inputDatabank.(ithName))==requiredFreq;
 end
 
 if ~all(checkIncluded)

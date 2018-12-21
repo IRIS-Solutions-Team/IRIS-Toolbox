@@ -883,7 +883,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 numericStart = double(this.Start);
                 index = numericStart + size(this.Data, 1) - 1;
                 if isa(this.Start, 'DateWrapper')
-                    index = DateWrapper.fromDateCode(index);
+                    index = DateWrapper(index);
                 end
             else
                 index = size(this.Data, k);
