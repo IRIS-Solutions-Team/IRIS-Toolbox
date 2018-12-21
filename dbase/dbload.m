@@ -606,7 +606,7 @@ return
 
 
     function populateDatabase( )
-        TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+        TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
         TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
         count = 0;
         nName = length(nameRow);

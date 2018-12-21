@@ -57,7 +57,7 @@ function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 
 persistent inputParser
 if isempty(inputParser)

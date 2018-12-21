@@ -54,6 +54,7 @@ if nlafExist
     if isempty(lastNlaf)
         lastNlaf = 0;
     end
+    YY = Y(:, 1:(lastNlaf-firstColumn+1)*nh);
 end
 
 if any(inxOfLog)

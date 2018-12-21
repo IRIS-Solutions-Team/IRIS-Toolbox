@@ -1,14 +1,14 @@
 function [answ, flag, query] = implementGet(this, query, varargin)
 % implementGet  Implement get method for plan objects.
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
+TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 
 %--------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ switch query
                 continue
             end
             answ.(this.XList{i}) = replace( ...
-                TEMPLATE_SERIES, ...
+                TIME_SERIES_TEMPLATE, ...
                 +this.XAnch(i, :).', ...
                 this.Start, ...
                 [this.XList{i}, ' Exogenised points']);
@@ -39,7 +39,7 @@ switch query
                 continue
             end
             answ.(this.NList{i}) = replace( ...
-                TEMPLATE_SERIES, ...
+                TIME_SERIES_TEMPLATE, ...
                 +this.NAnchReal(i, :).' + 1i*(+this.NAnchImag(i, :).'), ...
                 this.Start, ...
                 [this.NList{i}, ' Endogenised points'] ...

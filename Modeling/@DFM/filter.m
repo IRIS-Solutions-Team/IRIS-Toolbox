@@ -72,7 +72,7 @@ function [this, d, cc, ff, uu, ee] = filter(this, inp, range, varargin)
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 persistent inputParser

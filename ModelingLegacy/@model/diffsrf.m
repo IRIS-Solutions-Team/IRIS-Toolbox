@@ -41,8 +41,6 @@ function [s, this] = diffsrf(this, time, lsPar, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2018 IRIS Solutions Team.
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 TYPE = @int8;
 
 % Parse options.
@@ -128,4 +126,5 @@ end
 
 s = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, s);
 
-end
+end%
+

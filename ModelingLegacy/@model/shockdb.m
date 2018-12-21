@@ -54,9 +54,8 @@ function [d, YXEPG] = shockdb(this, d, range, varargin)
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
-
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
+TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 
 persistent inputParser
 if isempty(inputParser)
@@ -123,7 +122,7 @@ if nargout==1
     for i = 1 : ne
         name = lsName{i};
         e = permute(E(i, :, :), [2, 3, 1]);
-        d.(name) = replace(TEMPLATE_SERIES, e, range(1), lsLabel{i});
+        d.(name) = replace(TIME_SERIES_TEMPLATE, e, range(1), lsLabel{i});
     end
 elseif nargout==2
     [minShift, maxShift] = getActualMinMaxShifts(this);

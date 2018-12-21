@@ -17,7 +17,7 @@
 
 function [OutData,Od,Ad] = myfwdpass(This,InData,Range)
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 
 if nargout>1
     export = true ;

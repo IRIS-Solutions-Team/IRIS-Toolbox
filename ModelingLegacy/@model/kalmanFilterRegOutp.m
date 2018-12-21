@@ -5,8 +5,8 @@ function [F, Pe, V, delta, PDelta, sampleCov, this] ...
 % Backend IRIS function.
 % No help provided.
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 try
     isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
@@ -14,8 +14,8 @@ catch
     isNamedMat = false;
 end
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
+TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 TYPE = @int8;
 
 %--------------------------------------------------------------------------
@@ -27,7 +27,7 @@ startDate = xRange(1);
 
 F = [ ];
 if isfield(regOutp, 'F')
-    F = TEMPLATE_SERIES;
+    F = TIME_SERIES_TEMPLATE;
     F = replace(F, permute(regOutp.F, [3, 1, 2, 4]), startDate);
 end
 
@@ -40,7 +40,7 @@ if isfield(regOutp, 'Pe')
         if this.Quantity.IxLog(iName)
             data = real(exp(data));
         end
-        Pe.(name) = TEMPLATE_SERIES;
+        Pe.(name) = TIME_SERIES_TEMPLATE;
         Pe.(name) = replace(Pe.(name), data, startDate, name);
     end
 end

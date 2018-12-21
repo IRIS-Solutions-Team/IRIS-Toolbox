@@ -92,28 +92,26 @@ if nargin==0
 end
 
 if nargin==1
-    assert( ...
-        isa(varargin{1}, 'iris.Configuration'), ...
-        'IRIS:Configuration:NotAConfigurationObject', ...
-        'If iris.set( ) is called with a single input argument, it must be an iris.Configuration object.' ...
-    );
+    if ~isa(varargin{1}, 'iris.Configuration')
+        THIS_ERROR = { 'IRIS:Configuration:NotAConfigurationObject', ...
+                       'If iris.set( ) is called with a single input argument, it must be an iris.Configuration object' };
+        throw( exception.Base(THIS_ERROR, 'error') );
+    end
     irisConfig = varargin{1};
-    setappdata(0, 'IRIS_Configuration', irisConfig);
+    save(irisConfig);
     return
 end
 
-irisConfig = getappdata(0, 'IRIS_Configuration');
-if isempty(irisConfig)
-    irisConfig = iris.reset( );
-end
+irisConfig = iris.Configuration.load( );
 
-varargout = cell(1, nargin);
-for i = 1 : 2 : nargin
+for i = 1 : 2 : numel(varargin)
     ithOptionName = varargin{i};
     ithOptionName = strrep(ithOptionName, '=', '');
     ithNewValue = varargin{i+1};
     irisConfig.(ithOptionName) = ithNewValue;
 end
-setappdata(0, 'IRIS_Configuration', irisConfig);
 
-end
+save(irisConfig);
+
+end%
+

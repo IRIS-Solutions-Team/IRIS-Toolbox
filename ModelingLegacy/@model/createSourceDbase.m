@@ -8,8 +8,8 @@ function outputDatabank = createSourceDbase(this, range, varargin)
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
+TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 
 if ischar(range)
     range = textinp2dat(range);
@@ -95,7 +95,7 @@ end
 % Transition variables, exogenous variables
 for i = find(ixx | ixg)
     name = this.Quantity.Name{i};
-    outputDatabank.(name) = replace( TEMPLATE_SERIES, ...
+    outputDatabank.(name) = replace( TIME_SERIES_TEMPLATE, ...
                                      permute(X(i, :, :), [2, 3, 1]), ...
                                      extendedStart, ...
                                      label{i} );
@@ -106,7 +106,7 @@ end
 for i = find(ixy | ixe)
     name = this.Quantity.Name{i};
     x = X(i, 1-minSh:end-maxSh, :);
-    outputDatabank.(name) = replace( TEMPLATE_SERIES, ...
+    outputDatabank.(name) = replace( TIME_SERIES_TEMPLATE, ...
                                      permute(x, [2, 3, 1]), ...
                                      start, ...
                                      label{i} );
@@ -125,7 +125,7 @@ outputDatabank = addToDatabank( {'Parameters', 'Std', 'NonzeroCorr'}, this, outp
 nameLhs = this.Reporting.NameLhs;
 for i = 1 : length(nameLhs)
     % TODO: use label or name.
-    outputDatabank.(nameLhs{i}) = comment(TEMPLATE_SERIES, nameLhs{i});
+    outputDatabank.(nameLhs{i}) = comment(TIME_SERIES_TEMPLATE, nameLhs{i});
 end
 
 end

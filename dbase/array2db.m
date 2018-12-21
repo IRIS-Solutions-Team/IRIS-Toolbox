@@ -40,7 +40,7 @@ function d = array2db(X, date, list, varargin)
 %#ok<*CTCH>
 %#ok<*VUNUS>
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 persistent inputParser

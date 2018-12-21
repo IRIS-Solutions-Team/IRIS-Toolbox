@@ -60,7 +60,8 @@ function varargout = get(varargin)
 
 %--------------------------------------------------------------------------
 
-irisConfig = getappdata(0, 'IRIS_Configuration');
+irisConfig = iris.Configuration.load( );
+
 if isempty(irisConfig)
     irisConfig = iris.reset( );
 end

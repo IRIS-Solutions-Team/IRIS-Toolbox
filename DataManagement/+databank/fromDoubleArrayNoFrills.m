@@ -10,7 +10,7 @@ function outputDatabank = fromDoubleArrayNoFrills(array, listOfNames, start, com
 try
     timeSeriesConstructor;
 catch
-    timeSeriesConstructor = getappdata(0, 'IRIS_TimeSeriesConstructor');
+    timeSeriesConstructor = iris.get('DefaultTimeSeriesConstructor');
 end
 TIME_SERIES = timeSeriesConstructor( );
 

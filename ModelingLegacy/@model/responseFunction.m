@@ -1,14 +1,14 @@
 function [s, range, namesOfResponses] = responseFunction(this, time, func, namesOfResponses, opt)
-% responseFunction  Response function. 
+% responseFunction  Response function 
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
+TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 TYPE = @int8;
 
 % Parse required input arguments.
@@ -77,7 +77,7 @@ for i = find(ixy)
     name = this.Quantity.Name{i};
     c = utils.concomment(name, namesOfResponses, isLog);
     c = repmat(c, [1, 1, nv]);
-    s.(name) = replace(TEMPLATE_SERIES, y, range(1)-1, c);
+    s.(name) = replace(TIME_SERIES_TEMPLATE, y, range(1)-1, c);
 end
 
 % Transition variables.
@@ -92,7 +92,7 @@ for i = 1 : nx
     name = this.Quantity.Name{ithPosition};
     c = utils.concomment(name, namesOfResponses, isLog);
     c = repmat(c, [1, 1, nv]);
-    s.(name) = replace(TEMPLATE_SERIES, x, range(1)-1-maxLag, c);
+    s.(name) = replace(TIME_SERIES_TEMPLATE, x, range(1)-1-maxLag, c);
 end
 
 % Shocks.
@@ -102,7 +102,7 @@ for i = find(ixe)
     c = utils.concomment(name, namesOfResponses, false);
     % @@@@@ MOSW.
     c = repmat(c, [1, 1, nv]);
-    s.(name) = replace(TEMPLATE_SERIES, e, range(1), c);
+    s.(name) = replace(TIME_SERIES_TEMPLATE, e, range(1), c);
 end
 
 % Parameters.
@@ -114,7 +114,7 @@ for i = find(ixg)
     name = this.Quantity.Name{i};
     c = utils.concomment(name, namesOfResponses, false);
     c = repmat(c, [1, 1, nv]);
-    s.(name) = replace(TEMPLATE_SERIES, g, range(1), c);
+    s.(name) = replace(TIME_SERIES_TEMPLATE, g, range(1), c);
 end
 
 return

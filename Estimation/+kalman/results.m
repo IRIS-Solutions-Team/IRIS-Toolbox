@@ -1,8 +1,8 @@
 function f = results(outp, quantity, solution)
 
 TYPE = @int8;
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
+TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 
 [ny, ~, nb, nf, ne] = sizeOfSolution(solution);
 ixy = quantity.Type==TYPE(1);
@@ -39,7 +39,7 @@ return
             for i = 1 : ny
                 name = quantity.Name{ posy(i) };
                 data = permute(y(i, :, :), [2, 3, 1]);
-                d.(name) = replace(TEMPLATE_SERIES, data, start);
+                d.(name) = replace(TIME_SERIES_TEMPLATE, data, start);
             end
         end
         
@@ -53,7 +53,7 @@ return
             pos = real( idf(i) );
             name = quantity.Name{pos};
             data = permute(xf(i, :, :), [2, 3, 1]);
-            d.(name) = replace(TEMPLATE_SERIES, data, start);
+            d.(name) = replace(TIME_SERIES_TEMPLATE, data, start);
         end
         
         % Backward-looking transition variables, possibly with initial condition.
@@ -74,7 +74,7 @@ return
             pos = real( idb(i) );
             name = quantity.Name{pos};
             data = permute(xb(i, :, :), [2, 3, 1]);
-            d.(name) = replace(TEMPLATE_SERIES, data, xbStart);
+            d.(name) = replace(TIME_SERIES_TEMPLATE, data, xbStart);
         end
         
         % Shocks.
@@ -87,3 +87,4 @@ return
         end
     end%
 end%
+

@@ -287,7 +287,7 @@ end%
 
 
 function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargin)
-    TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+    TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
     vecHFig = [ ];
     vecHAx = { };
     plotDb = struct( );

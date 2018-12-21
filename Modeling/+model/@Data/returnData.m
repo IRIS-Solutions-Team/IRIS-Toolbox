@@ -7,28 +7,28 @@ function outputDatabank = returnData(this, X, range, names)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-TIME_SERIES_CONTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
+TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES_TEMPLATE.Start = range(1);
 
 %--------------------------------------------------------------------------
 
-timeSeriesTemplate = TIME_SERIES_CONTRUCTOR( );
-timeSeriesTemplate.Start = range(1);
-numNames = numel(names);
+numOfNames = numel(names);
 
-sizeX = size(X);
-ndimsX = ndims(X);
+sizeOfX = size(X);
+ndimsOfX = ndims(X);
 X = X(:, :, :);
 
 outputDatabank = struct( );
-
-for i = 1 : numNames
+for i = 1 : numOfNames
     ithName = names{i};
     ithData = X(i, :, :);
-    if ndimsX>3
-        ithData = reshape(ithData, [1, sizeX(2:end)]);
+    if ndimsOfX>3
+        ithData = reshape(ithData, [1, sizeOfX(2:end)]);
     end
-    ithData = permute(ithData, [2:ndimsX, 1]);
-    outputDatabank.(ithName) = fill(timeSeriesTemplate, ithData);
+    ithData = permute(ithData, [2:ndimsOfX, 1]);
+    outputDatabank.(ithName) = fill(TIME_SERIES_TEMPLATE, ithData);
 end
 
-end
+end%
+

@@ -9,9 +9,7 @@ function cleanupPersistent( )
 
 %--------------------------------------------------------------------------
 
-try
-    rmappdata(0, 'IRIS_Configuration')
-end
+iris.Configuration.clear( );
 
 try
     rmappdata(0, 'IRIS_ExceptionLookupTable');
@@ -22,15 +20,8 @@ try
 end
 
 try
-    rmappdata(0, 'IRIS_TimeSeriesConstructor')
-end
-
-try
-    rmappdata(0, 'IRIS_DateFromSerial')
-end
-
-try
     clear(container( ));
 end
 
-end
+end%
+

@@ -1,7 +1,7 @@
 classdef (CaseInsensitiveProperties=true) Configuration 
     properties (SetAccess=protected)
         % IrisRoot  IRIS root folder (not customizable)
-        IrisRoot = fileparts(which('irisping.m'))
+        IrisRoot = iris.Configuration.getIrisRoot( )
 
         % Version  IRIS version (not customizable)
         Version = iris.Configuration.getIrisVersion( )
@@ -68,6 +68,9 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         % GhostscriptPath  Path to the GS executable
         GhostscriptPath = iris.Configuration.DEFAULT_GHOSTSCRIPT_PATH
+
+        % DefaultTimeSeriesConstructor  Function handle to default time series constructor
+        DefaultTimeSeriesConstructor = @Series
 
         % UserData  Any kind of user data
         UserData = [ ]
@@ -167,6 +170,10 @@ classdef (CaseInsensitiveProperties=true) Configuration
                                       'mm'
                                       'ww'
                                       'dd'        }
+
+        CONFIGURATION_MAT_FILE_NAME = 'Configuration.mat'
+
+        APPDATA_FIELD_NAME = 'IRIS_Configuration'
     end
 
 
@@ -175,6 +182,50 @@ classdef (CaseInsensitiveProperties=true) Configuration
             this.UserConfigPath = which('irisuserconfig.m');
             if ~isempty(this.UserConfigPath)
                 this = irisuserconfig(this);
+            end
+        end%
+
+
+        function save(this)
+            setappdata(0, this.APPDATA_FIELD_NAME, this);
+            try
+                save(iris.Configuration.getConfigurationMatFilePath, 'this');
+            catch
+                THIS_WARNING = { 'Configuration:CannotBackupConfigurationData'
+                                 'Cannot back up configuration data to mat file' };
+                throw( exception.Base(THIS_WARNING, 'warning') );
+            end
+        end%
+    end
+
+
+    methods (Static)
+        function this = load( )
+            this = getappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
+            if ~isa(this, 'iris.Configuration')
+                temp = [ ];
+                try
+                    temp = load(iris.Configuration.getIrisRoot( ), 'this');
+                    this = temp.this;
+                end
+            end
+            if ~isa(this, 'iris.Configuration')
+                THIS_ERROR = { 'Configuration:ConfigurationCorrupted'
+                               'IRIS configuration data have been corrupted. Shut down and restart Matlab and IRIS.' };
+                throw( exception.Base(THIS_ERROR, 'error') );
+            end
+        end%
+
+
+        function clear( )
+            try
+                rmappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
+            end
+            try
+                matFilePath = iris.Configuration.getConfigurationMatFilePath( );
+                if exist(matFilePath, 'file')==2
+                   delete(matFilePath);
+                end 
             end
         end%
     end
@@ -506,6 +557,17 @@ classdef (CaseInsensitiveProperties=true) Configuration
                     return
                 end
             end
+        end%
+
+
+        function p = getConfigurationMatFilePath( )
+            p = fullfile( iris.Configuration.getIrisRoot, ...
+                          iris.Configuration.CONFIGURATION_MAT_FILE_NAME );
+        end%
+
+
+        function irisRoot = getIrisRoot( )
+            irisRoot = fileparts(which('irisping.m'));
         end%
 
 

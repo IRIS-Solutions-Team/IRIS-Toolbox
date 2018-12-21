@@ -73,10 +73,10 @@ end
 
 % Get the whole IRIS folder structure. Exclude directories starting with an
 % _ (on top of +, @, and private, which are excluded by default). The
-% current IRIS root is always returned last in `removed`.
+% current IRIS root is always returned last in `removed`
 [reportRootsRemoved, thisRoot] = iris.pathManager('cleanup');
 
-% Add the current IRIS folder structure to the temporary search path.
+% Add the current IRIS folder structure to the temporary search path
 addpath(thisRoot, '-begin');
 iris.pathManager('addroot', thisRoot);
 iris.pathManager('addcurrentsubs', thisRoot);
@@ -84,8 +84,7 @@ iris.pathManager('addcurrentsubs', thisRoot);
 % Reset Default Function Options
 passvalopt( );
 
-config = iris.reset( );
-setEnvironment( );
+config = iris.reset(options);
 
 version = iris.get('version');
 if isIdChk
@@ -98,22 +97,6 @@ if ~options.shutup
 end
 
 return
-
-
-    function setEnvironment( )
-        if options.TimeSeries
-            timeSeriesConstructor = @TimeSeries;
-            dateFromSerial = @Date.fromSerial;
-        elseif options.tseries
-            timeSeriesConstructor = @tseries;
-            dateFromSerial = @DateWrapper.fromSerial;
-        else
-            timeSeriesConstructor = @Series;
-            dateFromSerial = @DateWrapper.fromSerial;
-        end
-        setappdata(0, 'IRIS_TimeSeriesConstructor', timeSeriesConstructor);
-        setappdata(0, 'IRIS_DateFromSerial', dateFromSerial);
-    end%
 
 
     function deleteProgress( )
@@ -155,7 +138,7 @@ return
         fprintf('\n');
         
         % Default Time Series constructor
-        defaultTimeSeriesConstructor = getappdata(0, 'IRIS_TimeSeriesConstructor');
+        defaultTimeSeriesConstructor = config.DefaultTimeSeriesConstructor;
         defaultTimeSeriesConstructor = func2str(defaultTimeSeriesConstructor);
         fprintf('\tDefault Time Series Constructor: @%s', defaultTimeSeriesConstructor);
         fprintf('\n');

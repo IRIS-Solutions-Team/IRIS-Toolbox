@@ -49,19 +49,16 @@ classdef DatafeedContainer < handle
         end
 
 
-        function outputData = export(this, outputData, dateFromSerial, timeSeriesConstructor)
-            if nargin<3
-                dateFromSerial = getappdata(0, 'IRIS_DateFromSerial');
-            end
+        function outputData = export(this, outputData, ~, timeSeriesConstructor)
             if nargin<4
-                timeSeriesConstructor = getappdata(0, 'IRIS_TimeSeriesConstructor');
+                timeSeriesConstructor = iris.get('DefaultTimeSeriesConstructor');
             end
             numSeries = length(this);
             for i = 1 : numSeries
                 ithFrequency = this.Frequency(i);
                 ithYmd = this.Ymd{i};
                 ithSerial = ymd2serial(ithFrequency, ithYmd(:, 1), ithYmd(:, 2), ithYmd(:, 3));
-                ithDates = dateFromSerial(ithFrequency, ithSerial);
+                ithDates = DataWrapper.fromSerial(ithFrequency, ithSerial);
                 ithName = this.Name{i};
                 ithData = this.Data{i};
                 ithColumnNames = this.ColumnNames{i};

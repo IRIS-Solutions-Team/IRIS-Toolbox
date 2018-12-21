@@ -1,5 +1,5 @@
 function [d, cc, ff, u, e] = forecast(this, inp, range, varargin)
-% forecast  Forecast DFM factors and observables.
+% forecast  Forecast DFM factors and observables
 %
 % __Syntax__
 %
@@ -47,10 +47,10 @@ function [d, cc, ff, u, e] = forecast(this, inp, range, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 persistent inputParser

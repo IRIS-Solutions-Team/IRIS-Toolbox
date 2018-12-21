@@ -51,11 +51,11 @@ function db = lognormal(this, db, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
-TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
+TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 
 pp = inputParser( );
 pp.addRequired('D', ...
@@ -121,19 +121,19 @@ return
         start = range(1);
         if Opt.median
             x = getMedian(expmu, sgm, sgm2);
-            db.(field('median')).(name) = replace(TEMPLATE_SERIES, x, start, co);
+            db.(field('median')).(name) = replace(TIME_SERIES_TEMPLATE, x, start, co);
         end
         if Opt.mode
             x = getMode(expmu, sgm, sgm2);
-            db.(field('mode')).(name) = replace(TEMPLATE_SERIES, x, start, co);
+            db.(field('mode')).(name) = replace(TIME_SERIES_TEMPLATE, x, start, co);
         end
         if Opt.mean
             x = getMean(expmu, sgm, sgm2);
-            db.(field('mean')).(name) = replace(TEMPLATE_SERIES, x, start, co);
+            db.(field('mean')).(name) = replace(TIME_SERIES_TEMPLATE, x, start, co);
         end
         if Opt.std
             x = getStd(expmu, sgm, sgm2);
-            db.(field('std')).(name) = replace(TEMPLATE_SERIES, x, start, co);
+            db.(field('std')).(name) = replace(TIME_SERIES_TEMPLATE, x, start, co);
         end
         if ~isequal(Opt.prctile, false) && ~isempty(Opt.prctile)
             x = [ ];
@@ -141,7 +141,7 @@ return
                 x = [x, getPrctile(expmu, sgm, sgm2, p/100)]; %#ok<AGROW>
             end
             co = repmat(co, 1, length(Opt.prctile));
-            db.(field('pct')).(name) = replace(TEMPLATE_SERIES, x, start, co);
+            db.(field('pct')).(name) = replace(TIME_SERIES_TEMPLATE, x, start, co);
         end
     end
 end

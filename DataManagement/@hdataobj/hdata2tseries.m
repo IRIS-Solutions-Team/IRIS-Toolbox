@@ -1,13 +1,13 @@
 function outp = hdata2tseries(this, varargin)
-% hdata2tseries  Convert hdataobj data to a tseries database.
+% hdata2tseries  Convert hdataobj data to a tseries database
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-TIME_SERIES_CONSTRUCTOR = getappdata(0, 'IRIS_TimeSeriesConstructor');
+TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
 opt = passvalopt('HData.hdata2tseries', varargin{:});
@@ -78,4 +78,5 @@ if this.IncludeParam
     end
 end
 
-end
+end%
+
