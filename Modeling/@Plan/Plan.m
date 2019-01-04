@@ -16,7 +16,7 @@ classdef Plan
 
 
     properties (SetAccess=protected)
-        DefaultAnticipate = true
+        DefaultAnticipationStatus = true
     end
 
 
@@ -27,25 +27,22 @@ classdef Plan
                 parser = extend.InputParser('Plan.Plan');
                 parser.addRequired('Model', @(x) isa(x, 'model.Plan'));
                 parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
-                parser.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
+                parser.addParameter({'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
             end
             if nargin==0
                 return
             end
             parser.parse(varargin{:});
+            opt = parser.Options;
             this.BaseStart = double(parser.Results.SimulationRange(1));
             this.BaseEnd = double(parser.Results.SimulationRange(end));
             this = preparePlan(parser.Results.Model, this, [this.BaseStart, this.BaseEnd]);
-            this.DefaultAnticipate = parser.Results.Anticipate;
+            this.DefaultAnticipationStatus = opt.DefaultAnticipate;
             this.InxOfAnticipatedExogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods);
             this.InxOfUnanticipatedExogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods);
             this.InxOfAnticipatedEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
             this.InxOfUnanticipatedEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
-            if this.DefaultAnticipate
-                this.AnticipationStatusOfExogenous = true(this.NumOfExogenous, 1);
-            else
-                this.AnticipationStatusOfExogenous = false(this.NumOfExogenous, 1);
-            end
+            this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, this.NumOfExogenous, 1);
         end%
 
 
@@ -81,78 +78,94 @@ classdef Plan
         end%
 
 
+        function this = unexogenizeAll(this)
+            this.InxOfAnticipatedExogenized(:, :) = false;
+            this.InxOfUnanticipatedExogenized(:, :) = false;
+        end%
+
+
         function this = implementExogenize(this, dates, names, setToValue, varargin)
             persistent parser
             if isempty(parser)
-                parser = extend.InputParser('Plan.exogenize');
+                parser = extend.InputParser('Plan.implementExogenize');
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
-                parser.addRequired('DatesToExogenize', @DateWrapper.validateDateInput);
+                parser.addRequired('DatesToExogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
                 parser.addRequired('NamesToExogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-                parser.addRequired('SetToValue', @(x) isequal(x, true) || isequal(x, false));
                 parser.addParameter('Anticipate', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
             end
-            parser.parse(this, dates, names, setToValue, varargin{:});
+            parser.parse(this, dates, names, varargin{:});
             opt = parser.Options;
             if isequal(opt.Anticipate, @auto)
-                opt.Anticipate = this.DefaultAnticipate;
+                opt.Anticipate = this.DefaultAnticipationStatus;
             end
-            if isequal(setToValue, true)
+            if setToValue
                 context = 'be exogenized';
             else
                 context = 'be unexogenized';
-            end 
+            end
             inxOfDates = resolveDates(this, dates);
             inxOfNames = this.resolveNames(names, this.NamesOfEndogenous, context);
-            if opt.Anticipate
-                this.InxOfAnticipatedExogenized(inxOfNames, inxOfDates) = setToValue;
+            if setToValue
+                % Exogenize
+                if opt.Anticipate
+                    this.InxOfAnticipatedExogenized(inxOfNames, inxOfDates) = true;
+                else
+                    this.InxOfUnanticipatedExogenized(inxOfNames, inxOfDates) = true;
+                end
             else
-                this.InxOfUnanticipatedExogenized(inxOfNames, inxOfDates) = setToValue;
+                % Unexogenize
+                this.InxOfAnticipatedExogenized(inxOfNames, inxOfDates) = false;
+                this.InxOfUnanticipatedExogenized(inxOfNames, inxOfDates) = false;
             end
         end%
 
 
-        function this = endogenize(this, dates, names)
+        function [this, anticipationStatus] = endogenize(this, dates, names, varagin)
             setToValue = true;
-            this = implementEndogenize(this, dates, names, setToValue);
+            [this, anticipationStatus] = implementEndogenize(this, dates, names, setToValue, varargin{:});
         end%
 
 
-        function this = unendogenize(this, dates, names)
-            setToValue = false;
-            this = implementEndogenize(this, dates, names, setToValue);
+        function this = unendogenizeAll(this)
+            this.InxOfAnticipatedEndogenized(:, :) = false;
+            this.InxOfUnanticipatedEndogenized(:, :) = false;
         end%
 
 
-        function [this, anticipate] = implementEndogenize(this, dates, names, setToValue)
+        function [this, anticipationStatus] = implementEndogenize(this, dates, names)
             persistent parser
             if isempty(parser)
-                parser = extend.InputParser('Plan.endogenize');
+                parser = extend.InputParser('Plan.implementEndogenize');
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
-                parser.addRequired('DatesToEndogenize', @DateWrapper.validateDateInput);
+                parser.addRequired('DatesToEndogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
                 parser.addRequired('NamesToEndogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
             end
-            parser.parse(this, dates, names);
-            if isequal(setToValue, true)
+            parser.parse(this, dates, names, setToValue);
+            if setToValue
                 context = 'be endogenized';
             else
                 context = 'be unendogenized';
-            end 
+            end
             inxOfDates = resolveDates(this, dates);
             inxOfNames = this.resolveNames(names, this.NamesOfExogenous, context);
             if ~any(inxOfNames)
                 return
             end
-            anticipate = this.AnticipationStatusOfExogenous(inxOfNames);
-            if ~all(anticipate==anticipate(1))
-                THIS_ERROR = { 'Plan:CannotEndogenizeWithDifferentAnticipate'
-                               'All names within one endogenize(~) command must have the same anticipation status' };
-                throw( exception.Base(THIS_ERROR, 'error') );
-            end
-            anticipate = anticipate(1);
-            if anticipate
-                this.InxOfAnticipatedEndogenized(inxOfNames, inxOfDates) = setToValue;
-            else
-                this.InxOfUnanticipatedEndogenized(inxOfNames, inxOfDates) = setToValue;
+            posOfNames = find(inxOfNames);
+            anticipationStatus = this.AnticipationStatusOfExogenous(posOfNames);
+            for pos = transpose(posOfNames(:))
+                if setToValue
+                    % Endogenize
+                    if this.AnticipationStatusOfExogenous(pos)
+                        this.InxOfAnticipatedEndogenized(pos, inxOfDates) = true;
+                    else
+                        this.InxOfUnanticipatedEndogenized(pos, inxOfDates) = true;
+                    end
+                else
+                    % Unendogenize
+                    this.InxOfAnticipatedEndogenized(pos, inxOfDates) = false;
+                    this.InxOfUnanticipatedEndogenized(pos, inxOfDates) = false;
+                end
             end
         end%
 
@@ -207,6 +220,7 @@ classdef Plan
 
 
     properties (Dependent)
+        DisplayRange
         BaseRange
         ExtendedRange
         NumOfEndogenous
@@ -226,6 +240,17 @@ classdef Plan
 
 
     methods
+        function value = get.DisplayRange(this)
+            if isempty(this.BaseStart) || isempty(this.BaseEnd)
+                value = '';
+                return
+            end
+            displayStart = DateWrapper.toCellOfChar(this.BaseStart);
+            displayEnd = DateWrapper.toCellOfChar(this.BaseEnd);
+            value = [displayStart{1}, ':', displayEnd{1}]; 
+        end%
+
+
         function value = get.BaseRange(this)
             if isempty(this.BaseStart) || isempty(this.BaseEnd)
                 value = DateWrapper.NaD;
@@ -318,6 +343,9 @@ classdef Plan
 
         function value = get.LastAnticipatedExogenized(this)
             value = find(any(this.InxOfAnticipatedExogenized, 1), 1, 'last');
+            if isempty(value)
+                value = 0;
+            end
         end%
     end
 

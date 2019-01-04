@@ -24,6 +24,8 @@ function updateEndogenizedE(this, data)
         addToE = this.FirstOrderMultipliers \ discrepancy(:);
     end
     E = data.YXEPG(data.InxOfE, :);
+    E(inxOfEndogenizedE) = E(inxOfEndogenizedE) + addToE;
+    %{
     temp = E(inxOfEndogenizedE);
     tempImag = imag(temp);
     tempReal = real(temp);
@@ -33,6 +35,7 @@ function updateEndogenizedE(this, data)
     else
         E(inxOfEndogenizedE) = tempReal;
     end
+    %}
     data.YXEPG(data.InxOfE, :) = E;
     updateE(data);
 end%

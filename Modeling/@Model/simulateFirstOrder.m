@@ -1,4 +1,4 @@
-function outputData = simulateFirstOrder(this, inputData, baseRange, plan, opt)
+function [outputData, outputInfo] = simulateFirstOrder(this, inputData, baseRange, plan, opt)
 % simulateFirstOrder  Simulate model using FirstOrder or Selective method
 %
 % Backend IRIS function
@@ -11,7 +11,7 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-nv = length(this);
+numOfRuns = length(this);
 
 % Get all data from input databank
 baseRange = double(baseRange);
@@ -42,15 +42,17 @@ numOfDataColumns = size(YXEPG, 2);
 inxOfNaNPresample = any(isnan(YXEPG(:, 1:firstColumnOfSimulation-1, :)), 3);
 checkInitialConditions(this, inxOfNaNPresample, firstColumnOfSimulation);
 
-for v = 1 : nv
+outputInfo.TimeFrames = cell(1, numOfRuns);
+
+for run = 1 : numOfRuns
     % Set up @Rectangular object for simulation
-    vthRect = simulate.Rectangular.fromModel(this, v);
+    vthRect = simulate.Rectangular.fromModel(this, run);
     vthRect.Deviation = opt.Deviation;
     vthRect.SimulateY = true;
     vthRect.Method = opt.Method;
 
     % Set up @simulate.Data from @Model and @Plan and update parameters and steady trends
-    vthData = simulate.Data.fromModelAndPlan(this, v, plan, YXEPG);
+    vthData = simulate.Data.fromModelAndPlan(this, run, plan, YXEPG);
     vthData.FirstColumnOfSimulation = firstColumnOfSimulation;
     vthData.LastColumnOfSimulation = lastColumnOfSimulation;
     vthData.Deviation = opt.Deviation;
@@ -65,21 +67,23 @@ for v = 1 : nv
 
     % __Switchboard__
     % Simulate @Rectangular object one timeFrame at a time
-    numOfTimeFrames = numel(timeFrames);
+    numOfTimeFrames = size(timeFrames, 1);
     for i = 1 : numOfTimeFrames
-        setTimeFrame(vthRect, timeFrames{i});
-        setTimeFrame(vthData, timeFrames{i});
+        setTimeFrame(vthRect, timeFrames(i, :));
+        setTimeFrame(vthData, timeFrames(i, :));
         updateSwap(vthData, plan);
         ensureExpansionGivenData(vthRect, vthData);
         if vthData.NumOfExogenizedPoints==0
             simulateFunction = @flat;
+            needsUpdateE = false;
         else
             simulateFunction = @swapped;
+            needsUpdateE = true;
         end
         if strcmpi(opt.Method, 'FirstOrder')
             simulateFunction(vthRect, vthData);
         else
-            simulateSelective(simulateFunction, vthRect, vthData, opt);
+            simulateSelective(simulateFunction, vthRect, vthData, needsUpdateE, opt);
         end
     end
 
@@ -87,7 +91,10 @@ for v = 1 : nv
     resetOutsideBaseRange(vthData, this);
 
     % Update output data
-    YXEPG(:, :, v) = vthData.YXEPG;
+    YXEPG(:, :, run) = vthData.YXEPG;
+
+    % Update output info struct
+    outputInfo.TimeFrames{run} = timeFrames;
 end
 
 % Convert output data to databank if requested
@@ -114,20 +121,20 @@ end%
 function [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(data, plan, maxShift, opt)
     [anticipatedE, unanticipatedE] = retrieveE(data);   
     inxOfUnanticipatedE = unanticipatedE~=0;
-    posOfUnanticipated = find(any( inxOfUnanticipatedE ...
-                                   | plan.InxOfUnanticipatedEndogenized, 1 ));
-    if ~any(posOfUnanticipated==data.FirstColumnOfSimulation)
-        posOfUnanticipated = [data.FirstColumnOfSimulation, posOfUnanticipated];
+    inxOfUnanticipatedAny = inxOfUnanticipatedE | plan.InxOfUnanticipatedEndogenized;
+    posOfUnanticipatedAny = find(any(inxOfUnanticipatedAny, 1));
+    if ~any(posOfUnanticipatedAny==data.FirstColumnOfSimulation)
+        posOfUnanticipatedAny = [data.FirstColumnOfSimulation, posOfUnanticipatedAny];
     end
     lastAnticipatedExogenizedYX = plan.LastAnticipatedExogenized;
-    numOfTimeFrames = numel(posOfUnanticipated);
-    timeFrames = cell(1, numOfTimeFrames);
+    numOfTimeFrames = numel(posOfUnanticipatedAny);
+    timeFrames = nan(numOfTimeFrames, 3);
     for i = 1 : numOfTimeFrames
-        startOfTimeFrame = posOfUnanticipated(i);
+        startOfTimeFrame = posOfUnanticipatedAny(i);
         if i==numOfTimeFrames
             endOfTimeFrame = data.LastColumnOfSimulation;
         else
-            endOfTimeFrame = max([posOfUnanticipated(i+1)-1, lastAnticipatedExogenizedYX]);
+            endOfTimeFrame = max([posOfUnanticipatedAny(i+1)-1, lastAnticipatedExogenizedYX]);
         end
         lenOfTimeFrame = endOfTimeFrame - startOfTimeFrame + 1;
         numOfDummyPeriods = 0;
@@ -140,7 +147,7 @@ function [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(data, plan, maxS
             endOfTimeFrame = endOfTimeFrame + numOfDummyPeriods;
             lenOfTimeFrame = minLenOfTimeFrame;
         end
-        timeFrames{i} = [startOfTimeFrame, endOfTimeFrame, numOfDummyPeriods];
+        timeFrames(i, :) = [startOfTimeFrame, endOfTimeFrame, numOfDummyPeriods];
     end
     mixinUnanticipated = false;
 end%
@@ -148,11 +155,18 @@ end%
 
 
 
-function simulateSelective(simulateFunction, rect, data, opt)
+function simulateSelective(simulateFunction, rect, data, needsUpdateE, opt)
     hashEquations = rect.HashEquationsFunction;
-    columnRange = data.FirstColumn+(0 : opt.Window-1);
+    firstColumn = data.FirstColumn;
+    columnRange = firstColumn + (0 : opt.Window-1);
+    inxOfE = data.InxOfE;
     initNlaf = data.NonlinAddfactors(:, columnRange);
     solverName = opt.Solver.SolverName;
+    deviation = opt.Deviation;
+
+    tempE = data.AnticipatedE;
+    tempE(:, firstColumn) = data.UnanticipatedE(:, firstColumn);
+     
     if any(strcmpi(solverName, {'IRIS-qad', 'IRIS-newton', 'IRIS-qnsd'}))
         % IRIS Solver
         [finalNlaf, dcy, flag] = solver.algorithm.qnsd(@objectiveFunction, initNlaf, opt.Solver);
@@ -168,8 +182,16 @@ function simulateSelective(simulateFunction, rect, data, opt)
         function dcy = objectiveFunction(nlaf)
             data.NonlinAddfactors(:, columnRange) = nlaf;
             simulateFunction(rect, data);
+
             tempYXEPG = data.YXEPG;
-            if data.Deviation
+
+            if needsUpdateE
+                tempE = data.AnticipatedE;
+                tempE(:, firstColumn) = data.UnanticipatedE(:, firstColumn);
+            end
+            tempYXEPG(inxOfE, :) = tempE;
+
+            if deviation
                 tempYX = tempYXEPG(data.InxOfYX, :);
                 inxOfLogYX = data.InxOfLog(data.InxOfYX);
                 tempYX(~inxOfLogYX, :) = tempYX(~inxOfLogYX, :)  + data.BarYX(~inxOfLogYX, :);
@@ -179,3 +201,4 @@ function simulateSelective(simulateFunction, rect, data, opt)
             dcy = hashEquations(tempYXEPG, columnRange, data.BarYX);
         end%
 end%
+

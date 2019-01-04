@@ -1,4 +1,4 @@
-function outputData = simulate(this, inputData, baseRange, varargin)
+function [outputData, outputInfo] = simulate(this, inputData, baseRange, varargin)
 
 persistent parser
 if isempty(parser)
@@ -32,7 +32,7 @@ else
     checkCompatibilityOfPlan(this, baseRange, plan);
 end
 
-outputData = simulateFirstOrder(this, inputData, baseRange, plan, opt);
+[outputData, outputInfo] = simulateFirstOrder(this, inputData, baseRange, plan, opt);
 
 if isstruct(outputData)
     outputData = appendData(this, inputData, outputData, baseRange, opt);
