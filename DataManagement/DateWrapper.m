@@ -24,7 +24,7 @@ classdef DateWrapper < double
             fprintf('  %s %s Date(s)\n', sizeString, frequencyDisplayName);
             if ~empty
                 textfun.loosespace( )
-                disp( dat2str(this) )
+                disp( DateWrapper.toCellOfChar(this) )
             end
             textfun.loosespace( )
         end%
@@ -230,6 +230,11 @@ classdef DateWrapper < double
 
         function this = NaD( )
             this = DateWrapper(NaN);
+        end%
+
+
+        function c = toCellOfChar(dateCode)
+            c = dat2str(double(dateCode));
         end%
 
 
