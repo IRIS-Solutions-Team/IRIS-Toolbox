@@ -73,6 +73,10 @@ classdef Plan
 
 
         function this = unexogenize(this, dates, names, varargin)
+            if nargin==1
+                this = unexogenizeAll(this);
+                return
+            end
             setToValue = false;
             this = implementExogenize(this, dates, names, setToValue, varargin{:});
         end%
@@ -120,9 +124,19 @@ classdef Plan
         end%
 
 
-        function [this, anticipationStatus] = endogenize(this, dates, names, varagin)
+        function [this, anticipationStatus] = endogenize(this, dates, names, varargin)
             setToValue = true;
             [this, anticipationStatus] = implementEndogenize(this, dates, names, setToValue, varargin{:});
+        end%
+
+
+        function this = unendogenize(this, dates, names, varargin)
+            if nargin==1
+                this = unendogenizeAll(this);
+                return
+            end
+            setToValue = false;
+            this = implementEndogenize(this, dates, names, setToValue, varargin{:});
         end%
 
 
@@ -132,7 +146,7 @@ classdef Plan
         end%
 
 
-        function [this, anticipationStatus] = implementEndogenize(this, dates, names)
+        function [this, anticipationStatus] = implementEndogenize(this, dates, names, setToValue, varargin)
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.implementEndogenize');
@@ -140,7 +154,7 @@ classdef Plan
                 parser.addRequired('DatesToEndogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
                 parser.addRequired('NamesToEndogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
             end
-            parser.parse(this, dates, names, setToValue);
+            parser.parse(this, dates, names);
             if setToValue
                 context = 'be endogenized';
             else
