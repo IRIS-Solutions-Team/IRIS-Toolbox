@@ -58,6 +58,7 @@ for v = variantsRequested
     blockExitStatus = false(1, nBlk);
     for iBlk = 1 : nBlk
         blk = blz.Block{iBlk};
+        blk.SteadyShift = 3;
         [lx, gx, blockExitStatus(iBlk), error] = run(blk, this.Link, lx, gx, ixLog);
         %if ~blockExitStatus(iBlk)
         %    fprintf('    Block %g of %g failed to solve.\n', iBlk, nBlk);
@@ -136,10 +137,8 @@ return
         indexToFix(idToFix) = true;
         indexNaN = any(isnan(real(asgn)), 3) & indexToFix & ~blz.IxZero.Level;
         if any(indexNaN)
-            throw( ...
-                exception.Base('Steady:LevelFixedToNan', 'error'), ...
-                this.Quantity.Name{indexNaN} ...
-            );
+            throw( exception.Base('Steady:LevelFixedToNan', 'error'), ...
+                   this.Quantity.Name{indexNaN} );
         end
         % __Check for Growth Rates Fixed to NaN__
         idToFix = blz.IdToFix.Growth;
@@ -147,10 +146,8 @@ return
         indexToFix(idToFix) = true;
         indexNaN = any(isnan(imag(asgn)), 3) & indexToFix & ~blz.IxZero.Growth;
         if any(indexNaN)
-            throw( ...
-                exception.Base('Steady:GrowthFixedToNan', 'error'), ...
-                this.Quantity.Name{indexNaN} ...
-            );
+            throw( exception.Base('Steady:GrowthFixedToNan', 'error'), ...
+                   this.Quantity.Name{indexNaN} );
         end
     end%
 
@@ -166,16 +163,12 @@ return
         indexLevelToReport = indexLevelNeeded & indexLevelNaN;
         indexGrowthToReport = indexGrowthNeeded & indexGrowthNaN;
         if any(indexLevelToReport)
-            throw( ...
-                exception.Base('Steady:ExogenousLevelNan', 'warning'), ...
-                this.Quantity.Name{indexLevelToReport} ...
-            );
+            throw( exception.Base('Steady:ExogenousLevelNan', 'warning'), ...
+                   this.Quantity.Name{indexLevelToReport} );
         end
         if any(indexGrowthToReport)
-            throw( ...
-                exception.Base('Steady:ExogenousGrowthNan', 'warning'), ...
-                this.Quantity.Name{indexGrowthToReport} ...
-            );
+            throw( exception.Base('Steady:ExogenousGrowthNan', 'warning'), ...
+                   this.Quantity.Name{indexGrowthToReport} );
         end
     end%
 end
