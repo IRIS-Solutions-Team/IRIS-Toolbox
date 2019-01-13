@@ -42,4 +42,5 @@ function d = reporting(this, inp, range, varargin)
 
 d = run(this.Reporting, inp, range, this, varargin{:});
 
-end
+end%
+

@@ -71,8 +71,6 @@ TYPE = @int8;
 %--------------------------------------------------------------------------
 
 nv = length(this);
-inxOfY = getIndexByType(this.Quantity, TYPE(1));
-inxOfX = getIndexByType(this.Quantity, TYPE(2));
 inxOfM = this.Equation.Type==TYPE(1);
 inxOfT = this.Equation.Type==TYPE(2);
 inxOfEquations = inxOfM | inxOfT;

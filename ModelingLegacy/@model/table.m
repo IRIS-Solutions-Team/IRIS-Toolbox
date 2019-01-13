@@ -344,7 +344,7 @@ end%
 function outputTable = innerjoin(inputTable1, inputTable2)
     keys1 = inputTable1{:, 1};
     keys2 = inputTable2{:, 1};
-    [newKeys, pos1, pos2] = intersect(keys1, keys2, 'stable');
+    [~, pos1, pos2] = intersect(keys1, keys2, 'stable');
     outputTable = [inputTable1(pos1, :), inputTable2(pos2, 2:end)];
 end%
 
