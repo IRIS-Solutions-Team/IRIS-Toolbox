@@ -60,7 +60,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
 
     methods (Access=protected)
-        varargout = getDataNoFrills(varargin)
         varargout = resolveRange(varargin)
     end
 
@@ -68,6 +67,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
     methods
         varargout = clip(varargin)
         varargout = getData(varargin)
+        varargout = getDataNoFrills(varargin)
         varargout = ifelse(varargin)
         varargout = ellone(varargin)
         varargout = shift(varargin)
