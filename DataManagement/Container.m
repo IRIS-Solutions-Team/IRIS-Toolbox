@@ -61,7 +61,7 @@ classdef Container
         function list = getNames( )
             Container.createIfNeeded( );
             this = getappdata(0, Container.CONTAINER_NAME);
-            list = fieldnames(this);
+            list = transpose(fieldnames(this));
         end%
 
 
