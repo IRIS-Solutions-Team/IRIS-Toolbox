@@ -84,11 +84,9 @@ end
 trimObjectiveFunction = opt.TrimObjectiveFunction;
 
 xInit = xInit(:);
-numUnknowns = numel(xInit);
+numOfUnknowns = numel(xInit);
 
-temp = struct( ...
-    'NumberOfVariables', numUnknowns ...
-);
+temp = struct('NumberOfVariables', numOfUnknowns);
 
 displayLevel = getDisplayLevel( );
 tolX = opt.StepTolerance;
@@ -213,6 +211,9 @@ while true
         % Business as usual otherwise
         % Set step size between Current and Next iterations
         %
+        % * StepSizeSwitch=0 means step size always reset to default
+        % * StepSizeSwitch=1 means reuse step size from previous iteration
+        %
 
         if opt.StepSizeSwitch==0 
             next.Step = DEFAULT_STEP_SIZE;
@@ -307,7 +308,7 @@ if displayLevel.Any
     fprintf('\n');
 end
 
-x = current.X;
+x = reshape(current.X, sizeOfX);
 f = reshape(current.F, sizeOfF);
 numericExitFlag = double(exitFlag);
 
@@ -317,7 +318,12 @@ return
     function makeNewtonStep( )
         % Get and trim current objective function
         F0 = getCurrentObjectiveFunction( );
+        lastwarn('');
         next.D = -current.J \ F0;
+        if ~isempty(lastwarn( ))
+            next.D = -pinv(current.J) * F0;
+        end
+        if any(~isfinite(next.D(:))), keyboard, end
         step = next.Step;
         lenOfStepSize = numel(step);
         X = cell(1, lenOfStepSize);
@@ -363,13 +369,13 @@ return
             maxSingularValue = max(sj);
             minSingularValue = sj(end);
         end
-        tol = numUnknowns * eps(maxSingularValue);
+        tol = numOfUnknowns * eps(maxSingularValue);
         vecOfLambdas0 = vecOfLambdas;
         if minSingularValue>tol
             vecOfLambdas0 = [0, vecOfLambdas0];
         end
         lenOfLambda0 = numel(vecOfLambdas0);
-        scale = tol * eye(numUnknowns);
+        scale = tol * eye(numOfUnknowns);
         
         % Optimize lambda
         D = cell(1, lenOfLambda0);
