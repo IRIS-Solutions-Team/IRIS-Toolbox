@@ -48,7 +48,7 @@ classdef (CaseInsensitiveProperties=true) Options
         % Convergence Options
         DEFAULT_FUNCTION_NORM = 2
         DEFAULT_MAX_ITERATIONS = 5000
-        DEFAULT_MAX_FUNCTION_EVALUATIONS = @(inp) 100*inp.NumberOfVariables
+        DEFAULT_MAX_FUNCTION_EVALUATIONS = @(inp) 200*inp.NumberOfVariables
         DEFAULT_FUNCTION_TOLERANCE = model.DEFAULT_STEADY_TOLERANCE
         DEFAULT_STEP_TOLERANCE = model.DEFAULT_STEADY_TOLERANCE
         DEFAULT_TRIM_OBJECTIVE_FUNCTION = false
