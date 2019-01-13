@@ -119,7 +119,7 @@ end
 requiredNames = [this.NamesEndogenous, this.NamesExogenous];
 optionalNames = this.NamesErrors;
 check = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames);
-numDataSets = check.NumDataSets;
+numOfDataSets = check.NumOfDataSets;
 
 allNames = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
 XEG = requestData(this, check, inputDatabank, extendedRange, allNames);
@@ -143,32 +143,32 @@ numExtendedPeriods = length(extendedRange);
 %numDataY = size(y, 3);
 %numDataX = size(x, 3);
 %numDataE = size(e, 3);
-numRuns = max(nv, numDataSets);
+numOfRuns = max(nv, numOfDataSets);
 
-if opt.Contributions
-    assert( ...
-        numRuns==1, ...
-        'VAR:simulate', ...
-        'Cannot Contributions= simulation on VAR with multiple parameter variants.' ...
-    );
-    numRuns = ny + 2;
+if opt.Contributions 
+    if numOfRuns~=1
+        THIS_ERROR = { 'VAR:CannotSimulateContributions'
+                       'Cannot simulate shock contributions in VAR with multiple parameter variants' };
+        throw( exception.Base(THIS_ERROR, 'error') );
+    end
+    numOfRuns = ny + 2;
 end
 
-% Expand Y, E, X data in 3rd dimension to match numRuns.
-if numDataSets<numRuns
-    numAdd = numRuns - numDataSets;
-    XEG(:, :, end+1:numRuns) = repmat(XEG(:, :, end), 1, 1, numAdd);
+% Expand Y, E, X data in 3rd dimension to match numOfRuns.
+if numOfDataSets<numOfRuns
+    numAdd = numOfRuns - numOfDataSets;
+    XEG(:, :, end+1:numOfRuns) = repmat(XEG(:, :, end), 1, 1, numAdd);
 end
-%if numDataY<numRuns
-%    y = cat(3, y, repmat(y, 1, 1, numRuns-numDataY));
+%if numDataY<numOfRuns
+%    y = cat(3, y, repmat(y, 1, 1, numOfRuns-numDataY));
 %end
-%if numDataE<numRuns
-%    e = cat(3, e, repmat(e, 1, 1, numRuns-numDataE));
+%if numDataE<numOfRuns
+%    e = cat(3, e, repmat(e, 1, 1, numOfRuns-numDataE));
 %end
-%if ng>0 && numDataX<numRuns
-%    x = cat(3, x, repmat(x, 1, 1, numRuns-numDataX));
+%if ng>0 && numDataX<numOfRuns
+%    x = cat(3, x, repmat(x, 1, 1, numOfRuns-numDataX));
 %elseif ng==0
-%    x = zeros(0, numExtendedPeriods, numRuns);
+%    x = zeros(0, numExtendedPeriods, numOfRuns);
 %end
 
 %if opt.Contributions
@@ -177,13 +177,13 @@ end
 %end
 
 %if ~opt.Contributions
-%    outp1 = hdataobj(this, extendedRange, numRuns);
+%    outp1 = hdataobj(this, extendedRange, numOfRuns);
 %else
-%    outp1 = hdataobj(this, extendedRange, numRuns, 'Contributions=', @shock);
+%    outp1 = hdataobj(this, extendedRange, numOfRuns, 'Contributions=', @shock);
 %end
 
 % __Main Loop__
-for iLoop = 1 : numRuns
+for iLoop = 1 : numOfRuns
     if iLoop<=nv
         [A, B, K, J] = mysystem(this, iLoop);
     end

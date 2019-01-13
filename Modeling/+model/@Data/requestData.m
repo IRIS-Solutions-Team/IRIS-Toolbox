@@ -1,4 +1,4 @@
-function X = requestData(this, check, inputDatabank, range, names)
+function X = requestData(this, databankInfo, inputDatabank, range, names)
 % requestData  Return input data matrix for selected model names
 %
 % Backend IRIS function
@@ -11,7 +11,7 @@ function X = requestData(this, check, inputDatabank, range, names)
 
 numOfNames = numel(names);
 numOfPeriods = length(range);
-numOfDataSets = check.NumDataSets;
+numOfDataSets = databankInfo.NumOfDataSets;
 
 X = nan(numOfNames, numOfPeriods, numOfDataSets);
 

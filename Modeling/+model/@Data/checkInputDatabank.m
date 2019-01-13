@@ -1,4 +1,4 @@
-function output = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames)
+function databankInfo = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames)
     
 nv = this.NumOfVariants;
 
@@ -58,8 +58,8 @@ if ~all(checkNumOfDataSetsAndVariants)
            allNames{~checkNumOfDataSetsAndVariants} );
 end
 
-output = struct( );
-output.NumDataSets = max(max(numOfDataSets), 1);
+databankInfo = struct( );
+databankInfo.NumOfDataSets = max(max(numOfDataSets), 1);
 
 end%
 
