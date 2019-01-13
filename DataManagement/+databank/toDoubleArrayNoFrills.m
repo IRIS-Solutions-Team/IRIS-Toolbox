@@ -1,5 +1,10 @@
 function outputArray = toDoubleArrayNoFrills(inputDatabank, names, dates, column)
 
+if ~iscellstr(names)
+    names = cellstr(names);
+end
+
+dates = double(dates);
 numOfNames = numel(names);
 numOfDates = numel(dates);
 
@@ -10,11 +15,7 @@ end
 
 outputArray = nan(numOfDates, numOfNames);
 for i = 1 : numOfNames
-    if isa(names, 'string')
-        ithName = char(names(i));
-    else
-        ithName = names{i};
-    end
+    ithName = names{i};
     if ~isfield(inputDatabank, ithName) || ~isa(inputDatabank.(ithName), 'TimeSubscriptable')
         continue
     end
