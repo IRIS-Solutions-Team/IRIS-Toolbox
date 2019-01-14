@@ -13,12 +13,16 @@ if isempty(parser)
     parser.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Method', 'FirstOrder', @(x) validateString(x, {'FirstOrder', 'Selective', 'Stacked'})); 
     parser.addParameter('OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
+    parser.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Plan', true, @(x) isequal(x, true) || isequal(x, false) || isa(x, 'Plan'));
     parser.addParameter('Solver', @auto, @validateSolver);
     parser.addParameter('Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 end
 parser.parse(this, inputData, baseRange, varargin{:});
 opt = parser.Options;
+usingDefaults = parser.UsingDefaultsInStruct;
+
+resolveOptionConflicts( );
 
 opt.Window = parseWindowOption(opt.Window, opt.Method, baseRange);
 opt.Solver = parseSolverOption(opt.Solver, opt.Method);
@@ -48,6 +52,19 @@ if nargout>=2
     outputInfo = postprocessOutputInfo(this, outputInfo);
 end
 
+return
+    
+
+    function resolveOptionConflicts( )
+        if ~usingDefaults.Anticipate && ~usingDefaults.Plan
+            THIS_ERROR = { 'Model:CannotUseAnticipateAndPlan'
+                           'Options Anticipate= and Plan= cannot be combined in one simulate(~)' };
+            throw( exception.Base(THIS_ERROR, 'error') );
+        end
+        if ~usingDefaults.Anticipate && usingDefaults.Plan
+            opt.Plan = opt.Anticipate;
+        end
+    end%
 end%
 
 
