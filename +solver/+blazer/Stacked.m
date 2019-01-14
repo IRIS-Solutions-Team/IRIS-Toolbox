@@ -18,6 +18,11 @@ classdef Stacked < solver.blazer.Blazer
 
 
         function [inc, idOfEqtns, idOfQties] = prepareIncidenceMatrix(this, plan)
+            PTR = @int16;
+            inc = across(this.Incidence, 'Shift');
+            inc = inc(this.InxEquations, this.InxEndogenous);
+            idOfEqtns = PTR( find(this.InxEquations) ); %#ok<FNDSB>
+            idOfQties = PTR( find(this.InxEndogenous) ); %#ok<FNDSB>
         end%
     end
 end

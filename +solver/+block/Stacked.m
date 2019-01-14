@@ -12,10 +12,10 @@ classdef Stacked < solver.block.Block
         % MaxLead  Max lead of each quantity in this block
         MaxLead = double.empty(1, 0)   
 
-        % FirstTime  First time (1..numOfPeriods) to evaluate equations in for ith unknown (1..numOfQuantitiesInBlock*numOfPeriods)
+        % FirstTime  First time (1..numOfColumnsToRun) to evaluate equations in for ith unknown (1..numOfQuantitiesInBlock*numOfColumnsToRun)
         FirstTime = double.empty(1, 0) 
 
-        % LastTime  Last time (1..numOfPeriods) to evaluate equations in for ith unknown (1..numOfQuantitiesInBlock*numOfPeriods)
+        % LastTime  Last time (1..numOfColumnsToRun) to evaluate equations in for ith unknown (1..numOfQuantitiesInBlock*numOfColumnsToRun)
         LastTime = double.empty(1, 0)  
 
         % NumOfActiveEquations  Number of active equations
@@ -93,15 +93,14 @@ classdef Stacked < solver.block.Block
                 writeEndogenousToData(z);
             else
                 % __Assign__
-                [z, exitStatus] = assign(z);
+                [z, exitStatus] = assign( );
             end
             
             exitStatus = all(isfinite(z)) && double(exitStatus)>0;
             return
             
             
-            function [z, exitStatus] = assign(z)
-                % __Assignment__
+            function [z, exitStatus] = assign( )
                 isInvTransform = ~isempty(this.Type.InvTransform);
                 for i = 1 : numOfColumnsToRun
                     z = this.EquationsFunc(data.YXEPG, columnsToRun(i), data.BarYX);
@@ -156,6 +155,7 @@ classdef Stacked < solver.block.Block
             prepareBlock@solver.block.Block(this, blz, opt);
             % Remove auxiliary equations added to construct
             % exogenize/endogenize
+            %{
             lastEquation = find(blz.InxEquations, 1, 'last');
             inxToRemove = this.PosEqn>lastEquation;
             this.PosEqn(inxToRemove) = [ ];
@@ -170,14 +170,15 @@ classdef Stacked < solver.block.Block
             % Create index of logs within linx
             linxLog = ixLog(this.PosQty);
             linxLog = repmat(linxLog(:), numOfColumnsToRun, 1);
+            %}
         end%
 
 
         function createJacobPattern(this, blz)
             numOfQuantitiesInBlock = numel(this.PosQty);
             numOfEquationsInBlock = numel(this.PosEqn);
-            numOfPeriods = blz.NumPeriods;
-            numOfUnknownsInBlock = numOfQuantitiesInBlock * numOfPeriods;
+            numOfColumnsToRun = numel(blz.ColumnsToRun);
+            numOfUnknownsInBlock = numOfQuantitiesInBlock * numOfColumnsToRun;
             % Incidence matrix numQuantities-by-numShifts
             acrossEquations = across(blz.Incidence, 'Equations');
             acrossEquations = acrossEquations(this.PosQty, :);
@@ -195,25 +196,25 @@ classdef Stacked < solver.block.Block
             this.MaxLead = this.MaxLead - sh0;
             maxMaxLead = max(this.MaxLead);
 
-            this.JacobPattern = false(numOfEquationsInBlock*numOfPeriods, numOfQuantitiesInBlock*numOfPeriods);
-            this.FirstTime = nan(1, numOfQuantitiesInBlock*numOfPeriods);
-            this.LastTime = nan(1, numOfQuantitiesInBlock*numOfPeriods);
+            this.JacobPattern = false(numOfEquationsInBlock*numOfColumnsToRun, numOfQuantitiesInBlock*numOfColumnsToRun);
+            this.FirstTime = nan(1, numOfQuantitiesInBlock*numOfColumnsToRun);
+            this.LastTime = nan(1, numOfQuantitiesInBlock*numOfColumnsToRun);
             this.NumericalJacobFunc = cell(1, numOfUnknownsInBlock);
             this.NumOfActiveEquations = nan(1, numOfUnknownsInBlock);
-            for t = 1 : numOfPeriods
+            for t = 1 : numOfColumnsToRun
                for q = 1 : numOfQuantitiesInBlock
                     posUnknown = (t-1)*numOfQuantitiesInBlock + q;
-                    pattern = false(numOfEquationsInBlock, numOfPeriods);
+                    pattern = false(numOfEquationsInBlock, numOfColumnsToRun);
                     firstTime = t - this.MaxLead(q);
-                    if t-this.MaxLag(q)<=numOfPeriods
+                    if t-this.MaxLag(q)<=numOfColumnsToRun
                         % This value does not affect linear terminal
                         % condition.
                         lastTime = t - this.MaxLag(q);
                         if firstTime<1
                             firstTime = 1;
                         end
-                        if lastTime>numOfPeriods
-                            lastTime = numOfPeriods;
+                        if lastTime>numOfColumnsToRun
+                            lastTime = numOfColumnsToRun;
                         end
                         numTimes = lastTime - firstTime + 1;
                         inxOfActiveEquations = acrossShifts(:, q);
@@ -228,11 +229,11 @@ classdef Stacked < solver.block.Block
                         % This value may affect linear terminal condition,
                         % so we have to differentiate all periods back to
                         % the max lead that can see the terminal condition.
-                        firstTime = min(firstTime, numOfPeriods-maxMaxLead);
+                        firstTime = min(firstTime, numOfColumnsToRun-maxMaxLead);
                         if firstTime<1
                             firstTime = 1;
                         end
-                        lastTime = numOfPeriods;
+                        lastTime = numOfColumnsToRun;
                         pattern(:, firstTime:end) = true;
                         inxOfActiveEquations = true(numOfEquationsInBlock, 1);
                         this.NumericalJacobFunc{posUnknown} = getNumericalJacobFunc( );
@@ -241,10 +242,6 @@ classdef Stacked < solver.block.Block
                     this.JacobPattern(:, posUnknown) = pattern(:);
                     this.FirstTime(posUnknown) = firstTime;
                     this.LastTime(posUnknown) = lastTime;
-                    %check = this.NumOfActiveEquations(posUnknown) * (lastTime-firstTime+1);
-                    %if sum(this.JacobPattern(:, posUnknown))~=check
-                    %    keyboard
-                    %end
                 end
             end
 

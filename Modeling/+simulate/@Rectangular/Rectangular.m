@@ -168,8 +168,6 @@ classdef Rectangular < handle
             this.SolutionVector = getp(model, 'Vector', 'Solution');
 
             this.InxOfCurrentWithinXi = imag(this.SolutionVector{2})==0;
-
-            [this.HashEquationsFunction, this.NumOfHashEquations] = prepareHashEquations(model);
         end%
     end
 end

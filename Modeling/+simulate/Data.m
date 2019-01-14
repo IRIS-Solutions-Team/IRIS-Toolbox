@@ -315,7 +315,12 @@ classdef Data < handle
             this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfExtendedPeriods);
             this.InitYX = this.YXEPG(this.InxOfYX, :);
 
-            this.AnticipationStatusOfE = plan.AnticipationStatusOfExogenous;
+            if isa(plan, 'Plan')
+                this.AnticipationStatusOfE = plan.AnticipationStatusOfExogenous;
+            else
+                ne = nnz(this.InxOfE);
+                this.AnticipationStatusOfE = repmat(plan, ne, 1);
+            end
         end%
     end
 end

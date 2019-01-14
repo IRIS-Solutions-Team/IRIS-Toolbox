@@ -69,7 +69,10 @@ for run = 1 : numOfRuns
     vthData.LastColumnOfSimulation = lastColumnOfSimulation;
     vthData.Deviation = opt.Deviation;
     vthData.Window = opt.Window;
+
+    % Method=Selective specific properties
     if strcmpi(opt.Method, 'Selective')
+        [vthRect.HashEquationsFunction, vthRect.NumOfHashEquations] = prepareHashEquations(model);
         vthData.NonlinAddf = zeros(vthRect.NumOfHashEquations, vthData.NumOfExtendedPeriods);
     end
 

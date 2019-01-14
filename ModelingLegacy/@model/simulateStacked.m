@@ -25,8 +25,6 @@ endOfBaseRange = baseRange(end);
                                                                   inputDatabank, ...
                                                                   baseRange, ...
                                                                   'ResetShocks=', true );
-needsFotc = maxShift>0;
-
 startOfExtendedRange = extendedRange(1);
 firstColumnToRun = round(startOfBaseRange - startOfExtendedRange + 1);
 lastColumnToRun = round(endOfBaseRange - startOfExtendedRange + 1); 
@@ -38,8 +36,7 @@ run(blz);
 blz.ColumnsToRun = firstColumnToRun : lastColumnToRun;
 prepareBlocks(blz, opt);
 
-inxOfLog = blz.IxLog;
-% inxOfLog(:) = false;
+inxOfLog = blz.Quantity.InxOfLog;
 numOfBlocks = numel(blz.Block);
 blockExitStatus = repmat({ones(numOfBlocks, numOfDataColumns)}, 1, nv);
 for v = 1 : nv
@@ -59,14 +56,17 @@ for v = 1 : nv
 
     if strcmpi(opt.Initial, 'FirstOrder')
         % Simulate on the simulation range to get initial values
-        setTimeFrame(vthRect, firstColumnToRun, numOfDataColumns);
-        setTimeFrame(vthData);
+        initTimeFrame = [firstColumnToRun, numOfDataColumns];
+        setTimeFrame(vthRect, initTimeFrame);
+        setTimeFrame(vthData, initTimeFrame);
         flat(vthRect, vthData);
     end
 
     for i = 1 : numOfBlocks
         ithBlk = blz.Block{i};
-        prepareTerminal( );
+        if ithBlk.Type==solver.block.Type.SOLVE
+            prepareTerminal( );
+        end
         if strcmpi(opt.Method, 'Stacked')
             % Stacked time
             columnsToRun = firstColumnToRun : lastColumnToRun;
@@ -111,7 +111,7 @@ return
 
     function prepareTerminal( )
         maxMaxLead = max(ithBlk.MaxLead);
-        if needsFotc && maxMaxLead>0
+        if maxMaxLead>0
             % Reset range in @Rectangular and @simulate.Data for simulation of terminal condition
             fotcTimeFrame = [lastColumnToRun+1, lastColumnToRun+maxMaxLead];
             setTimeFrame(vthRect, fotcTimeFrame);

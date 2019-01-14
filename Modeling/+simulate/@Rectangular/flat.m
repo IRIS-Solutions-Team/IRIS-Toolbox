@@ -35,7 +35,7 @@ anticipatedE = data.AnticipatedE;
 unanticipatedE = data.UnanticipatedE;
 lastAnticipatedE = 0;
 lastUnanticipatedE = 0;
-if isempty(anticipatedD) && isempty(unanticipatedE)
+if isempty(anticipatedE) && isempty(unanticipatedE)
     ne = 0;
 elseif ne>0
     if data.MixinUnanticipated
