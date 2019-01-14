@@ -72,7 +72,7 @@ for run = 1 : numOfRuns
 
     % Method=Selective specific properties
     if strcmpi(opt.Method, 'Selective')
-        [vthRect.HashEquationsFunction, vthRect.NumOfHashEquations] = prepareHashEquations(model);
+        [vthRect.HashEquationsFunction, vthRect.NumOfHashEquations] = prepareHashEquations(this);
         vthData.NonlinAddf = zeros(vthRect.NumOfHashEquations, vthData.NumOfExtendedPeriods);
     end
 
