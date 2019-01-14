@@ -1,5 +1,5 @@
 function outputDatabank = run(varargin)
-% run  Evaluate reporting equations (rpteq) object.
+% run  Evaluate reporting equations (rpteq) object
 %
 %
 % __Syntax__
@@ -98,38 +98,36 @@ function outputDatabank = run(varargin)
 %         b: [8x1 tseries]
 % 
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('rpteq.run');
-    INPUT_PARSER.addRequired('ReportingEquations', @(x) isa(x, 'rpteq'));
-    INPUT_PARSER.addRequired('InputDatabank', @(x) isempty(x) || isstruct(x));
-    INPUT_PARSER.addRequired('SimulationDates', @(x) isa(x, 'DateWrapper') || isnumeric(x));
-    INPUT_PARSER.addOptional('Model', [ ], @(x) isempty(x) || isa(x, 'model'));
-    INPUT_PARSER.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
-    INPUT_PARSER.addParameter('DbOverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
-    INPUT_PARSER.addParameter('Fresh', false, @(x) isequal(x, true) || isequal(x, false));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('rpteq.run');
+    parser.addRequired('ReportingEquations', @(x) isa(x, 'rpteq'));
+    parser.addRequired('InputDatabank', @(x) isempty(x) || isstruct(x));
+    parser.addRequired('SimulationDates', @(x) isa(x, 'DateWrapper') || isnumeric(x));
+    parser.addOptional('Model', [ ], @(x) isempty(x) || isa(x, 'model'));
+    parser.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    parser.addParameter('DbOverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    parser.addParameter('Fresh', false, @(x) isequal(x, true) || isequal(x, false));
 end
-INPUT_PARSER.parse(varargin{:});
-this = INPUT_PARSER.Results.ReportingEquations;
-inputDatabank = INPUT_PARSER.Results.InputDatabank;
-dates = INPUT_PARSER.Results.SimulationDates;
-if ~isa(dates, 'DateWrapper')
-    dates = DateWrapper(dates);
-end
-m = INPUT_PARSER.Results.Model;
-opt = INPUT_PARSER.Options;
+parser.parse(varargin{:});
+this = parser.Results.ReportingEquations;
+inputDatabank = parser.Results.InputDatabank;
+dates = parser.Results.SimulationDates;
+dates = double(dates);
+m = parser.Results.Model;
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
 eqtn = this.EqtnRhs;
-numEquations = numel(eqtn);
-numRhsNames = numel(this.NameRhs);
+numOfEquations = numel(eqtn);
+numOfRhsNames = numel(this.NameRhs);
 dates = dates(:).';
 minDate = min(dates);
 maxDate = max(dates);
@@ -156,15 +154,15 @@ eqtn = strrep(eqtn, '?', 'D.');
 eqtn = regexprep(eqtn, '\{@(.*?)\}#', '(t$1, :)');
 eqtn = strrep(eqtn, '#', '(t, :)');
 
-fn = cell(1, numEquations);
-for i = 1 : numEquations
+fn = cell(1, numOfEquations);
+for i = 1 : numOfEquations
     fn{i} = str2func(['@(D, t, S)', eqtn{i}]);
 end
 
 % Evaluate equations sequentially period by period.
 runTime = dates-minDate+1 - minSh;
 for t = runTime
-    for iEq = 1 : numEquations
+    for iEq = 1 : numOfEquations
         ithName = this.NameLhs{iEq};
         lhs = D.(ithName);
         try
@@ -201,7 +199,7 @@ end
 
 appendPresample = opt.DbOverlay || opt.AppendPresample;
 
-for i = 1 : numEquations
+for i = 1 : numOfEquations
     ithName = this.NameLhs{i};
     data = D.(ithName)(-minSh+1:end-maxSh, :);
     ithComment = this.Label{i};
@@ -238,9 +236,9 @@ return
 
 
     function checkRhsNames( )
-        indexFound = true(1, numRhsNames);
-        indexValid = true(1, numRhsNames);
-        for ii = 1 : numRhsNames
+        indexFound = true(1, numOfRhsNames);
+        indexValid = true(1, numOfRhsNames);
+        for ii = 1 : numOfRhsNames
             iithName = this.NameRhs{ii};
             isField = isfield(inputDatabank, iithName);
             indexFound(ii) = isField || any(strcmp(iithName, this.NameLhs));
@@ -269,7 +267,7 @@ return
 
 
     function preallocLhsNames( )
-        for ii = 1 : numEquations
+        for ii = 1 : numOfEquations
             iithName = this.NameLhs{ii};
             if ~isfield(D, iithName)
                 D.(iithName) = nan(numExtendedPeriods, 1);
