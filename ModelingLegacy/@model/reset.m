@@ -39,8 +39,8 @@ function this = reset(this, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -54,37 +54,36 @@ ixg = this.Quantity.Type==TYPE(5);
 ne = sum(ixe);
 
 if this.IsLinear
-    dftStd = this.DEFAULT_STD_LINEAR;
+    defaultStd = this.DEFAULT_STD_LINEAR;
 else
-    dftStd = this.DEFAULT_STD_NONLINEAR;
+    defaultStd = this.DEFAULT_STD_NONLINEAR;
 end
 
 if isempty(varargin)
     resetSteady( );
-    resetParams( );
+    resetPlainParameters( );
     resetStd( );
     resetCorr( );
     return
 end
 
-for i = 1 : length(varargin)
-    x = lower(strtrim(varargin{i}));
-    switch lower(strtrim(x))
-        case {'sstate', 'steadystate', 'steady'}
-            resetSteady( );
-        case {'plainparameters', 'plainparams'}
-            resetParams( );
-        case {'parameters', 'params'}
-            resetParams( );
-            resetStd( );
-            resetCorr( );
-        case 'stdcorr'
-            resetStd( );
-            resetCorr( );
-        case 'std'
-            resetStd( );
-        case 'corr'
-            resetCorr( );
+for i = 1 : numel(varargin)
+    x = strtrim(varargin{i});
+    if any(strcmpi(x, {'SState', 'SteadyState', 'Steady'}))
+        resetSteady( );
+    elseif strncmpi(x, 'PlainP', 6)
+        resetPlainParameters( );
+    elseif strncmpi(x, 'Param', 5)
+        resetPlainParameters( );
+        resetStd( );
+        resetCorr( );
+    elseif strcmpi(x, 'StdCorr')
+        resetStd( );
+        resetCorr( );
+    elseif strcmpi(x, 'Std')
+        resetStd( );
+    elseif strcmpi(x, 'Corr')
+        resetCorr( );
     end
 end
 
@@ -93,20 +92,20 @@ return
 
     function resetSteady( )
         this.Variant.Values(:, ixx | ixy, :) = NaN;
-    end
+    end%
 
 
-    function resetParams( )
+    function resetPlainParameters( )
         this.Variant.Values(:, ixp, :) = NaN;
-    end
+    end%
 
 
     function resetStd( )
-        this.Variant.StdCorr(:, 1:ne, :) = dftStd;
-    end
+        this.Variant.StdCorr(:, 1:ne, :) = defaultStd;
+    end%
 
 
     function resetCorr( )
         this.Variant.StdCorr(:, ne+1:end, :) = 0;
-    end
-end
+    end%
+end%

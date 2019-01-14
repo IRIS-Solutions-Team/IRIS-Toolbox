@@ -30,13 +30,12 @@ needsFotc = maxShift>0;
 startOfExtendedRange = extendedRange(1);
 firstColumnToRun = round(startOfBaseRange - startOfExtendedRange + 1);
 lastColumnToRun = round(endOfBaseRange - startOfExtendedRange + 1); 
-columnsToRun = firstColumnToRun : lastColumnToRun;
 numOfDataColumns = size(YXEPG, 2);
 
 % __Prepare and Run blazer.Stacked__
 blz = prepareBlazer(this, opt.Method, opt);
 run(blz);
-blz.ColumnsToRun = columnsToRun;
+blz.ColumnsToRun = firstColumnToRun : lastColumnToRun;
 prepareBlocks(blz, opt);
 
 inxOfLog = blz.IxLog;
@@ -46,7 +45,9 @@ blockExitStatus = repmat({ones(numOfBlocks, numOfDataColumns)}, 1, nv);
 for v = 1 : nv
     % Set up simulation data including parameters and steady trends
     plan = true;
-    vthData = simulate.Data.fromModel(this, v, plan, YXEPG);
+    vthData = simulate.Data.fromModelAndPlan(this, v, plan, YXEPG);
+    vthData.FirstColumnOfSimulation = firstColumnToRun;
+    vthData.LastColumnOfSimulation = numOfDataColumns;
     if opt.Deviation
         vhtData.YXEPG = addSteadyTrends(vthData, vthData.YXEPG);
     end
@@ -59,25 +60,13 @@ for v = 1 : nv
     if strcmpi(opt.Initial, 'FirstOrder')
         % Simulate on the simulation range to get initial values
         setTimeFrame(vthRect, firstColumnToRun, numOfDataColumns);
-        vthData.FirstColumnOfSimulation = firstColumnToRun;
-        vthData.LastColumnOfSimulation = numOfDataColumns;
         setTimeFrame(vthData);
         flat(vthRect, vthData);
     end
 
-    if needsFotc
-        % Reset range in @Rectangular and @simulate.Data for simulation of terminal condition
-        setTimeFrame(vthRect, lastColumnToRun+1, lastColumnToRun+maxMaxLead);
-        setTimeFrame(vthData, lastColumnToRun+1, lastColumnToRun+maxMaxLead);
-    else
-        vthRect = [ ];
-    end
-
-    %%%% vthRect.LastColumn = lastColumnToRun + maxMaxLead;
     for i = 1 : numOfBlocks
         ithBlk = blz.Block{i};
-        ithBlk.Terminal = vthRect;
-        maxMaxLead = max(ithBlk.MaxLead);
+        prepareTerminal( );
         if strcmpi(opt.Method, 'Stacked')
             % Stacked time
             columnsToRun = firstColumnToRun : lastColumnToRun;
@@ -117,4 +106,19 @@ outputDatabank = databank.fromDoubleArrayNoFrills( YXEPG, ...
                                                    startOfExtendedRange, ...
                                                    labels );
 
+return
+
+
+    function prepareTerminal( )
+        maxMaxLead = max(ithBlk.MaxLead);
+        if needsFotc && maxMaxLead>0
+            % Reset range in @Rectangular and @simulate.Data for simulation of terminal condition
+            fotcTimeFrame = [lastColumnToRun+1, lastColumnToRun+maxMaxLead];
+            setTimeFrame(vthRect, fotcTimeFrame);
+            setTimeFrame(vthData, fotcTimeFrame);
+        else
+            vthRect = [ ];
+        end
+        ithBlk.Terminal = vthRect;
+    end%
 end%

@@ -33,10 +33,11 @@ simulateY = this.SimulateY;
 
 anticipatedE = data.AnticipatedE;
 unanticipatedE = data.UnanticipatedE;
-
 lastAnticipatedE = 0;
 lastUnanticipatedE = 0;
-if ne>0
+if isempty(anticipatedD) && isempty(unanticipatedE)
+    ne = 0;
+elseif ne>0
     if data.MixinUnanticipated
         lastUnanticipatedE = data.LastUnanticipatedE;
     else
@@ -44,7 +45,6 @@ if ne>0
     end
     lastAnticipatedE = data.LastAnticipatedE;
 end
-
 
 % Retrieve first-order solution after making sure expansion is sufficient
 [T, R, K, Z, H, D, Q] = this.FirstOrderSolution{:};
