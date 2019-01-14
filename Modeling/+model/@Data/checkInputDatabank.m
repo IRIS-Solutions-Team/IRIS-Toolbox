@@ -26,11 +26,19 @@ checkIncluded = true(size(allNames));
 checkFrequency = true(size(allNames));
 for i = 1 : numel(allNames)
     ithName = allNames{i};
-    if ~isfield(inputDatabank, ithName) || ~isa(inputDatabank.(ithName), 'TimeSubscriptable')
+    if ~isfield(inputDatabank, ithName)
+        continue
+    end
+    ithField = inputDatabank.(ithName);
+    if ~isa(ithField, 'TimeSubscriptable')
         checkIncluded(i) = ~inxOfRequiredNames(i);
         continue
     end
-    checkFrequency(i) = getFrequencyAsNumeric(inputDatabank.(ithName))==requiredFreq;
+    if isempty(ithField)
+        continue
+    end
+    ithFreq = getFrequencyAsNumeric(ithField);
+    checkFrequency(i) = isnan(ithFreq) || ithFreq==requiredFreq;
 end
 
 if ~all(checkIncluded)
