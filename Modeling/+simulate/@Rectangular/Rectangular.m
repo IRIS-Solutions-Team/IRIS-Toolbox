@@ -37,7 +37,6 @@ classdef Rectangular < handle
     properties (SetAccess=protected)
         FirstColumn = NaN
         LastColumn = NaN
-        NumOfDummyPeriods = NaN
     end
 
 
@@ -59,9 +58,9 @@ classdef Rectangular < handle
             triangular = false;
             [ this.FirstOrderSolution{1:6}, ~, ~, ~, ...
               this.FirstOrderSolution{7} ] = sspaceMatrices( model, ...
-                                             variantRequested, ...
-                                             keepExpansion, ...
-                                             triangular );
+                                                             variantRequested, ...
+                                                             keepExpansion, ...
+                                                             triangular );
             [this.FirstOrderExpansion{:}] = expansionMatrices( model, ...
                                                                variantRequested, ...
                                                                triangular );
@@ -71,13 +70,9 @@ classdef Rectangular < handle
         function ensureExpansionGivenData(this, data)
             lastAnticipatedE = data.LastAnticipatedE;
             lastEndogenizedE = data.LastEndogenizedE;
-            window = 0;
-            if strcmpi(this.Method, 'Selective')
-                window = round(data.LastColumn - data.FirstColumn + 1);
-            end
             requiredForward = max([ lastAnticipatedE-this.FirstColumn, ...
                                     lastEndogenizedE-this.FirstColumn, ...
-                                    window ]);
+                                    data.Window ]);
             if isempty(requiredForward) || requiredForward==0
                 return
             end
@@ -127,7 +122,6 @@ classdef Rectangular < handle
             VEC = @(x) x(:);
             this.FirstColumn = timeFrame(1);
             this.LastColumn = timeFrame(2);
-            this.NumOfDummyPeriods = timeFrame(3);
             [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
             idOfXib = VEC(this.SolutionVector{2}(nf+1:end));
             idOfCurrentXi = VEC(this.SolutionVector{2}(this.InxOfCurrentWithinXi));
@@ -158,7 +152,10 @@ classdef Rectangular < handle
         function this = fromModel(model, variantRequested)
             if nargin<2
                 variantRequested = 1;
+            elseif variantRequested>1 && length(model)==1 
+                variantRequested = 1;
             end
+
             this = simulate.Rectangular( );
 
             % Get first-order solution matrices and expansion matrices

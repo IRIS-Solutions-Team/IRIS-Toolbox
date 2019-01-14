@@ -32,10 +32,20 @@ else
     checkCompatibilityOfPlan(this, baseRange, plan);
 end
 
-[outputData, outputInfo] = simulateFirstOrder(this, inputData, baseRange, plan, opt);
+% Check the input databank; treat all names as optional, and check for
+% missing initial conditions later
+requiredNames = cell.empty(1, 0);
+optionalNames = this.Quantity.Name;
+databankInfo = checkInputDatabank(this, inputData, baseRange, requiredNames, optionalNames);
+
+[outputData, outputInfo] = simulateFirstOrder(this, inputData, baseRange, plan, databankInfo, opt);
 
 if isstruct(outputData)
     outputData = appendData(this, inputData, outputData, baseRange, opt);
+end
+
+if nargout>=2
+    outputInfo = postprocessOutputInfo(this, outputInfo);
 end
 
 end%
@@ -104,5 +114,25 @@ function solverOption = parseSolverOption(solverOption, methodOption)
         solverOption = solver.Options.parseOptions(solverOption, methodOption, prepareGradient, displayMode);
         return
     end
+end%
+
+
+function outputInfo = postprocessOutputInfo(this, outputInfo)
+    numOfRuns = numel(outputInfo.TimeFrames);
+    for run = 1 : numOfRuns
+        timeFrames = outputInfo.TimeFrames{run};
+        numOfTimeFrames = size(timeFrames);
+        extendedRange = double(outputInfo.ExtendedRange);
+        startOfExtendedRange = extendedRange(1);
+        endOfExtendedRange = extendedRange(end);
+        for frame = 1 : numOfTimeFrames
+            startOfTimeFrame = startOfExtendedRange + timeFrames(frame, 1) - 1;
+            endOfTimeFrame = startOfExtendedRange + timeFrames(frame, 2) - 1;
+            timeFrames(frame, :) = [startOfTimeFrame, endOfTimeFrame];
+        end
+        outputInfo.TimeFrames{run} = DateWrapper.fromDateCode(timeFrames);
+    end
+    outputInfo.BaseRange = DateWrapper.fromDateCode(outputInfo.BaseRange);
+    outputInfo.ExtendedRange = DateWrapper.fromDateCode(outputInfo.ExtendedRange);
 end%
 

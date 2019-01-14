@@ -37,11 +37,12 @@ unanticipatedE = data.UnanticipatedE;
 lastAnticipatedE = 0;
 lastUnanticipatedE = 0;
 if ne>0
-    if ~data.MixinUnanticipated
-        unanticipatedE(:, firstColumn+1:end) = 0;
+    if data.MixinUnanticipated
+        lastUnanticipatedE = data.LastUnanticipatedE;
+    else
+        lastUnanticipatedE = firstColumn;
     end
     lastAnticipatedE = data.LastAnticipatedE;
-    lastUnanticipatedE = data.LastUnanticipatedE;
 end
 
 
@@ -51,7 +52,7 @@ R0 = R(:, 1:ne);
 lenOfR = size(R, 2);
 
 % Nonlinear add-factors
-nlaf = data.NonlinAddfactors;
+nlaf = data.NonlinAddf;
 lastNlaf = 0;
 nlafExist = ~isempty(Q) && ~isempty(nlaf) && any(nlaf(:)~=0);
 if nlafExist
@@ -89,11 +90,11 @@ for t = firstColumn : lastColumn
             Xi_t = Xi_t + R0*unanticipatedE(:, t);
         end
         if t<=lastAnticipatedE
-            anticipatedE_t = anticipatedE(:, t:lastAnticipatedE);
-            anticipatedE_t = anticipatedE_t(:);
-            lenToAdd = lenOfR - numel(anticipatedE_t);
-            anticipatedE_t = [anticipatedE_t; zeros(lenToAdd, 1)];
-            Xi_t = Xi_t + R*anticipatedE_t;
+            vecAnticipatedE_t = anticipatedE(:, t:lastAnticipatedE);
+            vecAnticipatedE_t = vecAnticipatedE_t(:);
+            lenToAdd = lenOfR - numel(vecAnticipatedE_t);
+            vecAnticipatedE_t = [vecAnticipatedE_t; zeros(lenToAdd, 1)];
+            Xi_t = Xi_t + R*vecAnticipatedE_t;
         end
     end
 
@@ -116,9 +117,13 @@ for t = firstColumn : lastColumn
             % Add constant
             Y_t = Y_t + D;
         end
-        if ne>0
+        if ne>0 
             % Add shocks
-            Y_t = Y_t + H*(anticipatedE(:, t) + unanticipatedE(:, t));
+            E_t = anticipatedE(:, t);
+            if t<=lastUnanticipatedE
+                E_t = E_t + unanticipatedE(:, t);
+            end
+            Y_t = Y_t + H*E_t;
         end
         % Update current column in data matrix
         data.YXEPG(inxOfY, t) = Y_t;

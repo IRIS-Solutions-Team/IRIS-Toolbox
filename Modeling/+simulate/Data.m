@@ -9,8 +9,8 @@ classdef Data < handle
         % BarYX  NumOfYX-by-NumOfPeriods matrix of steady levels for [observed; endogenous]
         BarYX = double.empty(0) 
 
-        % NonlinAddfactors  Add-factors to hash equations
-        NonlinAddfactors = double.empty(0)
+        % NonlinAddf  Add-factors in hash equations
+        NonlinAddf = double.empty(0)
 
         % InxOfY  True for measurement variables
         InxOfY = logical.empty(1, 0)
@@ -40,23 +40,25 @@ classdef Data < handle
         % UnanticipatedE  Values of unanticipated shocks within the current simulation range
         UnanticipatedE = double.empty(0)
 
+        Deviation = false
+
         FirstColumnOfSimulation
         LastColumnOfSimulation
-        NumOfDummyPeriods
+        
+        % Window  Window for nonlinear addfactors
+        Window = 0
 
-        Deviation = false
-    end
+        % FirstColumnOfTimeFrame  First column of current time frame to be simulated
+        FirstColumnOfTimeFrame
 
-
-    properties (SetAccess=protected)
-        FirstColumn
-        LastColumn
+        % LastColumnOfTimeFrame  Last column of current time frame to be simulated
+        LastColumnOfTimeFrame
     end
 
 
     methods
         function updateSwap(this, plan)
-            firstColumn = this.FirstColumn;
+            firstColumn = this.FirstColumnOfTimeFrame;
             lastColumnOfSimulation = this.LastColumnOfSimulation;
             this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfExtendedPeriods);
             this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfExtendedPeriods);
@@ -142,26 +144,71 @@ classdef Data < handle
             % Reset shocks outside the current simulation range to zero
             anticipatedE(:, [1:this.FirstColumnOfSimulation-1, this.LastColumnOfSimulation+1:end]) = 0;
             unanticipatedE(:, [1:this.FirstColumnOfSimulation-1, this.LastColumnOfSimulation+1:end]) = 0;
+            if nargout==0
+                this.AnticipatedE = anticipatedE;
+                this.UnanticipatedE = unanticipatedE;
+            end
         end%
 
 
-        function updateE(this)
-            [anticipatedE, unanticipatedE] = retrieveE(this);
-            this.AnticipatedE = anticipatedE;
-            this.UnanticipatedE = unanticipatedE;
+        function storeE(this)
+            [numOfQuants, numOfPeriods] = size(this.YXEPG);
+            numOfE = nnz(this.InxOfE);
+            columnRange = this.FirstColumnOfSimulation : this.LastColumnOfSimulation;
+            if numOfE==0
+                % No shocks in model, return immediately
+                return
+            end
+            if all(this.AnticipationStatusOfE)
+                % All shocks anticipated
+                if any(this.UnanticipatedE(:)~=0)
+                    this.YXEPG(this.InxOfE, columnRange) = complex( this.AnticipatedE(:, columnRange), ...
+                                                                    this.UnanticipatedE(:, columnRange) );
+                else
+                    this.YXEPG(this.InxOfE, columnRange) = this.AnticipatedE(:, columnRange);
+                end
+            elseif all(~this.AnticipationStatusOfE)
+                % All shocks unanticipated
+                if any(this.AnticipatedE(:)~=0)
+                    this.YXEPG(this.InxOfE, columnRange) = complex( this.UnanticipatedE(:, columnRange), ...
+                                                                    this.AnticipatedE(:, columnRange) );
+                else
+                    this.YXEPG(this.InxOfE, columnRange) = this.UnanticipatedE(:, columnRange);
+                end
+            else
+                % Mixed anticipation status 
+                % Store anticipated shocks
+                tempInx = false(1, numOfQuants);
+                tempInx(this.InxOfE) = this.AnticipationStatusOfE;
+                tempReal = this.AnticipatedE(this.AnticipationStatusOfE, columnRange);
+                tempImag = this.UnanticipatedE(this.AnticipationStatusOfE, columnRange);
+                if any(tempImag(:)~=0)
+                    this.YXEPG(tempInx, columnRange) = complex(tempReal, tempImag);
+                else
+                    this.YXEPG(tempInx, columnRange) = tempReal;
+                end
+                % Store unanticipated shocks
+                tempInx = false(1, numOfQuants);
+                tempInx(this.InxOfE) = ~this.AnticipationStatusOfE;
+                tempReal = this.UnanticipatedE(~this.AnticipationStatusOfE, columnRange);
+                tempImag = this.AnticipatedE(~this.AnticipationStatusOfE, columnRange);
+                if any(tempImag(:)~=0)
+                    this.YXEPG(tempInx, columnRange) = complex(tempReal, tempImag);
+                else
+                    this.YXEPG(tempInx, columnRange) = tempReal;
+                end
+            end
         end%
 
 
         function setTimeFrame(this, timeFrame)
             if nargin<2
-                this.FirstColumn = this.FirstColumnOfSimulation;
-                this.LastColumn = this.LastColumnOfSimulation;
-                this.NumOfDummyPeriods = 0;
+                this.FirstColumnOfTimeFrame = this.FirstColumnOfSimulation;
+                this.LastColumnOfTimeFrame = this.LastColumnOfSimulation;
                 return
             end
-            this.FirstColumn = timeFrame(1);
-            this.LastColumn = timeFrame(2);
-            this.NumOfDummyPeriods = timeFrame(3);
+            this.FirstColumnOfTimeFrame = timeFrame(1);
+            this.LastColumnOfTimeFrame = timeFrame(2);
         end%
     end
 
@@ -251,6 +298,10 @@ classdef Data < handle
     methods (Static)
         function this = fromModelAndPlan(model, variantRequested, plan, YXEPG)
             TYPE = @int8;
+
+            if variantRequested>1 && length(model)==1
+                variantRequested = 1;
+            end
 
             this = simulate.Data( );
             [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, YXEPG, variantRequested, [ ]);

@@ -19,25 +19,17 @@ function updateEndogenizedE(this, data)
     inxOfEndogenizedE = data.InxOfEndogenizedE;
     discrepancy = evaluateDiscrepancy(data);
     if ~isempty(this.InvFirstOrderMultipliers)
-        addToE = this.InvFirstOrderMultipliers * discrepancy(:);
+        vecAddToE = this.InvFirstOrderMultipliers * discrepancy(:);
     else
-        addToE = this.FirstOrderMultipliers \ discrepancy(:);
+        vecAddToE = this.FirstOrderMultipliers \ discrepancy(:);
     end
-    E = data.YXEPG(data.InxOfE, :);
-    E(inxOfEndogenizedE) = E(inxOfEndogenizedE) + addToE;
-    %{
-    temp = E(inxOfEndogenizedE);
-    tempImag = imag(temp);
-    tempReal = real(temp);
-    tempReal = tempReal + addToE;
-    if nnz(tempImag~=0)
-        E(inxOfEndogenizedE) = complex(tempReal, tempImag);
-    else
-        E(inxOfEndogenizedE) = tempReal;
-    end
-    %}
-    data.YXEPG(data.InxOfE, :) = E;
-    updateE(data);
+    addToE = zeros(data.NumOfE, data.NumOfExtendedPeriods);
+    addToE(inxOfEndogenizedE) = addToE(inxOfEndogenizedE) + vecAddToE;
+    inx = data.AnticipationStatusOfE;
+    data.AnticipatedE(inx, :) = data.AnticipatedE(inx, :) ...
+                              + addToE(inx, :);
+    data.UnanticipatedE(~inx, :) = data.UnanticipatedE(~inx, :) ...
+                                   + addToE(~inx, :);
 end%
 
 

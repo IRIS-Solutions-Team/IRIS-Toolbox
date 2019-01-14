@@ -22,8 +22,6 @@ idOfYXi = [ this.SolutionVector{1:2} ];
 
 % Simulation columns
 firstColumn = this.FirstColumn;
-lastColumn = this.LastColumn;
-numOfPeriods = lastColumn - firstColumn + 1;
 
 % Period of last endogenized and last exogenized point within simulation
 % columns
