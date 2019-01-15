@@ -157,7 +157,7 @@ else
     numPeriods = size(x2.Data, 1);
     x1 = x2;
     x1.Data = nan(numPeriods, 1);
-    x1 = resetColumnNames(x1);
+    x1 = resetComment(x1);
     [data, fullRange] = rangedata(x2, range);
 end
 numAhead = size(data, 2);

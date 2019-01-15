@@ -149,7 +149,9 @@
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
-        tseries < TimeSubscriptable & shared.GetterSetter & shared.UserDataContainer 
+         tseries < TimeSubscriptable ...
+                 & shared.GetterSetter ...
+                 & shared.UserDataContainer
     properties
         Start = DateWrapper.NaD % Date of first observation available 
         Data = double.empty(0, 1) % Numeric array of time series data
@@ -190,7 +192,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % (observations) arranged columnwise, or a function that will be used to
             % create an N-by-1 array of values, where N is the number of `dates`.
             %
-            % * `~ColumnComments` [ char | cellstr | string ] - Comment or
+            % * `~Comment` [ char | cellstr | string ] - Comment or
             % comments attached to each column of observations; if omitted,
             % comments will be empty strings.
             %
@@ -214,7 +216,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             
             this = this@shared.UserDataContainer( );
             this = this@shared.GetterSetter( );
-            this = resetColumnNames(this);
+            this = resetComment(this);
             
             % Empty call
             if nargin==0
@@ -238,14 +240,14 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 parser = extend.InputParser('tseries.tseries');
                 parser.addRequired('Dates', @DateWrapper.validateDateInput);
                 parser.addRequired('Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle'));
-                parser.addOptional('ColumnComments', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+                parser.addOptional('Comment', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
                 parser.addOptional('UserData', [ ], @(x) true);
             end
 
             parser.parse(varargin{:});
             dates = parser.Results.Dates;
             values = parser.Results.Values;
-            columnNames = parser.Results.ColumnComments;
+            comment = parser.Results.Comment;
             userData = parser.Results.UserData;
 
             if ischar(dates) || isa(dates, 'string')
@@ -299,14 +301,10 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % Initialize the time series start date and data.
             this = init(this, freq, serials, values);
             
-            % Populate comments for each column.
-            sizeOfData = size(this.Data);
-            sizeOfColumnNames = [1, sizeOfData(2:end)];
-            this.Comment = cell(sizeOfColumnNames);
-            this.Comment(:) = {char.empty(1, 0)};
-
-            if ~isempty(columnNames)
-                this.ColumnNames = columnNames;
+            % Populate comments for each column
+            this = resetComment(this);
+            if ~isempty(comment)
+                this.Comment = comment;
             end
             
             this = userdata(this, userData);
@@ -333,7 +331,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = bwf2(varargin)
         varargout = bsxfun(varargin)
         varargout = chowlin(varargin)
-        varargout = comment(varargin)
         varargout = conbar(varargin)
         varargout = convert(varargin)
         varargout = cumsumk(varargin)
@@ -479,7 +476,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = implementGet(varargin)
         varargout = maxabs(varargin)
         varargout = rearrangePred(varargin)
-        varargout = resetColumnNames(varargin)
         varargout = rangedata(varargin)
         varargout = saveobj(varargin)
         varargout = setData(varargin)
@@ -905,39 +901,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             else
                 missingTest = @(x) x==missingValue;
             end
-        end%
-
-
-        function value = get.ColumnNames(this)
-            value = this.Comment;
-        end%
-
-
-        function this = set.ColumnNames(this, newValue)
-            thisValue = this.Comment;
-            newValue = strrep(newValue, '"', '');
-            if ischar(newValue)
-                thisValue(:) = {newValue};
-            else
-                sizeOfData = size(this.Data);
-                sizeOfColumnNames = size(newValue);
-                expectedSizeColumnNames = [1, sizeOfData(2:end)];
-                if isequal(sizeOfColumnNames, expectedSizeColumnNames)
-                    thisValue = newValue;
-                elseif isequal(sizeOfColumnNames, [1, 1])
-                    thisValue = repmat(newValue, expectedSizeColumnNames);
-                else
-                    throw( ...
-                        exception.Base('Series:InvalidSizeColumnNames', 'error') ...
-                    );
-                end
-            end
-            if ~iscellstr(thisValue)
-                throw( ...
-                    exception.Base('Series:InvalidValueColumnNames', 'error') ...
-                );
-            end
-            this.Comment = thisValue;
         end%
     end
 

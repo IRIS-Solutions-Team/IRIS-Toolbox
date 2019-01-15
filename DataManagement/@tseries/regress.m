@@ -1,5 +1,5 @@
 function [b, stdB, e, stdE, fit, dates, covB] = regress(Y, X, varargin)
-% regress  Ordinary or weighted least-square regression.
+% regress  Ordinary or weighted least-square regression
 %
 % __Syntax__
 %
@@ -99,12 +99,13 @@ if nargout>2
     dataE = dataY - dataFit;
     e = Y.empty(Y);
     e = setData(e, dates, dataE);
-    e = resetColumnNames(e);
+    e = resetComment(e);
     if nargout>4
         fit = Y.empty(Y);
         fit = setData(fit, dates, dataFit);
-        fit = resetColumnNames(fit);
+        fit = resetComment(fit);
     end
 end
 
-end
+end%
+

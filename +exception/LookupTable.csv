@@ -211,8 +211,8 @@ Scenario:Wrapper:CannotEndogenizeName, This name cannot be endogenized in Scenar
 Series:DatesDataDimensionMismatch,Number of dates must match number of rows of observations when creating a new time series.
 Series:BinopSizeMismatch,The size of the resulting Series object must match the size of one of the input Series objects.
 Series:InputsRemovedFromCat,Inputs other than time series and numeric removed from concatenation.
-Series:InvalidSizeColumnNames,Column names assigned to time series have invalid dimensions. 
-Series:InvalidValueColumnNames,Column names assigned to time series must be text strings. 
+Series:InvalidSizeColumnNames,Size of time series comment must be compatible with the number of time series columns 
+Series:InvalidValueColumnNames,Comments assigned to time series must be text strings 
 Series:InconsistentSizeVertCat,Size of vertically concatenated time series must be consistent in 2nd and higher dimension
 Series:CannotVertCatNonSeries,Cannot vertically concatenate time series with other types of data. 
 Series:CannotCatMixedFrequencies,Cannot concatenate time series with different date frequencies.

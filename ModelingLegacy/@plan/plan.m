@@ -66,7 +66,9 @@
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
    
-classdef plan < shared.UserDataContainer & shared.GetterSetter
+classdef plan < shared.UserDataContainer ...
+              & shared.CommentContainer ...
+              & shared.GetterSetter
     properties
         Start = NaN
         End = NaN

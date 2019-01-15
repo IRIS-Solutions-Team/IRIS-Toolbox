@@ -1,17 +1,16 @@
 function flag = chkConsistency(this)
-% chkConsistency  Check internal consistency of object properties.
+% chkConsistency  Check internal consistency of object properties
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-flag = (ischar(this.Comment) || iscellstr(this.Comment)) && ...
-    ischar(this.Caption) && ...
-    (isequal(this.BaseYear, @config) || isnumeric(this.BaseYear));
+flag = ischar(this.Caption) && ...
+       (isequal(this.BaseYear, @config) || isnumeric(this.BaseYear));
 
-end
+end%
 

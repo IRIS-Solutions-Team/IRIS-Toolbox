@@ -25,8 +25,8 @@ function this = shift(this, sh)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -55,6 +55,7 @@ for i = 1 : numel(sh)
     newData = [newData, addData];
 end
 this.Data = newData;
-this = resetColumnNames(this);
+this = resetComment(this);
 
-end
+end%
+

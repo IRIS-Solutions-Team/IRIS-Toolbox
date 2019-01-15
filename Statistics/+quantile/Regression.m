@@ -1,9 +1,9 @@
-classdef Regression < shared.UserDataContainer
+classdef Regression < shared.UserDataContainer & shared.CommentContainer
     properties
-        OutputSeries = cell(1, 0)
-        InputSeries = cell(1, 0)
+        OutputSeries = cell.empty(1, 0)
+        InputSeries = cell.empty(1, 0)
         %Standardize = zeros(2, 0)
-        Quantile = zeros(1, 0)
+        Quantile = double.empty(1, 0)
         Horizon = 1
         Beta = cell(1, 1)
         IxFitted = cell(1, 1)

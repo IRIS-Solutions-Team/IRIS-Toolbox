@@ -68,12 +68,13 @@ end
 weights = this;
 weights.Start = range(1);
 weights.Data = weightsData;
-weights = resetColumnNames(weights);
+weights = resetComment(weights);
 weights = trim(weights);
 
 this.Start = range(1);
 this.Data = outputData;
-this = resetColumnNames(this);
+this = resetComment(this);
 this = trim(this);
 
-end
+end%
+

@@ -8,10 +8,14 @@
 
 classdef UserDataContainer
     properties %(GetAccess=public, SetAccess=protected, Hidden)
-        UserData = [ ] % User data attached to objects
-        Comment = '' % User comments attached to objects
-        Caption = '' % User captions used to title graphs
-        BaseYear = @config % Base year for time trends
+        % UserData  User data attached to this object
+        UserData = [ ] 
+
+        % Caption  User caption used to title graphs of this object
+        Caption = '' 
+
+        % BaseYear  Base year for time trends created by this object
+        BaseYear = @config 
     end
     
     
@@ -31,7 +35,6 @@ classdef UserDataContainer
     
     methods
         varargout = caption(varargin)
-        varargout = comment(varargin)
         varargout = userdata(varargin)
         varargout = userdatafield(varargin)
     end
@@ -44,56 +47,30 @@ classdef UserDataContainer
         
         
         function disp(this, varargin)
-            dispComment(this);
-            dispUserData(this);
-            if isempty(varargin)
-                textfun.loosespace( );
-            end
-        end
-    end
-    
-    
-    methods (Access=protected, Hidden)
-        function dispComment(this)
-            fprintf('\tcomment: ''%s''\n', this.Comment);
-        end
-        
-        
-        function dispUserData(this)
             if isempty(this.UserData)
-                msg = 'empty';
+                msg = 'Empty';
             elseif isstruct(this.UserData)
                 msg = [ ] ;
-                fprintf('\tuser data: \n') ;
-                %{
-                names = fields(this.UserData) ;
-                K = numel(names) ;
-                for jj = 1:K
-                    x = this.UserData.(names{jj}) ;
-                    try
-                        str = utils.any2str(x) ;
-                    catch
-                        str = catchUnknown(x) ;
-                    end
-                    fprintf('\t\t%s: %s\n', names{jj}, str) ;
-                end
-                %}
+                fprintf('\tUser Data: \n') ;
                 disp(this.UserData);
             else
                 msg = catchUnknown(this.UserData) ;
             end
             if ~isempty(msg)
-                fprintf('\tuser data: %s\n',msg);
+                fprintf('\tUser Data: %s\n',msg);
+            end
+            if isempty(varargin)
+                textual.looseLine( );
             end
 
             return
             
-            
-            function str = catchUnknown(x)
-                tmpSize = sprintf('%gx', size(x));
-                tmpSize(end) = '';
-                str = sprintf('[%s %s]', tmpSize, class(x));
-            end
-        end
+                function str = catchUnknown(x)
+                    sizeOfX = sprintf('%gx', size(x));
+                    sizeOfX(end) = '';
+                    str = sprintf('[%s %s]', sizeOfX, class(x));
+                end%
+        end%
     end
 end
+

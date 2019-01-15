@@ -1,32 +1,32 @@
 function disp(this)
-% disp  Display method for model objects.
+% disp  Display method for model objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-STR_VARIANT = 'parameter variant';
+STR_VARIANT = 'Parameter Variant';
 
 %--------------------------------------------------------------------------
 
 isEmpty = isempty(this.Variant.Values);
 
 if this.IsLinear
-    attribute = 'linear';
+    attribute = 'Linear';
 else
-    attribute = 'nonlinear';
+    attribute = 'Nonlinear';
 end
 
 ccn = getClickableClassName(this);
 
 if isEmpty
-    fprintf('\tempty %s %s object\n', attribute, ccn);    
+    fprintf('\tEmpty %s %s Object\n', attribute, ccn);    
 else
-    nAlt = length(this);
-    fprintf('\t%s %s object: [%g %s(s)]\n', ...
-        attribute, ccn, nAlt, STR_VARIANT);
+    nv = length(this);
+    fprintf( '\t%s %s Object: [%g %s(s)]\n', ...
+             attribute, ccn, nv, STR_VARIANT );
     
 end
 
@@ -39,19 +39,19 @@ else
 end
 
 disp@shared.GetterSetter(this, 1);
+disp@shared.CommentContainer(this, 1);
 disp@shared.UserDataContainer(this, 1);
 disp(this.Export, 1);
 textfun.loosespace( );
 
 return
-
-
     
 
     function printSolution( )
-        [~, ix] = isnan(this, 'solution');
+        [~, ix] = isnan(this, 'Solution');
         nSolution = sum(~ix);
-        fprintf('\tsolution(s) available: [%g %s(s)]\n', ...
+        fprintf('\tSolution(s) Available: [%g %s(s)]\n', ...
             nSolution, STR_VARIANT);
-    end
-end
+    end%
+end%
+

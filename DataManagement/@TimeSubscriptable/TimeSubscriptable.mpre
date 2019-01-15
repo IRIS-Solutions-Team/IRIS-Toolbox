@@ -1,4 +1,11 @@
-classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscriptable
+classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
+         TimeSubscriptable
+    properties 
+        % Comment  User comments attached to individual columns of time % series
+        Comment = { TimeSubscriptable.EMPTY_COMMENT }
+    end
+
+
     properties (Abstract)
         % Start  Date of first observation in time series
         Start
@@ -66,10 +73,12 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
 
     methods
         varargout = clip(varargin)
+        varargout = comment(varargin)
         varargout = getData(varargin)
         varargout = getDataNoFrills(varargin)
         varargout = ifelse(varargin)
         varargout = ellone(varargin)
+        varargout = resetComment(varargin)
         varargout = shift(varargin)
         varargout = spy(varargin)
 
@@ -173,6 +182,32 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
         end%
 
 
+        function this = set.Comment(this, newValue)
+            thisValue = this.Comment;
+            newValue = strrep(newValue, '"', '');
+            if ischar(newValue)
+                thisValue(:) = {newValue};
+            else
+                sizeOfData = size(this.Data);
+                sizeOfNewComment = size(newValue);
+                expectedSizeOfComment = [1, sizeOfData(2:end)];
+                if isequal(sizeOfNewComment, expectedSizeOfComment)
+                    thisValue = newValue;
+                elseif isequal(sizeOfNewComment, [1, 1])
+                    thisValue = repmat(newValue, expectedSizeOfComment);
+                else
+                    throw( exception.Base('Series:InvalidSizeColumnNames', 'error') );
+                end
+            end
+            if ~iscellstr(thisValue)
+                throw( exception.Base('Series:InvalidValueColumnNames', 'error') );
+            end
+            this.Comment = thisValue;
+        end%
+    end
+
+
+    methods
         function this = emptyData(this)
             if isnan(this.Start) || size(this.Data, 1)==0
                 return
@@ -217,6 +252,10 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) TimeSubscripta
                        Frequency.toChar(freqOfThis),charFreqOfDates{:} );
             end
         end%
+    end
+
+
+    methods
     end
 
 

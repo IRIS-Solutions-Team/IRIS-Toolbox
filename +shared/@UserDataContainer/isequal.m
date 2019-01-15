@@ -1,17 +1,17 @@
-function Flag = isequal(This,That)
-% isequal  [Not a public function] Compare shared.UserDataContainer objects.
+function flag = isequal(this, that)
+% isequal  Compare shared.UserDataContainer objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-Flag = isa(This,'shared.UserDataContainer') && isa(That,'shared.UserDataContainer') ...
-    && isequal(This.Comment,That.Comment) ...
-    && isequal(This.UserData,That.UserData) ...
-    && isequal(This.Caption,That.Caption);
+flag = isa(this,'shared.UserDataContainer') && isa(that,'shared.UserDataContainer') ...
+     && isequal(this.UserData,that.UserData) ...
+     && isequal(this.Caption,that.Caption);
 
-end
+end%
+

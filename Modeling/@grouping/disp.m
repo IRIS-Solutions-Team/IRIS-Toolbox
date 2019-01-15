@@ -1,11 +1,11 @@
 function disp(this)
-% disp  Display method for grouping objects.
+% disp  Display method for grouping objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -13,22 +13,22 @@ ccn = getClickableClassName(this);
 
 if isempty(this)
     if isempty(this.Type)
-        fprintf('\tempty %s object\n', ccn);
+        fprintf('\tEmpty %s Object\n', ccn);
     else
-        fprintf('\tempty %s %s object\n', this.Type, ccn);
+        fprintf('\tEmpty %s %s Object\n', this.Type, ccn);
     end
 else
     isOther = any(this.OtherContents) ;
     nGroup = length(this.GroupNames) + double(isOther) ;
-    fprintf('\t%s %s object: [%g] group(s)\n', this.Type, ccn, nGroup) ;
+    fprintf('\t%s %s Object: [%g] Group(s)\n', this.Type, ccn, nGroup) ;
 end
 
 if ~isempty(this.Type)
-    names = 'empty';
+    names = 'Empty';
     if ~isempty(this.List)
         names = textfun.displist(this.List);
     end
-    fprintf('\t%s names: %s\n', this.Type, names);
+    fprintf('\t%s Names: %s\n', this.Type, names);
     
     if ~isempty(this.GroupNames)
         names = this.GroupNames;
@@ -37,15 +37,15 @@ if ~isempty(this.Type)
         end
         names = textfun.displist(names);
     else
-        names = 'empty';
+        names = 'Empty';
     end
-    fprintf('\tgroup names: %s',names);
+    fprintf('\tGroup Names: %s',names);
     fprintf('\n');
 end
 
+disp@shared.CommentContainer(this, 1);
 disp@shared.UserDataContainer(this, 1);
-textfun.loosespace( );
+textual.looseLine( );
 
-end
-
+end%
 

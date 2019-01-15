@@ -18,13 +18,13 @@ classdef DatafeedContainer < handle
                 this = varargin{1};
                 return
             end
-            persistent INPUT_PARSER
-            if isempty(INPUT_PARSER)
-                INPUT_PARSER = extend.InputParser('DatafeedContainer/DatafeedContainer');
-                INPUT_PARSER.addRequired('NumOfSeries', @(x) isnumeric(x) && numel(x)==1 && x==round(x));
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('DatafeedContainer/DatafeedContainer');
+                parser.addRequired('NumOfSeries', @(x) isnumeric(x) && numel(x)==1 && x==round(x));
             end
-            INPUT_PARSER.parse(varargin{:});
-            numSeries = INPUT_PARSER.Results.NumOfSeries;
+            parser.parse(varargin{:});
+            numSeries = parser.Results.NumOfSeries;
             this.Name = repmat({''}, 1, numSeries);
             this.Frequency = repmat(Frequency.NaF, 1, numSeries);
             this.Ymd = cell(1, numSeries);

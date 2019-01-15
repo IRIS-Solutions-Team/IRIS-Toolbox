@@ -11,19 +11,12 @@ function [this, varargout] = unop(func, this, dim, varargin)
 
 if dim==0
     % Returns time series of the same size
-    %sizeData = size(this.Data);
-    %ndimsData = ndims(this.Data);
-    %data = this.Data(:, :);
     data = this.Data;
     if ischar(func)
         [data, varargout{1:nargout-1}] = feval(func, data, varargin{:});
     else
         [data, varargout{1:nargout-1}] = func(data, varargin{:});
     end
-    %if ndimsData>2
-    %    sizeData(1) = size(data, 1);
-    %    data = reshape(data, sizeData);
-    %end
     this.Data = data;
     this = trim(this);
 elseif dim==1
@@ -41,8 +34,9 @@ else
     else
         [this.Data, varargout{1:nargout-1}] = func(this.Data, varargin{:});
     end
-    this = resetColumnNames(this);
+    this = resetComment(this);
     this = trim(this);
 end
 
-end
+end%
+

@@ -45,7 +45,7 @@ if isa(a, 'tseries') && isa(b, 'tseries')
             );
     end
     x.Start = range(1);
-    x = resetColumnNames(x);
+    x = resetComment(x);
     x = trim(x);
 else
     sizeB = size(b);
@@ -91,4 +91,5 @@ else
     end
 end
 
-end
+end%
+

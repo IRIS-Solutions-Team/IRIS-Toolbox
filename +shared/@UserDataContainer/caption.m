@@ -1,28 +1,28 @@
-function varargout = caption(This,varargin)
-% caption  Get or set user captions in an IRIS object.
+function varargout = caption(this, varargin)
+% caption  Get or set user captions in an IRIS object
 %
 % Syntax for getting user captions
 % =================================
 %
-%     Cpt = caption(Obj)
+%     newCaption = caption(obj)
 %
 % Syntax for assigning user captions
 % ===================================
 %
-%     Obj = comment(Obj,Cpt)
+%     obj = caption(obj, newCaption)
 %
 % Input arguments
 % ================
 %
-% * `Obj` [ model | tseries | VAR | SVAR | FAVAR | sstate ] -
+% * `obj` [ model | tseries | VAR | SVAR | FAVAR | sstate ] -
 % One of the IRIS objects.
 %
-% * `Cpt` [ char ] - User caption that will be attached to the object.
+% * `newCaption` [ char ] - User caption that will be attached to the object.
 %
 % Output arguments
 % =================
 %
-% * `Cpt` [ char ] - User caption that are currently attached to the
+% * `newCaption` [ char ] - User caption that are currently attached to the
 % object.
 %
 % Description
@@ -32,23 +32,25 @@ function varargout = caption(This,varargin)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 if ~isempty(varargin)
-    Cpt = varargin{1};
-    pp = inputParser( );
-    pp.addRequired('Cpt',@ischar);
-    pp.parse(Cpt);
+    newCaption = varargin{1};
+    parser = extend.InputParser('UserDataContainer.caption');
+    parser.addRequired('Object', @(x) isa(x, 'UserDataContainer'));
+    parser.addRequired('NewCaption', @ischar);
+    parser.parse(newCaption);
 end
 
 %--------------------------------------------------------------------------
 
 if isempty(varargin)
-    varargout{1} = This.Caption;
+    varargout{1} = this.Caption;
 else
-    This.Caption = Cpt;
-    varargout{1} = This;
+    this.Caption = newCaption;
+    varargout{1} = this;
 end
 
-end
+end%
+

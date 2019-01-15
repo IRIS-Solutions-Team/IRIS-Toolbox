@@ -29,8 +29,8 @@ function this = empty(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ else
     end
     this.Start = nanDate;
     this.Data = newData;
-    this = resetColumnNames(this);
+    this = resetComment(this);
 end
 
 end

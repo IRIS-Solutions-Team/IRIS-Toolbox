@@ -25,7 +25,7 @@ if nargin>2
     this.Start = newStart;
 end
 
-this = resetColumnNames(this);
+this = resetComment(this);
 if nargin>3 
     if iscell(newComment)
         indexEmpty = cellfun('isempty', newComment);
