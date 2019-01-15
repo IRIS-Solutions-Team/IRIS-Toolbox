@@ -7,7 +7,9 @@
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef (CaseInsensitiveProperties=true) ...
-    varobj < shared.UserDataContainer & shared.GetterSetter
+         varobj < shared.UserDataContainer ...
+                & shared.CommentContainer ...
+                & shared.GetterSetter
     properties
         % YNames  Names of endogenous variables
         YNames = cell.empty(1, 0) 

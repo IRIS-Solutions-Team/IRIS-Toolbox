@@ -1,4 +1,4 @@
-% rpteq  Reporting Equations (rpteq Objects).
+% rpteq  Reporting Equations (rpteq Objects)
 %
 % Reporting equations (rpteq) objects are systems of equations evaluated
 % successively (i.e. not simultaneously) equation by equation, period by
@@ -19,24 +19,26 @@
 %
 % __Constructor__
 %
-%   rpteq - New reporting equations (rpteq) object.
+%   rpteq - New reporting equations (rpteq) object
 %
 %
 % __Evaluating Reporting Equations__
 %
-%   run - Evaluate reporting equations (rpteq) object.
+%   run - Evaluate reporting equations (rpteq) object
 %
 %
 % __Evaluating Reporting Equations from Within Model Object__
 %
-%   reporting - Evaluate reporting equations from within model object.
+%   reporting - Evaluate reporting equations from within model object
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
-classdef rpteq < shared.GetterSetter & shared.UserDataContainer
+classdef rpteq < shared.GetterSetter ...
+               & shared.UserDataContainer ...
+               & shared.CommentContainer
     properties
         FileName = char.empty(1, 0)
         NameLhs = cell.empty(1, 0)

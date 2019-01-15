@@ -1,43 +1,46 @@
-classdef grouping < shared.UserDataContainer & shared.GetterSetter
-    % grouping  Grouping and Aggregation of Contributions (grouping Objects).
-    %
-    % Grouping objects can be used for aggregating the contributions of shocks
-    % in model simulations, [`model/simulate`](model/simulate), or aggregating
-    % the contributions of measurement variables in Kalman filtering, 
-    % [`model/filter`](model/filter).
-    %
-    % Grouping methods:
-    %
-    % Constructor
-    % ============
-    %
-    % * [`grouping`](grouping/grouping) - Create new empty grouping object.
-    %
-    %
-    % Getting information about groups
-    % =================================
-    %
-    % * [`detail`](grouping/detail) - Details of a grouping object.
-    % * [`isempty`](grouping/isempty) - True for empty grouping object.
-    %
-    %
-    % Setting up and using groups
-    % ============================
-    %
-    % * [`addgroup`](grouping/addgroup) - Add measurement variable group or shock group to grouping object.
-    % * [`eval`](grouping/eval) - Evaluate contributions in input database S using grouping object G.
-    %
-    %
-    % Getting on-line help on groups
-    % ===============================
-    %
-    %     help grouping
-    %     help grouping/function_name
-    %
-    
-    % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2018 IRIS Solutions Team.
-    
+% grouping  Grouping and Aggregation of Contributions (grouping Objects)
+%
+% Grouping objects can be used for aggregating the contributions of shocks
+% in model simulations, [`model/simulate`](model/simulate), or aggregating
+% the contributions of measurement variables in Kalman filtering, 
+% [`model/filter`](model/filter).
+%
+% Grouping methods:
+%
+% Constructor
+% ============
+%
+% * [`grouping`](grouping/grouping) - Create new empty grouping object
+%
+%
+% Getting information about groups
+% =================================
+%
+% * [`detail`](grouping/detail) - Details of a grouping object
+% * [`isempty`](grouping/isempty) - True for empty grouping object
+%
+%
+% Setting up and using groups
+% ============================
+%
+% * [`addgroup`](grouping/addgroup) - Add measurement variable group or shock group to grouping object
+% * [`eval`](grouping/eval) - Evaluate contributions in input database S using grouping object G
+%
+%
+% Getting on-line help on groups
+% ===============================
+%
+%     help grouping
+%     help grouping/function_name
+%
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
+
+
+classdef grouping < shared.UserDataContainer ...
+                  & shared.CommentContainer ...
+                  & shared.GetterSetter 
     properties (Hidden)
         Type = ''
         GroupNames = cell(1, 0)
