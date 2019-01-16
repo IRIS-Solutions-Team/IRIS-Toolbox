@@ -84,7 +84,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % and `.mse` fields.
 %
 % * `InitUnit='FixedUnknown'` [ `'ApproxDiffuse'` | `'FixedUknown'` ] -
-% Method of initializing unit root variables.
+% Method of initializing unit root variables; see Description.
 %
 % * `LastSmooth=Inf` [ numeric ] - Last date up to which to smooth data
 % backward from the end of the filterRange; `Inf` means the smoother will run on
@@ -176,6 +176,34 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % * mean-mse struct (i.e. struct with fields `.mean` and `.mse`) -- a struct
 % through which you supply the mean and MSE for all the required initial
 % conditions.
+%
+%
+% _Initialization of Unit Root (Nonstationary, Diffuse) Processes_
+%
+% Two methods are available to initialize unit-root (nonstationary,
+% diffuse) elements in the state vector. In either case, the Kalman filter
+% works with a system where the state vector is transformed so that its
+% transition matrix is upper diagonal, with unit roots concentrated in the
+% top left corner.
+%
+% * Fixed unknown quantities. This is the default method (for backward
+% compatibility reasons), and corresponds to setting
+% `InitUnit='FixedUnknown'`.  The initial conditions for unit-root
+% processes are treated as fixed unknown elements, and uses a Rosenberg
+% (1973) algorithm to compute the optimal estimates of these. The algorithm
+% is completely described in section 3.4.4. of Harvey (1990) "Forecasting,
+% Structural Time Series Models and the Kalman Filter", Cambridge
+% University Press.
+%
+% * Approximate diffuse. The other method is used when
+% `InitUnit='ApproxDiffuse'`.  This alternative method treats the initial
+% conditions for unit-root processes as a diffuse distribution (with
+% infinitely large variances) approximating the true diffuse distribution
+% by scaling up the appropriate elements of the initial covariance matrix
+% (by a sufficiently large factor in proportion to the remaining parts of
+% the matrix). This method is described e.g. in Harvey & Phillips (1979)
+% "Maximum Likelihood Estimation of Regression Models with Autoregressive-
+% Moving Average Disturbances" Biometrika 66(1).
 %
 %
 % _Contributions of Measurement Variables to Estimates of All Variables_

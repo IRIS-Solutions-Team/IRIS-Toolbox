@@ -1,5 +1,5 @@
 function this = resetComment(this)
-% resetComment  Reset comments to empty in time series
+% resetComment  Reset time series comments to empty 
 %
 % Backend IRIS function
 % No help provided
@@ -10,8 +10,8 @@ function this = resetComment(this)
 %--------------------------------------------------------------------------
 
 sizeOfData = size(this.Data);
-sizeOfComment = [1, sizeOfData(2:end)];
-this.Comment = repmat({this.EMPTY_COMMENT}, sizeOfComment);
+this.Comment = repmat( {this.EMPTY_COMMENT}, ...
+                       [1, sizeOfData(2:end)] );
 
 end%
 
