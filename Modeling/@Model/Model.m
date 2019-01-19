@@ -1,4 +1,4 @@
-classdef Model < model
+classdef Model < model & matlab.mixin.CustomDisplay
     methods % Constructor
         function this = Model(varargin)
 % Model  Create Model object from a source model file
@@ -46,6 +46,46 @@ classdef Model < model
     end
 
 
+    methods (Access=protected) % Custom Display
+        function groups = getPropertyGroups(this)
+            x = struct( 'FileName', this.FileName, ...
+                        'Comment', this.Comment, ...
+                        'IsLinear', this.IsLinear, ...
+                        'NumOfVariants', this.NumOfVariants, ...
+                        'NumOfVariantsSolved', this.NumOfVariantsSolved, ...
+                        'NumOfMeasurementEquations', this.NumOfMeasurementEquations, ...
+                        'NumOfTransitionEquations', this.NumOfTransitionEquations, ... 
+                        'NumOfExportFiles', this.NumOfExportFiles, ...
+                        'UserData', this.UserData );
+            groups = matlab.mixin.util.PropertyGroup(x);
+        end% 
+
+
+        function displayScalarObject(this)
+            groups = getPropertyGroups(this);
+            disp(getHeader(this));
+            disp(groups.PropertyList);
+        end%
+
+
+        function displayNonScalarObject(this)
+            displayScalarObject(this);
+        end%
+
+
+        function header = getHeader(this)
+            dimString = matlab.mixin.CustomDisplay.convertDimensionsToString(this);
+            className = matlab.mixin.CustomDisplay.getClassNameForHeader(this);
+            if this.IsLinear
+                adjective = 'Linear';
+            else
+                adjective = 'Nonlinear';
+            end
+            header = sprintf('  %s %s %s\n', dimString, adjective, className);
+        end%
+    end
+
+
     methods (Hidden) 
         varargout = checkCompatibilityOfPlan(varargin)
         varargout = checkInitialConditions(varargin)
@@ -53,5 +93,38 @@ classdef Model < model
         varargout = getInxOfInitInPresample(varargin)
         varargout = prepareHashEquations(varargin)
         varargout = simulateFirstOrder(varargin)
+    end
+
+
+    properties (Dependent)
+        NumOfVariantsSolved
+        NumOfMeasurementEquations
+        NumOfTransitionEquations
+        NumOfExportFiles
+    end
+
+
+    methods
+        function value = get.NumOfVariantsSolved(this)
+            [~, inx] = isnan(this, 'Solution');
+            value = nnz(~inx);
+        end%
+
+
+        function value = get.NumOfMeasurementEquations(this)
+            TYPE = @int8;
+            value = nnz(this.Equation.Type==TYPE(1));
+        end%
+
+
+        function value = get.NumOfTransitionEquations(this)
+            TYPE = @int8;
+            value = nnz(this.Equation.Type==TYPE(2));
+        end%
+
+
+        function value = get.NumOfExportFiles(this)
+            value = numel(this.Export);
+        end%
     end
 end

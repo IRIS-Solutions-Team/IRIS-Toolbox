@@ -253,7 +253,7 @@ TheParser:EssentialBlocksMissing,Cannot find a nonempty %s block; this is not a 
 TheParser:InconsistentAllBut,The keyword !all_but may be used in either all or none of the !log_variables declaration blocks.
 TheParser:InvalidBounds,This is not a valid lower-upper bounds specification: %s 
 TheParser:InvalidKeyword,This is not a valid keyword: %s 
-TheParser:InvalidLogNameDeclared,This name cannot be declared as log: %s 
+TheParser:InvalidLogNameDeclared,This name cannot be declared as log-variable: %s 
 TheParser:InvalidName,This is not a valid name: %s 
 TheParser:InvalidPairingDefinition,This is not a valid pairing definition: %s 
 TheParser:InvalidStdCorrAssigned,This is not a valid std_ or corr_ name to assign: %s 

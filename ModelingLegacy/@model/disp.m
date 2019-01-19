@@ -41,7 +41,7 @@ end
 disp@shared.GetterSetter(this, 1);
 disp@shared.CommentContainer(this, 1);
 disp@shared.UserDataContainer(this, 1);
-disp(this.Export, 1);
+implementDisp(this.Export);
 textfun.loosespace( );
 
 return
@@ -49,9 +49,9 @@ return
 
     function printSolution( )
         [~, ix] = isnan(this, 'Solution');
-        nSolution = sum(~ix);
-        fprintf('\tSolution(s) Available: [%g %s(s)]\n', ...
-            nSolution, STR_VARIANT);
+        nSolution = nnz(~ix);
+        fprintf( '\tSolution(s) Available: [%g %s(s)]\n', ...
+                 nSolution, STR_VARIANT );
     end%
 end%
 

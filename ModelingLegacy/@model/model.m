@@ -144,9 +144,16 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                & model.Data ...
                & model.Plan
 
+    properties (GetAccess=public, SetAccess=protected)
+        % FileName  Name of model file or files from which the model object was created
+        FileName = ''
+
+        % IsLinear  True for models designated by user as linear
+        IsLinear = false
+    end
+
+
     properties (GetAccess=public, SetAccess=protected, Hidden)
-        FileName = '' % File name of source model file
-        IsLinear = false % True for linear models
         IsGrowth = false % True for models with nonzero deterministic growth in steady state
         Tolerance = model.DEFAULT_TOLERANCE_STRUCT % Tolerance levels for different contexts
         
@@ -717,8 +724,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             % to evaluate [`!if`](irislang/if) or [`!switch`](irislang/switch)
             % expressions.
             
-            % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2018 IRIS Solutions Team.
+            % -IRIS Macroeconomic Modeling Toolbox
+            % -Copyright (c) 2007-2018 IRIS Solutions Team
 
             persistent inputParser optimalParser parserParser
             if isempty(inputParser)

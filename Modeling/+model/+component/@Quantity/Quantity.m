@@ -65,6 +65,11 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
 
 
     methods
+        function flag = isempty(this)
+            flag = isempty(this.Name);
+        end%
+
+
         function index = getIndexByType(this, varargin)
             index = false(size(this.Name));
             for i = 1 : numel(varargin)

@@ -1,10 +1,10 @@
-% Export  Shared class to implement export of user functions to disk files.
+% Export  Implement export of user functions to disk files
 %
-% Backend IRIS class.
-% No help provided.
+% Backend IRIS class
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef Export < handle
     properties
@@ -25,7 +25,7 @@ classdef Export < handle
             end
             this.FileName = varargin{1};
             this.Contents = varargin{2};
-        end
+        end%
         
         
         function beenDeleted = export(this)
@@ -54,28 +54,22 @@ classdef Export < handle
                 char2file(contents, fileName);
             end
             rehash( );
-        end
+        end%
         
         
         function [answ, flag, query] = implementGet(this, query, varargin)
             answ = [ ];
             flag = true;
-            switch lower(query)
-                case {'export', 'exportedfile', 'exportedfiles'}
-                    answ = this;
-                otherwise
-                    flag = false;
+            if any(strcmpi(query, {'Export', 'ExportedFile', 'ExportedFiles'}))
+                answ = this;
+            else
+                flag = false;
             end
-        end
-        
-        
-        function disp(this, varargin)
-            n = numel(this);
-            msg = sprintf('[%g]', n);
-            fprintf('\texport file(s): %s\n', msg);
-            if nargin==1
-                textfun.loosespace( );
-            end
-        end
+        end%
+
+
+        function implementDisp(this)
+            fprintf('\tExport File(s): [%g]', numel(this));
+        end%
     end
 end
