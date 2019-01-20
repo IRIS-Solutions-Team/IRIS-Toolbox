@@ -320,7 +320,7 @@ return
         F0 = getCurrentObjectiveFunction( );
         lastwarn('');
         next.D = -current.J \ F0;
-        if ~isempty(lastwarn( ))
+        if opt.UsePinvIfJacobSingular && ~isempty(lastwarn( ))
             next.D = -pinv(current.J) * F0;
         end
         if any(~isfinite(next.D(:))), keyboard, end
