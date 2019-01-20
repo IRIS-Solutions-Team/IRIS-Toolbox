@@ -1,5 +1,5 @@
 function [Y2, B, Rho, U1, U2] = chowlin(Y1, X2, Range, varargin)
-% chowlin  Chow-Lin distribution of low-frequency observations over higher-frequency periods.
+% chowlin  Chow-Lin distribution of low-frequency observations over higher-frequency periods
 %
 % __Syntax__
 %
@@ -7,7 +7,7 @@ function [Y2, B, Rho, U1, U2] = chowlin(Y1, X2, Range, varargin)
 %     [Y2, B, RHO, U1, U2] = chowlin(Y1, X2, Range, ...)
 %
 %
-% __Input arguments__
+% __Input Arguments__
 %
 % * `Y1` [ tseries ] - Low-frequency input time series that will be
 % distributed over higher-frequency observations.
@@ -19,7 +19,7 @@ function [Y2, B, Rho, U1, U2] = chowlin(Y1, X2, Range, varargin)
 % distribution will be computed.
 %
 %
-% __Output arguments__
+% __Output Arguments__
 %
 % * `Y2` [ tseries ] - Output data distributed with higher frequency.
 %
@@ -35,20 +35,20 @@ function [Y2, B, Rho, U1, U2] = chowlin(Y1, X2, Range, varargin)
 %
 % __Options__
 %
-% * `'Constant='` [ *`true`* | `false` ] - Include a constant term in the
+% * `Constant=true` [ `true` | `false` ] - Include a constant term in the
 % regression.
 %
-% * `'Log='` [ `true` | *`false`* ] - Logarithmise the data before distribution, 
-% de-logarithmise afterwards.
+% * `Log=false` [ `true` | `false` ] - Logarithmise the data before
+% distribution, de-logarithmise afterwards.
 %
-% * `'NGrid='` [ numeric | *`200`* ] - Number of grid search points for
-% finding autocorrelation coefficient for higher-frequency residuals.
+% * `NGrid=200` [ numeric ] - Number of grid search points for finding
+% autocorrelation coefficient for higher-frequency residuals.
 %
-% * `'Rho='` [ *`'estimate'`* | `'positive'` | `'negative'` | numeric ] -
-% How to determine the autocorrelation coefficient for higher-frequency
+% * `Rho='Estimate'` [ `'Estimate'` | `'Positive'` | `'Negative'` | numeric ]
+% - How to determine the autocorrelation coefficient for higher-frequency
 % residuals.
 %
-% * `'TimeTrend='` [ `true` | *`false`* ] - Include a time trend in the
+% * `TimeTrend=false` [ `true` | `false` ] - Include a time trend in the
 % regression.
 %
 %
@@ -66,8 +66,8 @@ function [Y2, B, Rho, U1, U2] = chowlin(Y1, X2, Range, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2018 IRIS Solutions Team
 
 try
     Range; %#ok<VUNUS>
@@ -75,13 +75,20 @@ catch
     Range = Inf;
 end
 
-pp = inputParser( );
-pp.addRequired('Y1', @(x) isa(x, 'tseries'));
-pp.addRequired('X2', @(x) isa(x, 'tseries'));
-pp.addRequired('Range', @DateWrapper.validateDateInput);
-pp.parse(Y1, X2, Range);
-
-opt = passvalopt('tseries.chowlin', varargin{:});
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('TimeSubscriptable/chowlin');
+    parser.addRequired('Y1', @(x) isa(x, 'TimeSubscriptable'));
+    parser.addRequired('X2', @(x) isa(x, 'TimeSubscriptable'));
+    parser.addRequired('Range', @DateWrapper.validateDateInput);
+    parser.addParameter('Constant', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Log', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('NGrid', 200, @(x) isnumeric(x) && scalar(x) && x>=1);
+    parser.addParameter('Rho', 'Estimate', @(x) any(strcmpi(x, {'Auto', 'Estimate', 'Negative', 'Positive'})) || (isnumeric(x) && isscalar(x) && x>-1 && x<1));
+    parser.addParameter('TimeTrend', false, @(x) isequal(x, true) || isequal(x, false));
+end
+parser.parse(Y1, X2, Range, varargin{:});
+opt = parser.Options;
 
 if ischar(Range)
     Range = textinp2dat(Range);
@@ -97,23 +104,24 @@ else
     f2 = get(X2, 'freq');
 end
 
-if f2 <= f1
-    utils.error('tseries:chowlin', [ ...
-        'Explanatory variables must have higher frequency ', ...
-        'than the explained variable.']);
+if f2<=f1
+    THIS_ERROR = { 'TimeSubscriptable:ChowLinInconsistentFrequency'
+                   'RHS variables must have higher frequency than the LHS variable' };
+    throw( exception.Base(THIS_ERROR, 'error') );
 end
 
 % Number of high-frequency periods within a low-frequency period. Must be
 % an integer.
 g = f2 / f1;
-if g ~= round(g)
-    utils.error('tseries:chowlin', ...
-        'High frequency must be a multiple of low frequency.');
+if g~=round(g)
+    THIS_ERROR = { 'TimeSubscriptable:ChowLinInconsistentFrequency'
+                   'High frequency must be a multiple of low frequency' };
+    throw( exception.Base(THIS_ERROR, 'error') );
 end
 
 % Get low-frequency LHS observations.
 [y1Data, range1] = rangedata(Y1, Range);
-if opt.log
+if opt.Log
     y1Data = log(y1Data);
 end
 nPer1 = length(range1);
@@ -132,7 +140,7 @@ C = kron(eye(nPer1), c);
 % averaging.
 if ~isempty(X2)
     x2Data = rangedata(X2, range2);
-    if opt.log
+    if opt.Log
         x2Data = log(x2Data);
     end
     nx = size(x2Data, 2);
@@ -147,11 +155,11 @@ end
 % Set-up RHS matrix.
 M1 = [ ];
 M2 = [ ];
-if opt.constant
+if opt.Constant
     M1 = [M1, ones(nPer1, 1)];
     M2 = ones(nPer2, 1);
 end
-if opt.timetrend
+if opt.TimeTrend
     t2 = (1 : nPer2)';
     t1 = C*t2;
     M1 = [M1, t1];
@@ -163,12 +171,13 @@ if ~isempty(X2)
 end
 
 if isempty(M1)
-    utils.error('tseries:chowlin', [ ...
-        'No left-hand-side regressor specified.']);
+    THIS_ERROR = { 'TimeSubscriptable:ChowLinLHSRegressorMissing'
+                   'No left-hand-side regressor specified' };
+    throw( exception.Base(THIS_ERROR, 'error') );
 end
 
 % Run regression and compute autocorrelation of residuals.
-sample1 = all(~isnan(M1, y1Data), 2);
+sample1 = all(~isnan([M1, y1Data]), 2);
 B = M1(sample1, :) \ y1Data(sample1);
 tmp = y1Data(sample1) - M1(sample1, :)*B;
 rho1 = tmp(1:end-1) \ tmp(2:end);
@@ -180,18 +189,18 @@ sample2 = all(~isnan(M2), 2);
 y2Data = M2*B;
 
 % Correct for residuals.
-if any(strcmpi(opt.rho, {'auto', 'estimate', 'positive', 'negative'}))
+if any(strcmpi(opt.Rho, {'auto', 'estimate', 'positive', 'negative'}))
     % Determine high-frequency autocorrelation consistent with estimated
     % low-frequency autocorrelation.
-    rho2 = xxAutoCorr(rho1, f1, f2, opt.ngrid);
+    rho2 = xxAutoCorr(rho1, f1, f2, opt.NGrid);
     % Set rho2 to zero if it's estimate is negative and the user restricted
     % the estimated value to be positive or vice versa.
-    if (strcmpi(opt.rho, 'positive') && rho2 < 0) ...
-            || (strcmpi(opt.rho, 'negative') && rho2 > 0)
+    if (strcmpi(opt.Rho, 'positive') && rho2 < 0) ...
+            || (strcmpi(opt.Rho, 'negative') && rho2 > 0)
         rho2 = 0;
     end
 else
-    rho2 = opt.rho;
+    rho2 = opt.Rho;
 end
 tmp = u1Data;
 tmp(~sample1) = 0;
@@ -205,7 +214,7 @@ u2Data(~sample2) = NaN;
 y2Data = y2Data + u2Data;
 
 % Output data.
-if opt.log
+if opt.Log
     u1Data = exp(u1Data);
     y2Data = exp(y2Data);
     u2Data = exp(u2Data);
@@ -215,7 +224,7 @@ Y2 = replace(Y1, y2Data, range2(1));
 U2 = replace(Y1, u2Data, range2(1));
 Rho = [rho1, rho2];
 
-end
+end%
 
 
 function Rho2 = xxAutoCorr(Rho1, F1, F2, NGrid)
@@ -232,11 +241,10 @@ for i = 1 : numel(rho2s)
 end
 [~, ix] = min(abs(rho1s - Rho1));
 Rho2 = rho2s(ix);
-
     function rho1 = doTry(rho2)
         P2 = toeplitz(rho2.^(0:2*g-1));
         P1 = C*P2*C';
         rho1 = P1(2, 1) / P1(1, 1);
-    end
+    end%
+end%
 
-end
