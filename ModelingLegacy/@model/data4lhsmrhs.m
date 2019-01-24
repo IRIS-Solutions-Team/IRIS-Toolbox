@@ -88,7 +88,7 @@ rowNamesExceptParameters = rowNames(~inxOfP);
 
 [startOfExtendedRange, endOfExtendedRange, minShift, maxShift] = ...
     getExtendedRange(this, [startOfBaseRange, endOfBaseRange]);
-lenOfExtendedRange = (endOfExtendedRange - startOfExtendedRange + 1);
+lenOfExtendedRange = round(endOfExtendedRange - startOfExtendedRange + 1);
 extendedRange = startOfExtendedRange:endOfExtendedRange;
 
 check = checkInputDatabank(this, inputDatabank, extendedRange, [ ], rowNamesExceptParameters);
