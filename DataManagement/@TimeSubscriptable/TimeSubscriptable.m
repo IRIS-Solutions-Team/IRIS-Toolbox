@@ -1,15 +1,16 @@
 classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
-         TimeSubscriptable
+         TimeSubscriptable < shared.UserDataContainer
+
     properties 
+        % Start  Date of first observation in time series
+        Start = DateWrapper.NaD
+
         % Comment  User comments attached to individual columns of time % series
         Comment = { TimeSubscriptable.EMPTY_COMMENT }
     end
 
 
     properties (Abstract)
-        % Start  Date of first observation in time series
-        Start
-
         % Data  Array of time series data
         Data
 
@@ -77,53 +78,8 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         varargout = getData(varargin)
         varargout = getDataNoFrills(varargin)
         varargout = ifelse(varargin)
-        varargout = ellone(varargin)
         varargout = resetComment(varargin)
         varargout = shift(varargin)
-        varargout = spy(varargin)
-
-
-        function varargout = plot(varargin)
-            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@plot, varargin{:});
-        end%
-
-
-        function varargout = bar(varargin)
-            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@bar, varargin{:});
-        end%
-
-
-        function varargout = area(varargin)
-            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@area, varargin{:});
-        end%
-
-
-        function varargout = stem(varargin)
-            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@stem, varargin{:});
-        end%
-
-
-        function varargout = stairs(varargin)
-            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@stairs, varargin{:});
-        end%
-
-
-        function varargout = barcon(varargin)
-            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@numeric.barcon, varargin{:});
-        end%
-
-
-        function varargout = errorbar(varargin)
-            [varargout{1:nargout}] = TimeSubscriptable.implementPlot(@numeric.errorbar, varargin{:});
-        end%
-
-
-        function varargout = binscatter(varargin)
-            [~, time, yData, axesHandle, xData, unmatched] = TimeSubscriptable.implementPlot([ ], varargin{:});
-            indexOfNaN = any(isnan(yData), 2);
-            plotHandle = binscatter(yData(~indexOfNaN, 1), yData(~indexOfNaN, 2), unmatched{:});
-            varargout = {plotHandle, time, yData, axesHandle, xData};
-        end%
 
 
 
@@ -283,11 +239,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     methods (Static)
         varargout = getExpSmoothMatrix(varargin)
         varargout = createDateAxisData(varargin)
-        varargout = implementPlot(varargin)
     end
 
 
     methods (Static, Access=protected)
         varargout = trimRows(varargin)
+        varargout = plotSwitchboard(varargin)
     end
 end

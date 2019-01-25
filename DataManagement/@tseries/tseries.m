@@ -149,28 +149,12 @@
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
-         tseries < TimeSubscriptable ...
-                 & shared.GetterSetter ...
-                 & shared.UserDataContainer
-    properties
-        Start = DateWrapper.NaD % Date of first observation available 
-        Data = double.empty(0, 1) % Numeric array of time series data
-        MissingValue = NaN % Representation of missing value
-    end
-
-
-    properties (Dependent)
-        % MissingTest  Test for missing values
-        MissingTest 
-
-        % ColumnNames  Comments attached to each column of time series
-        ColumnNames
-    end
-
+         tseries < NumericTimeSubscriptable ...
+                 & shared.GetterSetter
 
     methods
         function this = tseries(varargin)
-            % tseries  Create new time series (tseries) object.
+            % tseries  Create new time series (tseries) object
             %
             % __Syntax__
             %
@@ -211,10 +195,9 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % __Example__
             %
             
-            % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2018 IRIS Solutions Team.
+            % -IRIS Macroeconomic Modeling Toolbox
+            % -Copyright (c) 2007-2018 IRIS Solutions Team
             
-            this = this@shared.UserDataContainer( );
             this = this@shared.GetterSetter( );
             this = resetComment(this);
             
@@ -323,8 +306,18 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = arf(varargin)
         varargout = arma(varargin)
         varargout = band(varargin)
+
+        function varargout = bands(varargin)
+            [varargout{1:nargout}] = tseries.implementPlot(@bands, varargin{:});
+        end%
+
         varargout = bar(varargin)
         varargout = barcon(varargin)
+
+        function varargout = binscatter(varargin)
+            [varargout{1:nargout}] = tseries.implementPlot(@binscatter, varargin{:});
+        end%
+
         varargout = bpass(varargin)
         varargout = bubble(varargin)
         varargout = bwf(varargin)
@@ -335,12 +328,10 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = convert(varargin)
         varargout = cumsumk(varargin)
 
-
         varargout = destdize(varargin)
         function varargout = destdise(varargin)
             [varargout{1:nargout}] = destdize(varargin{:});
-        end
-
+        end%
 
         varargout = detrend(varargin)
         varargout = diff(varargin)
@@ -889,18 +880,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
         function n = numel(~, varargin)
             n = 1;
-        end%
-    end
-
-
-    methods 
-        function missingTest = get.MissingTest(this)
-            missingValue = this.MissingValue;
-            if isequaln(missingValue, NaN)
-                missingTest = @isnan;
-            else
-                missingTest = @(x) x==missingValue;
-            end
         end%
     end
 

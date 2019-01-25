@@ -1,4 +1,4 @@
-function [ axesHandle, hPlot, ...
+function [ axesHandle, plotHandle, ...
            inputRange, data, ...
            xCoor, usrRng, freq ] = implementPlot(plotFunc, varargin)
 % implementPlot  Implement plot function for tseries objects
@@ -35,33 +35,33 @@ usrRng = inputRange;
  
 %--------------------------------------------------------------------------
 
-% Resize input time series to input range if needed.
+% Resize input time series to input range if needed
 if ~isequal(inputRange, Inf) && ~isequal(inputRange, @all) && ~isnan(this.Start)
     inputRange = inputRange(:).';    
     if ~all( freqcmp(this, inputRange) )
-        utils.error('tseries:implementPlot', ...
-            ['Date frequency mismatch between ', ...
-            'input range and input time series.']);
+        THIS_ERROR = { 'tseries:DateFrequencyMismatch'
+                       'Date frequency mismatch between input range and input time series' };
+        throw( exception.Base(THIS_ERROR, 'error') );
     end
     this = resize(this, inputRange);
 end
 
 if isempty(plotSpec)
-    plotSpec = { };
+    plotSpec = cell.empty(1, 0);
 elseif ischar(plotSpec)
     plotSpec = { plotSpec };
 end
 
 this.data = this.data(:, :);
-[~, nx] = size(this.data);
 inputRange = specrange(this, inputRange);
 
-hPlot = [ ];
+plotHandle = [ ];
 if isempty(inputRange)
     data = this.data([ ], :);
     xCoor = double.empty(1, 0);
-    utils.warning('tseries:implementPlot', ...
-        'No graph displayed because date range is empty.');
+    THIS_WARNING = { 'tseries:NoDataPlotted'
+                     'No data plotted because input range is empty' };
+    throw( exception.Base(THIS_WARNING, 'warning') );
     return
 end
 
@@ -110,11 +110,16 @@ end
 
 % Do the actual plot.
 set(axesHandle, 'xTickMode', 'auto', 'xTickLabelMode', 'auto');
-[hPlot, isTimeAxis] = callPlotFunc( );
+[plotHandle, isTimeAxis] = this.plotSwitchboard( plotFunc, ...
+                                                 axesHandle, ...
+                                                 xCoor, ...
+                                                 data, ...
+                                                 plotSpec, ...
+                                                 varargin{:} );
 
 isBar = isequal(plotFunc, @bar) ...
-    || isequal(plotFunc, @barcon) ...
-    || isequal(plotFunc, @numeric.barcon);
+     || isequal(plotFunc, @barcon) ...
+     || isequal(plotFunc, @numeric.barcon);
 
 if isequal(opt.XLimMargins, true) || (isequal(opt.XLimMargins, @auto) && isBar)
     setappdata(axesHandle, 'IRIS_XLIM_ADJUST', true);
@@ -144,7 +149,7 @@ end
 
 % Perform user supplied function.
 if ~isempty(opt.Function)
-    opt.Function(hPlot);
+    opt.Function(plotHandle);
 end
 
 % Make the y-axis tight.
@@ -156,7 +161,7 @@ end
 %----------------
 % Store the dates within each plotted object for later retrieval by
 % datatip cursor.
-for ih = hPlot(:).'
+for ih = plotHandle(:).'
     setappdata(ih, 'IRIS_DATELINE', inputRange);
 end
 
@@ -173,8 +178,6 @@ end
 return
 
 
-
-
     function range = mergeRange(range, comprise)
         % first = dec2dat(Comprise(1), Freq, Opt.DatePosition);
         first = double(range(1));
@@ -189,48 +192,5 @@ return
             last = last + 1;
         end
         range = double(first) : double(last);
-    end
-
-
-
-
-    function [h, isTimeAxis] = callPlotFunc( )
-        stringPlotFunc = plotFunc;
-        if isfunc(stringPlotFunc)
-            stringPlotFunc = func2str(stringPlotFunc);
-        end
-        switch stringPlotFunc
-            case {'scatter'}
-                if nx==2
-                    h = scatter(axesHandle, data(:, 1), data(:, 2), plotSpec{:});
-                elseif nx==3
-                    h = scatter(axesHandle, data(:, 1), data(:, 2), data(:, 3), plotSpec{:});
-                elseif nx==4
-                    h = scatter(axesHandle, data(:, 1), data(:, 2), data(:, 3), data(:, 4), plotSpec{:});
-                else
-                    utils.error('tseries:implementPlot', ...
-                        ['Scatter plot input data must have ', ...
-                        'exactly two or three columns.']);
-                end
-                if ~isempty(varargin)
-                    set(h, varargin{:});
-                end
-                isTimeAxis = false;
-            case {'histogram'}
-                h = histogram(axesHandle, data, plotSpec{:});
-                isTimeAxis = false;
-            case {'barcon', 'numeric.barcon'}
-                % Do not pass `plotspecs` but do pass user options.
-                % h = tseries.mybarcon(axesHandle, xCoor, data, varargin{:});
-                h = numeric.barcon(axesHandle, xCoor, data, varargin{:});
-                isTimeAxis = true;
-            otherwise
-                DataInf = grfun.myreplacenancols(data, Inf);
-                h = feval(plotFunc, axesHandle, xCoor, DataInf, plotSpec{:});
-                if ~isempty(varargin)
-                    set(h, varargin{:});
-                end
-                isTimeAxis = true;
-        end
-    end 
-end
+    end%
+end%

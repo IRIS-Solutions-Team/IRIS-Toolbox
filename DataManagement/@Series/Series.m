@@ -1,5 +1,7 @@
-classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
-        Series < tseries
+classdef ( CaseInsensitiveProperties=true, ...
+           InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper} ) ...
+         Series < tseries
+
     methods
         function this = Series(varargin)
             this = this@tseries(varargin{:});
@@ -15,41 +17,69 @@ classdef (InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
 
     methods
         function varargout = plot(varargin)
-            [varargout{1:nargout}] = plot@TimeSubscriptable(varargin{:});
+            [varargout{1:nargout}] = Series.implementPlot(@plot, varargin{:});
         end%
 
 
         function varargout = bar(varargin)
-            [varargout{1:nargout}] = bar@TimeSubscriptable(varargin{:});
+            [varargout{1:nargout}] = Series.implementPlot(@bar, varargin{:});
+        end%
+
+
+        function varargout = binscatter(varargin)
+            [varargout{1:nargout}] = Series.implementPlot(@binscatter, varargin{:});
         end%
 
 
         function varargout = area(varargin)
-            [varargout{1:nargout}] = area@TimeSubscriptable(varargin{:});
+            [varargout{1:nargout}] = Series.implementPlot(@area, varargin{:});
+        end%
+
+
+        function varargout = bands(varargin)
+            [varargout{1:nargout}] = Series.implementPlot(@bands, varargin{:});
+        end%
+
+
+        function varargout = histogram(varargin)
+            [varargout{1:nargout}] = Series.implementPlot(@histogram, varargin{:});
+        end%
+
+
+        function varargout = scatter(varargin)
+            [varargout{1:nargout}] = Series.implementPlot(@scatter, varargin{:});
         end%
 
 
         function varargout = stem(varargin)
-            [varargout{1:nargout}] = stem@TimeSubscriptable(varargin{:});
+            [varargout{1:nargout}] = Series.implementPlot(@stem, varargin{:});
+        end%
+
+
+        function varargout = stairs(varargin)
+            [varargout{1:nargout}] = Series.implementPlot(@stairs, varargin{:});
+        end%
+
+
+        function varargout = barcon(varargin)
+            [varargout{1:nargout}] = Series.implementPlot(@numeric.barcon, varargin{:});
         end%
 
 
         function varargout = errorbar(varargin)
-            [varargout{1:nargout}] = errorbar@TimeSubscriptable(varargin{:});
+            [varargout{1:nargout}] = Series.implementPlot(@numeric.errorbar, varargin{:});
         end%
+    end
 
 
-        function varargout = spy(varargin)
-            [varargout{1:nargout}] = spy@TimeSubscriptable(varargin{:});
-        end%
-
-
-        varargout = barcon(varargin)
+    methods
+        varargout = spy(varargin)
     end
 
 
     methods (Static)
         varargout = fromFred(varargin)
+        varargout = implementPlot(varargin)
         varargout = linearTrend(varargin)
         varargout = empty(varargin)
     end

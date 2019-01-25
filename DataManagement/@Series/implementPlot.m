@@ -1,7 +1,7 @@
 function [ plotHandle, time, yData, ...
            axesHandle, xData, ...
            unmatchedOptions ] = implementPlot(plotFunc, varargin)
-% implementPlot  Plot functions for TimeSubscriptable objects
+% implementPlot  Plot functions for Series objects
 %
 % Backend function
 % No help provided
@@ -9,7 +9,7 @@ function [ plotHandle, time, yData, ...
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2018 IRIS Solutions Team
 
-ERROR_INVALID_FREQUENCY = { 'TimeSubscriptable:InvalidPlotRangeFrequency'
+ERROR_INVALID_FREQUENCY = { 'Series:InvalidPlotRangeFrequency'
                             'Plot range and input time series must have the same date frequency' };
 
 IS_ROUND = @(x) isnumeric(x) && all(x==round(x));
@@ -36,12 +36,12 @@ varargin(1) = [ ];
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser(['TimeSubscriptable.implementPlot(', char(plotFunc), ')']);
+    parser = extend.InputParser(['Series.implementPlot(', char(plotFunc), ')']);
     parser.KeepUnmatched = true;
-    parser.addRequired('PlotFun', @validatePlotFunction);
+    parser.addRequired('PlotFun', @(x) isa(x, 'function_handle'));
     parser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
     parser.addRequired('Dates', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x) );
-    parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable') && ~iscell(x.Data));
+    parser.addRequired('InputSeries', @(x) isa(x, 'Series') && ~iscell(x.Data));
     parser.addOptional('SpecString', cell.empty(1, 0), @iscell);
     parser.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x));
     parser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
@@ -102,12 +102,12 @@ if ~ishold(axesHandle)
 end
 
 set(axesHandle, 'XLimMode', 'auto', 'XTickMode', 'auto');
-[plotHandle, isTimeAxis] = TimeSubscriptable.plotSwitchboard( plotFunc, ...
-                                                              axesHandle, ...
-                                                              xData, ...
-                                                              yData, ...
-                                                              specString, ...
-                                                              unmatchedOptions{:} );
+[plotHandle, isTimeAxis] = this.plotSwitchboard( plotFunc, ...
+                                                 axesHandle, ...
+                                                 xData, ...
+                                                 yData, ...
+                                                 specString, ...
+                                                 unmatchedOptions{:} );
 if isTimeAxis
     addXLimMargins( );
     setXLim( );
@@ -243,23 +243,9 @@ end%
 % Local Validation Functions
 %
 
-function flag = validatePlotFunction(x)
-    list = { @plot 
-             @bar
-             @area 
-             @bands
-             @histogram
-             @scatter
-             @stem
-             @stairs
-             @numeric.barcon
-             @numeric.errorbar };
-    flag = any( cellfun(@(y) isequal(x, y), list) );
-end%
-
 
 function checkUserFrequency(this, time)
-    ERROR_INVALID_FREQUENCY = { 'TimeSubscriptable:InvalidPlotRangeFrequency'
+    ERROR_INVALID_FREQUENCY = { 'Series:InvalidPlotRangeFrequency'
                                 'Plot range and input time series must have the same date frequency' };
 
     if numel(time)==1 || numel(time)==2
