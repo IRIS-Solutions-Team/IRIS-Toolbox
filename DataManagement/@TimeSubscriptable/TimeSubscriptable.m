@@ -244,6 +244,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
     methods (Static, Access=protected)
         varargout = trimRows(varargin)
-        varargout = plotSwitchboard(varargin)
     end
 end
+

@@ -323,7 +323,6 @@ return
         if opt.UsePinvIfJacobSingular && ~isempty(lastwarn( ))
             next.D = -pinv(current.J) * F0;
         end
-        if any(~isfinite(next.D(:))), keyboard, end
         step = next.Step;
         lenOfStepSize = numel(step);
         X = cell(1, lenOfStepSize);

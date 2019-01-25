@@ -60,7 +60,6 @@ return
             d.(iNewName) = feval(generator, d.(iName));
             errorReport = [ ];
         catch Err
-            keyboard
             errorReport = {iNewName, Err.message};
         end
     end

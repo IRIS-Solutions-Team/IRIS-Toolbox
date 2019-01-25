@@ -53,7 +53,7 @@ return
 
 
 
-    function testNumOfYDataColumns(x)
+    function numOfYDataColumns = testNumOfYDataColumns(x)
         numOfYDataColumns = size(yData, 2);
         if any(numOfYDataColumns==x)
             return
@@ -80,7 +80,7 @@ return
 
         
     function plotHandle = implementScatter( )
-        testNumOfYDataColumns([2, 3, 4]);
+        numOfYDataColumns = testNumOfYDataColumns([2, 3, 4]);
         if numOfYDataColumns==2
             tempData = { yData(:, 1), yData(:, 2) };
         elseif numOfYDataColumns==3

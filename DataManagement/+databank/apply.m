@@ -1,21 +1,21 @@
 function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank, varargin)
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('databank.apply');
-    inputParser.addRequired('Function', @(x) isempty(x) || isa(x, 'function_handle'));
-    inputParser.addRequired('InputDatabank', @isstruct);
-    inputParser.addParameter('HasPrefix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    inputParser.addParameter('HasSuffix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    inputParser.addParameter('AddPrefix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    inputParser.addParameter('AddSuffix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    inputParser.addParameter('RemovePrefix', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('RemoveSuffix', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('List', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-    inputParser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || isstruct(x));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('databank.apply');
+    parser.addRequired('Function', @(x) isempty(x) || isa(x, 'function_handle'));
+    parser.addRequired('InputDatabank', @isstruct);
+    parser.addParameter('HasPrefix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter('HasSuffix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter('AddPrefix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter('AddSuffix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter('RemovePrefix', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('RemoveSuffix', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('List', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    parser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || isstruct(x));
 end
-inputParser.parse(func, inputDatabank, varargin{:});
-opt = inputParser.Options;
+parser.parse(func, inputDatabank, varargin{:});
+opt = parser.Options;
 
 if ~isequal(opt.List, @all)
     opt.List = cellstr(opt.List);

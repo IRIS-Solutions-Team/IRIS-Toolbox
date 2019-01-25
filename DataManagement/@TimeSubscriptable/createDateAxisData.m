@@ -60,7 +60,7 @@ function positionWithinPeriod = resolvePositionWithinPeriod(axesHandle, position
         if isequal(positionWithinPeriod, @auto)
             positionWithinPeriod = axesPositionWithinPeriod;
         elseif ~isequal(axesPositionWithinPeriod, positionWithinPeriod)
-            warning( 'TimeSubscriptable:implementPlot:DifferentPositionWithinPeriod', ...
+            warning( 'TimeSubscriptable:DifferentPositionWithinPeriod', ...
                      'Option PositionWithinPeriod= differs from the value set in the current Axes.' );
         end
     end

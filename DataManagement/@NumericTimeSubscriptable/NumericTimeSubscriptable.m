@@ -39,4 +39,9 @@ classdef ( Abstract, ...
     methods
         varargout = ellone(varargin)
     end
+
+
+    methods (Static, Access=protected)
+        varargout = plotSwitchboard(varargin)
+    end
 end
