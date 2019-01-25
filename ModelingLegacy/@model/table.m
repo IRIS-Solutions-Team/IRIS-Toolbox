@@ -21,6 +21,9 @@ function outputTable = table(this, requests, varargin)
 %
 % __Options__
 %
+% * `CompareFirstColumn=true` [ `true` | `false` ] - Include the first
+% column in comparison tables (first column compares itself with itself).
+%
 % * `Diary=''` [ char | string ] - If `Diary=` is not empty, the table will
 % be printed on the screen in the command window, and captured in a text
 % file under this file name.

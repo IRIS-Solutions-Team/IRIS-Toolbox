@@ -3,7 +3,7 @@ classdef plotspec < irisinp.generic
         ReportName = 'Plot Specs'  
         Value = NaN
         Omitted = cell.empty(1, 0)
-        ValidFn = @(x, state) ischar(x) && mod(state.NUserLeft, 2)==1
+        ValidFn = @(x, state) iscell(x) || (ischar(x) && mod(state.NUserLeft, 2)==1)
     end
     
     

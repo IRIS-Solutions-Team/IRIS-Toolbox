@@ -55,6 +55,7 @@ classdef Model < model & matlab.mixin.CustomDisplay
                         'NumOfVariantsSolved', this.NumOfVariantsSolved, ...
                         'NumOfMeasurementEquations', this.NumOfMeasurementEquations, ...
                         'NumOfTransitionEquations', this.NumOfTransitionEquations, ... 
+                        'SizeOfTransitionMatrix', this.SizeOfTransitionMatrix, ...
                         'NumOfExportFiles', this.NumOfExportFiles, ...
                         'UserData', this.UserData );
             groups = matlab.mixin.util.PropertyGroup(x);
@@ -76,12 +77,16 @@ classdef Model < model & matlab.mixin.CustomDisplay
         function header = getHeader(this)
             dimString = matlab.mixin.CustomDisplay.convertDimensionsToString(this);
             className = matlab.mixin.CustomDisplay.getClassNameForHeader(this);
-            if this.IsLinear
-                adjective = 'Linear';
-            else
-                adjective = 'Nonlinear';
+            adjective = ' ';
+            if isempty(this)
+                adjective = [adjective, 'Empty '];
             end
-            header = sprintf('  %s %s %s\n', dimString, adjective, className);
+            if this.IsLinear
+                adjective = [adjective, 'Linear'];
+            else
+                adjective = [adjective, 'Nonlinear'];
+            end
+            header = ['  ', dimString, adjective, ' ', className, sprintf('\n')]; 
         end%
     end
 
@@ -100,6 +105,7 @@ classdef Model < model & matlab.mixin.CustomDisplay
         NumOfVariantsSolved
         NumOfMeasurementEquations
         NumOfTransitionEquations
+        SizeOfTransitionMatrix
         NumOfExportFiles
     end
 
@@ -120,6 +126,12 @@ classdef Model < model & matlab.mixin.CustomDisplay
         function value = get.NumOfTransitionEquations(this)
             TYPE = @int8;
             value = nnz(this.Equation.Type==TYPE(2));
+        end%
+
+
+        function value = get.SizeOfTransitionMatrix(this)
+            [~, nxi, nb] = sizeOfSolution(this);
+            value = [nxi, nb];
         end%
 
 

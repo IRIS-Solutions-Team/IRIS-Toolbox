@@ -1,5 +1,5 @@
-function X = myreplacenancols(X,Replace)
-% myreplacenancols [Not a public function] Replace all-NaN columns with a specified value.
+function X = myreplacenancols(X, Replace)
+% myreplacenancols  Replace all-NaN columns with a specified value
 %
 % Backend IRIS function.
 % No help provided.
