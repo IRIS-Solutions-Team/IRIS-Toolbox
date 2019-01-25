@@ -131,7 +131,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
     
 classdef (CaseInsensitiveProperties=true) ...
     VAR < varobj & model.Data
@@ -292,7 +292,7 @@ classdef (CaseInsensitiveProperties=true) ...
             % `d.z`.
             
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2018 IRIS Solutions Team.
+            % -Copyright (c) 2007-2019 IRIS Solutions Team.
             
             %--------------------------------------------------------------------------
             

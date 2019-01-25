@@ -55,7 +55,7 @@ function [X,Y,XX,YY] = fevd(This,Time,varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 opt = passvalopt('SVAR.fevd',varargin{:});

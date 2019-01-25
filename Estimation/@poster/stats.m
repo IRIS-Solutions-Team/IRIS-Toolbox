@@ -86,7 +86,7 @@ function Stat = stats(This, Theta, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 if ~isempty(varargin) && isnumeric(varargin{1})
     LogPost = varargin{1};
@@ -249,7 +249,7 @@ return
         % doMdd  Modified harmonic mean estimator of minus the log marginal data
         % density; Geweke (1999).
         
-        % Copyright (c) 2010-2018 IRIS Solutions Team & Troy Matheson.
+        % Copyright (c) 2010-2019 IRIS Solutions Team & Troy Matheson.
         logDetSgm = log(det(Sgm));
         
         % Compute g(theta) := f(theta) / post(theta) for all thetas, 

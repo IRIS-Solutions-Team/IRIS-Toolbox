@@ -5,7 +5,7 @@ function [c, flag] = file2char(fileName, Type)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 UTF = char([239, 187, 191]);
 

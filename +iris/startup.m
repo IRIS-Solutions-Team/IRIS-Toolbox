@@ -46,7 +46,7 @@ function startup(varargin)
 % class.
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 MATLAB_RELEASE_OR_HIGHER = 'R2014b';
 

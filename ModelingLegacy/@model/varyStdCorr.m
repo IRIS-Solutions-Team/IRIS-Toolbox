@@ -5,7 +5,7 @@ function [stdCorrReal, stdCorrImag, stdMultipliers] = varyStdCorr(this, range, j
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 

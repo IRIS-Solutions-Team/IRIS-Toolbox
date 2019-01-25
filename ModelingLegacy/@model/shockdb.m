@@ -51,7 +51,7 @@ function [d, YXEPG] = shockdb(this, d, range, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');

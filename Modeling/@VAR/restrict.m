@@ -5,7 +5,7 @@ function [Rr, Qq] = restrict(numEndogenous, numIntercepts, numExogenous, numCoin
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %#ok<*CTCH>
 

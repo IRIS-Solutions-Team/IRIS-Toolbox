@@ -145,7 +145,7 @@ function [X1,fval,exitflag,output,population,scores,LAMBDA,state] = ...
 % Vol. 85:1579-88, 2007.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team and Sam Chen.
+% -Copyright (c) 2007-2019 IRIS Solutions Team and Sam Chen.
 
 % handle case where irisoptim.pso( ) is not being called by shared.Estimation.estimate( )
 

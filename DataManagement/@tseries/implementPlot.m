@@ -7,7 +7,7 @@ function [ axesHandle, plotHandle, ...
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 % If the caller supplies empty `Func`, the graph will not be actually
 % rendered. This is a dry call to `implementPlot` used from within `plotyy`.

@@ -23,7 +23,7 @@ function clicktocopy(ax)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('h', @(x) all(ishghandle(x)) ...

@@ -30,7 +30,7 @@ function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 persistent parser
 if isempty(parser)

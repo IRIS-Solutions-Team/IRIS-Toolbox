@@ -5,7 +5,7 @@ function [isFilter, filter, freq, applyFilterTo] = applyfilteropt(opt, freq, sol
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 

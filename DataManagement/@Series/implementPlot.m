@@ -7,7 +7,7 @@ function [ plotHandle, time, yData, ...
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 ERROR_INVALID_FREQUENCY = { 'Series:InvalidPlotRangeFrequency'
                             'Plot range and input time series must have the same date frequency' };

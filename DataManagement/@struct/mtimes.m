@@ -2,7 +2,7 @@ function this = mtimes(this, list)
 % See help on dbase/dbmtimes.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 

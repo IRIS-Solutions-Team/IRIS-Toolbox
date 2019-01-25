@@ -133,7 +133,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 classdef (InferiorClasses={?table, ?timetable}) ...
          model < shared.GetterSetter ...
@@ -725,7 +725,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             % expressions.
             
             % -IRIS Macroeconomic Modeling Toolbox
-            % -Copyright (c) 2007-2018 IRIS Solutions Team
+            % -Copyright (c) 2007-2019 IRIS Solutions Team
 
             persistent inputParser optimalParser parserParser
             if isempty(inputParser)

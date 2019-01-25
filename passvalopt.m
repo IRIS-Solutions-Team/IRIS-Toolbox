@@ -8,7 +8,7 @@ function varargout = passvalopt(spec, varargin)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 % Force resetting the default options structure
 if (nargin==0 && nargout==0) 

@@ -5,7 +5,7 @@ function dat = dec2dat(dec, freq, pos)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 if nargin<3
     pos = 's';

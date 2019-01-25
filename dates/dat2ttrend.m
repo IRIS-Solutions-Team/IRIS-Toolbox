@@ -49,7 +49,7 @@ function [trend, baseYear] = dat2ttrend(range, baseYear)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 DATECODE_TOLERANCE = 0.001;
 

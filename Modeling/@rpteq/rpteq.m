@@ -34,7 +34,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 classdef rpteq < shared.GetterSetter ...
                & shared.UserDataContainer ...
@@ -117,7 +117,7 @@ classdef rpteq < shared.GetterSetter ...
             %         export files: [0]
             %
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2018 IRIS Solutions Team.
+            % -Copyright (c) 2007-2019 IRIS Solutions Team.
             
             persistent INPUT_PARSER PARSER_OPTIONS
             if isempty(INPUT_PARSER)

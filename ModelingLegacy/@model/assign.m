@@ -68,7 +68,7 @@ function [this, namesAssigned] = assign(this, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 persistent POS_VALUES INDEX_VALUES_RHS POS_STDCORR INDEX_STDCORR_RHS NAMES_ASSIGNED
 TYPE = @int8;

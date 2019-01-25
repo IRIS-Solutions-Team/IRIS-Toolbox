@@ -31,7 +31,7 @@ function Dates = find(X,Func)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 try
     Func; %#ok<VUNUS>

@@ -5,7 +5,7 @@ function [lsExg, lsEndg] = resolveAutoexog(this, kind, lsExg, lsEndg)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 PTR = @int16;
 

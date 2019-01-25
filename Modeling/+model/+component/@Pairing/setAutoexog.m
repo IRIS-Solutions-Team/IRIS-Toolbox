@@ -5,7 +5,7 @@ function p = setAutoexog(p, type, quantity, lsExog, lsEndog)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 TYPE = @int8;
 PTR = @int16;

@@ -58,7 +58,7 @@ function [x, inxOfIncluded, range, inxOfNotFound, inxOfNonSeries] = db2array(d, 
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %#ok<*VUNUS>
 %#ok<*CTCH>

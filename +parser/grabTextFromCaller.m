@@ -5,7 +5,7 @@ function code = grabTextFromCaller(tag, fileName)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 PATTERN = '%\{\n$tag$>>>>>\n(.*?)\n<<<<<$tag$\n%\}';
 

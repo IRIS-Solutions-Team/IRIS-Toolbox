@@ -44,7 +44,7 @@ function [sample,lp_Sample,len] ...
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team & Bojan Bejanov & Troy Matheson.
+% -Copyright (c) 2007-2019 IRIS Solutions Team & Bojan Bejanov & Troy Matheson.
 
 % Validate required inputs.
 pp = inputParser( );

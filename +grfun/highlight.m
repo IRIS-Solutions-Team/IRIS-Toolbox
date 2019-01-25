@@ -4,7 +4,7 @@ function varargout = highlight(varargin)
 % See help on visual.highlight.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 [varargout{1:nargout}] = visual.highlight(varargin{:});
 

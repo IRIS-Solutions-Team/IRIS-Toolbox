@@ -5,7 +5,7 @@ function [lineHandles, textHandles] = plotnfiniteLine(caller, varargin)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 lineHandles = gobjects(1 ,0);
 textHandles = gobjects(1 ,0);

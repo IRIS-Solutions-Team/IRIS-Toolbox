@@ -49,7 +49,7 @@ function [outputDatabank, success] = fromFred(fredSeriesId, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 FRED_API_KEY = iris.get('FredApiKey');
 REQUEST = '?series_id=%s&api_key=%s&file_type=json';

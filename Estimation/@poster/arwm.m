@@ -125,7 +125,7 @@ function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(thi
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team & Bojan Bejanov & Troy Matheson
+% -Copyright (c) 2007-2019 IRIS Solutions Team & Bojan Bejanov & Troy Matheson
 
 % Validate required inputs.
 pp = inputParser( );
@@ -471,7 +471,7 @@ return
         %  NOTE: this binary indexing gives values from 0 to 2^n-1.  Since in
         %  MATLAB indices are unit-based, we add one to get a valid MATLAB index.
         %
-        %  Copyright (c) 2012-2018 Boyan Bejanov and the IRIS Solutions Team
+        %  Copyright (c) 2012-2019 Boyan Bejanov and the IRIS Solutions Team
         %
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         

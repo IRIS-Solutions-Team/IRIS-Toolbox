@@ -5,7 +5,7 @@ function d = derv(this, mode, wrt, isSimplify)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 try, isSimplify; catch, isSimplify = true; end %#ok<NOCOM,VUNUS>
 

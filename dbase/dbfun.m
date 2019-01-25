@@ -89,7 +89,7 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 D = cell(1, nargin);
 [Fn, D{1}, varargin] = irisinp.parser.parse('dbase.dbfun', varargin{:});

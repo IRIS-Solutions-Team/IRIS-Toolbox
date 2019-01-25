@@ -76,7 +76,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2018 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
     
 classdef (CaseInsensitiveProperties=true) ...
     SVAR < VAR
@@ -192,7 +192,7 @@ classdef (CaseInsensitiveProperties=true) ...
             %
             
             % -IRIS Macroeconomic Modeling Toolbox
-            % -Copyright (c) 2007-2018 IRIS Solutions Team
+            % -Copyright (c) 2007-2019 IRIS Solutions Team
             
             this = this@VAR( );
             if nargin==0

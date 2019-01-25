@@ -5,7 +5,7 @@ function [Y0,K0,Y1,G1] = mydummymat(This,varargin)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 Ng = 0;
 if length(varargin) == 1

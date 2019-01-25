@@ -52,7 +52,7 @@ function s = and(varargin)
 %         c: 'ab'
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 ixEmpty = cellfun(@isempty, varargin);
 if sum(~ixEmpty)==1

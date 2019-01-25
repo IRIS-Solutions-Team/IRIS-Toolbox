@@ -58,7 +58,7 @@ function [B, BStd, residuals, EStd, fitted, Range, BCov] = lasso(Y, X, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 persistent INPUT_PARSER
 if isempty(INPUT_PARSER)

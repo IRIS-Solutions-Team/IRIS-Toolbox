@@ -43,7 +43,7 @@ function fn = normal(mean_, std_, w_)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team and Boyan Bejanov.
+% -Copyright (c) 2007-2019 IRIS Solutions Team and Boyan Bejanov.
 
 %--------------------------------------------------------------------------
 

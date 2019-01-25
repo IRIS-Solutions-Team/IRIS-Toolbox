@@ -46,7 +46,7 @@ function [this, tt, ts] = trend(this, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 if ~isempty(varargin) && DateWrapper.validateDateInput(varargin{1})
     range = varargin{1};

@@ -3,7 +3,7 @@ function [S, C] = myresponse(This,Time,Phi0,Select,Opt)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 % Tell if `Time` is `NPer` or `Range`.
 [range,nPer] = varobj.mytelltime(Time);

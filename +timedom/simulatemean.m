@@ -5,7 +5,7 @@ function [Y,W,E] = simulatemean(T,R,K,Z,H,D,~,A0,E,Nper,Ant,Dev,Q,q)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 % TODO: Simplify treatment of ea and eu.
 

@@ -44,7 +44,7 @@ function [s, range, select] = icrf(this, time, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 % Parse options.
 opt = passvalopt('model.icrf', varargin{:});

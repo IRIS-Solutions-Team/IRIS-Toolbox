@@ -90,7 +90,7 @@ function [Max, Inx] = max(This, Dim)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 try
     Dim; %#ok<VUNUS>

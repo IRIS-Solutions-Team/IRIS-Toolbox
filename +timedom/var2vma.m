@@ -5,7 +5,7 @@ function Phi = var2vma(A,B,NPer,Select)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2018 IRIS Solutions Team.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 [ny,p,nAlt] = size(A);
 p = p/max(ny,1);
