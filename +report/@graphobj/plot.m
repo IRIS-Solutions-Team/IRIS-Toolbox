@@ -97,7 +97,10 @@ if isequal(this.options.legend, true) ...
         legEnt = legEnt(this.options.legend);
     end
     legEntLhs = [ legEnt{ixLegLhs} ];
-    legEngRhs = [ legEnt{~ixLegLhs} ]; %#ok<NASGU>
+    % legEntRhs = [ legEnt{~ixLegLhs} ]; %#ok<NASGU>
+    while ~isempty(legEntLhs) && iscell(legEntLhs) && ~iscellstr(legEntLhs)
+        legEntLhs = legEntLhs{1};
+    end
     % TODO: Create legend for RHS data.
     if ~isempty(legEnt) && ~all(cellfun(@isempty, legEnt))
         if strcmp(this.options.legendlocation, 'bottom')
