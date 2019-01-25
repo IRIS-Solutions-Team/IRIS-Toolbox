@@ -5,24 +5,28 @@ classdef Equation < parser.theparser.Generic
     end
     
     
+    properties (Constant)
+        SEPARATE = '!!'
+        READ_STEADY_ONLY = '!!_'
+        READ_DYNAMIC_ONLY = '_!!'
+    end
     
     
     methods
         function [qty, eqn] = parse(this, ~, code, qty, eqn, euc, ~, opt)
             % 'Label' x=0.8*x{-1}+ex !! x=0;
-            SEPARATOR =        '!!';
-            LABEL_PATTERN =    '\s*(?<LABEL>"[^\n"]*"|''[^\n'']*'')?';
-            EQUATION_PATTERN = '(?<EQUATION>[^;]+);';
+            LABEL_PATTERN =       '\s*(?<LABEL>"[^\n"]*"|''[^\n'']*'')?';
+            EQUATION_PATTERN =    '(?<EQUATION>[^;]+);';
                         
             %--------------------------------------------------------------------------
                         
-            % Split the code block into individual equations.
+            % Split the code block into individual equations
             lsEqn = this.splitCodeIntoEquations(code);
             if isempty(lsEqn)
                 return
             end
                         
-            % Separate labels and equations.
+            % Separate labels and equations
             ptn = [LABEL_PATTERN, EQUATION_PATTERN];
             tkn = regexp(lsEqn, ptn, 'names', 'once');
             tkn( cellfun(@isempty, tkn) ) = [ ];
@@ -31,35 +35,17 @@ classdef Equation < parser.theparser.Generic
             lsLabel = { tkn.LABEL };
             lsEqn = { tkn.EQUATION };
             lsEqn = regexprep(lsEqn, '\s+', '');
-            nEqn = numel(lsEqn);
+            numOfEquations = numel(lsEqn);
             
-            % Separate dynamic and steady equations.
-            posSeparator = strfind(lsEqn, SEPARATOR);
-            lsEqnDynamic = cell(1, nEqn);
-            lsEqnSteady = cell(1, nEqn);
-
-            ixEmpty = cellfun(@isempty, posSeparator);
-            lsEqnDynamic(ixEmpty) = lsEqn(ixEmpty);
-            lsEqnSteady(ixEmpty) = {''};
-            
-            lsEqnDynamic(~ixEmpty) = cellfun( ...
-                @(eqn, pos) eqn(1:pos-1), ...
-                lsEqn(~ixEmpty), ...
-                posSeparator(~ixEmpty), ...
-                'UniformOutput', false ...
-                );
-            lsEqnSteady(~ixEmpty) = cellfun( ...
-                @(eqn, pos) eqn(pos+2:end), ...
-                lsEqn(~ixEmpty), ...
-                posSeparator(~ixEmpty), ...
-                'UniformOutput', false ...
-                );
+            % Separate dynamic and steady equations
+            lsEqn = readSteadyOnly(lsEqn);
+            lsEqn = readDynamicOnly(lsEqn);
+            [lsEqnDynamic, lsEqnSteady] = extractDynamicAndSteady(lsEqn);
                                     
-            % Remove equations that are completely empty, no warning.
-            ixEmptyCanBeRemoved = ...
-                cellfun(@isempty, lsLabel) ...
-                & cellfun(@isempty, lsEqnDynamic) ...
-                & cellfun(@isempty, lsEqnSteady);
+            % Remove equations that are completely empty, no warning
+            ixEmptyCanBeRemoved = cellfun(@isempty, lsLabel) ...
+                                & cellfun(@isempty, lsEqnDynamic) ...
+                                & cellfun(@isempty, lsEqnSteady);
             if any(ixEmptyCanBeRemoved)
                 lsEqn(ixEmptyCanBeRemoved) = [ ] ;
                 lsLabel(ixEmptyCanBeRemoved) = [ ];
@@ -113,16 +99,12 @@ classdef Equation < parser.theparser.Generic
             [lhsSteady, signSteady, rhsSteady, ixMissingSteady] = this.splitLhsSignRhs(lsEqnSteady);
 
             if any(ixMissingDynamic)
-                throw( ...
-                    exception.Base('TheParser:EmptyLhsOrRhs', 'error'), ...
-                    lsEqn{ixMissingDynamic} ...
-                    );
+                throw( exception.Base('TheParser:EmptyLhsOrRhs', 'error'), ...
+                       lsEqn{ixMissingDynamic} );
             end
             if any(ixMissingSteady)
-                throw( ...
-                    exception.Base('TheParser:EmptyLhsOrRhs', 'error'), ...
-                    lsEqn{ixMissingSteady} ...
-                    );
+                throw( exception.Base('TheParser:EmptyLhsOrRhs', 'error'), ...
+                       lsEqn{ixMissingSteady} );
             end
             
             % Split labels into labels and aliases.
@@ -181,19 +163,19 @@ classdef Equation < parser.theparser.Generic
             % Trim the equations, otherwise labels at the beginning would not be
             % matched.
             eqtn = strtrim(eqtn);
-        end
+        end%
         
         
         
         
         function [lhs, sign, rhs, ixMissing] = splitLhsSignRhs(eqn)
-            nEqn = length(eqn);
-            lhs = cell(1, nEqn);
-            rhs = cell(1, nEqn);
-            sign = cell(1, nEqn);
+            numOfEquations = length(eqn);
+            lhs = cell(1, numOfEquations);
+            rhs = cell(1, numOfEquations);
+            sign = cell(1, numOfEquations);
             [from, to] = regexp(eqn, ':=|=#|\+=|=', 'once', 'start', 'end');
             ixSign = ~cellfun(@isempty, from);
-            for i = 1 : nEqn
+            for i = 1 : numOfEquations
                 if ixSign(i)
                     lhs{i}  = eqn{i}( 1:from{i}-1 );
                     sign{i} = eqn{i}( from{i}:to{i} );
@@ -205,7 +187,7 @@ classdef Equation < parser.theparser.Generic
                 end
             end
             ixMissing = ixSign & (cellfun(@isempty, lhs) | cellfun(@isempty, rhs));
-        end
+        end%
         
         
         
@@ -282,14 +264,79 @@ classdef Equation < parser.theparser.Generic
                     c = '';
                     return
                 end
-            end
-        end
+            end%
+        end%
         
         
         
         
         function varargout = protectedEval(varargin)
             varargout{1} = eval(varargin{1});
-        end
+        end%
     end
 end
+
+
+%
+% Local Functions
+%
+
+
+function [dynamic, steady] = extractDynamicAndSteady(input)
+    separator = parser.theparser.Equation.SEPARATE; 
+    lenOfSeparator = length(separator);
+
+    numOfEquations = numel(input);
+    dynamic = cell(1, numOfEquations);
+    steady = cell(1, numOfEquations);
+
+    posOfSeparate = strfind(input, separator);
+    inxOfEmpty = cellfun(@isempty, posOfSeparate);
+
+    dynamic(inxOfEmpty) = input(inxOfEmpty);
+    steady(inxOfEmpty) = {''};
+    
+    dynamic(~inxOfEmpty) = cellfun( @(eqn, pos) eqn(1:pos-1), ...
+                                    input(~inxOfEmpty), ...
+                                    posOfSeparate(~inxOfEmpty), ...
+                                    'UniformOutput', false );
+    steady(~inxOfEmpty) = cellfun( @(eqn, pos) eqn(pos+lenOfSeparator:end), ...
+                                   input(~inxOfEmpty), ...
+                                   posOfSeparate(~inxOfEmpty), ...
+                                   'UniformOutput', false );
+end%
+
+
+
+
+function input = readSteadyOnly(input)
+    separator = parser.theparser.Equation.READ_STEADY_ONLY;
+    lenOfSeparator = length(separator);
+    posOfIgnore = strfind(input, separator);
+    inxOfFound = ~cellfun(@isempty, posOfIgnore);
+    if ~any(inxOfFound)
+        return
+    end
+    input(inxOfFound) = cellfun( @(eqn, pos) eqn(pos+lenOfSeparator:end), ...
+                                 input(inxOfFound), ...
+                                 posOfIgnore(inxOfFound), ...
+                                 'UniformOutput', false );
+end%
+
+
+
+
+function input = readDynamicOnly(input)
+    separator = parser.theparser.Equation.READ_DYNAMIC_ONLY;
+    lenOfSeparator = length(separator);
+    posOfIgnore = strfind(input, separator);
+    inxOfFound = ~cellfun(@isempty, posOfIgnore);
+    if ~any(inxOfFound)
+        return
+    end
+    input(inxOfFound) = cellfun( @(eqn, pos) eqn(1:pos-1), ...
+                                 input(inxOfFound), ...
+                                 posOfIgnore(inxOfFound), ...
+                                 'UniformOutput', false );
+end%
+
