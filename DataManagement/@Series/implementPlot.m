@@ -1,4 +1,4 @@
-function [ plotHandle, time, yData, ...
+function [ plotHandle, dates, yData, ...
            axesHandle, xData, ...
            unmatchedOptions ] = implementPlot(plotFunc, varargin)
 % implementPlot  Plot functions for Series objects
@@ -9,74 +9,41 @@ function [ plotHandle, time, yData, ...
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-ERROR_INVALID_FREQUENCY = { 'Series:InvalidPlotRangeFrequency'
-                            'Plot range and input time series must have the same date frequency' };
-
-IS_ROUND = @(x) isnumeric(x) && all(x==round(x));
-
-if isgraphics(varargin{1})
-    axesHandle = varargin{1};
-    varargin(1) = [ ];
-else
-    axesHandle = @gca;
-end
-
-if isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
-    time = varargin{1};
-    varargin(1) = [ ];
-elseif isnumeric(varargin{1})
-    time = DateWrapper.fromDouble(varargin{1});
-    varargin(1) = [ ];
-else
-    time = Inf;
-end
-
-this = varargin{1};
-varargin(1) = [ ];
+[axesHandle, dates, this, plotSpec, varargin] = ...
+    NumericTimeSubscriptable.preparePlot(varargin{:});
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser(['Series.implementPlot(', char(plotFunc), ')']);
+    parser = extend.InputParser('Series.implementPlot');
     parser.KeepUnmatched = true;
-    parser.addRequired('PlotFun', @(x) isa(x, 'function_handle'));
-    parser.addRequired('Axes', @(x) isequal(x, @gca) || (all(isgraphics(x, 'Axes')) && isscalar(x)));
-    parser.addRequired('Dates', @(x) isa(x, 'Date') || isa(x, 'DateWrapper') || isequal(x, Inf) || isempty(x) || IS_ROUND(x) );
-    parser.addRequired('InputSeries', @(x) isa(x, 'Series') && ~iscell(x.Data));
-    parser.addOptional('SpecString', cell.empty(1, 0), @iscell);
     parser.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x));
     parser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
     parser.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
                          || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
     parser.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
 end
-
-parser.parse(plotFunc, axesHandle, time, this, varargin{:});
-specString = parser.Results.SpecString;
+parser.parse(varargin{:});
 opt = parser.Options;
 unmatchedOptions = parser.UnmatchedInCell;
 
-time = double(time);
+dates = double(dates);
 enforceXLimHere = true;
-if isequal(time, Inf) || isequal(time, [-Inf, Inf])
-    time = this.RangeAsNumeric;
+if isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
+    dates = this.RangeAsNumeric;
     enforceXLimHere = false;
-elseif isempty(time) || all(isnan(time))
-    time = double.empty(0, 1);
+elseif isempty(dates) || all(isnan(dates))
+    dates = double.empty(0, 1);
 else
-    time = time(:);
-    checkUserFrequency(this, time);
+    dates = dates(:);
+    checkUserFrequency(this, dates);
 end
 
 %--------------------------------------------------------------------------
 
-if isa(axesHandle, 'function_handle')
-    axesHandle = axesHandle( );
-end
+[yData, dates] = getData(this, dates);
 
-[yData, time] = getData(this, time);
-
-if ~isempty(time)
-    timeFrequency = DateWrapper.getFrequencyAsNumeric(time(1));
+if ~isempty(dates)
+    timeFrequency = DateWrapper.getFrequencyAsNumeric(dates(1));
 else
     timeFrequency = NaN;
 end
@@ -88,7 +55,7 @@ end
 [ xData, ...
   positionWithinPeriod, ...
   dateFormat ] = TimeSubscriptable.createDateAxisData( axesHandle, ...
-                                                       time, ...
+                                                       dates, ...
                                                        opt.PositionWithinPeriod, ...
                                                        opt.DateFormat );
 
@@ -106,7 +73,7 @@ set(axesHandle, 'XLimMode', 'auto', 'XTickMode', 'auto');
                                                  axesHandle, ...
                                                  xData, ...
                                                  yData, ...
-                                                 specString, ...
+                                                 plotSpec, ...
                                                  unmatchedOptions{:} );
 if isTimeAxis
     addXLimMargins( );
@@ -194,7 +161,7 @@ return
 
 
     function xData = setXTickLabelFormat( )
-        if isempty(time) || timeFrequency==Frequency.INTEGER
+        if isempty(dates) || timeFrequency==Frequency.INTEGER
             return
         end
         try
@@ -244,18 +211,17 @@ end%
 %
 
 
-function checkUserFrequency(this, time)
-    ERROR_INVALID_FREQUENCY = { 'Series:InvalidPlotRangeFrequency'
-                                'Plot range and input time series must have the same date frequency' };
-
-    if numel(time)==1 || numel(time)==2
-        validFrequencies = isnan(this.Start) || all(validateFrequencyOrInf(this, time));
+function checkUserFrequency(this, dates)
+    if numel(dates)==1 || numel(dates)==2
+        validFrequencies = isnan(this.Start) || all(validateFrequencyOrInf(this, dates));
     else
-        validFrequencies = isnan(this.Start) || all(validateFrequency(this, time));
+        validFrequencies = isnan(this.Start) || all(validateFrequency(this, dates));
     end
 
     if ~validFrequencies
-        throw( exception.Base(ERROR_INVALID_FREQUENCY, 'error') );
+        THIS_ERROR = { 'Series:InvalidPlotRangeFrequency'
+                       'Plot range and input dates series must have the same date frequency' };
+        throw( exception.Base(THIS_ERROR, 'error') );
     end
 end%
 

@@ -1,6 +1,6 @@
 function [ axesHandle, plotHandle, ...
            inputRange, data, ...
-           xCoor, usrRng, freq ] = implementPlot(plotFunc, varargin)
+           xCoor, userRange, freq ] = implementPlot(plotFunc, varargin)
 % implementPlot  Implement plot function for tseries objects
 %
 % Backend IRIS function
@@ -24,14 +24,13 @@ end
 if isempty(plotFunc)
     [axesHandle, inputRange, this, plotSpec, opt] = varargin{:};
 else
-    [ axesHandle, inputRange, ...
-      this, plotSpec, varargin ] = irisinp.parser.parse('tseries.plot', varargin{:});
+    [axesHandle, inputRange, this, plotSpec, varargin] = ...
+        NumericTimeSubscriptable.preparePlot(varargin{:});
     parser.parse(varargin{:});
     opt = parser.Options;
     varargin = parser.UnmatchedInCell;
 end
-
-usrRng = inputRange;
+userRange = inputRange;
  
 %--------------------------------------------------------------------------
 
@@ -95,8 +94,8 @@ end
 % dates; this is used in `plotyy`.
 if ~isempty(opt.Comprise)
     inputRange = mergeRange(inputRange, opt.Comprise);
-    if ~isequal(usrRng, Inf)
-        usrRng = mergeRange(usrRng, opt.Comprise);
+    if ~isequal(userRange, Inf)
+        userRange = mergeRange(userRange, opt.Comprise);
     end
 end
 
@@ -144,7 +143,7 @@ if isTimeAxis && ~isTimeNan
     setappdata(axesHandle, 'IRIS_FREQ', freq);
     setappdata(axesHandle, 'IRIS_RANGE', inputRange);
     setappdata(axesHandle, 'IRIS_DATE_POSITION', opt.DatePosition);
-    mydatxtick(axesHandle, inputRange, xCoor, freq, usrRng, opt);
+    mydatxtick(axesHandle, inputRange, xCoor, freq, userRange, opt);
 end
 
 % Perform user supplied function.
