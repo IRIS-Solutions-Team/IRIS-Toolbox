@@ -37,11 +37,14 @@ classdef ( Abstract, ...
 
 
     methods
+        varargout = acf(varargin)
+        varargout = bubble(varargin)
         varargout = ellone(varargin)
     end
 
 
     methods (Static, Access=protected)
         varargout = plotSwitchboard(varargin)
+        varargout = preparePlot(varargin)
     end
 end
