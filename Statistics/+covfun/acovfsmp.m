@@ -1,48 +1,49 @@
-function C = acovfsmp(X,Opt)
-% acovfsmp  [Not a public function] Sample autocovariance function.
+function C = acovfsmp(X, opt)
+% acovfsmp  Sample autocovariance function
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-xSize = size(X);
-X = X(:,:,:);
-[nPer,nx,nLoop] = size(X);
+sizeOfX = size(X);
+X = X(:, :, :);
+[numOfPeriods, numOfX, numOfPages] = size(X);
 
-if isinf(Opt.order)
-    Opt.order = nPer - 1;
-    if Opt.smallsample
-        Opt.order = Opt.order - 1;
+if isinf(opt.Order)
+    opt.Order = numOfPeriods - 1;
+    if opt.SmallSample
+        opt.Order = opt.Order - 1;
     end
 end
 
-if Opt.demean
-    X = bsxfun(@minus,X,mean(X,1));
+if opt.Demean
+    X = bsxfun(@minus, X, mean(X, 1));
 end
 
-C = zeros(nx,nx,1+Opt.order,nLoop);
-for iLoop = 1 : nLoop
-    xi = X(:,:,iLoop);
-	if Opt.smallsample
-		T = nPer - 1;
+C = zeros(numOfX, numOfX, 1+opt.Order, numOfPages);
+for page = 1 : numOfPages
+    xi = X(:, :, page);
+	if opt.SmallSample
+		T = numOfPeriods - 1;
 	else
-		T = nPer;
+		T = numOfPeriods;
 	end
-    C(:,:,1,iLoop) = xi.'*xi / T;
-    for i = 1 : Opt.order
-        if Opt.smallsample
+    C(:, :, 1, page) = xi.'*xi / T;
+    for order = 1 : opt.Order
+        if opt.SmallSample
             T = T - 1;
         end
-        C(:,:,i+1,iLoop) = xi(1:end-i,:).'*xi(1+i:end,:) / T;
+        C(:, :, order+1, page) = xi(1:end-order, :).'*xi(1+order:end, :) / T;
     end
 end
 
-if length(xSize)>3
-    C = reshape(C,[nx,nx,1+Opt.order,xSize(3:end)]);
+if length(sizeOfX)>3
+    C = reshape(C, [numOfX, numOfX, 1+opt.Order, sizeOfX(3:end)]);
 end
 
-end
+end%
+

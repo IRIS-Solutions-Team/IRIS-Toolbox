@@ -300,7 +300,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     
     
     methods
-        varargout = acf(varargin)
         varargout = apct(varargin)
         varargout = area(varargin)
         varargout = arf(varargin)
@@ -319,7 +318,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         end%
 
         varargout = bpass(varargin)
-        varargout = bubble(varargin)
         varargout = bwf(varargin)
         varargout = bwf2(varargin)
         varargout = bsxfun(varargin)
