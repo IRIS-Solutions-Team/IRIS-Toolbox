@@ -87,13 +87,9 @@ return
             end
             fn = lsEqn{iiEq};
             try
-                fn = textfun.vectorize(fn);
+                fn = vectorize(fn);
                 fn = ['@(x,t,L)', fn]; %#ok<AGROW>
-                if true % ##### MOSW
-                    fn = str2func(fn);
-                else
-                    fn = mosw.str2func(fn); %#ok<UNRCH>
-                end
+                fn = str2func(fn);
                 
                 if eqn.Type(iiEq)~=TYPE(4)
                     feval(fn, x, sh0, L);
@@ -125,17 +121,13 @@ return
         end
         
         if ~isempty(errUndeclared)
-            throw( ...
-                exception.ParseTime('Equation:UndeclaredMistypedName', 'error'), ...
-                errUndeclared{:} ...
-                );
+            throw( exception.ParseTime('Equation:UndeclaredMistypedName', 'error'), ...
+                   errUndeclared{:} );
         end
         
         if ~isempty(errSyntax)
-            throw( ...
-                exception.ParseTime('Model:Postparser:SyntaxError', 'error'), ...
-                errSyntax{:} ...
-                );
+            throw( exception.ParseTime('Model:Postparser:SyntaxError', 'error'), ...
+                   errSyntax{:} );
         end
     end
 end

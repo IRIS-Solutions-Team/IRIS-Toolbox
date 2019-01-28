@@ -42,7 +42,7 @@ disp@shared.GetterSetter(this, 1);
 disp@shared.CommentContainer(this, 1);
 disp@shared.UserDataContainer(this, 1);
 implementDisp(this.Export);
-textfun.loosespace( );
+textual.looseLine( );
 
 return
     

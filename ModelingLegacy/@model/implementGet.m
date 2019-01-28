@@ -341,6 +341,7 @@ else
             
         case {'diffuse', 'nonstationary', 'isnonstationary', 'stationary', 'isstationary' ...
                 'stationarylist', 'nonstationarylist'}
+            needsToCheckSolution = true;
             getStationary(query);
 
             
@@ -496,7 +497,6 @@ return
 
 
     function getStationary(query)
-        needsToCheckSolution = true;
         if strncmpi(query, 'is', 2)
             query(1:2) = '';
         end
