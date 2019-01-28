@@ -28,6 +28,9 @@ function outputTable = table(this, requests, varargin)
 % be printed on the screen in the command window, and captured in a text
 % file under this file name.
 %
+% * `Sort=false` [ `true` | `false` ] - If `true` sort the table rows
+% alphabetically by the row names.
+%
 % * `Round=Inf` [ `Inf` | numeric ] - Round numeric entries in the table to
 % the specified number of digits; `Inf` means no rounding.
 %
@@ -88,6 +91,8 @@ function outputTable = table(this, requests, varargin)
 % * `'Parameters'` - The currently assigned value for each parameter; this
 % request can be combined with `'Description'`.
 %
+% * `'Stationary'` - Indicator of variables stationary in steady state.
+%
 % * `'Std'` - The currently assigned value for the standard deviation of
 % each model shock.
 %
@@ -135,6 +140,7 @@ if isempty(parser)
     parser.addParameter('CompareFirstColumn', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter('Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
+    parser.addParameter({'SortAlphabetically', 'Sort'}, false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('WriteTable', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
 parser.parse(this, requests, varargin{:});
@@ -225,6 +231,10 @@ for i = 1 : numOfRequests
 
     elseif any(strcmpi(requests{i}, {'Log'}))
         addTable = tableLog(this);
+
+
+    elseif any(strcmpi(requests{i}, {'Stationary'}))
+        addTable = tableStationary(this);
 
 
     elseif any(strcmpi(requests{i}, {'Std', 'StdDeviation', 'StdDeviations'}))
@@ -320,6 +330,11 @@ if ~isinf(opt.Round)
     outputTable = roundTable(outputTable, opt.Round);
 end
 
+% Sort table rows alphabetically
+if opt.SortAlphabetically
+    outputTable = sortrows(outputTable, 'RowNames');
+end
+
 % Write table to text or spreadsheet file
 if ~isempty(opt.WriteTable)
     writeRowNames = ~isempty(outputTable.Properties.RowNames);
@@ -397,6 +412,20 @@ end%
 function addTable = tableLog(this)
     values = this.Quantity.IxLog(:);
     addTable = tableTopic(this, {'Log'}, [ ], values);
+end%
+
+
+function addTable = tableStationary(this)
+    TYPE = @int8;
+    inx = getIndexByType(this, TYPE(1), TYPE(2));
+    names = this.Quantity.Name(inx);
+    numOfNames = numel(names);
+    temp = get(this, 'Stationary');
+    values = true(numOfNames, 1);
+    for i = 1 : numOfNames
+        values(i) = temp.(names{i});
+    end
+    addTable = tableTopic(this, {'Stationary'}, inx, values);
 end%
 
 
