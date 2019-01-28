@@ -5,6 +5,7 @@ classdef ExitFlag
         MAX_ITER      (-1, 'Failed. Maximum number of iterations reached.') 
         MAX_FUN_EVALS (-2, 'Failed. Maximum number of function evaluations reached.') 
         NO_PROGRESS   (-3, 'Failed. Cannot make any further progress.')
+        NAN_INF_JACOB (-4, 'NaN or Inf in Jacobian. Cannot move further.') 
     end
     
     

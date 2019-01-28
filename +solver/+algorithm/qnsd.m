@@ -178,6 +178,15 @@ while true
     end
 
     %
+    % NaN of Inf in Jacobian
+    %
+    if any(~isfinite(current.J(:)))
+        % Max fun evals reached, exit
+        exitFlag = solver.ExitFlag.NAN_INF_JACOB;
+        break
+    end
+
+    %
     % Report Current iteration
     % Step size from Current to Next is reported in Next
     %
