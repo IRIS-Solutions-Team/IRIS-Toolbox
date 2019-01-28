@@ -69,7 +69,7 @@ classdef Export < handle
 
 
         function implementDisp(this)
-            fprintf('\tExport File(s): [%g]', numel(this));
+            fprintf('\tExport File(s): [%g]\n', numel(this));
         end%
     end
 end

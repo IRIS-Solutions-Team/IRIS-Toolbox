@@ -14,13 +14,13 @@ ccn = getClickableClassName(this);
 if isempty(this.EqtnRhs)
     fprintf('\tEmpty %s Object\n', ccn);
 else
-    fprintf('\t%s object\n', ccn);
+    fprintf('\t%s Object\n', ccn);
 end
 fprintf('\tNumber of Equations: [%g]\n',length(this.EqtnRhs));
 
 disp@shared.CommentContainer(this, 1);
 disp@shared.UserDataContainer(this, 1);
-disp(this.Export, 1);
+implementDisp(this.Export);
 textual.looseLine( );
 
 end%
