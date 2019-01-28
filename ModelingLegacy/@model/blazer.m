@@ -20,7 +20,7 @@ function [nameBlk, eqtnBlk, blkType, blz] = blazer(this, varargin)
 %
 % * `EqtnBlk` [ cell ] - Cell of cellstr with equations in each block.
 %
-% * `BlkType [ solver.block.Type ] - Type of each equation block: `SOLVE` or
+% * `BlkType` [ solver.block.Type ] - Type of each equation block: `SOLVE` or
 % `ASSIGN`.
 %
 %
@@ -98,7 +98,9 @@ end
 [eqtnBlk, nameBlk, blkType] = getHuman(this, blz);
 
 if ~isempty(opt.SaveAs)
-    saveAs(blz, this, opt.SaveAs);
+    names = this.Quantity.Name;
+    equations = this.Equation.Input;
+    saveAs(blz, names, equations, opt.SaveAs);
 end
 
 end%

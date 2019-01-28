@@ -127,14 +127,14 @@ classdef (Abstract) Blazer < handle
         end%
         
         
-        function saveAs(this, m, fileName)
+        function saveAs(this, names, equations, fileName)
             numOfBlocks = numel(this.Block);
             c = [ strrep(solver.blazer.Blazer.SAVEAS_FILE_HEADER, '$TimeStamp$', datestr(now( ))), ...
                   sprintf('\n%% Number of Blocks: %g', numOfBlocks), ...
                   sprintf('\n%% Number of Equations: %g', sum(this.InxEquations)), ...
                   sprintf('\n%% Number of Endogenous Quantities: %g\n\n\n', sum(this.InxEndogenous)) ];
             for i = 1 : numOfBlocks
-                c = [c, print(this.Block{i}, i, m.Quantity.Name, m.Equation.Input) ]; %#ok<AGROW>
+                c = [c, print(this.Block{i}, i, names, equations) ]; %#ok<AGROW>
                 if i<numOfBlocks
                     c = [c, sprintf('\n\n\n')]; %#ok<AGROW>
                 end
