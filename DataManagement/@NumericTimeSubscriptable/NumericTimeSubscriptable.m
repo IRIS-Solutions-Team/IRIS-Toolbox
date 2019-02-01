@@ -38,8 +38,16 @@ classdef ( Abstract, ...
 
     methods
         varargout = acf(varargin)
+        varargout = apct(varargin)
         varargout = bubble(varargin)
         varargout = ellone(varargin)
+    end
+
+
+    methods (Access=protected, Hidden)
+        varargout = binop(varargin)
+        varargout = unop(varargin)
+        varargout = unopinx(varargin)
     end
 
 
