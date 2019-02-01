@@ -28,29 +28,6 @@ x.dbase.dbrange = irisinp.func( ...
     irisinp.dbase, irisinp.mlistOptional );
 
 
-
-
-% Irisoptim package
-% ------------------
-x.irisoptim = struct( ) ;
-
-x.irisoptim.alps = irisinp.func( ...
-    irisinp.funch, irisinp.numeric, irisinp.numeric, irisinp.numeric) ;
-
-
-
-
-% Scenario class
-%----------------
-x.plan = struct( );
-
-x.plan.plan = irisinp.func( ...
-    irisinp.modelOptional, irisinp.rangeProper, ...
-    irisinp.listOptional, irisinp.listOptional, irisinp.listOptional );
-
-
-
-
 % Series class
 %--------------
 x.tseries = struct( );
