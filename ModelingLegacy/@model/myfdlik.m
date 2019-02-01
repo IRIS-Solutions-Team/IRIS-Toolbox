@@ -1,13 +1,13 @@
 function [obj, regOutp] = myfdlik(this, inp, ~, likOpt)
-% myfdlik  Approximate likelihood function in frequency domain.
+% myfdlik  Approximate likelihood function in frequency domain
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-% TODO: Allow for non-stationary measurement variables.
+% TODO: Allow for non-stationary measurement variables
 
 STEADY_TOLERANCE = this.Tolerance.Steady;
 TYPE = @int8;
@@ -74,28 +74,28 @@ for iLoop = 1 : nLoop
     y = inp(1:ny, :, min(iLoop, end));
     % Exogenous variables in DTrend equations.
     g = inp(ny+1:end, :, min(iLoop, end));
-    indexToExclude = likOpt.indexToExcludeude(:) | any(isnan(y), 2);
-    nYIncl = sum(~indexToExclude);
-    diagInx = logical(eye(nYIncl));
+    inxToExclude = likOpt.inxToExcludeude(:) | any(isnan(y), 2);
+    nYIncl = sum(~inxToExclude);
+    inxOfDiag = logical(eye(nYIncl));
     
     if iLoop<=nAlt
-        
-        [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, iLoop, false); %#ok<ASGLU>
+        [T, R, K, Z, H, W, U, Omg] = sspaceMatrices(this, iLoop, false); %#ok<ASGLU>
         [nx, nb] = size(T);
         nf = nx - nb;
         numOfUnitRoots = getNumOfUnitRoots(this.Variant, iLoop);
         % Z(1:nunit, :) assumed to be zeros.
         if any(any( abs(Z(:, 1:numOfUnitRoots))>STEADY_TOLERANCE ))
-            utils.error('model:myfdlik', ...
-                ['Cannot evalutate likelihood in frequency domain ', ...
-                'with non-stationary measurement variables.']);
+            THIS_ERROR = { 'Model:NonStationarityInFreqDomain'
+                           [ 'Cannot evalutate likelihood in frequency domain ', ...
+                             'with non-stationary measurement variables.' ] };
+            throw( exception.Base(THIS_ERROR, 'error') );
         end
         T = T(nf+numOfUnitRoots+1:end, numOfUnitRoots+1:end);
         R = R(nf+numOfUnitRoots+1:end, 1:ne);
-        Z = Z(~indexToExclude, numOfUnitRoots+1:end);
-        H = H(~indexToExclude, :);
+        Z = Z(~inxToExclude, numOfUnitRoots+1:end);
+        H = H(~inxToExclude, :);
         Sa = R*Omg*transpose(R);
-        Sy = H(~indexToExclude, :)*Omg*H(~indexToExclude, :).';
+        Sy = H(~inxToExclude, :)*Omg*H(~inxToExclude, :).';
         
         % Fourier transform of steady state.
         isSstate = false;
@@ -113,14 +113,14 @@ for iLoop = 1 : nLoop
         
     end
         
-    % Fourier transform of deterministic trends.
-    isDtrends = false;
+    % Fourier transform of deterministic trends
+    isTrendEquations = false;
     nOutOfLik = 0;
     if likOpt.DTrends
-        [D, M] = evalDtrends(this, likOpt.outoflik, g, iLoop);
-        isDtrends = any(D(:) ~= 0);
-        if isDtrends
-            D = fft(D.').';
+        [W, M] = evalTrendEquations(this, likOpt.outoflik, g, iLoop);
+        isTrendEquations = any(W(:)~=0);
+        if isTrendEquations
+            W = fft(W.').';
         end
         isOutOfLik = ~isempty(M) && any(M(:) ~= 0);
         if isOutOfLik
@@ -138,16 +138,16 @@ for iLoop = 1 : nLoop
     end
     
     % Subtract deterministic trends from observations.
-    if likOpt.DTrends && isDtrends
-        y = y - D;
+    if likOpt.DTrends && isTrendEquations
+        y = y - W;
     end
     
-    % Remove measurement variables indexToExcludeuded from likelihood by the user, or
+    % Remove measurement variables inxToExcludeuded from likelihood by the user, or
     % those that have within-sample NaNs.
-    y = y(~indexToExclude, :);
+    y = y(~inxToExclude, :);
     y = y / sqrt(nPer);
     
-    M = M(~indexToExclude, :, :);
+    M = M(~inxToExclude, :, :);
     M = M / sqrt(nPer);
     
     L0 = zeros(1, nFrq+1);
@@ -185,7 +185,7 @@ return
         nObs(1, 1+pos) = iDelta*nYIncl;
         ZiW = Z / ((eye(size(T)) - T*exp(-1i*iFreq)));
         G = ZiW*Sa*ZiW' + Sy;
-        G(diagInx) = real(G(diagInx));
+        G(inxOfDiag) = real(G(inxOfDiag));
         L0(1, 1+pos) = iDelta*real(log(det(G)));
         L1(1, 1+pos) = iDelta*real((y(:, i)'/G)*iY);
         if isOutOfLik

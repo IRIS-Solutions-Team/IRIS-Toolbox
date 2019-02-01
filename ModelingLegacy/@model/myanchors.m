@@ -10,6 +10,7 @@ function [YA, XA, Ea, Eu, YC, XC, wReal, wImag] = myanchors(this, p, rng, isAnt)
 TYPE = @int8;
 
 % Check date frequencies
+rng = double(rng);
 if DateWrapper.getFrequencyAsNumeric(p.Start)~=DateWrapper.getFrequencyAsNumeric(rng(1)) ...
    || DateWrapper.getFrequencyAsNumeric(p.End)~=DateWrapper.getFrequencyAsNumeric(rng(end))
     utils.error('model:myanchors', ...
@@ -25,7 +26,7 @@ end
 
 ixx = this.Quantity.Type==TYPE(2);
 [ny, nxx] = sizeOfSolution(this.Vector);
-nPer = length(rng);
+nPer = round(rng(end) - rng(1) + 1);
 
 % Anchors for exogenized measurement variables, and conditioning measurement
 % variables.

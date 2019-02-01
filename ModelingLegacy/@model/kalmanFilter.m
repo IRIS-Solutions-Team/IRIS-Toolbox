@@ -207,7 +207,7 @@ for iLoop = 1 : nLoop
     % __Deterministic Trends__
     % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
     if nz==0 && (nPOut>0 || opt.DTrends)
-        [s.D, s.X] = evalDtrends(this, opt.outoflik, s.g, iLoop);
+        [s.D, s.X] = evalTrendEquations(this, opt.outoflik, s.g, iLoop);
     else
         s.D = [ ];
         s.X = zeros(ny, 0, numOfPeriods);

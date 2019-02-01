@@ -117,7 +117,7 @@ for ithRun = 1 : numRuns
             D = repmat(D, 1, numPeriods);
         end
         if opt.DTrends
-            W = evalDtrends(this, [ ], g, ithRun);
+            W = evalTrendEquations(this, [ ], g, ithRun);
         end
     end
     

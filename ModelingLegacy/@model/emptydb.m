@@ -104,7 +104,7 @@ inxOfParameters = this.Quantity.Type==TYPE(4);
 emptyTimeSeries = TIME_SERIES_CONSTRUCTOR([ ], zeros(opt.Size));
 
 % Add comment to time series for each variable
-labelOrName = getLabelOrName(this.Quantity);
+labelOrName = this.Quantity.LabelOrName;
 for i = find(~inxOfParameters)
     if any(this.Quantity.Type(i)==typesToInclude)
         name = this.Quantity.Name{i};

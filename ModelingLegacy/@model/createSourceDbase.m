@@ -15,24 +15,24 @@ if ischar(range)
     range = textinp2dat(range);
 end
 
-numColumnsRequested = [ ];
+numOfColumnsRequested = [ ];
 if ~isempty(varargin) && isnumericscalar(varargin{1})
-    numColumnsRequested = varargin{1};
+    numOfColumnsRequested = varargin{1};
     varargin(1) = [ ];
 end
 
 opt = passvalopt('model.createSourceDbase', varargin{:});
 
-numDrawsRequested = opt.ndraw;
-if isempty(numColumnsRequested)
-    numColumnsRequested = opt.ncol;
+numOfDrawsRequested = opt.ndraw;
+if isempty(numOfColumnsRequested)
+    numOfColumnsRequested = opt.ncol;
 end
 
 %--------------------------------------------------------------------------
 
 nv = length(this);
-checkNumColumnsRequested = numColumnsRequested==1 || nv==1;
-checkNumDrawsRequested = numDrawsRequested==1 || nv==1;
+checkNumColumnsRequested = numOfColumnsRequested==1 || nv==1;
+checkNumDrawsRequested = numOfDrawsRequested==1 || nv==1;
 if ~checkNumColumnsRequested || ~checkNumDrawsRequested
     throw( exception.Base('Model:NumOfColumnsNumOfDraws', 'error') );
 end
@@ -57,7 +57,7 @@ end
 extendedRange = extendedStart : xEnd;
 nXPer = length(extendedRange);
 
-label = getLabelOrName(this.Quantity);
+label = this.Quantity.LabelOrName;
 
 ixy = this.Quantity.Type==TYPE(1);
 ixx = this.Quantity.Type==TYPE(2);
@@ -67,29 +67,29 @@ ixyxg = ixy | ixx | ixg;
 posyxg = find(ixy | ixx | ixg);
 ixLog = this.Quantity.IxLog;
 ny = sum(ixy);
-nQty = length(this.Quantity);
+numOfQuantities = length(this.Quantity);
 
-numColumnsToCreate = max([nv, numColumnsRequested, numDrawsRequested]);
+numOfColumnsToCreate = max([nv, numOfColumnsRequested, numOfDrawsRequested]);
 outputDatabank = struct( );
 
 % Deterministic time trend.
 ttrend = dat2ttrend(extendedRange, this);
 
-X = zeros(nQty, nXPer, nv);
+X = zeros(numOfQuantities, nXPer, nv);
 if ~opt.Deviation
     isDelog = false;
     X(ixyxg, :, :) = createTrendArray(this, Inf, isDelog, posyxg, ttrend);
 end
 
 if opt.DTrends
-    W = evalDtrends(this, [ ], X(ixg, :, :), @all);
+    W = evalTrendEquations(this, [ ], X(ixg, :, :), @all);
     X(1:ny, :, :) = X(1:ny, :, :) + W;
 end
 
 X(ixLog, :, :) = real(exp( X(ixLog, :, :) ));
 
-if numColumnsToCreate>1 && nv==1
-    X = repmat(X, 1, 1, numColumnsToCreate);
+if numOfColumnsToCreate>1 && nv==1
+    X = repmat(X, 1, 1, numOfColumnsToCreate);
 end
 
 % Transition variables, exogenous variables
@@ -114,7 +114,7 @@ end
 
 % Generate random residuals if requested
 if ~isequal(opt.shockfunc, @zeros)
-    outputDatabank = shockdb( this, outputDatabank, range, numColumnsToCreate, ...
+    outputDatabank = shockdb( this, outputDatabank, range, numOfColumnsToCreate, ...
                               'shockFunc=', opt.shockfunc );
 end
 

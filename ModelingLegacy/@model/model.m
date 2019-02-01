@@ -384,7 +384,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = chkConsistency(varargin)
         varargout = createHashEquations(varargin)
         varargout = createTrendArray(varargin)        
-        varargout = evalDtrends(varargin)
+        varargout = evalTrendEquations(varargin)
         varargout = expansionMatrices(varargin)
         varargout = getIthOmega(varargin)
         varargout = getVariant(varargin)
@@ -397,7 +397,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = datarequest(varargin)
         varargout = disp(varargin)
         varargout = end(varargin)
-        varargout = getnonlinobj(varargin)
         varargout = objfunc(varargin)
         varargout = isempty(varargin)
         

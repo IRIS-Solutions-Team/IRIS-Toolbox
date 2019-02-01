@@ -468,7 +468,7 @@ for ithRun = 1 : numRuns
         s.Alp0 = s.U\s.XbInit;
         yTrend = double.empty(0);
         if ny>0 && s.IsDeterministicTrends
-            yTrend = evalDtrends(this, [ ], s.ExogenousData, ithRun);
+            yTrend = evalTrendEquations(this, [ ], s.ExogenousData, ithRun);
             if isSwap
                 % Subtract deterministic trends from measurement tunes.
                 s.Tune(1:ny, :) = s.Tune(1:ny, :) - yTrend;

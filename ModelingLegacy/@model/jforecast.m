@@ -309,7 +309,7 @@ for iLoop = 1 : numOfRuns
     % Get exogenous data and compute deterministic trends if requested.
     g = G(:, :, min(iLoop, end));
     if opt.DTrends
-        W = evalDtrends(this, [ ], g, iLoop);
+        W = evalTrendEquations(this, [ ], g, iLoop);
     end
     
     if iLoop<=nAlt

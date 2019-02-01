@@ -135,7 +135,7 @@ numOfPeriods = length(range);
 extendedRange = range(1)-1 : range(end);
 
 ixd = this.Equation.Type==TYPE(3);
-isDTrends = opt.DTrends && any(ixd);
+isTrendEquations = opt.DTrends && any(ixd);
 [ny, nxx, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
 [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, 1, false);
 if opt.Deviation
@@ -303,10 +303,10 @@ for iDraw = 1 : numDraws
         y = y + D(:, ones(1, numOfPeriods));
     end
     % Add dtrends to simulated data.
-    if isDTrends
+    if isTrendEquations
         if iDraw==1 || ~isequal(G(:, :, min(iDraw, end)), g)
             g = G(:, :, min(iDraw, end));
-            W = evalDtrends(this, [ ], g, 1);
+            W = evalTrendEquations(this, [ ], g, 1);
         end
         y = y + W;
     end

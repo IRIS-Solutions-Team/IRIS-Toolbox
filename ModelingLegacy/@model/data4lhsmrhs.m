@@ -64,6 +64,7 @@ if isempty(parser)
     parser.addRequired('Model', @(x) isa(x, 'model'));
     parser.addRequired('InputDatabank', @isstruct);
     parser.addRequired('BaseRange', @DateWrapper.validateProperRangeInput);
+    parser.addParameter('IgnoreShocks', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('ResetShocks', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('NumOfDummyPeriods', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
 end
@@ -102,7 +103,7 @@ numOfDataSets = size(YXEG, 3);
 
 if opt.NumOfDummyPeriods>0
     % Reset the last N periods to NaN
-    resetDummyPeriods( );
+    hereResetDummyPeriods( );
 end
 
 YXEPG = nan(numOfQuants, lenOfExtendedRange, numOfDataSets);
@@ -110,7 +111,12 @@ YXEPG(~inxOfP, :, :) = YXEG;
 
 if opt.ResetShocks
     % Reset NaN shocks to 0
-    resetShocks( );
+    hereResetShocks( );
+end
+
+if opt.IgnoreShocks
+    % Zero out all shocks
+    hereIgnoreShocks( );
 end
 
 inxOfTimeTrend = strcmp(rowNames, model.RESERVED_NAME_TTREND);
@@ -119,14 +125,19 @@ YXEPG(inxOfTimeTrend, :, :) = repmat(extendedTimeTrend, 1, 1, numOfDataSets);
 return
 
 
-    function resetDummyPeriods( )
+    function hereResetDummyPeriods( )
         inxToReset = false(1, lenOfExtendedRange);
         inxToReset(end-opt.NumOfDummyPeriods+1:end) = true;
         YXEG(:, inxToReset, :) = NaN;
     end%
 
 
-    function resetShocks( )
+    function hereIgnoreShocks( )
+        YXEPG(inxOfE, :, :) = 0;
+    end%
+
+
+    function hereResetShocks( )
         inxOfNaN = isnan(YXEPG);
         if nnz(inxOfNaN)==0
             return

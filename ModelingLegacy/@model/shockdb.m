@@ -82,7 +82,7 @@ ne = sum(indexOfShocks);
 nv = length(this);
 numOfPeriods = numel(range);
 lsName = this.Quantity.Name(indexOfShocks);
-lsLabel = getLabelOrName(this.Quantity);
+lsLabel = this.Quantity.LabelOrName;
 lsLabel = lsLabel(indexOfShocks);
 
 if isempty(d) || isequal(d, struct( ))
