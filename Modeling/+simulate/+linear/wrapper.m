@@ -74,5 +74,6 @@ return
             % Evaluate deterministic trend with out-of-lik parameters set zero.
             W(posy==ptr, :) = s.DeterministicTrend.Equations{i}(x, ':');
         end
-    end
-end
+    end%
+end%
+
