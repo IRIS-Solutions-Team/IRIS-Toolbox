@@ -45,7 +45,7 @@ nx = nnzexog(this);
 nc = nnzcond(this);
 
 textfun.loosespace( );
-range = this.Start:this.End;
+range = this.Range;
 
 [xDetail,xNan] = getDetail(this.XAnch,this.XList,range,[ ],inp);
 nRealDetail = ...

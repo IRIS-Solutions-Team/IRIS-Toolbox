@@ -83,6 +83,11 @@ classdef plan < shared.UserDataContainer ...
         CAnch = [ ] % Conditioned.
         AutoX = [ ]
     end
+
+
+    properties (Dependent)
+        Range
+    end
     
     
     methods
@@ -92,7 +97,7 @@ classdef plan < shared.UserDataContainer ...
             % Syntax
             % =======
             %
-            %     P = plan(Context, M, Range)
+            %     P = plan(Context, model, Range)
             %
             %
             % Input arguments
@@ -101,7 +106,7 @@ classdef plan < shared.UserDataContainer ...
             % * `Context` [ `@simulate` | `@steady` ] - Context for which the plan will
             % be prepared.
             %
-            % * `M` [ model ] - Model object that will be simulated subject to this
+            % * `model` [ model ] - Model object that will be simulated subject to this
             % simulation plan.
             %
             % * `Range` [ numeric | char ] - Simulation range; this range must exactly
@@ -135,62 +140,79 @@ classdef plan < shared.UserDataContainer ...
             % ========
             %
             
-            % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2019 IRIS Solutions Team.
+            % -IRIS Macroeconomic Modeling Toolbox
+            % -Copyright (c) 2007-2019 IRIS Solutions Team
             
             this = this@shared.UserDataContainer( );
             this = this@shared.GetterSetter( );
             
-            if length(varargin)>1
-                if isa(varargin{1}, 'function_handle')
-                    context = varargin{1};
-                    varargin(1) = [ ];
-                else
-                    context = @dynamic;
-                end
-                
-                [M, Range, this.XList, this.NList, this.CList] = ...
-                    irisinp.parser.parse('plan.plan', varargin{:});
-                
-                this.Start = Range(1);
-                this.End = Range(end);
-                nPer = round(this.End - this.Start + 1);
-                
-                % List of names that can be exogenized, endogenized, and conditioned upon.
-                if isa(M, 'model')
-                    [this.XList,this.NList,this.CList] = myinfo4plan(M);
-                end
-                
-                % Anchors.
-                this.XAnch = false(length(this.XList),nPer);
-                this.NAnchReal = false(length(this.NList),nPer);
-                this.NAnchImag = false(length(this.NList),nPer);
-                this.CAnch = false(length(this.CList),nPer);
-                
-                % Weights for endogenized data points.
-                this.NWghtReal = zeros(length(this.NList),nPer);
-                this.NWghtImag = zeros(length(this.NList),nPer);
-                
-                % Autoexogenize.
-                this.AutoX = nan(size(this.XList));
-                
-                if ~isempty(M)
-                    try %#ok<TRYNC>
-                        a = autoexog(M);
-                        lsExg = fieldnames(a.Dynamic);
-                        if ~isempty(lsExg)
-                            lsExg = lsExg(:).';
-                            lsEndg = struct2cell(a.Dynamic);
-                            lsEndg = lsEndg(:).';
-                            for i = 1 : length(lsExg)
-                                ixExg = strcmp(this.XList, lsExg{i});
-                                ixEndg = strcmp(this.NList, lsEndg{i});
-                                this.AutoX(ixExg) = find(ixEndg);
-                            end
+            if nargin==0
+                return
+            end
+
+            if nargin==1 && isa(varargin{1}, 'plan')
+                this = varargin{1};
+                return
+            end
+
+            if isa(varargin{1}, 'function_handle')
+                context = varargin{1};
+                varargin(1) = [ ];
+            else
+                context = @dynamic;
+            end
+            
+            persistent parser
+            if isempty(parser)
+                 parser = extend.InputParser('plan.plan');
+                 parser.addRequired('Model', @(x) isa(x, 'model') || isempty(x));
+                 parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
+                 parser.addOptional('XList', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                 parser.addOptional('NList', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                 parser.addOptional('CList', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+            end
+            parser.parse(varargin{:});
+            model = parser.Results.Model;
+            this.XList = parser.Results.XList;
+            this.NList = parser.Results.NList;
+            this.CList = parser.Results.CList;
+            
+            if isa(model, 'model')
+                [this.XList, this.NList, this.CList] = myinfo4plan(model);
+            end
+            
+            this.Range = parser.Results.SimulationRange;
+            numOfPeriods = round(this.End - this.Start + 1);
+            
+            % Anchors
+            this.XAnch = false(length(this.XList), numOfPeriods);
+            this.NAnchReal = false(length(this.NList), numOfPeriods);
+            this.NAnchImag = false(length(this.NList), numOfPeriods);
+            this.CAnch = false(length(this.CList), numOfPeriods);
+            
+            % Weights for endogenized data points.
+            this.NWghtReal = zeros(length(this.NList), numOfPeriods);
+            this.NWghtImag = zeros(length(this.NList), numOfPeriods);
+            
+            % Autoexogenize.
+            this.AutoX = nan(size(this.XList));
+            
+            if ~isempty(model)
+                try %#ok<TRYNC>
+                    a = autoexog(model);
+                    lsExg = fieldnames(a.Dynamic);
+                    if ~isempty(lsExg)
+                        lsExg = lsExg(:).';
+                        lsEndg = struct2cell(a.Dynamic);
+                        lsEndg = lsEndg(:).';
+                        for i = 1 : length(lsExg)
+                            ixExg = strcmp(this.XList, lsExg{i});
+                            ixEndg = strcmp(this.NList, lsEndg{i});
+                            this.AutoX(ixExg) = find(ixEndg);
                         end
                     end
                 end
-            end    
+            end
         end
         
         
@@ -247,5 +269,22 @@ classdef plan < shared.UserDataContainer ...
         function varargout = endogenise(varargin)
             [varargout{1:nargout}] = endogenize(varargin{:});
         end
+    end
+
+
+    methods
+        function value = get.Range(this)
+            value = this.Start : this.End;
+        end%
+
+
+        function this = set.Range(this, value)
+           if ischar(value) || isa(value, 'string')
+               value = textinp2dat(value);
+           end
+           value = double(value);
+           this.Start = value(1);
+           this.End = value(end);
+        end%
     end
 end

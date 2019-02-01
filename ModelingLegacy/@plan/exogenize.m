@@ -76,6 +76,7 @@ end
 
 %--------------------------------------------------------------------------
 
+Dates = double(Dates);
 [Dates,outOfRange] = mydateindex(This,Dates);
 if ~isempty(outOfRange)
     % Report invalid dates.
