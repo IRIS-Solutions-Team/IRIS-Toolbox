@@ -156,7 +156,7 @@ classdef InputParser < inputParser
 
         function addDeviationOptions(this, deviationDefault)
             this.addParameter({'Deviation', 'Deviations'}, deviationDefault, @(x) isequal(x, true) || isequal(x, false));
-            this.addParameter({'DTrends', 'DTrend'}, @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+            this.addParameter({'DTrends', 'DTrend', 'EvalTrends'}, @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
             this.HasDeviationOptions = true;
         end%
 
