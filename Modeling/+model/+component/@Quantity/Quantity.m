@@ -25,6 +25,8 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
     properties (Dependent)
         InxOfLog
         NumOfQuantities
+        LabelOrName
+        Label4ShockContributions
     end
     
     
@@ -33,7 +35,6 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         varargout = checkConsistency(varargin)
         varargout = createTemplateDbase(varargin)
         varargout = getCorrNames(varargin)
-        varargout = getLabelOrName(varargin)
         varargout = getStdNames(varargin)
         varargout = implementGet(varargin)
         varargout = isCompatible(varargin)
@@ -60,6 +61,35 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
 
         function n = get.NumOfQuantities(this)
             n = numel(this.Name);
+        end%
+
+
+        function value = get.LabelOrName(this)
+            value = this.Label;
+            ixEmpty = cellfun('isempty', value);
+            value(ixEmpty) = this.Name(ixEmpty);
+        end%
+
+
+        function value = get.Label4ShockContributions(this)
+            TYPE = @int8;
+            value = this.LabelOrName;
+            inxOfYX = getIndexByType(this, TYPE(1), TYPE(2));
+            inxOfE = getIndexByType(this, TYPE(31), TYPE(32));
+            numOfE = nnz(inxOfE);
+            contributions = [ this.Name(inxOfE), ...
+                              {'Init+Const+Trends', 'Nonlinear'} ];
+            posOfYX = find(inxOfYX);
+            inxOfLog = this.InxOfLog;
+            for pos = posOfYX
+                name = this.Name(pos);
+                if inxOfLog(pos)
+                    sign = '<-(*)';
+                else
+                    sign = '<-(+)';
+                end
+                value{pos} = strcat(name, sign, contributions);
+            end
         end%
     end
 
