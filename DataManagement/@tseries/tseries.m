@@ -300,9 +300,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     
     
     methods
-        varargout = apct(varargin)
         varargout = area(varargin)
-        varargout = arf(varargin)
         varargout = arma(varargin)
         varargout = band(varargin)
 
@@ -473,14 +471,11 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     
     
     methods (Access=protected, Hidden)
-        varargout = binop(varargin)
         varargout = catcheck(varargin)
         varargout = myfilter(varargin)
         varargout = init(varargin)
         varargout = mylagorlead(varargin)
         varargout = recognizeShift(varargin)
-        varargout = unop(varargin)
-        varargout = unopinx(varargin)
         
         
         function dispComment(varargin)
