@@ -11,7 +11,9 @@ if isempty(parser)
     parser.addDeviationOptions(false);
     parser.addParameter('AppendPostsample', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Method', 'FirstOrder', @(x) validateString(x, {'FirstOrder', 'Selective', 'Stacked'})); 
+    parser.addParameter('IgnoreShocks', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
     parser.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Plan', true, @(x) isequal(x, true) || isequal(x, false) || isa(x, 'Plan'));
@@ -20,21 +22,14 @@ if isempty(parser)
 end
 parser.parse(this, inputData, baseRange, varargin{:});
 opt = parser.Options;
+opt.EvalTrends = opt.DTrends;
 usingDefaults = parser.UsingDefaultsInStruct;
-
-resolveOptionConflicts( );
 
 opt.Window = parseWindowOption(opt.Window, opt.Method, baseRange);
 opt.Solver = parseSolverOption(opt.Solver, opt.Method);
 
 %--------------------------------------------------------------------------
 
-plan = opt.Plan;
-if ~isa(plan, 'Plan')
-    plan = Plan(this, baseRange, 'Anticipate=', plan);
-else
-    checkCompatibilityOfPlan(this, baseRange, plan);
-end
 
 % Check the input databank; treat all names as optional, and check for
 % missing initial conditions later
@@ -42,7 +37,9 @@ requiredNames = cell.empty(1, 0);
 optionalNames = this.Quantity.Name;
 databankInfo = checkInputDatabank(this, inputData, baseRange, requiredNames, optionalNames);
 
-[outputData, outputInfo] = simulateFirstOrder(this, inputData, baseRange, plan, databankInfo, opt);
+hereResolveOptionConflicts( );
+
+[outputData, outputInfo] = simulateFirstOrder(this, inputData, baseRange, opt.Plan, databankInfo, opt);
 
 if isstruct(outputData)
     outputData = appendData(this, inputData, outputData, baseRange, opt);
@@ -55,7 +52,7 @@ end
 return
     
 
-    function resolveOptionConflicts( )
+    function hereResolveOptionConflicts( )
         if ~usingDefaults.Anticipate && ~usingDefaults.Plan
             THIS_ERROR = { 'Model:CannotUseAnticipateAndPlan'
                            'Options Anticipate= and Plan= cannot be combined in one simulate(~)' };
@@ -63,6 +60,21 @@ return
         end
         if ~usingDefaults.Anticipate && usingDefaults.Plan
             opt.Plan = opt.Anticipate;
+        end
+        if ~isa(opt.Plan, 'Plan')
+            opt.Plan = Plan(this, baseRange, 'Anticipate=', opt.Plan);
+        else
+            checkCompatibilityOfPlan(this, baseRange, opt.Plan);
+        end
+        if opt.Contributions && opt.Plan.NumOfExogenizedPoints>0
+            THIS_ERROR = { 'Model:CannotEvalContributionsWithExogenized'
+                           'Option Contributions=true cannot be used in simulations with exogenized variables' }
+            throw( exception.Base(THIS_ERROR, 'error') );
+        end
+        if opt.Contributions && databankInfo.NumOfDataSets>1
+            THIS_ERROR = { 'Model:CannotEvalContributionsWithMultipleDataSets'
+                           'Option Contributions=true cannot be used in simulations on multiple data sets' }
+            throw( exception.Base(THIS_ERROR, 'error') );
         end
     end%
 end%

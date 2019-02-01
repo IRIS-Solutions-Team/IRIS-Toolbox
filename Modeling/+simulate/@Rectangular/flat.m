@@ -23,13 +23,15 @@ inxOfLog = this.Quantity.InxOfLog;
 sizeOfData = size(data.YXEPG);
 firstColumn = this.FirstColumn;
 lastColumn = this.LastColumn;
+columnRange = firstColumn : lastColumn;
 
 linxOfXib = this.LinxOfXib;
 linxOfCurrentXi = this.LinxOfCurrentXi;
 stepForLinx = size(data.YXEPG, 1);
 
 deviation = this.Deviation;
-simulateY = this.SimulateY;
+simulateY = this.SimulateY && ny>0;
+needsEvalTrends = this.NeedsEvalTrends;
 
 anticipatedE = data.AnticipatedE;
 unanticipatedE = data.UnanticipatedE;
@@ -69,14 +71,20 @@ if any(inxOfLog)
 end
 
 % Initial condition
-Xi_0 = data.YXEPG(linxOfXib-stepForLinx);
+linxOfInit = linxOfXib - stepForLinx;
+Xi_0 = data.YXEPG(linxOfInit);
 
 % Required initial conditions already checked for NaNs; here reset any
 % remaining (seeming) initial conditions 
 Xi_0(isnan(Xi_0)) = 0;
 
-for t = firstColumn : lastColumn
-    % __Transition Variables__
+if simulateY
+    Xb = nan(nxi, sizeOfData(2));
+    E = nan(ne, sizeOfData(2));
+end
+
+for t = columnRange
+    % __Transition Equations__
     Xi_t = T*Xi_0;
 
     if ~deviation
@@ -110,8 +118,8 @@ for t = firstColumn : lastColumn
     % Update current column in data matrix
     data.YXEPG(linxOfCurrentXi) = Xi_t(inxOfCurrentWithinXi);
 
-    % __Observables__
-    if simulateY && ny>0
+    % __Measurement Equations__
+    if simulateY
         Y_t = Z*Xi_t(nf+1:end);
         if ~deviation
             % Add constant
@@ -134,6 +142,12 @@ for t = firstColumn : lastColumn
     linxOfCurrentXi = round(linxOfCurrentXi + stepForLinx);
 
     Xi_0 = data.YXEPG(linxOfXib-stepForLinx);
+end
+
+% __Deterministic Trends in Measurement Equations__
+if needsEvalTrends
+    data.YXEPG(inxOfY, columnRange) = data.YXEPG(inxOfY, columnRange) ...
+                                    + data.Trends(:, columnRange);
 end
 
 if any(inxOfLog)

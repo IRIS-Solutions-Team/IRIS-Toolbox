@@ -40,7 +40,11 @@ classdef Data < handle
         % UnanticipatedE  Values of unanticipated shocks within the current simulation range
         UnanticipatedE = double.empty(0)
 
+        % Trends  Measurement trend equations evaluated
+        Trends = double.empty(0)
+
         Deviation = false
+        NeedsEvalTrends = true
 
         FirstColumnOfSimulation
         LastColumnOfSimulation
@@ -79,18 +83,6 @@ classdef Data < handle
         end%
 
 
-        function resetOutsideBaseRange(this, model)
-            numOfDataSets = size(this.YXEPG, 3);
-            inxOfInitInPresample = getInxOfInitInPresample(model, this.FirstColumnOfSimulation);
-            for i = 1 : numOfDataSets
-                temp = this.YXEPG(:, 1:this.FirstColumnOfSimulation-1, i);
-                temp(~inxOfInitInPresample) = NaN;
-                this.YXEPG(:, 1:this.FirstColumnOfSimulation-1, i) = temp;
-            end
-            this.YXEPG(:, this.LastColumnOfSimulation+1:end, :) = NaN;
-        end%
-
-            
         function YXEPG = addSteadyTrends(this, YXEPG)
             inx = this.InxOfYx & this.InxOfLog;
             YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxOfLog(this.InxOfYX), :);
@@ -296,15 +288,20 @@ classdef Data < handle
 
 
     methods (Static)
-        function this = fromModelAndPlan(model, variantRequested, plan, YXEPG)
+        function this = fromModelAndPlan(model, variant, plan, YXEPG, needsEvalTrends)
             TYPE = @int8;
 
-            if variantRequested>1 && length(model)==1
-                variantRequested = 1;
+            modelVariant = variant;
+            dataVariant = variant;
+            if length(model)==1
+                modelVariant = 1;
+            end
+            if size(YXEPG, 3)==1
+                dataVariant = 1;
             end
 
             this = simulate.Data( );
-            [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, YXEPG, variantRequested, [ ]);
+            [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, YXEPG(:, :, dataVariant), modelVariant, [ ]);
             quantity = getp(model, 'Quantity');
             this.InxOfY = getIndexByType(quantity, TYPE(1));
             this.InxOfYX = getIndexByType(quantity, TYPE(1), TYPE(2));
@@ -320,6 +317,16 @@ classdef Data < handle
             else
                 ne = nnz(this.InxOfE);
                 this.AnticipationStatusOfE = repmat(plan, ne, 1);
+            end
+                
+            % Prepare data for measurement trend equations
+            this.NeedsEvalTrends = needsEvalTrends;
+            if this.NeedsEvalTrends
+                this.Trends = evalTrendEquations(model, [ ], YXEPG);
+                this.NeedsEvalTrends = any(this.Trends(:)~=0);
+            end
+            if ~this.NeedsEvalTrends
+                this.Trends = double.empty(0);
             end
         end%
     end

@@ -28,6 +28,7 @@ classdef Rectangular < handle
 
         Deviation = false
         SimulateY = true
+        NeedsEvalTrends = true
 
         HashEquationsFunction
         NumOfHashEquations = NaN

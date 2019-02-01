@@ -31,12 +31,14 @@ if numOfDummyPeriods>0
     plan = extendWithDummies(plan, numOfDummyPeriods);
 end
 
-endOfBaseRangeWindow = endOfBaseRange + numOfDummyPeriods;
+endOfBaseRangePlusDummy = endOfBaseRange + numOfDummyPeriods;
 [YXEPG, ~, extendedRange] = data4lhsmrhs( this, ...
                                           inputData, ...
-                                          [startOfBaseRange, endOfBaseRangeWindow], ...
+                                          [startOfBaseRange, endOfBaseRangePlusDummy], ...
                                           'ResetShocks=', true, ...
+                                          'IgnoreShocks=', opt.IgnoreShocks, ...
                                           'NumOfDummyPeriods', numOfDummyPeriods );
+
 startOfExtendedRange = extendedRange(1);
 firstColumnOfSimulation = round(startOfBaseRange - startOfExtendedRange + 1);
 lastColumnOfSimulation = round(endOfBaseRange - startOfExtendedRange + 1); 
@@ -45,11 +47,19 @@ lastColumnOfSimulation = round(endOfBaseRange - startOfExtendedRange + 1);
 inxOfNaNPresample = any(isnan(YXEPG(:, 1:firstColumnOfSimulation-1, :)), 3);
 checkInitialConditions(this, inxOfNaNPresample, firstColumnOfSimulation);
 
-% Expand number of data sets to match number of parameter variants
+method = repmat({opt.Method}, 1, numOfRuns);
+deviation = repmat(opt.Deviation, 1, numOfRuns);
+needsEvalTrends = repmat(opt.EvalTrends, 1, numOfRuns);
 if size(YXEPG, 3)==1 && numOfRuns>1
+    % Expand number of data sets to match number of parameter variants
     YXEPG = repmat(YXEPG, 1, 1, numOfRuns);
 end
 
+if opt.Contributions
+    % Prepare contributions and adjust the number of runs; it is guaranteed
+    % by now that numOfDataSets==1
+    herePrepareContributions( );
+end
 
 outputInfo = struct( );
 outputInfo.TimeFrames = cell(1, numOfRuns);
@@ -57,21 +67,27 @@ outputInfo.BaseRange = [startOfBaseRange, endOfBaseRange];
 outputInfo.ExtendedRange = extendedRange([1, end]);
 
 for run = 1 : numOfRuns
-    % Set up @Rectangular object for simulation
-    vthRect = simulate.Rectangular.fromModel(this, run);
-    vthRect.Deviation = opt.Deviation;
-    vthRect.SimulateY = true;
-    vthRect.Method = opt.Method;
+    if strcmpi(method{run}, 'None')
+        continue
+    end
 
-    % Set up @simulate.Data from @Model and @Plan and update parameters and steady trends
-    vthData = simulate.Data.fromModelAndPlan(this, run, plan, YXEPG);
+    % Set up @simulate.Data from @Model and @Plan, update parameters and
+    % steady trends and measurement trends
+    vthData = simulate.Data.fromModelAndPlan(this, run, plan, YXEPG, needsEvalTrends(run));
     vthData.FirstColumnOfSimulation = firstColumnOfSimulation;
     vthData.LastColumnOfSimulation = lastColumnOfSimulation;
-    vthData.Deviation = opt.Deviation;
+    vthData.Deviation = deviation(run);
     vthData.Window = opt.Window;
 
-    % Method=Selective specific properties
-    if strcmpi(opt.Method, 'Selective')
+    % Set up @Rectangular object for simulation
+    vthRect = simulate.Rectangular.fromModel(this, run);
+    vthRect.Deviation = vthData.Deviation;
+    vthRect.SimulateY = true;
+    vthRect.Method = method{run};
+    vthRect.NeedsEvalTrends = vthData.NeedsEvalTrends;
+
+    % Equation-selective specific properties
+    if strcmpi(method{run}, 'Selective')
         [vthRect.HashEquationsFunction, vthRect.NumOfHashEquations] = prepareHashEquations(this);
         vthData.NonlinAddf = zeros(vthRect.NumOfHashEquations, vthData.NumOfExtendedPeriods);
     end
@@ -98,10 +114,12 @@ for run = 1 : numOfRuns
             simulateFunction = @swapped;
             needsStoreE(frame) = true;
         end
-        if strcmpi(opt.Method, 'FirstOrder')
+        if strcmpi(method{run}, 'FirstOrder')
             simulateFunction(vthRect, vthData);
-        elseif strcmpi(opt.Method, 'Selective')
-            simulateSelective(simulateFunction, vthRect, vthData, needsStoreE(frame), opt);
+        elseif strcmpi(method{run}, 'Selective')
+            simulateSelective( simulateFunction, ...
+                               vthRect, vthData, needsStoreE(frame), ...
+                               deviation(run), opt );
         end
     end % frame
 
@@ -110,9 +128,6 @@ for run = 1 : numOfRuns
         storeE(vthData);
     end
 
-    % Set all data points in YXEPG in presample and postsample to NaN except intial conditions
-    resetOutsideBaseRange(vthData, this);
-
     % Update output data
     YXEPG(:, :, run) = vthData.YXEPG;
 
@@ -120,19 +135,98 @@ for run = 1 : numOfRuns
     outputInfo.TimeFrames{run} = timeFrames;
 end % run
 
-% Convert output data to databank if requested
-if strcmpi(opt.OutputData, 'Databank')
-    names = this.Quantity.Name;
-    labels = this.Quantity.Label;
-    inxToInclude = ~getIndexByType(this.Quantity, TYPE(4));
-    outputData = databank.fromDoubleArrayNoFrills( YXEPG(:, 1:lastColumnOfSimulation, :), ...
-                                                   names, ...
-                                                   startOfExtendedRange, ...
-                                                   labels, ...
-                                                   inxToInclude );
-    outputData = addToDatabank('Default', this, outputData);
+if opt.Contributions
+    herePostprocessContributions( );
 end
 
+% Reset all data outside the simulation range to NaN except initial
+% conditions
+hereResetOutsideBaseRange( );
+
+% Convert output data to databank if requested
+if strcmpi(opt.OutputData, 'Databank')
+    if opt.Contributions
+        comments = this.Quantity.Label4ShockContributions;
+    else
+        comments = this.Quantity.LabelOrName;
+    end
+    inxToInclude = ~getIndexByType(this.Quantity, TYPE(4));
+    outputData = databank.fromDoubleArrayNoFrills( YXEPG(:, 1:lastColumnOfSimulation, :), ...
+                                                   this.Quantity.Name, ...
+                                                   startOfExtendedRange, ...
+                                                   comments, ...
+                                                   inxToInclude );
+    outputData = addToDatabank('Default', this, outputData);
+else
+    outputData = YXEPG;
+end
+
+return
+
+
+
+
+    function herePrepareContributions( )
+        inxOfLog = this.Quantity.InxOfLog;
+        inxOfE = getIndexByType(this, TYPE(31), TYPE(32));
+        posOfE = find(inxOfE);
+        numOfE = nnz(inxOfE);
+        numOfRuns = numOfE + 2;
+        YXEPG = repmat(YXEPG, 1, 1, numOfRuns);
+        % Zero out initial conditions in shock contributions
+        YXEPG(inxOfLog, 1:firstColumnOfSimulation-1, 1:numOfE) = 1;
+        YXEPG(~inxOfLog, 1:firstColumnOfSimulation-1, 1:numOfE) = 0;
+        for i = 1 : numOfE
+            temp = YXEPG(posOfE(i), :, i);
+            YXEPG(inxOfE, :, i) = 0;
+            YXEPG(posOfE(i), :, i) = temp;
+        end
+        % Zero out all shocks in init+const contributions
+        YXEPG(inxOfE, firstColumnOfSimulation:end, end-1) = 0;
+
+        method = cell(1, numOfRuns);
+        method(1:end-1) = {'FirstOrder'};
+        if strcmpi(opt.Method, 'FirstOrder')
+            % Assign zero contributions of nonlinearities right away if
+            % this is a first order simulation
+            method(end) = {'None'};
+            YXEPG(inxOfLog, :, end) = 1;
+            YXEPG(~inxOfLog, :, end) = 0;
+        else
+            method(end) = {'Selective'};
+        end
+        deviation = true(1, numOfRuns);
+        deviation(end-1:end) = opt.Deviation;
+        needsEvalTrends = false(1, numOfRuns);
+        needsEvalTrends(end-1:end) = opt.EvalTrends;
+    end%
+
+
+
+
+    function herePostprocessContributions( )
+        inxOfLog = this.Quantity.InxOfLog;
+        if strcmpi(opt.Method, 'Selective')
+            YXEPG(inxOfLog, :, end) =  YXEPG(inxOfLog, :, end) ...
+                                    ./ prod(YXEPG(inxOfLog, :, 1:end-1), 3);
+            YXEPG(~inxOfLog, :, end) = YXEPG(~inxOfLog, :, end) ...
+                                     - sum(YXEPG(~inxOfLog, :, 1:end-1), 3);
+        end
+    end%
+
+
+
+
+    function hereResetOutsideBaseRange( )
+        numOfDataSets = size(YXEPG, 3);
+        inxOfInitInPresample = getInxOfInitInPresample(this, firstColumnOfSimulation);
+        for i = 1 : numOfDataSets
+            temp = YXEPG(:, 1:firstColumnOfSimulation-1, i);
+            temp(~inxOfInitInPresample) = NaN;
+            YXEPG(:, 1:firstColumnOfSimulation-1, i) = temp;
+        end
+        YXEPG(:, lastColumnOfSimulation+1:end, :) = NaN;
+    end%
 end%
 
 
@@ -177,14 +271,13 @@ end%
 
 
 
-function simulateSelective(simulateFunction, rect, data, needsStoreE, opt)
+function simulateSelective(simulateFunction, rect, data, needsStoreE, deviation, opt)
     hashEquations = rect.HashEquationsFunction;
     firstColumnOfTimeFrame = data.FirstColumnOfTimeFrame;
     columnRangeOfNonlinAddf = firstColumnOfTimeFrame + (0 : opt.Window-1);
     inxOfE = data.InxOfE;
     initNlaf = data.NonlinAddf(:, columnRangeOfNonlinAddf);
     solverName = opt.Solver.SolverName;
-    deviation = opt.Deviation;
 
     tempE = data.AnticipatedE;
     tempE(:, firstColumnOfTimeFrame) = tempE(:, firstColumnOfTimeFrame) ...
