@@ -12,7 +12,7 @@ if isempty(parser)
     parser = extend.InputParser('NumericTimeSubscriptable.preparePlot');
     parser.KeepUnmatched = true;
     parser.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    parser.addOptional('PlotSpec', cell.empty(1, 0), @iscell);
+    parser.addOptional('PlotSpec', cell.empty(1, 0), @validatePlotSpec);
 end
 
 %--------------------------------------------------------------------------
@@ -45,9 +45,56 @@ parser.parse(inputSeries, varargin{:});
 plotSpec = parser.Results.PlotSpec;
 unmatched = parser.UnmatchedInCell;
 
+% Always wrap PlotSpec up in a cell array
+if ~iscell(plotSpec)
+    plotSpec = { plotSpec };
+end
+
 if isa(axesHandle, 'function_handle')
     axesHandle = axesHandle( );
 end
 
 end%
 
+
+%
+% Local Functions
+%
+
+
+function flag = validatePlotSpec(x)
+    if iscell(x)
+        flag = true;
+        return
+    end
+    if ~ischar(x) && ~isa(x, 'string')
+        flag = false;
+        return
+    end
+    x = char(x);
+    % Bar graph specs
+    if any(strcmpi(x, {'grouped', 'stacked', 'hist', 'histc'}))
+        flag = true;
+        return
+    end
+    % Line plot specs
+    allowedLetters = 'bgrcmykwoxsdph';
+    allowedNonletters = '.+*^<>-:';
+    checkChars = @(x, allowed) all(any(bsxfun(@eq, x, allowed'), 1));
+    inxOfLetters = isletter(x);
+    letters = x(inxOfLetters);
+    nonletters = x(~inxOfLetters);
+    if letters~=unique(letters)
+        flag = false;
+        return
+    end
+    if ~checkChars(letters, allowedLetters) ...
+       || ~checkChars(nonletters, allowedNonletters)
+        flag = false;
+        return
+    end
+    flag = true;
+end%
+
+    
+    
