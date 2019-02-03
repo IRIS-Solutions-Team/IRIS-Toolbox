@@ -61,7 +61,7 @@ classdef InputParser < inputParser
                 resolveStartEndOptions(this);
             end
             if this.HasSwapOptions
-                resolveSwapOptions(this);
+                % resolveSwapOptions(this);
             end
 
             if ~isempty(this.Conditional)
@@ -272,15 +272,27 @@ classdef InputParser < inputParser
 
 
         function resolveSwapOptions(this)
-            this.Options.Exogenize = cellstr(this.Options.Exogenize);
-            this.Options.Endogenize = cellstr(this.Options.Endogenize);
-            inxToExclude = strncmp(this.Options.Exogenize, '~', 1);
-            if any(inxToExclude)
-                this.Options.Exogenize(inxToExclude) = [ ];
+            if ~isa(this.Options.Exogenize, 'function_handle')
+                if ischar(this.Options.Exogenize)
+                    this.Options.Exogenize = regexp(this.Options.Exogenize, '\w+', 'match');
+                else
+                    this.Options.Exogenize = cellstr(this.Options.Exogenize);
+                end
+                inxToExclude = strncmp(this.Options.Exogenize, '~', 1);
+                if any(inxToExclude)
+                    this.Options.Exogenize(inxToExclude) = [ ];
+                end
             end
-            inxToExclude = strncmp(this.Options.Endogenize, '~', 1);
-            if any(inxToExclude)
-                this.Options.Endogenize(inxToExclude) = [ ];
+            if ~isa(this.Options.Endogenize, 'function_handle')
+                if ischar(this.Options.Exogenize)
+                    this.Options.Endogenize = regexp(this.Options.Endogenize, '\w+', 'match');
+                else
+                    this.Options.Endogenize = cellstr(this.Options.Endogenize);
+                end
+                inxToExclude = strncmp(this.Options.Endogenize, '~', 1);
+                if any(inxToExclude)
+                    this.Options.Endogenize(inxToExclude) = [ ];
+                end
             end
         end%
     end
