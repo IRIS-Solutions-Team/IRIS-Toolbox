@@ -60,6 +60,9 @@ classdef InputParser < inputParser
             if this.HasStartEndOptions
                 resolveStartEndOptions(this);
             end
+            if this.HasSwapOptions
+                resolveSwapOptions(this);
+            end
 
             if ~isempty(this.Conditional)
                 numOfParameters = numel(this.Conditional.Parameters);
@@ -265,6 +268,20 @@ classdef InputParser < inputParser
             end
             this.Options.SerialOfStart = DateWrapper.getSerial(this.Options.Start);
             this.Options.SerialOfEnd = DateWrapper.getSerial(this.Options.End);
+        end%
+
+
+        function resolveSwapOptions(this)
+            this.Options.Exogenize = cellstr(this.Options.Exogenize);
+            this.Options.Endogenize = cellstr(this.Options.Endogenize);
+            inxToExclude = strncmp(this.Options.Exogenize, '~', 1);
+            if any(inxToExclude)
+                this.Options.Exogenize(inxToExclude) = [ ];
+            end
+            inxToExclude = strncmp(this.Options.Endogenize, '~', 1);
+            if any(inxToExclude)
+                this.Options.Endogenize(inxToExclude) = [ ];
+            end
         end%
     end
 

@@ -153,22 +153,22 @@ return
 
 
     function checkExogenizedToNaN( )
-        indexNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
-        indexNeeded = full(indexNeeded);
-        indexLevelNeeded = indexNeeded & ~ixEndg.Level & ~ixZero.Level;
-        indexGrowthNeeded = indexNeeded & ~ixEndg.Growth & ~ixZero.Growth;
+        inxNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
+        inxNeeded = full(inxNeeded);
+        inxOfLevelNeeded = inxNeeded & ~ixEndg.Level & ~ixZero.Level;
+        inxOfGrowthNeeded = inxNeeded & ~ixEndg.Growth & ~ixZero.Growth;
         % Level or growth is endogenous, not fixed, and NaN
-        indexLevelNaN = any(isnan(real(asgn)), 3);
-        indexGrowthNaN = any(isnan(imag(asgn)), 3);
-        indexLevelToReport = indexLevelNeeded & indexLevelNaN;
-        indexGrowthToReport = indexGrowthNeeded & indexGrowthNaN;
-        if any(indexLevelToReport)
+        inxOfLevelNaN = any(isnan(real(asgn)), 3);
+        inxOfGrowthNaN = any(isnan(imag(asgn)), 3);
+        inxOfLevelToReport = inxOfLevelNeeded & inxOfLevelNaN;
+        inxOfGrowthToReport = inxOfGrowthNeeded & inxOfGrowthNaN;
+        if any(inxOfLevelToReport)
             throw( exception.Base('Steady:ExogenousLevelNan', 'warning'), ...
-                   this.Quantity.Name{indexLevelToReport} );
+                   this.Quantity.Name{inxOfLevelToReport} );
         end
-        if any(indexGrowthToReport)
+        if any(inxOfGrowthToReport)
             throw( exception.Base('Steady:ExogenousGrowthNan', 'warning'), ...
-                   this.Quantity.Name{indexGrowthToReport} );
+                   this.Quantity.Name{inxOfGrowthToReport} );
         end
     end%
 end
