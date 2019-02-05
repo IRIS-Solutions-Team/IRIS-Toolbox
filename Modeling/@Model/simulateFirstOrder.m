@@ -319,7 +319,7 @@ function simulateSelective(simulateFunction, rect, data, needsStoreE, deviation,
                 tempYX(inxOfLogYX, :)  = tempYX(inxOfLogYX, :)  .* data.BarYX(inxOfLogYX, :);
                 tempYXEPG(data.InxOfYX, :) = tempYX;
             end
-            dcy = hashEquations(tempYXEPG, columnRangeOfNonlinAddf, []);%data.BarYX);
+            dcy = hashEquations(tempYXEPG, columnRangeOfNonlinAddf, data.BarYX);
         end%
 end%
 
