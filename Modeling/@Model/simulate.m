@@ -138,9 +138,13 @@ function solverOption = parseSolverOption(solverOption, methodOption)
         return
     end
     if strcmpi(methodOption, 'Selective')
+        defaultSolver = 'IRIS-Newton';
         prepareGradient = false;
         displayMode = 'Verbose';
-        solverOption = solver.Options.parseOptions(solverOption, methodOption, prepareGradient, displayMode);
+        solverOption = solver.Options.parseOptions( solverOption, ...
+                                                    defaultSolver, ...
+                                                    prepareGradient, ...
+                                                    displayMode );
         return
     end
 end%

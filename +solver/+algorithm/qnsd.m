@@ -74,9 +74,9 @@ lastJacobUpdate = opt.LastJacobUpdate;
 
 sizeOfX = size(xInit);
 if any(sizeOfX(2:end)>1)
-    objectiveFuncReshaped = @(x) objectiveFunc(reshape(x, sizeOfX));
+    objectiveFuncReshaped = @(x, varargin) objectiveFunc(reshape(x, sizeOfX), varargin{:});
 else
-    objectiveFuncReshaped = @(x) objectiveFunc(x);
+    objectiveFuncReshaped = @(x, varargin) objectiveFunc(x, varargin{:});
 end
 
 % Trim values of objective function smaller than tolerance in each

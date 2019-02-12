@@ -84,7 +84,6 @@ classdef (CaseInsensitiveProperties=true) Options
                 parser.KeepUnmatched = true;
                 parser.PartialMatching = false; % Possible conflict of Display and DisplayMode
                 parser.addRequired('SolverName', @(x) (ischar(x) || (iscell(x) && ~isempty(x) && ischar(x{1})) || isa(x, 'string')) && validateIRISSolver(x));
-                parser.addParameter('Context', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
                 parser.addParameter('DisplayMode', 'Verbose', @(x) any(strcmpi(x, {'Verbose', 'Silent'})));
             end
 
@@ -95,7 +94,7 @@ classdef (CaseInsensitiveProperties=true) Options
             parser.parse(solverName, varargin{:});
             varargin = parser.UnmatchedInCell;
 
-            if validateSolver(solverName, {'IRIS-qad', 'qad'})
+            if validateSolver(solverName, {'IRIS-QaD', 'QaD'})
                 % QaD
                 this.Algorithm = 'QaD';
                 this.DEFAULT_DISPLAY = 100;
@@ -110,16 +109,13 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.DEFAULT_STEP_SIZE_SWITCH = 1;
                 this.DEFAULT_INFLATE_STEP = false;
                 this.DEFAULT_DEFLATE_STEP = false;
-            elseif validateSolver(solverName, {'IRIS-newton'})
+            elseif validateSolver(solverName, {'IRIS-Newton'})
                 % Newton (Lambda=0)
                 this.Algorithm = 'Newton';
                 this.DEFAULT_LAMBDA = double.empty(1, 0);
             else
                 % Quasi Newton-steepest descend
                 this.Algorithm = 'Qnsd';
-                if strcmpi(parser.Results.Context, 'Steady')
-                    this.DEFAULT_SPECIFY_OBJECTIVE_GRADIENT = true;
-                end
             end
 
             optionsParser = getParser(this);
@@ -190,15 +186,13 @@ classdef (CaseInsensitiveProperties=true) Options
     
     methods (Static)
         function [solverOpt, prepareGradient] = parseOptions( solverOpt, ...
-                                                              context, ...
+                                                              defaultSolver, ...
                                                               prepareGradient, ...
                                                               displayMode, ...
                                                               varargin )
 
-            % Resolve solverOpt=@auto depending on context
-            if isequal(solverOpt, @auto)
-                solverOpt = resolveAutoSolver(solverOpt, context);
-            end
+            % Resolve solverOpt=@auto or solverOpt = { @auto, ... }
+            solverOpt = resolveAutoSolverOption(solverOpt, defaultSolver);
             
             if isa(solverOpt, 'optim.options.SolverOptions') || ...
                isa(solverOpt, 'solver.Options')
@@ -209,7 +203,7 @@ classdef (CaseInsensitiveProperties=true) Options
 
             elseif validateSolver(solverOpt, {'lsqnonlin', 'fsolve'});
                 % Optim Tbx
-                solverOpt = parseOptimTbx(solverOpt, context, displayMode, varargin{:});                
+                solverOpt = parseOptimTbx(solverOpt, displayMode, varargin{:});                
 
             elseif validateIRISSolver(solverOpt)
                 % IRIS Solver
@@ -221,7 +215,6 @@ classdef (CaseInsensitiveProperties=true) Options
                     userOpt = varargin;
                 end
                 solverOpt = solver.Options( solverName, ...
-                                            'Context=', context, ...
                                             'DisplayMode=', displayMode, ...
                                             userOpt{:} );
                 
@@ -242,24 +235,7 @@ end
 %
 
 
-function solverOpt = resolveAutoSolver(solverOpt, context)
-    if strcmpi(context, 'Steady')
-        solverOpt = 'IRIS-qnsd';
-    elseif strcmpi(context, 'Exact')
-        solverOpt = 'IRIS-qnsd';
-    elseif strcmpi(context, 'Stacked')
-        solverOpt = 'IRIS-newton';
-    elseif strcmpi(context, 'Selective')
-        solverOpt = 'IRIS-qad';
-    else
-        solverOpt = 'IRIS-qnsd';
-    end
-end%
-
-
-
-
-function solverOpt = parseOptimTbx(solverOpt, context, displayMode, varargin)
+function solverOpt = parseOptimTbx(solverOpt, displayMode, varargin)
     persistent parser
     if isempty(parser)
         parser = extend.InputParser('solver.Options.parseOptimTbx');
@@ -287,13 +263,6 @@ function solverOpt = parseOptimTbx(solverOpt, context, displayMode, varargin)
     end
 
     userOpt = parser.Options;
-    if isequal(userOpt.SpecifyObjectiveGradient, @default)
-        if any(strcmpi(context, {'Selective', 'Stacked'}))
-            userOpt.SpecifyObjectiveGradient = false;
-        else
-            userOpt.SpecifyObjectiveGradient = true;
-        end
-    end
     if isequal(userOpt.Display, @auto)
         userOpt.Display = 'iter*';
     elseif isequal(userOpt.Display, true)
@@ -312,6 +281,17 @@ function solverOpt = parseOptimTbx(solverOpt, context, displayMode, varargin)
         try
             solverOpt = optimoptions(solverOpt, name, userOpt.(name));
         end
+    end
+end%
+
+
+
+
+function solverOpt = resolveAutoSolverOption(solverOpt, defaultSolver)
+    if isequal(solverOpt, @auto)
+        solverOpt = { defaultSolver };
+    elseif iscell(solverOpt) && ~isempty(solverOpt) && isequal(solverOpt{1}, @auto)
+        solverOpt(1) = { defaultSolver };
     end
 end%
 

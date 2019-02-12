@@ -66,7 +66,7 @@ if isempty(parserNonlinear)
     parserNonlinear.addParameter({'NanInit', 'Init'}, 1, @(x) isnumeric(x) && isscalar(x) && isfinite(x));
     parserNonlinear.addParameter('ResetInit', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && isfinite(x)));
     parserNonlinear.addParameter('Reuse', false, @(x) isequal(x, true) || isequal(x, false));
-    parserNonlinear.addParameter('Solver', 'IRIS-qnsd', @(x) ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle'))));
+    parserNonlinear.addParameter('Solver', @auto, @(x) isequal(x, @auto) || ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle'))));
     parserNonlinear.addParameter('SteadyShift', 3, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);    
     parserNonlinear.addParameter('PrepareGradient', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter('Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
@@ -88,16 +88,22 @@ else
     % if Solver= is a char.
     parserNonlinear.parse(this, varargin{:});
     opt = parserNonlinear.Options;
-    obsoleteSolverOpt = parserNonlinear.UnmatchedInCell;
+    unmatchedSolverOptions = parserNonlinear.UnmatchedInCell;
     if isequal(opt.Growth, @auto)
         opt.Growth = this.IsGrowth;
     end
+    if ~opt.Growth && isempty(opt.Fix) && isempty(opt.FixLevel) && isempty(opt.FixGrowth)
+        defaultSolver = 'IRIS-Newton';
+    else
+        defaultSolver = 'IRIS-Qnsd';
+    end
     [ opt.Solver, ...
-      opt.PrepareGradient] = solver.Options.parseOptions( opt.Solver, ...
-                                                          'Steady', ...
-                                                          opt.PrepareGradient, ...
-                                                          displayMode, ...
-                                                          obsoleteSolverOpt{:} );
+      opt.PrepareGradient ] = solver.Options.parseOptions( opt.Solver, ...
+                                                           defaultSolver, ...
+                                                           opt.PrepareGradient, ...
+                                                           displayMode, ...
+                                                           'SpecifyObjectiveGradient=', true, ...
+                                                           unmatchedSolverOptions{:} );
     blz = createBlocks(this, opt);
     blz = prepareBounds(this, blz, opt);
     blz.NanInit = opt.NanInit;

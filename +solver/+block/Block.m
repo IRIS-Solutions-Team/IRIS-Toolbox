@@ -203,10 +203,16 @@ classdef (Abstract) Block < handle
                 end
                 z = real(z);
                 z( abs(z)<=this.Solver.StepTolerance ) = 0;
-                
+
             elseif isa(this.Solver, 'function_handle')
                 % __User-Supplied Solver__
                 [z, ~, exitFlag] = this.Solver(fnObjective, z0);
+
+            else
+                THIS_ERROR = { 'Block:UnknownSolver'
+                               'Invalid or unknown solution method' };
+                throw( exception.Base(THIS_ERROR, 'error') );
+
             end
         end%
         
