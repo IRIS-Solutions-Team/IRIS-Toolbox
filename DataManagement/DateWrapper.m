@@ -233,8 +233,8 @@ classdef DateWrapper < double
         end%
 
 
-        function c = toCellOfChar(dateCode)
-            c = dat2str(double(dateCode));
+        function c = toCellOfChar(dateCode, varargin)
+            c = dat2str(double(dateCode), varargin{:});
         end%
 
 
@@ -379,7 +379,7 @@ classdef DateWrapper < double
 
             switch freq
                 case 0
-                    formats = formats(k).integer;
+                    formats = formats(k).ii;
                 case 1
                     formats = formats(k).yy;
                 case 2
@@ -428,6 +428,19 @@ classdef DateWrapper < double
             flag = all(~cellfun('isempty', match));
         end%
 
+
+        function flag = validateProperDateInput(input)
+            if ~DateWrapper.validateDateInput(input)
+                flag = false;
+                return
+            end
+            if any(~isfinite(double(input)))
+                flag = false;
+                return
+            end
+            flag = true;
+        end%
+        
 
         function flag = validateRangeInput(input)
             if isequal(input, Inf) || isequal(input, @all)
