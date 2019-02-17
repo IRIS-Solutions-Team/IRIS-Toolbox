@@ -1,5 +1,5 @@
 function varargout = next(varargin)
-% next  Simplify use of standard subplot function.
+% next  Simplify use of standard subplot function
 %
 % __Syntax for New Figure Window With Certain Subplot Division__
 %
@@ -43,8 +43,8 @@ function varargout = next(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 
 %--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ function varargout = next(varargin)
 skipOnePosition = ~isempty(varargin) && isequaln(varargin{1}, NaN);
 
 if ~isempty(varargin) && ~skipOnePosition
-    % Open a new figure and initialise subplot data.
+    % Open a new figure and initialize subplot data
     varargout = cell(1, 1);
     varargout{1} = initialize(varargin{:});
     return
@@ -60,23 +60,25 @@ end
 
 currentFigureHandle = get(0, 'CurrentFigure');
 if isempty(currentFigureHandle)
-    error('No figure window open, cannot use visual.next( )');
+    THIS_ERROR = { 'Visual:NoFigureOpenForNext'
+                   'No figure window open for visual.next(~) ' };
+    throw( exception.Base(THIS_ERROR, 'error') );
 end
 
-numRows = getappdata(currentFigureHandle, 'IRIS_NextNumRows');
-numColumns = getappdata(currentFigureHandle, 'IRIS_NextNumColumns');
+numOfRows = getappdata(currentFigureHandle, 'IRIS_NextNumRows');
+numOfColumns = getappdata(currentFigureHandle, 'IRIS_NextNumColumns');
 currentPosition = getappdata(currentFigureHandle, 'IRIS_NextCurrentPosition');
 
 test = @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>=0 && isfinite(x);
-assert( ...
-    test(numRows) && test(numColumns) && test(currentPosition), ...
-    'visual:next:FigureNotConfiguredForNext', ...
-    'Current figure window is not configured for visual.next( ).' ...
-);
+if ~test(numOfRows) || ~test(numOfColumns) || ~test(currentPosition)
+    THIS_ERROR = { 'Visual:FigureNotConfiguredForNext'
+                   'Current figure window is not configured for visual.next(~) ' };
+    throw( exception.Base(THIS_ERROR, 'error') );
+end
 
 newFigureHandle = [ ];
-% Open a new figure if the number of subplots exceeds the maximum.
-if currentPosition>=numRows*numColumns
+% Open a new figure if the number of subplots exceeds the maximum
+if currentPosition>=numOfRows*numOfColumns
     currentPosition = 0;
     figureProp = getappdata(currentFigureHandle, 'IRIS_NextFigureProperties');
     if isempty(figureProp)
@@ -84,16 +86,16 @@ if currentPosition>=numRows*numColumns
     else
         newFigureHandle = figure(figureProp);
     end
-    setappdata(newFigureHandle, 'IRIS_NextNumRows', numRows);
-    setappdata(newFigureHandle, 'IRIS_NextNumColumns', numColumns);
+    setappdata(newFigureHandle, 'IRIS_NextNumRows', numOfRows);
+    setappdata(newFigureHandle, 'IRIS_NextNumColumns', numOfColumns);
     setappdata(newFigureHandle, 'IRIS_NextCurrentPosition', currentPosition);
     currentFigureHandle = newFigureHandle;
 end
 
-% Add new subplot to the current figure.
+% Add new subplot to the current figure
 currentPosition = currentPosition + 1;
 if ~skipOnePosition
-    axesHandle = subplot(numRows, numColumns, currentPosition);
+    axesHandle = subplot(numOfRows, numOfColumns, currentPosition);
     visual.clickToExpand(axesHandle);
     set(axesHandle, 'NextPlot', 'Add', 'Box', 'On');
 else
@@ -108,35 +110,41 @@ varargout{3} = currentPosition;
 end
 
 
+%
+% Local Functions
+%
+
+
 function figureHandle = initialize(varargin)
-    persistent INPUT_PARSER
-    if isempty(INPUT_PARSER)
+    persistent parser
+    if isempty(parser)
         test1 = @(x) isnumeric(x) && numel(x)==1 && x==round(x) && x>0;
         test2 = @(x) isnumeric(x) && any(numel(x)==[1, 2]) && all(x==round(x)) && all(x>0);
-        INPUT_PARSER = extend.InputParser('visual/next');
-        INPUT_PARSER.KeepUnmatched = true;
-        INPUT_PARSER.addRequired('NumRows', @(x) test1(x) || test2(x));
-        INPUT_PARSER.addOptional('NumColumns', 1, @(x) test1(x));
+        parser = extend.InputParser('visual/next');
+        parser.KeepUnmatched = true;
+        parser.addRequired('NumRows', @(x) test1(x) || test2(x));
+        parser.addOptional('NumColumns', 1, @(x) test1(x));
     end
-    INPUT_PARSER.parse(varargin{:});
-    numRows = INPUT_PARSER.Results.NumRows;
-    numColumns = INPUT_PARSER.Results.NumColumns;
-    figureOptions = INPUT_PARSER.Unmatched;
+    parser.parse(varargin{:});
+    numOfRows = parser.Results.NumRows;
+    numOfColumns = parser.Results.NumColumns;
+    figureOptions = parser.Unmatched;
 
-    if any(strcmp(INPUT_PARSER.UsingDefaults, 'NumColumns'))
-        if numel(numRows)==1
+    if any(strcmp(parser.UsingDefaults, 'NumColumns'))
+        if numel(numOfRows)==1
             % next(totalCount, ...)
-            totalCount = numRows;
-            [numRows, numColumns] = visual.backend.optimizeSubplot(totalCount);
+            totalCount = numOfRows;
+            [numOfRows, numOfColumns] = visual.backend.optimizeSubplot(totalCount);
         else
-            % next([numRows, numColumns], ...)
-            numColumns = numRows(2);
-            numRows = numRows(1);
+            % next([numOfRows, numOfColumns], ...)
+            numOfColumns = numOfRows(2);
+            numOfRows = numOfRows(1);
         end
     end
     figureHandle = figure(figureOptions);
-    setappdata(figureHandle, 'IRIS_NextNumRows', numRows);
-    setappdata(figureHandle, 'IRIS_NextNumColumns', numColumns);
+    setappdata(figureHandle, 'IRIS_NextNumRows', numOfRows);
+    setappdata(figureHandle, 'IRIS_NextNumColumns', numOfColumns);
     setappdata(figureHandle, 'IRIS_NextCurrentPosition', 0);
     setappdata(figureHandle, 'IRIS_NextFigureProperties', figureOptions);
-end
+end%
+

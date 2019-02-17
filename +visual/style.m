@@ -6,7 +6,7 @@ if isempty(parser)
     parser = extend.InputParser('visual.style');
     parser.addRequired('Handle', @(x) isempty(x) || all(isgraphics(x)));
     parser.addRequired('Specs', @isstruct);
-    parser.addParameter('StyleChildren', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Children', true, @(x) isequal(x, true) || isequal(x, false));
 end
 parser.parse(handles, specs, varargin{:});
 opt = parser.Options;
@@ -38,7 +38,7 @@ for i = numOfHandles : -1 : 1
         pos = find(indexMatchType, 1);
         errors = apply(ithHandle, ithType, specs.(specsTypes{pos}), count.(ithType), errors);
     end
-    if ~isequal(opt.StyleChildren, true)
+    if ~isequal(opt.Children, true)
         continue
     end
     children = get(ithHandle, 'Children');
@@ -96,6 +96,8 @@ function errors = apply(handle, type, specs, j, errors)
 end%
 
 
+
+
 function errors = runPreAndPost(which, handle, type, specs, i, errors)
     propertyNames = fieldnames(specs);
     index = strcmpi(propertyNames, which);
@@ -120,6 +122,8 @@ function errors = runPreAndPost(which, handle, type, specs, i, errors)
         end
     end
 end%
+
+
 
 
 function showValues(handle, ithPropertyValue)
