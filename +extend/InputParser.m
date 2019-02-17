@@ -61,7 +61,7 @@ classdef InputParser < inputParser
                 resolveStartEndOptions(this);
             end
             if this.HasSwapOptions
-                % resolveSwapOptions(this);
+                resolveSwapOptions(this);
             end
 
             if ~isempty(this.Conditional)
@@ -284,7 +284,7 @@ classdef InputParser < inputParser
                 end
             end
             if ~isa(this.Options.Endogenize, 'function_handle')
-                if ischar(this.Options.Exogenize)
+                if ischar(this.Options.Endogenize)
                     this.Options.Endogenize = regexp(this.Options.Endogenize, '\w+', 'match');
                 else
                     this.Options.Endogenize = cellstr(this.Options.Endogenize);
