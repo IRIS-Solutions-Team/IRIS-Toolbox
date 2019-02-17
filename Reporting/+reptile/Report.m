@@ -1,84 +1,97 @@
-classdef Report < reptile.Base
-    properties (Constant)
-        CanBeParent = cell.empty(1, 0)
+classdef Report < reptile.element.Element
+    properties
+        Class = 'Report'
+        CanBeAdded = {'reptile.Table', 'reptile.Figure' }
     end
 
 
     properties
-        FileName = char.empty(1, 0)
-        Code = char.empty(1, 0)
-        FigureHandles = gobjects(1, 0)
+        FileName = ''
+        StyleSheet = fullfile(iris.root( ), 'Reporting', '+reptile', 'default.css')
     end
 
 
     methods
         function this = Report(varargin)
-            this = this@reptile.Base(varargin{:});
-        end% 
-
-
-        function add(this, varargin)
-            add@reptile.Base(this, varargin{:}); 
+            this = this@reptile.element.Element(varargin{1:end});
+            fileName = varargin{2};
+            assignOptions(this, varargin{3:end});
+            [p, t, x] = fileparts(fileName);
+            if isempty(x)
+                x = '.html';
+                fileName = fullfile(p, [t, x]);
+            end
+            this.FileName = fileName;
+            singleFile = get(this, 'SingleFile');
+            this.SourceFiles = reptile.SourceFiles(this.FileName, singleFile);
         end%
 
 
-        function plot(this, databank, varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('reptile.Report.plot');
-                parser.addRequired('Report', @(x) isa(x, 'reptile.Report'));
-                parser.addRequired('Databank', @isstruct);
-                parser.addParameter('Screen', true, @(x) isequal(x, true) || isequal(x, false));
-                parser.addParameter('PDF', false, @(x) isequal(x, false) || (ischar(x) && ~isempty(x)));
-                parser.addParameter('CloseFigures', false, @(x) isequal(x, false) || isequal(x, true));
+        function fileName = publish(this, varargin)
+            c = xmlify(this);
+            c = ['<!DOCTYPE html> ', newline( ), c];
+            char2file(c, this.FileName);
+            fileName = this.FileName;
+            if this.CleanUp
+                cleanup(this.SourceFiles);
             end
-            parser.parse(this, databank, varargin{:});
-            opt = parser.Options;
-            figureOpt = createFigureOptions(this, opt);
-            this.FigureHandles = gobjects(1, this.NumChildren);
-            for i = 1 : this.NumChildren
-                if isa(this.Container{i}, 'reptile.Figure')
-                    this.FigureHandles(i) = figure(figureOpt{:});
-                    plot(this.Container{i}, databank, this.FigureHandles(i));
+        end%
+
+
+        function c = xmlify(this, outputFileName)
+            x = com.mathworks.xml.XMLUtils.createDocument('html');
+            html = x.getDocumentElement( );
+            hereXmlifyHead( );
+            hereXmlifyBody( );
+            c = xmlwrite(x); 
+
+            return
+
+
+            function hereXmlifyHead( )
+                head = x.createElement('head');
+                title = x.createElement('title');
+                title.appendChild(x.createTextNode(this.Caption));
+                style = x.createElement('style');
+                style.setAttribute('type', 'text/css');
+                styleSheet = file2char(this.StyleSheet);
+                style.appendChild(x.createTextNode(styleSheet));
+                head.appendChild(title);
+                head.appendChild(style);
+                html.appendChild(head);
+            end%
+
+
+            function hereXmlifyBody( )
+                body = x.createElement('body');
+                div = x.createElement('div');
+                div.setAttribute('class', 'Report');
+                div.setAttribute('id', this.Id);
+                h1 = x.createElement('h1');
+                h1.setAttribute('class', 'Report');
+                h1.appendChild(x.createTextNode(this.Caption));
+                div.appendChild(h1);
+                body.appendChild(div);
+                for i = 1 : this.NumOfChildren
+                    child = xmlify(this.Children{i}, x);
+                    body.appendChild(child);
                 end
-            end
-            if ~isequal(opt.PDF, false)
-                printPDF(this, opt.PDF);
-            end
-            if opt.CloseFigures
-                closeFigures(this, opt);
-            end
+                html.appendChild(body);
+            end%
         end%
+    end
 
 
-        function figureOpt = createFigureOptions(this, opt)
-            figureOpt = cell.empty(1, 0);
-            if opt.Screen
-                figureOpt = [figureOpt, {'Visible', 'On'}];
-            else
-                figureOpt = [figureOpt, {'Visible', 'Off'}];
-            end
-        end%
+    properties (Dependent)
+        CleanUp
+    end
 
 
-        function closeFigures(this)
-            for i = 1 : numel(this.FigureHandles)
-                try
-                    close(this.FigureHandles(i));
-                end
-            end
-        end%
-
-
-        function printPDF(this, fileName)
-            [filePath, fileTitle, fileExt] = fileparts(fileName);
-            if isempty(fileExt)
-                fileExt = '.pdf';
-            end
-            for i = 1 : numel(this.FigureHandles)
-                ithFileTitle = sprintf('%s_%g', fileTitle, i);
-                ithFileName = fullfile(filePath, [ithFileTitle, fileExt]);
-                print(this.FigureHandles(i), '-dpdf', ithFileName);
+    methods
+        function value = get.CleanUp(this)
+            value = get(this, 'CleanUp');
+            if isequal(value, @auto)
+                value = this.SourceFiles.SingleFile;
             end
         end%
     end

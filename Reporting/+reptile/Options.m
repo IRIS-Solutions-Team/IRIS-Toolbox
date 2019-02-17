@@ -1,17 +1,39 @@
-classdef (CaseInsensitiveProperties=true) Options
+classdef ( CaseInsensitiveProperties=true ) ...
+         Options
+
     properties
-        Range = @auto
-        Highlight = double.empty(1, 0)
-        Zeroline = true
-        Orientation = 'landscape'
-        Subplot = @auto
-        Legend = @auto
-        LegendLocation = 'Best'
-    end
-
-
-    properties (Constant)
-        LegendLocationList = set(0, 'DefaultLegendLocation')
+        AutoData = cell.empty(1, 0)
+        AxesOptions = cell.empty(1, 0)
+        CleanUp = @auto
+        Close = true
+        DateFormat = struct( 'ii', 'P', ...
+                             'yy', 'Y', ...
+                             'hh', 'Y:P', ...
+                             'qq', 'Y:P', ...
+                             'bb', 'Y:P', ...
+                             'mm', 'Y:P', ...
+                             'ww', 'Y:P', ...
+                             'dd', '$YYYY-Mmm-DD' ) 
+        FigureOptions = cell.empty(1, 0)
+        Format = '%.2f'
+        Highlight = DateWrapper.empty(1, 0)
+        MarginTop = 0.035;
+        MarginRight = 0;
+        MarginBottom = 0;
+        MarginLeft = 0.07;
+        Marks = cell.empty(1, 0)
+        PageBreakAfter = false
+        Scale = 1.1
+        SingleFile = false
+        ShowMarks = true
+        ShowTitle = @auto
+        ShowUnits = true
+        Style = struct.empty(0)
+        Unit = ''
+        Visible = false
+        VLine = DateWrapper.empty(1, 0)
+        VLineAfter = DateWrapper.empty(1, 0)
+        VLineBefore = DateWrapper.empty(1, 0)
     end
 
 
@@ -20,115 +42,48 @@ classdef (CaseInsensitiveProperties=true) Options
             if nargin==0
                 return
             end
-            this = update(this, varargin{:});
-        end%
-        
-
-        function this = update(this, varargin)
-            for i = 1 : 2 : numel(varargin)
-                name = varargin{i};
-                name = strrep(name, '=', '');
-                value = varargin{i+1};
-                try
-                    this.(name) = value;
-                catch Err
-                    fprintf('\n%s\n\n', Err.message);
-                    warning( 'reptile:Options:FailedToSetOption', ...
-                             '\nFailed to set this option: %s ', ...
-                             name );
+            if isequal(varargin{1}, @parent)
+                list = properties(this);
+                for i = 1 : numel(list)
+                    this.(list{i}) = @parent;
                 end
             end
         end%
 
 
-        function this = set.Subplot(this, value)
-            if isequal(value, @auto)
-                this.Subplot = @auto;
+        function this = set.AutoData(this, value)
+            if isequal(value, @parent)
+                this.AutoData = @parent;
                 return
             end
-            if isnumeric(value) && all(value==round(value)) && all(value>0)
-                if numel(value)==1
-                    this.Subplot = [value, value];
+            if iscell(value) ...
+               && all(cellfun('isclass', value, 'function_handle'))
+                this.AutoData = value;
+                return
+            elseif isa(value, 'function_handle')
+                this.AutoData = { value };
+                return
+            end
+            THIS_ERROR = { 'Reptile:InvalidAutoData'
+                           'AutoData must be function handle or cell array of function handles' };
+            throw( exception.Base(THIS_ERROR, 'error') );
+        end%
+    end
+
+
+    methods (Static)
+        function value = get(element, option)
+            value = element.Options.(option);
+            if isequal(value, @parent)
+                if isempty(element.Parent)
+                    default = reptile.Options( );
+                    value = default.(option);
                     return
-                elseif numel(value)==2
-                   this.Subplot = [value(1), value(2)];
-                   return
-               end
-           end
-           error( 'reptile:Options:InvalidValueSubplot', ...
-                  'Invalid value assigned to option Subplot' );
-        end%
-
-
-        function this = set.Orientation(this, value)
-            if any(strcmpi(value, {'landscape', 'portrait'}))
-                this.Orientation = lower(value);
-                return
+                else
+                    value = reptile.Options.get(element.Parent, option);
+                    return
+                end
             end
-            error( 'reptile:Options:InvalidValueOrientation', ...
-                  'Invalid value assigned to option Orientation' );
-        end%
-
-
-        function this = set.Range(this, value)
-            if isequal(value, @auto) || isequal(value, Inf) ...
-               || isa(value, 'DateWrapper') || isnumeric(value)
-               this.Range = value;
-               return
-            end
-            error( 'reptile:Options:InvalidValueRange', ...
-                   'Invalid value assigned to option Range' );
-        end%
-
-
-
-        function this = set.Legend(this, value)
-            if isequal(value, @auto) || isequal(value, true) ...
-               || isequal(value, false)
-               this.Legend = value;
-               return
-            end
-            error( 'reptile:Options:InvalidValueLegend', ...
-                   'Invalid value assigned to option Legend' );
-        end%
-
-
-        function this = set.LegendLocation(this, value)
-            if strcmpi(value, 'none') 
-                this.Legend = false;
-                this.LegendLocation = 'Best';
-                return
-            end
-            if any(strcmpi(value, this.LegendLocationList))
-                this.LegendLocation = value;
-                return
-            end
-            error( 'reptile:Options:InvalidValueLegendLocation', ...
-                   'Invalid value assigned to option LegendLocation' );
-        end%
-
-
-        function this = set.Highlight(this, value)
-            if isempty(value)
-                this.Highlight = double.empty(1, 0);
-                return
-            end
-            if isnumeric(value) || isa(value, 'DateWrapper')
-                this.Highlight = value;
-                return
-            end
-            error( 'reptile:Options:InvalidValueHighlight', ...
-                   'Invalid value assigned to option Highlight' );
-        end%
-
-
-        function this = set.Zeroline(this, value)
-            if isequal(value, true) || isequal(value, false)
-                this.Zeroline = value;
-                return
-            end
-            error( 'reptile:Options:InvalidValueZeroline', ...
-                   'Invalid value assigned to option Zeroline' );
         end%
     end
 end

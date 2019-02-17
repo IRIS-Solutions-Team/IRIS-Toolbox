@@ -1,70 +1,153 @@
-classdef Figure < reptile.Base
+classdef Figure < reptile.element.Element ...
+                & reptile.element.H2Element ...
+                & reptile.element.DatesElement
     properties
-        FigureHandle = gobjects(0)
+        Class = 'Figure'
+        CanBeAdded = { 'reptile.figure.Chart' }
     end
 
 
-    properties (Constant)
-        CanBeParent = {'reptile.Report'}
-        HorizontalPaperMargin = 0.5
-        VerticalPaperMargin = 0
+    properties
+        Handle = gobjects(1)
+        Subplot = [NaN, NaN]
+        ImageSource = ''
+    end
+
+
+    properties (Dependent)
+        NumOfDates
+        NumOfSubplots
     end
 
 
     methods
         function this = Figure(varargin)
-            this = this@reptile.Base(varargin{:});
-        end% 
-
-
-        function add(this, varargin)
-            add@reptile.Base(this, varargin{:}); 
-        end%
-
-
-        function figureHandle = plot(this, databank, figureHandle)
-            this.FigureHandle = figureHandle;
-            setFigureOptions(this);
-            sub = this.resolveSubplot( );
-            for i = 1 : this.NumChildren
-                axesHandle = subplot(sub(1), sub(2), i);
-                plot(this.Container{i}, databank, axesHandle);
+            this = this@reptile.element.Element(varargin{1:end});
+            this = this@reptile.element.DatesElement(varargin{2:end});
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('reptile.Figure');
+                parser.addRequired('Subplot', @validateSubplot);
             end
-            if ~isempty(this.Caption)
-                printCaption(this);
+            parser.parse(varargin{3});
+            this.Subplot = varargin{3};
+            assignOptions(this, varargin{4:end});
+        end%
+
+
+        function outputElement = xmlify(this, x)
+            draw(this);
+            print(this);
+            p = resolveDimensions(this);
+
+            if get(this, 'Close')
+                close(this.Handle);
+            end
+
+            outputElement = createDivH2(this, x);
+            div = x.createElement('div');
+            div.setAttribute('class', 'Image');
+            div.setAttribute('style', sprintf('width:%gin', p.Width));
+            img = x.createElement('img');
+            img.setAttribute('src', this.ImageSource);
+            img.setAttribute('alt', this.Caption);
+            style = sprintf('width:%gin; margin:%gin %gin %gin %gin;', p.Width, p.Margin);
+            img.setAttribute('style', style);
+            div.appendChild(img);
+            outputElement.appendChild(div);
+        end%
+            
+
+        function print(this)
+            set( this.Handle, ...
+                 'PaperOrientation', 'Portrait', ...
+                 'PaperUnits', 'Inches' );
+            scale = get(this, 'Scale');
+            paperSize = get(this.Handle, 'PaperSize');
+            set( this.Handle, ...
+                 'PaperPosition', [0, 0, fliplr(scale*paperSize)] );
+            this.ImageSource = getNewFileName(this.SourceFiles, 'png');
+            print(this.Handle, this.ImageSource, '-dpng');
+            add(this.SourceFiles, this.ImageSource);
+            if this.SourceFiles.SingleFile
+                encodeImage(this);
             end
         end%
 
 
-        function sub = resolveSubplot(this)
-            if isequal(this.Options.Subplot, @auto)
-                [numOfRows, numOfCols] = visual.backend.optimizeSubplot(this.NumChildren);
-                sub = [numOfRows, numOfCols];
-            else
-                sub = this.Options.Subplot;
+        function p = resolveDimensions(this)
+            set(this.Handle, 'PaperUnits', 'Inches');
+            paperPosition = get(this.Handle, 'PaperPosition');
+            width = paperPosition(3);
+            height = paperPosition(4);
+            marginTop = get(this, 'MarginTop');
+            marginRight = get(this, 'MarginRight');
+            marginBottom = get(this, 'MarginBottom');
+            marginLeft = get(this, 'MarginLeft');
+            p = struct( 'Width', width, ...
+                        'Margin', -[ marginTop*height
+                                     marginRight*width
+                                     marginBottom*height
+                                     marginLeft*width ] );
+        end%
+
+
+        function encodeImage(this)
+            fid = fopen(this.ImageSource, 'r');
+            b = fread(fid);
+            fclose(fid);
+            c = matlab.net.base64encode(b);
+            this.ImageSource = ['data:image/jpeg;base64,', c];
+        end%
+
+
+        function draw(this)
+            visible = get(this, 'Visible');
+            figureOptions = get(this, 'FigureOptions');
+            this.Handle = visual.next( this.Subplot, ...
+                                       'Visible', visible, ...
+                                       figureOptions{:} );
+            for i = 1 : this.NumOfChildren
+                draw(this.Children{i});
             end
         end%
+    end
 
 
-        function setFigureOptions(this)
-            set(this.FigureHandle, 'PaperOrientation', this.Options.Orientation);
-            set(this.FigureHandle, 'PaperUnits', 'inches');
-            paperSize = get(this.FigureHandle, 'PaperSize');
-            h = this.HorizontalPaperMargin;
-            v = this.VerticalPaperMargin;
-            set(this.FigureHandle, 'PaperPosition', [0, 0, paperSize] + [-h, -v, 2*h, 1.5*v]);
-
-            set( this.FigureHandle, ...
-                 'DefaultLineLineWidth', 1.5 );
+    methods
+        function value = get.NumOfDates(this)
+            value = numel(this.Dates);
         end%
 
 
-        function printCaption(this)
-            axesFontSize = get(this.FigureHandle, 'DefaultAxesFontSize');
-            visual.heading( this.FigureHandle, this.Caption, ...
-                            'FontSize=', 1.5*axesFontSize, ...
-                            'FontWeight=', 'bold' );
+        function value = get.NumOfSubplots(this)
+            value = prod(this.Subplot);
+        end%
+
+
+        function this = set.Subplot(this, value)
+            if isnumeric(value) && numel(value)==2 ...
+               && all(round(value)==value) && all(value>=1)
+                this.Subplot = value;
+                return
+            end
+            THIS_ERROR = { 'DateWrapper:InvalidFigureSubplot'
+                           'Invalid value assigned to Subplot in reptile.Figure' };
+            throw( exception.Base(THIS_ERROR, 'error') );
         end%
     end
 end
+
+
+%
+% Local Functions
+%
+
+
+function flag = validateSubplot(value)
+    flag = isnumeric(value) ...
+           && numel(value)==2 ...
+           && all(round(value)==value) ...
+           && all(value>=1);
+end%
 
