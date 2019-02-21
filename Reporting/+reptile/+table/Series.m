@@ -19,45 +19,48 @@ classdef Series < reptile.element.Element ...
         end%
 
 
-        function outputElement = xmlify(this, x)
+        function outputElement = xmlify(this)
+            x = getReport(this, 'XmlDoc');
             data = getData(this.Data, this.Dates);
             data = data(:, :);
             data = evaluateAutoData(this, data);
             numOfDataRows = size(data, 2);
-            format = get(this, 'Format');
-            dataString = arrayfun( @(x) sprintf(format, x), ...
-                                   data, ...
-                                   'UniformOutput', false );
+            numericFormat = get(this, 'NumericFormat');
+            dataStrings = arrayfun( @(x) sprintf(numericFormat, x), ...
+                                    data, 'UniformOutput', false );
             if numOfDataRows==0
                 outputElement = [ ];
                 return
             end
 
-            showMarks = get(this, 'ShowMarks');
-            showUnits = get(this, 'ShowUnits');
+            showMarks = get(this.Parent, 'ShowMarks');
+            showUnits = get(this.Parent, 'ShowUnits');
+
             markStrings = get(this, 'Marks');
-            unitString = get(this, 'Unit');
+            unitString = get(this, 'Units');
             for i = 1 : numOfDataRows
                 outputElement(i) = x.createElement('tr');
-                hereRenderName( );
-                hereRenderMark( );
-                hereRenderUnit( );
-                hereRenderData( );
+                outputElement(i).setAttribute('id', this.Id);
+                hereXmlifyName( );
+                hereXmlifyMarks( );
+                hereXmlifyUnits( );
+                hereXmlifyData( );
             end
 
             return
 
 
-                function hereRenderName( )
+                function hereXmlifyName( )
                     name = x.createElement('td');
                     if i==1
+                        name.setAttribute('class', 'RowName');
                         name.appendChild(x.createTextNode(this.Caption));
                     end
                     outputElement(i).appendChild(name);
                 end%
 
 
-                function hereRenderMark( )
+                function hereXmlifyMarks( )
                     if ~showMarks
                         return
                     end
@@ -69,7 +72,7 @@ classdef Series < reptile.element.Element ...
                 end%
 
 
-                function hereRenderUnit( )
+                function hereXmlifyUnits( )
                     if ~showUnits
                         return
                     end
@@ -81,13 +84,13 @@ classdef Series < reptile.element.Element ...
                 end%
 
 
-                function hereRenderData( )
+                function hereXmlifyData( )
                     dataColumnClass = this.DataColumnClass;
                     for jj = 1 : this.NumOfDates
                         value = x.createElement('td');
                         thisColumnClass = ['Data', this.DataColumnClass{jj}];
                         value.setAttribute('class', thisColumnClass);
-                        value.appendChild(x.createTextNode(dataString{jj, i}));
+                        value.appendChild(x.createTextNode(dataStrings{jj, i}));
                         outputElement(i).appendChild(value);
                     end
                 end%

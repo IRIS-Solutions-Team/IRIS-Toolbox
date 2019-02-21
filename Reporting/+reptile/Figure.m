@@ -35,7 +35,8 @@ classdef Figure < reptile.element.Element ...
         end%
 
 
-        function outputElement = xmlify(this, x)
+        function outputElement = xmlify(this)
+            x = getReport(this, 'XmlDoc');
             draw(this);
             print(this);
             p = resolveDimensions(this);
@@ -44,17 +45,18 @@ classdef Figure < reptile.element.Element ...
                 close(this.Handle);
             end
 
-            outputElement = createDivH2(this, x);
+            outputElement = createDivH2(this);
             div = x.createElement('div');
             div.setAttribute('class', 'Image');
             div.setAttribute('style', sprintf('width:%gin', p.Width));
             img = x.createElement('img');
             img.setAttribute('src', this.ImageSource);
             img.setAttribute('alt', this.Caption);
-            style = sprintf('width:%gin; margin:%gin %gin %gin %gin;', p.Width, p.Margin);
+            style = sprintf('width:%gin; margin:%gin %gin %gin %gin;', p.Width, p.Crop);
             img.setAttribute('style', style);
             div.appendChild(img);
             outputElement.appendChild(div);
+            closeDivH2(this, outputElement);
         end%
             
 
@@ -66,10 +68,11 @@ classdef Figure < reptile.element.Element ...
             paperSize = get(this.Handle, 'PaperSize');
             set( this.Handle, ...
                  'PaperPosition', [0, 0, fliplr(scale*paperSize)] );
-            this.ImageSource = getNewFileName(this.SourceFiles, 'png');
+            sourceFiles = getReport(this, 'SourceFiles');
+            this.ImageSource = getNewFileName(sourceFiles, 'png');
             print(this.Handle, this.ImageSource, '-dpng');
-            add(this.SourceFiles, this.ImageSource);
-            if this.SourceFiles.SingleFile
+            add(sourceFiles, this.ImageSource);
+            if sourceFiles.SingleFile
                 encodeImage(this);
             end
         end%
@@ -80,15 +83,15 @@ classdef Figure < reptile.element.Element ...
             paperPosition = get(this.Handle, 'PaperPosition');
             width = paperPosition(3);
             height = paperPosition(4);
-            marginTop = get(this, 'MarginTop');
-            marginRight = get(this, 'MarginRight');
-            marginBottom = get(this, 'MarginBottom');
-            marginLeft = get(this, 'MarginLeft');
+            cropTop = get(this, 'CropTop');
+            cropRight = get(this, 'CropRight');
+            cropBottom = get(this, 'CropBottom');
+            cropLeft = get(this, 'CropLeft');
             p = struct( 'Width', width, ...
-                        'Margin', -[ marginTop*height
-                                     marginRight*width
-                                     marginBottom*height
-                                     marginLeft*width ] );
+                        'Crop', -[ cropTop*height
+                                   cropRight*width
+                                   cropBottom*height
+                                   cropLeft*width ] );
         end%
 
 

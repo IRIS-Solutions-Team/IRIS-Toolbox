@@ -6,6 +6,7 @@ classdef ( CaseInsensitiveProperties=true ) ...
         AxesOptions = cell.empty(1, 0)
         CleanUp = @auto
         Close = true
+        ColumnNames = cell.empty(1, 0)
         DateFormat = struct( 'ii', 'P', ...
                              'yy', 'Y', ...
                              'hh', 'Y:P', ...
@@ -15,21 +16,30 @@ classdef ( CaseInsensitiveProperties=true ) ...
                              'ww', 'Y:P', ...
                              'dd', '$YYYY-Mmm-DD' ) 
         FigureOptions = cell.empty(1, 0)
-        Format = '%.2f'
+        Footnote = cell.empty(1, 0)
+        NumericFormat = '%.2f'
         Highlight = DateWrapper.empty(1, 0)
-        MarginTop = 0.035;
-        MarginRight = 0;
-        MarginBottom = 0;
-        MarginLeft = 0.07;
+        CropTop = 0.035;
+        CropRight = 0;
+        CropBottom = 0;
+        CropLeft = 0.07;
         Marks = cell.empty(1, 0)
         PageBreakAfter = false
+        RowNames = cell.empty(1, 0)
         Scale = 1.1
         SingleFile = false
-        ShowMarks = true
+
+        % ShowHeading  Print caption as heading
+        ShowHeading = @auto
+
+        ShowMarks = @auto
+
+        % ShowTitle  Print caption as chart title
         ShowTitle = @auto
-        ShowUnits = true
+
+        ShowUnits = @auto
         Style = struct.empty(0)
-        Unit = ''
+        Units = ''
         Visible = false
         VLine = DateWrapper.empty(1, 0)
         VLineAfter = DateWrapper.empty(1, 0)
@@ -84,6 +94,11 @@ classdef ( CaseInsensitiveProperties=true ) ...
                     return
                 end
             end
+        end%
+
+
+        function set(element, option, value)
+            element.Options.(option) = value;
         end%
     end
 end

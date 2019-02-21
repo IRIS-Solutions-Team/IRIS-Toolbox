@@ -1,6 +1,7 @@
 classdef Table < reptile.element.Element ...
                & reptile.element.H2Element ...
-               & reptile.element.DatesElement
+               & reptile.element.DatesElement ...
+               & reptile.element.FootnotesElement
     properties
         Class = 'Table'
         CanBeAdded = { 'reptile.table.Series'
@@ -32,21 +33,24 @@ classdef Table < reptile.element.Element ...
         end%
 
 
-        function outputElement = xmlify(this, x)
+        function outputElement = xmlify(this)
             setDataColumnClass(this);
-            outputElement = createDivH2(this, x);
+            resolveShowUnits(this);
+            resolveShowMarks(this);
+
+            x = getReport(this, 'XmlDoc');
+            outputElement = createDivH2(this);
             table = x.createElement('table');
             header = xmlifyDateRow(this, x);
             table.appendChild(header);
             for i = 1 : this.NumOfChildren
-                children = xmlify(this.Children{i}, x);
+                children = xmlify(this.Children{i});
                 for j = 1 : numel(children)
                     table.appendChild(children(j));
                 end
             end
-
-            outputElement.setAttribute('id', this.Id);
             outputElement.appendChild(table);
+            closeDivH2(this, outputElement);
         end%
 
 
@@ -54,15 +58,15 @@ classdef Table < reptile.element.Element ...
             outputElement = x.createElement('tr');
 
             hereRenderName( );
-            hereRenderMark( );
-            hereRenderUnit( );
+            hereRenderMarks( );
+            hereRenderUnits( );
 
             dateFormat = reptile.Options.get(this, 'DateFormat');
             dateString = DateWrapper.toCellOfChar( this.Dates, ...
                                                    'DateFormat=', dateFormat );
             for i = 1 : this.NumOfDates
-                date = x.createElement('td');
-                thisColumnClass = ['DateRow', this.DataColumnClass{i}];
+                date = x.createElement('th');
+                thisColumnClass = this.DataColumnClass{i};
                 date.setAttribute('class', thisColumnClass);
                 date.appendChild(x.createTextNode(dateString{i}));
                 outputElement.appendChild(date);
@@ -74,29 +78,26 @@ classdef Table < reptile.element.Element ...
                 function hereRenderName( )
                     showNames = true;
                     if showNames
-                        name = x.createElement('td');
-                        name.setAttribute('class', 'DateRow NameHeader');
+                        name = x.createElement('th');
                         outputElement.appendChild(name);
                     end
                 end%
 
 
-                function hereRenderMark( )
+                function hereRenderMarks( )
                     showMarks = reptile.Options.get(this, 'ShowMarks');
                     if showMarks
-                        mark = x.createElement('td');
-                        mark.setAttribute('class', 'DateRow MarkHeader');
-                        outputElement.appendChild(mark);
+                        marks = x.createElement('th');
+                        outputElement.appendChild(marks);
                     end
                 end%
 
 
-                function hereRenderUnit( )
+                function hereRenderUnits( )
                     showUnits = reptile.Options.get(this, 'ShowUnits');
                     if showUnits
-                        unit = x.createElement('td');
-                        unit.setAttribute('class', 'DateRow UnitHeader');
-                        outputElement.appendChild(unit);
+                        units = x.createElement('th');
+                        outputElement.appendChild(units);
                     end
                 end%
         end%
@@ -118,6 +119,38 @@ classdef Table < reptile.element.Element ...
                     end
                 end
             end
+        end%
+
+
+        function resolveShowUnits(this)
+            showUnits = get(this, 'ShowUnits');
+            if isequal(showUnits, @auto)    
+                showUnits = false;
+                for i = 1 : this.NumOfChildren
+                    units = get(this.Children{i}, 'Units');
+                    if ~isempty(units)
+                        showUnits = true;
+                        break
+                    end
+                end
+            end
+            set(this, 'ShowUnits', showUnits);
+        end%
+
+
+        function resolveShowMarks(this)
+            showMarks = get(this, 'ShowMarks');
+            if isequal(showMarks, @auto)    
+                showMarks = false;
+                for i = 1 : this.NumOfChildren
+                    marks = get(this.Children{i}, 'Marks');
+                    if ~isempty(marks)
+                        showMarks = true;
+                        break
+                    end
+                end
+            end
+            set(this, 'ShowMarks', showMarks);
         end%
     end
 

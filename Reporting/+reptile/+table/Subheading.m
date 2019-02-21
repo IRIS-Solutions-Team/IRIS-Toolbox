@@ -12,7 +12,8 @@ classdef Subheading < reptile.element.Element ...
         end%
 
 
-        function outputElement = xmlify(this, x)
+        function outputElement = xmlify(this) 
+            x = getReport(this, 'XmlDoc');
             outputElement = x.createElement('tr');
             subheading = x.createElement('td');
             subheading.setAttribute('colspan', sprintf('%g', this.NumOfColumns));

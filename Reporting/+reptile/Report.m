@@ -1,36 +1,37 @@
 classdef Report < reptile.element.Element
     properties
         Class = 'Report'
-        CanBeAdded = {'reptile.Table', 'reptile.Figure' }
+        CanBeAdded = { 'reptile.Section'
+                       'reptile.Table'
+                       'reptile.Figure'
+                       'reptile.Matrix' }
     end
 
 
     properties
+        XmlDoc
         FileName = ''
         StyleSheet = fullfile(iris.root( ), 'Reporting', '+reptile', 'default.css')
+        SourceFiles = reptile.SourceFiles.empty(1, 0)
+        Footnotes = cell.empty(1, 0)
+        FootnoteCounter = 0
     end
 
 
     methods
         function this = Report(varargin)
             this = this@reptile.element.Element(varargin{1:end});
-            fileName = varargin{2};
+            this.FileName = varargin{2};
             assignOptions(this, varargin{3:end});
-            [p, t, x] = fileparts(fileName);
-            if isempty(x)
-                x = '.html';
-                fileName = fullfile(p, [t, x]);
-            end
-            this.FileName = fileName;
             singleFile = get(this, 'SingleFile');
             this.SourceFiles = reptile.SourceFiles(this.FileName, singleFile);
         end%
 
 
-        function fileName = publish(this, varargin)
-            c = xmlify(this);
-            c = ['<!DOCTYPE html> ', newline( ), c];
-            char2file(c, this.FileName);
+        function [fileName, code] = publish(this, varargin)
+            code = xmlify(this);
+            code = ['<!DOCTYPE html> ', newline( ), code];
+            char2file(code, this.FileName);
             fileName = this.FileName;
             if this.CleanUp
                 cleanup(this.SourceFiles);
@@ -40,6 +41,7 @@ classdef Report < reptile.element.Element
 
         function c = xmlify(this, outputFileName)
             x = com.mathworks.xml.XMLUtils.createDocument('html');
+            this.XmlDoc = x;
             html = x.getDocumentElement( );
             hereXmlifyHead( );
             hereXmlifyBody( );
@@ -73,7 +75,7 @@ classdef Report < reptile.element.Element
                 div.appendChild(h1);
                 body.appendChild(div);
                 for i = 1 : this.NumOfChildren
-                    child = xmlify(this.Children{i}, x);
+                    child = xmlify(this.Children{i});
                     body.appendChild(child);
                 end
                 html.appendChild(body);
@@ -93,6 +95,16 @@ classdef Report < reptile.element.Element
             if isequal(value, @auto)
                 value = this.SourceFiles.SingleFile;
             end
+        end%
+
+
+        function this = set.FileName(this, value)
+            [p, t, x] = fileparts(value);
+            if isempty(x)
+                x = '.html';
+                value = fullfile(p, [t, x]);
+            end
+            this.FileName = value;
         end%
     end
 end

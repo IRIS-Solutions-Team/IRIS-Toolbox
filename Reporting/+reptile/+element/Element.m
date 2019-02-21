@@ -3,7 +3,6 @@ classdef (Abstract) Element < handle
         Caption = ''
         Parent
         Children = cell.empty(1, 0)
-        SourceFiles = reptile.SourceFiles.empty(1, 0)
         Options = reptile.Options(@parent)
         Id = ''
     end
@@ -35,7 +34,7 @@ classdef (Abstract) Element < handle
         end%
 
 
-        function le(input1, input2)
+        function plus(input1, input2)
             add(input1, input2);
         end%
 
@@ -55,7 +54,6 @@ classdef (Abstract) Element < handle
             if canBeAdded(parent, child)
                 parent.Children{end+1} = child;
                 child.Parent = parent;
-                child.SourceFiles = parent.SourceFiles;
                 return
             end
             THIS_ERROR = { 'Reptile:InvalidObjectsToMerge'
@@ -83,6 +81,11 @@ classdef (Abstract) Element < handle
         end%
 
 
+        function set(this, option, value)
+            reptile.Options.set(this, option, value);
+        end%
+
+
         function detail(this, indent)
             if nargin<2
                 indent = '    ';
@@ -96,6 +99,19 @@ classdef (Abstract) Element < handle
             if nargin<2
                 textual.looseLine( );
             end
+        end%
+
+
+        function output = getReport(this, name)
+            report = this;
+            while ~isa(report, 'reptile.Report')
+                report = report.Parent;
+            end
+            if nargin==1
+                output = report;
+                return
+            end
+            output = report.(name);
         end%
     end
 

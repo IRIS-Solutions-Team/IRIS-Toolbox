@@ -2,25 +2,34 @@
 body { font-family: sans-serif;
        margin: 2%; }
 
+
 /* __Top Level Elements__ */
 
 div.Report,
 div.Table, 
+div.Matrix, 
 div.Figure { page-break-inside: avoid;
-             margin-bottom: 3em; }
+             padding-bottom: 3em; }
 
-/* __Tables__ */
+.PageBreakAfter { page-break-after: always; 
+                  border-bottom: 0.5px dashed; }
+
+
+/* __Tables and Matrices__ */
 
 table { border-collapse: collapse;
         border-top: 2px solid;
         border-bottom: 2px solid; }
 
-td {  margin: 0px;
-      padding: 0.2em 0.3em 0.2em 0.3em; }
+th { border-bottom: 1px solid;
+     font-weight: normal; }
 
-td.DateRow { border-bottom: 1px solid; }
+th, td {  margin: 0px;
+          padding: 0.2em 0.3em 0.2em 0.3em;
+          text-align: right; }
 
-td.DateRow, td.Data { text-align: right; }
+td.RowName,
+td.Subheading { text-align: left; }
 
 td.Subheading { font-weight: bold; }
 
@@ -30,6 +39,7 @@ td.VlineAfter { border-right: 1px solid }
 
 td.VlineBefore { border-left: 1px solid }
 
+
 /* __Figures__ */
 
 div.Image { margin: 0px;
@@ -38,4 +48,12 @@ div.Image { margin: 0px;
 
 img { margin: 0px;
       padding: 0px; }
+
+
+/* __Footnotes __ */
+
+sup.FootnoteMark { font-size: 60%;
+                   font-weight: normal; }
+
+div.Footnotes { font-size: 80%; }
 
