@@ -29,4 +29,17 @@ classdef Steady < solver.blazer.Blazer
             idOfQties = PTR( find(this.InxEndogenous) ); %#ok<FNDSB>
         end%
     end
+
+
+    properties (Dependent)
+        InxOfZero
+    end
+
+
+    methods
+        function value = get.InxOfZero(this)
+            value = this.IxZero;
+        end%
+    end
 end
+

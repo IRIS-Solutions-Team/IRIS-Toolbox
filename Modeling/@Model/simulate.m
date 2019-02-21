@@ -9,14 +9,15 @@ if isempty(parser)
     parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
 
     parser.addDeviationOptions(false);
+    parser.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('AppendPostsample', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Method', 'FirstOrder', @(x) validateString(x, {'FirstOrder', 'Selective', 'Stacked'})); 
     parser.addParameter('IgnoreShocks', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Method', 'FirstOrder', @(x) validateString(x, {'FirstOrder', 'Selective', 'Stacked'})); 
     parser.addParameter('OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
-    parser.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Plan', true, @(x) isequal(x, true) || isequal(x, false) || isa(x, 'Plan'));
+    parser.addParameter('ReturnNaNIfFailed', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Solver', @auto, @validateSolver);
     parser.addParameter('Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 end
@@ -100,16 +101,22 @@ function flag = validateMethod(x)
 end%
 
 
+
+
 function flag = validateSolver(x)
     flag = isequal(x, @auto) || validateSolverName(x) ...
            || (iscell(x) && validateSolverName(x{1}) && iscellstr(x(2:2:end)));
 end%
 
 
+
+
 function flag = validateSolverName(x)
     flag = (ischar(x) && any(strcmpi(x, {'IRIS-qad', 'IRIS-qnsd', 'IRIS-newton', 'qad', 'IRIS', 'lsqnonlin', 'fsolve'}))) ...
            || isequal(x, @fsolve) || isequal(x, @lsqnonlin) || isequal(x, @qad);
 end%
+
+
 
 
 function windowOption = parseWindowOption(windowOption, methodOption, baseRange)
@@ -132,6 +139,8 @@ function windowOption = parseWindowOption(windowOption, methodOption, baseRange)
 end%
 
 
+
+
 function solverOption = parseSolverOption(solverOption, methodOption)
     if strcmpi(methodOption, 'FirstOrder')
         solverOption = [ ];
@@ -148,6 +157,8 @@ function solverOption = parseSolverOption(solverOption, methodOption)
         return
     end
 end%
+
+
 
 
 function outputInfo = postprocessOutputInfo(this, outputInfo)

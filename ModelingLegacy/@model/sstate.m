@@ -1,22 +1,25 @@
-function [this, flag, nPath, eigen] = sstate(this, varargin)
+function [this, flag, outputInfo] = sstate(this, varargin)
 % sstate  Compute steady state or balance-growth path of the model
 %
 % __Syntax__
 %
-%     [M, Flag] = sstate(M, ...)
+%     [m, flag, outputInfo] = sstate(m, ...)
 %
 %
 % __Input Arguments__
 %
-% * `M` [ model ] - Parameterized model object.
+% * `m` [ model ] - Parameterized model object.
 %
 %
 % __Output Arguments__
 %
-% * `M` [ model ] - Model object with newly computed steady state assigned.
+% * `m` [ model ] - Model object with newly computed steady state assigned.
 %
-% * `Flag` [ `true` | `false` ] - True for parameter variants where steady
+% * `flag` [ `true` | `false` ] - True for parameter variants where steady
 % state has been found successfully.
+%
+% * `outputInfo` [ struct ] - Additional information about steady state
+% calculations.
 %
 %
 % __Options__
@@ -235,9 +238,9 @@ steady = prepareSteady(this, 'verbose', varargin{:});
 %--------------------------------------------------------------------------
 
 if this.IsLinear
-    [this, flag, nPath, eigen] = steadyLinear(this, steady, Inf);
+    [this, flag, outputInfo] = steadyLinear(this, steady, Inf);
 else
-    [this, flag] = steadyNonlinear(this, steady, Inf);
+    [this, flag, outputInfo] = steadyNonlinear(this, steady, Inf);
 end
 
 end%

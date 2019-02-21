@@ -179,7 +179,8 @@ classdef (Abstract) Block < handle
             if isa(this.Solver, 'solver.Options')
                 % __IRIS Solver__
                 this.Solver.JacobPattern = this.JacobPattern;
-                [z, ~, exitFlag] = solver.algorithm.qnsd(fnObjective, z0, this.Solver);
+                header = sprintf('Block %s', this.Id);
+                [z, ~, exitFlag] = solver.algorithm.qnsd(fnObjective, z0, this.Solver, header);
 
             elseif isa(this.Solver, 'optim.options.SolverOptions')
                 % __Optim Tbx__
@@ -188,19 +189,14 @@ classdef (Abstract) Block < handle
                     this.Solver.JacobPattern = sparse(double(this.JacobPattern));
                     [z, ~, ~, exitFlag] = ...
                         lsqnonlin(fnObjective, z0, this.Lower, this.Upper, this.Solver);
-                    if exitFlag==-3
-                        exitFlag = 1;
-                    end
                 elseif strcmpi(solverName, 'fsolve')
                     %this.Solver.JacobPattern = sparse(double(this.JacobPattern));
                     this.Solver.Algorithm = 'levenberg-marquardt';
                     %this.Solver.Algorithm = 'trust-region';
                     %this.Solver.SubproblemAlgorithm = 'cg';
                     [z, ~, exitFlag] = fsolve(fnObjective, z0, this.Solver);
-                    if exitFlag==-3
-                        exitFlag = 1;
-                    end
                 end
+                exitFlag = solver.ExitFlag.fromOptimTbx(exitFlag);
                 z = real(z);
                 z( abs(z)<=this.Solver.StepTolerance ) = 0;
 

@@ -18,13 +18,14 @@ classdef Steady < solver.block.Block
         end%
         
         
-        function [lx, gx, exitStatus, error] = run(this, lnk, lx, gx, ixLog)
-            exitStatus = true;
+        function [lx, gx, exitFlag, error] = run(this, lnk, lx, gx, ixLog)
+            exitFlag = solver.ExitFlag.IN_PROGRESS;
             error = struct( 'EvaluatesToNan', [ ] );
             
             posl = this.PosQty.Level;
             posg = this.PosQty.Growth;
             if isempty(posl) && isempty(posg)
+                exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
                 return
             end
             
@@ -48,31 +49,43 @@ classdef Steady < solver.block.Block
                 %* Make sure init conditions are within bounds.
                 %* Empty bounds if all are Inf.
                 %* Bounds are in logs for log variables.
-                chkInitBounds( );
-                % Test all equations in this block for NaNs and Infs.
-                XX = timeArray(0);
-                chk = this.EquationsFunc(XX, t0);
-                ix = ~isfinite(chk);
-                if any(ix)
-                    error.EvaluatesToNan = this.PosEqn(ix);
+                checkInitBounds( );
+
+                % Test all equations in this block for NaNs and Infs
+                checkEquationsForCorrupt( );
+                if exitFlag~=solver.ExitFlag.IN_PROGRESS
                     return
                 end
+
                 [z, exitFlag] = solve(this, @objective, z0);
                 z(ixLogZ) = exp( z(ixLogZ) );
             else
                 % __ASSIGN_* Block__
-                z = assign( );
-                exitFlag = 1;
+                [z, exitFlag] = assign( );
             end
             
             lx(posl) = z(1:nl);
             gx(posg) = z(nl+1:end);
-            exitStatus = all(isfinite(z)) && double(exitFlag)>0;
+            if any(~isfinite(z(:)))
+                exitFlag = solver.ExitFlag.NAN_INF_SOLUTION;
+            end
             
             return
             
             
-            function z = assign( )
+            function checkEquationsForCorrupt( )
+                XX = timeArray(0);
+                evalToCheck = this.EquationsFunc(XX, t0);
+                inxOfCorrupt = ~isfinite(evalToCheck);
+                if ~any(inxOfCorrupt)
+                    return
+                end
+                exitFlag = solver.ExitFlag.NAN_INF_PREEVAL;
+                error.EvaluatesToNan = this.PosEqn(inxOfCorrupt);
+            end%
+
+
+            function [z, exitFlag] = assign( )
                 % __Assignment__
                 % Vectors posl and posg are each either empty or scalar at this point.
                 fnInv = this.Type.InvTransform;
@@ -101,11 +114,11 @@ classdef Steady < solver.block.Block
                         end
                     end
                 end
-                exitFlag = 1;
+                exitFlag = solver.ExitFlag.ASSIGNED;
             end%
             
             
-            function chkInitBounds( )
+            function checkInitBounds( )
                 ixOutOfBnds = z0<this.Lower | z0>this.Upper;
                 ixLowerInf = isinf(this.Lower);
                 ixUpperInf = isinf(this.Upper);

@@ -1,4 +1,4 @@
-function  [this, ixSuccess, nPath, eigen] = steadyLinear(this, steady, variantsRequested)
+function  [this, success, outputInfo] = steadyLinear(this, steady, variantsRequested)
 % steadyLinear  Calculate steady state in linear models
 %
 % Backend IRIS function
@@ -13,9 +13,9 @@ TYPE = @int8;
 PTR = @int16;
 
 try
-    isWarn = isequal(steady.Warning, true);
+    throwWarning = isequal(steady.Warning, true);
 catch %#ok<CTCH>
-    isWarn = true;
+    throwWarning = true;
 end
 
 nv = length(this);
@@ -27,13 +27,11 @@ end
 
 %--------------------------------------------------------------------------
 
-nPath = [ ];
-eigen = [ ];
+outputInfo = struct( 'NumOfPaths', [ ], ...
+                     'EigenValues', [ ]);
+
 if ~isequal(steady.Solve, false)
-    if isequal(steady.Solve, true)
-        steady.Solve = cell.empty(1, 0);
-    end
-    [this, nPath, eigen] = solve(this, steady.Solve{:});
+    hereSolveModel( );
 end
 
 ixy = this.Quantity.Type==TYPE(1);
@@ -57,25 +55,25 @@ end
 [~, ixNanSolution] = isnan(this, 'solution');
 ixSolution = true(1, nv);
 ixSolution(variantsRequested) = ~ixNanSolution(variantsRequested);
-if isWarn && any(~ixSolution)
+if throwWarning && any(~ixSolution)
     throw( ...
         exception.Base('Model:CannotSteadyLinear', 'warning'), ...
         exception.Base.alt2str(~ixSolution) ...
         ); %#ok<GTARG>
 end
 
-ixSuccess = false(1, nv);
+success = false(1, nv);
 ixDiffStat = true(1, nv);
 for v = variantsRequested
     lvl = nan(1, nQty);
     grw = zeros(1, nQty);
     if ixSolution(v)
-        [lvl, grw, ixDiffStat(v)] = getSteady( );
+        [lvl, grw, ixDiffStat(v)] = hereGetSteady( );
         if any(ixLog)
             lvl(1, ixLog) = real(exp(lvl(1, ixLog)));
             grw(1, ixLog) = real(exp(grw(1, ixLog)));
         end
-        ixSuccess(v) = true;
+        success(v) = true;
     end
     % Assign the values to the model object, measurement and transition
     % variables only.
@@ -85,10 +83,8 @@ end
 
 % Some parameterizations are not difference stationary.
 if ~any(ixDiffStat)
-    throw( ...
-        exception.Base('Model:NotDifferenceStationary', 'warning'), ...
-        exception.Base.alt2str(ixDiffStat) ...
-        ); %#ok<GTARG>
+    throw( exception.Base('Model:NotDifferenceStationary', 'warning'), ...
+           exception.Base.alt2str(ixDiffStat) ); %#ok<GTARG>
 end
 
 if needsRefresh
@@ -98,7 +94,18 @@ end
 return
 
 
-    function [lvl, grw, isDiffStat] = getSteady( )
+    function hereSolveModel( )
+        solveOptions = steady.Solve;
+        if isequal(solveOptions, true)
+            solveOptions = cell.empty(1, 0);
+        end
+        [this, numOfPaths, eigenValues] = solve(this, solveOptions{:});
+        outputInfo.NumOfPaths = numOfPaths;
+        outputInfo.EigenValues = eigenValues;
+    end%
+
+
+    function [lvl, grw, isDiffStat] = hereGetSteady( )
         [T, ~, K, Z, ~, D, U] = sspaceMatrices(this, v);
         [nx, nb] = size(T);
         numOfUnitRoots = getNumOfUnitRoots(this.Variant, v);
@@ -144,5 +151,6 @@ return
             lvl(1, posy) = y(:).';
             grw(1, posy) = dy(:).';
         end
-    end
-end
+    end%
+end%
+

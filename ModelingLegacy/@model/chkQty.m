@@ -18,15 +18,7 @@ end
 for i = 1 : length(varargin)
     switch varargin{i}
         case 'log'
-            levels = this.Variant.Values(:, :, variantsRequested);
-            indexOfZeroLogs = this.Quantity.IxLog ...
-                              & any(abs(levels)<=this.Tolerance.Steady, 3);
-            flag = ~any(indexOfZeroLogs);
-            list = this.Quantity.Name(indexOfZeroLogs);
-            if ~flag
-                throw( exception.Base('Model:LOG_VARIABLE_ZERO_STEADY', 'warning'), ...
-                       list{:} );
-            end
+            flag = checkZeroLog(this, variantsRequested);
         case 'parameters'
             % Throw warning if some parameters are not assigned.
             [~, list] = isnan(this, 'parameters', variantsRequested);

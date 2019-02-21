@@ -381,7 +381,9 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     
     methods (Hidden)
         varargout = cat(varargin)        
+        varargout = checkZeroLog(varargin)
         varargout = chkConsistency(varargin)
+        varargout = chkQty(varargin)
         varargout = createHashEquations(varargin)
         varargout = createTrendArray(varargin)        
         varargout = evalTrendEquations(varargin)
@@ -389,7 +391,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = getIthOmega(varargin)
         varargout = getVariant(varargin)
         varargout = hdatainit(varargin)
-        varargout = chkQty(varargin)
         varargout = kalmanFilter(varargin)        
         varargout = myfdlik(varargin)
         varargout = myfindsspacepos(varargin)

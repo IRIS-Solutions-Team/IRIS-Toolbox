@@ -65,6 +65,8 @@ outputInfo = struct( );
 outputInfo.TimeFrames = cell(1, numOfRuns);
 outputInfo.BaseRange = [startOfBaseRange, endOfBaseRange];
 outputInfo.ExtendedRange = extendedRange([1, end]);
+outputInfo.Success = true(1, numOfRuns);
+outputInfo.ExitFlags = cell(1, numOfRuns);
 
 for run = 1 : numOfRuns
     if strcmpi(method{run}, 'None')
@@ -103,6 +105,7 @@ for run = 1 : numOfRuns
     % Simulate @Rectangular object one timeFrame at a time
     numOfTimeFrames = size(timeFrames, 1);
     needsStoreE = false(1, numOfTimeFrames);
+    outputInfo.ExitFlags{run} = repmat(solver.ExitFlag.IN_PROGRESS, 1, numOfTimeFrames);
     for frame = 1 : numOfTimeFrames
         setTimeFrame(vthRect, timeFrames(frame, :));
         setTimeFrame(vthData, timeFrames(frame, :));
@@ -116,11 +119,13 @@ for run = 1 : numOfRuns
         end
         if strcmpi(method{run}, 'FirstOrder')
             simulateFunction(vthRect, vthData);
+            exitFlag = solver.ExitFlag.LINEAR_SYSTEM;
         elseif strcmpi(method{run}, 'Selective')
-            simulateSelective( simulateFunction, ...
-                               vthRect, vthData, needsStoreE(frame), ...
-                               deviation(run), opt );
+            exitFlag = simulateSelective( simulateFunction, ...
+                                          vthRect, vthData, needsStoreE(frame), ...
+                                          deviation(run), opt );
         end
+        outputInfo.ExitFlags{run}(frame) = exitFlag;
     end % frame
 
     % Update shocks back in YXEPG if needed
@@ -130,9 +135,13 @@ for run = 1 : numOfRuns
 
     % Update output data
     YXEPG(:, :, run) = vthData.YXEPG;
+    if opt.ReturnNaNIfFailed
+        YXEPG(:, firstColumnOfSimulation:lastColumnOfSimulation, run) = NaN;
+    end
 
     % Update output info struct
     outputInfo.TimeFrames{run} = timeFrames;
+    outputInfo.Success(run) = all(hasSucceeded(outputInfo.ExitFlags{run}));
 end % run
 
 if opt.Contributions
@@ -218,9 +227,8 @@ return
 
 
     function hereResetOutsideBaseRange( )
-        numOfDataSets = size(YXEPG, 3);
         inxOfInitInPresample = getInxOfInitInPresample(this, firstColumnOfSimulation);
-        for i = 1 : numOfDataSets
+        for i = 1 : numOfRuns
             temp = YXEPG(:, 1:firstColumnOfSimulation-1, i);
             temp(~inxOfInitInPresample) = NaN;
             YXEPG(:, 1:firstColumnOfSimulation-1, i) = temp;
@@ -271,7 +279,7 @@ end%
 
 
 
-function simulateSelective(simulateFunction, rect, data, needsStoreE, deviation, opt)
+function exitFlag = simulateSelective(simulateFunction, rect, data, needsStoreE, deviation, opt)
     hashEquations = rect.HashEquationsFunction;
     firstColumnOfTimeFrame = data.FirstColumnOfTimeFrame;
     columnRangeOfNonlinAddf = firstColumnOfTimeFrame + (0 : opt.Window-1);
@@ -285,13 +293,16 @@ function simulateSelective(simulateFunction, rect, data, needsStoreE, deviation,
      
     if any(strcmpi(solverName, {'IRIS-qad', 'IRIS-newton', 'IRIS-qnsd'}))
         % IRIS Solver
-        [finalNlaf, dcy, flag] = solver.algorithm.qnsd(@objectiveFunction, initNlaf, opt.Solver);
-    elseif strcmpi(solverName, 'fsolve')
-        % Optimization Tbx
-        [finalNlaf, dcy, flag] = fsolve(@objectiveFunction, initNlaf, opt.Solver);
-    elseif strcmpi(solverName, 'lsqnonlin')
-        % Optimization Tbx
-        [finalNlaf, ~, dcy, flag] = lsqnonlin(@objectiveFunction, initNlaf, [ ], [ ], opt.Solver);
+        [finalNlaf, dcy, exitFlag] = solver.algorithm.qnsd(@objectiveFunction, initNlaf, opt.Solver);
+    else
+        if strcmpi(solverName, 'fsolve')
+            % Optimization Tbx
+            [finalNlaf, dcy, exitFlag] = fsolve(@objectiveFunction, initNlaf, opt.Solver);
+        elseif strcmpi(solverName, 'lsqnonlin')
+            % Optimization Tbx
+            [finalNlaf, ~, dcy, exitFlag] = lsqnonlin(@objectiveFunction, initNlaf, [ ], [ ], opt.Solver);
+        end
+        exitFlag = solver.ExitFlag.fromOptimTbx(exitFlag);
     end
     data.NonlinAddf(:, columnRangeOfNonlinAddf) = finalNlaf; 
     simulateFunction(rect, data);

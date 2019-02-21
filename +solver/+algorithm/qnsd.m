@@ -1,4 +1,4 @@
-function [x, f, numericExitFlag] = qnsd(objectiveFunc, xInit, opt)
+function [x, f, exitFlag] = qnsd(objectiveFunc, xInit, opt, header)
 % qnsd  Quasi-Newton-Steepest-Descent algorithm
 %
 % Backend IRIS function
@@ -89,6 +89,9 @@ numOfUnknowns = numel(xInit);
 temp = struct('NumberOfVariables', numOfUnknowns);
 
 displayLevel = getDisplayLevel( );
+if nargin<4
+    header = '';
+end
 tolX = opt.StepTolerance;
 tolFun = opt.FunctionTolerance;
 maxIter = opt.MaxIterations;
@@ -119,7 +122,7 @@ w = warning( );
 warning('off', 'MATLAB:nearlySingularMatrix');
 warning('off', 'MATLAB:singularMatrix');
 
-exitFlag = solver.ExitFlag.ITERATING;
+exitFlag = solver.ExitFlag.IN_PROGRESS;
 fnCount = 1;
 iter = 0;
 while true
@@ -319,7 +322,6 @@ end
 
 x = reshape(current.X, sizeOfX);
 f = reshape(current.F, sizeOfF);
-numericExitFlag = double(exitFlag);
 
 return
 
@@ -553,7 +555,7 @@ return
 
 
     function reportFinal( )
-        print(exitFlag);
+        print(exitFlag, header);
     end%
 
 
