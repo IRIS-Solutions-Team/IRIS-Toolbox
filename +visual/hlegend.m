@@ -5,12 +5,12 @@ function legendHandle = hlegend(location, varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     HandleLegend = visual.hlegend(Location, ...)
+%     legendHandle = visual.hlegend(location, ...)
 %
 %
 % __Input Arguments__
 %
-% * `Location` [ `'top'` | `'bottom'` ] - Location of the legend within the
+% * `location` [ `'Top'` | `'Bottom'` ] - Location of the legend within the
 % figure window.
 %
 % All other input arguments are the same as input arguments into the
@@ -19,7 +19,7 @@ function legendHandle = hlegend(location, varargin)
 %
 % __Output Arguments__
 %
-% * `HandleLegend` [ numeric ] - Handle to legend objects created.
+% * `legendHandle` [ numeric ] - Handle to legend objects created.
 %
 %
 % __Options__
@@ -58,12 +58,21 @@ legendHandle = legend(varargin{:});
 
 if ~isempty(legendHandle)
     set(legendHandle, 'Orientation', 'Horizontal');
+    currentAxesHandle = visual.backend.getCurrentAxesIfExists( );
+    if ~isempty(currentAxesHandle)
+        setappdata(currentAxesHandle, 'IRIS_OutsideLegend', legendHandle);
+    end
     for i = 1 : numel(legendHandle)
         moveLegend(legendHandle(i), location, MARGIN);
     end
 end
 
-end
+end%
+
+
+%
+% Local Production
+%
 
 
 function moveLegend(legendHandle, location, margin)
@@ -79,5 +88,5 @@ function moveLegend(legendHandle, location, margin)
     end
     drawnow( );
     set(legendHandle, 'Position', newPosition);
-end
+end%
 
