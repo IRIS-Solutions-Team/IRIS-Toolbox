@@ -147,7 +147,7 @@ function solverOption = parseSolverOption(solverOption, methodOption)
         return
     end
     if strcmpi(methodOption, 'Selective')
-        defaultSolver = 'IRIS-Newton';
+        defaultSolver = 'IRIS-QaD';
         prepareGradient = false;
         displayMode = 'Verbose';
         solverOption = solver.Options.parseOptions( solverOption, ...

@@ -81,7 +81,7 @@ if strcmpi(s.Method, 'Selective')
         
     prepareHashEquations( );
 
-    defaultSolver = 'IRIS-Newton';
+    defaultSolver = 'IRIS-QaD';
     prepareGradient = false;
     s.Solver = solver.Options.parseOptions( opt.Solver, ...
                                             defaultSolver, ...
