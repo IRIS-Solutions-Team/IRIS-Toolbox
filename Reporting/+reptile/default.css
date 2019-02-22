@@ -1,5 +1,6 @@
 
 body { font-family: sans-serif;
+       color: #444;
        margin: 2%; }
 
 
@@ -12,7 +13,7 @@ div.Figure { page-break-inside: avoid;
              padding-bottom: 3em; }
 
 .PageBreakAfter { page-break-after: always; 
-                  border-bottom: 0.5px dashed; }
+                  border-bottom: 0.5px dotted; }
 
 
 /* __Tables and Matrices__ */
@@ -24,20 +25,26 @@ table { border-collapse: collapse;
 th { border-bottom: 1px solid;
      font-weight: normal; }
 
-th, td {  margin: 0px;
-          padding: 0.2em 0.3em 0.2em 0.3em;
+td { border-bottom: 1px solid #ccc; }
+
+th, td {  padding: 0.3em 0.3em 0.3em 0.3em;
           text-align: right; }
 
 td.RowName,
 td.Subheading { text-align: left; }
 
-td.Subheading { font-weight: bold; }
+td.Subheading { font-weight: bold;
+                padding-top: 10px;
+                padding-bottom: 10px; }
 
+th.Highlight,
 td.Highlight { background-color: #ddd; }
 
-td.VlineAfter { border-right: 1px solid }
+th.VlineAfter,
+td.VlineAfter { border-right: 1px solid #999; }
 
-td.VlineBefore { border-left: 1px solid }
+th.VlineBefore,
+td.VlineBefore { border-left: 1px solid #999; }
 
 
 /* __Figures__ */
