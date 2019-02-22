@@ -57,11 +57,16 @@ end
 
 numOfDataSets = databank.numColumns(inputDatabank, allNames);
 numOfDataSets(isnan(numOfDataSets) & inxOfOptionalNames) = 0;
+maxNumOfDataSets = max(numOfDataSets);
 
-checkNumOfDataSetsAndVariants = numOfDataSets==1 | numOfDataSets==0 | numOfDataSets==nv;
+checkNumOfDataSetsAndVariants = numOfDataSets==1 ...
+                              | numOfDataSets==0 ...
+                              | (nv>1 & numOfDataSets==nv) ...
+                              | (nv==1 & numOfDataSets==maxNumOfDataSets);
+
 if ~all(checkNumOfDataSetsAndVariants)
     THIS_ERROR = { 'model:Abstract:checkInputDatabank'
-                   'This time series has an invalid number of data sets: %s ' };
+                   'This time series has an inconsistent number of columns: %s ' };
     throw( exception.Base(THIS_ERROR, 'error'), ...
            allNames{~checkNumOfDataSetsAndVariants} );
 end
