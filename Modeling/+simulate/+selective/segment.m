@@ -93,16 +93,14 @@ solverName = s.Solver.SolverName;
 if any(strcmpi(solverName, {'IRIS-qad', 'IRIS-newton', 'IRIS-qnsd'}))
     % IRIS Solver
     [v, dcy, flag] = solver.algorithm.qnsd(@doEvalDcy, v0, s.Solver);
-
 elseif strcmpi(solverName, 'fsolve')
     % Optimization Tbx
     [v, dcy, flag] = fsolve(@doEvalDcy, v0, s.Solver);
-
 elseif strcmpi(solverName, 'lsqnonlin')
     % Optimization Tbx
     [v, ~, dcy, flag] = lsqnonlin(@doEvalDcy, v0, [ ], [ ], s.Solver);
-
 end
+flag = double(flag);
 
 v = reshape(v, nn, nPerNonl);
 if flag>0
