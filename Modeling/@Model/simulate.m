@@ -1,5 +1,7 @@
 function [outputData, outputInfo] = simulate(this, inputData, baseRange, varargin)
 
+TYPE = @int8;
+
 persistent parser
 if isempty(parser)
     validateString = @(x, list) (ischar(x) || isa(x, 'string')) && any(strcmpi(x, list));
@@ -26,11 +28,11 @@ opt = parser.Options;
 opt.EvalTrends = opt.DTrends;
 usingDefaults = parser.UsingDefaultsInStruct;
 
+baseRange = double(baseRange);
 opt.Window = parseWindowOption(opt.Window, opt.Method, baseRange);
 opt.Solver = parseSolverOption(opt.Solver, opt.Method);
 
 %--------------------------------------------------------------------------
-
 
 % Check the input databank; treat all names as optional, and check for
 % missing initial conditions later
@@ -39,19 +41,33 @@ optionalNames = this.Quantity.Name;
 databankInfo = checkInputDatabank(this, inputData, baseRange, requiredNames, optionalNames);
 
 hereResolveOptionConflicts( );
+plan = opt.Plan;
 
-[outputData, outputInfo] = simulateFirstOrder(this, inputData, baseRange, opt.Plan, databankInfo, opt);
+runningData = DynamicDataWrapper.withProperties( 'YXEPG', ...
+                                                 'BaseRange', ...
+                                                 'ExtendedRange', ...
+                                                 'BaseRangeColumns', ...
+                                                 'MaxShift', ...
+                                                 'TimeTrend', ...
+                                                 'NumOfDummyPeriods', ...
+                                                 'TimeFrames', ...
+                                                 'Success', ...
+                                                 'ExitFlags' );
 
-if isstruct(outputData)
-    outputData = appendData(this, inputData, outputData, baseRange, opt);
-end
+herePrepareRunningData( );
+
+simulateFirstOrder(this, runningData, plan, databankInfo, opt);
+
+outputData = herePrepareOutputData( );
 
 if nargout>=2
-    outputInfo = postprocessOutputInfo(this, outputInfo);
+    outputInfo = herePrepareOutputInfo( );
 end
 
 return
     
+
+
 
     function hereResolveOptionConflicts( )
         if ~usingDefaults.Anticipate && ~usingDefaults.Plan
@@ -77,6 +93,99 @@ return
                            'Option Contributions=true cannot be used in simulations on multiple data sets' }
             throw( exception.Base(THIS_ERROR, 'error') );
         end
+    end%
+
+
+
+
+    function herePrepareRunningData( )
+        herePrepareDummyPeriods( );
+        numOfDummyPeriods = runningData.NumOfDummyPeriods;
+        startOfBaseRange = baseRange(1);
+        endOfBaseRange = baseRange(end);
+        endOfBaseRangePlusDummy = endOfBaseRange + numOfDummyPeriods;
+        baseRangePlusDummy = [startOfBaseRange, endOfBaseRangePlusDummy];
+        runningData.BaseRange = [startOfBaseRange, endOfBaseRange];
+        [ runningData.YXEPG, ~, ...
+          extendedRange, ~, ...
+          runningData.MaxShift, ...
+          runningData.TimeTrend ] = data4lhsmrhs( this, ...
+                                                  inputData, ...
+                                                  baseRangePlusDummy, ...
+                                                  'ResetShocks=', true, ...
+                                                  'IgnoreShocks=', opt.IgnoreShocks, ...
+                                                  'NumOfDummyPeriods', numOfDummyPeriods );
+        startOfExtendedRange = extendedRange(1);
+        endOfExtendedRange = extendedRange(end);
+        runningData.ExtendedRange = [startOfExtendedRange, endOfExtendedRange];
+        runningData.BaseRangeColumns = [ round(startOfBaseRange - startOfExtendedRange + 1), ...
+                                         round(endOfBaseRange - startOfExtendedRange + 1) ];
+    end%
+
+
+
+
+    function numOfDummyPeriods = herePrepareDummyPeriods( )
+        numOfDummyPeriods = opt.Window - 1;
+        if strcmpi(opt.Method, 'Selective')
+            [~, maxShift] = getActualMinMaxShifts(this);
+            numOfDummyPeriods = numOfDummyPeriods + maxShift;
+        end
+        if numOfDummyPeriods>0
+            plan = extendWithDummies(plan, numOfDummyPeriods);
+        end
+        runningData.NumOfDummyPeriods = numOfDummyPeriods;
+    end%
+
+
+
+
+    function outputData = herePrepareOutputData( )
+        if strcmpi(opt.OutputData, 'Databank')
+            if opt.Contributions
+                comments = this.Quantity.Label4ShockContributions;
+            else
+                comments = this.Quantity.LabelOrName;
+            end
+            inxToInclude = ~getIndexByType(this.Quantity, TYPE(4));
+            baseRange = runningData.BaseRange;
+            startOfExtendedRange = runningData.ExtendedRange(1);
+            lastColumnOfSimulation = runningData.BaseRangeColumns(end);
+            outputData = databank.fromDoubleArrayNoFrills( runningData.YXEPG(:, 1:lastColumnOfSimulation, :), ...
+                                                           this.Quantity.Name, ...
+                                                           startOfExtendedRange, ...
+                                                           comments, ...
+                                                           inxToInclude );
+            outputData = addToDatabank('Default', this, outputData);
+            outputData = appendData(this, inputData, outputData, baseRange, opt);
+        else
+            outputData = runningData.YXEPG;
+        end
+    end%
+
+
+
+
+    function outputInfo = herePrepareOutputInfo( )
+        timeFrames = runningData.TimeFrames;
+        numOfRuns = numel(timeFrames);
+        for run = 1 : numOfRuns
+            numOfTimeFrames = size(timeFrames{run});
+            extendedRange = runningData.ExtendedRange;
+            startOfExtendedRange = extendedRange(1);
+            endOfExtendedRange = extendedRange(end);
+            for frame = 1 : numOfTimeFrames
+                startOfTimeFrame = startOfExtendedRange + timeFrames{run}(frame, 1) - 1;
+                endOfTimeFrame = startOfExtendedRange + timeFrames{run}(frame, 2) - 1;
+                timeFrames{run}(frame, :) = [startOfTimeFrame, endOfTimeFrame];
+            end
+            timeFrames{run} = DateWrapper.fromDateCode(timeFrames{run});
+        end
+        outputInfo = struct( 'TimeFrames', timeFrames, ...
+                             'BaseRange', DateWrapper.fromDateCode(runningData.BaseRange), ...
+                             'ExtendedRange', DateWrapper.fromDateCode(runningData.ExtendedRange), ...
+                             'Success', runningData.Success, ...
+                             'ExitFlags', runningData.ExitFlags );
     end%
 end%
 
@@ -104,7 +213,7 @@ end%
 
 
 function flag = validateSolver(x)
-    flag = isequal(x, @auto) || validateSolverName(x) ...
+    flag = isequal(x, @auto) || isa(x, 'solver.Options') || validateSolverName(x) ...
            || (iscell(x) && validateSolverName(x{1}) && iscellstr(x(2:2:end)));
 end%
 
@@ -127,7 +236,6 @@ function windowOption = parseWindowOption(windowOption, methodOption, baseRange)
             windowOption = @max;
         end
     end
-    baseRange = double(baseRange);
     lenOfBaseRange = round(baseRange(end) - baseRange(1) + 1);
     if isequal(windowOption, @max)
         windowOption = lenOfBaseRange;
@@ -156,27 +264,5 @@ function solverOption = parseSolverOption(solverOption, methodOption)
                                                     displayMode );
         return
     end
-end%
-
-
-
-
-function outputInfo = postprocessOutputInfo(this, outputInfo)
-    numOfRuns = numel(outputInfo.TimeFrames);
-    for run = 1 : numOfRuns
-        timeFrames = outputInfo.TimeFrames{run};
-        numOfTimeFrames = size(timeFrames);
-        extendedRange = double(outputInfo.ExtendedRange);
-        startOfExtendedRange = extendedRange(1);
-        endOfExtendedRange = extendedRange(end);
-        for frame = 1 : numOfTimeFrames
-            startOfTimeFrame = startOfExtendedRange + timeFrames(frame, 1) - 1;
-            endOfTimeFrame = startOfExtendedRange + timeFrames(frame, 2) - 1;
-            timeFrames(frame, :) = [startOfTimeFrame, endOfTimeFrame];
-        end
-        outputInfo.TimeFrames{run} = DateWrapper.fromDateCode(timeFrames);
-    end
-    outputInfo.BaseRange = DateWrapper.fromDateCode(outputInfo.BaseRange);
-    outputInfo.ExtendedRange = DateWrapper.fromDateCode(outputInfo.ExtendedRange);
 end%
 

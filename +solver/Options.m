@@ -2,6 +2,7 @@ classdef (CaseInsensitiveProperties=true) Options
     properties
         Algorithm
         Display
+        Reset
 
         % Convergence Options
         FunctionNorm
@@ -45,6 +46,7 @@ classdef (CaseInsensitiveProperties=true) Options
 
     properties %(Hidden)
         DEFAULT_DISPLAY = 'iter*'
+        DEFAULT_RESET = true
 
         % Convergence Options
         DEFAULT_FUNCTION_NORM = 2
@@ -67,7 +69,7 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_FINITE_DIFFERENCE_STEP_SIZE = eps( )^(1/3)
         DEFAULT_FINITE_DIFFERENCE_TYPE = 'forward'
 
-        % QaD Options
+        % Step Size Options
         DEFAULT_INIT_STEP_SIZE = 1
         DEFAULT_LAST_STEP_SIZE_OPTIM = 0
         DEFAULT_STEP_SIZE_SWITCH = 0
@@ -150,6 +152,7 @@ classdef (CaseInsensitiveProperties=true) Options
             parser = extend.InputParser('solver.Options.getParser');
             parser.KeepUnmatched = true;
             parser.addParameter('Display', this.DEFAULT_DISPLAY, @validateDisplay);
+            parser.addParameter('Reset', this.DEFAULT_RESET, @(x) isequal(x, true) || isequal(x, false));
             parser.addParameter('JacobPattern', this.DEFAULT_JACOB_PATTERN, @(x) isempty(x) || (islogical(x) && issparse(x)) );
             parser.addParameter('Lambda', this.DEFAULT_LAMBDA, @(x) isequal(x, @default) || (isnumeric(x) && all(x>0) && all(isreal(x))));
             parser.addParameter('LastJacobUpdate', this.DEFAULT_LAST_JACOB_UPDATE, @(x) isnumeric(x) && isscalar(x));

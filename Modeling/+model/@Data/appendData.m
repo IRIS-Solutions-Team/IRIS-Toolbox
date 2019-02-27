@@ -49,13 +49,9 @@ else
     post = false;
 end
 
-if isa(range, 'DateWrapper')
-    startOfRange = getFirst(range);
-    endOfRange = getLast(range);
-else
-    startOfRange = range(1);
-    endOfRange = range(end);
-end
+range = double(range);
+startOfRange = range(1);
+endOfRange = range(end);
 freq = DateWrapper.getFrequencyAsNumeric(startOfRange);
 serialRangeStart = DateWrapper.getSerial(startOfRange);
 serialRangeEnd = DateWrapper.getSerial(endOfRange);
