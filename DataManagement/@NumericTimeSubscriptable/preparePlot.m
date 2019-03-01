@@ -84,12 +84,15 @@ function flag = validatePlotSpec(x)
     inxOfLetters = isletter(x);
     letters = x(inxOfLetters);
     nonletters = x(~inxOfLetters);
-    if letters~=unique(letters)
+    if ~isempty(letters) && ~isequal(letters, unique(letters, 'stable'))
         flag = false;
         return
     end
-    if ~checkChars(letters, allowedLetters) ...
-       || ~checkChars(nonletters, allowedNonletters)
+    if ~isempty(letters) && ~checkChars(letters, allowedLetters)
+        flag = false;
+        return
+    end
+    if ~isempty(nonletters) && ~checkChars(nonletters, allowedNonletters)
         flag = false;
         return
     end
