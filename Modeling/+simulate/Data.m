@@ -1,4 +1,4 @@
-classdef Data < handle
+classdef Data < matlab.mixin.Copyable
     properties
         % YXEPG  NumOfQuants-by-NumOfPeriods matrix of [observed; endogenous; expected shocks; parameters; exogenous]
         YXEPG = double.empty(0) 
@@ -84,19 +84,19 @@ classdef Data < handle
 
 
         function YXEPG = addSteadyTrends(this, YXEPG)
-            inx = this.InxOfYx & this.InxOfLog;
+            inx = this.InxOfYX & this.InxOfLog;
             YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxOfLog(this.InxOfYX), :);
             
-            inx = this.InxOfYx & ~this.InxOfLog;
+            inx = this.InxOfYX & ~this.InxOfLog;
             YXEPG(inx, :) = YXEPG(inx, :) + this.BarYX(~this.InxOfLog(this.InxOfYX), :);
         end%
 
 
         function YXEPG = removeSteadyTrends(this, YXEPG)
-            inx = this.InxOfYx & this.InxOfLog;
+            inx = this.InxOfYX & this.InxOfLog;
             YXEPG(inx, :) = YXEPG(inx, :) ./ this.BarYX(this.InxOfLog(this.InxOfYX), :);
             
-            inx = this.InxOfYx & ~this.InxOfLog;
+            inx = this.InxOfYX & ~this.InxOfLog;
             YXEPG(inx, :) = YXEPG(inx, :) - this.BarYX(~this.InxOfLog(this.InxOfYX), :);
         end%
 
@@ -211,6 +211,7 @@ classdef Data < handle
         NumOfE
         NumOfExtendedPeriods
         NumOfExogenizedPoints
+        NumOfExogenizedPointsY
         NumOfEndogenizedPoints
         LastAnticipatedE
         LastUnanticipatedE
@@ -242,6 +243,14 @@ classdef Data < handle
 
         function value = get.NumOfExogenizedPoints(this)
             value = nnz(this.InxOfExogenizedYX);
+        end%
+
+
+        function value = get.NumOfExogenizedPointsY(this)
+            inxOfYX = this.InxOfYX;
+            inxOfY = this.InxOfY;
+            inx = inxOfY(inxOfYX);
+            value = nnz(this.InxOfExogenizedYX(inx, :));
         end%
 
 

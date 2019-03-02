@@ -14,7 +14,7 @@ if isempty(parser)
     parser = extend.InputParser('model.prepareBlazer');
     parser.KeepUnmatched = true;
     parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('Kind', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
+    parser.addRequired('Kind', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Static', 'Stacked'})));
     parser.addParameter('Blocks', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addSwapOptions( );
 end
@@ -44,12 +44,11 @@ if strcmpi(kind, 'Steady')
     blz.InxCanBeEndogenous = ixy | ixx | ixp;
     blz.Assignment = this.Pairing.Assignment.Steady;
 
-elseif strcmpi(kind, 'Period')
-    blz = solver.blazer.Dynamic(numOfEquations);
+elseif strcmpi(kind, 'Static')
+    blz = solver.blazer.Stacked(numOfEquations);
     blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
-    blz.Gradient(:, ixmt) = this.Gradient.Dynamic(:, ixmt);
+    % blz.Gradient(:, ixmt) = this.Gradient.Dynamic(:, ixmt);
     blz.Incidence = selectShift(this.Incidence.Dynamic, 0);
-    incid = across(blz.Incidence, 'Shift');
     blz.InxCanBeEndogenous = ixy | ixx | ixe;
     blz.Assignment = this.Pairing.Assignment.Dynamic;
 

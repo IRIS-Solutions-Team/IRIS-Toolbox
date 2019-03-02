@@ -34,36 +34,41 @@ classdef Stacked < solver.block.Block
         end%
         
         
-        function [exitStatus, error] = run(this, data, columnsToRun, ixLog)
-            exitStatus = true;
+
+
+        function [exitFlag, error] = run(this, data)
+            exitFlag = solver.ExitFlag.IN_PROGRESS;
             error = struct( );
             error.EvaluatesToNan = [ ];
             
             if isempty(this.PosQty)
+                exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
                 return
             end
             numOfQuantitiesInBlock = numel(this.PosQty);
             numOfEquationsInBlock = numel(this.PosEqn);
+            firstColumnToRun = data.FirstColumnOfTimeFrame;
+            lastColumnToRun = data.LastColumnOfTimeFrame;
+            columnsToRun = firstColumnToRun : lastColumnToRun;
             numOfColumnsToRun = numel(columnsToRun);
-            firstColumn = columnsToRun(1);
-            lastColumn = columnsToRun(end);
-            numColumns = lastColumn - firstColumn + 1;
-
-            % Create linear index of unkowns in data
-            linx = sub2ind( size(data.YXEPG), ...
-                            repmat(this.PosQty(:), 1, numOfColumnsToRun), ...
-                            repmat(firstColumn:lastColumn, numOfQuantitiesInBlock, 1) );
-            linx = linx(:);
-
-            % Create index of logs within linx
-            linxLog = ixLog(this.PosQty);
-            linxLog = repmat(linxLog(:), numOfColumnsToRun, 1);
-
-            maxMaxLead = max(this.MaxLead);
-            runFotc = this.Type==solver.block.Type.SOLVE && maxMaxLead>0;
 
             if this.Type==solver.block.Type.SOLVE
                 % __Solve__
+                % Create linear index of unkowns in data
+                linx = sub2ind( size(data.YXEPG), ...
+                                repmat(this.PosQty(:), 1, numOfColumnsToRun), ...
+                                repmat(columnsToRun, numOfQuantitiesInBlock, 1) );
+                linx = linx(:);
+
+                % Create index of logs within linx
+                linxLog = this.InxOfLog(this.PosQty);
+                linxLog = repmat(linxLog(:), numOfColumnsToRun, 1);
+
+                maxMaxLead = max(this.MaxLead);
+                needsRunFotc = this.Type==solver.block.Type.SOLVE ...
+                          && maxMaxLead>0 ...
+                          && ~isempty(this.Terminal);
+
                 % Initialize endogenous quantities
                 z0 = data.YXEPG(linx);
                 ixNan = isnan(z0);
@@ -81,76 +86,96 @@ classdef Stacked < solver.block.Block
                 %* Bounds are in logs for log variables.
                 % checkBoundsOnInitCond( );
                 % Test all equations in this block for NaNs and Infs.
-                checkObjective = objective(z0);
-                checkObjective = reshape(checkObjective, numOfEquationsInBlock, numOfColumnsToRun);
-                indexInvalidData = ~isfinite(checkObjective);
-                if any(indexInvalidData(:))
-                    indexInvalidEquationsInBlock = any(indexInvalidData, 2);
-                    error.EvaluatesToNan = this.PosEqn(indexInvalidEquationsInBlock);
+                hereCheckEquationsForCorrupt( );
+                if exitFlag~=solver.ExitFlag.IN_PROGRESS
                     return
                 end
-                [z, exitStatus] = solve(this, @objective, z0);
-                writeEndogenousToData(z);
+                [z, exitFlag] = solve(this, @objective, z0);
+                hereWriteEndogenousToData(z);
             else
                 % __Assign__
-                [z, exitStatus] = assign( );
+                [z, exitFlag] = assign(this, data);
             end
-            
-            exitStatus = all(isfinite(z)) && double(exitStatus)>0;
+
+            exitFlag = this.checkFiniteSolution(z, exitFlag);
+
             return
             
-            
-            function [z, exitStatus] = assign( )
-                isInvTransform = ~isempty(this.Type.InvTransform);
-                for i = 1 : numOfColumnsToRun
-                    z = this.EquationsFunc(data.YXEPG, columnsToRun(i), data.BarYX);
-                    if isInvTransform
-                        z = this.Type.InvTransform(z);
-                    end
-                    data.YXEPG(linx(i)) = z;
-                end
-                exitStatus = all(isfinite(data.YXEPG(linx)));
-            end%
-            
-            
-            function y = objective(z, ithJacob)
-                if nargin<2
-                    ithJacob = [ ];
-                end
-                writeEndogenousToData(z);
                 
-                if runFotc
-                    % First-order terminal condition
-                    flat(this.Terminal, data);
-                end
-
-                if isempty(ithJacob)
-                    y = this.EquationsFunc(data.YXEPG, columnsToRun, data.BarYX);
-                    y = y(:);
-                else
-                    firstColumnJacob = firstColumn + this.FirstTime(ithJacob) - 1;
-                    lastColumnJacob = firstColumn + this.LastTime(ithJacob) - 1;
-                    y = [ ];
-                    for column = firstColumnJacob : lastColumnJacob
-                        y = [y; this.NumericalJacobFunc{ithJacob}(data.YXEPG, column, data.BarYX)];
+                function y = objective(z, ithJacob)
+                    if nargin<2
+                        ithJacob = [ ];
                     end
-                end
-            end%
+                    hereWriteEndogenousToData(z);
+                    
+                    if needsRunFotc
+                        % First-order terminal condition
+                        flat(this.Terminal, data);
+                    end
+
+                    if isempty(ithJacob)
+                        y = this.EquationsFunc(data.YXEPG, columnsToRun, data.BarYX);
+                        y = y(:);
+                    else
+                        firstColumnJacob = firstColumnToRun + this.FirstTime(ithJacob) - 1;
+                        lastColumnJacob = firstColumnToRun + this.LastTime(ithJacob) - 1;
+                        y = [ ];
+                        for column = firstColumnJacob : lastColumnJacob
+                            y = [y; this.NumericalJacobFunc{ithJacob}(data.YXEPG, column, data.BarYX)];
+                        end
+                    end
+                end%
 
 
-            function writeEndogenousToData(z)
-                z = real(z);
-                if anyLog
-                    z(linxLog) = exp(z(linxLog));
-                end
-                data.YXEPG(linx) = z;
-            end%
-                
+                function hereWriteEndogenousToData(z)
+                    z = real(z);
+                    if anyLog
+                        z(linxLog) = exp(z(linxLog));
+                    end
+                    data.YXEPG(linx) = z;
+                end%
+
+
+                function hereCheckEquationsForCorrupt( )
+                    checkObjective = objective(z0);
+                    checkObjective = reshape(checkObjective, numOfEquationsInBlock, numOfColumnsToRun);
+                    inxOfValidData = isfinite(checkObjective);
+                    if all(inxOfValidData(:))
+                        return
+                    end
+                    inxOfInvalidEquationsInBlock = any(~inxOfValidData, 2);
+                    error.EvaluatesToNan = this.PosEqn(inxOfInvalidEquationsInBlock);
+                    exitFlag = solver.ExitFlag.NAN_INF_PREEVAL;
+                end%
         end%
-    end
-    
-    
-    methods       
+
+
+        
+
+        function [z, exitFlag] = assign(this, data)
+            columnsToRun = data.FirstColumnOfTimeFrame : data.LastColumnOfTimeFrame;
+            numOfColumnsToRun = numel(columnsToRun);
+            
+            linx = sub2ind( size(data.YXEPG), ...
+                            repmat(this.PosQty, 1, numOfColumnsToRun), ...
+                            columnsToRun );
+            linx = linx(:);
+
+            isInvTransform = ~isempty(this.Type.InvTransform);
+            z = nan(1, numOfColumnsToRun);
+            for i = 1 : numOfColumnsToRun
+                z(i) = this.EquationsFunc(data.YXEPG, columnsToRun(i), data.BarYX);
+                if isInvTransform
+                    z(i) = this.Type.InvTransform(z(i));
+                end
+                data.YXEPG(linx(i)) = z(i);
+            end
+            exitFlag = solver.ExitFlag.ASSIGNED;
+        end%
+
+
+
+
         function prepareBlock(this, blz, opt)
             prepareBlock@solver.block.Block(this, blz, opt);
             % Remove auxiliary equations added to construct
@@ -168,7 +193,7 @@ classdef Stacked < solver.block.Block
             this.LinearIndex = linx(:);
 
             % Create index of logs within linx
-            linxLog = ixLog(this.PosQty);
+            linxLog = this.InxOfLog(this.PosQty);
             linxLog = repmat(linxLog(:), numOfColumnsToRun, 1);
             %}
         end%
@@ -216,9 +241,9 @@ classdef Stacked < solver.block.Block
                         if lastTime>numOfColumnsToRun
                             lastTime = numOfColumnsToRun;
                         end
-                        numTimes = lastTime - firstTime + 1;
+                        numOfTimes = lastTime - firstTime + 1;
                         inxOfActiveEquations = acrossShifts(:, q);
-                        pattern(:, firstTime:lastTime) = repmat(inxOfActiveEquations, 1, numTimes);
+                        pattern(:, firstTime:lastTime) = repmat(inxOfActiveEquations, 1, numOfTimes);
                         if t==1
                             this.NumericalJacobFunc{posUnknown} = getNumericalJacobFunc( );
                         else
@@ -258,3 +283,4 @@ classdef Stacked < solver.block.Block
         end%
     end
 end
+

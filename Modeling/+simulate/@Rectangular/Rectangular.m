@@ -139,7 +139,7 @@ classdef Rectangular < handle
 
         function this = set.FirstOrderMultipliers(this, value)
             this.FirstOrderMultipliers = value;
-            if strcmpi(this.Method, 'Selective')
+            if this.Method==solver.Method.SELECTIVE
                 this.InvFirstOrderMultipliers = inv(value);
             else
                 this.InvFirstOrderMultipliers = double.empty(0);

@@ -98,7 +98,10 @@ classdef Model < model & matlab.mixin.CustomDisplay
         varargout = getIdOfInitialConditions(varargin)
         varargout = getInxOfInitInPresample(varargin)
         varargout = prepareHashEquations(varargin)
-        varargout = simulateFirstOrder(varargin)
+        varargout = simulateSelective(varargin)
+        varargout = simulateStacked(varargin)
+        varargout = simulateStatic(varargin)
+        varargout = simulateTimeFrames(varargin)
     end
 
 
@@ -141,3 +144,4 @@ classdef Model < model & matlab.mixin.CustomDisplay
         end%
     end
 end
+

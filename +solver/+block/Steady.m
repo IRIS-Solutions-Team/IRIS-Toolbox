@@ -16,11 +16,14 @@ classdef Steady < solver.block.Block
                              'Growth0', [ ], ...
                              'GrowthK', [ ] );
         end%
+
+
         
         
-        function [lx, gx, exitFlag, error] = run(this, lnk, lx, gx, ixLog)
+        function [lx, gx, exitFlag, error] = run(this, lnk, lx, gx)
             exitFlag = solver.ExitFlag.IN_PROGRESS;
             error = struct( 'EvaluatesToNan', [ ] );
+            inxOfLog = this.InxOfLog;
             
             posl = this.PosQty.Level;
             posg = this.PosQty.Growth;
@@ -35,7 +38,7 @@ classdef Steady < solver.block.Block
             nsh = this.NumberOfShifts;
             t0 = this.PositionOfZeroShift;
             nl = length(posl);
-            ixLogZ = [ ixLog(posl), ixLog(posg) ];
+            inxOfLogZ = [ inxOfLog(posl), inxOfLog(posg) ];
             nRow = length(this.PosEqn);
             nCol = length(posl) + length(posg);
             
@@ -45,20 +48,20 @@ classdef Steady < solver.block.Block
                 z0 = [ lx(posl), gx(posg) ];
                 % Transform initial conditions for log variables before we check bounds;
                 % bounds are in logs for log variables.
-                z0(ixLogZ) = log(abs( z0(ixLogZ) ));
+                z0(inxOfLogZ) = log(abs( z0(inxOfLogZ) ));
                 %* Make sure init conditions are within bounds.
                 %* Empty bounds if all are Inf.
                 %* Bounds are in logs for log variables.
-                checkInitBounds( );
+                hereCheckInitBounds( );
 
                 % Test all equations in this block for NaNs and Infs
-                checkEquationsForCorrupt( );
+                hereCheckEquationsForCorrupt( );
                 if exitFlag~=solver.ExitFlag.IN_PROGRESS
                     return
                 end
 
                 [z, exitFlag] = solve(this, @objective, z0);
-                z(ixLogZ) = exp( z(ixLogZ) );
+                z(inxOfLogZ) = exp( z(inxOfLogZ) );
             else
                 % __ASSIGN_* Block__
                 [z, exitFlag] = assign( );
@@ -73,154 +76,154 @@ classdef Steady < solver.block.Block
             return
             
             
-            function checkEquationsForCorrupt( )
-                XX = timeArray(0);
-                evalToCheck = this.EquationsFunc(XX, t0);
-                inxOfCorrupt = ~isfinite(evalToCheck);
-                if ~any(inxOfCorrupt)
-                    return
-                end
-                exitFlag = solver.ExitFlag.NAN_INF_PREEVAL;
-                error.EvaluatesToNan = this.PosEqn(inxOfCorrupt);
-            end%
+                function hereCheckEquationsForCorrupt( )
+                    XX = hereCreateTimeArray(0);
+                    evalToCheck = this.EquationsFunc(XX, t0);
+                    inxOfCorrupt = ~isfinite(evalToCheck);
+                    if ~any(inxOfCorrupt)
+                        return
+                    end
+                    exitFlag = solver.ExitFlag.NAN_INF_PREEVAL;
+                    error.EvaluatesToNan = this.PosEqn(inxOfCorrupt);
+                end%
 
 
-            function [z, exitFlag] = assign( )
-                % __Assignment__
-                % Vectors posl and posg are each either empty or scalar at this point.
-                fnInv = this.Type.InvTransform;
-                z = [ ];
-                XX = timeArray(0);
-                y0 = this.EquationsFunc(XX, t0);
-                if ~isempty(fnInv)
-                    y0 = fnInv(y0);
-                end
-                if ~isempty(posl)
-                    z = [z, real(y0)];
-                end
-                if ~isempty(posg)
-                    if imag(y0)~=0
-                        z = [ z, imag(y0) ];
-                    else
-                        XX = timeArray(this.SteadyShift);
-                        yk = this.EquationsFunc(XX, t0);
-                        if ~isempty(fnInv)
-                            yk = fnInv(yk);
-                        end
-                        if ixLog(posg)
-                            z = [ z, (yk/y0)^(1/this.SteadyShift) ];
+                function [z, exitFlag] = assign( )
+                    % __Assignment__
+                    % Vectors posl and posg are each either empty or scalar at this point.
+                    fnInv = this.Type.InvTransform;
+                    z = [ ];
+                    XX = hereCreateTimeArray(0);
+                    y0 = this.EquationsFunc(XX, t0);
+                    if ~isempty(fnInv)
+                        y0 = fnInv(y0);
+                    end
+                    if ~isempty(posl)
+                        z = [z, real(y0)];
+                    end
+                    if ~isempty(posg)
+                        if imag(y0)~=0
+                            z = [ z, imag(y0) ];
                         else
-                            z = [ z, (yk-y0)/this.SteadyShift ];
+                            XX = hereCreateTimeArray(this.SteadyShift);
+                            yk = this.EquationsFunc(XX, t0);
+                            if ~isempty(fnInv)
+                                yk = fnInv(yk);
+                            end
+                            if inxOfLog(posg)
+                                z = [ z, (yk/y0)^(1/this.SteadyShift) ];
+                            else
+                                z = [ z, (yk-y0)/this.SteadyShift ];
+                            end
                         end
                     end
-                end
-                exitFlag = solver.ExitFlag.ASSIGNED;
-            end%
-            
-            
-            function checkInitBounds( )
-                ixOutOfBnds = z0<this.Lower | z0>this.Upper;
-                ixLowerInf = isinf(this.Lower);
-                ixUpperInf = isinf(this.Upper);
-                ix = ixOutOfBnds & ~ixLowerInf & ~ixUpperInf;
-                z0(ix) = (this.Lower(ix) + this.Upper(ix))/2;
-                ix = ixOutOfBnds & ~ixLowerInf;
-                z0(ix) = this.Lower(ix);
-                ix = ixOutOfBnds & ~ixUpperInf;
-                z0(ix) = this.Upper(ix);
-            end%
-            
-            
-            function [y, j] = objective(z, positionJacob)
-                j = [ ];
-                if nargin<2
-                    positionJacob = [ ];
-                end
-                analyticalGradientRequest = nargout==2;
-                % Solver is requesting gradient but gradient was not
-                % prepared; this never happens with IRIS or Optim Tbx
-                % solvers as long as PrepareGradient=@auto.
-                if analyticalGradientRequest && ~retGradient
-                    throw( exception.Base('Solver:GradientRequestedButNotPrepared', 'error') )
-                end
+                    exitFlag = solver.ExitFlag.ASSIGNED;
+                end%
+                
+                
+                function hereCheckInitBounds( )
+                    ixOutOfBnds = z0<this.Lower | z0>this.Upper;
+                    ixLowerInf = isinf(this.Lower);
+                    ixUpperInf = isinf(this.Upper);
+                    ix = ixOutOfBnds & ~ixLowerInf & ~ixUpperInf;
+                    z0(ix) = (this.Lower(ix) + this.Upper(ix))/2;
+                    ix = ixOutOfBnds & ~ixLowerInf;
+                    z0(ix) = this.Lower(ix);
+                    ix = ixOutOfBnds & ~ixUpperInf;
+                    z0(ix) = this.Upper(ix);
+                end%
+                
+                
+                function [y, j] = objective(z, positionJacob)
+                    j = [ ];
+                    if nargin<2
+                        positionJacob = [ ];
+                    end
+                    analyticalGradientRequest = nargout==2;
+                    % Solver is requesting gradient but gradient was not
+                    % prepared; this never happens with IRIS or Optim Tbx
+                    % solvers as long as PrepareGradient=@auto.
+                    if analyticalGradientRequest && ~retGradient
+                        throw( exception.Base('Solver:GradientRequestedButNotPrepared', 'error') )
+                    end
 
-                % Delogarithmize log variables; variables in steady equations are expected
-                % to be in original levels.
-                z = real(z);
-                if any(ixLogZ)
-                    z(ixLogZ) = exp( z(ixLogZ) );
-                end
-                
-                % Split the input vector of unknows into levels and growth rates; nlx is
-                % the number of levels in the input vector
-                lx(posl) = z(1:nl);
-                gx(posg) = z(nl+1:end);
-                
-                % Refresh all dynamic links in each iteration if needed
-                if needsRefresh
-                    temp = lx + 1i*gx;
-                    temp = temp(:);
-                    temp = refresh(lnk, temp);
-                    temp = transpose(temp);
-                    lx = real(temp);
-                    gx = imag(temp);
-                    gx(ixLog & gx==0) = 1;
-                end
-                
-                XX = timeArray(0); 
-                if isempty(positionJacob)
-                    y = this.EquationsFunc(XX, t0);
-                else
-                    y = this.NumericalJacobFunc{positionJacob}(XX, t0);
-                end
-                
-                if analyticalGradientRequest && retGradient
-                    XX(end+1, :) = 1; % Add an extra row of ones referred to in analytical Jacobian
-                    j = cellfun( ...
-                        @(Gradient, XX2L, DLevel, DGrowth0) ...
-                        Gradient(XX, t0) .* XX(XX2L) * [DLevel, DGrowth0] , ...
-                        ...
-                        this.Gradient(1, :), ...
-                        this.XX2L, ...
-                        this.D.Level, ...
-                        this.D.Growth0, ...
-                        ...
-                        'UniformOutput', false ...
-                        );
-                    j = reshape([j{:}], nCol, nRow).';
-                end
-                
-                if ~isempty(posg)
-                    % Some growth rates need to be calculated. Evaluate the model equations at
-                    % time t and t+SteadyShift if at least one growth rate is needed.
-                    XXk = timeArray(this.SteadyShift); 
-                    yk = this.EquationsFunc(XXk, t0);
-                    y = [ y ; yk ];
+                    % Delogarithmize log variables; variables in steady equations are expected
+                    % to be in original levels.
+                    z = real(z);
+                    if any(inxOfLogZ)
+                        z(inxOfLogZ) = exp( z(inxOfLogZ) );
+                    end
+                    
+                    % Split the input vector of unknows into levels and growth rates; nlx is
+                    % the number of levels in the input vector
+                    lx(posl) = z(1:nl);
+                    gx(posg) = z(nl+1:end);
+                    
+                    % Refresh all dynamic links in each iteration if needed
+                    if needsRefresh
+                        temp = lx + 1i*gx;
+                        temp = temp(:);
+                        temp = refresh(lnk, temp);
+                        temp = transpose(temp);
+                        lx = real(temp);
+                        gx = imag(temp);
+                        gx(inxOfLog & gx==0) = 1;
+                    end
+                    
+                    XX = hereCreateTimeArray(0); 
+                    if isempty(positionJacob)
+                        y = this.EquationsFunc(XX, t0);
+                    else
+                        y = this.NumericalJacobFunc{positionJacob}(XX, t0);
+                    end
+                    
                     if analyticalGradientRequest && retGradient
-                        XXk(end+1, :) = 1; % Add an extra row of ones referred to in analytical Jacobian
-                        jk = cellfun( ...
-                            @(Gradient, XX2L, DLevel, DGrowthK) ...
-                            Gradient(XXk, t0) .* XXk(XX2L) * [DLevel, DGrowthK] , ...
+                        XX(end+1, :) = 1; % Add an extra row of ones referred to in analytical Jacobian
+                        j = cellfun( ...
+                            @(Gradient, XX2L, DLevel, DGrowth0) ...
+                            Gradient(XX, t0) .* XX(XX2L) * [DLevel, DGrowth0] , ...
                             ...
                             this.Gradient(1, :), ...
                             this.XX2L, ...
                             this.D.Level, ...
-                            this.D.GrowthK, ...
+                            this.D.Growth0, ...
                             ...
                             'UniformOutput', false ...
                             );
-                        jk = reshape([jk{:}], nCol, nRow).';
-                        j = [ j; jk ];
+                        j = reshape([j{:}], nCol, nRow).';
                     end
-                end
-            end%
-            
-            
-            function XX = timeArray(k)
-                XX = repmat(transpose(lx), 1, nsh);
-                XX(~ixLog, :) = XX(~ixLog, :)  + bsxfun(@times, gx(~ixLog).', sh+k);
-                XX( ixLog, :) = XX( ixLog, :) .* bsxfun(@power, gx( ixLog).', sh+k);
-            end%
+                    
+                    if ~isempty(posg)
+                        % Some growth rates need to be calculated. Evaluate the model equations at
+                        % time t and t+SteadyShift if at least one growth rate is needed.
+                        XXk = hereCreateTimeArray(this.SteadyShift); 
+                        yk = this.EquationsFunc(XXk, t0);
+                        y = [ y ; yk ];
+                        if analyticalGradientRequest && retGradient
+                            XXk(end+1, :) = 1; % Add an extra row of ones referred to in analytical Jacobian
+                            jk = cellfun( ...
+                                @(Gradient, XX2L, DLevel, DGrowthK) ...
+                                Gradient(XXk, t0) .* XXk(XX2L) * [DLevel, DGrowthK] , ...
+                                ...
+                                this.Gradient(1, :), ...
+                                this.XX2L, ...
+                                this.D.Level, ...
+                                this.D.GrowthK, ...
+                                ...
+                                'UniformOutput', false ...
+                                );
+                            jk = reshape([jk{:}], nCol, nRow).';
+                            j = [ j; jk ];
+                        end
+                    end
+                end%
+                
+                
+                function XX = hereCreateTimeArray(k)
+                    XX = repmat(transpose(lx), 1, nsh);
+                    XX(~inxOfLog, :) = XX(~inxOfLog, :)  + bsxfun(@times, gx(~inxOfLog).', sh+k);
+                    XX( inxOfLog, :) = XX( inxOfLog, :) .* bsxfun(@power, gx( inxOfLog).', sh+k);
+                end%
         end%
     end
     

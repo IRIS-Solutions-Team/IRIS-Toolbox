@@ -21,9 +21,9 @@ inxOfCurrentWithinXi = this.InxOfCurrentWithinXi;
 inxOfLog = this.Quantity.InxOfLog;
 
 sizeOfData = size(data.YXEPG);
-firstColumn = this.FirstColumn;
-lastColumn = this.LastColumn;
-columnRange = firstColumn : lastColumn;
+firstColumnToRun = this.FirstColumn;
+lastColumnToRun = this.LastColumn;
+columnsToRun = firstColumnToRun : lastColumnToRun;
 
 linxOfXib = this.LinxOfXib;
 linxOfCurrentXi = this.LinxOfCurrentXi;
@@ -43,7 +43,7 @@ elseif ne>0
     if data.MixinUnanticipated
         lastUnanticipatedE = data.LastUnanticipatedE;
     else
-        lastUnanticipatedE = firstColumn;
+        lastUnanticipatedE = min(data.LastUnanticipatedE, firstColumnToRun);
     end
     lastAnticipatedE = data.LastAnticipatedE;
 end
@@ -62,7 +62,7 @@ if nlafExist
     if isempty(lastNlaf)
         lastNlaf = 0;
     end
-    Q = Q(:, 1:(lastNlaf-firstColumn+1)*nh);
+    Q = Q(:, 1:(lastNlaf-firstColumnToRun+1)*nh);
     lenOfQ = size(Q, 2);
 end
 
@@ -83,7 +83,7 @@ if simulateY
     E = nan(ne, sizeOfData(2));
 end
 
-for t = columnRange
+for t = columnsToRun
     % __Transition Equations__
     Xi_t = T*Xi_0;
 
@@ -102,6 +102,7 @@ for t = columnRange
             vecAnticipatedE_t = vecAnticipatedE_t(:);
             lenToAdd = lenOfR - numel(vecAnticipatedE_t);
             vecAnticipatedE_t = [vecAnticipatedE_t; zeros(lenToAdd, 1)];
+            vecAnticipatedE_t = sparse(vecAnticipatedE_t);
             Xi_t = Xi_t + R*vecAnticipatedE_t;
         end
     end
@@ -146,8 +147,8 @@ end
 
 % __Deterministic Trends in Measurement Equations__
 if needsEvalTrends
-    data.YXEPG(inxOfY, columnRange) = data.YXEPG(inxOfY, columnRange) ...
-                                    + data.Trends(:, columnRange);
+    data.YXEPG(inxOfY, columnsToRun) = data.YXEPG(inxOfY, columnsToRun) ...
+                                     + data.Trends(:, columnsToRun);
 end
 
 if any(inxOfLog)

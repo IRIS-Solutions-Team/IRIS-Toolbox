@@ -8,12 +8,23 @@
 
 classdef (Abstract) Block < handle
     properties
+        % Type  Type of block
         Type
+
+        % Id  Id string of block
         Id = ''
+
+        % Solver  Solver options
         Solver
-        RetGradient = false % Return gradient from objective function.
+
+        % RetGradient  Return gradient from objective function
+        RetGradient = false 
         
-        Names
+        % NamesInBlock  Names of unknowns to be solved for in this block
+        NamesInBlock
+
+        % InxOfLog  Log status of all model variables
+        InxOfLog
 
         PosQty
         PosEqn
@@ -88,12 +99,13 @@ classdef (Abstract) Block < handle
         end%
         
         
-        function prepareBlock(this, blz, opt)
-            createObjectiveFunc(this, blz);
-            this.Names = blz.Quantity.Name(this.PosQty);
+        function prepareBlock(this, blazer, opt)
+            createEquationsFunc(this, blazer);
+            this.NamesInBlock = blazer.Quantity.Name(this.PosQty);
+            this.InxOfLog = blazer.Quantity.InxOfLog;
 
             if this.Type==solver.block.Type.SOLVE
-                createJacobPattern(this, blz);
+                createJacobPattern(this, blazer);
 
                 this.Solver = opt.Solver;
                 if isa(opt.Solver, 'optim.options.SolverOptions') ...
@@ -105,25 +117,25 @@ classdef (Abstract) Block < handle
         end%
         
         
-        function createObjectiveFunc(this, blz)
-            funcToEval = [ blz.Equation{this.PosEqn} ];
-            this.Equations = blz.Equation(this.PosEqn);
+        function createEquationsFunc(this, blazer)
+            funcToInclude = [ blazer.Equation{this.PosEqn} ];
+            this.Equations = blazer.Equation(this.PosEqn);
             if this.Type==solver.block.Type.SOLVE
-                funcToEval = [ '[', funcToEval, ']' ];
+                funcToInclude = [ '[', funcToInclude, ']' ];
             else
-                funcToEval = this.removeLhs(funcToEval);
+                funcToInclude = this.removeLhs(funcToInclude);
             end
             if this.VECTORIZE
-                funcToEval = vectorize(funcToEval);
+                funcToInclude = vectorize(funcToInclude);
             end
-            this.EquationsFunc = str2func([blz.PREAMBLE, funcToEval]);
+            this.EquationsFunc = str2func([blazer.PREAMBLE, funcToInclude]);
         end%
 
 
-        function [gr, XX2L, DLevel, DGrowth0, DGrowthK] = createAnalyticalJacob(this, blz, opt)
-            [~, numOfQuants] = size(blz.Incidence);
+        function [gr, XX2L, DLevel, DGrowth0, DGrowthK] = createAnalyticalJacob(this, blazer, opt)
+            [~, numOfQuants] = size(blazer.Incidence);
             numOfEqtnsHere = length(this.PosEqn);
-            gr = blz.Gradient(:, this.PosEqn);
+            gr = blazer.Gradient(:, this.PosEqn);
             sh = this.Shift;
             nsh = length(sh);
             sh0 = find(this.Shift==0);
@@ -134,12 +146,12 @@ classdef (Abstract) Block < handle
             DGrowthK = cell(1, numOfEqtnsHere);
             for i = 1 : numOfEqtnsHere
                 posEqn = this.PosEqn(i);
-                gr(:, i) = getGradient(this, blz, posEqn, opt);
+                gr(:, i) = getGradient(this, blazer, posEqn, opt);
                 vecWrt = gr{2, i};
                 nWrt = length(vecWrt);
                 ixOutOfSh = imag(vecWrt)<sh(1) | imag(vecWrt)>sh(end);
                 XX2L{i} = ones(1, nWrt)*aux;
-                ixLog = blz.Quantity.IxLog(real(vecWrt));
+                ixLog = blazer.Quantity.IxLog(real(vecWrt));
                 vecWrt(ixOutOfSh) = NaN;
                 ixLog(ixOutOfSh) = false;
                 XX2L{i}(ixLog) = sub2ind( [numOfQuants+1, nsh], ...
@@ -156,21 +168,21 @@ classdef (Abstract) Block < handle
         end%
         
         
-        function gr = getGradient(this, blz, posEqn, opt)
+        function gr = getGradient(this, blazer, posEqn, opt)
             % Fetch gradient of posEqn-th equation from Blazer object or differentiate
             % again if needed.
-            vecWrtNeeded = find(blz.Incidence, posEqn, this.PosQty);
-            vecWrtMissing = setdiff(vecWrtNeeded, blz.Gradient{2, posEqn});
+            vecWrtNeeded = find(blazer.Incidence, posEqn, this.PosQty);
+            vecWrtMissing = setdiff(vecWrtNeeded, blazer.Gradient{2, posEqn});
             if ~opt.ForceRediff ...
-                    && isa(blz.Gradient{1, posEqn}, 'function_handle') ...
+                    && isa(blazer.Gradient{1, posEqn}, 'function_handle') ...
                     && isempty(vecWrtMissing)
                 % vecWrtNeeded is a subset of vecWrt currently available.
-                gr = blz.Gradient(:, posEqn);
+                gr = blazer.Gradient(:, posEqn);
                 return
             end
             % Redifferentiate this equation wrt quantities needed only.
-            d = model.component.Gradient.diff(blz.Equation{posEqn}, vecWrtNeeded);
-            d = str2func([blz.PREAMBLE, d]);
+            d = model.component.Gradient.diff(blazer.Equation{posEqn}, vecWrtNeeded);
+            d = str2func([blazer.PREAMBLE, d]);
             gr = {d; vecWrtNeeded};
         end%
         
@@ -194,7 +206,7 @@ classdef (Abstract) Block < handle
                     this.Solver.Algorithm = 'levenberg-marquardt';
                     %this.Solver.Algorithm = 'trust-region';
                     %this.Solver.SubproblemAlgorithm = 'cg';
-                    [z, ~, exitFlag] = fsolve(fnObjective, z0, this.Solver);
+                    [z, ~, exitFlag] = f;
                 end
                 exitFlag = solver.ExitFlag.fromOptimTbx(exitFlag);
                 z = real(z);
@@ -208,7 +220,6 @@ classdef (Abstract) Block < handle
                 THIS_ERROR = { 'Block:UnknownSolver'
                                'Invalid or unknown solution method' };
                 throw( exception.Base(THIS_ERROR, 'error') );
-
             end
         end%
         
@@ -240,10 +251,10 @@ classdef (Abstract) Block < handle
         end%
         
         
-        function setShift(this, blz)
+        function setShift(this, blazer)
             % Return max lag and max lead across all equations in this block.
-            incid = selectEquation(blz.Incidence, this.PosEqn);
-            sh0 = blz.Incidence.PosOfZeroShift;
+            incid = selectEquation(blazer.Incidence, this.PosEqn);
+            sh0 = blazer.Incidence.PosOfZeroShift;
             ixIncid = across(incid, 'Equation');
             ixIncid = any(ixIncid, 1);
             from = find(ixIncid, 1, 'first') - sh0;
@@ -285,6 +296,16 @@ classdef (Abstract) Block < handle
             eqtn = eqtn(close+1:end);
             if eqtn(1)=='+'
                 eqtn(1) = '';
+            end
+        end%
+
+
+        function exitFlag = checkFiniteSolution(z, exitFlag)
+            if ~hasSucceeded(exitFlag) 
+                return
+            end
+            if ~all(isfinite(z(:)))
+                exitFlag = solver.ExitFlag.NAN_INF_SOLUTION;
             end
         end%
     end

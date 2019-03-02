@@ -16,12 +16,15 @@ if isempty(parser)
     parser.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('IgnoreShocks', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Method', 'FirstOrder', @(x) validateString(x, {'FirstOrder', 'Selective', 'Stacked'})); 
+    parser.addParameter('Method', solver.Method.FIRST_ORDER, @solver.Method.validate);
     parser.addParameter('OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
     parser.addParameter('Plan', true, @(x) isequal(x, true) || isequal(x, false) || isa(x, 'Plan'));
     parser.addParameter('ReturnNaNIfFailed', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Solver', @auto, @validateSolver);
     parser.addParameter('Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
+
+    parser.addParameter('Initial', 'Data', @(x) any(strcmpi(x, {'Data', 'FirstOrder'})));
+    parser.addParameter('PrepareGradient', true, @(x) isequal(x, true) || isequal(x, false));
 end
 parser.parse(this, inputData, baseRange, varargin{:});
 opt = parser.Options;
@@ -30,9 +33,12 @@ usingDefaults = parser.UsingDefaultsInStruct;
 
 baseRange = double(baseRange);
 opt.Window = parseWindowOption(opt.Window, opt.Method, baseRange);
+opt.Method = solver.Method.parse(opt.Method);
 opt.Solver = parseSolverOption(opt.Solver, opt.Method);
 
 %--------------------------------------------------------------------------
+
+nv = length(this);
 
 % Check the input databank; treat all names as optional, and check for
 % missing initial conditions later
@@ -56,7 +62,9 @@ runningData = DynamicDataWrapper.withProperties( 'YXEPG', ...
 
 herePrepareRunningData( );
 
-simulateFirstOrder(this, runningData, plan, databankInfo, opt);
+hereCheckInitialConditions( );
+
+simulateTimeFrames(this, runningData, plan, opt);
 
 outputData = herePrepareOutputData( );
 
@@ -120,6 +128,21 @@ return
         runningData.ExtendedRange = [startOfExtendedRange, endOfExtendedRange];
         runningData.BaseRangeColumns = [ round(startOfBaseRange - startOfExtendedRange + 1), ...
                                          round(endOfBaseRange - startOfExtendedRange + 1) ];
+        numOfDataSets = size(runningData.YXEPG, 3); 
+        if numOfDataSets==1 && nv>1
+            % Expand number of data sets to match number of parameter variants
+            runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, numOfRuns);
+        end
+    end%
+
+
+    
+
+    function hereCheckInitialConditions( )
+        % Report missing initial conditions
+        firstColumnOfSimulation = runningData.BaseRangeColumns(1);
+        inxOfNaNPresample = any(isnan(runningData.YXEPG(:, 1:firstColumnOfSimulation-1, :)), 3);
+        checkInitialConditions(this, inxOfNaNPresample, firstColumnOfSimulation);
     end%
 
 
@@ -127,7 +150,7 @@ return
 
     function numOfDummyPeriods = herePrepareDummyPeriods( )
         numOfDummyPeriods = opt.Window - 1;
-        if strcmpi(opt.Method, 'Selective')
+        if ~strcmpi(opt.Method, 'FirstOrder')
             [~, maxShift] = getActualMinMaxShifts(this);
             numOfDummyPeriods = numOfDummyPeriods + maxShift;
         end
@@ -181,11 +204,12 @@ return
             end
             timeFrames{run} = DateWrapper.fromDateCode(timeFrames{run});
         end
-        outputInfo = struct( 'TimeFrames', timeFrames, ...
-                             'BaseRange', DateWrapper.fromDateCode(runningData.BaseRange), ...
-                             'ExtendedRange', DateWrapper.fromDateCode(runningData.ExtendedRange), ...
-                             'Success', runningData.Success, ...
-                             'ExitFlags', runningData.ExitFlags );
+        outputInfo = struct( );
+        outputInfo.TimeFrames = timeFrames;
+        outputInfo.BaseRange = DateWrapper.fromDateCode(runningData.BaseRange);
+        outputInfo.ExtendedRange = DateWrapper.fromDateCode(runningData.ExtendedRange);
+        outputInfo.Success =  runningData.Success;
+        outputInfo.ExitFlags = runningData.ExitFlags;
     end%
 end%
 
@@ -197,7 +221,7 @@ end%
 
 function flag = validateMethod(x)
     validateString = @(x, list) (ischar(x) || isa(x, 'string')) && any(strcmpi(x, list));
-    listOfMethods = {'FirstOrder', 'Selective'};
+    listOfMethods = {'FirstOrder', 'Selective', 'Stacked', 'NoForward'};
     if validateString(x, listOfMethods)
         flag = true;
     end    
@@ -221,8 +245,19 @@ end%
 
 
 function flag = validateSolverName(x)
-    flag = (ischar(x) && any(strcmpi(x, {'IRIS-qad', 'IRIS-qnsd', 'IRIS-newton', 'qad', 'IRIS', 'lsqnonlin', 'fsolve'}))) ...
-           || isequal(x, @fsolve) || isequal(x, @lsqnonlin) || isequal(x, @qad);
+    if ~ischar(x) && ~isa(x, 'string') && ~isa(x, 'function_handle')
+        flag = false;
+        return
+    end
+    listOfSolverNames = { 'auto' 
+                          'IRIS-QaD'
+                          'IRIS-Newton'
+                          'IRIS-Qnsd'
+                          'QaD'
+                          'IRIS'
+                          'lsqnonlin'
+                          'fsolve'      };
+    flag = any(strcmpi(char(x), listOfSolverNames));
 end%
 
 
@@ -230,9 +265,9 @@ end%
 
 function windowOption = parseWindowOption(windowOption, methodOption, baseRange)
     if isequal(windowOption, @auto)
-        if strcmpi(methodOption, 'FirstOrder')
+        if methodOption==solver.Method.FIRST_ORDER
             windowOption = 1;
-        elseif strcmpi(methodOption, 'Selective')
+        else
             windowOption = @max;
         end
     end
@@ -250,19 +285,25 @@ end%
 
 
 function solverOption = parseSolverOption(solverOption, methodOption)
-    if strcmpi(methodOption, 'FirstOrder')
-        solverOption = [ ];
-        return
-    end
-    if strcmpi(methodOption, 'Selective')
-        defaultSolver = 'IRIS-QaD';
-        prepareGradient = false;
-        displayMode = 'Verbose';
-        solverOption = solver.Options.parseOptions( solverOption, ...
-                                                    defaultSolver, ...
-                                                    prepareGradient, ...
-                                                    displayMode );
-        return
+    switch methodOption
+        case solver.Method.FIRST_ORDER
+            solverOption = [ ];
+        case solver.Method.SELECTIVE
+            defaultSolver = 'IRIS-QaD';
+            prepareGradient = false;
+            displayMode = 'Verbose';
+            solverOption = solver.Options.parseOptions( solverOption, ...
+                                                        defaultSolver, ...
+                                                        prepareGradient, ...
+                                                        displayMode );
+        case {solver.Method.STACKED, solver.Method.STATIC}
+            defaultSolver = 'IRIS-Newton';
+            prepareGradient = false;
+            displayMode = 'Verbose';
+            solverOption = solver.Options.parseOptions( solverOption, ...
+                                                        defaultSolver, ...
+                                                        prepareGradient, ...
+                                                        displayMode );
     end
 end%
 
