@@ -746,7 +746,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 inputParser.addParameter({'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
                 inputParser.addParameter('Refresh', true, @(x) isequal(x, true) || isequal(x, false));
                 inputParser.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
-                inputParser.addParameter('saveas', '', @ischar);
+                inputParser.addParameter({'SavePreparsed', 'SaveAs'}, '', @ischar);
                 inputParser.addParameter({'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
                 inputParser.addParameter({'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
                 inputParser.addParameter('stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
