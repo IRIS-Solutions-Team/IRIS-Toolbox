@@ -234,9 +234,9 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'rexp'), varargin(1:2:end)))
             % List of names:
             % A1, A2, B
             % or double-dot list 
-            % A1, .., A2
+            % A1,..,A2
             list = name;
-            if ~isempty(strfind(list, ', .., '))
+            if ~isempty(strfind(list, ',..,'))
                 list = parse(parser.doubledot.Keyword.COMMA, list);
             end
             list = regexp(list, '\w+', 'match');
