@@ -15,14 +15,6 @@ def.epstopdf = {
     'display', false, @(x) isequal(x, true) || isequal(x, false)
 };
 
-def.compilepdf = { 
-    'cd', false, @(x) isequal(x, true) || isequal(x, false)
-    'display', true, @(x) isequal(x, true) || isequal(x, false)
-    'echo', false, @(x) isequal(x, true) || isequal(x, false)
-    'maxrerun', 5, @(x) isnumeric(x) && isscalar(x)
-    'minrerun', 1, @(x) isnumeric(x) && isscalar(x)
-};
-
 def.publish = { 
     'author', '', @ischar
     'cleanup', true, @(x) isequal(x, true) || isequal(x, false)
