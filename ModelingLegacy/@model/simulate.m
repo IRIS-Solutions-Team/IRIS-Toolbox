@@ -296,20 +296,6 @@ if ~isa(range, 'DateWrapper')
     range = DateWrapper(range);
 end
 
-% Stacked-time simulation
-if strcmpi(opt.Method, 'Stacked') || strcmpi(opt.Method, 'Period')
-    defaultSolver = 'IRIS-Newton';
-    displayMode = 'Verbose';
-    [ opt.Solver, ...
-      opt.PrepareGradient ] = solver.Options.parseOptions( opt.Solver, ...
-                                                           defaultSolver, ...
-                                                           opt.PrepareGradient, ...
-                                                           displayMode );
-    [outputData, exitFlag] = simulateStacked(this, inputData, range, opt);
-    outputData = addToDatabank('Default', this, outputData);
-    return
-end
-
 % Conditional simulation
 isCond = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'cond');
 if isCond

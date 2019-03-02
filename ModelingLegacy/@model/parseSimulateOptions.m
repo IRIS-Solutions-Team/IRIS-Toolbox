@@ -24,7 +24,7 @@ if isempty(parser)
     parser.addParameter('Delog', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Fast', true, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter({'IgnoreShocks', 'IgnoreShock'}, false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Method', 'FirstOrder', @(x) ischar(x) && any(strcmpi(x, {'FirstOrder', 'Selective', 'Stacked'})));
+    parser.addParameter('Method', 'FirstOrder', @(x) ischar(x) && any(strcmpi(x, {'FirstOrder', 'Selective'})));
     parser.addParameter('Missing', NaN, @isnumeric);
     parser.addParameter('Plan', [ ], @(x) isa(x, 'plan') || isa(x, 'Plan') || isempty(x));
     parser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
