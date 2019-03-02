@@ -125,6 +125,8 @@ warning('off', 'MATLAB:singularMatrix');
 exitFlag = solver.ExitFlag.IN_PROGRESS;
 fnCount = 1;
 iter = 0;
+needsPrintHeader = true;
+
 while true
     %
     % Set jacobUpdate=false in case this is the last iteration, which means
@@ -164,9 +166,8 @@ while true
     %
 
     jacobUpdate = iter<=lastJacobUpdate;
-    if jacobUpdate
+    if jacobUpdate 
         if opt.SpecifyObjectiveGradient
-
             [current.F, current.J] = objectiveFuncReshaped(current.X);
             fnCount = fnCount + 1;
             current.F = current.F(:);
@@ -522,8 +523,9 @@ return
 
 
     function reportIter( )
-        if iter==0 
+        if needsPrintHeader
             printHeader( );
+            needsPrintHeader = false;
         end
         strJacobUpdate = '';
         if jacobUpdate
