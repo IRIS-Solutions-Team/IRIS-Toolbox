@@ -20,7 +20,24 @@ classdef Steady < solver.block.Block
 
         
         
-        function [lx, gx, exitFlag, error] = run(this, lnk, lx, gx)
+        function c = printListOfUknowns(this, name)
+            if ~isempty(this.PosQty.Level)
+                level = ['(', strjoin(name(this.PosQty.Level), ', '), ')'];
+            else
+                level = ['( )'];
+            end
+            if ~isempty(this.PosQty.Growth)
+                change = ['(', strjoin(name(this.PosQty.Growth), ', '), ')'];
+            else
+                change = ['( )'];
+            end
+            c = [level, change];
+        end%
+
+
+
+
+        function [lx, gx, exitFlag, error] = run(this, lnk, lx, gx, header)
             exitFlag = solver.ExitFlag.IN_PROGRESS;
             error = struct( 'EvaluatesToNan', [ ] );
             inxOfLog = this.InxOfLog;
@@ -60,7 +77,7 @@ classdef Steady < solver.block.Block
                     return
                 end
 
-                [z, exitFlag] = solve(this, @objective, z0);
+                [z, exitFlag] = solve(this, @objective, z0, header);
                 z(inxOfLogZ) = exp( z(inxOfLogZ) );
             else
                 % __ASSIGN_* Block__
@@ -176,7 +193,7 @@ classdef Steady < solver.block.Block
                     else
                         y = this.NumericalJacobFunc{positionJacob}(XX, t0);
                     end
-                    
+
                     if analyticalGradientRequest && retGradient
                         XX(end+1, :) = 1; % Add an extra row of ones referred to in analytical Jacobian
                         j = cellfun( ...

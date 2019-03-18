@@ -104,18 +104,18 @@ else
                                                            displayMode, ...
                                                            'SpecifyObjectiveGradient=', true, ...
                                                            unmatchedSolverOptions{:} );
-    blz = createBlocks(this, opt);
-    blz = prepareBounds(this, blz, opt);
-    blz.NanInit = opt.NanInit;
-    blz.Reuse = opt.Reuse;
-    blz.Warning = opt.Warning;
-    varargout{1} = blz;
+    blazer = createBlocks(this, opt);
+    blazer = prepareBounds(this, blazer, opt);
+    blazer.NanInit = opt.NanInit;
+    blazer.Reuse = opt.Reuse;
+    blazer.Warning = opt.Warning;
+    varargout{1} = blazer;
 end
 
 end%
 
 
-function processFixOpt(this, blz, opt)
+function processFixOpt(this, blazer, opt)
     % Process the fix, fixallbut, fixlevel, fixlevelallbut, fixgrowth,
     % and fixgrowthallbut options. All the user-supply information is
     % combined into fixlevel and fixgrowth.
@@ -184,17 +184,17 @@ function processFixOpt(this, blz, opt)
         fixG = fixG | this.Quantity.IxLagrange;
     end
 
-    blz.IdToFix.Level = PTR( find(fixL) ); %#ok<FNDSB>
-    blz.IdToFix.Growth = PTR( find(fixG) ); %#ok<FNDSB>
+    blazer.IdToFix.Level = PTR( find(fixL) ); %#ok<FNDSB>
+    blazer.IdToFix.Growth = PTR( find(fixG) ); %#ok<FNDSB>
 
     % Remove quantities fixed by user and LHS quantities from dynamic links
     temp = getActiveLhsPtr(this.Link);
-    blz.IdToExclude.Level = [blz.IdToFix.Level, temp];
-    blz.IdToExclude.Growth = [blz.IdToFix.Growth, temp];
+    blazer.IdToExclude.Level = [blazer.IdToFix.Level, temp];
+    blazer.IdToExclude.Growth = [blazer.IdToFix.Growth, temp];
 end%
 
 
-function blz = createBlocks(this, opt)
+function blazer = createBlocks(this, opt)
     TYPE = @int8;
 
     numOfQuants = length(this.Quantity.Name);
@@ -202,18 +202,18 @@ function blz = createBlocks(this, opt)
     ixp = this.Quantity.Type==TYPE(4);
 
     % Run solver.blazer.Blazer on steady equations.
-    blz = prepareBlazer(this, 'Steady', opt);
+    blazer = prepareBlazer(this, 'Steady', opt);
 
     % Analyze block-sequential structure.
-    run(blz);
+    run(blazer);
 
     % Populate IdToFix and IdToExclude.
-    processFixOpt(this, blz, opt);
+    processFixOpt(this, blazer, opt);
 
     % Prepare solver.block.Blocks for evaluation.
-    prepareBlocks(blz, opt);
+    prepareBlocks(blazer, opt);
 
-    if blz.IsSingular
+    if blazer.IsSingular
         throw( exception.Base('Steady:StructuralSingularity', 'warning') );
     end
 
@@ -231,17 +231,17 @@ function blz = createBlocks(this, opt)
         ixZero.Level = ixZero.Level | this.Quantity.IxLagrange;
         ixZero.Growth = ixZero.Growth | this.Quantity.IxLagrange;
     end
-    blz.IxZero = ixZero;
+    blazer.IxZero = ixZero;
 end%
 
 
-function blz = prepareBounds(this, blz, opt)
+function blazer = prepareBounds(this, blazer, opt)
     numOfQuants = length(this.Quantity.Name);
-    numOfBlocks = length(blz.Block);
+    numOfBlocks = length(blazer.Block);
     inxOfValidLevels = true(1, numOfQuants);
     inxOfValidChanges = true(1, numOfQuants);
     for iBlk = 1 : numOfBlocks
-        blk = blz.Block{iBlk};
+        blk = blazer.Block{iBlk};
         if blk.Type~=solver.block.Type.SOLVE
             continue
         end
@@ -270,7 +270,7 @@ function blz = prepareBounds(this, blz, opt)
             end
         end
         
-        blz.Block{iBlk} = blk;
+        blazer.Block{iBlk} = blk;
     end
 
     if any(~inxOfValidLevels)
@@ -295,7 +295,7 @@ function blz = prepareBounds(this, blz, opt)
             isLogPlus = opt.IxLogPlus( nameId(jj) );
             isLogMinus = opt.IxLogMinus( nameId(jj) );
             %}
-            isLog = blz.Quantity.IxLog( nameId(jj) );
+            isLog = blazer.Model.Quantity.IxLog( nameId(jj) );
             %{
             try
                 lb = bnd.(name)(1);

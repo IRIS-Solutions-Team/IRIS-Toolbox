@@ -118,11 +118,11 @@ end
 % Check availability of input data in input databank
 requiredNames = [this.NamesEndogenous, this.NamesExogenous];
 optionalNames = this.NamesErrors;
-check = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames);
-numOfDataSets = check.NumOfDataSets;
+databankInfo = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames);
+numOfPages = databankInfo.NumOfPages;
 
 allNames = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
-XEG = requestData(this, check, inputDatabank, extendedRange, allNames);
+XEG = requestData(this, databankInfo, inputDatabank, extendedRange, allNames);
 
 %req = datarequest('y* x* e', this, inputDatabank, extendedRange);
 %extendedRange = req.Range;
@@ -143,7 +143,7 @@ numExtendedPeriods = length(extendedRange);
 %numDataY = size(y, 3);
 %numDataX = size(x, 3);
 %numDataE = size(e, 3);
-numOfRuns = max(nv, numOfDataSets);
+numOfRuns = max(nv, numOfPages);
 
 if opt.Contributions 
     if numOfRuns~=1
@@ -155,8 +155,8 @@ if opt.Contributions
 end
 
 % Expand Y, E, X data in 3rd dimension to match numOfRuns.
-if numOfDataSets<numOfRuns
-    numAdd = numOfRuns - numOfDataSets;
+if numOfPages<numOfRuns
+    numAdd = numOfRuns - numOfPages;
     XEG(:, :, end+1:numOfRuns) = repmat(XEG(:, :, end), 1, 1, numAdd);
 end
 %if numDataY<numOfRuns

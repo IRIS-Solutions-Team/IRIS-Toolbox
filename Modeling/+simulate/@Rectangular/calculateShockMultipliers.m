@@ -1,13 +1,11 @@
-function multipliers(this, data, anticipate)
-% multipliers  Get shock multipliers for one simulation frame
+function calculateShockMultipliers(this, data, anticipate)
+% calculateShockMultipliers  Get shock multipliers for one simulation frame
 %
 % Backend IRIS function
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
-
-VEC = @(x) x(:);
 
 try
     anticipate;
@@ -19,14 +17,24 @@ end
 
 [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
 idOfYXi = [ this.SolutionVector{1:2} ];
+[T, R, ~, Z, H, ~, Q] = this.FirstOrderSolution{:};
+Tf = T(1:nf, :);
+Tb = T(nf+1:end, :);
+if ~anticipate
+    R(:, ne+1:end) = 0;
+end
 
 % Simulation columns
 firstColumn = this.FirstColumn;
 
 % Period of last endogenized and last exogenized point within simulation
 % columns
-anyExogenized = any(data.InxOfExogenizedYX, 1);
-lastExogenizedYX = max([0, find(anyExogenized, 1, 'Last')]);
+if isempty(data.InxOfExogenizedYX)
+    lastExogenizedYX = 0;
+else
+    anyExogenized = any(data.InxOfExogenizedYX, 1);
+    lastExogenizedYX = max([0, find(anyExogenized, 1, 'Last')]);
+end
 lastEndogenizedE = data.LastEndogenizedE;
 
 inxOfEndogenizedE = data.InxOfEndogenizedE(:, firstColumn:lastEndogenizedE);
@@ -36,16 +44,8 @@ if tryExistingMultipliers( )
     return
 end
 
-vecEndogenizedE = VEC(inxOfEndogenizedE);
-vecExogenizedYX = VEC(inxOfExogenizedYX);
+vecEndogenizedE = inxOfEndogenizedE(:);
 numOfEndogenizedE = nnz(vecEndogenizedE);
-
-[T, R, K, Z, H, D] = this.FirstOrderSolution{:};
-Tf = T(1:nf, :);
-Tb = T(nf+1:end, :);
-if ~anticipate
-    R(:, ne+1:end) = 0;
-end
 
 numOfPeriods = round(lastEndogenizedE - firstColumn + 1);
 Rf = R(1:nf, 1:ne*numOfPeriods);
@@ -54,8 +54,7 @@ H = [H, zeros(ny, ne*(numOfPeriods-1))];
 
 M = zeros(0, numOfEndogenizedE);
 xb = zeros(size(Rb));
-idOfAll = 1 : size(data.YXEPG, 1);
-idOfYX = idOfAll(data.InxOfYX);
+idOfYX = find(data.InxOfYX);
 for t = firstColumn : lastExogenizedYX
     xf = Tf*xb;
     xb = Tb*xb;
@@ -63,10 +62,10 @@ for t = firstColumn : lastExogenizedYX
     if t<=lastEndogenizedE
         xb = xb + Rb;
         xf = xf + Rf;
-        y = y + H;
         Rb = [zeros(nb, ne), Rb(:, 1:end-ne)];
         Rf = [zeros(nf, ne), Rf(:, 1:end-ne)];
-        H = [zeros(ny, ne), H(:, 1:end-ne)];
+        y = y + H;
+        H = [zeros(ny, ne), HQ:, 1:end-ne)];
     end
     idOfExogenizedYX = idOfYX(data.InxOfExogenizedYX(:, t));
     if isempty(idOfExogenizedYX)
@@ -75,8 +74,7 @@ for t = firstColumn : lastExogenizedYX
     addToM = [y; xf; xb];
     % Find the rows in which idOfExogenizedYX occur in idOfYXi
     [~, rows] = ismember(idOfExogenizedYX, idOfYXi);
-    addToM = addToM(rows, vecEndogenizedE);
-    M = [M; addToM];
+    M = [M; addToM(rows, vecEndogenizedE)];
 end
 
 this.FirstOrderMultipliers = M;

@@ -36,7 +36,7 @@ classdef Stacked < solver.block.Block
         
 
 
-        function [exitFlag, error] = run(this, data)
+        function [exitFlag, error] = run(this, data, header)
             exitFlag = solver.ExitFlag.IN_PROGRESS;
             error = struct( );
             error.EvaluatesToNan = [ ];
@@ -90,7 +90,7 @@ classdef Stacked < solver.block.Block
                 if exitFlag~=solver.ExitFlag.IN_PROGRESS
                     return
                 end
-                [z, exitFlag] = solve(this, @objective, z0);
+                [z, exitFlag] = solve(this, @objective, z0, header);
                 hereWriteEndogenousToData(z);
             else
                 % __Assign__

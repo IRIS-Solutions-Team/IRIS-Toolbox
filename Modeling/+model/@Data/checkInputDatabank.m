@@ -55,24 +55,24 @@ if ~all(checkFrequency)
            allNames{~checkFrequency} );
 end
 
-numOfDataSets = databank.numColumns(inputDatabank, allNames);
-numOfDataSets(isnan(numOfDataSets) & inxOfOptionalNames) = 0;
-maxNumOfDataSets = max(numOfDataSets);
+numOfPages = databank.numColumns(inputDatabank, allNames);
+numOfPages(isnan(numOfPages) & inxOfOptionalNames) = 0;
+maxNumOfPages = max(numOfPages);
 
-checkNumOfDataSetsAndVariants = numOfDataSets==1 ...
-                              | numOfDataSets==0 ...
-                              | (nv>1 & numOfDataSets==nv) ...
-                              | (nv==1 & numOfDataSets==maxNumOfDataSets);
+checkNumOfPagesAndVariants = numOfPages==1 ...
+                              | numOfPages==0 ...
+                              | (nv>1 & numOfPages==nv) ...
+                              | (nv==1 & numOfPages==maxNumOfPages);
 
-if ~all(checkNumOfDataSetsAndVariants)
+if ~all(checkNumOfPagesAndVariants)
     THIS_ERROR = { 'model:Abstract:checkInputDatabank'
                    'This time series has an inconsistent number of columns: %s ' };
     throw( exception.Base(THIS_ERROR, 'error'), ...
-           allNames{~checkNumOfDataSetsAndVariants} );
+           allNames{~checkNumOfPagesAndVariants} );
 end
 
 databankInfo = struct( );
-databankInfo.NumOfDataSets = max(max(numOfDataSets), 1);
+databankInfo.NumOfPages = max(max(numOfPages), 1);
 
 end%
 

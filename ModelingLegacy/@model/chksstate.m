@@ -4,36 +4,36 @@ function [flag, varargout] = chksstate(this, varargin)
 %
 % __Syntax__
 %
-%     [Flag, List] = chksstate(M, ...)
-%     [Flag, Discr, List] = chksstate(M, ...)
+%     [flag, list] = chksstate(model, ...)
+%     [flag, discr, list] = chksstate(model, ...)
 %
 % __Input Arguments__
 %
-% * `M` [ model ] - Model object.
+% * `model` [ model ] - Model object with steady-state values assigned.
 %
 %
 % __Output Arguments__
 %
-% * `Flag` [ `true` | `false` ] - True if discrepancy between LHS and RHS
+% * `flag` [ `true` | `false` ] - True if discrepancy between LHS and RHS
 % is smaller than tolerance level in each equation.
 %
-% * `Discr` [ numeric ] - Discrepancies between LHS and RHS evaluated for
+% * `discr` [ numeric ] - Discrepancies between LHS and RHS evaluated for
 % each equation at two consecutive times, and returned as two column
 % vectors.
 %
-% * `List` [ cellstr ] - List of equations in which the discrepancy between
-% LHS and RHS is greater than `'tolerance='`.
+% * `list` [ cellstr ] - List of equations in which the discrepancy between
+% LHS and RHS is greater than predefined tolerance.
 %
 %
 % __Options__
 %
-% * `'Error='` [ *`true`* | `false` ] - Throw an error if one or more
+% * `Error=true` [ `true` | `false` ] - Throw an error if one or more
 % equations fail to hold up to tolerance level.
 %
-% * `'Eqtn='` [ `'Both'` | *`'Dynamic'`* | `'Steady'` ] - Check either
+% * `EquationSwitch='Dynamic'` [ `'Both'` | `'Dynamic'` | `'Steady'` ] - Check either
 % dynamic equations or steady equations or both.
 %
-% * `'Warning='` [ *`true`* | `false` ] - Display warnings produced by this
+% * `Warning=true` [ `true` | `false` ] - Display warnings produced by this
 % function.
 %
 %
@@ -43,16 +43,25 @@ function [flag, varargout] = chksstate(this, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
-[opt, varargin] = passvalopt('model.chksstate', varargin{:});
-isSort = nargout>3;
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.chksstate');
+    parser.KeepUnmatched = true;
+    parser.addRequired('Model', @(x) isa(x, 'model'));
+    parser.addParameter('Error', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
+end
+parse(parser, this, varargin{:});
+opt = parser.Options;
+needsSort = nargout>3;
 
 % Pre-process options passed to checkSteady(~)
-chksstateOpt = prepareCheckSteady(this, 'verbose', varargin{:});
+chksstateOpt = prepareCheckSteady(this, 'verbose', parser.UnmatchedInCell{:});
 
 %--------------------------------------------------------------------------
 
@@ -61,12 +70,12 @@ if any(this.Link)
     this = refresh(this);
 end
 
-if opt.warning
-    if any(strcmpi(chksstateOpt.Kind, {'dynamic', 'full'}))
-        chksstateOpt.Kind = 'Dynamic';
+if opt.Warning
+    if any(strcmpi(chksstateOpt.EquationSwitch, {'Dynamic', 'Full'}))
+        chksstateOpt.EquationSwitch = 'Dynamic';
         chkQty(this, Inf, 'parameters:dynamic', 'sstate', 'log');
     else
-        chksstateOpt.Kind = 'Steady';
+        chksstateOpt.EquationSwitch = 'Steady';
         chkQty(this, Inf, 'parameters:steady', 'sstate', 'log');
     end
 end
@@ -78,7 +87,7 @@ nv = length(this);
 % evaluated.
 [flag, dcy, maxAbsDiscr, list] = checkSteady(this, Inf, chksstateOpt);
 
-if any(~flag) && opt.error
+if any(~flag) && opt.Error
     tmp = { };
     for i = find(~flag)
         for j = 1 : length(list{i})
@@ -86,7 +95,7 @@ if any(~flag) && opt.error
             tmp{end+1} = list{i}{j}; %#ok<AGROW>
         end
     end
-    if strcmpi(chksstateOpt.Kind, 'Dynamic')
+    if strcmpi(chksstateOpt.EquationSwitch, 'Dynamic')
         exc = exception.Base('Model:SteadyErrorInDynamic', 'error');
     else
         exc = exception.Base('Model:SteadyErrorInSteady', 'error');
@@ -94,7 +103,7 @@ if any(~flag) && opt.error
     throw(exc, tmp{:});
 end
 
-if isSort
+if needsSort
     sortList = cell(1, nv);
     for iAlt = 1 : nv
         [~, ix] = sort(maxAbsDiscr(:, iAlt), 1, 'descend');
@@ -105,7 +114,7 @@ end
 
 if nv==1
     list = list{1};
-    if isSort
+    if needsSort
         sortList = sortList{1};
     end
 end
@@ -115,9 +124,10 @@ if nargout==2
 elseif nargout>2
     varargout{1} = dcy;
     varargout{2} = list;
-    if isSort
+    if needsSort
         varargout{3} = sortList;
     end
 end
 
 end%
+

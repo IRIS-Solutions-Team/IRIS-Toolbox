@@ -59,7 +59,10 @@ classdef Plan
 
 
     methods % User Interface
-        function this = anticipate(this, names, anticipationStatus)
+        function this = anticipate(this, anticipationStatus, names)
+            if islogical(names)
+                [names, anticipationStatus] = deal(anticipationStatus, names);
+            end
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.anticipate');
@@ -476,7 +479,7 @@ classdef Plan
 
         function value = get.NumOfExtendedPeriods(this)
             if isempty(this.ExtendedStart) || isempty(this.ExtendedEnd)
-                value = NaN;
+                value = 0;
                 return
             end
             value = round(this.ExtendedEnd - this.ExtendedStart + 1);

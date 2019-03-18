@@ -126,6 +126,7 @@ exitFlag = solver.ExitFlag.IN_PROGRESS;
 fnCount = 1;
 iter = 0;
 needsPrintHeader = true;
+extraJacobUpdate = false;
 
 while true
     %
@@ -165,7 +166,7 @@ while true
     % Calculate Jacobian for current iteration
     %
 
-    jacobUpdate = iter<=lastJacobUpdate;
+    jacobUpdate = iter<=lastJacobUpdate || extraJacobUpdate;
     if jacobUpdate 
         if opt.SpecifyObjectiveGradient
             [current.F, current.J] = objectiveFuncReshaped(current.X);
@@ -286,6 +287,7 @@ while true
             if displayLevel.Iter
                 reportReverse( );
             end
+            extraJacobUpdate = true;
             continue
         end
     end
@@ -296,6 +298,7 @@ while true
     % Move to Next iteration
     %
 
+    extraJacobUpdate = false;
     last = current;
     current = next;
 end

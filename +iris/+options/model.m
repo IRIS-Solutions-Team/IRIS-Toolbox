@@ -40,10 +40,6 @@ def.chkredundant = {
     'chkparam, chkparams, chkparameters', true, @(x) isequal(x, true) || isequal(x, false)
     };
 
-def.chksstate = { 
-    'error', true, @(x) isequal(x, true) || isequal(x, false)
-    'warning', true, @(x) isequal(x, true) || isequal(x, false)
-};
 
 def.diffloglik = {
     'ChkSstate', true, @model.validateChksstate
@@ -156,11 +152,6 @@ def.sspace = {
     'removeinactive', false, @islogicalscalar
     };
 
-
-def.lhsmrhs = { 
-    'HashEquationsOnly', false, @(x) isequal(x, true) || isequal(x, false)
-    'kind', 'dynamic', @(x) ischar(x) && any(strcmpi(x, {'dynamic', 'steady'})) 
-    };
 
 def.trollify = { 
     'SrcTemplate', 'trollify_template.src', @ischar

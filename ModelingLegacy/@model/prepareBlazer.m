@@ -63,11 +63,13 @@ elseif strcmpi(kind, 'Stacked')
 else
     throw( exception.Base('General:Internal', 'error') );
 end
-blz.Quantity = this.Quantity;
+
+blz.Model.Quantity = this.Quantity;
+blz.Model.Equation = this.Equation;
 
 % Change log status of variables
 if isfield(opt, 'Unlog') && ~isempty(opt.Unlog)
-    blz.Quantity = changeLogStatus(blz.Quantity, opt.Unlog, false);
+    blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, opt.Unlog, false);
 end
 
 blz.InxEndogenous = ixy | ixx;
@@ -88,7 +90,7 @@ elseif ~iscellstr(listEndogenize)
 end
 listEndogenize = unique(listEndogenize);
 if ~isempty(listEndogenize)
-    outp = lookup(blz.Quantity, listEndogenize);
+    outp = lookup(blz.Model.Quantity, listEndogenize);
     vecEndg = outp.PosName;
     error = endogenize(blz, vecEndg);
     if any(error.IxCannotSwap)
@@ -104,7 +106,7 @@ elseif ~iscellstr(listExogenize)
 end
 listExogenize = unique(listExogenize);
 if ~isempty(listExogenize)
-    outp = lookup(blz.Quantity, listExogenize);
+    outp = lookup(blz.Model.Quantity, listExogenize);
     vecExg = outp.PosName;
     error = exogenize(blz, vecExg);
     if any(error.IxCannotSwap)

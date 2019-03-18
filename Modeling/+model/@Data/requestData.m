@@ -9,11 +9,12 @@ function X = requestData(this, databankInfo, inputDatabank, range, names)
 
 %--------------------------------------------------------------------------
 
+range = double(range);
 numOfNames = numel(names);
-numOfPeriods = length(range);
-numOfDataSets = databankInfo.NumOfDataSets;
+numOfPeriods = numel(range);
+numOfPages = databankInfo.NumOfPages;
 
-X = nan(numOfNames, numOfPeriods, numOfDataSets);
+X = nan(numOfNames, numOfPeriods, numOfPages);
 
 for i = 1 : numOfNames
     ithName = names{i};
@@ -25,8 +26,8 @@ for i = 1 : numOfNames
     % checkFrequencyOrInf(ithSeries, range);
     ithData = getData(ithSeries, range);
     ithData = ithData(:, :);
-    if size(ithData, 2)==1 && numOfDataSets>1
-        ithData = repmat(ithData, 1, numOfDataSets);
+    if size(ithData, 2)==1 && numOfPages>1
+        ithData = repmat(ithData, 1, numOfPages);
     end
     X(i, :, :) = permute(ithData, [3, 1, 2]);
 end

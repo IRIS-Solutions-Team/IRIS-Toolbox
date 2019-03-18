@@ -1,4 +1,4 @@
-function [nameBlk, eqtnBlk, blkType, blz] = blazer(this, varargin)
+function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 % blazer  Reorder dynamic or steady equations and variables into sequential block structure.
 %
 % __Syntax__
@@ -74,7 +74,7 @@ function [nameBlk, eqtnBlk, blkType, blz] = blazer(this, varargin)
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('model/blazer');
+    parser = extend.InputParser('model.blazer');
     parser.KeepUnmatched = true;
     parser.addRequired('Model', @(x) isa(x, 'model'));
     parser.addParameter('Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
@@ -88,33 +88,31 @@ opt = parser.Options;
 nameBlk = cell(1, 0); %#ok<PREALL>
 eqtnBlk = cell(1, 0); %#ok<PREALL>
 
-blz = prepareBlazer(this, opt.Kind, parser.Unmatched);
-run(blz);
+blazer = prepareBlazer(this, opt.Kind, parser.Unmatched);
+run(blazer);
 
-if blz.IsSingular
+if blazer.IsSingular
     throw( exception.Base('Steady:StructuralSingularity', 'error') );
 end
 
-[eqtnBlk, nameBlk, blkType] = getHuman(this, blz);
+[eqtnBlk, nameBlk, blkType] = getHuman(blazer);
 
 if ~isempty(opt.SaveAs)
-    names = this.Quantity.Name;
-    equations = this.Equation.Input;
-    saveAs(blz, names, equations, opt.SaveAs);
+    saveAs(blazer, opt.SaveAs);
 end
 
 end%
 
 
-function [blkEqnHuman, blkQtyHuman, blkType] = getHuman(this, blz)
-    numBlocks = numel(blz.Block);
+function [blkEqnHuman, blkQtyHuman, blkType] = getHuman(blazer)
+    numBlocks = numel(blazer.Block);
     blkEqnHuman = cell(1, numBlocks);
     blkQtyHuman = cell(1, numBlocks);
     blkType = repmat(solver.block.Type.SOLVE, 1, numBlocks);
     for i = 1 : numBlocks
-        ithBlk = blz.Block{i};
-        blkEqnHuman{i} = this.Equation.Input( ithBlk.PosEqn );
-        blkQtyHuman{i} = this.Quantity.Name( ithBlk.PosQty );
+        ithBlk = blazer.Block{i};
+        blkEqnHuman{i} = blazer.Model.Equation.Input( ithBlk.PosEqn );
+        blkQtyHuman{i} = blazer.Model.Quantity.Name( ithBlk.PosQty );
         blkType(i) = ithBlk.Type;
     end
 end%

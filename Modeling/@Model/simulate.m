@@ -15,12 +15,15 @@ if isempty(parser)
     parser.addParameter('AppendPostsample', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Homotopy', [ ], @(x) isempty(x) || isstruct(x));
     parser.addParameter('IgnoreShocks', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Method', solver.Method.FIRST_ORDER, @solver.Method.validate);
     parser.addParameter('OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
     parser.addParameter('Plan', true, @(x) isequal(x, true) || isequal(x, false) || isa(x, 'Plan'));
-    parser.addParameter('ReturnNaNIfFailed', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('ProgressInfo', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('SuccessOnly', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Solver', @auto, @validateSolver);
+    parser.addParameter('SparseShocks', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 
     parser.addParameter('Initial', 'Data', @(x) any(strcmpi(x, {'Data', 'FirstOrder'})));
@@ -49,24 +52,17 @@ databankInfo = checkInputDatabank(this, inputData, baseRange, requiredNames, opt
 hereResolveOptionConflicts( );
 plan = opt.Plan;
 
-runningData = DynamicDataWrapper.withProperties( 'YXEPG', ...
-                                                 'BaseRange', ...
-                                                 'ExtendedRange', ...
-                                                 'BaseRangeColumns', ...
-                                                 'MaxShift', ...
-                                                 'TimeTrend', ...
-                                                 'NumOfDummyPeriods', ...
-                                                 'TimeFrames', ...
-                                                 'Success', ...
-                                                 'ExitFlags' );
+runningData = simulate.InputOutputData( );
 
 herePrepareRunningData( );
 
 hereCheckInitialConditions( );
 
+herePrepareBlazer( );
+
 simulateTimeFrames(this, runningData, plan, opt);
 
-outputData = herePrepareOutputData( );
+outputData = hereCreateOutputData( );
 
 if nargout>=2
     outputInfo = herePrepareOutputInfo( );
@@ -96,7 +92,7 @@ return
                            'Option Contributions=true cannot be used in simulations with exogenized variables' }
             throw( exception.Base(THIS_ERROR, 'error') );
         end
-        if opt.Contributions && databankInfo.NumOfDataSets>1
+        if opt.Contributions && databankInfo.NumOfPages>1
             THIS_ERROR = { 'Model:CannotEvalContributionsWithMultipleDataSets'
                            'Option Contributions=true cannot be used in simulations on multiple data sets' }
             throw( exception.Base(THIS_ERROR, 'error') );
@@ -107,8 +103,8 @@ return
 
 
     function herePrepareRunningData( )
-        herePrepareDummyPeriods( );
-        numOfDummyPeriods = runningData.NumOfDummyPeriods;
+        numOfDummyPeriods = hereCalculateNumOfDummyPeriods( );
+        runningData.NumOfDummyPeriods = numOfDummyPeriods;
         startOfBaseRange = baseRange(1);
         endOfBaseRange = baseRange(end);
         endOfBaseRangePlusDummy = endOfBaseRange + numOfDummyPeriods;
@@ -126,17 +122,41 @@ return
         startOfExtendedRange = extendedRange(1);
         endOfExtendedRange = extendedRange(end);
         runningData.ExtendedRange = [startOfExtendedRange, endOfExtendedRange];
-        runningData.BaseRangeColumns = [ round(startOfBaseRange - startOfExtendedRange + 1), ...
-                                         round(endOfBaseRange - startOfExtendedRange + 1) ];
+        runningData.BaseRangeColumns = colon( round(startOfBaseRange - startOfExtendedRange + 1), ...
+                                              round(endOfBaseRange - startOfExtendedRange + 1) );
         numOfDataSets = size(runningData.YXEPG, 3); 
         if numOfDataSets==1 && nv>1
             % Expand number of data sets to match number of parameter variants
             runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, numOfRuns);
         end
+        runningData.InxOfInitInPresample = getInxOfInitInPresample(this, runningData.BaseRangeColumns(1));
     end%
 
 
-    
+
+
+    function herePrepareBlazer( )
+        firstColumnToRun = runningData.BaseRangeColumns(1);
+        lastColumnToRun = runningData.BaseRangeColumns(end);
+        switch opt.Method
+            case solver.Method.STACKED
+                blazer = prepareBlazer(this, 'Stacked', opt);
+                run(blazer);
+                blazer.ColumnsToRun = firstColumnToRun : lastColumnToRun;
+                prepareBlocks(blazer, opt);
+            case solver.Method.STATIC
+                blazer = prepareBlazer(this, 'Static', opt);
+                run(blazer);
+                blazer.ColumnsToRun = firstColumnToRun : lastColumnToRun;
+                prepareBlocks(blazer, opt);
+            otherwise
+                blazer = [ ];
+        end
+        runningData.Blazer = blazer;
+    end%
+
+
+
 
     function hereCheckInitialConditions( )
         % Report missing initial conditions
@@ -148,7 +168,7 @@ return
 
 
 
-    function numOfDummyPeriods = herePrepareDummyPeriods( )
+    function numOfDummyPeriods = hereCalculateNumOfDummyPeriods( )
         numOfDummyPeriods = opt.Window - 1;
         if ~strcmpi(opt.Method, 'FirstOrder')
             [~, maxShift] = getActualMinMaxShifts(this);
@@ -157,13 +177,12 @@ return
         if numOfDummyPeriods>0
             plan = extendWithDummies(plan, numOfDummyPeriods);
         end
-        runningData.NumOfDummyPeriods = numOfDummyPeriods;
     end%
 
 
 
 
-    function outputData = herePrepareOutputData( )
+    function outputData = hereCreateOutputData( )
         if strcmpi(opt.OutputData, 'Databank')
             if opt.Contributions
                 comments = this.Quantity.Label4ShockContributions;

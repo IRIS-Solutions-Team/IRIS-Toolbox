@@ -20,4 +20,5 @@ end
 this.Matrix = this.Matrix(:, ((positionFrom-1)*numOfQuantities+1) : (positionTo*numOfQuantities));
 this.Shift = shiftFrom : shiftTo;
 
-end
+end%
+

@@ -1,4 +1,4 @@
-function exitFlag = simulateStatic(this, blazer, vthRect, vthData)
+function exitFlag = simulateStatic(this, blazer, vthRect, vthData, header)
 % simulateStatic  Run static simulation on one time frame
 %
 % Backend IRIS function
@@ -23,8 +23,9 @@ for column = firstColumnOfTimeFrame : lastColumnOfTimeFrame
 
     for i = 1 : numOfBlocks
         ithBlk = blazer.Block{i};
+        ithHeader = [header, sprintf('[Block %g]', i)];
         ithBlk.Terminal = [ ];
-        [exitFlag, error] = run(ithBlk, vthData);
+        [exitFlag, error] = run(ithBlk, vthData, ithHeader);
         if ~isempty(error.EvaluatesToNan)
             throw( exception.Base('Dynamic:EvaluatesToNan', 'error'), ...
                    '', this.Equation.Input{error.EvaluatesToNan} );

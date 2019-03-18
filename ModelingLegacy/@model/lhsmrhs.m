@@ -1,5 +1,5 @@
-function dcy = lhsmrhs(this, varargin)
-% lhsmrhs  Discrepancy between the LHS and RHS of each model equation for given data.
+function dcy = lhsmrhs(this, inputData, varargin)
+% lhsmrhs  Discrepancy between the LHS and RHS of each model equation for given data
 %
 % __Syntax for Casual Evaluation__
 %
@@ -37,6 +37,15 @@ function dcy = lhsmrhs(this, varargin)
 % RHS for each model equation.
 %
 %
+% __Options__
+%
+% `HashEquationsOnly=false` [ `true` | `false` ] - Evaluate hash equations
+% only.
+%
+% `EquationSwitch='Dynamic'` [ `'Dynamic'` | `'Steady'` ] - Evaluate the
+% dynamic versions or the steady versions of the model equations.
+%
+% 
 % __Description__
 %
 % The function `lhsmrhs` evaluates the discrepancy between the LHS and the
@@ -63,10 +72,17 @@ function dcy = lhsmrhs(this, varargin)
 %     Q = lhsmrhs(M, YXET);
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
+
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.lhsmrhs');
+    parser.addParameter('HashEquationsOnly', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'EquationSwitch', 'Kind'}, 'Dynamic', @(x) any(strcmpi(x, {'Dynamic', 'Steady'})));
+end
 
 %--------------------------------------------------------------------------
 
@@ -76,10 +92,9 @@ inxOfT = this.Equation.Type==TYPE(2);
 inxOfEquations = inxOfM | inxOfT;
 
 variantsRequested = Inf;
-if isnumeric(varargin{1})
+if isnumeric(inputData)
     % Fast syntax with numeric array
-    YXEPG = varargin{1};
-    varargin(1) = [ ];
+    YXEPG = inputData;
     howToCreateL = [ ];
     if ~isempty(varargin)
         howToCreateL = varargin{1};
@@ -89,10 +104,8 @@ if isnumeric(varargin{1})
         variantsRequested = varargin{1};
         varargin(1) = [ ];
     end
-elseif isstruct(varargin{1})
+elseif isstruct(inputData)
     % Casual syntax with input databank
-    inp = varargin{1};
-    varargin(1) = [ ];
     range = varargin{1};
     varargin(1) = [ ];
     range = double(range);
@@ -101,10 +114,11 @@ elseif isstruct(varargin{1})
         return
     end
     howToCreateL = [ ];
-    YXEPG = data4lhsmrhs(this, inp, range);
+    YXEPG = data4lhsmrhs(this, inputData, range);
 end
 
-opt = passvalopt('model.lhsmrhs', varargin{:});
+parse(parser, varargin{:});
+opt = parser.Options;
 
 if opt.HashEquationsOnly
     inxOfEquations = inxOfEquations & this.Equation.InxOfHashEquations;
@@ -120,7 +134,7 @@ numOfVariantsRequested = numel(variantsRequested);
 [YXEPG, L] = lp4lhsmrhs(this, YXEPG, variantsRequested, howToCreateL);
 
 nXPer = size(YXEPG, 2);
-if strcmpi(opt.kind, 'Dynamic')
+if strcmpi(opt.EquationSwitch, 'Dynamic')
     eqtn = this.Equation.Dynamic;
 else
     eqtn = this.Equation.Steady;

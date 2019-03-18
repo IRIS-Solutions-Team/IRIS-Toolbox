@@ -22,7 +22,8 @@ classdef Container
             this = getappdata(0, Container.CONTAINER_NAME);
             for i = 1 : 2 : numel(varargin)
                 name = varargin{i};
-                this.(varargin{i}) = varargin{i+1};
+                name = regexprep(name, '\W', '');
+                this.(name) = varargin{i+1};
             end
             setappdata(0, Container.CONTAINER_NAME, this);
         end%

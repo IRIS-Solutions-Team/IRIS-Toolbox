@@ -62,7 +62,8 @@ for v = variantsRequested
     for i = 1 : numOfBlocks
         blk = blazer.Block{i};
         blk.SteadyShift = 3;
-        [lx, gx, exitFlag, error] = run(blk, this.Link, lx, gx);
+        header = sprintf('[Variant %g][Block %g]', v, i);
+        [lx, gx, exitFlag, error] = run(blk, this.Link, lx, gx, header);
         outputInfo.ExitFlags{v}(i) = exitFlag;
         %if ~exitFlags{v}(i)
         %    fprintf('    Block %g of %g failed to solve.\n', i, numOfBlocks);
@@ -135,7 +136,7 @@ return
             gx(ix) = imag(blazer.NanInit);
         end
         % Reset zero growth to 1 for *all* log quantities (not only endogenous).
-        inxOfLog = blazer.Quantity.InxOfLog;
+        inxOfLog = blazer.Model.Quantity.InxOfLog;
         gx(inxOfLog & gx==0) = 1;
     end%
 

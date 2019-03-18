@@ -11,8 +11,8 @@ classdef (Abstract) Block < handle
         % Type  Type of block
         Type
 
-        % Id  Id string of block
-        Id = ''
+        % Id  Id number of block
+        Id
 
         % Solver  Solver options
         Solver
@@ -55,7 +55,7 @@ classdef (Abstract) Block < handle
     
     properties (Constant)
         SAVEAS_INDENT = '    ';
-        SAVEAS_HEADER_FORMAT = '%% Block #%g // Number of Equations: %g // Number of Endogenous Quantities: %g\n';
+        SAVEAS_HEADER_FORMAT = '%% Block #%g // Number of Equations: %g\n';
         SAVEAS_INSIDE_ASSIGNMENT_PREFIX = '#'
     end
 
@@ -101,8 +101,8 @@ classdef (Abstract) Block < handle
         
         function prepareBlock(this, blazer, opt)
             createEquationsFunc(this, blazer);
-            this.NamesInBlock = blazer.Quantity.Name(this.PosQty);
-            this.InxOfLog = blazer.Quantity.InxOfLog;
+            this.NamesInBlock = blazer.Model.Quantity.Name(this.PosQty);
+            this.InxOfLog = blazer.Model.Quantity.InxOfLog;
 
             if this.Type==solver.block.Type.SOLVE
                 createJacobPattern(this, blazer);
@@ -151,7 +151,7 @@ classdef (Abstract) Block < handle
                 nWrt = length(vecWrt);
                 ixOutOfSh = imag(vecWrt)<sh(1) | imag(vecWrt)>sh(end);
                 XX2L{i} = ones(1, nWrt)*aux;
-                ixLog = blazer.Quantity.IxLog(real(vecWrt));
+                ixLog = blazer.Model.Quantity.IxLog(real(vecWrt));
                 vecWrt(ixOutOfSh) = NaN;
                 ixLog(ixOutOfSh) = false;
                 XX2L{i}(ixLog) = sub2ind( [numOfQuants+1, nsh], ...
@@ -187,11 +187,10 @@ classdef (Abstract) Block < handle
         end%
         
         
-        function [z, exitFlag] = solve(this, fnObjective, z0)
+        function [z, exitFlag] = solve(this, fnObjective, z0, header)
             if isa(this.Solver, 'solver.Options')
                 % __IRIS Solver__
                 this.Solver.JacobPattern = this.JacobPattern;
-                header = sprintf('Block %s', this.Id);
                 [z, ~, exitFlag] = solver.algorithm.qnsd(fnObjective, z0, this.Solver, header);
 
             elseif isa(this.Solver, 'optim.options.SolverOptions')
@@ -222,33 +221,38 @@ classdef (Abstract) Block < handle
                 throw( exception.Base(THIS_ERROR, 'error') );
             end
         end%
+
+
         
-        
+
         function c = print(this, iBlk, name, input)
-            INDENT = solver.block.Block.SAVEAS_INDENT;
-            % START_INSIDE_ASSIGN = solver.block.Block.SAVEAS_START_INSIDE_ASSIGN;
-            % END_INSIDE_ASSIGN = solver.block.Block.SAVEAS_END_INSIDE_ASSIGN;
-            HEADER_FORMAT = solver.block.Block.SAVEAS_HEADER_FORMAT;
-            key = this.Type.SaveAsKeyword;
+            strKeyword = char(this.Type);
+            listOfUnknowns = printListOfUknowns(this, name);
             if this.Type==solver.block.Type.SOLVE
-                % Solve-for blocks.
+                % SOLVE blocks
                 strEqtn = '';
-                strSolveFor = '';
-                strSolveFor = [ strSolveFor, sprintf('%s, ', name{ this.PosQty }) ];
-                strSolveFor = strSolveFor(1:end-2);
-                strSolveFor = [key, '(', strSolveFor, ')'];
+                strSolveFor = [strKeyword, listOfUnknowns];
                 eqtn = input(this.PosEqn);
-                strEqtn = [strEqtn, sprintf(['\n', INDENT, '%s'], eqtn{:})];
+                strEqtn = [strEqtn, sprintf(['\n', this.SAVEAS_INDENT, '%s'], eqtn{:})];
                 c = [strSolveFor, strEqtn];
             else
-                % Assignment blocks.
-                lhsName = name{ this.PosQty };
+                % ASSIGN blocks
                 eqtn = input{ this.PosEqn };
-                c = sprintf('%s(%s)\n%s%s', key, lhsName, INDENT, eqtn);
+                c = [strKeyword, listOfUnknowns, newline( ), this.SAVEAS_INDENT, eqtn];
             end
-            header = sprintf(HEADER_FORMAT, iBlk, numel(this.PosEqn), numel(this.PosQty));
+            header = sprintf( this.SAVEAS_HEADER_FORMAT, ...
+                              iBlk, numel(this.PosEqn) );
             c = [header, c];
         end%
+
+
+
+
+        function c = printListOfUknowns(this, name)
+            c = ['(', strjoin(name(this.PosQty), ', '), ')'];
+        end%
+
+
         
         
         function setShift(this, blazer)

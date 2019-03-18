@@ -22,6 +22,11 @@ classdef Rectangular < handle
         
         Quantity
 
+        % HashIncidence  Incidence object for hash equations
+        HashIncidence = model.component.Incidence.empty(0)
+        HashMultipliers = double.empty(0)
+        MultipliersHashedYX = logical.empty(0)
+
         InxOfCurrentWithinXi
         LinxOfXib
         LinxOfCurrentXi
@@ -31,7 +36,8 @@ classdef Rectangular < handle
         NeedsEvalTrends = true
 
         HashEquationsFunction
-        NumOfHashEquations = NaN
+
+        SparseShocks = false
     end
 
 
@@ -43,11 +49,14 @@ classdef Rectangular < handle
 
     properties (Dependent)
         CurrentForward
+        NumOfHashEquations
     end
 
 
     methods
         flat(varargin)
+        calculateHashMultipliers(varargin)
+        multipliers(varargin)
 
         
         function update(this, model, variantRequested)
@@ -116,6 +125,15 @@ classdef Rectangular < handle
             end
             ne = numel(this.SolutionVector{3});
             currentForward = size(R, 2)/ne - 1;
+        end%
+
+
+        function value = get.NumOfHashEquations(this)
+            if isempty(this.HashIncidence)
+                value = 0;
+                return
+            end
+            value = this.HashIncidence.NumOfEquations;
         end%
 
 

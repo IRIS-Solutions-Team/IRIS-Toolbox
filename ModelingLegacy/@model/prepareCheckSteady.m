@@ -21,7 +21,7 @@ if isempty(parser)
     parser = extend.InputParser('model.prepareCheckSteady');
     parser.addRequired('Model', @(x) isa(x, 'model'));
     parser.addRequired('Mode', @validateMode);
-    parser.addParameter({'Kind', 'Type', 'Eqtn', 'Equation', 'Equations'}, 'Dynamic', @validateKind);
+    parser.addParameter({'EquationSwitch', 'Kind', 'Type', 'Eqtn', 'Equation', 'Equations'}, 'Dynamic', @validateEquationSwitch);
 end
 parser.parse(this, mode, varargin{:});
 opt = parser.Options;
@@ -43,7 +43,7 @@ function flag = validateMode(value)
 end%
 
 
-function flag = validateKind(value)
+function flag = validateEquationSwitch(value)
     if ~ischar(value) && ~(isa(value, 'string') && isscalar(value))
         flag = false;
         return

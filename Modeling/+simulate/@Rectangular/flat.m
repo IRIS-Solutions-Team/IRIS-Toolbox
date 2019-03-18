@@ -24,6 +24,7 @@ sizeOfData = size(data.YXEPG);
 firstColumnToRun = this.FirstColumn;
 lastColumnToRun = this.LastColumn;
 columnsToRun = firstColumnToRun : lastColumnToRun;
+sparseShocks = this.SparseShocks;
 
 linxOfXib = this.LinxOfXib;
 linxOfCurrentXi = this.LinxOfCurrentXi;
@@ -102,7 +103,9 @@ for t = columnsToRun
             vecAnticipatedE_t = vecAnticipatedE_t(:);
             lenToAdd = lenOfR - numel(vecAnticipatedE_t);
             vecAnticipatedE_t = [vecAnticipatedE_t; zeros(lenToAdd, 1)];
-            vecAnticipatedE_t = sparse(vecAnticipatedE_t);
+            if sparseShocks
+                vecAnticipatedE_t = sparse(vecAnticipatedE_t);
+            end
             Xi_t = Xi_t + R*vecAnticipatedE_t;
         end
     end
@@ -146,7 +149,7 @@ for t = columnsToRun
 end
 
 % __Deterministic Trends in Measurement Equations__
-if needsEvalTrends
+if simulateY && needsEvalTrends
     data.YXEPG(inxOfY, columnsToRun) = data.YXEPG(inxOfY, columnsToRun) ...
                                      + data.Trends(:, columnsToRun);
 end

@@ -1,4 +1,4 @@
-function [d, YXEPG] = shockdb(this, d, range, varargin)
+function [runningData, YXEPG] = shockdb(this, runningData, range, varargin)
 % shockdb  Create model-specific databank with random shocks
 %
 % __Syntax__
@@ -31,11 +31,11 @@ function [d, YXEPG] = shockdb(this, d, range, varargin)
 %
 % __Options__
 %
-% * `NumOfDraws=@auto` [ numeric | @auto ] - Number of draws (i.e. columns)
-% generated for each shock; if `@auto`, the number of draws is equal to the
-% number of alternative parameterizations in the model `M`, or to the
-% number of columns in shock series existing in the input databank,
-% `InputData`.
+% * `NumOfDraws=@auto` [ numeric | `@auto` ] - Number of draws (i.e.
+% columns) generated for each shock; if `@auto`, the number of draws is
+% equal to the number of alternative parameter variants in the model `M`,
+% or to the number of columns in shock series existing in the input
+% databank, `InputData`.
 %
 % * `ShockFunc=@zeros` [ `@lhsnorm` | `@randn` | `@zeros` ] - Function used
 % to generate random draws for new shock time series; if `@zeros`, the new
@@ -79,69 +79,71 @@ if isempty(parser)
     parser.addParameter('NumOfDraws', @auto, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
     parser.addParameter('ShockFunc', @zeros, @(x) isa(x, 'function_handle'));
 end
-parser.parse(this, d, range, varargin{:});
+parser.parse(this, runningData, range, varargin{:});
 numOfDrawsOptional = parser.Results.NumOfDrawsOptional;
 opt = parser.Options;
 if ~isequal(numOfDrawsOptional, @auto)
     opt.NumOfDraws = numOfDrawsOptional;
 end
+range = double(range);
 
 %--------------------------------------------------------------------------
 
 numOfQuantities = numel(this.Quantity.Name);
-indexOfShocks = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ne = sum(indexOfShocks);
+inxOfE = getIndexByType(this, TYPE(31), TYPE(32));
+ne = sum(inxOfE);
 nv = length(this);
 numOfPeriods = numel(range);
-lsName = this.Quantity.Name(indexOfShocks);
-lsLabel = this.Quantity.LabelOrName;
-lsLabel = lsLabel(indexOfShocks);
+namesOfShocks = this.Quantity.Name(inxOfE);
+labelOrName = this.Quantity.LabelOrName;
+labelOrName = labelOrName(inxOfE);
 
-if isempty(d) || isequal(d, struct( ))
+if isempty(runningData) || isequal(runningData, struct( ))
     E = zeros(ne, numOfPeriods);
 else
-    E = datarequest('e', this, d, range);
+    requiredNames = cell.empty(1, 0);
+    optionalNames = namesOfShocks;
+    databankInfo = checkInputDatabank(this, runningData, range, requiredNames, optionalNames);
+    E = requestData(this, databankInfo, runningData, range, namesOfShocks);
 end
-numOfShocks = size(E, 3);
+numOfPages = size(E, 3);
 
 if isequal(opt.NumOfDraws, @auto)
-    opt.NumOfDraws = max(nv, numOfShocks);
+    opt.NumOfDraws = max(nv, numOfPages);
 end
 checkNumOfDraws( );
 
-numOfLoops = max([nv, numOfShocks, opt.NumOfDraws]);
-if numOfShocks==1 && numOfLoops>1
-    E = repmat(E, 1, 1, numOfLoops);
+numOfRuns = max([nv, numOfPages, opt.NumOfDraws]);
+if numOfPages==1 && numOfRuns>1
+    E = repmat(E, 1, 1, numOfRuns);
 end
 
 if isequal(opt.ShockFunc, @lhsnorm)
-    S = lhsnorm(sparse(1, ne*numOfPeriods), speye(ne*numOfPeriods), numOfLoops);
+    S = lhsnorm(sparse(1, ne*numOfPeriods), speye(ne*numOfPeriods), numOfRuns);
 else
-    S = opt.ShockFunc(numOfLoops, ne*numOfPeriods);
+    S = opt.ShockFunc(numOfRuns, ne*numOfPeriods);
 end
 
-for ithLoop = 1 : numOfLoops
-    if ithLoop<=nv
-        Omg = covfun.stdcorr2cov(this.Variant.StdCorr(:, :, ithLoop), ne);
+for i = 1 : numOfRuns
+    if i<=nv
+        Omg = covfun.stdcorr2cov(this.Variant.StdCorr(:, :, i), ne);
         F = covfun.factorise(Omg);
     end
-    iS = S(ithLoop, :);
-    iS = reshape(iS, ne, numOfPeriods);
-    E(:, :, ithLoop) = E(:, :, ithLoop) + F*iS;
+    E(:, :, i) = E(:, :, i) + F*reshape(S(i, :), ne, numOfPeriods);
 end
 
 if nargout==1
     for i = 1 : ne
-        name = lsName{i};
+        name = namesOfShocks{i};
         e = permute(E(i, :, :), [2, 3, 1]);
-        d.(name) = replace(TIME_SERIES_TEMPLATE, e, range(1), lsLabel{i});
+        runningData.(name) = replace(TIME_SERIES_TEMPLATE, e, range(1), labelOrName{i});
     end
 elseif nargout==2
     [minShift, maxShift] = getActualMinMaxShifts(this);
     numOfExtendedPeriods = numOfPeriods-minShift+maxShift;
     baseColumns = (1:numOfPeriods) - minShift;
-    YXEPG = nan(numOfQuantities, numOfExtendedPeriods, numOfLoops);
-    YXEPG(indexOfShocks, baseColumns, :) = E;
+    YXEPG = nan(numOfQuantities, numOfExtendedPeriods, numOfRuns);
+    YXEPG(inxOfE, baseColumns, :) = E;
 end
 
 return
@@ -149,22 +151,25 @@ return
 
     function checkNumOfDraws( )
         if nv>1 && opt.NumOfDraws>1 && nv~=opt.NumOfDraws
-            utils.error('model:shockdb', ...
-                ['Input argument NDraw is not compatible with the number ', ...
-                'of alternative parameterizations in the model object.']);
+            THIS_ERROR = { 'Model:NumOfDrawIncompatibleWithParams'
+                           [ 'Option NumOfDraws= is not consistent with the number ', ...
+                             'of alternative parameter variants in the model object' ] };
+            throw( exception.Base(THIS_ERROR, 'error') );
         end
         
-        if numOfShocks>1 && opt.NumOfDraws>1 && numOfShocks~=opt.NumOfDraws
-            utils.error('model:shockdb', ...
-                ['Input argument NDraw is not compatible with the number ', ...
-                'of alternative data sets in the input databank.']);
+        if numOfPages>1 && opt.NumOfDraws>1 && numOfPages~=opt.NumOfDraws
+            THIS_ERROR = { 'Model:NumOfDrawIncompatibleWithPages'
+                           [ 'Option NumOfDraws= is not consistent with the number ', ...
+                             'of alternative data pags in the input databank' ] };
+            throw( exception.Base(THIS_ERROR, 'error') );
         end
         
-        if numOfShocks>1 && nv>1 && nv~=numOfShocks
-            utils.error('model:shockdb', ...
-                ['The number of alternative data sets in the input databank ', ...
-                'is not compatible with the number ', ...
-                'of alternative parameterizations in the model object.']);
+        if numOfPages>1 && nv>1 && nv~=numOfPages
+            THIS_ERROR = { 'Model:PagesIncompatibleWithParams'
+                           [ 'The number of alternative data pages in the input databank ', ...
+                             'is not consistent with the number ', ...
+                             'of alternative parameterizations in the model object' ] };
+            throw( exception.Base(THIS_ERROR, 'error') );
         end
     end%
 end%

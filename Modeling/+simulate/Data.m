@@ -34,6 +34,9 @@ classdef Data < matlab.mixin.Copyable
         InxOfEndogenizedE = logical.empty(0)
         Target = double.empty(0)
 
+        % InxOfHashedYX  Incidence of measurement and transtion variables in hash equations
+        InxOfHashedYX = logical.empty(0)
+
         % AnticipatedE  Values of anticipated shocks within the current simulation range
         AnticipatedE = double.empty(0)
 
@@ -217,6 +220,7 @@ classdef Data < matlab.mixin.Copyable
         LastUnanticipatedE
         LastEndogenizedE
         LastExogenizedYX
+        LastHashedYX
     end
 
 
@@ -261,7 +265,7 @@ classdef Data < matlab.mixin.Copyable
 
         function value = get.LastAnticipatedE(this)
             temp = any(this.AnticipatedE~=0, 1);
-            value = find(temp, 1, 'last');
+            value = find(temp, 1, 'Last');
             if isempty(value)
                 value = 0;
             end
@@ -270,7 +274,7 @@ classdef Data < matlab.mixin.Copyable
 
         function value = get.LastUnanticipatedE(this)
             temp = any(this.UnanticipatedE~=0, 1);
-            value = find(temp, 1, 'last');
+            value = find(temp, 1, 'Last');
             if isempty(value)
                 value = 0;
             end
@@ -279,7 +283,7 @@ classdef Data < matlab.mixin.Copyable
 
         function value = get.LastEndogenizedE(this)
             temp = any(this.InxOfEndogenizedE, 1);
-            value = find(temp, 1, 'last');
+            value = find(temp, 1, 'Last');
             if isempty(value)
                 value = 0;
             end
@@ -288,7 +292,20 @@ classdef Data < matlab.mixin.Copyable
 
         function value = get.LastExogenizedYX(this)
             temp = any(this.InxOfExogenizedYX, 1);
-            value = find(temp, 1, 'last');
+            value = find(temp, 1, 'Last');
+            if isempty(value)
+                value = 0;
+            end
+        end%
+
+
+        function value = get.LastHashedYX(this)
+            if isempty(this.InxOfHashedYX)
+                value = 0;
+                return
+            end
+            anyHashedYX = any(this.InxOfHashedYX, 1);
+            value = find(anyHashedYX, 1, 'Last');
             if isempty(value)
                 value = 0;
             end

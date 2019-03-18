@@ -1,4 +1,8 @@
-classdef DynamicDataWrapper < dynamicprops
+classdef DynamicDataWrapper < handle
+    properties
+        YXEPG
+    end
+    %{
     methods (Static)
         function this = withProperties(varargin)
             this = DynamicDataWrapper( );
@@ -7,5 +11,6 @@ classdef DynamicDataWrapper < dynamicprops
             end
         end%
     end
+    %}
 end
 

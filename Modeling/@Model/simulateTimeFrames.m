@@ -11,16 +11,17 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
+nv = length(this);
 numOfRuns = size(runningData.YXEPG, 3); 
 startOfBaseRange = runningData.BaseRange(1);
 endOfBaseRange = runningData.BaseRange(end);
 startOfExtendedRange = runningData.ExtendedRange(1);
-firstColumnToRun = runningData.BaseRangeColumns(1);
-lastColumnToRun = runningData.BaseRangeColumns(end);
+baseRangeColumns = runningData.BaseRangeColumns;
+firstColumnToRun = baseRangeColumns(1);
+lastColumnToRun = baseRangeColumns(end);
 maxShift = runningData.MaxShift;
-
-% Prepare and run Blazer and Blocks if this is a Stacked simulation
-blazer = herePrepareBlazer( );
+blazer = runningData.Blazer;
+inxOfInitInPresample = runningData.InxOfInitInPresample;
 
 method = repmat(opt.Method, 1, numOfRuns);
 deviation = repmat(opt.Deviation, 1, numOfRuns);
@@ -36,89 +37,87 @@ outputInfo.TimeFrames = cell(1, numOfRuns);
 outputInfo.Success = true(1, numOfRuns);
 outputInfo.ExitFlags = cell(1, numOfRuns);
 
+if opt.ProgressInfo
+    progressInfo = herePrepareProgressInfo( );
+end
+
 for i = 1 : numOfRuns
-    if method(i)==solver.Method.NONE
-        continue
-    end
+    %for h = homotopySteps
+        % Set up @simulate.Data from @Model and @Plan, update parameters and
+        % steady trends and measurement trends
+        vthData = simulate.Data.fromModelAndPlan( this, i, plan, ...
+                                                  runningData.YXEPG, needsEvalTrends(i) );
+        vthData.FirstColumnOfSimulation = firstColumnToRun;
+        vthData.LastColumnOfSimulation = lastColumnToRun;
+        vthData.Window = opt.Window;
 
-    % Set up @simulate.Data from @Model and @Plan, update parameters and
-    % steady trends and measurement trends
-    vthData = simulate.Data.fromModelAndPlan( this, i, plan, ...
-                                              runningData.YXEPG, needsEvalTrends(i) );
-    vthData.FirstColumnOfSimulation = firstColumnToRun;
-    vthData.LastColumnOfSimulation = lastColumnToRun;
-    vthData.Window = opt.Window;
-
-    if method(i)==solver.Method.STACKED || method(i)==solver.Method.STATIC
-        if deviation(i)
-            vthData.YXEPG = addSteadyTrends(vthData, vthData.YXEPG);
-            vthData.Deviation = false;
-        end
-    else
-        vthData.Deviation = deviation(i);
-    end
-
-    % Set up @Rectangular object for simulation
-    vthRect = simulate.Rectangular.fromModel(this, i);
-    vthRect.Deviation = vthData.Deviation;
-    vthRect.SimulateY = true;
-    vthRect.Method = method(i);
-    vthRect.NeedsEvalTrends = vthData.NeedsEvalTrends;
-
-    % Equation-selective specific properties
-    if method(i)==solver.Method.SELECTIVE
-        [ vthRect.HashEquationsFunction, ...
-          vthRect.NumOfHashEquations         ] = prepareHashEquations(this);
-        vthData.NonlinAddf = zeros(vthRect.NumOfHashEquations, vthData.NumOfExtendedPeriods);
-    end
-
-    % Retrieve shocks into AnticipatedE and UnanticipatedE properties on
-    % the whole range
-    retrieveE(vthData);
-
-    % Split simulation range into time frames
-    if method(i)==solver.Method.STATIC
-        timeFrames = [firstColumnToRun, lastColumnToRun];
-    else
-        [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(vthData, plan, maxShift, opt);
-        vthData.MixinUnanticipated = mixinUnanticipated;
-    end
-
-    % Simulate @Rectangular object one timeFrame at a time
-    numOfTimeFrames = size(timeFrames, 1);
-    needsStoreE = false(1, numOfTimeFrames);
-    runningData.ExitFlags{i} = repmat(solver.ExitFlag.IN_PROGRESS, 1, numOfTimeFrames);
-    for frame = 1 : numOfTimeFrames
-        setTimeFrame(vthRect, timeFrames(frame, :));
-        setTimeFrame(vthData, timeFrames(frame, :));
-        updateSwap(vthData, plan);
-        ensureExpansionGivenData(vthRect, vthData);
-        if vthData.NumOfExogenizedPoints==0
-            simulateFunction = @flat;
+        if method(i)==solver.Method.STACKED || method(i)==solver.Method.STATIC
+            if deviation(i)
+                vthData.YXEPG = addSteadyTrends(vthData, vthData.YXEPG);
+                vthData.Deviation = false;
+            end
         else
-            simulateFunction = @swapped; 
-            needsStoreE(frame) = true;
+            vthData.Deviation = deviation(i);
         end
 
-        % Choose simulation type
-        switch method(i)
-            case solver.Method.FIRST_ORDER
-                simulateFunction(vthRect, vthData);
-                exitFlag = solver.ExitFlag.LINEAR_SYSTEM;
-            case solver.Method.SELECTIVE
-                exitFlag = simulateSelective( this, simulateFunction, ...
-                                              vthRect, vthData, ...
-                                              needsStoreE(frame), opt );
-            case solver.Method.STACKED
-                if strcmpi(opt.Initial, 'FirstOrder')
-                    simulateFunction(vthRect, vthData);
-                end
-                exitFlag = simulateStacked(this, blazer, vthRect, vthData);
-            case solver.Method.STATIC
-                exitFlag = simulateStatic(this, blazer, vthRect, vthData);
+        % Set up @Rectangular object for simulation
+        if i<=nv
+            vthRect = simulate.Rectangular.fromModel(this, i);
+            vthRect.SparseShocks = opt.SparseShocks;
         end
-        runningData.ExitFlags{i}(frame) = exitFlag;
-    end % frame
+        vthRect.Deviation = vthData.Deviation;
+        vthRect.SimulateY = true;
+        vthRect.Method = method(i);
+        vthRect.NeedsEvalTrends = vthData.NeedsEvalTrends;
+
+        % Equation-selective specific properties
+        if method(i)==solver.Method.SELECTIVE
+            prepareHashEquations(this, vthRect, vthData);
+        end
+
+        % Retrieve shocks into AnticipatedE and UnanticipatedE properties on
+        % the whole range
+        retrieveE(vthData);
+
+        % Split simulation range into time frames
+        if method(i)==solver.Method.STATIC
+            timeFrames = [firstColumnToRun, lastColumnToRun];
+        else
+            [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(vthData, plan, maxShift, opt);
+            vthData.MixinUnanticipated = mixinUnanticipated;
+        end
+
+        % Simulate @Rectangular object one timeFrame at a time
+        numOfTimeFrames = size(timeFrames, 1);
+        needsStoreE = false(1, numOfTimeFrames);
+        vthExitFlags = repmat(solver.ExitFlag.IN_PROGRESS, 1, numOfTimeFrames);
+        for frame = 1 : numOfTimeFrames
+            setTimeFrame(vthRect, timeFrames(frame, :));
+            setTimeFrame(vthData, timeFrames(frame, :));
+            updateSwap(vthData, plan);
+            ensureExpansionGivenData(vthRect, vthData);
+            if vthData.NumOfExogenizedPoints==0
+                simulateFunction = @flat;
+            else
+                simulateFunction = @swapped; 
+                needsStoreE(frame) = true;
+            end
+
+            % Choose simulation type and run simulation
+            exitFlag = hereChooseSimulationTypeAndRun( );
+            vthExitFlags(frame) = exitFlag;
+
+            % If the simulation of this time frame fails and the user does not
+            % request results from failed simulations, break immediately from
+            % the loop and do not continue to the next time frame
+            if ~hasSucceeded(exitFlag) && opt.SuccessOnly
+                break
+            end
+        end % frame
+
+        % Overall success
+        vthSuccess = all(hasSucceeded(vthExitFlags));
+    %end % while homotopy
 
     % Update shocks back in YXEPG if needed
     if any(needsStoreE)
@@ -130,49 +129,33 @@ for i = 1 : numOfRuns
             vthData.YXEPG = removeSteadyTrends(vthData, vthData.YXEPG);
         end
     end
-
-    % Update output data
-    runningData.YXEPG(:, :, i) = vthData.YXEPG;
-    if opt.ReturnNaNIfFailed
-        runningData.YXEPG(:, firstColumnToRun:lastColumnToRun, i) = NaN;
+    
+    % Fill in NaNs on the entire simulation range if the simulation failed
+    % and the user does not request the numbers
+    if ~vthSuccess && opt.SuccessOnly
+        vthData.YXEPG(:, firstColumnToRun:lastColumnToRun) = NaN;
     end
 
-    % Update output info struct
+    % Reset all data outside the simulation range to NaN except the
+    % necessary initial conditions
+    hereResetOutsideBaseRange( );
+
+    % Update output data and output info
+    runningData.YXEPG(:, :, i) = vthData.YXEPG;
     runningData.TimeFrames{i} = timeFrames;
-    runningData.Success(i) = all(hasSucceeded(runningData.ExitFlags{i}));
-end
+    runningData.ExitFlags{i} = vthExitFlags;
+    runningData.Success(i) = vthSuccess;
+
+    if opt.ProgressInfo
+        hereUpdateProgressInfo( );
+    end
+end % run
 
 if opt.Contributions
     herePostprocessContributions( );
 end
 
-% Reset all data outside the simulation range to NaN except initial
-% conditions
-hereResetOutsideBaseRange( );
-
-% Convert output data to databank if requested
-
 return
-
-
-
-
-    function blazer = herePrepareBlazer( )
-        switch opt.Method
-            case solver.Method.STACKED
-                blazer = prepareBlazer(this, 'Stacked', opt);
-                run(blazer);
-                blazer.ColumnsToRun = firstColumnToRun : lastColumnToRun;
-                prepareBlocks(blazer, opt);
-            case solver.Method.STATIC
-                blazer = prepareBlazer(this, 'Static', opt);
-                run(blazer);
-                blazer.ColumnsToRun = firstColumnToRun : lastColumnToRun;
-                prepareBlocks(blazer, opt);
-            otherwise
-                blazer = [ ];
-        end
-    end%
 
 
 
@@ -214,6 +197,57 @@ return
 
 
 
+    function progressInfo = herePrepareProgressInfo( )
+        oneLiner = true;
+        solver = { opt.Solver.Display };
+        for i = 1 : numel(solver)
+            if ~isequal(solver{i}, false) ...
+               && ~strcmpi(solver{i}, 'None') ...
+               && ~strcmpi(solver{i}, 'Off')
+               oneLiner = false;
+               break
+            end
+        end
+        progressInfo = ProgressInfo(numOfRuns, oneLiner);
+        update(progressInfo);
+    end%
+
+
+
+
+    function hereUpdateProgressInfo( )
+        progressInfo.Completed = i;
+        progressInfo.Success = nnz(runningData.Success);
+        update(progressInfo);
+    end%
+
+
+
+    function exitFlag = hereChooseSimulationTypeAndRun( )
+        header = sprintf('[Variant %g][TimeFrame %g]', i, frame);
+        switch method(i)
+            case solver.Method.NONE
+                exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
+            case solver.Method.FIRST_ORDER
+                simulateFunction(vthRect, vthData);
+                exitFlag = solver.ExitFlag.LINEAR_SYSTEM;
+            case solver.Method.SELECTIVE
+                exitFlag = simulateSelective( this, simulateFunction, ...
+                                              vthRect, vthData, ...
+                                              needsStoreE(frame), header, opt );
+            case solver.Method.STACKED
+                if strcmpi(opt.Initial, 'FirstOrder')
+                    simulateFunction(vthRect, vthData);
+                end
+                exitFlag = simulateStacked(this, blazer, vthRect, vthData, header);
+            case solver.Method.STATIC
+                exitFlag = simulateStatic(this, blazer, vthRect, vthData, header);
+        end
+    end%
+
+
+
+
     function herePostprocessContributions( )
         inxOfLog = this.Quantity.InxOfLog;
         if opt.Method~=solver.Method.FIRST_ORDER
@@ -229,13 +263,10 @@ return
 
 
     function hereResetOutsideBaseRange( )
-        inxOfInitInPresample = getInxOfInitInPresample(this, firstColumnToRun);
-        for ii = 1 : numOfRuns
-            temp = runningData.YXEPG(:, 1:firstColumnToRun-1, ii);
-            temp(~inxOfInitInPresample) = NaN;
-            runningData.YXEPG(:, 1:firstColumnToRun-1, ii) = temp;
-        end
-        runningData.YXEPG(:, lastColumnToRun+1:end, :) = NaN;
+        temp = vthData.YXEPG(:, 1:firstColumnToRun-1);
+        temp(~inxOfInitInPresample) = NaN;
+        vthData.YXEPG(:, 1:firstColumnToRun-1) = temp;
+        vthData.YXEPG(:, lastColumnToRun+1:end) = NaN;
     end%
 end%
 

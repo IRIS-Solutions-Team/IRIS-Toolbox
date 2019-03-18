@@ -4,7 +4,7 @@ classdef ExitFlag
         IN_PROGRESS      (+0, '')
 
         % Success
-        CONVERGED        (+1, 'Successfully converged. Both step tolerance and function tolerance satisfied.')
+        CONVERGED        (+1, 'Successfully converged. Both step and function tolerance satisfied.')
         ASSIGNED         (+2, 'Successfully assigned.')
         NOTHING_TO_SOLVE (+3, 'Nothing to solve.')
         LINEAR_SYSTEM    (+4, 'Linear system solved.')
@@ -23,6 +23,7 @@ classdef ExitFlag
     properties
         Id
         Message
+        Iterations
     end
     
     
@@ -46,8 +47,8 @@ classdef ExitFlag
         function print(this, header)
             if nargin<2 || isempty(header)
                 header = '';
-            else
-                header = [header, ': '];
+            elseif header(end)~=' '
+                header = [header, ' '];
             end
             fprintf('\n%s%s\n', header, this.Message);
         end%

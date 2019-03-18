@@ -1,4 +1,4 @@
-function exitFlag = simulateStacked(this, blazer, vthRect, vthData)
+function exitFlag = simulateStacked(this, blazer, vthRect, vthData, header)
 % simulateStacked  Run stacked-time simulation on one time frame
 %
 % Backend IRIS function
@@ -17,8 +17,9 @@ lastColumnOfTimeFrame = vthData.LastColumnOfTimeFrame;
 numOfBlocks = numel(blazer.Block);
 for i = 1 : numOfBlocks
     ithBlk = blazer.Block{i};
+    ithHeader = [header, sprintf('[Block %g]', i)];
     herePrepareTerminal( );
-    [exitFlag, error] = run(ithBlk, vthData);
+    [exitFlag, error] = run(ithBlk, vthData, ithHeader);
     if ~isempty(error.EvaluatesToNan)
         throw( exception.Base('Dynamic:EvaluatesToNan', 'error'), ...
                '', this.Equation.Input{error.EvaluatesToNan} );

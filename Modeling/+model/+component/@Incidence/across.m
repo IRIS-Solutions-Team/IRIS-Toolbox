@@ -1,11 +1,11 @@
 function matrix = across(this, dim)
 
-numShifts = length(this.Shift);
-numEquations = size(this.Matrix, 1);
-if numShifts>0
-    numQuantities = size(this.Matrix, 2) / numShifts;
+numOfShifts = length(this.Shift);
+numOfEquations = size(this.Matrix, 1);
+if numOfShifts>0
+    numOfQuantities = size(this.Matrix, 2) / numOfShifts;
 else
-    numQuantities = 0;
+    numOfQuantities = 0;
 end
 
 if strncmpi(dim, 'Sh', 2) % Across all shifts.
@@ -25,49 +25,50 @@ end
 return
 
 
-    function ix = acrossShifts(ix)
-        ix = reshape(ix, numEquations*numQuantities, numShifts);
-        ix = any(ix, 2);
-        ix = reshape(ix, numEquations, numQuantities);
-    end
+    function inx = acrossShifts(inx)
+        inx = reshape(inx, numOfEquations*numOfQuantities, numOfShifts);
+        inx = any(inx, 2);
+        inx = reshape(inx, numOfEquations, numOfQuantities);
+    end%
 
 
-    function ix = acrossLags(ix)
+    function inx = acrossLags(inx)
         pos = find(this.Shift<0, 1, 'Last');
-        ix = ix(:, 1:pos*numQuantities);
-        ix = reshape(ix, numEquations*numQuantities, pos);
-        ix = any(ix, 2);
-        ix = reshape(ix, numEquations, numQuantities);
-    end
+        inx = inx(:, 1:pos*numOfQuantities);
+        inx = reshape(inx, numOfEquations*numOfQuantities, pos);
+        inx = any(inx, 2);
+        inx = reshape(inx, numOfEquations, numOfQuantities);
+    end%
 
 
-    function ix = acrossLeads(ix)
+    function inx = acrossLeads(inx)
         pos = find(this.Shift>0, 1, 'First');
-        ix = ix(:, (pos-1)*numQuantities+1:end);
-        ix = reshape(ix, numEquations*numQuantities, max(0, numShifts-pos+1));
-        ix = any(ix, 2);
-        ix = reshape(ix, numEquations, numQuantities);
-    end
+        inx = inx(:, (pos-1)*numOfQuantities+1:end);
+        inx = reshape(inx, numOfEquations*numOfQuantities, max(0, numOfShifts-pos+1));
+        inx = any(inx, 2);
+        inx = reshape(inx, numOfEquations, numOfQuantities);
+    end%
 
 
-    function ix = acrossNonzeros(ix)
+    function inx = acrossNonzeros(inx)
         pos = find(this.Shift==0);
-        ix(:, (pos-1)*numQuantities+(1:numQuantities)) = [ ];
-        ix = reshape(ix, numEquations*numQuantities, max(0, numShifts-1));
-        ix = any(ix, 2);
-        ix = reshape(ix, numEquations, numQuantities);
-    end
+        inx(:, (pos-1)*numOfQuantities+(1:numOfQuantities)) = [ ];
+        inx = reshape(inx, numOfEquations*numOfQuantities, max(0, numOfShifts-1));
+        inx = any(inx, 2);
+        inx = reshape(inx, numOfEquations, numOfQuantities);
+    end%
 
 
-    function ix = atZero(ix)
+    function inx = atZero(inx)
         pos = find(this.Shift==0);        
-        col = (pos-1)*numQuantities + (1:numQuantities);
-        ix = ix(:, col);
-    end
+        col = (pos-1)*numOfQuantities + (1:numOfQuantities);
+        inx = inx(:, col);
+    end%
 
 
-    function ix = acrossEquations(ix)
-        ix = any(ix, 1);
-        ix = reshape(ix, numQuantities, numShifts);
-    end
-end
+    function inx = acrossEquations(inx)
+        inx = any(inx, 1);
+        inx = reshape(inx, numOfQuantities, numOfShifts);
+    end%
+end%
+

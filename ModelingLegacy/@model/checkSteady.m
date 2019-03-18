@@ -7,7 +7,7 @@ function [flag, dcy, maxAbsDcy, listOfEquations] = checkSteady(this, variantsReq
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2019 IRIS Solutions Team.
 
-% The input struct Opt is expected to include field .Kind, a switch between
+% The input struct Opt is expected to include field .EquationSwitch, a switch between
 % evaluating full dynamic versus steady-state equations.
 
 TYPE = @int8;
@@ -31,10 +31,10 @@ if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
 end
 numOfVariantsRequested = numel(variantsRequested);
 
-if strcmpi(opt.Kind, 'dynamic') || strcmpi(opt.Kind, 'full')
-    kind = 'Dynamic';
+if strcmpi(opt.EquationSwitch, 'Dynamic') || strcmpi(opt.EquationSwitch, 'Full')
+    equationSwitch = 'Dynamic';
 else 
-    kind = 'Steady';
+    equationSwitch = 'Steady';
 end
 [minSh, maxSh] = getActualMinMaxShifts(this);
 sh = minSh : maxSh;
@@ -51,7 +51,7 @@ for i = 1 : numOfVariantsRequested
     inxWithinTol = maxAbsDcy(:, i)<=STEADY_TOLERANCE;
     flag(i) = all(inxWithinTol);
     inxWithinTolInAssignment = false(size(inxWithinTol));
-    if strcmpi(kind, 'Steady') && ~flag(i)
+    if strcmpi(equationSwitch, 'Steady') && ~flag(i)
         inxWithinTolWithImag = absDcyWithImag(:, i)<=STEADY_TOLERANCE;
         inxWithinTolInAssignment = ~inxWithinTol & inxWithinTolWithImag;
         maxAbsDcy(inxWithinTolInAssignment, i) = absDcyWithImag(inxWithinTolInAssignment, i);
@@ -76,17 +76,17 @@ return
         for t = 1 : 2
             vecT = t + sh;
             YXEPGT = createTrendArray(this, variantsRequested, isDelog, 1:numOfQuantities, vecT);
-            dcy(:, t, :) = lhsmrhs(this, YXEPGT, Inf, variantsRequested, 'Kind=', kind);
+            dcy(:, t, :) = lhsmrhs(this, YXEPGT, Inf, variantsRequested, 'Kind=', equationSwitch);
         end
         
         % Substitute level+1i*growth for variables in YXE array to check direct
         % assignments in steady equations X=a+1i*b.
         dcyWithImag = nan(ntm, 1, numOfVariantsRequested);
-        if strcmpi(kind, 'Steady')
+        if strcmpi(equationSwitch, 'Steady')
             temp = this.Variant.Values(:, :, variantsRequested);
             YXEPGT = permute(temp, [2, 1, 3]);
             YXEPGT = repmat(YXEPGT, 1, numOfShifts);
-            dcyWithImag = lhsmrhs(this, YXEPGT, Inf, variantsRequested, 'Kind=', kind);
+            dcyWithImag = lhsmrhs(this, YXEPGT, Inf, variantsRequested, 'Kind=', equationSwitch);
         end
     end
 end

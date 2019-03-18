@@ -1,6 +1,6 @@
 function swapped(this, data)
 
-multipliers(this, data);
+calculateShockMultipliers(this, data);
 flat(this, data);
 updateEndogenizedE(this, data);
 flat(this, data);
@@ -31,6 +31,8 @@ function updateEndogenizedE(this, data)
     data.UnanticipatedE(~inx, :) = data.UnanticipatedE(~inx, :) ...
                                    + addToE(~inx, :);
 end%
+
+
 
 
 function discrepancy = evaluateDiscrepancy(data)
