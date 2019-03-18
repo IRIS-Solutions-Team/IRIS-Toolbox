@@ -8,8 +8,10 @@
 
 classdef (Abstract) Blazer < handle
     properties
+        Model = struct( 'Quantity', model.component.Quantity.empty(0), ...
+                        'Equation', model.component.Equation.empty(0) )
+
         Equation = cell.empty(1, 0)
-        Quantity = model.component.Quantity.empty(1, 0)
         Gradient
         Assignment
         Incidence
@@ -121,18 +123,19 @@ classdef (Abstract) Blazer < handle
         function prepareBlocks(this, opt, varargin)
             numOfBlocks = numel(this.Block);
             for i = 1 : numOfBlocks
-                this.Block{i}.Id = sprintf('%g', i);
                 prepareBlock(this.Block{i}, this, opt, varargin{:});
+                this.Block{i}.Id = i;
             end
         end%
         
         
-        function saveAs(this, names, equations, fileName)
+        function saveAs(this, fileName)
             numOfBlocks = numel(this.Block);
             c = [ strrep(solver.blazer.Blazer.SAVEAS_FILE_HEADER, '$TimeStamp$', datestr(now( ))), ...
                   sprintf('\n%% Number of Blocks: %g', numOfBlocks), ...
-                  sprintf('\n%% Number of Equations: %g', sum(this.InxEquations)), ...
-                  sprintf('\n%% Number of Endogenous Quantities: %g\n\n\n', sum(this.InxEndogenous)) ];
+                  sprintf('\n%% Number of Equations: %g', sum(this.InxEquations)) ];
+            names = this.Model.Quantity.Name;
+            equations = this.Model.Equation.Input;
             for i = 1 : numOfBlocks
                 c = [c, print(this.Block{i}, i, names, equations) ]; %#ok<AGROW>
                 if i<numOfBlocks
