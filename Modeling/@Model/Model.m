@@ -42,6 +42,7 @@ classdef Model < model & matlab.mixin.CustomDisplay
 
 
     methods
+        varargout = get(varargin)
         varargout = simulate(varargin)
     end
 
