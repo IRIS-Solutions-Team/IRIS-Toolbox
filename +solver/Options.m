@@ -27,6 +27,7 @@ classdef (CaseInsensitiveProperties=true) Options
         FiniteDifferenceStepSize
         FiniteDifferenceType
         UsePinvIfJacobSingular
+        ForceJacobUpdateWhenReversing
 
         % QaD Options
         LastStepSizeOptim 
@@ -68,6 +69,7 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_LAST_JACOB_UPDATE = Inf
         DEFAULT_FINITE_DIFFERENCE_STEP_SIZE = eps( )^(1/3)
         DEFAULT_FINITE_DIFFERENCE_TYPE = 'forward'
+        DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING = false
 
         % Step Size Options
         DEFAULT_INIT_STEP_SIZE = 1
@@ -163,6 +165,7 @@ classdef (CaseInsensitiveProperties=true) Options
             parser.addParameter('FiniteDifferenceStepSize', this.DEFAULT_FINITE_DIFFERENCE_STEP_SIZE, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
             parser.addParameter('FiniteDifferenceType', this.DEFAULT_FINITE_DIFFERENCE_TYPE, @(x) any(strcmpi(x, {'forward', 'central'})));
             parser.addParameter('UsePinvIfJacobSingular', true, @(x) isequal(x, true) || isequal(x, false));
+            parser.addParameter('ForceJacobUpdateWhenReversing', this.DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING, @(x) isequal(x, true) || isequal(x, false));
             parser.addParameter('FunctionNorm', this.DEFAULT_FUNCTION_NORM, @(x) isequal(x, @default) || isequal(x, 1) || isequal(x, 2) || isequal(x, Inf) || isa(x, 'function_handle'));
             parser.addParameter({'FunctionTolerance', 'TolFun', 'Tolerance'}, this.DEFAULT_FUNCTION_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
             parser.addParameter({'StepTolerance', 'TolX'}, this.DEFAULT_STEP_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);

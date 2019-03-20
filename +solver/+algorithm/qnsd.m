@@ -287,7 +287,9 @@ while true
             if displayLevel.Iter
                 reportReverse( );
             end
-            extraJacobUpdate = true;
+            if opt.ForceJacobUpdateWhenReversing
+                extraJacobUpdate = true;
+            end
             continue
         end
     end
