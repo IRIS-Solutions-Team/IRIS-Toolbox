@@ -1,5 +1,5 @@
 function D = dbredate(D, OldDate, NewDate)
-% dbredate  Redate all tseries objects in a database.
+% dbredate  Redate all tseries objects in a database
 %
 % __Syntax__
 %
@@ -31,33 +31,33 @@ function D = dbredate(D, OldDate, NewDate)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('dbase/dbredate');
-    INPUT_PARSER.addRequired('D', @isstruct);
-    INPUT_PARSER.addRequired('OldDate', @(x) DateWrapper.validateDateInput(x) && numel(x)==1);
-    INPUT_PARSER.addRequired('NewDate', @(x) DateWrapper.validateDateInput(x) && numel(x)==1);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dbase.dbredate');
+    parser.addRequired('D', @isstruct);
+    parser.addRequired('OldDate', @(x) DateWrapper.validateDateInput(x) && numel(x)==1);
+    parser.addRequired('NewDate', @(x) DateWrapper.validateDateInput(x) && numel(x)==1);
 end
-
-INPUT_PARSER.parse(D, OldDate, NewDate);
+parser.parse(D, OldDate, NewDate);
 
 %--------------------------------------------------------------------------
 
 list = fieldnames(D);
-indexOfSeries = structfun(@(x) isa(x, 'tseries'), D);
+indexOfSeries = structfun(@(x) isa(x, 'TimeSubscriptable'), D);
 indexOfStructs = structfun(@isstruct, D);
 
-% Cycle over all tseries objects.
-for i = find(indexOfSeries.')
+% Cycle over all TimeSubscriptable objects
+for i = find(indexOfSeries(:)')
    D.(list{i}) = redate(D.(list{i}), OldDate, NewDate);
 end
 
-% Call recusively `dbclip` on sub-databases.
-for i = find(indexOfStructs.')
-   D.(list{i}) = dbredate(D.(list{i}), range);
+% Call recusively redate(~) on sub-databases
+for i = find(indexOfStructs(:)')
+   D.(list{i}) = dbredate(D.(list{i}), OldDate, NewDate);
 end
 
-end
+end%
+
