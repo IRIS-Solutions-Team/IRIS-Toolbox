@@ -80,7 +80,8 @@ if oldFreq~=freqOfSeries
            char(Frequency(freqOfSeries)), char(Frequency(oldFreq)) );
 end
 
-shift = round(this.Start - oldDate);
+oldStart = double(this.Start);
+shift = round(oldStart - oldDate);
 newStart = DateWrapper.fromDateCode(newDate);
 newStart = addTo(newStart, shift);
 this.Start = newStart;
