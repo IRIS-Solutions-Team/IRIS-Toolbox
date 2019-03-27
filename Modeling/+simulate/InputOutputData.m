@@ -12,6 +12,7 @@ classdef InputOutputData < handle
         TimeFrames
         Success
         ExitFlags
+        DiscrepancyTables
     end
 end
 
