@@ -1,19 +1,19 @@
 function blockCode = readBlockCode(this)
-% readBlockCode  Read individual blocks of theparser code.
+% readBlockCode  Read individual blocks of theparser code
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-nBlock = length(this.Block);
-lsBlockKey = getBlockKeyword(this);
+numBlocks = length(this.Block);
+listBlockKeywords = getBlockKeyword(this);
 
 % Check all words starting with an !.
-chkKey(this, lsBlockKey);
+checkKeywords(this, listBlockKeywords);
 
 % Add new line character at the end of the file.
 if isempty(this.Code) || this.Code(end)~=char(10)
@@ -21,17 +21,17 @@ if isempty(this.Code) || this.Code(end)~=char(10)
 end
 
 % End of block (eob) is start of another block or end of file.
-inx = ~cellfun(@isempty, lsBlockKey);
-eob = sprintf('|%s', lsBlockKey{inx});
+inx = ~cellfun(@isempty, listBlockKeywords);
+eob = sprintf('|%s', listBlockKeywords{inx});
 eob = ['(?=$', eob, ')'];
 
 % Remove redundant semicolons.
 this.Code = regexprep(this.Code, '(\s*;){2,}', ';');
 
 % Read blocks.
-blockCode = repmat({''}, 1, nBlock);
-ixValidEssential = true(1, nBlock);
-for i = 1 : nBlock
+blockCode = repmat({''}, 1, numBlocks);
+ixValidEssential = true(1, numBlocks);
+for i = 1 : numBlocks
     if isempty(this.Block{i}.Keyword)
         continue
     end
@@ -55,30 +55,34 @@ for i = 1 : nBlock
 end
 
 if any(~ixValidEssential)
-    throw( ...
-        exception.ParseTime('TheParser:EssentialBlocksMissing', 'error'), ...
-        lsBlockKey{~ixValidEssential} ...
-    );
-end
+    throw( exception.ParseTime('TheParser:EssentialBlocksMissing', 'error'), ...
+           listBlockKeywords{~ixValidEssential} );
 end
 
+end%
 
-function chkKey(this, lsBlockKey)
+
+%
+% Local Functions
+%
+
+
+function checkKeywords(this, listBlockKeywords)
     % Allow for double exclamation marks immediately followed by \w; these can
     % be steady equations.
     UNKNOWN_KEY = '(?<!\!)!\w+';
-    ix = ~cellfun(@isempty, lsBlockKey);
-    lsAllowed = [ lsBlockKey(ix), this.OtherKeyword ];
-    lsKey = regexp(this.Code, UNKNOWN_KEY, 'match');
-    nKey = length(lsKey);
-    ixValid = true(1, nKey);
-    for iKey = 1 : nKey
-        ixValid(iKey) = any(strcmp(lsKey{iKey}, lsAllowed));
+    ix = ~cellfun(@isempty, listBlockKeywords);
+    listAllowed = [ listBlockKeywords(ix), this.OtherKeyword ];
+    listKeywords = regexp(this.Code, UNKNOWN_KEY, 'match');
+    numKeywords = length(listKeywords);
+    inxValid = true(1, numKeywords);
+    for iKey = 1 : numKeywords
+        inxValid(iKey) = any(strcmp(listKeywords{iKey}, listAllowed));
     end
 
-    if any(~ixValid)
+    if any(~inxValid)
         throw( exception.ParseTime('TheParser:INVALID_KEYWORD', 'error'), ...
-            lsKey{~ixValid} );
+               listKeywords{~inxValid} );
     end
-end
+end%
 

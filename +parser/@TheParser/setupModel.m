@@ -1,11 +1,11 @@
 function setupModel(this)
-% setupModel  Set up main parser for model objects.
+% setupModel  Set up main parser for model objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -45,11 +45,9 @@ this.Block{end+1} = x;
 
 x = parser.theparser.Log( );
 x.Keyword = '!log_variables';
-x.TypeCanBeLog = { ...
-    TYPE(1), ...
-    TYPE(2), ...
-    TYPE(5), ...
-    };
+x.TypeCanBeLog = { TYPE(1)
+                   TYPE(2)
+                   TYPE(5) };
 this.Block{end+1} = x;
 
 x = parser.theparser.Equation( );
@@ -92,43 +90,42 @@ this.Block{end+1} = x;
 
 this.AltKeyword = [ 
     this.AltKeyword 
-    {
-    '\$\<([a-zA-Z]\w*)\>(?!\$)', '&$1' % Steady references
-    '!allbut\>', '!all_but'
-    '!equations\>', '!transition_equations'
-    '!variables\>', '!transition_variables'
-    '!shocks\>', '!transition_shocks'
-    '!ttrend\>', 'ttrend'
-    '\$\[', '<' % Open interpolation
-    '\]\$', '>' % Close interpolation
-    } ];
+    { '\$\<([a-zA-Z]\w*)\>(?!\$)', '&$1' % Steady references
+      '!allbut\>', '!all_but'
+      '!all-but\>', '!all_but'
+      '!equations\>', '!transition_equations'
+      '!variables\>', '!transition_variables'
+      '(?<=!\w+)-(?=equations|variables|shocks)', '_' % Use dashes instead of underscores
+      '!shocks\>', '!transition_shocks'
+      '\$\[', '<' % Open interpolation
+      '\]\$', '>' % Close interpolation
+      '!ttrend\>', 'ttrend' } ];
+
 
 this.AltKeywordWarn = [ 
     this.AltKeywordWarn
-    { 
-    '!equations:dtrends\>', '!dtrends'
-    '!dtrends:measurement\>', '!dtrends'
-    '!variables:transition\>', '!transition_variables'
-    '!shocks:transition\>', '!transition_shocks'
-    '!equations:transition\>', '!transition_equations'
-    '!variables:measurement\>', '!measurement_variables'
-    '!shocks:measurement\>', '!measurement_shocks'
-    '!equations:measurement\>', '!measurement_equations'
-    '!variables:log\>', '!log_variables'
-    '!autoexogenise\>', '!dynamic_autoexog'
-    '!autoexogenize\>', '!dynamic_autoexog'
-    } ];
+    { '!equations:dtrends\>', '!dtrends'
+      '!dtrends:measurement\>', '!dtrends'
+      '!variables:transition\>', '!transition_variables'
+      '!shocks:transition\>', '!transition_shocks'
+      '!equations:transition\>', '!transition_equations'
+      '!variables:measurement\>', '!measurement_variables'
+      '!shocks:measurement\>', '!measurement_shocks'
+      '!equations:measurement\>', '!measurement_equations'
+      '!variables:log\>', '!log_variables'
+      '!autoexogenise\>', '!dynamic_autoexog'
+      '!autoexogenize\>', '!dynamic_autoexog' } ];
 
 this.OtherKeyword = [ this.OtherKeyword, ...
-    { '!all_but', '!ttrend', '!min' } ];
+                      { '!all_but', '!ttrend', '!min' } ];
 
 this.AssignOrder = [ this.AssignOrder, ...
-    TYPE(4), ...
-    TYPE(5), ...
-    TYPE(2), ...
-    TYPE(1), ...    
-    ];
+                     TYPE(4), ...
+                     TYPE(5), ...
+                     TYPE(2), ...
+                     TYPE(1)                 ];
 
 setupRpteq(this);
 
-end
+end%
+
