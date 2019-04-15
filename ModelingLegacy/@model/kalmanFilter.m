@@ -53,7 +53,7 @@ if ~isequal(opt.simulate, false)
 end
 
 % Out-of-lik params cannot be used with ~opt.DTrends.
-nPOut = length(opt.outoflik);
+numOfPouts = length(opt.outoflik);
 
 % Extended number of periods including pre-sample.
 numOfPeriods = size(inp, 2) + 1;
@@ -65,7 +65,7 @@ s.nx = nxx;
 s.nb = nb;
 s.nf = nf;
 s.ne = ne;
-s.NPOut = nPOut;
+s.NPOut = numOfPouts;
 
 % Add pre-sample to objective function range and deterministic time trend.
 s.IxObjRange = [false, opt.objrange];
@@ -75,8 +75,8 @@ s.lastSmooth = opt.lastsmooth;
 
 % Tunes on shock means; model solution is expanded within `prepareLoglik`.
 tune = opt.tune;
-maybeShkTunes = ~isempty(tune) && any( tune(:)~=0 );
-if maybeShkTunes
+maybeShockTunes = ~isempty(tune) && any( tune(:)~=0 );
+if maybeShockTunes
     % Add pre-sample
     tune = [zeros(ne, 1, size(tune, 3)), tune];
 end
@@ -103,8 +103,8 @@ if ~s.IsObjOnly
     regOutp.F = nan(ny, ny, numOfPeriods, nLoop);
     regOutp.Pe = nan(ny, numOfPeriods, s.nPred);
     regOutp.V = nan(1, nLoop);
-    regOutp.Delta = nan(nPOut, nLoop);
-    regOutp.PDelta = nan(nPOut, nPOut, nLoop);
+    regOutp.Delta = nan(numOfPouts, nLoop);
+    regOutp.PDelta = nan(numOfPouts, numOfPouts, nLoop);
     regOutp.SampleCov = nan(ne, ne, nLoop);
     regOutp.NLoop = nLoop;
 end
@@ -136,7 +136,7 @@ for iLoop = 1 : nLoop
     s.y1 = [nan(ny, 1), s.y1];
     s.g = [nan(ng, 1), s.g];
     
-    if maybeShkTunes
+    if maybeShockTunes
         s.tune = tune(:, :, min(iLoop, end));
         s.VaryingU = real(s.tune);
         s.VaryingE = imag(s.tune);
@@ -206,7 +206,7 @@ for iLoop = 1 : nLoop
     
     % __Deterministic Trends__
     % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
-    if nz==0 && (nPOut>0 || opt.DTrends)
+    if nz==0 && (numOfPouts>0 || opt.DTrends)
         [s.D, s.X] = evalTrendEquations(this, opt.outoflik, s.g, iLoop);
     else
         s.D = [ ];
@@ -280,7 +280,7 @@ for iLoop = 1 : nLoop
     
     % Correct prediction errors for estimated initial conditions and DTrends
     % parameters.
-    if s.NInit>0 || nPOut>0
+    if s.NInit>0 || numOfPouts>0
         est = [s.delta; s.init];
         if s.storePredict
             [s.pe, s.a0, s.y0, s.ydelta] = ...

@@ -1,140 +1,3 @@
-% Models
-%
-% This section describes the `Model` class of objects
-%
-%
-% Description
-% ------------
-%
-% Model objects are created by loading a model file written in [IRIS Model
-% File Language](ModelFileLanguage). Once a model object exists in the
-% Matlab workspace, you can combine model functions and standard Matlab
-% functions to work with it in your own m-files (scripts, functions, etc.):
-% assign or estimate model parameters, run model simulations, calculate its
-% stochastic properties, etc.
-%
-% model methods:
-%
-%
-% Categorical List 
-% -----------------
-%
-% __Constructor__
-%
-%   model - Create new model object from model file
-%
-%
-% __Getting Information about Models__
-%
-%   addToDatabank - Add model quantities to databank or create new databank
-%   autocaption - Create captions for reporting model variables or parameters
-%   autoexog - Get or set pairs of names in dynamic and steady autoexog
-%   chkredundant - Check for redundant shocks and/or parameters
-%   comment - Get or set user comments in an IRIS object
-%   eig - Eigenvalues of model transition matrix
-%   findeqtn - Find equations by their labels
-%   findname - Find names of variables, shocks, or parameters by their labels
-%   get - Query model object properties
-%   isactive - True if dynamic link or steady-state revision is active (not disabled)
-%   iscompatible - True if two models can occur together on the LHS and RHS in an assignment
-%   islinear - True for models declared as linear
-%   islog - True for log-linearised variables
-%   ismissing - True if some initical conditions are missing from input database
-%   isnan - Check for NaNs in model object
-%   isname - True for valid names of variables, parameters, or shocks in model object
-%   issolved - True if model solution exists
-%   isstationary - True if model or specified combination of variables is stationary
-%   length - Number of parameter variants within model object
-%   omega - Get or set the covariance matrix of shocks
-%   sspace - State-space matrices describing the model solution
-%   system - System matrices for unsolved model
-%   userdata - Get or set user data in an IRIS object
-%
-%
-% __Referencing Model Objects__
-%
-%   subsasgn - Subscripted assignment for model objects
-%   subsref - Subscripted reference for model objects
-%
-%
-% __Changing Model Objects__
-%
-%   alter - Expand or reduce number of parameter variants in model object
-%   assign - Assign parameters, steady states, std deviations or cross-correlations
-%   disable - Disable dynamic links or steady-state revision equations
-%   enable - Enable dynamic links or revision equations
-%   export - Save all export files associated with model object to current working folder
-%   horzcat - Merge two or more compatible model objects into multiple parameterizations
-%   refresh - Refresh dynamic links
-%   reset - Reset specific values within model object
-%   rename - Rename temporarily model quantities
-%   stdscale - Rescale all std deviations by the same factor
-%   set - Change settable model object property
-%
-%
-% __Steady State__
-%
-%   blazer - Reorder dynamic or steady equations and variables into sequential block structure
-%   chksstate - Check if equations hold for currently assigned steady-state values
-%   sstate - Compute steady state or balance-growth path of the model
-%
-%
-% __Solution, Simulation and Forecasting__
-%
-%   chkmissing - Check for missing initial values in simulation database
-%   diffsrf - Differentiate shock response functions w.r.t. specified parameters
-%   expand - Compute forward expansion of model solution for anticipated shocks
-%   jforecast - Forecast with judgmental adjustments (conditional forecasts)
-%   icrf - Initial-condition response functions, first-order solution only
-%   lhsmrhs - Discrepancy between the LHS and RHS of each model equation for given data
-%   resample - Resample from the model implied distribution
-%   reporting - Evaluate reporting equations from within model object
-%   shockplot - Short-cut for running and plotting plain shock simulation
-%   simulate - Simulate model
-%   solve - Calculate first-order accurate solution of the model
-%   srf - First-order shock response functions
-%   tolerance - Get or set model-specific tolerance levels
-%
-%
-% __Model Data__
-%
-%   data4lhsmrhs - Prepare data array for running `lhsmrhs`
-%   emptydb - Create model database with empty time series for each variable and shock
-%   shockdb - Create model-specific database with random shocks
-%   sstatedb - Create model-specific steady-state or balanced-growth-path database
-%   templatedb - Create model-specific template database
-%   zerodb - Create model-specific zero-deviation database
-%
-%
-% __Stochastic Properties__
-%
-%   acf - Autocovariance and autocorrelation function for model variables
-%   ifrf - Frequency response function to shocks
-%   fevd - Forecast error variance decomposition for model variables
-%   ffrf - Filter frequency response function of transition variables to measurement variables
-%   fmse - Forecast mean square error matrices
-%   vma - Vector moving average representation of the model
-%   xsf - Power spectrum and spectral density for model variables
-%
-%
-% __Identification, Estimation and Filtering__
-%
-%   bn - Beveridge-Nelson trends
-%   diffloglik - Approximate gradient and hessian of log-likelihood function
-%   estimate - Estimate model parameters by optimizing selected objective function
-%   filter - Kalman smoother and estimator of out-of-likelihood parameters
-%   fisher - Approximate Fisher information matrix in frequency domain
-%   lognormal - Characteristics of log-normal distributions returned from filter of forecast
-%   loglik - Evaluate minus the log-likelihood function in time or frequency domain
-%   neighbourhood - Local behaviour of the objective function around the estimated parameters
-%   regress - Centred population regression for selected model variables
-%   VAR - Population VAR for selected model variables
-%
-%
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
-
 classdef (InferiorClasses={?table, ?timetable}) ...
          model < shared.GetterSetter ...
                & shared.UserDataContainer ...
@@ -337,7 +200,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = ismissing(varargin)
         varargout = isname(varargin)
         varargout = isnan(varargin)
-        varargout = issolved(varargin)
+        varargout = isSolved(varargin)
         varargout = isstationary(varargin)
         varargout = jforecast(varargin)
         varargout = jforecast_old(varargin)
@@ -376,6 +239,13 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = vma(varargin)
         varargout = xsf(varargin)
         varargout = zerodb(varargin)
+    end
+
+
+    methods
+        function varargout = issolved(varargin)
+            [varargout{1:nargout}] = isSolved(varargin{:});
+        end%
     end
     
     
@@ -578,154 +448,154 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     % Constructor and dependent properties
     methods
         function this = model(varargin)
-            % model  Create new model object from model file.
-            %
-            % __Syntax__
-            %
-            %     M = model(FileName, ...)
-            %     M = model(ModelFile, ...)
-            %     M = model(M, ...)
-            %
-            %
-            % __Input Arguments__
-            %
-            % * `FileName` [ char | cellstr | string ] - Name(s) of model file(s)
-            % that will be loaded and converted to a new model object.
-            %
-            % * `ModelFile` [ model.File ] - Object of model.File class.
-            %
-            % * `M` [ model ] - Rebuild a new model object from an existing one; see
-            % Description for when you may need this.
-            %
-            %
-            % __Output Arguments__
-            %
-            % * `M` [ model ] - New model object based on the input model code file or
-            % files.
-            %
-            %
-            % __Options__
-            %
-            % * `Assign=struct( )` [ struct | *empty* ] - Assign model parameters and/or steady
-            % states from this database at the time the model objects is being created.
-            %
-            % * `AutoDeclareParameters=false` [ `true` | `false` ] - If `true`, skip
-            % parameter declaration in the model file, and determine the list of
-            % parameters automatically as residual names found in equations but not
-            % declared.
-            %
-            % * `BaseYear=@config` [ numeric | `@config` ] - Base year for constructing
-            % deterministic time trends; `@config` means the base year will
-            % be read from iris configuration.
-            %
-            % * `Comment=''` [ char ] - Text comment attached to the model
-            % object.
-            %
-            % * `Epsilon=eps^(1/4)` [ numeric ] - The minimum relative step
-            % size for numerical differentiation.
-            %
-            % * `Linear=false` [ `true` | `false` ] - Indicate linear models.
-            %
-            % * `MakeBkw=@auto` [ `@auto` | `@all` | cellstr | char ] -
-            % Variables included in the list will be made part of the
-            % vector of backward-looking variables; `@auto` means
-            % the variables that do not have any lag in model equations
-            % will be put in the vector of forward-looking variables.
-            %
-            % * `AllowMultiple=false` [ true | false ] - Allow each variable, shock, or
-            % parameter name to be declared (and assigned) more than once in the model
-            % file.
-            %
-            % * `Optimal={ }` [ cellstr ] - Specify optimal policy options,
-            % see below; only applies when the keyword
-            % [`min`](irislang/min) is used in the model file.
-            %
-            % * `OrderLinks=true` [ `true` | `false` ] - Reorder `!links` so that they
-            % can be executed sequentially.
-            %
-            % * `RemoveLeads=false` [ `true` | `false` ] - Remove all leads from the
-            % state-space vector, keep included only current dates and lags.
-            %
-            % * `SstateOnly=false` [ `true` | `false` ] - Read in only the steady-state
-            % versions of equations (if available).
-            %
-            % * `Std=@auto` [ numeric | `@auto` ] - Default standard deviation for model
-            % shocks; `@auto` means `1` for linear models and `log(1.01)` for nonlinear
-            % models.
-            %
-            % * `UserData=[ ]` [ ... ] - Attach user data to the model object.
-            %
-            %
-            % __Options for Optimal Policy Models__
-            %
-            % The following options for optimal policy models need to be
-            % nested within the `'Optimal='` option.
-            %
-            % * `MultiplierPrefix='Mu_'` [ char ] - Prefix used to
-            % create names for lagrange multipliers associated with the
-            % optimal policy problem; the prefix is followed by the
-            % equation number.
-            %
-            % * `Nonnegative={ }` [ cellstr ] - List of variables
-            % constrained to be nonnegative.
-            %
-            % * `Type='discretion'` [ `'commitment'` | `'discretion'` ] - Type of
-            % optimal policy; `'discretion'` means leads (expectations) are
-            % taken as given and not differentiated w.r.t. whereas
-            % `'commitment'` means both lags and leads are differentiated
-            % w.r.t.
-            %
-            %
-            % __Description__
-            %
-            %
-            % _Loading a Model File_
-            %
-            % The `model` function can be used to read in a [model
-            % file](irislang/Contents) named `FileName`, and create a model object `M`
-            % based on the model file. You can then work with the model object in your
-            % own m-files, using using the IRIS [model functions](model/Contents) and
-            % standard Matlab functions.
-            %
-            % If `FileName` is a cell array of more than one file names
-            % then all files are combined together in order of appearance.
-            %
-            %
-            % _Rebuilding an Existing Model Object_
-            %
-            % When calling the function `model` with an existing model object as the
-            % first input argument, the model will be rebuilt from scratch. The typical
-            % instance where you may need to call the constructor this way is changing
-            % the `RemoveLeads=` option. Alternatively, the new model object can be
-            % simply rebuilt from the model file.
-            %
-            %
-            % __Example__
-            %
-            % Read in a model code file named `my.model`, and declare the model as
-            % linear:
-            %
-            %     m = model('my.model', 'Linear=', true);
-            %
-            %
-            % __Example__
-            %
-            % Read in a model code file named `my.model`, declare the model as linear,
-            % and assign some of the model parameters:
-            %
-            %     m = model('my.model', 'Linear=', true, 'Assign=', P);
-            %
-            % Note that this is equivalent to
-            %
-            %     m = model('my.model', 'Linear=', true);
-            %     m = assign(m, P);
-            %
-            % unless some of the parameters passed in to the `model` fuction are needed
-            % to evaluate [`!if`](irislang/if) or [`!switch`](irislang/switch)
-            % expressions.
-            
-            % -IRIS Macroeconomic Modeling Toolbox
-            % -Copyright (c) 2007-2019 IRIS Solutions Team
+% model  Create new model object from model file.
+%
+% __Syntax__
+%
+%     M = model(FileName, ...)
+%     M = model(ModelFile, ...)
+%     M = model(M, ...)
+%
+%
+% __Input Arguments__
+%
+% * `FileName` [ char | cellstr | string ] - Name(s) of model file(s)
+% that will be loaded and converted to a new model object.
+%
+% * `ModelFile` [ model.File ] - Object of model.File class.
+%
+% * `M` [ model ] - Rebuild a new model object from an existing one; see
+% Description for when you may need this.
+%
+%
+% __Output Arguments__
+%
+% * `M` [ model ] - New model object based on the input model code file or
+% files.
+%
+%
+% __Options__
+%
+% * `Assign=struct( )` [ struct | *empty* ] - Assign model parameters and/or steady
+% states from this database at the time the model objects is being created.
+%
+% * `AutoDeclareParameters=false` [ `true` | `false` ] - If `true`, skip
+% parameter declaration in the model file, and determine the list of
+% parameters automatically as residual names found in equations but not
+% declared.
+%
+% * `BaseYear=@config` [ numeric | `@config` ] - Base year for constructing
+% deterministic time trends; `@config` means the base year will
+% be read from iris configuration.
+%
+% * `Comment=''` [ char ] - Text comment attached to the model
+% object.
+%
+% * `Epsilon=eps^(1/4)` [ numeric ] - The minimum relative step
+% size for numerical differentiation.
+%
+% * `Linear=false` [ `true` | `false` ] - Indicate linear models.
+%
+% * `MakeBkw=@auto` [ `@auto` | `@all` | cellstr | char ] -
+% Variables included in the list will be made part of the
+% vector of backward-looking variables; `@auto` means
+% the variables that do not have any lag in model equations
+% will be put in the vector of forward-looking variables.
+%
+% * `AllowMultiple=false` [ true | false ] - Allow each variable, shock, or
+% parameter name to be declared (and assigned) more than once in the model
+% file.
+%
+% * `Optimal={ }` [ cellstr ] - Specify optimal policy options,
+% see below; only applies when the keyword
+% [`min`](irislang/min) is used in the model file.
+%
+% * `OrderLinks=true` [ `true` | `false` ] - Reorder `!links` so that they
+% can be executed sequentially.
+%
+% * `RemoveLeads=false` [ `true` | `false` ] - Remove all leads from the
+% state-space vector, keep included only current dates and lags.
+%
+% * `SstateOnly=false` [ `true` | `false` ] - Read in only the steady-state
+% versions of equations (if available).
+%
+% * `Std=@auto` [ numeric | `@auto` ] - Default standard deviation for model
+% shocks; `@auto` means `1` for linear models and `log(1.01)` for nonlinear
+% models.
+%
+% * `UserData=[ ]` [ ... ] - Attach user data to the model object.
+%
+%
+% __Options for Optimal Policy Models__
+%
+% The following options for optimal policy models need to be
+% nested within the `'Optimal='` option.
+%
+% * `MultiplierPrefix='Mu_'` [ char ] - Prefix used to
+% create names for lagrange multipliers associated with the
+% optimal policy problem; the prefix is followed by the
+% equation number.
+%
+% * `Nonnegative={ }` [ cellstr ] - List of variables
+% constrained to be nonnegative.
+%
+% * `Type='discretion'` [ `'commitment'` | `'discretion'` ] - Type of
+% optimal policy; `'discretion'` means leads (expectations) are
+% taken as given and not differentiated w.r.t. whereas
+% `'commitment'` means both lags and leads are differentiated
+% w.r.t.
+%
+%
+% __Description__
+%
+%
+% _Loading a Model File_
+%
+% The `model` function can be used to read in a [model
+% file](irislang/Contents) named `FileName`, and create a model object `M`
+% based on the model file. You can then work with the model object in your
+% own m-files, using using the IRIS [model functions](model/Contents) and
+% standard Matlab functions.
+%
+% If `FileName` is a cell array of more than one file names
+% then all files are combined together in order of appearance.
+%
+%
+% _Rebuilding an Existing Model Object_
+%
+% When calling the function `model` with an existing model object as the
+% first input argument, the model will be rebuilt from scratch. The typical
+% instance where you may need to call the constructor this way is changing
+% the `RemoveLeads=` option. Alternatively, the new model object can be
+% simply rebuilt from the model file.
+%
+%
+% __Example__
+%
+% Read in a model code file named `my.model`, and declare the model as
+% linear:
+%
+%     m = model('my.model', 'Linear=', true);
+%
+%
+% __Example__
+%
+% Read in a model code file named `my.model`, declare the model as linear,
+% and assign some of the model parameters:
+%
+%     m = model('my.model', 'Linear=', true, 'Assign=', P);
+%
+% Note that this is equivalent to
+%
+%     m = model('my.model', 'Linear=', true);
+%     m = assign(m, P);
+%
+% unless some of the parameters passed in to the `model` fuction are needed
+% to evaluate [`!if`](irislang/if) or [`!switch`](irislang/switch)
+% expressions.
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
             persistent inputParser optimalParser parserParser
             if isempty(inputParser)
@@ -733,7 +603,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 inputParser.KeepUnmatched = true;
                 inputParser.PartialMatching = false;
                 inputParser.addParameter('addlead', false, @(x) isequal(x, true) || isequal(x, false));
-                inputParser.addParameter('Assign', [ ], @(x) isempty(x) || isstruct(x));
+                inputParser.addParameter('Assign', [ ], @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
                 inputParser.addParameter('chksyntax', true, @(x) isequal(x, true) || isequal(x, false));
                 inputParser.addParameter('comment', '', @ischar);
                 inputParser.addParameter('Growth', false, @(x) isequal(x, true) || isequal(x, false));
@@ -803,31 +673,35 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             return
             
             
-            function [opt, parserOpt, optimalOpt] = processOptions( )
-                inputParser.parse(varargin{:});
-                opt = inputParser.Options;
-                % Optimal policy options
-                optimalParser.parse(opt.optimal{:});
-                optimalOpt = optimalParser.Options;
-                % IRIS parser options
-                parserParser.parse(inputParser.UnmatchedInCell{:});
-                parserOpt = parserParser.Options;
-                % Control parameters
-                unmatched = parserParser.UnmatchedInCell;
-                if ~isstruct(opt.Assign)
-                    % Default for Assign= is an empty array
-                    opt.Assign = struct( );
-                end
-                opt.Assign.SteadyOnly = parserOpt.SteadyOnly;
-                opt.Assign.Linear = opt.Linear;
-                % Legacy options
-                opt.Assign.sstateonly = opt.Assign.SteadyOnly;
-                opt.Assign.linear = opt.Assign.Linear;
-                for i = 1 : 2 : numel(unmatched)
-                    opt.Assign.(unmatched{i}) = unmatched{i+1};
-                end
-            end%
-        end
+                function [opt, parserOpt, optimalOpt] = processOptions( )
+                    inputParser.parse(varargin{:});
+                    opt = inputParser.Options;
+                    % Optimal policy options
+                    optimalParser.parse(opt.optimal{:});
+                    optimalOpt = optimalParser.Options;
+                    % IRIS parser options
+                    parserParser.parse(inputParser.UnmatchedInCell{:});
+                    parserOpt = parserParser.Options;
+                    % Control parameters
+                    unmatched = parserParser.UnmatchedInCell;
+                    if ~isstruct(opt.Assign)
+                        if iscell(opt.Assign)
+                            opt.Assign(1:2:end) = regexprep(opt.Assign(1:2:end), '\W', '');
+                            opt.Assign = struct(opt.Assign{:});
+                        else
+                            opt.Assign = struct( );
+                        end
+                    end
+                    opt.Assign.SteadyOnly = parserOpt.SteadyOnly;
+                    opt.Assign.Linear = opt.Linear;
+                    % Legacy options
+                    opt.Assign.sstateonly = opt.Assign.SteadyOnly;
+                    opt.Assign.linear = opt.Assign.Linear;
+                    for i = 1 : 2 : numel(unmatched)
+                        opt.Assign.(unmatched{i}) = unmatched{i+1};
+                    end
+                end%
+        end%
 
 
         function n = get.NumOfVariants(this)

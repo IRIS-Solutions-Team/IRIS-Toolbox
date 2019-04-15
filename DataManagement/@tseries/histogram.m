@@ -1,16 +1,14 @@
 function varargout = histogram(varargin)
-% histogram  Histogram plot for tseries objects.
+% histogram  Histogram plot for tseries objects
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [H,Range] = histogram(X,...)
 %     [H,Range] = histogram(Range,X,...)
 %     [H,Range] = histogram(Ax,Range,X,...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `Ax` [ numeric ] - Handle to axes in which the graph will be plotted;
 % if not specified, the current axes will used.
@@ -22,59 +20,54 @@ function varargout = histogram(varargin)
 % a line graph.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `H` [ numeric ] - Handles to histogram object.
 %
 % * `Range` [ numeric ] - Actually plotted date range.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'datePosition='` [ *`'centre'`* | `'end'` | `'start'` ] - Position of
-% each date point within a given period span.
+% * `DatePosition='Center'` [ `'Center'` | `'End'` | `'Start'` ] - Position
+% of each date point within a given period span.
 %
-% * `'dateTick='` [ numeric | *`Inf`* ] - Vector of dates locating tick
-% marks on the X-axis; Inf means they will be created automatically.
+% * `DateTick=Inf` [ numeric ] - Vector of dates locating tick marks on the
+% X-axis; Inf means they will be created automatically.
 %
-% * `'tight='` [ `true` | *`false`* ] - Make the y-axis tight.
+% * `Tight=false` [ `true` | `false` ] - Make the y-axis tight.
 %
 % See help on built-in `plot` function for other options available.
 %
 %
-% Date format options
-% ====================
+% __Date Format Options__
 %
 % See [`dat2str`](dates/dat2str) for details on date format options.
 %
-% * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string,
+% * `DateFormat='YYYYFP'` [ char | cellstr | string ] - Date format string,
 % or array of format strings (possibly different for each date).
 %
-% * `'freqLetters='` [ char | *`'YHQBMW'`* ] - Six letters used to
-% represent the six possible frequencies of IRIS dates, in this order:
-% yearly, half-yearly, quarterly, bi-monthly, monthly,  and weekly (such as
-% the `'Q'` in `'2010Q1'`).
+% * `FreqLetters='YHQMW` [ char | string ] - Five letters used to represent
+% the six possible frequencies of IRIS dates, in this order: yearly,
+% half-yearly, quarterly, monthly,  and weekly (such as the `'Q'` in
+% `'2010Q1'`).
 %
-% * `'months='` [ cellstr | *`{'January',...,'December'}`* ] - Twelve
+% * `Months={'January', ..., 'December'}` [ cellstr | string ] - Twelve
 % strings representing the names of the twelve months.
 %
-% * `'ConversionMonth='` [ numeric | `'last'` | *`1`* ] - Month that will
+% * `ConversionMonth=1` [ numeric | `'last'` ] - Month that will
 % represent a lower-than-monthly-frequency date if the month is part of the
 % date format string.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 % AREA, BAND, BAR, BARCON, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM, HISTOGRAM
 

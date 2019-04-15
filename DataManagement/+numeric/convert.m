@@ -9,66 +9,85 @@ function outputDate = convert(inputDate, toFreq, varargin)
 
 persistent parser
 if isempty(parser)
+    validFrequencies = iris.get('Freq');
+    validFrequencies = setdiff(validFrequencies, Frequency.INTEGER);
     parser = extend.InputParser('dates.convert');
     parser.addRequired('InputDate', @isnumeric);
-    parser.addRequired('NewFreq', @(x) isnumeric(x) && isscalar(x) && any(x==[1, 2, 4, 6, 12, 52, 365]));
+    parser.addRequired('NewFreq', @(x) isnumeric(x) && isscalar(x) && any(x==validFrequencies));
     parser.addDateOptions( );
 end
 parser.parse(inputDate, toFreq, varargin{:});
 opt = parser.Options;
+toFreqAsNumeric = double(toFreq);
 
 %--------------------------------------------------------------------------
 
 inputDate = double(inputDate);
 
 fromFreq = DateWrapper.getFrequencyAsNumeric(inputDate);
-ixFromZero = fromFreq==0;
-ixFromDaily = fromFreq==365;
-ixFromWeekly = fromFreq==52;
-ixFromRegular = ~ixFromZero & ~ixFromWeekly & ~ixFromDaily;
+inxFromZero = fromFreq==0;
+inxFromDaily = fromFreq==365;
+inxFromWeekly = fromFreq==52;
+inxFromRegular = ~inxFromZero & ~inxFromWeekly & ~inxFromDaily;
 
 outputDate = nan(size(inputDate));
 
-if any(ixFromRegular(:))
+if any(inxFromRegular(:))
     % Get year, period, and frequency of the original dates
-    [fromYear, fromPer, fromFreq] = dat2ypf(inputDate(ixFromRegular));
+    [fromYear, fromPer, fromFreq] = dat2ypf(inputDate(inxFromRegular));
     toYear = fromYear;
     % First, convert the original period to a corresponding month
-    toMon = per2month(fromPer, fromFreq, opt.ConversionMonth);
+    toMonth = per2month(fromPer, fromFreq, opt.ConversionMonth);
     % Then, convert the month to the corresponding period of the request
     % frequnecy
-    toPer = ceil(toMon.*toFreq./12);
-    % Create new dates
-    if toFreq==365
-        outputDate(ixFromRegular) = dd(toYear, toMon, 1);
+    toPeriod = ceil(toMonth.*toFreqAsNumeric./12);
+    % Create to dates
+    if toFreq==Frequency.DAILY
+        toDay = getConversionDay(opt.ConversionDay, toYear, toMonth);
+        outputDate(inxFromRegular) = numeric.dd(toYear, toMonth, toDay);
     else
-        outputDate(ixFromRegular) = numeric.datecode(toFreq, toYear, toPer);
+        outputDate(inxFromRegular) = numeric.datecode(toFreqAsNumeric, toYear, toPeriod);
     end
 end
 
-if any(ixFromWeekly(:))
-    if toFreq==365
-        x = ww2day(inputDate(ixFromWeekly), opt.WDay);
-        outputDate(ixFromWeekly) = x;
+if any(inxFromWeekly(:))
+    if toFreq==Frequency.DAILY
+        x = ww2day(inputDate(inxFromWeekly), opt.WDay);
+        outputDate(inxFromWeekly) = x;
     else
-        x = ww2day(inputDate(ixFromWeekly), 'Thu');
-        [toYear, toMon] = datevec( double(x) );
-        toPer = ceil(toMon.*toFreq./12);
-        outputDate(ixFromWeekly) = numeric.datecode(toFreq, toYear, toPer);
+        x = ww2day(inputDate(inxFromWeekly), 'Thu');
+        [toYear, toMonth] = datevec( double(x) );
+        toPeriod = ceil(toMonth.*toFreqAsNumeric./12);
+        outputDate(inxFromWeekly) = numeric.datecode(toFreqAsNumeric, toYear, toPeriod);
     end
 end
 
-if any(ixFromDaily(:))
-    if toFreq==365
-        outputDate(ixFromDaily) = inputDate(ixFromDaily);
-    elseif toFreq==52
-        outputDate(ixFromDaily) = numeric.day2ww(inputDate(ixFromDaily));
+if any(inxFromDaily(:))
+    if toFreq==Frequency.DAILY
+        outputDate(inxFromDaily) = inputDate(inxFromDaily);
+    elseif toFreq==Frequency.WEEKLY
+        outputDate(inxFromDaily) = numeric.day2ww(inputDate(inxFromDaily));
     else
-        [toYear, toMon, ~] = datevec( double(inputDate(ixFromDaily)) );
-        toPer = ceil(toMon.*toFreq./12);
-        outputDate(ixFromDaily) = numeric.datecode(toFreq, toYear, toPer);
+        [toYear, toMonth, ~] = datevec( double(inputDate(inxFromDaily)) );
+        toPeriod = ceil(toMonth.*toFreqAsNumeric./12);
+        outputDate(inxFromDaily) = numeric.datecode(toFreqAsNumeric, toYear, toPeriod);
     end
 end
 
+end%
+
+
+%
+% Local Functions
+%
+
+function conversionDay = getConversionDay(conversionDay, toYear, toMonth)
+    if isnumeric(conversionDay)
+        return
+    elseif strcmpi(conversionDay, 'First')
+        conversionDay = 1;
+    elseif strcmpi(conversionDay, 'Last')
+        conversionDay = eomday(toYear, toMonth);
+    end
 end%
 
