@@ -9,23 +9,24 @@ classdef Quantity < parser.theparser.Generic
     
     methods
         function [qty, eqn] = parse(this, the, code, qty, eqn, ~, ~, opt)
-            import parser.White;
+            import parser.White
             BR = sprintf('\n');
+            TYPE = @int8;
             
-            % Parse names with labels and assignments.
-            % @@@@@ MOSW.
-            % Extra pair of brackets needed in Octave.
-            NAME_PATTERN = [ ...
-                '(("[ ]*"|''[ ]*'')?)\s*', ...  % Label
-                '([a-zA-Z]\w*)', ...            % Name
-                '(@?)', ...                     % Include in bwl vector.
-                '((\{[^\}]*\}){0,2})', ...      % Bounds <LoLevel, HiLevel> or <LoLevel, HiLevel><LoGrowth, HiGrowth>
-                '\s*((=[^;,\n]+[;,\n])?)', ...  % =Value.
-            ];
+            % Parse names with labels and assignments
+            NAME_PATTERN = [ '("[ ]*"|''[ ]*'')?\s*', ...  % Label
+                             '([a-zA-Z]\w*)', ...          % Name
+                             '(@?)', ...                   % Include in bwl vector
+                             '(\{[^\}]*\}){0,2}', ...      % Bounds <LoLevel, HiLevel> or <LoLevel, HiLevel><LoGrowth, HiGrowth>
+                             '\s*(=[^;,\n]+[;,\n])?'   ];  % =Value
             
             %--------------------------------------------------------------------------
             
             if isempty(code)
+                return
+            end
+
+            if this.Type==TYPE(4) && opt.AutodeclareParameters
                 return
             end
             
