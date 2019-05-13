@@ -65,7 +65,7 @@ for t = firstColumn : lastExogenizedYX
         Rb = [zeros(nb, ne), Rb(:, 1:end-ne)];
         Rf = [zeros(nf, ne), Rf(:, 1:end-ne)];
         y = y + H;
-        H = [zeros(ny, ne), H(:, 1:end-ne)];
+        H = [zeros(ny, ne), HQ:, 1:end-ne)];
     end
     idOfExogenizedYX = idOfYX(data.InxOfExogenizedYX(:, t));
     if isempty(idOfExogenizedYX)

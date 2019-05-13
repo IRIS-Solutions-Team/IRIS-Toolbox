@@ -8,28 +8,22 @@ function outputDate = convert(inputDate, toFreq, varargin)
 %
 % __Input Arguments__
 %
-% * `inputDate` [ DateWrapper ] - IRIS serial date numbers that will be
+% * `InputDate` [ DateWrapper ] - IRIS serial date numbers that will be
 % converted to the new frequency, `NewFreq`.
 %
-% * `newFreq` [ Frequency.YEARLY | Frequency.HALFYEARLY |
-% Frequency.QUARTERLY | Frequency.MONTHLY | Frequency.WEEKLY |
-% Frequency.DAILY ] - New frequency to which the `inputDate` will be
-% converted.
+% * `NewFreq` [ `1` | `2` | `4` | `6` | `12` | `52` | `365` ] - New
+% frequency to which the dates `d1` will be converted.
 %
 %
 % __Output Arguments__
 %
-% * `outputDate` [ DateWrapper ] - DateWrapper object representing the new
-% frequency.
+% * `OutputDate` [ DateWrapper ] - IRIS serial date numbers representing
+% the new frequency.
 %
 %
 % __Options__
 %
-% * `ConversionDay=1` [ numeric | `'last'` ] - Day within the
-% `ConversionMonth` that will be used to represent the `inputDate` in
-% low-requency to daily-frequency conversions.
-%
-% * `ConversionMonth=1` [ numeric | `'last'` ] - Month that will be
+% * `ConversionMonth=1` [ numeric | `'last'` | `1` ] - Month that will be
 % used to represent a certain period of time in low- to high-frequency
 % conversions.
 %

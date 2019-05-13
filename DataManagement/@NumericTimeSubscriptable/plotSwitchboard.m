@@ -98,65 +98,37 @@ return
 
 
     function plotHandle = implementBands( )
-        persistent parser
-        if isempty(parser)
-            parser = extend.InputParser('NumericTimeSubscriptable.plotSwitchboard.implementBands');
-            parser.KeepUnmatched = true;
-            parser.addParameter('BaseColor', @auto, @(x) isequaln(x, @auto) || (isnumeric(x) && (numel(x)==1 || numel(x)==3) && all(x>=0) && all(x<=1)));
-            parser.addParameter('Whitening', @auto, @(x) isequaln(x, @auto) || (isnumeric(x) && all(x>=0) && all(x<=1)));
-            parser.addParameter('WhiteColor', 1, @(x) isnumeric(x) && (numel(x)==1 || numel(x)==3) && all(x>=0) && all(x<=1));
-        end
-        parse(parser, varargin{:});
-        opt = parser.Options;
-        unmatched= parser.UnmatchedInCell;
-
         numOfPlots = ceil(size(yData, 2)/2);
         extendedXData = [xData(:); flipud(xData(:))];
         plotHandle = gobjects(numOfPlots, 1);
         holdStatus = ishold(axesHandle);
         hold(axesHandle, 'on');
-        if isequal(opt.BaseColor, @auto)
-            colorOrder = get(axesHandle, 'ColorOrder');
-            colorOrderIndex = get(axesHandle, 'ColorOrderIndex');
-            opt.BaseColor = colorOrder(colorOrderIndex, :);
-        end
-        if isequal(opt.Whitening, @auto)
-            opt.Whitening = linspace(1, 0, numOfPlots+2);
-            opt.Whitening = opt.Whitening(2:end-1);
-        end
-        if numel(opt.WhiteColor)==1
-            opt.WhiteColor = opt.WhiteColor*[1, 1, 1];
-        end
+        colorOrder = get(axesHandle, 'ColorOrder');
         for i = 1 : numOfPlots
             ithYData = [yData(:, i); flipud(yData(:, end+1-i))];
-            ithColor = getIthColor(i);
+            if ~isempty(plotSpec)
+                ithSpecString = plotSpec( min(i, end) );
+                if isnumeric(ithSpecString{1}) && isscalar(ithSpecString{1})
+                    ithSpecString{1} = ithSpecString{1}*[1, 1, 1];
+                end
+            else
+                colorOrderIndex = get(axesHandle, 'ColorOrderIndex');
+                mixColor = colorOrder(colorOrderIndex, :);
+                mixColor = 0.5*mixColor + 0.5*[1, 1, 1];
+                ithSpecString = { mixColor };
+            end
             plotHandle(i) = fill( axesHandle, ...
                                   extendedXData, ...
                                   ithYData, ...
-                                  ithColor, ...
+                                  ithSpecString{:}, ...
                                   'LineStyle', 'None', ...
-                                  unmatched{:} );
+                                  varargin{:} );
         end
         if holdStatus
             hold(axesHandle, 'on');
         else
             hold(axesHandle, 'off');
         end
-        set(axesHandle, 'ColorOrderIndex', colorOrderIndex);
-
-        return
-
-            function color = getIthColor(i)
-                ithWhitening = opt.Whitening(i);
-                if ~isempty(plotSpec)
-                    color = plotSpec{ min(i, end) };
-                    if isnumeric(color) && isscalar(color)
-                        color = color*[1, 1, 1];
-                    end
-                else
-                    color = (1-ithWhitening)*opt.BaseColor + ithWhitening*opt.WhiteColor; 
-                end
-            end%
     end%
 end%
 

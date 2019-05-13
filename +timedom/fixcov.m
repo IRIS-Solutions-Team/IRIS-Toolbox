@@ -1,11 +1,11 @@
 function X = fixcov(X)
-% fixcov  Remove numerically negative diagonals from covariance matrices
+% fixcov  Remove numerically negative diagonals from covariance matrices.
 %
-% Backend IRIS function
-% No help provided
+% Backend IRIS function.
+% No help provided.
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
@@ -39,12 +39,11 @@ for i = 1 : size(X, 3)
 end
 
 if ~isRealX
-    X = X + 1i*imagX;
+    X = realX + 1i*imagX;
 end
 
 if ndimsX>3
     X = reshape(X, sizeX);
 end
 
-end%
-
+end

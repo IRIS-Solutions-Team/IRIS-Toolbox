@@ -24,13 +24,13 @@ function [s, range, select] = srf(this, time, varargin)
 %
 % __Options__
 %
-% * `Delog=true` [ `true` | `false` ] - Delogarithmize shock responses for
-% log variables.
+% * `Delog=true` [ `true` | `false` ] - Delogarithmi0e shock responses for
+% log variables afterwards.
 %
 % * `Select=@all` [ cellstr | `@all` ] - Run the shock response function
 % for a selection of shocks only; `@all` means all shocks are simulated.
 %
-% * `Size=@auto` [ `@auto` | numeric ] - Size of the shocks that will be
+% * `'Size=@auto` [ `@auto` | numeric ] - Size of the shocks that will be
 % simulated; `@auto` means that each shock will be set to its std dev
 % currently assigned in the model object `M`.
 %
@@ -41,8 +41,8 @@ function [s, range, select] = srf(this, time, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 TYPE = @int8;
 
@@ -57,48 +57,49 @@ end
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32); 
 ne = sum(ixe);
 nv = length(this);
-listShocks = this.Quantity.Name(ixe);
+lse = this.Quantity.Name(ixe);
 
 % Select shocks.
 if isequal(opt.select, @all)
-    posSelected = 1 : ne;
+    posOfSelected = 1 : ne;
 else
     numSelected = length(opt.select);
-    posSelected = nan(1, numSelected);
+    posOfSelected = nan(1, numSelected);
     for i = 1 : length(opt.select)
-        x = find( strcmp(opt.select{i}, listShocks) );
+        x = find( strcmp(opt.select{i}, lse) );
         if length(x)==1
-            posSelected(i) = x;
+            posOfSelected(i) = x;
         end
     end
-    if any(isnan(posSelected))
-        throw( exception.Base('Model:InvalidName', 'error'), ...
-               'shock', opt.select{isnan(posSelected)} );
-    end
+    assert( ...
+        ~any(isnan(posOfSelected)), ...
+        'model:srf', ...
+        exception.Base('Model:InvalidName', 'error'), ...
+        'shock', opt.select{isnan(posOfSelected)} ...
+    );
 end
-select = listShocks(posSelected);
+select = lse(posOfSelected);
 numSelected = length(select);
 
 % Set size of shocks.
 if strcmpi(opt.size, 'std') ...
         || isequal(opt.size, @auto) ...
         || isequal(opt.size, @std)
-    sizeShocks = this.Variant.StdCorr(:, posSelected, :);
+    sizeOfShocks = this.Variant.StdCorr(:, posOfSelected, :);
 else
-    sizeShocks = opt.size*ones(1, numSelected, nv);
+    sizeOfShocks = opt.size*ones(1, numSelected, nv);
 end
 
 func = @(T, R, K, Z, H, D, U, Omg, variantRequested, numPeriods) ...
-    timedom.srf(T, R(:, posSelected), [ ], Z, H(:, posSelected), [ ], U, [ ], ...
-    numPeriods, sizeShocks(1, :, variantRequested));
+    timedom.srf(T, R(:, posOfSelected), [ ], Z, H(:, posOfSelected), [ ], U, [ ], ...
+    numPeriods, sizeOfShocks(1, :, variantRequested));
 
 [s, range, select] = responseFunction(this, time, func, select, opt);
 for i = 1 : length(select)
-    s.(select{i}).data(1, i, :) = sizeShocks(1, i, :);
+    s.(select{i}).data(1, i, :) = sizeOfShocks(1, i, :);
     s.(select{i}) = trim(s.(select{i}));
 end
 
 s = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, s);
 
-end%
-
+end

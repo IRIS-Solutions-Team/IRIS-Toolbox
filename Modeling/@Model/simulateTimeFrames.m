@@ -33,6 +33,10 @@ if opt.Contributions
     herePrepareContributions( );
 end
 
+outputInfo.TimeFrames = cell(1, numOfRuns);
+outputInfo.Success = true(1, numOfRuns);
+outputInfo.ExitFlags = cell(1, numOfRuns);
+
 if opt.ProgressInfo
     progressInfo = herePrepareProgressInfo( );
 end
@@ -87,7 +91,6 @@ for i = 1 : numOfRuns
         numOfTimeFrames = size(timeFrames, 1);
         needsStoreE = false(1, numOfTimeFrames);
         vthExitFlags = repmat(solver.ExitFlag.IN_PROGRESS, 1, numOfTimeFrames);
-        vthDiscrepancyTables = cell(1, numOfTimeFrames);
         for frame = 1 : numOfTimeFrames
             setTimeFrame(vthRect, timeFrames(frame, :));
             setTimeFrame(vthData, timeFrames(frame, :));
@@ -101,7 +104,7 @@ for i = 1 : numOfRuns
             end
 
             % Choose simulation type and run simulation
-            [exitFlag, vthDiscrepancyTables{frame}] = hereChooseSimulationTypeAndRun( );
+            exitFlag = hereChooseSimulationTypeAndRun( );
             vthExitFlags(frame) = exitFlag;
 
             % If the simulation of this time frame fails and the user does not
@@ -142,7 +145,6 @@ for i = 1 : numOfRuns
     runningData.TimeFrames{i} = timeFrames;
     runningData.ExitFlags{i} = vthExitFlags;
     runningData.Success(i) = vthSuccess;
-    runningData.DiscrepancyTables{i} = vthDiscrepancyTables;
 
     if opt.ProgressInfo
         hereUpdateProgressInfo( );
@@ -221,10 +223,8 @@ return
 
 
 
-    function [exitFlag, discrepancyTable] = hereChooseSimulationTypeAndRun( )
+    function exitFlag = hereChooseSimulationTypeAndRun( )
         header = sprintf('[Variant %g][TimeFrame %g]', i, frame);
-        discrepancy = double.empty(0);
-        discrepancyTable = table( );
         switch method(i)
             case solver.Method.NONE
                 exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
@@ -232,10 +232,9 @@ return
                 simulateFunction(vthRect, vthData);
                 exitFlag = solver.ExitFlag.LINEAR_SYSTEM;
             case solver.Method.SELECTIVE
-                [exitFlag, discrepancy] = simulateSelective( this, simulateFunction, ...
-                                                             vthRect, vthData, ...
-                                                             needsStoreE(frame), header, opt );
-                nonlinearEquations = this.Equation.Input(this.Equation.InxOfHashEquations);
+                exitFlag = simulateSelective( this, simulateFunction, ...
+                                              vthRect, vthData, ...
+                                              needsStoreE(frame), header, opt );
             case solver.Method.STACKED
                 if strcmpi(opt.Initial, 'FirstOrder')
                     simulateFunction(vthRect, vthData);
@@ -243,9 +242,6 @@ return
                 exitFlag = simulateStacked(this, blazer, vthRect, vthData, header);
             case solver.Method.STATIC
                 exitFlag = simulateStatic(this, blazer, vthRect, vthData, header);
-        end
-        if ~isempty(discrepancy)
-            discrepancyTable = compileDiscrepancyTable(this, discrepancy,nonlinearEquations);
         end
     end%
 
@@ -311,25 +307,5 @@ function [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(data, plan, maxS
         timeFrames(i, :) = [startOfTimeFrame, endOfTimeFrame];
     end
     mixinUnanticipated = false;
-end%
-
-
-
-
-function discrepancyTable = compileDiscrepancyTable(this, discrepancy, equations)
-    MAX_STRLENGTH = 50;
-    maxInRow = max(abs(discrepancy), [ ], 2);
-    [maxInRow, reorderRows] = sort(maxInRow, 1, 'descend');
-    discrepancy = discrepancy(reorderRows, :);
-    equations = equations(reorderRows);
-    equations = string(equations(:));
-    inxTooLong = strlength(equations)>MAX_STRLENGTH;
-    equations(inxTooLong) = extractBefore(equations(inxTooLong), MAX_STRLENGTH+1);
-    ellipsis = iris.get('Ellipsis');
-    equations(inxTooLong) = replaceBetween( equations(inxTooLong), ...
-                                            MAX_STRLENGTH, MAX_STRLENGTH, ...
-                                            ellipsis );
-    discrepancyTable = table( equations, maxInRow, discrepancy, ...
-                              'VariableNames', {'Equation', 'MaxDiscrepancy', 'Discrepancies'} );
 end%
 

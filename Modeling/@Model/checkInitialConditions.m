@@ -1,5 +1,4 @@
 function checkInitialCondition(this, inxOfNaNYXEPG, firstColumn)
-% checkInitialCondition  Look up initial conditions missing from input databank
 
 [~, linxOfInit, idOfInit] = getInxOfInitInPresample(this, firstColumn);
 inxOfNaNInit = inxOfNaNYXEPG(linxOfInit);

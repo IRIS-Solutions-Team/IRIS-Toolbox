@@ -1,11 +1,4 @@
-function idOfInit = getIdOfInitialConditions(this)
-% getIdOfInitialConditions  Get positions and shifts of initial conditions
-%
-% Backend IRIS function
-% No help provided
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+function id = getIdOfInitialConditions(this)
 
 TYPE = @int8;
 
@@ -34,7 +27,7 @@ end
 
 % Incidence
 [name, shift] = find(incidence);
-idOfInit = name - 1i*shift;
+id = name - 1i*shift;
 
 end%
 

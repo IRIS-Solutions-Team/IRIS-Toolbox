@@ -18,22 +18,22 @@ function [s, field] = dat2str(dat, varargin)
 %
 % __Options__
 %
-% * `DateFormat='YYYYFP'` [ char | cellstr | string ] - Date format string,
+% * `'DateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string, 
 % or array of format strings (possibly different for each date).
 %
-% * `FreqLetters='YHQMW'` [ char | string ] - Five letters used to
+% * `'FreqLetters='` [ char | *`'YHQBMW'`* ] - Six letters used to
 % represent the six possible frequencies of IRIS dates, in this order:
-% yearly, half-yearly, quarterly, monthly, and weekly (such as the `'Q'` in
-% `'2010Q1'`).
+% yearly, half-yearly, quarterly, bi-monthly, monthly, and weekly (such as
+% the `'Q'` in `'2010Q1'`).
 %
-% * `Months={'January', ..., 'December'}` [ cellstr | string ] - Twelve
+% * `'Months='` [ cellstr | *`{'January', ..., 'December'}`* ] - Twelve
 % strings representing the names of the twelve months.
 %
-% * `ConversionMonth=1` [ numeric | `'last'` ] - Month that will represent
-% a lower-than-monthly-frequency date if the month is part of the date
-% format string.
+% * `'ConversionMonth=='` [ numeric | `'last'` | *`1`* ] - Month that will
+% represent a lower-than-monthly-frequency date if the month is part of the
+% date format string.
 %
-% * `WWDay='Thu'` [ `'Mon'` | `'Tue'` | `'Wed'` | `'Thu'` | `'Fri'` |
+% * `'Wwday='` [ `'Mon'` | `'Tue'` | `'Wed'` | *`'Thu'`* | `'Fri'` |
 % `'Sat'` | `'Sun'` ] - Day of week that will represent weeks.
 %
 %
@@ -143,9 +143,8 @@ function [s, field] = dat2str(dat, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-persistent parser configStruct
+persistent parser
 if isempty(parser)
-    configStruct = iris.get( );
     parser = extend.InputParser('dates.dat2str');
     parser.addRequired('InputDate', @(x) isa(x, 'DateWrapper') || isnumeric(x));
     parser.addDateOptions( );
@@ -171,8 +170,8 @@ daysOfWeek = { 'Sunday', 'Monday', 'Tuesday', 'Wednesday', ...
 
 %ixYearly = freq==1;
 %ixZero = freq==0;
-ixWeekly = freq==Frequency.WEEKLY;
-ixDaily = freq==Frequency.DAILY;
+ixWeekly = freq==52;
+ixDaily = freq==365;
 ixMsd = ixWeekly | ixDaily;
 
 % Matlab serial date numbers (daily or weekly dates only), calendar years, 
@@ -213,12 +212,12 @@ for iDat = 1 : nDat
         numOfFields = length(field);
     end
     
-    if ~any(ithFreq==configStruct.Freq)
+    if ~any( ithFreq==[0, 1, 2, 4, 6, 12, 52, 365] )
         s{iDat} = 'Not-A-Date';
         continue
     end
 
-    if ithFreq==Frequency.DAILY && ~isCalendar
+    if ithFreq==365 && ~isCalendar
         throw( exception.Base('Options:CalendarFormatForDaily', 'error') );
     end
 
@@ -344,8 +343,8 @@ return
             if ~isCalendar && any(c0(1)=='MQqEW')
                 isMonthNeeded = true;
             end
-        end%
-    end%
+        end
+    end 
 
 
 
@@ -366,7 +365,7 @@ return
             case 'Y'
                 Subs = sprintf('%g', Y);
         end
-    end% 
+    end 
 
 
 
@@ -394,7 +393,7 @@ return
                     Subs = lowerRomans{iPer};
                 end
         end
-    end%
+    end 
 
 
 
@@ -433,7 +432,7 @@ return
                     Subs = lowerRomans{M};
                 end
         end
-    end%
+    end 
 
 
 
@@ -449,7 +448,7 @@ return
             case 'D'
                 subs = sprintf('%g', iDayC);
         end
-    end%
+    end
 
 
 
@@ -466,7 +465,7 @@ return
             case 'EE'
                 subs = sprintf('%02g', e);
         end
-    end%
+    end
 
 
 
@@ -489,7 +488,7 @@ return
             case 'WW'
                 subs = sprintf('%02g', e);
         end
-    end%
+    end
 
 
 
@@ -501,37 +500,46 @@ return
         elseif strcmp(field{j}, 'AAA')
             subs = upper(subs(1:3));
         end
-    end%
+    end
 
 
 
 
-    function month = calculateMonth( )
-        % Non-calendar month
-        month = NaN;
+    function m = calculateMonth( )
+        % Non-calendar month.
+        m = NaN;
         switch ithFreq
-            case {Frequency.YEARLY, Frequency.HALFYEARLY, Frequency.QUARTERLY}
-                month = per2month(iPer, ithFreq, opt.ConversionMonth);
-            case Frequency.MONTHLY
-                month = iPer;
-            case Frequency.WEEKLY
-                % Non-calendar month of a weekly date is the month that contains Thursday
-                [~, month] = datevec( double(iMsd+3) );
+            case {1, 2, 4, 6}
+                m = per2month(iPer, ithFreq, opt.ConversionMonth);
+            case 12
+                m = iPer;
+            case 52
+                % Non-calendar month of a weekly date is the month that contains Thursday.
+                [~, m] = datevec( double(iMsd+3) );
         end
-    end%
+    end
 
 
 
 
     function subs = subsFreqLetter( )
         subs = '';
-        inx = ithFreq==configStruct.RegularFrequencies;
-        if any(inx)
-            subs = opt.FreqLetters(inx);
+        switch ithFreq
+            case 1
+                subs = opt.FreqLetters(1);
+            case 2
+                subs = opt.FreqLetters(2);
+            case 4
+                subs = opt.FreqLetters(3);
+            case 6
+                subs = opt.FreqLetters(4);
+            case 12
+                subs = opt.FreqLetters(5);
+            case 52
+                subs = opt.FreqLetters(6);
         end
         if isequal(field{j}, 'f')
             subs = lower(subs);
         end
-    end%
-end%
-
+    end
+end

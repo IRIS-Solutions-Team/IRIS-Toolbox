@@ -16,14 +16,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
         Freq = iris.Configuration.DEFAULT_FREQ
 
         % FreqNames  Names of date frequencies (not customizable)
-        FreqNames = containers.Map(uint8(iris.Configuration.DEFAULT_FREQ), iris.Configuration.DEFAULT_FREQ_NAMES)
-
-        % RegularFrequencies  Vector of regular frequencies
-        RegularFrequencies = [ Frequency.YEARLY
-                               Frequency.HALFYEARLY
-                               Frequency.QUARTERLY
-                               Frequency.MONTHLY
-                               Frequency.WEEKLY ]
+        FreqNames = containers.Map(iris.Configuration.DEFAULT_FREQ, iris.Configuration.DEFAULT_FREQ_NAMES)
 
         % UserConfigPath  Path to the user config file (not customizable)
         UserConfigPath = ''
@@ -34,7 +27,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
         
 
     properties
-        % FreqLetters  One-letter representation of each regular frequency
+        % FreqLetters  One-letter representation of each date frequency
         FreqLetters = iris.Configuration.DEFAULT_FREQ_LETTERS
 
         % DateFormat  Default date format
@@ -54,9 +47,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         % ConversionMonth  Month representing a low-frequency date when being converted to higher-frequency date
         ConversionMonth = iris.Configuration.DEFAULT_CONVERSION_MONTH
-
-        % ConversionDay  Day representing a low-frequency date when being converted to daily dates
-        ConversionDay = iris.Configuration.DEFAULT_CONVERSION_DAY
 
         % WDay  Day of the week representing a weekly date
         WDay = iris.Configuration.DEFAULT_WEEK_DAY
@@ -94,28 +84,24 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
     properties (Constant, Hidden)
-        DEFAULT_FREQ = [ Frequency.INTEGER
-                         Frequency.YEARLY
-                         Frequency.HALFYEARLY
-                         Frequency.QUARTERLY
-                         Frequency.MONTHLY
-                         Frequency.WEEKLY
-                         Frequency.DAILY ]
+        DEFAULT_FREQ = [0, 1, 2, 4, 6, 12, 52, 365]
 
         DEFAULT_FREQ_NAMES = { 'Integer'
                                'Yearly'
                                'Half-Yearly'
                                'Quarterly'
+                               'Bimonthly'
                                'Monthly'
                                'Weekly'
                                'Daily'       } 
 
-        DEFAULT_FREQ_LETTERS = 'YHQMW'
+        DEFAULT_FREQ_LETTERS = 'YHQBMW'
 
         DEFAULT_DATE_FORMAT = struct( 'ii', 'P', ...
                                       'yy', 'YF', ...
                                       'hh', 'YFP', ...
                                       'qq', 'YFP', ...
+                                      'bb', 'YFP', ...
                                       'mm', 'YFP', ...
                                       'ww', 'YFP', ...
                                       'dd', '$YYYY-Mmm-DD' )
@@ -124,6 +110,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
                                            'yy', 'Y', ...
                                            'hh', 'Y:P', ...
                                            'qq', 'Y:P', ...
+                                           'bb', 'Y:P', ...
                                            'mm', 'Y:P', ...
                                            'ww', 'Y:P', ...
                                            'dd', '$YYYY-Mmm-DD' )
@@ -151,9 +138,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
                            'November'
                            'December' } 
         
-        DEFAULT_CONVERSION_MONTH = 1
-        
-        DEFAULT_CONVERSION_DAY = 1
+        DEFAULT_CONVERSION_MONTH = 'first'
 
         DEFAULT_WEEK_DAY = 'Thu'
 
@@ -171,6 +156,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
                                       'yy'
                                       'hh'
                                       'qq'
+                                      'bb'
                                       'mm'
                                       'ww'
                                       'dd' }
@@ -317,20 +303,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
                        'The value being assigned to this configuration option is invalid: ConversionMonth' );
             end
             this.ConversionMonth = newValue;
-        end%
-     
-
-        function this = set.ConversionDay(this, newValue)
-            try
-                flag = iris.Configuration.validateConversionDay(newValue);
-            catch
-                flag = false;
-            end
-            if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: ConversionDay' );
-            end
-            this.ConversionDay = newValue;
         end%
      
 
@@ -672,14 +644,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
         function flag = validateConversionMonth(x)
             flag = isequal(x, @config) ...
                 || (isnumeric(x) && isscalar(x)  && x==round(x) && x>0) ...
-                || strcmpi(x, 'first') || strcmpi(x, 'last');
-        end%
-
-
-        function flag = validateConversionDay(x)
-            flag = isequal(x, @config) ...
-                || (isnumeric(x) && isscalar(x)  && x==round(x) && x>0) ...
-                || strcmpi(x, 'first') || strcmpi(x, 'last');
+                || isequal(x, 'first') || isequal(x, 'last');
         end%
 
 

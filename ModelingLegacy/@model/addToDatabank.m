@@ -1,9 +1,9 @@
 function d = addToDatabank(what, this, d, varargin)
-% addToDatabank  Add model quantities to existing or new databank 
+% addToDatabank  Add model quantities to databank or create new databank
 %
 % __Syntax__
 %
-% Input arguments marked with a `~` sign may be omitted
+% Input arguments marked with a `~` sign may be omitted.
 %
 %     D = addToDatabank(What, M, D, ...)
 %     D = addToDatabank(What, M, D, Range, ...)
@@ -36,7 +36,7 @@ function d = addToDatabank(what, this, d, varargin)
 %
 % Specify one of the following to choose what model quantities to add:
 %
-%   * `'Parameters'` - add plain parameters (no std deviations or cross correlations)
+%   * `'Parameters'` - add model parameters
 %   * `'Std'` - add std deviations of model shocks
 %   * `'NonzeroCorr'` - add nonzero cross-correlations of model shocks
 %   * `'Corr'` - add all cross correlations of model shocks

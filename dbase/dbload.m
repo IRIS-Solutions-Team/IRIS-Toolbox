@@ -260,15 +260,15 @@ end
 [data, ixMissing, dateCol] = readNumericData( );
 
 % __Parse dates__
-[dates, inxNaNDates] = parseDates( );
+[dates, inxOfNaNDates] = parseDates( );
 
 if ~isempty(dates)
     maxDate = max(dates);
     minDate = min(dates);
-    numPeriods = 1 + round(maxDate - minDate);
+    numOfPeriods = 1 + round(maxDate - minDate);
     posOfDates = 1 + round(dates - minDate);
 else
-    numPeriods = 0;
+    numOfPeriods = 0;
     posOfDates = [ ];
     minDate = DateWrapper(NaN);
 end
@@ -565,9 +565,9 @@ return
 
 
 
-    function [dates, inxNaNDates] = parseDates( )
-        numDates = numel(dateCol);
-        dates = DateWrapper(nan(1, numDates));
+    function [dates, inxOfNaNDates] = parseDates( )
+        numOfDates = numel(dateCol);
+        dates = DateWrapper(nan(1, numOfDates));
         dateCol = dateCol(1:min(end, size(data, 1)));
         if ~isempty(dateCol)
             if strcmpi(opt.Continuous, 'Ascending')
@@ -576,29 +576,29 @@ return
                 dateCol(1:end-1) = {''};
             end
             % Rows with empty dates.
-            inxEmptyDates = cellfun(@isempty, dateCol);
+            ixEmptyDate = cellfun(@isempty, dateCol);
         end
-        % Convert date strings
-        if ~isempty(dateCol) && ~all(inxEmptyDates)
-            dates(~inxEmptyDates) = str2dat(dateCol(~inxEmptyDates), ...
+        % Convert date strings.
+        if ~isempty(dateCol) && ~all(ixEmptyDate)
+            dates(~ixEmptyDate) = str2dat(dateCol(~ixEmptyDate), ...
                 'DateFormat=', opt.dateformat, ...
                 'Freq=', opt.freq, ...
                 'FreqLetters=', opt.freqletters);
             if strcmpi(opt.Continuous, 'Ascending')
-                dates(2:end) = dates(1) + (1 : numDates-1);
+                dates(2:end) = dates(1) + (1 : numOfDates-1);
             elseif strcmpi(opt.Continuous, 'Descending')
-                dates(end-1:-1:1) = dates(end) - (1 : numDates-1);
+                dates(end-1:-1:1) = dates(end) - (1 : numOfDates-1);
             end
         end
         % Exclude NaN dates (that includes also empty dates), but keep all data
         % rows; this is because of non-time-series data
-        inxNaNDates = isnan(dates);
-        dates(inxNaNDates) = [ ];
+        inxOfNaNDates = isnan(dates);
+        dates(inxOfNaNDates) = [ ];
         
         % Homogeneous frequency check
         if ~isempty(dates)
-            freqDates = DateWrapper.getFrequencyAsNumeric(dates);
-            DateWrapper.checkMixedFrequency(freqDates, [ ], 'in CSV data files');
+            freqOfDates = DateWrapper.getFrequencyAsNumeric(dates);
+            DateWrapper.checkMixedFrequency(freqOfDates, [ ], 'in CSV data files');
         end
     end% 
 
@@ -611,10 +611,10 @@ return
         count = 0;
         nName = length(nameRow);
         seriesUserdataList = fieldnames(seriesUserdata);
-        numSeriesUserData = length(seriesUserdataList);
+        nSeriesUserdata = length(seriesUserdataList);
         while count<nName
             name = nameRow{count+1};
-            if numSeriesUserData>0
+            if nSeriesUserdata>0
                 thisUserData = createSeriesUserdata( );
             end
             if isempty(name)
@@ -639,20 +639,20 @@ return
                 if isempty(tmpSize)
                     tmpSize = [Inf, 1];
                 end
-                numColumns = prod(tmpSize(2:end));
+                nCol = prod(tmpSize(2:end));
                 if ~isempty(data)
-                    if isreal(data(~inxNaNDates, count+(1:numColumns)))
+                    if isreal(data(~inxOfNaNDates, count+(1:nCol)))
                         unit = 1;
                     else
                         unit = 1 + 1i;
                     end
-                    iData = nan(numPeriods, numColumns)*unit;
-                    iMiss = false(numPeriods, numColumns);
-                    iData(posOfDates, :) = data(~inxNaNDates, count+(1:numColumns));
-                    iMiss(posOfDates, :) = ixMissing(~inxNaNDates, count+(1:numColumns));
+                    iData = nan(numOfPeriods, nCol)*unit;
+                    iMiss = false(numOfPeriods, nCol);
+                    iData(posOfDates, :) = data(~inxOfNaNDates, count+(1:nCol));
+                    iMiss(posOfDates, :) = ixMissing(~inxOfNaNDates, count+(1:nCol));
                     iData(iMiss) = NaN*unit;
-                    iData = reshape(iData, [numPeriods, tmpSize(2:end)]);
-                    cmt = cmtRow(count+(1:numColumns));
+                    iData = reshape(iData, [numOfPeriods, tmpSize(2:end)]);
+                    cmt = cmtRow(count+(1:nCol));
                     cmt = reshape(cmt, [1, tmpSize(2:end)]);
                     d.(name) = replace(TEMPLATE_SERIES, iData, minDate, cmt);
                 else
@@ -661,14 +661,14 @@ return
                     iData = zeros([0, tmpSize(2:end)]);
                     d.(name) = replace(TEMPLATE_SERIES, iData, NaN, '');
                 end
-                if numSeriesUserData>0
+                if nSeriesUserdata>0
                     d.(name) = userdata(d.(name), thisUserData);
                 end
             elseif ~isempty(tmpSize)
                 % Numeric data.
-                numColumns = prod(tmpSize(2:end));
-                iData = reshape(data(1:tmpSize(1), count+(1:numColumns)), tmpSize);
-                iMiss = reshape(ixMissing(1:tmpSize(1), count+(1:numColumns)), tmpSize);
+                nCol = prod(tmpSize(2:end));
+                iData = reshape(data(1:tmpSize(1), count+(1:nCol)), tmpSize);
+                iMiss = reshape(ixMissing(1:tmpSize(1), count+(1:nCol)), tmpSize);
                 iData(iMiss) = NaN;
                 % Convert to the right numeric class.
                 if true % ##### MOSW
@@ -678,7 +678,7 @@ return
                 end
                 d.(name) = fnClass(iData);
             end
-            count = count + numColumns;
+            count = count + nCol;
         end
         
         return
@@ -688,7 +688,7 @@ return
         
         function userData = createSeriesUserdata( )
             userData = struct( );
-            for ii = 1 : numSeriesUserData
+            for ii = 1 : nSeriesUserdata
                 try
                     userData.(seriesUserdataList{ii}) = ...
                         seriesUserdata.(seriesUserdataList{ii}){count+1};

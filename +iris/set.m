@@ -28,12 +28,12 @@ function set(varargin)
 % `DateFormat=` option is also found in many IRIS functions whenever it is
 % relevant, and can be used to overwrite the `iris.set` settings.
 %
-% * `FreqLetters='YHQMW'` [ char | string ] - Five letters used to
+% * `FreqLetters='YHQBMW'` [ char | string ] - Six letters used to
 % represent the six possible frequencies of IRIS dates, in this order:
-% yearly, half-yearly, quarterly, monthly, and weekly (such as the `'Q'` in
-% `'2010Q1'`).
+% yearly, half-yearly, quarterly, bi-monthly, monthly, and weekly (such as
+% the `'Q'` in `'2010Q1'`).
 %
-% * `Months={'January', ..., 'December'}` [ cellstr | string ] - Twelve
+% * `Months={'January',...,'December'}` [ cellstr | string ] - Twelve
 % strings representing the names of the twelve months; this option can be
 % used whenever you want to replace the default English names with your
 % local language.

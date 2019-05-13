@@ -229,7 +229,6 @@ return
         outputInfo.ExtendedRange = DateWrapper.fromDateCode(runningData.ExtendedRange);
         outputInfo.Success =  runningData.Success;
         outputInfo.ExitFlags = runningData.ExitFlags;
-        outputInfo.DiscrepancyTables = runningData.DiscrepancyTables;
     end%
 end%
 

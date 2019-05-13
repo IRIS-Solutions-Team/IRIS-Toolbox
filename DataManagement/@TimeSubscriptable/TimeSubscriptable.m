@@ -78,7 +78,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         varargout = getData(varargin)
         varargout = getDataNoFrills(varargin)
         varargout = ifelse(varargin)
-        varargout = redate(varargin)
         varargout = resetComment(varargin)
         varargout = shift(varargin)
 
@@ -230,6 +229,10 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
                        Frequency.toChar(freqOfThis),charFreqOfDates{:} );
             end
         end%
+    end
+
+
+    methods
     end
 
 

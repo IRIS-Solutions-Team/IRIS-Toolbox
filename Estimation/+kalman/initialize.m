@@ -1,18 +1,18 @@
 function s = initialize(s, iLoop, opt)
-% initialize  Initialize Kalman filter
+% initialize  Initialize Kalman filter.
 %
-% Backend IRIS function
-% No help provided
+% Backend IRIS function.
+% No help provided.
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
-numOfUnitRoots = s.NUnit;
+nUnit = s.NUnit;
 nb = s.nb;
 ne = s.ne;
-inxOfStable = [false(1, numOfUnitRoots), true(1, nb-numOfUnitRoots)];
+inxOfStable = [false(1, nUnit), true(1, nb-nUnit)];
 
 s.InitMean = getInitMean( );
 s.InitMse = getInitMse( );
@@ -38,19 +38,19 @@ return
         if ~isempty(s.ka) && any(s.ka(:)~=0)
             % Asymptotic initial condition for the stable part of Alpha;
             % the unstable part is kept at zero initially.
-            I = eye(nb - numOfUnitRoots);
-            a1 = zeros(numOfUnitRoots, 1);
+            I = eye(nb - nUnit);
+            a1 = zeros(nUnit, 1);
             a2 = (I - s.Ta(inxOfStable, inxOfStable)) \ s.ka(inxOfStable, 1);
             a0 = [a1; a2];
         end
-        if numOfUnitRoots>0 && isnumeric(opt.InitUnitRoot)
+        if nUnit>0 && isnumeric(opt.InitUnitRoot)
             % User supplied data to initialise mean for unit root processes.
             % Convert Xb to Alpha.
             xb00 = opt.InitUnitRoot(:, 1, min(end, iLoop));
             ixZero = isnan(xb00) & ~s.IxRequired(:);
             xb00(ixZero) = 0;
             a00 = s.U \ xb00;
-            a0(1:numOfUnitRoots) = a00(1:numOfUnitRoots);
+            a0(1:nUnit) = a00(1:nUnit);
         end
     end
 
@@ -103,7 +103,7 @@ return
             else
                 maxVar = 1;
             end
-            Pa0(~inxOfStable, ~inxOfStable) = eye(numOfUnitRoots) * maxVar * s.DIFFUSE_SCALE;
+            Pa0(~inxOfStable, ~inxOfStable) = eye(nUnit) * maxVar * s.DIFFUSE_SCALE;
         end
     end
 

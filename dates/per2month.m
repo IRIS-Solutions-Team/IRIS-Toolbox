@@ -1,25 +1,25 @@
-function month = per2month(period, freq, conversionMonth)
-% per2month  Return month to represent a given period
+function Month = per2month(Per,Freq,StandinMonth)
+% per2month  [Not a public function] Return month to represent a given period.
 %
-% Backend IRIS function
-% No help provided
+% Backend IRIS function.
+% No help provided.
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
-if ischar(conversionMonth) || isa(conversionMonth, 'string')
-    if strcmpi(conversionMonth, 'first')
-        conversionMonth = 1;
-    elseif strcmpi(conversionMonth, 'last')
-        conversionMonth = 12 ./ freq;
-    else
-        conversionMonth = 1;
+if ischar(StandinMonth)
+    switch StandinMonth
+        case {'first','start'}
+            StandinMonth = 1;
+        case {'last','end'}
+            StandinMonth = 12 ./ Freq;
+        otherwise
+            StandinMonth = 1;
     end
 end
 
-month = (period-1).*12./freq + conversionMonth;
+Month = (Per-1).*12./Freq + StandinMonth;
 
-end%
-
+end
