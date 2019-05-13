@@ -65,11 +65,10 @@ function [outputData, exitFlag, finalAddf, finalDcy] = simulate(this, inputData,
 % conditions from input data, and ignore any shocks within the simulation
 % range.
 %
-% * `Method='FirstOrder'` [ `'FirstOrder'` | `'Selective'` | `'Global'` ] -
+% * `Method='FirstOrder'` [ `'FirstOrder'` | `'Selective'` ] -
 % Method of running simulations; `'FirstOrder'` means first-order
 % approximate solution (calculated around steady state); `'Selective'`
-% means equation-selective nonlinear method; `'Global'` means global
-% nonlinear method (available only in models with no leads).
+% means equation-selective nonlinear method.
 %
 % * `Plan=[ ]` [ Scenario | empty ] - Specify scenario to swap endogeneity
 % and exogeneity of some variables and shocks temporarily, and/or to
@@ -261,12 +260,6 @@ function [outputData, exitFlag, finalAddf, finalDcy] = simulate(this, inputData,
 % slower but likely to converge for a wider variety of simulations.
 %
 %
-% _Global Nonlinear Simulations_
-%
-% The global nonlinear simulation approach is invoked by setting 
-% `Method='Global'` and is available only in models with no leads.
-% In global nonlinear simulations, the entire model is solved as a system
-% of nonlinear equations, period by period, using one of the following two
 % Optimization Tbx routines: `@fsolve` or `@lsqnonlin` (default).
 %
 %

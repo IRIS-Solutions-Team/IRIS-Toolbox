@@ -70,6 +70,7 @@ if isempty(parserNonlinear)
     parserNonlinear.addParameter('SteadyShift', 3, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);    
     parserNonlinear.addParameter('PrepareGradient', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter('Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
+    parserNonlinear.addParameter('Log', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
     parserNonlinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter('ZeroMultipliers', true, @(x) isequal(x, true) || isequal(x, false));
     parserNonlinear.addSwapOptions( );
@@ -168,7 +169,8 @@ function processFixOpt(this, blazer, opt)
     fixL(opt.Fix) = true;
     fixL(opt.FixLevel) = true;
     fixG = false(1, numOfQuants);
-    % Fix growth of endogenized parameters to zero
+
+    % Fix growth of all endogenized parameters to zero
     fixG(ixp) = true;
     if opt.Growth
         fixG(opt.Fix) = true;
@@ -194,6 +196,8 @@ function processFixOpt(this, blazer, opt)
 end%
 
 
+
+
 function blazer = createBlocks(this, opt)
     TYPE = @int8;
 
@@ -201,17 +205,14 @@ function blazer = createBlocks(this, opt)
     ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
     ixp = this.Quantity.Type==TYPE(4);
 
-    % Run solver.blazer.Blazer on steady equations.
+    % Run solver.blazer.Blazer on steady equations
     blazer = prepareBlazer(this, 'Steady', opt);
 
-    % Analyze block-sequential structure.
-    run(blazer);
-
-    % Populate IdToFix and IdToExclude.
+    % Populate IdToFix and IdToExclude
     processFixOpt(this, blazer, opt);
 
-    % Prepare solver.block.Blocks for evaluation.
-    prepareBlocks(blazer, opt);
+    % Analyze block-sequential structure and prepare block.Steady
+    run(blazer, opt);
 
     if blazer.IsSingular
         throw( exception.Base('Steady:StructuralSingularity', 'warning') );

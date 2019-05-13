@@ -190,8 +190,8 @@ if likOpt.domain=='t'
         [xbInitMean, listOfMissingMeanInit, xbInitMse, listOfMissingMSEInit] = ...
             datarequest('xbInit', this, likOpt.Init, range);
         if isempty(xbInitMse)
-            nData = size(xbInitMean, 3);
-            xbInitMse = zeros(nb, nb, nData);
+            numOfPages = size(xbInitMean, 3);
+            xbInitMse = zeros(nb, nb, numOfPages);
         end
         chkNanInit( );
         likOpt.Init = {xbInitMean, xbInitMse};
@@ -255,5 +255,6 @@ return
             'Model:Filter:IllegalRolling', ...
             'Illegal dates specified in option Rolling=.' ...
         );
-    end
-end
+    end%
+end%
+

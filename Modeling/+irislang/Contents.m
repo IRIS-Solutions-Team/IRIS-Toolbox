@@ -1,4 +1,4 @@
-% Model File Language
+% # Model File Language #
 % 
 % Model file language is used to write model files. The model files are
 % plain text files (saved under any filename with any extension) that
@@ -19,72 +19,83 @@
 % [the setup instructions](setup/Contents) for more details.
 %
 %
-% Categorical List
-% -----------------
+% ## Categorical List of Keywords ##
 %
-% __Variables, Parameters, Shocks__
+% ### Declaring Model Names: Variables, Parameters and Shocks ###
 % 
-%   !transition_variables - List of transition variables
-%   !transition_shocks - List of transition shocks
-%   !measurement_variables - List of measurement variables
-%   !measurement_shocks - List of measurement shocks
-%   !exogenous_variables - List of exogenous variables
-%   !parameters - List of parameters
-%   !dynamic_autoexog - Definitions of variable-shock pairs to be autoexogenized-autoendogenized in dynamic simulations
-%   !steady_autoexog - Definitions of variable-parameter pairs to be autoexogenized-autoendogenized in steady-state calculations
+%  Keyword                    | Brief Description
+%  ---------------------------|-----------------------------------------------------------------
+%   !transition-variables     | List of transition variables
+%   !transition-shocks        | List of transition shocks
+%   !measurement-variables    | List of measurement variables
+%   !measurement-shocks       | List of measurement shocks
+%   !exogenous-variables      | List of exogenous variables
+%   !parameters               | List of parameters
+%   !dynamic-autoexog         | Definitions of variable-shock pairs to be autoexogenized-autoendogenized in dynamic simulations
+%   !steady-autoexog          | Definitions of variable-parameter pairs to be autoexogenized-autoendogenized in steady-state calculations
 % 
 %
 % __Equations__
 % 
-%   !transition_equations - Block of transition equations
-%   !measurement_equations - Block of measurement equations
-%   !dtrends - Block of deterministic trend equations
-%   !links - Define dynamic links
-%   !revisions - Block of steady-state revision equations
-%   !reporting_equations - Block of reporting equations
+%  Keyword                    | Brief Description
+%  ---------------------------|-----------------------------------------------------------------
+%   !transition_equations     | Block of transition equations
+%   !measurement_equations    | Block of measurement equations
+%   !dtrends                  | Block of deterministic trend equations
+%   !links                    | Define dynamic links
+%   !revisions                | Block of steady-state revision equations
+%   !reporting_equations      | Block of reporting equations
 % 
 %
-% __Linearized and Log-Linearised Variables__
+% __Linearized and Log-Linearized Variables__
 % 
-%   !log_variables - List of log-linearised variables
-%   !all_but - Inverse list of log-linearised variables
+%  Keyword                    | Brief Description
+%  ---------------------------|-----------------------------------------------------------------
+%   !log_variables            | List of log-linearised variables
+%   !all_but                  | Inverse list of log-linearised variables
 %
 %
 % __Special Operators__
 % 
-%   !! (steady_version) - Steady-state version of an equation
-%   {...} (shift) - Lag or lead
-%   & (steady_ref) - Reference to the steady-state level of a variable
-%   =# (exact_nonlin) - Mark equations for equation-selective nonlinear simulations
-%   !ttrend - Linear time trend in deterministic trend equations
+%  Keyword                    | Brief Description
+%  ---------------------------|-----------------------------------------------------------------
+%   min                       | Define loss function for optimal policy
+%   !! (steady_version)       | Steady-state version of an equation
+%   {...} (shift)             | Lag or lead
+%   & (steady_ref)            | Reference to the steady-state level of a variable
+%   =# (exact_nonlin)         | Mark equations for equation-selective nonlinear simulations
+%   !ttrend                   | Linear time trend in deterministic trend equations
 %
 %
 % __Pseudofunctions__
 %
 % Pseudofunctions do not start with an exclamation point.
 %
-%   min - Define loss function for optimal policy
-%   diff - First difference pseudofunction
-%   dot - Gross rate of growth pseudofunction
-%   difflog - First log-difference pseudofunction
-%   movavg - Moving average pseudofunction
-%   movgeom - Moving geometric average pseudofunction
-%   movprod - Moving product pseudofunction
-%   movsum - Moving sum pseudofunction
+%  Keyword                    | Brief Description
+%  ---------------------------|-----------------------------------------------------------------
+%   diff                      | First difference pseudofunction
+%   dot                       | Gross rate of growth pseudofunction
+%   difflog                   | First log-difference pseudofunction
+%   movavg                    | Moving average pseudofunction
+%   movgeom                   | Moving geometric average pseudofunction
+%   movprod                   | Moving product pseudofunction
+%   movsum                    | Moving sum pseudofunction
 %
 %
-% __Preparser Control Commands__
+% __Preparser Commands__
 % 
-%   !substitutions - Define text substitutions
-%   <...> (interp) - Interpolation
-%   !import - Include the content of another model file
-%   !export - Create exportable file to be saved in working directory
-%   !function - Create exportable m-file function to be saved in working directory
-%   !if - Choose block of code based on logical condition
-%   !switch - Switch among several cases based on expression
-%   !for - For loop for automated creation of model code
-%   % (line_comment) - Line comments
-%   %{...%} (block_comment) - Block comments
+%  Keyword                    | Brief Description
+%  ---------------------------|-----------------------------------------------------------------
+%   !substitutions            | Define text substitutions
+%   <...> (interp)            | Interpolation
+%   !import                   | Include the content of another model file
+%   !export                   | Create exportable file to be saved in working directory
+%   !function                 | Create exportable m-file function to be saved in working directory
+%   !if                       | Choose block of code based on logical condition
+%   !switch                   | Switch among several cases based on expression
+%   !for                      | For loop for automated creation of model code
+%   % (line_comment)          | Line comments
+%   %{...%} (block_comment)   | Block comments
 %
 %
 % __Matlab Functions and User Functions in Model Files__
@@ -171,7 +182,7 @@
 %
 % * You can choose between linearisation and log-linearisation for each
 % individual transition and measurement variable. Shocks are always
-% linearised. Exogenous variables must be always introduced so that their
+% linearized. Exogenous variables must be always introduced so that their
 % effect on the respective measurement variable is linear.
 %
 

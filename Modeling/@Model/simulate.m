@@ -29,7 +29,7 @@ if isempty(parser)
     parser.addParameter('Initial', 'Data', @(x) any(strcmpi(x, {'Data', 'FirstOrder'})));
     parser.addParameter('PrepareGradient', true, @(x) isequal(x, true) || isequal(x, false));
 end
-parser.parse(this, inputData, baseRange, varargin{:});
+parse(parser, this, inputData, baseRange, varargin{:});
 opt = parser.Options;
 opt.EvalTrends = opt.DTrends;
 usingDefaults = parser.UsingDefaultsInStruct;
@@ -127,7 +127,7 @@ return
         numOfDataSets = size(runningData.YXEPG, 3); 
         if numOfDataSets==1 && nv>1
             % Expand number of data sets to match number of parameter variants
-            runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, numOfRuns);
+            runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, nv);
         end
         runningData.InxOfInitInPresample = getInxOfInitInPresample(this, runningData.BaseRangeColumns(1));
     end%
@@ -139,20 +139,20 @@ return
         firstColumnToRun = runningData.BaseRangeColumns(1);
         lastColumnToRun = runningData.BaseRangeColumns(end);
         switch opt.Method
-            case solver.Method.STACKED
-                blazer = prepareBlazer(this, 'Stacked', opt);
-                run(blazer);
+            case {solver.Method.STACKED, solver.Method.STATIC}
+                blazer = prepareBlazer(this, opt.Method, opt);
                 blazer.ColumnsToRun = firstColumnToRun : lastColumnToRun;
-                prepareBlocks(blazer, opt);
-            case solver.Method.STATIC
-                blazer = prepareBlazer(this, 'Static', opt);
-                run(blazer);
-                blazer.ColumnsToRun = firstColumnToRun : lastColumnToRun;
-                prepareBlocks(blazer, opt);
+                run(blazer, opt);
+
+                opt.Blocks = false;
+                blazerNoBlocks = prepareBlazer(this, opt.Method, opt);
+                blazerNoBlocks.ColumnsToRun = firstColumnToRun : lastColumnToRun;
+                run(blazerNoBlocks, opt);
+
+                runningData.Blazers = [blazerNoBlocks, blazer];
             otherwise
-                blazer = [ ];
+                runningData.Blazers = [ ];
         end
-        runningData.Blazer = blazer;
     end%
 
 
@@ -229,6 +229,7 @@ return
         outputInfo.ExtendedRange = DateWrapper.fromDateCode(runningData.ExtendedRange);
         outputInfo.Success =  runningData.Success;
         outputInfo.ExitFlags = runningData.ExitFlags;
+        outputInfo.DiscrepancyTables = runningData.DiscrepancyTables;
     end%
 end%
 

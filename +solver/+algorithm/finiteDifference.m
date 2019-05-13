@@ -18,7 +18,7 @@ nx = numel(x);
 
 if ~largeScale
     % Evaluate all equations for all quantities regardless of the Jacobian
-    % pattern.
+    % pattern
     g = zeros(nf, nx);
     for i = 1 : nx
         xp = x;

@@ -8,7 +8,7 @@ function this = setData(this, s, y)
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 ERROR_ASSIGNMENT = { 'TimeSubscriptable:ErrorAssigning'
-                     'Error when assigning to a time seris\nMatlab says: %s ' };
+                     'Error when assigning to time series\nMatlab says: %s ' };
 testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
 
 % Simplified call

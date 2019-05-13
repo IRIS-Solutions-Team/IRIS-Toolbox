@@ -11,11 +11,13 @@ TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 TYPE = @int8;
 
-% Parse required input arguments.
-pp = inputParser( );
-pp.addRequired('M', @(x) isa(this, 'model'));
-pp.addRequired('Time', @DateWrapper.validateDateInput);
-pp.parse(this, time);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.responseFunctions');
+    parser.addRequired('Model', @(x) isa(x, 'model') && all(isSolved(x)));
+    parser.addRequired('Time', @DateWrapper.validateDateInput);
+end
+parse(parser, this, time);
 
 % Tell whether time is nper or range.
 if ischar(time)

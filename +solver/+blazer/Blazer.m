@@ -87,7 +87,7 @@ classdef (Abstract) Blazer < handle
         
         
         
-        function run(this)
+        function run(this, varargin)
             PTR = @int16;
             numOfEquations = nnz(this.InxEquations);
             numOfEndogenous = sum(this.InxEndogenous);
@@ -117,13 +117,18 @@ classdef (Abstract) Blazer < handle
                 setShift(blk, this); % Find max lag and lead within equations in this block.
                 this.Block{i} = blk;
             end
+
+            if isempty(varargin)
+                return
+            end
+            prepareBlocks(this, varargin{:});
         end%
         
         
-        function prepareBlocks(this, opt, varargin)
+        function prepareBlocks(this, varargin)
             numOfBlocks = numel(this.Block);
             for i = 1 : numOfBlocks
-                prepareBlock(this.Block{i}, this, opt, varargin{:});
+                prepareBlock(this.Block{i}, this, varargin{:});
                 this.Block{i}.Id = i;
             end
         end%

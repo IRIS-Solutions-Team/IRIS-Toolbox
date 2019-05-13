@@ -32,9 +32,8 @@ numOfDataColumns = size(YXEPG, 2);
 
 % __Prepare and Run blazer.Stacked__
 blz = prepareBlazer(this, opt.Method, opt);
-run(blz);
 blz.ColumnsToRun = firstColumnToRun : lastColumnToRun;
-prepareBlocks(blz, opt);
+run(blz, opt);
 
 inxOfLog = blz.Quantity.InxOfLog;
 numOfBlocks = numel(blz.Block);

@@ -1,7 +1,7 @@
 classdef Stacked < solver.block.Block
     properties
-        % LinearIndex  Linear index of endogenous quantities
-        LinearIndex
+        % InxOfEndogenousPoints  Index of endogenous points to be solved
+        InxOfEndogenousPoints = logical.empty(0)
 
         % Terminal  Rectangular simulation object for first-order terminal condition
         Terminal = simulate.Rectangular.empty(0)
@@ -54,32 +54,39 @@ classdef Stacked < solver.block.Block
 
             if this.Type==solver.block.Type.SOLVE
                 % __Solve__
-                % Create linear index of unkowns in data
+                % Index of endogenous points in data
+                inxOfZ = this.InxOfEndogenousPoints;
+                %{
                 linx = sub2ind( size(data.YXEPG), ...
                                 repmat(this.PosQty(:), 1, numOfColumnsToRun), ...
                                 repmat(columnsToRun, numOfQuantitiesInBlock, 1) );
                 linx = linx(:);
+                %}
 
-                % Create index of logs within linx
+                % Create index of logs within the z vector
+                temp = repmat(this.InxOfLog(:), 1, size(data.YXEPG, 2));
+                inxOfLogZ = temp(inxOfZ);
+                %{
                 linxLog = this.InxOfLog(this.PosQty);
                 linxLog = repmat(linxLog(:), numOfColumnsToRun, 1);
+                %}
 
                 maxMaxLead = max(this.MaxLead);
                 needsRunFotc = this.Type==solver.block.Type.SOLVE ...
-                          && maxMaxLead>0 ...
-                          && ~isempty(this.Terminal);
+                            && maxMaxLead>0 ...
+                            && ~isempty(this.Terminal);
 
                 % Initialize endogenous quantities
-                z0 = data.YXEPG(linx);
+                z0 = data.YXEPG(inxOfZ);
                 ixNan = isnan(z0);
                 if any(ixNan)
                     z0(ixNan) = 1;
                 end
                 % Transform initial conditions for log variables before we check bounds;
                 % bounds are in logs for log variables.
-                anyLog = any(linxLog);
+                anyLog = any(inxOfLogZ);
                 if anyLog
-                    z0(linxLog) = log( z0(linxLog) );
+                    z0(inxOfLogZ) = log( z0(inxOfLogZ) );
                 end
                 %* Make sure init conditions are within bounds.
                 %* Empty bounds if all are Inf.
@@ -130,9 +137,9 @@ classdef Stacked < solver.block.Block
                 function hereWriteEndogenousToData(z)
                     z = real(z);
                     if anyLog
-                        z(linxLog) = exp(z(linxLog));
+                        z(inxOfLogZ) = exp(z(inxOfLogZ));
                     end
-                    data.YXEPG(linx) = z;
+                    data.YXEPG(inxOfZ) = z;
                 end%
 
 
@@ -156,10 +163,13 @@ classdef Stacked < solver.block.Block
             columnsToRun = data.FirstColumnOfTimeFrame : data.LastColumnOfTimeFrame;
             numOfColumnsToRun = numel(columnsToRun);
             
+            posOfZ = find(this.InxOfEndogenousPoints);
+            %{
             linx = sub2ind( size(data.YXEPG), ...
                             repmat(this.PosQty, 1, numOfColumnsToRun), ...
                             columnsToRun );
             linx = linx(:);
+            %}
 
             isInvTransform = ~isempty(this.Type.InvTransform);
             z = nan(1, numOfColumnsToRun);
@@ -168,7 +178,7 @@ classdef Stacked < solver.block.Block
                 if isInvTransform
                     z(i) = this.Type.InvTransform(z(i));
                 end
-                data.YXEPG(linx(i)) = z(i);
+                data.YXEPG(posOfZ(i)) = z(i);
             end
             exitFlag = solver.ExitFlag.ASSIGNED;
         end%

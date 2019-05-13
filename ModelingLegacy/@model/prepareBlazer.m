@@ -14,11 +14,13 @@ if isempty(parser)
     parser = extend.InputParser('model.prepareBlazer');
     parser.KeepUnmatched = true;
     parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('Kind', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Static', 'Stacked'})));
+    parser.addRequired('Kind', @validateKind);
     parser.addParameter('Blocks', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Log', { }, @validateLogList);
+    parser.addParameter('Unlog', { }, @validateLogList);
     parser.addSwapOptions( );
 end
-parser.parse(this, kind, varargin{:});
+parse(parser, this, kind, varargin{:});
 opt = parser.Options;
 
 %--------------------------------------------------------------------------
@@ -43,22 +45,25 @@ if strcmpi(kind, 'Steady')
     incid = across(blz.Incidence, 'Shift');
     blz.InxCanBeEndogenous = ixy | ixx | ixp;
     blz.Assignment = this.Pairing.Assignment.Steady;
+    blz.IsBlocks = opt.Blocks;
 
-elseif strcmpi(kind, 'Static')
+elseif strcmpi(kind, 'Static') || kind==solver.Method.STATIC
     blz = solver.blazer.Stacked(numOfEquations);
     blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
     % blz.Gradient(:, ixmt) = this.Gradient.Dynamic(:, ixmt);
     blz.Incidence = selectShift(this.Incidence.Dynamic, 0);
     blz.InxCanBeEndogenous = ixy | ixx | ixe;
     blz.Assignment = this.Pairing.Assignment.Dynamic;
+    blz.IsBlocks = opt.Blocks;
 
-elseif strcmpi(kind, 'Stacked')
+elseif strcmpi(kind, 'Stacked') || kind==solver.Method.STACKED
     blz = solver.blazer.Stacked(numOfEquations);
     blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
     blz.Gradient(:, :) = [ ];
     blz.Incidence = this.Incidence.Dynamic;
     blz.InxCanBeEndogenous = ixy | ixx | ixe;
     blz.Assignment = this.Pairing.Assignment.Dynamic;
+    blz.IsBlocks = opt.Blocks;
 
 else
     throw( exception.Base('General:Internal', 'error') );
@@ -67,14 +72,16 @@ end
 blz.Model.Quantity = this.Quantity;
 blz.Model.Equation = this.Equation;
 
-% Change log status of variables
+% Change log-status of variables
+if isfield(opt, 'Log') && ~isempty(opt.Log)
+    blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, opt.Log, true);
+end
 if isfield(opt, 'Unlog') && ~isempty(opt.Unlog)
     blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, opt.Unlog, false);
 end
 
 blz.InxEndogenous = ixy | ixx;
 blz.InxEquations = ixm | ixt;
-blz.IsBlocks = opt.Blocks;
 
 if isequal(opt.Exogenize, @auto) || isequal(opt.Endogenize, @auto)
     [listExogenize, listEndogenize] = resolveAutoexog(this, kind, opt.Exogenize, opt.Endogenize);
@@ -115,5 +122,36 @@ if ~isempty(listExogenize)
     end
 end
 
+end%
+
+
+%
+% Local Functions
+%
+
+
+function flag = validateKind(input)
+    if isa(input, 'solver.Method')
+        flag = true;
+        return
+    end
+    if any(strcmpi(input, {'Steady', 'Stacked', 'Static', 'NoBlocks'}))
+        flag = true;
+        return
+    end
+    flag = false;
+end%
+
+
+function flag = validateLogList(input)
+    if isempty(input)
+        flag = true;
+        return
+    end
+    if ischar(input) || iscellstr(input) || isa(input, 'string')
+        flag = true;
+        return
+    end
+    flag = false;
 end%
 

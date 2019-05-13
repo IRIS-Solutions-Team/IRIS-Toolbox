@@ -1,14 +1,14 @@
-function flag = issolved(this)
-% issolved  True if model solution exists.
+function flag = isSolved(this)
+% issolved  True if model solution exists
 %
 % __Syntax__
 %
-%     flag = issolved(M)
+%     flag = isSolved(model)
 %
 %
 % __Input Arguments__
 %
-% * `M` [ model ] - Model object.
+% * `model` [ model ] - Model object.
 %
 %
 % __Output Arguments__
@@ -23,8 +23,8 @@ function flag = issolved(this)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -38,4 +38,5 @@ end
 [~, flag] = isnan(this, 'solution');
 flag = ~flag;
 
-end
+end%
+

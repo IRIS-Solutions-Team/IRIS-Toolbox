@@ -138,6 +138,7 @@ classdef InputParser < inputParser
             this.addParameter({'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
             this.addParameter({'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
             this.addParameter({'ConversionMonth', 'StandInMonth'}, @config, @iris.Configuration.validateConversionMonth);
+            this.addParameter('ConversionDay', @config, @iris.Configuration.validateConversionDay);
             this.addParameter('WDay', @config, @iris.Configuration.validateWDay);
             this.addParameter('DatePosition', 'c', @(x) ischar(x) && ~isempty(x) && any(x(1) == 'sec'));
             % Backward compatibility options for datxtick( )
@@ -228,6 +229,10 @@ classdef InputParser < inputParser
 
             if isequal(this.Options.ConversionMonth, @config)
                 this.Options.ConversionMonth = configStruct.ConversionMonth;
+            end
+
+            if isequal(this.Options.ConversionDay, @config)
+                this.Options.ConversionDay = configStruct.ConversionDay;
             end
 
             if isequal(this.Options.WDay, @config)

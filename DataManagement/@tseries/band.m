@@ -1,15 +1,14 @@
 function varargout = band(varargin)
 % band  Line-and-band graph for tseries objects.
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [Ln, Bd, Range] = band(X, Low, High...)
 %     [Ln, Bd, Range] = band(Range, X, Low, High, ...)
 %     [Ln, Bd, Range] = band(Ax, Range, X, Low, High, ...)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `Ax` [ numeric ] - Handle to axes in which the graph will be plotted;
 % if not specified, the current axes will used.
@@ -26,8 +25,8 @@ function varargout = band(varargin)
 % * `High` [ tseries ] - Time series that defines the upper edge of each
 % band plotted.
 %
-% Output arguments
-% =================
+%
+% __Output Arguments__
 %
 % * `Ln` [ numeric ] - Handles to lines plotted.
 %
@@ -35,54 +34,54 @@ function varargout = band(varargin)
 %
 % * `Range` [ numeric ] - Date range actually plotted.
 %
-% Options
-% ========
 %
-% * `'datePosition='` [ *`'centre'`* | `'end'` | `'start'` ] - Position of
-% each date point within a given period span.
+% __Options__
 %
-% * `'dateTick='` [ numeric | *`Inf`* ] - Vector of dates locating tick
-% marks on the X-axis; Inf means they will be created automatically.
+% * `DatePosition='Center'` [ `'Center'` | `'End'` | `'Start'` ] - Position
+% of each date point within a given period span.
 %
-% * `'excludeFromLegend='` [ `*true*` | `false` ] - Excluce bands from
+% * `DateTick=Inf` [ numeric ] - Vector of dates locating tick marks on the
+% X-axis; Inf means they will be created automatically.
+%
+% * `ExcludeFromLegend=true` [ `true` | `false` ] - Exclude bands from
 % legend.
 %
-% * `'grid='` [ `'bottom'` | *`'top'`* ] - Place grid on top or bottom.
+% * `Grid='Top'` [ `'Bottom'` | `'Top'` ] - Place grid on top or bottom.
 %
-% * `'relative='` [ *`true`* | `false` ] - If `true`, the lower and upper
+% * `Relative=true` [ `true` | `false` ] - If `true`, the lower and upper
 % edge will be constructed by subtracting `Low` from `X` and adding `High`
 % to `X`, respectively; otherwise, `Low` and `High` will be interpreted as
 % absolute positions of the edges.
 %
-% * `'tight='` [ `true` | *`false`* ] - Make the y-axis tight.
+% * `Tight=false` [ `true` | `false` ] - Make the y-axis tight.
 %
-% * `'white='` [ numeric | *`0.85`* ] - Percentage of white color mixed
+% * `White=0.85` [ numeric ] - Percentage of white color mixed
 % with the respective center line color and used to fill the band area.
 %
 % See help on built-in `plot` function for other options available.
 %
-% Date format options
-% ====================
+%
+% __Date Format Options__
 %
 % See [`dat2str`](dates/dat2str) for details on date format options.
 %
-% * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string, 
+% * `DateFormat='YYYYFP'` [ char | cellstr | string ] - Date format string,
 % or array of format strings (possibly different for each date).
 %
-% * `'freqLetters='` [ char | *`'YHQBMW'`* ] - Six letters used to
-% represent the six possible frequencies of IRIS dates, in this order:
-% yearly, half-yearly, quarterly, bi-monthly, monthly,  and weekly (such as
-% the `'Q'` in `'2010Q1'`).
+% * `FreqLetters='YHQMW` [ char | string ] - Five letters used to represent
+% the six possible frequencies of IRIS dates, in this order: yearly,
+% half-yearly, quarterly, monthly,  and weekly (such as the `'Q'` in
+% `'2010Q1'`).
 %
-% * `'months='` [ cellstr | *`{'January', ..., 'December'}`* ] - Twelve
+% * `Months={'January', ..., 'December'}` [ cellstr | string ] - Twelve
 % strings representing the names of the twelve months.
 %
-% * `'ConversionMonth='` [ numeric | `'last'` | *`1`* ] - Month that will
+% * `ConversionMonth=1` [ numeric | `'last'` ] - Month that will
 % represent a lower-than-monthly-frequency date if the month is part of the
 % date format string.
 %
-% Description
-% ============
+%
+% __Description__
 %
 % If one (or more) of the input time series, `X`, `Low`, or `High`, 
 % consists of more than one column, the graph is constructructed as
@@ -100,12 +99,11 @@ function varargout = band(varargin)
 % band is plotted around each of the center lines, each band constructed
 % from different data.
 %
-% Example
-% ========
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 % AREA, BAND, BAR, BARCON, PLOT, PLOTCMP, PLOTYY, SCATTER, STEM
 

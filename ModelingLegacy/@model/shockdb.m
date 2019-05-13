@@ -119,7 +119,7 @@ if numOfPages==1 && numOfRuns>1
 end
 
 if isequal(opt.ShockFunc, @lhsnorm)
-    S = lhsnorm(sparse(1, ne*numOfPeriods), speye(ne*numOfPeriods), numOfRuns);
+    S = lhsnorm(zeros(1, ne*numOfPeriods), eye(ne*numOfPeriods), numOfRuns);
 else
     S = opt.ShockFunc(numOfRuns, ne*numOfPeriods);
 end

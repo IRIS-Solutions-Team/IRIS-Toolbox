@@ -41,26 +41,26 @@ else
     end
 end
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('visual.backend.plotInfiniteLine');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('AxesHandles', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
-    inputParser.addRequired('Caller', @(x) any(strcmpi(x, {'vline', 'hline', 'zeroline'})));
-    inputParser.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
-    inputParser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
-    inputParser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
-    inputParser.addParameter('HandleVisibility', 'Off', @(x) any(strcmpi(x, {'On', 'Off'})));
-    inputParser.addParameter({'Placement', 'LinePlacement', 'TimePosition'}, 'Exactly', @(x) any(strcmpi(x, {'Exactly', 'Middle', 'Before', 'After'})));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('visual.backend.plotInfiniteLine');
+    parser.KeepUnmatched = true;
+    parser.addRequired('AxesHandles', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
+    parser.addRequired('Caller', @(x) any(strcmpi(x, {'vline', 'hline', 'zeroline'})));
+    parser.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
+    parser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
+    parser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
+    parser.addParameter('HandleVisibility', 'Off', @(x) any(strcmpi(x, {'On', 'Off'})));
+    parser.addParameter({'Placement', 'LinePlacement', 'TimePosition'}, 'Exactly', @(x) any(strcmpi(x, {'Exactly', 'Middle', 'Before', 'After'})));
     % Legacy options
-    inputParser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x(1:2:end)));
-    inputParser.addParameter('VPosition', '');
-    inputParser.addParameter('HPosition', '');
+    parser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x(1:2:end)));
+    parser.addParameter('VPosition', '');
+    parser.addParameter('HPosition', '');
 end
-inputParser.parse(axesHandle, caller, location, varargin{:});
-opt = inputParser.Options;
-unmatched = inputParser.UnmatchedInCell;
-usingDefaults = inputParser.UsingDefaultsInStruct;
+parse(parser, axesHandle, caller, location, varargin{:});
+opt = parser.Options;
+unmatched = parser.UnmatchedInCell;
+usingDefaults = parser.UsingDefaultsInStruct;
 
 if isequal(axesHandle, @gca)
     axesHandle = gca( );
@@ -152,16 +152,15 @@ for a = 1 : numAxes
         end
         zData = Z_COOR*ones(size(xData));
         % Function line( ) always adds line objects to existing graphs even if
-        % the NextPlot option is 'replace'.
-        ithLineHandle = line( ...
-            xData, yData, zData, ...
-            'Parent', h, ...
-            'Color', [0, 0, 0], ...
-            'YLimInclude', 'off', 'XLimInclude', 'off', ...
-            unmatched{:} ...
-        );
+        % the NextPlot option is 'replace'
+        ithLineHandle = line( xData, yData, zData, ...
+                              'Parent', h, ...
+                              'Color', [0, 0, 0], ...
+                              'YLimInclude', 'off', 'XLimInclude', 'off', ...
+                              'LineWidth', 0.5, ...
+                              unmatched{:} );
         
-        % Add annotation.
+        % Add annotation
         if ~isempty(opt.Text) && isVertical
             ithTextHandle = visual.backend.createCaption( ...
                 h, location(i), ...

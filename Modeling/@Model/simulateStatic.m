@@ -1,4 +1,4 @@
-function exitFlag = simulateStatic(this, blazer, vthRect, vthData, header)
+function exitFlag = simulateStatic(this, blazers, vthRect, vthData, header)
 % simulateStatic  Run static simulation on one time frame
 %
 % Backend IRIS function
@@ -15,14 +15,14 @@ lastColumnOfTimeFrame = vthData.LastColumnOfTimeFrame;
 initYXEPG = vthData.YXEPG;
 finalYXEPG = vthData.YXEPG;
 
-numOfBlocks = numel(blazer.Block);
+numOfBlocks = numel(blazerWithBlocks.Block);
 for column = firstColumnOfTimeFrame : lastColumnOfTimeFrame
     % Reset initial data
     setTimeFrame(vthData, [column, column]);
     vthData.YXEPG = initYXEPG;
 
     for i = 1 : numOfBlocks
-        ithBlk = blazer.Block{i};
+        ithBlk = blazerWithBlocks.Block{i};
         ithHeader = [header, sprintf('[Block %g]', i)];
         ithBlk.Terminal = [ ];
         [exitFlag, error] = run(ithBlk, vthData, ithHeader);

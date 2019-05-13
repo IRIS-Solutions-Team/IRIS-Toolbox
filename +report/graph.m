@@ -72,7 +72,7 @@
 % * `'dateFormat='` [ char | cellstr | *`'YYYYFP'`* ] - Date format string,
 % or array of format strings (possibly different for each date).
 %
-% * `'freqLetters='` [ char | *`'YHQBMW'`* ] - Six letters used to
+% * `'freqLetters='` [ char | *`'YHQMW'`* ] - Six letters used to
 % represent the six possible frequencies of IRIS dates, in this order:
 % yearly, half-yearly, quarterly, bi-monthly, monthly,  and weekly (such as
 % the `'Q'` in `'2010Q1'`).

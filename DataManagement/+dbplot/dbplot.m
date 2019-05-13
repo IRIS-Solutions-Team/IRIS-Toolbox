@@ -1,4 +1,4 @@
-function [ff, aa, pp] = dbplot(list, d, range, opt, varargin);
+function [ff, aa, pp] = dbplot(list, d, range, opt, varargin)
 % dbplot  Master file for dbplot
 %
 % Backend IRIS function

@@ -1,7 +1,7 @@
 classdef InputOutputData < handle
     properties
         YXEPG
-        Blazer
+        Blazers
         BaseRange
         ExtendedRange
         BaseRangeColumns
@@ -12,6 +12,7 @@ classdef InputOutputData < handle
         TimeFrames
         Success
         ExitFlags
+        DiscrepancyTables
     end
 end
 

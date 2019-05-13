@@ -1,8 +1,8 @@
 classdef Insertable
     methods
-        function [this, indexOfPre, indexOfPost] = insert(this, add, type, where)
-            listProperties = getInsertableProp(this);
-            pivot = listProperties{1};
+        function [this, inxOfPre, inxOfPost] = insert(this, add, type, where)
+            listOfProperties = getInsertableProp(this);
+            pivot = listOfProperties{1};
             numOfOld = length(this.(pivot));
             
             posType = find(type==this.TYPE_ORDER);
@@ -18,10 +18,10 @@ classdef Insertable
                         break
                     end
                 end
-                indexOfPre = false(1, numOfOld);
-                indexOfPost = false(1, numOfOld);
-                indexOfPre(1:posOfFirst-1) = true;
-                indexOfPost(posOfFirst:end) = true;
+                inxOfPre = false(1, numOfOld);
+                inxOfPost = false(1, numOfOld);
+                inxOfPre(1:posOfFirst-1) = true;
+                inxOfPost(posOfFirst:end) = true;
             else
                 while true
                     posLast = find(this.Type==this.TYPE_ORDER(posType), 1, 'last');
@@ -34,22 +34,20 @@ classdef Insertable
                         break
                     end
                 end
-                indexOfPre = false(1, numOfOld);
-                indexOfPost = false(1, numOfOld);
-                indexOfPre(1:posLast) = true;
-                indexOfPost(posLast+1:end) = true;
+                inxOfPre = false(1, numOfOld);
+                inxOfPost = false(1, numOfOld);
+                inxOfPre(1:posLast) = true;
+                inxOfPost(posLast+1:end) = true;
             end
             
             numToAdd = length(add.(pivot));
             numOfNew = numOfOld + numToAdd;
             add.Type = repmat(type, 1, numToAdd);
-            for i = 1 : length(listProperties)
-                ithProperty = listProperties{i};
-                this.(ithProperty) = [ ...
-                    this.(ithProperty)(:, indexOfPre), ...
-                    add.(ithProperty), ...
-                    this.(ithProperty)(:, indexOfPost), ...
-                    ];
+            for i = 1 : length(listOfProperties)
+                ithProperty = listOfProperties{i};
+                this.(ithProperty) = [ this.(ithProperty)(:, inxOfPre), ...
+                                       add.(ithProperty), ...
+                                       this.(ithProperty)(:, inxOfPost) ];
                 if size(this.(ithProperty), 2)~=numOfNew
                     throw( exception.Base('General:Internal', 'error') );
                 end
@@ -57,13 +55,13 @@ classdef Insertable
         end%
         
         
-        function this = delete(this, ixDelete)
-            listProperties = getInsertableProp(this);
-            numProperties = numel(listProperties);
-            checkSize = nan(1, numProperties);
-            for i = 1 : numProperties
-                ithProperty = listProperties{i};
-                this.(ithProperty)(:, ixDelete) = [ ];
+        function this = delete(this, inxToDelete)
+            listOfProperties = getInsertableProp(this);
+            numOfProperties = numel(listOfProperties);
+            checkSize = nan(1, numOfProperties);
+            for i = 1 : numOfProperties
+                ithProperty = listOfProperties{i};
+                this.(ithProperty)(:, inxToDelete) = [ ];
                 checkSize(i) = size(this.(ithProperty), 2);
             end
             if any( checkSize~=checkSize(1) )
@@ -73,23 +71,23 @@ classdef Insertable
         
         
         function this = move(this, fromPos, toPos)
-            listProperties = getInsertableProp(this);
-            numProperties = numel(listProperties);
-            reorder = 1 : numel(this.(listProperties{1}));
+            listOfProperties = getInsertableProp(this);
+            numOfProperties = numel(listOfProperties);
+            reorder = 1 : numel(this.(listOfProperties{1}));
             reorder(fromPos) = [ ];
             reorder = [ reorder(1:toPos-1), fromPos, reorder(toPos:end) ];
-            for i = 1 : numProperties
-                ithProperty = listProperties{i};
+            for i = 1 : numOfProperties
+                ithProperty = listOfProperties{i};
                 this.(ithProperty) = this.(ithProperty)(reorder);
             end
         end%
         
         
-        function listProperties = getInsertableProp(this)
+        function listOfProperties = getInsertableProp(this)
             x = metaclass(this);
             x = x.PropertyList;
             ix = ~[ x.Dependent ] & ~[ x.Constant ] & ~[ x.Hidden ];
-            listProperties = { x(ix).Name };
+            listOfProperties = { x(ix).Name };
         end%
     end
 end

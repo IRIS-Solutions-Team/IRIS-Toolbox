@@ -1,26 +1,26 @@
 function D = dbredate(D, OldDate, NewDate)
-% dbredate  Redate all tseries objects in a database.
+% dbredate  Redate all time series objects in a database
 %
 % __Syntax__
 %
-%     D = redate(D, OldDate, NewDate)
+%     D = dbredate(D, OldDate, NewDate)
 %
 %
 % __Input arguments__
 %
-% * `D` [ struct ] - Input database with tseries objects.
+% * `D` [ struct ] - Input database with time series objects.
 %
 % * `OldDate` [ numeric ] - Base date that will be converted to a new date
-% in all tseries objects.
+% in all time series objects.
 %
 % * `NewDate` [ numeric ] - A new date to which the base date `OldDate`
-% will be changed in all tseries objects; `newDate` need not be the
+% will be changed in all time series objects; `newDate` need not be the
 % same frequency as `OldDate`.
 %
 %
 % __Output arguments__
 %
-% * `D` [ struct ] - Output database where all tseries objects have
+% * `D` [ struct ] - Output database where all time series objects have
 % identical data as in the input database, but with their time dimension
 % changed.
 %
@@ -31,33 +31,31 @@ function D = dbredate(D, OldDate, NewDate)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('dbase/dbredate');
-    INPUT_PARSER.addRequired('D', @isstruct);
-    INPUT_PARSER.addRequired('OldDate', @(x) DateWrapper.validateDateInput(x) && numel(x)==1);
-    INPUT_PARSER.addRequired('NewDate', @(x) DateWrapper.validateDateInput(x) && numel(x)==1);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dbase.dbredate');
+    parser.addRequired('D', @isstruct);
 end
-
-INPUT_PARSER.parse(D, OldDate, NewDate);
+parser.parse(D);
 
 %--------------------------------------------------------------------------
 
 list = fieldnames(D);
-indexOfSeries = structfun(@(x) isa(x, 'tseries'), D);
-indexOfStructs = structfun(@isstruct, D);
+inxOfSeries = structfun(@(x) isa(x, 'TimeSubscriptable'), D);
+inxOfStructs = structfun(@isstruct, D);
 
-% Cycle over all tseries objects.
-for i = find(indexOfSeries.')
+% Cycle over all TimeSubscriptable objects
+for i = find(inxOfSeries(:)')
    D.(list{i}) = redate(D.(list{i}), OldDate, NewDate);
 end
 
-% Call recusively `dbclip` on sub-databases.
-for i = find(indexOfStructs.')
-   D.(list{i}) = dbredate(D.(list{i}), range);
+% Call recusively redate(~) on sub-databases
+for i = find(inxOfStructs(:)')
+   D.(list{i}) = dbredate(D.(list{i}), OldDate, NewDate);
 end
 
-end
+end%
+

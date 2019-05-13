@@ -81,4 +81,5 @@ function this = set(this, varargin)
 
 this = set@shared.GetterSetter(this, varargin{:});
 
-end
+end%
+

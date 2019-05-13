@@ -3,7 +3,7 @@ function [ff, aa, pp] = dbplot(d, varargin)
 %
 % __Syntax__
 %
-% Input arguments marked with a `~` sign may be omitted.
+% Input arguments marked with a `~` sign may be omitted
 %
 %     [FF, AA, PDb] = dbplot(InputDatabase, ~Range, ~List, ...)
 %
@@ -348,55 +348,55 @@ function [ff, aa, pp] = dbplot(d, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('dbase.dbplot');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('InputDatabase', @isstruct);
-    inputParser.addOptional('Range', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x) || (iscell(x) && ~iscellstr(x)));
-    inputParser.addOptional('List', @all, @(x) isequal(x, @all) || iscellstr(x) || isa(x, 'rexp') || isa(x, 'string'));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dbase.dbplot');
+    parser.KeepUnmatched = true;
+    parser.addRequired('InputDatabase', @isstruct);
+    parser.addOptional('Range', @auto); %, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x) || (iscell(x) && ~iscellstr(x)));
+    parser.addOptional('List', @all, @(x) isequal(x, @all) || iscellstr(x) || isa(x, 'rexp') || isa(x, 'string'));
     
-    inputParser.addParameter('AddClick', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('AddToPages', [ ], @(x) isempty(x) || isa(x, 'pages.New'));
-    inputParser.addParameter({'Caption', 'Captions', 'Title', 'Titles'}, { }, @(x) isempty(x) || iscellstr(x) || isfunc(x));
-    inputParser.addParameter('Clear', [ ], @isnumeric);
-    inputParser.addParameter('Clone', '', @ischar);
-    inputParser.addParameter({'DeviationFrom', 'DeviationsFrom'}, [ ], @(x) isempty(x) || isequal(x, false) || (isnumeric(x) && isscalar(x)));
-    inputParser.addParameter({'DeviationTimes', 'DeviationsTimes'}, 1, @(x) isnumeric(x) && isscalar(x));
-    inputParser.addParameter('DbSave', false, @(x) isequal(x, true) || isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
-    inputParser.addParameter('DrawNow', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('IncludeInLegend', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Grid', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('FigureFunc', @figure, @(x) isa(x, 'function_handle'));
-    inputParser.addParameter({'Figure', 'FigureOpt', 'FigureOptions'}, cell.empty(1, 0), @(x) iscell(x) && iscellstr(x(1:2:end)));
-    inputParser.addParameter('Highlight', [ ], @(x) isnumeric(x) || (iscell(x) && all(cellfun(@isnumeric, x))));
-    inputParser.addParameter('Interpreter', 'none', @(x) any(strcmpi(x, {'latex', 'tex', 'none'})));
-    inputParser.addParameter('Mark', cell.empty(1, 0), @iscellstr);
-    inputParser.addParameter('MaxPerFigure', 36, @(x) isintscalar(x) && x>0);
-    inputParser.addParameter('Overflow', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter({'PageNumber', 'PageNumbers'}, false, @(x) isequal(x, true) || isequal(x, false));    
-    inputParser.addParameter({'PlotFunc', 'PlotFn'}, @plot, @(x) isfunc(x) || ischar(x) || (iscell(x) && isfunc(x{1}) && iscellstr(x(2:2:end))));
-    inputParser.addParameter('Prefix', 'P%g_', @ischar);
-    inputParser.addParameter('Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
-    inputParser.addParameter('Round', Inf, @(x) isnumeric(x) && isscalar(x) && x>=0 && round(x)==x);
-    inputParser.addParameter('SaveAs', '', @ischar);
-    inputParser.addParameter({'Steady', 'SState'}, struct( ), @(x) isempty(x) || isstruct(x) || isa(x, 'model'));
-    inputParser.addParameter('Style', struct( ), @(x) isempty(x) || isstruct(x) || (iscellstr(x) && length(x)==1));
-    inputParser.addParameter('VisualStyle', struct( ), @(x) isempty(x) || isstruct(x) || (iscellstr(x) && length(x)==1));
-    inputParser.addParameter({'SubDatabase', 'SubDbase'}, [ ], @(x) isempty(x) || iscellstr(x) || ischar(x));
-    inputParser.addParameter('SubPlot', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && numel(x)==2 && all(round(x)==x) && all(x>0)));
-    inputParser.addParameter('Tight', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Transform', [ ], @(x) isempty(x) || isfunc(x));
-    inputParser.addParameter('VLine', [ ], @(x) isempty(x) || isnumeric(x));
-    inputParser.addParameter('XLabel', '', @(x) ischar(x) || iscellstr(x));
-    inputParser.addParameter('YLabel', '', @(x) ischar(x) || iscellstr(x));
-    inputParser.addParameter('ZeroLine', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('AddClick', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('AddToPages', [ ], @(x) isempty(x) || isa(x, 'pages.New'));
+    parser.addParameter({'Caption', 'Captions', 'Title', 'Titles'}, { }, @(x) isempty(x) || iscellstr(x) || isfunc(x));
+    parser.addParameter('Clear', [ ], @isnumeric);
+    parser.addParameter('Clone', '', @ischar);
+    parser.addParameter({'DeviationFrom', 'DeviationsFrom'}, [ ], @(x) isempty(x) || isequal(x, false) || (isnumeric(x) && isscalar(x)));
+    parser.addParameter({'DeviationTimes', 'DeviationsTimes'}, 1, @(x) isnumeric(x) && isscalar(x));
+    parser.addParameter('DbSave', false, @(x) isequal(x, true) || isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
+    parser.addParameter('DrawNow', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('IncludeInLegend', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Grid', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('FigureFunc', @figure, @(x) isa(x, 'function_handle'));
+    parser.addParameter({'Figure', 'FigureOpt', 'FigureOptions'}, cell.empty(1, 0), @(x) iscell(x) && iscellstr(x(1:2:end)));
+    parser.addParameter('Highlight', [ ], @(x) isnumeric(x) || (iscell(x) && all(cellfun(@isnumeric, x))));
+    parser.addParameter('Interpreter', 'none', @(x) any(strcmpi(x, {'latex', 'tex', 'none'})));
+    parser.addParameter('Mark', cell.empty(1, 0), @iscellstr);
+    parser.addParameter('MaxPerFigure', 36, @(x) isintscalar(x) && x>0);
+    parser.addParameter('Overflow', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'PageNumber', 'PageNumbers'}, false, @(x) isequal(x, true) || isequal(x, false));    
+    parser.addParameter({'PlotFunc', 'PlotFn'}, @plot, @(x) isfunc(x) || ischar(x) || (iscell(x) && isfunc(x{1}) && iscellstr(x(2:2:end))));
+    parser.addParameter('Prefix', 'P%g_', @ischar);
+    parser.addParameter('Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
+    parser.addParameter('Round', Inf, @(x) isnumeric(x) && isscalar(x) && x>=0 && round(x)==x);
+    parser.addParameter('SaveAs', '', @ischar);
+    parser.addParameter({'Steady', 'SState'}, struct( ), @(x) isempty(x) || isstruct(x) || isa(x, 'model'));
+    parser.addParameter('Style', struct( ), @(x) isempty(x) || isstruct(x) || (iscellstr(x) && length(x)==1));
+    parser.addParameter('VisualStyle', struct( ), @(x) isempty(x) || isstruct(x) || (iscellstr(x) && length(x)==1));
+    parser.addParameter({'SubDatabase', 'SubDbase'}, [ ], @(x) isempty(x) || iscellstr(x) || ischar(x));
+    parser.addParameter('SubPlot', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && numel(x)==2 && all(round(x)==x) && all(x>0)));
+    parser.addParameter('Tight', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Transform', [ ], @(x) isempty(x) || isfunc(x));
+    parser.addParameter('VLine', [ ], @(x) isempty(x) || isnumeric(x));
+    parser.addParameter('XLabel', '', @(x) ischar(x) || iscellstr(x));
+    parser.addParameter('YLabel', '', @(x) ischar(x) || iscellstr(x));
+    parser.addParameter('ZeroLine', false, @(x) isequal(x, true) || isequal(x, false));
 end
-inputParser.parse(d, varargin{:});
-range = inputParser.Results.Range;
-list = inputParser.Results.List;
-opt = inputParser.Options;
-unmatchedOptions = inputParser.UnmatchedInCell;
+parse(parser, d, varargin{:});
+range = parser.Results.Range;
+list = parser.Results.List;
+opt = parser.Options;
+unmatchedOptions = parser.UnmatchedInCell;
 
 if isequal(list, @all)
     % All time series names in the input database.

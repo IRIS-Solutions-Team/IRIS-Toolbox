@@ -1,4 +1,4 @@
-function exitFlag = simulateSelective(this, simulateFunction, rect, data, needsStoreE, header, opt)
+function [exitFlag, dcy] = simulateSelective(this, simulateFunction, rect, data, needsStoreE, header, opt)
 % simulateSelective  Run equations-selective simulation on one time frame
 %
 % Backend IRIS function

@@ -27,13 +27,16 @@ if ischar(namesToChange)
     end
 end
 
-ell = lookup(this, namesToChange, TYPE(1), TYPE(2));
+ell = lookup(this, namesToChange, TYPE(1), TYPE(2), TYPE(4), TYPE(5));
 ixNan = isnan(ell.PosName);
 if any(ixNan)
-    throw( exception.Base('Quantity:CANNOT_UNLOG', 'error'), ...
+    THIS_ERROR = { 'Quantity:CannotChangeLogStatus'
+                   'Cannot change log-status for this name: %s ' };
+    throw( exception.Base(THIS_ERROR, 'error'), ...
            namesToChange{ixNan} );
 end
 
 this.IxLog(ell.PosName) = newStatus;
 
 end%
+

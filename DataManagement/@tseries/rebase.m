@@ -1,10 +1,10 @@
 function this = rebase(this, varargin)
-% rebase  Rebase times seris data to specified period.
+% rebase  Rebase times seriss data to specified period
 %
 %
 % __Syntax__
 %
-% Input arguments marked with a `~` sign may be omitted.
+% Input arguments marked with a `~` sign may be omitted
 %
 %     X = rebase(X, ~BasePeriod, ~BaseValue, ...)
 %

@@ -221,6 +221,7 @@ classdef Data < matlab.mixin.Copyable
         LastEndogenizedE
         LastExogenizedYX
         LastHashedYX
+        HasExogenizedPoints
     end
 
 
@@ -309,6 +310,11 @@ classdef Data < matlab.mixin.Copyable
             if isempty(value)
                 value = 0;
             end
+        end%
+
+
+        function value = get.HasExogenizedPoints(this)
+            value = this.NumOfExogenizedPoints>0;
         end%
     end
 

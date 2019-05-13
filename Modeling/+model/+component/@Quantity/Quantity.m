@@ -117,5 +117,22 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
     
     methods (Static)
         varargout = loadObject(varargin)
+
+
+        function this = fromNames(names)
+            names = cellstr(names);
+            this = model.component.Quantity( );
+            numOfNames = numel(names);
+            this.Name = cell(1, numOfNames);
+            this.Name(:) = names;
+            this.Type = zeros(1, numOfNames, 'int8');
+            this.Label = repmat({''}, 1, numOfNames);
+            this.Alias = repmat({''}, 1, numOfNames);
+            this.IxLog = false(1, numOfNames);
+            this.IxLagrange = false(1, numOfNames);
+            this.IxObserved = false(1, numOfNames);
+            this.Bounds = repmat(this.DEFAULT_BOUNDS, 1, numOfNames);
+            this.OriginalNames = this.Name;
+        end%
     end
 end

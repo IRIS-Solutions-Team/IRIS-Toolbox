@@ -1,15 +1,13 @@
-% !function  Create exportable m-file function to be saved in working directory.
+% !function  Create exportable m-file function to be saved in working directory
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     !function ... = FunctionName(...)
+%     !function [...] = functionName(...)
 %         ...
 %     !end
 %
 %
-% Description
-% ============
+% __Description__
 %
 % You can include in the model file the contents of m-file functions you
 % need or want to carry around together with the model; a typical example
@@ -18,17 +16,19 @@
 % The `!function`...`!end` command is a shortcut to the following
 % `!export`...`!end` structure:
 %
-%     !export(FileName.m)
-%         function ... = FunctionName(...)
+%     !export(functionName.m)
+%         function [...] = functionName(...)
 %             ...
 %         end
 %     !end
 %
 % The m-file function are created and saved under the name specified in the
 % function definition at the time you load the model using the function
-% [`model`](model/model). The contents of the files is are also stored
+% [`model`](Model-Objects#model). The contents of the files is are also stored
 % within the model objects. You can manually re-create and re-save all
-% exportable files by running the function [`export`](model/export).
+% exportable files by running the function
+% [`export`](Model-Objects#export).
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+

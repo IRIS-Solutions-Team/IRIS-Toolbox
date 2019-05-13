@@ -7,6 +7,8 @@ function  [this, success, outputInfo] = steadyNonlinear(this, blazer, variantsRe
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
+TYPE = @int8;
+
 nv = length(this);
 if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     variantsRequested = 1 : nv;
@@ -28,6 +30,8 @@ inxOfZero = blazer.InxOfZero;
 numOfQuantities = length(this.Quantity);
 numOfBlocks = numel(blazer.Block);
 needsRefresh = any(this.Link);
+inxOfP = getIndexByType(this.Quantity, TYPE(4));
+inxOfLogInBlazer = blazer.Model.Quantity.InxOfLog;
 
 % Index of endogenous level and growth quantities
 ixEndg = struct( );
@@ -74,6 +78,9 @@ for v = variantsRequested
         end
     end
 
+    % Remove 1i from parameters with log-status=true
+    gx(inxOfP & inxOfLogInBlazer) = 0;
+
     if any(gx(:)~=0)
         this.Variant.Values(:, :, v) = lx + 1i*gx;
     else
@@ -108,10 +115,10 @@ return
     function [lx, gx] = hereInitialize( )
         % __Initialize levels of endogenous quantities__
         lx = real(this.Variant.Values(:, :, v));
-        % Level variables that are set to zero (all shocks).
+        % Level variables that are set to zero (all shocks)
         lx(inxOfZero.Level) = 0;
         % Assign NaN level initial conditions. First, assign values from the
-        % previous iteration, if they exist and option 'reuse=' is `true`.
+        % previous iteration, if they exist and option 'reuse=' is `true`
         ix = isnan(lx) & ixEndg.Level;
         if ~firstAlt && blazer.Reuse && any(ix) && ~isempty(lx0)
             lx(ix) = lx0(ix);
@@ -136,8 +143,7 @@ return
             gx(ix) = imag(blazer.NanInit);
         end
         % Reset zero growth to 1 for *all* log quantities (not only endogenous).
-        inxOfLog = blazer.Model.Quantity.InxOfLog;
-        gx(inxOfLog & gx==0) = 1;
+        gx(inxOfLogInBlazer & gx==0) = 1;
     end%
 
 

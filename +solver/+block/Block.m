@@ -106,12 +106,13 @@ classdef (Abstract) Block < handle
 
             if this.Type==solver.block.Type.SOLVE
                 createJacobPattern(this, blazer);
-
-                this.Solver = opt.Solver;
-                if isa(opt.Solver, 'optim.options.SolverOptions') ...
-                        || isa(opt.Solver, 'solver.Options')
-                    this.Solver.SpecifyObjectiveGradient = ...
-                        opt.PrepareGradient && opt.Solver.SpecifyObjectiveGradient;
+                try
+                    this.Solver = opt.Solver;
+                    if isa(opt.Solver, 'optim.options.SolverOptions') ...
+                            || isa(opt.Solver, 'solver.Options')
+                        this.Solver.SpecifyObjectiveGradient = ...
+                            opt.PrepareGradient && opt.Solver.SpecifyObjectiveGradient;
+                    end
                 end
             end
         end%

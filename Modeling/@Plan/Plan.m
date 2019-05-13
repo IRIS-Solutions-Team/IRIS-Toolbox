@@ -185,11 +185,11 @@ classdef Plan
                 parser.addParameter('InputDatabank', [ ], @(x) isempty(x) || isstruct(x));
                 parser.addParameter('WriteTable', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
             end
-            parser.parse(this, varargin{:});
+            parse(parser, this, varargin{:});
             opt = parser.Options;
             inxOfDates = any( [ this.InxOfAnticipatedExogenized 
                                 this.InxOfUnanticipatedExogenized
-                                this.InxOfUnanticipatedEndogenized
+                                this.InxOfAnticipatedEndogenized
                                 this.InxOfUnanticipatedEndogenized ], 1 );
             numOfDates = nnz(inxOfDates);
             posOfDates = find(inxOfDates);

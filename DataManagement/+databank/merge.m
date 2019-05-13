@@ -46,31 +46,31 @@ if isempty(varargin)
     return
 end
 
-indexOfStructs = cellfun('isclass', varargin, 'struct');
-if ~indexOfStructs(1)
+inxOfStructs = cellfun('isclass', varargin, 'struct');
+if ~inxOfStructs(1)
     return
 end
 
-if all(indexOfStructs)
+if all(inxOfStructs)
     mergeWith = varargin;
     varargin(:) = [ ];
 else
-    posFirstNonStruct = find(~indexOfStructs, 1);
+    posFirstNonStruct = find(~inxOfStructs, 1);
     posLastStruct = posFirstNonStruct - 1;
     mergeWith = varargin(1:posLastStruct);
     varargin(1:posLastStruct) = [ ];
 end
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('databank.horzcat');
-    inputParser.addRequired('Method', @(x) any(strcmpi(x, {'horzcat', 'replace', 'discard'})));
-    inputParser.addRequired('InputDatabank', @isstruct);
-    inputParser.addRequired('MergeWith');
-    inputParser.addParameter('MissingField', @rmfield);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('databank.merge');
+    parser.addRequired('Method', @(x) any(strcmpi(x, {'horzcat', 'replace', 'discard'})));
+    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('MergeWith');
+    parser.addParameter('MissingField', @rmfield);
 end
-inputParser.parse(method, mainDatabank, mergeWith, varargin{:});
-opt = inputParser.Options;
+parse(parser, method, mainDatabank, mergeWith, varargin{:});
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
