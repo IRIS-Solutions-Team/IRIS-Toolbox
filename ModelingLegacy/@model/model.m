@@ -165,6 +165,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = autocaption(varargin)
         varargout = autoexog(varargin)
         varargout = autoexogenise(varargin)
+        varargout = beenSolved(varargin)
         varargout = blazer(varargin)
         varargout = bn(varargin)
         varargout = chkmissing(varargin)
@@ -200,7 +201,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = ismissing(varargin)
         varargout = isname(varargin)
         varargout = isnan(varargin)
-        varargout = isSolved(varargin)
         varargout = isstationary(varargin)
         varargout = jforecast(varargin)
         varargout = jforecast_old(varargin)
@@ -244,7 +244,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
     methods
         function varargout = issolved(varargin)
-            [varargout{1:nargout}] = isSolved(varargin{:});
+            [varargout{1:nargout}] = beenSolved(varargin{:});
         end%
     end
     

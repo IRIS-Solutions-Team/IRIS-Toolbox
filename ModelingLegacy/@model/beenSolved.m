@@ -1,9 +1,9 @@
-function flag = isSolved(this)
-% issolved  True if model solution exists
+function flag = beenSolved(this)
+% beenSolved  True if first-order solution has been successfully calculated
 %
 % __Syntax__
 %
-%     flag = isSolved(model)
+%     flag = beenSolved(model)
 %
 %
 % __Input Arguments__
@@ -14,7 +14,7 @@ function flag = isSolved(this)
 % __Output Arguments__
 %
 % * `flag` [ `true` | `false` ] - True for parameter variants for which
-% a stable unique solution exists currently in the model object.
+% a stable unique solution has been successfully calculated.
 %
 %
 % __Description__
