@@ -1,11 +1,11 @@
 function varargout = pathManager(req, varargin)
-% iris.pathManager  IRIS path manager.
+% irispathManager  IRIS path manager
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -120,6 +120,11 @@ function [ppath, everything] = generatePath(root)
                 || strncmp(name, '#', 1)
             continue
         end
+
+        if ~isempty(strfind(name, 'resources'))
+            continue
+        end
+
         if strcmp(name, 'octave')
             ppath.OctBegin{end+1} = fullfile(root, name);
             continue
@@ -135,4 +140,5 @@ function [ppath, everything] = generatePath(root)
     end
 
     everything = [ppath.OctBegin, ppath.Begin, ppath.End, ppath.OctEnd];
-end
+end%
+

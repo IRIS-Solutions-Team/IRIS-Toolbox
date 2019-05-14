@@ -1,2 +1,0 @@
-function default( )
-end

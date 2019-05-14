@@ -1,2 +1,0 @@
-function qad( )
-end
