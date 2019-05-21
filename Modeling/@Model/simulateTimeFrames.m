@@ -29,7 +29,7 @@ needsEvalTrends = repmat(opt.EvalTrends, 1, numOfRuns);
 
 if opt.Contributions
     % Prepare contributions and adjust the number of runs; it is guaranteed
-    % by now that numOfDataSets==1
+    % by now that numOfPages==1
     herePrepareContributions( );
 end
 
@@ -71,17 +71,17 @@ for i = 1 : numOfRuns
             prepareHashEquations(this, vthRect, vthData);
         end
 
-        % Retrieve shocks into AnticipatedE and UnanticipatedE properties on
-        % the whole range
-        retrieveE(vthData);
+        % Split shocks into AnticipatedE and UnanticipatedE properties on
+        % the whole simulation range
+        % retrieveE(vthData);
+        [ vthData.AnticipatedE, ...
+          vthData.UnanticipatedE ] = simulate.Data.splitE( vthData.E, ...
+                                                           vthData.AnticipationStatusOfE, ...
+                                                           baseRangeColumns );
 
-        % Split simulation range into time frames
-        if method(i)==solver.Method.STATIC
-            timeFrames = [firstColumnToRun, lastColumnToRun];
-        else
-            [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(vthData, plan, maxShift, opt);
-            vthData.MixinUnanticipated = mixinUnanticipated;
-        end
+        % Retrieve time frames
+        timeFrames = runningData.TimeFrames{i};
+        vthData.MixinUnanticipated = runningData.MixinUnanticipated(i);
 
         % Simulate @Rectangular object one timeFrame at a time
         numOfTimeFrames = size(timeFrames, 1);
@@ -159,30 +159,14 @@ return
 
 
     function herePrepareContributions( )
-        inxOfLog = this.Quantity.InxOfLog;
         inxOfE = getIndexByType(this, TYPE(31), TYPE(32));
-        posOfE = find(inxOfE);
         numOfE = nnz(inxOfE);
         numOfRuns = numOfE + 2;
-        runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, numOfRuns);
-        % Zero out initial conditions in shock contributions
-        runningData.YXEPG(inxOfLog, 1:firstColumnToRun-1, 1:numOfE) = 1;
-        runningData.YXEPG(~inxOfLog, 1:firstColumnToRun-1, 1:numOfE) = 0;
-        for ii = 1 : numOfE
-            temp = runningData.YXEPG(posOfE(ii), :, ii);
-            runningData.YXEPG(inxOfE, :, ii) = 0;
-            runningData.YXEPG(posOfE(ii), :, ii) = temp;
-        end
-        % Zero out all shocks in init+const contributions
-        runningData.YXEPG(inxOfE, firstColumnToRun:end, end-1) = 0;
-
         method = repmat(solver.Method.FIRST_ORDER, 1, numOfRuns);
         if opt.Method==solver.Method.FIRST_ORDER 
             % Assign zero contributions of nonlinearities right away if
             % this is a first order simulation
             method(end) = solver.Method.NONE;
-            runningData.YXEPG(inxOfLog, :, end) = 1;
-            runningData.YXEPG(~inxOfLog, :, end) = 0;
         else
             method(end) = opt.Method;
         end
@@ -278,42 +262,6 @@ end%
 %
 % Local Functions
 %
-
-
-function [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(data, plan, maxShift, opt)
-    inxOfUnanticipatedE = data.UnanticipatedE~=0;
-    inxOfUnanticipatedAny = inxOfUnanticipatedE | plan.InxOfUnanticipatedEndogenized;
-    posOfUnanticipatedAny = find(any(inxOfUnanticipatedAny, 1));
-    if ~any(posOfUnanticipatedAny==data.FirstColumnOfSimulation)
-        posOfUnanticipatedAny = [data.FirstColumnOfSimulation, posOfUnanticipatedAny];
-    end
-    lastAnticipatedExogenizedYX = plan.LastAnticipatedExogenized;
-    numOfTimeFrames = numel(posOfUnanticipatedAny);
-    timeFrames = nan(numOfTimeFrames, 2);
-    for i = 1 : numOfTimeFrames
-        startOfTimeFrame = posOfUnanticipatedAny(i);
-        if i==numOfTimeFrames
-            endOfTimeFrame = data.LastColumnOfSimulation;
-        else
-            endOfTimeFrame = max([posOfUnanticipatedAny(i+1)-1, lastAnticipatedExogenizedYX]);
-        end
-        lenOfTimeFrame = endOfTimeFrame - startOfTimeFrame + 1;
-        numOfDummyPeriods = 0;
-        minLenOfTimeFrame = opt.Window;
-        if strcmpi(opt.Method, 'Selective')
-            minLenOfTimeFrame = minLenOfTimeFrame + maxShift;
-        end
-        if lenOfTimeFrame<minLenOfTimeFrame
-            numOfDummyPeriods = minLenOfTimeFrame - lenOfTimeFrame;
-            endOfTimeFrame = endOfTimeFrame + numOfDummyPeriods;
-            lenOfTimeFrame = minLenOfTimeFrame;
-        end
-        timeFrames(i, :) = [startOfTimeFrame, endOfTimeFrame];
-    end
-    mixinUnanticipated = false;
-end%
-
-
 
 
 function discrepancyTable = compileDiscrepancyTable(this, discrepancy, equations)

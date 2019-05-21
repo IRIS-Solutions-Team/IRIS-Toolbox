@@ -362,6 +362,18 @@ classdef Variant
             end
         end%
     end
+
+
+    properties (Dependent)
+        InxOfInit
+    end
+
+
+    methods 
+        function value = get.InxOfInit(this)
+            value = this.IxInit;
+        end%
+    end
 end
 
 

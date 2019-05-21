@@ -20,6 +20,8 @@ classdef Plan
 
     properties (SetAccess=protected)
         DefaultAnticipationStatus = true
+        AllowUnderdetermined = false
+        AllowOverdetermined = false
     end
 
 
@@ -58,28 +60,63 @@ classdef Plan
     end
 
 
+
+
     methods % User Interface
         function this = anticipate(this, anticipationStatus, names)
-            if islogical(names)
-                [names, anticipationStatus] = deal(anticipationStatus, names);
-            end
+% anticipate  Set anticipation status for individual shocks
+%
+% __Syntax__
+%
+%     plan = anticipate(plan, anticipationStatus, names)
+%
+%
+% __Input Arguments__
+%
+% * `plan` [ Plan ] - Simulation plan.
+%
+% * `anticipatioStatus` [ true | false ] - New anticipation status for the
+% shocks listed in `names`.
+%
+% * `names` [ char | string | cellstr ] - List of shocks whose anticipation
+% status will be set to `anticipationStatus`.
+%
+%
+% __Output Arguments__
+%
+% * p [ Plan ] - Simulation plan with a new anticipation status for the
+% specified shocks.
+%
+%
+% __Description__
+%
+%
+% __Example__
+%
+%
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.anticipate');
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
-                parser.addRequired('NamesOfExogenous', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-                parser.addRequired('AnticipationStatus', @(x) isequal(x, true) || isequal(x, false));
+                parser.addRequired('AnticipationStatus', @Valid.logicalScalar);
+                parser.addRequired('NamesOfExogenous', @Valid.list);
             end
             if this.NumOfEndogenizedPoints>0
                 THIS_ERROR = { 'Plan:CannotChangeAnticipateAfterEndogenize'
                                'Cannot change anticipation status after some names have been already endogenized' };
                 throw( exception.Base(THIS_ERROR, 'error') );
             end
-            parser.parse(this, names, anticipationStatus);
+            parser.parse(this, anticipationStatus, names);
             context = 'be assigned anticipation status';
             inxOfEndogenized = this.resolveNames(names, this.NamesOfExogenous, context);
             this.AnticipationStatusOfExogenous(inxOfEndogenized) = anticipationStatus;
         end%
+
+
 
 
         function this = exogenize(this, dates, names, varargin)
@@ -123,6 +160,12 @@ classdef Plan
         function this = unendogenizeAll(this)
             this.IdOfAnticipatedEndogenized(:, :) = uint16(0);
             this.IdOfUnanticipatedEndogenized(:, :) = uint16(0);
+        end%
+
+
+        function this = clear(this)
+            this = unexogenizeAll(this);
+            this = unendogenizeAll(this);
         end%
 
 
@@ -281,6 +324,30 @@ classdef Plan
             % Write table to text or spreadsheet file
             if ~isempty(opt.WriteTable)
                 writetable(outputTable, opt.WriteTable, 'WriteRowNames', true);
+            end
+        end%
+
+
+
+
+        function [inxOfExogenized, inxOfEndogenized] = createTimeFrame( this, ...
+                                                                        firstColumnOfTimeFrame, ...
+                                                                        lastColumnOfSimulation )
+            inxOfExogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods);
+            inxOfEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
+            if this.NumOfExogenizedPoints>0
+                inxOfExogenized(:, firstColumnOfTimeFrame) = ...
+                    this.InxOfAnticipatedExogenized(:, firstColumnOfTimeFrame) ...
+                    | this.InxOfUnanticipatedExogenized(:, firstColumnOfTimeFrame);
+                inxOfExogenized(:, firstColumnOfTimeFrame+1:lastColumnOfSimulation) = ...
+                    this.InxOfAnticipatedExogenized(:, firstColumnOfTimeFrame+1:lastColumnOfSimulation);
+            end
+            if this.NumOfEndogenizedPoints>0
+                inxOfEndogenized(:, firstColumnOfTimeFrame) = ...
+                    this.InxOfAnticipatedEndogenized(:, firstColumnOfTimeFrame) ...
+                    | this.InxOfUnanticipatedEndogenized(:, firstColumnOfTimeFrame);
+                inxOfEndogenized(:, firstColumnOfTimeFrame+1:lastColumnOfSimulation) = ...
+                    this.InxOfAnticipatedEndogenized(:, firstColumnOfTimeFrame+1:lastColumnOfSimulation);
             end
         end%
     end

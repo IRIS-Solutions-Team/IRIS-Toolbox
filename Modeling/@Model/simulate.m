@@ -1,33 +1,74 @@
 function [outputData, outputInfo] = simulate(this, inputData, baseRange, varargin)
+% simulate  Simulate model from inputasfasfdfsfafasdfaasdfasdf 
+%
+% __Syntax__
+%
+%     [outputDatabank, outputInfo] = simulate(model, inputDatabank, range, ...)
+%
+%
+% __Input Arguments__
+%
+% * `model` [ Model ] - Model object with a solution avalaibl for each of
+% its parameter variants.
+%
+% * `inputDatabank` [ struct ] - Databank (struct) with initial conditions,
+% shocks, and exogenized data points for the simulation.
+%
+% * `range` [ DateWrapper | numeric ] - Simulation range; only the start
+% date (the first element in `range`) and the end date (the last element in
+% `range`) are considered.
+%
+%
+% __Output Arguments__
+%
+% * `outputDatabank` [ struct ] - Databank (struct) with the simulation
+% results; if options `AppendPresample=` or `AppendPostsample=` are not
+% used, the time series in `outputDatabank` span the simulation `range`
+% plus all necessary initial conditions for those variables that have lags
+% in the model.
+%
+%
+% __Options__
+%
+%
+% __Description__
+%
+%
+% __Example__
+%
+%
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
 persistent parser
 if isempty(parser)
-    validateString = @(x, list) (ischar(x) || isa(x, 'string')) && any(strcmpi(x, list));
     parser = extend.InputParser('model.simulate');
-    parser.addRequired('SolvedModel', @(x) isa(x, 'Model') && all(issolved(x)));
+    parser.addRequired('SolvedModel', @Valid.solvedModel);
     parser.addRequired('InputData', @(x) isstruct(x) || isa(x, 'simulate.Data'));
     parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
 
     parser.addDeviationOptions(false);
-    parser.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('AppendPostsample', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Anticipate', true, @Valid.logicalScalar);
+    parser.addParameter('AppendPostsample', false, @Valid.logicalScalar);
+    parser.addParameter('AppendPresample', false, @Valid.logicalScalar);
+    parser.addParameter('Contributions', false, @Valid.logicalScalar);
     parser.addParameter('Homotopy', [ ], @(x) isempty(x) || isstruct(x));
-    parser.addParameter('IgnoreShocks', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('IgnoreShocks', false, @Valid.logicalScalar);
     parser.addParameter('Method', solver.Method.FIRST_ORDER, @solver.Method.validate);
     parser.addParameter('OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
-    parser.addParameter('Plan', true, @(x) isequal(x, true) || isequal(x, false) || isa(x, 'Plan'));
-    parser.addParameter('ProgressInfo', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('SuccessOnly', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Plan', true, @(x) Valid.logicalScalar(x) || isa(x, 'Plan'));
+    parser.addParameter('ProgressInfo', false, @Valid.logicalScalar);
+    parser.addParameter('SuccessOnly', false, @Valid.logicalScalar);
     parser.addParameter('Solver', @auto, @validateSolver);
-    parser.addParameter('SparseShocks', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('SparseShocks', false, @Valid.logicalScalar)
+    parser.addParameter('SystemProperty', false, @Valid.logicalScalar);
     parser.addParameter('Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 
-    parser.addParameter('Initial', 'Data', @(x) any(strcmpi(x, {'Data', 'FirstOrder'})));
-    parser.addParameter('PrepareGradient', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Initial', 'Data', @(x) Valid.anyString(x, 'Data', 'FirstOrder'));
+    parser.addParameter('PrepareGradient', true, @Valid.logicalScalar);
 end
 parse(parser, this, inputData, baseRange, varargin{:});
 opt = parser.Options;
@@ -52,10 +93,19 @@ databankInfo = checkInputDatabank(this, inputData, baseRange, requiredNames, opt
 hereResolveOptionConflicts( );
 plan = opt.Plan;
 
+% __Prepare Running Data__
 runningData = simulate.InputOutputData( );
+% Retrieve data from intput databank, set up ranges
+herePrepareData( );
+if opt.Contributions
+    % Expand and set up YXEPG to prepare contributions simulation
+    herePrepareContributions( );
+end
+% Define time frames; can be done only after we expand the data for
+% contributions
+herePrepareTimeFrames( );
 
-herePrepareRunningData( );
-
+% Check initial conditions for NaNs
 hereCheckInitialConditions( );
 
 herePrepareBlazer( );
@@ -102,7 +152,8 @@ return
 
 
 
-    function herePrepareRunningData( )
+    function herePrepareData( )
+        TYPE = @int8;
         numOfDummyPeriods = hereCalculateNumOfDummyPeriods( );
         runningData.NumOfDummyPeriods = numOfDummyPeriods;
         startOfBaseRange = baseRange(1);
@@ -124,12 +175,75 @@ return
         runningData.ExtendedRange = [startOfExtendedRange, endOfExtendedRange];
         runningData.BaseRangeColumns = colon( round(startOfBaseRange - startOfExtendedRange + 1), ...
                                               round(endOfBaseRange - startOfExtendedRange + 1) );
-        numOfDataSets = size(runningData.YXEPG, 3); 
-        if numOfDataSets==1 && nv>1
+        numOfPages = size(runningData.YXEPG, 3); 
+        if numOfPages==1 && nv>1
             % Expand number of data sets to match number of parameter variants
             runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, nv);
         end
         runningData.InxOfInitInPresample = getInxOfInitInPresample(this, runningData.BaseRangeColumns(1));
+    end%
+
+
+
+
+    function herePrepareContributions( )
+        firstColumnToSimulate = runningData.BaseRangeColumns(1);
+        inxOfLog = this.Quantity.InxOfLog;
+        inxOfE = getIndexByType(this, TYPE(31), TYPE(32));
+        posOfE = find(inxOfE);
+        numOfE = nnz(inxOfE);
+        numOfRuns = numOfE + 2;
+        runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, numOfRuns);
+        % Zero out initial conditions in shock contributions
+        runningData.YXEPG(inxOfLog, 1:firstColumnToSimulate-1, 1:numOfE) = 1;
+        runningData.YXEPG(~inxOfLog, 1:firstColumnToSimulate-1, 1:numOfE) = 0;
+        for ii = 1 : numOfE
+            temp = runningData.YXEPG(posOfE(ii), :, ii);
+            runningData.YXEPG(inxOfE, :, ii) = 0;
+            runningData.YXEPG(posOfE(ii), :, ii) = temp;
+        end
+        % Zero out all shocks in init+const contributions
+        runningData.YXEPG(inxOfE, firstColumnToSimulate:end, end-1) = 0;
+
+        if opt.Method==solver.Method.FIRST_ORDER 
+            % Assign zero contributions of nonlinearities right away if
+            % this is a first order simulation
+            runningData.YXEPG(inxOfLog, :, end) = 1;
+            runningData.YXEPG(~inxOfLog, :, end) = 0;
+        end
+    end%
+
+
+
+
+    function timeFrameDates = herePrepareTimeFrames( )
+        numOfPages = runningData.NumOfPages;
+        inxOfE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
+        runningData.TimeFrames = cell(1, numOfPages);
+        runningData.MixinUnanticipated = false(1, numOfPages);
+        runningData.TimeFrameDates = cell(1, numOfPages);
+        extendedRange = runningData.ExtendedRange;
+        startOfExtendedRange = extendedRange(1);
+        endOfExtendedRange = extendedRange(end);
+        for i = 1 : numOfPages
+            [~, unanticipatedE] = simulate.Data.splitE( runningData.YXEPG(inxOfE, :, i), ...
+                                                        plan.AnticipationStatusOfExogenous, ...
+                                                        runningData.BaseRangeColumns );
+            [ runningData.TimeFrames{i}, ...
+              runningData.MixinUnanticipated(i) ] = splitIntoTimeFrames( unanticipatedE, ...
+                                                                         runningData.BaseRangeColumns, ...
+                                                                         plan, ...
+                                                                         runningData.MaxShift, ...
+                                                                         opt );
+            numOfTimeFrames = size(runningData.TimeFrames{i}, 1);
+            timeFrameDates = nan(numOfTimeFrames, 2);
+            for frame = 1 : numOfTimeFrames
+                startOfTimeFrame = startOfExtendedRange + runningData.TimeFrames{i}(frame, 1) - 1;
+                endOfTimeFrame = startOfExtendedRange + runningData.TimeFrames{i}(frame, end) - 1;
+                timeFrameDates(frame, :) = [startOfTimeFrame, endOfTimeFrame];
+            end
+            runningData.TimeFrameDates{i} = DateWrapper.fromDateCode(timeFrameDates);
+        end
     end%
 
 
@@ -209,22 +323,9 @@ return
 
 
     function outputInfo = herePrepareOutputInfo( )
-        timeFrames = runningData.TimeFrames;
-        numOfRuns = numel(timeFrames);
-        for run = 1 : numOfRuns
-            numOfTimeFrames = size(timeFrames{run});
-            extendedRange = runningData.ExtendedRange;
-            startOfExtendedRange = extendedRange(1);
-            endOfExtendedRange = extendedRange(end);
-            for frame = 1 : numOfTimeFrames
-                startOfTimeFrame = startOfExtendedRange + timeFrames{run}(frame, 1) - 1;
-                endOfTimeFrame = startOfExtendedRange + timeFrames{run}(frame, 2) - 1;
-                timeFrames{run}(frame, :) = [startOfTimeFrame, endOfTimeFrame];
-            end
-            timeFrames{run} = DateWrapper.fromDateCode(timeFrames{run});
-        end
         outputInfo = struct( );
-        outputInfo.TimeFrames = timeFrames;
+        outputInfo.TimeFrames = runningData.TimeFrames;
+        outputInfo.TimeFrameDates = runningData.TimeFrameDates;
         outputInfo.BaseRange = DateWrapper.fromDateCode(runningData.BaseRange);
         outputInfo.ExtendedRange = DateWrapper.fromDateCode(runningData.ExtendedRange);
         outputInfo.Success =  runningData.Success;
@@ -240,13 +341,12 @@ end%
 
 
 function flag = validateMethod(x)
-    validateString = @(x, list) (ischar(x) || isa(x, 'string')) && any(strcmpi(x, list));
     listOfMethods = {'FirstOrder', 'Selective', 'Stacked', 'NoForward'};
-    if validateString(x, listOfMethods)
+    if Valid.anyString(x, listOfMethods{:})
         flag = true;
     end    
     if iscell(x) && ~isempty(x) ...
-       && validateString(x{1}, listOfMethods) ...
+       && Valid.anyString(x{1}, listOfMethods{:}) ...
        && iscellstr(x(2:2:end))
         flag = true;
     end
@@ -325,5 +425,70 @@ function solverOption = parseSolverOption(solverOption, methodOption)
                                                         prepareGradient, ...
                                                         displayMode );
     end
+end%
+
+
+
+
+function [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(unanticipatedE, baseRangeColumns, plan, maxShift, opt)
+    inxOfUnanticipatedE = unanticipatedE~=0;
+    inxOfUnanticipatedAny = inxOfUnanticipatedE | plan.InxOfUnanticipatedEndogenized;
+    posOfUnanticipatedAny = find(any(inxOfUnanticipatedAny, 1));
+    firstColumnOfSimulation = baseRangeColumns(1);
+    lastColumnOfSimulation = baseRangeColumns(end);
+
+    % For some simulations, unanticipated shocks can be mixed in with
+    % anticipated shocks within a single time frame.
+    mixinUnanticipated = testMixinUnanticipated( );
+    if mixinUnanticipated
+       timeFrames = [firstColumnOfSimulation, lastColumnOfSimulation];
+       return
+    end
+
+    if ~any(posOfUnanticipatedAny==firstColumnOfSimulation)
+        posOfUnanticipatedAny = [firstColumnOfSimulation, posOfUnanticipatedAny];
+    end
+    lastAnticipatedExogenizedYX = plan.LastAnticipatedExogenized;
+    numOfTimeFrames = numel(posOfUnanticipatedAny);
+    timeFrames = nan(numOfTimeFrames, 2);
+    for i = 1 : numOfTimeFrames
+        startOfTimeFrame = posOfUnanticipatedAny(i);
+        if i==numOfTimeFrames
+            endOfTimeFrame = lastColumnOfSimulation;
+        else
+            endOfTimeFrame = max([posOfUnanticipatedAny(i+1)-1, lastAnticipatedExogenizedYX]);
+        end
+        lenOfTimeFrame = endOfTimeFrame - startOfTimeFrame + 1;
+        numOfDummyPeriods = 0;
+        minLenOfTimeFrame = opt.Window;
+        if strcmpi(opt.Method, 'Selective')
+            minLenOfTimeFrame = minLenOfTimeFrame + maxShift;
+        end
+        if lenOfTimeFrame<minLenOfTimeFrame
+            numOfDummyPeriods = minLenOfTimeFrame - lenOfTimeFrame;
+            endOfTimeFrame = endOfTimeFrame + numOfDummyPeriods;
+            lenOfTimeFrame = minLenOfTimeFrame;
+        end
+        timeFrames(i, :) = [startOfTimeFrame, endOfTimeFrame];
+    end
+    mixinUnanticipated = false;
+
+    return
+
+
+        function flag = testMixinUnanticipated( )
+            flag = false;
+            return
+            if opt.Method==solver.Method.FIRST_ORDER ...
+               && plan.NumOfExogenizedPoints==0
+                flag = true;
+                return
+            end
+            if opt.Method==solver.Method.STATIC
+                flag = true;
+                return
+            end
+            flag = false;
+        end%
 end%
 

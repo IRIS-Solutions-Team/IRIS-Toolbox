@@ -65,21 +65,11 @@ classdef Data < matlab.mixin.Copyable
 
     methods
         function updateSwap(this, plan)
-            firstColumn = this.FirstColumnOfTimeFrame;
-            lastColumnOfSimulation = this.LastColumnOfSimulation;
-            this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfExtendedPeriods);
-            this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfExtendedPeriods);
+            [ this.InxOfExogenizedYX, ... 
+              this.InxOfEndogenizedE ] = createTimeFrame( plan, ...
+                                                          this.FirstColumnOfTimeFrame, ...
+                                                          this.LastColumnOfSimulation );
             this.Target = nan(this.NumOfYX, this.NumOfExtendedPeriods);
-            if plan.NumOfExogenizedPoints>0
-                this.InxOfExogenizedYX(:, firstColumn) = plan.InxOfAnticipatedExogenized(:, firstColumn) ...
-                                                       | plan.InxOfUnanticipatedExogenized(:, firstColumn);
-                this.InxOfExogenizedYX(:, firstColumn+1:lastColumnOfSimulation) = plan.InxOfAnticipatedExogenized(:, firstColumn+1:lastColumnOfSimulation);
-            end
-            if plan.NumOfEndogenizedPoints>0
-                this.InxOfEndogenizedE(:, firstColumn) = plan.InxOfAnticipatedEndogenized(:, firstColumn) ...
-                                                      | plan.InxOfUnanticipatedEndogenized(:, firstColumn);
-                this.InxOfEndogenizedE(:, firstColumn+1:lastColumnOfSimulation) = plan.InxOfAnticipatedEndogenized(:, firstColumn+1:lastColumnOfSimulation);
-            end
             if this.NumOfExogenizedPoints>0
                 this.Target(this.InxOfExogenizedYX) = this.InitYX(this.InxOfExogenizedYX);
             end
@@ -104,6 +94,7 @@ classdef Data < matlab.mixin.Copyable
         end%
 
 
+        %{
         function [anticipatedE, unanticipatedE] = retrieveE(this)
             [numOfQuants, numOfPeriods] = size(this.YXEPG);
             numOfE = nnz(this.InxOfE);
@@ -144,6 +135,7 @@ classdef Data < matlab.mixin.Copyable
                 this.UnanticipatedE = unanticipatedE;
             end
         end%
+        %}
 
 
         function storeE(this)
@@ -209,6 +201,7 @@ classdef Data < matlab.mixin.Copyable
 
 
     properties (Dependent)
+        E
         NumOfQuantities
         NumOfYX
         NumOfE
@@ -226,6 +219,11 @@ classdef Data < matlab.mixin.Copyable
 
 
     methods
+        function value = get.E(this)
+            value = this.YXEPG(this.InxOfE, :);
+        end%
+
+
         function value = get.NumOfQuantities(this)
             value = size(this.YXEPG, 1);
         end%
@@ -360,6 +358,33 @@ classdef Data < matlab.mixin.Copyable
             if ~this.NeedsEvalTrends
                 this.Trends = double.empty(0);
             end
+        end%
+
+
+
+
+        function [anticipatedE, unanticipatedE] = splitE(E, anticipationStatus, simulationColumns)
+            [numOfE, numOfPeriods] = size(E);
+            if numOfE==0
+                % No shocks in model, return immediately
+                anticipatedE = zeros(0, numOfPeriods);
+                unanticipatedE = zeros(0, numOfPeriods);
+                return
+            end
+            % Mixed anticipation status 
+            anticipatedE = zeros(numOfE, numOfPeriods);
+            unanticipatedE = zeros(numOfE, numOfPeriods);
+            % Retrieve anticipated shocks
+            anticipatedE(anticipationStatus, :) = real(E(anticipationStatus, :));
+            anticipatedE(~anticipationStatus, :) = imag(E(~anticipationStatus, :));
+            % Retrieve unanticipated shocks
+            unanticipatedE(anticipationStatus, :) = imag(E(anticipationStatus, :));
+            unanticipatedE(~anticipationStatus, :) = real(E(~anticipationStatus, :));
+            % Reset shocks outside the current simulation range to zero
+            firstColumnOfSimulation = simulationColumns(1);
+            lastColumnOfSimulation = simulationColumns(end);
+            anticipatedE(:, [1:firstColumnOfSimulation-1, lastColumnOfSimulation+1:end]) = 0;
+            unanticipatedE(:, [1:firstColumnOfSimulation-1, lastColumnOfSimulation+1:end]) = 0;
         end%
     end
 end

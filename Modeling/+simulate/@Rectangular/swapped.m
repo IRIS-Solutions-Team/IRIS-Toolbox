@@ -29,7 +29,7 @@ function updateEndogenizedE(this, data)
     data.AnticipatedE(inx, :) = data.AnticipatedE(inx, :) ...
                               + addToE(inx, :);
     data.UnanticipatedE(~inx, :) = data.UnanticipatedE(~inx, :) ...
-                                   + addToE(~inx, :);
+                                 + addToE(~inx, :);
 end%
 
 
