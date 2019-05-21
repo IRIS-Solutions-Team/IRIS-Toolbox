@@ -71,8 +71,6 @@ end
 
 %--------------------------------------------------------------------------
 
-numOfVariants = length(this);
-numOfQuantities = length(this.Quantity);
 if isequal(opt.Include, @all)
     typesToInclude = [TYPE(1), TYPE(2), TYPE(31), TYPE(32), TYPE(4)];
 else
@@ -113,7 +111,7 @@ for i = find(~inxOfParameters)
 end
 
 % Add a value for each parameter
-if any(strcmpi(opt.Include, 'Parameters'))
+if ismember(TYPE(4), typesToInclude)
     d = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, d);
 end
 

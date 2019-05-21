@@ -275,7 +275,7 @@ TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.simulate');
-    parser.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
+    parser.addRequired('M', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
     parser.addRequired('D', @isstruct);
     parser.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
 end

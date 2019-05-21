@@ -78,7 +78,7 @@ isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 nv = length(this);
 X = zeros(ny+nxx, ny+nxx, nPer, nv);
 
-indexOfSolutionsAvailable = issolved(this);
+indexOfSolutionsAvailable = beenSolved(this);
 for v = find(indexOfSolutionsAvailable)
     [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, v, false);
     X(:, :, :, v) = timedom.fmse(T, R, K, Z, H, D, U, Omg, nPer);

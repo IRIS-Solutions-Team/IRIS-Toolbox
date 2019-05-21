@@ -1,33 +1,30 @@
 function d = templatedb(this)
-% templatedb  Create model-specific template database.
+% templatedb  Create model-specific template database
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     D = templatedb(M)
-%
-% Input arguments
-% ================
+%     outputDatabank = templatedb(model)
 %
 %
-% * `M` [ model ] - Model object for which the empty template database will
-% be created.
+% __Input Arguments__
 %
 %
-% Output arguments
-% =================
-%
-% * `D` [ struct ] - Empty database (a 0x0 structr) with a field for each
-% of the model variables, shocks, and parameters.
+% * `model` [ model ] - Model object for which the empty template
+% database will be created.
 %
 %
-% Description
-% ============
+% __Output Arguments__
+%
+% * `outputDatabank` [ struct ] - Empty database (a 0x0 struct)
+% with a field for each model name (variables, shocks,
+% parameters).
 %
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -35,9 +32,6 @@ function d = templatedb(this)
 
 %--------------------------------------------------------------------------
 
-lsExtra = { ...
-    model.RESERVED_NAME_TTREND, ...
-    };
-d = createTemplateDbase(this.Quantity, lsExtra);
+d = createTemplateDbase(this.Quantity);
 
-end
+end%

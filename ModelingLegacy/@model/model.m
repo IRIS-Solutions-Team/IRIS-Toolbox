@@ -414,20 +414,20 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             if nargin<2
                 numOfVariants = Inf;
             end
-            flag = isa(input, 'model') && ~isempty(input) && all(issolved(input)) ...
+            flag = isa(input, 'model') && ~isempty(input) && all(beenSolved(input)) ...
                 && length(input)<=maxNumOfVariants;
-        end
+        end%
 
 
         function flag = validateChksstate(input)
             flag = isequal(input, true) || isequal(input, false) ...
                 || (iscell(input) && iscellstr(input(1:2:end)));
-        end
+        end%
 
 
         function flag = validateFilter(input)
             flag = isempty(input) || (iscell(input) && iscellstr(input(1:2:end)));
-        end
+        end%
 
 
         function flag = validateSolve(input)
@@ -441,7 +441,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 || (iscell(input) && iscellstr(input(1:2:end))) ...
                 || isa(input, 'function_handle') ...
                 || (iscell(input) && ~isempty(input) && isa(input{1}, 'function_handle'));
-        end
+        end%
     end
     
     

@@ -14,19 +14,19 @@ TYPE = @int8;
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.responseFunctions');
-    parser.addRequired('Model', @(x) isa(x, 'model') && all(isSolved(x)));
+    parser.addRequired('Model', @(x) isa(x, 'model') && all(beenSolved(x)));
     parser.addRequired('Time', @DateWrapper.validateDateInput);
 end
 parse(parser, this, time);
 
-% Tell whether time is nper or range.
+% Tell whether time is numOfPeriods or range
 if ischar(time)
     time = textinp2dat(time);
 elseif length(time)==1 && round(time)==time && time>0
     time = 1 : time;
 end
 range = time(1) : time(end);
-numPeriods = length(range);
+numOfPeriods = length(range);
 
 %--------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ nx = sum(ixx);
 [ny, nxx] = sizeOfSolution(this.Vector);
 posx = find(ixx);
 nv = length(this);
-numRuns = length(namesOfResponses);
+numOfRuns = length(namesOfResponses);
 idReal = real([this.Vector.Solution{2}]);
 idImag = imag([this.Vector.Solution{2}]);
 maxLag = -min(idImag);
@@ -47,33 +47,31 @@ maxLag = -min(idImag);
 % __Simulate Response Function__
 % Output data from `timedom.srf` and `timedom.icrf` include the pre-sample
 % period.
-Phi = nan(ny+nxx, numRuns, numPeriods+1, nv);
-indexOfSolutionsAvailable = issolved(this);
-for v = find(indexOfSolutionsAvailable)
+Phi = nan(ny+nxx, numOfRuns, numOfPeriods+1, nv);
+inxOfSolutionsAvailable = beenSolved(this);
+for v = find(inxOfSolutionsAvailable)
     [T, R, K, Z, H, D, U] = sspaceMatrices(this, v, false); %#ok<ASGLU>
-    Phi(:, :, :, v) = func(T, R, [ ], Z, H, [ ], U, [ ], v, numPeriods);
+    Phi(:, :, :, v) = func(T, R, [ ], Z, H, [ ], U, [ ], v, numOfPeriods);
 end
 % Report NaN solutions.
-if any(~indexOfSolutionsAvailable)
-    throw( ...
-        exception.Base('Model:SolutionNotAvailable', 'warning'), ...
-        exception.Base.alt2str(~indexOfSolutionsAvailable) ...
-    );
+if any(~inxOfSolutionsAvailable)
+    throw( exception.Base('Model:SolutionNotAvailable', 'warning'), ...
+           exception.Base.alt2str(~inxOfSolutionsAvailable) );
 end
 
 % __Create Output Data__
 s = struct( );
 
 % Permute Phi so that Phi(k, t, m, n) is the response of the k-th variable to
-% m-th init condition at time t in parameterisation n.
+% m-th init condition at time t in parameterisation n
 Phi = permute(Phi, [1, 3, 2, 4]);
 
-% Measurement variables.
+% Measurement variables
 Y = Phi(1:ny, :, :, :);
 for i = find(ixy)
     y = permute(Y(i, :, :, :), [2, 3, 4, 1]);
     isLog = this.Quantity.IxLog(i);
-    if opt.delog && isLog
+    if opt.Delog && isLog
         y = real(exp(y));
     end
     name = this.Quantity.Name{i};
@@ -82,13 +80,13 @@ for i = find(ixy)
     s.(name) = replace(TIME_SERIES_TEMPLATE, y, range(1)-1, c);
 end
 
-% Transition variables.
+% Transition variables
 X = convertXi2X(Phi(ny+1:end, :, :, :));
 for i = 1 : nx
     ithPosition = posx(i);
     x = permute(X(i, :, :, :), [2, 3, 4, 1]);
     isLog = this.Quantity.IxLog(ithPosition);
-    if opt.delog && isLog
+    if opt.Delog && isLog
         x = real(exp(x));
     end
     name = this.Quantity.Name{ithPosition};
@@ -97,8 +95,8 @@ for i = 1 : nx
     s.(name) = replace(TIME_SERIES_TEMPLATE, x, range(1)-1-maxLag, c);
 end
 
-% Shocks.
-e = zeros(numPeriods, numRuns, nv);
+% Shocks
+e = zeros(numOfPeriods, numOfRuns, nv);
 for i = find(ixe)
     name = this.Quantity.Name{i};
     c = utils.concomment(name, namesOfResponses, false);
@@ -107,11 +105,11 @@ for i = find(ixe)
     s.(name) = replace(TIME_SERIES_TEMPLATE, e, range(1), c);
 end
 
-% Parameters.
+% Parameters
 s = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this, s);
 
-% Exogenous variables.
-g = zeros(numPeriods, numRuns, nv);
+% Exogenous variables
+g = zeros(numOfPeriods, numOfRuns, nv);
 for i = find(ixg)
     name = this.Quantity.Name{i};
     c = utils.concomment(name, namesOfResponses, false);

@@ -1,4 +1,4 @@
-function [xi, sizeOfDeviation] = icrf(T, ~, ~, Z, ~, ~, U, ~, nPer, sizeOfDeviation)
+function [xi, sizeOfDeviation] = icrf(T, ~, ~, Z, ~, ~, U, ~, nPer, sizeOfDeviation, inxOfInit)
 % icrf  Response function to initial condition for general state space.
 %
 % Backend IRIS function.
@@ -13,8 +13,11 @@ ny = size(Z, 1);
 [nxi, nb] = size(T);
 nf = nxi - nb;
 
-xi = zeros(ny+nxi, nb, nPer+1);
-xi(ny+nf+1:end, :, 1) = diag(sizeOfDeviation);
+numOfInit = nnz(inxOfInit);
+xb0 = zeros(nb, numOfInit);
+xb0(inxOfInit, :) = diag(sizeOfDeviation);
+xi = zeros(ny+nxi, numOfInit, nPer+1);
+xi(ny+nf+1:end, :, 1) = xb0;
 if ~isempty(U)
    xi(ny+nf+1:end, :, 1) = U\xi(ny+nf+1:end, :, 1);
 end
@@ -32,4 +35,5 @@ if ~isempty(U)
    end
 end
 
-end
+end%
+

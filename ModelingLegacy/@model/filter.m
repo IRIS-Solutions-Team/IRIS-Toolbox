@@ -260,7 +260,7 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.filter');
     parser.KeepUnmatched = true;
-    parser.addRequired('SolvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(issolved(x)));
+    parser.addRequired('SolvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
     parser.addRequired('InputDatabank', @isstruct);
     parser.addRequired('FilterRange', @DateWrapper.validateProperRangeInput);
     parser.addOptional('TuneDatabank', [ ], @(x) isempty(x) || isstruct(x));

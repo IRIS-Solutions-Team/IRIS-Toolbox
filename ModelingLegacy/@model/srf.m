@@ -1,4 +1,4 @@
-function [s, range, select] = srf(this, time, varargin)
+function [s, range, select, opt] = srf(this, time, varargin)
 % srf  First-order shock response functions
 %
 % __Syntax__
@@ -46,55 +46,72 @@ function [s, range, select] = srf(this, time, varargin)
 
 TYPE = @int8;
 
-opt = passvalopt('model.srf', varargin{:});
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.srf');
+    parser.addRequired('SolvedModel', @Valid.solvedModel);
+    parser.addRequired('Time', @(x) isnumeric(x) || isa(x, 'DateWrapper')); 
+    parser.addParameter('Delog', true, @Valid.logicalScalar);
+    parser.addParameter('Select', @all, @(x) ~isempty(x) && (isequal(x, @all) || Valid.list(x)));
+    parser.addParameter('Size', @auto, @(x) isequal(x, @auto) || Valid.numericScalar(x));
+end
+parse(parser, this, time, varargin{:});
+opt = parser.Options;
 
-if ischar(opt.select)
-    opt.select = regexp(opt.select, '\w+', 'match');
+if ~isequal(opt.Select, @all)
+    if ischar(opt.Select)
+        opt.Select = regexp(opt.Select, '\w+', 'match');
+    else
+        opt.Select = cellstr(opt.Select);
+    end
 end
 
 %--------------------------------------------------------------------------
 
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32); 
-ne = sum(ixe);
+inxOfE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
+numOfE = sum(inxOfE);
 nv = length(this);
-listShocks = this.Quantity.Name(ixe);
+listOfE = this.Quantity.Name(inxOfE);
 
-% Select shocks.
-if isequal(opt.select, @all)
-    posSelected = 1 : ne;
+% Select shocks
+if isequal(opt.Select, @all)
+    posOfSelected = 1 : numOfE;
 else
-    numSelected = length(opt.select);
-    posSelected = nan(1, numSelected);
-    for i = 1 : length(opt.select)
-        x = find( strcmp(opt.select{i}, listShocks) );
+    [inxOfValidNames, posOfSelected] = ismember(opt.Select, listOfE);
+    %{
+    numOfSelected = length(opt.Select);
+    posOfSelected = nan(1, numOfSelected);
+    for i = 1 : length(opt.Select)
+        x = find( strcmp(opt.Select{i}, listOfE) );
         if length(x)==1
-            posSelected(i) = x;
+            posOfSelected(i) = x;
         end
     end
-    if any(isnan(posSelected))
+    %}
+    if any(~inxOfValidNames)
         throw( exception.Base('Model:InvalidName', 'error'), ...
-               'shock', opt.select{isnan(posSelected)} );
+               'shock', opt.Select{~inxOfValidNames} );
     end
 end
-select = listShocks(posSelected);
-numSelected = length(select);
+select = listOfE(posOfSelected);
+numOfSelected = length(select);
 
-% Set size of shocks.
-if strcmpi(opt.size, 'std') ...
-        || isequal(opt.size, @auto) ...
-        || isequal(opt.size, @std)
-    sizeShocks = this.Variant.StdCorr(:, posSelected, :);
+% Set size of shocks
+if strcmpi(opt.Size, 'std') ...
+        || isequal(opt.Size, @auto) ...
+        || isequal(opt.Size, @std)
+    sizeOfShocks = this.Variant.StdCorr(:, posOfSelected, :);
 else
-    sizeShocks = opt.size*ones(1, numSelected, nv);
+    sizeOfShocks = opt.Size*ones(1, numOfSelected, nv);
 end
 
-func = @(T, R, K, Z, H, D, U, Omg, variantRequested, numPeriods) ...
-    timedom.srf(T, R(:, posSelected), [ ], Z, H(:, posSelected), [ ], U, [ ], ...
-    numPeriods, sizeShocks(1, :, variantRequested));
+func = @( T, R, K, Z, H, D, U, Omg, variantRequested, numOfPeriods) ...
+          timedom.srf(T, R(:, posOfSelected), [ ], Z, H(:, posOfSelected), [ ], U, [ ], ...
+          numOfPeriods, sizeOfShocks(1, :, variantRequested));
 
 [s, range, select] = responseFunction(this, time, func, select, opt);
 for i = 1 : length(select)
-    s.(select{i}).data(1, i, :) = sizeShocks(1, i, :);
+    s.(select{i}).data(1, i, :) = sizeOfShocks(1, i, :);
     s.(select{i}) = trim(s.(select{i}));
 end
 

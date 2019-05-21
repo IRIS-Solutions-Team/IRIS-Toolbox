@@ -89,12 +89,12 @@ nv = length(this);
 X = nan(ny+nxx, ne, numPeriods, nv);
 Y = nan(ny+nxx, ne, numPeriods, nv);
 
-indexZeroCorr = true(1, nv);
-indexSolutionsAvailable = issolved(this);
-for v = find(indexSolutionsAvailable)
+inxOfZeroCorr = true(1, nv);
+inxOfSolutionsAvailable = beenSolved(this);
+for v = find(inxOfSolutionsAvailable)
     % Continue immediately if some cross-corrs are non-zero.
-    indexZeroCorr(v) = all(this.Variant.StdCorr(1, ne+1:end, v)==0);
-    if ~indexZeroCorr(v)
+    inxOfZeroCorr(v) = all(this.Variant.StdCorr(1, ne+1:end, v)==0);
+    if ~inxOfZeroCorr(v)
         continue
     end
     [T, R, K, Z, H, D, Za, Omg] = sspaceMatrices(this, v, false);
@@ -105,18 +105,18 @@ for v = find(indexSolutionsAvailable)
 end
 
 % Report NaN solutions.
-if ~all(indexSolutionsAvailable)
+if ~all(inxOfSolutionsAvailable)
     utils.warning('model:fevd', ...
         'Solution(s) not available %s.', ...
-        exception.Base.alt2str(~indexSolutionsAvailable) );
+        exception.Base.alt2str(~inxOfSolutionsAvailable) );
 end
 
 % Report non-zero cross-correlations.
-if ~all(indexZeroCorr)
+if ~all(inxOfZeroCorr)
     utils.warning('model:fevd', ...
         ['Cannot compute FEVD with ', ...
         'nonzero cross-correlations %s.'], ...
-        exception.Base.alt2str(~indexZeroCorr) );
+        exception.Base.alt2str(~inxOfZeroCorr) );
 end
 
 if nargout<=2 && ~isSelect && ~isNamedMat

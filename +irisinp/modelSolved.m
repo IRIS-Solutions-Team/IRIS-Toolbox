@@ -14,7 +14,7 @@ classdef modelSolved < irisinp.model
        
     methods (Static)
         function Flag = myvalidate(x)
-            ixSolved = issolved(x);
+            ixSolved = beenSolved(x);
             Flag = ~isempty(ixSolved) && all(ixSolved);
             if isempty(ixSolved)
                 utils.warning('inp:modelSolved', ...

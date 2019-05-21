@@ -67,11 +67,6 @@ def.fisher = {
     'tolerance', eps( )^(2/3), @isnumericscalar
     };
 
-def.icrf = {
-    'delog', true, @islogicalscalar
-    'size', [ ], @(x) isempty(x) || isnumericscalar(x)
-    };
-
 def.ifrf = [
     matrixFormat
     select
@@ -136,14 +131,6 @@ def.createSourceDbase = [
     'ndraw', 1, @(x) isintscalar(x) && x>=0
     'ncol', 1, @(x) isintscalar(x) && x>=0
     'shockfunc, randfunc, randfn', @zeros, @(x) isa(x, 'function_handle') && any(strcmp(func2str(x), {'randn', 'lhsnorm', 'zeros'}))
-    }
-];
-
-def.srf = [
-    select
-    {
-    'delog, log', true, @islogicalscalar
-    'size', @auto, @(x) isequal(x, @auto) || isnumericscalar(x)
     }
 ];
 

@@ -1,19 +1,18 @@
-function d = createTemplateDbase(this, lsReservedName)
-% createTemplateDbase  Create empty template database based for Quantity object.
+function d = createTemplateDbase(this)
+% createTemplateDbase  Create empty template database based for Quantity object
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-nName = length(this);
-nReserved = length(lsReservedName);
-x = cell(1, nName+nReserved);
-c = [this.Name, lsReservedName];
+numOfQuantities = length(this);
+x = cell(1, numOfQuantities);
+c = this.Name;
 d = cell2struct(x, c, 2);
 d = d([ ]);
 
-end
+end%

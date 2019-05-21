@@ -86,7 +86,7 @@ TYPE = @int8;
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('model.resample');
-    inputParser.addRequired('Model', @(x) isa(x, 'model') && length(x)==1 && issolved(x));
+    inputParser.addRequired('Model', @(x) isa(x, 'model') && length(x)==1 && beenSolved(x));
 
     inputParser.addOptional('InitCondition', [ ], @(x) isempty(x) || isstruct(x));
     inputParser.addOptional('Range', [ ], @DateWrapper.validateProperRangeInput);

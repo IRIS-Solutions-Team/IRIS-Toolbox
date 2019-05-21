@@ -2,17 +2,15 @@ function [dmc, controlData] = dbminuscontrol(varargin)
 % dbminuscontrol  Create simulation-minus-control database
 %
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%    [inputData, controlData] = dbminuscontrol(M, inputData)
-%    [inputData, controlData] = dbminuscontrol(M, inputData, controlData)
+%    [inputData, controlData] = dbminuscontrol(model, inputData)
+%    [inputData, controlData] = dbminuscontrol(model, inputData, controlData)
 %
 %
-% Input arguments
-% ================
+% _Input Arguments_
 %
-% * `M` [ model ] - Model object on which the databases `inputData` and `controlData` are
+% * `model` [ model ] - Model object on which the databases `inputData` and `controlData` are
 % based.
 %
 % * `inputData` [ struct ] - Simulation database.
@@ -22,30 +20,28 @@ function [dmc, controlData] = dbminuscontrol(varargin)
 % control database.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `inputData` [ struct ] - Simulation-minus-control database, in which all
+% * `outputData` [ struct ] - Simulation-minus-control database, in which all
 % log variables are `d.x/c.x`, and all other variables are `d.x-c.x`.
 %
-% * `controlData` [ struct ] - Control database.
+% * `controlData` [ struct ] - Control database that has been
+% subtracted from the `inputData` database to create
+% `outputData`.
 %
 %
-% Options
-% ========
+% __Options__
 %
-% * `'fresh='` [ `true` | *`false`* ] - If `true`, the output database will
+% * `Fresh=false` [ `true` | `false` ] - If `true`, the output database will
 % only contain entries corresponding to model variables in `M`; if `false`
 % all other entries found in the input database will be also kept in the
 % output database.
 %
 %
-% Description
-% ============
+% __Description__
 %
 %
-% Example
-% ========
+% __Example__
 %
 % We run a shock simulation in full levels using a steady-state (or
 % balanced-growth-path) database as input, and then compute the deviations
@@ -65,8 +61,8 @@ function [dmc, controlData] = dbminuscontrol(varargin)
 %     s = dboverlay(d, s);
 %
 
-% -The IRIS Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -The IRIS Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %#ok<*VUNUS>
 %#ok<*CTCH>
