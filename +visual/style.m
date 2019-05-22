@@ -1,6 +1,11 @@
 function style(handles, specs, varargin)
 % visual.style  Style graphics objects
 
+BACKGROUND = { 'Highlight'
+               'VLine'
+               'HLine'
+               'ZeroLine' };
+
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('visual.style');
@@ -27,16 +32,28 @@ for i = numOfHandles : -1 : 1
     if ~strcmpi(handleVisible, 'On')
         continue
     end
+    ithTag = get(ithHandle, 'Tag');
     ithType = get(ithHandle, 'Type');
-    if isfield(count, ithType)
-        count.(ithType) = count.(ithType) + 1;
+    if any(strcmpi(ithTag, BACKGROUND)) && any(strcmpi(ithTag, specsTypes))
+        if ~isfield(count, ithTag)
+            count.(ithTag) = 1;
+        end
+        % Apply style to background objects: highligh, vline, hline, zeroline
+        pos = find(strcmpi(ithTag, specsTypes));
+        testLevel = false;
+        [errors, addCount] = apply(ithHandle, ithType, specs.(specsTypes{pos}), count.(ithTag), errors, testLevel);
+        count.(ithTag) = count.(ithTag) + addCount;
     else
-        count.(ithType) = 1;
-    end
-    indexMatchType = strcmpi(specsTypes, ithType);
-    if any(indexMatchType)
-        pos = find(indexMatchType, 1);
-        errors = apply(ithHandle, ithType, specs.(specsTypes{pos}), count.(ithType), errors);
+        if ~isfield(count, ithType)
+            count.(ithType) = 1;
+        end
+        inxOfMatchType = strcmpi(specsTypes, ithType);
+        if any(inxOfMatchType)
+            pos = find(inxOfMatchType, 1);
+            testLevel = true;
+            [errors, addCount] = apply(ithHandle, ithType, specs.(specsTypes{pos}), count.(ithType), errors, testLevel);
+            count.(ithType) = count.(ithType) + addCount;
+        end
     end
     if ~isequal(opt.Children, true)
         continue
@@ -52,12 +69,23 @@ end
 end%
 
 
-function errors = apply(handle, type, specs, j, errors)
+
+
+function [errors, addCount] = apply(handle, type, specs, j, errors, testLevel)
     persistent listOfExtras
     if isempty(listOfExtras)
         listOfExtras = { 'Line.ShowValues', 'showValues' 
                          'Bar.ShowValues',  'showValues' };
     end
+
+    if testLevel
+        level = getappdata(handle, 'IRIS_BackgroundLevel');
+        if Valid.numericScalar(level) && level<0
+            addCount = 0;
+            return
+        end
+    end
+    addCount = 1;
 
     errors = runPreAndPost('Prestyle', handle, type, specs, j, errors); 
     propertyNames = fieldnames(specs);
@@ -76,14 +104,14 @@ function errors = apply(handle, type, specs, j, errors)
         try
             currentValue = get(handle, ithPropertyName);
             if isgraphics(currentValue)
-                errors = apply(currentValue, ithPropertyName, assignValue, j, errors);
+                errors = apply(currentValue, ithPropertyName, assignValue, j, errors, testLevel);
                 continue
             end
         end
-        index = strcmpi([type, '.', ithPropertyName], listOfExtras(:, 1));
+        inxOfExtras = strcmpi([type, '.', ithPropertyName], listOfExtras(:, 1));
         try
-            if any(index)
-                extraFunctionName = listOfExtras{index, 2};
+            if any(inxOfExtras)
+                extraFunctionName = listOfExtras{inxOfExtras, 2};
                 feval(extraFunctionName, handle, ithPropertyValue);
             else
                 set(handle, ithPropertyName, assignValue);

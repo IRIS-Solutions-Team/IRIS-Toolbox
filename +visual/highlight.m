@@ -89,13 +89,12 @@ if isempty(parser)
     parser.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
     parser.addRequired('Range', @(x) all(cellfun(@(y) isa(y, 'DateWrapper') || isnumeric(y), x)));
 
-    parser.addParameter('Alpha', 1, @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1 );
+    parser.addParameter('Alpha', 1, @(x) Valid.numericScalar(x, [0, 1]));
     parser.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
     parser.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
     parser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
-    parser.addParameter('HandleVisibility', 'Off', @(x) any(strcmpi(x, {'On', 'Off'})));
+    parser.addParameter('HandleVisibility', 'Off', @(x) Valid.logicalScalar(x) || Valid.anyString(x, 'On', 'Off'));
     parser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
-    parser.addParameter('ZCoor', -4, @(x) isnumeric(x) && isscalar(x) && x<=0);
 
     % Legacy options
     parser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
@@ -131,7 +130,7 @@ if isscalar(opt.Color)
     opt.Color = opt.Color*[1, 1, 1];
 end
 
-Z_DATA = opt.ZCoor;
+BACKGROUND_LEVEL = -4;
 LIM_MULTIPLE = 100;
 
 %--------------------------------------------------------------------------
@@ -161,23 +160,15 @@ for a = 1 : numel(axesHandle)
             continue
         end
 
-        ithPatchHandle = drawPatch(h, xData, yData, Z_DATA, opt, unmatched);
+        ithPatchHandle = drawPatch(h, xData, yData, opt, unmatched);
         
         % Add caption to the highlight.
         if ~isempty(opt.Text)
-            ithTextHandle = visual.backend.createCaption( ...
-                h, xData([1, 2]), opt.Text{:} ...
-            );
+            ithTextHandle = visual.backend.createCaption(h, xData([1, 2]), opt.Text{:});
             textHandles = [textHandles, ithTextHandle];
         end
         
-        % Make sure zLim includes zCoor.
-        zLim = get(h, 'zLim');
-        zLim(1) = min(zLim(1), Z_DATA);
-        zLim(2) = max(zLim(2), 0);
-        set(h, 'zLim', zLim);
-
-        setappdata(ithPatchHandle, 'IRIS_BackgroundLevel', Z_DATA);
+        setappdata(ithPatchHandle, 'IRIS_BackgroundLevel', BACKGROUND_LEVEL);
         patchHandles = [patchHandles, ithPatchHandle];
     end
 
@@ -195,9 +186,18 @@ for a = 1 : numel(axesHandle)
     end
 end
 
+%{
+if isequal(opt.HandleVisibility, true)
+    opt.HandleVisibility = 'On';
+elseif isequal(opt.HandleVisibility, false)
+    opt.HandleVisibility = 'Off';
+end
 set(patchHandles, 'HandleVisibility', opt.HandleVisibility);
+%}
 
 end%
+
+
 
 
 function xData = getXData(h, range, opt)
@@ -241,6 +241,8 @@ function xData = getXData(h, range, opt)
 end%
 
 
+
+
 function yData = getYData(h, LIM_MULTIPLE)
     yData = get(h, 'YLim');
     height = yData(2) - yData(1);
@@ -248,28 +250,18 @@ function yData = getYData(h, LIM_MULTIPLE)
 end%
 
 
-function handlePatch = drawPatch(handleAxes, xData, yData, zData, opt, unmatched)
+
+
+function handlePatch = drawPatch(handleAxes, xData, yData, opt, unmatched)
     xData = xData([1, 2, 2, 1]);
     yData = yData([1, 1, 2, 2]);
-    zData = zData*ones(size(xData));    
     nextPlot = get(handleAxes, 'NextPlot');
     set(handleAxes, 'NextPlot', 'Add');
-    handlePatch = fill( ...
-        xData, yData, opt.Color, ...
-        'ZData', zData, ...
-        'Parent', handleAxes, ...
-        'YLimInclude', 'off', 'XLimInclude', 'off', ...
-        'EdgeColor', 'none', 'FaceAlpha', opt.Alpha, ...
-        unmatched{:} ...
-    );
+    handlePatch = fill( xData, yData, opt.Color, ...
+                        'Parent', handleAxes, ...
+                        'YLimInclude', 'off', 'XLimInclude', 'off', ...
+                        'EdgeColor', 'none', 'FaceAlpha', opt.Alpha, ...
+                        unmatched{:} );
     set(handleAxes, 'NextPlot', nextPlot);
-    if zData==0
-        children = get(handleAxes, 'Children');
-        if numel(children)>1
-            index = children==handlePatch;
-            children = [children(~index); children(index)];
-            set(handleAxes, 'Children', children);
-        end
-    end
 end%
 

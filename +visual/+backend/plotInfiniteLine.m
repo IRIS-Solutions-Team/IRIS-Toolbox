@@ -50,7 +50,6 @@ if isempty(parser)
     parser.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
     parser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
     parser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
-    parser.addParameter('HandleVisibility', 'Off', @(x) any(strcmpi(x, {'On', 'Off'})));
     parser.addParameter({'Placement', 'LinePlacement', 'TimePosition'}, 'Exactly', @(x) any(strcmpi(x, {'Exactly', 'Middle', 'Before', 'After'})));
     % Legacy options
     parser.addParameter('Caption', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x(1:2:end)));
@@ -88,15 +87,15 @@ INF_LIM = 1e10;
 LIM_MULTIPLE = 100;
 
 if isVertical
-    Z_COOR = -3;
+    BACKGROUND_LEVEL = -3;
 else
-    Z_COOR = -2;
+    BACKGROUND_LEVEL = -2;
 end
 
 %--------------------------------------------------------------------------
 
-numAxes = numel(axesHandle);
-for a = 1 : numAxes
+numOfAxes = numel(axesHandle);
+for a = 1 : numOfAxes
     h = axesHandle(a);
     % Check for plotyy peers, and return the background axes object.
     h = grfun.mychkforpeers(h);
@@ -150,10 +149,9 @@ for a = 1 : numAxes
             xData = [xLim(1)-LIM_MULTIPLE*xWidth, xLim(2)+LIM_MULTIPLE*xWidth];
             yData = location([i, i]);
         end
-        zData = Z_COOR*ones(size(xData));
         % Function line( ) always adds line objects to existing graphs even if
         % the NextPlot option is 'replace'
-        ithLineHandle = line( xData, yData, zData, ...
+        ithLineHandle = line( xData, yData, ...
                               'Parent', h, ...
                               'Color', [0, 0, 0], ...
                               'YLimInclude', 'off', 'XLimInclude', 'off', ...
@@ -162,22 +160,14 @@ for a = 1 : numAxes
         
         % Add annotation
         if ~isempty(opt.Text) && isVertical
-            ithTextHandle = visual.backend.createCaption( ...
-                h, location(i), ...
-                opt.Text{:} ...
-            );
+            ithTextHandle = visual.backend.createCaption( h, location(i), ...
+                                                          opt.Text{:} );
             textHandles = [textHandles, ithTextHandle]; %#ok<AGROW>
         end
 
-        setappdata(ithLineHandle, 'IRIS_BackgroundLevel', Z_COOR);
+        setappdata(ithLineHandle, 'IRIS_BackgroundLevel', BACKGROUND_LEVEL);
         lineHandles = [lineHandles, ithLineHandle]; %#ok<AGROW>
     end
-
-    % Make sure ZLim includes Z_COOR.
-    zLim = get(h, 'ZLim');
-    zLim(1) = min(zLim(1), Z_COOR);
-    zLim(2) = max(zLim(2), 0);
-    set(h, 'ZLim', zLim);
 
     visual.backend.moveToBackground(h);
     if switchedToLeft
@@ -189,19 +179,13 @@ for a = 1 : numAxes
     end
 
     if ~isempty(lineHandles)
-        set( ...
-            lineHandles, ...
-            'HandleVisibility', opt.HandleVisibility, ...
-            'Tag', caller ...
-        );
+        set( lineHandles, ...
+             'Tag', caller );
     end
 
     if ~isempty(textHandles)
-        set( ...
-            textHandles, ...
-            'HandleVisibility', opt.HandleVisibility, ...
-            'Tag', [caller, '-caption'] ...
-        );
+        set( textHandles, ...
+             'Tag', [caller, '-caption'] );
     end
 end
 
@@ -225,3 +209,4 @@ return
         end
     end%
 end%
+

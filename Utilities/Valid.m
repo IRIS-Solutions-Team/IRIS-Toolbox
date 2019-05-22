@@ -9,8 +9,16 @@
 
 classdef Valid
     methods (Static)
-        function flag = numericScalar(input)
-           flag = isnumeric(input) && isscalar(input);
+        function flag = numericScalar(input, lim)
+            if ~isnumeric(input) || ~isscalar(input)
+                flag = false;
+                return
+            end
+            if nargin==1
+                flag = true;
+                return
+            end
+            flag = input>=lim(1) && input<=lim(2);
         end%
 
             

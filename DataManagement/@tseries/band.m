@@ -1,5 +1,5 @@
 function varargout = band(varargin)
-% band  Line-and-band graph for tseries objects.
+% band  Line-and-band graph for tseries objects
 %
 % __Syntax__
 %

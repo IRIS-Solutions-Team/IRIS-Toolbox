@@ -104,6 +104,7 @@ return
             parser.KeepUnmatched = true;
             parser.addParameter('BaseColor', @auto, @(x) isequaln(x, @auto) || (isnumeric(x) && (numel(x)==1 || numel(x)==3) && all(x>=0) && all(x<=1)));
             parser.addParameter('Whitening', @auto, @(x) isequaln(x, @auto) || (isnumeric(x) && all(x>=0) && all(x<=1)));
+            parser.addParameter('WhiteningMethod', 'FaceAlpha', @(x) Valid.anyString(x, 'FaceAlpha', 'FaceColor'));
             parser.addParameter('WhiteColor', 1, @(x) isnumeric(x) && (numel(x)==1 || numel(x)==3) && all(x>=0) && all(x<=1));
         end
         parse(parser, varargin{:});
@@ -129,11 +130,12 @@ return
         end
         for i = 1 : numOfPlots
             ithYData = [yData(:, i); flipud(yData(:, end+1-i))];
-            ithColor = getIthColor(i);
+            [ithColor, ithFaceAlpha] = getIthColor(i);
             plotHandle(i) = fill( axesHandle, ...
                                   extendedXData, ...
                                   ithYData, ...
                                   ithColor, ...
+                                  'FaceAlpha', ithFaceAlpha, ...
                                   'LineStyle', 'None', ...
                                   unmatched{:} );
         end
@@ -146,15 +148,22 @@ return
 
         return
 
-            function color = getIthColor(i)
-                ithWhitening = opt.Whitening(i);
+            function [color, faceAlpha] = getIthColor(i)
+                whitening = opt.Whitening(i);
                 if ~isempty(plotSpec)
                     color = plotSpec{ min(i, end) };
                     if isnumeric(color) && isscalar(color)
                         color = color*[1, 1, 1];
                     end
+                    faceAlpha = 1;
                 else
-                    color = (1-ithWhitening)*opt.BaseColor + ithWhitening*opt.WhiteColor; 
+                    if strcmpi(opt.WhiteningMethod, 'FaceAlpha')
+                        color = opt.BaseColor;
+                        faceAlpha = 1 - whitening;
+                    else
+                        color = (1-whitening)*opt.BaseColor + whitening*opt.WhiteColor; 
+                        faceAlpha = 1;
+                    end
                 end
             end%
     end%

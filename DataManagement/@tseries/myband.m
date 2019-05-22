@@ -1,13 +1,13 @@
 function P = myband(Ax, H, CData, XCoor, LData, HData, Opt)
-% myband  [Not a public function] Plot error bands aroud central line.
+% myband  Plot error bands aroud central line
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-Z_COOR = -1;
+BACKGROUND_LEVEL = -1;
 
 %--------------------------------------------------------------------------
 
@@ -62,13 +62,12 @@ for i = 1 : nBand
     % Draw patch object, mix its face color.
     p = patch(xData, yData, 'white');
     faceCol = col{min(i, end)}; % white*[1, 1, 1] + (1-white)*col{min(i, end)};
-    set(p, ...
-        'FaceColor', faceCol, ...
-        'FaceAlpha', 1-white, ...
-        'EdgeColor', 'White', ...
-        'LineStyle', '-', ...
-        'Tag', 'band' ...
-        );
+    set( p, ...
+         'FaceColor', faceCol, ...
+         'FaceAlpha', 1-white, ...
+         'EdgeColor', 'White', ...
+         'LineStyle', '-', ...
+         'Tag', 'band' );
     
     % Stack handles bottom up (same order as in axes children). Wider bands
     % need to be plotted before narrower bands.
@@ -82,7 +81,7 @@ if isempty(P)
 end
 
 for i = 1 : length(P)
-    setappdata(P(i), 'IRIS_BackgroundLevel', Z_COOR);
+    setappdata(P(i), 'IRIS_BackgroundLevel', BACKGROUND_LEVEL);
 end
 visual.backend.moveToBackground(P);
 
@@ -91,4 +90,5 @@ if Opt.excludefromlegend
     grfun.excludefromlegend(P);
 end
 
-end
+end%
+
