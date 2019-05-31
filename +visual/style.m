@@ -66,9 +66,13 @@ if ~isempty(errors)
     errors = unique(errors);
     % disp(errors)
 end
+
 end%
 
 
+%
+% Local Functions
+%
 
 
 function [errors, addCount] = apply(handle, type, specs, j, errors, testLevel)
