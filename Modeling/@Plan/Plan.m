@@ -9,11 +9,12 @@ classdef Plan
 
         SwapId = uint16(2)
 
+        AnticipationStatusOfEndogenous = logical.empty(0)
+        AnticipationStatusOfExogenous = logical.empty(0)
+
         IdOfAnticipatedExogenized = logical.empty(0, 0)
         IdOfUnanticipatedExogenized = logical.empty(0, 0)
 
-        AnticipationStatusOfEndogenous = logical.empty(0)
-        AnticipationStatusOfExogenous = logical.empty(0)
         IdOfAnticipatedEndogenized = logical.empty(0, 0)
         IdOfUnanticipatedEndogenized = logical.empty(0, 0)
     end
@@ -409,7 +410,7 @@ classdef Plan
             if ~isequal(opt.AnticipationStatus, @auto)
                 anticipationStatusOfEndogenous(:) = opt.AnticipationStatus;
             end
-            context = id==uint16(0) : { 'be unexogenized', 'be exogenized' };
+            context = (id==uint16(0)) : { 'be unexogenized', 'be exogenized' };
             inxOfDates = resolveDates(this, dates);
             inxOfNames = this.resolveNames(names, this.NamesOfEndogenous, context);
             if ~any(inxOfNames)
@@ -453,7 +454,7 @@ classdef Plan
             if ~isequal(opt.AnticipationStatus, @auto)
                 anticipationStatusOfExogenous(:) = opt.AnticipationStatus;
             end
-            context = id==uint16(0) : {'be unendogenized', 'be endogenized'};
+            context = (id==uint16(0)) : {'be unendogenized', 'be endogenized'};
             inxOfDates = resolveDates(this, dates);
             inxOfNames = this.resolveNames(names, this.NamesOfExogenous, context);
             if ~any(inxOfNames)
@@ -523,6 +524,11 @@ classdef Plan
         NamesOfUnanticipated
         StructWithAnticipationStatus
         AllNames
+
+        DatabankOfAnticipatedExogenized
+        DatabankOfUnanticipatedExogenized
+        DatabankOfAnticipatedEndogenized
+        DatabankOfUnanticipatedEndogenized
     end
 
 
@@ -674,6 +680,47 @@ classdef Plan
 
         function value = get.AllNames(this)
             value = [this.NamesOfEndogenous, this.NamesOfExogenous];
+        end%
+
+
+        function output = get.DatabankOfAnticipatedExogenized(this)
+            output = createDatabankOfAnchors( this, ...
+                                              this.NamesOfEndogenous, ...
+                                              this.IdOfAnticipatedExogenized );
+        end%
+
+
+        function output = get.DatabankOfUnanticipatedExogenized(this)
+            output = createDatabankOfAnchors( this, ...
+                                              this.NamesOfEndogenous, ...
+                                              this.IdOfUnanticipatedExogenized );
+        end%
+
+
+        function output = get.DatabankOfAnticipatedEndogenized(this)
+            output = createDatabankOfAnchors( this, ...
+                                              this.NamesOfExogenous, ...
+                                              this.IdOfAnticipatedEndogenized );
+        end%
+
+
+        function output = get.DatabankOfUnanticipatedEndogenized(this)
+            output = createDatabankOfAnchors( this, ...
+                                              this.NamesOfExogenous, ...
+                                              this.IdOfAnticipatedEndogenized );
+        end%
+
+
+        function output = createDatabankOfAnchors(this, names, anchors)
+            output = struct( );
+            baseRangeColumns = this.PosOfBaseStart : this.PosOfBaseEnd;
+            SERIES = Series(this.BaseStart, false(this.NumOfBasePeriods, 1));
+            numOfNames = numel(names);
+            for i = 1 : numOfNames
+                name = names{i};
+                values = transpose(anchors(i, baseRangeColumns));
+                output.(name) = fill(SERIES, values, this.BaseStart);
+            end
         end%
     end
 
