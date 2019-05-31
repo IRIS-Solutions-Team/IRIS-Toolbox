@@ -272,7 +272,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
                 end
             end
 
-            this = initMissingValue(this, values);
+            this = resetMissingValue(this, values);
             
             % If `Dates` is scalar and `Data` have multiple rows, treat
             % `Dates` as a start date and expand the dates accordingly.
@@ -491,11 +491,15 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         end%
 
 
-        function this = initMissingValue(this, values)
+        function this = resetMissingValue(this, values)
             if isa(values, 'single')
                 this.MissingValue = single(NaN);
             elseif isa(values, 'logical')
                 this.MissingValue = false;
+            elseif isinteger(values)
+                this.MissingValue = zeros(1, 1, class(values));
+            elseif isnumeric(values) && ~isreal(values)
+                this.MissingValue = complex(NaN, NaN);
             else
                 this.MissingValue = NaN;
             end

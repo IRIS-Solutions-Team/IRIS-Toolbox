@@ -23,24 +23,26 @@ end
 
 convertToDateWrapper = isa(this.Start, 'DateWrapper');
 
-% Pad LHS tseries data with NaNs to comply with references.
+% Pad LHS time series data with NaNs to comply with references.
 % Remove the rows from dates that do not pass the frequency test.
 [this, s, dates, freqTest] = expand(this, s);
 
-% Get RHS tseries object data.
+% Get RHS time series object data
 if isa(y, 'TimeSubscriptable')
     checkFrequencyOrInf(y, dates);
     y = getData(y, dates);
 end
 
-% Convert LHS tseries NaNs to complex if LHS is real and RHS is complex.
-if isreal(this.Data) && ~isreal(y)
-    this.Data(isnan(this.Data)) = NaN + 1i*NaN;
+% Convert LHS NaNs to complex if LHS is real and RHS is complex
+if isnumeric(this.Data) && isreal(this.Data) && ~isreal(y)
+    inxOfMissing = this.MissingTest(this.Data);
+    complexMissing = complex(this.MissingValues, this.MissingValue);
+    this.Data(inxOfMissing) = complexMissing;
 end
 
 % If RHS has only one row but multiple cols (or size>1 in other dims), 
-% tseries is multivariate, and assigned are multiple dates, then expand RHS
-% in 1st dimension.
+% time series is multivariate, and assigned are multiple dates, then expand RHS
+% in 1st dimension
 xSize = size(this.Data);
 sizeOfRhs = size(y);
 if length(y)>1 && size(y, 1)==1 ...
@@ -106,11 +108,10 @@ function [this, s, dates, freqTest] = expand(this, s)
     startOfThis = double(this.Start);
     freqOfThis = DateWrapper.getFrequencyAsNumeric(startOfThis);
 
-    % If LHS data are complex, use NaN+NaNi to pad missing observations.
-    if isreal(this.Data)
-        unit = 1;
-    else
-        unit = 1 + 1i;
+    % If LHS data are complex, use NaN+NaNi to pad missing observations
+    missingValue = this.MissingValue;
+    if isnumeric(this.Data) && ~isreal(this.Data)
+        missingValue = complex(missingValue, missingValue);
     end
 
     % Replace x(dates) with x(dates, :, ..., :).
@@ -137,7 +138,7 @@ function [this, s, dates, freqTest] = expand(this, s)
         if ~isempty(dates)
             freqOfDates = DateWrapper.getFrequencyAsNumeric(dates);
             if isnan(startOfThis)
-                % If LHS series is empty tseries, set start date to the minimum
+                % If LHS series is empty time series, set start date to the minimum
                 % date with the same frequency as the first date
                 startOfThis = min(dates(freqOfDates==freqOfDates(1)));
                 freqOfThis = freqOfDates(1);
@@ -151,7 +152,7 @@ function [this, s, dates, freqTest] = expand(this, s)
         freqTest = true(1, 0);
     end
 
-    % Reshape tseries data to reduce number of dimensions if called with
+    % Reshape time series data to reduce number of dimensions if called with
     % fewer dimensions. Eg x.Data is Nx2x2, and assignment is for x(:, 3).
     % This mimicks standard Matlab behavior.
     nSubs = length(s.subs);
@@ -175,7 +176,7 @@ function [this, s, dates, freqTest] = expand(this, s)
             n = 1 - min(s.subs{1});
             currentSize = size(this.Data);
             currentSize(1) = n;
-            this.Data = [nan(currentSize)*unit;this.Data];
+            this.Data = [repmat(missingValue, currentSize); this.Data];
             startOfThis = startOfThis - n;
             s.subs{1} = s.subs{1} + n;
         end
@@ -186,10 +187,10 @@ function [this, s, dates, freqTest] = expand(this, s)
             currentSize(end+1:nSubs) = 1;
             addSize = currentSize;
             addSize(i) = max(s.subs{i}) - addSize(i);
-            this.Data = cat(i, this.Data, nan(addSize)*unit);
+            this.Data = cat(i, this.Data, repmat(missingValue, addSize));
             if i>1
-                % Add an appropriate empty cellstr to comments if tseries data
-                % are expanded in 2nd or higher dimensions.
+                % Add an appropriate empty cellstr to comments if time
+                % series data are expanded in 2nd or higher dimensions.
                 comment = cell([1, addSize(2:end)]);
                 comment(:) = {''};
                 this.Comment = cat(i, this.Comment, comment);

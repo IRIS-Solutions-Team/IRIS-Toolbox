@@ -42,6 +42,8 @@ if nargin>4
     this = userdata(this, newUserData);
 end
 
+
+this = resetMissingValue(this, this.Data);
 this = trim(this);
 
 end%
