@@ -91,7 +91,7 @@ for i = 1 : numOfRuns
         for frame = 1 : numOfTimeFrames
             setTimeFrame(vthRect, timeFrames(frame, :));
             setTimeFrame(vthData, timeFrames(frame, :));
-            updateSwap(vthData, plan);
+            updateSwapsFromPlan(vthData, plan);
             ensureExpansionGivenData(vthRect, vthData);
             if vthData.NumOfExogenizedPoints==0
                 simulateFunction = @flat;

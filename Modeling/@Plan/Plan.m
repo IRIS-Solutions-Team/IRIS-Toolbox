@@ -12,6 +12,7 @@ classdef Plan
         IdOfAnticipatedExogenized = logical.empty(0, 0)
         IdOfUnanticipatedExogenized = logical.empty(0, 0)
 
+        AnticipationStatusOfEndogenous = logical.empty(0)
         AnticipationStatusOfExogenous = logical.empty(0)
         IdOfAnticipatedEndogenized = logical.empty(0, 0)
         IdOfUnanticipatedEndogenized = logical.empty(0, 0)
@@ -39,7 +40,7 @@ classdef Plan
                 parser = extend.InputParser('Plan.Plan');
                 parser.addRequired('Model', @(x) isa(x, 'model.Plan'));
                 parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
-                parser.addParameter({'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
+                parser.addParameter({'DefaultAnticipationStatus', 'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
             end
             if nargin==0
                 return
@@ -49,12 +50,12 @@ classdef Plan
             this.BaseStart = double(parser.Results.SimulationRange(1));
             this.BaseEnd = double(parser.Results.SimulationRange(end));
             this = preparePlan(parser.Results.Model, this, [this.BaseStart, this.BaseEnd]);
-            this.DefaultAnticipationStatus = opt.DefaultAnticipate;
+            this.DefaultAnticipationStatus = opt.DefaultAnticipationStatus;
             this.IdOfAnticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'uint16');
             this.IdOfUnanticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'uint16');
             this.IdOfAnticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'uint16');
             this.IdOfUnanticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'uint16');
-            this.SwapId = uint16(2);
+            this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, this.NumOfEndogenous, 1);
             this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, this.NumOfExogenous, 1);
         end%
     end
@@ -112,8 +113,16 @@ classdef Plan
             end
             parser.parse(this, anticipationStatus, names);
             context = 'be assigned anticipation status';
-            inxOfEndogenized = this.resolveNames(names, this.NamesOfExogenous, context);
-            this.AnticipationStatusOfExogenous(inxOfEndogenized) = anticipationStatus;
+            this.resolveNames(names, this.AllNames, context);
+            throwError = false;
+            inxOfEndogenous = this.resolveNames(names, this.NamesOfEndogenous, context, throwError);
+            if any(inxOfEndogenous)
+                this.AnticipationStatusOfEndogenous(inxOfEndogenous) = anticipationStatus;
+            end
+            inxOfExogenous = this.resolveNames(names, this.NamesOfExogenous, context, throwError);
+            if any(inxOfExogenous)
+                this.AnticipationStatusOfExogenous(inxOfExogenous) = anticipationStatus;
+            end
         end%
 
 
@@ -123,6 +132,8 @@ classdef Plan
             setToValue = uint16(1);
             this = implementExogenize(this, dates, names, setToValue, varargin{:});
         end%
+
+
 
 
         function this = unexogenize(this, dates, names, varargin)
@@ -141,9 +152,9 @@ classdef Plan
         end%
 
 
-        function [this, anticipationStatus] = endogenize(this, dates, names, varargin)
+        function this = endogenize(this, dates, names, varargin)
             setToValue = uint16(1);
-            [this, anticipationStatus] = implementEndogenize(this, dates, names, setToValue, varargin{:});
+            this = implementEndogenize(this, dates, names, setToValue, varargin{:});
         end%
 
 
@@ -170,14 +181,30 @@ classdef Plan
 
 
         function this = swap(this, dates, varargin)
+            if isempty(varargin)
+                pairsToSwap = cell.empty(1, 0);
+            elseif numel(varargin)==1 && isstruct(varargin{1})
+                pairsToSwap = varargin{1};
+                varargin(1) = [ ];
+            else
+                inxOfPairs = cellfun(@(x) (iscellstr(x) || isa(x, 'string')) && numel(x)==2, varargin);
+                pairsToSwap = cell.empty(1, 0);
+                while ~isempty(inxOfPairs) && inxOfPairs(1)
+                    pairsToSwap{end+1} = varargin{1};
+                    varargin(1) = [ ];
+                    inxOfPairs(1) = [ ];
+                end
+            end
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.swap');
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
                 parser.addRequired('DatesToSwap', @DateWrapper.validateDateInput);
                 parser.addRequired('PairsToSwap', @validatePairsToSwap);
+                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || Valid.logicalScalar(x));
             end
-            parser.parse(this, dates, varargin);
+            parser.parse(this, dates, pairsToSwap, varargin{:});
+            opt = parser.Options;
             if numel(varargin)==1 && isstruct(varargin{1})
                 inputStruct = varargin{1};
                 namesToExogenize = fieldnames(inputStruct);
@@ -187,22 +214,41 @@ classdef Plan
                     pairsToSwap{i} = { namesToExogenize{i}, ...
                                        inputStruct.(namesToExogenize{i}) };
                 end
-            else
-                pairsToSwap = varargin;
             end
-            for i = 1 : numel(pairsToSwap)
+            numOfPairs = numel(pairsToSwap);
+            anticipationMismatch = cell(1, 0);
+            for i = 1 : numOfPairs
                 setToValue = this.SwapId;
                 this.SwapId = this.SwapId + uint16(1);
                 [nameToExogenize, nameToEndogenize] = pairsToSwap{i}{:};
-                [this, anticipationStatus] = implementEndogenize( this, ...
-                                                                  dates, ...
-                                                                  nameToEndogenize, ...
-                                                                  setToValue );
-                this = implementExogenize( this, ...
-                                           dates, ...
-                                           nameToExogenize, ...
-                                           setToValue, ...
-                                           'Anticipate=', anticipationStatus );
+
+                [this, anticipateEndogenized] = ...
+                    implementEndogenize( this, ...
+                                         dates, ...
+                                         nameToEndogenize, ...
+                                         setToValue, ...
+                                         'AnticipationStatus=', opt.AnticipationStatus );
+
+                [this, anticipateExogenized] = ...
+                    implementExogenize( this, ...
+                                        dates, ...
+                                        nameToExogenize, ...
+                                        setToValue, ...
+                                        'AnticipationStatus=', opt.AnticipationStatus );
+
+                if ~isequal(anticipateEndogenized, anticipateExogenized)
+                    anticipationMismatch{end+1} = sprintf( '%s[%s] <-> %s[%s]', ...
+                                                           nameToExogenize, ...
+                                                           statusToString(anticipateExogenized), ...
+                                                           nameToEndogenize, ...
+                                                           statusToString(anticipateEndogenized) );
+                end
+            end
+            if ~isempty(anticipationMismatch)
+                THIS_ERROR = { 'Plan:AnticipationStatusMismatch' 
+                               'Anticipation status mismatch in this swapped pair: %s %s ' };
+                throw( exception.Base(THIS_ERROR, 'error'), ...
+                       anticipationMismatch{:} );
             end
         end%
 
@@ -255,11 +301,7 @@ classdef Plan
 
             rowNames = cell.empty(1, 0);
             idColumn = uint16.empty(0, 1);
-            if isData
-                cellData = cell.empty(0, 2*numOfDates);
-            else
-                cellData = cell.empty(0, numOfDates);
-            end
+            cellData = isData : { cell.empty(0, 2*numOfDates), cell.empty(0, numOfDates) };
             for id = uint16(1) : this.SwapId
                 markExogenized = cell(this.NumOfEndogenous, this.NumOfExtendedPeriods);
                 inxOfAnticipated = this.IdOfAnticipatedExogenized==id;
@@ -311,11 +353,7 @@ classdef Plan
 
             tableData = cell(1, numOfDates);
             for t = 1 : numOfDates
-                if isData
-                    tableData{t} = cellData(:, (t-1)*2+(1:2));
-                else
-                    tableData{t} = cellData(:, t);
-                end
+                tableData{t} = isData : { cellData(:, (t-1)*2+(1:2)), cellData(:, t) };
             end
             outputTable = table(idColumn, tableData{:});
             outputTable.Properties.RowNames = rowNames;
@@ -330,9 +368,10 @@ classdef Plan
 
 
 
-        function [inxOfExogenized, inxOfEndogenized] = createTimeFrame( this, ...
-                                                                        firstColumnOfTimeFrame, ...
-                                                                        lastColumnOfSimulation )
+        function [ inxOfExogenized, ...
+                   inxOfEndogenized ] = getSwapsWithinTimeFrame( this, ...
+                                                                 firstColumnOfTimeFrame, ...
+                                                                 lastColumnOfSimulation )
             inxOfExogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods);
             inxOfEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
             if this.NumOfExogenizedPoints>0
@@ -354,75 +393,88 @@ classdef Plan
 
 
     methods (Access=private)
-        function this = implementExogenize(this, dates, names, setToValue, varargin)
+        function [this, outputAnticipationStatus] = implementExogenize(this, dates, names, id, varargin)
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.implementExogenize');
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
                 parser.addRequired('DatesToExogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
-                parser.addRequired('NamesToExogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-                parser.addParameter('Anticipate', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+                parser.addRequired('NamesToExogenize', @(x) isequal(x, @all) || Valid.list(x));
+                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || Valid.logicalScalar(x));
             end
             parser.parse(this, dates, names, varargin{:});
             opt = parser.Options;
-            if isequal(opt.Anticipate, @auto)
-                opt.Anticipate = this.DefaultAnticipationStatus;
+
+            anticipationStatusOfEndogenous = this.AnticipationStatusOfEndogenous;
+            if ~isequal(opt.AnticipationStatus, @auto)
+                anticipationStatusOfEndogenous(:) = opt.AnticipationStatus;
             end
-            if setToValue~=uint16(0)
-                context = 'be exogenized';
-            else
-                context = 'be unexogenized';
-            end
+            context = id==uint16(0) : { 'be unexogenized', 'be exogenized' };
             inxOfDates = resolveDates(this, dates);
             inxOfNames = this.resolveNames(names, this.NamesOfEndogenous, context);
-            if setToValue~=uint16(0)
-                % Exogenize
-                if opt.Anticipate
-                    this.IdOfAnticipatedExogenized(inxOfNames, inxOfDates) = setToValue;
+            if ~any(inxOfNames)
+                return
+            end
+            posOfNames = find(inxOfNames);
+            outputAnticipationStatus = logical.empty(0, 1);
+            for pos = transpose(posOfNames(:))
+                if id~=uint16(0)
+                    % Exogenize
+                    outputAnticipationStatus(end+1, 1) = anticipationStatusOfEndogenous(pos);
+                    if anticipationStatusOfEndogenous(pos)
+                        this.IdOfAnticipatedExogenized(inxOfNames, inxOfDates) = id;
+                    else
+                        this.IdOfUnanticipatedExogenized(inxOfNames, inxOfDates) = id;
+                    end
                 else
-                    this.IdOfUnanticipatedExogenized(inxOfNames, inxOfDates) = setToValue;
+                    % Unexogenize
+                    this.IdOfAnticipatedExogenized(inxOfNames, inxOfDates) = id;
+                    this.IdOfUnanticipatedExogenized(inxOfNames, inxOfDates) = id;
                 end
-            else
-                % Unexogenize
-                this.IdOfAnticipatedExogenized(inxOfNames, inxOfDates) = setToValue;
-                this.IdOfUnanticipatedExogenized(inxOfNames, inxOfDates) = setToValue;
             end
         end%
 
 
-        function [this, anticipationStatus] = implementEndogenize(this, dates, names, setToValue, varargin)
+
+
+        function [this, outputAnticipationStatus] = implementEndogenize(this, dates, names, id, varargin)
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.implementEndogenize');
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
                 parser.addRequired('DatesToEndogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
                 parser.addRequired('NamesToEndogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || Valid.logicalScalar(x));
             end
             parser.parse(this, dates, names);
-            if setToValue~=uint16(0)
-                context = 'be endogenized';
-            else
-                context = 'be unendogenized';
+            opt = parser.Options;
+
+            anticipationStatusOfExogenous = this.AnticipationStatusOfExogenous;
+            if ~isequal(opt.AnticipationStatus, @auto)
+                anticipationStatusOfExogenous(:) = opt.AnticipationStatus;
             end
+            context = id==uint16(0) : {'be unendogenized', 'be endogenized'};
             inxOfDates = resolveDates(this, dates);
             inxOfNames = this.resolveNames(names, this.NamesOfExogenous, context);
             if ~any(inxOfNames)
                 return
             end
             posOfNames = find(inxOfNames);
-            anticipationStatus = this.AnticipationStatusOfExogenous(posOfNames);
+            posOfNames = transpose(posOfNames(:));
+            outputAnticipationStatus = logical.empty(0, 1);
             for pos = transpose(posOfNames(:))
-                if setToValue~=uint16(0)
+                if id~=uint16(0)
                     % Endogenize
-                    if this.AnticipationStatusOfExogenous(pos)
-                        this.IdOfAnticipatedEndogenized(pos, inxOfDates) = setToValue;
+                    outputAnticipationStatus(end+1, 1) = anticipationStatusOfExogenous(pos);
+                    if anticipationStatusOfExogenous(pos)
+                        this.IdOfAnticipatedEndogenized(pos, inxOfDates) = id;
                     else
-                        this.IdOfUnanticipatedEndogenized(pos, inxOfDates) = setToValue;
+                        this.IdOfUnanticipatedEndogenized(pos, inxOfDates) = id;
                     end
                 else
                     % Unendogenize
-                    this.IdOfAnticipatedEndogenized(pos, inxOfDates) = setToValue;
-                    this.IdOfUnanticipatedEndogenized(pos, inxOfDates) = setToValue;
+                    this.IdOfAnticipatedEndogenized(pos, inxOfDates) = id;
+                    this.IdOfUnanticipatedEndogenized(pos, inxOfDates) = id;
                 end
             end
         end%
@@ -470,6 +522,7 @@ classdef Plan
         NamesOfAnticipated
         NamesOfUnanticipated
         StructWithAnticipationStatus
+        AllNames
     end
 
 
@@ -617,11 +670,19 @@ classdef Plan
             temp = num2cell(this.AnticipationStatusOfExogenous);
             value = cell2struct(temp, this.NamesOfExogenous, 1);
         end%
+
+
+        function value = get.AllNames(this)
+            value = [this.NamesOfEndogenous, this.NamesOfExogenous];
+        end%
     end
 
 
     methods (Static)
-        function inxOfNames = resolveNames(selectNames, allNames, context)
+        function inxOfNames = resolveNames(selectNames, allNames, context, throwError)
+            if nargin<4
+                throwError = true;
+            end
             if isequal(selectNames, @all)
                 inxOfNames = true(1, numel(allNames));
                 return
@@ -630,12 +691,13 @@ classdef Plan
                 selectNames = cellstr(selectNames);
             end
             [inxOfValidNames, posOfNames] = ismember(selectNames, allNames);
-            if any(~inxOfValidNames)
+            if throwError && any(~inxOfValidNames)
                 THIS_ERROR = { 'Plan:InvalidNameInContext'
                                'This name cannot %1 in simulation plan: %s ' };
                 throw( exception.Base(THIS_ERROR, 'error'), ...
                        context, selectNames{~inxOfValidNames} );
             end
+            posOfNames(~inxOfValidNames) = [ ];
             inxOfNames = false(1, numel(allNames));
             inxOfNames(posOfNames) = true;
         end%
@@ -660,4 +722,19 @@ function flag = validatePairsToSwap(pairs)
     end
     flag = false;
 end%
+
+
+
+
+function varargout = statusToString(varargin)
+    varargout = varargin;
+    for i = 1 : nargin
+        if isequal(varargin{i}, true)
+            varargout{i} = 'true';
+        else
+            varargout{i} = 'false';
+        end
+    end
+end%
+
 

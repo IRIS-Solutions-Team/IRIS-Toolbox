@@ -225,25 +225,81 @@ return
         extendedRange = runningData.ExtendedRange;
         startOfExtendedRange = extendedRange(1);
         endOfExtendedRange = extendedRange(end);
-        for i = 1 : numOfPages
-            [~, unanticipatedE] = simulate.Data.splitE( runningData.YXEPG(inxOfE, :, i), ...
+        deficiency = cell(1, numOfPages);
+        for page = 1 : numOfPages
+            [~, unanticipatedE] = simulate.Data.splitE( runningData.YXEPG(inxOfE, :, page), ...
                                                         plan.AnticipationStatusOfExogenous, ...
                                                         runningData.BaseRangeColumns );
-            [ runningData.TimeFrames{i}, ...
-              runningData.MixinUnanticipated(i) ] = splitIntoTimeFrames( unanticipatedE, ...
-                                                                         runningData.BaseRangeColumns, ...
-                                                                         plan, ...
-                                                                         runningData.MaxShift, ...
-                                                                         opt );
-            numOfTimeFrames = size(runningData.TimeFrames{i}, 1);
+            [ runningData.TimeFrames{page}, ...
+              runningData.MixinUnanticipated(page) ] = ...
+                splitIntoTimeFrames( unanticipatedE, ...
+                                     runningData.BaseRangeColumns, ...
+                                     plan, ...
+                                     runningData.MaxShift, ...
+                                     opt );
+            numOfTimeFrames = size(runningData.TimeFrames{page}, 1);
             timeFrameDates = nan(numOfTimeFrames, 2);
+            deficiency{page} = zeros(1, numOfTimeFrames);
             for frame = 1 : numOfTimeFrames
-                startOfTimeFrame = startOfExtendedRange + runningData.TimeFrames{i}(frame, 1) - 1;
-                endOfTimeFrame = startOfExtendedRange + runningData.TimeFrames{i}(frame, end) - 1;
+                startOfTimeFrame = startOfExtendedRange + runningData.TimeFrames{page}(frame, 1) - 1;
+                endOfTimeFrame = startOfExtendedRange + runningData.TimeFrames{page}(frame, end) - 1;
                 timeFrameDates(frame, :) = [startOfTimeFrame, endOfTimeFrame];
+                % Check determinacy of simulation plan within this time frame
+                deficiency{page}(frame) = hereCheckDeterminacyOfPlan( );
             end
-            runningData.TimeFrameDates{i} = DateWrapper.fromDateCode(timeFrameDates);
+            runningData.TimeFrameDates{page} = DateWrapper.fromDateCode(timeFrameDates);
         end
+        if nnz([deficiency{:}])>0
+            hereReportDeficiencyOfPlan( );
+        end
+
+        return
+
+            function deficiency = hereCheckDeterminacyOfPlan( )
+                firstColumnOfTimeFrame = runningData.TimeFrames{page}(frame, 1);
+                lastColumnOfSimulation = runningData.BaseRangeColumns(end);
+                [ inxOfExogenized, ...
+                  inxOfEndogenized ] = getSwapsWithinTimeFrame( plan, ...
+                                                                firstColumnOfTimeFrame, ...
+                                                                lastColumnOfSimulation );
+                numOfExogenized = nnz(inxOfExogenized);
+                numOfEndogenized = nnz(inxOfEndogenized);
+                deficiency = 0;
+                if numOfExogenized==numOfEndogenized
+                    return
+                end
+                if numOfExogenized>numOfEndogenized
+                   if plan.AllowUnderdetermined
+                       return
+                   end
+                   deficiency = -1;
+                elseif numOfExogenized<numOfEndogenized
+                    if plan.AllowOverdetermined
+                        return
+                    end
+                    deficiency = 1;
+                end
+            end%
+
+
+            function hereReportDeficiencyOfPlan( )
+                temp = cell.empty(1, 0);
+                for ii = 1 : numel(deficiency)
+                    for jj = find(deficiency{ii}~=0)
+                        if deficiency{ii}(jj)==-1
+                            description = 'Underdetermined';
+                        else
+                            description = 'Overdetermined';
+                        end
+                        temp{end+1} = sprintf( '[DataPage %g][TimeFrame %g]: %s', ...
+                                               ii, jj, description );
+                    end
+                end
+                THIS_ERROR = { 'Model:DeficientSimulationPlan' 
+                               'Simulation plan is deficient in %s' };
+                throw( exception.Base(THIS_ERROR, 'error'), ...
+                       temp{:} );
+            end%
     end%
 
 
