@@ -138,7 +138,7 @@ if systemProperty.NumOfOutputs==0
 else
     % This is a call from @SystemPriorWrapper
     % Create system property output
-    systemProperty.Output{1} = vthData.YXEPG(:, baseRangeColumns);
+    systemProperty.Outputs{1} = vthData.YXEPG(:, baseRangeColumns);
 end
 
 return
