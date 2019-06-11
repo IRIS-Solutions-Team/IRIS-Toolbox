@@ -111,8 +111,8 @@ classdef (CaseInsensitiveProperties=true) ...
         % IndexFitted  Logical index of dates in estimation range acutally fitted
         IndexFitted = logical.empty(1, 0) 
 
-        % NamesOfAppendablesInData
-        NamesOfAppendablesInData
+        % NamesOfAppendables
+        NamesOfAppendables
     end
 
 
@@ -216,25 +216,23 @@ classdef (CaseInsensitiveProperties=true) ...
             this.GroupNames = opt.GroupNames;
             this.UserData = opt.UserData;
             this.BaseYear = opt.BaseYear;
-        end
+        end%
     end
 
 
     methods
         function x = get.EigenValues(this)
             x = this.EigVal;
-        end
+        end%
 
 
         function names = get.AllNames(this)
-            names = [ ...
-                this.NamesEndogenous, ...
-                this.NamesExogenous, ...
-                this.NamesErrors, ...
-                this.NamesConditioning, ...
-                this.NamesReporting, ...
-            ];
-        end
+            names = [ this.NamesEndogenous, ...
+                      this.NamesExogenous, ...
+                      this.NamesErrors, ...
+                      this.NamesConditioning, ...
+                      this.NamesReporting         ];
+        end%
 
 
         function names = get.NamesEndogenous(this)
@@ -244,7 +242,7 @@ classdef (CaseInsensitiveProperties=true) ...
             else
                 names = cell.empty(1, 0);
             end
-        end
+        end%
 
 
         function names = get.NamesErrors(this)
@@ -256,7 +254,7 @@ classdef (CaseInsensitiveProperties=true) ...
             else
                 names = cell.empty(1, 0);
             end
-        end
+        end%
 
 
         function names = get.NamesExogenous(this)
@@ -266,7 +264,7 @@ classdef (CaseInsensitiveProperties=true) ...
             else
                 names = cell.empty(1, 0);
             end
-        end
+        end%
 
 
         function names = get.NamesConditioning(this)
@@ -276,7 +274,7 @@ classdef (CaseInsensitiveProperties=true) ...
             else
                 names = cell.empty(1, 0);
             end
-        end
+        end%
 
 
         function names = get.NamesGroups(this)
@@ -286,7 +284,7 @@ classdef (CaseInsensitiveProperties=true) ...
             else
                 names = cell.empty(1, 0);
             end
-        end
+        end%
 
 
         function names = get.NamesReporting(this)
@@ -294,46 +292,46 @@ classdef (CaseInsensitiveProperties=true) ...
                 names = cell.empty(1, 0);
                 return
             end
-            names = [this.Reporting(:).NameLhs];
-        end
+            names = [this.Reporting(:).NamesOfLhs];
+        end%
 
 
         function num = get.NumOfVariants(this)
             num = length(this);
-        end
+        end%
 
 
         function num = get.NumEndogenous(this)
             num = numel(this.YNames);
-        end
+        end%
 
 
         function num = get.NumErrors(this)
             num = this.NumEndogenous;
-        end
+        end%
 
 
         function num = get.NumExogenous(this)
             num = numel(this.XNames);
-        end
+        end%
 
 
         function num = get.NumConditioning(this)
             num = numel(this.INames);
-        end
+        end%
 
 
         function num = get.NumGroups(this)
             num = numel(this.GroupNames);
-        end
+        end%
 
 
         function index = get.IndexFitted(this)
             index = this.IxFitted;
-        end
+        end%
 
 
-        function names = get.NamesOfAppendablesInData(this)
+        function names = get.NamesOfAppendables(this)
             names = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
         end%
 

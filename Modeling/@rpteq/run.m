@@ -1,4 +1,4 @@
-function outputDatabank = run(varargin)
+function outputData = run(varargin)
 % run  Evaluate reporting equations (rpteq) object
 %
 %
@@ -108,16 +108,17 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('rpteq.run');
     parser.addRequired('ReportingEquations', @(x) isa(x, 'rpteq'));
-    parser.addRequired('InputDatabank', @(x) isempty(x) || isstruct(x));
+    parser.addRequired('InputData', @(x) isempty(x) || isstruct(x));
     parser.addRequired('SimulationDates', @(x) isa(x, 'DateWrapper') || isnumeric(x));
     parser.addOptional('Model', [ ], @(x) isempty(x) || isa(x, 'model'));
-    parser.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
-    parser.addParameter('DbOverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
-    parser.addParameter('Fresh', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('AppendPresample', false, @(x) Valid.logicalScalar(x) || isstruct(x));
+    parser.addParameter('AppendPostsample', false, @(x) Valid.logicalScalar(x) || isstruct(x));
+    parser.addParameter('DbOverlay', false, @(x) Valid.logicalScalar(x) || isstruct(x));
+    parser.addParameter('Fresh', false, @Valid.logicalScalar);
 end
-parser.parse(varargin{:});
+parse(parser, varargin{:});
 this = parser.Results.ReportingEquations;
-inputDatabank = parser.Results.InputDatabank;
+inputData = parser.Results.InputData;
 dates = parser.Results.SimulationDates;
 dates = double(dates);
 m = parser.Results.Model;
@@ -127,7 +128,7 @@ opt = parser.Options;
 
 eqtn = this.EqtnRhs;
 numOfEquations = numel(eqtn);
-numOfRhsNames = numel(this.NameRhs);
+numOfRhsNames = numel(this.NamesOfRhs);
 dates = dates(:).';
 minDate = min(dates);
 maxDate = max(dates);
@@ -135,7 +136,7 @@ maxSh = this.MaxSh;
 minSh = this.MinSh;
 extendedRange = minDate+minSh : maxDate+maxSh;
 numExtendedPeriods = numel(extendedRange);
-isSteadyRef = ~isempty(this.NameSteadyRef) && isa(m, 'model');
+isSteadyRef = ~isempty(this.NamesOfSteadyRef) && isa(m, 'model');
 
 D = struct( );
 S = struct( );
@@ -159,11 +160,11 @@ for i = 1 : numOfEquations
     fn{i} = str2func(['@(D, t, S)', eqtn{i}]);
 end
 
-% Evaluate equations sequentially period by period.
+% Evaluate equations sequentially period by period
 runTime = dates-minDate+1 - minSh;
 for t = runTime
     for iEq = 1 : numOfEquations
-        ithName = this.NameLhs{iEq};
+        ithName = this.NamesOfLhs{iEq};
         lhs = D.(ithName);
         try
             x = fn{iEq}(D, t, S);
@@ -183,39 +184,29 @@ for t = runTime
     end
 end
 
-outputDatabank = struct( );
+outputData = struct( );
 if ~opt.Fresh
-    outputDatabank = inputDatabank;
+    outputData = inputData;
 end
-
-if isstruct(opt.DbOverlay)
-    inputDatabank = opt.DbOverlay;
-    opt.DbOverlay = true;
-end
-
-if ~opt.DbOverlay && opt.AppendPresample
-    inputDatabank = dbclip(inputDatabank, [-Inf, minDate]);
-end
-
-appendPresample = opt.DbOverlay || opt.AppendPresample;
 
 for i = 1 : numOfEquations
-    ithName = this.NameLhs{i};
+    ithName = this.NamesOfLhs{i};
     data = D.(ithName)(-minSh+1:end-maxSh, :);
     ithComment = this.Label{i};
-    outputDatabank.(ithName) = fill(TEMPLATE_SERIES, data, minDate, ithComment);
-    if appendPresample && isfield(inputDatabank, ithName)
-        outputDatabank.(ithName) = [ inputDatabank.(ithName) ; outputDatabank.(ithName) ];
-    end 
+    outputData.(ithName) = fill(TEMPLATE_SERIES, data, minDate, ithComment);
 end
+
+outputData = appendData(this, inputData, outputData, [minDate, maxDate], opt);
 
 return
 
 
+
+
     function s = createSteadyRefDbase( )
         ttrend = dat2ttrend(extendedRange, m);
-        lsName = this.NameSteadyRef;
-        ell = lookup(m, this.NameSteadyRef);
+        lsName = this.NamesOfSteadyRef;
+        ell = lookup(m, this.NamesOfSteadyRef);
         pos = ell.PosName;
         ixNan = isnan(pos);
         if any(ixNan)
@@ -232,46 +223,51 @@ return
             iithName = lsName{ii};
             s.(iithName) = X(:, :, ii);
         end
-    end
+    end%
+
+
 
 
     function checkRhsNames( )
-        indexFound = true(1, numOfRhsNames);
-        indexValid = true(1, numOfRhsNames);
+        inxOfFound = true(1, numOfRhsNames);
+        inxOfValid = true(1, numOfRhsNames);
         for ii = 1 : numOfRhsNames
-            iithName = this.NameRhs{ii};
-            isField = isfield(inputDatabank, iithName);
-            indexFound(ii) = isField || any(strcmp(iithName, this.NameLhs));
+            iithName = this.NamesOfRhs{ii};
+            isField = isfield(inputData, iithName);
+            inxOfFound(ii) = isField || any(strcmp(iithName, this.NamesOfLhs));
             if ~isField
                 continue
             end
-            if isa(inputDatabank.(iithName), 'tseries')
-                D.(iithName) = rangedata(inputDatabank.(iithName), extendedRange);
+            if isa(inputData.(iithName), 'NumericTimeSubscriptable')
+                D.(iithName) = rangedata(inputData.(iithName), extendedRange);
                 continue
             end
-            indexValid(ii) = isnumeric(inputDatabank.(iithName)) && size(inputDatabank.(iithName), 1)==1;
-            if indexValid(ii)
-                D.(iithName) = inputDatabank.(iithName);
+            inxOfValid(ii) = isnumeric(inputData.(iithName)) && size(inputData.(iithName), 1)==1;
+            if inxOfValid(ii)
+                D.(iithName) = inputData.(iithName);
                 eqtn = regexprep(eqtn, ['\?', iithName, '#'], ['?', iithName]);
             end
         end
-        if any(~indexFound)
+        if any(~inxOfFound)
             throw( exception.Base('RptEq:RHS_NAME_DATA_NOT_FOUND', 'error'), ...
-                this.NameRhs{~indexFound} );
+                this.NamesOfRhs{~inxOfFound} );
         end
-        if any(~indexValid)
+        if any(~inxOfValid)
             throw( exception.Base('RptEq:RHS_NAME_DATA_INVALID', 'error'), ...
-                this.NameRhs{~indexFound} );
+                this.NamesOfRhs{~inxOfFound} );
         end        
-    end
+    end%
+
+
 
 
     function preallocLhsNames( )
         for ii = 1 : numOfEquations
-            iithName = this.NameLhs{ii};
+            iithName = this.NamesOfLhs{ii};
             if ~isfield(D, iithName)
                 D.(iithName) = nan(numExtendedPeriods, 1);
             end
         end
-    end
-end
+    end%
+end%
+

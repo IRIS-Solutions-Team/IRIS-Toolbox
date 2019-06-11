@@ -1,11 +1,11 @@
 function [answ, flag, query] = implementGet(this, query, varargin)
-% implementGet  Implement get method for rpteq objects.
+% implementGet  Implement get method for rpteq objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -23,10 +23,10 @@ switch query
         answ = this.FileName;
 
     case {'lhsnames', 'lhslist'}
-        answ = this.NameLhs;
+        answ = this.NamesOfLhs;
         
     case {'rhsnames', 'rhslist'}
-        answ = this.NameRhs;
+        answ = this.NamesOfRhs;
         
     case {'equation', 'equations', 'eqtn', 'eqtns'}
         answ = this.UsrEqtn;
@@ -42,4 +42,5 @@ switch query
         
 end
 
-end
+end%
+

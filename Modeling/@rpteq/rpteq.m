@@ -38,12 +38,14 @@
 
 classdef rpteq < shared.GetterSetter ...
                & shared.UserDataContainer ...
-               & shared.CommentContainer
+               & shared.CommentContainer ...
+               & model.Data
+
     properties
         FileName = char.empty(1, 0)
-        NameLhs = cell.empty(1, 0)
-        NameRhs = cell.empty(1, 0)
-        NameSteadyRef = cell.empty(1, 0)
+        NamesOfLhs = cell.empty(1, 0)
+        NamesOfRhs = cell.empty(1, 0)
+        NamesOfSteadyRef = cell.empty(1, 0)
         EqtnRhs = cell.empty(1, 0)
         NaN = double.empty(1, 0)
         UsrEqtn = cell.empty(1, 0)
@@ -51,6 +53,12 @@ classdef rpteq < shared.GetterSetter ...
         MaxSh = 0
         MinSh = 0
         Export = shared.Export.empty(1, 0)
+    end
+
+
+    properties (Dependent)
+        NumOfVariants
+        NamesOfAppendables
     end
     
     
@@ -119,25 +127,22 @@ classdef rpteq < shared.GetterSetter ...
             % -IRIS Macroeconomic Modeling Toolbox.
             % -Copyright (c) 2007-2019 IRIS Solutions Team.
             
-            persistent INPUT_PARSER PARSER_OPTIONS
-            if isempty(INPUT_PARSER)
-                INPUT_PARSER = extend.InputParser('rpteq.rpteq');
-                INPUT_PARSER.KeepUnmatched = true;
-                INPUT_PARSER.PartialMatching = false;
-                INPUT_PARSER.addRequired('InputEquations', @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
-                INPUT_PARSER.addParameter('Assign', struct( ), @isstruct);
-                INPUT_PARSER.addParameter('saveas', char.empty(1, 0), @(x) ischar(x) || isa(x, 'string'));
-            end
-            if isempty(PARSER_OPTIONS)
-                PARSER_OPTIONS = extend.InputParser('model.model');
-                PARSER_OPTIONS.KeepUnmatched = true;
-                PARSER_OPTIONS.PartialMatching = false;
-                PARSER_OPTIONS.addParameter('AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
-                PARSER_OPTIONS.addParameter({'SteadyOnly', 'SstateOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
-                PARSER_OPTIONS.addParameter({'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
-            end
+            persistent inputParser parserOptions
+            if isempty(inputParser) || isempty(parserOptions)
+                inputParser = extend.InputParser('rpteq.rpteq');
+                inputParser.KeepUnmatched = true;
+                inputParser.PartialMatching = false;
+                inputParser.addRequired('Input', @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
+                inputParser.addParameter('Assign', struct( ), @isstruct);
+                inputParser.addParameter('saveas', char.empty(1, 0), @(x) ischar(x) || isa(x, 'string'));
 
-            BR = sprintf('\n');
+                parserOptions = extend.InputParser('rpteq.rpteq');
+                parserOptions.KeepUnmatched = true;
+                parserOptions.PartialMatching = false;
+                parserOptions.addParameter('AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
+                parserOptions.addParameter({'SteadyOnly', 'SstateOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
+                parserOptions.addParameter({'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
+            end
             
             %--------------------------------------------------------------
             
@@ -151,44 +156,43 @@ classdef rpteq < shared.GetterSetter ...
                 euc = varargin{2};
                 this.FileName = varargin{3};
             elseif ischar(varargin{1}) || iscellstr(varargin{1})
-                INPUT_PARSER.parse(varargin{:});
-                inputEquations = INPUT_PARSER.Results.InputEquations;
-                opt = INPUT_PARSER.Options;
-                PARSER_OPTIONS.parse(INPUT_PARSER.UnmatchedInCell{:});
-                parserOpt = PARSER_OPTIONS.Options;
-                unmatched = PARSER_OPTIONS.UnmatchedInCell;
+                parse(inputParser, varargin{:});
+                input = inputParser.Results.Input;
+                opt = inputParser.Options;
+                parse(parserOptions, inputParser.UnmatchedInCell{:});
+                unmatched = parserOptions.UnmatchedInCell;
                 if ~isstruct(opt.Assign)
                     opt.Assign = struct( );
                 end
                 for i = 1 : 2 : numel(unmatched)
                     opt.Assign.(umatched{i}) = unmatched{i+1};
                 end
-                % Tell apart equations from file names.
-                indexOfFileNames = cellfun(@isempty, strfind(cellstr(inputEquations), '='));
-                if all(indexOfFileNames)
-                    % Input is file name or cellstr of file names.
-                    [code, this.FileName, this.Export] = parser.Preparser.parse( inputEquations, [ ], ...
+                % Tell apart equations from file names
+                inxOfFileNames = cellfun(@isempty, strfind(cellstr(input), '='));
+                if all(inxOfFileNames)
+                    % Input is file name or cellstr of file names
+                    [code, this.FileName, this.Export] = parser.Preparser.parse( input, [ ], ...
                                                                                  'Assigned=', opt.Assign );
-                elseif all(~indexOfFileNames)
-                    % Input is equation or cellstr of equations.
-                    [code, this.FileName, this.Export] = parser.Preparser.parse( [ ], inputEquations, ...
+                elseif all(~inxOfFileNames)
+                    % Input is equation or cellstr of equations
+                    [code, this.FileName, this.Export] = parser.Preparser.parse( [ ], input, ...
                                                                                  'Assigned=', opt.Assign );
                 else
-                    utils.error('rpteq:rpteq', ...
-                        ['Input to rpteq( ) must be either file name(s), ', ...
-                        'or equation(s), but not combination of both.']);
+                    THIS_ERROR = { 'rpteq:Constructor'
+                                   'Input to rpteq constructor must be either file names or equations but not both' };
+                    throw( exception.Base(THIS_ERROR, 'error') );
                 end
                 export(this);
-                % Supply the  `!reporting_equations` keyword if missing.
-                if isempty(strfind(code, '!reporting_equations'))
-                    code = ['!reporting_equations', BR, code];
+                % Supply the  `!reporting-equations` keyword if missing.
+                if isempty(strfind(code, '!reporting-equations'))
+                    code = ['!reporting-equations', newline( ), code];
                 end
-                % Run theparser on preparsed code.
+                % Run theparser on preparsed code
                 the = parser.TheParser('rpteq', this.FileName, code, opt.Assign);
-                [~, eqn, euc] = parse(the, parserOpt);
+                [~, eqn, euc] = parse(the, parserOptions.Options);
             end
             
-            % Run rpteq postparser.
+            % Run rpteq postparser
             this = postparse(this, eqn, euc);
         end
     end
@@ -202,7 +206,7 @@ classdef rpteq < shared.GetterSetter ...
 
         function export(this)
             export(this.Export);
-        end
+        end%
     end
     
     
@@ -216,4 +220,17 @@ classdef rpteq < shared.GetterSetter ...
     methods (Access=protected, Hidden)
         varargout = postparse(varargin)
     end
+
+
+    methods
+        function value = get.NumOfVariants(this)
+            value = 1;
+        end%
+
+
+        function value = get.NamesOfAppendables(this)
+            value = this.NamesOfLhs;
+        end%
+    end
 end
+

@@ -1,8 +1,8 @@
 function this = postparse(this, equation, euc)
-% myparse  Post-parse rpteq input code.
+% myparse  Post-parse rpteq input code
 %
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -12,9 +12,9 @@ ixr = equation.Type==TYPE(6);
 if ~any(ixr)
     return
 end
-nEqtn = length(equation.Input);
+numOfEquations = numel(equation.Input);
 
-ixValid = true(1, nEqtn);
+ixValid = true(1, numOfEquations);
 for i = find(ixr)
     ixValid(i) = isvarname(euc.LhsDynamic{i});
 end
@@ -24,7 +24,7 @@ if any(~ixValid)
 end
 
 this.UsrEqtn = equation.Input(ixr);
-this.NameLhs = euc.LhsDynamic(ixr);
+this.NamesOfLhs = euc.LhsDynamic(ixr);
 this.Label = equation.Label(ixr);
 this.MaxSh = max( euc.MaxShDynamic(ixr) );
 this.MinSh = min( euc.MinShDynamic(ixr) );
@@ -36,25 +36,25 @@ rhs = euc.RhsDynamic(ixr);
 rhs = regexprep(rhs, ...
     '(?<!!)(\<[a-zA-Z]\w*\>(\{.*?\})?)(?![\(\.])', '?$1#');
 
-% Vectorize *, /, \, ^ operators.
+% Vectorize *, /, \, ^ operators
 rhs = textfun.vectorize(rhs);
 
-% Make list of all names occuring on RHS.
-lsNameRhs = regexp(rhs, '&?\?\w+', 'match');
-lsNameRhs = [ lsNameRhs{:} ];
-lsNameRhs = unique(lsNameRhs);
+% Make list of all names occuring on RHS
+namesOfRhs = regexp(rhs, '&?\?\w+', 'match');
+namesOfRhs = [ namesOfRhs{:} ];
+namesOfRhs = unique(namesOfRhs);
 
-ixSteadyRef = strncmp(lsNameRhs, '&', 1);
-lsSteadyRef = lsNameRhs(ixSteadyRef);
-lsSteadyRef = strrep(lsSteadyRef, '&?', '');
-lsNameRhs(ixSteadyRef) = [ ];
-lsNameRhs = strrep(lsNameRhs, '?', '');
+inxOfSteadyRef = strncmp(namesOfRhs, '&', 1);
+namesOfSteadyRef = namesOfRhs(inxOfSteadyRef);
+namesOfSteadyRef = strrep(namesOfSteadyRef, '&?', '');
+namesOfRhs(inxOfSteadyRef) = [ ];
+namesOfRhs = strrep(namesOfRhs, '?', '');
 
 this.EqtnRhs = rhs;
-this.NameRhs = lsNameRhs;
-this.NameSteadyRef = lsSteadyRef;
+this.NamesOfRhs = namesOfRhs;
+this.NamesOfSteadyRef = namesOfSteadyRef;
 
-nanValue = nan(1, nEqtn);
+nanValue = nan(1, numOfEquations);
 ixEmpty = cellfun(@isempty, euc.RhsSteady);
 for i = find(ixr & ~ixEmpty)
     try %#ok<TRYNC>
@@ -66,4 +66,5 @@ for i = find(ixr & ~ixEmpty)
 end
 this.NaN = nanValue(ixr);
 
-end
+end%
+

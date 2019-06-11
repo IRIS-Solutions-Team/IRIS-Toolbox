@@ -23,10 +23,10 @@ switch query
         answ = this.FileName;
 
     case {'lhsnames', 'lhslist'}
-        answ = this.NameLhs;
+        answ = this.NamesOfLhs;
         
     case {'rhsnames', 'rhslist'}
-        answ = this.NameRhs;
+        answ = this.NamesOfRhs;
         
     case {'equation', 'equations', 'eqtn', 'eqtns'}
         answ = this.UsrEqtn;
@@ -42,4 +42,5 @@ switch query
         
 end
 
-end
+end%
+
