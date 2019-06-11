@@ -39,7 +39,6 @@
 % -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 classdef namedmat < double % >>>>> MOSW classdef namedmat
-    
     properties (SetAccess = protected)
         RowNames = cell.empty(1, 0);
         ColNames = cell.empty(1, 0);
@@ -48,90 +47,76 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
 
     methods
         function this = namedmat(X, varargin)
-            % namedmat  Create a new matrix with named rows and columns.
-            %
-            % __Syntax__
-            %
-            %     X = namedmat(X, RowNames, ColNames)
-            %     X = namedmat(X, Names)
-            %
-            %
-            % __Input Arguments__
-            %
-            % * `X` [ numeric ] - Matrix or multidimensional array.
-            %
-            % * `RowNames` [ cellstr ] - Names for individual rows of `X`.
-            %
-            % * `ColNames` [ cellstr ] - Names for individual columns of
-            % `X`.
-            %
-            % * `Names` [ cellstr ] - Names for both rows and columns of
-            % `X`.
-            %
-            %
-            % __Output Arguments__
-            %
-            % * `X` [ namedmat ] - Matrix with named rows and columns.
-            %
-            %
-            % __Description__
-            %
-            % The namedmat objects are used by some of the IRIS functions to
-            % preserve the names of variables that relate to individual
-            % rows and columns, such as in
-            %
-            % * `acf( )`, the autocovariance and autocorrelation functions, 
-            % * `xsf( )`, the power spectrum and spectral density functions, 
-            % * `fmse( )`, the forecast mean square error fuctions, etc.
-            %
-            % You can use the function [`select`](namedmat/select) to
-            % extract submatrices by referring to a selection of names.
-            %
-            % Namedmat matrices derives from the built-in double class of
-            % objects, and hence you can use any operators and functions on
-            % them that are available for double objects.
-            %
-            %
-            % __Example__
-            %
-            
-            % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2019 IRIS Solutions Team.
-            
-            %--------------------------------------------------------------
+% namedmat  Create a new matrix with named rows and columns
+%
+% __Syntax__
+%
+%     X = namedmat(X, RowNames, ColNames)
+%     X = namedmat(X, Names)
+%
+%
+% __Input Arguments__
+%
+% * `X` [ numeric ] - Matrix or multidimensional array.
+%
+% * `RowNames` [ cellstr ] - Names for individual rows of `X`.
+%
+% * `ColNames` [ cellstr ] - Names for individual columns of
+% `X`.
+%
+% * `Names` [ cellstr ] - Names for both rows and columns of
+% `X`.
+%
+%
+% __Output Arguments__
+%
+% * `X` [ namedmat ] - Matrix with named rows and columns.
+%
+%
+% __Description__
+%
+% The namedmat objects are used by some of the IRIS functions to
+% preserve the names of variables that relate to individual
+% rows and columns, such as in
+%
+% * `acf( )`, the autocovariance and autocorrelation functions, 
+% * `xsf( )`, the power spectrum and spectral density functions, 
+% * `fmse( )`, the forecast mean square error fuctions, etc.
+%
+% You can use the function [`select`](namedmat/select) to
+% extract submatrices by referring to a selection of names.
+%
+% Namedmat matrices derives from the built-in double class of
+% objects, and hence you can use any operators and functions on
+% them that are available for double objects.
+%
+%
+% __Example__
+%
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------
             
             if nargin==0
                 X = double.empty(0, 0);
             end
             this = this@double(X);
-            if ~isempty(varargin)
+            this.RowNames = repmat({''}, 1, size(X, 1));
+            this.ColNames = repmat({''}, 1, size(X, 2));
+            if length(varargin)>=1
                 this.RowNames = varargin{1};
-                varargin(1) = [ ];
             end
-            if ~isempty(varargin)
-                this.ColNames = varargin{1};
-                varargin(1) = [ ]; %#ok<NASGU>
-            elseif ~isempty(this.RowNames)
+            if length(varargin)>=2
+                this.ColNames = varargin{2};
+            elseif length(varargin)==1
                 this.ColNames = this.RowNames;
             end
-        end
+        end%
         
         
-        function disp(this)
-            disp(double(this));
-            addspace = false;
-            if ~isempty(this.RowNames)
-                disp(['   Rows:', sprintf(' %s', this.RowNames{:})]);
-                addspace = true;
-            end
-            if ~isempty(this.ColNames)
-                disp(['Columns:', sprintf(' %s', this.ColNames{:})]);
-                addspace = true;
-            end
-            if addspace
-                textfun.loosespace( );
-            end
-        end
+
 
         
         varargout = colnames(varargin)
@@ -158,7 +143,7 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
                 'Row names must be entered as a cellstr matching the number of rows.' ...
             );
             this.RowNames = rowNames;
-        end
+        end%
 
 
         function this = set.ColNames(this, columnNames)
@@ -172,7 +157,7 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
                 'Column names must be entered as a cellstr matching the number of columns.' ...
             );
             this.ColNames = columnNames;
-        end
+        end%
     end
     
     
@@ -182,7 +167,7 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
             columnNames = this.ColNames;
             this = abs@double(this);
             this = namedmat(this, rowNames, columnNames);
-        end
+        end%
     end
 
             
@@ -192,6 +177,6 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
 
         function flag = validateMatrixFormat(format)
             flag = any(strcmpi(format, {'Plain', 'Numeric', 'NamedMat'}));
-        end
+        end%
     end
 end
