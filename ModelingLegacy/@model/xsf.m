@@ -59,27 +59,27 @@ function varargout = xsf(this, freq, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2019 IRIS Solutions Team.
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.xsf');
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('Freq', @isnumeric);
-    inputParser.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
-    inputParser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
-    inputParser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
-    inputParser.addParameter('Filter', '', @ischar);
-    inputParser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
-    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.xsf');
+    parser.addRequired('Model', @(x) isa(x, 'model'));
+    parser.addRequired('Freq', @isnumeric);
+    parser.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
+    parser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
+    parser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
+    parser.addParameter('Filter', '', @ischar);
+    parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
+    parser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
 end
-inputParser.parse(this, freq, varargin{:});
-opt = inputParser.Options;
+parse(parser, this, freq, varargin{:});
+opt = parser.Options;
 
 if isscalar(freq) && freq==round(freq) && freq>=0
-    numFreq = freq;
-    freq = linspace(0, pi, numFreq);
+    numOfFreq = freq;
+    freq = linspace(0, pi, numOfFreq);
 else
     freq = freq(:).';
-    numFreq = numel(freq);
+    numOfFreq = numel(freq);
 end
 
 isDensity = nargout>=2;
@@ -94,36 +94,39 @@ nv = length(this);
 solutionVector = printSolutionVector(this, 'yx', @Behavior);
 [isFilter, filter, ~, applyFilterTo] = freqdom.applyfilteropt(opt, freq, solutionVector);
 
-% _System Property_
-systemProperty = createSystemPropertyObject( );
+% Set up SystemProperty
+systemProperty = hereSetupSystemProperty( );
 if ~isequal(opt.SystemProperty, false)
-    systemProperty.OutputNames = opt.SystemProperty;
     varargout = { systemProperty };
     return
 end
 
-[SS, DD] = preallocate( );
+[SS, DD] = herePreallocateOutputArrays( );
 
 numOfUnitRoots = getNumOfUnitRoots(this.Variant);
-
-indexNaNSolutions = reportNaNSolutions(this);
 
 if opt.Progress
     progress = ProgressBar('IRIS model.xsf progress');
 end
-for v = find(~indexNaNSolutions)
+
+
+% /////////////////////////////////////////////////////////////////////////
+inxOfNaNSolutions = reportNaNSolutions(this);
+for v = find(~inxOfNaNSolutions)
     update(systemProperty, this, v);
-    [vthSS, vthDD] = freqdom.wrapper(systemProperty);
-    SS(:, :, :, v) = vthSS;
+    freqdom.wrapper(this, systemProperty, v);
+    SS(:, :, :, v) = systemProperty.Outputs{1};
     if isDensity
-        DD(:, :, :, v) = vthDD;
+        DD(:, :, :, v) = systemProperty.Outputs{2};
     end
     if opt.Progress
-        update(progress, v, ~indexNaNSolutions);
+        update(progress, v, ~inxOfNaNSolutions);
     end
 end
+% /////////////////////////////////////////////////////////////////////////
 
-% Select variables if requested.
+
+% Select variables if requested
 if isSelect
     [SS, pos] = namedmat.myselect(SS, solutionVector, solutionVector, opt.Select, opt.Select);
     pos = pos{1};
@@ -150,10 +153,10 @@ varargout{4} = freq;
 return
 
 
-    function systemProperty = createSystemPropertyObject( )
+    function systemProperty = hereSetupSystemProperty( )
         systemProperty = SystemProperty(this);
         systemProperty.Function = @freqdom.wrapper;
-        systemProperty.MaxNumOutputs = 2;
+        systemProperty.MaxNumOfOutputs = 2;
         systemProperty.NamedReferences = {solutionVector, solutionVector};
         systemProperty.Specifics = struct( );
         systemProperty.Specifics.Frequencies = freq;
@@ -161,14 +164,25 @@ return
         systemProperty.Specifics.IsFilter = isFilter;
         systemProperty.Specifics.Filter = filter;
         systemProperty.Specifics.ApplyFilterTo = applyFilterTo;
-    end
+        if isequal(opt.SystemProperty, false)
+            if ~isDensity
+                systemProperty.OutputNames = {'SS'};
+            else
+                systemProperty.OutputNames = {'SS', 'DD'};
+            end
+        else
+            systemProperty.OutputNames = opt.SystemProperty;
+        end
+        preallocateOutputs(systemProperty);
+    end%
 
 
-    function [SS, DD] = preallocate( )
-        SS = nan(ny+nxi, ny+nxi, numFreq, nv);
+    function [SS, DD] = herePreallocateOutputArrays( )
+        SS = nan(ny+nxi, ny+nxi, numOfFreq, nv);
         DD = double.empty(0);
         if isDensity
             DD = nan(size(SS));
         end
-    end
-end
+    end%
+end%
+

@@ -136,49 +136,52 @@ isCorrelations = nargout>=2;
 nv = length(this);
 
 if isContributions
-    numContributions = ne;
+    numOfContributions = ne;
 else
-    numContributions = 1;
+    numOfContributions = 1;
 end
 
-% Pre-process filter options.
+% Pre-process filter options
 solutionVector = printSolutionVector(this, 'yx', @Behavior);
 [isFilter, filter, freq, applyFilterTo] = freqdom.applyfilteropt(opt, [ ], solutionVector);
 
-% _System Property_
-systemProperty = createSystemPropertyObject( );
+% Set up SystemProperty
+systemProperty = hereSetupSystemProperty( );
 if ~isequal(opt.SystemProperty, false)
-    systemProperty.OutputNames = opt.SystemProperty;
     varargout = { systemProperty };
     return
 end
 
-[CC, RR] = preallocate( );
+[CC, RR] = herePreallocateOutputArrays( );
 
-indexNaNSolutions = reportNaNSolutions(this);
+inxOfNaNSolutions = reportNaNSolutions(this);
 
 if opt.Progress
     progress = ProgressBar('IRIS model.acf progress');
 end
 
-for v = find(~indexNaNSolutions)
+
+% /////////////////////////////////////////////////////////////////////////
+for v = find(~inxOfNaNSolutions)
     update(systemProperty, this, v);
-    [vthCC, vthRR] = covfun.wrapper(systemProperty);
+    covfun.wrapper(this, systemProperty, v);
     if isContributions
-        CC(:, :, :, :, v) = vthCC;
+        CC(:, :, :, :, v) = systemProperty.Outputs{1};
         if isCorrelations
-            RR(:, :, :, :, v) = vthRR;
+            RR(:, :, :, :, v) = systemProperty.Outputs{2};
         end
     else
-        CC(:, :, :, v) = vthCC;
+        CC(:, :, :, v) = systemProperty.Outputs{1};
         if isCorrelations
-            RR(:, :, :, v) = vthRR;
+            RR(:, :, :, v) = systemProperty.Outputs{2};
         end
     end
     if opt.Progress
-        update(progress, v, ~indexNaNSolutions);
+        update(progress, v, ~inxOfNaNSolutions);
     end
 end
+% /////////////////////////////////////////////////////////////////////////
+
 
 % Select submatrices if requested
 if isSelect
@@ -190,7 +193,7 @@ if isSelect
     end
 end
 
-% Convert double arrays to namedmat objects if requested.
+% Convert double arrays to namedmat objects if requested
 if isNamedMat
     CC = namedmat(CC, solutionVector, solutionVector);
     if isCorrelations
@@ -206,33 +209,45 @@ varargout{3} = solutionVector;
 return
 
 
-    function systemProperty = createSystemPropertyObject( )
+    function systemProperty = hereSetupSystemProperty( )
         systemProperty = SystemProperty(this);
         systemProperty.Function = @covfun.wrapper;
-        systemProperty.MaxNumOutputs = 2;
+        systemProperty.MaxNumOfOutputs = 2;
         systemProperty.NamedReferences = {solutionVector, solutionVector};
         systemProperty.Specifics = struct( );
         systemProperty.Specifics.MaxOrder = opt.Order;
         systemProperty.Specifics.IsContributions = isContributions;
         systemProperty.Specifics.IsCorrelations = isCorrelations;
-        systemProperty.Specifics.NumContributions = numContributions;
+        systemProperty.Specifics.NumContributions = numOfContributions;
         systemProperty.Specifics.IsFilter = isFilter;
         systemProperty.Specifics.Filter = filter;
         systemProperty.Specifics.ApplyFilterTo = applyFilterTo;
         systemProperty.Specifics.Frequencies = freq;
-    end%
-
-
-    function [CC, RR] = preallocate( )
-        if isContributions
-            CC = nan(ny+nxi, ny+nxi, opt.Order+1, numContributions, nv);
+        if isequal(opt.SystemProperty, false)
+            % Regular call
+            if ~isCorrelations
+                systemProperty.OutputNames = { 'CC' };
+            else
+                systemProperty.OutputNames = { 'CC', 'RR' };
+            end
         else
-            CC = nan(ny+nxi, ny+nxi, opt.Order+1, nv);
+            % Prepare for SystemProperty calls
+            systemProperty.OutputNames = opt.SystemProperty;
         end
-        RR = double.empty(0);
-        if isCorrelations
-            RR = nan(size(CC));
-        end
+        preallocateOutputs(systemProperty);
     end%
-end%
+
+
+        function [CC, RR] = herePreallocateOutputArrays( )
+            if isContributions
+                CC = nan(ny+nxi, ny+nxi, opt.Order+1, numOfContributions, nv);
+            else
+                CC = nan(ny+nxi, ny+nxi, opt.Order+1, nv);
+            end
+            RR = double.empty(0);
+            if isCorrelations
+                RR = nan(size(CC));
+            end
+        end%
+    end%
 

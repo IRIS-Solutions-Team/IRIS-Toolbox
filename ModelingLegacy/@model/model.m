@@ -83,8 +83,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         % NumOfVariants  Number of parameter variants
         NumOfVariants
 
-        % NamesOfAppendablesInData  Variable names that can be appended pre-sample or post-sample database
-        NamesOfAppendablesInData
+        % NamesOfAppendables  Variable names that can be appended pre-sample or post-sample database
+        NamesOfAppendables
 
         % NamesOfEndogenousInPlan  Names of variables that can be exogenized in simulation plan
         NamesOfEndogenousInPlan
@@ -715,7 +715,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
 
-        function names = get.NamesOfAppendablesInData(this)
+        function names = get.NamesOfAppendables(this)
             TYPE = @int8;
             names = getNamesByType(this.Quantity, TYPE(1), TYPE(2), TYPE(31), TYPE(32), TYPE(5));
         end%

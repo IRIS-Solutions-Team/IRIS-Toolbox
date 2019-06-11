@@ -8,6 +8,7 @@ function disp(this)
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 STR_VARIANT = 'Parameter Variant';
+CONFIG = iris.get( );
 
 %--------------------------------------------------------------------------
 
@@ -22,10 +23,12 @@ end
 ccn = getClickableClassName(this);
 
 if isEmpty
-    fprintf('\tEmpty %s %s Object\n', attribute, ccn);    
+    fprintf(CONFIG.DispIndent);
+    fprintf('Empty %s %s Object\n', attribute, ccn);    
 else
     nv = length(this);
-    fprintf( '\t%s %s Object: [%g %s(s)]\n', ...
+    fprintf(CONFIG.DispIndent);
+    fprintf( '%s %s Object: [%g %s(s)]\n', ...
              attribute, ccn, nv, STR_VARIANT );
     
 end
@@ -33,7 +36,7 @@ end
 implementDisp(this.Equation);
 
 if isEmpty
-    % Print nothing.
+    % Print nothing
 else
     printSolution( );
 end
@@ -49,9 +52,10 @@ return
 
     function printSolution( )
         [~, ix] = isnan(this, 'Solution');
-        nSolution = nnz(~ix);
-        fprintf( '\tSolution(s) Available: [%g %s(s)]\n', ...
-                 nSolution, STR_VARIANT );
+        numOfSolutions = nnz(~ix);
+        fprintf(CONFIG.DispIndent);
+        fprintf( 'Solution(s) Available: [%g %s(s)]\n', ...
+                 numOfSolutions, STR_VARIANT );
     end%
 end%
 

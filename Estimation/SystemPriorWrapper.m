@@ -166,20 +166,20 @@ classdef SystemPriorWrapper < handle
             logDensityContributions = nan(1, numOfPriors, nv);
             priorEval = nan(1, numOfPriors, nv);
             outputNames = this.OutputNames;
-            numOutputs = length(outputNames);
+            numOfOutputs = length(outputNames);
             for v = 1 : nv
                 update(systemProperty, model, v);
-                outputs = cell(1, numOutputs);
+                outputs = cell(1, numOfOutputs);
                 count = 0;
                 for i = 1 : numOfProperties
                     systemProperty.Function = this.SystemProperties(i).Function;
-                    systemProperty.MaxNumOutputs = this.SystemProperties(i).MaxNumOutputs;
+                    systemProperty.MaxNumOfOutputs = this.SystemProperties(i).MaxNumOfOutputs;
                     systemProperty.OutputNames = this.SystemProperties(i).OutputNames;
                     systemProperty.Specifics = this.SystemProperties(i).Specifics;
-                    ithNumOutputs = this.SystemProperties(i).NumOutputs;
-                    eval(systemProperty);
-                    outputs(count+(1:ithNumOutputs)) = systemProperty.Outputs(1:end);
-                    count = count + ithNumOutputs;
+                    ithNumOfOutputs = this.SystemProperties(i).NumOfOutputs;
+                    eval(systemProperty, model, v);
+                    outputs(count+(1:ithNumOfOutputs)) = systemProperty.Outputs(1:end);
+                    count = count + ithNumOfOutputs;
                 end
                 for i = 1 : numOfPriors
                     p = this.SystemPriors(i); 

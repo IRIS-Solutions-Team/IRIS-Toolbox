@@ -1,4 +1,4 @@
-function [CC, RR] = wrapper(systemProperty)
+function wrapper(~, systemProperty, ~)
 % wrapper  Calculate ACF and wrap it in a system property object
 %
 % Backend IRIS function
@@ -23,25 +23,25 @@ Omega = systemProperty.CovShocks;
 maxOrder = systemProperty.Specifics.MaxOrder;
 isContributions = systemProperty.Specifics.IsContributions;
 isCorrelations = isequal(systemProperty.Specifics.IsCorrelations, true) ...
-    || systemProperty.NumOutputs>=2;
+                 || systemProperty.NumOfOutputs>=2;
 isFilter = systemProperty.Specifics.IsFilter;
-numContributions = systemProperty.Specifics.NumContributions;
+numOfContributions = systemProperty.Specifics.NumContributions;
 if isFilter
-    numUnitRoots = systemProperty.NumUnitRoots;
+    numOfUnitRoots = systemProperty.NumUnitRoots;
     filter = systemProperty.Specifics.Filter;
     applyFilterTo = systemProperty.Specifics.ApplyFilterTo;
     freq = systemProperty.Specifics.Frequencies;
 end
-indexUnitRoots = systemProperty.EigenStability==TYPE(1);
+inxOfUnitRoots = systemProperty.EigenStability==TYPE(1);
 
 % Preallocate CC, RR
-[CC, RR] = preallocate( );
+[CC, RR] = herePreallocateOutputArrays( );
 
 % Solution not available, return immediately
 if any(isnan(T(:)))
-    if systemProperty.NumOutputs>=1
+    if systemProperty.NumOfOutputs>=1
         systemProperty.Outputs{1} = CC;
-        if systemProperty.NumOutputs>=2
+        if systemProperty.NumOfOutputs>=2
             RR = nan(size(CC));
             systemProperty.Outputs{2} = RR;
         end
@@ -49,33 +49,29 @@ if any(isnan(T(:)))
     return
 end
 
-for ithContribution = 1 : numContributions
+for ithContribution = 1 : numOfContributions
     if isContributions
-        indexShocks = false(1, ne);
-        indexShocks(ithContribution) = true;
-        ithOmega = Omega(indexShocks, indexShocks);
+        inxOfShocks = false(1, ne);
+        inxOfShocks(ithContribution) = true;
+        ithOmega = Omega(inxOfShocks, inxOfShocks);
         if all(ithOmega(:))==0
             CC(:, :, :, ithContribution) = 0;
             continue
         end
-        ithR = R(:, indexShocks);
-        ithH = H(:, indexShocks);
+        ithR = R(:, inxOfShocks);
+        ithH = H(:, inxOfShocks);
     else
         ithOmega = Omega;
         ithR = R;
         ithH = H;
     end
     if isFilter
-        S = freqdom.xsf( ...
-            T, ithR, [ ], Z, ithH, [ ], U, ithOmega, ...
-            numUnitRoots, freq, filter, applyFilterTo ...
-        );
+        S = freqdom.xsf( T, ithR, [ ], Z, ithH, [ ], U, ithOmega, ...
+                         numOfUnitRoots, freq, filter, applyFilterTo );
         ithCC = freqdom.xsf2acf(S, freq, maxOrder);
     else
-        ithCC = covfun.acovf( ...
-            T, ithR, [ ], Z, ithH, [ ], U, ithOmega, ...
-            indexUnitRoots(1:nb), maxOrder ...
-        );
+        ithCC = covfun.acovf( T, ithR, [ ], Z, ithH, [ ], U, ithOmega, ...
+                              inxOfUnitRoots(1:nb), maxOrder );
     end
 
     if isContributions
@@ -92,9 +88,9 @@ if isCorrelations
     RR = covfun.cov2corr(CC);
 end
 
-if systemProperty.NumOutputs>=1
+if systemProperty.NumOfOutputs>=1
     systemProperty.Outputs{1} = CC;
-    if systemProperty.NumOutputs>=2
+    if  systemProperty.NumOfOutputs>=2
         systemProperty.Outputs{2} = RR;
     end
 end
@@ -102,13 +98,13 @@ end
 return
 
 
-    function [CC, RR] = preallocate( )
+    function [CC, RR] = herePreallocateOutputArrays( )
         if isContributions
-            CC = nan(ny+nxi, ny+nxi, maxOrder+1, numContributions);
+            CC = nan(ny+nxi, ny+nxi, maxOrder+1, numOfContributions);
         else
             CC = nan(ny+nxi, ny+nxi, maxOrder+1);
         end
         RR = double.empty(0);
-    end
-end
+    end%
+end%
 

@@ -318,20 +318,21 @@ classdef Data < matlab.mixin.Copyable
 
 
     methods (Static)
-        function this = fromModelAndPlan(model, variant, plan, YXEPG, needsEvalTrends)
+        function this = fromModelAndPlan(model, run, plan, YXEPG, needsEvalTrends)
             TYPE = @int8;
 
-            modelVariant = variant;
-            dataVariant = variant;
+            modelVariant = run;
             if length(model)==1
                 modelVariant = 1;
             end
+
+            dataPage = run;
             if size(YXEPG, 3)==1
-                dataVariant = 1;
+                dataPage = 1;
             end
 
             this = simulate.Data( );
-            [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, YXEPG(:, :, dataVariant), modelVariant, [ ]);
+            [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, YXEPG(:, :, dataPage), modelVariant, [ ]);
             quantity = getp(model, 'Quantity');
             this.InxOfY = getIndexByType(quantity, TYPE(1));
             this.InxOfYX = getIndexByType(quantity, TYPE(1), TYPE(2));

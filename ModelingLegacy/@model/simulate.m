@@ -404,7 +404,7 @@ end
 % Prepare SystemProperty
 systemProperty = SystemProperty(this);
 systemProperty.Function = @simulate.linear.wrapper;
-systemProperty.MaxNumOutputs = 1;
+systemProperty.MaxNumOfOutputs = 1;
 systemProperty.NamedReferences = cell(1, 1);
 systemProperty.NamedReferences{1} = [ printSolutionVector(this, 'y', @Behavior), ...
                                       printSolutionVector(this, 'xi', @Behavior), ...
@@ -414,7 +414,7 @@ systemProperty.NamedReferences{1} = [ printSolutionVector(this, 'y', @Behavior),
 for ithRun = 1 : numRuns
     s.ILoop = ithRun;
     variantRunningNow = min(ithRun, nv);
-    indexOfRequiredInitials = getIthIndexInitial(this.Variant, variantRunningNow);
+    inxOfRequiredInitials = getIthIndexInitial(this.Variant, variantRunningNow);
 
     % Get current initial condition for the transformed state vector, 
     % current shocks, and measurement and transition tunes.
@@ -438,7 +438,7 @@ for ithRun = 1 : numRuns
     update(systemProperty, this, variantRunningNow); 
 
     if strcmpi(s.Method, 'FirstOrder')
-        s = simulate.linear.wrapper(systemProperty);
+        s = simulate.linear.wrapper(this, systemProperty, variantRunningNow);
 
     elseif strcmpi(s.Method, 'Selective')
         if ithRun<=nv
@@ -606,11 +606,9 @@ return
             end
         end
         
-        assert( ...
-            strcmpi(opt.Method, 'FirstOrder') || ~opt.SystemProperty, ...
-            'model:simulate:SystemPropertyFirstOrder', ...
-            'Only first-order simulations are permitted as system property.' ...
-        );
+        assert( strcmpi(opt.Method, 'FirstOrder') || ~opt.SystemProperty, ...
+                'model:simulate:SystemPropertyFirstOrder', ...
+                'Only first-order simulations are permitted as system property' );
     end% 
 
 
@@ -626,8 +624,8 @@ return
     function getData( )        
         % Get current initial conditions and and current shocks
         s.XbInit = xbInit(:, 1, min(ithRun, end));
-        indexOfNaNInitials = isnan(s.XbInit);
-        s.XbInit(indexOfNaNInitials & ~indexOfRequiredInitials(:)) = 0;
+        inxOfNaNInitials = isnan(s.XbInit);
+        s.XbInit(inxOfNaNInitials & ~inxOfRequiredInitials(:)) = 0;
         if opt.IgnoreShocks
             s.Ea = zeros(ne, nPer);
             s.Eu = zeros(ne, nPer);

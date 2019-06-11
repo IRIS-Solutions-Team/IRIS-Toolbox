@@ -95,12 +95,17 @@ plan = opt.Plan;
 
 % __Prepare Running Data__
 runningData = simulate.InputOutputData( );
+
 % Retrieve data from intput databank, set up ranges
 herePrepareData( );
+
+hereCopyOptionsToRunningData( );
+
 if opt.Contributions
     % Expand and set up YXEPG to prepare contributions simulation
     herePrepareContributions( );
 end
+
 % Define time frames; can be done only after we expand the data for
 % contributions
 herePrepareTimeFrames( );
@@ -110,7 +115,33 @@ hereCheckInitialConditions( );
 
 herePrepareBlazer( );
 
-simulateTimeFrames(this, runningData, plan, opt);
+systemProperty = hereSetupSystemProperty( );
+
+if ~isequal(opt.SystemProperty, false)
+    outputData = systemProperty;
+    return
+end
+
+progressInfo = ProgressInfo.empty(0);
+if opt.ProgressInfo
+    herePrepareProgressInfo( );
+end
+
+
+% /////////////////////////////////////////////////////////////////////////
+numOfRuns = runningData.NumOfPages;
+for run = 1 : numOfRuns
+    simulateTimeFrames(this, systemProperty, run);
+    if opt.ProgressInfo
+        hereUpdateProgressInfo( );
+    end
+end
+% /////////////////////////////////////////////////////////////////////////
+
+
+if opt.Contributions
+    herePostprocessContributions( );
+end
 
 outputData = hereCreateOutputData( );
 
@@ -152,6 +183,22 @@ return
 
 
 
+    function hereCopyOptionsToRunningData( )
+        numOfRuns = runningData.NumOfPages;
+        runningData.Plan = plan;
+        runningData.Initial = opt.Initial;
+        runningData.Window = opt.Window;
+        runnintDaga.SuccessOnly = opt.SuccessOnly;
+        runningData.SparseShocks = opt.SparseShocks;
+        runningData.Solver = opt.Solver;
+        runningData.Method = repmat(opt.Method, 1, numOfRuns);
+        runningData.Deviation = repmat(opt.Deviation, 1, numOfRuns);
+        runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numOfRuns);
+    end%
+
+
+
+
     function herePrepareData( )
         TYPE = @int8;
         numOfDummyPeriods = hereCalculateNumOfDummyPeriods( );
@@ -175,12 +222,16 @@ return
         runningData.ExtendedRange = [startOfExtendedRange, endOfExtendedRange];
         runningData.BaseRangeColumns = colon( round(startOfBaseRange - startOfExtendedRange + 1), ...
                                               round(endOfBaseRange - startOfExtendedRange + 1) );
-        numOfPages = size(runningData.YXEPG, 3); 
+        numOfPages = runningData.NumOfPages;
         if numOfPages==1 && nv>1
             % Expand number of data sets to match number of parameter variants
             runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, nv);
         end
+        numOfRuns = runningData.NumOfPages;
         runningData.InxOfInitInPresample = getInxOfInitInPresample(this, runningData.BaseRangeColumns(1));
+        runningData.Method = repmat(opt.Method, 1, numOfRuns);
+        runningData.Deviation = repmat(opt.Deviation, 1, numOfRuns);
+        runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numOfRuns);
     end%
 
 
@@ -211,6 +262,19 @@ return
             runningData.YXEPG(inxOfLog, :, end) = 1;
             runningData.YXEPG(~inxOfLog, :, end) = 0;
         end
+
+        runningData.Method = repmat(solver.Method.FIRST_ORDER, 1, numOfRuns);
+        if opt.Method==solver.Method.FIRST_ORDER 
+            % Assign zero contributions of nonlinearities right away if
+            % this is a first order simulation
+            runningData.Method(end) = solver.Method.NONE;
+        else
+            runningData.Method(end) = opt.Method;
+        end
+        runningData.Deviation = true(1, numOfRuns);
+        runningData.Deviation(end-1:end) = opt.Deviation;
+        runningData.NeedsEvalTrends = false(1, numOfRuns);
+        runningData.NeedsEvalTrends(end-1:end) = opt.EvalTrends;
     end%
 
 
@@ -328,6 +392,41 @@ return
 
 
 
+    function systemProperty = hereSetupSystemProperty( )
+        systemProperty = SystemProperty(this);
+        systemProperty.Function = @simulateTimeFrames;
+        systemProperty.MaxNumOfOutputs = 1;
+        systemProperty.NamedReferences = cell(1, 1);
+        systemProperty.NamedReferences{1} = this.Quantity.Name;
+        systemProperty.Specifics = runningData;
+        if isequal(opt.SystemProperty, false)
+            systemProperty.OutputNames = cell(1, 0);
+        else
+            systemProperty.OutputNames = opt.SystemProperty;
+        end
+    end%
+
+
+
+
+    function progressInfo = herePrepareProgressInfo( )
+        oneLiner = true;
+        solver = { opt.Solver.Display };
+        for ii = 1 : numel(solver)
+            if ~isequal(solver{ii}, false) ...
+               && ~strcmpi(solver{ii}, 'None') ...
+               && ~strcmpi(solver{ii}, 'Off')
+               oneLiner = false;
+               break
+            end
+        end
+        progressInfo = ProgressInfo(runningData.NumOfPages, oneLiner);
+        update(progressInfo);
+    end%
+
+
+
+
     function hereCheckInitialConditions( )
         % Report missing initial conditions
         firstColumnOfSimulation = runningData.BaseRangeColumns(1);
@@ -347,6 +446,15 @@ return
         if numOfDummyPeriods>0
             plan = extendWithDummies(plan, numOfDummyPeriods);
         end
+    end%
+
+
+
+
+    function hereUpdateProgressInfo( )
+        runningData.ProgressInfo.Completed = run;
+        runningData.ProgressInfo.Success = nnz(runningData.Success);
+        update(runningData.ProgressInfo);
     end%
 
 
@@ -387,6 +495,20 @@ return
         outputInfo.Success =  runningData.Success;
         outputInfo.ExitFlags = runningData.ExitFlags;
         outputInfo.DiscrepancyTables = runningData.DiscrepancyTables;
+    end%
+
+
+
+
+    function herePostprocessContributions( )
+        inxOfLog = this.Quantity.InxOfLog;
+        if opt.Method~=solver.Method.FIRST_ORDER
+            % Calculate contributions of nonlinearities
+            runningData.YXEPG(inxOfLog, :, end) =  runningData.YXEPG(inxOfLog, :, end) ...
+                                    ./ prod(runningData.YXEPG(inxOfLog, :, 1:end-1), 3);
+            runningData.YXEPG(~inxOfLog, :, end) = runningData.YXEPG(~inxOfLog, :, end) ...
+                                     - sum(runningData.YXEPG(~inxOfLog, :, 1:end-1), 3);
+        end
     end%
 end%
 
@@ -547,4 +669,3 @@ function [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(unanticipatedE, 
             flag = false;
         end%
 end%
-

@@ -1,7 +1,12 @@
 classdef Data
     properties (Abstract, Dependent)
         NumOfVariants
-        NamesOfAppendablesInData
+        NamesOfAppendables
+    end
+
+
+    properties
+        NumOfAppendables
     end
 
 
@@ -10,4 +15,12 @@ classdef Data
         varargout = checkInputDatabank(varargin)
         varargout = requestData(varargin)
     end
+
+
+    methods
+        function value = get.NumOfAppendables(this)
+            value = numel(this.NamesOfAppendables);
+        end%
+    end
 end
+

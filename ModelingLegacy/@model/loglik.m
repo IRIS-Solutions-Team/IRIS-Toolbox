@@ -132,7 +132,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 
 % These variables are cleared at the end of the file unless the user
 % specifies `'persist=' true`.
-persistent DATA RANGE OPT LIKOPT;
+persistent DATA RANGE OPT LIKOPT
 
 % If loglik(m) is called without any further input arguments, the last ones
 % passed in will be used if `'persistent='` was set to `true`.
@@ -173,7 +173,7 @@ end
 %--------------------------------------------------------------------------
 
 % _Evaluate likelihood_
-if nargout == 1
+if nargout==1
     Obj = LIKOPT.minusLogLikFunc(This,DATA,[ ],LIKOPT);
 else
     [Obj,regOutp] = LIKOPT.minusLogLikFunc(This,DATA,[ ],LIKOPT);
@@ -190,4 +190,5 @@ if ~OPT.persist
     LIKOPT = [ ];
 end
 
-end
+end%
+

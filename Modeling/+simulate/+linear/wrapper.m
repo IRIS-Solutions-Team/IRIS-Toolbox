@@ -1,4 +1,4 @@
-function s = wrapper(systemProperty)
+function s = wrapper(~, systemProperty, ~)
 
 s = systemProperty.Specifics;
 ny = nnz(s.IxObserved);
@@ -51,7 +51,7 @@ else
     e = s.Eu + 1i*s.Ea;
 end
 
-if systemProperty.NumOutputs>=1
+if systemProperty.NumOfOutputs>0
     systemProperty.Outputs{1} = [s.y; s.xx; e];
 end
 

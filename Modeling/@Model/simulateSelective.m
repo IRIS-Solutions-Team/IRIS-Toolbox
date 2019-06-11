@@ -1,4 +1,6 @@
-function [exitFlag, dcy] = simulateSelective(this, simulateFunction, rect, data, needsStoreE, header, opt)
+function [exitFlag, dcy] = simulateSelective( this, simulateFunction, ...
+                                              rect, data, needsStoreE, header, ...
+                                              solverOptions, window )
 % simulateSelective  Run equations-selective simulation on one time frame
 %
 % Backend IRIS function
@@ -16,13 +18,13 @@ inxOfE = data.InxOfE;
 inxOfYX = data.InxOfYX;
 numOfYX = nnz(inxOfYX);
 inxOfLogYX = data.InxOfLog(inxOfYX);
-solverName = opt.Solver.SolverName;
+solverName = solverOptions(1).SolverName;
 
-columnRangeOfHashFactors = firstColumnOfTimeFrame + (0 : opt.Window-1);
+columnRangeOfHashFactors = firstColumnOfTimeFrame + (0 : window-1);
 
 tempE = data.AnticipatedE;
 tempE(:, firstColumnOfTimeFrame) = tempE(:, firstColumnOfTimeFrame) ...
-                             + data.UnanticipatedE(:, firstColumnOfTimeFrame);
+                                 + data.UnanticipatedE(:, firstColumnOfTimeFrame);
 
 % No need to simulate measurement equations in iterations (before the
 % final run) if there are no exogenized measurement variables
@@ -42,12 +44,12 @@ end
 
 initNlaf = data.NonlinAddf(:, columnRangeOfHashFactors);
 
-if any(strcmpi(solverName, {'IRIS-qad', 'IRIS-newton', 'IRIS-qnsd'}))
+if strncmpi(solverName, 'IRIS', 4)
     % IRIS Solver
     data0 = data;
     initNlaf0 = initNlaf;
-    for i = 1 : numel(opt.Solver)
-        ithSolver = opt.Solver(i);
+    for i = 1 : numel(solverOptions)
+        ithSolver = solverOptions(i);
         if i>1 && ithSolver.Reset
             data = data0;
             initNlaf = initNlaf0;
@@ -61,10 +63,10 @@ if any(strcmpi(solverName, {'IRIS-qad', 'IRIS-newton', 'IRIS-qnsd'}))
 else
     if strcmpi(solverName, 'fsolve')
         % Optimization Tbx
-        [finalNlaf, dcy, exitFlag] = fsolve(objectiveFunction, initNlaf, opt.Solver);
+        [finalNlaf, dcy, exitFlag] = fsolve(objectiveFunction, initNlaf, solverOptions);
     elseif strcmpi(solverName, 'lsqnonlin')
         % Optimization Tbx
-        [finalNlaf, ~, dcy, exitFlag] = lsqnonlin(objectiveFunction, initNlaf, [ ], [ ], opt.Solver);
+        [finalNlaf, ~, dcy, exitFlag] = lsqnonlin(objectiveFunction, initNlaf, [ ], [ ], solverOptions);
     end
     exitFlag = solver.ExitFlag.fromOptimTbx(exitFlag);
 end

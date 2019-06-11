@@ -7,6 +7,7 @@ function outputData = appendData(this, inputData, outputData, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
+
 if numel(varargin)==2
     presample = varargin{1};
     postsample = varargin{2};
@@ -59,8 +60,8 @@ serialRangeEnd = DateWrapper.getSerial(endOfRange);
 previousSerialXStart = [ ];
 previousXStart = [ ];
 
-for i = 1 : numel(this.NamesOfAppendablesInData)
-    ithName = this.NamesOfAppendablesInData{i};
+for i = 1 : this.NumOfAppendables
+    ithName = this.NamesOfAppendables{i};
     preSeries = [ ];
     postSeries = [ ];
     if isstruct(preDatabank)
@@ -118,6 +119,8 @@ end
 return
 
 
+
+
     function appendPresample( )
         preData = getDataFromTo(preSeries, -Inf, serialXStart-1);
         if isempty(preData)
@@ -133,6 +136,8 @@ return
         xData = [preData; xData];
         serialXStart = serialXStart - sizePreData(1);
     end%
+
+
 
 
     function appendPostsample( )

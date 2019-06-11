@@ -115,17 +115,18 @@ end
 % Generate random residuals if requested
 if ~isequal(opt.shockfunc, @zeros)
     outputDatabank = shockdb( this, outputDatabank, range, numOfColumnsToCreate, ...
-                              'shockFunc=', opt.shockfunc );
+                              'ShockFunc=', opt.shockfunc );
 end
 
-% Add parameters.
+% Add parameters
 outputDatabank = addToDatabank( {'Parameters', 'Std', 'NonzeroCorr'}, this, outputDatabank);
 
-% Add LHS names from reporting equations.
-nameLhs = this.Reporting.NameLhs;
+% Add LHS names from reporting equations
+nameLhs = this.Reporting.NamesOfLhs;
 for i = 1 : length(nameLhs)
-    % TODO: use label or name.
+    % TODO: use label or name
     outputDatabank.(nameLhs{i}) = comment(TIME_SERIES_TEMPLATE, nameLhs{i});
 end
 
-end
+end%
+

@@ -3,8 +3,8 @@ classdef SystemProperty < handle
         % Function  Function to call to evaluate SystemProperty
         Function = [ ]
 
-        % MaxNumOutputs  Maximum number of output arguments from SystemProperty.Function
-        MaxNumOutputs = 0
+        % MaxNumOfOutputs  Maximum number of output arguments from SystemProperty.Function
+        MaxNumOfOutputs = 0
 
         % OutputNames  Names assigned to output arguments from SystemProperty.Function
         OutputNames = cell.empty(1, 0)
@@ -28,8 +28,8 @@ classdef SystemProperty < handle
 
 
     properties (Dependent)
-        % NumOutputs  Actual number of output arguments from SystemProperty.Function requested by user
-        NumOutputs
+        % NumOfOutputs  Actual number of output arguments from SystemProperty.Function requested by user
+        NumOfOutputs
 
         NumUnitRoots
         NumObserved
@@ -71,38 +71,42 @@ classdef SystemProperty < handle
         end%
 
 
-        function eval(this)
-            this.Outputs = cell(1, this.NumOutputs);
-            this.Function(this);
+        function eval(this, model, modelVariant)
+            nv = length(model);
+            if nargin<3 && nv==1
+                modelVariant = 1;
+            end
+            preallocateOutputs(this);
+            this.Function(model, this, modelVariant);
+        end%
+
+
+        function preallocateOutputs(this)
+            this.Outputs = cell(1, this.NumOfOutputs);
         end%
     end
 
 
     methods
         function this = set.OutputNames(this, outputNames)
-            if ~iscellstr(outputNames)
-                outputNames = cellstr(outputNames);
+            outputNames = cellstr(outputNames);
+            numOfOutputs = numel(outputNames);
+            if numOfOutputs>this.MaxNumOfOutputs
+                throw( exception.Base('SystemPriorWrapper:NamesExceedMaxOfNumOfOutputs', 'error') );
             end
-            numOutputs = numel(outputNames);
-            assert( ...
-                numOutputs<=this.MaxNumOutputs, ...
-                exception.Base('SystemPriorWrapper:NamesExceedMaxNumOutputs', 'error') ...
-            );
-            assert( ...
-                all(cellfun(@isvarname, outputNames)), ...
-                exception.Base('SystemPriorWrapper:IllegalOutputName', 'error') ...
-            );
-            listDuplicate = textual.duplicate(outputNames);
-            assert( ...
-                isempty(listDuplicate), ...
-                exception.Base('SystemPriorWrapper:NonuniqueOutputName', 'error'), ...
-                listDuplicate{:} ...
-            );
+            if ~all(cellfun(@isvarname, outputNames))
+                throw( exception.Base('SystemPriorWrapper:IllegalOutputName', 'error') );
+            end
+            listOfDuplicate = textual.duplicate(outputNames);
+            if ~isempty(listOfDuplicate)
+                throw( exception.Base('SystemPriorWrapper:NonuniqueOutputName', 'error'), ...
+                       listOfDuplicate{:} );
+            end
             this.OutputNames = outputNames;
         end%
 
 
-        function n = get.NumOutputs(this)
+        function n = get.NumOfOutputs(this)
             n = numel(this.OutputNames);
         end%
 

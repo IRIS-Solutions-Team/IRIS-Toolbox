@@ -58,21 +58,21 @@ function varargout = ffrf(this, frequencies, varargin)
 
 TYPE = @int8;
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.ffrf');
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('Freq', @isnumeric);
-    inputParser.addParameter({'Include', 'Select'}, cell.empty(1, 0), @(x) isempty(x) || isequal(x, @all) || ischar(x) || isa(x, 'string') || iscellstr(x));
-    inputParser.addParameter('Exclude', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
-    inputParser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
-    inputParser.addParameter('MaxIter', 500, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>=0));
-    inputParser.addParameter('Tolerance', 1e-7, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0));
-    inputParser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.ffrf');
+    parser.addRequired('Model', @(x) isa(x, 'model'));
+    parser.addRequired('Freq', @isnumeric);
+    parser.addParameter({'Include', 'Select'}, cell.empty(1, 0), @(x) isempty(x) || isequal(x, @all) || ischar(x) || isa(x, 'string') || iscellstr(x));
+    parser.addParameter('Exclude', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
+    parser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    parser.addParameter('MaxIter', 500, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>=0));
+    parser.addParameter('Tolerance', 1e-7, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0));
+    parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
 end
-inputParser.parse(this, frequencies, varargin{:});
-opt = inputParser.Options;
-usingDefaults = inputParser.UsingDefaultsInStruct;
+parse(parser, this, frequencies, varargin{:});
+opt = parser.Options;
+usingDefaults = parser.UsingDefaultsInStruct;
 
 isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 
@@ -81,51 +81,50 @@ isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 nv = length(this);
 [ny, nxi] = sizeOfSolution(this.Vector);
 
-assert( ...
-    usingDefaults.Include || usingDefaults.Exclude, ...
-    'model:ffrf:CannotCombineSelectExclude', ...
-    'Options Select= and Exclude= cannot be combined.' ...
-);
+assert( usingDefaults.Include || usingDefaults.Exclude, ...
+        'model:ffrf:CannotCombineSelectExclude', ...
+        'Options Select= and Exclude= cannot be combined.' );
 
 ixy = this.Quantity.Type==TYPE(1);
 selectedNames = this.Quantity.Name(ixy);
 if usingDefaults.Include && usingDefaults.Exclude
     % Neither Exclude= nor Select= (Include=)
-    indexToInclude = true(1, ny);
+    inxToInclude = true(1, ny);
 else
     % Exclude= option
     if usingDefaults.Include 
-        indexToExclude = ismember(selectedNames, opt.Exclude);
-        indexToInclude = ~indexToExclude;
+        inxToExclude = ismember(selectedNames, opt.Exclude);
+        inxToInclude = ~inxToExclude;
     else
         % Select= (or Include=) option
-        indexToInclude = ismember(selectedNames, opt.Include);
+        inxToInclude = ismember(selectedNames, opt.Include);
     end
 end
 solutionVectorX = printSolutionVector(this, 'x', @Behavior);
 solutionVectorY = printSolutionVector(this, 'y', @Behavior);
 
 % _System Property_
-systemProperty = createSystemPropertyObject( );
+systemProperty = hereSetupSystemProperty( );
 if ~isequal(opt.SystemProperty, false)
-    systemProperty.OutputNames = opt.SystemProperty;
     varargout = { systemProperty };
     return
 end
 
 numFreq = numel(systemProperty.Specifics.Frequencies);
 F = complex(nan(nxi, ny, numFreq, nv), nan(nxi, ny, numFreq, nv));
-count = nan(1, nv);
 
-if ny>0 && any(indexToInclude)
+
+% /////////////////////////////////////////////////////////////////////////
+if ny>0 && any(inxToInclude)
     indexOfNaNSolutions = reportNaNSolutions(this);
     for v = find(~indexOfNaNSolutions)
         update(systemProperty, this, v);
-        [vthF, vthCount] = freqdom.ffrf3(systemProperty);
-        F(:, :, :, v) = vthF;
-        count(1, v) = vthCount;
+        freqdom.ffrf3(this, systemProperty, v);
+        F(:, :, :, v) = systemProperty.Outputs{1};
     end
 end
+% /////////////////////////////////////////////////////////////////////////
+
 
 % Convert output matrix to namedmat object if requested
 if isNamedMat
@@ -134,19 +133,26 @@ end
 varargout = cell(1, 3);
 varargout{1} = F;
 varargout{2} = {solutionVectorX, solutionVectorY};
-varargout{3} = count;
 
 return
 
     
-    function systemProperty = createSystemPropertyObject( )
+    function systemProperty = hereSetupSystemProperty( )
         systemProperty = SystemProperty(this);
         systemProperty.Function = @freqdom.ffrf3;
-        systemProperty.MaxNumOutputs = 1;
+        systemProperty.MaxNumOfOutputs = 1;
         systemProperty.NamedReferences = {solutionVectorX, solutionVectorY};
-        systemProperty.Specifics.IndexToInclude = indexToInclude;
+        systemProperty.Specifics.IndexToInclude = inxToInclude;
         systemProperty.Specifics.MaxIter = opt.MaxIter;
         systemProperty.Specifics.Frequencies = frequencies(:)';
         systemProperty.Specifics.Tolerance = opt.Tolerance;
+        if isequal(opt.SystemProperty, false)
+            % Regular call
+            systemProperty.OutputNames = { 'FF' };
+        else
+            % Prepare for SystemProperty calls
+            systemProperty.OutputNames = opt.SystemProperty;
+        end
+        preallocateOutputs(systemProperty);
     end%
 end%

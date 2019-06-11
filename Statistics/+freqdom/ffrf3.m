@@ -1,25 +1,25 @@
-function [YY, count] = ffrf3(varargin)
-% ffrf3  Frequence response function for general state space.
+function [YY, count] = ffrf3(model, systemProperty, variant)
+% ffrf3  Frequence response function for general state space
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-if nargin==1
-    systemProperty = varargin{1};
-    [T, R, ~, Z, H, ~, U] = systemProperty.FirstOrderTriangular{:};
-    Omega = systemProperty.CovShocks;
-    numUnitRoots = systemProperty.NumUnitRoots;
-    freq = systemProperty.Specifics.Frequencies;
-    indexToInclude = systemProperty.Specifics.IndexToInclude;
-    tolerance = systemProperty.Specifics.Tolerance;
-    maxIter = systemProperty.Specifics.MaxIter;
+[T, R, ~, Z, H, ~, U] = systemProperty.FirstOrderTriangular{:};
+Omega = systemProperty.CovShocks;
+numOfUnitRoots = systemProperty.NumUnitRoots;
+freq = systemProperty.Specifics.Frequencies;
+inxToInclude = systemProperty.Specifics.IndexToInclude;
+tolerance = systemProperty.Specifics.Tolerance;
+maxIter = systemProperty.Specifics.MaxIter;
+
+%{
 else
-    [T, R, ~, Z, H, ~, U, Omega, numUnitRoots, freq, indexToInclude, tolerance, maxIter] = ...
-        varargin{:};
+    [T, R, ~, Z, H, ~, U, Omega, numOfUnitRoots, freq, inxToInclude, tolerance, maxIter] = ...
 end 
+%}
 
 ny = size(Z, 1);
 [nx, nb] = size(T);
@@ -27,16 +27,16 @@ nf = nx - nb;
 
 %--------------------------------------------------------------------------
 
-Z1 = Z(indexToInclude, :);
-H1 = H(indexToInclude, :);
-ny1 = nnz(indexToInclude);
+Z1 = Z(inxToInclude, :);
+H1 = H(inxToInclude, :);
+ny1 = nnz(inxToInclude);
 
-numFreq = numel(freq);
-YY = complex(nan(nx, ny, numFreq), nan(nx, ny, numFreq));
+numOfFreq = numel(freq);
+YY = complex(nan(nx, ny, numOfFreq), nan(nx, ny, numOfFreq));
 
 % Solution not available, return immediately
 if any(isnan(T(:)))
-    if length(systemProperty.Outputs)>=1
+    if systemProperty.NumOfOutputs>=1
         systemProperty.Outputs{1} = YY;
     end
     return
@@ -45,23 +45,23 @@ end
 count = 0;
 
 % Index of zero frequencies (allow for multiple zeros in the vector).
-indexZeroFreq = freq==0;
-indexZeroFreq = indexZeroFreq(:);
-numZeroFreq = nnz(indexZeroFreq);
-numNonzeroFreq = nnz(~indexZeroFreq);
+inxOfZeroFreq = freq==0;
+inxOfZeroFreq = inxOfZeroFreq(:);
+numOfZeroFreq = nnz(inxOfZeroFreq);
+numOfNonzeroFreq = nnz(~inxOfZeroFreq);
 
 % Non-zero frquencies. Evaluate `xsf( )` and compute regressions.
-if numNonzeroFreq>0
+if numOfNonzeroFreq>0
    nonzeroFreq( ); 
 end
 
 % We must do zero frequency last, becuase the input state space matrices
 % are modified within zeroFreq( ).
-if numZeroFreq>0
+if numOfZeroFreq>0
     zeroFreq( );
 end
 
-if length(systemProperty.Outputs)>=1
+if systemProperty.NumOfOutputs>=1
     systemProperty.Outputs{1} = YY;
 end
 
@@ -69,15 +69,15 @@ return
 
 
     function nonzeroFreq( )
-        S = freqdom.xsf(T, R, [ ], Z1, H1, [ ], U, Omega, numUnitRoots, ...
-            freq(~indexZeroFreq), [ ], [ ]);
-        Yn = zeros(nx, ny1, numNonzeroFreq);
-        for i = 1 : numNonzeroFreq
+        S = freqdom.xsf(T, R, [ ], Z1, H1, [ ], U, Omega, numOfUnitRoots, ...
+            freq(~inxOfZeroFreq), [ ], [ ]);
+        Yn = zeros(nx, ny1, numOfNonzeroFreq);
+        for i = 1 : numOfNonzeroFreq
             S11 = S(1:ny1, 1:ny1, i);
             S12 = S(1:ny1, ny1+1:end, i);
             Yn(:, :, i) = S12' / S11;
         end
-        YY(:, indexToInclude, ~indexZeroFreq) = Yn;
+        YY(:, inxToInclude, ~inxOfZeroFreq) = Yn;
     end 
 
 
@@ -141,6 +141,7 @@ return
         else
             Y0 = [Ff;Fa];
         end
-        YY(:, indexToInclude, indexZeroFreq) = Y0(:, :, ones(1, numZeroFreq));
+        YY(:, inxToInclude, inxOfZeroFreq) = Y0(:, :, ones(1, numOfZeroFreq));
     end 
-end
+end%
+

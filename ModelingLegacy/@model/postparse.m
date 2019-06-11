@@ -18,7 +18,7 @@ exception.ParseTime.storeFileName(this.FileName);
 % model names.
 if any(eqn.Type==TYPE(6))
     this.Reporting = rpteq(eqn, euc, this.FileName);
-    checkList = [qty.Name, this.Reporting.NameLhs];
+    checkList = [qty.Name, this.Reporting.NamesOfLhs];
     lsConflict = parser.getMultiple(checkList);
     if ~isempty(lsConflict)
         throw( ...
