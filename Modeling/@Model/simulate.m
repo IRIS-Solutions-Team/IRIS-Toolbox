@@ -64,7 +64,7 @@ if isempty(parser)
     parser.addParameter('SuccessOnly', false, @Valid.logicalScalar);
     parser.addParameter('Solver', @auto, @validateSolver);
     parser.addParameter('SparseShocks', false, @Valid.logicalScalar)
-    parser.addParameter('SystemProperty', false, @Valid.logicalScalar);
+    parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || Valid.list(x));
     parser.addParameter('Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 
     parser.addParameter('Initial', 'Data', @(x) Valid.anyString(x, 'Data', 'FirstOrder'));
