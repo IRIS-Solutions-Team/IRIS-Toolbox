@@ -1,9 +1,9 @@
-function X = arf(X, A, Z, Range, varargin)
+function X = arf(X, A, Z, range, varargin)
 % arf  Create autoregressive time series from input data
 %
 % __Syntax__
 %
-%     X = arf(X, A, Z, Range, ...)
+%     X = arf(X, A, Z, range, ...)
 %
 %
 % __Input arguments__
@@ -17,8 +17,8 @@ function X = arf(X, A, Z, Range, varargin)
 % * `Z` [ numeric | NumericTimeSubscriptable ] - Exogenous input series or
 % constant in the autoregressive process.
 %
-% * `Range` [ numeric | `@all` ] - Date range on which the new time series
-% observations will be computed; `Range` does not include pre-sample
+% * `range` [ numeric | `@all` ] - Date range on which the new time series
+% observations will be computed; `range` does not include pre-sample
 % initial condition. `@all` means the entire possible range will be used
 % (taking into account the length of pre-sample initial condition needed).
 %
@@ -62,7 +62,7 @@ function X = arf(X, A, Z, Range, varargin)
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 if nargin < 4
-    Range = Inf;
+    range = Inf;
 end
 
 % Parse input arguments
@@ -71,79 +71,90 @@ if isempty(parser)
     parser = extend.InputParser('NumericTimeSubscriptable.arf');
     parser.addRequired('X', @(x) isa(x, 'NumericTimeSubscriptable'));
     parser.addRequired('A', @isnumeric);
-    parser.addRequired('Z', @(x) isnumericscalar(x) || isa(x, 'NumericTimeSubscriptable'));
+    parser.addRequired('Z', @(x) Valid.numericScalar(x) || isa(x, 'NumericTimeSubscriptable'));
     parser.addRequired('Range', @(x) isnumeric(x) || isequal(x, @all));
 end%
-parser.parse(X, A, Z, Range);
+parser.parse(X, A, Z, range);
+range = double(range);
 
 %--------------------------------------------------------------------------
 
 A = A(:).';
 order = length(A) - 1;
 
-% Work out range (includes pre/post-sample initial condition).
-xfirst = X.start;
-xlast = X.start + size(X.data, 1) - 1;
-if isequal(Range, Inf)
-    Range = xfirst : xlast;
+% Work out range (includes pre/post-sample initial condition)
+startOfX = X.StartAsNumeric;
+endOfX = X.EndAsNumeric;
+if isequal(range, Inf)
+    range = startOfX : endOfX;
 end
-if Range(1) <= Range(end)
+if range(1)<=range(end)
     time = 'forward';
-    Range = Range(1)-order : Range(end);
+    extendedRange = range(1)-order : range(end);
 else
     time = 'backward';
-    Range = Range(end) : Range(1)+order;
+    extendedRange = range(end) : range(1)+order;
 end
 
-% Get endogenous data.
-xData = rangedata(X, Range);
-xSize = size(xData);
+% Get endogenous data
+xData = getData(X, extendedRange);
+sizeOfX = size(xData);
+ndimsOfX = numel(sizeOfX);
 xData = xData(:, :);
+numOfPeriods = length(extendedRange);
 
-% Do noting if effective range is empty.
-nPer = length(Range);
-if nPer<=order
+% Do noting if the effective range is empty
+if numOfPeriods<=order
     return
 end
 
-% Get exogenous (z) data.
+% Get exogenous (z) data
 if isa(Z, 'TimeSubscriptable')
-    zData = getData(Z, Range);
+    zData = getData(Z, extendedRange);
     zData = zData(:, :);
-    % expand zData in 2nd dimension if needed
 else
-    if isempty(Z)
-        Z = 0;
+    zData = Z;
+    if isempty(zData)
+        zData = 0;
     end
-    zData = repmat(zData, nPer, 1);
+    zData = repmat(zData, numOfPeriods, 1);
 end
+
+% Expand zData in 2nd dimension if needed
 if size(zData, 2)==1 && size(xData, 2)>1
     zData = repmat(zData, 1, size(xData, 2));
 end
 
-% Normalise polynomial vector.
-if A(1) ~= 1
+% Normalise polynomial vector
+if A(1)~=1
     zData = zData / A(1);
     A = A / A(1);
 end
 
-% Run AR.
+% Set up time vector
 if strcmp(time, 'forward')
     shifts = -1 : -1 : -order;
-    timeVec = 1+order : nPer;
+    timeVec = 1+order : numOfPeriods;
 else
     shifts = 1 : order;
-    timeVec = nPer-order : -1 : 1;
+    timeVec = numOfPeriods-order : -1 : 1;
 end
 
-for i = 1 : size(xData, 2)
-    for t = timeVec
-        xData(t, i) = -A(2:end)*xData(t+shifts, i) + zData(t, i);
-    end
+
+% /////////////////////////////////////////////////////////////////////////
+for t = timeVec
+    xData(t, :) = -A(2:end)*xData(t+shifts, :) + zData(t, :);
+end
+% /////////////////////////////////////////////////////////////////////////
+
+
+% Reshape output data back
+if ndimsOfX>2
+    xData = reshape(xData, [size(xData, 1), sizeOfX(2:end)]);
 end
 
-% Update output series.
-X = subsasgn(X, Range, reshape(xData, [size(xData, 1), xSize(2:end)]));
+% Update output series
+X = setData(X, extendedRange, xData);
 
 end%
 
