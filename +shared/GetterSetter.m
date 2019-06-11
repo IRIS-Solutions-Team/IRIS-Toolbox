@@ -14,12 +14,12 @@ classdef GetterSetter
     
     methods
         function this = GetterSetter(varargin)
-            persistent VERSION
-            if isempty(VERSION)
-                VERSION = iris.version( );
+            persistent version
+            if isempty(version)
+                version = iris.version( );
             end
-            this.Build = VERSION;
-        end
+            this.Build = version;
+        end%
     end
     
     
@@ -66,7 +66,7 @@ classdef GetterSetter
                 throw( exception.Base('GetterSetter:INVALID_GET_QUERY', 'error'), ...
                     class(this), usrQuery{~ixValid} ); %#ok<GTARG>
             end
-        end
+        end%
         
         
         function this = set(this, varargin)
@@ -108,16 +108,16 @@ classdef GetterSetter
                 throw( exception.Base('GetterSetter:INVALID_SET_VALUE', 'error'), ...
                     class(this), usrRequest{~ixValidValue} ); %#ok<GTARG>
             end            
-        end        
+        end%
     end
     
 
     methods (Hidden)
         function flag = chkConsistency(this)
             flag = ischar(this.Build);
-        end
+        end%
         
-        
+
         function this = struct2obj(this, s)
             % struct2obj  Copy structure fields to object properties
             propList = shared.GetterSetter.getPropList(this);
@@ -133,11 +133,7 @@ classdef GetterSetter
                 pos = find(ix, 1, 'last');
                 this = setp(this, propList{i}, s.(structList{pos}));
             end
-        end
-        
-        
-        function disp(this, varargin) %#ok<INUSD>
-        end
+        end%
     end
     
     
@@ -149,25 +145,25 @@ classdef GetterSetter
             else
                 ccn = cn; %#ok<UNRCH>
             end
-        end
+        end%
     end
     
     
     methods (Hidden)
         function this = setp(this, prop, value)
             this.(prop) = value;
-        end
+        end%
         
         
         function value = getp(this, prop)
             value = this.(prop);
-        end
+        end%
     end
     
     
     methods (Static, Hidden)
         function query = myalias(query)
-        end
+        end%
         
         
         function list = getPropList(obj)
@@ -185,6 +181,7 @@ classdef GetterSetter
             ixConstant = [ mc.PropertyList.Constant ];
             ixKeep = ~ixDependent & ~ixConstant;
             list = { mc.PropertyList(ixKeep).Name };
-        end
+        end%
     end
 end
+

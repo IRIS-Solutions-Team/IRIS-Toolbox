@@ -47,17 +47,20 @@ classdef UserDataContainer
         
         
         function disp(this, varargin)
+            dispIndent = iris.get('DispIndent');
             if isempty(this.UserData)
                 msg = 'Empty';
             elseif isstruct(this.UserData)
                 msg = [ ] ;
-                fprintf('\tUser Data: \n') ;
+                fprintf(dispIndent);
+                fprintf('User Data: \n') ;
                 disp(this.UserData);
             else
                 msg = catchUnknown(this.UserData) ;
             end
             if ~isempty(msg)
-                fprintf('\tUser Data: %s\n',msg);
+                fprintf(dispIndent);
+                fprintf('User Data: %s\n',msg);
             end
             if isempty(varargin)
                 textual.looseLine( );

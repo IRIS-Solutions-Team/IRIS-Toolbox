@@ -1,8 +1,7 @@
 classdef ( Abstract, ...
            CaseInsensitiveProperties=true, ...
            InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper} ) ...
-         NumericTimeSubscriptable < TimeSubscriptable ...
-                                  & shared.UserDataContainer
+         NumericTimeSubscriptable < TimeSubscriptable
 
     properties
         % Data  Numeric or logical array of time series data
@@ -20,11 +19,6 @@ classdef ( Abstract, ...
 
 
     methods 
-        function this = NumericTimeSubscriptable(varargin)
-            this = this@shared.UserDataContainer( );
-        end%
-
-
         function missingTest = get.MissingTest(this)
             missingValue = this.MissingValue;
             if isequaln(missingValue, NaN)
@@ -56,3 +50,4 @@ classdef ( Abstract, ...
         varargout = preparePlot(varargin)
     end
 end
+

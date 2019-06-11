@@ -150,7 +150,8 @@
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
          tseries < NumericTimeSubscriptable ...
-                 & shared.GetterSetter
+                   & shared.GetterSetter ...
+                   & shared.UserDataContainer
 
     methods
         function this = tseries(varargin)
@@ -199,6 +200,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             % -Copyright (c) 2007-2019 IRIS Solutions Team
             
             this = this@shared.GetterSetter( );
+            this = this@shared.UserDataContainer( );
             this = resetComment(this);
             
             % Empty call

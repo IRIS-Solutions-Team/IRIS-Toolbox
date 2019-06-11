@@ -57,26 +57,28 @@ classdef CommentContainer
         % -IRIS Macroeconomic Modeling Toolbox
         % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-        if ~isempty(varargin)
-            newComment = varargin{1};
-            parser = inputParser( );
-            parser.addRequired('NewComment', @ischar);
-            parser.parse(newComment);
-        end
+            if ~isempty(varargin)
+                newComment = varargin{1};
+                parser = inputParser( );
+                parser.addRequired('NewComment', @ischar);
+                parser.parse(newComment);
+            end
 
         %--------------------------------------------------------------------------
 
-        if isempty(varargin)
-            varargout{1} = this.Comment;
-        else
-            this.Comment = newComment;
-            varargout{1} = this;
-        end
+            if isempty(varargin)
+                varargout{1} = this.Comment;
+            else
+                this.Comment = newComment;
+                varargout{1} = this;
+            end
+        end%
 
-        end
 
         function disp(this, varargin)
-            fprintf('\tComment: %s\n', this.Comment);
+            dispIndent = iris.get('DispIndent');
+            fprintf(dispIndent);
+            fprintf('Comment: %s\n', this.Comment);
             if isempty(varargin)
                 textual.looseLine( );
             end

@@ -69,7 +69,9 @@ classdef Export < handle
 
 
         function implementDisp(this)
-            fprintf('\tExport File(s): [%g]\n', numel(this));
+            CONFIG = iris.get( );
+            fprintf(CONFIG.DispIndent);
+            fprintf('Export File(s): [%g]\n', numel(this));
         end%
     end
 end

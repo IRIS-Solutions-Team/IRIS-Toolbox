@@ -1,11 +1,11 @@
 classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
-         TimeSubscriptable < shared.UserDataContainer
+         TimeSubscriptable
 
     properties 
         % Start  Date of first observation in time series
         Start = DateWrapper.NaD
 
-        % Comment  User comments attached to individual columns of time % series
+        % Comment  User comments attached to individual columns of time series
         Comment = { TimeSubscriptable.EMPTY_COMMENT }
     end
 

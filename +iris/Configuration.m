@@ -61,6 +61,9 @@ classdef (CaseInsensitiveProperties=true) Configuration
         % WDay  Day of the week representing a weekly date
         WDay = iris.Configuration.DEFAULT_WEEK_DAY
 
+        % DispIndent  Indentation at the beginning of class display
+        DispIndent = iris.Configuration.DEFAULT_DISP_INDENT
+
         % TSeriesFormat  Format for displaying numeric time series data
         TSeriesFormat = iris.Configuration.DEFAULT_TSERIES_FORMAT
 
@@ -156,6 +159,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
         DEFAULT_CONVERSION_DAY = 1
 
         DEFAULT_WEEK_DAY = 'Thu'
+
+        DEFAULT_DISP_INDENT = '    '
 
         DEFAULT_TSERIES_FORMAT = ''
 

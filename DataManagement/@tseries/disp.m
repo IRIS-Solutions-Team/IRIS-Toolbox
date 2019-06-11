@@ -7,19 +7,21 @@ function disp(this, name, disp2DFunc)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
+config = iris.get( );
+
 try
     name; %#ok<VUNUS>
 catch %#ok<CTCH>
     name = '';
 end
 
-start = this.Start;
+start = double(this.Start);
 freq = DateWrapper.getFrequencyAsNumeric(start);
 
 try
     disp2DFunc; %#ok<VUNUS>
 catch %#ok<CTCH>
-    if freq==365
+    if freq==Frequency.DAILY
         disp2DFunc = @disp2dDaily;
     else
         disp2DFunc = @disp2d;
@@ -28,92 +30,100 @@ end
 
 %--------------------------------------------------------------------------
 
-dispHeader(this);
+dispHeader(this, config.DispIndent);
 
 data = this.Data;
 dataNDim = ndims(data);
-config = iris.get( );
 dispND(start, data, this.Comment, [ ], name, disp2DFunc, dataNDim, config);
 
 disp@shared.UserDataContainer(this, 1);
-textfun.loosespace( );
+textual.looseLine( );
+
 end%
+
 
 %
 % Local functions
 %
 
-function dispHeader(this)
-    tmpSize = size(this.Data);
-    nPer = tmpSize(1);
-    fprintf('\t');
+
+function dispHeader(this, indent)
+    sizeOfData = size(this.Data);
+    numOfPeriods = sizeOfData(1);
+    fprintf(indent);
     if isempty(this.Data)
-       fprintf('empty ');
+       fprintf('Empty ');
     end
-    ccn = getClickableClassName(this);
-    strSize = sprintf('-by-%g', tmpSize(2:end));
-    fprintf('%s object: %g%s\n', ccn, nPer, strSize);
-    textfun.loosespace( );
+    sizeString = sprintf('-by-%g', sizeOfData(2:end));
+    fprintf('%s Object: %g%s\n', getClickableClassName(this), numOfPeriods, sizeString);
+    textual.looseLine( );
 end%
 
 
-function dispND(start, data, cmt, pos, name, disp2DFUnc, nDim, cfg)
-    lastDimSize = size(data, nDim);
-    nPer = size(data, 1);
-    tab = sprintf('\t');
+
+
+function dispND(start, data, comment, pos, name, disp2DFUnc, numOfDims, cfg)
+    lastDimSize = size(data, numOfDims);
+    numOfPeriods = size(data, 1);
     sep = sprintf(':  ');
-    num2StrFunc = @(x) fnum2str(x, cfg.tseriesformat);
-    if nDim>2
-        subsref = cell([1, nDim]);
-        subsref(1:nDim-1) = {':'};
+    num2StrFunc = @(x) fnum2str(x, cfg.TSeriesFormat);
+    if numOfDims>2
+        subsref = cell([1, numOfDims]);
+        subsref(1:numOfDims-1) = {':'};
         for i = 1 : lastDimSize
-            subsref(nDim) = {i};
-            dispND(start, data(subsref{:}), cmt(subsref{:}), ...
-                [i, pos], name, disp2DFUnc, nDim-1, cfg);
+            subsref(numOfDims) = {i};
+            dispND(start, data(subsref{:}), comment(subsref{:}), ...
+                [i, pos], name, disp2DFUnc, numOfDims-1, cfg);
         end
     else
         if ~isempty(pos)
             fprintf('%s{:, :%s} =\n', name, sprintf(', %g', pos));
-            textfun.loosespace( );
+            textual.looseLine( );
         end
-        if nPer>0
-            X = disp2DFUnc(start, data, tab, sep, num2StrFunc);
+        if numOfPeriods>0
+            X = disp2DFUnc(start, data, cfg.DispIndent, sep, num2StrFunc);
             % Reduce the number of white spaces between numbers to 5 at most.
             X = reduceSpaces(X, cfg.tseriesmaxwspace);
             % Print the dates and data.
             disp(X);
         end
         % Make sure long scalar comments are never displayed as `[1xN char]`.
-        if length(cmt)==1
-            if isempty(regexp(cmt{1}, '[\r\n]', 'once'))
-                fprintf('\t''%s''\n', cmt{1});
+        fprintf(cfg.DispIndent);
+        comment = [{'Dates'}, comment];
+        if length(comment)==1
+            if isempty(regexp(comment{1}, '[\r\n]', 'once'))
+                fprintf('\t''%s''\n', comment{1});
             else
-                fprintf('''%s''\n', cmt{1});
+                fprintf('''%s''\n', comment{1});
             end
-            textfun.loosespace( );
+            textual.looseLine( );
         else
-            textfun.loosespace( );
-            disp(cmt);
+            textual.looseLine( );
+            disp(comment);
         end
     end
 end%
 
 
-function x = disp2d(start, data, tab, sep, num2strFunc)
-    nPer = size(data, 1);
-    range = start + (0 : nPer-1);
+
+
+function x = disp2d(start, data, indent, sep, num2strFunc)
+    numOfPeriods = size(data, 1);
+    range = start + (0 : numOfPeriods-1);
     dates = strjust(dat2char(range));
-    if DateWrapper.getFrequencyAsNumeric(start)==52
+    if DateWrapper.getFrequencyAsNumeric(start)==Frequency.WEEKLY
         dateFormatW = '$ (Aaa DD-Mmm-YYYY)';
         dates = [ dates, ...
                   strjust(dat2char(range, 'dateFormat=', dateFormatW)) ];
     end
-    dates = [ tab(ones(1, nPer), :), ...
+    dates = [ repmat(indent, numOfPeriods, 1), ...
               dates, ...
-              sep(ones(1, nPer), :) ];
+              repmat(sep, numOfPeriods, 1) ];
     dataChar = num2strFunc(data);
     x = [dates, dataChar];
 end%
+
+
 
 
 function c = reduceSpaces(c, maxn)
@@ -125,6 +135,8 @@ function c = reduceSpaces(c, maxn)
 end%
 
 
+
+
 function c = fnum2str(x, fmt)
     if isempty(fmt)
         c = num2str(x);
@@ -134,12 +146,14 @@ function c = fnum2str(x, fmt)
 end%
 
 
-function x = disp2dDaily(start, data, tab, sep, num2strFunc)
+
+
+function x = disp2dDaily(start, data, indent, sep, num2strFunc)
     MAX_DAYS_IN_MONTH = 31;
 
-    [nPer, nx] = size(data);
+    [numOfPeriods, nx] = size(data);
     [startYear, startMonth, startDay] = datevec( double(start) );
-    [endYear, endMonth, endDay] = datevec( double(start + nPer - 1) );
+    [endYear, endMonth, endDay] = datevec( double(start + numOfPeriods - 1) );
 
     % Pad missing observations at the beginning of the first month
     % and at the end of the last month with NaNs.
@@ -163,12 +177,12 @@ function x = disp2dDaily(start, data, tab, sep, num2strFunc)
     month(1:startMonth-1) = [ ];
     year(end-(12-endMonth)+1:end) = [ ];
     month(end-(12-endMonth)+1:end) = [ ];
-    nPer = length(month);
+    numOfPeriods = length(month);
 
     lastDay = eomday(year, month);
     lastDay = lastDay(:).';
     x = [ ];
-    for t = 1 : nPer
+    for t = 1 : numOfPeriods
         tmp = nan(nx, MAX_DAYS_IN_MONTH);
         tmp(:, 1:lastDay(t)) = transpose(data(1:lastDay(t), :));
         x = [x;tmp]; %#ok<AGROW>
@@ -204,6 +218,7 @@ function x = disp2dDaily(start, data, tab, sep, num2strFunc)
         end
     end
 
-    tab = repmat(tab, size(dates, 1), 1);
-    x = [tab, dates, dataStr];
+    indent = repmat(indent, size(dates, 1), 1);
+    x = [indent, dates, dataStr];
 end%
+
