@@ -42,6 +42,21 @@ classdef ( Abstract, ...
         varargout = binop(varargin)
         varargout = unop(varargin)
         varargout = unopinx(varargin)
+
+
+        function this = resetMissingValue(this, values)
+            if isa(values, 'single')
+                this.MissingValue = single(NaN);
+            elseif isa(values, 'logical')
+                this.MissingValue = false;
+            elseif isinteger(values)
+                this.MissingValue = zeros(1, 1, class(values));
+            elseif isnumeric(values) && ~isreal(values)
+                this.MissingValue = complex(NaN, NaN);
+            else
+                this.MissingValue = NaN;
+            end
+        end%
     end
 
 

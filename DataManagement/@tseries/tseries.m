@@ -472,41 +472,17 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     end
     
     
+
+
     methods (Access=protected, Hidden)
         varargout = catcheck(varargin)
         varargout = myfilter(varargin)
         varargout = init(varargin)
         varargout = mylagorlead(varargin)
         varargout = recognizeShift(varargin)
-        
-        
-        function dispComment(varargin)
-        end%
-
-
-        function startDate = startDateWhenEmpty(this, varargin)
-            if isa(this.Start, 'DateWrapper')
-                startDate = DateWrapper.NaD( );
-            else
-                startDate = NaN;
-            end
-        end%
-
-
-        function this = resetMissingValue(this, values)
-            if isa(values, 'single')
-                this.MissingValue = single(NaN);
-            elseif isa(values, 'logical')
-                this.MissingValue = false;
-            elseif isinteger(values)
-                this.MissingValue = zeros(1, 1, class(values));
-            elseif isnumeric(values) && ~isreal(values)
-                this.MissingValue = complex(NaN, NaN);
-            else
-                this.MissingValue = NaN;
-            end
-        end%
     end
+
+
     
     
     methods (Static, Hidden)
@@ -523,6 +499,8 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     end
     
     
+
+
     methods (Hidden)
         function x = abs(x)
             x.Data = abs(x.Data);
@@ -768,8 +746,8 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         
         
         
-        % Functions whose behaviour differs in different dimensions
-        %-----------------------------------------------------------
+        % Functions whose behavior differs in different dimensions
+        %----------------------------------------------------------
         function x = any(x, dim)
             if nargin<2
                 dim = 1;
@@ -881,6 +859,8 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             n = 1;
         end%
     end
+
+
 
 
     methods (Static)

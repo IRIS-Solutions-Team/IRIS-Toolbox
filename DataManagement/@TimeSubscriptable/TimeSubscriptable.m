@@ -10,6 +10,8 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     end
 
 
+
+
     properties (Abstract)
         % Data  Array of time series data
         Data
@@ -17,6 +19,8 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         % MissingValue  Value representing missing observations in time series
         MissingValue
     end
+
+
 
 
     properties (Dependent)
@@ -52,9 +56,13 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     end
 
 
+
+
     properties (Abstract, Dependent)
         MissingTest
     end
+
+
 
 
     properties (Constant)
@@ -62,14 +70,13 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     end
 
 
-    methods (Abstract, Access=protected, Hidden)
-        varargout = startDateWhenEmpty(varargin)
-    end
 
 
     methods (Access=protected)
         varargout = resolveRange(varargin)
     end
+
+
 
 
     methods
@@ -185,6 +192,21 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     end
 
 
+
+
+    methods (Access=protected, Hidden)
+        function startDate = startDateWhenEmpty(this, varargin)
+            if isa(this.Start, 'DateWrapper')
+                startDate = DateWrapper.NaD( );
+            else
+                startDate = NaN;
+            end
+        end%
+    end
+
+
+
+
     methods
         function this = emptyData(this)
             if isnan(this.Start) || size(this.Data, 1)==0
@@ -233,10 +255,14 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     end
 
 
+
+
     methods (Static)
         varargout = getExpSmoothMatrix(varargin)
         varargout = createDateAxisData(varargin)
     end
+
+
 
 
     methods (Static, Access=protected)

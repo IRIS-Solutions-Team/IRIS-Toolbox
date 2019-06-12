@@ -36,7 +36,7 @@ end
 % Convert LHS NaNs to complex if LHS is real and RHS is complex
 if isnumeric(this.Data) && isreal(this.Data) && ~isreal(y)
     inxOfMissing = this.MissingTest(this.Data);
-    complexMissing = complex(this.MissingValues, this.MissingValue);
+    complexMissing = complex(this.MissingValue, this.MissingValue);
     this.Data(inxOfMissing) = complexMissing;
 end
 
@@ -110,9 +110,6 @@ function [this, s, dates, freqTest] = expand(this, s)
 
     % If LHS data are complex, use NaN+NaNi to pad missing observations
     missingValue = this.MissingValue;
-    if isnumeric(this.Data) && ~isreal(this.Data)
-        missingValue = complex(missingValue, missingValue);
-    end
 
     % Replace x(dates) with x(dates, :, ..., :).
     if length(s.subs)==1
