@@ -1,75 +1,72 @@
 function captionHandle = createCaption(axesHandle, location, varargin)
-% createCaption  Place text caption at the edge of an annotating object.
+% createCaption  Place text caption at the edge of an annotating object
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('visual.backend.createCaption');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('AxesHandles', @(x) all(isgraphics(x, 'Axes')) && isscalar(x));
-    inputParser.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
-    inputParser.addParameter('String', @(x) ischar(x) || iscellstr(x) || isstring(x));
-    inputParser.addParameter('HorizontalPosition', 'right', @(x) any(strcmpi(x, {'center', 'centre', 'middle', 'left', 'right'})));
-    inputParser.addParameter('VerticalPosition', 'top', @(x) any(strcmpi(x, {'center', 'centre', 'middle', 'top', 'bottom'})));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('visual.backend.createCaption');
+    parser.KeepUnmatched = true;
+    parser.addRequired('AxesHandles', @(x) all(isgraphics(x, 'Axes')) && isscalar(x));
+    parser.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
+    parser.addParameter('String', @Valid.string);
+    parser.addParameter('HorizontalPosition', 'right', @(x) Valid.anyString(x, 'center', 'centre', 'middle', 'left', 'right'));
+    parser.addParameter('VerticalPosition', 'top', @(x) Valid.numericScalar(x) || Valid.anyString(x, 'center', 'centre', 'middle', 'top', 'bottom'));
 end
-inputParser.parse(axesHandle, location, varargin{:});
-opt = inputParser.Options;
-unmatched = inputParser.UnmatchedInCell;
+parse(parser, axesHandle, location, varargin{:});
+opt = parser.Options;
+unmatched = parser.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
-% Horizontal position and alignment.
+% Horizontal position and alignment
 inside = length(location)>1;
-switch lower(opt.HorizontalPosition)
-   case 'left'
-      if inside
-         horizontalAlignment = 'left';
-      else
-         horizontalAlignment = 'right';
-      end
-      x = location(1);
-   case 'right'
-      if inside
-         horizontalAlignment = 'right';
-      else
-         horizontalAlignment = 'left';
-      end
-      x = location(end);
-   otherwise
-      horizontalAlignment = 'center';
-      x = location(1) + (location(end) - location(1))/2;
+if strcmpi(opt.HorizontalPosition, 'Left')
+    if inside
+        horizontalAlignment = 'left';
+    else
+        horizontalAlignment = 'right';
+    end
+    x = location(1);
+elseif strcmpi(opt.HorizontalPosition, 'Right')
+    if inside
+        horizontalAlignment = 'right';
+    else
+        horizontalAlignment = 'left';
+    end
+    x = location(end);
+else
+    horizontalAlignment = 'center';
+    x = location(1) + (location(end) - location(1))/2;
 end
 
-% Vertical position and alignment.
+% Vertical position and alignment
 yLim = get(axesHandle, 'YLim');
 ySpan = yLim(end) - yLim(1);
-switch lower(opt.VerticalPosition)
-   case 'top'
-      y = 0.98;
-      verticalAlignment = 'top';
-   case 'bottom'
-      y = 0.02;
-      verticalAlignment = 'bottom';
-   case {'centre', 'center', 'middle'}
-      y = 0.5;
-      verticalAlignment = 'middle';
-   otherwise
-      y = opt.VerticalPosition;
-      verticalAlignment = 'middle';
+if strcmpi(opt.VerticalPosition, 'Top')
+    y = 0.98;
+    verticalAlignment = 'top';
+elseif strcmpi(opt.VerticalPosition, 'Bottom')
+    y = 0.02;
+    verticalAlignment = 'bottom';
+elseif any(strcmpi(opt.VerticalPosition, {'Centre', 'Center', 'Middle'}))
+    y = 0.5;
+    verticalAlignment = 'middle';
+else
+    y = opt.VerticalPosition;
+    verticalAlignment = 'middle';
 end
 
-captionHandle = text( ...
-    x, yLim(1)+y*ySpan, opt.String, ...
-   'Parent', axesHandle, ...
-   'Color', [0, 0, 0], ...
-   'VerticalAlignment', verticalAlignment, ...
-   'HorizontalAlignment', horizontalAlignment, ...
-   unmatched{:} ...
-);
+captionHandle = text( x, yLim(1)+y*ySpan, opt.String, ...
+                     'Parent', axesHandle, ...
+                     'Color', [0, 0, 0], ...
+                     'VerticalAlignment', verticalAlignment, ...
+                     'HorizontalAlignment', horizontalAlignment, ...
+                     unmatched{:} );
 
-end
+end%
+
