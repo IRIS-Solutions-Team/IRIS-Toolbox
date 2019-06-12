@@ -1,19 +1,61 @@
-function [c, flag] = file2char(fileName, Type)
-% file2char  Read text file
+function [file, flag] = file2char(fileName, varargin)
+% file2char  Read file to character vector or cellstr array
 %
-% Backend IRIS function
-% No help provided
+% __Syntax__
+%
+% Input arguments marked with a `~` sign may be omitted
+%
+%     c = file2char(fileName, ~precision, ...)
+%
+%
+% __Input Arguments__
+%
+% * `fileName` [ char | string ] - Name of the source file.
+%
+% * `~precision='char'` [ char | string ] - Matlab precision specificatio
+% for the `fread(~)` function.%
+%
+% 
+% __Options__
+%
+% * `MachineFormat='Native'` [ char | string ] - Order for writing bytes
+% and bits in the destination file.
+%
+% * `Encoding=@auto` [ `@auto` | char | string ] - Encoding scheme for from
+% the source file; `@auto` means the operating system default scheme.
+%
+%
+% __Description__
+%
+%
+% __Example__
+%
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-UTF = char([239, 187, 191]);
-
-try
-    Type; %#ok<VUNUS>
-catch
-    Type = 'char';
+splitByLines = false;
+if nargin==1
+    precision = 'char';
+else
+    precision = varargin{1};
+    varargin(1) = [ ];
+    if strcmpi(precision, 'cellstr')
+        precision = 'char';
+        splitByLines = true;
+    end
 end
+
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('file2char');
+    parser.addRequired('FileName', @Valid.string);
+    parser.addRequired('Precision', @Valid.string);
+    parser.addParameter('MachineFormat', 'Native', @Valid.string);
+    parser.addParameter('Encoding', @auto, @(x) isequal(x, @auto) || Valid.string(x));
+end
+parse(parser, fileName, precision, varargin{:});
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
@@ -25,48 +67,74 @@ if iscellstr(fileName) && length(fileName)==1
     return
 end
 
-% Open, read, and close file
-fid = fopen(fileName, 'r');
-if fid==-1
-    if ~exist(fileName, 'file')
-        utils.error('utils:file2char', ...
-            'Cannot find this file: %s ', fileName);
-    else
-        utils.error('utils:file2char', ...
-            'Cannot open this file for reading: %s ', fileName);
-    end
-end
-file = fread(fid, 'char').';
-if ~ischar(file)
-    file = char(file);
-end
-if fclose(fid)==-1
-    utils.warning('utils:file2char', ...
-        'Cannot close this file after reading: %s ', fileName);
-end
+fid = hereOpenFile( );
 
-% Remove UTF-8 CSV mark
-if strncmp(file, UTF, length(UTF))
-    file = file(length(UTF)+1:end);
-end
+file = hereReadFromFile( );
+
+hereRemoveUTFBOM( );
 
 % Convert any EOLs to \n
 file = textfun.converteols(file);
 
-if isequal(Type, 'char')
-    c = file;
-    return
-elseif isequal(Type, 'cellstr')
-    % Read individual lines into cellstr and remove EOLs
-    eol = strfind(file, sprintf('\n'));
-    c = cell(1, length(eol)+1);
-    xEol = [0, eol, length(file)+1];
-    for i = 1 : length(xEol)-1
-        first = xEol(i)+1;
-        last = xEol(i+1)-1;
-        c{i} = file(first:last);
-    end
+if splitByLines
+    hereConvertToCell( );
 end
 
+return
+
+
+    function fid = hereOpenFile( )
+        if isequal(opt.Encoding, @auto)
+            fid = fopen(fileName, 'r', opt.MachineFormat);
+        else
+            fid = fopen(fileName, 'r', opt.MachineFormat, opt.Encoding);
+        end
+        if fid==-1
+            THIS_ERROR = { 'CannotOpenFileForWriting'
+                           'Cannot open this file for writing: %s ' };
+            throw( exception.Base(THIS_ERROR, 'error'), ...
+                   fileName );
+        end
+    end%
+
+
+    function file = hereReadFromFile( )
+        size = Inf;
+        skip = 0;
+        file = fread(fid, size, precision, skip, opt.MachineFormat);
+        status = fclose(fid);
+        if status==-1
+            THIS_WARNING = { 'CannotCloseFile'
+                             'Cannot close this file after reading: %s ' };
+            throw( exception.Base(THIS_WARNING, 'warning'), ...
+                   fileName ); 
+        end
+        file = transpose(file);
+        file = char(file);
+    end%
+
+
+    function hereRemoveUTFBOM( )
+        % Remove UTF-8 bytes order mark from CSV files created by sometimes
+        % by MS Excel for Mac
+        UTF = char([239, 187, 191]);
+        if strncmp(file, UTF, length(UTF))
+            file = file(length(UTF)+1:end);
+        end
+    end%
+
+
+    function hereConvertToCell( )
+        % Read individual lines into cellstr and remove EOLs
+        c = file;
+        eol = strfind(c, sprintf('\n'));
+        file = cell(1, length(eol)+1);
+        posOfEols = [0, eol, length(file)+1];
+        for i = 1 : length(posOfEols)-1
+            first = posOfEols(i)+1;
+            last = posOfEols(i+1)-1;
+            file{i} = c(first:last);
+        end
+    end%
 end%
 

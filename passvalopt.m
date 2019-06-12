@@ -165,7 +165,6 @@ function defaultOptionsStruct = initialize( )
     defaultOptionsStruct.model = iris.options.model( );
     defaultOptionsStruct.nnet = iris.options.nnet( );
     defaultOptionsStruct.poster = iris.options.poster( );
-    defaultOptionsStruct.report = iris.options.report( );
     defaultOptionsStruct.textfun = iris.options.textfun( );
     defaultOptionsStruct.SVAR = iris.options.SVAR( );
     defaultOptionsStruct.tseries = iris.options.tseries( );

@@ -1,56 +1,111 @@
-function char2file(C,FName,Type)
-% char2file  [Not a public function] Write character string to text file.
+function char2file(c, fileName, varargin)
+% char2file  Write character string to text file
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     char2file(C,FName)
-%     char2file(C,FName,Type)
+% Input arguments marked with a `~` sign may be omitted
 %
-% Input arguments
-% ================
+%     char2file(c, fileName)
+%     char2file(c, fileName, ~precision, ...)
 %
-% * `C` [ char ] - Character string that will be written to the file.
 %
-% * `FName` [ char ] - Name of the file.
+% __Input Arguments__
 %
-% * `Type` [ char ] - Form and precision of the data written to the file.
+% * `c` [ char ] - Character string that will be written to the file.
 %
-% Description
-% ============
+% * `fileName` [ char ] - Name of the destination file.
 %
-% Example
-% ========
+% * `~precision` [ char ] - Form and precision of the data written to the
+% file; if omitted, `precision='char'`.
 %
-% -The IRIS Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+%
+% __Options__
+%
+% * `MachineFormat='native'` [ char | string ] - Order for writing bytes
+% and bits in the destination file.
+%
+% * `Encoding=@auto` [ `@auto` | char | string ] - Encoding scheme for
+% writing in the destination file; `@auto` means the operating system
+% default scheme.
+%
+%
+% __Description__
+%
+%
+% __Example__
+%
 
-if nargin < 3
-    Type = 'char';
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+if nargin<3
+    precision = 'char';
+else
+    precision = varargin{1};
+    varargin(1) = [ ];
 end
+
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('char2file');
+    parser.addRequired('InputString', @Valid.string);
+    parser.addRequired('FileName', @Valid.string);
+    parser.addRequired('Precision', @Valid.string);
+    parser.addParameter('MachineFormat', 'Native', @Valid.string);
+    parser.addParameter('Encoding', @auto, @(x) isequal(x, @auto) || Valid.string(x));
+end
+parse(parser, c, fileName, precision, varargin{:});
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
-fid = fopen(FName,'w+');
-if fid == -1
-    utils.error('utils:char2file', ...
-        'Cannot open file ''%s'' for writing.',FName);
+fid = hereOpenFile( );
+
+if iscellstr(c)
+    hereConvertToChar( );
 end
 
-if iscellstr(C)
-    C = sprintf('%s\n',C{:});
-    if ~isempty(C)
-        C(end) = '';
-    end
-end
-
-count = fwrite(fid,C,Type);
-if count ~= length(C)
-    fclose(fid);
-    utils.error('utils:char2file', ...
-        'Cannot write character string to file ''%s''.',FName);
-end
+hereWriteToFile( );
 
 fclose(fid);
 
-end
+
+return
+
+
+    function fid = hereOpenFile( )
+        if isequal(opt.Encoding, @auto)
+            fid = fopen(fileName, 'w+', opt.MachineFormat);
+        else
+            fid = fopen(fileName, 'w+', opt.MachineFormat, opt.Encoding);
+        end
+        if fid==-1
+            THIS_ERROR = { 'CannotOpenFileForWriting'
+                           'Cannot open this file for writing: %s ' };
+            throw( exception.Base(THIS_ERROR, 'error'), ...
+                   fileName );
+        end
+    end%
+
+
+    function hereConvertToChar( )
+        c = sprintf('%s\n', c{:});
+        if ~isempty(c)
+            c(end) = '';
+        end
+    end%
+
+
+    function hereWriteToFile( )
+        skip = 0;
+        count = fwrite(fid, c, precision, skip, opt.MachineFormat);
+        if count~=length(c)
+            fclose(fid);
+            THIS_ERROR = { 'CannotWriteToFile'
+                           'Cannot write character string to this file: %s ' };
+            throw( exception.Base(THIS_ERROR, 'error'), ...
+                   fileName );
+        end
+    end%
+end%
+

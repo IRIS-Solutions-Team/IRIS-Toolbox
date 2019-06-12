@@ -9,7 +9,35 @@ function [outputFileName, infoStruct] = publish(this, outputFileName, varargin)
 % * `'display='`
 % * `'rerun='`
 % and we need to capture them in output varargin.
-[opt, compilePdfOpt] = passvalopt('report.publish', varargin{:});
+
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('report.publish');
+    parser.KeepUnmatched = true;
+    parser.addRequired('Report', @(x) isa(x, 'report.reportobj'));
+    parser.addRequired('OutputFileName', @Valid.string);
+    parser.addParameter('Encoding', @auto, @(x) isequal(x, @auto) || Valid.string(x));
+    parser.addParameter('abstract', '', @(x) isempty(x) || ischar(x));
+    parser.addParameter('abstractwidth', '', @(x) Valid.numericScalar(x) && x>0 && x<=1);
+    parser.addParameter('author', '', @ischar);
+    parser.addParameter({'cleanup', 'deletelatex', 'deletetempfiles'}, true, @Valid.logicalScalar);
+    parser.addParameter('compile', true, @Valid.logicalScalar);
+    parser.addParameter('date', '\today', @ischar);
+    parser.addParameter('epstopdf', Inf, @(x) isequal(x, Inf) || ischar(x));
+    parser.addParameter('fontenc', 'T1', @ischar);
+    parser.addParameter('maketitle', false, @Valid.logicalScalar);
+    parser.addParameter('papersize', 'letterpaper', @(x) Valid.anyString(x, 'a4', 'a4paper', 'letter', 'letterpaper')); 
+    parser.addParameter('package', { }, @(x) ischar(x) || iscellstr(x) || isempty(x));
+    parser.addParameter('preamble', '', @ischar);
+    parser.addParameter('progress', false, @Valid.logicalScalar);
+    parser.addParameter('title', Inf, @(x) ischar(x) || isequal(x, Inf));
+    parser.addParameter('timestamp', @( ) datestr(now( )), @(x) ischar(x) || isfunc(x));
+    parser.addParameter({'textscale', 'scale'}, 0.8, @(x) isnumeric(x) && (length(x) == 1 || length(x) == 2));
+    parser.addParameter('tempdir', @( ) tempname(pwd( )), @(x) isfunc(x) || ischar(x));
+end
+parse(parser, this, outputFileName, varargin{:});
+opt = parser.Options;
+compilePdfOpt = parser.UnmatchedInCell;
 this.options.progress = opt.progress;
 
 if isempty(strfind(opt.papersize, 'paper'))
@@ -24,7 +52,6 @@ if ~isequal(opt.title, Inf)
     this.caption = opt.title;
 end
 
-% Obsolete options.
 this.options = dbmerge(this.options, opt);
 
 %--------------------------------------------------------------------------
@@ -81,7 +108,7 @@ return
 
 
     function doExtraPkg( )
-        pkg = this.options.package;
+        pkg = opt.package;
         if ischar(pkg)
             pkg = regexp(pkg, '\w+', 'match');
         end
@@ -122,7 +149,7 @@ return
     function doSaveLatexFile( )
         tempDir = this.hInfo.tempDir;
         latexFile = [tempname(tempDir), '.tex'];
-        char2file(c, latexFile);
+        char2file(c, latexFile, 'char', 'Encoding=', opt.Encoding);
     end
 
 
