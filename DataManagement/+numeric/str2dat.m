@@ -19,9 +19,7 @@ end
 if ~isempty(varargin) && isstruct(varargin{1})
     varargin = extend.InputParser.extractDateOptionsFromStruct(varargin{1});
 end
-try
 parser.parse(string, varargin{:});
-catch, keyboard, end
 opt = parser.Options;
 
 if isempty(opt.EnforceFrequency)
