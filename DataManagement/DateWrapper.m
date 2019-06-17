@@ -127,6 +127,7 @@ classdef DateWrapper < double
             fromSerial = floor(from);
             toSerial = floor(to);
             serial = fromSerial : step : toSerial;
+            serial = floor(serial);
             this = DateWrapper.fromSerial(freq, serial);
         end%
 
