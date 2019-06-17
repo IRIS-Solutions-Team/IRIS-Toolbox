@@ -49,7 +49,7 @@ switch plotFuncString
 end
 
 % Modify how dates are displayed in data tips
-if isTimeAxis
+if isTimeAxis && isa(xData, 'datetime')
     hereModifyDataTip(plotHandle, xData);
 end
 
@@ -183,7 +183,9 @@ end%
 function hereModifyDataTip(plotHandle, xData)
     r = dataTipTextRow('X', 'XData', xData.Format);
     for i = 1 : numel(plotHandle)
-        plotHandle(i).DataTipTemplate.DataTipRows(1) = r;
+        try
+            plotHandle(i).DataTipTemplate.DataTipRows(1) = r;
+        end
     end
 end%
 
