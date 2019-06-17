@@ -206,7 +206,7 @@ classdef (Abstract) Block < handle
                     this.Solver.Algorithm = 'levenberg-marquardt';
                     %this.Solver.Algorithm = 'trust-region';
                     %this.Solver.SubproblemAlgorithm = 'cg';
-                    [z, ~, exitFlag] = f;
+                    [z, ~, exitFlag] = fsolve(fnObjective, z0, this.Solver);
                 end
                 exitFlag = solver.ExitFlag.fromOptimTbx(exitFlag);
                 z = real(z);
