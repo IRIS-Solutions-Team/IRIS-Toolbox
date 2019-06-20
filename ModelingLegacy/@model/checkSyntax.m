@@ -1,4 +1,4 @@
-function chkSyntax(this, qty, eqn)
+function checkSyntax(this, qty, eqn)
 % checkSyntax  Check equations for syntax errors
 %
 % Backend IRIS function

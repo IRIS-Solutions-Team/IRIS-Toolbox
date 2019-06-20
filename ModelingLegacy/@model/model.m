@@ -364,7 +364,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = build(varargin)
         varargout = chkStructureAfter(varargin)
         varargout = chkStructureBefore(varargin)
-        varargout = chkSyntax(varargin)
+        varargout = checkSyntax(varargin)
         varargout = createD2S(varargin)
         varargout = createSourceDbase(varargin)
         varargout = diffFirstOrder(varargin)        
@@ -501,11 +501,10 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 %
 % * `Linear=false` [ `true` | `false` ] - Indicate linear models.
 %
-% * `MakeBkw=@auto` [ `@auto` | `@all` | cellstr | char ] -
-% Variables included in the list will be made part of the
-% vector of backward-looking variables; `@auto` means
-% the variables that do not have any lag in model equations
-% will be put in the vector of forward-looking variables.
+% * `MakeBkw=@auto` [ `@auto` | `@all` | cellstr | char ] - Variables
+% included in the list will be made part of the vector of backward-looking
+% variables; `@auto` means the variables that do not have any lag in model
+% equations will be put in the vector of forward-looking variables.
 %
 % * `AllowMultiple=false` [ true | false ] - Allow each variable, shock, or
 % parameter name to be declared (and assigned) more than once in the model
@@ -607,26 +606,26 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 inputParser = extend.InputParser('model.model');
                 inputParser.KeepUnmatched = true;
                 inputParser.PartialMatching = false;
-                % inputParser.addParameter('addlead', false, @Valid.logicalScalar);
+                inputParser.addParameter('addlead', false, @Valid.logicalScalar);
                 inputParser.addParameter('Assign', [ ], @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
+                inputParser.addParameter({'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
                 inputParser.addParameter({'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
                 inputParser.addParameter('comment', '', @ischar);
+                inputParser.addParameter({'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
                 inputParser.addParameter('Growth', false, @(x) isequal(x, true) || isequal(x, false));
-                inputParser.addParameter('optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
                 inputParser.addParameter('epsilon', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0 && x<1));
-                inputParser.addParameter({'removeleads', 'removelead'}, false, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter({'removeleads', 'removelead'}, false, @Valid.logicalScalar);
                 inputParser.addParameter('Linear', false, @(x) isequal(x, true) || isequal(x, false));
                 inputParser.addParameter('makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
+                inputParser.addParameter('optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
                 inputParser.addParameter('OrderLinks', true, @Valid.logicalScalar);
                 inputParser.addParameter({'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
-                inputParser.addParameter('Refresh', true, @(x) isequal(x, true) || isequal(x, false));
-                inputParser.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
+                % inputParser.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter('Refresh', true, @Valid.logicalScalar);
                 inputParser.addParameter({'SavePreparsed', 'SaveAs'}, '', @ischar);
                 inputParser.addParameter({'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
-                inputParser.addParameter({'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
                 inputParser.addParameter('stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
                 inputParser.addParameter('stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
-                inputParser.addParameter({'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
             end
             if isempty(parserParser)
                 parserParser = extend.InputParser('model.model');
