@@ -491,6 +491,11 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 % * `Comment=''` [ char ] - Text comment attached to the model
 % object.
 %
+% * `CheckSyntax=true` [ true | false ] - Perform syntax checks on model
+% equations; setting `CheckSyntax=false` may help reduce load time for
+% larger model objects (provided the model file is known to be free of
+% syntax errors).
+%
 % * `Epsilon=eps^(1/4)` [ numeric ] - The minimum relative step
 % size for numerical differentiation.
 %
@@ -602,9 +607,9 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 inputParser = extend.InputParser('model.model');
                 inputParser.KeepUnmatched = true;
                 inputParser.PartialMatching = false;
-                inputParser.addParameter('addlead', false, @(x) isequal(x, true) || isequal(x, false));
+                % inputParser.addParameter('addlead', false, @Valid.logicalScalar);
                 inputParser.addParameter('Assign', [ ], @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
-                inputParser.addParameter('chksyntax', true, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter({'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
                 inputParser.addParameter('comment', '', @ischar);
                 inputParser.addParameter('Growth', false, @(x) isequal(x, true) || isequal(x, false));
                 inputParser.addParameter('optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
@@ -612,7 +617,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 inputParser.addParameter({'removeleads', 'removelead'}, false, @(x) isequal(x, true) || isequal(x, false));
                 inputParser.addParameter('Linear', false, @(x) isequal(x, true) || isequal(x, false));
                 inputParser.addParameter('makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
-                inputParser.addParameter('OrderLinks', true, @(x) isequal(x, true) || isequal(x, false));
+                inputParser.addParameter('OrderLinks', true, @Valid.logicalScalar);
                 inputParser.addParameter({'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
                 inputParser.addParameter('Refresh', true, @(x) isequal(x, true) || isequal(x, false));
                 inputParser.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));

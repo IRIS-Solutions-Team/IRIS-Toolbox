@@ -164,7 +164,7 @@ this.Incidence.Steady.Matrix(ixCopy, :) = this.Incidence.Dynamic.Matrix(ixCopy, 
 
 % Check equation syntax before we compute optimal policy but after we
 % remove the header min(...) from the loss function equation.
-if opt.chksyntax
+if opt.CheckSyntax
     chkSyntax(this, qty, eqn);
 end
 

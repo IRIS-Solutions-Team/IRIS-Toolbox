@@ -1,11 +1,11 @@
 function chkSyntax(this, qty, eqn)
-% chkSyntax  Check equations for syntax errors.
+% checkSyntax  Check equations for syntax errors
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -31,7 +31,7 @@ if any(ixl)
     xLink = [ rand(nQuan, 1); std*ones(ne, 1); zeros(ne*(ne-1)/2, 1) ];
 end
 
-% Dynamic equations.
+% Dynamic equations
 try
     fn = [ '@(x,t,L) [', eqn.Dynamic{~ixl}, ']' ];
     if true % ##### MOSW
