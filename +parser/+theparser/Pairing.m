@@ -3,13 +3,9 @@ classdef Pairing < parser.theparser.Equation
     end
     
     
-    
-    
-    properties
-        PATTERN = '^\s*(?<Lhs>\w+)\s*(:=|=)\s*(?<Rhs>\w+)\s*;'
+    properties (Constant)
+        PATTERN = '^\s*(?<Lhs>\w+)\s*(:=|=|~)\s*(?<Rhs>\w+)\s*;'
     end
-    
-    
     
     
     methods
