@@ -4,20 +4,21 @@ answ = [ ];
 retQuery = query;
 
 flag = true;
-switch query
-    case {'autoexog'}
-        answ = struct( 'Dynamic', [ ], 'Steady', [ ]);
-        [~, ~, answ.Dynamic] = model.component.Pairing.getAutoexog(p.Autoexog.Dynamic, quantity);
-        [~, ~, answ.Steady] = model.component.Pairing.getAutoexog(p.Autoexog.Steady, quantity);
+if any(strcmpi(query, {'Autoswap', 'Autoswap'}))
+    answ = struct( 'Simulate', [ ], 'Steady', [ ]);
+    [~, ~, answ.Simulate] = model.component.Pairing.getAutoswap(p.Autoswap.Simulate, quantity);
+    [~, ~, answ.Steady] = model.component.Pairing.getAutoswap(p.Autoswap.Steady, quantity);
 
-    case {'autoexog:dynamic'}
-        [~, ~, answ] = model.component.Pairing.getAutoexog(p.Autoexog.Dynamic, quantity);
+elseif any(strcmpi(query, {'Simulate-Autoswap', 'Simulate-Autoswaps', 'Autoexog:Simulate'}))
+    [~, ~, answ] = model.component.Pairing.getAutoswap(p.Autoswap.Simulate, quantity);
 
-    case {'autoexog:steady'}
-        [~, ~, answ] = model.component.Pairing.getAutoexog(p.Autoexog.Steady, quantity);
+elseif any(strcmpi(query, {'Steady-Autoswap', 'Steady-Autoswaps', 'Autoexog:Steady'}))
+    [~, ~, answ] = model.component.Pairing.getAutoswap(p.Autoswap.Steady, quantity);
 
-    otherwise
-        flag = false;
-end
+else
+    flag = false;
 
 end
+
+end%
+

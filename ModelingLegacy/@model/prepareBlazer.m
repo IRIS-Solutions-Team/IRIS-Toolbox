@@ -84,7 +84,7 @@ blz.InxEndogenous = ixy | ixx;
 blz.InxEquations = ixm | ixt;
 
 if isequal(opt.Exogenize, @auto) || isequal(opt.Endogenize, @auto)
-    [listExogenize, listEndogenize] = resolveAutoexog(this, kind, opt.Exogenize, opt.Endogenize);
+    [listExogenize, listEndogenize] = resolveAutoswap(this, kind, opt.Exogenize, opt.Endogenize);
 else
     listExogenize = opt.Exogenize;
     listEndogenize = opt.Endogenize;

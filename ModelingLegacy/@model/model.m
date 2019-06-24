@@ -38,7 +38,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         % Gradient  Symbolic gradients of model equations
         Gradient = model.component.Gradient(0) 
 
-        % Pairing  Definition of pairs in autoexog, dtrends, links, and assignment equations
+        % Pairing  Definition of pairs in autoswaps, dtrends, links, and assignment equations
         Pairing = model.component.Pairing(0, 0) 
         
         % PreparserControl  Preparser control parameters
@@ -85,12 +85,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
         % NamesOfAppendables  Variable names that can be appended pre-sample or post-sample database
         NamesOfAppendables
-
-        % NamesOfEndogenousInPlan  Names of variables that can be exogenized in simulation plan
-        NamesOfEndogenousInPlan
-
-        % NamesOExogenousInPlan  Names of variables that can be endogenized in simulation plan
-        NamesOfExogenousInPlan
     end
 
     
@@ -163,8 +157,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = assign(varargin)
         varargout = assigned(varargin)
         varargout = autocaption(varargin)
-        varargout = autoexog(varargin)
-        varargout = autoexogenise(varargin)
+        varargout = autoswap(varargin)
         varargout = beenSolved(varargin)
         varargout = blazer(varargin)
         varargout = bn(varargin)
@@ -722,18 +715,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         function names = get.NamesOfAppendables(this)
             TYPE = @int8;
             names = getNamesByType(this.Quantity, TYPE(1), TYPE(2), TYPE(31), TYPE(32), TYPE(5));
-        end%
-
-
-        function names = get.NamesOfEndogenousInPlan(this)
-            TYPE = @int8;
-            names = getNamesByType(this.Quantity, TYPE(1), TYPE(2));
-        end%
-
-
-        function names = get.NamesOfExogenousInPlan(this)
-            TYPE = @int8;
-            names = getNamesByType(this.Quantity, TYPE(31), TYPE(32));
         end%
     end
 end

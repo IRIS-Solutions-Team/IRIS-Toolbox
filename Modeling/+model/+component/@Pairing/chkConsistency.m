@@ -10,8 +10,8 @@ function flag = chkConsistency(pai, qty, eqn)
 %--------------------------------------------------------------------------
 
 try
-    flag = chkAutoexogDynamic( ) && chkAutoexogSteady( ) ...
-        && chkDtrend( ) && chkRevision( );
+    flag = checkAutoswapSimulate( ) && checkAutoswapSteady( ) ...
+           && checkDtrend( ) && checkRevision( );
 catch
     flag = false;
 end
@@ -19,36 +19,30 @@ end
 return
 
 
-
-
-    function flag = chkAutoexogSteady( )
+    function flag = checkAutoswapSteady( )
         TYPE = @int8;
         PTR = @int16;
-        ix = pai.Autoexog.Steady~=PTR(0);
+        ix = pai.Autoswap.Steady~=PTR(0);
         flag = all( qty.Type(ix)==TYPE(1) ...
             | qty.Type(ix)==TYPE(2) );
-        ptr = abs( pai.Autoexog.Steady(ix) );
+        ptr = abs( pai.Autoswap.Steady(ix) );
         flag = flag && all( qty.Type(ptr)==TYPE(4) );
     end%
 
 
-
-
-    function flag = chkAutoexogDynamic( )
+    function flag = checkAutoswapSimulate( )
         TYPE = @int8;
         PTR = @int16;
-        ixPtr = pai.Autoexog.Dynamic~=PTR(0);
+        ixPtr = pai.Autoswap.Dynamic~=PTR(0);
         flag = all( qty.Type(ixPtr)==TYPE(1) ...
             | qty.Type(ixPtr)==TYPE(2) );
-        ptr = abs( pai.Autoexog.Dynamic(ixPtr) );
+        ptr = abs( pai.Autoswap.Dynamic(ixPtr) );
         flag = flag && all( qty.Type(ptr)==TYPE(31) ...
             | qty.Type(ptr)==TYPE(32) );
     end%
 
 
-
-
-    function flag = chkDtrend( )
+    function flag = checkDtrend( )
         TYPE = @int8;
         PTR = @int16;
         ixPtr = pai.Dtrend~=PTR(0);
@@ -74,9 +68,7 @@ return
     end%
 
 
-
-
-    function flag = chkRevision( )
+    function flag = checkRevision( )
         TYPE = @int8;
         ixu = eqn.Type==TYPE(5);
         flag = true;
@@ -90,3 +82,4 @@ return
         end
     end%
 end%
+

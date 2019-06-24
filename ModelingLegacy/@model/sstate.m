@@ -136,27 +136,27 @@ function [this, flag, outputInfo] = sstate(this, varargin)
 %
 % _Using @auto in Options Exogenize= and Endogenize=_
 %
-% The keyword `@auto` refers to `!steady_autoexog` definitions and can be
+% The keyword `@auto` refers to `!steady-autoswaps` definitions and can be
 % used in the options `Exogenize=` and `Exogenize=` in the following three
 % possible combinations:
 %
 % * Setting both `Exogenize=` and `Endogenize=` to `@auto` will
-% exogenize all variables from `!steady_autoexog` definitions and
+% exogenize all variables from `!steady-autoswaps` definitions and
 % endogenize all corresponding parameters.
 %
 % * Assigning the option `Exogenize=` an explicit list of variables while
 % setting `Endogenize=` to `@auto` will exogenize only the listed
 % variables while endogenizing the same number of the corresponding
-% parameters from `!steady_autoexoge` definitions. The listed variables
-% must each be found on the left-hand sides of a `!steady_autoexog`
+% parameters from `!steady-autoswapse` definitions. The listed variables
+% must each be found on the left-hand sides of a `!steady-autoswaps`
 % definition.
 %
 % * Setting `Exogenize=` to `@auto` while assigning the option
 % `Endogenize=` an explicit list of parameters will exogenize only the
-% variables that occur on the left-hand sides of those `!steady_autoexog`
+% variables that occur on the left-hand sides of those `!steady-autoswaps`
 % definitions that have the listed parameters on their right-hand sides.
 % The listed parameters must each be found on the right-hand side of a
-% `!steady_autoexog` definition.
+% `!steady-autoswaps` definition.
 %
 %
 % _Options Fix=, FixLevel= and FixGrowth=_
@@ -191,7 +191,7 @@ function [this, flag, outputInfo] = sstate(this, varargin)
 %     !parameters
 %         alpha, beta, gamma, delta
 %
-%     !steady_autoexog
+%     !steady-autoswaps
 %         W := alpha;
 %         Y := beta;
 %         Z := delta;
@@ -201,15 +201,11 @@ function [this, flag, outputInfo] = sstate(this, varargin)
 %     m = sstate(m, 'Exogenize=', @auto, 'Endogenize=', @auto)
 %
 % will calculate the steady state with all three variables from the
-% `!steady_autoexog` defintions, `W`, `Y`, and `Z`, exogenized to their
+% `!steady-autoswaps` defintions, `W`, `Y`, and `Z`, exogenized to their
 % currently assigned values while endogenizing the three corresponding
 % parameters, `alpha`, `beta`, and `delta`.
 %
 % Running the following command
-%
-%     m = sstate(m, 'Exogenize=', 'W, Z', 'Endogenize=', @auto)
-%
-% or 
 %
 %     m = sstate(m, 'Exogenize=', {'W', 'Z'}, 'Endogenize=', @auto)
 %
@@ -218,10 +214,6 @@ function [this, flag, outputInfo] = sstate(this, varargin)
 % endogenized.
 %
 % Finally, running the following command
-%
-%     m = sstate(m, 'Exogenize=', @auto, 'Endogenize=', 'delta, beta')
-%
-% or 
 %
 %     m = sstate(m, 'Exogenize=', @auto, 'Endogenize=', {'delta', 'beta'})
 %

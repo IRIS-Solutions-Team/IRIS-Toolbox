@@ -400,6 +400,8 @@ else
             answ = userdata(this);
 
 
+
+
         % Database of autoexogenise definitions d.variable = 'shock';
         case {'autoexogenise', 'autoexogenised', 'autoexogenize', 'autoexogenized'}
             answ = autoexogenise(this);
@@ -407,8 +409,8 @@ else
             
             
             
-        case {'autoexog'}
-            answ = autoexog(this);
+        case {'autoswap', 'autoswaps', 'autoexog'}
+            answ = autoswap(this);
 
             
         case {'reporting', 'rpteq'}

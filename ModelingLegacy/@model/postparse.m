@@ -1,11 +1,11 @@
 function this = postparse(this, qty, eqn, euc, puc, opt, optimalOpt)
-% postparse  Postparse model code.
+% postparse  Postparse model code
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -21,10 +21,8 @@ if any(eqn.Type==TYPE(6))
     checkList = [qty.Name, this.Reporting.NamesOfLhs];
     lsConflict = parser.getMultiple(checkList);
     if ~isempty(lsConflict)
-        throw( ...
-            exception.ParseTime('Model:Postparser:REPORTING_NAME_CONFLICT', 'error'), ...
-            lsConflict{:} ...
-            );
+        throw( exception.ParseTime('Model:Postparser:REPORTING_NAME_CONFLICT', 'error'), ...
+               lsConflict{:} );
     end
 end
 
@@ -84,13 +82,13 @@ if  isOptimal
     createPlaceholdersForOptimal( );
 end
 
-% __Read DTrends, Links, Revisions, Autoexog__
+% __Read DTrends, Links, Revisions, Autoswap__
 % Read them after placeholders for optimal policy have been created.
 try
     [eqn, this.Pairing.Dtrend] = readDtrends(eqn, euc, qty);
     [eqn, this.Link] = readLinks(eqn, euc, qty);
     [eqn, this.Pairing.Revision] = readRevisions(eqn, euc, qty);
-    this.Pairing.Autoexog = model.component.Pairing.readAutoexog(qty, puc);
+    this.Pairing.Autoswap = model.component.Pairing.readAutoswap(qty, puc);
     this.Pairing.Assignment = model.component.Pairing.readAssignments(eqn, euc, qty);
 catch exc
     throw( exception.Rethrow(exc) );

@@ -2,6 +2,7 @@ classdef Plan
     properties
         NamesOfEndogenous = cell.empty(1, 0)
         NamesOfExogenous = cell.empty(1, 0)
+        AutoswapPairs = cell.empty(0, 2)
         BaseStart = double.empty(0)
         BaseEnd = double.empty(0)
         ExtendedStart = double.empty(0)
@@ -36,28 +37,14 @@ classdef Plan
 
     methods % Constructor
         function this = Plan(varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('Plan.Plan');
-                parser.addRequired('Model', @(x) isa(x, 'model.Plan'));
-                parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
-                parser.addParameter({'DefaultAnticipationStatus', 'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
-            end
             if nargin==0
                 return
             end
-            parser.parse(varargin{:});
-            opt = parser.Options;
-            this.BaseStart = double(parser.Results.SimulationRange(1));
-            this.BaseEnd = double(parser.Results.SimulationRange(end));
-            this = preparePlan(parser.Results.Model, this, [this.BaseStart, this.BaseEnd]);
-            this.DefaultAnticipationStatus = opt.DefaultAnticipationStatus;
-            this.IdOfAnticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'uint16');
-            this.IdOfUnanticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'uint16');
-            this.IdOfAnticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'uint16');
-            this.IdOfUnanticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'uint16');
-            this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, this.NumOfEndogenous, 1);
-            this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, this.NumOfExogenous, 1);
+            if nargin==1 && isa(varargin{1}, 'Plan')
+                this = varargin{1};
+                return
+            end
+            this = Plan.fromModel(varargin{:});
         end%
     end
 
@@ -181,17 +168,69 @@ classdef Plan
         end%
 
 
+
+
+        function this = autoswap(this, dates, namesToAutoswap, varargin)
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('Plan.autoswap');
+                parser.addRequired('Plan', @(x) isa(x, 'Plan'));
+                parser.addRequired('DatesToSwap', @DateWrapper.validateDateInput);
+                parser.addRequired('NamesToAutoswap', @(x) ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @all));
+                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || Valid.logicalScalar(x));
+            end
+            parser.parse(this, dates, namesToAutoswap, varargin{:});
+            opt = parser.Options;
+            inxToAutoswap = false(size(this.AutoswapPairs, 1), 1); 
+            if isequal(namesToAutoswap, @all)
+                inxToAutoswap(:) = true;
+            else
+                inxToAutoswap = hereIndexPairsToSwap( );
+            end
+            pairsToAutoswap = this.AutoswapPairs(inxToAutoswap, :);
+            this = swap(this, dates, pairsToAutoswap, 'AnticipationStatus=', opt.AnticipationStatus);
+            return
+
+                function inxToAutoswap = hereIndexPairsToSwap( )
+                    namesToAutoswap = cellstr(namesToAutoswap);
+                    namesToAutoswap = transpose(namesToAutoswap(:));
+                    numOfNames = numel(namesToAutoswap);
+                    inxToAutoswap = false(size(this.AutoswapPairs, 1), 1);
+                    inxOfValid = true(1, numOfNames);
+                    for i = 1 : numel(namesToAutoswap)
+                        name = namesToAutoswap{i};
+                        inx = strcmp(name, this.AutoswapPairs(:, 1)) ...
+                            | strcmp(name, this.AutoswapPairs(:, 2));
+                        if any(inx)
+                            inxToAutoswap = inxToAutoswap | inx;
+                        else
+                            inxOfValid(i) = false;
+                        end
+                    end
+                    if any(~inxOfValid)
+                        THIS_ERROR = { 'Plan:CannotAutoswapName'
+                                       'Cannot autoswap this name: %s ' };
+                        throw( exception.Base(THIS_ERROR, 'error'), ...
+                               namesToAutoswap{~inxOfValid} );
+            end
+                end%
+        end%
+
+
+            
+
         function this = swap(this, dates, varargin)
             if isempty(varargin)
                 pairsToSwap = cell.empty(1, 0);
-            elseif numel(varargin)==1 && isstruct(varargin{1})
+            elseif isstruct(varargin{1})
                 pairsToSwap = varargin{1};
                 varargin(1) = [ ];
             else
-                inxOfPairs = cellfun(@(x) (iscellstr(x) || isa(x, 'string')) && numel(x)==2, varargin);
-                pairsToSwap = cell.empty(1, 0);
+                inxOfPairs = cellfun(@(x) (iscellstr(x) || isa(x, 'string')) && size(x, 2)==2, varargin);
+                pairsToSwap = cell.empty(0, 2);
                 while ~isempty(inxOfPairs) && inxOfPairs(1)
-                    pairsToSwap{end+1} = varargin{1};
+                    pairsToSwap = [ pairsToSwap
+                                    varargin{1}  ];
                     varargin(1) = [ ];
                     inxOfPairs(1) = [ ];
                 end
@@ -210,18 +249,18 @@ classdef Plan
                 inputStruct = varargin{1};
                 namesToExogenize = fieldnames(inputStruct);
                 numOfPairs = numel(namesToExogenize);
-                pairsToSwap = cell(1, numOfPairs);
+                pairsToSwap = cell(numOfPairs, 2);
                 for i = 1 : numOfPairs
-                    pairsToSwap{i} = { namesToExogenize{i}, ...
-                                       inputStruct.(namesToExogenize{i}) };
+                    pairsToSwap(i, :) = { namesToExogenize{i}, ...
+                                          inputStruct.(namesToExogenize{i}) };
                 end
             end
-            numOfPairs = numel(pairsToSwap);
+            numOfPairs = size(pairsToSwap, 1);
             anticipationMismatch = cell(1, 0);
             for i = 1 : numOfPairs
                 setToValue = this.SwapId;
                 this.SwapId = this.SwapId + uint16(1);
-                [nameToExogenize, nameToEndogenize] = pairsToSwap{i}{:};
+                [nameToExogenize, nameToEndogenize] = pairsToSwap{i, :};
 
                 [this, anticipateEndogenized] = ...
                     implementEndogenize( this, ...
@@ -238,6 +277,9 @@ classdef Plan
                                         'AnticipationStatus=', opt.AnticipationStatus );
 
                 if ~isequal(anticipateEndogenized, anticipateExogenized)
+                    % Throw a warning (future error) if the anticipation
+                    % status of the variable and that of the shock fail to
+                    % match
                     anticipationMismatch{end+1} = sprintf( '%s[%s] <-> %s[%s]', ...
                                                            nameToExogenize, ...
                                                            statusToString(anticipateExogenized), ...
@@ -551,6 +593,27 @@ classdef Plan
 
 
     methods % Get Set Methods
+        function this = set.AutoswapPairs(this, value)
+            if ~iscellstr(value) || size(value, 2)~=2
+                hereThrowError( );
+            end
+            if ~all(ismember(value(:,1), this.NamesOfEndogenous))
+                hereThrowError( );
+            end
+            if ~all(ismember(value(:,2), this.NamesOfExogenous))
+                hereThrowError( );
+            end
+            this.AutoswapPairs = value;
+
+            return
+                function hereThrowError( )
+                    THIS_ERROR = { 'Plan:InvalidAutoswapPairs'
+                                   'Invalid value assigned to @Plan.AutoswapPairs' };
+                    throw( exception.Base(THIS_ERROR, 'error') );
+                end%
+        end%
+
+
         function value = get.InxOfAnticipatedExogenized(this)
             value = this.IdOfAnticipatedExogenized~=0;
         end%
@@ -744,6 +807,31 @@ classdef Plan
 
 
     methods (Static)
+        function this = fromModel(varargin)
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('Plan.Plan');
+                parser.addRequired('Model', @(x) isa(x, 'model.Plan'));
+                parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
+                parser.addParameter({'DefaultAnticipationStatus', 'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
+            end
+            parser.parse(varargin{:});
+            opt = parser.Options;
+
+            this = Plan( );
+            this.BaseStart = double(parser.Results.SimulationRange(1));
+            this.BaseEnd = double(parser.Results.SimulationRange(end));
+            this = preparePlan(parser.Results.Model, this, [this.BaseStart, this.BaseEnd]);
+            this.DefaultAnticipationStatus = opt.DefaultAnticipationStatus;
+            this.IdOfAnticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'uint16');
+            this.IdOfUnanticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'uint16');
+            this.IdOfAnticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'uint16');
+            this.IdOfUnanticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'uint16');
+            this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, this.NumOfEndogenous, 1);
+            this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, this.NumOfExogenous, 1);
+        end%
+
+        
         function inxOfNames = resolveNames(selectNames, allNames, context, throwError)
             if nargin<4
                 throwError = true;
@@ -780,8 +868,7 @@ function flag = validatePairsToSwap(pairs)
         flag = true;
         return
     end
-    tempValidate = @(x) (iscellstr(x) || isa(x, 'string')) && numel(x)==2;
-    if iscell(pairs) && all(cellfun(tempValidate, pairs))
+    if iscellstr(pairs) && size(pairs, 2)==2
         flag = true;
         return
     end

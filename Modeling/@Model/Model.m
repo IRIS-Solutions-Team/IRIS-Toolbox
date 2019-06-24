@@ -24,7 +24,7 @@
 %  ---------------------------|-----------------------------------------------------------------
 %   addToDatabank             | Add model quantities to existing or new databank 
 %   autocaption               | Create captions for reporting model variables or parameters
-%   autoexog                  | Get or set pairs of names in dynamic and steady autoexog
+%   autoswap                  | Get or set pairs of names in simulate autoswaps and/or steady swaps
 %   chkredundant              | Check for redundant shocks and/or parameters
 %   comment                   | Get or set user comments in IRIS object
 %   eig                       | Eigenvalues of model transition matrix
@@ -147,7 +147,9 @@
 
 
 
-classdef Model < model & matlab.mixin.CustomDisplay
+classdef Model < model ...
+                 & matlab.mixin.CustomDisplay ...
+                 & model.Plan
 
 
     methods % Constructor
@@ -267,7 +269,18 @@ classdef Model < model & matlab.mixin.CustomDisplay
         NumOfMeasurementEquations
         NumOfTransitionEquations
         SizeOfTransitionMatrix
+
+        % NumOfExportFiles  Number of export files
         NumOfExportFiles
+
+        % NamesOfEndogenousForPlan  Names of variables that can be exogenized in simulation plan
+        NamesOfEndogenousForPlan
+
+        % NamesOExogenousForPlan  Names of variables that can be endogenized in simulation plan
+        NamesOfExogenousForPlan
+
+        % AutoswapPairs  Variable-shock pairs for autoswaps
+        AutoswapPairsForPlan
     end
 
 
@@ -298,6 +311,26 @@ classdef Model < model & matlab.mixin.CustomDisplay
 
         function value = get.NumOfExportFiles(this)
             value = numel(this.Export);
+        end%
+
+
+        function names = get.NamesOfEndogenousForPlan(this)
+            TYPE = @int8;
+            names = getNamesByType(this.Quantity, TYPE(1), TYPE(2));
+        end%
+
+
+        function names = get.NamesOfExogenousForPlan(this)
+            TYPE = @int8;
+            names = getNamesByType(this.Quantity, TYPE(31), TYPE(32));
+        end%
+
+
+        function value = get.AutoswapPairsForPlan(this)
+            pairingVector = this.Pairing.Autoswap.Simulate;
+            [namesOfExogenized, namesOfEndogenized] = ...
+                model.component.Pairing.getAutoswap(pairingVector, this.Quantity);
+            value = [ namesOfExogenized(:), namesOfEndogenized(:) ];
         end%
     end
 end
