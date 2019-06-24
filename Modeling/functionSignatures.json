@@ -1,0 +1,26 @@
+
+{
+    "Model": 
+    {
+        "inputs":
+        [
+            { "name": "FileNames",       "kind": "required",  "type": "file=*.model, *.mod" }, 
+            { "name": "Assign=",         "kind": "namevalue", "type": ["struct", "cell"] }, 
+            { "name": "BaseYear=",       "kind": "namevalue", "type": ["numeric", "scalar"] },
+            { "name": "Comment=",        "kind": "namevalue", "type": ["char", "string"] },
+            { "name": "CheckSyntax=",    "kind": "namevalue", "type": ["logical", "scalar"] },
+            { "name": "DefaultStd=",     "kind": "namevalue", "type": ["numeric", ">=0"] },
+            { "name": "Epsilon=",        "kind": "namevalue", "type": ["numeric", "scalar", ">0", "<1"] },
+            { "name": "Growth=",         "kind": "namevalue", "type": ["logical", "scalar"] },
+            { "name": "Linear=",         "kind": "namevalue", "type": ["logical", "scalar"] }, 
+            { "name": "MakeBkw=",        "kind": "namevalue", "type": "" },
+            { "name": "Optimal=",        "kind": "namevalue", "type": "cell" },
+            { "name": "OrderLinks=",     "kind": "namevalue", "type": ["logical", "scalar"] }, 
+            { "name": "Refresh=",        "kind": "namevalue", "type": ["logical", "scalar"] }, 
+            { "name": "RemoveLeads=",    "kind": "namevalue", "type": ["logical", "scalar"] },
+            { "name": "SavePreparsed=",  "kind": "namevalue", "type": ["char", "string"] },
+            { "name": "SymbolicDiff=",   "kind": "namevalue", "type": ["logical", "scalar"] }
+        ]
+    }
+}
+
