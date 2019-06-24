@@ -1,10 +1,10 @@
-% TheParser  Main IRIS model file parser.
+% TheParser  Main IRIS model file parser
 %
-% Backend IRIS class.
-% No help provided.
+% Backend IRIS class
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 classdef TheParser < handle
     properties
@@ -17,7 +17,7 @@ classdef TheParser < handle
         OtherKeyword = cell.empty(1, 0)
         AssignedDatabank = struct( )
         AssignedString = cell.empty(1, 0)
-        AssignOrder = int8.empty(1, 0) % Order in which values assigned to names will be evaluated.
+        AssignOrder = int8.empty(1, 0) % Order in which values assigned to names will be evaluated
     end
     
     
@@ -43,7 +43,7 @@ classdef TheParser < handle
             this.FName = fileName;
             this.Code = code;
             this.AssignedDatabank = a;
-        end
+        end%
     end
     
     
@@ -57,3 +57,4 @@ classdef TheParser < handle
         varargout = setupRpteq(varargin)
     end
 end
+

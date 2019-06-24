@@ -13,10 +13,10 @@ TYPE = @int8;
 
 exception.ParseTime.storeFileName(this.FName);
 
-% Check alternative syntax.
+% Check alternative syntax
 altSyntax(this);
 
-% Read individual blocks.
+% Read individual blocks
 blockCode = readBlockCode(this);
 
 qty = model.component.Quantity( );
@@ -24,10 +24,9 @@ eqn = model.component.Equation( );
 euc = parser.EquationUnderConstruction( );
 puc = parser.PairingUnderConstruction( );
 
-numBlocks = length(this.Block);
-for i = 1 : numBlocks
-    [qty, eqn] = ...
-        parse(this.Block{i}, this, blockCode{i}, qty, eqn, euc, puc, opt);
+numOfBlocks = length(this.Block);
+for i = 1 : numOfBlocks
+    [qty, eqn] = parse(this.Block{i}, this, blockCode{i}, qty, eqn, euc, puc, opt);
 end
 
 % Evaluate and assign strings from code

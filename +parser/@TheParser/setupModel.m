@@ -79,27 +79,29 @@ x.Type = TYPE(5);
 this.Block{end+1} = x;
 
 x = parser.theparser.Pairing( );
-x.Keyword = '!dynamic_autoexog';
+x.Keyword = '!simulate-autoswaps';
 x.Type = TYPE(1);
 this.Block{end+1} = x;
 
 x = parser.theparser.Pairing( );
-x.Keyword = '!steady_autoexog';
+x.Keyword = '!steady-autoswaps';
 x.Type = TYPE(2);
 this.Block{end+1} = x;
 
 this.AltKeyword = [ 
     this.AltKeyword 
-    { '\$\<([a-zA-Z]\w*)\>(?!\$)', '&$1' % Steady references
-      '!allbut\>', '!all_but'
-      '!all-but\>', '!all_but'
-      '!equations\>', '!transition_equations'
-      '!variables\>', '!transition_variables'
+    { '\$\<([a-zA-Z]\w*)\>(?!\$)',                '&$1' % Steady references
+      '!allbut\>',                                '!all_but'
+      '!all-but\>',                               '!all_but'
+      '!equations\>',                             '!transition_equations'
+      '!variables\>',                             '!transition_variables'
       '(?<=!\w+)-(?=equations|variables|shocks)', '_' % Use dashes instead of underscores
-      '!shocks\>', '!transition_shocks'
-      '\$\[', '<' % Open interpolation
-      '\]\$', '>' % Close interpolation
-      '!ttrend\>', 'ttrend' } ];
+      '!shocks\>',                                '!transition_shocks'
+      '\$\[',                                     '<' % Open interpolation
+      '\]\$',                                     '>' % Close interpolation
+      '!ttrend\>',                                'ttrend' 
+      '!dynamic_autoexog',                        '!simulate-autoswaps'
+      '!steady_autoexog',                         '!steady-autoswaps'          } ];
 
 
 this.AltKeywordWarn = [ 
@@ -113,8 +115,8 @@ this.AltKeywordWarn = [
       '!shocks:measurement\>', '!measurement_shocks'
       '!equations:measurement\>', '!measurement_equations'
       '!variables:log\>', '!log_variables'
-      '!autoexogenise\>', '!dynamic_autoexog'
-      '!autoexogenize\>', '!dynamic_autoexog' } ];
+      '!autoexogenise\>', '!autoswap-simulate'
+      '!autoexogenize\>', '!autoswap-simulate' } ];
 
 this.OtherKeyword = [ this.OtherKeyword, ...
                       { '!all_but', '!ttrend', '!min' } ];
