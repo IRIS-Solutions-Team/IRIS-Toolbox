@@ -12,23 +12,23 @@ function blockCode = readBlockCode(this)
 numBlocks = length(this.Block);
 listBlockKeywords = getBlockKeyword(this);
 
-% Check all words starting with an !.
+% Check all words starting with an !
 checkKeywords(this, listBlockKeywords);
 
-% Add new line character at the end of the file.
+% Add new line character at the end of the file
 if isempty(this.Code) || this.Code(end)~=char(10)
     this.Code(end+1) = char(10);
 end
 
-% End of block (eob) is start of another block or end of file.
+% End of block (eob) is start of another block or end of file
 inx = ~cellfun(@isempty, listBlockKeywords);
 eob = sprintf('|%s', listBlockKeywords{inx});
 eob = ['(?=$', eob, ')'];
 
-% Remove redundant semicolons.
+% Remove redundant semicolons
 this.Code = regexprep(this.Code, '(\s*;){2,}', ';');
 
-% Read blocks.
+% Read blocks
 blockCode = repmat({''}, 1, numBlocks);
 ixValidEssential = true(1, numBlocks);
 for i = 1 : numBlocks
@@ -70,7 +70,7 @@ end%
 function checkKeywords(this, listBlockKeywords)
     % Allow for double exclamation marks immediately followed by \w; these can
     % be steady equations.
-    UNKNOWN_KEY = '(?<!\!)!\w+';
+    UNKNOWN_KEY = '(?<!\!)!\w[\w\-]+';
     ix = ~cellfun(@isempty, listBlockKeywords);
     listAllowed = [ listBlockKeywords(ix), this.OtherKeyword ];
     listKeywords = regexp(this.Code, UNKNOWN_KEY, 'match');
