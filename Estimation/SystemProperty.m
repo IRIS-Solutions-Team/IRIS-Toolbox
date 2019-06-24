@@ -97,10 +97,10 @@ classdef SystemProperty < handle
             if ~all(cellfun(@isvarname, outputNames))
                 throw( exception.Base('SystemPriorWrapper:IllegalOutputName', 'error') );
             end
-            listOfDuplicate = textual.duplicate(outputNames);
-            if ~isempty(listOfDuplicate)
+            [flag, duplicateNames] = textual.nonunique(outputNames);
+            if flag
                 throw( exception.Base('SystemPriorWrapper:NonuniqueOutputName', 'error'), ...
-                       listOfDuplicate{:} );
+                       duplicateNames{:} );
             end
             this.OutputNames = outputNames;
         end%

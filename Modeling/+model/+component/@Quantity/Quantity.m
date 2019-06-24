@@ -1,18 +1,40 @@
 classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
     properties
-        Name = cell.empty(1, 0)             % Quantity names
-        Type = int8.empty(1, 0)             % Quantity type
-        Label = cell.empty(1, 0)            % Description
-        Alias = cell.empty(1, 0)            % LaTeX representation of quantity name or description
-        IxLog = logical.empty(1, 0)         % True for log variables
-        IxLagrange = logical.empty(1, 0)    % True for Lagrange multipliers in optimal policy models
-        IxObserved = logical.empty(1, 0)    % True for transition variables marked as observed and forced into the backward looking vector
-        Bounds = double.empty(4, 0)         % Lower and upper bounds on level and growth
+        % Name  Names of quantities
+        Name = cell.empty(1, 0)
+
+        % Type  Types of quantities
+        Type = int8.empty(1, 0)   
+
+        % Label  Description of quantities
+        Label = cell.empty(1, 0)         
+
+        % Alias  Alias strings for quantities
+        Alias = cell.empty(1, 0)            
+
+        % InxOfLog  True for variabls declared as log-variables
+        IxLog = logical.empty(1, 0)
+
+        % IxLagrange  True for Lagrange multipliers in optimal policy model
+        IxLagrange = logical.empty(1, 0)          
+
+        % IxObserved  True for transition variables marked as observed and forced into the backward looking vector
+        IxObserved = logical.empty(1, 0)          
+
+        % Bounds  Lower and upper bounds on level and growth
+        Bounds = double.empty(4, 0)               
     end
 
 
     properties (Hidden)
-        OriginalNames = cell.empty(1, 0)     % Original names from source model file
+        % OriginalName  Original names from source model file
+        OriginalNames = cell.empty(1, 0)          
+
+        % GroupNames  Names of quantity groups
+        GroupNames = cell.empty(1, 0)        
+
+        % GroupMembership  Membership of quantities in groups
+        GroupMembership = logical.empty(0, 0)
     end
     
     
