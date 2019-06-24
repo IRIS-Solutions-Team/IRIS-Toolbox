@@ -7,6 +7,8 @@ function disp(this)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
+CONFIG = iris.get( );
+
 %--------------------------------------------------------------------------
 
 ccn = getClickableClassName(this);
@@ -17,17 +19,18 @@ nc = nnzcond(this);
 
 isEmpty = isnan(this.Start) || isnan(this.End);
 if isEmpty
-    fprintf('\tempty %s Object\n', ccn);
-    fprintf('\tEmpty Range\n');
+    fprintf('%sEmpty %s Object\n', CONFIG.DispIndent, ccn);
+    fprintf('%sEmpty Range\n', CONFIG.DispIndent);
 else
-    fprintf('\t%s Object\n', ccn);
-    fprintf( '\tRange: %s to %s\n', ...
+    fprintf('%s%s Object\n', CONFIG.DispIndent, ccn);
+    fprintf( '%sRange: %s to %s\n', ...
+             CONFIG.DispIndent, ...
              dat2char(this.Start), dat2char(this.End) );
 end
 
-fprintf('\tExogenized Data Points: [%g]\n',nx);
-fprintf('\tEndogenized Data Points [real imag]: [%g %g]\n', nnReal, nnImag);
-fprintf('\tConditioning Data Points: [%g]\n',nc);
+fprintf('%sExogenized Data Points: [%g]\n', CONFIG.DispIndent, nx);
+fprintf('%sEndogenized Data Points [real imag]: [%g %g]\n', CONFIG.DispIndent, nnReal, nnImag);
+fprintf('%sConditioning Data Points: [%g]\n', CONFIG.DispIndent, nc);
 
 disp@shared.CommentContainer(this, 1);
 disp@shared.UserDataContainer(this, 1);

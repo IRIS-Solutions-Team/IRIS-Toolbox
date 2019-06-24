@@ -199,11 +199,11 @@ classdef plan < shared.UserDataContainer ...
             
             if ~isempty(model)
                 try %#ok<TRYNC>
-                    a = autoexog(model);
-                    lsExg = fieldnames(a.Dynamic);
+                    a = autoswap(model);
+                    lsExg = fieldnames(a.Simulate);
                     if ~isempty(lsExg)
                         lsExg = lsExg(:).';
-                        lsEndg = struct2cell(a.Dynamic);
+                        lsEndg = struct2cell(a.Simulate);
                         lsEndg = lsEndg(:).';
                         for i = 1 : length(lsExg)
                             ixExg = strcmp(this.XList, lsExg{i});
