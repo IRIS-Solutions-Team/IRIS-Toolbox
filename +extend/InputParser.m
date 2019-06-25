@@ -310,31 +310,26 @@ classdef InputParser < inputParser
             index = strcmpi(listOfFields, 'DateFormat');
             if any(index)
                 pos = find(index, 1, 'last');
-                temp = listOfFields{pos};
                 dateOptionsInCell = [dateOptionsInCell, {'DateFormat', opt.(listOfFields{pos})}];
             end
             index = strncmpi(listOfFields, 'FreqLetter', 10);
             if any(index)
                 pos = find(index, 1, 'last');
-                temp = listOfFields{pos};
                 dateOptionsInCell = [dateOptionsInCell, {'FreqLetters', opt.(listOfFields{pos})}];
             end
             index = strncmpi(listOfFields, 'Month', 5);
             if any(index)
                 pos = find(index, 1, 'last');
-                temp = listOfFields{pos};
                 dateOptionsInCell = [dateOptionsInCell, {'Months', opt.(listOfFields{pos})}];
             end
             index = strcmpi(listOfFields, 'ConversionMonth') | strcmpi(listOfFields, 'StandInMonth');
             if any(index)
                 pos = find(index, 1, 'last');
-                temp = listOfFields{pos};
                 dateOptionsInCell = [dateOptionsInCell, {'ConversionMonth', opt.(listOfFields{pos})}];
             end
             index = strcmpi(listOfFields, 'WDay');
             if any(index)
                 pos = find(index, 1, 'last');
-                temp = listOfFields{pos};
                 dateOptionsInCell = [dateOptionsInCell, {'WDay', opt.(listOfFields{pos})}];
             end
         end%
