@@ -29,10 +29,25 @@ Tb = T(nf+1:end, :);
 Qf = Q(1:nf, 1:nh*window);
 Qb = Q(nf+1:end, 1:nh*window);
 
-M = zeros(0, nh*window);
-xb = zeros(size(Qb));
+% First, find the rows in the multiplier matrix that will be filled in
 idOfAll = 1 : size(data.YXEPG, 1);
 idOfYX = idOfAll(data.InxOfYX);
+rows = cell(1, lastHashedYX);
+numOfRows = zeros(1, lastHashedYX);
+for t = firstColumn : lastHashedYX
+    idOfHashedYX_t = idOfYX(data.InxOfHashedYX(:, t));
+    if isempty(idOfHashedYX_t)
+        continue
+    end
+    % Find the rows in which idOfHashedYX_t occur in idOfYXi
+    [~, rows{t}] = ismember(idOfHashedYX_t, idOfYXi);
+    numOfRows(t) = numel(rows{t});
+end
+
+% Second, preallocate the multiplier matrix, and calculate the matrix
+M = zeros(sum(numOfRows), nh*window);
+xb = zeros(size(Qb));
+countOfRows = 0;
 for t = firstColumn : lastHashedYX
     xf = Tf*xb;
     xb = Tb*xb;
@@ -42,14 +57,12 @@ for t = firstColumn : lastHashedYX
         Qb = [zeros(nb, nh), Qb(:, 1:end-nh)];
         Qf = [zeros(nf, nh), Qf(:, 1:end-nh)];
     end
-    idOfHashedYX_t = idOfYX(data.InxOfHashedYX(:, t));
-    if isempty(idOfHashedYX_t)
+    if isempty(rows{t})
         continue
     end
     addToM = [nan(ny, nh*window); xf; xb];
-    % Find the rows in which idOfHashedYX_t occur in idOfYXi
-    [~, rows] = ismember(idOfHashedYX_t, idOfYXi);
-    M = [M; addToM(rows, :)];
+    M(countOfRows+(1:numOfRows(t)), :) = addToM(rows{t}, :);
+    countOfRows = countOfRows + numOfRows(t);
 end
 
 this.HashMultipliers = M;
