@@ -64,7 +64,7 @@ classdef Plan
 %
 % * `plan` [ Plan ] - Simulation plan.
 %
-% * `anticipatioStatus` [ true | false ] - New anticipation status for the
+% * `anticipationStatus` [ true | false ] - New anticipation status for the
 % shocks listed in `names`.
 %
 % * `names` [ char | string | cellstr ] - List of shocks whose anticipation
@@ -87,19 +87,12 @@ classdef Plan
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-            persistent parser legacyParser
+            persistent parser
             if isempty(parser)
                 parser = extend.InputParser('@Plan/anticipate');
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
                 parser.addRequired('AnticipationStatus', @Valid.logicalScalar);
                 parser.addRequired('NamesOfExogenous', @Valid.list);
-            end
-            if isempty(legacyParser)
-                % Legacy parser: swap the input arguments #2 and #3
-                legacyParser = extend.InputParser('Plan.anticipate');
-                legacyParser.addRequired('Plan', @(x) isa(x, 'Plan'));
-                legacyParser.addRequired('NamesOfExogenous', @Valid.list);
-                legacyParser.addRequired('AnticipationStatus', @Valid.logicalScalar);
             end
             if this.NumOfEndogenizedPoints>0
                 THIS_ERROR = { 'Plan:CannotChangeAnticipateAfterEndogenize'
@@ -107,11 +100,12 @@ classdef Plan
                 throw( exception.Base(THIS_ERROR, 'error') );
             end
             try
-                parser.parse(this, anticipationStatus, names);
+                parse(parser, this, anticipationStatus, names);
             catch
-                legacyParser.parse(this, names, anticipationStatus);
+                [names, anticipationStatus] = deal(anticipationStatus, names);
+                parse(parser, this, anticipationStatus, names);
                 THIS_WARNING = { 'Plan:AnticipateLegacyInputArguments' 
-                                 'Invalid order of input arguments to @Plan/anticipate; this will become an error in a future release of IRIS' };
+                                 'Invalid order of input arguments to @Plan/anticipate; this will become an error in a future release of IRIS. See help Plan/anticipate.' };
                 throw( exception.Base(THIS_WARNING, 'warning') );
             end
             context = 'be assigned anticipation status';
