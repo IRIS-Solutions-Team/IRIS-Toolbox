@@ -9,6 +9,8 @@ function [exitFlag, dcy] = simulateSelective( this, simulateFunction, ...
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
+CUTOFF_DENSITY = 1/3;
+
 %--------------------------------------------------------------------------
 
 deviation = data.Deviation;
@@ -26,20 +28,34 @@ tempE = data.AnticipatedE;
 tempE(:, firstColumnOfTimeFrame) = tempE(:, firstColumnOfTimeFrame) ...
                                  + data.UnanticipatedE(:, firstColumnOfTimeFrame);
 
-% No need to simulate measurement equations in iterations (before the
-% final run) if there are no exogenized measurement variables
+objectiveFunction = @objectiveFunctionFull;
+%
+% Calculate the density of the matrix indicating the variables occurring in
+% nonlinear equations; run the multiplier type of simulation only if the
+% density is smaller than a cut-off.
+%
 if data.NumOfExogenizedPointsY==0
+    %
+    % No need to simulate measurement equations in iterations (before the
+    % final run) if there are no exogenized measurement variables
+    %
     rect.SimulateY = false;
     hereGetHashIncidence( );
-    calculateHashMultipliers(rect, data);
     lastHashedYX = data.LastHashedYX;
     columnRangeOfHashedYX = firstColumnOfTimeFrame : lastHashedYX;
     inxOfHashedYX = data.InxOfHashedYX(:, columnRangeOfHashedYX);
-    numOfHashedColumns = numel(columnRangeOfHashedYX);
-    simulateFunction(rect, data);
-    objectiveFunction = @objectiveFunctionShort;
-else
-    objectiveFunction = @objectiveFunctionFull;
+    density = nnz(inxOfHashedYX) / numel(inxOfHashedYX);
+    if density<CUTOFF_DENSITY
+        %
+        % Run the nonlinear simulations by precalculating the hash multipliers
+        % and calculating the incremental impact of the nonlin addfactors on
+        % the affected variables only
+        %
+        calculateHashMultipliers(rect, data);
+        numOfHashedColumns = numel(columnRangeOfHashedYX);
+        simulateFunction(rect, data);
+        objectiveFunction = @objectiveFunctionShort;
+    end
 end
 
 initNlaf = data.NonlinAddf(:, columnRangeOfHashFactors);
