@@ -11,7 +11,7 @@ TYPE = @int8;
 PTR = @int16;
 CAN_BE_EXOGENIZED = { TYPE(1), TYPE(2) };
 
-if strcmpi(type, 'Dynamic')
+if strcmpi(type, 'Simulate')
     CAN_BE_ENDOGENIZED = { TYPE(31), TYPE(32) };
 elseif strcmpi(type, 'Steady')
     CAN_BE_ENDOGENIZED = { TYPE(4) };

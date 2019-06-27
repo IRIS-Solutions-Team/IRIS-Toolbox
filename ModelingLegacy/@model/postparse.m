@@ -83,7 +83,7 @@ if  isOptimal
 end
 
 % __Read DTrends, Links, Revisions, Autoswap__
-% Read them after placeholders for optimal policy have been created.
+% Read them after placeholders for optimal policy have been created
 try
     [eqn, this.Pairing.Dtrend] = readDtrends(eqn, euc, qty);
     [eqn, this.Link] = readLinks(eqn, euc, qty);

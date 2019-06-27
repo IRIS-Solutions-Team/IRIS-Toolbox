@@ -44,14 +44,22 @@ function varargout = autoswap(this, varargin)
 %--------------------------------------------------------------------------
 
 if isempty(varargin)
-    auto = struct( 'Simulate', struct( ), 'Steady', struct( ) );
+    % __Get Autoswap Structure__
+    auto = model.component.AutoswapStruct( );
     [~, ~, auto.Simulate] = model.component.Pairing.getAutoswap(this.Pairing.Autoswap.Simulate, this.Quantity);
     [~, ~, auto.Steady] = model.component.Pairing.getAutoswap(this.Pairing.Autoswap.Steady, this.Quantity);
     varargout{1} = auto;
+
 else
+    % __Set Autoswap Structure__
     auto = varargin{1};
-    if isfield(auto, 'dynamic')
+
+    % Legacy structure
+    if ~isfield(auto, 'Simulate') && isfield(auto, 'dynamic')
         auto.Simulate = auto.dynamic;
+    end
+    if ~isfield(auto, 'Steady') && isfield(auto, 'steady')
+        auto.Steady = auto.steady;
     end
     if isfield(auto, 'Simulate') 
         p = this.Pairing.Autoswap.Simulate;
@@ -64,6 +72,7 @@ else
         this.Pairing.Autoswap.Steady = p;
     end
     varargout{1} = this;
+
 end
 
 return

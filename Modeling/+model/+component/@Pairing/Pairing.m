@@ -34,7 +34,7 @@ classdef Pairing
     methods (Static)
         function auto = initAutoswap(numOfQuantities)
             PTR = @int16;
-            auto = struct( );
+            auto = model.component.AutoswapStruct( );
             auto.Simulate = repmat(PTR(0), 1, numOfQuantities);
             auto.Steady = repmat(PTR(0), 1, numOfQuantities);
         end%
