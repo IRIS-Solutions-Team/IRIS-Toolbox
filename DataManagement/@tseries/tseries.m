@@ -706,6 +706,10 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         
         % Distribution functions (Stats Toolbox)
         %----------------------------------------
+        function x = erf(x, varargin)
+            x.Data = erf(x.Data, varargin{:});
+            x = trim(x);
+        end%
         function x = normcdf(x, varargin)
             x.Data = normcdf(x.Data, varargin{:});
             x = trim(x);
