@@ -370,7 +370,11 @@ classdef Plan
 
             rowNames = cell.empty(1, 0);
             idColumn = uint16.empty(0, 1);
-            cellData = isData : { cell.empty(0, 2*numOfDates), cell.empty(0, numOfDates) };
+            if isData
+                cellData = cell.empty(0, 2*numOfDates);
+            else
+                cellData = cell.empty(0, numOfDates);
+            end
             for id = uint16(1) : this.SwapId
                 markExogenized = cell(this.NumOfEndogenous, this.NumOfExtendedPeriods);
                 inxOfAnticipated = this.IdOfAnticipatedExogenized==id;
@@ -422,7 +426,11 @@ classdef Plan
 
             tableData = cell(1, numOfDates);
             for t = 1 : numOfDates
-                tableData{t} = isData : { cellData(:, (t-1)*2+(1:2)), cellData(:, t) };
+                if isData
+                    tableData{t} = cellData(:, (t-1)*2+(1:2));
+                else
+                    tableData{t} = cellData(:, t);
+                end
             end
             outputTable = table(idColumn, tableData{:});
             outputTable.Properties.RowNames = rowNames;
