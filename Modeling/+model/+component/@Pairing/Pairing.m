@@ -19,6 +19,22 @@ classdef Pairing
             this.Assignment = model.component.Pairing.initAssignment(numOfEquations);
         end%%
     end
+
+
+    properties (Dependent)
+        % Autoexog  Legacy property
+        Autoexog
+    end
+
+
+    methods
+        function this = set.Autoexog(this, value)
+            auto = model.component.AutoswapStruct( );
+            auto.Simulate = value.Dynamic;
+            auto.Steady = value.Steady;
+            this.Autoswap = auto;
+        end%
+    end
     
     
     methods (Static)
