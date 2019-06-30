@@ -34,7 +34,7 @@ objectiveFunction = @objectiveFunctionFull;
 % nonlinear equations; run the multiplier type of simulation only if the
 % density is smaller than a cut-off.
 %
-if data.NumOfExogenizedPointsY==0
+if data.NumOfExogenizedPoints==0
     %
     % No need to simulate measurement equations in iterations (before the
     % final run) if there are no exogenized measurement variables
@@ -137,13 +137,6 @@ return
         tempYX(inxOfLogYX, :)  = tempYX(inxOfLogYX, :)  .* impact(inxOfLogYX, :);
         tempYXEPG(inxOfYX, columnRangeOfHashedYX) = tempYX;
 
-        %{
-        if needsStoreE
-            tempE = data.AnticipatedE;
-            tempE(:, firstColumnOfTimeFrame) = tempE(:, firstColumnOfTimeFrame) ...
-                                             + data.UnanticipatedE(:, firstColumnOfTimeFrame);
-        end
-        %}
         tempYXEPG(inxOfE, :) = tempE;
 
         if deviation
