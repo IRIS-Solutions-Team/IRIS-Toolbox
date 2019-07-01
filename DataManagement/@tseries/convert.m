@@ -270,7 +270,6 @@ function [newData, newStart] = aggregate(this, oldStart, oldEnd, oldFreq, newFre
                 end
             end
         end
-        %if ~isnan(newAdd), keyboard; end
         newData = [newData; newAdd]; %#ok<AGROW>
     end
 
@@ -297,7 +296,7 @@ function [newData, newStart] = interpolate(this, oldStart, oldEnd, oldFreq, newF
     [oldStartYear, oldStartPer] = dat2ypf(oldStart);
     [oldEndYear, oldEndPer] = dat2ypf(oldEnd);
 
-    if newFreq==52
+    if newFreq==Frequency.WEEKLY
         oldStartMonth = per2month(oldStartPer, oldFreq, 'first');
         oldEndMonth = per2month(oldEndPer, oldFreq, 'last');
         oldStartDay = datenum(oldStartYear, oldStartMonth, 1);
@@ -308,6 +307,11 @@ function [newData, newStart] = interpolate(this, oldStart, oldEnd, oldFreq, newF
         % cases
         newStart = newStart + 1;
         newEnd = newEnd - 1;
+    elseif newFreq==Frequency.DAILY
+        startMonth = per2month(oldStartPer, oldFreq, 'first');
+        endMonth = per2month(oldEndPer, oldFreq, 'last');
+        newStart = numeric.dd(oldStartYear, startMonth, 1);
+        newEnd = numeric.dd(oldEndYear, endMonth, eomday(oldEndYear, endMonth));
     else
         newStartYear = oldStartYear;
         newEndYear = oldEndYear;

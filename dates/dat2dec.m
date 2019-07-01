@@ -32,9 +32,12 @@ function dec = dat2dec(dat, pos)
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 if nargin<2
+    userPosition = '';
     pos = 's';
+else
+    pos = lower(pos(1));
+    userPosition = pos;
 end
-pos = lower(pos(1));
 
 %--------------------------------------------------------------------------
 
@@ -49,35 +52,56 @@ DateWrapper.checkMixedFrequency(freq);
 freq = freq(1);
 
 switch freq
-    case {0, 365}
+    case Frequency.INTEGER
         dec = per;
-    case {1, 2, 4, 6, 12}
-        switch pos
-            case {'s', 'b'}
-                adjust = -1;
-            case {'c', 'm'}
-                adjust = -1/2;
-            case {'e'}
-                adjust = 0;
-            otherwise
-                adjust = -1;
+    case Frequency.DAILY
+        if isempty(userPosition)
+            dec = per;
+        else
+            [year, month, day] = datevec(double(dat));
+            startOfYear = floor(datenum(year, 1, 1));
+            per = round(floor(dat) - startOfYear + 1);
+            adjust = getAdjustmentFactor(pos);
+            dec = year + (per + adjust) ./ 365;
         end
+    case {Frequency.YEARLY, Frequency.HALFYEARLY, Frequency.QUARTERLY, Frequency.MONTHLY}
+        adjust = getAdjustmentFactor(pos);
         dec = year + (per + adjust) ./ freq;
-    case 52
+    case Frequency.WEEKLY
         switch pos
             case {'s', 'b'}
-                standinDay = 'Monday';
+                conversionDay = 'Monday';
             case {'c', 'm'}
-                standinDay = 'Thursday';
+                conversionDay = 'Thursday';
             case {'e'}
-                standinDay = 'Sunday';
+                conversionDay = 'Sunday';
             otherwise
-                standinDay = 'Monday';
+                conversionDay = 'Monday';
         end
-        x = ww2day(dat, standinDay);
+        x = ww2day(dat, conversionDay);
         dec = day2dec(x);
     otherwise
         throw( exception.Base('Dates:UnrecognizedFrequency', 'error') );        
 end
 
 end%
+
+
+%
+% Local Functions
+%
+
+
+function adjust = getAdjustmentFactor(pos)
+    switch pos
+        case {'s', 'b'}
+            adjust = -1;
+        case {'c', 'm'}
+            adjust = -1/2;
+        case {'e'}
+            adjust = 0;
+        otherwise
+            adjust = -1;
+    end
+end%
+
