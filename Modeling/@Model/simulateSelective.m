@@ -28,6 +28,15 @@ tempE = data.AnticipatedE;
 tempE(:, firstColumnOfTimeFrame) = tempE(:, firstColumnOfTimeFrame) ...
                                  + data.UnanticipatedE(:, firstColumnOfTimeFrame);
 
+if data.NumOfExogenizedPointsY==0
+    %
+    % No need to simulate measurement equations in the interim iterations
+    % (before the final run) if there are no exogenized measurement
+    % variables
+    %
+    rect.SimulateY = false;
+end
+
 objectiveFunction = @objectiveFunctionFull;
 %
 % Calculate the density of the matrix indicating the variables occurring in
@@ -35,11 +44,6 @@ objectiveFunction = @objectiveFunctionFull;
 % density is smaller than a cut-off.
 %
 if data.NumOfExogenizedPoints==0
-    %
-    % No need to simulate measurement equations in iterations (before the
-    % final run) if there are no exogenized measurement variables
-    %
-    rect.SimulateY = false;
     hereGetHashIncidence( );
     lastHashedYX = data.LastHashedYX;
     columnRangeOfHashedYX = firstColumnOfTimeFrame : lastHashedYX;
@@ -49,7 +53,9 @@ if data.NumOfExogenizedPoints==0
         %
         % Run the nonlinear simulations by precalculating the hash multipliers
         % and calculating the incremental impact of the nonlin addfactors on
-        % the affected variables only
+        % the affected variables only if the density of the affected
+        % variables is less than a threshold; otherwise, the performance is
+        % likely to deteriorate rather than improve
         %
         calculateHashMultipliers(rect, data);
         numOfHashedColumns = numel(columnRangeOfHashedYX);

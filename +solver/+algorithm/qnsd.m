@@ -71,6 +71,7 @@ if ~opt.SpecifyObjectiveGradient
     jacobPattern = opt.JacobPattern;
 end
 lastJacobUpdate = opt.LastJacobUpdate;
+lastBroydenUpdate = opt.LastBroydenUpdate;
 
 sizeOfX = size(xInit);
 if any(sizeOfX(2:end)>1)
@@ -181,7 +182,7 @@ while true
             fnCount = fnCount + addCount;
             jacobUpdateString = 'Finite-Diff';
         end
-    elseif isequal(opt.Broyden, true) && iter>0 && ~current.Reverse
+    elseif iter>0 && iter<=lastBroydenUpdate && ~current.Reverse
         hereUpdateJacobByBroyden( );
         jacobUpdateString = 'Broyden';
     else
@@ -285,20 +286,21 @@ while true
             break
         end
     else
-        threshold = 1.5*best.Norm;
-        if next.Norm>threshold
-            current = best;
-            keyboard
-            current.Step = 0.5*next.Step;
-            current.Iter = iter;
-            current.Reverse = true;
-            if displayLevel.Iter
-                hereReportReversal( );
+        if opt.StepSizeSwitch==1
+            threshold = 1.5*best.Norm;
+            if next.Norm>threshold
+                current = best;
+                current.Step = 0.5*next.Step;
+                current.Iter = iter;
+                current.Reverse = true;
+                if displayLevel.Iter
+                    hereReportReversal( );
+                end
+                if opt.ForceJacobUpdateWhenReversing
+                    extraJacobUpdate = true;
+                end
+                continue
             end
-            if opt.ForceJacobUpdateWhenReversing
-                extraJacobUpdate = true;
-            end
-            continue
         end
     end
 
@@ -341,16 +343,17 @@ return
 
 
     function hereUpdateJacobByBroyden( )
-        current.J = last.J;
-        if isscalar(current.J)
-            current.J = current.J * eye(numOfUnknowns);
+        j = last.J;
+        if isscalar(j)
+            j = j * eye(numOfUnknowns);
         end
         s = current.X - last.X;
         y = current.F - last.F;
-        update = (y - last.J*s)*transpose(s) / ( transpose(s)*s );
-        if all(isfinite(update))
-            current.J = current.J + update;
+        update = (y - j*s)*transpose(s) / ( transpose(s)*s );
+        if all(isfinite(update(:)))
+            j = j + update;
         end
+        current.J = j;
     end%
 
 
