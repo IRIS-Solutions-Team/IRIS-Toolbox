@@ -7,8 +7,8 @@ function [x, f, exitFlag] = qnsd(objectiveFunc, xInit, opt, header)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s %13s';
-FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g%s';
+FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s %13s %13s';
+FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g %13s';
 MIN_STEP = 1e-8;
 MAX_STEP = 2;
 MAX_ITER_IMPROVE_PROGRESS = 40;
@@ -88,7 +88,7 @@ numOfUnknowns = numel(xInit);
 
 temp = struct('NumberOfVariables', numOfUnknowns);
 
-displayLevel = getDisplayLevel( );
+displayLevel = hereGetDisplayLevel( );
 if nargin<4
     header = '';
 end
@@ -135,6 +135,7 @@ while true
     %
 
     jacobUpdate = false;
+    jacobUpdateString = 'None';
 
     %
     % Check convergence before calculating current Jacobian
@@ -144,7 +145,7 @@ while true
         best = current;
     end
     
-    if hasConverged( ) 
+    if hereVerifyConvergence( ) 
         % Convergence reached, exit
         exitFlag = solver.ExitFlag.CONVERGED;
         break
@@ -172,14 +173,20 @@ while true
             [current.F, current.J] = objectiveFuncReshaped(current.X);
             fnCount = fnCount + 1;
             current.F = current.F(:);
+            jacobUpdateString = 'Analytical';
         else
             [current.J, addCount] = solver.algorithm.finiteDifference( objectiveFuncReshaped, ...
                                                                        current.X, current.F, diffStep, ...
                                                                        jacobPattern, opt.LargeScale );
             fnCount = fnCount + addCount;
+            jacobUpdateString = 'Finite-Diff';
         end
+    elseif isequal(opt.Broyden, true) && iter>0 && ~current.Reverse
+        hereUpdateJacobByBroyden( );
+        jacobUpdateString = 'Broyden';
     else
         current.J = last.J;
+        jacobUpdateString = 'None';
     end
 
     %
@@ -198,7 +205,7 @@ while true
     
     if displayLevel.Iter
         if mod(iter, displayLevel.Every)==0
-            reportIter( );
+            hereReportIter( );
             fprintf('\n');
         end
     end
@@ -240,9 +247,9 @@ while true
     end
 
     if isempty(vecOfLambdas)
-        makeNewtonStep( );
+        hereMakeNewtonStep( );
     else
-        makeHybridStep( );
+        hereMakeHybridStep( );
     end
 
     %
@@ -252,16 +259,16 @@ while true
     if doTryMakeProgress && next.Norm>current.Norm 
         % Change step until objective function improves; try to deflate
         % first, then try to inflate
-        success = tryMakeProgress(deflateStep);
+        success = hereTryMakeProgress(deflateStep);
         if ~success
-            tryMakeProgress(inflateStep);
+            hereTryMakeProgress(inflateStep);
         end
     elseif doTryImproveProgress
         % Change step as far as objective function improves; try to
         % inflate first, then try to deflate
-        success = tryImproveProgress(inflateStep);
+        success = hereTryImproveProgress(inflateStep);
         if ~success
-            tryImproveProgress(deflateStep);
+            hereTryImproveProgress(deflateStep);
         end
     end
     
@@ -281,11 +288,12 @@ while true
         threshold = 1.5*best.Norm;
         if next.Norm>threshold
             current = best;
+            keyboard
             current.Step = 0.5*next.Step;
             current.Iter = iter;
             current.Reverse = true;
             if displayLevel.Iter
-                reportReverse( );
+                hereReportReversal( );
             end
             if opt.ForceJacobUpdateWhenReversing
                 extraJacobUpdate = true;
@@ -311,7 +319,7 @@ if displayLevel.Iter && exitFlag~=solver.ExitFlag.NO_PROGRESS
     if desktopStatus
         fprintf('<strong>');
     end
-    reportIter( );
+    hereReportIter( );
     if desktopStatus
         fprintf('</strong>');
     end
@@ -319,7 +327,7 @@ if displayLevel.Iter && exitFlag~=solver.ExitFlag.NO_PROGRESS
 end
 
 if displayLevel.Final
-    reportFinal( );
+    hereReportFinal( );
 end
 
 if displayLevel.Any
@@ -332,9 +340,23 @@ f = reshape(current.F, sizeOfF);
 return
 
 
-    function makeNewtonStep( )
+    function hereUpdateJacobByBroyden( )
+        current.J = last.J;
+        if isscalar(current.J)
+            current.J = current.J * eye(numOfUnknowns);
+        end
+        s = current.X - last.X;
+        y = current.F - last.F;
+        update = (y - last.J*s)*transpose(s) / ( transpose(s)*s );
+        if all(isfinite(update))
+            current.J = current.J + update;
+        end
+    end%
+
+
+    function hereMakeNewtonStep( )
         % Get and trim current objective function
-        F0 = getCurrentObjectiveFunction( );
+        F0 = hereGetCurrentObjectiveFunction( );
         lastwarn('');
         next.D = -current.J \ F0;
         if opt.UsePinvIfJacobSingular && ~isempty(lastwarn( ))
@@ -363,17 +385,17 @@ return
         next.F = F{pos};
         next.Lambda = 0;
         if lenOfStepSize>1 && displayLevel.Iter
-            reportStepSizeOptim( );
+            hereReportStepSizeOptim( );
         end
     end%
 
 
-    function makeHybridStep( )
+    function hereMakeHybridStep( )
         X0 = current.X;
         J0 = current.J;
 
         % Get and trim current objective function
-        F0 = getCurrentObjectiveFunction( );
+        F0 = hereGetCurrentObjectiveFunction( );
 
         jj = J0.' * J0;
         step = next.Step;
@@ -423,7 +445,7 @@ return
     %
     % Get and trim current value of objective function
     %
-    function F0 = getCurrentObjectiveFunction( )
+    function F0 = hereGetCurrentObjectiveFunction( )
         F0 = current.F;
         if trimObjectiveFunction
             F0(abs(F0)<=tolFun) = 0;
@@ -434,7 +456,7 @@ return
     %
     % Try changing the step size until the function improves
     %
-    function success = tryMakeProgress(changeStep)
+    function success = hereTryMakeProgress(changeStep)
         X0 = current.X;
         N0 = current.Norm;
         step = next.Step;
@@ -464,7 +486,7 @@ return
     %
     % Try changing the step size as far as function norm improves
     %
-    function success = tryImproveProgress(changeStep)
+    function success = hereTryImproveProgress(changeStep)
         X0 = current.X;
         D0 = next.D;
         step = next.Step;
@@ -493,7 +515,7 @@ return
     %
     % Check for function and step convergence
     %
-    function flag = hasConverged( )
+    function flag = hereVerifyConvergence( )
         flag = all( max(abs(current.F(:)))<=tolFun );
         if current.Iter>0
             flag = flag && all(current.MaxXChng<=tolX);
@@ -501,7 +523,7 @@ return
     end%
 
 
-    function printHeader( )
+    function herePrintHeader( )
         fprintf('\n');
         c1 = sprintf( FORMAT_HEADER, ...
                       'Iter', ...
@@ -511,7 +533,8 @@ return
                       'Step-Size', ...
                       'Fn-Norm-Chg', ...
                       'Max-X-Chg', ...
-                      'Max-Jacob-Chg ' );
+                      'Max-Jacob-Chg ', ...
+                      'Jacob-Update'        );
         c2 = sprintf( FORMAT_HEADER, ...
                       '', ...
                       '', ...
@@ -520,21 +543,18 @@ return
                       '', ...
                       '', ...
                       '', ...
-                      strJacobNorm );
+                      strJacobNorm, ...
+                      ''                 );
         disp(c1);
         disp(c2);
         disp( repmat('-', 1, max(length(c1), length(c2))) );
     end%
 
 
-    function reportIter( )
+    function hereReportIter( )
         if needsPrintHeader
-            printHeader( );
+            herePrintHeader( );
             needsPrintHeader = false;
-        end
-        strJacobUpdate = '';
-        if jacobUpdate
-            strJacobUpdate = '*';
         end
         fprintf( FORMAT_ITER, ...
                  current.Iter, ...
@@ -545,28 +565,28 @@ return
                  abs(current.Norm-last.Norm), ...
                  current.MaxXChng, ...
                  maxChgFunc(current.J, last.J), ...
-                 strJacobUpdate );
+                 jacobUpdateString );
     end%
 
 
-    function reportReverse( )
+    function hereReportReversal( )
         fprintf('Reversing to Iteration %g\nReducing Step Size to %g', best.Iter, current.Step);
         fprintf('\n');
     end%
 
 
-    function reportStepSizeOptim( )
+    function hereReportStepSizeOptim( )
         fprintf('Optimal Step Size %g', next.Step);
         fprintf('\n');
     end%
 
 
-    function reportFinal( )
+    function hereReportFinal( )
         print(exitFlag, header);
     end%
 
 
-    function displayLevel = getDisplayLevel( )
+    function displayLevel = hereGetDisplayLevel( )
         displayLevel.Any = ...
             ~isequal(opt.Display, false) ...
             && ~strcmpi(opt.Display, 'none') ...
@@ -585,3 +605,4 @@ return
         end
     end%
 end%
+
