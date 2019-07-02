@@ -42,8 +42,6 @@ function startup(varargin)
 %
 % * `--Series` - Use the `Series` class as the default time series class.
 %
-% * `--TimeSeries` - Use the `TimeSeries` class as the default time series
-% class.
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -52,13 +50,11 @@ MATLAB_RELEASE_OR_HIGHER = 'R2014b';
 
 %--------------------------------------------------------------------------
 
-% Runs in Matlab R2014b and higher.
+% Runs in Matlab R2014b and higher
 if getMatlabRelease( )<release2num(MATLAB_RELEASE_OR_HIGHER)
-    error( ...
-        'IRIS:Config:IrisStartup', ...
-        'Matlab %s or later is needed to run this version of the IRIS Macroeconomic Modeling Toolbox', ...
-        MATLAB_RELEASE_OR_HIGHER ...
-        );
+    error( 'IRIS:Config:IrisStartup', ...
+           'Matlab %s or later is needed to run this version of the IRIS Macroeconomic Modeling Toolbox', ...
+           MATLAB_RELEASE_OR_HIGHER );
 end
 
 options = resolveInputOptions(varargin{:});
@@ -88,18 +84,18 @@ config = iris.reset(options);
 
 version = iris.get('version');
 if isIdChk
-    chkId( );
+    hereCheckId( );
 end
 
 if ~options.shutup
-    deleteProgress( );
-    displayMessage( );
+    hereDeleteProgress( );
+    hereDisplayMessage( );
 end
 
 return
 
 
-    function deleteProgress( )
+    function hereDeleteProgress( )
         if config.DesktopStatus
             progress(1:end) = sprintf('\b');
             fprintf(progress);
@@ -109,11 +105,13 @@ return
     end%
 
 
-    function displayMessage( )
+
+
+    function hereDisplayMessage( )
         if config.DesktopStatus
             fprintfx = @(varargin) fprintf(varargin{:});       
         else
-            fprintfx = @(varargin) fprintf('%s', textfun.removeTags(sprintf(varargin{:})));
+            fprintfx = @(varargin) fprintf('%s', removeTags(sprintf(varargin{:})));
         end
         % Intro message
         fprintfx('\t<a href="http://www.iris-toolbox.com">IRIS Macroeconomic Modeling Toolbox</a> ');
@@ -192,37 +190,41 @@ return
     end%
 
 
-    function chkId( )
+
+
+    function hereCheckId( )
         list = dir(fullfile(thisRoot, 'iristbx*'));
-        if length(list)==1
+        if numel(list)==1
             idFileVersion = regexp(list.name, '(?<=iristbx)\d+\-?\w+', 'match', 'once');
             if ~strcmp(version, idFileVersion)
-                deleteProgress( );
-                utils.error('config:iris:startup', ...
-                    ['The IRIS version check file (%s) does not match ', ...
-                    'the current version of IRIS (%s). ', ...
-                    'Delete everything from the IRIS root folder, ', ...
-                    'and reinstall IRIS.'], ...
-                    idFileVersion, version);
+                hereDeleteProgress( );
+                error( 'config:iris:startup', ...
+                       ['The IRIS version check file (%s) does not match ', ...
+                       'the current version of IRIS (%s). ', ...
+                       'Delete everything from the IRIS root folder, ', ...
+                       'and reinstall IRIS.'], ...
+                       idFileVersion, version );
             end
         elseif isempty(list)
-            deleteProgress( );
-            utils.error('config:iris:startup', ...
-                ['The IRIS version check file is missing. ', ...
-                'Delete everything from the IRIS root folder, ', ...
-                'and reinstall IRIS.']);
+            hereDeleteProgress( );
+            error( 'config:iris:startup', ...
+                   ['The IRIS version check file is missing. ', ...
+                   'Delete everything from the IRIS root folder, ', ...
+                   'and reinstall IRIS.'] );
         else
-            deleteProgress( );
-            utils.error('config:iris:startup', ...
-                ['There are mutliple IRIS version check files ', ...
-                'found in the IRIS root folder. This is because ', ...
-                'you installed a new IRIS in a folder with an old ', ...
-                'version, without deleting the old version first. ', ...
-                'Delete everything from the IRIS root folder, ', ...
-                'and reinstall IRIS.']);
+            hereDeleteProgress( );
+            error( 'config:iris:startup', ...
+                   ['There are mutliple IRIS version check files ', ...
+                   'found in the IRIS root folder. This is because ', ...
+                   'you installed a new IRIS in a folder with an old ', ...
+                   'version, without deleting the old version first. ', ...
+                   'Delete everything from the IRIS root folder, ', ...
+                   'and reinstall IRIS.'] );
         end
-    end
-end
+    end%
+end%
+
+
 
 
 function r = getMatlabRelease( )
@@ -241,6 +243,8 @@ function r = getMatlabRelease( )
 end%
 
 
+
+
 function n = release2num(r)
     n = uint16(0);
     r = lower(r);
@@ -256,13 +260,12 @@ function n = release2num(r)
 end%
 
 
+
+
 function options = resolveInputOptions(varargin)
-    options = struct( ...
-        'shutup',     false, ...
-        'tseries',    false, ...
-        'Series',     false, ...
-        'TimeSeries', false...
-    );
+    options = struct( 'shutup',     false, ...
+                      'tseries',    false, ...
+                      'Series',     false      );
     for i = 1 : numel(varargin)
         ithInput = lower(strtrim(varargin{i}));
         ithInput = strrep(ithInput, '-', '');
@@ -272,18 +275,23 @@ function options = resolveInputOptions(varargin)
             case 'tseries'
                 options.tseries = true;
                 options.Series = false;
-                options.TimeSeries = false;
             case 'Series'
                 options.tseries = false;
                 options.Series = true;
-                options.TimeSeries = false;
-            case 'TimeSeries'
-                options.tseries = false;
-                options.Series = false;
-                options.TimeSeries = true;
         end
     end
-    if ~options.tseries && ~options.Series && ~options.TimeSeries
+    if ~options.tseries && ~options.Series 
         options.Series = true;
     end
 end%
+
+
+
+
+function msg = removeTags(msg)
+    msg = regexprep(msg, '<a[^<]*>', '');
+    msg = strrep(msg, '</a>', '');
+    msg = strrep(msg, '<strong>', '');
+    msg = strrep(msg, '</strong>', '');
+end%
+

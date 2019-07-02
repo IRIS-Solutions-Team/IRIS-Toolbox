@@ -93,9 +93,8 @@ end
 
 if nargin==1
     if ~isa(varargin{1}, 'iris.Configuration')
-        THIS_ERROR = { 'IRIS:Configuration:NotAConfigurationObject', ...
-                       'If iris.set( ) is called with a single input argument, it must be an iris.Configuration object' };
-        throw( exception.Base(THIS_ERROR, 'error') );
+        error( 'IRIS:Configuration:NotAConfigurationObject', ...
+               'If iris.set(~) is called with a single input argument, it must be an iris.Configuration object' );
     end
     irisConfig = varargin{1};
     save(irisConfig);

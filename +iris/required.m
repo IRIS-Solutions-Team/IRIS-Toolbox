@@ -35,9 +35,9 @@ function required(Min)
 if ischar(Min)
     Min = sscanf(Min, '%g', 1);
 end
-if ~isnumericscalar(Min) || ~isfinite(Min)
-    utils.error('config:iris:required', ...
-        'Invalid input argument.');
+if ~isnumeric(Min) || ~isscalar(Min) || ~isfinite(Min)
+    error( 'config:iris:required', ...
+           'Invalid input argument to iris.required' );
 end
 
 [vChar, vNum] = iris.version( );
@@ -48,9 +48,10 @@ if vNum<Min
     else
         dec = 8;
     end
-    utils.error('config:iris:required', ...
-        ['IRIS Toolbox Release %.*f or later is required. ', ...
-        'Your are currently using IRIS Toolbox Release %s.'], dec, Min, vChar);
+    error( 'config:iris:required', ...
+           [ 'IRIS Toolbox Release %.*f or later is required. ', ...
+             'Your are currently using IRIS Toolbox Release %s.' ], dec, Min, vChar );
 end
 
-end
+end%
+

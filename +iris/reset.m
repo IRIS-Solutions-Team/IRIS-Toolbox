@@ -13,9 +13,7 @@ iris.Configuration.clear( );
 
 irisConfig = iris.Configuration( );
 
-if options.TimeSeries
-    irisConfig.DefaultTimeSeriesConstructor = @TimeSeries;
-elseif options.tseries
+if isequal(options.tseries, true)
     irisConfig.DefaultTimeSeriesConstructor = @tseries;
 else
     irisConfig.DefaultTimeSeriesConstructor = @Series;

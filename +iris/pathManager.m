@@ -9,77 +9,80 @@ function varargout = pathManager(req, varargin)
 
 %--------------------------------------------------------------------------
 
-switch lower(req)
-    case 'cleanup'
-        % Remove all IRIS roots and subs found on the Matlab temporary
-        % and permanent search paths.
-        currentFolder = pwd( );
-        folderOfThisFile = fileparts(mfilename('fullpath'));
-        cd(fullfile(folderOfThisFile, '..'));
-        thisRoot = pwd( );
-        cd(currentFolder);
+if strcmpi(req, 'CleanUp')
+    % Remove all IRIS roots and subs found on the Matlab temporary
+    % and permanent search paths.
+    currentFolder = pwd( );
+    folderOfThisFile = fileparts(mfilename('fullpath'));
+    cd(fullfile(folderOfThisFile, '..'));
+    thisRoot = pwd( );
+    cd(currentFolder);
 
-        listOfRoots = [
-            which('irisstartup.m', '-all')
-            which('irisping.m', '-all')
-        ];
-        listOfRoots = unique(listOfRoots);
+    listOfRoots = [ which('irisstartup.m', '-all')
+                    which('irisping.m', '-all') ];
+    listOfRoots = unique(listOfRoots);
 
-        reportRootsRemoved = { };
-        for i = 1 : numel(listOfRoots)
-            ithRoot = fileparts(listOfRoots{i});
-            [~, allp] = generatePath(ithRoot);
-            removePath(allp{:}, ithRoot);
-            if ~strcmpi(ithRoot, thisRoot)
-                reportRootsRemoved{end+1} = ithRoot; %#ok<AGROW>
-            end
+    reportRootsRemoved = { };
+    for i = 1 : numel(listOfRoots)
+        ithRoot = fileparts(listOfRoots{i});
+        [~, allp] = generatePath(ithRoot);
+        removePath(allp{:}, ithRoot);
+        if ~strcmpi(ithRoot, thisRoot)
+            reportRootsRemoved{end+1} = ithRoot; %#ok<AGROW>
         end
-        varargout = cell(1, 2);
-        varargout{1} = reportRootsRemoved;
-        varargout{2} = thisRoot;
+    end
+    varargout = cell(1, 2);
+    varargout{1} = reportRootsRemoved;
+    varargout{2} = thisRoot;
     
-    case 'addroot'
-        % Add the specified root to the temporary search paths.
-        thisRoot = varargin{1};
-        addpath(thisRoot, '-begin');
+elseif strcmpi(req, 'AddRoot')
+    % Add the specified root to the temporary search paths.
+    thisRoot = varargin{1};
+    addpath(thisRoot, '-begin');
     
-    case 'addcurrentsubs'
-        % Add subfolders within the current root to the temporary
-        % search path.
-        thisRoot = varargin{1};
-        [p, allp] = generatePath(thisRoot);
-        if true % ##### MOSW
-            % Do nothing.
-        else 
-            if ~isempty(p.OctBegin) %#ok<UNRCH>
-                addpath(p.OctBegin{:}, '-begin');
-            end
+elseif strcmpi(req, 'AddCurrentSubs')
+    % Add subfolders within the current root to the temporary
+    % search path.
+    thisRoot = varargin{1};
+    [p, allp] = generatePath(thisRoot);
+    if true % ##### MOSW
+        % Do nothing.
+    else 
+        if ~isempty(p.OctBegin) %#ok<UNRCH>
+            addpath(p.OctBegin{:}, '-begin');
         end
-        if ~isempty(p.Begin)
-            addpath(p.Begin{:}, '-begin');
+    end
+    if ~isempty(p.Begin)
+        addpath(p.Begin{:}, '-begin');
+    end
+    if ~isempty(p.End)
+        addpath(p.End{:}, '-end');
+    end
+    if true % ##### MOSW
+        % Do nothing.
+    else
+        if ~isempty(p.OctEnd) %#ok<UNRCH>
+            addpath(p.OctEnd{:}, '-end');
         end
-        if ~isempty(p.End)
-            addpath(p.End{:}, '-end');
-        end
-        if true % ##### MOSW
-            % Do nothing.
-        else
-            if ~isempty(p.OctEnd) %#ok<UNRCH>
-                addpath(p.OctEnd{:}, '-end');
-            end
-        end
-        varargout{1} = allp;
+    end
+    varargout{1} = allp;
         
-    case 'removecurrentsubs'
-        % Remove subfolders within the current root from the temporary
-        % and permanent search paths.
-        thisRoot = varargin{1};
-        [~, allp] = generatePath(thisRoot);
-        removePath(allp{:});
-        varargout{1} = allp;
-end
+elseif strcmpi(req, 'RemoveCurrentSubs');
+    % Remove subfolders within the current root from the temporary
+    % and permanent search paths.
+    thisRoot = varargin{1};
+    [~, allp] = generatePath(thisRoot);
+    removePath(allp{:});
+    varargout{1} = allp;
 
 end
+
+end%
+
+
+%
+% Local Functions
+%
 
 
 function removePath(varargin)
@@ -90,7 +93,9 @@ function removePath(varargin)
     warning('off', 'MATLAB:rmpath:DirNotFound');
     rmpath(varargin{:});
     warning(status);
-end
+end%
+
+
 
 
 function [ppath, everything] = generatePath(root)
@@ -110,7 +115,7 @@ function [ppath, everything] = generatePath(root)
     ppath.OctBegin = { }; % addpath -begin in Octave.
     ppath.OctEnd = { }; % addpath -end in Octave.
 
-    for i = 1 : length(list)
+    for i = 1 : numel(list)
         name = list(i).name;
         % Exclude folders starting with special characters + @ - $.
         if strncmp(name, '.', 1) ...
