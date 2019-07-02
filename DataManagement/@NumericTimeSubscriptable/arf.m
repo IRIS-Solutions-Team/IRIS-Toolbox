@@ -65,16 +65,15 @@ if nargin < 4
     range = Inf;
 end
 
-% Parse input arguments
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('NumericTimeSubscriptable.arf');
-    parser.addRequired('X', @(x) isa(x, 'NumericTimeSubscriptable'));
-    parser.addRequired('A', @isnumeric);
-    parser.addRequired('Z', @(x) Valid.numericScalar(x) || isa(x, 'NumericTimeSubscriptable'));
-    parser.addRequired('Range', @(x) isnumeric(x) || isequal(x, @all));
+    addRequired(parser, 'X', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addRequired(parser, 'A', @isnumeric);
+    addRequired(parser, 'Z', @(x) Valid.numericScalar(x) || isa(x, 'NumericTimeSubscriptable'));
+    addRequired(parser, 'Range', @(x) isnumeric(x) || isequal(x, @all));
 end%
-parser.parse(X, A, Z, range);
+parse(parser, X, A, Z, range);
 range = double(range);
 
 %--------------------------------------------------------------------------
@@ -83,11 +82,10 @@ A = A(:).';
 order = length(A) - 1;
 
 % Work out range (includes pre/post-sample initial condition)
-startOfX = X.StartAsNumeric;
-endOfX = X.EndAsNumeric;
 if isequal(range, Inf)
-    range = startOfX : endOfX;
+    range = X.StartAsNumeric : X.EndAsNumeric;
 end
+
 if range(1)<=range(end)
     time = 'forward';
     extendedRange = range(1)-order : range(end);
@@ -95,34 +93,32 @@ else
     time = 'backward';
     extendedRange = range(end) : range(1)+order;
 end
+numOfExtendedPeriods = length(extendedRange);
 
 % Get endogenous data
 xData = getData(X, extendedRange);
 sizeOfX = size(xData);
-ndimsOfX = numel(sizeOfX);
 xData = xData(:, :);
-numOfPeriods = length(extendedRange);
-
-% Do noting if the effective range is empty
-if numOfPeriods<=order
-    return
-end
 
 % Get exogenous (z) data
-if isa(Z, 'TimeSubscriptable')
+if isa(Z, 'NumericTimeSubscriptable')
     zData = getData(Z, extendedRange);
-    zData = zData(:, :);
 else
     zData = Z;
     if isempty(zData)
         zData = 0;
     end
-    zData = repmat(zData, numOfPeriods, 1);
+    zData = repmat(zData, numOfExtendedPeriods, 1);
 end
+sizeOfZ = size(zData);
+zData = zData(:, :);
 
-% Expand zData in 2nd dimension if needed
+% Expand zData or xData in 2nd dimension if needed
 if size(zData, 2)==1 && size(xData, 2)>1
     zData = repmat(zData, 1, size(xData, 2));
+elseif size(zData, 2)>1 && size(xData, 2)==1
+    xData = repmat(xData, 1, size(zData, 2));
+    sizeOfX = sizeOfZ;
 end
 
 % Normalise polynomial vector
@@ -134,10 +130,10 @@ end
 % Set up time vector
 if strcmp(time, 'forward')
     shifts = -1 : -1 : -order;
-    timeVec = 1+order : numOfPeriods;
+    timeVec = 1+order : numOfExtendedPeriods;
 else
     shifts = 1 : order;
-    timeVec = numOfPeriods-order : -1 : 1;
+    timeVec = numOfExtendedPeriods-order : -1 : 1;
 end
 
 
@@ -149,12 +145,12 @@ end
 
 
 % Reshape output data back
-if ndimsOfX>2
+if numel(sizeOfX)>2
     xData = reshape(xData, [size(xData, 1), sizeOfX(2:end)]);
 end
 
 % Update output series
-X = setData(X, extendedRange, xData);
+X = fill(X, xData, extendedRange(1));
 
 end%
 
