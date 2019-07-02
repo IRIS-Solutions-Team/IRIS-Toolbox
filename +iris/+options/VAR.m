@@ -27,11 +27,6 @@ applyFilter = {
 };
 
 
-tolerance = {
-    'tolerance', getrealsmall( ), @isnumericscalar
-};
-
-
 def.acf = [
     applyFilter
     matrixFormat
@@ -41,36 +36,6 @@ def.acf = [
     'Progress', false, @islogicalscalar
     }; %#ok<*CCAT>
 ];
-
-
-def.estimate = {
-    'a', [ ], @isnumeric
-    'bvar', [ ], @(x) isempty(x) || isa(x, 'BVAR.bvarobj')
-    'c', [ ], @isnumeric    
-    'j', [ ], @isnumeric
-    'diff', false, @islogicalscalar
-    'g', [ ], @isnumeric
-    'order', 1, @(x) isnumeric(x) && numel(1) == 1
-    'cointeg', [ ], @isnumeric
-    'comment', '', @(x) ischar(x) || isequal(x, Inf)
-    'constraints, constraint', '', @(x) ischar(x) || iscellstr(x) || isnumeric(x)
-    'constant, const, constants', true, @islogicalscalar
-    'covparameters, covparameter, covparam', false, @islogicalscalar
-    'eqtnbyeqtn', false, @islogicalscalar
-    'MaxIter', 1, @isnumericscalar
-    'mean', [ ], @(x) isempty(x) || isnumeric(x)
-    'progress', false, @islogicalscalar
-    'schur', true, @islogicalscalar
-    'stdize', false, @islogicalscalar
-    'tolerance', 1e-5, @isnumericscalar
-    'timeweights', [ ], @(x) isempty(x) || isa(x, 'tseries')
-    'ynames, yname', { }, @iscellstr
-    'warning', true, @islogicalscalar
-    ... Panel VARs
-    'fixedeff, fixedeffect', true, @islogicalscalar
-    'groupweights', [ ], @(x) isempty(x) || isnumeric(x)
-    'groupspec', false, @(x) islogicalscalar(x) || iscellstr(x) || ischar(x)
-};
 
 
 def.filter = {
@@ -105,14 +70,6 @@ def.integrate = {
     'applyto', Inf, @(x) isnumeric(x) || islogical(x)
     };
 
-def.isexplosive = [
-    tolerance
-]; %#ok<CCAT1>
-
-def.isstationary = [
-    tolerance
-]; %#ok<CCAT1>
-
 
 def.portest = {
     'level', 0.05, @(x) isnumericscalar(x) && x > 0 && x < 1
@@ -130,17 +87,6 @@ def.resample = [
     }
 ];
 
-def.sprintf = {
-    'constant, constants, const', true, @islogicalscalar
-    'decimal', [ ], @(x) isempty(x) || isnumericscalar(x)
-    'declare', false, @islogicalscalar
-    'enames, ename', [ ], @(x) isempty(x) || iscellstr(x) || isfunc(x)
-    'format', '%+.16g', @ischar
-    'hardparameters, hardparameter', true, @islogicalscalar
-    'tolerance', getrealsmall( ), @isnumericscalar
-    'ynames, yname', [ ], @(x) isempty(x) || iscellstr(x)
-    };
-
 def.response = {
     'presample', false, @islogicalscalar
     'select', Inf, @(x) isequal(x, Inf) || islogical(x) || isnumeric(x) || ischar(x) || iscellstr(x)
@@ -150,4 +96,5 @@ def.VAR = {
     'exogenous', { }, @(x) ischar(x) || iscellstr(x)
     };
 
-end
+end%
+
