@@ -142,7 +142,7 @@ classdef InputParser < inputParser
             this.addParameter('WDay', @config, @iris.Configuration.validateWDay);
             this.addParameter('DatePosition', 'c', @(x) ischar(x) && ~isempty(x) && any(x(1) == 'sec'));
             % Backward compatibility options for datxtick( )
-            this.addParameter({'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isfunc(x));
+            this.addParameter({'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isa(x,'function_handle'));
             this.HasDateOptions = true;
             if nargin>1
                 % Context can be one of {'', 'tseries', 'TimeSubscriptable'}
@@ -152,7 +152,7 @@ classdef InputParser < inputParser
 
 
         function addPlotOptions(this)
-            this.addParameter('Function', [ ], @(x) isempty(x) || isfunc(x));
+            this.addParameter('Function', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
             this.addParameter('Tight', false, @(x) isequal(x, true) || isequal(x, false));
             this.addParameter('XLimMargins', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto));
         end%
