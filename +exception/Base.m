@@ -80,11 +80,10 @@ classdef Base
             if ~strcmpi(get(0, 'FormatSpacing'), 'Compact')
                 message = [message, sprintf('\n')];
             end
-            switch this.ThrowAs
-                case 'error'
-                    exception.Base.throwAsError(this.Identifier, message);
-                case 'warning'
-                    exception.Base.throwAsWarning(this.Identifier, message);
+            if strcmpi(this.ThrowAs, 'Error')
+                exception.Base.throwAsError(this.Identifier, message);
+            elseif strcmpi(this.ThrowAs, 'Warning')
+                exception.Base.throwAsWarning(this.Identifier, message);
             end
         end%
         
@@ -92,11 +91,12 @@ classdef Base
         
         
         function header = createHeader(this)
-            switch this.ThrowAs
-                case 'error'
-                    header = this.BASE_ERROR_HEADER_FORMAT;
-                case 'warning'
-                    header = this.BASE_WARNING_HEADER_FORMAT;
+            if strcmpi(this.ThrowAs, 'Error')
+                header = this.BASE_ERROR_HEADER_FORMAT;
+            elseif strcmpi(this.ThrowAs, 'Warning')
+                header = this.BASE_WARNING_HEADER_FORMAT;
+            else
+                header = '';
             end
         end%
         
@@ -106,7 +106,7 @@ classdef Base
         function throwCode(this, varargin)
             BR = sprintf('\n');
             varargin = strrep(varargin, BR, ' '); % Replace line breaks with spaces.
-            varargin = regexprep(varargin, '[ ]{2,}', ' '); % Replace multiple spaces with one space.
+            varargin = regexprep(varargin, '[ ]{2, }', ' '); % Replace multiple spaces with one space.
             for i = 1 : length(varargin)
                 if length(varargin{i})>this.MAX_LEN
                     varargin{i} = [ varargin{i}(1:this.MAX_LEN), ...
@@ -122,25 +122,35 @@ classdef Base
     
     
     methods (Static)
+        function stack = getStack( )
+            try
+                error('IRIS:Exception', 'Stack Reduction');
+            catch exc
+                stack = exc.stack;
+            end
+            stack = stack(2:end);
+        end%
+
+
+
+
         function [stack, n] = reduceStack(adj)
-            stack = dbstack('-completenames');
-            [~, irisFolder] = fileparts( iris.get('irisroot') );
-            irisFolder = lower(irisFolder);
-            testFolder = fullfile(irisFolder, '^iristest');
+            stack = exception.Base.getStack( );
             n = length(stack);
-            x = [ stack(:).file ];
-            if ~isempty( strfind(x, '^iristest') ) ...
-                    || isequal(getappdata(0, 'IRIS_ReduceStack'), false)
+            [~, irisFolder] = fileparts( iris.get('irisroot') );
+            if isempty(irisFolder) || isequal(getappdata(0, 'IRIS_ReduceStack'), false)
                 return
             end
-            while n > 0 && (...
-                    isempty(strfind(lower(stack(n).file), irisFolder)) ...
-                    || ~isempty(strfind(lower(stack(n).file), testFolder)) ...
-                    )
+            irisFolder = lower(irisFolder);
+            x = [ stack(:).file ];
+            while n>0 && isempty(strfind(lower(stack(n).file), irisFolder))
                 n = n - 1;
             end
             n = n + adj;
-            stack = stack(n:end);
+            lenOfStack = numel(stack);
+            if n>=1 && n<=lenOfStack
+                stack = stack(n:end);
+            end
         end%
         
         
@@ -148,11 +158,9 @@ classdef Base
         
         function throwAsError(identifier, message)
             stack = exception.Base.reduceStack(0);
-            errorStruct = struct( ...
-                'identifier', identifier, ...
-                'message', message, ...
-                'stack', stack ...
-                );
+            errorStruct = struct( 'identifier', identifier, ...
+                                  'message', message, ...
+                                  'stack', stack );
             error(errorStruct);
         end%
         
@@ -166,8 +174,23 @@ classdef Base
             warning(q);
             w = warning('query', identifier);
             if strcmp(w.state, 'on')
-                [~, n] = exception.Base.reduceStack(-1);
-                dbstack(n);
+                [stack, n] = exception.Base.reduceStack(1);
+                for i = 1 : numel(stack)
+                    if i==1
+                        fprintf('> ');
+                    else
+                        fprintf('  ');
+                    end
+                    ithFile = stack(i).file;
+                    fprintf('In %s', ithFile);
+                    [~, ithTitle] = fileparts(ithFile);
+                    ithName = stack(i).name;
+                    if ~strcmp(ithTitle, ithName) && ~isempty(ithName)
+                        fprintf('>%s', ithName);
+                    end
+                    fprintf(' (line %g)\n', stack(i).line);
+                end
+                fprintf('\n');
             end
         end%
         
@@ -175,7 +198,7 @@ classdef Base
         
         
         function s = alt2str(altVec, label)
-            % Convert vector of alternative param numbers to string.
+            % alt2str  Convert vector of alternative param numbers to string
             try
                 label; %#ok<VUNUS>
             catch
@@ -192,8 +215,8 @@ classdef Base
                 return
             end
             
-            n = length(altVec);
-            c = cell(1,n);
+            n = numel(altVec);
+            c = cell(1, n);
             for i = 1 : n
                 c{i} = sprintf([' ', exception.Base.ALT2STR_FORMAT ], altVec(i));
             end
@@ -224,11 +247,13 @@ classdef Base
         end%
 
 
+
+
         function exceptionLookupTable = resetLookupTable( )
             pathToHere = fileparts(mfilename('fullpath'));
             fileName = fullfile(pathToHere, 'LookupTable.csv');
             exceptionLookupTable = readtable( fileName, ...
-                                              'Delimiter', ',', ...
+                                              'Delimiter', ', ', ...
                                               'ReadVariableNames', true, ...
                                               'ReadRowNames', true );
             setappdata(0, 'IRIS_ExceptionLookupTable', exceptionLookupTable);

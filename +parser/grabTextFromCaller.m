@@ -1,11 +1,11 @@
-function code = grabTextFromCaller(tag, fileName)
-% grabTextFromCaller  Retrieve block comment from calling m-file.
+function code = grabTextFromCaller(tag, outputFileName)
+% grabTextFromCaller  Retrieve block comment from calling m-file
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 PATTERN = '%\{\n$tag$>>>>>\n(.*?)\n<<<<<$tag$\n%\}';
 
@@ -14,14 +14,14 @@ PATTERN = '%\{\n$tag$>>>>>\n(.*?)\n<<<<<$tag$\n%\}';
 code = '';
 
 % Determine the name of the calling m-file.
-stack = dbstack('-completenames');
+stack = exception.Base.getStack( );
 if length(stack)<2
    return
 end
-filename = stack(2).file;
+inputFileName = stack(2).file;
 
 % Read the m-file and convert all end-of-lines to \n.
-file = file2char(filename);
+file = file2char(inputFileName);
 file = textfun.converteols(file);
 
 % Find the following block comment
@@ -39,7 +39,8 @@ end
 code = tkn{1};
 
 if nargin>1
-    char2file(code, fileName);
+    char2file(code, outputFileName);
 end
 
-end
+end%
+

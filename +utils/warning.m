@@ -38,6 +38,7 @@ state = warning('off', 'backtrace');
 warning(['IRIS:',id], '%s', msg);
 warning(state);
 
-textfun.loosespace( );
+textual.looseLine( );
 
-end
+end%
+

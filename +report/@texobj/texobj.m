@@ -24,7 +24,7 @@ classdef texobj < report.userinputobj
                 this.userinput = varargin{1};
                 varargin(1) = [ ];
             else
-                caller = dbstack('-completenames');
+                caller = exception.Base.getStack( );
                 if length(caller)>=4
                     caller = caller(4);
                     this.userinput = report.texobj.grabCommentBlk(caller);
