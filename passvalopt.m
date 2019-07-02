@@ -12,14 +12,14 @@ function varargout = passvalopt(spec, varargin)
 
 % Force resetting the default options structure
 if (nargin==0 && nargout==0) 
-    defaultOptionsStruct = initialize( );
+    defaultOptionsStruct = hereInitialize( );
     setappdata(0, 'IRIS_DefaultFunctionOptions', defaultOptionsStruct);
     return
 end
 
 defaultOptionsStruct = getappdata(0, 'IRIS_DefaultFunctionOptions');
 if isempty(defaultOptionsStruct)
-    defaultOptionsStruct = initialize( );
+    defaultOptionsStruct = hereInitialize( );
     setappdata(0, 'IRIS_DefaultFunctionOptions', defaultOptionsStruct);
 end
 
@@ -136,7 +136,7 @@ end
 list = fieldnames(opt);
 for i = 1 : length(list)
     value = opt.(list{i});
-    if isa(value,'function_handle') && isequal(value, @auto)
+    if isequal(value, @auto)
         try %#ok<TRYNC>
             opt = feval(['iris.options.auto.', list{i}], opt);
         end
@@ -148,34 +148,35 @@ varargout = { opt, listUnused };
 end%
 
 
-function defaultOptionsStruct = initialize( )
+function defaultOptionsStruct = hereInitialize( )
+    list = { 'dbase'
+             'dest'
+             'FAVAR'
+             'fragileobj'
+             'freqdom'
+             'Global'
+             'HData'
+             'grfun'
+             'grouping'
+             'IRIS'
+             'irisoptim'
+             'latex'
+             'model'
+             'poster'
+             'textfun'
+             'SVAR'
+             'tseries'
+             'VAR'          };
     defaultOptionsStruct = struct( );
-    defaultOptionsStruct.dbase = iris.options.dbase( );
-    defaultOptionsStruct.dest = iris.options.dest( );
-    defaultOptionsStruct.FAVAR = iris.options.FAVAR( );
-    defaultOptionsStruct.fragileobj = iris.options.fragileobj( );
-    defaultOptionsStruct.freqdom = iris.options.freqdom( );
-    defaultOptionsStruct.Global = iris.options.Global( );
-    defaultOptionsStruct.HData = iris.options.HData( );
-    defaultOptionsStruct.grfun = iris.options.grfun( );
-    defaultOptionsStruct.grouping = iris.options.grouping( );
-    defaultOptionsStruct.iris = iris.options.IRIS( );
-    defaultOptionsStruct.irisoptim = iris.options.irisoptim( );
-    defaultOptionsStruct.latex = iris.options.latex( );
-    defaultOptionsStruct.model = iris.options.model( );
-    defaultOptionsStruct.nnet = iris.options.nnet( );
-    defaultOptionsStruct.poster = iris.options.poster( );
-    defaultOptionsStruct.textfun = iris.options.textfun( );
-    defaultOptionsStruct.SVAR = iris.options.SVAR( );
-    defaultOptionsStruct.tseries = iris.options.tseries( );
-    defaultOptionsStruct.VAR = iris.options.VAR( );
-    list = fieldnames(defaultOptionsStruct);
     for ii = 1 : numel(list)
         name = list{ii};
-        listOfFunctions = fieldnames(defaultOptionsStruct.(name));
-        for jj = 1 : numel(listOfFunctions)
-            func = listOfFunctions{jj};
-            defaultOptionsStruct.(name).(func) = list2struct(defaultOptionsStruct.(name).(func));
+        try
+            defaultOptionsStruct.(name) = iris.options.(name)( );
+            listOfFunctions = fieldnames(defaultOptionsStruct.(name));
+            for jj = 1 : numel(listOfFunctions)
+                func = listOfFunctions{jj};
+                defaultOptionsStruct.(name).(func) = list2struct(defaultOptionsStruct.(name).(func));
+            end
         end
     end
 end%
