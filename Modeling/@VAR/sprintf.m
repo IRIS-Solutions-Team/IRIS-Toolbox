@@ -1,20 +1,17 @@
 function [code, d] = sprintf(this, varargin)
-% sprintf  Print VAR model as formatted model code.
+% sprintf  Print VAR model as formatted model code
 %
-% Syntax
-% =======
+% __Syntax__
 %
 %     [c, d] = sprintf(v, ...)
 %
 %
-% Input arguments
-% ================
+% __Input Arguments__
 %
 % * `v` [ VAR ] - VAR object that will be printed as a formatted model code.
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
 % * `c` [ cellstr ] - Text string with the model code for each
 % parameterisation.
@@ -23,8 +20,7 @@ function [code, d] = sprintf(this, varargin)
 % `'HardParameters='` is true, the databases will be empty.
 %
 %
-% Options
-% ========
+% __Options__
 %
 % * `'Decimal='` [ numeric | *empty* ] - Precision (number of decimals) at
 % which the coefficients will be written if `'HardParameters='` is true; if
@@ -50,26 +46,43 @@ function [code, d] = sprintf(this, varargin)
 % smaller than `'Tolerance='` in absolute value as zeros; zero coefficients
 % will be dropped from the model code.
 %
-% Description
-% ============
 %
-% Example
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-% Parse options.
-opt = passvalopt('VAR.sprintf', varargin{:});
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('VAR.sprintf');
+    parser.addRequired(  'VAR', @(x) isa(x, 'VAR'));
+    parser.addParameter({'Constant', 'Constants', 'Const'}, true, @Valid.logicalScalar);
+    parser.addParameter({'Decimal', 'Decimals'}, [ ], @(x) isempty(x) || Valid.numericScalar(x));
+    parser.addParameter( 'Declare', false, @Valid.logicalScalar);
+    parser.addParameter({'ENames', 'EName'}, cell.empty(1, 0), @Valid.list);
+    parser.addParameter( 'Format', '%+.16g', @ischar);
+    parser.addParameter({'HardParameters', 'HardParameter'}, true, @Valid.logicalScalar);
+    parser.addParameter( 'Tolerance', @default, @(x) isa(x, @default) || Valid.numericScalar(x));
+    parser.addParameter({'YNames', 'YName'}, cell.empty(1, 0), @Valid.list);
+end
+parse(parser, this, varargin{:});
+opt = parser.Options;
 
-if isempty(strfind(opt.format, '%+'))
+if isempty(strfind(opt.Format, '%+'))
     utils.error('VAR', ...
-        'Format string must contain ''%+'': ''%s''.', opt.format);
+        'Format string must contain ''%+'': ''%s''.', opt.Format);
 end
 
-if ~isempty(opt.decimal)
-    opt.format = ['%+.', sprintf('%g', opt.decimal), 'e'];
+if ~isempty(opt.Decimal)
+    opt.Format = ['%+.', sprintf('%g', opt.Decimal), 'f'];
+end
+
+if isequal(opt.Tolerance, @default)
+    opt.Tolerance = this.TOLERANCE;
 end
 
 %--------------------------------------------------------------------------
@@ -77,7 +90,7 @@ end
 ny = size(this.A, 1);
 nx = length(this.NamesExogenous);
 p = size(this.A, 2) / max(ny, 1);
-nAlt = size(this.A, 3);
+nv = size(this.A, 3);
 
 if nx>0
     utils.error('VAR:sprintf', ...
@@ -85,13 +98,13 @@ if nx>0
         'using sprintf( ) or fprintf( ).']);
 end
 
-if ~isempty(opt.ynames)
-    this.ynames = opt.ynames;
+if ~isempty(opt.YNames)
+    this.ynames = opt.YNames;
 end
 yName = get(this, 'yNames');
 
-if ~isempty(opt.enames)
-    this.enames = opt.enames;
+if ~isempty(opt.ENames)
+    this.enames = opt.ENames;
 end
 eName = get(this, 'eNames');
 
@@ -114,76 +127,70 @@ for i = 1 : ny
 end
 
 % Number of digits for printing parameter indices.
-if ~opt.hardparameters
+if ~opt.HardParameters
     pDecim = floor(log10(max(ny, p)))+1;
     pDecim = sprintf('%g', pDecim);
     pFormat = ['%', pDecim, 'g'];
 end
 
 % Preallocatte output arguments.
-code = cell(1, nAlt);
-d = cell(1, nAlt);
+code = cell(1, nv);
+d = cell(1, nv);
 
 % Cycle over all parameterisations.
-for iAlt = 1 : nAlt
+for iAlt = 1 : nv
     % Reset the list of parameters for each parameterisation.
     pName = { };
     
     % Retrieve VAR system matrices.
     A = reshape(this.A(:, :, iAlt), [ny, ny, p]);
     K = this.K(:, iAlt);
-    if ~opt.constant
+    if ~opt.Constant
         K(:) = 0;
     end
     B = mybmatrix(this, iAlt);
     c = mycovmatrix(this, iAlt);
 	R = covfun.cov2corr(c);
     
-    % Print individual equations.
+    % Print individual equations
     eqn = cell(1, ny);
     d{iAlt} = struct( );
     
     for iEqn = 1 : ny
-        % LHS with current-dated endogenous variable.
+        % LHS with current-dated endogenous variable
         eqn{iEqn} = [yNameLag{iEqn}{1}, ' ='];
         rhs = false;
-        if abs(K(iEqn))>opt.tolerance || ~opt.hardparameters
-            eqn{iEqn} = [ ...
-                eqn{iEqn}, ' ', ...
-                printParameter('K', {iEqn}, K(iEqn)), ...
-                ];
+        if abs(K(iEqn))>opt.Tolerance || ~opt.HardParameters
+            eqn{iEqn} = [ eqn{iEqn}, ' ', ...
+                          printParameter('K', {iEqn}, K(iEqn))  ];
             rhs = true;
         end
         
-        % Lags of endogenous variables.
+        % Lags of endogenous variables
         for t = 1 : p
             for y = 1 : ny
-                if abs(A(iEqn, y, t))>opt.tolerance || ~opt.hardparameters
-                    eqn{iEqn} = [ ...
-                        eqn{iEqn}, ' ', ...
-                        printParameter('A', {iEqn, y, t}, A(iEqn, y, t)), ...
-                        '*',  yNameLag{y}{1+t}, ...
-                        ];
+                if abs(A(iEqn, y, t))>opt.Tolerance || ~opt.HardParameters
+                    eqn{iEqn} = [ eqn{iEqn}, ' ', ...
+                                  printParameter('A', {iEqn, y, t}, A(iEqn, y, t)), ...
+                                  '*',  yNameLag{y}{1+t} ];
                     rhs = true;
                 end
             end
         end
         
-        % Shocks.
+        % Shocks
         for e = 1 : ny
             value = B(iEqn, e);
-            if abs(value)>opt.tolerance || ~opt.hardparameters
-                eqn{iEqn} = [ ...
-                    eqn{iEqn}, ' ', ...
-                    printParameter('B', {iEqn, e}, value), ...
-                    '*', eName{e}, ...
-                    ];
+            if abs(value)>opt.Tolerance || ~opt.HardParameters
+                eqn{iEqn} = [ eqn{iEqn}, ' ', ...
+                              printParameter('B', {iEqn, e}, value), ...
+                              '*', eName{e} ];
                 rhs = true;
             end
         end
         
         if ~rhs
-            % If nothing occurs on the RHS, add zero.
+            % If nothing occurs on the RHS, add zero
             eqn{iEqn} = [eqn{iEqn}, ' 0'];
         end
     end
@@ -191,7 +198,7 @@ for iAlt = 1 : nAlt
     eqn = strrep(eqn, '+1*', '+');
 
     % Declare variables if requested.
-    if opt.declare
+    if opt.Declare
         br = sprintf('\n');
         lead = '    ';
         yName = regexprep(yName, '\{.*\}', '');
@@ -203,7 +210,7 @@ for iAlt = 1 : nAlt
             '!shocks', br, eDecl, br, br, ...
             '!equations', br, eqtnDecl, br, ...
             ];
-        if ~opt.hardparameters
+        if ~opt.HardParameters
             pDecl = textfun.delimlist(pName, 'wrap=', 75, 'lead=', lead);
             code{iAlt} = [code{iAlt}, ...
                 '!parameters', br, pDecl, br, ...
@@ -214,12 +221,12 @@ for iAlt = 1 : nAlt
     end
     
     % Add std and corr to the parameter database.
-    if ~opt.hardparameters
+    if ~opt.HardParameters
         for i = 1 : ny
             name = sprintf('std_%s', eName{i});
             d{iAlt}.(name) = sqrt(c(i, i));
             for j = 1 : i-1
-                if abs(R(i, j))>opt.tolerance
+                if abs(R(i, j))>opt.Tolerance
                     name = sprintf('corr_%s__%s', eName{i}, eName{j});
                     d{iAlt}.(name) = R(i, j);
                 end
@@ -234,8 +241,8 @@ return
 
 
     function x = printParameter(matrix, pos, value)
-        if opt.hardparameters
-            x = sprintf(opt.format, value);
+        if opt.HardParameters
+            x = sprintf(opt.Format, value);
         else
             if p<=1 && numel(pos)==3
                 pos = pos(1:2);

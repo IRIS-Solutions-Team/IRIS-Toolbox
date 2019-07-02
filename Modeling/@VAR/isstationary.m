@@ -1,39 +1,49 @@
-function Flag = isstationary(This,varargin)
-% isstationary  True if all eigenvalues are within unit circle.
+function flag = isstationary(this, varargin)
+% isstationary  True if all eigenvalues are within unit circle
 %
-% Syntax
-% =======
+% __Syntax__
 %
-%     Flag = isstationary(V)
+%     flag = isstationary(V)
 %
-% Input arguments
-% ================
+%
+% __Input Arguments__
 %
 % * `V` [ VAR ] - VAR object whose eigenvalues will be tested for
 % stationarity.
 %
-% Output arguments
-% =================
 %
-% * `Flag` [ `true` | `false` ] - True if all eigenvalues are within unit
+% __Output Arguments__
+%
+% * `flag` [ `true` | `false` ] - True if all eigenvalues are within unit
 % circle.
 %
-% Options
-% ========
 %
-% * `'tolerance='` [ numeric | *`getrealsmall( )`* ] - Tolerance for the
+% __Options__
+%
+% * `Tolerance=@default` [ numeric | `@default` ] - Tolerance for the
 % eigenvalue test.
 %
 
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('VAR.isstationary');
+    parser.addRequired(  'VAR', @(x) isa(x, 'VAR'));
+    parser.addParameter( 'Tolerance', @default, @(x) isequal(x, @default) || Valid.numericScalar(x, [0, Inf]));
+end
+parse(parser, this, varargin{:});
+opt = parser.Options;
 
-opt = passvalopt('VAR.isstationary',varargin{:});
+if isequal(opt.Tolerance, @default)
+    opt.Tolerance = this.TOLERANCE;
+end
 
 %--------------------------------------------------------------------------
 
-Flag = all(abs(This.EigVal) <= 1-opt.tolerance,2);
-Flag = Flag(:).';
+flag = all(abs(this.EigVal) <= 1-opt.Tolerance, 2);
+flag = transpose(flag(:));
 
-end
+end%
+

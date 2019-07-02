@@ -64,6 +64,11 @@ classdef (CaseInsensitiveProperties=true) ...
     end
     
 
+    properties (Constant)
+        TOLERANCE =  eps( )^(5/9);
+    end
+
+
     properties (Dependent)
         % NumOfVariants  Number of parameter variants
         NumOfVariants
