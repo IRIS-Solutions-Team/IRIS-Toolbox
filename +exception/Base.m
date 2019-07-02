@@ -243,7 +243,11 @@ classdef Base
                 exceptionLookupTable = exception.Base.resetLookupTable( );
             end
             id = exception.Base.underscore2capital(id);
-            msg = exceptionLookupTable{id, :}{1};
+            inx  = strcmpi(exceptionLookupTable(:, 1), id);
+            if nnz(inx)~=1
+                inx = 1;
+            end
+            msg = exceptionLookupTable{inx, 2};
         end%
 
 
@@ -252,10 +256,7 @@ classdef Base
         function exceptionLookupTable = resetLookupTable( )
             pathToHere = fileparts(mfilename('fullpath'));
             fileName = fullfile(pathToHere, 'LookupTable.csv');
-            exceptionLookupTable = readtable( fileName, ...
-                                              'Delimiter', ', ', ...
-                                              'ReadVariableNames', true, ...
-                                              'ReadRowNames', true );
+            exceptionLookupTable = exception.readLookupTable( );
             setappdata(0, 'IRIS_ExceptionLookupTable', exceptionLookupTable);
         end%
         
