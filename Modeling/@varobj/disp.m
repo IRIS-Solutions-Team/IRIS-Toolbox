@@ -7,6 +7,7 @@ function disp(this)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
+CONFIG = iris.get( );
 STR_VARIANT = 'parameter variant';
 
 %--------------------------------------------------------------------------
@@ -19,13 +20,13 @@ isPanel = ispanel(this);
 ccn = getClickableClassName(this);
 
 if isempty(this.A)
-    fprintf('\tempty %s object', ccn);
+    fprintf('%sEmpty %s Object', CONFIG.DispIndent, ccn);
 else
-    fprintf('\t');
+    fprintf('%s', CONFIG.DispIndent);
     if isPanel
         fprintf('panel ');
     end
-    fprintf('%s(%g) object: ', ccn, p);
+    fprintf('%s(%g) Object: ', ccn, p);
     fprintf('[%g %s(s)]', nv, STR_VARIANT);
     if isPanel
         nGrp = length(this.GroupNames);
@@ -34,7 +35,7 @@ else
 end
 fprintf('\n');
 
-fprintf('\tendogenous: ');
+fprintf('%sEndogenous: ', CONFIG.DispIndent);
 if ~isempty(this.NamesEndogenous)
     fprintf('[%g] %s', length(this.NamesEndogenous), textfun.displist(this.NamesEndogenous));
 else
@@ -43,14 +44,14 @@ end
 fprintf('\n');
 
 % Exogenous inputs
-fprintf('\texogenous: [%g] ', length(this.NamesExogenous));
+fprintf('%sExogenous: [%g] ', CONFIG.DispIndent, length(this.NamesExogenous));
 if ~isempty(this.NamesExogenous)
     fprintf('%s', textfun.displist(this.NamesExogenous));
 end
 fprintf('\n');
 
 % Conditioning instruments
-fprintf('\tconditioning: [%g] ', length(this.NamesConditioning));
+fprintf('%sConditioning: [%g] ', CONFIG.DispIndent, length(this.NamesConditioning));
 if ~isempty(this.NamesConditioning)
     fprintf('%s', textfun.displist(this.NamesConditioning));
 end
@@ -59,7 +60,7 @@ fprintf('\n');
 specdisp(this);
 
 % Group names for panel objects
-fprintf('\tgroups: ');
+fprintf('%sGroups: ', CONFIG.DispIndent);
 if ~isPanel
     fprintf('implicit');
 else
