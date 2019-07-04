@@ -66,7 +66,7 @@ for v = variantsRequested
     for i = 1 : numOfBlocks
         blk = blazer.Block{i};
         blk.SteadyShift = 3;
-        header = sprintf('[Variant %g][Block %g]', v, i);
+        header = sprintf('[Variant:%g][Block:%g]', v, i);
         [lx, gx, exitFlag, error] = run(blk, this.Link, lx, gx, header);
         outputInfo.ExitFlags{v}(i) = exitFlag;
         %if ~exitFlags{v}(i)

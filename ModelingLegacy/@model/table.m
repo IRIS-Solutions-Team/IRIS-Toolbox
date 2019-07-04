@@ -91,7 +91,8 @@ function outputTable = table(this, requests, varargin)
 % * `'Parameters'` - The currently assigned value for each parameter; this
 % request can be combined with `'Description'`.
 %
-% * `'Stationary'` - Indicator of variables stationary in steady state.
+% * `'Stationary'` - Indicator of stationarity of variables or log
+% variables.
 %
 % * `'Std'` - The currently assigned value for the standard deviation of
 % each model shock.
