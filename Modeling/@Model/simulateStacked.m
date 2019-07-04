@@ -26,7 +26,7 @@ columnsOfTimeFrame = firstColumnOfTimeFrame : lastColumnOfTimeFrame;
 numOfBlocks = numel(blazer.Block);
 for i = 1 : numOfBlocks
     ithBlock = blazer.Block{i};
-    ithHeader = [header, sprintf('[Block %g]', i)];
+    ithHeader = [header, sprintf('[Block:%g]', i)];
     herePrepareInxOfEndogenousPoints( );
     herePrepareTerminal( );
     [exitFlag, error] = run(ithBlock, vthData, ithHeader);

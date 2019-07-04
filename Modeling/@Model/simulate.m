@@ -130,10 +130,10 @@ end
 
 % /////////////////////////////////////////////////////////////////////////
 numOfRuns = runningData.NumOfPages;
-for run = 1 : numOfRuns
-    simulateTimeFrames(this, systemProperty, run);
+for i = 1 : numOfRuns
+    simulateTimeFrames(this, systemProperty, i);
     if opt.ProgressInfo
-        hereUpdateProgressInfo( );
+        hereUpdateProgressInfo(i);
     end
 end
 % /////////////////////////////////////////////////////////////////////////
@@ -382,6 +382,7 @@ return
                 blazerNoBlocks = prepareBlazer(this, opt.Method, opt);
                 blazerNoBlocks.ColumnsToRun = firstColumnToRun : lastColumnToRun;
                 run(blazerNoBlocks, opt);
+                opt.Blocks = true;
 
                 runningData.Blazers = [blazerNoBlocks, blazer];
             otherwise
@@ -451,7 +452,7 @@ return
 
 
 
-    function hereUpdateProgressInfo( )
+    function hereUpdateProgressInfo(run)
         runningData.ProgressInfo.Completed = run;
         runningData.ProgressInfo.Success = nnz(runningData.Success);
         update(runningData.ProgressInfo);
