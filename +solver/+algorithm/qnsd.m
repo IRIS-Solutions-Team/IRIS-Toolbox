@@ -317,7 +317,7 @@ end
 
 warning(w);
 
-if displayLevel.Iter && exitFlag~=solver.ExitFlag.NO_PROGRESS
+if displayLevel.Iter
     if desktopStatus
         fprintf('<strong>');
     end
