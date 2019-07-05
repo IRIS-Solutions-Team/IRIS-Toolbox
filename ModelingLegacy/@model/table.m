@@ -322,8 +322,11 @@ for i = 1 : numOfRequests
 end
 
 if any(strcmp(outputTable.Properties.VariableNames, 'Name'))
-    outputTable.Properties.RowNames = outputTable.Name;
-    outputTable = removevars(outputTable, 'Name');
+    tempNames = outputTable.Name;
+    try
+        outputTable = removevars(outputTable, 'Name');
+        outputTable.Properties.RowNames = tempNames;
+    end
 end
 
 % Round numeric entries
