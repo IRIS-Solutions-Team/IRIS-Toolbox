@@ -30,13 +30,13 @@ function listOfMatches = lookupNames(this, query)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.lookup');
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('Query', @(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp') || iscellstr(x));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.lookup');
+    addRequired(parser, 'Model', @(x) isa(x, 'model'));
+    addRequired(parser, 'Query', @(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp') || iscellstr(x));
 end
-inputParser.parse(this, query);
+parse(parser, this, query);
 
 %--------------------------------------------------------------------------
 

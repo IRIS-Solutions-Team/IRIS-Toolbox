@@ -9,8 +9,8 @@ classdef Interp
     
     methods (Static)
         function [code, value, postCode] = parse(varargin)
-            import parser.Interp;
-            import parser.Preparser;
+            import parser.Interp
+            import parser.Preparser
             maxInterp = uint32(Inf);
             if nargin==1
                 % (Preparser):

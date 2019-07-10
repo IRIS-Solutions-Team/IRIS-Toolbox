@@ -1,11 +1,11 @@
 function [this, isValidRequest, isValidValue] = implementSet(this, query, value, varargin)
-% implementSet  Implement set method for model objects.
+% implementSet  Implement set method for model objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -86,4 +86,5 @@ switch lower(query)
         isValidRequest = false;
 end
 
-end
+end%
+

@@ -177,8 +177,9 @@ end
 if isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
     dates = dbrange(inp);
     if iscell(dates)
-        utils.error('dbase:dbsave', ...
-            'Cannot save database with mixed date frequencies.');
+        THIS_ERROR = { 'Databank:CannotSaveMixedFrequencies'
+                       'Input date range needs to be specified when saving databanks containing time series of multiple date frequencies' };
+        throw( exception.Base(THIS_ERROR, 'error') );
     end
     dates = double(dates);
     userFreq = DateWrapper.getFrequencyAsNumeric(dates);
@@ -186,8 +187,9 @@ else
     dates = double(dates);
     dates = transpose(dates(:));
     if ~isempty(dates) && any(~freqcmp(dates))
-        utils.error('dbase:dbsave', ...
-            'Input date vector must have homogenous date frequency.');
+        THIS_ERROR = { 'Databank:CannotSaveMixedFrequencies'
+                       'Input date range is not allowed to include multiple date frequencies' };
+        throw( exception.Base(THIS_ERROR, 'error') );
     end
 end
 isRange = all(round(diff(dates))==1);
@@ -392,15 +394,14 @@ function saveCsvData(oo, fileName, opt)
 
     %--------------------------------------------------------------------------
 
-    % Create an empty buffer.
+    % Create an empty buffer
     c = '';
-    br = sprintf('\n');
 
-    % Write database user data.
+    % Write database user data
     if isUserData
         userData = utils.any2str(oo.UserData);
         userData = strrep(userData, '"', '''');
-        c = [c, '"Userdata[', oo.UserDataFieldName, '] ->"', delimiter, '"', userData, '"', br];
+        c = [c, '"Userdata[', oo.UserDataFieldName, '] ->"', delimiter, '"', userData, '"', newline( )];
     end
 
     % Write name row.
@@ -414,7 +415,7 @@ function saveCsvData(oo, fileName, opt)
         if isHighlight
             commentRow = [{''}, commentRow];
         end
-        c = [c, br, sprintf('"%s"', opt.CommentsHeader), printCharCells(commentRow)];
+        c = [c, newline( ), sprintf('"%s"', opt.CommentsHeader), printCharCells(commentRow)];
     end
 
     % Write units.
@@ -422,7 +423,7 @@ function saveCsvData(oo, fileName, opt)
         if isHighlight
             unitRow = [{''}, unitRow];
         end
-        c = [c, br, sprintf('"%s"', opt.UnitsHeader), printCharCells(unitRow)];
+        c = [c, newline( ), sprintf('"%s"', opt.UnitsHeader), printCharCells(unitRow)];
     end
 
     % Write classes.
@@ -430,7 +431,7 @@ function saveCsvData(oo, fileName, opt)
         if isHighlight
             classRow = [{''}, classRow];
         end
-        c = [c, br, sprintf('"%s"', opt.ClassHeader), printCharCells(classRow)];
+        c = [c, newline( ), sprintf('"%s"', opt.ClassHeader), printCharCells(classRow)];
     end
 
     % Handle escape characters.

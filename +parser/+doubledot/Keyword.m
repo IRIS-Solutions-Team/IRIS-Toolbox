@@ -62,12 +62,8 @@ classdef Keyword
         
         function [ptn1, ptn2] = getPatterns(this)
             p = regexptranslate('escape', this.Pattern);
-            ptn1 = [ ...
-                '(\w+(\{[^\}]+\})?)\s*', ...
-                p, ...
-                '\s*(\w+(\{[^\}]+\})?)' ...
-                ];
-            ptn2 = ['\[([^\]]+)\]\s*', p, '\s*\[([^\]]+)\]'];
+            ptn1 = [ '(\w+(\{[^\}]+\})?)\s*', p, '\s*(\w+(\{[^\}]+\})?)' ];
+            ptn2 = [ '\[([^\]]+)\]\s*', p, '\s*\[([^\]]+)\]' ];
         end
         
         
