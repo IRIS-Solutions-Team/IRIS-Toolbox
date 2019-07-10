@@ -131,10 +131,12 @@ if systemProperty.NumOfOutputs==0
     % This is a call from @Model.simulate
     % Update running data
     runningData.YXEPG(:, :, run) = vthData.YXEPG;
-    runningData.TimeFrames{run} = timeFrames;
-    runningData.ExitFlags{run} = vthExitFlags;
-    runningData.Success(run) = vthSuccess;
-    runningData.DiscrepancyTables{run} = vthDiscrepancyTables;
+    if runningData.PrepareOutputInfo
+        runningData.TimeFrames{run} = timeFrames;
+        runningData.ExitFlags{run} = vthExitFlags;
+        runningData.Success(run) = vthSuccess;
+        runningData.DiscrepancyTables{run} = vthDiscrepancyTables;
+    end
 else
     % This is a call from @SystemPriorWrapper
     % Create system property output
@@ -149,7 +151,7 @@ return
     function [exitFlag, discrepancyTable] = hereChooseSimulationTypeAndRun( )
         header = sprintf('[Variant|Page:%g][TimeFrame:%g]', run, frame);
         discrepancy = double.empty(0);
-        discrepancyTable = table( );
+        discrepancyTable = [ ];
         switch method
             case solver.Method.NONE
                 exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
@@ -169,7 +171,7 @@ return
             case solver.Method.STATIC
                 exitFlag = simulateStatic(this, blazers, vthRect, vthData, header);
         end
-        if ~isempty(discrepancy)
+        if ~isempty(discrepancy) && runningData.PrepareOutputInfo
             discrepancyTable = compileDiscrepancyTable( this, discrepancy, ...
                                                         this.Equation.Input(this.Equation.InxOfHashEquations) );
         end
@@ -198,13 +200,12 @@ function discrepancyTable = compileDiscrepancyTable(this, discrepancy, equations
     [maxInRow, reorderRows] = sort(maxInRow, 1, 'descend');
     discrepancy = discrepancy(reorderRows, :);
     equations = equations(reorderRows);
-    equations = string(equations(:));
-    inxTooLong = strlength(equations)>MAX_STRLENGTH;
-    equations(inxTooLong) = extractBefore(equations(inxTooLong), MAX_STRLENGTH+1);
+    equations = equations(:);
+    inxTooLong = cellfun(@(x) length(x)>MAX_STRLENGTH, equations);
     ellipsis = iris.get('Ellipsis');
-    equations(inxTooLong) = replaceBetween( equations(inxTooLong), ...
-                                            MAX_STRLENGTH, MAX_STRLENGTH, ...
-                                            ellipsis );
+    equations(inxTooLong) = cellfun( @(x) [x(1:MAX_STRLENGTH-1), ellipsis], ...
+                                     equations(inxTooLong), ...
+                                     'UniformOutput', false );
     discrepancyTable = table( equations, maxInRow, discrepancy, ...
                               'VariableNames', {'Equation', 'MaxDiscrepancy', 'Discrepancies'} );
 end%

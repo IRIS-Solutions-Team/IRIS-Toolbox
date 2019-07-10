@@ -95,6 +95,7 @@ plan = opt.Plan;
 
 % __Prepare Running Data__
 runningData = simulate.InputOutputData( );
+runningData.PrepareOutputInfo = nargout>=2;
 
 % Retrieve data from intput databank, set up ranges
 herePrepareData( );
@@ -145,7 +146,7 @@ end
 
 outputData = hereCreateOutputData( );
 
-if nargout>=2
+if runningData.PrepareOutputInfo
     outputInfo = herePrepareOutputInfo( );
 end
 

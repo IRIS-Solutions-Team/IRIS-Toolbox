@@ -18,6 +18,7 @@ classdef InputOutputData < handle
         Method = solver.Method.empty(1, 0) 
         Deviation = logical.empty(1, 0)
         NeedsEvalTrends = logical.empty(1, 0)
+        PrepareOutputInfo = false
         Plan = Plan.empty(0)
 
 
