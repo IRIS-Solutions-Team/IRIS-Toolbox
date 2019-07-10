@@ -714,36 +714,3 @@ classdef Plan
     end
 end
 
-
-%
-% Local Functions
-%
-
-
-function flag = validatePairsToSwap(pairs)
-    if numel(pairs)==1 && isstruct(pairs{1})
-        flag = true;
-        return
-    end
-    if iscellstr(pairs) && size(pairs, 2)==2
-        flag = true;
-        return
-    end
-    flag = false;
-end%
-
-
-
-
-function varargout = statusToString(varargin)
-    varargout = varargin;
-    for i = 1 : nargin
-        if isequal(varargin{i}, true)
-            varargout{i} = 'true';
-        else
-            varargout{i} = 'false';
-        end
-    end
-end%
-
-
