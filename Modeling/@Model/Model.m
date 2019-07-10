@@ -77,8 +77,8 @@
 %  Function Name              | Brief Description
 %  ---------------------------|-----------------------------------------------------------------
 %   blazer                    | Reorder dynamic or steady equations and variables into sequential block structure
-%   chksstate                 | Check if equations hold for currently assigned steady-state values
-%   sstate                    | Compute steady state or balance-growth path of the model
+%   checkSteady               | Check if equations hold for currently assigned steady-state values
+%   steady                    | Compute steady state or balance-growth path of the model
 %
 %
 % ### Solution, Simulation and Forecasting ###
@@ -107,7 +107,7 @@
 %   data4lhsmrhs              | Prepare data array for running `lhsmrhs`
 %   emptydb                   | Create model database with empty time series for each variable and shock
 %   shockdb                   | Create model-specific databank with random shocks
-%   sstatedb                  | Create model-specific steady-state or balanced-growth-path database
+%   steadydb                  | Create model-specific steady-state or balanced-growth-path database
 %   templatedb                | Create model-specific template database
 %   zerodb                    | Create model-specific zero-deviation database
 %
