@@ -79,12 +79,12 @@ x.Type = TYPE(5);
 this.Block{end+1} = x;
 
 x = parser.theparser.Pairing( );
-x.Keyword = '!simulate-autoswaps';
+x.Keyword = '!autoswaps-simulate';
 x.Type = TYPE(1);
 this.Block{end+1} = x;
 
 x = parser.theparser.Pairing( );
-x.Keyword = '!steady-autoswaps';
+x.Keyword = '!autoswaps-steady';
 x.Type = TYPE(2);
 this.Block{end+1} = x;
 
@@ -100,8 +100,8 @@ this.AltKeyword = [
       '\$\[',                                     '<' % Open interpolation
       '\]\$',                                     '>' % Close interpolation
       '!ttrend\>',                                'ttrend' 
-      '!dynamic_autoexog',                        '!simulate-autoswaps'
-      '!steady_autoexog',                         '!steady-autoswaps'          } ];
+      '!dynamic_autoexog',                        '!autoswaps-simulate'
+      '!steady_autoexog',                         '!autoswaps-steady'          } ];
 
 
 this.AltKeywordWarn = [ 
