@@ -1,92 +1,133 @@
-function [flag, dcy, maxAbsDcy, listOfEquations] = checkSteady(this, variantsRequested, opt)
-% checkSteady  Discrepancy in steady state of model equtions
+function [flag, varargout] = chksstate(this, varargin)
+% chksstate  Check if equations hold for currently assigned steady-state values.
 %
-% Backend IRIS function
-% No help provided
+%
+% __Syntax__
+%
+%     [flag, list] = chksstate(model, ...)
+%     [flag, discr, list] = chksstate(model, ...)
+%
+% __Input Arguments__
+%
+% * `model` [ model ] - Model object with steady-state values assigned.
+%
+%
+% __Output Arguments__
+%
+% * `flag` [ `true` | `false` ] - True if discrepancy between LHS and RHS
+% is smaller than tolerance level in each equation.
+%
+% * `discr` [ numeric ] - Discrepancies between LHS and RHS evaluated for
+% each equation at two consecutive times, and returned as two column
+% vectors.
+%
+% * `list` [ cellstr ] - List of equations in which the discrepancy between
+% LHS and RHS is greater than predefined tolerance.
+%
+%
+% __Options__
+%
+% * `Error=true` [ `true` | `false` ] - Throw an error if one or more
+% equations fail to hold up to tolerance level.
+%
+% * `EquationSwitch='Dynamic'` [ `'Both'` | `'Dynamic'` | `'Steady'` ] - Check either
+% dynamic equations or steady equations or both.
+%
+% * `Warning=true` [ `true` | `false` ] - Display warnings produced by this
+% function.
+%
+%
+% __Description__
+%
+%
+% __Example__
+%
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
-
-% The input struct Opt is expected to include field .EquationSwitch, a switch between
-% evaluating full dynamic versus steady-state equations.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
-STEADY_TOLERANCE = this.Tolerance.Steady;
 
-try
-    opt; %#ok<VUNUS>
-catch
-    opt = prepareCheckSteady(this, variantsRequested);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model.chksstate');
+    parser.KeepUnmatched = true;
+    parser.addRequired('Model', @(x) isa(x, 'model'));
+    parser.addParameter('Error', true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
 end
+parse(parser, this, varargin{:});
+opt = parser.Options;
+needsSort = nargout>3;
+
+% Pre-process options passed to implementCheckSteady(~)
+chksstateOpt = prepareCheckSteady(this, 'verbose', parser.UnmatchedInCell{:});
 
 %--------------------------------------------------------------------------
 
-ixt = this.Equation.Type==TYPE(1);
-ixm = this.Equation.Type==TYPE(2);
-numOfQuantities = length(this.Quantity);
-ntm = sum(ixt | ixm);
-nv = length(this);
-if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
-    variantsRequested = 1 : nv;
+% Refresh dynamic links.
+if any(this.Link)
+    this = refresh(this);
 end
-numOfVariantsRequested = numel(variantsRequested);
 
-if strcmpi(opt.EquationSwitch, 'Dynamic') || strcmpi(opt.EquationSwitch, 'Full')
-    equationSwitch = 'Dynamic';
-else 
-    equationSwitch = 'Steady';
-end
-[minSh, maxSh] = getActualMinMaxShifts(this);
-sh = minSh : maxSh;
-[dcy, dcyWithImag] = evalEquations( );
-
-maxAbsDcy = max(abs(dcy), [ ], 2);
-maxAbsDcy = maxAbsDcy(:, :);
-absDcyWithImag = abs(dcyWithImag); % 
-absDcyWithImag = absDcyWithImag(:, :);
-
-flag = true(1, numOfVariantsRequested);
-listOfEquations = cell(1, numOfVariantsRequested);
-for i = 1 : numOfVariantsRequested
-    inxWithinTol = maxAbsDcy(:, i)<=STEADY_TOLERANCE;
-    flag(i) = all(inxWithinTol);
-    inxWithinTolInAssignment = false(size(inxWithinTol));
-    if strcmpi(equationSwitch, 'Steady') && ~flag(i)
-        inxWithinTolWithImag = absDcyWithImag(:, i)<=STEADY_TOLERANCE;
-        inxWithinTolInAssignment = ~inxWithinTol & inxWithinTolWithImag;
-        maxAbsDcy(inxWithinTolInAssignment, i) = absDcyWithImag(inxWithinTolInAssignment, i);
-        flag(i) = all(inxWithinTol | inxWithinTolInAssignment);
-    end
-    if ~flag(i) && nargout>=4
-        listOfEquations{i} = transpose(this.Equation.Input(~inxWithinTol & ~inxWithinTolInAssignment));
+if opt.Warning
+    if any(strcmpi(chksstateOpt.EquationSwitch, {'Dynamic', 'Full'}))
+        chksstateOpt.EquationSwitch = 'Dynamic';
+        chkQty(this, Inf, 'parameters:dynamic', 'sstate', 'log');
     else
-        listOfEquations{i} = cell.empty(0, 1);
+        chksstateOpt.EquationSwitch = 'Steady';
+        chkQty(this, Inf, 'parameters:steady', 'sstate', 'log');
     end
 end
 
-return
-    
-    
-    function [dcy, dcyWithImag] = evalEquations( )
-        % Check the full equations in two consecutive periods. This way we
-        % can detect errors in both levels and growth rates.
-        numOfShifts = length(sh);
-        dcy = nan(ntm, 2, numOfVariantsRequested);
-        isDelog = true;
-        for t = 1 : 2
-            vecT = t + sh;
-            YXEPGT = createTrendArray(this, variantsRequested, isDelog, 1:numOfQuantities, vecT);
-            dcy(:, t, :) = lhsmrhs(this, YXEPGT, Inf, variantsRequested, 'Kind=', equationSwitch);
-        end
-        
-        % Substitute level+1i*growth for variables in YXE array to check direct
-        % assignments in steady equations X=a+1i*b.
-        dcyWithImag = nan(ntm, 1, numOfVariantsRequested);
-        if strcmpi(equationSwitch, 'Steady')
-            temp = this.Variant.Values(:, :, variantsRequested);
-            YXEPGT = permute(temp, [2, 1, 3]);
-            YXEPGT = repmat(YXEPGT, 1, numOfShifts);
-            dcyWithImag = lhsmrhs(this, YXEPGT, Inf, variantsRequested, 'Kind=', equationSwitch);
+nv = length(this);
+
+% `dcy` is a matrix of discrepancies; it has two columns when dynamic
+% equations are evaluated, or one column when steady equations are
+% evaluated.
+[flag, dcy, maxAbsDiscr, list] = implementCheckSteady(this, Inf, chksstateOpt);
+
+if any(~flag) && opt.Error
+    tmp = { };
+    for i = find(~flag)
+        for j = 1 : length(list{i})
+            tmp{end+1} = exception.Base.alt2str(i); %#ok<AGROW>
+            tmp{end+1} = list{i}{j}; %#ok<AGROW>
         end
     end
+    if strcmpi(chksstateOpt.EquationSwitch, 'Dynamic')
+        exc = exception.Base('Model:SteadyErrorInDynamic', 'error');
+    else
+        exc = exception.Base('Model:SteadyErrorInSteady', 'error');
+    end
+    throw(exc, tmp{:});
 end
+
+if needsSort
+    sortList = cell(1, nv);
+    for iAlt = 1 : nv
+        [~, ix] = sort(maxAbsDiscr(:, iAlt), 1, 'descend');
+        dcy(:, :, iAlt) = dcy(ix, :, iAlt);
+        sortList{iAlt} = this.Equation.Input(ix);
+    end
+end
+
+if nv==1
+    list = list{1};
+    if needsSort
+        sortList = sortList{1};
+    end
+end
+
+if nargout==2
+    varargout{1} = list;
+elseif nargout>2
+    varargout{1} = dcy;
+    varargout{2} = list;
+    if needsSort
+        varargout{3} = sortList;
+    end
+end
+
+end%
+

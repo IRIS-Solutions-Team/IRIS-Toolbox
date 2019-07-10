@@ -171,7 +171,14 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = chkmissing(varargin)
         varargout = chkredundant(varargin)
         varargout = chkpriors(varargin)                
-        varargout = chksstate(varargin)
+
+
+        varargin = checkSteady(varargin)
+        function varargout = chksstate(varargin)
+            [varargout{1:nargout}] = checkSteady(varargin{:});
+        end%
+
+
         varargout = data4lhsmrhs(varargin)
         varargout = diffloglik(varargin)
         varargout = diffsrf(varargin)
@@ -224,8 +231,20 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = sprintf(varargin)
         varargout = srf(varargin)
         varargout = sspace(varargin)
-        varargout = sstate(varargin)
-        varargout = sstatedb(varargin)
+
+
+        varargout = steady(varargin)
+        function varargout = sstate(varargin)
+            [varargout{1:nargout}] = steady(varargin{:});
+        end%
+
+
+        varargout = steadydb(varargin)
+        function varargout = sstatedb(varargin)
+            [varargout{1:nargout}] = steadydb(varargin{:});
+        end%
+
+
         varargout = stdscale(varargin)
         varargout = subsasgn(varargin)
         varargout = subsref(varargin)        
@@ -371,7 +390,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = file2model(varargin)        
         varargout = kalmanFilterRegOutp(varargin)
         varargout = myanchors(varargin)
-        varargout = checkSteady(varargin)
         varargout = mydiffloglik(varargin)
         varargout = myeqtn2afcn(varargin)
         varargout = myfind(varargin)
@@ -381,9 +399,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = optimalPolicy(varargin)
         varargout = populateTransient(varargin)
         varargout = postparse(varargin)
-        varargout = prepareLoglik(varargin)
-        varargout = prepareSimulate1(varargin)
-        varargout = prepareSimulate2(varargin)
         varargout = printSolutionVector(varargin)
         varargout = reportNaNSolutions(varargin)
         varargout = responseFunction(varargin)
@@ -394,6 +409,12 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = symbDiff(varargin)
         varargout = systemFirstOrder(varargin)
         varargout = varyStdCorr(varargin)
+
+        varargout = implementCheckSteady(varargin)
+
+        varargout = prepareLoglik(varargin)
+        varargout = prepareSimulate1(varargin)
+        varargout = prepareSimulate2(varargin)
     end
     
     

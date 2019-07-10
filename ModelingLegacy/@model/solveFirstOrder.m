@@ -142,7 +142,7 @@ for v = variantsRequired
             flagTransition = transitionEquations( );
         end
         if ~flagTransition || ~flagMeasurement
-            if ~this.IsLinear && ~checkSteady(this, v, struct('Kind', 'Dynamic'));
+            if ~this.IsLinear && ~implementCheckSteady(this, v, struct('Kind', 'Dynamic'));
                 exitFlag(v) = -4;
                 continue;
             else

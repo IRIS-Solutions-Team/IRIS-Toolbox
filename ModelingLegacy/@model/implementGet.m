@@ -222,7 +222,7 @@ else
             answ = this.Build;
 
             
-        case {'preparser', 'preparsercontrol', 'pset'}
+        case {'preparser', 'preparsercontrol', 'pset', 'controlparameters'}
             answ = this.PreparserControl;
 
 
