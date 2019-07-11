@@ -32,7 +32,7 @@ classdef ExcelSheet < handle
         end%
 
 
-        function x = retrieveDates(this, locationRef)
+        function dates = retrieveDates(this, locationRef, varargin)
             if isnan(this.DataStart) || isnan(this.DataEnd)
                 THIS_ERROR = { 'ExcelSheet:CannotSetDates'
                                'Set DataStart and DataEnd first before setting or retrieving Dates' };
@@ -42,10 +42,15 @@ classdef ExcelSheet < handle
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('ExcelSheet.retrieveSeries');
-                parser.addRequired('ExcelSheet', @(x) isa(x, 'ExcelSheet'));
-                parser.addRequired('LocationRef', @(x) ~isempty(x));
+                addRequired(parser, 'ExcelSheet', @(x) isa(x, 'ExcelSheet'));
+                addRequired(parser, 'LocationRef', @(x) ~isempty(x));
+                addOptional(parser, 'DateFormat', @auto, @(x) isequal(x, @auto) || Valid.string(x));
             end
-            parse(parser, this, locationRef);
+            parse(parser, this, locationRef, varargin{:});
+            dateFormat = parser.Results.DateFormat;
+            if isequal(dateFormat, @auto)
+                dateFormat = this.DateFormat;
+            end
 
             if ~iscell(locationRef)
                 locationRef = { locationRef };
@@ -59,7 +64,10 @@ classdef ExcelSheet < handle
                 [location{:}] = ExcelReference.parseColumn(locationRef{:});
                 datesCutout = this.Buffer(this.DataRange, [location{:}]);
             end
-            this.Dates = numeric.str2dat(datesCutout, 'DateFormat=', this.DateFormat);
+            this.Dates = numeric.str2dat(datesCutout, 'DateFormat=', dateFormat);
+            if nargout>=1
+                dates = this.Dates;
+            end
         end%
 
             
@@ -70,6 +78,7 @@ classdef ExcelSheet < handle
                 parser.addRequired('ExcelSheet', @(x) isa(x, 'ExcelSheet'));
                 parser.addRequired('LocationRef', @(x) ~isempty(x));
                 parser.addParameter('Aggregator', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
+                parser.addParameter('Comment', '', @(x) Valid.string(x) || Valid.list(x));
             end
             parse(parser, this, locationRef, varargin{:});
             opt = parser.Options;
@@ -90,7 +99,11 @@ classdef ExcelSheet < handle
             for i = 1 : size(dataCutout, 2)
                 data(:, i) = [dataCutout{:, i}];
             end
-            comment = retrieveDescription(this, locationRef, varargin{:});
+            if isempty(opt.Comment)
+                comment = retrieveDescription(this, locationRef, varargin{:});
+            else
+                comment = opt.Comment;
+            end
             if isa(opt.Aggregator, 'function_handle')
                 data = opt.Aggregator(data, 2);
             end
@@ -143,18 +156,39 @@ classdef ExcelSheet < handle
 
 
     methods % Getters and Setters
+        function value = get.DataEnd(this)
+            if isequal(this.DataEnd, Inf)
+                value = size(this.Buffer, 2);
+            else
+                value = this.DataEnd;
+            end
+        end%
+
+
         function value = get.DataRange(this)
-            value = this.DataStart : this.DataSkip : this.DataEnd;
+            if isequal(this.DataEnd, Inf)
+                dataEnd = size(this.Buffer, 2);
+            else
+                dataEnd = this.DataEnd;
+            end
+            value = this.DataStart : this.DataSkip : dataEnd;
         end%
 
 
         function this = set.DataStart(this, value)
             this.DataStart = setAnchor(this, value);
+            if isequaln(this.DataEnd, NaN)
+                this.DataEnd = Inf;
+            end
         end%
 
 
         function this = set.DataEnd(this, value)
-            this.DataEnd = setAnchor(this, value);
+            if isequal(value, Inf)
+                this.DataEnd = Inf;
+            else
+                this.DataEnd = setAnchor(this, value);
+            end
         end%
 
 

@@ -76,7 +76,7 @@ end%
 
 
 function flag = validateWindow(input)
-    freq = DateWrapper.getFrequencyAsNumeric(input.InputSeries.Start);
+    freq = input.InputSeries.FrequencyAsNumeric;
     if isequal(input.Window, @auto)
         flag = freq>0;
         return
