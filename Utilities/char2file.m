@@ -11,22 +11,26 @@ function char2file(c, fileName, varargin)
 %
 % __Input Arguments__
 %
-% * `c` [ char ] - Character string that will be written to the file.
+% __`c`__ [ char | string ] –
+% Character vector or string that will be written to the file.
 %
-% * `fileName` [ char ] - Name of the destination file.
+% __`fileName`__ [ char ] –
+% Name of the destination file.
 %
-% * `~precision` [ char ] - Form and precision of the data written to the
+% __`~precision`__ [ char ] –
+% Form and precision of the data written to the
 % file; if omitted, `precision='char'`.
 %
 %
 % __Options__
 %
-% * `MachineFormat='native'` [ char | string ] - Order for writing bytes
+% __`MachineFormat='native'`__ [ char | string ] 
+% rder for writing bytes
 % and bits in the destination file.
 %
-% * `Encoding=@auto` [ `@auto` | char | string ] - Encoding scheme for
-% writing in the destination file; `@auto` means the operating system
-% default scheme.
+% __`Encoding=@auto`__ [ `@auto` | char | string ] –
+% Encoding scheme for writing in the destination file; `@auto` means the
+% operating system default scheme.
 %
 %
 % __Description__
@@ -68,7 +72,6 @@ end
 hereWriteToFile( );
 
 fclose(fid);
-
 
 return
 
