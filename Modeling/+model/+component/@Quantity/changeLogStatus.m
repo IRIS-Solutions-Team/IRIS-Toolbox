@@ -1,4 +1,4 @@
-function this = changeLogStatus(this, namesToChange, newStatus)
+function this = changeLogStatus(this, newStatus, namesToChange, varargin)
 % changeLogStatus  Change log status of names
 %
 % Backend IRIS function
@@ -16,7 +16,9 @@ if isempty(namesToChange)
 end
 
 if isequal(namesToChange, @all)
-    this.IxLog(:) = newStatus;
+    inxToChange = getIndexByType(this, varargin{:});
+    this.IxLog(inxToChange) = newStatus;
+    this = enforceLogStatus(this);
     return
 end
 
@@ -27,16 +29,17 @@ if ischar(namesToChange)
     end
 end
 
-ell = lookup(this, namesToChange, TYPE(1), TYPE(2), TYPE(4), TYPE(5));
-ixNan = isnan(ell.PosName);
-if any(ixNan)
+ell = lookup(this, namesToChange, varargin{:});
+inxOfNaN = isnan(ell.PosName);
+if any(inxOfNaN)
     THIS_ERROR = { 'Quantity:CannotChangeLogStatus'
-                   'Cannot change log-status for this name: %s ' };
+                   'Cannot change the log status for this name: %s ' };
     throw( exception.Base(THIS_ERROR, 'error'), ...
-           namesToChange{ixNan} );
+           namesToChange{inxOfNaN} );
 end
 
-this.IxLog(ell.PosName) = newStatus;
+this.InxOfLog(ell.PosName) = newStatus;
+this = enforceLogStatus(this);
 
 end%
 

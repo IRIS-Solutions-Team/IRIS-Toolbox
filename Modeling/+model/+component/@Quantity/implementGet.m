@@ -49,6 +49,10 @@ elseif compare(query1, 'CanBeEndogenized:Simulate')
     answ = this.Type==TYPE(31) | this.Type==TYPE(32);
     return
 
+elseif compare(query1, 'LogStatus')
+    answ = cell2struct(num2cell(this.InxOfLog), this.Name, 2);
+    return
+
 else
     isValid = false;
 
