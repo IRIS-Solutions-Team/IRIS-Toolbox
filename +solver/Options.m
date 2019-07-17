@@ -71,7 +71,7 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_FINITE_DIFFERENCE_STEP_SIZE = eps( )^(1/3)
         DEFAULT_FINITE_DIFFERENCE_TYPE = 'forward'
         DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING = false
-        DEFAULT_LAST_BROYDEN_UPDATE = Inf
+        DEFAULT_LAST_BROYDEN_UPDATE = -1
 
         % Step Size Options
         DEFAULT_INIT_STEP_SIZE = 1

@@ -9,7 +9,8 @@ function [exitFlag, dcy] = simulateSelective( this, simulateFunction, ...
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-CUTOFF_DENSITY = 1/3;
+MAX_DENSITY = 1/3;
+MAX_NUM_OF_ELEMENTS = 2e6;
 
 %--------------------------------------------------------------------------
 
@@ -49,8 +50,8 @@ if data.NumOfExogenizedPoints==0
     columnRangeOfHashedYX = firstColumnOfTimeFrame : lastHashedYX;
     inxOfHashedYX = data.InxOfHashedYX(:, columnRangeOfHashedYX);
     density = nnz(inxOfHashedYX) / numel(inxOfHashedYX);
-    if density<CUTOFF_DENSITY
-        %
+    numOfElements = nnz(inxOfHashedYX) * rect.NumOfHashEquations * data.Window;
+    if  density<MAX_DENSITY || numOfElements<MAX_NUM_OF_ELEMENTS
         % Run the nonlinear simulations by precalculating the hash multipliers
         % and calculating the incremental impact of the nonlin addfactors on
         % the affected variables only if the density of the affected
