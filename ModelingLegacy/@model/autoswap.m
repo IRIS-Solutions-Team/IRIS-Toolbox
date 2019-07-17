@@ -1,41 +1,38 @@
 function varargout = autoswap(this, varargin)
-% autoswap  Get or set pairs of names in dynamic and steady autoswap
+% autoswap  Inquire about or assign autoswap pairs
 %
-% Syntax fo getting autoexogen pairs of names
-% ============================================
+% __Syntax for Inquiring About Autoswap Pairs__
 %
-%     A = autoswap(M)
-%
-%
-% Syntax fo setting autoswap pairs of names
-% ==========================================
-%
-%     M = autoswap(M, A)
+%     a = autoswap(model)
 %
 %
-% Input arguments
-% ================
+% __Syntax for Assigning Autoswap Pairs__
 %
-% * `M` [ model ] - Model object.
+%     model = autoswap(model, a)
 %
-% * `A` [ struct ] - `A` contains two substructs, `.Simulate` and
+%
+% __Input Arguments__
+%
+% __`model`__ [ Model ] –
+% Model object that will be inquired about autoswap pairs or assigned new
+% autoswap pairs.
+%
+% __`a`__ [ AutoswapStruct ] –
+% An AutoswapStruct object containing two substructs, `.Simulate` and
 % `.Steady`. Each field in the substructs defines a variable/shock pair (in
 % `.Simulate`), or a variable/parameter pair (in `.Steady`).
 %
 %
-% Output arguments
-% =================
+% __Output Arguments__
 %
-% * `M` [ model ] - Model object with updated definitions of autoswap pairs
-% of names.
-%
-%
-% Description
-% ============
+% __`model`__ [ Model ] –
+% Model object with the definitions of autoswap pairs newly assigned.
 %
 %
-% Example 
-% ========
+% __Description__
+%
+%
+% __Example__
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

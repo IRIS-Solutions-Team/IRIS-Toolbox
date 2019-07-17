@@ -168,7 +168,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             THIS_WARNING = { 'Model:LegacyFunctionNameForGPMN' 
                              'The function name autoexogenise(~) is obsolete and will be removed from a future version of IRIS; use autoswap(~) instead' };
             throw( exception.Base(THIS_WARNING, 'warning') );
-            [varargout{1:nargout}] = autoswap(varargin{:});
+            output = autoswap(varargin{:});
+            output = output.Simulate;
         end%
 
         varargout = beenSolved(varargin)
