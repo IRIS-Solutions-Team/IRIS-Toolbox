@@ -1,12 +1,13 @@
 function [outputData, outputInfo] = simulate(this, inputData, baseRange, varargin)
-% simulate  Simulate model from inputasfasfdfsfafasdfaasdfasdf 
+% simulate  Simulate model
+%{
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [outputDatabank, outputInfo] = simulate(model, inputDatabank, range, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `model` [ Model ] - Model object with a solution avalaibl for each of
 % its parameter variants.
@@ -19,7 +20,7 @@ function [outputData, outputInfo] = simulate(this, inputData, baseRange, varargi
 % `range`) are considered.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `outputDatabank` [ struct ] - Databank (struct) with the simulation
 % results; if options `AppendPresample=` or `AppendPostsample=` are not
@@ -28,15 +29,16 @@ function [outputData, outputInfo] = simulate(this, inputData, baseRange, varargi
 % in the model.
 %
 %
-% __Options__
+% ## Options ##
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
