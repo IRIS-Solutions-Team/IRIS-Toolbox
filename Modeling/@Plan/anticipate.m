@@ -53,7 +53,7 @@ try
 catch
     [names, anticipationStatus] = deal(anticipationStatus, names);
     parse(parser, this, anticipationStatus, names);
-    THIS_WARNING = { 'Plan:AnticipateLegacyInputArguments' 
+    THIS_WARNING = { 'Plan:AnticipateLegacyInputArgumentsForGPMN' 
                      'Invalid order of input arguments to @Plan/anticipate; this will become an error in a future release of IRIS. See help Plan/anticipate.' };
     throw( exception.Base(THIS_WARNING, 'warning') );
 end
