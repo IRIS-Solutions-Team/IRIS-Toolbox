@@ -1,7 +1,7 @@
 function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] = estimate(this, inputDatabank, range, varargin)
 % estimate  Estimate model parameters by optimizing selected objective function.
 %
-% __Syntax__
+% ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
@@ -9,7 +9,7 @@ function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] =
 %               estimate(M, D, Range, EstimSpec, ~SystemPriors, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object with single parameterization.
 %
@@ -26,7 +26,7 @@ function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] =
 % [`systempriors`](systempriors/Contents); may be omitted.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `Summary` [ table ] - Table with summary information.
 %
@@ -50,7 +50,7 @@ function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] =
 % names.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `ChkSstate=false` [ `true` | `false` | cell ] - Check steady state in
 % each iteration; works only in non-linear models.
@@ -121,7 +121,7 @@ function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] =
 % parameters.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The parameters that are to be estimated are specified in the input
 % parameter estimation database, `E` in which you can provide the following
@@ -230,7 +230,7 @@ function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] =
 %     [m, success] = mysstatesolver(m, 1, 'a', x)
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
@@ -304,7 +304,7 @@ if opt.EvalLik && ~any(this.Quantity.Type==TYPE(1))
     throw( exception.Base('Model:NoMeasurementVariables', 'warning') );
 end
 
-% __Prepare Posterior object, model.Update, and EstimationWrapper__
+% ## Prepare Posterior object, model.Update, and EstimationWrapper ##
 [this, posterior] = preparePosteriorAndUpdate(this, estimationSpecs, opt);
 posterior.ObjectiveFunction = @(x) objfunc(x, this, inputArray, posterior, opt, likOpt);
 posterior.SystemPriors = inputParser.Results.SystemPriors;
@@ -319,7 +319,7 @@ estimationWrapper = EstimationWrapper( );
 estimationWrapper.IsConstrained = posterior.IsConstrained;
 chooseSolver(estimationWrapper, opt.Solver, outsideOptimOptions.Options);
 
-% __Run Optimizer__
+% ## Run Optimizer ##
 maximizePosteriorMode(posterior, estimationWrapper);
 
 % Assign estimated parameters, refresh dynamic links, and re-compute steady
@@ -327,13 +327,13 @@ maximizePosteriorMode(posterior, estimationWrapper);
 variantRequested = 1;
 this = update(this, posterior.Optimum, variantRequested);
 
-% __Set Up Posterior Object__
+% ## Set Up Posterior Object ##
 % Set up posterior object before we assign out-of-liks and scale std
 % errors in the model object.
 p = poster( );
 populatePosterObj( );
 
-% __Re-run Loglik for Out-of-lik Params__
+% ## Re-run Loglik for Out-of-lik Params ##
 % Re-run the Kalman filter or FD likelihood to get the estimates of V
 % and out-of-lik parameters.
 V = 1;

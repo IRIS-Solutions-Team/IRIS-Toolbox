@@ -1,12 +1,12 @@
 function outp = jforecast(this, inp, range, varargin)
 % jforecast  Forecast with judgmental adjustments (conditional forecasts).
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     F = jforecast(SolvedModel, InputData, Range, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `SolvedModel` [ model ] - Solved model object.
 %
@@ -15,12 +15,12 @@ function outp = jforecast(this, inp, range, varargin)
 % * `Range` [ numeric ] - Forecast range.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `F` [ struct ] - Output struct with the judgmentally adjusted forecast.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `Anticipate=true` [ `true` | `false` ] - If true, real future shocks
 % are anticipated, imaginary are unanticipated; vice versa if false.
@@ -58,7 +58,7 @@ function outp = jforecast(this, inp, range, varargin)
 % deviations or cross-correlations of shocks.
 %
 %
-% __Description__
+% ## Description ##
 %
 % Function `jforecast( )` provides similar functionality as `simulate( )`
 % but differs in a number of ways:
@@ -88,7 +88,7 @@ function outp = jforecast(this, inp, range, varargin)
 % and imaginary numbers describe anticipated shocks;
 %
 %
-% __Example__
+% ## Example ##
 %
 %
 

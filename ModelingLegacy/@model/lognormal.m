@@ -1,12 +1,12 @@
 function db = lognormal(this, db, varargin)
 % lognormal  Characteristics of log-normal distributions returned from filter of forecast.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     D = lognormal(M, D, ...)
 %
 %
-% __Input arguments__
+% ## Input arguments ##
 %
 % * `M` [ model ] - Model on which the `filter` or `forecast` function has
 % been run.
@@ -15,13 +15,13 @@ function db = lognormal(this, db, varargin)
 % or `forecast` function.
 %
 %
-% __Output arguments__
+% ## Output arguments ##
 %
 % * `D` [ struct ] - Struct including new sub-databases with requested
 % log-normal statistics.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'Fresh='` [ `true` | *`false`* ] - Output structure will include only
 % the newly computed databases.
@@ -45,10 +45,10 @@ function db = lognormal(this, db, varargin)
 % log-normal distributions.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

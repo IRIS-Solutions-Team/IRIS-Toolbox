@@ -1,12 +1,12 @@
 function [F, FF, delta, freq, G, step] = fisher(this, numOfPeriods, lsPar, varargin)
 % fisher  Approximate Fisher information matrix in frequency domain.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [F, FF, Delta, Freq] = fisher(M, NPer, PList, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Solved model object.
 %
@@ -17,7 +17,7 @@ function [F, FF, delta, freq, G, step] = fisher(this, numOfPeriods, lsPar, varar
 % likelihood function will be differentiated.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `F` [ numeric ] - Approximation of the Fisher information matrix.
 %
@@ -31,7 +31,7 @@ function [F, FF, delta, freq, G, step] = fisher(this, numOfPeriods, lsPar, varar
 % information matrix is evaluated.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'ChkSstate='` [ `true` | *`false`* | cell ] - Check steady state in
 % each iteration; works only in non-linear models.
@@ -59,10 +59,10 @@ function [F, FF, delta, freq, G, step] = fisher(this, numOfPeriods, lsPar, varar
 % cell array with opt used in the `sstate( )` function.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

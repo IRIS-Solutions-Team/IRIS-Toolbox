@@ -57,10 +57,10 @@ if isempty(parserNonlinear)
     parserNonlinear.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter('Fix', { }, @(x) isempty(x) || isa(x, 'AllBut') || iscellstr(x) || ischar(x));
     parserNonlinear.addParameter('FixLevel', { }, @(x) isempty(x) || isa(x, 'AllBut') || iscellstr(x) || ischar(x));
-    parserNonlinear.addParameter('FixGrowth', { }, @(x) isempty(x) || isa(x, 'AllBut') || iscellstr(x) || ischar(x));
+    parserNonlinear.addParameter({'FixChange', 'FixGrowth'}, { }, @(x) isempty(x) || isa(x, 'AllBut') || iscellstr(x) || ischar(x));
     parserNonlinear.addParameter('ForceRediff', false, @(x) isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter('Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    parserNonlinear.addParameter({'GrowthBounds', 'GrowthBnds'}, [ ], @(x) isempty(x) || isstruct(x));
+    parserNonlinear.addParameter({'ChangeBounds', 'GrowthBounds', 'GrowthBnds'}, [ ], @(x) isempty(x) || isstruct(x));
     parserNonlinear.addParameter({'LevelBounds', 'LevelBnds'}, [ ], @(x) isempty(x) || isstruct(x));
     parserNonlinear.addParameter('OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x));
     parserNonlinear.addParameter({'NanInit', 'Init'}, 1, @(x) isnumeric(x) && isscalar(x) && isfinite(x));
@@ -93,7 +93,7 @@ else
     if isequal(opt.Growth, @auto)
         opt.Growth = this.IsGrowth;
     end
-    if ~opt.Growth && isempty(opt.Fix) && isempty(opt.FixLevel) && isempty(opt.FixGrowth)
+    if ~opt.Growth && isempty(opt.Fix) && isempty(opt.FixLevel) && isempty(opt.FixChange)
         defaultSolver = 'IRIS-Newton';
     else
         defaultSolver = 'IRIS-Qnsd';
@@ -129,7 +129,7 @@ function processFixOpt(this, blazer, opt)
     ixp = this.Quantity.Type==TYPE(4);
     inxCanBeFixed =  ixy | ixx;
     namesCanBeFixed = this.Quantity.Name(inxCanBeFixed);
-    list = {'Fix', 'FixLevel', 'FixGrowth'};
+    list = {'Fix', 'FixLevel', 'FixChange'};
     for i = 1 : numel(list)
         fix = list{i};
         temp = opt.(fix);
@@ -170,11 +170,11 @@ function processFixOpt(this, blazer, opt)
     fixL(opt.FixLevel) = true;
     fixG = false(1, numOfQuants);
 
-    % Fix growth of all endogenized parameters to zero
+    % Fix steady change of all endogenized parameters to zero
     fixG(ixp) = true;
     if opt.Growth
         fixG(opt.Fix) = true;
-        fixG(opt.FixGrowth) = true;
+        fixG(opt.FixChange) = true;
     else
         fixG(:) = true;
     end
@@ -247,15 +247,15 @@ function blazer = prepareBounds(this, blazer, opt)
             continue
         end
         
-        % Level bounds.
+        % Steady level bounds
         lsLevel = this.Quantity.Name(blk.PosQty.Level);
         [lbl, ubl, inxOfValidLevels] = ...
             boundsHere(lsLevel, blk.PosQty.Level, opt.LevelBounds, inxOfValidLevels);
         
-        % Growth bounds.
+        % Steady change bounds
         lsGrowth = this.Quantity.Name(blk.PosQty.Growth);
         [lbg, ubg, inxOfValidChanges] = ...
-            boundsHere(lsGrowth, blk.PosQty.Growth, opt.GrowthBounds, inxOfValidChanges);
+            boundsHere(lsGrowth, blk.PosQty.Growth, opt.ChangeBounds, inxOfValidChanges);
         
         % Combine level and growth bounds
         blk.Lower = [lbl, lbg];

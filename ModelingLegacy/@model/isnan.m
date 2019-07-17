@@ -1,7 +1,7 @@
 function [flag, list] = isnan(this, varargin)
 % isnan  Check for NaNs in model object.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [Flag, List] = isnan(M, 'Parameters')
 %     [Flag, List] = isnan(M, 'Steady')
@@ -9,12 +9,12 @@ function [flag, list] = isnan(this, varargin)
 %     [Flag, List] = isnan(M, 'Solution')
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object.
 %
 %
-% __Output arguments__
+% ## Output arguments ##
 %
 % * `Flag` [ `true` | `false` ] - True if at least one `NaN` value exists
 % in the queried category.
@@ -25,10 +25,10 @@ function [flag, list] = isnan(this, varargin)
 % that produce an NaN derivative in at least one parameterisation.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

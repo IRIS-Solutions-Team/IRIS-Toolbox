@@ -3,12 +3,12 @@ function [ YXEPG, rowNames, extendedRange, ...
                                                                    baseRange, varargin )
 % data4lhsmrhs  Prepare data array for running `lhsmrhs`
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [YXEPG, RowNames, ExtendedRange] = data4lhsmrhs(Model, InpDatabank, Range)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `Model` [ model ] - Model object whose equations will be later
 % evaluated by calling [`lhsmrhs`](model/lhsmrhs).
@@ -21,7 +21,7 @@ function [ YXEPG, rowNames, extendedRange, ...
 % [`lhsmrhs`](model/lhsmrhs) will be evaluated.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 % 
 % * `YXEPG` [ numeric ] - Numeric array with the observations on
 % measurement variables, transition variables, shocks and exogenous
@@ -36,7 +36,7 @@ function [ YXEPG, rowNames, extendedRange, ...
 % transition variables.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The output array, `YXEPG`, is N-by-T-by-K where N is the total number of
 % all quantities in the `Model` (measurement variables, transition
@@ -47,7 +47,7 @@ function [ YXEPG, rowNames, extendedRange, ...
 % time series) in the `InputDatabank`.
 %
 %
-% __Example__
+% ## Example ##
 %
 %     YXEPG = data4lhsmrhs(m, d, range);
 %     d = lhsmrhs(m, YXEPG);

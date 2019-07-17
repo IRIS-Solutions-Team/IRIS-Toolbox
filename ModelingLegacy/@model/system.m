@@ -1,18 +1,18 @@
 function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 % system  System matrices for unsolved model
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [A, B, C, D, F, G, H, J, List, Nf] = system(Model)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `Model` [ model ] - Model object whose system matrices will be
 % returned.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `A`, `B`, `C`, `D`, `F`, `G`, `H` , `J`  [ numeric ] - Matrices
 % of the unsolved system, see Description.
@@ -26,7 +26,7 @@ function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 % `A` and `B`).
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `Select=true` [ `true` | `false` ] - Automatically detect which
 % equations need to be re-differentiated based on parameter changes from
@@ -37,7 +37,7 @@ function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 % with one parameterization.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The system before the model is solved has the following form:
 %
@@ -52,7 +52,7 @@ function [A, B, C, D, F, G, H, J, list, nf, deriv] = system(this, varargin)
 % measurement shocks.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

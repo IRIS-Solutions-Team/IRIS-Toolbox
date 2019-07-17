@@ -1,13 +1,13 @@
 function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 % fevd  Forecast error variance decomposition for model variables.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [X, Y, List, A, B] = fevd(M, Range, ...)
 %     [X, Y, List, A, B] = fevd(M, NPer, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object for which the decomposition will be
 % computed.
@@ -19,7 +19,7 @@ function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 % be computed.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `X` [ namedmat | numeric ] - Array with the absolute contributions of
 % individual shocks to total variance of each variables.
@@ -37,7 +37,7 @@ function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 % time series.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrices `X`
 % and `Y` as be either [`namedmat`](namedmat/Contents) objects (i.e.
@@ -48,10 +48,10 @@ function [X, Y, lsName, dbAbs, dbRel] = fevd(this, time, varargin)
 % option does not apply to the output databases, `A` and `B`.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

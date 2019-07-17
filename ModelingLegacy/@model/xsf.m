@@ -1,13 +1,13 @@
 function varargout = xsf(this, freq, varargin)
 % xsf  Power spectrum and spectral density for model variables
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [S, D, List] = xsf(M, Freq, ...)
 %     [S, D, List, Freq] = xsf(M, NFreq, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object.
 %
@@ -18,7 +18,7 @@ function varargout = xsf(this, freq, varargin)
 % frequencies will be evenly spread between 0 and \(\pi\).
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `S` [ namedmat | numeric ] - Power spectrum matrices.
 %
@@ -31,7 +31,7 @@ function varargout = xsf(this, freq, varargin)
 % evaluated.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `ApplyTo=@all` [ cellstr | char | `@all` ] - List of variables to which
 % the option `Filter=` will be applied; `@all` means all variables.
@@ -50,10 +50,10 @@ function varargout = xsf(this, freq, varargin)
 % variables only; `@all` means all variables.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

@@ -1,12 +1,12 @@
 function varargout = findeqtn(this, varargin)
 % findeqtn  Find equations by their labels.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [Eqtn, Eqtn, ...] = findeqtn(M, Label, Label, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `m` [ model ] - Model object in which the equations will be searched
 % for.
@@ -16,7 +16,7 @@ function varargout = findeqtn(this, varargin)
 % matched.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `Eqtn` [ char | cellstr ] - If `Label` is a text string, `Eqtn` is
 % the first equation with the label `Label`; if `Label` is a rexp
@@ -24,10 +24,10 @@ function varargout = findeqtn(this, varargin)
 % successfully against the regular expression.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

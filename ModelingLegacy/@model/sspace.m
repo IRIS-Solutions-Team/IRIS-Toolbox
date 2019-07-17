@@ -1,15 +1,15 @@
 function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 % sspace  State-space matrices describing the model solution.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [T, R, K, Z, H, D, U, Omg] = sspace(M, ...)
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Solved model object.
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `T` [ numeric ] - Transition matrix.
 %
@@ -30,7 +30,7 @@ function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 % * `Omg` [ numeric ] - Covariance matrix of shocks.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'triangular='` [ *`true`* | `false` ] - If true, the state-space form
 % returned has the transition matrix `T` quasi triangular and the vector of
@@ -39,7 +39,7 @@ function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 % the original vector of transition variables.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The state-space representation has the following form:
 %

@@ -1,23 +1,23 @@
 function [this, nPath, eigenValues] = solve(this, varargin)
 % solve  Calculate first-order accurate solution of the model.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     M = solve(M, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Paramterised model object. Nonlinear models must also
 % have a steady state values assigned.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Model with newly computed solution.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `Expand=0` [ numeric | `NaN` ] - Number of periods ahead up to which
 % the model solution will be expanded; if `NaN` the matrices needed to
@@ -43,7 +43,7 @@ function [this, nPath, eigenValues] = solve(this, varargin)
 % function.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The IRIS solver uses an ordered QZ (or generalised Schur) decomposition
 % to integrate out future expectations. The QZ may (very rarely) fail for
@@ -65,7 +65,7 @@ function [this, nPath, eigenValues] = solve(this, varargin)
 % number of equations.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox. 2008/10/20.

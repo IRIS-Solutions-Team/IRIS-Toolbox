@@ -1,14 +1,14 @@
 function [flag, test] = isstationary(this, varargin)
 % isstationary  True if model or specified combination of variables is stationary.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     Flag = isstationary(M)
 %     Flag = isstationary(M, Name)
 %     Flag = isstationary(M, LinComb)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object.
 %
@@ -18,7 +18,7 @@ function [flag, test] = isstationary(this, varargin)
 % transition variables; log variables need to be enclosed in `log(...)`.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `Flag` [ `true` | `false` ] - True if the model (if called without a
 % second input argument) or the specified transition variable or
@@ -26,10 +26,10 @@ function [flag, test] = isstationary(this, varargin)
 % argument) is stationary.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 % In the following examples, `m` is a solved model object with two of its
 % transition variables named `X` and `Y`; the latter is a log variable:

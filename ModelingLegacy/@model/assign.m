@@ -1,7 +1,7 @@
 function [this, namesAssigned] = assign(this, varargin)
 % assign  Assign parameters, steady states, std deviations or cross-correlations
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [M, Assigned] = assign(M, P)
 %     [M, Assigned] = assign(M, N)
@@ -9,7 +9,7 @@ function [this, namesAssigned] = assign(this, varargin)
 %     [M, Assigned] = assign(M, List, Values)
 %
 %
-% __Syntax for Fast Assign__
+% ## Syntax for Fast Assign ##
 %
 %     % Initialise
 %     assign(M, List);
@@ -21,7 +21,7 @@ function [this, namesAssigned] = assign(this, varargin)
 %     ...
 %
 %
-% __Input arguments__
+% ## Input arguments ##
 %
 % * `M` [ model ] - Model object.
 %
@@ -46,7 +46,7 @@ function [this, namesAssigned] = assign(this, varargin)
 % * `Values` [ numeric ] - A vector of values.
 %
 %
-% __Output arguments__
+% ## Output arguments ##
 %
 % * `M` [ model ] - Model object with newly assigned parameters and/or
 % steady states.
@@ -57,14 +57,14 @@ function [this, namesAssigned] = assign(this, varargin)
 % from another model object.
 %
 %
-% __Description__
+% ## Description ##
 %
 % Calls with `Name`-`Value` or `List`-`Value` pairs throw an error if some
 % names in the list are not valid names in the model object. Calls with a
 % database, `P`, or another model object, `N`, do not perform this check.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

@@ -1,14 +1,14 @@
 function Outp = resample(this, varargin)
 % resample  Resample from the model implied distribution.
 %
-% __Syntax__
+% ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     Outp = resample(M, ~Inp, Range, ~NDraw, ~J, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Solved model object with single parameterization.
 %
@@ -20,12 +20,12 @@ function Outp = resample(this, varargin)
 % * `~NDraw=1` [ numeric ] - Number of draws; may be omitted.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `Outp` [ struct ] - Output database with resampled data.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `BootstrapMethod='Efron'` [ `'Efron'` | `'Wild'` | numeric ] - Numeric
 % options correspond to block sampling methods. Use a positive integer to
@@ -62,20 +62,20 @@ function Outp = resample(this, varargin)
 % medians (means) of shocks.
 %
 %
-% __Description__
+% ## Description ##
 %
 % When you use wild bootstrap for resampling the initial condition, the
 % results are based on an assumption that the mean of the initial condition
 % is the asymptotic mean implied by the model (i.e. the steady state).
 %
 %
-% __References__
+% ## References ##
 %
 % 1. Politis, D. N., & Romano, J. P. (1994). The stationary bootstrap.
 % Journal of the American Statistical Association, 89(428), 1303-1313.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
@@ -176,7 +176,7 @@ end
 % Get exogenous variables including ttrend.
 G = datarequest('g', this, inp, range);
 
-% __Describe Distribution of Initial Conditions__
+% ## Describe Distribution of Initial Conditions ##
 if isequal(opt.RandomInitCond, false)
     Ealp = computeUncMean( );
 elseif strcmpi(opt.Method, 'Bootstrap')
@@ -231,7 +231,7 @@ else
     end
 end
 
-% __Describe Distribution of Shocks__
+% ## Describe Distribution of Shocks ##
 if strcmpi(opt.Method, 'Bootstrap')
     % (1) Bootstrap.
     srcE = datarequest('e', this, inp, range, 1);
@@ -283,7 +283,7 @@ if opt.Progress
     progress = ProgressBar('IRIS model.resample Progress');
 end
 
-% __Simulate__
+% ## Simulate ##
 g = [ ];
 for iDraw = 1 : numDraws
     e = drawShocks( );

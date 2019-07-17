@@ -1,28 +1,28 @@
 function this = horzcat(this, varargin)
 % horzcat  Merge two or more compatible model objects into multiple parameterizations.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     M = [M1, M2, ...]
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M1`, `M2` [ model ] - Compatible model objects that will be merged
 % into one model with multiple parameterizations; the input models must be
 % based on the same model file.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Output model object created by merging the input model
 % objects into one with multiple parameterizations.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 % Load the same model file with two different sets of parameters (databases
 % `P1` and `P2`), and merge the two model objects into one with multipler

@@ -1,12 +1,12 @@
 function outputVAR = VAR(this, select, range, varargin)
 % VAR  Population VAR for selected model variables.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     V = VAR(M, List, Range, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Solved model object.
 %
@@ -16,12 +16,12 @@ function outputVAR = VAR(this, select, range, varargin)
 % initial condition, on which the VAR would be estimated.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `V` [ VAR ] - Asymptotic reduced-form VAR for selected model variables.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'Order='` [ numeric | *1* ] - Order of the VAR.
 %
@@ -29,10 +29,10 @@ function outputVAR = VAR(this, select, range, varargin)
 % vector derived from the steady state of the selected variables.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

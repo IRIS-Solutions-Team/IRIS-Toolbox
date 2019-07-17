@@ -1,17 +1,17 @@
 function this = rename(this, varargin)
 % rename  Rename temporarily model quantities
 %
-% __Syntax for Renaming Model Quantities__
+% ## Syntax for Renaming Model Quantities ##
 %
 %     M = rename(M, NamePair, NamePair, ...)
 %
 %
-% __Syntax for Resetting Names to Original Names__
+% ## Syntax for Resetting Names to Original Names ##
 %
 %     M = rename(M)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model objects whose quantities (variables, parameter,
 % shocks) will be renamed.
@@ -21,12 +21,12 @@ function this = rename(this, varargin)
 % the second name is the new name.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Model object with some quantities renamed.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The function allows to temporarily change the names of model quantities,
 % i.e. variables, parameters and shocks. The new names will be then used
@@ -41,7 +41,7 @@ function this = rename(this, varargin)
 % a digit or an underscore), and then specify the new name.
 %
 %
-% __Example__
+% ## Example ##
 %
 % An existing model object contains six quantities (variables, shocks,
 % parameters) with the following names:

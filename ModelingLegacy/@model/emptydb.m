@@ -1,24 +1,24 @@
 function d = emptydb(this, varargin)
 % emptydb  Create model database with empty time series for each variable and shock
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     outputDatabank = emptydb(m)
 %
 %
-% __Input arguments__
+% ## Input arguments ##
 %
 % * `m` [ model ] - Model for which the empty database will be created.
 %
 %
-% __Output arguments__
+% ## Output arguments ##
 %
 % * `outputDatabank` [ struct ] - Databank with an empty time series for
 % each variable and each shock, and a vector of currently assigned values
 % for each parameter.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `Include=@all` [ char | cellstr | string | `@all` ] - Types of
 % quantities that will be included in the output databank; `@all` means all
@@ -28,7 +28,7 @@ function d = emptydb(this, varargin)
 % first dimension must be zero.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The output databank will, by default, include an empty time series for
 % each measurement and transition variable, and measurement and transition
@@ -46,7 +46,7 @@ function d = emptydb(this, varargin)
 % * `Std` to include std deviations of shocks.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

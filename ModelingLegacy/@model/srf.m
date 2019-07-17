@@ -1,13 +1,13 @@
 function [s, range, select, opt] = srf(this, time, varargin)
 % srf  First-order shock response functions
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     S = srf(M, NPer, ...)
 %     S = srf(M, Range, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object whose shock responses will be simulated.
 %
@@ -17,12 +17,12 @@ function [s, range, select, opt] = srf(this, time, varargin)
 % * `NPer` [ numeric ] - Number of simulation periods.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `S` [ struct ] - Databank with shock response time series.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `Delog=true` [ `true` | `false` ] - Delogarithmize shock responses for
 % log variables.
@@ -35,10 +35,10 @@ function [s, range, select, opt] = srf(this, time, varargin)
 % currently assigned in the model object `M`.
 %
 %
-% __Description__
+% ## Description ##
 % 
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

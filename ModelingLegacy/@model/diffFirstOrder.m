@@ -26,7 +26,7 @@ ixyxe = ixy | ixx | ixe;
 ixp = this.Quantity.Type==TYPE(4);
 ixm = this.Equation.Type==TYPE(1);
 ixt = this.Equation.Type==TYPE(2);
-ixLog = this.Quantity.IxLog;
+inxOfLog = this.Quantity.InxOfLog;
 eqSelect(~ixm & ~ixt) = false;
 
 ixNanDeriv = false(1, nEqtn);
@@ -101,10 +101,10 @@ return
         step = real(xPlus - xMinus);
         
         % Delog log-plus variables.
-        if any(ixLog)
-            init(ixLog, :) = real(exp( init(ixLog,:) ));
-            xPlus(ixLog, :) = real(exp( xPlus(ixLog,:) ));
-            xMinus(ixLog, :) = real(exp( xMinus(ixLog,:) ));
+        if any(inxOfLog)
+            init(inxOfLog, :) = real(exp( init(inxOfLog,:) ));
+            xPlus(inxOfLog, :) = real(exp( xPlus(inxOfLog,:) ));
+            xMinus(inxOfLog, :) = real(exp( xMinus(inxOfLog,:) ));
         end
         
         % References to steady levels; can be used only in nonlinear setup.
@@ -157,7 +157,7 @@ return
     function symbDeriv( )
         if this.IsLinear
             x = zeros(nName, 1);
-            x(ixLog) = 1;
+            x(inxOfLog) = 1;
             x(ixp) = real(asgn(ixp));
             x = repmat(x, 1, nsh);
             % References to steady-state levels.
@@ -165,24 +165,27 @@ return
         else
             isDelog = true;
             x = createTrendArray(this, variantRequested, isDelog);
-            % References to steady-state levels.
+            % References to steady-state levels
             L = x;
         end
    
         for iiEq = find(ixSymb)
-            % Get incidence of variables in this equation.
+            % Get incidence of variables in this equation
             nm = real(this.Gradient.Dynamic{2, iiEq});
             sh = sh0 + imag(this.Gradient.Dynamic{2, iiEq});
 
-            % Log derivatives need to be multiplied by x. Log-plus and
-            % log-minus variables are treated the same way because
-            % df(x)/dlog(xm) = df(x)/d(x) * d(x)/d(xm) * d(xm)/dlog(xm) 
-            % = df(x)/d(x) * (-1) * xm = df(x)/d(x) * (-1) * (-1)*x
-            % = df(x)/d(x) *x.
+            % Log derivatives need to be multiplied by x 
+            %
+            % Log-plus and log-minus variables are treated the same way
+            % because
+            %
+            % df(x)/dlog(xm) = df(x)/d(x) * d(x)/d(xm) * d(xm)/dlog(xm)
+            %                = df(x)/d(x) * (-1) * xm = df(x)/d(x) * (-1) * (-1)*x
+            %                = df(x)/d(x) * x
             logMult = [ ];
-            if any(ixLog(nm))
+            if any(inxOfLog(nm))
                 logMult = ones(size(nm));
-                for ii = find( ixLog(nm) )
+                for ii = find( inxOfLog(nm) )
                     logMult(ii) = x(nm(ii), sh(ii));
                 end
             end

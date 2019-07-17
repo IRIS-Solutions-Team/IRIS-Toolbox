@@ -1,7 +1,7 @@
 function d = addToDatabank(what, this, d, varargin)
 % addToDatabank  Add model quantities to existing or new databank 
 %
-% __Syntax__
+% ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted
 %
@@ -9,7 +9,7 @@ function d = addToDatabank(what, this, d, varargin)
 %     D = addToDatabank(What, M, D, Range, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `What` [ char | cellstr | string ] - What model quantities to add:
 % parameters, std deviations, cross-correlations.
@@ -23,12 +23,12 @@ function d = addToDatabank(what, this, d, varargin)
 % created; needs to be specified for `Shocks`.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `D` [ struct ] - Databank with the model parameters added.
 %
 %
-% __Description__
+% ## Description ##
 %
 % Function `addToDatabank( )` adds all specified model quantities to the databank,
 % `D`, as arrays with values for all parameter variants. If no input
@@ -50,7 +50,7 @@ function d = addToDatabank(what, this, d, varargin)
 % model parameters will be overwritten.
 %
 %
-% __Example__
+% ## Example ##
 %
 %     d = struct( );
 %     d = addToDatabank('Parameters', m, d);

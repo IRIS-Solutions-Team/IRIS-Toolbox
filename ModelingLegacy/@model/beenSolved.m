@@ -1,26 +1,26 @@
 function flag = beenSolved(this)
 % beenSolved  True if first-order solution has been successfully calculated
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     flag = beenSolved(model)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `model` [ model ] - Model object.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `flag` [ `true` | `false` ] - True for parameter variants for which
 % a stable unique solution has been successfully calculated.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

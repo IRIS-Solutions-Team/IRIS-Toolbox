@@ -2,14 +2,14 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % filter  Kalman smoother and estimator of out-of-likelihood parameters
 %
 %
-% __Syntax__
+% ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted
 %
 %     [M, Outp, V, Delta, PE, SCov] = filter(M, Inp, Range, ~J, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Solved model object.
 %
@@ -25,7 +25,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % and should be omitted.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Model object with updates of std devs (if `Relative=`
 % is true) and/or updates of out-of-likelihood parameters (if `OutOfLik=`
@@ -49,7 +49,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % at least one observation of measurement variables.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `Ahead=1` [ numeric ] - Calculate predictions up to `Ahead` periods
 % ahead.
@@ -126,7 +126,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % errors are weighted equally.
 %
 %
-% __Options for Time Variation in Std Deviation, Correlations and Means of Shocks__
+% ## Options for Time Variation in Std Deviation, Correlations and Means of Shocks ##
 %
 % * `Multiply=[ ]` [ struct | empty ] - Database with time series of
 % possibly time-varying multipliers for std deviations of shocks; the
@@ -140,7 +140,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % assigned in the model object. See Description.
 %
 %
-% __Options for Models with Nonlinear Equations Simulated in Prediction Step__
+% ## Options for Models with Nonlinear Equations Simulated in Prediction Step ##
 %
 % * `Simulate=false` [ `false` | cell ] - Use the backend algorithms from
 % the [`simulate`](model/simulate) function to run nonlinear simulation for
@@ -148,7 +148,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % when running a prediction step.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The option `Ahead=` cannot be combined with one another, or with multiple
 % data sets, or with multiple parameterisations.
@@ -250,7 +250,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % `yyy`).
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

@@ -1,17 +1,17 @@
 function varargout = omega(this, newOmg)
 % omega  Get or set the covariance matrix of shocks.
 %
-% __Syntax for Getting Covariance Matrix__
+% ## Syntax for Getting Covariance Matrix ##
 %
 %     Omg = omega(M)
 %
 %
-% __Syntax for Setting Covariance Matrix__
+% ## Syntax for Setting Covariance Matrix ##
 %
 %     M = omega(M, Omg)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object.
 %
@@ -19,7 +19,7 @@ function varargout = omega(this, newOmg)
 % values for std deviations and cross-corr coefficients.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `Omg` [ numeric ] - Covariance matrix of shocks or residuals based on
 % the currently assigned std deviations and cross-correlation coefficients.
@@ -28,10 +28,10 @@ function varargout = omega(this, newOmg)
 % cross-corr coefficients based on the input covariance matrix.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

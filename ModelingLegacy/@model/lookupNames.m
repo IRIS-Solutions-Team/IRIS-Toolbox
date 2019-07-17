@@ -1,24 +1,24 @@
-function listOfMatches = lookupNames(this, query)
+function listOfMatches = lookupNames(this, varargin)
 % lookupNames  Look up names based on regular expression
 %
 % __Syntax__
 %
-%     listOfMatches = lookupNames(Model, Query)
+%     listOfMatches = lookupNames(model, query)
 %
 %
 % __Input Arguments__
 %
-% * `Model` [ model ] - Model object whose names (variables, shocks,
+% * `model` [ Model ] - Model object whose names (variables, shocks,
 % parameters) will be queried.
 %
-% * `Query` [ cellstr | char | rexp | string ] - Regular expression (or
+% * `query` [ cellstr | char | rexp | string ] - Regular expression (or
 % expressions) that will be matched.
 %
 %
 % __Output Arguments__
 %
-% * `ListOfMatches` [ cellstr ] - Names from the model object matching the
-% regular expression or expressions specified in `Query`.
+% * `listOfMatches` [ cellstr ] - Names from the model object matching the
+% regular expression or expressions specified in `query`.
 %
 %
 % __Description__
@@ -33,25 +33,26 @@ function listOfMatches = lookupNames(this, query)
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.lookup');
-    addRequired(parser, 'Model', @(x) isa(x, 'model'));
-    addRequired(parser, 'Query', @(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp') || iscellstr(x));
+    addRequired(parser, 'model', @(x) isa(x, 'model'));
+    addRequired(parser, 'query', @validateQuery);
 end
-parse(parser, this, query);
+parse(parser, this, varargin);
 
 %--------------------------------------------------------------------------
 
-query = cellstr(query);
-numOfQueries = numel(query);
+numOfQueries = numel(varargin);
+listOfMatches = cell.empty(1, 0);
+if numOfQueries==0
+    return
+end
 
 % Combine the results of all queries into one
-ell = lookup(this.Quantity, query{1});
+ell = lookup(this.Quantity, varargin{1});
 for i = 2 : numOfQueries
-    ithEll = lookup(this.Quantity, query{i});
+    ithEll = lookup(this.Quantity, varargin{i});
     ell.IxName = ell.IxName | ithEll.IxName;
     ell.IxStdCorr = ell.IxStdCorr | ithEll.IxStdCorr;
 end
-
-listOfMatches = cell.empty(1, 0);
 
 if any(ell.IxName)
     % Add names of variables, shocks, parameters
@@ -75,8 +76,22 @@ if any(ell.IxStdCorr)
     end
 end
 
-if isa(query, 'string')
-    listOfMatches = string(listOfMatches);
-end
-
 end%
+
+
+%
+% Local Functions
+%
+
+
+function flag = validateQuery(input)
+    if isempty(input)
+        flag = true;
+        return
+    elseif all(cellfun(@(x) ischar(x) || isa(x, 'rexp'), input))
+        flag = true;
+        return
+    end
+    flag = false;
+end%
+

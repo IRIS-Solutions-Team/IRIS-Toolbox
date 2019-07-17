@@ -1,12 +1,12 @@
 function this = expand(this, k)
 % expand  Compute forward expansion of model solution for anticipated shocks
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     M = expand(M, K)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object whose solution will be expanded.
 %
@@ -14,15 +14,15 @@ function this = expand(this, k)
 % solution for anticipated shocks will be expanded.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Model object with the solution expanded.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

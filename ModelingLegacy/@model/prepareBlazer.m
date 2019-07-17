@@ -46,6 +46,7 @@ if strcmpi(kind, 'Steady')
     blz.InxCanBeEndogenous = ixy | ixx | ixp;
     blz.Assignment = this.Pairing.Assignment.Steady;
     blz.IsBlocks = opt.Blocks;
+    logStatusTypesAllowed = { TYPE(1), TYPE(2), TYPE(4), TYPE(5) };
 
 elseif strcmpi(kind, 'Static') || kind==solver.Method.STATIC
     blz = solver.blazer.Stacked(numOfEquations);
@@ -55,6 +56,7 @@ elseif strcmpi(kind, 'Static') || kind==solver.Method.STATIC
     blz.InxCanBeEndogenous = ixy | ixx | ixe;
     blz.Assignment = this.Pairing.Assignment.Dynamic;
     blz.IsBlocks = opt.Blocks;
+    logStatusTypesAllowed = { TYPE(1), TYPE(2), TYPE(5) };
 
 elseif strcmpi(kind, 'Stacked') || kind==solver.Method.STACKED
     blz = solver.blazer.Stacked(numOfEquations);
@@ -64,6 +66,7 @@ elseif strcmpi(kind, 'Stacked') || kind==solver.Method.STACKED
     blz.InxCanBeEndogenous = ixy | ixx | ixe;
     blz.Assignment = this.Pairing.Assignment.Dynamic;
     blz.IsBlocks = opt.Blocks;
+    logStatusTypesAllowed = { TYPE(1), TYPE(2), TYPE(5) };
 
 else
     throw( exception.Base('General:Internal', 'error') );
@@ -72,12 +75,12 @@ end
 blz.Model.Quantity = this.Quantity;
 blz.Model.Equation = this.Equation;
 
-% Change log-status of variables
+% Change log-status of variables and/or parameters
 if isfield(opt, 'Log') && ~isempty(opt.Log)
-    blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, opt.Log, true);
+    blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, true, opt.Log, logStatusTypesAllowed{:});
 end
 if isfield(opt, 'Unlog') && ~isempty(opt.Unlog)
-    blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, opt.Unlog, false);
+    blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, false, opt.Unlog, logStatusTypesAllowed{:});
 end
 
 blz.InxEndogenous = ixy | ixx;

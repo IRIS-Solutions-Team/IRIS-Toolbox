@@ -1,17 +1,17 @@
 function [eigenValues, eigenStability] = eig(this, variantsRequested)
 % eig  Eigenvalues of model transition matrix
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [EigenVal, Stab] = eig(M)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object whose eigenvalues will be returned.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `EigenVal` [ numeric ] - Array of all eigenvalues associated with
 % the model, i.e. all stable, unit, and unstable roots are included.
@@ -22,10 +22,10 @@ function [eigenValues, eigenStability] = eig(this, variantsRequested)
 % variants where no solution has been computed.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

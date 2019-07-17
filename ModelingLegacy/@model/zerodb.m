@@ -2,14 +2,14 @@ function [d, deviation] = zerodb(this, range, varargin)
 % zerodb  Create model-specific zero-deviation database
 %
 %
-% __Syntax__
+% ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     [D, IsDev] = zerodb(Model, SimulationRange, ~NumOfColumns, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `Model` [ model ] - Model object for which the zero database will be
 % created.
@@ -23,7 +23,7 @@ function [d, deviation] = zerodb(this, range, varargin)
 % can be only used on models with one parameterisation; may be omitted.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `ShockFunc=@zeros` [ `@lhsnorm` | `@randn` | `@zeros` ] - Function used
 % to generate data for shocks. If `@zeros`, the shocks will simply be
@@ -32,7 +32,7 @@ function [d, deviation] = zerodb(this, range, varargin)
 % implied by the current model parameterization.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `D` [ struct ] - Database with a tseries object filled with zeros for
 % each linearised variable, a tseries object filled with ones for each
@@ -44,10 +44,10 @@ function [d, deviation] = zerodb(this, range, varargin)
 % [`model/simulate`](model/simulate).
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

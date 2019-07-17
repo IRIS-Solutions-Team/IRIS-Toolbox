@@ -1,12 +1,12 @@
 function [flag, listOfMissing] = chkmissing(this, d, start, varargin)
 % chkmissing  Check for missing initial values in simulation database.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [Ok, Miss] = chkmissing(M, D, Start)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object.
 %
@@ -15,7 +15,7 @@ function [flag, listOfMissing] = chkmissing(this, d, start, varargin)
 % * `Start` [ numeric ] - Start date for the simulation.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `Ok` [ `true` | `false` ] - True if the input database `D` contains
 % all required initial values for simulating model `M` from date `Start`.
@@ -23,13 +23,13 @@ function [flag, listOfMissing] = chkmissing(this, d, start, varargin)
 % * `Miss` [ cellstr ] - List of missing initial values.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'error='` [ *`true`* | `false` ] - Throw an error if one or more
 % initial values are missing.
 %
 %
-% __Description__
+% ## Description ##
 %
 % This function does not perform any simulation; it only checks for missing
 % initial values in an input database.

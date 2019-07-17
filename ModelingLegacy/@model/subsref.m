@@ -1,58 +1,59 @@
 function output = subsref(this, s)
-% subsref  Subscripted reference for model objects.
+% subsref  Subscripted reference for model objects
 %
-% __Syntax for Retrieving Object with Subset of Parameter Variants__
+% ## Syntax for Retrieving Object with Subset of Parameter Variants ##
 %
-%     M(Inx)
-%
-%
-% __Syntax for Retrieving Parameters or Steady-State Values__
-%
-%     M.Name
+%     m(index)
 %
 %
-% __Syntax to Retrieve Std Deviations or Cross-correlation of Shocks__
+% ## Syntax for Retrieving Parameters or Steady-State Values ##
 %
-%     M.std_ShockName
-%     M.corr_ShockName1__ShockName2
+%     m.name
 %
-% A double underscore is used to separate the names of shocks in
+%
+% ## Syntax to Retrieve Std Deviations or Cross-correlation of Shocks ##
+%
+%     m.std_shock
+%     m.corr_shock1__shock2
+%
+% Note that a double underscore is used to separate the names of shocks in
 % correlation coefficients.
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `M` [ model ] - Model object.
+% * `m` [ model ] - Model object.
 %
-% * `Inx` [ numeric | logical ] - Inx of requested parameterisations.
+% * `index` [ numeric | logical ] - Index (positional or logical) of
+% requested parameterisations.
 %
-% * `Name` - Name of a variable, shock, or parameter.
+% * `name` - Name of a variable, shock, or parameter.
 %
-% * `ShockName1`, `ShockName2` - Name of a shock.
-%
-%
-% __Description__
+% * `shock`, `shock1`, `shock2` - Names of shocks.
 %
 %
-% __Example__
+% ## Description ##
+%
+%
+% ## Example ##
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-% Dot-name reference m.name.
+% Dot-name reference m.name
 if strcmp(s(1).type,'.') && ischar(s(1).subs)
     name = s(1).subs;
     ell = lookup(this.Quantity, {name});
     posQty = ell.PosName;
     posStdCorr = ell.PosStdCorr;
     if ~isnan(posQty)
-        % Quantity.
+        % Quantity
         output = this.Variant.Values(:, posQty, :);
     elseif ~isnan(posStdCorr)
-        % Std or Corr.
+        % Std or Corr
         output = this.Variant.StdCorr(:, posStdCorr, :);
     else
         throw( exception.Base('Model:InvalidName', 'error'), '', name ); %#ok<GTARG>

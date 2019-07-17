@@ -1,25 +1,25 @@
 function this = refresh(this, variantsRequested)
 % refresh  Refresh dynamic links.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     M = refresh(M)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object whose dynamic links will be refreshed.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Model object with dynamic links refreshed.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 %     m = refresh(m)
 %

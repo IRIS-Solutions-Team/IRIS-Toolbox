@@ -1,7 +1,7 @@
 function this = disable(this, type, varargin)
 % disable  Disable dynamic links or steady-state revision equations.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     M = disable(M, '!links')
 %     M = disable(M, '!links', Name1, Name2, ...);
@@ -9,7 +9,7 @@ function this = disable(this, type, varargin)
 %     M = disable(M, '!revisions', Name1, Name2, ...);
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object.
 %
@@ -17,7 +17,7 @@ function this = disable(this, type, varargin)
 % will be temporarily disabled.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Model object with dynamic links
 % [`!links`](irislang/links) or steady-state revision equations

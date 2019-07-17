@@ -159,10 +159,16 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
         varargout = autoswap(varargin)
         function varargout = autoexog(varargin)
-            THIS_WARNING = { 'Model:ObsoleteFunctionName' 
+            THIS_WARNING = { 'Model:LegacyFunctionName' 
                              'The function name autoexog(~) is obsolete and will be removed from a future version of IRIS; use autoswap(~) instead' };
             throw( exception.Base(THIS_WARNING, 'warning') );
             [varargout{1:nargout}] = autoswap(varargin{:});
+        end%
+        function varargout = autoexogenise(varargin)
+            THIS_WARNING = { 'Model:LegacyFunctionNameForGPMN' 
+                             'The function name autoexogenise(~) is obsolete and will be removed from a future version of IRIS; use autoswap(~) instead' };
+            throw( exception.Base(THIS_WARNING, 'warning') );
+            [varargout{1:nargout}] = autoexogenise(varargin{:});
         end%
 
         varargout = beenSolved(varargin)

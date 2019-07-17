@@ -1,12 +1,12 @@
 function varargout = ffrf(this, frequencies, varargin)
 % ffrf  Filter frequency response function of transition variables to measurement variables
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [F, List] = ffrf(M, Freq, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object for which the frequency response function
 % will be computed.
@@ -15,7 +15,7 @@ function varargout = ffrf(this, frequencies, varargin)
 % function will be computed.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `F` [ namedmat | numeric ] - Array with frequency responses of
 % transition variables (in rows) to measurement variables (in columns).
@@ -24,7 +24,7 @@ function varargout = ffrf(this, frequencies, varargin)
 % matrix, and list of measurement variables in columns of the `F` matrix.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `Include=@all` [ char | cellstr | `@all` ] - Include the effect of the
 % listed measurement variables only; `@all` means all measurement
@@ -47,10 +47,10 @@ function varargout = ffrf(this, frequencies, varargin)
 % steady-state Kalman filter for zero-frequency FRF.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

@@ -1,25 +1,25 @@
 function this = stdscale(this, factor)
 % stdscale  Rescale all std deviations by the same factor.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     M = stdscale(M, Factor)
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object whose std deviations will be rescaled.
 %
 % * `Factor` [ numeric ] - Factor by which all std deviations in the model
 % object `M` will be rescaled.
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Model object with all of std deviations rescaled.
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

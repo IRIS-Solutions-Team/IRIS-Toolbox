@@ -1,17 +1,17 @@
 function [this, flag, outputInfo] = steady(this, varargin)
 % steady  Compute steady state or balance-growth path of the model
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [m, flag, outputInfo] = steady(m, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `m` [ model ] - Parameterized model object.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `m` [ model ] - Model object with newly computed steady state assigned.
 %
@@ -22,13 +22,13 @@ function [this, flag, outputInfo] = steady(this, varargin)
 % calculations.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'Warning='` [ *`true`* | `false` ] - Display IRIS warning produced by
 % this function.
 %
 %
-% __Options for Nonlinear Models__
+% ## Options for Nonlinear Models ##
 %
 % * `Blocks=true` [ `true` | `false` ] - Rearrange steady-state equations
 % in sequential blocks before computing steady state.
@@ -86,13 +86,13 @@ function [this, flag, outputInfo] = steady(this, varargin)
 % or negative values.
 %
 %
-% __Options for Linear Models__
+% ## Options for Linear Models ##
 %
 % * `Solve=false` [ `true` | `false` ] - Calculate first-order solution
 % before steady state.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
 % _Option Growth=_
@@ -179,7 +179,7 @@ function [this, flag, outputInfo] = steady(this, varargin)
 %  fixed (and needs to be supplied before calling this `steady(~)`).
 %
 %
-% __Example__
+% ## Example ##
 %
 % This example illustrates the use of the keyword `@auto` in
 % exogenizing/endogenizing variabes/parameters. Assume that the underlying

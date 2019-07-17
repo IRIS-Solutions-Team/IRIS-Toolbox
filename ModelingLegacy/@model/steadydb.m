@@ -2,14 +2,14 @@ function [d, deviation] = steadydb(this, range, varargin)
 % steadydb  Create model-specific steady-state or balanced-growth-path database
 %
 %
-% __Syntax__
+% ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     [D, IsDev] = steadydb(Model, SimulationRange, ~NumOfColumns, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `Model` [ model ] - Model object for which the sstate database will be
 % created.
@@ -23,7 +23,7 @@ function [d, deviation] = steadydb(this, range, varargin)
 % used on models with one parameterisation.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `ShockFunc=@zeros` [ `@lhsnorm` | `@randn` | `@zeros` ] - Function used
 % to generate data for shocks. If `@zeros`, the shocks will simply be
@@ -32,7 +32,7 @@ function [d, deviation] = steadydb(this, range, varargin)
 % implied by the current model parameterization.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `D` [ struct ] - Database with a steady-state or balanced-growth path
 % tseries object for each model variable, and a scalar or vector of the
@@ -43,10 +43,10 @@ function [d, deviation] = steadydb(this, range, varargin)
 % [`model/simulate`](model/simulate).
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

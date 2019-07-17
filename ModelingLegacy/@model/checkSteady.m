@@ -2,17 +2,17 @@ function [flag, varargout] = chksstate(this, varargin)
 % chksstate  Check if equations hold for currently assigned steady-state values.
 %
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [flag, list] = chksstate(model, ...)
 %     [flag, discr, list] = chksstate(model, ...)
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `model` [ model ] - Model object with steady-state values assigned.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `flag` [ `true` | `false` ] - True if discrepancy between LHS and RHS
 % is smaller than tolerance level in each equation.
@@ -25,7 +25,7 @@ function [flag, varargout] = chksstate(this, varargin)
 % LHS and RHS is greater than predefined tolerance.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `Error=true` [ `true` | `false` ] - Throw an error if one or more
 % equations fail to hold up to tolerance level.
@@ -37,10 +37,10 @@ function [flag, varargout] = chksstate(this, varargin)
 % function.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

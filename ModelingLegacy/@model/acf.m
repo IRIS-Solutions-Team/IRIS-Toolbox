@@ -1,53 +1,61 @@
 function varargout = acf(this, varargin)
 % acf  Autocovariance and autocorrelation function for model variables
+%{
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [C, R, list] = acf(model, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `model` [ model ] - A solved model object for which the autocorrelation
-% function will be computed.
-%
-%
-% __Output Arguments__
-%
-% * `C` [ namedmat | numeric ] - Covariance matrices.
-%
-% * `R` [ namedmat | numeric ] - Correlation matrices.
-%
-% * `list` [ cellstr ] - List of variables in rows and columns of `C` and
-% `R`.
+% __`model`__ [ model ] –
+% A solved model object for which the autocorrelation function will be
+% computed.
 %
 %
-% __Options__
+% ## Output Arguments ##
 %
-% * `ApplyTo=@all` [ cellstr | char | `@all` ] - List of variables to which
-% the `Filter=` will be applied; `@all` means all variables.
+% __`C`__ [ namedmat | numeric ] –
+% Covariance matrices.
 %
-% * `Contributions=false` [ `true` | `false` ] - If `true` the
-% contributions of individual shocks to ACFs will be computed and stored in
-% the 5th dimension of the `C` and `R` matrices.
+% __`R`__ [ namedmat | numeric ] –
+% Correlation matrices.
 %
-% * `Filter=''` [ char ] - Linear filter that is applied to
-% variables specified by the option `ApplyTo=`.
-%
-% * `NFreq=256` [ numeric ] - Number of equally spaced frequencies over
-% which the filter in the option `Filter=` is numerically integrated.
-%
-% * `Order=0` [ numeric ] - Order up to which ACF will be computed.
-%
-% * `MatrixFormat='namedmat'` [ `'namedmat'` | `'plain'` ] - Return
-% matrices `C` and `R` as either [`namedmat`](NamedMat) objects (matrices
-% with named rows and columns) or plain numeric arrays.
-%
-% * `Select=@all` [ `@all` | char | cellstr ] - Return ACF for selected
-% variables only; `@all` means all variables.
+% __`list`__ [ cellstr ] –
+% List of variables in rows and columns of `C` and `R`.
 %
 %
-% __Description__
+% ## Options ##
+%
+% __`ApplyTo=@all`__ [ cellstr | char | `@all` ] –
+% List of variables to which the `Filter=` will be applied; `@all` means
+% all variables.
+%
+% __`Contributions=false`__ [ `true` | `false` ] –
+% If `true` the contributions of individual shocks to ACFs will be computed
+% and stored in the 5th dimension of the `C` and `R` matrices.
+%
+% __`Filter=''`__ [ char ] –
+% Linear filter that is applied to variables specified by the option
+% `ApplyTo=`.
+%
+% __`NFreq=256`__ [ numeric ] –
+% Number of equally spaced frequencies over which the filter in the option
+% `Filter=` is numerically integrated.
+%
+% __`Order=0` __[ numeric ] –
+% Order up to which ACF will be computed.
+%
+% __`MatrixFormat='namedmat'`__ [ `'namedmat'` | `'plain'` ] –
+% Return matrices `C` and `R` as either [`namedmat`](NamedMat) objects
+% (matrices with named rows and columns) or plain numeric arrays.
+%
+% __`Select=@all`__ [ `@all` | char | cellstr ] –
+% Return ACF for selected variables only; `@all` means all variables.
+%
+%
+% ## Description ##
 %
 % `C` and `R` are both n-by-n-by-(p+1)-by-v matrices, where n is the
 % number of measurement and transition variables (including auxiliary lags
@@ -75,7 +83,7 @@ function varargout = acf(this, varargin)
 % * `'freq'` for the frequency.
 % 
 %
-% __Example__
+% ## Example ##
 %
 % A first-difference filter (i.e. computes the ACF for the first
 % differences of the respective variables):
@@ -83,7 +91,7 @@ function varargout = acf(this, varargin)
 %     [C, R] = acf(m, 'Filter=', '1-L')
 %
 %
-% __Example__
+% ## Example ##
 %
 % The cyclical component of the Hodrick-Prescott filter with the smoothing
 % parameter, \(\lambda\), set to 1,600. The formula for the filter follows
@@ -94,7 +102,7 @@ function varargout = acf(this, varargin)
 %     [C, R] = acf(m, 'Filter=', '1600/(1600 + 1/abs((1-L)^2)^2)')
 %
 %
-% __Example__
+% ## Example ##
 %
 % A band-pass filter with user-specified lower and upper bands. The
 % band-pass filters can be defined either in frequencies or periodicities;
@@ -104,6 +112,7 @@ function varargout = acf(this, varargin)
 %
 %     [C, R] = acf(m, 'Filter=', 'per>=4 & per<=40')
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team

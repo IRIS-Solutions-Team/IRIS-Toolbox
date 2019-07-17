@@ -2,21 +2,21 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % loglik  Evaluate minus the log-likelihood function in time or frequency domain.
 %
 %
-% __Syntax__
+% ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     [Obj,V,F,PE,Delta,PDelta] = loglik(M,Inp,Range,~J,...)
 %
 %
-% __Syntax for Fast One-Off Likelihood Evaluation__
+% ## Syntax for Fast One-Off Likelihood Evaluation ##
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
 %     Obj = loglik(M,Inp,Range,~J,...)
 %
 %
-% __Syntax for Repeated Fast Likelihood Evaluations__
+% ## Syntax for Repeated Fast Likelihood Evaluations ##
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
@@ -37,7 +37,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 %     % ...
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Solved model object.
 %
@@ -52,7 +52,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % is equivalent to using the option `'vary='`, and may be omitted.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `Obj` [ numeric ] - Value of minus the log-likelihood function (or
 % other objective function if specified in options).
@@ -74,7 +74,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % parameters.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'objDecomp='` [ `true` | *`false`* ] - Decompose the objective
 % function into the contributions of individual time periods (in time
@@ -87,7 +87,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % See help on [`model/filter`](model/filter) for other options available.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The number of output arguments you request when calling `loglik` affects
 % computational efficiency. Running the function with only the first output
@@ -124,7 +124,7 @@ function [Obj,V,F,Pe,Delta,PDelta] = loglik(This,Data,Range,varargin)
 % [`sstate`](model/sstate) and then [`solve`](model/solve).
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

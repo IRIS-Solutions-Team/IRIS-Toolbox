@@ -1,13 +1,13 @@
 function [X, YXVec, dbankOfStd] = fmse(this, time, varargin)
 % fmse  Forecast mean square error matrices.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [F, List, D] = fmse(M, NPer, ...)
 %     [F, List, D] = fmse(M, Range, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object for which the forecast MSE matrices will
 % be computed.
@@ -17,7 +17,7 @@ function [X, YXVec, dbankOfStd] = fmse(this, time, varargin)
 % * `Range` [ numeric | char ] - Date range.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `F` [ namedmat | numeric ] - Forecast MSE matrices.
 %
@@ -28,7 +28,7 @@ function [X, YXVec, dbankOfStd] = fmse(this, time, varargin)
 % `F`.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'MatrixFormat='` [ *`'namedmat'`* | `'plain'` ] - Return matrix `F` as
 % either a [`namedmat`](namedmat/Contents) object (i.e. matrix with named
@@ -38,10 +38,10 @@ function [X, YXVec, dbankOfStd] = fmse(this, time, varargin)
 % variables only; `@all` means all variables.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

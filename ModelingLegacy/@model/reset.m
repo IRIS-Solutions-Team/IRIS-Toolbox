@@ -1,13 +1,13 @@
 function this = reset(this, varargin)
 % reset  Reset specific values within model object.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     M = reset(M)
 %     M = reset(M, Req1, Req2, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] -  Model object in which the requested type(s) of values
 % will be reset.
@@ -17,12 +17,12 @@ function this = reset(this, varargin)
 % omitted, everything will be reset.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Model object with the requested values reset.
 %
 %
-% __Description__
+% ## Description ##
 %
 % * `'Corr'` - All cross-correlation coefficients will be reset to `0`.
 %
@@ -36,7 +36,7 @@ function this = reset(this, varargin)
 % * `'Stdcorr'` - Equivalent to `'Std'` and `'Corr'`.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

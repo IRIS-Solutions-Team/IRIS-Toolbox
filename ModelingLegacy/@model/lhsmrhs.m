@@ -1,17 +1,17 @@
 function dcy = lhsmrhs(this, inputData, varargin)
 % lhsmrhs  Discrepancy between the LHS and RHS of each model equation for given data
 %
-% __Syntax for Casual Evaluation__
+% ## Syntax for Casual Evaluation ##
 %
 %     Q = lhsmrhs(Model, InputDatabank, Range)
 %
 %
-% __Syntax for Fast Evaluation__
+% ## Syntax for Fast Evaluation ##
 %
 %     Q = lhsmrhs(Model, X)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `Model` [ model ] - Model object whose equations and currently assigned
 % parameters will be evaluated.
@@ -31,13 +31,13 @@ function dcy = lhsmrhs(this, inputData, varargin)
 % evaluated.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % `Q` [ numeric ] - Numeric array with discrepancies between the LHS and
 % RHS for each model equation.
 %
 %
-% __Options__
+% ## Options ##
 %
 % `HashEquationsOnly=false` [ `true` | `false` ] - Evaluate hash equations
 % only.
@@ -46,7 +46,7 @@ function dcy = lhsmrhs(this, inputData, varargin)
 % dynamic versions or the steady versions of the model equations.
 %
 % 
-% __Description__
+% ## Description ##
 %
 % The function `lhsmrhs` evaluates the discrepancy between the LHS and the
 % RHS in each model equation; each lead is replaced with the actual
@@ -66,7 +66,7 @@ function dcy = lhsmrhs(this, inputData, varargin)
 % alternative datasets in the input data, `D` or `YXET`.
 %
 %
-% __Example__
+% ## Example ##
 %
 %     YXET = data4lhsmrhs(M, d, range);
 %     Q = lhsmrhs(M, YXET);

@@ -1,12 +1,12 @@
 function this = set(this, varargin)
 % set  Change settable model object property.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     M = set(M, Request, Value)
 %     M = set(M, Request, Value, Request, Value, ...)
 %
-% __Input arguments__
+% ## Input arguments ##
 %
 % * `M` [ model ] - Model object.
 %
@@ -16,13 +16,13 @@ function this = set(this, varargin)
 % * `Value` [ ... ] - Value to which the property will be set.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Model object with the requested property or properties
 % modified.
 %
 %
-% __Valid Requests to Model Objects__
+% ## Valid Requests to Model Objects ##
 %
 % _Equation Labels and Aliases_
 %

@@ -1,17 +1,17 @@
 function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 % blazer  Reorder dynamic or steady equations and variables into sequential block structure.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [NameBlk, EqtnBlk, BlkType] = blazer(M, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `M` [ model ] - Model object with variables and steady-state equations
 % regrouped to create sequential block structure.
@@ -24,7 +24,7 @@ function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 % `ASSIGN`.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'Endogenize='` [ cellstr | char ] - List of parameters that will be
 % endogenized in steady equations.
@@ -36,7 +36,7 @@ function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 % sequential block analysis that will be performed.
 %
 %
-% __Description__
+% ## Description ##
 %
 % Three kinds of sequential block analysis can be performed:
 %
@@ -66,7 +66,7 @@ function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 % strings, where Kn is the number of variables and equations in block N.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

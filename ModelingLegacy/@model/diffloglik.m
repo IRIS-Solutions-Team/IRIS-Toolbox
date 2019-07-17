@@ -2,12 +2,12 @@ function [minusLogLik, grad, hess, v] ...
     = diffloglik(this, data, range, parameterNames, varargin)
 % diffloglik  Approximate gradient and hessian of log-likelihood function
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [MinusLogLik, Grad, Hess, V] = diffloglik(M, Inp, Range, PList, ...)
 %
 %
-% __Input arguments__
+% ## Input arguments ##
 %
 % * `M` [ model ] - Model object whose likelihood function will be
 % differentiated.
@@ -22,7 +22,7 @@ function [minusLogLik, grad, hess, v] ...
 % the likelihood function will be differentiated.
 %
 %
-% __Output arguments__
+% ## Output arguments ##
 %
 % * `MinusLogLik` [ numeric ] - Value of minus the likelihood function at the input
 % data.
@@ -35,7 +35,7 @@ function [minusLogLik, grad, hess, v] ...
 % options is true; otherwise `v` is 1.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `'ChkSstate='` [ `true` | *`false`* | cell ] - Check steady state in
 % each iteration; works only in non-linear models.
@@ -51,10 +51,10 @@ function [minusLogLik, grad, hess, v] ...
 % See help on [`model/filter`](model/filter) for other options available.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

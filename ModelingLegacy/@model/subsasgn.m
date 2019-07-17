@@ -1,60 +1,60 @@
 function this = subsasgn(this, s, b)
 % subsasgn  Subscripted assignment for model objects
 %
-% __Syntax for Assigning Parameterisations from Other Object
+% ## Syntax for Assigning Parameter Variant from Another Object ##
 %
-%     M(Index) = N
-%
-%
-% __Syntax for Deleting Specified Parameter Variants__
-%
-%     M(Index) = [ ]
+%     m(index) = n
 %
 %
-% __Syntax for Assigning Parameter Values or Steady Values__
+% ## Syntax for Deleting Specified Parameter Variants ##
 %
-%     M.Name = X
-%     M(Index).Name = X
-%     M.Name(Index) = X
+%     m(index) = [ ]
 %
 %
-% __Syntax for Assigning Std Deviations or Cross-Correlations of Shocks__
+% ## Syntax for Assigning Parameter Values or Steady Values ##
 %
-%     M.Std_Name = X
-%     M.Corr_Name1__Name2 = X
+%     m.name = X
+%     m(index).Name = X
+%     m.name(index) = X
+%
+%
+% ## Syntax for Assigning Std Deviations or Cross-Correlations of Shocks ##
+%
+%     m.std_name = X
+%     m.corr_name1__name2 = X
 %
 % Double underscore is used to separate the names of shocks in correlation
 % coefficients.
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `M` [ model ] - Model object that will be assigned new parameter
+% * `m` [ model ] - Model object that will be assigned new parameter
 % variants or new parameter values or new steady values.
 %
-% * `N` [ model ] - Model object compatible with `M` whose parameter
-% variants will be assigned (copied) into `M`.
+% * `n` [ model ] - Model object compatible with `m` whose parameter
+% variants will be assigned (copied) into `m`.
 %
-% * `Index` [ numeric ] - Index of parameter variants that will be assigned
-% or deleted.
+% * `index` [ numeric | logical ] - index (positional or logical) of
+% parameter variants that will be assigned or deleted.
 %
-% * `Name`, `Name1`, `Name2` [ char ] - Name of a variable, shock, or
+% * `name`, `name1`, `name2` [ char ] - Name of a variable, shock, or
 % parameter.
 %
 % * `X` [ numeric ] - A value (or a vector of values) that will be assigned
-% to a parameter or variable Named `Name`.
+% to a parameter or variable Named `name`.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
-% * `M` [ model ] - Model object with newly assigned or deleted parameter
+% * `m` [ model ] - Model object with newly assigned or deleted parameter
 % variants, or with newly assigned parameters, or steady values.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 % Expand the number of parameter variants in a model object that has
 % initially just one parameter variant:
@@ -78,7 +78,7 @@ end
 
 nv = length(this);
 
-% __Dot-Name Assignment__
+% ## Dot-Name Assignment ##
 % m.Name = x
 if isnumeric(b) ...
         && (numel(b)==1 || numel(b)==nv) ...
@@ -103,7 +103,7 @@ end
 
 s = checkSubscripted(s, nv);
 
-% __Regular Assignment__
+% ## Regular Assignment ##
 % this(ix) = b
 % RHS must be model or empty.
 

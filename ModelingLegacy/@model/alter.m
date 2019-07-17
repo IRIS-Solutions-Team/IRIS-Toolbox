@@ -1,12 +1,12 @@
 function this = alter(this, numOfVariantsRequested)
 % alter  Expand or reduce number of parameter variants in model object
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     M = alter(M, N)
 %
 %
-% __Input arguments__
+% ## Input arguments ##
 %
 % * `M` [ model ] - Model object in which the number of parameter variants
 % will be changed.
@@ -14,12 +14,12 @@ function this = alter(this, numOfVariantsRequested)
 % * `N` [ numeric ] - New number of model variants.
 %
 %
-% __Output arguments__
+% ## Output arguments ##
 %
 % * `M` [ model ] - Model object with the new number of variants.
 %
 %
-% __Description__
+% ## Description ##
 %
 % If the new number of parameter variants, `N`, is greater than the current
 % number of parameter variants in the model object, `M`, the last parameter
@@ -31,7 +31,7 @@ function this = alter(this, numOfVariantsRequested)
 % number of parameter variants is deleted from the end.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

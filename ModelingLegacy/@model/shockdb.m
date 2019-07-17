@@ -1,14 +1,14 @@
 function [runningData, YXEPG] = shockdb(this, runningData, range, varargin)
 % shockdb  Create model-specific databank with random shocks
 %
-% __Syntax__
+% ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted
 %
 %     outputDatabank = shockdb(model, inputDatabank, range, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `model` [ model ] - Model object.
 %
@@ -23,13 +23,13 @@ function [runningData, YXEPG] = shockdb(this, runningData, range, varargin)
 % `range` in the output databank.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `outputDabank` [ struct ] - Databank with newly generated shock time
 % series added.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `NumOfDraws=@auto` [ numeric | `@auto` ] - Number of draws (i.e.
 % columns) generated for each shock; if `@auto`, the number of draws is
@@ -44,7 +44,7 @@ function [runningData, YXEPG] = shockdb(this, runningData, range, varargin)
 % parameterization.
 %
 %
-% __Description__
+% ## Description ##
 %
 % Create a databank of time series for all model shocks.  The time series
 % are generated using a specified function, `ShockFunc`.  The two typical
@@ -59,7 +59,7 @@ function [runningData, YXEPG] = shockdb(this, runningData, range, varargin)
 % databank unchanged.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

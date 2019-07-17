@@ -1,12 +1,12 @@
 function outp = bn(this, inp, range, varargin)
 % bn  Beveridge-Nelson trends
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     Outp = bn(SolvedModel, InputData, Range, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `SolvedModel` [ model ] - Solved model object.
 %
@@ -17,12 +17,12 @@ function outp = bn(this, inp, range, varargin)
 % computed.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `Outp` [ struct | cell ] - Output data with the BN trends.
 %
 %
-% __Options__
+% ## Options ##
 %
 % * `Deviation=false` [ `true` | `false` ] - Input and output data are
 % deviations from steady-state paths.
@@ -32,13 +32,13 @@ function outp = bn(this, inp, range, varargin)
 % [`!dtrends`](irislang/dtrends) equations.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The BN decomposition is accurate only if the input data have been
 % generated using unanticipated shocks.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox

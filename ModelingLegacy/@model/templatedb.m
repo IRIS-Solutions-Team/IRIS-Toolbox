@@ -2,29 +2,29 @@ function d = templatedb(this)
 % templatedb  Create model-specific template database
 %
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     outputDatabank = templatedb(model)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 %
 % * `model` [ model ] - Model object for which the empty template
 % database will be created.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `outputDatabank` [ struct ] - Empty database (a 0x0 struct)
 % with a field for each model name (variables, shocks,
 % parameters).
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.

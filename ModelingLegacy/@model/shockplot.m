@@ -1,12 +1,12 @@
 function [s, ff, aa] = shockplot(this, shockName, range, listOfNamesToPlot, varargin)
 % shockplot  Short-cut for running and plotting plain shock simulation.
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     [S, FF, AA] = shockplot(M, ShockName, Range, PlotList, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
 % * `M` [ model ] - Model object that will be simulated.
 %
@@ -19,7 +19,7 @@ function [s, ff, aa] = shockplot(this, shockName, range, listOfNamesToPlot, vara
 % can use the syntax of [`dbase/dbplot`](dbase/dbplot).
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
 % * `S` [ struct ] - Database with simulation results.
 %
@@ -28,7 +28,7 @@ function [s, ff, aa] = shockplot(this, shockName, range, listOfNamesToPlot, vara
 % * `AA` [ numeric ] - Handles of axes objects created.
 %
 %
-% __Options Controlling the Simulation__
+% ## Options Controlling the Simulation ##
 %
 % * `'Deviation='` [ *`true`* | `false` ] - See the option `'Deviation='`
 % in [`model/simulate`](model/simulate).
@@ -41,12 +41,12 @@ function [s, ff, aa] = shockplot(this, shockName, range, listOfNamesToPlot, vara
 % simulated.
 %
 %
-% __Options Controlling the Chart Plotted__
+% ## Options Controlling the Chart Plotted ##
 %
 % See help on [`dbase/dbplot`](dbase/dbplot) for other options available.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The simulated shock always occurs at time `t=1`. Starting the simulation
 % range, `Range`, before `t=1` allows you to simulate anticipated
@@ -56,7 +56,7 @@ function [s, ff, aa] = shockplot(this, shockName, range, listOfNamesToPlot, vara
 % prior to the start of the simulation.
 %
 %
-% __Example__
+% ## Example ##
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
