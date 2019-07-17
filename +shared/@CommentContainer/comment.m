@@ -3,7 +3,7 @@ function varargout = comment(this, varargin)
 %
 % ## Syntax for Getting User Comments ##
 %
-%     c = comment(obj)
+%     currentComment = comment(obj)
 %
 %
 % ## Syntax for Assigning User Comments ##
@@ -13,17 +13,17 @@ function varargout = comment(this, varargin)
 %
 % ## Input Arguments ##
 %
-% * `obj` [ model | tseries | VAR | SVAR | FAVAR | sstate ] -
+% __`obj`__ [ model | tseries | VAR | SVAR | FAVAR | sstate ] –
 % IRIS object subclassed from shared.CommentContainer.
 %
-% * `newComment` [ char | string ] - New user comment that will be
-% attached to the object.
+% __`newComment`__ [ char | string ] –
+% New user comment that will be attached to the object.
 %
 %
 % ## Output Arguments ##
 %
-% * `c` [ char ] - User comment that is currently attached to the
-% object.
+% __`currentComment`__ [ char ] –
+% User comment that is currently attached to the object.
 %
 %
 % ## Description ##
