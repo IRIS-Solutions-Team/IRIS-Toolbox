@@ -137,11 +137,11 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
                 return
             end
             numOfRows = size(this, 1);
-            assert( ...
-                iscellstr(rowNames) && numel(rowNames)==numOfRows, ...
-                'namedmat:namedmat', ...
-                'Row names must be entered as a cellstr matching the number of rows.' ...
-            );
+            if ~iscellstr(rowNames) || numel(rowNames)~=numOfRows
+                THIS_ERROR = { 'NamedMatrix:InvalidRowNames'
+                               'Row names must be entered as a cellstr matching the number of rows.' };
+                throw( exception.Base(THIS_ERROR, 'error') );
+            end
             this.RowNames = rowNames;
         end%
 
@@ -151,11 +151,11 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
                 return
             end
             numOfColumns = size(this, 2);
-            assert( ...
-                iscellstr(columnNames) && numel(columnNames)==numOfColumns, ...
-                'namedmat:namedmat', ...
-                'Column names must be entered as a cellstr matching the number of columns.' ...
-            );
+            if ~iscellstr(columnNames) || numel(columnNames)~=numOfColumns
+                THIS_ERROR = { 'NamedMatrix:InvalidColumnNames'
+                               'Column names must be entered as a cellstr matching the number of columns.' };
+                throw( exception.Base(THIS_ERROR, 'error') );
+            end
             this.ColNames = columnNames;
         end%
     end
@@ -174,9 +174,9 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
     methods (Static, Hidden)
         varargout = myselect(varargin)
 
-
+        % TODO: Move to @Valid
         function flag = validateMatrixFormat(format)
-            flag = any(strcmpi(format, {'Plain', 'Numeric', 'NamedMat'}));
+            flag = any(strcmpi(format, {'Plain', 'Numeric', 'NamedMatrix', 'NamedMat'}));
         end%
     end
 end
