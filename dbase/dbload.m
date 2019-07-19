@@ -257,7 +257,7 @@ if ~isequal(opt.select, @all)
 end
 
 % __Read Numeric Data from CSV String__
-[data, ixMissing, dateCol] = readNumericData( );
+[data, ixMissing, dateCol] = hereReadNumericData( );
 
 % __Parse dates__
 [dates, inxNaNDates] = parseDates( );
@@ -469,7 +469,7 @@ return
 
 
 
-    function [data, ixMissing, dateCol] = readNumericData( )
+    function [data, ixMissing, dateCol] = hereReadNumericData( )
         data = double.empty(0, 0);
         ixMissing = logical.empty(1, 0);
         dateCol = cell.empty(1, 0);
