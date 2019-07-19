@@ -4,12 +4,13 @@ classdef ExcelSheet < handle
         FileName (1, 1) string = ""
         SheetNumber (1, 1) double = 1
         Orientation (1, 1) string {validateOrientation} = "Row"
-        DataStart = NaN
-        DataEnd = NaN
+        DataRange = double.empty(1, 0)
+        DataStart (1, 1) double = NaN
+        DataEnd (1, 1) double = NaN
         DataSkip (1, 1) double {mustBePositive, mustBeFinite, mustBeInteger} = 1
         Description = NaN
         Dates (1, :) DateWrapper = DateWrapper.NaD
-        DateFormat (1, 1) string = "YYYFP"
+        DateFormat (1, 1) string = "YYYYFP"
     end
 
 
@@ -33,9 +34,10 @@ classdef ExcelSheet < handle
 
 
         function dates = retrieveDates(this, locationRef, varargin)
-            if isnan(this.DataStart) || isnan(this.DataEnd)
+            dataRange = getDataRange(this);
+            if isempty(dataRange)
                 THIS_ERROR = { 'ExcelSheet:CannotSetDates'
-                               'Set DataStart and DataEnd first before setting or retrieving Dates' };
+                               'Set DataRange or (DataStart and DataEnd) first before setting or retrieving Dates' };
                 throw( exception.Base(THIS_ERROR, 'error') );
             end
 
@@ -58,11 +60,11 @@ classdef ExcelSheet < handle
             location = cell(size(locationRef));
             if strcmpi(this.Orientation, "Row")
                 [location{:}] = ExcelReference.parseRow(locationRef{:});
-                datesCutout = this.Buffer([location{:}], this.DataRange);
+                datesCutout = this.Buffer([location{:}], dataRange);
                 datesCutout = transpose(datesCutout);
             else
                 [location{:}] = ExcelReference.parseColumn(locationRef{:});
-                datesCutout = this.Buffer(this.DataRange, [location{:}]);
+                datesCutout = this.Buffer(dataRange, [location{:}]);
             end
             this.Dates = numeric.str2dat(datesCutout, 'DateFormat=', dateFormat);
             if nargout>=1
@@ -72,6 +74,13 @@ classdef ExcelSheet < handle
 
             
         function x = retrieveSeries(this, locationRef, varargin)
+            dataRange = getDataRange(this);
+            if isempty(dataRange)
+                THIS_ERROR = { 'ExcelSheet:CannotSetDates'
+                               'Set DataRange or (DataStart and DataEnd) first before setting or retrieving time series' };
+                throw( exception.Base(THIS_ERROR, 'error') );
+            end
+
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('ExcelSheet.retrieveSeries');
@@ -89,13 +98,15 @@ classdef ExcelSheet < handle
             location = cell(size(locationRef));
             if strcmpi(this.Orientation, "Row")
                 [location{:}] = ExcelReference.parseRow(locationRef{:});
-                dataCutout = this.Buffer([location{:}], this.DataRange);
+                dataCutout = this.Buffer([location{:}], dataRange);
                 dataCutout = transpose(dataCutout);
             else
                 [location{:}] = ExcelReference.parseColumn(locationRef{:});
-                dataCutout = this.Buffer(this.DataRange, [location{:}]);
+                dataCutout = this.Buffer(dataRange, [location{:}]);
             end
             data = nan(size(dataCutout));
+            inxValid = cellfun(@isnumeric, dataCutout);
+            dataCutout(~inxValid) = { NaN };
             for i = 1 : size(dataCutout, 2)
                 data(:, i) = [dataCutout{:, i}];
             end
@@ -147,12 +158,24 @@ classdef ExcelSheet < handle
                 description = description(1:end-3);
             end
         end%
+
+
+
+
+        function inx = testColumns(this, row, testFunc)
+            row = ExcelReference.parseRow(row);
+            inx = cellfun(testFunc, this.Buffer(row, :));
+        end%
     end
 
+
+    
 
     properties (Dependent)
-        DataRange
+        NumOfData
     end
+
+
 
 
     methods % Getters and Setters
@@ -165,13 +188,31 @@ classdef ExcelSheet < handle
         end%
 
 
-        function value = get.DataRange(this)
+        function value = getDataRange(this)
+            if ~isempty(this.DataRange)
+                value = this.DataRange;
+                return
+            end
             if isequal(this.DataEnd, Inf)
                 dataEnd = size(this.Buffer, 2);
             else
                 dataEnd = this.DataEnd;
             end
-            value = this.DataStart : this.DataSkip : dataEnd;
+            try
+                value = this.DataStart : this.DataSkip : dataEnd;
+            catch
+                value = double.empty(1, 0);
+            end
+        end%
+
+
+        function value = get.NumOfData(this)
+            dataRange = getDataRange(this);
+            if islogical(dataRange)
+                value = nnz(dataRange);
+            else
+                value = numel(dataRange);
+            end
         end%
 
 
@@ -207,14 +248,14 @@ classdef ExcelSheet < handle
 
 
         function this = set.Dates(this, value)
-            if isnan(this.DataStart) || isnan(this.DataEnd)
+            dataRange = getDataRange(this);
+            if isempty(dataRange)
                 THIS_ERROR = { 'ExcelSheet:CannotSetDates'
-                               'Set DataStart and DataEnd first before setting or retrieving Dates' };
+                               'Set DataRange or (DataStart and DataEnd) first before setting or retrieving Dates' };
                 throw( exception.Base(THIS_ERROR, 'error') );
             end
             numOfDates = numel(value);
-            numOfData = numel(this.DataRange);
-            if numOfDates==1 || numOfDates==numOfData
+            if numOfDates==1 || numOfDates==this.NumOfData;
                 this.Dates = value;
                 return
             end
