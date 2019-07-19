@@ -1,3 +1,11 @@
+% # TimeRecursive Objects #
+%
+% TimeRerusive objects are used to evaluate time series assignments period
+% by period over a certain time horizon. If the RHS of the expression
+% includes lags of the time series on the LHS, these lagged values are
+% evaluated recursively.
+%
+
 classdef TimeRecursive
     properties
         Dates = @empty
