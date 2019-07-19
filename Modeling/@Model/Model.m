@@ -1,9 +1,9 @@
 % # Model Objects #
 %
 % Model objects (objects of class `Model`) are created from a model file.
-% Model files are written in [IRIS Model File Language](Model-File-Language.md). After a model
-% object is created in the Matlab workspace, you can combine model
-% functions and standard Matlab functions to work with it in your own
+% Model files are written in [IRIS Model File Language](../model-file-language/README.md). 
+% After a model object is created in the Matlab workspace, you can combine
+% model functions and standard Matlab functions to work with it in your own
 % m-files (scripts, functions, etc.): assign or estimate model parameters,
 % run model simulations, calculate its stochastic properties, etc.
 %
@@ -21,7 +21,7 @@
 % ------------------------------------------------------------------------------------------------------------
 %   addToDatabank             - Add model quantities to existing or new databank 
 %   autocaption               - Create captions for reporting model variables or parameters
-%   autoswap                  - Get or set pairs of names in dynamic and steady autoswap
+%   autoswap                  - Inquire about or assign autoswap pairs
 %   beenSolved                - True if first-order solution has been successfully calculated
 %   chkredundant              - Check for redundant shocks and/or parameters
 %   comment                   - Get or set user comments in IRIS object
@@ -38,7 +38,7 @@
 %   isname                    - True for valid names of variables, parameters, or shocks in model object
 %   isstationary              - True if model or specified combination of variables is stationary
 %   length                    - Number of parameter variants within model object
-%   changeLogStatus           - 
+%   changeLogStatus           - Change log status of model variables
 %   omega                     - Get or set the covariance matrix of shocks
 %   sspace                    - State-space matrices describing the model solution
 %   system                    - System matrices for unsolved model
