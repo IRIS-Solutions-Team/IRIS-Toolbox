@@ -1,7 +1,7 @@
 function char2file(c, fileName, varargin)
 % char2file  Write character string to text file
-%
-% __Syntax__
+%{
+% ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted
 %
@@ -9,35 +9,35 @@ function char2file(c, fileName, varargin)
 %     char2file(c, fileName, ~precision, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% __`c`__ [ char | string ] –
+% **c** [ char | string ] -
 % Character vector or string that will be written to the file.
 %
-% __`fileName`__ [ char ] –
+% **fileName** [ char ] -
 % Name of the destination file.
 %
-% __`~precision`__ [ char ] –
-% Form and precision of the data written to the
-% file; if omitted, `precision='char'`.
+% **~precision** [ char ] -
+% Form and precision of the data written to the file; if omitted,
+% `precision='char'`.
 %
 %
-% __Options__
+% ## Options ##
 %
-% __`MachineFormat='native'`__ [ char | string ] 
-% rder for writing bytes
-% and bits in the destination file.
+% **MachineFormat='native'** [ char | string ] 
+% Format for writing bytes and bits in the destination file.
 %
-% __`Encoding=@auto`__ [ `@auto` | char | string ] –
+% **Encoding=@auto** [ `@auto` | char | string ] -
 % Encoding scheme for writing in the destination file; `@auto` means the
 % operating system default scheme.
 %
 %
-% __Description__
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team

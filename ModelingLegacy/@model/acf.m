@@ -9,49 +9,50 @@ function varargout = acf(this, varargin)
 %
 % ## Input Arguments ##
 %
-% __`model`__ [ model ] –
+% **`model`** [ model ] - 
 % A solved model object for which the autocorrelation function will be
 % computed.
 %
 %
 % ## Output Arguments ##
 %
-% __`C`__ [ namedmat | numeric ] –
+% **`C`** [ namedmat | numeric ] -
 % Covariance matrices.
 %
-% __`R`__ [ namedmat | numeric ] –
+% **`R`** [ namedmat | numeric ] -
 % Correlation matrices.
 %
-% __`list`__ [ cellstr ] –
+% **`list`** [ cellstr ] -
 % List of variables in rows and columns of `C` and `R`.
 %
 %
 % ## Options ##
 %
-% __`ApplyTo=@all`__ [ cellstr | char | `@all` ] –
+% **`ApplyTo=@all`** [ cellstr | char | `@all` ] -
 % List of variables to which the `Filter=` will be applied; `@all` means
 % all variables.
 %
-% __`Contributions=false`__ [ `true` | `false` ] –
+% **`Contributions=false`** [ `true` | `false` ] -
 % If `true` the contributions of individual shocks to ACFs will be computed
 % and stored in the 5th dimension of the `C` and `R` matrices.
 %
-% __`Filter=''`__ [ char ] –
+% **`Filter=''`** [ char ] -
 % Linear filter that is applied to variables specified by the option
 % `ApplyTo=`.
 %
-% __`NFreq=256`__ [ numeric ] –
+% **`NFreq=256`** [ numeric ] -
 % Number of equally spaced frequencies over which the filter in the option
 % `Filter=` is numerically integrated.
 %
-% __`Order=0` __[ numeric ] –
+% **`Order=0`** [ numeric ] -
 % Order up to which ACF will be computed.
 %
-% __`MatrixFormat='namedmat'`__ [ `'namedmat'` | `'plain'` ] –
-% Return matrices `C` and `R` as either [`namedmat`](NamedMat) objects
+% **`MatrixFormat='NamedMatrix'`** [ `'NamedMatrix'` | `'plain'` ] - 
+% Return matrices `C` and `R` as either
+% [`NamedMatrix`](../../data-management/namedmatrix-objects/README.md) objects
 % (matrices with named rows and columns) or plain numeric arrays.
 %
-% __`Select=@all`__ [ `@all` | char | cellstr ] –
+% **`Select=@all`** [ `@all` | char | cellstr ] - 
 % Return ACF for selected variables only; `@all` means all variables.
 %
 %
@@ -68,7 +69,7 @@ function varargout = acf(this, varargin)
 % (measurement and transition) in the model.
 %
 %
-% _ACF with Linear Filters_
+% ### ACF with Linear Filters ###
 %
 % You can use the option `Filter=` to get the ACF for variables as though
 % they were filtered through a linear filter. You can specify the filter in
@@ -124,7 +125,7 @@ if isempty(parser)
     parser.addParameter('NFreq', 256, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
     parser.addParameter({'Contributions', 'Contribution'}, false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Order', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    parser.addParameter('MatrixFormat', 'NamedMat', @namedmat.validateMatrixFormat);
+    parser.addParameter('MatrixFormat', 'NamedMatrix', @namedmat.validateMatrixFormat);
     parser.addParameter('Select', @all, @(x) (isequal(x, @all) || iscellstr(x) || ischar(x)) && ~isempty(x));
     parser.addParameter('ApplyTo', @all, @(x) isequal(x, @all) || iscellstr(x));
     parser.addParameter('Filter', '', @ischar);
@@ -135,7 +136,7 @@ parser.parse(this, varargin{:});
 opt = parser.Options;
 
 isSelect = ~isequal(opt.Select, @all);
-isNamedMat = strcmpi(opt.MatrixFormat, 'NamedMat');
+isNamedMat = strcmpi(opt.MatrixFormat, {'NamedMatrix', 'NamedMat'});
 isContributions = opt.Contributions;
 isCorrelations = nargout>=2;
 

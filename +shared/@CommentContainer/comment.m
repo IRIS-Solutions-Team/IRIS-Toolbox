@@ -1,6 +1,6 @@
 function varargout = comment(this, varargin)
-% comment  Get or set user comments in IRIS object
-%
+% comment  Inquire about or assign user comments in IRIS object
+%{
 % ## Syntax for Getting User Comments ##
 %
 %     currentComment = comment(obj)
@@ -13,16 +13,16 @@ function varargout = comment(this, varargin)
 %
 % ## Input Arguments ##
 %
-% __`obj`__ [ model | tseries | VAR | SVAR | FAVAR | sstate ] –
+% **`obj`** [ model | tseries | VAR | SVAR | FAVAR | sstate ] -
 % IRIS object subclassed from shared.CommentContainer.
 %
-% __`newComment`__ [ char | string ] –
+% **`newComment`** [ char | string ] -
 % New user comment that will be attached to the object.
 %
 %
 % ## Output Arguments ##
 %
-% __`currentComment`__ [ char ] –
+% **`currentComment`** [ char ] -
 % User comment that is currently attached to the object.
 %
 %
@@ -31,6 +31,7 @@ function varargout = comment(this, varargin)
 %
 % ## Example ##
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team

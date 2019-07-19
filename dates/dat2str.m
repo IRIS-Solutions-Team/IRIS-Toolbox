@@ -51,47 +51,52 @@ function [s, field] = dat2str(dat, varargin)
 % Regular date formats can include any combination of the following
 % fields:
 %
-% * `'Y'` - Year.
+% * `'Y'` - One- to four-digit numeral representing a year.
 %
-% * `'YYYY'` - Four-digit year.
+% * `'YYYY'` - Four-digit numeral representing a year; padded with leading
+% zeros if necessary.
 %
-% * `'YY'` - Two-digit year.
+% * `'YY'` - Two-digit numeral representing the last two digits of a year.
 %
-% * `'P'` - Period within the year (half-year, quarter, bi-month, month, 
-% week).
+% * `'P'` - One- to two-digit numeral representing the period within the
+% year (half-year, quarter, month, week).
 %
-% * `'PP'` - Two-digit period within the year.
+% * `'PP'` - Two-digit numeral representing the period within the year,
+% padded with leaading zeros if necessary.
 %
 % * `'R'` - Upper-case roman numeral for the period within the year.
 %
 % * `'r'` - Lower-case roman numeral for the period within the year.
 %
-% * `'M'` - Month numeral.
+% * `'M'` - One- to two-digit numeral representing a month.
 %
-% * `'MM'` - Two-digit month numeral.
+% * `'MM'` - Two-digit numeral representing a month; padded with leading
+% zeros if needed.
 %
-% * `'MMMM'`, `'Mmmm'`, `'mmmm'` - Case-sensitive name of month.
+% * `'MMMM'`, `'Mmmm'`, `'mmmm'` - Case-sensitive full name of a month.
 %
 % * `'MMM'`, `'Mmm'`, `'mmm'` - Case-sensitive three-letter abbreviation of
-% month.
+% a month.
 %
-% * `'Q'` - Upper-case roman numeral for the month or conversion month.
+% * `'D'` - One- to two-digit numeral representing a day.
 %
-% * `'q'` - Lower-case roman numeral for the month or conversion month.
+% * `'DD'` - Two-digit numeral representing a day; padded with zeros if
+% necessary.
+%
+% * `'Q'` - Upper-case roman numeral representing a month or conversion month.
+%
+% * `'q'` - Lower-case roman numeral representing a month or conversion month.
 %
 % * `'F'` - Upper-case letter representing the date frequency.
 %
 % * `'f'` - Lower-case letter representing the date frequency.
 %
-% * `'EE'` - Two-digit end-of-month day; conversion month used for
-% non-monthly dates.
+% * `'EE'` - Two-digit numeral representing an end-of-month day; conversion
+% month used for non-monthly dates; padded with zeros if necessary.
 %
-% * `'E'` - End-of-month day; conversion month used for non-monthly dates.
-%
-% * `'WW'` - Two-digit end-of-month workday; conversion month used for
-% non-monthly dates.
-%
-% * `'W'` - End-of-month workday; conversion month used for non-monthly dates.
+% * `'E'` - One- to two-digit numeral representing an end-of-month day;
+% conversion month used for non-monthly dates; padded with zeros if
+% necessary.
 %
 %
 % _Calendar Date Strings_

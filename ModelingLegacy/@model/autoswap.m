@@ -1,39 +1,45 @@
 function varargout = autoswap(this, varargin)
 % autoswap  Inquire about or assign autoswap pairs
-%
-% __Syntax for Inquiring About Autoswap Pairs__
+%{
+% ## Syntax for Inquiring About Autoswap Pairs ##
 %
 %     a = autoswap(model)
 %
 %
-% __Syntax for Assigning Autoswap Pairs__
+% ## Syntax for Assigning Autoswap Pairs ##
 %
 %     model = autoswap(model, a)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% __`model`__ [ Model ] –
+% **`model`** [ Model ] -
 % Model object that will be inquired about autoswap pairs or assigned new
 % autoswap pairs.
 %
-% __`a`__ [ AutoswapStruct ] –
-% An AutoswapStruct object containing two substructs, `.Simulate` and
+% **`a`** [ AutoswapStruct ] -
+% AutoswapStruct object containing two substructs, `.Simulate` and
 % `.Steady`. Each field in the substructs defines a variable/shock pair (in
 % `.Simulate`), or a variable/parameter pair (in `.Steady`).
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
-% __`model`__ [ Model ] –
+% **`model`** [ Model ] -
 % Model object with the definitions of autoswap pairs newly assigned.
 %
+% **`a`** [ AutoswapStruct ] -
+% AutoswapStruct object containing two substructs, `.Simulate` and
+% `.Steady`. Each field in the substructs defines a variable/shock pair (in
+% `.Simulate`), or a variable/parameter pair (in `.Steady`).
 %
-% __Description__
+%
+% ## Description ##
 %
 %
-% __Example__
+% ## Example ##
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -41,14 +47,14 @@ function varargout = autoswap(this, varargin)
 %--------------------------------------------------------------------------
 
 if isempty(varargin)
-    % __Get Autoswap Structure__
+    % ## Get Autoswap Structure ##
     auto = model.component.AutoswapStruct( );
     [~, ~, auto.Simulate] = model.component.Pairing.getAutoswap(this.Pairing.Autoswap.Simulate, this.Quantity);
     [~, ~, auto.Steady] = model.component.Pairing.getAutoswap(this.Pairing.Autoswap.Steady, this.Quantity);
     varargout{1} = auto;
 
 else
-    % __Set Autoswap Structure__
+    % ## Set Autoswap Structure ##
     auto = varargin{1};
 
     % Legacy structure

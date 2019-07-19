@@ -1,43 +1,45 @@
 function mainDatabank = merge(method, mainDatabank, varargin)
 % merge  Merge two or more databanks
+%{
+% ## Syntax ##
 %
-% __Syntax__
-%
-%     D = databank.merge(D, D1, ...)
-%
-%
-% __Input Arguments__
-%
-% * `Method` [ `'horzcat'` | `'replace'` | `'discard'` ] - Method applied
-% when two or more of the input databanks contain a field of the same name;
-% see Description.
-%
-% * `D` [ struct ] - Databank that will be merged with the other input
-% databanks, `D1`, etc. using the method specified by `Method`.
-%
-% * `D1` [ struct ] - One or more databanks with which the input databank
-% `D` will be merged.
+%     d = databank.merge(d, d1, ...)
 %
 %
-% __Output Arguments__
+% ## Input Arguments ##
 %
-% * `D` [ struct ] - Output databank created by merging the input databanks
-% using the method specified by `Method`.
+% **`Method`** [ `'horzcat'` | `'replace'` | `'discard'` ] -
+% Method applied when two or more of the input databanks contain a field of
+% the same name; see Description.
 %
+% **`d`** [ struct ] -
+% Databank that will be merged with the other input databanks, `d1`, etc.
+% using the method specified by `Method=`.
 %
-% __Options__
-%
-% * `MissingField=@rmfield` [ `@rmfield` | `NaN` | `[ ]` | * ] - What to do
-% when a field is missing from one or more of the input databanks when
-% applying the method `'horzcat'`.
-%
-%
-% __Description__
+% **`d1`** [ struct ] -
+% One or more databanks which will be merged with the input databank `d`.
 %
 %
-% __Example__
+% ## Output Arguments ##
+%
+% **`d`** [ struct ] -
+% Output databank created by merging the input databanks using the method
+% specified by `Method=`.
 %
 %
+% ## Options ##
+%
+% **`MissingField=@rmfield`** [ `@rmfield` | `NaN` | `[ ]` | * ] -
+% What to do when a field is missing from one or more of the input
+% databanks when applying the method `'horzcat'`.
+%
+%
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team

@@ -1,6 +1,6 @@
 function this = changeLogStatus(this, newStatus, varargin)
 % changeLogStatus  Change log status of model variables
-%
+%{
 % ## Syntax for Changing Log Status ##
 %
 %     model = changeLogStatus(model, newStatus, namesToChange)
@@ -10,30 +10,30 @@ function this = changeLogStatus(this, newStatus, varargin)
 %
 % ## Input Arguments ##
 %
-% __`model`__  [ Model ] – 
+% **`model`**  [ Model ] - 
 % Model object within which the log status of variables will be changed.
 %
-% __`newStatus`__ [ `true` | `false` ] – 
+% **`newStatus`** [ `true` | `false` ] - 
 % New log status to which the selected variables will be changed.
 %
-% __`namesToChange`__ [ char | cellstr | string | `@all` ] – 
+% **`namesToChange`** [ char | cellstr | string | `@all` ] - 
 % List of variable names whose log status will be changed; `@all` means all
 % measurement, transition and exogenous variables.
 %
-% __`name`__ [ char | string ] – 
+% **`name`** [ char | string ] - 
 % Variable name whose log status will be changed.
 %
-% _`newStatusStruct`__ [ struct ] –
+% **`newStatusStruct`** [ struct ] -
 % Struct with fields named after the model variables, each assigned `true`
 % or `false` for its new log status.
 %
 %
 % ## Output Arguments ##
 % 
-% __`status`__ [ logical ] – 
+% **`status`** [ logical ] - 
 % Logical vector with the log status of the selected variables.
 %
-% __`model`__ [ Model ] – 
+% **`model`** [ Model ] - 
 % Model object in which the log status of the selected variables has been
 % changed to `newStatus`.
 %
@@ -43,7 +43,7 @@ function this = changeLogStatus(this, newStatus, varargin)
 %
 % ## Example ##
 %
-%
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
