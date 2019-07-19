@@ -4,14 +4,9 @@ classdef TimeRecursive
     end
 
 
-    properties (Dependent)
-        TimeSeriesClass 
-    end
-
-
-    properties (Constant)
+    properties (Constant, Hidden);
         DEFAULT_NAME_OF_TIME_INDEX = 'T';
-        TIME_SERIES_VALUE_REFERENCE = '{%s}';
+        TIME_SERIES_VALUE_REFERENCE = '(%s)';
     end
 
 
@@ -24,7 +19,7 @@ classdef TimeRecursive
                 this = varargin{1};
             end
             this.Dates = varargin{1};
-        end
+        end%
 
 
         function colon(this, varargin)
@@ -39,84 +34,59 @@ classdef TimeRecursive
                 % TimeRecursive : ["x=...", "y=..."]
                 expressionsToEval = cellstr(varargin{1});
             else
-                error( ...
-                    'TimeRecursive:colon', ...
-                    'TimeRecursive expressions must be a string, char or cellstr.' ...
-                );
+                error( 'TimeRecursive:colon', ...
+                       'TimeRecursive expressions must be a string, char or cellstr' );
             end
             expressionsToEval = strtrim(expressionsToEval);
-            numExpressions = numel(expressionsToEval);
-            numDates = numel(this.Dates);
+            numOfExpressions = numel(expressionsToEval);
+            numOfDates = numel(this.Dates);
 
             nameOfTimeIndex = this.DEFAULT_NAME_OF_TIME_INDEX;
             while evalin('caller', sprintf('exist(''%s'')', nameOfTimeIndex))>0
                 nameOfTimeIndex = [nameOfTimeIndex, '_'];
             end
 
-            addSemicolon = repmat({''}, size(expressionsToEval));
-            for i = 1 : numExpressions
+            for i = 1 : numOfExpressions
                 ithExpression = expressionsToEval{i};
                 while true
-                    [tkn, from, to] = regexp( ...
-                        ithExpression, ...
-                        '(\<[a-zA-Z][\w\.]*\>)(\{[^\}]*\})?(?![\$\(\{])', ...
-                        'tokens', 'start', 'end', 'once' ...
-                    );
+                    [tkn, from, to] = regexp( ithExpression, ...
+                                              '(\<[a-zA-Z][\w\.]*\>)(\{[^\}]*\})?(?![\$\(\{])', ...
+                                              'tokens', 'start', 'end', 'once' );
                     if isempty(tkn)
                         break
                     end
                     try
-                        flag = evalin('caller', sprintf('isa(%s, ''%s'')', tkn{1}, this.TimeSeriesClass));
+                        flag = evalin('caller', sprintf('isa(%s, ''NumericTimeSubscriptable'')', tkn{1}));
                     catch
                         flag = false;
                     end
-                    assert( ...
-                        isequal(flag, true), ...
-                        'TimeRecursive:colon', ...
-                        'TimeRecursive expression must have a %s on its LHS.', ...
-                        this.TimeSeriesClass ...
-                    );
+                    if ~isequal(flag, true)
+                        error( 'TimeRecursive:colon', ...
+                               'TimeRecursive expression must have a tseries or Series object on the LHS' );
+                    end
                     if isequal(flag, true)
                         ithExpression = [ithExpression(1:to), '$', ithExpression(to+1:end)];
                     end
                 end
-                ithExpression = strrep( ...
-                    ithExpression, ...
-                    '$', ...
-                    sprintf(this.TIME_SERIES_VALUE_REFERENCE, nameOfTimeIndex) ...
-                );
+                ithExpression = strrep( ithExpression, ...
+                                        '$', ...
+                                        sprintf(this.TIME_SERIES_VALUE_REFERENCE, nameOfTimeIndex) );
                 if ithExpression(end)~=';'
-                    addSemicolon{i} = ';';
+                    ithExpression = [ithExpression, ';'];
                 end
                 expressionsToEval{i} = ithExpression;
             end
 
-            for i = 1 : numExpressions
-                ithExpression = expressionsToEval{i};
-                ithAddSemicolon = addSemicolon{i};
-                for i = 1 : numDates
-                    ithDate = this.Dates(i);
-                    assignin('caller', nameOfTimeIndex, ithDate);
-                    if i<numDates
-                        evalin('caller', [ithExpression, ithAddSemicolon]);
-                    else
-                        evalin('caller', ithExpression);
-                    end
+            dates = double(this.Dates);
+            for t = 1 : numOfDates
+                jthDate = dates(t);
+                for i = 1 : numOfExpressions
+                    assignin('caller', nameOfTimeIndex, jthDate);
+                    evalin('caller', expressionsToEval{i});
                 end
             end
 
             evalin('caller', sprintf('clear %s', nameOfTimeIndex));
-        end
-
-
-        function timeSeriesClass = get.TimeSeriesClass(this)
-            if isa(this.Dates, 'Date')
-                timeSeriesClass = 'TimeSeries';
-            elseif isa(this.Dates, 'DateWrapper') || isnumeric(this.Dates)
-                timeSeriesClass = 'tseries';
-            else
-                timeSeriesClass = '?';
-            end
-        end
+        end%
     end
 end
