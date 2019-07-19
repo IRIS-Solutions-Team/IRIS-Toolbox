@@ -32,9 +32,11 @@ classdef ( Abstract, ...
 
     methods
         varargout = acf(varargin)
+        varargout = arf(varargin)
         varargout = apct(varargin)
         varargout = bubble(varargin)
         varargout = ellone(varargin)
+        varargout = grow(varargin)
     end
 
 
