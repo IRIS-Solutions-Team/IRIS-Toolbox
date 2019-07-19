@@ -1,35 +1,37 @@
-function X = arf(X, A, Z, range, varargin)
+function this = arf(this, A, Z, range, varargin)
 % arf  Create autoregressive time series from input data
 %
-% __Syntax__
+% ## Syntax ##
 %
-%     X = arf(X, A, Z, range, ...)
-%
-%
-% __Input arguments__
-%
-% * `X` [ NumericTimeSubscriptable ] - Input data from which initial
-% condition will be taken.
-%
-% * `A` [ numeric ] - Vector of coefficients of the autoregressive
-% polynomial.
-%
-% * `Z` [ numeric | NumericTimeSubscriptable ] - Exogenous input series or
-% constant in the autoregressive process.
-%
-% * `range` [ numeric | `@all` ] - Date range on which the new time series
-% observations will be computed; `range` does not include pre-sample
-% initial condition. `@all` means the entire possible range will be used
-% (taking into account the length of pre-sample initial condition needed).
+%     x = arf(x, A, Z, range, ...)
 %
 %
-% __Output arguments__
+% ## Input arguments ##
 %
-% * `X` [ tseries ] - Output data with new observations created by running
-% an autoregressive process described by `A` and `Z`.
+% **`x`** [ NumericTimeSubscriptable ] - 
+% Input data from which initial condition will be taken.
+%
+% **`A`** [ numeric ] - 
+% Vector of coefficients of the autoregressive polynomial.
+%
+% **`Z`** [ numeric | NumericTimeSubscriptable ] - 
+% Exogenous input series or constant in the autoregressive process.
+%
+% **`range`** [ numeric | `@all` ] - 
+% Date range on which the new time series observations will be computed;
+% `range` does not include pre-sample initial condition. `@all` means the
+% entire possible range will be used (taking into account the length of
+% pre-sample initial condition needed).
 %
 %
-% __Description__
+% ## Output Arguments ##
+%
+% **`x`** [ tseries ] - 
+% Output data with new observations created by running an autoregressive
+% process described by `A` and `Z`.
+%
+%
+% ## Description ##
 %
 % The autoregressive process has one of the following forms:
 %
@@ -46,7 +48,7 @@ function X = arf(X, A, Z, range, varargin)
 %     A = [A1, A2, ..., An].
 %
 %
-% __Example__
+% ## Example ##
 %
 % The following two lines create an autoregressive process constructed from
 % normally distributed residuals, 
@@ -54,8 +56,8 @@ function X = arf(X, A, Z, range, varargin)
 % $$ x_t = \rho x_{t-1} + \epsilon_t $$
 %
 %     rho = 0.8;
-%     X = Series(1:20, @randn);
-%     X = arf(X, [1, -rho], X, 2:20);
+%     x = Series(1:20, @randn);
+%     x = arf(x, [1, -rho], x, 2:20);
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
@@ -68,12 +70,12 @@ end
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('NumericTimeSubscriptable.arf');
-    addRequired(parser, 'X', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addRequired(parser, 'x', @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(parser, 'A', @isnumeric);
     addRequired(parser, 'Z', @(x) Valid.numericScalar(x) || isa(x, 'NumericTimeSubscriptable'));
     addRequired(parser, 'Range', @(x) isnumeric(x) || isequal(x, @all));
 end%
-parse(parser, X, A, Z, range);
+parse(parser, this, A, Z, range);
 range = double(range);
 
 %--------------------------------------------------------------------------
@@ -83,7 +85,7 @@ order = length(A) - 1;
 
 % Work out range (includes pre/post-sample initial condition)
 if isequal(range, Inf)
-    range = X.StartAsNumeric : X.EndAsNumeric;
+    range = this.StartAsNumeric : this.EndAsNumeric;
 end
 
 if range(1)<=range(end)
@@ -96,7 +98,7 @@ end
 numOfExtendedPeriods = length(extendedRange);
 
 % Get endogenous data
-xData = getData(X, extendedRange);
+xData = getData(this, extendedRange);
 sizeOfX = size(xData);
 xData = xData(:, :);
 
@@ -150,7 +152,7 @@ if numel(sizeOfX)>2
 end
 
 % Update output series
-X = fill(X, xData, extendedRange(1));
+this = fill(this, xData, extendedRange(1));
 
 end%
 
