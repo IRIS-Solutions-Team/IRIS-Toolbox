@@ -95,7 +95,7 @@ return
             '(?<!%)YY', '(?<ShortYear>\d{2})'; ... Last two digits of year
             '(?<!%)Y', '(?<LongYear>\d{0,4})'; ... One to four digits of year
             '(?<!%)PP', '(?<LongPeriod>\d{2})'; ... Two-digit period
-            '(?<!%)P', '(?<ShortPeriod>\d{1,2})'; ... One- or two-digit period
+            '(?<!%)P', '(?<ShortPeriod>\d{0,2})'; ... Empty or one- or two-digit period
             '(?<!%)MMMM', ['(?<Month>', longMonthList, ')']; ... Full name of month
             '(?<!%)MMM', ['(?<Month>', shortMonthList, ')']; ... Three-letter name of month
             '(?<!%)MM', '(?<NumericMonth>\d{2})'; ... Two-digit month
