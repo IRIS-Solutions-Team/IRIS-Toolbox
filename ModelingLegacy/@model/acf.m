@@ -136,7 +136,7 @@ parser.parse(this, varargin{:});
 opt = parser.Options;
 
 isSelect = ~isequal(opt.Select, @all);
-isNamedMat = strcmpi(opt.MatrixFormat, {'NamedMatrix', 'NamedMat'});
+isNamedMat = any(strcmpi(opt.MatrixFormat, {'NamedMatrix', 'NamedMat'}));
 isContributions = opt.Contributions;
 isCorrelations = nargout>=2;
 
