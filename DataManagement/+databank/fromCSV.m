@@ -1,101 +1,104 @@
-function d = fromCSV(varargin)
+function outputDatabank = fromCSV(fileName, varargin)
 % fromCSV  Create databank by loading CSV file
 %{
 % ## Syntax ##
 %
 %     outputDatabank = databank.fromCSV(fileName, ...)
-%     outputDatabank = databank.fromCSV(inputDatabank, fileName, ...)
 %
 %
 % ## Input Arguments ##
 %
-% **`fileName`** [ char | cellstr ] - 
+% __`fileName`__ [ char | cellstr ] - 
 % Name of the Input CSV data file or a cell array of CSV file names that
 % will be combined.
-%
-% **`inputDatabank`** [ struct ] -
-% An existing databank (struct) to which the new entries from the input CSV
-% data file entries will be added.
 %
 %
 % ## Output Arguments ##
 %
-% **`outputDatabank`** [ struct ] -
+% __`outputDatabank`__ [ struct ] -
 % Database created from the input CSV file(s).
 %
 %
 % ## Options ##
 %
-% **`Case=''`** [ `'lower'` | `'upper'` | empty ] - 
+% __`AddToDatabank`__ [ struct | containers.Map ] -
+% Add the data loaded from the input file to an existing databank (struct
+% or containers.Map); the format (Matlab class) of `AddToDatabank=`
+% must comply with option `OutputType=`.
+%
+% __`Case=''`__ [ `'lower'` | `'upper'` | empty ] - 
 % Change case of variable names.
 %
-% **`CommentRow={'Comment', 'Comments'}`** [ char | cellstr ] - 
+% __`CommentRow={'Comment', 'Comments'}`__ [ char | cellstr ] - 
 % Label at the start of row that will be used to create comments in time
 % series.
 %
-% **`Continuous=false`** [ false | `'Descending'` | `'Ascending'` ] -
+% __`Continuous=false`__ [ false | `'Descending'` | `'Ascending'` ] -
 % Indicate that dates are a continuous range, either acending or
 % descending.
 %
-% **`DateFormat='YYYYFP'`** [ char ] - 
+% __`DateFormat='YYYYFP'`__ [ char ] - 
 % Format of dates in first column.
 %
-% **`Delimiter=','`** [ char ] - 
+% __`Delimiter=','`__ [ char ] - 
 % Delimiter separating the individual values (cells) in the CSV file; if
 % different from a comma, all occurences of the delimiter will replaced
 % with commas -- note that this will also affect text in comments.
 %
-% **`FirstDateOnly=false`** [ `true` | `false` ] - 
+% __`FirstDateOnly=false`__ [ `true` | `false` ] - 
 % Read and parse only the first date string, and fill in the remaining
 % dates assuming a range of consecutive dates.
 %
-% **`EnforceFrequency=false`** [ Frequency | `false` ] -
+% __`EnforceFrequency=false`__ [ Frequency | `false` ] -
 % Advise frequency of dates; if empty, frequency will be automatically
 % recognised.
 %
-% **`FreqLetters=@config`** [ char | @config ] - 
+% __`FreqLetters=@config`__ [ char | @config ] - 
 % Letters representing frequency of dates in date column.
 %
-% **`InputFormat='auto'`** [ `'auto'` | `'csv'` | `'xls'` ] - 
+% __`InputFormat='auto'`__ [ `'auto'` | `'csv'` | `'xls'` ] - 
 % Format of input data file; `'auto'` means the format will be determined
 % by the file extension.
 %
-% **`NameRow={'', Variables'}`** [ char | cellstr | numeric ] - 
+% __`NameRow={'', Variables'}`__ [ char | cellstr | numeric ] - 
 % String, or cell array of possible strings, that is found at the beginning
 % (in the first cell) of the row with variable names, or the line number at
 % which the row with variable names appears (first row is numbered 1).
 %
-% **`NameFunc=[ ]`** [ cell | function_handle | empty ] - 
+% __`NameFunc=[ ]`__ [ cell | function_handle | empty ] - 
 % Function used to change or transform the variable names. If a cell array
 % of function handles, each function will be applied in the given order.
 %
-% **`NaN='NaN'`** [ char ] - 
+% __`NaN='NaN'`__ [ char ] - 
 % String representing missing observations (case insensitive).
 %
-% **`Preprocess=[ ]`** [ function_handle | cell | empty ] - 
+% __`OutputType='struct'`__ [ `'struct'` | `'containers.Map'` ] -
+% Format (Matlab class) of the output databank.
+%
+% __`Preprocess=[ ]`__ [ function_handle | cell | empty ] - 
 % Apply this function, or cell array of functions, to the raw text file
 % before parsing the data.
 %
-% **`Select={ }`** [ char | cellstr | empty ] - 
+% __`Select={ }`__ [ char | cellstr | empty ] - 
 % Only databank entries included on this list will be read in and returned
 % in the output databank `outputDatabank`; entries not on this list will be
 % discarded.
 %
-% **`SkipRows=[ ]`** [ char | cellstr | numeric | empty ] - 
+% __`SkipRows=[ ]`__ [ char | cellstr | numeric | empty ] - 
 % Skip rows whose first cell matches the string or strings (regular
 % expressions); or, skip a vector of row numbers.
 %
-% **`UserData=Inf`** [ char | `Inf` ] - 
-% Field name under which the databank
-% userdata loaded from the CSV file (if they exist) will be stored in the
-% output databank; `Inf` means the field name will be read from the CSV
-% file (and will be thus identical to the originally saved databank).
+% __`DatabankUserData=Inf`__ [ char | `Inf` ] - 
+% Field name under which the databank-wide user data loaded from the CSV
+% file (if they exist) will be stored in the output databank; `Inf` means
+% the field name will be read from the CSV file (and will be thus identical
+% to the originally saved databank).
 %
-% **`UserDataField='.'`** [ char ] - 
-% A leading character denoting userdata fields for individual time series;
-% if empty, no userdata fields will be read in and created.
+% __`UserDataField='.'`__ [ char ] - 
+% A leading character denoting user data fields for individual time series;
+% if empty, no user data fields will be read in and created.
 %
-% **`UserDataFieldList={ }`** [ cellstr | numeric | empty ] - 
+% __`UserDataFieldList={ }`__ [ cellstr | numeric | empty ] - 
 % List of row headers, or vector of row numbers, that will be included as
 % user data in each time series.
 %
@@ -131,11 +134,11 @@ function d = fromCSV(varargin)
 %     |         |         |         |
 %
 % You can use a different label in the first cell to denote a comment row;
-% in that case you need to set the option `'commentRow='` accordingly.
+% in that case you need to set the option `CommentRow=` accordingly.
 %
 % All CSV rows whose names start with a character specified in the option
-% `'userdataField='` (a dot by default) will be added to output Series
-% objects as fields of their userdata.
+% `UserDataField=` (a dot by default) will be added to output Series
+% objects as fields of their user data.
 %
 %     |         |       Y |       P |
 %     |---------|---------|---------|--
@@ -150,7 +153,7 @@ function d = fromCSV(varargin)
 %
 % ## Example ##
 %
-% Typical example of using the `'EnforeFrequency='` option is a quarterly
+% Typical example of using the `EnforeFrequency=` option is a quarterly
 % databank with dates represented by the corresponding months, such as a
 % sequence 2000-01-01, 2000-04-01, 2000-07-01, 2000-10-01, etc. In this
 % case, you can use the following options:
@@ -164,21 +167,11 @@ function d = fromCSV(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-if isstruct(varargin{1})
-    d = varargin{1};
-    varargin(1) = [ ];
-else
-    d = struct( );
-end
-
-fileName = varargin{1};
-varargin(1) = [ ];
-
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('dbase.dbload');
-    addRequired(parser, 'InputDatabank', @isstruct);
     addRequired(parser, 'FileName', @Valid.list);
+    addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || isstruct(x) || isa(x, 'containers.Map'));
     addParameter(parser, {'case', 'changecase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
     addParameter(parser, 'CommentRow', {'Comment', 'Comments'}, @(x) ischar(x) || iscellstr(x) || (isnumeric(x) && all(x==round(x)) && all(x>0)));
     addParameter(parser, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
@@ -187,36 +180,46 @@ if isempty(parser)
     addParameter(parser, 'inputformat', 'auto', @(x) ischar(x) && (strcmpi(x, 'auto') || strcmpi(x, 'csv') || strncmpi(x, 'xl', 2)));
     addParameter(parser, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables'}, @(x) ischar(x) || iscellstr(x) || Valid.numericScalar(x));
     addParameter(parser, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
-    addParameter(parser, {'EnforceFrequency', 'Freq'}, false, @(x) isempty(x) || isequal(x, false) || (ischar(x) && strcmpi(x, 'daily')) || (numel(x)==1 && isnan(x)) || (isnumeric(x) && length(x)==1 && any(x==[0, 1, 2, 4, 6, 12, 52, 365])));
     addParameter(parser, 'NaN', 'NaN', @(x) ischar(x));
-    addParameter(parser, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handel') || (iscell(x) && all(cellfun(@isfunc, x))));
+    addParameter(parser, 'OutputType', 'struct', @(x) isequal(x, 'struct') || isequal(x, 'containers.Map'));
+    addParameter(parser, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(parser, 'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
     addParameter(parser, 'select', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
     addParameter(parser, {'skiprows', 'skiprow'}, '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isnumeric(x));
-    addParameter(parser, 'userdata', Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x)));
-    addParameter(parser, 'userdatafield', '.', @(x) ischar(x) && isscalar(x));
-    addParameter(parser, 'userdatafieldlist', { }, @(x) isempty(x) || iscellstr(x) || isnumeric(x));
+    addParameter(parser, {'DatabankUserData', 'UserData'}, Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x)));
+    addParameter(parser, 'UserDataField', '.', @(x) ischar(x) && isscalar(x));
+    addParameter(parser, 'UserDataFieldList', { }, @(x) isempty(x) || iscellstr(x) || isnumeric(x));
     addParameter(parser, 'VariableNames', @auto, @(x) isequal(x, @auto) || Valid.list(x));
     addDateOptions(parser);
 end
-parse(parser, d, fileName, varargin{:});
+parse(parser, fileName, varargin{:});
 opt = parser.Options;
+fileName = cellstr(fileName);
 
-% Loop over all input databanks subcontracting `dbload` and merging the
-% resulting databanks in one.
-if iscellstr(fileName)
-    numOfFileNames = length(fileName);
+% Check consistency of options AddToDatabank= and OutputFormat=
+outputDatabank = opt.AddToDatabank;
+hereCheckInputOutputFormatConsistency( );
+
+% Loop over all input databanks subcontracting `databank.fromCSV` and
+% merging the resulting databanks in one.
+if numel(fileName)>1
+    numOfFileNames = numel(fileName);
     for i = 1 : numOfFileNames
-        d = dbload(d, fileName{i}, varargin{:});
-        return
+        outputDatabank = databank.fromCSV( fileName(i), ...
+                                           varargin{:}, ...
+                                           'AddToDatabank=', outputDatabank );
     end
+    return
+else
+    fileName = fileName{1};
 end
+
 
 if isequal(opt.FirstDateOnly, true)
     opt.Continuous = 'Ascending';
 end
 
-% Pre-process options
+% Preprocess options
 hereProcessOptions( );
 
 %--------------------------------------------------------------------------
@@ -241,8 +244,8 @@ nameRow = { };
 classRow = { };
 cmtRow = { };
 start = 1;
-dbUserdata = '';
-dbUserdataFieldName = '';
+databankUserDataValueString = '';
+databankUserDataFieldName = '';
 isUserData = false;
 seriesUserdata = struct( );
 
@@ -280,20 +283,20 @@ end
 
 
 % /////////////////////////////////////////////////////////////////////////
-[data, ixMissing, dateCol] = readNumericData( );
+[data, inxOfMissing, dateCol] = hereReadNumericData( );
 % /////////////////////////////////////////////////////////////////////////
 
 
 % **Parse dates**
-[dates, inxNaNDates] = parseDates( );
+[dates, inxNaNDates] = hereParseDates( );
 
 if ~isempty(dates)
     maxDate = max(dates);
     minDate = min(dates);
-    numPeriods = 1 + round(maxDate - minDate);
+    numOfPeriods = 1 + round(maxDate - minDate);
     posOfDates = 1 + round(dates - minDate);
 else
-    numPeriods = 0;
+    numOfPeriods = 0;
     posOfDates = [ ];
     minDate = DateWrapper(NaN);
 end
@@ -301,22 +304,22 @@ end
 % Change variable names.
 % * Apply user function to variables names.
 % * Convert variable name case.
-changeNames( );
+hereChangeNames( );
 
 % Make sure the databank entry names are all valid and unique Matlab names.
-checkNames( );
+hereCheckNames( );
 
-% Populated the userdata field; this is NOT Series userdata, but a
-% separate entry in the output databank.
-if ~isempty(opt.userdata) && isUserData
-    createUserdataField( );
+% Populated the user data field; this is NOT Series user data, but a
+% separate entry in the output databank
+if ~isempty(opt.DatabankUserData) && isUserData
+    hereCreateUserdataField( );
 end
 
 
 % /////////////////////////////////////////////////////////////////////////
 % **Create Database**
 % Populate the output databank with Series and numeric data
-populateDatabase( );
+herePopulateDatabank( );
 % /////////////////////////////////////////////////////////////////////////
 
 return
@@ -337,11 +340,13 @@ return
         for ii = 1 : numel(func)
             file = func{ii}(file);
         end
-    end
+    end%
+
+
 
 
     function hereProcessOptions( )
-        % Headers for rows to be skipped.
+        % Headers for rows to be skipped
         if ischar(opt.skiprows)
             opt.skiprows = {opt.skiprows};
         end
@@ -362,7 +367,9 @@ return
         if ischar(opt.CommentRow)
             opt.CommentRow = {opt.CommentRow};
         end
-    end 
+    end%
+
+
 
 
     function hereReadHeaders( )
@@ -424,22 +431,21 @@ return
 
             isDate = true;
             
-            % Userdata fields
-            %-----------------
-            % Some of the userdata fields can be reused as comments, hence do this
-            % before anything else.
-            if strncmp(ident, opt.userdatafield, 1) ...
+            % ## User Data Fields ##
+            % Some of the user data fields can be reused as comments, hence
+            % do this before anything else
+            if strncmp(ident, opt.UserDataField, 1) ...
                     ...
                     || ( ...
-                    iscellstr(opt.userdatafieldlist) ...
-                    && ~isempty(opt.userdatafieldlist) ...
-                    && any(strcmpi(ident, opt.userdatafieldlist)) ...
+                    iscellstr(opt.UserDataFieldList) ...
+                    && ~isempty(opt.UserDataFieldList) ...
+                    && any(strcmpi(ident, opt.UserDataFieldList)) ...
                     ) ...
                     ...
                     || ( ...
-                    isnumeric(opt.userdatafieldlist) ...
-                    && ~isempty(opt.userdatafieldlist) ...
-                    && any(rowCount==opt.userdatafieldlist(:).') ...
+                    isnumeric(opt.UserDataFieldList) ...
+                    && ~isempty(opt.UserDataFieldList) ...
+                    && any(rowCount==opt.UserDataFieldList(:).') ...
                     )
                 fieldName = regexprep(ident, '\W', '');
                 fieldName = matlab.lang.makeUniqueStrings(fieldName);
@@ -452,8 +458,8 @@ return
             if strncmp(ident, '%', 1) || isempty(ident)
                 isDate = false;
             elseif strFindFunc(ident, 'userdata')
-                dbUserdataFieldName = getUserdataFieldName(tkn{1});
-                dbUserdata = tkn{2};
+                databankUserDataFieldName = getUserdataFieldName(tkn{1});
+                databankUserDataValueString = tkn{2};
                 isUserData = true;
                 isDate = false;
             elseif strFindFunc(ident, 'class[size]')
@@ -517,9 +523,9 @@ return
 
 
 
-    function [data, ixMissing, dateCol] = readNumericData( )
+    function [data, inxOfMissing, dateCol] = hereReadNumericData( )
         data = double.empty(0, 0);
-        ixMissing = logical.empty(1, 0);
+        inxOfMissing = logical.empty(1, 0);
         dateCol = cell.empty(1, 0);
         if isempty(file)
             return
@@ -560,11 +566,11 @@ return
 			end
         end
         
-        % Replace empty character cells with numeric NaNs.
+        % Replace empty character cells with numeric NaNs
         file = strrep(file, '""', 'NaN');
-        % Replace date highlights with numeric NaNs.
+        % Replace date highlights with numeric NaNs
         file = strrep(file, '"***"', 'NaN');
-        % Define white spaces.
+        % Define white spaces
         whiteSpace = sprintf(' \b\r\t');
         
         % Remove single and double quotes from the data part of the file
@@ -589,7 +595,7 @@ return
             throw( exception.Base('Dbase:InvalidLoadFormat', 'error'), fileName ); %#ok<GTARG>
         end
         data = data{1};
-        ixMissing = false(size(data));
+        inxOfMissing = false(size(data));
         % The value `-Inf` indicates a possible missing value (but may be a
         % genuine `-Inf`, too). Re-read the table again, with missing
         % values represented by `NaN` this time to pin down missing values.
@@ -601,11 +607,11 @@ return
                               'CommentStyle', 'Matlab', 'CollectOutput', true );
             data1 = data1{1};
             isMaybeMissing1 = isnan(real(data1));
-            ixMissing(isMaybeMissing & isMaybeMissing1) = true;
+            inxOfMissing(isMaybeMissing & isMaybeMissing1) = true;
         end
         if strcmpi(opt.Continuous, 'Descending')
             data = flipud(data);
-            ixMissing = flipud(ixMissing);
+            inxOfMissing = flipud(inxOfMissing);
             dateCol = dateCol(end:-1:1);
         end
     end% 
@@ -613,7 +619,7 @@ return
 
 
 
-    function [dates, inxNaNDates] = parseDates( )
+    function [dates, inxNaNDates] = hereParseDates( )
         numDates = numel(dateCol);
         dates = DateWrapper(nan(1, numDates));
         dateCol = dateCol(1:min(end, size(data, 1)));
@@ -624,11 +630,11 @@ return
                 dateCol(1:end-1) = {''};
             end
             % Rows with empty dates.
-            inxEmptyDates = cellfun(@isempty, dateCol);
+            inxOfEmptyDates = cellfun(@isempty, dateCol);
         end
         % Convert date strings
-        if ~isempty(dateCol) && ~all(inxEmptyDates)
-            dates(~inxEmptyDates) = str2dat(dateCol(~inxEmptyDates), ...
+        if ~isempty(dateCol) && ~all(inxOfEmptyDates)
+            dates(~inxOfEmptyDates) = str2dat(dateCol(~inxOfEmptyDates), ...
                 'DateFormat=', opt.DateFormat, ...
                 'EnforceFrequency=', opt.EnforceFrequency, ...
                 'FreqLetters=', opt.FreqLetters);
@@ -653,7 +659,7 @@ return
 
 
 
-    function populateDatabase( )
+    function herePopulateDatabank( )
         TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
         TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
         count = 0;
@@ -663,7 +669,7 @@ return
         while count<lenOfNameRow
             name = nameRow{count+1};
             if numOfSeriesUserData>0
-                thisUserData = createSeriesUserdata( );
+                thisUserData = hereCreateSeriesUserdata( );
             end
             if isempty(name)
                 % Skip columns with empty names.
@@ -683,7 +689,7 @@ return
                 cls = 'Series';
             end
             if strcmpi(cls, 'Series') || strcmpi(cls, 'tseries')
-                % Series data.
+                % Time series entry
                 if isempty(tmpSize)
                     tmpSize = [Inf, 1];
                 end
@@ -694,29 +700,29 @@ return
                     else
                         unit = 1 + 1i;
                     end
-                    iData = nan(numPeriods, numOfColumns)*unit;
-                    iMiss = false(numPeriods, numOfColumns);
+                    iData = nan(numOfPeriods, numOfColumns)*unit;
+                    iMiss = false(numOfPeriods, numOfColumns);
                     iData(posOfDates, :) = data(~inxNaNDates, count+(1:numOfColumns));
-                    iMiss(posOfDates, :) = ixMissing(~inxNaNDates, count+(1:numOfColumns));
+                    iMiss(posOfDates, :) = inxOfMissing(~inxNaNDates, count+(1:numOfColumns));
                     iData(iMiss) = NaN*unit;
-                    iData = reshape(iData, [numPeriods, tmpSize(2:end)]);
+                    iData = reshape(iData, [numOfPeriods, tmpSize(2:end)]);
                     cmt = cmtRow(count+(1:numOfColumns));
                     cmt = reshape(cmt, [1, tmpSize(2:end)]);
-                    d.(name) = replace(TEMPLATE_SERIES, iData, minDate, cmt);
+                    newEntry = replace(TEMPLATE_SERIES, iData, minDate, cmt);
                 else
                     % Create an empty Series object with proper 2nd and higher
                     % dimensions.
                     iData = zeros([0, tmpSize(2:end)]);
-                    d.(name) = replace(TEMPLATE_SERIES, iData, NaN, '');
+                    newEntry = replace(TEMPLATE_SERIES, iData, NaN, '');
                 end
                 if numOfSeriesUserData>0
-                    d.(name) = userdata(d.(name), thisUserData);
+                    newEntry = userdata(newEntry, thisUserData);
                 end
             elseif ~isempty(tmpSize)
                 % Numeric data.
                 numOfColumns = prod(tmpSize(2:end));
                 iData = reshape(data(1:tmpSize(1), count+(1:numOfColumns)), tmpSize);
-                iMiss = reshape(ixMissing(1:tmpSize(1), count+(1:numOfColumns)), tmpSize);
+                iMiss = reshape(inxOfMissing(1:tmpSize(1), count+(1:numOfColumns)), tmpSize);
                 iData(iMiss) = NaN;
                 % Convert to the right numeric class.
                 if true % ##### MOSW
@@ -724,17 +730,16 @@ return
                 else
                     fnClass = mosw.str2func(cls); %#ok<UNRCH>
                 end
-                d.(name) = fnClass(iData);
+                newEntry = fnClass(iData);
             end
+            hereAddEntryToOutputDatabank(name, newEntry);
             count = count + numOfColumns;
         end
         
         return
         
         
-        
-        
-        function userData = createSeriesUserdata( )
+        function userData = hereCreateSeriesUserdata( )
             userData = struct( );
             for ii = 1 : numOfSeriesUserData
                 try
@@ -750,7 +755,7 @@ return
 
 
 
-    function changeNames( )
+    function hereChangeNames( )
         % Apply user function(s) to each name.
         if ~isempty(opt.NameFunc)
             func = opt.NameFunc;
@@ -776,7 +781,7 @@ return
 
 
 
-    function checkNames( )
+    function hereCheckNames( )
         ixEmpty = cellfun(@isempty, nameRow);
         ixValid = cellfun(@isvarname, nameRow);
         % Index of non-empty, invalid names that need to be regenerated.
@@ -792,18 +797,51 @@ return
 
 
 
-    function createUserdataField( )
-        if ischar(opt.userdata) || isempty(dbUserdataFieldName)
-            dbUserdataFieldName = opt.userdata;
+    function hereCreateUserdataField( )
+        if ischar(opt.DatabanUserData) || isempty(databankUserDataFieldName)
+            databankUserDataFieldName = opt.DatabankUserData;
         end
         try
-            d.(dbUserdataFieldName) = eval(dbUserdata);
+            userDataField = eval(databankUserDataValueString);
         catch err
             throw( exception.Base('Dbase:ErrorLoadingUserData', 'error'), ...
                    fileName, err.message ); %#ok<GTARG>
         end
+        hereAddEntryToOutputDatabank(databankUserDataFieldName, userDataField);
     end%
-end
+
+
+
+
+    function hereCheckInputOutputFormatConsistency( )
+        if isempty(outputDatabank)
+            if isequal(opt.OutputType, 'containers.Map')
+                outputDatabank = containers.Map('KeyType', 'char', 'ValueType', 'any');
+            else
+                outputDatabank = struct ( );
+            end
+        else
+            if isa(outputDatabank, opt.OutputType)
+                return
+            end
+            THIS_ERROR = { 'Databank:InvalidDatabankFormat'
+                           [ 'The type of the databank in option AddToDatabank= ', ...
+                             'is not consistent with option OutputType= ' ] };
+            throw( exception.Base(THIS_ERROR, 'error') );
+        end
+    end%
+
+
+
+
+    function hereAddEntryToOutputDatabank(newName, newData)
+        if isa(outputDatabank, 'containers.Map')
+            outputDatabank(newName) = newData;
+        else
+            outputDatabank.(newName) = newData;
+        end
+    end%
+end%
 
 
 
@@ -828,3 +866,4 @@ function name = getUserdataFieldName(c)
         name = '';
     end
 end%
+
