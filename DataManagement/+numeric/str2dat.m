@@ -12,7 +12,6 @@ if isempty(parser)
     configStruct = iris.get( );
     parser = extend.InputParser('dates.str2dat');
     parser.addRequired('InputString', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    parser.addParameter({'EnforceFrequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==configStruct.Freq)));
     parser.addDateOptions( );
 end
 
