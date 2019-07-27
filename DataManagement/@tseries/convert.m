@@ -37,7 +37,7 @@ function this = convert(this, newFreq, varargin)
 %
 % __Options for High- to Low-Frequency Aggregation__
 %
-% * `Method=@mean` [ function_handle | `'first'` | `'last'` | `'random'` ]
+% * `Method=@mean` [ function_handle | `@first` | `@last` | `@random` ]
 % - Aggregation method; `'first'`, `'last'` and `'random'` select the
 % first, last of a random observation from the period.
 %
@@ -174,9 +174,11 @@ this = fill(this, newData, newStart, this.Comment, this.UserData);
 
 end%
 
+
 %
 % Local functions
 %
+
 
 function [newData, newStart] = aggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     if isa(opt.Method, 'function_handle')
@@ -187,6 +189,7 @@ function [newData, newStart] = aggregate(this, oldStart, oldEnd, oldFreq, newFre
             opt.Method = char(opt.Method);
         end
     end
+    
 
     % Stretch the original range from the beginning of first year until the end
     % of last year

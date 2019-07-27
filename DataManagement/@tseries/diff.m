@@ -46,4 +46,5 @@ end
 
 x = unop(@numeric.diff, x, 0, shifts);
 
-end
+end%
+
