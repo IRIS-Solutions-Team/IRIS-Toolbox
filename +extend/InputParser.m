@@ -134,15 +134,17 @@ classdef InputParser < inputParser
 
 
         function addDateOptions(this, context)
-            this.addParameter('DateFormat', @config, @iris.Configuration.validateDateFormat);
-            this.addParameter({'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
-            this.addParameter({'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
-            this.addParameter({'ConversionMonth', 'StandInMonth'}, @config, @iris.Configuration.validateConversionMonth);
-            this.addParameter('ConversionDay', @config, @iris.Configuration.validateConversionDay);
-            this.addParameter('WDay', @config, @iris.Configuration.validateWDay);
-            this.addParameter('DatePosition', 'c', @(x) ischar(x) && ~isempty(x) && any(x(1) == 'sec'));
+            configStruct = iris.get( );
+            addParameter(this, 'DateFormat', @config, @iris.Configuration.validateDateFormat);
+            addParameter(this, {'EnforceFrequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==configStruct.Freq)));
+            addParameter(this, {'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
+            addParameter(this, {'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
+            addParameter(this, {'ConversionMonth', 'StandInMonth'}, @config, @iris.Configuration.validateConversionMonth);
+            addParameter(this, 'ConversionDay', @config, @iris.Configuration.validateConversionDay);
+            addParameter(this, 'WDay', @config, @iris.Configuration.validateWDay);
+            addParameter(this, 'DatePosition', 'c', @(x) ischar(x) && ~isempty(x) && any(x(1) == 'sec'));
             % Backward compatibility options for datxtick( )
-            this.addParameter({'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isa(x,'function_handle'));
+            addParameter(this, {'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isa(x,'function_handle'));
             this.HasDateOptions = true;
             if nargin>1
                 % Context can be one of {'', 'tseries', 'TimeSubscriptable'}
@@ -152,52 +154,52 @@ classdef InputParser < inputParser
 
 
         function addPlotOptions(this)
-            this.addParameter('Function', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
-            this.addParameter('Tight', false, @(x) isequal(x, true) || isequal(x, false));
-            this.addParameter('XLimMargins', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto));
+            addParameter(this, 'Function', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
+            addParameter(this, 'Tight', false, @(x) isequal(x, true) || isequal(x, false));
+            addParameter(this, 'XLimMargins', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto));
         end%
 
 
         function addDeviationOptions(this, deviationDefault)
-            this.addParameter({'Deviation', 'Deviations'}, deviationDefault, @(x) isequal(x, true) || isequal(x, false));
-            this.addParameter({'DTrends', 'DTrend', 'EvalTrends'}, @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+            addParameter(this, {'Deviation', 'Deviations'}, deviationDefault, @(x) isequal(x, true) || isequal(x, false));
+            addParameter(this, {'DTrends', 'DTrend', 'EvalTrends'}, @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
             this.HasDeviationOptions = true;
         end%
 
 
         function addBaseYearOption(this)
-            this.addParameter('BaseYear', @config, @iris.Configuration.validateBaseYear);
+            addParameter(this, 'BaseYear', @config, @iris.Configuration.validateBaseYear);
         end%
 
 
         function addUserDataOption(this)
-            this.addParameter('UserData', double.empty(1, 0));
+            addParameter(this, 'UserData', double.empty(1, 0));
         end%
 
 
         function addSwapOptions(this)
-            this.addParameter('Exogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
-            this.addParameter('Endogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
+            addParameter(this, 'Exogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
+            addParameter(this, 'Endogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
             this.HasSwapOptions = true;
         end%
 
 
         function addOptionalRangeStartEnd(this)
-            this.addOptional('Range', @auto, @(x) isequal(x, @auto) || isequal(x, Inf) || DateWrapper.validateRangeInput(x));
+            addOptional(this, 'Range', @auto, @(x) isequal(x, @auto) || isequal(x, Inf) || DateWrapper.validateRangeInput(x));
             this.addStartEndOptions( );
             this.HasOptionalRangeStartEnd = true;
         end%
 
 
         function addStartEndOptions(this)
-            this.addParameter('Start', -Inf, @(x) isequal(x, -Inf) || DateWrapper.validateDateInput(x));
-            this.addParameter('End', Inf, @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
+            addParameter(this, 'Start', -Inf, @(x) isequal(x, -Inf) || DateWrapper.validateDateInput(x));
+            addParameter(this, 'End', Inf, @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
             this.HasStartEndOptions = true;
         end%
 
 
         function addDisplayOption(this, defaultDisplay)
-            this.addParameter('Display', defaultDisplay, @solver.Options.validateDisplay);
+            addParameter(this, 'Display', defaultDisplay, @solver.Options.validateDisplay);
         end%
 
 
