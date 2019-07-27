@@ -19,6 +19,8 @@ classdef Frequency < double
         end%
 
 
+
+
         function d = getCalendarDuration(this)
             switch this
                 case Frequency.YEARLY
@@ -372,6 +374,31 @@ classdef Frequency < double
 
         function c = cellstr(this)
             c = arrayfun(@(x) char(x), this, 'UniformOutput', false);
+        end%
+
+
+
+
+        function c = toFredLetter(this)
+            switch this
+                case Frequency.YEARLY
+                    c = 'A';
+                    return
+                case Frequency.HALFYEARLY
+                    c = 'SA';
+                    return
+                case Frequency.QUARTERLY
+                    c = 'Q';
+                    return
+                case Frequency.MONTHLY
+                    c = 'M';
+                    return
+                otherwise
+                    THIS_ERROR = { 'Frequency:InvalidFredFrequency' 
+                                  'This is not a valid Fred frequency: %s' };
+                    throw( exception.Base(THIS_ERROR, 'error'), ...
+                           this );
+            end
         end%
     end
 
