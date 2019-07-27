@@ -2,38 +2,62 @@ classdef ExcelSheet < handle
     properties
         Buffer (:, :) cell = cell.empty(0)
         FileName (1, 1) string = ""
-        SheetNumber (1, 1) double = 1
+        SheetIdentification = 1
+        SheetRange = ''
         Orientation (1, 1) string {validateOrientation} = "Row"
         DataRange = double.empty(1, 0)
-        DataStart (1, 1) double = NaN
-        DataEnd (1, 1) double = NaN
+        DataStart = NaN
+        DataEnd = NaN
         DataSkip (1, 1) double {mustBePositive, mustBeFinite, mustBeInteger} = 1
         Description = NaN
         Dates (1, :) DateWrapper = DateWrapper.NaD
-        DateFormat (1, 1) string = "YYYYFP"
+        InsertEmpty = [0, 0]
     end
 
 
     methods
-        function this = ExcelSheet(fileName, sheetNumber)
+        function this = ExcelSheet(fileName, varargin)
             if nargin==0
                 return
             end
-            if nargin>=1
-                this.FileName = fileName;
+
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('ExcelSheet.ExcelSheet');
+                addRequired(parser,  'fileName', @Valid.string);
+                addParameter(parser, 'Sheet', 1, @(x) Valid.numericScalar(x) || Valid.string(x));
+                addParameter(parser, 'Range', '', @Valid.string);
+                addParameter(parser, 'InsertEmpty', [0, 0], @(x) isnumeric(x) && numel(x)==2 && all(x==round(x)) && all(x>=0));
             end
-            if nargin>=2
-                this.SheetNumber = sheetNumber;
-            end
+            parse(parser, fileName, varargin{:});
+            opt = parser.Options;
+
+            this.FileName = fileName;
+            this.SheetIdentification = opt.Sheet;
+            this.SheetRange = opt.Range;
+            this.InsertEmpty = opt.InsertEmpty;
+            read(this);
         end%
 
 
         function read(this)
-            this.Buffer = readcell(this.FileName, 'Sheet', this.SheetNumber);
+            options = {'Sheet', this.SheetIdentification};
+            if ~isempty(this.SheetRange)
+                options = [ options, {'Range', this.SheetRange} ];
+            end
+            this.Buffer = readcell(this.FileName, options{:});
+            insertRows = this.InsertEmpty(1);
+            insertColumns = this.InsertEmpty(2);
+            if insertRows>0
+                this.Buffer = [ repmat({[]}, insertRows, this.NumOfColumns); this.Buffer ];
+            end
+            if insertColumns>0
+                this.Buffer = [ repmat({[]}, this.NumOfRows, insertColumn), this.Buffer ];
+            end
         end%
 
 
-        function dates = retrieveDates(this, locationRef, varargin)
+        function dates = readDates(this, locationRef, varargin)
             dataRange = getDataRange(this);
             if isempty(dataRange)
                 THIS_ERROR = { 'ExcelSheet:CannotSetDates'
@@ -46,27 +70,24 @@ classdef ExcelSheet < handle
                 parser = extend.InputParser('ExcelSheet.retrieveSeries');
                 addRequired(parser, 'ExcelSheet', @(x) isa(x, 'ExcelSheet'));
                 addRequired(parser, 'LocationRef', @(x) ~isempty(x));
-                addOptional(parser, 'DateFormat', @auto, @(x) isequal(x, @auto) || Valid.string(x));
+                addDateOptions(parser);
             end
             parse(parser, this, locationRef, varargin{:});
-            dateFormat = parser.Results.DateFormat;
-            if isequal(dateFormat, @auto)
-                dateFormat = this.DateFormat;
-            end
+            opt = parser.Options;
 
             if ~iscell(locationRef)
                 locationRef = { locationRef };
             end
             location = cell(size(locationRef));
             if strcmpi(this.Orientation, "Row")
-                [location{:}] = ExcelReference.parseRow(locationRef{:});
+                [location{:}] = ExcelReference.decodeRow(locationRef{:});
                 datesCutout = this.Buffer([location{:}], dataRange);
                 datesCutout = transpose(datesCutout);
             else
-                [location{:}] = ExcelReference.parseColumn(locationRef{:});
+                [location{:}] = ExcelReference.decodeColumn(locationRef{:});
                 datesCutout = this.Buffer(dataRange, [location{:}]);
             end
-            this.Dates = numeric.str2dat(datesCutout, 'DateFormat=', dateFormat);
+            this.Dates = numeric.str2dat(datesCutout, opt);
             if nargout>=1
                 dates = this.Dates;
             end
@@ -84,8 +105,9 @@ classdef ExcelSheet < handle
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('ExcelSheet.retrieveSeries');
-                parser.addRequired('ExcelSheet', @(x) isa(x, 'ExcelSheet'));
-                parser.addRequired('LocationRef', @(x) ~isempty(x));
+                parser.addRequired('excelSheet', @(x) isa(x, 'ExcelSheet'));
+                parser.addRequired('locationRef', @(x) ~isempty(x));
+                % Options
                 parser.addParameter('Aggregator', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
                 parser.addParameter('Comment', '', @(x) Valid.string(x) || Valid.list(x));
             end
@@ -97,11 +119,11 @@ classdef ExcelSheet < handle
             end
             location = cell(size(locationRef));
             if strcmpi(this.Orientation, "Row")
-                [location{:}] = ExcelReference.parseRow(locationRef{:});
+                [location{:}] = ExcelReference.decodeRow(locationRef{:});
                 dataCutout = this.Buffer([location{:}], dataRange);
                 dataCutout = transpose(dataCutout);
             else
-                [location{:}] = ExcelReference.parseColumn(locationRef{:});
+                [location{:}] = ExcelReference.decodeColumn(locationRef{:});
                 dataCutout = this.Buffer(dataRange, [location{:}]);
             end
             data = nan(size(dataCutout));
@@ -139,15 +161,15 @@ classdef ExcelSheet < handle
                 locationRef = { locationRef };
             end
             location = cell(size(locationRef));
-            if strcmpi(this.Orientation, "Row")
-                [location{:}] = ExcelReference.parseRow(locationRef{:});
+            if strcmpi(this.Orientation, 'Row')
+                [location{:}] = ExcelReference.decodeRow(locationRef{:});
                 description = cell.empty(0);
                 if ~isnan(this.Description)
                     description = this.Buffer([location{:}], this.Description);
                     description = transpose(description);
                 end
             else
-                [location{:}] = ExcelReference.parseColumn(locationRef{:});
+                [location{:}] = ExcelReference.decodeColumn(locationRef{:});
                 description = cell.empty(0);
                 if ~isnan(this.Description)
                     description = this.Buffer(this.Description, [location{:}]);
@@ -162,9 +184,57 @@ classdef ExcelSheet < handle
 
 
 
-        function inx = testColumns(this, row, testFunc)
-            row = ExcelReference.parseRow(row);
-            inx = cellfun(testFunc, this.Buffer(row, :));
+        function pos = findRows(this, numToFind, varargin)
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('ExcelSheet.findColumns');
+                parser.KeepUnmatched = true;
+                addRequired(parser, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
+                addRequired(parser, 'numToFound', @(x) isempty(x) || isnumeric(x));
+            end
+            parse(parser, this, numToFind);
+
+            inx = true(this.NumOfRows, 1);
+            for i = 1 : 2 : numel(varargin)
+                column = ExcelReference.decodeColumn(varargin{i});
+                testFunc = varargin{i+1};
+                inx = inx & cellfun(testFunc, this.Buffer(:, column));
+            end
+            if isempty(numToFind) || any(nnz(inx)==numToFind)
+                pos = find(inx);
+                return
+            end
+            THIS_ERROR = { 'ExcelSheet:InvalidNumOfColumnsFound'
+                           'Number of rows passing test fails to comply with user restriction' };
+            throw( exception.Base(THIS_ERROR, 'error') );
+        end%
+
+
+
+
+        function pos = findColumns(this, numToFind, varargin)
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('ExcelSheet.findColumns');
+                parser.KeepUnmatched = true;
+                addRequired(parser, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
+                addRequired(parser, 'numToFind', @(x) isempty(x) || isnumeric(x));
+            end
+            parse(parser, this, numToFind);
+
+            inx = true(1, this.NumOfColumns);
+            for i = 1 : 2 : numel(varargin)
+                row = ExcelReference.decodeRow(varargin{i});
+                testFunc = varargin{i+1};
+                inx = inx & cellfun(testFunc, this.Buffer(row, :));
+            end
+            if isempty(numToFind) || any(nnz(inx)==numToFind)
+                pos = find(inx);
+                return
+            end
+            THIS_ERROR = { 'ExcelSheet:InvalidNumOfColumnsFound'
+                           'Number of columns passing test fails to comply with user restriction' };
+            throw( exception.Base(THIS_ERROR, 'error') );
         end%
     end
 
@@ -173,12 +243,24 @@ classdef ExcelSheet < handle
 
     properties (Dependent)
         NumOfData
+        NumOfRows
+        NumOfColumns
     end
 
 
 
 
     methods % Getters and Setters
+        function value = get.NumOfRows(this)
+            value = size(this.Buffer, 1);
+        end%
+
+
+        function value = get.NumOfColumns(this)
+            value = size(this.Buffer, 2);
+        end%
+
+
         function value = get.DataEnd(this)
             if isequal(this.DataEnd, Inf)
                 value = size(this.Buffer, 2);
@@ -240,9 +322,9 @@ classdef ExcelSheet < handle
 
         function anchor = setAnchor(this, value)
             if strcmpi(this.Orientation, "Row")
-                anchor = ExcelReference.parseColumn(value);
+                anchor = ExcelReference.decodeColumn(value);
             else
-                anchor = ExcelReference.parseRow(value);
+                anchor = ExcelReference.decodeRow(value);
             end
         end%
 
@@ -271,8 +353,9 @@ end
 % Local Functions
 %
 
+
 function flag = validateOrientation(input)
-    flag = strcmpi(input, "Row") || strcmpi(input, "Column");
+    flag = strcmpi(input, 'Row') || strcmpi(input, 'Column');
     if flag
         return
     end
