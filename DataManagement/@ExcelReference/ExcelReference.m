@@ -1,6 +1,28 @@
 classdef ExcelReference
     methods (Static)
         function varargout = parseRow(varargin)
+            [varargout{1:nargout}] = decodeRow(varargin{:});
+        end%
+
+
+        function varargout = parseColumn(varargin)
+            [varargout{1:nargout}] = decodeColumn(varargin{:});
+        end%
+
+
+        function varargout = parseCell(varargin)
+            [varargout{1:nargout}] = decodeCell(varargin{:});
+        end%
+
+
+        function varargout = parseRange(varargin)
+            [varargout{1:nargout}] = decodeRange(varargin{:});
+        end%
+
+
+
+
+        function varargout = decodeRow(varargin)
             varargout = cell(size(varargin));
             for i = 1 : numel(varargin)
                 rowRef = varargin{i};
@@ -16,22 +38,23 @@ classdef ExcelReference
 
 
 
-        function varargout = parseColumn(varargin)
+        function varargout = decodeColumn(varargin)
             LETTERS = 'A' : 'Z';
             NUM_OF_LETTERS = length(LETTERS);
             varargout = cell(size(varargin));
             for i = 1 : numel(varargin)
                 columnRef = varargin{i};
                 if isnumeric(columnRef)
-                    column = columnRef;
-                    return
+                    varargout{i} = columnRef;
+                    continue
                 end
                 column = [ ];
                 try
                     column = str2num(columnRef);
                 end
                 if Valid.numericScalar(column)
-                    return
+                    varargout{i} = column;
+                    continue
                 end
                 columnRef = upper(char(columnRef));
                 column = 0;
@@ -45,7 +68,7 @@ classdef ExcelReference
 
 
 
-        function varargout = parseCell(varargin)
+        function varargout = decodeCell(varargin)
             xlsCell = cellstr(varargin);
             xlsCell = strtrim(xlsCell);
             numOfRefs = numel(xlsCell);
@@ -58,8 +81,8 @@ classdef ExcelReference
                 if ~inxOfValid(i)
                     continue
                 end
-                row = ExcelReference.parseRow(tokens{2});
-                column = ExcelReference.parseColumn(tokens{1});
+                row = ExcelReference.decodeRow(tokens{2});
+                column = ExcelReference.decodeColumn(tokens{1});
                 varargout{i} = [row, column];
             end
             if any(~inxOfValid)
@@ -73,7 +96,7 @@ classdef ExcelReference
 
 
 
-        function [startRef, endRef] = parseRange(xlsRange)
+        function [startRef, endRef] = decodeRange(xlsRange)
             xlsRange = strtrim(xlsRange);
             tokens = regexp( xlsRange, '^([a-z]+\d+)(\.\.([a-z]+\d+))?$', ...
                              'Tokens', 'Once', 'IgnoreCase');
@@ -85,7 +108,7 @@ classdef ExcelReference
                        xlsRange );
             end
             ref = cell(size(tokens));
-            [ref{:}] = ExcelReference.parseCell(tokens{:});
+            [ref{:}] = ExcelReference.decodeCell(tokens{:});
             startRef = ref{1};
             if numel(ref)==2
                 endRef = ref{2};
