@@ -9,50 +9,50 @@ function varargout = acf(this, varargin)
 %
 % ## Input Arguments ##
 %
-% **`model`** [ model ] - 
+% __`model`__ [ model ] - 
 % A solved model object for which the autocorrelation function will be
 % computed.
 %
 %
 % ## Output Arguments ##
 %
-% **`C`** [ namedmat | numeric ] -
+% __`C`__ [ namedmat | numeric ] -
 % Covariance matrices.
 %
-% **`R`** [ namedmat | numeric ] -
+% __`R`__ [ namedmat | numeric ] -
 % Correlation matrices.
 %
-% **`list`** [ cellstr ] -
+% __`list`__ [ cellstr ] -
 % List of variables in rows and columns of `C` and `R`.
 %
 %
 % ## Options ##
 %
-% **`ApplyTo=@all`** [ cellstr | char | `@all` ] -
+% __`ApplyTo=@all`__ [ cellstr | char | `@all` ] -
 % List of variables to which the `Filter=` will be applied; `@all` means
 % all variables.
 %
-% **`Contributions=false`** [ `true` | `false` ] -
+% __`Contributions=false`__ [ `true` | `false` ] -
 % If `true` the contributions of individual shocks to ACFs will be computed
 % and stored in the 5th dimension of the `C` and `R` matrices.
 %
-% **`Filter=''`** [ char ] -
+% __`Filter=''`__ [ char ] -
 % Linear filter that is applied to variables specified by the option
 % `ApplyTo=`.
 %
-% **`NFreq=256`** [ numeric ] -
+% __`NFreq=256`__ [ numeric ] -
 % Number of equally spaced frequencies over which the filter in the option
 % `Filter=` is numerically integrated.
 %
-% **`Order=0`** [ numeric ] -
+% __`Order=0`__ [ numeric ] -
 % Order up to which ACF will be computed.
 %
-% **`MatrixFormat='NamedMatrix'`** [ `'NamedMatrix'` | `'plain'` ] - 
+% __`MatrixFormat='NamedMatrix'`__ [ `'NamedMatrix'` | `'plain'` ] - 
 % Return matrices `C` and `R` as either
 % [`NamedMatrix`](../../data-management/namedmatrix-objects/README.md) objects
 % (matrices with named rows and columns) or plain numeric arrays.
 %
-% **`Select=@all`** [ `@all` | char | cellstr ] - 
+% __`Select=@all`__ [ `@all` | char | cellstr ] - 
 % Return ACF for selected variables only; `@all` means all variables.
 %
 %
