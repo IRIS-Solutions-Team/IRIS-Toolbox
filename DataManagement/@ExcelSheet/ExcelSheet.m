@@ -15,7 +15,7 @@ classdef ExcelSheet < handle
     end
 
 
-    methods
+    methods % Constructor
         function this = ExcelSheet(fileName, varargin)
             if nargin==0
                 return
@@ -38,6 +38,13 @@ classdef ExcelSheet < handle
             this.InsertEmpty = opt.InsertEmpty;
             read(this);
         end%
+    end
+
+
+
+    methods % Public Interface
+        varargout = readDates(varargin)
+        varargout = retrieveSeries(varargin)
 
 
         function read(this)
@@ -54,93 +61,6 @@ classdef ExcelSheet < handle
             if insertColumns>0
                 this.Buffer = [ repmat({[]}, this.NumOfRows, insertColumn), this.Buffer ];
             end
-        end%
-
-
-        function dates = readDates(this, locationRef, varargin)
-            dataRange = getDataRange(this);
-            if isempty(dataRange)
-                THIS_ERROR = { 'ExcelSheet:CannotSetDates'
-                               'Set DataRange or (DataStart and DataEnd) first before setting or retrieving Dates' };
-                throw( exception.Base(THIS_ERROR, 'error') );
-            end
-
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('ExcelSheet.retrieveSeries');
-                addRequired(parser, 'ExcelSheet', @(x) isa(x, 'ExcelSheet'));
-                addRequired(parser, 'LocationRef', @(x) ~isempty(x));
-                addDateOptions(parser);
-            end
-            parse(parser, this, locationRef, varargin{:});
-            opt = parser.Options;
-
-            if ~iscell(locationRef)
-                locationRef = { locationRef };
-            end
-            location = cell(size(locationRef));
-            if strcmpi(this.Orientation, "Row")
-                [location{:}] = ExcelReference.decodeRow(locationRef{:});
-                datesCutout = this.Buffer([location{:}], dataRange);
-                datesCutout = transpose(datesCutout);
-            else
-                [location{:}] = ExcelReference.decodeColumn(locationRef{:});
-                datesCutout = this.Buffer(dataRange, [location{:}]);
-            end
-            this.Dates = numeric.str2dat(datesCutout, opt);
-            if nargout>=1
-                dates = this.Dates;
-            end
-        end%
-
-            
-        function x = retrieveSeries(this, locationRef, varargin)
-            dataRange = getDataRange(this);
-            if isempty(dataRange)
-                THIS_ERROR = { 'ExcelSheet:CannotSetDates'
-                               'Set DataRange or (DataStart and DataEnd) first before setting or retrieving time series' };
-                throw( exception.Base(THIS_ERROR, 'error') );
-            end
-
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('ExcelSheet.retrieveSeries');
-                parser.addRequired('excelSheet', @(x) isa(x, 'ExcelSheet'));
-                parser.addRequired('locationRef', @(x) ~isempty(x));
-                % Options
-                parser.addParameter('Aggregator', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
-                parser.addParameter('Comment', '', @(x) Valid.string(x) || Valid.list(x));
-            end
-            parse(parser, this, locationRef, varargin{:});
-            opt = parser.Options;
-
-            if ~iscell(locationRef)
-                locationRef = { locationRef };
-            end
-            location = cell(size(locationRef));
-            if strcmpi(this.Orientation, "Row")
-                [location{:}] = ExcelReference.decodeRow(locationRef{:});
-                dataCutout = this.Buffer([location{:}], dataRange);
-                dataCutout = transpose(dataCutout);
-            else
-                [location{:}] = ExcelReference.decodeColumn(locationRef{:});
-                dataCutout = this.Buffer(dataRange, [location{:}]);
-            end
-            data = nan(size(dataCutout));
-            inxValid = cellfun(@isnumeric, dataCutout);
-            dataCutout(~inxValid) = { NaN };
-            for i = 1 : size(dataCutout, 2)
-                data(:, i) = [dataCutout{:, i}];
-            end
-            if isempty(opt.Comment)
-                comment = retrieveDescription(this, locationRef, varargin{:});
-            else
-                comment = opt.Comment;
-            end
-            if isa(opt.Aggregator, 'function_handle')
-                data = opt.Aggregator(data, 2);
-            end
-            x = Series(this.Dates, data, comment);
         end%
 
 
