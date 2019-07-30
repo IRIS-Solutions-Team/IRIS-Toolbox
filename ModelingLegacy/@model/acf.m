@@ -1,7 +1,6 @@
 function varargout = acf(this, varargin)
 % acf  Autocovariance and autocorrelation function for model variables
 %{
-%
 % ## Syntax ##
 %
 %     [C, R, list] = acf(model, ...)
