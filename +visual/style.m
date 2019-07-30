@@ -105,6 +105,9 @@ function [errors, addCount] = apply(handle, type, specs, j, errors, testLevel)
         else
             assignValue = ithPropertyValue;
         end
+        if isequal(assignValue, @auto)
+            continue
+        end
         try
             currentValue = get(handle, ithPropertyName);
             if isgraphics(currentValue)
