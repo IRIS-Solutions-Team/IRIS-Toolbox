@@ -60,7 +60,7 @@ function outputDatabank = fromCSV(fileName, varargin)
 % Format of input data file; `'auto'` means the format will be determined
 % by the file extension.
 %
-% __`NameRow={'', Variables'}`__ [ char | cellstr | numeric ] - 
+% __`NameRow={'', Variables', 'Time'}`__ [ char | cellstr | numeric ] - 
 % String, or cell array of possible strings, that is found at the beginning
 % (in the first cell) of the row with variable names, or the line number at
 % which the row with variable names appears (first row is numbered 1).
@@ -178,7 +178,7 @@ if isempty(parser)
     addParameter(parser, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
     addParameter(parser, 'FirstDateOnly', false, @Valid.logicalScalar);
     addParameter(parser, 'inputformat', 'auto', @(x) ischar(x) && (strcmpi(x, 'auto') || strcmpi(x, 'csv') || strncmpi(x, 'xl', 2)));
-    addParameter(parser, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables'}, @(x) ischar(x) || iscellstr(x) || Valid.numericScalar(x));
+    addParameter(parser, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables', 'Time'}, @(x) ischar(x) || iscellstr(x) || Valid.numericScalar(x));
     addParameter(parser, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(parser, 'NaN', 'NaN', @(x) ischar(x));
     addParameter(parser, 'OutputType', 'struct', @(x) isequal(x, 'struct') || isequal(x, 'containers.Map'));
