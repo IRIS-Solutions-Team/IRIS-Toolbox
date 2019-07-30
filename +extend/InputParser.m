@@ -135,7 +135,7 @@ classdef InputParser < inputParser
 
         function addDateOptions(this, context)
             configStruct = iris.get( );
-            addParameter(this, 'DateFormat', @config, @iris.Configuration.validateDateFormat);
+            addParameter(this, 'DateFormat', @config, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime));
             addParameter(this, {'EnforceFrequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==configStruct.Freq)));
             addParameter(this, {'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
             addParameter(this, {'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
