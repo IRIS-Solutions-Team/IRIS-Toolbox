@@ -318,6 +318,12 @@ classdef DateWrapper < double
         end%
 
 
+        function dateCode = fromDatetimeAsNumeric(freq, dt)
+            serial = ymd2serial(freq, year(dt), month(dt), day(dt));
+            dateCode = DateWrapper.getDateCodeFromSerial(freq, serial);
+        end%
+
+
         function datetimeObj = toDatetime(input, varargin)
             frequency = DateWrapper.getFrequency(input);
             if ~all(frequency(1)==frequency(:))
