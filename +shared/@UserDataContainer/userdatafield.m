@@ -1,70 +1,73 @@
-function varargout = userdatafield(This,Field,varargin)
-% userdatafield  Getting and setting fields in struct userdata.
+function varargout = userdatafield(this, field, varargin)
+% userdatafield  Accessing or assigning fields in user data
+%{
+% ## Syntax for Accessing User Data Field ##
 %
-% Syntax for getting userdata field
-% ==================================
+%     value = user datafield(obj, field)
 %
-%     X = userdatafield(Obj,Field)
 %
-% Syntax for assigning userdata field
-% ====================================
+% ## Syntax for Assigning User Data Field ##
 %
-%     Obj = userdatafield(Obj,Field,X)
+%     obj = user datafield(obj, field, newValue)
 %
-% Input arguments
-% ================
 %
-% * `Obj` [ model | tseries | VAR | SVAR | FAVAR | sstate ] -
-% One of the IRIS objects.
+% ## Input Arguments ##
 %
-% * `Field` [ char ] - Field of the userdata struct; if userdata is empty,
-% the field can be created.
+% __`obj`__ [ Model | Series | VAR | SVAR | DFM ] -
+% IRIS object subclassed from UserDataContainer.
 %
-% * `X` [ ... ] - Data that will be stored in field `Field` of the userdata
-% struct.
+% __`field`__ [ char | string ] - 
+% Field of the user data struct; if user data is empty, the field can be
+% created.
 %
-% Output arguments
-% =================
+% __`newValue`__ [ * ] - 
+% Data that will be stored in the `field` in the user data struct.
 %
-% * `X` [ ... ] - Field `Field` of the userdata struct that are currently
-% attached to the object.
 %
-% Description
-% ============
+% ## Output Arguments ##
 %
-% Example
-% ========
+% __`value`__ [ * ] - 
+% Value of the `field` in the user data struct that are currently
+% assigned in the object `obj`.
 %
+%
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2019 IRIS Solutions Team.
 
 %--------------------------------------------------------------------------
 
-% Remove dots, equal signs, etc.
-Field = regexp(Field,'\w+','match','once');
+u = this.UserData;
+if ~isempty(u) && ~isstruct(u)
+    THIS_ERROR = { 'UserDataContainer:UserDataIsNotStruct'
+                   'Cannot access or assign a user data field because the existing user data are not a struct' };
+    throw( exception.Base(THIS_ERROR, 'error') );
+end
+
+% Remove dots, equal signs, etc from the field name
+field = regexp(field, '\w+', 'match', 'once');
 
 if isempty(varargin)
-    % Get user data field.
-    u = This.UserData;
-    if isa(u,'struct') && isfield(u,Field)
-        varargout{1} = u.(Field);
+    % Access user data field
+    if isfield(u, field)
+        varargout{1} = u.(field);
     else
-        utils.error('userdata', ...
-            ['User data is not a struct, ', ...
-            'or the field ''%s'' does not exist.'], ...
-            Field);
+        THIS_ERROR = { 'UserDataContainer:FieldDoesNotExist'
+                       'User data field does not exist in the user data struct: %s ' };
+        throw( exception.Base(THIS_ERROR, 'error'), ...
+               field );
     end
 else
-    % Set user data field.
-    u = This.UserData;
-    if isempty(u) || isstruct(u)
-        This.UserData.(Field) = varargin{1};
-    else
-        utils.error('userdata', ...
-            'User data is non-empty and not a struct .');
-    end
-    varargout{1} = This;
+    % Assign user data field
+    this.UserData.(field) = varargin{1};
+    varargout{1} = this;
 end
 
-end
+end%
+

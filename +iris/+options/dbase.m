@@ -71,25 +71,6 @@ Def.dbrange = {
     'enddate', 'maxrange', @(x) ischar(x) && any(strcmpi(x, {'maxrange', 'minrange', 'balanced', 'unbalanced'}))
 };
 
-Def.dbsave = [
-    dateformat
-    {
-    'VariablesHeader', 'Variables ->', @(x) ischar(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"'))
-    'ClassHeader', 'Class[Size] ->', @(x) ischar(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"'))
-    'Class', true, @islogicalscalar
-    'Comment', true, @islogicalscalar
-    'CommentsHeader', 'Comments ->', @(x) ischar(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"'))
-    'Decimal', [ ], @(x) isempty(x) || (length(x)==1 && isnumeric(x))
-    'Format', '%.8e', @(x) ischar(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-'))
-    'MatchFreq', false, @islogicalscalar
-    'Nan', 'NaN', @ischar
-    'SaveSubdb', false, @islogicalscalar
-    'UserData', 'userdata', @(x) ischar(x) && isvarname(x)
-    'UnitsHeader', 'Units ->', @(x) ischar(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"'))
-    'Delimiter', ',', @ischar
-    }
-]; %#ok<CCAT>
-
 Def.dbsplit = { ...
     'discard', true, @islogicalscalar, ...
     };
@@ -98,4 +79,4 @@ Def.xls2csv = { ...
     'sheet', 1, @(x) (isintscalar(x) && x>0) || ischar(x), ...
     };
 
-end
+end%
