@@ -9,6 +9,13 @@
 
 classdef Valid
     methods (Static)
+        function flag = databank(input)
+            flag = isstruct(input) ...
+                || isa(input, 'Dictionary') ...
+                || isa(input, 'containers.Map');
+        end%
+
+
         function flag = numericScalar(input, lim)
             if ~isnumeric(input) || ~isscalar(input)
                 flag = false;
