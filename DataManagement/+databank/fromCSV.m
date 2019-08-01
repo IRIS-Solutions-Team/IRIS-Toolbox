@@ -72,7 +72,7 @@ function outputDatabank = fromCSV(fileName, varargin)
 % __`NaN='NaN'`__ [ char ] - 
 % String representing missing observations (case insensitive).
 %
-% __`OutputType='struct'`__ [ `'struct'` | `'containers.Map'` ] -
+% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` | `'containers.Map'` ] -
 % Format (Matlab class) of the output databank.
 %
 % __`Preprocess=[ ]`__ [ function_handle | cell | empty ] - 
@@ -171,21 +171,22 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('dbase.dbload');
     addRequired(parser, 'FileName', @Valid.list);
+    % Options
     addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || isstruct(x) || isa(x, 'containers.Map'));
-    addParameter(parser, {'case', 'changecase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
+    addParameter(parser, {'Case', 'ChangeCase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
     addParameter(parser, 'CommentRow', {'Comment', 'Comments'}, @(x) ischar(x) || iscellstr(x) || (isnumeric(x) && all(x==round(x)) && all(x>0)));
     addParameter(parser, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
     addParameter(parser, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
     addParameter(parser, 'FirstDateOnly', false, @Valid.logicalScalar);
-    addParameter(parser, 'inputformat', 'auto', @(x) ischar(x) && (strcmpi(x, 'auto') || strcmpi(x, 'csv') || strncmpi(x, 'xl', 2)));
+    % addParameter(parser, 'inputformat', 'auto', @(x) ischar(x) && (strcmpi(x, 'auto') || strcmpi(x, 'csv') || strncmpi(x, 'xl', 2)));
     addParameter(parser, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables', 'Time'}, @(x) ischar(x) || iscellstr(x) || Valid.numericScalar(x));
     addParameter(parser, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(parser, 'NaN', 'NaN', @(x) ischar(x));
-    addParameter(parser, 'OutputType', 'struct', @(x) isequal(x, 'struct') || isequal(x, 'containers.Map'));
+    addParameter(parser, 'OutputType', 'struct', @(x) strcmpi(x, 'struct') || strcmpi(x, 'containers.Map') || strcmpi(x, 'Dictionary'));
     addParameter(parser, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(parser, 'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
-    addParameter(parser, 'select', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
-    addParameter(parser, {'skiprows', 'skiprow'}, '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isnumeric(x));
+    addParameter(parser, 'Select', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
+    addParameter(parser, {'SkipRows', 'skiprow'}, '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isnumeric(x));
     addParameter(parser, {'DatabankUserData', 'UserData'}, Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x)));
     addParameter(parser, 'UserDataField', '.', @(x) ischar(x) && isscalar(x));
     addParameter(parser, 'UserDataFieldList', { }, @(x) isempty(x) || iscellstr(x) || isnumeric(x));
@@ -270,12 +271,12 @@ if numel(cmtRow)<numel(nameRow)
 end
 
 % Apply user selection, white out all names that user did not select
-if ~isequal(opt.select, @all)
-    if ischar(opt.select)
-        opt.select = regexp(opt.select, '\w+', 'match');
+if ~isequal(opt.Select, @all)
+    if ischar(opt.Select)
+        opt.Select = regexp(opt.Select, '\w+', 'match');
     end
     for i = 1 : numel(nameRow)
-        if ~any(strcmp(nameRow{i}, opt.select))
+        if ~any(strcmp(nameRow{i}, opt.Select))
             nameRow{i} = ''; %#ok<AGROW>
         end
     end
@@ -347,19 +348,19 @@ return
 
     function hereProcessOptions( )
         % Headers for rows to be skipped
-        if ischar(opt.skiprows)
-            opt.skiprows = {opt.skiprows};
+        if ischar(opt.SkipRows)
+            opt.SkipRows = {opt.SkipRows};
         end
-        if ~isempty(opt.skiprows) && ~isnumeric(opt.skiprows)
-            for ii = 1 : numel(opt.skiprows)
-                if isempty(opt.skiprows{ii})
+        if ~isempty(opt.SkipRows) && ~isnumeric(opt.SkipRows)
+            for ii = 1 : numel(opt.SkipRows)
+                if isempty(opt.SkipRows{ii})
                     continue
                 end
-                if opt.skiprows{ii}(1)~='^'
-                    opt.skiprows{ii} = ['^', opt.skiprows{ii}];
+                if opt.SkipRows{ii}(1)~='^'
+                    opt.SkipRows{ii} = ['^', opt.SkipRows{ii}];
                 end
-                if opt.skiprows{ii}(end)~='$'
-                    opt.skiprows{ii} = [opt.skiprows{ii}, '$'];
+                if opt.SkipRows{ii}(end)~='$'
+                    opt.SkipRows{ii} = [opt.SkipRows{ii}, '$'];
                 end
             end
         end
@@ -416,7 +417,7 @@ return
                 ident = strtrim(ident);
             end
             
-            if isnumeric(opt.skiprows) && any(rowCount==opt.skiprows)
+            if isnumeric(opt.SkipRows) && any(rowCount==opt.SkipRows)
                 hereMoveToNextEol( );
                 continue
             end
@@ -470,8 +471,8 @@ return
                 isDate = false;
             elseif ~isempty(strfind(lower(ident), 'units'))
                 isDate = false;
-            elseif ~isnumeric(opt.skiprows) ...
-                    && any(~cellfun(@isempty, regexp(ident, opt.skiprows)))
+            elseif ~isnumeric(opt.SkipRows) ...
+                    && any(~cellfun(@isempty, regexp(ident, opt.SkipRows)))
                 isDate = false;
             end
             
@@ -771,9 +772,9 @@ return
         if ~iscellstr(nameRow)
             throw( exception.Base('Dbase:InvalidOptionNameFunc', 'error') );
         end
-        if strcmpi(opt.case, 'lower')
+        if strcmpi(opt.Case, 'lower')
             nameRow = lower(nameRow);
-        elseif strcmpi(opt.case, 'upper')
+        elseif strcmpi(opt.Case, 'upper')
             nameRow = upper(nameRow);
         end
     end% 
@@ -782,16 +783,22 @@ return
 
 
     function hereCheckNames( )
-        ixEmpty = cellfun(@isempty, nameRow);
-        ixValid = cellfun(@isvarname, nameRow);
-        % Index of non-empty, invalid names that need to be regenerated.
-        ixGen = ~ixEmpty & ~ixValid;
-        % Index of valid names that will be protected.
-        ixProtect = ~ixEmpty & ixValid;
+        inxOfEmpty = cellfun(@isempty, nameRow);
+        if strcmpi(opt.OutputType, 'struct')
+            inxOfValid = cellfun(@isvarname, nameRow);
+        else
+            inxOfValid = true(size(nameRow));
+        end
+        % Index of non-empty, invalid names that need to be regenerated
+        inxToGenerate = ~inxOfEmpty & ~inxOfValid;
+        % Index of valid names that will be protected
+        inxToProtect = ~inxOfEmpty & inxOfValid;
         % `genvarname` now guarantees uniqueness of names by appending `1`, `2`, 
         % etc. at the end of the string; did not use to be the case in older
         % versions of Matlab.
-        nameRow(ixGen) = genvarname(nameRow(ixGen), nameRow(ixProtect)); %#ok<DEPGENAM>
+        if any(inxToGenerate)
+            nameRow(inxToGenerate) = genvarname(nameRow(inxToGenerate), nameRow(inxToProtect)); %#ok<DEPGENAM>
+        end
     end%
 
 
@@ -815,10 +822,12 @@ return
 
     function hereCheckInputOutputFormatConsistency( )
         if isempty(outputDatabank)
-            if isequal(opt.OutputType, 'containers.Map')
+            if strcmpi(opt.OutputType, 'containers.Map')
                 outputDatabank = containers.Map('KeyType', 'char', 'ValueType', 'any');
+            elseif strcmpi(opt.OutputType, 'Dictionary')
+                outputDatabank = Dictionary( );
             else
-                outputDatabank = struct ( );
+                outputDatabank = struct( );
             end
         else
             if isa(outputDatabank, opt.OutputType)
@@ -838,7 +847,7 @@ return
         if isa(outputDatabank, 'containers.Map')
             outputDatabank(newName) = newData;
         else
-            outputDatabank.(newName) = newData;
+            outputDatabank = setfield(outputDatabank, newName, newData);
         end
     end%
 end%
