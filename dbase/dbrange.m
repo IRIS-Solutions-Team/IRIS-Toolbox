@@ -1,55 +1,58 @@
 function [range, freqList] = dbrange(varargin)
-% dbrange  Find a range that encompasses the ranges of the listed tseries objects.
+% dbrange  Find a range that encompasses the ranges of the listed tseries objects
+%{
+% ## Syntax ##
+%
+% Input arguments marked with a `~` sign may be omitted
+%
+%     [range, freqList] = dbrange(d, ~list, ...)
 %
 %
-% __Syntax__
+% ## Input Arguments ##
 %
-% Input arguments marked with a `~` sign may be omitted.
+% __`d`__ [ struct ] - 
+% Input database.
 %
-%     [Range, FreqList] = dbrange(D, ~List, ...)
-%
-%
-% __Input Arguments__
-%
-% * `D` [ struct ] - Input database.
-%
-% * `~List` [ cellstr | rexp | *`@all`* ] - List of time series that will
-% be included in the range search or a regular expression that will be
-% matched to compose the list; `@all` means all tseries objects existing in
-% the input databases will be included; may be omitted.
+% __`~list`__ [ cellstr | rexp | *`@all`* ] - 
+% List of time series that will be included in the range search or a
+% regular expression that will be matched to compose the list; `@all` means
+% all tseries objects existing in the input databases will be included; may
+% be omitted.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
-% * `Range` [ numeric | cell ] - Range that encompasses the observations of
-% the tseries objects in the input database; if tseries objects with
-% different frequencies exist, the ranges are returned in a cell array.
+% __`range`__ [ numeric | cell ] - 
+% Range that encompasses the observations of the tseries objects in the
+% input database; if tseries objects with different frequencies exist, the
+% ranges are returned in a cell array.
 %
-% * `FreqList` [ numeric ] - Vector of date frequencies coresponding to the
-% returned ranges.
-%
-%
-% __Options__
-%
-% * `'StartDate='` [ *`'maxRange'`* | `'minRange'` ] - `'maxRange'` means
-% the output `Range` will start at the earliest start date among all time
-% series included in the search; `'minRange'` means the `range` will start
-% at the latest start date.
-%
-% * `'EndDate='` [ *`'maxRange'`* | `'minRange'` ] - `'maxRange'` means the
-% `range` will end at the latest end date among all time series included in
-% the search; `'minRange'` means the `range` will end at the earliest end
-% date.
+% __`freqList`__ [ numeric ] - 
+% Vector of date frequencies coresponding to the returned ranges.
 %
 %
-% __Description__
+% ## Options ##
+%
+% __`StartDate='MaxRange'`__ [ `'MaxRange'` | `'MinRange'` ] - 
+% `'MaxRange'` means the output `Range` will start at the earliest start
+% date among all time series included in the search; `'MinRange'` means the
+% `range` will start at the latest start date.
+%
+% __`EndDate='MaxRange'`__ [ `'MaxRange'` | `'MinRange'` ] - 
+% `'MaxRange'` means the `range` will end at the latest end date among all
+% time series included in the search; `'MinRange'` means the `range` will
+% end at the earliest end date.
 %
 %
-% __Example__
+% ## Description ##
 %
+%
+% ## Example ##
+%
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 [d, list, varargin] = irisinp.parser.parse('dbase.dbrange', varargin{:});
 opt = passvalopt('dbase.dbrange', varargin{:});
@@ -58,8 +61,8 @@ if ischar(list)
     list = regexp(list, '\w+', 'match');
 elseif isa(list, 'rexp')
     f = fieldnames(d);
-    ixMatched = ~cellfun(@isempty, regexp(f, list, 'once'));
-    list = f(ixMatched);
+    inxOfMatched = ~cellfun(@isempty, regexp(f, list, 'once'));
+    list = f(inxOfMatched);
 elseif isequal(list, @all)
     list = fieldnames(d);
 end
@@ -67,37 +70,36 @@ end
 %--------------------------------------------------------------------------
 
 freqList = iris.get('freq');
-nFreq = length(freqList);
-startDat = cell(1, nFreq);
-endDat = cell(1, nFreq);
-range = cell(1, nFreq);
-nList = numel(list);
-
-for i = 1 : nList
+numOfFreq = length(freqList);
+startDates = cell(1, numOfFreq);
+endDates = cell(1, numOfFreq);
+range = cell(1, numOfFreq);
+numOfEntries = numel(list);
+for i = 1 : numOfEntries
     if isfield(d, list{i}) && isa(d.(list{i}), 'TimeSubscriptable')
         x = d.(list{i});
-        freqInx = freq(x) == freqList;
-        if any(freqInx)
-            startDat{freqInx}(end+1) = x.Start;
-            endDat{freqInx}(end+1) = x.End;
+        inxOfFreq = freq(x)==freqList;
+        if any(inxOfFreq)
+            startDates{inxOfFreq}(end+1) = x.Start;
+            endDates{inxOfFreq}(end+1) = x.End;
         end
     end
 end
 
 if any(strcmpi(opt.startdate, {'maxrange', 'unbalanced'}))
-    startDat = cellfun(@min, startDat, 'uniformOutput', false);
+    startDates = cellfun(@min, startDates, 'uniformOutput', false);
 else
-    startDat = cellfun(@max, startDat, 'uniformOutput', false);
+    startDates = cellfun(@max, startDates, 'uniformOutput', false);
 end
 
 if any(strcmpi(opt.enddate, {'maxrange', 'unbalanced'}))
-    endDat = cellfun(@max, endDat, 'uniformOutput', false);
+    endDates = cellfun(@max, endDates, 'uniformOutput', false);
 else
-    endDat = cellfun(@min, endDat, 'uniformOutput', false);
+    endDates = cellfun(@min, endDates, 'uniformOutput', false);
 end
 
-for i = find(~cellfun(@isempty, startDat))
-    range{i} = DateWrapper(startDat{i} : endDat{i});
+for i = find(~cellfun(@isempty, startDates))
+    range{i} = DateWrapper(startDates{i} : endDates{i});
 end
 
 isEmpty = cellfun(@isempty, range);
@@ -112,4 +114,5 @@ else
     freqList = freqList(~isEmpty);
 end
 
-end
+end%
+

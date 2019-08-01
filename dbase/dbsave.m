@@ -54,9 +54,9 @@ function lsSaved = dbsave(inp, fileName, varargin)
 %
 % * `NaN='NaN'` [ char ] - String that will be used to represent NaNs.
 %
-% * `SaveSubdb=false` [ `true` | `false` ] - Save sub-databases (structs
-% found within the input struct `D`); the sub-databases will be saved to
-% separate CSV files.
+% * `SaveNested=false` [ `true` | `false` ] - Save nested databanks
+% (structs within the `inputDatabank`); the nested databanks will be saved
+% to separate CSV files.
 %
 % * `UserData='userdata'` [ char ] - Field name from which any kind of
 % userdata will be read and saved in the CSV file.
@@ -130,8 +130,8 @@ function lsSaved = dbsave(inp, fileName, varargin)
 %                 x: [4x1 tseries]
 %                 y: [4x1 tseries]
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
 
@@ -146,26 +146,37 @@ catch %#ok<CTCH>
     dates = Inf;
 end
 
-% Allow both dbsave(d, fileName) and dbsave(fileName, d).
-if ischar(inp) && isstruct(fileName)
+% Allow both dbsave(d, fileName) and dbsave(fileName, d)
+if Valid.string(inp) && Valid.databank(fileName)
     [inp, fileName] = deal(fileName, inp);
 end
 
-% Parse input arguments.
-pp = inputParser( );
-pp.addRequired('InputDatabank', @isstruct);
-pp.addRequired('FileName', @ischar);
-pp.addRequired('Dates', @DateWrapper.validateDateInput);
-pp.parse(inp, fileName, dates);
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dbase/dbsave');
+    addRequired(parser, 'inputDatabank', @Valid.databank);
+    addRequired(parser, 'fileName', @Valid.string);
+    addRequired(parser, 'dates', @DateWrapper.validateDateInput);
+    % Options
+    addParameter(parser, 'VariablesHeader', 'Variables ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, 'ClassHeader', 'Class[Size] ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, 'Class', true, @Valid.logicalScalar);
+    addParameter(parser, 'Comment', true, @Valid.logicalScalar);
+    addParameter(parser, 'CommentsHeader', 'Comments ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, 'Decimal', [ ], @(x) isempty(x) || Valid.numericScalar(x));
+    addParameter(parser, 'Format', '%.8e', @(x) Valid.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
+    addParameter(parser, 'MatchFreq', false, @Valid.logicalScalar);
+    addParameter(parser, 'Nan', 'NaN', @Valid.string);
+    addParameter(parser, {'SaveNested', 'SaveSubdb'}, false, @Valid.logicalScalar);
+    addParameter(parser, 'UserData', 'userdata', @(x) Valid.string(x) && isvarname(x));
+    addParameter(parser, 'UnitsHeader', 'Units ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, 'Delimiter', ',', @Valid.string);
+    addDateOptions(parser);
+end
+parse(parser, inp, fileName, dates, varargin{:});
+opt = parser.Options;
 
-% Parse options.
-opt = passvalopt('dbase.dbsave', varargin{:});
-
-% Run Dates/datdefaults to substitute the default (irisget) date format
-% options for `@config`.
-opt = datdefaults(opt);
-
-% Set up the formatting string.
+% Set up the formatting string
 if isempty(opt.Decimal)
     format = opt.Format;
 else
@@ -225,32 +236,36 @@ nameRow = { };
 classRow = { };
 commentRow = { };
 ixSaved = false(size(list));
-ixSubdb = false(size(list));
+inxOfNested = false(size(list));
 
 for i = 1 : nList
     
     name = list{i};
+    x = inp.(name);
     
-    if isa(inp.(name), 'TimeSubscriptable')
-        ithFreq = inp.(name).FrequencyAsNumeric;
+    if isa(x, 'TimeSubscriptable')
+        ithFreq = x.FrequencyAsNumeric;
         if opt.MatchFreq && userFreq~=ithFreq
             continue
         end
         if isRange
-            iData = getDataFromTo(inp.(name), dates(1), dates(end));
+            iData = getDataFromTo(x, dates(1), dates(end));
         else
-            iData = getData(inp.(name), dates);
+            iData = getData(x, dates);
         end
-        iComment = comment(inp.(name));
+        iComment = comment(x);
         ixSaved(i) = true;
-        iClass = class(inp.(name));
-    elseif isnumeric(inp.(name))
-        iData = inp.(name);
+        iClass = class(x);
+        iUserData = userdata(x);
+    elseif isnumeric(x)
+        iData = x;
         iComment = {''};
         ixSaved(i) = true;
-        iClass = class(inp.(name));
-    elseif isstruct(inp.(name))
-        ixSubdb(i) = true;
+        iClass = class(x);
+        iUserData = [ ];
+    elseif isstruct(x)
+        inxOfNested(i) = true;
+        iUserData = [ ];
         continue
     else
         continue
@@ -308,21 +323,24 @@ if opt.Class
     o.ClassRow = classRow;
 end
 
-saveCsvData(o, fileName, opt);
+c = hereSerialize(o, opt);
 
-% Save sub-databases.
-if opt.SaveSubdb && any(ixSubdb)
-    doSaveSubdb( );
+% Save to fileName if not empty
+if ~isempty(fileName)
+    char2file(c, fileName);
+end
+
+% Save nested databanks
+if opt.SaveNested && any(inxOfNested)
+    hereSaveNestedDatabanks( );
 end
 
 return
 
 
-
-
-    function doSaveSubdb( )
+    function hereSaveNestedDatabanks( )
         [fPath, fTit, fExt] = fileparts(fileName);
-        for ii = find(ixSubdb)
+        for ii = find(inxOfNested)
             iiName = list{ii};
             iifileName = fullfile(fPath, [fTit, '_', iiName], fExt);
             saved = dbsave(inp.(iiName), iifileName, dates, varargin{:});
@@ -337,7 +355,7 @@ end%
 %
 
 
-function saveCsvData(oo, fileName, opt)
+function c = hereSerialize(oo, opt)
     nameRow = oo.NameRow;
     strDat = oo.StrDat;
     data = oo.Data;
@@ -347,14 +365,13 @@ function saveCsvData(oo, fileName, opt)
     else
         delimiter = ', ';
     end
-    fstr = [delimiter, '"%s"'];
+    formatString = [delimiter, '"%s"'];
 
     if isfield(oo, 'CommentRow')
         commentRow = oo.CommentRow;
     else
         commentRow = { };
     end
-    isCommentRow = ~isempty(commentRow);
 
     if isfield(oo, 'ClassRow')
         classRow = oo.ClassRow;
@@ -366,9 +383,8 @@ function saveCsvData(oo, fileName, opt)
     if isfield(oo, 'UnitRow')
         unitRow = oo.UnitRow;
     else
-        unitRow = { };
+        unitRow = cell.empty(1, 0);
     end
-    isUnitRow = ~isempty(unitRow);
 
     if isfield(oo, 'NanString')
         nanString = oo.NanString;
@@ -408,30 +424,30 @@ function saveCsvData(oo, fileName, opt)
     if isHighlight
         nameRow = [{''}, nameRow];
     end
-    c = [c, sprintf('"%s"', opt.VariablesHeader), printCharCells(nameRow)];
+    c = [c, sprintf('"%s"', opt.VariablesHeader), herePrintCharCells(nameRow)];
 
-    % Write comments.
-    if isCommentRow
+    % Write comments
+    if ~isempty(commentRow)
         if isHighlight
             commentRow = [{''}, commentRow];
         end
-        c = [c, newline( ), sprintf('"%s"', opt.CommentsHeader), printCharCells(commentRow)];
+        c = [c, newline( ), sprintf('"%s"', opt.CommentsHeader), herePrintCharCells(commentRow)];
     end
 
-    % Write units.
-    if isUnitRow
+    % Write unit
+    if ~isempty(unitRow)
         if isHighlight
             unitRow = [{''}, unitRow];
         end
-        c = [c, newline( ), sprintf('"%s"', opt.UnitsHeader), printCharCells(unitRow)];
+        c = [c, newline( ), sprintf('"%s"', opt.UnitsHeader), herePrintCharCells(unitRow)];
     end
 
-    % Write classes.
+    % Write class
     if isClassRow
         if isHighlight
             classRow = [{''}, classRow];
         end
-        c = [c, newline( ), sprintf('"%s"', opt.ClassHeader), printCharCells(classRow)];
+        c = [c, newline( ), sprintf('"%s"', opt.ClassHeader), herePrintCharCells(classRow)];
     end
 
     % Handle escape characters.
@@ -504,16 +520,16 @@ function saveCsvData(oo, fileName, opt)
     % Splice the headings and the data, and save the buffer. No need to put
     % a line break between `c` and `cc` because that the `cc` does start
     % with a line break.
-    char2file([c, cc], fileName);
+    c = [c, cc];
 
     return
 
 
-        function s = printCharCells(c)
+        function s = herePrintCharCells(c)
             s = '';
             if isempty(c) || ~iscellstr(c)
                 return
             end
-            s = sprintf(fstr, c{:});
+            s = sprintf(formatString, c{:});
         end%
 end%
