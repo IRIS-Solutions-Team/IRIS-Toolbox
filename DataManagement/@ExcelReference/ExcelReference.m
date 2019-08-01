@@ -38,14 +38,14 @@ classdef ExcelReference
 
 
 
-        function varargout = decodeColumn(varargin)
+        function outputColumn = decodeColumn(varargin)
             LETTERS = 'A' : 'Z';
             NUM_OF_LETTERS = length(LETTERS);
-            varargout = cell(size(varargin));
-            for i = 1 : numel(varargin)
+            outputColumn = nan(size(varargin));
+            for i = 1 : nargin
                 columnRef = varargin{i};
                 if isnumeric(columnRef)
-                    varargout{i} = columnRef;
+                    outputColumn(i) = columnRef;
                     continue
                 end
                 column = [ ];
@@ -53,7 +53,7 @@ classdef ExcelReference
                     column = str2num(columnRef);
                 end
                 if Valid.numericScalar(column)
-                    varargout{i} = column;
+                    outputColumn(i) = column;
                     continue
                 end
                 columnRef = upper(char(columnRef));
@@ -61,8 +61,16 @@ classdef ExcelReference
                 for j = 1 : length(columnRef)
                     column = column*NUM_OF_LETTERS + find(columnRef(j)==LETTERS);
                 end
-                varargout{i} = column;
+                outputColumn(i) = column;
             end
+        end%
+
+
+
+
+        function columnRange = decodeColumnRange(firstColumn, lastColumn)
+            columnRange = ExcelReference.decodeColumn(firstColumn) ...
+                          : ExcelReference.decodeColumn(lastColumn);
         end%
 
 
