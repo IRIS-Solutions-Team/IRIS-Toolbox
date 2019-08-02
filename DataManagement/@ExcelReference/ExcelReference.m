@@ -22,16 +22,16 @@ classdef ExcelReference
 
 
 
-        function varargout = decodeRow(varargin)
-            varargout = cell(size(varargin));
+        function outputRow = decodeRow(varargin)
+            outputRow = nan(size(varargin));
             for i = 1 : numel(varargin)
                 rowRef = varargin{i};
                 if isnumeric(rowRef)
                     row = rowRef;
-                elseif ischar(rowRef) || isa(rowRef, 'string')
+                elseif Valid.string(rowRef)
                     row = str2num(rowRef);
                 end
-                varargout{i} = row;
+                outputRow(i) = row;
             end
         end%
 
@@ -68,10 +68,12 @@ classdef ExcelReference
 
 
 
+        %{
         function columnRange = decodeColumnRange(firstColumn, lastColumn)
             columnRange = ExcelReference.decodeColumn(firstColumn) ...
                           : ExcelReference.decodeColumn(lastColumn);
         end%
+        %}
 
 
 
@@ -109,6 +111,7 @@ classdef ExcelReference
             tokens = regexp( xlsRange, '^([a-z]+\d+)(\.\.([a-z]+\d+))?$', ...
                              'Tokens', 'Once', 'IgnoreCase');
             tokens(cellfun('isempty', tokens)) = [ ];
+            tokens = strrep(tokens, '.', '');
             if numel(tokens)~=1 && numel(tokens)~=2
                 THIS_ERROR = { 'ExcelReference:InvalidExcelRange'
                                'This is not a valid Excel range string: %s ' };
@@ -122,6 +125,49 @@ classdef ExcelReference
                 endRef = ref{2};
             else
                 endRef = startRef;
+            end
+        end%
+
+
+
+        function range = decodeRowRange(xlsRange)
+            xlsRange = strtrim(xlsRange);
+            tokens = regexp( xlsRange, '^(\d+)(\.\.(\d+))?$', ...
+                             'Tokens', 'Once', 'IgnoreCase');
+            tokens(cellfun('isempty', tokens)) = [ ];
+            tokens = strrep(tokens, '.', '');
+            if numel(tokens)~=1 && numel(tokens)~=2
+                THIS_ERROR = { 'ExcelReference:InvalidExcelRange'
+                               'This is not a valid Excel row range string: %s ' };
+                throw( exception.Base(THIS_ERROR, 'error'), ...
+                       xlsRange );
+            end
+            ref = ExcelReference.decodeRow(tokens{:});
+            range = ref(1);
+            if numel(ref)==2
+                range = range : ref(2);
+            end
+        end%
+
+
+
+
+        function range = decodeColumnRange(xlsRange)
+            xlsRange = strtrim(xlsRange);
+            tokens = regexp( xlsRange, '^([a-z]+)(\.\.([a-z]+))?$', ...
+                             'Tokens', 'Once', 'IgnoreCase');
+            tokens(cellfun('isempty', tokens)) = [ ];
+            tokens = strrep(tokens, '.', '');
+            if numel(tokens)~=1 && numel(tokens)~=2
+                THIS_ERROR = { 'ExcelReference:InvalidExcelRange'
+                               'This is not a valid Excel column range string: %s ' };
+                throw( exception.Base(THIS_ERROR, 'error'), ...
+                       xlsRange );
+            end
+            ref = ExcelReference.decodeColumn(tokens{:});
+            range = ref(1);
+            if numel(ref)==2
+                range = range : ref(2);
             end
         end%
     end
