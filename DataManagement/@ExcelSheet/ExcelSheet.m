@@ -1,4 +1,4 @@
-classdef ExcelSheet < handle
+classdef ExcelSheet < matlab.mixin.Copyable
     properties
         Buffer (:, :) cell = cell.empty(0)
         FileName (1, 1) string = ""
@@ -10,6 +10,7 @@ classdef ExcelSheet < handle
         DataEnd = NaN
         DataSkip (1, 1) double {mustBePositive, mustBeFinite, mustBeInteger} = 1
         Description = NaN
+        NamesLocation = NaN
         Dates (1, :) DateWrapper = DateWrapper.NaD
         InsertEmpty = [0, 0]
     end
@@ -45,6 +46,7 @@ classdef ExcelSheet < handle
     methods % Public Interface
         varargout = readDates(varargin)
         varargout = retrieveSeries(varargin)
+        varargout = retrieveDatabank(varargin)
 
 
         function read(this)
@@ -237,6 +239,11 @@ classdef ExcelSheet < handle
 
         function this = set.Description(this, value)
             this.Description = setAnchor(this, value);
+        end%
+
+
+        function this = set.NamesLocation(this, value)
+            this.NamesLocation = setAnchor(this, value);
         end%
 
 
