@@ -1,4 +1,49 @@
 function outputDatabank = retrieveDatabank(this, range, varargin)
+% retrieveDatabank  Retrieve batch of time series from ExcelSheet into databank
+%{
+% ## Syntax ##
+%
+%     outputDatabank = retrieveDatabank(excelSheet, excelRange, ...)
+%
+%
+% ## Input Arguments ##
+%
+% __`excelSheet`__ [ ExcelSheet ] -
+% ExcelSheet object from which the time series will be retrieved and
+% returned in an `outputDatabank`; `excelSheet` needs to have its
+% `NamesLocation` property assigned.
+%
+% __`range`__ [ char | string | numeric ] - Excel row range (if the
+% ExcelSheet object has Row orientation) or column range (column
+% orientation) from which the time series will be retrieved.
+%
+%
+% ## Output Arguments ##
+%
+% __`outputDataban`__ [ | ] -
+% Output databank with the requsted time series.
+%
+%
+% ## Options ##
+%
+% __`AddToDatabank=[ ]`__ [ empty | struct | Dictionary | containers.Map ] -
+% Add the requested time series to an existing databank; the type (Matlab
+% class) of this databank needs to be consistent with option `OutputType=`.
+%
+% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` | `'containers.Map'` ] -
+% Type (Matlab class) of the output databank.
+%
+%
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%}
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
 
 persistent parser
 if isempty(parser)
@@ -6,6 +51,7 @@ if isempty(parser)
     addRequired(parser, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
     addRequired(parser, 'range', @(x) isnumeric(x) || Valid.string(x));
     % Options
+    addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || Valid.databank(x));
     addParameter(parser, 'OutputType', 'struct', @(x) Valid.anyString(x, 'struct', 'Dictionary', 'containers.Map'));
 end
 parse(parser, this, range, varargin{:});
@@ -19,7 +65,8 @@ if isequaln(this.NamesLocation, NaN)
     throw( exception.Base(THIS_ERROR, 'error') );
 end
 
-outputDatabank = hereCreateOutputDatank( );
+outputDatabank = databank.backend.ensureTypeConsistency( opt.AddToDatabank, ...
+                                                         opt.OutputType );
 
 if this.Orientation=="Row"
     if ~isnumeric(range)

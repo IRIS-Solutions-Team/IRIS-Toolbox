@@ -172,7 +172,7 @@ if isempty(parser)
     parser = extend.InputParser('dbase.dbload');
     addRequired(parser, 'FileName', @Valid.list);
     % Options
-    addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || isstruct(x) || isa(x, 'containers.Map'));
+    addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || Valid.databank(x));
     addParameter(parser, {'Case', 'ChangeCase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
     addParameter(parser, 'CommentRow', {'Comment', 'Comments'}, @(x) ischar(x) || iscellstr(x) || (isnumeric(x) && all(x==round(x)) && all(x>0)));
     addParameter(parser, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
@@ -198,8 +198,8 @@ opt = parser.Options;
 fileName = cellstr(fileName);
 
 % Check consistency of options AddToDatabank= and OutputFormat=
-outputDatabank = opt.AddToDatabank;
-hereCheckInputOutputFormatConsistency( );
+outputDatabank = databank.backend.ensureTypeConsistency( opt.AddToDatabank, ...
+                                                         opt.OutputType );
 
 % Loop over all input databanks subcontracting `databank.fromCSV` and
 % merging the resulting databanks in one.
@@ -815,29 +815,6 @@ return
                    fileName, err.message ); %#ok<GTARG>
         end
         hereAddEntryToOutputDatabank(databankUserDataFieldName, userDataField);
-    end%
-
-
-
-
-    function hereCheckInputOutputFormatConsistency( )
-        if isempty(outputDatabank)
-            if strcmpi(opt.OutputType, 'containers.Map')
-                outputDatabank = containers.Map('KeyType', 'char', 'ValueType', 'any');
-            elseif strcmpi(opt.OutputType, 'Dictionary')
-                outputDatabank = Dictionary( );
-            else
-                outputDatabank = struct( );
-            end
-        else
-            if isa(outputDatabank, opt.OutputType)
-                return
-            end
-            THIS_ERROR = { 'Databank:InvalidDatabankFormat'
-                           [ 'The type of the databank in option AddToDatabank= ', ...
-                             'is not consistent with option OutputType= ' ] };
-            throw( exception.Base(THIS_ERROR, 'error') );
-        end
     end%
 
 
