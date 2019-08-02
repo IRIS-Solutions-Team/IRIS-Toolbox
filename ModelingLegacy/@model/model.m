@@ -180,7 +180,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = chkpriors(varargin)                
 
 
-        varargin = checkSteady(varargin)
+        varargout = checkSteady(varargin)
         function varargout = chksstate(varargin)
             [varargout{1:nargout}] = checkSteady(varargin{:});
         end%

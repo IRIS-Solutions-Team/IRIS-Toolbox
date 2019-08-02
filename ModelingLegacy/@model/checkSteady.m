@@ -1,40 +1,44 @@
-function [flag, varargout] = chksstate(this, varargin)
-% chksstate  Check if equations hold for currently assigned steady-state values.
-%
-%
+function [flag, varargout] = checkSteady(this, varargin)
+% checkSteady  Check if equations hold for currently assigned steady-state values.
+%{
 % ## Syntax ##
 %
-%     [flag, list] = chksstate(model, ...)
-%     [flag, discr, list] = chksstate(model, ...)
+%     [flag, list] = checkSteady(model, ...)
+%     [flag, discr, list] = checkSteady(model, ...)
+%
 %
 % ## Input Arguments ##
 %
-% * `model` [ model ] - Model object with steady-state values assigned.
+% __`model`__ [ model ] - 
+% Model object with steady-state values assigned.
 %
 %
 % ## Output Arguments ##
 %
-% * `flag` [ `true` | `false` ] - True if discrepancy between LHS and RHS
-% is smaller than tolerance level in each equation.
+% __`flag`__ [ `true` | `false` ] - 
+% True if discrepancy between LHS and RHS is smaller than tolerance level
+% in each equation.
 %
-% * `discr` [ numeric ] - Discrepancies between LHS and RHS evaluated for
-% each equation at two consecutive times, and returned as two column
-% vectors.
+% __`discr`__ [ numeric ] - 
+% Discrepancies between LHS and RHS evaluated for each equation at two
+% consecutive times, and returned as two column vectors.
 %
-% * `list` [ cellstr ] - List of equations in which the discrepancy between
-% LHS and RHS is greater than predefined tolerance.
+% __`list`__ [ cellstr ] - 
+% List of equations in which the discrepancy between LHS and RHS is greater
+% than predefined tolerance.
 %
 %
 % ## Options ##
 %
-% * `Error=true` [ `true` | `false` ] - Throw an error if one or more
+% __`Error=true`__ [ `true` | `false` ] - 
+% Throw an error if one or more
 % equations fail to hold up to tolerance level.
 %
-% * `EquationSwitch='Dynamic'` [ `'Both'` | `'Dynamic'` | `'Steady'` ] - Check either
-% dynamic equations or steady equations or both.
+% __`EquationSwitch='Dynamic'`__ [ `'Both'` | `'Dynamic'` | `'Steady'` ] - 
+% Check either dynamic equations or steady equations or both.
 %
-% * `Warning=true` [ `true` | `false` ] - Display warnings produced by this
-% function.
+% __`Warning=true`__ [ `true` | `false` ] - 
+% Display warnings produced by this function.
 %
 %
 % ## Description ##
@@ -42,6 +46,7 @@ function [flag, varargout] = chksstate(this, varargin)
 %
 % ## Example ##
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
