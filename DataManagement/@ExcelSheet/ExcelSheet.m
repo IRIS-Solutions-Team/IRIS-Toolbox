@@ -1,3 +1,5 @@
+% ExcelSheet  Extracting data from Excel sheets
+
 classdef ExcelSheet < matlab.mixin.Copyable
     properties
         Buffer (:, :) cell = cell.empty(0)
