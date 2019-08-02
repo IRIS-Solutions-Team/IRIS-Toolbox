@@ -2,6 +2,13 @@ function [flag, invalidFields] = checkNumOfColumns( inputDatabank, ...
                                                     fieldsToCheckRequired, ...
                                                     fieldsToCheckOptional, ...
                                                     admissibleNumOfColumns )
+% checkNumOfColumns  Check consistency of the number of data columns in databank time series
+%
+% Backend IRIS function
+% No help provided
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 persistent inputParser
 if isempty(inputParser)

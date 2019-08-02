@@ -55,7 +55,7 @@ if ~all(checkFrequency)
            allNames{~checkFrequency} );
 end
 
-numOfPages = databank.numOfColumns(inputDatabank, allNames);
+numOfPages = databank.backend.numOfColumns(inputDatabank, allNames);
 numOfPages(isnan(numOfPages) & inxOfOptionalNames) = 0;
 maxNumOfPages = max(numOfPages);
 

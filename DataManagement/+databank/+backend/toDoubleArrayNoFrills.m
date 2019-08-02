@@ -1,4 +1,13 @@
 function outputArray = toDoubleArrayNoFrills(inputDatabank, names, dates, column)
+% toDoubleArrayNoFrills  Retrieve data from time series into numeric array with no checks
+%
+% Backend IRIS function
+% No help provided
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
 
 if ~iscellstr(names)
     names = cellstr(names);
@@ -31,4 +40,5 @@ for i = 1 : numOfNames
     end
 end
 
-end
+end%
+

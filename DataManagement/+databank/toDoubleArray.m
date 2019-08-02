@@ -1,4 +1,8 @@
 function [outputArray, inxOfValid] = toDoubleArray(inputDatabank, names, dates, column)
+% toDoubleArray  Retrieve data from time series into numeric array
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 if nargin<4
     column = 1;
@@ -42,6 +46,10 @@ for i = 1 : numOfNames
 end
 
 outputArray = nan(numOfDates, numOfNames);
-outputArray(:, inxOfValid) = databank.toDoubleArrayNoFrills(inputDatabank, names(inxOfValid), dates, column);
+outputArray(:, inxOfValid) = databank.backend.toDoubleArrayNoFrills( inputDatabank, ...
+                                                                     names(inxOfValid), ...
+                                                                     dates, ...
+                                                                     column );
 
 end%
+
