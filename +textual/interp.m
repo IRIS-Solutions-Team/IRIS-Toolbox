@@ -9,15 +9,15 @@ function c = interp(c, varargin)
 % ## Input Arguments ##
 %
 % __`c`__ [ char | cellstr | string ] -
-% Text strings with interpolation fields (valid Matlab names prefixed by
-% `$` and parenthesized) that will be replaced with values found in the
-% earliest input struct `s1`, `s2`, etc.
+% Text string(s) containing interpolation fields (valid Matlab names
+% parenthesized and prefixed with `$`) that will be replaced with values
+% found in the earliest input struct `s1`, `s2`, etc.
 %
 % __`s1`__ [ struct ] -
-% Structs that will be searched for interpolation fields occuring in the input string(s)
-% `c`; the earliest value found will be used to replace the field in the
-% input string(s); the value must be a string itself, otherwise no
-% interpolation will be performed.
+% Structs that will be searched for interpolation fields occuring in the
+% input string(s) `c`; the earliest value found will be used to replace the
+% respective interpolation field in the input string(s); the value must be
+% a string itself, otherwise no interpolation will be performed.
 %
 %
 % ## Output Arguments ##
