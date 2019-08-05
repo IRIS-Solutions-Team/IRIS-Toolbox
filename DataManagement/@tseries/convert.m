@@ -1,64 +1,72 @@
 function this = convert(this, newFreq, varargin)
-% convert  Convert tseries object to a different frequency
+% convert  Convert timer series to different frequency
+%{
+% ## Syntax ##
 %
-% __Syntax__
-%
-% Input arguments marked with a `~` sign may be omitted.
+% Input arguments marked with a `~` sign may be omitted
 %
 %     Y = convert(X, NewFreq, ~Range, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `X` [ tseries ] - Input tseries object that will be converted to a new
+% __`X`__ [ Series ] -
+% Input tseries object that will be converted to a new
 % frequency, `freq`, aggregating or intrapolating the data.
 %
-% * `NewFreq` [ Frequency | numeric | char ] - New frequency to which the
+% __`NewFreq`__ [ Frequency | numeric | char ] -
+% New frequency to which the
 % input data will be converted; see Description for frequency formats
 % allowed.
 %
-% * `Range` [ DateWrapper ] - Date range on which the input data will be
+% __`~Range`__ [ DateWrapper ] -
+% Date range on which the input data will be
 % converted; if omitted, the conversion will be done on the entire range.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
-% * `y` [ tseries ] - Output tseries created by converting `x` to the new
+% __`y`__ [ tseries ] -
+% Output tseries created by converting `x` to the new
 % frequency.
 %
 %
-% __Options__
+% ## Options ##
 %
-% * `RemoveNaN=false` [ `true` | `false` ] - Exclude NaNs from agreggation.
+% __`RemoveNaN=false`__ [ `true` | `false` ] -
+% Exclude NaNs from agreggation.
 %
-% * `Missing=NaN` [ numeric | `'previous'` ] - Replace missing observations
-% with this value.
+% __`Missing=NaN`__ [ numeric | `'previous'` ] -
+% Replace missing observations with this value.
 %
 %
-% __Options for High- to Low-Frequency Aggregation__
+% ## Options for High- to Low-Frequency Aggregation ##
 %
-% * `Method=@mean` [ function_handle | `@first` | `@last` | `@random` ]
-% - Aggregation method; `'first'`, `'last'` and `'random'` select the
+% __`Method=@mean`__ [ function_handle | `@first` | `@last` | `@random` ] -
+% Aggregation method; `'first'`, `'last'` and `'random'` select the
 % first, last of a random observation from the period.
 %
-% * `Select=Inf` [ numeric ] - Select only these high-frequency
+% __`Select=Inf`__ [ numeric ] -
+% Select only these high-frequency
 % observations within each low-frequency period; `Inf` means all
 % observations will be used.
 %
 %
-% __Options for Low- to High-Frequency Interpolation__
+% ## Options for Low- to High-Frequency Interpolation ##
 %
-% * `Method='pchip'` [ char | `'quadsum'` | `'quadavg'` ] - Interpolation
+% __`Method='pchip'`__ [ char | `'quadsum'` | `'quadavg'` ] -
+% Interpolation
 % method; any option valid for the built-in function `interp1` can be used,
 % or `'quadsum'` or `'quadavg'`; these two options use quadratic
 % interpolation preserving the sum or the average of observations within
 % each period.
 %
-% * `Position='center'` [ `'center'` | `'start'` | `'end'` ] - Position of
+% __`Position='center'`__ [ `'center'` | `'start'` | `'end'` ] -
+% Position of
 % dates within each period in the low-frequency date grid.
 %
 %
-% __Description__
+% ## Description ##
 %
 % The function handle that you pass in through the 'method' option when you
 % aggregate the data (convert higher frequency to lower frequency) should
@@ -75,7 +83,7 @@ function this = convert(this, newFreq, varargin)
 % circumstances since dimension mismatch may occur.
 %
 %
-% _Frequency Format_
+% ### Frequency Format ###
 %
 % The new frequency, `NewFreq`, needs to be a proper frequency (yearly,
 % half-yearly, quarterly, monthly, weekly, daily, but not integer or `NaF`)
@@ -93,8 +101,9 @@ function this = convert(this, newFreq, varargin)
 % `h`, `q`, `m`, `w`, `d`.
 %
 %
-% __Example__
+% ## Example ##
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team

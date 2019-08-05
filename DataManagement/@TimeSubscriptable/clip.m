@@ -43,6 +43,10 @@ parser.parse(this, newStart, newEnd);
 
 %--------------------------------------------------------------------------
 
+if isnan(this.Start) && isempty(this.Data)
+    return
+end
+
 isStartInf = isequal(newStart, -Inf) || isequal(newStart, Inf);
 isEndInf = isequal(newEnd, Inf);
 if isStartInf && isEndInf

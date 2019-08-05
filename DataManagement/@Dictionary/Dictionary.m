@@ -1,4 +1,11 @@
 classdef Dictionary < matlab.mixin.Copyable
+    properties
+        EnforceCase
+    end
+
+
+
+
     properties (SetAccess=protected)
         Keys = string.empty(1, 0)
         Values = cell.empty(1, 0)
@@ -149,6 +156,7 @@ classdef Dictionary < matlab.mixin.Copyable
         function this = store(this, varargin)
             for i = 1 : 2 : numel(varargin)
                 key = string(varargin{i});
+                key = enforceCase(this, key);
                 value = varargin{i+1};
                 [flag, pos] = lookupKey(this, key);
                 if flag
@@ -207,7 +215,17 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
     methods (Access=protected)
+        function key = enforceCase(this, key)
+            if ~isempty(this.EnforceCase)
+                key = this.EnforceCase(key);
+            end
+        end%
+
+
+
+
         function [flag, pos] = lookupKey(this, key)
+            key = enforceCase(this, key);
             inx = this.Keys==key;
             flag = any(inx);
             if flag
@@ -221,6 +239,7 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
         function pos = lookupKeys(this, keys)
+            keys = enforceCase(this, keys);
             numOfInquiries = numel(keys);
             inx = this.Keys(:)==transpose(keys(:));
             pos = nan(size(keys));
