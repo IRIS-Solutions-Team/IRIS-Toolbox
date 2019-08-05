@@ -35,7 +35,7 @@ function outputSeries = retrieveSeries(this, locationRef, varargin)
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 
-dataRange = getDataRange(this);
+dataRange = this.DataRange;
 if isempty(dataRange)
     THIS_ERROR = { 'ExcelSheet:CannotSetDates'
                    'Set DataRange or (DataStart and DataEnd) first before setting or retrieving time series' };

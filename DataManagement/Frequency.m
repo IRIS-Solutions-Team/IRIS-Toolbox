@@ -499,7 +499,7 @@ classdef Frequency < double
                     this = Frequency.QUARTERLY;
                 case {'HALFYEARLY', 'HALFYEAR', 'SEMIANNUAL', 'SEMIANNUALLY', 'HH', 'H'}
                     this = Frequency.HALFYEARLY;
-                case {'YEARLY', 'YEAR', 'ANNUAL', 'ANNUALLY', 'YY', 'Y'}
+                case {'YEARLY', 'YEAR', 'ANNUAL', 'ANNUALLY', 'YY', 'Y', 'A'}
                     this = Frequency.YEARLY;
                 case {'NAF', 'NAN', 'N'}
                     this = Frequency.NaF;

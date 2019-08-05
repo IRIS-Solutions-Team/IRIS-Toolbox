@@ -187,23 +187,23 @@ classdef ExcelSheet < matlab.mixin.Copyable
 
         function value = get.DataEnd(this)
             if isequal(this.DataEnd, Inf)
-                value = size(this.Buffer, 2);
+                if this.Orientation=="Row"
+                    value = this.NumOfColumns;
+                else
+                    value = this.NumOfRows;
+                end
             else
                 value = this.DataEnd;
             end
         end%
 
 
-        function value = getDataRange(this)
+        function value = get.DataRange(this)
             if ~isempty(this.DataRange)
                 value = this.DataRange;
                 return
             end
-            if isequal(this.DataEnd, Inf)
-                dataEnd = size(this.Buffer, 2);
-            else
-                dataEnd = this.DataEnd;
-            end
+            dataEnd = this.DataEnd;
             try
                 value = this.DataStart : this.DataSkip : dataEnd;
             catch
@@ -213,7 +213,7 @@ classdef ExcelSheet < matlab.mixin.Copyable
 
 
         function value = get.NumOfData(this)
-            dataRange = getDataRange(this);
+            dataRange = this.DataRange;
             if islogical(dataRange)
                 value = nnz(dataRange);
             else
@@ -259,7 +259,7 @@ classdef ExcelSheet < matlab.mixin.Copyable
 
 
         function this = set.Dates(this, value)
-            dataRange = getDataRange(this);
+            dataRange = this.DataRange;
             if isempty(dataRange)
                 THIS_ERROR = { 'ExcelSheet:CannotSetDates'
                                'Set DataRange or (DataStart and DataEnd) first before setting or retrieving Dates' };
