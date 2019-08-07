@@ -1,6 +1,4 @@
-% Time Series (tseries Objects)
-%
-% This section describes the `tseries` class of objects.
+% # tseries Objects #
 %
 %
 % Description

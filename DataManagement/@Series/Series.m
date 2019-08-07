@@ -1,3 +1,17 @@
+% # Series Objects #
+%
+% Series objects are numerical time series (possibly multivariate)
+% constructed at one of the following time frequencies:
+%
+% * yearly
+% * half-yearly
+% * quarterly
+% * monthly
+% * weekly
+% * daily
+% * integer
+%
+
 classdef ( CaseInsensitiveProperties=true, ...
            InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper} ) ...
          Series < tseries
