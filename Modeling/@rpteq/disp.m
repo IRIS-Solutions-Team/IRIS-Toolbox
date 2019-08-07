@@ -7,16 +7,20 @@ function disp(this)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
+CONFIG = iris.get( );
+
 %--------------------------------------------------------------------------
 
 ccn = getClickableClassName(this);
 
 if isempty(this.EqtnRhs)
-    fprintf('\tEmpty %s Object\n', ccn);
+    fprintf(CONFIG.DispIndent);
+    fprintf('Empty %s Object\n', ccn);
 else
-    fprintf('\t%s Object\n', ccn);
+    fprintf('%s Object\n', ccn);
 end
-fprintf('\tNumber of Equations: [%g]\n',length(this.EqtnRhs));
+fprintf(CONFIG.DispIndent);
+fprintf('Number of Equations: [%g]\n',length(this.EqtnRhs));
 
 disp@shared.CommentContainer(this, 1);
 disp@shared.UserDataContainer(this, 1);

@@ -2,44 +2,48 @@ classdef Log < parser.theparser.Generic
     properties
         TypeCanBeLog
     end
-    
-    
+
+
+    properties (Constant)
+        ALLBUT_KEYWORD = '!all-but'
+    end
     
     
     methods
         function [quantity, equation] = parse(this, ~, code, quantity, equation, euc, puc, ~)
-            nQuan = length(quantity.Name);
-            if isempty(strfind(code, '!all_but'))
+            numQuantities = length(quantity.Name);
+            if isempty(strfind(code, parser.theparser.Log.ALLBUT_KEYWORD))
                 default = false;
             else
                 default = true;
-                code = strrep(code, '!all_but', '');
+                code = strrep(code, parser.theparser.Log.ALLBUT_KEYWORD, '');
             end
             
-            lsLog = regexp(code, '\<[a-zA-Z]\w*\>', 'match');
-            ell = lookup(quantity, lsLog, this.TypeCanBeLog{:});
+            listLog = regexp(code, '\<[a-zA-Z]\w*\>', 'match');
+            ell = lookup(quantity, listLog, this.TypeCanBeLog{:});
             
-            ixValid = ~isnan(ell.PosName);
-            if any(~ixValid)
-                throw( exception.ParseTime('TheParser:INVALID_LOG_NAME_DECLARED', 'error'), ...
-                    lsLog{~ixValid} );
+            inxValid = ~isnan(ell.PosName);
+            if any(~inxValid)
+                THIS_ERROR = { 'TheParser:InvalidLogNameDeclared'
+                               'This name cannot be declared as log-variable: %s ' };
+                throw( exception.ParseTime(THIS_ERROR, 'error'), ...
+                       listLog{~inxValid} );
             end
             
-            ixCanBeLog = ell.IxKeep;
-            quantity.IxLog = ixCanBeLog & repmat(default, 1, nQuan);
-            quantity.IxLog(ell.IxName) = ~default;
-            
-        end
-        
-        
+            inxCanBeLog = ell.IxKeep;
+            quantity.IxLog = inxCanBeLog & repmat(default, 1, numQuantities);
+            quantity.IxLog(ell.IxName) = not(default);
+        end%
         
         
         function precheck(~, ~, blocks)
-            % The keyword `!all_but` must be in all or none of flag blocks.
-            ixPresent = cellfun( @isempty, regexp(blocks, '!all_but', 'match', 'once') );
-            if any(ixPresent) && ~all(ixPresent)
-                throw( exception.ParseTime('TheParser:INCONSISTENT_ALL_BUT', 'error') );
+            inxPresent = cellfun( @isempty, regexp(blocks, parser.theparser.Log.ALLBUT_KEYWORD, 'match', 'once') );
+            if any(inxPresent) && ~all(inxPresent)
+                THIS_ERROR = { 'TheParser:InconsistentAllBut'
+                               'Keyword !all-but must be used consistently in either all or none of the !log-variables declaration blocks '};
+                throw( exception.ParseTime(THIS_ERROR, 'error') );
             end
-        end
+        end%
     end
 end
+

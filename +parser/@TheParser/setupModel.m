@@ -91,8 +91,8 @@ this.Block{end+1} = x;
 this.AltKeyword = [ 
     this.AltKeyword 
     { '\$\<([a-zA-Z]\w*)\>(?!\$)',                '&$1' % Steady references
-      '!allbut\>',                                '!all_but'
-      '!all-but\>',                               '!all_but'
+      '!allbut\>',                                '!all-but'
+      '!all_but\>',                               '!all-but'
       '!equations\>',                             '!transition_equations'
       '!variables\>',                             '!transition_variables'
       '(?<=!\w+)-(?=equations|variables|shocks)', '_' % Use dashes instead of underscores
@@ -115,11 +115,11 @@ this.AltKeywordWarn = [
       '!shocks:measurement\>', '!measurement_shocks'
       '!equations:measurement\>', '!measurement_equations'
       '!variables:log\>', '!log_variables'
-      '!autoexogenise\>', '!autoswap-simulate'
-      '!autoexogenize\>', '!autoswap-simulate' } ];
+      '!autoexogenise\>', '!autoswaps-simulate'
+      '!autoexogenize\>', '!autoswaps-simulate' } ];
 
 this.OtherKeyword = [ this.OtherKeyword, ...
-                      { '!all_but', '!ttrend', '!min' } ];
+                      { '!all-but', '!ttrend', '!min' } ];
 
 this.AssignOrder = [ this.AssignOrder, ...
                      TYPE(4), ...
