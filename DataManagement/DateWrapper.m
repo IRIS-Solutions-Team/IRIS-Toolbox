@@ -298,16 +298,16 @@ classdef DateWrapper < double
         function dateCode = getDateCodeFromSerial(freq, serial)
             serial0 = serial;
             serial = round(serial);
-            inxOfRound = serial==serial0 | isnan(serial);
-            if any(~inxOfRound)
-                report = num2cell( serial0(~inxOfRound) );
+            inxRound = serial==serial0 | isnan(serial);
+            if any(~inxRound)
+                report = num2cell( serial0(~inxRound) );
                 throw( exception.Base('Dates:NonIntegerSerialNumber', 'error'), ...
                        report{:} );
             end
             freq = double(freq);
-            inxOfFreqCodes = freq~=Frequency.INTEGER & freq~=Frequency.DAILY;
+            inxFreqCodes = freq~=Frequency.INTEGER & freq~=Frequency.DAILY;
             freqCode = zeros(size(freq));
-            freqCode(inxOfFreqCodes) = double(freq(inxOfFreqCodes)) / 100;
+            freqCode(inxFreqCodes) = double(freq(inxFreqCodes)) / 100;
             dateCode = serial + freqCode;
         end%
 
