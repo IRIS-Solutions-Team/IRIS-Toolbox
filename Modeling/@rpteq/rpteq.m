@@ -7,8 +7,7 @@
 % There are three basic ways to create
 % reporting equations objects:
 %
-% * in the [`!reporting_equations`](irislang/reportingequations)
-% section of a model file;
+% * in a [`!reporting-equations`]() section of a model file;
 %
 % * in a separate reporting equations file;
 %
@@ -118,14 +117,14 @@ classdef rpteq < shared.GetterSetter ...
             %         })
             %
             %     q =
-            %         rpteq object
-            %         number of equations: [2]
-            %         comment: ''
-            %         user data: empty
-            %         export files: [0]
+            %         rpteq Object
+            %         Number of Equations: [2]
+            %         Comment: ''
+            %         User Data: empty
+            %         Export Files: [0]
             %
-            % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2019 IRIS Solutions Team.
+            % -IRIS Macroeconomic Modeling Toolbox
+            % -Copyright (c) 2007-2019 IRIS Solutions Team
             
             persistent inputParser parserOptions
             if isempty(inputParser) || isempty(parserOptions)
