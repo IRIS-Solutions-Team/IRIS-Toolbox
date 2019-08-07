@@ -115,8 +115,8 @@ this.AltKeywordWarn = [
       '!shocks:measurement\>', '!measurement_shocks'
       '!equations:measurement\>', '!measurement_equations'
       '!variables:log\>', '!log_variables'
-      '!autoexogenise\>', '!autoswap-simulate'
-      '!autoexogenize\>', '!autoswap-simulate' } ];
+      '!autoexogenise\>', '!autoswaps-simulate'
+      '!autoexogenize\>', '!autoswaps-simulate' } ];
 
 this.OtherKeyword = [ this.OtherKeyword, ...
                       { '!all_but', '!ttrend', '!min' } ];
