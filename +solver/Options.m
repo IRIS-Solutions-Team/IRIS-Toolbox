@@ -46,7 +46,7 @@ classdef (CaseInsensitiveProperties=true) Options
 
 
 
-    properties %(Hidden)
+    properties (Hidden)
         DEFAULT_DISPLAY = 'iter*'
         DEFAULT_RESET = true
 
@@ -108,7 +108,7 @@ classdef (CaseInsensitiveProperties=true) Options
                 this.DEFAULT_FUNCTION_TOLERANCE = 1e-5;
                 this.DEFAULT_TRIM_OBJECTIVE_FUNCTION = true;
                 this.DEFAULT_MAX_ITERATIONS = 100;
-                this.DEFAULT_STEP_TOLERANCE = Inf; 1e-5;
+                this.DEFAULT_STEP_TOLERANCE = Inf;
                 this.DEFAULT_LAMBDA = double.empty(1, 0);
                 this.DEFAULT_LAST_JACOB_UPDATE = -1;
                 this.DEFAULT_LAST_STEP_SIZE_OPTIM = 1;
