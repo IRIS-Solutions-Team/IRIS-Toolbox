@@ -113,7 +113,7 @@ classdef GetterSetter
     
 
     methods (Hidden)
-        function flag = chkConsistency(this)
+        function flag = checkConsistency(this)
             flag = ischar(this.Build);
         end%
         

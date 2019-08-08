@@ -41,7 +41,7 @@ classdef UserDataContainer
     
     
     methods (Hidden)
-        varargout = chkConsistency(varargin)
+        varargout = checkConsistency(varargin)
         varargout = implementGet(varargin)
         varargout = implementSet(varargin)
         

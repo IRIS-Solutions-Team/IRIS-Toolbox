@@ -444,7 +444,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     
     methods (Hidden)
         disp(varargin)
-        varargout = chkConsistency(varargin)
+        varargout = checkConsistency(varargin)
         varargout = max(varargin)
         varargout = min(varargin)
         varargout = cat(varargin)

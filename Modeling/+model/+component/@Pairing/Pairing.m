@@ -39,7 +39,7 @@ classdef Pairing
     
     methods (Static)
         varargout = getAutoswap(varargin)
-        varargout = chkConsistency(varargin)
+        varargout = checkConsistency(varargin)
         varargout = readAssignments(varargin)
         varargout = readAutoswap(varargin)
         varargout = setAutoswap(varargin)

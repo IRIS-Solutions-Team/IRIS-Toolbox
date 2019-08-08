@@ -13,7 +13,7 @@ if isstruct(this)
     s = this;
     this = tseries(s.start, s.data, s.Comment);
     % this = struct2obj(tseries( ), this);
-    if ~chkConsistency(this)
+    if ~checkConsistency(this)
         this = tseries( );
     end 
 end

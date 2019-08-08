@@ -1,5 +1,5 @@
-function flag = chkConsistency(this)
-% chkConsistency  Check internal consistency of object properties
+function flag = checkConsistency(this)
+% checkConsistency  Check internal consistency of object properties
 %
 % Backend IRIS function
 % No help provided
@@ -9,8 +9,8 @@ function flag = chkConsistency(this)
 
 %--------------------------------------------------------------------------
 
-flag = ischar(this.Caption) && ...
-       (isequal(this.BaseYear, @config) || isnumeric(this.BaseYear));
+flag = ischar(this.Caption) ...
+       && (isequal(this.BaseYear, @config) || isnumeric(this.BaseYear));
 
 end%
 

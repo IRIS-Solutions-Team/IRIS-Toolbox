@@ -213,7 +213,7 @@ classdef plan < shared.UserDataContainer ...
                     end
                 end
             end
-        end
+        end%
         
         
         
@@ -241,10 +241,10 @@ classdef plan < shared.UserDataContainer ...
         
         
         
-        function flag = chkConsistency(this)
-            flag = chkConsistency@shared.GetterSetter(this) && ...
-                chkConsistency@shared.UserDataContainer(this);
-        end
+        function flag = checkConsistency(this)
+            flag = checkConsistency@shared.GetterSetter(this) && ...
+                checkConsistency@shared.UserDataContainer(this);
+        end%%
     end
     
 
@@ -260,22 +260,22 @@ classdef plan < shared.UserDataContainer ...
     methods
         function varargout = autoexogenise(varargin)
             [varargout{1:nargout}] = autoexogenize(varargin{:});
-        end
+        end%
         
         function varargout = exogenise(varargin)
             [varargout{1:nargout}] = exogenize(varargin{:});
-        end
+        end%
         
         function varargout = endogenise(varargin)
             [varargout{1:nargout}] = endogenize(varargin{:});
-        end
+        end%
     end
 
 
     methods
         function value = get.Range(this)
             value = this.Start : this.End;
-        end%
+        end%%
 
 
         function this = set.Range(this, value)
@@ -285,6 +285,6 @@ classdef plan < shared.UserDataContainer ...
            value = double(value);
            this.Start = value(1);
            this.End = value(end);
-        end%
+        end%%
     end
 end

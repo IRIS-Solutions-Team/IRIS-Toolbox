@@ -140,9 +140,9 @@ classdef (CaseInsensitiveProperties=true) ...
     
     
     methods (Hidden)
-        function flag = chkConsistency(this)
-            flag = chkConsistency@shared.GetterSetter(this) && ...
-                chkConsistency@shared.UserDataContainer(this);
+        function flag = checkConsistency(this)
+            flag = checkConsistency@shared.GetterSetter(this) ...
+                   && checkConsistency@shared.UserDataContainer(this);
         end
 
         

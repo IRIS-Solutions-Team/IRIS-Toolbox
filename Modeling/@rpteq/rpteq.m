@@ -210,7 +210,7 @@ classdef rpteq < shared.GetterSetter ...
     
     
     methods (Hidden)
-        varargout = chkConsistency(varargin)
+        varargout = checkConsistency(varargin)
         varargout = disp(varargin)
         varargout = implementGet(varargin)
     end

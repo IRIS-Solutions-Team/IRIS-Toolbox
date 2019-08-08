@@ -1,5 +1,5 @@
-function flag = chkConsistency(this)
-% chkConsistency  Check internal consistency of object properties
+function flag = checkConsistency(this)
+% checkConsistency  Check internal consistency of object properties
 %
 % Backend IRIS function
 % No help provided
@@ -9,8 +9,8 @@ function flag = chkConsistency(this)
 
 %--------------------------------------------------------------------------
 
-flag =    chkConsistency@shared.GetterSetter(this) ...
-       && chkConsistency@shared.UserDataContainer(this) ...
+flag = checkConsistency@shared.GetterSetter(this) ...
+       && checkConsistency@shared.UserDataContainer(this) ...
        && hereCheckConsistency( );
 
 return

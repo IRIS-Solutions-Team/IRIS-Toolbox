@@ -278,7 +278,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     methods (Hidden)
         varargout = cat(varargin)        
         varargout = checkZeroLog(varargin)
-        varargout = chkConsistency(varargin)
+        varargout = checkConsistency(varargin)
         varargout = chkQty(varargin)
         varargout = createHashEquations(varargin)
         varargout = createTrendArray(varargin)        

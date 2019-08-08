@@ -1,5 +1,5 @@
-function flag = chkConsistency(pai, qty, eqn)
-% chkConsistency  Check consistency of model.component.Pairing objects
+function flag = checkConsistency(pai, qty, eqn)
+% checkConsistency  Check internal consistency of object properties
 %
 % Backend IRIS function
 % No help provided
@@ -17,7 +17,6 @@ catch
 end
 
 return
-
 
     function flag = checkAutoswapSteady( )
         TYPE = @int8;
