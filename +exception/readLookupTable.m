@@ -219,7 +219,7 @@ lookupTable = {
     'Series:CannotVertCatNonSeries', 'Cannot vertically concatenate time series with other types of data. '
     'Series:CannotCatMixedFrequencies', 'Cannot concatenate time series with different date frequencies.'
     'Series:FrequencyMismatch', 'Date frequency or time series frequency mismatch: %s '
-    'TimeSubscriptable:FrequencyMismatch', 'Date frequency or time series frequency mismatch: %s '
+    'TimeSubscriptable:FrequencyMismatch', 'Date frequency or time series frequency mismatch: %1 x %s '
     'Series:TimeDimMustBeZero', 'Time dimension must be zero when creating empty time series'
     'Series:CannotConvertIntegerFreq', 'Cannot covert times series from or to INTEGER frequency'
     'Series:CannotConvertWeeklyToDaily', 'Cannot convert time series from WEEKLY to DAILY frequency'
