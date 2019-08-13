@@ -36,6 +36,7 @@ classdef ( Abstract, ...
         varargout = apct(varargin)
         varargout = bubble(varargin)
         varargout = ellone(varargin)
+        varargout = fillmissing(varargin)
         varargout = grow(varargin)
     end
 
