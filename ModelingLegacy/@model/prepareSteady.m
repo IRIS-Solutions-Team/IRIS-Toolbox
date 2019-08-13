@@ -55,9 +55,9 @@ if isempty(parserNonlinear)
     parserNonlinear.KeepUnmatched = true;
     parserNonlinear.addRequired('Model', @(x) isa(x, 'model'));
     parserNonlinear.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
-    parserNonlinear.addParameter('Fix', { }, @(x) isempty(x) || isa(x, 'AllBut') || iscellstr(x) || ischar(x));
-    parserNonlinear.addParameter('FixLevel', { }, @(x) isempty(x) || isa(x, 'AllBut') || iscellstr(x) || ischar(x));
-    parserNonlinear.addParameter({'FixChange', 'FixGrowth'}, { }, @(x) isempty(x) || isa(x, 'AllBut') || iscellstr(x) || ischar(x));
+    parserNonlinear.addParameter('Fix', { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
+    parserNonlinear.addParameter('FixLevel', { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
+    parserNonlinear.addParameter({'FixChange', 'FixGrowth'}, { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
     parserNonlinear.addParameter('ForceRediff', false, @(x) isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter('Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter({'ChangeBounds', 'GrowthBounds', 'GrowthBnds'}, [ ], @(x) isempty(x) || isstruct(x));
@@ -139,7 +139,7 @@ function processFixOpt(this, blazer, opt)
             continue
         end
 
-        if isa(temp, 'AllBut')
+        if isa(temp, 'Except')
             temp = resolve(temp, namesCanBeFixed);
         end
 

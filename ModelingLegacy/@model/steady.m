@@ -48,9 +48,9 @@ function [this, flag, outputInfo] = steady(this, varargin)
 % parameters exogenized in the `'Exogenize='` option; the use of the
 % keyword `@auto` is explained in Description.
 %
-% * `Fix=[ ]` [ cellstr | `AllBut` | *empty* ] - List of variables whose
+% * `Fix=[ ]` [ cellstr | `Except` | *empty* ] - List of variables whose
 % steady state (both level and change) will not be computed and kept fixed
-% to the currently assigned values; alternatively an `AllBut` wrapper
+% to the currently assigned values; alternatively an `Except` wrapper
 % object can be used to specify that all variables are to be fixed except
 % those listed.
 %
@@ -170,10 +170,10 @@ function [this, flag, outputInfo] = steady(this, varargin)
 % unknowns when the steady-state equations are being solved.
 %
 % The list of variables assigned to the three options can be also defined
-% inversely using a `AllBut` wrapper object, constructed by passing the
+% inversely using a `Except` wrapper object, constructed by passing the
 % list of variables that are _not_ to be fixed. For instance, in
 %
-%     steady(m, 'FixGrowth=', AllBut('x', 'y'))
+%     steady(m, 'FixGrowth=', Except('x', 'y'))
 %
 %  the steady-state growth of all variables except `x` and `y` will be
 %  fixed (and needs to be supplied before calling this `steady(~)`).
