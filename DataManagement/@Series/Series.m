@@ -14,7 +14,7 @@
 
 classdef ( CaseInsensitiveProperties=true, ...
            InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper} ) ...
-         Series < tseries
+         Series < tseries 
 
     methods
         function this = Series(varargin)
