@@ -198,7 +198,7 @@ classdef Plan
             numOfExogenized = nnz(inxOfExogenized);
             inxOfEndogenized = any( this.InxOfAnticipatedEndogenized ...
                                   | this.InxOfUnanticipatedEndogenized, 2 );
-            dateNames = DateWrapper.toCellOfChar(dates);
+            dateNames = DateWrapper.toCellstr(dates);
             dateNames = strcat(this.DATE_PREFIX, dateNames);
 
             isData = false;
@@ -496,8 +496,8 @@ classdef Plan
                 value = '';
                 return
             end
-            displayStart = DateWrapper.toCellOfChar(this.BaseStart);
-            displayEnd = DateWrapper.toCellOfChar(this.BaseEnd);
+            displayStart = DateWrapper.toCellstr(this.BaseStart);
+            displayEnd = DateWrapper.toCellstr(this.BaseEnd);
             value = [displayStart{1}, ':', displayEnd{1}]; 
         end%
 
