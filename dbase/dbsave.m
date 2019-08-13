@@ -154,23 +154,23 @@ end
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('dbase/dbsave');
-    addRequired(parser, 'inputDatabank', @Valid.databank);
-    addRequired(parser, 'fileName', @Valid.string);
+    addRequired(parser, 'inputDatabank', @validate.databank);
+    addRequired(parser, 'fileName', @validate.string);
     addRequired(parser, 'dates', @DateWrapper.validateDateInput);
     % Options
     addParameter(parser, 'VariablesHeader', 'Variables ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(parser, 'ClassHeader', 'Class[Size] ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'Class', true, @Valid.logicalScalar);
-    addParameter(parser, 'Comment', true, @Valid.logicalScalar);
+    addParameter(parser, 'Class', true, @validate.logicalScalar);
+    addParameter(parser, 'Comment', true, @validate.logicalScalar);
     addParameter(parser, 'CommentsHeader', 'Comments ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(parser, 'Decimal', [ ], @(x) isempty(x) || Valid.numericScalar(x));
     addParameter(parser, 'Format', '%.8e', @(x) Valid.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
-    addParameter(parser, 'MatchFreq', false, @Valid.logicalScalar);
-    addParameter(parser, 'Nan', 'NaN', @Valid.string);
-    addParameter(parser, {'SaveNested', 'SaveSubdb'}, false, @Valid.logicalScalar);
+    addParameter(parser, 'MatchFreq', false, @validate.logicalScalar);
+    addParameter(parser, 'Nan', 'NaN', @validate.string);
+    addParameter(parser, {'SaveNested', 'SaveSubdb'}, false, @validate.logicalScalar);
     addParameter(parser, 'UserData', 'userdata', @(x) Valid.string(x) && isvarname(x));
     addParameter(parser, 'UnitsHeader', 'Units ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'Delimiter', ',', @Valid.string);
+    addParameter(parser, 'Delimiter', ',', @validate.string);
     addDateOptions(parser);
 end
 parse(parser, inp, fileName, dates, varargin{:});

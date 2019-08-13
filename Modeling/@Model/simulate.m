@@ -48,29 +48,29 @@ TYPE = @int8;
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.simulate');
-    parser.addRequired('SolvedModel', @Valid.solvedModel);
+    parser.addRequired('SolvedModel', @validate.solvedModel);
     parser.addRequired('InputData', @(x) isstruct(x) || isa(x, 'simulate.Data'));
     parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
 
     parser.addDeviationOptions(false);
-    parser.addParameter('Anticipate', true, @Valid.logicalScalar);
-    parser.addParameter('AppendPostsample', false, @Valid.logicalScalar);
-    parser.addParameter('AppendPresample', false, @Valid.logicalScalar);
-    parser.addParameter('Contributions', false, @Valid.logicalScalar);
+    parser.addParameter('Anticipate', true, @validate.logicalScalar);
+    parser.addParameter('AppendPostsample', false, @validate.logicalScalar);
+    parser.addParameter('AppendPresample', false, @validate.logicalScalar);
+    parser.addParameter('Contributions', false, @validate.logicalScalar);
     parser.addParameter('Homotopy', [ ], @(x) isempty(x) || isstruct(x));
-    parser.addParameter('IgnoreShocks', false, @Valid.logicalScalar);
+    parser.addParameter('IgnoreShocks', false, @validate.logicalScalar);
     parser.addParameter('Method', solver.Method.FIRST_ORDER, @solver.Method.validate);
     parser.addParameter('OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
     parser.addParameter('Plan', true, @(x) Valid.logicalScalar(x) || isa(x, 'Plan'));
-    parser.addParameter('ProgressInfo', false, @Valid.logicalScalar);
-    parser.addParameter('SuccessOnly', false, @Valid.logicalScalar);
+    parser.addParameter('ProgressInfo', false, @validate.logicalScalar);
+    parser.addParameter('SuccessOnly', false, @validate.logicalScalar);
     parser.addParameter('Solver', @auto, @validateSolver);
-    parser.addParameter('SparseShocks', false, @Valid.logicalScalar)
+    parser.addParameter('SparseShocks', false, @validate.logicalScalar)
     parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || Valid.list(x));
     parser.addParameter('Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 
     parser.addParameter('Initial', 'Data', @(x) Valid.anyString(x, 'Data', 'FirstOrder'));
-    parser.addParameter('PrepareGradient', true, @Valid.logicalScalar);
+    parser.addParameter('PrepareGradient', true, @validate.logicalScalar);
 end
 parse(parser, this, inputData, baseRange, varargin{:});
 opt = parser.Options;

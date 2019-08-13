@@ -27,9 +27,9 @@ classdef ExcelSheet < matlab.mixin.Copyable
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('ExcelSheet.ExcelSheet');
-                addRequired(parser,  'fileName', @Valid.string);
+                addRequired(parser,  'fileName', @validate.string);
                 addParameter(parser, 'Sheet', 1, @(x) Valid.numericScalar(x) || Valid.string(x));
-                addParameter(parser, 'Range', '', @Valid.string);
+                addParameter(parser, 'Range', '', @validate.string);
                 addParameter(parser, 'InsertEmpty', [0, 0], @(x) isnumeric(x) && numel(x)==2 && all(x==round(x)) && all(x>=0));
             end
             parse(parser, fileName, varargin{:});

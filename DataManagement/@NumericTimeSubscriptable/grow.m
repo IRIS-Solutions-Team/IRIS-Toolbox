@@ -80,7 +80,7 @@ if isempty(parser)
     addRequired(parser, 'growth', @(x) isa(x, 'NumericTimeSubscriptable') || Valid.numericScalar(x));
     addRequired(parser, 'dates', @DateWrapper.validateProperDateInput);
     addParameter(parser, 'BaseShift', -1, @(x) Valid.numericScalar(x) && x==round(x) && x<0);
-    addParameter(parser, 'Percent', true, @Valid.logicalScalar);
+    addParameter(parser, 'Percent', true, @validate.logicalScalar);
     addParameter(parser, 'RateOfChange', 'Net', @(x) any(strcmpi(x, {'Net', 'Gross'})));
 end%
 parse(parser, this, growth, dates, varargin{:});

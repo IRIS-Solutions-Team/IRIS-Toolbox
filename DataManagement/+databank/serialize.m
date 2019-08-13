@@ -46,23 +46,23 @@ FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('databank.serialize');
-    addRequired(parser,  'inputDatabank', @Valid.databank);
+    addRequired(parser,  'inputDatabank', @validate.databank);
     addRequired(parser, 'dates', @DateWrapper.validateDateInput);
     % Options
     addParameter(parser, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(parser, 'ClassHeader', 'Class[Size] ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'Class', true, @Valid.logicalScalar);
-    addParameter(parser, {'Comments', 'Comment'}, true, @Valid.logicalScalar);
+    addParameter(parser, 'Class', true, @validate.logicalScalar);
+    addParameter(parser, {'Comments', 'Comment'}, true, @validate.logicalScalar);
     addParameter(parser, 'CommentsHeader', 'Comments ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(parser, {'Decimals', 'Decimal'}, [ ], @(x) isempty(x) || Valid.numericScalar(x));
     addParameter(parser, 'Format', '%.8e', @(x) Valid.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
-    addParameter(parser, 'MatchFreq', false, @Valid.logicalScalar);
-    addParameter(parser, 'Nan', 'NaN', @Valid.string);
-    addParameter(parser, {'SaveNested', 'SaveSubdb'}, false, @Valid.logicalScalar);
+    addParameter(parser, 'MatchFreq', false, @validate.logicalScalar);
+    addParameter(parser, 'Nan', 'NaN', @validate.string);
+    addParameter(parser, {'SaveNested', 'SaveSubdb'}, false, @validate.logicalScalar);
     addParameter(parser, 'UserData', 'UserData', @(x) Valid.string(x) && isvarname(x));
-    addParameter(parser, 'UserDataFields', cell.empty(1, 0), @Valid.list);
+    addParameter(parser, 'UserDataFields', cell.empty(1, 0), @validate.list);
     addParameter(parser, 'UnitsHeader', 'Units ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'Delimiter', ',', @Valid.string);
+    addParameter(parser, 'Delimiter', ',', @validate.string);
     addDateOptions(parser);
 end
 parse(parser, inputDatabank, dates, varargin{:});

@@ -154,7 +154,7 @@ function listOfSaved = toCSV(inputDatabank, fileName, varargin);
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('databank.toCSV');
-    addRequired(parser, 'fileName', @Valid.string);
+    addRequired(parser, 'fileName', @validate.string);
 end
 parse(parser, fileName);
 

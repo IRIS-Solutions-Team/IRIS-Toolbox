@@ -52,10 +52,10 @@ end
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('char2file');
-    parser.addRequired('InputString', @Valid.string);
-    parser.addRequired('FileName', @Valid.string);
-    parser.addRequired('Precision', @Valid.string);
-    parser.addParameter('MachineFormat', 'Native', @Valid.string);
+    parser.addRequired('InputString', @validate.string);
+    parser.addRequired('FileName', @validate.string);
+    parser.addRequired('Precision', @validate.string);
+    parser.addParameter('MachineFormat', 'Native', @validate.string);
     parser.addParameter('Encoding', @auto, @(x) isequal(x, @auto) || Valid.string(x));
 end
 parse(parser, c, fileName, precision, varargin{:});

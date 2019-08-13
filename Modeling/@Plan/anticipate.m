@@ -38,8 +38,8 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('@Plan/anticipate');
     addRequired(parser, 'Plan', @(x) isa(x, 'Plan'));
-    addRequired(parser, 'AnticipationStatus', @Valid.logicalScalar);
-    addRequired(parser, 'NamesOfExogenous', @Valid.list);
+    addRequired(parser, 'AnticipationStatus', @validate.logicalScalar);
+    addRequired(parser, 'NamesOfExogenous', @validate.list);
 end
 
 if this.NumOfEndogenizedPoints>0

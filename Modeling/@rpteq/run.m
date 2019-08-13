@@ -114,7 +114,7 @@ if isempty(parser)
     parser.addParameter('AppendPresample', false, @(x) Valid.logicalScalar(x) || isstruct(x));
     parser.addParameter('AppendPostsample', false, @(x) Valid.logicalScalar(x) || isstruct(x));
     parser.addParameter('DbOverlay', false, @(x) Valid.logicalScalar(x) || isstruct(x));
-    parser.addParameter('Fresh', false, @Valid.logicalScalar);
+    parser.addParameter('Fresh', false, @validate.logicalScalar);
 end
 parse(parser, varargin{:});
 this = parser.Results.ReportingEquations;

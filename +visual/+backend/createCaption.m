@@ -13,7 +13,7 @@ if isempty(parser)
     parser.KeepUnmatched = true;
     parser.addRequired('AxesHandles', @(x) all(isgraphics(x, 'Axes')) && isscalar(x));
     parser.addRequired('Location', @(x) isnumeric(x) || isa(x, 'DateWrapper') || isa(x, 'datetime'));
-    parser.addParameter('String', @Valid.string);
+    parser.addParameter('String', @validate.string);
     parser.addParameter('HorizontalPosition', 'right', @(x) Valid.anyString(x, 'center', 'centre', 'middle', 'left', 'right'));
     parser.addParameter('VerticalPosition', 'top', @(x) Valid.numericScalar(x) || Valid.anyString(x, 'center', 'centre', 'middle', 'top', 'bottom'));
 end

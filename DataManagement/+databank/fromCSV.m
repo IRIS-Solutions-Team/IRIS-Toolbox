@@ -170,14 +170,14 @@ function outputDatabank = fromCSV(fileName, varargin)
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('dbase.dbload');
-    addRequired(parser, 'FileName', @Valid.list);
+    addRequired(parser, 'FileName', @validate.list);
     % Options
     addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || Valid.databank(x));
     addParameter(parser, {'Case', 'ChangeCase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
     addParameter(parser, 'CommentRow', {'Comment', 'Comments'}, @(x) ischar(x) || iscellstr(x) || (isnumeric(x) && all(x==round(x)) && all(x>0)));
     addParameter(parser, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
     addParameter(parser, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
-    addParameter(parser, 'FirstDateOnly', false, @Valid.logicalScalar);
+    addParameter(parser, 'FirstDateOnly', false, @validate.logicalScalar);
     % addParameter(parser, 'inputformat', 'auto', @(x) ischar(x) && (strcmpi(x, 'auto') || strcmpi(x, 'csv') || strncmpi(x, 'xl', 2)));
     addParameter(parser, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables', 'Time'}, @(x) ischar(x) || iscellstr(x) || Valid.numericScalar(x));
     addParameter(parser, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));

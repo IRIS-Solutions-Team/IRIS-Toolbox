@@ -56,7 +56,7 @@ function [range, listOfFreq] = range(inputDatabank, varargin)
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('databank.range');
-    addRequired(parser, 'inputDatabank', @Valid.databank);
+    addRequired(parser, 'inputDatabank', @validate.databank);
     % Options
     addParameter(parser, 'NameList', @all, @(x) isequal(x, @all) || Valid.string(x) || isa(x, 'rexp'));
     addParameter(parser, 'StartDate', 'MaxRange', @(x) Valid.anyString(x, {'MaxRange', 'MinRange'}));

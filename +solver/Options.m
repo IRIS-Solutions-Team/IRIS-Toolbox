@@ -166,9 +166,9 @@ classdef (CaseInsensitiveProperties=true) Options
             parser.addParameter('TrimObjectiveFunction', this.DEFAULT_TRIM_OBJECTIVE_FUNCTION, @(x) isequal(x, true) || isequal(x, false));
             parser.addParameter('FiniteDifferenceStepSize', this.DEFAULT_FINITE_DIFFERENCE_STEP_SIZE, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
             parser.addParameter('FiniteDifferenceType', this.DEFAULT_FINITE_DIFFERENCE_TYPE, @(x) any(strcmpi(x, {'forward', 'central'})));
-            parser.addParameter('UsePinvIfJacobSingular', true, @Valid.logicalScalar);
-            parser.addParameter('ForceJacobUpdateWhenReversing', this.DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING, @Valid.logicalScalar);
-            parser.addParameter('LastBroydenUpdate', this.DEFAULT_LAST_BROYDEN_UPDATE, @Valid.numericScalar);
+            parser.addParameter('UsePinvIfJacobSingular', true, @validate.logicalScalar);
+            parser.addParameter('ForceJacobUpdateWhenReversing', this.DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING, @validate.logicalScalar);
+            parser.addParameter('LastBroydenUpdate', this.DEFAULT_LAST_BROYDEN_UPDATE, @validate.numericScalar);
             parser.addParameter('FunctionNorm', this.DEFAULT_FUNCTION_NORM, @(x) isequal(x, @default) || isequal(x, 1) || isequal(x, 2) || isequal(x, Inf) || isa(x, 'function_handle'));
             parser.addParameter({'FunctionTolerance', 'TolFun', 'Tolerance'}, this.DEFAULT_FUNCTION_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
             parser.addParameter({'StepTolerance', 'TolX'}, this.DEFAULT_STEP_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
