@@ -16,9 +16,9 @@ if isempty(parser)
     parser.KeepUnmatched = true;
     parser.addRequired('Report', @(x) isa(x, 'report.reportobj'));
     parser.addRequired('OutputFileName', @validate.string);
-    parser.addParameter('Encoding', @auto, @(x) isequal(x, @auto) || Valid.string(x));
+    parser.addParameter('Encoding', @auto, @(x) isequal(x, @auto) || validate.string(x));
     parser.addParameter('abstract', '', @(x) isempty(x) || ischar(x));
-    parser.addParameter('abstractwidth', '', @(x) Valid.numericScalar(x) && x>0 && x<=1);
+    parser.addParameter('abstractwidth', '', @(x) validate.numericScalar(x) && x>0 && x<=1);
     parser.addParameter('author', '', @ischar);
     parser.addParameter({'cleanup', 'deletelatex', 'deletetempfiles'}, true, @validate.logicalScalar);
     parser.addParameter('compile', true, @validate.logicalScalar);
@@ -26,7 +26,7 @@ if isempty(parser)
     parser.addParameter('epstopdf', Inf, @(x) isequal(x, Inf) || ischar(x));
     parser.addParameter('fontenc', 'T1', @ischar);
     parser.addParameter('maketitle', false, @validate.logicalScalar);
-    parser.addParameter('papersize', 'letterpaper', @(x) Valid.anyString(x, 'a4', 'a4paper', 'letter', 'letterpaper')); 
+    parser.addParameter('papersize', 'letterpaper', @(x) validate.anyString(x, 'a4', 'a4paper', 'letter', 'letterpaper')); 
     parser.addParameter('package', { }, @(x) ischar(x) || iscellstr(x) || isempty(x));
     parser.addParameter('preamble', '', @ischar);
     parser.addParameter('progress', false, @validate.logicalScalar);

@@ -49,7 +49,7 @@ if isempty(parser)
     parser.addRequired('locationRef', @(x) ~isempty(x));
     % Options
     parser.addParameter('Aggregator', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
-    parser.addParameter('Comment', '', @(x) Valid.string(x) || Valid.list(x));
+    parser.addParameter('Comment', '', @(x) validate.string(x) || validate.list(x));
 end
 parse(parser, this, locationRef, varargin{:});
 opt = parser.Options;

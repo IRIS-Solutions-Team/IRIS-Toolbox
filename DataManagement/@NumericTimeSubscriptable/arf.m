@@ -72,7 +72,7 @@ if isempty(parser)
     parser = extend.InputParser('NumericTimeSubscriptable.arf');
     addRequired(parser, 'x', @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(parser, 'A', @isnumeric);
-    addRequired(parser, 'Z', @(x) Valid.numericScalar(x) || isa(x, 'NumericTimeSubscriptable'));
+    addRequired(parser, 'Z', @(x) validate.numericScalar(x) || isa(x, 'NumericTimeSubscriptable'));
     addRequired(parser, 'Range', @(x) isnumeric(x) || isequal(x, @all));
 end%
 parse(parser, this, A, Z, range);

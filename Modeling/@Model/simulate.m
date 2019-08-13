@@ -61,15 +61,15 @@ if isempty(parser)
     parser.addParameter('IgnoreShocks', false, @validate.logicalScalar);
     parser.addParameter('Method', solver.Method.FIRST_ORDER, @solver.Method.validate);
     parser.addParameter('OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
-    parser.addParameter('Plan', true, @(x) Valid.logicalScalar(x) || isa(x, 'Plan'));
+    parser.addParameter('Plan', true, @(x) validate.logicalScalar(x) || isa(x, 'Plan'));
     parser.addParameter('ProgressInfo', false, @validate.logicalScalar);
     parser.addParameter('SuccessOnly', false, @validate.logicalScalar);
     parser.addParameter('Solver', @auto, @validateSolver);
     parser.addParameter('SparseShocks', false, @validate.logicalScalar)
-    parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || Valid.list(x));
+    parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || validate.list(x));
     parser.addParameter('Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 
-    parser.addParameter('Initial', 'Data', @(x) Valid.anyString(x, 'Data', 'FirstOrder'));
+    parser.addParameter('Initial', 'Data', @(x) validate.anyString(x, 'Data', 'FirstOrder'));
     parser.addParameter('PrepareGradient', true, @validate.logicalScalar);
 end
 parse(parser, this, inputData, baseRange, varargin{:});
@@ -524,11 +524,11 @@ end%
 
 function flag = validateMethod(x)
     listOfMethods = {'FirstOrder', 'Selective', 'Stacked', 'NoForward'};
-    if Valid.anyString(x, listOfMethods{:})
+    if validate.anyString(x, listOfMethods{:})
         flag = true;
     end    
     if iscell(x) && ~isempty(x) ...
-       && Valid.anyString(x{1}, listOfMethods{:}) ...
+       && validate.anyString(x{1}, listOfMethods{:}) ...
        && iscellstr(x(2:2:end))
         flag = true;
     end

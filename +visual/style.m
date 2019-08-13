@@ -84,7 +84,7 @@ function [errors, addCount] = apply(handle, type, specs, j, errors, testLevel)
 
     if testLevel
         level = getappdata(handle, 'IRIS_BackgroundLevel');
-        if Valid.numericScalar(level) && level<0
+        if validate.numericScalar(level) && level<0
             addCount = 0;
             return
         end

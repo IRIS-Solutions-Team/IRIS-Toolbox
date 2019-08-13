@@ -61,12 +61,12 @@ if isempty(parser)
     parser = extend.InputParser('VAR.sprintf');
     parser.addRequired(  'VAR', @(x) isa(x, 'VAR'));
     parser.addParameter({'Constant', 'Constants', 'Const'}, true, @validate.logicalScalar);
-    parser.addParameter({'Decimal', 'Decimals'}, [ ], @(x) isempty(x) || Valid.numericScalar(x));
+    parser.addParameter({'Decimal', 'Decimals'}, [ ], @(x) isempty(x) || validate.numericScalar(x));
     parser.addParameter( 'Declare', false, @validate.logicalScalar);
     parser.addParameter({'ENames', 'EName'}, cell.empty(1, 0), @validate.list);
     parser.addParameter( 'Format', '%+.16g', @ischar);
     parser.addParameter({'HardParameters', 'HardParameter'}, true, @validate.logicalScalar);
-    parser.addParameter( 'Tolerance', @default, @(x) isa(x, @default) || Valid.numericScalar(x));
+    parser.addParameter( 'Tolerance', @default, @(x) isa(x, @default) || validate.numericScalar(x));
     parser.addParameter({'YNames', 'YName'}, cell.empty(1, 0), @validate.list);
 end
 parse(parser, this, varargin{:});

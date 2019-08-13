@@ -113,7 +113,7 @@ end
 
 if nargin==3
     tol = varargin{2};
-    if Valid.numericScalar(tol) && tol>0
+    if validate.numericScalar(tol) && tol>0
         % Set tolerance:
         % model = tolerance(model, scope, tol)
         this.Tolerance.(scope) = tol;

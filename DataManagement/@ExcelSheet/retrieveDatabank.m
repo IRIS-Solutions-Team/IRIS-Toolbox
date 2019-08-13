@@ -49,10 +49,10 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('ExcelSheet.retrieveDatabank');
     addRequired(parser, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
-    addRequired(parser, 'range', @(x) isnumeric(x) || Valid.string(x));
+    addRequired(parser, 'range', @(x) isnumeric(x) || validate.string(x));
     % Options
-    addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || Valid.databank(x));
-    addParameter(parser, 'OutputType', 'struct', @(x) Valid.anyString(x, 'struct', 'Dictionary', 'containers.Map'));
+    addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
+    addParameter(parser, 'OutputType', 'struct', @(x) validate.anyString(x, 'struct', 'Dictionary', 'containers.Map'));
 end
 parse(parser, this, range, varargin{:});
 opt = parser.Options;
@@ -104,7 +104,7 @@ return
         else
             name = this.Buffer{this.NamesLocation, i};
         end
-        if isempty(name) || ~Valid.string(name)
+        if isempty(name) || ~validate.string(name)
             THIS_ERROR = { 'ExcelSheet:InvalidSeriesName'
                            'Some name(s) in NamesLocation are invalid' };
             throw( exception.Base(THIS_ERROR, 'error') );

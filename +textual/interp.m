@@ -93,7 +93,7 @@ return
         for i = 1 : numel(inputs)
             if isfield(inputs{i}, name)
                 value = getfield(inputs{i}, name);
-                if Valid.string(value)
+                if validate.string(value)
                     c1 = char(value);
                     return
                 end

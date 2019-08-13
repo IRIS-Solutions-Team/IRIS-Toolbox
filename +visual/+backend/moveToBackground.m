@@ -21,7 +21,7 @@ for i = 1 : numAxesHandles
     level = zeros(1, numOfChildren);
     for j = 1 : numOfChildren
         ithLevel = getappdata(children(j), 'IRIS_BackgroundLevel');
-        if Valid.numericScalar(ithLevel) && ithLevel<0
+        if validate.numericScalar(ithLevel) && ithLevel<0
             level(j) = ithLevel;
         end
     end

@@ -109,7 +109,7 @@ return
             parser.KeepUnmatched = true;
             parser.addParameter('BaseColor', @auto, @(x) isequaln(x, @auto) || (isnumeric(x) && (numel(x)==1 || numel(x)==3) && all(x>=0) && all(x<=1)));
             parser.addParameter('Whitening', @auto, @(x) isequaln(x, @auto) || (isnumeric(x) && all(x>=0) && all(x<=1)));
-            parser.addParameter('WhiteningMethod', 'FaceAlpha', @(x) Valid.anyString(x, 'FaceAlpha', 'FaceColor'));
+            parser.addParameter('WhiteningMethod', 'FaceAlpha', @(x) validate.anyString(x, 'FaceAlpha', 'FaceColor'));
             parser.addParameter('WhiteColor', 1, @(x) isnumeric(x) && (numel(x)==1 || numel(x)==3) && all(x>=0) && all(x<=1));
         end
         parse(parser, varargin{:});

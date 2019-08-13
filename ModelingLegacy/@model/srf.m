@@ -52,8 +52,8 @@ if isempty(parser)
     parser.addRequired('SolvedModel', @validate.solvedModel);
     parser.addRequired('Time', @(x) isnumeric(x) || isa(x, 'DateWrapper')); 
     parser.addParameter('Delog', true, @validate.logicalScalar);
-    parser.addParameter('Select', @all, @(x) ~isempty(x) && (isequal(x, @all) || Valid.list(x)));
-    parser.addParameter('Size', @auto, @(x) isequal(x, @auto) || Valid.numericScalar(x));
+    parser.addParameter('Select', @all, @(x) ~isempty(x) && (isequal(x, @all) || validate.list(x)));
+    parser.addParameter('Size', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x));
 end
 parse(parser, this, time, varargin{:});
 opt = parser.Options;

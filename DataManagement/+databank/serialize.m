@@ -49,19 +49,19 @@ if isempty(parser)
     addRequired(parser,  'inputDatabank', @validate.databank);
     addRequired(parser, 'dates', @DateWrapper.validateDateInput);
     % Options
-    addParameter(parser, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'ClassHeader', 'Class[Size] ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, 'ClassHeader', 'Class[Size] ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(parser, 'Class', true, @validate.logicalScalar);
     addParameter(parser, {'Comments', 'Comment'}, true, @validate.logicalScalar);
-    addParameter(parser, 'CommentsHeader', 'Comments ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, {'Decimals', 'Decimal'}, [ ], @(x) isempty(x) || Valid.numericScalar(x));
-    addParameter(parser, 'Format', '%.8e', @(x) Valid.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
+    addParameter(parser, 'CommentsHeader', 'Comments ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, {'Decimals', 'Decimal'}, [ ], @(x) isempty(x) || validate.numericScalar(x));
+    addParameter(parser, 'Format', '%.8e', @(x) validate.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
     addParameter(parser, 'MatchFreq', false, @validate.logicalScalar);
     addParameter(parser, 'Nan', 'NaN', @validate.string);
     addParameter(parser, {'SaveNested', 'SaveSubdb'}, false, @validate.logicalScalar);
-    addParameter(parser, 'UserData', 'UserData', @(x) Valid.string(x) && isvarname(x));
+    addParameter(parser, 'UserData', 'UserData', @(x) validate.string(x) && isvarname(x));
     addParameter(parser, 'UserDataFields', cell.empty(1, 0), @validate.list);
-    addParameter(parser, 'UnitsHeader', 'Units ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(parser, 'Delimiter', ',', @validate.string);
     addDateOptions(parser);
 end

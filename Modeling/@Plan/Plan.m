@@ -119,7 +119,7 @@ classdef Plan
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
                 parser.addRequired('DatesToSwap', @DateWrapper.validateDateInput);
                 parser.addRequired('NamesToAutoswap', @(x) ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @all));
-                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || Valid.logicalScalar(x));
+                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
             parser.parse(this, dates, namesToAutoswap, varargin{:});
             opt = parser.Options;
@@ -317,8 +317,8 @@ classdef Plan
                 parser = extend.InputParser('Plan.implementExogenize');
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
                 parser.addRequired('DatesToExogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
-                parser.addRequired('NamesToExogenize', @(x) isequal(x, @all) || Valid.list(x));
-                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || Valid.logicalScalar(x));
+                parser.addRequired('NamesToExogenize', @(x) isequal(x, @all) || validate.list(x));
+                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
             parser.parse(this, dates, names, varargin{:});
             opt = parser.Options;
@@ -362,7 +362,7 @@ classdef Plan
                 parser.addRequired('Plan', @(x) isa(x, 'Plan'));
                 parser.addRequired('DatesToEndogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
                 parser.addRequired('NamesToEndogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || Valid.logicalScalar(x));
+                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
             parser.parse(this, dates, names);
             opt = parser.Options;

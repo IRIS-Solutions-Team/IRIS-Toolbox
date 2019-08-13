@@ -54,7 +54,7 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('Model.changeLogStatus');
     addRequired(parser, 'model', @(x) isa(x, 'Model'));
-    addRequired(parser, 'newStatus', @(x) isstruct(x) || Valid.logicalScalar(x));
+    addRequired(parser, 'newStatus', @(x) isstruct(x) || validate.logicalScalar(x));
     addRequired(parser, 'namesToChange', @validateNamesToChange);
 end
 parse(parser, this, newStatus, varargin);
@@ -111,7 +111,7 @@ function flag = validateNamesToChange(input)
     elseif numel(input)==1 && isequal(input{1}, @all)
         flag = true;
         return
-    elseif numel(input)==1 && Valid.list(input{1})
+    elseif numel(input)==1 && validate.list(input{1})
         flag = true;
         return
     elseif iscellstr(input) 

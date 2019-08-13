@@ -147,7 +147,7 @@ catch %#ok<CTCH>
 end
 
 % Allow both dbsave(d, fileName) and dbsave(fileName, d)
-if Valid.string(inp) && Valid.databank(fileName)
+if validate.string(inp) && validate.databank(fileName)
     [inp, fileName] = deal(fileName, inp);
 end
 
@@ -158,18 +158,18 @@ if isempty(parser)
     addRequired(parser, 'fileName', @validate.string);
     addRequired(parser, 'dates', @DateWrapper.validateDateInput);
     % Options
-    addParameter(parser, 'VariablesHeader', 'Variables ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'ClassHeader', 'Class[Size] ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, 'VariablesHeader', 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, 'ClassHeader', 'Class[Size] ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(parser, 'Class', true, @validate.logicalScalar);
     addParameter(parser, 'Comment', true, @validate.logicalScalar);
-    addParameter(parser, 'CommentsHeader', 'Comments ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'Decimal', [ ], @(x) isempty(x) || Valid.numericScalar(x));
-    addParameter(parser, 'Format', '%.8e', @(x) Valid.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
+    addParameter(parser, 'CommentsHeader', 'Comments ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, 'Decimal', [ ], @(x) isempty(x) || validate.numericScalar(x));
+    addParameter(parser, 'Format', '%.8e', @(x) validate.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
     addParameter(parser, 'MatchFreq', false, @validate.logicalScalar);
     addParameter(parser, 'Nan', 'NaN', @validate.string);
     addParameter(parser, {'SaveNested', 'SaveSubdb'}, false, @validate.logicalScalar);
-    addParameter(parser, 'UserData', 'userdata', @(x) Valid.string(x) && isvarname(x));
-    addParameter(parser, 'UnitsHeader', 'Units ->', @(x) Valid.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(parser, 'UserData', 'userdata', @(x) validate.string(x) && isvarname(x));
+    addParameter(parser, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(parser, 'Delimiter', ',', @validate.string);
     addDateOptions(parser);
 end

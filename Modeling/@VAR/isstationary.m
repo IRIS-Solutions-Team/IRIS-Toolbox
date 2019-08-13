@@ -31,7 +31,7 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('VAR.isstationary');
     parser.addRequired(  'VAR', @(x) isa(x, 'VAR'));
-    parser.addParameter( 'Tolerance', @default, @(x) isequal(x, @default) || Valid.numericScalar(x, [0, Inf]));
+    parser.addParameter( 'Tolerance', @default, @(x) isequal(x, @default) || validate.numericScalar(x, [0, Inf]));
 end
 parse(parser, this, varargin{:});
 opt = parser.Options;

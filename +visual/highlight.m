@@ -89,11 +89,11 @@ if isempty(parser)
     parser.addRequired('Axes', @(x) isequal(x, @gca) || all(isgraphics(x, 'Axes')));
     parser.addRequired('Range', @(x) all(cellfun(@(y) isa(y, 'DateWrapper') || isnumeric(y), x)));
 
-    parser.addParameter('Alpha', 1, @(x) Valid.numericScalar(x, [0, 1]));
+    parser.addParameter('Alpha', 1, @(x) validate.numericScalar(x, [0, 1]));
     parser.addParameter('Color', 0.8*[1, 1, 1], @(x) (isnumeric(x) && length(x)==3) || ischar(x) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1) );
     parser.addParameter('DatePosition', 'start', @(x) any(strcmpi(x, {'start', 'middle', 'end'})));
     parser.addParameter('ExcludeFromLegend', true, @(x) isequal(x, true) || isequal(x, false) );
-    parser.addParameter('HandleVisibility', 'Off', @(x) Valid.logicalScalar(x) || Valid.anyString(x, 'On', 'Off'));
+    parser.addParameter('HandleVisibility', 'Off', @(x) validate.logicalScalar(x) || validate.anyString(x, 'On', 'Off'));
     parser.addParameter('Text', cell.empty(1, 0), @(x) ischar(x) || isa(x, 'string') || iscellstr(x(1:2:end)));
 
     % Legacy options

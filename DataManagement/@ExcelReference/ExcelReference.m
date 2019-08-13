@@ -28,7 +28,7 @@ classdef ExcelReference
                 rowRef = varargin{i};
                 if isnumeric(rowRef)
                     row = rowRef;
-                elseif Valid.string(rowRef)
+                elseif validate.string(rowRef)
                     row = str2num(rowRef);
                 end
                 outputRow(i) = row;
@@ -52,7 +52,7 @@ classdef ExcelReference
                 try
                     column = str2num(columnRef);
                 end
-                if Valid.numericScalar(column)
+                if validate.numericScalar(column)
                     outputColumn(i) = column;
                     continue
                 end

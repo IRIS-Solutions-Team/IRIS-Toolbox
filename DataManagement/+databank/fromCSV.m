@@ -172,14 +172,14 @@ if isempty(parser)
     parser = extend.InputParser('dbase.dbload');
     addRequired(parser, 'FileName', @validate.list);
     % Options
-    addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || Valid.databank(x));
+    addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
     addParameter(parser, {'Case', 'ChangeCase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
     addParameter(parser, 'CommentRow', {'Comment', 'Comments'}, @(x) ischar(x) || iscellstr(x) || (isnumeric(x) && all(x==round(x)) && all(x>0)));
     addParameter(parser, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
     addParameter(parser, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
     addParameter(parser, 'FirstDateOnly', false, @validate.logicalScalar);
     % addParameter(parser, 'inputformat', 'auto', @(x) ischar(x) && (strcmpi(x, 'auto') || strcmpi(x, 'csv') || strncmpi(x, 'xl', 2)));
-    addParameter(parser, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables', 'Time'}, @(x) ischar(x) || iscellstr(x) || Valid.numericScalar(x));
+    addParameter(parser, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables', 'Time'}, @(x) ischar(x) || iscellstr(x) || validate.numericScalar(x));
     addParameter(parser, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(parser, 'NaN', 'NaN', @(x) ischar(x));
     addParameter(parser, 'OutputType', 'struct', @(x) strcmpi(x, 'struct') || strcmpi(x, 'containers.Map') || strcmpi(x, 'Dictionary'));
@@ -190,7 +190,7 @@ if isempty(parser)
     addParameter(parser, {'DatabankUserData', 'UserData'}, Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x)));
     addParameter(parser, 'UserDataField', '.', @(x) ischar(x) && isscalar(x));
     addParameter(parser, 'UserDataFieldList', { }, @(x) isempty(x) || iscellstr(x) || isnumeric(x));
-    addParameter(parser, 'VariableNames', @auto, @(x) isequal(x, @auto) || Valid.list(x));
+    addParameter(parser, 'VariableNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
     addDateOptions(parser);
 end
 parse(parser, fileName, varargin{:});
@@ -393,7 +393,7 @@ return
             else
                 line = file(start:eol-1);
             end
-            if Valid.numericScalar(opt.NameRow) && rowCount<opt.NameRow
+            if validate.numericScalar(opt.NameRow) && rowCount<opt.NameRow
                 hereMoveToNextEol( );
                 continue
             end

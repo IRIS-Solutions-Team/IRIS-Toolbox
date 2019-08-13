@@ -81,7 +81,7 @@ end
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('databank.merge');
-    parser.addRequired('Method', @(x) Valid.anyString(x, 'horzcat', 'replace', 'discard', 'error'));
+    parser.addRequired('Method', @(x) validate.anyString(x, 'horzcat', 'replace', 'discard', 'error'));
     parser.addRequired('InputDatabank', @validate.databank);
     parser.addRequired('MergeWith');
     parser.addParameter('MissingField', @rmfield);

@@ -56,7 +56,7 @@ if isempty(parser)
     parser.addRequired('FileName', @validate.string);
     parser.addRequired('Precision', @validate.string);
     parser.addParameter('MachineFormat', 'Native', @validate.string);
-    parser.addParameter('Encoding', @auto, @(x) isequal(x, @auto) || Valid.string(x));
+    parser.addParameter('Encoding', @auto, @(x) isequal(x, @auto) || validate.string(x));
 end
 parse(parser, c, fileName, precision, varargin{:});
 opt = parser.Options;

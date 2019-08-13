@@ -63,7 +63,7 @@ if isempty(parser)
     parser.addRequired('Plan', @(x) isa(x, 'Plan'));
     parser.addRequired('DatesToSwap', @DateWrapper.validateDateInput);
     parser.addRequired('PairsToSwap', @validatePairsToSwap);
-    parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || Valid.logicalScalar(x));
+    parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
 end
 parser.parse(this, dates, pairsToSwap, varargin{:});
 opt = parser.Options;

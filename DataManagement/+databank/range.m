@@ -58,9 +58,9 @@ if isempty(parser)
     parser = extend.InputParser('databank.range');
     addRequired(parser, 'inputDatabank', @validate.databank);
     % Options
-    addParameter(parser, 'NameList', @all, @(x) isequal(x, @all) || Valid.string(x) || isa(x, 'rexp'));
-    addParameter(parser, 'StartDate', 'MaxRange', @(x) Valid.anyString(x, {'MaxRange', 'MinRange'}));
-    addParameter(parser, 'EndDate', 'MaxRange', @(x) Valid.anyString(x, {'MaxRange', 'MinRange'}));
+    addParameter(parser, 'NameList', @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
+    addParameter(parser, 'StartDate', 'MaxRange', @(x) validate.anyString(x, {'MaxRange', 'MinRange'}));
+    addParameter(parser, 'EndDate', 'MaxRange', @(x) validate.anyString(x, {'MaxRange', 'MinRange'}));
 end
 parse(parser, inputDatabank, varargin{:});
 opt = parser.Options;
@@ -72,7 +72,7 @@ else
 end
 
 list = opt.NameList;
-if Valid.string(list)
+if validate.string(list)
     list = regexp(list, '\w+', 'match');
 elseif isa(list, 'rexp')
     inxOfMatched = ~cellfun(@isempty, regexp(allInputEntries, list, 'once'));

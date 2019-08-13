@@ -77,9 +77,9 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('NumericTimeSubscriptable.grow');
     addRequired(parser, 'x', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(parser, 'growth', @(x) isa(x, 'NumericTimeSubscriptable') || Valid.numericScalar(x));
+    addRequired(parser, 'growth', @(x) isa(x, 'NumericTimeSubscriptable') || validate.numericScalar(x));
     addRequired(parser, 'dates', @DateWrapper.validateProperDateInput);
-    addParameter(parser, 'BaseShift', -1, @(x) Valid.numericScalar(x) && x==round(x) && x<0);
+    addParameter(parser, 'BaseShift', -1, @(x) validate.numericScalar(x) && x==round(x) && x<0);
     addParameter(parser, 'Percent', true, @validate.logicalScalar);
     addParameter(parser, 'RateOfChange', 'Net', @(x) any(strcmpi(x, {'Net', 'Gross'})));
 end%
