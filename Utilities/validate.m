@@ -1,4 +1,4 @@
-% Valid  Utility class with static validators
+% validate  Utility class with static validators
 %
 % Backend class
 % No help provided
@@ -7,7 +7,7 @@
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 
-classdef Valid
+classdef validate
     methods (Static)
         function flag = databank(input)
             flag = isstruct(input) ...
@@ -30,7 +30,7 @@ classdef Valid
 
             
         function flag = roundScalar(input)
-            flag = Valid.numericScalar(x) && x==round(x);
+            flag = validate.numericScalar(input) && input==round(input);
         end%
 
 
@@ -45,12 +45,12 @@ classdef Valid
 
 
         function flag = list(input)
-            flag = Valid.string(input) || iscellstr(input);
+            flag = validate.string(input) || iscellstr(input);
         end%
 
 
         function flag = anyString(input, varargin)
-            if ~ischar(input) && ~isa(input, 'string')
+            if ~validate.string(input)
                 flag = false;
                 return
             end
