@@ -216,7 +216,7 @@ function [this, s, dates, freqTest] = expand(this, s)
         freqOfDates = unique(freqOfDates(~freqTest), 'stable');
         charFreqOfDates = arrayfun(@Frequency.toChar, freqOfDates, 'UniformOutput', false);
         throw( exception.Base('TimeSubscriptable:FrequencyMismatch', 'warning'), ...
-               Frequency.toChar(freqOfThis),charFreqOfDates{:} );
+               Frequency.toChar(freqOfThis), charFreqOfDates{:} );
     end
 end%
 

@@ -24,7 +24,7 @@ classdef DateWrapper < double
             fprintf('  %s %s Date(s)\n', sizeString, frequencyDisplayName);
             if ~empty
                 textfun.loosespace( )
-                disp( DateWrapper.toCellOfChar(this) )
+                disp( DateWrapper.toCellstr(this) )
             end
             textfun.loosespace( )
         end%
@@ -234,7 +234,7 @@ classdef DateWrapper < double
         end%
 
 
-        function c = toCellOfChar(dateCode, varargin)
+        function c = toCellstr(dateCode, varargin)
             c = dat2str(double(dateCode), varargin{:});
         end%
 
@@ -540,8 +540,26 @@ classdef DateWrapper < double
         end%
 
 
+
+
         function date = ii(input)
             date = DateWrapper(round(input));
+        end%
+
+
+
+
+        function dates = removeWeekends(dates)
+            inxWeekend = DateWrapper.isWeekend(double(dates));
+            dates(inxWeekend) = [ ];
+        end%
+
+
+
+
+        function inxWeekend = isWeekend(dates)
+            weekday = weekdayiso(double(dates));
+            inxWeekend = weekday==6 | weekday==7;
         end%
     end
 end
