@@ -208,6 +208,9 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
     methods
+        varargout = checkFrequency(varargin)
+
+
         function this = emptyData(this)
             if isnan(this.Start) || size(this.Data, 1)==0
                 return
@@ -242,16 +245,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         end%
 
 
-        function checkFrequencyOrInf(this, dates)
-            if any(~validateFrequencyOrInf(this, dates))
-                freqOfThis = DateWrapper.getFrequencyAsNumeric(this.Start);
-                freqOfDates = DateWrapper.getFrequencyAsNumeric(dates);
-                freqOfDates = unique(freqOfDates, 'stable');
-                charFreqOfDates = arrayfun(@Frequency.toChar, freqOfDates, 'UniformOutput', false);
-                throw( exception.Base('TimeSubscriptable:FrequencyMismatch', 'error'), ...
-                       Frequency.toChar(freqOfThis),charFreqOfDates{:} );
-            end
-        end%
     end
 
 

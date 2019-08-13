@@ -78,6 +78,7 @@ switch subsCase(this, timeRef)
         end
         return
     case 'Date_Date'
+        checkFrequency(this, timeRef, 'warning');
         if nargout>2
             [data, ~, pos, this] = getDataNoFrills(this, timeRef);
         else
