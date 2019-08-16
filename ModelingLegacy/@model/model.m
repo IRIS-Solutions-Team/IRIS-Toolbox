@@ -292,7 +292,14 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = myfindsspacepos(varargin)
         varargout = myinfo4plan(varargin)
         varargout = datarequest(varargin)
-        varargout = disp(varargin)
+
+
+        function disp(varargin)
+            implementDisp(varargin{:});
+            textual.looseLine( );
+        end%
+
+
         varargout = end(varargin)
         varargout = objfunc(varargin)
         varargout = isempty(varargin)
@@ -395,6 +402,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = createSourceDbase(varargin)
         varargout = diffFirstOrder(varargin)        
         varargout = file2model(varargin)        
+        implementDisp(varargin)
         varargout = kalmanFilterRegOutp(varargin)
         varargout = myanchors(varargin)
         varargout = mydiffloglik(varargin)
