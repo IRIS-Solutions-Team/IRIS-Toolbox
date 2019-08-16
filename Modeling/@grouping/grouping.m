@@ -177,6 +177,16 @@ classdef grouping < shared.UserDataContainer ...
         
         
         
-        varargout = disp(varargin)
+        function disp(varargin)
+            implementDisp(varargin{:});
+            textual.looseLine( );
+        end%
+    end
+
+
+
+
+    methods (Access=protected, Hidden)
+        implementDisp(varargin)
     end
 end
