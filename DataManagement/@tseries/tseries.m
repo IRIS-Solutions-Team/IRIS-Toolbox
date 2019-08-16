@@ -1,8 +1,7 @@
 % # tseries Objects #
 %
 %
-% Description
-% ------------
+% ## Description ##
 %
 % Time series (tseries) are numeric arrays with their first dimension
 % (rows) dated using the DateWrapper class. The DateWrapper class
@@ -49,7 +48,7 @@
 %   ndims - Number of dimensions in tseries object data
 %   size - Size of tseries object data
 %   specrange - Time series specific range
-%   yearly - Display tseries object one calendar year per row
+%   tabular - Display time series in tabular view
 %
 %
 % __Referencing Time Series__
@@ -132,9 +131,11 @@
 %   cumsumk - Cumulative sum with a k-period leap
 %   destdize - Destandardize time series by multiplying it by std dev and adding mean
 %   diff - First difference
+%   fillMissing - 
 %   interp - Interpolate missing observations
 %   normalize - Normalise (or rebase) data to particular date
 %   pct - Percent rate of change
+%   removeWeekends - 
 %   round - Round tseries values to specified number of decimals
 %   rmse - Compute RMSE for given observations and predictions
 %   stdize - Standardize tseries data by subtracting mean and dividing by std deviation
@@ -423,7 +424,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = vertcat(varargin)
         varargout = wmean(varargin)
         varargout = x12(varargin)
-        varargout = yearly(varargin)
         
 
         function date = startdate(this)
@@ -443,7 +443,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     
     
     methods (Hidden)
-        disp(varargin)
         varargout = checkConsistency(varargin)
         varargout = max(varargin)
         varargout = min(varargin)
@@ -453,20 +452,18 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = divisia(varargin)
 
 
-        varargout = fill(varargin)
-        function varargout = replace(varargin)
-            [varargout{1:nargout}] = fill(varargin{:});
+        function disp(varargin)
+            implementDisp(varargin{:});
+            textual.looseLine( );
         end%
 
 
-        varargout = getDataFromTo(varargin)
         varargout = implementGet(varargin)
         varargout = maxabs(varargin)
         varargout = rearrangePred(varargin)
         varargout = rangedata(varargin)
         varargout = saveobj(varargin)
         varargout = setData(varargin)
-        varargout = trim(varargin)
     end
     
     
@@ -474,6 +471,14 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
     methods (Access=protected, Hidden)
         varargout = catcheck(varargin)
+
+
+        function implementDisp(varargin)
+            implementDisp@NumericTimeSubscriptable(varargin{:});
+            implementDisp@shared.UserDataContainer(varargin{:});
+        end%
+
+
         varargout = myfilter(varargin)
         varargout = init(varargin)
         varargout = mylagorlead(varargin)

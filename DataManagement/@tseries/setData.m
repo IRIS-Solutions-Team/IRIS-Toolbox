@@ -210,12 +210,17 @@ function [this, s, dates, freqTest] = expand(this, s)
     end
     this.Start = startOfThis;
 
-    % Report frequency mismatch as a warning
+    %
+    % Report frequency mismatch as an error
+    %
     if any(~freqTest)
         charFreqOfThis = Frequency.toChar(freqOfThis);
         freqOfDates = unique(freqOfDates(~freqTest), 'stable');
         charFreqOfDates = arrayfun(@Frequency.toChar, freqOfDates, 'UniformOutput', false);
-        throw( exception.Base('TimeSubscriptable:FrequencyMismatch', 'warning'), ...
+        THIS_ERROR = { 'TimeSubscriptable:FrequencyMismatch'
+                       'Cannot reference %s dates when assigning to %1 time series ' };
+        %throw( exception.Base('TimeSubscriptable:FrequencyMismatch', 'error'), ...
+        throw( exception.Base(THIS_ERROR, 'error'), ...
                Frequency.toChar(freqOfThis), charFreqOfDates{:} );
     end
 end%
