@@ -146,7 +146,12 @@ classdef (CaseInsensitiveProperties=true) ...
         end
 
         
-        disp(varargin)
+        function disp(varargin)
+            implementDisp(varargin{:});
+            textual.looseLine( );
+        end%
+
+
         varargout = myoutpdata(varargin)
         varargout = myselect(varargin)
         varargout = implementGet(varargin)
@@ -157,6 +162,7 @@ classdef (CaseInsensitiveProperties=true) ...
     
     
     methods (Access=protected, Hidden)
+        implementDisp(varargin)
         varargout = mycompatible(varargin)
         varargout = mygroupmethod(varargin)
         varargout = mygroupnames(varargin)
