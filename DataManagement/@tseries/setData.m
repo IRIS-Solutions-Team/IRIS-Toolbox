@@ -29,7 +29,7 @@ convertToDateWrapper = isa(this.Start, 'DateWrapper');
 
 % Get RHS time series object data
 if isa(y, 'TimeSubscriptable')
-    checkFrequencyOrInf(y, dates);
+    checkFrequency(y, dates);
     y = getData(y, dates);
 end
 

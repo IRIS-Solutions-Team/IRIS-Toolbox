@@ -70,7 +70,7 @@ sizeOfData = size(this.Data);
 ndimsOfData = ndims(this.Data);
 this.Data = this.Data(:, :);
 
-checkFrequencyOrInf(this, normDate);
+checkFrequency(this, normDate);
 y = getData(this, normDate);
 for i = 1 : size(this.Data, 2)
     this.Data(:, i) = func(this.Data(:, i), y(i));

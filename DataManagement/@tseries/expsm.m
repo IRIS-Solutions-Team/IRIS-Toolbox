@@ -59,7 +59,7 @@ opt = INPUT_PARSER.Options;
 
 %--------------------------------------------------------------------------
 
-checkFrequencyOrInf(this, range);
+checkFrequency(this, range);
 [data, range] = getData(this, range);
 
 if opt.Log

@@ -23,7 +23,7 @@ for i = 1 : numOfNames
         continue
     end
     ithSeries = inputDatabank.(ithName);
-    % checkFrequencyOrInf(ithSeries, range);
+    % checkFrequency(ithSeries, range);
     ithData = getData(ithSeries, range);
     ithData = ithData(:, :);
     if size(ithData, 2)==1 && numOfPages>1

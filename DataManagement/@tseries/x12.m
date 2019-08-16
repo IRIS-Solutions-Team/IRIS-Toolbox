@@ -264,7 +264,7 @@ outputRequest( );
 numOfOutputs = length(opt.Output);
 co = comment(this);
 sizeOfData = size(this.data);
-checkFrequencyOrInf(this, range);
+checkFrequency(this, range);
 [data, range] = getData(this, range);
 data = data(:, :);
 

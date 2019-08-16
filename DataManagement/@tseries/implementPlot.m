@@ -99,7 +99,7 @@ if ~isempty(opt.Comprise)
     end
 end
 
-checkFrequencyOrInf(this, inputRange);
+checkFrequency(this, inputRange);
 data = getData(this, inputRange);
 xCoor = dat2dec(inputRange, opt.DatePosition);
 

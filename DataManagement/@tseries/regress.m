@@ -74,9 +74,9 @@ opt = parser.Options;
 %--------------------------------------------------------------------------
 
 dates = double(dates);
-checkFrequencyOrInf(Y, dates);
+checkFrequency(Y, dates);
 [dataY, dates] = getData(Y, dates);
-checkFrequencyOrInf(X, dates);
+checkFrequency(X, dates);
 dataX = getData(X, dates);
 if opt.Intercept
     dataX(:, end+1) = 1;
@@ -86,7 +86,7 @@ if isempty(opt.Weights)
     inxOfRows = all(~isnan([dataX, dataY]), 2);
     [b, stdB, eVar, covB] = lscov(dataX(inxOfRows, :), dataY(inxOfRows, :));
 else
-    checkFrequencyOrInf(opt.Weights, dates);
+    checkFrequency(opt.Weights, dates);
     dataWeights = getData(opt.Weights, dates);
     inxOfRows = all(~isnan([dataX, dataY, dataWeights]), 2);
     [b, stdB, eVar, covB] = lscov(dataX(inxOfRows, :), dataY(inxOfRows, :), dataWeights(inxOfRows, :));

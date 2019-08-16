@@ -57,7 +57,7 @@ if isempty(varargin)
     varargout{1} = accessUserData(this, field);
 else
     % Assign user data field
-    varargout{1} = assignUserData(this, field);
+    varargout{1} = assignUserData(this, field, varargin{:});
 end
 
 end%

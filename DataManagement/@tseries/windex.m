@@ -54,10 +54,10 @@ unmatched = parser.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
-checkFrequencyOrInf(this, range);
+checkFrequency(this, range);
 [inputData, range] = getData(this, range);
 if isa(weights, 'TimeSubscriptable')
-    checkFrequencyOrInf(weights, range);
+    checkFrequency(weights, range);
     weightsData = getData(weights, range);
 else
     weightsData = weights;
