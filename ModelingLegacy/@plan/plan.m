@@ -236,9 +236,12 @@ classdef plan < shared.UserDataContainer ...
     
     methods (Hidden)
         varargout = mydateindex(varargin)
-        varargout = disp(varargin)
-        
-        
+
+
+        function disp(varargin)
+            implementDisp(varargin{:});
+            textual.looseLine( );
+        end%
         
         
         function flag = checkConsistency(this)
@@ -251,6 +254,7 @@ classdef plan < shared.UserDataContainer ...
     
     
     methods (Access=protected, Hidden)
+        implementDisp(varargin)
         varargout = mychngplan(varargin)
     end
     
