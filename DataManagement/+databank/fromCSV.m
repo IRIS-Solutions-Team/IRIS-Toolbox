@@ -172,7 +172,7 @@ if isempty(parser)
     parser = extend.InputParser('dbase.dbload');
     addRequired(parser, 'FileName', @validate.list);
     % Options
-    addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
+    addParameter(parser, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
     addParameter(parser, {'Case', 'ChangeCase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
     addParameter(parser, 'CommentRow', {'Comment', 'Comments'}, @(x) ischar(x) || iscellstr(x) || (isnumeric(x) && all(x==round(x)) && all(x>0)));
     addParameter(parser, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));

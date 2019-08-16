@@ -46,7 +46,8 @@ FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('databank.serialize');
-    addRequired(parser,  'inputDatabank', @validate.databank);
+    % Required inputs
+    addRequired(parser, 'inputDatabank', @validate.databank);
     addRequired(parser, 'dates', @DateWrapper.validateDateInput);
     % Options
     addParameter(parser, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
@@ -63,6 +64,7 @@ if isempty(parser)
     addParameter(parser, 'UserDataFields', cell.empty(1, 0), @validate.list);
     addParameter(parser, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(parser, 'Delimiter', ',', @validate.string);
+    % Date options
     addDateOptions(parser);
 end
 parse(parser, inputDatabank, dates, varargin{:});

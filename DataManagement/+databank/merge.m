@@ -63,16 +63,16 @@ if isempty(varargin)
     return
 end
 
-inxOfStructs = cellfun('isclass', varargin, 'struct');
-if ~inxOfStructs(1)
+inxOfDatabanks = cellfun(@validate.databank, varargin);
+if ~inxOfDatabanks(1)
     return
 end
 
-if all(inxOfStructs)
+if all(inxOfDatabanks)
     mergeWith = varargin;
     varargin(:) = [ ];
 else
-    posFirstNonStruct = find(~inxOfStructs, 1);
+    posFirstNonStruct = find(~inxOfDatabanks, 1);
     posLastStruct = posFirstNonStruct - 1;
     mergeWith = varargin(1:posLastStruct);
     varargin(1:posLastStruct) = [ ];
@@ -91,7 +91,7 @@ opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
-numOfMergeWith = numel(mergeWith);
+numMergeWith = numel(mergeWith);
 
 if strcmpi(method, 'horzcat')
     mergeNext = @horzcatNext;
@@ -103,11 +103,16 @@ else
     mergeNext = @errorNext;
 end
 
-for i = 1 : numOfMergeWith
+for i = 1 : numMergeWith
     mainDatabank = mergeNext(mainDatabank, mergeWith{i}, opt);
 end
 
 end%
+
+
+%
+% Local Functions
+%
 
 
 function mainDatabank = horzcatNext(mainDatabank, mergeWith, opt)
@@ -145,8 +150,8 @@ end%
 
 function mainDatabank = replaceNext(mainDatabank, mergeWith, ~)
     newFields = fieldnames(mergeWith);
-    numOfNewFields = numel(newFields);
-    for i = 1 : numOfNewFields
+    numNewFields = numel(newFields);
+    for i = 1 : numNewFields
         name = newFields{i};
         mainDatabank.(name) = mergeWith.(name);
     end
@@ -157,8 +162,8 @@ end%
 
 function mainDatabank = discardNext(mainDatabank, mergeWith, ~)
     newFields = fieldnames(mergeWith);
-    numOfNewFields = numel(newFields);
-    for i = 1 : numOfNewFields
+    numNewFields = numel(newFields);
+    for i = 1 : numNewFields
         name = newFields{i};
         if isfield(mainDatabank, name)
             continue
@@ -172,9 +177,9 @@ end%
 
 function mainDatabank = errorNext(mainDatabank, mergeWith, ~)
     newFields = fieldnames(mergeWith);
-    numOfNewFields = numel(newFields);
-    inxOfErrorFields = false(1, numOfNewFields);
-    for i = 1 : numOfNewFields
+    numNewFields = numel(newFields);
+    inxOfErrorFields = false(1, numNewFields);
+    for i = 1 : numNewFields
         name = newFields{i};
         if isfield(mainDatabank, name)
             inxOfErrorFields(i) = true;
