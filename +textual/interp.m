@@ -82,16 +82,28 @@ function c = interp(c, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
+if ~contains(c, '$(')
+    return
+end
+
 inputs = varargin;
-replace = @hereInterolate;
+for i = find(cellfun(@(x) ischar(x) || isa(x, 'string'), varargin))
+    tokens = regexp(inputs{i}, '(\<[A-Za-z]\w*\>):(.*)', 'tokens', 'once');
+    if numel(tokens)==2 && ~isempty(tokens{1}) && ~isempty(tokens{2})
+        tokens = strtrim(tokens);
+        inputs{i} = struct(tokens{1}, tokens{2});
+    end
+end
+
+replace = @hereInterpolate;
 c = regexprep(c, '\$\([A-Za-z]\w*\)', '${replace($0)}');
 
 return
     
-    function c1 = hereInterolate(c1)
+    function c1 = hereInterpolate(c1)
         name = c1(3:end-1);
         for i = 1 : numel(inputs)
-            if isfield(inputs{i}, name)
+            if isstruct(inputs{i}) && isfield(inputs{i}, name)
                 value = getfield(inputs{i}, name);
                 if validate.string(value)
                     c1 = char(value);
