@@ -73,7 +73,7 @@ classdef Frequency < double
                 case Frequency.QUARTERLY
                     datetimeFormat = 'uuuuQQQ';
                 case {Frequency.WEEKLY, Frequency.DAILY}
-                    datetimeFormat = 'uuuu-MM-dd';
+                    datetimeFormat = 'uuuu-MMM-dd';
                 otherwise
                     datetimeFormat = char.empty(1, 0);
             end
