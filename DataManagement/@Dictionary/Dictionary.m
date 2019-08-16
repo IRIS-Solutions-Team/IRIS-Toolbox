@@ -1,5 +1,5 @@
 % Dictionary  
-%
+%{
 % Dictionary is a databank like object similar to the standard Matlab
 % `struct`.
 % 
@@ -21,15 +21,18 @@
 % ### Getting Information about Dictionary Objects ###
 % ------------------------------------------------------------------------------------------------------------
 %   keys                      - 
+%   list                      - 
 %   values                    - 
 %   isKey                     - 
+%   isempty                   - 
 %
 %
-% ### Adding, Getting and Removing Dictionary Fields ###
+% ### Manipulating Dictionary entries ###
 % ------------------------------------------------------------------------------------------------------------
 %   subsref                   - 
 %   subsasgn                  - 
 %   store                     - 
+%   rename                    - 
 %   retrieve                  - 
 %   remove                    - 
 %
@@ -42,23 +45,18 @@
 %   isfield                   - 
 %   rmfield                   - 
 %
-
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 
 classdef Dictionary < matlab.mixin.Copyable
-    properties
-        CaseSensitive = true
-    end
-
-
-
-
     properties (SetAccess=protected)
-        Keys = string.empty(1, 0)
-        Values = cell.empty(1, 0)
+        Keys (1, :) string = string.empty(1, 0)
+        Values (1, :) cell = cell.empty(1, 0)
+        CaseSensitive (1, 1) logical = true
+        EnforceKey = [ ]
     end
 
 
@@ -72,14 +70,27 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
     properties (Constant, Hidden)
-        WARNING_KEY_NOT_FOUND =    { 'Dictionary:KeyNotFound'
-                                     'This key does not exist in the Dictionary: %s ' }
+        EXCEPTION_KEY_NOT_FOUND =    { 'Dictionary:KeyNotFound'
+                                       'This key does not exist in the Dictionary: %s ' }
 
-        ERROR_INVALID_REFERENCE =  { 'Dictionary:InvalidSubscriptedReference'
-                                     'Invalid subscripted reference to a Dictionary' }
+        EXCEPTION_INVALID_REFERENCE =  { 'Dictionary:InvalidSubscriptedReference'
+                                         'Invalid subscripted reference to a Dictionary' }
 
-        ERROR_INVALID_ASSIGNMENT = { 'Dictionary:InvalidSubscriptedAssignment'
-                                     'Invalid subscripted assignment to a Dictionary' }
+        EXCEPTION_INVALID_ASSIGNMENT = { 'Dictionary:InvalidSubscriptedAssignment'
+                                         'Invalid subscripted assignment to a Dictionary' }
+
+        EXCEPTION_CANNOT_RENAME =      { 'Dictionary:CannotRename'
+                                         'Cannot rename because this key already exists in the Dictionary: %s' };
+
+        EXCEPTION_CANNOT_MAKE_CASE_INSENSITIVE = { 'Dictionary:CannotMakeCaseInsensitive'
+                                                   'Cannot make the Dictionary case insensitive because some keys would become indistiguishable' };
+
+        EXCEPTION_EMPTY_KEY =          { 'Dictionary:EmptyKey'
+                                         'Empty keys are not allowed in a Dictionary' };
+
+        EXCEPTION_TOO_MANY_OUTPUT_ARGS =  { 'Dictionary:EmptyKey'
+                                            'Too many output arguments' };
+
     end
 
 
@@ -95,39 +106,73 @@ classdef Dictionary < matlab.mixin.Copyable
                 this = varargin{1};
                 return
             end
-            this = store(this, varargin{:});
+            persistent parser
+            if isempty(parser)
+                parser = extend.InputParser('Dictionary.Dictionary');
+                addParameter(parser, 'CaseSensitive', true, @validate.logicalScalar);
+                addParameter(parser, 'EnforceKey', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
+            end
+            parse(parser, varargin{:});
+            this.CaseSensitive = parser.Results.CaseSensitive;
+            this.EnforceKey = parser.Results.EnforceKey;
         end%
 
 
 
 
-        function this = caseSensitive(this, newValue)
-            this.CaseSensitive = newValue;
+        function flag = isempty(this)
+% isempty  True if a Dictionary stores no entries
+            if numel(this)==1
+                flag = isempty(this.Keys);
+            else
+                flag = arrayfun(@(x) isempty(x.Keys), this);
+            end
         end%
 
 
 
 
-        function value = subsref(this, s)
+        function varargout = subsref(this, s)
+% subsref  Subscripted reference to Dictionary
             if strcmp(s(1).type, '.')
                 key = string(s(1).subs);
-            else
-                if numel(s(1).subs)~=1
+            elseif strcmp(s(1).type, '{}')
+                try
+                    key = string(s(1).subs);
+                catch
                     hereThrowError( );
                 end
-                key = string(s(1).subs{1});
+            else
+                error('...')
+
+                index = s(1).subs{1};
+                if ~isnumeric(index) || any(index~=round(index)) || any(index<=0) ...
+                   || numel(s(1).subs)>1
+                    hereThrowError( );
+                end
+                varargout{1} = this(index);
+                s = s(2:end);
+                if ~isempty(s)
+                    varargout{1} = subsref(varargout{1}, s);
+                end
+                return
             end
-            if numel(key)~=1
-                hereThrowError( );
+            numKeys = numel(key);
+            numOutputs = max(1, nargout);
+            if numKeys<numOutputs
+                throw( exception.Base(this.EXCEPTION_TOO_MANY_OUTPUT_ARGS, 'error') );
             end
-            value = retrieve(this, key);
             s = s(2:end);
-            if ~isempty(s)
-                value = subsref(value, s);
+            for i = 1 : numOutputs
+                value = retrieve(this, key(i));
+                if ~isempty(s)
+                    value = subsref(value, s);
+                end
+                varargout{i} = value;
             end
             return
-                function hereThrowError( )
-                    throw( exception.Base(this.ERROR_INVALID_REFERENCE, 'error') );
+                function hereThrowError( );
+                    throw( exception.Base(this.EXCEPTION_INVALID_REFERENCE, 'error') );
                 end%
         end%
 
@@ -135,13 +180,28 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
         function this = subsasgn(this, s, value)
+% subsasgn  Subscripted assignment to Dictionary
             if strcmp(s(1).type, '.')
                 key = string(s(1).subs);
-            else
-                if numel(s(1).subs)~=1
+            elseif strcmp(s(1).type, '{}') && numel(s(1).subs)==1 && numel(s(1).subs{1})==1
+                key = string(s(1).subs{1});
+            elseif strcmp(s(1).type, '()')
+                error('...')
+
+                index = s(1).subs{1};
+                if ~isnumeric(index) || any(index~=round(index)) || any(index<=0) ...
+                   || numel(s(1).subs)>1
                     hereThrowError( );
                 end
-                key = string(s(1).subs{1});
+                s = s(2:end);
+                if isempty(s)
+                    this(index) = value;
+                else
+                    this(index) = subsasgn(this(index), s, value);
+                end
+                return
+            else
+                hereThrowError( );
             end
             s = s(2:end);
             if ~isempty(s)
@@ -150,7 +210,7 @@ classdef Dictionary < matlab.mixin.Copyable
             this = store(this, key, value);
             return
                 function hereThrowError( )
-                    throw( exception.Base(this.ERROR_INVALID_ASSIGNMENT, 'error') );
+                    throw( exception.Base(this.EXCEPTION_INVALID_ASSIGNMENT, 'error') );
                 end%
         end%
 
@@ -194,7 +254,7 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
         function value = numel(this, varargin)
-            value = 1;
+            value = prod(size(this));
         end%
 
 
@@ -228,11 +288,79 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
 
+        function list(this, keyFilter, valueFilter)
+% list  Display list of keys with size and class descriptions of values
+            if nargin<2
+                keyFilter = [ ];
+            elseif validate.string(keyFilter)
+                keyFilter = @(x) contains(x, keyFilter);
+            end
+            if nargin<3
+                valueFilter = [ ];
+            elseif validate.string(valueFilter)
+                valueFilter = @(x) isa(x, valueFilter);
+            end
+            dispIndent = iris.get('DispIndent');
+            keys = this.Keys(:);
+            keys = dispIndent + keys + ": ";
+            count = this.Count;
+            info = cell(count, 1);
+            inxKeep = true(count, 1);
+            for i = 1 : count
+                if isa(keyFilter, 'function_handle')
+                    try
+                        pass = keyFilter(this.Keys{i});
+                    catch
+                        pass = false;
+                    end
+                    if ~isequal(pass, true)
+                        inxKeep(i) = false;
+                        continue
+                    end
+                end
+                ithValue = this.Values{i};
+                if isa(valueFilter, 'function_handle')
+                    try
+                        pass = valueFilter(ithValue);
+                    catch
+                        pass = false;
+                    end
+                    if ~isequal(pass, true)
+                        inxKeep(i) = false;
+                        continue
+                    end
+                end
+                ithClass = class(ithValue);
+                if isa(ithValue, 'TimeSubscriptable') ...
+                   && ~isempty(ithValue)
+                    ithClass = sprintf( '%s %s:%s', ...
+                                        ithClass, ...
+                                        dat2char(ithValue.Start), ...
+                                        dat2char(ithValue.End) );
+                end
+                ithSize = size(ithValue);
+                ithSizeString = sprintf('%gx', ithSize);
+                ithSizeString = [' [', ithSizeString(1:end-1)];
+                info{i} = [ithSizeString, ' ', ithClass, ']'];
+            end
+            if any(inxKeep)
+                keysAsChar = strjust(char(keys(inxKeep)));
+                infoAsChar = char(info(inxKeep));
+                listAsChar = strcat(keysAsChar, infoAsChar);
+                textual.looseLine( );
+                disp(listAsChar);
+            end
+            textual.looseLine( );
+        end%
+
+
+
         function this = store(this, varargin)
+% store  Store new entries in Dictionary
             for i = 1 : 2 : numel(varargin)
                 key = string(varargin{i});
                 value = varargin{i+1};
-                [flag, pos] = lookupKey(this, key);
+                [flag, pos, key] = lookupKey(this, key);
                 if flag
                     this.Values{pos} = value;
                 else
@@ -246,9 +374,10 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
         function value = retrieve(this, key)
+% retrieve  Retrieve value with specified key from Dictionary
             [flag, pos] =  lookupKey(this, key);
             if ~flag
-                throw( exception.Base(this.WARNING_KEY_NOT_FOUND, 'error'), ...
+                throw( exception.Base(this.EXCEPTION_KEY_NOT_FOUND, 'error'), ...
                        key );
             end
             value = this.Values{pos};
@@ -257,7 +386,29 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
 
+        function this = rename(this, oldKey, newKey)
+% rename  Rename keys in Dictionary
+            [flag, posOldKey, oldKey] = lookupKey(this, oldKey);
+            if ~flag
+                throw( exception.Base(this.EXCEPTION_KEY_NOT_FOUND, 'error'), ...
+                       oldKey );
+            end
+            [flag, ~, newKey] = lookupKey(this, newKey);
+            if flag
+                throw( exception.Base(this.EXCEPTION_CANNOT_RENAME, 'error'), ...
+                       newKey );
+            end
+            if isempty(newKey)
+                throw( exception.Base(this.EXCEPTION_EMPTY_KEY, 'error') );
+            end
+            this.Keys(posOldKey) = newKey;
+        end%
+
+
+
+
         function this = remove(this, keys)
+% remove  Remove entries from Dictionary
             if isa(keys, 'Except')
                 keys.CaseSensitive = this.CaseSensitive;
                 keys = resolve(keys, this.Keys);
@@ -266,7 +417,7 @@ classdef Dictionary < matlab.mixin.Copyable
             inxFound = ~isnan(pos);
             if any(~inxFound)
                 keysNotFound = cellstr(keys(~inxFound));
-                throw( exception.Base(this.WARNING_KEY_NOT_FOUND, 'error'), ...
+                throw( exception.Base(this.EXCEPTION_KEY_NOT_FOUND, 'error'), ...
                        keysNotFound{:} );
             end
             pos = pos(inxFound);
@@ -288,7 +439,8 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
     methods (Access=protected)
-        function [flag, pos] = lookupKey(this, key)
+        function [flag, pos, key] = lookupKey(this, key)
+            key = preprocessKeyString(this, key);
             if isequal(this.CaseSensitive, true)
                 inx = this.Keys==key;
             else
@@ -307,6 +459,7 @@ classdef Dictionary < matlab.mixin.Copyable
 
         function pos = lookupKeys(this, keys)
             numOfInquiries = numel(keys);
+            keys = preprocessKeyString(this, keys);
             if isequal(this.CaseSensitive, true)
                 inx = this.Keys(:)==transpose(keys(:));
             else
@@ -315,6 +468,16 @@ classdef Dictionary < matlab.mixin.Copyable
             pos = nan(size(keys));
             for i = find(any(inx, 1))
                 pos(i) = find(inx(:, i), 1);
+            end
+        end%
+
+
+
+
+        function key = preprocessKeyString(this, key)
+            key = strtrim(key);
+            if ~isempty(this.EnforceKey)
+                key = this.EnforceKey(key);
             end
         end%
     end
