@@ -127,7 +127,7 @@ if isempty(parser)
     parser.addParameter({'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || isequal(x, 'first') || isequal(x, 'last'));
     parser.addParameter({'RemoveNaN', 'IgnoreNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'last', 'previous'}))) || isnumericscalar(x));
-    parser.addParameter({'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || ischar(x) || isa(x, 'string'));
+    parser.addParameter({'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.string(x));
     parser.addParameter('Position', 'center', @(x) ischar(x) && any(strncmpi(x, {'c', 's', 'e'}, 1)));
     parser.addParameter('Select', Inf, @(x) isnumeric(x));
 end
@@ -301,10 +301,6 @@ function [newData, newStart] = interpolate(this, oldStart, oldEnd, oldFreq, newF
         opt.Method = 'pchip';
     end
 
-    oldData = getDataFromTo(this, oldStart, oldEnd);
-    oldSize = size(oldData);
-    oldData = oldData(:, :);
-
     [oldStartYear, oldStartPer] = dat2ypf(oldStart);
     [oldEndYear, oldEndPer] = dat2ypf(oldEnd);
 
@@ -337,15 +333,46 @@ function [newData, newStart] = interpolate(this, oldStart, oldEnd, oldFreq, newF
         newEnd = numeric.datecode(newFreq, newEndYear, newEndPer);
     end
 
-    numOfNewPeriods = floor(newEnd) - floor(newStart) + 1;
-    oldGrid = dat2dec(oldStart:oldEnd, opt.Position);
-    newGrid = dat2dec(newStart:newEnd, opt.Position);
-    newData = interp1(oldGrid, oldData, newGrid, opt.Method, 'extrap');
-    if size(newData, 1)==1 && size(newData, 2)==numOfNewPeriods
-        newData = newData(:);
+    oldData = getDataFromTo(this, oldStart, oldEnd);
+    oldSize = size(oldData);
+    if strcmpi(opt.Method, 'Flat')
+        newData = hereFlat( );
     else
-        newData = reshape(newData, [size(newData, 1), oldSize(2:end)]);
+        newData = hereInterpolate( );
     end
+
+    return
+
+        function newData = hereInterpolate( )
+            oldData = oldData(:, :);
+            numOfNewPeriods = floor(newEnd) - floor(newStart) + 1;
+            oldGrid = dat2dec(oldStart:oldEnd, opt.Position);
+            newGrid = dat2dec(newStart:newEnd, opt.Position);
+            newData = interp1(oldGrid, oldData, newGrid, opt.Method, 'extrap');
+            if size(newData, 1)==1 && size(newData, 2)==numOfNewPeriods
+                newData = newData(:);
+            else
+                newData = reshape(newData, [size(newData, 1), oldSize(2:end)]);
+            end
+        end%
+
+
+        function newData = hereFlat( )
+            newRange = newStart : newEnd;
+            oldRange = oldStart : oldEnd;
+            newConverted = convert(newRange, oldFreq);
+            newSize = oldSize;
+            newSize(1) = numel(newRange);
+            newData = nan(newSize);
+            oldRange100 = round(100*oldRange);
+            newConverted100 = round(100*newConverted);
+            for i = 1 : numel(oldRange)
+                inx = oldRange100(i)==newConverted100;
+                if any(inx)
+                    newData(inx, :) = repmat(oldData(i, :), nnz(inx), 1);
+                end
+            end
+        end%
 end%
 
 
