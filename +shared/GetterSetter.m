@@ -137,7 +137,7 @@ classdef GetterSetter
     end
     
     
-    methods (Access=protected, Hidden)
+    methods (Hidden)
         function ccn = getClickableClassName(this)
             className = class(this);
             if iris.get('DesktopStatus')
@@ -146,10 +146,8 @@ classdef GetterSetter
                 ccn = className; %#ok<UNRCH>
             end
         end%
-    end
-    
-    
-    methods (Hidden)
+
+
         function this = setp(this, prop, value)
             this.(prop) = value;
         end%

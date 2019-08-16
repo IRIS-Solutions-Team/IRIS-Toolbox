@@ -1,0 +1,58 @@
+function this = assignUserData(this, field, value)
+% assignUserData  Assign field in user data
+%{
+% ## Syntax ##
+%
+%     obj = assignUserData(obj, field, newValue)
+%
+%
+% ## Input Arguments ##
+%
+% __`obj`__ [ Model | Series | VAR | SVAR | DFM ] -
+% IRIS object subclassed from UserDataContainer.
+%
+% __`field`__ [ char | string ] - 
+% Field of the user data struct; if user data is empty, the field can be
+% created.
+%
+% __`newValue`__ [ * ] - 
+% Data that will be stored in the `field` in the user data struct.
+%
+%
+% ## Output Arguments ##
+%
+% __`obj`__ [ * ] - 
+% Object with its user data field newly created or assigned.
+%
+%
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%}
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
+
+if ~isempty(this.UserData) && ~isstruct(this.UserData)
+    THIS_ERROR = { 'UserDataContainer:UserDataNotStruct'
+                   'Cannot assign user data fields because the existing user data are not a struct' };
+    throw( exception.Base(THIS_ERROR, 'error') );
+end
+
+% Remove dots, equal signs, etc from the field name
+field = shared.UserDataContainer.preprocessFieldName(field);
+
+% Create struct if needed
+if ~isstruct(this.UserData)
+    this.UserData = struct( );
+end
+
+% Assign user data field
+this.UserData.(field) = value;
+
+end%
+

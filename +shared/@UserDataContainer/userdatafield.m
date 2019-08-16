@@ -54,19 +54,10 @@ end
 field = regexp(field, '\w+', 'match', 'once');
 
 if isempty(varargin)
-    % Access user data field
-    if isfield(u, field)
-        varargout{1} = u.(field);
-    else
-        THIS_ERROR = { 'UserDataContainer:FieldDoesNotExist'
-                       'User data field does not exist in the user data struct: %s ' };
-        throw( exception.Base(THIS_ERROR, 'error'), ...
-               field );
-    end
+    varargout{1} = accessUserData(this, field);
 else
     % Assign user data field
-    this.UserData.(field) = varargin{1};
-    varargout{1} = this;
+    varargout{1} = assignUserData(this, field);
 end
 
 end%

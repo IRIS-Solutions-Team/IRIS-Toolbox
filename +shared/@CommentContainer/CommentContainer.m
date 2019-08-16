@@ -4,7 +4,7 @@ classdef CommentContainer
         Comment = ''
     end
 
-    
+
     methods
         function this = CommentContainer(varargin)
             if isempty(varargin)
@@ -21,15 +21,14 @@ classdef CommentContainer
 
     methods
         varargout = comment(varargin)
+    end
 
 
-        function disp(this, varargin)
+    methods (Access=protected, Hidden)
+        function implementDisp(this, varargin)
             dispIndent = iris.get('DispIndent');
             fprintf(dispIndent);
             fprintf('Comment: %s\n', this.Comment);
-            if isempty(varargin)
-                textual.looseLine( );
-            end
         end%
     end
 end

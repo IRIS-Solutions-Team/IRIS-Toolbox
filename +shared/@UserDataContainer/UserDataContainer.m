@@ -34,6 +34,9 @@ classdef UserDataContainer
     
     
     methods
+        varargout = accessUserData(varargin)
+        varargout = assignUserData(varargin)
+        varargout = existsUserData(varargin)
         varargout = caption(varargin)
         varargout = userdata(varargin)
         varargout = userdatafield(varargin)
@@ -44,9 +47,12 @@ classdef UserDataContainer
         varargout = checkConsistency(varargin)
         varargout = implementGet(varargin)
         varargout = implementSet(varargin)
+    end
+
         
         
-        function disp(this, varargin)
+    methods (Access=protected, Hidden)
+        function implementDisp(this, varargin)
             dispIndent = iris.get('DispIndent');
             if isempty(this.UserData)
                 msg = 'Empty';
@@ -62,17 +68,23 @@ classdef UserDataContainer
                 fprintf(dispIndent);
                 fprintf('User Data: %s\n',msg);
             end
-            if isempty(varargin)
-                textual.looseLine( );
-            end
 
             return
             
                 function str = catchUnknown(x)
-                    sizeOfX = sprintf('%gx', size(x));
-                    sizeOfX(end) = '';
-                    str = sprintf('[%s %s]', sizeOfX, class(x));
+                    sizeX = sprintf('%gx', size(x));
+                    sizeX(end) = '';
+                    str = sprintf('[%s %s]', sizeX, class(x));
                 end%
+        end%
+    end
+
+
+
+
+    methods (Static)
+        function fieldName = preprocessFieldName(fieldName)
+            fieldName = regexp(fieldName, '\w+', 'match', 'once');
         end%
     end
 end
