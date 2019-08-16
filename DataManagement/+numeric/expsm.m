@@ -7,15 +7,15 @@ function smooth = expsm(x, beta, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('numeric.expsm');
-    inputParser.addRequired('InputData', @isnumeric);
-    inputParser.addRequired('Beta', @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1);
-    inputParser.addOptional('Init', NaN, @(x) isnumeric(x) && isscalar(x));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('numeric.expsm');
+    addRequired(parser, 'InputData', @isnumeric);
+    addRequired(parser, 'Beta', @(x) isnumeric(x) && isscalar(x) && x>=0 && x<=1);
+    addOptional(parser, 'Init', NaN, @(x) isnumeric(x) && isscalar(x));
 end
-inputParser.parse(x, beta, varargin{:});
-init = inputParser.Results.Init;
+parse(parser, x, beta, varargin{:});
+init = parser.Results.Init;
 
 %--------------------------------------------------------------------------
 
@@ -34,16 +34,16 @@ numPeriods0 = NaN;
 isInit = ~isnan(init);
 for i = 1 : numColumns
     ithX = x(:, i);    
-    ixNaNData = isnan(ithX);
-    first = find(~ixNaNData, 1);
-    last = find(~ixNaNData, 1, 'last');
+    inxNaNData = isnan(ithX);
+    first = find(~inxNaNData, 1);
+    last = find(~inxNaNData, 1, 'last');
     ithX = ithX(first:last);
     if isInit
         ithX = [init; ithX]; %#ok<AGROW>
     end
     numPeriods = size(ithX, 1);
     if numPeriods~=numPeriods0
-        w = TimeSubscriptable.getExpSmoothMatrix(beta, numPeriods);
+        w = NumericTimeSubscriptable.getExpSmoothMatrix(beta, numPeriods);
     end
     ithX = w*ithX;
     if isInit
@@ -57,4 +57,5 @@ if ndimsX>2
     smooth = reshape(smooth, sizeX);
 end
 
-end
+end%
+
