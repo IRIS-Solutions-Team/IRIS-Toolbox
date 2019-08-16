@@ -211,12 +211,20 @@ classdef rpteq < shared.GetterSetter ...
     
     methods (Hidden)
         varargout = checkConsistency(varargin)
-        varargout = disp(varargin)
+        
+
+        function disp(varargin)
+            implementDisp(varargin{:});
+            textual.looseLine( );
+        end%
+
+
         varargout = implementGet(varargin)
     end
     
     
     methods (Access=protected, Hidden)
+        implementDisp(varargin)
         varargout = postparse(varargin)
     end
 
