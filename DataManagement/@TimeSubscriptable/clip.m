@@ -107,6 +107,8 @@ if ndimsOfData>2
     this.Data = reshape(this.Data, sizeOfData);
 end
 
+this = trim(this);
+
 return
 
 
