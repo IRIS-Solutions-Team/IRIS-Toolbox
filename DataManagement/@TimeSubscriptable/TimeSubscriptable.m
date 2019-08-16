@@ -83,9 +83,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         varargout = clip(varargin)
         varargout = comment(varargin)
         varargout = getData(varargin)
+        varargout = getDataFromTo(varargin)
         varargout = getDataNoFrills(varargin)
         varargout = ifelse(varargin)
         varargout = redate(varargin)
+        varargout = removeWeekends(varargin)
         varargout = resetComment(varargin)
         varargout = shift(varargin)
 
@@ -194,6 +196,13 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
 
+    methods (Hidden)
+        varargout = trim(varargin)
+    end
+
+
+
+
     methods (Access=protected, Hidden)
         function startDate = startDateWhenEmpty(this, varargin)
             if isa(this.Start, 'DateWrapper')
@@ -251,7 +260,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
     methods (Static)
-        varargout = getExpSmoothMatrix(varargin)
         varargout = createDateAxisData(varargin)
     end
 

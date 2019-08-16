@@ -36,13 +36,35 @@ classdef ( Abstract, ...
         varargout = apct(varargin)
         varargout = bubble(varargin)
         varargout = ellone(varargin)
-        varargout = fillmissing(varargin)
+
+
+        varargout = fill(varargin)
+        function varargout = replace(varargin)
+            [varargout{1:nargout}] = fill(varargin{:});
+        end%
+
+
+        varargout = fillMissing(varargin)
+        function varargout = fillmissing(varargin)
+            [varargout{1:nargout}] = fillMissing(varargin{:});
+        end%
+
+
         varargout = grow(varargin)
+
+
+        tabular(varargin)
+        function yearly(varargin)
+            tabular(varargin);
+        end%
     end
+
+
 
 
     methods (Access=protected, Hidden)
         varargout = binop(varargin)
+        implementDisp(varargin)
         varargout = unop(varargin)
         varargout = unopinx(varargin)
 
@@ -63,9 +85,18 @@ classdef ( Abstract, ...
     end
 
 
+
+
     methods (Static, Access=protected)
         varargout = plotSwitchboard(varargin)
         varargout = preparePlot(varargin)
+    end
+
+
+
+
+    methods (Static)
+        varargout = getExpSmoothMatrix(varargin)
     end
 end
 
