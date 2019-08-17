@@ -555,6 +555,19 @@ classdef Frequency < double
                 throw( exception.Base('Frequency:InvalidConversionFromNumeric', 'error') );
             end
         end%
+
+
+        function letter = toLetter(freq)
+            freqLetters = iris.get('FreqLetters'); 
+            letter = repmat("", size(freq));
+            letter(freq==Frequency.YEARLY) = freqLetters(1);
+            letter(freq==Frequency.HALFYEARLY) = freqLetters(2);
+            letter(freq==Frequency.QUARTERLY) = freqLetters(3);
+            letter(freq==Frequency.MONTHLY) = freqLetters(4);
+            letter(freq==Frequency.WEEKLY) = freqLetters(5);
+            letter(freq==Frequency.DAILY) = "D";
+            letter(freq==Frequency.INTEGER) = "I";
+        end%
     end
 end
 
