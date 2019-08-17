@@ -1,23 +1,23 @@
-function dat = datbom(dat)
-% datbom  Beginning of month for the specified daily date
+function dateCode = datbom(dateCode)
+% datbom  Beginning of month for the specified daily or monthly date
 %
 % Syntax
 % =======
 %
-%     bom = datbom(dat)
+%     bom = datbom(dateCode)
 %
 %
 % Input arguments
 % ================
 %
-% * `dat` [ numeric ] - Daily serial date number.
+% * `dateCode` [ numeric ] - Daily or monthly date.
 %
 %
 % Output arguments
 % =================
 %
-% * `bom` [ numeric ] - Daily serial date number for the first day of the
-% same month as `dat`.
+% * `bom` [ numeric ] - Daily date for the first day of the same month as
+% `dateCode`.
 %
 %
 % Description
@@ -33,17 +33,7 @@ function dat = datbom(dat)
 
 %--------------------------------------------------------------------------
 
-if isa(dat, 'DateWrapper')
-    outputClass = 'DateWrapper';
-else
-    outputClass = 'double';
-end
+dateCode = datxom(dateCode, 'beginning');
 
-[y, m] = datevec( double(dat) );
-dat = datenum([y, m, 1]);
+end%
 
-if strcmpi(outputClass, 'DateWrapper')
-    dat = DateWrapper(dat);
-end
-
-end

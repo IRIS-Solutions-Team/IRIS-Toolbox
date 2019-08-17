@@ -1,5 +1,5 @@
-function eom = dateom(dat)
-% dateom  End of month for the specified daily date
+function eomDateCode = dateom(dateCode)
+% dateom  End of month for the specified daily or monthly date
 %
 % __Syntax__
 %
@@ -8,12 +8,12 @@ function eom = dateom(dat)
 %
 % __Input Arguments__
 %
-% * `dat` [ numeric ] - Daily serial date number.
+% * `dat` [ DateWrapper | numeric ] - Daily or monthly date.
 %
 %
 % __Output Arguments__
 %
-% * `eom` [ numeric ] - Daily serial date number for the last day of the
+% * `eom` [ DateWrapper | numeric ] - Daily date for the last day of the
 % same month as `dat`.
 %
 %
@@ -28,8 +28,7 @@ function eom = dateom(dat)
 
 %--------------------------------------------------------------------------
 
-[y, m] = datevec( double(dat) );
-eom = datenum([y, m, eomday(y, m)]);
+eomDateCode = datxom(dateCode, 'end');
 
 end%
 

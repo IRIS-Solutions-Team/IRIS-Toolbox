@@ -1,22 +1,22 @@
-function boq = datboq(dat)
+function boqDateCode = datboq(dateCode)
 % datboq  Beginning of quarter for the specified daily date
 %
 % Syntax
 % =======
 %
-%     boq = datboq(dat)
+%     boqDateCode = datboq(dateCode)
 %
 %
 % Input arguments
 % ================
 %
-% * `dat` [ DateWrapper | double ] - Daily date.
+% * `dateCode` [ DateWrapper | double ] - Daily date.
 %
 %
 % Output arguments
 % =================
 %
-% * `boq` [ DateWrapper | double ] - Daily date for the first day of the
+% * `boqDateCode` [ DateWrapper | double ] - Daily date for the first day of the
 % same quarter as `D`.
 %
 %
@@ -33,18 +33,18 @@ function boq = datboq(dat)
 
 %--------------------------------------------------------------------------
 
-if isa(dat, 'DateWrapper')
-    outputClass = 'DateWrapper';
-else
-    outputClass = 'double';
-end
+isDateWrapper = isa(dateCode, 'DateWrapper');
+dateCode = double(dateCode);
+sizeDateCode = size(dateCode);
 
-[y, m] = datevec( double(dat) );
+[y, m] = datevec(dateCode(:));
 m = 3*(ceil(m/3)-1) + 1;
-boq = datenum([y, m, 1]);
+boqDateCode = datenum([y, m, 1]);
 
-if strcmpi(outputClass, 'DateWrapper')
-    dat = DateWrapper(dat);
+boqDateCode = reshape(boqDateCode, sizeDateCode);
+if isDateWrapper
+    boqDateCode = DateWrapper(boqDateCode);
 end
 
-end
+end%
+

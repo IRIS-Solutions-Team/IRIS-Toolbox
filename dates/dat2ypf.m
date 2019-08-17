@@ -32,6 +32,7 @@ function [year, per, freq] = dat2ypf(dat)
 
 %--------------------------------------------------------------------------
 
+dat = double(dat);
 freq = DateWrapper.getFrequencyAsNumeric(dat);
 serial = DateWrapper.getSerial(dat);
 

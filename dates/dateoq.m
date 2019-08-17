@@ -1,23 +1,23 @@
-function eoq = dateoq(dat)
-% dateoq  End of quarter for the specified daily date.
+function eoqDateCode = dateoq(dateCode)
+% dateoq  End of quarter for the specified daily date
 %
 % Syntax
 % =======
 %
-%     eoq = dateoq(dat)
+%     eoqDateCode = dateoq(dateCode)
 %
 %
 % Input arguments
 % ================
 %
-% * `dat` [ numeric ] - Daily serial date number.
+% * `dateCode` [ numeric ] - Daily serial date number.
 %
 %
 % Output arguments
 % =================
 %
-% * `eoq` [ numeric ] - Daily serial date number for the last day of the
-% same quarter as `dat`.
+% * `eoqDateCode` [ numeric ] - Daily serial date number for the last day of the
+% same quarter as `dateCode`.
 %
 %
 % Description
@@ -28,13 +28,22 @@ function eoq = dateoq(dat)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-[y, m] = datevec( double(dat) );
-m = 3*(ceil(m/3)-1) + 3;
-eoq = datenum([y, m, eomday(y, m)]);
+isDateWrapper = isa(dateCode, 'DateWrapper');
+dateCode = double(dateCode);
+sizeDateCode = size(dateCode);
 
+[y, m] = datevec(dateCode(:));
+m = 3*(ceil(m/3)-1) + 3;
+eoqDateCode = datenum([y, m, eomday(y, m)]);
+
+eoqDateCode = reshape(eoqDateCode, sizeDateCode);
+if isDateWrapper
+    eoqDateCode = DateWrapper(eoqDateCode);
 end
+
+end%
