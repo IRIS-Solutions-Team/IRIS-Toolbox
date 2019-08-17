@@ -408,7 +408,7 @@ classdef DateWrapper < double
 
 
         function flag = validateDateInput(input)
-            freqLetters = iris.get('FreqLetters');
+            freqLetter = iris.get('FreqLetters');
             if isa(input, 'DateWrapper')
                 flag = true;
                 return
@@ -431,7 +431,7 @@ classdef DateWrapper < double
                 return
             end
             input = strtrim(cellstr(input));
-            match = regexpi(input, ['\d+[', freqLetters, ']\d*'], 'Once');
+            match = regexpi(input, ['\d+[', freqLetter, ']\d*'], 'Once');
             flag = all(~cellfun('isempty', match));
         end%
 
@@ -560,6 +560,31 @@ classdef DateWrapper < double
         function inxWeekend = isWeekend(dates)
             weekday = weekdayiso(double(dates));
             inxWeekend = weekday==6 | weekday==7;
+        end%
+
+
+
+
+        function s = toDefaultString(dates)
+            dates = double(dates);
+            s = repmat("", size(dates));
+            [year, per, freq] = dat2ypf(dates);
+            freqLetter = Frequency.toLetter(freq);
+            inxDaily = freq==Frequency.DAILY;
+            for i = find(inxDaily)
+                s(i) = datestr(dates(i), 'yyyy-mmm-dd');
+            end
+            inxInteger = freq==Frequency.INTEGER;
+            for i = find(inxInteger)
+                s(i) = sprintf('%g', dates(i));
+            end
+            inxYearly = freq==Frequency.YEARLY;
+            for i = find(inxYearly)
+                s(i) = sprintf('%g%s', year(i), freqLetter(i));
+            end
+            for i = find(~inxDaily & ~inxInteger & ~inxYearly)
+                s(i) = sprintf('%g%s%g', year(i), freqLetter(i), per(i));
+            end
         end%
     end
 end
