@@ -35,6 +35,7 @@
 %   rename                    - 
 %   retrieve                  - 
 %   remove                    - 
+%   updateSeries              - 
 %
 %
 % #### Alternative Function Names ###
@@ -90,6 +91,9 @@ classdef Dictionary < matlab.mixin.Copyable
 
         EXCEPTION_TOO_MANY_OUTPUT_ARGS =  { 'Dictionary:EmptyKey'
                                             'Too many output arguments' };
+
+        EXCEPTION_UPDATE_SERIES = { 'Dictionary:UpdateMustBeTimeSubscriptable'
+                                    'Method udpateSeries only works on entries of TimeSubscriptable class' }
 
     end
 
@@ -335,8 +339,8 @@ classdef Dictionary < matlab.mixin.Copyable
                    && ~isempty(ithValue)
                     ithClass = sprintf( '%s %s:%s', ...
                                         ithClass, ...
-                                        dat2char(ithValue.Start), ...
-                                        dat2char(ithValue.End) );
+                                        DateWrapper.toDefaultString(ithValue.Start), ...
+                                        DateWrapper.toDefaultString(ithValue.End) );
                 end
                 ithSize = size(ithValue);
                 ithSizeString = sprintf('%gx', ithSize);
@@ -368,6 +372,19 @@ classdef Dictionary < matlab.mixin.Copyable
                     this.Values(1, end+1) = { value };
                 end
             end
+        end%
+
+
+
+
+        function [this, x] = updateSeries(this, key, range, data)
+% updateSeries  Update time series in Dictionary
+            x = retrieve(this, key);
+            if ~isa(x, 'TimeSubscriptable')
+                throw( exception.Base(this.EXCEPTION_UPDATE_SERIES, 'error') );
+            end
+            x = setData(x, range, data);
+            store(this, key, x);
         end%
 
 
