@@ -1,4 +1,4 @@
-function this = assignUserData(this, field, value)
+function this = assignUserData(this, varargin)
 % assignUserData  Assign field in user data
 %{
 % ## Syntax ##
@@ -43,16 +43,20 @@ if ~isempty(this.UserData) && ~isstruct(this.UserData)
     throw( exception.Base(THIS_ERROR, 'error') );
 end
 
-% Remove dots, equal signs, etc from the field name
-field = shared.UserDataContainer.preprocessFieldName(field);
-
 % Create struct if needed
 if ~isstruct(this.UserData)
     this.UserData = struct( );
 end
 
-% Assign user data field
-this.UserData.(field) = value;
+for i = 1 : 2 : numel(varargin)
+    field = varargin{i};
+
+    % Remove dots, equal signs, etc from the field name
+    field = shared.UserDataContainer.preprocessFieldName(field);
+
+    % Assign user data field
+    this.UserData.(field) = varargin{i+1};
+end
 
 end%
 
