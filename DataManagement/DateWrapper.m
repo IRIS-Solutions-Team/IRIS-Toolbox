@@ -220,6 +220,11 @@ classdef DateWrapper < double
             refDate = double(refDate);
             pos = round(dates - refDate + 1);
         end%
+
+
+        function varargout = datestr(this, varargin)
+            [varargout{1:nargout}] = datestr(double(this), varargin{:});
+        end%
     end
 
 
