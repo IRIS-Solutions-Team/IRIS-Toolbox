@@ -420,4 +420,5 @@ end
 
 [ff, aa, pp] = dbplot.dbplot(list, d, range, opt, unmatchedOptions{:});
 
-end
+end%
+
