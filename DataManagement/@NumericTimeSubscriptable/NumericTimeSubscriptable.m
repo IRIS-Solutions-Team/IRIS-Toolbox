@@ -35,6 +35,14 @@ classdef ( Abstract, ...
         varargout = arf(varargin)
         varargout = apct(varargin)
         varargout = bubble(varargin)
+
+        varargout = destdize(varargin)
+        function varargout = destdise(varargin)
+            [varargout{1:nargout}] = destdize(varargin{:});
+        end%
+
+        varargout = diff(varargin)
+        varargout = difflog(varargin)
         varargout = ellone(varargin)
 
 
@@ -56,6 +64,15 @@ classdef ( Abstract, ...
         tabular(varargin)
         function yearly(varargin)
             tabular(varargin);
+        end%
+
+        varargout = pct(varargin)
+        varargout = rmse(varargin)
+
+
+        varargout = stdize(varargin)
+        function varargout = stdise(varargin)
+            [varargout{1:nargout}] = stdize(varargin{:});
         end%
     end
 
@@ -97,6 +114,349 @@ classdef ( Abstract, ...
 
     methods (Static)
         varargout = getExpSmoothMatrix(varargin)
+    end
+    
+
+
+
+    methods
+        function x = abs(x)
+            x.Data = abs(x.Data);
+        end%
+        function x = acos(x)
+            x.Data = acos(x.Data);
+            x = trim(x);
+        end%
+        function x = and(x, y)
+            x = binop(@and, x, y);
+        end%
+        function x = asin(x)
+            x.Data = asin(x.Data);
+            x = trim(x);
+        end%
+        function x = atan(x)
+            x.Data = atan(x.Data);
+            x = trim(x);
+        end%
+        function x = atan2(x)
+            x.Data = atan2(x.Data);
+            x = trim(x);
+        end%
+        function x = ceil(x)
+            x.Data = ceil(x.Data);
+        end%
+        function x = complex(x)
+            x.Data = complex(x.Data);
+        end%
+        function x = cos(x)
+            x.Data = cos(x.Data);
+            x = trim(x);
+        end%
+        function x = eq(a, b)
+            x = binop(@eq, a, b);
+        end%
+        function x = exp(x)
+            x.Data = exp(x.Data);
+            x = trim(x);
+        end%
+        function x = fix(x)
+            x.Data = fix(x.Data);
+            x = trim(x);
+        end%
+        function x = floor(x)
+            x.Data = floor(x.Data);
+        end%
+        function x = ge(a, b)
+            x = binop(@ge, a, b);
+        end%
+        function x = gt(a, b)
+            x = binop(@gt, a, b);
+        end%
+        function x = imag(x)
+            x = unop(@imag, x, 0);
+            x = trim(x);
+        end%
+        function x = isinf(x)
+            x.Data = isinf(x.Data);
+        end%
+        function x = isnan(x)
+            x.Data = isnan(x.Data);
+        end%
+        function flag = isreal(x)
+            flag = isreal(x.Data);
+        end%
+        function x = ldivide(a, b)
+            x = binop(@ldivide, a, b);
+        end%
+        function x = le(a, b)
+            x = binop(@le, a, b);
+        end%
+        function x = log(x)
+            x.Data = log(x.Data);
+            x = trim(x);
+        end%
+        function x = log10(x)
+            x.Data = log10(x.Data);
+            x = trim(x);
+        end%
+        function x = lt(a, b)
+            x = binop(@lt, a, b);
+        end%
+        function x = minus(a, b)
+            x = binop(@minus, a, b);
+        end%
+        function x = mldivide(x, y)
+            if (isa(x, 'NumericTimeSubscriptable') && isa(y, 'NumericTimeSubscriptable')) ...
+                    || (isnumeric(y) && length(y)==1)
+                x = binop(@ldivide, x, y);
+            else
+                x = binop(@mldivide, x, y);
+            end
+        end%
+        function x = mpower(x, y)
+            x = binop(@power, x, y);
+        end%
+        function x = mrdivide(x, y)
+            if (isa(x, 'NumericTimeSubscriptable') && isa(y, 'NumericTimeSubscriptable')) ...
+                    || (isnumeric(x) && length(x)==1)
+                x = binop(@rdivide, x, y);
+            else
+                x = binop(@mrdivide, x, y);
+            end
+        end%
+        function x = mtimes(x, y)
+            if isa(x, 'NumericTimeSubscriptable') && isa(y, 'NumericTimeSubscriptable')
+                x = binop(@times, x, y);
+            else
+                x = binop(@mtimes, x, y);
+            end
+        end%
+        function x = nanmean(x, dim, varargin)
+            if nargin<2
+                dim = 1;
+            end
+            x = unop(@mean, x, dim, dim, 'OmitNaN', varargin{:});
+        end%
+        function This = nanstd(This, Flag, Dim)
+            if nargin<2
+                Flag = 0;
+            end
+            if nargin<3
+                Dim = 1;
+            end
+            % @@@@@ MOSW
+            This = unop(@(varargin) tseries.mynanstd(varargin{:}), ...
+                This, Dim, Flag, Dim);
+        end%
+        function This = nansum(This, Dim)
+            if nargin<2
+                Dim = 1;
+            end
+            % @@@@@ MOSW
+            This = unop(@(varargin) tseries.mynansum(varargin{:}), ...
+                This, Dim, Dim);
+        end%
+        function This = nanvar(This, Flag, Dim)
+            if nargin<2
+                Flag = 0;
+            end
+            if nargin<3
+                Dim = 1;
+            end
+            % @@@@@ MOSW
+            This = unop(@(varargin) tseries.mynanvar(varargin{:}), ...
+                This, Dim, Flag, Dim);
+        end%
+        function This = ne(This, Y)
+            This = binop(@ne, This, Y);
+        end%
+        function x = norm(x, varargin)
+            x = norm(x.Data, varargin{:}) ;
+        end%
+        function x = not(x)
+            x.Data = not(x.Data);
+        end%
+        function x = or(x, y)
+            x = binop(@or, x, y);
+        end%
+        function x = plus(x, y)
+            x = binop(@plus, x, y);
+        end%
+        function x = power(x, y)
+            x = binop(@power, x, y);
+        end%
+        function x = prod(x, dim)
+            if nargin<2
+                dim = 1;
+            end
+            x = unop(@prod, x, dim, dim);
+        end%
+        function x = rdivide(x, y)
+            x = binop(@rdivide, x, y);
+        end%
+        function x = real(x)
+            x.Data = real(x.Data);
+            x = trim(x);
+        end%
+        function x = sin(x)
+            x.Data = sin(x.Data);
+            x = trim(x);
+        end%
+        function x = sqrt(x)
+            x.Data = sqrt(x.Data);
+            x = trim(x);
+        end%
+        function x = tan(x)
+            x.Data = tan(x.Data);
+            x = trim(x);
+        end%
+        function x = times(x, y)
+            x = binop(@times, x, y);
+        end%
+        function x = uminus(x)
+            x.Data = -x.Data;
+        end%
+        function x = uplus(x)
+        end%
+        
+        
+        %
+        % Distribution functions (Stats Toolbox)
+        %
+        function x = erf(x, varargin)
+            x.Data = erf(x.Data, varargin{:});
+            x = trim(x);
+        end%
+        function x = normcdf(x, varargin)
+            x.Data = normcdf(x.Data, varargin{:});
+            x = trim(x);
+        end%
+        function x = normpdf(x, varargin)
+            x.Data = normpdf(x.Data, varargin{:});
+            x = trim(x);
+        end%
+        function x = norminv(x, varargin)
+            x.Data = norminv(x.Data, varargin{:});
+            x = trim(x);
+        end%
+        function x = logncdf(x, varargin)
+            x.Data = logncdf(x.Data, varargin{:});
+            x = trim(x);
+        end%
+        function x = lognpdf(x, varargin)
+            x.Data = lognpdf(x.Data, varargin{:});
+            x = trim(x);
+        end%
+        function x = logninv(x, varargin)
+            x.Data = logninv(x.Data, varargin{:});
+            x = trim(x);
+        end%
+        function x = gevcdf(x, varargin)
+            x.Data = gevcdf(x.Data, varargin{:});
+            x = trim(x);
+        end%
+        function x = gevpdf(x, varargin)
+            x.Data = gevpdf(x.Data, varargin{:});
+            x = trim(x);
+        end%
+        function x = gevinv(x, varargin)
+            x.Data = gevinv(x.Data, varargin{:});
+            x = trim(x);
+        end%
+        
+        
+        
+        
+        %
+        % Functions whose behavior differs in different dimensions
+        %
+        function x = any(x, dim)
+            if nargin<2
+                dim = 1;
+            end
+            x = unop(@any, x, dim, dim);
+        end%
+        function x = all(x, dim)
+            if nargin<2
+                dim = 1;
+            end
+            x = unop(@all, x, dim, dim);
+        end%
+        function x = cumprod(x, dim, varargin)
+            if nargin<2
+                dim = 1;
+            end
+            x = unop(@cumprod, x, 0, dim, varargin{:});
+        end%
+        function x = cumsum(x, dim, varargin)
+            if nargin<2
+                dim = 1;
+            end
+            x = unop(@cumsum, x, 0, dim, varargin{:});
+        end%
+        function a = geomean(x, dim, varargin)
+            if nargin<2
+                dim = 1;
+            end
+            a = unop(@geomean, x, dim, dim, varargin{:});
+        end%
+        function x = mean(x, dim, varargin)
+            if nargin <2
+                dim = 1;
+            end
+            x = unop(@mean, x, dim, dim, varargin{:});
+        end%
+        function x = median(x, dim, varargin)
+            if nargin <2
+                dim = 1;
+            end
+            x = unop(@median, x, dim, dim, varargin{:});
+        end%
+
+        function x = mode(x, dim, varargin)
+            if nargin <2
+                dim = 1;
+            end
+            x = unop(@mode, x, dim, dim, varargin{:});
+        end%
+
+
+        function x = prctile(x, p, dim)
+            if nargin<3
+                dim = 2;
+            end
+            x = unop(@numeric.prctile, x, dim, p, dim);
+        end%
+
+        function varargout = pctile(varargin)
+            [varargout{1:nargout}] = prctile(varargin{:});
+        end%
+
+
+        function x = std(x, flag, dim, varargin)
+            if nargin<2
+                flag = 0;
+            end
+            if nargin<3
+                dim = 1;
+            end
+            x = unop(@std, x, dim, flag, dim, varargin{:});
+        end%
+        function x = sum(x, dim, varargin)
+            if nargin<2
+                dim = 1;
+            end
+            x = unop(@sum, x, dim, dim, varargin{:});
+        end%
+        function x = var(x, flag, dim, varargin)
+            if nargin<2
+                flag = 0;
+            end
+            if nargin<3
+                dim = 1;
+            end
+            x = unop(@var, x, dim, flag, dim, varargin{:});
+        end%
     end
 end
 

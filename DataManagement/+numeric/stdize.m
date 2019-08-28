@@ -23,11 +23,11 @@ dim = inputParser.Results.Dim;
 [x, redimStruct] = numeric.redim(x, dim);
 
 % Compute, remove and store mean
-meanX = tseries.mynanmean(x, 1);
+meanX = mean(x, 1, 'OmitNaN');
 x = bsxfun(@minus, x, meanX);
 
 % Compute, remove and store std deviations
-stdX = tseries.mynanstd(x, flag, 1);
+stdX = mean(x, flag, 1, 'OmitNaN');
 x = bsxfun(@rdivide, x, stdX);
 
 x = numeric.redim(x, dim, redimStruct);
