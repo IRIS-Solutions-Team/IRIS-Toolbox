@@ -30,7 +30,7 @@ lookupTable = {
     'DataCube4Model:InconsistentNumOfDataSets', 'Number of data sets in databank is not consistent with number of runs in DataCube4Model object.'
     'DataCube4Model:InvalidDotReference', 'Invalid dot-reference or dot-assignment to DataCube; indices must delineate a continuous cube.'
     'Datafeed:FeedUnknownFrequency', 'Date frequency of this Datafeed series unknown; series not loaded: %s'
-    'Dates:CalendarFormatForDaily', 'Calendar date format (starting with a $) must be specified for daily-frequency dates.'
+    'Dates:CalendarFormatForDaily', 'Calendar date format starting with a ''$'' must be specified for daily frequency dates.'
     'Dates:MixedFrequency', 'Dates with mixed date frequencies are not allowed %1: %s'
     'Dates:OnlyScalarFormatAllowed', 'Only one single DateFormat= allowed in str2dat(~)'
     'Dates:UnrecognizedFrequency', 'Invalid or unrecognized date frequency'
