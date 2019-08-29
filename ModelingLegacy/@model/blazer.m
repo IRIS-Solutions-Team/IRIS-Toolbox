@@ -1,39 +1,44 @@
 function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
-% blazer  Reorder dynamic or steady equations and variables into sequential block structure.
-%
+% blazer  Reorder dynamic or steady equations and variables into sequential block structure
+%{
 % ## Syntax ##
 %
-%     [NameBlk, EqtnBlk, BlkType] = blazer(M, ...)
+%     [nameBlk, eqtnBlk, blkType, blazerObj] = blazer(m, ...)
 %
 %
 % ## Input Arguments ##
 %
-% * `M` [ model ] - Model object.
+% __`m`__ [ Model ] -
+% Model object.
 %
 %
 % ## Output Arguments ##
 %
-% * `M` [ model ] - Model object with variables and steady-state equations
-% regrouped to create sequential block structure.
+% __`m`__ [ model ] -
+% Model object with variables and steady-state equations regrouped to
+% create sequential block structure.
 %
-% * `NameBlk` [ cell ] - Cell of cellstr with variable names in each block.
+% __`nameBlk`__ [ cell ] -
+% Cell of cellstr with variable names in each block.
 %
-% * `EqtnBlk` [ cell ] - Cell of cellstr with equations in each block.
+% __`eqtnBlk`__ [ cell ] - 
+% Cell of cellstr with equations in each block.
 %
-% * `BlkType` [ solver.block.Type ] - Type of each equation block: `SOLVE` or
-% `ASSIGN`.
+% __`blkType`__ [ solver.block.Type ] -
+% Type of each equation block: `SOLVE` or `ASSIGN`.
 %
 %
 % ## Options ##
 %
-% * `'Endogenize='` [ cellstr | char ] - List of parameters that will be
-% endogenized in steady equations.
+% __`Endogenize={ }`__ [ cellstr | char | empty ] -
+% List of parameters that will be endogenized in steady equations.
 %
-% * `'Exogenize='` [ cellstr | char ] - List of transition or measurement
-% variables that will be exogenized in steady equations.
+% __`Exogenize={ }`__ [ cellstr | char | empty ] -
+% List of transition or measurement variables that will be exogenized in
+% steady equations.
 %
-% * `'Kind='` [ `'Current'` | `'Stacked'` | *`'Steady'`* ] - The kind of
-% sequential block analysis that will be performed.
+% __`Kind='Steady'`__ [ `'Current'` | `'Stacked'` | `'Steady'` ] -
+% The kind of sequential block analysis that will be performed.
 %
 %
 % ## Description ##
@@ -44,13 +49,13 @@ function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 % leads to be the same entity as the respective current dated variable.
 %
 % * `'Current'` - Investigate the current dated variables in dynamic
-% equations, taking lags and leads as give.
+% equations, taking lags and leads as given.
 %
 % * `'Stacked'` - Investigate a whole structure of time-stacked equations
 % (not available yet).
 %
 %
-% _Reordering Algorithm_
+% ### Reordering Algorithm ###
 %
 % The reordering algorithm first identifies equations with a single
 % variable in each, and variables occurring in a single equation each, and
@@ -59,7 +64,7 @@ function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 % (`dmperm`).
 %
 %
-% _Output Returned from Blazer_
+% ### Output Returned from Blazer ###
 %
 % The output arguments `NameBlk` and `EqtnBlk` are 1-by-N cell arrays, 
 % where N is the number of blocks, and each cell is a 1-by-Kn cell array of
@@ -68,15 +73,16 @@ function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 %
 % ## Example ##
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.blazer');
     parser.KeepUnmatched = true;
-    parser.addRequired('Model', @(x) isa(x, 'model'));
+    parser.addRequired('model', @(x) isa(x, 'model'));
     parser.addParameter('Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
     parser.addParameter('SaveAs', '', @(x) isempty(x) || ischar(x));
 end
@@ -102,6 +108,11 @@ if ~isempty(opt.SaveAs)
 end
 
 end%
+
+
+%
+% Local Functions
+%
 
 
 function [blkEqnHuman, blkQtyHuman, blkType] = getHuman(blazer)

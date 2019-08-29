@@ -69,9 +69,11 @@ for v = variantsRequested
         header = sprintf('[Variant:%g][Block:%g]', v, i);
         [lx, gx, exitFlag, error] = run(blk, this.Link, lx, gx, header);
         outputInfo.ExitFlags{v}(i) = exitFlag;
-        %if ~exitFlags{v}(i)
-        %    fprintf('    Block %g of %g failed to solve.\n', i, numOfBlocks);
-        %end
+        %{
+        if hasFailed(exitFlag)
+            fprintf('    Block %g of %g failed to solve.\n', i, numOfBlocks);
+        end
+        %}
         if ~isempty(error.EvaluatesToNan)
             throw( exception.Base('Steady:EvaluatesToNan', 'error'), ...
                    this.Equation.Input{error.EvaluatesToNan} );
