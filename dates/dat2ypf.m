@@ -1,70 +1,84 @@
-function [year, per, freq] = dat2ypf(dat)
-% dat2ypf  Convert IRIS serial date number to year, period and frequency.
+function [year, per, freq, doy] = dat2ypf(dateCode)
+% dat2ypf  Convert IRIS serial date number to year, period and frequency
+%{
+% ## Syntax ##
 %
-% Syntax
-% =======
+%     [year, period, freq] = dat2ypf(dateCode)
 %
-%     [Y,P,F] = dat2ypf(Dat)
 %
-% Input arguments
-% ================
+% ## Input Arguments ##
 %
-% * `Dat` [ numeric ] - IRIS serial date numbers.
+% __`dateCode`__ [ DateWrapper | numeric ] -
+% IRIS dates or IRIS numeric date codes that will be converted to a year, 
+% period and frequency.
 %
-% Output arguments
-% =================
 %
-% * `Y` [ numeric ] - Years.
+% ## Output Arguments ##
 %
-% * `P` [ numeric ] - Periods within year.
+% __`year`__ [ numeric ] -
+% Year.
 %
-% * `F` [ numeric ] - Date frequencies.
+% __`period`__ [ numeric ] -
+% Period within year.
 %
-% Description
-% ============
+% __`freq`__ [ numeric ] -
+% Date frequency.
 %
-% Example
-% ========
 %
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-dat = double(dat);
-freq = DateWrapper.getFrequencyAsNumeric(dat);
-serial = DateWrapper.getSerial(dat);
+dateCode = double(dateCode);
+freq = DateWrapper.getFrequencyAsNumeric(dateCode);
+serial = DateWrapper.getSerial(dateCode);
 
-inxOfZero    = freq==0;
-inxOfWeekly  = freq==52;
-inxOfDaily   = freq==365;
-inxOfRegular = ~inxOfZero & ~inxOfWeekly & ~inxOfDaily;
+inxInteger = freq==Frequency.INTEGER;
+inxWeekly  = freq==Frequency.WEEKLY;
+inxDaily   = freq==Frequency.DAILY;
+inxRegular = ~inxInteger & ~inxWeekly & ~inxDaily;
 
-[year,per] = deal(nan(size(dat)));
+[year, per] = deal(nan(size(dateCode)));
 
+%
 % Regular frequencies
-if any(inxOfRegular)
-    year(inxOfRegular) = floor( double(serial(inxOfRegular)) ./ double(freq(inxOfRegular)) );
-    per(inxOfRegular) = round(serial(inxOfRegular) - year(inxOfRegular).*freq(inxOfRegular) + 1);
+%
+if any(inxRegular)
+    year(inxRegular) = floor( double(serial(inxRegular)) ./ double(freq(inxRegular)) );
+    per(inxRegular) = round(serial(inxRegular) - year(inxRegular).*freq(inxRegular) + 1);
 end
 
+%
 % Integer frequency
-if any(inxOfZero)
-    year(inxOfZero) = NaN;
-    per(inxOfZero) = serial(inxOfZero);
+%
+if any(inxInteger)
+    year(inxInteger) = NaN;
+    per(inxInteger) = serial(inxInteger);
 end
 
-% Daily frequency; dat2ypf not applicable
-if any(inxOfDaily)
-    year(inxOfDaily) = NaN;
-    per(inxOfDaily) = serial(inxOfDaily);
+%
+% Daily frequency
+%
+if any(inxDaily)
+    [year(inxDaily), ~] = datevec(dateCode);
+    startYear = datenum(year(inxDaily), 1, 1);
+    per(inxDaily) = round(serial(inxDaily) - startYear + 1);
 end
 
+%
 % Weekly frequency
-if any(inxOfWeekly)
-    x = ww2day(serial(inxOfWeekly));
-    [year(inxOfWeekly), per(inxOfWeekly)] = day2ypfweekly(x);
+%
+if any(inxWeekly)
+    x = ww2day(serial(inxWeekly));
+    [year(inxWeekly), per(inxWeekly)] = day2ypfweekly(x);
 end
 
 end%

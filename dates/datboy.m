@@ -1,5 +1,5 @@
 function boy = datboy(dat)
-% datboy  Beginning of year for the specified daily date.
+% datboy  Beginning of year for the specified daily date
 %
 % Syntax
 % =======
@@ -28,12 +28,19 @@ function boy = datboy(dat)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
+
+isDateWrapper = isa(dat, 'DateWrapper');
 
 [y, ~] = datevec(double(dat));
 boy = datenum([y, 1, 1]);
 
+if isDateWrapper
+    boy = DateWrapper(boy);
 end
+
+end%
+

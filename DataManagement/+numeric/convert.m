@@ -25,10 +25,10 @@ toFreqAsNumeric = double(toFreq);
 inputDate = double(inputDate);
 
 fromFreq = DateWrapper.getFrequencyAsNumeric(inputDate);
-inxFromZero = fromFreq==0;
+inxFromInteger = fromFreq==0;
 inxFromDaily = fromFreq==365;
 inxFromWeekly = fromFreq==52;
-inxFromRegular = ~inxFromZero & ~inxFromWeekly & ~inxFromDaily;
+inxFromRegular = ~inxFromInteger & ~inxFromWeekly & ~inxFromDaily;
 
 outputDate = nan(size(inputDate));
 

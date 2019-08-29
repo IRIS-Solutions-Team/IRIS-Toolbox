@@ -202,7 +202,7 @@ function [newData, newStart] = aggregate(this, oldStart, oldEnd, oldFreq, newFre
 
     % Stretch the original range from the beginning of first year until the end
     % of last year
-    if oldFreq==365
+    if oldFreq==Frequency.DAILY
         [oldStartYear, ~, ~] = datevec(oldStart);
         [oldEndYear, ~, ~] = datevec(oldEnd);
         oldStart = numeric.dd(oldStartYear, 1, 1);
