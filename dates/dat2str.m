@@ -1,43 +1,50 @@
 function [s, field] = dat2str(dat, varargin)
 % dat2str  Convert IRIS dates to cell array of strings
-%
-% __Syntax__
+%{
+% ## Syntax ##
 %
 %     S = dat2str(Dat, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `Dat` [ numeric ] - IRIS serial date number(s).
-%
-%
-% __Output Arguments__
-%
-% * `S` [ cellstr ] - Cellstr with strings representing the input dates.
+% __`Dat`__ [ numeric ] - 
+% IRIS serial date number(s).
 %
 %
-% __Options__
+% ## Output Arguments ##
 %
-% * `DateFormat='YYYYFP'` [ char | cellstr | string ] - Date format string,
+% __`S`__ [ cellstr ] - 
+% Cellstr with strings representing the input dates.
+%
+%
+% ## Options ##
+%
+% __`DateFormat='YYYYFP'`__ [ char | cellstr | string ] - 
+% Date format string,
 % or array of format strings (possibly different for each date).
 %
-% * `FreqLetters='YHQMW'` [ char | string ] - Five letters used to
+% __`FreqLetters='YHQMW'`__ [ char | string ] - 
+% Five letters used to
 % represent the six possible frequencies of IRIS dates, in this order:
 % yearly, half-yearly, quarterly, monthly, and weekly (such as the `'Q'` in
 % `'2010Q1'`).
 %
-% * `Months={'January', ..., 'December'}` [ cellstr | string ] - Twelve
+% __`Months={'January', ..., 'December'}`__ [ cellstr | string ] - 
+% Twelve
 % strings representing the names of the twelve months.
 %
-% * `ConversionMonth=1` [ numeric | `'last'` ] - Month that will represent
+% __`ConversionMonth=1`__ [ numeric | `'last'` ] - 
+% Month that will represent
 % a lower-than-monthly-frequency date if the month is part of the date
 % format string.
 %
-% * `WWDay='Thu'` [ `'Mon'` | `'Tue'` | `'Wed'` | `'Thu'` | `'Fri'` |
-% `'Sat'` | `'Sun'` ] - Day of week that will represent weeks.
+% __`WWDay='Thu'`__ [ `'Mon'` | `'Tue'` | `'Wed'` | `'Thu'` | `'Fri'` |
+% `'Sat'` | `'Sun'` ] - 
+% Day of week that will represent weeks.
 %
 %
-% __Description__
+% ## Description ##
 %
 % There are two types of date strings in IRIS: year-period strings and
 % calendar date strings. The year-period strings can be printed for dates
@@ -46,7 +53,7 @@ function [s, field] = dat2str(dat, varargin)
 % dates with weekly and daily frequencies. Date formats for calendar date
 % strings must start with a dollar sign, `$`.
 %
-% _Year-Period Date Strings_
+% ### Year-Period Date Strings ###
 %
 % Regular date formats can include any combination of the following
 % fields:
@@ -99,7 +106,7 @@ function [s, field] = dat2str(dat, varargin)
 % necessary.
 %
 %
-% _Calendar Date Strings_
+% ### Calendar Date Strings ###
 %
 % Calendar date formats must start with a dollar sign, `$`, and can include
 % any combination of the following fields:
@@ -135,15 +142,16 @@ function [s, field] = dat2str(dat, varargin)
 % (`'Mon'`, ..., `'Sun'`).
 %
 %
-% _Escaping Control Letters_
+% ### Escaping Control Letters ###
 %
 % To get the format letters printed literally in the date string, use a
 % percent sign as an escape character: `'%Y'`, `'%P'`, `'%F'`, `'%f'`, 
 % `'%M'`, `'%m'`, `'%R'`, `'%r'`, `'%Q'`, `'%q'`, `'%D'`, `'%E'`, `'%D'`.
 %
 %
-% __Example__
+% ## Example ##
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -174,11 +182,9 @@ daysOfWeek = { 'Sunday', 'Monday', 'Tuesday', 'Wednesday', ...
 
 [year, per, freq] = dat2ypf(dat);
 
-%ixYearly = freq==1;
-%ixZero = freq==0;
-ixWeekly = freq==Frequency.WEEKLY;
-ixDaily = freq==Frequency.DAILY;
-ixMsd = ixWeekly | ixDaily;
+inxWeekly = freq==Frequency.WEEKLY;
+inxDaily = freq==Frequency.DAILY;
+inxMatlabSerial = inxWeekly | inxDaily;
 
 % Matlab serial date numbers (daily or weekly dates only), calendar years, 
 % months, and days.
@@ -187,11 +193,11 @@ yearC = nan(size(dat));
 monC = nan(size(dat));
 dayC = nan(size(dat));
 dowC = nan(size(dat)); %% Day of week: 'Mon' through 'Sun'.
-if any(ixMsd(:))
-    msd(ixDaily) = dat(ixDaily);
-    msd(ixWeekly) = ww2day(dat(ixWeekly), opt.WDay);
-    [yearC(ixMsd), monC(ixMsd), dayC(ixMsd)] = datevec( double(msd(ixMsd)) );
-    dowC(ixMsd) = weekday(msd(ixMsd));
+if any(inxMatlabSerial(:))
+    msd(inxDaily) = dat(inxDaily);
+    msd(inxWeekly) = ww2day(dat(inxWeekly), opt.WDay);
+    [yearC(inxMatlabSerial), monC(inxMatlabSerial), dayC(inxMatlabSerial)] = datevec( double(msd(inxMatlabSerial)) );
+    dowC(inxMatlabSerial) = weekday(msd(inxMatlabSerial));
 end
 
 s = cell(size(year));
@@ -223,9 +229,11 @@ for iDat = 1 : nDat
         continue
     end
 
+    %{
     if ithFreq==Frequency.DAILY && ~isCalendar
-        throw( exception.Base('Options:CalendarFormatForDaily', 'error') );
+        throw( exception.Base('Dates:CalendarFormatForDaily', 'error') );
     end
+    %}
 
     subs = cell(1, numOfFields);
     subs(:) = {''};
@@ -243,7 +251,7 @@ for iDat = 1 : nDat
     iDowC = dowC(iDat);
     
     if ~isCalendar && isMonthNeeded
-        % Calculate non-calendar month.
+        % Calculate non-calendar month
         iMon = calculateMonth( );
     end
     
@@ -376,27 +384,29 @@ return
 
 
 
-    function Subs = doPer( )
-        Subs = '';
+    function s = doPer( )
+        s = '';
         if ~isfinite(iPer)
             return
         end
         switch field{j}
             case 'PP'
-                Subs = sprintf('%02g', iPer);
+                s = sprintf('%02g', iPer);
             case 'P'
-                if ithFreq<10
-                    Subs = sprintf('%g', iPer);
+                if ithFreq<Frequency.MONTHLY
+                    s = sprintf('%g', iPer);
+                elseif ithFreq<Frequency.DAILY
+                    s = sprintf('%02g', iPer);
                 else
-                    Subs = sprintf('%02g', iPer);
+                    s = sprintf('%03g', iPer);
                 end
             case 'R'
                 try %#ok<TRYNC>
-                    Subs = upperRomans{iPer};
+                    s = upperRomans{iPer};
                 end
             case 'r'
                 try %#ok<TRYNC>
-                    Subs = lowerRomans{iPer};
+                    s = lowerRomans{iPer};
                 end
         end
     end%
@@ -404,38 +414,38 @@ return
 
 
 
-    function Subs = doMonth(M)
-        Subs = '';
+    function s = doMonth(M)
+        s = '';
         if ~isfinite(M)
             return
         end
         switch field{j}
             case {'MMMM', 'Mmmm', 'MMM', 'Mmm'}
-                Subs = opt.Months{M};
+                s = opt.Months{M};
                 if field{j}(1)=='M'
-                    Subs(1) = upper(Subs(1));
+                    s(1) = upper(s(1));
                 else
-                    Subs(1) = lower(Subs(1));
+                    s(1) = lower(s(1));
                 end
                 if field{j}(end)=='M'
-                    Subs(2:end) = upper(Subs(2:end));
+                    s(2:end) = upper(s(2:end));
                 else
-                    Subs(2:end) = lower(Subs(2:end));
+                    s(2:end) = lower(s(2:end));
                 end
                 if length(field{j})==3
-                    Subs = Subs(1:min(3, end));
+                    s = s(1:min(3, end));
                 end
             case 'MM'
-                Subs = sprintf('%02g', M);
+                s = sprintf('%02g', M);
             case 'M'
-                Subs = sprintf('%g', M);
+                s = sprintf('%g', M);
             case 'Q'
                 try %#ok<TRYNC>
-                    Subs = upperRomans{M};
+                    s = upperRomans{M};
                 end
             case 'q'
                 try %#ok<TRYNC>
-                    Subs = lowerRomans{M};
+                    s = lowerRomans{M};
                 end
         end
     end%
@@ -530,9 +540,14 @@ return
 
     function subs = subsFreqLetter( )
         subs = '';
-        inx = ithFreq==configStruct.RegularFrequencies;
-        if any(inx)
-            subs = opt.FreqLetters(inx);
+        if ithFreq==Frequency.DAILY
+            % TODO: Include daily freq letter in config
+            subs = 'X';
+        else
+            inxRegular = ithFreq==configStruct.RegularFrequencies;
+            if any(inxRegular)
+                subs = opt.FreqLetters(inxRegular);
+            end
         end
         if isequal(field{j}, 'f')
             subs = lower(subs);
