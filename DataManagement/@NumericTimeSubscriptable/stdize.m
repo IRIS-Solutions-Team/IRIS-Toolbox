@@ -10,7 +10,7 @@ function [this, meanX, stdX] = stdize(this, varargin)
 %
 % ## Input Arguments ##
 %
-% __`x` [ NumericalTimeSubscriptable ] -
+% __`x` [ NumericTimeSubscriptable ] -
 % Input time series whose data will be normalized.
 %
 % __`~normalize` [ `0` | `1` ] -
@@ -20,7 +20,7 @@ function [this, meanX, stdX] = stdize(this, varargin)
 %
 % ## Output Arguments ##
 %
-% __`x` [ NumericalTimeSubscriptable ] -
+% __`x` [ NumericTimeSubscriptable ] -
 % Output time series with standardized data.
 %
 % __`meanX` [ numeric ] -
@@ -43,8 +43,8 @@ function [this, meanX, stdX] = stdize(this, varargin)
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('NumericalTimeSubscriptable.stdize');
-    parser.addRequired('inputSeries', @(x) isa(x, 'NumericalTimeSubscriptable'));
+    parser = extend.InputParser('NumericTimeSubscriptable.stdize');
+    parser.addRequired('inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
     parser.addOptional('normalize', 0, @(x) isequal(x, 0) || isequal(x, 1));
 end
 parser.parse(this, varargin{:});

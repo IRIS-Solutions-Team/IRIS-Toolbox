@@ -480,7 +480,7 @@ return
                                                                    startOfExtendedRange, ...
                                                                    comments, ...
                                                                    inxToInclude );
-            outputData = addToDatabank('Default', this, outputData)
+            outputData = addToDatabank('Default', this, outputData);
             outputData = appendData(this, inputData, outputData, baseRange, opt);
         else
             outputData = runningData.YXEPG;

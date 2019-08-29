@@ -10,13 +10,13 @@ function [x, meanX, stdX] = stdize(x, varargin)
 persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('numeric.stdize');
-    inputParser.addRequired('InputData', @isnumeric);
-    inputParser.addOptional('Flag', 0, @(x) isequal(x, 0) || isequal(x, 1));
-    inputParser.addOptional('Dim', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
+    inputParser.addRequired('inputData', @isnumeric);
+    inputParser.addOptional('flag', 0, @(x) isequal(x, 0) || isequal(x, 1));
+    inputParser.addOptional('dim', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
 end
 inputParser.parse(x, varargin{:});
-flag = inputParser.Results.Flag;
-dim = inputParser.Results.Dim;
+flag = inputParser.Results.flag;
+dim = inputParser.Results.dim;
 
 %--------------------------------------------------------------------------
 
@@ -27,11 +27,12 @@ meanX = mean(x, 1, 'OmitNaN');
 x = bsxfun(@minus, x, meanX);
 
 % Compute, remove and store std deviations
-stdX = mean(x, flag, 1, 'OmitNaN');
+stdX = std(x, flag, 1, 'OmitNaN');
 x = bsxfun(@rdivide, x, stdX);
 
 x = numeric.redim(x, dim, redimStruct);
 meanX = numeric.redim(meanX, dim, redimStruct);
 stdX = numeric.redim(stdX, dim, redimStruct);
 
-end
+end%
+

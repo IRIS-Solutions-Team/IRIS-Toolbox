@@ -10,7 +10,7 @@ function this = pct(this, varargin)
 %
 % ## Input Arguments ##
 %
-% __`x`__ [ NumericalTimeSubscriptable ] -
+% __`x`__ [ NumericTimeSubscriptable ] -
 % Input time series.
 %
 % __`~shift`__ [ numeric ] -
@@ -21,7 +21,7 @@ function this = pct(this, varargin)
 %
 % ## Output Arguments ##
 %
-% __`x`__ [ NumericalTimeSubscriptable ] -
+% __`x`__ [ NumericTimeSubscriptable ] -
 % Percentage rate of change in the input data.
 %
 %
@@ -54,8 +54,8 @@ function this = pct(this, varargin)
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('NumericalTimeSubscriptable/pct');
-    parser.addRequired('inputSeries', @(x) isa(x, 'NumericalTimeSubscriptable'));
+    parser = extend.InputParser('NumericTimeSubscriptable/pct');
+    parser.addRequired('inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
     parser.addOptional('shift', -1, @(x) isnumeric(x) && isscalar(x) && x==round(x));
     parser.addParameter('OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
 end

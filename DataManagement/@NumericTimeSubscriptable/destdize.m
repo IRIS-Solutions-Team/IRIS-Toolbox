@@ -3,21 +3,21 @@ function this = destdize(this, meanX, stdX)
 %
 % __Syntax__
 %
-%     X = destdize(X, MeanX, StdX)
+%     x = destdize(x, meanX, stdX)
 %
 %
 % __Input Arguments__
 %
-% * `X` [ tseries ] - Input tseries object.
+% * `x` [ NumericTimeSubscriptable ] - Input NumericTimeSubscriptable object.
 %
-% * `MeanX` [ numeric ] - Mean that will be added the data.
+% * `meanX` [ numeric ] - Mean that will be added the data.
 %
-% * `StdX` [ numeric ] - Standard deviation that will be added to the data.
+% * `stdX` [ numeric ] - Standard deviation that will be added to the data.
 %
 %
 % __Output Arguments__
 %
-% * `X` [ tseries ] - Destandardized output data.
+% * `x` [ NumericTimeSubscriptable ] - Destandardized output data.
 %
 %
 % __Description__
@@ -31,10 +31,10 @@ function this = destdize(this, meanX, stdX)
 
 persistent inputParser
 if isempty(inputParser)
-    inputParser = extend.InputParser('tseries.destdize');
-    inputParser.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    inputParser.addRequired('MeanX', @isnumeric);
-    inputParser.addRequired('StdX', @isnumeric);
+    inputParser = extend.InputParser('NumericTimeSubscriptable.destdize');
+    inputParser.addRequired('inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    inputParser.addRequired('meanX', @isnumeric);
+    inputParser.addRequired('stdX', @isnumeric);
 end
 inputParser.parse(this, meanX, stdX);
 
@@ -59,4 +59,5 @@ assert( ...
 
 this = unop(@numeric.destdize, this, 0, meanX, stdX);
 
-end
+end%
+
