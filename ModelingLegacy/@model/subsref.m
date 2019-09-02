@@ -43,6 +43,8 @@ function output = subsref(this, s)
 
 %--------------------------------------------------------------------------
 
+nv = length(this);
+
 % Dot-name reference m.name
 if strcmp(s(1).type,'.') && ischar(s(1).subs)
     name = s(1).subs;
@@ -56,7 +58,16 @@ if strcmp(s(1).type,'.') && ischar(s(1).subs)
         % Std or Corr
         output = this.Variant.StdCorr(:, posStdCorr, :);
     else
-        throw( exception.Base('Model:InvalidName', 'error'), '', name ); %#ok<GTARG>
+        behavior = this.Behavior.InvalidDotReference;
+        if strcmpi(behavior, 'Error')
+            throw( exception.Base('Model:InvalidName', 'Error'), '', name ); %#ok<GTARG>
+        elseif strcmpi(behavior, 'Warning')
+            throw( exception.Base('Model:InvalidName', 'Warning'), '', name ); %#ok<GTARG>
+        else
+            % Do nothing
+            output = nan(1, nv);
+            return
+        end
     end
     output = permute(output, [1, 3, 2]);
     if isa(this.Behavior.DotReferenceFunc, 'function_handle')

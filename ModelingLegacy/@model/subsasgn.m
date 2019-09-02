@@ -1,6 +1,6 @@
 function this = subsasgn(this, s, b)
 % subsasgn  Subscripted assignment for model objects
-%
+%{
 % ## Syntax for Assigning Parameter Variant from Another Object ##
 %
 %     m(index) = n
@@ -64,6 +64,7 @@ function this = subsasgn(this, s, b)
 % The parameter variants is simply copied ten times within the model
 % object.
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -92,10 +93,13 @@ if isnumeric(b) ...
     elseif ~isnan(posStdCorr)
         this.Variant.StdCorr(:, posStdCorr, :) = b;
     else
-        if strcmpi(this.Behavior.InvalidDotAssign, 'error')
+        behavior = this.Behavior.InvalidDotAssign;
+        if strcmpi(behavior, 'error')
             throw(exception.Base('Model:InvalidName', 'error'), '', name); %#ok<GTARG>
-        elseif strcmpi(this.Behavior.InvalidDotAssign, 'warning')
+        elseif strcmpi(behavior, 'warning')
             throw(exception.Base('Model:InvalidName', 'warning'), '', name); %#ok<GTARG>
+        else
+            % Do nothing
         end 
     end
     return
