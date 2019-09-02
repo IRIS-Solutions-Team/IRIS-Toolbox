@@ -1,6 +1,6 @@
 function [runningData, YXEPG] = shockdb(this, runningData, range, varargin)
 % shockdb  Create model-specific databank with random shocks
-%
+%{
 % ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted
@@ -61,6 +61,7 @@ function [runningData, YXEPG] = shockdb(this, runningData, range, varargin)
 %
 % ## Example ##
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -72,78 +73,82 @@ TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.shockdb');
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('InputDatabank', @(x) isempty(x) || isstruct(x));
-    parser.addRequired('Range', @(x) DateWrapper.validateProperRangeInput(x));
-    parser.addOptional('NumOfDrawsOptional', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
-    parser.addParameter('NumOfDraws', @auto, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
-    parser.addParameter('ShockFunc', @zeros, @(x) isa(x, 'function_handle'));
+    addRequired(parser, 'Model', @(x) isa(x, 'model'));
+    addRequired(parser, 'InputDatabank', @(x) isempty(x) || validate.databank(x));
+    addRequired(parser, 'Range', @(x) DateWrapper.validateProperRangeInput(x));
+    addOptional(parser, 'NumOfDrawsOptional', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
+    addParameter(parser, 'NumOfDraws', @auto, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
+    addParameter(parser, 'OutputType', 'struct', @validate.databankType);
+    addParameter(parser, 'ShockFunc', @zeros, @(x) isa(x, 'function_handle'));
 end
-parser.parse(this, runningData, range, varargin{:});
-numOfDrawsOptional = parser.Results.NumOfDrawsOptional;
+parse(parser, this, runningData, range, varargin{:});
+numDrawsOptional = parser.Results.NumOfDrawsOptional;
 opt = parser.Options;
-if ~isequal(numOfDrawsOptional, @auto)
-    opt.NumOfDraws = numOfDrawsOptional;
+if ~isequal(numDrawsOptional, @auto)
+    opt.NumOfDraws = numDrawsOptional;
 end
 range = double(range);
 
+runningData = databank.backend.ensureTypeConsistency( runningData, ...
+                                                      opt.OutputType );
+
 %--------------------------------------------------------------------------
 
-numOfQuantities = numel(this.Quantity.Name);
-inxOfE = getIndexByType(this, TYPE(31), TYPE(32));
-ne = sum(inxOfE);
+numQuantities = numel(this.Quantity.Name);
+inxE = getIndexByType(this, TYPE(31), TYPE(32));
+ne = sum(inxE);
 nv = length(this);
-numOfPeriods = numel(range);
-namesOfShocks = this.Quantity.Name(inxOfE);
+numPeriods = numel(range);
+namesShocks = this.Quantity.Name(inxE);
 labelOrName = this.Quantity.LabelOrName;
-labelOrName = labelOrName(inxOfE);
+labelOrName = labelOrName(inxE);
 
 if isempty(runningData) || isequal(runningData, struct( ))
-    E = zeros(ne, numOfPeriods);
+    E = zeros(ne, numPeriods);
 else
     requiredNames = cell.empty(1, 0);
-    optionalNames = namesOfShocks;
+    optionalNames = namesShocks;
     databankInfo = checkInputDatabank(this, runningData, range, requiredNames, optionalNames);
-    E = requestData(this, databankInfo, runningData, range, namesOfShocks);
+    E = requestData(this, databankInfo, runningData, range, namesShocks);
 end
-numOfPages = size(E, 3);
+numPages = size(E, 3);
 
 if isequal(opt.NumOfDraws, @auto)
-    opt.NumOfDraws = max(nv, numOfPages);
+    opt.NumOfDraws = max(nv, numPages);
 end
 checkNumOfDraws( );
 
-numOfRuns = max([nv, numOfPages, opt.NumOfDraws]);
-if numOfPages==1 && numOfRuns>1
-    E = repmat(E, 1, 1, numOfRuns);
+numRuns = max([nv, numPages, opt.NumOfDraws]);
+if numPages==1 && numRuns>1
+    E = repmat(E, 1, 1, numRuns);
 end
 
 if isequal(opt.ShockFunc, @lhsnorm)
-    S = lhsnorm(zeros(1, ne*numOfPeriods), eye(ne*numOfPeriods), numOfRuns);
+    S = lhsnorm(zeros(1, ne*numPeriods), eye(ne*numPeriods), numRuns);
 else
-    S = opt.ShockFunc(numOfRuns, ne*numOfPeriods);
+    S = opt.ShockFunc(numRuns, ne*numPeriods);
 end
 
-for i = 1 : numOfRuns
+for i = 1 : numRuns
     if i<=nv
         Omg = covfun.stdcorr2cov(this.Variant.StdCorr(:, :, i), ne);
         F = covfun.factorise(Omg);
     end
-    E(:, :, i) = E(:, :, i) + F*reshape(S(i, :), ne, numOfPeriods);
+    E(:, :, i) = E(:, :, i) + F*reshape(S(i, :), ne, numPeriods);
 end
 
 if nargout==1
     for i = 1 : ne
-        name = namesOfShocks{i};
+        name = namesShocks{i};
         e = permute(E(i, :, :), [2, 3, 1]);
         runningData.(name) = replace(TIME_SERIES_TEMPLATE, e, range(1), labelOrName{i});
     end
 elseif nargout==2
     [minShift, maxShift] = getActualMinMaxShifts(this);
-    numOfExtendedPeriods = numOfPeriods-minShift+maxShift;
-    baseColumns = (1:numOfPeriods) - minShift;
-    YXEPG = nan(numOfQuantities, numOfExtendedPeriods, numOfRuns);
-    YXEPG(inxOfE, baseColumns, :) = E;
+    numExtendedPeriods = numPeriods-minShift+maxShift;
+    baseColumns = (1:numPeriods) - minShift;
+    YXEPG = nan(numQuantities, numExtendedPeriods, numRuns);
+    YXEPG(inxE, baseColumns, :) = E;
 end
 
 return
@@ -157,14 +162,14 @@ return
             throw( exception.Base(THIS_ERROR, 'error') );
         end
         
-        if numOfPages>1 && opt.NumOfDraws>1 && numOfPages~=opt.NumOfDraws
+        if numPages>1 && opt.NumOfDraws>1 && numPages~=opt.NumOfDraws
             THIS_ERROR = { 'Model:NumOfDrawIncompatibleWithPages'
                            [ 'Option NumOfDraws= is not consistent with the number ', ...
                              'of alternative data pags in the input databank' ] };
             throw( exception.Base(THIS_ERROR, 'error') );
         end
         
-        if numOfPages>1 && nv>1 && nv~=numOfPages
+        if numPages>1 && nv>1 && nv~=numPages
             THIS_ERROR = { 'Model:PagesIncompatibleWithParams'
                            [ 'The number of alternative data pages in the input databank ', ...
                              'is not consistent with the number ', ...
