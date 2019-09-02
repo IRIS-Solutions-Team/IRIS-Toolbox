@@ -101,6 +101,13 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
     methods
+        varargout = list(varargin)
+    end
+
+
+
+
+    methods
         function this = Dictionary(varargin)
 % Dictionary  Create new Dictionary object
             if nargin==0
@@ -289,73 +296,6 @@ classdef Dictionary < matlab.mixin.Copyable
             flag = lookupKey(this, key);
         end%
 
-
-
-
-        function list(this, keyFilter, valueFilter)
-% list  Display list of keys with size and class descriptions of values
-            if nargin<2
-                keyFilter = [ ];
-            elseif validate.string(keyFilter)
-                keyFilter = @(x) contains(x, keyFilter);
-            end
-            if nargin<3
-                valueFilter = [ ];
-            elseif validate.string(valueFilter)
-                valueFilter = @(x) isa(x, valueFilter);
-            end
-            dispIndent = iris.get('DispIndent');
-            keys = this.Keys(:);
-            keys = dispIndent + keys + ": ";
-            count = this.Count;
-            info = cell(count, 1);
-            inxKeep = true(count, 1);
-            for i = 1 : count
-                if isa(keyFilter, 'function_handle')
-                    try
-                        pass = keyFilter(this.Keys{i});
-                    catch
-                        pass = false;
-                    end
-                    if ~isequal(pass, true)
-                        inxKeep(i) = false;
-                        continue
-                    end
-                end
-                ithValue = this.Values{i};
-                if isa(valueFilter, 'function_handle')
-                    try
-                        pass = valueFilter(ithValue);
-                    catch
-                        pass = false;
-                    end
-                    if ~isequal(pass, true)
-                        inxKeep(i) = false;
-                        continue
-                    end
-                end
-                ithClass = class(ithValue);
-                if isa(ithValue, 'TimeSubscriptable') ...
-                   && ~isempty(ithValue)
-                    ithClass = sprintf( '%s %s:%s', ...
-                                        ithClass, ...
-                                        DateWrapper.toDefaultString(ithValue.Start), ...
-                                        DateWrapper.toDefaultString(ithValue.End) );
-                end
-                ithSize = size(ithValue);
-                ithSizeString = sprintf('%gx', ithSize);
-                ithSizeString = [' [', ithSizeString(1:end-1)];
-                info{i} = [ithSizeString, ' ', ithClass, ']'];
-            end
-            if any(inxKeep)
-                keysAsChar = strjust(char(keys(inxKeep)));
-                infoAsChar = char(info(inxKeep));
-                listAsChar = strcat(keysAsChar, infoAsChar);
-                textual.looseLine( );
-                disp(listAsChar);
-            end
-            textual.looseLine( );
-        end%
 
 
 
