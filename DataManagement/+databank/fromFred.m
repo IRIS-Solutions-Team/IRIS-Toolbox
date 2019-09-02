@@ -1,6 +1,6 @@
 function [outputDatabank, status] = fromFred(fredSeriesId, varargin)
 % fromFred  Download time series from FRED, the St Louis Fed databank
-%
+%{
 % ## Syntax ##
 %
 %     [outputDatabank, status] = databank.fromFred(fredSeriesId, ...)
@@ -25,17 +25,23 @@ function [outputDatabank, status] = fromFred(fredSeriesId, varargin)
 %
 % ## Options ##
 %
-% __`AddToDatabank=struct( )`__ [ struct | empty ] - 
-% Requested time series will
-% be added to this existing databank, or an empty will be created.
+% __`AddToDatabank=[ ]`__ [ struct | empty ] - 
+% Requested time series will be added to this existing databank; if empty,
+% a new databank of the `OutputType=` class will be created; the type of
+% `AddToDatabank=` option must be consistent with the `OutputType=`.
 %
 % __`AggregationMethod='avg'`__ [ `'avg'` | `'sum'` | `'eop'` ] - 
-% Aggregation
-% (frequency conversion) method applied when option `'Frequency='` is used.
+% Aggregation (frequency conversion) method applied when option
+% `'Frequency='` is used.
 %
 % __`Frequency=''`__ [ empty | Frequency | `'M'` | `'Q'` | `'SA'` | `'A'` ] - 
-% Request time series conversion (aggregation) to the specified frequency;
-% frequency conversion will be performed server-side.
+% Request time series conversion to the specified frequency; frequency
+% conversion will be performed server-side; only high- to low-frequency
+% conversion is possible (aggregation).
+%
+% __`OutputType='struct'` [ `struct` | `Dictionary` ] - 
+% Type (Matlab class) of the output databank; the type of `AddToDatabank=`
+% option must be consistent with the `OutputType=`.
 %
 % __`URL='https://api.stlouisfed.org/fred/series'`__ [ char | string ] - 
 % URL for the Fred(R) API.
@@ -50,6 +56,7 @@ function [outputDatabank, status] = fromFred(fredSeriesId, varargin)
 %     d = databank.fromFred({'GDPC1', 'PCE'}, 'Frequency=', 'Q')
 %     d = databank.fromFred({'GDPC1->gdp', 'PCE->pc'})
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -62,14 +69,24 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('databank.fromFred');
     parser.KeepUnmatched = true;
+    %
+    % Required
+    %
     addRequired(parser,  'fredSeriesID', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    addParameter(parser, 'AddToDatabank', struct( ), @isstruct);
-    addParameter(parser, 'Frequency', '', @hereValidateFrequency);
+    %
+    % Options
+    %
+    addParameter(parser, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databankType(x));
     addParameter(parser, 'AggregationMethod', 'avg', @(x) any(strcmpi(x, {'avg', 'sum', 'eop'})));
+    addParameter(parser, 'Frequency', '', @hereValidateFrequency);
+    addParameter(parser, 'OutputType', 'struct', @validate.databankType);
     addParameter(parser, 'URL', 'https://api.stlouisfed.org/fred', @(x) (ischar(x) || isa(x, 'string')) && strlength(x)>0);
 end
 parse(parser, fredSeriesId, varargin{:});
 opt = parser.Options;
+
+outputDatabank = databank.backend.ensureTypeConsistency( opt.AddToDatabank, ...
+                                                         opt.OutputType );
 
 opt.URL = char(opt.URL);
 if opt.URL(end)=='/'
@@ -79,8 +96,6 @@ URL_INFO = [opt.URL, '/series'];
 URL_DATA = [opt.URL, '/series/observations'];
 
 %--------------------------------------------------------------------------
-
-outputDatabank = opt.AddToDatabank;
 
 if ~isempty(opt.Frequency)
     if isa(opt.Frequency, 'Frequency')
@@ -117,7 +132,14 @@ for i = 1 : numOfSeries
         continue
     end
     try
-        outputDatabank.(ithDatabankName) = hereExtractDataFromJson(jsonInfo, jsonData, opt);
+        x = hereExtractDataFromJson(jsonInfo, jsonData, opt);
+        if strcmpi(opt.OutputType, 'struct')
+            outputDatabank = setfield(outputDatabank, ithDatabankName, x);
+        elseif strcmpi(opt.OutputType, 'Dictionary')
+            outputDatabank = store(outputDatabank, ithDatabankName, x);
+        elseif strcmpi(opt.OutputType, 'containers.Map')
+            outputDatabank(ithDatabankName) = x;
+        end
     catch Error
         dataRetrieved(i) = false;
     end
