@@ -1,4 +1,4 @@
-% validate  Utility class with static validators
+% validate  Static utility class with validators
 %
 % Backend class
 % No help provided
@@ -9,6 +9,11 @@
 
 classdef validate
     methods (Static)
+        function flag = databankType(input)
+            flag = validate.anyString(input, 'struct', 'Dictionary', 'containers.Map');
+        end%
+
+
         function flag = databank(input)
             flag = isstruct(input) ...
                 || isa(input, 'Dictionary') ...
