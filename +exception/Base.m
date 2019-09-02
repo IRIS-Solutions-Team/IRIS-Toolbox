@@ -36,7 +36,7 @@ classdef Base
             this.ThrowAs = throwAs;
             if iscellstr(specs)
                 this.Identifier = specs{1};
-                this.Message = specs{2};
+                this.Message = [specs{2:end}];
             else
                 [this.Identifier, this.Message] = exception.Base.lookupException(specs);
             end
@@ -53,13 +53,17 @@ classdef Base
 
 
         function throw(this, varargin)
+            EMPTY_HIGHLIGHT = this.HIGHLIGHT;
+            EMPTY_HIGHLIGHT(:) = ' ';
             header = createHeader(this);
             message = this.Message;
+            needsHighlight = this.NeedsHighlight;
             message = strrep(message, '$ENGINE$', 'Matlab');
-            if this.NeedsHighlight
+            if needsHighlight
                 message = [this.HIGHLIGHT, message];
             end
-            message = strrep(message, '\h', repmat(' ', 1, length(this.HIGHLIGHT)));
+            message = strrep(message, '\H', sprintf('\n%s', EMPTY_HIGHLIGHT));
+            message = strrep(message, '\h', EMPTY_HIGHLIGHT);
             if ~isempty(varargin)
                 % Look for shared arguments %1, %2, ...
                 for i = 1 : length(varargin)
