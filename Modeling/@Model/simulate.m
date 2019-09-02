@@ -48,29 +48,30 @@ TYPE = @int8;
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.simulate');
-    parser.addRequired('SolvedModel', @validate.solvedModel);
-    parser.addRequired('InputData', @(x) isstruct(x) || isa(x, 'simulate.Data'));
-    parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
+    addRequired(parser, 'SolvedModel', @validate.solvedModel);
+    addRequired(parser, 'InputData', @(x) isstruct(x) || isa(x, 'simulate.Data'));
+    addRequired(parser, 'SimulationRange', @DateWrapper.validateProperRangeInput);
 
     parser.addDeviationOptions(false);
-    parser.addParameter('Anticipate', true, @validate.logicalScalar);
-    parser.addParameter('AppendPostsample', false, @validate.logicalScalar);
-    parser.addParameter('AppendPresample', false, @validate.logicalScalar);
-    parser.addParameter('Contributions', false, @validate.logicalScalar);
-    parser.addParameter('Homotopy', [ ], @(x) isempty(x) || isstruct(x));
-    parser.addParameter('IgnoreShocks', false, @validate.logicalScalar);
-    parser.addParameter('Method', solver.Method.FIRST_ORDER, @solver.Method.validate);
-    parser.addParameter('OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
-    parser.addParameter('Plan', true, @(x) validate.logicalScalar(x) || isa(x, 'Plan'));
-    parser.addParameter('ProgressInfo', false, @validate.logicalScalar);
-    parser.addParameter('SuccessOnly', false, @validate.logicalScalar);
-    parser.addParameter('Solver', @auto, @validateSolver);
-    parser.addParameter('SparseShocks', false, @validate.logicalScalar)
-    parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || validate.list(x));
-    parser.addParameter('Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
+    addParameter(parser, 'Anticipate', true, @validate.logicalScalar);
+    addParameter(parser, 'AppendPostsample', false, @validate.logicalScalar);
+    addParameter(parser, 'AppendPresample', false, @validate.logicalScalar);
+    addParameter(parser, 'Contributions', false, @validate.logicalScalar);
+    addParameter(parser, 'Homotopy', [ ], @(x) isempty(x) || isstruct(x));
+    addParameter(parser, 'IgnoreShocks', false, @validate.logicalScalar);
+    addParameter(parser, 'Method', solver.Method.FIRST_ORDER, @solver.Method.validate);
+    addParameter(parser, 'OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
+    addParameter(parser, 'OutputType', 'struct', @validate.databankType);
+    addParameter(parser, 'Plan', true, @(x) validate.logicalScalar(x) || isa(x, 'Plan'));
+    addParameter(parser, 'ProgressInfo', false, @validate.logicalScalar);
+    addParameter(parser, 'SuccessOnly', false, @validate.logicalScalar);
+    addParameter(parser, 'Solver', @auto, @validateSolver);
+    addParameter(parser, 'SparseShocks', false, @validate.logicalScalar)
+    addParameter(parser, 'SystemProperty', false, @(x) isequal(x, false) || validate.list(x));
+    addParameter(parser, 'Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 
-    parser.addParameter('Initial', 'Data', @(x) validate.anyString(x, 'Data', 'FirstOrder'));
-    parser.addParameter('PrepareGradient', true, @validate.logicalScalar);
+    addParameter(parser, 'Initial', 'Data', @(x) validate.anyString(x, 'Data', 'FirstOrder'));
+    addParameter(parser, 'PrepareGradient', true, @validate.logicalScalar);
 end
 parse(parser, this, inputData, baseRange, varargin{:});
 opt = parser.Options;
@@ -475,11 +476,14 @@ return
             baseRange = runningData.BaseRange;
             startOfExtendedRange = runningData.ExtendedRange(1);
             lastColumnOfSimulation = runningData.BaseRangeColumns(end);
+            timeSeriesConstructor = @default;
             outputData = databank.backend.fromDoubleArrayNoFrills( runningData.YXEPG(:, 1:lastColumnOfSimulation, :), ...
                                                                    this.Quantity.Name, ...
                                                                    startOfExtendedRange, ...
                                                                    comments, ...
-                                                                   inxToInclude );
+                                                                   inxToInclude, ...
+                                                                   timeSeriesConstructor, ...
+                                                                   opt.OutputType );
             outputData = addToDatabank('Default', this, outputData);
             outputData = appendData(this, inputData, outputData, baseRange, opt);
         else
