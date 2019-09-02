@@ -1,37 +1,38 @@
 function d = addToDatabank(what, this, d, varargin)
 % addToDatabank  Add model quantities to existing or new databank 
-%
+%{
 % ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted
 %
-%     D = addToDatabank(What, M, D, ...)
-%     D = addToDatabank(What, M, D, Range, ...)
+%     d = addToDatabank(what, m, d, ...)
+%     d = addToDatabank(what, m, d, range, ...)
 %
 %
 % ## Input Arguments ##
 %
-% * `What` [ char | cellstr | string ] - What model quantities to add:
+% * `what` [ char | cellstr | string ] - what model quantities to add:
 % parameters, std deviations, cross-correlations.
 %
-% * `M` [ model ] - Model object whose parameters will be added to databank
-% `D`.
+% * `m` [ model ] - Model object whose parameters will be added to databank
+% `d`.
 %
-% * `D` [ struct ] - Databank to which the model parameters will be added.
+% * `d` [ struct ] - Databank to which the model parameters will be added.
 %
-% * `~Range` [ DateWrapper ] - Date range on which time series will be
+% * `~range` [ DateWrapper ] - Date range on which time series will be
 % created; needs to be specified for `Shocks`.
 %
 %
 % ## Output Arguments ##
 %
-% * `D` [ struct ] - Databank with the model parameters added.
+% * `d` [ struct | Dictionary | containers.Map ] -
+% Databank with the model parameters added.
 %
 %
 % ## Description ##
 %
 % Function `addToDatabank( )` adds all specified model quantities to the databank,
-% `D`, as arrays with values for all parameter variants. If no input
+% `d`, as arrays with values for all parameter variants. If no input
 % databank is entered, a new will be created.
 %
 % Specify one of the following to choose what model quantities to add:
@@ -55,6 +56,7 @@ function d = addToDatabank(what, this, d, varargin)
 %     d = struct( );
 %     d = addToDatabank('Parameters', m, d);
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -69,11 +71,11 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('model/addToDatabank');
     parser.KeepUnmatched = true;
-    parser.addRequired('What', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('Databank', @isstruct);
+    addRequired(parser, 'what', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addRequired(parser, 'model', @(x) isa(x, 'model'));
+    addRequired(parser, 'databank', @validate.databank);
 end
-parser.parse(what, this, d);
+parse(parser, what, this, d);
 
 %--------------------------------------------------------------------------
 
@@ -111,7 +113,8 @@ return
         ixp = this.Quantity.Type==TYPE(4);
         for i = find(ixp)
             ithName = this.Quantity.Name{i};
-            d.(ithName) = permute(this.Variant.Values(:, i, :), [1, 3, 2]);
+            ithValue = permute(this.Variant.Values(:, i, :), [1, 3, 2]);
+            d = hereCreateNewField(d, ithName, ithValue);
         end
     end%
 
@@ -122,7 +125,8 @@ return
         vecStd = this.Variant.StdCorr(:, 1:ne, :);
         for i = 1 : ne
             ithName = listOfStdNames{i};
-            d.(ithName) = permute(vecStd(1, i, :), [2, 3, 1]);
+            ithValue = permute(vecStd(1, i, :), [2, 3, 1]);
+            d = hereCreateNewField(d, ithName, ithValue);
         end
     end%
 
@@ -141,7 +145,8 @@ return
         end
         for i = 1 : numel(namesOfCorr)
             ithName = namesOfCorr{i};
-            d.(ithName) = permute(valuesOfCorr(1, i, :), [2, 3, 1]);
+            ithValue = permute(valuesOfCorr(1, i, :), [2, 3, 1]);
+            d = hereCreateNewField(d, ithName, ithValue);
         end
     end%
 
@@ -150,3 +155,20 @@ return
         d = shockdb(this, d, varargin{:});
     end%
 end%
+
+
+%
+% Local Functions
+%
+
+
+function d = hereCreateNewField(d, name, value)
+    if isa(d, 'struct')
+        d = setfield(d, name, value);
+    elseif isa(d, 'Dictionary')
+        d = store(d, name, value);
+    elseif isa(d, 'containers.Map')
+        d(name) = value;
+    end
+end%
+
