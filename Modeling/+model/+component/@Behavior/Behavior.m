@@ -1,6 +1,7 @@
 classdef Behavior
     properties
         InvalidDotAssign = 'Error'
+        InvalidDotReference = 'Error'
         DotReferenceFunc = [ ]
         LogStyleInSolutionVectors = model.LOG_PREFIX
     end
@@ -21,11 +22,35 @@ classdef Behavior
             elseif strcmpi(newValue, 'Warning')
                 this.InvalidDotAssign = 'Warning';
                 return
+            elseif strcmpi(newValue, 'Silent')
+                this.InvalidDotAssign = 'Silent';
+                return
             else
-                throw( ...
-                    exception.Base('Behavior:InvalidDotAssign', 'error'), ...
-                    newValue ...
-                );
+                specs = { 'Behavior:InvalidDotAssign'
+                          'Invalid value assigned to Behavior.InvalidDotAssign: %s'
+                          '\HValue assigned to Behavior.InvalidDotAssign '
+                          'must be one of {''Error'', ''Warning'', ''Silent''} ' };
+                throw(exception.Base(specs, 'error'), newValue);
+            end
+        end
+
+
+        function this = set.InvalidDotReference(this, newValue)
+            if strcmpi(newValue, 'Error')
+                this.InvalidDotReference = 'Error';
+                return
+            elseif strcmpi(newValue, 'Warning')
+                this.InvalidDotReference = 'Warning';
+                return
+            elseif strcmpi(newValue, 'Silent')
+                this.InvalidDotReference = 'Silent';
+                return
+            else
+                specs = { 'Behavior:InvalidDotReference'
+                          'Invalid value assigned to Behavior.InvalidDotReference: %s'
+                          '\HValue assigned to Behavior.InvalidDotReference '
+                          'must be one of {''Error'', ''Warning'', ''Silent''} ' };
+                throw(exception.Base(specs, 'error'), newValue);
             end
         end
 
@@ -38,9 +63,7 @@ classdef Behavior
                 this.DotReferenceFunc = newValue;
                 return
             else
-                throw( ...
-                    exception.Base('Behavior:DotReferenceFunc', 'error') ...
-                );
+                throw( exception.Base('Behavior:DotReferenceFunc', 'error') );
             end
         end
 

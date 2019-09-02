@@ -15,6 +15,10 @@ elseif strcmpi(request, 'Behavior:InvalidDotAssign')
     this.InvalidDotAssign = value;
     return
 
+elseif strcmpi(request, 'Behavior:InvalidDotReference')
+    this.InvalidDotReference = value;
+    return
+
 elseif strcmpi(request, 'Behavior:DotReferenceFunc')
     this.DotReferenceFunc = value;
     return
@@ -27,4 +31,5 @@ else
 
 end
 
-end
+end%
+
