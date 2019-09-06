@@ -38,8 +38,26 @@ classdef Preparser < model.File
             end
             if ~isempty(modelFile)
                 if ~isa(modelFile, 'model.File')
-                    fileName = cellstr(modelFile);
+                    fileName = strtrim(cellstr(modelFile));
+                    %
+                    % Remove model file names starting with a hat ^
+                    %
+                    inxToRemove = cellfun(@(x) strncmp(x, '^', 1), fileName);
+                    fileName(inxToRemove) = [ ];
+
+                    %
+                    % Throw an error if there is no model file name to read
+                    %
                     numOfModelFiles = numel(fileName);
+                    if numOfModelFiles==0
+                        thisError = { 'Preparser:NoModelFileEntered'
+                                      'No model file specified' };
+                        throw( exception.ParseTime(thisError, 'error') );
+                    end
+
+                    %
+                    % Create an array of model.File objects
+                    %
                     modelFile = model.File.empty(1, 0);
                     for i = 1 : numOfModelFiles
                         modelFile = [modelFile, model.File(fileName{i})];
