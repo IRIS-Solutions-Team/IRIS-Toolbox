@@ -1,11 +1,11 @@
-function outp = datarequest(req, this, inp, range)
-% datarequest  Request input data.
+function output = datarequest(req, this, inp, range)
+% datarequest  Request input data
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -17,9 +17,9 @@ mustI = ~isempty( strfind(req, 'i*') );
 X = [ ];
 I = [ ];
 
-outp = datarequest@varobj(req, this, inp, range);
+output = datarequest@varobj(req, this, inp, range);
 
-range = outp.Range;
+range = output.Range;
 
 if isempty(inp)
     inp = struct( );
@@ -40,12 +40,13 @@ if retI && ~isempty(this.NamesConditioning)
     I = db2array(inp, range, this.NamesConditioning, sw);
 end
 
-% Transpose and return data.
+% Transpose and return data
 if retX
-    outp.X = permute(X, [2,1,3]);
+    output.X = permute(X, [2,1,3]);
 end
 if retI
-    outp.I = permute(I, [2,1,3]);
+    output.I = permute(I, [2,1,3]);
 end
 
-end
+end%
+

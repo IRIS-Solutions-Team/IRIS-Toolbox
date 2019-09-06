@@ -1,11 +1,11 @@
 function outp = datarequest(req, this, inp, range)
-% datarequest  Request input data.
+% datarequest  Request input data
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 % Req: y, y*, e, e*
 % Outp.Range
@@ -23,6 +23,7 @@ mustE = ~isempty( strfind(req, 'e*') );
 Y = [ ];
 E = [ ];
 
+range = double(range);
 if any(isinf(range))
     range = Inf;
     isInfRange = true;
@@ -52,8 +53,9 @@ if retE
     E = db2array(inp, range, this.NamesErrors, sw);
 end
 
-% Transpose and return data.
 outp.Range = range;
+
+% Transpose and return data
 if retY
     outp.Y = permute(Y, [2, 1, 3]);
 end
@@ -61,4 +63,5 @@ if retE
     outp.E = permute(E, [2, 1, 3]);
 end
 
-end
+end%
+
