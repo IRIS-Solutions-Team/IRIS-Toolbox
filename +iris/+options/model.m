@@ -134,11 +134,6 @@ def.createSourceDbase = [
     }
 ];
 
-def.sspace = {
-    'triangular', true, @islogicalscalar
-    'removeinactive', false, @islogicalscalar
-    };
-
 
 def.trollify = { 
     'SrcTemplate', 'trollify_template.src', @ischar

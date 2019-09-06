@@ -39,12 +39,6 @@ def.acf = [
 
 
 def.filter = {
-    'ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1
-    'cross', true, @(x) (islogical(x) && isscalar(x)) || (isnumeric(x) && isscalar(x) && x>=0 && x<=1)
-    'Deviation, Deviations', false, @(x) islogical(x) && isscalar(x)
-    'meanonly', false, @(x) islogical(x) && isscalar(x)
-    'omega', [ ], @isnumeric
-    'output', 'smooth', @ischar    
 };
 
 def.fmse = [

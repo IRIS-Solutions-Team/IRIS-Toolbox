@@ -48,8 +48,6 @@ Def.dbminuscontrol = {
 };
 
 Def.dbnames = { 
-    'classfilter, classlist', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'rexp')
-    'namefilter, namelist', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'rexp')
 };
 
 Def.dbfun = [
