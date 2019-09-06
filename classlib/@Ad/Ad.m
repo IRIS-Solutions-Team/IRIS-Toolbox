@@ -1,55 +1,54 @@
-% Ad  Automatic/symbolic differentiator.
+% Ad  Automatic/symbolic differentiator
 %
-% Backend IRIS class.
-% No help provided.
+% Backend IRIS class
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 classdef Ad
     properties
         Input = Ad.STRUCT
-        Diff = cell(1, 0) %Ad.STRUCT
+        Diff = cell.empty(1, 0) %Ad.STRUCT
     end
     
     
     
     
     properties (Constant, Hidden)
-        LS_FUNC = {
-            'normcdf'
-            'normpdf'
-            'exp'
-            'log'
-            'sqrt'
-            'power'
-            'mpower'
-            'ldivide'
-            'rdivide'
-            'mldivide'
-            'mrdivide'
-            'times'
-            'mtimes'
-            'minus'
-            'plus'
-            'uminus'
-            'uplus'
-            'Ad.f'
-            }
+        LIST_OF_FUNCTIONS = { 'normcdf'
+                              'normpdf'
+                              'exp'
+                              'log'
+                              'sqrt'
+                              'power'
+                              'mpower'
+                              'ldivide'
+                              'rdivide'
+                              'mldivide'
+                              'mrdivide'
+                              'times'
+                              'mtimes'
+                              'minus'
+                              'plus'
+                              'uminus'
+                              'uplus'
+                              'Ad.f'     }
+
         STRUCT = struct('Expression', '', 'Level', Ad.LEVEL_ZERO)
         X0 = struct('Expression', 0, 'Level', 0)
         X1 = struct('Expression', 1, 'Level', 0)
         X2 = struct('Expression', 2, 'Level', 0)
         X_INF = struct('Expression', Inf, 'Level', 0)
         X_HALF = struct('Expression', 0.5, 'Level', 0)
-        LEVEL_ZERO = 0;
-        LEVEL_POWER = 20;
-        LEVEL_UMINUS = 40;
-        LEVEL_UPLUS = 40;
-        LEVEL_DIVIDE = 45;
-        LEVEL_TIMES = 50;
-        LEVEL_MINUS = 55;
-        LEVEL_PLUS = 60;
+        LEVEL_ZERO = 0
+        LEVEL_POWER = 20
+        LEVEL_UMINUS = 40
+        LEVEL_UPLUS = 40
+        LEVEL_DIVIDE = 45
+        LEVEL_TIMES = 50
+        LEVEL_MINUS = 55
+        LEVEL_PLUS = 60
     end
     
     
@@ -61,25 +60,25 @@ classdef Ad
                 return
             end
             this.Diff = repmat({ Ad.STRUCT }, 1, nd);
-        end
+        end%
         
         
         
         
         function this = uplus(this)
-        end
+        end%
         
 
 
 
         function this = ctranspose(this)
-        end
+        end%
         
 
         
         
         function this = transpose(this)
-        end
+        end%
         
         
         
@@ -90,7 +89,7 @@ classdef Ad
             for i = 1 : nd
                 this.Diff{i} =  Ad.lowUminus(this.Diff{i});
             end
-        end
+        end%
         
         
         
@@ -115,7 +114,7 @@ classdef Ad
             for i = 1 : nd
                 this.Diff{i} = Ad.lowPlus(a.Diff{i}, b.Diff{i});
             end
-        end
+        end%
         
         
         
@@ -140,7 +139,7 @@ classdef Ad
             for i = 1 : nd
                 this.Diff{i} = Ad.lowMinus(a.Diff{i}, b.Diff{i});
             end
-        end
+        end%
         
         
         
@@ -163,19 +162,17 @@ classdef Ad
             this.Input = Ad.lowTimes(a.Input, b.Input);
             this.Diff = cell(1, nd);
             for i = 1 : nd
-                this.Diff{i} = Ad.lowPlus( ...
-                    Ad.lowTimes(a.Diff{i}, b.Input), ...
-                    Ad.lowTimes(a.Input, b.Diff{i}) ...
-                    );
+                this.Diff{i} = Ad.lowPlus( Ad.lowTimes(a.Diff{i}, b.Input), ...
+                                           Ad.lowTimes(a.Input, b.Diff{i}) );
             end
-        end
+        end%
         
         
         
         
         function this = times(a, b)
             this = mtimes(a, b);
-        end
+        end%
         
         
         
@@ -222,28 +219,28 @@ classdef Ad
                     continue
                 end
             end
-        end
+        end%
         
         
         
         
         function this = mldivide(a, b)
             this = mrdivide(b, a);
-        end
+        end%
         
         
         
         
         function this = rdivide(a, b)
             this = mrdivide(a, b);
-        end
+        end%
         
         
         
         
         function this = ldivide(a, b)
             this = mrdivide(b, a);
-        end
+        end%
         
         
         
@@ -279,20 +276,14 @@ classdef Ad
             for i = 1 : nd
                 if ~isna
                     % diff[ a(x)^b ] = b*a(x)^(b-1) * diff[ a(x) ]
-                    da = Ad.lowTimes( ...
-                        Ad.lowTimes( ...
-                        b.Input, ...
-                        Ad.lowPower(a.Input, b1) ...
-                        ), ...
-                        a.Diff{i} ...
-                        );
+                    da = Ad.lowTimes( Ad.lowTimes( b.Input, ...
+                                                   Ad.lowPower(a.Input, b1) ), ...
+                                      a.Diff{i} );
                 end
                 if ~isnb
                     % diff[ a^b(x) ] = a^b(x) * log(a) * diff[ b(x) ]
-                    db = Ad.lowTimes( ...
-                        Ad.lowFunc1('log', a.Input), ...
-                        Ad.lowTimes(this.Input, b.Diff{i}) ...
-                        );
+                    db = Ad.lowTimes( Ad.lowFunc1('log', a.Input), ...
+                                      Ad.lowTimes(this.Input, b.Diff{i}) );
                 end
                 if ~isna && ~isnb
                     this.Diff{i} = Ad.lowPlus(da, db);
@@ -302,14 +293,14 @@ classdef Ad
                     this.Diff{i} = db;
                 end
             end
-        end
+        end%
         
         
         
         
         function this = power(a, b)
             this = mpower(a, b);
-        end
+        end%
         
         
         
@@ -326,15 +317,11 @@ classdef Ad
             nd = numel(a.Diff);
             this.Diff = cell(1, nd);
             for i = 1 : nd
-                this.Diff{i} = Ad.lowTimes( ...
-                    Ad.lowDivide( ...
-                    Ad.X_HALF, ...
-                    this.Input ...
-                    ), ...
-                    a.Diff{i} ...
-                    );
+                this.Diff{i} = Ad.lowTimes( Ad.lowDivide( Ad.X_HALF, ...
+                                                          this.Input ), ...
+                                            a.Diff{i} );
             end
-        end
+        end%
         
         
         
@@ -348,12 +335,10 @@ classdef Ad
             nd = numel(a.Diff);
             this.Diff = cell(1, nd);
             for i = 1 : nd
-                this.Diff{i} = Ad.lowTimes( ...
-                    Ad.lowDivide(Ad.X1, a.Input), ...
-                    a.Diff{i} ...
-                    );
+                this.Diff{i} = Ad.lowTimes( Ad.lowDivide(Ad.X1, a.Input), ...
+                                            a.Diff{i} );
             end
-        end
+        end%
         
         
         
@@ -368,12 +353,10 @@ classdef Ad
             nd = numel(a.Diff);
             this.Diff = cell(1, nd);
             for i = 1 : nd
-                this.Diff{i} = Ad.lowTimes( ...
-                    Ad.lowFunc1('exp', a.Input), ...
-                    a.Diff{i} ...
-                    );
+                this.Diff{i} = Ad.lowTimes(  Ad.lowFunc1('exp', a.Input), ...
+                                             a.Diff{i} );
             end
-        end
+        end%
         
         
         
@@ -404,7 +387,7 @@ classdef Ad
             this.Input = Ad.lowFuncN('normpdf', x, varargin{:});
             y = exp(-0.5 * ((x - mu)/sgm)^2) / (sqrt(2*pi) * sgm);
             this.Diff = y.Diff;
-        end
+        end%
         
         
         
@@ -453,7 +436,7 @@ classdef Ad
                 end
                 return
             end
-        end
+        end%
     end
     
     
@@ -512,14 +495,12 @@ classdef Ad
                 stringNumDiff = sprintf('%g', numWrt);
             end
 
-            listFunctions = regexp( ...
-                expn, ...
-                '\<[a-zA-Z][\w\.]*\>(?=\()', ...
-                'match' ...
-            );
+            listFunctions = regexp( expn, ...
+                                    '\<[a-zA-Z][\w\.]*\>(?=\()', ...
+                                    'match' );
             listFunctions = unique(listFunctions);
             for i = 1:numel(listFunctions)
-                if any(strcmp(listFunctions{i}, Ad.LS_FUNC))
+                if any(strcmp(listFunctions{i}, Ad.LIST_OF_FUNCTIONS))
                     continue
                 end
                 name = listFunctions{i};
@@ -528,11 +509,9 @@ classdef Ad
             
             for i = 1:numel(listVariables)
                 name = listVariables{i};
-                expn = regexprep( ...
-                    expn, ...
-                    ['(?<![''\.@])(\<', name, '\>)(?![\.\(])'], ...
-                    ['D___.', name] ...
-                );
+                expn = regexprep( expn, ...
+                                  ['(?<![''\.@])(\<', name, '\>)(?![\.\(])'], ...
+                                  ['D___.', name] );
             end
             
             % Ad.eval returns an Ad object (most of the time), or a
@@ -566,21 +545,21 @@ classdef Ad
                     d = repmat({'0'}, 1, numWrt);
                 end
             end
-        end
+        end%
         
         
         
         
         function y = eval(D___, expn) %#ok<INUSL>
             y = eval(expn);
-        end
+        end%
         
         
         
         
         function expn = postparse(expn)
             expn = Ad.simplify(expn);
-        end
+        end%
         
         
         
@@ -589,20 +568,20 @@ classdef Ad
             expn = regexprep(expn, 'exp\(log\(([^\(]+)\)\)', '$1');
             expn = regexprep(expn, 'log\(exp\(([^\(]+)\)\)', '$1');
             expn = strrep(expn, '*1/', '/');
-        end
+        end%
         
         
         
         
         function this = createNumber(x, nd)
-            persistent TEMPLATE;
+            persistent TEMPLATE
             if ~isa(TEMPLATE, 'Ad')
                 TEMPLATE = Ad( );
             end
             this = TEMPLATE;
             this.Input.Expression = x;
             this.Diff = repmat( { Ad.X0 }, 1, nd);
-        end
+        end%
         
         
         
@@ -621,7 +600,7 @@ classdef Ad
             end
             y.Expression = ['-', y.Expression];
             y.Level = Ad.LEVEL_UMINUS;
-        end
+        end%
         
         
         
@@ -654,7 +633,7 @@ classdef Ad
                 y.Expression = [a.Expression, '+', b.Expression];
             end
             y.Level = Ad.LEVEL_PLUS;
-        end
+        end%
         
         
         
@@ -688,7 +667,7 @@ classdef Ad
             end
             y.Expression = [a.Expression, '-', b.Expression];
             y.Level = Ad.LEVEL_MINUS;
-        end
+        end%
         
         
         
@@ -737,7 +716,7 @@ classdef Ad
             end
             y.Expression = [a.Expression, '*', b.Expression];
             y.Level = Ad.LEVEL_TIMES;
-        end
+        end%
         
         
         
@@ -777,7 +756,7 @@ classdef Ad
             end
             y.Expression = [a.Expression, '/', b.Expression];
             y.Level = Ad.LEVEL_DIVIDE;
-        end
+        end%
         
         
         
@@ -813,7 +792,7 @@ classdef Ad
             end
             y.Expression = [a.Expression, '^', b.Expression];
             y.Level = Ad.LEVEL_POWER;
-        end
+        end%
         
         
         
@@ -825,7 +804,7 @@ classdef Ad
                 return
             end
             y.Expression = [func, '(', a.Expression, ')'];
-        end
+        end%
         
         
         
@@ -900,6 +879,8 @@ classdef Ad
         
         
         varargout = d(varargin)
+        varargout = dn(varargin)
         varargout = shiftBy(varargin)
     end
 end
+
