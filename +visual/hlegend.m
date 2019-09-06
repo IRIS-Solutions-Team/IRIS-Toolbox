@@ -71,13 +71,18 @@ end%
 
 
 %
-% Local Production
+% Local Functions
 %
 
 
 function moveLegend(legendHandle, location, margin)
-    parentFigureHandle = get(legendHandle, 'Parent');
-    set(parentFigureHandle, 'Units', 'Normalized');
+    parentHandle = get(legendHandle, 'Parent');
+    type = get(parentHandle, 'Type');
+    while ~strcmpi(type, 'figure')
+        parentHandle = get(parentHandle, 'Parent');
+        type = get(parentHandle, 'Type')
+    end
+    set(parentHandle, 'Units', 'Normalized');
     oldPosition = get(legendHandle, 'Position');
     newPosition = oldPosition;
     newPosition(1) = 0.5 - oldPosition(3)/2;
