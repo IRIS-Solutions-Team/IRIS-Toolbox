@@ -161,7 +161,7 @@ for i = 1 : numOfEquations
 end
 
 % Evaluate equations sequentially period by period
-runTime = dates-minDate+1 - minSh;
+runTime = round(dates-minDate+1 - minSh);
 for t = runTime
     for iEq = 1 : numOfEquations
         ithName = this.NamesOfLhs{iEq};
