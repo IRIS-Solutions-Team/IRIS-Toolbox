@@ -18,11 +18,18 @@ exception.ParseTime.storeFileName(this.FileName);
 % model names.
 if any(eqn.Type==TYPE(6))
     this.Reporting = rpteq(eqn, euc, this.FileName);
+    conflictsWithinReporting = parser.getMultiple(this.Reporting.NamesOfLhs);
+    if ~isempty(conflictsWithinReporting)
+        thisError = { 'Model:Postparse:NameConflictsWithinReporting'
+                      'This LHS reporting variable name is used more than once: %s' };
+        throw( exception.ParseTime(thisError, 'error'), ...
+               conflictsWithinReporting{:} );
+    end
     checkList = [qty.Name, this.Reporting.NamesOfLhs];
-    lsConflict = parser.getMultiple(checkList);
-    if ~isempty(lsConflict)
+    conflictsBetweenReportingAndModel = parser.getMultiple(checkList);
+    if ~isempty(conflictsBetweenReportingAndModel)
         throw( exception.ParseTime('Model:Postparser:REPORTING_NAME_CONFLICT', 'error'), ...
-               lsConflict{:} );
+               conflictsBetweenReportingAndModel{:} );
     end
 end
 
