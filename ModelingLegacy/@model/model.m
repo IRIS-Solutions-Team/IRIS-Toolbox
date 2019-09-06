@@ -683,14 +683,14 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             %--------------------------------------------------------------------------
             
             if nargin==0
-                % Empty model object.
+                % Empty model object
                 return
             elseif nargin==1 && isa(varargin{1}, 'model')
-                % Copy model object.
+                % Copy model object
                 this = varargin{1};
             elseif nargin==1 && isstruct(varargin{1})
                 % Convert struct (potentially based on old model object
-                % syntax) to model object.
+                % syntax) to model object
                 this = struct2obj(this, varargin{1});
             elseif nargin>=1
                 if ischar(varargin{1}) || iscellstr(varargin{1}) || isa(varargin{1}, 'string') ...

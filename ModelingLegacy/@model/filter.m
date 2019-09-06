@@ -261,7 +261,7 @@ if isempty(parser)
     parser = extend.InputParser('model.filter');
     parser.KeepUnmatched = true;
     parser.addRequired('SolvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
-    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('InputDatabank', @validate.databank);
     parser.addRequired('FilterRange', @DateWrapper.validateProperRangeInput);
     parser.addOptional('TuneDatabank', [ ], @(x) isempty(x) || isstruct(x));
     parser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
@@ -286,7 +286,7 @@ end
 
 % Get measurement and exogenous variables.
 inputArray = datarequest('yg*', this, inputDatabank, filterRange);
-numOfDataSets = size(inputArray, 3);
+numDataSets = size(inputArray, 3);
 nv = length(this);
 
 % Check option conflicts.
@@ -339,7 +339,7 @@ return
 
 
     function checkConflicts( )
-        multiple = numOfDataSets>1 || nv>1;
+        multiple = numDataSets>1 || nv>1;
         if likOpt.Ahead>1 && multiple
             error( ...
                 'Model:Filter:IllegalAhead', ...
@@ -368,7 +368,7 @@ return
         for i = 1 : numRolling
             inputArray(:, likOpt.RollingColumns(i)+1:end, i) = NaN;
         end
-        numOfDataSets = size(inputArray, 3);
+        numDataSets = size(inputArray, 3);
     end%
 
     
@@ -379,8 +379,8 @@ return
         isPred = ~isempty(strfind(lowerOutput, 'pred'));
         isFilter = ~isempty(strfind(lowerOutput, 'filter'));
         isSmooth = ~isempty(strfind(lowerOutput, 'smooth'));
-        numOfRuns = max(numOfDataSets, nv);
-        nPred = max(numOfRuns, likOpt.Ahead);
+        numRuns = max(numDataSets, nv);
+        nPred = max(numRuns, likOpt.Ahead);
         nCont = max(ny, nz);
         if isOutputData
             
@@ -390,13 +390,13 @@ return
                                      'IncludeLag=', false );
                 if ~likOpt.MeanOnly
                     if likOpt.ReturnStd
-                        hData.S0 = hdataobj( this, extendedRange, numOfRuns, ...
+                        hData.S0 = hdataobj( this, extendedRange, numRuns, ...
                                              'IncludeLag=', false, ...
                                              'IsVar2Std=', true );
                     end
                     if likOpt.ReturnMSE
                         hData.Mse0 = hdataobj( );
-                        hData.Mse0.Data = nan(nb, nb, numExtendedPeriods, numOfRuns);
+                        hData.Mse0.Data = nan(nb, nb, numExtendedPeriods, numRuns);
                         hData.Mse0.Range = extendedRange;
                     end
                     if likOpt.ReturnCont
@@ -409,17 +409,17 @@ return
             
             % __Filter Step__
             if isFilter
-                hData.M1 = hdataobj( this, extendedRange, numOfRuns, ...
+                hData.M1 = hdataobj( this, extendedRange, numRuns, ...
                                      'IncludeLag=', false );
                 if ~likOpt.MeanOnly
                     if likOpt.ReturnStd
-                        hData.S1 = hdataobj( this, extendedRange, numOfRuns, ...
+                        hData.S1 = hdataobj( this, extendedRange, numRuns, ...
                                              'IncludeLag=', false, ...
                                              'IsVar2Std=', true);
                     end
                     if likOpt.ReturnMSE
                         hData.Mse1 = hdataobj( );
-                        hData.Mse1.Data = nan(nb, nb, numExtendedPeriods, numOfRuns);
+                        hData.Mse1.Data = nan(nb, nb, numExtendedPeriods, numRuns);
                         hData.Mse1.Range = extendedRange;
                     end
                     if likOpt.ReturnCont
@@ -432,15 +432,15 @@ return
             
             % __Smoother__
             if isSmooth
-                hData.M2 = hdataobj(this, extendedRange, numOfRuns);
+                hData.M2 = hdataobj(this, extendedRange, numRuns);
                 if ~likOpt.MeanOnly
                     if likOpt.ReturnStd
-                        hData.S2 = hdataobj( this, extendedRange, numOfRuns, ...
+                        hData.S2 = hdataobj( this, extendedRange, numRuns, ...
                                              'IsVar2Std=', true );
                     end
                     if likOpt.ReturnMSE
                         hData.Mse2 = hdataobj( );
-                        hData.Mse2.Data = nan(nb, nb, numExtendedPeriods, numOfRuns);
+                        hData.Mse2.Data = nan(nb, nb, numExtendedPeriods, numRuns);
                         hData.Mse2.Range = extendedRange;
                     end
                     if likOpt.ReturnCont

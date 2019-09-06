@@ -1,42 +1,44 @@
 function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
-% sspace  State-space matrices describing the model solution.
-%
+% sspace  Access first-order state-space (solution) matrices
+%{
 % ## Syntax ##
 %
 %     [T, R, K, Z, H, D, U, Omg] = sspace(M, ...)
 %
+%
 % ## Input Arguments ##
 %
-% * `M` [ model ] - Solved model object.
+% __`M`__ [ model ] - Solved model object.
 %
 % ## Output Arguments ##
 %
-% * `T` [ numeric ] - Transition matrix.
+% __`T`__ [ numeric ] - Transition matrix.
 %
-% * `R` [ numeric ] - Matrix at the shock vector in transition equations.
+% __`R`__ [ numeric ] - Matrix at the shock vector in transition equations.
 %
-% * `K` [ numeric ] - Constant vector in transition equations.
+% __`K`__ [ numeric ] - Constant vector in transition equations.
 %
-% * `Z` [ numeric ] - Matrix mapping transition variables to measurement
+% __`Z`__ [ numeric ] - Matrix mapping transition variables to measurement
 % variables.
 %
-% * `H` [ numeric ] - Matrix at the shock vector in measurement
+% __`H`__ [ numeric ] - Matrix at the shock vector in measurement
 % equations.
 %
-% * `D` [ numeric ] - Constant vector in measurement equations.
+% __`D`__ [ numeric ] - Constant vector in measurement equations.
 %
-% * `U` [ numeric ] - Transformation matrix for predetermined variables.
+% __`U`__ [ numeric ] - Transformation matrix for predetermined variables.
 %
-% * `Omg` [ numeric ] - Covariance matrix of shocks.
+% __`Omg`__ [ numeric ] - Covariance matrix of shocks.
 %
 %
 % ## Options ##
 %
-% * `'triangular='` [ *`true`* | `false` ] - If true, the state-space form
-% returned has the transition matrix `T` quasi triangular and the vector of
-% predetermined variables transformed accordingly; this is the default form
-% used in IRIS calculations. If false, the state-space system is based on
-% the original vector of transition variables.
+% __`Triangular=true`__ [ `true` | `false` ] -
+% If true, the state-space form returned has the transition matrix `T`
+% quasi triangular and the vector of predetermined variables transformed
+% accordingly; this is the default form used in IRIS calculations. If
+% false, the state-space system is based on the original vector of
+% transition variables.
 %
 %
 % ## Description ##
@@ -67,35 +69,48 @@ function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 % appearance of transition variables and their auxiliary lags and leads in
 % the vectors `xb` and `xf`. The first nf names are the vector `xf`, the
 % remaining nb names are the vector `xb`.
+%
+%
+% ## Example ##
+%
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-opt = passvalopt('model.sspace', varargin{:});
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('model/sspace');
+    addRequired(parser, 'model', @(x), isa(x, 'model'));
+    addParameter(parser, 'Triangular', true, @validate.logicalScalar);
+    addParameter(parser, 'RemoveInactive', false, @validate.logicalScalar);
+end
+parse(parser, this, varargin{:});
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
-[T, R, K, Z, H, D, U, Omg, Zb] = sspaceMatrices(this, ':', true, opt.triangular);
+keepExpansion = true;
+[T, R, K, Z, H, D, U, Omg, Zb] = sspaceMatrices(this, ':', keepExpansion, opt.Triangular);
 [~, nxi, ~, nf, ne] = sizeOfSolution(this.Vector);
 nv = length(this);
 
-indexOfShocksToKeep = true(1, ne);
-if opt.removeinactive
-    indexOfShocksToKeep = ~diag( all(Omg==0, 3) );
+inxShocksToKeep = true(1, ne);
+if opt.RemoveInactive
+    inxShocksToKeep = ~diag( all(Omg==0, 3) );
     R = reshape(R, [nxi, ne, size(R, 2)/ne]);
-    R = R(:, indexOfShocksToKeep, :);
+    R = R(:, inxShocksToKeep, :);
     R = R(:, :);
-    H = H(:, indexOfShocksToKeep);
-    Omg = Omg(indexOfShocksToKeep, indexOfShocksToKeep);
+    H = H(:, inxShocksToKeep);
+    Omg = Omg(inxShocksToKeep, inxShocksToKeep);
 end
 
 if nargout>8
-    list = { ...
-        printSolutionVector(this, 'y'), ...
-        printSolutionVector(this, 'x'), ...
-        printSolutionVector(this, 'e'), ...
-        };
-    list{3} = list{3}(indexOfShocksToKeep);
+    list = { printSolutionVector(this, 'y'), ...
+             printSolutionVector(this, 'x'), ...
+             printSolutionVector(this, 'e') };
+    list{3} = list{3}(inxShocksToKeep);
 end
 
-end
+end%
+

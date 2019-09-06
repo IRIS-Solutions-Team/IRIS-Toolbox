@@ -1,6 +1,6 @@
 function output = subsref(this, s)
 % subsref  Subscripted reference for model objects
-%
+%{
 % ## Syntax for Retrieving Object with Subset of Parameter Variants ##
 %
 %     m(index)
@@ -16,20 +16,24 @@ function output = subsref(this, s)
 %     m.std_shock
 %     m.corr_shock1__shock2
 %
+%
 % Note that a double underscore is used to separate the names of shocks in
 % correlation coefficients.
 %
 %
 % ## Input Arguments ##
 %
-% * `m` [ model ] - Model object.
+% __`m`__ [ model ] -
+% Model object.
 %
-% * `index` [ numeric | logical ] - Index (positional or logical) of
-% requested parameterisations.
+% __`index`__ [ numeric | logical ] -
+% Index (positional or logical) of requested parameterisations.
 %
-% * `name` - Name of a variable, shock, or parameter.
+% __`name`__ -
+% Name of a variable, shock, or parameter.
 %
-% * `shock`, `shock1`, `shock2` - Names of shocks.
+% __`shock`, `shock1`, `shock2`__ -
+% Names of shocks.
 %
 %
 % ## Description ##
@@ -37,6 +41,7 @@ function output = subsref(this, s)
 %
 % ## Example ##
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -62,9 +67,12 @@ if strcmp(s(1).type,'.') && ischar(s(1).subs)
         if strcmpi(behavior, 'Error')
             throw( exception.Base('Model:InvalidName', 'Error'), '', name ); %#ok<GTARG>
         elseif strcmpi(behavior, 'Warning')
+            % Return NaN with a warning
             throw( exception.Base('Model:InvalidName', 'Warning'), '', name ); %#ok<GTARG>
+            output = nan(1, nv);
+            return
         else
-            % Do nothing
+            % Return NaN silently
             output = nan(1, nv);
             return
         end

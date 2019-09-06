@@ -21,7 +21,7 @@ try, expandMethod; catch, expandMethod = 'RepeatLast'; end %#ok<NOCOM>
 nv = length(this);
 range = double(range);
 range = range(1) : range(end);
-numOfPeriods = length(range);
+numPeriods = length(range);
 
 if isempty(data)
     data = struct( );
@@ -30,19 +30,17 @@ end
 dMean = [ ];
 dMse = [ ];
 
-if isstruct(data) && isfield(data, 'mean') && isstruct(data.mean)
-    % Struct with `.mean` and possibly also `.mse`.
+if validate.databank(data) && isfield(data, 'mean') && validate.databank(data.mean)
+    % Databank with `.mean` and possibly also `.mse`
         dMean = data.mean;
-        if isfield(data, 'mse') && isa(data.mse, 'tseries')
+        if isfield(data, 'mse') && isa(data.mse, 'TimeSubscriptable')
             dMse = data.mse;
         end
-elseif isstruct(data)
-    % Plain database.
+elseif validate.databank(data)
+    % Plain database
     dMean = data;
 else
-    throw( ...
-        exception.Base('Model:UnknownInputData', 'error') ...
-        );
+    throw( exception.Base('Model:UnknownInputData', 'error') );
 end
 
 % Warning structure for `db2array`.
@@ -117,19 +115,19 @@ switch lower(req)
         varargout{1} = assembleXData(range);
     case 'yxe'
         data = {assembleYData( ), assembleXData(range), assembleEData( )};
-        numOfDataSets = max([size(data{1}, 3), size(data{2}, 3), size(data{3}, 3)]);
+        numDataSets = max([size(data{1}, 3), size(data{2}, 3), size(data{3}, 3)]);
         % Make the size of all data arrays equal in 3rd dimension.
-        if size(data{1}, 3)<numOfDataSets
+        if size(data{1}, 3)<numDataSets
             data{1} = cat(3, data{1}, ...
-                data{1}(:, :, end*ones(1, numOfDataSets-size(data{1}, 3))));
+                data{1}(:, :, end*ones(1, numDataSets-size(data{1}, 3))));
         end
-        if size(data{2}, 3)<numOfDataSets
+        if size(data{2}, 3)<numDataSets
             data{2} = cat(3, data{2}, ...
-                data{2}(:, :, end*ones(1, numOfDataSets-size(data{2}, 3))));
+                data{2}(:, :, end*ones(1, numDataSets-size(data{2}, 3))));
         end
-        if size(data{3}, 3)<numOfDataSets
+        if size(data{3}, 3)<numDataSets
             data{3} = cat(3, data{3}, ...
-                data{3}(:, :, end*ones(1, numOfDataSets-size(data{3}, 3))));
+                data{3}(:, :, end*ones(1, numDataSets-size(data{3}, 3))));
         end
         varargout = data;
     case 'g'
@@ -202,14 +200,14 @@ return
 % to 0 when computing `aInitMean`.
     function [alpInitMean, alpInitMse] = convertXbInit2AlpInit( )
         % Transform Mean[Xb] to Mean[Alpha].
-        numOfDataSets = size(xbInitMean, 3);
-        if numOfDataSets<nv
+        numDataSets = size(xbInitMean, 3);
+        if numDataSets<nv
             xbInitMean(:, 1, end+1:nv) = ...
-                xbInitMean(:, 1, end*ones(1, nv-numOfDataSets));
-            numOfDataSets = nv;
+                xbInitMean(:, 1, end*ones(1, nv-numDataSets));
+            numDataSets = nv;
         end
         alpInitMean = xbInitMean;
-        for ii = 1 : numOfDataSets
+        for ii = 1 : numDataSets
             U = this.Variant.FirstOrderSolution{7}(:, :, min(ii, end));
             if all(~isnan(U(:)))
                 ixRequired = this.Variant.IxInit(:, :, min(ii, end));
@@ -225,14 +223,14 @@ return
             alpInitMse = xbInitMse;
             return
         end
-        numOfDataSets = size(xbInitMse, 4);
-        if numOfDataSets<nv
+        numDataSets = size(xbInitMse, 4);
+        if numDataSets<nv
             xbInitMse(:, :, 1, end+1:nv) = ...
-                xbInitMse(:, :, 1, end*ones(1, nv-numOfDataSets));
-            numOfDataSets = nv;
+                xbInitMse(:, :, 1, end*ones(1, nv-numDataSets));
+            numDataSets = nv;
         end
         alpInitMse = xbInitMse;
-        for ii = 1 : numOfDataSets
+        for ii = 1 : numDataSets
             U = this.Variant.FirstOrderSolution{7}(:, :, min(ii, end));
             if all(~isnan(U(:)))
                 alpInitMse(:, :, 1, ii) = U \ alpInitMse(:, :, 1, ii);
@@ -316,10 +314,10 @@ return
                 gxq = db2array(dMean, lsgxq, range, sw);
                 gxq = permute(gxq, [2, 1, 3]);
             else
-                gxq = nan(ngxq, numOfPeriods);
+                gxq = nan(ngxq, numPeriods);
             end
             size3d = size(gxq, 3); 
-            g = nan(ng, numOfPeriods, size3d);
+            g = nan(ng, numPeriods, size3d);
             g(posgxq, :, :) = gxq;
             g(posq, :, :) = repmat(ttrend, 1, 1, size3d);
         else
@@ -364,12 +362,12 @@ return
             A = db2array(dMean, this.Quantity.Name(realId), range, sw);
             A = permute(A, [2, 1, 3]);
         end
-        numOfDataSets = size(A, 3);
-        if numOfDataSets<nv
-            A(:, :, end+1:nv) = A(:, :, end*ones(1, nv-numOfDataSets));
-            numOfDataSets = nv;
+        numDataSets = size(A, 3);
+        if numDataSets<nv
+            A(:, :, end+1:nv) = A(:, :, end*ones(1, nv-numDataSets));
+            numDataSets = nv;
         end
-        for ii = 1 : numOfDataSets
+        for ii = 1 : numDataSets
             U = this.Variant.FirstOrderSolution{7}(:, :, min(ii, end));
             if all(~isnan(U(:)))
                 A(:, :, ii) = U\A(:, :, ii);
