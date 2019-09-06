@@ -222,8 +222,17 @@ classdef DateWrapper < double
         end%
 
 
+
+
         function varargout = datestr(this, varargin)
             [varargout{1:nargout}] = datestr(double(this), varargin{:});
+        end%
+
+
+
+
+        function varargout = xline(this, varargin)
+            [varargout{1:nargout}] = xline(DateWrapper.toDatetime(this), varargin{:});
         end%
     end
 
