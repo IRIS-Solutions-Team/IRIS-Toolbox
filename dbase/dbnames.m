@@ -1,40 +1,42 @@
-function listFields = dbnames(varargin)
-% dbnames  List of database entries filtered by name and/or class.
+function listFields = dbnames(inputDatabank, varargin)
+% dbnames  List of database entries filtered by name and/or class
 %
-% __Syntax__
+% ## Syntax ##
 %
-%     List = dbnames(D, ...)
-%
-%
-% __Input Arguments__
-%
-% * `D` [ struct ] - Input database.
+%     list = dbnames(inputDatabank, ...)
 %
 %
-% __Output Arguments__
+% ## Input Arguments ##
 %
-% * `List` [ cellstr ] - List of input database entries that pass the name,
-% class or user test.
-%
-%
-% __Options__
-%
-% * `'NameFilter='` [ cellstr | char | rexp | *`@all`* ] - List of names or
-% regular expression against which the database entry names will be
-% matched; `@all` means all names will be matched.
-%
-% * `'ClassFilter='` [ cellstr | char | rexp | *`@all`* ] - List of names
-% or regular expression against which the database entry class names will
-% be matched; `@all` means all classes will be matched.
-%
-% * `'UserFilter='` [ function_handle ] - Function that accepts one input
-% argument (the tested database entry) and returns `true` or `false`.
+% __`inputDatabank`__ [ struct | Dictionary ] - 
+% Input database.
 %
 %
-% __Description__
+% ## Output Arguments ##
+%
+% __`list`__ [ cellstr ] - 
+% List of input database entries that pass the name, class or user test.
 %
 %
-% __Example__
+% ## Options ##
+%
+% __`NameFilter=@all`__ [ cellstr | char | rexp | `@all` ] - 
+% List of names or regular expression against which the database entry
+% names will be matched; `@all` means all names will be matched.
+%
+% __`ClassFilter=@all`__ [ cellstr | char | rexp | `@all` ] - 
+% List of names or regular expression against which the database entry
+% class names will be matched; `@all` means all classes will be matched.
+%
+% __`UserFilter=@all`__ [ function_handle | `@all` ] - 
+% Function that accepts one input argument (the tested database entry) and
+% returns `true` or `false`.
+%
+%
+% ## Description ##
+%
+%
+% ## Example ##
 %
 % Notice the differences in the following calls to `dbnames`:
 %
@@ -55,83 +57,125 @@ function listFields = dbnames(varargin)
 % character after that, such as `'L_A'` but not `'L_'` or `'L_RX'`.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-[D, varargin] = irisinp.parser.parse('dbase.dbnames', varargin{:});
-opt = passvalopt('dbase.dbnames', varargin{:});
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dates.dbnames');
+    addRequired(parser, 'InputDatabank', @validate.databank);
+    addParameter(parser, {'ClassFilter', 'ClassList'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'rexp'));
+    addParameter(parser, {'NameFilter', 'NameList'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'rexp'));
+    addParameter(parser, 'UserFilter', @all, @(x) isequal(x, @all) || isa(x, 'function_handle'));
+end
+parse(parser, inputDatabank, varargin{:});
+opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
-% Empty name filter and empty class filter returns empty listFields.
-if isempty(opt.namefilter) && isempty(opt.classfilter)
+% Empty name filter and empty class filter returns empty listFields
+if isempty(opt.NameFilter) && isempty(opt.ClassFilter)
     listFields = cell(1, 0);
     return
 end
 
-if ( isequal(opt.namefilter, @all) || isequal(opt.namefilter, Inf) ) ...
-        && ( isequal(opt.classfilter, @all) || isequal(opt.classfilter, Inf) )
-    listFields = fieldnames(D);
+if ( isequal(opt.NameFilter, @all) || isequal(opt.NameFilter, Inf) ) ...
+        && ( isequal(opt.ClassFilter, @all) || isequal(opt.ClassFilter, Inf) ) ...
+        && isequal(opt.UserFilter, @all)
+    listFields = fieldnames(inputDatabank);
     return
 end
 
-if ischar(opt.classfilter) || isa(opt.classfilter, 'string')
-    opt.classfilter = cellstr(opt.classfilter);
+if ischar(opt.ClassFilter) || isa(opt.ClassFilter, 'string')
+    opt.ClassFilter = cellstr(opt.ClassFilter);
 end
 
-listFields = fieldnames(D);
+listFields = fieldnames(inputDatabank);
 listFields = listFields(:)';
-indexClassTest = validateClasses(D, listFields, opt.classfilter);
-indexNameTest = validateNames(listFields, opt.namefilter);
+inxClassTest = validateClasses(inputDatabank, listFields, opt.ClassFilter);
+inxNameTest = validateNames(listFields, opt.NameFilter);
+inxUserTest = validateUser(inputDatabank, listFields, opt.UserFilter);
 
-% Return the names that pass both tests.
-listFields = listFields(indexNameTest & indexClassTest);
+% Return the names that pass both tests
+listFields = listFields(inxNameTest & inxClassTest & inxUserTest);
 
-end
+end%
 
 
-function indexTest = validateNames(listFields, nameFilter)
-    indexTest = true(size(listFields));
+%
+% Local Functions
+%
+
+
+function inxTest = validateNames(listFields, nameFilter)
+    inxTest = true(size(listFields));
     if isequal(nameFilter, @all)
-        indexTest(:) = true;
+        inxTest(:) = true;
         return
     elseif isempty(nameFilter)
-        indexTest(:) = false;
+        inxTest(:) = false;
         return
     elseif ischar(nameFilter) || isa(nameFilter, 'rexp')
         x = regexp(listFields, nameFilter, 'once');
-        indexTest = ~cellfun(@isempty, x);
+        inxTest = ~cellfun(@isempty, x);
         return
     elseif iscellstr(nameFilter)
         for i = 1 : numel(listFields)
-            indexTest(i) = any(strcmp(listFields{i}, nameFilter));
+            inxTest(i) = any(strcmp(listFields{i}, nameFilter));
         end
     end
-end
+end%
 
 
-function indexTest = validateClasses(D, listFields, classFilter)
-    indexTest = false(size(listFields));
+
+
+function inxTest = validateClasses(inputDatabank, listFields, classFilter)
+    inxTest = false(size(listFields));
     if isequal(classFilter, @all)
-        indexTest(:) = true;
+        inxTest(:) = true;
         return
     end
     if isempty(classFilter)
-        indexTest(:) = true;
+        inxTest(:) = true;
     end
     numFields = numel(listFields);
     if iscellstr(classFilter)
         for i = 1 : numFields
+            ithValue = getfield(inputDatabank, listFields{i});
             for j = 1 : numel(classFilter)
-                indexTest(i) = indexTest(i) | isa(D.(listFields{i}), classFilter{j});
+                inxTest(i) = inxTest(i) | isa(ithValue, classFilter{j});
+                if ~inxTest(i)
+                    break
+                end
             end
         end
     elseif isa(classFilter, 'rexp')
         for i = 1 : numFields
-            ithClass = class(D.(listFields{i}));
+            ithValue = getfield(inputDatabank, listFields{i});
+            ithClass = class(ithValue);
             x = regexp(ithClass, classFilter, 'once');
-            indexTest(i) = ~isempty(x);
+            inxTest(i) = ~isempty(x);
         end
     end
-end
+end%
+
+
+
+
+function inxTest = validateUser(inputDatabank, listFields, userFilter)
+    inxTest = false(size(listFields));
+    if isequal(userFilter, @all)
+        inxTest(:) = true;
+        return
+    end
+    for i = 1 : numel(listFields)
+        ithValue = getfield(inputDatabank, listFields{i});
+        try
+            pass = userFilter(ithValue);
+        catch
+            pass = false;
+        end
+        inxTest(i) = validate.logicalScalar(pass) && isequal(pass, true);
+    end
+end%
 

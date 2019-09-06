@@ -10,8 +10,9 @@ function [x, inxOfIncluded, range, inxOfNotFound, inxOfNonSeries] = db2array(d, 
 %
 % __Input Arguments__
 %
-% * `d` [ struct ] - Input database with tseries objects that will be
-% converted to a numeric array.
+% * `d` [ struct | Dictionary ] -
+% Input databank with tseries objects that will be converted to a numeric
+% array.
 %
 % * `list` [ char | cellstr | rexp | `@all` ] - List of time series names
 % that will be converted to numeric array and included in the output
@@ -143,7 +144,7 @@ end
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('dbase.db2array');
-    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('InputDatabank', @validate.databank);
     parser.addRequired('List', @(x) iscellstr(x) || ischar(x) || isa(x, 'rexp') || isequal(x, @all));
     parser.addRequired('Range', @DateWrapper.validateRangeInput);
 end

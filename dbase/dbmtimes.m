@@ -50,4 +50,5 @@ c = struct2cell(this).';
 [fNew, ix] = intersect(f, list, 'stable');
 this = cell2struct(c(ix), fNew, 2);
 
-end
+end%
+
