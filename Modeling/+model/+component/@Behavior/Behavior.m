@@ -32,7 +32,7 @@ classdef Behavior
                           'must be one of {''Error'', ''Warning'', ''Silent''} ' };
                 throw(exception.Base(specs, 'error'), newValue);
             end
-        end
+        end%
 
 
         function this = set.InvalidDotReference(this, newValue)
@@ -52,7 +52,7 @@ classdef Behavior
                           'must be one of {''Error'', ''Warning'', ''Silent''} ' };
                 throw(exception.Base(specs, 'error'), newValue);
             end
-        end
+        end%
 
 
         function this = set.DotReferenceFunc(this, newValue)
@@ -65,7 +65,7 @@ classdef Behavior
             else
                 throw( exception.Base('Behavior:DotReferenceFunc', 'error') );
             end
-        end
+        end%
 
 
         function this = set.LogStyleInSolutionVectors(this, newValue)
@@ -76,6 +76,6 @@ classdef Behavior
                 char(newValue) ...
             );
             this.LogStyleInSolutionVectors = newValue;
-        end
+        end%
     end
 end

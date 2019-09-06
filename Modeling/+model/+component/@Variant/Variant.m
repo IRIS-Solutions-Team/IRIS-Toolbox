@@ -24,17 +24,17 @@ classdef Variant
 
 
     methods
-        function this = Variant( numOfVariants, quantity, vector, ahead, ...
-                                 numOfHashed, numOfObserved, ...
+        function this = Variant( numVariants, quantity, vector, ahead, ...
+                                 numHashed, numObserved, ...
                                  defaultStd, defaultFloor )
             if nargin==0
                 return
             end
             this = createIndexOfStdCorrAllowed(this, quantity);
-            this = preallocateValues(this, numOfVariants, quantity);
+            this = preallocateValues(this, numVariants, quantity);
             this = preallocateStdCorr(this, quantity, defaultStd);
             this = preallocateFloors(this, quantity, defaultFloor);
-            this = preallocateSolution(this, vector, ahead, numOfHashed, numOfObserved);
+            this = preallocateSolution(this, vector, ahead, numHashed, numObserved);
         end%
 
 
@@ -44,21 +44,21 @@ classdef Variant
             ne = nnz(ixe);
             typeOfShocks = quantity.Type(ixe);
             ix31 = typeOfShocks==TYPE(31);
-            inxOfCorrAllowed = true(ne);
-            inxOfCorrAllowed(ix31, ~ix31) = false;
-            inxOfCorrAllowed(~ix31, ix31) = false;
-            inxOfTril = tril(ones(ne), -1)==1;
-            this.IndexOfStdCorrAllowed = [true(1, ne), inxOfCorrAllowed(inxOfTril).'];
+            inxCorrAllowed = true(ne);
+            inxCorrAllowed(ix31, ~ix31) = false;
+            inxCorrAllowed(~ix31, ix31) = false;
+            inxTril = tril(ones(ne), -1)==1;
+            this.IndexOfStdCorrAllowed = [true(1, ne), inxCorrAllowed(inxTril).'];
         end%
         
 
-        function this = preallocateValues(this, numOfVariants, quantity)
+        function this = preallocateValues(this, numVariants, quantity)
             TYPE = @int8;
-            numOfQuantities = length(quantity);
-            if checkSize(this.Values, [1, numOfQuantities, numOfVariants])
+            numQuantities = length(quantity);
+            if checkSize(this.Values, [1, numQuantities, numVariants])
                 this.Values(:) = NaN;
             else
-                this.Values = nan(1, numOfQuantities, numOfVariants);
+                this.Values = nan(1, numQuantities, numVariants);
             end
             ixe = quantity.Type==TYPE(31) | quantity.Type==TYPE(32);
             % Steady state of shocks cannot be changed from 0+0i.
@@ -67,8 +67,8 @@ classdef Variant
             ixg = quantity.Type==TYPE(5);
             this.Values(1, ixg, :) = model.DEFAULT_STEADY_EXOGENOUS;
             % Steady state of ttrend cannot be changed from 0+1i.
-            inxOfTimeTrend = strcmp(quantity.Name, model.RESERVED_NAME_TTREND);
-            this.Values(1, inxOfTimeTrend, :) = model.STEADY_TTREND;
+            inxTimeTrend = strcmp(quantity.Name, model.RESERVED_NAME_TTREND);
+            this.Values(1, inxTimeTrend, :) = model.STEADY_TTREND;
         end%
 
 
@@ -76,11 +76,11 @@ classdef Variant
             TYPE = @int8;
             nv = size(this.Values, 3);
             ne = nnz(quantity.Type==TYPE(31) | quantity.Type==TYPE(32));
-            numOfStdCorr = ne + ne*(ne-1)/2;
-            if checkSize(this.StdCorr, [1, numOfStdCorr, nv])
+            numStdCorr = ne + ne*(ne-1)/2;
+            if checkSize(this.StdCorr, [1, numStdCorr, nv])
                 this.StdCorr(:) = 0;
             else
-                this.StdCorr = zeros(1, numOfStdCorr, nv);
+                this.StdCorr = zeros(1, numStdCorr, nv);
             end
             if nargin<3
                 return
@@ -93,20 +93,20 @@ classdef Variant
 
         function this = preallocateFloors(this, quantity, defaultFloor)
             TYPE = @int8;
-            inxOfFloors = ...
+            inxFloors = ...
                 strncmp(quantity.Name, model.FLOOR_PREFIX, length(model.FLOOR_PREFIX)) ...
                 & quantity.Type==TYPE(4);
-            this.Values(1, inxOfFloors, :) = defaultFloor;
+            this.Values(1, inxFloors, :) = defaultFloor;
         end%
 
         
-        function this = preallocateSolution(this, vector, ahead, numOfHashed, numOfObserved)
+        function this = preallocateSolution(this, vector, ahead, numHashed, numObserved)
             TYPE = @int8;
             nv = size(this.Values, 3);
             [ny, nxi, nb, nf, ne] = sizeOfSolution(vector);
             [~, kxi, ~, kf] = sizeOfSystem(vector);
-            nh = numOfHashed;
-            nz = numOfObserved;
+            nh = numHashed;
+            nz = numObserved;
 
             this.FirstOrderSolution{1} = nan(nxi, nb, nv);             % T
             this.FirstOrderSolution{2} = nan(nxi, ne*(1+ahead), nv);   % R
@@ -130,7 +130,7 @@ classdef Variant
         end%
         
         
-        function this = resetTransition(this, variantsRequested, vector, numOfHashed, numOfObserved)
+        function this = resetTransition(this, variantsRequested, vector, numHashed, numObserved)
             TYPE = @int8;
             nv = size(this.Values, 3);
             [~, ~, ~, ~, ne] = sizeOfSolution(vector);
@@ -138,7 +138,7 @@ classdef Variant
             % Preallocate all solution and expansion matrices first if they
             % are missing.
             if isempty(this.FirstOrderSolution{1})
-                this = preallocateSolution(this, vector, 0, numOfHashed, numOfObserved);
+                this = preallocateSolution(this, vector, 0, numHashed, numObserved);
             end
 
             % Solution matrix R depends on the length of expansion, and
@@ -154,7 +154,7 @@ classdef Variant
             % Solution matrix Y depends on the length of expansion, and
             % needs to be updated.
             %nnActual = size(this.FirstOrderSolution{8}, 2);
-            %nnRequired = numOfHashed*(1 + ahead);
+            %nnRequired = numHashed*(1 + ahead);
             %if nnActual<nnRequired
             %    this.FirstOrderSolution{8} = [this.FirstOrderSolution{8}, nan(nxi, nnRequired-nnActual, nv)];
             %elseif nnActual>nnRequired
@@ -188,23 +188,23 @@ classdef Variant
         end%
 
 
-        function numOfUnitRoots = getNumOfUnitRoots(this, variantsRequested)
+        function numUnitRoots = getNumOfUnitRoots(this, variantsRequested)
             TYPE = @int8;
             if nargin<2 || isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
                 variantsRequested = ':';
             end
-            numOfUnitRoots = sum(this.EigenStability(:, :, variantsRequested)==TYPE(1), 2);
+            numUnitRoots = sum(this.EigenStability(:, :, variantsRequested)==TYPE(1), 2);
         end%
 
 
         function stableRoots = getStableRoots(this, variantRequested)
             TYPE = @int8;
-            inxOfStableRoots = this.EigenStability(:, :, variantRequested)==TYPE(0);
-            stableRoots = this.EigenValues(inxOfStableRoots);
+            inxStableRoots = this.EigenStability(:, :, variantRequested)==TYPE(0);
+            stableRoots = this.EigenValues(inxStableRoots);
         end%
 
 
-        function sx = combineStdCorr(this, variantsRequested, stdCorr, stdScale, numOfPeriods)
+        function sx = combineStdCorr(this, variantsRequested, stdCorr, stdScale, numPeriods)
             thisStdCorr = this.StdCorr(:, :, variantsRequested);
             thisStdCorr = permute(thisStdCorr, [2, 1, 3]);
             if ~isempty(stdCorr) || ~isempty(stdScale)
@@ -218,20 +218,20 @@ classdef Variant
                     stdScale = [stdScale, nan(size(stdScale, 1), last-sizeOfStdScale)];
                 end
                 sx = repmat(thisStdCorr, 1, last);
-                inxOfStdScale = ~isnan(stdScale);
-                if any(inxOfStdScale(:))
+                inxStdScale = ~isnan(stdScale);
+                if any(inxStdScale(:))
                     ne = size(stdScale, 1);
                     temp = sx(1:ne, :, :);
-                    temp(inxOfStdScale) = temp(inxOfStdScale) .* stdScale(inxOfStdScale);
+                    temp(inxStdScale) = temp(inxStdScale) .* stdScale(inxStdScale);
                     sx(1:ne, :, :) = temp;
                 end
-                inxOfStdCorr = ~isnan(stdCorr);
-                if any(inxOfStdCorr(:))
-                    sx(inxOfStdCorr) = stdCorr(inxOfStdCorr);
+                inxStdCorr = ~isnan(stdCorr);
+                if any(inxStdCorr(:))
+                    sx(inxStdCorr) = stdCorr(inxStdCorr);
                 end
                 % Add model StdCorr if the last user-supplied data point is before
                 % the end of the sample.
-                if size(sx, 2)<numOfPeriods
+                if size(sx, 2)<numPeriods
                     sx = [sx, thisStdCorr];
                 end
             else
@@ -252,7 +252,7 @@ classdef Variant
 
         function this = subscripted(this, varargin)
             if numel(varargin)==1
-                % Subscripted reference this(lhsRef).
+                % Subscripted reference this(lhsRef)
                 lhsRef = varargin{1};
                 for i = 1 : length(this.LIST_OF_ARRAY_PROPERTIES)
                     property = this.LIST_OF_ARRAY_PROPERTIES{i};
@@ -281,8 +281,8 @@ classdef Variant
                 end
             elseif numel(varargin)==3 ...
                 && isa(this, 'model.component.Variant') && isa(varargin{2}, 'model.component.Variant')
-                % Proper assignment this(lhsRef) = obj(rhsRef)
-                % rhsRef is either ':' or [1, 1, ..., 1] to match lhsRef.
+                % this(lhsRef) = obj(rhsRef)
+                % rhsRef is either ':' or [1, 1, ..., 1] to match lhsRef
                 lhsRef = varargin{1};
                 rhsObj = varargin{2};
                 rhsRef = varargin{3};
@@ -298,37 +298,38 @@ classdef Variant
                     end
                 end
             else
-                throw( ...
-                    exception.Base('General:InvalidReference', 'error'), ...
-                    'model' ...
-                ); %#ok<GTARG>
+                throw( exception.Base('General:InvalidReference', 'error'), 'model' ); %#ok<GTARG>
             end
         end%
 
 
+
+
         function this = set.StdCorr(this, newStdCorr)
             temp = newStdCorr(:, ~this.IndexOfStdCorrAllowed, :);
-            assert( ...
-                all(temp(:)==0), ...
-                'model:Variant:set:StdCorr', ...
-                'Cross-correlation between measurement and transition shocks cannot be set to nonzero values.' ...
-            );
+            if ~all(temp(:)==0)
+                thisError = { 'model:Variant:set:StdCorr'
+                              'Cross-correlation between measurement and transition shocks cannot be set to nonzero' };
+                throw( exception.Base(thisError, 'error') );
+            end
             this.StdCorr = newStdCorr;
         end%
 
 
-        function varargout = getIthFirstOrderSolution(this, v)
+
+
+        function varargout = getIthFirstOrderSolution(this, variantsRequested)
             if nargout==1
                 numOutput = numel(this.FirstOrderSolution);
             else
                 numOutput = nargout;
             end
             x = cell(1, numOutput);
-            if size(this.Values, 3)==1 && (v==1 || v==':')
+            if size(this.Values, 3)==1 && (isequal(variantsRequested, 1) || strcmp(variantsRequested, ':'))
                 x(1:numOutput) = this.FirstOrderSolution(1:numOutput);
             else
                 for i = 1 : numOutput
-                    x{i} = this.FirstOrderSolution{i}(:, :, v);
+                    x{i} = this.FirstOrderSolution{i}(:, :, variantsRequested);
                 end
             end
             varargout = cell(1, nargout);
@@ -339,19 +340,23 @@ classdef Variant
             end
         end%
 
+        
 
-        function indexInitial = getIthIndexInitial(this, v)
-            indexInitial = this.IxInit(:, :, v);
+
+        function inxInit = getIthIndexInitial(this, variantsRequested)
+            inxInit = this.IxInit(:, :, variantsRequested);
         end%
 
 
-        function varargout = getIthFirstOrderExpansion(this, v)
-            if size(this.Values, 3)==1 && (v==1 || v==':')
+
+
+        function varargout = getIthFirstOrderExpansion(this, variantsRequested)
+            if size(this.Values, 3)==1 && (isequal(variantsRequested, 1) || strcmp(variantsRequested, ':'))
                 x = this.FirstOrderExpansion;
             else
                 x = cell(size(this.FirstOrderExpansion));
                 for i = 1 : numel(this.FirstOrderExpansion)
-                    x{i} = this.FirstOrderExpansion{i}(:, :, v);
+                    x{i} = this.FirstOrderExpansion{i}(:, :, variantsRequested);
                 end
             end
             varargout = cell(1, nargout);
@@ -364,12 +369,22 @@ classdef Variant
     end
 
 
+
+
     properties (Dependent)
+        InxInit
         InxOfInit
     end
 
 
+
+
     methods 
+        function value = get.InxInit(this)
+            value = this.IxInit;
+        end%
+
+
         function value = get.InxOfInit(this)
             value = this.IxInit;
         end%
