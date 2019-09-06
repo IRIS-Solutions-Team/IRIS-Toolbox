@@ -25,6 +25,8 @@ end
 %--------------------------------------------------------------------------
 
 dispHeader(this, config.DispIndent);
+dispDataClass(this, config.DispIndent);
+textual.looseLine( );
 
 data = this.Data;
 dataNDim = ndims(data);
@@ -47,7 +49,14 @@ function dispHeader(this, indent)
     end
     sizeString = sprintf('-by-%g', sizeOfData(2:end));
     fprintf('%s Object: %g%s\n', getClickableClassName(this), numPeriods, sizeString);
-    textual.looseLine( );
+end%
+
+
+
+
+function dispDataClass(this, indent)
+    fprintf(indent);
+    fprintf('Data Type: %s\n', class(this.Data));
 end%
 
 
