@@ -5,12 +5,12 @@ if isempty(parser)
     parser = extend.InputParser('databank.apply');
     parser.addRequired('Function', @(x) isempty(x) || isa(x, 'function_handle'));
     parser.addRequired('InputDatabank', @isstruct);
-    parser.addParameter('HasPrefix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter('HasSuffix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter('AddPrefix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter('AddSuffix', '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter('RemovePrefix', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('RemoveSuffix', false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'HasPrefix', 'StartsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter({'HasSuffix', 'EndsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter({'AddPrefix', 'AddStart'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter({'AddSuffix', 'AddEnd'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter({'RemovePrefix', 'RemoveStart'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('List', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
     parser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || isstruct(x));
 end

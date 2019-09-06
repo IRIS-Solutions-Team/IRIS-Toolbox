@@ -54,4 +54,5 @@ ixSelect = ixName & ixClass & ixFilter;
 select = listOfFields(ixSelect);
 tokens = tokens(ixSelect);
 
-end
+end%
+
