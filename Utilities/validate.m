@@ -10,14 +10,12 @@
 classdef validate
     methods (Static)
         function flag = databankType(input)
-            flag = validate.anyString(input, 'struct', 'Dictionary', 'containers.Map');
+            flag = validate.anyString(input, 'struct', 'Dictionary');
         end%
 
 
         function flag = databank(input)
-            flag = isstruct(input) ...
-                || isa(input, 'Dictionary') ...
-                || isa(input, 'containers.Map');
+            flag = isstruct(input) || isa(input, 'Dictionary');
         end%
 
 
