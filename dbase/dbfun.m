@@ -1,13 +1,13 @@
-function [outp, flag, lsError, lsWarning] = dbfun(varargin)
-% dbfun  Apply function to database fields.
+function [outp, flag, listErrors, listWarnings] = dbfun(varargin)
+% dbfun  Apply function to databank fields
 %
 %
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [D, Flag, ErrList, WarnList] = dbfun(Func, D, ...)
-%     [D, Flag, ErrList, WarnList] = dbfun(Func, D, ~D2, ~D3, ..., ~Dk, ...)
+%     [inputDatabanks, Flag, ErrList, WarnList] = dbfun(Func, inputDatabanks, ...)
+%     [inputDatabanks, Flag, ErrList, WarnList] = dbfun(Func, inputDatabanks, ~D2, ~D3, ..., ~Dk, ...)
 %
 %
 % __Initialize__
@@ -15,7 +15,7 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 % * `Func` [ function_handle | char ] - Function that will be applied to
 % each field.
 %
-% * `D` [ struct ] - Primary input database whose fields will be processed
+% * `inputDatabanks` [ struct ] - Primary input databank whose fields will be processed
 % by the function `Func`.
 %
 % * `~D2`, `~D3`, ... [ struct ] - Secondary input databases whose fields
@@ -24,8 +24,8 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 %
 % __Output Arguments__
 %
-% * `D` [ struct ] - Output database whose fields will be created by
-% applying `Func` to each field of the input database or databases.
+% * `inputDatabanks` [ struct ] - Output databank whose fields will be created by
+% applying `Func` to each field of the input databank or databases.
 %
 % * `Flag` [ `true` | `false` ] - True if no error occurs when evaluating
 % the function.
@@ -44,23 +44,23 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 % `Func` to their fields, too.
 %
 % * `ClassFilter=@all` [ cell | cellstr | rexp | `@all` ] - Apply `Func`
-% only to database fields whose class is on the list or matches the regular
-% expression; `@all` means all fields in the input database `D` will be
+% only to databank fields whose class is on the list or matches the regular
+% expression; `@all` means all fields in the input databank `inputDatabanks` will be
 % processed.
 %
 % * `Fresh=false` [ `true` | `false` ] - Remove unprocessed entries from
-% the output database.
+% the output databank.
 %
 % * `NameList=@all` [ cell | cellstr | rexp | `@all` ] - Apply `Func` only
-% to this list of database field names or names that match this regular
-% expression; `@all` means all entries in the input database `D` wil be
+% to this list of databank field names or names that match this regular
+% expression; `@all` means all entries in the input databank `inputDatabanks` wil be
 % processed.
 %
 % * `IfError='Remove'` [ `NaN` | `'Remove'` ] - What to do with the
-% database entry if an error occurs when the entry is being evaluated.
+% databank entry if an error occurs when the entry is being evaluated.
 %
 % * `IfWarning='Keep'` [ `'Keep'` | `NaN` | `'Remove'` ] - What to do with
-% the database entry if an error occurs when the entry is being evaluated.
+% the databank entry if an error occurs when the entry is being evaluated.
 %
 %
 % __Description__
@@ -88,155 +88,143 @@ function [outp, flag, lsError, lsWarning] = dbfun(varargin)
 %         export files: [0]
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-D = cell(1, nargin);
-[Fn, D{1}, varargin] = irisinp.parser.parse('dbase.dbfun', varargin{:});
+inputDatabanks = cell(1, nargin);
+[Fn, inputDatabanks{1}, varargin] = irisinp.parser.parse('dbase.dbfun', varargin{:});
 
-% Find last secondary input database in varargin.
+% Find last secondary input databank in varargin.
 nSecDb = max([ 0, find(cellfun(@isstruct, varargin), 1, 'last') ]);
 nDb = nSecDb + 1;
-D(1+(1:nSecDb)) = varargin(1:nSecDb);
-D(nDb+1:end) = [ ];
+inputDatabanks(1+(1:nSecDb)) = varargin(1:nSecDb);
+inputDatabanks(nDb+1:end) = [ ];
 varargin(1:nSecDb) = [ ];
 
-opt = passvalopt('dbase.dbfun', varargin{:});
+[opt, unmatched] = passvalopt('dbase.dbfun', varargin{:});
 
-% `list` is the list of *all* fields in database `D1`; selected names (to
+% `list` is the list of *all* fields in databank `D1`; selected names (to
 % be processed) will be stored in `select`.
-lsField = fieldnames(D{1});
-lsField = lsField(:).';
-nField = numel(lsField);
+fieldNames = fieldnames(inputDatabanks{1});
+fieldNames = fieldNames(:).';
+nField = numel(fieldNames);
 X = cell(1, nField);
-ixKeep = false(1, nField);
+inxKeep = false(1, nField);
 
 % __Process Subdatabases__
 if opt.recursive
     for i = 1 : nField
-        name = lsField{i};
-        if ~isstruct(D{1}.(name))
+        name = fieldNames{i};
+        if ~isstruct(inputDatabanks{1}.(name))
             continue
         end
         argList = cell(1, nDb);
         for iDb = 1 : nDb
-            argList{iDb} = D{iDb}.(name);
+            argList{iDb} = inputDatabanks{iDb}.(name);
         end
         % Cannot pass in opt because it is a struct and would be confused
-        % for a secondary input database.
+        % for a secondary input databank.
         X{i} = dbfun(Fn, argList{:}, varargin{:});
-        ixKeep(i) = true;
+        inxKeep(i) = true;
     end
 end
 
 %--------------------------------------------------------------------------
 
-lsSelect = dbnames( ...
-    D{1}, ...
-    'classFilter=', opt.classfilter, ...
-    'nameFilter=', opt.namefilter ...
-);
-
-lsError = cell(1, nField);
-indexOfErrors = false(1, nField);
-lsWarning = cell(1, nField);
-indexOfWarnings = false(1, nField);
+listSelect = dbnames(inputDatabanks{1}, unmatched{:});
+listErrors = cell(1, nField);
+inxErrors = false(1, nField);
+listWarnings = cell(1, nField);
+inxWarnings = false(1, nField);
 
 % Index of fields to be processed; exclude sub-databases (processed
 % earlier) and fields not on the select list.
-testFunc = @(field) ...
-    ~isstruct(D{1}.(field)) ...
-    && any( strcmp(field, lsSelect) );
-ixProcess = cellfun(testFunc, lsField);
+testFunc = @(field) ~isstruct(inputDatabanks{1}.(field)) ...
+                    && any(strcmp(field, listSelect));
+inxToProcess = cellfun(testFunc, fieldNames);
 
-for i = find(ixProcess)
-    ixKeep(i) = true;
+for i = find(inxToProcess)
+    inxKeep(i) = true;
     try
-        fnArgList = cellfun( ...
-            @(d) d.(lsField{i}), D, ...
-            'UniformOutput', false ...
-        );
+        fnArgList = cellfun( @(x) x.(fieldNames{i}), inputDatabanks, ...
+                             'UniformOutput', false );
         lastwarn('');
         X{i} = feval(Fn, fnArgList{:});
         if ~isempty( lastwarn( ) )
-            lsWarning{i} = lastwarn( );
-            indexOfWarnings(i) = true;
+            listWarnings{i} = lastwarn( );
+            inxWarnings(i) = true;
         end
     catch Exc
-        lsError{i} = Exc.message;
-        indexOfErrors(i) = true;
+        listErrors{i} = Exc.message;
+        inxErrors(i) = true;
     end
 end
 
-% Report Matlab errors and warnings.
-if any(indexOfWarnings)
-    reportMatlabWarnings( );
+% Report Matlab errors and warnings
+if any(inxWarnings)
+    hereReportMatlabWarnings( );
 end
-flag = ~any(indexOfErrors);
-if any(indexOfErrors)
-    reportMatlabErrors( );
+flag = ~any(inxErrors);
+if any(inxErrors)
+    hereReportMatlabErrors( );
 end
 
-% Create output database.
-if any(ixKeep)    
-    if opt.fresh || length(D{1})>1
+% Create output databank
+if any(inxKeep)    
+    if opt.fresh || length(inputDatabanks{1})>1
         % Only processed fields are included.
-        outp = cell2struct(X(ixKeep), lsField(ixKeep), 2);
+        outp = cell2struct(X(inxKeep), fieldNames(inxKeep), 2);
     else
-        % Keep unprocessed fields in the output database.
-        for i = find(ixKeep)
-            D{1}.(lsField{i}) = X{i};
+        % Keep unprocessed fields in the output databank
+        for i = find(inxKeep)
+            inputDatabanks{1}.(fieldNames{i}) = X{i};
         end
-        outp = D{1};
+        outp = inputDatabanks{1};
     end
 else
-    if opt.fresh || length(D{1})>1
+    if opt.fresh || length(inputDatabanks{1})>1
         outp = struct( );
     else
-        outp = D{1};
+        outp = inputDatabanks{1};
     end
 end
 
 return
 
 
-    function reportMatlabErrors( )
+    function hereReportMatlabErrors( )
         % Throw warnings for Matlab errors.
         errorMessage = cell.empty(1, 0);
-        for ii = find(indexOfErrors)
-            errorMessage{end+1} = lsField{ii}; %#ok<AGROW>
-            errorMessage{end+1} = lsError{ii}; %#ok<AGROW>
+        for ii = find(inxErrors)
+            errorMessage{end+1} = fieldNames{ii}; %#ok<AGROW>
+            errorMessage{end+1} = listErrors{ii}; %#ok<AGROW>
         end
         if isequaln(opt.iferror, NaN) || strcmpi(opt.iferror, 'NaN')
-            X(indexOfErrors) = { NaN };
+            X(inxErrors) = { NaN };
         else
-            ixKeep(indexOfErrors) = false;
-            D{1} = rmfield(D{1}, lsField(indexOfErrors));
+            inxKeep(inxErrors) = false;
+            inputDatabanks{1} = rmfield(inputDatabanks{1}, fieldNames(inxErrors));
         end
-        throw( ...
-            exception.Base('Dbase:DbfunReportError', 'warning'), ...
-            errorMessage{:} ...
-        );
+        throw( exception.Base('Dbase:DbfunReportError', 'warning'), ...
+               errorMessage{:} );
     end%
 
     
-    function reportMatlabWarnings( )
+    function hereReportMatlabWarnings( )
         % Throw warnings for Matlab warnings.
         warningMessage = cell.empty(1, 0);
-        for ii = find(indexOfWarnings)
-            warningMessage{end+1} = lsField{ii}; %#ok<AGROW>
-            warningMessage{end+1} = lsWarning{ii}; %#ok<AGROW>
+        for ii = find(inxWarnings)
+            warningMessage{end+1} = fieldNames{ii}; %#ok<AGROW>
+            warningMessage{end+1} = listWarnings{ii}; %#ok<AGROW>
         end
         if isequaln(opt.ifwarning, NaN) || strcmpi(opt.ifwarning, 'NaN')
-            X(indexOfWarnings) = { NaN };
+            X(inxWarnings) = { NaN };
         elseif strcmpi(opt.ifwarning, 'Remove')
-            ixKeep(indexOfWarnings) = false;
+            inxKeep(inxWarnings) = false;
         else
             % Do nothing
         end
-        throw( ...
-            exception.Base('Dbase:DbfunReportWarning', 'warning'), ...
-            warningMessage{:}...
-        );
+        throw( exception.Base('Dbase:DbfunReportWarning', 'warning'), ...
+               warningMessage{:} );
     end%
 end%

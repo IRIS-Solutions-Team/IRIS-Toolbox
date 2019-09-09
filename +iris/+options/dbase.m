@@ -47,11 +47,7 @@ Def.dbminuscontrol = {
     'fresh', true, @islogicalscalar
 };
 
-Def.dbnames = { 
-};
-
 Def.dbfun = [
-    Def.dbnames
     { 
     'recursive, cascade', true, @(x) isequal(x, true) || isequal(x, false)
     'fresh', false, @islogicalscalar

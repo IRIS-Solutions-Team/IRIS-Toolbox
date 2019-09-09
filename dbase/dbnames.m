@@ -136,7 +136,8 @@ function inxTest = validateClasses(inputDatabank, listFields, classFilter)
         return
     end
     if isempty(classFilter)
-        inxTest(:) = true;
+        inxTest(:) = false;
+        return
     end
     numFields = numel(listFields);
     if iscellstr(classFilter)
@@ -144,7 +145,7 @@ function inxTest = validateClasses(inputDatabank, listFields, classFilter)
             ithValue = getfield(inputDatabank, listFields{i});
             for j = 1 : numel(classFilter)
                 inxTest(i) = inxTest(i) | isa(ithValue, classFilter{j});
-                if ~inxTest(i)
+                if inxTest(i)
                     break
                 end
             end
