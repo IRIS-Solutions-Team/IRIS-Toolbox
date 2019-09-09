@@ -81,7 +81,7 @@ function [T, R, K, Z, H, D, U, Omg, list] = sspace(this, varargin)
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model/sspace');
-    addRequired(parser, 'model', @(x), isa(x, 'model'));
+    addRequired(parser, 'model', @(x) isa(x, 'model'));
     addParameter(parser, 'Triangular', true, @validate.logicalScalar);
     addParameter(parser, 'RemoveInactive', false, @validate.logicalScalar);
 end
