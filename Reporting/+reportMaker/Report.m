@@ -1,18 +1,18 @@
-classdef Report < reptile.element.Element
+classdef Report < reportMaker.element.Element
     properties
         Class = 'Report'
-        CanBeAdded = { 'reptile.Section'
-                       'reptile.Table'
-                       'reptile.Figure'
-                       'reptile.Matrix' }
+        CanBeAdded = { 'reportMaker.Section'
+                       'reportMaker.Table'
+                       'reportMaker.Figure'
+                       'reportMaker.Matrix' }
     end
 
 
     properties
         XmlDoc
         FileName = ''
-        StyleSheet = fullfile(iris.root( ), 'Reporting', '+reptile', 'default.css')
-        SourceFiles = reptile.SourceFiles.empty(1, 0)
+        StyleSheet = fullfile(iris.root( ), 'Reporting', '+reportMaker', 'default.css')
+        SourceFiles = reportMaker.SourceFiles.empty(1, 0)
         Footnotes = cell.empty(1, 0)
         FootnoteCounter = 0
     end
@@ -20,11 +20,11 @@ classdef Report < reptile.element.Element
 
     methods
         function this = Report(varargin)
-            this = this@reptile.element.Element(varargin{1:end});
+            this = this@reportMaker.element.Element(varargin{1:end});
             this.FileName = varargin{2};
             assignOptions(this, varargin{3:end});
             singleFile = get(this, 'SingleFile');
-            this.SourceFiles = reptile.SourceFiles(this.FileName, singleFile);
+            this.SourceFiles = reportMaker.SourceFiles(this.FileName, singleFile);
         end%
 
 

@@ -1,5 +1,5 @@
-classdef Series < reptile.element.Element ...
-                & reptile.element.DataElement
+classdef Series < reportMaker.element.Element ...
+                & reportMaker.element.DataElement
     properties
         Class = 'Series'
         CanBeAdded = cell.empty(1, 0)
@@ -13,11 +13,11 @@ classdef Series < reptile.element.Element ...
 
     methods
         function this = Series(varargin)
-            this = this@reptile.element.Element(varargin{1:end});
-            this = this@reptile.element.DataElement(varargin{2:end});
+            this = this@reportMaker.element.Element(varargin{1:end});
+            this = this@reportMaker.element.DataElement(varargin{2:end});
             persistent parser
             if isempty(parser)
-                parser = extend.InputParser('reptile.figure.chart.Series');
+                parser = extend.InputParser('reportMaker.figure.chart.Series');
                 parser.addRequired('DrawFunction', @validateDrawFunction);
             end
             parser.parse(varargin{3});

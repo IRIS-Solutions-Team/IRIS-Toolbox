@@ -1,4 +1,4 @@
-classdef (Abstract) H2Element < reptile.element.FootnotesElement
+classdef (Abstract) H2Element < reportMaker.element.FootnotesElement
     methods
         function outputElement = createDivH2(this)
             resolveShowHeading(this);

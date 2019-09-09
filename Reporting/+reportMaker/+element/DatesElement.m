@@ -11,7 +11,7 @@ classdef (Abstract) DatesElement < handle
             end
             persistent parser
             if isempty(parser)
-                parser = extend.InputParser('reptile.element.DatesElement');
+                parser = extend.InputParser('reportMaker.element.DatesElement');
                 parser.addRequired('Dates', @DateWrapper.validateProperDateInput);
             end
             parser.parse(dates);

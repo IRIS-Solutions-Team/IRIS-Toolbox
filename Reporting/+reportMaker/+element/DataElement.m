@@ -11,7 +11,7 @@ classdef (Abstract) DataElement < handle
             end
             persistent parser
             if isempty(parser)
-                parser = extend.InputParser('reptile.element.DataElement');
+                parser = extend.InputParser('reportMaker.element.DataElement');
                 parser.addRequired('Data', @validateData);
             end
             parser.parse(data);

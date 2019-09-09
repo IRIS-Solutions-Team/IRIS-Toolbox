@@ -3,7 +3,7 @@ classdef (Abstract) Element < handle
         Caption = ''
         Parent
         Children = cell.empty(1, 0)
-        Options = reptile.Options(@parent)
+        Options = reportMaker.Options(@parent)
         Id = ''
     end
 
@@ -26,7 +26,7 @@ classdef (Abstract) Element < handle
             end
             persistent parser
             if isempty(parser)
-                parser = extend.InputParser('reptile.element.Element');
+                parser = extend.InputParser('reportMaker.element.Element');
                 parser.addRequired('Caption', @validateCaption);
             end
             parser.parse(caption);
@@ -77,12 +77,12 @@ classdef (Abstract) Element < handle
 
 
         function value = get(this, option)
-            value = reptile.Options.get(this, option);
+            value = reportMaker.Options.get(this, option);
         end%
 
 
         function set(this, option, value)
-            reptile.Options.set(this, option, value);
+            reportMaker.Options.set(this, option, value);
         end%
 
 
@@ -104,7 +104,7 @@ classdef (Abstract) Element < handle
 
         function output = getReport(this, name)
             report = this;
-            while ~isa(report, 'reptile.Report')
+            while ~isa(report, 'reportMaker.Report')
                 report = report.Parent;
             end
             if nargin==1

@@ -1,11 +1,11 @@
-classdef Table < reptile.element.Element ...
-               & reptile.element.H2Element ...
-               & reptile.element.DatesElement ...
-               & reptile.element.FootnotesElement
+classdef Table < reportMaker.element.Element ...
+               & reportMaker.element.H2Element ...
+               & reportMaker.element.DatesElement ...
+               & reportMaker.element.FootnotesElement
     properties
         Class = 'Table'
-        CanBeAdded = { 'reptile.table.Series'
-                       'reptile.table.Subheading' }
+        CanBeAdded = { 'reportMaker.table.Series'
+                       'reportMaker.table.Subheading' }
     end
 
 
@@ -27,8 +27,8 @@ classdef Table < reptile.element.Element ...
 
     methods
         function this = Table(varargin)
-            this = this@reptile.element.Element(varargin{1:end});
-            this = this@reptile.element.DatesElement(varargin{2:end});
+            this = this@reportMaker.element.Element(varargin{1:end});
+            this = this@reportMaker.element.DatesElement(varargin{2:end});
             assignOptions(this, varargin{3:end});
         end%
 
@@ -61,7 +61,7 @@ classdef Table < reptile.element.Element ...
             hereRenderMarks( );
             hereRenderUnits( );
 
-            dateFormat = reptile.Options.get(this, 'DateFormat');
+            dateFormat = reportMaker.Options.get(this, 'DateFormat');
             dateString = DateWrapper.toCellstr( this.Dates, ...
                                                    'DateFormat=', dateFormat );
             for i = 1 : this.NumOfDates
@@ -85,7 +85,7 @@ classdef Table < reptile.element.Element ...
 
 
                 function hereRenderMarks( )
-                    showMarks = reptile.Options.get(this, 'ShowMarks');
+                    showMarks = reportMaker.Options.get(this, 'ShowMarks');
                     if showMarks
                         marks = x.createElement('th');
                         outputElement.appendChild(marks);
@@ -94,7 +94,7 @@ classdef Table < reptile.element.Element ...
 
 
                 function hereRenderUnits( )
-                    showUnits = reptile.Options.get(this, 'ShowUnits');
+                    showUnits = reportMaker.Options.get(this, 'ShowUnits');
                     if showUnits
                         units = x.createElement('th');
                         outputElement.appendChild(units);
@@ -108,7 +108,7 @@ classdef Table < reptile.element.Element ...
             this.DataColumnClass(:) = {''};
             list = {'Highlight', 'VlineAfter', 'VlineBefore'};
             for i = 1 : numel(list)
-                userDates = reptile.Options.get(this, list{i});
+                userDates = reportMaker.Options.get(this, list{i});
                 if ~isempty(userDates)
                     doubleDates = round(100*double(this.Dates));
                     doubleUserDatas = round(100*double(userDates));
@@ -158,8 +158,8 @@ classdef Table < reptile.element.Element ...
     methods
         function value = get.NumOfNondataColumns(this)
             showNames = true;
-            showMarks = reptile.Options.get(this, 'ShowMarks');
-            showUnits = reptile.Options.get(this, 'ShowUnits');
+            showMarks = reportMaker.Options.get(this, 'ShowMarks');
+            showUnits = reportMaker.Options.get(this, 'ShowUnits');
             value = nnz(showNames) ...
                   + nnz(showMarks) ...
                   + nnz(showUnits);

@@ -1,6 +1,6 @@
-classdef Series < reptile.element.Element ...
-                & reptile.element.DataElement ...
-                & reptile.table.Row 
+classdef Series < reportMaker.element.Element ...
+                & reportMaker.element.DataElement ...
+                & reportMaker.table.Row 
     properties
         Class = 'table.Series'
         CanBeAdded = cell.empty(1, 0)
@@ -13,8 +13,8 @@ classdef Series < reptile.element.Element ...
 
     methods
         function this = Series(varargin)
-            this = this@reptile.element.Element(varargin{1:end});
-            this = this@reptile.element.DataElement(varargin{2:end});
+            this = this@reportMaker.element.Element(varargin{1:end});
+            this = this@reportMaker.element.DataElement(varargin{2:end});
             assignOptions(this, varargin{3:end});
         end%
 

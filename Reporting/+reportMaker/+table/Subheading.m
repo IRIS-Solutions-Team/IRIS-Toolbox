@@ -1,5 +1,5 @@
-classdef Subheading < reptile.element.Element ...
-                    & reptile.table.Row
+classdef Subheading < reportMaker.element.Element ...
+                    & reportMaker.table.Row
     properties
         Class = 'table.Subheading'
         CanBeAdded = cell.empty(1, 0)
@@ -8,7 +8,7 @@ classdef Subheading < reptile.element.Element ...
 
     methods
         function this = Subheading(varargin)
-            this = this@reptile.element.Element(varargin{1:end});
+            this = this@reportMaker.element.Element(varargin{1:end});
         end%
 
 

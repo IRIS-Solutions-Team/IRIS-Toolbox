@@ -86,11 +86,11 @@ classdef ( CaseInsensitiveProperties=true ) ...
             value = element.Options.(option);
             if isequal(value, @parent)
                 if isempty(element.Parent)
-                    default = reptile.Options( );
+                    default = reportMaker.Options( );
                     value = default.(option);
                     return
                 else
-                    value = reptile.Options.get(element.Parent, option);
+                    value = reportMaker.Options.get(element.Parent, option);
                     return
                 end
             end

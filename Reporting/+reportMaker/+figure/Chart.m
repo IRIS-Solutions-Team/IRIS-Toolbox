@@ -1,8 +1,8 @@
-classdef Chart < reptile.element.Element ...
-               & reptile.element.DatesElement
+classdef Chart < reportMaker.element.Element ...
+               & reportMaker.element.DatesElement
     properties
         Class = 'Chart'
-        CanBeAdded = { 'reptile.figure.chart.Series' }
+        CanBeAdded = { 'reportMaker.figure.chart.Series' }
     end
 
 
@@ -13,8 +13,8 @@ classdef Chart < reptile.element.Element ...
 
     methods
         function this = Chart(varargin)
-            this = this@reptile.element.Element(varargin{1:end});
-            this = this@reptile.element.DatesElement(varargin{2:end});
+            this = this@reportMaker.element.Element(varargin{1:end});
+            this = this@reportMaker.element.DatesElement(varargin{2:end});
             assignOptions(this, varargin{3:end});
         end%
 
