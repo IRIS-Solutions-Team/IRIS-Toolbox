@@ -1,4 +1,4 @@
-function X = requestData(this, databankInfo, inputDatabank, range, names)
+function X = requestData(this, databankInfo, inputDatabank, dates, names)
 % requestData  Return input data matrix for selected model names
 %
 % Backend IRIS function
@@ -9,14 +9,14 @@ function X = requestData(this, databankInfo, inputDatabank, range, names)
 
 %--------------------------------------------------------------------------
 
-range = double(range);
-numOfNames = numel(names);
-numOfPeriods = numel(range);
-numOfPages = databankInfo.NumOfPages;
+dates = double(dates);
+numNames = numel(names);
+numPeriods = numel(dates);
+numPages = databankInfo.NumOfPages;
 
-X = nan(numOfNames, numOfPeriods, numOfPages);
+X = nan(numNames, numPeriods, numPages);
 
-for i = 1 : numOfNames
+for i = 1 : numNames
     ithName = names{i};
     if ~isfield(inputDatabank, ithName) ...
        || ~isa(inputDatabank.(ithName), 'TimeSubscriptable')
@@ -24,12 +24,13 @@ for i = 1 : numOfNames
     end
     ithSeries = inputDatabank.(ithName);
     % checkFrequency(ithSeries, range);
-    ithData = getData(ithSeries, range);
+    ithData = getData(ithSeries, dates);
     ithData = ithData(:, :);
-    if size(ithData, 2)==1 && numOfPages>1
-        ithData = repmat(ithData, 1, numOfPages);
+    if size(ithData, 2)==1 && numPages>1
+        ithData = repmat(ithData, 1, numPages);
     end
     X(i, :, :) = permute(ithData, [3, 1, 2]);
 end
 
 end%
+

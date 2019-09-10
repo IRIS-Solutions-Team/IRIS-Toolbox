@@ -1,4 +1,12 @@
 function databankInfo = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames)
+% checkInputDatabank  Check input databank for missing or non-compliant variables
+%{
+%}
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
     
 nv = this.NumOfVariants;
 
@@ -42,37 +50,37 @@ for i = 1 : numel(allNames)
 end
 
 if ~all(checkIncluded)
-    THIS_ERROR = { 'model:Abstract:checkInputDatabank', ...
+    thisError = { 'model:Abstract:checkInputDatabank', ...
                    'This time series is missing from input databank: %s ' };
-    throw( exception.Base(THIS_ERROR, 'error'), ...
+    throw( exception.Base(thisError, 'error'), ...
            allNames{~checkIncluded} );
 end
 
 if ~all(checkFrequency)
-    THIS_ERROR = { 'model:Abstract:checkInputDatabank', ...
+    thisError = { 'model:Abstract:checkInputDatabank', ...
                    'This time series has the wrong date frequency in input databank: %s ' };
-    throw( exception.Base(THIS_ERROR, 'error'), ...
+    throw( exception.Base(thisError, 'error'), ...
            allNames{~checkFrequency} );
 end
 
-numOfPages = databank.backend.numOfColumns(inputDatabank, allNames);
-numOfPages(isnan(numOfPages) & inxOfOptionalNames) = 0;
-maxNumOfPages = max(numOfPages);
+numPages = databank.backend.numOfColumns(inputDatabank, allNames);
+numPages(isnan(numPages) & inxOfOptionalNames) = 0;
+maxNumOfPages = max(numPages);
 
-checkNumOfPagesAndVariants = numOfPages==1 ...
-                              | numOfPages==0 ...
-                              | (nv>1 & numOfPages==nv) ...
-                              | (nv==1 & numOfPages==maxNumOfPages);
+checkNumOfPagesAndVariants = numPages==1 ...
+                              | numPages==0 ...
+                              | (nv>1 & numPages==nv) ...
+                              | (nv==1 & numPages==maxNumOfPages);
 
 if ~all(checkNumOfPagesAndVariants)
-    THIS_ERROR = { 'model:Abstract:checkInputDatabank'
+    thisError = { 'model:Abstract:checkInputDatabank'
                    'This time series has an inconsistent number of columns: %s ' };
-    throw( exception.Base(THIS_ERROR, 'error'), ...
+    throw( exception.Base(thisError, 'error'), ...
            allNames{~checkNumOfPagesAndVariants} );
 end
 
 databankInfo = struct( );
-databankInfo.NumOfPages = max(max(numOfPages), 1);
+databankInfo.NumOfPages = max(max(numPages), 1);
 
 end%
 

@@ -1,6 +1,6 @@
 % VAR  Vector Autoregressions
 %
-% This section describes the `VAR` class of objects.
+% This section describes the `VAR` class of objects
 %
 % Description
 % ------------
@@ -130,11 +130,13 @@
 %   schur - Compute and store triangular representation of VAR
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
     
 classdef (CaseInsensitiveProperties=true) ...
-    VAR < varobj & model.Data
+         VAR < varobj ...
+             & shared.InputOutputData
+
     properties
         G = [ ] % Coefficients at cointegrating vector in VEC form.
 
