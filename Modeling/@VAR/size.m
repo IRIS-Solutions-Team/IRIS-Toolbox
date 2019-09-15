@@ -1,9 +1,3 @@
-function varargout = size(this,varargin)
-if ~isempty(this.A)
-   nalt = size(this.A,3);
-else
-   nalt = 0;
-end
-temp = zeros(1,nalt);
-[varargout{1:nargout}] = size(temp,varargin{:});
-end
+version https://git-lfs.github.com/spec/v1
+oid sha256:7037855e9ae3010e9b828ce61a5245ea6c24c9746d0a207aa4ecac370795d4e8
+size 193

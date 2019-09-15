@@ -1,30 +1,3 @@
-function Cov = mycovmatrix(This,Alt)
-% mybmatrix  [Not a public function] Cov matrix of structural residuals.
-%
-% Backend IRIS function.
-% No help provided.
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
-
-try
-    Alt; %#ok<VUNUS>
-catch
-    Alt = ':';
-end
-
-%--------------------------------------------------------------------------
-
-ny = size(This.A,1);
-
-varVec = This.Std(1,Alt) .^ 2;
-varVec = permute(varVec(:),[2,3,1]);
-n3 = length(varVec);
-
-q = min(ny,This.Rank);
-Cov = eye(ny);
-Cov(:,q+1:end) = 0;
-Cov = Cov(:,:,ones(1,n3));
-Cov = bsxfun(@times,Cov,varVec);
-
-end
+version https://git-lfs.github.com/spec/v1
+oid sha256:e85a62a776a432a88422d62bcc8983ecf1e165c42aaed15a28bfeb2511332ee5
+size 930

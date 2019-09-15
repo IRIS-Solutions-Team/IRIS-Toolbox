@@ -1,34 +1,3 @@
-function [H,IsY] = myparsetest(This,C)
-% myparsetest  [Not a public function] Determine the latest shock reponse
-% period referenced to in a test string for Householder SVARs, and check
-% for the presence of asymptotic cumulative reponses.
-%
-% Backend IRIS function.
-% No help provided.
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
-
-%--------------------------------------------------------------------------
-
-ny = size(This.A,1);
-
-occur = { };
-for i = regexp(C,'\<S\>\(','start')
-    close = textfun.matchbrk(C,i+1);
-    if ~isempty(close)
-        occur{end+1} = C(i:close); %#ok<AGROW>
-    end
-end
-
-S = zeros(ny,ny,0);
-for j = 1 : length(occur)
-    eval([occur{j},'=1;']);
-end
-H =  size(S,3);
-
-% Check for the presence of references to the asymptotic cumulative
-% response matrix `Y`.
-IsY = ~isempty(regexp(C,'\<Y\>\(','once'));
-
-end
+version https://git-lfs.github.com/spec/v1
+oid sha256:d667d16e47eb1c1ae4aea922d6fcc0676c8b8a980fa1fb795f9f6f618ef742be
+size 914

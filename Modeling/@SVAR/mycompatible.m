@@ -1,18 +1,3 @@
-function Flag = mycompatible(V1,V2)
-% mycompatible  [Not a public function] True if two SVAR objects can occur together on the LHS and RHS in an assignment.
-%
-% Backend IRIS function.
-% No help provided.
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
-
-%--------------------------------------------------------------------------
-
-try
-    Flag = isequal(class(V1),class(V2)) ...
-        && mycompatible@VAR(V1,V2);
-catch
-    Flag = false;
-    
-end
+version https://git-lfs.github.com/spec/v1
+oid sha256:734ca52519783470a73f3b7d19fc56bf8dc06d7ed3ac74f130215c09bbe8490b
+size 522

@@ -1,23 +1,3 @@
-function specdisp(This)
-% specdisp  [Not a public function] Subclass specific disp line.
-%
-% Backend IRIS function.
-% No help provided.
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
-
-%--------------------------------------------------------------------------
-
-specdisp@VAR(This);
-
-fprintf('\tidentification: ');
-if ~isempty(This.Method)
-    u = unique(This.Method);
-    fprintf('%s',textfun.displist(u));
-else
-    fprintf('empty');
-end
-fprintf('\n');
-
-end
+version https://git-lfs.github.com/spec/v1
+oid sha256:cf8628e011af9939607c91eaffbc508320f0837eaf44899dec85b59f43dd7cda
+size 316

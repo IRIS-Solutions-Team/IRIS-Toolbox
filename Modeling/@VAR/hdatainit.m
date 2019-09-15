@@ -1,28 +1,3 @@
-function hdatainit(this, H)
-% hdatainit  Initialise hdataobj for VAR
-%
-% Backend IRIS function.
-% No help provided.
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
-
-%--------------------------------------------------------------------------
-
-ny = size(this.A, 1);
-nx = this.NumExogenous;
-ne = ny;
-ni = this.NumConditioning;
-
-H.Id = { 1:ny, ny+(1:nx), ny+nx+(1:ne), ny+nx+ne+(1:ni) };
-H.Name = this.AllNames;
-H.IxLog = false(size(H.Name));
-H.Label = this.AllNames;
-
-if isequal(H.Contributions, @shock)
-    H.Contributions = [ this.NamesErrors, {'Init+Const'}, {'Exog'} ];
-elseif isequal(H.Contributions, @measurement)
-    H.Contributions = this.NamesEndogenous;
-end
-
-end
+version https://git-lfs.github.com/spec/v1
+oid sha256:46bb29b7b0d1e75c4c9e6dbb17dfad581fed9b422f9d3d0c19d4a5c926b7bf81
+size 739
