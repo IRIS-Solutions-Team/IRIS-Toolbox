@@ -8,7 +8,7 @@ function implementDisp(this)
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 CONFIG = iris.get( );
-STR_VARIANT = 'parameter variant';
+STR_VARIANT = 'Parameter Variant';
 
 %--------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ else
     fprintf('[%g %s(s)]', nv, STR_VARIANT);
     if isPanel
         nGrp = length(this.GroupNames);
-        fprintf(' * [%g] group(s)', nGrp);
+        fprintf(' * [%g] Group(s)', nGrp);
     end
 end
 fprintf('\n');
@@ -39,7 +39,7 @@ fprintf('%sEndogenous: ', CONFIG.DispIndent);
 if ~isempty(this.NamesEndogenous)
     fprintf('[%g] %s', length(this.NamesEndogenous), textfun.displist(this.NamesEndogenous));
 else
-    fprintf('none');
+    fprintf('None');
 end
 fprintf('\n');
 
@@ -62,7 +62,7 @@ specdisp(this);
 % Group names for panel objects
 fprintf('%sGroups: ', CONFIG.DispIndent);
 if ~isPanel
-    fprintf('implicit');
+    fprintf('Implicit');
 else
     fprintf( '[%g] %s', length(this.GroupNames), ...
              textfun.displist(this.GroupNames) );
