@@ -1,10 +1,8 @@
-function d = dbsplitc(d, col, lsNewCol)
+function d = dbsplitc(d, col, listColumns)
 
-if ischar(lsNewCol)
-    if ~isempty(strfind(lsNewCol, ',..,'))
-        lsNewCol = parse(parser.doubledot.Keyword.COMMA, lsNewCol);
-    end
-    lsNewCol = regexp(lsNewCol, '\w+', 'match');
+if ischar(listColumns)
+    listColumns = parser.DoubleDot.parse(listColumns, parser.DoubleDot.COMMA);
+    listColumns = regexp(listColumns, '\w+', 'match');
 end
 
 if ischar(col)
@@ -15,8 +13,8 @@ end
 isSeries = isa(x, 'tseries');
 ref = repmat({':'}, 1, ndims(x)-2);
 
-for i = 1 : length(lsNewCol)
-    newName = lsNewCol{i};
+for i = 1 : length(listColumns)
+    newName = listColumns{i};
     if isSeries
         d.(newName) = x;
         d.(newName).data = d.(newName).data(:, i, ref{:});
@@ -26,4 +24,5 @@ for i = 1 : length(lsNewCol)
     end
 end
 
-end
+end%
+

@@ -1,19 +1,18 @@
-function d = dbmergec(d, lsCol, mergedCol)
+function d = dbmergec(d, listColumns, mergedCol)
 
-if ischar(lsCol)
-    if ~isempty(strfind(lsCol, ',..,'))
-        lsCol = parse(parser.doubledot.Keyword.COMMA, lsCol);
-    end
-    lsCol = regexp(lsCol, '\w+', 'match');
+if ischar(listColumns)
+    listColumns = parser.DoubleDot.parse(listColumns, parser.DoubleDot.COMMA);
+    listColumns = regexp(listColumns, '\w+', 'match');
 end
 
 x = [ ];
 
-for i = 1 : length(lsCol)
-    name = lsCol{i};
+for i = 1 : length(listColumns)
+    name = listColumns{i};
     x = horzcat(x, d.(name)); %#ok<AGROW>
 end
 
 d.(mergedCol) = x;
 
-end
+end%
+
