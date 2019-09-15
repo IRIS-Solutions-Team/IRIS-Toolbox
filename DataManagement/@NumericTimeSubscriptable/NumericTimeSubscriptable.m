@@ -34,6 +34,7 @@ classdef ( Abstract, ...
         varargout = acf(varargin)
         varargout = arf(varargin)
         varargout = apct(varargin)
+        varargout = aroc(varargin)
         varargout = bubble(varargin)
 
         varargout = destdize(varargin)
@@ -68,6 +69,12 @@ classdef ( Abstract, ...
 
         varargout = pct(varargin)
         varargout = rmse(varargin)
+        varargout = roc(varargin)
+
+
+        function this = round(this, varargin)
+            this.Data = round(this.Data, varargin{:});
+        end%
 
 
         varargout = stdize(varargin)

@@ -1,6 +1,5 @@
 % # tseries Objects #
-%
-%
+%{
 % ## Description ##
 %
 % Time series (tseries) are numeric arrays with their first dimension
@@ -42,19 +41,19 @@
 %
 % __Getting Information about Time Series__
 %
-%   get - Query tseries object property
-%   isequal - Compare two tseries objects
+%   get - Query time series property
+%   isequal - True if two time series are identical
 %   length - Length of time series data in time dimension
-%   ndims - Number of dimensions in tseries object data
-%   size - Size of tseries object data
+%   ndims - Number of dimensions in time series data
+%   size - Size of time series data
 %   specrange - Time series specific range
 %   tabular - Display time series in tabular view
 %
 %
 % __Referencing Time Series__
 %
-%   subsasgn - Subscripted assignment for tseries objects
-%   subsref - Subscripted reference function for tseries objects
+%   subsasgn - Subscripted assignment to time series
+%   subsref - Subscripted reference to time series
 %
 %
 % __Filters__
@@ -66,7 +65,7 @@
 %   expsm - Exponential smoothing
 %   hpf - Hodrick-Prescott filter with tunes (aka LRX filter)
 %   hpf2 - Swap output arguments of the Hodrick-Prescott filter with tunes
-%   fft - Discrete Fourier transform of tseries object
+%   fft - Discrete Fourier transform of time series
 %   llf - Local level filter (random walk plus white noise) with tunes
 %   llf2 - Swap output arguments of the local linear trend filter with tunes
 %   moving - Apply function to moving window of time series observations
@@ -87,19 +86,19 @@
 %
 % __Visualising Time Series__
 %
-%   area - Area graph for tseries objects
-%   band - Line-and-band graph for tseries objects
-%   bar - Bar graph for tseries objects
-%   barcon - Contribution bar graph for tseries objects
-%   bubble - Bubble graph for tseries objects
+%   area - Area graph for time series
+%   band - Line-and-band graph for time series
+%   bar - Bar graph for time series
+%   barcon - Contribution bar graph for time series
+%   bubble - Bubble graph for time series
 %   errorbar - Line plot with error bars
-%   plot - Line graph for tseries objects
+%   plot - Line graph for time series
 %   plotcmp - Comparison graph for two time series
 %   plotpred - Visualize multi-step-ahead predictions
 %   plotyy - Line plot function with LHS and RHS axes for time series
-%   scatter - Scatter graph for tseries objects
-%   spy - Visualise tseries observations that pass a test
-%   stem - Plot tseries as discrete sequence data
+%   scatter - Scatter graph for time series
+%   spy - Visualise time series that pass a test
+%   stem - Plot time series discrete sequence data
 %
 %
 % __Manipulating Time Series Objects__
@@ -107,27 +106,28 @@
 %   empty - Create empty time series or empty an existing time series
 %   ifelse - Replace time series values based on a test condition
 %   flipud - Flip time series data up to down
-%   permute - Permute dimensions of a tseries object
+%   permute - Permute dimensions of time series
 %   repmat - Repeat copies of time series data
 %   redate - Change time dimension of time series
 %   reshape - Reshape size of time series in 2nd and higher dimensions
-%   resize - Clip tseries object to specified date range
-%   sort - Sort tseries columns by specified criterion
+%   resize - Clip time series to specified date range
+%   sort - Sort time series by specified criterion
 %
 %
 % __Converting Time Series__
 %
-%   convert - Convert tseries object to a different frequency
-%   double - Return tseries observations as double-precision numeric array
-%   doubledata - Convert tseries observations to double precision
-%   single - Return tseries observations as single-precision numeric array
-%   singledata - Convert tseries observations to single precision
+%   convert - Convert time series to a different frequency
+%   double - Return time series data as double-precision numeric array
+%   doubledata - Convert time series to double precision
+%   single - Return time series data as single-precision numeric array
+%   singledata - Convert time series data single precision
 %
 %
 % __Other Functions__
 %
 %   apct - Annualized percent rate of change
-%   bsxfun - Implement bsxfun for tseries class
+%   aroc - Annualized gross rate of change
+%   bsxfun - Implement bsxfun for time series
 %   cumsumk - Cumulative sum with a k-period leap
 %   destdize - Destandardize time series by multiplying it by std dev and adding mean
 %   diff - First difference
@@ -136,13 +136,17 @@
 %   normalize - Normalise (or rebase) data to particular date
 %   pct - Percent rate of change
 %   removeWeekends - 
-%   round - Round tseries values to specified number of decimals
+%   roc - Gross rate of change
 %   rmse - Compute RMSE for given observations and predictions
-%   stdize - Standardize tseries data by subtracting mean and dividing by std deviation
+%   stdize - Standardize time series data by subtracting mean and dividing by std deviation
 %   windex - Simple weighted or Divisia index
 %   wmean - Weighted average of time series observations
 %
+% __Standard Matlab Functions Implemented on Time Series Data__
 %
+%   round
+%
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -383,7 +387,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = repmat(varargin)
         varargout = reshape(varargin)
         varargout = resize(varargin)
-        varargout = round(varargin)
         varargout = scatter(varargin)
         varargout = select(varargin)
 
@@ -391,7 +394,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         function obj = Series(this)
             obj = Series( );
             obj = struct2obj(obj, this);
-        end
+        end%
 
 
         varargout = single(varargin)

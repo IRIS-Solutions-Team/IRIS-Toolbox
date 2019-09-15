@@ -1,11 +1,11 @@
-function this = pct(this, varargin)
-% pct  Percent rate of change
+function this = roc(this, varargin)
+% roc  Gross rate of change
 %{
 % ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted
 %
-%     x = pct(x, ~shift, ...)
+%     x = roc(x, ~shift, ...)
 %
 %
 % ## Input Arguments ##
@@ -14,7 +14,7 @@ function this = pct(this, varargin)
 % Input time series.
 %
 % __`~shift`__ [ numeric ] -
-% Time shift (lag or lead) over which the percent rate of
+% Time shift (lag or lead) over which the rate of
 % change will be computed, i.e. between time t and t+k; if omitted,
 % `shift=-1`.
 %
@@ -28,8 +28,8 @@ function this = pct(this, varargin)
 % ## Options ##
 %
 % __`'OutputFreq='`__ [ *empty* | Frequency ] -
-% Convert the percent rate of change to the requested date
-% frequency; empty means plain percent rate of change with no conversion.
+% Convert the rate of change to the requested date
+% frequency; empty means plain rate of change with no conversion.
 %
 %
 % ## Description ##
@@ -38,14 +38,14 @@ function this = pct(this, varargin)
 % ## Example ##
 %
 % In this example, `x` is a monthly time series. The following command
-% computes the annualized percent rate of change between month t and t-1:
+% computes the annualized rate of change between month t and t-1:
 %
-%     pct(x, -1, 'OutputFreq=', 1)
+%     roc(x, -1, 'OutputFreq=', 1)
 %
-% while the following line computes the annualized percent rate of change
-% between month t and t-3:
+% while the following line computes the annualized rate of change between
+% month t and t-3:
 %
-%     pct(x, -3, 'OutputFreq=', 1)
+%     roc(x, -3, 'OutputFreq=', 1)
 %
 %}
 
@@ -54,9 +54,11 @@ function this = pct(this, varargin)
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('NumericTimeSubscriptable/pct');
+    parser = extend.InputParser('NumericTimeSubscriptable.roc');
+    % Required and optional positional arguments
     parser.addRequired('inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    parser.addOptional('shift', -1, @(x) isnumeric(x) && isscalar(x) && x==round(x));
+    parser.addOptional('shift', -1, @(x) validate.numericScalar(x) && x==round(x));
+    % Options
     parser.addParameter('OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
 end
 parser.parse(this, varargin{:});
@@ -69,13 +71,13 @@ if isempty(this.data)
     return
 end
 
-Q = 1;
+power = 1;
 if ~isempty(opt.OutputFreq)
     inputFreq = DateWrapper.getFrequencyAsNumeric(this.Start);
-    Q = inputFreq / opt.OutputFreq / abs(sh);
+    power = inputFreq / opt.OutputFreq / abs(sh);
 end
 
-this = unop(@numeric.pct, this, 0, sh, Q);
+this = unop(@numeric.roc, this, 0, sh, power);
 
 end%
 
