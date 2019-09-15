@@ -228,7 +228,7 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'rexp'), varargin(1:2:end)))
         name = inputNames{i};
         value = inputValues{i};
         if isa(name, 'rexp') || isempty(regexp(name, '\W', 'once'))
-            % Plain name.
+            % Plain name
             assignNameAndValue(name, [ ], [ ], inputValues{i});
         else
             % List of names:
@@ -237,7 +237,7 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'rexp'), varargin(1:2:end)))
             % A1,..,A2
             list = name;
             if ~isempty(strfind(list, ',..,'))
-                list = parse(parser.doubledot.Keyword.COMMA, list);
+                list = parser.DoubleDot.parse(list, parser.DoubleDot.COMMA);
             end
             list = regexp(list, '\w+', 'match');
             for j = 1 : length(list)
