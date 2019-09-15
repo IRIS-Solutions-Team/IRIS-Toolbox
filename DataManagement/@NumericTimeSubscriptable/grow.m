@@ -8,30 +8,30 @@ function this = grow(this, operator, growth, dates, varargin)
 %
 % ## Input arguments ##
 %
-% **`x`** [ Series ] - 
+% __`x`__ [ Series ] - 
 % Input time series including at least the initial condition for the level.
 %
-% **`operator`** [ `*` | `+` | `/` | `-` | function_handle ] - 
+% __`operator`__ [ `*` | `+` | `/` | `-` | function_handle ] - 
 % Operator applied to cumulate the time series.
 %
-% **`growth`** [ Series | numeric ] - 
+% __`growth`__ [ Series | numeric ] - 
 % Time series or numeric scalar specifying the growth rates or differences.
 %
-% **`dates`** [ DateWrapper ] - 
+% __`dates`__ [ DateWrapper ] - 
 % Date range or a vector of dates on which the level series will be
 % cumulated.
 %
 %
 % ## Output Arguments ##
 %
-% **`x`** [ Series ] - 
+% __`x`__ [ Series ] - 
 % Output time series constructed from the input time series, `x`, extended by
 % its growth rates or differences, `growth`.
 %
 %
 % ## Options ##
 %
-% **`BaseShift=-1`** [ numeric ] -
+% __`BaseShift=-1`__ [ numeric ] -
 % Negative number specifying the lag of the base period to which the growth
 % rates apply.
 %
@@ -61,9 +61,10 @@ function this = grow(this, operator, growth, dates, varargin)
 %
 % ## Example ##
 %
-% Extend a quarterly series `x` using gross rates of growth `g`:
+% Extend a quarterly series `x` using the gross rates of growth calculated
+% from another series, `y`:
 %
-%     >> x = grow(x, g, qq(2020,1):qq(2030,4));
+%     >> x = grow(x, '*', roc(y), qq(2020,1):qq(2030,4));
 %
 %}
 
