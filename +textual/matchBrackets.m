@@ -1,36 +1,42 @@
 function [posClose, inside, thisLevel] = matchBrackets(inputText, varargin)
 % matchBrakets  Match an opening bracket found at the beginning of char string
-%
-% __Syntax__
+%{
+% ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [Close, Inside, ThisLevel] = textfun.matchBrakets(InputText, ~Open, ~Fill)
+%     [close, inside, thisLevel] = textfun.matchBrakets(inputText, ~open, ~fill)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `InputText` [ char ] - Input text string.
+% __`inputText`__ [ char ] - 
+% Input text string.
 %
-% * `~Open` [ numeric ] - Position of the requested opening bracket; if
-% omitted the opening bracket is assumed at the beginning of `InputText`.
+% __`~open`__ [ numeric ] - 
+% Position of the requested opening bracket; if
+% omitted the opening bracket is assumed at the beginning of `inputText`.
 %
-% * `~Fill` [ char ] - Auxiliary character that will be used to replace the
-% content of nested brackets in `ThisLevel`; if omitted `~Fill` is a
+% __`~fill`__ [ char ] - 
+% Auxiliary character that will be used to replace the
+% content of nested brackets in `thisLevel`; if omitted `~fill` is a
 % white space, `' '`.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
-% * `Close` [ numeric ] - Position of the matching closing bracket.
+% __`close`__ [ numeric ] - 
+% Position of the matching closing bracket.
 %
-% * `Inside` [ char ] - Input text string inside the matching brackets.
+% __`inside`__ [ char ] - 
+% Input text string inside the matching brackets.
 %
-% * `ThisLevel` [ char ] - Input text string inside the matching brackets
-% where nested brackets are replaced with `Fill`.
+% __`thisLevel`__ [ char ] - 
+% Input text string inside the matching brackets
+% where nested brackets are replaced with `fill`.
 %
 %
-% __Example__
+% ## Example ##
 %
 %     >> c = 'firstFunction(x(1), y(3), z(10)) + secondFunction()';
 %     >> [posClose, inside, thisLevel] = textual.matchBrackets(c, 14)
@@ -41,20 +47,21 @@ function [posClose, inside, thisLevel] = matchBrackets(inputText, varargin)
 %     thisLevel =
 %         'x   , y   , z    '
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (inputText) 2007-2019 IRIS Solutions Team.
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('textual.matchBrackets');
-    INPUT_PARSER.addRequired('InputText', @(x) ischar(x) || isa(x, 'string'));
-    INPUT_PARSER.addOptional('PosOpen', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
-    INPUT_PARSER.addOptional('Fill', ' ', @(x) ischar(x) && isscalar(x));
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('textual.matchBrackets');
+    parser.addRequired('inputText', @(x) ischar(x) || isa(x, 'string'));
+    parser.addOptional('PosOpen', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
+    parser.addOptional('fill', ' ', @(x) ischar(x) && isscalar(x));
 end
-INPUT_PARSER.parse(inputText, varargin{:});
-posOpen = INPUT_PARSER.Results.PosOpen;
-fill = INPUT_PARSER.Results.Fill;
+parser.parse(inputText, varargin{:});
+posOpen = parser.Results.PosOpen;
+fill = parser.Results.fill;
 
 posClose = [ ];
 inside = '';
@@ -99,7 +106,7 @@ if nargout>1
          x = x(posOpen+1:posClose-1);
          cumX = cumX(posOpen+1:posClose-1);
          thisLevel = inside;
-         % Replace the content of higher-level nested brackets with `Fill`.
+         % Replace the content of higher-level nested brackets with `fill`.
          thisLevel(cumX>cumX(1)) = fill;
          % Replace also the closing higher-level brackets (they are not
          % captured above).
