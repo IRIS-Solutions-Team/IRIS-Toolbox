@@ -105,9 +105,9 @@ classdef Preparser < model.File
                 % !do keywords are resolved separately within For.writeFinal( ) in the
                 % previous step.
                 parser.Interp.parse(p);
-                parser.substitution.Substitution.parse(p);
-                parser.pseudofunc.Pseudofunc.parse(p);
-                parser.doubledot.DoubleDot.parse(p);
+                parser.Substitution.parse(p);
+                parser.Pseudofunc.parse(p);
+                parser.DoubleDot.parse(p);
                 % Check leading and trailing empty lines
                 fixEmptyLines(p);
                 % Clone preparsed code
