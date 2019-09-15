@@ -138,22 +138,19 @@ classdef Base
 
 
 
-        function [stack, n] = reduceStack(adj)
+        function stack = reduceStack(adj)
             stack = exception.Base.getStack( );
-            n = length(stack);
             [~, irisFolder] = fileparts( iris.get('irisroot') );
             if isempty(irisFolder) || isequal(getappdata(0, 'IRIS_ReduceStack'), false)
                 return
             end
             irisFolder = lower(irisFolder);
-            x = [ stack(:).file ];
-            while n>0 && isempty(strfind(lower(stack(n).file), irisFolder))
-                n = n - 1;
-            end
-            n = n + adj;
+            inxIris = cellfun(@(x) ~isempty(strfind(lower(x), irisFolder)), {stack.file});
+            lastIris = find(inxIris, 1, 'last');
+            lastIris = lastIris+adj;
             lenOfStack = numel(stack);
-            if n>=1 && n<=lenOfStack
-                stack = stack(n:end);
+            if lastIris<=lenOfStack
+                stack = stack(lastIris:end);
             end
         end%
         
@@ -178,7 +175,7 @@ classdef Base
             warning(q);
             w = warning('query', identifier);
             if strcmp(w.state, 'on')
-                [stack, n] = exception.Base.reduceStack(1);
+                stack = exception.Base.reduceStack(1);
                 for i = 1 : numel(stack)
                     if i==1
                         fprintf('> ');
@@ -201,12 +198,18 @@ classdef Base
         
         
         
-        function s = alt2str(altVec, label)
+        function s = alt2str(altVec, label, numberFormat)
             % alt2str  Convert vector of alternative param numbers to string
             try
                 label; %#ok<VUNUS>
             catch
                 label = exception.Base.ALT2STR_DEFAULT_LABEL;
+            end
+
+            try
+                numberFormat;
+            catch
+                numberFormat = exception.Base.ALT2STR_FORMAT;
             end
 
             if islogical(altVec)
@@ -222,10 +225,10 @@ classdef Base
             n = numel(altVec);
             c = cell(1, n);
             for i = 1 : n
-                c{i} = sprintf([' ', exception.Base.ALT2STR_FORMAT ], altVec(i));
+                c{i} = sprintf([' ',  numberFormat], altVec(i));
             end
             
-            % Find continuous ranges; these will be replace with FROM-TO.
+            % Find continuous ranges; these will be replace with FROM-TO
             ixDiff = diff(altVec)==1;
             ixDiff1 = [false, ixDiff];
             ixDiff2 = [ixDiff, false];
