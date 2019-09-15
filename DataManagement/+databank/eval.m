@@ -69,6 +69,7 @@ parse(parser, d, varargin);
 
 %--------------------------------------------------------------------------
 
+expressions = cellstr(varargin);
 expressions = herePreprocess(expressions);
 varargout = cell(size(varargin));
 for i = 1 : numel(varargout)
@@ -91,7 +92,6 @@ end%
 
 
 function expressions = herePreprocess(expressions)
-    expressions = cellstr(varargin);
     expressions = strtrim(expressions);
     expressions = regexprep(expressions, ';$', '');
     expressions = regexprep(expressions, '=[ ]*#', '=');
