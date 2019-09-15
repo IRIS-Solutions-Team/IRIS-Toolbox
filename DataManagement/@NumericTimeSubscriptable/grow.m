@@ -1,9 +1,9 @@
-function this = grow(this, growth, dates, varargin)
-% grow  Grow time series at specified growth rates
+function this = grow(this, operator, growth, dates, varargin)
+% grow  Cumulate time series at specified growth rates or differences
 %{
 % ## Syntax ##
 %
-%     x = grow(x, growth, dates, ...)
+%     x = grow(x, operator, growth, dates, ...)
 %
 %
 % ## Input arguments ##
@@ -11,19 +11,22 @@ function this = grow(this, growth, dates, varargin)
 % **`x`** [ Series ] - 
 % Input time series including at least the initial condition for the level.
 %
+% **`operator`** [ `*` | `+` | `/` | `-` | function_handle ] - 
+% Operator applied to cumulate the time series.
+%
 % **`growth`** [ Series | numeric ] - 
-% Time series or numeric scalar specifying the growth rates at `dates`.
+% Time series or numeric scalar specifying the growth rates or differences.
 %
 % **`dates`** [ DateWrapper ] - 
 % Date range or a vector of dates on which the level series will be
-% extended by its growth rates.
+% cumulated.
 %
 %
 % ## Output Arguments ##
 %
 % **`x`** [ Series ] - 
 % Output time series constructed from the input time series, `x`, extended by
-% its growth rates, `growth`.
+% its growth rates or differences, `growth`.
 %
 %
 % ## Options ##
@@ -32,28 +35,25 @@ function this = grow(this, growth, dates, varargin)
 % Negative number specifying the lag of the base period to which the growth
 % rates apply.
 %
-% **`Percent=true`** [ `true` | `false` ] -
-% Indicate whether the growth time series, `growth`, is specified as
-% percents or decimal numbers.
-%
-% **`RateOfChange='Net'` [ `'Gross'` | `'Net'` ] -
-% Indicate whether the growth time series, `growth`, is specified as net
-% rates of change or gross rates of change.
-%
 %
 % ## Description ##
 %
 % The function `grow(~)` calculates new values at `dates` (which may not
 % constitute a continuous range, and be discrete time periods instead)
-% using the following formula:
+% using one of the the following formulas (depending on the `operator`):
 %
-% $$ x_t = g_t \cdot x_{t-k} $$
+% * $$ x_t = x_{t-k} \cdot g_t $$
+%
+% * $$ x_t = x_{t-k} + g_t $$
+%
+% * $$ x_t = x_{t-k} / g_t $$
+%
+% * $$ x_t = x_{t-k} - g_t $$
 %
 % where $$ k $$ is a time lag specified by the option `BaseShift=`, and the
-% values $$ g_t $$ are determined from the input series `growth` by
-%
-% * dividing them by 100 if `Percent=true`
-% * adding 1 if `RateOfChange='Net'`
+% values $$ g_t $$ are given by the second input series `growth`.
+% Alternatively, the operator applied to $$ x_{t-k} $$ and $$ g_t $$ can be
+% any user-specified function.
 %
 % Any values contained in the input series `x` outside the `dates` are
 % preserved in the output series unchanged.
@@ -61,12 +61,9 @@ function this = grow(this, growth, dates, varargin)
 %
 % ## Example ##
 %
-% Extend a quarterly series `x` using gross rates of growth `g` (expressed
-% so that `1.05` means a 5% rage of change) from 2020Q1 to 2030Q4:
+% Extend a quarterly series `x` using gross rates of growth `g`:
 %
-%     >> x = grow( x, g, qq(2020,1):qq(2030,4), ...
-%                  'Percent=', false, ...
-%                  'RateOfChange=', 'Gross' )
+%     >> x = grow(x, g, qq(2020,1):qq(2030,4));
 %
 %}
 
@@ -77,16 +74,28 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('NumericTimeSubscriptable.grow');
     addRequired(parser, 'x', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addRequired(parser, 'operator', @(x) validate.anyString(x, '*', '+', '/', '-') || isa(x, 'function_handle'));
     addRequired(parser, 'growth', @(x) isa(x, 'NumericTimeSubscriptable') || validate.numericScalar(x));
     addRequired(parser, 'dates', @DateWrapper.validateProperDateInput);
     addParameter(parser, 'BaseShift', -1, @(x) validate.numericScalar(x) && x==round(x) && x<0);
-    addParameter(parser, 'Percent', true, @validate.logicalScalar);
-    addParameter(parser, 'RateOfChange', 'Net', @(x) any(strcmpi(x, {'Net', 'Gross'})));
-end%
-parse(parser, this, growth, dates, varargin{:});
+end
+parse(parser, this, operator, growth, dates, varargin{:});
 opt = parser.Options;
 
 %--------------------------------------------------------------------------
+
+switch operator
+    case '*'
+        func = @times;
+    case '+'
+        func = @plus;
+    case '/'
+        func = @rdivide;
+    case '-'
+        func = @minus;
+    otherwise
+        func = operator;
+end
 
 lag = -opt.BaseShift;
 dates = double(dates);
@@ -111,22 +120,15 @@ else
     growthData = repmat(growth, size(xData));
 end
 
-if opt.Percent
-    growthData = growthData / 100;
-end
-
-if strcmpi(opt.RateOfChange, 'Net')
-    growthData = growthData + 1;
-end
-
 
 % /////////////////////////////////////////////////////////////////////////
 posOfDates = round(dates - startOfAll + 1);
 for t = transpose(posOfDates(:))
-    xData(t, :) = xData(t-lag, :) .* growthData(t, :);
+    xData(t, :) = func(xData(t-lag, :), growthData(t, :));
 end
 % /////////////////////////////////////////////////////////////////////////
 
+hereCheckMissingObs( );
 
 % Reshape output data back
 if numel(sizeOfX)>2
@@ -136,5 +138,15 @@ end
 % Update output series
 this = fill(this, xData, extendedRange(1));
 
+return
+
+    function hereCheckMissingObs( )
+        inxFinite = all(isfinite(xData(posOfDates, :)), 2);
+        if any(~inxFinite)
+            thisWarning = { 'NumericTimeSubscriptable:OutputWithMissingObs'
+                            'Output time series contains Inf or NaN data' };
+            throw(exception.Base(thisWarning, 'warning'));
+        end
+    end%
 end%
 
