@@ -57,7 +57,11 @@ classdef validate
                 flag = false;
                 return
             end
-            flag = any(strcmpi(input, varargin));
+            if numel(varargin)==1 && isa(varargin{1}, 'string')
+                flag = any(strcmpi(input, varargin{1}));
+            else
+                flag = any(strcmpi(input, varargin));
+            end
         end%
 
 
