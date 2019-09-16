@@ -96,7 +96,7 @@ function c = interp(c, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-if ~contains(c, '$(')
+if ~ischar(c) && ~iscell(c) && ~isa(c, 'string')
     return
 end
 
@@ -127,7 +127,12 @@ for i = find(inxDoubleString)
 end
 
 replace = @hereInterpolate;
-c = regexprep(c, '\$\([A-Za-z]\w*\)', '${replace($0)}');
+if iscell(c)
+    inx = cellfun('isclass', c, 'char');
+    c(inx) = regexprep(c(inx), '\$\([A-Za-z]\w*\)', '${replace($0)}');
+else
+    c = regexprep(c, '\$\([A-Za-z]\w*\)', '${replace($0)}');
+end
 
 return
     

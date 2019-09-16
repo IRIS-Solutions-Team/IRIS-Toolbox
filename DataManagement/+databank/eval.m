@@ -4,6 +4,7 @@ function varargout = eval(d, varargin)
 % ## Syntax ##
 %
 %     [output, output, ...] = databank.eval(inputDatabank, expression, expression, ...)
+%     outputs = databank.eval(inputDatabank, expressions)
 %
 %
 % ## Input Arguments ##
@@ -16,11 +17,19 @@ function varargout = eval(d, varargin)
 % Text string with an expression that will be evaluated in the workspace
 % consisting of the `inputDatabank` fields.
 %
+% __`expressions`__ [ cellstr | string ] -
+% Cell array of char vectors or string array (more than one element) with
+% expressions that will be evaluated in the workspace consisting of the
+% `inputDatabank` fields.
+%
 %
 % ## Output Arguments ##
 %
 % __output__ [ * ] -
 % Result of the `expression` evaluated in the `inputDatabank` workspace.
+%
+% __outputs__ [ cell ] -
+% Result of the `expressions` evaluated in the `inputDatabank` workspace.
 %
 %
 % ## Description ##
@@ -63,17 +72,37 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('databank.eval');
     parser.addRequired('Database', @validate.databank);
-    parser.addRequired('Expression', @(x) all(cellfun(@(y) ischar(y) || isa(y, 'string'), x)));
+    parser.addRequired('Expressions', @validateExpressions);
 end
 parse(parser, d, varargin);
 
 %--------------------------------------------------------------------------
 
-expressions = cellstr(varargin);
-expressions = herePreprocess(expressions);
-varargout = cell(size(varargin));
-for i = 1 : numel(varargout)
-    varargout{i} = hereProtectedEval(d, expressions{i});
+
+needsCollapseOutput = numel(varargin)==1 ...
+                      && ( iscell(varargin{1}) || (isa(varargin{1}, 'string') && numel(varargin{1})>1) );
+
+if needsCollapseOutput
+    if iscell(varargin{1})
+        expressions = varargin{1};
+    else
+        expressions = cellstr(varargin{1});
+    end
+    sizeExpressions = size(expressions);
+else
+    expressions = cellstr(varargin);
+end
+
+inxToEval = cellfun('isclass', expressions, 'char');
+expressions(inxToEval) = herePreprocess(d, expressions(inxToEval));
+for i = find(transpose(inxToEval(:)))
+    expressions{i} = hereProtectedEval(d, expressions{i});
+end
+
+if needsCollapseOutput
+    varargout{1} = expressions;
+else
+    varargout = expressions;
 end
 
 end%
@@ -85,29 +114,45 @@ end%
 
 
 function varargout = hereProtectedEval(d, varargin)
-    varargout{1} = eval(varargin{1});
+    varargout{1} = eval(varargin{1}, 'NaN');
 end%
 
 
 
 
-function expressions = herePreprocess(expressions)
+function expressions = herePreprocess(d, expressions)
     expressions = strtrim(expressions);
     expressions = regexprep(expressions, ';$', '');
     expressions = regexprep(expressions, '=[ ]*#', '=');
     expressions = regexprep(expressions, '=(.*)', '-($1)', 'once');
     
-    %
-    % Replace any composite name with dot-separated parts not preceded by a
-    % dot and not immmediately followed by a dot or an opening parenthesis
-    % with a databank reference
-    %
-    % Anything immediately followed by an opening parenthesis is considered
-    % a call to a function; to use a array reference, include a space
-    % between the name of the array (a databank field) and the opening
-    % parenthesis
-    %
-    expressions = regexprep(expressions, '(?<!\.)((\<[A-Za-z]\w*\>)(\.\<[A-Za-z]\w*\>)*)(?![\.\(])', '?.$0');
+    replaceFunc = @replace;
+    expressions = regexprep(expressions, '(?<![\.''"])(\<[A-Za-z]\w*\>)(\.\<[A-Za-z]\w*\>)*', '${replaceFunc($0)}');
+
     expressions = strrep(expressions, '?.', 'd.');
+
+    return
+        
+        function c = replace(c)
+            if isfield(d, c)
+                c = ['?.', char(c)];
+            end
+        end%
+end%
+
+
+
+
+
+function flag = validateExpressions(input)
+    if all(cellfun(@validate.stringScalar, input))
+        flag = true;
+        return
+    end
+    if numel(input)==1 && (iscell(input{1}) || isa(input{1}, 'string'))
+        flag = true;
+        return
+    end
+    flag = false;
 end%
 
