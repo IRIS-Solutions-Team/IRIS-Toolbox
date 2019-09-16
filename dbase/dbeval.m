@@ -1,6 +1,6 @@
 function varargout = dbeval(d, varargin)
 % dbeval  Evaluate expression in specified database
-%
+%{
 % __Syntax__
 %
 %     [Value1, Value2, ...] = dbeval(D, Exn1, Exn2, ...)
@@ -56,6 +56,7 @@ function varargout = dbeval(d, varargin)
 %     ans =
 %           7
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -70,8 +71,8 @@ end
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('dbase/dbeval');
-    parser.addRequired('InputDatabank', @(x) isstruct(x) || isa(x, 'model'));
-    parser.addOptional('Steady', [ ], @(x) isempty(x) || isstruct(x) || isa(x, 'model'));
+    parser.addRequired('InputDatabank', @(x) validate.databank(x) || isa(x, 'model'));
+    parser.addOptional('Steady', [ ], @(x) isempty(x) || validate.databank(x) || isa(x, 'model'));
     parser.addOptional('Expression', [ ], @(x) isempty(x) || iscellstr(x{1}) || iscellstr(x) || isa(x, 'string'));
 end
 parser.parse(d, ss, varargin);
