@@ -27,8 +27,9 @@
 %   isempty                   - 
 %
 %
-% ### Manipulating Dictionary entries ###
+% ### Manipulating Dictionary Fields ###
 % ------------------------------------------------------------------------------------------------------------
+%   add                       - 
 %   subsref                   - 
 %   subsasgn                  - 
 %   store                     - 
@@ -364,22 +365,83 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
 
-        function this = remove(this, keys)
+        function this = remove(this, keys, notFound)
 % remove  Remove entries from Dictionary
+            if nargin<3
+                notFound = 'error';
+            end
             if isa(keys, 'Except')
                 keys.CaseSensitive = this.CaseSensitive;
                 keys = resolve(keys, this.Keys);
             end
+            keys = string(keys);
             pos = lookupKeys(this, keys);
             inxFound = ~isnan(pos);
-            if any(~inxFound)
+            if any(~inxFound) && validate.anyString(notFound, 'error', 'warning')
                 keysNotFound = cellstr(keys(~inxFound));
-                throw( exception.Base(this.EXCEPTION_KEY_NOT_FOUND, 'error'), ...
+                throw( exception.Base(this.EXCEPTION_KEY_NOT_FOUND, notFound), ...
                        keysNotFound{:} );
+            end
+            if ~any(inxFound)
+                return
             end
             pos = pos(inxFound);
             this.Keys(pos) = [ ];
             this.Values(pos) = [ ];
+        end%
+
+
+
+
+        function this = plus(this, that)
+% plus  Combine two databanks
+            if isstruct(that)
+                keysToAdd = string(fieldnames(that));
+                keysToAdd = transpose(keysToAdd(:));
+                valuesToAdd = struct2cell(that);
+                valuesToAdd = transpose(valuesToAdd(:));
+            else
+                keysToAdd = that.Keys;
+                valuesToAdd = that.Values;
+            end
+
+            if isstruct(this)
+                keysToRemove = intersect(fieldnames(this), cellstr(keysToAdd));
+                this = rmfield(this, keysToRemove);
+                for i = 1 : numel(keysToAdd)
+                    this = setfield(this, keysToAdd(i), valuesToAdd{i});
+                end
+            else
+                this = remove(this, keysToAdd, 'Silent');
+                count = numel(keysToAdd);
+                for i = 1 : count
+                    this = store(this, keysToAdd(i), valuesToAdd{i});
+                end
+            end
+        end%
+
+
+
+
+        function this = mtimes(this, list)
+% mtimes  Extract part of databank
+            keysToRemove = setdiff(this.Keys, string(list));
+            this = remove(this, keysToRemove, 'Silent');
+        end%
+
+
+
+
+        function this = minus(this, toRemove)
+% minus  Remove entries from databank
+            if isa(toRemove, 'Dictionary')
+                toRemove = toRemove.Keys;
+            elseif isstruct(toRemove)
+                toRemove = toRemove(fieldnames(toRemove));
+            else
+                toRemove = string(toRemove);
+            end
+            this = remove(this, string(toRemove), 'Silent');
         end%
     end        
 
