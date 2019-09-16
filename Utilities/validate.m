@@ -42,6 +42,11 @@ classdef validate
         end%
 
 
+        function flag = stringScalar(input)
+            flag = ischar(input) || (isa(input, 'string') && isscalar(input));
+        end%
+
+
         function flag = string(input)
             flag = ischar(input) || isa(input, 'string');
         end%
