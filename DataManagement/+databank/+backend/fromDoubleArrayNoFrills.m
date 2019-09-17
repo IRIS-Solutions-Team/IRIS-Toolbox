@@ -1,10 +1,11 @@
 function outputDatabank = fromDoubleArrayNoFrills( array, ...
-                                                   listOfNames, ...
-                                                   start, ...
+                                                   names, ...
+                                                   startDate, ...
                                                    comments, ...
                                                    inxToInclude, ...
                                                    timeSeriesConstructor, ...
-                                                   outputType )
+                                                   outputType, ...
+                                                   addToDatabank )
 % fromDoubleArrayNoFrills  Create databank from double array
 %
 % Backend IRIS function
@@ -12,6 +13,10 @@ function outputDatabank = fromDoubleArrayNoFrills( array, ...
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
+
+if nargin<8
+    addToDatabank = false;
+end
 
 if isequal(timeSeriesConstructor, @default)
     timeSeriesConstructor = iris.get('DefaultTimeSeriesConstructor');
@@ -27,8 +32,8 @@ end
 numPages = size(array, 3);
 numRows = size(array, 1);
 
-if isa(listOfNames, 'string')
-    listOfNames = cellstr(listOfNames);
+if isa(names, 'string')
+    names = cellstr(names);
 end
 
 if isempty(comments)
@@ -37,13 +42,13 @@ elseif isa(comments, 'string')
     comments = cellstr(comments);
 end
 
-if  numRows~=numel(listOfNames) || numRows~=numel(comments)
-    THIS_ERROR = { 'Databank:InvalidSizeOfInputArguments'
-                   'Invalid size of input arguments' };
-    throw( exception.Base(THIS_ERROR, 'error') );
+hereCheckDimensions( );
+
+if ~isa(startDate, 'DateWrapper')
+    startDate = DateWrapper(startDate);
 end
 
-outputDatabank = databank.backend.ensureTypeConsistency([ ], outputType);
+outputDatabank = databank.backend.ensureTypeConsistency(addToDatabank, outputType);
 
 if isequal(inxToInclude, @all)
     inxToInclude = true(1, numRows);
@@ -52,13 +57,22 @@ end
 for i = find(inxToInclude)
     ithData = array(i, :, :);
     ithData = permute(ithData, [2, 3, 1]);
-    ithName = listOfNames{i};
+    ithName = names{i};
     ithComment = comments{i};
-    ithSeries = fill(TIME_SERIES_TEMPLATE, ithData, start, ithComment);
+    ithSeries = fill(TIME_SERIES_TEMPLATE, ithData, startDate, ithComment);
     hereStoreNewField( );
 end
 
 return
+
+    function hereCheckDimensions( )
+        if numRows==numel(names) && numRows==numel(comments)
+            return
+        end
+        thisError = { 'Databank:InvalidSizeOfInputArguments'
+                      'Invalid dimensions of some of the input arguments {array, names, comments}' };
+        throw(exception.Base(thisError, 'error'));
+    end%
 
 
     function hereStoreNewField( )
