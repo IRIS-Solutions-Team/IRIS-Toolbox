@@ -11,7 +11,7 @@ function outputData = appendData(this, inputData, outputData, range, varargin)
 if numel(varargin)==2
     presample = varargin{1};
     postsample = varargin{2};
-elseif numel(varargin)==1 && isstruct(varargin{1})
+elseif numel(varargin)==1 && validate.databank(varargin{1})
     opt = varargin{1};
     if isfield(opt, 'DbOverlay') && ~isequal(opt.DbOverlay, false)
         presample = opt.DbOverlay;
@@ -32,7 +32,7 @@ preDatabank = [ ];
 if isequal(presample, true)
     pre = true;
     preDatabank = inputData;
-elseif isstruct(presample)
+elseif validate.databank(presample)
     pre = true;
     preDatabank = presample;
 else
@@ -43,7 +43,7 @@ postDatabank = [ ];
 if isequal(postsample, true)
     post = true;
     postDatabank = inputData;
-elseif isstruct(postsample)
+elseif validate.databank(postsample)
     post = true;
     postDatabank = postsample;
 else
@@ -62,20 +62,25 @@ previousXStart = [ ];
 
 for i = 1 : this.NumOfAppendables
     ithName = this.NamesOfAppendables{i};
+
+    if ~isfield(outputData, ithName)
+        continue
+    end
+
     preSeries = [ ];
     postSeries = [ ];
-    if isstruct(preDatabank)
+    if validate.databank(preDatabank)
         if isfield(preDatabank, ithName) ...
            && isa(preDatabank.(ithName), 'TimeSubscriptable') ...
            && getFrequencyAsNumeric(preDatabank.(ithName))==freq
-            preSeries = preDatabank.(ithName);
+            preSeries = gefield(preDatabank, ithName);
         end
     end
-    if isstruct(postDatabank)
+    if validate.databank(postDatabank)
         if isfield(postDatabank, ithName) ...
             && isa(postDatabank.(ithName), 'TimeSubscriptable') ...
             && getFrequencyAsNumeric(postDatabank.(ithName))==freq
-            postSeries = postDatabank.(ithName);
+            postSeries = gefield(postDatabank, ithName);
         end
     end
 
@@ -83,7 +88,7 @@ for i = 1 : this.NumOfAppendables
         continue
     end
 
-    x = outputData.(ithName);
+    x = getfield(outputData, ithName);
     serialXStart = round(x.Start);
     serialXStart0 = serialXStart;
     if isnan(serialXStart)
@@ -113,7 +118,7 @@ for i = 1 : this.NumOfAppendables
     end
     x.Data = xData;
     x = trim(x);
-    outputData.(ithName) = x;
+    outputData = setfield(outputData, ithName, x);
 end
 
 return

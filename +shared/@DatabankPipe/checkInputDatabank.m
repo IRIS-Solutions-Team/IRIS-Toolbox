@@ -34,10 +34,11 @@ checkIncluded = true(size(allNames));
 checkFrequency = true(size(allNames));
 for i = 1 : numel(allNames)
     ithName = allNames{i};
-    if ~isfield(inputDatabank, ithName)
-        continue
+    try
+        ithField = getfield(inputDatabank, ithName);
+    catch
+        ithField = NaN;
     end
-    ithField = inputDatabank.(ithName);
     if ~isa(ithField, 'TimeSubscriptable')
         checkIncluded(i) = ~inxOfRequiredNames(i);
         continue
@@ -51,7 +52,7 @@ end
 
 if ~all(checkIncluded)
     thisError = { 'model:Abstract:checkInputDatabank', ...
-                   'This time series is missing from input databank: %s ' };
+                   'This time series is required but missing from input databank: %s ' };
     throw( exception.Base(thisError, 'error'), ...
            allNames{~checkIncluded} );
 end
