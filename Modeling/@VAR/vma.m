@@ -1,3 +1,40 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:9591ed87d3f4b4d1fbed1d9abdb937353351432107ece486b6aca95b06ffdad1
-size 807
+function Phi = vma(This,N)
+% vma  Matrices describing the VMA representation of a VAR process.
+%
+% Syntax
+% =======
+%
+%     Phi = vma(V,N)
+%
+% Input arguments
+% ================
+%
+% * `V` [ VAR ] - VAR object for which the VMA matrices will be computed.
+%
+% * `N` [ numeric ] - Order up to which the VMA matrices will be computed.
+%
+% Output arguments
+% =================
+%
+% * `Phi` [ numeric ] - VMA matrices.
+%
+% Description
+% ============
+%
+% Example
+% ========
+%
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
+
+pp = inputParser( );
+pp.addRequired('N',@isnumericscalar);
+pp.parse(N);
+
+%--------------------------------------------------------------------------
+
+[A,B] = mysystem(This);
+Phi = timedom.var2vma(A,B,N);
+
+end

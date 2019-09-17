@@ -1,3 +1,23 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ef51111b07787e7e3c06ff88d39df02651656dfc5c21e25a6db6a93abdaecf6f
-size 565
+function [B, flag] = mybmatrix(this, variantsRequested)
+% mybmatrix  Matrix of instantaneous shock multipliers
+%
+% Backend IRIS function
+% No help provided
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+if nargin>=2 && isnumeric(variantsRequested)
+    numVariantsRequested = numel(variantsRequested);
+else
+    numVariantsRequested = size(this.A, 3);
+end
+
+%--------------------------------------------------------------------------
+
+flag = false;
+ny = size(this.A, 1);
+B = repmat(eye(ny), 1, 1, numVariantsRequested);
+
+end%
+

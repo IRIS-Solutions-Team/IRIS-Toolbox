@@ -1,3 +1,21 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b7e119deb45a390aec77305e68a0d882ed0dc64c16f42d36e184e85faa71db9b
-size 413
+function [B,Flag] = mybmatrix(This,Alt)
+% mybmatrix  [Not a public function] Matrix of instantaneous effects.
+%
+% Backend IRIS function.
+% No help provided.
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
+
+try
+    Alt; %#ok<VUNUS>
+catch
+    Alt = ':';
+end
+
+%--------------------------------------------------------------------------
+
+Flag = true;
+B = This.B(:,:,Alt);
+
+end

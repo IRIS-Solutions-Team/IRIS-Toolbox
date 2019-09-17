@@ -1,3 +1,22 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ab36649379c6be564d205091a35d4fa902438795ed7ad635d6e72880f6c938e6
-size 552
+function this = populateFromVAR(this, objectVAR)
+% populateFromVAR  Populate SVAR properties from VAR superobject
+%
+% Backend IRIS function
+% No help provided
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
+
+metaVAR = metaclass(objectVAR);
+for i = 1 : numel(metaVAR.PropertyList)
+    p = metaVAR.PropertyList(i);
+    if p.Dependent || p.Constant || p.Abstract
+        continue
+    end
+    this.(p.Name) = objectVAR.(p.Name);
+end
+
+end%
+

@@ -1,3 +1,24 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:e4fb766f825b3eb8f0c95532d2ce3a075333008fe81d1539070c4d738cdb8333
-size 510
+function [A,B,K,J,Cov] = mysystem(This,Alt)
+% mysystem  [Not a public function] VAR system matrices.
+%
+% Backend IRIS function.
+% No help provided.
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
+
+try
+    Alt; %#ok<VUNUS>
+catch
+    Alt = ':';
+end
+
+%--------------------------------------------------------------------------
+
+A = This.A(:,:,Alt);
+B = mybmatrix(This,Alt);
+K = This.K(:,:,Alt);
+J = This.J(:,:,Alt);
+Cov = mycovmatrix(This,Alt);
+
+end

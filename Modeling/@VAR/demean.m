@@ -1,3 +1,35 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:9a5f9323d6395906b3f960c2bf635dfe2dfccd769ca4e4fa0c58e304bccd5c32
-size 700
+function This = demean(This)
+% demean  Remove constant and the effect of exogenous inputs from VAR object.
+%
+% Syntax
+% =======
+%
+%     V = demean(V)
+%
+% Input arguments
+% ================
+%
+% * `V` [ VAR ] - VAR object.
+%
+% Output arguments
+% =================
+%
+% * `V` [ VAR ] - VAR object with the constant vector, `K`, and the
+% asymptotic assumptions for exogenous inputs, `X0`, reset to zero.
+%
+% Description
+% ============
+%
+% Example
+% ========
+%
+
+% -IRIS Macroeconomic Modeling Toolbox.
+% -Copyright (c) 2007-2019 IRIS Solutions Team.
+
+%--------------------------------------------------------------------------
+
+This.K(:,:,:) = 0;
+This.X0(:,:,:) = 0;
+
+end

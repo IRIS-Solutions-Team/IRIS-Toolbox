@@ -1,3 +1,47 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6def5ee602c2590fb68afdf85af2dc6640ad889880c1b961e2357bc9769d5601
-size 1024
+function this = alter(this, n)
+% alter  Expand or reduce the number of alternative parameterisations within a VAR object
+%
+% Syntax
+% =======
+%
+%     V = alter(V, n)
+%
+% Input arguments
+% ================
+%
+% * `V` [ VAR ] - VAR object in which the number of paremeterisations will
+% be changed.
+%
+% * `n` [ numeric ] - New number of parameterisations.
+%
+% Output arguments
+% =================
+%
+% * `V` [ VAR ] - VAR object with the new number of parameterisations.
+%
+% Description
+% ============
+%
+% Example
+% ========
+%
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
+
+nv = length(this);
+if n==nv
+    % Do nothing
+    return
+elseif n>nv
+    % Expand nv by copying the last parameterisation
+    this = subsalt(this, nv+1:n, this, nv*ones(1, n-nv));
+else
+    % Reduce nv by deleting the last parameterisations
+    this = subsalt(this, n+1:nv, [ ]);
+end
+
+end%
+
