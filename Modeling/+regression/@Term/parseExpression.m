@@ -38,7 +38,7 @@ catch
 end
 
 
-this.Position = positions;
+this.Position = unique(positions, 'stable');
 this.MinShift = min(shifts);
 this.MaxShift = max(shifts);
 
