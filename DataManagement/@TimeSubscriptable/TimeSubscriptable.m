@@ -172,6 +172,13 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         function this = set.Comment(this, newValue)
             thisValue = this.Comment;
             newValue = strrep(newValue, '"', '');
+            if isa(newValue, 'string')
+                if numel(newValue)==1
+                    newValue = char(newValue);
+                else
+                    newValue = cellstr(newValue);
+                end
+            end
             if ischar(newValue)
                 thisValue(:) = {newValue};
             else
