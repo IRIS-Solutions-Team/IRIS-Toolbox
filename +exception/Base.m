@@ -72,10 +72,11 @@ classdef Base
                     if isempty(pos)
                         break
                     end
-                    message = strrep(message, c, varargin{1});
+                    message = strrep(message, c, char(varargin{1}));
                     varargin(1) = [ ];
                 end
                 message = sprintf([message, '\n'], varargin{:});
+                message = char(message);
                 message(end) = '';
             end
             if ~isempty(header)
