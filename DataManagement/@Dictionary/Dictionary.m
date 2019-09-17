@@ -318,14 +318,27 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
 
-        function [this, x] = updateSeries(this, key, range, data)
+        function [this, x] = updateSeries(this, key, dates, data)
 % updateSeries  Update time series in Dictionary
-            x = retrieve(this, key);
+            if isa(this, 'Dictionary')
+                x = retrieve(this, key);
+            elseif isstruct(this)
+                x = getfield(x, key);
+            end
             if ~isa(x, 'TimeSubscriptable')
                 throw( exception.Base(this.EXCEPTION_UPDATE_SERIES, 'error') );
             end
-            x = setData(x, range, data);
-            store(this, key, x);
+            if isa(data, 'Dictionary')
+                data = retrieve(data, key);
+            elseif isstruct(data)
+                data = getfield(data, key);
+            end
+            x = setData(x, dates, data);
+            if isa(this, 'Dictionary')
+                store(this, key, x);
+            elseif isstruct(this)
+                this = setfield(this, key, x);
+            end
         end%
 
 
