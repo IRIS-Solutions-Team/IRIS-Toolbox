@@ -76,7 +76,7 @@ if isempty(parser)
     %
     % Options
     %
-    addParameter(parser, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databankType(x));
+    addParameter(parser, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
     addParameter(parser, 'AggregationMethod', 'avg', @(x) any(strcmpi(x, {'avg', 'sum', 'eop'})));
     addParameter(parser, 'Frequency', '', @hereValidateFrequency);
     addParameter(parser, 'OutputType', 'struct', @validate.databankType);

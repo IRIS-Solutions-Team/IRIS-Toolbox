@@ -9,7 +9,7 @@ function runningDatabank = ensureTypeConsistency(runningDatabank, outputType)
 
 %--------------------------------------------------------------------------
 
-if isequal(runningDatabank, [ ])
+if isequal(runningDatabank, [ ]) || isequal(runningDatabank, false)
     if strcmpi(outputType, 'containers.Map')
         runningDatabank = containers.Map('KeyType', 'char', 'ValueType', 'any');
     elseif strcmpi(outputType, 'Dictionary')
