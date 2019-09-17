@@ -26,7 +26,8 @@ this = LinearRegression( );
 hereGetLhsName( );
 hereGetRhsNames( );
 
-hereParseDependent( );
+this = defineDependent(this, inputString(1));
+
 hereParseExplanatory( );
 
 return
@@ -35,27 +36,9 @@ return
     function hereGetLhsName( )
         lhsName = regexp(inputString(1), "\<[A-Za-z]\w*\>(?!\()", "match");
         if numel(lhsName)~=1
-            hereThrowInvalidLhs( );
+            hereThrowInvalidLhsName( );
         end
         this.LhsName = lhsName;
-    end%
-
-
-    function hereParseDependent( )
-        lhsName = this.LhsName;
-        if inputString(1)==lhsName
-            this.Dependent = regression.Term(lhsName);
-            return
-        end
-        transform = regexp(inputString(1), "^(\<[A-Za-z]\w*\>)\(" + lhsName + "\)$", "tokens");
-        if ~iscell(transform) || numel(transform)~=1 || numel(transform{1})~=1
-            hereThrowInvalidLhs( );
-        end
-        try
-            this.Dependent = regression.Term(this, lhsName, "Transform=", transform{1});
-        catch
-            hereThrowInvalidLhs( );
-        end
     end%
 
 
@@ -93,9 +76,9 @@ return
     end%
 
 
-    function hereThrowInvalidLhs( )
+    function hereThrowInvalidLhsName( )
         thisError = { 'LinearRegression:InvalidInputString'
-                      'Invalid specification of the dependent term in a LinearRegression: %s'};
+                      'Invalid LHS name in a LinearRegression: %s'};
         throw(exception.Base(thisError, 'error'), inputString(1));
     end%
 

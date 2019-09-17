@@ -110,6 +110,7 @@ for i = find(inxSingleString)
     tokens = regexp(inputs{i}, '(\<[A-Za-z]\w*\>):(.*)', 'tokens', 'once');
     if numel(tokens)==2 && ~isempty(tokens{1}) && ~isempty(tokens{2})
         tokens = strtrim(tokens);
+        tokens = cellstr(tokens); % Legacy Matlab
         inputs{i} = struct(tokens{1:2});
     end
 end
@@ -123,6 +124,7 @@ for i = find(inxDoubleString)
     tokens = cellstr(inputs{i});
     tokens{1} = strrep(tokens{1}, ":", "");
     tokens = strtrim(tokens);
+    tokens = cellstr(tokens); % Legacy Matlab
     inputs{i} = struct(tokens{1:2});
 end
 

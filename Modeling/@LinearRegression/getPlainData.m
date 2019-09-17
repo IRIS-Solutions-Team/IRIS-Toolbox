@@ -17,8 +17,8 @@ extendedStartDate = startDate + maxLag;
 extendedEndDate = endDate + maxLead;
 extendedRange = (round(100*extendedStartDate) : 100 : round(100*extendedEndDate))/100; 
 
-requiredNames = this.ExplanatoryNames;
-optionalNames = this.ErrorsName;
+requiredNames = this.ExplanatoryNamesInDatabank;
+optionalNames = this.ErrorsNameInDatabank;
 allNames = [requiredNames, optionalNames];
 databankInfo = checkInputDatabank(this, inputDatabank, extendedRange, requiredNames, optionalNames);
 YXE = requestData(this, databankInfo, inputDatabank, extendedRange, allNames);

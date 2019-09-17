@@ -34,9 +34,9 @@ this.Statistics.CovParameters = nan(numParameters, numParameters, numPages);
 fitted = nan(size(y));
 errors = nan(size(y));
 
-% Fixed terms on the RHS, add NaN for constant
+% Fixed terms on the RHS, add NaN for intercept
 fixed = [this.Explanatory.Fixed];
-if this.Constant
+if this.Intercept
     fixed = [fixed, NaN];
 end
 
@@ -86,8 +86,8 @@ return
         errors = permute(errors(:, inxBaseRangeColumns, :), [2, 3, 1]);
         fitted = permute(fitted(:, inxBaseRangeColumns, :), [2, 3, 1]);
 
-        errorsName = this.ErrorsName;
-        fittedName = this.FittedName;
+        errorsName = this.ErrorsNameInDatabank;
+        fittedName = this.FittedNameInDatabank;
 
         startDate = DateWrapper(range(1));
         runningDatabank.(errorsName) = Series(startDate, errors);

@@ -6,6 +6,7 @@ classdef DatabankPipe
 
 
     properties
+        NamesInDatabank
         NumOfAppendables
     end
 
@@ -13,7 +14,9 @@ classdef DatabankPipe
     methods (Hidden)
         varargout = appendData(varargin)
         varargout = checkInputDatabank(varargin)
+        varargout = defineNamesInDatabank(varargin)
         varargout = requestData(varargin)
+        varargout = substituteNamesInDatabank(varargin)
     end
 
 

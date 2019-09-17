@@ -71,10 +71,10 @@ return
 
     function herePopulateDatabank( )
         startDate = DateWrapper(range(1));
-        lhsName = this.LhsName;
+        lhsNameInDatabank = this.LhsNameInDatabank;
         plainLhs = plainData(1, inxBaseRangeColumns, :);
         plainLhs = permute(plainLhs, [2, 3, 1]);
-        runningDatabank.(lhsName) = Series(startDate, plainLhs);
+        runningDatabank.(lhsNameInDatabank) = Series(startDate, plainLhs);
     end%
 end%
 

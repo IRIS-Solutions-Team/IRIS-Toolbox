@@ -1,11 +1,26 @@
 function [plain, y, X, e, inxBaseRangeColumns] = createModelData(this, inputDatabank, range)
+% createModelData  Create data matrices for LinearRegression
+%
+% Backend IRIS function
+% No help provided
 
-[plain, inxBaseRangeColumns, extendedRange] = getPlainData(this, inputDatabank, range);
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
 
 numExplanatory = this.NumOfExplanatory;
+
+%
+% Plain matrix with data for each name in a row
+%
+[plain, inxBaseRangeColumns, extendedRange] = getPlainData(this, inputDatabank, range);
 numExtendedPeriods = size(plain, 2);
 numPages = size(plain, 3);
 
+%
+% Preallocate model matrices
+%
 y = nan(1, numExtendedPeriods, numPages);
 X = nan(numExplanatory, numExtendedPeriods, numPages);
 
@@ -22,11 +37,13 @@ for i = 1 : numExplanatory
     X(i, inxBaseRangeColumns, :) = ithX;
 end
 
-if this.Constant
-    const = ones(1, numExtendedPeriods, numPages);
-    X = [X; const];
+if this.Intercept
+    X = [ X; ones(1, numExtendedPeriods, numPages) ];
 end
 
+%
+% Model data for residuals
+%
 e = plain(end, :, :);
 
 end%
