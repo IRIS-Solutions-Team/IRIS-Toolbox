@@ -1,4 +1,12 @@
 function this = fromString(inputString)
+% fromString  Create LinearRegression model from string
+%{
+%}
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
 
 persistent parser
 if isempty(parser)
@@ -49,15 +57,19 @@ return
         level(open) = 1;
         level(close) = -1;
         level = cumsum(level);
+        % Replace top-level plus signs with &
         pos = strfind(inputString(2), "+");
         pos(level(pos)>0) = [ ];
         for i = pos
             inputString(2) = replaceBetween(inputString(2), i, i, "&");
         end
         termStrings = split(inputString(2), "&");
+        termStrings = strtrim(termStrings);
         numTerms = numel(termStrings);
         for i = 1 : numTerms
-            if startsWith(termStrings(i), "?*")
+            if isequal(termStrings(i), "?")
+                this.Intercept = true;
+            elseif startsWith(termStrings(i), "?*")
                 termStrings(i) = extractAfter(termStrings(i), 2);
                 this = addExplanatory(this, termStrings(i));
             else
@@ -76,11 +88,15 @@ return
     end%
 
 
+
+
     function hereThrowInvalidLhsName( )
         thisError = { 'LinearRegression:InvalidInputString'
-                      'Invalid LHS name in a LinearRegression: %s'};
+                      'Invalid LHS name in LinearRegression: %s'};
         throw(exception.Base(thisError, 'error'), inputString(1));
     end%
+
+
 
 
     function hereThrowInvalidInputString( )

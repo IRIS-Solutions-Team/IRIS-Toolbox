@@ -23,6 +23,7 @@ classdef LinearRegression < shared.GetterSetter ...
         Explanatory (1, :) regression.Term = regression.Term.empty(1, 0)
         Parameters (1, :, :) double = double.empty(1, 0, 1)
         Statistics (1, 1) struct = struct( 'VarErrors', NaN, ...
+                                           'StdParameters', double.empty(1, 0, 1), ...
                                            'CovParameters', double.empty(0, 0, 1) );
     end
 
@@ -67,10 +68,6 @@ classdef LinearRegression < shared.GetterSetter ...
 
 
     methods
-
-
-
-
         function this = addExplanatory(this, varargin)
             term = regression.Term(this, varargin{:});
             this.Explanatory(1, end+1) = term;
@@ -87,8 +84,8 @@ classdef LinearRegression < shared.GetterSetter ...
                 return
             end
             thisError = { 'LinearRegression:CannotFindExplanatory'
-                          'Cannot find the LinearRegression explanatory variable to be removed '};
-            throw( exception.Base(thisError, 'error') );
+                          'Cannot find LinearRegression(%1) explanatory variable to be removed '};
+            throw(exception.Base(thisError, 'error'), this.LhsNameInDatabank);
         end%
 
 
@@ -121,6 +118,7 @@ classdef LinearRegression < shared.GetterSetter ...
         varargout = createModelData(varargin)
         varargout = estimate(varargin)
         varargout = simulate(varargin)
+        varargout = residuals(varargin)
     end
 
 
@@ -137,6 +135,7 @@ classdef LinearRegression < shared.GetterSetter ...
 
 
     methods (Access=protected, Hidden)
+        varargout = createOutputDatabank(varargin)
         varargout = getPlainData(varargin)
 
 
@@ -154,15 +153,17 @@ classdef LinearRegression < shared.GetterSetter ...
             if ~isempty(nameConflicts)
                 nameConflicts = cellstr(nameConflicts);
                 thisError = { 'LinearRegression:MultipleNames'
-                              'This name is declared more than once in the LinearRegression object: %s '};
+                              'This name is declared more than once in LinearRegression(%1): %s '};
                 throw( exception.Base(thisError, 'error'), ...
+                       this.LhsNameInDatabank, ...
                        nameConflicts{:} );
             end
             inxValid = arrayfun(@isvarname, checkList);
             if any(~inxValid)
                 thisError = { 'LinearRegression:InvalidName'
-                              'This LinearRegression name is not a valid Matlab name: %s'};
+                              'This LinearRegression(%1) name is not a valid Matlab name: %s'};
                 throw( exception.Base(thisError, 'error'), ...
+                       this.LhsNameInDatabank, ...
                        checkList{~inxValid} );
             end
         end%
@@ -175,8 +176,8 @@ classdef LinearRegression < shared.GetterSetter ...
         function this = set.Dependent(this, term)
             if ~term.ContainsLhsName || ~isempty(term.Expression) || term.Shift~=0
                 thisError = { 'LinearRegression:InvalidDependent'
-                              'Invalid specification of dependent variable in LinearRegression' };
-                throw( exception.Base(thisError, 'error') );
+                              'Invalid specification of dependent variable in LinearRegression(%s)' };
+                throw(exception.Base(thisError, 'error'), this.LhsNameInDatabank);
             end
             this.Dependent = term;
         end%
@@ -256,8 +257,8 @@ classdef LinearRegression < shared.GetterSetter ...
         function this = set.RhsNames(this, value)
             if any(strlength(value)==0)
                 thisError = { 'LinearRegression:InvalidLhsName'
-                              'RHS names in a LinearRegression must be nonempty strings' };
-                throw( exception.Base(thisError, 'error') );
+                              'RHS names in LinearRegression(%s) must be nonempty strings' };
+                throw(exception.Base(thisError, 'error'), this.LhsNameInDatabank);
             end
             this.RhsNames = string(value);
             checkNames(this);
@@ -341,7 +342,7 @@ classdef LinearRegression < shared.GetterSetter ...
 
 
         function list = get.NamesOfAppendables(this)
-            list = [this.LhsName, this.ErrorsName];
+            list = [this.LhsNameInDatabank, this.ErrorsNameInDatabank, this.FittedNameInDatabank];
         end%
     end
 

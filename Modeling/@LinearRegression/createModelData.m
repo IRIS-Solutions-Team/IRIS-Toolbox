@@ -1,4 +1,4 @@
-function [plain, y, X, e, inxBaseRangeColumns] = createModelData(this, inputDatabank, range)
+function [plain, y, X, e, inxBaseRangeColumns, extendedRange] = createModelData(this, inputDatabank, range)
 % createModelData  Create data matrices for LinearRegression
 %
 % Backend IRIS function
