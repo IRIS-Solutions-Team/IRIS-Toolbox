@@ -47,23 +47,20 @@ function this = convert(this, newFreq, varargin)
 % first, last of a random observation from the period.
 %
 % __`Select=Inf`__ [ numeric ] -
-% Select only these high-frequency
-% observations within each low-frequency period; `Inf` means all
-% observations will be used.
+% Select only these high-frequency observations within each low-frequency
+% period; `Inf` means all observations will be used.
 %
 %
 % ## Options for Low- to High-Frequency Interpolation ##
 %
 % __`Method='pchip'`__ [ char | `'quadsum'` | `'quadavg'` ] -
-% Interpolation
-% method; any option valid for the built-in function `interp1` can be used,
-% or `'quadsum'` or `'quadavg'`; these two options use quadratic
-% interpolation preserving the sum or the average of observations within
-% each period.
+% Interpolation method; any option valid for the built-in function
+% `interp1` can be used, or `'quadsum'` or `'quadavg'`; these two options
+% use quadratic interpolation preserving the sum or the average of
+% observations within each period.
 %
 % __`Position='center'`__ [ `'center'` | `'start'` | `'end'` ] -
-% Position of
-% dates within each period in the low-frequency date grid.
+% Position of dates within each period in the low-frequency date grid.
 %
 %
 % ## Description ##
