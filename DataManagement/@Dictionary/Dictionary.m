@@ -513,5 +513,25 @@ classdef Dictionary < matlab.mixin.Copyable
             end
         end%
     end
+
+
+
+
+    methods (Static)
+        function this = copyFromTo(that, this, list)
+            for name = reshape(string(list), 1, [ ])
+                if isa(that, 'Dictionary')
+                    value = retrieve(that, name);
+                elseif isstruct(that)
+                    value = getfield(that, char(name));
+                end
+                if isa(this, 'Dictionary')
+                    store(this, name, value);
+                elseif isstruct(this)
+                    this = setfield(this, char(name), value);
+                end
+            end
+        end%
+    end
 end
 
