@@ -73,14 +73,14 @@ for i = 1 : this.NumOfAppendables
         if isfield(preDatabank, ithName) ...
            && isa(preDatabank.(ithName), 'TimeSubscriptable') ...
            && getFrequencyAsNumeric(preDatabank.(ithName))==freq
-            preSeries = gefield(preDatabank, ithName);
+            preSeries = getfield(preDatabank, ithName);
         end
     end
     if validate.databank(postDatabank)
         if isfield(postDatabank, ithName) ...
             && isa(postDatabank.(ithName), 'TimeSubscriptable') ...
             && getFrequencyAsNumeric(postDatabank.(ithName))==freq
-            postSeries = gefield(postDatabank, ithName);
+            postSeries = getfield(postDatabank, ithName);
         end
     end
 
