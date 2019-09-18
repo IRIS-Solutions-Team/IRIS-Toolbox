@@ -4,7 +4,7 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('databank.apply');
     parser.addRequired('Function', @(x) isempty(x) || isa(x, 'function_handle'));
-    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('InputDatabank', @validate.databank);
     parser.addParameter({'HasPrefix', 'StartsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter({'HasSuffix', 'EndsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter({'AddPrefix', 'AddStart'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
@@ -28,37 +28,42 @@ opt.AddSuffix = char(opt.AddSuffix);
 
 %--------------------------------------------------------------------------
 
-namesOfFields = fieldnames(inputDatabank);
-numOfFields = numel(namesOfFields);
-newNames = repmat({''}, size(namesOfFields));
+if isa(inputDatabank, 'Dictionary')
+    namesFields = cellstr(keys(inputDatabank));
+elseif isstruct(inputDatabank)
+    namesFields = fieldnames(inputDatabank);
+end
 
-lenOfHasPrefix = length(opt.HasPrefix);
-lenOfHasSuffix = length(opt.HasSuffix);
+numFields = numel(namesFields);
+newNames = repmat({''}, size(namesFields));
+
+lenHasPrefix = length(opt.HasPrefix);
+lenHasSuffix = length(opt.HasSuffix);
 
 outputDatabank = opt.AddToDatabank;
 if isequal(outputDatabank, @auto)
     outputDatabank = inputDatabank;
 end
 
-inxOfApplied = false(size(namesOfFields));
-for i = 1 : numOfFields
-    ithName = namesOfFields{i};
+inxApplied = false(size(namesFields));
+for i = 1 : numFields
+    ithName = namesFields{i};
     if ~isequal(opt.List, @all) && ~any(strcmpi(ithName, opt.List))
        continue
     end 
-    if ~isempty(opt.HasPrefix) && ~strncmpi(ithName, opt.HasPrefix, lenOfHasPrefix)
+    if ~isempty(opt.HasPrefix) && ~strncmpi(ithName, opt.HasPrefix, lenHasPrefix)
         continue
     end
-    if ~isempty(opt.HasSuffix) && ~strncmpi(fliplr(ithName), fliplr(opt.HasSuffix), lenOfHasSuffix)
+    if ~isempty(opt.HasSuffix) && ~strncmpi(fliplr(ithName), fliplr(opt.HasSuffix), lenHasSuffix)
         continue
     end
-    inxOfApplied(i) = true;
+    inxApplied(i) = true;
     ithNewName = ithName;
     if opt.RemovePrefix
-        ithNewName(1:lenOfHasPrefix) = '';
+        ithNewName(1:lenHasPrefix) = '';
     end
     if opt.RemoveSuffix
-        ithNewName(end-lenOfHasSuffix+1:end) = '';
+        ithNewName(end-lenHasSuffix+1:end) = '';
     end
     if ~isempty(opt.AddPrefix)
         ithNewName = [opt.AddPrefix, ithNewName];
@@ -67,16 +72,23 @@ for i = 1 : numOfFields
         ithNewName = [ithNewName, opt.AddSuffix];
     end
     newNames{i} = ithNewName;
-    inputSeries = inputDatabank.(ithName);
-    if isempty(func)
-        outputDatabank.(ithNewName) = inputSeries;
+    if isa(inputDatabank, 'Dictionary')
+        ithSeries = retrieve(inputDatabank, ithName);
     else
-        outputDatabank.(ithNewName) = func(inputSeries);
+        ithSeries = getfield(inputDatabank, ithName);
+    end
+    if ~isempty(func)
+        ithSeries = func(ithSeries);
+    end
+    if isa(inputDatabank, 'Dictionary')
+        outputDatabank = store(outputDatabank, ithName, ithSeries);
+    else
+        outputDatabank = setfield(outputDatabank, ithName, ithSeries);
     end
 end
 
-appliedToNames = namesOfFields(inxOfApplied);
-newNames = newNames(inxOfApplied);
+appliedToNames = namesFields(inxApplied);
+newNames = newNames(inxApplied);
 
 end%
 
