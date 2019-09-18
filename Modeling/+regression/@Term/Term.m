@@ -7,7 +7,7 @@ classdef Term
         Expression = [ ]
 
         Fixed (1, 1) double = NaN
-        ContainsLhsName (1, 1) logical = false
+        ContainsLhsNames (1, 1) logical = false
 
         MinShift (1, 1) double = 0
         MaxShift (1, 1) double = 0
@@ -55,7 +55,7 @@ classdef Term
                 this = parseExpression(this, regression, expression);
             end
             this.Fixed = opt.Fixed;
-            this.ContainsLhsName = containsLhsName(this, regression);
+            this.ContainsLhsNames = containsLhsNames(this, regression);
         end%
 
 
@@ -118,7 +118,7 @@ classdef Term
 
 
         function X = updateOwnExplanatory(this, X, plainLhs, t)
-            for i = find([this.ContainsLhsName])
+            for i = find([this.ContainsLhsNames])
                 X(i, t, :) = createModelData(this(i), plainLhs, t);
             end
         end%
@@ -128,7 +128,7 @@ classdef Term
 
 
     methods
-        function flag = containsLhsName(this, regression)
+        function flag = containsLhsNames(this, regression)
             flag = any(ismember(this.Position, regression.PosOfLhsNames));
         end%
 

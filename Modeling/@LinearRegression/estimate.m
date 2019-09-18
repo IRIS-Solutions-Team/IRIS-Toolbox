@@ -95,7 +95,8 @@ return
         end
         thisWarning  = { 'LinearRegression:MissingObservationInEstimationRange'
                          'LinearRegression(%1) estimation range %2 NaN or Inf observations [Variant|Page:%g]: %s' };
-        throw(exception.Base(thisWarning, opt.MissingObservations), this.LhsNameInDatabank, action, report{:});
+        throw( exception.Base(thisWarning, opt.MissingObservations), ...
+               join(this.LhsNamesInDatabank, ','), action, report{:} );
     end%
 end%
 

@@ -31,7 +31,7 @@ end
 
 this = LinearRegression( );
 
-hereGetLhsName( );
+hereGetLhsNames( );
 hereGetRhsNames( );
 
 this = defineDependent(this, inputString(1));
@@ -41,12 +41,12 @@ hereParseExplanatory( );
 return
 
 
-    function hereGetLhsName( )
-        lhsName = regexp(inputString(1), "\<[A-Za-z]\w*\>(?!\()", "match");
-        if numel(lhsName)~=1
-            hereThrowInvalidLhsName( );
+    function hereGetLhsNames( )
+        lhsNames = regexp(inputString(1), "\<[A-Za-z]\w*\>(?!\()", "match");
+        if numel(lhsNames)~=1
+            hereThrowInvalidLhsNames( );
         end
-        this.LhsName = lhsName;
+        this.LhsNames = lhsNames;
     end%
 
 
@@ -83,16 +83,16 @@ return
     function hereGetRhsNames( )
         rhsNames = regexp(inputString(2), "\<[A-Za-z]\w*\>(?!\()", "match");
         rhsNames = unique(rhsNames, "stable");
-        rhsNames = setdiff(rhsNames, this.LhsName);
+        rhsNames = setdiff(rhsNames, this.LhsNames);
         this.RhsNames = rhsNames;
     end%
 
 
 
 
-    function hereThrowInvalidLhsName( )
+    function hereThrowInvalidLhsNames( )
         thisError = { 'LinearRegression:InvalidInputString'
-                      'Invalid LHS name in LinearRegression: %s'};
+                      'Invalid LHS names in LinearRegression: %s'};
         throw(exception.Base(thisError, 'error'), inputString(1));
     end%
 

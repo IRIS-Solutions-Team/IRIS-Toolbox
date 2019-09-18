@@ -8,20 +8,20 @@ function this = defineDependent(this, varargin)
 
 %--------------------------------------------------------------------------
 
-lhsName = this.LhsName;
+lhsNames = this.LhsNames;
 
 if numel(varargin)==1 && validate.string(varargin{1})
     inputString = string(varargin{1});
-    if inputString==lhsName
-        this.Dependent = regression.Term(this, lhsName);
+    if inputString==lhsNames
+        this.Dependent = regression.Term(this, lhsNames);
         return
     end
-    transform = regexp(inputString(1), "^(\<[A-Za-z]\w*\>)\(" + lhsName + "\)$", "tokens");
+    transform = regexp(inputString(1), "^(\<[A-Za-z]\w*\>)\(" + lhsNames + "\)$", "tokens");
     if ~iscell(transform) || numel(transform)~=1 || numel(transform{1})~=1
         hereThrowInvalidLhs( );
     end
     try
-        this.Dependent = regression.Term(this, lhsName, "Transform=", transform{1});
+        this.Dependent = regression.Term(this, lhsNames, "Transform=", transform{1});
     catch
         hereThrowInvalidLhs( );
     end
@@ -37,7 +37,8 @@ return
     function hereThrowInvalidLhs( )
         thisError = { 'LinearRegression:InvalidInputString'
                       'Invalid specification of the dependent term in LinearRegression(%1): %s'};
-        throw(exception.Base(thisError, 'error'), this.LhsNameInDatabank, inputString(1));
+        throw( exception.Base(thisError, 'error'), ...
+               join(this.LhsNamesInDatabank, ','), inputString(1) );
     end%
 end%
 

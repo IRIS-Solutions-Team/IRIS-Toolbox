@@ -84,7 +84,8 @@ return
         report = DateWrapper.reportMissingPeriodsAndPages(range, inxMissing(1, inxBaseRangeColumns, :));
         thisWarning  = { 'LinearRegression:MissingObservationInEstimationRange'
                          'Simulation of LinearRegression(%1) corrupted with NaN or Inf observations [Variant|Page:%g]: %s' };
-        throw(exception.Base(thisWarning, opt.MissingObservations), this.LhsNameInDatabank, report{:});
+        throw( exception.Base(thisWarning, opt.MissingObservations), ...
+               join(this.LhsNamesInDatabank, ','), report{:} );
     end%
 end%
 

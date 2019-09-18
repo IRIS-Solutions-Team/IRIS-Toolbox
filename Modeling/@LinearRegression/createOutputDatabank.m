@@ -10,10 +10,10 @@ function outputDatabank = createOutputDatabank(this, inputDatabank, extendedRang
 %--------------------------------------------------------------------------
 
 array = plain;
-names = [this.ExplanatoryNamesInDatabank, this.ErrorsNameInDatabank];
+names = [this.ExplanatoryNamesInDatabank, this.ErrorNamesInDatabank];
 if ~isempty(fitted)
     array = [array; fitted];
-    names = [names, this.FittedNameInDatabank];
+    names = [names, this.FittedNamesInDatabank];
 end
 comments = names;
 inxToInclude = @all;

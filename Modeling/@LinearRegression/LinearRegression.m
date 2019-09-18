@@ -8,7 +8,7 @@ classdef LinearRegression < shared.GetterSetter ...
 
 
     properties
-        LhsName (1, 1) string = "x"
+        LhsNames (1, 1) string = "x"
         RhsNames (1, :) string = string.empty(1, 0);
         Intercept (1, 1) logical = false
         ErrorsPrefix = "res_"
@@ -31,12 +31,13 @@ classdef LinearRegression < shared.GetterSetter ...
 
 
     properties (Dependent)
-        ErrorsName
-        FittedName
+        ErrorNames
+        FittedNames
         ExplanatoryNames
-        LhsNameInDatabank
-        ErrorsNameInDatabank
-        FittedNameInDatabank
+        LhsNamesInDatabank
+        RhsNamesInDatabank
+        ErrorNamesInDatabank
+        FittedNamesInDatabank
         ExplanatoryNamesInDatabank
         PosOfLhsNames
         NumOfLhsNames
@@ -85,7 +86,7 @@ classdef LinearRegression < shared.GetterSetter ...
             end
             thisError = { 'LinearRegression:CannotFindExplanatory'
                           'Cannot find LinearRegression(%1) explanatory variable to be removed '};
-            throw(exception.Base(thisError, 'error'), this.LhsNameInDatabank);
+            throw(exception.Base(thisError, 'error'), this.LhsNamesInDatabank);
         end%
 
 
@@ -148,14 +149,14 @@ classdef LinearRegression < shared.GetterSetter ...
 
     methods (Access=protected)
         function checkNames(this)
-            checkList = [this.LhsName, this.RhsNames, this.ErrorsName];
+            checkList = [this.LhsNames, this.RhsNames, this.ErrorNames];
             nameConflicts = parser.getMultiple(checkList);
             if ~isempty(nameConflicts)
                 nameConflicts = cellstr(nameConflicts);
                 thisError = { 'LinearRegression:MultipleNames'
                               'This name is declared more than once in LinearRegression(%1): %s '};
                 throw( exception.Base(thisError, 'error'), ...
-                       this.LhsNameInDatabank, ...
+                       this.LhsNamesInDatabank, ...
                        nameConflicts{:} );
             end
             inxValid = arrayfun(@isvarname, checkList);
@@ -163,7 +164,7 @@ classdef LinearRegression < shared.GetterSetter ...
                 thisError = { 'LinearRegression:InvalidName'
                               'This LinearRegression(%1) name is not a valid Matlab name: %s'};
                 throw( exception.Base(thisError, 'error'), ...
-                       this.LhsNameInDatabank, ...
+                       this.LhsNamesInDatabank, ...
                        checkList{~inxValid} );
             end
         end%
@@ -174,10 +175,10 @@ classdef LinearRegression < shared.GetterSetter ...
 
     methods
         function this = set.Dependent(this, term)
-            if ~term.ContainsLhsName || ~isempty(term.Expression) || term.Shift~=0
+            if ~term.ContainsLhsNames || ~isempty(term.Expression) || term.Shift~=0
                 thisError = { 'LinearRegression:InvalidDependent'
                               'Invalid specification of dependent variable in LinearRegression(%s)' };
-                throw(exception.Base(thisError, 'error'), this.LhsNameInDatabank);
+                throw(exception.Base(thisError, 'error'), this.LhsNamesInDatabank);
             end
             this.Dependent = term;
         end%
@@ -219,21 +220,29 @@ classdef LinearRegression < shared.GetterSetter ...
 
 
 
-        function value = get.LhsNameInDatabank(this)
-            lhsNameInDatabank = substituteNamesInDatabank(this, this.LhsName);
-            value = string(lhsNameInDatabank);
+        function value = get.LhsNamesInDatabank(this)
+            lhsNamesInDatabank = substituteNamesInDatabank(this, this.LhsNames);
+            value = string(lhsNamesInDatabank);
         end%
 
 
 
 
-        function this = set.LhsName(this, value)
+        function value = get.RhsNamesInDatabank(this)
+            rhsNamesInDatabank = substituteNamesInDatabank(this, this.RhsNames);
+            value = string(rhsNamesInDatabank);
+        end%
+
+
+
+
+        function this = set.LhsNames(this, value)
             if ~isscalar(value) || strlength(value)==0
-                thisError = { 'LinearRegression:InvalidLhsName'
+                thisError = { 'LinearRegression:InvalidLhsNames'
                               'LHS name in a LinearRegression must be a scalar nonempty string' };
                 throw( exception.Base(thisError, 'error') );
             end
-            this.LhsName = value;
+            this.LhsNames = value;
             checkNames(this);
         end%
 
@@ -256,9 +265,9 @@ classdef LinearRegression < shared.GetterSetter ...
 
         function this = set.RhsNames(this, value)
             if any(strlength(value)==0)
-                thisError = { 'LinearRegression:InvalidLhsName'
+                thisError = { 'LinearRegression:InvalidLhsNames'
                               'RHS names in LinearRegression(%s) must be nonempty strings' };
-                throw(exception.Base(thisError, 'error'), this.LhsNameInDatabank);
+                throw(exception.Base(thisError, 'error'), this.LhsNamesInDatabank);
             end
             this.RhsNames = string(value);
             checkNames(this);
@@ -267,30 +276,30 @@ classdef LinearRegression < shared.GetterSetter ...
 
 
 
-        function value = get.ErrorsName(this)
-            value = this.ErrorsPrefix + this.LhsName;
+        function value = get.ErrorNames(this)
+            value = this.ErrorsPrefix + this.LhsNames;
         end%
 
 
 
 
-        function value = get.ErrorsNameInDatabank(this)
-            lhsNameInDatabank = substituteNamesInDatabank(this, this.LhsName);
+        function value = get.ErrorNamesInDatabank(this)
+            lhsNameInDatabank = substituteNamesInDatabank(this, this.LhsNames);
             value = this.ErrorsPrefix + string(lhsNameInDatabank);
         end%
 
 
 
 
-        function value = get.FittedName(this)
-            value = this.FittedPrefix + this.LhsName;
+        function value = get.FittedNames(this)
+            value = this.FittedPrefix + this.LhsNames;
         end%
 
 
 
 
-        function value = get.FittedNameInDatabank(this)
-            lhsNameInDatabank = substituteNamesInDatabank(this, this.LhsName);
+        function value = get.FittedNamesInDatabank(this)
+            lhsNameInDatabank = substituteNamesInDatabank(this, this.LhsNames);
             value = this.FittedPrefix + string(lhsNameInDatabank);
         end%
 
@@ -298,14 +307,14 @@ classdef LinearRegression < shared.GetterSetter ...
 
 
         function value = get.ExplanatoryNames(this)
-            value = [this.LhsName, this.RhsNames];
+            value = [this.LhsNames, this.RhsNames];
         end%
 
 
 
 
         function value = get.ExplanatoryNamesInDatabank(this)
-            names = [this.LhsName, this.RhsNames];
+            names = [this.LhsNames, this.RhsNames];
             names = substituteNamesInDatabank(this, names);
             value = string(names);
         end%
@@ -342,7 +351,7 @@ classdef LinearRegression < shared.GetterSetter ...
 
 
         function list = get.NamesOfAppendables(this)
-            list = [this.LhsNameInDatabank, this.ErrorsNameInDatabank, this.FittedNameInDatabank];
+            list = [this.LhsNamesInDatabank, this.ErrorNamesInDatabank, this.FittedNamesInDatabank];
         end%
     end
 
