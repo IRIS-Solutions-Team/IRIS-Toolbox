@@ -1,9 +1,9 @@
-function [range, listOfFreq] = range(inputDatabank, varargin)
+function [range, listFreq] = range(inputDatabank, varargin)
 % range  Find a range that encompasses the ranges of the listed tseries objects
 %{
 % ## Syntax ##
 %
-%     [range, listOfFreq] = databank.range(inputDatabank, ...)
+%     [range, listFreq] = databank.range(inputDatabank, ...)
 %
 %
 % ## Input Arguments ##
@@ -19,7 +19,7 @@ function [range, listOfFreq] = range(inputDatabank, varargin)
 % input database; if tseries objects with different frequencies exist, the
 % ranges are returned in a cell array.
 %
-% __`listOfFreq`__ [ numeric ] - 
+% __`listFreq`__ [ numeric ] - 
 % Vector of date frequencies coresponding to the returned ranges.
 %
 %
@@ -61,6 +61,7 @@ if isempty(parser)
     addParameter(parser, 'NameList', @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
     addParameter(parser, 'StartDate', 'MaxRange', @(x) validate.anyString(x, {'MaxRange', 'MinRange'}));
     addParameter(parser, 'EndDate', 'MaxRange', @(x) validate.anyString(x, {'MaxRange', 'MinRange'}));
+    addParameter(parser, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @any) || isa(x, 'Frequency'));
 end
 parse(parser, inputDatabank, varargin{:});
 opt = parser.Options;
@@ -75,21 +76,26 @@ list = opt.NameList;
 if validate.string(list)
     list = regexp(list, '\w+', 'match');
 elseif isa(list, 'rexp')
-    inxOfMatched = ~cellfun(@isempty, regexp(allInputEntries, list, 'once'));
-    list = allInputEntries(inxOfMatched);
+    inxMatched = ~cellfun(@isempty, regexp(allInputEntries, list, 'once'));
+    list = allInputEntries(inxMatched);
 elseif isequal(list, @all)
     list = allInputEntries;
 end
 
 %--------------------------------------------------------------------------
 
-listOfFreq = iris.get('freq');
-numOfFreq = length(listOfFreq);
-startDates = cell(1, numOfFreq);
-endDates = cell(1, numOfFreq);
-range = cell(1, numOfFreq);
-numOfEntries = numel(list);
-for i = 1 : numOfEntries
+if isequal(opt.Frequency, @any)
+    listFreq = reshape(iris.get('freq'), 1, [ ]);
+else
+    listFreq = unique(reshape(opt.Frequency, 1, [ ]), 'stable');
+end
+
+numFreq = numel(listFreq);
+startDates = cell(1, numFreq);
+endDates = cell(1, numFreq);
+range = cell(1, numFreq);
+numEntries = numel(list);
+for i = 1 : numEntries
     if ~any(strcmp(list{i}, allInputEntries))
         continue
     end
@@ -102,10 +108,10 @@ for i = 1 : numOfEntries
     if ~isa(x, 'TimeSubscriptable')
         continue
     end
-    inxOfFreq = x.Frequency==listOfFreq;
-    if any(inxOfFreq)
-        startDates{inxOfFreq}(end+1) = x.StartAsNumeric;
-        endDates{inxOfFreq}(end+1) = x.EndAsNumeric;
+    inxFreq = x.Frequency==listFreq;
+    if any(inxFreq)
+        startDates{inxFreq}(end+1) = x.StartAsNumeric;
+        endDates{inxFreq}(end+1) = x.EndAsNumeric;
     end
 end
 
@@ -125,16 +131,16 @@ for i = find(~cellfun(@isempty, startDates))
     range{i} = DateWrapper(startDates{i} : endDates{i});
 end
 
-inxOfEmpty = cellfun(@isempty, range);
-if sum(~inxOfEmpty) == 0
+inxEmpty = cellfun(@isempty, range);
+if sum(~inxEmpty)==0
     range = [ ];
-    listOfFreq = [ ];
-elseif sum(~inxOfEmpty) == 1
-    range = range{~inxOfEmpty};
-    listOfFreq = listOfFreq(~inxOfEmpty);
+    listFreq = [ ];
+elseif sum(~inxEmpty)==1
+    range = range{~inxEmpty};
+    listFreq = listFreq(~inxEmpty);
 else
-    range = range(~inxOfEmpty);
-    listOfFreq = listOfFreq(~inxOfEmpty);
+    range = range(~inxEmpty);
+    listFreq = listFreq(~inxEmpty);
 end
 
 end%
