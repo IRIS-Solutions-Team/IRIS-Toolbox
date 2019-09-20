@@ -22,7 +22,7 @@ range = double(range);
 startDate = range(1);
 endDate = range(end);
 
-[data, startDate] = getDataFromTo(this, startDate, endDate);
+[data, startDate, endDate] = getDataFromTo(this, startDate, endDate);
 
 missingTest = this.MissingTest;
 inxMissing = missingTest(data);
@@ -51,7 +51,8 @@ if ~isempty(conversionFunction)
     data = conversionFunction(data);
 end
 
-this = fill(this, data, startDate);
+%this = fill(this, data, startDate);
+this = setData(this, startDate:endDate, data);
 
 end%
 
