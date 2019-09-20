@@ -1,30 +1,31 @@
 function [this, newStart, newEnd] = clip(this, newStart, newEnd)
-% resize  Clip time series range
+% clip  Clip time series range
 %
 % __Syntax__
 %
-%     X = resize(X, NewStart, NewEnd)
+%     outputSeries = clip(inputSeries, newStart, newEnd)
 %
 %
 % __Input Arguments__
 %
-% * `X` [ tseries ] - Input time series whose date range will be clipped.
+% * `inputSeries` [ TimeSubscriptable ] - Input time series whose date range will be clipped.
 %
-% * `NewStart` [ DateWrapper | `-Inf` ] - New start date; `-Inf` means keep
+% * `newStart` [ DateWrapper | `-Inf` ] - New start date; `-Inf` means keep
 % the current start date.
 %
-% * `NewEnd` [ DateWrapper | `Inf` ] - New end date; `Inf` means keep
+% * `newEnd` [ DateWrapper | `Inf` ] - New end date; `Inf` means keep
 % the current enddate.
 %
 %
 % __Output Arguments__
 %
-% * `X` [ tseries ] - Output time series  with its date range clipped to
-% the new range from `NewStart` to `NewEnd`.
+% * `outputSeries` [ TimeSubscriptable ] - Output time series  with its date range clipped to
+% the new range from `newStart` to `newEnd`.
 %
 %
 % __Description__
 %
+% If either the `newStart` or the `newEnd` is
 %
 % __Example__
 %
@@ -35,15 +36,20 @@ function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('TimeSubscriptable.clip');
-    parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addRequired('NewStart', @(x) DateWrapper.validateDateInput(x) && isscalar(x));
-    parser.addRequired('NewEnd', @(x) DateWrapper.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf));
+    parser.addRequired('inputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    parser.addRequired('newStart', @(x) DateWrapper.validateDateInput(x) && isscalar(x));
+    parser.addRequired('newEnd', @(x) DateWrapper.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf));
 end
 parser.parse(this, newStart, newEnd);
 
 %--------------------------------------------------------------------------
 
 if isnan(this.Start) && isempty(this.Data)
+    return
+end
+
+if isequaln(newStart, NaN) || isequaln(newEnd, NaN)
+    this = emptyData(this);
     return
 end
 
