@@ -81,6 +81,9 @@ classdef ( Abstract, ...
         function varargout = stdise(varargin)
             [varargout{1:nargout}] = stdize(varargin{:});
         end%
+
+
+        varargout = vertcat(varargin)
     end
 
 

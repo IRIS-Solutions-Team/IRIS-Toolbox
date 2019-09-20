@@ -407,7 +407,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = subsasgn(varargin)
         varargout = subsref(varargin)
         varargout = trend(varargin)
-        varargout = vertcat(varargin)
         varargout = wmean(varargin)
         varargout = x12(varargin)
         
