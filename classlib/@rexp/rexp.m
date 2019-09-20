@@ -40,6 +40,11 @@ classdef rexp
         end%
         
         
+        function varargout = string(this)
+            varargout{1} = string(this.String);
+        end%
+
+
         function varargout = isempty(this, varargin)
             [varargout{1:nargout}] = isempty(this.String, varargin{:});
         end%
