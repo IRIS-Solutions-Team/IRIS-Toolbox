@@ -11,7 +11,7 @@ if isempty(parser)
     parser.addParameter({'AddSuffix', 'AddEnd'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter({'RemovePrefix', 'RemoveStart'}, false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('List', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    parser.addParameter({'List', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
     parser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || isstruct(x));
 end
 parser.parse(func, inputDatabank, varargin{:});
@@ -72,19 +72,12 @@ for i = 1 : numFields
         ithNewName = [ithNewName, opt.AddSuffix];
     end
     newNames{i} = ithNewName;
-    if isa(inputDatabank, 'Dictionary')
-        ithSeries = retrieve(inputDatabank, ithName);
-    else
-        ithSeries = getfield(inputDatabank, ithName);
-    end
+
+    ithSeries = getfield(inputDatabank, ithName);
     if ~isempty(func)
         ithSeries = func(ithSeries);
     end
-    if isa(inputDatabank, 'Dictionary')
-        outputDatabank = store(outputDatabank, ithName, ithSeries);
-    else
-        outputDatabank = setfield(outputDatabank, ithName, ithSeries);
-    end
+    outputDatabank = setfield(outputDatabank, ithName, ithSeries);
 end
 
 appliedToNames = namesFields(inxApplied);
