@@ -590,19 +590,24 @@ classdef DateWrapper < double
             s = repmat("", size(dates));
             [year, per, freq] = dat2ypf(dates);
             freqLetter = Frequency.toLetter(freq);
+            inxYearly = freq==Frequency.YEARLY;
+            inxMonthly = freq==Frequency.MONTHLY;
+            inxWeekly = freq==Frequency.WEEKLY;
             inxDaily = freq==Frequency.DAILY;
+            inxInteger = freq==Frequency.INTEGER;
             for i = find(inxDaily)
                 s(i) = datestr(dates(i), 'yyyy-mmm-dd');
             end
-            inxInteger = freq==Frequency.INTEGER;
             for i = find(inxInteger)
                 s(i) = sprintf('%g', dates(i));
             end
-            inxYearly = freq==Frequency.YEARLY;
             for i = find(inxYearly)
                 s(i) = sprintf('%g%s', year(i), freqLetter(i));
             end
-            for i = find(~inxDaily & ~inxInteger & ~inxYearly)
+            for i = find(inxMonthly | inxWeekly)
+                s(i) = sprintf('%g%s%02g', year(i), freqLetter(i), per(i));
+            end
+            for i = find(~inxDaily & ~inxInteger & ~inxYearly & ~inxMonthly & ~inxWeekly)
                 s(i) = sprintf('%g%s%g', year(i), freqLetter(i), per(i));
             end
         end%
