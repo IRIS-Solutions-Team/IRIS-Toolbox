@@ -10,8 +10,8 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('databank.filter');
     inputParser.addRequired('Database', @validate.databank);
-    inputParser.addParameter({'Name', 'NameFilter'}, "--all", @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-    inputParser.addParameter({'Class', 'ClassFilter'}, "--all", @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    inputParser.addParameter({'Name', 'NameFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    inputParser.addParameter({'Class', 'ClassFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
     inputParser.addParameter('Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
 inputParser.parse(d, varargin{:});
@@ -19,18 +19,19 @@ opt = inputParser.Results;
 
 %--------------------------------------------------------------------------
 
-listFields = fieldnames(d);
-numFields = numel(listFields);
-listClasses = cell(size(listFields));
-for i = 1 : numFields
-    ithName = listFields{i};
-    x = getfield(d, ithName);
-    listClasses{i} = class(getfield(d, ithName));
+if isa(d, 'Dictionary')
+    listFields = keys(d);
+else
+    listFields = fieldnames(d);
 end
-tokens = repmat({[]}, size(listFields));
+numFields = numel(listFields);
 
+%
+% Filter field names
+%
+tokens = repmat({[]}, size(listFields));
 if isequal(opt.Name, @all) || isequal(opt.Name, "--all")
-    ixName = true(size(listFields));
+    inxName = true(size(listFields));
 else
     if ~isa(opt.Name, 'string')
         opt.Name = string(opt.Name);
@@ -38,33 +39,43 @@ else
     if isscalar(opt.Name) && startsWith(opt.Name, "--rexp:")
         opt.Name = erase(opt.Name, "--rexp:");
         [start, tokens] = regexp(listFields, opt.Name, 'start', 'tokens', 'once');
-        ixName = ~cellfun(@isempty, start);
+        inxName = ~cellfun(@isempty, start);
     else
-        opt.Name = opt.Name(:).';
-        ixName = any(opt.Name==listFields, 2);
+        opt.Name = reshape(opt.Name, 1, [ ]);
+        inxName = any(opt.Name==listFields, 2);
     end
 end
 
+%
+% Filter field classes
+%
+listClasses = cellfun(@(x) class(getfield(d, x)), listFields, 'UniformOutput', false);
 if isequal(opt.Class, @all) || isequal(opt.Class, "--all")
-    ixClass = true(size(listFields));
+    inxClass = true(size(listFields));
 else
     if ~isa(opt.Class, 'string')
         opt.Class = string(opt.Class);
     end
     opt.Class = opt.Class(:).';
-    ixClass = any(opt.Class==listClasses, 2);
+    inxClass = any(opt.Class==listClasses, 2);
 end
 
+%
+% Run user filter
+%
 if isempty(opt.Filter)
-    ixFilter = true(size(listFields));
+    inxFilter = true(size(listFields));
 else
-    ixFilter = cellfun(@(name) feval(opt.Filter, d.(name)), listFields);
+    inxFilter = cellfun(@(name) feval(opt.Filter, d.(name)), listFields);
 end
 
-ixSelect = ixName & ixClass & ixFilter;
+%
+% Combine all filters
+%
+inxSelect = inxName & inxClass & inxFilter;
 
-select = listFields(ixSelect);
-tokens = tokens(ixSelect);
+select = listFields(inxSelect);
+tokens = tokens(inxSelect);
 
 end%
 
