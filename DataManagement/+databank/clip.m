@@ -1,39 +1,40 @@
 function d = clip(d, newStart, newEnd)
 % clip  Clip all time series in databank to a new range
-%
-% __Syntax__
+%{
+% ## Syntax ##
 %
 %     outputDatabank = databank.clip(inputDatabank, newStart, newEnd)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `inputDatabank` [ struct ] - Input databank whose time series (of the
-% matching frequency) will be clipped to a new range defined by `newStart`
-% and `newEnd`.
+% __`inputDatabank`__ [ struct | Dictionary ] - 
+% Input databank whose time series (of the matching frequency) will be
+% clipped to a new range defined by `newStart` and `newEnd`.
 %
-% * `newStart` [ DateWrapper | `-Inf` ] - A new start date to which all
-% time series of the matching frequency will be clipped; `-Inf` means the
-% start date will not be altered.
+% __`newStart`__ [ DateWrapper | `-Inf` ] - 
+% A new start date to which all time series of the matching frequency will
+% be clipped; `-Inf` means the start date will not be altered.
 %
-% * `newEnd` [ DateWrapper | `-Inf` ] - A new end date to which all time
-% series of the matching frequency will be clipped; `Inf` means the end
-% date will not be altered.
-%
-%
-% __Output Arguments__
-%
-% * `outputDatabank` [ struct ] - Output databank in which all time series
-% (of the matching frequency) are clipped to the new range.
+% __`newEnd`__ [ DateWrapper | `-Inf` ] - 
+% A new end date to which all time series of the matching frequency will be
+% clipped; `Inf` means the end date will not be altered.
 %
 %
-% __Description__
+% ## Output Arguments ##
+%
+% __`outputDatabank`__ [ struct | Dictionary ] - 
+% Output databank in which all time series (of the matching frequency) are
+% clipped to the new range.
 %
 %
-% __Example__
+% ## Description ##
 %
 %
+% ## Example ##
 %
+%
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -41,7 +42,7 @@ function d = clip(d, newStart, newEnd)
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('databank.clip');
-    parser.addRequired('InputDatabank', @isstruct);
+    parser.addRequired('InputDatabank', @validate.databank);
     parser.addRequired('NewStart', @(x) isequal(x, -Inf) || DateWrapper.validateDateInput(x));
     parser.addRequired('NewEnd', @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
 end
@@ -62,19 +63,19 @@ else
     freq = DateWrapper.getFrequencyAsNumeric(newEnd);
 end
 
-listOfFields = fieldnames(d);
-numberOfFields = numel(listOfFields);
+listFields = fieldnames(d);
+numberOfFields = numel(listFields);
 for i = 1 : numberOfFields
-    ithField = listOfFields{i};
-    if isa(d.(ithField), 'TimeSubscriptable')
-        if d.(ithField).FrequencyAsNumeric==freq
-            d.(ithField) = clip(d.(ithField), newStart, newEnd);
+    ithName = listFields{i};
+    ithField = getfield(d, ithName);
+    if isa(ithField, 'TimeSubscriptable')
+        if isequaln(freq, NaN) || ithField.FrequencyAsNumeric==freq
+            ithField = clip(ithField, newStart, newEnd);
         end
-        continue
+    elseif validate.databank(ithField);
+        ithField = databank.clip(ithField, newStart, newEnd);
     end
-    if isstruct(d.(ithField))
-        d.(ithField) = databank.clip(d.(ithField), newStart, newEnd);
-    end
+    d = setfield(d, ithName, ithField);
 end
 
 end%
