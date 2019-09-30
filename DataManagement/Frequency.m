@@ -308,8 +308,7 @@ classdef Frequency < double
                 day(~indexInf) = day(~indexInf) - 3; % Return Monday, not Thursday, for display
             end
             year(indexInf) = serial(indexInf);
-            datetimeObj = datetime(year, month, day);
-            datetimeObj.Format = getDateTimeFormat(this);
+            datetimeObj = datetime(year, month, day, 'Format', getDateTimeFormat(this));
         end
 
 
