@@ -61,7 +61,12 @@ if isEmptyRange
 end
 
 if isnan(start) || isempty(data)
-    x = nan([rnglen(range), sizeData(2:end)]);
+    if all(isnan(range))
+        x = nan([0, sizeData(2:end)]);
+        range = DateWrapper.NaD( );
+    else
+        x = nan([rnglen(range), sizeData(2:end)]);
+    end
     return
 end
 
