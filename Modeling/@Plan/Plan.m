@@ -1,4 +1,11 @@
-classdef Plan
+% Plan  Simulation plans for Model objects
+%
+
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+classdef Plan < matlab.mixin.CustomDisplay
+
     properties
         NamesOfEndogenous = cell.empty(1, 0)
         NamesOfExogenous = cell.empty(1, 0)
@@ -53,6 +60,7 @@ classdef Plan
 
     methods % User Interface
         varargout = anticipate(varargin)
+        varargout = get(varargin)
         varargout = swap(varargin)
 
 
@@ -176,112 +184,6 @@ classdef Plan
 
 
     methods % Display
-        function outputTable = table(this, varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('Plan.table');
-                parser.addRequired('Plan', @(x) isa(x, 'Plan'));
-                parser.addParameter('InputDatabank', [ ], @(x) isempty(x) || isstruct(x));
-                parser.addParameter('WriteTable', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
-            end
-            parse(parser, this, varargin{:});
-            opt = parser.Options;
-            inxOfDates = any( [ this.InxOfAnticipatedExogenized 
-                                this.InxOfUnanticipatedExogenized
-                                this.InxOfAnticipatedEndogenized
-                                this.InxOfUnanticipatedEndogenized ], 1 );
-            numOfDates = nnz(inxOfDates);
-            posOfDates = find(inxOfDates);
-            dates = this.ExtendedStart + posOfDates - 1;
-            inxOfExogenized = any( this.InxOfAnticipatedExogenized ...
-                                 | this.InxOfUnanticipatedExogenized, 2 );
-            numOfExogenized = nnz(inxOfExogenized);
-            inxOfEndogenized = any( this.InxOfAnticipatedEndogenized ...
-                                  | this.InxOfUnanticipatedEndogenized, 2 );
-            dateNames = DateWrapper.toCellstr(dates);
-            dateNames = strcat(this.DATE_PREFIX, dateNames);
-
-            isData = false;
-            data = cell.empty(0, 0);
-            if ~isempty(opt.InputDatabank)
-                data = databank.toDoubleArray(opt.InputDatabank, this.NamesOfEndogenous, this.ExtendedRange, 1);
-                data = transpose(data);
-                isData = true;
-            end
-
-            rowNames = cell.empty(1, 0);
-            idColumn = uint16.empty(0, 1);
-            if isData
-                cellData = cell.empty(0, 2*numOfDates);
-            else
-                cellData = cell.empty(0, numOfDates);
-            end
-            for id = uint16(1) : this.SwapId
-                markExogenized = cell(this.NumOfEndogenous, this.NumOfExtendedPeriods);
-                inxOfAnticipated = this.IdOfAnticipatedExogenized==id;
-                inxOfUnanticipated = this.IdOfUnanticipatedExogenized==id;
-                inxOfExogenized = inxOfAnticipated | inxOfUnanticipated;
-                anyExogenized = any(inxOfExogenized(:));
-                if anyExogenized
-                    markExogenized(inxOfAnticipated) = { this.ANTICIPATED_MARK };
-                    markExogenized(inxOfUnanticipated) = { this.UNANTICIPATED_MARK };
-                    keep = any(inxOfAnticipated | inxOfUnanticipated, 2);
-                    markExogenized = markExogenized(keep, inxOfDates);
-                    rowNames = [rowNames, this.NamesOfEndogenous(keep)];
-                    idColumn = [idColumn; repmat(id-1, nnz(keep), 1)];
-                    if isData
-                        valuesOfExogenized = nan(this.NumOfEndogenous, this.NumOfExtendedPeriods);
-                        valuesOfExogenized(inxOfExogenized) = data(inxOfExogenized);
-                        valuesOfExogenized = valuesOfExogenized(keep, inxOfDates);
-                        valuesOfExogenized = num2cell(valuesOfExogenized);
-                        addCellData = cell(nnz(keep), 2*nnz(inxOfDates));
-                        addCellData(:, 1:2:end) = markExogenized;
-                        addCellData(:, 2:2:end) = valuesOfExogenized;
-                        cellData = [cellData; addCellData];
-                    else
-                        cellData = [cellData; markExogenized];
-                    end
-                end
-
-                inxOfAnticipated = this.IdOfAnticipatedEndogenized==id;
-                inxOfUnanticipated = this.IdOfUnanticipatedEndogenized==id;
-                anyEndogenized = any(inxOfAnticipated(:)) || any(inxOfUnanticipated(:));
-                if anyEndogenized
-                    markEndogenized = cell(this.NumOfExogenous, this.NumOfExtendedPeriods);
-                    markEndogenized(inxOfAnticipated) = { this.ANTICIPATED_MARK };
-                    markEndogenized(inxOfUnanticipated) = { this.UNANTICIPATED_MARK };
-                    keep = any(inxOfAnticipated | inxOfUnanticipated, 2);
-                    markEndogenized = markEndogenized(keep, inxOfDates);
-                    rowNames = [rowNames, this.NamesOfExogenous(keep)];
-                    idColumn = [idColumn; repmat(id-1, nnz(keep), 1)];
-                    if isData
-                        addCellData = cell(nnz(keep), 2*nnz(inxOfDates));
-                        addCellData(:, 1:2:end) = markEndogenized;
-                        addCellData(:, 2:2:end) = {[ ]};
-                        cellData = [cellData; addCellData];
-                    else
-                        cellData = [cellData; markEndogenized];
-                    end
-                end
-            end
-
-            tableData = cell(1, numOfDates);
-            for t = 1 : numOfDates
-                if isData
-                    tableData{t} = cellData(:, (t-1)*2+(1:2));
-                else
-                    tableData{t} = cellData(:, t);
-                end
-            end
-            outputTable = table(idColumn, tableData{:});
-            outputTable.Properties.RowNames = rowNames;
-            outputTable.Properties.VariableNames = [{'SwapId'}, dateNames];
-
-            % Write table to text or spreadsheet file
-            if ~isempty(opt.WriteTable)
-                writetable(outputTable, opt.WriteTable, 'WriteRowNames', true);
-            end
-        end%
 
 
 
@@ -335,11 +237,11 @@ classdef Plan
             end
             posOfNames = find(inxOfNames);
             outputAnticipationStatus = logical.empty(0, 1);
-            for pos = transpose(posOfNames(:))
+            for column = transpose(posOfNames(:))
                 if id~=uint16(0)
                     % Exogenize
-                    outputAnticipationStatus(end+1, 1) = anticipationStatusOfEndogenous(pos);
-                    if anticipationStatusOfEndogenous(pos)
+                    outputAnticipationStatus(end+1, 1) = anticipationStatusOfEndogenous(column);
+                    if anticipationStatusOfEndogenous(column)
                         this.IdOfAnticipatedExogenized(inxOfNames, inxOfDates) = id;
                     else
                         this.IdOfUnanticipatedExogenized(inxOfNames, inxOfDates) = id;
@@ -380,19 +282,19 @@ classdef Plan
             posOfNames = find(inxOfNames);
             posOfNames = transpose(posOfNames(:));
             outputAnticipationStatus = logical.empty(0, 1);
-            for pos = transpose(posOfNames(:))
+            for column = transpose(posOfNames(:))
                 if id~=uint16(0)
                     % Endogenize
-                    outputAnticipationStatus(end+1, 1) = anticipationStatusOfExogenous(pos);
-                    if anticipationStatusOfExogenous(pos)
-                        this.IdOfAnticipatedEndogenized(pos, inxOfDates) = id;
+                    outputAnticipationStatus(end+1, 1) = anticipationStatusOfExogenous(column);
+                    if anticipationStatusOfExogenous(column)
+                        this.IdOfAnticipatedEndogenized(column, inxOfDates) = id;
                     else
-                        this.IdOfUnanticipatedEndogenized(pos, inxOfDates) = id;
+                        this.IdOfUnanticipatedEndogenized(column, inxOfDates) = id;
                     end
                 else
                     % Unendogenize
-                    this.IdOfAnticipatedEndogenized(pos, inxOfDates) = id;
-                    this.IdOfUnanticipatedEndogenized(pos, inxOfDates) = id;
+                    this.IdOfAnticipatedEndogenized(column, inxOfDates) = id;
+                    this.IdOfUnanticipatedEndogenized(column, inxOfDates) = id;
                 end
             end
         end%
@@ -415,6 +317,13 @@ classdef Plan
 
 
     properties (Dependent)
+        StartDate
+        EndDate
+        LastAnticipatedExogenizedDate
+        LastUnanticipatedExogenizedDate
+        LastAnticipatedEndogenizedDate
+        LastUnanticipatedEndogenizedDate
+
         InxOfAnticipatedExogenized
         InxOfUnanticipatedExogenized
         InxOfAnticipatedEndogenized
@@ -423,6 +332,7 @@ classdef Plan
         DisplayRange
         BaseRange
         ExtendedRange
+        LastAnticipatedExogenized
         NumOfEndogenous
         NumOfExogenous
         NumOfBasePeriods
@@ -435,7 +345,6 @@ classdef Plan
         NumOfUnanticipatedEndogenizedPoints
         PosOfBaseStart
         PosOfBaseEnd
-        LastAnticipatedExogenized
 
         NamesOfAnticipated
         NamesOfUnanticipated
@@ -471,24 +380,45 @@ classdef Plan
         end%
 
 
-        function value = get.InxOfAnticipatedExogenized(this)
-            value = this.IdOfAnticipatedExogenized~=0;
+        function value = get.StartDate(this)
+            value = DateWrapper.toDefaultString(this.BaseStart);
         end%
+
+
+
+        function value = get.EndDate(this)
+            value = DateWrapper.toDefaultString(this.BaseEnd);
+        end%
+
+
+
+
+        function value = get.InxOfAnticipatedExogenized(this)
+            value = not(this.IdOfAnticipatedExogenized==0);
+        end%
+
+
 
 
         function value = get.InxOfUnanticipatedExogenized(this)
-            value = this.IdOfUnanticipatedExogenized~=0;
+            value = not(this.IdOfUnanticipatedExogenized==0);
         end%
+
+
 
 
         function value = get.InxOfAnticipatedEndogenized(this)
-            value = this.IdOfAnticipatedEndogenized~=0;
+            value = not(this.IdOfAnticipatedEndogenized==0);
         end%
+
+
 
 
         function value = get.InxOfUnanticipatedEndogenized(this)
-            value = this.IdOfUnanticipatedEndogenized~=0;
+            value = not(this.IdOfUnanticipatedEndogenized==0);
         end%
+
+
 
 
         function value = get.DisplayRange(this)
@@ -507,7 +437,7 @@ classdef Plan
                 value = DateWrapper.NaD;
                 return
             end
-            value = this.BaseStart : this.BaseEnd;
+            value = DateWrapper.roundColon(this.BaseStart, this.BaseEnd);
             value = DateWrapper(value);
         end%
 
@@ -517,7 +447,7 @@ classdef Plan
                 value = DateWrapper.NaD;
                 return
             end
-            value = this.ExtendedStart : this.ExtendedEnd;
+            value = DateWrapper.roundColon(this.ExtendedStart, this.ExtendedEnd);
             value = DateWrapper(value);
         end%
 
@@ -589,6 +519,26 @@ classdef Plan
 
         function value = get.PosOfBaseEnd(this)
             value = round(this.BaseEnd - this.ExtendedStart + 1);
+        end%
+
+
+        function value = get.LastAnticipatedExogenizedDate(this)
+            value = hereGetLastDate(this.ExtendedStart, this.InxOfAnticipatedExogenized);
+        end%
+
+
+        function value = get.LastUnanticipatedExogenizedDate(this)
+            value = hereGetLastDate(this.ExtendedStart, this.InxOfUnanticipatedExogenized);
+        end%
+
+
+        function value = get.LastAnticipatedEndogenizedDate(this)
+            value = hereGetLastDate(this.ExtendedStart, this.InxOfAnticipatedEndogenized);
+        end%
+
+
+        function value = get.LastUnanticipatedEndogenizedDate(this)
+            value = hereGetLastDate(this.ExtendedStart, this.InxOfUnanticipatedEndogenized);
         end%
 
 
@@ -712,5 +662,47 @@ classdef Plan
             inxOfNames(posOfNames) = true;
         end%
     end
+
+
+
+
+    methods (Access=protected)
+        function pg = getPropertyGroups(~)
+            pg1 = matlab.mixin.util.PropertyGroup( { 'StartDate'
+                                                     'EndDate' 
+                                                     'DefaultAnticipationStatus'
+                                                     'AllowUnderdetermined'
+                                                     'AllowOverdetermined' } );
+
+            pg2 = matlab.mixin.util.PropertyGroup( { 'LastAnticipatedExogenized'
+                                                     'LastUnanticipatedExogenized'
+                                                     'LastAnticipatedEndogenized'
+                                                     'LastUnanticipatedEndogenized' }); 
+
+            pg3 = matlab.mixin.util.PropertyGroup( { 'NumOfAnticipatedExogenizedPoints'
+                                                     'NumOfUnanticipatedExogenizedPoints'
+                                                     'NumOfAnticipatedEndogenizedPoints'
+                                                     'NumOfUnanticipatedEndogenizedPoints' }); 
+            pg = [pg1, pg2, pg3];
+        end%
+    end
 end
+
+
+%
+% Local Functions
+%
+
+function dateString = hereGetLastDate(start, id)
+    inx = not(id==0);
+    if not(any(inx(:)))
+        column = NaN;
+        date = NaN;
+        dateString = DateWrapper.toDefaultString(NaN);
+        return
+    end
+    column = find(any(inx, 1), 1, 'Last');
+    date = DateWrapper.roundPlus(start, column-1);
+    dateString = DateWrapper.toDefaultString(date);
+end%
 
