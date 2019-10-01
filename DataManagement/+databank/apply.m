@@ -77,7 +77,7 @@ for i = 1 : numFields
     if ~isempty(func)
         ithSeries = func(ithSeries);
     end
-    outputDatabank = setfield(outputDatabank, ithName, ithSeries);
+    outputDatabank = setfield(outputDatabank, ithNewName, ithSeries);
 end
 
 appliedToNames = namesFields(inxApplied);
