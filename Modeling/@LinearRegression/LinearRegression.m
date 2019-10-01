@@ -20,8 +20,8 @@ classdef LinearRegression < shared.GetterSetter ...
 
     properties (SetAccess=protected)
         Dependent (1, 1) regression.Term = regression.Term( )
-        Explanatory (1, :) regression.Term = regression.Term.empty(1, 0)
-        Parameters (1, :, :) double = double.empty(1, 0, 1)
+        Explanatory regression.Term = regression.Term.empty(1, 0)
+        Parameters double = double.empty(1, 0, 1)
         Statistics (1, 1) struct = struct( 'VarErrors', NaN, ...
                                            'StdParameters', double.empty(1, 0, 1), ...
                                            'CovParameters', double.empty(0, 0, 1) );
