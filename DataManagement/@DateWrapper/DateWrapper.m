@@ -115,13 +115,17 @@ classdef DateWrapper < double
             elseif nargin==3
                 [from, step, to] = varargin{:};
             end
+            if isnan(from) || isnan(step) || isnan(to)
+                this = DateWrapper.NaD( );
+                return
+            end
             if ~isnumeric(from) || ~isnumeric(to) ...
-                || numel(from)~=1 || numel(to)~=1 ...
-                || DateWrapper.getFrequencyAsNumeric(from)~=DateWrapper.getFrequencyAsNumeric(to)
-                throw( exception.Base('DateWrapper:InvalidStartEndInColon', 'error') );
+                || not(numel(from)==1) || not(numel(to)==1) ...
+                || not(DateWrapper.getFrequencyAsNumeric(from)==DateWrapper.getFrequencyAsNumeric(to))
+                throw(exception.Base('DateWrapper:InvalidStartEndInColon', 'error'));
             end
             if ~isnumeric(step) || numel(step)~=1 || step~=round(step)
-                throw( exception.Base('DateWrapper:InvalidStepInColon', 'error') );
+                throw(exception.Base('DateWrapper:InvalidStepInColon', 'error'));
             end
             freq = DateWrapper.getFrequencyAsNumeric(from);
             fromSerial = floor(from);
