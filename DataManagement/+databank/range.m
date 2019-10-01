@@ -59,8 +59,8 @@ if isempty(parser)
     addRequired(parser, 'inputDatabank', @validate.databank);
     % Options
     addParameter(parser, 'NameList', @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
-    addParameter(parser, 'StartDate', 'MaxRange', @(x) validate.anyString(x, {'MaxRange', 'MinRange'}));
-    addParameter(parser, 'EndDate', 'MaxRange', @(x) validate.anyString(x, {'MaxRange', 'MinRange'}));
+    addParameter(parser, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
+    addParameter(parser, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(parser, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @any) || isa(x, 'Frequency'));
 end
 parse(parser, inputDatabank, varargin{:});
@@ -115,13 +115,13 @@ for i = 1 : numEntries
     end
 end
 
-if any(strcmpi(opt.StartDate, {'maxrange', 'unbalanced'}))
+if any(strcmpi(opt.StartDate, {'MaxRange', 'Unbalanced', 'Any'}))
     startDates = cellfun(@min, startDates, 'uniformOutput', false);
 else
     startDates = cellfun(@max, startDates, 'uniformOutput', false);
 end
 
-if any(strcmpi(opt.EndDate, {'maxrange', 'unbalanced'}))
+if any(strcmpi(opt.EndDate, {'MaxRange', 'Unbalanced', 'Any'}))
     endDates = cellfun(@max, endDates, 'uniformOutput', false);
 else
     endDates = cellfun(@min, endDates, 'uniformOutput', false);
