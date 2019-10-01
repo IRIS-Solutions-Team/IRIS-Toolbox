@@ -28,7 +28,8 @@ classdef ExcelSheet < matlab.mixin.Copyable
             if isempty(parser)
                 parser = extend.InputParser('ExcelSheet.ExcelSheet');
                 addRequired(parser,  'fileName', @validate.string);
-                addParameter(parser, 'Sheet', 1, @(x) validate.numericScalar(x) || validate.string(x));
+                % Options
+                addParameter(parser, 'Sheet', 1, @(x) isempty(x) || validate.numericScalar(x) || validate.string(x));
                 addParameter(parser, 'Range', '', @validate.string);
                 addParameter(parser, 'InsertEmpty', [0, 0], @(x) isnumeric(x) && numel(x)==2 && all(x==round(x)) && all(x>=0));
             end
@@ -52,9 +53,12 @@ classdef ExcelSheet < matlab.mixin.Copyable
 
 
         function read(this)
-            options = {'Sheet', this.SheetIdentification};
+            options = cell.empty(1, 0);
+            if ~isempty(this.SheetIdentification)
+                options = [options, {'Sheet', this.SheetIdentification}];
+            end
             if ~isempty(this.SheetRange)
-                options = [ options, {'Range', this.SheetRange} ];
+                options = [options, {'Range', this.SheetRange}];
             end
             this.Buffer = readcell(this.FileName, options{:});
             insertRows = this.InsertEmpty(1);
