@@ -58,7 +58,7 @@ classdef DatafeedContainer < handle
                 ithFrequency = this.Frequency(i);
                 ithYmd = this.Ymd{i};
                 ithSerial = ymd2serial(ithFrequency, ithYmd(:, 1), ithYmd(:, 2), ithYmd(:, 3));
-                ithDates = DataWrapper.fromSerial(ithFrequency, ithSerial);
+                ithDates = DateWrapper.fromSerial(ithFrequency, ithSerial);
                 ithName = this.Name{i};
                 ithData = this.Data{i};
                 ithColumnNames = this.ColumnNames{i};
