@@ -594,11 +594,15 @@ classdef DateWrapper < double
             s = repmat("", size(dates));
             [year, per, freq] = dat2ypf(dates);
             freqLetter = Frequency.toLetter(freq);
+            inxNaN = isnan(dates);
             inxYearly = freq==Frequency.YEARLY;
             inxMonthly = freq==Frequency.MONTHLY;
             inxWeekly = freq==Frequency.WEEKLY;
             inxDaily = freq==Frequency.DAILY;
             inxInteger = freq==Frequency.INTEGER;
+            if any(inxNaN(:))
+                s(inxNaN) = "NaD";
+            end
             for i = find(inxDaily)
                 s(i) = datestr(dates(i), 'yyyy-mmm-dd');
             end
@@ -611,8 +615,40 @@ classdef DateWrapper < double
             for i = find(inxMonthly | inxWeekly)
                 s(i) = sprintf('%g%s%02g', year(i), freqLetter(i), per(i));
             end
-            for i = find(~inxDaily & ~inxInteger & ~inxYearly & ~inxMonthly & ~inxWeekly)
+            for i = find(~inxNaN & ~inxDaily & ~inxInteger & ~inxYearly & ~inxMonthly & ~inxWeekly)
                 s(i) = sprintf('%g%s%g', year(i), freqLetter(i), per(i));
+            end
+        end%
+
+
+
+
+        function output = roundColon(from, varargin)
+            from = double(from);
+            convertToDateWrapper = isa(from, 'DateWrapper');
+            if nargin==2
+                to = double(varargin{1});
+                step = 1;
+            elseif nargin==3
+                step = double(varargin{1});
+                to = double(varargin{2});
+            end
+            output = (round(100*from) : round(100*step) : round(100*to))/100;
+            if convertToDateWrapper
+                output = DateWrapper(output);
+            end
+        end%
+
+
+
+
+        function output = roundPlus(this, that)
+            convertToDateWrapper = isa(this, 'DateWrapper') || isa(that, 'DateWrapper');
+            this = double(this);
+            that = double(that);
+            output = (round(100*this) + round(100*that))/100;
+            if convertToDateWrapper
+                output = DateWrapper(output);
             end
         end%
     end
