@@ -16,13 +16,13 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
     b.Data = b.Data(:, :);
     [rowA, colA] = size(a.Data);
     [rowB, colB] = size(b.Data);
-    if colA==1 && colB~=1
+    if colA==1 && not(colB==1)
         % First input argument is NumericTimeSubscriptable scalar; second NumericTimeSubscriptable with
         % multiple columns. Expand the first NumericTimeSubscriptable to match the size of the
         % second in 2nd and higher dimensions.
         a.Data = repmat(a.Data, 1, colB);
         sizeX = sizeB;
-    elseif colA~=1 && colB==1
+    elseif not(colA==1) && colB==1
         % First NumericTimeSubscriptable non-scalar; second
         % NumericTimeSubscriptable scalar
         b.Data = repmat(b.Data, 1, colA);
@@ -30,8 +30,15 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
     else
         sizeX = sizeA;
     end
-    startDate = min([a.Start, b.Start]);
-    endDate = max([a.Start+rowA-1, b.Start+rowB-1]);
+    startA = double(a.Start);
+    startB = double(b.Start);
+    if isnan(startA) && isnan(startB)
+        startDate = NaN;
+        endDate = NaN;
+    else
+        startDate = min([startA, startB]);
+        endDate = max([startA+rowA-1, startB+rowB-1]);
+    end
     range = startDate : endDate;
     dataA = rangedata(a, range);
     dataB = rangedata(b, range);
@@ -41,11 +48,9 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
     try
         x.Data = reshape(dataX, [size(dataX, 1), sizeX(2:end)]);
     catch %#ok<CTCH>
-        throw( ...
-            exception.Base('Series:BinopSizeMismatch', 'error') ...
-            );
+        throw(exception.Base('Series:BinopSizeMismatch', 'error'));
     end
-    x.Start = range(1);
+    x.Start = DateWrapper(range(1));
     x = resetComment(x);
     x = trim(x);
 else
