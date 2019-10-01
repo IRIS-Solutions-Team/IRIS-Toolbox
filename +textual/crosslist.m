@@ -8,6 +8,8 @@ function outputList = crosslist(glue, varargin)
 
 %--------------------------------------------------------------------------
 
+isAllChar = all(cellfun('isclass', varargin, 'char'));
+
 outputList = hereEnsureCellstr(varargin{end});
 for component = varargin(end-1:-1:1)
     add = hereEnsureCellstr(component{1});
@@ -15,6 +17,10 @@ for component = varargin(end-1:-1:1)
     outputList = [temp{:}];
 end
 outputList = reshape(outputList, [ ], 1);
+
+if isAllChar && numel(outputList)==1
+    outputList = outputList{1};
+end
 
 return
 
