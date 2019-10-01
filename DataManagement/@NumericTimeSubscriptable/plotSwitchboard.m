@@ -50,7 +50,9 @@ end
 
 % Modify how dates are displayed in data tips
 if isTimeAxis && isa(xData, 'datetime')
-    hereModifyDataTip(plotHandle, xData);
+    try % Works in R2019a+
+        hereModifyDataTip(plotHandle, xData);
+    end
 end
 
 return
@@ -183,9 +185,7 @@ end%
 function hereModifyDataTip(plotHandle, xData)
     r = dataTipTextRow('X', 'XData', xData.Format);
     for i = 1 : numel(plotHandle)
-        try
-            plotHandle(i).DataTipTemplate.DataTipRows(1) = r;
-        end
+        plotHandle(i).DataTipTemplate.DataTipRows(1) = r;
     end
 end%
 
