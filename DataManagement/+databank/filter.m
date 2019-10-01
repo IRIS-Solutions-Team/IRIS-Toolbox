@@ -15,7 +15,7 @@ if isempty(inputParser)
     inputParser.addParameter('Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
 inputParser.parse(d, varargin{:});
-opt = inputParser.Results;
+opt = inputParser.Options;
 
 %--------------------------------------------------------------------------
 
