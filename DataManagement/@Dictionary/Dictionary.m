@@ -456,6 +456,13 @@ classdef Dictionary < matlab.mixin.Copyable
             end
             this = remove(this, string(toRemove), 'Silent');
         end%
+
+
+
+
+        function s = toStruct(this)
+            s = cell2struct(this.Values, cellstr(this.Keys), 2);
+        end%
     end        
 
 
