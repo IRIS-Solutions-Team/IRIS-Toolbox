@@ -47,15 +47,6 @@ Def.dbminuscontrol = {
     'fresh', true, @islogicalscalar
 };
 
-Def.dbfun = [
-    { 
-    'recursive, cascade', true, @(x) isequal(x, true) || isequal(x, false)
-    'fresh', false, @islogicalscalar
-    'iferror, onerror', 'remove', @(x) (ischar(x) && any(strcmpi(x, {'remove', 'nan'}))) || isequaln(x, NaN)
-    'ifwarning, onwarning', 'keep', @(x) (ischar(x) && any(strcmpi(x, {'remove', 'keep', 'nan'}))) || isequal(x, NaN)
-    }
-];
-
 Def.dbprintuserdata = { 
     'output', 'prompt', @(x) ischar(x) && any(strcmpi(x, {'html', 'prompt'}))
 };

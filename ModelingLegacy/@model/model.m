@@ -241,9 +241,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
 
         varargout = steady(varargin)
-        function varargout = sstate(varargin)
-            [varargout{1:nargout}] = steady(varargin{:});
-        end%
+        varargout = sstate(varargin)
 
 
         varargout = steadydb(varargin)

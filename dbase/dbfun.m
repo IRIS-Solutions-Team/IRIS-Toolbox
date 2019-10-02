@@ -1,4 +1,4 @@
-function [outp, flag, listErrors, listWarnings] = dbfun(varargin)
+function [outp, flag, listErrors, listWarnings] = dbfun(func, primary, varargin)
 % dbfun  Apply function to databank fields
 %
 %
@@ -75,56 +75,65 @@ function [outp, flag, listErrors, listWarnings] = dbfun(varargin)
 %
 %     d = 
 %         a: [2 4]
-%         b: [3x1 tseries]
+%         b: [3x1 Series]
 %
 %     d.b
 %     ans = 
-%         tseries object: 3-by-1
+%         Series object: 3-by-1
 %         1:  2
 %         2:  2
 %         3:  2
-%         ''
-%         user data: empty
-%         export files: [0]
+%         'Dates'    ''
+%         User Data: Empty
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-inputDatabanks = cell(1, nargin);
-[Fn, inputDatabanks{1}, varargin] = irisinp.parser.parse('dbase.dbfun', varargin{:});
-
 % Find last secondary input databank in varargin.
-nSecDb = max([ 0, find(cellfun(@isstruct, varargin), 1, 'last') ]);
-nDb = nSecDb + 1;
-inputDatabanks(1+(1:nSecDb)) = varargin(1:nSecDb);
-inputDatabanks(nDb+1:end) = [ ];
-varargin(1:nSecDb) = [ ];
+inxDatabanks = cellfun(@validate.databank, varargin);
+if all(inxDatabanks)
+    numSecondary = numel(varargin);
+else
+    numSecondary = find(~inxDatabanks, 1) - 1;
+end
+inputDatabanks = cell(1, 1+numSecondary);
+inputDatabanks{1} = primary;
+inputDatabanks(2:end) = varargin(1:numSecondary);
+varargin(1:numSecondary) = [ ];
 
-[opt, unmatched] = passvalopt('dbase.dbfun', varargin{:});
+persistent parser
+if isempty(parser)
+    parser = extend.InputParser('dbase.dbfun');
+    parser.KeepUnmatched = true;
+    addParameter(parser, {'Recursive', 'Cascade'}, true, @validate.logicalScalar);
+    addParameter(parser, 'Fresh', false, @validate.logicalScalar);
+    addParameter(parser, {'IfError', 'OnError'}, 'Remove', @(x) validate.anyString(x, 'Remove', 'NaN'));
+    addParameter(parser, {'IfWarning', 'OnWarning'}, 'Keep', @(x) isequaln(x, NaN) || validate.anyString('Remove', 'Keep', 'NaN'));
+end
+parse(parser, varargin{:});
+opt = parser.Options;
+unmatched = parser.UnmatchedInCell;
 
 % `list` is the list of *all* fields in databank `D1`; selected names (to
 % be processed) will be stored in `select`.
-fieldNames = fieldnames(inputDatabanks{1});
-fieldNames = fieldNames(:).';
-nField = numel(fieldNames);
-X = cell(1, nField);
-inxKeep = false(1, nField);
+fieldNames = reshape(fieldnames(inputDatabanks{1}), 1, [ ]);
+numFields = numel(fieldNames);
+X = cell(1, numFields);
+inxKeep = false(1, numFields);
 
-% __Process Subdatabases__
-if opt.recursive
-    for i = 1 : nField
-        name = fieldNames{i};
-        if ~isstruct(inputDatabanks{1}.(name))
+% __Process Subdatabanks__
+if opt.Recursive
+    for i = 1 : numFields
+        ithName = fieldNames{i};
+        ithField = getfield(inputDatabanks{1}, ithName);
+        if ~validate.databank(ithField)
             continue
         end
-        argList = cell(1, nDb);
-        for iDb = 1 : nDb
-            argList{iDb} = inputDatabanks{iDb}.(name);
-        end
+        args = cellfun(@(x) getfield(x, ithName), inputDatabanks, 'UniformOutput', false);
         % Cannot pass in opt because it is a struct and would be confused
         % for a secondary input databank.
-        X{i} = dbfun(Fn, argList{:}, varargin{:});
+        X{i} = dbfun(func, args{:}, varargin{:});
         inxKeep(i) = true;
     end
 end
@@ -132,14 +141,14 @@ end
 %--------------------------------------------------------------------------
 
 listSelect = dbnames(inputDatabanks{1}, unmatched{:});
-listErrors = cell(1, nField);
-inxErrors = false(1, nField);
-listWarnings = cell(1, nField);
-inxWarnings = false(1, nField);
+listErrors = cell(1, numFields);
+inxErrors = false(1, numFields);
+listWarnings = cell(1, numFields);
+inxWarnings = false(1, numFields);
 
 % Index of fields to be processed; exclude sub-databases (processed
 % earlier) and fields not on the select list.
-testFunc = @(field) ~isstruct(inputDatabanks{1}.(field)) ...
+testFunc = @(field) ~validate.databank(getfield(inputDatabanks{1}, field)) ...
                     && any(strcmp(field, listSelect));
 inxToProcess = cellfun(testFunc, fieldNames);
 
@@ -149,7 +158,7 @@ for i = find(inxToProcess)
         fnArgList = cellfun( @(x) x.(fieldNames{i}), inputDatabanks, ...
                              'UniformOutput', false );
         lastwarn('');
-        X{i} = feval(Fn, fnArgList{:});
+        X{i} = feval(func, fnArgList{:});
         if ~isempty( lastwarn( ) )
             listWarnings{i} = lastwarn( );
             inxWarnings(i) = true;
@@ -171,18 +180,18 @@ end
 
 % Create output databank
 if any(inxKeep)    
-    if opt.fresh || length(inputDatabanks{1})>1
-        % Only processed fields are included.
+    if opt.Fresh || numel(inputDatabanks{1})>1
+        % Only processed fields are included
         outp = cell2struct(X(inxKeep), fieldNames(inxKeep), 2);
     else
         % Keep unprocessed fields in the output databank
         for i = find(inxKeep)
-            inputDatabanks{1}.(fieldNames{i}) = X{i};
+            inputDatabanks{1} = setfield(inputDatabanks{1}, fieldNames{i}, X{i});
         end
         outp = inputDatabanks{1};
     end
 else
-    if opt.fresh || length(inputDatabanks{1})>1
+    if opt.Fresh || length(inputDatabanks{1})>1
         outp = struct( );
     else
         outp = inputDatabanks{1};
@@ -191,7 +200,6 @@ end
 
 return
 
-
     function hereReportMatlabErrors( )
         % Throw warnings for Matlab errors.
         errorMessage = cell.empty(1, 0);
@@ -199,7 +207,7 @@ return
             errorMessage{end+1} = fieldNames{ii}; %#ok<AGROW>
             errorMessage{end+1} = listErrors{ii}; %#ok<AGROW>
         end
-        if isequaln(opt.iferror, NaN) || strcmpi(opt.iferror, 'NaN')
+        if isequaln(opt.IfError, NaN) || strcmpi(opt.IfError, 'NaN')
             X(inxErrors) = { NaN };
         else
             inxKeep(inxErrors) = false;
@@ -217,9 +225,9 @@ return
             warningMessage{end+1} = fieldNames{ii}; %#ok<AGROW>
             warningMessage{end+1} = listWarnings{ii}; %#ok<AGROW>
         end
-        if isequaln(opt.ifwarning, NaN) || strcmpi(opt.ifwarning, 'NaN')
+        if isequaln(opt.IfWarning, NaN) || strcmpi(opt.IfWarning, 'NaN')
             X(inxWarnings) = { NaN };
-        elseif strcmpi(opt.ifwarning, 'Remove')
+        elseif strcmpi(opt.IfWarning, 'Remove')
             inxKeep(inxWarnings) = false;
         else
             % Do nothing
