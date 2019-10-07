@@ -1,76 +1,86 @@
-function d = batch(d, newNameTemplate, generator, varargin)
+function runningDatabank = batch( runningDatabank, newNameTemplate, generator, varargin )
+% batch  Execute batch job within databank
+%{
+%}
 
-persistent INPUT_PARSER
-if isempty(INPUT_PARSER)
-    INPUT_PARSER = extend.InputParser('databank/batch');
-    INPUT_PARSER.addRequired('Databank', @isstruct);
-    INPUT_PARSER.addRequired('NewNameTemplate', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    INPUT_PARSER.addRequired('Expression', @(x) isa(x, 'function_handle') || ischar(x) || (isa(x, 'string') && isscalar(x)));
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank/batch');
+    addRequired(pp, 'databank', @validate.databank);
+    addRequired(pp, 'newNameTemplate', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    addRequired(pp, 'expression', @(x) isa(x, 'function_handle') || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
-
-INPUT_PARSER.parse(d, newNameTemplate, generator);
+parse(pp, runningDatabank, newNameTemplate, generator);
+if isstruct(runningDatabank)
+    store = @setfield;
+    retrieve = @getfield;
+end
 
 %--------------------------------------------------------------------------
 
-[selectNames, selectTokens] = databank.filter(d, varargin{:});
+[ selectNames, selectTokens ] = databank.query( runningDatabank, varargin{:} );
 
 if isa(generator, 'function_handle')
-    errorReport = cellfun( ...
-        @(name, tokens) generateNewFieldFromFunction(name, tokens), ...
-        selectNames, selectTokens, ...
-        'UniformOutput', false ...
-    );
+    errorReport = cellfun( @(name, tokens) hereGenerateNewFieldFromFunction(name, tokens), ...
+                           selectNames, selectTokens, ...
+                           'UniformOutput', false );
 else
-    errorReport = cellfun( ...
-        @(name, tokens) generateNewFieldFromExpression(name, tokens), ...
-        selectNames, selectTokens, ...
-        'UniformOutput', false ...
-    );
+    errorReport = cellfun( @(name, tokens) hereGenerateNewFieldFromExpression(name, tokens), ...
+                           selectNames, selectTokens, ...
+                           'UniformOutput', false );
 end
 
 ixError = ~cellfun(@isempty, errorReport);
 if any(ixError)
     errorReport = errorReport(ixError);
     errorReport = [errorReport{:}];
-    error( ...
-        'databank:batch', ...
-        'Error when generating this new databank field: %s \n    Matlab says: %s \n', ...
-        errorReport{:} ...
-    );
+    error( 'databank:batch', ...
+           'Error when generating this new databank field: %s \n    Matlab says: %s \n', ...
+           errorReport{:} );
 end
 
 return
 
-
-    function errorReport = generateNewFieldFromExpression(iName, iTokens)
+    function errorReport = hereGenerateNewFieldFromExpression( ithName, ithTokens )
         try
-            iNewName = makeSubstitutions(newNameTemplate, iName, iTokens);
-            iExpression = makeSubstitutions(char(generator), iName, iTokens);
-            d.(iNewName) = databank.eval(d, iExpression);
+            ithNewName = hereMakeSubstitution(newNameTemplate, ithName, ithTokens);
+            ithExpressiong = hereMakeSubstitution(char(generator), ithName, ithTokens);
+            ithNewField = databank.eval(runningDatabank, ithExpressiong);
+            runningDatabank = store(runningDatabank, ithNewName, ithNewField);
             errorReport = [ ];
         catch Err
-            errorReport = {iNewName, Err.message};
+            errorReport = {ithNewName, Err.message};
         end
-    end
+    end%
 
 
-    function errorReport = generateNewFieldFromFunction(iName, iTokens)
+    function errorReport = hereGenerateNewFieldFromFunction( ithName, ithTokens )
         try
-            iNewName = makeSubstitutions(newNameTemplate, iName, iTokens);
-            d.(iNewName) = feval(generator, d.(iName));
+            ithNewName = hereMakeSubstitution(newNameTemplate, ithName, ithTokens);
+            ithInput = retrieve(runningDatabank, ithName);
+            ithNewField = feval(generator, ithInput);
+            runningDatabank = store(runningDatabank, ithNewName, ithNewField);
             errorReport = [ ];
         catch Err
-            errorReport = {iNewName, Err.message};
+            errorReport = {ithNewName, Err.message};
         end
-    end
-end
+    end%
+end%
 
 
-function c = makeSubstitutions(c, iName, iTokens)
-    nTokens = numel(iTokens);
-    c = strrep(c, '$0', iName);
-    for j = 1 : nTokens
-        c = strrep(c, sprintf('$%g', j), iTokens{j});
+%
+% Local Functions
+%
+ 
+
+function c = hereMakeSubstitution( c, ithName, ithTokens )
+    numTokens = numel(ithTokens);
+    c = strrep(c, '$0', ithName);
+    for j = 1 : numTokens
+        c = strrep(c, sprintf('$%g', j), ithTokens{j});
     end
-end
+end%
 
