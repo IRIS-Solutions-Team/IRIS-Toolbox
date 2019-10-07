@@ -17,11 +17,15 @@ function response = get(this, query)
 %
 % ## Output Arguments ##
 %
-% __`response` [ * ] -
+% __`response`__ [ * ] -
 % Response to the `query` about the `plan`.
 %
 %
 % ## Valid Queries ##
+%
+% __`AnticipationStatus`__ returns [ struct | Dictionary ] -
+% Databank with the anticipation status (`true` or `false`) for each
+% endogenous and exogenous quantity.
 %
 % __`Endogenized`__ returns [ struct | Dictionary ] -
 % Databank with all exogenous quantities (shocks in Model objects) as time
@@ -43,6 +47,14 @@ function response = get(this, query)
 % Same as `Exogenized` except that the databank includes konly those
 % quantities that are exogenized at least in one period.
 %
+% __`NamesOfAnticipated`__ returns [ cellstr ] -
+% List of names of exogenous quantities (shocks in Model objects) whose
+% anticipation status is `true`.
+%
+% __`NamesOfUnanticipated`__ returns [ cellstr ] -
+% List of names of exogenous quantities (shocks in Model objects) whose
+% anticipation status is `false`.
+%
 %
 % ## Description ##
 %
@@ -54,18 +66,24 @@ function response = get(this, query)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-
 %-------------------------------------------------------------------------------
 
 if validate.anyString(query, 'Exogenized', 'OnlyExogenized', 'ExogenizedOnly')
     names = this.NamesOfEndogenous;
-    id = this.IdOfAnticipatedExogenized | this.IdOfUnanticipatedExogenized;
-    response = hereGetE_ogenized(names, id);
+    inx = this.IdOfAnticipatedExogenized~=0 | this.IdOfUnanticipatedExogenized~=0;
+    response = hereGetE_ogenized(names, inx);
 
 elseif validate.anyString(query, 'Endogenized', 'OnlyEndogenized', 'EndogenizedOnly')
     names = this.NamesOfExogenous;
-    id = this.IdOfAnticipatedEndogenized | this.IdOfUnanticipatedEndogenized;
-    response = hereGetE_ogenized(names, id);
+    inx = this.IdOfAnticipatedEndogenized~=0 | this.IdOfUnanticipatedEndogenized~=0;
+    response = hereGetE_ogenized(names, inx);
+
+elseif validate.anyString(query, 'NamesOfAnticipated', 'NamesOfUnanticipated')
+    response = this.(query);
+
+elseif validate.anyString(query, 'AnticipationStatus', 'Anticipate')
+    response = cell2struct( num2cell([this.AnticipationStatusOfEndogenous; this.AnticipationStatusOfExogenous]), ...
+                            [this.NamesOfEndogenous(:); this.NamesOfExogenous(:)] );
 
 else
     thisError = { 'Plan:InvalidQuery'
@@ -75,17 +93,17 @@ end
 
 return
     
-    function response = hereGetE_ogenized(names, id)
+    function response = hereGetE_ogenized(names, inx)
         isOnly = contains(query, 'Only', 'IgnoreCase', true);
         template = Series(this.BaseRange, true);
         numNames = numel(names);
         response = struct( );
         for i = 1 : numNames
-            ithId = id(i, :, :);
-            if isOnly && all(ithId(:)==0)
+            ithRow = inx(i, :, :);
+            if isOnly && all(ithRow(:)==0)
                 continue
             end
-            ithSeries = fill(template, permute(ithId, [2, 3, 1]));
+            ithSeries = fill(template, permute(ithRow, [2, 3, 1]));
             response = setfield(response, names{i}, ithSeries);
         end
     end%
