@@ -51,7 +51,9 @@ if isempty(parser)
     addRequired(parser, 'SolvedModel', @validate.solvedModel);
     addRequired(parser, 'InputData', @(x) isstruct(x) || isa(x, 'simulate.Data'));
     addRequired(parser, 'SimulationRange', @DateWrapper.validateProperRangeInput);
-
+    %
+    % Options
+    %
     parser.addDeviationOptions(false);
     addParameter(parser, 'Anticipate', true, @validate.logicalScalar);
     addParameter(parser, 'AppendPostsample', false, @validate.logicalScalar);
@@ -133,8 +135,8 @@ end
 
 
 % /////////////////////////////////////////////////////////////////////////
-numOfRuns = runningData.NumOfPages;
-for i = 1 : numOfRuns
+numRuns = runningData.NumOfPages;
+for i = 1 : numRuns
     simulateTimeFrames(this, systemProperty, i);
     if opt.ProgressInfo
         hereUpdateProgressInfo(i);
@@ -160,9 +162,9 @@ return
 
     function hereResolveOptionConflicts( )
         if ~usingDefaults.Anticipate && ~usingDefaults.Plan
-            THIS_ERROR = { 'Model:CannotUseAnticipateAndPlan'
-                           'Options Anticipate= and Plan= cannot be combined in one simulate(~)' };
-            throw( exception.Base(THIS_ERROR, 'error') );
+            thisError = { 'Model:CannotUseAnticipateAndPlan'
+                          'Options Anticipate= and Plan= cannot be combined in one simulate(~)' };
+            throw(exception.Base(thisError, 'error'));
         end
         if ~usingDefaults.Anticipate && usingDefaults.Plan
             opt.Plan = opt.Anticipate;
@@ -173,14 +175,14 @@ return
             checkCompatibilityOfPlan(this, baseRange, opt.Plan);
         end
         if opt.Contributions && opt.Plan.NumOfExogenizedPoints>0
-            THIS_ERROR = { 'Model:CannotEvalContributionsWithExogenized'
-                           'Option Contributions=true cannot be used in simulations with exogenized variables' }
-            throw( exception.Base(THIS_ERROR, 'error') );
+            thisError = { 'Model:CannotEvalContributionsWithExogenized'
+                          'Option Contributions=true cannot be used in simulations with exogenized variables' }
+            throw(exception.Base(thisError, 'error'));
         end
         if opt.Contributions && databankInfo.NumOfPages>1
-            THIS_ERROR = { 'Model:CannotEvalContributionsWithMultipleDataSets'
-                           'Option Contributions=true cannot be used in simulations on multiple data sets' }
-            throw( exception.Base(THIS_ERROR, 'error') );
+            thisError = { 'Model:CannotEvalContributionsWithMultipleDataSets'
+                          'Option Contributions=true cannot be used in simulations on multiple data sets' }
+            throw(exception.Base(thisError, 'error'));
         end
     end%
 
@@ -188,28 +190,26 @@ return
 
 
     function hereCopyOptionsToRunningData( )
-        numOfRuns = runningData.NumOfPages;
+        numRuns = runningData.NumOfPages;
         runningData.Plan = plan;
         runningData.Initial = opt.Initial;
         runningData.Window = opt.Window;
         runnintDaga.SuccessOnly = opt.SuccessOnly;
         runningData.SparseShocks = opt.SparseShocks;
         runningData.Solver = opt.Solver;
-        runningData.Method = repmat(opt.Method, 1, numOfRuns);
-        runningData.Deviation = repmat(opt.Deviation, 1, numOfRuns);
-        runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numOfRuns);
+        runningData.Method = repmat(opt.Method, 1, numRuns);
+        runningData.Deviation = repmat(opt.Deviation, 1, numRuns);
+        runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numRuns);
     end%
 
 
 
 
     function herePrepareData( )
-        TYPE = @int8;
-        numOfDummyPeriods = hereCalculateNumOfDummyPeriods( );
-        runningData.NumOfDummyPeriods = numOfDummyPeriods;
+        numDummyPeriods = hereCalculateNumOfDummyPeriods( );
         startOfBaseRange = baseRange(1);
         endOfBaseRange = baseRange(end);
-        endOfBaseRangePlusDummy = endOfBaseRange + numOfDummyPeriods;
+        endOfBaseRangePlusDummy = endOfBaseRange + numDummyPeriods;
         baseRangePlusDummy = [startOfBaseRange, endOfBaseRangePlusDummy];
         runningData.BaseRange = [startOfBaseRange, endOfBaseRange];
         [ runningData.YXEPG, ~, ...
@@ -220,22 +220,22 @@ return
                                                   baseRangePlusDummy, ...
                                                   'ResetShocks=', true, ...
                                                   'IgnoreShocks=', opt.IgnoreShocks, ...
-                                                  'NumOfDummyPeriods', numOfDummyPeriods );
+                                                  'NumOfDummyPeriods', numDummyPeriods );
         startOfExtendedRange = extendedRange(1);
         endOfExtendedRange = extendedRange(end);
         runningData.ExtendedRange = [startOfExtendedRange, endOfExtendedRange];
         runningData.BaseRangeColumns = colon( round(startOfBaseRange - startOfExtendedRange + 1), ...
                                               round(endOfBaseRange - startOfExtendedRange + 1) );
-        numOfPages = runningData.NumOfPages;
-        if numOfPages==1 && nv>1
+        numPages = runningData.NumOfPages;
+        if numPages==1 && nv>1
             % Expand number of data sets to match number of parameter variants
             runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, nv);
         end
-        numOfRuns = runningData.NumOfPages;
+        numRuns = runningData.NumOfPages;
         runningData.InxOfInitInPresample = getInxOfInitInPresample(this, runningData.BaseRangeColumns(1));
-        runningData.Method = repmat(opt.Method, 1, numOfRuns);
-        runningData.Deviation = repmat(opt.Deviation, 1, numOfRuns);
-        runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numOfRuns);
+        runningData.Method = repmat(opt.Method, 1, numRuns);
+        runningData.Deviation = repmat(opt.Deviation, 1, numRuns);
+        runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numRuns);
     end%
 
 
@@ -243,31 +243,31 @@ return
 
     function herePrepareContributions( )
         firstColumnToSimulate = runningData.BaseRangeColumns(1);
-        inxOfLog = this.Quantity.InxOfLog;
-        inxOfE = getIndexByType(this, TYPE(31), TYPE(32));
-        posOfE = find(inxOfE);
-        numOfE = nnz(inxOfE);
-        numOfRuns = numOfE + 2;
-        runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, numOfRuns);
+        inxLog = this.Quantity.InxOfLog;
+        inxE = getIndexByType(this, TYPE(31), TYPE(32));
+        posE = find(inxE);
+        numE = nnz(inxE);
+        numRuns = numE + 2;
+        runningData.YXEPG = repmat(runningData.YXEPG, 1, 1, numRuns);
         % Zero out initial conditions in shock contributions
-        runningData.YXEPG(inxOfLog, 1:firstColumnToSimulate-1, 1:numOfE) = 1;
-        runningData.YXEPG(~inxOfLog, 1:firstColumnToSimulate-1, 1:numOfE) = 0;
-        for ii = 1 : numOfE
-            temp = runningData.YXEPG(posOfE(ii), :, ii);
-            runningData.YXEPG(inxOfE, :, ii) = 0;
-            runningData.YXEPG(posOfE(ii), :, ii) = temp;
+        runningData.YXEPG(inxLog, 1:firstColumnToSimulate-1, 1:numE) = 1;
+        runningData.YXEPG(~inxLog, 1:firstColumnToSimulate-1, 1:numE) = 0;
+        for ii = 1 : numE
+            temp = runningData.YXEPG(posE(ii), :, ii);
+            runningData.YXEPG(inxE, :, ii) = 0;
+            runningData.YXEPG(posE(ii), :, ii) = temp;
         end
         % Zero out all shocks in init+const contributions
-        runningData.YXEPG(inxOfE, firstColumnToSimulate:end, end-1) = 0;
+        runningData.YXEPG(inxE, firstColumnToSimulate:end, end-1) = 0;
 
         if opt.Method==solver.Method.FIRST_ORDER 
             % Assign zero contributions of nonlinearities right away if
             % this is a first order simulation
-            runningData.YXEPG(inxOfLog, :, end) = 1;
-            runningData.YXEPG(~inxOfLog, :, end) = 0;
+            runningData.YXEPG(inxLog, :, end) = 1;
+            runningData.YXEPG(~inxLog, :, end) = 0;
         end
 
-        runningData.Method = repmat(solver.Method.FIRST_ORDER, 1, numOfRuns);
+        runningData.Method = repmat(solver.Method.FIRST_ORDER, 1, numRuns);
         if opt.Method==solver.Method.FIRST_ORDER 
             % Assign zero contributions of nonlinearities right away if
             % this is a first order simulation
@@ -275,9 +275,9 @@ return
         else
             runningData.Method(end) = opt.Method;
         end
-        runningData.Deviation = true(1, numOfRuns);
+        runningData.Deviation = true(1, numRuns);
         runningData.Deviation(end-1:end) = opt.Deviation;
-        runningData.NeedsEvalTrends = false(1, numOfRuns);
+        runningData.NeedsEvalTrends = false(1, numRuns);
         runningData.NeedsEvalTrends(end-1:end) = opt.EvalTrends;
     end%
 
@@ -285,35 +285,40 @@ return
 
 
     function timeFrameDates = herePrepareTimeFrames( )
-        numOfPages = runningData.NumOfPages;
-        inxOfE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
-        runningData.TimeFrames = cell(1, numOfPages);
-        runningData.MixinUnanticipated = false(1, numOfPages);
-        runningData.TimeFrameDates = cell(1, numOfPages);
+        numPages = runningData.NumOfPages;
+        inxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
+        runningData.TimeFrames = cell(1, numPages);
+        runningData.MixinUnanticipated = false(1, numPages);
+        runningData.TimeFrameDates = cell(1, numPages);
         extendedRange = runningData.ExtendedRange;
         startOfExtendedRange = extendedRange(1);
         endOfExtendedRange = extendedRange(end);
-        deficiency = cell(1, numOfPages);
-        for page = 1 : numOfPages
-            [~, unanticipatedE] = simulate.Data.splitE( runningData.YXEPG(inxOfE, :, page), ...
+        deficiency = cell(1, numPages);
+        covariance = cell(1, numPages);
+        for page = 1 : numPages
+            [~, unanticipatedE] = simulate.Data.splitE( runningData.YXEPG(inxE, :, page), ...
                                                         plan.AnticipationStatusOfExogenous, ...
                                                         runningData.BaseRangeColumns );
             [ runningData.TimeFrames{page}, ...
               runningData.MixinUnanticipated(page) ] = ...
-                splitIntoTimeFrames( unanticipatedE, ...
-                                     runningData.BaseRangeColumns, ...
-                                     plan, ...
-                                     runningData.MaxShift, ...
-                                     opt );
-            numOfTimeFrames = size(runningData.TimeFrames{page}, 1);
-            timeFrameDates = nan(numOfTimeFrames, 2);
-            deficiency{page} = zeros(1, numOfTimeFrames);
-            for frame = 1 : numOfTimeFrames
+                hereSplitIntoTimeFrames( unanticipatedE, ...
+                                         runningData.BaseRangeColumns, ...
+                                         plan, ...
+                                         runningData.MaxShift, ...
+                                         opt );
+            numTimeFrames = size(runningData.TimeFrames{page}, 1);
+            timeFrameDates = nan(numTimeFrames, 2);
+            deficiency{page} = zeros(1, numTimeFrames);
+            covariance{page} = cell(1, numTimeFrames);
+            for frame = 1 : numTimeFrames
                 startOfTimeFrame = startOfExtendedRange + runningData.TimeFrames{page}(frame, 1) - 1;
                 endOfTimeFrame = startOfExtendedRange + runningData.TimeFrames{page}(frame, end) - 1;
                 timeFrameDates(frame, :) = [startOfTimeFrame, endOfTimeFrame];
+                %
                 % Check determinacy of simulation plan within this time frame
-                deficiency{page}(frame) = hereCheckDeterminacyOfPlan( );
+                % Determine covariance matrix for underdetermined systems
+                %
+                [deficiency{page}(frame), covariance{page}{frame}] = hereCheckDeterminacyOfPlan( );
             end
             runningData.TimeFrameDates{page} = DateWrapper.fromDateCode(timeFrameDates);
         end
@@ -323,25 +328,28 @@ return
 
         return
 
-            function deficiency = hereCheckDeterminacyOfPlan( )
+            function [deficiency, covariance] = hereCheckDeterminacyOfPlan( )
+                %
+                % Check determinacy of plan in each
                 firstColumnOfTimeFrame = runningData.TimeFrames{page}(frame, 1);
                 lastColumnOfSimulation = runningData.BaseRangeColumns(end);
-                [ inxOfExogenized, ...
-                  inxOfEndogenized ] = getSwapsWithinTimeFrame( plan, ...
-                                                                firstColumnOfTimeFrame, ...
-                                                                lastColumnOfSimulation );
-                numOfExogenized = nnz(inxOfExogenized);
-                numOfEndogenized = nnz(inxOfEndogenized);
+                [ inxExogenized, ...
+                  inxEndogenized ] = getSwapsWithinTimeFrame( plan, ...
+                                                              firstColumnOfTimeFrame, ...
+                                                              lastColumnOfSimulation );
+                numExogenized = nnz(inxExogenized);
+                numEndogenized = nnz(inxEndogenized);
                 deficiency = 0;
-                if numOfExogenized==numOfEndogenized
+                covariance = [ ];
+                if numExogenized==numEndogenized
                     return
                 end
-                if numOfExogenized>numOfEndogenized
+                if numExogenized>numEndogenized
                    if plan.AllowUnderdetermined
                        return
                    end
                    deficiency = -1;
-                elseif numOfExogenized<numOfEndogenized
+                elseif numExogenized<numEndogenized
                     if plan.AllowOverdetermined
                         return
                     end
@@ -363,10 +371,9 @@ return
                                                ii, jj, description );
                     end
                 end
-                THIS_ERROR = { 'Model:DeficientSimulationPlan' 
-                               'Simulation plan is deficient in %s' };
-                throw( exception.Base(THIS_ERROR, 'error'), ...
-                       temp{:} );
+                thisError = { 'Model:DeficientSimulationPlan' 
+                              'Simulation plan is deficient in %s' };
+                throw(exception.Base(thisError, 'error'), temp{:});
             end%
     end%
 
@@ -435,21 +442,21 @@ return
     function hereCheckInitialConditions( )
         % Report missing initial conditions
         firstColumnOfSimulation = runningData.BaseRangeColumns(1);
-        inxOfNaNPresample = any(isnan(runningData.YXEPG(:, 1:firstColumnOfSimulation-1, :)), 3);
-        checkInitialConditions(this, inxOfNaNPresample, firstColumnOfSimulation);
+        inxNaNPresample = any(isnan(runningData.YXEPG(:, 1:firstColumnOfSimulation-1, :)), 3);
+        checkInitialConditions(this, inxNaNPresample, firstColumnOfSimulation);
     end%
 
 
 
 
-    function numOfDummyPeriods = hereCalculateNumOfDummyPeriods( )
-        numOfDummyPeriods = opt.Window - 1;
+    function numDummyPeriods = hereCalculateNumOfDummyPeriods( )
+        numDummyPeriods = opt.Window - 1;
         if ~strcmpi(opt.Method, 'FirstOrder')
             [~, maxShift] = getActualMinMaxShifts(this);
-            numOfDummyPeriods = numOfDummyPeriods + maxShift;
+            numDummyPeriods = numDummyPeriods + maxShift;
         end
-        if numOfDummyPeriods>0
-            plan = extendWithDummies(plan, numOfDummyPeriods);
+        if numDummyPeriods>0
+            plan = extendWithDummies(plan, numDummyPeriods);
         end
     end%
 
@@ -509,13 +516,13 @@ return
 
 
     function herePostprocessContributions( )
-        inxOfLog = this.Quantity.InxOfLog;
+        inxLog = this.Quantity.InxOfLog;
         if opt.Method~=solver.Method.FIRST_ORDER
             % Calculate contributions of nonlinearities
-            runningData.YXEPG(inxOfLog, :, end) =  runningData.YXEPG(inxOfLog, :, end) ...
-                                    ./ prod(runningData.YXEPG(inxOfLog, :, 1:end-1), 3);
-            runningData.YXEPG(~inxOfLog, :, end) = runningData.YXEPG(~inxOfLog, :, end) ...
-                                     - sum(runningData.YXEPG(~inxOfLog, :, 1:end-1), 3);
+            runningData.YXEPG(inxLog, :, end) =  runningData.YXEPG(inxLog, :, end) ...
+                                    ./ prod(runningData.YXEPG(inxLog, :, 1:end-1), 3);
+            runningData.YXEPG(~inxLog, :, end) = runningData.YXEPG(~inxLog, :, end) ...
+                                     - sum(runningData.YXEPG(~inxLog, :, 1:end-1), 3);
         end
     end%
 end%
@@ -581,9 +588,9 @@ function windowOption = parseWindowOption(windowOption, methodOption, baseRange)
     if isequal(windowOption, @max)
         windowOption = lenOfBaseRange;
     elseif isnumeric(windowOption) && windowOption>lenOfBaseRange
-        THIS_ERROR = { 'Model:WindowCannotExceedRangeLength'
-                       'Simulation windowOption cannot exceed number of simulation periods' };
-        throw( exception.Base(THIS_ERROR, 'error') );
+        thisError = { 'Model:WindowCannotExceedRangeLength'
+                      'Simulation windowOption cannot exceed number of simulation periods' };
+        throw(exception.Base(thisError, 'error'));
     end
 end%
 
@@ -616,43 +623,41 @@ end%
 
 
 
-function [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(unanticipatedE, baseRangeColumns, plan, maxShift, opt)
-    inxOfUnanticipatedE = unanticipatedE~=0;
-    inxOfUnanticipatedAny = inxOfUnanticipatedE | plan.InxOfUnanticipatedEndogenized;
-    posOfUnanticipatedAny = find(any(inxOfUnanticipatedAny, 1));
+function [timeFrames, mixinUnanticipated] = hereSplitIntoTimeFrames(unanticipatedE, baseRangeColumns, plan, maxShift, opt)
+    inxUnanticipatedE = unanticipatedE~=0;
+    inxUnanticipatedAny = inxUnanticipatedE | plan.InxOfUnanticipatedEndogenized;
+    posUnanticipatedAny = find(any(inxUnanticipatedAny, 1));
     firstColumnOfSimulation = baseRangeColumns(1);
     lastColumnOfSimulation = baseRangeColumns(end);
 
-    % For some simulations, unanticipated shocks can be mixed in with
+    % TODO: For some simulations, unanticipated shocks can be mixed in with
     % anticipated shocks within a single time frame.
-    mixinUnanticipated = testMixinUnanticipated( );
+    mixinUnanticipated = hereTestMixinUnanticipated( );
     if mixinUnanticipated
        timeFrames = [firstColumnOfSimulation, lastColumnOfSimulation];
        return
     end
 
-    if ~any(posOfUnanticipatedAny==firstColumnOfSimulation)
-        posOfUnanticipatedAny = [firstColumnOfSimulation, posOfUnanticipatedAny];
+    if ~any(posUnanticipatedAny==firstColumnOfSimulation)
+        posUnanticipatedAny = [firstColumnOfSimulation, posUnanticipatedAny];
     end
-    lastAnticipatedExogenizedYX = plan.LastAnticipatedExogenized;
-    numOfTimeFrames = numel(posOfUnanticipatedAny);
-    timeFrames = nan(numOfTimeFrames, 2);
-    for i = 1 : numOfTimeFrames
-        startOfTimeFrame = posOfUnanticipatedAny(i);
-        if i==numOfTimeFrames
+    columnOfLastAnticipatedExogenizedYX = plan.ColumnOfLastAnticipatedExogenized;
+    numTimeFrames = numel(posUnanticipatedAny);
+    timeFrames = nan(numTimeFrames, 2);
+    for i = 1 : numTimeFrames
+        startOfTimeFrame = posUnanticipatedAny(i);
+        if i==numTimeFrames
             endOfTimeFrame = lastColumnOfSimulation;
         else
-            endOfTimeFrame = max([posOfUnanticipatedAny(i+1)-1, lastAnticipatedExogenizedYX]);
+            endOfTimeFrame = max([posUnanticipatedAny(i+1)-1, columnOfLastAnticipatedExogenizedYX]);
         end
         lenOfTimeFrame = endOfTimeFrame - startOfTimeFrame + 1;
-        numOfDummyPeriods = 0;
         minLenOfTimeFrame = opt.Window;
         if strcmpi(opt.Method, 'Selective')
             minLenOfTimeFrame = minLenOfTimeFrame + maxShift;
         end
         if lenOfTimeFrame<minLenOfTimeFrame
-            numOfDummyPeriods = minLenOfTimeFrame - lenOfTimeFrame;
-            endOfTimeFrame = endOfTimeFrame + numOfDummyPeriods;
+            endOfTimeFrame = endOfTimeFrame + (minLenOfTimeFrame - lenOfTimeFrame);
             lenOfTimeFrame = minLenOfTimeFrame;
         end
         timeFrames(i, :) = [startOfTimeFrame, endOfTimeFrame];
@@ -662,9 +667,11 @@ function [timeFrames, mixinUnanticipated] = splitIntoTimeFrames(unanticipatedE, 
     return
 
 
-        function flag = testMixinUnanticipated( )
+        function flag = hereTestMixinUnanticipated( )
+
             flag = false;
             return
+
             if opt.Method==solver.Method.FIRST_ORDER ...
                && plan.NumOfExogenizedPoints==0
                 flag = true;
