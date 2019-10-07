@@ -7,7 +7,6 @@ classdef InputOutputData < handle
         BaseRangeColumns
         MaxShift
         TimeTrend
-        NumOfDummyPeriods
         InxOfInitInPresample
         MixinUnanticipated
         TimeFrames
