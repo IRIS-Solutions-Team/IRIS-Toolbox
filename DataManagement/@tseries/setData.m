@@ -217,10 +217,10 @@ function [this, s, dates, freqTest] = expand(this, s)
         charFreqOfThis = Frequency.toChar(freqOfThis);
         freqOfDates = unique(freqOfDates(~freqTest), 'stable');
         charFreqOfDates = arrayfun(@Frequency.toChar, freqOfDates, 'UniformOutput', false);
-        THIS_ERROR = { 'TimeSubscriptable:FrequencyMismatch'
-                       'Cannot reference %s dates when assigning to %1 time series ' };
+        thisError = { 'TimeSubscriptable:FrequencyMismatch'
+                      'Cannot reference %s dates when assigning to %1 time series ' };
         %throw( exception.Base('TimeSubscriptable:FrequencyMismatch', 'error'), ...
-        throw( exception.Base(THIS_ERROR, 'error'), ...
+        throw( exception.Base(thisError, 'error'), ...
                Frequency.toChar(freqOfThis), charFreqOfDates{:} );
     end
 end%
