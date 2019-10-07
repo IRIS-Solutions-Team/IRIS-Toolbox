@@ -15,16 +15,15 @@ classdef Plan < matlab.mixin.CustomDisplay
         ExtendedStart = double.empty(0)
         ExtendedEnd = double.empty(0)
 
-        SwapId = uint16(2)
+        SwapId = int16(-1)
 
         AnticipationStatusOfEndogenous = logical.empty(0)
         AnticipationStatusOfExogenous = logical.empty(0)
 
-        IdOfAnticipatedExogenized = logical.empty(0, 0)
-        IdOfUnanticipatedExogenized = logical.empty(0, 0)
-
-        IdOfAnticipatedEndogenized = logical.empty(0, 0)
-        IdOfUnanticipatedEndogenized = logical.empty(0, 0)
+        IdOfAnticipatedExogenized = int16.empty(0, 0)
+        IdOfUnanticipatedExogenized = int16.empty(0, 0)
+        IdOfAnticipatedEndogenized = int16.empty(0, 0)
+        IdOfUnanticipatedEndogenized = int16.empty(0, 0)
     end
 
 
@@ -36,6 +35,8 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
     properties (Constant, Hidden)
+        DEFAULT_SWAP_ID = int16(-1)
+        EMPTY_MARK = '.' % char.empty(1, 0)
         ANTICIPATED_MARK = 'A'
         UNANTICIPATED_MARK = 'U'
         DATE_PREFIX = 't'
@@ -51,7 +52,7 @@ classdef Plan < matlab.mixin.CustomDisplay
                 this = varargin{1};
                 return
             end
-            this = Plan.fromModel(varargin{:});
+            this = Plan.forModel(varargin{:});
         end%
     end
 
@@ -60,16 +61,10 @@ classdef Plan < matlab.mixin.CustomDisplay
 
     methods % User Interface
         varargout = anticipate(varargin)
+        varargout = endogenized(varargin)
+        varargout = exogenized(varargin)
         varargout = get(varargin)
         varargout = swap(varargin)
-
-
-
-
-        function this = exogenize(this, dates, names, varargin)
-            setToValue = uint16(1);
-            this = implementExogenize(this, dates, names, setToValue, varargin{:});
-        end%
 
 
 
@@ -79,21 +74,19 @@ classdef Plan < matlab.mixin.CustomDisplay
                 this = unexogenizeAll(this);
                 return
             end
-            setToValue = uint16(0);
+            setToValue = int16(0);
             this = implementExogenize(this, dates, names, setToValue, varargin{:});
         end%
 
 
+
+
         function this = unexogenizeAll(this)
-            this.IdOfAnticipatedExogenized(:, :) = uint16(0);
-            this.IdOfUnanticipatedExogenized(:, :) = uint16(0);
+            this.IdOfAnticipatedExogenized(:, :) = int16(0);
+            this.IdOfUnanticipatedExogenized(:, :) = int16(0);
         end%
 
 
-        function this = endogenize(this, dates, names, varargin)
-            setToValue = uint16(1);
-            this = implementEndogenize(this, dates, names, setToValue, varargin{:});
-        end%
 
 
         function this = unendogenize(this, dates, names, varargin)
@@ -101,14 +94,14 @@ classdef Plan < matlab.mixin.CustomDisplay
                 this = unendogenizeAll(this);
                 return
             end
-            setToValue = uint16(0);
+            setToValue = int16(0);
             this = implementEndogenize(this, dates, names, setToValue, varargin{:});
         end%
 
 
         function this = unendogenizeAll(this)
-            this.IdOfAnticipatedEndogenized(:, :) = uint16(0);
-            this.IdOfUnanticipatedEndogenized(:, :) = uint16(0);
+            this.IdOfAnticipatedEndogenized(:, :) = int16(0);
+            this.IdOfUnanticipatedEndogenized(:, :) = int16(0);
         end%
 
 
@@ -124,9 +117,9 @@ classdef Plan < matlab.mixin.CustomDisplay
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.autoswap');
-                parser.addRequired('Plan', @(x) isa(x, 'Plan'));
-                parser.addRequired('DatesToSwap', @DateWrapper.validateDateInput);
-                parser.addRequired('NamesToAutoswap', @(x) ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @all));
+                parser.addRequired('plan', @(x) isa(x, 'Plan'));
+                parser.addRequired('datesToSwap', @DateWrapper.validateDateInput);
+                parser.addRequired('namesToAutoswap', @(x) ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @all));
                 parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
             parser.parse(this, dates, namesToAutoswap, varargin{:});
@@ -144,9 +137,9 @@ classdef Plan < matlab.mixin.CustomDisplay
                 function inxToAutoswap = hereIndexPairsToSwap( )
                     namesToAutoswap = cellstr(namesToAutoswap);
                     namesToAutoswap = transpose(namesToAutoswap(:));
-                    numOfNames = numel(namesToAutoswap);
+                    numNames = numel(namesToAutoswap);
                     inxToAutoswap = false(size(this.AutoswapPairs, 1), 1);
-                    inxOfValid = true(1, numOfNames);
+                    inxValid = true(1, numNames);
                     for i = 1 : numel(namesToAutoswap)
                         name = namesToAutoswap{i};
                         inx = strcmp(name, this.AutoswapPairs(:, 1)) ...
@@ -154,14 +147,14 @@ classdef Plan < matlab.mixin.CustomDisplay
                         if any(inx)
                             inxToAutoswap = inxToAutoswap | inx;
                         else
-                            inxOfValid(i) = false;
+                            inxValid(i) = false;
                         end
                     end
-                    if any(~inxOfValid)
+                    if any(~inxValid)
                         THIS_ERROR = { 'Plan:CannotAutoswapName'
                                        'Cannot autoswap this name: %s ' };
                         throw( exception.Base(THIS_ERROR, 'error'), ...
-                               namesToAutoswap{~inxOfValid} );
+                               namesToAutoswap{~inxValid} );
             end
                 end%
         end%
@@ -171,55 +164,55 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
 
-        function this = extendWithDummies(this, numOfPeriods)
-            if numOfPeriods==0
+        function this = extendWithDummies(this, numDummyPeriods)
+            if numDummyPeriods==0
                 return
             end
-            this.IdOfAnticipatedEndogenized(:, end+(1:numOfPeriods)) = uint16(0);
-            this.IdOfUnanticipatedEndogenized(:, end+(1:numOfPeriods)) = uint16(0);
-            this.IdOfAnticipatedExogenized(:, end+(1:numOfPeriods)) = uint16(0);
-            this.IdOfUnanticipatedExogenized(:, end+(1:numOfPeriods)) = uint16(0);
+            this.IdOfAnticipatedEndogenized(:, end+(1:numDummyPeriods)) = int16(0);
+            this.IdOfUnanticipatedEndogenized(:, end+(1:numDummyPeriods)) = int16(0);
+            this.IdOfAnticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
+            this.IdOfUnanticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
         end%
     end
 
 
+
+
     methods % Display
-
-
-
-
-        function [ inxOfExogenized, ...
-                   inxOfEndogenized ] = getSwapsWithinTimeFrame( this, ...
-                                                                 firstColumnOfTimeFrame, ...
-                                                                 lastColumnOfSimulation )
-            inxOfExogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods);
-            inxOfEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
+        function [ inxExogenized, ...
+                   inxEndogenized ] = getSwapsWithinTimeFrame( this, ...
+                                                               firstColumnOfTimeFrame, ...
+                                                               lastColumnOfSimulation )
+            inxExogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods);
+            inxEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
             if this.NumOfExogenizedPoints>0
-                inxOfExogenized(:, firstColumnOfTimeFrame) = ...
+                inxExogenized(:, firstColumnOfTimeFrame) = ...
                     this.InxOfAnticipatedExogenized(:, firstColumnOfTimeFrame) ...
                     | this.InxOfUnanticipatedExogenized(:, firstColumnOfTimeFrame);
-                inxOfExogenized(:, firstColumnOfTimeFrame+1:lastColumnOfSimulation) = ...
+                inxExogenized(:, firstColumnOfTimeFrame+1:lastColumnOfSimulation) = ...
                     this.InxOfAnticipatedExogenized(:, firstColumnOfTimeFrame+1:lastColumnOfSimulation);
             end
             if this.NumOfEndogenizedPoints>0
-                inxOfEndogenized(:, firstColumnOfTimeFrame) = ...
+                inxEndogenized(:, firstColumnOfTimeFrame) = ...
                     this.InxOfAnticipatedEndogenized(:, firstColumnOfTimeFrame) ...
                     | this.InxOfUnanticipatedEndogenized(:, firstColumnOfTimeFrame);
-                inxOfEndogenized(:, firstColumnOfTimeFrame+1:lastColumnOfSimulation) = ...
+                inxEndogenized(:, firstColumnOfTimeFrame+1:lastColumnOfSimulation) = ...
                     this.InxOfAnticipatedEndogenized(:, firstColumnOfTimeFrame+1:lastColumnOfSimulation);
             end
         end%
     end
 
 
-    methods (Access=private)
+
+
+    methods (Access=private, Hidden)
         function [this, outputAnticipationStatus] = implementExogenize(this, dates, names, id, varargin)
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.implementExogenize');
-                parser.addRequired('Plan', @(x) isa(x, 'Plan'));
-                parser.addRequired('DatesToExogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
-                parser.addRequired('NamesToExogenize', @(x) isequal(x, @all) || validate.list(x));
+                parser.addRequired('plan', @(x) isa(x, 'Plan'));
+                parser.addRequired('datesToExogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
+                parser.addRequired('namesToExogenize', @(x) isequal(x, @all) || validate.list(x));
                 parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
             parser.parse(this, dates, names, varargin{:});
@@ -229,27 +222,27 @@ classdef Plan < matlab.mixin.CustomDisplay
             if ~isequal(opt.AnticipationStatus, @auto)
                 anticipationStatusOfEndogenous(:) = opt.AnticipationStatus;
             end
-            context = (id==uint16(0)) : { 'be unexogenized', 'be exogenized' };
-            inxOfDates = resolveDates(this, dates);
-            inxOfNames = this.resolveNames(names, this.NamesOfEndogenous, context);
-            if ~any(inxOfNames)
+            context = (id==int16(0)) : { 'be unexogenized', 'be exogenized' };
+            inxDates = resolveDates(this, dates);
+            inxNames = this.resolveNames(names, this.NamesOfEndogenous, context);
+            if ~any(inxNames)
                 return
             end
-            posOfNames = find(inxOfNames);
+            posNames = find(inxNames);
             outputAnticipationStatus = logical.empty(0, 1);
-            for column = transpose(posOfNames(:))
-                if id~=uint16(0)
+            for column = transpose(posNames(:))
+                if id~=int16(0)
                     % Exogenize
                     outputAnticipationStatus(end+1, 1) = anticipationStatusOfEndogenous(column);
                     if anticipationStatusOfEndogenous(column)
-                        this.IdOfAnticipatedExogenized(inxOfNames, inxOfDates) = id;
+                        this.IdOfAnticipatedExogenized(inxNames, inxDates) = id;
                     else
-                        this.IdOfUnanticipatedExogenized(inxOfNames, inxOfDates) = id;
+                        this.IdOfUnanticipatedExogenized(inxNames, inxDates) = id;
                     end
                 else
                     % Unexogenize
-                    this.IdOfAnticipatedExogenized(inxOfNames, inxOfDates) = id;
-                    this.IdOfUnanticipatedExogenized(inxOfNames, inxOfDates) = id;
+                    this.IdOfAnticipatedExogenized(inxNames, inxDates) = id;
+                    this.IdOfUnanticipatedExogenized(inxNames, inxDates) = id;
                 end
             end
         end%
@@ -261,68 +254,71 @@ classdef Plan < matlab.mixin.CustomDisplay
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.implementEndogenize');
-                parser.addRequired('Plan', @(x) isa(x, 'Plan'));
-                parser.addRequired('DatesToEndogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
-                parser.addRequired('NamesToEndogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+                parser.addRequired('plan', @(x) isa(x, 'Plan'));
+                parser.addRequired('datesToEndogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
+                parser.addRequired('namesToEndogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
                 parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
             parser.parse(this, dates, names);
             opt = parser.Options;
 
+            numDates = numel(dates);
+
             anticipationStatusOfExogenous = this.AnticipationStatusOfExogenous;
             if ~isequal(opt.AnticipationStatus, @auto)
                 anticipationStatusOfExogenous(:) = opt.AnticipationStatus;
             end
-            context = (id==uint16(0)) : {'be unendogenized', 'be endogenized'};
-            inxOfDates = resolveDates(this, dates);
-            inxOfNames = this.resolveNames(names, this.NamesOfExogenous, context);
-            if ~any(inxOfNames)
+            context = (id==int16(0)) : {'be unendogenized', 'be endogenized'};
+            inxDates = resolveDates(this, dates);
+            inxNames = this.resolveNames(names, this.NamesOfExogenous, context);
+            if ~any(inxNames)
                 return
             end
-            posOfNames = find(inxOfNames);
-            posOfNames = transpose(posOfNames(:));
+            posNames = find(inxNames);
+            posNames = transpose(posNames(:));
             outputAnticipationStatus = logical.empty(0, 1);
-            for column = transpose(posOfNames(:))
-                if id~=uint16(0)
+            for column = transpose(posNames(:))
+                if id~=int16(0)
                     % Endogenize
                     outputAnticipationStatus(end+1, 1) = anticipationStatusOfExogenous(column);
                     if anticipationStatusOfExogenous(column)
-                        this.IdOfAnticipatedEndogenized(column, inxOfDates) = id;
+                        this.IdOfAnticipatedEndogenized(column, inxDates) = id;
                     else
-                        this.IdOfUnanticipatedEndogenized(column, inxOfDates) = id;
+                        this.IdOfUnanticipatedEndogenized(column, inxDates) = id;
                     end
                 else
                     % Unendogenize
-                    this.IdOfAnticipatedEndogenized(column, inxOfDates) = id;
-                    this.IdOfUnanticipatedEndogenized(column, inxOfDates) = id;
+                    this.IdOfAnticipatedEndogenized(column, inxDates) = id;
+                    this.IdOfUnanticipatedEndogenized(column, inxDates) = id;
                 end
             end
         end%
 
 
-        function inxOfDates = resolveDates(this, dates)
+        function inxDates = resolveDates(this, dates)
             if isequal(dates, @all)
-                inxOfDates = false(1, this.NumOfExtendedPeriods);
-                inxOfDates(this.PosOfBaseStart:this.PosOfBaseEnd) = true;
+                inxDates = false(1, this.NumOfExtendedPeriods);
+                inxDates(this.PosOfBaseStart:this.PosOfBaseEnd) = true;
                 return
             end
-            posOfDates = DateWrapper.getRelativePosition( this.ExtendedStart, ...
+            posDates = DateWrapper.getRelativePosition( this.ExtendedStart, ...
                                                           dates, ...
                                                           [this.PosOfBaseStart, this.PosOfBaseEnd], ...
                                                           'simulation range' );
-            inxOfDates = false(1, this.NumOfExtendedPeriods);
-            inxOfDates(posOfDates) = true;
+            inxDates = false(1, this.NumOfExtendedPeriods);
+            inxDates(posDates) = true;
         end%
     end
 
 
     properties (Dependent)
-        StartDate
-        EndDate
-        LastAnticipatedExogenizedDate
-        LastUnanticipatedExogenizedDate
-        LastAnticipatedEndogenizedDate
-        LastUnanticipatedEndogenizedDate
+        LastAnticipatedExogenized
+        LastUnanticipatedExogenized
+        LastAnticipatedEndogenized
+        LastUnanticipatedEndogenized
+
+        Start
+        End
 
         InxOfAnticipatedExogenized
         InxOfUnanticipatedExogenized
@@ -332,7 +328,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         DisplayRange
         BaseRange
         ExtendedRange
-        LastAnticipatedExogenized
+        ColumnOfLastAnticipatedExogenized
         NumOfEndogenous
         NumOfExogenous
         NumOfBasePeriods
@@ -380,17 +376,14 @@ classdef Plan < matlab.mixin.CustomDisplay
         end%
 
 
-        function value = get.StartDate(this)
-            value = DateWrapper.toDefaultString(this.BaseStart);
+        function value = get.Start(this)
+            value = DateWrapper(this.BaseStart);
         end%
 
 
-
-        function value = get.EndDate(this)
-            value = DateWrapper.toDefaultString(this.BaseEnd);
+        function value = get.End(this)
+            value = DateWrapper(this.BaseEnd);
         end%
-
-
 
 
         function value = get.InxOfAnticipatedExogenized(this)
@@ -522,27 +515,27 @@ classdef Plan < matlab.mixin.CustomDisplay
         end%
 
 
-        function value = get.LastAnticipatedExogenizedDate(this)
+        function value = get.LastAnticipatedExogenized(this)
             value = hereGetLastDate(this.ExtendedStart, this.InxOfAnticipatedExogenized);
         end%
 
 
-        function value = get.LastUnanticipatedExogenizedDate(this)
+        function value = get.LastUnanticipatedExogenized(this)
             value = hereGetLastDate(this.ExtendedStart, this.InxOfUnanticipatedExogenized);
         end%
 
 
-        function value = get.LastAnticipatedEndogenizedDate(this)
+        function value = get.LastAnticipatedEndogenized(this)
             value = hereGetLastDate(this.ExtendedStart, this.InxOfAnticipatedEndogenized);
         end%
 
 
-        function value = get.LastUnanticipatedEndogenizedDate(this)
+        function value = get.LastUnanticipatedEndogenized(this)
             value = hereGetLastDate(this.ExtendedStart, this.InxOfUnanticipatedEndogenized);
         end%
 
 
-        function value = get.LastAnticipatedExogenized(this)
+        function value = get.ColumnOfLastAnticipatedExogenized(this)
             value = find(any(this.InxOfAnticipatedExogenized, 1), 1, 'last');
             if isempty(value)
                 value = 0;
@@ -602,88 +595,135 @@ classdef Plan < matlab.mixin.CustomDisplay
         function output = createDatabankOfAnchors(this, names, anchors)
             output = struct( );
             baseRangeColumns = this.PosOfBaseStart : this.PosOfBaseEnd;
-            SERIES = Series(this.BaseStart, false(this.NumOfBasePeriods, 1));
-            numOfNames = numel(names);
-            for i = 1 : numOfNames
+            template = Series(this.BaseStart, false(this.NumOfBasePeriods, 1));
+            numNames = numel(names);
+            for i = 1 : numNames
                 name = names{i};
                 values = transpose(anchors(i, baseRangeColumns));
-                output.(name) = fill(SERIES, values, this.BaseStart);
+                output.(name) = fill(template, values, this.BaseStart);
             end
         end%
     end
 
 
     methods (Static)
-        function this = fromModel(varargin)
+        function this = forModel(varargin)
             persistent parser
             if isempty(parser)
                 parser = extend.InputParser('Plan.Plan');
-                parser.addRequired('Model', @(x) isa(x, 'model.Plan'));
-                parser.addRequired('SimulationRange', @DateWrapper.validateProperRangeInput);
+                parser.addRequired('model', @(x) isa(x, 'model.Plan'));
+                parser.addRequired('simulationRange', @DateWrapper.validateProperRangeInput);
                 parser.addParameter({'DefaultAnticipationStatus', 'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
             end
             parser.parse(varargin{:});
             opt = parser.Options;
 
             this = Plan( );
-            this.BaseStart = double(parser.Results.SimulationRange(1));
-            this.BaseEnd = double(parser.Results.SimulationRange(end));
-            this = preparePlan(parser.Results.Model, this, [this.BaseStart, this.BaseEnd]);
+            this.BaseStart = double(parser.Results.simulationRange(1));
+            this.BaseEnd = double(parser.Results.simulationRange(end));
+            this = preparePlan(parser.Results.model, this, [this.BaseStart, this.BaseEnd]);
             this.DefaultAnticipationStatus = opt.DefaultAnticipationStatus;
-            this.IdOfAnticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'uint16');
-            this.IdOfUnanticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'uint16');
-            this.IdOfAnticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'uint16');
-            this.IdOfUnanticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'uint16');
+            this.IdOfAnticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'int16');
+            this.IdOfUnanticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'int16');
+            this.IdOfAnticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'int16');
+            this.IdOfUnanticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'int16');
             this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, this.NumOfEndogenous, 1);
             this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, this.NumOfExogenous, 1);
         end%
+    end
+
+
 
         
-        function inxOfNames = resolveNames(selectNames, allNames, context, throwError)
+    methods (Static, Hidden)
+        function inxNames = resolveNames(selectNames, allNames, context, throwError)
             if nargin<4
                 throwError = true;
             end
             if isequal(selectNames, @all)
-                inxOfNames = true(1, numel(allNames));
+                inxNames = true(1, numel(allNames));
                 return
             end
             if ~iscellstr(selectNames)
                 selectNames = cellstr(selectNames);
             end
-            [inxOfValidNames, posOfNames] = ismember(selectNames, allNames);
-            if throwError && any(~inxOfValidNames)
+            [inxValidNames, posNames] = ismember(selectNames, allNames);
+            if throwError && any(~inxValidNames)
                 THIS_ERROR = { 'Plan:InvalidNameInContext'
                                'This name cannot %1 in simulation plan: %s ' };
                 throw( exception.Base(THIS_ERROR, 'error'), ...
-                       context, selectNames{~inxOfValidNames} );
+                       context, selectNames{~inxValidNames} );
             end
-            posOfNames(~inxOfValidNames) = [ ];
-            inxOfNames = false(1, numel(allNames));
-            inxOfNames(posOfNames) = true;
+            posNames(~inxValidNames) = [ ];
+            inxNames = false(1, numel(allNames));
+            inxNames(posNames) = true;
+        end%
+
+
+
+
+        function flag = validateSwapId(id)
+            if validate.numericScalar(id) && id~=0 && id==round(id)
+                flag = true;
+                return
+            end
+            flag = false;
         end%
     end
 
 
 
 
-    methods (Access=protected)
-        function pg = getPropertyGroups(~)
-            pg1 = matlab.mixin.util.PropertyGroup( { 'StartDate'
-                                                     'EndDate' 
-                                                     'DefaultAnticipationStatus'
+    methods (Access=protected, Hidden)
+        function pg = getPropertyGroups(this)
+            toChar = @(x) char(DateWrapper.toDefaultString(x));
+
+            % Dates
+            s1 = struct( 'Start',                        toChar(this.Start), ...
+                         'End',                          toChar(this.End), ...
+                         'LastAnticipatedExogenized',    toChar(this.LastAnticipatedExogenized), ...
+                         'LastUnanticipatedExogenized',  toChar(this.LastUnanticipatedExogenized), ...
+                         'LastAnticipatedEndogenized',   toChar(this.LastAnticipatedEndogenized), ...
+                         'LastUnanticipatedEndogenized', toChar(this.LastUnanticipatedEndogenized) );
+            pg1 = matlab.mixin.util.PropertyGroup(s1, 'SimulationDates');
+
+            % Switches
+            pg2 = matlab.mixin.util.PropertyGroup( { 'DefaultAnticipationStatus'
                                                      'AllowUnderdetermined'
-                                                     'AllowOverdetermined' } );
+                                                     'AllowOverdetermined' }, ...
+                                                     'Switches' );
 
-            pg2 = matlab.mixin.util.PropertyGroup( { 'LastAnticipatedExogenized'
-                                                     'LastUnanticipatedExogenized'
-                                                     'LastAnticipatedEndogenized'
-                                                     'LastUnanticipatedEndogenized' }); 
-
+            % Determinacy of the Swap System
             pg3 = matlab.mixin.util.PropertyGroup( { 'NumOfAnticipatedExogenizedPoints'
                                                      'NumOfUnanticipatedExogenizedPoints'
                                                      'NumOfAnticipatedEndogenizedPoints'
-                                                     'NumOfUnanticipatedEndogenizedPoints' }); 
+                                                     'NumOfUnanticipatedEndogenizedPoints' }, ...
+                                                     'SwapPoints');
+
             pg = [pg1, pg2, pg3];
+        end%
+
+
+
+
+        function [this, id] = nextSwapId(this)
+            id = this.SwapId;
+            this.SwapId = this.SwapId - 1;
+        end%
+
+
+
+
+        function ids = getUniqueIds(this)
+            list = [ reshape(this.IdOfAnticipatedExogenized,    [ ], 1)
+                     reshape(this.IdOfUnanticipatedExogenized,  [ ], 1)
+                     reshape(this.IdOfAnticipatedEndogenized,   [ ], 1)
+                     reshape(this.IdOfUnanticipatedEndogenized, [ ], 1) ];
+            list(list==0) = [ ];
+            list = unique(list);
+            negativeIds = reshape(list(list<0), 1, [ ]);
+            positiveIds = reshape(list(list>0), 1, [ ]);
+            ids = [sort(negativeIds, 'descend'), sort(positiveIds, 'ascend')];
         end%
     end
 end
@@ -693,16 +733,13 @@ end
 % Local Functions
 %
 
-function dateString = hereGetLastDate(start, id)
-    inx = not(id==0);
+function date = hereGetLastDate(start, id)
+    inx = id~=0;
     if not(any(inx(:)))
-        column = NaN;
-        date = NaN;
-        dateString = DateWrapper.toDefaultString(NaN);
+        date = DateWrapper.NaD;
         return
     end
     column = find(any(inx, 1), 1, 'Last');
     date = DateWrapper.roundPlus(start, column-1);
-    dateString = DateWrapper.toDefaultString(date);
 end%
 
