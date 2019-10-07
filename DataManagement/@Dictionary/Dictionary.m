@@ -102,13 +102,6 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
     methods
-        varargout = list(varargin)
-    end
-
-
-
-
-    methods
         function this = Dictionary(varargin)
 % Dictionary  Create new Dictionary object
             if nargin==0
@@ -463,6 +456,13 @@ classdef Dictionary < matlab.mixin.Copyable
         function s = toStruct(this)
             s = cell2struct(this.Values, cellstr(this.Keys), 2);
         end%
+
+
+
+
+        function list(varargin)
+            databank.list(varargin{:});
+        end%
     end        
 
 
@@ -525,6 +525,14 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
     methods (Static)
+        function this = fromStruct(input)
+            names = fieldnames(input);
+            numFields = numel(names);
+            this = Dictionary( );
+            for i = 1 : numFields
+                this = store(this, names{i}, getfield(input, names{i}));
+            end
+        end% 
     end
 end
 

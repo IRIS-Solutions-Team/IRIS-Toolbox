@@ -76,8 +76,8 @@ for i = 1 : count
                                 DateWrapper.toDefaultString(ithValue.Start), ...
                                 DateWrapper.toDefaultString(ithValue.End) );
         end
-        ithSize = size(ithValue);
-        ithSizeString = sprintf('%gx', ithSize);
+        ithSize = size( ithValue );
+        ithSizeString = sprintf( '%gx', ithSize );
         ithSizeString = [' [', ithSizeString(1:end-1)];
         info{i} = [ithSizeString, ' ', ithClass, ']'];
     end
