@@ -88,19 +88,8 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
             disp(X);
         end
         % Make sure long scalar comments are never displayed as `[1xN char]`.
-        fprintf(cfg.DispIndent);
-        comment = [{'Dates'}, comment];
-        if length(comment)==1
-            if isempty(regexp(comment{1}, '[\r\n]', 'once'))
-                fprintf('\t''%s''\n', comment{1});
-            else
-                fprintf('''%s''\n', comment{1});
-            end
-            textual.looseLine( );
-        else
-            textual.looseLine( );
-            disp(comment);
-        end
+        textual.looseLine( );
+        disp([{'Dates'}, comment]);
     end
 end%
 
