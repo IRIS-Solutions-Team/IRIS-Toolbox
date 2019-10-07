@@ -1,34 +1,42 @@
-function this = anticipate(this, anticipationStatus, names)
-% anticipate  Set anticipation status for individual shocks
-%
-% __Syntax__
+function this = anticipate(this, anticipationStatus, varargin)
+% anticipate  Set anticipation status individually 
+%{
+% ## Syntax ##
 %
 %     plan = anticipate(plan, anticipationStatus, names)
+%     plan = anticipate(plan, anticipationStatus, name, name, etc...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `plan` [ Plan ] - Simulation plan.
+% __`plan`__ [ Plan ] - 
+% Simulation plan.
 %
-% * `anticipationStatus` [ true | false ] - New anticipation status for the
-% shocks listed in `names`.
+% __`anticipationStatus`__ [ true | false ] -
+% New anticipation status for the quantities listed in `names`.
 %
-% * `names` [ char | string | cellstr ] - List of shocks whose anticipation
-% status will be set to `anticipationStatus`.
+% __`names`__ [ char | string | cellstr ] -
+% List of quantities whose anticipation status will be set to
+% `anticipationStatus`.
 %
-%
-% __Output Arguments__
-%
-% * p [ Plan ] - Simulation plan with a new anticipation status for the
-% specified shocks.
-%
-%
-% __Description__
+% __`name`__ [ char | string ] -
+% Name of quantity whose anticipation status will be set to
+% `anticipationStatus`.
 %
 %
-% __Example__
+% ## Output Arguments ##
+%
+% * p [ Plan ] -
+% Simulation plan with a new anticipation status for the specified
+% quantities.
 %
 %
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -37,39 +45,47 @@ function this = anticipate(this, anticipationStatus, names)
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('@Plan/anticipate');
-    addRequired(parser, 'Plan', @(x) isa(x, 'Plan'));
-    addRequired(parser, 'AnticipationStatus', @validate.logicalScalar);
-    addRequired(parser, 'NamesOfExogenous', @validate.list);
+    addRequired(parser, 'plan', @(x) isa(x, 'Plan'));
+    addRequired(parser, 'anticipationStatus', @validate.logicalScalar);
+    addRequired(parser, 'names', @(x) validate.list(x) || (iscell(x) && isscalar(x) && validate.list(x{1})));
 end
 
 if this.NumOfEndogenizedPoints>0
-    THIS_ERROR = { 'Plan:CannotChangeAnticipateAfterEndogenize'
-                   'Cannot change anticipation status after some names have been already endogenized' };
-    throw( exception.Base(THIS_ERROR, 'error') );
+    thisError = { 'Plan:CannotChangeAnticipateAfterEndogenize'
+                  'Cannot change anticipation status after some names have been already endogenized' };
+    throw(exception.Base(thisError, 'error'));
 end
 
+names = varargin;
 try
     parse(parser, this, anticipationStatus, names);
 catch
     [names, anticipationStatus] = deal(anticipationStatus, names);
     parse(parser, this, anticipationStatus, names);
-    THIS_WARNING = { 'Plan:AnticipateLegacyInputArgumentsForGPMN' 
-                     'Invalid order of input arguments to @Plan/anticipate; this will become an error in a future release of IRIS. See help Plan/anticipate.' };
-    throw( exception.Base(THIS_WARNING, 'warning') );
+    thisWarning = { 'Plan:AnticipateLegacyInputArgumentsForGPMN' 
+                    'Invalid order of input arguments to @Plan/anticipate; this will become an error in a future release of IRIS. See help Plan/anticipate.' };
+    throw(exception.Base(thisWarning, 'warning'));
+end
+
+if ~validate.list(names)
+    names = names{1};
 end
 
 %--------------------------------------------------------------------------
 
 context = 'be assigned anticipation status';
-this.resolveNames(names, this.AllNames, context);
 throwError = false;
-inxOfEndogenous = this.resolveNames(names, this.NamesOfEndogenous, context, throwError);
-if any(inxOfEndogenous)
-    this.AnticipationStatusOfEndogenous(inxOfEndogenous) = anticipationStatus;
+
+this.resolveNames(names, this.AllNames, context);
+
+inxEndogenous = this.resolveNames(names, this.NamesOfEndogenous, context, throwError);
+if any(inxEndogenous)
+    this.AnticipationStatusOfEndogenous(inxEndogenous) = anticipationStatus;
 end
-inxOfExogenous = this.resolveNames(names, this.NamesOfExogenous, context, throwError);
-if any(inxOfExogenous)
-    this.AnticipationStatusOfExogenous(inxOfExogenous) = anticipationStatus;
+
+inxExogenous = this.resolveNames(names, this.NamesOfExogenous, context, throwError);
+if any(inxExogenous)
+    this.AnticipationStatusOfExogenous(inxExogenous) = anticipationStatus;
 end
 
 end%
