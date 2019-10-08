@@ -1,5 +1,5 @@
-function this = eval(this, func, dates, varargin)
-% eval  Evaluate time series function recursively
+function this = apply(func, this, dates, varargin)
+% applay  Apply function to time series period by period
 %{
 %}
 

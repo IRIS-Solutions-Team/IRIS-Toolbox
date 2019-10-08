@@ -45,7 +45,7 @@ classdef ( Abstract, ...
         varargout = diff(varargin)
         varargout = difflog(varargin)
         varargout = ellone(varargin)
-        varargout = eval(varargin)
+        varargout = apply(varargin)
 
         varargout = fill(varargin)
         function varargout = replace(varargin)
