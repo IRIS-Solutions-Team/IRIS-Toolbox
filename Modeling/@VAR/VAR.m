@@ -142,7 +142,7 @@ classdef (CaseInsensitiveProperties=true) ...
         G = [ ] % Coefficients at cointegrating vector in VEC form.
 
         % Sigma  Covariance matrix of parameter estimates
-        Sigma = double(0)
+        Sigma = double.empty(0, 0, 0)
 
         % AIC  Akaike information criterion
         AIC = double.empty(1, 0)
@@ -156,6 +156,15 @@ classdef (CaseInsensitiveProperties=true) ...
         Rr = [ ] % Parameter restrictions.
         NHyper = NaN % Number of estimated hyperparameters.
     end
+
+
+
+
+    properties (Dependent)
+        CovParameters
+    end
+
+
 
 
     methods
@@ -314,5 +323,14 @@ classdef (CaseInsensitiveProperties=true) ...
                 return
             end
         end
+    end
+
+
+
+
+    methods
+        function value = get.CovParameters(this)
+            value = this.Sigma;
+        end%
     end
 end
