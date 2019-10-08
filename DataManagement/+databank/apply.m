@@ -57,6 +57,10 @@ function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank,
 % its named derived from the original name by adding this string to the
 % end of the original field name.
 %
+% __`RemoveSource=false`__ [ `true` | `false` ] -
+% Remove the source field from the `outputDatabank`; the source field is
+% the `inputDatabank` on which the `function` was run to create a new
+% field.
 %
 % ## Description ##
 %
@@ -112,10 +116,11 @@ if isempty(parser)
     parser.addParameter({'HasSuffix', 'EndsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter({'AddPrefix', 'AddToStart'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter({'AddSuffix', 'AddToEnd'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter({'RemovePrefix', 'RemoveStart'}, false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'RemovePrefix', 'RemoveStart'}, false, @validate.logicalScalar);
+    parser.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
+    parser.addParameter('RemoveSource', true, @validate.logicalScalar);
     parser.addParameter({'List', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-    parser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || isstruct(x));
+    parser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || validate.databank(x));
 end
 parser.parse(func, inputDatabank, varargin{:});
 opt = parser.Options;
@@ -148,7 +153,8 @@ if isequal(outputDatabank, @auto)
     outputDatabank = inputDatabank;
 end
 
-inxApplied = false(size(namesFields));
+inxApplied = false(1, numFields);
+inxToRemove = false(1, numFields);
 for i = 1 : numFields
     ithName = namesFields{i};
     if ~isequal(opt.List, @all) && ~any(strcmpi(ithName, opt.List))
@@ -181,6 +187,11 @@ for i = 1 : numFields
         ithSeries = func(ithSeries);
     end
     outputDatabank = setfield(outputDatabank, ithNewName, ithSeries);
+    inxToRemove(i) = opt.RemoveSource && ~strcmp(ithName, ithNewName);
+end
+
+if any(inxToRemove)
+    outputDatabank = rmfield(outputDatabank, namesFields(inxToRemove));
 end
 
 appliedToNames = namesFields(inxApplied);
