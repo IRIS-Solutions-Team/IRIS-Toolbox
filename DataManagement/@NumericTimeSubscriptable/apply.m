@@ -27,7 +27,7 @@ function this = apply(func, this, dates, varargin)
 % 
 % The function `func` must accept a total of N input arguments where N is 2
 % plus the number of the extra input arguments `y1`, `y2`, etc... The first
-% two input arguments must be the input series `x` and the time reference,
+% two input arguments must be the input series `x` and the time,
 % say `t`.
 % 
 % Any use of a time series in the `func` must be followed explicitly by
