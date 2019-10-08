@@ -1,4 +1,4 @@
-function This = infocrit(This)
+function this = infocrit(this)
 % infocrit  Populate information criteria for a parameterised VAR.
 %
 % Syntax
@@ -26,30 +26,35 @@ function This = infocrit(This)
 %
 % Example
 % =======
+%
+%
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-nAlt = size(This.Omega,3);
+nv = size(this.Omega, 3);
 
-This.Aic = nan(1,nAlt);
-This.Sbc = nan(1,nAlt);
+this.AIC = nan(1, nv);
+this.SBC = nan(1, nv);
 
-if all(~This.IxFitted(:)) || ~isfinite(This.NHyper)
+if all(~this.IxFitted(:)) || ~isfinite(this.NHyper)
     return
 end
 
-nFitted = nfitted(This);
-for iAlt = 1 : nAlt
-    if nFitted(iAlt) == 0
+numFitted = nfitted(this);
+K = this.NHyper;
+for v = 1 : nv
+    T = numFitted(v);
+    if T==0
         continue
     end
-    logDetOmg = log(det(This.Omega(:,:,iAlt)));
-    This.Aic(iAlt) = logDetOmg + 2./nFitted(iAlt) * This.NHyper;
-    This.Sbc(iAlt) = logDetOmg ...
-        + log(nFitted(iAlt))./nFitted(iAlt) * This.NHyper;
+    logDetOmg = log(det(this.Omega(:, :, v)));
+    this.AIC(v) = logDetOmg + 2*K/T;
+    this.AICc(v) = this.AIC(v) + 2*K*(K+1)/(T-K-1);
+    this.SBC(v) = logDetOmg + log(T)*K/T;
 end
 
-end
+end%
+

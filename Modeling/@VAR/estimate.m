@@ -4,22 +4,22 @@ function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range
 %
 % __Syntax__
 %
-%     [VARModel, VData, Fitted] = estimate(VARModel, InputData, Range, ...)
+%     [varModel, VData, Fitted] = estimate(varModel, inputData, range, ...)
 %
 %
 % __Input Arguments__
 %
-% * `VARModel` [ VAR ] - Empty VAR object.
+% * `varModel` [ VAR ] - VAR model object.
 %
-% * `InputData` [ struct ] - Input database.
+% * `inputData` [ struct ] - Input databank.
 %
-% * `Range` [ numeric ] - Estimation range, including `P` pre-sample
+% * `range` [ numeric ] - Estimation range, including `P` pre-sample
 % periods, where `P` is the order of the VAR.
 %
 %
 % __Output Arguments__
 %
-% * `VARModel` [ VAR ] - Estimated reduced-form VAR object.
+% * `varModel` [ VAR ] - Estimated reduced-form VAR object.
 %
 % * `VData` [ struct ] - Output database with the endogenous
 % variables and the estimated residuals.
@@ -124,7 +124,7 @@ function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range
 %
 % Panel VAR objects are created by calling the function [`VAR`](VAR/VAR)
 % with two input arguments: the list of variables, and the list of group
-% names. To estimate a panel VAR, the input data, `InputData`, must be organised
+% names. To estimate a panel VAR, the input data, `inputData`, must be organised
 % a super-database with sub-databases for each group, and time series for
 % each variables within each group:
 %
@@ -145,9 +145,9 @@ function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('VAR.estimate');
-    parser.addRequired('VARModel', @(x) isa(x, 'VAR'));
-    parser.addRequired('InputData', @(x) myisvalidinpdata(this, x));
-    parser.addRequired('Range', @DateWrapper.validateRangeInput);
+    parser.addRequired('varModel', @(x) isa(x, 'VAR'));
+    parser.addRequired('inputData', @(x) myisvalidinpdata(this, x));
+    parser.addRequired('range', @DateWrapper.validateProperRangeInput);
     parser.addParameter('Diff', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Order', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
     parser.addParameter('Cointeg', [ ], @isnumeric);
@@ -189,7 +189,7 @@ end
 p = opt.Order;
 numGroups = max(1, length(this.GroupNames));
 kx = length(this.NamesExogenous);
-indexGroupSpec = resolveGroupSpec( );
+inxGroupSpec = resolveGroupSpec( );
 
 if ~isempty(opt.A) && p>1 && size(opt.A, 3)==1
     opt.A = repmat(opt.A, 1, 1, p);
@@ -206,7 +206,7 @@ end
 if ~isempty(opt.Cointeg)
     opt.Diff = true;
 end
-[y0, k0, x0, y1, g1, ci] = stackData(this, inputEndogenous, inputExogenous, indexGroupSpec, opt);
+[y0, k0, x0, y1, g1, ci] = stackData(this, inputEndogenous, inputExogenous, inxGroupSpec, opt);
 
 this.Range = extendedRange;
 numExtendedPeriods = length(extendedRange);
@@ -290,7 +290,7 @@ for iLoop = 1 : numRuns
     s = VAR.myglsq(s, opt);
 
     % Assign estimated coefficient matrices to the VAR object.
-    [this, fitted{iLoop}] = assignEst(this, s, indexGroupSpec, iLoop, opt);
+    [this, fitted{iLoop}] = assignEst(this, s, inxGroupSpec, iLoop, opt);
     
     e0(:, :, iLoop) = s.resid;
     count(iLoop) = s.count;
@@ -380,15 +380,15 @@ return
     end 
 
 
-    function indexGroupSpec = resolveGroupSpec( )
-        indexGroupSpec = false(1, 1+kx);
+    function inxGroupSpec = resolveGroupSpec( )
+        inxGroupSpec = false(1, 1+kx);
         if ~ispanel(this) || numGroups==1 || ...
                 ( isequal(opt.FixedEff, false) && isequal(opt.GroupSpec, false) )
             return
         end
-        indexGroupSpec(1) = opt.FixedEff;
+        inxGroupSpec(1) = opt.FixedEff;
         if islogicalscalar(opt.GroupSpec)
-            indexGroupSpec(2:end) = opt.GroupSpec;
+            inxGroupSpec(2:end) = opt.GroupSpec;
             return
         end
         if ischar(opt.GroupSpec)
@@ -396,7 +396,7 @@ return
         end
         for ii = 1 : kx
             name = this.NamesExogenous{ii};
-            indexGroupSpec(1+ii) = any(strcmpi(opt.GroupSpec, name));
+            inxGroupSpec(1+ii) = any(strcmpi(opt.GroupSpec, name));
         end
     end
 end

@@ -1,11 +1,11 @@
 function [answ, flag] = implementGet(this, query, varargin)
-% implementGet  Implement get method for VAR objects.
+% implementGet  Implement get method for VAR objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -89,12 +89,17 @@ switch query
         
     case 'aic'
         % Akaike info criterion.
-        answ = this.Aic;
+        answ = this.AIC;
+        
+        
+    case 'aicc'
+        % Akaike info criterion corrected for small sample
+        answ = this.AICc;
         
         
     case 'sbc'
         % Schwarz bayesian criterion.
-        answ = this.Sbc;
+        answ = this.SBC;
         
         
     case {'nfree', 'nhyper'}

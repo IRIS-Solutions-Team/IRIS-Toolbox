@@ -47,6 +47,7 @@
 %   Omega - Covariance matrix of reduced-form forecast errors
 %   Sigma - Covariance matrix of parameter estimates
 %   AIC - Akaike information criterion
+%   AICc - Akaike information criterion corrected for small sample
 %   SBC - Schwarz bayesian criterion
 %   EigenValues - Eigenvalues of VAR transition matrix
 %   EigenStability - Stability indicator for each eigenvalue
@@ -143,8 +144,11 @@ classdef (CaseInsensitiveProperties=true) ...
         % Sigma  Covariance matrix of parameter estimates
         Sigma = double(0)
 
-        % Aic  Akaike information criterion
+        % AIC  Akaike information criterion
         AIC = double.empty(1, 0)
+
+        % AICc  Akaike information criterion corrected for small sample
+        AICc = double.empty(1, 0)
 
         % SBC  Schwarz bayesian criterion
         SBC = double.empty(1, 0)

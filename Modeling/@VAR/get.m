@@ -68,6 +68,9 @@ function varargout = get(This,varargin)
 %
 % * `'AIC'` - Returns [ numeric ] Akaike information criterion.
 %
+% * `'AICc'` - Returns [ numeric ] Akaike information criterion corrected
+% for small sample.
+%
 % * `'SBC'` - Returns [ numeric ] Schwarz bayesian criterion.
 %
 % Other queries

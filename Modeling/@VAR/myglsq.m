@@ -238,7 +238,7 @@ return
         if isempty(r)
             % Unrestricted parameters, `Mw` may not be available.
             if ~isempty(Xw)
-                Mw = Xw * tranpose(Xw); 
+                Mw = Xw * transpose(Xw); 
                 Sgm = kron(inv(Mw), Omg0); 
             else
                 Sgm = nan(numRhs*ny); 
