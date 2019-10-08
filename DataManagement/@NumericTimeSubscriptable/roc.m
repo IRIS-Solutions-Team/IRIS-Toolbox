@@ -13,10 +13,11 @@ function this = roc(this, varargin)
 % __`x`__ [ NumericTimeSubscriptable ] -
 % Input time series.
 %
-% __`~shift`__ [ numeric ] -
+% __`~shift`__ [ numeric | `'yoy'` ] -
 % Time shift (lag or lead) over which the rate of
 % change will be computed, i.e. between time t and t+k; if omitted,
-% `shift=-1`.
+% `shift=-1`; if `shift='yoy'` a year-on-year rate is calculated
+% depending on the date frequency of the input series `x`.
 %
 %
 % ## Output Arguments ##
@@ -52,18 +53,17 @@ function this = roc(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('NumericTimeSubscriptable.roc');
-    % Required and optional positional arguments
-    parser.addRequired('inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    parser.addOptional('shift', -1, @(x) validate.numericScalar(x) && x==round(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('NumericTimeSubscriptable.roc');
+    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addOptional(pp, 'shift', -1, @(x) (validate.numericScalar(x) && x==round(x)) || strcmpi(x, 'yoy'));
     % Options
-    parser.addParameter('OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
+    addParameter(pp, 'OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
 end
-parser.parse(this, varargin{:});
-sh = parser.Results.shift;
-opt = parser.Options;
+pp.parse(this, varargin{:});
+sh = pp.Results.shift;
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
@@ -71,9 +71,16 @@ if isempty(this.data)
     return
 end
 
+inputFreq = DateWrapper.getFrequencyAsNumeric(this.Start);
+if strcmpi(sh, 'yoy')
+    sh = -double(inputFreq);
+    if sh==0
+        sh = -1;
+    end
+end
+
 power = 1;
 if ~isempty(opt.OutputFreq)
-    inputFreq = DateWrapper.getFrequencyAsNumeric(this.Start);
     power = inputFreq / opt.OutputFreq / abs(sh);
 end
 
