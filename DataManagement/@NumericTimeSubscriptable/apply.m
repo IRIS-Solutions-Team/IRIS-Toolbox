@@ -1,5 +1,5 @@
 function this = apply(func, this, dates, varargin)
-% applay  Apply function to time series period by period
+% apply  Apply function to time series period by period
 %{
 %}
 
