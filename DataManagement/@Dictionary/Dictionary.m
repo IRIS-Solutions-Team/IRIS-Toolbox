@@ -293,6 +293,13 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
 
+        function flag = exist(this, key)
+            flag = lookupKey(this, key);
+        end%
+
+
+
+
         function this = store(this, varargin)
 % store  Store new entries in Dictionary
             for i = 1 : 2 : numel(varargin)
