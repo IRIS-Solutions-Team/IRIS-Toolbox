@@ -1,54 +1,74 @@
-function spy(inputDatabank, listOfSeries, startDate, endDate)
+function spy(inputDatabank, listSeries, startDate, endDate)
+% spy  Visualize databank time series based on test condition
+%{
+%}
 
-if isequal(listOfSeries, @all)
-    listOfSeries = fieldnames(inputDatabank);
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+startDate = double(startDate);
+if nargin<4
+    endDate = startDate(end);
+    startDate = startDate(1);
+end
+endDate = double(endDate);
+
+%--------------------------------------------------------------------------
+
+if isstruct(inputDatabank)
+    retrieve = @getfield;
+    exist = @isfield;
 end
 
-if ~iscellstr(listOfSeries)
-    listOfSeries = cellstr(listOfSeries);
+if isequal(listSeries, @all)
+    listSeries = fieldnames(inputDatabank);
 end
 
-if isempty(listOfSeries)
+if ~iscellstr(listSeries)
+    listSeries = cellstr(listSeries);
+end
+
+if isempty(listSeries)
     return
 end
 
-numOfSeries = numel(listOfSeries);
-inxToKeep = true(1, numOfSeries);
-for i = 1 : numel(listOfSeries)
-    name = listOfSeries{i};
-    if ~isfield(inputDatabank, name) ...
-        || ~isa(inputDatabank.(name), 'TimeSubscriptable')
+numSeries = numel(listSeries);
+inxToKeep = true(1, numSeries);
+for i = 1 : numel(listSeries)
+    ithName = listSeries{i};
+    if ~exist(inputDatabank, ithName) ...
+        || ~isa(retrieve(inputDatabank, ithName), 'TimeSubscriptable')
         inxToKeep(i) = false;
     end
 end
-listOfSeries = listOfSeries(inxToKeep);
+listSeries = listSeries(inxToKeep);
 
-numOfSeries = numel(listOfSeries);
-lenOfNames = cellfun(@length, listOfSeries, 'UniformOutput', false);
-maxLengthOfName = max([lenOfNames{:}]);
-numOfPeriods = rnglen(startDate, endDate);
+numSeries = numel(listSeries);
+lenNames = cellfun(@length, listSeries, 'UniformOutput', false);
+maxLengthName = max([lenNames{:}]);
+numPeriods = round(endDate - startDate + 1);
 textual.looseLine( );
-for i = 1 : numOfSeries
-    name = listOfSeries{i};
-    fprintf('%*s ', maxLengthOfName, name);
-    data = getDataFromTo(inputDatabank.(name), startDate, endDate);
+for i = 1 : numSeries
+    ithName = listSeries{i};
+    fprintf('%*s ', maxLengthName, ithName);
+    ithSeries = retrieve(inputDatabank, ithName);
+    data = getDataFromTo(ithSeries, startDate, endDate);
     data = data(:, :);
-    inxOfNaNs = all(isnan(data), 2);
-    if all(inxOfNaNs)
+    inxNaN = all(isnan(data), 2);
+    if all(inxNaN)
         fprintf('\n');
         continue
     end
-    inxOfZeros = all(data==0, 2);
-    spyString = repmat('.', 1, numOfPeriods);
-    spyString(~inxOfNaNs) = 'X';
-    spyString(inxOfZeros) = 'O';
-    posOfLastObs = find(~inxOfNaNs, 1, 'Last');
-    spyString(posOfLastObs+1:end) = '.';
+    inxZeros = all(data==0, 2);
+    spyString = repmat('.', 1, numPeriods);
+    spyString(~inxNaN) = 'X';
+    spyString(inxZeros) = 'O';
+    posLastObs = find(~inxNaN, 1, 'Last');
+    spyString(posLastObs+1:end) = '.';
     fprintf('%s\n', spyString);
 end
 
 textual.looseLine( );
 
-end
-
+end%
 

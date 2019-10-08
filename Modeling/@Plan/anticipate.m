@@ -60,7 +60,8 @@ names = varargin;
 try
     parse(parser, this, anticipationStatus, names);
 catch
-    [names, anticipationStatus] = deal(anticipationStatus, names);
+    % TODO: Legacy input arguments
+    [names, anticipationStatus] = deal(anticipationStatus, names{1});
     parse(parser, this, anticipationStatus, names);
     thisWarning = { 'Plan:AnticipateLegacyInputArgumentsForGPMN' 
                     'Invalid order of input arguments to @Plan/anticipate; this will become an error in a future release of IRIS. See help Plan/anticipate.' };

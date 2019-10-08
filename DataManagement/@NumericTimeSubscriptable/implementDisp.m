@@ -56,7 +56,7 @@ end%
 
 function dispDataClass(this, indent)
     fprintf(indent);
-    fprintf('Data Type: %s\n', class(this.Data));
+    fprintf('Class of Data: %s\n', class(this.Data));
 end%
 
 
@@ -72,8 +72,8 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
         subsref(1:numDims-1) = {':'};
         for i = 1 : lastDimSize
             subsref(numDims) = {i};
-            dispND(start, data(subsref{:}), comment(subsref{:}), ...
-                [i, pos], name, disp2dFunc, numDims-1, cfg);
+            dispND( start, data(subsref{:}), comment(subsref{:}), ...
+                    [i, pos], name, disp2dFunc, numDims-1, cfg );
         end
     else
         if ~isempty(pos)
@@ -82,9 +82,9 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
         end
         if numPeriods>0
             X = feval(disp2dFunc, start, data, cfg.DispIndent, sep, num2strFunc);
-            % Reduce the number of white spaces between numbers to 5 at most.
+            % Reduce the number of white spaces between numbers to 5 at most
             X = reduceSpaces(X, cfg.tseriesmaxwspace);
-            % Print the dates and data.
+            % Print the dates and data
             disp(X);
         end
         % Make sure long scalar comments are never displayed as `[1xN char]`.
