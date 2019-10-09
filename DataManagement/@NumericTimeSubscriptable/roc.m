@@ -14,10 +14,10 @@ function this = roc(this, varargin)
 % Input time series.
 %
 % __`~shift`__ [ numeric | `'yoy'` ] -
-% Time shift (lag or lead) over which the rate of
-% change will be computed, i.e. between time t and t+k; if omitted,
-% `shift=-1`; if `shift='yoy'` a year-on-year rate is calculated
-% depending on the date frequency of the input series `x`.
+% Time shift (lag or lead) over which the rate of change will be computed,
+% i.e. between time t and t+k; if omitted, `shift=-1`; if `shift='yoy'` a
+% year-on-year rate is calculated (with the actual `shift` depending on the
+% date frequency of the input series `x`).
 %
 %
 % ## Output Arguments ##
@@ -47,6 +47,21 @@ function this = roc(this, varargin)
 % month t and t-3:
 %
 %     roc(x, -3, 'OutputFreq=', 1)
+%
+%
+% ## Example ##
+%
+% In this example, `xm` is a monthly time series and `xq` is a quarterly
+% series. The following pairs of commands are equivalent for calculating
+% the year-over-year rates of change:
+% 
+%     roc(xm, -12)
+%     roc(xm, 'yoy')
+%
+% and
+%
+%     roc(xq, -4)
+%     roc(xq, 'yoy')
 %
 %}
 
@@ -84,7 +99,7 @@ if ~isempty(opt.OutputFreq)
     power = inputFreq / opt.OutputFreq / abs(sh);
 end
 
-this = unop(@numeric.roc, this, 0, sh, power);
+this = unop( @numeric.roc, this, 0, sh, power );
 
 end%
 
