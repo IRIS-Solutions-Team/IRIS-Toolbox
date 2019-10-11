@@ -157,12 +157,12 @@ nv = numel(this.Variant);
 
 %--------------------------------------------------------------------------
 
-numOfRequests = numel(requests);
-inxOfShocks = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+numRequests = numel(requests);
+inxShocks = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 
 outputTable = table(this.Quantity.Name(:), 'VariableNames', {'Name'});
 
-for i = 1 : numOfRequests
+for i = 1 : numRequests
 
     if any(strcmpi(requests{i}, {'SteadyLevel', 'SteadyLevels'}))
         compare = false;
@@ -213,17 +213,17 @@ for i = 1 : numOfRequests
 
 
     elseif any(strcmpi(requests{i}, {'Parameter', 'Parameters'}))
-        inxOfParameters = this.Quantity.Type==TYPE(4);
+        inxParameters = this.Quantity.Type==TYPE(4);
         compare = false;
         setNaN = '';
-        addTable = tableValues(this, @real, compare, inxOfParameters, setNaN, 'Parameter', opt);
+        addTable = tableValues(this, @real, compare, inxParameters, setNaN, 'Parameter', opt);
 
 
     elseif any(strcmpi(requests{i}, {'CompareParameter', 'CompareParameters'}))
-        inxOfParameters = this.Quantity.Type==TYPE(4);
+        inxParameters = this.Quantity.Type==TYPE(4);
         compare = true;
         setNaN = '';
-        addTable = tableValues(this, @real, compare, inxOfParameters, setNaN, 'CompareParameters', opt);
+        addTable = tableValues(this, @real, compare, inxParameters, setNaN, 'CompareParameters', opt);
 
 
     elseif any(strcmpi(requests{i}, {'Description', 'Descriptions'}))
@@ -372,43 +372,44 @@ end%
 
 
 function addTable = tableValues(this, retrieve, compare, inx, setNaN, columnName, opt)
-    inxOfLog = this.Quantity.IxLog;
-    inxOfLog = inxOfLog(:);
+    inxLog = this.Quantity.IxLog;
+    inxLog = inxLog(:);
     values = this.Variant.Values;
     values = retrieve(values);
     values = permute(values, [2, 3, 1]);
     if ~isempty(inx)
-        inxOfLog = inxOfLog(inx);
+        inxLog = inxLog(inx);
         values = values(inx, :);
     end
     if isequal(compare, true)
-        values(~inxOfLog, :) = bsxfun(@minus, values(~inxOfLog, :), values(~inxOfLog, 1));
-        values(inxOfLog, :) = bsxfun(@rdivide, values(inxOfLog, :), values(inxOfLog, 1));
+        values(~inxLog, :) = bsxfun(@minus, values(~inxLog, :), values(~inxLog, 1));
+        values(inxLog, :) = bsxfun(@rdivide, values(inxLog, :), values(inxLog, 1));
         if ~opt.CompareFirstColumn
             values(:, 1) = [ ];
         end
     end
     if strcmpi(setNaN, 'log')
-        values(inxOfLog, :) = NaN;
+        values(inxLog, :) = NaN;
     elseif strcmpi(setNaN, 'nonlog')
-        values(~inxOfLog, :) = NaN;
+        values(~inxLog, :) = NaN;
     end
     addTable = tableTopic(this, {columnName}, inx, values);
 end%
 
 
 function addTable = tableForm(this)
-    inxOfLog = this.Quantity.IxLog;
-    inxOfLog = inxOfLog(:);
-    values = cell(size(inxOfLog));
-    values(~inxOfLog) = {'Diff-'};
-    values(inxOfLog) = {'Rate/'};
+    inxLog = this.Quantity.IxLog;
+    inxLog = inxLog(:);
+    values = repmat("", numel(inxLog), 1);
+    values(~inxLog) = "Diff-";
+    values(inxLog) = "Rate/";
     addTable = tableTopic(this, {'Form'}, [ ], values);
 end%
 
 
 function addTable = tableDescription(this)
     values = this.Quantity.Label(:);
+    values = string(values);
     addTable = tableTopic(this, {'Description'}, [ ], values);
 end%
 
@@ -423,10 +424,10 @@ function addTable = tableStationary(this)
     TYPE = @int8;
     inx = getIndexByType(this, TYPE(1), TYPE(2));
     names = this.Quantity.Name(inx);
-    numOfNames = numel(names);
+    numNames = numel(names);
     temp = get(this, 'Stationary');
-    values = true(numOfNames, 1);
-    for i = 1 : numOfNames
+    values = true(numNames, 1);
+    for i = 1 : numNames
         values(i) = temp.(names{i});
     end
     addTable = tableTopic(this, {'Stationary'}, inx, values);
@@ -447,8 +448,8 @@ end%
 function addTable = tableStd(this, compare)
     names = getStdNames(this.Quantity);
     names = names(:);
-    numOfShocks = numel(names);
-    values = permute( this.Variant.StdCorr(1, 1:numOfShocks, :), [2, 3, 1] );
+    numShocks = numel(names);
+    values = permute( this.Variant.StdCorr(1, 1:numShocks, :), [2, 3, 1] );
     if compare
         values = bsxfun(@minus, values, values(:, 1));
     end
@@ -460,12 +461,12 @@ end%
 
 function addTable = tableCorr(this, compare, nonzero)
         names = getCorrNames(this.Quantity);
-        numOfShocks = nnz(inxOfShocks);
-        values = permute( this.Variant.StdCorr(1, numOfShocks+1:end, :), [2, 3, 1] );
+        numShocks = nnz(inxShocks);
+        values = permute( this.Variant.StdCorr(1, numShocks+1:end, :), [2, 3, 1] );
         if nonzero
-            inxOfNonzero = any(values~=0, 2);
-            names = names(inxOfNonzero);
-            values = values(inxOfNonzero, :);
+            inxNonzero = any(values~=0, 2);
+            names = names(inxNonzero);
+            values = values(inxNonzero, :);
         end
         if compare
             values = bsxfun(@minus, values, values(:, 1));
