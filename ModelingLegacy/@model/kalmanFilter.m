@@ -198,7 +198,7 @@ for iLoop = 1 : nLoop
     
     % Continue immediately if solution is not available; report NaN solutions
     % post mortem.
-    inxOfSolved(iLoop) = all(~isnan(T(:)));
+    inxOfSolved(iLoop) = all(isfinite(T(:)));
     if ~inxOfSolved(iLoop)
         continue
     end
@@ -886,9 +886,8 @@ function S = getSmoothMean(S)
         if ~isempty(S.d)
             d = S.d(:, min(t, end));
         end
-        [y2, f2, b2, e2, r] = ...
-            kalman.oneStepBackMean(S, t, S.pe(:, 1, t, 1), S.a0(:, 1, t, 1), ...
-            S.f0(:, 1, t, 1), S.ydelta(:, 1, t), d, r);
+        [y2, f2, b2, e2, r] = kalman.oneStepBackMean( S, t, S.pe(:, 1, t, 1), S.a0(:, 1, t, 1), ...
+                                                      S.f0(:, 1, t, 1), S.ydelta(:, 1, t), d, r );
         S.y2(~j, t) = y2(~j, 1);
         if nf>0
             S.f2(:, t) = f2;
@@ -901,7 +900,7 @@ end%
 
 
 
-function [D, Ka, Kf] = addShockTunes(s, R,  opt)
+function [D, Ka, Kf] = addShockTunes(s, R, opt)
     % addShockTunes  Add tunes on shock means to constant terms
     ne = size(s.Ra, 2);
     ny = size(s.Z, 1);
@@ -1045,3 +1044,4 @@ function [Pb, Dy, Df, Db, N] = oneStepBackMse(S, T, N)
         Dy = diag(Py);
     end
 end%
+
