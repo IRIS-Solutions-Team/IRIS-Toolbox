@@ -118,7 +118,7 @@ if isempty(parser)
     parser.addParameter({'AddSuffix', 'AddToEnd'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter({'RemovePrefix', 'RemoveStart'}, false, @validate.logicalScalar);
     parser.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
-    parser.addParameter('RemoveSource', true, @validate.logicalScalar);
+    parser.addParameter('RemoveSource', false, @validate.logicalScalar);
     parser.addParameter({'List', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
     parser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || validate.databank(x));
 end
