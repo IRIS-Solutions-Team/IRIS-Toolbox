@@ -47,14 +47,14 @@ function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank,
 % `function` has been applied with its named derived from the original name
 % by removing the end of the string.
 %
-% __`AddToStart=""`__ [ char | string ] -
+% __`Prepend=""`__ [ char | string ] -
 % A new field will be created after the `function` has been applied with
-% its named derived from the original name by adding this string to the
+% its named derived from the original name by prepending this string to the
 % beginning of the original field name.
 % 
-% __`AddToEnd=""`__ [ char | string ] -
+% __`Append=""`__ [ char | string ] -
 % A new field will be created after the `function` has been applied with
-% its named derived from the original name by adding this string to the
+% its named derived from the original name by appending this string to the
 % end of the original field name.
 %
 % __`RemoveSource=false`__ [ `true` | `false` ] -
@@ -114,8 +114,8 @@ if isempty(parser)
     parser.addRequired('InputDatabank', @validate.databank);
     parser.addParameter({'HasPrefix', 'StartsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter({'HasSuffix', 'EndsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter({'AddPrefix', 'AddToStart'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter({'AddSuffix', 'AddToEnd'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter({'AddPrefix', 'AddToStart', 'Prepend'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    parser.addParameter({'AddSuffix', 'AddToEnd', 'Append'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     parser.addParameter({'RemovePrefix', 'RemoveStart'}, false, @validate.logicalScalar);
     parser.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
     parser.addParameter('RemoveSource', false, @validate.logicalScalar);
