@@ -8,17 +8,17 @@
 
 classdef GetterSetter
     properties (Hidden)
-        Build = '' % IRIS version in which object was constructed
+        Build = '' % [IrisToolbox] release in which object was constructed
     end
     
     
     methods
         function this = GetterSetter(varargin)
-            persistent version
-            if isempty(version)
-                version = iris.version( );
+            persistent release
+            if isempty(release)
+                release = iris.get('Release');
             end
-            this.Build = version;
+            this.Build = release;
         end%
     end
     

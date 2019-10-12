@@ -45,14 +45,10 @@ function set(varargin)
 % following fields: `.yy`, `.hh`, `.qq`, `.bb`, `.mm`, `.ww`. Dates with
 % indeterminate frequency are printed as plain numbers.
 %
-% * `TSeriesFormat=''` [ char | empty ] - Format string for displaying time
+% * `SeriesFormat=''` [ char | empty ] - Format string for displaying time
 % series data on the screen. See help on the Matlab `sprintf` function for
 % how to set up format strings. If empty the default format of the
 % `num2str` function is used.
-%
-% * `TSeriesMaxWSpace=5` [ numeric | `5` ] - Maximum number of white spaces
-% printed between individual columns of a multivariate tseries object on
-% the screen.
 %
 % * `ConversionMonth='first'` [ numeric | `'first'` | `'last'` ] - Month
 % that will represent a lower-than-monthly-frequency date if the month is

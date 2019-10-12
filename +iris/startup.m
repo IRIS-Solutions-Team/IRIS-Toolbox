@@ -36,93 +36,67 @@ function startup(varargin)
 %
 % __Options__
 %
-% * `--shutup` - Do not print introductory message on the screen.
+% * `--Silent` - Do not print introductory message on the screen.
 %
 % * `--tseries` - Use the `tseries` class as the default time series class.
 %
 % * `--Series` - Use the `Series` class as the default time series class.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-MATLAB_RELEASE_OR_HIGHER = 'R2014b';
+MATLAB_RELEASE_OR_HIGHER = 'R2016b';
 
 %--------------------------------------------------------------------------
 
-% Runs in Matlab R2014b and higher
 if getMatlabRelease( )<release2num(MATLAB_RELEASE_OR_HIGHER)
-    error( 'IRIS:Config:IrisStartup', ...
-           'Matlab %s or later is needed to run this version of the IRIS Macroeconomic Modeling Toolbox', ...
-           MATLAB_RELEASE_OR_HIGHER );
+    thisError = { 'IrisToolbox:StartupError'
+                  'Matlab %s or later is needed to run this [IrisToolbox] release' };
+    error(thisError{1}, [thisError{2:end}], MATLAB_RELEASE_OR_HIGHER);
 end
 
 options = resolveInputOptions(varargin{:});
 
-isIdChk = ~any(strcmpi(varargin, '-noidchk'));
+% Reset path, remove other root folders
+[root, ~, rootsRemoved] = iris.path( );
 
-if ~options.shutup
-    progress = 'Starting up an IRIS session...';
-    fprintf('\n');
-    fprintf(progress);
-end
-
-% Get the whole IRIS folder structure. Exclude directories starting with an
-% _ (on top of +, @, and private, which are excluded by default). The
-% current IRIS root is always returned last in `removed`
-[reportRootsRemoved, thisRoot] = iris.pathManager('cleanup');
-
-% Add the current IRIS folder structure to the temporary search path
-addpath(thisRoot, '-begin');
-iris.pathManager('addroot', thisRoot);
-iris.pathManager('addcurrentsubs', thisRoot);
-
-% Reset Default Function Options
-passvalopt( );
-
+% Reset default function options and configuration options
+% Check [IrisToolbox] release and id file
 config = iris.reset(options);
 
-version = iris.get('version');
-if isIdChk
-    hereCheckId( );
-end
-
-if ~options.shutup
-    hereDeleteProgress( );
-    hereDisplayMessage( );
+if ~options.Silent
+    if config.DesktopStatus
+        fprintfx = @(varargin) fprintf(varargin{:});       
+    else
+        fprintfx = @(varargin) fprintf('%s', removeTags(sprintf(varargin{:})));
+    end
+    hereDisplayIntro( );
+    hereDisplayDetails( );
 end
 
 return
 
 
-    function hereDeleteProgress( )
-        if config.DesktopStatus
-            progress(1:end) = sprintf('\b');
-            fprintf(progress);
-        else
-            fprintf('\n\n');
-        end
-    end%
-
-
-
-
-    function hereDisplayMessage( )
-        if config.DesktopStatus
-            fprintfx = @(varargin) fprintf(varargin{:});       
-        else
-            fprintfx = @(varargin) fprintf('%s', removeTags(sprintf(varargin{:})));
-        end
+    function hereDisplayIntro( )
+        release = config.Release;
         % Intro message
-        fprintfx('\t<a href="http://www.iris-toolbox.com">IRIS Macroeconomic Modeling Toolbox</a> ');
-        fprintf('Release %s', version);
         fprintf('\n');
+        fprintfx('\t<a href="http://www.iris-toolbox.com">[IrisToolbox] for Macroeconomic Modeling</a> ');
+        fprintf('Release %s', release);
+        fprintf('\n');
+        % Copyright
         fprintf('\tCopyright (c) 2007-%s ', datestr(now, 'YYYY'));
         fprintfx('IRIS Solutions Team');
         fprintf('\n\n');
+    end%
         
+
+
+
+    function hereDisplayDetails( )
         % IRIS root folder
-        fprintfx('\tIRIS Root: <a href="file:///%s">%s</a>\n', thisRoot, thisRoot);
+        fprintfx('\tRoot Folder: <a href="file:///%s">%s</a>\n', root, root);
         
         % User config file used
         fprintf('\tUser Config File: ');
@@ -135,7 +109,7 @@ return
         end
         fprintf('\n');
         
-        % Default Time Series constructor
+        % Default time series constructor
         defaultTimeSeriesConstructor = config.DefaultTimeSeriesConstructor;
         defaultTimeSeriesConstructor = func2str(defaultTimeSeriesConstructor);
         fprintf('\tDefault Time Series Constructor: @%s', defaultTimeSeriesConstructor);
@@ -174,53 +148,17 @@ return
         fprintf('\n');
 
         % IRIS folders removed
-        if ~isempty(reportRootsRemoved)
+        if ~isempty(rootsRemoved)
             q = warning('query', 'backtrace');
             warning('off', 'backtrace');
-            msg = 'Some other IRIS versions or root folders have been found and removed from Matlab path:';
-            for i = 1 : numel(reportRootsRemoved)
-                msg = [msg, sprintf('\n'), '*** ', reportRootsRemoved{i}]; %#ok<AGROW>
-            end
+            msg = 'Some other IRIS releases have been found and removed from Matlab path:';
+            list = cellfun(@(x) sprintf('\n*** %s', x), rootsRemoved, 'UniformOutput', false);
             fprintf('\n');
-            warning(msg);
+            warning([msg, list{:}]);
             warning(q);
         end
-        
+
         fprintf('\n');
-    end%
-
-
-
-
-    function hereCheckId( )
-        list = dir(fullfile(thisRoot, 'iristbx*'));
-        if numel(list)==1
-            idFileVersion = regexp(list.name, '(?<=iristbx)\d+\-?\w+', 'match', 'once');
-            if ~strcmp(version, idFileVersion)
-                hereDeleteProgress( );
-                error( 'config:iris:startup', ...
-                       ['The IRIS version check file (%s) does not match ', ...
-                       'the current version of IRIS (%s). ', ...
-                       'Delete everything from the IRIS root folder, ', ...
-                       'and reinstall IRIS.'], ...
-                       idFileVersion, version );
-            end
-        elseif isempty(list)
-            hereDeleteProgress( );
-            error( 'config:iris:startup', ...
-                   ['The IRIS version check file is missing. ', ...
-                   'Delete everything from the IRIS root folder, ', ...
-                   'and reinstall IRIS.'] );
-        else
-            hereDeleteProgress( );
-            error( 'config:iris:startup', ...
-                   ['There are mutliple IRIS version check files ', ...
-                   'found in the IRIS root folder. This is because ', ...
-                   'you installed a new IRIS in a folder with an old ', ...
-                   'version, without deleting the old version first. ', ...
-                   'Delete everything from the IRIS root folder, ', ...
-                   'and reinstall IRIS.'] );
-        end
     end%
 end%
 
@@ -263,26 +201,27 @@ end%
 
 
 function options = resolveInputOptions(varargin)
-    options = struct( 'shutup',     false, ...
-                      'tseries',    false, ...
-                      'Series',     false      );
+
+    options = struct( );
+    options.Silent = false;
+    options.SeriesConstructor = @Series;
+    options.CheckId = true;
+
+    varargin = strtrim(varargin);
+    varargin = strrep(varargin, '-', '');
     for i = 1 : numel(varargin)
-        ithInput = lower(strtrim(varargin{i}));
-        ithInput = strrep(ithInput, '-', '');
-        switch ithInput
-            case 'shutup'
-                options.shutup = true;
-            case 'tseries'
-                options.tseries = true;
-                options.Series = false;
-            case 'Series'
-                options.tseries = false;
-                options.Series = true;
+        ithArg = varargin{i};
+        if strcmpi(ithArg, 'Shutup') || strcmpi(ithArg, 'Silent')
+            options.Silent = true;
+        elseif strcmpi(ithArg, 'tseries')
+            options.SeriesConstructor = @tseries;
+        elseif strcmpi(ithArg, 'Series')
+            options.SeriesConstructor = @Series;
+        elseif strcmpi(ithArg, 'NoIdChk') || strcmpi(ithArg, 'NoIdCheck')
+            options.CheckId = false;
         end
     end
-    if ~options.tseries && ~options.Series 
-        options.Series = true;
-    end
+    options.CheckId = ~any(strcmpi(varargin, '-noidchk'));
 end%
 
 

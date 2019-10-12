@@ -142,7 +142,7 @@ classdef Base
         function stack = reduceStack(adj)
             stack = exception.Base.getStack( );
             [~, irisFolder] = fileparts( iris.get('irisroot') );
-            if isempty(irisFolder) || isequal(getappdata(0, 'IRIS_ReduceStack'), false)
+            if isempty(irisFolder) || isequal(iris.get('DisplayFullStack'), true)
                 return
             end
             irisFolder = lower(irisFolder);

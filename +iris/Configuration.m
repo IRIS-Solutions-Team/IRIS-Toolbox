@@ -1,10 +1,10 @@
 classdef (CaseInsensitiveProperties=true) Configuration 
     properties (SetAccess=protected)
-        % IrisRoot  IRIS root folder (not customizable)
+        % IrisRoot  IrisToolbox root folder (not customizable)
         IrisRoot = iris.Configuration.getIrisRoot( )
 
-        % Version  IRIS version (not customizable)
-        Version = iris.Configuration.getIrisVersion( )
+        % Release  IrisToolbox release (not customizable)
+        Release = iris.Configuration.getIrisRelease( )
 
         % DesktopStatus  True if Matlab is running in Java desktop
         DesktopStatus = iris.Configuration.getDesktopStatus( )
@@ -64,11 +64,11 @@ classdef (CaseInsensitiveProperties=true) Configuration
         % DispIndent  Indentation at the beginning of class display
         DispIndent = iris.Configuration.DEFAULT_DISP_INDENT
 
-        % TSeriesFormat  Format for displaying numeric time series data
-        TSeriesFormat = iris.Configuration.DEFAULT_TSERIES_FORMAT
+        % SeriesFormat  Format for displaying numeric time series data
+        SeriesFormat = iris.Configuration.DEFAULT_SERIES_FORMAT
 
-        % TSeriesMaxWSpace  Maximum number of spaces between time series columns when being displayed
-        TSeriesMaxWSpace = iris.Configuration.DEFAULT_TSERIES_MAX_WSPACE
+        % SeriesMaxWSpace  Maximum number of spaces between time series columns when being displayed
+        SeriesMaxWSpace = iris.Configuration.DEFAULT_SERIES_MAX_WSPACE
 
         % PdfLatexPath  Path to the PDFLATEX executable
         PdfLatexPath = iris.Configuration.DEFAULT_LATEX_PATHS{1} 
@@ -85,8 +85,17 @@ classdef (CaseInsensitiveProperties=true) Configuration
         % DefaultTimeSeriesConstructor  Function handle to default time series constructor
         DefaultTimeSeriesConstructor = @Series
 
+        % DisplayFullStack  Display full stack in error and warning messages thrown by IrisToolbox
+        DisplayFullStack = false
+
         % UserData  Any kind of user data
         UserData = [ ]
+    end
+
+
+    properties (Dependent, Hidden)
+        Version
+        TSeriesFormat
     end
 
 
@@ -162,9 +171,9 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         DEFAULT_DISP_INDENT = '    '
 
-        DEFAULT_TSERIES_FORMAT = ''
+        DEFAULT_SERIES_FORMAT = ''
 
-        DEFAULT_TSERIES_MAX_WSPACE = 5
+        DEFAULT_SERIES_MAX_WSPACE = 5
 
         DEFAULT_LATEX_PATHS = iris.Configuration.findTexFiles( )
 
@@ -191,19 +200,17 @@ classdef (CaseInsensitiveProperties=true) Configuration
             this.UserConfigPath = which('irisuserconfig.m');
             if ~isempty(this.UserConfigPath)
                 this = irisuserconfig(this);
+                thisWarning = { 'IrisToolbox:Deprecated'
+                                'Using irisuserconfig.m file to modify IrisToolbox configuration '
+                                'is deprecated and will be discontinued in a future release. '
+                                'Use the standard Matlab <startup.m> file with iris.set( ) instead.' };
+                warning(thisWarning{1}, [thisWarning{2:end}]);
             end
         end%
 
 
         function save(this)
             setappdata(0, this.APPDATA_FIELD_NAME, this);
-            try
-                save(iris.Configuration.getConfigurationMatFilePath, 'this');
-            catch
-                THIS_WARNING = { 'Configuration:CannotBackupConfigurationData'
-                                 'Cannot back up configuration data to mat file' };
-                throw( exception.Base(THIS_WARNING, 'warning') );
-            end
         end%
     end
 
@@ -212,16 +219,10 @@ classdef (CaseInsensitiveProperties=true) Configuration
         function this = load( )
             this = getappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
             if ~isa(this, 'iris.Configuration')
-                temp = [ ];
-                try
-                    temp = load(iris.Configuration.getIrisRoot( ), 'this');
-                    this = temp.this;
-                end
-            end
-            if ~isa(this, 'iris.Configuration')
-                THIS_ERROR = { 'Configuration:ConfigurationCorrupted'
-                               'IRIS configuration data have been corrupted. Shut down and restart Matlab and IRIS.' };
-                throw( exception.Base(THIS_ERROR, 'error') );
+                thisWarning = { 'IrisToolbox:ConfigurationDamaged'
+                                'Configuration data for [IrisToolbox] need to be reset.' };
+                warning(thisWarning{1}, [thisWarning{2:end}]);
+                this = iris.reset( );
             end
         end%
 
@@ -229,12 +230,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
         function clear( )
             try
                 rmappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
-            end
-            try
-                matFilePath = iris.Configuration.getConfigurationMatFilePath( );
-                if exist(matFilePath, 'file')==2
-                   delete(matFilePath);
-                end 
             end
         end%
     end
@@ -248,8 +243,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: FreqLetters' );
+                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                       'Value being assigned to this [IrisToolbox] configuration option is invalid: FreqLetters' );
             end
             this.FreqLetters = newValue;
         end%
@@ -262,8 +257,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: DateFormat' );
+                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                       'Value being assigned to this [IrisToolbox] configuration option is invalid: DateFormat' );
             end
             this.DateFormat = newValue;
         end%
@@ -276,8 +271,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: PlotDateFormat' );
+                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                       'Value being assigned to this [IrisToolbox] configuration option is invalid: PlotDateFormat' );
             end
             this.PlotDateFormat = newValue;
         end%
@@ -290,8 +285,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: BaseYear' );
+                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                       'Value being assigned to this [IrisToolbox] configuration option is invalid: BaseYear' );
             end
             this.BaseYear = newValue;
         end%
@@ -304,8 +299,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: Months' );
+                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                       'Value being assigned to this [IrisToolbox] configuration option is invalid: Months' );
             end
             this.Months = newValue;
         end%
@@ -318,8 +313,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: ConversionMonth' );
+                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                       'Value being assigned to this [IrisToolbox] configuration option is invalid: ConversionMonth' );
             end
             this.ConversionMonth = newValue;
         end%
@@ -332,8 +327,8 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: ConversionDay' );
+                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                       'Value being assigned to this [IrisToolbox] configuration option is invalid: ConversionDay' );
             end
             this.ConversionDay = newValue;
         end%
@@ -346,52 +341,50 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: WDay' );
+                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                       'Value being assigned to this [IrisToolbox] configuration option is invalid: WDay' );
             end
             this.WDay = newValue;
         end%
      
 
-        function this = set.TSeriesFormat(this, newValue)
+        function this = set.SeriesFormat(this, newValue)
             try
-                flag = iris.Configuration.validateTSeriesFormat(newValue);
-            catch
-                flag = false;
+                if iris.Configuration.validateSeriesFormat(newValue)
+                    this.SeriesFormat = newValue;
+                    return
+                end
             end
-            if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: TSeriesFormat' );
-            end
-            this.TSeriesFormat = newValue;
+            error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                   'Value being assigned to this [IrisToolbox] configuration option is invalid: SeriesFormat' );
+        end%
+
+
+        function this = set.TSeriesFormat(this, value)
+            this.SeriesFormat = value;
         end%
      
 
-        function this = set.TSeriesMaxWSpace(this, newValue)
+        function this = set.SeriesMaxWSpace(this, newValue)
             try
-                flag = iris.Configuration.validateTSeriesMaxWSpace(newValue);
-            catch
-                flag = false;
+                if iris.Configuration.validateSeriesMaxWSpace(newValue)
+                    this.SeriesMaxWSpace = newValue;
+                end
             end
-            if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: TSeriesMaxWSpace' );
-            end
-            this.TSeriesMaxWSpace = newValue;
+            error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                   'Value being assigned to this [IrisToolbox] configuration option is invalid: SeriesMaxWSpace' );
         end%
      
 
         function this = set.PdfLatexPath(this, newValue)
             try
-                flag = iris.Configuration.validatePdfLatexPath(newValue);
-            catch
-                flag = false;
+                if iris.Configuration.validatePdfLatexPath(newValue)
+                    this.PdfLatexPath = newValue;
+                    return
+                end
             end
-            if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: PdfLatexPath' );
-            end
-            this.PdfLatexPath = newValue;
+            error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                   'Value being assigned to this [IrisToolbox] configuration option is invalid: PdfLatexPath' );
         end%
      
 
@@ -402,12 +395,27 @@ classdef (CaseInsensitiveProperties=true) Configuration
                 flag = false;
             end
             if ~flag
-                error( 'IRIS:Config:NewOptionFailedValidation', ...
-                       'The value being assigned to this configuration option is invalid: EpsToPdfPath' );
+                error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                       'Value being assigned to this [IrisToolbox] configuration option is invalid: EpsToPdfPath' );
             end
             this.EpsToPdfPath = newValue;
         end%
+
+
+        function this = set.DisplayFullStack(this, value)
+            if validate.logicalScalar(value)
+                this.DisplayFullStack = value;
+                return
+            end
+            error( 'IrisToolbox:ConfigurationOptionFailedValidation', ...
+                   'Value assigned to this [IrisToolbox] configuration option is invalid: DisplayFullStack' );
+        end%
      
+
+        function value = get.Version(this)
+            value = this.Release;
+        end%
+
 
         function n = get.NumOfFrequencies(this)
             n = numel(iris.Configuration.DEFAULT_FREQ);
@@ -583,35 +591,32 @@ classdef (CaseInsensitiveProperties=true) Configuration
         end%
 
 
-        function p = getConfigurationMatFilePath( )
-            p = fullfile( iris.Configuration.getIrisRoot, ...
-                          iris.Configuration.CONFIGURATION_MAT_FILE_NAME );
-        end%
-
-
         function irisRoot = getIrisRoot( )
             irisRoot = fileparts(which('irisping.m'));
         end%
 
 
-        function irisVersion = getIrisVersion( )
+        function irisRelease = getIrisRelease( )
             x = ver( );
-            indexIris = strcmp('IRIS Macroeconomic Modeling Toolbox', {x.Name});
+            indexIris = strcmp('[IrisToolbox] for Macroeconomic Modeling', {x.Name});
             if any(indexIris)
                 if sum(indexIris)>1
                     disp(' ');
-                    error( 'IRIS:Fatal', [ 'Cannot start IRIS up properly ', ...
-                                           'because there are conflicting IRIS root folders or versions on the Matlab path. ', ...
-                                           'Remove *ALL* IRIS versions and folders from the Matlab path, ', ...
-                                           'and try again.', ]);
+                    thisError = { 'IrisToolbox:Fatal'
+                                  'Cannot start up [IrisToolbox] because '
+                                  'there are conflicting root folders '
+                                  'or versions on the Matlab path. '
+                                  'Remove *ALL* [IrisToolbox] versions and folders from the Matlab path, '
+                                  'and try again.' };
+                    error(thisError{1}, [thisError{2:end}]);
                 end
-                irisVersion = regexp(x(indexIris).Version, '\d+\-?\w+', 'match', 'once');
+                irisRelease = regexp(x(indexIris).Version, '\d+\-?\w+', 'match', 'once');
             else
                 % Do not use utils.warning because it calls back iris.get and results
                 % in infinite recursion.
-                warning( 'IRIS:Config:CannotDetermineIRISVersion', ...
-                         'Cannot determine the current version of IRIS.' );
-                irisVersion = '???';
+                warning( 'IrisToolbox:CannotDetermineRelease', ...
+                         'Cannot determine the release of [IrisToolbox] currently running.' );
+                irisRelease = '???';
             end
         end%
 
@@ -693,12 +698,12 @@ classdef (CaseInsensitiveProperties=true) Configuration
         end%
 
 
-        function flag = validateTSeriesFormat(x)
+        function flag = validateSeriesFormat(x)
             flag = ischar(x) || isa(x, 'string');
         end%
 
 
-        function flag = validateTSeriesMaxWSpace(x)
+        function flag = validateSeriesMaxWSpace(x)
             flag = isnumeric(x) && isscalar(x) && x==round(x) && x>0;
         end%
 

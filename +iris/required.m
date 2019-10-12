@@ -1,56 +1,52 @@
-function required(Min)
-% iris.required  Throw error if the installed version of IRIS fails to comply with the required minimum.
-%
-% __Syntax__
+function required(minRelease)
+% iris.required  Throw error if the [IrisToolbox] release currently running fails to comply with the required minimum
+%{
+% ## Syntax ##
 %
 %     iris.required(V)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `V` [ char ] - Text string describing the oldest acceptable
-% distribution of IRIS.
-%
-%
-% __Description__
-%
-% If the version of IRIS present on the computer does not comply with the
-% minimum requirement `V`, an error is thrown.
+% __`V`__ [ char ] -
+% Text string describing the oldest acceptable distribution of
+% [IrisToolbox].
 %
 %
-% __Example__
+% ## Description ##
 %
-% All of the three calls are valid:
+% If the [IrisToolbox] release present on the computer does not comply with
+% the minimum requirement `V`, an error is thrown.
 %
-%     iris.required(20111222);
-%     iris.required('20111222');
-%     iris.required 20111222;
 %
+% ## Example ##
+%
+% These two calls to `iris.required` are equivalent:
+%
+%     iris.required(20111222)
+%     iris.required('20111222')
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-if ischar(Min)
-    Min = sscanf(Min, '%g', 1);
+if ischar(minRelease)
+    minRelease = sscanf(minRelease, '%g', 1);
 end
-if ~isnumeric(Min) || ~isscalar(Min) || ~isfinite(Min)
-    error( 'config:iris:required', ...
+if ~isnumeric(minRelease) || ~isscalar(minRelease) || ~isfinite(minRelease)
+    error( 'IrisToolbox:Config:ReleaseRequired', ...
            'Invalid input argument to iris.required' );
 end
 
-[vChar, vNum] = iris.version( );
+[vChar, vNum] = iris.release( );
 
-if vNum<Min
-    if round(Min)==Min
-        dec = 0;
-    else
-        dec = 8;
-    end
-    error( 'config:iris:required', ...
-           [ 'IRIS Toolbox Release %.*f or later is required. ', ...
-             'Your are currently using IRIS Toolbox Release %s.' ], dec, Min, vChar );
+if vNum<minRelease
+    thisError = { 'IrisToolbox:Config:ReleaseRequired'
+                  '[IrisToolbox] Release %g or later is required. '
+                  'You are currently using [IrisToolbox] Release %s.' }
+    error(thisError{1}, [thisError{2:end}], minRelease, vChar);
 end
 
 end%

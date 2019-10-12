@@ -4,7 +4,7 @@ function varargout = pathManager(req, varargin)
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
@@ -45,25 +45,11 @@ elseif strcmpi(req, 'AddCurrentSubs')
     % search path.
     thisRoot = varargin{1};
     [p, allp] = generatePath(thisRoot);
-    if true % ##### MOSW
-        % Do nothing.
-    else 
-        if ~isempty(p.OctBegin) %#ok<UNRCH>
-            addpath(p.OctBegin{:}, '-begin');
-        end
-    end
     if ~isempty(p.Begin)
         addpath(p.Begin{:}, '-begin');
     end
     if ~isempty(p.End)
         addpath(p.End{:}, '-end');
-    end
-    if true % ##### MOSW
-        % Do nothing.
-    else
-        if ~isempty(p.OctEnd) %#ok<UNRCH>
-            addpath(p.OctEnd{:}, '-end');
-        end
     end
     varargout{1} = allp;
         

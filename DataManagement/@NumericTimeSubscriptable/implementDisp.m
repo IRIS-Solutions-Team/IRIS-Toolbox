@@ -66,7 +66,7 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
     lastDimSize = size(data, numDims);
     numPeriods = size(data, 1);
     sep = sprintf(':  ');
-    num2strFunc = @(x) fnum2str(x, cfg.TSeriesFormat);
+    num2strFunc = @(x) fnum2str(x, cfg.SeriesFormat);
     if numDims>2
         subsref = cell([1, numDims]);
         subsref(1:numDims-1) = {':'};
@@ -83,7 +83,7 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
         if numPeriods>0
             X = feval(disp2dFunc, start, data, cfg.DispIndent, sep, num2strFunc);
             % Reduce the number of white spaces between numbers to 5 at most
-            X = reduceSpaces(X, cfg.tseriesmaxwspace);
+            X = reduceSpaces(X, cfg.SeriesMaxWSpace);
             % Print the dates and data
             disp(X);
         end

@@ -271,7 +271,7 @@ else
 end
 if opt.irisversion
     c = strrep(c,'$irisversion$', ...
-        ['IRIS: ',iris.version( )]);
+        ['[IrisToolbox]: ',iris.get('Release')]);
 else
     c = strrep(c,'$irisversion$','');
 end
