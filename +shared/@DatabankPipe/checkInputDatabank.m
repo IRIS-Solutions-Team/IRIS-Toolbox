@@ -8,7 +8,7 @@ function databankInfo = checkInputDatabank(this, inputDatabank, range, requiredN
 
 %--------------------------------------------------------------------------
     
-nv = this.NumOfVariants;
+nv = this.NumVariants;
 
 if isempty(requiredNames)
     requiredNames = cell.empty(1, 0);

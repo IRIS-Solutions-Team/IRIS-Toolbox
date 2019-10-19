@@ -63,10 +63,6 @@ classdef ( Abstract, ...
 
 
         tabular(varargin)
-        function yearly(varargin)
-            tabular(varargin);
-        end%
-
         varargout = pct(varargin)
         varargout = rmse(varargin)
         varargout = roc(varargin)
@@ -84,6 +80,7 @@ classdef ( Abstract, ...
 
 
         varargout = vertcat(varargin)
+        varargout = yearly(varargin)
     end
 
 

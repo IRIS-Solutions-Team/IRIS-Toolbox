@@ -1,6 +1,6 @@
 classdef DatabankPipe
     properties (Abstract, Dependent)
-        NumOfVariants
+        NumVariants
         NamesOfAppendables
     end
 

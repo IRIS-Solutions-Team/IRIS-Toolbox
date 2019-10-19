@@ -315,16 +315,16 @@ end
 
 function copy = prepareToPublish(file)
 % xxpreparetopublish  Remove formats not recognised by built-in publish.
-c = file2char(file);
-copy = c;
-% Replace %... and %%% with %% ...
-c = regexprep(c, '^%[ \t]*\.\.\.\s*$', '%% ...','lineanchors');
-c = regexprep(c, '^%%%[ \t]*(?=\n)$', '%% ...','lineanchors');
-% Remove underlines % ==== with 4+ equal signs.
-c = regexprep(c, '^% ?====+','%','lineanchors');
-% Remove underlines % ---- with 4+ equal signs.
-c = regexprep(c, '^% ?----+','%','lineanchors');
-% Replace ` with |.
-c = strrep(c, '`', '|');
-char2file(c, file);
+    c = file2char(file);
+    copy = c;
+    % Replace %... and %%% with %% ...
+    c = regexprep(c, '^%[ \t]*\.\.\.\s*$', '%% ...','lineanchors');
+    c = regexprep(c, '^%%%[ \t]*(?=\n)$', '%% ...','lineanchors');
+    % Remove underlines % ==== with 4+ equal signs.
+    c = regexprep(c, '^% ?====+','%','lineanchors');
+    % Remove underlines % ---- with 4+ equal signs.
+    c = regexprep(c, '^% ?----+','%','lineanchors');
+    % Replace ` with |.
+    c = strrep(c, '`', '|');
+    char2file(c, file);
 end
