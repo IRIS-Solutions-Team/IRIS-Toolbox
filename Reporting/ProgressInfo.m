@@ -1,6 +1,7 @@
 classdef ProgressInfo < handle
     properties
         OneLiner = false
+        ShowTotal = true
         ShowCompleted = true
         ShowSuccess = true
         ShowTimeElapsed = true
@@ -19,7 +20,7 @@ classdef ProgressInfo < handle
     end
 
 
-    methods
+    methods % Frontend methods
         function this = ProgressInfo(total, oneLiner)
             if nargin==0
                 return
@@ -54,36 +55,40 @@ classdef ProgressInfo < handle
         end%
 
 
-        function stop(this)
+        function complete(this)
             if this.OneLiner
                 fprintf('\n');
                 textual.looseLine( );
             end
         end%
+    end
 
 
+    methods 
         function infoString = composeInfoString(this)
             infoString = '';
             lenOfTotal = length(this.TotalString);
+            if this.ShowTotal
+                totalString = sprintf('ToRun: %s%s', this.TotalString, this.DIVIDER);
+                infoString = [infoString, totalString];
+            end
             if this.ShowCompleted
-                completedString = sprintf( 'Completed: %s of %s [%s]%s', ...
+                completedString = sprintf( 'Completed: %s [%s]%s', ...
                                            printRunningInteger(this, this.Completed), ...
-                                           this.TotalString, ...
                                            printPercent(this, this.Completed/this.Total), ...
                                            this.DIVIDER );
                 infoString = [infoString, completedString];
             end
             if this.ShowSuccess
-                successString = sprintf( 'Success: %s of %s [%s]%s', ...
+                successString = sprintf( 'Success: %s [%s]%s', ...
                                          printRunningInteger(this, this.Success), ...
-                                         printRunningInteger(this, this.Completed), ...
                                          printPercent(this, this.Success/this.Completed), ...
                                          this.DIVIDER );
                 infoString = [infoString, successString];
             end
             if this.ShowTimeElapsed
                 [hours, minutes, seconds] = getHoursMinutesSecondsElapsed(this);
-                timeElapsedString = sprintf( 'TimeElapsed: %02.0f:%02.0f:%.2f%s', ... 
+                timeElapsedString = sprintf( 'TimeElapsed: %02.0f:%02.0f:%05.2f%s', ... 
                                              hours, minutes, seconds, ...
                                              this.DIVIDER );
                 infoString = [infoString, timeElapsedString];
