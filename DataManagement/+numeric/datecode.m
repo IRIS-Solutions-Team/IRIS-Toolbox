@@ -20,7 +20,9 @@ end
 
 %--------------------------------------------------------------------------
 
-% Determine the size of the resulting date array.
+year = round(year);
+
+% Determine the size of the resulting date array
 temp = nan(size(freq)) + nan(size(year));
 if isnumeric(per)
     temp = temp + nan(size(per));
