@@ -121,12 +121,20 @@ end
 %
 inxDoubleString = cellfun(@(x) (iscellstr(x) || isa(x, 'string')) && numel(x)==2, varargin);
 for i = find(inxDoubleString)
-    tokens = cellstr(inputs{i});
-    tokens{1} = strrep(tokens{1}, ":", "");
-    tokens = strtrim(tokens);
-    tokens = cellstr(tokens); % Legacy Matlab
-    inputs{i} = struct(tokens{1:2});
+    temp = cellstr(inputs{i});
+    temp{1} = strrep(temp{1}, ":", "");
+    temp = strtrim(temp);
+    inputs{i} = setfield(struct( ), temp{1:2});
 end
+
+%
+% Two-element cell with list {'key:', list}
+% where list is a cellstr
+%
+inxList = cellfun(@(x) iscell(x) && numel(x)==2 && ischar(x{1}) && iscellstr(x{2}), varargin);
+for i = find(inxList)
+    inputs{i} = setfield(struct( ), inputs{i}{1:2});
+end 
 
 replace = @hereInterpolate;
 if iscell(c)
@@ -145,6 +153,9 @@ return
                 value = getfield(inputs{i}, key);
                 if validate.string(value)
                     c1 = char(value);
+                    return
+                elseif validate.numericScalar(value)
+                    c1 = sprintf('%g', value);
                     return
                 end
             end

@@ -70,8 +70,8 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
     properties (Dependent)
-        % NumOfVariants  Number of parameter variants
-        NumOfVariants
+        % NumVariants  Number of parameter variants
+        NumVariants
 
         % EigenValues  Eigenvalues of VAR transition matrix
         EigenValues
@@ -307,7 +307,7 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
 
-        function num = get.NumOfVariants(this)
+        function num = get.NumVariants(this)
             num = length(this);
         end%
 

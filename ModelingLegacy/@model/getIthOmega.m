@@ -1,24 +1,30 @@
-function [Omg, vecStdCorr] = getIthOmega(this, variantsRequested)
-% getIthOmega  Get covariance matrix of shocks from StdCorr vector
+function [Omg, stdcorr] = getIthOmega(this, variantsRequested, overrideStdcorr, multiplyStd, numPeriods)
+% getIthOmega  Get covariance matrix of shocks from Stdcorr vector possibly combining it with user supplied time varying numbers
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
+if nargin<2
+    variantsRequested = 1 : this.NumVariants;
+end
+
 %--------------------------------------------------------------------------
 
-if nargin<2
-    variantsRequested = ':';
+inxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
+ne = nnz(inxE);
+
+stdcorr = getIthStdcorr(this, variantsRequested);
+stdcorr = permute(stdcorr, [2, 3, 1]);
+if nargin>2
+    stdcorr = this.combineStdcorr(stdcorr, overrideStdcorr, multiplyStd, numPeriods);
 end
 
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ne = sum(ixe);
-vecStdCorr = this.Variant.StdCorr(:, :, variantsRequested);
-vecStdCorr = permute(vecStdCorr, [2, 3, 1]);
-Omg = covfun.stdcorr2cov(vecStdCorr, ne);
+Omg = covfun.stdcorr2cov(stdcorr, ne);
 
-end
+end%
+

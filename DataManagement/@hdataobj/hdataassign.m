@@ -1,11 +1,11 @@
-function hdataassign(this, pos, data)
-% hdataassign  Assign currently processed data to hdataobj.
+function this = hdataassign(this, pos, data)
+% hdataassign  Assign currently processed data to hdataobj
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 % hdataassign( hData, cols, {y, x, e, ...} )
 

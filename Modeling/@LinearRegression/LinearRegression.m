@@ -44,7 +44,7 @@ classdef LinearRegression < shared.GetterSetter ...
         NumOfExplanatory
         NumOfLines
         NumOfParameters
-        NumOfVariants
+        NumVariants
         NamesOfAppendables
         MaxLag
         MaxLead
@@ -188,7 +188,7 @@ classdef LinearRegression < shared.GetterSetter ...
 
         function this = set.Explanatory(this, value)
             this.Explanatory = value;
-            this.Parameters = nan(1, this.NumOfParameters, this.NumOfVariants);
+            this.Parameters = nan(1, this.NumOfParameters, this.NumVariants);
         end%
 
 
@@ -196,7 +196,7 @@ classdef LinearRegression < shared.GetterSetter ...
 
         function this = set.Intercept(this, value)
             this.Intercept = isequal(value, true);
-            this.Parameters = nan(1, this.NumOfParameters, this.NumOfVariants);
+            this.Parameters = nan(1, this.NumOfParameters, this.NumVariants);
         end%
 
 
@@ -343,7 +343,7 @@ classdef LinearRegression < shared.GetterSetter ...
 
 
 
-        function value = get.NumOfVariants(this)
+        function value = get.NumVariants(this)
             value = size(this.Parameters, 3);
         end%
 

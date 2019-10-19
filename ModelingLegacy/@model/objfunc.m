@@ -1,11 +1,10 @@
-function [mldPosterior, mldData, mldParamPriors, mldSystemPriors] = ...
-    objfunc(x, this, data, posterior, estOpt, likOpt)
+function [mldPosterior, mldData, mldParamPriors, mldSystemPriors] = objfunc(x, this, data, posterior, estOpt, likOpt)
 % objfunc  Evaluate minus log posterior
 %
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
     
 %--------------------------------------------------------------------------
@@ -22,7 +21,7 @@ if any(x(:)<posterior.LowerBounds(:)) || any(x(:)>posterior.UpperBounds(:))
     mldPosterior = Inf;
 end
 
-% Evaluate parameter priors; they return minus log density.
+% Evaluate parameter priors; they return minus log density
 if isfinite(mldPosterior)
     if posterior.EvaluateParamPriors && any(posterior.IndexPriors)
         mldParamPriors = evalParamPriors(posterior, x);
@@ -31,7 +30,7 @@ if isfinite(mldPosterior)
 end
 
 % Update model with new parameter values; do this before evaluating the
-% system priors.
+% system priors
 if isfinite(mldPosterior)
     if posterior.EvaluateData || isSystemPriors
         variantRequested = 1;
@@ -42,17 +41,17 @@ if isfinite(mldPosterior)
     end
 end
 
-% Evaluate system priors.
+% Evaluate system priors
 if isfinite(mldPosterior) && isSystemPriors
     % Function systempriors/eval returns minus log density.
     mldSystemPriors = eval(posterior.SystemPriors, this);
     mldPosterior = mldPosterior + mldSystemPriors;
 end
 
-% Evaluate data likelihood.
+% Evaluate data likelihood
 if isfinite(mldPosterior) && posterior.EvaluateData
     % Evaluate minus log likelihood; no data output is required.
-    mldData = likOpt.minusLogLikFunc(this, data, [ ], likOpt);
+    mldData = likOpt.minusLogLikFunc(this, data, [ ], [ ], likOpt);
     % Sum up minus log priors and minus log likelihood.
     mldPosterior = mldPosterior + mldData;
 end
@@ -69,7 +68,7 @@ if ~isValid
     mldPosterior = penalty;
 end
 
-% Make sure Obj is a double, otherwise Optim Tbx will complain.
+% Make sure Obj is a double, otherwise Optim Tbx will complain
 mldPosterior = double(mldPosterior);
 
 end%

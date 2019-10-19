@@ -9,13 +9,20 @@ function [Y2, F2, B2, E2, r, A2] = oneStepBackMean(s, time, Pe, A0, F0, YDelta, 
 
 %--------------------------------------------------------------------------
 
-ny = size(s.Z, 1);
-nf = size(s.Tf, 1);
-ne = size(s.Ra, 2);
+ny = s.NumY;
+nf = s.NumF;
+ne = s.NumE;
 numPOut = s.NPOut;
-inxET = s.InxOfET; % Transition shocks.
-inxEM = s.InxOfEM; % Measurement shocks.
-Ra = s.Ra(:, 1:ne);
+inxV = s.InxV; % Transition shocks
+inxW = s.InxW; % Measurement shocks
+Ra = s.Ra(:, :, min(time, end));
+Z = s.Z(:, :, min(time, end));
+H = s.H(:, :, min(time, end));
+if isempty(s.U)
+    U = [ ];
+else
+    U = s.U(:, :, min(time, end));
+end
 Omg = s.Omg(:, :, min(time, end));
 
 inxObs = s.yindex(:, time);
@@ -28,49 +35,49 @@ F2 = zeros(nf, numColumns);
 
 isRZero = all(r(:) == 0);
 
-% Measurement shocks.
+% Measurement shocks
 if any(inxObs)
-    %
-    % K0(t+1<-t) = Ta(t+1<-t)*K1(t)
-    %
-    K0 = s.Ta*s.K1(:, inxObs, time);
-    % TODO: K0 = s.K0(:, inxObs, time);
-    HOmg = s.H(inxObs, inxEM) * Omg(inxEM, :);
+    HOmg = H(inxObs, inxW) * Omg(inxW, :);
     if isRZero
         E2 = E2 + HOmg' * Fipe;
     else
+        K0 = s.K0(:, inxObs, time);
         E2 = E2 + HOmg' * (Fipe - K0'*r);
     end
 end
 
-% Update `r`.
+% Update `r`
 if isRZero
-    r = s.Zt(:, inxObs)*Fipe;
+    r = transpose(Z(inxObs, :))*Fipe;
 else
-    r = s.Zt(:, inxObs)*Fipe + s.L(:, :, time).'*r;
+    r = transpose(Z(inxObs, :))*Fipe + transpose(s.L(:, :, time))*r;
 end
 
-% Transition variables.
+% Transition variables
 A2 = A0 + s.Pa0(:, :, time)*r;
 if nf>0
     F2 = F0 + s.Pfa0(:, :, time)*r;
 end
-B2 = s.U*A2;
+if isempty(U)
+    B2 = A2;
+else
+    B2 = U*A2;
+end
 
-% Transition shocks.
-RaOmg = Ra(:, inxET)*Omg(inxET, :);
+% Transition shocks
+RaOmg = Ra(:, inxV)*Omg(inxV, :);
 E2 = E2 + RaOmg.'*r;
 
-% Back out NaN measurement variables.
+% Back out NaN measurement variables
 if any(~inxObs)
-    Y2(~inxObs, :) = s.Z(~inxObs, :)*A2 + s.H(~inxObs, :)*E2;
+    Y2(~inxObs, :) = Z(~inxObs, :)*A2 + H(~inxObs, :)*E2;
     if numPOut>0
         % Correct the estimates of NaN observations for the effect of estimated
-        % out-of-lik parameters.
+        % out-of-lik parameters
         Y2(~inxObs, :) = Y2(~inxObs, :) + YDelta(~inxObs, :);
     end
     if ~isempty(D)
-        % Correct the estimates of NaN observations for deterministic trends.
+        % Correct the estimates of NaN observations for deterministic trends
         Y2(~inxObs, 1) = Y2(~inxObs, 1) + D(~inxObs, :);
     end
 end

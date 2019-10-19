@@ -53,7 +53,7 @@ function this = convert(this, newFreq, varargin)
 %
 % ## Options for Low- to High-Frequency Interpolation ##
 %
-% __`Method='pchip'`__ [ char | `'quadsum'` | `'quadavg'` ] -
+% __`Method='pchip'`__ [ char | `'QuadSum'` | `'QuadAvg'` | `'Flat'` | `'WriteToEnd'` ] -
 % Interpolation method; any option valid for the built-in function
 % `interp1` can be used, or `'quadsum'` or `'quadavg'`; these two options
 % use quadratic interpolation preserving the sum or the average of
@@ -332,7 +332,7 @@ function [newData, newStart] = interpolate(this, oldStart, oldEnd, oldFreq, newF
 
     oldData = getDataFromTo(this, oldStart, oldEnd);
     oldSize = size(oldData);
-    if strcmpi(opt.Method, 'Flat')
+    if any(strcmpi(opt.Method, {'Flat', 'WriteToBeginning', 'WriteToEnd'})) 
         newData = hereFlat( );
     else
         newData = hereInterpolate( );
@@ -363,8 +363,18 @@ function [newData, newStart] = interpolate(this, oldStart, oldEnd, oldFreq, newF
             newData = nan(newSize);
             oldRange100 = round(100*oldRange);
             newConverted100 = round(100*newConverted);
+            if strcmpi(opt.Method, 'Flat')
+                testPeriods = true(size(newConverted));
+            else
+                [~, newPeriods] = dat2ypf(newRange);
+                if strcmpi(opt.Method, 'WriteToEnd')
+                    testPeriods = newPeriods==newFreq;
+                elseif strcmpi(opt.Method, 'WriteToBeginning')
+                    testPeriods = newPeriods==1;
+                end
+            end
             for i = 1 : numel(oldRange)
-                inx = oldRange100(i)==newConverted100;
+                inx = oldRange100(i)==newConverted100 & testPeriods;
                 if any(inx)
                     newData(inx, :) = repmat(oldData(i, :), nnz(inx), 1);
                 end

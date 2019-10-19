@@ -4,7 +4,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                & shared.CommentContainer ...
                & shared.Estimation ...
                & shared.LoadObjectAsStructWrapper ...
-               & shared.DatabankPipe
+               & shared.DatabankPipe ...
+               & shared.Kalman
 
     properties (GetAccess=public, SetAccess=protected)
         % FileName  Name of model file or files from which the model object was created
@@ -79,8 +80,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
 
     properties (Dependent)
-        % NumOfVariants  Number of parameter variants
-        NumOfVariants
+        % NumVariants  Number of parameter variants
+        NumVariants
 
         % NamesOfAppendables  Variable names that can be appended pre-sample or post-sample database
         NamesOfAppendables
@@ -124,7 +125,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         PREAMBLE_LINK = '@(x,t)'
         PREAMBLE_REVISION = '@(x,t)'
         PREAMBLE_HASH = '@(y,xi,e,p,t,L,T)'
-        OBJ_FUNC_PENALTY = 1e+10
         EMPTY_UPDATE = struct( 'Values', [ ], ...
                                'StdCorr', [ ], ...
                                'PosOfValues', [ ], ...
@@ -159,15 +159,15 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
         varargout = autoswap(varargin)
         function varargout = autoexog(varargin)
-            THIS_WARNING = { 'Model:LegacyFunctionName' 
-                             'The function name autoexog(~) is obsolete and will be removed from a future version of IRIS; use autoswap(~) instead' };
-            throw( exception.Base(THIS_WARNING, 'warning') );
+            thisWarning = { 'Model:LegacyFunctionName' 
+                            'The function name autoexog(~) is obsolete and will be removed from a future version of IRIS; use autoswap(~) instead' };
+            throw(exception.Base(thisWarning, 'warning'));
             [varargout{1:nargout}] = autoswap(varargin{:});
         end%
         function output = autoexogenise(varargin)
-            THIS_WARNING = { 'Model:LegacyFunctionNameForGPMN' 
-                             'The function name autoexogenise(~) is obsolete and will be removed from a future version of IRIS; use autoswap(~) instead' };
-            throw( exception.Base(THIS_WARNING, 'warning') );
+            thisWarning = { 'Model:LegacyFunctionNameForGPMN' 
+                            'The function name autoexogenise(~) is obsolete and will be removed from a future version of IRIS; use autoswap(~) instead' };
+            throw(exception.Base(thisWarning, 'warning'));
             output = autoswap(varargin{:});
             output = output.Simulate;
         end%
@@ -224,7 +224,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = disable(varargin)
         varargout = loglik(varargin)
         varargout = lognormal(varargin)
-        varargout = kalman(varargin)
         varargout = refresh(varargin)
         varargout = rename(varargin)
         varargout = reporting(varargin)
@@ -260,6 +259,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = trollify(varargin)
         varargout = enable(varargin)
         varargout = VAR(varargin)
+        varargout = varyStdCorr(varargin)
         varargout = vma(varargin)
         varargout = xsf(varargin)
         varargout = zerodb(varargin)
@@ -283,10 +283,10 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = evalTrendEquations(varargin)
         varargout = expansionMatrices(varargin)
         varargout = getIthOmega(varargin)
+        varargout = getIthKalmanSystem(varargin)
         varargout = getVariant(varargin)
         varargout = hdatainit(varargin)
-        varargout = kalmanFilter(varargin)        
-        varargout = myfdlik(varargin)
+        varargout = freql(varargin)
         varargout = myfindsspacepos(varargin)
         varargout = myinfo4plan(varargin)
         varargout = datarequest(varargin)
@@ -317,6 +317,13 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = size(varargin)        
         varargout = sizeOfSolution(varargin)
         varargout = sspaceMatrices(varargin)
+
+
+        function stdcorr = getIthStdcorr(this, variantsRequested)
+            stdcorr = getIthStdcorr(this.Variant, variantsRequested);
+        end%
+
+
         varargout = implementGet(varargin)
         varargout = implementSet(varargin)
         varargout = update(varargin)
@@ -421,11 +428,10 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = steadyNonlinear(varargin)
         varargout = symbDiff(varargin)
         varargout = systemFirstOrder(varargin)
-        varargout = varyStdCorr(varargin)
 
         varargout = implementCheckSteady(varargin)
 
-        varargout = prepareLoglik(varargin)
+        varargout = prepareFreqlOptions(varargin)
         varargout = prepareSimulate1(varargin)
         varargout = prepareSimulate2(varargin)
     end
@@ -439,17 +445,17 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     methods (Static, Hidden)
         varargout = expandFirstOrder(varargin)
         varargout = myalias(varargin)        
-        varargout = myfourierdata(varargin)
+        varargout = fourierData(varargin)
         varargout = myoutoflik(varargin)
         varargout = loadobj(varargin)
 
 
-        function flag = validateSolvedModel(input, maxNumOfVariants)
+        function flag = validateSolvedModel(input, maxNumVariants)
             if nargin<2
                 numOfVariants = Inf;
             end
             flag = isa(input, 'model') && ~isempty(input) && all(beenSolved(input)) ...
-                && length(input)<=maxNumOfVariants;
+                && length(input)<=maxNumVariants;
         end%
 
 
@@ -748,7 +754,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
 
-        function n = get.NumOfVariants(this)
+        function n = get.NumVariants(this)
             n = length(this);
         end%
 

@@ -26,7 +26,7 @@ U = S.U;
 Z = S.Z;
 yInx = S.yindex;
 lastObs = S.LastObs;
-lastSmooth = S.lastSmooth;
+lastSmooth = S.LastSmooth;
 pe = S.peUnc;
 yc1 = zeros(ny, nCont, nPer);
 

@@ -93,7 +93,7 @@ return
 
         % Call the Kalman filter.
         temp = getVariant(this, 1);
-        [MLL(iData), Y] = kalmanFilter(temp, data(:, :, iData), [ ], likOpt);        
+        [MLL(iData), Y] = kalmanFilter(temp, data(:, :, iData), [ ], [ ], likOpt);        
         se2(iData) = Y.V;
         F = Y.F(:, :, 2:end);
         pe = Y.Pe(:, 2:end);
@@ -105,12 +105,12 @@ return
         
         for ii = 1 : numOfParams
             pm = getVariant(this, 1+2*(ii-1)+1);
-            [~, Y] = kalmanFilter(pm, data(:, :, iData), [ ], likOpt);
+            [~, Y] = kalmanFilter(pm, data(:, :, iData), [ ], [ ], likOpt);
             pF =  Y.F(:, :, 2:end);
             ppe = Y.Pe(:, 2:end);
             
             mm = getVariant(this, 1+2*(ii-1)+2);
-            [~, Y] = kalmanFilter(mm, data(:, :, iData), [ ], likOpt);
+            [~, Y] = kalmanFilter(mm, data(:, :, iData), [ ], [ ], likOpt);
             mF =  Y.F(:, :, 2:end);
             mpe = Y.Pe(:, 2:end);
             

@@ -9,25 +9,21 @@ function [obj, s] = ped(s, sn, opt)
 
 %--------------------------------------------------------------------------
 
-ny = size(s.Z, 1);
-nb = size(s.Ta, 1);
-nf = size(s.Tf, 1);
-ne = size(s.Ra, 2);
-ng = size(s.g, 1);
-numPeriods = size(s.y1, 2);
-lastOmg = size(s.Omg, 3);
+ny = s.NumY;
+nf = s.NumF;
+nb = s.NumB;
+ne = s.NumE;
+ng = s.NumG;
+numExtendedPeriods = s.NumExtendedPeriods;
 
 nPOut = s.NPOut; % Number of dtrend params concentrated out of lik function.
 nInit = s.NInit; % Number of init conditions estimated as fixed unknowns.
 
 y1 = s.y1;
-Ta = s.Ta;
-Tat = s.Ta.';
-Tf = s.Tf;
+Ta = s.Ta(:, :, min(2, end));
 ka = s.ka;
 d = s.d;
 jy = false(ny, 1);
-Z = s.Z(jy, :);
 X = s.X;
 
 K0 = zeros(nb, 0);
@@ -35,102 +31,99 @@ K1 = zeros(nb, 0);
 pe = zeros(0, 1);
 ZP = zeros(0, nb);
 
-% Objective function.
+% Objective function or its contributions
 obj = NaN;
-if opt.objdecomp
-    obj = nan(1, numPeriods);
+if opt.ObjFuncContributions
+    obj = nan(1, numExtendedPeriods);
 end
 
-% Initialise objective function components.
-peFipe = zeros(1, numPeriods);
-logdetF = zeros(1, numPeriods);
+% Initialise objective function components
+peFipe = zeros(1, numExtendedPeriods);
+logdetF = zeros(1, numExtendedPeriods);
 
-% Effect of outofliks and fixed init states on a(t).
+% Effect of outofliks and fixed init states on a(t)
 Q1 = zeros(nb, nPOut);
 Q2 = eye(nb, nInit);
-% Effect of outofliks and fixed init states on pe(t).
+% Effect of outofliks and fixed init states on pe(t)
 M1 = zeros(0, nPOut);
 M2 = zeros(0, nInit);
 
-% Initialise flags.
-isPout = nPOut > 0;
-isInit = nInit > 0;
+% Initialise flags
+isPout = nPOut>0;
+isInit = nInit>0;
 isEst = isPout || isInit;
 
 % Initialise sum terms used in out-of-lik estimation.
-MtFiM = zeros(nPOut+nInit, nPOut+nInit, numPeriods);
-MtFipe = zeros(nPOut+nInit, numPeriods);
+MtFiM = zeros(nPOut+nInit, nPOut+nInit, numExtendedPeriods);
+MtFipe = zeros(nPOut+nInit, numExtendedPeriods);
 
 % Initialise matrices that are to be stored.
 if ~s.IsObjOnly
 
-    % `pe` is allocated as an ny-by-1-by-numPeriods array because we re-use the same
+    % `pe` is allocated as an ny-by-1-by-numExtendedPeriods array because we re-use the same
     % algorithm for both regular runs of the filter and the contributions.
-    s.pe = nan(ny, 1, numPeriods);
+    s.pe = nan(ny, 1, numExtendedPeriods);
     
-    s.F = nan(ny, ny, numPeriods);
-    s.FF = nan(ny, ny, numPeriods);
-    s.Fd = nan(1, numPeriods);
-    s.M = nan(ny, nPOut+nInit, numPeriods);
+    s.F = nan(ny, ny, numExtendedPeriods);
+    s.FF = nan(ny, ny, numExtendedPeriods);
+    s.Fd = nan(1, numExtendedPeriods);
+    s.M = nan(ny, nPOut+nInit, numExtendedPeriods);
     
     if s.storePredict
-        % `a0`, `y0`, `ydelta` are allocated as an ny-by-1-by-numPeriods array because we
+        % `a0`, `y0`, `ydelta` are allocated as an ny-by-1-by-numExtendedPeriods array because we
         % re-use the same algorithm for both regular runs of the filter and the
         % contributions.
-        s.a0 = nan(nb, 1, numPeriods);
+        s.a0 = nan(nb, 1, numExtendedPeriods);
         s.a0(:, 1, 1) = s.InitMean;
-        s.y0 = nan(ny, 1, numPeriods);
-        s.ydelta = zeros(ny, 1, numPeriods);
-        s.f0 = nan(nf, 1, numPeriods);
+        s.y0 = nan(ny, 1, numExtendedPeriods);
+        s.ydelta = zeros(ny, 1, numExtendedPeriods);
+        s.f0 = nan(nf, 1, numExtendedPeriods);
         
-        s.Pa0 = nan(nb, nb, numPeriods);
-        s.Pa1 = nan(nb, nb, numPeriods);
+        s.Pa0 = nan(nb, nb, numExtendedPeriods);
+        s.Pa1 = nan(nb, nb, numExtendedPeriods);
         s.Pa0(:, :, 1) = s.InitMse;
         s.Pa1(:, :, 1) = s.InitMse;
-        s.De0 = nan(ne, numPeriods);
+        s.De0 = nan(ne, numExtendedPeriods);
 
         % Kalman gain matrices
-        s.K0 = nan(nb, ny, numPeriods);
-        s.K1 = nan(nb, ny, numPeriods);
+        s.K0 = nan(nb, ny, numExtendedPeriods);
+        s.K1 = nan(nb, ny, numExtendedPeriods);
 
-        s.Q = zeros(nb, nPOut+nInit, numPeriods);
-        s.Q(:, nPOut+1:end, 1) = Q2;
+        %s.Q = zeros(nb, nPOut+nInit, numExtendedPeriods);
+        %s.Q(:, nPOut+1:end, 1) = Q2;
+        s.Q = cell(1, numExtendedPeriods);
+        s.Q{1} = [Q1, Q2]; 
         if s.retSmooth
-            s.L = nan(nb, nb, numPeriods);
+            s.L = nan(nb, nb, numExtendedPeriods);
             %
             % `L(1) = Ta(2<-1)`
             %
             s.L(:, :, 1) = Ta;
         end
     end
-    if s.retFilter || s.retSmooth
-        s.Pf0 = nan(nf, nf, numPeriods);
-        s.Pfa0 = nan(nf, nb, numPeriods);
-    end
-    if s.retPredStd || s.retFilterStd || s.retSmoothStd ...
-            || s.retFilterMse || s.retSmoothMse
-        s.Pb0 = nan(nb, nb, numPeriods);
-        s.Dy0 = nan(ny, numPeriods);
-        s.Df0 = nan(nf, numPeriods);
-        s.Db0 = nan(nb, numPeriods);
+    if s.retPredStd || s.retFilterStd || s.retSmoothStd || s.retFilterMse || s.retSmoothMse
+        s.Pb0 = nan(nb, nb, numExtendedPeriods);
+        s.Dy0 = nan(ny, numExtendedPeriods);
+        s.Db0 = nan(nb, numExtendedPeriods);
     end
     if s.retCont
-        s.MtFi = nan(nPOut+nInit, ny, numPeriods);
+        s.MtFi = nan(nPOut+nInit, ny, numExtendedPeriods);
     end
 end
 
-% Reset initial condition.
+% Reset initial condition
 a = s.InitMean;
 P = s.InitMse;
 
-% Number of actually observed data points.
-numOfObs = zeros(1, numPeriods);
+% Number of actually observed data points
+numObs = zeros(1, numExtendedPeriods);
 
 status = 'ok';
 
+
 % Main loop
 %-----------
-for t = 2 : numPeriods
+for t = 2 : numExtendedPeriods
 
     %
     % Start with `Ta(t<-t-1)` here
@@ -166,22 +159,17 @@ for t = 2 : numPeriods
 
         % Adjust the prediction step for the constant vector
         if ~isempty(ka)
-            if ~s.IsShkTune
-                a = a + ka;
-            else
-                a = a + ka(:, t);
-            end
+            a = a + ka(:, min(t, end));
         end
     else
         % Run non-linear simulation to produce the mean prediction.
-        simulatePredict( );
+        hereSimulatePredict( );
     end
 
-    % Reduced-form shock covariance at time t.
-    tOmg = min(t, lastOmg);
-    Omg = s.Omg(:, :, tOmg);
-    Sa = s.Sa(:, :, tOmg);
-    Sy = s.Sy(:, :, tOmg);
+    % Reduced-form covariance matrices at time t
+    Omg = s.Omg(:, :, min(t, end));
+    Sa = s.Sa(:, :, min(t, end));
+    Sy = s.Sy(:, :, min(t, end));
     
     % MSE P(t|t-1) based on P(t-1|t-2), the predictive Kalman gain `K0(t-1)`, and
     % and the reduced-form covariance matrix Sa(t). Make sure P is numerically
@@ -189,24 +177,33 @@ for t = 2 : numPeriods
     % 
     % `P(t|t-1) = [ Ta(t<-t-1)*P(t-1|t-2) - K0(t<-t-1)*Z(t-1)*P(t-1|t-2) ]*Ta(t<-t-1) + Sa(t<-t-1)`
     %
-    P = (Ta*P - K0*ZP)*Tat + Sa;
+    P = (Ta*P - K0*ZP)*Ta' + Sa;
     P = (P + P')/2;
+
     
+    %
     % Prediction step t|t-1 for measurement variables
-    %-------------------------------------------------
+    %
     % Index of observations available at time t, `jy`, and index of
     % conditioning observables available at time t, `cy`.
     jy = s.yindex(:, t);
-    cy = jy & opt.condition(:);
-    isCondition = any(cy);
+    if isempty(opt.Condition)
+        cy = false(ny, 1);
+        isCondition = false;
+    else
+        cy = jy & opt.Condition(:);
+        isCondition = any(cy);
+    end
     
-    % Z matrix at time t.
-    Z = s.Z(jy, :);
-    ZP = Z*P;
-    PZt = ZP.';
+    % Z matrix at time t
+    Z = s.Z(:, :, min(t, end));
+    Zj = Z(jy, :);
+
+    ZP = Zj*P;
+    PZt = ZP';
     
     % Mean prediction for observables available, y0(t|t-1).
-    y0 = Z*a;
+    y0 = Zj*a;
     if ~isempty(d)
         td = min(t, size(d, 2));
         y0 = y0 + d(jy, td);
@@ -214,16 +211,16 @@ for t = 2 : numPeriods
     
     % Prediction MSE, `F(t|t-1)`, for observables available at time t; the
     % number of rows in `F(t|t-1)` changes over time
-    F = Z*PZt + Sy(jy, jy);
+    Fj = Zj*PZt + Sy(jy, jy);
     
     % Prediction errors for the observables available, `pe(t)`; the number
     % of rows in `pe(t)` changes over time
     pe = y1(jy, t) - y0;
     
-    if opt.chkfmse
+    if opt.CheckFmse
         % Only evaluate the cond number if the test is requested by the user.
-        condNumber = rcond(F);
-        if condNumber<opt.fmsecondtol || isnan(condNumber)
+        condNumber = rcond(Fj);
+        if condNumber<opt.FmseCondTol || isnan(condNumber)
             status = 'condNumberFailed';
             break
         end
@@ -232,27 +229,28 @@ for t = 2 : numPeriods
     %
     % Kalman gain in contemporaneous filtering
     %
-    K1 = PZt/F; 
+    K1 = PZt/Fj; 
         
     % 
     % Effect of out-of-liks on `-pe(t)`
     %
     if isEst
-        M1 = s.Z*Q1 + X(:, :, t);
-        M2 = s.Z*Q2;
+        M1 = Z*Q1 + X(:, :, t);
+        M2 = Z*Q2;
         M = [M1, M2];
     end
 
     %
-    % Update to `Ta(t+1<-t)` here?
+    % Update to `Ta(t+1<-t)` here
     %
+    Ta = s.Ta(:, :, min(t+1, end));
 
     %
     % Kalman gain in next prediction step
     %
     % `K0(t+1<-t) = Ta(t+1<-t)*K1(t)`
     %
-    if t<numPeriods
+    if t<numExtendedPeriods
         K0 = Ta*K1; 
     else
         K0 = NaN;
@@ -264,7 +262,7 @@ for t = 2 : numPeriods
         % The following variables may change in `doCond`, but we need to store the
         % original values in `doStorePed`.
         pex = pe;
-        Fx = F;
+        Fx = Fj;
         xy = jy;
         if isEst
             Mx = M(xy, :);
@@ -272,16 +270,15 @@ for t = 2 : numPeriods
         
         if isCondition
             % Condition the prediction step.
-            condition( );
+            hereCondition( );
         end
         
         if isEst
-            Mxt = Mx.';
             if opt.ObjFunc==1
-                MtFi = Mxt/Fx;
+                MtFi = Mx'/Fx;
             elseif opt.ObjFunc==2
-                W = opt.weighting(xy, xy);
-                MtFi = Mxt*W;
+                W = opt.Weighting(xy, xy);
+                MtFi = Mx'*W;
             else
                 MtFi = 0;
             end
@@ -291,21 +288,21 @@ for t = 2 : numPeriods
         
         % Compute components of the objective function if this period is included
         % in the user specified objective range.
-        numOfObs(1, t) = sum(double(xy));
+        numObs(1, t) = nnz(xy);
         if opt.ObjFunc==1
             % Likelihood function
             peFipe(1, t) = (pex.'/Fx)*pex;
             logdetF(1, t) = log(det(Fx));
         elseif opt.ObjFunc==2
             % Weighted sum of prediction errors
-            W = opt.weighting(xy, xy);
+            W = opt.Weighting(xy, xy);
             peFipe(1, t) = pex.'*W*pex;
         end
     end
     
     if ~s.IsObjOnly
         % Store prediction error decomposition.
-        storePed( );
+        hereStorePed( );
     end
     
 end % for t...
@@ -313,15 +310,16 @@ end % for t...
 
 switch status
     case 'condNumberFailed'
-        obj(1) = s.ObjFunPenalty;
+        obj(1) = s.OBJ_FUNC_PENALTY;
         V = 1;
         est = nan(nPOut+nInit, 1);
         Pest = nan(nPOut+nInit);
     otherwise % status=='ok'
         % Evaluate common variance scalar, out-of-lik parameters, fixed init
         % conditions, and concentrated likelihood function.
-        [obj, V, est, Pest] = kalman.oolik(logdetF, peFipe, MtFiM, MtFipe, numOfObs, opt);
+        [obj, V, est, Pest] = kalman.oolik(logdetF, peFipe, MtFiM, MtFipe, numObs, opt);
 end
+
 
 % Store estimates of out-of-lik parameters, `delta`, cov matrix of
 % estimates of out-of-lik parameters, `Pdelta`, fixed init conditions, 
@@ -344,65 +342,55 @@ return
     
     
 
-    function storePed( )
-        % doStorePed  Store predicition error decomposition.
-        s.F(jy, jy, t) = F;
+    function hereStorePed( )
+        % hereStorePed  Store predicition error decomposition
+        s.F(jy, jy, t) = Fj;
         s.pe(jy, 1, t) = pe;
         if isEst
             s.M(:, :, t) = M;
         end
         if s.storePredict
-            storePredict( );
+            hereStorePredict( );
         end
     end%
 
     
     
-    function storePredict( )
-        % storePredict  Store prediction and updating steps
+    function hereStorePredict( )
+        % hereStorePredict  Store prediction and updating steps
         s.a0(:, 1, t) = a;
         s.Pa0(:, :, t) = P;
         s.Pa1(:, :, t) = P - K1*ZP;
         s.De0(:, t) = diag(Omg);
         % Compute mean and MSE for all measurement variables, not only
-        % for the currently observed ones when predict data are returned.
-        s.y0(:, 1, t) = s.Z*a;
+        % for the currently observed ones when predict data are returned
+        s.y0(:, 1, t) = Z*a;
         if ~isempty(d)
             s.y0(:, 1, t) = s.y0(:, 1, t) + d(:, td);
         end
-        s.F(:, :, t) = s.Z*P*s.Z.' + Sy;
-        s.FF(jy, jy, t) = F;
+        s.F(:, :, t) = Z*P*Z' + Sy;
+        s.FF(jy, jy, t) = Fj;
         s.K1(:, jy, t) = K1;
-        s.Q(:, :, t) = [Q1, Q2];
+        %s.Q(:, :, t) = [Q1, Q2];
+        s.Q{t} = [Q1, Q2];
 
-        if t<numPeriods
+        if t<numExtendedPeriods
             s.K0(:, jy, t) = K0;
             if s.retSmooth
                 %
                 % `L(t) = Ta(t+1<-t) - K0(t+1<-t)*Z(t)`
                 %
-                s.L(:, :, t) = Ta - K0*Z;
+                s.L(:, :, t) = Ta - K0*Zj;
             end
         end
 
-        % Predict fwl variables.
-        TfPa1 = Tf*s.Pa1(:, :, t-1);
-        Pf0 = TfPa1*Tf.' + s.Sf(:, :, min(t, end));
-        Pf0 = (Pf0 + Pf0')/2;
-        if s.retFilter || s.retSmooth
-            s.Pf0(:, :, t) = Pf0;
-            Pfa0 = TfPa1*Ta.' + s.Sfa(:, :, min(t, end));
-            s.Pfa0(:, :, t) = Pfa0;
-        end
-        if s.retPredStd || s.retFilterStd || s.retSmoothStd ...
-                || s.retFilterMse || s.retSmoothMse
-            s.Pb0(:, :, t) = kalman.pa2pb(s.U, P);
+        if s.retPredStd || s.retFilterStd || s.retSmoothStd || s.retFilterMse || s.retSmoothMse
+            U = s.U(:, :, min(t, end));
+            s.Pb0(:, :, t) = kalman.pa2pb(U, P);
             s.Dy0(:, t) = diag(s.F(:, :, t));
-            if nf>0
-                s.Df0(:, t) = diag(Pf0);
-            end
             s.Db0(:, t) = diag(s.Pb0(:, :, t));
         end
+
         if isEst && s.retCont
             s.MtFi(:, xy, t) = MtFi;
         end
@@ -410,7 +398,7 @@ return
 
     
     
-    function simulatePredict( )
+    function hereSimulatePredict( )
         % Simulate nonlinear predictions.
         a1 = a + K1*pe;
         sn.Alp0 = a1;
@@ -419,14 +407,14 @@ return
         a = w(nf+1:end, 1);
         % Store prediction for forward-looking transition variables.
         s.f0(:, 1, t) = w(1:nf, 1);
-    end
+    end%
 
     
     
-    function condition( )
+    function hereCondition( )
         % Condition time t predictions upon time t outcomes of conditioning
         % measurement variables.
-        Zc = s.Z(cy, :);
+        Zc = Z(cy, :);
         y0c = Zc*a;
         if ~isempty(d)
             y0c = y0c + d(cy, td);
@@ -440,7 +428,7 @@ return
         % Index of available non-conditioning observations.
         xy = jy & ~cy;
         if any(xy)
-            Zx = s.Z(xy, :);
+            Zx = Z(xy, :);
             y0x = Zx*ac;
             if ~isempty(d)
                 y0x = y0x + d(xy, td);
@@ -454,10 +442,10 @@ return
                 Mx = [M1x, M2x];
             end
         else
-            pex = zeros(0, 1);
-            Fx = zeros(0);
+            pex = double.empty(0, 1);
+            Fx = double.empty(0);
             if isEst
-                Mx = zeros(0, nPOut+nInit);
+                Mx = double.empty(0, nPOut+nInit);
             end
         end
     end%

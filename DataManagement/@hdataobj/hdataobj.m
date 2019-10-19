@@ -1,28 +1,28 @@
-classdef hdataobj<handle
-    % hdataobj  [Not a public class] Handle class for memory-efficient storing of output data.
-    %
-    % Backend IRIS class.
-    % No help provided.
-    
-    % -IRIS Macroeconomic Modeling Toolbox.
-    % -Copyright (c) 2007-2019 IRIS Solutions Team.
+% hdataobj  Handle class for memory-efficient storing of output data
+%
+% Backend IRIS class
+% No help provided
 
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+classdef hdataobj<handle
     
     properties
-        Data = struct( );
-        Range = double.empty(1, 0);
-        Id = cell.empty(1, 0);
-        IxLog = logical.empty(1, 0);
+        Data = struct( )
+        Range = double.empty(1, 0)
+        Id = cell.empty(1, 0)
+        IxLog = logical.empty(1, 0)
         
-        Name = cell.empty(1, 0);
-        Label = cell.empty(1, 0);
+        Name = cell.empty(1, 0)
+        Label = cell.empty(1, 0)
         
-        Precision = 'double';
-        IncludeLag = true; % Include lags of variables in output tseries.
-        IncludeParam = true; % Include parameter database.
-        IsVar2Std = false; % Convert variance to std dev.
-        Contributions = [ ]; % If non-empty, contains labels for contributions.
-        ParamDb = struct( );
+        Precision = 'double'
+        IncludeLag = true % Include lags of variables in output time series
+        IncludeParam = true % Include parameter database
+        IsVar2Std = false % Convert variance to std dev
+        Contributions = [ ] % If non-empty, contains labels for contributions
+        ParamDb = struct( )
     end
     
     
@@ -52,7 +52,7 @@ classdef hdataobj<handle
                 this.Range = varargin{2};
                 Size = varargin{3};
                 varargin(1:3) = [ ];
-                nPer = length(this.Range);
+                numPeriods = length(this.Range);
                 if isempty(Size)
                     utils.error('hdataobj:hdataobj', ...
                         'Size in second dimension not supplied.');
@@ -74,13 +74,13 @@ classdef hdataobj<handle
                     imagId = imag(this.Id{i});
                     realId = real(this.Id{i});
                     maxLag = -min(imagId);
-                    nRow = nPer;
+                    numRows = numPeriods;
                     if this.IncludeLag && maxLag>0
-                        nRow = nRow + maxLag;
+                        numRows = numRows + maxLag;
                     end
                     for j = sort(realId(imagId==0))
                         name = this.Name{j};
-                        this.Data.(name) = nan(nRow, Size, this.Precision);
+                        this.Data.(name) = nan(numRows, Size, this.Precision);
                     end
                 end 
                 

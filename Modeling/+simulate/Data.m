@@ -353,11 +353,8 @@ classdef Data < matlab.mixin.Copyable
             % Prepare data for measurement trend equations
             this.NeedsEvalTrends = needsEvalTrends;
             if this.NeedsEvalTrends
-                this.Trends = evalTrendEquations(model, [ ], YXEPG);
+                this.Trends = evalTrendEquations(model, [ ], this.YXEPG);
                 this.NeedsEvalTrends = any(this.Trends(:)~=0);
-            end
-            if ~this.NeedsEvalTrends
-                this.Trends = double.empty(0);
             end
         end%
 

@@ -56,7 +56,7 @@ classdef rpteq < shared.GetterSetter ...
 
 
     properties (Dependent)
-        NumOfVariants
+        NumVariants
         NamesOfAppendables
     end
     
@@ -230,7 +230,7 @@ classdef rpteq < shared.GetterSetter ...
 
 
     methods
-        function value = get.NumOfVariants(this)
+        function value = get.NumVariants(this)
             value = 1;
         end%
 

@@ -1,4 +1,4 @@
-function [T, R, K, Z, H, D, U, Omega, Zb, Y, inxTE, inxME] = ...
+function [T, R, K, Z, H, D, U, Omega, Zb, Y, inxV, inxW, numUnitRoots, inxInit] = ...
         sspaceMatrices(this, variantsRequested, keepExpansion, keepTriangular)
 % sspaceMatrices  Return state space matrices for given parameter variant
 %
@@ -11,7 +11,15 @@ function [T, R, K, Z, H, D, U, Omega, Zb, Y, inxTE, inxME] = ...
 TYPE = @int8;
 
 if nargin<3
+    requiredForward = 0;
     keepExpansion = true;
+else
+    if islogical(keepExpansion)
+        requiredForward = 0;
+    else
+        requiredForward = keepExpansion;
+        keepExpansion = true;
+    end
 end
 
 if nargin<4
@@ -20,23 +28,32 @@ end
 
 %--------------------------------------------------------------------------
 
+returnOmega     = nargout>= 8;
+returnY         = nargout>=10;
+returnInx       = nargout>=11;
+returnUnitRoots = nargout>=13;
+returnInit      = nargout>=14;
+
 if strcmp(variantsRequested, ':')
-    variantsRequested = 1 : length(this.Variant);
+    variantsRequested = 1 : numel(this.Variant);
 end
-
-returnOmega = nargout>7;
-returnY = nargout>9;
-
-[T, R, K, Z, H, D, U, Y, Zb] = getIthFirstOrderSolution(this.Variant, variantsRequested);
 
 [~, nxi, nb, nf, ne] = sizeOfSolution(this.Vector);
 numVariantsRequested = numel(variantsRequested);
 numHashEquations = nnz(this.Equation.IxHash);
 
-if ~keepExpansion
-    R = R(:, 1:ne);
+[T, R, K, Z, H, D, U, Y, Zb] = getIthFirstOrderSolution(this.Variant, variantsRequested);
+
+currentForward = size(R, 2)/ne - 1;
+if requiredForward>currentForward
+    expansion = getIthFirstOrderExpansion(this.Variant, variantsRequested);
+    R = model.expandFirstOrder(R, [ ], expansion, requiredForward);
+end
+
+if isequal(keepExpansion, false)
+    R = R(:, 1:ne, :);
     if returnY
-        Y = Y(:, 1:numHashEquations);
+        Y = Y(:, 1:numHashEquations, :);
     end
 end
 
@@ -83,10 +100,18 @@ end
 
 % Make sure measurement errors have zeros in transition equations and vice
 % versa
-if nargout>=11
+if returnInx
     inxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
-    inxTE = this.Quantity.Type(inxE)==TYPE(31);
-    inxME = this.Quantity.Type(inxE)==TYPE(32);
+    inxW = this.Quantity.Type(inxE)==TYPE(31);
+    inxV = this.Quantity.Type(inxE)==TYPE(32);
+end
+
+if returnUnitRoots
+    numUnitRoots = getNumOfUnitRoots(this.Variant, variantsRequested);
+end
+
+if returnInit
+    inxInit = this.Variant.InxInit(:, :, variantsRequested);
 end
 
 end%

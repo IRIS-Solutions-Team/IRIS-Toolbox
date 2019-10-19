@@ -1,10 +1,9 @@
-function [minusLogLik, grad, hess, v] ...
-    = diffloglik(this, data, range, parameterNames, varargin)
+function [mll, grad, hess, v] = diffloglik(this, data, range, parameterNames, varargin)
 % diffloglik  Approximate gradient and hessian of log-likelihood function
 %
 % ## Syntax ##
 %
-%     [MinusLogLik, Grad, Hess, V] = diffloglik(M, Inp, Range, PList, ...)
+%     [mll, Grad, Hess, V] = diffloglik(M, Inp, Range, PList, ...)
 %
 %
 % ## Input arguments ##
@@ -24,7 +23,7 @@ function [minusLogLik, grad, hess, v] ...
 %
 % ## Output arguments ##
 %
-% * `MinusLogLik` [ numeric ] - Value of minus the likelihood function at the input
+% * `mll` [ numeric ] - Value of minus the likelihood function at the input
 % data.
 %
 % * `Grad` [ numeric ] - Gradient (or score) vector.
@@ -57,8 +56,8 @@ function [minusLogLik, grad, hess, v] ...
 % ## Example ##
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -75,7 +74,8 @@ pp.parse(data, range, parameterNames);
 if ischar(range)
     range = textinp2dat(range);
 end
-lik = prepareLoglik(this, range, 't', [ ], varargin{:});
+
+lik = prepareKalmanOptions(this, range, [ ], varargin{:});
 
 % Get measurement and exogenous variables including pre-sample.
 data = datarequest('yg*', this, data, range);
@@ -126,7 +126,7 @@ this.Update.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
 this.Update.NoSolution = 'Error';
 
 % Call low-level diffloglik.
-[minusLogLik, grad, hess, v] = mydiffloglik(this, data, lik, opt);
+[mll, grad, hess, v] = mydiffloglik(this, data, lik, opt);
 
 % Clean up 
 this.Update = this.EMPTY_UPDATE;

@@ -14,21 +14,22 @@ VEC = @(x) x(:);
 
 [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
 nh = this.NumOfHashEquations;
+YXEPG = data.YXEPG;
 
-inxOfY = getIndexByType(this.Quantity, TYPE(1));
-inxOfE = getIndexByType(this.Quantity, TYPE(31) , TYPE(32));
-inxOfCurrentWithinXi = this.InxOfCurrentWithinXi;
-inxOfLog = this.Quantity.InxOfLog;
+inxY = getIndexByType(this.Quantity, TYPE(1));
+inxE = getIndexByType(this.Quantity, TYPE(31) , TYPE(32));
+inxCurrentWithinXi = this.InxOfCurrentWithinXi;
+inxLog = this.Quantity.InxOfLog;
 
-sizeOfData = size(data.YXEPG);
+sizeData = size(YXEPG);
 firstColumnToRun = this.FirstColumn;
 lastColumnToRun = this.LastColumn;
 columnsToRun = firstColumnToRun : lastColumnToRun;
 sparseShocks = this.SparseShocks;
 
-linxOfXib = this.LinxOfXib;
-linxOfCurrentXi = this.LinxOfCurrentXi;
-stepForLinx = size(data.YXEPG, 1);
+linxXib = this.LinxOfXib;
+linxCurrentXi = this.LinxOfCurrentXi;
+stepForLinx = size(YXEPG, 1);
 
 deviation = this.Deviation;
 simulateY = this.SimulateY && ny>0;
@@ -52,7 +53,7 @@ end
 % Retrieve first-order solution after making sure expansion is sufficient
 [T, R, K, Z, H, D, Q] = this.FirstOrderSolution{:};
 R0 = R(:, 1:ne);
-lenOfR = size(R, 2);
+lenR = size(R, 2);
 
 % Nonlinear add-factors
 nlaf = data.NonlinAddf;
@@ -64,28 +65,30 @@ if nlafExist
         lastNlaf = 0;
     end
     Q = Q(:, 1:(lastNlaf-firstColumnToRun+1)*nh);
-    lenOfQ = size(Q, 2);
+    lenQ = size(Q, 2);
 end
 
-if any(inxOfLog)
-    data.YXEPG(inxOfLog, :) = log( data.YXEPG(inxOfLog, :) );
+if any(inxLog)
+    YXEPG(inxLog, :) = log(YXEPG(inxLog, :));
 end
 
 % Initial condition
-linxOfInit = linxOfXib - stepForLinx;
-Xi_0 = data.YXEPG(linxOfInit);
+linxInit = linxXib - stepForLinx;
+Xi_0 = YXEPG(linxInit);
 
 % Required initial conditions already checked for NaNs; here reset any
 % remaining (seeming) initial conditions 
 Xi_0(isnan(Xi_0)) = 0;
 
 if simulateY
-    Xb = nan(nxi, sizeOfData(2));
-    E = nan(ne, sizeOfData(2));
+    Xb = nan(nxi, sizeData(2));
+    E = nan(ne, sizeData(2));
 end
 
 for t = columnsToRun
+    %
     % __Transition Equations__
+    %
     Xi_t = T*Xi_0;
 
     if ~deviation
@@ -101,7 +104,7 @@ for t = columnsToRun
         if t<=lastAnticipatedE
             vecAnticipatedE_t = anticipatedE(:, t:lastAnticipatedE);
             vecAnticipatedE_t = vecAnticipatedE_t(:);
-            lenToAdd = lenOfR - numel(vecAnticipatedE_t);
+            lenToAdd = lenR - numel(vecAnticipatedE_t);
             vecAnticipatedE_t = [vecAnticipatedE_t; zeros(lenToAdd, 1)];
             if sparseShocks
                 vecAnticipatedE_t = sparse(vecAnticipatedE_t);
@@ -114,15 +117,17 @@ for t = columnsToRun
         % Add nonlinear add-factors
         nlaf_t = nlaf(:, t:lastNlaf);
         nlaf_t = nlaf_t(:);
-        lenToAdd = lenOfQ - numel(nlaf_t);
+        lenToAdd = lenQ - numel(nlaf_t);
         nlaf_t = [nlaf_t; zeros(lenToAdd, 1)];
         Xi_t = Xi_t + Q*nlaf_t;
     end
 
     % Update current column in data matrix
-    data.YXEPG(linxOfCurrentXi) = Xi_t(inxOfCurrentWithinXi);
+    YXEPG(linxCurrentXi) = Xi_t(inxCurrentWithinXi);
 
+    %
     % __Measurement Equations__
+    %
     if simulateY
         Y_t = Z*Xi_t(nf+1:end);
         if ~deviation
@@ -138,25 +143,29 @@ for t = columnsToRun
             Y_t = Y_t + H*E_t;
         end
         % Update current column in data matrix
-        data.YXEPG(inxOfY, t) = Y_t;
+        YXEPG(inxY, t) = Y_t;
     end
 
     % Update linear indexes by one column ahead
-    linxOfXib = round(linxOfXib + stepForLinx);
-    linxOfCurrentXi = round(linxOfCurrentXi + stepForLinx);
+    linxXib = round(linxXib + stepForLinx);
+    linxCurrentXi = round(linxCurrentXi + stepForLinx);
 
-    Xi_0 = data.YXEPG(linxOfXib-stepForLinx);
+    Xi_0 = YXEPG(linxXib-stepForLinx);
 end
 
+%
 % __Deterministic Trends in Measurement Equations__
+% 
 if simulateY && needsEvalTrends
-    data.YXEPG(inxOfY, columnsToRun) = data.YXEPG(inxOfY, columnsToRun) ...
-                                     + data.Trends(:, columnsToRun);
+    YXEPG(inxY, columnsToRun) = YXEPG(inxY, columnsToRun) ...
+                              + data.Trends(:, columnsToRun);
 end
 
-if any(inxOfLog)
-    data.YXEPG(inxOfLog, :) = exp( data.YXEPG(inxOfLog, :) );
+if any(inxLog)
+    YXEPG(inxLog, :) = exp(YXEPG(inxLog, :));
 end
+
+data.YXEPG = YXEPG;
 
 end%
 

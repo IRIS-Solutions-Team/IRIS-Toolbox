@@ -11,25 +11,25 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-numOfPeriods = size(inputData, 2);
-numOfDataSets = size(inputData, 3);
-numOfParamsOut = numel(posParamsOut);
+numPeriods = size(inputData, 2);
+numPages = size(inputData, 3);
+numParamsOut = numel(posParamsOut);
 ixy = this.Quantity.Type==TYPE(1); 
 ny = nnz(ixy);
-inxOfTrendEquations = this.Equation.Type==TYPE(3);
+inxTrendEquations = this.Equation.Type==TYPE(3);
 if nargin<4 || isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     variantsRequested = 1 : length(this);
 end
-numOfVariantsRequested = numel(variantsRequested);
+numVariantsRequested = numel(variantsRequested);
 
-if ~any(inxOfTrendEquations)
-    W = zeros(ny, numOfPeriods, numOfDataSets);
-    dW = zeros(ny, numOfParamsOut, numOfPeriods, numOfVariantsRequested);
+if ~any(inxTrendEquations)
+    W = zeros(ny, numPeriods, numPages);
+    dW = zeros(ny, numParamsOut, numPeriods, numVariantsRequested);
     return
 end
 
 returnDerivatives = nargout>1;
-numOfQuantities = numel(this.Quantity.Name);
+numQuantities = numel(this.Quantity.Name);
 ixp = this.Quantity.Type==TYPE(4); 
 ixg = this.Quantity.Type==TYPE(5); 
 posy = find(ixy);
@@ -40,26 +40,26 @@ exogenousData = prepareExogenousData( );
 
 % Return matrix of deterministic trends, W, and the impact
 % matrix for out-of-likelihood parameters, dW.
-W = zeros(ny, numOfPeriods, numOfVariantsRequested);
+W = zeros(ny, numPeriods, numVariantsRequested);
 if returnDerivatives
-    dW = zeros(ny, numOfParamsOut, numOfPeriods, numOfVariantsRequested);
+    dW = zeros(ny, numParamsOut, numPeriods, numVariantsRequested);
     gr = this.Gradient.Dynamic(1, :);
     wrt = this.Gradient.Dynamic(2, :);
 end
 
-posOfTrendEquations = find(inxOfTrendEquations);
-for r = 1 : numOfVariantsRequested
+posOfTrendEquations = find(inxTrendEquations);
+for r = 1 : numVariantsRequested
     % Get requested parameter variant.
     v = variantsRequested(r);
     xa = this.Variant.Values(:, :, min(v, end));
     xa(1, ~ixp) = NaN;
     
     % Reset out-of-likelihood parameters to zero.
-    if numOfParamsOut>0
+    if numParamsOut>0
         xa(1, posParamsOut, :) = 0;
     end
     xa = permute(xa, [2, 1]);
-    xa = repmat(xa, 1, numOfPeriods);
+    xa = repmat(xa, 1, numPeriods);
     
     for iEqn = posOfTrendEquations
         % This equation gives dtrend for measurement variable ptrToVariable
@@ -88,7 +88,7 @@ return
         if rowsOfInputData==nnz(ixg)
             % Input data is exogenous variables only
             exogenousData = inputData;
-        elseif rowsOfInputData==numOfQuantities
+        elseif rowsOfInputData==numQuantities
             % Input data is a data matrix for all model variables
             exogenousData = inputData(ixg, :, :);
         end

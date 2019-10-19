@@ -9,116 +9,137 @@ function s = initialize(s, iLoop, opt)
 
 %--------------------------------------------------------------------------
 
-numOfUnitRoots = s.NUnit;
+numUnitRoots = s.NUnit;
 nb = s.nb;
 ne = s.ne;
-inxOfStable = [false(1, numOfUnitRoots), true(1, nb-numOfUnitRoots)];
+inxStable = [false(1, numUnitRoots), true(1, nb-numUnitRoots)];
+transform = ~isempty(s.U);
 
-s.InitMean = getInitMean( );
-s.InitMse = getInitMse( );
-s.NInit = getNInit( );
+s.InitMean = hereGetInitMean( );
+s.InitMse = hereGetInitMse( );
+s.NInit = hereGetNInit( );
 
 return
 
 
-
-
-    function a0 = getInitMean( )
-        % Initialize mean.
+    function a0 = hereGetInitMean( )
+        inxInit = reshape(s.InxInit, [ ], 1);
+        % Initialize mean
         a0 = zeros(nb, 1);
         if iscell(opt.Init)
-            % User-supplied initial condition.
-            % Convert Mean[Xb] to Mean[Alpha].
+            % User-supplied initial condition
+            % Convert Mean[Xb] to Mean[Alpha]
             xb0 = opt.Init{1}(:, 1, min(end, iLoop));
-            ixZero = isnan(xb0) & ~s.IxRequired(:);
+            ixZero = isnan(xb0) & ~inxInit;
             xb0(ixZero) = 0;
-            a0 = s.U \ xb0;
+            if transform
+                a0 = s.U(:, :, 1) \ xb0;
+            else
+                a0 = xb0;
+            end
             return
         end
         if ~isempty(s.ka) && any(s.ka(:)~=0)
             % Asymptotic initial condition for the stable part of Alpha;
-            % the unstable part is kept at zero initially.
-            I = eye(nb - numOfUnitRoots);
-            a1 = zeros(numOfUnitRoots, 1);
-            a2 = (I - s.Ta(inxOfStable, inxOfStable)) \ s.ka(inxOfStable, 1);
+            % the unstable part is kept at zero initially
+            I = eye(nb - numUnitRoots);
+            a1 = zeros(numUnitRoots, 1);
+            a2 = (I - s.Ta(inxStable, inxStable, 1)) \ s.ka(inxStable, 1);
             a0 = [a1; a2];
         end
-        if numOfUnitRoots>0 && isnumeric(opt.InitUnitRoot)
-            % User supplied data to initialise mean for unit root processes.
-            % Convert Xb to Alpha.
+        if numUnitRoots>0 && isnumeric(opt.InitUnitRoot)
+            % User supplied data to initialize mean for unit root processes
+            % Convert Xb to Alpha
             xb00 = opt.InitUnitRoot(:, 1, min(end, iLoop));
-            ixZero = isnan(xb00) & ~s.IxRequired(:);
+            ixZero = isnan(xb00) & ~inxInit;
             xb00(ixZero) = 0;
-            a00 = s.U \ xb00;
-            a0(1:numOfUnitRoots) = a00(1:numOfUnitRoots);
+            if transform
+                a00 = s.U(:, :, 1) \ xb00;
+            else
+                a00 = xb00;
+            end
+            a0(1:numUnitRoots) = a00(1:numUnitRoots);
         end
-    end
+    end%
 
 
 
 
-    function Pa0 = getInitMse( )
-        % Initialise MSE matrix.
+    function Pa0 = hereGetInitMse( )
+
         Pa0 = zeros(nb);
+
+        %
+        % Fixed initial condition with zero MSE
+        %
         if strcmpi(opt.Init, 'Fixed')
             return
         end
+
+        %
+        % Numerical initial condition supplied by user
+        %
         if iscell(opt.Init) 
             % User supplied initial condition.
             if ~isempty(opt.Init{2})
                 % User-supplied initial condition including MSE.
                 % Convert MSE[Xb] to MSE[Alp].
                 Pa0 = opt.Init{2}(:, :, 1, min(end, iLoop));
-                Pa0 = s.U \ Pa0;
-                Pa0 = Pa0 / s.U.';
+                if transform
+                    Pa0 = s.U(:, :, 1) \ Pa0;
+                    Pa0 = Pa0 / transpose(s.U(:, :, 1));
+                end
             end
             return
         end
-        if any(inxOfStable)
+
+        %
+        % Steady-state distribution
+        %
+        if any(inxStable)
             % R matrix with rows corresponding to stable Alpha and columns
-            % corresponding to transition shocks.
-            RR = s.Ra(:, 1:ne);
-            RR = RR(inxOfStable, s.InxOfET);
+            % corresponding to transition shocks
+            RR = s.Ra(:, 1:ne, 1);
+            RR = RR(inxStable, s.InxV);
             % Reduced form covariance corresponding to stable alpha. Use the structural
             % shock covariance sub-matrix corresponding to transition shocks only in
-            % the pre-sample period.
-            Sa = RR*s.Omg(s.InxOfET, s.InxOfET, 1)*RR.';
-            % Compute asymptotic initial condition.
-            if sum(inxOfStable)==1
-                Pa0stable = Sa / (1 - s.Ta(inxOfStable, inxOfStable).^2);
+            % the pre-sample period
+            Sa = RR*s.Omg(s.InxV, s.InxV, 1)*RR.';
+            % Compute asymptotic initial condition
+            if sum(inxStable)==1
+                Pa0stable = Sa / (1 - s.Ta(inxStable, inxStable, 1).^2);
             else
-                Pa0stable = ...
-                    covfun.lyapunov(s.Ta(inxOfStable, inxOfStable),Sa);
+                Pa0stable = covfun.lyapunov(s.Ta(inxStable, inxStable, 1), Sa);
                 Pa0stable = (Pa0stable + Pa0stable')/2;
             end
-            Pa0(inxOfStable, inxOfStable) = Pa0stable;
+            Pa0(inxStable, inxStable) = Pa0stable;
         end
         if strcmpi(opt.InitUnitRoot, 'ApproxDiffuse')
-            if any(inxOfStable)
+            if any(inxStable)
                 diagStable = diag(Pa0stable);
-                maxVar = max(diagStable(:)); % Largest stable variance.
+                maxVar = max(diagStable(:)); % Largest stable variance
             elseif ~isempty(s.Omg)
                 diagOmg = diag(s.Omg(:, :, 1));
                 maxVar = max(diagOmg(:));
             else
                 maxVar = 1;
             end
-            Pa0(~inxOfStable, ~inxOfStable) = eye(numOfUnitRoots) * maxVar * s.DIFFUSE_SCALE;
+            Pa0(~inxStable, ~inxStable) = eye(numUnitRoots) * maxVar * s.DIFFUSE_SCALE;
         end
-    end
+    end%
 
 
 
 
-    function n = getNInit( )
+    function n = hereGetNInit( )
         % Number of init conditions estimated as fixed unknowns
         if iscell(opt.Init)
-            % All init cond supplied by user.
+            % All init cond supplied by user
             n = 0;
             return
         end
         if strcmpi(opt.InitUnitRoot, 'ApproxDiffuse')
-            % Initialize unit roots with a large finite MSE matrix.
+            % Initialize unit roots with a large finite MSE matrix
             n = 0;
             return
         end
@@ -129,13 +150,14 @@ return
         % Estimate fixed initial conditions for unit root processes if the
         % user did not supply data on `'initMeanUnit='` and there is at
         % least one non-stationary measurement variable with at least one
-        % observation.
-        ixObs = any(s.yindex, 2);
-        z = s.Z(ixObs, 1:s.NUnit);
-        if any(any( abs(z)>s.EIGEN_TOLERANCE ))
+        % observation
+        inxObs = any(s.yindex, 2);
+        unitZ = s.Z(inxObs, 1:s.NUnit, 1);
+        if any(any( abs(unitZ)>s.MEASUREMENT_MATRIX_TOLERANCE ))
             n = s.NUnit;
         else
             n = 0;
         end
-    end
-end
+    end%
+end%
+

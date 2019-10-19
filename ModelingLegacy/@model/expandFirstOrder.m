@@ -9,7 +9,8 @@ function [R, Y] = expandFirstOrder(R0, Y0, expansion, k)
 
 %--------------------------------------------------------------------------
 
-returnY = nargout>1;
+nv = size(R0, 3);
+returnY = nargout>=2;
 
 [Xa, Xf, Ru, J, Yu] = expansion{:};
 
@@ -24,12 +25,14 @@ if ne==0 && nh==0
     return
 end
 
-% Pre-allocate NaNs.
-R = [R0(:, 1:ne), nan(size(R0, 1), ne*k)];
-Y = [Y0(:, 1:nh), nan(size(Y0, 1), nh*k)];
+% Pre-allocate NaNs
+R = [R0(:, 1:ne, :), nan(size(R0, 1), ne*k, nv)];
+if returnY
+    Y = [Y0(:, 1:nh, :), nan(size(Y0, 1), nh*k, nv)];
+end
 
-% Expansion matrices not available.
-if any(any(isnan(Xa))) || k==0
+% Expansion matrices not available
+if any(isnan(Xa(:))) || k==0
     return
 end
 
@@ -46,19 +49,28 @@ for i = k0+1 : k
 end
 %}
 
-X = [ Xf*J ; -Xa ];
-for i = 1 : k
-    R(:, i*ne+(1:ne)) = X*Ru;
-    Ru = J*Ru;
-end
+for v = 1 : nv
+    %
+    % Expected shocks in transition equations
+    %
+    vthJ = J(:, :, v);
+    vthX = [ Xf(:, :, v)*vthJ; -Xa(:, :, v) ];
+    vthRu = Ru(:, :, v);
+    for i = 1 : k
+        R(:, i*ne+(1:ne), v) = vthX*vthRu;
+        vthRu = vthJ*vthRu;
+    end
 
-if ~returnY
-    return
-end
-
-for i = 1 : k
-    Y(:, i*nh+(1:nh)) = X*Yu;
-    Yu = J*Yu;
+    %
+    % Nonlinear effect in hash equations
+    %
+    if returnY
+        vthYu = Yu(:, :, v);
+        for i = 1 : k
+            Y(:, i*nh+(1:nh), v) = vthX*vthYu;
+            vthYu = vthJ*vthYu;
+        end
+    end
 end
 
 end%

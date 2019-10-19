@@ -1,6 +1,6 @@
 function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRange, varargin)
 % filter  Kalman smoother and estimator of out-of-likelihood parameters
-%
+%{
 %
 % ## Syntax ##
 %
@@ -18,11 +18,6 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 %
 % * `Range` [ numeric | char ] - Date filterRange on which the Kalman filter will
 % be run.
-%
-% * `~J=[ ]` [ struct | empty ] - For backward compatibility: Database with
-% user-supplied time-varying paths for std deviation, corr coefficients, or
-% medians for shocks; `~J` is equivalent to using the option `Override=`,
-% and should be omitted.
 %
 %
 % ## Output Arguments ##
@@ -252,31 +247,39 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 %
 % ## Example ##
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.filter');
-    parser.KeepUnmatched = true;
-    parser.addRequired('SolvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
-    parser.addRequired('InputDatabank', @validate.databank);
-    parser.addRequired('FilterRange', @DateWrapper.validateProperRangeInput);
-    parser.addOptional('TuneDatabank', [ ], @(x) isempty(x) || isstruct(x));
-    parser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
-    parser.addParameter({'Data', 'Output'}, 'smooth', @ischar);
-    parser.addParameter('Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.filter');
+    pp.KeepUnmatched = true;
+    addRequired(pp, 'SolvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
+    addRequired(pp, 'InputDatabank', @validate.databank);
+    addRequired(pp, 'FilterRange', @DateWrapper.validateProperRangeInput);
+    addOptional(pp, 'TuneDatabank', [ ], @(x) isempty(x) ||validate.databank(x));
+    addParameter(pp, 'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
+    addParameter(pp, {'Data', 'Output'}, 'smooth', @ischar);
+    addParameter(pp, 'Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
 end
-parser.parse(this, inputDatabank, filterRange, varargin{:});
-j = parser.Results.TuneDatabank;
-opt = parser.Options;
-unmatched = parser.UnmatchedInCell;
+parse(pp, this, inputDatabank, filterRange, varargin{:});
+j = pp.Results.TuneDatabank;
+opt = pp.Options;
+unmatched = pp.UnmatchedInCell;
 
-likOpt = prepareLoglik(this, filterRange, 't', j, unmatched{:});
+if ~isempty(j) && validate.databank(j)
+    thisWarning = { 'Deprecated'
+                    'Use of tune databank in Model.filter(~) is deprecated and will be discontinued '
+                    'in a future release; use options Override= and Multiply= instead' };
+    throw(exception.Base(thisWarning, 'warning'));
+end
+
+kalmanOpt = prepareKalmanOptions(this, filterRange, j, unmatched{:});
 isOutputData = nargout>1;
 
-% Temporarily rename quantities.
+% Temporarily rename quantities
 if ~isempty(opt.Rename)
     if ~iscellstr(opt.Rename)
         opt.Rename = cellstr(opt.Rename);
@@ -284,16 +287,16 @@ if ~isempty(opt.Rename)
     this.Quantity = rename(this.Quantity, opt.Rename{:});
 end
 
-% Get measurement and exogenous variables.
+% Get measurement and exogenous variables
 inputArray = datarequest('yg*', this, inputDatabank, filterRange);
 numDataSets = size(inputArray, 3);
 nv = length(this);
 
-% Check option conflicts.
+% Check option conflicts
 checkConflicts( );
 
-% Set up data sets for Rolling=.
-if ~isequal(likOpt.Rolling, false)
+% Set up data sets for Rolling=
+if ~isequal(kalmanOpt.Rolling, false)
     setupRolling( );
 end
 
@@ -305,10 +308,10 @@ extendedRange = filterRange(1)-1 : filterRange(end);
 numExtendedPeriods = length(extendedRange);
 
 % Throw a warning if some of the data sets have no observations.
-indexOfNaNData = all( all(isnan(inputArray), 1), 2 );
-if any(indexOfNaNData)
+inxNaNData = all( all(isnan(inputArray), 1), 2 );
+if any(inxNaNData)
     throw( exception.Base('Model:NoMeasurementData', 'warning'), ...
-           exception.Base.alt2str(indexOfNaNData, 'Data Set(s) ') ); 
+           exception.Base.alt2str(inxNaNData, 'Data Set(s) ') ); 
 end
 
 % Pre-allocated requested hdata output arguments.
@@ -316,17 +319,17 @@ hData = struct( );
 preallocHData( );
 
 % Run the Kalman filter.
-[obj, regOutp, hData] = kalmanFilter(this, inputArray, hData, likOpt); %#ok<ASGLU>
+[obj, regOutp, hData] = kalmanFilter(this, inputArray, hData, @hdataassign, kalmanOpt); %#ok<ASGLU>
 
 % If needed, expand the number of model parameterizations to include
 % estimated variance factors and/or out-of=lik parameters.
-if nv<regOutp.NLoop && (likOpt.Relative || ~isempty(regOutp.Delta))
+if nv<regOutp.NLoop && (kalmanOpt.Relative || ~isempty(regOutp.Delta))
     this = alter(this, regOutp.NLoop);
 end
 
 % Postprocess regular (non-hdata) output arguments; update the std
 % parameters in the model object if `Relative=' true`.
-[~, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, extendedRange, likOpt, opt);
+[~, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, extendedRange, kalmanOpt, opt);
 
 % Post-process hdata output arguments.
 outp = hdataobj.hdatafinal(hData);
@@ -340,19 +343,19 @@ return
 
     function checkConflicts( )
         multiple = numDataSets>1 || nv>1;
-        if likOpt.Ahead>1 && multiple
+        if kalmanOpt.Ahead>1 && multiple
             error( ...
                 'Model:Filter:IllegalAhead', ...
                 'Cannot use option Ahead= with multiple data sets or parameter variants.' ...
             );
         end
-        if ~isequal(likOpt.Rolling, false) && multiple
+        if ~isequal(kalmanOpt.Rolling, false) && multiple
             error( ...
                 'Model:Filter:IllegalRolling', ...
                 'Cannot use option Rolling= with multiple data sets or parameter variants.' ...
             );
         end
-        if likOpt.ReturnCont && any(likOpt.condition)
+        if kalmanOpt.ReturnCont && any(kalmanOpt.Condition)
             error( ...
                 'Model:Filter:IllegalCondition', ...
                 'Cannot combine options ReturnCont= and Condition=.' ...
@@ -363,10 +366,10 @@ return
 
     function setupRolling( )
         % No multiple data sets or parameter variants guaranteed here.
-        numRolling = numel(likOpt.RollingColumns);
+        numRolling = numel(kalmanOpt.RollingColumns);
         inputArray = repmat(inputArray, 1, 1, numRolling);
         for i = 1 : numRolling
-            inputArray(:, likOpt.RollingColumns(i)+1:end, i) = NaN;
+            inputArray(:, kalmanOpt.RollingColumns(i)+1:end, i) = NaN;
         end
         numDataSets = size(inputArray, 3);
     end%
@@ -380,7 +383,7 @@ return
         isFilter = ~isempty(strfind(lowerOutput, 'filter'));
         isSmooth = ~isempty(strfind(lowerOutput, 'smooth'));
         numRuns = max(numDataSets, nv);
-        nPred = max(numRuns, likOpt.Ahead);
+        nPred = max(numRuns, kalmanOpt.Ahead);
         nCont = max(ny, nz);
         if isOutputData
             
@@ -388,18 +391,18 @@ return
             if isPred
                 hData.M0 = hdataobj( this, extendedRange, nPred, ...
                                      'IncludeLag=', false );
-                if ~likOpt.MeanOnly
-                    if likOpt.ReturnStd
+                if ~kalmanOpt.MeanOnly
+                    if kalmanOpt.ReturnStd
                         hData.S0 = hdataobj( this, extendedRange, numRuns, ...
                                              'IncludeLag=', false, ...
                                              'IsVar2Std=', true );
                     end
-                    if likOpt.ReturnMSE
+                    if kalmanOpt.ReturnMSE
                         hData.Mse0 = hdataobj( );
                         hData.Mse0.Data = nan(nb, nb, numExtendedPeriods, numRuns);
                         hData.Mse0.Range = extendedRange;
                     end
-                    if likOpt.ReturnCont
+                    if kalmanOpt.ReturnCont
                         hData.predcont = hdataobj( this, extendedRange, nCont, ....
                                                    'IncludeLag=', false, ...
                                                    'Contributions=', @measurement );
@@ -411,18 +414,18 @@ return
             if isFilter
                 hData.M1 = hdataobj( this, extendedRange, numRuns, ...
                                      'IncludeLag=', false );
-                if ~likOpt.MeanOnly
-                    if likOpt.ReturnStd
+                if ~kalmanOpt.MeanOnly
+                    if kalmanOpt.ReturnStd
                         hData.S1 = hdataobj( this, extendedRange, numRuns, ...
                                              'IncludeLag=', false, ...
                                              'IsVar2Std=', true);
                     end
-                    if likOpt.ReturnMSE
+                    if kalmanOpt.ReturnMSE
                         hData.Mse1 = hdataobj( );
                         hData.Mse1.Data = nan(nb, nb, numExtendedPeriods, numRuns);
                         hData.Mse1.Range = extendedRange;
                     end
-                    if likOpt.ReturnCont
+                    if kalmanOpt.ReturnCont
                         hData.filtercont = hdataobj( this, extendedRange, nCont, ...
                                                      'IncludeLag=', false, ...
                                                      'Contributions=', @measurement );
@@ -433,17 +436,17 @@ return
             % __Smoother__
             if isSmooth
                 hData.M2 = hdataobj(this, extendedRange, numRuns);
-                if ~likOpt.MeanOnly
-                    if likOpt.ReturnStd
+                if ~kalmanOpt.MeanOnly
+                    if kalmanOpt.ReturnStd
                         hData.S2 = hdataobj( this, extendedRange, numRuns, ...
                                              'IsVar2Std=', true );
                     end
-                    if likOpt.ReturnMSE
+                    if kalmanOpt.ReturnMSE
                         hData.Mse2 = hdataobj( );
                         hData.Mse2.Data = nan(nb, nb, numExtendedPeriods, numRuns);
                         hData.Mse2.Range = extendedRange;
                     end
-                    if likOpt.ReturnCont
+                    if kalmanOpt.ReturnCont
                         hData.C2 = hdataobj( this, extendedRange, nCont, ...
                                              'Contributions=', @measurement );
                     end

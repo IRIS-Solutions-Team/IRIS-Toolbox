@@ -33,16 +33,14 @@ function flag = isexplosive(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('VAR.isexplosive');
-    parser.addRequired(  'VAR', @(x) isa(x, 'VAR'));
-    parser.addParameter( 'Tolerance', @default, @(x) isequal(x, @default) || validate.numericScalar(x, [0, Inf]));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('VAR.isexplosive');
+    pp.addRequired(  'VAR', @(x) isa(x, 'VAR'));
+    pp.addParameter( 'Tolerance', @default, @(x) isequal(x, @default) || validate.numericScalar(x, [0, Inf]));
 end
-try
-parse(parser, this, varargin{:});
-catch, keyboard, end
-opt = parser.Options;
+parse(pp, this, varargin{:});
+opt = pp.Options;
 
 if isequal(opt.Tolerance, @default)
     opt.Tolerance = this.TOLERANCE;

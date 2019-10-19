@@ -79,7 +79,7 @@ switch query
         answ = this.AllNames;
         
     case {'nalt'}
-        answ = this.NumOfVariants;
+        answ = this.NumVariants;
         
     case {'baseyear'}
         answ = this.BaseYear;

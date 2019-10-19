@@ -1,4 +1,4 @@
-function outputArray = toDoubleArrayNoFrills(inputDatabank, names, dates, column)
+function outputArray = toDoubleArrayNoFrills(inputDatabank, names, dates, column, apply)
 % toDoubleArrayNoFrills  Retrieve data from time series into numeric array with no checks
 %
 % Backend IRIS function
@@ -7,6 +7,19 @@ function outputArray = toDoubleArrayNoFrills(inputDatabank, names, dates, column
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
+if nargin<4
+    column = 1;
+end
+
+if nargin<5
+    apply = [ ];
+end
+
+if isstruct(inputDatabank)
+    exist = @isfield;
+    retrieve = @getfield;
+end
+
 %--------------------------------------------------------------------------
 
 if ~iscellstr(names)
@@ -14,29 +27,38 @@ if ~iscellstr(names)
 end
 
 dates = double(dates);
-numOfNames = numel(names);
-numOfDates = numel(dates);
+numNames = numel(names); numDates = numel(dates);
 
-if numOfNames==0
-    outputArray = double.empty(numOfDates, 0);
+if numNames==0
+    outputArray = double.empty(numDates, 0);
     return
 end
 
-outputArray = nan(numOfDates, numOfNames);
-for i = 1 : numOfNames
+outputArray = nan(numDates, numNames);
+for i = 1 : numNames
     ithName = names{i};
-    if ~isfield(inputDatabank, ithName) || ~isa(inputDatabank.(ithName), 'TimeSubscriptable')
+    if ~exist(inputDatabank, ithName)
         continue
     end
-    field = inputDatabank.(ithName);
-    sizeData = size(field);
-    numOfColumns = prod(sizeData(2:end));
-    if numOfColumns==1
-        outputArray(:, i) = getDataNoFrills(field, dates, 1);
-    elseif numOfColumns>1
+    ithField = retrieve(inputDatabank, ithName);
+    if ~isa(ithField, 'NumericTimeSubscriptable')
+        continue
+    end
+    sizeData = size(ithField);
+    numColumns = prod(sizeData(2:end));
+    ithValue = [ ];
+    if numColumns==1
+        ithValue = getDataNoFrills(ithField, dates, 1);
+    elseif numColumns>1
         try
-            outputArray(:, i) = getDataNoFrills(field, dates, column);
+            ithValue = getDataNoFrills(ithField, dates, column);
         end
+    end
+    if ~isempty(ithValue) 
+        if ~isempty(apply)
+            ithValue = apply(ithValue);
+        end
+        outputArray(:, i) = ithValue;
     end
 end
 

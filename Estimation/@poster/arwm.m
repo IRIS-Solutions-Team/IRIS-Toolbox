@@ -1,4 +1,4 @@
-function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(this, numOfDraws, varargin)%
+function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(this, numDraws, varargin)%
 % arwm  Adaptive random-walk Metropolis posterior simulator.
 %
 % __Syntax__
@@ -11,7 +11,7 @@ function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(thi
 %
 % * `Pos` [ poster ] - Initialised posterior simulator object.
 %
-% * `numOfDraws` [ numeric ] - Length of the chain not including burn-in.
+% * `numDraws` [ numeric ] - Length of the chain not including burn-in.
 %
 %
 % __Output Arguments__
@@ -97,7 +97,7 @@ function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(thi
 % _Parallelised ARWM_
 %
 % Set `'nStep='` greater than `1`, and `'firstPrefetch='` smaller than
-% `numOfDraws` to start a pre-fetching parallelised algorithm (pre-fetched will
+% `numDraws` to start a pre-fetching parallelised algorithm (pre-fetched will
 % be all draws starting from `'firstPrefetch='`); to that end, a pool of
 % parallel workers (using e.g. `matlabpool` from the Parallel Computing
 % Toolbox) must be opened before calling `arwm`.
@@ -130,8 +130,8 @@ function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(thi
 % Validate required inputs.
 pp = inputParser( );
 pp.addRequired('Pos', @(x) isa(x, 'poster'));
-pp.addRequired('numOfDraws', @isnumericscalar);
-pp.parse(this, numOfDraws);
+pp.addRequired('numDraws', @isnumericscalar);
+pp.parse(this, numDraws);
 
 % Parse options.
 opt = passvalopt('poster.arwm', varargin{:});
@@ -149,15 +149,15 @@ realSmall = getrealsmall( );
 nPar = length(this.ParamList);
 
 % Adaptive random walk Metropolis simulator.
-nAlloc = min(numOfDraws, opt.saveevery);
-isSave = opt.saveevery <= numOfDraws;
+nAlloc = min(numDraws, opt.saveevery);
+isSave = opt.saveevery <= numDraws;
 if isSave
     prepareSave( );
 end
 
 if opt.burnin<1
     % Burn-in is a percentage.
-    burnin = round(opt.burnin*numOfDraws);
+    burnin = round(opt.burnin*numDraws);
 else
     % Burn-in is the number of draws.
     burnin = opt.burnin;
@@ -165,12 +165,12 @@ end
 
 if opt.lastadapt<1
     % lastadapt is a percentage.
-    opt.lastadapt = round(opt.lastadapt*numOfDraws) ;
+    opt.lastadapt = round(opt.lastadapt*numDraws) ;
 end
 
-numOfDrawsTotal = numOfDraws + burnin;
+numDrawsTotal = numDraws + burnin;
 
-% Adaptation parameters.
+% Adaptation parameters
 gamma = opt.gamma;
 k1 = opt.adaptscale;
 k2 = opt.adaptproposalcov;
@@ -182,17 +182,17 @@ isAdaptiveScale = isfinite(gamma) && k1>0;
 isAdaptiveShape = isfinite(gamma) && k2>0;
 isAdaptive = isAdaptiveScale || isAdaptiveShape;
 
-% Initialize proposal distribution.
-allTheta = [ ];
-logPost = [ ];
-sgm = [ ];
-P = [ ];
-j0 = 0;
-nAcc0 = 0;
-burnin0 = 0;
-initialize( );
+%
+% Initialize proposal distribution
+%
+theta = reshape(this.InitParam, [ ], 1);
+logPost = hereInitializeLogPost( );
+j0 = this.InitCount(1); % Cumulative count of previous draws in incremental runs.
+numAcceptedBefore = this.InitCount(2); % Cumulative count of previous acceptance in incremental runs.
+burnin0 = this.InitCount(3); % Cumulative count of previous burn-ins.
+[P, sgm] = hereInitializeProposalCov( );
 
-% Pre-allocate output data.
+% Pre-allocate output data
 allTheta = zeros(nPar, nAlloc);
 logPosterior = zeros(1, nAlloc);
 acceptRatio = zeros(1, nAlloc);
@@ -214,12 +214,12 @@ if opt.nstep>1
 end
 
 j = 1;
-nAcc = 0;
+numAccepted = 0;
 count = 0;
 saveCount = 0;
-while j <= numOfDrawsTotal
-    if j >= opt.firstPrefetch
-        nStep = min(opt.nstep, 1+numOfDrawsTotal-j);
+while j<=numDrawsTotal
+    if j>=opt.firstPrefetch
+        nStep = min(opt.nstep, 1+numDrawsTotal-j);
         nPath = 2^nStep;
     else
         nStep = 1;
@@ -238,7 +238,6 @@ while j <= numOfDrawsTotal
         
         % Generate random acceptance.
         randAccept = rand( );
-        
         acceptAndStore( );
         j = j + 1;
         
@@ -267,44 +266,41 @@ while j <= numOfDrawsTotal
             u = uPf(:, iStep);
             
             isAccepted = acceptAndStore( );
-            
             if isAccepted
                 pos0 = newPos0;
             end
             j = j + 1;
-            
         end
-        
     end
 end
 
 finalCov = P*P.';
 
-% Update the poster object.
+% Update the PosteriorSimulator object
 this.InitLogPost = logPost;
-this.InitParam = theta(:).';
+this.InitParam = reshape(theta, 1, [ ]);
 this.InitProposalCov = finalCov;
 this.InitProposalChol = P;
 this.InitScale = sgm;
-this.InitCount = this.InitCount + [numOfDrawsTotal, nAcc, burnin];
+this.InitCount = this.InitCount + [numDrawsTotal, numAccepted, burnin];
 
 return
 
-
-    function initialize( )
-        % Initial vector.
-        theta = this.InitParam(:);
-        
+    function logPost = hereInitializeLogPost( )
         % Evaluate initial log posterior density.
         logPost = mylogpost(this, theta);
         if ~isempty(this.InitLogPost) && isfinite(this.InitLogPost) ...
-                && maxabs(logPost - this.InitLogPost)>realSmall
-            utils.warning('poster:arwm', ...
-                ['Log posterior density at .InitParam differs from ', ...
-                '.InitLogPost by a margin larger than rounding error.']);
+           && maxabs(logPost-this.InitLogPost)>realSmall
+            thisWarning = { 'PosteriorSimulator:InitLogPostDiscrepancy'
+                            'Log posterior density at .InitParam differs from '
+                            '.InitLogPost by a margin larger than rounding error' };
+            throw(exception.Base(thisWarning, 'warning'));
         end
-        
-        % Initial proposal cov matrix and its Cholesky factor.
+    end%
+
+
+    function [P, sgm] = hereInitializeProposalCov( )
+        % Initial proposal cov matrix and its Cholesky factor
         if isequal(opt.initscale, @auto)
             sgm = this.InitScale;
         else
@@ -313,21 +309,16 @@ return
         if ~isempty(this.InitProposalChol)
             P = this.InitProposalChol;
             if ~isempty(this.InitProposalCov) ...
-                    && maxabs(P*P.' - this.InitProposalCov)>realSmall
-                utils.warning('poster:arwm', ...
-                    ['Initial proposal cov matrix and its Cholesky factor ', ...
-                    'differ by a margin larger than rounding error.']);
+               && maxabs(P*P.'-this.InitProposalCov)>realSmall
+                thisWarning = { 'PosteriorSimulator:InitProposalCovDiscrepancy'
+                                'Initial proposal covariance matrix and its Cholesky factor'
+                                'result in a discrepanyc larger than rounding error' };
+                throw(exception.Base(thisWarning, 'warning'));
             end
         else
-            P = chol(this.InitProposalCov).';
+            P = transpose(chol(this.InitProposalCov));
         end
-
-        % Initialize counters in incremental runs.
-        j0 = this.InitCount(1); % Cumulative count of previous draws in incremental runs.
-        nAcc0 = this.InitCount(2); % Cumulative count of previous acceptance in incremental runs.
-        burnin0 = this.InitCount(3); % Cumulative count of previous burn-ins.
-        
-    end % initialize( )
+    end% 
 
     
     function isAccepted = acceptAndStore( )
@@ -347,7 +338,7 @@ return
             theta = newTheta;
         end
         
-        isAdaptive = isAdaptive && j - burnin <= opt.lastadapt;
+        isAdaptive = isAdaptive && j-burnin<=opt.lastadapt;
         
         % Adapt the scale and/or proposal covariance.
         if isAdaptive
@@ -357,19 +348,19 @@ return
         % Add the j-th theta to the chain unless still burning in
         if j>burnin
             count = count + 1;
-            nAcc = nAcc + double(isAccepted);
+            numAccepted = numAccepted + nnz(isAccepted);
             % Paremeter draws.
             allTheta(:, count) = theta;
             % Value of log posterior at the current draw.
             logPosterior(count) = logPost;
             % Acceptance ratio so far.
-            acceptRatio(count) = (nAcc0+nAcc) / (j-burnin+j0-burnin0);
+            acceptRatio(count) = (numAcceptedBefore+numAccepted) / (j-burnin+j0-burnin0);
             % Adaptive scale factor.
             if isAdaptiveScale
                 sigma(count) = sgm;
             end
             % Save and reset.
-            if count==opt.saveevery || (isSave && j==numOfDrawsTotal)
+            if count==opt.saveevery || (isSave && j==numDrawsTotal)
                 saveH5( );
                 count = 0;
             end
@@ -377,7 +368,7 @@ return
         
         % Update the progress bar or estimated time.
         if opt.progress
-            update(progress, j/numOfDrawsTotal);
+            update(progress, j/numDrawsTotal);
         end
         
         return
@@ -389,7 +380,7 @@ return
             h5write( opt.saveas, ...
                      '/logPost', logPosterior, [1, saveCount+1], size(logPosterior) );
             saveCount = saveCount + size(allTheta, 2);
-            n = numOfDrawsTotal - j;
+            n = numDrawsTotal - j;
             if n==0
                 allTheta = [ ];
                 logPosterior = [ ];
@@ -429,18 +420,18 @@ return
                 'The option ''saveas='' must be a valid file name.');
         end
         % Create an HDF5.
-        h5create(opt.saveas, '/theta', [nPar, numOfDraws], 'fillValue', NaN);
-        h5create(opt.saveas, '/logPost', [1, numOfDraws], 'fillValue', NaN);
+        h5create(opt.saveas, '/theta', [nPar, numDraws], 'fillValue', NaN);
+        h5create(opt.saveas, '/logPost', [1, numDraws], 'fillValue', NaN);
         h5writeatt(opt.saveas, '/', ...
             'paramList', sprintf('%s ', this.ParamList{:}));
-        h5writeatt(opt.saveas, '/', 'nDraw', numOfDraws);
+        h5writeatt(opt.saveas, '/', 'nDraw', numDraws);
         h5writeatt(opt.saveas, '/', 'saveEvery', opt.saveevery');
     end%
 
     
     function [thetaPf, LogPostPf, RandAccPf, uPf] = prefetch( )
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %  The wisdom behing the indexing in the prefetching array
+        %  The wisdom behind the indexing in the prefetching array
         %
         %  starting from point 'curr_pt' we want to make n steps.  At each step we
         %  generate a random walk point from the current one and either accept the
@@ -527,7 +518,7 @@ return
 
 
     function doChkParallel( )
-        if opt.firstPrefetch<numOfDrawsTotal && opt.nstep>1
+        if opt.firstPrefetch<numDrawsTotal && opt.nstep>1
             isPCT = license('test', 'distrib_computing_toolbox');
             if isPCT
                 nWorkers = matlabpool('size');

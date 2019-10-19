@@ -284,13 +284,19 @@ opt = inputParser.Options;
 outsideOptimOptions.parse(inputParser.UnmatchedInCell{:});
 
 % Process likelihood function options and create a likstruct.
-likOpt = prepareLoglik(this, range, opt.Domain, [ ], opt.Filter{:});
+if strncmpi(opt.Domain, 't', 1)
+    likOpt = prepareKalmanOptions(this, range, [ ], opt.Filter{:});
+    likOpt.minusLogLikFunc = @kalmanFilter;
+else
+    likOpt = prepareFreqlOptions(this, range, opt.Filter{:});
+    likOpt.minusLogLikFunc = @freql;
+end
 opt = rmfield(opt, 'Filter');
 
 % Get first column of measurement and exogenous variables.
 if opt.EvalLik
     % `Data` includes pre-sample.
-    req = [likOpt.domain(1), 'yg*'];
+    req = [opt.Domain(1), 'yg*'];
     inputArray = datarequest(req, this, inputDatabank, range, 1);
 else
     inputArray = [ ];
@@ -340,7 +346,7 @@ V = 1;
 delta = [ ];
 PDelta = [ ];
 if opt.EvalLik && (nargout>=5 || likOpt.Relative)
-    [~, regOutp] = likOpt.minusLogLikFunc(this, inputArray, [ ], likOpt);
+    [~, regOutp] = likOpt.minusLogLikFunc(this, inputArray, [ ], [ ], likOpt);
     % Post-process the regular output arguments, update the std parameter
     % in the model object, and refresh if needed.
     xRange = range(1)-1 : range(end);

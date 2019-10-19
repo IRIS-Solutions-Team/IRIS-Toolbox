@@ -1,4 +1,4 @@
-function [stdCorrReal, stdCorrImag, stdMultipliers] = varyStdCorr(this, range, j, opt, varargin)
+function [overrideReal, overrideImag, multiply] = varyStdCorr(this, range, j, opt, varargin)
 % varyStdCorr  Convert time-varying std and corr to stdcorr vector
 %
 % Backend IRIS function
@@ -9,57 +9,68 @@ function [stdCorrReal, stdCorrImag, stdMultipliers] = varyStdCorr(this, range, j
 
 TYPE = @int8;
 
-isClip = any(strcmpi(varargin, '--clip')); % Clip trailing NaNs.
-isPresample = any(strcmpi(varargin, '--presample')); % Include one presample period.
-isImag = nargout>1;
+clipTrailing = any(strcmpi(varargin, '--clip')); % Clip trailing NaNs
+addPresample = any(strcmpi(varargin, '--presample')); % Include one presample period
+includeOverrideImag = nargout>1;
+includeMultiply = nargout>2;
 
 %--------------------------------------------------------------------------
 
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ne = sum(ixe);
+ixe = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
+ne = nnz(ixe);
 nsx = ne + ne*(ne-1)/2;
 
 if isempty(range)
-    stdCorrReal = double.empty(nsx, 0);
-    stdCorrImag = double.empty(nsx, 0);
-    stdMultipliers = double.empty(ne, 0);
+    overrideReal = double.empty(nsx, 0);
+    overrideImag = double.empty(nsx, 0);
+    multiply = double.empty(ne, 0);
     return
 end
-range = DateWrapper.getSerial(range);
-startOfRange = range(1);
-endOfRange = range(end);
-if isPresample 
+
+range = reshape(double(range), 1, [ ]);
+if addPresample 
     % Add one presample period if requested
-    startOfRange = startOfRange - 1;
+    startDate = range(1);
+    range = [DateWrapper.roundPlus(startDate, -1), range];
 end
-numOfPeriods = round(endOfRange - startOfRange + 1);
+startRange = range(1);
+endRange = range(end);
+numPeriods = numel(range);
 
-d = processOverrideOption(j, opt);
+d = hereProcessOverrideOption(j, opt);
 
-stdCorrReal = nan(nsx, numOfPeriods);
-if isImag
-    stdCorrImag = nan(nsx, numOfPeriods);
+overrideReal = nan(numPeriods, nsx);
+if includeOverrideImag
+    overrideImag = nan(numPeriods, nsx);
 end
-if ~isempty(d)
-    c = fieldnames(d);
-    ell = lookup(this.Quantity, c);
+if ~isempty(d) && validate.databank(d)
+    names = fieldnames(d);
+    ell = lookup(this.Quantity, names);
     pos = ell.PosStdCorr;
-    for i = find(~isnan(pos))
-        x = d.(c{i});
-        if isa(x, 'TimeSubscriptable')
-            x = getDataFromTo(x, startOfRange, endOfRange);
-            x = transpose(x(:, 1));
-        end
-        stdCorrReal(pos(i), :) = real(x);
-        if isImag
-            stdCorrImag(pos(i), :) = imag(x);
-        end
+    inxValid = ~isnan(pos);
+    names = names(inxValid);
+    pos = pos(inxValid);
+    overrideReal(:, pos) = databank.backend.toDoubleArrayNoFrills(d, names, range, 1, @real);
+    if includeOverrideImag
+        overrideImag(:, pos) = databank.backend.toDoubleArrayNoFrills(d, names, range, 1, @imag);
     end
 end
+overrideReal = transpose(overrideReal);
+if includeOverrideImag
+    overrideImag = transpose(overrideImag);
+end
 
-stdMultipliers = nan(ne, numOfPeriods);
-if isfield(opt, 'Multiply') && isstruct(opt.Multiply)
-    stdNames = getStdNames(this.Quantity);
+if includeMultiply
+    if isfield(opt, 'Multiply') && validate.databank(opt.Multiply)
+        names = getStdNames(this.Quantity);
+        multiply = databank.backend.toDoubleArrayNoFrills(opt.Multiply, names, range, 1, @real);
+    else
+        multiply = nan(numPeriods, ne);
+    end
+    multiply = transpose(multiply);
+end
+
+%{
     for i = 1 : ne
         name = stdNames{i};
         if ~isfield(opt.Multiply, name)
@@ -67,24 +78,24 @@ if isfield(opt, 'Multiply') && isstruct(opt.Multiply)
         end
         x = opt.Multiply.(name);
         if isa(x, 'TimeSubscriptable')
-            x = getDataFromTo(opt.Multiply.(name), startOfRange, endOfRange);
+            x = getDataFromTo(opt.Multiply.(name), startRange, endRange, @real);
             x = transpose(x(:, 1));
         end
-        stdMultipliers(i, :) = real(x);
+        multiply(i, :) = real(x);
     end
 end
+%}
 
 % Remove trailing NaNs if requested
-if isClip 
-    stdCorrReal = clip(stdCorrReal);
-    if isImag
-        stdCorrImag = clip(stdCorrImag);
+if clipTrailing 
+    overrideReal = hereClip(overrideReal);
+    if includeOverrideImag
+        overrideImag = hereClip(overrideImag);
     end
-    stdMultipliers = clip(stdMultipliers);
+    if includeMultiply
+        multiply = hereClip(multiply);
+    end
 end
-
-return
-
 
 end%
 
@@ -94,7 +105,7 @@ end%
 %
 
 
-function d = processOverrideOption(j, opt)
+function d = hereProcessOverrideOption(j, opt)
     d = [ ];
     if isfield(opt, 'Override') && ~isempty(opt.Override)
         d = opt.Override;
@@ -103,21 +114,21 @@ function d = processOverrideOption(j, opt)
         if isempty(d)
             d = j;
         else
-            ERROR_CANNOT_COMBINE = { 'Model:CannotCombineTuneAndOption' 
-                                     'Cannot combine a nonempty conditioning databank and option Override=' };
-            throw( exception.Base(ERROR_CANNOT_COMBINE, 'error') );
+            thisError = { 'Model:CannotCombineTuneAndOption' 
+                          'Cannot combine a nonempty conditioning databank and option Override=' };
+            throw(exception.Base(thisError, 'error'));
         end
     end
 end%
 
 
-function x = clip(x)
-    inxOfNaN = isnan(x);
-    if all(inxOfNaN(:))
+function x = hereClip(x)
+    inxNaN = isnan(x);
+    if all(inxNaN(:))
         x = double.empty(size(x, 1), 0);
         return
     end
-    last = find(any(~inxOfNaN, 1), 1, 'last');
+    last = find(any(~inxNaN, 1), 1, 'last');
     x = x(:, 1:last);
 end%
 

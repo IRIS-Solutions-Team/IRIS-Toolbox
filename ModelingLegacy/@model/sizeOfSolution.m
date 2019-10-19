@@ -4,7 +4,7 @@ function [ny, nxi, nb, nf, ne, ng, nz] = sizeOfSolution(this)
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------

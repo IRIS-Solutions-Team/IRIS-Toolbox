@@ -1,4 +1,4 @@
-function [Obj, V, Est, PEst] = oolik(LogDetF, PeFiPe, MtFiM, MtFiPe, NObs, Opt)
+function [Obj, V, Est, PEst] = oolik(LogDetF, PeFiPe, MtFiM, MtFiPe, NObs, opt)
 % oolik  Estimate out-of-lik parameters and sum up log-likelihood function components
 %
 % Backend IRIS function
@@ -10,9 +10,9 @@ function [Obj, V, Est, PEst] = oolik(LogDetF, PeFiPe, MtFiM, MtFiPe, NObs, Opt)
 %#ok<*CTCH>
 
 try
-    Opt.ObjFunc;
+    opt.ObjFunc;
 catch
-    Opt.ObjFunc = 1;
+    opt.ObjFunc = 1;
 end
 
 %--------------------------------------------------------------------------
@@ -24,12 +24,12 @@ sumMtFiM = sum(MtFiM, 3);
 sumMtFiPe = sum(MtFiPe, 2);
 isOutOfLik = ~isempty(sumMtFiM) && ~isempty(sumMtFiPe);
 
-% Estimate user-requested out-of-lik parameters.
+% Estimate user-requested out-of-lik parameters
 if isOutOfLik
     L2i = pinv(sumMtFiM);
     Est = L2i * sumMtFiPe;
     PEst = L2i;
-    % Correct likelihood for estimated parameters.
+    % Correct likelihood for estimated parameters
     sumPeFiPe = sumPeFiPe - Est.'*sumMtFiPe;
 else
     Est = zeros(0, 1);
@@ -38,7 +38,7 @@ end
 
 % Estimate common variance factor.
 V = 1;
-if Opt.Relative && Opt.ObjFunc==1
+if opt.Relative && opt.ObjFunc==1
     if sumNObs > 0
         V = sumPeFiPe / sumNObs;
         sumLogDetF = sumLogDetF + sumNObs*log(V);
@@ -48,8 +48,8 @@ if Opt.Relative && Opt.ObjFunc==1
     end
 end
 
-% Put together the requested objective function.
-if Opt.ObjFunc==1
+% Put together the requested objective function
+if opt.ObjFunc==1
     % Minus log likelihood.
     log2Pi = log(2*pi);
     Obj = (sumNObs*log2Pi + sumLogDetF + sumPeFiPe) / 2;
@@ -58,11 +58,11 @@ else
     Obj = sumPeFiPe / 2;
 end
 
-if ~Opt.objdecomp
+if ~opt.ObjFuncContributions
     return
 end
 
-% Objective function factors (components).
+% Objective function factors (components)
 if isOutOfLik
     PeFiPe = PeFiPe - Est.'*MtFiPe;
 end
@@ -71,7 +71,7 @@ if V~=1
     PeFiPe = PeFiPe / V;
 end
 sumObj = Obj;
-if Opt.ObjFunc==1
+if opt.ObjFunc==1
     Obj = (NObs*log2Pi + LogDetF + PeFiPe) / 2;
 else
     Obj = PeFiPe / 2;

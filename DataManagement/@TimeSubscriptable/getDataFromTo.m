@@ -29,7 +29,7 @@ serialFrom = DateWrapper.getSerial(from);
 serialTo = DateWrapper.getSerial(to);
 
 freqStart = DateWrapper.getFrequencyAsNumeric(this.Start);
-serialOfStart = DateWrapper.getSerial(this.Start);
+serialStart = DateWrapper.getSerial(this.Start);
 data = this.Data;
 sizeData = size(data);
 missingValue = this.MissingValue;
@@ -41,13 +41,13 @@ if ~isinf(serialFrom) && ~isinf(serialTo) && serialTo<serialFrom
     return
 end
 
-if isnan(serialOfStart) 
+if isnan(serialStart) 
     if isinf(serialFrom) || isinf(serialTo)
-        lenOfRange = 0;
+        lenRange = 0;
     else
-        lenOfRange = round(serialTo - serialFrom + 1);
+        lenRange = round(serialTo - serialFrom + 1);
     end
-    x = repmat(missingValue, [lenOfRange, sizeData(2:end)]);
+    x = repmat(missingValue, [lenRange, sizeData(2:end)]);
     actualStart = DateWrapper.empty(0, 0);
     actualEnd = DateWrapper.empty(0, 0);
     return
@@ -56,31 +56,31 @@ end
 if isinf(serialFrom)
     posFrom = 1; 
 else
-    posFrom = round(serialFrom - serialOfStart + 1);
+    posFrom = round(serialFrom - serialStart + 1);
 end
 
 if isinf(serialTo)
     posTo = sizeData(1);
 else
-    posTo = round(serialTo - serialOfStart + 1);
+    posTo = round(serialTo - serialStart + 1);
 end
 
-numOfColumns = prod(sizeData(2:end));
+numColumns = prod(sizeData(2:end));
 if posFrom>posTo
-    x = repmat(missingValue, 0, numOfColumns);
+    x = repmat(missingValue, 0, numColumns);
 elseif posFrom>=1 && posTo<=sizeData(1)
     x = this.Data(posFrom:posTo, :);
 elseif (posFrom<1 && posTo<1) || (posFrom>sizeData(1) && posTo>sizeData(1))
-    x = repmat(missingValue, posTo-posFrom+1, numOfColumns);
+    x = repmat(missingValue, posTo-posFrom+1, numColumns);
 elseif posFrom>=1
-    addMissingAfter = repmat(missingValue, posTo-sizeData(1), numOfColumns);
+    addMissingAfter = repmat(missingValue, posTo-sizeData(1), numColumns);
     x = [ data(posFrom:end, :); addMissingAfter ];
 elseif posTo<=sizeData(1)
-    addMissingBefore = repmat(missingValue, 1-posFrom, numOfColumns);
+    addMissingBefore = repmat(missingValue, 1-posFrom, numColumns);
     x = [ addMissingBefore; data(1:posTo, :) ];
 else
-    addMissingBefore = repmat(missingValue, 1-posFrom, numOfColumns);
-    addMissingAfter = repmat(missingValue, posTo-sizeData(1), numOfColumns);
+    addMissingBefore = repmat(missingValue, 1-posFrom, numColumns);
+    addMissingAfter = repmat(missingValue, posTo-sizeData(1), numColumns);
     x = [ addMissingBefore; data(:, :); addMissingAfter ];
 end
 
@@ -89,8 +89,8 @@ if numel(sizeData)>2
 end
 
 if nargout>1
-    actualFrom = DateWrapper.getDateCodeFromSerial(freqStart, serialOfStart + posFrom - 1);
-    actualTo = DateWrapper.getDateCodeFromSerial(freqStart, serialOfStart + posTo - 1);
+    actualFrom = DateWrapper.getDateCodeFromSerial(freqStart, serialStart + posFrom - 1);
+    actualTo = DateWrapper.getDateCodeFromSerial(freqStart, serialStart + posTo - 1);
 end
 
 end%

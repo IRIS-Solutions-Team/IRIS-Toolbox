@@ -52,11 +52,11 @@ end
 
 % Update out-of-lik parameters in the model object.
 delta = struct( );
-lsDelta = this.Quantity.Name(likOpt.outoflik);
+lsDelta = this.Quantity.Name(likOpt.OutOfLik);
 if isfield(regOutp, 'Delta')
-    for i = 1 : length(likOpt.outoflik)
+    for i = 1 : length(likOpt.OutOfLik)
         name = lsDelta{i};
-        posQty = likOpt.outoflik(i);
+        posQty = likOpt.OutOfLik(i);
         this.Variant.Values(:, posQty, :) = regOutp.Delta(i, :);
         delta.(name) = regOutp.Delta(i, :);
     end

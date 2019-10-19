@@ -204,40 +204,6 @@ classdef Variant
         end%
 
 
-        function sx = combineStdCorr(this, variantsRequested, stdCorr, stdScale, numPeriods)
-            thisStdCorr = this.StdCorr(:, :, variantsRequested);
-            thisStdCorr = permute(thisStdCorr, [2, 1, 3]);
-            if ~isempty(stdCorr) || ~isempty(stdScale)
-                sizeOfStdCorr = size(stdCorr, 2);
-                sizeOfStdScale = size(stdScale, 2);
-                last = max([1, sizeOfStdCorr, sizeOfStdScale]);
-                if sizeOfStdCorr<last
-                    stdCorr = [stdCorr, nan(size(stdCorr, 1), last-sizeOfStdCorr)];
-                end
-                if sizeOfStdScale<last
-                    stdScale = [stdScale, nan(size(stdScale, 1), last-sizeOfStdScale)];
-                end
-                sx = repmat(thisStdCorr, 1, last);
-                inxStdScale = ~isnan(stdScale);
-                if any(inxStdScale(:))
-                    ne = size(stdScale, 1);
-                    temp = sx(1:ne, :, :);
-                    temp(inxStdScale) = temp(inxStdScale) .* stdScale(inxStdScale);
-                    sx(1:ne, :, :) = temp;
-                end
-                inxStdCorr = ~isnan(stdCorr);
-                if any(inxStdCorr(:))
-                    sx(inxStdCorr) = stdCorr(inxStdCorr);
-                end
-                % Add model StdCorr if the last user-supplied data point is before
-                % the end of the sample.
-                if size(sx, 2)<numPeriods
-                    sx = [sx, thisStdCorr];
-                end
-            else
-                sx = thisStdCorr;
-            end
-        end%
 
 
         function n = length(this)
@@ -245,9 +211,13 @@ classdef Variant
         end%
 
 
+
+
         function n = numel(this)
             n = size(this.Values, 3);
         end%
+
+
 
 
         function this = subscripted(this, varargin)
@@ -338,6 +308,13 @@ classdef Variant
             else
                 varargout(1:nargout) = x(1:nargout);
             end
+        end%
+
+
+
+
+        function stdcorr = getIthStdcorr(this, variantsRequested)
+            stdcorr = this.StdCorr(1, :, variantsRequested);
         end%
 
         
