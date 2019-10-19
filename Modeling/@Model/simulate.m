@@ -130,7 +130,7 @@ end
 
 progressInfo = ProgressInfo.empty(0);
 if opt.ProgressInfo
-    herePrepareProgressInfo( );
+    progressInfo = herePrepareProgressInfo( );
 end
 
 
@@ -141,6 +141,9 @@ for i = 1 : numRuns
     if opt.ProgressInfo
         hereUpdateProgressInfo(i);
     end
+end
+if opt.ProgressInfo
+    complete(progressInfo);
 end
 % /////////////////////////////////////////////////////////////////////////
 
@@ -320,7 +323,7 @@ return
                 %
                 [deficiency{page}(frame), covariance{page}{frame}] = hereCheckDeterminacyOfPlan( );
             end
-            runningData.TimeFrameDates{page} = DateWrapper.fromDateCode(timeFrameDates);
+            runningData.TimeFrameDates{page} = DateWrapper(timeFrameDates);
         end
         if nnz([deficiency{:}])>0
             hereReportDeficiencyOfPlan( );
@@ -423,13 +426,15 @@ return
 
     function progressInfo = herePrepareProgressInfo( )
         oneLiner = true;
-        solver = { opt.Solver.Display };
-        for ii = 1 : numel(solver)
-            if ~isequal(solver{ii}, false) ...
-               && ~strcmpi(solver{ii}, 'None') ...
-               && ~strcmpi(solver{ii}, 'Off')
-               oneLiner = false;
-               break
+        if isa(opt.Solver, 'solver.Options')
+            solverDisplay = { opt.Solver.Display };
+            for ii = 1 : numel(solverDisplay)
+                if ~isequal(solverDisplay{ii}, false) ...
+                   && ~strcmpi(solverDisplay{ii}, 'None') ...
+                   && ~strcmpi(solverDisplay{ii}, 'Off')
+                   oneLiner = false;
+                   break
+                end
             end
         end
         progressInfo = ProgressInfo(runningData.NumOfPages, oneLiner);
@@ -464,9 +469,9 @@ return
 
 
     function hereUpdateProgressInfo(run)
-        runningData.ProgressInfo.Completed = run;
-        runningData.ProgressInfo.Success = nnz(runningData.Success);
-        update(runningData.ProgressInfo);
+        progressInfo.Completed = run;
+        progressInfo.Success = nnz(runningData.Success);
+        update(progressInfo);
     end%
 
 
@@ -505,8 +510,8 @@ return
         outputInfo = struct( );
         outputInfo.TimeFrames = runningData.TimeFrames;
         outputInfo.TimeFrameDates = runningData.TimeFrameDates;
-        outputInfo.BaseRange = DateWrapper.fromDateCode(runningData.BaseRange);
-        outputInfo.ExtendedRange = DateWrapper.fromDateCode(runningData.ExtendedRange);
+        outputInfo.BaseRange = DateWrapper(runningData.BaseRange);
+        outputInfo.ExtendedRange = DateWrapper(runningData.ExtendedRange);
         outputInfo.Success =  runningData.Success;
         outputInfo.ExitFlags = runningData.ExitFlags;
         outputInfo.DiscrepancyTables = runningData.DiscrepancyTables;
@@ -668,10 +673,6 @@ function [timeFrames, mixinUnanticipated] = hereSplitIntoTimeFrames(unanticipate
 
 
         function flag = hereTestMixinUnanticipated( )
-
-            flag = false;
-            return
-
             if opt.Method==solver.Method.FIRST_ORDER ...
                && plan.NumOfExogenizedPoints==0
                 flag = true;

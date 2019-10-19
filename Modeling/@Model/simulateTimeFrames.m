@@ -13,6 +13,9 @@ TYPE = @int8;
 
 runningData = systemProperty.Specifics;
 
+% Regular call from @Model.simulate
+regularCall = systemProperty.NumOfOutputs==0;
+
 nv = length(this);
 numOfRuns = size(runningData.YXEPG, 3); 
 startOfBaseRange = runningData.BaseRange(1);
@@ -127,14 +130,14 @@ end
 % necessary initial conditions
 hereResetOutsideBaseRange( );
 
-if systemProperty.NumOfOutputs==0
+if regularCall
     % This is a call from @Model.simulate
     % Update running data
     runningData.YXEPG(:, :, run) = vthData.YXEPG;
+    runningData.Success(run) = vthSuccess;
     if runningData.PrepareOutputInfo
         runningData.TimeFrames{run} = timeFrames;
         runningData.ExitFlags{run} = vthExitFlags;
-        runningData.Success(run) = vthSuccess;
         runningData.DiscrepancyTables{run} = vthDiscrepancyTables;
     end
 else
