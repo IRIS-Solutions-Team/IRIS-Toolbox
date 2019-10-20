@@ -1,5 +1,5 @@
 function required(minRelease)
-% iris.required  Throw error if the [IrisToolbox] release currently running fails to comply with the required minimum
+% iris.required  Throw error if the [IrisToolbox] Release currently running fails to comply with the required minimum
 %{
 % ## Syntax ##
 %
@@ -44,8 +44,8 @@ end
 
 if vNum<minRelease
     thisError = { 'IrisToolbox:Config:ReleaseRequired'
-                  '[IrisToolbox] Release %g or later is required. '
-                  'You are currently using [IrisToolbox] Release %s.' }
+                  '[IrisToolbox] Release %d or later is required; '
+                  'you are currently running Release %s' }
     error(thisError{1}, [thisError{2:end}], minRelease, vChar);
 end
 

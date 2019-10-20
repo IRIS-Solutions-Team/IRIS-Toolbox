@@ -48,8 +48,8 @@ classdef Preparser < model.File
                     %
                     % Throw an error if there is no model file name to read
                     %
-                    numOfModelFiles = numel(fileName);
-                    if numOfModelFiles==0
+                    numModelFiles = numel(fileName);
+                    if numModelFiles==0
                         thisError = { 'Preparser:NoModelFileEntered'
                                       'No model file specified' };
                         throw( exception.ParseTime(thisError, 'error') );
@@ -59,7 +59,7 @@ classdef Preparser < model.File
                     % Create an array of model.File objects
                     %
                     modelFile = model.File.empty(1, 0);
-                    for i = 1 : numOfModelFiles
+                    for i = 1 : numModelFiles
                         modelFile = [modelFile, model.File(fileName{i})];
                     end
                 end

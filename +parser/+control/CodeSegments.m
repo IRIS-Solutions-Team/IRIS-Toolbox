@@ -107,9 +107,6 @@ classdef CodeSegments < handle
                 case { Keyword.CLONE }
                     [arg, c, sh] = Clone.getBracketArg(key, c, sh);
                     body{end+1} = Clone(arg);
-                case { Keyword.RETURN }
-                    c = c([ ]);
-                    sh = sh([ ]);
                 otherwise
                     throw( exception.Base('General:Internal', 'error') );
             end

@@ -22,7 +22,6 @@ classdef Keyword < int8
         INPUT       ( 13 )
         CLONE       ( 16 )
         
-        RETURN      ( 14 )
         STOP        ( 15 )
     end
     
@@ -32,12 +31,15 @@ classdef Keyword < int8
     methods
         function this = Keyword(varargin)
             this = this@int8(varargin{:});
-        end
+        end%
+
         function c = toChar(this)
             c = ['!', lower(char(this))];
-        end
+        end%
+
         function n = len(this)
             n = 1 + length(char(this));
-        end
+        end%
     end        
 end
+

@@ -10,17 +10,17 @@ function altSyntax(this)
 %--------------------------------------------------------------------------
 
 % Obsolete alternative syntax, throw a warning
-for iBlk = 1 : size(this.AltKeywordWarn, 1)
+for i = 1 : size(this.AltKeywordWarn, 1)
     this.Code = regexprep( this.Code, ...
-                           this.AltKeywordWarn{iBlk, 1}, ...
-                           this.AltKeywordWarn{iBlk, 2} );
+                           this.AltKeywordWarn{i, 1}, ...
+                           this.AltKeywordWarn{i, 2} );
 end
 
 % Alternative or abbreviated syntax, do not report
-for iBlk = 1 : size(this.AltKeyword, 1)
+for i = 1 : size(this.AltKeyword, 1)
     this.Code = regexprep( this.Code, ...
-                           this.AltKeyword{iBlk, 1}, ...
-                           this.AltKeyword{iBlk, 2} );
+                           this.AltKeyword{i, 1}, ...
+                           this.AltKeyword{i, 2} );
 end
 
 end%
