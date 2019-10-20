@@ -124,7 +124,7 @@ if isempty(parser)
     parser.addParameter({'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || isequal(x, 'first') || isequal(x, 'last'));
     parser.addParameter({'RemoveNaN', 'IgnoreNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'last', 'previous'}))) || isnumericscalar(x));
-    parser.addParameter({'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.string(x));
+    parser.addParameter({'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.string(x) || (isnumeric(x) && ~isempty(x)));
     parser.addParameter('Position', 'center', @(x) ischar(x) && any(strncmpi(x, {'c', 's', 'e'}, 1)));
     parser.addParameter('Select', Inf, @(x) isnumeric(x));
 end
@@ -222,20 +222,20 @@ function [newData, newStart] = aggregate(this, oldStart, oldEnd, oldFreq, newFre
     oldData = getDataFromTo(this, oldStart, oldEnd);
     oldSize = size(oldData);
     oldData = oldData(:, :);
-    numOfColumns = size(oldData, 2);
+    numColumns = size(oldData, 2);
 
     % Treat missing observations in input daily series
     for row = 1 : size(oldData, 1)
-        inxOfNaN = isnan(oldData(row, :));
-        if any(inxOfNaN)
+        inxNaN = isnan(oldData(row, :));
+        if any(inxNaN)
             if any(strcmpi(opt.Missing, {'last', 'previous'}))
                 if row>1
-                    oldData(row, inxOfNaN) = oldData(row-1, inxOfNaN);
+                    oldData(row, inxNaN) = oldData(row-1, inxNaN);
                 else
-                    oldData(row, inxOfNaN) = NaN;
+                    oldData(row, inxNaN) = NaN;
                 end
             else
-                oldData(row, inxOfNaN) = opt.Missing;
+                oldData(row, inxNaN) = opt.Missing;
             end
         end
     end
@@ -243,39 +243,52 @@ function [newData, newStart] = aggregate(this, oldStart, oldEnd, oldFreq, newFre
     newDatesSerial = DateWrapper.getSerial(newDates);
     newStartSerial = newDatesSerial(1);
     newEndSerial = newDatesSerial(end);
-    numOfNewPeriods = newEndSerial - newStartSerial + 1;
+    numNewPeriods = newEndSerial - newStartSerial + 1;
 
     % Apply function period by period, column by column
-    newData = nan(0, numOfColumns);
+    newData = nan(0, numColumns);
     for newSerial = newStartSerial : newEndSerial
-        inxOfRows = newSerial==newDatesSerial;
-        newAdd = nan(1, numOfColumns);
-        if any(inxOfRows)
-            oldAdd = oldData(inxOfRows, :);
-            for col = 1 : numOfColumns
-                ithCol = oldAdd(:, col);
-                if opt.RemoveNaN
-                    ithCol = ithCol(~isnan(ithCol));
+        inxRows = newSerial==newDatesSerial;
+        newAdd = nan(1, numColumns);
+        if any(inxRows)
+            oldAdd = oldData(inxRows, :);
+            for col = 1 : numColumns
+                ithMethod = opt.Method;
+                if isnumeric(ithMethod)
+                    ithMethod = reshape(ithMethod, 1, [ ]);
                 end
+
+                ithCol = oldAdd(:, col);
+
+                if opt.RemoveNaN
+                    inxToKeep = ~isnan(ithCol);
+                    ithCol = ithCol(inxToKeep);
+                    if isnumeric(ithMethod)
+                        ithMethod = ithMethod(inxToKeep);
+                    end
+                end
+
                 if ~isequal(opt.Select, Inf)
                     try
                         ithCol = ithCol(opt.Select);
+                        if isnumeric(ithMethod)
+                            ithMethod = ithMethod(opt.Select);
+                        end
                     catch
-                        ithCol = [ ];
+                        ithCol = double.empty(0, 1);
+                        ithMethod = double.empty(1, 0);
                     end
                 end
-                if isempty(ithCol)
-                    newAdd(1, col) = NaN;
-                else
-                    try
-                        newAdd(1, col) = feval(opt.Method, ithCol, 1);
-                    catch
-                        try
-                            newAdd(1, col) = feval(opt.Method, ithCol);
-                        catch
-                            newAdd(1, col) = NaN;
-                        end
-                    end
+
+                if isempty(ithCol) 
+                    continue
+                end
+
+                if isnumeric(ithMethod)
+                    try, newAdd(1, col) = ithMethod*ithCol; end
+                elseif isa(ithMethod, 'function_handle') || ischar(ithMethod) || isa(ithMethod, 'string')
+                    try, newAdd(1, col) = feval(ithMethod, ithCol, 1);
+                        catch, newAdd(1, col) = feval(ithMethod, ithCol); end
                 end
             end
         end
@@ -284,7 +297,7 @@ function [newData, newStart] = aggregate(this, oldStart, oldEnd, oldFreq, newFre
 
     if length(oldSize)>2
         newSize = oldSize;
-        newSize(1) = numOfNewPeriods;
+        newSize(1) = numNewPeriods;
         newData = reshape(newData, newSize);
     end
     newStart = DateWrapper.getDateCodeFromSerial(newFreq, newStartSerial);
@@ -342,11 +355,11 @@ function [newData, newStart] = interpolate(this, oldStart, oldEnd, oldFreq, newF
 
         function newData = hereInterpolate( )
             oldData = oldData(:, :);
-            numOfNewPeriods = floor(newEnd) - floor(newStart) + 1;
+            numNewPeriods = floor(newEnd) - floor(newStart) + 1;
             oldGrid = dat2dec(oldStart:oldEnd, opt.Position);
             newGrid = dat2dec(newStart:newEnd, opt.Position);
             newData = interp1(oldGrid, oldData, newGrid, opt.Method, 'extrap');
-            if size(newData, 1)==1 && size(newData, 2)==numOfNewPeriods
+            if size(newData, 1)==1 && size(newData, 2)==numNewPeriods
                 newData = newData(:);
             else
                 newData = reshape(newData, [size(newData, 1), oldSize(2:end)]);
@@ -480,11 +493,11 @@ end%
 
 
 function data = random(data, varargin)
-    numOfRows = size(data, 1);
-    if numOfRows==1
+    numRows = size(data, 1);
+    if numRows==1
         return
     else
-        pos = randi(numOfRows);
+        pos = randi(numRows);
         data = data(pos, :);
     end
 end%
