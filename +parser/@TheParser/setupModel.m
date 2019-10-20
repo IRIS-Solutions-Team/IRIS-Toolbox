@@ -100,6 +100,7 @@ this.AltKeyword = [
       '\$\[',                                     '<' % Open interpolation
       '\]\$',                                     '>' % Close interpolation
       '!ttrend\>',                                'ttrend' 
+      '===',                                      '=#'
       '!dynamic_autoexog',                        '!autoswaps-simulate'
       '!steady_autoexog',                         '!autoswaps-steady'          } ];
 
