@@ -598,9 +598,9 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         function irisRelease = getIrisRelease( )
             x = ver( );
-            indexIris = strcmp('[IrisToolbox] for Macroeconomic Modeling', {x.Name});
-            if any(indexIris)
-                if sum(indexIris)>1
+            inxIris = startsWith({x.Name}, '[IrisToolbox]');
+            if any(inxIris)
+                if sum(inxIris)>1
                     disp(' ');
                     thisError = { 'IrisToolbox:Fatal'
                                   'Cannot start up [IrisToolbox] because '
@@ -610,7 +610,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
                                   'and try again.' };
                     error(thisError{1}, [thisError{2:end}]);
                 end
-                irisRelease = regexp(x(indexIris).Version, '\d+\-?\w+', 'match', 'once');
+                irisRelease = regexp(x(inxIris).Version, '\d+\-?\w+', 'match', 'once');
             else
                 % Do not use utils.warning because it calls back iris.get and results
                 % in infinite recursion.
