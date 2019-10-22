@@ -12,10 +12,8 @@ classdef For < parser.control.Control
     properties (Constant)
         CONTROL_NAME_PATTERN = '\?[^\s=!\.:;]*'
         
-        FOR_PATTERN = [ ...
-            '^(', parser.control.For.CONTROL_NAME_PATTERN, ')', ...
-            '(\s*=)(.*)', ...
-            ]
+        FOR_PATTERN = [ '^(', parser.control.For.CONTROL_NAME_PATTERN, ')', ...
+                        '(\s*=)(.*)' ]
     end
     
     
@@ -29,24 +27,33 @@ classdef For < parser.control.Control
             end
             keyFor = Keyword.FOR;
             keyDo = Keyword.DO;
+            keyReturn = Keyword.RETURN;
+            lenKeyFor = len(keyFor);
+            lenKeyDo = len(keyDo);
+            lenKeyReturn = len(keyReturn);
             this.ForBody = [ ];
             this.DoBody = [ ];
             le = cumsum(imag(sh));
             posDo = find(sh==keyDo & le==1);
-            if isempty(posDo)
+            posReturn = find(sh==keyReturn & le==1);
+            numDo = numel(posDo);
+            numReturn = numel(posReturn);
+            if (numDo+numReturn)==0
                 return
-            elseif length(posDo)>1
-                throwCode( ...
-                    exception.ParseTime('Preparser:CTRL_FOR_MULTIPLE_DO', 'error'), ...
-                    c);
+            elseif (numDo+numReturn)>1
+                throwCode(exception.ParseTime('Preparser:CTRL_FOR_MULTIPLE_DO', 'error'), c);
             end
-            c1 = c(len(keyFor)+1:posDo-1);
-            sh1 = sh(len(keyFor)+1:posDo-1);
+            if numReturn==1
+                posDo = posReturn;
+                lenKeyDo = lenKeyReturn;
+            end
+            c1 = c(lenKeyFor+1:posDo-1);
+            sh1 = sh(lenKeyFor+1:posDo-1);
             this.ForBody = CodeSegments(c1, [ ], sh1);
-            c2 = c(posDo+len(keyDo):end);
-            sh2 = sh(posDo+len(keyDo):end);
+            c2 = c(posDo+lenKeyDo:end);
+            sh2 = sh(posDo+lenKeyDo:end);
             this.DoBody = CodeSegments(c2, [ ], sh2);
-        end
+        end%
         
         
         
@@ -65,7 +72,7 @@ classdef For < parser.control.Control
             forCode = writeFinal(this.ForBody, p, varargin{:});
             readForCode(this, forCode, p.Assigned);
             c = expandDoCode(this, p, varargin{:});
-        end
+        end%
         
         
         
@@ -99,7 +106,7 @@ classdef For < parser.control.Control
                     break
                 end
             end
-        end
+        end%
         
         
         
@@ -118,7 +125,7 @@ classdef For < parser.control.Control
                 c = [c, c1]; %#ok<AGROW>
                 p.StoreForCtrl(end, :) = [ ];
             end
-        end
+        end%
     end
     
     
@@ -149,30 +156,25 @@ classdef For < parser.control.Control
                 % Substitute for ?name.
                 c = strrep(c, ctrlName, tkn);
             end
-        end
+        end%
         
         
         
         
         function chkObsolete(c, controlName)
-            obsoleteFunc = @(syntax) ...
-                regexp(c, regexptranslate('escape', syntax), 'match');
-            lsObsolete = [ ...
-                obsoleteFunc([ '!lower',  controlName       ]), ...
-                obsoleteFunc([ '!upper',  controlName       ]), ...
-                obsoleteFunc([ '<lower(', controlName, ')>' ]), ...
-                obsoleteFunc([ '<upper(', controlName, ')>' ]), ...
-                obsoleteFunc([ 'lower(',  controlName, ')'  ]), ...
-                obsoleteFunc([ 'upper(',  controlName, ')'  ]), ...
-                ];
-            if isempty(lsObsolete)
+            obsoleteFunc = @(syntax) regexp(c, regexptranslate('escape', syntax), 'match');
+            listDeprecated = [ obsoleteFunc([ '!lower',  controlName       ]), ...
+                               obsoleteFunc([ '!upper',  controlName       ]), ...
+                               obsoleteFunc([ '<lower(', controlName, ')>' ]), ...
+                               obsoleteFunc([ '<upper(', controlName, ')>' ]), ...
+                               obsoleteFunc([ 'lower(',  controlName, ')'  ]), ...
+                               obsoleteFunc([ 'upper(',  controlName, ')'  ])  ];
+            if isempty(listDeprecated)
                 return
             end
-            lsObsolete = unique(lsObsolete);
-            throwCode( ...
-                exception.ParseTime('Preparser:CTRL_OBSOLETE_UPPER_LOWER', 'error'), ...
-                lsObsolete{:} ...
-                );
-        end             
+            listDeprecated = unique(listDeprecated);
+            throwCode( exception.ParseTime('Preparser:CTRL_OBSOLETE_UPPER_LOWER', 'error'), ...
+                       listDeprecated{:} );
+        end%             
     end
 end

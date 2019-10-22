@@ -89,9 +89,9 @@ return
         end
         report = DateWrapper.reportMissingPeriodsAndPages(range, inxMissingColumns(1, inxBaseRangeColumns, :));
         if strcmpi(opt.MissingObservations, 'Warning')
-            action = 'adjusted for';
+            action = 'adjusted to exclude';
         else
-            action = 'corrupted with';
+            action = 'contaminated with';
         end
         thisWarning  = { 'LinearRegression:MissingObservationInEstimationRange'
                          'LinearRegression(%1) estimation range %2 NaN or Inf observations [Variant|Page:%g]: %s' };

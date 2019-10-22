@@ -62,6 +62,14 @@ function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank,
 % the `inputDatabank` on which the `function` was run to create a new
 % field.
 %
+% __`InputNames=@all`__ [ `@all` | cellstr | string ] -
+% List of databank field names to which the name selection procedure will
+% be reduced.
+%
+% __`OutputNames=@auto`__ [ `@auto` | cellstr | string ] -
+% New names for output databank fields.
+%
+%
 % ## Description ##
 %
 %
@@ -119,20 +127,23 @@ if isempty(parser)
     parser.addParameter({'RemovePrefix', 'RemoveStart'}, false, @validate.logicalScalar);
     parser.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
     parser.addParameter('RemoveSource', false, @validate.logicalScalar);
-    parser.addParameter({'List', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    parser.addParameter({'InputNames', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || validate.list(x));
+    parser.addParameter('OutputNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
     parser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || validate.databank(x));
 end
 parser.parse(func, inputDatabank, varargin{:});
 opt = parser.Options;
 
-if ~isequal(opt.List, @all)
-    opt.List = cellstr(opt.List);
+if ~isequal(opt.InputNames, @all)
+    opt.InputNames = cellstr(opt.InputNames);
 end
 
 opt.HasPrefix = char(opt.HasPrefix);
 opt.HasSuffix = char(opt.HasSuffix);
 opt.AddPrefix = char(opt.AddPrefix);
 opt.AddSuffix = char(opt.AddSuffix);
+
+hereCheckInputOutputNames( );
 
 %--------------------------------------------------------------------------
 
@@ -157,7 +168,7 @@ inxApplied = false(1, numFields);
 inxToRemove = false(1, numFields);
 for i = 1 : numFields
     ithName = namesFields{i};
-    if ~isequal(opt.List, @all) && ~any(strcmpi(ithName, opt.List))
+    if ~isequal(opt.InputNames, @all) && ~any(strcmpi(ithName, opt.InputNames))
        continue
     end 
     if ~isempty(opt.HasPrefix) && ~strncmpi(ithName, opt.HasPrefix, lenHasPrefix)
@@ -166,27 +177,37 @@ for i = 1 : numFields
     if ~isempty(opt.HasSuffix) && ~strncmpi(fliplr(ithName), fliplr(opt.HasSuffix), lenHasSuffix)
         continue
     end
+
     inxApplied(i) = true;
-    ithNewName = ithName;
-    if opt.RemovePrefix
-        ithNewName(1:lenHasPrefix) = '';
-    end
-    if opt.RemoveSuffix
-        ithNewName(end-lenHasSuffix+1:end) = '';
-    end
-    if ~isempty(opt.AddPrefix)
-        ithNewName = [opt.AddPrefix, ithNewName];
-    end
-    if ~isempty(opt.AddSuffix)
-        ithNewName = [ithNewName, opt.AddSuffix];
+
+    %
+    % Create output field name
+    %
+    if iscellstr(opt.OutputNames)
+        inxName = strcmp(opt.InputNames, ithName);
+        ithNewName = opt.OutputNames{inxName};
+    else
+        ithNewName = ithName;
+        if opt.RemovePrefix
+            ithNewName(1:lenHasPrefix) = '';
+        end
+        if opt.RemoveSuffix
+            ithNewName(end-lenHasSuffix+1:end) = '';
+        end
+        if ~isempty(opt.AddPrefix)
+            ithNewName = [opt.AddPrefix, ithNewName];
+        end
+        if ~isempty(opt.AddSuffix)
+            ithNewName = [ithNewName, opt.AddSuffix];
+        end
     end
     newNames{i} = ithNewName;
 
-    ithSeries = getfield(inputDatabank, ithName);
+    ithField = getfield(inputDatabank, ithName);
     if ~isempty(func)
-        ithSeries = func(ithSeries);
+        ithField = func(ithField);
     end
-    outputDatabank = setfield(outputDatabank, ithNewName, ithSeries);
+    outputDatabank = setfield(outputDatabank, ithNewName, ithField);
     inxToRemove(i) = opt.RemoveSource && ~strcmp(ithName, ithNewName);
 end
 
@@ -197,5 +218,29 @@ end
 appliedToNames = namesFields(inxApplied);
 newNames = newNames(inxApplied);
 
+return
+
+
+    function hereCheckInputOutputNames( )
+        if isequal(opt.OutputNames, @auto)
+            return
+        end
+        if validate.list(opt.InputNames)
+            opt.InputNames = cellstr(opt.InputNames);
+        end
+        if validate.list(opt.OutputNames)
+            opt.OutputNames = cellstr(opt.OutputNames);
+        end
+        if iscellstr(opt.OutputNames) 
+            if iscellstr(opt.OutputNames) && numel(opt.InputNames)==numel(opt.OutputNames)
+                return
+            end
+        end
+        thisError = { 'Databank:InconsistentInputOutputNames'
+                      'When used together in databank.apply(~), '
+                      'options InputNames= and OutputNames= '
+                      'must be lists of the same size' };
+        throw(exception.Base(thisError, 'error'));
+    end%
 end%
 

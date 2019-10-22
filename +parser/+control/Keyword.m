@@ -12,6 +12,7 @@ classdef Keyword < int8
 
         FOR         (  6 + 1i )
         DO          (  7 )
+        RETURN      (  17 )
 
         SWITCH      (  8 + 1i )
         CASE        (  9 )
