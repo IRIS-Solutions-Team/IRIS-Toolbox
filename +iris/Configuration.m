@@ -201,7 +201,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
             if ~isempty(this.UserConfigPath)
                 this = irisuserconfig(this);
                 thisWarning = { 'IrisToolbox:Deprecated'
-                                'Using irisuserconfig.m file to modify IrisToolbox configuration '
+                                'Using <irisuserconfig.m> file to modify IrisToolbox configuration '
                                 'is deprecated and will be discontinued in a future release. '
                                 'Use the standard Matlab <startup.m> file with iris.set( ) instead.' };
                 warning(thisWarning{1}, [thisWarning{2:end}]);

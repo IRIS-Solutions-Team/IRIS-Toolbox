@@ -98,17 +98,6 @@ return
         % IRIS root folder
         fprintfx('\tRoot Folder: <a href="file:///%s">%s</a>\n', root, root);
         
-        % User config file used
-        fprintf('\tUser Config File: ');
-        if isempty(config.userconfigpath)
-            fprintfx('<a href="matlab: idoc config/irisuserconfighelp">');
-            fprintfx('No user config file found</a>');
-        else
-            fprintfx('<a href="matlab: edit %s">%s</a>', ...
-                config.userconfigpath, config.userconfigpath);
-        end
-        fprintf('\n');
-        
         % Default time series constructor
         defaultTimeSeriesConstructor = config.DefaultTimeSeriesConstructor;
         defaultTimeSeriesConstructor = func2str(defaultTimeSeriesConstructor);
