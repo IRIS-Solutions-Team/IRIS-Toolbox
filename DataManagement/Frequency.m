@@ -569,7 +569,7 @@ classdef Frequency < double
         end%
 
 
-        function flag = sameFrequency(freq1, freq2)
+        function flag = sameFrequency(freq1, freq2, varargin)
             if isempty(freq1)
                 flag = true;
                 return

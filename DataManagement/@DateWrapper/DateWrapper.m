@@ -357,18 +357,20 @@ classdef DateWrapper < double
         end%
 
 
-        function checkMixedFrequency(freq1, freq2, context)
-            if Frequency.sameFrequency(freq1, freq2)
+        function checkMixedFrequency(varargin)
+            if Frequency.sameFrequency(varargin{:});
                 return
             end
-            if nargin<3
+            freq = reshape(varargin{1}, 1, [ ]);
+            if nargin>=2
+                freq = [freq, reshape(varargin{2}, 1, [ ])];
+            end
+            if nargin>=3
+                context = varargin{3};
+            else
                 context = 'in this context';
             end
-            temp = freq1;
-            if nargin>=2
-                temp = [temp, freq2];
-            end
-            cellstrOfFreq = Frequency.toCellstr(unique(temp, 'stable'));
+            cellstrOfFreq = Frequency.toCellstr(unique(freq, 'stable'));
             throw( exception.Base('Dates:MixedFrequency', 'error'), ...
                    context, cellstrOfFreq{:} ); %#ok<GTARG>
         end%
