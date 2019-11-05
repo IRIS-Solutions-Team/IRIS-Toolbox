@@ -567,6 +567,31 @@ classdef Frequency < double
             letter(freq==Frequency.DAILY) = "D";
             letter(freq==Frequency.INTEGER) = "I";
         end%
+
+
+        function flag = sameFrequency(freq1, freq2)
+            if isempty(freq1)
+                flag = true;
+                return
+            end
+            if isscalar(freq1) && (nargin<2 || isempty(freq2))
+                flag = true;
+                return
+            end
+            if nargin==1 || isempty(freq2)
+                if isscalar(freq1)
+                    flag = true;
+                    return
+                end
+                freq2 = freq1(2:end);
+                freq1 = freq1(1);
+            end
+            if all(freq1==freq2)
+                flag = true;
+                return
+            end
+            flag = false;
+        end%
     end
 end
 

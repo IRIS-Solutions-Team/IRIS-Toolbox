@@ -1,4 +1,4 @@
-% Plan  Simulation plans for Model objects
+% Plan  Simulation Plans for Model objects
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
@@ -40,6 +40,10 @@ classdef Plan < matlab.mixin.CustomDisplay
         ANTICIPATED_MARK = 'A'
         UNANTICIPATED_MARK = 'U'
         DATE_PREFIX = 't'
+        RANGE_DEPENDENT = [ "IdOfAnticipatedExogenized", ...
+                            "IdOfUnanticipatedExogenized", ...
+                            "IdOfAnticipatedEndogenized", ...
+                            "IdOfUnanticipatedEndogenized" ]
     end
 
 
@@ -301,10 +305,9 @@ classdef Plan < matlab.mixin.CustomDisplay
                 inxDates(this.PosOfBaseStart:this.PosOfBaseEnd) = true;
                 return
             end
-            posDates = DateWrapper.getRelativePosition( this.ExtendedStart, ...
-                                                          dates, ...
-                                                          [this.PosOfBaseStart, this.PosOfBaseEnd], ...
-                                                          'simulation range' );
+            posDates = DateWrapper.getRelativePosition( this.ExtendedStart, dates, ...
+                                                        [this.PosOfBaseStart, this.PosOfBaseEnd], ...
+                                                        'simulation range' );
             inxDates = false(1, this.NumOfExtendedPeriods);
             inxDates(posDates) = true;
         end%
@@ -379,6 +382,99 @@ classdef Plan < matlab.mixin.CustomDisplay
         function value = get.Start(this)
             value = DateWrapper(this.BaseStart);
         end%
+
+
+
+
+        function this = set.Start(this, value)
+            %(
+            if isempty(this.BaseStart)
+                thisError = { 'Plan:StartDateNotInitialized'
+                              'Plan.Start must be initialized first in a constructor' };
+                throw(exception.Base(thisError, 'error'));
+            end
+            try
+                value = double(value);
+                pass = Frequency.sameFrequency( DateWrapper.getFrequencyAsNumeric(this.BaseStart), ...
+                                                DateWrapper.getFrequencyAsNumeric(value) );
+            catch
+                pass = false;
+            end
+            if ~pass
+                thisError = { 'Plan:InvalidStartDateFrequency'
+                              'New Plan.Start must be the same date frequency as the simulation range' };
+                throw(exception.Base(thisError, 'error'));
+            end
+            if value>this.BaseEnd
+                thisError = { 'Plan:StartDateAfterEndDate'
+                              'New Plan.Start date must not be after Plan.End date' };
+                throw(exception.Base(thisError, 'error'));
+            end
+            shift = round(value - this.BaseStart);
+            if shift==0
+                return
+            elseif shift>0
+                for name = this.RANGE_DEPENDENT
+                    this.(name) = this.(name)(:, shift+1:end, :);
+                end
+            elseif shift<0
+                for name = this.RANGE_DEPENDENT
+                    numRows = size(this.(name), 1);
+                    this.(name) = [ zeros(numRows, -shift, 'like', this.(name)), this.(name) ];
+                end
+            end
+            this.BaseStart = DateWrapper.roundPlus(this.BaseStart, shift);
+            this.ExtendedStart = DateWrapper.roundPlus(this.ExtendedStart, shift);
+            this = resetOutsideBaseRange(this);
+            %)
+        end%
+
+
+
+
+        function this = set.End(this, value)
+            %(
+            if isempty(this.BaseEnd)
+                thisError = { 'Plan:EndDateNotInitialized'
+                              'Plan.End must be initialized first in a constructor' };
+                throw(exception.Base(thisError, 'error'));
+            end
+            try
+                value = double(value);
+                pass = Frequency.sameFrequency( DateWrapper.getFrequencyAsNumeric(this.BaseEnd), ...
+                                                DateWrapper.getFrequencyAsNumeric(value) );
+            catch
+                pass = false;
+            end
+            if ~pass
+                thisError = { 'Plan:InvalidEndDateFrequency'
+                              'New Plan.End must be the same date frequency as the simulation range' };
+                throw(exception.Base(thisError, 'error'));
+            end
+            if value<this.BaseStart
+                thisError = { 'Plan:EndDateBeforeStartDate'
+                              'New Plan.End date must not be before Plan.Start date' };
+                throw(exception.Base(thisError, 'error'));
+            end
+            shift = round(value - this.BaseEnd);
+            if shift==0
+                return
+            elseif shift>0
+                for name = this.RANGE_DEPENDENT
+                    numRows = size(this.(name), 1);
+                    this.(name) = [ this.(name), zeros(numRows, shift, 'like', this.(name)) ];
+                end
+            elseif shift<0
+                for name = this.RANGE_DEPENDENT
+                    this.(name) = this.(name)(:, 1:end+shift, :);
+                end
+            end
+            this.BaseEnd = DateWrapper.roundPlus(this.BaseEnd, shift);
+            this.ExtendedEnd = DateWrapper.roundPlus(this.ExtendedEnd, shift);
+            %)
+        end%
+
+
 
 
         function value = get.End(this)
@@ -617,18 +713,26 @@ classdef Plan < matlab.mixin.CustomDisplay
             end
             parser.parse(varargin{:});
             opt = parser.Options;
+            simulationRange = double(parser.Results.simulationRange);
+            model = parser.Results.model;
 
             this = Plan( );
-            this.BaseStart = double(parser.Results.simulationRange(1));
-            this.BaseEnd = double(parser.Results.simulationRange(end));
-            this = preparePlan(parser.Results.model, this, [this.BaseStart, this.BaseEnd]);
+            this.BaseStart = simulationRange(1);
+            this.BaseEnd = simulationRange(end);
+            this = preparePlan(model, this);
+
             this.DefaultAnticipationStatus = opt.DefaultAnticipationStatus;
-            this.IdOfAnticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'int16');
-            this.IdOfUnanticipatedExogenized = zeros(this.NumOfEndogenous, this.NumOfExtendedPeriods, 'int16');
-            this.IdOfAnticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'int16');
-            this.IdOfUnanticipatedEndogenized = zeros(this.NumOfExogenous, this.NumOfExtendedPeriods, 'int16');
-            this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, this.NumOfEndogenous, 1);
-            this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, this.NumOfExogenous, 1);
+
+            numEndogenous = this.NumOfEndogenous;
+            numExogenous = this.NumOfExogenous;
+            numExtendedPeriods = this.NumOfExtendedPeriods;
+            this.IdOfAnticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
+            this.IdOfUnanticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
+            this.IdOfAnticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
+            this.IdOfUnanticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
+
+            this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, numEndogenous, 1);
+            this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, numExogenous, 1);
         end%
     end
 
@@ -724,6 +828,18 @@ classdef Plan < matlab.mixin.CustomDisplay
             negativeIds = reshape(list(list<0), 1, [ ]);
             positiveIds = reshape(list(list>0), 1, [ ]);
             ids = [sort(negativeIds, 'descend'), sort(positiveIds, 'ascend')];
+        end%
+
+
+
+
+        function this = resetOutsideBaseRange(this)
+            numExtendedPeriods = this.NumOfExtendedPeriods;
+            posPresample = 1 : round(this.BaseStart-this.ExtendedStart);
+            posPostsample = numExtendedPeriods-round(this.ExtendedEnd-this.BaseEnd) : numExtendedPeriods;
+            for name = this.RANGE_DEPENDENT
+                this.(name)(:, [posPresample, posPostsample]) = 0;
+            end
         end%
     end
 end
