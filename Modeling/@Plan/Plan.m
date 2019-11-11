@@ -320,8 +320,84 @@ classdef Plan < matlab.mixin.CustomDisplay
         LastAnticipatedEndogenized
         LastUnanticipatedEndogenized
 
+
+% Start  Start date of the simulation range
+%{
+% ## Syntax ##
+%
+%     currentStart = plan.Start
+%     plan.Start = newStart
+%
+% ## Arguments ##
+%
+% __`plan`__ [ Plan ] -
+% Plan object whose `Start` date will be accessed or assigned.
+%
+% __ `currentStart`__ [ DateWrapper ] -
+% Current `Start` date of the `plan` object.
+%
+% __ `newStart`__ [ DateWrapper | numeric ] -
+% New `Start` date for the `plan` object.
+%
+% 
+% ## Description ##
+%
+%  
+% ## Example ##
+%
+%     >> p = Plan(m, qq(2021,1):qq(2025,4));
+%     >> p.Start
+%     ans =
+%       1x1 QUARTERLY Date(s)
+%         '2021Q1'
+%     >> p.Start = qq(2022,1);
+%     >> p.Start
+%     ans =
+%       1x1 QUARTERLY Date(s)
+%         '2022Q1'
+%
+%}
         Start
+
+
+% End  End date of the simulation range
+%{
+% ## Syntax ##
+%
+%     currentEnd = plan.End
+%     plan.End = newEnd
+%
+% ## Arguments ##
+%
+% __`plan`__ [ Plan ] -
+% Plan object whose `End` date will be accessed or assigned.
+%
+% __ `currentEnd`__ [ DateWrapper ] -
+% Current `End` date of the `plan` object.
+%
+% __ `newEnd`__ [ DateWrapper | numeric ] -
+% New `End` date for the `plan` object.
+%
+% 
+% ## Description ##
+%
+%  
+% ## Example ##
+%
+%     >> p = Plan(m, qq(2021,1):qq(2025,4));
+%     >> p.End
+%     ans =
+%       1x1 QUARTERLY Date(s)
+%         '2025Q4'
+%     >> p.End = qq(2026,4);
+%     >> p.End
+%     ans =
+%       1x1 QUARTERLY Date(s)
+%         '2026Q4'
+%
+%}
         End
+
 
         InxOfAnticipatedExogenized
         InxOfUnanticipatedExogenized
