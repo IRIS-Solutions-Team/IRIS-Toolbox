@@ -105,15 +105,13 @@ if ~isempty(opt.Frequency)
                                     lower(opt.Frequency), ...
                                     lower(opt.AggregationMethod) );
     REQUEST = [REQUEST, FREQUENCY_CONVERSION];
-else
-    FREQUENCY_CONVERSION = '';
 end
 
 fredSeriesId = cellstr(fredSeriesId);
-numOfSeries = numel(fredSeriesId);
-validSeriesId = true(1, numOfSeries);
-dataRetrieved = true(1, numOfSeries);
-for i = 1 : numOfSeries
+numSeries = numel(fredSeriesId);
+validSeriesId = true(1, numSeries);
+dataRetrieved = true(1, numSeries);
+for i = 1 : numSeries
     ithFredSeriesId = fredSeriesId{i};
     matches = regexp(ithFredSeriesId, '\w+', 'match');
     if numel(matches)==1
@@ -166,14 +164,17 @@ end%
 
 
 function outputSeries = hereExtractDataFromJson(jsonInfo, jsonData, opt)
-    outputSeries = [ ];
     frequency = hereGetFrequencyFromJsonInfo(jsonInfo, opt);
-    dates = str2dat( {jsonData.observations.date}, ...
-                     'DateFormat=', 'YYYY-MM-DD', ...
-                     'Freq=', frequency );
-    numOfPeriods = numel(jsonData.observations);
-    values = nan(numOfPeriods, 1);
-    for i = 1 : numOfPeriods
+    if frequency==Frequency.DAILY
+        dates = datenum( {jsonData.observations.date} );
+    else
+        dates = str2dat( {jsonData.observations.date}, ...
+                         'DateFormat=', 'YYYY-MM-DD', ...
+                         'Freq=', frequency );
+    end
+    numPeriods = numel(jsonData.observations);
+    values = nan(numPeriods, 1);
+    for i = 1 : numPeriods
         ithValue = sscanf(jsonData.observations(i).value, '%g');
         if isnumeric(ithValue) && numel(ithValue)==1
             values(i) = ithValue;
@@ -201,10 +202,10 @@ function frequency = hereGetFrequencyFromJsonInfo(jsonInfo, opt)
             frequency = Frequency.HALFYEARLY;
         case 'a'
             frequency = Frequency.YEARLY;
+        case 'd'
+            frequency = Frequency.DAILY;
         otherwise
-            if isequaln(frequency, NaN)
-                throw( exception.Base('Databank:CannotDetermineFrequencyFromJson', 'error') );
-            end
+            throw( exception.Base('Databank:CannotDetermineFrequencyFromJson', 'error') );
     end
 end%
 
