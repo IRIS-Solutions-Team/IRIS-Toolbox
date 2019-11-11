@@ -358,7 +358,7 @@ classdef DateWrapper < double
 
 
         function checkMixedFrequency(varargin)
-            if Frequency.sameFrequency(varargin{:});
+            if Frequency.sameFrequency(varargin{:})
                 return
             end
             freq = reshape(varargin{1}, 1, [ ]);
