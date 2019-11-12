@@ -135,7 +135,7 @@ function mainDatabank = catNext(func, mainDatabank, mergeWith, opt)
             if ~isfield(mergeWith, ithName)
                 mainDatabank = rmfield(mainDatabank, ithName);
                 continue
-            elseif ~isfield(mainDatabank, ithName);
+            elseif ~isfield(mainDatabank, ithName)
                 continue
             end
         end

@@ -160,7 +160,7 @@ return
 
 
 
-    function xData = setXTickLabelFormat( )
+    function setXTickLabelFormat( )
         if isempty(dates) || timeFrequency==Frequency.INTEGER
             return
         end

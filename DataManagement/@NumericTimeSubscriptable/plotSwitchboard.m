@@ -41,8 +41,8 @@ switch plotFuncString
         % DataInf = grfun.myreplacenancols(yData, Inf);
         plotHandle = feval(plotFunc, axesHandle, xData, yData, plotSpec{:});
         if ~isempty(varargin)
-            numOfPlots = numel(plotHandle);
-            for i = 1 : numOfPlots
+            numPlots = numel(plotHandle);
+            for i = 1 : numPlots
                 set(plotHandle(i), varargin{:});
             end
         end
@@ -87,12 +87,12 @@ return
 
         
     function plotHandle = implementScatter( )
-        numOfYDataColumns = testNumOfYDataColumns([2, 3, 4]);
-        if numOfYDataColumns==2
+        numYDataColumns = testNumOfYDataColumns([2, 3, 4]);
+        if numYDataColumns==2
             tempData = { yData(:, 1), yData(:, 2) };
-        elseif numOfYDataColumns==3
+        elseif numYDataColumns==3
             tempData = { yData(:, 1), yData(:, 2), yData(:, 3) };
-        elseif numOfYDataColumns==4
+        elseif numYDataColumns==4
             tempData = { yData(:, 1), yData(:, 2), yData(:, 3), yData(:, 4) };
         end
         plotHandle = scatter(axesHandle, tempData{:}, plotSpec{:});
@@ -118,9 +118,9 @@ return
         opt = parser.Options;
         unmatched= parser.UnmatchedInCell;
 
-        numOfPlots = ceil(size(yData, 2)/2);
+        numPlots = ceil(size(yData, 2)/2);
         extendedXData = [xData(:); flipud(xData(:))];
-        plotHandle = gobjects(numOfPlots, 1);
+        plotHandle = gobjects(numPlots, 1);
         holdStatus = ishold(axesHandle);
         hold(axesHandle, 'on');
         if isequal(opt.BaseColor, @auto)
@@ -129,22 +129,22 @@ return
             opt.BaseColor = colorOrder(colorOrderIndex, :);
         end
         if isequal(opt.Whitening, @auto)
-            opt.Whitening = linspace(1, 0, numOfPlots+2);
+            opt.Whitening = linspace(1, 0, numPlots+2);
             opt.Whitening = opt.Whitening(2:end-1);
         end
         if numel(opt.WhiteColor)==1
             opt.WhiteColor = opt.WhiteColor*[1, 1, 1];
         end
-        for i = 1 : numOfPlots
-            ithYData = [yData(:, i); flipud(yData(:, end+1-i))];
-            [ithColor, ithFaceAlpha] = getIthColor(i);
-            plotHandle(i) = fill( axesHandle, ...
-                                  extendedXData, ...
-                                  ithYData, ...
-                                  ithColor, ...
-                                  'FaceAlpha', ithFaceAlpha, ...
-                                  'LineStyle', 'None', ...
-                                  unmatched{:} );
+        for ii = 1 : numPlots
+            ithYData = [yData(:, ii); flipud(yData(:, end+1-ii))];
+            [ithColor, ithFaceAlpha] = getIthColor(ii);
+            plotHandle(ii) = fill( axesHandle, ...
+                                   extendedXData, ...
+                                   ithYData, ...
+                                   ithColor, ...
+                                   'FaceAlpha', ithFaceAlpha, ...
+                                   'LineStyle', 'None', ...
+                                   unmatched{:} );
         end
         if holdStatus
             hold(axesHandle, 'on');
