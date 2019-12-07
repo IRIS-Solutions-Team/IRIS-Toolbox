@@ -85,9 +85,9 @@ end
 trimObjectiveFunction = opt.TrimObjectiveFunction;
 
 xInit = xInit(:);
-numOfUnknowns = numel(xInit);
+numUnknowns = numel(xInit);
 
-temp = struct('NumberOfVariables', numOfUnknowns);
+temp = struct('NumberOfVariables', numUnknowns);
 
 displayLevel = hereGetDisplayLevel( );
 if nargin<4
@@ -345,7 +345,7 @@ return
     function hereUpdateJacobByBroyden( )
         j = last.J;
         if isscalar(j)
-            j = j * eye(numOfUnknowns);
+            j = j * eye(numUnknowns);
         end
         s = current.X - last.X;
         y = current.F - last.F;
@@ -410,13 +410,13 @@ return
             maxSingularValue = max(sj);
             minSingularValue = sj(end);
         end
-        tol = numOfUnknowns * eps(maxSingularValue);
+        tol = numUnknowns * eps(maxSingularValue);
         vecOfLambdas0 = vecOfLambdas;
         if minSingularValue>tol
             vecOfLambdas0 = [0, vecOfLambdas0];
         end
         lenOfLambda0 = numel(vecOfLambdas0);
-        scale = tol * eye(numOfUnknowns);
+        scale = tol * eye(numUnknowns);
         
         % Optimize lambda
         D = cell(1, lenOfLambda0);
