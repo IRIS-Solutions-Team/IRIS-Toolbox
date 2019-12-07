@@ -2,6 +2,7 @@ classdef File < handle
     properties
         FileName = char.empty(1, 0)
         Code = char.empty(1, 0)
+        Preparsed = false
     end
 
 
@@ -166,8 +167,6 @@ classdef File < handle
                 return
             end
         end%
-        
-        
     end
 end
 
