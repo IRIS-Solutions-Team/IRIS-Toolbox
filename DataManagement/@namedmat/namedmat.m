@@ -43,6 +43,11 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
         RowNames = cell.empty(1, 0);
         ColNames = cell.empty(1, 0);
     end
+
+
+    properties (Dependent)
+        ColumnNames
+    end
     
 
     methods
@@ -128,6 +133,7 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
         varargout = select(varargin)
         varargout = subsasgn(varargin)
         varargout = subsref(varargin)
+        varargout = table(varargin)
         varargout = transpose(varargin)
         varargout = vertcat(varargin)    
 
@@ -158,6 +164,16 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
             end
             this.ColNames = columnNames;
         end%
+
+
+        function value = get.ColumnNames(this)
+            value = this.ColNames;
+        end%
+
+
+        function this = set.ColumnNames(this, value)
+            this.ColNames = value;
+        end%
     end
     
     
@@ -168,6 +184,11 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
             this = abs@double(this);
             this = namedmat(this, rowNames, columnNames);
         end%
+    end
+
+
+    methods (Hidden)
+        varargout = disp(varargin)
     end
 
             
