@@ -78,8 +78,8 @@ switch query
     case {'names', 'list'}
         answ = this.AllNames;
         
-    case {'nalt'}
-        answ = this.NumVariants;
+    case {'numvariants', 'nalt'}
+        answ = countVariants(this);
         
     case {'baseyear'}
         answ = this.BaseYear;
