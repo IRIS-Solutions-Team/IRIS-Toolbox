@@ -22,7 +22,7 @@ function [obj, regOutp, outputData] = kalmanFilter(this, inputData, outputData, 
 TYPE = @int8;
 
 [ny, nxi, nb, nf, ne, ng, nz] = sizeOfSolution(this);
-nv = this.NumVariants;
+nv = countVariants(this);
 
 % Transition variables marked as observables
 if nz>0
@@ -116,6 +116,7 @@ if ~s.IsObjOnly
     regOutp.PDelta = nan(numPouts, numPouts, nLoop);
     regOutp.SampleCov = nan(ne, ne, nLoop);
     regOutp.NLoop = nLoop;
+    regOutp.Init = { nan(nb, 1, nLoop), nan(nb, nb, nLoop) };
 end
 
 % Prepare struct and options for non-linear simulations (prediction
@@ -357,6 +358,8 @@ for iLoop = 1 : nLoop
     regOutp.Delta(:, iLoop) = s.delta;
     regOutp.PDelta(:, :, iLoop) = s.PDelta*s.V;
     regOutp.SampleCov(:, :, iLoop) = s.SampleCov;
+    regOutp.Init{1}(:, :, iLoop) = s.InitMean;
+    regOutp.Init{2}(:, :, iLoop) = s.InitMse;
     
 
     % __Update Progress Bar__

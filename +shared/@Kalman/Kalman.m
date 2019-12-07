@@ -7,12 +7,7 @@ classdef (Abstract) Kalman
     end
 
 
-    properties (Dependent, Abstract)
-        NumVariants
-    end
-
-
-    methods (Abstract)
+    methods (Abstract, Hidden)
         varargout = evalTrendEquations(varargin)
         varargout = sizeOfSolution(varargin)
         varargout = getIthKalmanSystem(varargin)
@@ -23,6 +18,11 @@ classdef (Abstract) Kalman
 
     methods (Hidden)
         varargout = kalmanFilter(varargin)
+    end
+
+
+    methods (Abstract, Hidden)
+        varargout = countVariants(varargin)
     end
 
 
