@@ -4,7 +4,7 @@ function outputData = appendData(this, inputData, outputData, range, varargin)
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 
@@ -60,8 +60,10 @@ serialRangeEnd = DateWrapper.getSerial(endOfRange);
 previousSerialXStart = [ ];
 previousXStart = [ ];
 
-for i = 1 : this.NumOfAppendables
-    ithName = this.NamesOfAppendables{i};
+listAppendables = nameAppendables(this);
+numAppendables = numel(listAppendables);
+for i = 1 : numAppendables
+    ithName = listAppendables{i};
 
     if ~isfield(outputData, ithName)
         continue

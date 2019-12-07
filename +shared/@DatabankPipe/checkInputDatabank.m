@@ -1,14 +1,18 @@
-function databankInfo = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames)
+function databankInfo = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames, context)
 % checkInputDatabank  Check input databank for missing or non-compliant variables
 %{
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
+
+if nargin<6
+    context = "";
+end
 
 %--------------------------------------------------------------------------
     
-nv = this.NumVariants;
+nv = countVariants(this);
 
 if isempty(requiredNames)
     requiredNames = cell.empty(1, 0);
@@ -27,8 +31,8 @@ DateWrapper.checkMixedFrequency(freq);
 requiredFreq = freq(1);
 
 allNames = [requiredNames, optionalNames];
-inxOfOptionalNames = [false(size(requiredNames)), true(size(optionalNames))];
-inxOfRequiredNames = [true(size(requiredNames)), false(size(optionalNames))];
+inxOptionalNames = [false(size(requiredNames)), true(size(optionalNames))];
+inxRequiredNames = [true(size(requiredNames)), false(size(optionalNames))];
 
 checkIncluded = true(size(allNames));
 checkFrequency = true(size(allNames));
@@ -40,7 +44,7 @@ for i = 1 : numel(allNames)
         ithField = NaN;
     end
     if ~isa(ithField, 'TimeSubscriptable')
-        checkIncluded(i) = ~inxOfRequiredNames(i);
+        checkIncluded(i) = ~inxRequiredNames(i);
         continue
     end
     if isempty(ithField)
@@ -51,33 +55,34 @@ for i = 1 : numel(allNames)
 end
 
 if ~all(checkIncluded)
-    thisError = { 'model:Abstract:checkInputDatabank', ...
-                   'This time series is required but missing from input databank: %s ' };
+    thisError = [ "DatabankPipe:MissingSeries"
+                  "This time series is required " + context + " "
+                  "but missing from the input databank: %s " ];
     throw( exception.Base(thisError, 'error'), ...
            allNames{~checkIncluded} );
 end
 
 if ~all(checkFrequency)
     thisError = { 'model:Abstract:checkInputDatabank', ...
-                   'This time series has the wrong date frequency in input databank: %s ' };
+                   'This time series has the wrong date frequency in the input databank: %s ' };
     throw( exception.Base(thisError, 'error'), ...
            allNames{~checkFrequency} );
 end
 
 numPages = databank.backend.numOfColumns(inputDatabank, allNames);
-numPages(isnan(numPages) & inxOfOptionalNames) = 0;
-maxNumOfPages = max(numPages);
+numPages(isnan(numPages) & inxOptionalNames) = 0;
+maxNumPages = max(numPages);
 
-checkNumOfPagesAndVariants = numPages==1 ...
-                              | numPages==0 ...
-                              | (nv>1 & numPages==nv) ...
-                              | (nv==1 & numPages==maxNumOfPages);
+checkNumPagesAndVariants = numPages==1 ...
+                         | numPages==0 ...
+                         | (nv>1 & numPages==nv) ...
+                         | (nv==1 & numPages==maxNumPages);
 
-if ~all(checkNumOfPagesAndVariants)
+if ~all(checkNumPagesAndVariants)
     thisError = { 'model:Abstract:checkInputDatabank'
                    'This time series has an inconsistent number of columns: %s ' };
     throw( exception.Base(thisError, 'error'), ...
-           allNames{~checkNumOfPagesAndVariants} );
+           allNames{~checkNumPagesAndVariants} );
 end
 
 databankInfo = struct( );
