@@ -1,32 +1,42 @@
-function [outputData, outputInfo] = simulate(this, inputData, baseRange, varargin)
+function [outputDb, outputInfo] = simulate(this, inputDb, baseRange, varargin)
 % simulate  Simulate model
 %{
 %
 % ## Syntax ##
 %
-%     [outputDatabank, outputInfo] = simulate(model, inputDatabank, range, ...)
+%     [outputDb, outputInfo] = simulate(model, inputDb, range, ...)
 %
 %
-% ## Input Arguments ##
-%
-% * `model` [ Model ] - Model object with a solution avalaibl for each of
-% its parameter variants.
-%
-% * `inputDatabank` [ struct ] - Databank (struct) with initial conditions,
-% shocks, and exogenized data points for the simulation.
-%
-% * `range` [ DateWrapper | numeric ] - Simulation range; only the start
-% date (the first element in `range`) and the end date (the last element in
-% `range`) are considered.
+% Input Arguments
+%-----------------
 %
 %
-% ## Output Arguments ##
+% __`model`__ [ Model ]
+% > 
+% Model object with a valid solution avalaible for each of its parameter variants.
 %
-% * `outputDatabank` [ struct ] - Databank (struct) with the simulation
-% results; if options `AppendPresample=` or `AppendPostsample=` are not
-% used, the time series in `outputDatabank` span the simulation `range`
-% plus all necessary initial conditions for those variables that have lags
-% in the model.
+%
+% __`inputDb`__ [ struct | Dictionary ]
+% >
+% Databank (struct or Dictionary) with initial conditions, shocks, and
+% exogenized data points for the simulation.
+%
+%
+% __`range`__ [ DateWrapper | numeric ]
+% >
+% Simulation range; only the start date (the first element in `range`) and
+% the end date (the last element in `range`) are considered.
+%
+%
+% Output Arguments
+%------------------
+%
+% __`outputDb`__ [ struct | Dictionary ]
+% >
+% Databank (struct or Dictionary) with the simulation results; if options
+% `PrependInput=` or `AppendInput=` are not used, the time series in
+% `outputDb` span the simulation `range` plus all necessary initial
+% conditions for those variables that have lags in the model.
 %
 %
 % ## Options ##
@@ -56,8 +66,8 @@ if isempty(parser)
     %
     parser.addDeviationOptions(false);
     addParameter(parser, 'Anticipate', true, @validate.logicalScalar);
-    addParameter(parser, 'AppendPostsample', false, @validate.logicalScalar);
-    addParameter(parser, 'AppendPresample', false, @validate.logicalScalar);
+    addParameter(parser, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);
+    addParameter(parser, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
     addParameter(parser, 'Contributions', false, @validate.logicalScalar);
     addParameter(parser, 'Homotopy', [ ], @(x) isempty(x) || isstruct(x));
     addParameter(parser, 'IgnoreShocks', false, @validate.logicalScalar);
@@ -75,7 +85,7 @@ if isempty(parser)
     addParameter(parser, 'Initial', 'Data', @(x) validate.anyString(x, 'Data', 'FirstOrder'));
     addParameter(parser, 'PrepareGradient', true, @validate.logicalScalar);
 end
-parse(parser, this, inputData, baseRange, varargin{:});
+parse(parser, this, inputDb, baseRange, varargin{:});
 opt = parser.Options;
 opt.EvalTrends = opt.DTrends;
 usingDefaults = parser.UsingDefaultsInStruct;
@@ -93,7 +103,7 @@ nv = length(this);
 % missing initial conditions later
 requiredNames = cell.empty(1, 0);
 optionalNames = this.Quantity.Name;
-databankInfo = checkInputDatabank(this, inputData, baseRange, requiredNames, optionalNames);
+databankInfo = checkInputDatabank(this, inputDb, baseRange, requiredNames, optionalNames);
 
 hereResolveOptionConflicts( );
 plan = opt.Plan;
@@ -124,7 +134,7 @@ herePrepareBlazer( );
 systemProperty = hereSetupSystemProperty( );
 
 if ~isequal(opt.SystemProperty, false)
-    outputData = systemProperty;
+    outputDb = systemProperty;
     return
 end
 
@@ -152,7 +162,7 @@ if opt.Contributions
     herePostprocessContributions( );
 end
 
-outputData = hereCreateOutputData( );
+outputDb = hereCreateOutputData( );
 
 if runningData.PrepareOutputInfo
     outputInfo = herePrepareOutputInfo( );
@@ -214,12 +224,11 @@ return
         endOfBaseRange = baseRange(end);
         endOfBaseRangePlusDummy = endOfBaseRange + numDummyPeriods;
         baseRangePlusDummy = [startOfBaseRange, endOfBaseRangePlusDummy];
-        runningData.BaseRange = [startOfBaseRange, endOfBaseRange];
         [ runningData.YXEPG, ~, ...
           extendedRange, ~, ...
           runningData.MaxShift, ...
           runningData.TimeTrend ] = data4lhsmrhs( this, ...
-                                                  inputData, ...
+                                                  inputDb, ...
                                                   baseRangePlusDummy, ...
                                                   'ResetShocks=', true, ...
                                                   'IgnoreShocks=', opt.IgnoreShocks, ...
@@ -294,8 +303,7 @@ return
         runningData.MixinUnanticipated = false(1, numPages);
         runningData.TimeFrameDates = cell(1, numPages);
         extendedRange = runningData.ExtendedRange;
-        startOfExtendedRange = extendedRange(1);
-        endOfExtendedRange = extendedRange(end);
+        startExtendedRange = extendedRange(1);
         deficiency = cell(1, numPages);
         covariance = cell(1, numPages);
         for page = 1 : numPages
@@ -314,8 +322,8 @@ return
             deficiency{page} = zeros(1, numTimeFrames);
             covariance{page} = cell(1, numTimeFrames);
             for frame = 1 : numTimeFrames
-                startOfTimeFrame = startOfExtendedRange + runningData.TimeFrames{page}(frame, 1) - 1;
-                endOfTimeFrame = startOfExtendedRange + runningData.TimeFrames{page}(frame, end) - 1;
+                startOfTimeFrame = startExtendedRange + runningData.TimeFrames{page}(frame, 1) - 1;
+                endOfTimeFrame = startExtendedRange + runningData.TimeFrames{page}(frame, end) - 1;
                 timeFrameDates(frame, :) = [startOfTimeFrame, endOfTimeFrame];
                 %
                 % Check determinacy of simulation plan within this time frame
@@ -477,7 +485,7 @@ return
 
 
 
-    function outputData = hereCreateOutputData( )
+    function outputDb = hereCreateOutputData( )
         if strcmpi(opt.OutputData, 'Databank')
             if opt.Contributions
                 comments = this.Quantity.Label4ShockContributions;
@@ -489,17 +497,17 @@ return
             startOfExtendedRange = runningData.ExtendedRange(1);
             lastColumnOfSimulation = runningData.BaseRangeColumns(end);
             timeSeriesConstructor = @default;
-            outputData = databank.backend.fromDoubleArrayNoFrills( runningData.YXEPG(:, 1:lastColumnOfSimulation, :), ...
+            outputDb = databank.backend.fromDoubleArrayNoFrills( runningData.YXEPG(:, 1:lastColumnOfSimulation, :), ...
                                                                    this.Quantity.Name, ...
                                                                    startOfExtendedRange, ...
                                                                    comments, ...
                                                                    inxToInclude, ...
                                                                    timeSeriesConstructor, ...
                                                                    opt.OutputType );
-            outputData = addToDatabank('Default', this, outputData);
-            outputData = appendData(this, inputData, outputData, baseRange, opt);
+            outputDb = addToDatabank('Default', this, outputDb);
+            outputDb = appendData(this, inputDb, outputDb, baseRange, opt);
         else
-            outputData = runningData.YXEPG;
+            outputDb = runningData.YXEPG;
         end
     end%
 
@@ -573,6 +581,7 @@ function flag = validateSolverName(x)
                           'IRIS-Qnsd'
                           'QaD'
                           'IRIS'
+                          'fminsearch'
                           'lsqnonlin'
                           'fsolve'      };
     flag = any(strcmpi(char(x), listOfSolverNames));
@@ -589,10 +598,10 @@ function windowOption = parseWindowOption(windowOption, methodOption, baseRange)
             windowOption = @max;
         end
     end
-    lenOfBaseRange = round(baseRange(end) - baseRange(1) + 1);
+    lenBaseRange = round(baseRange(end) - baseRange(1) + 1);
     if isequal(windowOption, @max)
-        windowOption = lenOfBaseRange;
-    elseif isnumeric(windowOption) && windowOption>lenOfBaseRange
+        windowOption = lenBaseRange;
+    elseif isnumeric(windowOption) && windowOption>lenBaseRange
         thisError = { 'Model:WindowCannotExceedRangeLength'
                       'Simulation windowOption cannot exceed number of simulation periods' };
         throw(exception.Base(thisError, 'error'));
@@ -656,14 +665,14 @@ function [timeFrames, mixinUnanticipated] = hereSplitIntoTimeFrames(unanticipate
         else
             endOfTimeFrame = max([posUnanticipatedAny(i+1)-1, columnOfLastAnticipatedExogenizedYX]);
         end
-        lenOfTimeFrame = endOfTimeFrame - startOfTimeFrame + 1;
+        lenTimeFrame = endOfTimeFrame - startOfTimeFrame + 1;
         minLenOfTimeFrame = opt.Window;
         if strcmpi(opt.Method, 'Selective')
             minLenOfTimeFrame = minLenOfTimeFrame + maxShift;
         end
-        if lenOfTimeFrame<minLenOfTimeFrame
-            endOfTimeFrame = endOfTimeFrame + (minLenOfTimeFrame - lenOfTimeFrame);
-            lenOfTimeFrame = minLenOfTimeFrame;
+        if lenTimeFrame<minLenOfTimeFrame
+            endOfTimeFrame = endOfTimeFrame + (minLenOfTimeFrame - lenTimeFrame);
+            lenTimeFrame = minLenOfTimeFrame;
         end
         timeFrames(i, :) = [startOfTimeFrame, endOfTimeFrame];
     end
