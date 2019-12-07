@@ -93,7 +93,7 @@ end
 ny = this.NumEndogenous;
 ne = this.NumErrors;
 ng = this.NumExogenous;
-nv = this.NumVariants;
+nv = countVariants(this);
 indexX = [ true(ny, 1); false(ng, 1); false(ne, 1)];
 indexG = [false(ny, 1);  true(ng, 1); false(ne, 1)];
 indexE = [false(ny, 1); false(ng, 1);  true(ne, 1)];
