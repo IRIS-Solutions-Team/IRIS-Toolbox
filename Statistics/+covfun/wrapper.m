@@ -25,9 +25,9 @@ isContributions = systemProperty.Specifics.IsContributions;
 isCorrelations = isequal(systemProperty.Specifics.IsCorrelations, true) ...
                  || systemProperty.NumOfOutputs>=2;
 isFilter = systemProperty.Specifics.IsFilter;
-numOfContributions = systemProperty.Specifics.NumContributions;
+numContributions = systemProperty.Specifics.NumContributions;
 if isFilter
-    numOfUnitRoots = systemProperty.NumUnitRoots;
+    numUnitRoots = systemProperty.NumUnitRoots;
     filter = systemProperty.Specifics.Filter;
     applyFilterTo = systemProperty.Specifics.ApplyFilterTo;
     freq = systemProperty.Specifics.Frequencies;
@@ -49,7 +49,7 @@ if any(isnan(T(:)))
     return
 end
 
-for ithContribution = 1 : numOfContributions
+for ithContribution = 1 : numContributions
     if isContributions
         inxOfShocks = false(1, ne);
         inxOfShocks(ithContribution) = true;
@@ -67,7 +67,7 @@ for ithContribution = 1 : numOfContributions
     end
     if isFilter
         S = freqdom.xsf( T, ithR, [ ], Z, ithH, [ ], U, ithOmega, ...
-                         numOfUnitRoots, freq, filter, applyFilterTo );
+                         numUnitRoots, freq, filter, applyFilterTo );
         ithCC = freqdom.xsf2acf(S, freq, maxOrder);
     else
         ithCC = covfun.acovf( T, ithR, [ ], Z, ithH, [ ], U, ithOmega, ...
@@ -100,7 +100,7 @@ return
 
     function [CC, RR] = herePreallocateOutputArrays( )
         if isContributions
-            CC = nan(ny+nxi, ny+nxi, maxOrder+1, numOfContributions);
+            CC = nan(ny+nxi, ny+nxi, maxOrder+1, numContributions);
         else
             CC = nan(ny+nxi, ny+nxi, maxOrder+1);
         end
