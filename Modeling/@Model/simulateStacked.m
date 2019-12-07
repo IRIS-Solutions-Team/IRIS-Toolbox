@@ -23,8 +23,8 @@ firstColumnOfTimeFrame = vthData.FirstColumnOfTimeFrame;
 lastColumnOfTimeFrame = vthData.LastColumnOfTimeFrame;
 columnsOfTimeFrame = firstColumnOfTimeFrame : lastColumnOfTimeFrame;
 
-numOfBlocks = numel(blazer.Block);
-for i = 1 : numOfBlocks
+numBlocks = numel(blazer.Block);
+for i = 1 : numBlocks
     ithBlock = blazer.Block{i};
     ithHeader = [header, sprintf('[Block:%g]', i)];
     herePrepareInxOfEndogenousPoints( );
@@ -46,13 +46,11 @@ return
 
     function herePrepareInxOfEndogenousPoints( )
         inx = false(size(vthData.YXEPG));
+        inx(ithBlock.PosQty, columnsOfTimeFrame) = true;
         if vthData.HasExogenizedPoints
-            inx(ithBlock.PosQty, columnsOfTimeFrame) = true;
             inx(vthData.InxOfYX, :) = inx(vthData.InxOfYX, :) ...
                                     & ~vthData.InxOfExogenizedYX;
             inx(vthData.InxOfE, columnsOfTimeFrame) = vthData.InxOfEndogenizedE(:, columnsOfTimeFrame);
-        else
-            inx(ithBlock.PosQty, columnsOfTimeFrame) = true;
         end
         ithBlock.InxOfEndogenousPoints = inx;
     end%

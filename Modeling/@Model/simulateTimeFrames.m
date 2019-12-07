@@ -4,7 +4,7 @@ function simulateTimeFrames(this, systemProperty, run)
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
@@ -17,16 +17,13 @@ runningData = systemProperty.Specifics;
 regularCall = systemProperty.NumOfOutputs==0;
 
 nv = length(this);
-numOfRuns = size(runningData.YXEPG, 3); 
-startOfBaseRange = runningData.BaseRange(1);
-endOfBaseRange = runningData.BaseRange(end);
-startOfExtendedRange = runningData.ExtendedRange(1);
+numRuns = size(runningData.YXEPG, 3); 
 baseRangeColumns = runningData.BaseRangeColumns;
 firstColumnToRun = baseRangeColumns(1);
 lastColumnToRun = baseRangeColumns(end);
 maxShift = runningData.MaxShift;
 blazers = runningData.Blazers;
-inxOfInitInPresample = runningData.InxOfInitInPresample;
+inxInitInPresample = runningData.InxOfInitInPresample;
 plan = runningData.Plan;
 
 method = runningData.Method(min(run, end));
@@ -77,11 +74,11 @@ needsEvalTrends = runningData.NeedsEvalTrends(min(run, end));
     vthData.MixinUnanticipated = runningData.MixinUnanticipated(min(run, end));
 
     % Simulate @Rectangular object one timeFrame at a time
-    numOfTimeFrames = size(timeFrames, 1);
-    needsStoreE = false(1, numOfTimeFrames);
-    vthExitFlags = repmat(solver.ExitFlag.IN_PROGRESS, 1, numOfTimeFrames);
-    vthDiscrepancyTables = cell(1, numOfTimeFrames);
-    for frame = 1 : numOfTimeFrames
+    numTimeFrames = size(timeFrames, 1);
+    needsStoreE = false(1, numTimeFrames);
+    vthExitFlags = repmat(solver.ExitFlag.IN_PROGRESS, 1, numTimeFrames);
+    vthDiscrepancyTables = cell(1, numTimeFrames);
+    for frame = 1 : numTimeFrames
         setTimeFrame(vthRect, timeFrames(frame, :));
         setTimeFrame(vthData, timeFrames(frame, :));
         updateSwapsFromPlan(vthData, plan);
@@ -185,7 +182,7 @@ return
 
     function hereResetOutsideBaseRange( )
         temp = vthData.YXEPG(:, 1:firstColumnToRun-1);
-        temp(~inxOfInitInPresample) = NaN;
+        temp(~inxInitInPresample) = NaN;
         vthData.YXEPG(:, 1:firstColumnToRun-1) = temp;
         vthData.YXEPG(:, lastColumnToRun+1:end) = NaN;
     end%

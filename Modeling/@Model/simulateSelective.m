@@ -17,10 +17,10 @@ MAX_NUM_OF_ELEMENTS = 2e6;
 deviation = data.Deviation;
 hashEquations = rect.HashEquationsFunction;
 firstColumnOfTimeFrame = data.FirstColumnOfTimeFrame;
-inxOfE = data.InxOfE;
-inxOfYX = data.InxOfYX;
-numOfYX = nnz(inxOfYX);
-inxOfLogYX = data.InxOfLog(inxOfYX);
+inxE = data.InxOfE;
+inxYX = data.InxOfYX;
+numYX = nnz(inxYX);
+inxLogYX = data.InxOfLog(inxYX);
 solverName = solverOptions(1).SolverName;
 
 columnRangeOfHashFactors = firstColumnOfTimeFrame + (0 : window-1);
@@ -48,10 +48,11 @@ if data.NumOfExogenizedPoints==0
     hereGetHashIncidence( );
     lastHashedYX = data.LastHashedYX;
     columnRangeOfHashedYX = firstColumnOfTimeFrame : lastHashedYX;
-    inxOfHashedYX = data.InxOfHashedYX(:, columnRangeOfHashedYX);
-    density = nnz(inxOfHashedYX) / numel(inxOfHashedYX);
-    numOfElements = nnz(inxOfHashedYX) * rect.NumOfHashEquations * data.Window;
-    if  density<MAX_DENSITY || numOfElements<MAX_NUM_OF_ELEMENTS
+    inxHashedYX = data.InxOfHashedYX(:, columnRangeOfHashedYX);
+    density = nnz(inxHashedYX) / numel(inxHashedYX);
+    numElements = nnz(inxHashedYX) * rect.NumOfHashEquations * data.Window;
+    if  density<MAX_DENSITY || numElements<MAX_NUM_OF_ELEMENTS
+        %
         % Run the nonlinear simulations by precalculating the hash multipliers
         % and calculating the incremental impact of the nonlin addfactors on
         % the affected variables only if the density of the affected
@@ -59,7 +60,7 @@ if data.NumOfExogenizedPoints==0
         % likely to deteriorate rather than improve
         %
         calculateHashMultipliers(rect, data);
-        numOfHashedColumns = numel(columnRangeOfHashedYX);
+        numHashedColumns = numel(columnRangeOfHashedYX);
         simulateFunction(rect, data);
         objectiveFunction = @objectiveFunctionShort;
     end
@@ -77,12 +78,24 @@ if strncmpi(solverName, 'IRIS', 4)
             data = data0;
             initNlaf = initNlaf0;
         end
-        [finalNlaf, dcy, exitFlag] = ...
-            solver.algorithm.qnsd(objectiveFunction, initNlaf, ithSolver, header);
+        [finalNlaf, dcy, exitFlag] = solver.algorithm.qnsd(objectiveFunction, initNlaf, ithSolver, header);
         if hasSucceeded(exitFlag)
             break
         end
     end
+
+elseif strcmpi(solverName, 'fminsearch')
+    % Plain fminsearch
+    temp = @(x) sum(power(objectiveFunction(x), 2), [1, 2]);
+    [finalNlaf, dcy, exitFlag] = fminunc(temp, initNlaf, solverOptions);
+    if exitFlag==1
+        exitFlag = solver.ExitFlag.CONVERGED;
+    elseif exitFlag==0
+        exitFlag = solver.ExitFlag.MAX_ITER_FUN_EVALS;
+    else
+        exitFlag = solver.ExitFlag.OBJ_FUN_FAILED;
+    end
+
 else
     if strcmpi(solverName, 'fsolve')
         % Optimization Tbx
@@ -113,13 +126,13 @@ return
             tempE(:, firstColumnOfTimeFrame) = tempE(:, firstColumnOfTimeFrame) ...
                                              + data.UnanticipatedE(:, firstColumnOfTimeFrame);
         end
-        tempYXEPG(inxOfE, :) = tempE;
+        tempYXEPG(inxE, :) = tempE;
 
         if deviation
-            tempYX = tempYXEPG(inxOfYX, :);
-            tempYX(~inxOfLogYX, :) = tempYX(~inxOfLogYX, :)  + data.BarYX(~inxOfLogYX, :);
-            tempYX(inxOfLogYX, :)  = tempYX(inxOfLogYX, :)  .* data.BarYX(inxOfLogYX, :);
-            tempYXEPG(inxOfYX, :) = tempYX;
+            tempYX = tempYXEPG(inxYX, :);
+            tempYX(~inxLogYX, :) = tempYX(~inxLogYX, :)  + data.BarYX(~inxLogYX, :);
+            tempYX(inxLogYX, :)  = tempYX(inxLogYX, :)  .* data.BarYX(inxLogYX, :);
+            tempYXEPG(inxYX, :) = tempYX;
         end
         dcy = hashEquations(tempYXEPG, columnRangeOfHashFactors, data.BarYX);
     end%
@@ -133,24 +146,24 @@ return
 
         % Calculate impact of current hash factors and add them to
         % simulated data
-        impact = zeros(numOfYX, numOfHashedColumns);
-        impact(inxOfHashedYX) = rect.HashMultipliers * (nlaf(:) - initNlaf(:));
-        if any(inxOfLogYX)
-            impact(inxOfLogYX, :) = exp( impact(inxOfLogYX, :) );
+        impact = zeros(numYX, numHashedColumns);
+        impact(inxHashedYX) = rect.HashMultipliers * (nlaf(:) - initNlaf(:));
+        if any(inxLogYX)
+            impact(inxLogYX, :) = exp( impact(inxLogYX, :) );
         end
 
-        tempYX = tempYXEPG(inxOfYX, columnRangeOfHashedYX);
-        tempYX(~inxOfLogYX, :) = tempYX(~inxOfLogYX, :)  + impact(~inxOfLogYX, :);
-        tempYX(inxOfLogYX, :)  = tempYX(inxOfLogYX, :)  .* impact(inxOfLogYX, :);
-        tempYXEPG(inxOfYX, columnRangeOfHashedYX) = tempYX;
+        tempYX = tempYXEPG(inxYX, columnRangeOfHashedYX);
+        tempYX(~inxLogYX, :) = tempYX(~inxLogYX, :)  + impact(~inxLogYX, :);
+        tempYX(inxLogYX, :)  = tempYX(inxLogYX, :)  .* impact(inxLogYX, :);
+        tempYXEPG(inxYX, columnRangeOfHashedYX) = tempYX;
 
-        tempYXEPG(inxOfE, :) = tempE;
+        tempYXEPG(inxE, :) = tempE;
 
         if deviation
-            tempYX = tempYXEPG(inxOfYX, :);
-            tempYX(~inxOfLogYX, :) = tempYX(~inxOfLogYX, :)  + data.BarYX(~inxOfLogYX, :);
-            tempYX(inxOfLogYX, :)  = tempYX(inxOfLogYX, :)  .* data.BarYX(inxOfLogYX, :);
-            tempYXEPG(inxOfYX, :) = tempYX;
+            tempYX = tempYXEPG(inxYX, :);
+            tempYX(~inxLogYX, :) = tempYX(~inxLogYX, :)  + data.BarYX(~inxLogYX, :);
+            tempYX(inxLogYX, :)  = tempYX(inxLogYX, :)  .* data.BarYX(inxLogYX, :);
+            tempYXEPG(inxYX, :) = tempYX;
         end
         dcy = hashEquations(tempYXEPG, columnRangeOfHashFactors, data.BarYX);
     end%
@@ -161,14 +174,14 @@ return
     function hereGetHashIncidence( )
         TYPE = @int8;
         inc = across(rect.HashIncidence, 'Equations');
-        inc = inc(inxOfYX, :);
+        inc = inc(inxYX, :);
         shifts = rect.HashIncidence.Shift;
-        inxOfHashedYX = false(numOfYX, data.NumOfExtendedPeriods);
+        inxHashedYX = false(numYX, data.NumOfColumns);
         for ii = columnRangeOfHashFactors
             columnRange = ii + shifts;
-            inxOfHashedYX(:, columnRange) = inxOfHashedYX(:, columnRange) | inc;
+            inxHashedYX(:, columnRange) = inxHashedYX(:, columnRange) | inc;
         end
-        data.InxOfHashedYX = inxOfHashedYX;
+        data.InxOfHashedYX = inxHashedYX;
     end%
 end%
 
