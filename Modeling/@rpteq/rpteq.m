@@ -32,7 +32,7 @@
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 classdef rpteq < shared.GetterSetter ...
@@ -55,12 +55,6 @@ classdef rpteq < shared.GetterSetter ...
     end
 
 
-    properties (Dependent)
-        NumVariants
-        NamesOfAppendables
-    end
-    
-    
     methods
         function this = rpteq(varargin)
             % rpteq  New reporting equations (rpteq) object.
@@ -211,11 +205,21 @@ classdef rpteq < shared.GetterSetter ...
     
     methods (Hidden)
         varargout = checkConsistency(varargin)
+
+
+        function value = countVariants(this)
+            value = 1;
+        end%
         
 
         function disp(varargin)
             implementDisp(varargin{:});
             textual.looseLine( );
+        end%
+
+
+        function value = nameAppendables(this)
+            value = this.NamesOfLhs;
         end%
 
 
@@ -226,18 +230,6 @@ classdef rpteq < shared.GetterSetter ...
     methods (Access=protected, Hidden)
         implementDisp(varargin)
         varargout = postparse(varargin)
-    end
-
-
-    methods
-        function value = get.NumVariants(this)
-            value = 1;
-        end%
-
-
-        function value = get.NamesOfAppendables(this)
-            value = this.NamesOfLhs;
-        end%
     end
 end
 
