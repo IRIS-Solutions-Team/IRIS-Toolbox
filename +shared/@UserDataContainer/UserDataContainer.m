@@ -3,11 +3,11 @@
 % Backend IRIS class
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 classdef UserDataContainer
-    properties %(GetAccess=public, SetAccess=protected, Hidden)
+    properties
         % UserData  User data attached to this object
         UserData = [ ] 
 
