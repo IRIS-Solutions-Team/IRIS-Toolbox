@@ -1,4 +1,4 @@
-function this = postparse(this, qty, eqn, euc, puc, opt, optimalOpt)
+function this = postparse(this, qty, eqn, euc, puc, collector, opt, optimalOpt)
 % postparse  Postparse model code
 %
 % Backend IRIS function
@@ -12,6 +12,28 @@ TYPE = @int8;
 %--------------------------------------------------------------------------
 
 exception.ParseTime.storeFileName(this.FileName);
+
+%
+% Data preprocessor and postprocessor
+%
+collector.Preprocessor = regexprep(collector.Preprocessor, '\s+', '');
+if ~isempty(collector.Preprocessor)
+    f = model.File( );
+    f.FileName = this.FileName;
+    f.Code = collector.Preprocessor;
+    f.Preparsed = true;
+    this.Preprocessor = ExplanatoryEquation.fromFile(f);
+    [this.Preprocessor.Context] = deal("Preprocessor");
+end
+collector.Postprocessor = regexprep(collector.Postprocessor, '\s+', '');
+if ~isempty(collector.Postprocessor)
+    f = model.File( );
+    f.FileName = this.FileName;
+    f.Code = collector.Postprocessor;
+    f.Preparsed = true;
+    this.Postprocessor = ExplanatoryEquation.fromFile(f);
+    [this.Postprocessor.Context] = deal("Postprocessor");
+end
 
 % __Reporting Equations__
 % Check for name conflicts between LHS names in reporting equations and
@@ -224,7 +246,7 @@ this.Link.Input = eqn.Input(ixl);
 this.Link.RhsExpn = eqn.Dynamic(ixl);
 eqn.Dynamic(ixl) = {''};
 
-% Reset parsed file name.
+% Reset parsed file name
 exception.ParseTime.storeFileName( );
 this.Quantity = qty;
 this.Equation = eqn;
@@ -254,7 +276,7 @@ return
                 eqn.Input{ixInvalidRef} ...
                 );
         end
-    end
+    end%
 
 
 
@@ -275,7 +297,7 @@ return
             throw( exception.ParseTime('Model:Postparser:SSTATE_REF_IN_LINK', 'error'), ...
                 eqn.Input{inx} );
         end
-    end
+    end%
 
 
 
@@ -379,7 +401,7 @@ return
         add.MinShDynamic = zeros(1, nAddEqtn);
         add.MinShSteady = zeros(1, nAddEqtn);
         insert(euc, add, ixPre, ixPost);
-    end
+    end%
 
 
 
@@ -393,5 +415,5 @@ return
                 eqn.Input{ixEmpty} ...
                 );
         end
-    end
-end
+    end%
+end%
