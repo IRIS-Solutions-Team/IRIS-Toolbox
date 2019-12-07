@@ -32,6 +32,11 @@ classdef validate
         end%
 
             
+        function flag = roundScalarInRange(input, min, max)
+            flag = validate.numericScalar(input) && input==round(input) && input>=min && input<=max;
+        end%
+
+            
         function flag = roundScalar(input)
             flag = validate.numericScalar(input) && input==round(input);
         end%
