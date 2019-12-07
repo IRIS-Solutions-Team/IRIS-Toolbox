@@ -1,18 +1,18 @@
 classdef Plan
-    properties (Abstract, Dependent)
-        NamesOfEndogenousForPlan
-        NamesOfExogenousForPlan
-        AutoswapPairsForPlan
+    methods (Abstract, Access=protected)
+        getEndogenousForPlan
+        getExogenousForPlan
+        getAutoswapPairsForPlan
     end
 
 
     methods
         function plan = preparePlan(this, plan)
-            plan.NamesOfEndogenous = this.NamesOfEndogenousForPlan;
-            plan.NamesOfExogenous = this.NamesOfExogenousForPlan;
+            plan.NamesOfEndogenous = getEndogenousForPlan(this);
+            plan.NamesOfExogenous = getExogenousForPlan(this);
             baseRange = [plan.BaseStart, plan.BaseEnd];
             [plan.ExtendedStart, plan.ExtendedEnd] = getExtendedRange(this, baseRange);
-            plan.AutoswapPairs = this.AutoswapPairsForPlan;
+            plan.AutoswapPairs = getAutoswapPairsForPlan(this);
         end%
     end
 end
