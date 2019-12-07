@@ -1,8 +1,5 @@
-classdef Data < matlab.mixin.Copyable
+classdef Data < shared.DataBlock
     properties
-        % YXEPG  NumOfQuants-by-NumOfPeriods matrix of [observed; endogenous; expected shocks; parameters; exogenous]
-        YXEPG = double.empty(0) 
-
         % InitYX  NumOfYX-by-NumOfPeriods matrix of original input data for YX
         InitYX = double.empty(0)
 
@@ -69,7 +66,7 @@ classdef Data < matlab.mixin.Copyable
               this.InxOfEndogenizedE ] = getSwapsWithinTimeFrame( plan, ...
                                                                   this.FirstColumnOfTimeFrame, ...
                                                                   this.LastColumnOfSimulation );
-            this.Target = nan(this.NumOfYX, this.NumOfExtendedPeriods);
+            this.Target = nan(this.NumOfYX, this.NumOfColumns);
             if this.NumOfExogenizedPoints>0
                 this.Target(this.InxOfExogenizedYX) = this.InitYX(this.InxOfExogenizedYX);
             end
@@ -202,10 +199,8 @@ classdef Data < matlab.mixin.Copyable
 
     properties (Dependent)
         E
-        NumOfQuantities
         NumOfYX
         NumOfE
-        NumOfExtendedPeriods
         NumOfExogenizedPoints
         NumOfExogenizedPointsY
         NumOfEndogenizedPoints
@@ -224,11 +219,6 @@ classdef Data < matlab.mixin.Copyable
         end%
 
 
-        function value = get.NumOfQuantities(this)
-            value = size(this.YXEPG, 1);
-        end%
-
-
         function value = get.NumOfYX(this)
             value = nnz(this.InxOfYX);
         end%
@@ -236,11 +226,6 @@ classdef Data < matlab.mixin.Copyable
 
         function value = get.NumOfE(this)
             value = nnz(this.InxOfE);
-        end%
-
-
-        function value = get.NumOfExtendedPeriods(this)
-            value = size(this.YXEPG, 2);
         end%
 
 
@@ -339,8 +324,8 @@ classdef Data < matlab.mixin.Copyable
             this.InxOfE = getIndexByType(quantity, TYPE(31), TYPE(32));
             this.InxOfLog = quantity.IxLog;
 
-            this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfExtendedPeriods);
-            this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfExtendedPeriods);
+            this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfColumns);
+            this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfColumns);
             this.InitYX = this.YXEPG(this.InxOfYX, :);
 
             if isa(plan, 'Plan')

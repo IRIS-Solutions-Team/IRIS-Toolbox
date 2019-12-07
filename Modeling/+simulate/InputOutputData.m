@@ -1,10 +1,6 @@
-classdef InputOutputData < handle
+classdef InputOutputData < shared.DataBlock
     properties
-        YXEPG
         Blazers
-        BaseRange
-        ExtendedRange
-        BaseRangeColumns
         MaxShift
         TimeTrend
         InxOfInitInPresample
@@ -23,7 +19,6 @@ classdef InputOutputData < handle
 
         % __Options Copied over From Input Parser__
 
-
         % Solver  Solver options
         Solver = solver.Options.empty(0)
 
@@ -38,18 +33,6 @@ classdef InputOutputData < handle
 
         % Initial  Choose input data or first-order simulation for starting values
         Initial = 'Data'
-    end
-
-
-    properties (Dependent)
-        NumOfPages
-    end
-
-
-    methods
-        function n = get.NumOfPages(this)
-            n = size(this.YXEPG, 3);
-        end%
     end
 end
 
