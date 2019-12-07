@@ -68,7 +68,12 @@ classdef Preparser < model.File
                     % each file name inside the loop
                     this(i) = parser.Preparser( ); %#ok<AGROW>
                     this(i).FileName = modelFile(i).FileName;
-                    this(i).Code = modelFile(i).Code;
+                    code = modelFile(i).Code;
+                    if isa(code, 'string')
+                        code = join(code, newline( ));
+                        code = char(code);
+                    end
+                    this(i).Code = code;
                 end
             else
                 % Input code from input string(s) (char or cellstr)

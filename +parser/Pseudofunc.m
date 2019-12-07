@@ -233,11 +233,14 @@ classdef Pseudofunc
 
 
         function c = parse(p, keywords)
-            isCharInp = ischar(p);
-            if isCharInp
-                c = p;
-            else
-                c = p.Code;
+            inputClass = class(p);
+            switch inputClass
+                case 'char'
+                    c = p;
+                case 'string'
+                    c = char(p);
+                otherwise
+                    c = p.Code;
             end
             if nargin<2
                 keywords = enumeration('parser.Pseudofunc');
@@ -248,8 +251,13 @@ classdef Pseudofunc
                 end
                 c = parseKeyword(key, c);
             end
-            if ~isCharInp
-                p.Code = c;
+            switch inputClass
+                case 'char'
+                    % Do nothing
+                case 'string'
+                    c = string(c);
+                otherwise
+                    p.Code = c;
             end
         end%
     end

@@ -34,7 +34,7 @@ classdef Interp
                 throwCode( ...
                     exception.ParseTime('Preparser:INTERP_NESTED', 'error'), ...
                     code(posNested:end) ...
-                    );
+                );
             end
             count = uint32(0);
             value = [ ];
@@ -48,7 +48,7 @@ classdef Interp
                     throwCode( ...
                         exception.ParseTime('Preparser:INTERP_NOT_CLOSED', 'error'), ...
                         code(posOpen:end) ...
-                        );
+                    );
                 end
                 expn = code(posOpen+1:posClose-1);
                 try
@@ -63,7 +63,7 @@ classdef Interp
                     throwCode( ...
                         exception.ParseTime('Preparser:InterpEvalFailed', 'error'), ...
                         code(posOpen:posClose) ...
-                        );
+                    );
                 end
                 if nargout>2
                     postCode = code(posClose+1:end);
@@ -72,12 +72,12 @@ classdef Interp
                     code(1:posOpen-1), ...
                     s, ...
                     code(posClose+1:end), ...
-                    ];
+                ];
                 level = [ ...
                     level(1:posOpen-1), ...
                     zeros(1, length(s), 'int8'), ...
                     level(posClose+1:end), ...
-                    ];
+                ];
                 count = count + 1;
             end
             p.Code = code;
@@ -105,12 +105,16 @@ classdef Interp
         function value = any2cellstr(value)
             if isnumeric(value) || islogical(value) || ischar(value)
                 value = num2cell(value);
+            elseif isa(value, 'string')
+                value = cellstr(value);
             elseif ~iscell(value)
                 value = { value };
             end
             for i = 1 : numel(value)
                 if ischar(value{i})
-                    % Do nothing.
+                    % Do nothing
+                elseif isa(value{i}, 'string')
+                    value{i} = char(value{i});
                 elseif isnumeric(value{i})
                     value{i} = sprintf('%g', value{i});
                 elseif isequal(value{i}, true)
