@@ -1,40 +1,40 @@
 function export(this)
-% export  Save all export files associated with model object to current working folder.
-% 
-% Syntax
-% =======
+% export  Save all export files associated with model object to current working folder
+%{ 
+% ## Syntax ##
 %
 %     export(m)
 %
 %
-% Input arguments
-% ================
+% ## Input Arguments ##
 %
-% * `m` [ model ] - Model object whose export files will be saved.
+% __`m`__ [ Model ] 
+% >
+% Model object whose export files will be saved to disk files.
 %
 %
-% Description
-% ============
+% ## Description ##
 %
-% Function `export` saves all export files associated with the model
-% objects to the current working folder. The export files, including their
-% file names, are read from the underlying model file at the time of
-% calling the `model( )` function. See [`!export`](ModelLang/export) for
-% more on export files.
+% Save all export files associated with the model objects to the current
+% working folder. The export files, including their file names, are read
+% from the underlying model file at the time of calling the `model( )`
+% function. See [`!export`](ModelLang/export) for more on export files.
 %
 % If a file with the same name as one of the export files already exists in
-% the current folder, a warning is thrown and the file is overwritten.
+% its destination folder, a warning is thrown and the file is mercilessly
+% overwritten.
 %
 %
-% Example
-% ========
+% ## Example ##
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
 export(this.Export);
 
-end
+end%
+
