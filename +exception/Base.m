@@ -33,15 +33,27 @@ classdef Base
             if nargin==1
                 throwAs = 'error';
             end
+            if strcmpi(throwAs, 'Silent')
+                return
+            end
             this.ThrowAs = throwAs;
             if iscellstr(specs)
                 this.Identifier = specs{1};
                 this.Message = [specs{2:end}];
+                this.NeedsHighlight = true;
+            elseif isa(specs, 'string')
+                this.Identifier = char(specs(1));
+                lenHighlight = strlength(this.HIGHLIGHT);
+                specs = specs(2:end);
+                specs(1) = string(this.HIGHLIGHT) + specs(1);
+                specs(2:end) = strcat(string(repmat(' ', 1, strlength(this.HIGHLIGHT))), specs(2:end));
+                this.Message = char(join(specs, newline( )));
+                this.NeedsHighlight = false;
             else
                 [this.Identifier, this.Message] = exception.Base.lookupException(specs);
+                this.NeedsHighlight = true;
             end
             this.Identifier = [this.IRIS_IDENTIFIER, this.Identifier];
-            this.NeedsHighlight = true;
         end%
         
         
