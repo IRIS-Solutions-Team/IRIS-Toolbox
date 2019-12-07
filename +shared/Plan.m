@@ -2,7 +2,8 @@ classdef Plan
     methods (Abstract, Access=protected)
         getEndogenousForPlan
         getExogenousForPlan
-        getAutoswapPairsForPlan
+        getAutoswapsForPlan
+        getSigmasForPlan
     end
 
 
@@ -13,7 +14,12 @@ classdef Plan
             baseRange = [plan.BaseStart, plan.BaseEnd];
             [plan.ExtendedStart, plan.ExtendedEnd] = getExtendedRange(this, baseRange);
             plan.AutoswapPairs = getAutoswapPairsForPlan(this);
+            sigmas = getSigmasForPlan(this);
+            numVariants = size(sigmas, 3);
+            numExtendedPeriods = this.NumOfExtendedPeriods;
+            plan.SigmasOfExogenous = nan(plan.NumOfExogenous, numExtendedPeriods, numVariants);
+            plan.SigmasOfExogenous = repmat(sigmas, 1, 1, numExtendedPeriods);
         end%
     end
 end
-        
+
