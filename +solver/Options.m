@@ -210,7 +210,7 @@ classdef (CaseInsensitiveProperties=true) Options
                 % Solver= solver.Options( )
                 % Do nothing
 
-            elseif validateSolver(solverOpt, {'lsqnonlin', 'fsolve'});
+            elseif validateSolver(solverOpt, {'lsqnonlin', 'fsolve'})
                 % Optim Tbx
                 solverOpt = parseOptimTbx(solverOpt, displayMode, varargin{:});                
 
