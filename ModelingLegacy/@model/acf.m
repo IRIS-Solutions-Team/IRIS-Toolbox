@@ -16,43 +16,43 @@ function varargout = acf(this, varargin)
 % ## Output Arguments ##
 %
 % __`C`__ [ namedmat | numeric ] -
-% Covariance matrices.
+% > Covariance matrices.
 %
 % __`R`__ [ namedmat | numeric ] -
-% Correlation matrices.
+% > Correlation matrices.
 %
 % __`list`__ [ cellstr ] -
-% List of variables in rows and columns of `C` and `R`.
+% > List of variables in rows and columns of `C` and `R`.
 %
 %
 % ## Options ##
 %
-% __`ApplyTo=@all`__ [ cellstr | char | `@all` ] -
-% List of variables to which the `Filter=` will be applied; `@all` means
+% __`ApplyTo=@all`__ [ cellstr | char | `@all` ]
+% > List of variables to which the `Filter=` will be applied; `@all` means
 % all variables.
 %
 % __`Contributions=false`__ [ `true` | `false` ] -
-% If `true` the contributions of individual shocks to ACFs will be computed
-% and stored in the 5th dimension of the `C` and `R` matrices.
+% > If `true` the contributions of individual shocks to ACFs will be computed
+% and stored in the 5th > dimension of the `C` and `R` matrices.
 %
 % __`Filter=''`__ [ char ] -
-% Linear filter that is applied to variables specified by the option
+% > Linear filter that is applied to variables specified by the option
 % `ApplyTo=`.
 %
 % __`NFreq=256`__ [ numeric ] -
-% Number of equally spaced frequencies over which the filter in the option
+% > Number of equally spaced frequencies over which the filter in the option
 % `Filter=` is numerically integrated.
 %
 % __`Order=0`__ [ numeric ] -
-% Order up to which ACF will be computed.
+% > Order up to which ACF will be computed.
 %
 % __`MatrixFormat='NamedMatrix'`__ [ `'NamedMatrix'` | `'plain'` ] - 
-% Return matrices `C` and `R` as either
+% > Return matrices `C` and `R` as either
 % [`NamedMatrix`](../../data-management/namedmatrix-objects/README.md) objects
 % (matrices with named rows and columns) or plain numeric arrays.
 %
 % __`Select=@all`__ [ `@all` | char | cellstr ] - 
-% Return ACF for selected variables only; `@all` means all variables.
+% > Return ACF for selected variables only; `@all` means all variables.
 %
 %
 % ## Description ##
@@ -68,7 +68,7 @@ function varargout = acf(this, varargin)
 % (measurement and transition) in the model.
 %
 %
-% ### ACF with Linear Filters ###
+% ### Linear Filters ###
 %
 % You can use the option `Filter=` to get the ACF for variables as though
 % they were filtered through a linear filter. You can specify the filter in
@@ -77,8 +77,7 @@ function varargout = acf(this, varargin)
 % frequncies or periodicities). The filter is a text string in which you
 % can use the following references:
 %
-% * `'L'` for the lag operator, which will be replaced with
-% `'exp(-1i*freq)'`;
+% * `'L'` for the lag operator, which will be replaced with `'exp(-1i*freq)'`;
 % * `'per'` for the periodicity;
 % * `'freq'` for the frequency.
 % 
@@ -114,13 +113,19 @@ function varargout = acf(this, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.acf');
+    %
+    % Required inputs
+    %
     parser.addRequired('Model', @(x) isa(x, 'model'));
+    %
+    % Options
+    %
     parser.addParameter('NFreq', 256, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
     parser.addParameter({'Contributions', 'Contribution'}, false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Order', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
@@ -145,9 +150,9 @@ isCorrelations = nargout>=2;
 nv = length(this);
 
 if isContributions
-    numOfContributions = ne;
+    numContributions = ne;
 else
-    numOfContributions = 1;
+    numContributions = 1;
 end
 
 % Pre-process filter options
@@ -163,7 +168,7 @@ end
 
 [CC, RR] = herePreallocateOutputArrays( );
 
-inxOfNaNSolutions = reportNaNSolutions(this);
+inxNaNSolutions = reportNaNSolutions(this);
 
 if opt.Progress
     progress = ProgressBar('IRIS model.acf progress');
@@ -171,7 +176,7 @@ end
 
 
 % /////////////////////////////////////////////////////////////////////////
-for v = find(~inxOfNaNSolutions)
+for v = find(~inxNaNSolutions)
     update(systemProperty, this, v);
     covfun.wrapper(this, systemProperty, v);
     if isContributions
@@ -186,7 +191,7 @@ for v = find(~inxOfNaNSolutions)
         end
     end
     if opt.Progress
-        update(progress, v, ~inxOfNaNSolutions);
+        update(progress, v, ~inxNaNSolutions);
     end
 end
 % /////////////////////////////////////////////////////////////////////////
@@ -227,7 +232,7 @@ return
         systemProperty.Specifics.MaxOrder = opt.Order;
         systemProperty.Specifics.IsContributions = isContributions;
         systemProperty.Specifics.IsCorrelations = isCorrelations;
-        systemProperty.Specifics.NumContributions = numOfContributions;
+        systemProperty.Specifics.NumContributions = numContributions;
         systemProperty.Specifics.IsFilter = isFilter;
         systemProperty.Specifics.Filter = filter;
         systemProperty.Specifics.ApplyFilterTo = applyFilterTo;
@@ -249,7 +254,7 @@ return
 
         function [CC, RR] = herePreallocateOutputArrays( )
             if isContributions
-                CC = nan(ny+nxi, ny+nxi, opt.Order+1, numOfContributions, nv);
+                CC = nan(ny+nxi, ny+nxi, opt.Order+1, numContributions, nv);
             else
                 CC = nan(ny+nxi, ny+nxi, opt.Order+1, nv);
             end

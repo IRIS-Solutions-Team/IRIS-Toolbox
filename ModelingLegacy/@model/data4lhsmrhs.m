@@ -103,7 +103,7 @@ numOfDataSets = size(YXEG, 3);
 
 if opt.NumOfDummyPeriods>0
     % Reset the last N periods to NaN
-    hereResetDummyPeriods( );
+    % hereResetDummyPeriods( );
 end
 
 YXEPG = nan(numOfQuants, lenOfExtendedRange, numOfDataSets);

@@ -11,6 +11,6 @@ hashIncidence = selectEquation(this.Incidence.Dynamic, inxOfHashEquations);
 hashIncidence = removeTrailingShifts(hashIncidence);
 rect.HashIncidence = hashIncidence;
 
-data.NonlinAddf = zeros(nnz(inxOfHashEquations), data.NumOfExtendedPeriods);
+data.NonlinAddf = zeros(nnz(inxOfHashEquations), data.NumOfColumns);
 
 end%

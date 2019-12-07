@@ -1,7 +1,8 @@
 % # Model Objects #
 %
 % Model objects (objects of class `Model`) are created from a model file.
-% Model files are written in [IRIS Model File Language](../model-file-language/README.md). 
+% Model files are written in 
+% [IRIS Model File Language](../model-file-language/README.md). 
 % After a model object is created in the Matlab workspace, you can combine
 % model functions and standard Matlab functions to work with it in your own
 % m-files (scripts, functions, etc.): assign or estimate model parameters,
@@ -126,22 +127,19 @@
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 
-
-classdef Model < model ...
-                 & matlab.mixin.CustomDisplay ...
-                 & model.Plan
+classdef Model ...
+    < model ...
+    & matlab.mixin.CustomDisplay ...
+    & model.Plan ...
+    & shared.DataProcessor
 
 
     methods % Constructor
-
-
         function this = Model(varargin)
-
-
 % Model  Create Model object from source model files
 %
 % ## Syntax ##
@@ -173,7 +171,7 @@ classdef Model < model ...
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
@@ -196,8 +194,8 @@ classdef Model < model ...
                         'Comment', this.Comment, ...
                         'IsLinear', this.IsLinear, ...
                         'IsGrowth', this.IsGrowth, ...
-                        'NumVariants', this.NumVariants, ...
-                        'NumVariantsSolved', this.NumVariantsSolved, ...
+                        'NumVariants', countVariants(this), ...
+                        'NumVariantsSolved', countVariantsSolved(this), ...
                         'NumOfMeasurementEquations', this.NumOfMeasurementEquations, ...
                         'NumOfTransitionEquations', this.NumOfTransitionEquations, ... 
                         'SizeOfTransitionMatrix', this.SizeOfTransitionMatrix, ...
@@ -239,6 +237,14 @@ classdef Model < model ...
     methods (Hidden) 
         varargout = checkCompatibilityOfPlan(varargin)
         varargout = checkInitialConditions(varargin)
+
+
+        function value = countVariantsSolved(this)
+            [~, inx] = isnan(this, 'Solution');
+            value = nnz(~inx);
+        end%
+
+
         varargout = getIdOfInitialConditions(varargin)
         varargout = getInxOfInitInPresample(varargin)
         varargout = prepareHashEquations(varargin)
@@ -250,32 +256,16 @@ classdef Model < model ...
 
 
     properties (Dependent)
-        NumVariantsSolved
         NumOfMeasurementEquations
         NumOfTransitionEquations
         SizeOfTransitionMatrix
 
         % NumOfExportFiles  Number of export files
         NumOfExportFiles
-
-        % NamesOfEndogenousForPlan  Names of variables that can be exogenized in simulation plan
-        NamesOfEndogenousForPlan
-
-        % NamesOExogenousForPlan  Names of variables that can be endogenized in simulation plan
-        NamesOfExogenousForPlan
-
-        % AutoswapPairs  Variable-shock pairs for autoswaps
-        AutoswapPairsForPlan
     end % properties
 
 
     methods
-        function value = get.NumVariantsSolved(this)
-            [~, inx] = isnan(this, 'Solution');
-            value = nnz(~inx);
-        end%
-
-
         function value = get.NumOfMeasurementEquations(this)
             TYPE = @int8;
             value = nnz(this.Equation.Type==TYPE(1));
@@ -297,26 +287,32 @@ classdef Model < model ...
         function value = get.NumOfExportFiles(this)
             value = numel(this.Export);
         end%
+    end
 
 
-        function names = get.NamesOfEndogenousForPlan(this)
+
+
+    methods (Access=protected) % mixin.Plan interface
+    %(
+        function names = getEndogenousForPlan(this)
             TYPE = @int8;
             names = getNamesByType(this.Quantity, TYPE(1), TYPE(2));
         end%
 
 
-        function names = get.NamesOfExogenousForPlan(this)
+        function names = getExogenousForPlan(this)
             TYPE = @int8;
             names = getNamesByType(this.Quantity, TYPE(31), TYPE(32));
         end%
 
 
-        function value = get.AutoswapPairsForPlan(this)
+        function value = getAutoswapPairsForPlan(this)
             pairingVector = this.Pairing.Autoswap.Simulate;
             [namesOfExogenized, namesOfEndogenized] = ...
                 model.component.Pairing.getAutoswap(pairingVector, this.Quantity);
             value = [ namesOfExogenized(:), namesOfEndogenized(:) ];
         end%
-    end % methods
+    %)
+    end
 end % classdef
 
