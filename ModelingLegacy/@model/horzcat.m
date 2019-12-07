@@ -1,5 +1,5 @@
 function this = horzcat(this, varargin)
-% horzcat  Merge two or more compatible model objects into multiple parameterizations.
+% horzcat  Merge two or more compatible model objects into multiple parameterizations
 %
 % ## Syntax ##
 %
@@ -55,4 +55,5 @@ for i = 1 : numel(varargin)
     this.Variant = subscripted(this.Variant, pos, varargin{i}.Variant, ':');
 end
 
-end
+end%
+

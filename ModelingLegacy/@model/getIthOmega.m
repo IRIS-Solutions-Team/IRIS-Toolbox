@@ -4,13 +4,13 @@ function [Omg, stdcorr] = getIthOmega(this, variantsRequested, overrideStdcorr, 
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
 if nargin<2
-    variantsRequested = 1 : this.NumVariants;
+    variantsRequested = 1 : countVariants(this);
 end
 
 %--------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRange, varargin)
+function [this, outp, V, Delta, Pe, SCov, init] = filter(this, inputDatabank, filterRange, varargin)
 % filter  Kalman smoother and estimator of out-of-likelihood parameters
 %{
 %
@@ -6,130 +6,160 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 %
 % Input arguments marked with a `~` sign may be omitted
 %
-%     [M, Outp, V, Delta, PE, SCov] = filter(M, Inp, Range, ~J, ...)
+%     [outputModel, outputData, V, Delta, PE, SCov, init] = filter(model, inputData, range, ...)
 %
 %
 % ## Input Arguments ##
 %
-% * `M` [ model ] - Solved model object.
+% __`model`__ [ Model ] -
+% Solved `Model` object.
 %
-% * `Inp` [ struct | cell ] - Input database from which observations for
+% __`inputData`__ [ struct | cell ] -
+% Input database from which observations for
 % measurement variables will be taken.
 %
-% * `Range` [ numeric | char ] - Date filterRange on which the Kalman filter will
+% __`range`__ [ numeric | char ] -
+% Range on which the Kalman filter will
 % be run.
 %
 %
 % ## Output Arguments ##
 %
-% * `M` [ model ] - Model object with updates of std devs (if `Relative=`
+% __`outputModel`__ [ Model ] -
+% Model object with updates of std devs (if `Relative=`
 % is true) and/or updates of out-of-likelihood parameters (if `OutOfLik=`
 % is non-empty).
 %
-% * `Outp` [ struct | cell ] - Output struct with smoother or prediction
-% data.
+% __`outputData`__ [ struct | cell ] -
+% Output struct with smoother or prediction data.
 %
-% * `V` [ numeric ] - Estimated variance scale factor if the `Relative=`
+% __`V`__ [ numeric ] -
+% Estimated variance scale factor if the `Relative=`
 % options is true; otherwise `V` is 1.
 %
-% * `Delta` [ struct ] - Database with estimates of out-of-likelihood
+% __`Delta`__ [ struct ] -
+% Database with estimates of out-of-likelihood
 % parameters.
 %
-% * `PE` [ struct ] - Database with prediction errors for measurement
+% __`PE`__ [ struct ] -
+% Database with prediction errors for measurement
 % variables.
 %
-% * `SCov` [ numeric ] - Sample covariance matrix of smoothed shocks;
+% __`SCov`__ [ numeric ] -
+% Sample covariance matrix of smoothed shocks;
 % the covariance matrix is computed using shock estimates in periods that
 % are included in the option `ObjRange=` and, at the same time, contain
 % at least one observation of measurement variables.
 %
+% __`init`__ [ cell ] -
+% Initial conditions used in the Kalman filter; `init{1}` is the initial
+% mean of the vector of transformed state variables, `init{2}` is the MSE
+% matrix.
+%
 %
 % ## Options ##
 %
-% * `Ahead=1` [ numeric ] - Calculate predictions up to `Ahead` periods
+% * `Ahead=1` [ numeric ] -
+% Calculate predictions up to `Ahead` periods
 % ahead.
 %
-% * `ChkFmse=false` [ `true` | `false` ] - Check the condition number of
+% * `ChkFmse=false` [ `true` | `false` ] -
+% Check the condition number of
 % the forecast MSE matrix in each step of the Kalman filter, and return
 % immediately if the matrix is ill-conditioned; see also the option
 % `FmseCondTol=`.
 %
-% * `Condition={ }` [ char | cellstr | empty ] - List of conditioning
+% * `Condition={ }` [ char | cellstr | empty ] -
+% List of conditioning
 % measurement variables. Condition time t|t-1 prediction errors (that enter
 % the likelihood function) on time t observations of these measurement
 % variables.
 %
-% * `Deviation=false` [ `true` | `false` ] - Treat input and output data as
+% * `Deviation=false` [ `true` | `false` ] -
+% Treat input and output data as
 % deviations from balanced-growth path.
 %
-% * `Dtrends=@auto` [ `@auto` | `true` | `false` ] - Measurement data
-% contain deterministic trends; `@auto` means `DTrends=` will be set
-% consistently with `Deviation=`.
+% * `Dtrends=@auto` [ `@auto` | `true` | `false` ] -
+% Measurement data contain deterministic trends; `@auto` means `DTrends=`
+% will be set consistently with `Deviation=`.
 %
-% * `Output='Smooth'` [ `'Predict'` | `'Filter'` | `'Smooth'` ] - Return
-% smoother data or filtered data or prediction data or any combination of
-% them.
+% * `Output='Smooth'` [ `'Predict'` | `'Filter'` | `'Smooth'` ] -
+% Return smoother data or filtered data or prediction data or any
+% combination of them.
 %
-% * `FmseCondTol=eps( )` [ numeric ] - Tolerance for the FMSE condition
-% number test; not used unless `ChkFmse=true`.
+% * `FmseCondTol=eps( )` [ numeric ] -
+% Tolerance for the FMSE condition number test; not used unless
+% `ChkFmse=true`.
 %
-% * `InitCond='Stochastic'` [ `'fixed'` | `'optimal'` | `'stochastic'` |
-% struct ] - Method or data to initialise the Kalman filter; user-supplied
+% * `InitCond='Stochastic'` [ `'fixed'` | `'optimal'` | `'stochastic'` | struct ] -
+% Method or data to initialise the Kalman filter; user-supplied
 % initial condition must be a mean database or a struct containing `.mean`
 % and `.mse` fields.
 %
 % * `InitUnit='FixedUnknown'` [ `'ApproxDiffuse'` | `'FixedUknown'` ] -
 % Method of initializing unit root variables; see Description.
 %
-% * `LastSmooth=Inf` [ numeric ] - Last date up to which to smooth data
+% * `LastSmooth=Inf` [ numeric ] -
+% Last date up to which to smooth data
 % backward from the end of the filterRange; `Inf` means the smoother will run on
 % the entire filterRange.
 %
-% * `MeanOnly=false` [ `true` | `false` ] - Return a plain database with
+% * `MeanOnly=false` [ `true` | `false` ] -
+% Return a plain database with
 % mean data only; this option overrides options `ReturnCont=`,
 % `ReturnMse=`, `ReturnStd=`.
 %
-% * `OutOfLik={ }` [ cellstr | empty ] - List of parameters in
+% * `OutOfLik={ }` [ cellstr | empty ] -
+% List of parameters in
 % deterministic trends that will be estimated by concentrating them out of
 % the likelihood function.
 %
-% * `ObjFunc='-LogLik'` [ `'-LogLik'` | `'PredErr'` ] - Objective function
+% * `ObjFunc='-LogLik'` [ `'-LogLik'` | `'PredErr'` ] -
+% Objective function
 % computed; can be either minus the log likelihood function or weighted sum
 % of prediction errors.
 %
-% * `ObjRange=Inf` [ DateWrapper | `Inf` ] - The objective function will be
+% * `ObjRange=Inf` [ DateWrapper | `Inf` ] -
+% The objective function will be
 % computed on the specified filterRange only; `Inf` means the entire filter
 % filterRange.
 %
-% * `Relative=true` [ `true` | `false` ] - Std devs of shocks assigned in
+% * `Relative=true` [ `true` | `false` ] -
+% Std devs of shocks assigned in
 % the model object will be treated as relative std devs, and a common
 % variance scale factor will be estimated.
 %
-% * `ReturnCont=false` [ `true` | `false` ] - Return contributions of
+% * `ReturnCont=false` [ `true` | `false` ] -
+% Return contributions of
 %  prediction errors in measurement variables to the estimates of all
 %  variables and shocks.
 %
-% * `ReturnMse=true` [ `true` | `false` ] - Return MSE matrices for
+% * `ReturnMse=true` [ `true` | `false` ] -
+% Return MSE matrices for
 %  predetermined state variables; these can be used for settin up initial
 %  condition in subsequent call to another `filter( )` or `jforecast( )`.
 %
-% * `ReturnStd=true` [ `true` | `false` ] - Return database with std devs
+% * `ReturnStd=true` [ `true` | `false` ] -
+% Return database with std devs
 % of model variables.
 %
-% * `Weighting=[ ]` [ numeric | empty ] - Weighting vector or matrix for
+% * `Weighting=[ ]` [ numeric | empty ] -
+% Weighting vector or matrix for
 % prediction errors when `Objective='PredErr'`; empty means prediction
 % errors are weighted equally.
 %
 %
 % ## Options for Time Variation in Std Deviation, Correlations and Means of Shocks ##
 %
-% * `Multiply=[ ]` [ struct | empty ] - Database with time series of
+% * `Multiply=[ ]` [ struct | empty ] -
+% Database with time series of
 % possibly time-varying multipliers for std deviations of shocks; the
 % numbers supplied will be multiplied by the std deviations assigned in
 % the model object to calculate the std deviations used in the filter. See
 % Description.
 % 
-% * `Override=[ ]` [ struct | empty ] - Database with time series for
+% * `Override=[ ]` [ struct | empty ] -
+% Database with time series for
 % possibly time-varying paths for std deviations, correlations
 % coefficients, or medians of shocks; these paths will override the values
 % assigned in the model object. See Description.
@@ -137,10 +167,10 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 %
 % ## Options for Models with Nonlinear Equations Simulated in Prediction Step ##
 %
-% * `Simulate=false` [ `false` | cell ] - Use the backend algorithms from
-% the [`simulate`](model/simulate) function to run nonlinear simulation for
-% each prediction step; specify options that will be passed into `simulate`
-% when running a prediction step.
+% * `Simulate=false` [ `false` | cell ] -
+% Use the backend algorithms from the [`simulate`](model/simulate) function
+% to run nonlinear simulation for each prediction step; specify options
+% that will be passed into `simulate` when running a prediction step.
 %
 %
 % ## Description ##
@@ -149,7 +179,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % data sets, or with multiple parameterisations.
 %
 %
-% _Initial Conditions in Time Domain_
+% ### Initial Conditions in Time Domain ###
 %
 % By default (with `InitCond='Stochastic'`), the Kalman filter starts
 % from the model-implied asymptotic distribution. You can change this
@@ -173,7 +203,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % conditions.
 %
 %
-% _Initialization of Unit Root (Nonstationary, Diffuse) Processes_
+% ### Initialization of Unit Root (Nonstationary, Diffuse) Processes ###
 %
 % Two methods are available to initialize unit-root (nonstationary,
 % diffuse) elements in the state vector. In either case, the Kalman filter
@@ -201,7 +231,7 @@ function [this, outp, V, Delta, Pe, SCov] = filter(this, inputDatabank, filterRa
 % Moving Average Disturbances" Biometrika 66(1).
 %
 %
-% _Contributions of Measurement Variables to Estimates of All Variables_
+% ### Contributions of Measurement Variables to Estimates of All Variables ###
 %
 % Use the option `ReturnCont=true` to request the decomposition of
 % measurement variables, transition variables, and shocks into the
