@@ -70,9 +70,6 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
     properties (Dependent)
-        % NumVariants  Number of parameter variants
-        NumVariants
-
         % EigenValues  Eigenvalues of VAR transition matrix
         EigenValues
         
@@ -115,9 +112,6 @@ classdef (CaseInsensitiveProperties=true) ...
         
         % IndexFitted  Logical index of dates in estimation range acutally fitted
         IndexFitted = logical.empty(1, 0) 
-
-        % NamesOfAppendables
-        NamesOfAppendables
     end
 
 
@@ -140,15 +134,25 @@ classdef (CaseInsensitiveProperties=true) ...
     
     
     methods (Hidden)
+        function value = countVariants(this)
+            value = size(this.A, 3);
+        end%
+
+
         function flag = checkConsistency(this)
             flag = checkConsistency@shared.GetterSetter(this) ...
                    && checkConsistency@shared.UserDataContainer(this);
-        end
+        end%
 
         
         function disp(varargin)
             implementDisp(varargin{:});
             textual.looseLine( );
+        end%
+
+
+        function names = nameAppendables(this)
+            names = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
         end%
 
 
@@ -307,11 +311,6 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
 
-        function num = get.NumVariants(this)
-            num = length(this);
-        end%
-
-
         function num = get.NumEndogenous(this)
             num = numel(this.YNames);
         end%
@@ -339,11 +338,6 @@ classdef (CaseInsensitiveProperties=true) ...
 
         function index = get.IndexFitted(this)
             index = this.IxFitted;
-        end%
-
-
-        function names = get.NamesOfAppendables(this)
-            names = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
         end%
 
 
