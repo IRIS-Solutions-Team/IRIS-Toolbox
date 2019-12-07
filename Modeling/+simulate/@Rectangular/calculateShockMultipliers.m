@@ -16,7 +16,7 @@ end
 %--------------------------------------------------------------------------
 
 [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
-idOfYXi = [ this.SolutionVector{1:2} ];
+idYXi = [ this.SolutionVector{1:2} ];
 [T, R, ~, Z, H, ~, Q] = this.FirstOrderSolution{:};
 Tf = T(1:nf, :);
 Tb = T(nf+1:end, :);
@@ -37,24 +37,24 @@ else
 end
 lastEndogenizedE = data.LastEndogenizedE;
 
-inxOfEndogenizedE = data.InxOfEndogenizedE(:, firstColumn:lastEndogenizedE);
-inxOfExogenizedYX = data.InxOfExogenizedYX(:, firstColumn:lastExogenizedYX);
+inxEndogenizedE = data.InxOfEndogenizedE(:, firstColumn:lastEndogenizedE);
+inxExogenizedYX = data.InxOfExogenizedYX(:, firstColumn:lastExogenizedYX);
 
 if tryExistingMultipliers( )
     return
 end
 
-vecEndogenizedE = inxOfEndogenizedE(:);
-numOfEndogenizedE = nnz(vecEndogenizedE);
+vecEndogenizedE = inxEndogenizedE(:);
+numEndogenizedE = nnz(vecEndogenizedE);
 
-numOfPeriods = round(lastEndogenizedE - firstColumn + 1);
-Rf = R(1:nf, 1:ne*numOfPeriods);
-Rb = R(nf+1:end, 1:ne*numOfPeriods);
-H = [H, zeros(ny, ne*(numOfPeriods-1))];
+numPeriods = round(lastEndogenizedE - firstColumn + 1);
+Rf = R(1:nf, 1:ne*numPeriods);
+Rb = R(nf+1:end, 1:ne*numPeriods);
+H = [H, zeros(ny, ne*(numPeriods-1))];
 
-M = zeros(0, numOfEndogenizedE);
+M = zeros(0, numEndogenizedE);
 xb = zeros(size(Rb));
-idOfYX = find(data.InxOfYX);
+idYX = find(data.InxOfYX);
 for t = firstColumn : lastExogenizedYX
     xf = Tf*xb;
     xb = Tb*xb;
@@ -67,13 +67,13 @@ for t = firstColumn : lastExogenizedYX
         y = y + H;
         H = [zeros(ny, ne), H(:, 1:end-ne)];
     end
-    idOfExogenizedYX = idOfYX(data.InxOfExogenizedYX(:, t));
-    if isempty(idOfExogenizedYX)
+    idExogenizedYX = idYX(data.InxOfExogenizedYX(:, t));
+    if isempty(idExogenizedYX)
         continue
     end
     addToM = [y; xf; xb];
-    % Find the rows in which idOfExogenizedYX occur in idOfYXi
-    [~, rows] = ismember(idOfExogenizedYX, idOfYXi);
+    % Find the rows in which idExogenizedYX occur in idYXi
+    [~, rows] = ismember(idExogenizedYX, idYXi);
     M = [M; addToM(rows, vecEndogenizedE)];
 end
 
@@ -89,23 +89,23 @@ return
             flag = false;
             return
         end
-        sizeExogenizedYX = size(inxOfExogenizedYX, 2);
-        sizeEndogenizedE = size(inxOfEndogenizedE, 2);
+        sizeExogenizedYX = size(inxExogenizedYX, 2);
+        sizeEndogenizedE = size(inxEndogenizedE, 2);
         if sizeExogenizedYX>size(this.MultipliersExogenizedYX, 2) ...
            || sizeEndogenizedE>size(this.MultipliersEndogenizedE, 2)
             flag = false;
            return
         end
-        if ~isequal(inxOfExogenizedYX, this.MultipliersExogenizedYX(:, 1:sizeExogenizedYX)) ...
-           || ~isequal(inxOfEndogenizedE, this.MultipliersEndogenizedE(:, 1:sizeEndogenizedE))
+        if ~isequal(inxExogenizedYX, this.MultipliersExogenizedYX(:, 1:sizeExogenizedYX)) ...
+           || ~isequal(inxEndogenizedE, this.MultipliersEndogenizedE(:, 1:sizeEndogenizedE))
             flag = false;
             return
         end
-        numOfExogenizedYX = nnz(inxOfExogenizedYX);
-        numOfEndogenizedE = nnz(inxOfEndogenizedE);
-        this.FirstOrderMultipliers = this.FirstOrderMultipliers(1:numOfExogenizedYX, 1:numOfEndogenizedE);
-        this.MultipliersExogenizedYX = inxOfExogenizedYX;
-        this.MultipliersEndogenizedE = inxOfEndogenizedE;
+        numExogenizedYX = nnz(inxExogenizedYX);
+        numEndogenizedE = nnz(inxEndogenizedE);
+        this.FirstOrderMultipliers = this.FirstOrderMultipliers(1:numExogenizedYX, 1:numEndogenizedE);
+        this.MultipliersExogenizedYX = inxExogenizedYX;
+        this.MultipliersEndogenizedE = inxEndogenizedE;
         flag = true;
    end%
 end%
