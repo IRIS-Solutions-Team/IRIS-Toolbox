@@ -79,15 +79,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     end
 
 
-    properties (Dependent)
-        % NumVariants  Number of parameter variants
-        NumVariants
-
-        % NamesOfAppendables  Variable names that can be appended pre-sample or post-sample database
-        NamesOfAppendables
-    end
-
-    
     properties (Constant, Hidden)
         LAST_LOADABLE = 20180116
         STD_PREFIX = 'std_'
@@ -278,12 +269,27 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = checkZeroLog(varargin)
         varargout = checkConsistency(varargin)
         varargout = chkQty(varargin)
+
+
+        function value = countVariants(this)
+            value = length(this.Variant);
+        end%
+
+
         varargout = createHashEquations(varargin)
         varargout = createTrendArray(varargin)        
         varargout = evalTrendEquations(varargin)
         varargout = expansionMatrices(varargin)
         varargout = getIthOmega(varargin)
         varargout = getIthKalmanSystem(varargin)
+
+
+        function names = nameAppendables(this)
+            TYPE = @int8;
+            names = getNamesByType(this.Quantity, TYPE(1), TYPE(2), TYPE(31), TYPE(32), TYPE(5));
+        end%
+
+
         varargout = getVariant(varargin)
         varargout = hdatainit(varargin)
         varargout = freql(varargin)
@@ -751,17 +757,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                         opt.Assign.(unmatched{i}) = unmatched{i+1};
                     end
                 end%
-        end%
-
-
-        function n = get.NumVariants(this)
-            n = length(this);
-        end%
-
-
-        function names = get.NamesOfAppendables(this)
-            TYPE = @int8;
-            names = getNamesByType(this.Quantity, TYPE(1), TYPE(2), TYPE(31), TYPE(32), TYPE(5));
         end%
     end
 end
