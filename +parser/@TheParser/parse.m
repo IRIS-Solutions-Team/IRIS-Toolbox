@@ -1,10 +1,10 @@
-function [qty, eqn, euc, puc] = parse(this, opt)
+function [qty, eqn, euc, puc, collector] = parse(this, opt)
 % parse  Main parser for model code
 %
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
@@ -25,8 +25,13 @@ euc = parser.EquationUnderConstruction( );
 puc = parser.PairingUnderConstruction( );
 
 numOfBlocks = length(this.Block);
+collector = struct( );
 for i = 1 : numOfBlocks
-    [qty, eqn] = parse(this.Block{i}, this, blockCode{i}, qty, eqn, euc, puc, opt);
+    if this.Block{i}.Parse
+        [qty, eqn] = parse(this.Block{i}, this, blockCode{i}, qty, eqn, euc, puc, opt);
+    else
+        collector.(this.Block{i}.Name) = blockCode{i};
+    end
 end
 
 % Evaluate and assign strings from code

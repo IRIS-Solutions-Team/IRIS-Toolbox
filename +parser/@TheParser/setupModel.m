@@ -4,7 +4,7 @@ function setupModel(this)
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
@@ -73,9 +73,23 @@ x.Keyword = '!links';
 x.Type = TYPE(4);
 this.Block{end+1} = x;
 
+% x = parser.theparser.Equation( );
+% x.Keyword = '!revisions';
+% x.Type = TYPE(5);
+% this.Block{end+1} = x;
+
 x = parser.theparser.Equation( );
-x.Keyword = '!revisions';
-x.Type = TYPE(5);
+x.Keyword = '!preprocessor';
+x.Type = TYPE(11);
+x.Parse = false;
+x.Name = 'Preprocessor';
+this.Block{end+1} = x;
+
+x = parser.theparser.Equation( );
+x.Keyword = '!postprocessor';
+x.Type = TYPE(12);
+x.Parse = false;
+x.Name = 'Postprocessor';
 this.Block{end+1} = x;
 
 x = parser.theparser.Pairing( );
