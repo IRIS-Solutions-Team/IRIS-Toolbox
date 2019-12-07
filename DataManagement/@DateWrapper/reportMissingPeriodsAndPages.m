@@ -1,4 +1,4 @@
-function report = reportMissingPeriodsAndPages(dates, inxMissing)
+function report = reportMissingPeriodsAndPages(dates, inxMissing, pre, post)
 % reportMissingPeriodsAndPages  Prepare report of missing periods and pages
 %
 % Backend IRIS function
@@ -6,6 +6,14 @@ function report = reportMissingPeriodsAndPages(dates, inxMissing)
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
+
+if nargin<3
+    pre = [ ];
+end
+
+if nargin<4
+    post = [ ];
+end
 
 %--------------------------------------------------------------------------
 
@@ -19,7 +27,14 @@ for i = 1 : numPages
     end
     missingDates = dates(inxMissing(1, :, i));
     [~, c] = DateWrapper.reportConsecutive(missingDates);
-    report = [report, {i, sprintf('%s ', c{:})}];
+    report__ = {i, sprintf('%s ', c{:})};
+    if ~isempty(pre)
+        report__ = [{pre}, report__];
+    end
+    if ~isempty(post)
+        report__ = [report__, {post}];
+    end
+    report = [report, report__];
 end
 
 end%
