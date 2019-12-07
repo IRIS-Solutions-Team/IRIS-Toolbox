@@ -36,7 +36,6 @@ classdef BareLinearKalman < shared.Kalman
 
     properties (Dependent)
         NumExtendedPeriods
-        NumVariants
         Omega
         NumXi
         NumV
@@ -93,6 +92,11 @@ classdef BareLinearKalman < shared.Kalman
 
 
     methods (Hidden)
+        function value = countVariants(this)
+            value = 1;
+        end%
+
+
         varargout = getIthKalmanSystem(varargin)
 
 
@@ -160,11 +164,6 @@ classdef BareLinearKalman < shared.Kalman
     methods
         function numExtendedPeriods = get.NumExtendedPeriods(this)
             numExtendedPeriods = this.NumPeriods + 1;
-        end%
-
-
-        function numVariants = get.NumVariants(this)
-            numVariants = 1;
         end%
 
 
