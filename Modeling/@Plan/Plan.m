@@ -1,7 +1,7 @@
 % Plan  Simulation Plans for Model objects
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 classdef Plan < matlab.mixin.CustomDisplay
@@ -24,6 +24,8 @@ classdef Plan < matlab.mixin.CustomDisplay
         IdOfUnanticipatedExogenized = int16.empty(0, 0)
         IdOfAnticipatedEndogenized = int16.empty(0, 0)
         IdOfUnanticipatedEndogenized = int16.empty(0, 0)
+        
+        SigmaOfExogenous = double.empty(0, 0)
     end
 
 
@@ -31,6 +33,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         DefaultAnticipationStatus = true
         AllowUnderdetermined = false
         AllowOverdetermined = false
+        NumOfDummyPeriods = 0
     end
 
 
@@ -56,7 +59,14 @@ classdef Plan < matlab.mixin.CustomDisplay
                 this = varargin{1};
                 return
             end
-            this = Plan.forModel(varargin{:});
+            if nargin>=2 && isa(varargin{1}, 'Model')
+                this = Plan.forModel(varargin{:});
+                return
+            end
+            thisError = [ "Plan:InvalidConstructor"
+                          "This is an invalid call of the Plan object constructor; "
+                          "use Plan( ) or Plan.forModel(...) instead." ];
+            throw(exception.Base(thisError, 'error'));
         end%
     end
 
@@ -176,19 +186,21 @@ classdef Plan < matlab.mixin.CustomDisplay
             this.IdOfUnanticipatedEndogenized(:, end+(1:numDummyPeriods)) = int16(0);
             this.IdOfAnticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
             this.IdOfUnanticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
+            this.NumOfDummyPeriods = numDummyPeriods;
         end%
     end
 
 
 
 
-    methods % Display
+    methods 
         function [ inxExogenized, ...
                    inxEndogenized ] = getSwapsWithinTimeFrame( this, ...
                                                                firstColumnOfTimeFrame, ...
                                                                lastColumnOfSimulation )
-            inxExogenized = false(this.NumOfEndogenous, this.NumOfExtendedPeriods);
-            inxEndogenized = false(this.NumOfExogenous, this.NumOfExtendedPeriods);
+            numColumns = this.NumOfExtendedPeriods + this.NumOfDummyPeriods;
+            inxExogenized = false(this.NumOfEndogenous, numColumns);
+            inxEndogenized = false(this.NumOfExogenous, numColumns);
             if this.NumOfExogenizedPoints>0
                 inxExogenized(:, firstColumnOfTimeFrame) = ...
                     this.InxOfAnticipatedExogenized(:, firstColumnOfTimeFrame) ...
@@ -779,37 +791,7 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
     methods (Static)
-        function this = forModel(varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('Plan.Plan');
-                parser.addRequired('model', @(x) isa(x, 'model.Plan'));
-                parser.addRequired('simulationRange', @DateWrapper.validateProperRangeInput);
-                parser.addParameter({'DefaultAnticipationStatus', 'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
-            end
-            parser.parse(varargin{:});
-            opt = parser.Options;
-            simulationRange = double(parser.Results.simulationRange);
-            model = parser.Results.model;
-
-            this = Plan( );
-            this.BaseStart = simulationRange(1);
-            this.BaseEnd = simulationRange(end);
-            this = preparePlan(model, this);
-
-            this.DefaultAnticipationStatus = opt.DefaultAnticipationStatus;
-
-            numEndogenous = this.NumOfEndogenous;
-            numExogenous = this.NumOfExogenous;
-            numExtendedPeriods = this.NumOfExtendedPeriods;
-            this.IdOfAnticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
-            this.IdOfUnanticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
-            this.IdOfAnticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
-            this.IdOfUnanticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
-
-            this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, numEndogenous, 1);
-            this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, numExogenous, 1);
-        end%
+        varargout = forModel(varargin)
     end
 
 
