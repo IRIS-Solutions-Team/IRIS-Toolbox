@@ -6,52 +6,74 @@ function [this, outp, V, Delta, Pe, SCov, init] = filter(this, inputDatabank, fi
 %
 % Input arguments marked with a `~` sign may be omitted
 %
-%     [outputModel, outputData, V, Delta, PE, SCov, init] = filter(model, inputData, range, ...)
+%
+%     [outputModel, outputData, V, Delta, PE, SCov, init] = filter(inputModel, inputData, filterRange, ...)
 %
 %
 % ## Input Arguments ##
 %
-% __`model`__ [ Model ] -
-% Solved `Model` object.
 %
-% __`inputData`__ [ struct | cell ] -
-% Input database from which observations for
-% measurement variables will be taken.
+% __`inputModel`__ [ Model ]
+% >
+% A solved Model object whose state-space representation will be used to
+% run a linear Kalman filter on the `inputData` observations.
 %
-% __`range`__ [ numeric | char ] -
-% Range on which the Kalman filter will
-% be run.
+%
+% __`inputData`__ [ struct | Dictionary ] 
+% >
+% Input databank from which the observations for measurement variables on
+% the `filterRange` will be taken.
+%
+%
+% __`filterRange`__ [ numeric | char ]
+% >
+% The range on which the Kalman filter will be run.
 %
 %
 % ## Output Arguments ##
 %
-% __`outputModel`__ [ Model ] -
-% Model object with updates of std devs (if `Relative=`
-% is true) and/or updates of out-of-likelihood parameters (if `OutOfLik=`
-% is non-empty).
 %
-% __`outputData`__ [ struct | cell ] -
-% Output struct with smoother or prediction data.
+% __`outputModel`__ [ Model ]
+% >
+% Model object with the std deviation of shocks updated (if
+% `Relative=true`) and/or the out-of-likelihood parameters updated (if
+% `OutOfLik=` is non-empty).
 %
-% __`V`__ [ numeric ] -
+%
+% __`outputData`__ [ struct | Dictionary ]
+% >
+% Output databank (possibly a nested databank) with the requested data; the
+% type of output data are requested through the option `Output=`.
+%
+%
+% __`V`__ [ numeric ] 
+% >
 % Estimated variance scale factor if the `Relative=`
 % options is true; otherwise `V` is 1.
 %
-% __`Delta`__ [ struct ] -
-% Database with estimates of out-of-likelihood
+%
+% __`Delta`__ [ struct ]
+% >
+% Databank with estimates of out-of-likelihood
 % parameters.
 %
-% __`PE`__ [ struct ] -
-% Database with prediction errors for measurement
+%
+% __`PE`__ [ struct ]
+% >
+% Databank with prediction errors for measurement
 % variables.
 %
-% __`SCov`__ [ numeric ] -
+%
+% __`SCov`__ [ numeric ]
+% >
 % Sample covariance matrix of smoothed shocks;
 % the covariance matrix is computed using shock estimates in periods that
 % are included in the option `ObjRange=` and, at the same time, contain
 % at least one observation of measurement variables.
 %
-% __`init`__ [ cell ] -
+%
+% __`init`__ [ cell ]
+% >
 % Initial conditions used in the Kalman filter; `init{1}` is the initial
 % mean of the vector of transformed state variables, `init{2}` is the MSE
 % matrix.
@@ -59,107 +81,140 @@ function [this, outp, V, Delta, Pe, SCov, init] = filter(this, inputDatabank, fi
 %
 % ## Options ##
 %
-% * `Ahead=1` [ numeric ] -
+%
+% __`Ahead=1`__ [ numeric ]
+% >
 % Calculate predictions up to `Ahead` periods
 % ahead.
 %
-% * `ChkFmse=false` [ `true` | `false` ] -
+%
+% __`ChkFmse=false`__ [ `true` | `false` ]
+% >
 % Check the condition number of
 % the forecast MSE matrix in each step of the Kalman filter, and return
 % immediately if the matrix is ill-conditioned; see also the option
 % `FmseCondTol=`.
 %
-% * `Condition={ }` [ char | cellstr | empty ] -
-% List of conditioning
-% measurement variables. Condition time t|t-1 prediction errors (that enter
-% the likelihood function) on time t observations of these measurement
-% variables.
 %
-% * `Deviation=false` [ `true` | `false` ] -
+% __`Condition={ }`__ [ char | cellstr | empty ]
+% >
+% List of conditioning measurement variables. Condition time t|t-1
+% prediction errors (that enter the likelihood function) on time t
+% observations of these measurement variables.
+%
+%
+% __`Deviation=false`__ [ `true` | `false` ]
+% >
 % Treat input and output data as
 % deviations from balanced-growth path.
 %
-% * `Dtrends=@auto` [ `@auto` | `true` | `false` ] -
+%
+% __`Dtrends=@auto`__ [ `@auto` | `true` | `false` ]
+% >
 % Measurement data contain deterministic trends; `@auto` means `DTrends=`
 % will be set consistently with `Deviation=`.
 %
-% * `Output='Smooth'` [ `'Predict'` | `'Filter'` | `'Smooth'` ] -
+%
+% __`Output='Smooth'`__ [ `'Predict'` | `'Filter'` | `'Smooth'` ]
+% >
 % Return smoother data or filtered data or prediction data or any
 % combination of them.
 %
-% * `FmseCondTol=eps( )` [ numeric ] -
+%
+% __`FmseCondTol=eps( )`__ [ numeric ]
 % Tolerance for the FMSE condition number test; not used unless
 % `ChkFmse=true`.
 %
-% * `InitCond='Stochastic'` [ `'fixed'` | `'optimal'` | `'stochastic'` | struct ] -
-% Method or data to initialise the Kalman filter; user-supplied
-% initial condition must be a mean database or a struct containing `.mean`
-% and `.mse` fields.
 %
-% * `InitUnit='FixedUnknown'` [ `'ApproxDiffuse'` | `'FixedUknown'` ] -
+% __`InitCond='Stochastic'`__ [ `'fixed'` | `'optimal'` | `'stochastic'` | struct ]
+% >
+% The method or data that will be used initialise the Kalman filter;
+% user-supplied initial condition must be a databank with the mean values
+% (in which case the MSE of the initial condition will be set to zero) or a
+% nested databank containing sub-databanks named `.mean` and `.mse`.
+%
+%
+% __`InitUnit='FixedUnknown'`__ [ `'ApproxDiffuse'` | `'FixedUknown'` ]
+% >
 % Method of initializing unit root variables; see Description.
 %
-% * `LastSmooth=Inf` [ numeric ] -
-% Last date up to which to smooth data
-% backward from the end of the filterRange; `Inf` means the smoother will run on
-% the entire filterRange.
 %
-% * `MeanOnly=false` [ `true` | `false` ] -
-% Return a plain database with
-% mean data only; this option overrides options `ReturnCont=`,
-% `ReturnMse=`, `ReturnStd=`.
+% __`LastSmooth=Inf`__ [ numeric ]
+% >
+% Last date up to which to smooth data backward from the end of the
+% filterRange; `Inf` means the smoother will run on the entire filterRange.
 %
-% * `OutOfLik={ }` [ cellstr | empty ] -
-% List of parameters in
-% deterministic trends that will be estimated by concentrating them out of
-% the likelihood function.
 %
-% * `ObjFunc='-LogLik'` [ `'-LogLik'` | `'PredErr'` ] -
-% Objective function
-% computed; can be either minus the log likelihood function or weighted sum
-% of prediction errors.
+% __`MeanOnly=false`__ [ `true` | `false` ]
+% > 
+% Return a plain databank with mean data only; this option overrides
+% options `ReturnCont=`, `ReturnMse=`, `ReturnStd=`.
 %
-% * `ObjRange=Inf` [ DateWrapper | `Inf` ] -
+%
+% __`OutOfLik={ }`__ [ cellstr | empty ]
+% >
+% List of parameters in deterministic trends that will be estimated by
+% concentrating them out of the likelihood function.
+%
+%
+% __`ObjFunc='-LogLik'`__ [ `'-LogLik'` | `'PredErr'` ]
+% >
+% Objective function computed; can be either minus the log likelihood
+% function or weighted sum of prediction errors.
+%
+%
+% __`ObjRange=Inf`__ [ DateWrapper | `Inf` ]
+% >
 % The objective function will be
 % computed on the specified filterRange only; `Inf` means the entire filter
 % filterRange.
 %
-% * `Relative=true` [ `true` | `false` ] -
-% Std devs of shocks assigned in
-% the model object will be treated as relative std devs, and a common
-% variance scale factor will be estimated.
 %
-% * `ReturnCont=false` [ `true` | `false` ] -
-% Return contributions of
-%  prediction errors in measurement variables to the estimates of all
-%  variables and shocks.
-%
-% * `ReturnMse=true` [ `true` | `false` ] -
-% Return MSE matrices for
-%  predetermined state variables; these can be used for settin up initial
-%  condition in subsequent call to another `filter( )` or `jforecast( )`.
-%
-% * `ReturnStd=true` [ `true` | `false` ] -
-% Return database with std devs
-% of model variables.
-%
-% * `Weighting=[ ]` [ numeric | empty ] -
-% Weighting vector or matrix for
-% prediction errors when `Objective='PredErr'`; empty means prediction
-% errors are weighted equally.
+% __`Relative=true`__ [ `true` | `false` ]
+% >
+% Std devs of shocks assigned in the model object will be treated as
+% relative std devs, and a common variance scale factor will be estimated.
 %
 %
-% ## Options for Time Variation in Std Deviation, Correlations and Means of Shocks ##
+% __`ReturnCont=false`__ [ `true` | `false` ]
+% >
+% Return contributions of prediction errors in measurement variables to the
+% estimates of all variables and shocks.
 %
-% * `Multiply=[ ]` [ struct | empty ] -
-% Database with time series of
+%
+% __`ReturnMse=true`__ [ `true` | `false` ]
+% >
+% Return MSE matrices for predetermined state variables; these can be used
+% for settin up initial condition in subsequent call to another `filter( )`
+% or `jforecast( )`.
+%
+%
+% __`ReturnStd=true`__ [ `true` | `false` ]
+% >
+% Return databank with std devs of model variables.
+%
+%
+% __`Weighting=[ ]`__ [ numeric | empty ]
+% >
+% Weighting vector or matrix for prediction errors when
+% `ObjFunc='PredErr'`; empty means prediction errors are weighted equally.
+%
+%
+% ## Options for Time-Varying Std Deviations, Correlations and Means of Shocks ##
+%
+%
+% __`Multiply=[ ]`__ [ struct | empty ]
+% >
+% Databank with time series of
 % possibly time-varying multipliers for std deviations of shocks; the
 % numbers supplied will be multiplied by the std deviations assigned in
 % the model object to calculate the std deviations used in the filter. See
 % Description.
 % 
-% * `Override=[ ]` [ struct | empty ] -
-% Database with time series for
+%
+% __`Override=[ ]`__ [ struct | empty ]
+% >
+% Databank with time series for
 % possibly time-varying paths for std deviations, correlations
 % coefficients, or medians of shocks; these paths will override the values
 % assigned in the model object. See Description.
@@ -167,7 +222,9 @@ function [this, outp, V, Delta, Pe, SCov, init] = filter(this, inputDatabank, fi
 %
 % ## Options for Models with Nonlinear Equations Simulated in Prediction Step ##
 %
-% * `Simulate=false` [ `false` | cell ] -
+%
+% __`Simulate=false`__ [ `false` | cell ]
+% >
 % Use the backend algorithms from the [`simulate`](model/simulate) function
 % to run nonlinear simulation for each prediction step; specify options
 % that will be passed into `simulate` when running a prediction step.
@@ -175,6 +232,7 @@ function [this, outp, V, Delta, Pe, SCov, init] = filter(this, inputDatabank, fi
 %
 % ## Description ##
 %
+% Run a Kalman filter based on the `inputModel`
 % The option `Ahead=` cannot be combined with one another, or with multiple
 % data sets, or with multiple parameterisations.
 %
@@ -186,15 +244,15 @@ function [this, outp, V, Delta, Pe, SCov, init] = filter(this, inputDatabank, fi
 % behaviour by setting the option `InitCond=` to one of the following
 % four different values:
 %
-% * `'Fixed'` -- the filter starts from the model-implied asymptotic mean
+% __`'Fixed'`__ -- the filter starts from the model-implied asymptotic mean
 % (steady state) but with no initial uncertainty. The initial condition is
 % treated as a vector of fixed, non-stochastic, numbers.
 %
-% * `'Optimal'` -- the filter starts from a vector of fixed numbers that
+% __`'Optimal'`__ -- the filter starts from a vector of fixed numbers that
 % is estimated optimally (likelihood maximising).
 %
-% * database (i.e. struct with fields for individual model variables) -- a
-% database through which you supply the mean for all the required initial
+% * databank (i.e. struct with fields for individual model variables) -- a
+% databank through which you supply the mean for all the required initial
 % conditions, see help on [`model/get`](model/get) for how to view the list
 % of required initial conditions.
 %
@@ -236,8 +294,8 @@ function [this, outp, V, Delta, Pe, SCov, init] = filter(this, inputDatabank, fi
 % Use the option `ReturnCont=true` to request the decomposition of
 % measurement variables, transition variables, and shocks into the
 % contributions of each individual measurement variable. The resulting
-% output database will include one extra subdatabase called `.cont`. In
-% the `.cont` subdatabase, each time series will have Ny columns where Ny
+% output databank will include one extra subdatabank called `.cont`. In
+% the `.cont` subdatabank, each time series will have Ny columns where Ny
 % is the number of measurement variables in the model. The k-th column will
 % be the contribution of the observations on the k-th measurement variable.
 %
@@ -286,30 +344,35 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('model.filter');
     pp.KeepUnmatched = true;
-    addRequired(pp, 'SolvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
-    addRequired(pp, 'InputDatabank', @validate.databank);
-    addRequired(pp, 'FilterRange', @DateWrapper.validateProperRangeInput);
-    addOptional(pp, 'TuneDatabank', [ ], @(x) isempty(x) ||validate.databank(x));
+    %
+    % Required arguments
+    %
+    addRequired(pp, 'solvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
+    addRequired(pp, 'inputDatabank', @(x) isempty(x) || validate.databank(x));
+    addRequired(pp, 'filterRange', @DateWrapper.validateProperRangeInput);
+    %
+    % Options in addition to Kalman filter options
+    %
     addParameter(pp, 'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
     addParameter(pp, {'Data', 'Output'}, 'smooth', @ischar);
     addParameter(pp, 'Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
 end
 parse(pp, this, inputDatabank, filterRange, varargin{:});
-j = pp.Results.TuneDatabank;
 opt = pp.Options;
 unmatched = pp.UnmatchedInCell;
 
-if ~isempty(j) && validate.databank(j)
-    thisWarning = { 'Deprecated'
-                    'Use of tune databank in Model.filter(~) is deprecated and will be discontinued '
-                    'in a future release; use options Override= and Multiply= instead' };
-    throw(exception.Base(thisWarning, 'warning'));
-end
-
-kalmanOpt = prepareKalmanOptions(this, filterRange, j, unmatched{:});
+filterRange = double(filterRange);
+numBasePeriods = round(filterRange(end) - filterRange(1) + 1);
+kalmanOpt = prepareKalmanOptions(this, filterRange, unmatched{:});
 isOutputData = nargout>1;
+nv = length(this);
+[ny, ~, nb, ~, ~, ng] = sizeOfSolution(this.Vector);
 
+%--------------------------------------------------------------------------
+
+%
 % Temporarily rename quantities
+%
 if ~isempty(opt.Rename)
     if ~iscellstr(opt.Rename)
         opt.Rename = cellstr(opt.Rename);
@@ -317,10 +380,15 @@ if ~isempty(opt.Rename)
     this.Quantity = rename(this.Quantity, opt.Rename{:});
 end
 
+%
 % Get measurement and exogenous variables
-inputArray = datarequest('yg*', this, inputDatabank, filterRange);
+%
+if ~isempty(inputDatabank)
+    inputArray = datarequest('yg*', this, inputDatabank, filterRange);
+else
+    inputArray = nan(ny+ng, numBasePeriods);
+end
 numDataSets = size(inputArray, 3);
-nv = length(this);
 
 % Check option conflicts
 checkConflicts( );
@@ -330,12 +398,11 @@ if ~isequal(kalmanOpt.Rolling, false)
     setupRolling( );
 end
 
-%--------------------------------------------------------------------------
-
-[ny, ~, nb] = sizeOfSolution(this.Vector);
 nz = nnz(this.Quantity.IxObserved);
-extendedRange = filterRange(1)-1 : filterRange(end);
-numExtendedPeriods = length(extendedRange);
+extendedStart = DateWrapper.roundPlus(filterRange(1), -1);
+extendedEnd = filterRange(end);
+extendedRange = DateWrapper.roundColon(extendedStart, extendedEnd);
+numExtendedPeriods = numel(extendedRange);
 
 % Throw a warning if some of the data sets have no observations.
 inxNaNData = all( all(isnan(inputArray), 1), 2 );
@@ -344,11 +411,16 @@ if any(inxNaNData)
            exception.Base.alt2str(inxNaNData, 'Data Set(s) ') ); 
 end
 
-% Pre-allocated requested hdata output arguments.
+%
+% Pre-allocate requested hdata output arguments
+%
 hData = struct( );
 preallocHData( );
 
-% Run the Kalman filter.
+
+%
+% Run the Kalman filter
+%
 [obj, regOutp, hData] = kalmanFilter(this, inputArray, hData, @hdataassign, kalmanOpt); %#ok<ASGLU>
 
 % If needed, expand the number of model parameterizations to include
@@ -357,11 +429,15 @@ if nv<regOutp.NLoop && (kalmanOpt.Relative || ~isempty(regOutp.Delta))
     this = alter(this, regOutp.NLoop);
 end
 
+%
 % Postprocess regular (non-hdata) output arguments; update the std
-% parameters in the model object if `Relative=' true`.
+% parameters in the model object if `Relative=' true`
+%
 [~, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, extendedRange, kalmanOpt, opt);
 
-% Post-process hdata output arguments.
+%
+% Post-process hdata output arguments
+%
 outp = hdataobj.hdatafinal(hData);
 
 if ~isempty(opt.Rename)

@@ -77,6 +77,7 @@ ny = size(this.C, 1);
 nx = size(this.C, 2);
 pp = size(this.A, 2)/nx;
 range = range(1) : range(end);
+range = double(range);
 
 if isstruct(inp) ...
       && ~isfield(inp, 'init') ...
@@ -94,9 +95,9 @@ if isa(inp, 'tseries')
    P0 = 0;
 else
    % Complete description of initial conditions.
-   ix = abs(range(1)-1 - inp.init{3}) <= 0.01;
+   ix = abs((range(1)-1) - inp.init{3}) <= 0.01;
    if isempty(ix) || ~any(ix)
-      % Initial condition not available.
+      % Initial condition not available
       utils.error('DFM', ...
          'Initial condition for factors not available from input data.');
    end

@@ -29,6 +29,8 @@ classdef Data < shared.DataBlock
 
         InxOfExogenizedYX = logical.empty(0)
         InxOfEndogenizedE = logical.empty(0)
+        SigmasOfExogenous = double.empty(0)
+        Sigma
         Target = double.empty(0)
 
         % InxOfHashedYX  Incidence of measurement and transtion variables in hash equations
@@ -70,6 +72,7 @@ classdef Data < shared.DataBlock
             if this.NumOfExogenizedPoints>0
                 this.Target(this.InxOfExogenizedYX) = this.InitYX(this.InxOfExogenizedYX);
             end
+            this.Sigma = diag(power(this.SigmasOfExogenous(this.InxOfEndogenizedE), 2));
         end%
 
 
@@ -307,8 +310,13 @@ classdef Data < shared.DataBlock
             TYPE = @int8;
 
             modelVariant = run;
-            if length(model)==1
+            if countVariants(model)==1
                 modelVariant = 1;
+            end
+
+            planVariant = run;
+            if countVariants(plan)==1
+                planVariant = 1;
             end
 
             dataPage = run;
@@ -326,6 +334,7 @@ classdef Data < shared.DataBlock
 
             this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfColumns);
             this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfColumns);
+            this.SigmasOfExogenous = plan.SigmasOfExogenous(:, :, planVariant);
             this.InitYX = this.YXEPG(this.InxOfYX, :);
 
             if isa(plan, 'Plan')

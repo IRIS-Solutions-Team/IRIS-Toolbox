@@ -9,12 +9,15 @@
 classdef Rectangular < handle
     properties
         Method
+        PlanMethod
+
         FirstOrderSolution = cell(1, 7)   % First-order solution matrices {T, R, K, Z, H, D, Y}, discard U, Zb
         FirstOrderExpansion = cell(1, 5)  % First-order expansion matrices {Xa, Xf, Ru, J, Yu}
 
         % FirstOrderMultipliers  First-order multipliers for endogenized shocks
         FirstOrderMultipliers = double.empty(0) 
-        InvFirstOrderMultipliers = double.empty(0)
+
+        KalmanGain = double.empty(0)
         MultipliersExogenizedYX = logical.empty(0)
         MultipliersEndogenizedE = logical.empty(0)
 
@@ -152,16 +155,6 @@ classdef Rectangular < handle
             this.LinxOfCurrentXi = sub2ind( pretendSizeOfData, ...
                                             real(idOfCurrentXi), ...
                                             this.FirstColumn + imag(idOfCurrentXi) );
-        end%
-
-
-        function this = set.FirstOrderMultipliers(this, value)
-            this.FirstOrderMultipliers = value;
-            if this.Method==solver.Method.SELECTIVE
-                this.InvFirstOrderMultipliers = inv(value);
-            else
-                this.InvFirstOrderMultipliers = double.empty(0);
-            end
         end%
     end
 

@@ -91,7 +91,6 @@ if isempty(inputParser)
     inputParser.addOptional('InitCondition', [ ], @(x) isempty(x) || isstruct(x));
     inputParser.addOptional('Range', [ ], @DateWrapper.validateProperRangeInput);
     inputParser.addOptional('NumDraws', 1, @(x) isnumeric(x) && isscalar(x) && x>=1);
-    inputParser.addOptional('LegacyVary', [ ], @(x) isempty(x) || isstruct(x));
 
     inputParser.addParameter('BootstrapMethod', 'efron', @(x) (ischar(x) && any(strcmpi(x, {'efron', 'wild'}))) || isintscalar(x) || isnumericscalar(x, 0, 1));
     inputParser.addParameter('Method', 'montecarlo', @(x) isa(x, 'function_handle') || (ischar(x) && any(strcmpi(x, {'montecarlo', 'bootstrap'}))));
@@ -107,7 +106,6 @@ inputParser.parse(this, varargin{:});
 inp = inputParser.Results.InitCondition;
 range = inputParser.Results.Range;
 numDraws = inputParser.Results.NumDraws;
-legacyVary = inputParser.Results.LegacyVary;
 opt = inputParser.Options;
 
 % `numInit` is the number of pre-sample periods used to resample the initial
@@ -163,14 +161,16 @@ Ta2 = Ta(numUnitRoots+1:end, numUnitRoots+1:end);
 Ra2 = Ra(numUnitRoots+1:end, :);
 
 % Combine user-supplied stdcorr with model stdcorr.
-overrideStdCorr = varyStdCorr(this, range, legacyVary, opt);
+overrideStdCorr = varyStdCorr(this, range, opt);
 usrStdcorrInx = ~isnan(overrideStdCorr);
 
-% Get variation in medians of shocks
-isShkMean = false;
-if ~isempty(legacyVary)
-    shkMean = datarequest('e', this, legacyVary, range, 1);
-    isShkMean = any(shkMean(:)~=0);
+% Get variation in the location of shocks
+isOverrideMean = false;
+if ~isempty(opt.Override) && validate.databank(opt.Override)
+    overrideMean = datarequest('e', this, opt.Override, range, 1);
+    if all(overrideMean(:)==0 | isnan(overrideMean(:)))
+        isOverrideMean = false;
+    end
 end
 
 % Get exogenous variables including ttrend.
@@ -287,8 +287,8 @@ end
 g = [ ];
 for iDraw = 1 : numDraws
     e = drawShocks( );
-    if isShkMean
-        e = e + shkMean;
+    if isOverrideMean
+        e = e + overrideMean;
     end
     a0 = drawInitCond( );
     % Simulate transition variables.

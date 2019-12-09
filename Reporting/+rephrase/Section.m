@@ -1,5 +1,6 @@
-classdef Section < reportMaker.element.Element ...
-                 & reportMaker.element.H2Element 
+classdef Section < rephrase.element.Element ...
+                 & rephrase.element.H2Element 
+
     properties
         Class = 'Section'
         CanBeAdded = cell.empty(1, 0)
@@ -8,7 +9,7 @@ classdef Section < reportMaker.element.Element ...
 
     methods
         function this = Section(varargin)
-            this = this@reportMaker.element.Element(varargin{1:end});
+            this = this@rephrase.element.Element(varargin{1:end});
             assignOptions(this, varargin{2:end});
         end%
 

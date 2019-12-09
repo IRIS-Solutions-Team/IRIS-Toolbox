@@ -18,18 +18,24 @@ function updateEndogenizedE(this, data)
 % and calculate the implied increments to the endogenized shocks
     inxEndogenizedE = data.InxOfEndogenizedE;
     discrepancy = evaluateDiscrepancy(data);
-    if ~isempty(this.InvFirstOrderMultipliers)
-        vecAddToE = this.InvFirstOrderMultipliers * discrepancy(:);
+    if ~isempty(this.KalmanGain)
+        vecAddToE = this.KalmanGain * discrepancy(:);
     else
-        vecAddToE = this.FirstOrderMultipliers \ discrepancy(:);
+        [numExogenized, numEndogenized] = size(this.FirstOrderMultipliers);
+        if numExogenized==numEndogenized && ~strcmpi(this.PlanMethod, 'Condition')
+            vecAddToE = this.FirstOrderMultipliers \ discrepancy(:);
+        else
+            F = this.FirstOrderMultipliers*data.Sigma*this.FirstOrderMultipliers';
+            vecAddToE = data.Sigma*this.FirstOrderMultipliers'*(F\discrepancy(:));
+        end
     end
     addToE = zeros(data.NumOfE, data.NumOfColumns);
     addToE(inxEndogenizedE) = addToE(inxEndogenizedE) + vecAddToE;
     inx = data.AnticipationStatusOfE;
-    data.AnticipatedE(inx, :) = data.AnticipatedE(inx, :) ...
-                              + addToE(inx, :);
-    data.UnanticipatedE(~inx, :) = data.UnanticipatedE(~inx, :) ...
-                                 + addToE(~inx, :);
+    data.AnticipatedE(inx, :) ...
+        = data.AnticipatedE(inx, :) + addToE(inx, :);
+    data.UnanticipatedE(~inx, :) ...
+        = data.UnanticipatedE(~inx, :) + addToE(~inx, :);
 end%
 
 

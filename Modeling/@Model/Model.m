@@ -130,11 +130,10 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-
 classdef Model ...
     < model ...
     & matlab.mixin.CustomDisplay ...
-    & model.Plan ...
+    & shared.Plan ...
     & shared.DataProcessor
 
 
@@ -306,11 +305,19 @@ classdef Model ...
         end%
 
 
-        function value = getAutoswapPairsForPlan(this)
+        function value = getAutoswapsForPlan(this)
             pairingVector = this.Pairing.Autoswap.Simulate;
             [namesOfExogenized, namesOfEndogenized] = ...
                 model.component.Pairing.getAutoswap(pairingVector, this.Quantity);
             value = [ namesOfExogenized(:), namesOfEndogenized(:) ];
+        end%
+
+
+        function sigmas = getSigmasForPlan(this)
+            TYPE = @int8;
+            ne = nnz(getIndexByType(this.Quantity, TYPE(31), TYPE(32)));
+            sigmas = this.Variant.StdCorr(:, 1:ne, :);
+            sigmas = reshape(sigmas, ne, 1, [ ]);
         end%
     %)
     end

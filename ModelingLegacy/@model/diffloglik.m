@@ -1,6 +1,6 @@
 function [mll, grad, hess, v] = diffloglik(this, data, range, parameterNames, varargin)
 % diffloglik  Approximate gradient and hessian of log-likelihood function
-%
+%{
 % ## Syntax ##
 %
 %     [mll, Grad, Hess, V] = diffloglik(M, Inp, Range, PList, ...)
@@ -55,6 +55,7 @@ function [mll, grad, hess, v] = diffloglik(this, data, range, parameterNames, va
 %
 % ## Example ##
 %
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -69,23 +70,33 @@ pp.parse(data, range, parameterNames);
 
 [opt, varargin] = passvalopt('model.diffloglik', varargin{:});
 
-% Process Kalman filter options; `loglikopt` also expands solution forward
-% if needed for tunes on the mean of shocks.
 if ischar(range)
     range = textinp2dat(range);
 end
 
-lik = prepareKalmanOptions(this, range, [ ], varargin{:});
 
-% Get measurement and exogenous variables including pre-sample.
+%
+% Process Kalman filter options; `loglikopt` also expands solution forward
+% if anticipated shifts in shocks are included
+%
+lik = prepareKalmanOptions(this, range, varargin{:});
+
+
+%
+% Get measurement and exogenous variables including pre-sample
+%
 data = datarequest('yg*', this, data, range);
 
+
+%
 % Create StdCorr vector from user-supplied database:
 % * --clip means remove trailing NaNs
 % * --presample means include one presample period
-lik.StdCorr = varyStdCorr(this, range, [ ], lik, '--clip', '--presample');
+%
+lik.StdCorr = varyStdCorr(this, range, lik, '--clip', '--presample');
 
-% Requested output data.
+
+% Requested output data
 lik.retpevec = true;
 lik.retf = true;
 

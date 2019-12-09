@@ -36,7 +36,7 @@ else
     PEst = zeros(0);
 end
 
-% Estimate common variance factor.
+% Estimate common variance factor
 V = 1;
 if opt.Relative && opt.ObjFunc==1
     if sumNObs > 0

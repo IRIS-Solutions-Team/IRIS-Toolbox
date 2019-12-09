@@ -1,6 +1,6 @@
 function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] = estimate(this, inputDatabank, range, varargin)
 % estimate  Estimate model parameters by optimizing selected objective function.
-%
+%{
 % ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted.
@@ -232,9 +232,10 @@ function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] =
 %
 % ## Example ##
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -285,7 +286,7 @@ outsideOptimOptions.parse(inputParser.UnmatchedInCell{:});
 
 % Process likelihood function options and create a likstruct.
 if strncmpi(opt.Domain, 't', 1)
-    likOpt = prepareKalmanOptions(this, range, [ ], opt.Filter{:});
+    likOpt = prepareKalmanOptions(this, range, opt.Filter{:});
     likOpt.minusLogLikFunc = @kalmanFilter;
 else
     likOpt = prepareFreqlOptions(this, range, opt.Filter{:});

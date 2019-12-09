@@ -1,9 +1,10 @@
-classdef Figure < reportMaker.element.Element ...
-                & reportMaker.element.H2Element ...
-                & reportMaker.element.DatesElement
+classdef Figure < rephrase.element.Element ...
+                & rephrase.element.H2Element ...
+                & rephrase.element.DatesElement
+
     properties
         Class = 'Figure'
-        CanBeAdded = { 'reportMaker.figure.Chart' }
+        CanBeAdded = { 'rephrase.figure.Chart' }
     end
 
 
@@ -22,11 +23,11 @@ classdef Figure < reportMaker.element.Element ...
 
     methods
         function this = Figure(varargin)
-            this = this@reportMaker.element.Element(varargin{1:end});
-            this = this@reportMaker.element.DatesElement(varargin{2:end});
+            this = this@rephrase.element.Element(varargin{1:end});
+            this = this@rephrase.element.DatesElement(varargin{2:end});
             persistent parser
             if isempty(parser)
-                parser = extend.InputParser('reportMaker.Figure');
+                parser = extend.InputParser('rephrase.Figure');
                 parser.addRequired('Subplot', @validateSubplot);
             end
             parser.parse(varargin{3});
@@ -135,7 +136,7 @@ classdef Figure < reportMaker.element.Element ...
                 return
             end
             THIS_ERROR = { 'DateWrapper:InvalidFigureSubplot'
-                           'Invalid value assigned to Subplot in reportMaker.Figure' };
+                           'Invalid value assigned to Subplot in rephrase.Figure' };
             throw( exception.Base(THIS_ERROR, 'error') );
         end%
     end

@@ -1,4 +1,5 @@
-classdef (Abstract) H2Element < reportMaker.element.FootnotesElement
+classdef (Abstract) H2Element < rephrase.element.FootnotesElement
+
     methods
         function outputElement = createDivH2(this)
             resolveShowHeading(this);

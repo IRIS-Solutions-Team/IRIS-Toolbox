@@ -1,6 +1,6 @@
-function [ startOfExtRange, ...
-           endOfExtRange, ...
-           minShift, maxShift] = getExtendedRange(this, baseRange);
+function ...
+    [startExtRange, endExtRange, minShift, maxShift, inxBaseRange] ...
+    = getExtendedRange(this, baseRange)
 % getExtendedRange  Extend base range for dynamic simulations to include presample and postsample
 %
 % Backend IRIS function
@@ -12,21 +12,30 @@ function [ startOfExtRange, ...
 %--------------------------------------------------------------------------
 
 baseRange = double(baseRange);
-startOfBaseRange = baseRange(1);
-endOfBaseRange = baseRange(end);
+startBaseRange = baseRange(1);
+endBaseRange = baseRange(end);
 
 % Minimum and maximum *actual* shifts
 [minShift, maxShift] = getActualMinMaxShifts(this);
 
-startOfExtRange = startOfBaseRange;
+startExtRange = startBaseRange;
 if minShift<0
-    startOfExtRange = startOfExtRange + minShift;
+    startExtRange = startExtRange + minShift;
 end
 
-endOfExtRange = endOfBaseRange;
+endExtRange = endBaseRange;
 if maxShift>0
-    endOfExtRange = endOfExtRange + maxShift;
+    endExtRange = endExtRange + maxShift;
 end
+
+if nargout<=4
+    return
+end
+
+numExtPeriods = round(endExtRange - startExtRange + 1);
+inxBaseRange = true(1, numExtPeriods);
+inxBaseRange(1:abs(minShift)) = false;
+inxBaseRange(end-maxShift+1:end) = false;
 
 end%
 

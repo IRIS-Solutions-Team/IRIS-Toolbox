@@ -92,10 +92,10 @@ outputTable = table(char(rowNames), idColumn, tableDataOrganized{:});
 
 dateNames = cellstr(DateWrapper.toDefaultString(dates));
 try
-    outputTable.Properties.VariableNames = [{'Name', 'SwapId'}, dateNames];
+    outputTable.Properties.VariableNames = [{'Name', 'SwapLink'}, dateNames];
 catch
     dateNames = strcat(this.DATE_PREFIX, dateNames);
-    outputTable.Properties.VariableNames = [{'Name', 'SwapId'}, dateNames];
+    outputTable.Properties.VariableNames = [{'Name', 'SwapLink'}, dateNames];
 end
 
 % Write table to text or spreadsheet file

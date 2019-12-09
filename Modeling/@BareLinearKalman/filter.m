@@ -11,7 +11,7 @@ numExtendedPeriods = numPeriods + 1;
 inputArray = getDataFromTo(inputData, startRange, endRange);
 inputArray = permute(inputArray, [2, 1, 3]);
 
-opt = prepareKalmanOptions(this, range, [ ], varargin{:});
+opt = prepareKalmanOptions(this, range, varargin{:});
 outputData = hereCreateOutputDataRequest(this, numExtendedPeriods, opt);
 [obj, regOutput, outputData] = kalmanFilter(this, inputArray, outputData, @hereAssignOutputData, opt);
 outputData = hereFinalizeOutputData(this, outputData, extendedRange);

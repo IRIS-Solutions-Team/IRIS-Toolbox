@@ -137,8 +137,10 @@ return
             xLimNew = xLimOld;
         end
         xLimActual = getXLimActual(xLimNew);
-        if ~isempty(xLimActual)
-            set(axesHandle, 'XLim', xLimActual);
+        if enforceXLimHere && ~isempty(xLimActual)
+            try
+                set(axesHandle, 'XLim', xLimActual);
+            end
         end
         setappdata(axesHandle, 'IRIS_XLim', xLimNew);
         setappdata(axesHandle, 'IRIS_EnforceXLim', enforceXLimNew);

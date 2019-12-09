@@ -101,7 +101,6 @@ if isempty(inputParser)
     inputParser.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
     inputParser.addRequired('InputData', @(x) isstruct(x) || iscell(x));
     inputParser.addRequired('Range', @DateWrapper.validateDateInput);
-    inputParser.addOptional('ConditioningData', [ ], @(x) isequal(x, [ ]) || isstruct(x));
 
     inputParser.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('CurrentOnly', true, @(x) isequal(x, true) || isequal(x, false));
@@ -112,12 +111,11 @@ if isempty(inputParser)
     inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
     inputParser.addParameter('Plan', [ ], @(x) isequal(x, [ ]) || isa(x, 'plan'));
     inputParser.addParameter('StdScale', complex(1, 0), @(x) (isnumeric(x) && isscalar(x) && real(x)>=0 && imag(x)>=0 && abs(abs(x)-1)<1e-12) || strcmpi(x, 'normalize'));
-    inputParser.addParameter({'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isstruct(x) || isempty(x));
+    inputParser.addParameter({'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) validate.databank(x) || isempty(x));
 
     inputParser.addDeviationOptions(false);
 end
 inputParser.parse(this, inp, range, varargin{:});
-cond = inputParser.Results.ConditioningData;
 opt = inputParser.Options;
 
 if ischar(range)
@@ -126,8 +124,7 @@ end
 range = range(1) : range(end);
 
 % Conditioning
-isPlanCond = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'cond');
-isCond = (isstruct(cond) && ~isempty(cond) && ~isempty(fieldnames(cond))) || isPlanCond;
+isCond = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'cond');
 
 % Exogenizing
 isSwap = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'tunes');
@@ -195,7 +192,7 @@ numOfRuns = max([nAlt, size(xbInit, 3), size(xbInitMse, 4), nData, size(G, 3)]);
 
 lastOrZeroFunc = @(x) max([0, find(any(x, 1), 1, 'last')]);
 
-if isSwap || isPlanCond
+if isSwap || isCond
     % Anchors for exogenized `AnchX` and conditioning `AnchC` variables.
     [yAnchX, xAnchX, eaAnchX, euAnchX, yAnchC, xAnchC] = ...
         myanchors(this, opt.Plan, range, opt.Anticipate);
@@ -219,33 +216,14 @@ else
 end
 
 if isCond
-    % Load conditioning data.
-    if isPlanCond
-        Y = inpY;
-        X = inpX;
-        Ea = zeros(ne, nPer);
-        Eu = zeros(ne, nPer);
-        xAnchC = xAnchC(ixXCurr, :);
-        X = X(ixXCurr, :, :);
-    else
-        Y = datarequest('y', this, cond, range);
-        X = datarequest('x', this, cond, range);
-        E = datarequest('e', this, cond, range);
-        Y = Y(:, :, 1);
-        X = X(:, :, 1);
-        E = E(:, :, 1);
-        Ea = fnAn(E);
-        Eu = fnUn(E);
-        X = X(ixXCurr, :);
-        yAnchC = ~isnan(Y);
-        xAnchC = ~isnan(X);
-    end
+    % Load conditioning data
+    Y = inpY;
+    X = inpX;
+    xAnchC = xAnchC(ixXCurr, :);
+    X = X(ixXCurr, :, :);
     lastYAnchC = lastOrZeroFunc(yAnchC);
     lastXAnchC = lastOrZeroFunc(xAnchC);
     isCond = lastYAnchC > 0 || lastXAnchC > 0;
-    % Check for overlaps between shocks from input data and shocks from
-    % conditioning data, and add up the overlapping shocks.
-    checkOverlap( );
 else
     lastYAnchC = 0;
     lastXAnchC = 0;
@@ -526,27 +504,6 @@ return
 
 
 
-    function checkOverlap( )
-        isWarnOverlap = false;
-        if any(Ea(:)~=0) && any(inpEa(:)~=0)
-            inpEa = bsxfun(@plus, inpEa, Ea);
-            isWarnOverlap = true;
-        end
-        if any(Eu(:)~=0) && any(inpEu(:)~=0)
-            inpEu = bsxfun(@plus, inpEu, Eu);
-            isWarnOverlap = true;
-        end        
-        if isWarnOverlap
-            WARNING_OVERLAP = { 'Model:ShockOverlap'
-                                [ 'Both input data and conditioning data include ', ...
-                                  'structural shocks, and they will be added up together'] };
-            exception.Base( WARNING_OVERLAP, 'warning' );
-        end
-    end%
-
-
-
-
     function calcPrhs( )
         % Prhs is the MSE/Cov matrix of the RHS in the swapped system.
         Prhs = zeros(1+nb+2*ne*last);
@@ -726,7 +683,7 @@ return
         % TODO: use `combineStdCorr` here
         % Combine sx from the current parameterisation and
         % sx supplied in Override= or cond
-        [overrideStdCorrReal, overrideStdCorrImag] = varyStdCorr(this, range, cond, opt);
+        [overrideStdCorrReal, overrideStdCorrImag] = varyStdCorr(this, range, opt);
 
         stdCorrReal = this.Variant.StdCorr(:, :, iLoop);
         stdCorrReal = repmat(stdCorrReal(:), 1, nPer);

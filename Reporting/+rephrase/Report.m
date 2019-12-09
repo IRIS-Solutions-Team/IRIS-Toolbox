@@ -1,18 +1,19 @@
-classdef Report < reportMaker.element.Element
+classdef Report < rephrase.element.Element
+
     properties
         Class = 'Report'
-        CanBeAdded = { 'reportMaker.Section'
-                       'reportMaker.Table'
-                       'reportMaker.Figure'
-                       'reportMaker.Matrix' }
+        CanBeAdded = { 'rephrase.Section'
+                       'rephrase.Table'
+                       'rephrase.Figure'
+                       'rephrase.Matrix' }
     end
 
 
     properties
         XmlDoc
         FileName = ''
-        StyleSheet = fullfile(iris.root( ), 'Reporting', '+reportMaker', 'default.css')
-        SourceFiles = reportMaker.SourceFiles.empty(1, 0)
+        StyleSheet = fullfile(iris.root( ), 'Reporting', '+rephrase', 'default.css')
+        SourceFiles = rephrase.SourceFiles.empty(1, 0)
         Footnotes = cell.empty(1, 0)
         FootnoteCounter = 0
     end
@@ -20,11 +21,11 @@ classdef Report < reportMaker.element.Element
 
     methods
         function this = Report(varargin)
-            this = this@reportMaker.element.Element(varargin{1:end});
+            this = this@rephrase.element.Element(varargin{1:end});
             this.FileName = varargin{2};
             assignOptions(this, varargin{3:end});
             singleFile = get(this, 'SingleFile');
-            this.SourceFiles = reportMaker.SourceFiles(this.FileName, singleFile);
+            this.SourceFiles = rephrase.SourceFiles(this.FileName, singleFile);
         end%
 
 

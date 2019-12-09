@@ -1,4 +1,4 @@
-function opt = prepareKalmanOptions(this, range, tune, varargin)
+function opt = prepareKalmanOptions(this, range, varargin)
 % prepareKalmanOptions  Prepare Kalman filter options
 %
 % Backend IRIS function
@@ -12,6 +12,7 @@ TYPE = @int8;
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Kalman.prepareKalmanOptions');
+    addParameter(pp, 'Anticipate', false, @validate.logicalScalar);
     addParameter(pp, 'Ahead', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);
     addParameter(pp, 'OutputDataAssignFunc', @hdataassign, @(x) isa(x, 'function_handle'));
     addParameter(pp, {'CheckFmse', 'ChkFmse'}, false, @(x) isequal(x, true) || isequal(x, false));
@@ -29,7 +30,7 @@ if isempty(pp)
     addParameter(pp, {'Plan', 'Scenario'}, [ ], @(x) isa(x, 'plan') || isa(x, 'Scenario') || isempty(x));
     addParameter(pp, 'Progress', false, @validate.logicalScalar);
     addParameter(pp, 'Relative', true, @validate.logicalScalar);
-    addParameter(pp, {'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || isstruct(x));
+    addParameter(pp, {'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || validate.databank(x));
     addParameter(pp, 'Multiply', [ ], @(x) isempty(x) || isstruct(x));
     addParameter(pp, 'Simulate', false, @(x) isequal(x, false) || (iscell(x) && iscellstr(x(1:2:end))));
     addParameter(pp, 'Weighting', [ ], @isnumeric);
@@ -50,6 +51,19 @@ range = DateWrapper.roundColon(startRange, endRange);
 numPeriods = round(endRange - startRange + 1);
 
 [ny, ~, nb, ~, ~, ~, nz] = sizeOfSolution(this);
+
+
+%
+% Anticipation status of in-sample shocks
+%
+if opt.Anticipate
+    opt.AnticipatedFunc = @real;
+    opt.UnanticipatedFunc = @imag;
+else
+    opt.AnticipatedFunc = @imag;
+    opt.UnanticipatedFunc = @real;
+end
+
 
 % Conditioning measurement variables
 if isempty(opt.Condition) || nz>0
@@ -83,33 +97,33 @@ if npout>0 && ~opt.DTrends
     throw( exception.Base(thisError, 'error') );
 end
 
-% __Time Domain Options__
-
+%
 % Time-varying StdCorr vector 
 % * --clip means trailing NaNs will be removed
 % * --presample means one presample period will be added
+%
 opt.OverrideStdcorr = [ ];
 opt.MultiplyStd = [ ];
-if ~isempty(tune) || ~isempty(opt.Override) || ~isempty(opt.Multiply)
-    [opt.OverrideStdcorr, ~, opt.MutliplyStd] = varyStdCorr(this, range, tune, opt, '--clip', '--presample');
+if ~isempty(opt.Override) || ~isempty(opt.Multiply)
+    [opt.OverrideStdcorr, ~, opt.MutliplyStd] = varyStdCorr(this, range, opt, '--clip', '--presample');
 end
 
-% User-supplied tunes on the mean of shocks
-if isfield(opt, 'Override')
-    tune = opt.Override;
-end
-if ~isempty(tune) && isstruct(tune)
-    % Request shock data.
-    tune = datarequest('e', this, tune, range);
-    if all(tune(:)==0)
-        tune = [ ];
+
+%
+% Override the location of shocks
+%
+temp = [ ];
+if ~isempty(opt.Override) && validate.databank(opt.Override)
+    temp = datarequest('e', this, opt.Override, range);
+    if all(temp(:)==0 | isnan(temp(:)))
+        temp = [ ];
     end
 end
-opt.tune = tune;
+opt.OverrideMean = temp;
 
 
 % 
-% Objective function
+% Select the objective function
 %
 switch lower(opt.ObjFunc)
     case {'prederr'}

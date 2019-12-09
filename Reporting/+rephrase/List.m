@@ -1,8 +1,10 @@
-classdef List < reportMaker.element.Element ...
-              & reportMaker.element.H2Element 
+classdef List ...
+    < rephrase.element.Element ...
+    & rephrase.element.H2Element 
+
     properties
         Class = 'List'
-        CanBeAdded = { 'reportMaker.list.Item' }
+        CanBeAdded = { 'rephrase.list.Item' }
     end
 
 
@@ -13,7 +15,7 @@ classdef List < reportMaker.element.Element ...
 
     methods
         function this = List(varargin)
-            this = this@reportMaker.element.Element(varargin{1:end});
+            this = this@rephrase.element.Element(varargin{1:end});
             assignOptions(this, varargin{2:end});
         end%
 

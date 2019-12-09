@@ -1,5 +1,7 @@
-classdef Series < reportMaker.element.Element ...
-                & reportMaker.element.DataElement
+classdef Series ...
+    < rephrase.element.Element ...
+    & rephrase.element.DataElement
+
     properties
         Class = 'Series'
         CanBeAdded = cell.empty(1, 0)
@@ -13,14 +15,14 @@ classdef Series < reportMaker.element.Element ...
 
     methods
         function this = Series(varargin)
-            this = this@reportMaker.element.Element(varargin{1:end});
-            this = this@reportMaker.element.DataElement(varargin{2:end});
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('reportMaker.figure.chart.Series');
-                parser.addRequired('DrawFunction', @validateDrawFunction);
+            this = this@rephrase.element.Element(varargin{1:end});
+            this = this@rephrase.element.DataElement(varargin{2:end});
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('rephrase.figure.chart.Series');
+                addRequired(pp, 'DrawFunction', @validateDrawFunction);
             end
-            parser.parse(varargin{3});
+            pp.parse(varargin{3});
             this.DrawFunction = varargin{3};
             assignOptions(this, varargin{4:end});
         end%

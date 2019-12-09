@@ -1,4 +1,5 @@
 classdef (Abstract) DataElement < handle
+
     properties
         Data
     end
@@ -11,7 +12,7 @@ classdef (Abstract) DataElement < handle
             end
             persistent parser
             if isempty(parser)
-                parser = extend.InputParser('reportMaker.element.DataElement');
+                parser = extend.InputParser('rephrase.element.DataElement');
                 parser.addRequired('Data', @validateData);
             end
             parser.parse(data);

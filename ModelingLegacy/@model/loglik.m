@@ -1,7 +1,6 @@
-function [obj, V, F, Pe, Delta, PDelta] = loglik(this, Data, range, varargin)
+function [obj, V, F, Pe, Delta, PDelta] = loglik(this, inputData, range, varargin)
 % loglik  Evaluate minus the log-likelihood function in time or frequency domain.
-%
-%
+%{
 % ## Syntax ##
 %
 % Input arguments marked with a `~` sign may be omitted
@@ -126,6 +125,7 @@ function [obj, V, F, Pe, Delta, PDelta] = loglik(this, Data, range, varargin)
 %
 % ## Example ##
 %
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -143,17 +143,11 @@ if nargin == 1
             'running it in fast mode with one input argument.']);
     end
 else
-    tune = [ ];
-    if ~isempty(varargin) ...
-            && (isstruct(varargin{1}) || isempty(varargin{1}))
-        tune = varargin{1};
-        varargin(1) = [ ];
-    end
     pp = inputParser( );
-    pp.addRequired('M', @(x) isa(x, 'model'));
-    pp.addRequired('Inp', @isstruct);
+    pp.addRequired('solvedModel', @(x) isa(x, 'model'));
+    pp.addRequired('inputData', @validate.databank);
     pp.addRequired('range', @DateWrapper.validateDateInput);
-    pp.parse(this, Data, range);
+    pp.parse(this, inputData, range);
     
     if ischar(range)
         range = textinp2dat(range);
@@ -164,14 +158,14 @@ else
     [OPT, varargin] = passvalopt('model.loglik', varargin{:});
 
     if strncmpi(OPT.domain, 't', 1)
-        LIKOPT = prepareKalmanOptions(this, RANGE, tune, varargin{:});
+        LIKOPT = prepareKalmanOptions(this, RANGE, varargin{:});
         req = 'tyg*';
     else
         LIKOPT = prepareFreqlOptions(this, RANGE, varargin{:});
         req = 'fyg*';
     end
     % Get array of measurement and exogenous variables
-    DATA = datarequest(req, this, Data, RANGE, ':');
+    DATA = datarequest(req, this, inputData, RANGE, ':');
 end
 
 %--------------------------------------------------------------------------

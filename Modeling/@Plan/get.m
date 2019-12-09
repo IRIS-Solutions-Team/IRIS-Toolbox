@@ -85,6 +85,9 @@ elseif validate.anyString(query, 'AnticipationStatus', 'Anticipate')
     response = cell2struct( num2cell([this.AnticipationStatusOfEndogenous; this.AnticipationStatusOfExogenous]), ...
                             [this.NamesOfEndogenous(:); this.NamesOfExogenous(:)] );
 
+elseif validate.anyString(query, 'Sigma', 'Sigmas')
+    response = getSigmas( );
+
 else
     thisError = { 'Plan:InvalidQuery'
                   'This is not a valid query into a Plan object: %s'};
@@ -105,6 +108,19 @@ return
             end
             ithSeries = fill(template, permute(ithRow, [2, 3, 1]));
             response = setfield(response, names{i}, ithSeries);
+        end
+    end%
+
+
+    function response = getSigmas( )
+        names = "sigma_" + this.NamesOfExogenous;
+        start = this.BaseStart;
+        baseRangeColumns = this.BaseRangeColumns;
+        response = struct( );
+        for i = 1 : numel(names)
+            response.(names(i)) = Series( ...
+                start, permute(this.SigmasOfExogenous(i, baseRangeColumns, :), [2, 3, 1]) ...
+            );
         end
     end%
 end%

@@ -1,11 +1,12 @@
-classdef Table < reportMaker.element.Element ...
-               & reportMaker.element.H2Element ...
-               & reportMaker.element.DatesElement ...
-               & reportMaker.element.FootnotesElement
+classdef Table < rephrase.element.Element ...
+               & rephrase.element.H2Element ...
+               & rephrase.element.DatesElement ...
+               & rephrase.element.FootnotesElement
+
     properties
         Class = 'Table'
-        CanBeAdded = { 'reportMaker.table.Series'
-                       'reportMaker.table.Subheading' }
+        CanBeAdded = { 'rephrase.table.Series'
+                       'rephrase.table.Subheading' }
     end
 
 
@@ -27,8 +28,8 @@ classdef Table < reportMaker.element.Element ...
 
     methods
         function this = Table(varargin)
-            this = this@reportMaker.element.Element(varargin{1:end});
-            this = this@reportMaker.element.DatesElement(varargin{2:end});
+            this = this@rephrase.element.Element(varargin{1:end});
+            this = this@rephrase.element.DatesElement(varargin{2:end});
             assignOptions(this, varargin{3:end});
         end%
 
@@ -61,7 +62,7 @@ classdef Table < reportMaker.element.Element ...
             hereRenderMarks( );
             hereRenderUnits( );
 
-            dateFormat = reportMaker.Options.get(this, 'DateFormat');
+            dateFormat = rephrase.Options.get(this, 'DateFormat');
             dateString = DateWrapper.toCellstr( this.Dates, ...
                                                    'DateFormat=', dateFormat );
             for i = 1 : this.NumOfDates
@@ -85,7 +86,7 @@ classdef Table < reportMaker.element.Element ...
 
 
                 function hereRenderMarks( )
-                    showMarks = reportMaker.Options.get(this, 'ShowMarks');
+                    showMarks = rephrase.Options.get(this, 'ShowMarks');
                     if showMarks
                         marks = x.createElement('th');
                         outputElement.appendChild(marks);
@@ -94,7 +95,7 @@ classdef Table < reportMaker.element.Element ...
 
 
                 function hereRenderUnits( )
-                    showUnits = reportMaker.Options.get(this, 'ShowUnits');
+                    showUnits = rephrase.Options.get(this, 'ShowUnits');
                     if showUnits
                         units = x.createElement('th');
                         outputElement.appendChild(units);
@@ -108,7 +109,7 @@ classdef Table < reportMaker.element.Element ...
             this.DataColumnClass(:) = {''};
             list = {'Highlight', 'VlineAfter', 'VlineBefore'};
             for i = 1 : numel(list)
-                userDates = reportMaker.Options.get(this, list{i});
+                userDates = rephrase.Options.get(this, list{i});
                 if ~isempty(userDates)
                     doubleDates = round(100*double(this.Dates));
                     doubleUserDatas = round(100*double(userDates));
@@ -158,8 +159,8 @@ classdef Table < reportMaker.element.Element ...
     methods
         function value = get.NumOfNondataColumns(this)
             showNames = true;
-            showMarks = reportMaker.Options.get(this, 'ShowMarks');
-            showUnits = reportMaker.Options.get(this, 'ShowUnits');
+            showMarks = rephrase.Options.get(this, 'ShowMarks');
+            showUnits = rephrase.Options.get(this, 'ShowUnits');
             value = nnz(showNames) ...
                   + nnz(showMarks) ...
                   + nnz(showUnits);

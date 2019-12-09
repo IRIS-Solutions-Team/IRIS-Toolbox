@@ -15,7 +15,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         ExtendedStart = double.empty(0)
         ExtendedEnd = double.empty(0)
 
-        SwapId = int16(-1)
+        SwapLink = int16(-1)
 
         AnticipationStatusOfEndogenous = logical.empty(0)
         AnticipationStatusOfExogenous = logical.empty(0)
@@ -25,13 +25,14 @@ classdef Plan < matlab.mixin.CustomDisplay
         IdOfAnticipatedEndogenized = int16.empty(0, 0)
         IdOfUnanticipatedEndogenized = int16.empty(0, 0)
         
-        SigmaOfExogenous = double.empty(0, 0)
+        SigmasOfExogenous = double.empty(0, 0)
     end
 
 
     properties (SetAccess=protected)
+        Method = @auto
         DefaultAnticipationStatus = true
-        AllowUnderdetermined = false
+        AllowUnderdetermined = true
         AllowOverdetermined = false
         NumOfDummyPeriods = 0
     end
@@ -46,7 +47,8 @@ classdef Plan < matlab.mixin.CustomDisplay
         RANGE_DEPENDENT = [ "IdOfAnticipatedExogenized", ...
                             "IdOfUnanticipatedExogenized", ...
                             "IdOfAnticipatedEndogenized", ...
-                            "IdOfUnanticipatedEndogenized" ]
+                            "IdOfUnanticipatedEndogenized", ...
+                            "SigmasOfExogenous" ]
     end
 
 
@@ -75,10 +77,18 @@ classdef Plan < matlab.mixin.CustomDisplay
 
     methods % User Interface
         varargout = anticipate(varargin)
+        varargout = assignSigma(varargin)
         varargout = endogenized(varargin)
         varargout = exogenized(varargin)
         varargout = get(varargin)
         varargout = swap(varargin)
+
+
+
+
+        function value = countVariants(this)
+            value = size(this.SigmasOfExogenous, 3);
+        end%
 
 
 
@@ -186,6 +196,7 @@ classdef Plan < matlab.mixin.CustomDisplay
             this.IdOfUnanticipatedEndogenized(:, end+(1:numDummyPeriods)) = int16(0);
             this.IdOfAnticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
             this.IdOfUnanticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
+            this.SigmasOfExogenous(:, end+(1:numDummyPeriods), :) = NaN;
             this.NumOfDummyPeriods = numDummyPeriods;
         end%
     end
@@ -278,8 +289,6 @@ classdef Plan < matlab.mixin.CustomDisplay
             parser.parse(this, dates, names);
             opt = parser.Options;
 
-            numDates = numel(dates);
-
             anticipationStatusOfExogenous = this.AnticipationStatusOfExogenous;
             if ~isequal(opt.AnticipationStatus, @auto)
                 anticipationStatusOfExogenous(:) = opt.AnticipationStatus;
@@ -319,9 +328,30 @@ classdef Plan < matlab.mixin.CustomDisplay
             end
             posDates = DateWrapper.getRelativePosition( this.ExtendedStart, dates, ...
                                                         [this.PosOfBaseStart, this.PosOfBaseEnd], ...
-                                                        'simulation range' );
+                                                        'simulation Plan range' );
             inxDates = false(1, this.NumOfExtendedPeriods);
             inxDates(posDates) = true;
+        end%
+
+
+        function inxVariants = resolveVariants(this, variants)
+            numVariants = countVariants(this);
+            if isequal(variants, @all)
+                inxVariants = true(1, numVariants);
+                return
+            end
+            if all(variants==round(variants) & variants>=1 & variants<=numVariants);
+                inxVariants = variants;
+                return
+            end
+            if islogical(variants) && numel(variants)==numVariants
+                variants = reshape(variants, 1, [ ]);
+                return
+            end
+            thisError = [ "Plan:InvalidVariant"
+                          "Plan variants need to be specified as integers "
+                          "between 1 and the total number of variants in the Plan object." ];
+            throw(exception.Base(thisError, 'error'));
         end%
     end
 
@@ -418,6 +448,7 @@ classdef Plan < matlab.mixin.CustomDisplay
 
         DisplayRange
         BaseRange
+        BaseRangeColumns
         ExtendedRange
         ColumnOfLastAnticipatedExogenized
         NumOfEndogenous
@@ -616,6 +647,13 @@ classdef Plan < matlab.mixin.CustomDisplay
             end
             value = DateWrapper.roundColon(this.BaseStart, this.BaseEnd);
             value = DateWrapper(value);
+        end%
+
+
+        function value = get.BaseRangeColumns(this)
+            startColumn = round(this.BaseStart - this.ExtendedStart + 1);
+            endColumn = round(this.BaseEnd - this.ExtendedStart + 1);
+            value = startColumn : endColumn;
         end%
 
 
@@ -824,7 +862,7 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
 
-        function flag = validateSwapId(id)
+        function flag = validateSwapLink(id)
             if validate.numericScalar(id) && id~=0 && id==round(id)
                 flag = true;
                 return
@@ -868,9 +906,9 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
 
-        function [this, id] = nextSwapId(this)
-            id = this.SwapId;
-            this.SwapId = this.SwapId - 1;
+        function [this, id] = nextSwapLink(this)
+            id = this.SwapLink;
+            this.SwapLink = this.SwapLink - 1;
         end%
 
 

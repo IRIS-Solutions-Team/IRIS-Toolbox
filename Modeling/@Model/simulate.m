@@ -355,12 +355,12 @@ return
                 if numExogenized==numEndogenized
                     return
                 end
-                if numExogenized>numEndogenized
+                if numExogenized<numEndogenized
                    if plan.AllowUnderdetermined
                        return
                    end
                    deficiency = -1;
-                elseif numExogenized<numEndogenized
+                elseif numExogenized>numEndogenized
                     if plan.AllowOverdetermined
                         return
                     end
@@ -378,12 +378,12 @@ return
                         else
                             description = 'Overdetermined';
                         end
-                        temp{end+1} = sprintf( '[DataPage %g][TimeFrame %g]: %s', ...
+                        temp{end+1} = sprintf( '[Page:%g][TimeFrame:%g]: %s', ...
                                                ii, jj, description );
                     end
                 end
                 thisError = { 'Model:DeficientSimulationPlan' 
-                              'Simulation plan is deficient in %s' };
+                              'Simulation Plan is deficient in %s' };
                 throw(exception.Base(thisError, 'error'), temp{:});
             end%
     end%

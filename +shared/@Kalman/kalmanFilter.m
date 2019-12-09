@@ -78,45 +78,50 @@ s.IxObjRange = [false, opt.ObjFuncRange];
 s.LastSmooth = opt.LastSmooth;
 
 % Override shock means
-tune = opt.tune;
-maybeShockTunes = ~isempty(tune) && any(tune(:)~=0);
+overrideMean = opt.OverrideMean;
+mayberOverrideMean = ~isempty(overrideMean) && ~all(overrideMean(:)==0 | isnan(overrideMean(:)));
 requiredForward = 0;
-if maybeShockTunes
-    tune(isnan(tune)) = 0;
+if mayberOverrideMean
+    overrideMean(isnan(overrideMean)) = 0;
     % Add pre-sample
-    tune = [zeros(ne, 1, size(tune, 3)), tune];
-    % Expected shocks and forward expansion
-    inx = any(any(imag(tune)~=0, 3), 1);
+    overrideMean = [zeros(ne, 1, size(overrideMean, 3)), overrideMean];
+    % Split into anticipated and unanticipated
+    overrideMeanAnticipated = opt.AnticipatedFunc(overrideMean);
+    overrideMeanUnanticipated = opt.UnanticipatedFunc(overrideMean);
+    overrideMeanAnticipated(isnan(overrideMeanAnticipated)) = 0;
+    overrideMeanUnanticipated(isnan(overrideMeanUnanticipated)) = 0;
+    % Anticipated shocks and forward expansion
+    inx = any(any(overrideMeanAnticipated~=0, 3), 1);
     requiredForward = max([0, find(inx, 1, 'last')]) - 2;
 end
 
-% Total number of cycles.
-nLoop = max(numPages, nv);
-s.nPred = max(nLoop, s.Ahead);
+% Total number of runs
+numRuns = max(numPages, nv);
+s.nPred = max(numRuns, s.Ahead);
 
-% Pre-allocate output data.
+% Pre-allocate output data
 if ~s.IsObjOnly
     requestOutp( );
 end
 
-% Pre-allocate the non-hdata output arguments.
+% Pre-allocate the non-hdata output arguments
 nObj = 1;
 if opt.ObjFuncContributions
     nObj = numExtendedPeriods;
 end
-obj = nan(nObj, nLoop);
+obj = nan(nObj, numRuns);
 
 if ~s.IsObjOnly
     % Regular (non-hdata) output arguments
     regOutp = struct( );
-    regOutp.F = nan(ny, ny, numExtendedPeriods, nLoop);
+    regOutp.F = nan(ny, ny, numExtendedPeriods, numRuns);
     regOutp.Pe = nan(ny, numExtendedPeriods, s.nPred);
-    regOutp.V = nan(1, nLoop);
-    regOutp.Delta = nan(numPouts, nLoop);
-    regOutp.PDelta = nan(numPouts, numPouts, nLoop);
-    regOutp.SampleCov = nan(ne, ne, nLoop);
-    regOutp.NLoop = nLoop;
-    regOutp.Init = { nan(nb, 1, nLoop), nan(nb, nb, nLoop) };
+    regOutp.V = nan(1, numRuns);
+    regOutp.Delta = nan(numPouts, numRuns);
+    regOutp.PDelta = nan(numPouts, numPouts, numRuns);
+    regOutp.SampleCov = nan(ne, ne, numRuns);
+    regOutp.NLoop = numRuns;
+    regOutp.Init = { nan(nb, 1, numRuns), nan(nb, nb, numRuns) };
 end
 
 % Prepare struct and options for non-linear simulations (prediction
@@ -135,34 +140,32 @@ if ~s.IsObjOnly && opt.Progress
 end
 
 inxSolutionAvailable = true(1, nv);
-inxValidFactor = true(1, nLoop);
+inxValidFactor = true(1, numRuns);
 
-for iLoop = 1 : nLoop
+for run = 1 : numRuns
     %
     % Next data
     % Measurement and exogenous variables, and initial observations of
     % measurement variables. Deterministic trends will be subtracted later on.
     %
-    s.y1 = inputData(1:ny, :, min(iLoop, end));
-    s.g  = inputData(ny+(1:ng), :, min(iLoop, end));
+    s.y1 = inputData(1:ny, :, min(run, end));
+    s.g  = inputData(ny+(1:ng), :, min(run, end));
     
-    s.IsShkTune = false;
-    if maybeShockTunes
-        s.tune = tune(:, :, min(iLoop, end));
-        s.VaryingU = real(s.tune);
-        s.VaryingE = imag(s.tune);
-        s.VaryingU(isnan(s.VaryingU)) = 0;
-        s.VaryingE(isnan(s.VaryingE)) = 0;
+    s.IsOverrideMean = false;
+    if mayberOverrideMean
+        s.OverrideMean = overrideMean(:, :, min(run, end));
+        s.VaryingU = overrideMeanUnanticipated(:, :, min(run, end));
+        s.VaryingE = overrideMeanAnticipated(:, :, min(run, end));
         s.LastVaryingU = max([0, find(any(s.VaryingU, 1), 1, 'last')]);
         s.LastVaryingE = max([0, find(any(s.VaryingE, 1), 1, 'last')]);
-        s.IsShkTune = s.LastVaryingU>0 || s.LastVaryingE>0;
+        s.IsOverrideMean = s.LastVaryingU>0 || s.LastVaryingE>0;
     end
 
     %
     % Next model solution
     %
-    v = min(iLoop, nv);
-    if iLoop<=nv
+    v = min(run, nv);
+    if run<=nv
         [ T, R, k, s.Z, s.H, d, s.U, Zb, ...
           s.InxV, s.InxW, s.NUnit, s.InxInit ] = getIthKalmanSystem(this, v, requiredForward);
         if nz>0
@@ -201,8 +204,8 @@ for iLoop = 1 : nLoop
     
     % Stop immediately if solution is not available; report NaN solutions
     % post mortem
-    inxSolutionAvailable(iLoop) = all(isfinite(T(:)));
-    if ~inxSolutionAvailable(iLoop)
+    inxSolutionAvailable(run) = all(isfinite(T(:)));
+    if ~inxSolutionAvailable(run)
         continue
     end
 
@@ -210,7 +213,7 @@ for iLoop = 1 : nLoop
     % __Deterministic Trends__
     % y(t) - D(t) - X(t)*delta = Z*a(t) + H*e(t).
     if nz==0 && (numPouts>0 || opt.DTrends)
-        [s.D, s.X] = evalTrendEquations(this, opt.OutOfLik, s.g, iLoop);
+        [s.D, s.X] = evalTrendEquations(this, opt.OutOfLik, s.g, run);
     else
         s.D = [ ];
         s.X = zeros(ny, 0, numExtendedPeriods);
@@ -229,8 +232,8 @@ for iLoop = 1 : nLoop
     % The std dev of the tuned shocks remain unchanged and hence the
     % filtered shocks can differ from its tunes (unless the user specifies zero
     % std dev).
-    if s.IsShkTune 
-        [s.d, s.ka, s.kf] = addShockTunes(s, R, opt);
+    if s.IsOverrideMean 
+        [s.d, s.ka, s.kf] = hereOverrideMean(s, R, opt);
     end
 
     % Index of available observations.
@@ -243,7 +246,7 @@ for iLoop = 1 : nLoop
     % Initialize mean and MSE
     % Determine number of init cond estimated as fixed unknowns
     % 
-    s = kalman.initialize(s, iLoop, opt);
+    s = kalman.initialize(s, run, opt);
 
     %
     % Prediction step
@@ -252,16 +255,16 @@ for iLoop = 1 : nLoop
     % Prepare the struct sn for nonlinear simulations in this round of
     % prediction steps.
     if s.IsSimulate
-        sn.ILoop = iLoop;
-        if iLoop<=nv
-            sn = prepareSimulate2(this, sn, iLoop);
+        sn.ILoop = run;
+        if run<=nv
+            sn = prepareSimulate2(this, sn, run);
         end
     end
     
     % Run prediction error decomposition and evaluate user-requested
     % objective function.
-    [obj(:, iLoop), s] = kalman.ped(s, sn, opt);
-    inxValidFactor(iLoop) = abs(s.V)>this.VARIANCE_FACTOR_TOLERANCE;
+    [obj(:, run), s] = kalman.ped(s, sn, opt);
+    inxValidFactor(run) = abs(s.V)>this.VARIANCE_FACTOR_TOLERANCE;
 
     % Return immediately if only the value of the objective function is
     % requested.
@@ -336,7 +339,7 @@ for iLoop = 1 : nLoop
     if s.Ahead>1
         predCols = 1 : s.Ahead;
     else
-        predCols = iLoop;
+        predCols = run;
     end
 
     % Populate hdata output arguments.
@@ -352,19 +355,19 @@ for iLoop = 1 : nLoop
     end
     
     % Populate regular (non-hdata) output arguments.
-    regOutp.F(:, :, :, iLoop) = s.F*s.V;
+    regOutp.F(:, :, :, run) = s.F*s.V;
     regOutp.Pe(:, :, predCols) = permute(s.pe, [1, 3, 4, 2]);
-    regOutp.V(iLoop) = s.V;
-    regOutp.Delta(:, iLoop) = s.delta;
-    regOutp.PDelta(:, :, iLoop) = s.PDelta*s.V;
-    regOutp.SampleCov(:, :, iLoop) = s.SampleCov;
-    regOutp.Init{1}(:, :, iLoop) = s.InitMean;
-    regOutp.Init{2}(:, :, iLoop) = s.InitMse;
+    regOutp.V(run) = s.V;
+    regOutp.Delta(:, run) = s.delta;
+    regOutp.PDelta(:, :, run) = s.PDelta*s.V;
+    regOutp.SampleCov(:, :, run) = s.SampleCov;
+    regOutp.Init{1}(:, :, run) = s.InitMean;
+    regOutp.Init{2}(:, :, run) = s.InitMse;
     
 
     % __Update Progress Bar__
     if opt.Progress
-        update(progress, iLoop/nLoop);
+        update(progress, run/numRuns);
     end
 end 
 
@@ -449,8 +452,8 @@ return
             ee(:, 1, :) = NaN;
             % Add fixed deterministic trends back to measurement vars.
             % Add shock tunes to shocks.
-            if s.IsShkTune
-                ee = ee + repmat(s.tune, 1, 1, s.Ahead);
+            if s.IsOverrideMean
+                ee = ee + repmat(s.OverrideMean, 1, 1, s.Ahead);
             end
             % Do not use lags in the prediction output data.
             outputData.M0 = outputDataAssignFunc(outputData.M0, predCols, {yy, xx, ee, [ ], [ ]});
@@ -462,13 +465,13 @@ return
                 s.Dy0 = s.Dy0([ ], :);
             end
             % Do not use lags in the prediction output data
-            outputData.S0 = outputDataAssignFunc( outputData.S0, iLoop, ...
+            outputData.S0 = outputDataAssignFunc( outputData.S0, run, ...
                                                   {s.Dy0*s.V, [s.Df0; s.Db0]*s.V, s.De0*s.V, [ ], [ ]} );
         end
         
         % Return prediction MSE for xb.
         if s.retPredMse
-            outputData.Mse0.Data(:, :, :, iLoop) = s.Pb0*s.V;
+            outputData.Mse0.Data(:, :, :, run) = s.Pb0*s.V;
         end
 
         % Return PE contributions to prediction step.
@@ -504,11 +507,11 @@ return
             xx = [s.f1; s.b1];
             ee = s.e1;
             % Add shock tunes to shocks.
-            if s.IsShkTune
-                ee = ee + s.tune;
+            if s.IsOverrideMean
+                ee = ee + s.OverrideMean;
             end
             % Do not use lags in the filter output data.
-            outputData.M1 = outputDataAssignFunc(outputData.M1, iLoop, {yy, xx, ee, [ ], s.g});
+            outputData.M1 = outputDataAssignFunc(outputData.M1, run, {yy, xx, ee, [ ], s.g});
         end
         
         % Return PE contributions to filter step.
@@ -531,14 +534,14 @@ return
             if nz>0
                 s.Dy1 = s.Dy1([ ], :);
             end
-            outputData.S1 = outputDataAssignFunc( outputData.S1, iLoop, ...
+            outputData.S1 = outputDataAssignFunc( outputData.S1, run, ...
                                                   {s.Dy1*s.V, [s.Df1;s.Db1]*s.V, [ ], [ ], s.Dg1*s.V} );
         end
         
         % Return filtered MSE for `xb`.
         if s.retFilterMse
             %s.Pb1(:, :, 1) = NaN;
-            outputData.Mse1.Data(:, :, :, iLoop) = s.Pb1*s.V;
+            outputData.Mse1.Data(:, :, :, run) = s.Pb1*s.V;
         end
     end%
 
@@ -561,17 +564,17 @@ return
             xx(1:nf, s.LastSmooth) = NaN;
             ee = s.e2;
             preNaN = NaN;
-            if s.IsShkTune
+            if s.IsOverrideMean
                 % Add shock tunes to shocks
-                ee = ee + s.tune;
-                % If there were anticipated shocks (imag), we need to create NaN+1i*NaN to
+                ee = ee + s.OverrideMean;
+                % If there are anticipated shocks, we need to create NaN+1i*NaN to
                 % fill in the pre-sample values
-                if ~isreal(s.tune);
+                if ~isreal(s.OverrideMean);
                     preNaN = preNaN*(1+1i);
                 end
             end
             ee(:, 1:s.LastSmooth) = preNaN;
-            outputData.M2 = outputDataAssignFunc(outputData.M2, iLoop, {yy, xx, ee, [ ], s.g});
+            outputData.M2 = outputDataAssignFunc(outputData.M2, run, {yy, xx, ee, [ ], s.g});
         end
         
         % Return smooth std
@@ -582,7 +585,7 @@ return
             s.Dy2(:, 1:s.LastSmooth) = NaN;
             s.Df2(:, 1:s.LastSmooth) = NaN;
             s.Db2(:, 1:s.LastSmooth-1) = NaN;
-            outputData.S2 = outputDataAssignFunc( outputData.S2, iLoop, ...
+            outputData.S2 = outputDataAssignFunc( outputData.S2, run, ...
                                                   {s.Dy2*s.V, [s.Df2; s.Db2]*s.V, [ ], [ ], s.Dg2*s.V} );
         end
         
@@ -609,7 +612,7 @@ return
         % Return smooth MSE for `xb`.
         if s.retSmoothMse
             s.Pb2(:, :, 1:s.LastSmooth-1) = NaN;
-            outputData.Mse2.Data(:, :, :, iLoop) = s.Pb2*s.V;
+            outputData.Mse2.Data(:, :, :, run) = s.Pb2*s.V;
         end
     end%
 
@@ -626,7 +629,7 @@ return
         sn.Eu = zeros(ne, 1);
         sn.Tune = sparse(ny+nxi, 1);
         sn.ZerothSegment = 0;
-        sn.NLoop = nLoop;
+        sn.NLoop = numRuns;
         sn.LastEndgA = 0;
         sn.LastEndgU = 0;
         sn.LastEa = 0;
@@ -686,7 +689,7 @@ function s = hereAhead(s)
         if s.retPred
             f0(:, t, k) = s.Tf*a0(:, t-1, k-1);
             if ~isempty(s.kf)
-                if ~s.IsShkTune
+                if ~s.IsOverrideMean
                     f0(:, t, k) = f0(:, t, k) + s.kf(:, repeat);
                 else
                     f0(:, t, k) = f0(:, t, k) + s.kf(:, t);
@@ -944,8 +947,7 @@ end%
 
 
 
-function [D, Ka, Kf] = addShockTunes(s, R, opt)
-    % addShockTunes  Add tunes on shock means to constant terms
+function [D, Ka, Kf] = hereOverrideMean(s, R, opt)
     ne = s.NumE;
     ny = s.NumY;
     nf = s.NumF;

@@ -534,8 +534,8 @@ classdef DateWrapper < double
             datesFreq = DateWrapper.getFrequencyAsNumeric(dates);
             if ~all(datesFreq==refFreq)
                 THIS_ERROR= { 'DateWrapper:CannotRelativePositionForMixedFrequencies', ...
-                              'Relative positions can be only calculated for dates of the same frequencies' };
-                throw( excepion.Base(THIS_ERROR, 'error') );
+                              'Relative positions can be only calculated for dates of identical frequencies' };
+                throw( exception.Base(THIS_ERROR, 'error') );
             end
             refSerial = DateWrapper.getSerial(ref);
             datesSerial = DateWrapper.getSerial(dates);

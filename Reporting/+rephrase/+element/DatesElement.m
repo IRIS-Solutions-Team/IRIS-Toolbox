@@ -1,4 +1,5 @@
 classdef (Abstract) DatesElement < handle
+
     properties
         Dates
     end
@@ -11,7 +12,7 @@ classdef (Abstract) DatesElement < handle
             end
             persistent parser
             if isempty(parser)
-                parser = extend.InputParser('reportMaker.element.DatesElement');
+                parser = extend.InputParser('rephrase.element.DatesElement');
                 parser.addRequired('Dates', @DateWrapper.validateProperDateInput);
             end
             parser.parse(dates);

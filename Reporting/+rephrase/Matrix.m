@@ -1,5 +1,6 @@
-classdef Matrix < reportMaker.element.Element ...
-                & reportMaker.element.H2Element
+classdef Matrix < rephrase.element.Element ...
+                & rephrase.element.H2Element
+
     properties
         Class = 'Matrix'
         CanBeAdded = cell.empty(1, 0)
@@ -13,10 +14,10 @@ classdef Matrix < reportMaker.element.Element ...
 
     methods
         function this = Matrix(varargin)
-            this = this@reportMaker.element.Element(varargin{1:end});
+            this = this@rephrase.element.Element(varargin{1:end});
             persistent parser
             if isempty(parser)
-                parser = extend.InputParser('reportMaker.Matrix');
+                parser = extend.InputParser('rephrase.Matrix');
                 parser.KeepUnmatched = true;
                 parser.addRequired('Matrix', @isnumeric);
             end

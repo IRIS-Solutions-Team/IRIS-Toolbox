@@ -208,7 +208,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = isnan(varargin)
         varargout = isstationary(varargin)
         varargout = jforecast(varargin)
-        varargout = jforecast_old(varargin)
         varargout = length(varargin)
         varargout = lhsmrhs(varargin)
         varargout = lp4lhsmrhs(varargin)
@@ -491,11 +490,12 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     end
     
     
-    % Constructor and dependent properties
-    methods
+
+
+    methods % Constructor
         function this = model(varargin)
 % model  Create new model object from model file.
-%
+%{
 % __Syntax__
 %
 %     M = model(FileName, ...)
@@ -643,35 +643,36 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 % unless some of the parameters passed in to the `model` fuction are needed
 % to evaluate [`!if`](irislang/if) or [`!switch`](irislang/switch)
 % expressions.
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-            persistent inputParser optimalParser parserParser
-            if isempty(inputParser)
-                inputParser = extend.InputParser('model.model');
-                inputParser.KeepUnmatched = true;
-                inputParser.PartialMatching = false;
-                inputParser.addParameter('addlead', false, @validate.logicalScalar);
-                inputParser.addParameter('Assign', [ ], @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
-                inputParser.addParameter({'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
-                inputParser.addParameter({'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
-                inputParser.addParameter('comment', '', @ischar);
-                inputParser.addParameter({'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
-                inputParser.addParameter('Growth', false, @(x) isequal(x, true) || isequal(x, false));
-                inputParser.addParameter('epsilon', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0 && x<1));
-                inputParser.addParameter({'removeleads', 'removelead'}, false, @validate.logicalScalar);
-                inputParser.addParameter('Linear', false, @(x) isequal(x, true) || isequal(x, false));
-                inputParser.addParameter('makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
-                inputParser.addParameter('optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
-                inputParser.addParameter('OrderLinks', true, @validate.logicalScalar);
-                inputParser.addParameter({'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
-                % inputParser.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
-                inputParser.addParameter('Refresh', true, @validate.logicalScalar);
-                inputParser.addParameter({'SavePreparsed', 'SaveAs'}, '', @ischar);
-                inputParser.addParameter({'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
-                inputParser.addParameter('stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
-                inputParser.addParameter('stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
+            persistent pp optimalParser parserParser
+            if isempty(pp)
+                pp = extend.InputParser('model.model');
+                pp.KeepUnmatched = true;
+                pp.PartialMatching = false;
+                pp.addParameter('addlead', false, @validate.logicalScalar);
+                pp.addParameter('Assign', [ ], @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
+                pp.addParameter({'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
+                pp.addParameter({'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
+                pp.addParameter('comment', '', @ischar);
+                pp.addParameter({'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
+                pp.addParameter('Growth', false, @(x) isequal(x, true) || isequal(x, false));
+                pp.addParameter('epsilon', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0 && x<1));
+                pp.addParameter({'removeleads', 'removelead'}, false, @validate.logicalScalar);
+                pp.addParameter('Linear', false, @(x) isequal(x, true) || isequal(x, false));
+                pp.addParameter('makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
+                pp.addParameter('optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
+                pp.addParameter('OrderLinks', true, @validate.logicalScalar);
+                pp.addParameter({'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
+                % pp.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
+                pp.addParameter('Refresh', true, @validate.logicalScalar);
+                pp.addParameter({'SavePreparsed', 'SaveAs'}, '', @ischar);
+                pp.addParameter({'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
+                pp.addParameter('stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
+                pp.addParameter('stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
             end
             if isempty(parserParser)
                 parserParser = extend.InputParser('model.model');
@@ -724,13 +725,13 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             
             
                 function [opt, parserOpt, optimalOpt] = processOptions( )
-                    inputParser.parse(varargin{:});
-                    opt = inputParser.Options;
+                    pp.parse(varargin{:});
+                    opt = pp.Options;
                     % Optimal policy options
                     optimalParser.parse(opt.optimal{:});
                     optimalOpt = optimalParser.Options;
                     % IRIS parser options
-                    parserParser.parse(inputParser.UnmatchedInCell{:});
+                    parserParser.parse(pp.UnmatchedInCell{:});
                     parserOpt = parserParser.Options;
                     % Control parameters
                     unmatched = parserParser.UnmatchedInCell;

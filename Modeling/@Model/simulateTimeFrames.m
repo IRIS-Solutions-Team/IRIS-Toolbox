@@ -54,6 +54,7 @@ needsEvalTrends = runningData.NeedsEvalTrends(min(run, end));
     vthRect.Deviation = vthData.Deviation;
     vthRect.SimulateY = true;
     vthRect.Method = method;
+    vthRect.PlanMethod = plan.Method;
     vthRect.NeedsEvalTrends = vthData.NeedsEvalTrends;
 
     % Equation-selective specific properties

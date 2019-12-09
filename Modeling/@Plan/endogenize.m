@@ -10,7 +10,7 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('Plan.endogenize');
     parser.KeepUnmatched = true;
-    addParameter(parser, 'SwapId', this.DEFAULT_SWAP_ID, @Plan.validateSwapId);
+    addParameter(parser, 'SwapLink', this.DEFAULT_SWAP_ID, @Plan.validateSwapLink);
 end
 parse(parser, varargin{:});
 unmatched = parser.UnmatchedInCell;
@@ -18,7 +18,7 @@ opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
-this = implementEndogenize(this, dates, names, opt.SwapId, unmatched{:});
+this = implementEndogenize(this, dates, names, opt.SwapLink, unmatched{:});
 
 end%
 

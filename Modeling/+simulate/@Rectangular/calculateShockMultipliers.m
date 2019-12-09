@@ -56,17 +56,27 @@ M = zeros(0, numEndogenizedE);
 xb = zeros(size(Rb));
 idYX = find(data.InxOfYX);
 for t = firstColumn : lastExogenizedYX
+    %
+    % Update transition variables
+    %
     xf = Tf*xb;
     xb = Tb*xb;
-    y = Z*xb;
     if t<=lastEndogenizedE
         xb = xb + Rb;
         xf = xf + Rf;
         Rb = [zeros(nb, ne), Rb(:, 1:end-ne)];
         Rf = [zeros(nf, ne), Rf(:, 1:end-ne)];
+    end
+
+    %
+    % Calculate measurement variables
+    %
+    y = Z*xb;
+    if t<=lastEndogenizedE
         y = y + H;
         H = [zeros(ny, ne), H(:, 1:end-ne)];
     end
+
     idExogenizedYX = idYX(data.InxOfExogenizedYX(:, t));
     if isempty(idExogenizedYX)
         continue
@@ -78,6 +88,9 @@ for t = firstColumn : lastExogenizedYX
 end
 
 this.FirstOrderMultipliers = M;
+if this.Method==solver.Method.SELECTIVE
+    hereCalculateKalmanGain( );
+end
 this.MultipliersEndogenizedE = data.InxOfEndogenizedE(:, firstColumn:lastEndogenizedE);
 this.MultipliersExogenizedYX = data.InxOfExogenizedYX(:, firstColumn:lastExogenizedYX);
 
@@ -103,10 +116,27 @@ return
         end
         numExogenizedYX = nnz(inxExogenizedYX);
         numEndogenizedE = nnz(inxEndogenizedE);
-        this.FirstOrderMultipliers = this.FirstOrderMultipliers(1:numExogenizedYX, 1:numEndogenizedE);
+        if ~isequal(size(this.FirstOrderMultipliers), [numExogenizedYX, numEndogenizedE]);
+            this.FirstOrderMultipliers = this.FirstOrderMultipliers(1:numExogenizedYX, 1:numEndogenizedE);
+            if this.Method==solver.Method.SELECTIVE
+                this.KalmanGain = hereCalculateKalmanGain( );
+            end
+        end
         this.MultipliersExogenizedYX = inxExogenizedYX;
         this.MultipliersEndogenizedE = inxEndogenizedE;
         flag = true;
-   end%
+    end%
+
+
+    function kalmanGain = hereCalculateKalmanGain( )
+        numExogenizedYX = nnz(inxExogenizedYX);
+        numEndogenizedE = nnz(inxEndogenizedE);
+        if numExogenizedYX==numEndogenizedE && ~strcmpi(this.PlanMethod, 'Condition')
+            kalmanGain = inv(this.FirstOrderMultipliers);
+        else
+            F = this.FirstOrderMultipliers*data.Sigma*this.FirstOrderMultipliers';
+            kalmanGain = data.Sigma*this.FirstOrderMultipliers'/F;
+        end
+    end%
 end%
 

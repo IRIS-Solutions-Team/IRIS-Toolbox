@@ -1,10 +1,10 @@
-function [overrideReal, overrideImag, multiply] = varyStdCorr(this, range, j, opt, varargin)
+function [overrideReal, overrideImag, multiply] = varyStdCorr(this, range, opt, varargin)
 % varyStdCorr  Convert time-varying std and corr to stdcorr vector
 %
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
@@ -37,7 +37,7 @@ startRange = range(1);
 endRange = range(end);
 numPeriods = numel(range);
 
-d = hereProcessOverrideOption(j, opt);
+d = hereProcessOverrideOption(opt);
 
 overrideReal = nan(numPeriods, nsx);
 if includeOverrideImag
@@ -105,19 +105,10 @@ end%
 %
 
 
-function d = hereProcessOverrideOption(j, opt)
+function d = hereProcessOverrideOption(opt)
     d = [ ];
     if isfield(opt, 'Override') && ~isempty(opt.Override)
         d = opt.Override;
-    end
-    if ~isempty(j)
-        if isempty(d)
-            d = j;
-        else
-            thisError = { 'Model:CannotCombineTuneAndOption' 
-                          'Cannot combine a nonempty conditioning databank and option Override=' };
-            throw(exception.Base(thisError, 'error'));
-        end
     end
 end%
 

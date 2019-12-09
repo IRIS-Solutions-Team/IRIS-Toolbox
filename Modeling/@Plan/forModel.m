@@ -53,9 +53,10 @@ function this = forModel(varargin)
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('Plan.Plan');
-    parser.addRequired('model', @(x) isa(x, 'model.Plan'));
+    parser.addRequired('model', @(x) isa(x, 'shared.Plan'));
     parser.addRequired('simulationRange', @DateWrapper.validateProperRangeInput);
     parser.addParameter({'DefaultAnticipationStatus', 'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter('Method', 'Exogenize', @(x) isequal(x, @auto) || validate.anyString(x, 'Exogenize', 'Condition'));
 end
 parser.parse(varargin{:});
 opt = parser.Options;
@@ -81,6 +82,13 @@ this.IdOfUnanticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int
 
 this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, numEndogenous, 1);
 this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, numExogenous, 1);
+
+this.Method = opt.Method;
+if strcmpi(this.Method, 'Exogenize')
+    this.AllowUnderdetermined = false;
+else
+    this.AllowUnderdetermined = true;
+end
 
 end%
 
