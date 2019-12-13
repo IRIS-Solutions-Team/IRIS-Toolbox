@@ -22,7 +22,7 @@ classdef If < parser.control.Conditional
         
         
         function construct(this, c, sh)
-            import parser.control.*;
+            import parser.control.*
             keyIf = Keyword.IF;
             keyElseif = Keyword.ELSEIF;
             keyElse = Keyword.ELSE;
@@ -77,7 +77,7 @@ classdef If < parser.control.Conditional
             for i = 1 : length(this.IfCond)
                 try
                     cond = this.IfCond{i};
-                    if ~isempty(p.StoreForCtrl) && ~isempty(strfind(cond, '?'))
+                    if ~isempty(p.StoreForCtrl) && contains(cond, '?')
                         cond = For.substitute(cond, p);
                     end
                     value = Preparser.eval(cond, p.Assigned, p);
