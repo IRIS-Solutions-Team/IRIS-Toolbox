@@ -1,6 +1,6 @@
 function legendHandle = hlegend(location, varargin)
 % hlegend  Horizontal legend displayed at top or bottom of figure window
-%
+%{
 % __Syntax__
 %
 % Input arguments marked with a `~` sign may be omitted.
@@ -33,6 +33,7 @@ function legendHandle = hlegend(location, varargin)
 %
 % __Example__
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team

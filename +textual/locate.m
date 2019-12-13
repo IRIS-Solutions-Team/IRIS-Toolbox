@@ -49,6 +49,7 @@ function pos = locate(items, list, varargin)
 %(
 if nargin==1 && isequal(items, '--test')
     pos = functiontests(localfunctions( ));
+    pos = reshape(pos, [ ], 1);
     return
 end
 %)
