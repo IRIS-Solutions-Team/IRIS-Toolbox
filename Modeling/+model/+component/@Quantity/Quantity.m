@@ -120,7 +120,7 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
 
     methods
         function flag = isempty(this)
-            flag = isempty(this.Name);
+            flag = numel(this)==0 || isempty(this.Name);
         end%
 
 

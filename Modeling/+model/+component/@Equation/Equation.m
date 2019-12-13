@@ -22,6 +22,7 @@ classdef Equation < model.component.Insertable
 
 
     methods
+        varargout = equationStartsWith(varargin)
         varargout = getLabelOrInput(varargin)
         varargout = implementDisp(varargin)
         varargout = implementGet(varargin)
