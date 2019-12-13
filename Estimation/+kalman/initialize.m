@@ -125,6 +125,24 @@ return
                 maxVar = 1;
             end
             Pa0(~inxStable, ~inxStable) = eye(numUnitRoots) * maxVar * s.DIFFUSE_SCALE;
+
+            %{
+            Ta_ = s.Ta(~inxStable, :);
+            Sigma = s.Ra(:, 1:ne, 1) * s.Omg(:, :, 1) * s.Ra(:, 1:ne, 1)';
+            Sigma_ = s.Ra(~inxStable, 1:ne, 1) * s.Omg(:, :, 1) * s.Ra(~inxStable, 1:ne, 1)';
+            Ca0 = [ ];
+            Pa0_ = Pa0(~inxStable, ~inxStable);
+            for i = 1 : 500
+                Pa0 = s.Ta*Pa0*s.Ta' + Sigma;
+                keyboard
+                Pa0_ = Ta_*[Pa0_, Pa0stable]*transpose(Ta_) + Sigma_;
+                Ca0 = cat(3, Ca0, covfun.cov2corr(Pa0));
+            end
+            disp(Pa0)
+            disp(maxabs(Pa0(inxStable, inxStable), Pa0stable))
+            disp(maxabs(Pa0_, Pa0(~inxStable, ~inxStable)))
+            keyboard
+            %}
         end
     end%
 
