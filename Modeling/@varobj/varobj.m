@@ -26,6 +26,10 @@ classdef (CaseInsensitiveProperties=true) ...
         % IEqtn  Expressions for conditioning variables
         IEqtn = cell.empty(1, 0) 
 
+        Intercept (1, 1) logical = true
+
+        Order (1, 1) double = 1
+
         % A  Transition matrices with higher orders concatenated horizontally
         A = double.empty(0) 
 
@@ -189,16 +193,18 @@ classdef (CaseInsensitiveProperties=true) ...
     
     methods
         function this = varobj(varargin)
-            persistent inputParser
-            if isempty(inputParser)
-                inputParser = extend.InputParser('varobj.varobj');
-                inputParser.addRequired('EndogenousNames', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                inputParser.addParameter('Comment', '', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-                inputParser.addParameter({'ExogenousNames', 'Exogenous'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                inputParser.addParameter({'GroupNames', 'Groups'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                inputParser.addParameter('Reporting', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                inputParser.addUserDataOption( );
-                inputParser.addBaseYearOption( );
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('varobj.varobj');
+                pp.addRequired('EndogenousNames', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                pp.addParameter('Comment', '', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+                pp.addParameter({'ExogenousNames', 'Exogenous'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                pp.addParameter({'GroupNames', 'Groups'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                pp.addParameter('Reporting', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                pp.addParameter('Order', 1, @(x) validate.roundScalar(x, 0, Inf));
+                pp.addParameter('Intercept', true, @validate.logicalScalar);
+                pp.addUserDataOption( );
+                pp.addBaseYearOption( );
             end
 
             if isempty(varargin)
@@ -210,11 +216,11 @@ classdef (CaseInsensitiveProperties=true) ...
                 return
             end
             
-            inputParser.parse(varargin{:});
+            pp.parse(varargin{:});
 
             % Create Reporting before all other names so that AllNames
             % include reporting names when checking for uniqueness
-            reportingFiles = inputParser.Results.Reporting;
+            reportingFiles = pp.Results.Reporting;
             if ~iscellstr(reportingFiles)
                 reportingFiles = cellstr(reportingFiles);
             end
@@ -224,13 +230,16 @@ classdef (CaseInsensitiveProperties=true) ...
                 end
             end
 
-            opt = inputParser.Options;
-            this.NamesEndogenous = inputParser.Results.EndogenousNames;
+            opt = pp.Options;
+            this.NamesEndogenous = pp.Results.EndogenousNames;
             this.NamesErrors = @auto;
             this.NamesExogenous = opt.ExogenousNames;
             this.GroupNames = opt.GroupNames;
             this.UserData = opt.UserData;
             this.BaseYear = opt.BaseYear;
+
+            this.Intercept = opt.Intercept;
+            this.Order = opt.Order;
         end%
     end
 
