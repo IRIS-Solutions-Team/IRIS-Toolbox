@@ -285,7 +285,6 @@ classdef Term
 
 
 
-
         function flag = isequaln(obj1, obj2)
             if ~isequal(class(obj1), class(obj2))
                 flag = false;
@@ -295,7 +294,12 @@ classdef Term
                 flag = false;
                 return
             end
-            list = setdiff({metaclass(obj1).PropertyList.Name}, 'Expression');
+            if isempty(obj1) && isempty(obj2)
+                flag = true;
+                return
+            end
+            meta = ?regression.Term;
+            list = setdiff({meta.PropertyList.Name}, 'Expression');
             for i = 1 : numel(obj1)
                 if ~isequal(char(obj1(i).Expression), char(obj2(i).Expression))
                     flag = false;
