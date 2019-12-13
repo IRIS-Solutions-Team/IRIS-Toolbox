@@ -26,6 +26,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         IdOfUnanticipatedEndogenized = int16.empty(0, 0)
         
         SigmasOfExogenous = double.empty(0, 0)
+        DefaultSigmasOfExogenous = double.empty(0, 0)
     end
 
 
@@ -81,6 +82,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         varargout = endogenized(varargin)
         varargout = exogenized(varargin)
         varargout = get(varargin)
+        varargout = multiplySigma(varargin)
         varargout = swap(varargin)
 
 
@@ -539,7 +541,13 @@ classdef Plan < matlab.mixin.CustomDisplay
             elseif shift<0
                 for name = this.RANGE_DEPENDENT
                     numRows = size(this.(name), 1);
-                    this.(name) = [ zeros(numRows, -shift, 'like', this.(name)), this.(name) ];
+                    numPages = size(this.(name), 3);
+                    if name=="SigmasOfExogenous"
+                        add = repmat(this.DefaultSigmasOfExogenous, 1, -shift, 1);
+                    else
+                        add = zeros(numRows, -shift, numPages, 'like', this.(name));
+                    end
+                    this.(name) = [add, this.(name)];
                 end
             end
             this.BaseStart = DateWrapper.roundPlus(this.BaseStart, shift);
@@ -581,7 +589,13 @@ classdef Plan < matlab.mixin.CustomDisplay
             elseif shift>0
                 for name = this.RANGE_DEPENDENT
                     numRows = size(this.(name), 1);
-                    this.(name) = [ this.(name), zeros(numRows, shift, 'like', this.(name)) ];
+                    numPages = size(this.(name), 3);
+                    if name=="SigmasOfExogenous"k
+                        add = repmat(this.DefaultSigmasOfExogenous, 1, shift, 1);
+                    else
+                        add = zeros(numRows, shift, numPages, 'like', this.(name));
+                    end
+                    this.(name) = [this.(name), add];
                 end
             elseif shift<0
                 for name = this.RANGE_DEPENDENT
@@ -590,6 +604,7 @@ classdef Plan < matlab.mixin.CustomDisplay
             end
             this.BaseEnd = DateWrapper.roundPlus(this.BaseEnd, shift);
             this.ExtendedEnd = DateWrapper.roundPlus(this.ExtendedEnd, shift);
+            this = resetOutsideBaseRange(this);
             %)
         end%
 
@@ -931,10 +946,24 @@ classdef Plan < matlab.mixin.CustomDisplay
 
         function this = resetOutsideBaseRange(this)
             numExtendedPeriods = this.NumOfExtendedPeriods;
-            posPresample = 1 : round(this.BaseStart-this.ExtendedStart);
-            posPostsample = numExtendedPeriods-round(this.ExtendedEnd-this.BaseEnd) : numExtendedPeriods;
+            numPresample = round(this.BaseStart-this.ExtendedStart);
+            if numPresample==0
+                posPresample = double.empty(1, 0);
+            else
+                posPresample = 1 : numPresample;
+            end
+            numPostsample = round(this.ExtendedEnd-this.BaseEnd);
+            if numPostsample==0
+                posPostsample = double.empty(1, 0);
+            else
+                posPostsample = (numExtendedPeriods-numPostsample+1) : numExtendedPeriods;
+            end
             for name = this.RANGE_DEPENDENT
-                this.(name)(:, [posPresample, posPostsample]) = 0;
+                value = 0;
+                if name=="SigmasOfExogenous"
+                    value = NaN;
+                end
+                this.(name)(:, [posPresample, posPostsample], :) = value;
             end
         end%
     end
