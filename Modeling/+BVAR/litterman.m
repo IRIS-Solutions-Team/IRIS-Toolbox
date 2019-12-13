@@ -1,51 +1,99 @@
-function [this, Y0, K0, Y1, G1] = litterman(rho, mu, lambda, varargin)
+function [this, y0, k, y1, g] = litterman(rho, mu, lambda, varargin)
 % litterman  Litterman's prior dummy observations for BVARs
+%{
+% ## Syntax ##
 %
-% Syntax
-% =======
 %
-%     O = BVAR.litterman(rho, mu, lambda)
+%     [b, Y0, K, Y1, G] = BVAR.litterman(rho, mu, lambda)
 %
-% Input arguments
-% ================
 %
-% * `rho` [ numeric ] - White-noise priors (`rho = 0`) or random-walk
+% ## Input Arguments ##
+%
+%
+% __`rho`__ [ numeric ]
+% >
+% White-noise priors (`rho = 0`) or random-walk
 % priors (`rho = 1`), or something in between.
 %
-% * `mu` [ numeric ] - Weight on dummy observations.
 %
-% * `lambda` [ numeric ] - Exponential increase in weight depending on the
+% __`mu`__ [ numeric ]
+% >
+% Weight on dummy observations.
+%
+%
+% __`lambda`__ [ numeric ]
+% >
+% Exponential increase in weight depending on the
 % lag; `lambda = 0` means all lags are weighted equally.
 %
-% Output arguments
-% =================
 %
-% * `O` [ bvarobj ] - BVAR object that can be passed into the
+% ## Output Arguments ##
+%
+%
+% __`b`__ [ bvarobj ]
+% >
+% BVAR object that can be passed into the
 % [`VAR/estimate`](VAR/estimate) function.
 %
-% Description
-% ============
+%
+% __`y0`__ [ numeric ]
+% >
+% Matrix of dummy observations that will be added to the matrix of LHS
+% observations of the endogenous variables.
+%
+%
+% __`k`__ [ numeric ]
+% >
+% Matrix of dummy observations that will be added to the RHS intercept
+% vector.
+%
+%
+% __`y1`__ [ numeric ]
+% >
+% Matrix of dummy observations that will be added to the RHS matrix of 
+% observations of the lags of the endogenous variables.
+%
+%
+% __`g`__ [ numeric ]
+% >
+% Matrix of dummy observations that will be added to the RHS matrix of
+% observations of exogenous variables (if present).
+%
+%
+% ## Description ##
+%
 %
 % Create Litterman-style dummy prior observations for estimating a VAR
 % model. 
 %
-% * `rho` = 0 is a white-noise prior, `rho` = 1 is a random-walk prior;
+% * `rho=0` is a white-noise prior, `rho=1` is a random-walk prior; a value
+% inbetween is a general autoregressive prior;
 %
 % * `mu` is the weight on the prior (can be a vector of numbers in which
 % case each variable gets different weight); if you use the option
-% `'stdize'` when estimating the BVAR, `mu` can be loosely interpreted as
-% the number of fictitious observations that will pull the estimates
+% `Standardize=` when estimating the VAR, `mu` can be loosely interpreted
+% as the number of fictitious observations that will pull the estimates
 % towards the priors;
 %
 % * `lambda` between 0 and Inf: priors on the `k`-th lag coefficients get
-% `k^lambda` times bigger weights. If `lambda` = 0, all lags are treated
-% equally. The higher the lambda, the more the coefficients are pulled
-% towards the priors (zero in this case);
+% `k^lambda` times bigger weights. If `lambda=0`, all lags are treated
+% equally. Higher lambdas mean that the coefficients at higher lags are
+% more heavily shrunk towards their prior value of zero.
 %
+% The dummy observations are arranged in up to four matrices: $$ y^0 $$ is
+% added to the LHS observations, $$ k $$ is added to the intercept vector
+% (if the intercept is included in the VAR), $$ y^1 $$ is added to the RHS
+% observations of lagged endogenous variables, and $$ g $$ is added to the
+% RHS observations of exogenous variables (if any exogenous variables are
+% present in the VAR).
 %
-% Example
-% ========
+% * $$y^0_{i,j} = \mu \rho$$ for $$i=j$$
 %
+% * $$y^0_{i,j} = 0$$ otherwise
+%
+% ## Example ##
+%
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -72,7 +120,7 @@ this.y1 = @y1;
 this.g1 = @g1;
 
 if ~isempty(varargin) && nargout>1
-    [Y0, K0, Y1, G1] = BVAR.mydummymat(this, varargin{:});
+    [y0, k, y1, g] = BVAR.mydummymat(this, varargin{:});
 end
 
 return
@@ -80,7 +128,7 @@ return
     function Y0 = y0(numY, order, ~, ~)
         nd = numY*order;
         muRho = mu .* rho;
-        if length(muRho) == 1 && numY > 1
+        if length(muRho)==1 && numY>1
             muRho = muRho(ones(1, numY), 1);
         end
         Y0 = [diag(muRho), zeros(numY, nd-numY)];
@@ -95,11 +143,11 @@ return
 
     function Y1 = y1(numY, order, ~, ~)
         sgm = mu;
-        if length(sgm) == 1 && numY > 1
+        if length(sgm)==1 && numY>1
             sgm = sgm(ones(1, numY), 1);
         end
         sgm = sgm(:, ones(1, order));
-        if lambda > 0
+        if lambda>0
             lags = (1 : order).^lambda;
             lags = lags(ones(1, numY), :);
             sgm = sgm .* lags;
