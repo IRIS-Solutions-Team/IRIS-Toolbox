@@ -12,23 +12,23 @@ TYPE = @int8;
 %--------------------------------------------------------------------------
 
 x = parser.theparser.Quantity( );
-x.Keyword = '!measurement_variables';
+x.Keyword = '!measurement-variables';
 x.Type = TYPE(1);
 this.Block{end+1} = x;
 
 x = parser.theparser.Quantity( );
-x.Keyword = '!transition_variables';
+x.Keyword = '!transition-variables';
 x.Type = TYPE(2);
 x.IsEssential = true;
 this.Block{end+1} = x;
 
 x = parser.theparser.Quantity( );
-x.Keyword = '!measurement_shocks';
+x.Keyword = '!measurement-shocks';
 x.Type = TYPE(31);
 this.Block{end+1} = x;
 
 x = parser.theparser.Quantity( );
-x.Keyword = '!transition_shocks';
+x.Keyword = '!transition-shocks';
 x.Type = TYPE(32);
 this.Block{end+1} = x;
 
@@ -39,25 +39,25 @@ x.IsReservedPrefix = false;
 this.Block{end+1} = x;
 
 x = parser.theparser.Quantity( );
-x.Keyword = '!exogenous_variables';
+x.Keyword = '!exogenous-variables';
 x.Type = TYPE(5);
 this.Block{end+1} = x;
 
 x = parser.theparser.Log( );
-x.Keyword = '!log_variables';
+x.Keyword = '!log-variables';
 x.TypeCanBeLog = { TYPE(1)
                    TYPE(2)
                    TYPE(5) };
 this.Block{end+1} = x;
 
 x = parser.theparser.Equation( );
-x.Keyword = '!measurement_equations';
+x.Keyword = '!measurement-equations';
 x.Type = TYPE(1);
 x.IsAppliedSteadyOnlyOpt = true;
 this.Block{end+1} = x;
 
 x = parser.theparser.Equation( );
-x.Keyword = '!transition_equations';
+x.Keyword = '!transition-equations';
 x.Type = TYPE(2);
 x.IsAppliedSteadyOnlyOpt = true;
 x.IsEssential = true;
@@ -102,45 +102,66 @@ x.Keyword = '!autoswaps-steady';
 x.Type = TYPE(2);
 this.Block{end+1} = x;
 
+
 this.AltKeyword = [ 
     this.AltKeyword 
-    { '\$\<([a-zA-Z]\w*)\>(?!\$)',                '&$1' % Steady references
-      '!allbut\>',                                '!all-but'
-      '!all_but\>',                               '!all-but'
-      '!equations\>',                             '!transition_equations'
-      '!variables\>',                             '!transition_variables'
-      '(?<=!\w+)-(?=equations|variables|shocks)', '_' % Use dashes instead of underscores
-      '!shocks\>',                                '!transition_shocks'
-      '\$\[',                                     '<' % Open interpolation
-      '\]\$',                                     '>' % Close interpolation
-      '!ttrend\>',                                'ttrend' 
-      '===',                                      '=#'
-      '!dynamic_autoexog',                        '!autoswaps-simulate'
-      '!steady_autoexog',                         '!autoswaps-steady'          } ];
+    { 
+        '!allbut',           '!all-but'
+        '!all_but',          '!all-but'
+        '!equations',        '!transition-equations'
+        '!variables',        '!transition-variables'
+        '!shocks',           '!transition-shocks'
+        '!transition_',      '!transition-'
+        '!measurement_',     '!measurement-'
+        '!exogenous_',       '!exogenous-'
+        '!log_variables',    '!log-variables'
+        '$[',                '<' % Open interpolation
+        ']$',                '>' % Close interpolation
+        '!ttrend',           'ttrend' 
+        '!dynamic_autoexog', '!autoswaps-simulate'
+        '!steady_autoexog',  '!autoswaps-steady'          
+    } 
+];
+
+
+this.AltKeywordRegexp = [ 
+    this.AltKeywordRegexp 
+    { 
+        '\$\<([a-zA-Z]\w*)\>(?!\$)',              '&$1' % Steady references
+    } 
+];
 
 
 this.AltKeywordWarn = [ 
     this.AltKeywordWarn
-    { '!equations:dtrends\>', '!dtrends'
-      '!dtrends:measurement\>', '!dtrends'
-      '!variables:transition\>', '!transition_variables'
-      '!shocks:transition\>', '!transition_shocks'
-      '!equations:transition\>', '!transition_equations'
-      '!variables:measurement\>', '!measurement_variables'
-      '!shocks:measurement\>', '!measurement_shocks'
-      '!equations:measurement\>', '!measurement_equations'
-      '!variables:log\>', '!log_variables'
-      '!autoexogenise\>', '!autoswaps-simulate'
-      '!autoexogenize\>', '!autoswaps-simulate' } ];
+    { 
+        '!equations:dtrends',      '!dtrends'
+        '!dtrends:measurement',    '!dtrends'
+        '!variables:transition',   '!transition-variables'
+        '!shocks:transition',      '!transition-shocks'
+        '!equations:transition',   '!transition-equations'
+        '!variables:measurement',  '!measurement-variables'
+        '!shocks:measurement',     '!measurement-shocks'
+        '!equations:measurement',  '!measurement-equations'
+        '!variables:log',          '!log-variables'
+        '!autoexogenise',          '!autoswaps-simulate'
+        '!autoexogenize',          '!autoswaps-simulate' 
+    } 
+];
+
 
 this.OtherKeyword = [ this.OtherKeyword, ...
                       { '!all-but', '!ttrend', '!min' } ];
 
-this.AssignOrder = [ this.AssignOrder, ...
-                     TYPE(4), ...
-                     TYPE(5), ...
-                     TYPE(2), ...
-                     TYPE(1)                 ];
+
+this.AssignOrder = [ 
+    this.AssignOrder, ...
+    TYPE(4), ...
+    TYPE(5), ...
+    TYPE(2), ...
+    TYPE(1), ...
+];
+
 
 setupRpteq(this);
 

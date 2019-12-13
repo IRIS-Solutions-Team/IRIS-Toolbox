@@ -13,6 +13,7 @@ classdef TheParser < handle
         Code = char.empty(1, 0)
         Block = cell.empty(1, 0)
         AltKeyword = cell.empty(0, 2)
+        AltKeywordRegexp = cell.empty(0, 2)
         AltKeywordWarn = cell.empty(0, 2)
         OtherKeyword = cell.empty(1, 0)
         AssignedDatabank = struct( )

@@ -4,7 +4,7 @@ function blockCode = readBlockCode(this)
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
@@ -25,9 +25,6 @@ inx = ~cellfun(@isempty, listBlockKeywords);
 eob = sprintf('|%s', listBlockKeywords{inx});
 eob = ['(?=$', eob, ')'];
 
-% Remove redundant semicolons
-this.Code = regexprep(this.Code, '(\s*;){2,}', ';');
-
 % Read blocks
 blockCode = repmat({''}, 1, numBlocks);
 ixValidEssential = true(1, numBlocks);
@@ -35,14 +32,14 @@ for i = 1 : numBlocks
     if isempty(this.Block{i}.Keyword)
         continue
     end
-    % Read a whole block.
+    % Read a whole block
     pattern = [this.Block{i}.Keyword, '[:,;\s]+(.*?)', eob];
     tkn = regexpi(this.Code, pattern, 'tokens');
     tkn = [ tkn{:} ];
     if ~isempty(tkn)
         precheck(this.Block{i}, this, tkn);
         blockCode{i} = [ tkn{:} ];
-        % Run block specific regexp replace.
+        % Run block specific regexp replace
         if ~isempty(this.Block{i}.Replace)
             ptn = this.Block{i}.Replace(:,1).';
             rpl = this.Block{i}.Replace(:,2).';
@@ -55,8 +52,10 @@ for i = 1 : numBlocks
 end
 
 if any(~ixValidEssential)
-    throw( exception.ParseTime('TheParser:EssentialBlocksMissing', 'error'), ...
-           listBlockKeywords{~ixValidEssential} );
+    throw( ...
+        exception.ParseTime('TheParser:EssentialBlocksMissing', 'error'), ...
+        listBlockKeywords{~ixValidEssential} ...
+    );
 end
 
 end%
@@ -81,8 +80,10 @@ function checkKeywords(this, listBlockKeywords)
     end
 
     if any(~inxValid)
-        throw( exception.ParseTime('TheParser:INVALID_KEYWORD', 'error'), ...
-               listKeywords{~inxValid} );
+        throw( ...
+            exception.ParseTime('TheParser:INVALID_KEYWORD', 'error'), ...
+            listKeywords{~inxValid} ...
+        );
     end
 end%
 
