@@ -1,83 +1,107 @@
-function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(this, numDraws, varargin)%
-% arwm  Adaptive random-walk Metropolis posterior simulator.
-%
+function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(this, numDraws, varargin)
+% arwm  Adaptive random-walk Metropolis posterior simulator
+%{
 % __Syntax__
 %
-%     [Theta, LogPost, AcceptRatio, Poster] = arwm(Pos, NumOfDraws, ...)
-%     [Theta, LogPost, AcceptRatio, Poster, Sigma, FinalCov] = arwm(Pos, NumOfDraws, ...)
+%
+%     [Theta, LogPost, AcceptRatio, Poster, Scale, FinalCov] = arwm(Pos, NumOfDraws, ...)
 %
 %
 % __Input Arguments__
 %
-% * `Pos` [ poster ] - Initialised posterior simulator object.
+% __`Pos`__ [ poster ]
+% Initialised posterior simulator object.
 %
-% * `numDraws` [ numeric ] - Length of the chain not including burn-in.
+% __`numDraws`__ [ numeric ]
+% Length of the chain not including burn-in.
 %
 %
 % __Output Arguments__
 %
-% * `Theta` [ numeric ] - MCMC chain with individual parameters in rows.
+% __`Theta`__ [ numeric ]
+% MCMC chain with individual parameters in rows.
 %
-% * `LogPost` [ numeric ] - Vector of log posterior density (up to a
+% __`LogPost`__ [ numeric ]
+% Vector of log posterior density (up to a
 % constant) in each draw.
 %
-% * `AcceptRatio` [ numeric ] - Vector of cumulative acceptance ratios.
+% __`AcceptRatio`__ [ numeric ]
+% Vector of cumulative acceptance ratios.
 %
-% * `Poster` [ poster ] - Posterior simulator object with its properties
+% __`Poster`__ [ poster ]
+% Posterior simulator object with its properties
 % updated so to capture the final state of the simulation.
 %
-% * `Sigma` [ numeric ] - Vector of proposal scale factors in each draw.
+% __`Scale`__ [ numeric ]
+% Vector of proposal scale factors in each draw.
 %
-% * `FinalCov` [ numeric ] - Final proposal covariance matrix; the final
+% __`FinalCov`__ [ numeric ]
+% Final proposal covariance matrix; the final
 % covariance matrix of the random walk step is Scale(end)^2*FinalCov.
 %
 %
 % __Options__
 %
-% * `AdaptProposalCov=0.5` [ numeric ] - Speed of adaptation of the
-% Cholesky factor of the proposal covariance matrix towards the target
-% acceptanace ratio, `TargetAR`; zero means no adaptation.
 %
-% * `AdaptScale=1` [ numeric ] - Speed of adaptation of the scale factor to
+% __`AdaptShape=0.5`__ [ numeric ]
+% >
+% Speed of adaptation of the Cholesky factor of the proposal covariance
+% matrix towards the target acceptanace ratio, `TargetAR`; zero means no
+% adaptation.
+%
+%
+% __`AdaptScale=1`__ [ numeric ]
+% >
+% Speed of adaptation of the scale factor to
 % deviations of acceptance ratios from the target ratio, `targetAR`.
 %
-% * `BurnIn=0.10` [ numeric ] - Number of burn-in draws entered
+% __`BurnIn=0.10`__ [ numeric ]
+% Number of burn-in draws entered
 % either as a percentage of total draws (between 0 and 1) or directly as a
 % number (integer greater that one). Burn-in draws will be added to the
 % requested number of draws `NumOfDraws` and discarded after the posterior
 % simulation.
 %
-% * `FirstPrefetch=Inf` [ numeric | `Inf` ] - First draw where
+% __`FirstPrefetch=Inf`__ [ numeric | `Inf` ]
+% First draw where
 % parallelized pre-fetching will be used; `Inf` means no pre-fetching.
 %
-% * `Gamma=0.8` [ numeric ] - The rate of decay at which the scale and/or
+% __`Gamma=0.8`__ [ numeric ]
+% The rate of decay at which the scale and/or
 % the proposal covariance will be adapted with each new draw.
 %
-% * `InitScale=1/3` [ numeric ] - Initial scale factor by which the initial
+% __`InitScale=1/3`__ [ numeric ]
+% Initial scale factor by which the initial
 % proposal covariance will be multiplied; the initial value will be adapted
 % to achieve the target acceptance ratio.
 %
-% * `LastAdapt=Inf` [ numeric | `Inf` ] - Last point at which the proposal
+% __`LastAdapt=Inf`__ [ numeric | `Inf` ]
+% Last point at which the proposal
 % covariance will be adapted; `Inf` means adaptation will continue until
 % the last draw. Can also be entered as a percentage of total draws (a
 % number strictly between 0 and 1). 
 %
-% * `NStep=1` [ numeric ] - Number of pre-fetched steps computed in
+% __`NStep=1`__ [ numeric ]
+% Number of pre-fetched steps computed in
 % parallel; only works with `FirstPrefetch=` smaller than `NumOfDraws`.
 %
-% * `Progress=false` [ `true` | `false` ] - Display a progress bar in the
+% __`Progress=false`__ [ `true` | `false` ]
+% Display a progress bar in the
 % command window.
 %
-% * `SaveAs=''` [ char ] - File name where results will be saved when the
+% __`SaveAs=''`__ [ char ]
+% File name where results will be saved when the
 % option `SaveEvery=` is used.
 %
-% * `SaveEvery=Inf` [ numeric | `Inf` ] - Every N draws will be saved to an
+% __`SaveEvery=Inf`__ [ numeric | `Inf` ]
+% Every N draws will be saved to an
 % HDF5 file, and removed from workspace immediately; no values will be
 % returned in the output arguments `Theta`, `LogPosterior`, `AcceptRatio`,
-% `Sigma`; the option `SaveAs=` must be used to specify the file name;
+% `Scale`; the option `SaveAs=` must be used to specify the file name;
 % `Inf` means a normal run with no saving.
 %
-% * `TargetAR=0.234` [ numeric ] - Target acceptance ratio.
+% __`TargetAR=0.234`__ [ numeric ]
+% Target acceptance ratio.
 %
 %
 % __Description__
@@ -94,47 +118,39 @@ function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(thi
 % at the point where the previous ended.
 %
 %
-% _Parallelised ARWM_
-%
-% Set `'nStep='` greater than `1`, and `'firstPrefetch='` smaller than
-% `numDraws` to start a pre-fetching parallelised algorithm (pre-fetched will
-% be all draws starting from `'firstPrefetch='`); to that end, a pool of
-% parallel workers (using e.g. `matlabpool` from the Parallel Computing
-% Toolbox) must be opened before calling `arwm`.
-%
-% With pre-fetching, all possible paths `'nStep='` steps ahead (i.e. all
-% possible combinations of reject/accept) are pre-evaluated in parallel, 
-% and then the resulting path is selected. Adapation then occurs only every
-% `'nStep='` steps, and hence the results will always somewhat differ from
-% a serial run. Identical results can be obtained by turning down
-% adaptation before pre-fetching starts, i.e. by setting `'lastAdapt='`
-% smaller than `'firstPrefetch='` (and, obviously, by re-setting the random
-% number generator).
-% 
-%
-% __References__
-%
-% * Brockwell, A.E., 2005. "Parallel Markov Chain Monte Carlo Simulation
-% by Pre-Fetching, " CMU Statistics Dept. Tech. Report 802.
-%
-% * Strid, I., 2009. "Efficient parallelisation of Metropolis-Hastings
-% algorithms using a prefetching approach, " SSE/EFI Working Paper Series in
-% Economics and Finance No. 706.
-%
 % __Example__
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team & Bojan Bejanov & Troy Matheson
 
-% Validate required inputs.
-pp = inputParser( );
-pp.addRequired('Pos', @(x) isa(x, 'poster'));
-pp.addRequired('numDraws', @isnumericscalar);
-pp.parse(this, numDraws);
-
-% Parse options.
-opt = passvalopt('poster.arwm', varargin{:});
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('poster.arwm');
+    %
+    % Required arguments
+    %
+    addRequired(pp, 'poster', @(x) isa(x, 'poster'));
+    addRequired(pp, 'numOfDraws', @(x) validate.roundScalar(x, 1, Inf));
+    %
+    % Options
+    %
+    addParameter(pp, {'AdaptScale'}, 1, @(x) validate.numericScalar(x, 0, Inf));
+    addParameter(pp, {'AdaptShape', 'AdaptProposalCov'}, 0.5, @(x) validate.numericScalar(x, 0, Inf));
+    addParameter(pp, 'burnin', 0.10, @(x) validate.numericScalar(x, 0, 1) || validate.roundScalar(x, 1, Inf));
+    addParameter(pp, {'firstPrefetch', 'firstParallel'}, 1, @(x) validate.roundScalar(x, 1, Inf));
+    addParameter(pp, 'gamma', 0.8, @(x) validate.numericScalar(x, 0.5, 1) || isequaln(x, NaN)); 
+    addParameter(pp, 'initscale', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x, 0+eps));
+    addParameter(pp, 'lastadapt', Inf, @(x) validate.nummericScalar(x, 0, 1) || validate.roundScalar(x, 1, Inf));
+    addParameter(pp, 'progress', false, @validate.logicalScalar);
+    addParameter(pp, 'saveevery', Inf, @(x) validate.roundScalar(x, 1, Inf));
+    addParameter(pp, 'saveas', '', @ischar);
+    addParameter(pp, 'targetar', 0.234, @(x) validate.numericScalar(x, 0+eps, 0.5));
+	addParameter(pp, {'nstep', 'nsteps'}, 1, @(x) validate.roundScalar(x, 1, Inf));
+end
+parse(pp, this, numDraws, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
@@ -150,7 +166,7 @@ nPar = length(this.ParamList);
 
 % Adaptive random walk Metropolis simulator.
 nAlloc = min(numDraws, opt.saveevery);
-isSave = opt.saveevery <= numDraws;
+isSave = opt.saveevery<=numDraws;
 if isSave
     prepareSave( );
 end
@@ -172,8 +188,8 @@ numDrawsTotal = numDraws + burnin;
 
 % Adaptation parameters
 gamma = opt.gamma;
-k1 = opt.adaptscale;
-k2 = opt.adaptproposalcov;
+k1 = opt.AdaptScale;
+k2 = opt.AdaptShape;
 targetAr = opt.targetar;
 
 doChkParallel( );
@@ -342,7 +358,7 @@ return
         
         % Adapt the scale and/or proposal covariance.
         if isAdaptive
-            adapt( );
+            hereAdapt( );
         end
         
         % Add the j-th theta to the chain unless still burning in
@@ -397,7 +413,7 @@ return
         end%
         
         
-        function adapt( )
+        function hereAdapt( )
             nu = (j+j0)^(-gamma);
             phi = nu*(alpha - targetAr);
             if isAdaptiveScale
