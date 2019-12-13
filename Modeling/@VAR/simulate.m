@@ -294,4 +294,5 @@ if opt.Reporting && ~isempty(this.Reporting)
     end
 end
 
-end
+end%
+

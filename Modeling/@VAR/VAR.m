@@ -66,6 +66,7 @@
 %
 %
 % __Getting Information about VAR Objects__
+% >
 %
 %   addToDatabank - Add VAR parameters to databank or create new databank
 %   comment - Get or set user comments in an IRIS object
@@ -87,6 +88,7 @@
 %
 %
 % __Referencing VAR Objects__
+% >
 %
 %   group - Retrieve VAR object from panel VAR for specified group of data
 %   subsasgn - Subscripted assignment for VAR objects
@@ -94,6 +96,7 @@
 %
 %
 % __Simulation, Forecasting and Filtering__
+% >
 %
 %   ferf - Forecast error response function
 %   filter - Filter data using a VAR model
@@ -109,8 +112,7 @@
 %   alter - Expand or reduce the number of alternative parameterisations within a VAR object
 %   backward - Backward VAR process
 %   demean - Remove constant and the effect of exogenous inputs from VAR object
-%   horzcat - Combine two compatible VAR objects in one object with multiple parameterisations
-%   integrate - Integrate VAR process and data associated with it
+%   horzcat - Combine two compatible VAR objects in one object with multiple parameterisations integrate - Integrate VAR process and data associated with it
 %   xasymptote - Set or get asymptotic assumptions for exogenous inputs
 %
 %
@@ -134,9 +136,9 @@
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
     
-classdef (CaseInsensitiveProperties=true) ...
-         VAR < varobj ...
-             & shared.DatabankPipe
+classdef (CaseInsensitiveProperties=true) VAR ...
+    < varobj ...
+    & shared.DatabankPipe
 
     properties
         G = [ ] % Coefficients at cointegrating vector in VEC form.
@@ -249,67 +251,98 @@ classdef (CaseInsensitiveProperties=true) ...
     
     methods
         function this = VAR(varargin)
-            % VAR  Create new empty reduced-form VAR object.
-            %
-            %
-            % __Syntax for Plain VAR and VAR with Exogenous Variables__
-            %
-            %     V = VAR(YNames)
-            %     V = VAR(YNames, 'Exogenous=', XNames)
-            %
-            %
-            % __Syntax for Panel VAR and VAR with Exogenous Variables__
-            %
-            %     V = VAR(YNames, 'Groups=', GroupNames)
-            %     V = VAR(YNames, 'Exogenous=', XNames, 'Groups=', GroupNames)
-            %
-            %
-            % __Output Arguments__
-            %
-            % * `V` [ VAR ] - New empty VAR object.
-            %
-            % * `YNames` [ cellstr | char | function_handle ] - Names of endogenous variables.
-            %
-            % * `XNames` [ cellstr | char | function_handle ] - Names of exogenous inputs.
-            %
-            % * `GroupNames` [ cellstr | char | function_handle ] - Names of groups for
-            % panel VAR estimation.
-            %
-            %
-            % __Options__
-            %
-            % * `'Exogenous='` [ cellstr | *empty* ] - Names of exogenous regressors;
-            % one of the names can be `!ttrend`, a linear time trend, which will be
-            % created automatically each time input data are required, and then
-            % included in the output database under the name `ttrend`.
-            %
-            % * `'Groups='` [ cellstr | *empty* ] - Names of groups for panel VAR
-            % estimation.
-            %
-            %
-            % __Description__
-            %
-            % this function creates a new empty VAR object. It is usually followed by
-            % an [`estimate`](VAR/estimate) command to estimate the coefficient
-            % matrices in the VAR object using some data.
-            %
-            %
-            % __Example__
-            %
-            % To estimate a VAR, first create an empty VAR object specifying the
-            % variable names, and then run the [VAR/estimate](VAR/estimate) function on
-            % it, e.g.
-            %
-            %     v = VAR({'x', 'y', 'z'});
-            %     [v, d] = estimate(v, d, range);
-            %
-            % where the input database `d` ought to contain time series `d.x`, `d.y`, 
-            % `d.z`.
-            
-            % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2019 IRIS Solutions Team.
-            
-            %--------------------------------------------------------------------------
+% VAR  Create new empty reduced-form VAR object.
+%
+%
+% ## Syntax for Plain VAR and VAR with Exogenous Variables ##
+%
+%     V = VAR(YNames)
+%     V = VAR(YNames, 'Exogenous=', XNames)
+%
+%
+% ## Syntax for Panel VAR and VAR with Exogenous Variables ##
+%
+%     V = VAR(YNames, 'Groups=', GroupNames)
+%     V = VAR(YNames, 'Exogenous=', XNames, 'Groups=', GroupNames)
+%
+%
+% ## Output Arguments ##
+%
+%
+% __`V`__ [ VAR ] –
+% >
+% New empty VAR object.
+%
+%
+% __`YNames`__ [ cellstr | char | function_handle ] –
+% >
+% Names of endogenous variables.
+%
+%
+% __`XNames`__ [ cellstr | char | function_handle ] –
+% >
+% Names of exogenous inputs.
+%
+%
+% __`GroupNames`__ [ cellstr | char | function_handle ] –
+% >
+% Names of groups for
+% panel VAR estimation.
+%
+%
+% ## Options ##
+%
+%
+% __`Exogenous=[ ]` [ cellstr | string | empty ] 
+% >
+% Names of exogenous regressors;
+% one of the names can be `!ttrend`, a linear time trend, which will be
+% created automatically each time input data are required, and then
+% included in the output database under the name `ttrend`.
+%
+%
+% __`Groups=[ ]`__ [ cellstr | string | empty ] 
+% >
+% Names of groups for panel VAR estimation.
+%
+%
+% __`Intercept=true` [ `true` | `false` ] 
+% >
+% Include the intercept in the VAR model.
+%
+%
+% __`Order=1` [ numeric ] 
+% >
+% Order of the VAR model, i.e. the number of lags of endogenous
+% variables included in estimation.
+%
+%
+% ## Description ## 
+%
+%
+% Create a new empty VAR object. The VAR constructor is usually
+% followed by an [`estimate`](VAR/estimate) command to estimate
+% the coefficient matrices in the VAR object using some data.
+%
+%
+% ## Example ##
+%
+%
+% To estimate a VAR, first create an empty VAR object specifying the
+% variable names, and then run the [VAR/estimate](VAR/estimate) function on
+% it, e.g.
+%
+%     v = VAR({'x', 'y', 'z'});
+%     [v, d] = estimate(v, d, range);
+%
+% where the input database `d` is expected to include at least the time
+% series `d.x`, `d.y`, `d.z`.
+%
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
             
             this = this@varobj(varargin{:});
             
