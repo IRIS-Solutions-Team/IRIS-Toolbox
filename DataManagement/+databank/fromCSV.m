@@ -29,7 +29,7 @@ function outputDatabank = fromCSV(fileName, varargin)
 % __`Case=''`__ [ `'lower'` | `'upper'` | empty ] - 
 % Change case of variable names.
 %
-% __`CommentRow={'Comment', 'Comments'}`__ [ char | cellstr ] - 
+% __`CommentRow={'Comment', 'Comments'}`__ [ char | cellstr | numeric ] - 
 % Label at the start of row that will be used to create comments in time
 % series.
 %
@@ -60,7 +60,7 @@ function outputDatabank = fromCSV(fileName, varargin)
 % Format of input data file; `'auto'` means the format will be determined
 % by the file extension.
 %
-% __`NameRow={'', Variables', 'Time'}`__ [ char | cellstr | numeric ] - 
+% __`NameRow={'', 'Variables', 'Time'}`__ [ char | cellstr | numeric ] - 
 % String, or cell array of possible strings, that is found at the beginning
 % (in the first cell) of the row with variable names, or the line number at
 % which the row with variable names appears (first row is numbered 1).
@@ -288,7 +288,7 @@ end
 
 
 % /////////////////////////////////////////////////////////////////////////
-[data, inxOfMissing, dateCol] = hereReadNumericData( );
+[data, inxMissing, dateCol] = hereReadNumericData( );
 % /////////////////////////////////////////////////////////////////////////
 
 
@@ -528,9 +528,9 @@ return
 
 
 
-    function [data, inxOfMissing, dateCol] = hereReadNumericData( )
+    function [data, inxMissing, dateCol] = hereReadNumericData( )
         data = double.empty(0, 0);
-        inxOfMissing = logical.empty(1, 0);
+        inxMissing = logical.empty(1, 0);
         dateCol = cell.empty(1, 0);
         if isempty(file)
             return
@@ -600,7 +600,7 @@ return
             throw( exception.Base('Dbase:InvalidLoadFormat', 'error'), fileName ); %#ok<GTARG>
         end
         data = data{1};
-        inxOfMissing = false(size(data));
+        inxMissing = false(size(data));
         % The value `-Inf` indicates a possible missing value (but may be a
         % genuine `-Inf`, too). Re-read the table again, with missing
         % values represented by `NaN` this time to pin down missing values.
@@ -612,11 +612,11 @@ return
                               'CommentStyle', 'Matlab', 'CollectOutput', true );
             data1 = data1{1};
             isMaybeMissing1 = isnan(real(data1));
-            inxOfMissing(isMaybeMissing & isMaybeMissing1) = true;
+            inxMissing(isMaybeMissing & isMaybeMissing1) = true;
         end
         if strcmpi(opt.Continuous, 'Descending')
             data = flipud(data);
-            inxOfMissing = flipud(inxOfMissing);
+            inxMissing = flipud(inxMissing);
             dateCol = dateCol(end:-1:1);
         end
     end% 
@@ -635,14 +635,17 @@ return
                 dateCol(1:end-1) = {''};
             end
             % Rows with empty dates.
-            inxOfEmptyDates = cellfun(@isempty, dateCol);
+            inxEmptyDates = cellfun(@isempty, dateCol);
         end
         % Convert date strings
-        if ~isempty(dateCol) && ~all(inxOfEmptyDates)
-            dates(~inxOfEmptyDates) = str2dat(dateCol(~inxOfEmptyDates), ...
+        if ~isempty(dateCol) && ~all(inxEmptyDates)
+            dates(~inxEmptyDates) = str2dat( ...
+                dateCol(~inxEmptyDates), ...
                 'DateFormat=', opt.DateFormat, ...
+                'Months=', opt.Months, ...
                 'EnforceFrequency=', opt.EnforceFrequency, ...
-                'FreqLetters=', opt.FreqLetters);
+                'FreqLetters=', opt.FreqLetters ...
+            );
             if strcmpi(opt.Continuous, 'Ascending')
                 dates(2:end) = dates(1) + (1 : numDates-1);
             elseif strcmpi(opt.Continuous, 'Descending')
@@ -708,7 +711,7 @@ return
                     iData = nan(numOfPeriods, numOfColumns)*unit;
                     iMiss = false(numOfPeriods, numOfColumns);
                     iData(posOfDates, :) = data(~inxNaNDates, count+(1:numOfColumns));
-                    iMiss(posOfDates, :) = inxOfMissing(~inxNaNDates, count+(1:numOfColumns));
+                    iMiss(posOfDates, :) = inxMissing(~inxNaNDates, count+(1:numOfColumns));
                     iData(iMiss) = NaN*unit;
                     iData = reshape(iData, [numOfPeriods, tmpSize(2:end)]);
                     cmt = cmtRow(count+(1:numOfColumns));
@@ -727,7 +730,7 @@ return
                 % Numeric data.
                 numOfColumns = prod(tmpSize(2:end));
                 iData = reshape(data(1:tmpSize(1), count+(1:numOfColumns)), tmpSize);
-                iMiss = reshape(inxOfMissing(1:tmpSize(1), count+(1:numOfColumns)), tmpSize);
+                iMiss = reshape(inxMissing(1:tmpSize(1), count+(1:numOfColumns)), tmpSize);
                 iData(iMiss) = NaN;
                 % Convert to the right numeric class.
                 if true % ##### MOSW
@@ -787,16 +790,16 @@ return
 
 
     function hereCheckNames( )
-        inxOfEmpty = cellfun(@isempty, nameRow);
+        inxEmpty = cellfun(@isempty, nameRow);
         if strcmpi(opt.OutputType, 'struct')
-            inxOfValid = cellfun(@isvarname, nameRow);
+            inxValid = cellfun(@isvarname, nameRow);
         else
-            inxOfValid = true(size(nameRow));
+            inxValid = true(size(nameRow));
         end
         % Index of non-empty, invalid names that need to be regenerated
-        inxToGenerate = ~inxOfEmpty & ~inxOfValid;
+        inxToGenerate = ~inxEmpty & ~inxValid;
         % Index of valid names that will be protected
-        inxToProtect = ~inxOfEmpty & inxOfValid;
+        inxToProtect = ~inxEmpty & inxValid;
         % `genvarname` now guarantees uniqueness of names by appending `1`, `2`, 
         % etc. at the end of the string; did not use to be the case in older
         % versions of Matlab.
