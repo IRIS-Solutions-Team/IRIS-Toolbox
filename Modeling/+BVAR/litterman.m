@@ -1,21 +1,21 @@
-function [This,Y0,K0,Y1,G1] = litterman(Rho,Mu,Lmb,varargin)
-% litterman  Litterman's prior dummy observations for BVARs.
+function [this, Y0, K0, Y1, G1] = litterman(rho, mu, lambda, varargin)
+% litterman  Litterman's prior dummy observations for BVARs
 %
 % Syntax
 % =======
 %
-%     O = BVAR.litterman(Rho,Mu,Lmb)
+%     O = BVAR.litterman(rho, mu, lambda)
 %
 % Input arguments
 % ================
 %
-% * `Rho` [ numeric ] - White-noise priors (`Rho = 0`) or random-walk
-% priors (`Rho = 1`), or something in between.
+% * `rho` [ numeric ] - White-noise priors (`rho = 0`) or random-walk
+% priors (`rho = 1`), or something in between.
 %
-% * `Mu` [ numeric ] - Weight on dummy observations.
+% * `mu` [ numeric ] - Weight on dummy observations.
 %
-% * `Lmb` [ numeric ] - Exponential increase in weight depending on the
-% lag; `Lmb = 0` means all lags are weighted equally.
+% * `lambda` [ numeric ] - Exponential increase in weight depending on the
+% lag; `lambda = 0` means all lags are weighted equally.
 %
 % Output arguments
 % =================
@@ -26,95 +26,91 @@ function [This,Y0,K0,Y1,G1] = litterman(Rho,Mu,Lmb,varargin)
 % Description
 % ============
 %
-% See the section explaining the [weights on prior dummies](BVAR/Contents),
-% i.e. the input argument `Mu`.
+% Create Litterman-style dummy prior observations for estimating a VAR
+% model. 
+%
+% * `rho` = 0 is a white-noise prior, `rho` = 1 is a random-walk prior;
+%
+% * `mu` is the weight on the prior (can be a vector of numbers in which
+% case each variable gets different weight); if you use the option
+% `'stdize'` when estimating the BVAR, `mu` can be loosely interpreted as
+% the number of fictitious observations that will pull the estimates
+% towards the priors;
+%
+% * `lambda` between 0 and Inf: priors on the `k`-th lag coefficients get
+% `k^lambda` times bigger weights. If `lambda` = 0, all lags are treated
+% equally. The higher the lambda, the more the coefficients are pulled
+% towards the priors (zero in this case);
+%
 %
 % Example
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
-pp = inputParser( );
-pp.addRequired('Rho',@(x) isnumeric(x) && all(x >= 0 & x <= 1));
-pp.addRequired('Mu',@(x) isnumeric(x) && all(x >= 0));
-pp.addRequired('Lmb',@(x) isnumericscalar(x) && x >= 0);
-pp.parse(Rho,Mu,Lmb);
-
-if ~isempty(varargin) && nargout == 1
-    utils.warning('BVAR', ...
-        ['This is an obsolete syntax to call BVAR.litterman( ). ', ...
-        'See documentation for valid syntax.']);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('BVAR.litterman');
+    addRequired(pp, 'rho', @(x) isnumeric(x) && all(x>=0 & x<=1));
+    addRequired(pp, 'mu', @(x) isnumeric(x) && all(x>=0));
+    addRequired(pp, 'lambda', @(x) validate.numericScalar(x, 0, Inf));
 end
+parse(pp, rho, mu, lambda);
 
 %--------------------------------------------------------------------------
 
-Rho = Rho(:);
-Mu = Mu(:);
+rho = rho(:);
+mu = mu(:);
 
-This = BVAR.bvarobj( );
-This.name = 'litterman';
-This.y0 = @y0;
-This.k0 = @k0;
-This.y1 = @y1;
-This.g1 = @g1;
+this = BVAR.bvarobj( );
+this.name = 'litterman';
+this.y0 = @y0;
+this.k0 = @k0;
+this.y1 = @y1;
+this.g1 = @g1;
 
-if ~isempty(varargin) && nargout > 1
-    [Y0,K0,Y1,G1] = BVAR.mydummymat(This,varargin{:});
+if ~isempty(varargin) && nargout>1
+    [Y0, K0, Y1, G1] = BVAR.mydummymat(this, varargin{:});
 end
 
-
-% Nested functions...
-
-
-%**************************************************************************
+return
     
-    
-    function Y0 = y0(Ny,P,~,~)
-        nd = Ny*P;
-        muRho = Mu .* Rho;
-        if length(muRho) == 1 && Ny > 1
-            muRho = muRho(ones(1,Ny),1);
+    function Y0 = y0(numY, order, ~, ~)
+        nd = numY*order;
+        muRho = mu .* rho;
+        if length(muRho) == 1 && numY > 1
+            muRho = muRho(ones(1, numY), 1);
         end
-        Y0 = [diag(muRho),zeros(Ny,nd-Ny)];
-    end % y0( )
+        Y0 = [diag(muRho), zeros(numY, nd-numY)];
+    end%
 
 
-%**************************************************************************
-    
-    
-    function K0 = k0(Ny,P,~,Nk)
-        nd = Ny*P;
-        K0 = zeros(Nk,nd);
-    end % k0( )
+    function K0 = k0(numY, order, ~, numK)
+        nd = numY*order;
+        K0 = zeros(numK, nd);
+    end%
 
 
-%**************************************************************************
-    
-    
-    function Y1 = y1(Ny,P,~,~)
-        sgm = Mu;
-        if length(sgm) == 1 && Ny > 1
-            sgm = sgm(ones(1,Ny),1);
+    function Y1 = y1(numY, order, ~, ~)
+        sgm = mu;
+        if length(sgm) == 1 && numY > 1
+            sgm = sgm(ones(1, numY), 1);
         end
-        sgm = sgm(:,ones(1,P));
-        if Lmb > 0
-            lags = (1 : P).^Lmb;
-            lags = lags(ones(1,Ny),:);
+        sgm = sgm(:, ones(1, order));
+        if lambda > 0
+            lags = (1 : order).^lambda;
+            lags = lags(ones(1, numY), :);
             sgm = sgm .* lags;
         end
         Y1 = diag(sgm(:));
-    end % y1( )
+    end%
 
 
-%**************************************************************************
-    
-    
-    function G1 = g1(Ny,P,Ng,~)
-        nd = Ny*P;
-        G1 = zeros(Ng,nd);
-    end % g1( )
+    function G1 = g1(numY, order, numG, ~)
+        nd = numY*order;
+        G1 = zeros(numG, nd);
+    end% 
+end%
 
-
-end
