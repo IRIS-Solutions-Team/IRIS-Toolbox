@@ -1,7 +1,6 @@
 function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range, varargin)
 % estimate  Estimate reduced-form VAR model
-%
-%
+%{
 % __Syntax__
 %
 %     [varModel, VData, Fitted] = estimate(varModel, inputData, range, ...)
@@ -138,8 +137,9 @@ function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range
 %
 % __Example__
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 persistent parser
@@ -149,11 +149,11 @@ if isempty(parser)
     parser.addRequired('inputData', @(x) myisvalidinpdata(this, x));
     parser.addRequired('range', @DateWrapper.validateProperRangeInput);
     parser.addParameter('Diff', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Order', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    parser.addParameter('Order', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=0));
     parser.addParameter('Cointeg', [ ], @isnumeric);
     parser.addParameter('Comment', '', @(x) ischar(x) || isa(x, 'string') || isequal(x, Inf));
     parser.addParameter({'Constraints', 'Constraint'}, '', @(x) ischar(x) || isa(x, 'string') || iscellstr(x) || isnumeric(x));
-    parser.addParameter({'Intercept', 'Constant', 'Const', 'Constants'}, true, @(x) isequal(x, true) || isequal(x, false));
+    parser.addParameter({'Intercept', 'Constant', 'Const', 'Constants'}, @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     parser.addParameter({'CovParameters', 'CovParameter', 'CovParam'}, false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('EqtnByEqtn', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
@@ -186,7 +186,14 @@ end
 
 %--------------------------------------------------------------------------
 
-p = opt.Order;
+p = hereResolveOrder( );
+this.Order = p;
+opt.Order = p;
+
+isIntercept = hereResolveIntercept( );
+this.Intercept = isIntercept;
+opt.Intercept = isIntercept;
+
 numGroups = max(1, length(this.GroupNames));
 kx = length(this.NamesExogenous);
 inxGroupSpec = resolveGroupSpec( );
@@ -227,6 +234,7 @@ end
 
 if ~isempty(opt.Mean)
     opt.Intercept = false;
+    this.Intercept = false;
 end
 
 % Read parameter restrictions, and set up their hyperparameter form.
@@ -398,5 +406,24 @@ return
             name = this.NamesExogenous{ii};
             inxGroupSpec(1+ii) = any(strcmpi(opt.GroupSpec, name));
         end
-    end
-end
+    end%
+
+
+    function order = hereResolveOrder( )
+        if isequal(opt.Order, @auto)
+            order = this.Order;
+        else
+            order = opt.Order;
+        end
+    end%
+
+
+    function isIntercept = hereResolveIntercept( )
+        if isequal(opt.Intercept, @auto)
+            isIntercept = this.Intercept;
+        else
+            isIntercept = opt.Intercept;
+        end
+    end%
+end%
+
