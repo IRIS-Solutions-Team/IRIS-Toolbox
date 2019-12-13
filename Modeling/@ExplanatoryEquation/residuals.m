@@ -13,13 +13,14 @@ if nargin==2 && isequal(inputDatabank, '--test')
         @setupOnce
         @residualsTest
     });
+    outputDatabank = reshape(outputDatabank, [ ], 1);
     return
 end
 %)
 
 %--------------------------------------------------------------------------
 
-[~, outputDatabank] = estimate(this, inputDatabank, range, varargin{:}, 'FixParameters=', true);
+[~, outputDatabank] = regress(this, inputDatabank, range, varargin{:}, 'FixParameters=', true);
 
 end%
 
@@ -48,9 +49,9 @@ function residualsTest(testCase)
     m1 = testCase.TestData.Model1;
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
-    [est1, outputDb1] = estimate(m1, db1, baseRange);
+    [est1, outputDb1] = regress(m1, db1, baseRange);
     outputDb2 = residuals(est1, db1, baseRange);
-    [est2, outputDb3] = estimate(est1, db1, baseRange, 'FixParameters=', true);
+    [est2, outputDb3] = regress(est1, db1, baseRange, 'FixParameters=', true);
     assertEqual(testCase, outputDb1.res_x.Data, outputDb2.res_x.Data);
     assertEqual(testCase, outputDb1.res_x.Data, outputDb3.res_x.Data);
     assertEqual(testCase, est1, est2);

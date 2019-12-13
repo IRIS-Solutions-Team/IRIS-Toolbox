@@ -9,7 +9,11 @@ function [data, maxLag, maxLead] = getDataBlock(this, inputDatabank, range, lhsR
 % Invoke unit tests
 %(
 if nargin==2 && isequal(inputDatabank, '--test')
-    data = functiontests({@setupOnce, @getDataBlockTest});
+    data = functiontests({
+        @setupOnce 
+        @getDataBlockTest
+    });
+    data = reshape(data, [ ], 1);
     return
 end
 %)
@@ -47,7 +51,12 @@ else
     optionalNames = [lhsNames(inxLhsOptional), residualNames];
 end
 
-databankInfo = checkInputDatabank(this, inputDatabank, extendedRange, requiredNames, optionalNames, context);
+scalarAllowed = @all;
+databankInfo = checkInputDatabank( ...
+    this, inputDatabank, extendedRange, ...
+    requiredNames, optionalNames, context, ...
+    scalarAllowed ...
+);
 
 data = shared.DataBlock( );
 data.Names = allNames;

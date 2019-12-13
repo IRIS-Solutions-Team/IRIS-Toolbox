@@ -7,6 +7,7 @@ if nargin==2 && isequal(varargin{1}, '--test')
     blocks = functiontests({
         @incidenceTest
     });
+    blocks = reshape(blocks, [ ], 1);
     return
 end
 %)

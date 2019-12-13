@@ -14,6 +14,7 @@ if nargin==2 && isequal(dataBlock, '--test')
                                 @yxeSingleTest
                                 @yxeSystem1Test 
                                 @yxeSystem2Test });
+    plainData = reshape(plainData, [ ], 1);
     return
 end
 %)

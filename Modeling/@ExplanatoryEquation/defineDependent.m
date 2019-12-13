@@ -73,6 +73,7 @@ if nargin==2 && isequal(varargin{1}, '--test')
                            @nameTest
                            @transformTest 
                            @invalidShiftTest });
+    this = reshape(this, [ ], 1);
     return
 end
 %)

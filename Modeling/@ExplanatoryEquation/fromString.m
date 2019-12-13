@@ -14,6 +14,7 @@ if nargin==1 && isequal(varargin{1}, '--test')
         @fromLegacyStringTest
         @sumTest
     });
+    this = reshape(this, [ ], 1);
     return
 end
 %)

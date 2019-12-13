@@ -21,6 +21,7 @@ if nargin==2 && isequal(inputDatabank, '--test')
         @arxSystemWithPrependTest  
         @blazerTest
     });
+    outputDatabank = reshape(outputDatabank, [ ], 1);
     return
 end
 %)
@@ -28,7 +29,7 @@ end
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('ExplanatoryEquation.estimate');
+    parser = extend.InputParser('ExplanatoryEquation.simulate');
     %
     % Required arguments
     %
@@ -217,7 +218,7 @@ return
     function hereReportNaNParameters( )
         report = cellstr(lhsNames(inxNaNParameters));
         thisWarning  = [ 
-            "ExplanatoryEquation:MissingObservationInEstimationRange"
+            "ExplanatoryEquation:MissingObservationInSimulationRange"
             "Some Parameters are NaN or Inf in the ExplanatoryEquation object"
             "for this LHS variables: %s" 
         ];
@@ -230,7 +231,7 @@ return
     function hereReportNaNSimulation( )
         report = cellstr(lhsNames(inxNaNLhs));
         thisWarning  = [ 
-            "ExplanatoryEquation:MissingObservationInEstimationRange"
+            "ExplanatoryEquation:MissingObservationInSimulationRange"
             "Simulation of an ExplanatoryEquation object resulted "
             "in NaN or Inf values in this LHS variable: %s" 
         ];

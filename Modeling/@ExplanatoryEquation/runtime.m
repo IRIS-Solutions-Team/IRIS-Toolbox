@@ -1,5 +1,10 @@
 function this = runtime(this, dataBlock, context)
 % runtime  Prepare or reset runtime information
+%
+% Backend IRIS method
+% No help provided
+
+%--------------------------------------------------------------------------
 
 numEquations = numel(this);
 if nargin==1
@@ -13,7 +18,7 @@ else
         this__.Runtime.PosResidual = textual.locate(this__.ResidualName, dataBlock.Names);
         if strcmp(context, 'simulate') 
             nameToUpdate = this__.LhsName;
-        elseif strcmp(context, 'estimate')
+        elseif strcmp(context, 'regress')
             nameToUpdate = this__.ResidualName;
         else
             nameToUpdate = "";
@@ -25,8 +30,4 @@ else
 end
 
 end%
-
-
-
-
 

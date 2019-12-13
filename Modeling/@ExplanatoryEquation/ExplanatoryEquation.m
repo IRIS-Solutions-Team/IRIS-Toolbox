@@ -30,7 +30,7 @@ classdef ExplanatoryEquation ...
         Export (1, :) shared.Export = shared.Export.empty(1, 0)
         Substitutions (1, 1) struct = struct( )
 
-        Dependent (1, 1) regression.Term = regression.Term( )
+        Dependent (1, :) regression.Term = regression.Term.empty(1, 0)
         Explanatory (1, :) regression.Term = regression.Term.empty(1, 0)
         Parameters (1, :, :) double = double.empty(1, 0, 1)
         Statistics (1, 1) struct = struct( 'VarResiduals', NaN, ...
@@ -77,7 +77,7 @@ classdef ExplanatoryEquation ...
     methods % Frontend
         %(
         varargout = alter(varargin)
-        varargout = estimate(varargin)
+        varargout = regress(varargin)
         varargout = simulate(varargin)
         varargout = residuals(varargin)
         %)
@@ -394,6 +394,7 @@ classdef ExplanatoryEquation ...
     methods (Static)
         varargout = fromString(varargin)
         varargout = fromFile(varargin)
+        varargout = fromModel(varargin)
     end
 end
 
