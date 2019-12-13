@@ -14,8 +14,7 @@
 % tseries methods:
 %
 %
-% Categorical List 
-% -----------------
+% ## Categorical List ##
 %
 % __Constructors__
 %
