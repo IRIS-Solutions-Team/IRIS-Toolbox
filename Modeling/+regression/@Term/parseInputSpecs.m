@@ -9,6 +9,7 @@ if nargin==1 && isequal(xq, '--test')
                              @nameShiftTest
                              @transformTest
                              @expressionTest });
+    output = reshape(output, [ ], 1);
     return
 end
 %)
@@ -52,9 +53,13 @@ if isequal(types, @all) || any(types=="Name")
 end
 
 %
-% Registered transform
+% Registered transform, possibly in expanded way
 %
 if isequal(types, @all) || any(types=="Transform")
+    hereParseExpandedTransform( );
+    if output.Type=="Transform"
+        return
+    end
     hereParseTransform( );
     if output.Type=="Transform"
         return
@@ -104,13 +109,44 @@ return
 
 
 
+    function hereParseExpandedTransform( )
+        if ~contains(inputSpecs, "diff") ...
+                || ~contains(inputSpecs, "(") ...
+                || ~contains(inputSpecs, ")")
+            return
+        end
+        name = regexprep(inputSpecs, "\(\(([A-Za-z]\w*)\)-\(\1{-1}\)\)", "tokens", "once");
+        if ~isempty(name)
+            transform = "diff";
+        else
+            name = regexprep(inputSpecs, "\(log\(([A-Za-z]\w*)\)-log\(\1{-1}\)\)", "tokens", "once");
+            if ~isempty(name)
+                transform = "difflog";
+            end
+        end
+        if isempty(name)
+            return
+        end
+        inx = name==xq.VariableNames;
+        if ~any(inx)
+            return
+        end
+        output.Type = "Transform";
+        output.Position = find(inx);
+        output.Shift = 0;
+        output.Transform = transform;
+    end%
+
+
+
+
     function hereParseTransform( )
-        x_ = inputSpecs;
-        if ~endsWith(x_, ")")
-            x_ = "(" + x_ + ")";
+        x__ = inputSpecs;
+        if ~endsWith(x__, ")")
+            x__ = "(" + x__ + ")";
         end
         pattern = "^(|" + join(regression.Term.REGISTERED_TRANSFORMS, "|") + ")\((\<\w+\>)(\{[^\}]+\})?\)$";
-        tokens = regexp(x_, pattern, "tokens", "once");
+        tokens = regexp(x__, pattern, "tokens", "once");
         if numel(tokens)~=3
             return
         end
@@ -119,12 +155,13 @@ return
         if strlength(tokens(3))>0
             shift = sscanf(tokens(3), "{%g}"); 
         end
-        if any(inx) && validate.roundScalar(shift)
-            output.Type = "Transform";
-            output.Position = find(inx);
-            output.Shift = shift;
-            output.Transform = tokens(1);
+        if ~any(inx) || ~validate.roundScalar(shift)
+            return
         end
+        output.Type = "Transform";
+        output.Position = find(inx);
+        output.Shift = shift;
+        output.Transform = tokens(1);
     end%
 
 
