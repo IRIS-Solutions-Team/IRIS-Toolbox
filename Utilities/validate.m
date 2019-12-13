@@ -19,7 +19,7 @@ classdef validate
         end%
 
 
-        function flag = numericScalar(input, lim)
+        function flag = numericScalar(input, lim, max)
             if ~isnumeric(input) || ~isscalar(input)
                 flag = false;
                 return
@@ -28,17 +28,27 @@ classdef validate
                 flag = true;
                 return
             end
+            if nargin>2
+                lim = [lim, max];
+            end
+            if numel(lim)==1
+                lim = [lim, Inf];
+            end
             flag = input>=lim(1) && input<=lim(2);
         end%
 
             
         function flag = roundScalarInRange(input, min, max)
+            if nargin==2 && numel(min)==2
+                max = min(2);
+                min = min(1);
+            end
             flag = validate.numericScalar(input) && input==round(input) && input>=min && input<=max;
         end%
 
             
-        function flag = roundScalar(input)
-            flag = validate.numericScalar(input) && input==round(input);
+        function flag = roundScalar(input, varargin)
+            flag = validate.numericScalar(input, varargin{:}) && input==round(input);
         end%
 
 

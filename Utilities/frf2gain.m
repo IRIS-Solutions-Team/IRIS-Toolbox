@@ -1,5 +1,5 @@
 function G = frf2gain(F, varargin)
-% frf2gain  Gain of frequency response function.
+% frf2gain  Gain of frequency response function
 %
 % __Syntax__
 %
@@ -22,8 +22,8 @@ function G = frf2gain(F, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
     
@@ -35,4 +35,5 @@ if isa(F, 'namedmat')
     G = namedmat(G, rowNames, colNames);
 end
 
-end
+end%
+
