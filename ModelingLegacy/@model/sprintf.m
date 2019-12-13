@@ -1,38 +1,47 @@
 function c = sprintf(this, varargin)
-% sprintf  Print model object to text.
+% sprintf  Print model object to text
 %
-% Backend IRIS function.
-% No help provided.
+% Backend IRIS function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
 c = '';
 
-% Quantities.
+%
+% Quantities
+%
 ixy = this.Quantity.Type==int8(1);
 ixx = this.Quantity.Type==int8(2);
 ixey = this.Quantity.Type==int8(31);
 ixex = this.Quantity.Type==int8(32);
 ixp = this.Quantity.Type==int8(4);
 
-c = [c, printNames(this, '!measurement_variables', find(ixy))];
-c = [c, printNames(this, '!transition_variables', find(ixx))];
-c = [c, printNames(this, '!measurement_shocks', find(ixey), false)];
-c = [c, printNames(this, '!transition_shocks', find(ixex), false)];
+c = [c, printNames(this, '!measurement-variables', find(ixy))];
+c = [c, printNames(this, '!transition-variables', find(ixx))];
+c = [c, printNames(this, '!measurement-shocks', find(ixey), false)];
+c = [c, printNames(this, '!transition-shocks', find(ixex), false)];
 c = [c, printNames(this, '!parameters', find(ixp))];
-c = [c, printNames(this, '!log_variables', find(this.Quantity.IxLog), false)];
+c = [c, printNames(this, '!log-variables', find(this.Quantity.IxLog), false)];
 
-% Equations.
+%
+% Equations
+%
 ixm = this.Equation.Type==1;
 ixt = this.Equation.Type==2;
 
-c = [c, printEqtns(this, '!measurement_equations', find(ixm))];
-c = [c, printEqtns(this, '!transition_equations', find(ixt))];
+c = [c, printEqtns(this, '!measurement-equations', find(ixm))];
+c = [c, printEqtns(this, '!transition-equations', find(ixt))];
 
-end
+end%
+
+
+%
+% Local Functions
+%
 
 
 function c = printNames(this, heading, pos, isValue)
@@ -60,7 +69,7 @@ function c = printNames(this, heading, pos, isValue)
         end
         c = [c, BR]; %#ok<AGROW>
     end
-end
+end%
 
 
 function c = printEqtns(this, heading, pos)
@@ -78,5 +87,6 @@ function c = printEqtns(this, heading, pos)
         eqtn = strrep(eqtn, '!!', [' ...', br, tab, tab, '!! ']);
         c = [c, tab, eqtn]; %#ok<AGROW>
         c = [c, br, br]; %#ok<AGROW>
-end
-end
+    end
+end%
+
