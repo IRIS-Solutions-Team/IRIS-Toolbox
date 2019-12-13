@@ -1,50 +1,78 @@
-function varargout = ffrf(this, frequencies, varargin)
+function varargout = ffrf(this, freq, varargin)
 % ffrf  Filter frequency response function of transition variables to measurement variables
-%
+%{
 % ## Syntax ##
 %
-%     [F, List] = ffrf(M, Freq, ...)
+%
+%     [F, list] = ffrf(model, freq, ...)
 %
 %
 % ## Input Arguments ##
 %
-% * `M` [ model ] - Model object for which the frequency response function
+%
+% __`model`__ [ Model ]
+% >
+% Model object for which the frequency response function
 % will be computed.
 %
-% * `Freq` [ numeric ] - Vector of frequencies for which the response
+%
+% __`freq`__ [ numeric ]
+% >
+% Vector of freq for which the response
 % function will be computed.
 %
 %
 % ## Output Arguments ##
 %
-% * `F` [ namedmat | numeric ] - Array with frequency responses of
-% transition variables (in rows) to measurement variables (in columns).
+% __`F`__ [ namedmat | numeric ]
+% >
+% Array with frequency responses of transition variables (in rows) to
+% measurement variables (in columns).
 %
-% * `List` [ cell ] - List of transition variables in rows of the `F`
-% matrix, and list of measurement variables in columns of the `F` matrix.
+%
+% __`list`__ [ cell ]
+% >
+% List of transition variables in rows of the `F` matrix, and list of
+% measurement variables in columns of the `F` matrix.
 %
 %
 % ## Options ##
 %
-% * `Include=@all` [ char | cellstr | `@all` ] - Include the effect of the
-% listed measurement variables only; `@all` means all measurement
-% variables.
 %
-% * `Exclude=[ ]` [ char | cellstr | empty ] - Remove the effect of the
+% __`Include=@all`__ [ char | cellstr | `@all` ]
+% >
+% Include the effect of the listed measurement variables only; `@all` means
+% all measurement variables.
+%
+%
+% __`Exclude=[ ]`__ [ char | cellstr | empty ]
+% >
+% Remove the effect of the
 % listed measurement variables.
 %
-% * `MaxIter=500` [ numeric ] - Maximum number of iteration when
+%
+% __`MaxIter=500`__ [ numeric ]
+% >
+% Maximum number of iteration when
 % calculating a steady-state Kalman filter for zero-frequency FRF.
 %
-% * `MatrixFormat='NamedMat'` [ `'NamedMat'` | `'Plain'` ] - Return matrix
+%
+% __`MatrixFormat='NamedMat'`__ [ `'NamedMat'` | `'Plain'` ]
+% >
+% Return matrix
 % `F` as either a [`namedmat`](namedmat/Contents) object (i.e. matrix with
 % named rows and columns) or a plain numeric array.
 %
-% * `Select=@all` [ `@all` | char | cellstr ] - Return FFRF for selected
-% variables only; `@all` means all variables.
 %
-% * `Tolerance=1e-7` [ numeric ] - Convergence tolerance when calculating a
-% steady-state Kalman filter for zero-frequency FRF.
+% __`Select=@all`__ [ `@all` | char | cellstr ]
+% >
+% Return FFRF for selected variables only; `@all` means all variables.
+%
+%
+% __`Tolerance=1e-7`__ [ numeric ]
+% >
+% Convergence tolerance when calculating a steady-state Kalman filter for
+% zero-frequency FRF.
 %
 %
 % ## Description ##
@@ -52,6 +80,7 @@ function varargout = ffrf(this, frequencies, varargin)
 %
 % ## Example ##
 %
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
@@ -61,8 +90,8 @@ TYPE = @int8;
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('model.ffrf');
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('Freq', @isnumeric);
+    parser.addRequired('model', @(x) isa(x, 'model'));
+    parser.addRequired('freq', @isnumeric);
     parser.addParameter({'Include', 'Select'}, cell.empty(1, 0), @(x) isempty(x) || isequal(x, @all) || ischar(x) || isa(x, 'string') || iscellstr(x));
     parser.addParameter('Exclude', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
     parser.addParameter('MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
@@ -70,7 +99,7 @@ if isempty(parser)
     parser.addParameter('Tolerance', 1e-7, @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0));
     parser.addParameter('SystemProperty', false, @(x) isequal(x, false) || ((ischar(x) || isa(x, 'string') || iscellstr(x)) && ~isempty(x)));
 end
-parse(parser, this, frequencies, varargin{:});
+parse(parser, this, freq, varargin{:});
 opt = parser.Options;
 usingDefaults = parser.UsingDefaultsInStruct;
 
@@ -144,7 +173,7 @@ return
         systemProperty.NamedReferences = {solutionVectorX, solutionVectorY};
         systemProperty.Specifics.IndexToInclude = inxToInclude;
         systemProperty.Specifics.MaxIter = opt.MaxIter;
-        systemProperty.Specifics.Frequencies = frequencies(:)';
+        systemProperty.Specifics.Frequencies = freq(:)';
         systemProperty.Specifics.Tolerance = opt.Tolerance;
         if isequal(opt.SystemProperty, false)
             % Regular call

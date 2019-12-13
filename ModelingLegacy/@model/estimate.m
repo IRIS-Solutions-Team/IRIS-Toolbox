@@ -417,7 +417,7 @@ return
 
     function populatePosterObj( )
         % Make sure that draws that fail to solve do not cause an error
-        % and hence do not interupt the posterior simulator.
+        % and hence do not interupt the posterior simulator
         this.Update.NoSolution = Inf;
 
         p.ParamList = posterior.ParameterNames;
