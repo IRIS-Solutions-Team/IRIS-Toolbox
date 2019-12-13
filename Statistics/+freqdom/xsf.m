@@ -30,6 +30,7 @@ nf = nx - nb;
 ne = size(R, 2);
 
 Tf = T(1:nf, :);
+Ta = T(nf+1:end, :);
 Rf = R(1:nf, 1:ne);
 Ra = R(nf+1:end, :);
 % Ta11 is an I matrix in difference-stationary models, but not an I matrix
@@ -49,7 +50,7 @@ S = zeros(ny+nf+nb, ny+nf+nb, numFreq);
 ithS = zeros(ny+nf+nb, ny+nf+nb);
 
 status = warning( );
-warning('off'); %#ok<WNOFF>
+warning('off'); 
 for i = 1 : numFreq
     ithFreq = freq(i);
     if isFilter && filter(i)==0 && all(applyFilterTo) && ithFreq~=0
@@ -107,6 +108,7 @@ return
 
     function [Sxx, Saa] = inverse( )
         A = Tf*ee;
+        %
         % B = inv(eye(nb) - Ta*ee) = inv([A11, A12;0, A22]) where
         %
         % * A11 = eye(numUnitRoots) - Ta11*ee (Ta11 is eye(numUnitRoots) only in
@@ -118,22 +120,23 @@ return
         %
         % * A22 = eye(nb-numUnitRoots) - Ta22*ee.
         %
-        B22 = inv(eye(nb-numUnitRoots) - Ta22*ee);
         if ithFreq==0
-            % Zero frequency; non-stationary variables not defined here.
+            % Zero frequency; non-stationary variables not defined here
             B11 = zeros(numUnitRoots);
             B12 = zeros(numUnitRoots, nb-numUnitRoots);
+            B22 = inv(eye(nb-numUnitRoots) - Ta22*ee);
+            B = [B11, B12;zeros(nb-numUnitRoots, numUnitRoots), B22];
         else
-            % Non-zero frequencies.
-            B11 = inv(eye(numUnitRoots) - Ta11*ee);
-            d = 1/(1-ee);
-            B12 = d*Ta12*B22*ee; %#ok<MINV>
+            % Non-zero frequencies
+            % B11 = inv(eye(numUnitRoots) - Ta11*ee);
+            % B12 = (eye(numUnitRoots)-Ta11*ee) \ Ta12*B22*ee;
+            % B22 = inv(eye(nb-numUnitRoots) - Ta22*ee);
+            B = inv(eye(nb) - Ta*ee);
         end
-        B = [B11, B12;zeros(nb-numUnitRoots, numUnitRoots), B22];
         Saa = B*SigmaAA*ctranspose(B);
         Sfa = SigmaFA*ctranspose(B) + A*Saa;
         X = A*B*transpose(SigmaFA);
         Sff = SigmaFF + X + ctranspose(X) + Tf*Saa*transpose(Tf);
-        Sxx = [Sff, Sfa;ctranspose(Sfa), Saa];
+        Sxx = [Sff, Sfa; ctranspose(Sfa), Saa];
     end 
 end
