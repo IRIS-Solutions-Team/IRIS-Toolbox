@@ -54,7 +54,7 @@ function [priorPoints, posterPoints, varargout] = plotpp(estSpecs, varargin)
 % empty, default captions will be automatically created.
 %
 % * `'Describe='` [ *@auto* | true | false ] - Include information on
-% prior distributions, starting values, and maximised posterior modes in
+% prior distributions, starting values, and maximized posterior modes in
 % the graph titles; `@auto` means the descriptions will be shown only if
 % `'PlotPrior='` is true.
 %
@@ -72,7 +72,7 @@ function [priorPoints, posterPoints, varargout] = plotpp(estSpecs, varargin)
 % * `'PlotPrior='` [ *`true`* | `false` | cell ] - Plot prior
 % distributions.
 %
-% * `'PlotMode='` [ *`true`* | `false` | cell ] - Plot maximised posterior
+% * `'PlotMode='` [ *`true`* | `false` | cell ] - Plot maximized posterior
 % modes as vertical stems; the modes are taken from  `summary` (and not from
 % `stats` or `theta`).
 %
@@ -124,7 +124,7 @@ function [priorPoints, posterPoints, varargout] = plotpp(estSpecs, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-mo = [ ]; % Maximised posterior mode
+summary = [ ]; % Maximized posterior mode
 po = [ ]; % Simulated posterior distribution
 
 estSpecsFields = fieldnames(estSpecs);
@@ -133,7 +133,7 @@ if ~isempty(varargin)
     if isempty(varargin{1}) ...
             || ( isstruct(varargin{1}) && all(ismember(estSpecsFields, fieldnames(varargin{1}))) ) ...
             || ( isa(varargin{1}, 'table') && all(ismember(estSpecsFields, varargin{1}.Properties.RowNames)) ) ...
-        mo = varargin{1};
+        summary = varargin{1};
         varargin(1) = [ ];
     end
 end
@@ -155,7 +155,7 @@ end
 
 %--------------------------------------------------------------------------
 
-if isempty(mo)
+if isempty(summary)
     opt.PlotMode = false;
 end
 
@@ -183,10 +183,10 @@ posterPoints = getPosterPoints(po, bnd, opt);
 max_ = getMax(priorPoints, posterPoints);
 
 % Compute x- and y-axis co-ordinates for mode graphs.
-modePoints = getModePoints(mo, max_);
+modePoints = getModePoints(summary, max_);
 
 % Get starting values for posterior mode maximization.
-initPoints = getInitPoints(estSpecs, max_);
+initPoints = hereGetInitPoints(estSpecs, max_, summary);
 
 % Get x-limits for posteriors.
 posterXLim = getPosterXLim(posterPoints); %#ok<NASGU>
@@ -257,12 +257,15 @@ else
         'init', inLin, ...
         'mode', moLin, ...
         'title', tit ...
-        );
+    );
 end
 
-end
+end%
 
 
+%
+% Local Functions
+%
 
 
 function bnd = getBounds(estSpecs)
@@ -564,26 +567,26 @@ end
 
 
 
-function modePoints = getModePoints(mo, max_)
-if isempty(mo)
+function modePoints = getModePoints(summary, max_)
+if isempty(summary)
     modePoints = [ ];
     return
 end
 
-if isstruct(mo)
-    list = fieldnames(mo);
+if isstruct(summary)
+    list = fieldnames(summary);
 else
-    list = mo.Properties.RowNames;
+    list = summary.Properties.RowNames;
 end
 nList = numel(list);
 modePoints = struct( );
 for i = 1 : nList
     ithName = list{i};
     try
-        if isstruct(mo)
-            x = mo.(ithName);
+        if isstruct(summary)
+            x = summary.(ithName);
         else
-            x = mo{ithName, 1};
+            x = summary{ithName, 'Poster_Mode'};
         end
         y = 0.98*max_.(list{i});
         if isnan(y)
@@ -678,26 +681,30 @@ end
 
 
 
-function initPoints = getInitPoints(estSpecs, max_)
-list = fieldnames(estSpecs);
-nList = numel(list);
-initPoints = struct( );
-for i = 1 : nList
-    temp = estSpecs.(list{i});
-    if isempty(temp)
-        x = NaN;
-    elseif isnumeric(temp)
-        x = temp(1);
-    elseif iscell(temp)
-        x = temp{1};
-    else
-        x = NaN;
+function initPoints = hereGetInitPoints(estSpecs, max_, summary)
+    initPoints = struct( );
+    for name = reshape(string(fieldnames(estSpecs)), 1, [ ])
+        temp = estSpecs.(name);
+        if isempty(temp)
+            x = NaN;
+        elseif isnumeric(temp)
+            x = temp(1);
+        elseif iscell(temp)
+            x = temp{1};
+        else
+            x = NaN;
+        end
+        % If starting value is NaN,look it up in the summary table
+        if isequaln(x, NaN) && isa(summary, 'table')
+           try
+               x = summary{name, 'Start'};
+           end
+        end
+        % Keep NaNs
+        y = 0.98*max_.(name);
+        initPoints.(name) = {x, y};
     end
-    % Keep NaNs.
-    y = 0.98*max_.(list{i});
-    initPoints.(list{i}) = {x, y};
-end
-end
+end%
 
 
 
@@ -740,16 +747,16 @@ return
         f = priorFunc.(list{iGraph});
         addToTitle = '';
         if isempty(f)
-            addToTitle = sprintf('\nprior: Flat');
+            addToTitle = sprintf('\nPrior: Flat');
         else
             if isa(f, 'distribution.Abstract')
-                addToTitle = sprintf('\nprior: %s {\\mu=}%g {\\sigma=}%g', f.Name, f.Mean, f.Std);
+                addToTitle = sprintf('\nPrior: %s {\\mu=}%g {\\sigma=}%g', f.Name, f.Mean, f.Std);
             else
                 try
                     name = f([ ], 'name');
                     mu = f([ ], 'mean');
                     sgm = f([ ], 'std');
-                    addToTitle = sprintf('\nprior: %s {\\mu=}%g {\\sigma=}%g', name, mu, sgm);
+                    addToTitle = sprintf('\nPrior: %s {\\mu=}%g {\\sigma=}%g', name, mu, sgm);
                 end
             end
         end
@@ -763,7 +770,7 @@ return
         try
             temp = modePoints.(list{iGraph}){1};
             tit{iGraph} = [tit{iGraph}, ...
-                sprintf('\nmaximised poster: %g', temp)];
+                sprintf('\nMaximized Poster: %g', temp)];
         end
     end
 
