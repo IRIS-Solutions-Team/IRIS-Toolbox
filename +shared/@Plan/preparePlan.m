@@ -7,6 +7,7 @@ if nargin==2 && isequal(plan, '--test')
         @setupOnce
         @modelTest
     });
+    plan = reshape(plan, [ ], 1);
     return
 end
 %)
@@ -20,6 +21,7 @@ plan.AutoswapPairs = getAutoswapsForPlan(this);
 sigmas = getSigmasForPlan(this);
 numVariants = size(sigmas, 3);
 numExtPeriods = plan.NumOfExtendedPeriods;
+plan.DefaultSigmasOfExogenous = sigmas;
 sigmas = repmat(sigmas, 1, numExtPeriods, 1);
 sigmas(:, ~inxBaseRange, :) = NaN;
 plan.SigmasOfExogenous = sigmas;
