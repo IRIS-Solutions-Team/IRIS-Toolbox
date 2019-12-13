@@ -293,9 +293,9 @@ classdef Preparser < model.File
         function c = convertEols(c)
             % convertEols - Convert any style EOLs to Unix style.
             % Windows:
-            c = strrep(c, sprintf('\r\n'), sprintf('\n'));
+            c = strrep(c, sprintf('\r\n'), newline( ));
             % Mac:
-            c = strrep(c, sprintf('\r'), sprintf('\n'));            
+            c = strrep(c, sprintf('\r'), newline( ));            
         end%
         
         
@@ -310,25 +310,25 @@ classdef Preparser < model.File
         
         
         function evalPopulateWorkspace(expn, assigned, p)
-            import parser.White;
+            import parser.White
             shadowExpn = White.whiteOutLabel(expn);
             shadowExpn = strrep(shadowExpn, '!', '');
-            lsAssigned = fieldnames(assigned);
-            lsAssigned = lsAssigned(:).';
-            lsExpn = regexp( shadowExpn, ...
+            listAssigned = fieldnames(assigned);
+            listAssigned = listAssigned(:).';
+            listExpn = regexp( shadowExpn, ...
                              '(?<!\.)\<[a-zA-Z]\w*\>(?![\(\.])', ...
                              'match' );
-            ixControl = false(size(lsAssigned));
-            for i = 1 : length(lsExpn)
-                name = lsExpn{i};
-                ix = strcmp(name, lsAssigned);
+            ixControl = false(size(listAssigned));
+            for i = 1 : length(listExpn)
+                name = listExpn{i};
+                ix = strcmp(name, listAssigned);
                 if any(ix)
                     assignin('caller', name, assigned.(name));
                     ixControl = ixControl | ix;
                 end
             end
             if nargin>2 && any(ixControl)
-                addCtrlParameter(p, lsAssigned(ixControl));
+                addCtrlParameter(p, listAssigned(ixControl));
             end
         end%
         

@@ -1,4 +1,8 @@
-function databankInfo = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames, context)
+function databankInfo = checkInputDatabank( ...
+    this, inputDatabank, range, ...
+    requiredNames, optionalNames, context, ...
+    namesAllowedScalar ...
+)
 % checkInputDatabank  Check input databank for missing or non-compliant variables
 %{
 %}
@@ -8,6 +12,12 @@ function databankInfo = checkInputDatabank(this, inputDatabank, range, requiredN
 
 if nargin<6
     context = "";
+end
+
+if nargin<7
+    namesAllowedScalar = string.empty(1, 0);
+elseif ~isequal(namesAllowedScalar, @all)
+    namesAllowedScalar = string(namesAllowedScalar);
 end
 
 %--------------------------------------------------------------------------
@@ -37,56 +47,78 @@ inxRequiredNames = [true(size(requiredNames)), false(size(optionalNames))];
 checkIncluded = true(size(allNames));
 checkFrequency = true(size(allNames));
 for i = 1 : numel(allNames)
-    ithName = allNames{i};
+    name__ = string(allNames{i});
+    allowedScalar__ = isequal(namesAllowedScalar, @all) || any(name__==namesAllowedScalar);
     try
-        ithField = getfield(inputDatabank, ithName);
+        field__ = getfield(inputDatabank, name__);
     catch
-        ithField = NaN;
+        field__ = missing( );
     end
-    if ~isa(ithField, 'TimeSubscriptable')
-        checkIncluded(i) = ~inxRequiredNames(i);
+    if isa(field__, 'TimeSubscriptable')
+        if ~isempty(field__)
+            freq__ = getFrequencyAsNumeric(field__);
+            checkFrequency(i) = isnan(freq__) || freq__==requiredFreq;
+        end
         continue
     end
-    if isempty(ithField)
+    if isnumeric(field__) && allowedScalar__ && isrow(field__)
         continue
     end
-    ithFreq = getFrequencyAsNumeric(ithField);
-    checkFrequency(i) = isnan(ithFreq) || ithFreq==requiredFreq;
+    checkIncluded(i) = ~inxRequiredNames(i);
 end
 
 if ~all(checkIncluded)
-    thisError = [ "DatabankPipe:MissingSeries"
-                  "This time series is required " + context + " "
-                  "but missing from the input databank: %s " ];
-    throw( exception.Base(thisError, 'error'), ...
-           allNames{~checkIncluded} );
+    hereReportMissing( );
 end
 
 if ~all(checkFrequency)
-    thisError = { 'model:Abstract:checkInputDatabank', ...
-                   'This time series has the wrong date frequency in the input databank: %s ' };
-    throw( exception.Base(thisError, 'error'), ...
-           allNames{~checkFrequency} );
+    hereReportFrequency( );
 end
 
-numPages = databank.backend.numOfColumns(inputDatabank, allNames);
+numPages = databank.backend.countColumns(inputDatabank, allNames);
 numPages(isnan(numPages) & inxOptionalNames) = 0;
 maxNumPages = max(numPages);
 
-checkNumPagesAndVariants = numPages==1 ...
-                         | numPages==0 ...
-                         | (nv>1 & numPages==nv) ...
-                         | (nv==1 & numPages==maxNumPages);
+checkNumPagesAndVariants ...
+    = numPages==1 ...
+    | numPages==0 ...
+    | (nv>1 & numPages==nv) ...
+    | (nv==1 & numPages==maxNumPages);
 
 if ~all(checkNumPagesAndVariants)
-    thisError = { 'model:Abstract:checkInputDatabank'
-                   'This time series has an inconsistent number of columns: %s ' };
-    throw( exception.Base(thisError, 'error'), ...
-           allNames{~checkNumPagesAndVariants} );
+    hereReportColumns( );
 end
 
 databankInfo = struct( );
 databankInfo.NumOfPages = max(max(numPages), 1);
 
+return
+
+    function hereReportMissing( )
+        thisError = [
+            "DatabankPipe:MissingSeries"
+            "This variable is required " + context + " "
+            "but missing from the input databank: %s "
+        ];
+        throw(exception.Base(thisError, 'error'), allNames{~checkIncluded});
+    end%
+
+
+    function hereReportFrequency( )
+        thisError = [ 
+            "DatabankPipe:CheckInputDatabank"
+            "This time series has the wrong date frequency in the input databank: %s "
+        ];
+        throw(exception.Base(thisError, 'error'), allNames{~checkFrequency});
+    end%
+
+
+    function hereReportColumns( )
+        thisError = [
+            "DatabankPipe:CheckInputDatabank"
+            "This time series or numeric input has an inconsistent number of columns: %s " 
+        ];
+        throw(exception.Base(thisError, 'error'), allNames{~checkNumPagesAndVariants});
+    end%
 end%
 

@@ -4,7 +4,7 @@ function X = requestData(~, databankInfo, inputDatabank, dates, names)
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
@@ -18,18 +18,33 @@ X = nan(numNames, numPeriods, numPages);
 
 for i = 1 : numNames
     name__ = names{i};
-    if ~isfield(inputDatabank, name__) ...
-       || ~isa(inputDatabank.(name__), 'TimeSubscriptable')
+    if ~isfield(inputDatabank, name__)
         continue
     end
-    series__ = inputDatabank.(name__);
-    % checkFrequency(series__, range);
-    data__ = getData(series__, dates);
-    data__ = data__(:, :);
-    if size(data__, 2)==1 && numPages>1
-        data__ = repmat(data__, 1, numPages);
+    field__ = getfield(inputDatabank, name__);
+    if isempty(field__)
+        continue
     end
-    X(i, :, :) = permute(data__, [3, 1, 2]);
+    if isa(field__, 'NumericTimeSubscriptable') 
+        %
+        % Databank field is time series
+        %
+        data__ = getData(field__, dates);
+        data__ = data__(:, :);
+        if size(data__, 2)==1 && numPages>1
+            data__ = repmat(data__, 1, numPages);
+        end
+        X(i, :, :) = permute(data__, [3, 1, 2]);
+    elseif isnumeric(field__) && ~all(isnan(field__))
+        % 
+        % Databank field is numeric scalar for each page (allowed)
+        %
+        if numel(field__)==1
+            X(i, :, :) = field__;
+        else
+            field__ = repmat(reshape(field__, 1, 1, [ ]), 1, numPeriods);
+        end
+    end
 end
 
 end%
