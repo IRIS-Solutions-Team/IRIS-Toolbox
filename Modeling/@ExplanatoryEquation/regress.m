@@ -1,9 +1,9 @@
-function [this, outputDatabank] = estimate(this, inputDatabank, fittedRange, varargin)
-% estimate  Estimate parameters of ExplanatoryEquation
+function [this, outputDatabank] = regress(this, inputDatabank, fittedRange, varargin)
+% regress  Estimate regression parameters of ExplanatoryEquation 
 %{
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 % Invoke unit tests
@@ -18,6 +18,7 @@ if nargin==2 && isequal(inputDatabank, '--test')
         @arxSystemTest
         @arxSystemVariantsTest 
     });
+    this = reshape(this, [ ], 1);
     return
 end
 %)
@@ -25,7 +26,7 @@ end
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('ExplanatoryEquation.estimate');
+    parser = extend.InputParser('ExplanatoryEquation.regress');
     %
     % Required arguments
     %
@@ -69,7 +70,7 @@ reportEmptyData = string.empty(1, 0);
 %
 % Prepare runtime information
 %
-this = runtime(this, dataBlock, "estimate");
+this = runtime(this, dataBlock, "regress");
 
 %
 % Preallocate space for parameters and statistics, reset all to NaN
@@ -150,8 +151,8 @@ return
     function hereReportEmptyData( )
         reportEmptyData = cellstr(reportEmptyData);
         thisWarning = [ 
-            "ExplanatoryEquation:EmptyEstimationData" 
-            "ExplanatoryEquation[""%s""] cannot be estimated because "
+            "ExplanatoryEquation:EmptyRegressionData"
+            "ExplanatoryEquation[""%s""] cannot be regressed because "
             "there is not a single period of observations available." 
         ];
         throw(exception.Base(thisWarning, 'warning'), reportEmptyData{:});
@@ -172,8 +173,8 @@ return
             report = [report, DateWrapper.reportMissingPeriodsAndPages(dataBlock.ExtendedRange, inxMissingColumns, this.LhsName)];
         end
         thisWarning  = [ 
-            "ExplanatoryEquation:MissingObservationInEstimationRange"
-            "ExplanatoryEquation[""%s""] estimation data " + action + " "
+            "ExplanatoryEquation:MissingObservationInRegressionRange"
+            "ExplanatoryEquation[""%s""] regression data " + action + " "
             "NaN or Inf observations [Variant|Page:%g]: %s" 
         ];
         throw(exception.Base(thisWarning, opt.MissingObservations), report{:});
@@ -232,7 +233,7 @@ function arxTest(testCase)
     m1 = testCase.TestData.Model1;
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
-    [est1, outputDb] = estimate(m1, db1, baseRange);
+    [est1, outputDb] = regress(m1, db1, baseRange);
     y = db1.x(baseRange);
     X = [ones(40, 1), db1.x{-1}(baseRange), db1.y(baseRange)];
     exp_parameters = transpose(X\y);
@@ -245,7 +246,7 @@ function resimulateTest(testCase)
     m1 = testCase.TestData.Model1;
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
-    [est1, outputDb] = estimate(m1, db1, baseRange);
+    [est1, outputDb] = regress(m1, db1, baseRange);
     simDb = simulate(est1, outputDb, baseRange);
     assertEqual(testCase, db1.x(baseRange), simDb.x(baseRange), 'AbsTol', 1e-12);
 end%
@@ -255,7 +256,7 @@ function resimulatePrependTest(testCase)
     m1 = testCase.TestData.Model1;
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
-    [est1, outputDb] = estimate(m1, db1, baseRange);
+    [est1, outputDb] = regress(m1, db1, baseRange);
     simDb = simulate(est1, outputDb, baseRange, 'PrependInput=', true);
     startDate = db1.x.Start;
     range = db1.x.Start : baseRange(end);
@@ -267,7 +268,7 @@ function resimulateAppendTest(testCase)
     m1 = testCase.TestData.Model1;
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
-    [est1, outputDb] = estimate(m1, db1, baseRange);
+    [est1, outputDb] = regress(m1, db1, baseRange);
     simDb = simulate(est1, outputDb, baseRange, 'AppendInput=', true);
     range = baseRange(1)-1 : db1.x.End;
     assertEqual(testCase, db1.x(range), simDb.x(range), 'AbsTol', 1e-12);
@@ -280,7 +281,7 @@ function arxSystemTest(testCase)
     m = [m1, m2];
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
-    [est, outputDb] = estimate(m, db1, baseRange);
+    [est, outputDb] = regress(m, db1, baseRange);
     y = db1.x(baseRange);
     X = [ones(40, 1), db1.x{-1}(baseRange), db1.y(baseRange)];
     exp_parameters = transpose(X\y);
@@ -301,7 +302,7 @@ function arxSystemVariantsTest(testCase)
     db2 = testCase.TestData.Databank2;
     baseRange = testCase.TestData.BaseRange;
 
-    [est, outputDb] = estimate(m, db2, baseRange);
+    [est, outputDb] = regress(m, db2, baseRange);
 
     exp_parameters = nan(1, 3, 3);
     for i = 1 : 3
