@@ -121,6 +121,7 @@ classdef ( Abstract, ...
 
     methods (Static)
         varargout = getExpSmoothMatrix(varargin)
+        varargout = linearTrend(varargin)
     end
     
 
