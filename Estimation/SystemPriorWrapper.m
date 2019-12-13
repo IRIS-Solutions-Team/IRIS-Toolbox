@@ -16,7 +16,7 @@
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 classdef SystemPriorWrapper < handle
@@ -29,7 +29,7 @@ classdef SystemPriorWrapper < handle
 
 
     properties (SetAccess=protected)
-        Sealed = false
+        BeenSealed = false
     end
 
 
@@ -54,13 +54,13 @@ classdef SystemPriorWrapper < handle
 
 
         function add(this, element)
-            persistent inputParser
-            if isempty(inputParser)
-                inputParser = extend.InputParser('SystemPriorWrapper.add');
-                inputParser.addRequired('SystemPriorWrapper', @(x) isa(x, 'SystemPriorWrapper') && ~isempty(x.Quantity));
-                inputParser.addRequired('NewElement', @(x) isa(x, 'SystemPrior') || isa(x, 'SystemProperty'));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('SystemPriorWrapper.add');
+                pp.addRequired('SystemPriorWrapper', @(x) isa(x, 'SystemPriorWrapper') && ~isempty(x.Quantity));
+                pp.addRequired('NewElement', @(x) isa(x, 'SystemPrior') || isa(x, 'SystemProperty'));
             end
-            inputParser.parse(this, element);
+            pp.parse(this, element);
             if isa(element, 'SystemProperty')
                 addSystemProperty(this, element);
             elseif isa(element, 'SystemPrior')
@@ -70,16 +70,16 @@ classdef SystemPriorWrapper < handle
 
 
         function addSystemProperty(this, systemProperty)
-            persistent inputParser
-            if isempty(inputParser)
-                inputParser = extend.InputParser('SystemPriorWrapper.addSystemProperty');
-                inputParser.addRequired('SystemPriorWrapper', @(x) isa(x, 'SystemPriorWrapper'));
-                inputParser.addRequired('SystemProperty', @(x) isa(x, 'SystemProperty'));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('SystemPriorWrapper.addSystemProperty');
+                addRequired(pp, 'SystemPriorWrapper', @(x) isa(x, 'SystemPriorWrapper') && ~isempty(x.Quantity));
+                addRequired(pp, 'SystemProperty', @(x) isa(x, 'SystemProperty'));
             end
-            inputParser.parse(this, systemProperty);
-            assert( ~this.Sealed, ...
-                    exception.Base('SystemPriorWrapper:SystemPropertyToSealed', 'error') );
-            outputNames = systemProperty.OutputNames;
+            pp.parse(this, systemProperty);
+            if this.BeenSealed
+                exception.Base('SystemPriorWrapper:SystemPropertyToSealed', 'error');
+            end
             checkUniqueNames(this, systemProperty.OutputNames);
             this.SystemProperties(1, end+1) = systemProperty;
         end%
@@ -89,7 +89,7 @@ classdef SystemPriorWrapper < handle
             if isempty(varargin)
                 return
             end
-            if this.Sealed
+            if this.BeenSealed
                 throw( exception.Base('SystemPriorWrapper:SystemPriorToSealed', 'error') );
             end
             if all(cellfun(@(x) isa(x, 'SystemPrior'), varargin))
@@ -103,11 +103,11 @@ classdef SystemPriorWrapper < handle
 
 
         function seal(this)
-            if this.Sealed
+            if this.BeenSealed
                 return
             end
             seal(this.SystemPriors, this);
-            this.Sealed = true;
+            this.BeenSealed = true;
         end%
 
 
@@ -153,25 +153,22 @@ classdef SystemPriorWrapper < handle
 
 
         function [minusLogDensity, minusLogDensityContributions, priorEval] = eval(this, model)
-            TYPE = @int8;
-            if ~this.Sealed
+            if ~this.BeenSealed
                 seal(this);
             end
             systemProperty = SystemProperty(model);
             nv = length(model);
-            numOfProperties = numel(this.SystemProperties);
-            numOfPriors = numel(this.SystemPriors);
-            minusLogDensity = nan(1, 1, nv);
-            minusLogDensityContributions = nan(1, numOfPriors, nv);
-            logDensityContributions = nan(1, numOfPriors, nv);
-            priorEval = nan(1, numOfPriors, nv);
+            numProperties = numel(this.SystemProperties);
+            numPriors = numel(this.SystemPriors);
+            logDensityContributions = nan(1, numPriors, nv);
+            priorEval = nan(1, numPriors, nv);
             outputNames = this.OutputNames;
             numOfOutputs = length(outputNames);
             for v = 1 : nv
                 update(systemProperty, model, v);
                 outputs = cell(1, numOfOutputs);
                 count = 0;
-                for i = 1 : numOfProperties
+                for i = 1 : numProperties
                     systemProperty.Function = this.SystemProperties(i).Function;
                     systemProperty.MaxNumOfOutputs = this.SystemProperties(i).MaxNumOfOutputs;
                     systemProperty.OutputNames = this.SystemProperties(i).OutputNames;
@@ -181,7 +178,7 @@ classdef SystemPriorWrapper < handle
                     outputs(count+(1:ithNumOfOutputs)) = systemProperty.Outputs(1:end);
                     count = count + ithNumOfOutputs;
                 end
-                for i = 1 : numOfPriors
+                for i = 1 : numPriors
                     p = this.SystemPriors(i); 
                     x = p.Function(systemProperty.Values, systemProperty.StdCorr, outputs{:});
                     if x>=p.LowerBound && x<=p.UpperBound
