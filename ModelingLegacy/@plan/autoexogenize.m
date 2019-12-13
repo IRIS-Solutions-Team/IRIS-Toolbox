@@ -42,11 +42,11 @@ function this = autoexogenize(this, namesToExogenize, dates, sigma)
 %
 % Assume that the underlying model file included the following sections:
 %
-%     !transition_variables
+%     !transition-variables
 %         X, Y, Z
-%     !transition_shocks
+%     !transition-shocks
 %         a, b, c
-%     !dynamic_exog
+%     !dynamic-exog
 %         X := a
 %         Y := c
 %         Z := d

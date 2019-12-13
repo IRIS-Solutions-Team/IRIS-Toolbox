@@ -29,13 +29,13 @@ switch query
         answ = this.NamesOfRhs;
         
     case {'equation', 'equations', 'eqtn', 'eqtns'}
-        answ = this.UsrEqtn;
+        answ = reshape(this.UsrEqtn, [ ], 1);
         
     case {'rhs'}
-        answ = this.EqtnRhs;
+        answ = reshape(this.EqtnRhs, [ ], 1);
 
     case {'label', 'labels'}
-        answ = this.Label;
+        answ = reshape(this.Label, [ ], 1);
         
     otherwise
         flag = false;
