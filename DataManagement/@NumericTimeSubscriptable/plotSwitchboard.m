@@ -3,13 +3,14 @@ function [plotHandle, isTimeAxis] = plotSwitchboard( plotFunc, ...
                                                      xData, ...
                                                      yData, ...
                                                      plotSpec,...
+                                                     smooth, ...
                                                      varargin )
 % plotSwitchboard  Choose plot function
 %
 % Backend function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
@@ -17,6 +18,10 @@ function [plotHandle, isTimeAxis] = plotSwitchboard( plotFunc, ...
 plotFuncString = plotFunc;
 if isa(plotFuncString, 'function_handle')
     plotFuncString = func2str(plotFuncString);
+end
+
+if ~isequal(smooth, false) && numel(yData)>1
+    hereSmoothData( );
 end
 
 switch plotFuncString
@@ -56,6 +61,18 @@ if isTimeAxis && isa(xData, 'datetime')
 end
 
 return
+
+
+
+
+    function hereSmoothData( )
+        numData = numel(xData);
+        dt = datetime(xData);
+        newXData = reshape(linspace(dt(1), dt(end), 10*numData-1), [ ], 1);
+        newYData = interp1(dt, yData, newXData, 'spline');
+        xData = newXData;
+        yData = newYData;
+    end%
 
 
 
@@ -123,9 +140,9 @@ return
         plotHandle = gobjects(numPlots, 1);
         holdStatus = ishold(axesHandle);
         hold(axesHandle, 'on');
+        colorOrder = get(axesHandle, 'ColorOrder');
+        colorOrderIndex = get(axesHandle, 'ColorOrderIndex');
         if isequal(opt.BaseColor, @auto)
-            colorOrder = get(axesHandle, 'ColorOrder');
-            colorOrderIndex = get(axesHandle, 'ColorOrderIndex');
             opt.BaseColor = colorOrder(colorOrderIndex, :);
         end
         if isequal(opt.Whitening, @auto)
@@ -151,6 +168,7 @@ return
         else
             hold(axesHandle, 'off');
         end
+
         set(axesHandle, 'ColorOrderIndex', colorOrderIndex);
 
         return

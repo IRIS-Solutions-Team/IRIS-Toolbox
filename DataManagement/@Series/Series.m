@@ -31,9 +31,7 @@ classdef ( ...
 
 
     methods
-        function varargout = plot(varargin)
-            [varargout{1:nargout}] = Series.implementPlot(@plot, varargin{:});
-        end%
+        varargout = plot(varargin)
 
 
         function varargout = bar(varargin)

@@ -43,11 +43,18 @@ serials = serials(:);
 
 %--------------------------------------------------------------------------
 
+sizeData = size(data);
+ndimsData = numel(sizeData);
 if isa(data, 'function_handle')
     %
     % Create data from function handle
     %
     data = createDataFromFunction(this, data, numDates);
+elseif numDates>1 && sizeData(1)==1 && (numel(data)~=numDates || ~isrow(data))
+    %
+    % Repeat data along first dimension if size(data,1)==1
+    %
+    data = repmat(data, [numDates, ones(1, ndimsData-1)]);
 elseif sum(size(data)>1)==1 && numel(data)>1 && numDates>1
     %
     % Squeeze `data` if scalar time series is entered as an non-columnwise
