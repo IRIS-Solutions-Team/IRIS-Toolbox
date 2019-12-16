@@ -58,32 +58,32 @@ function [outputDatabank, status] = fromFred(fredSeriesId, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 FRED_API_KEY = iris.get('FredApiKey');
 REQUEST = '?series_id=%s&api_key=%s&file_type=json';
 FREQUENCY_CONVERSION = '&frequency=%s&aggregation_method=%s';
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('databank.fromFred');
-    parser.KeepUnmatched = true;
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank.fromFred');
+    pp.KeepUnmatched = true;
     %
-    % Required
+    % Required input arguments
     %
-    addRequired(parser,  'fredSeriesID', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addRequired(pp,  'fredSeriesID', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     %
     % Options
     %
-    addParameter(parser, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
-    addParameter(parser, 'AggregationMethod', 'avg', @(x) any(strcmpi(x, {'avg', 'sum', 'eop'})));
-    addParameter(parser, 'Frequency', '', @hereValidateFrequency);
-    addParameter(parser, 'OutputType', 'struct', @validate.databankType);
-    addParameter(parser, 'URL', 'https://api.stlouisfed.org/fred', @(x) (ischar(x) || isa(x, 'string')) && strlength(x)>0);
+    addParameter(pp, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
+    addParameter(pp, 'AggregationMethod', 'avg', @(x) any(strcmpi(x, {'avg', 'sum', 'eop'})));
+    addParameter(pp, 'Frequency', '', @hereValidateFrequency);
+    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
+    addParameter(pp, 'URL', 'https://api.stlouisfed.org/fred', @(x) (ischar(x) || isa(x, 'string')) && strlength(x)>0);
 end
-parse(parser, fredSeriesId, varargin{:});
-opt = parser.Options;
+parse(pp, fredSeriesId, varargin{:});
+opt = pp.Options;
 
 outputDatabank = databank.backend.ensureTypeConsistency( opt.AddToDatabank, ...
                                                          opt.OutputType );
