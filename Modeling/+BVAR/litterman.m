@@ -114,10 +114,10 @@ mu = mu(:);
 
 this = BVAR.bvarobj( );
 this.name = 'litterman';
-this.y0 = @y0;
-this.k0 = @k0;
-this.y1 = @y1;
-this.g1 = @g1;
+this.y0 = @getY0;
+this.k0 = @getK0;
+this.y1 = @getY1;
+this.g1 = @getG1;
 
 if ~isempty(varargin) && nargout>1
     [y0, k, y1, g] = BVAR.mydummymat(this, varargin{:});
@@ -125,7 +125,7 @@ end
 
 return
     
-    function Y0 = y0(numY, order, ~, ~)
+    function Y0 = getY0(numY, order, ~, ~)
         nd = numY*order;
         muRho = mu .* rho;
         if length(muRho)==1 && numY>1
@@ -135,13 +135,13 @@ return
     end%
 
 
-    function K0 = k0(numY, order, ~, numK)
+    function K0 = getK0(numY, order, ~, numK)
         nd = numY*order;
         K0 = zeros(numK, nd);
     end%
 
 
-    function Y1 = y1(numY, order, ~, ~)
+    function Y1 = getY1(numY, order, ~, ~)
         sgm = mu;
         if length(sgm)==1 && numY>1
             sgm = sgm(ones(1, numY), 1);
@@ -156,7 +156,7 @@ return
     end%
 
 
-    function G1 = g1(numY, order, numG, ~)
+    function G1 = getG1(numY, order, numG, ~)
         nd = numY*order;
         G1 = zeros(numG, nd);
     end% 
