@@ -1,4 +1,4 @@
-function 
+function varargout = plot(varargin)
 % plot  Line graph for Series objects
 %{
 % ## Syntax ##
