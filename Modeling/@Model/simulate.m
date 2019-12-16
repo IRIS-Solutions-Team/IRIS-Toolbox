@@ -50,50 +50,55 @@ function [outputDb, outputInfo] = simulate(this, inputDb, baseRange, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.simulate');
-    addRequired(parser, 'SolvedModel', @validate.solvedModel);
-    addRequired(parser, 'InputData', @(x) isstruct(x) || isa(x, 'simulate.Data'));
-    addRequired(parser, 'SimulationRange', @DateWrapper.validateProperRangeInput);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.simulate');
+    %
+    % Required input arguments
+    %
+    addRequired(pp, 'solvedModel', @validate.solvedModel);
+    addRequired(pp, 'inputDb', @(x) validate.databank(x) || isa(x, 'simulate.Data') || isequal(x, "asynchronous"));
+    addRequired(pp, 'simulationRange', @(x) DateWrapper.validateProperRangeInput(x) || isequal(x, @auto));
     %
     % Options
     %
-    parser.addDeviationOptions(false);
-    addParameter(parser, 'Anticipate', true, @validate.logicalScalar);
-    addParameter(parser, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);
-    addParameter(parser, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
-    addParameter(parser, 'Contributions', false, @validate.logicalScalar);
-    addParameter(parser, 'Homotopy', [ ], @(x) isempty(x) || isstruct(x));
-    addParameter(parser, 'IgnoreShocks', false, @validate.logicalScalar);
-    addParameter(parser, 'Method', solver.Method.FIRST_ORDER, @solver.Method.validate);
-    addParameter(parser, 'OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
-    addParameter(parser, 'OutputType', 'struct', @validate.databankType);
-    addParameter(parser, 'Plan', true, @(x) validate.logicalScalar(x) || isa(x, 'Plan'));
-    addParameter(parser, 'ProgressInfo', false, @validate.logicalScalar);
-    addParameter(parser, 'SuccessOnly', false, @validate.logicalScalar);
-    addParameter(parser, 'Solver', @auto, @validateSolver);
-    addParameter(parser, 'SparseShocks', false, @validate.logicalScalar)
-    addParameter(parser, 'SystemProperty', false, @(x) isequal(x, false) || validate.list(x));
-    addParameter(parser, 'Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
+    pp.addDeviationOptions(false);
+    addParameter(pp, 'Anticipate', true, @validate.logicalScalar);
+    addParameter(pp, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);
+    addParameter(pp, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
+    addParameter(pp, 'Contributions', false, @validate.logicalScalar);
+    addParameter(pp, 'IgnoreShocks', false, @validate.logicalScalar);
+    addParameter(pp, 'Method', solver.Method.FIRST_ORDER, @solver.Method.validate);
+    addParameter(pp, 'OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
+    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
+    addParameter(pp, 'Plan', true, @(x) validate.logicalScalar(x) || isa(x, 'Plan'));
+    addParameter(pp, 'ProgressInfo', false, @validate.logicalScalar);
+    addParameter(pp, 'SuccessOnly', false, @validate.logicalScalar);
+    addParameter(pp, 'Solver', @auto, @validateSolver);
+    addParameter(pp, 'SparseShocks', false, @validate.logicalScalar)
+    addParameter(pp, 'SystemProperty', false, @(x) isequal(x, false) || validate.list(x));
+    addParameter(pp, 'Window', @auto, @(x) isequal(x, @auto) || isequal(x, @max) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
 
-    addParameter(parser, 'Initial', 'Data', @(x) validate.anyString(x, 'Data', 'FirstOrder'));
-    addParameter(parser, 'PrepareGradient', true, @validate.logicalScalar);
+    addParameter(pp, 'Initial', 'Data', @(x) validate.anyString(x, 'Data', 'FirstOrder'));
+    addParameter(pp, 'PrepareGradient', true, @validate.logicalScalar);
 end
-parse(parser, this, inputDb, baseRange, varargin{:});
-opt = parser.Options;
+parse(pp, this, inputDb, baseRange, varargin{:});
+opt = pp.Options;
 opt.EvalTrends = opt.DTrends;
-usingDefaults = parser.UsingDefaultsInStruct;
+usingDefaults = pp.UsingDefaultsInStruct;
 
-baseRange = double(baseRange);
-opt.Window = parseWindowOption(opt.Window, opt.Method, baseRange);
+if ~isequal(baseRange, @auto)
+    baseRange = double(baseRange);
+end
+[opt.Window, baseRange] = parseWindowOptionAndBaseRange(opt.Window, opt.Method, baseRange);
 opt.Method = solver.Method.parse(opt.Method);
 opt.Solver = parseSolverOption(opt.Solver, opt.Method);
+isAsynchronous = isequal(inputDb, "asynchronous");
 
 %--------------------------------------------------------------------------
 
@@ -108,8 +113,11 @@ databankInfo = checkInputDatabank(this, inputDb, baseRange, requiredNames, optio
 hereResolveOptionConflicts( );
 plan = opt.Plan;
 
-% __Prepare Running Data__
+%
+% Prepare running data
+%
 runningData = simulate.InputOutputData( );
+runningData.IsAsynchronous = isAsynchronous;
 runningData.PrepareOutputInfo = nargout>=2;
 
 % Retrieve data from intput databank, set up ranges
@@ -162,8 +170,12 @@ if opt.Contributions
     herePostprocessContributions( );
 end
 
-outputDb = hereCreateOutputData( );
+if isAsynchronous
 
+    return
+end
+
+outputDb = hereCreateOutputData( );
 if runningData.PrepareOutputInfo
     outputInfo = herePrepareOutputInfo( );
 end
@@ -209,7 +221,7 @@ return
         runningData.Window = opt.Window;
         runnintDaga.SuccessOnly = opt.SuccessOnly;
         runningData.SparseShocks = opt.SparseShocks;
-        runningData.Solver = opt.Solver;
+        runningData.SolverOptions = opt.Solver;
         runningData.Method = repmat(opt.Method, 1, numRuns);
         runningData.Deviation = repmat(opt.Deviation, 1, numRuns);
         runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numRuns);
@@ -434,8 +446,8 @@ return
 
     function progressInfo = herePrepareProgressInfo( )
         oneLiner = true;
-        if isa(opt.Solver, 'solver.Options')
-            solverDisplay = { opt.Solver.Display };
+        if isa(opt.SolverOptions, 'solver.Options')
+            solverDisplay = { opt.SolverOptions.Display };
             for ii = 1 : numel(solverDisplay)
                 if ~isequal(solverDisplay{ii}, false) ...
                    && ~strcmpi(solverDisplay{ii}, 'None') ...
@@ -453,6 +465,9 @@ return
 
 
     function hereCheckInitialConditions( )
+        if isAsynchronous
+            return
+        end
         % Report missing initial conditions
         firstColumnOfSimulation = runningData.BaseRangeColumns(1);
         inxNaNPresample = any(isnan(runningData.YXEPG(:, 1:firstColumnOfSimulation-1, :)), 3);
@@ -505,7 +520,9 @@ return
                                                                    timeSeriesConstructor, ...
                                                                    opt.OutputType );
             outputDb = addToDatabank('Default', this, outputDb);
-            outputDb = appendData(this, inputDb, outputDb, baseRange, opt);
+            if validate.databank(inputDb)
+                outputDb = appendData(this, inputDb, outputDb, baseRange, opt);
+            end
         else
             outputDb = runningData.YXEPG;
         end
@@ -575,22 +592,35 @@ function flag = validateSolverName(x)
         flag = false;
         return
     end
-    listOfSolverNames = { 'auto' 
-                          'IRIS-QaD'
-                          'IRIS-Newton'
-                          'IRIS-Qnsd'
-                          'QaD'
-                          'IRIS'
-                          'fminsearch'
-                          'lsqnonlin'
-                          'fsolve'      };
-    flag = any(strcmpi(char(x), listOfSolverNames));
+    listSolverNames = { 
+        'auto' 
+        'IRIS-QaD'
+        'IRIS-Newton'
+        'IRIS-Qnsd'
+        'QaD'
+        'IRIS'
+        'fminsearch'
+        'lsqnonlin'
+        'fsolve'      
+    };
+    flag = any(strcmpi(char(x), listSolverNames));
 end%
 
 
 
 
-function windowOption = parseWindowOption(windowOption, methodOption, baseRange)
+function [windowOption, baseRange] = parseWindowOptionAndBaseRange(windowOption, methodOption, baseRange)
+    if isequal(baseRange, @auto)
+        if isequal(windowOption, @auto) || isequal(windowOption, @max)
+            baseRange = 1;
+            windowOption = 1;
+            return
+        else
+            baseRange = 1 : windowOption;
+            return
+        end
+    end
+
     if isequal(windowOption, @auto)
         if methodOption==solver.Method.FIRST_ORDER
             windowOption = 1;

@@ -1,9 +1,10 @@
 % Rectangular
 %
 % Simulate system with rectangular (non-triangular) transition matrix off
-% a straight yxepg matrix.
+% a straight yxepg matrix
+%
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 classdef Rectangular < handle
@@ -32,15 +33,20 @@ classdef Rectangular < handle
 
         InxOfCurrentWithinXi
         LinxOfXib
+        LinxOfXif
         LinxOfCurrentXi
 
         Deviation = false
         SimulateY = true
         NeedsEvalTrends = true
+        UpdateEntireXib = false
 
         HashEquationsFunction
 
         SparseShocks = false
+
+        % Header  Header to display with the final convergence report
+        Header (1, 1) string = ""
     end
 
 
@@ -145,16 +151,20 @@ classdef Rectangular < handle
             this.FirstColumn = timeFrame(1);
             this.LastColumn = timeFrame(2);
             [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
-            idOfXib = VEC(this.SolutionVector{2}(nf+1:end));
-            idOfCurrentXi = VEC(this.SolutionVector{2}(this.InxOfCurrentWithinXi));
-            numOfQuants = length(this.Quantity.Name);
-            pretendSizeOfData = [numOfQuants, this.FirstColumn];
-            this.LinxOfXib = sub2ind( pretendSizeOfData, ...
-                                      real(idOfXib), ...
-                                      this.FirstColumn + imag(idOfXib) );
-            this.LinxOfCurrentXi = sub2ind( pretendSizeOfData, ...
-                                            real(idOfCurrentXi), ...
-                                            this.FirstColumn + imag(idOfCurrentXi) );
+            idXif = VEC(this.SolutionVector{2}(1:nf));
+            idXib = VEC(this.SolutionVector{2}(nf+1:end));
+            idCurrentXi = VEC(this.SolutionVector{2}(this.InxOfCurrentWithinXi));
+            numQuants = length(this.Quantity.Name);
+            pretendSizeData = [numQuants, this.FirstColumn+max(imag(idXif))];
+            this.LinxOfXib = sub2ind( pretendSizeData, ...
+                                      real(idXib), ...
+                                      this.FirstColumn + imag(idXib) );
+            this.LinxOfXif = sub2ind( pretendSizeData, ...
+                                      real(idXif), ...
+                                      this.FirstColumn + imag(idXif) );
+            this.LinxOfCurrentXi = sub2ind( pretendSizeData, ...
+                                            real(idCurrentXi), ...
+                                            this.FirstColumn + imag(idCurrentXi) );
         end%
     end
 

@@ -1,5 +1,5 @@
 function [F, Pe, V, delta, PDelta, sampleCov, this] ...
-    = kalmanFilterRegOutp(this, regOutp, xRange, likOpt, opt)
+    = kalmanFilterRegOutp(this, regOutp, xRange, likOpt, opt);
 % kalmanFilterRegOutp  Postprocess regular (non-hdata) output arguments from the Kalman filter or FD lik.
 %
 % Backend IRIS function.

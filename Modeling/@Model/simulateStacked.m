@@ -1,15 +1,28 @@
-function exitFlag = simulateStacked(this, blazers, vthRect, vthData, header)
+function [exitFlag, dcy] = simulateStacked(simulateFunc, rect, data, blazers)
 % simulateStacked  Run stacked-time simulation on one time frame
 %
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-if vthData.HasExogenizedPoints
+dcy = double.empty(0);
+
+%
+% Run first-order simulation to create initial condition
+%
+if strcmpi(data.Initial, 'FirstOrder')
+    simulateFunc(vthRect, vthData);
+end
+
+%
+% Choose a blazer with no blocks for simulations with exogenized data
+% points
+%
+if data.HasExogenizedPoints
     % No blocks
     blazer = blazers(1);
 else
@@ -17,27 +30,33 @@ else
     blazer = blazers(2);
 end
 
-% Set time frame of vthRect to terminal condition range
-% Keep time frame of vthData set to simulation range
-firstColumnOfTimeFrame = vthData.FirstColumnOfTimeFrame;
-lastColumnOfTimeFrame = vthData.LastColumnOfTimeFrame;
-columnsOfTimeFrame = firstColumnOfTimeFrame : lastColumnOfTimeFrame;
+% Set time frame of rect to terminal condition range
+% Keep time frame of data set to simulation range
+firstColumnTimeFrame = data.FirstColumnOfTimeFrame;
+lastColumnTimeFrame = data.LastColumnOfTimeFrame;
+columnsTimeFrame = firstColumnTimeFrame : lastColumnTimeFrame;
 
 numBlocks = numel(blazer.Block);
 for i = 1 : numBlocks
     ithBlock = blazer.Block{i};
-    ithHeader = [header, sprintf('[Block:%g]', i)];
+    ithHeader = [rect.Header, sprintf('[Block:%g]', i)];
     herePrepareInxOfEndogenousPoints( );
     herePrepareTerminal( );
-    [exitFlag, error] = run(ithBlock, vthData, ithHeader);
+    [exitFlag, error] = run(ithBlock, data, ithHeader);
     if ~isempty(error.EvaluatesToNan)
-        throw( exception.Base('Dynamic:EvaluatesToNan', 'error'), ...
-               '', this.Equation.Input{error.EvaluatesToNan} );
+        break
     end
     if ~hasSucceeded(exitFlag)
         break
     end
 end 
+
+if ~isempty(error.EvaluatesToNan)
+    throw( ...
+        exception.Base('Dynamic:EvaluatesToNan', 'error'), ...
+        '', blazer.Model.Equation.Input{error.EvaluatesToNan} ...
+    );
+end
 
 hereCleanup( );
 
@@ -45,12 +64,13 @@ return
 
 
     function herePrepareInxOfEndogenousPoints( )
-        inx = false(size(vthData.YXEPG));
-        inx(ithBlock.PosQty, columnsOfTimeFrame) = true;
-        if vthData.HasExogenizedPoints
-            inx(vthData.InxOfYX, :) = inx(vthData.InxOfYX, :) ...
-                                    & ~vthData.InxOfExogenizedYX;
-            inx(vthData.InxOfE, columnsOfTimeFrame) = vthData.InxOfEndogenizedE(:, columnsOfTimeFrame);
+        inx = false(size(data.YXEPG));
+        inx(ithBlock.PosQty, columnsTimeFrame) = true;
+        if data.HasExogenizedPoints
+            inx(data.InxOfYX, :) = ...
+                inx(data.InxOfYX, :) ...
+                & ~data.InxOfExogenizedYX;
+            inx(data.InxOfE, columnsTimeFrame) = data.InxOfEndogenizedE(:, columnsTimeFrame);
         end
         ithBlock.InxOfEndogenousPoints = inx;
     end%
@@ -61,15 +81,15 @@ return
         if ithBlock.Type~=solver.block.Type.SOLVE || maxMaxLead<=0
             ithBlock.Terminal = [ ];
         else
-            fotcTimeFrame = [lastColumnOfTimeFrame+1, lastColumnOfTimeFrame+maxMaxLead];
-            setTimeFrame(vthRect, fotcTimeFrame);
-            ithBlock.Terminal = vthRect;
+            fotcTimeFrame = [lastColumnTimeFrame+1, lastColumnTimeFrame+maxMaxLead];
+            setTimeFrame(rect, fotcTimeFrame);
+            ithBlock.Terminal = rect;
         end
     end%
 
 
     function hereCleanup( )
-        setTimeFrame(vthRect, [firstColumnOfTimeFrame, lastColumnOfTimeFrame]);
+        setTimeFrame(rect, [firstColumnTimeFrame, lastColumnTimeFrame]);
     end%
 end%
 

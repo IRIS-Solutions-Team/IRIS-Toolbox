@@ -248,11 +248,19 @@ classdef Model ...
         varargout = getIdOfInitialConditions(varargin)
         varargout = getInxOfInitInPresample(varargin)
         varargout = prepareHashEquations(varargin)
+        varargout = simulateTimeFrames(varargin)
+    end % methods
+
+
+    methods (Static, Hidden) % Simulation methods
+        %(
+        varargout = simulateFirstOrder(varargin)
         varargout = simulateSelective(varargin)
         varargout = simulateStacked(varargin)
         varargout = simulateStatic(varargin)
-        varargout = simulateTimeFrames(varargin)
-    end % methods
+        varargout = simulateNone(varargin)
+        %)
+    end
 
 
     properties (Dependent)

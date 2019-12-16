@@ -1,34 +1,36 @@
-function exitFlag = simulateStatic(this, blazers, vthRect, vthData, header)
+function [exitFlag, dcy] = simulateStatic(~, rect, data, blazers)
 % simulateStatic  Run static simulation on one time frame
 %
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-firstColumnOfTimeFrame = vthData.FirstColumnOfTimeFrame;
-lastColumnOfTimeFrame = vthData.LastColumnOfTimeFrame;
+dcy = double.empty(0);
 
-initYXEPG = vthData.YXEPG;
-finalYXEPG = vthData.YXEPG;
+firstColumnOfTimeFrame = data.FirstColumnOfTimeFrame;
+lastColumnOfTimeFrame = data.LastColumnOfTimeFrame;
 
-numOfBlocks = numel(blazerWithBlocks.Block);
+initYXEPG = data.YXEPG;
+finalYXEPG = data.YXEPG;
+
+blazerWithBlocks = blazers(2);
+
+numBlocks = numel(blazerWithBlocks.Block);
 for column = firstColumnOfTimeFrame : lastColumnOfTimeFrame
     % Reset initial data
-    setTimeFrame(vthData, [column, column]);
-    vthData.YXEPG = initYXEPG;
+    setTimeFrame(data, [column, column]);
+    data.YXEPG = initYXEPG;
 
-    for i = 1 : numOfBlocks
+    for i = 1 : numBlocks
         ithBlk = blazerWithBlocks.Block{i};
-        ithHeader = [header, sprintf('[Block %g]', i)];
+        ithHeader = [rect.Header, sprintf('[Block %g]', i)];
         ithBlk.Terminal = [ ];
-        [exitFlag, error] = run(ithBlk, vthData, ithHeader);
+        [exitFlag, error] = run(ithBlk, data, ithHeader);
         if ~isempty(error.EvaluatesToNan)
-            throw( exception.Base('Dynamic:EvaluatesToNan', 'error'), ...
-                   '', this.Equation.Input{error.EvaluatesToNan} );
         end
         if ~hasSucceeded(exitFlag)
             break
@@ -36,10 +38,17 @@ for column = firstColumnOfTimeFrame : lastColumnOfTimeFrame
     end 
 
     % Store simulate data
-    finalYXEPG(:, column) = vthData.YXEPG(:, column);
+    finalYXEPG(:, column) = data.YXEPG(:, column);
 end
 
-vthData.YXEPG = finalYXEPG;
+if ~isempty(error.EvaluatesToNan)
+    throw( ...
+        exception.Base('Dynamic:EvaluatesToNan', 'error'), ...
+        '', blazer.Model.Equation.Input{error.EvaluatesToNan} ...
+    );
+end
+
+data.YXEPG = finalYXEPG;
 
 end%
 

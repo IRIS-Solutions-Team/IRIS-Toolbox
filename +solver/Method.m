@@ -9,6 +9,26 @@ classdef Method < int8
     end
 
 
+    methods
+        function func = simulateFunction(this)
+            switch this
+                case solver.Method.FIRST_ORDER
+                    func = @Model.simulateFirstOrder;
+                case solver.Method.SELECTIVE
+                    func = @Model.simulateSelective;
+                case solver.Method.STACKED
+                    func = @Model.simulateStacked;
+                case solver.Method.STATIC
+                    func = @Model.simulateStatic;
+                case solver.Method.NONE
+                    func = @Model.simulateNone;
+                otherwise
+                    func = [ ];
+            end
+        end%
+    end
+
+
     methods (Static)
         function flag = validate(input)
             if isa(input, 'solver.Method') ...

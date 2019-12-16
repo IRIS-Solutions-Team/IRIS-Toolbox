@@ -1,5 +1,5 @@
-function databankInfo = checkInputDatabank( ...
-    this, inputDatabank, range, ...
+function dbInfo = checkInputDatabank( ...
+    this, inputDb, range, ...
     requiredNames, optionalNames, context, ...
     namesAllowedScalar ...
 )
@@ -22,6 +22,13 @@ end
 
 %--------------------------------------------------------------------------
     
+dbInfo = struct( );
+dbInfo.NumOfPages = NaN;
+
+if isequal(inputDb, "asynchronous")
+    return
+end
+
 nv = countVariants(this);
 
 if isempty(requiredNames)
@@ -50,7 +57,7 @@ for i = 1 : numel(allNames)
     name__ = string(allNames{i});
     allowedScalar__ = isequal(namesAllowedScalar, @all) || any(name__==namesAllowedScalar);
     try
-        field__ = getfield(inputDatabank, name__);
+        field__ = getfield(inputDb, name__);
     catch
         field__ = missing( );
     end
@@ -75,7 +82,7 @@ if ~all(checkFrequency)
     hereReportFrequency( );
 end
 
-numPages = databank.backend.countColumns(inputDatabank, allNames);
+numPages = databank.backend.countColumns(inputDb, allNames);
 numPages(isnan(numPages) & inxOptionalNames) = 0;
 maxNumPages = max(numPages);
 
@@ -89,8 +96,7 @@ if ~all(checkNumPagesAndVariants)
     hereReportColumns( );
 end
 
-databankInfo = struct( );
-databankInfo.NumOfPages = max(max(numPages), 1);
+dbInfo.NumOfPages = max(max(numPages), 1);
 
 return
 

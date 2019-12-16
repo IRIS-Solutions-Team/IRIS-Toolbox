@@ -1,5 +1,9 @@
 function swapped(this, data)
 
+% This simulation modifies shocks and they need to be updated in the output
+% databank
+data.NeedsUpdateShocks = true;
+
 calculateShockMultipliers(this, data);
 flat(this, data);
 updateEndogenizedE(this, data);

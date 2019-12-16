@@ -80,10 +80,10 @@ return
         % Numerical initial condition supplied by user
         %
         if iscell(opt.Init) 
-            % User supplied initial condition.
+            % User supplied initial condition
             if ~isempty(opt.Init{2})
-                % User-supplied initial condition including MSE.
-                % Convert MSE[Xb] to MSE[Alp].
+                % User-supplied initial condition including MSE
+                % Convert MSE[Xb] to MSE[Alp]
                 Pa0 = opt.Init{2}(:, :, 1, min(end, iLoop));
                 if transform
                     Pa0 = s.U(:, :, 1) \ Pa0;

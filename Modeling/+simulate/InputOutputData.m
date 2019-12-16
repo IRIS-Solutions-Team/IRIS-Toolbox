@@ -1,5 +1,6 @@
 classdef InputOutputData < shared.DataBlock
     properties
+        IsAsynchronous = false
         Blazers
         MaxShift
         TimeTrend
@@ -20,7 +21,7 @@ classdef InputOutputData < shared.DataBlock
         % __Options Copied over From Input Parser__
 
         % Solver  Solver options
-        Solver = solver.Options.empty(0)
+        SolverOptions = solver.Options.empty(0)
 
         % Window  Minimum lengths of time frame required
         Window = @auto

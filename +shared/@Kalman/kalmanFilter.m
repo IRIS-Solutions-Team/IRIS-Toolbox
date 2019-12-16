@@ -52,13 +52,7 @@ s.NumF  = nf;
 s.NumE  = ne;
 s.NumG  = ng;
 
-s.IsSimulate = false;
-if ~isequal(opt.Simulate, false)
-    opt.Simulate = parseSimulateOptions(this, opt.Simulate{:});
-    s.IsSimulate = strcmpi(opt.Simulate.Method, 'selective') ...
-                   && ~isequal(opt.Simulate.NonlinWindow, 0) ...
-                   && any(this.Equation.IxHash);
-end
+s.IsSimulate = ~isequal(opt.Simulate, false);
 
 % Out-of-lik params cannot be used with ~opt.DTrends
 numPouts = length(opt.OutOfLik);
@@ -124,13 +118,6 @@ if ~s.IsObjOnly
     regOutp.Init = { nan(nb, 1, numRuns), nan(nb, nb, numRuns) };
 end
 
-% Prepare struct and options for non-linear simulations (prediction
-% step).
-sn = struct( );
-if s.IsSimulate
-    prepareSimulate( );
-end
-
 %
 % Main loop
 %
@@ -142,7 +129,14 @@ end
 inxSolutionAvailable = true(1, nv);
 inxValidFactor = true(1, numRuns);
 
+
+% /////////////////////////////////////////////////////////////////////////
 for run = 1 : numRuns
+    if s.IsSimulate
+        prepareOnly = true;
+        s.Simulate = simulateTimeFrames(this, opt.Simulate, run, prepareOnly);
+    end
+
     %
     % Next data
     % Measurement and exogenous variables, and initial observations of
@@ -252,18 +246,9 @@ for run = 1 : numRuns
     % Prediction step
     %
 
-    % Prepare the struct sn for nonlinear simulations in this round of
-    % prediction steps.
-    if s.IsSimulate
-        sn.ILoop = run;
-        if run<=nv
-            sn = prepareSimulate2(this, sn, run);
-        end
-    end
-    
     % Run prediction error decomposition and evaluate user-requested
     % objective function.
-    [obj(:, run), s] = kalman.ped(s, sn, opt);
+    [obj(:, run), s] = kalman.ped(s, opt);
     inxValidFactor(run) = abs(s.V)>this.VARIANCE_FACTOR_TOLERANCE;
 
     % Return immediately if only the value of the objective function is
@@ -370,6 +355,8 @@ for run = 1 : numRuns
         update(progress, run/numRuns);
     end
 end 
+% /////////////////////////////////////////////////////////////////////////
+
 
 if ~all(inxSolutionAvailable)
     thisWarning = { 'Kalman:SystemMatricesWithNaN'
@@ -614,27 +601,6 @@ return
             s.Pb2(:, :, 1:s.LastSmooth-1) = NaN;
             outputData.Mse2.Data(:, :, :, run) = s.Pb2*s.V;
         end
-    end%
-
-
-
-
-    function prepareSimulate( )
-        sn.Anch = false(ny+nxi+ne+ne, 1);
-        sn.Wght = sparse(ne+ne, 1);
-        sn.NPer = 1;
-        sn.progress = [ ];
-        sn.Alp0 = [ ];
-        sn.Ea = zeros(ne, 1);
-        sn.Eu = zeros(ne, 1);
-        sn.Tune = sparse(ny+nxi, 1);
-        sn.ZerothSegment = 0;
-        sn.NLoop = numRuns;
-        sn.LastEndgA = 0;
-        sn.LastEndgU = 0;
-        sn.LastEa = 0;
-        displayMode = 'Silent';
-        sn = prepareSimulate1(this, sn, opt.Simulate, displayMode);
     end%
 end%
 

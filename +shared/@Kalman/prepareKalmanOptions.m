@@ -176,7 +176,7 @@ elseif isstruct(opt.Init)
         datarequest('xbInit', this, opt.Init, range);
     if isempty(xbInitMse)
         numPages = size(xbInitMean, 3);
-        xbInitMse = zeros(nb, nb, numPages);
+        xbInitMse = double.empty(0);
     end
     hereCheckNaNInit( );
     opt.Init = {xbInitMean, xbInitMse};
@@ -214,6 +214,10 @@ if ~isequal(opt.Rolling, false)
     hereCheckRollingColumns( );
 end
 
+if ~isequal(opt.Simulate, false)
+    herePrepareSimulateSystemProperty( );
+end
+
 return
 
     function hereCheckNaNInit( )
@@ -237,6 +241,14 @@ return
         assert( all(round(x)==x) && all(x>=1) && all(x<=numPeriods), ...
                 'Model:Filter:IllegalRolling', ...
                 'Illegal dates specified in option Rolling=' );
+    end%
+
+
+    function herePrepareSimulateSystemProperty( )
+        opt.Simulate = simulate( ...
+            this, "asynchronous", @auto, ...
+            opt.Simulate{:}, 'SystemProperty=', 'S' ...
+        );
     end%
 end%
 

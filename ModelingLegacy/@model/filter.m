@@ -1,4 +1,4 @@
-function [this, outp, V, Delta, Pe, SCov, init] = filter(this, inputDatabank, filterRange, varargin)
+function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filterRange, varargin)
 % filter  Kalman smoother and estimator of out-of-likelihood parameters
 %{
 %
@@ -337,7 +337,7 @@ function [this, outp, V, Delta, Pe, SCov, init] = filter(this, inputDatabank, fi
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 persistent pp
@@ -348,7 +348,7 @@ if isempty(pp)
     % Required arguments
     %
     addRequired(pp, 'solvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
-    addRequired(pp, 'inputDatabank', @(x) isempty(x) || validate.databank(x));
+    addRequired(pp, 'inputDb', @(x) isempty(x) || validate.databank(x));
     addRequired(pp, 'filterRange', @DateWrapper.validateProperRangeInput);
     %
     % Options in addition to Kalman filter options
@@ -357,7 +357,7 @@ if isempty(pp)
     addParameter(pp, {'Data', 'Output'}, 'smooth', @ischar);
     addParameter(pp, 'Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
 end
-parse(pp, this, inputDatabank, filterRange, varargin{:});
+parse(pp, this, inputDb, filterRange, varargin{:});
 opt = pp.Options;
 unmatched = pp.UnmatchedInCell;
 
@@ -383,8 +383,8 @@ end
 %
 % Get measurement and exogenous variables
 %
-if ~isempty(inputDatabank)
-    inputArray = datarequest('yg*', this, inputDatabank, filterRange);
+if ~isempty(inputDb)
+    inputArray = datarequest('yg*', this, inputDb, filterRange);
 else
     inputArray = nan(ny+ng, numBasePeriods);
 end
@@ -433,7 +433,8 @@ end
 % Postprocess regular (non-hdata) output arguments; update the std
 % parameters in the model object if `Relative=' true`
 %
-[~, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, extendedRange, kalmanOpt, opt);
+[F, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, extendedRange, kalmanOpt, opt);
+init = regOutp.Init;
 
 %
 % Post-process hdata output arguments

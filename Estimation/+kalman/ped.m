@@ -1,10 +1,10 @@
-function [obj, s] = ped(s, sn, opt)
+function [obj, s] = ped(s, opt)
 % ped  Prediction error decomposition and objective function evaluation
 %
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
@@ -120,11 +120,15 @@ numObs = zeros(1, numExtendedPeriods);
 
 status = 'ok';
 
+if s.IsSimulate
+    [simulateFunc, simulateFirstOrderFunc, rect, data, blazer] = s.Simulate{:};
+    rect.SimulateY = false;
+    rect.UpdateEntireXib = true;
+end
 
-% Main loop
-%-----------
+
+% /////////////////////////////////////////////////////////////////////////
 for t = 2 : numExtendedPeriods
-
     %
     % Start with `Ta(t<-t-1)` here
     %
@@ -218,7 +222,7 @@ for t = 2 : numExtendedPeriods
     pe = y1(jy, t) - y0;
     
     if opt.CheckFmse
-        % Only evaluate the cond number if the test is requested by the user.
+        % Only evaluate the cond number if the test is requested by the user
         condNumber = rcond(Fj);
         if condNumber<opt.FmseCondTol || isnan(condNumber)
             status = 'condNumberFailed';
@@ -229,6 +233,7 @@ for t = 2 : numExtendedPeriods
     %
     % Kalman gain in contemporaneous filtering
     %
+    lastwarn('');
     K1 = PZt/Fj; 
         
     % 
@@ -287,7 +292,7 @@ for t = 2 : numExtendedPeriods
         end
         
         % Compute components of the objective function if this period is included
-        % in the user specified objective range.
+        % in the user specified objective range
         numObs(1, t) = nnz(xy);
         if opt.ObjFunc==1
             % Likelihood function
@@ -305,7 +310,8 @@ for t = 2 : numExtendedPeriods
         hereStorePed( );
     end
     
-end % for t...
+end
+% /////////////////////////////////////////////////////////////////////////
 
 
 switch status
@@ -399,14 +405,11 @@ return
     
     
     function hereSimulatePredict( )
-        % Simulate nonlinear predictions.
-        a1 = a + K1*pe;
-        sn.Alp0 = a1;
-        sn.ZerothSegment = t - 2;
-        [~, ~, ~, ~, w] = simulate.selective.run(sn);
-        a = w(nf+1:end, 1);
-        % Store prediction for forward-looking transition variables.
-        s.f0(:, 1, t) = w(1:nf, 1);
+        U = s.U(:, :, min(t, end));
+        data.ForceInit = U*(a + K1*pe);
+        simulateFunc(simulateFirstOrderFunc, rect, data, blazer);
+        a = U\data.YXEPG(rect.LinxOfXib);
+        s.f0(:, 1, t) = data.YXEPG(rect.LinxOfXif);
     end%
 
     

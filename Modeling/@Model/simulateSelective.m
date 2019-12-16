@@ -1,12 +1,10 @@
-function [exitFlag, dcy] = simulateSelective( this, simulateFunction, ...
-                                              rect, data, needsStoreE, header, ...
-                                              solverOptions, window )
+function [exitFlag, dcy] = simulateSelective(simulateFunc, rect, data, ~)
 % simulateSelective  Run equations-selective simulation on one time frame
 %
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 MAX_DENSITY = 1/3;
@@ -21,7 +19,9 @@ inxE = data.InxOfE;
 inxYX = data.InxOfYX;
 numYX = nnz(inxYX);
 inxLogYX = data.InxOfLog(inxYX);
-solverName = solverOptions(1).SolverName;
+solverOpt = data.SolverOptions;
+solverName = solverOpt(1).SolverName;
+window = data.Window;
 
 columnRangeOfHashFactors = firstColumnOfTimeFrame + (0 : window-1);
 
@@ -61,7 +61,7 @@ if data.NumOfExogenizedPoints==0
         %
         calculateHashMultipliers(rect, data);
         numHashedColumns = numel(columnRangeOfHashedYX);
-        simulateFunction(rect, data);
+        simulateFunc(rect, data);
         objectiveFunction = @objectiveFunctionShort;
     end
 end
@@ -72,13 +72,15 @@ if strncmpi(solverName, 'IRIS', 4)
     % IRIS Solver
     data0 = data;
     initNlaf0 = initNlaf;
-    for i = 1 : numel(solverOptions)
-        ithSolver = solverOptions(i);
+    for i = 1 : numel(solverOpt)
+        ithSolver = solverOpt(i);
         if i>1 && ithSolver.Reset
             data = data0;
             initNlaf = initNlaf0;
         end
-        [finalNlaf, dcy, exitFlag] = solver.algorithm.qnsd(objectiveFunction, initNlaf, ithSolver, header);
+        [finalNlaf, dcy, exitFlag] = solver.algorithm.qnsd( ...
+            objectiveFunction, initNlaf, ithSolver, rect.Header ...
+        );
         if hasSucceeded(exitFlag)
             break
         end
@@ -87,7 +89,7 @@ if strncmpi(solverName, 'IRIS', 4)
 elseif strcmpi(solverName, 'fminsearch')
     % Plain fminsearch
     temp = @(x) sum(power(objectiveFunction(x), 2), [1, 2]);
-    [finalNlaf, dcy, exitFlag] = fminunc(temp, initNlaf, solverOptions);
+    [finalNlaf, dcy, exitFlag] = fminunc(temp, initNlaf, solverOpt);
     if exitFlag==1
         exitFlag = solver.ExitFlag.CONVERGED;
     elseif exitFlag==0
@@ -99,17 +101,17 @@ elseif strcmpi(solverName, 'fminsearch')
 else
     if strcmpi(solverName, 'fsolve')
         % Optimization Tbx
-        [finalNlaf, dcy, exitFlag] = fsolve(objectiveFunction, initNlaf, solverOptions);
+        [finalNlaf, dcy, exitFlag] = fsolve(objectiveFunction, initNlaf, solverOpt);
     elseif strcmpi(solverName, 'lsqnonlin')
         % Optimization Tbx
-        [finalNlaf, ~, dcy, exitFlag] = lsqnonlin(objectiveFunction, initNlaf, [ ], [ ], solverOptions);
+        [finalNlaf, ~, dcy, exitFlag] = lsqnonlin(objectiveFunction, initNlaf, [ ], [ ], solverOpt);
     end
     exitFlag = solver.ExitFlag.fromOptimTbx(exitFlag);
 end
 
 rect.SimulateY = true;
 data.NonlinAddf(:, columnRangeOfHashFactors) = finalNlaf; 
-simulateFunction(rect, data);
+simulateFunc(rect, data);
 
 return
 
@@ -118,10 +120,12 @@ return
 
     function dcy = objectiveFunctionFull(nlaf)
         data.NonlinAddf(:, columnRangeOfHashFactors) = nlaf;
-        simulateFunction(rect, data);
+        simulateFunc(rect, data);
         tempYXEPG = data.YXEPG;
 
-        if needsStoreE
+        if data.NeedsUpdateShocks
+            % The `simulateFunc` modified the shocks and they need to
+            % be updated in the main databank
             tempE = data.AnticipatedE;
             tempE(:, firstColumnOfTimeFrame) = tempE(:, firstColumnOfTimeFrame) ...
                                              + data.UnanticipatedE(:, firstColumnOfTimeFrame);

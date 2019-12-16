@@ -1,4 +1,4 @@
-function X = requestData(~, databankInfo, inputDatabank, dates, names)
+function X = requestData(~, dbInfo, inputDb, dates, names)
 % requestData  Return input data matrix for selected model names
 %
 % Backend IRIS function
@@ -12,16 +12,21 @@ function X = requestData(~, databankInfo, inputDatabank, dates, names)
 dates = double(dates);
 numNames = numel(names);
 numPeriods = numel(dates);
-numPages = databankInfo.NumOfPages;
 
+if isequal(inputDb, "asynchronous")
+    X = nan(numNames, numPeriods, 1);
+    return
+end
+
+numPages = dbInfo.NumOfPages;
 X = nan(numNames, numPeriods, numPages);
 
 for i = 1 : numNames
     name__ = names{i};
-    if ~isfield(inputDatabank, name__)
+    if ~isfield(inputDb, name__)
         continue
     end
-    field__ = getfield(inputDatabank, name__);
+    field__ = getfield(inputDb, name__);
     if isempty(field__)
         continue
     end

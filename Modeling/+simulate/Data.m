@@ -1,5 +1,8 @@
 classdef Data < shared.DataBlock
     properties
+        % ForceInit  Supply initial condition to replace YXEPG data
+        ForceInit = double.empty(0)
+
         % InitYX  NumOfYX-by-NumOfPeriods matrix of original input data for YX
         InitYX = double.empty(0)
 
@@ -12,8 +15,8 @@ classdef Data < shared.DataBlock
         % InxOfY  True for measurement variables
         InxOfY = logical.empty(1, 0)
 
-        % InxOfYX  True for measurement or transition variables
-        InxOfYX = logical.empty(1, 0)
+        % InxOfX  True for transition variables
+        InxOfX = logical.empty(1, 0)
 
         % InxOfE  True for shocks
         InxOfE = logical.empty(1, 0)
@@ -29,8 +32,14 @@ classdef Data < shared.DataBlock
 
         InxOfExogenizedYX = logical.empty(0)
         InxOfEndogenizedE = logical.empty(0)
+
+        % SigmasOfExogenous  Sigmas (inverse weights) for individual endogenized data points
         SigmasOfExogenous = double.empty(0)
-        Sigma
+
+        % Sigma  Inverse weighting matrix composed of squares of individual sigmas
+        Sigma = double.empty(0)
+
+        % Target  Target values for exogenized variables
         Target = double.empty(0)
 
         % InxOfHashedYX  Incidence of measurement and transtion variables in hash equations
@@ -54,11 +63,20 @@ classdef Data < shared.DataBlock
         % Window  Window for nonlinear addfactors
         Window = 0
 
+        % Initial  How to obtain initial condition in iterative methods
+        Initial = "Data"
+
+        % SolverOptions  Solver options for iterative methods
+        SolverOptions = solver.Options.empty(0)
+
         % FirstColumnOfTimeFrame  First column of current time frame to be simulated
         FirstColumnOfTimeFrame
 
         % LastColumnOfTimeFrame  Last column of current time frame to be simulated
         LastColumnOfTimeFrame
+
+        % NeedsUpdateShocks  Shocks have been modified in simulation and need to be update in the output databan
+        NeedsUpdateShocks = false
     end
 
 
@@ -202,6 +220,7 @@ classdef Data < shared.DataBlock
 
     properties (Dependent)
         E
+        InxOfYX
         NumOfYX
         NumOfE
         NumOfExogenizedPoints
@@ -222,8 +241,13 @@ classdef Data < shared.DataBlock
         end%
 
 
+        function value = get.InxOfYX(this)
+            value = this.InxOfY | this.InxOfX;
+        end%
+
+
         function value = get.NumOfYX(this)
-            value = nnz(this.InxOfYX);
+            value = nnz(this.InxOfY) + nnz(this.InxOfX);
         end%
 
 
@@ -306,7 +330,7 @@ classdef Data < shared.DataBlock
 
 
     methods (Static)
-        function this = fromModelAndPlan(model, run, plan, YXEPG, needsEvalTrends)
+        function this = fromModelAndPlan(model, run, plan, runningData)
             TYPE = @int8;
 
             modelVariant = run;
@@ -320,15 +344,15 @@ classdef Data < shared.DataBlock
             end
 
             dataPage = run;
-            if size(YXEPG, 3)==1
+            if size(runningData.YXEPG, 3)==1
                 dataPage = 1;
             end
 
             this = simulate.Data( );
-            [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, YXEPG(:, :, dataPage), modelVariant, [ ]);
+            [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, runningData.YXEPG(:, :, dataPage), modelVariant, [ ]);
             quantity = getp(model, 'Quantity');
             this.InxOfY = getIndexByType(quantity, TYPE(1));
-            this.InxOfYX = getIndexByType(quantity, TYPE(1), TYPE(2));
+            this.InxOfX = getIndexByType(quantity, TYPE(2));
             this.InxOfE = getIndexByType(quantity, TYPE(31), TYPE(32));
             this.InxOfLog = quantity.IxLog;
 
@@ -345,7 +369,7 @@ classdef Data < shared.DataBlock
             end
                 
             % Prepare data for measurement trend equations
-            this.NeedsEvalTrends = needsEvalTrends;
+            this.NeedsEvalTrends = runningData.NeedsEvalTrends(min(run, end));
             if this.NeedsEvalTrends
                 this.Trends = evalTrendEquations(model, [ ], this.YXEPG);
                 this.NeedsEvalTrends = any(this.Trends(:)~=0);

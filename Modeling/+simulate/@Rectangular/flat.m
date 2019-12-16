@@ -58,8 +58,8 @@ lenR = size(R, 2);
 % Nonlinear add-factors
 nlaf = data.NonlinAddf;
 lastNlaf = 0;
-nlafExist = ~isempty(Q) && ~isempty(nlaf) && any(nlaf(:)~=0);
-if nlafExist
+existsNlaf = ~isempty(Q) && ~isempty(nlaf) && any(nlaf(:)~=0);
+if existsNlaf
     lastNlaf = find(any(nlaf~=0, 1), 1, 'last');
     if isempty(lastNlaf)
         lastNlaf = 0;
@@ -74,22 +74,29 @@ end
 
 % Initial condition
 linxInit = linxXib - stepForLinx;
-Xi_0 = YXEPG(linxInit);
+if isempty(data.ForceInit)
+    Xib_0 = YXEPG(linxInit);
+else
+    Xib_0 = data.ForceInit;
+    YXEPG(linxInit) = Xib_0;
+end
 
 % Required initial conditions already checked for NaNs; here reset any
 % remaining (seeming) initial conditions 
-Xi_0(isnan(Xi_0)) = 0;
+Xib_0(isnan(Xib_0)) = 0;
 
 if simulateY
     Xb = nan(nxi, sizeData(2));
     E = nan(ne, sizeData(2));
 end
 
+
+% /////////////////////////////////////////////////////////////////////////
 for t = columnsToRun
     %
-    % __Transition Equations__
+    % Transition Equations
     %
-    Xi_t = T*Xi_0;
+    Xi_t = T*Xib_0;
 
     if ~deviation
         % Add constant
@@ -124,9 +131,12 @@ for t = columnsToRun
 
     % Update current column in data matrix
     YXEPG(linxCurrentXi) = Xi_t(inxCurrentWithinXi);
+    if this.UpdateEntireXib
+        YXEPG(linxXib) = Xi_t(nf+1:end);
+    end
 
     %
-    % __Measurement Equations__
+    % Measurement Equations
     %
     if simulateY
         Y_t = Z*Xi_t(nf+1:end);
@@ -150,7 +160,7 @@ for t = columnsToRun
     linxXib = round(linxXib + stepForLinx);
     linxCurrentXi = round(linxCurrentXi + stepForLinx);
 
-    Xi_0 = YXEPG(linxXib-stepForLinx);
+    Xib_0 = YXEPG(linxXib-stepForLinx);
 end
 
 %

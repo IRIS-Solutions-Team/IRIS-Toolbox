@@ -1,4 +1,4 @@
-function simulateTimeFrames(this, systemProperty, run)
+function prepared = simulateTimeFrames(this, systemProperty, run, prepareOnly)
 % simulateTimeFrames  Implement simulation by time frames
 %
 % Backend IRIS function
@@ -8,10 +8,14 @@ function simulateTimeFrames(this, systemProperty, run)
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
+if nargin<4
+    prepareOnly = false;
+end
 
 %--------------------------------------------------------------------------
 
 runningData = systemProperty.Specifics;
+isAsynchronous = runningData.IsAsynchronous;
 
 % Regular call from @Model.simulate
 regularCall = systemProperty.NumOfOutputs==0;
@@ -30,85 +34,118 @@ method = runningData.Method(min(run, end));
 deviation = runningData.Deviation(min(run, end));
 needsEvalTrends = runningData.NeedsEvalTrends(min(run, end));
 
-%for h = homotopySteps
-    % Set up @simulate.Data from @Model and @Plan, update parameters and
-    % steady trends and measurement trends
-    vthData = simulate.Data.fromModelAndPlan( this, run, plan, ...
-                                              runningData.YXEPG, needsEvalTrends );
-    vthData.FirstColumnOfSimulation = firstColumnToRun;
-    vthData.LastColumnOfSimulation = lastColumnToRun;
-    vthData.Window = runningData.Window;
+% Set up @simulate.Data from @Model and @Plan, update parameters and
+% steady trends and measurement trends
+vthData = simulate.Data.fromModelAndPlan(this, run, plan, runningData);
+vthData.FirstColumnOfSimulation = firstColumnToRun;
+vthData.LastColumnOfSimulation = lastColumnToRun;
+vthData.Window = runningData.Window;
+vthData.Initial = runningData.Initial;
+vthData.SolverOptions = runningData.SolverOptions;
 
-    if method==solver.Method.STACKED || method==solver.Method.STATIC
-        if deviation
-            vthData.YXEPG = addSteadyTrends(vthData, vthData.YXEPG);
-            vthData.Deviation = false;
-        end
+if method==solver.Method.STACKED || method==solver.Method.STATIC
+    if deviation
+        vthData.YXEPG = addSteadyTrends(vthData, vthData.YXEPG);
+        vthData.Deviation = false;
+    end
+else
+    vthData.Deviation = deviation;
+end
+
+% Set up @Rectangular object for simulation
+vthRect = simulate.Rectangular.fromModel(this, run);
+vthRect.SparseShocks = runningData.SparseShocks;
+vthRect.Deviation = vthData.Deviation;
+vthRect.SimulateY = true;
+vthRect.Method = method;
+vthRect.PlanMethod = plan.Method;
+vthRect.NeedsEvalTrends = vthData.NeedsEvalTrends;
+
+% Equation-selective specific properties
+if method==solver.Method.SELECTIVE
+    prepareHashEquations(this, vthRect, vthData);
+end
+
+% Split shocks into AnticipatedE and UnanticipatedE properties on
+% the whole simulation range
+% retrieveE(vthData);
+[ vthData.AnticipatedE, ...
+  vthData.UnanticipatedE ] = simulate.Data.splitE( vthData.E, ...
+                                                   vthData.AnticipationStatusOfE, ...
+                                                   baseRangeColumns );
+
+% Retrieve time frames
+timeFrames = runningData.TimeFrames{min(run, end)};
+vthData.MixinUnanticipated = runningData.MixinUnanticipated(min(run, end));
+
+% Simulate @Rectangular object one timeFrame at a time
+numTimeFrames = size(timeFrames, 1);
+needsUpdateShocks = false;
+vthExitFlags = repmat(solver.ExitFlag.IN_PROGRESS, 1, numTimeFrames);
+vthDiscrepancyTables = cell(1, numTimeFrames);
+
+
+% 
+% Simulate individual time frammes
+%
+
+% /////////////////////////////////////////////////////////////////////////
+for frame = 1 : numTimeFrames
+    setTimeFrame(vthRect, timeFrames(frame, :));
+    setTimeFrame(vthData, timeFrames(frame, :));
+    updateSwapsFromPlan(vthData, plan);
+    ensureExpansionGivenData(vthRect, vthData);
+    if vthData.NumOfExogenizedPoints==0
+        simulateFirstOrderFunc = @flat;
     else
-        vthData.Deviation = deviation;
+        simulateFirstOrderFunc = @swapped; 
     end
 
-    % Set up @Rectangular object for simulation
-    vthRect = simulate.Rectangular.fromModel(this, run);
-    vthRect.SparseShocks = runningData.SparseShocks;
-    vthRect.Deviation = vthData.Deviation;
-    vthRect.SimulateY = true;
-    vthRect.Method = method;
-    vthRect.PlanMethod = plan.Method;
-    vthRect.NeedsEvalTrends = vthData.NeedsEvalTrends;
+    %
+    % Choose simulation type and run simulation
+    %
+    vthData.NeedsUpdateShocks = false;
+    vthRect.Header = sprintf('[Variant|Page:%g][TimeFrame:%g]', run, frame);
+    func = simulateFunction(method);
 
-    % Equation-selective specific properties
-    if method==solver.Method.SELECTIVE
-        prepareHashEquations(this, vthRect, vthData);
+    if prepareOnly
+        %
+        % Prepare first-frame simulation only for asynchronous run, and
+        % return immediately
+        %
+        prepared = {func, simulateFirstOrderFunc, vthRect, vthData, blazers};
+        return
     end
 
-    % Split shocks into AnticipatedE and UnanticipatedE properties on
-    % the whole simulation range
-    % retrieveE(vthData);
-    [ vthData.AnticipatedE, ...
-      vthData.UnanticipatedE ] = simulate.Data.splitE( vthData.E, ...
-                                                       vthData.AnticipationStatusOfE, ...
-                                                       baseRangeColumns );
+    [exitFlag__, dcy__] = func( ...
+        simulateFirstOrderFunc, vthRect, vthData, blazers ...
+    );
 
-    % Retrieve time frames
-    timeFrames = runningData.TimeFrames{min(run, end)};
-    vthData.MixinUnanticipated = runningData.MixinUnanticipated(min(run, end));
+    vthExitFlags(frame) = exitFlag__;
+    if ~isempty(dcy__) && runningData.PrepareOutputInfo
+        dcyTable = compileDiscrepancyTable( ...
+            this, dcy__, ...
+            this.Equation.Input(this.Equation.InxOfHashEquations) ...
+        );
+        vthDiscrepancyTables{frame} = dcyTable;
+    end
+    needsUpdateShocks = needsUpdateShocks | vthData.NeedsUpdateShocks;
 
-    % Simulate @Rectangular object one timeFrame at a time
-    numTimeFrames = size(timeFrames, 1);
-    needsStoreE = false(1, numTimeFrames);
-    vthExitFlags = repmat(solver.ExitFlag.IN_PROGRESS, 1, numTimeFrames);
-    vthDiscrepancyTables = cell(1, numTimeFrames);
-    for frame = 1 : numTimeFrames
-        setTimeFrame(vthRect, timeFrames(frame, :));
-        setTimeFrame(vthData, timeFrames(frame, :));
-        updateSwapsFromPlan(vthData, plan);
-        ensureExpansionGivenData(vthRect, vthData);
-        if vthData.NumOfExogenizedPoints==0
-            simulateFunction = @flat;
-        else
-            simulateFunction = @swapped; 
-            needsStoreE(frame) = true;
-        end
+    % If the simulation of this time frame fails and the user does not
+    % request results from failed simulations, break immediately from
+    % the loop and do not continue to the next time frame
+    if ~hasSucceeded(exitFlag__) && runningData.SuccessOnly
+        break
+    end
+end % frame
+% /////////////////////////////////////////////////////////////////////////
 
-        % Choose simulation type and run simulation
-        [exitFlag, vthDiscrepancyTables{frame}] = hereChooseSimulationTypeAndRun( );
-        vthExitFlags(frame) = exitFlag;
 
-        % If the simulation of this time frame fails and the user does not
-        % request results from failed simulations, break immediately from
-        % the loop and do not continue to the next time frame
-        if ~hasSucceeded(exitFlag) && runningData.SuccessOnly
-            break
-        end
-    end % frame
-
-    % Overall success
-    vthSuccess = all(hasSucceeded(vthExitFlags));
-%end % while homotopy
+% Overall success
+vthSuccess = all(hasSucceeded(vthExitFlags));
 
 % Update shocks back in YXEPG if needed
-if any(needsStoreE)
+if any(needsUpdateShocks)
     storeE(vthData);
 end
 
@@ -147,40 +184,6 @@ end
 return
 
 
-
-
-    function [exitFlag, discrepancyTable] = hereChooseSimulationTypeAndRun( )
-        header = sprintf('[Variant|Page:%g][TimeFrame:%g]', run, frame);
-        discrepancy = double.empty(0);
-        discrepancyTable = [ ];
-        switch method
-            case solver.Method.NONE
-                exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
-            case solver.Method.FIRST_ORDER
-                simulateFunction(vthRect, vthData);
-                exitFlag = solver.ExitFlag.LINEAR_SYSTEM;
-            case solver.Method.SELECTIVE
-                [exitFlag, discrepancy] = simulateSelective( this, simulateFunction, ...
-                                                             vthRect, vthData, ...
-                                                             needsStoreE(frame), header, ...
-                                                             runningData.Solver, runningData.Window );
-            case solver.Method.STACKED
-                if strcmpi(runningData.Initial, 'FirstOrder')
-                    simulateFunction(vthRect, vthData);
-                end
-                exitFlag = simulateStacked(this, blazers, vthRect, vthData, header);
-            case solver.Method.STATIC
-                exitFlag = simulateStatic(this, blazers, vthRect, vthData, header);
-        end
-        if ~isempty(discrepancy) && runningData.PrepareOutputInfo
-            discrepancyTable = compileDiscrepancyTable( this, discrepancy, ...
-                                                        this.Equation.Input(this.Equation.InxOfHashEquations) );
-        end
-    end%
-
-
-
-
     function hereResetOutsideBaseRange( )
         temp = vthData.YXEPG(:, 1:firstColumnToRun-1);
         temp(~inxInitInPresample) = NaN;
@@ -195,7 +198,7 @@ end%
 %
 
 
-function discrepancyTable = compileDiscrepancyTable(this, discrepancy, equations)
+function dcyTable = compileDiscrepancyTable(this, discrepancy, equations)
     MAX_STRLENGTH = 50;
     maxInRow = max(abs(discrepancy), [ ], 2);
     [maxInRow, reorderRows] = sort(maxInRow, 1, 'descend');
@@ -207,7 +210,7 @@ function discrepancyTable = compileDiscrepancyTable(this, discrepancy, equations
     equations(inxTooLong) = cellfun( @(x) [x(1:MAX_STRLENGTH-1), ellipsis], ...
                                      equations(inxTooLong), ...
                                      'UniformOutput', false );
-    discrepancyTable = table( equations, maxInRow, discrepancy, ...
+    dcyTable = table( equations, maxInRow, discrepancy, ...
                               'VariableNames', {'Equation', 'MaxDiscrepancy', 'Discrepancies'} );
 end%
 
