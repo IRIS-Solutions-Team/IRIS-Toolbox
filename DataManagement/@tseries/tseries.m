@@ -151,158 +151,8 @@
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
-         tseries < NumericTimeSubscriptable ...
-                   & shared.GetterSetter ...
-                   & shared.UserDataContainer
+         tseries < NumericTimeSubscriptable
 
-    methods
-        function this = tseries(varargin)
-            % tseries  Create new time series (tseries) object
-            %
-            % __Syntax__
-            %
-            % Input arguments marked with a `~` sign may be omitted.
-            %
-            %     X = tseries( )
-            %     X = tseries(Dates, Values, ~ColumnComments, ~UserData)
-            %
-            %
-            % __Input Arguments__
-            %
-            % * `Dates` [ numeric | char ] - Dates for which observations will be
-            % supplied; `dates` do not need to be sorted in ascending order or create a
-            % continuous date range. If `dates` is scalar and `values` have multiple
-            % rows, then the date is interpreted as the start date for the entire time
-            % series.
-            %
-            % * `Values` [ numeric | function_handle ] - Numerical values
-            % (observations) arranged columnwise, or a function that will be used to
-            % create an N-by-1 array of values, where N is the number of `dates`.
-            %
-            % * `~Comment` [ char | cellstr | string ] - Comment or
-            % comments attached to each column of observations; if omitted,
-            % comments will be empty strings.
-            %
-            % * `~UserData` [ * ] - Any kind of user data attached to the
-            % object; if omitted, user data will be empty.
-            %
-            %
-            % __Output Arguments__
-            %
-            % * `X` [ tseries ] - New times series.
-            %
-            %
-            % __Description__
-            %
-            %
-            % __Example__
-            %
-            
-            % -IRIS Macroeconomic Modeling Toolbox
-            % -Copyright (c) 2007-2019 IRIS Solutions Team
-            
-            this = this@shared.GetterSetter( );
-            this = this@shared.UserDataContainer( );
-            this = resetComment(this);
-            
-            % Empty call
-            if nargin==0
-                return
-            end
-            
-            % tseries input
-            if nargin==1 && isequal(class(varargin{1}), 'tseries')
-                this = varargin{1};
-                return
-            end
-
-            % Cast struct or Series as tseries
-            if nargin==1 && isstruct(varargin{1}) 
-                this = struct2obj(this, varargin{1});
-                return
-            end
-
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('tseries.tseries');
-                parser.addRequired('Dates', @DateWrapper.validateDateInput);
-                parser.addRequired('Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle'));
-                parser.addOptional('Comment', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-                parser.addOptional('UserData', [ ], @(x) true);
-            end
-
-            parser.parse(varargin{:});
-            dates = parser.Results.Dates;
-            values = parser.Results.Values;
-            comment = parser.Results.Comment;
-            userData = parser.Results.UserData;
-
-            if ischar(dates) || isa(dates, 'string')
-                dates = textinp2dat(dates);
-            end
-            numOfDates = numel(dates);            
-
-            if isempty(dates)
-                freq = double.empty(1, 0);
-            else
-                if isa(dates, 'DateWrapper')
-                    freq = DateWrapper.getFrequencyAsNumeric(getFirst(dates));
-                else
-                    freq = DateWrapper.getFrequencyAsNumeric(dates(1));
-                end
-                freq = freq(~isnan(freq));
-                DateWrapper.checkMixedFrequency(freq);
-            end
-            serials = DateWrapper.getSerial(dates);
-            serials = serials(:);
-            
-            %--------------------------------------------------------------
-            
-            % Create data from function handle.
-            if isa(values, 'function_handle') 
-                if isequal(values, @ltrend)
-                    values = (1:numOfDates).';
-                else
-                    values = feval(values, [numOfDates, 1]);
-                end
-            elseif isnumeric(values) || islogical(values)
-                if sum(size(values)>1)==1 && length(values)>1 && numOfDates>1
-                    % Squeeze `Data` if scalar time series is entered as an non-columnwise
-                    % vector.
-                    values = values(:);
-                elseif numel(values)==1 && numOfDates>1
-                    % Expand scalar observation to match more than one of `Dates`.
-                    values = repmat(values, size(serials));
-                end
-            end
-
-            this = resetMissingValue(this, values);
-            
-            % If `Dates` is scalar and `Data` have multiple rows, treat
-            % `Dates` as a start date and expand the dates accordingly.
-            numOfRowsInValues = size(values, 1);
-            if numOfDates==1 && numOfRowsInValues>1
-                serials = serials + (0 : numOfRowsInValues-1);
-            end
-            
-            % Initialize the time series start date and data.
-            this = init(this, freq, serials, values);
-            
-            % Populate comments for each column
-            this = resetComment(this);
-            if ~isempty(comment)
-                this.Comment = comment;
-            end
-            
-            this = userdata(this, userData);
-
-            if ~isempty(this.Data) 
-                this = trim(this);
-            end
-        end%
-    end
-    
-    
     methods
         varargout = area(varargin)
         varargout = arma(varargin)
@@ -427,7 +277,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     
     
     methods (Hidden)
-        varargout = checkConsistency(varargin)
         varargout = max(varargin)
         varargout = min(varargin)
         varargout = cat(varargin)
@@ -447,7 +296,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = rearrangePred(varargin)
         varargout = rangedata(varargin)
         varargout = saveobj(varargin)
-        varargout = setData(varargin)
     end
     
     
@@ -464,7 +312,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
 
         varargout = myfilter(varargin)
-        varargout = init(varargin)
         varargout = mylagorlead(varargin)
         varargout = recognizeShift(varargin)
     end

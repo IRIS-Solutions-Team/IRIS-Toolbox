@@ -1,10 +1,10 @@
 function this = setData(this, s, y)
-% setData  Assign data to time series
+% setData  Assign data to TimeSubscriptable object
 %
 % Backend IRIS function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 ERROR_ASSIGNMENT = { 'TimeSubscriptable:ErrorAssigning'
@@ -23,9 +23,9 @@ end
 
 convertToDateWrapper = isa(this.Start, 'DateWrapper');
 
-% Pad LHS time series data with NaNs to comply with references.
-% Remove the rows from dates that do not pass the frequency test.
-[this, s, dates, freqTest] = expand(this, s);
+% Pad LHS time series data with MissingValues to comply with references
+% Remove the rows from dates that do not pass the frequency test
+[this, s, dates, freqTest] = hereExpand(this, s);
 
 % Get RHS time series object data
 if isa(y, 'TimeSubscriptable')
@@ -54,7 +54,7 @@ end
 
 % Report frequency mismatch
 % Remove the rows from RHS that do not pass the frequency test; LHS dates
-% have already been removed and a warning thrown in expand(~)
+% have already been removed and a warning thrown in hereExpand(~)
 sizeOfRhs = size(y);
 if any(~freqTest)
     if sizeOfRhs(1)==numel(freqTest)
@@ -99,7 +99,7 @@ end%
 %
 
 
-function [this, s, dates, freqTest] = expand(this, s)
+function [this, s, dates, freqTest] = hereExpand(this, s)
     ERROR_GROW_AMBIGUOUS_DIM = { 'TimeSubscriptale:subsasgn', ...
                                  'Attempt to grow time series data array along ambiguous dimension' };
     testColon = @(x) (ischar(x) || isa(x, 'string')) && isequal(x, ':');
@@ -152,10 +152,10 @@ function [this, s, dates, freqTest] = expand(this, s)
     % Reshape time series data to reduce number of dimensions if called with
     % fewer dimensions. Eg x.Data is Nx2x2, and assignment is for x(:, 3).
     % This mimicks standard Matlab behavior.
-    nSubs = length(s.subs);
+    numSubs = numel(s.subs);
     needsReshapeBack = false;
-    if nSubs<ndims(this.Data)
-        tempSubs = cell([1, nSubs]);
+    if numSubs<ndims(this.Data)
+        tempSubs = cell(1, numSubs);
         tempSubs(:) = {':'};
         tempSize = size(this.Data);
         this.Data = this.Data(tempSubs{:});
@@ -163,8 +163,8 @@ function [this, s, dates, freqTest] = expand(this, s)
         needsReshapeBack = true;
     end
 
-    % Add NaNs to data when user indices go beyond the data size.
-    % Add NaNs to 1st dimension when user indices are non-positive.
+    % Add MissingValues to data when user indices go beyond the data size.
+    % Add MissingValues to 1st dimension when user indices are non-positive.
     % Add empty strings for comments to comply with the new size.
     % This modifies standard Matlab matrix assignment, which produces zeros.
     for i = find(~strcmp(':', s.subs))
@@ -181,7 +181,7 @@ function [this, s, dates, freqTest] = expand(this, s)
         % standard Matlab behavior: Matlab adds zeros.
         if any(s.subs{i}>size(this.Data, i))
             currentSize = size(this.Data);
-            currentSize(end+1:nSubs) = 1;
+            currentSize(end+1:numSubs) = 1;
             addSize = currentSize;
             addSize(i) = max(s.subs{i}) - addSize(i);
             this.Data = cat(i, this.Data, repmat(missingValue, addSize));

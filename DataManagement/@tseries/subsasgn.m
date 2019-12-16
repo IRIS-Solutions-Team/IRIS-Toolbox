@@ -1,6 +1,6 @@
 function this = subsasgn(this, s, y, varargin)
 % subsasgn  Subscripted assignment for time series
-%
+%{
 % __Syntax__
 %
 %     X(Dates) = Values
@@ -32,8 +32,9 @@ function this = subsasgn(this, s, y, varargin)
 %
 % __Example__
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------

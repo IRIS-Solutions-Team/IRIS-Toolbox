@@ -58,7 +58,8 @@ end
 switch s(1).type
     case '()'
         % Return numeric array
-        [varargout{1:2}] = getData(this, s(1).subs{:});
+        [data, dates] = getData(this, s(1).subs{:});
+        varargout = {data, dates};
     case '{}'
         % Return time series
         [~, ~, this] = getData(this, s(1).subs{:});

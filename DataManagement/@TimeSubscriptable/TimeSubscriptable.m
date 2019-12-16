@@ -72,6 +72,15 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
 
+    methods (Abstract, Access=protected, Hidden)
+        varargout = checkDataClass(varargin)
+        varargout = createDataFromFunction(varargin)
+        varargout = resetMissingValue(varargin)
+    end
+
+
+
+
     methods (Access=protected)
         varargout = resolveRange(varargin)
     end
@@ -86,9 +95,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         varargout = getDataFromTo(varargin)
         varargout = getDataNoFrills(varargin)
         varargout = ifelse(varargin)
+        varargout = init(varargin)
         varargout = redate(varargin)
         varargout = removeWeekends(varargin)
         varargout = resetComment(varargin)
+        varargout = setData(varargin)
         varargout = shift(varargin)
 
 

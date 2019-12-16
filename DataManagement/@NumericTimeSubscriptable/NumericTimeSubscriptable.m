@@ -1,7 +1,10 @@
-classdef ( Abstract, ...
-           CaseInsensitiveProperties=true, ...
-           InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper} ) ...
-         NumericTimeSubscriptable < TimeSubscriptable
+classdef ( ...
+    Abstract, CaseInsensitiveProperties=true, ...
+    InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper} ...
+) NumericTimeSubscriptable ...
+    < TimeSubscriptable ...
+    & shared.GetterSetter ...
+    & shared.UserDataContainer
 
     properties
         % Data  Numeric or logical array of time series data
@@ -85,9 +88,37 @@ classdef ( Abstract, ...
 
 
 
+    methods (Hidden)
+        varargout = checkConsistency(varargin)
+    end
+
+
+
 
     methods (Access=protected, Hidden)
         varargout = binop(varargin)
+
+
+        function data = createDataFromFunction(this, data, numDates)
+            if isequal(data, @ltrend)
+                data = transpose(1:numDates);
+            else
+                data = feval(data, [numDates, 1]);
+            end
+        end%
+
+
+        function checkDataClass(this, data)
+            if isnumeric(data) || islogical(data)
+                return
+            end
+            thisError = [ "NumericTimeSubscriptable:InvalidClassOfData"
+                          "NumericTimeSubscriptable can only be assigned "
+                          "numeric or logical classes of data. "];
+            throw(exception.Base(thisError, 'error'));
+        end%
+
+
         implementDisp(varargin)
         varargout = unop(varargin)
         varargout = unopinx(varargin)
@@ -464,6 +495,126 @@ classdef ( Abstract, ...
                 dim = 1;
             end
             x = unop(@var, x, dim, flag, dim, varargin{:});
+        end%
+    end
+
+
+
+
+    methods
+        function this = NumericTimeSubscriptable(varargin)
+% NumericTimeSubscriptable  Create new numeric time series object
+%{
+% __Syntax__
+%
+% Input arguments marked with a `~` sign may be omitted.
+%
+%     X = tseries( )
+%     X = tseries(Dates, Values, ~ColumnComments, ~UserData)
+%
+%
+% __Input Arguments__
+%
+% * `Dates` [ numeric | char ] - Dates for which observations will be
+% supplied; `dates` do not need to be sorted in ascending order or create a
+% continuous date range. If `dates` is scalar and `values` have multiple
+% rows, then the date is interpreted as the start date for the entire time
+% series.
+%
+% * `Values` [ numeric | function_handle ] - Numerical values
+% (observations) arranged columnwise, or a function that will be used to
+% create an N-by-1 array of values, where N is the number of `dates`.
+%
+% * `~Comment` [ char | cellstr | string ] - Comment or
+% comments attached to each column of observations; if omitted,
+% comments will be empty strings.
+%
+% * `~UserData` [ * ] - Any kind of user data attached to the
+% object; if omitted, user data will be empty.
+%
+%
+% __Output Arguments__
+%
+% * `X` [ tseries ] - New times series.
+%
+%
+% __Description__
+%
+%
+% __Example__
+%
+%}
+            
+            % -[IrisToolbox] for Macroeconomic Modeling
+            % -Copyright (c) 2007-2019 IRIS Solutions Team
+            
+            this = this@shared.GetterSetter( );
+            this = this@shared.UserDataContainer( );
+            this = resetComment(this);
+
+            % Cast struct as NumericTimeSubscriptable
+            if nargin==1 && isstruct(varargin{1}) 
+                this = struct2obj(this, varargin{1});
+                if ~checkConsistency(this)
+                    thisError = [ "NumericTimeSubscriptable:InvalidStructPassedToConstructor"
+                                  "The struct passed into the NumericTimeSubscriptable constructor "
+                                  "is invalid or its fields are not consistent. " ];
+                    throw(exception.Base(thisError, 'error'));
+                end
+                return
+            end
+
+            % Empty call
+            if nargin==0
+                return
+            end
+            
+            % NumericTimeSubscriptable input
+            if nargin==1 && isequal(class(varargin{1}), 'NumericTimeSubscriptable')
+                this = varargin{1};
+                return
+            end
+
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('NumericTimeSubscriptable.NumericTimeSubscriptable');
+                %
+                % Required input arguments
+                %
+                addRequired(pp, 'Dates', @DateWrapper.validateDateInput);
+                addRequired(pp, 'Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle'));
+                addOptional(pp, 'Comment', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+                addOptional(pp, 'UserData', [ ], @(x) true);
+            end
+
+            pp.parse(varargin{:});
+            dates = pp.Results.Dates;
+            values = pp.Results.Values;
+            comment = pp.Results.Comment;
+            userData = pp.Results.UserData;
+            opt = pp.Options;
+
+
+            %
+            % Initialize the time series start date and data, trim data
+            % array
+            %
+            this = init(this, dates, values);
+
+            
+            %
+            % Populate comments for each data column
+            %
+            this = resetComment(this);
+            if ~isempty(comment)
+                this.Comment = comment;
+            end
+
+
+            %
+            % Populate user data
+            %
+            this = userdata(this, userData);
         end%
     end
 end
