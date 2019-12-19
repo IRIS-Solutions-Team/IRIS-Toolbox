@@ -57,71 +57,71 @@ classdef rpteq < shared.GetterSetter ...
 
     methods
         function this = rpteq(varargin)
-            % rpteq  New reporting equations (rpteq) object.
-            %
-            % __Syntax__
-            %
-            %     Q = rpteq(FileName)
-            %     Q = rpteq(Eqtn)
-            %
-            %
-            % __Input Arguments__
-            %
-            % * `FileName` [ char | cellstr ] - File name or cellstr array of
-            % file names, each a plain text file with reporting equations;
-            % multiple input files will be combined together.
-            %
-            % * `Eqtn` [ char | cellstr ] - Text string with an equation or cellarray
-            % of equations.
-            %
-            %
-            % __Output Arguments__
-            %
-            % * `Q` [ rpteq ] - New reporting equations object.
-            %
-            %
-            % __Description__
-            %
-            % Reporting equations must be written in the following form:
-            %
-            %     `LhsName = RhsExpr;`
-            %     `"Label" LhsName = RhsExpr;`
-            %
-            % where
-            %
-            % * `LhsName` is the name of a left-hand-side variable (with no
-            % lag or lead);
-            %
-            % * `RhsExpr` is an expression on the right-hand side that will be
-            % evaluated period by period, and assigned to the left-hand-side variable, 
-            % `LhsName`. The RHS expression must be ended with a semicolon.
-            %
-            % * `"Label"` is an optional label that will be used to create
-            % a comment in the output time series for the respective
-            % left-hand-side variable.
-            %
-            % * the equation must end with a semicolon.
-            %
-            %
-            % __Example__
-            %
-            %     q = rpteq({ ...
-            %         'a = c * a{-1}^0.8 * b{-1}^0.2;', ...
-            %         'b = sqrt(b{-1});', ...
-            %         })
-            %
-            %     q =
-            %         rpteq Object
-            %         Number of Equations: [2]
-            %         Comment: ''
-            %         User Data: empty
-            %         Export Files: [0]
-            %
-            % -IRIS Macroeconomic Modeling Toolbox
-            % -Copyright (c) 2007-2019 IRIS Solutions Team
+% rpteq  New reporting equations (rpteq) object
+%
+% __Syntax__
+%
+%     Q = rpteq(FileName)
+%     Q = rpteq(Eqtn)
+%
+%
+% __Input Arguments__
+%
+% * `FileName` [ char | cellstr ] - File name or cellstr array of
+% file names, each a plain text file with reporting equations;
+% multiple input files will be combined together.
+%
+% * `Eqtn` [ char | cellstr ] - Text string with an equation or cellarray
+% of equations.
+%
+%
+% __Output Arguments__
+%
+% * `Q` [ rpteq ] - New reporting equations object.
+%
+%
+% __Description__
+%
+% Reporting equations must be written in the following form:
+%
+%     `LhsName = RhsExpr;`
+%     `"Label" LhsName = RhsExpr;`
+%
+% where
+%
+% * `LhsName` is the name of a left-hand-side variable (with no
+% lag or lead);
+%
+% * `RhsExpr` is an expression on the right-hand side that will be
+% evaluated period by period, and assigned to the left-hand-side variable, 
+% `LhsName`. The RHS expression must be ended with a semicolon.
+%
+% * `"Label"` is an optional label that will be used to create
+% a comment in the output time series for the respective
+% left-hand-side variable.
+%
+% * the equation must end with a semicolon.
+%
+%
+% __Example__
+%
+%     q = rpteq({ ...
+%         'a = c * a{-1}^0.8 * b{-1}^0.2;', ...
+%         'b = sqrt(b{-1});', ...
+%         })
+%
+%     q =
+%         rpteq Object
+%         Number of Equations: [2]
+%         Comment: ''
+%         User Data: empty
+%         Export Files: [0]
+%
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
             
-            persistent inputParser parserOptions
-            if isempty(inputParser) || isempty(parserOptions)
+            persistent inputParser ppParser
+            if isempty(inputParser) || isempty(ppParser)
                 inputParser = extend.InputParser('rpteq.rpteq');
                 inputParser.KeepUnmatched = true;
                 inputParser.PartialMatching = false;
@@ -129,12 +129,12 @@ classdef rpteq < shared.GetterSetter ...
                 inputParser.addParameter('Assign', struct( ), @isstruct);
                 inputParser.addParameter('saveas', char.empty(1, 0), @(x) ischar(x) || isa(x, 'string'));
 
-                parserOptions = extend.InputParser('rpteq.rpteq');
-                parserOptions.KeepUnmatched = true;
-                parserOptions.PartialMatching = false;
-                parserOptions.addParameter('AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
-                parserOptions.addParameter({'SteadyOnly', 'SstateOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
-                parserOptions.addParameter({'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
+                ppParser = extend.InputParser('rpteq.rpteq');
+                ppParser.KeepUnmatched = true;
+                ppParser.PartialMatching = false;
+                ppParser.addParameter('AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
+                ppParser.addParameter({'SteadyOnly', 'SstateOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
+                ppParser.addParameter({'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
             end
             
             %--------------------------------------------------------------
@@ -152,8 +152,8 @@ classdef rpteq < shared.GetterSetter ...
                 parse(inputParser, varargin{:});
                 input = inputParser.Results.Input;
                 opt = inputParser.Options;
-                parse(parserOptions, inputParser.UnmatchedInCell{:});
-                unmatched = parserOptions.UnmatchedInCell;
+                parse(ppParser, inputParser.UnmatchedInCell{:});
+                unmatched = ppParser.UnmatchedInCell;
                 if ~isstruct(opt.Assign)
                     opt.Assign = struct( );
                 end
@@ -161,12 +161,12 @@ classdef rpteq < shared.GetterSetter ...
                     opt.Assign.(umatched{i}) = unmatched{i+1};
                 end
                 % Tell apart equations from file names
-                inxOfFileNames = cellfun(@isempty, strfind(cellstr(input), '='));
-                if all(inxOfFileNames)
+                inxFileNames = cellfun(@isempty, strfind(cellstr(input), '='));
+                if all(inxFileNames)
                     % Input is file name or cellstr of file names
                     [code, this.FileName, this.Export] = parser.Preparser.parse( input, [ ], ...
                                                                                  'Assigned=', opt.Assign );
-                elseif all(~inxOfFileNames)
+                elseif all(~inxFileNames)
                     % Input is equation or cellstr of equations
                     [code, this.FileName, this.Export] = parser.Preparser.parse( [ ], input, ...
                                                                                  'Assigned=', opt.Assign );
@@ -182,7 +182,9 @@ classdef rpteq < shared.GetterSetter ...
                 end
                 % Run theparser on preparsed code
                 the = parser.TheParser('rpteq', this.FileName, code, opt.Assign);
-                [~, eqn, euc] = parse(the, parserOptions.Options);
+                parserOptions = ppParser.Options;
+                parserOptions.EquationSwitch = @auto;
+                [~, eqn, euc] = parse(the, parserOptions);
             end
             
             % Run rpteq postparser
