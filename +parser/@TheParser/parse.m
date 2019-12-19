@@ -24,9 +24,9 @@ eqn = model.component.Equation( );
 euc = parser.EquationUnderConstruction( );
 puc = parser.PairingUnderConstruction( );
 
-numOfBlocks = length(this.Block);
+numBlocks = numel(this.Block);
 collector = struct( );
-for i = 1 : numOfBlocks
+for i = 1 : numBlocks
     if this.Block{i}.Parse
         [qty, eqn] = parse(this.Block{i}, this, blockCode{i}, qty, eqn, euc, puc, opt);
     else

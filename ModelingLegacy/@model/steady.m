@@ -1,101 +1,148 @@
 function [this, flag, outputInfo] = steady(this, varargin)
 % steady  Compute steady state or balance-growth path of the model
-%
+%{
 % ## Syntax ##
+%
 %
 %     [m, flag, outputInfo] = steady(m, ...)
 %
 %
 % ## Input Arguments ##
 %
-% * `m` [ model ] - Parameterized model object.
+%
+% __`m`__ [ model ]
+% >
+% Model object with at least all of its non-stochastic parameters that
+% appera in steady equations assigned.
 %
 %
 % ## Output Arguments ##
 %
-% * `m` [ model ] - Model object with newly computed steady state assigned.
 %
-% * `flag` [ `true` | `false` ] - True for parameter variants where steady
+% __`m`__ [ model ]
+% >
+% Model object with newly computed steady state assigned.
+%
+%
+% __`flag`__ [ `true` | `false` ]
+% >
+% True for parameter variants where steady
 % state has been found successfully.
 %
-% * `outputInfo` [ struct ] - Additional information about steady state
+%
+% __`outputInfo`__ [ struct ]
+% >
+% Additional information about steady state
 % calculations.
 %
 %
 % ## Options ##
 %
-% * `'Warning='` [ *`true`* | `false` ] - Display IRIS warning produced by
+%
+% __`'Warning='`__ [ *`true`* | `false` ]
+% >
+% Display IRIS warning produced by
 % this function.
 %
 %
 % ## Options for Nonlinear Models ##
 %
-% * `Blocks=true` [ `true` | `false` ] - Rearrange steady-state equations
+%
+% __`Blocks=true`__ [ `true` | `false` ]
+% >
+% Rearrange steady-state equations
 % in sequential blocks before computing steady state.
 %
-% * `Display='iter'` [ `'iter'` | `'final'` | `'notify'` | `'off'` ] -
+%
+% __`Display='iter'`__ [ `'iter'` | `'final'` | `'notify'` | `'off'` ] -
 % Level of screen output.
 %
-% * `Endogenize=[ ]` [ `@auto` | cellstr | char | *empty* ] - List of
+%
+% __`Endogenize=[ ]`__ [ `@auto` | cellstr | char | *empty* ]
+% >
+% List of
 % parameters that will be endogenized when computing the steady state; the
 % number of endogenized parameters must match the number of transtion
 % variables exogenized in the `Exogenize=` option; the use of the keyword
-% `@auto` is explained in Description.
-%
-% * `Exogenize=` [ `@auto` | cellstr | char | *empty* ] - List of
 % transition variables that will be exogenized when computing the steady
 % state; the number of exogenized variables must match the number of
 % parameters exogenized in the `'Exogenize='` option; the use of the
 % keyword `@auto` is explained in Description.
 %
-% * `Fix=[ ]` [ cellstr | `Except` | *empty* ] - List of variables whose
+%
+% __`Fix=[ ]`__ [ cellstr | `Except` | *empty* ]
+% >
+% List of variables whose
 % steady state (both level and change) will not be computed and kept fixed
 % to the currently assigned values; alternatively an `Except` wrapper
 % object can be used to specify that all variables are to be fixed except
 % those listed.
 %
-% * `FixGrowth=[ ]` [ cellstr | *empty* ] - Same as `Fix=` except that this
+%
+% __`FixGrowth=[ ]`__ [ cellstr | *empty* ]
+% >
+% Same as `Fix=` except that this
 % option fixes only the steady-state first difference (variables not declared as
 % log) or the steady-state rates of change (variables declared as log) of
 % each variables listed.
 %
-% * `FixLevel=[ ]` [ cellstr | *empty* ] - Same as `Fix=` except that this
+%
+% __`FixLevel=[ ]`__ [ cellstr | *empty* ]
+% >
+% Same as `Fix=` except that this
 % option fixes only the steady-state level of each variable listed.
 %
-% * `Growth=false` [ `true` | `false` ] - If `true`, both the steady-state
+%
+% __`Growth=false`__ [ `true` | `false` ]
+% >
+% If `true`, both the steady-state
 % levels and growth rates will be computed; if `false`, only the levels
 % will be computed assuming that either all model variables are stationary,
 % have stochastic trend without deterministic drift, or that the correct
 % steady-state changes are already assigned in the model object.
 %
-% * `LogMinus=empty` [ cell | char | *empty* ] - List of log variables
+%
+% __`LogMinus=empty`__ [ cell | char | *empty* ]
+% >
+% List of log variables
 % whose steady state will be restricted to negative values in this run of
 % `steady`.
 %
-% * `Reuse=false` [ `true` | `false` ] - Reuse the steady-state values
+%
+% __`Reuse=false`__ [ `true` | `false` ]
+% >
+% Reuse the steady-state values
 % calculated for one parameter variant to initialize the steady-state
 % calculation for the next parameter variant.
 %
-% * `Solver='IRIS-Qnsd'` [ `'IRIS-Qnsd'` | `'IRIS-Newton'` | `'fsolve'` |
-% `'lsqnonlin'` | cell ] - Numerical routine to solve the steady state of
+%
+%
+% __`Solver='IRIS-Qnsd'`__ [ `'IRIS-Qnsd'` | `'IRIS-Newton'` | `'fsolve'` |
+% `'lsqnonlin'` | cell ]
+% >
+% Numerical routine to solve the steady state of
 % nonlinear models complemented possibly with its options; see Description.
 %
-% * `Unlog=[ ]` [ cell | char | *empty* ] - List of log variables that will
+%
+%
+%
+% __`Unlog=[ ]`__ [ cell | char | *empty* ]
+% >
+% List of log variables that will
 % be temporarily treated as non-log variables in this run of `steady(~)`,
 % i.e.  their steady-state levels will not be restricted to either positive
 % or negative values.
 %
-%
-% ## Options for Linear Models ##
-%
-% * `Solve=false` [ `true` | `false` ] - Calculate first-order solution
-% before steady state.
+% __`Solve=false`__ [ `true` | `false` ]
+% >
+% Calculate first-order solution before steady state.
 %
 %
 % ## Description ##
 %
 %
-% _Option Growth=_
+% ### Option `Growth=` ###
+%
 %
 % The option `Growth=` is `false` by default which is consistent with one
 % of the following situations:
@@ -114,7 +161,7 @@ function [this, flag, outputInfo] = steady(this, varargin)
 % be run with `Growth=true`.
 %
 %
-% _Lower and Upper Bounds_
+% ### Lower and Upper Bounds ###
 %
 % Use options `'LevelBounds='` and `'GrowthBounds='` to impose lower and/or
 % upper bounds on steady-state levels and/or growth rates of selected
@@ -134,7 +181,8 @@ function [this, flag, outputInfo] = steady(this, varargin)
 % be included in the struct.
 %
 %
-% _Using @auto in Options Exogenize= and Endogenize=_
+% ### Using `@auto` in Options `Exogenize=` and `Endogenize=` ###
+%
 %
 % The keyword `@auto` refers to `!steady-autoswaps` definitions and can be
 % used in the options `Exogenize=` and `Exogenize=` in the following three
@@ -159,7 +207,8 @@ function [this, flag, outputInfo] = steady(this, varargin)
 % `!steady-autoswaps` definition.
 %
 %
-% _Options Fix=, FixLevel= and FixGrowth=_
+% ### Options `Fix=`, `FixLevel=` and `FixGrowth=` ###
+%
 %
 % Options `Fix=`, `FixLevel=` and `FixGrowth=` can be used for fixing the
 % steady state of a subset of variables (their steady-state levels,
@@ -181,6 +230,7 @@ function [this, flag, outputInfo] = steady(this, varargin)
 %
 % ## Example ##
 %
+5
 % This example illustrates the use of the keyword `@auto` in
 % exogenizing/endogenizing variabes/parameters. Assume that the underlying
 % model file included the following sections:
@@ -220,9 +270,9 @@ function [this, flag, outputInfo] = steady(this, varargin)
 % will calculate the steady state with two variables, `Z` and `Y`, 
 % (corresponding to the endogenized parameters listed) exogenized while
 % endogenizing the listed parameters, `alpha` and `delta`.
-%
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 steady = prepareSteady(this, 'verbose', varargin{:});

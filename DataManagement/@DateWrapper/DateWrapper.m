@@ -168,6 +168,11 @@ classdef DateWrapper < double
         end%
 
 
+        function this = getIth(this, pos)
+            this = this(pos);
+        end%
+
+
         function flag = isnad(this)
             flag = isequaln(double(this), NaN);
         end%

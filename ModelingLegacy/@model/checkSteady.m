@@ -15,13 +15,16 @@ function [flag, varargout] = checkSteady(this, varargin)
 %
 % ## Output Arguments ##
 %
+%
 % __`flag`__ [ `true` | `false` ] - 
 % True if discrepancy between LHS and RHS is smaller than tolerance level
 % in each equation.
 %
+%
 % __`discr`__ [ numeric ] - 
 % Discrepancies between LHS and RHS evaluated for each equation at two
 % consecutive times, and returned as two column vectors.
+%
 %
 % __`list`__ [ cellstr ] - 
 % List of equations in which the discrepancy between LHS and RHS is greater
@@ -30,12 +33,15 @@ function [flag, varargout] = checkSteady(this, varargin)
 %
 % ## Options ##
 %
+%
 % __`Error=true`__ [ `true` | `false` ] - 
 % Throw an error if one or more
 % equations fail to hold up to tolerance level.
 %
+%
 % __`EquationSwitch='Dynamic'`__ [ `'Both'` | `'Dynamic'` | `'Steady'` ] - 
 % Check either dynamic equations or steady equations or both.
+%
 %
 % __`Warning=true`__ [ `true` | `false` ] - 
 % Display warnings produced by this function.
@@ -66,7 +72,7 @@ opt = parser.Options;
 needsSort = nargout>3;
 
 % Pre-process options passed to implementCheckSteady(~)
-chksstateOpt = prepareCheckSteady(this, 'verbose', parser.UnmatchedInCell{:});
+checkSteadyOpt = prepareCheckSteady(this, 'verbose', parser.UnmatchedInCell{:});
 
 %--------------------------------------------------------------------------
 
@@ -76,11 +82,11 @@ if any(this.Link)
 end
 
 if opt.Warning
-    if any(strcmpi(chksstateOpt.EquationSwitch, {'Dynamic', 'Full'}))
-        chksstateOpt.EquationSwitch = 'Dynamic';
+    if any(strcmpi(checkSteadyOpt.EquationSwitch, {'Dynamic', 'Full'}))
+        checkSteadyOpt.EquationSwitch = 'Dynamic';
         chkQty(this, Inf, 'parameters:dynamic', 'sstate', 'log');
     else
-        chksstateOpt.EquationSwitch = 'Steady';
+        checkSteadyOpt.EquationSwitch = 'Steady';
         chkQty(this, Inf, 'parameters:steady', 'sstate', 'log');
     end
 end
@@ -90,7 +96,7 @@ nv = length(this);
 % `dcy` is a matrix of discrepancies; it has two columns when dynamic
 % equations are evaluated, or one column when steady equations are
 % evaluated.
-[flag, dcy, maxAbsDiscr, list] = implementCheckSteady(this, Inf, chksstateOpt);
+[flag, dcy, maxAbsDiscr, list] = implementCheckSteady(this, Inf, checkSteadyOpt);
 
 if any(~flag) && opt.Error
     tmp = { };
@@ -100,7 +106,7 @@ if any(~flag) && opt.Error
             tmp{end+1} = list{i}{j}; %#ok<AGROW>
         end
     end
-    if strcmpi(chksstateOpt.EquationSwitch, 'Dynamic')
+    if strcmpi(checkSteadyOpt.EquationSwitch, 'Dynamic')
         exc = exception.Base('Model:SteadyErrorInDynamic', 'error');
     else
         exc = exception.Base('Model:SteadyErrorInSteady', 'error');

@@ -21,15 +21,21 @@ classdef Steady < solver.block.Block
         
         
         function c = printListOfUknowns(this, name)
-            if ~isempty(this.PosQty.Level)
-                level = ['(', strjoin(name(this.PosQty.Level), ', '), ')'];
+            if isstruct(this.PosQty)
+                level = '( )';
+                change = '( )';
+                if ~isempty(this.PosQty.Level)
+                    level = ['(', strjoin(name(this.PosQty.Level), ', '), ')'];
+                end
+                if ~isempty(this.PosQty.Growth)
+                    change = ['(', strjoin(name(this.PosQty.Growth), ', '), ')'];
+                end
             else
-                level = ['( )'];
-            end
-            if ~isempty(this.PosQty.Growth)
-                change = ['(', strjoin(name(this.PosQty.Growth), ', '), ')'];
-            else
-                change = ['( )'];
+                level = '( )';
+                change = '( )';
+                if ~isempty(this.PosQty)
+                    level = ['(', strjoin(name(this.PosQty), ', '), ')'];
+                end
             end
             c = [level, change];
         end%

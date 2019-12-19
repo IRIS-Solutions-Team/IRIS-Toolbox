@@ -21,12 +21,20 @@ classdef Steady < solver.blazer.Blazer
         end%
     
     
-        function [inc, idOfEqtns, idOfQties] = prepareIncidenceMatrix(this, varargin)
+        function [inc, idEqtns, idQties] = prepareIncidenceMatrix(this, varargin)
             PTR = @int16;
             inc = across(this.Incidence, 'Shift');
             inc = inc(this.InxEquations, this.InxEndogenous);
-            idOfEqtns = PTR( find(this.InxEquations) ); %#ok<FNDSB>
-            idOfQties = PTR( find(this.InxEndogenous) ); %#ok<FNDSB>
+            idEqtns = PTR( find(this.InxEquations) ); %#ok<FNDSB>
+            idQties = PTR( find(this.InxEndogenous) ); %#ok<FNDSB>
+        end%
+
+
+        function [names, equations] = getNamesAndEquationsToPrint(this)
+            names = this.Model.Quantity.Name;
+            [~, ~, equations] = parser.theparser.Equation.extractDynamicAndSteady( ...
+                this.Model.Equation.Input ...
+            );
         end%
     end
 
@@ -36,10 +44,12 @@ classdef Steady < solver.blazer.Blazer
     end
 
 
-    methods
+    methods % Dependent
+        %(
         function value = get.InxOfZero(this)
             value = this.IxZero;
         end%
+        %)
     end
 end
 

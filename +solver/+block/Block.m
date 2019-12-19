@@ -226,31 +226,30 @@ classdef (Abstract) Block < handle
 
         
 
-        function c = print(this, iBlk, name, input)
-            strKeyword = char(this.Type);
-            listOfUnknowns = printListOfUknowns(this, name);
+        function c = print(this, iBlk, names, input)
+            separator = string([newline( ), this.SAVEAS_INDENT]);
             if this.Type==solver.block.Type.SOLVE
-                % SOLVE blocks
-                strEqtn = '';
-                strSolveFor = [strKeyword, listOfUnknowns];
-                eqtn = input(this.PosEqn);
-                strEqtn = [strEqtn, sprintf(['\n', this.SAVEAS_INDENT, '%s'], eqtn{:})];
-                c = [strSolveFor, strEqtn];
+                % Print SOLVE block
+                keyword = "!solveFor";
+                keyword = keyword + printListOfUknowns(this, names);
             else
-                % ASSIGN blocks
-                eqtn = input{ this.PosEqn };
-                c = [strKeyword, listOfUnknowns, newline( ), this.SAVEAS_INDENT, eqtn];
+                % Print ASSIGN block
+                keyword = "!assign";
             end
-            header = sprintf( this.SAVEAS_HEADER_FORMAT, ...
-                              iBlk, numel(this.PosEqn) );
-            c = [header, c];
+            eqtn = string(input(this.PosEqn));
+            c = keyword + separator + join(eqtn, separator);
+            header = string(sprintf( ...
+                this.SAVEAS_HEADER_FORMAT, ...
+                iBlk, numel(this.PosEqn) ...
+            ));
+            c = char(header + c);
         end%
 
 
 
 
-        function c = printListOfUknowns(this, name)
-            c = ['(', strjoin(name(this.PosQty), ', '), ')'];
+        function c = printListOfUknowns(this, names)
+            c = "(" + join(names(this.PosQty), ",") + ")"; 
         end%
 
 

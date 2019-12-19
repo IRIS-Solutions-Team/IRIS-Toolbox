@@ -150,7 +150,9 @@ fn = str2func([this.PREAMBLE_DYNAMIC, '[', temp, ']']);
 t = 1-minSh : nXPer-maxSh;
 dcy = [ ];
 for v = 1 : numOfVariantsRequested
+    try
     q = fn(YXEPG(:, :, v), t, L(:, :, v));
+    catch, s = char(fn); keyboard, end
     dcy = cat(3, dcy, q);
 end
 

@@ -98,7 +98,7 @@ blazer = prepareBlazer(this, opt.Kind, parser.Unmatched);
 run(blazer);
 
 if blazer.IsSingular
-    throw( exception.Base('Steady:StructuralSingularity', 'error') );
+    throw(exception.Base('Steady:StructuralSingularity', 'warning'));
 end
 
 [eqtnBlk, nameBlk, blkType] = getHuman(blazer);

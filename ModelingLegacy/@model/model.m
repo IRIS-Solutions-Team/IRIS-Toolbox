@@ -494,201 +494,56 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
     methods % Constructor
         function this = model(varargin)
-% model  Create new model object from model file.
-%{
-% __Syntax__
+% model  Legacy model object; use Model (capitalized) instead
 %
-%     M = model(FileName, ...)
-%     M = model(ModelFile, ...)
-%     M = model(M, ...)
-%
-%
-% __Input Arguments__
-%
-% * `FileName` [ char | cellstr | string ] - Name(s) of model file(s)
-% that will be loaded and converted to a new model object.
-%
-% * `ModelFile` [ model.File ] - Object of model.File class.
-%
-% * `M` [ model ] - Rebuild a new model object from an existing one; see
-% Description for when you may need this.
-%
-%
-% __Output Arguments__
-%
-% * `M` [ model ] - New model object based on the input model code file or
-% files.
-%
-%
-% __Options__
-%
-% * `Assign=struct( )` [ struct | *empty* ] - Assign model parameters and/or steady
-% states from this database at the time the model objects is being created.
-%
-% * `AutoDeclareParameters=false` [ `true` | `false` ] - If `true`, skip
-% parameter declaration in the model file, and determine the list of
-% parameters automatically as residual names found in equations but not
-% declared.
-%
-% * `BaseYear=@config` [ numeric | `@config` ] - Base year for constructing
-% deterministic time trends; `@config` means the base year will
-% be read from iris configuration.
-%
-% * `Comment=''` [ char ] - Text comment attached to the model
-% object.
-%
-% * `CheckSyntax=true` [ true | false ] - Perform syntax checks on model
-% equations; setting `CheckSyntax=false` may help reduce load time for
-% larger model objects (provided the model file is known to be free of
-% syntax errors).
-%
-% * `Epsilon=eps^(1/4)` [ numeric ] - The minimum relative step
-% size for numerical differentiation.
-%
-% * `Linear=false` [ `true` | `false` ] - Indicate linear models.
-%
-% * `MakeBkw=@auto` [ `@auto` | `@all` | cellstr | char ] - Variables
-% included in the list will be made part of the vector of backward-looking
-% variables; `@auto` means the variables that do not have any lag in model
-% equations will be put in the vector of forward-looking variables.
-%
-% * `AllowMultiple=false` [ true | false ] - Allow each variable, shock, or
-% parameter name to be declared (and assigned) more than once in the model
-% file.
-%
-% * `Optimal={ }` [ cellstr ] - Specify optimal policy options,
-% see below; only applies when the keyword
-% [`min`](irislang/min) is used in the model file.
-%
-% * `OrderLinks=true` [ `true` | `false` ] - Reorder `!links` so that they
-% can be executed sequentially.
-%
-% * `RemoveLeads=false` [ `true` | `false` ] - Remove all leads from the
-% state-space vector, keep included only current dates and lags.
-%
-% * `SstateOnly=false` [ `true` | `false` ] - Read in only the steady-state
-% versions of equations (if available).
-%
-% * `Std=@auto` [ numeric | `@auto` ] - Default standard deviation for model
-% shocks; `@auto` means `1` for linear models and `log(1.01)` for nonlinear
-% models.
-%
-% * `UserData=[ ]` [ ... ] - Attach user data to the model object.
-%
-%
-% __Options for Optimal Policy Models__
-%
-% The following options for optimal policy models need to be
-% nested within the `'Optimal='` option.
-%
-% * `MultiplierPrefix='Mu_'` [ char ] - Prefix used to
-% create names for lagrange multipliers associated with the
-% optimal policy problem; the prefix is followed by the
-% equation number.
-%
-% * `Nonnegative={ }` [ cellstr ] - List of variables
-% constrained to be nonnegative.
-%
-% * `Type='discretion'` [ `'commitment'` | `'discretion'` ] - Type of
-% optimal policy; `'discretion'` means leads (expectations) are
-% taken as given and not differentiated w.r.t. whereas
-% `'commitment'` means both lags and leads are differentiated
-% w.r.t.
-%
-%
-% __Description__
-%
-%
-% _Loading a Model File_
-%
-% The `model` function can be used to read in a [model
-% file](irislang/Contents) named `FileName`, and create a model object `M`
-% based on the model file. You can then work with the model object in your
-% own m-files, using using the IRIS [model functions](model/Contents) and
-% standard Matlab functions.
-%
-% If `FileName` is a cell array of more than one file names
-% then all files are combined together in order of appearance.
-%
-%
-% _Rebuilding an Existing Model Object_
-%
-% When calling the function `model` with an existing model object as the
-% first input argument, the model will be rebuilt from scratch. The typical
-% instance where you may need to call the constructor this way is changing
-% the `RemoveLeads=` option. Alternatively, the new model object can be
-% simply rebuilt from the model file.
-%
-%
-% __Example__
-%
-% Read in a model code file named `my.model`, and declare the model as
-% linear:
-%
-%     m = model('my.model', 'Linear=', true);
-%
-%
-% __Example__
-%
-% Read in a model code file named `my.model`, declare the model as linear,
-% and assign some of the model parameters:
-%
-%     m = model('my.model', 'Linear=', true, 'Assign=', P);
-%
-% Note that this is equivalent to
-%
-%     m = model('my.model', 'Linear=', true);
-%     m = assign(m, P);
-%
-% unless some of the parameters passed in to the `model` fuction are needed
-% to evaluate [`!if`](irislang/if) or [`!switch`](irislang/switch)
-% expressions.
-%}
+% Legacy IRIS object
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
-            persistent pp optimalParser parserParser
+            persistent pp ppOptimal ppParser
             if isempty(pp)
                 pp = extend.InputParser('model.model');
                 pp.KeepUnmatched = true;
                 pp.PartialMatching = false;
-                pp.addParameter('addlead', false, @validate.logicalScalar);
-                pp.addParameter('Assign', [ ], @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
-                pp.addParameter({'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
-                pp.addParameter({'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
-                pp.addParameter('comment', '', @ischar);
-                pp.addParameter({'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
-                pp.addParameter('Growth', false, @(x) isequal(x, true) || isequal(x, false));
-                pp.addParameter('epsilon', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0 && x<1));
-                pp.addParameter({'removeleads', 'removelead'}, false, @validate.logicalScalar);
-                pp.addParameter('Linear', false, @(x) isequal(x, true) || isequal(x, false));
-                pp.addParameter('makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
-                pp.addParameter('optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
-                pp.addParameter('OrderLinks', true, @validate.logicalScalar);
-                pp.addParameter({'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
-                % pp.addParameter('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
-                pp.addParameter('Refresh', true, @validate.logicalScalar);
-                pp.addParameter({'SavePreparsed', 'SaveAs'}, '', @ischar);
-                pp.addParameter({'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
-                pp.addParameter('stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
-                pp.addParameter('stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
+                addParameter(pp, 'addlead', false, @validate.logicalScalar);
+                addParameter(pp, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
+                addParameter(pp, {'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
+                addParameter(pp, {'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
+                addParameter(pp, 'comment', '', @ischar);
+                addParameter(pp, {'DefaultStd', 'Std'}, @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x>=0));
+                addParameter(pp, 'Growth', false, @(x) isequal(x, true) || isequal(x, false));
+                addParameter(pp, 'epsilon', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x>0 && x<1));
+                addParameter(pp, {'removeleads', 'removelead'}, false, @validate.logicalScalar);
+                addParameter(pp, 'Linear', false, @(x) isequal(x, true) || isequal(x, false));
+                addParameter(pp, 'makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
+                addParameter(pp, 'optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
+                addParameter(pp, 'OrderLinks', true, @validate.logicalScalar);
+                addParameter(pp, {'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
+                % addParameter(pp, ('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
+                addParameter(pp, 'Refresh', true, @validate.logicalScalar);
+                addParameter(pp, {'SavePreparsed', 'SaveAs'}, '', @ischar);
+                addParameter(pp, {'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
+                addParameter(pp, 'stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
+                addParameter(pp, 'stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
             end
-            if isempty(parserParser)
-                parserParser = extend.InputParser('model.model');
-                parserParser.KeepUnmatched = true;
-                parserParser.PartialMatching = false;
-                parserParser.addParameter('AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
-                parserParser.addParameter({'SteadyOnly', 'SstateOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
-                parserParser.addParameter({'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
+            if isempty(ppParser)
+                ppParser = extend.InputParser('model.model');
+                ppParser.KeepUnmatched = true;
+                ppParser.PartialMatching = false;
+                addParameter(ppParser, 'AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
+                addParameter(ppParser, 'EquationSwitch', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'Dynamic', 'Steady'));
+                addParameter(ppParser, {'SteadyOnly', 'SstateOnly'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+                addParameter(ppParser, {'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
             end
-            if isempty(optimalParser)
-                optimalParser = extend.InputParser('model.model');
-                optimalParser.KeepUnmatched = true;
-                optimalParser.PartialMatching = false;
-                optimalParser.addParameter('MultiplierPrefix', 'Mu_', @ischar);
-                optimalParser.addParameter({'Floor', 'NonNegative'}, cell.empty(1, 0), @(x) isempty(x) || ( ischar(x) && isvarname(x) ));
-                optimalParser.addParameter('Type', 'Discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
+            if isempty(ppOptimal)
+                ppOptimal = extend.InputParser('model.model');
+                ppOptimal.KeepUnmatched = true;
+                ppOptimal.PartialMatching = false;
+                addParameter(ppOptimal, 'MultiplierPrefix', 'Mu_', @ischar);
+                addParameter(ppOptimal, {'Floor', 'NonNegative'}, cell.empty(1, 0), @(x) isempty(x) || ( ischar(x) && isvarname(x) ));
+                addParameter(ppOptimal, 'Type', 'Discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
             end
                 
             %--------------------------------------------------------------------------
@@ -727,14 +582,23 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 function [opt, parserOpt, optimalOpt] = processOptions( )
                     pp.parse(varargin{:});
                     opt = pp.Options;
+
                     % Optimal policy options
-                    optimalParser.parse(opt.optimal{:});
-                    optimalOpt = optimalParser.Options;
+                    parse(ppOptimal, opt.optimal{:});
+                    optimalOpt = ppOptimal.Options;
+
                     % IRIS parser options
-                    parserParser.parse(pp.UnmatchedInCell{:});
-                    parserOpt = parserParser.Options;
+                    parse(ppParser, pp.UnmatchedInCell{:});
+                    parserOpt = ppParser.Options;
+                    if isequal(parserOpt.EquationSwitch, @auto) && ~isequal(parserOpt.SteadyOnly, @auto)
+                        % Legacy parser option
+                        if isequal(parserOpt.SteadyOnly, true)
+                            parserOpt.EquationSwitch = 'Steady';
+                        end
+                    end
+
                     % Control parameters
-                    unmatched = parserParser.UnmatchedInCell;
+                    unmatched = ppParser.UnmatchedInCell;
                     if ~isstruct(opt.Assign)
                         if iscell(opt.Assign)
                             opt.Assign(1:2:end) = regexprep(opt.Assign(1:2:end), '\W', '');

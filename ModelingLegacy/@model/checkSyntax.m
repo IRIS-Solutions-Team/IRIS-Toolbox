@@ -11,14 +11,16 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-nQuan = length(qty);
+numQuan = length(qty);
 sh0 = this.Incidence.Dynamic.PosOfZeroShift;
 nsh = this.Incidence.Dynamic.NumOfShifts;
 ne = sum(qty.Type==TYPE(31) | qty.Type==TYPE(32));
 ixl = eqn.Type==TYPE(4);
+inxYX = getIndexByType(qty, TYPE(1), TYPE(2));
 
-x = rand(nQuan, nsh);
+x = rand(numQuan, nsh);
 L = x;
+% L = x(inxYX, :);
 
 % Create a random vector `x` for dynamic links. In dynamic links, we allow
 % std and corr names to occurs, and append them to the assign vector.
@@ -28,7 +30,7 @@ if any(ixl)
     else
         std = this.DEFAULT_STD_NONLINEAR;
     end
-    xLink = [ rand(nQuan, 1); std*ones(ne, 1); zeros(ne*(ne-1)/2, 1) ];
+    xLink = [ rand(numQuan, 1); std*ones(ne, 1); zeros(ne*(ne-1)/2, 1) ];
 end
 
 % Dynamic equations

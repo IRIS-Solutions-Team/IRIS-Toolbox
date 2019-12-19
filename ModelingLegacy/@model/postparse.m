@@ -35,9 +35,12 @@ if ~isempty(collector.Postprocessor)
     [this.Postprocessor.Context] = deal("Postprocessor");
 end
 
-% __Reporting Equations__
+%
+% Reporting Equations
+%
+
 % Check for name conflicts between LHS names in reporting equations and
-% model names.
+% model names
 if any(eqn.Type==TYPE(6))
     this.Reporting = rpteq(eqn, euc, this.FileName);
     conflictsWithinReporting = parser.getMultiple(this.Reporting.NamesOfLhs);
@@ -55,7 +58,10 @@ if any(eqn.Type==TYPE(6))
     end
 end
 
-% __Check for Loss Function__
+%
+% Presence of Loss Function
+%
+
 % Search transition equations for loss function; if found move it down to
 % last position among transition equations
 try
@@ -64,7 +70,9 @@ catch exc
     throw( exception.Rethrow(exc) );
 end
 
-% __Max Lag and Lead__
+%
+% Max Lag and Lead
+%
 ixmt = eqn.Type==TYPE(1) | eqn.Type==TYPE(2);
 maxSh = max([ euc.MaxShDynamic(ixmt), euc.MaxShSteady(ixmt) ]);
 minSh = min([ euc.MinShDynamic(ixmt), euc.MinShSteady(ixmt) ]);
@@ -75,7 +83,9 @@ if isOptimal
     minSh = minSh - maxSh;    
 end
 
-% __Read Measurement and Transition Equations__
+%
+% Read Measurement and Transition Equations
+%
 try
     eqn = readEquations(eqn, euc);
 catch exc
@@ -87,15 +97,18 @@ end
 % and its steady state version.
 checkEmptyEqtn( );
 
-% __Placeholders for Optimal Policy Equations__
+%
+% Placeholders for Optimal Policy Equations
+%
+
 % Position of loss function
-posOfLossEqtn = NaN;
+posLossEqtn = NaN;
 % Presence of a floor constraint
 isFloor = false;
 % Positions of the floor variable, floor multiplier and floor parameter
-posOfFloorVariable = [ ];
-posOfFloorMultiplier = [ ];
-posOfFloorParameter = [ ];
+posFloorVariable = [ ];
+posFloorMultiplier = [ ];
+posFloorParameter = [ ];
 % Name of the multiplier associated with nonegativity constraint.
 floorVariableName = '';
 if  isOptimal
@@ -111,28 +124,32 @@ if  isOptimal
     createPlaceholdersForOptimal( );
 end
 
-% __Read DTrends, Links, Revisions, Autoswap__
+%
+% Read DTrends, Links, Autoswap
+%
+
 % Read them after placeholders for optimal policy have been created
 try
     [eqn, this.Pairing.Dtrend] = readDtrends(eqn, euc, qty);
     [eqn, this.Link] = readLinks(eqn, euc, qty);
-    [eqn, this.Pairing.Revision] = readRevisions(eqn, euc, qty);
     this.Pairing.Autoswap = model.component.Pairing.readAutoswap(qty, puc);
     this.Pairing.Assignment = model.component.Pairing.readAssignments(eqn, euc, qty);
 catch exc
     throw( exception.Rethrow(exc) );
 end
 
-% __Postprocess Equations__
-nQuan = numel(qty.Name);
-nEqtn = numel(eqn.Input);
+%
+% Postprocess Equations
+%
+numQuant = numel(qty.Name);
+numEqtn = numel(eqn.Input);
 ixm = eqn.Type==TYPE(1);
 ixt = eqn.Type==TYPE(2);
 ixd = eqn.Type==TYPE(3);
 ixmt = ixm | ixt;
 ixmtd = ixmt | ixd;
 
-% Remove blank spaces.
+% Remove blank spaces
 eqn.Input = regexprep(eqn.Input, {'\s+', '".*?"'}, {'', ''});
 eqn.Dynamic = regexprep(eqn.Dynamic, '\s+', '');
 eqn.Steady = regexprep(eqn.Steady, '\s+', '');
@@ -150,23 +167,25 @@ for iEq = 1 : length(eqn.Input)
     end
 end
 
-% __Postparse Equations__
-% Check for sstate references occuring in wrong places.
-checkSstateRef( );
+%
+% Postparse Equations
+%
+% Check for sstate references occuring in the wrong equations
+hereCheckSteadyRef( );
 
 try
     eqn = postparse(eqn, qty);
 catch exc
-    throw( exception.Rethrow(exc) );
+    throw(exception.Rethrow(exc));
 end
 
 if isOptimal
     % Retrieve and remove the expression for the discount factor from the
     % parsed optimal policy equation.
-    close = textfun.matchbrk(eqn.Dynamic{posOfLossEqtn});
+    close = textfun.matchbrk(eqn.Dynamic{posLossEqtn});
     % Discount factor has been already checked for empty.
-    lossDisc = eqn.Dynamic{posOfLossEqtn}(2:close-1);
-    eqn.Dynamic{posOfLossEqtn} = eqn.Dynamic{posOfLossEqtn}(close+1:end);
+    lossDisc = eqn.Dynamic{posLossEqtn}(2:close-1);
+    eqn.Dynamic{posLossEqtn} = eqn.Dynamic{posLossEqtn}(close+1:end);
 end
 
 % Check for orphan { and & after we have substituted for the valid
@@ -177,8 +196,8 @@ checkTimeSsref( );
 % equations, including the loss function and its discount factor. The
 % occurences in the loss function will be replaced later with the
 % occurences in the Lagrangian derivatives.
-this.Incidence.Dynamic = model.component.Incidence(nEqtn, nQuan, minSh, maxSh);
-this.Incidence.Steady = model.component.Incidence(nEqtn, nQuan, minSh, maxSh);
+this.Incidence.Dynamic = model.component.Incidence(numEqtn, numQuant, minSh, maxSh);
+this.Incidence.Steady = model.component.Incidence(numEqtn, numQuant, minSh, maxSh);
 this.Incidence.Dynamic = fill(this.Incidence.Dynamic, qty, eqn.Dynamic, ixmtd); % 1/
 this.Incidence.Steady = fill(this.Incidence.Steady, qty, eqn.Steady, ixmt);
 ixCopy = ixmt & cellfun(@isempty, eqn.Steady);   
@@ -207,25 +226,25 @@ if isOptimal
     % equation will be put in place of the loss function and the `naddeqtn-1`
     % empty placeholders.
     new = optimalPolicy( this, qty, eqn, ...
-                         posOfLossEqtn, lossDisc, ...
-                         posOfFloorVariable, posOfFloorMultiplier, posOfFloorParameter, ...
+                         posLossEqtn, lossDisc, ...
+                         posFloorVariable, posFloorMultiplier, posFloorParameter, ...
                          optimalOpt.Type ); 
 
     % Update the placeholders for optimal policy equations in the model object, and parse them.
     last = find(eqn.Type==2, 1, 'last');
-    eqn.Input(posOfLossEqtn:last) = new.Input(posOfLossEqtn:last);
-    eqn.Dynamic(posOfLossEqtn:last) = new.Dynamic(posOfLossEqtn:last);
+    eqn.Input(posLossEqtn:last) = new.Input(posLossEqtn:last);
+    eqn.Dynamic(posLossEqtn:last) = new.Dynamic(posLossEqtn:last);
     
     % Add steady equations. Note that we must at least replace the old equation
     % in `lossPos` position (which was the objective function) with the new
     % equation (which is a derivative wrt to the first variables).
-    eqn.Steady(posOfLossEqtn:last) = new.Steady(posOfLossEqtn:last);
+    eqn.Steady(posLossEqtn:last) = new.Steady(posLossEqtn:last);
     % Update the nonlinear equation flags.
-    eqn.IxHash(posOfLossEqtn:last) = new.IxHash(posOfLossEqtn:last);
+    eqn.IxHash(posLossEqtn:last) = new.IxHash(posLossEqtn:last);
     
     % Update incidence matrices to include the new equations.
     indexUpdateIncidence = false(size(eqn.Input));
-    indexUpdateIncidence(posOfLossEqtn:last) = true;
+    indexUpdateIncidence(posLossEqtn:last) = true;
     this.Incidence.Dynamic = fill( ...
         this.Incidence.Dynamic, qty, eqn.Dynamic, indexUpdateIncidence ...
     );
@@ -281,18 +300,18 @@ return
 
 
 
-    function checkSstateRef( )
-        % Check for sstate references in wrong places.
+    function hereCheckSteadyRef( )
+        % Check for sstate references in the wrong equations
         func = @(c) ~cellfun(@(x) isempty(strfind(x, '&')), c);
-        ixSstateRef = func(eqn.Dynamic) | func(eqn.Steady);
+        inxSteadyRef = func(eqn.Dynamic) | func(eqn.Steady);
         % Not allowed in deterministic trends.
-        inx = ixSstateRef & eqn.Type==TYPE(3);
+        inx = inxSteadyRef & eqn.Type==TYPE(3);
         if any(inx)
             throw( exception.ParseTime('Model:Postparser:SSTATE_REF_IN_DTREND', 'error'), ...
                 eqn.Input{inx} );
         end
-        % Not allowed in dynamic links.
-        inx = ixSstateRef & eqn.Type==TYPE(4);
+        % Not allowed in dynamic links
+        inx = inxSteadyRef & eqn.Type==TYPE(4);
         if any(inx)
             throw( exception.ParseTime('Model:Postparser:SSTATE_REF_IN_LINK', 'error'), ...
                 eqn.Input{inx} );
@@ -341,10 +360,10 @@ return
         qty = insert(qty, add, TYPE(2), 'first');
         if isFloor
             floorParameterName = [model.FLOOR_PREFIX, optimalOpt.Floor];
-            indexOfFloorParameter = strcmp(qty.Name, floorParameterName);
+            inxFloorParameter = strcmp(qty.Name, floorParameterName);
             % Floor parameter may be declared by the user
-            if any(indexOfFloorParameter)
-                posOfFloorParameter = find(indexOfFloorParameter);
+            if any(inxFloorParameter)
+                posFloorParameter = find(inxFloorParameter);
             else
                 add = model.component.Quantity( );
                 add.Name = {floorParameterName};
@@ -354,26 +373,26 @@ return
                 add.IxLagrange = false(1, 1);
                 add.IxObserved = false(1, 1);
                 add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, 1);
-                [qty, indexOfPre] = insert(qty, add, TYPE(4), 'last');
-                posOfFloorParameter = find(indexOfPre, 1, 'last') + 1;
+                [qty, inxPre] = insert(qty, add, TYPE(4), 'last');
+                posFloorParameter = find(inxPre, 1, 'last') + 1;
             end
         end
         
         % Loss function is always moved to last position among transition equations.
-        posOfLossEqtn = length(eqn.Input);
+        posLossEqtn = length(eqn.Input);
         if isFloor
             % Find the position of floored variables in the list of names AFTER we
             % have inserted placeholders.
-            indexOfFloorVariable = strcmp(optimalOpt.Floor, qty.Name);
-            if ~any(indexOfFloorVariable) ...
-                    || qty.Type(indexOfFloorVariable)~=int8(2)
+            inxFloorVariable = strcmp(optimalOpt.Floor, qty.Name);
+            if ~any(inxFloorVariable) ...
+                    || qty.Type(inxFloorVariable)~=int8(2)
                 throw( ...
                     exception.ParseTime('Model:Postparser:NAME_CANNOT_BE_NONNEGATIVE', 'error'), ...
                     optimalOpt.Floor ...
                 );
             end
-            posOfFloorVariable = find(indexOfFloorVariable);
-            posOfFloorMultiplier = find( strcmp(qty.Name, floorVariableName) );
+            posFloorVariable = find(inxFloorVariable);
+            posFloorMultiplier = find( strcmp(qty.Name, floorVariableName) );
         end
         
         % Add a total of `nAddEqtn` new transition equations, i.e. the

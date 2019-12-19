@@ -53,13 +53,13 @@ this.Block{end+1} = x;
 x = parser.theparser.Equation( );
 x.Keyword = '!measurement-equations';
 x.Type = TYPE(1);
-x.IsAppliedSteadyOnlyOpt = true;
+x.ApplyEquationSwitch = true;
 this.Block{end+1} = x;
 
 x = parser.theparser.Equation( );
 x.Keyword = '!transition-equations';
 x.Type = TYPE(2);
-x.IsAppliedSteadyOnlyOpt = true;
+x.ApplyEquationSwitch = true;
 x.IsEssential = true;
 this.Block{end+1} = x;
 

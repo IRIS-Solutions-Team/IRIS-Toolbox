@@ -28,7 +28,7 @@ classdef (Abstract) Blazer < handle
     
     
     properties (Constant)
-        SAVEAS_FILE_HEADER = '% IRIS Blazer File $TimeStamp$';
+        SAVEAS_FILE_HEADER = '% [IrisToolbox] Blazer File $TimeStamp$';
     end
     
 
@@ -45,9 +45,9 @@ classdef (Abstract) Blazer < handle
 
 
     methods
-        function this = Blazer(numOfEquationsInModel)
-            this.Equation = cell(1, numOfEquationsInModel);
-            this.Gradient = cell(2, numOfEquationsInModel);        
+        function this = Blazer(numEquationsInModel)
+            this.Equation = cell(1, numEquationsInModel);
+            this.Gradient = cell(2, numEquationsInModel);        
         end%
         
         
@@ -89,11 +89,11 @@ classdef (Abstract) Blazer < handle
         
         function run(this, varargin)
             PTR = @int16;
-            numOfEquations = nnz(this.InxEquations);
-            numOfEndogenous = sum(this.InxEndogenous);
-            if numOfEquations~=numOfEndogenous
+            numEquations = nnz(this.InxEquations);
+            numEndogenous = sum(this.InxEndogenous);
+            if numEquations~=numEndogenous
                 throw( exception.Base('Blazer:NumberEquationsEndogenized', 'error'), ...
-                       numOfEquations, numOfEndogenous ); %#ok<GTARG>
+                       numEquations, numEndogenous ); %#ok<GTARG>
             end
             [inc, idEqn, idQty] = prepareIncidenceMatrix(this);
             if this.IsBlocks
@@ -106,9 +106,9 @@ classdef (Abstract) Blazer < handle
             end
             
             % Create solver.block.Block objects for each block
-            numOfBlocks = numel(blkEqn);
-            this.Block = cell(1, numOfBlocks);
-            for i = 1 : numOfBlocks
+            numBlocks = numel(blkEqn);
+            this.Block = cell(1, numBlocks);
+            for i = 1 : numBlocks
                 blk = this.BLOCK_CONSTRUCTOR( );
                 blk.PosQty = blkQty{i};
                 blk.PosEqn = blkEqn{i};
@@ -126,8 +126,8 @@ classdef (Abstract) Blazer < handle
         
         
         function prepareBlocks(this, varargin)
-            numOfBlocks = numel(this.Block);
-            for i = 1 : numOfBlocks
+            numBlocks = numel(this.Block);
+            for i = 1 : numBlocks
                 prepareBlock(this.Block{i}, this, varargin{:});
                 this.Block{i}.Id = i;
             end
@@ -135,21 +135,28 @@ classdef (Abstract) Blazer < handle
         
         
         function saveAs(this, fileName)
-            numOfBlocks = numel(this.Block);
-            c = [ strrep(solver.blazer.Blazer.SAVEAS_FILE_HEADER, '$TimeStamp$', datestr(now( ))), ...
-                  sprintf('\n%% Number of Blocks: %g', numOfBlocks), ...
-                  sprintf('\n%% Number of Equations: %g', sum(this.InxEquations)) ];
-            names = this.Model.Quantity.Name;
-            equations = this.Model.Equation.Input;
-            for i = 1 : numOfBlocks
+            numBlocks = numel(this.Block);
+            c = [ ...
+                strrep(solver.blazer.Blazer.SAVEAS_FILE_HEADER, '$TimeStamp$', datestr(now( ))), ...
+                sprintf('\n%% Number of Blocks: %g', numBlocks), ...
+                sprintf('\n%% Number of Equations: %g', sum(this.InxEquations)), ...
+            ];
+            [names, equations] = getNamesAndEquationsToPrint(this);
+            for i = 1 : numBlocks
+                c = [c, sprintf('\n\n\n')]; %#ok<AGROW>
                 c = [c, print(this.Block{i}, i, names, equations) ]; %#ok<AGROW>
-                if i<numOfBlocks
-                    c = [c, sprintf('\n\n\n')]; %#ok<AGROW>
-                end
             end
             char2file(c, fileName);
         end%        
+
+
+        function [names, equations] = getNamesAndEquationsToPrint(this)
+            names = this.Model.Quantity.Name;
+            equations = this.Model.Equation.Input;
+        end%
     end
+
+
 
 
     methods (Static)
