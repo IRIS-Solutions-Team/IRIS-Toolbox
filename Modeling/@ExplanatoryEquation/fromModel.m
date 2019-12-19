@@ -93,3 +93,4 @@ return
         throw(exception.Base(thisError, 'error'), report{:});
     end%
 end%
+

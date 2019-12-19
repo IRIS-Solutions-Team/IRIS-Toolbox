@@ -20,12 +20,12 @@ end
 %)
 
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('ExplanatoryEquation.fromString');
-    addRequired(parser, 'inputString', @(input) iscell(input) && all(cellfun(@(x) isa(x, 'string') || ischar(x) || iscellstr(x), input)));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('ExplanatoryEquation.fromString');
+    addRequired(pp, 'inputString', @(input) iscell(input) && all(cellfun(@(x) isa(x, 'string') || ischar(x) || iscellstr(x), input)));
 end
-parse(parser, varargin);
+parse(pp, varargin);
 
 %--------------------------------------------------------------------------
 
@@ -33,21 +33,37 @@ numEquations = sum(cellfun(@(x) numel(string(x)), varargin));
 array = cell(1, numEquations);
 
 count = 0;
+numEmpty = 0;
 for i = 1 : numel(varargin)
-    temp = string(varargin{i});
-    for j = 1 : numel(temp)
-        inputString = temp(j);
-        inputString = regexprep(inputString, "\s+", "");
-        inputString0 = inputString;
-        inputString = split(inputString, '=');
+    varargin__ = string(varargin{i});
+    for j = 1 : numel(varargin__)
+        inputString = strtrim(varargin__(j));
+        [inputString, attributes__] = ExplanatoryEquation.extractAttributes(inputString);
+        [inputString, label__] = ExplanatoryEquation.extractLabel(inputString);
 
-        if numel(inputString)~=2
-            hereThrowInvalidInputString( );
+        inputString = regexprep(inputString, "\s+", "");
+        if inputString=="" || inputString==";"
+            numEmpty = numEmpty + 1;
+            continue
         end
-        if strlength(inputString(1))==0
+
+        inputString0 = hereComposeInputString( );
+
+        %
+        % Split the input equation string into LHS and RHS using the first
+        % equal sign found
+        %
+        posEqual = strfind(inputString, "=");
+        if isempty(posEqual)
+            hereThrowInvalidInputString( );
+        elseif numel(posEqual)>1
+            posEqual = posEqual(1);
+        end
+        inputString = [extractBefore(inputString, posEqual), extractAfter(inputString, posEqual)];
+        if inputString(1)==""
             hereThrowEmptyLhs( );
         end
-        if strlength(inputString(2))==0
+        if inputString(2)==""
             hereThrowEmptyRhs( );
         end
 
@@ -58,8 +74,14 @@ for i = 1 : numel(varargin)
         this__ = defineDependent(this__, inputString(1));
         hereParseExplanatory( );
         count = count + 1;
+        this__.Label = label__;
+        this__.Attributes = attributes__;
         array{count} = this__;
     end
+end
+
+if numEmpty>0
+    hereWarnEmptyEquations( );
 end
 
 this = reshape([array{:}], [ ], 1);
@@ -67,13 +89,35 @@ this = reshape([array{:}], [ ], 1);
 return
 
 
+    function inputString0 = hereComposeInputString( )
+        inputString0 = inputString;
+        if label__~=""
+            inputString0 = """" + label__ + """ " + inputString0;
+        end
+        if ~isempty(attributes__)
+            inputString0 = join(attributes__) + " " + inputString0;
+        end
+        if ~endsWith(inputString0, ";")
+            inputString0 = inputString0 + ";";
+        end
+    end%
+
+
+
+
     function hereGetVariableNames( )
         variableNames = regexp(inputString, "\<[A-Za-z]\w*\>(?!\()", 'match');
         if iscell(variableNames)
             variableNames = [variableNames{:}];
         end
-        this__.VariableNames = unique(string(variableNames), 'stable');
+        variableNames = unique(string(variableNames), 'stable');
+        %
+        % Remove date__ from the list of variables
+        %
+        variableNames(variableNames=="date__") = [ ];
+        this__.VariableNames = variableNames;
     end% 
+
 
 
 
@@ -200,6 +244,18 @@ return
         ];
         throw(exception.Base(thisError, 'error'), inputString0);
     end%
+
+
+
+
+    function hereWarnEmptyEquations( )
+        thisWarning = [ 
+            "ExplanatoryEquation:EmptyEquations"
+            "A total number of %g empty equation(s) excluded from the input string."
+        ];
+        throw(exception.Base(thisWarning, 'warning'), numEmpty);
+    end%
+
 end%
 
 
@@ -210,7 +266,7 @@ end%
 %
 %(
 function fromStringTest(this)
-    input = "x = @*a + b*x{-1} + @*log(c)";
+    input = "x = @*a + b*x{-1} + @*log(c);";
     act = ExplanatoryEquation.fromString(input);
     exp = ExplanatoryEquation( );
     exp.VariableNames = ["x", "a", "b", "c"];
@@ -224,7 +280,7 @@ end%
 
 
 function fromLegacyStringTest(this)
-    input = "x = @*a + b*x{-1} + @*log(c)";
+    input = "x = @*a + b*x{-1} + @*log(c);";
     legacyInput = replace(input, "@", "?");
     act = ExplanatoryEquation.fromString(legacyInput);
     act.InputString = replace(act.InputString, "?", "@");
@@ -234,12 +290,12 @@ end%
 
 
 function sumTest(this)
-    act = ExplanatoryEquation.fromString("x = y{-1} + x{-2}");
+    act = ExplanatoryEquation.fromString("x = y{-1} + x{-2};");
     exp_Explanatory = regression.Term( );
     exp_Explanatory.Position = [1, 2];
     exp_Explanatory.Shift = [-2, -1, 0];
     exp_Explanatory.Transform = "";
-    exp_Explanatory.Expression = @(x,t)x(2,t-1,:)+x(1,t-2,:);
+    exp_Explanatory.Expression = @(x,t,date__)x(2,t-1,:)+x(1,t-2,:);
     exp_Explanatory.Fixed = 1;
     exp_Explanatory.ContainsLhsName = true;
     exp_Explanatory.MinShift = -2;

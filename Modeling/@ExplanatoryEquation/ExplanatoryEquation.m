@@ -12,6 +12,9 @@ classdef ExplanatoryEquation ...
         VariableNames (1, :) string = string.empty(1, 0)
         ResidualPrefix = "res_"
         FittedPrefix = "fit_"
+        Label (1, 1) string = ""
+        Attributes (1, :) string = string.empty(1, 0)
+        RaggedEdge (1, 1) logical = false
     end
 
 
@@ -74,9 +77,11 @@ classdef ExplanatoryEquation ...
 
 
 
-    methods % Frontend
+    methods % Frontend Signatures
         %(
         varargout = alter(varargin)
+        varargout = blazer(varargin)
+        varargout = defineDependent(varargin)
         varargout = regress(varargin)
         varargout = simulate(varargin)
         varargout = residuals(varargin)
@@ -86,18 +91,28 @@ classdef ExplanatoryEquation ...
 
 
 
-    methods
-        varargout = blazer(varargin)
-        varargout = defineDependent(varargin)
-
-
-
-
+    methods % Frontend Definitions
+        %(
         function this = addExplanatory(this, varargin)
             term = regression.Term(this, varargin{:});
             this.Explanatory(1, end+1) = term;
             this.Parameters(:, end+1, :) = term.Fixed;
             this.Statistics.CovParameters(end+1, end+1, :) = NaN;
+        end%
+
+
+
+
+        function flag = hasAttribute(this, attribute)
+            attribute = strtrim(string(attribute));
+            if ~isscalar(attribute) || ~startsWith(attribute, ":")
+                thisError = [ 
+                    "ExplanatoryEquation:InvalidAttributeRequest"
+                    "Attribute has to be a scalar string starting with a colon." 
+                ];
+                throw(exception.Base(thisError, 'error'));
+            end
+            flag = arrayfun(@(x) any(x.Attributes==attribute), this);
         end%
 
 
@@ -149,6 +164,7 @@ classdef ExplanatoryEquation ...
                 pos = NaN;
             end
         end%
+        %)
     end
 
 
@@ -395,6 +411,46 @@ classdef ExplanatoryEquation ...
         varargout = fromString(varargin)
         varargout = fromFile(varargin)
         varargout = fromModel(varargin)
+
+
+        function [inputString, label] = extractLabel(inputString)
+            label = "";
+            inputString = strtrim(inputString);
+            pos = strfind(inputString, '"');
+            if numel(pos)<2 || pos(1)~=1
+                pos = strfind(inputString, "'");
+                if numel(pos)<2 || pos(1)~=1
+                    return
+                end
+            end
+            label = extractBetween( ...
+                inputString, pos(1), pos(2), ...
+                'Boundaries', 'Exclusive' ...
+            );
+            inputString = eraseBetween( ...
+                inputString, pos(1), pos(2), ...
+                'Boundaries', 'Inclusive' ...
+            );
+            label = string(label);
+        end%
+
+
+        function [inputString, attributes] = extractAttributes(inputString)
+            attributes = string.empty(1, 0);
+            inputString = strtrim(inputString);
+            if ~startsWith(inputString, ':')
+                return
+            end
+            [attributes, start, finish] = regexp(inputString, '^((:\w+)\s*)+', 'Tokens', 'Start', 'End', 'Once');
+            if isempty(attributes)
+                return
+            end
+            attributes = strtrim(split(attributes));
+            attributes(attributes=="") = [ ];
+            attributes = reshape(attributes, 1, [ ]);
+            inputString = eraseBetween(inputString, start, finish, 'Boundaries', 'Inclusive');
+            inputString = strtrim(inputString);
+        end%
     end
 end
 

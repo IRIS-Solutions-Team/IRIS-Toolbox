@@ -183,8 +183,8 @@ return
         invalidNames = string.empty(1, 0);
         invalidShifts = string.empty(1, 0);
         replaceFunc = @replaceNameShift;
-        parsedSpecs = regexprep(parsedSpecs, "(\<[A-Za-z]\w*\>)(\{[^\}]*\})", "${replaceFunc($1, $2)}");
-        parsedSpecs = regexprep(parsedSpecs, "(\<[A-Za-z]\w*\>)(?!\()", "${replaceFunc($1)}");
+        parsedSpecs = regexprep(parsedSpecs, "(?<!@)(\<[A-Za-z]\w*\>)(\{[^\}]*\})", "${replaceFunc($1, $2)}");
+        parsedSpecs = regexprep(parsedSpecs, "(?<!@)(\<[A-Za-z]\w*\>)(?!\()", "${replaceFunc($1)}");
         parsedSpecs = replace(parsedSpecs, "$", "t");
 
         if ~isempty(invalidNames)
@@ -200,7 +200,7 @@ return
         % Create anonymous function
         %
         try
-            func = str2func("@(x, t) " + parsedSpecs);
+            func = str2func("@(x,t,date__)" + parsedSpecs);
             output.Type = "Expression";
             output.Expression = func;
             output.Positions = sort(unique(positions, 'stable'));
@@ -210,6 +210,10 @@ return
 
             function c = replaceNameShift(c1, c2)
                 c = '';
+                if c1=="date__"
+                    c = c1;
+                    return
+                end
                 pos = getPositionOfName(xq, c1);
                 if isnan(pos)
                     invalidNames = [invalidNames, string(c1)];
@@ -341,7 +345,7 @@ function expressionTest(testCase)
     act = regression.Term.parseInputSpecs(m, "x + movavg(y, -2) - z{+3}");
     exp = struct( );
     exp.Type = "Expression";
-    exp.Expression = @(x,t)x(1,t,:)+(((x(2,t,:))+(x(2,t-1,:)))./2)-x(3,t+3,:);
+    exp.Expression = @(x,t,date__)x(1,t,:)+(((x(2,t,:))+(x(2,t-1,:)))./2)-x(3,t+3,:);
     exp.Positions = [1, 2, 3];
     exp.Shifts = [-1, 0, 3];
     act.Expression = func2str(act.Expression);

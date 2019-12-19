@@ -102,26 +102,26 @@ classdef Term
                 return
             end
 
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('regression.Term');
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('regression.Term');
                 %
                 % Required arguments
                 %
-                addRequired(parser, 'xq', @(x) isa(x, 'ExplanatoryEquation'));
-                addRequired(parser, 'specification', @(x) (validate.string(x) && isscalar(string(x))) || (validate.numericScalar(x) && isfinite(x) && x==round(x) && x>0));
+                addRequired(pp, 'xq', @(x) isa(x, 'ExplanatoryEquation'));
+                addRequired(pp, 'specification', @(x) (validate.string(x) && isscalar(string(x))) || (validate.numericScalar(x) && isfinite(x) && x==round(x) && x>0));
                 %
                 % Options
                 %
-                addParameter(parser, 'Shift', 0, @(x) validate.numericScalar(x) && x==round(x));
-                addParameter(parser, 'Transform', [ ], @(x) isempty(x) || validate.anyString(x, regression.Term.REGISTERED_TRANSFORMS)); 
-                addParameter(parser, 'Fixed', NaN, @validate.numericScalar);
-                addParameter(parser, 'Type', @all, @(x) isequal(x, @all) || isa(x, 'string'));
+                addParameter(pp, 'Shift', 0, @(x) validate.numericScalar(x) && x==round(x));
+                addParameter(pp, 'Transform', [ ], @(x) isempty(x) || validate.anyString(x, regression.Term.REGISTERED_TRANSFORMS)); 
+                addParameter(pp, 'Fixed', NaN, @validate.numericScalar);
+                addParameter(pp, 'Type', @all, @(x) isequal(x, @all) || isa(x, 'string'));
             end
-            parse(parser, varargin{:});
-            xq = parser.Results.xq;
-            specification = parser.Results.specification;
-            opt = parser.Options;
+            parse(pp, varargin{:});
+            xq = pp.Results.xq;
+            specification = pp.Results.specification;
+            opt = pp.Options;
 
             %
             % Remove a leading plus sign
@@ -182,7 +182,7 @@ classdef Term
 
 
 
-        function y = createModelData(this, plainData, t)
+        function y = createModelData(this, plainData, t, date)
             if islogical(t)
                 t = find(t);
             end
@@ -192,7 +192,7 @@ classdef Term
             y = nan(numTerms, numBasePeriods, numPages);
             for i = 1 : numTerms
                 if isa(this(i).Expression, 'function_handle')
-                    y__ = this(i).Expression(plainData, t);
+                    y__ = this(i).Expression(plainData, t, date);
                     %
                     % The function may not point to any variables and
                     % produce simply a scalar constant instead; extend the
@@ -262,12 +262,12 @@ classdef Term
 
 
 
-        function rhs = updateOwnExplanatory(this, rhs, plainData, t)
+        function rhs = updateOwnExplanatory(this, rhs, plainData, t, date)
             %
             % The input object `this` is always explanatory (rhs) terms
             %
             for i = find([this.ContainsLhsName])
-                rhs(i, t, :) = createModelData(this(i), plainData, t);
+                rhs(i, t, :) = createModelData(this(i), plainData, t, date);
             end
         end%
 

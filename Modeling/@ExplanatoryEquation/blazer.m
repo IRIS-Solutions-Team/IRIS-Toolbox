@@ -1,4 +1,4 @@
-function [blocks, humanBlocks] = blazer(this, varargin)
+function [blocks, variableBlocks, equationBlocks] = blazer(this, varargin)
 % blazer  Determine the order of execution within an ExplanatoryEquation array
 
 % Invoke unit tests
@@ -19,7 +19,9 @@ lhsNames = [this(:).LhsName];
 
 if numEquations==1
     blocks = {1};
-    humanBlocks = hereGetHumanBlocks( );
+    if nargout>=2
+        [variableBlocks, equationBlocks] = hereGetHumanBlocks( );
+    end
     return
 end
 
@@ -45,17 +47,20 @@ blocksVariables = cellfun(@(x) reshape(sort(x), 1, [ ]), blocksVariables, 'Unifo
 %
 if ~isequal(blocks, blocksVariables)
     blocks = {1:numEquations};
-    keyboard
+    thisWarning = [ "ExplanatoryEquation:CannotSplitIntoBlocks"
+                    "Cannot split an ExplanatoryEquation array into sequential blocks." ];
+    throw(exception.Base(thisWarning, 'warning'));
 end
     
 if nargout>=2
-    humanBlocks = hereGetHumanBlocks( );
+    [variableBlocks, equationBlocks] = hereGetHumanBlocks( );
 end
 
 return
 
-    function humanBlocks = hereGetHumanBlocks( )
-        humanBlocks = cellfun(@(x) lhsNames(x), blocks, 'UniformOutput', false);
+    function [variableBlocks, equationBlocks] = hereGetHumanBlocks( )
+        variableBlocks = cellfun(@(x) reshape([lhsNames(x)], [ ], 1), blocks, 'UniformOutput', false);
+        equationBlocks = cellfun(@(x) reshape([this(x).InputString], [ ], 1), blocks, 'UniformOutput', false);
     end%
 end%
 

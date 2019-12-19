@@ -30,18 +30,19 @@ plainData = dataBlock.YXEPG(this.Runtime.PosPlainData, :, :);
 numExtendedPeriods = size(plainData, 2);
 numPages = size(plainData, 3);
 baseRangeColumns = dataBlock.BaseRangeColumns;
+baseRange = dataBlock.BaseRange;
 
 %
 % Model data for the dependent term
 %
 lhs = nan(1, numExtendedPeriods, numPages);
-lhs(1, baseRangeColumns, :) = createModelData(this.Dependent, plainData, baseRangeColumns);
+lhs(1, baseRangeColumns, :) = createModelData(this.Dependent, plainData, baseRangeColumns, baseRange);
 
 %
 % Model data for all explanatory terms
 %
 rhs = nan(numel(this.Explanatory), numExtendedPeriods, numPages);
-rhs(:, baseRangeColumns, :) = createModelData(this.Explanatory, plainData, baseRangeColumns);
+rhs(:, baseRangeColumns, :) = createModelData(this.Explanatory, plainData, baseRangeColumns, baseRange);
 
 %
 % Model data for residuals; reset NaN residuals to zero

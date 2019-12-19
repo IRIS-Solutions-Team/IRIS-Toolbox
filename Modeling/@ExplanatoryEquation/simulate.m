@@ -1,9 +1,50 @@
 function [outputDatabank, info] = simulate(this, inputDatabank, range, varargin)
 % simulate  Simulate ExplanatoryEquation model
 %{
+% ## Syntax ##
+%
+%
+%     [outputDb, info] = simulate(input, ...)
+%
+%
+% ## Input Arguments ##
+%
+%
+% __`input`__ [ | ]
+% >
+% Description
+%
+%
+% ## Output Arguments ##
+%
+%
+% __`output`__ [ | ]
+% >
+% Description
+%
+%
+% ## Options ##
+%
+%
+% __`OptionName=Default`__ [ | ]
+% >
+% Description
+%
+%
+% ## Description ##
+%
+%
+% ## Example ##
+%
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
+
+
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 % Invoke unit tests
@@ -20,6 +61,9 @@ if nargin==2 && isequal(inputDatabank, '--test')
         @arxSystemVariantsTest      
         @arxSystemWithPrependTest  
         @blazerTest
+        @allRaggedEdgeTest
+        @someRaggedEdgeTest
+        @runtimeIfTest
     });
     outputDatabank = reshape(outputDatabank, [ ], 1);
     return
@@ -27,29 +71,30 @@ end
 %)
 
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('ExplanatoryEquation.simulate');
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('ExplanatoryEquation.simulate');
     %
     % Required arguments
     %
-    addRequired(parser, 'explanatoryEquation', @(x) isa(x, 'ExplanatoryEquation'));
-    addRequired(parser, 'inputDatabank', @validate.databank);
-    addRequired(parser, 'simulationRange', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'ExplanatoryEquation'));
+    addRequired(pp, 'inputDatabank', @validate.databank);
+    addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
     %
     % Options
     %
-    addParameter(parser, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, [ ]) || validate.databank(x));
-    addParameter(parser, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);
-    addParameter(parser, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
-    addParameter(parser, 'Blazer', true, @validate.logicalScalar);
-    addParameter(parser, 'OutputType', 'struct', @validate.databankType);
-    addParameter(parser, 'NaNParameters', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
-    addParameter(parser, 'NaNSimulation', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
-    addParameter(parser, 'Dynamic', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+    addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, [ ]) || validate.databank(x));
+    addParameter(pp, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);
+    addParameter(pp, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
+    addParameter(pp, {'Blazer', 'Reorder'}, true, @validate.logicalScalar);
+    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
+    addParameter(pp, 'NaNParameters', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
+    addParameter(pp, 'NaNSimulation', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
+    addParameter(pp, 'Dynamic', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+    addParameter(pp, 'RaggedEdge', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
 end
-parse(parser, this, inputDatabank, range, varargin{:});
-opt = parser.Options;
+parse(pp, this, inputDatabank, range, varargin{:});
+opt = pp.Options;
 
 storeToDatabank = nargout>=1;
 
@@ -72,10 +117,12 @@ nv = countVariants(this);
 lhsRequired = false;
 context = "for " + this(1).Context + " simulation";
 dataBlock = getDataBlock(this, inputDatabank, range, lhsRequired, context);
+numExtendedPeriods = dataBlock.NumOfExtendedPeriods;
 numPages = dataBlock.NumOfPages;
 numRuns = max(nv, numPages);
 lhsNames = [this.LhsName];
 baseRangeColumns = dataBlock.BaseRangeColumns;
+extendedRange = DateWrapper(dataBlock.ExtendedRange);
 
 hereExpandPagesIfNeeded( );
 
@@ -94,10 +141,16 @@ else
 end
 
 if opt.Blazer
-    [blocks, humanBlocks] = blazer(this);
+    [blocks, ~, humanBlocks] = blazer(this);
 else
     blocks = {1:numEquations};
-    humanBlocks = {lhsNames};
+    humanBlocks = { reshape([this.InputString], [ ], 1) };
+end
+
+if isequal(opt.RaggedEdge, @auto)
+    raggedEdge = reshape([this.RaggedEdge], size(this));
+else
+    raggedEdge = repmat(opt.RaggedEdge, size(this));
 end
 
 for blk = 1 : numel(blocks)
@@ -164,13 +217,23 @@ return
 
 
     function hereRunRecursive( )
+        posLhs = this__.Dependent.Position;
+        lhsPlainData = plainData(posLhs, :, :);
         for t = baseRangeColumns
+            inxNaN = isnan(lhsPlainData(1, t, :));
+            if raggedEdge(eqn) && all(~inxNaN)
+                continue
+            end
             if t>baseRangeColumns(1)
-                rhs = updateOwnExplanatory(this__.Explanatory, rhs, plainData, t);
+                date = getIth(extendedRange, t);
+                rhs = updateOwnExplanatory(this__.Explanatory, rhs, plainData, t, date);
             end
             for v = 1 : numRuns
                 if v<=nv
                     parameters__ = this__.Parameters(:, :, v);
+                end
+                if raggedEdge(eqn) && ~inxNaN(v)
+                    continue
                 end
                 lhs(1, t, v) = parameters__*rhs(:, t, v);
             end
@@ -183,13 +246,31 @@ return
 
 
     function hereRunOnce(t)
+        posLhs = this__.Dependent.Position;
+        lhsPlainData = plainData(posLhs, :, :);
         for v = 1 : numRuns
             if v<=nv
                 parameters__ = this__.Parameters(:, :, v);
             end
-            lhs(1, t, v) = parameters__*rhs(:, t, v);
+            t__ = t;
+            if raggedEdge(eqn)
+                if numel(t__)==1
+                    if ~isnan(lhsPlainData(1, t__, v))
+                        continue
+                    end
+                else
+                    inx = false(1, numExtendedPeriods);
+                    inx(t__) = true;
+                    inx = inx & isnan(lhsPlainData(1, :, v));
+                    if ~any(inx)
+                        continue
+                    end
+                    t__ = inx;
+                end
+            end
+            lhs(1, t__, v) = parameters__*rhs(:, t__, v);
+            lhs(1, t__, v) = lhs(1, t__, v) + res(:, t__, v);
         end
-        lhs(1, t, :) = lhs(1, t, :) + res(:, t, :);
         plainData = updatePlainLhs(this__.Dependent, plainData, lhs, baseRangeColumns);
     end%
 
@@ -422,5 +503,76 @@ function blazerTest(testCase)
         assertEqual(testCase, simDb1.(i).Data, simDb2.(i).Data, 'AbsTol', 1e-12);
         assertEqual(testCase, simDb1.(i).Data, simDb3.(i).Data, 'AbsTol', 1e-12);
     end
+end%
+
+
+function allRaggedEdgeTest(testCase)
+    xq = ExplanatoryEquation.fromString([
+        "a = b{-1};"
+        "b = c{-1};"
+        "c = d{-1};"
+    ]);
+    db = struct( );
+    db.d = Series(0:10, 0:10);
+    db.c = Series(0:8, 0:10:80);
+    db.b = Series(0:6, 0:100:600);
+    simDb1 = simulate(xq, db, 1:10);
+    simDb2 = simulate(xq, db, 1:10, 'RaggedEdge=', true);
+
+    assertEqual(testCase, simDb1.c(1:10), db.d{-1}(1:10), 'AbsTol', 1e-14);
+    assertEqual(testCase, simDb2.c(1:8), db.c(1:8), 'AbsTol', 1e-14);
+    assertEqual(testCase, simDb2.c(9:10), db.d{-1}(9:10), 'AbsTol', 1e-14);
+
+    assertEqual(testCase, simDb1.b(1:10), simDb1.c{-1}(1:10), 'AbsTol', 1e-14);
+    assertEqual(testCase, simDb2.b(1:6), db.b(1:6), 'AbsTol', 1e-14);
+    assertEqual(testCase, simDb2.b(7:10), simDb2.c{-1}(7:10), 'AbsTol', 1e-14);
+
+    assertEqual(testCase, simDb1.a(1:10), simDb1.b{-1}(1:10), 'AbsTol', 1e-14);
+    assertEqual(testCase, simDb2.a(1:10), simDb2.b{-1}(1:10), 'AbsTol', 1e-14);
+end%
+
+
+function someRaggedEdgeTest(testCase)
+    xq = ExplanatoryEquation.fromString([
+        "a = b{-1};"
+        ":exogenous b = c{-1};"
+        "c = d{-1};"
+    ]);
+    db = struct( );
+    db.d = Series(0:10, 0:10);
+    db.c = Series(0:8, 0:10:80);
+    db.b = Series(0:6, 0:100:600);
+    simDb1 = simulate(xq, db, 1:10, 'RaggedEdge=', false);
+
+    xq(hasAttribute(xq, ":exogenous")).RaggedEdge = true;
+    simDb2 = simulate(xq, db, 1:10, 'RaggedEdge=', @auto);
+
+    assertEqual(testCase, simDb1.c(1:10), db.d{-1}(1:10), 'AbsTol', 1e-14);
+    assertEqual(testCase, simDb2.c(1:10), db.d{-1}(1:10), 'AbsTol', 1e-14);
+
+    assertEqual(testCase, simDb1.b(1:10), simDb1.c{-1}(1:10), 'AbsTol', 1e-14);
+    assertEqual(testCase, simDb2.b(1:6), db.b(1:6), 'AbsTol', 1e-14);
+    assertEqual(testCase, simDb2.b(7:10), simDb2.c{-1}(7:10), 'AbsTol', 1e-14);
+
+    assertEqual(testCase, simDb1.a(1:10), simDb1.b{-1}(1:10), 'AbsTol', 1e-14);
+    assertEqual(testCase, simDb2.a(1:10), simDb2.b{-1}(1:10), 'AbsTol', 1e-14);
+end%
+
+
+function runtimeIfTest(testCase)
+    xq = ExplanatoryEquation.fromString([
+        "a = a{-1} + if__(date__,'==',qq(2001,4), 5, 0);"
+        "b = b{-1} + if__(b{-1}, '<', 0, 1, 0);"
+    ]);
+    db = struct( );
+    db.a = Series(qq(2000,4), 10);
+    db.b = Series(qq(2000,4), -3);
+    simDb = simulate(xq, db, qq(2001,1):qq(2004,4));
+    exp_a = Series(qq(2000,4):qq(2004,4), 10);
+    exp_a(qq(2001,4):end) = 15;
+    assertEqual(testCase, simDb.a(:), exp_a(:), 'AbsTol', 1e-14);
+    exp_b = Series(qq(2000,4):qq(2004,4), 0);
+    exp_b(qq(2000,4):qq(2001,2)) = [-3;-2;-1];
+    assertEqual(testCase, simDb.b(:), exp_b(:), 'AbsTol', 1e-14);
 end%
 %)
