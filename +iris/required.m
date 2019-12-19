@@ -45,7 +45,7 @@ end
 if vNum<minRelease
     thisError = { 'IrisToolbox:Config:ReleaseRequired'
                   '[IrisToolbox] Release %d or later is required; '
-                  'you are currently running Release %s' }
+                  'you are currently running Release %s' };
     error(thisError{1}, [thisError{2:end}], minRelease, vChar);
 end
 
