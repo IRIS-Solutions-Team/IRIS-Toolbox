@@ -54,25 +54,25 @@ function [flag, varargout] = checkSteady(this, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.chksstate');
-    parser.KeepUnmatched = true;
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addParameter('Error', true, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.chksstate');
+    pp.KeepUnmatched = true;
+    pp.addRequired('Model', @(x) isa(x, 'model'));
+    pp.addParameter('Error', true, @validate.logicalScalar);
+    pp.addParameter('Warning', true, @validate.logicalScalar);
 end
-parse(parser, this, varargin{:});
-opt = parser.Options;
+parse(pp, this, varargin{:});
+opt = pp.Options;
 needsSort = nargout>3;
 
 % Pre-process options passed to implementCheckSteady(~)
-checkSteadyOpt = prepareCheckSteady(this, 'verbose', parser.UnmatchedInCell{:});
+checkSteadyOpt = prepareCheckSteady(this, 'verbose', pp.UnmatchedInCell{:});
 
 %--------------------------------------------------------------------------
 
