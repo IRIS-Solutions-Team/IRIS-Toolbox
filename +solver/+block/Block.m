@@ -54,9 +54,9 @@ classdef (Abstract) Block < handle
     
     
     properties (Constant)
-        SAVEAS_INDENT = '    ';
-        SAVEAS_HEADER_FORMAT = '%% Block #%g // Number of Equations: %g\n';
-        SAVEAS_INSIDE_ASSIGNMENT_PREFIX = '#'
+        SAVEAS_INDENT = "    ";
+        SAVEAS_HEADER_FORMAT = "%%%% Block #%g\n%% Number of Equations: %g\n%% Execution: %s\n";
+        SAVEAS_SECTION = string(repmat(' ', 1, 75))
     end
 
 
@@ -219,30 +219,19 @@ classdef (Abstract) Block < handle
             else
                 THIS_ERROR = { 'Block:UnknownSolver'
                                'Invalid or unknown solution method' };
-                throw( exception.Base(THIS_ERROR, 'error') );
+                throw(exception.Base(THIS_ERROR, 'error'));
             end
         end%
 
 
         
 
-        function c = print(this, iBlk, names, input)
-            separator = string([newline( ), this.SAVEAS_INDENT]);
+        function c = print(this, blockId, names, input)
+            keyword = string(this.Type.SaveAsKeyword);
             if this.Type==solver.block.Type.SOLVE
-                % Print SOLVE block
-                keyword = "!solveFor";
                 keyword = keyword + printListOfUknowns(this, names);
-            else
-                % Print ASSIGN block
-                keyword = "!assign";
             end
-            eqtn = string(input(this.PosEqn));
-            c = keyword + separator + join(eqtn, separator);
-            header = string(sprintf( ...
-                this.SAVEAS_HEADER_FORMAT, ...
-                iBlk, numel(this.PosEqn) ...
-            ));
-            c = char(header + c);
+            c = solver.block.Block.printBlock(blockId, keyword, input(this.PosEqn));
         end%
 
 
@@ -311,6 +300,21 @@ classdef (Abstract) Block < handle
             if ~all(isfinite(z(:)))
                 exitFlag = solver.ExitFlag.NAN_INF_SOLUTION;
             end
+        end%
+
+
+        function c = printBlock(blockId, keyword, eqtn)
+            eqtn = string(eqtn);
+            numEquations = numel(eqtn);
+            newlineString = string(newline( ));
+            separator = newlineString + solver.block.Block.SAVEAS_INDENT;
+            c = separator + join(eqtn, separator);
+            header = string(sprintf( ...
+                solver.block.Block.SAVEAS_HEADER_FORMAT, ...
+                blockId, numEquations, keyword ...
+            ));
+            c = solver.block.Block.SAVEAS_SECTION + newlineString + header ...
+                + c + newlineString + "%";
         end%
     end
 end

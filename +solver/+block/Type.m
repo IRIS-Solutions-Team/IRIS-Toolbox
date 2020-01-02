@@ -1,11 +1,12 @@
 classdef Type
     enumeration
         UNKNOWN       (-1, '', [ ] )
-        SOLVE         ( 0, '!solve_for', [ ] )
-        ASSIGN        ( 1, '!assign', [ ] )
-        ASSIGN_LOG    ( 2, '!assign_log', @exp )
-        ASSIGN_EXP    ( 3, '!assign_exp', @log )
-        ASSIGN_UMINUS ( 4, '!assign_uminus', @uminus )
+        SOLVE         ( 0, 'Solver for ', [ ] )
+        ASSIGN        ( 1, 'Assign', [ ] )
+        ASSIGN_LOG    ( 2, 'Assign @log', @exp )
+        ASSIGN_EXP    ( 3, 'Assign @exp', @log )
+        ASSIGN_UMINUS ( 4, 'Assign @uminus', @uminus )
+        ITERATE_TIME  ( 5, 'Iterate Period by Period', [ ] )
     end
     
     
@@ -26,14 +27,14 @@ classdef Type
             this.TypeId = PTR(typeId);
             this.SaveAsKeyword = saveAsKeyword;
             this.InvTransform = invTransform;
-        end
+        end%
         
         
         
         
         function x = int16(this)
             x = this.TypeId;
-        end
+        end%
         
         
         
@@ -44,6 +45,8 @@ classdef Type
                     c = [ ];
                 case solver.block.Type.SOLVE
                     c = [ ];
+                case solver.block.Type.ITERATE_TIME
+                    c = [ ];
                 case solver.block.Type.ASSIGN
                     % c = c;
                 case solver.block.Type.ASSIGN_LOG
@@ -53,9 +56,9 @@ classdef Type
                 case solver.block.Type.ASSIGN_UMINUS
                     c = strcat('-', c);
                 otherwise
-                    throw( exception.Base('General:Internal', 'error') );
+                    throw(exception.Base('General:Internal', 'error'));
             end
-        end
+        end%
     end
     
     
@@ -71,7 +74,7 @@ classdef Type
                     return
                 end
             end
-            throw( exception.Base('General:Internal', 'error') );
-        end
+            throw(exception.Base('General:Internal', 'error'));
+        end%
     end
 end

@@ -20,7 +20,9 @@ classdef (Abstract) Blazer < handle
         InxCanBeEndogenous
         IsBlocks = true
         IsSingular = false
-        NanInit % Values assigned to NaN initial conditions
+
+        % NanInit  Values assigned to NaN initial conditions
+        NanInit = NaN
         
         Block
         AppData = struct( )
@@ -28,7 +30,7 @@ classdef (Abstract) Blazer < handle
     
     
     properties (Constant)
-        SAVEAS_FILE_HEADER = '% [IrisToolbox] Blazer File $TimeStamp$';
+        SAVEAS_FILE_HEADER = '%%%% [IrisToolbox] Blazer File %s\n%% Number of Blocks: %g\n%% Number of Equations: %g';
     end
     
 
@@ -90,7 +92,7 @@ classdef (Abstract) Blazer < handle
         function run(this, varargin)
             PTR = @int16;
             numEquations = nnz(this.InxEquations);
-            numEndogenous = sum(this.InxEndogenous);
+            numEndogenous = nnz(this.InxEndogenous);
             if numEquations~=numEndogenous
                 throw( exception.Base('Blazer:NumberEquationsEndogenized', 'error'), ...
                        numEquations, numEndogenous ); %#ok<GTARG>
@@ -124,6 +126,8 @@ classdef (Abstract) Blazer < handle
             prepareBlocks(this, varargin{:});
         end%
         
+
+
         
         function prepareBlocks(this, varargin)
             numBlocks = numel(this.Block);
@@ -134,19 +138,18 @@ classdef (Abstract) Blazer < handle
         end%
         
         
+
+
         function saveAs(this, fileName)
             numBlocks = numel(this.Block);
-            c = [ ...
-                strrep(solver.blazer.Blazer.SAVEAS_FILE_HEADER, '$TimeStamp$', datestr(now( ))), ...
-                sprintf('\n%% Number of Blocks: %g', numBlocks), ...
-                sprintf('\n%% Number of Equations: %g', sum(this.InxEquations)), ...
-            ];
+            numEquations = nnz(this.InxEquations);
+            c = '';
             [names, equations] = getNamesAndEquationsToPrint(this);
             for i = 1 : numBlocks
-                c = [c, sprintf('\n\n\n')]; %#ok<AGROW>
-                c = [c, print(this.Block{i}, i, names, equations) ]; %#ok<AGROW>
+                c = [c, newline( ), newline( ), newline( )]; %#ok<AGROW>
+                c = [c, char(print(this.Block{i}, i, names, equations)) ]; %#ok<AGROW>
             end
-            char2file(c, fileName);
+            solver.blazer.Blazer.wrapAndSave(c, fileName, numBlocks, numEquations);
         end%        
 
 
@@ -203,6 +206,15 @@ classdef (Abstract) Blazer < handle
                     currBlkEqn = repmat(PTR(0), 1, 0);
                 end
             end
+        end%
+
+
+        function c = wrapAndSave(c, fileName, numBlocks, numEquations)
+            header = sprintf( ...
+                solver.blazer.Blazer.SAVEAS_FILE_HEADER, ...
+                datestr(now( )), numBlocks, numEquations ...
+            );
+            char2file([char(header), char(c), newline( ), newline( )], fileName);
         end%
     end
 end
