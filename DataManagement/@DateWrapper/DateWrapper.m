@@ -40,8 +40,8 @@ classdef DateWrapper < double
 
 
         function this = uminus(this)
-            inxOfInf = isinf(double(this));
-            if ~all(inxOfInf)
+            inxInf = isinf(double(this));
+            if ~all(inxInf)
                 throw( exception.Base('DateWrapper:InvalidInputsIntoUminus', 'error') );
             end
             this = DateWrapper(-double(this));
@@ -140,11 +140,6 @@ classdef DateWrapper < double
             this = DateWrapper(real(double(this)));
         end%
 
-        
-        function flag = eq(d1, d2)
-            flag = round(d1*100)==round(d2*100);
-        end%
-
 
         function this = min(varargin)
             minDouble = min@double(varargin{:});
@@ -216,7 +211,40 @@ classdef DateWrapper < double
             [durationObj, halfDurationObj] = duration(frequency);
         end%
     end
+
+        
+
+
+    methods % == < > <= >=
+        %(
+        function flag = eq(d1, d2)
+            flag = round(d1*100)==round(d2*100);
+        end%
+
+
+        function flag = lt(d1, d2)
+            flag = round(d1*100)<round(d2*100);
+        end%
+
+
+        function flag = gt(d1, d2)
+            flag = round(d1*100)>round(d2*100);
+        end%
+
+
+        function flag = le(d1, d2)
+            flag = round(d1*100)<=round(d2*100);
+        end%
+
+
+        function flag = ge(d1, d2)
+            flag = round(d1*100)>=round(d2*100);
+        end%
+        %)
+    end
     
+
+
     
     methods (Hidden)
         function pos = positionOf(dates, start)
@@ -268,29 +296,12 @@ classdef DateWrapper < double
         end%
 
 
-        function decimal = getDecimal(dateCode)
-            dateCode = double(dateCode);
-            decimal = round(100*(dateCode - floor(dateCode)));
-        end%
-
-
-        function flag = validateDecimal(dateCode)
-            decimal = DateWrapper.getDecimal(dateCode);
-            flag = decimal==0 ...
-                 | decimal==1 ...
-                 | decimal==2 ...
-                 | decimal==4 ...
-                 | decimal==12 ...
-                 | decimal==52 ;
-        end%
-
-
         function frequency = getFrequencyAsNumeric(dateCode)
-            frequency = DateWrapper.getDecimal(dateCode);
-            inxOfZero = frequency==0;
-            if any(inxOfZero)
-                inxOfDaily = frequency==0 & floor(dateCode)>=Frequency.MIN_DAILY_SERIAL;
-                frequency(inxOfDaily) = 365;
+            frequency = round(100*(double(dateCode) - floor(dateCode)));
+            inxZero = frequency==0;
+            if any(inxZero)
+                inxDaily = frequency==0 & floor(dateCode)>=Frequency.MIN_DAILY_SERIAL;
+                frequency(inxDaily) = 365;
             end
         end%
 
