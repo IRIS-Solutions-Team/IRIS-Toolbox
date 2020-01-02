@@ -68,7 +68,7 @@ for i = 1 : numel(allNames)
         end
         continue
     end
-    if isnumeric(field__) && allowedScalar__ && isrow(field__)
+    if (isnumeric(field__) || islogical(field__)) && allowedScalar__ && isrow(field__)
         continue
     end
     checkIncluded(i) = ~inxRequiredNames(i);
@@ -122,7 +122,7 @@ return
     function hereReportColumns( )
         thisError = [
             "DatabankPipe:CheckInputDatabank"
-            "This time series or numeric input has an inconsistent number of columns: %s " 
+            "This time series or plain numeric input has an inconsistent number of columns: %s " 
         ];
         throw(exception.Base(thisError, 'error'), allNames{~checkNumPagesAndVariants});
     end%

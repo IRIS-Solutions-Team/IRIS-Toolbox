@@ -40,9 +40,10 @@ for i = 1 : numNames
             data__ = repmat(data__, 1, numPages);
         end
         X(i, :, :) = permute(data__, [3, 1, 2]);
-    elseif isnumeric(field__) && ~all(isnan(field__))
+    elseif (isnumeric(field__) || islogical(field__)) && ~all(isnan(field__))
         % 
-        % Databank field is numeric scalar for each page (allowed)
+        % Databank field is numeric or logical scalar for each page
+        % (allowed)
         %
         if numel(field__)==1
             X(i, :, :) = field__;
