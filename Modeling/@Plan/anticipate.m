@@ -42,31 +42,23 @@ function this = anticipate(this, anticipationStatus, varargin)
 % -Copyright (c) 2007-2019 IRIS Solutions Team
 
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('@Plan/anticipate');
-    addRequired(parser, 'plan', @(x) isa(x, 'Plan'));
-    addRequired(parser, 'anticipationStatus', @validate.logicalScalar);
-    addRequired(parser, 'names', @(x) validate.list(x) || (iscell(x) && isscalar(x) && validate.list(x{1})));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('@Plan/anticipate');
+    addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
+    addRequired(pp, 'anticipationStatus', @validate.logicalScalar);
+    addRequired(pp, 'names', @(x) validate.list(x) || (iscell(x) && isscalar(x) && validate.list(x{1})));
 end
 
-if this.NumOfEndogenizedPoints>0
-    thisError = { 'Plan:CannotChangeAnticipateAfterEndogenize'
-                  'Cannot change anticipation status after some names have been already endogenized' };
+if this.NumOfEndogenizedPoints>0 || this.NumOfExogenizedPoints>0
+    thisError = [ "Plan:CannotChangeAnticipateAfterEndogenize"
+                  "Cannot change anticipation status in a Plan object "
+                  "after some names have been already exogenized or endogenized" ];
     throw(exception.Base(thisError, 'error'));
 end
 
 names = varargin;
-try
-    parse(parser, this, anticipationStatus, names);
-catch
-    % TODO: Legacy input arguments
-    [names, anticipationStatus] = deal(anticipationStatus, names{1});
-    parse(parser, this, anticipationStatus, names);
-    thisWarning = { 'Plan:AnticipateLegacyInputArgumentsForGPMN' 
-                    'Invalid order of input arguments to @Plan/anticipate; this will become an error in a future release of IRIS. See help Plan/anticipate.' };
-    throw(exception.Base(thisWarning, 'warning'));
-end
+parse(pp, this, anticipationStatus, names);
 
 if ~validate.list(names)
     names = names{1};
