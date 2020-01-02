@@ -1,4 +1,11 @@
-function output = parseInputSpecs(xq, inputSpecs, types)
+function output = parseInputSpecs(xq, inputSpecs, inputTransform, inputShift, types)
+% parseInputSpecs  Parse input specification of Dependent or Explanatory Terms
+% 
+% Backend [IrisToolbox] method
+% No help provided
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 % Invoke unit tests
 %(
@@ -7,6 +14,7 @@ if nargin==1 && isequal(xq, '--test')
                              @pointerTest
                              @nameTest
                              @nameShiftTest
+                             @nameDifflogShiftTest
                              @transformTest
                              @expressionTest });
     output = reshape(output, [ ], 1);
@@ -14,15 +22,15 @@ if nargin==1 && isequal(xq, '--test')
 end
 %)
 
-
-if nargin<3
-    types = @all;
-end
-
 %--------------------------------------------------------------------------
 
 output = struct( );
 output.Type = "";
+output.Transform = "";
+output.Incidence = double.empty(1, 0);
+output.Position = NaN;
+output.Shift = 0;
+output.Expression = [ ];
 
 %
 % Pointer to VariableNames
@@ -38,9 +46,7 @@ if ~isa(inputSpecs, 'string')
     hereThrowInvalidSpecification( );
 end
 
-
-inputSpecs = string(inputSpecs);
-inputSpecs = replace(inputSpecs, " ", "");
+inputSpecs = replace(string(inputSpecs), " ", "");
 
 %
 % Plain variable name
@@ -53,10 +59,10 @@ if isequal(types, @all) || any(types=="Name")
 end
 
 %
-% Registered transform, possibly in expanded way
+% Registered transform, possibly expanded
 %
 if isequal(types, @all) || any(types=="Transform")
-    hereParseExpandedTransform( );
+    hereParseDiffTransform( );
     if output.Type=="Transform"
         return
     end
@@ -90,8 +96,20 @@ return
         if ~validate.roundScalarInRange(inputSpecs, 1, numel(xq.VariableNames));
             hereThrowInvalidPointer( );
         end
+        if isequal(inputTransform, @auto)
+            inputTransform = "";
+        end
+        if isequal(inputShift, @auto)
+            inputShift = 0;
+        end
         output.Type = "Pointer";
+        output.Transform = inputTransform;
+        output.Incidence = complex(inputSpecs, inputShift);
+        if startsWith(output.Transform, "diff")
+            output.Incidence = [output.Incidence, complex(inputSpecs, inputShift-1)];
+        end
         output.Position = inputSpecs;
+        output.Shift = inputShift;
     end%
 
 
@@ -102,39 +120,80 @@ return
         if ~any(inx)
             return
         end
+        pos = find(inx);
+        if isequal(inputTransform, @auto)
+            inputTransform = "";
+        end
+        if isequal(inputShift, @auto)
+            inputShift = 0;
+        end
         output.Type = "Name";
-        output.Position = find(inx);
+        output.Transform = inputTransform;
+        output.Incidence = complex(pos, inputShift);
+        if startsWith(output.Transform, "diff")
+            output.Incidence = [output.Incidence, complex(pos, inputShift-1)];
+        end
+        output.Position = pos;
+        output.Shift = inputShift;
     end%
 
 
 
 
-    function hereParseExpandedTransform( )
-        if ~contains(inputSpecs, "diff") ...
-                || ~contains(inputSpecs, "(") ...
-                || ~contains(inputSpecs, ")")
+    function hereParseDiffTransform( )
+        %
+        % Parse input string with one of the following:
+        %
+        % * diff(name) 
+        % * difflog(name) 
+        % * expanded diff(name) 
+        % * expanded difflog(name)
+        %
+        if ~contains(inputSpecs, "diff") && ~contains(inputSpecs, "log") && ~contains(inputSpecs, "(") && ~contains(inputSpecs, ")")
             return
         end
-        name = regexprep(inputSpecs, "\(\(([A-Za-z]\w*)\)-\(\1{-1}\)\)", "tokens", "once");
-        if ~isempty(name)
+        name = string.empty(1, 0);
+        transform = string.empty(1, 0);
+        if startsWith(inputSpecs, "diff(")
+            % ^diff(name)$
+            name = regexprep(inputSpecs, "^diff\(([A-Za-z]\w*)\)$", "tokens", "once");
             transform = "diff";
-        else
-            name = regexprep(inputSpecs, "\(log\(([A-Za-z]\w*)\)-log\(\1{-1}\)\)", "tokens", "once");
-            if ~isempty(name)
-                transform = "difflog";
-            end
         end
+        if isempty(name) && startsWith(inputSpecs, "difflog(")
+            % ^difflog(name)$
+            name = regexprep(inputSpecs, "^difflog\(([A-Za-z]\w*)\)$", "tokens", "once");
+            transform = "difflog";
+        end
+        if isempty(name) && startsWith(inputSpecs, "(")
+            % ^((name)-(name{-1}))$
+            name = regexprep(inputSpecs, "^\(\(([A-Za-z]\w*)\)-\(\1{-1}\)\)$", "tokens", "once");
+            transform = "diff";
+        end
+        if isempty(name) && startsWith(inputSpecs, "(")
+            % ^(log(name)-log(name{-1}))$
+            name = regexprep(inputSpecs, "\(log\(([A-Za-z]\w*)\)-log\(\1{-1}\)\)", "tokens", "once");
+            transform = "difflog";
+        end
+
         if isempty(name)
             return
         end
+
         inx = name==xq.VariableNames;
         if ~any(inx)
             return
         end
+
+        if isequal(inputShift, @auto)
+            inputShift = 0;
+        end
+
+        pos = find(inx);
         output.Type = "Transform";
-        output.Position = find(inx);
-        output.Shift = 0;
         output.Transform = transform;
+        output.Incidence = [complex(pos, inputShift), complex(pos, inputShift-1)];
+        output.Position = pos;
+        output.Shift = inputShift;
     end%
 
 
@@ -151,17 +210,23 @@ return
             return
         end
         inx = tokens(2)==xq.VariableNames;
-        shift = 0;
+        sh = 0;
         if strlength(tokens(3))>0
-            shift = sscanf(tokens(3), "{%g}"); 
+            sh = sscanf(tokens(3), "{%g}"); 
         end
-        if ~any(inx) || ~validate.roundScalar(shift)
+        if ~any(inx) || ~validate.roundScalar(sh)
             return
         end
+        transform = string(tokens(1));
+        pos = find(inx);
         output.Type = "Transform";
-        output.Position = find(inx);
-        output.Shift = shift;
-        output.Transform = tokens(1);
+        output.Transform = transform;
+        output.Incidence = complex(pos, sh);
+        if startsWith(transform, "diff")
+            output.Incidence = [output.Incidence, complex(pos, sh-1)];
+        end
+        output.Position = pos;
+        output.Shift = sh;
     end%
 
 
@@ -178,13 +243,12 @@ return
         % Replace name{k} with x(pos, t+k, :)
         % Replace name with x(pos, t, :)
         %
-        positions = double.empty(1, 0);
-        shifts = 0;
+        incidence = double.empty(1, 0);
         invalidNames = string.empty(1, 0);
         invalidShifts = string.empty(1, 0);
         replaceFunc = @replaceNameShift;
-        parsedSpecs = regexprep(parsedSpecs, "(?<!@)(\<[A-Za-z]\w*\>)(\{[^\}]*\})", "${replaceFunc($1, $2)}");
-        parsedSpecs = regexprep(parsedSpecs, "(?<!@)(\<[A-Za-z]\w*\>)(?!\()", "${replaceFunc($1)}");
+        parsedSpecs = regexprep(parsedSpecs, ExplanatoryEquation.VARIABLE_WITH_SHIFT, "${replaceFunc($1, $2)}");
+        parsedSpecs = regexprep(parsedSpecs, ExplanatoryEquation.VARIABLE_NO_SHIFT, "${replaceFunc($1)}");
         parsedSpecs = replace(parsedSpecs, "$", "t");
 
         if ~isempty(invalidNames)
@@ -200,13 +264,17 @@ return
         % Create anonymous function
         %
         try
+            hereParseSpecials( );
             func = str2func("@(x,t,date__)" + parsedSpecs);
             output.Type = "Expression";
             output.Expression = func;
-            output.Positions = sort(unique(positions, 'stable'));
-            output.Shifts = sort(shifts);
+            output.Incidence = incidence;
+        catch
+            keyboard
         end
+
         return
+
 
             function c = replaceNameShift(c1, c2)
                 c = '';
@@ -215,27 +283,29 @@ return
                     return
                 end
                 pos = getPositionOfName(xq, c1);
+                sh = 0;
                 if isnan(pos)
                     invalidNames = [invalidNames, string(c1)];
                     return
                 end
-                positions = [positions, pos];
-                if nargin<2 || isempty(c2) || strcmp(c2, '{}')
+                if nargin>=2 && ~isempty(c2) && ~strcmp(c2, '{}') && ~strcmp(c2, '{0}')
+                    sh = str2num(c2(2:end-1));
+                    if ~validate.numericScalar(sh) || ~isfinite(sh)
+                        invalidShifts = [invalidShifts, string(c2)];
+                        return
+                    end
+                end
+                if sh==0
                     c = sprintf('x(%g, $, :)', pos);
-                    return
-                end
-                sh = str2num(c2(2:end-1));
-                if ~validate.numericScalar(sh) || ~isfinite(sh)
-                    invalidShifts = [invalidShifts, string(c2)];
-                end
-                if sh ==0
-                    c = sprintf('x(%g, t, :)', pos);
-                    return
                 else
-                    shifts = [shifts, sh];
                     c = sprintf('x(%g, $%+g, :)', pos, sh);
-                    return
                 end
+                incidence = [incidence, complex(pos, sh)];
+            end%
+
+
+            function hereParseSpecials( )
+                parsedSpecs = regexprep(parsedSpecs, "\<if\(", "simulate.if(");
             end%
 
 
@@ -280,16 +350,25 @@ end%
 function setupOnce(testCase)
     m = ExplanatoryEquation( );
     m.VariableNames = ["x", "y", "z"];
+    output = struct( );
+    output.Type = "";
+    output.Transform = "";
+    output.Incidence = double.empty(1, 0);
+    output.Position = NaN;
+    output.Shift = 0;
+    output.Expression = [ ];
     testCase.TestData.Model = m;
+    testCase.TestData.Output = output;
 end%
 
 
 function pointerTest(testCase)
     m = testCase.TestData.Model;
-    for ptr = 1 : numel(m.VariableNames);
-        act = regression.Term.parseInputSpecs(m, ptr);
-        exp = struct( );
+    for ptr = 1 : numel(m.VariableNames)
+        act = regression.Term.parseInputSpecs(m, ptr, @auto, @auto, @all);
+        exp = testCase.TestData.Output;
         exp.Type = "Pointer";
+        exp.Incidence = complex(ptr, 0);
         exp.Position = ptr;
         assertEqual(testCase, act, exp);
     end
@@ -299,10 +378,12 @@ end%
 function nameTest(testCase)
     m = testCase.TestData.Model;
     for name = m.VariableNames
-        act = regression.Term.parseInputSpecs(m, name);
-        exp = struct( );
+        act = regression.Term.parseInputSpecs(m, name, @auto, @auto, @all);
+        exp = testCase.TestData.Output;
         exp.Type = "Name";
-        exp.Position = find(name==m.VariableNames);
+        ptr = find(name==m.VariableNames);
+        exp.Incidence = complex(ptr, 0);
+        exp.Position = ptr;
         assertEqual(testCase, act, exp);
     end
 end%
@@ -311,12 +392,29 @@ end%
 function nameShiftTest(testCase)
     m = testCase.TestData.Model;
     for name = m.VariableNames
-        act = regression.Term.parseInputSpecs(m, name + "{-1}");
-        exp = struct( );
+        act = regression.Term.parseInputSpecs(m, name + "{-1}", @auto, @auto, @all);
+        exp = testCase.TestData.Output;
         exp.Type = "Transform";
-        exp.Position = find(name==m.VariableNames);
+        ptr = find(name==m.VariableNames);
+        exp.Incidence = complex(ptr, -1);
+        exp.Position = ptr;
         exp.Shift = -1;
-        exp.Transform = "";
+        assertEqual(testCase, act, exp);
+    end
+end%
+
+
+function nameDifflogShiftTest(testCase)
+    m = testCase.TestData.Model;
+    for name = m.VariableNames
+        act = regression.Term.parseInputSpecs(m, "difflog(" + name + "{-2})", @auto, @auto, @all);
+        exp = testCase.TestData.Output;
+        exp.Type = "Transform";
+        ptr = find(name==m.VariableNames);
+        exp.Transform = "difflog";
+        exp.Incidence = [complex(ptr, -2), complex(ptr, -3)];
+        exp.Position = ptr;
+        exp.Shift = -2;
         assertEqual(testCase, act, exp);
     end
 end%
@@ -328,13 +426,20 @@ function transformTest(testCase)
         for transform = regression.Term.REGISTERED_TRANSFORMS
             shift = randi(5)-10;
             shiftSpecs = sprintf("{%g}", shift);
-            act = regression.Term.parseInputSpecs(m, transform + "(" + name + shiftSpecs + ")");
-            exp = struct( );
+            act = regression.Term.parseInputSpecs(m, transform + "(" + name + shiftSpecs + ")", @auto, @auto, @all);
+            ptr = find(name==m.VariableNames);
+            exp = testCase.TestData.Output;
             exp.Type = "Transform";
-            exp.Position = find(name==m.VariableNames);
-            exp.Shift = shift;
             exp.Transform = transform;
-            assertEqual(testCase, act, exp);
+            exp.Incidence = complex(ptr, shift);
+            if startsWith(transform, "diff")
+                exp.Incidence = [exp.Incidence, complex(ptr, shift-1)];
+            end
+            exp.Position = ptr;
+            exp.Shift = shift;
+            assertEqual(testCase, act.Type, exp.Type);
+            assertEqual(testCase, act.Transform, exp.Transform);
+            assertEqual(testCase, act.Incidence, exp.Incidence);
         end
     end
 end%
@@ -342,15 +447,16 @@ end%
 
 function expressionTest(testCase)
     m = testCase.TestData.Model;
-    act = regression.Term.parseInputSpecs(m, "x + movavg(y, -2) - z{+3}");
-    exp = struct( );
+    act = regression.Term.parseInputSpecs(m, "x + movavg(y, -2) - z{+3}", @auto, @auto, @all);
+    exp = testCase.TestData.Output;
     exp.Type = "Expression";
     exp.Expression = @(x,t,date__)x(1,t,:)+(((x(2,t,:))+(x(2,t-1,:)))./2)-x(3,t+3,:);
-    exp.Positions = [1, 2, 3];
-    exp.Shifts = [-1, 0, 3];
+    exp.Incidence = [complex(1, 0), complex(2, 0), complex(2, -1), complex(3, 3)];
     act.Expression = func2str(act.Expression);
     exp.Expression = func2str(exp.Expression);
-    assertEqual(testCase, act, exp);
+    assertEqual(testCase, act.Expression, exp.Expression);
+    assertEqual(testCase, intersect(act.Incidence, exp.Incidence, 'stable'), act.Incidence);
+    assertEqual(testCase, union(act.Incidence, exp.Incidence, 'stable'), act.Incidence);
 end%
 %)
 

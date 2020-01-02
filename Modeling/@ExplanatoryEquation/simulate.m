@@ -74,24 +74,19 @@ end
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('ExplanatoryEquation.simulate');
-    %
-    % Required arguments
-    %
+
     addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'ExplanatoryEquation'));
     addRequired(pp, 'inputDatabank', @validate.databank);
     addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
-    %
-    % Options
-    %
+
     addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, [ ]) || validate.databank(x));
     addParameter(pp, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);
     addParameter(pp, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
-    addParameter(pp, {'Blazer', 'Reorder'}, true, @validate.logicalScalar);
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
     addParameter(pp, 'NaNParameters', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
     addParameter(pp, 'NaNSimulation', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
-    addParameter(pp, 'Dynamic', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
     addParameter(pp, 'RaggedEdge', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+    addParameter(pp, 'Blazer', cell.empty(1, 0), @iscell);
 end
 parse(pp, this, inputDatabank, range, varargin{:});
 opt = pp.Options;
@@ -117,6 +112,7 @@ nv = countVariants(this);
 lhsRequired = false;
 context = "for " + this(1).Context + " simulation";
 dataBlock = getDataBlock(this, inputDatabank, range, lhsRequired, context);
+
 numExtendedPeriods = dataBlock.NumOfExtendedPeriods;
 numPages = dataBlock.NumOfPages;
 numRuns = max(nv, numPages);
@@ -131,21 +127,10 @@ hereExpandPagesIfNeeded( );
 %
 this = runtime(this, dataBlock, "simulate");
 
-% 
-% Resolve Dynamic= option for each equation
 %
-if isequal(opt.Dynamic, @auto)
-    isDynamic = arrayfun(@(x) resolveDynamicOption(x.Explanatory), this);
-else
-    isDynamic = repmat(opt.Dynamic, size(this));
-end
-
-if opt.Blazer
-    [blocks, ~, humanBlocks] = blazer(this);
-else
-    blocks = {1:numEquations};
-    humanBlocks = { reshape([this.InputString], [ ], 1) };
-end
+% Run blazer
+% 
+[blocks, ~, humanBlocks, dynamicStatus] = blazer(this, opt.Blazer{:});
 
 if isequal(opt.RaggedEdge, @auto)
     raggedEdge = reshape([this.RaggedEdge], size(this));
@@ -159,7 +144,7 @@ for blk = 1 : numel(blocks)
         this__ = this(eqn);
         [plainData, lhs, rhs, res] = createModelData(this__, dataBlock);
         res(~isfinite(res)) = 0;
-        if isDynamic(eqn)
+        if dynamicStatus(eqn)
             hereRunRecursive( );
         else
             hereRunOnce(baseRangeColumns);
@@ -190,6 +175,8 @@ end
 % Report LHS variables with NaN or Inf values
 %
 pos = textual.locate(lhsNames, dataBlock.Names);
+reorder = [blocks{:}];
+pos = pos(reorder);
 inxNaNLhs = any(any(~isfinite(dataBlock.YXEPG(pos, baseRangeColumns, :)), 3), 2);
 if any(inxNaNLhs)
     hereReportNaNSimulation( );
@@ -206,6 +193,7 @@ end
 if nargout>=2
     info = struct( );
     info.Blocks = humanBlocks;
+    info.DynamicStatus = dynamicStatus;
 end
 
 %
@@ -310,7 +298,7 @@ return
 
 
     function hereReportNaNSimulation( )
-        report = cellstr(lhsNames(inxNaNLhs));
+        report = cellstr(dataBlock.Names(pos(inxNaNLhs)));
         thisWarning  = [ 
             "ExplanatoryEquation:MissingObservationInSimulationRange"
             "Simulation of an ExplanatoryEquation object resulted "
@@ -497,7 +485,7 @@ function blazerTest(testCase)
     db.y = Series(0, rand);
     db.z = Series(0, rand);
     [simDb1, info1] = simulate(xq, db, 1:1000);
-    [simDb2, info2] = simulate(xq, db, 1:1000, 'Blazer=', false);
+    [simDb2, info2] = simulate(xq, db, 1:1000, 'Blazer=', {'Reorder=', false});
     [simDb3, info3] = simulate(xq([1,3,4,5,2]), db, 1:1000);
     for i = reshape(string(fieldnames(simDb1)), 1, [ ]);
         assertEqual(testCase, simDb1.(i).Data, simDb2.(i).Data, 'AbsTol', 1e-12);

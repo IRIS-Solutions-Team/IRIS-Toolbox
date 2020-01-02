@@ -1,7 +1,8 @@
 classdef Term
     properties
-        Position (1, :) double = double.empty(1, 0)
-        Shift (1, :) double = 0
+        Incidence (1, :) double = double.empty(1, 0)
+        Position (1, 1) double = NaN
+        Shift (1, 1) double = 0
         Transform (1, 1) string = "" 
 
         Expression = [ ]
@@ -19,7 +20,7 @@ classdef Term
     end
 
 
-    methods
+    methods % Constructor
         function this = Term(varargin)
 % Term  Create RHS term for ExplanatoryEquation object
 %{
@@ -105,16 +106,12 @@ classdef Term
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('regression.Term');
-                %
-                % Required arguments
-                %
+
                 addRequired(pp, 'xq', @(x) isa(x, 'ExplanatoryEquation'));
-                addRequired(pp, 'specification', @(x) (validate.string(x) && isscalar(string(x))) || (validate.numericScalar(x) && isfinite(x) && x==round(x) && x>0));
-                %
-                % Options
-                %
-                addParameter(pp, 'Shift', 0, @(x) validate.numericScalar(x) && x==round(x));
-                addParameter(pp, 'Transform', [ ], @(x) isempty(x) || validate.anyString(x, regression.Term.REGISTERED_TRANSFORMS)); 
+                addRequired(pp, 'specification', @(x) validate.stringScalar(x) || validate.roundScalar(x, [1, intmax]));
+
+                addParameter(pp, 'Shift', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x));
+                addParameter(pp, 'Transform', @auto, @(x) isequal(x, @auto) || validate.anyString(x, regression.Term.REGISTERED_TRANSFORMS)); 
                 addParameter(pp, 'Fixed', NaN, @validate.numericScalar);
                 addParameter(pp, 'Type', @all, @(x) isequal(x, @all) || isa(x, 'string'));
             end
@@ -133,55 +130,40 @@ classdef Term
             %
             % Resolve input specification
             %
-            resolved = regression.Term.parseInputSpecs(xq, specification, opt.Type);
-            needsOptionCheck = false;
-            switch resolved.Type
-                case {"Name", "Pointer"}
-                    this.Position = resolved.Position;
-                    this.Shift = opt.Shift;
-                    if ~isempty(opt.Transform)
-                        this.Transform = opt.Transform;
-                    end
-                case "Transform"
-                    this.Position = resolved.Position;
-                    this.Shift = resolved.Shift;
-                    this.Transform = resolved.Transform;
-                    needsOptionCheck = true;
-                case "Expression"
-                    this.Expression = resolved.Expression;
-                    this.Position = resolved.Positions;
-                    this.Shift = resolved.Shifts;
-                    this.Transform = "";
-                    needsOptionCheck = true;
-            end
-            if needsOptionCheck && (~isempty(opt.Transform) || opt.Shift~=0)
+            resolved = regression.Term.parseInputSpecs(xq, specification, opt.Transform, opt.Shift, opt.Type);
+
+            this.Incidence = resolved.Incidence;
+            this.Transform = resolved.Transform;
+            this.Position = resolved.Position;
+            this.Shift = resolved.Shift;
+            this.Expression = resolved.Expression;
+
+            needsCheckOptions = resolved.Type=="Transform" || resolved.Type=="Expression";
+            if needsCheckOptions && (~isequal(opt.Transform, @auto) || ~isequal(opt.Shift, @auto))
                 hereThrowInvalidTransformOrShift( );
             end
+
             this.Fixed = opt.Fixed;
-            this.MinShift = min([0, this.Shift]);
-            this.MaxShift = max([0, this.Shift]);
-            if any(this.Transform==["diff", "difflog"])
-                this.MinShift = this.MinShift - 1;
-            end
-            this.ContainsLhsName = containsLhsName(this, xq);
+            imagIncidence0 = [imag(this.Incidence), 0];
+            this.MinShift = min(imagIncidence0);
+            this.MaxShift = max(imagIncidence0);
 
             return
 
-
-
-
-            function hereThrowInvalidTransformOrShift( )
-                thisError = [ "ExplanatoryEquation:DefineDependent"
-                              "Options Transform= and Shift= can only be specified when the regression.Term is "
-                              "entered as a pointer (position) or a plain variable name; otherwise, "
-                              "the transform function and the time shift is inferred from the expression string." ];
-                throw(exception.Base(thisError, 'error'));
-            end%
+                function hereThrowInvalidTransformOrShift( )
+                    thisError = [ "ExplanatoryEquation:DefineDependent"
+                                  "Options Transform= and Shift= can only be specified when the regression.Term is "
+                                  "entered as a pointer (position) or a plain variable name; otherwise, "
+                                  "the transform function and the time shift is inferred from the expression string." ];
+                    throw(exception.Base(thisError, 'error'));
+                end%
         end%
+    end
 
 
 
 
+    methods
         function y = createModelData(this, plainData, t, date)
             if islogical(t)
                 t = find(t);
@@ -191,8 +173,9 @@ classdef Term
             numBasePeriods = numel(t);
             y = nan(numTerms, numBasePeriods, numPages);
             for i = 1 : numTerms
-                if isa(this(i).Expression, 'function_handle')
-                    y__ = this(i).Expression(plainData, t, date);
+                this__ = this(i);
+                if isa(this__.Expression, 'function_handle')
+                    y__ = this__.Expression(plainData, t, date);
                     %
                     % The function may not point to any variables and
                     % produce simply a scalar constant instead; extend the
@@ -207,21 +190,25 @@ classdef Term
                     y(i, :, :) = y__;
                     continue
                 end
-                plainData__ = plainData(this(i).Position, :, :);
-                sh = this(i).Shift;
-                if isequal(this(i).Transform, "")
+                %
+                % If `Expression` is empty, then `Position` and `Shift` are
+                % both scalars
+                %
+                plainData__ = plainData(this__.Position, :, :);
+                sh = this__.Shift;
+                if this__.Transform==""
                     y(i, :, :) = plainData__(:, t+sh, :);
                     continue
                 end
-                if isequal(this(i).Transform, "log")
+                if this__.Transform=="log"
                     y(i, :, :) = log(plainData__(:, t+sh, :));
                     continue
                 end
-                if isequal(this(i).Transform, "diff")
+                if this__.Transform=="diff"
                     y(i, :, :) = plainData__(:, t+sh, :) - plainData__(:, t+sh-1, :);
                     continue
                 end
-                if isequal(this(i).Transform, "difflog")
+                if this__.Transform=="difflog"
                     y(i, :, :) = log(plainData__(:, t+sh, :)) - log(plainData__(:, t+sh-1, :));
                     continue
                 end
@@ -274,17 +261,6 @@ classdef Term
 
 
 
-        function dynamic = resolveDynamicOption(this)
-            inxOwn = [this.ContainsLhsName];
-            if ~any(inxOwn)
-                dynamic = false;
-                return
-            end
-            dynamic = any([this(inxOwn).Shift]<0);
-        end%
-
-
-
         function flag = isequaln(obj1, obj2)
             if ~isequal(class(obj1), class(obj2))
                 flag = false;
@@ -321,7 +297,7 @@ classdef Term
 
     methods
         function flag = containsLhsName(this, xq)
-            flag = any(this.Position==xq.PosOfLhsName);
+            flag = any(real(this.Incidence)==xq.PosOfLhsName);
         end%
 
 

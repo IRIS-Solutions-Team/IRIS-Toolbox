@@ -75,12 +75,12 @@ this = runtime(this, dataBlock, "regress");
 %
 % Preallocate space for parameters and statistics, reset all to NaN
 %
-reset = true;
-this = alter(this, numPages, reset);
+resetToNaN = true;
+this = alter(this, numPages, resetToNaN);
 
 for q = 1 : numEquations
     this__ = this(q);
-    [plainData, y, X] = createModelData(this__, dataBlock);
+    [plainData, lhs, rhs] = createModelData(this__, dataBlock);
 
     if opt.FixParameters
         fixed = this__.Parameters;
@@ -93,7 +93,7 @@ for q = 1 : numEquations
     %
     for v = 1 : numPages
         inxColumns = dataBlock.InxBaseRange;
-        inxFiniteColumns = all(isfinite([X(:, :, v); y(:, :, v)]), 1);
+        inxFiniteColumns = all(isfinite([rhs(:, :, v); lhs(:, :, v)]), 1);
         inxMissingColumns(q, :, v) = inxColumns & ~inxFiniteColumns;
         if strcmpi(opt.MissingObservations, 'Warning') || strcmpi(opt.MissingObservations, 'Silent')
             inxColumns = inxColumns & inxFiniteColumns;
@@ -105,13 +105,13 @@ for q = 1 : numEquations
             continue
         end
 
-        vthY = y(:, inxColumns, v);
-        vthX = X(:, inxColumns, v);
-        [parameters, varResiduals, covBeta] = hereGLSQ(vthY, vthX, fixed(1, :, min(v, end)));
+        lhs__ = lhs(:, inxColumns, v);
+        rhs__ = rhs(:, inxColumns, v);
+        [parameters, varResiduals, covBeta] = hereGLSq(lhs__, rhs__, fixed(1, :, min(v, end)));
 
         this__.Parameters(1, :, v) = parameters;
-        fitted(q, inxColumns, v) = parameters*X(:, inxColumns, v);
-        plainData(end, inxColumns, v) = y(:, inxColumns, v) - fitted(q, inxColumns, v);
+        fitted(q, inxColumns, v) = parameters*rhs__;
+        plainData(end, inxColumns, v) = lhs(:, inxColumns, v) - fitted(q, inxColumns, v);
         this__.Statistics.VarResiduals(:, :, v) = varResiduals;
         this__.Statistics.CovParameters(:, :, v) = covBeta;
     end
@@ -187,7 +187,7 @@ end%
 %
 
 
-function [parameters, varResiduals, covBeta] = hereGLSQ(y, X, fixed)
+function [parameters, varResiduals, covBeta] = hereGLSq(y, X, fixed)
     numParameters = numel(fixed);
     parameters = fixed;
     covBeta = zeros(numParameters, numParameters);

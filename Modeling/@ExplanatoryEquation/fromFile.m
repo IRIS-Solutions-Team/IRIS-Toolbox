@@ -52,6 +52,7 @@ if nargin==1 && isequal(sourceFiles, '--test')
         @sourceFileWithAttributesTest
         @preparserForIfTest
         @preparserSwitchTest
+        @equationsAttributesTest
     });
     this = reshape(this, [ ], 1);
     return
@@ -64,8 +65,11 @@ if isempty(pp)
     pp = extend.InputParser('ExplanatoryEquation.fromFile');
     pp.KeepUnmatched = true;
     addRequired(pp, 'sourceFiles', @(x) validate.list(x) || isa(x, 'model.File'));
+    addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
 end
-parse(pp, sourceFiles);
+parse(pp, sourceFiles, varargin{:});
+opt = pp.Options;
+unmatched = pp.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
@@ -84,23 +88,23 @@ else
     %
     [ code, fileName, ...
         export__, ctrlParameters, ...
-        comment, substitutions ] =  parser.Preparser.parse(sourceFiles, [ ], varargin{:});
+        comment, substitutions ] =  parser.Preparser.parse(sourceFiles, [ ], unmatched{:});
 end
 
 %
-% Split code into individual equations
+% Split code into individual equations, resolve !equations(:attribute)
 %
-code = string(code);
-code = strtrim(split(code, ";"));
-code(code=="" | code==";") = [ ];
+[equations, attributes] = ExplanatoryEquation.postparse(code);
+
 
 %
 % Build array of ExplanatoryEquation objects
 %
-this = ExplanatoryEquation.fromString(code);
+this = ExplanatoryEquation.fromString(equations, 'EnforceCase=', opt.EnforceCase);
+
 
 %
-% Fill in parse time information
+% Fill in parse time information * FileName * Export * Comment
 %
 for i = 1 : numel(this)
     this__ = this(i);
@@ -114,9 +118,15 @@ for i = 1 : numel(this)
     if ~isempty(substitutions)
         this__.Substitutions = substitutions;
     end
+    if ~isempty(attributes{i})
+        this__.Attributes = [attributes{i}, this__.Attributes];
+    end
     this(i) = this__;
 end
 
+%
+% Export files, do only once
+%
 if ~isempty(export__)
     export(export__);
 end
@@ -290,6 +300,29 @@ function preparserSwitchTest(testCase)
         act = ExplanatoryEquation.fromFile(f1, 'Assign=', control);
         assertEqual(testCase, func2str(act.Explanatory.Expression), exp_Expression{i});
     end
+end%
+
+
+function equationsAttributesTest(testCase)
+    f = model.File( );
+    f.FileName = "test.eqtn";
+    f.Code = [
+        "!equations(:aa, :bb)"
+        ":1 a=a{-1}; :2 b=b{-1};"
+        ":3 c=c{-1};"
+        "!equations :4 d=d{-1};"
+        "!equations(:cc)"
+        ":5 e=e{-1};"
+    ];
+    act = ExplanatoryEquation.fromFile(f);
+    exp_Attributes = {
+        [":aa", ":bb", ":1"]
+        [":aa", ":bb", ":2"]
+        [":aa", ":bb", ":3"]
+        [":4"]
+        [":cc", ":5"]
+    };
+    assertEqual(testCase, reshape({act.Attributes}, [ ], 1), exp_Attributes);
 end%
 %)
 

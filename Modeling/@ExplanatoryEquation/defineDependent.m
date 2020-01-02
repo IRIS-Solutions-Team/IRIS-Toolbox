@@ -90,6 +90,7 @@ parse(pp, this);
 
 term = regression.Term(this, varargin{:}, "Type=", ["Pointer", "Name", "Transform"]);
 this.Dependent = term;
+checkNames(this);
 
 end%
 

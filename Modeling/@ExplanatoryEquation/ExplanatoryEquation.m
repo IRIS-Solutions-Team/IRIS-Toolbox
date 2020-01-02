@@ -15,6 +15,7 @@ classdef ExplanatoryEquation ...
         Label (1, 1) string = ""
         Attributes (1, :) string = string.empty(1, 0)
         RaggedEdge (1, 1) logical = false
+        Include = true
     end
 
 
@@ -45,7 +46,16 @@ classdef ExplanatoryEquation ...
 
 
 
+    properties (Constant)
+        VARIABLE_WITH_SHIFT = "(?<!@)(\<[A-Za-z]\w*\>)(\{[^\}]*\})"
+        VARIABLE_NO_SHIFT   = "(?<!@)(\<[A-Za-z]\w*\>)(?!\()" 
+    end
+
+
+
+
     properties (Dependent)
+        NeedsIterate
         FreeParameters
         PosOfLhsName
         RhsContainsLhsName
@@ -62,7 +72,7 @@ classdef ExplanatoryEquation ...
 
 
 
-    methods
+    methods % Constructor
         function this = ExplanatoryEquation(varargin)
             if nargin==0
                 return
@@ -71,6 +81,11 @@ classdef ExplanatoryEquation ...
                 this = varargin{1};
                 return
             end
+            thisError = [ "ExplanatoryEquation:InvalidContructorCall"
+                          "This is not a valid way to construct an ExplanatoryEquation object or array. "
+                          "Use one of the static constructors ExplanatoryEquation.fromString( ) "
+                          "or ExplanatoryEquation.fromFile( ). " ];
+            throw(exception.Base(thisError, 'error'));
         end%
     end
 
@@ -82,6 +97,7 @@ classdef ExplanatoryEquation ...
         varargout = alter(varargin)
         varargout = blazer(varargin)
         varargout = defineDependent(varargin)
+        varargout = lookup(varargin)
         varargout = regress(varargin)
         varargout = simulate(varargin)
         varargout = residuals(varargin)
@@ -95,6 +111,7 @@ classdef ExplanatoryEquation ...
         %(
         function this = addExplanatory(this, varargin)
             term = regression.Term(this, varargin{:});
+            term.ContainsLhsName = containsLhsName(term, this);
             this.Explanatory(1, end+1) = term;
             this.Parameters(:, end+1, :) = term.Fixed;
             this.Statistics.CovParameters(end+1, end+1, :) = NaN;
@@ -113,6 +130,13 @@ classdef ExplanatoryEquation ...
                 throw(exception.Base(thisError, 'error'));
             end
             flag = arrayfun(@(x) any(x.Attributes==attribute), this);
+        end%
+
+
+
+
+        function flag = hasNoAttribute(this)
+            flag = arrayfun(@(x) isempty(x.Attributes), this);
         end%
 
 
@@ -162,6 +186,24 @@ classdef ExplanatoryEquation ...
                 pos = find(inx);
             else
                 pos = NaN;
+            end
+        end%
+
+
+        function this = upper(this)
+            for i = 1 : numel(this)
+                this(i).VariableNames = upper(this(i).VariableNames);
+                this(i).ResidualPrefix = upper(this(i).ResidualPrefix);
+                this(i).FittedPrefix = upper(this(i).FittedPrefix);
+            end
+        end%
+
+
+        function this = lower(this)
+            for i = 1 : numel(this)
+                this(i).VariableNames = lower(this(i).VariableNames);
+                this(i).ResidualPrefix = lower(this(i).ResidualPrefix);
+                this(i).FittedPrefix = lower(this(i).FittedPrefix);
             end
         end%
         %)
@@ -226,14 +268,17 @@ classdef ExplanatoryEquation ...
 
     methods (Access=protected)
         function checkNames(this)
-            checkList = [this.VariableNames, this.ResidualName];
+            checkList = this.VariableNames;
+            if isfinite(this.PosOfLhsName)
+                checkList = [checkList, this.ResidualName];
+            end
             nameConflicts = parser.getMultiple(checkList);
             if ~isempty(nameConflicts)
                 nameConflicts = cellstr(nameConflicts);
                 thisError = [ 
                     "ExplanatoryEquation:MultipleNames"
-                    "This name is declared more than once "
-                    "in an ExplanatoryEquation object: %s "
+                    "This name is declared more than once in an ExplanatoryEquation object "
+                    "(including ResidualName and FittedName): %s "
                 ];
                 throw( exception.Base(thisError, 'error'), ...
                        nameConflicts{:} );
@@ -242,7 +287,7 @@ classdef ExplanatoryEquation ...
             if any(~inxValid)
                 thisError = [ 
                     "ExplanatoryEquation:InvalidName"
-                    "This name in an ExplanatoryEquation object "
+                    "This name defined in an ExplanatoryEquation object "
                     "is not a valid Matlab name: %s"
                 ];
                 throw(exception.Base(thisError, 'error'), checkList{~inxValid});
@@ -309,6 +354,33 @@ classdef ExplanatoryEquation ...
 
 
 
+        function this = set.ResidualPrefix(this, value)
+            checkNames(this);
+            this.ResidualPrefix = value;
+        end%
+
+
+
+
+        function this = set.FittedPrefix(this, value)
+            checkNames(this);
+            this.FittedPrefix = value;
+        end%
+
+
+
+
+        function value = get.NeedsIterate(this)
+            value = false(size(this));
+            for i = 1 : numel(this)
+                value(i) = startsWith(this(i).Dependent.Transform, "diff") ...
+                    || any([this(i).Explanatory.ContainsLhsName]);
+            end
+        end%
+
+
+
+
         function value = get.FreeParameters(this)
             value = this.Parameters(:, isnan([this.Explanatory(:).Fixed]), :);
         end%
@@ -330,7 +402,7 @@ classdef ExplanatoryEquation ...
 
         function value = get.PosOfLhsName(this)
             if isempty(this.Dependent)
-                value = double.empty(1, 0);
+                value = NaN;
                 return
             end
             value = this.Dependent.Position;
@@ -411,6 +483,13 @@ classdef ExplanatoryEquation ...
         varargout = fromString(varargin)
         varargout = fromFile(varargin)
         varargout = fromModel(varargin)
+    end
+
+
+
+
+    methods (Static, Hidden)
+        varargout = postparse(varargin)
 
 
         function [inputString, label] = extractLabel(inputString)
@@ -433,6 +512,8 @@ classdef ExplanatoryEquation ...
             );
             label = string(label);
         end%
+
+
 
 
         function [inputString, attributes] = extractAttributes(inputString)
