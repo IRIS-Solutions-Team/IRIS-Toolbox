@@ -7,6 +7,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                & shared.DatabankPipe ...
                & shared.Kalman
 
+
     properties (GetAccess=public, SetAccess=protected)
         % FileName  Name of model file or files from which the model object was created
         FileName = ''
@@ -16,17 +17,23 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     end
 
 
+
+
     properties (GetAccess=public, SetAccess=protected, Hidden)
         IsGrowth = false % True for models with nonzero deterministic growth in steady state
         Tolerance = model.DEFAULT_TOLERANCE_STRUCT % Tolerance levels for different contexts
         
-        Reporting = rpteq( ) % Reporting equations
+        % Reporting  Reporting equations, legacy property
+        Reporting = rpteq( ) 
 
-        D2S = model.component.D2S( )  % Conversion of derivatives to system matrices
+        % D2S  Derivatives to system matrices conversion
+        D2S = model.component.D2S( ) 
 
-        Quantity = model.component.Quantity( ) % Variables, shocks, parameters
+        % Quantity  Container for model quantities (variables, shocks, parameters)
+        Quantity = model.component.Quantity( )
         
-        Equation = model.component.Equation( ) % Equations, dtrends, links, revisions
+        % Equation  Container for model equations (equations, dtreds, links)
+        Equation = model.component.Equation( ) 
        
         % Incidence  Incidence matrices for dynamic and steady equations
         Incidence = struct( 'Dynamic', model.component.Incidence( ), ...
@@ -64,6 +71,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     end
 
     
+
+
     properties (GetAccess=public, SetAccess=protected, Hidden, Transient)
         % LastSystem  Handle to last derivatives and system matrices
         LastSystem = model.component.LastSystem( )
@@ -73,10 +82,14 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     end
 
 
+
+
     properties (GetAccess=public, SetAccess=protected, Hidden)
         % Update  Temporary container for repeated updates of model solutions
         Update = model.EMPTY_UPDATE
     end
+
+
 
 
     properties (Constant, Hidden)
@@ -125,7 +138,18 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                                'CheckSteady', [ ], ...
                                'NoSolution', [ ] );
     end
+
+
+
+
+    properties % Legacy properties maintained to enable loadobj
+        %(
+        NumOfAppendables
+        %)
+    end
     
+
+
     
     methods
         varargout = addToDatabank(varargin)
@@ -138,6 +162,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
         varargout = getExtendedRange(varargin)
     end
+
+
 
 
     methods
