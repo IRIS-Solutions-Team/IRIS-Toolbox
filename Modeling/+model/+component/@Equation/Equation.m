@@ -54,5 +54,17 @@ classdef Equation < model.component.Insertable
     methods (Static)
         varargout = extractInput(varargin)
         varargout = loadObject(varargin)
+
+
+        function this = fromInput(input)
+            this.Input = cellstr(input);
+            numEquations = numel(this.Input);
+            this.Type = repmat(int8(0), 1, numEquations);
+            this.Label = repmat({''}, 1, numEquations);
+            this.Alias = repmat({''}, 1, numEquations);
+            this.Dynamic = cell(1, numEquations);
+            this.Steady = cell(1, numEquations);
+            this.IxHash = false(1, numEquations);
+        end%
     end
 end
