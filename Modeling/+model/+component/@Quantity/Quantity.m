@@ -100,7 +100,7 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
             value = this.LabelOrName;
             inxOfYX = getIndexByType(this, TYPE(1), TYPE(2));
             inxOfE = getIndexByType(this, TYPE(31), TYPE(32));
-            numOfE = nnz(inxOfE);
+            numE = nnz(inxOfE);
             contributions = [ this.Name(inxOfE), ...
                               {'Init+Const+Trends', 'Nonlinear'} ];
             posOfYX = find(inxOfYX);
@@ -146,16 +146,16 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         function this = fromNames(names)
             names = cellstr(names);
             this = model.component.Quantity( );
-            numOfNames = numel(names);
-            this.Name = cell(1, numOfNames);
+            numNames = numel(names);
+            this.Name = cell(1, numNames);
             this.Name(:) = names;
-            this.Type = zeros(1, numOfNames, 'int8');
-            this.Label = repmat({''}, 1, numOfNames);
-            this.Alias = repmat({''}, 1, numOfNames);
-            this.IxLog = false(1, numOfNames);
-            this.IxLagrange = false(1, numOfNames);
-            this.IxObserved = false(1, numOfNames);
-            this.Bounds = repmat(this.DEFAULT_BOUNDS, 1, numOfNames);
+            this.Type = zeros(1, numNames, 'int8');
+            this.Label = repmat({''}, 1, numNames);
+            this.Alias = repmat({''}, 1, numNames);
+            this.IxLog = false(1, numNames);
+            this.IxLagrange = false(1, numNames);
+            this.IxObserved = false(1, numNames);
+            this.Bounds = repmat(this.DEFAULT_BOUNDS, 1, numNames);
             this.OriginalNames = this.Name;
         end%
     end
