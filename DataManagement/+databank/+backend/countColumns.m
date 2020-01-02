@@ -30,11 +30,10 @@ for i = 1 : lenList
     else
         x = getfield(inputDatabank, name__);
     end
-    if ~isa(x, 'TimeSubscriptable') && ~isnumeric(x)
-        continue
+    if isa(x, 'TimeSubscriptable') || isnumeric(x) || islogical(x)
+        sizeData = size(x);
+        noc(i) = prod(sizeData(2:end));
     end
-    sizeData = size(x);
-    noc(i) = prod(sizeData(2:end));
 end
 
 end%
