@@ -1,11 +1,13 @@
 function varargout = prepareSteady(this, displayMode, varargin)
 % prepareSteady  Prepare steady-state solver
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
 
 % Run user-supplied steady-state solver:
 % sstate = @func
@@ -79,14 +81,19 @@ end
 %--------------------------------------------------------------------------
 
 if this.IsLinear
-    % __Linear Steady State Solver__
+    %
+    % Linear Steady State Solver
+    %
     parserLinear.parse(this, varargin{:});
     varargout{1} = parserLinear.Options;
 else
-    % __Nonlinear Steady State Solver__
+    %
+    % Nonlinear Steady State Solver
+    %
     % Capture obsolete syntax with solver options directly passed among other
     % sstate options and not as suboptions through Solver=; these are only used
     % if Solver= is a char.
+    %
     parserNonlinear.parse(this, varargin{:});
     opt = parserNonlinear.Options;
     unmatchedSolverOptions = parserNonlinear.UnmatchedInCell;
@@ -105,8 +112,8 @@ else
                                                            displayMode, ...
                                                            'SpecifyObjectiveGradient=', true, ...
                                                            unmatchedSolverOptions{:} );
-    blazer = createBlocks(this, opt);
-    blazer = prepareBounds(this, blazer, opt);
+    blazer = hereRunBlazer(this, opt);
+    blazer = herePrepareBounds(this, blazer, opt);
     blazer.NanInit = opt.NanInit;
     blazer.Reuse = opt.Reuse;
     blazer.Warning = opt.Warning;
@@ -116,14 +123,14 @@ end
 end%
 
 
-function processFixOpt(this, blazer, opt)
+function hereProcessFixOptions(this, blazer, opt)
     % Process the fix, fixallbut, fixlevel, fixlevelallbut, fixgrowth,
     % and fixgrowthallbut options. All the user-supply information is
     % combined into fixlevel and fixgrowth.
     TYPE = @int8;
     PTR = @int16;
 
-    numOfQuants = length(this.Quantity.Name);
+    numQuants = length(this.Quantity.Name);
     ixy = this.Quantity.Type==TYPE(1);
     ixx = this.Quantity.Type==TYPE(2);
     ixp = this.Quantity.Type==TYPE(4);
@@ -157,18 +164,18 @@ function processFixOpt(this, blazer, opt)
         ell = lookup( this.Quantity, temp, ...
                       TYPE(1), TYPE(2), TYPE(4) );
         posToFix = ell.PosName;
-        inxOfValid = ~isnan(posToFix);
-        if any(~inxOfValid)
+        inxValid = ~isnan(posToFix);
+        if any(~inxValid)
             throw( exception.Base('Steady:CANNOT_FIX', 'error'), ...
-                   temp{~inxOfValid} );
+                   temp{~inxValid} );
         end
         opt.(fix) = posToFix;
     end
 
-    fixL = false(1, numOfQuants);
+    fixL = false(1, numQuants);
     fixL(opt.Fix) = true;
     fixL(opt.FixLevel) = true;
-    fixG = false(1, numOfQuants);
+    fixG = false(1, numQuants);
 
     % Fix steady change of all endogenized parameters to zero
     fixG(ixp) = true;
@@ -198,10 +205,10 @@ end%
 
 
 
-function blazer = createBlocks(this, opt)
+function blazer = hereRunBlazer(this, opt)
     TYPE = @int8;
 
-    numOfQuants = length(this.Quantity.Name);
+    numQuants = length(this.Quantity.Name);
     ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
     ixp = this.Quantity.Type==TYPE(4);
 
@@ -209,7 +216,7 @@ function blazer = createBlocks(this, opt)
     blazer = prepareBlazer(this, 'Steady', opt);
 
     % Populate IdToFix and IdToExclude
-    processFixOpt(this, blazer, opt);
+    hereProcessFixOptions(this, blazer, opt);
 
     % Analyze block-sequential structure and prepare block.Steady
     run(blazer, opt);
@@ -220,13 +227,13 @@ function blazer = createBlocks(this, opt)
 
     % Index of variables that will be always set to zero.
     ixZero = struct( );
-    ixZero.Level = false(1, numOfQuants);
+    ixZero.Level = false(1, numQuants);
     ixZero.Level(ixe) = true;
     if opt.Growth
-        ixZero.Growth = false(1, numOfQuants);
+        ixZero.Growth = false(1, numQuants);
         ixZero.Growth(ixe | ixp) = true;
     else
-        ixZero.Growth = true(1, numOfQuants);
+        ixZero.Growth = true(1, numQuants);
     end
     if opt.ZeroMultipliers
         ixZero.Level = ixZero.Level | this.Quantity.IxLagrange;
@@ -236,12 +243,14 @@ function blazer = createBlocks(this, opt)
 end%
 
 
-function blazer = prepareBounds(this, blazer, opt)
-    numOfQuants = length(this.Quantity.Name);
-    numOfBlocks = length(blazer.Block);
-    inxOfValidLevels = true(1, numOfQuants);
-    inxOfValidChanges = true(1, numOfQuants);
-    for iBlk = 1 : numOfBlocks
+
+
+function blazer = herePrepareBounds(this, blazer, opt)
+    numQuants = length(this.Quantity.Name);
+    numBlocks = length(blazer.Block);
+    inxValidLevels = true(1, numQuants);
+    inxValidChanges = true(1, numQuants);
+    for iBlk = 1 : numBlocks
         blk = blazer.Block{iBlk};
         if blk.Type~=solver.block.Type.SOLVE
             continue
@@ -249,13 +258,15 @@ function blazer = prepareBounds(this, blazer, opt)
         
         % Steady level bounds
         lsLevel = this.Quantity.Name(blk.PosQty.Level);
-        [lbl, ubl, inxOfValidLevels] = ...
-            boundsHere(lsLevel, blk.PosQty.Level, opt.LevelBounds, inxOfValidLevels);
+        [lbl, ubl, inxValidLevels] = hereSetBounds( ...
+            lsLevel, blk.PosQty.Level, opt.LevelBounds, inxValidLevels ...
+        );
         
         % Steady change bounds
         lsGrowth = this.Quantity.Name(blk.PosQty.Growth);
-        [lbg, ubg, inxOfValidChanges] = ...
-            boundsHere(lsGrowth, blk.PosQty.Growth, opt.ChangeBounds, inxOfValidChanges);
+        [lbg, ubg, inxValidChanges] = hereSetBounds( ...
+            lsGrowth, blk.PosQty.Growth, opt.ChangeBounds, inxValidChanges ...
+        );
         
         % Combine level and growth bounds
         blk.Lower = [lbl, lbg];
@@ -274,86 +285,86 @@ function blazer = prepareBounds(this, blazer, opt)
         blazer.Block{iBlk} = blk;
     end
 
-    if any(~inxOfValidLevels)
+    if any(~inxValidLevels)
         throw( exception.Base('Steady:WRONG_SIGN_LEVEL_BOUNDS', 'error'), ...
-               this.Quantity.Name{~inxOfValidLevels} );
+               this.Quantity.Name{~inxValidLevels} );
     end
-    if any(~inxOfValidChanges)
+    if any(~inxValidChanges)
         throw( exception.Base('Steady:WRONG_SIGN_GROWTH_BOUNDS', 'error'), ...
-               this.Quantity.Name{~inxOfValidChanges} );
+               this.Quantity.Name{~inxValidChanges} );
     end
 
     return
 
 
-    function [vecLb, vecUb, inxOfValid] = boundsHere(list, nameId, bnd, inxOfValid)
-        nList = length(list);
-        vecLb = -inf(1, nList);
-        vecUb = inf(1, nList);
-        for jj = 1 : nList
-            name = list{jj};
-            %{
-            isLogPlus = opt.IxLogPlus( nameId(jj) );
-            isLogMinus = opt.IxLogMinus( nameId(jj) );
-            %}
-            isLog = blazer.Model.Quantity.IxLog( nameId(jj) );
-            %{
-            try
-                lb = bnd.(name)(1);
-            catch
-                if isLogPlus
-                    lb = 0;
-                else
-                    lb = -Inf;
+        function [vecLb, vecUb, inxValid] = hereSetBounds(list, nameId, bnd, inxValid)
+            nList = length(list);
+            vecLb = -inf(1, nList);
+            vecUb = inf(1, nList);
+            for jj = 1 : nList
+                name = list{jj};
+                %{
+                isLogPlus = opt.IxLogPlus( nameId(jj) );
+                isLogMinus = opt.IxLogMinus( nameId(jj) );
+                %}
+                isLog = blazer.Model.Quantity.IxLog( nameId(jj) );
+                %{
+                try
+                    lb = bnd.(name)(1);
+                catch
+                    if isLogPlus
+                        lb = 0;
+                    else
+                        lb = -Inf;
+                    end
                 end
-            end
-            try
-                ub = bnd.(name)(2);
-            catch
-                if isLogMinus
-                    ub = 0;
-                else
+                try
+                    ub = bnd.(name)(2);
+                catch
+                    if isLogMinus
+                        ub = 0;
+                    else
+                        ub = Inf;
+                    end
+                end
+                %}
+                try
+                    lb = bnd.(name)(1);
+                catch
+                    if isLog
+                        lb = 0;
+                    else
+                        lb = -Inf;
+                    end
+                end
+                try
+                    ub = bnd.(name)(2);
+                catch
                     ub = Inf;
                 end
-            end
-            %}
-            try
-                lb = bnd.(name)(1);
-            catch
+                %{
+                if isLogPlus
+                    lb = log(lb);
+                    ub = log(ub);
+                elseif isLogMinus
+                    % Swap lower and upper bounds for log-minus variables.
+                    ub = log(-lb);
+                    lb = log(-ub);
+                end
+                %}
                 if isLog
-                    lb = 0;
+                    lb = log(lb);
+                    ub = log(ub);
+                end
+                if imag(lb)==0 && imag(ub)==0
+                    % Assign only if both lower and upper bound is ok.
+                    vecLb(jj) = lb;
+                    vecUb(jj) = ub;
                 else
-                    lb = -Inf;
+                    % Report problem for this variables.
+                    inxValid( nameId(jj) ) = false;
                 end
             end
-            try
-                ub = bnd.(name)(2);
-            catch
-                ub = Inf;
-            end
-            %{
-            if isLogPlus
-                lb = log(lb);
-                ub = log(ub);
-            elseif isLogMinus
-                % Swap lower and upper bounds for log-minus variables.
-                ub = log(-lb);
-                lb = log(-ub);
-            end
-            %}
-            if isLog
-                lb = log(lb);
-                ub = log(ub);
-            end
-            if imag(lb)==0 && imag(ub)==0
-                % Assign only if both lower and upper bound is ok.
-                vecLb(jj) = lb;
-                vecUb(jj) = ub;
-            else
-                % Report problem for this variables.
-                inxOfValid( nameId(jj) ) = false;
-            end
-        end
-    end
+        end%
 end%
 

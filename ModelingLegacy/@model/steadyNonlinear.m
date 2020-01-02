@@ -23,21 +23,21 @@ if isequal(blazer, false)
     return
 end
 
-inxOfZero = blazer.InxOfZero;
+inxZero = blazer.InxOfZero;
 
 %--------------------------------------------------------------------------
 
-numOfQuantities = length(this.Quantity);
-numOfBlocks = numel(blazer.Block);
+numQuantities = length(this.Quantity);
+numBlocks = numel(blazer.Block);
 needsRefresh = any(this.Link);
-inxOfP = getIndexByType(this.Quantity, TYPE(4));
-inxOfLogInBlazer = blazer.Model.Quantity.InxOfLog;
+inxP = getIndexByType(this.Quantity, TYPE(4));
+inxLogInBlazer = blazer.Model.Quantity.InxOfLog;
 
 % Index of endogenous level and growth quantities
 ixEndg = struct( );
-ixEndg.Level = false(1, numOfQuantities);
-ixEndg.Growth = false(1, numOfQuantities);
-for i = 1 : numOfBlocks
+ixEndg.Level = false(1, numQuantities);
+ixEndg.Growth = false(1, numQuantities);
+for i = 1 : numBlocks
     ixEndg.Level(blazer.Block{i}.PosQty.Level) = true;
     ixEndg.Growth(blazer.Block{i}.PosQty.Growth) = true;
 end
@@ -62,8 +62,8 @@ for v = variantsRequested
     [lx, gx] = hereInitialize( );
     
     % __Cycle over Individual Blocks__
-    outputInfo.ExitFlags{v} = repmat(solver.ExitFlag.IN_PROGRESS, 1, numOfBlocks);
-    for i = 1 : numOfBlocks
+    outputInfo.ExitFlags{v} = repmat(solver.ExitFlag.IN_PROGRESS, 1, numBlocks);
+    for i = 1 : numBlocks
         blk = blazer.Block{i};
         blk.SteadyShift = 3;
         header = sprintf('[Variant:%g][Block:%g]', v, i);
@@ -71,17 +71,19 @@ for v = variantsRequested
         outputInfo.ExitFlags{v}(i) = exitFlag;
         %{
         if hasFailed(exitFlag)
-            fprintf('    Block %g of %g failed to solve.\n', i, numOfBlocks);
+            fprintf('    Block %g of %g failed to solve.\n', i, numBlocks);
         end
         %}
         if ~isempty(error.EvaluatesToNan)
-            throw( exception.Base('Steady:EvaluatesToNan', 'error'), ...
-                   this.Equation.Input{error.EvaluatesToNan} );
+            throw( ...
+                exception.Base('Steady:EvaluatesToNan', 'error'), ...
+                this.Equation.Input{error.EvaluatesToNan} ...
+            );
         end
     end
 
     % Remove 1i from parameters with log-status=true
-    gx(inxOfP & inxOfLogInBlazer) = 0;
+    gx(inxP & inxLogInBlazer) = 0;
 
     if any(gx(:)~=0)
         this.Variant.Values(:, :, v) = lx + 1i*gx;
@@ -95,7 +97,7 @@ for v = variantsRequested
     
     % TODO: Report more details on failed equations and variables
     if blazer.Warning && ~success(v)
-        throw( exception.Base('Model:SteadyInaccurate', 'warning') );
+        throw(exception.Base('Model:SteadyInaccurate', 'warning'));
     end
     
     % Store current values to initialize next parameterisation.
@@ -118,7 +120,7 @@ return
         % __Initialize levels of endogenous quantities__
         lx = real(this.Variant.Values(:, :, v));
         % Level variables that are set to zero (all shocks)
-        lx(inxOfZero.Level) = 0;
+        lx(inxZero.Level) = 0;
         % Assign NaN level initial conditions. First, assign values from the
         % previous iteration, if they exist and option 'reuse=' is `true`
         ix = isnan(lx) & ixEndg.Level;
@@ -132,8 +134,8 @@ return
         % __Initialize growth rates of endogenous quantities__
         gx = imag(this.Variant.Values(:, :, v));
         % Variables with zero growth (all variables if 'growth=' false).
-        gx(inxOfZero.Growth) = 0;
-        if any(~inxOfZero.Growth)
+        gx(inxZero.Growth) = 0;
+        if any(~inxZero.Growth)
             % Assign NaN growth initial conditions. First, assign values from
             % the previous iteration if they exist and `reuse=true`
             ix = isnan(gx) & ixEndg.Growth;
@@ -145,7 +147,7 @@ return
             gx(ix) = imag(blazer.NanInit);
         end
         % Reset zero growth to 1 for *all* log quantities (not only endogenous).
-        gx(inxOfLogInBlazer & gx==0) = 1;
+        gx(inxLogInBlazer & gx==0) = 1;
     end%
 
 
@@ -157,8 +159,10 @@ return
         indexToFix(idToFix) = true;
         indexNaN = any(isnan(steadyLevel), 3) & indexToFix & ~blazer.IxZero.Level;
         if any(indexNaN)
-            throw( exception.Base('Steady:LevelFixedToNan', 'error'), ...
-                   this.Quantity.Name{indexNaN} );
+            throw( ...
+                exception.Base('Steady:LevelFixedToNan', 'error'), ...
+                this.Quantity.Name{indexNaN} ...
+            );
         end
         % __Check for Growth Rates Fixed to NaN__
         idToFix = blazer.IdToFix.Growth;
@@ -166,8 +170,10 @@ return
         indexToFix(idToFix) = true;
         indexNaN = any(isnan(steadyChange), 3) & indexToFix & ~blazer.IxZero.Growth;
         if any(indexNaN)
-            throw( exception.Base('Steady:GrowthFixedToNan', 'error'), ...
-                   this.Quantity.Name{indexNaN} );
+            throw( ...
+                exception.Base('Steady:GrowthFixedToNan', 'error'), ...
+                this.Quantity.Name{indexNaN} ...
+            );
         end
     end%
 
@@ -175,20 +181,24 @@ return
     function hereCheckExogenizedToNaN( )
         inxNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
         inxNeeded = full(inxNeeded);
-        inxOfLevelNeeded = inxNeeded & ~ixEndg.Level & ~inxOfZero.Level;
-        inxOfGrowthNeeded = inxNeeded & ~ixEndg.Growth & ~inxOfZero.Growth;
+        inxLevelNeeded = inxNeeded & ~ixEndg.Level & ~inxZero.Level;
+        inxGrowthNeeded = inxNeeded & ~ixEndg.Growth & ~inxZero.Growth;
         % Level or growth is endogenous, not fixed, and NaN
-        inxOfLevelNaN = any(isnan(steadyLevel), 3);
-        inxOfGrowthNaN = any(isnan(steadyChange), 3);
-        inxOfLevelToReport = inxOfLevelNeeded & inxOfLevelNaN;
-        inxOfGrowthToReport = inxOfGrowthNeeded & inxOfGrowthNaN;
-        if any(inxOfLevelToReport)
-            throw( exception.Base('Steady:ExogenousLevelNan', 'warning'), ...
-                   this.Quantity.Name{inxOfLevelToReport} );
+        inxLevelNaN = any(isnan(steadyLevel), 3);
+        inxGrowthNaN = any(isnan(steadyChange), 3);
+        inxLevelToReport = inxLevelNeeded & inxLevelNaN;
+        inxGrowthToReport = inxGrowthNeeded & inxGrowthNaN;
+        if any(inxLevelToReport)
+            throw( ...
+                exception.Base('Steady:ExogenousLevelNan', 'warning'), ...
+                this.Quantity.Name{inxLevelToReport} ...
+            );
         end
-        if any(inxOfGrowthToReport)
-            throw( exception.Base('Steady:ExogenousGrowthNan', 'warning'), ...
-                   this.Quantity.Name{inxOfGrowthToReport} );
+        if any(inxGrowthToReport)
+            throw( ...
+                exception.Base('Steady:ExogenousGrowthNan', 'warning'), ...
+                this.Quantity.Name{inxGrowthToReport} ...
+            );
         end
     end%
 end%
