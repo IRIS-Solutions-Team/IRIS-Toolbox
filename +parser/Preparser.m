@@ -140,10 +140,10 @@ classdef Preparser < model.File
         function f = getFileName(this)
             import parser.Preparser
             f = '';
-            nThis = length(this);
-            for iThis = 1 : nThis
-                f = [ f, this(iThis).FileName ]; %#ok<AGROW>
-                if iThis<nThis
+            n = numel(this);
+            for i = 1 : n
+                f = [ f, char(this(i).FileName) ]; %#ok<AGROW>
+                if i<n
                     f = [ f, Preparser.FILE_NAME_SEPARATOR ]; %#ok<AGROW>
                 end
             end 
@@ -153,7 +153,7 @@ classdef Preparser < model.File
         function c = createFinalCut(this)
             import parser.Preparser;
             c = '';
-            nThis = length(this);
+            nThis = numel(this);
             for iThis = 1 : nThis
                 c = [ c, this(iThis).Code ]; %#ok<AGROW>
                 if iThis<nThis

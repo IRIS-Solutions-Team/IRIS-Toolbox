@@ -12,8 +12,8 @@ classdef Base
     properties (Constant)
         IRIS_IDENTIFIER = 'IRIS:';
         HIGHLIGHT = '*** '
-        BASE_ERROR_HEADER_FORMAT = 'IRIS Toolbox Error'
-        BASE_WARNING_HEADER_FORMAT = 'IRIS Toolbox Warning'
+        BASE_ERROR_HEADER_FORMAT = '[IrisToolbox] Error'
+        BASE_WARNING_HEADER_FORMAT = '[IrisToolbox] Warning'
         MAX_LEN = 40
         ELLIPSIS = iris.get('Ellipsis')
         
