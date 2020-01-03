@@ -1,13 +1,9 @@
-function plan = preparePlan(this, plan)
+function varargout = preparePlan(this, plan)
 
 % Invoke unit tests
 %(
 if nargin==2 && isequal(plan, '--test')
-    plan = functiontests({
-        @setupOnce
-        @modelTest
-    });
-    plan = reshape(plan, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -26,6 +22,11 @@ sigmas = repmat(sigmas, 1, numExtPeriods, 1);
 sigmas(:, ~inxBaseRange, :) = NaN;
 plan.SigmasOfExogenous = sigmas;
 
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout{1} = plan;
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 end%
 
 
@@ -35,6 +36,15 @@ end%
 % Unit Tests
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({
+        @setupOnce
+        @modelTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function setupOnce(testCase)
 end%
 

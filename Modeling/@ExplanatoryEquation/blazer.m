@@ -1,4 +1,4 @@
-function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, varargin)
+function varargout = blazer(this, varargin)
 % blazer  Determine the order of execution within an ExplanatoryEquation array
 %{
 % ## Syntax ##
@@ -84,11 +84,7 @@ function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, 
 % Invoke unit tests
 %(
 if nargin==2 && isequal(varargin{1}, '--test')
-    blocks = functiontests({
-        @blazerTest
-        @saveAsTest
-    });
-    blocks = reshape(blocks, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -110,7 +106,7 @@ opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
-newline__ = string(newline( ));
+newlineString = string(newline( ));
 numEquations = numel(this);
 lhsNames = [this(:).LhsName];
 inputStrings = [this(:).InputString]; 
@@ -118,20 +114,19 @@ if numEquations==1
     opt.Reorder = false;
 end
 
-% 
-% Initialize dynamic status, populate later for single-equation blocks only
-%
-if isequal(opt.Dynamic, @auto)
-    dynamicStatus = true(size(this));
-else
-    dynamicStatus = repmat(opt.Dynamic, size(this));
-end
 
+%
+% Resolve Reorder= option
+%
 if islogical(opt.Reorder)
     if opt.Reorder
         blocks = hereReorderGlobally( );
     else
-        blocks = num2cell(1 : numEquations);
+        if isequal(opt.Dynamic, @auto) || isequal(opt.Dynamic, true)
+            blocks = {1 : numEquations};
+        else
+            blocks = num2cell(1 : numEquations);
+        end
     end
 else
     if isequal(round(sort([opt.Reorder{:}])), 1:numEquations)
@@ -142,23 +137,29 @@ else
 end
 numBlocks = numel(blocks);
 
+
 %
 % Determined the dynamic status of single-equation blocks
 %
+if isequal(opt.Dynamic, @auto)
+    dynamicStatus = true(size(this));
+else
+    dynamicStatus = repmat(opt.Dynamic, size(this));
+end
 if isequal(opt.Dynamic, @auto)
     inxSingletonBlocks = cellfun('length', blocks)==1;
     if any(inxSingletonBlocks)
         dynamicStatus(inxSingletonBlocks) = [this(inxSingletonBlocks).NeedsIterate];
     end
 end
-    
-if nargout>=2
-    [variableBlocks, equationBlocks] = hereGetHumanBlocks( );
-end
+
+[variableBlocks, equationBlocks] = hereGetHumanBlocks( );
 
 if ~isempty(opt.SaveAs) && string(opt.SaveAs)~=""
     hereSaveAs( );
 end
+
+varargout = { blocks, variableBlocks, equationBlocks, dynamicStatus };
 
 return
 
@@ -242,11 +243,11 @@ return
                 type = solver.block.Type.ITERATE_TIME;
             end
             keyword = string(type.SaveAsKeyword);
-            c = c + newline__ + newline__ ...
+            c = c + newlineString + newlineString ...
                 + solver.block.Block.printBlock(i, keyword, inputStrings(blocks{i}));
         end
-        c = newline__ + "% LHS Variables: (" + join(lhsNames, ", ") + ")" ...
-            + newline__ + "% RHS-Only Variables: (" + join(setdiff(allNames, lhsNames), ", ") + ")" ...
+        c = newlineString + "% LHS Variables: (" + join(lhsNames, ", ") + ")" ...
+            + newlineString + "% RHS-Only Variables: (" + join(setdiff(allNames, lhsNames), ", ") + ")" ...
             + c;
         solver.blazer.Blazer.wrapAndSave(c, opt.SaveAs, numBlocks, numEquations);
     end%
@@ -289,6 +290,15 @@ end%
 % Unit Tests
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({
+        @blazerTest
+        @saveAsTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function blazerTest(testCase)
     xq = ExplanatoryEquation.fromString([
         "x = y{-1} + z{-1} + a"
@@ -299,7 +309,7 @@ function blazerTest(testCase)
     act = blazer(xq);
     assertEqual(testCase, numel(act{1}), 1);
     assertEqual(testCase, numel(act{2}), 1);
-    assertEqual(testCase, act{3}, int16([1, 4]));
+    assertEqual(testCase, sort(act{3}), sort(int16([1, 4])));
 end%
 
 

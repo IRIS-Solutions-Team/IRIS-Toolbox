@@ -1,4 +1,4 @@
-function output = if_(varargin)
+function varargout = if_(varargin)
 % if  Functional form of an if-elseif-else structure
 %{
 % ## Syntax ##
@@ -75,13 +75,7 @@ function output = if_(varargin)
 % Invoke unit tests
 %(
 if nargin==1 && isequal(varargin{1}, '--test')
-    tests = functiontests({
-        @scalarTest
-        @vectorTest
-        @mixedTest
-    });
-    tests = reshape(tests, [ ], 1);
-    output = tests;
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -136,6 +130,11 @@ if any(~dealt)
     output(~dealt) = final;
 end
 
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout{1} = output;
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 end%
 
 
@@ -145,6 +144,16 @@ end%
 % Unit Tests 
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({
+        @scalarTest
+        @vectorTest
+        @mixedTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function scalarTest(testCase)
     x = simulate.if(true, 1, true, 2, 3);
     assertEqual(testCase, x, 1);

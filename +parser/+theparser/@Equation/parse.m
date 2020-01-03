@@ -1,4 +1,4 @@
-function [qty, eqn] = parse(this, aux, code, qty, eqn, euc, ~, opt)
+function varargout = parse(this, aux, code, qty, eqn, euc, ~, opt)
 % parse  Parse equations and add them to parser.theparser.Equation object
 %
 % Backend [IrisToolbox] method
@@ -7,13 +7,7 @@ function [qty, eqn] = parse(this, aux, code, qty, eqn, euc, ~, opt)
 % Invoke unit tests
 %(
 if nargin==2 && isequal(aux, '--test')
-    qty = functiontests({
-        @setupOnce
-        @equationSwitchAutoTest
-        @equationSwitchDynamicTest
-        @equationSwitchSteadyTest
-    });
-    qty = reshape(qty, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -30,6 +24,7 @@ EQUATION_PATTERN =    '(?<EQUATION>[^;]+);';
 %
 listEquations = this.splitCodeIntoEquations(code);
 if isempty(listEquations)
+    varargout = { qty, eqn };
     return
 end
 
@@ -82,6 +77,7 @@ if any(inxEmptyWarn)
     listSteady(inxEmptyWarn) = [ ];                
 end
 if isempty(listEquations)
+    varargout = { qty, eqn };
     return
 end
 
@@ -122,6 +118,7 @@ end
 [listLabels, alias] = this.splitLabelAlias(listLabels);
 
 if isempty(eqn)
+    varargout = { qty, eqn };
     return
 end
 
@@ -146,6 +143,11 @@ if ~isequal(euc, [ ])
     euc.MaxShSteady(end+(1:numEquations)) = maxShSteady;
     euc.MinShSteady(end+(1:numEquations)) = minShSteady;
 end
+
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout = { qty, eqn };
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 return
 
@@ -226,6 +228,17 @@ end%
 % 
 % Unit Tests
 %(
+function tests = unitTests( )
+    tests = functiontests({
+        @setupOnce
+        @equationSwitchAutoTest
+        @equationSwitchDynamicTest
+        @equationSwitchSteadyTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function setupOnce(testCase)
     obj = parser.theparser.Equation( );
     obj.Type = 2;

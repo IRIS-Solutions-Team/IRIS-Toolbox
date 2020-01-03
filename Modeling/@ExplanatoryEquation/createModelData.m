@@ -1,4 +1,4 @@
-function [plainData, lhs, rhs, res] = createModelData(this, dataBlock)
+function varargout = createModelData(this, dataBlock)
 % createModelData  Create data matrices for ExplanatoryEquation model
 %
 % Backend IRIS function
@@ -10,11 +10,7 @@ function [plainData, lhs, rhs, res] = createModelData(this, dataBlock)
 % Invoke unit tests
 %(
 if nargin==2 && isequal(dataBlock, '--test')
-    plainData = functiontests({ @setupOnce
-                                @yxeSingleTest
-                                @yxeSystem1Test 
-                                @yxeSystem2Test });
-    plainData = reshape(plainData, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -47,9 +43,16 @@ rhs(:, baseRangeColumns, :) = createModelData(this.Explanatory, plainData, baseR
 %
 % Model data for residuals; reset NaN residuals to zero
 %
+res = [ ];
 if nargout>=4
     res = dataBlock.YXEPG(this.Runtime.PosResidual, :, :);
 end
+
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout = {plainData, lhs, rhs, res};
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 
 end%
 
@@ -60,6 +63,15 @@ end%
 % Unit Tests 
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({ @setupOnce
+                                @yxeSingleTest
+                                @yxeSystem1Test 
+                                @yxeSystem2Test });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function setupOnce(testCase)
     testCase.TestData.Model1 = ExplanatoryEquation.fromString("log(x) = ?*a + b*x{-1} + ?*log(c) + ?*y{+1} - ? + d");
     testCase.TestData.Model2 = ExplanatoryEquation.fromString("log(m) = ?*a + b*m{-1} + ?*log(c) + ?*n{+1} - ? + d");

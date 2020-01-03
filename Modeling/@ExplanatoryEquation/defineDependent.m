@@ -1,4 +1,4 @@
-function this = defineDependent(this, varargin)
+function varargout = defineDependent(this, varargin)
 % defineDependent  Define dependent term in ExplanatoryEquation
 %{
 % ## Syntax ##
@@ -68,12 +68,7 @@ function this = defineDependent(this, varargin)
 % Invoke unit tests
 %(
 if nargin==2 && isequal(varargin{1}, '--test')
-    this = functiontests({ @setupOnce
-                           @pointerTest
-                           @nameTest
-                           @transformTest 
-                           @invalidShiftTest });
-    this = reshape(this, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -91,6 +86,7 @@ parse(pp, this);
 term = regression.Term(this, varargin{:}, "Type=", ["Pointer", "Name", "Transform"]);
 this.Dependent = term;
 checkNames(this);
+varargout{1} = this;
 
 end%
 
@@ -99,6 +95,18 @@ end%
 % Unit Tests
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({ 
+        @setupOnce
+        @pointerTest
+        @nameTest
+        @transformTest 
+        @invalidShiftTest 
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function setupOnce(testCase)
     m = ExplanatoryEquation( );
     m.VariableNames = ["x", "y", "z"];

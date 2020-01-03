@@ -1,4 +1,4 @@
-function output = parseInputSpecs(xq, inputSpecs, inputTransform, inputShift, types)
+function varargout = parseInputSpecs(xq, inputSpecs, inputTransform, inputShift, types)
 % parseInputSpecs  Parse input specification of Dependent or Explanatory Terms
 % 
 % Backend [IrisToolbox] method
@@ -10,14 +10,7 @@ function output = parseInputSpecs(xq, inputSpecs, inputTransform, inputShift, ty
 % Invoke unit tests
 %(
 if nargin==1 && isequal(xq, '--test')
-    output = functiontests({ @setupOnce 
-                             @pointerTest
-                             @nameTest
-                             @nameShiftTest
-                             @nameDifflogShiftTest
-                             @transformTest
-                             @expressionTest });
-    output = reshape(output, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -38,6 +31,7 @@ output.Expression = [ ];
 if isequal(types, @all) || any(types=="Pointer")
     hereParsePointer( );
     if output.Type=="Pointer"
+        varargout{1} = output;
         return
     end
 end
@@ -54,6 +48,7 @@ inputSpecs = replace(string(inputSpecs), " ", "");
 if isequal(types, @all) || any(types=="Name")
     hereParseName( );
     if output.Type=="Name"
+        varargout{1} = output;
         return
     end
 end
@@ -64,10 +59,12 @@ end
 if isequal(types, @all) || any(types=="Transform")
     hereParseDiffTransform( );
     if output.Type=="Transform"
+        varargout{1} = output;
         return
     end
     hereParseTransform( );
     if output.Type=="Transform"
+        varargout{1} = output;
         return
     end
 end
@@ -79,10 +76,10 @@ end
 if isequal(types, @all) || any(types=="Expression")
     hereParseExpression( );
     if output.Type=="Expression"
+        varargout{1} = output;
         return
     end
 end
-
 
 hereThrowInvalidSpecification( );
 
@@ -347,6 +344,19 @@ end%
 % Unit Tests
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({ 
+        @setupOnce 
+        @pointerTest
+        @nameTest
+        @nameShiftTest
+        @nameDifflogShiftTest
+        @transformTest
+        @expressionTest 
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
 function setupOnce(testCase)
     m = ExplanatoryEquation( );
     m.VariableNames = ["x", "y", "z"];

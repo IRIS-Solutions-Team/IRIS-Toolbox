@@ -1,4 +1,4 @@
-function this = fromString(inputString, varargin)
+function varargout = fromString(inputString, varargin)
 % fromString  Create ExplanatoryEquation object from string
 %{
 %}
@@ -9,20 +9,7 @@ function this = fromString(inputString, varargin)
 % Invoke unit tests
 %(
 if nargin==1 && isequal(inputString, '--test')
-    this = functiontests({
-        @fromStringTest
-        @fromStringExogenousTest
-        @fromLegacyStringTest
-        @sumTest
-        @sumExogenousTest
-        @lowerTest
-        @upperTest
-        @ifStaticTest
-        @ifDynamicTest
-        @compareDynamicStaticTest
-        @switchVariableTest
-    });
-    this = reshape(this, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -73,14 +60,16 @@ for j = 1 : numel(inputString)
 
     %
     % Split the input equation string into LHS and RHS using the first
-    % equal sign found
+    % equal sign found; there may be more than one equal sign such as == in
+    % if( )
     %
-    temp = split(inputString__, "=");
-    if numel(temp)~=2
+    split__ = split(inputString__, "=");
+    if numel(split__)<2
         hereThrowInvalidInputString( );
     end
-    lhsString = temp(1);
-    rhsString = temp(2);
+    lhsString = split__(1);
+    rhsString = join(split__(2:end), "=");
+
     if lhsString==""
         hereThrowEmptyLhs( );
     end
@@ -102,7 +91,11 @@ if numEmpty>0
     hereWarnEmptyEquations( );
 end
 
-this = reshape([array{:}], [ ], 1);
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout{1} = reshape([array{:}], [ ], 1);
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 
 return
 
@@ -309,6 +302,24 @@ end%
 % Unit Tests
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({
+        @fromStringTest
+        @fromStringExogenousTest
+        @fromLegacyStringTest
+        @sumTest
+        @sumExogenousTest
+        @lowerTest
+        @upperTest
+        @ifStaticTest
+        @ifDynamicTest
+        @compareDynamicStaticTest
+        @switchVariableTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function fromStringTest(testCase)
     input = "x = @*a + b*x{-1} + @*log(c);";
     act = ExplanatoryEquation.fromString(input);

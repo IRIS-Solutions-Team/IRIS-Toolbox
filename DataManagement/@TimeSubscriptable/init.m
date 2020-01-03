@@ -1,4 +1,4 @@
-function this = init(this, dates, data)
+function varargout = init(this, dates, data)
 % init  Create start date and data for new time series
 %
 % Backend IRIS function
@@ -10,13 +10,7 @@ function this = init(this, dates, data)
 % Invoke unit tests
 %(
 if nargin==2 && isequal(dates, '--test')
-    this = functiontests({
-        @setupOnce
-        @trimLeadingTest
-        @trimTrailingTest
-        @trimLeadingTrailingTest
-    });
-    this = reshape(this, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -89,6 +83,7 @@ sizeData = size(data);
 if sizeData(1)==0 && (all(isnan(serials)) || numDates==0)
     % No data entered, return empty series
     this = hereCreateEmptySeries(this, sizeData);
+    varargout{1} = this;
     return
 end
 
@@ -109,6 +104,7 @@ end
 if isempty(serials)
     % No proper date entered, return empty series
     this = hereCreateEmptySeries(this, sizeData);
+    varargout{1} = this;
     return
 end
 
@@ -138,6 +134,11 @@ this.Start = DateWrapper.fromSerial(freq, startSerial);
 %
 this = trim(this);
 
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout{1} = this;
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 end%
 
 %
@@ -157,6 +158,17 @@ end%
 % Unit Tests
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({
+        @setupOnce
+        @trimLeadingTest
+        @trimTrailingTest
+        @trimLeadingTrailingTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function setupOnce(this)
 end%
 

@@ -1,4 +1,4 @@
-function x = abbreviate(x, varargin)
+function varargout = abbreviate(x, varargin)
 % abbreviate  Abbreviate a long text string not to exceed a given number of characters
 %{
 % ## Syntax ##
@@ -60,12 +60,7 @@ function x = abbreviate(x, varargin)
 % Invoke unit tests
 %(
 if nargin==1 && isequal(x, '--test')
-    x = functiontests({
-        @setupOnce
-        @charTest
-        @stringTest
-    });
-    x = reshape(x, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -84,6 +79,7 @@ opt = pp.Options;
 %--------------------------------------------------------------------------
 
 if strlength(x)<=opt.MaxLength
+    varargout{1} = x;
     return
 end
 
@@ -99,6 +95,11 @@ else
     x = string(x) + string(ellipsis);
 end
 
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout{1} = x;
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 end%
 
 
@@ -108,6 +109,16 @@ end%
 % Unit Tests 
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({
+        @setupOnce
+        @charTest
+        @stringTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function setupOnce(testCase)
 end%
 
@@ -122,6 +133,13 @@ end%
 function stringTest(testCase)
     act = textual.abbreviate("abcdefg", "MaxLength=", 5);
     exp = "abcd" + string(iris.get("Ellipsis"));
+    assertEqual(testCase, act, exp);
+end%
+
+
+function shortStringTest(testCase)
+    exp = "abcdefg";
+    act = textual.abbreviate(exp);
     assertEqual(testCase, act, exp);
 end%
 %)

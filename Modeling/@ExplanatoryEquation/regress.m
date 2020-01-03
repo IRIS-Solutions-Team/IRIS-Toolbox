@@ -1,4 +1,4 @@
-function [this, outputDatabank] = regress(this, inputDatabank, fittedRange, varargin)
+function varargout = regress(this, inputDatabank, fittedRange, varargin)
 % regress  Estimate regression parameters of ExplanatoryEquation 
 %{
 %}
@@ -9,16 +9,7 @@ function [this, outputDatabank] = regress(this, inputDatabank, fittedRange, vara
 % Invoke unit tests
 %(
 if nargin==2 && isequal(inputDatabank, '--test')
-    this = functiontests({ 
-        @setupOnce 
-        @arxTest  
-        @resimulateTest
-        @resimulatePrependTest
-        @resimulateAppendTest
-        @arxSystemTest
-        @arxSystemVariantsTest 
-    });
-    this = reshape(this, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -137,13 +128,18 @@ end
 
 if storeToDatabank
     namesToInclude = [this.ResidualName];
-    outputDatabank = createOutputDatabank(this, inputDatabank, dataBlock, namesToInclude, fitted, opt);
+    outputDb = createOutputDatabank(this, inputDatabank, dataBlock, namesToInclude, fitted, opt);
 end
 
 %
 % Reset runtime information
 %
 this = runtime(this);
+
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout = {this, outputDb};
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 return
 
@@ -207,6 +203,20 @@ end%
 % Unit Tests 
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({ 
+        @setupOnce 
+        @arxTest  
+        @resimulateTest
+        @resimulatePrependTest
+        @resimulateAppendTest
+        @arxSystemTest
+        @arxSystemVariantsTest 
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function setupOnce(testCase)
     m1 = ExplanatoryEquation.fromString('x = ? + ?*x{-1} + ?*y');
     m2 = ExplanatoryEquation.fromString('a = ? + ?*a{-1} + ?*x');

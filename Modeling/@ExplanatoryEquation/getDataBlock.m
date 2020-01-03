@@ -1,4 +1,4 @@
-function [data, maxLag, maxLead] = getDataBlock(this, inputDatabank, range, lhsRequired, context)
+function varargout = getDataBlock(this, inputDatabank, range, lhsRequired, context)
 % getDataBlock  Get DataBlock of all time series for LHS and RHS names
 %{
 %}
@@ -9,11 +9,7 @@ function [data, maxLag, maxLead] = getDataBlock(this, inputDatabank, range, lhsR
 % Invoke unit tests
 %(
 if nargin==2 && isequal(inputDatabank, '--test')
-    data = functiontests({
-        @setupOnce 
-        @getDataBlockTest
-    });
-    data = reshape(data, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -71,6 +67,8 @@ inxBaseRangeColumns(1:abs(maxLead)) = false;
 inxBaseRangeColumns = fliplr(inxBaseRangeColumns);
 data.BaseRangeColumns = find(inxBaseRangeColumns);
 
+varargout = {data, maxLag, maxLead};
+
 end%
 
 
@@ -79,6 +77,15 @@ end%
 %
 % Unit Tests
 %(
+function tests = unitTests( )
+    tests = functiontests({
+        @setupOnce 
+        @getDataBlockTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function setupOnce(testCase)
     testCase.TestData.Model1 = ExplanatoryEquation.fromString("log(x) = ?*a + b*x{-1} + ?*log(c) + ?*z{+1} - ? + d"); baseRange = qq(2001,1) : qq(2010,10);
     extendedRange = baseRange(1)-1 : baseRange(end)+1;

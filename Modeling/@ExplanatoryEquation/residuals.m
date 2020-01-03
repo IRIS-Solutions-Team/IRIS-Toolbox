@@ -1,4 +1,4 @@
-function outputDatabank = residuals(this, inputDatabank, range, varargin)
+function varargout = residuals(this, inputDatabank, range, varargin)
 % residuals  Evaluate residuals from ExplanatoryEquation for currently assigned parameters
 %{
 %}
@@ -9,18 +9,19 @@ function outputDatabank = residuals(this, inputDatabank, range, varargin)
 % Invoke unit tests
 %(
 if nargin==2 && isequal(inputDatabank, '--test')
-    outputDatabank = functiontests({ 
-        @setupOnce
-        @residualsTest
-    });
-    outputDatabank = reshape(outputDatabank, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
 
 %--------------------------------------------------------------------------
 
-[~, outputDatabank] = regress(this, inputDatabank, range, varargin{:}, 'FixParameters=', true);
+[~, outputDb] = regress(this, inputDatabank, range, varargin{:}, 'FixParameters=', true);
+
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout = { outputDb };
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 end%
 
@@ -31,6 +32,15 @@ end%
 % Unit Tests
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({ 
+        @setupOnce
+        @residualsTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function setupOnce(testCase)
     m1 = ExplanatoryEquation.fromString('x = ? + ?*x{-1} + ?*y');
     startDate = qq(2001,1);

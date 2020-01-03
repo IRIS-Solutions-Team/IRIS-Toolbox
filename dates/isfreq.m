@@ -1,4 +1,4 @@
-function flag = isfreq(date, freq)
+function varargout = isfreq(date, freq)
 % isfreq  True for dates of the specified frequency
 %{
 % ## Syntax ##
@@ -44,12 +44,7 @@ function flag = isfreq(date, freq)
 % Invoke unit tests
 %(
 if nargin==1 && isequal(date, '--test')
-    tests = functiontests({
-        @isfreqDateWrapperTest
-        @isfreqNumericTest
-    });
-    tests = reshape(tests, [ ], 1);
-    flag = tests;
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -57,6 +52,11 @@ end
 %--------------------------------------------------------------------------
 
 flag = DateWrapper.getFrequencyAsNumeric(date)==round(freq);
+
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout{1} = flag;
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 end%
 
@@ -67,6 +67,16 @@ end%
 % Unit Tests 
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({
+        @isfreqDateWrapperTest
+        @isfreqNumericTest
+    });
+    tests = reshape(tests, [ ], 1);
+    flag = tests;
+end%
+
+
 function isfreqDateWrapperTest(testCase)
     i = ii(100);
     y = yy(2000);

@@ -1,4 +1,4 @@
-function pos = locate(items, list, varargin)
+function varargout = locate(items, list, varargin)
 % locate  Find positions of selected items in a list
 %{
 % ## Syntax ##
@@ -48,8 +48,7 @@ function pos = locate(items, list, varargin)
 % Invoke unit tests
 %(
 if nargin==1 && isequal(items, '--test')
-    pos = functiontests(localfunctions( ));
-    pos = reshape(pos, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -67,6 +66,11 @@ for i = 1 : numel(items)
     end
 end
 
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout{1} = pos;
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 end%
 
 
@@ -76,6 +80,17 @@ end%
 % Unit Tests 
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({
+        @stringTest
+        @stringFirstTest
+        @stringLastTest
+        @cellstrTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function stringTest(this)
     items = ["aa", "BB", "C_"];
     list = ["BB", "x", "y", "zz", "C_", "C_"];

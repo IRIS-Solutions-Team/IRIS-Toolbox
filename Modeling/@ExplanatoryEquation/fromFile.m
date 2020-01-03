@@ -1,4 +1,4 @@
-function this = fromFile(sourceFiles, varargin)
+function varargout = fromFile(sourceFiles, varargin)
 % fromFile  Create an array of ExplanatoryEquation objects from a source (text) file (or files)
 %{
 % ## Syntax ##
@@ -45,16 +45,7 @@ function this = fromFile(sourceFiles, varargin)
 % Invoke unit tests
 %(
 if nargin==1 && isequal(sourceFiles, '--test')
-    this = functiontests({ 
-        @singleSourceFileTest
-        @sourceFileWithCommentsTest
-        @sourceFileWithEmptyEquationsTest
-        @sourceFileWithAttributesTest
-        @preparserForIfTest
-        @preparserSwitchTest
-        @equationsAttributesTest
-    });
-    this = reshape(this, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -131,6 +122,12 @@ if ~isempty(export__)
     export(export__);
 end
 
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout{1} = this;
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
 end%
 
 
@@ -140,6 +137,20 @@ end%
 % Unit Tests 
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({ 
+        @singleSourceFileTest
+        @sourceFileWithCommentsTest
+        @sourceFileWithEmptyEquationsTest
+        @sourceFileWithAttributesTest
+        @preparserForIfTest
+        @preparserSwitchTest
+        @equationsAttributesTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function singleSourceFileTest(testCase)
     f = model.File( );
     f.FileName = 'test.model';

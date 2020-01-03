@@ -1,4 +1,4 @@
-function [outputDatabank, info] = simulate(this, inputDatabank, range, varargin)
+function varargout = simulate(this, inputDatabank, range, varargin)
 % simulate  Simulate ExplanatoryEquation model
 %{
 % ## Syntax ##
@@ -50,22 +50,7 @@ function [outputDatabank, info] = simulate(this, inputDatabank, range, varargin)
 % Invoke unit tests
 %(
 if nargin==2 && isequal(inputDatabank, '--test')
-    outputDatabank = functiontests({ 
-        @setupOnce
-        @arxTest
-        @transformTest
-        @arxTestVariantsTest
-        @arxWithResidualsTest
-        @arxParametersTest    
-        @arxSystemTest      
-        @arxSystemVariantsTest      
-        @arxSystemWithPrependTest  
-        @blazerTest
-        @allRaggedEdgeTest
-        @someRaggedEdgeTest
-        @runtimeIfTest
-    });
-    outputDatabank = reshape(outputDatabank, [ ], 1);
+    varargout{1} = unitTests( );
     return
 end
 %)
@@ -97,6 +82,10 @@ storeToDatabank = nargout>=1;
 
 if isempty(this)
     outputDatabank = inputDatabank;
+    info = struct( );
+    info.Blocks = cell.empty(1, 0);
+    info.DynamicStatus = false;
+    varargout = {outputDatabank, info};
     return
 end
 
@@ -190,16 +179,15 @@ if storeToDatabank
     outputDatabank = createOutputDatabank(this, inputDatabank, dataBlock, namesToInclude, [ ], opt);
 end
 
-if nargout>=2
-    info = struct( );
-    info.Blocks = humanBlocks;
-    info.DynamicStatus = dynamicStatus;
-end
+info = struct( );
+info.Blocks = humanBlocks;
+info.DynamicStatus = dynamicStatus;
 
-%
-% Reset runtime information
-%
-this = runtime(this);
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout = {outputDatabank, info};
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 
 return
 
@@ -301,8 +289,8 @@ return
         report = cellstr(dataBlock.Names(pos(inxNaNLhs)));
         thisWarning  = [ 
             "ExplanatoryEquation:MissingObservationInSimulationRange"
-            "Simulation of an ExplanatoryEquation object resulted "
-            "in NaN or Inf values in this LHS variable: %s" 
+            "Simulation of an ExplanatoryEquation object produced "
+            "NaN or Inf values in this LHS variable: %s" 
         ];
         throw(exception.Base(thisWarning, opt.NaNSimulation), report{:});
     end%
@@ -315,6 +303,26 @@ end%
 % Unit Tests 
 %
 %(
+function tests = unitTests( )
+    tests = functiontests({ 
+        @setupOnce
+        @arxTest
+        @transformTest
+        @arxTestVariantsTest
+        @arxWithResidualsTest
+        @arxParametersTest    
+        @arxSystemTest      
+        @arxSystemVariantsTest      
+        @arxSystemWithPrependTest  
+        @blazerTest
+        @allRaggedEdgeTest
+        @someRaggedEdgeTest
+        @runtimeIfTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
 function setupOnce(testCase)
     m1 = ExplanatoryEquation.fromString("x = 0.8*x{-1} + (1-0.8)*c");
     m2 = ExplanatoryEquation.fromString("a = b + ?*(a{-1} - b) + ?");
@@ -472,10 +480,10 @@ end%
 
 function blazerTest(testCase)
     xq = ExplanatoryEquation.fromString([
-        "x = y{-1} + z{-1}"
-        "y = x{-1}"
-        "a = b{-1} + a{-2}"
-        "b = a{-1} + b{-2}"
+        "x = 0.8*y{-1} + 0.8*z{-1}"
+        "y = 0.8*x{-1}"
+        "a = 0.8*b{-1} + 0.8*a{-2}"
+        "b = 0.8*a{-1} + 0.8*b{-2}"
         "z = a"
     ]);
     db = struct( );
@@ -484,9 +492,10 @@ function blazerTest(testCase)
     db.x = Series(0, rand);
     db.y = Series(0, rand);
     db.z = Series(0, rand);
-    [simDb1, info1] = simulate(xq, db, 1:1000);
-    [simDb2, info2] = simulate(xq, db, 1:1000, 'Blazer=', {'Reorder=', false});
-    [simDb3, info3] = simulate(xq([1,3,4,5,2]), db, 1:1000);
+    simRange = 1:1000;
+    [simDb1, info1] = simulate(xq, db, simRange);
+    [simDb2, info2] = simulate(xq, db, simRange, 'Blazer=', {'Reorder=', false, 'Dynamic=', true});
+    [simDb3, info3] = simulate(xq([1,3,4,5,2]), db, simRange);
     for i = reshape(string(fieldnames(simDb1)), 1, [ ]);
         assertEqual(testCase, simDb1.(i).Data, simDb2.(i).Data, 'AbsTol', 1e-12);
         assertEqual(testCase, simDb1.(i).Data, simDb3.(i).Data, 'AbsTol', 1e-12);
@@ -549,8 +558,8 @@ end%
 
 function runtimeIfTest(testCase)
     xq = ExplanatoryEquation.fromString([
-        "a = a{-1} + if__(date__,'==',qq(2001,4), 5, 0);"
-        "b = b{-1} + if__(b{-1}, '<', 0, 1, 0);"
+        "a = a{-1} + if(date__==qq(2001,4), 5, 0);"
+        "b = b{-1} + if(b{-1}<0, 1, 0);"
     ]);
     db = struct( );
     db.a = Series(qq(2000,4), 10);
