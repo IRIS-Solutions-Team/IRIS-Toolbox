@@ -249,7 +249,7 @@ return
         % doMdd  Modified harmonic mean estimator of minus the log marginal data
         % density; Geweke (1999).
         
-        % Copyright (c) 2010-2019 IRIS Solutions Team & Troy Matheson.
+        % Copyright (c) 2010-2020 IRIS Solutions Team & Troy Matheson.
         logDetSgm = log(det(Sgm));
         
         % Compute g(theta) := f(theta) / post(theta) for all thetas, 

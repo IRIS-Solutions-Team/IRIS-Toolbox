@@ -478,7 +478,7 @@ return
         %  NOTE: this binary indexing gives values from 0 to 2^n-1.  Since in
         %  MATLAB indices are unit-based, we add one to get a valid MATLAB index.
         %
-        %  Copyright (c) 2012-2019 Boyan Bejanov and the IRIS Solutions Team
+        %  Copyright (c) 2012-2020 Boyan Bejanov and the IRIS Solutions Team
         %
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
