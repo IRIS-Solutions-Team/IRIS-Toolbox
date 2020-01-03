@@ -5,7 +5,7 @@ function S = myglsq(S, opt)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 y0 = S.y0; % LHS data
 k0 = S.k0; % Constant and dummies

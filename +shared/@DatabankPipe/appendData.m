@@ -5,7 +5,7 @@ function outputData = appendData(this, inputData, outputData, range, varargin)
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 
 if numel(varargin)==2

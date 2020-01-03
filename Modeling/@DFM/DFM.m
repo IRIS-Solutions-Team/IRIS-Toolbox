@@ -70,7 +70,7 @@
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
     
 classdef (CaseInsensitiveProperties=true) ...
     DFM < varobj
@@ -172,7 +172,7 @@ classdef (CaseInsensitiveProperties=true) ...
             %
             
             % -IRIS Macroeconomic Modeling Toolbox
-            % -Copyright (c) 2007-2019 IRIS Solutions Team
+            % -Copyright (c) 2007-2020 IRIS Solutions Team
             
             this = this@varobj(varargin{:});
             if length(varargin)==1

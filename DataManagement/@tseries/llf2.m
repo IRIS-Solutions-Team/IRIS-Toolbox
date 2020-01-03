@@ -4,7 +4,7 @@ function varargout = llf2(varargin)
 % See help on [`llf`](#llf).
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 % BWF2, HPF2, LLF2
 

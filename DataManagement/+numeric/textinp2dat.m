@@ -45,7 +45,7 @@ function [date, dateString] = textinp2dat(dateString)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 

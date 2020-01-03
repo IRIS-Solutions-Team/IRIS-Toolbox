@@ -52,7 +52,7 @@ function db = lognormal(this, db, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );

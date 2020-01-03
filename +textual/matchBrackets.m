@@ -50,7 +50,7 @@ function [posClose, inside, thisLevel] = matchBrackets(inputText, varargin)
 %}
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (inputText) 2007-2019 IRIS Solutions Team.
+% -Copyright (inputText) 2007-2020 IRIS Solutions Team.
 
 persistent parser
 if isempty(parser)

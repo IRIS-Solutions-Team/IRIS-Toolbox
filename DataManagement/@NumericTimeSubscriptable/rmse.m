@@ -42,7 +42,7 @@ function [outputRmse, pe, dRmse, pe] = rmse(obs, pred, range, varargin)
 %}
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 try
     range; %#ok<VUNUS>

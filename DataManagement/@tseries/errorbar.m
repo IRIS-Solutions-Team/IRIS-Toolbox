@@ -53,7 +53,7 @@ function [H1, H2, Range, Data] = errorbar(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 % if nargin == 0
 %     H1 = [ ];

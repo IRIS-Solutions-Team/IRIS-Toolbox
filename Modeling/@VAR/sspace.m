@@ -42,7 +42,7 @@ function [T,R,k,Z,H,d,U,Cov] = sspace(This,varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 if ~isempty(varargin) && isnumericscalar(varargin{1}) 
    Alt = varargin{1};

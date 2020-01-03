@@ -5,7 +5,7 @@ function structuralCov = mycovmatrix(this, variantsRequested)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 if nargin<2 || (~isnumeric(variantsRequested) && isequal(variantsRequested, ':')) 
     variantsRequested = 1 : size(this.A, 3);

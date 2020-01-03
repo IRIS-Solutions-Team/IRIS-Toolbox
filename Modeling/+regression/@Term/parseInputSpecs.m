@@ -5,7 +5,7 @@ function output = parseInputSpecs(xq, inputSpecs, inputTransform, inputShift, ty
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 % Invoke unit tests
 %(

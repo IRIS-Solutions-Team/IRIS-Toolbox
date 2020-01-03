@@ -33,7 +33,7 @@ classdef poster < shared.GetterSetter
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
     properties
         % Names of parameters.
@@ -94,7 +94,7 @@ classdef poster < shared.GetterSetter
             %
             
             % -IRIS Macroeconomic Modeling Toolbox.
-            % -Copyright (c) 2007-2019 IRIS Solutions Team.
+            % -Copyright (c) 2007-2020 IRIS Solutions Team.
                         
             if isempty(varargin)
                 return

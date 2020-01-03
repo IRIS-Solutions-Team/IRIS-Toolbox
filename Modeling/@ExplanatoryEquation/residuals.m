@@ -4,7 +4,7 @@ function outputDatabank = residuals(this, inputDatabank, range, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 % Invoke unit tests
 %(

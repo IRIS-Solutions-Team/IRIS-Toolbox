@@ -5,7 +5,7 @@ function [obj, regOutp] = freql(this, inp, ~, ~, likOpt)
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 % TODO: Allow for non-stationary measurement variables
 

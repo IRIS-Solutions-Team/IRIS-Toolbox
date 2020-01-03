@@ -4,7 +4,7 @@ function x = diff(x, varargin)
 % Backend IRIS function
 % No help provided
 
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 % -IRIS Macroeconomic Modeling Toolbox
 
 persistent parser

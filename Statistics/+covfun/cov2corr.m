@@ -5,7 +5,7 @@ function R = cov2corr(C)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 % The input matrix C must be ne-ne-nPer-nv where nPer is the number of
 % orders or periods. Std errors will be taken from the first page in 3rd

@@ -123,7 +123,7 @@ function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(thi
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team & Bojan Bejanov & Troy Matheson
+% -Copyright (c) 2007-2020 IRIS Solutions Team & Bojan Bejanov & Troy Matheson
 
 persistent pp
 if isempty(pp)

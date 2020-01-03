@@ -5,7 +5,7 @@ function [data, weights] = windex(data, weights, varargin)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 persistent inputParser
 if isempty(inputParser)

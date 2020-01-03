@@ -5,7 +5,7 @@ function [data, start, first, last] = trimRows(data, start, missingValue, missin
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 

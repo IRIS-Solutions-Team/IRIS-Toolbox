@@ -58,7 +58,7 @@ function [this, trend] = bpass(this, band, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 % Legacy input arguments
 if nargin>=3 && ~ischar(varargin{1})

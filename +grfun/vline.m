@@ -4,7 +4,7 @@ function varargout = vline(varargin)
 % See help on visual.vline
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 [varargout{1:nargout}] = visual.vline(varargin{:});
 

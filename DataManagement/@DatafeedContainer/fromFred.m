@@ -2,7 +2,7 @@ function container = fromFred(fredSeriesID, varargin)
 % DatafeedContainer.fromFred  Populate DatafeedContainer from FRED database
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 persistent inputParser 
 if isempty(inputParser)

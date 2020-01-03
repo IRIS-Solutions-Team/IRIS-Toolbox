@@ -4,7 +4,7 @@ function varargout = ploteig(varargin)
 % See help on [`grfun.ploteig`](grfun/ploteig).
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 [varargout{1:nargout}] = grfun.ploteig(varargin{:});
 

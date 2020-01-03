@@ -86,7 +86,7 @@ function Stat = stats(This, Theta, varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 if ~isempty(varargin) && isnumeric(varargin{1})
     LogPost = varargin{1};

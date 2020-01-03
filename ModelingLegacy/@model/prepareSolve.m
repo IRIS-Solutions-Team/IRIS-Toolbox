@@ -5,7 +5,7 @@ function opt = prepareSolve(this, mode, inputSolveOptions)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 if nargin<3
     inputSolveOptions = cell.empty(1, 0);

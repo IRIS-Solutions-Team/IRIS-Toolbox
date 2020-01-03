@@ -7,7 +7,7 @@ function [ plotHandle, dates, yData, ...
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 [axesHandle, dates, this, plotSpec, varargin] = ...
     NumericTimeSubscriptable.preparePlot(varargin{:});

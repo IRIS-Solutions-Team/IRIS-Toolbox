@@ -4,7 +4,7 @@ function varargout = conbar(varargin)
 % See help on [`tseries/barcon`](tseries/barcon).
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 % AREA, BAR, PLOT, CONBAR, PLOTYY, STEM
 

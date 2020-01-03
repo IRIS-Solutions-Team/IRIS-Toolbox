@@ -5,7 +5,7 @@ function [x, f, exitFlag] = qnsd(objectiveFunc, xInit, opt, header)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s %13s %13s';
 FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g %13s';

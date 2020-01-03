@@ -5,7 +5,7 @@ function [exitFlag, dcy] = simulateSelective(simulateFunc, rect, data, ~)
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 MAX_DENSITY = 1/3;
 MAX_NUM_OF_ELEMENTS = 2e6;

@@ -5,7 +5,7 @@ function W = ifrf(T,R,K,Z,H,D,Zp,Omega,freq)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 %**************************************************************************
 

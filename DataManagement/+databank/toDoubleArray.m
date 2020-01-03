@@ -2,7 +2,7 @@ function [outputArray, inxOfValid] = toDoubleArray(inputDatabank, names, dates, 
 % toDoubleArray  Retrieve data from time series into numeric array
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 if nargin<4
     column = 1;

@@ -38,7 +38,7 @@ function this = dbminus(this, list)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 pp = inputParser( );
 pp.addRequired('d', @isstruct);

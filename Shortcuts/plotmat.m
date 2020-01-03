@@ -5,7 +5,7 @@ function varargout = plotmat(varargin)
 %
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 [varargout{1:nargout}] = grfun.plotmat(varargin{:});
 

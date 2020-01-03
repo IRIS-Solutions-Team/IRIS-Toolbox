@@ -5,7 +5,7 @@ function [epsCurrent, epsShifted] = getIncidenceEps(eqn, ixSelect, letter)
 % No help provided.
 
 % -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2019 IRIS Solutions Team.
+% -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 PTR = @int32;
 FN_CELLSTR2NUM = @(x) sscanf( sprintf('%s,', x{:}), '%g,' ).';

@@ -5,7 +5,7 @@ function len = rnglen(varargin)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 % rnglen(range)  returns  range(end)-range(1)+1
 % rnglen(date, dates)  returns  dates-date+1

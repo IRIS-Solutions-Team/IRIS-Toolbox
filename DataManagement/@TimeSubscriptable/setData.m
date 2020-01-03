@@ -5,7 +5,7 @@ function this = setData(this, s, y)
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 ERROR_ASSIGNMENT = { 'TimeSubscriptable:ErrorAssigning'
                      'Error when assigning to time series\nMatlab says: %s ' };

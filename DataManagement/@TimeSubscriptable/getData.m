@@ -5,7 +5,7 @@ function [data, dates, this] = getData(this, timeRef, varargin)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 ERROR_INVALID_FREQUENCY = { 'TimeSeries:subsref:InvalidFrequency'
                             'Illegal date frequency in subscripted reference to %s object' };

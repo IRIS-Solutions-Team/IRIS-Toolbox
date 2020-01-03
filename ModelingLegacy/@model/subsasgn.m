@@ -67,7 +67,7 @@ function this = subsasgn(this, s, b)
 %}
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 if ~isa(this, 'model') ...
    || ( ~isa(b, 'model') && ~isempty(b) && ~isnumeric(b) && ~islogical(b) )
