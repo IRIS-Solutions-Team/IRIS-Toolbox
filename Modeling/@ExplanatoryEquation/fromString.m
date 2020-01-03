@@ -69,10 +69,6 @@ for j = 1 : numel(inputString)
     %
     this__.VariableNames = hereCollectAllVariableNames( );
 
-    %
-    % Compose the original input string from the equation, label, and
-    % attributes
-    %
     this__.InputString = hereComposeUserInputString(inputString__, label__, attributes__);
 
     %
@@ -293,12 +289,14 @@ end%
 
 function userInputString = hereComposeUserInputString(inputString__, label, attributes)
     userInputString = inputString__;
+    %{
     if label~=""
         userInputString = """" + label + """ " + userInputString;
     end
     if ~isempty(attributes)
         userInputString = join(attributes) + " " + userInputString;
     end
+    %}
     if ~endsWith(userInputString, ";")
         userInputString = userInputString + ";";
     end

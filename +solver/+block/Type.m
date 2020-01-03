@@ -1,7 +1,7 @@
 classdef Type
     enumeration
         UNKNOWN       (-1, '', [ ] )
-        SOLVE         ( 0, 'Solver for ', [ ] )
+        SOLVE         ( 0, 'Solve for ', [ ] )
         ASSIGN        ( 1, 'Assign', [ ] )
         ASSIGN_LOG    ( 2, 'Assign @log', @exp )
         ASSIGN_EXP    ( 3, 'Assign @exp', @log )
