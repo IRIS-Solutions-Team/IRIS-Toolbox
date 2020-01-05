@@ -10,8 +10,8 @@ persistent inputParser
 if isempty(inputParser)
     inputParser = extend.InputParser('databank.filter');
     inputParser.addRequired('Database', @validate.databank);
-    inputParser.addParameter({'Name', 'NameFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-    inputParser.addParameter({'Class', 'ClassFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    inputParser.addParameter({'Name', 'NameFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
+    inputParser.addParameter({'Class', 'ClassFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
     inputParser.addParameter('Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
 inputParser.parse(d, varargin{:});
@@ -24,7 +24,6 @@ if isa(d, 'Dictionary')
 else
     listFields = fieldnames(d);
 end
-numFields = numel(listFields);
 
 %
 % Filter field names
