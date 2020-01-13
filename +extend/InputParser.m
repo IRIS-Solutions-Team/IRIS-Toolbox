@@ -203,11 +203,7 @@ classdef InputParser < inputParser
         end%
 
 
-        function resolveDateOptions(this, isPlot)
-            if nargin<2
-                isPlot = false;
-            end
-
+        function resolveDateOptions(this)
             configStruct = iris.get( );
 
             if isequal(this.Options.DateFormat, @config)
