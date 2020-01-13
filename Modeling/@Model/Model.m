@@ -414,7 +414,6 @@ classdef Model ...
 
 
     methods (Hidden) 
-        varargout = checkCompatibilityOfPlan(varargin)
         varargout = checkInitialConditions(varargin)
 
 
