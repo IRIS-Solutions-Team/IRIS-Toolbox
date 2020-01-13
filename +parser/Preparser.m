@@ -25,16 +25,19 @@ classdef Preparser < model.File
         
         CODE_SEPARATOR = sprintf('\n\n');
         FILE_NAME_SEPARATOR = ' & ';
-        OBSOLETE_SYNTAX = { '\$\[', '<'
-                            '\]\$', '>' }
     end
+
+
     
     
     methods
-        function this = Preparser(modelFile, inpCode, assigned, cloneTemplate)
+        function this = Preparser(modelFile, inpCode, assigned, cloneTemplate, angleBrackets)
             import parser.Preparser
             if nargin==0
                 return
+            end
+            if nargin<5
+                angleBrackets = false;
             end
             if ~isempty(modelFile)
                 if ~isa(modelFile, 'model.File')
@@ -93,23 +96,38 @@ classdef Preparser < model.File
 
             for i = 1 : numel(this)
                 p = this(i);
+
                 % Store parsed file name
                 exception.ParseTime.storeFileName(p.FileName);
                 if isempty(p.Code)
                     continue
                 end
+
+                % Replace interpolation brackets $[...]$ with unicodes
+                % before comments (where white code is created)
+                p.Code = parser.Interp.replaceRegularBrackets(p.Code);
                 
-                % Handle obsolete syntax
-                obsoleteSyntax(p);
                 % Preparse individual components
                 parser.UserComment.parse(p);
                 parser.Comment.parse(p);
+
+                % Replace angle brackts <...> with unicodes after removing
+                % comments and before parsing controls
+                if angleBrackets
+                    p.Code = parser.Interp.replaceAngleBrackets(p.Code);
+                    p.White = parser.Interp.replaceAngleBrackets(p.White);
+                end
+
                 parser.control.Control.parse(p);
+
+                %
                 % Resolve interpolations *after* controls so that interpolated expressions
                 % can refer to !for control variables. Interpolations between !for and
                 % !do keywords are resolved separately within For.writeFinal( ) in the
                 % previous step.
+                %
                 parser.Interp.parse(p);
+
                 parser.Substitution.parse(p);
                 parser.Pseudofunc.parse(p);
                 parser.DoubleDot.parse(p);
@@ -222,16 +240,6 @@ classdef Preparser < model.File
         end%
 
 
-        function obsoleteSyntax(this)
-            n = size(parser.Preparser.OBSOLETE_SYNTAX, 1);
-            for i = 1 : n
-                old = parser.Preparser.OBSOLETE_SYNTAX{i, 1};
-                new = parser.Preparser.OBSOLETE_SYNTAX{i, 2};
-                this.Code = regexprep(this.Code, old, new); 
-            end
-        end%
-
-
         function substitutions = mergeSubstitutions(this)
             substitutions = struct( );
             for i = 1 : numel(this)
@@ -254,21 +262,29 @@ classdef Preparser < model.File
 
             import parser.Preparser
 
-            persistent inputParser
-            if isempty(inputParser)
-                inputParser = extend.InputParser('Preparser.parse');
-                inputParser.addRequired('ModelFile', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x) || isa(x, 'model.File'));
-                inputParser.addRequired('InputCode', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
-                inputParser.addParameter('Assigned', struct( ), @(x) isempty(x) || isstruct(x));
-                inputParser.addParameter('SaveAs', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
-                inputParser.addParameter('CloneString', '', @(x) isempty(x) || ischar(x) || isa(x, 'string')); 
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('@Preparser/parse');
+                pp.KeepUnmatched = true;
+                addRequired(pp, 'ModelFile', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x) || isa(x, 'model.File'));
+                addRequired(pp, 'InputCode', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
+
+                addParameter(pp, 'AngleBrackets', false, @validate.logicalScalar);
+                addParameter(pp, {'Assigned', 'Assign'}, struct( ), @(x) isempty(x) || isstruct(x));
+                addParameter(pp, 'SaveAs', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
+                addParameter(pp, 'CloneString', '', @(x) isempty(x) || ischar(x) || isa(x, 'string')); 
             end
-            inputParser.parse(modelFile, inpCode, varargin{:});
-            assigned = inputParser.Results.Assigned;
-            saveAs = inputParser.Results.SaveAs;
-            cloneString = inputParser.Results.CloneString;
+            parse(pp, modelFile, inpCode, varargin{:});
+            opt= pp.Options;
             
-            this = parser.Preparser(modelFile, inpCode, assigned, cloneString);
+            %
+            % Create @Preparser object and parse the components
+            %
+            this = parser.Preparser( ...
+                modelFile, inpCode, ...
+                opt.Assigned, opt.CloneString, opt.AngleBrackets ...
+            );
+
             % Combine file names
             fileName = getFileName(this); 
             % Compose final code
@@ -284,11 +300,13 @@ classdef Preparser < model.File
             % Return database of substitutions
             substitutions = mergeSubstitutions(this);
             % Save preparsed code to disk file if requested
-            if ~isempty(saveAs)
-                Preparser.saveAs(finalCut, saveAs);
+            if ~isempty(opt.SaveAs)
+                Preparser.saveAs(finalCut, opt.SaveAs);
             end
         end%
         
+
+
         
         function c = convertEols(c)
             % convertEols - Convert any style EOLs to Unix style.
@@ -298,6 +316,8 @@ classdef Preparser < model.File
             c = strrep(c, sprintf('\r'), newline( ));            
         end%
         
+
+
         
         function varargout = eval(varargin)
             if isempty(regexp(varargin{1}, '[A-Za-z_\?]', 'once'))
@@ -309,6 +329,8 @@ classdef Preparser < model.File
         end%
         
         
+
+
         function evalPopulateWorkspace(expn, assigned, p)
             import parser.White
             shadowExpn = White.whiteOutLabel(expn);
@@ -332,6 +354,8 @@ classdef Preparser < model.File
             end
         end%
         
+
+        
         
         function saveAs(codeToSave, fileName)
             if ~isempty(fileName)
@@ -344,6 +368,8 @@ classdef Preparser < model.File
             end
         end%
         
+
+
         
         function code = removeInsignificantWhs(code)
             code = strtrim(code);

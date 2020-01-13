@@ -1,11 +1,11 @@
 function setupModel(this)
 % setupModel  Set up main parser for model objects
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
@@ -115,8 +115,6 @@ this.AltKeyword = [
         '!measurement_',     '!measurement-'
         '!exogenous_',       '!exogenous-'
         '!log_variables',    '!log-variables'
-        '$[',                '<' % Open interpolation
-        ']$',                '>' % Close interpolation
         '!ttrend',           'ttrend' 
         '!dynamic_autoexog', '!autoswaps-simulate'
         '!steady_autoexog',  '!autoswaps-steady'          

@@ -8,14 +8,14 @@ classdef UserComment < handle
     
     methods (Static)
         function parse(p)
-            import parser.UserComment;
+            import parser.UserComment
             match = regexp( ...
                 p.Code, ...
                 UserComment.USER_COMMENT_PATTERN, ...
                 'match','once' ...
-                );
+            );
             p.UserComment = strtrim(match);
-        end
+        end%
     end
 end
         

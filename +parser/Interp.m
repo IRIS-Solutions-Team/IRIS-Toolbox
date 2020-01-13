@@ -1,27 +1,41 @@
 classdef Interp
     properties (Constant)
-        OPEN = '<'
-        CLOSE = '>'
+        OPEN = char(10216)
+        CLOSE = char(10217)
     end
     
     
     
     
     methods (Static)
-        function [code, value, postCode] = parse(varargin)
+        function varargout = parse(varargin)
+            % Invoke unit tests
+            %(
+            if nargin==1 && isequal(varargin{1}, '--test')
+                varargout{1} = unitTests( );
+                return
+            end
+            %)
+
             import parser.Interp
             import parser.Preparser
+
+            assigned = struct( );
             maxInterp = uint32(Inf);
-            if nargin==1
-                % (Preparser):
+            if nargin==1 && isa(varargin{1}, 'parser.Preparser')
+                % parse(Preparser)
                 p = varargin{1};
                 code = p.Code;
                 assigned = p.Assigned;
             else 
-                % (code, assigned):
-                code = varargin{1};
-                assigned = varargin{2};
-                if nargin==3
+                % parse(code)
+                % parse(code, assigned)
+                % parse(code, assigned, maxInterp)
+                code = char(varargin{1});
+                if nargin>=2
+                    assigned = varargin{2};
+                end
+                if nargin>=3
                     % (code, assigned, maxInterp)
                     maxInterp = uint32(varargin{3});
                 end
@@ -38,6 +52,7 @@ classdef Interp
             end
             count = uint32(0);
             value = [ ];
+            codeAfter = '';
             while count<maxInterp
                 posOpen = find(level==1, 1);
                 if isempty(posOpen)
@@ -45,9 +60,11 @@ classdef Interp
                 end
                 posClose = posOpen + find(level(posOpen+1:end)==0, 1);
                 if isempty(posClose)
+                    thisError = { 'Preparser:InterpolationStringNotClosed'
+                                  'This interpolation string is not closed: %s ' };
                     throwCode( ...
-                        exception.ParseTime('Preparser:INTERP_NOT_CLOSED', 'error'), ...
-                        code(posOpen:end) ...
+                        exception.ParseTime(thisError, 'error'), ...
+                        code(posOpen+1:end) ...
                     );
                 end
                 expn = code(posOpen+1:posClose-1);
@@ -65,23 +82,20 @@ classdef Interp
                         code(posOpen:posClose) ...
                     );
                 end
-                if nargout>2
-                    postCode = code(posClose+1:end);
-                end
-                code = [ ...
-                    code(1:posOpen-1), ...
-                    s, ...
-                    code(posClose+1:end), ...
-                ];
-                level = [ ...
-                    level(1:posOpen-1), ...
-                    zeros(1, length(s), 'int8'), ...
-                    level(posClose+1:end), ...
-                ];
+                before = posOpen - 1;
+                after = posClose + 1;
+                codeAfter = code(after:end);
+                code = [code(1:before), s, code(after:end)];
+                level = [level(1:before), zeros(1, length(s), 'int8'), level(after:end)];
                 count = count + 1;
             end
             p.Code = code;
-        end
+            
+
+            if nargout>=1
+                varargout = { code, value, codeAfter };
+            end
+        end%
         
         
         
@@ -97,7 +111,7 @@ classdef Interp
             if ~isempty(posClose)
                 sh(posClose) = -1;
             end
-        end
+        end%
         
         
         
@@ -126,6 +140,52 @@ classdef Interp
                     return
                 end
             end
-        end
+        end%
+
+
+
+
+        function code = replaceRegularBrackets(code)
+            code = strrep(code, '$[', parser.Interp.OPEN); 
+            code = strrep(code, ']$', parser.Interp.CLOSE); 
+        end%
+
+
+
+
+        function code = replaceAngleBrackets(code)
+            code = strrep(code, '<', parser.Interp.OPEN); 
+            code = strrep(code, '>', parser.Interp.CLOSE); 
+        end%
     end
 end
+
+
+
+
+%
+% Unit Tests
+%
+%(
+function tests = unitTests( )
+    tests = functiontests({
+        @setupOnce
+        @parseTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
+function setupOnce(testCase)
+end%
+
+
+function parseTest(testCase)
+    code = ' aaaa $[ A+1 ]$ ';
+    code = parser.Interp.replaceRegularBrackets(code);
+    assigned = struct('A', 1);
+    act = parser.Interp.parse(code, assigned);
+    exp = ' aaaa 2 ';
+    assertEqual(testCase, act, exp);
+end%
+%)

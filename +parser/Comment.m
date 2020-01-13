@@ -9,24 +9,24 @@ classdef Comment < parser.White
     
     
     methods (Static)
-        function c = parse(p)
+        function code = parse(p)
             import parser.Comment
             isCharInp = ischar(p);
             if isCharInp
-                c = p;
+                code = p;
             else
-                c = p.Code;
+                code = p.Code;
             end
-            wh = Comment.whiteOutLabel(c);           
-            wh = Comment.whiteOutBlockComment(wh);
-            wh = Comment.whiteOutLineComment(wh);
-            wh = Comment.whiteOutLineContinuation(wh);
-            ix = wh==Comment.COMMENT_WHITEOUT; 
-            c(ix) = '';
-            wh(ix) = '';
+            white = Comment.whiteOutLabel(code);           
+            white = Comment.whiteOutBlockComment(white);
+            white = Comment.whiteOutLineComment(white);
+            white = Comment.whiteOutLineContinuation(white);
+            inx = white==Comment.COMMENT_WHITEOUT; 
+            code(inx) = '';
+            white(inx) = '';
             if ~isCharInp
-                p.Code = c;
-                p.White = wh;
+                p.Code = code;
+                p.White = white;
             end
         end%
         

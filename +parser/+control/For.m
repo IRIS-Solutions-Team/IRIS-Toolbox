@@ -95,7 +95,7 @@ classdef For < parser.control.Control
                 if isempty(x)
                     break
                 end
-                if strncmp(x, '<', 1)
+                if strncmp(x, parser.Interp.OPEN, 1)
                     [~, value, tokenCode] = parser.Interp.parse(tokenCode(from:end), assigned, 1);
                     this.Token = [this.Token, value];
                 else

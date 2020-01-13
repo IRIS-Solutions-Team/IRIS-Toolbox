@@ -11,6 +11,6 @@ classdef Control < handle
             c = writeFinal(this, p);
             p.Code = c;
             p.White = [ ];
-        end    
+        end%
     end
 end
