@@ -7,8 +7,14 @@ classdef Plan
     end
 
 
-    methods
+    methods (Abstract)
+        varargout = getExtendedRange(varargin)
+    end
+
+
+    methods (Hidden)
         varargout = preparePlan(varargin)
+        varargout = checkCompatibilityOfPlan(varargin)
     end
 end
 
