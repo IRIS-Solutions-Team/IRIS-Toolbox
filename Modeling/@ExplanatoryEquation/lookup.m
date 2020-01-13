@@ -1,10 +1,10 @@
-function [inx, output] = lookup(this, varargin)
+function varargout = lookup(this, varargin)
 % lookup  Look up equations by the LHS names or attributes
 %{
 % ## Syntax ##
 %
 %
-%     [inx, output] = function(input [, lookFor])
+%     [inx, output, lhsNames] = function(input [, lookFor])
 %
 %
 % ## Input Arguments ##
@@ -39,6 +39,11 @@ function [inx, output] = lookup(this, varargin)
 % as the second and further input arguments `lookFor`.
 %
 %
+% __`lhsNames`__ [ string ]
+% >
+% List of LHS names for the equations included in the `output`.
+%
+%
 % ## Description ##
 %
 %
@@ -48,6 +53,23 @@ function [inx, output] = lookup(this, varargin)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+% Invoke unit tests
+%(
+if nargin==2 && isequal(varargin{1}, '--test')
+    varargout{1} = unitTests( );
+    return
+end
+%)
+
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('@ExplanatoryEquation/lookup');
+    addRequired(pp, 'xq', @(x) isa(x, 'ExplanatoryEquation'));
+    addOptional(pp, 'lookFor', cell.empty(1, 0), @(x) all(cellfun(@validate.stringScalar, x)));
+end
+parse(pp, this, varargin);
 
 %--------------------------------------------------------------------------
 
@@ -63,9 +85,72 @@ for i = 1 : numel(varargin)
     end
 end
 
-if nargout>=2
-    output = this(inx);
-end
+try
+this = reshape(this(inx), [ ], 1);
+catch, keyboard, end
+lhsNames = [this.LhsName];
+
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout = { inx, this, lhsNames };
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 end%
+
+
+
+
+%
+% Unit Tests 
+%
+%(
+function tests = unitTests( )
+    tests = functiontests({
+        @setupOnce 
+        @lhsNamesTest
+        @attributesTest
+        @combinedTest
+    });
+    tests = reshape(tests, [ ], 1);
+end%
+
+
+function setupOnce(testCase)
+    testCase.TestData.Object = ...
+        ExplanatoryEquation.fromString([
+            ":a :b :c x = 0"
+            ":b :c :d y = 0"
+            ":c :d :e z = 0"
+            ":0 u = 0"
+            ":1 v = 0"
+        ]);
+end%
+
+
+function lhsNamesTest(testCase)
+    q = testCase.TestData.Object;
+    [inx, qq, lhsNames] = lookup(q, "x", "z");
+    assertEqual(testCase, inx, [true; false; true; false; false]);
+    assertEqual(testCase, qq, q([1; 3]));
+    assertEqual(testCase, lhsNames, ["x", "z"]);
+end%
+
+
+function attributesTest(testCase)
+    q = testCase.TestData.Object;
+    [inx, qq, lhsNames] = lookup(q, ":a", ":e");
+    assertEqual(testCase, inx, [true; false; true; false; false]);
+    assertEqual(testCase, qq, q([1; 3]));
+    assertEqual(testCase, lhsNames, ["x", "z"]);
+end%
+
+
+function combinedTest(testCase)
+    q = testCase.TestData.Object;
+    [inx, qq, lhsNames] = lookup(q, ":a", "z");
+    assertEqual(testCase, inx, [true; false; true; false; false]);
+    assertEqual(testCase, qq, q([1; 3]));
+    assertEqual(testCase, lhsNames, ["x", "z"]);
+end%
+%)
 

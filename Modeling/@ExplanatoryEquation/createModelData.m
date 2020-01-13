@@ -1,7 +1,7 @@
 function varargout = createModelData(this, dataBlock)
 % createModelData  Create data matrices for ExplanatoryEquation model
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
@@ -46,6 +46,7 @@ rhs(:, baseRangeColumns, :) = createModelData(this.Explanatory, plainData, baseR
 res = [ ];
 if nargout>=4
     res = dataBlock.YXEPG(this.Runtime.PosResidual, :, :);
+    hereFixResidualsInBaseRange( );
 end
 
 
@@ -53,7 +54,17 @@ end
 varargout = {plainData, lhs, rhs, res};
 %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+return
 
+    function hereFixResidualsInBaseRange( )
+        res__ = res(:, baseRangeColumns, :);
+        inxNaN = isnan(res__);
+        if nnz(inxNaN)==0
+            return
+        end
+        res__(inxNaN) = 0;
+        res(:, baseRangeColumns, :) = res__;
+    end%
 end%
 
 
@@ -108,6 +119,7 @@ function yxeSingleTest(testCase)
     exp_y = nan(1, numExtendedPeriods);
     exp_y(baseRangeColumns) = log(db.x(baseRange));
     assertEqual(testCase, lhs, exp_y);
+
     exp_rhs = nan(5, numExtendedPeriods);
     exp_rhs(1, baseRangeColumns) = db.a(baseRange);
     exp_rhs(2, baseRangeColumns) = log(db.c(baseRange));
@@ -115,9 +127,12 @@ function yxeSingleTest(testCase)
     exp_rhs(4, baseRangeColumns) = -1;
     exp_rhs(5, baseRangeColumns) = db.b(baseRange).*db.x(baseRange-1) + db.d(baseRange);
     assertEqual(testCase, rhs, exp_rhs);
-    exp_e = nan(1, numExtendedPeriods);
-    exp_e(1, baseRangeColumns) = db.res_x(baseRange);
-    assertEqual(testCase, res, exp_e);
+    exp_res = nan(1, numExtendedPeriods);
+    temp = db.res_x(baseRange);
+    temp(isnan(temp)) = 0;
+    exp_res(1, baseRangeColumns) = temp;
+    assertEqual(testCase, res, exp_res);
+
     exp_plain = nan(7, numExtendedPeriods);
     exp_plain(1, :) = db.x(extendedRange);
     exp_plain(2, :) = db.a(extendedRange);
@@ -146,6 +161,7 @@ function yxeSystem1Test(testCase)
     exp_y = nan(1, numExtendedPeriods);
     exp_y(baseRangeColumns) = log(db.x(baseRange));
     assertEqual(testCase, lhs, exp_y);
+
     exp_rhs = nan(5, numExtendedPeriods);
     exp_rhs(1, baseRangeColumns) = db.a(baseRange);
     exp_rhs(2, baseRangeColumns) = log(db.c(baseRange));
@@ -153,9 +169,13 @@ function yxeSystem1Test(testCase)
     exp_rhs(4, baseRangeColumns) = -1;
     exp_rhs(5, baseRangeColumns) = db.b(baseRange).*db.x(baseRange-1) + db.d(baseRange);
     assertEqual(testCase, rhs, exp_rhs);
-    exp_e = nan(1, numExtendedPeriods);
-    exp_e(1, baseRangeColumns) = db.res_x(baseRange);
-    assertEqual(testCase, res, exp_e);
+
+    exp_res = nan(1, numExtendedPeriods);
+    temp = db.res_x(baseRange);
+    temp(isnan(temp)) = 0;
+    exp_res(1, baseRangeColumns) = temp;
+    assertEqual(testCase, res, exp_res);
+
     exp_plain = nan(7, numExtendedPeriods);
     exp_plain(1, :) = db.x(extendedRange);
     exp_plain(2, :) = db.a(extendedRange);
@@ -184,6 +204,7 @@ function yxeSystem2Test(testCase)
     exp_y = nan(1, numExtendedPeriods);
     exp_y(baseRangeColumns) = log(db.m(baseRange));
     assertEqual(testCase, lhs, exp_y);
+
     exp_rhs = nan(5, numExtendedPeriods);
     exp_rhs(1, baseRangeColumns) = db.a(baseRange);
     exp_rhs(2, baseRangeColumns) = log(db.c(baseRange));
@@ -191,9 +212,13 @@ function yxeSystem2Test(testCase)
     exp_rhs(4, baseRangeColumns) = -1;
     exp_rhs(5, baseRangeColumns) = db.b(baseRange).*db.m(baseRange-1) + db.d(baseRange);
     assertEqual(testCase, rhs, exp_rhs);
-    exp_e = nan(1, numExtendedPeriods);
-    exp_e(1, baseRangeColumns) = db.res_m(baseRange);
-    assertEqual(testCase, res, exp_e);
+
+    exp_res = nan(1, numExtendedPeriods);
+    temp = db.res_m(baseRange);
+    temp(isnan(temp)) = 0;
+    exp_res(1, baseRangeColumns) = temp;
+    assertEqual(testCase, res, exp_res);
+
     exp_plain = nan(7, numExtendedPeriods);
     exp_plain(1, :) = db.m(extendedRange);
     exp_plain(2, :) = db.a(extendedRange);

@@ -5,13 +5,12 @@ classdef ExplanatoryEquation ...
     < shared.GetterSetter ...
     & shared.UserDataContainer ...
     & shared.CommentContainer ...
-    & shared.DatabankPipe
+    & shared.DatabankPipe ...
+    & shared.Plan
 
 
     properties
         VariableNames (1, :) string = string.empty(1, 0)
-        ResidualPrefix = "res_"
-        FittedPrefix = "fit_"
         Label (1, 1) string = ""
         Attributes (1, :) string = string.empty(1, 0)
         RaggedEdge (1, 1) logical = false
@@ -33,6 +32,10 @@ classdef ExplanatoryEquation ...
         InputString (1, 1) string = ""
         Export (1, :) shared.Export = shared.Export.empty(1, 0)
         Substitutions (1, 1) struct = struct( )
+
+        ResidualNamePattern (1, 2) string = ["res_", ""]
+        FittedNamePattern (1, 2) string = ["fit_", ""]
+        DateReference (1, 1) string = "date__"
 
         Dependent (1, :) regression.Term = regression.Term.empty(1, 0)
         Explanatory (1, :) regression.Term = regression.Term.empty(1, 0)
@@ -96,7 +99,12 @@ classdef ExplanatoryEquation ...
         %(
         varargout = alter(varargin)
         varargout = blazer(varargin)
+        varargout = collectAllNames(varargin)
+        varargout = collectLhsNames(varargin)
+        varargout = collectRhsNames(varargin)
+        varargout = checkUniqueLhs(varargin)
         varargout = defineDependent(varargin)
+        varargout = getActualMinMaxShifts(varargin)
         varargout = lookup(varargin)
         varargout = regress(varargin)
         varargout = simulate(varargin)
@@ -188,24 +196,6 @@ classdef ExplanatoryEquation ...
                 pos = NaN;
             end
         end%
-
-
-        function this = upper(this)
-            for i = 1 : numel(this)
-                this(i).VariableNames = upper(this(i).VariableNames);
-                this(i).ResidualPrefix = upper(this(i).ResidualPrefix);
-                this(i).FittedPrefix = upper(this(i).FittedPrefix);
-            end
-        end%
-
-
-        function this = lower(this)
-            for i = 1 : numel(this)
-                this(i).VariableNames = lower(this(i).VariableNames);
-                this(i).ResidualPrefix = lower(this(i).ResidualPrefix);
-                this(i).FittedPrefix = lower(this(i).FittedPrefix);
-            end
-        end%
         %)
     end
 
@@ -213,7 +203,6 @@ classdef ExplanatoryEquation ...
 
 
     methods (Hidden)
-        varargout = collectAllNames(varargin)
         varargout = getDataBlock(varargin)
 
         function flag = checkConsistency(this)
@@ -267,31 +256,27 @@ classdef ExplanatoryEquation ...
 
 
     methods (Access=protected)
-        function checkNames(this)
-            checkList = this.VariableNames;
-            if isfinite(this.PosOfLhsName)
-                checkList = [checkList, this.ResidualName];
-            end
-            nameConflicts = parser.getMultiple(checkList);
-            if ~isempty(nameConflicts)
-                nameConflicts = cellstr(nameConflicts);
-                thisError = [ 
-                    "ExplanatoryEquation:MultipleNames"
-                    "This name is declared more than once in an ExplanatoryEquation object "
-                    "(including ResidualName and FittedName): %s "
-                ];
-                throw( exception.Base(thisError, 'error'), ...
-                       nameConflicts{:} );
-            end
-            inxValid = arrayfun(@isvarname, checkList);
-            if any(~inxValid)
-                thisError = [ 
-                    "ExplanatoryEquation:InvalidName"
-                    "This name defined in an ExplanatoryEquation object "
-                    "is not a valid Matlab name: %s"
-                ];
-                throw(exception.Base(thisError, 'error'), checkList{~inxValid});
-            end
+        varargout = checkNames(varargin)
+
+
+        function namesEndogenous = getEndogenousForPlan(this)
+            namesEndogenous = [this.LhsName];
+        end%
+
+
+        function namesExogenous = getExogenousForPlan(this)
+            namesExogenous = string.empty(1, 0);
+        end%
+
+        
+        function autoswaps = getAutoswapsForPlan(this)
+            autoswaps = cell.empty(0, 2);
+        end%
+
+
+        function sigmas = getSigmasForPlan(this)
+            nv = countVariants(this);
+            sigmas = double.empty(0, 1, nv);
         end%
     end
 
@@ -354,17 +339,17 @@ classdef ExplanatoryEquation ...
 
 
 
-        function this = set.ResidualPrefix(this, value)
+        function this = set.ResidualNamePattern(this, value)
+            this.ResidualNamePattern = value;
             checkNames(this);
-            this.ResidualPrefix = value;
         end%
 
 
 
 
-        function this = set.FittedPrefix(this, value)
+        function this = set.FittedNamePattern(this, value)
+            this.FittedNamePattern = value;
             checkNames(this);
-            this.FittedPrefix = value;
         end%
 
 
@@ -430,7 +415,16 @@ classdef ExplanatoryEquation ...
 
 
         function value = get.LhsName(this)
-            value = this.VariableNames(this.PosOfLhsName);
+            if isempty(this.VariableNames)
+                value = "";
+                return
+            end
+            posLhsName = this.PosOfLhsName;
+            if ~isscalar(posLhsName) || ~isfinite(posLhsName)
+                value = "";
+                return
+            end
+            value = this.VariableNames(posLhsName);
         end%
 
 
@@ -444,14 +438,14 @@ classdef ExplanatoryEquation ...
 
 
         function value = get.ResidualName(this)
-            value = this.ResidualPrefix + this.LhsName;
+            value = this.ResidualNamePattern(1) + this.LhsName + this.ResidualNamePattern(2);
         end%
 
 
 
 
         function value = get.FittedName(this)
-            value = this.FittedPrefix + this.LhsName;
+            value = this.FittedNamePattern(1) + this.LhsName + this.FittedNamePattern(2);
         end%
 
 

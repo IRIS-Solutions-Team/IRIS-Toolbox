@@ -1,4 +1,4 @@
-function updateDataBlock(this, dataBlock, plainData)
+function updateDataBlock(this, dataBlock, plainData, residuals)
 % updateDataBlock  Update dataBlock from plainData after simulation
 %
 % Backend IRIS function

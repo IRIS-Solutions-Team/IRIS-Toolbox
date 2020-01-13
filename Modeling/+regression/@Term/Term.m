@@ -218,27 +218,35 @@ classdef Term
 
 
 
-        function plainLhs = updatePlainLhs(this, plainLhs, lhs, t)
+        function plainData = updatePlainData(this, plainData, lhs, res, t)
             %
-            % The input object `this` is always dependent (LHS) terms,
+            % Update residuals first; residuals are ordered last in the
+            % plainData array
+            %
+            if ~isempty(res)
+                posResiduals = size(plainData, 1);
+                plainData(posResiduals, t, :) = res(1, t, :);
+            end
+            %
+            % The input object `this` is always a dependent (LHS) terms,
             % and its Position property points to the respective LHS
             % name
             %
             posLhs = this.Position;
             if isequal(this.Transform, "")
-                plainLhs(posLhs, t, :) = lhs(:, t, :);
+                plainData(posLhs, t, :) = lhs(:, t, :);
                 return
             end
             if isequal(this.Transform, "log")
-                plainLhs(posLhs, t, :) = exp(lhs(:, t, :));
+                plainData(posLhs, t, :) = exp(lhs(:, t, :));
                 return
             end
             if isequal(this.Transform, "diff")
-                plainLhs(posLhs, t, :) = plainLhs(posLhs, t-1, :) + lhs(:, t, :);
+                plainData(posLhs, t, :) = plainData(posLhs, t-1, :) + lhs(:, t, :);
                 return
             end
             if isequal(this.Transform, "difflog")
-                plainLhs(posLhs, t, :) = plainLhs(posLhs, t-1, :) .* exp(lhs(:, t, :));
+                plainData(posLhs, t, :) = plainData(posLhs, t-1, :) .* exp(lhs(:, t, :));
                 return
             end
             thisError = [ "ExplanatoryEquation:InvalidLhsTransformation"

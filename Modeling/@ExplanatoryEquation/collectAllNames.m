@@ -1,11 +1,52 @@
 function [variableNames, residualNames, fittedNames] = collectAllNames(this)
 % collectAllNames  Collect all variable names, error names and fitted names from all equations
+%{
+% ## Syntax ##
 %
-% Backend IRIS function
-% No help provided
+%
+%     [variableNames, residualNames, fittedNames = collectAllNames(this)
+%
+%
+% ## Input Arguments ##
+%
+%
+% __`this`__ [ ExplanatoryEquation ]
+% >
+% ExplanatoryEquation object or array whose variable names, residual names
+% and fitted names will be returned.
+%
+%
+% ## Output Arguments ##
+%
+%
+% __`variableNames`__ [ string ]
+% >
+% List of all variable names, both LHS and RHS variables, that occur in
+% `this` ExplanatoryEquation object or array; each name is listed only once
+% even if it occurs in multiple equations.
+%
+%
+% __`residualNames`__ [ string ]
+% >
+% List of residual names associated with all equations in `this`
+% ExplanatoryEquation object or array.
+%
+%
+% __`fittedNames`__ [ string ]
+% >
+% List of fitted names associated with all equations in `this`
+% ExplanatoryEquation object or array.
+%
+%
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 

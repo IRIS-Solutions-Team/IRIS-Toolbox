@@ -70,6 +70,7 @@ if isempty(pp)
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
     addParameter(pp, 'NaNParameters', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
     addParameter(pp, 'NaNSimulation', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
+    addParameter(pp, 'Plan', [ ], @(x) isempty(x) || isa(x, 'Plan'));
     addParameter(pp, 'RaggedEdge', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
     addParameter(pp, 'Blazer', cell.empty(1, 0), @iscell);
 end
@@ -102,6 +103,13 @@ lhsRequired = false;
 context = "for " + this(1).Context + " simulation";
 dataBlock = getDataBlock(this, inputDatabank, range, lhsRequired, context);
 
+
+%
+% Extract exogenized points
+%
+[isExogenized, inxExogenizedAlways, inxExogenizedWhenData] = hereExtractExogenized( );
+
+
 numExtendedPeriods = dataBlock.NumOfExtendedPeriods;
 numPages = dataBlock.NumOfPages;
 numRuns = max(nv, numPages);
@@ -121,18 +129,14 @@ this = runtime(this, dataBlock, "simulate");
 % 
 [blocks, ~, humanBlocks, dynamicStatus] = blazer(this, opt.Blazer{:});
 
-if isequal(opt.RaggedEdge, @auto)
-    raggedEdge = reshape([this.RaggedEdge], size(this));
-else
-    raggedEdge = repmat(opt.RaggedEdge, size(this));
-end
 
+%//////////////////////////////////////////////////////////////////////////
 for blk = 1 : numel(blocks)
     if numel(blocks{blk})==1
         eqn = blocks{blk};
         this__ = this(eqn);
+        [isExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
         [plainData, lhs, rhs, res] = createModelData(this__, dataBlock);
-        res(~isfinite(res)) = 0;
         if dynamicStatus(eqn)
             hereRunRecursive( );
         else
@@ -141,16 +145,18 @@ for blk = 1 : numel(blocks)
         updateDataBlock(this__, dataBlock, plainData);
     else
         for column = baseRangeColumns
-            for eqn = blocks{blk}
+            for eqn = reshape(blocks{blk}, 1, [ ])
                 this__ = this(eqn);
+                [isExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
                 [plainData, lhs, rhs, res] = createModelData(this__, dataBlock);
-                res(~isfinite(res)) = 0;
                 hereRunOnce(column);
                 updateDataBlock(this__, dataBlock, plainData);
             end
         end
     end
 end
+%//////////////////////////////////////////////////////////////////////////
+
 
 %
 % Report equations with NaN or Inf parameters
@@ -175,7 +181,7 @@ end
 % Create output databank with LHS, RHS and residual names
 %
 if storeToDatabank
-    namesToInclude = [this.LhsName];
+    namesToInclude = [this.LhsName, this.ResidualName];
     outputDatabank = createOutputDatabank(this, inputDatabank, dataBlock, namesToInclude, [ ], opt);
 end
 
@@ -192,62 +198,112 @@ varargout = {outputDatabank, info};
 return
 
 
+    function [isExogenized, inxExogenizedAlways, inxExogenizedWhenData] = hereExtractExogenized( )
+        if isempty(opt.Plan)
+            isExogenized = false;
+            inxExogenizedAlways = logical.empty(0);
+            inxExogenizedWhenData = logical.empty(0);
+            return
+        end
+        checkCompatibilityOfPlan(this, range, opt.Plan);
+        inxExogenized = opt.Plan.InxOfAnticipatedExogenized | opt.Plan.InxOfUnanticipatedExogenized;
+        inxExogenizedWhenData = opt.Plan.InxToKeepEndogenousNaN;
+        inxExogenizedAlways = inxExogenized & ~inxExogenizedWhenData;
+        isExogenized = nnz(inxExogenized)>0;
+    end%
+
+
+
+
+    function [isExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( )
+        inxExogenizedAlways__ = logical.empty(0);
+        inxExogenizedWhenData__ = logical.empty(0);
+        if isExogenized
+            inxExogenizedAlways__ = inxExogenizedAlways(eqn, :);
+            inxExogenizedWhenData__ = inxExogenizedWhenData(eqn, :);
+        end
+        isExogenized__ = nnz(inxExogenizedAlways__)>0 || nnz(inxExogenizedWhenData__)>0;
+    end%
+
+
+
+
     function hereRunRecursive( )
-        posLhs = this__.Dependent.Position;
-        lhsPlainData = plainData(posLhs, :, :);
-        for t = baseRangeColumns
-            inxNaN = isnan(lhsPlainData(1, t, :));
-            if raggedEdge(eqn) && all(~inxNaN)
-                continue
+        posLhs__ = this__.Dependent.Position;
+        lhsPlainData__ = plainData(posLhs__, :, :);
+        inxData__ = ~isnan(lhsPlainData__(1, :, :));
+        needsUpdate__ = false;
+        for tt = baseRangeColumns
+            if needsUpdate__
+                date = getIth(extendedRange, tt);
+                rhs = updateOwnExplanatory(this__.Explanatory, rhs, plainData, tt, date);
             end
-            if t>baseRangeColumns(1)
-                date = getIth(extendedRange, t);
-                rhs = updateOwnExplanatory(this__.Explanatory, rhs, plainData, t, date);
-            end
-            for v = 1 : numRuns
-                if v<=nv
-                    parameters__ = this__.Parameters(:, :, v);
+            columnsToUpdate = double.empty(1, 0);
+            needsUpdate__ = false;
+            for vv = 1 : numRuns
+                if vv<=nv
+                    parameters__ = this__.Parameters(:, :, vv);
                 end
-                if raggedEdge(eqn) && ~inxNaN(v)
-                    continue
+                %
+                % Parameters times RHS terms
+                %
+                pr__ = parameters__ * rhs(:, tt, vv);
+
+                if isExogenized__ && ( ...
+                    inxExogenizedAlways__(1, tt) ...
+                    || (inxExogenizedWhenData__(1, tt) && inxData__(1, tt, vv)) ...
+                )
+                    %
+                    % Exogenized point, calculate residuals
+                    %
+                    res(1, tt, vv) = lhs(1, tt, vv) - pr__;
+                else
+                    %
+                    % Endogenous simulation
+                    %
+                    lhs(1, tt, vv) = pr__ + res(1, tt, vv);
+                    columnsToUpdate = [columnsToUpdate, tt];
+                    needsUpdate__ = true;
                 end
-                lhs(1, t, v) = parameters__*rhs(:, t, v);
             end
-            lhs(1, t, :) = lhs(1, t, :) + res(:, t, :);
-            plainData = updatePlainLhs(this__.Dependent, plainData, lhs, t);
+            plainData = updatePlainData(this__.Dependent, plainData, lhs, res, baseRangeColumns);
         end
     end%
 
 
 
 
-    function hereRunOnce(t)
-        posLhs = this__.Dependent.Position;
-        lhsPlainData = plainData(posLhs, :, :);
-        for v = 1 : numRuns
-            if v<=nv
-                parameters__ = this__.Parameters(:, :, v);
+    function hereRunOnce(columnsToRun)
+        posLhs__ = this__.Dependent.Position;
+        lhsPlainData__ = plainData(posLhs__, :, :);
+        for vv = 1 : numRuns
+            if vv<=nv
+                parameters__ = this__.Parameters(:, :, vv);
             end
-            t__ = t;
-            if raggedEdge(eqn)
-                if numel(t__)==1
-                    if ~isnan(lhsPlainData(1, t__, v))
-                        continue
-                    end
-                else
-                    inx = false(1, numExtendedPeriods);
-                    inx(t__) = true;
-                    inx = inx & isnan(lhsPlainData(1, :, v));
-                    if ~any(inx)
-                        continue
-                    end
-                    t__ = inx;
-                end
+            inxData__ = ~isnan(lhsPlainData__(1, :, vv));
+            inxColumnsToRun__ = false(1, numExtendedPeriods);
+            inxColumnsToRun__(columnsToRun) = true;
+            inxColumnsToExogenize__ = false(1, numExtendedPeriods);
+            if isExogenized__
+                inxColumnsToExogenize__ = inxColumnsToRun__ & (inxExogenizedAlways__ | (inxExogenizedWhenData__ & inxData__));
+                inxColumnsToRun__ = inxColumnsToRun__ & ~inxColumnsToExogenize__;
             end
-            lhs(1, t__, v) = parameters__*rhs(:, t__, v);
-            lhs(1, t__, v) = lhs(1, t__, v) + res(:, t__, v);
+            if any(inxColumnsToExogenize__)
+                %
+                % Exogenized points, calculate residuals
+                %
+                res(1, inxColumnsToExogenize__, vv) = ...
+                    lhs(1, inxColumnsToExogenize__, vv) - parameters__*rhs(:, inxColumnsToExogenize__, vv);
+            end
+            if any(inxColumnsToRun__)
+                %
+                % Endogenous simulation
+                %
+                lhs(1, inxColumnsToRun__, vv) = ...
+                    parameters__*rhs(:, inxColumnsToRun__, vv) + res(1, inxColumnsToRun__, vv);
+            end
         end
-        plainData = updatePlainLhs(this__.Dependent, plainData, lhs, baseRangeColumns);
+        plainData = updatePlainData(this__.Dependent, plainData, lhs, res, columnsToRun);
     end%
 
 
@@ -315,8 +371,8 @@ function tests = unitTests( )
         @arxSystemVariantsTest      
         @arxSystemWithPrependTest  
         @blazerTest
-        @allRaggedEdgeTest
-        @someRaggedEdgeTest
+        @allExogenizeWhenDataTest
+        @someExogenizeWhenDataTest
         @runtimeIfTest
     });
     tests = reshape(tests, [ ], 1);
@@ -503,18 +559,21 @@ function blazerTest(testCase)
 end%
 
 
-function allRaggedEdgeTest(testCase)
+function allExogenizeWhenDataTest(testCase)
     xq = ExplanatoryEquation.fromString([
-        "a = b{-1};"
-        "b = c{-1};"
-        "c = d{-1};"
+        "a = b{-1}"
+        "b = c{-1}"
+        "c = d{-1}"
     ]);
     db = struct( );
     db.d = Series(0:10, 0:10);
     db.c = Series(0:8, 0:10:80);
     db.b = Series(0:6, 0:100:600);
     simDb1 = simulate(xq, db, 1:10);
-    simDb2 = simulate(xq, db, 1:10, 'RaggedEdge=', true);
+
+    p2 = Plan.forExplanatoryEquation(xq, 1:10);
+    p2 = exogenizeWhenData(p2, 1:10, @all);
+    simDb2 = simulate(xq, db, 1:10, 'Plan=', p2);
 
     assertEqual(testCase, simDb1.c(1:10), db.d{-1}(1:10), 'AbsTol', 1e-14);
     assertEqual(testCase, simDb2.c(1:8), db.c(1:8), 'AbsTol', 1e-14);
@@ -529,7 +588,7 @@ function allRaggedEdgeTest(testCase)
 end%
 
 
-function someRaggedEdgeTest(testCase)
+function someExogenizeWhenDataTest(testCase)
     xq = ExplanatoryEquation.fromString([
         "a = b{-1};"
         ":exogenous b = c{-1};"
@@ -539,10 +598,12 @@ function someRaggedEdgeTest(testCase)
     db.d = Series(0:10, 0:10);
     db.c = Series(0:8, 0:10:80);
     db.b = Series(0:6, 0:100:600);
-    simDb1 = simulate(xq, db, 1:10, 'RaggedEdge=', false);
+    simDb1 = simulate(xq, db, 1:10);
 
-    xq(hasAttribute(xq, ":exogenous")).RaggedEdge = true;
-    simDb2 = simulate(xq, db, 1:10, 'RaggedEdge=', @auto);
+    [~, ~, listExogenous] = lookup(xq, ':exogenous');
+    p2 = Plan.forExplanatoryEquation(xq, 1:10);
+    p2 = exogenizeWhenData(p2, 1:10, listExogenous);
+    simDb2 = simulate(xq, db, 1:10, 'Plan=', p2);
 
     assertEqual(testCase, simDb1.c(1:10), db.d{-1}(1:10), 'AbsTol', 1e-14);
     assertEqual(testCase, simDb2.c(1:10), db.d{-1}(1:10), 'AbsTol', 1e-14);
@@ -553,6 +614,9 @@ function someRaggedEdgeTest(testCase)
 
     assertEqual(testCase, simDb1.a(1:10), simDb1.b{-1}(1:10), 'AbsTol', 1e-14);
     assertEqual(testCase, simDb2.a(1:10), simDb2.b{-1}(1:10), 'AbsTol', 1e-14);
+
+    simDb3 = simulate(xq, simDb2, 1:10);
+    assertEqual(testCase, simDb2.b(1:10), simDb3.b(1:10), 'AbsTol', 1e-14);
 end%
 
 

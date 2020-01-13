@@ -56,11 +56,10 @@ if isempty(pp)
     pp = extend.InputParser('ExplanatoryEquation.fromFile');
     pp.KeepUnmatched = true;
     addRequired(pp, 'sourceFiles', @(x) validate.list(x) || isa(x, 'model.File'));
-    addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
+    addParameter(pp, 'Preparser', cell.empty(1, 0), @iscell);
 end
 parse(pp, sourceFiles, varargin{:});
 opt = pp.Options;
-unmatched = pp.UnmatchedInCell;
 
 %--------------------------------------------------------------------------
 
@@ -77,9 +76,8 @@ else
     %
     % Run the preparser
     %
-    [ code, fileName, ...
-        export__, ctrlParameters, ...
-        comment, substitutions ] =  parser.Preparser.parse(sourceFiles, [ ], unmatched{:});
+    [code, fileName, export__, ~, comment, substitutions] = ...
+        parser.Preparser.parse(sourceFiles, [ ], opt.Preparser{:});
 end
 
 %
@@ -91,7 +89,7 @@ end
 %
 % Build array of ExplanatoryEquation objects
 %
-this = ExplanatoryEquation.fromString(equations, 'EnforceCase=', opt.EnforceCase);
+this = ExplanatoryEquation.fromString(equations, pp.UnmatchedInCell{:});
 
 
 %
@@ -156,14 +154,14 @@ function singleSourceFileTest(testCase)
     f.FileName = 'test.model';
     f.Code = [
         "%% Model"
-        "!for ? = <list> !do"
+        "!for ? = $[ list ]$ !do"
         "  % Country specific equation"
         "  x_? = @ + @*x_?{-1} - @*y + y*z;"
         "!end"
     ];
     control = struct( );
     control.list = ["AA", "BB", "CC"];
-    act = ExplanatoryEquation.fromFile(f, "Assign=", control);
+    act = ExplanatoryEquation.fromFile(f, 'Preparser=', {'Assign=', control});
     for i = 1 : numel(control.list)
         exp = ExplanatoryEquation( );
         s = control.list(i);
@@ -208,13 +206,18 @@ function sourceFileWithEmptyEquationsTest(testCase)
         " c = c{-1};"
         " 'ddd' d = d{-1}; ; :xxx"
     ];
+
+    state = warning('query');
+    warning('off');
     act = ExplanatoryEquation.fromFile(f);
+    warning(state);
+
     exp_LhsName = ["a", "b", "c", "d"];
     assertEqual(testCase, [act.LhsName], exp_LhsName);
     exp_Label = ["aaa", "bbb", "", "ddd"];
     assertEqual(testCase, [act.Label], exp_Label);
     for i = 1 : numel(act)
-        assertEqual(testCase, act(1).Attributes, string.empty(1, 0));
+        assertEqual(testCase, act(i).Attributes, string.empty(1, 0));
     end
 end%
 
@@ -245,9 +248,9 @@ function preparserForIfTest(testCase)
     f1 = model.File( );
     f1.FileName = 'test.model';
     f1.Code = [
-        "!for ?c = <list> !do"
+        "!for ?c = $[ list ]$ !do"
         "    x_?c = "
-        "    !for ?w = <list> !do"
+        "    !for ?w = $[ list ]$ !do"
         "        !if ""?w""~=""?c"" "
         "            + w_?c_?w*x_?w"
         "        !end"
@@ -258,9 +261,9 @@ function preparserForIfTest(testCase)
     f2 = model.File( );
     f2.FileName = 'test.model';
     f2.Code = [
-        "!for ?c = <list> !do"
+        "!for ?c = $[ list ]$ !do"
         "    x_?c = "
-        "    !for ?w = <setdiff(list, ""?c"")> !do"
+        "    !for ?w = $[ setdiff(list, ""?c"") ]$ !do"
         "        !if ""?w""~=""?c"" "
         "            + w_?c_?w*x_?w"
         "        !end"
@@ -270,8 +273,8 @@ function preparserForIfTest(testCase)
     ];
     control = struct( );
     control.list = ["AA", "BB", "CC"];
-    act1 = ExplanatoryEquation.fromFile(f1, "Assign=", control);
-    act2 = ExplanatoryEquation.fromFile(f2, "Assign=", control);
+    act1 = ExplanatoryEquation.fromFile(f1, 'Preparser=', {'Assign=', control});
+    act2 = ExplanatoryEquation.fromFile(f2, 'Preparser=', {'Assign=', control});
     for i = 1 : numel(control.list)
         assertEqual(testCase, act1(i).LhsName, "x_"+control.list(i));
     end
@@ -308,7 +311,7 @@ function preparserSwitchTest(testCase)
     list = ["AA", "BB", "CC", "DD"];
     for i = 1 : numel(list)
         control.country = list(i);
-        act = ExplanatoryEquation.fromFile(f1, 'Assign=', control);
+        act = ExplanatoryEquation.fromFile(f1, 'Preparser=', {'Assign=', control});
         assertEqual(testCase, func2str(act.Explanatory.Expression), exp_Expression{i});
     end
 end%

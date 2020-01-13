@@ -1,7 +1,70 @@
 function varargout = fromString(inputString, varargin)
 % fromString  Create ExplanatoryEquation object from string
 %{
+% ## Syntax ##
+%
+%
+%     this = function(inputString, ...)
+%
+%
+% ## Input Arguments ##
+%
+%
+% __`inputString`__ [ string ]
+% >
+% Input string, or an array of strings, that will be converted to
+% ExplanatoryEquation object or array.
+%
+%
+% ## Output Arguments ##
+%
+%
+% __`this`__ [ ExplanatoryEquation ]
+% >
+% New ExplanatoryEquation object or array created from the `inputString`.
+%
+%
+% ## Options ##
+%
+%
+% __`EnforceCase=[ ]`__ [ empty | `@lower` | `@upper` ]
+% >
+% Force the variable names, residual names and fitted names to be all
+% lowercase or uppercase.
+%
+%
+% __`ResidualNamePattern=["res_", ""]`__ [ string ]
+% >
+% A two-element string array with the prefix and the suffix used to create
+% the name for residuals, based on the LHS variable name.
+%
+%
+% __`FittedNamePattern=["fit_", ""]`__ [ string ]
+% >
+% A two-element string array with the prefix and the suffix used to create
+% the name for fitted values, based on the LHS variable name.
+%
+%
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%
+% Create an array of three ExplanatoryEquation objects, with `x`, `y`, and
+% `z` being the LHS variables:
+%
+%     q = ExplanatoryEquation.fromString([
+%         "x = 0.8*x{-1} + z"
+%         "diff(y) = 2*x + a + b"
+%         "z = 0.5*z{-1} + 0.3*z{-2}
+%     ]);
 %}
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 IRIS Solutions Team
+
+%--------------------------------------------------------------------------
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
@@ -20,6 +83,9 @@ if isempty(pp)
     pp = extend.InputParser('ExplanatoryEquation.fromString');
     addRequired(pp, 'inputString', @validate.list);
     addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
+    addParameter(pp, 'ResidualNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
+    addParameter(pp, 'FittedNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
+    addParameter(pp, 'DateReference', @default, @(x) isequal(x, @default) || validate.stringScalar(x));
 end
 parse(pp, inputString, varargin{:});
 opt = pp.Options;
@@ -45,8 +111,9 @@ for j = 1 : numel(inputString)
     end
 
     %
-    % Create a new ExplanatoryEquation object and enforce lower or upper
-    % case on ResidualPrefix and FittedPrefix if requested
+    % Create a new ExplanatoryEquation object, assign ResidualNamePattern
+    % and FittedNamePattern, and enforce lower or upper case on
+    % ResidualNamePattern and FittedNamePattern if requested
     %
     this__ = hereCreateObject( );
 
@@ -91,13 +158,35 @@ if numEmpty>0
     hereWarnEmptyEquations( );
 end
 
+this = [array{:}];
+
 
 %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout{1} = reshape([array{:}], [ ], 1);
+varargout{1} = reshape(this, [ ], 1);
 %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 
 return
+
+
+    function obj = hereCreateObject( )
+        obj = ExplanatoryEquation( );
+        if ~isequal(opt.ResidualNamePattern, @default)
+            obj.ResidualNamePattern = string(opt.ResidualNamePattern);
+        end
+        if ~isequal(opt.FittedNamePattern, @default)
+            obj.FittedNamePattern = string(opt.FittedNamePattern);
+        end
+        if ~isequal(opt.DateReference, @default)
+            obj.DateReference = string(opt.DateReference);
+        end
+        if ~isempty(opt.EnforceCase)
+            obj.ResidualNamePattern = opt.EnforceCase(obj.ResidualNamePattern);
+            obj.FittedNamePattern = opt.EnforceCase(obj.FittedNamePattern);
+            obj.DateReference = opt.EnforceCase(obj.DateReference);
+        end
+    end%
+
+
 
 
     function variableNames = hereCollectAllVariableNames( )
@@ -110,11 +199,15 @@ return
             inputString__ = regexprep(inputString__, ExplanatoryEquation.VARIABLE_NO_SHIFT, '${replaceFunc($0)}');
         end
 
+        %
+        % Collect unique names of all variables
+        %
         variableNames = unique(string(variableNames), 'stable');
+
         %
-        % Remove date__ from the list of variables
+        % Remove DateReference from the list of variables
         %
-        variableNames(variableNames=="date__") = [ ];
+        variableNames(variableNames==this__.DateReference) = [ ];
 
         return
             function c = hereEnforceCase(c)
@@ -122,17 +215,6 @@ return
                 variableNames(end+1) = c;
             end%
     end% 
-
-
-
-
-    function obj = hereCreateObject( )
-        obj = ExplanatoryEquation( );
-        if ~isempty(opt.EnforceCase)
-            obj.ResidualPrefix = opt.EnforceCase(obj.ResidualPrefix);
-            obj.FittedPrefix = opt.EnforceCase(obj.FittedPrefix);
-        end
-    end%
 
 
 
@@ -315,6 +397,8 @@ function tests = unitTests( )
         @ifDynamicTest
         @compareDynamicStaticTest
         @switchVariableTest
+        @residualNameTest
+        @fittedNameTest
     });
     tests = reshape(tests, [ ], 1);
 end%
@@ -418,8 +502,9 @@ function upperTest(testCase)
         ["XA = XA{-1} + XA{-2} + XB", "XB = XA{-1}"] ...
     );
     for i = 1 : numel(exp)
-        exp(i).ResidualPrefix = upper(exp(i).ResidualPrefix);
-        exp(i).FittedPrefix = upper(exp(i).FittedPrefix);
+        exp(i).ResidualNamePattern = upper(exp(i).ResidualNamePattern);
+        exp(i).FittedNamePattern = upper(exp(i).FittedNamePattern);
+        exp(i).DateReference = upper(exp(i).DateReference);
     end
     assertEqual(testCase, act, exp);
 end%
@@ -494,5 +579,37 @@ function switchVariableTest(testCase)
     inputDb.switch__ = true;
     simDb2 = simulate(q, inputDb, yy(1:10));
     assertEqual(testCase, simDb2.x(yy(1:10)), inputDb.dummy1(yy(1:10)));
+end%
+
+
+function residualNameTest(testCase)
+    q = ExplanatoryEquation.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'ResidualNamePattern=', ["", "_ma"]);
+    assertEqual(testCase, [q.LhsName], ["x", "y"]);
+    assertEqual(testCase, [q.ResidualName], ["x_ma", "y_ma"]);
+    q = ExplanatoryEquation.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'ResidualNamePattern=', ["", "_ma"], 'EnforceCase=', @upper);
+    assertEqual(testCase, [q.LhsName], ["X", "Y"]);
+    assertEqual(testCase, [q.ResidualName], ["X_MA", "Y_MA"]);
+end%
+
+
+function fittedNameTest(testCase)
+    q = ExplanatoryEquation.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'FittedNamePattern=', ["", "_fitted"]);
+    assertEqual(testCase, [q.LhsName], ["x", "y"]);
+    assertEqual(testCase, [q.FittedName], ["x_fitted", "y_fitted"]);
+    q = ExplanatoryEquation.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'FittedNamePattern=', ["", "_fitted"], 'EnforceCase=', @upper);
+    assertEqual(testCase, [q.LhsName], ["X", "Y"]);
+    assertEqual(testCase, [q.FittedName], ["X_FITTED", "Y_FITTED"]);
 end%
 %)

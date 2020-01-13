@@ -153,22 +153,22 @@ return
         transform = string.empty(1, 0);
         if startsWith(inputSpecs, "diff(")
             % ^diff(name)$
-            name = regexprep(inputSpecs, "^diff\(([A-Za-z]\w*)\)$", "tokens", "once");
+            name = regexp(inputSpecs, "^diff\(([A-Za-z]\w*)\)$", "tokens", "once");
             transform = "diff";
         end
         if isempty(name) && startsWith(inputSpecs, "difflog(")
             % ^difflog(name)$
-            name = regexprep(inputSpecs, "^difflog\(([A-Za-z]\w*)\)$", "tokens", "once");
+            name = regexp(inputSpecs, "^difflog\(([A-Za-z]\w*)\)$", "tokens", "once");
             transform = "difflog";
         end
         if isempty(name) && startsWith(inputSpecs, "(")
             % ^((name)-(name{-1}))$
-            name = regexprep(inputSpecs, "^\(\(([A-Za-z]\w*)\)-\(\1{-1}\)\)$", "tokens", "once");
+            name = regexp(inputSpecs, "^\(\(([A-Za-z]\w*)\)-\(\1{-1}\)\)$", "tokens", "once");
             transform = "diff";
         end
         if isempty(name) && startsWith(inputSpecs, "(")
             % ^(log(name)-log(name{-1}))$
-            name = regexprep(inputSpecs, "\(log\(([A-Za-z]\w*)\)-log\(\1{-1}\)\)", "tokens", "once");
+            name = regexp(inputSpecs, "\(log\(([A-Za-z]\w*)\)-log\(\1{-1}\)\)", "tokens", "once");
             transform = "difflog";
         end
 
@@ -266,8 +266,6 @@ return
             output.Type = "Expression";
             output.Expression = func;
             output.Incidence = incidence;
-        catch
-            keyboard
         end
 
         return
@@ -275,8 +273,8 @@ return
 
             function c = replaceNameShift(c1, c2)
                 c = '';
-                if c1=="date__"
-                    c = c1;
+                if string(c1)==string(xq.DateReference)
+                    c = 'date__';
                     return
                 end
                 pos = getPositionOfName(xq, c1);
@@ -302,7 +300,10 @@ return
 
 
             function hereParseSpecials( )
-                parsedSpecs = regexprep(parsedSpecs, "\<if\(", "simulate.if(");
+                % Replace `ifnan(` with `simulate.ifnan(`
+                parsedSpecs = regexprep(parsedSpecs, "(?<!\.)\<ifnan\(", "simulate.ifnan(");
+                % Replace `if(` with `simulate.if(`
+                parsedSpecs = regexprep(parsedSpecs, "(?<!\.)\<if\(", "simulate.if(");
             end%
 
 
