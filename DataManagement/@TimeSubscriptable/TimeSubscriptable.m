@@ -99,6 +99,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         varargout = redate(varargin)
         varargout = removeWeekends(varargin)
         varargout = resetComment(varargin)
+        varargout = retrieveColumns(varargin)
         varargout = setData(varargin)
         varargout = shift(varargin)
 

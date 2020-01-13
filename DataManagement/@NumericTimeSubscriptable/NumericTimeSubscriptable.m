@@ -68,7 +68,6 @@ classdef ( ...
 
         tabular(varargin)
         varargout = pct(varargin)
-        varargout = retrieveColumns(varargin)
         varargout = rmse(varargin)
         varargout = roc(varargin)
 
