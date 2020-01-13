@@ -1,36 +1,46 @@
 function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 % clip  Clip time series range
-%
-% __Syntax__
+%{
+% ## Syntax ##
 %
 %     outputSeries = clip(inputSeries, newStart, newEnd)
 %
 %
-% __Input Arguments__
-%
-% * `inputSeries` [ TimeSubscriptable ] - Input time series whose date range will be clipped.
-%
-% * `newStart` [ DateWrapper | `-Inf` ] - New start date; `-Inf` means keep
-% the current start date.
-%
-% * `newEnd` [ DateWrapper | `Inf` ] - New end date; `Inf` means keep
-% the current enddate.
+% ## Input Arguments ##
 %
 %
-% __Output Arguments__
+% __`inputSeries`__ [ TimeSubscriptable ]
+% >
+% Input time series whose date range will be clipped.
 %
-% * `outputSeries` [ TimeSubscriptable ] - Output time series  with its date range clipped to
-% the new range from `newStart` to `newEnd`.
+%
+% __`newStart`__ [ DateWrapper | `-Inf` ]
+% >
+% New start date; `-Inf` means keep the current start date.
 %
 %
-% __Description__
+% __`newEnd`__ [ DateWrapper | `Inf` ]
+% >
+% New end date; `Inf` means keep the current enddate.
 %
-% If either the `newStart` or the `newEnd` is
 %
-% __Example__
+% ## Output Arguments ##
 %
+%
+% __`outputSeries`__ [ TimeSubscriptable ]
+% Output time series  with its date range clipped to the new range from
+% `newStart` to `newEnd`.
+%
+%
+% ## Description ##
+%
+%
+%
+% ## Example ##
+%
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
 persistent parser
