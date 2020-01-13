@@ -1,5 +1,5 @@
 function this = subsasgn(this, s, y, varargin)
-% subsasgn  Subscripted assignment for time series
+% subsasgn  Subscripted assignment to numeric time series
 %{
 % __Syntax__
 %
@@ -58,17 +58,17 @@ switch s(1).type
         % Run recognizeShift( ) to tell if the first reference is a lag/lead. If yes, 
         % the startdate `x` will be adjusted within recognizeShift( )
         sh = 0;
-        if length(s)>1 || isa(y, 'tseries')
+        if length(s)>1 || isa(y, 'NumericTimeSubscriptable')
             [this, s, sh] = recognizeShift(this, s);
         end
-        % After a lag or lead, only one ( )-reference is allowed.
+        % After a lag or lead, only one ( )-reference is allowed
         if length(s)~=1 || ~isequal(s(1).type, '()')
             utils.error('tseries:subsasgn', ...
                 ['Invalid subscripted assignment ', ...
                 'to tseries object.']);
         end
         this = setData(this, s, y);
-        % Shift start date back.
+        % Shift start date back
         if sh~=0
             this.Start = addTo(this.Start, sh);
         end
