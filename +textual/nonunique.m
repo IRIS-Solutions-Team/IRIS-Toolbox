@@ -1,33 +1,43 @@
 function [flag, outputList] = nonunique(inputList)
-% nonunique  Find nonunique entries in a cellstr
-%
-% __Syntax__
+% nonunique  Find nonunique entries in a list
+%{
+% ## Syntax ##
 %
 %     [flag, duplicate] = textual.nonunique(List)
 %
 %
-% __Input Arguments__
-%
-% * `list` [ cellstr ] - Cell array of names.
+% ## Input Arguments ##
 %
 %
-% __Output Arguments__
+% __`inputList`__ [ cellstr | string ]
+% >
+% List of strings; either a cell array of chars or an array of strings.
 %
-% * `flag` [ true | false ] - True if there are duplicate (nonunique)
-% entries in the `list`.
 %
-% * `duplicate` [ cellstr ] - List of duplicate (nonunique) entries
-% from the input list.
+% ## Output Arguments ##
+%
+%
+% __`flag`__ [ `true` | `false` ]
+% >
+% True if there are duplicate (nonunique) entries in the `inputList`.
+%
+%
+% __`duplicate`__ [ cellstr | string ]
+% >
+% List of duplicate (nonunique) entries from the `inputList`; the
+% `duplicate` list is the same type as the `inputList` (either a cell array
+% of chars or a string array). 
 %
 % 
-% __Description__
-%
-% This function finds all entries that occur in the input list, `list`,
-% more than once, and returns them with each such entry included only once
-% in the output list, `duplicate`.
+% ## Description ##
 %
 %
-% __Example__
+% This function finds all entries that occur in the `inputList`, more than
+% once, and returns them with each such entry included only once in the
+% output list, `duplicate`.
+%
+%
+% ## Example ##
 %
 %
 %     >> [flag, duplicate] = textual.nonunique({'a', 'b', 'c'})
@@ -44,13 +54,16 @@ function [flag, outputList] = nonunique(inputList)
 %       1x2 cell array
 %         {'a'}    {'c'}
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
 %--------------------------------------------------------------------------
 
-inputList = inputList(:)';
+inputClass = class(inputList);
+
+inputList = reshape(cellstr(inputList), 1, [ ]);
 numInputList = numel(inputList);
 [~, posUnique] = unique(inputList, 'last');
 posDuplicate = 1:numInputList;
@@ -59,12 +72,16 @@ flag = ~isempty(posDuplicate);
 if nargout==1
     return
 end
-if isempty(posDuplicate)
-    outputList = cell.empty(1, 0);
-    return
+
+outputList = cell.empty(1, 0);
+if ~isempty(posDuplicate)
+    outputList = inputList(posDuplicate);
+    outputList = unique(outputList, 'stable');
 end
-outputList = inputList(posDuplicate);
-outputList = unique(outputList, 'stable');
+
+if strcmp(inputClass, 'string')
+    outputList = string(outputList);
+end
 
 end%
 
