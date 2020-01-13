@@ -13,7 +13,7 @@ classdef BareLinearKalman < shared.Kalman
         % Dimensions  Dimensions of state space vectors [xi, v, y, w]
         Dimensions (1, 4) double = [0, 0, 0, 0]
 
-        % SystemMatrices  State space system matrices TRkZHd
+        % SystemMatrices  State space system matrices {T, R, k, Z, H, d, U, Zb}
         SystemMatrices (1, 8) cell = cell(1, 8)
 
         % CovarianceMatrices  Covariance matrices for transition and measurement shocks
@@ -82,7 +82,7 @@ classdef BareLinearKalman < shared.Kalman
 
 
         varargout = filter(varargin)
-        %varargout = triangularize(this)
+        % varargout = triangularize(this)
         %)
     end
 
@@ -167,6 +167,8 @@ classdef BareLinearKalman < shared.Kalman
         end%
 
 
+
+
         function Omega = get.Omega(this)
             nv = this.NumV;
             nw = this.NumW;
@@ -191,9 +193,13 @@ classdef BareLinearKalman < shared.Kalman
         end%
 
 
+
+
         function nv = get.NumXi(this)
             nv = this.Dimensions(1);
         end%
+
+
 
 
         function nv = get.NumV(this)
@@ -201,9 +207,13 @@ classdef BareLinearKalman < shared.Kalman
         end%
 
 
+
+
         function nw = get.NumY(this)
             nw = this.Dimensions(3);
         end%
+
+
 
 
         function nw = get.NumW(this)
