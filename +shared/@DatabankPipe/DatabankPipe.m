@@ -10,5 +10,15 @@ classdef DatabankPipe
         varargout = nameAppendables(varargin)
         varargout = countVariants(varargin)
     end
+
+
+    methods (Abstract)
+        varargout = getActualMinMaxShifts(varargin)
+    end
+
+
+    methods
+        varargout = getExtendedRange(varargin)
+    end
 end
 

@@ -205,6 +205,12 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = xsf(varargin)
         varargout = subsref(varargin)
         varargout = subsasgn(varargin)
+
+
+        function [minSh, maxSh] = getActualMinMaxShifts(this)
+            minSh = -this.Order;
+            maxSh = 0;
+        end%
     end
     
     

@@ -1,5 +1,4 @@
-function ...
-    [startExtRange, endExtRange, minShift, maxShift, inxBaseRange] ...
+function [startExtRange, endExtRange, minShift, maxShift, inxBaseRange] ...
     = getExtendedRange(this, baseRange)
 % getExtendedRange  Extend base range for dynamic simulations to include presample and postsample
 %
@@ -20,12 +19,12 @@ endBaseRange = baseRange(end);
 
 startExtRange = startBaseRange;
 if minShift<0
-    startExtRange = startExtRange + minShift;
+    startExtRange = DateWrapper.roundPlus(startExtRange, minShift);
 end
 
 endExtRange = endBaseRange;
 if maxShift>0
-    endExtRange = endExtRange + maxShift;
+    endExtRange = DateWrapper.roundPlus(endExtRange, maxShift);
 end
 
 if nargout<=4
@@ -38,4 +37,5 @@ inxBaseRange(1:abs(minShift)) = false;
 inxBaseRange(end-maxShift+1:end) = false;
 
 end%
+
 
