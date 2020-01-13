@@ -66,20 +66,20 @@ if data.NumOfExogenizedPoints==0
     end
 end
 
-initNlaf = data.NonlinAddf(:, columnRangeOfHashFactors);
+nlafInit = data.NonlinAddf(:, columnRangeOfHashFactors);
 
 if strncmpi(solverName, 'IRIS', 4)
     % IRIS Solver
     data0 = data;
-    initNlaf0 = initNlaf;
+    initNlaf0 = nlafInit;
     for i = 1 : numel(solverOpt)
         ithSolver = solverOpt(i);
         if i>1 && ithSolver.Reset
             data = data0;
-            initNlaf = initNlaf0;
+            nlafInit = initNlaf0;
         end
-        [finalNlaf, dcy, exitFlag] = solver.algorithm.qnsd( ...
-            objectiveFunction, initNlaf, ithSolver, rect.Header ...
+        [nlafFinal, dcy, exitFlag] = solver.algorithm.qnsd( ...
+            objectiveFunction, nlafInit, ithSolver, rect.Header ...
         );
         if hasSucceeded(exitFlag)
             break
@@ -89,7 +89,7 @@ if strncmpi(solverName, 'IRIS', 4)
 elseif strcmpi(solverName, 'fminsearch')
     % Plain fminsearch
     temp = @(x) sum(power(objectiveFunction(x), 2), [1, 2]);
-    [finalNlaf, dcy, exitFlag] = fminunc(temp, initNlaf, solverOpt);
+    [nlafFinal, dcy, exitFlag] = fminsearch(temp, nlafInit, solverOpt);
     if exitFlag==1
         exitFlag = solver.ExitFlag.CONVERGED;
     elseif exitFlag==0
@@ -101,16 +101,16 @@ elseif strcmpi(solverName, 'fminsearch')
 else
     if strcmpi(solverName, 'fsolve')
         % Optimization Tbx
-        [finalNlaf, dcy, exitFlag] = fsolve(objectiveFunction, initNlaf, solverOpt);
+        [nlafFinal, dcy, exitFlag] = fsolve(objectiveFunction, nlafInit, solverOpt);
     elseif strcmpi(solverName, 'lsqnonlin')
         % Optimization Tbx
-        [finalNlaf, ~, dcy, exitFlag] = lsqnonlin(objectiveFunction, initNlaf, [ ], [ ], solverOpt);
+        [nlafFinal, ~, dcy, exitFlag] = lsqnonlin(objectiveFunction, nlafInit, [ ], [ ], solverOpt);
     end
     exitFlag = solver.ExitFlag.fromOptimTbx(exitFlag);
 end
 
 rect.SimulateY = true;
-data.NonlinAddf(:, columnRangeOfHashFactors) = finalNlaf; 
+data.NonlinAddf(:, columnRangeOfHashFactors) = nlafFinal; 
 simulateFunc(rect, data);
 
 return
@@ -151,7 +151,7 @@ return
         % Calculate impact of current hash factors and add them to
         % simulated data
         impact = zeros(numYX, numHashedColumns);
-        impact(inxHashedYX) = rect.HashMultipliers * (nlaf(:) - initNlaf(:));
+        impact(inxHashedYX) = rect.HashMultipliers * (nlaf(:) - nlafInit(:));
         if any(inxLogYX)
             impact(inxLogYX, :) = exp( impact(inxLogYX, :) );
         end

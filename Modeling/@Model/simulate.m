@@ -1,4 +1,4 @@
-function [outputDb, outputInfo] = simulate(this, inputDb, baseRange, varargin)
+function varargout = simulate(this, inputDb, baseRange, varargin)
 % simulate  Simulate model
 %{
 %
@@ -99,6 +99,7 @@ end
 opt.Method = solver.Method.parse(opt.Method);
 opt.Solver = parseSolverOption(opt.Solver, opt.Method);
 isAsynchronous = isequal(inputDb, "asynchronous");
+opt.Solver = hereResolveSolverOption(opt.Solver);
 
 %--------------------------------------------------------------------------
 
@@ -142,7 +143,7 @@ herePrepareBlazer( );
 systemProperty = hereSetupSystemProperty( );
 
 if ~isequal(opt.SystemProperty, false)
-    outputDb = systemProperty;
+    varargout{1} = systemProperty;
     return
 end
 
@@ -171,14 +172,16 @@ if opt.Contributions
 end
 
 if isAsynchronous
-
     return
 end
 
 outputDb = hereCreateOutputData( );
-if runningData.PrepareOutputInfo
-    outputInfo = herePrepareOutputInfo( );
-end
+outputInfo = herePrepareOutputInfo( );
+
+
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+varargout = { outputDb, outputInfo };
+%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 return
     
@@ -533,6 +536,9 @@ return
 
     function outputInfo = herePrepareOutputInfo( )
         outputInfo = struct( );
+        if ~runningData.PrepareOutputInfo
+            return
+        end
         outputInfo.TimeFrames = runningData.TimeFrames;
         outputInfo.TimeFrameDates = runningData.TimeFrameDates;
         outputInfo.BaseRange = DateWrapper(runningData.BaseRange);
@@ -604,6 +610,25 @@ function flag = validateSolverName(x)
         'fsolve'      
     };
     flag = any(strcmpi(char(x), listSolverNames));
+end%
+
+
+
+
+function solverOption = hereResolveSolverOption(solverOption)
+    if ischar(solverOption) || isstring(solverOption)
+        solverName = solverOption;
+        keep = cell.empty(1, 0);
+    elseif iscell(solverOption)
+        solverName = solverOption{1};
+        keep = solverOption(2:end);
+    else
+        return
+    end
+    if strcmpi(solverName, 'fminsearch')
+        solverOption = optimset(keep{:});
+        solverOption.SolverName = 'fminsearch';
+    end
 end%
 
 
