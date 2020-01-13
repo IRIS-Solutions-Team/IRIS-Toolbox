@@ -632,6 +632,13 @@ classdef DateWrapper < double
 
 
 
+        function output = roundEqual(this, that)
+            output = round(100*this)==round(100*that);
+        end%
+
+
+
+
         function output = roundColon(from, varargin)
             from = double(from);
             convertToDateWrapper = isa(from, 'DateWrapper');
