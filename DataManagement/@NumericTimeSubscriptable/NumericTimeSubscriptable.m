@@ -62,11 +62,13 @@ classdef ( ...
         end%
 
 
+        varargout = genip(varargin)
         varargout = grow(varargin)
 
 
         tabular(varargin)
         varargout = pct(varargin)
+        varargout = retrieveColumns(varargin)
         varargout = rmse(varargin)
         varargout = roc(varargin)
 
