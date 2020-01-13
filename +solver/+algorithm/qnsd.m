@@ -73,9 +73,9 @@ end
 lastJacobUpdate = opt.LastJacobUpdate;
 lastBroydenUpdate = opt.LastBroydenUpdate;
 
-sizeOfX = size(xInit);
-if any(sizeOfX(2:end)>1)
-    objectiveFuncReshaped = @(x, varargin) objectiveFunc(reshape(x, sizeOfX), varargin{:});
+sizeX = size(xInit);
+if any(sizeX(2:end)>1)
+    objectiveFuncReshaped = @(x, varargin) objectiveFunc(reshape(x, sizeX), varargin{:});
 else
     objectiveFuncReshaped = @(x, varargin) objectiveFunc(x, varargin{:});
 end
@@ -129,6 +129,8 @@ iter = 0;
 needsPrintHeader = true;
 extraJacobUpdate = false;
 
+
+%//////////////////////////////////////////////////////////////////////////
 while true
     %
     % Set jacobUpdate=false in case this is the last iteration, which means
@@ -167,7 +169,6 @@ while true
     %
     % Calculate Jacobian for current iteration
     %
-
     jacobUpdate = iter<=lastJacobUpdate || extraJacobUpdate;
     if jacobUpdate 
         if opt.SpecifyObjectiveGradient
@@ -183,8 +184,7 @@ while true
             jacobUpdateString = 'Finite-Diff';
         end
     elseif iter>0 && iter<=lastBroydenUpdate && ~current.Reverse
-        hereUpdateJacobByBroyden( );
-        jacobUpdateString = 'Broyden';
+        jacobUpdateString = hereUpdateJacobByBroyden( );
     else
         current.J = last.J;
         jacobUpdateString = 'None';
@@ -203,7 +203,6 @@ while true
     % Report Current iteration
     % Step size from Current to Next is reported in Next
     %
-    
     if displayLevel.Iter
         if mod(iter, displayLevel.Every)==0
             hereReportIter( );
@@ -214,7 +213,6 @@ while true
     %
     % Make step from Current to Next iteration
     %
-
     iter = iter + 1;
     next = ITER_STRUCT;
     next.Iter = iter;
@@ -225,7 +223,6 @@ while true
         % Optimize size of Newton step
         % This is can only be invoked when QaD is called and step is Newton
         %
-
         next.Step = linspace(0, opt.InitStepSize, NUM_OF_OPTIM_STEP_SIZES+1);
         next.Step = next.Step(2:end);
     else
@@ -236,7 +233,6 @@ while true
         % * StepSizeSwitch=0 means step size always reset to default
         % * StepSizeSwitch=1 means reuse step size from previous iteration
         %
-
         if opt.StepSizeSwitch==0 
             next.Step = DEFAULT_STEP_SIZE;
         else
@@ -256,27 +252,26 @@ while true
     %
     % Try to deflate or inflate the step size if needed or desirable
     %
-
     if doTryMakeProgress && next.Norm>current.Norm 
-        % Change step until objective function improves; try to deflate
-        % first, then try to inflate
+        % Change the step size until objective function improves; try to
+        % deflate first, then try to inflate
         success = hereTryMakeProgress(deflateStep);
         if ~success
             hereTryMakeProgress(inflateStep);
         end
     elseif doTryImproveProgress
-        % Change step as far as objective function improves; try to
-        % inflate first, then try to deflate
+        % Change the step size as far as objective function improves; try
+        % to inflate first, then try to deflate
         success = hereTryImproveProgress(inflateStep);
         if ~success
             hereTryImproveProgress(deflateStep);
         end
     end
     
+
     %
     % Check progress between Current and Next iteration
     %
-
     if jacobUpdate
         threshold = current.Norm;
         if next.Norm>threshold
@@ -309,11 +304,12 @@ while true
     %
     % Move to Next iteration
     %
-
     extraJacobUpdate = false;
     last = current;
     current = next;
 end
+%//////////////////////////////////////////////////////////////////////////
+
 
 warning(w);
 
@@ -336,48 +332,55 @@ if displayLevel.Any
     fprintf('\n');
 end
 
-x = reshape(current.X, sizeOfX);
+x = reshape(current.X, sizeX);
 f = reshape(current.F, sizeOfF);
 
 return
 
 
-    function hereUpdateJacobByBroyden( )
-        j = last.J;
-        if isscalar(j)
-            j = j * eye(numUnknowns);
+    function jacobUpdateString = hereUpdateJacobByBroyden( )
+        step = current.Step;
+        if ~isscalar(step) || ~isfinite(step)
+            jacobUpdateString = 'None';
+            return
+        end
+        jacob = last.J;
+        if isscalar(jacob)
+            jacob = jacob * eye(numUnknowns);
         end
         s = current.X - last.X;
         y = current.F - last.F;
-        update = (y - j*s)*transpose(s) / ( transpose(s)*s );
+        update = (y - step*jacob*s)*transpose(s) / ( transpose(s)*s );
         if all(isfinite(update(:)))
-            j = j + update;
+            jacob = jacob + update*step;
         end
-        current.J = j;
+        current.J = jacob;
+        jacobUpdateString = 'Broyden';
     end%
 
 
     function hereMakeNewtonStep( )
         % Get and trim current objective function
         F0 = hereGetCurrentObjectiveFunction( );
-        lastwarn('');
-        next.D = -current.J \ F0;
-        if opt.UsePinvIfJacobSingular && ~isempty(lastwarn( ))
-            next.D = -pinv(current.J) * F0;
-        end
+        jacob = current.J;
         step = next.Step;
-        lenOfStepSize = numel(step);
-        X = cell(1, lenOfStepSize);
-        F = cell(1, lenOfStepSize);
-        N = nan(1, lenOfStepSize);
-        for ii = 1 : lenOfStepSize
+        lenStepSize = numel(step);
+        lastwarn('');
+        next.D = -jacob \ F0;
+        if opt.UsePinvIfJacobSingular && ~isempty(lastwarn( ))
+            next.D = -pinv(jacob) * F0;
+        end
+        X = cell(1, lenStepSize);
+        F = cell(1, lenStepSize);
+        N = nan(1, lenStepSize);
+        for ii = 1 : lenStepSize
             X{ii} = current.X + step(ii)*next.D;
             F{ii} = objectiveFuncReshaped(X{ii});
             fnCount = fnCount + 1;
             F{ii} = F{ii}(:);
             N(ii) = fnNorm(F{ii});
         end
-        if lenOfStepSize==1
+        if lenStepSize==1
             next.Norm = N;
             pos = 1;
         else
@@ -387,7 +390,7 @@ return
         next.Step = step(pos);
         next.F = F{pos};
         next.Lambda = 0;
-        if lenOfStepSize>1 && displayLevel.Iter
+        if lenStepSize>1 && displayLevel.Iter
             hereReportStepSizeOptim( );
         end
     end%
@@ -415,15 +418,15 @@ return
         if minSingularValue>tol
             vecOfLambdas0 = [0, vecOfLambdas0];
         end
-        lenOfLambda0 = numel(vecOfLambdas0);
+        lenLambda0 = numel(vecOfLambdas0);
         scale = tol * eye(numUnknowns);
         
         % Optimize lambda
-        D = cell(1, lenOfLambda0);
-        X = cell(1, lenOfLambda0);
-        F = cell(1, lenOfLambda0);
-        N = nan(1, lenOfLambda0);
-        for ii = 1 : lenOfLambda0
+        D = cell(1, lenLambda0);
+        X = cell(1, lenLambda0);
+        F = cell(1, lenLambda0);
+        N = nan(1, lenLambda0);
+        for ii = 1 : lenLambda0
             if vecOfLambdas0(ii)==0
                 % Lambda=0; run Newton step
                 D{ii} = -J0 \ F0;
