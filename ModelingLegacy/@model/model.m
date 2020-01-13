@@ -159,8 +159,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = addplainparam(varargin)
         varargout = addstd(varargin)
         varargout = addcorr(varargin)
-
-        varargout = getExtendedRange(varargin)
     end
 
 
