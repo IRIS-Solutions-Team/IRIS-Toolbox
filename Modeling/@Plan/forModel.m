@@ -50,18 +50,18 @@ function this = forModel(varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('Plan.Plan');
-    parser.addRequired('model', @(x) isa(x, 'shared.Plan'));
-    parser.addRequired('simulationRange', @DateWrapper.validateProperRangeInput);
-    parser.addParameter({'DefaultAnticipationStatus', 'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Method', 'Exogenize', @(x) isequal(x, @auto) || validate.anyString(x, 'Exogenize', 'Condition'));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('Plan.Plan');
+    addRequired(pp, 'model', @(x) isa(x, 'Model'));
+    addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
+    addParameter(pp, {'DefaultAnticipationStatus', 'DefaultAnticipate', 'Anticipate'}, true, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'Method', 'Exogenize', @(x) isequal(x, @auto) || validate.anyString(x, 'Exogenize', 'Condition'));
 end
-parser.parse(varargin{:});
-opt = parser.Options;
-simulationRange = double(parser.Results.simulationRange);
-model = parser.Results.model;
+pp.parse(varargin{:});
+opt = pp.Options;
+simulationRange = double(pp.Results.simulationRange);
+model = pp.Results.model;
 
 %--------------------------------------------------------------------------
 
@@ -79,6 +79,7 @@ this.IdOfAnticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16
 this.IdOfUnanticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
 this.IdOfAnticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
 this.IdOfUnanticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
+this.InxToKeepEndogenousNaN = false(numEndogenous, numExtendedPeriods);
 
 this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, numEndogenous, 1);
 this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, numExogenous, 1);

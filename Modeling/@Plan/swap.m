@@ -57,16 +57,16 @@ else
     end
 end
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('Plan.swap');
-    parser.addRequired('Plan', @(x) isa(x, 'Plan'));
-    parser.addRequired('DatesToSwap', @DateWrapper.validateDateInput);
-    parser.addRequired('PairsToSwap', @validatePairsToSwap);
-    parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('Plan.swap');
+    addRequired(pp, 'Plan', @(x) isa(x, 'Plan'));
+    addRequired(pp, 'DatesToSwap', @DateWrapper.validateDateInput);
+    addRequired(pp, 'PairsToSwap', @validatePairsToSwap);
+    addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
 end
-parser.parse(this, dates, pairsToSwap, varargin{:});
-opt = parser.Options;
+pp.parse(this, dates, pairsToSwap, varargin{:});
+opt = pp.Options;
 
 if numel(varargin)==1 && isstruct(varargin{1})
     inputStruct = varargin{1};
@@ -84,7 +84,7 @@ end
 numOfPairs = size(pairsToSwap, 1);
 anticipationMismatch = cell(1, 0);
 for i = 1 : numOfPairs
-    swapId = this.DEFAULT_SWAP_ID;
+    swapId = this.DEFAULT_SWAP_LINK;
     [nameToExogenize, nameToEndogenize] = pairsToSwap{i, :};
 
     [this, anticipateEndogenized] = ...

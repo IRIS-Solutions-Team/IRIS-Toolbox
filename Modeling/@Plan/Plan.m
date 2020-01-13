@@ -1,11 +1,10 @@
-% Plan  Simulation Plans for Model objects
+% Plan  Simulation Plans for Model and ExplanatoryEquation objects
 %
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
 classdef Plan < matlab.mixin.CustomDisplay
-
     properties
         NamesOfEndogenous = cell.empty(1, 0)
         NamesOfExogenous = cell.empty(1, 0)
@@ -24,10 +23,13 @@ classdef Plan < matlab.mixin.CustomDisplay
         IdOfUnanticipatedExogenized = int16.empty(0, 0)
         IdOfAnticipatedEndogenized = int16.empty(0, 0)
         IdOfUnanticipatedEndogenized = int16.empty(0, 0)
+        InxToKeepEndogenousNaN = logical.empty(0)
         
         SigmasOfExogenous = double.empty(0, 0)
         DefaultSigmasOfExogenous = double.empty(0, 0)
     end
+
+
 
 
     properties (SetAccess=protected)
@@ -39,21 +41,31 @@ classdef Plan < matlab.mixin.CustomDisplay
     end
 
 
+
+
     properties (Constant, Hidden)
-        DEFAULT_SWAP_ID = int16(-1)
+        DEFAULT_SWAP_LINK = int16(-1)
+        ZERO_SWAP_LINK = int16(0)
+        TRY_SWAP_LINK = int16(-2)
         EMPTY_MARK = '.' % char.empty(1, 0)
         ANTICIPATED_MARK = 'A'
         UNANTICIPATED_MARK = 'U'
         DATE_PREFIX = 't'
-        RANGE_DEPENDENT = [ "IdOfAnticipatedExogenized", ...
-                            "IdOfUnanticipatedExogenized", ...
-                            "IdOfAnticipatedEndogenized", ...
-                            "IdOfUnanticipatedEndogenized", ...
-                            "SigmasOfExogenous" ]
+        RANGE_DEPENDENT = [ 
+            "IdOfAnticipatedExogenized"
+            "IdOfUnanticipatedExogenized"
+            "IdOfAnticipatedEndogenized"
+            "IdOfUnanticipatedEndogenized"
+            "InxToKeepEndogenousNaN"
+            "SigmasOfExogenous" 
+        ]
     end
 
 
+
+
     methods % Constructor
+        %(
         function this = Plan(varargin)
             if nargin==0
                 return
@@ -71,16 +83,19 @@ classdef Plan < matlab.mixin.CustomDisplay
                           "use Plan( ) or Plan.forModel(...) instead." ];
             throw(exception.Base(thisError, 'error'));
         end%
+        %)
     end
 
 
 
 
     methods % User Interface
+        %(
         varargout = anticipate(varargin)
         varargout = assignSigma(varargin)
-        varargout = endogenized(varargin)
-        varargout = exogenized(varargin)
+        varargout = endogenize(varargin)
+        varargout = exogenize(varargin)
+        varargout = exogenizeWhenData(varargin)
         varargout = get(varargin)
         varargout = multiplySigma(varargin)
         varargout = swap(varargin)
@@ -110,6 +125,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         function this = unexogenizeAll(this)
             this.IdOfAnticipatedExogenized(:, :) = int16(0);
             this.IdOfUnanticipatedExogenized(:, :) = int16(0);
+            this.InxToKeepEndogenousNaN(:, :) = false;
         end%
 
 
@@ -125,10 +141,14 @@ classdef Plan < matlab.mixin.CustomDisplay
         end%
 
 
+
+
         function this = unendogenizeAll(this)
             this.IdOfAnticipatedEndogenized(:, :) = int16(0);
             this.IdOfUnanticipatedEndogenized(:, :) = int16(0);
         end%
+
+
 
 
         function this = clear(this)
@@ -140,16 +160,16 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
         function this = autoswap(this, dates, namesToAutoswap, varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('Plan.autoswap');
-                parser.addRequired('plan', @(x) isa(x, 'Plan'));
-                parser.addRequired('datesToSwap', @DateWrapper.validateDateInput);
-                parser.addRequired('namesToAutoswap', @(x) ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @all));
-                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('Plan.autoswap');
+                addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
+                addRequired(pp, 'datesToSwap', @DateWrapper.validateDateInput);
+                addRequired(pp, 'namesToAutoswap', @(x) ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @all));
+                addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
-            parser.parse(this, dates, namesToAutoswap, varargin{:});
-            opt = parser.Options;
+            pp.parse(this, dates, namesToAutoswap, varargin{:});
+            opt = pp.Options;
             inxToAutoswap = false(size(this.AutoswapPairs, 1), 1); 
             if isequal(namesToAutoswap, @all)
                 inxToAutoswap(:) = true;
@@ -177,9 +197,11 @@ classdef Plan < matlab.mixin.CustomDisplay
                         end
                     end
                     if any(~inxValid)
-                        THIS_ERROR = { 'Plan:CannotAutoswapName'
-                                       'Cannot autoswap this name: %s ' };
-                        throw( exception.Base(THIS_ERROR, 'error'), ...
+                        thisError = [ 
+                            "Plan:CannotAutoswapName"
+                            "Cannot autoswap this name: %s " 
+                        ];
+                        throw( exception.Base(thisError, 'error'), ...
                                namesToAutoswap{~inxValid} );
             end
                 end%
@@ -198,9 +220,11 @@ classdef Plan < matlab.mixin.CustomDisplay
             this.IdOfUnanticipatedEndogenized(:, end+(1:numDummyPeriods)) = int16(0);
             this.IdOfAnticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
             this.IdOfUnanticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
+            this.InxToKeepEndogenousNaN(:, end+(1:numDummyPeriods)) = false;
             this.SigmasOfExogenous(:, end+(1:numDummyPeriods), :) = NaN;
             this.NumOfDummyPeriods = numDummyPeriods;
         end%
+    %)
     end
 
 
@@ -236,16 +260,17 @@ classdef Plan < matlab.mixin.CustomDisplay
 
     methods (Access=private, Hidden)
         function [this, outputAnticipationStatus] = implementExogenize(this, dates, names, id, varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('Plan.implementExogenize');
-                parser.addRequired('plan', @(x) isa(x, 'Plan'));
-                parser.addRequired('datesToExogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
-                parser.addRequired('namesToExogenize', @(x) isequal(x, @all) || validate.list(x));
-                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('Plan.implementExogenize');
+                addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
+                addRequired(pp, 'datesToExogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
+                addRequired(pp, 'namesToExogenize', @(x) isequal(x, @all) || validate.list(x));
+                addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+                addParameter(pp, 'MissingValue', 'Error', @(x) validate.anyString(x, 'Error', 'KeepEndogenous'));
             end
-            parser.parse(this, dates, names, varargin{:});
-            opt = parser.Options;
+            pp.parse(this, dates, names, varargin{:});
+            opt = pp.Options;
 
             anticipationStatusOfEndogenous = this.AnticipationStatusOfEndogenous;
             if ~isequal(opt.AnticipationStatus, @auto)
@@ -268,10 +293,13 @@ classdef Plan < matlab.mixin.CustomDisplay
                     else
                         this.IdOfUnanticipatedExogenized(inxNames, inxDates) = id;
                     end
+                    % Exogenize only when data available
+                    this.InxToKeepEndogenousNaN(inxNames, inxDates) = strcmpi(opt.MissingValue, 'KeepEndogenous');
                 else
                     % Unexogenize
                     this.IdOfAnticipatedExogenized(inxNames, inxDates) = id;
                     this.IdOfUnanticipatedExogenized(inxNames, inxDates) = id;
+                    this.InxToKeepEndogenousNaN(inxNames, inxDates) = false;
                 end
             end
         end%
@@ -280,16 +308,16 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
         function [this, outputAnticipationStatus] = implementEndogenize(this, dates, names, id, varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('Plan.implementEndogenize');
-                parser.addRequired('plan', @(x) isa(x, 'Plan'));
-                parser.addRequired('datesToEndogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
-                parser.addRequired('namesToEndogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-                parser.addParameter({'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('Plan.implementEndogenize');
+                addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
+                addRequired(pp, 'datesToEndogenize', @(x) isequal(x, @all) || DateWrapper.validateDateInput(x));
+                addRequired(pp, 'namesToEndogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+                addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
-            parser.parse(this, dates, names);
-            opt = parser.Options;
+            pp.parse(this, dates, names);
+            opt = pp.Options;
 
             anticipationStatusOfExogenous = this.AnticipationStatusOfExogenous;
             if ~isequal(opt.AnticipationStatus, @auto)
@@ -322,6 +350,8 @@ classdef Plan < matlab.mixin.CustomDisplay
         end%
 
 
+
+
         function inxDates = resolveDates(this, dates)
             if isequal(dates, @all)
                 inxDates = false(1, this.NumOfExtendedPeriods);
@@ -334,6 +364,8 @@ classdef Plan < matlab.mixin.CustomDisplay
             inxDates = false(1, this.NumOfExtendedPeriods);
             inxDates(posDates) = true;
         end%
+
+
 
 
         function inxVariants = resolveVariants(this, variants)
@@ -493,9 +525,9 @@ classdef Plan < matlab.mixin.CustomDisplay
 
             return
                 function hereThrowError( )
-                    THIS_ERROR = { 'Plan:InvalidAutoswapPairs'
+                    thisError = { 'Plan:InvalidAutoswapPairs'
                                    'Invalid value assigned to @Plan.AutoswapPairs' };
-                    throw( exception.Base(THIS_ERROR, 'error') );
+                    throw( exception.Base(thisError, 'error') );
                 end%
         end%
 
@@ -535,11 +567,11 @@ classdef Plan < matlab.mixin.CustomDisplay
             if shift==0
                 return
             elseif shift>0
-                for name = this.RANGE_DEPENDENT
+                for name = reshape(this.RANGE_DEPENDENT, 1, [ ])
                     this.(name) = this.(name)(:, shift+1:end, :);
                 end
             elseif shift<0
-                for name = this.RANGE_DEPENDENT
+                for name = reshape(this.RANGE_DEPENDENT, 1, [ ])
                     numRows = size(this.(name), 1);
                     numPages = size(this.(name), 3);
                     if name=="SigmasOfExogenous"
@@ -587,7 +619,7 @@ classdef Plan < matlab.mixin.CustomDisplay
             if shift==0
                 return
             elseif shift>0
-                for name = this.RANGE_DEPENDENT
+                for name = reshape(this.RANGE_DEPENDENT, 1, [ ])
                     numRows = size(this.(name), 1);
                     numPages = size(this.(name), 3);
                     if name=="SigmasOfExogenous"k
@@ -598,7 +630,7 @@ classdef Plan < matlab.mixin.CustomDisplay
                     this.(name) = [this.(name), add];
                 end
             elseif shift<0
-                for name = this.RANGE_DEPENDENT
+                for name = reshape(this.RANGE_DEPENDENT, 1, [ ])
                     this.(name) = this.(name)(:, 1:end+shift, :);
                 end
             end
@@ -843,8 +875,11 @@ classdef Plan < matlab.mixin.CustomDisplay
     end
 
 
-    methods (Static)
+    methods (Static) % Static Constructor Signatures
+        %(
         varargout = forModel(varargin)
+        varargout = forExplanatoryEquation(varargin)
+        %)
     end
 
 
@@ -864,25 +899,14 @@ classdef Plan < matlab.mixin.CustomDisplay
             end
             [inxValidNames, posNames] = ismember(selectNames, allNames);
             if throwError && any(~inxValidNames)
-                THIS_ERROR = { 'Plan:InvalidNameInContext'
-                               'This name cannot %1 in simulation plan: %s ' };
-                throw( exception.Base(THIS_ERROR, 'error'), ...
+                thisError = [ "Plan:InvalidNameInContext"
+                              "This name cannot %1 in the simulation Plan: %s " ];
+                throw( exception.Base(thisError, 'error'), ...
                        context, selectNames{~inxValidNames} );
             end
             posNames(~inxValidNames) = [ ];
             inxNames = false(1, numel(allNames));
             inxNames(posNames) = true;
-        end%
-
-
-
-
-        function flag = validateSwapLink(id)
-            if validate.numericScalar(id) && id~=0 && id==round(id)
-                flag = true;
-                return
-            end
-            flag = false;
         end%
     end
 
@@ -894,26 +918,30 @@ classdef Plan < matlab.mixin.CustomDisplay
             toChar = @(x) char(DateWrapper.toDefaultString(x));
 
             % Dates
-            s1 = struct( 'Start',                        toChar(this.Start), ...
-                         'End',                          toChar(this.End), ...
-                         'LastAnticipatedExogenized',    toChar(this.LastAnticipatedExogenized), ...
-                         'LastUnanticipatedExogenized',  toChar(this.LastUnanticipatedExogenized), ...
-                         'LastAnticipatedEndogenized',   toChar(this.LastAnticipatedEndogenized), ...
-                         'LastUnanticipatedEndogenized', toChar(this.LastUnanticipatedEndogenized) );
+            s1 = struct( ...
+                'Start',                        toChar(this.Start), ...
+                'End',                          toChar(this.End), ...
+                'LastAnticipatedExogenized',    toChar(this.LastAnticipatedExogenized), ...
+                'LastUnanticipatedExogenized',  toChar(this.LastUnanticipatedExogenized), ...
+                'LastAnticipatedEndogenized',   toChar(this.LastAnticipatedEndogenized), ...
+                'LastUnanticipatedEndogenized', toChar(this.LastUnanticipatedEndogenized) ...
+            );
             pg1 = matlab.mixin.util.PropertyGroup(s1, 'SimulationDates');
 
             % Switches
-            pg2 = matlab.mixin.util.PropertyGroup( { 'DefaultAnticipationStatus'
-                                                     'AllowUnderdetermined'
-                                                     'AllowOverdetermined' }, ...
-                                                     'Switches' );
+            pg2 = matlab.mixin.util.PropertyGroup({ 
+                'DefaultAnticipationStatus'
+                'AllowUnderdetermined'
+                'AllowOverdetermined' 
+            }, 'Switches');
 
             % Determinacy of the Swap System
-            pg3 = matlab.mixin.util.PropertyGroup( { 'NumOfAnticipatedExogenizedPoints'
-                                                     'NumOfUnanticipatedExogenizedPoints'
-                                                     'NumOfAnticipatedEndogenizedPoints'
-                                                     'NumOfUnanticipatedEndogenizedPoints' }, ...
-                                                     'SwapPoints');
+            pg3 = matlab.mixin.util.PropertyGroup({
+                'NumOfAnticipatedExogenizedPoints'
+                'NumOfUnanticipatedExogenizedPoints'
+                'NumOfAnticipatedEndogenizedPoints'
+                'NumOfUnanticipatedEndogenizedPoints' 
+            }, 'SwapPoints');
 
             pg = [pg1, pg2, pg3];
         end%
@@ -958,7 +986,7 @@ classdef Plan < matlab.mixin.CustomDisplay
             else
                 posPostsample = (numExtendedPeriods-numPostsample+1) : numExtendedPeriods;
             end
-            for name = this.RANGE_DEPENDENT
+            for name = reshape(this.RANGE_DEPENDENT, 1, [ ])
                 value = 0;
                 if name=="SigmasOfExogenous"
                     value = NaN;

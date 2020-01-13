@@ -44,9 +44,13 @@ if ~isempty(inputDatabank)
 end
 
 rowNames = cell.empty(0, 1);
-idColumn = int16.empty(0, 1);
+linkColumn = int16.empty(0, 1);
+actionColumn = string.empty(0, 1);
 tableData = cell.empty(0, numDates);
 for id = getUniqueIds(this)
+    %
+    % Collect info on exogenized variables
+    %
     marksExogenized = repmat({this.EMPTY_MARK}, this.NumOfEndogenous, this.NumOfExtendedPeriods);
     inxAnticipated = this.IdOfAnticipatedExogenized==id;
     inxUnanticipated = this.IdOfUnanticipatedExogenized==id;
@@ -64,10 +68,14 @@ for id = getUniqueIds(this)
             addTableData = strcat(addTableData, addValues(keep, inxDates));
         end
         tableData = [tableData; addTableData];
-        idColumn = [idColumn; repmat(id, numKeep, 1)];
+        linkColumn = [linkColumn; repmat(id, numKeep, 1)];
+        actionColumn = [actionColumn; repmat("Exogenize", numKeep, 1)];
         rowNames = [rowNames; reshape(this.NamesOfEndogenous(keep), [ ], 1)];
     end
 
+    %
+    % Collect info on endogenized variables
+    %
     inxAnticipated = this.IdOfAnticipatedEndogenized==id;
     inxUnanticipated = this.IdOfUnanticipatedEndogenized==id;
     anyEndogenized = any(inxAnticipated(:)) || any(inxUnanticipated(:));
@@ -79,23 +87,24 @@ for id = getUniqueIds(this)
         numKeep = nnz(keep);
         marksEndogenized = marksEndogenized(keep, inxDates);
         tableData = [tableData; marksEndogenized];
-        idColumn = [idColumn; repmat(id, numKeep, 1)];
+        linkColumn = [linkColumn; repmat(id, numKeep, 1)];
+        actionColumn = [actionColumn; repmat("Endogenize", numKeep, 1)];
         rowNames = [rowNames; reshape(this.NamesOfExogenous(keep), [ ], 1)];
     end
 end
 
 tableDataOrganized = cell(1, numDates);
 for t = 1 : numDates
-    tableDataOrganized{t} = char(tableData(:, t));
+    tableDataOrganized{t} = string(tableData(:, t));
 end
-outputTable = table(char(rowNames), idColumn, tableDataOrganized{:});
+outputTable = table(string(rowNames), actionColumn, linkColumn, tableDataOrganized{:});
 
 dateNames = cellstr(DateWrapper.toDefaultString(dates));
 try
-    outputTable.Properties.VariableNames = [{'Name', 'SwapLink'}, dateNames];
+    outputTable.Properties.VariableNames = [{'Name', 'Action', 'Link'}, dateNames];
 catch
     dateNames = strcat(this.DATE_PREFIX, dateNames);
-    outputTable.Properties.VariableNames = [{'Name', 'SwapLink'}, dateNames];
+    outputTable.Properties.VariableNames = [{'Name', 'Action', 'Link'}, dateNames];
 end
 
 % Write table to text or spreadsheet file

@@ -6,15 +6,15 @@ function this = endogenize(this, dates, names, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('Plan.endogenize');
-    parser.KeepUnmatched = true;
-    addParameter(parser, 'SwapLink', this.DEFAULT_SWAP_ID, @Plan.validateSwapLink);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('Plan.endogenize');
+    pp.KeepUnmatched = true;
+    addParameter(pp, 'SwapLink', this.DEFAULT_SWAP_LINK, @(x) validate.roundScalar(x) && x~=Plan.ZERO_SWAP_LINK);
 end
-parse(parser, varargin{:});
-unmatched = parser.UnmatchedInCell;
-opt = parser.Options;
+parse(pp, varargin{:});
+unmatched = pp.UnmatchedInCell;
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
