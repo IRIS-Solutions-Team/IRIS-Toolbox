@@ -1,5 +1,5 @@
 function varargout = if_(varargin)
-% if  Functional form of an if-elseif-else structure
+% if  Functional or runtime form of an if-elseif-else structure
 %{
 % ## Syntax ##
 %
