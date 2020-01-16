@@ -1,9 +1,9 @@
-function [c, listOfSerialized] = serialize(inputDatabank, dates, varargin)
+function [c, listSerialized] = serialize(inputDatabank, dates, varargin)
 % serialize  Serialize databank entries to character vector
 %{
 % ## Syntax ##
 %
-%     [c, listOfSerialized] = databank.serialized(inputDatabank, dates, ...)
+%     [c, listSerialized] = databank.serialized(inputDatabank, dates, ...)
 %
 %
 % ## Input Arguments ##
@@ -43,32 +43,32 @@ function [c, listOfSerialized] = serialize(inputDatabank, dates, varargin)
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('databank.serialize');
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank.serialize');
     % Required inputs
-    addRequired(parser, 'inputDatabank', @validate.databank);
-    addRequired(parser, 'dates', @DateWrapper.validateDateInput);
+    addRequired(pp, 'inputDatabank', @validate.databank);
+    addRequired(pp, 'dates', @DateWrapper.validateDateInput);
     % Options
-    addParameter(parser, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'ClassHeader', 'Class[Size] ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'Class', true, @validate.logicalScalar);
-    addParameter(parser, {'Comments', 'Comment'}, true, @validate.logicalScalar);
-    addParameter(parser, 'CommentsHeader', 'Comments ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, {'Decimals', 'Decimal'}, [ ], @(x) isempty(x) || validate.numericScalar(x));
-    addParameter(parser, 'Format', '%.8e', @(x) validate.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
-    addParameter(parser, 'MatchFreq', false, @validate.logicalScalar);
-    addParameter(parser, 'Nan', 'NaN', @validate.string);
-    addParameter(parser, {'SaveNested', 'SaveSubdb'}, false, @validate.logicalScalar);
-    addParameter(parser, 'UserData', 'UserData', @(x) validate.string(x) && isvarname(x));
-    addParameter(parser, 'UserDataFields', cell.empty(1, 0), @validate.list);
-    addParameter(parser, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'Delimiter', ',', @validate.string);
+    addParameter(pp, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(pp, 'ClassHeader', 'Class[Size] ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(pp, 'Class', true, @validate.logicalScalar);
+    addParameter(pp, {'Comments', 'Comment'}, true, @validate.logicalScalar);
+    addParameter(pp, 'CommentsHeader', 'Comments ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(pp, {'Decimals', 'Decimal'}, [ ], @(x) isempty(x) || validate.numericScalar(x));
+    addParameter(pp, 'Format', '%.8e', @(x) validate.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
+    addParameter(pp, 'MatchFreq', false, @validate.logicalScalar);
+    addParameter(pp, 'Nan', 'NaN', @validate.string);
+    addParameter(pp, {'SaveNested', 'SaveSubdb'}, false, @validate.logicalScalar);
+    addParameter(pp, 'UserData', 'UserData', @(x) validate.string(x) && isvarname(x));
+    addParameter(pp, 'UserDataFields', cell.empty(1, 0), @validate.list);
+    addParameter(pp, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
+    addParameter(pp, 'Delimiter', ',', @validate.string);
     % Date options
-    addDateOptions(parser);
+    addDateOptions(pp);
 end
-parse(parser, inputDatabank, dates, varargin{:});
-opt = parser.Options;
+parse(pp, inputDatabank, dates, varargin{:});
+opt = pp.Options;
 
 % Set up the formatting string
 if isempty(opt.Decimals)
@@ -136,14 +136,14 @@ end
 % This first column will fill in all entries.
 nList = numel(list);
 data = cell(1, nList); % nan(length(dates), 1);
-nRows = zeros(1, nList, 'int32');
+numRows = zeros(1, nList, 'int32');
 
 nameRow = { };
 classRow = { };
 commentRow = { };
 userDataFields = hereCreateUserDataFields( );
-inxOfSerialized = false(size(list));
-inxOfNested = false(size(list));
+inxSerialized = false(size(list));
+inxNested = false(size(list));
 
 for i = 1 : nList
     
@@ -164,18 +164,18 @@ for i = 1 : nList
             iData = getData(x, dates);
         end
         iComment = comment(x);
-        inxOfSerialized(i) = true;
+        inxSerialized(i) = true;
         iClass = class(x);
-        iUserData = userdata(x);
+        userData__ = x.UserData;
     elseif isnumeric(x)
         iData = x;
         iComment = {''};
-        inxOfSerialized(i) = true;
+        inxSerialized(i) = true;
         iClass = class(x);
-        iUserData = [ ];
+        userData__ = [ ];
     elseif isstruct(x)
-        inxOfNested(i) = true;
-        iUserData = [ ];
+        inxNested(i) = true;
+        userData__ = [ ];
         continue
     else
         continue
@@ -190,7 +190,7 @@ for i = 1 : nList
         data{i} = [ ];
         continue
     end
-    nRows(i) = int32(tmpRows);
+    numRows(i) = int32(tmpRows);
     % Add data, expand first dimension if necessary.
     data{i} = iData;
     nameRow{end+1} = list{i}; %#ok<AGROW>
@@ -203,20 +203,20 @@ for i = 1 : nList
         iComment(1, end+1:tmpCols) = {''};
     end 
     commentRow = [commentRow, iComment]; %#ok<AGROW>
-    hereAddUserDataFields(iUserData, tmpCols);
+    hereAddUserDataFields(userData__, tmpCols);
 end
 
-nRowsMax = max(nRows);
-ixCorrect = nRows==nRowsMax;
-if any(~ixCorrect)
-    for i = find(~ixCorrect)
-        data{i}(end+1:nRowsMax, :) = NaN;
+numRowsMax = max(numRows);
+inxCorrect = numRows==numRowsMax;
+if any(~inxCorrect)
+    for i = find(~inxCorrect)
+        data{i}(end+1:numRowsMax, :) = NaN;
     end
 end
 
 data = [ data{:} ];
 
-listOfSerialized = list(inxOfSerialized);
+listSerialized = list(inxSerialized);
 
 % We need to remove double quotes from the date format string because the
 % double quotes are used to delimit the CSV cells.
@@ -251,17 +251,22 @@ return
     end%
 
 
-    function hereAddUserDataFields(ithUserData, numOfColumns)
-        if numOfColumns==0
+    function hereAddUserDataFields(ithUserData, numColumns)
+        if numColumns==0
             return
         end
         for i = 1 : numel(opt.UserDataFields)
             fieldName = opt.UserDataFields{i};
-            fieldValue = repmat({char.empty(1, 0)}, 1, numOfColumns);
-            try
-                fieldValue{1} = char(ithUserData.(fieldName));
+            fieldValue = ithUserData.(fieldName); 
+            valueToSave = repmat({char.empty(1, 0)}, 1, numColumns);
+            if ischar(fieldValue) || isa(fieldValue, 'string')
+                valueToSave{1} = char(fieldValue);
+            elseif isa(fieldValue, 'DateWrapper')
+                valueToSave{1} = char(DateWrapper.toDefaultString(fieldValue));
+            elseif validate.numericScalar(fieldValue)
+                valueToSave{1} = sprintf('%g', fieldValue);
             end
-            userDataFields.(fieldName)(1, end+(1:numOfColumns)) = fieldValue;
+            userDataFields.(fieldName)(1, end+(1:numColumns)) = valueToSave;
         end
     end%
 end%
@@ -394,11 +399,11 @@ function c = hereSerialize(oo, opt)
 
     % Find columns that have at least one non-zero imag. These column will
     % be printed as complex numbers.
-    nRow = size(data, 1);
-    nCol = size(data, 2);
+    numRows = size(data, 1);
+    numColumns = size(data, 2);
 
     % Combine real and imag columns in an extended data matrix.
-    xData = zeros(nRow, 2*nCol);
+    xData = zeros(numRows, 2*numColumns);
     xData(:, 1:2:end) = real(data);
     iData = imag(data);
     xData(:, 2:2:end) = iData;
@@ -406,14 +411,14 @@ function c = hereSerialize(oo, opt)
     % Find imag columns and create positions of zero-only imag columns that
     % will be removed.
     iCol = any(iData ~= 0, 1);
-    removeCol = 2*(1 : nCol);
+    removeCol = 2*(1 : numColumns);
     removeCol(iCol) = [ ];
     % Check for the occurence of imaginary NaNs.
     isImagNan = any(isnan(iData(:)));
     % Remove zero-only imag columns from the extended data matrix.
     xData(:, removeCol) = [ ];
     % Create a sequence of formats for one line.
-    formatLine = cell(1, nCol);
+    formatLine = cell(1, numColumns);
     % Format string for columns that have imaginary numbers.
     formatLine(iCol) = {[delimiter, format, iFormat]};
     % Format string for columns that only have real numbers.
@@ -424,12 +429,12 @@ function c = hereSerialize(oo, opt)
         % If there is no time series in the input database, create a vector 1:N in
         % the first column instead of dates.
         strDat = cellfun( @(x) sprintf('%g', x), ...
-                          num2cell(1:nRow), ...
+                          num2cell(1:numRows), ...
                           'UniformOutput', false );
     end
 
     % Transpose data in cellData so that they are read correctly in sprintf.
-    cellData = cell(1+size(xData, 2), nRow);
+    cellData = cell(1+size(xData, 2), numRows);
     nDat = numel(strDat);
     cellData(1, 1:nDat) = strDat(:);
     cellData(2:end, :) = num2cell(xData.');

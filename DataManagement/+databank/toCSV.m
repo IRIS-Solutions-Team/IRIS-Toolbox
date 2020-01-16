@@ -1,21 +1,27 @@
-function listOfSaved = toCSV(inputDatabank, fileName, varargin);
+function listSaved = toCSV(inputDatabank, fileName, varargin);
 % toCSV  Serialize databank and save to CSV file
 %{
 % ## Syntax ##
 %
-%     listOfSaved = databank.toCSV(d, fileName, dates, ...)
+%     listSaved = databank.toCSV(d, fileName, dates, ...)
 %
 %
 % ## Input Arguments ##
 %
+%
 % __`inputDatabank`__ [ struct | Dictionary | containers.Map ] -
+% >
 % Input databank whose time series and numeric entries will be serialized
 % to a character vector.
 %
+%
 % __`fileName`__ [ char | string ] -
+% >
 % Name of a CSV file to which the databank will be saved.
 %
+%
 % __`dates`__ [ DateWrapper | numeric | `Inf`  ] - 
+% >
 % Dates or date range on which the time series will be saved; `Inf` means
 % a date range from the earliest date found in the `inputDatabank` to the
 % latest date.
@@ -23,79 +29,111 @@ function listOfSaved = toCSV(inputDatabank, fileName, varargin);
 %
 % ## Output Arguments ##
 %
+%
 % __`c`__ [ char ] - 
+% >
 % Character vector representing the databank.
 %
-% __`listOfSaved`__ [ cellstr ] -
+%
+% __`listSaved`__ [ cellstr ] -
+% >
 % List of databank entries that have been serialized and saved to
 % `fileName`.
 %
 %
 % ## Options ##
 %
+%
 % __`VariablesHeader='Variables->'`__ [ char ] - 
-% String that will be put in
-% the top-left corncer (cell A1).
+% >
+% String that will be put in the top-left corncer (cell A1).
+%
 %
 % __`Class=true`__ [ `true` | `false` ] - 
-% Include a row with class and size
-% specifications.
+% >
+% Include a row with class and size specifications.
+%
 %
 % __`Comment=true`__ [ `true` | `false` ] - 
-% Include a row with comments for
-% time series.
+% >
+% Include a row with comments for time series.
+%
 %
 % __`Decimals=[ ]`__ [ numeric ] - 
+% >
 % Number of decimals up to which the data
 % will be saved; if empty the option `Format=` is used.
 %
+%
 % __`Format='%.8e'`__ [ char ] - 
+% >
 % Numeric format that will be used to
 % represent the data, see `sprintf` for details on formatting, The format
 % must start with a `'%'`, and must not include identifiers specifying
 % order of processing, i.e. the `'$'` signs, or left-justify flags, the
 % `'-'` signs.
 %
+%
 % __`FreqLetters=@config`__ [ `@config` | char ] - 
+% >
 % Six letters to represent
 % the five possible date frequencies except daily and integer (annual,
 % semi-annual, quarterly, bimonthly, monthly, weekly); `@config` means the
 % frequency letters will be read from the current IRIS configuration.
 %
+%
 % __`MatchFreq=false`__ [ `true` | `false` ] - 
+% >
 % Save only those time series
 % whose date frequencies match the input vector of dates, `Dates`.
 %
+%
 % __`NaN='NaN'`__ [ char ] - 
+% >
 % String that will be used to represent NaNs.
 %
+%
 % __`SaveNested=false`__ [ `true` | `false` ] - 
+% >
 % Save nested databanks
 % (structs within the `inputDatabank`); the nested databanks will be saved
 % to separate CSV files.
 %
-% __`UserData='userdata'`__ [ char ] - 
-% Field name from which any kind of
-% userdata will be read and saved in the CSV file.
+%
+% __`UserData='UserData__'`__ [ char ] - 
+% >
+% Field name in the `inputDatabank` from which any kind of user data will
+% be read, serialized, and saved to the CSV file.
+% 
+%
+% __`UserDataFields={ }`__ [ empty | cellstr | string ]
+% >
+% List of user data fields that will be extracted from each time series
+% object, and saved to the CSV file; the name of the row where each user
+% data field is saved is `.xxx` where `xxx` is the name of the user data
+% field.
 %
 %
 % ## Description ##
 %
+%
 % The data serialized include also imaginary parts of complex numbers.
 %
 %
-% ### Saving User Data with the Database ###
+% ### Saving Databank-Wide User Data ###
 %
-% If your database contains field named `UserData=`, this will be saved
-% in the CSV file on a separate row. The `UserData=` field can be any
+%
+% If your database contains field named `UserData`, this will be saved
+% in the CSV file on a separate row. The `UserData` field can be any
 % combination of numeric, char, and cell arrays and 1-by-1 structs.
 %
-% You can use the `UserData=` field to describe the database or preserve
+% You can use the `UserData` field to describe the database or preserve
 % any sort of metadata. To change the name of the field that is treated as
-% user data, use the `UserData=` option.
+% user data, use the `UserData` option.
 %
 %
 % ## Example ##
+%
 %
 % Create a simple database with two time series.
 %
@@ -125,6 +163,7 @@ function listOfSaved = toCSV(inputDatabank, fileName, varargin);
 %
 %
 % ## Example ##
+%
 %
 % To change the field name under which you store your own user data, use
 % the option `UserData=` when running `databank.toCSV`, 
@@ -158,7 +197,7 @@ if isempty(parser)
 end
 parse(parser, fileName);
 
-[c, listOfSaved] = databank.serialize(inputDatabank, varargin{:});
+[c, listSaved] = databank.serialize(inputDatabank, varargin{:});
 char2file(c, fileName);
 
 end%
