@@ -1,4 +1,4 @@
-function [variableNames, residualNames, fittedNames] = collectAllNames(this)
+function [variableNames, residualNames, fittedNames, controlNames] = collectAllNames(this)
 % collectAllNames  Collect all variable names, error names and fitted names from all equations
 %{
 % ## Syntax ##
@@ -51,16 +51,21 @@ function [variableNames, residualNames, fittedNames] = collectAllNames(this)
 %--------------------------------------------------------------------------
 
 variableNames = unique([this.VariableNames], 'stable');
-if nargout==1
+if nargout<=1
     return
 end
 
 residualNames = unique([this.ResidualName], 'stable');
-if nargout==2
+if nargout<=2
     return
 end
 
 fittedNames = unique([this.FittedName], 'stable');
+if nargout<=3
+    return
+end
+
+controlNames = collectControlNames(this);
 
 end%
 

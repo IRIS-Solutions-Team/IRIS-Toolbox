@@ -52,6 +52,13 @@ lhsRequired = true;
 context = "for " + this(1).Context + " estimation";
 dataBlock = getDataBlock(this, inputDatabank, fittedRange, lhsRequired, context);
 
+
+%
+% Create struct with controls
+%
+controls = assignControls(this, inputDatabank);
+
+
 numExtendedPeriods = dataBlock.NumOfExtendedPeriods;
 numPages = dataBlock.NumOfPages;
 fitted = nan(numEquations, numExtendedPeriods, numPages);
@@ -71,7 +78,7 @@ this = alter(this, numPages, resetToNaN);
 
 for q = 1 : numEquations
     this__ = this(q);
-    [plainData, lhs, rhs] = createModelData(this__, dataBlock);
+    [plainData, lhs, rhs] = createModelData(this__, dataBlock, controls);
 
     if opt.FixParameters
         fixed = this__.Parameters;

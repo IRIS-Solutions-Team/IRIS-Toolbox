@@ -56,6 +56,7 @@ if isempty(pp)
     pp = extend.InputParser('ExplanatoryEquation.fromFile');
     pp.KeepUnmatched = true;
     addRequired(pp, 'sourceFiles', @(x) validate.list(x) || isa(x, 'model.File'));
+    addParameter(pp, {'Assigned', 'Assign'}, struct([ ]), @(x) isempty(x) || isstruct(x));
     addParameter(pp, 'Preparser', cell.empty(1, 0), @iscell);
 end
 parse(pp, sourceFiles, varargin{:});
@@ -76,6 +77,9 @@ else
     %
     % Run the preparser
     %
+    if ~isempty(opt.Assigned)
+        opt.Preparser = [opt.Preparser, {'Assigned=', opt.Assigned}];
+    end
     [code, fileName, export__, ~, comment, substitutions] = ...
         parser.Preparser.parse(sourceFiles, [ ], opt.Preparser{:});
 end
@@ -83,13 +87,16 @@ end
 %
 % Split code into individual equations, resolve !equations(:attribute)
 %
-[equations, attributes] = ExplanatoryEquation.postparse(code);
+[equations, attributes, controlNames] = ExplanatoryEquation.postparse(code);
 
 
 %
 % Build array of ExplanatoryEquation objects
 %
-this = ExplanatoryEquation.fromString(equations, pp.UnmatchedInCell{:});
+this = ExplanatoryEquation.fromString( ...
+    equations, pp.UnmatchedInCell{:} ...
+    , 'ControlNames=', controlNames ...
+);
 
 
 %
@@ -281,7 +288,7 @@ function preparserForIfTest(testCase)
     assertEqual( ...
         testCase, ...
         func2str(act1(1).Explanatory.Expression), ...
-        '@(x,t,date__)x(2,t,:).*x(3,t,:)+x(4,t,:).*x(5,t,:)' ...
+        '@(x,t,date__,controls__)x(2,t,:).*x(3,t,:)+x(4,t,:).*x(5,t,:)' ...
     );
     assertEqual(testCase, act1, act2);
 end%
@@ -303,10 +310,10 @@ function preparserSwitchTest(testCase)
         "!end"
     ];
     exp_Expression = {
-        '@(x,t,date__)0.8.*x(1,t-1,:)'
-        '@(x,t,date__)sqrt(x(2,t,:))'
-        '@(x,t,date__)x(2,t,:)+x(3,t,:)'
-        '@(x,t,date__)0'
+        '@(x,t,date__,controls__)0.8.*x(1,t-1,:)'
+        '@(x,t,date__,controls__)sqrt(x(2,t,:))'
+        '@(x,t,date__,controls__)x(2,t,:)+x(3,t,:)'
+        '@(x,t,date__,controls__)0'
     };
     list = ["AA", "BB", "CC", "DD"];
     for i = 1 : numel(list)

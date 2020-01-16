@@ -9,9 +9,9 @@ function checkNames(this)
 
 %--------------------------------------------------------------------------
 
-checkList = this.VariableNames;
+checkList = [this.VariableNames, this.ControlNames];
 if isfinite(this.PosOfLhsName)
-    checkList = [checkList, this.ResidualName];
+    checkList = [checkList, this.ResidualName, this.FittedName];
 end
 nameConflicts = parser.getMultiple(checkList);
 if ~isempty(nameConflicts)
@@ -19,7 +19,7 @@ if ~isempty(nameConflicts)
     thisError = [ 
         "ExplanatoryEquation:MultipleNames"
         "This name is declared more than once in an ExplanatoryEquation object "
-        "(including ResidualName and FittedName): %s "
+        "(including ResidualName, FittedName and ControlNames): %s "
     ];
     throw( exception.Base(thisError, 'error'), ...
            nameConflicts{:} );

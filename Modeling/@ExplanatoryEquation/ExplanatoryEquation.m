@@ -11,6 +11,7 @@ classdef ExplanatoryEquation ...
 
     properties
         VariableNames (1, :) string = string.empty(1, 0)
+        ControlNames (1, :) string = string.empty(1, 0)
         Label (1, 1) string = ""
         Attributes (1, :) string = string.empty(1, 0)
         RaggedEdge (1, 1) logical = false
@@ -100,9 +101,11 @@ classdef ExplanatoryEquation ...
         varargout = alter(varargin)
         varargout = blazer(varargin)
         varargout = collectAllNames(varargin)
+        varargout = collectControlNames(varargin)
         varargout = collectLhsNames(varargin)
         varargout = collectRhsNames(varargin)
         varargout = checkUniqueLhs(varargin)
+        varargout = declareSwitches(varargin)
         varargout = defineDependent(varargin)
         varargout = getActualMinMaxShifts(varargin)
         varargout = lookup(varargin)
@@ -203,6 +206,7 @@ classdef ExplanatoryEquation ...
 
 
     methods (Hidden)
+        varargout = assignControls(varargin)
         varargout = getDataBlock(varargin)
 
         function flag = checkConsistency(this)
@@ -319,8 +323,6 @@ classdef ExplanatoryEquation ...
 
         function this = set.VariableNames(this, value)
             if isempty(value)
-                % Remove VariableNames from arrays with more than one
-                % element in positions 2 and higher.
                 this.VariableNames = string.empty(1, 0);
                 return
             end
@@ -333,6 +335,26 @@ classdef ExplanatoryEquation ...
                 throw(exception.Base(thisError, 'error'));
             end
             this.VariableNames = string(value);
+            checkNames(this);
+        end%
+
+
+
+
+        function this = set.ControlNames(this, value)
+            if isempty(value)
+                this.ControlNames = string.empty(1, 0);
+                return
+            end
+            if any(strlength(value)==0)
+                thisError = [ 
+                    "ExplanatoryEquation:InvalidVariableNames"
+                    "Control names in an ExplanatoryEquation object "
+                    "must be nonempty strings."
+                ];
+                throw(exception.Base(thisError, 'error'));
+            end
+            this.ControlNames = unique(string(value), 'stable');
             checkNames(this);
         end%
 

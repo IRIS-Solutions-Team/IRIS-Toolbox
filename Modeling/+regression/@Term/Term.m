@@ -164,7 +164,7 @@ classdef Term
 
 
     methods
-        function y = createModelData(this, plainData, t, date)
+        function y = createModelData(this, plainData, t, date, controls)
             if islogical(t)
                 t = find(t);
             end
@@ -175,7 +175,7 @@ classdef Term
             for i = 1 : numTerms
                 this__ = this(i);
                 if isa(this__.Expression, 'function_handle')
-                    y__ = this__.Expression(plainData, t, date);
+                    y__ = this__.Expression(plainData, t, date, controls);
                     %
                     % The function may not point to any variables and
                     % produce simply a scalar constant instead; extend the
@@ -257,12 +257,12 @@ classdef Term
 
 
 
-        function rhs = updateOwnExplanatory(this, rhs, plainData, t, date)
+        function rhs = updateOwnExplanatory(this, rhs, plainData, t, date, controls)
             %
             % The input object `this` is always explanatory (rhs) terms
             %
             for i = find([this.ContainsLhsName])
-                rhs(i, t, :) = createModelData(this(i), plainData, t, date);
+                rhs(i, t, :) = createModelData(this(i), plainData, t, date, controls);
             end
         end%
 

@@ -82,6 +82,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('ExplanatoryEquation.fromString');
     addRequired(pp, 'inputString', @validate.list);
+    addParameter(pp, 'ControlNames', string.empty(1, 0), @(x) isempty(x) || isa(x, 'string') || iscellstr(x));
     addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
     addParameter(pp, 'ResidualNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
     addParameter(pp, 'FittedNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
@@ -110,12 +111,24 @@ for j = 1 : numel(inputString)
         continue
     end
 
+
     %
     % Create a new ExplanatoryEquation object, assign ResidualNamePattern
     % and FittedNamePattern, and enforce lower or upper case on
     % ResidualNamePattern and FittedNamePattern if requested
     %
     this__ = hereCreateObject( );
+
+
+    %
+    % Assign control names
+    %
+    if ~isempty(opt.ControlNames)
+        if ~isempty(opt.EnforceCase)
+            opt.ControlNames = opt.EnforceCase(opt.ControlNames);
+        end
+        this__.ControlNames = opt.ControlNames;
+    end
 
     %
     % Collect all variables names from the input string, enforcing lower or
@@ -208,6 +221,13 @@ return
         % Remove DateReference from the list of variables
         %
         variableNames(variableNames==this__.DateReference) = [ ];
+
+        %
+        % Remove control parameter names from the list of variables
+        %
+        if ~isempty(this__.ControlNames)
+            variableNames = setdiff(variableNames, this__.ControlNames);
+        end
 
         return
             function c = hereEnforceCase(c)
@@ -452,7 +472,7 @@ function sumTest(testCase)
     exp_Explanatory.Shift = 0;
     exp_Explanatory.Incidence = sort([complex(2, -1), complex(1, -2)]); 
     exp_Explanatory.Transform = "";
-    exp_Explanatory.Expression = @(x,t,date__)x(2,t-1,:)+x(1,t-2,:);
+    exp_Explanatory.Expression = @(x,t,date__,controls__)x(2,t-1,:)+x(1,t-2,:);
     exp_Explanatory.Fixed = 1;
     exp_Explanatory.ContainsLhsName = true;
     exp_Explanatory.MinShift = -2;
@@ -470,7 +490,7 @@ function sumExogenousTest(testCase)
     exp_Explanatory.Shift = 0;
     exp_Explanatory.Incidence = sort([complex(2, -1), complex(3, -2)]); 
     exp_Explanatory.Transform = "";
-    exp_Explanatory.Expression = @(x,t,date__)x(2,t-1,:)+x(3,t-2,:);
+    exp_Explanatory.Expression = @(x,t,date__,controls__)x(2,t-1,:)+x(3,t-2,:);
     exp_Explanatory.Fixed = 1;
     exp_Explanatory.ContainsLhsName = false;
     exp_Explanatory.MinShift = -2;

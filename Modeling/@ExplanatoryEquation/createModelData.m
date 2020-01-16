@@ -1,4 +1,4 @@
-function varargout = createModelData(this, dataBlock)
+function varargout = createModelData(this, dataBlock, controls)
 % createModelData  Create data matrices for ExplanatoryEquation model
 %
 % Backend [IrisToolbox] function
@@ -32,13 +32,17 @@ baseRange = dataBlock.BaseRange;
 % Model data for the dependent term
 %
 lhs = nan(1, numExtendedPeriods, numPages);
-lhs(1, baseRangeColumns, :) = createModelData(this.Dependent, plainData, baseRangeColumns, baseRange);
+lhs(1, baseRangeColumns, :) = createModelData( ...
+    this.Dependent, plainData, baseRangeColumns, baseRange, controls ...
+);
 
 %
 % Model data for all explanatory terms
 %
 rhs = nan(numel(this.Explanatory), numExtendedPeriods, numPages);
-rhs(:, baseRangeColumns, :) = createModelData(this.Explanatory, plainData, baseRangeColumns, baseRange);
+rhs(:, baseRangeColumns, :) = createModelData( ...
+    this.Explanatory, plainData, baseRangeColumns, baseRange, controls ...
+);
 
 %
 % Model data for residuals; reset NaN residuals to zero
@@ -115,7 +119,8 @@ function yxeSingleTest(testCase)
     dataBlock = getDataBlock(m, db, baseRange, lhsRequired, "");
     baseRangeColumns = dataBlock.BaseRangeColumns;
     m = runtime(m, dataBlock, "");
-    [plain, lhs, rhs, res] = createModelData(m, dataBlock);
+    controls = struct( );
+    [plain, lhs, rhs, res] = createModelData(m, dataBlock, controls);
     exp_y = nan(1, numExtendedPeriods);
     exp_y(baseRangeColumns) = log(db.x(baseRange));
     assertEqual(testCase, lhs, exp_y);
@@ -157,7 +162,8 @@ function yxeSystem1Test(testCase)
     dataBlock = getDataBlock(m, db, baseRange, lhsRequired, "");
     baseRangeColumns = dataBlock.BaseRangeColumns;
     m(1) = runtime(m(1), dataBlock, "");
-    [plain, lhs, rhs, res] = createModelData(m(1), dataBlock);
+    controls = struct( );
+    [plain, lhs, rhs, res] = createModelData(m(1), dataBlock, controls);
     exp_y = nan(1, numExtendedPeriods);
     exp_y(baseRangeColumns) = log(db.x(baseRange));
     assertEqual(testCase, lhs, exp_y);
@@ -200,7 +206,8 @@ function yxeSystem2Test(testCase)
     dataBlock = getDataBlock(m, db, baseRange, lhsRequired, "");
     baseRangeColumns = dataBlock.BaseRangeColumns;
     m(2) = runtime(m(2), dataBlock, "");
-    [plain, lhs, rhs, res] = createModelData(m(2), dataBlock);
+    controls = struct( );
+    [plain, lhs, rhs, res] = createModelData(m(2), dataBlock, controls);
     exp_y = nan(1, numExtendedPeriods);
     exp_y(baseRangeColumns) = log(db.m(baseRange));
     assertEqual(testCase, lhs, exp_y);

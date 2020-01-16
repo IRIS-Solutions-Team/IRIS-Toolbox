@@ -94,6 +94,7 @@ range = double(range);
 numEquations = numel(this);
 nv = countVariants(this);
 
+
 %
 % Create a DataBlock for all variables across all models; LHS variables are
 % only needed when they appear on the RHS (tested within
@@ -102,6 +103,12 @@ nv = countVariants(this);
 lhsRequired = false;
 context = "for " + this(1).Context + " simulation";
 dataBlock = getDataBlock(this, inputDatabank, range, lhsRequired, context);
+
+
+%
+% Create struct with controls
+%
+controls = assignControls(this, inputDatabank);
 
 
 %
@@ -136,7 +143,7 @@ for blk = 1 : numel(blocks)
         eqn = blocks{blk};
         this__ = this(eqn);
         [isExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
-        [plainData, lhs, rhs, res] = createModelData(this__, dataBlock);
+        [plainData, lhs, rhs, res] = createModelData(this__, dataBlock, controls);
         if dynamicStatus(eqn)
             hereRunRecursive( );
         else
@@ -148,7 +155,7 @@ for blk = 1 : numel(blocks)
             for eqn = reshape(blocks{blk}, 1, [ ])
                 this__ = this(eqn);
                 [isExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
-                [plainData, lhs, rhs, res] = createModelData(this__, dataBlock);
+                [plainData, lhs, rhs, res] = createModelData(this__, dataBlock, controls);
                 hereRunOnce(column);
                 updateDataBlock(this__, dataBlock, plainData);
             end
@@ -236,7 +243,7 @@ return
         for tt = baseRangeColumns
             if needsUpdate__
                 date = getIth(extendedRange, tt);
-                rhs = updateOwnExplanatory(this__.Explanatory, rhs, plainData, tt, date);
+                rhs = updateOwnExplanatory(this__.Explanatory, rhs, plainData, tt, date, controls);
             end
             columnsToUpdate = double.empty(1, 0);
             needsUpdate__ = false;

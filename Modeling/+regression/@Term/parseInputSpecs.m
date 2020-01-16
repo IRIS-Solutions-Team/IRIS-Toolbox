@@ -237,6 +237,11 @@ return
         parsedSpecs = parser.Pseudofunc.parse(inputSpecs);
 
         %
+        % Unique names of all control parameters
+        %
+        controlNames = collectControlNames(xq);
+
+        %
         % Replace name{k} with x(pos, t+k, :)
         % Replace name with x(pos, t, :)
         %
@@ -262,7 +267,7 @@ return
         %
         try
             hereParseSpecials( );
-            func = str2func("@(x,t,date__)" + parsedSpecs);
+            func = str2func("@(x,t,date__,controls__)" + parsedSpecs);
             output.Type = "Expression";
             output.Expression = func;
             output.Incidence = incidence;
@@ -275,6 +280,10 @@ return
                 c = '';
                 if string(c1)==string(xq.DateReference)
                     c = 'date__';
+                    return
+                end
+                if any(c1==controlNames)
+                    c = "controls__." + c1;
                     return
                 end
                 pos = getPositionOfName(xq, c1);
@@ -461,7 +470,7 @@ function expressionTest(testCase)
     act = regression.Term.parseInputSpecs(m, "x + movavg(y, -2) - z{+3}", @auto, @auto, @all);
     exp = testCase.TestData.Output;
     exp.Type = "Expression";
-    exp.Expression = @(x,t,date__)x(1,t,:)+(((x(2,t,:))+(x(2,t-1,:)))./2)-x(3,t+3,:);
+    exp.Expression = @(x,t,date__,controls__)x(1,t,:)+(((x(2,t,:))+(x(2,t-1,:)))./2)-x(3,t+3,:);
     exp.Incidence = [complex(1, 0), complex(2, 0), complex(2, -1), complex(3, 3)];
     act.Expression = func2str(act.Expression);
     exp.Expression = func2str(exp.Expression);
