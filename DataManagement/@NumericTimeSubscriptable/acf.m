@@ -1,62 +1,85 @@
 function [C, R] = acf(this, varargin)
 % acf  Sample autocovariance and autocorrelation functions
-%
+%{
 % __Syntax__
 %
 %     [C, R] = acf(x)
 %     [C, R] = acf(x, dates, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `x` [ NumericTimeSubscriptable ] - Input time series.
 %
-% * `dates` [ numeric | Inf ] - Dates or date range from which the input
+% __`x`__ [ NumericTimeSubscriptable ]
+% >
+% Input time series.
+%
+%
+% __`dates`__ [ numeric | Inf ]
+% >
+% Dates or date range from which the input
 % tseries data will be used.
 %
 %
-% __Output Arguments__
-%
-% * `C` [ numeric ] - Auto-/cross-covariance matrices.
-%
-% * `R` [ numeric ] - Auto-/cross-correlation matrices.
+% ## Output Arguments ##
 %
 %
-% __Options__
-%
-% * `Demean=true` [ `true` | `false` ] - Estimate and remove sample mean
-% from the data before computing the ACF.
-%
-% * `Order=0` [ numeric ] - The order up to which the ACF will be computed.
-%
-% * `SmallSample=true` [ `true` | `false` ] - Adjust the degrees of freedom
-% for small samples by subtracting `1` from the number of periods.
+% __`C`__ [ numeric ]
+% >
+% Auto-/cross-covariance matrices.
 %
 %
-% __Description__
+% __`R`__ [ numeric ]
+% >
+% Auto-/cross-correlation matrices.
 %
 %
-% __Example__
+% ## Options ##
 %
+%
+% __`Demean=true`__ [ `true` | `false` ]
+% >
+% Estimate and remove sample mean from the data before computing the ACF.
+%
+%
+% __`Order=0`__ [ numeric ]
+% >
+% The order up to which the ACF will be computed.
+%
+%
+% __`SmallSample=true`__ [ `true` | `false` ]
+% >
+% Adjust the degrees of freedom for small samples by subtracting `1` from
+% the number of periods.
+%
+%
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('NumericTimeSubscriptable.acf');
-    parser.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    parser.addOptional('Dates', Inf, @DateWrapper.validateDateInput);
-    parser.addParameter('Demean', true, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Order', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    parser.addParameter('SmallSample', true, @(x) isequal(x, true) || isequal(x, false));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('NumericTimeSubscriptable.acf');
+    addRequired(pp, 'InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addOptional(pp, 'Dates', Inf, @DateWrapper.validateDateInput);
+
+    addParameter(pp, 'Demean', true, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'Order', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    addParameter(pp, 'SmallSample', true, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'RemoveNaN', true, @validate.logicalScalar);
 end
-parser.parse(this, varargin{:});
-dates = parser.Results.Dates;
-opt = parser.Options;
+pp.parse(this, varargin{:});
+dates = pp.Results.Dates;
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
@@ -66,9 +89,9 @@ if ndims(data)>3
 end
 
 % Remove leading and trailing NaN rows
-if isequal(data, Inf)
-    inxToKeep = all(~isnan(data(:, :)), 2);
-    data = data(inxToKeep, :, :);
+if opt.RemoveNaN
+    inxToRemove = any(isnan(data(:, :)), 2);
+    data = data(~inxToRemove, :, :);
 end
 
 C = covfun.acovfsmp(data, opt);
