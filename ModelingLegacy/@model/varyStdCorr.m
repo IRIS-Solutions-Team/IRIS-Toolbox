@@ -33,8 +33,6 @@ if addPresample
     startDate = range(1);
     range = [DateWrapper.roundPlus(startDate, -1), range];
 end
-startRange = range(1);
-endRange = range(end);
 numPeriods = numel(range);
 
 d = hereProcessOverrideOption(opt);
