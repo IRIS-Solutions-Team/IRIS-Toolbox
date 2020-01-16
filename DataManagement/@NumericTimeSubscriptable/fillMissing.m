@@ -44,27 +44,10 @@ if ~any(inxMissing(:))
     return
 end
 
-conversionFunction = [ ];
-if islogical(data)
-    data = double(data);
-    conversionFunction = @logical;
-end
+missingValue = this.MissingValue;
 
-try
-    % Call built-in `fillmissing` and supply the locations of missing values
-    data = fillmissing(data, varargin{:}, 'MissingLocations', inxMissing);
-catch
-    % Older Matlab releases do not have the MissingLocation option
-    data = fillmissing(data, varargin{:});
-end
+data = numeric.fillMissing(data, missingValue, varargin{:});
 
-if ~isempty(conversionFunction)
-    inxNaN = isnan(data);
-    data(inxNaN) = this.MissingValue;
-    data = conversionFunction(data);
-end
-
-%this = fill(this, data, startDate);
 this = setData(this, startDate:endDate, data);
 
 end%
