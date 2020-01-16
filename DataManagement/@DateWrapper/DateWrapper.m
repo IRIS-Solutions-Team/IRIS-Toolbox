@@ -30,6 +30,11 @@ classdef DateWrapper < double
         end%
         
         
+        function inx = ismember(this, that)
+            inx = ismember(round(100*this), round(100*that));
+        end%
+
+
         function dt = not(this)
             dt = DateWrapper.toDatetime(this);
         end%
