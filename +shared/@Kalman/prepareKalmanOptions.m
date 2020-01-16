@@ -105,7 +105,7 @@ end
 opt.OverrideStdcorr = [ ];
 opt.MultiplyStd = [ ];
 if ~isempty(opt.Override) || ~isempty(opt.Multiply)
-    [opt.OverrideStdcorr, ~, opt.MutliplyStd] = varyStdCorr(this, range, opt, '--clip', '--presample');
+    [opt.OverrideStdcorr, ~, opt.MultiplyStd] = varyStdCorr(this, range, opt, '--clip', '--presample');
 end
 
 

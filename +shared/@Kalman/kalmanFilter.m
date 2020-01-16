@@ -19,8 +19,6 @@ function [obj, regOutp, outputData] = kalmanFilter(this, inputData, outputData, 
 % * infinite std devs of measurement shocks equivalent to missing obs.
 % * contributions of measurement variables to transition variables.
 
-TYPE = @int8;
-
 [ny, nxi, nb, nf, ne, ng, nz] = sizeOfSolution(this);
 nv = countVariants(this);
 
@@ -193,7 +191,7 @@ for run = 1 : numRuns
             s.d  = d(:, :);
         end
         
-        s = hereCalculateReducedFormCovariance(this, v, s, opt);
+        s = hereGetReducedFormCovariance(this, v, s, opt);
     end
     
     % Stop immediately if solution is not available; report NaN solutions
@@ -556,7 +554,7 @@ return
                 ee = ee + s.OverrideMean;
                 % If there are anticipated shocks, we need to create NaN+1i*NaN to
                 % fill in the pre-sample values
-                if ~isreal(s.OverrideMean);
+                if ~isreal(s.OverrideMean)
                     preNaN = preNaN*(1+1i);
                 end
             end
@@ -943,11 +941,10 @@ end%
 
 
 
-function s = hereCalculateReducedFormCovariance(this, v, s, opt)
+function s = hereGetReducedFormCovariance(this, v, s, opt)
     ny = s.NumY;
     nf = s.NumF;
     nb = s.NumB;
-    ne = s.NumE;
     nxp = s.NumExtendedPeriods;
     inxV = s.InxV;
     inxW = s.InxW;

@@ -485,10 +485,9 @@ return
     function preallocHData( )
         % TODO Make .Output the primary option, allow for cellstr or string
         % inputs
-        lowerOutput = lower(opt.Data);
-        isPred = ~isempty(strfind(lowerOutput, 'pred'));
-        isFilter = ~isempty(strfind(lowerOutput, 'filter'));
-        isSmooth = ~isempty(strfind(lowerOutput, 'smooth'));
+        isPred = contains(opt.Data, 'Pred', 'IgnoreCase', true);
+        isFilter = contains(opt.Data, 'Filter', 'IgnoreCase', true);
+        isSmooth = contains(opt.Data, 'Smooth', 'IgnoreCase', true);
         numRuns = max(numDataSets, nv);
         nPred = max(numRuns, kalmanOpt.Ahead);
         nCont = max(ny, nz);
