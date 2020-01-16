@@ -147,8 +147,8 @@ inxNested = false(size(list));
 
 for i = 1 : nList
     
-    if isa(inputDatabank, 'containers.Map')
-        x = inputDatabank(list{i});
+    if isa(inputDatabank, 'Dictionary')
+        x = retrieve(inputDatabank, list{i});
     else
         x = getfield(inputDatabank, list{i});
     end
@@ -244,8 +244,8 @@ return
 
     function userDataFields = hereCreateUserDataFields( )
         userDataFields = struct( );
-        for i = 1 : numel(opt.UserDataFields)
-            fieldName = opt.UserDataFields{i};
+        for ii = 1 : numel(opt.UserDataFields)
+            fieldName = opt.UserDataFields{ii};
             userDataFields.(fieldName) = cell.empty(1, 0);
         end
     end%
@@ -255,18 +255,16 @@ return
         if numColumns==0
             return
         end
-        for i = 1 : numel(opt.UserDataFields)
-            fieldName = opt.UserDataFields{i};
-            fieldValue = ithUserData.(fieldName); 
+        for ii = 1 : numel(opt.UserDataFields)
             valueToSave = repmat({char.empty(1, 0)}, 1, numColumns);
-            if ischar(fieldValue) || isa(fieldValue, 'string')
-                valueToSave{1} = char(fieldValue);
-            elseif isa(fieldValue, 'DateWrapper')
-                valueToSave{1} = char(DateWrapper.toDefaultString(fieldValue));
-            elseif validate.numericScalar(fieldValue)
-                valueToSave{1} = sprintf('%g', fieldValue);
+            fieldName = opt.UserDataFields{ii};
+            if isfield(ithUserData, fieldName)
+                fieldValue = ithUserData.(fieldName); 
+                if ischar(fieldValue) || isa(fieldValue, 'string')
+                    valueToSave{1} = char(fieldValue);
+                end
             end
-            userDataFields.(fieldName)(1, end+(1:numColumns)) = valueToSave;
+            userDataFields.(fieldName) = [userDataFields.(fieldName), valueToSave];
         end
     end%
 end%
@@ -375,8 +373,8 @@ function c = hereSerialize(oo, opt)
     % Write user data fields
     if isfield(oo, 'UserDataFields')
         fieldNames = fieldnames(oo.UserDataFields);
-        for i = 1 : numel(fieldNames)
-            ithFieldName = fieldNames{i};
+        for ii = 1 : numel(fieldNames)
+            ithFieldName = fieldNames{ii};
             ithRow = oo.UserDataFields.(ithFieldName);
             if isHighlight
                 ithRow = [{''}, ithRow];
