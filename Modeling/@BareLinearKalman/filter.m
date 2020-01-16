@@ -8,8 +8,12 @@ extendedRange = [DateWrapper.roundPlus(startRange, -1), range];
 numPeriods = round(endRange - startRange + 1);
 numExtendedPeriods = numPeriods + 1;
 
-inputArray = getDataFromTo(inputData, startRange, endRange);
-inputArray = permute(inputArray, [2, 1, 3]);
+if isa(inputData, 'NumericTimeSubscriptable')
+    inputArray = getDataFromTo(inputData, startRange, endRange);
+    inputArray = permute(inputArray, [2, 1, 3]);
+else
+    inputArray = inputData;
+end
 
 opt = prepareKalmanOptions(this, range, varargin{:});
 outputData = hereCreateOutputDataRequest(this, numExtendedPeriods, opt);
