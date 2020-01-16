@@ -54,11 +54,14 @@ for id = getUniqueIds(this)
     marksExogenized = repmat({this.EMPTY_MARK}, this.NumOfEndogenous, this.NumOfExtendedPeriods);
     inxAnticipated = this.IdOfAnticipatedExogenized==id;
     inxUnanticipated = this.IdOfUnanticipatedExogenized==id;
+    inxWhenData = this.InxToKeepEndogenousNaN;
     inxExogenized = inxAnticipated | inxUnanticipated;
     anyExogenized = any(inxExogenized(:));
     if anyExogenized
-        marksExogenized(inxAnticipated) = {this.ANTICIPATED_MARK};
-        marksExogenized(inxUnanticipated) = {this.UNANTICIPATED_MARK};
+        marksExogenized(inxAnticipated & ~inxWhenData) = {[this.ANTICIPATED_MARK, this.ALWAYS_MARK]};
+        marksExogenized(inxAnticipated & inxWhenData) = {[this.ANTICIPATED_MARK, this.WHEN_DATA_MARK]};
+        marksExogenized(inxUnanticipated & inxWhenData) = {[this.UNANTICIPATED_MARK, this.ALWAYS_MARK]};
+        marksExogenized(inxUnanticipated & ~inxWhenData) = {[this.UNANTICIPATED_MARK, this.WHEN_DATA_MARK]};
         keep = any(inxAnticipated | inxUnanticipated, 2);
         numKeep = nnz(keep);
         addTableData = marksExogenized(keep, inxDates);

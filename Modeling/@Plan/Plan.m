@@ -50,6 +50,8 @@ classdef Plan < matlab.mixin.CustomDisplay
         EMPTY_MARK = '.' % char.empty(1, 0)
         ANTICIPATED_MARK = 'A'
         UNANTICIPATED_MARK = 'U'
+        ALWAYS_MARK = '!'
+        WHEN_DATA_MARK = '?'
         DATE_PREFIX = 't'
         RANGE_DEPENDENT = [ 
             "IdOfAnticipatedExogenized"
