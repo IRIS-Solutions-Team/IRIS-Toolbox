@@ -51,8 +51,8 @@ function output = subsref(this, s)
 nv = length(this);
 
 % Dot-name reference m.name
-if strcmp(s(1).type,'.') && ischar(s(1).subs)
-    name = s(1).subs;
+if strcmp(s(1).type,'.') && (ischar(s(1).subs) || isa(s(1).subs, 'string'))
+    name = char(s(1).subs);
     ell = lookup(this.Quantity, {name});
     posQty = ell.PosName;
     posStdCorr = ell.PosStdCorr;

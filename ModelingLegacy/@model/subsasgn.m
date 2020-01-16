@@ -84,7 +84,7 @@ nv = length(this);
 if isnumeric(b) ...
         && (numel(b)==1 || numel(b)==nv) ...
         && numel(s)==1 && s(1).type=='.'
-    name = s(1).subs;
+    name = char(s(1).subs);
     ell = lookup(this.Quantity, {name});
     posQty = ell.PosName;
     posStdCorr = ell.PosStdCorr;
