@@ -45,9 +45,9 @@ if isempty(string)
     return
 end
 
-ptn = parsePattern( );
+ptn = hereParseFormat( );
 tkn = regexpi(string, ptn, 'names', 'once');
-[year, per, day, month, freq, inxPeriod] = parseDates(tkn, configStruct, opt);
+[year, per, day, month, freq, inxPeriod] = hereParseDateStrings(tkn, configStruct, opt);
 
 inxCalendarDaily = freq==Frequency.DAILY;
 inxCalendarWeekly = freq==Frequency.WEEKLY & ~inxPeriod;
@@ -82,9 +82,7 @@ end
 return
 
 
-
-
-    function x = parsePattern( )
+    function x = hereParseFormat( )
         x = upper(opt.DateFormat);
         x = regexptranslate('escape', x);
         x = regexprep(x,'(?<!%)\*', '.*?');
@@ -129,7 +127,7 @@ return
         end
 
         if isstruct(opt.DateFormat)
-            if isequal(opt.EnforceFrequency, false)
+            if islogical(opt.EnforceFrequency) && isequal(opt.EnforceFrequency, false)
                 opt.DateFormat = opt.DateFormat.qq;
             else
                 opt.DateFormat = DateWrapper.chooseFormat(opt.DateFormat, opt.EnforceFrequency);
@@ -153,7 +151,7 @@ end%
 %
 
 
-function [year, per, day, month, freq, inxPeriod] = parseDates(cellToken, configStruct, opt)
+function [year, per, day, month, freq, inxPeriod] = hereParseDateStrings(cellToken, configStruct, opt)
     [thisYear, ~] = datevec(now( ));
     thisCentury = 100*floor(thisYear/100);
     freq = nan(size(cellToken));
@@ -216,11 +214,11 @@ function [year, per, day, month, freq, inxPeriod] = parseDates(cellToken, config
         end
         
         if isfield(tkn, 'RomanPeriod')
-            per(i) = roman2num(tkn.RomanPeriod);
+            per(i) = hereRoman2Num(tkn.RomanPeriod);
         end
         
         if isfield(tkn, 'RomanMonth')
-            month(i) = roman2num(tkn.RomanMonth);
+            month(i) = hereRoman2Num(tkn.RomanMonth);
         end
         
         if isfield(tkn, 'NumericMonth')
@@ -246,7 +244,7 @@ function [year, per, day, month, freq, inxPeriod] = parseDates(cellToken, config
         
         if ~isequal(opt.EnforceFrequency, false)
             freq(i) = opt.EnforceFrequency;
-        elseif tryYearlyFrequency(tkn)
+        elseif hereTryYearlyFrequency(tkn)
             freq(i) = Frequency.YEARLY;
         end
         
@@ -288,12 +286,9 @@ function [year, per, day, month, freq, inxPeriod] = parseDates(cellToken, config
 end%
 
 
-%
-% Local Functions
-%
 
 
-function per = roman2num(romanPer)
+function per = hereRoman2Num(romanPer)
     per = 1;
     list = { 'i', 'ii', 'iii', 'iv', 'v', 'vi', ...
              'vii', 'viii', 'ix', 'x', 'xi', 'xii' };
@@ -305,7 +300,7 @@ end%
 
 
 
-function flag = tryYearlyFrequency(tkn)
+function flag = hereTryYearlyFrequency(tkn)
     listFields = fieldnames(tkn);
     flag = numel(listFields)==1 && ~isempty(strfind(listFields{1}, 'Year'));
 end%
