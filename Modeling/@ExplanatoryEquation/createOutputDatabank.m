@@ -1,13 +1,17 @@
 function outputDatabank = createOutputDatabank(this, inputDatabank, dataBlock, namesToInclude, fitted, opt)
 % createOutputDatabank  Create output databank from ExplanatoryEquation
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
+
+if isempty(namesToInclude) && isempty(fitted)
+    return
+end
 
 extendedRange = dataBlock.ExtendedRange;
 array = dataBlock.YXEPG;

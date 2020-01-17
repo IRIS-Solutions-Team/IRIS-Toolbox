@@ -130,6 +130,7 @@ for j = 1 : numel(inputString)
         this__.ControlNames = opt.ControlNames;
     end
 
+
     %
     % Collect all variables names from the input string, enforcing lower or
     % upper case if requested
@@ -138,16 +139,18 @@ for j = 1 : numel(inputString)
 
     this__.InputString = hereComposeUserInputString(inputString__, label__, attributes__);
 
+
     %
     % Split the input equation string into LHS and RHS using the first
     % equal sign found; there may be more than one equal sign such as == in
     % if( )
     %
-    split__ = split(inputString__, "=");
-    if numel(split__)<2
+    [split__, sign__] = split(inputString__, ["=#", "===", "="]);
+    if isempty(sign__)
         hereThrowInvalidInputString( );
     end
     lhsString = split__(1);
+    equalSign = sign__(1);
     rhsString = join(split__(2:end), "=");
 
     if lhsString==""
@@ -156,6 +159,8 @@ for j = 1 : numel(inputString)
     if rhsString==""
         hereThrowEmptyRhs( );
     end
+
+    this__.IsIdentity = equalSign~="=";
 
     %
     % Populate the ExplanatoryEquation object
@@ -268,6 +273,9 @@ return
         % Find the starts of all regression terms
         %
         posStart = sort([strfind(rhsString, '+@'), strfind(rhsString, '-@')]);
+        if ~isempty(posStart) && this__.IsIdentity
+            hereReportRegressionCoefficientsInIdentity( );
+        end
 
         %
         % Collect all regression terms first and see what's left afterwards
@@ -328,6 +336,17 @@ return
         for ii = 1 : numel(termStrings)
             this__ = addExplanatory(this__, termStrings(ii), 'Fixed=', fixed(ii));
         end
+
+        return
+
+            function hereReportRegressionCoefficientsInIdentity( )
+                thisError = [ 
+                    "ExplanatoryEquation:RegressionInIdentity"
+                    "This ExplanatoryEquation includes regression "
+                    "coefficients even though it is marked as an identity: %s "
+                ];
+                throw(exception.Base(thisError, 'error'));
+            end%
     end%
 
 

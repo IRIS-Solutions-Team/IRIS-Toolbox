@@ -358,7 +358,11 @@ classdef Data < shared.DataBlock
 
             this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfColumns);
             this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfColumns);
-            this.SigmasOfExogenous = plan.SigmasOfExogenous(:, :, planVariant);
+            if isempty(this.SigmasOfExogenous)
+                this.SigmasOfExogenous = ones(this.NumOfE, this.NumOfColumns);
+            else
+                this.SigmasOfExogenous = plan.SigmasOfExogenous(:, :, planVariant);
+            end
             this.InitYX = this.YXEPG(this.InxOfYX, :);
 
             if isa(plan, 'Plan')

@@ -76,8 +76,12 @@ this = runtime(this, dataBlock, "regress");
 resetToNaN = true;
 this = alter(this, numPages, resetToNaN);
 
-for q = 1 : numEquations
+
+%//////////////////////////////////////////////////////////////////////////
+inxToEstimate = ~[this.IsIdentity];
+for q = find(inxToEstimate)
     this__ = this(q);
+
     [plainData, lhs, rhs] = createModelData(this__, dataBlock, controls);
 
     if opt.FixParameters
@@ -109,7 +113,8 @@ for q = 1 : numEquations
 
         this__.Parameters(1, :, v) = parameters;
         fitted(q, inxColumns, v) = parameters*rhs__;
-        plainData(end, inxColumns, v) = lhs(:, inxColumns, v) - fitted(q, inxColumns, v);
+        res__ = lhs(:, inxColumns, v) - fitted(q, inxColumns, v);
+        plainData(end, inxColumns, v) = res__;
         this__.Statistics.VarResiduals(:, :, v) = varResiduals;
         this__.Statistics.CovParameters(:, :, v) = covBeta;
     end
@@ -124,6 +129,8 @@ for q = 1 : numEquations
     %
     this(q) = this__;
 end
+%//////////////////////////////////////////////////////////////////////////
+
 
 if ~isempty(reportEmptyData)
     hereReportEmptyData( );
@@ -135,7 +142,10 @@ end
 
 if storeToDatabank
     namesToInclude = [this.ResidualName];
-    outputDb = createOutputDatabank(this, inputDatabank, dataBlock, namesToInclude, fitted, opt);
+    outputDb = createOutputDatabank( ...
+        this, inputDatabank, dataBlock ...
+        , namesToInclude, fitted(inxToEstimate, :, :), opt ...
+    );
 end
 
 %

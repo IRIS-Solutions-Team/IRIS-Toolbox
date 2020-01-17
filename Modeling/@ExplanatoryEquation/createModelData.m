@@ -15,6 +15,16 @@ if nargin==2 && isequal(dataBlock, '--test')
 end
 %)
 
+
+if numel(this)~=1
+    thisError = [ 
+        "ExplanatoryEquation:SingleEquationExpected"
+        "Method @ExplanatoryEquation/createModelData expects "
+        "a scalar ExplanatoryEquation object."
+    ];
+    throw(exception.Base(thisError, 'error'));
+end
+
 %--------------------------------------------------------------------------
 
 %
@@ -47,8 +57,8 @@ rhs(:, baseRangeColumns, :) = createModelData( ...
 %
 % Model data for residuals; reset NaN residuals to zero
 %
-res = [ ];
-if nargout>=4
+res = double.empty(0, numExtendedPeriods, numPages);
+if nargout>=4 && ~this.IsIdentity && ~isempty(this.Runtime.PosResidual)
     res = dataBlock.YXEPG(this.Runtime.PosResidual, :, :);
     hereFixResidualsInBaseRange( );
 end

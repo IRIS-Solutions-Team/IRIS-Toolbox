@@ -103,6 +103,12 @@ nv = countVariants(this);
 lhsRequired = false;
 context = "for " + this(1).Context + " simulation";
 dataBlock = getDataBlock(this, inputDatabank, range, lhsRequired, context);
+numExtendedPeriods = dataBlock.NumOfExtendedPeriods;
+numPages = dataBlock.NumOfPages;
+numRuns = max(nv, numPages);
+lhsNames = [this.LhsName];
+baseRangeColumns = dataBlock.BaseRangeColumns;
+extendedRange = DateWrapper(dataBlock.ExtendedRange);
 
 
 %
@@ -112,19 +118,13 @@ controls = assignControls(this, inputDatabank);
 
 
 %
-% Extract exogenized points
+% Extract exogenized points from the Plan
 %
 [isExogenized, inxExogenizedAlways, inxExogenizedWhenData] = hereExtractExogenized( );
 
 
-numExtendedPeriods = dataBlock.NumOfExtendedPeriods;
-numPages = dataBlock.NumOfPages;
-numRuns = max(nv, numPages);
-lhsNames = [this.LhsName];
-baseRangeColumns = dataBlock.BaseRangeColumns;
-extendedRange = DateWrapper(dataBlock.ExtendedRange);
-
 hereExpandPagesIfNeeded( );
+
 
 %
 % Prepare runtime information
@@ -217,6 +217,21 @@ return
         inxExogenizedWhenData = opt.Plan.InxToKeepEndogenousNaN;
         inxExogenizedAlways = inxExogenized & ~inxExogenizedWhenData;
         isExogenized = nnz(inxExogenized)>0;
+
+        %
+        % If some equations are identities, `inxExogenized` is only
+        % returned for non-identities; expand the array here and set
+        % `inxExogenized` to `false` for all identities/periods.
+        %
+        inxIdentity = [this.IsIdentity];
+        if any(inxIdentity)
+            tempWhenData = inxExogenizedWhenData;
+            tempAlways = inxExogenizedAlways;
+            inxExogenizedWhenData = false(numEquations, numExtendedPeriods, size(tempWhenData, 30));
+            inxExogenizedAlways = false(numEquations, numExtendedPeriods, size(tempAlways, 30));
+            inxExogenizedWhenData(~inxIdentity, :, :) = tempWhenData;
+            inxExogenizedAlways(~inxIdentity, :, :) = tempAlways;
+        end
     end%
 
 
@@ -268,7 +283,12 @@ return
                     %
                     % Endogenous simulation
                     %
-                    lhs(1, tt, vv) = pr__ + res(1, tt, vv);
+                    if isempty(res)
+                        res__ = 0;
+                    else
+                        res__ = res(1, tt, vv);
+                    end
+                    lhs(1, tt, vv) = pr__ + res__;
                     columnsToUpdate = [columnsToUpdate, tt];
                     needsUpdate__ = true;
                 end
@@ -306,8 +326,12 @@ return
                 %
                 % Endogenous simulation
                 %
-                lhs(1, inxColumnsToRun__, vv) = ...
-                    parameters__*rhs(:, inxColumnsToRun__, vv) + res(1, inxColumnsToRun__, vv);
+                if isempty(res)
+                    res__ = 0;
+                else
+                    res__ = res(1, inxColumnsToRun__, vv);
+                end
+                lhs(1, inxColumnsToRun__, vv) = parameters__*rhs(:, inxColumnsToRun__, vv) + res__;
             end
         end
         plainData = updatePlainData(this__.Dependent, plainData, lhs, res, columnsToRun);

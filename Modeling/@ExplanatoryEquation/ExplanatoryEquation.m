@@ -34,6 +34,7 @@ classdef ExplanatoryEquation ...
         Export (1, :) shared.Export = shared.Export.empty(1, 0)
         Substitutions (1, 1) struct = struct( )
 
+        IsIdentity (1, 1) logical = false
         ResidualNamePattern (1, 2) string = ["res_", ""]
         FittedNamePattern (1, 2) string = ["fit_", ""]
         DateReference (1, 1) string = "date__"
@@ -264,7 +265,8 @@ classdef ExplanatoryEquation ...
 
 
         function namesEndogenous = getEndogenousForPlan(this)
-            namesEndogenous = [this.LhsName];
+            inxIdentity = [this.IsIdentity];
+            namesEndogenous = [this(~inxIdentity).LhsName];
         end%
 
 
@@ -460,6 +462,10 @@ classdef ExplanatoryEquation ...
 
 
         function value = get.ResidualName(this)
+            if this.IsIdentity
+                value = string.empty(1, 0);
+                return
+            end
             value = this.ResidualNamePattern(1) + this.LhsName + this.ResidualNamePattern(2);
         end%
 
@@ -467,6 +473,10 @@ classdef ExplanatoryEquation ...
 
 
         function value = get.FittedName(this)
+            if this.IsIdentity
+                value = string.empty(1, 0);
+                return
+            end
             value = this.FittedNamePattern(1) + this.LhsName + this.FittedNamePattern(2);
         end%
 
