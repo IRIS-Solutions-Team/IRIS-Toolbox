@@ -169,6 +169,14 @@ function d = dbload(varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
+thisWarning = [ 
+    "Obsolete:Dbload"
+    "Function dbload( ) is deprecated and will be removed from "
+    "[IrisToolbox] in a future release; use databank.fromCSV( ) instead."
+];
+throw(exception.Base(thisWarning, 'warning'));
+
+
 if isstruct(varargin{1})
     d = varargin{1};
     varargin(1) = [ ];

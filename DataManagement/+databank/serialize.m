@@ -34,22 +34,18 @@ function [c, listSerialized] = serialize(inputDatabank, dates, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.serialize');
-    % Required inputs
     addRequired(pp, 'inputDatabank', @validate.databank);
-    addRequired(pp, 'dates', @DateWrapper.validateDateInput);
-    % Options
+    addOptional(pp, 'dates', Inf, @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
+
     addParameter(pp, {'NamesHeader', 'VariablesHeader'}, 'Variables ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(pp, 'ClassHeader', 'Class[Size] ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(pp, 'Class', true, @validate.logicalScalar);
@@ -59,12 +55,11 @@ if isempty(pp)
     addParameter(pp, 'Format', '%.8e', @(x) validate.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
     addParameter(pp, 'MatchFreq', false, @validate.logicalScalar);
     addParameter(pp, 'Nan', 'NaN', @validate.string);
-    addParameter(pp, {'SaveNested', 'SaveSubdb'}, false, @validate.logicalScalar);
     addParameter(pp, 'UserData', 'UserData', @(x) validate.string(x) && isvarname(x));
     addParameter(pp, 'UserDataFields', cell.empty(1, 0), @validate.list);
     addParameter(pp, 'UnitsHeader', 'Units ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
     addParameter(pp, 'Delimiter', ',', @validate.string);
-    % Date options
+
     addDateOptions(pp);
 end
 parse(pp, inputDatabank, dates, varargin{:});
@@ -136,17 +131,14 @@ end
 % This first column will fill in all entries.
 nList = numel(list);
 data = cell(1, nList); % nan(length(dates), 1);
-numRows = zeros(1, nList, 'int32');
 
 nameRow = { };
 classRow = { };
 commentRow = { };
 userDataFields = hereCreateUserDataFields( );
 inxSerialized = false(size(list));
-inxNested = false(size(list));
 
 for i = 1 : nList
-    
     if isa(inputDatabank, 'Dictionary')
         x = retrieve(inputDatabank, list{i});
     else
@@ -154,69 +146,69 @@ for i = 1 : nList
     end
     
     if isa(x, 'TimeSubscriptable')
-        ithFreq = x.FrequencyAsNumeric;
-        if opt.MatchFreq && userFreq~=ithFreq
+        freq__ = x.FrequencyAsNumeric;
+        if opt.MatchFreq && userFreq~=freq__
             continue
         end
         if isRange
-            iData = getDataFromTo(x, dates(1), dates(end));
+            data__ = getDataFromTo(x, dates(1), dates(end));
         else
-            iData = getData(x, dates);
+            data__ = getData(x, dates);
         end
-        iComment = comment(x);
-        inxSerialized(i) = true;
-        iClass = class(x);
+        comment__ = comment(x);
+        class__ = class(x);
         userData__ = x.UserData;
     elseif isnumeric(x)
-        iData = x;
-        iComment = {''};
-        inxSerialized(i) = true;
-        iClass = class(x);
+        data__ = x;
+        comment__ = {''};
+        class__ = class(x);
         userData__ = [ ];
-    elseif isstruct(x)
-        inxNested(i) = true;
-        userData__ = [ ];
-        continue
     else
         continue
     end
     
-    iData = double(iData);
-    tmpSize = size(iData);
-    iData = iData(:, :);
-    iComment = iComment(1, :);
-    [tmpRows, tmpCols] = size(iData);
-    if tmpCols==0
-        data{i} = [ ];
+    data__ = double(data__);
+    sizeData__ = size(data__);
+    data__ = data__(:, :);
+    comment__ = comment__(1, :);
+    [numRows__, numColumns__] = size(data__);
+    if numColumns__==0
         continue
     end
-    numRows(i) = int32(tmpRows);
+
+    inxSerialized(i) = true;
     % Add data, expand first dimension if necessary.
-    data{i} = iData;
+    data{i} = data__;
     nameRow{end+1} = list{i}; %#ok<AGROW>
-    classRow{end+1} = [iClass, FN_PRINT_SIZE(tmpSize)]; %#ok<AGROW>
-    if tmpCols>1
-        nameRow(end+(1:tmpCols-1)) = {''}; %#ok<AGROW>
-        classRow(end+(1:tmpCols-1)) = {''}; %#ok<AGROW>
+    classRow{end+1} = [class__, FN_PRINT_SIZE(sizeData__)]; %#ok<AGROW>
+
+    if numColumns__>1
+        nameRow(end+(1:numColumns__-1)) = {''}; %#ok<AGROW>
+        classRow(end+(1:numColumns__-1)) = {''}; %#ok<AGROW>
     end
-    if tmpCols>size(iComment, 2)
-        iComment(1, end+1:tmpCols) = {''};
+    if numColumns__>size(comment__, 2)
+        comment__(1, end+1:numColumns__) = {''};
     end 
-    commentRow = [commentRow, iComment]; %#ok<AGROW>
-    hereAddUserDataFields(userData__, tmpCols);
+    commentRow = [commentRow, comment__]; %#ok<AGROW>
+    hereAddUserDataFields(userData__, numColumns__);
 end
 
-numRowsMax = max(numRows);
-inxCorrect = numRows==numRowsMax;
-if any(~inxCorrect)
-    for i = find(~inxCorrect)
-        data{i}(end+1:numRowsMax, :) = NaN;
-    end
+%
+% Convert serialized data to numeric array
+%
+data = data(inxSerialized);
+numRows = cellfun(@(x) size(x, 1), data);
+maxNumRows = max(numRows);
+for i = reshape(find(numRows<maxNumRows), 1, [ ])
+    data{i}(end+1:maxNumRows, :) = NaN;
 end
-
 data = [ data{:} ];
 
+%
+% Report names of serialized fields
+%
 listSerialized = list(inxSerialized);
+
 
 % We need to remove double quotes from the date format string because the
 % double quotes are used to delimit the CSV cells.
@@ -403,16 +395,16 @@ function c = hereSerialize(oo, opt)
     % Combine real and imag columns in an extended data matrix.
     xData = zeros(numRows, 2*numColumns);
     xData(:, 1:2:end) = real(data);
-    iData = imag(data);
-    xData(:, 2:2:end) = iData;
+    data__ = imag(data);
+    xData(:, 2:2:end) = data__;
 
     % Find imag columns and create positions of zero-only imag columns that
     % will be removed.
-    iCol = any(iData ~= 0, 1);
+    iCol = any(data__ ~= 0, 1);
     removeCol = 2*(1 : numColumns);
     removeCol(iCol) = [ ];
     % Check for the occurence of imaginary NaNs.
-    isImagNan = any(isnan(iData(:)));
+    isImagNan = any(isnan(data__(:)));
     % Remove zero-only imag columns from the extended data matrix.
     xData(:, removeCol) = [ ];
     % Create a sequence of formats for one line.

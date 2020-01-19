@@ -133,6 +133,14 @@ function lsSaved = dbsave(inp, fileName, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
+thisWarning = [ 
+    "Obsolete:Dbsave"
+    "Function dbsave( ) is deprecated and will be removed from "
+    "[IrisToolbox] in a future release; use databank.toCSV( ) instead."
+];
+throw(exception.Base(thisWarning, 'warning'));
+
+
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
 
 if ~isempty(varargin) && (isa(varargin{1}, 'DateWrapper') || isnumeric(varargin{1}))
@@ -163,7 +171,7 @@ if isempty(parser)
     addParameter(parser, 'Class', true, @validate.logicalScalar);
     addParameter(parser, 'Comment', true, @validate.logicalScalar);
     addParameter(parser, 'CommentsHeader', 'Comments ->', @(x) validate.string(x) && isempty(strfind(x, '''')) && isempty(strfind(x, '"')));
-    addParameter(parser, 'Decimal', [ ], @(x) isempty(x) || validate.numericScalar(x));
+    addParameter(parser, {'Decimal', 'Decimals'}, [ ], @(x) isempty(x) || validate.numericScalar(x));
     addParameter(parser, 'Format', '%.8e', @(x) validate.string(x) && ~isempty(x) && x(1)=='%' && isempty(strfind(x, '$')) && isempty(strfind(x, '-')));
     addParameter(parser, 'MatchFreq', false, @validate.logicalScalar);
     addParameter(parser, 'Nan', 'NaN', @validate.string);
@@ -230,7 +238,6 @@ list = fieldnames(inp).';
 % This first column will fill in all entries.
 nList = numel(list);
 data = cell(1, nList); % nan(length(dates), 1);
-nRows = zeros(1, nList, 'int32');
 
 nameRow = { };
 classRow = { };
@@ -280,7 +287,6 @@ for i = 1 : nList
         data{i} = [ ];
         continue
     end
-    nRows(i) = int32(tmpRows);
     % Add data, expand first dimension if necessary.
     data{i} = iData;
     nameRow{end+1} = list{i}; %#ok<AGROW>
@@ -295,12 +301,13 @@ for i = 1 : nList
     commentRow = [commentRow, iComment]; %#ok<AGROW>
 end
 
-nRowsMax = max(nRows);
-ixCorrect = nRows==nRowsMax;
-if any(~ixCorrect)
-    for i = find(~ixCorrect)
-        data{i}(end+1:nRowsMax, :) = NaN;
-    end
+inxEmpty = cellfun('isempty', data);
+data(inxEmpty) = [ ];
+
+numRows = cellfun(@(x) size(x, 1), data);
+maxNumRows = max(numRows);
+for i = find(numRows~=maxNumRows)
+    data{i}(end+1:maxNumRows, :) = NaN;
 end
 
 data = [ data{:} ];

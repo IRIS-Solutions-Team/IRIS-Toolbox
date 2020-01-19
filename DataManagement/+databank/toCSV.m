@@ -93,13 +93,6 @@ function listSaved = toCSV(inputDatabank, fileName, varargin);
 % String that will be used to represent NaNs.
 %
 %
-% __`SaveNested=false`__ [ `true` | `false` ] - 
-% >
-% Save nested databanks
-% (structs within the `inputDatabank`); the nested databanks will be saved
-% to separate CSV files.
-%
-%
 % __`UserData='UserData__'`__ [ char ] - 
 % >
 % Field name in the `inputDatabank` from which any kind of user data will
@@ -187,8 +180,8 @@ function listSaved = toCSV(inputDatabank, fileName, varargin);
 %                   y: [4x1 Series]
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 persistent parser
 if isempty(parser)
