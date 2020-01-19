@@ -87,9 +87,9 @@ end
 %--------------------------------------------------------------------------
 
 nv = length(this);
-inxOfM = this.Equation.Type==TYPE(1);
-inxOfT = this.Equation.Type==TYPE(2);
-inxOfEquations = inxOfM | inxOfT;
+inxM = this.Equation.Type==TYPE(1);
+inxT = this.Equation.Type==TYPE(2);
+inxEquations = inxM | inxT;
 
 variantsRequested = Inf;
 if isnumeric(inputData)
@@ -110,7 +110,7 @@ elseif isstruct(inputData)
     varargin(1) = [ ];
     range = double(range);
     if isempty(range)
-        dcy = zeros(nnz(inxOfEquations), 0, nv);
+        dcy = zeros(nnz(inxEquations), 0, nv);
         return
     end
     howToCreateL = [ ];
@@ -121,38 +121,36 @@ parse(parser, varargin{:});
 opt = parser.Options;
 
 if opt.HashEquationsOnly
-    inxOfEquations = inxOfEquations & this.Equation.InxOfHashEquations;
+    inxEquations = inxEquations & this.Equation.InxOfHashEquations;
 end
 
 if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     nv = length(this);
     variantsRequested = 1 : nv;
 end
-numOfVariantsRequested = numel(variantsRequested);
+numVariantsRequested = numel(variantsRequested);
 
 % Update parameters and steady levels
 [YXEPG, L] = lp4lhsmrhs(this, YXEPG, variantsRequested, howToCreateL);
 
-nXPer = size(YXEPG, 2);
+numExtendedPeriods = size(YXEPG, 2);
 if strcmpi(opt.EquationSwitch, 'Dynamic')
     eqtn = this.Equation.Dynamic;
 else
     eqtn = this.Equation.Steady;
-    inxToCopy = inxOfEquations & cellfun(@isempty, eqtn);
+    inxToCopy = inxEquations & cellfun(@isempty, eqtn);
     eqtn(inxToCopy) = this.Equation.Dynamic(inxToCopy);
 end
 
 [minSh, maxSh] = getActualMinMaxShifts(this);
 
-temp = [ eqtn{inxOfEquations} ];
+temp = [ eqtn{inxEquations} ];
 temp = vectorize(temp);
 fn = str2func([this.PREAMBLE_DYNAMIC, '[', temp, ']']);
-t = 1-minSh : nXPer-maxSh;
+t = 1-minSh : numExtendedPeriods-maxSh;
 dcy = [ ];
-for v = 1 : numOfVariantsRequested
-    try
+for v = 1 : numVariantsRequested
     q = fn(YXEPG(:, :, v), t, L(:, :, v));
-    catch, s = char(fn); keyboard, end
     dcy = cat(3, dcy, q);
 end
 

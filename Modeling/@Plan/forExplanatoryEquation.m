@@ -33,6 +33,25 @@ function this = forExplanatoryEquation(xq, simulationRange)
 % ## Description ##
 %
 %
+% The `Plan` object created by `Plan.forExplanatoryEquation( )` is to be
+% used in an `ExplanatoryEquation/simulate( )` function to specify the
+% exogenized variables. Only the LHS variables in non-identities can be
+% exogenized.  When an LHS variables is exogenized, the respective residual
+% belonging to the equation is endogenized in the same periods; this is
+% done automatically and no `endogenize( )` or `swap( )` functions are
+% called by the user.
+% 
+% There are two ways how to exogenize a variable in a `Plan` created for an
+% `Explanatory: 
+%
+% * `exogenize( )` exogenizes some LHS variables in some periods no matter
+% what;
+%
+% * `exogenizeWhenData( )` exogenizes some LHS variables in specified
+% periods; however, if data are missing (i.e. are `NaN`) for a particular
+% exogenized point, the variabe in that period is not exogenized
+% and treated endogenously instead.
+%
 %
 % ## Example ##
 %
