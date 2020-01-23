@@ -35,20 +35,29 @@ classdef ( ...
 
     methods
         varargout = acf(varargin)
+        varargout = apply(varargin)
         varargout = arf(varargin)
         varargout = apct(varargin)
         varargout = aroc(varargin)
         varargout = bubble(varargin)
+        varargout = bwf(varargin)
+        varargout = bwf2(varargin)
+
 
         varargout = destdize(varargin)
         function varargout = destdise(varargin)
             [varargout{1:nargout}] = destdize(varargin{:});
         end%
 
+
         varargout = diff(varargin)
         varargout = difflog(varargin)
         varargout = ellone(varargin)
-        varargout = apply(varargin)
+        varargout = llf(varargin)
+        varargout = llf2(varargin)
+        varargout = hpf(varargin)
+        varargout = hpf2(varargin)
+
 
         varargout = fill(varargin)
         function varargout = replace(varargin)
@@ -121,6 +130,7 @@ classdef ( ...
 
 
         implementDisp(varargin)
+        varargout = implementFilter(varargin)
         varargout = unop(varargin)
         varargout = unopinx(varargin)
 

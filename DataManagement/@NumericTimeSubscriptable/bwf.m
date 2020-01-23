@@ -7,7 +7,7 @@ function varargout = bwf(varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [T,C,CutOff,Lambda] = bwf(X,Order,~Range,...)
+%     [T, C, CutOff, Lambda] = bwf(X, Order, ~Range, ...)
 %
 %
 % Syntax with output arguments swapped
@@ -15,7 +15,7 @@ function varargout = bwf(varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [T,C,CutOff,Lambda] = bwf2(X,Order,~Range,...)
+%     [T, C, CutOff, Lambda] = bwf2(X, Order, ~Range, ...)
 %
 %
 % Input arguments
@@ -28,8 +28,8 @@ function varargout = bwf(varargin)
 % `Order=1` reproduces the local linear filter [`llf`](tseries/llf).
 %
 % * `~Range` [ numeric | char | *`@all`* ] - Date range on which the input
-% data will be filtered; `Range` can be `@all`, `Inf`, `[startdata,Inf]`,
-% or `[-Inf,enddate]`; if omitted, `@all` (i.e. the entire available range
+% data will be filtered; `Range` can be `@all`, `Inf`, `[startdata, Inf]`, 
+% or `[-Inf, enddate]`; if omitted, `@all` (i.e. the entire available range
 % of the input series) is used.
 %
 %
@@ -88,7 +88,7 @@ function varargout = bwf(varargin)
 % `'lambda='` option (or reassigns the default `@auto`), a default value is
 % used. The default value is based on common practice and can be calculated
 % using the date frequency of the input time series as $\lambda = (10 \cdot
-% f)^n$, where $f$ is the frequency (yearly=1, half-yearly=2, quarterly=4,
+% f)^n$, where $f$ is the frequency (yearly=1, half-yearly=2, quarterly=4, 
 % bi-monthly=6, monthly=12), and $n$ is the order of the filter, determined
 % by the input parameter `Order`.
 %
@@ -105,11 +105,12 @@ function varargout = bwf(varargin)
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-[X,Order,Range,varargin] = irisinp.parser.parse('tseries.bwf',varargin{:});
-opt = passvalopt('tseries.filter',varargin{:});
+[X, Order, Range, varargin] = irisinp.parser.parse('tseries.bwf', varargin{:});
+opt = passvalopt('tseries.filter', varargin{:});
 
 %--------------------------------------------------------------------------
 
-[varargout{1:nargout}] = myfilter(Order,X,Range,opt);
+[varargout{1:nargout}] = implementFilter(Order, X, Range, opt);
 
-end
+end%
+

@@ -1,13 +1,13 @@
-function varargout = myfilter(order, inp, range, opt)
-% myfilter  Low/high-pass filter with soft and hard tunes
+function varargout = implementFilter(order, inp, range, opt)
+% implementFilter  Low/high-pass filter with condition information
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% The function `myfilter` is called from within `hpf`, `llf` and `bwf`.
+% Function `implementFilter` is called from within `hpf`, `llf` and `bwf`.
 
 if isempty(range)
     varargout{1} = inp.empty(inp);
@@ -32,10 +32,13 @@ else
     if isequal(opt.Lambda, @auto) ...
             || isempty(opt.Lambda) ...
             || isequal(opt.Lambda, 'auto')
-        if freq == 0 || freq == 365
-            utils.error('tseries:myfilter', ...
-                ['Option ''lambda='' must be used for tseries objects ', ...
-                'with integer or daily date frequency.']);
+        if freq==Frequency.INTEGER || freq==Frequency.DAILY
+            thisError = [
+                "NumericTimeSubscriptable:implementFilter"
+                "Option Lambda= must be used for time series "
+                "with integer or daily date frequency."
+            ];
+            throw(exception.Base(thisError, 'error'));
         else
             lambda = defaultLambdaFunc(freq, order);
         end
@@ -45,42 +48,45 @@ else
     cutoff = cutoffFunc(lambda, order);
 end
 
-if any(lambda <= 0)
-    utils.error('tseries:myfilter', ...
-        'Smoothing parameter must be a positive number.');
+if any(lambda<=0)
+    thisError = [
+        "Series:InvalidSmoothingParameter"
+        "Smoothing parameter Lambda= must be a positive number. "
+    ];
+    throw(exception.Base(thisError, 'error'));
 end
 
 %--------------------------------------------------------------------------
 
-lambda = lambda(:).';
-drift = opt.Drift(:).';
+lambda = reshape(lambda, 1, [ ]);
+drift = reshape(opt.Drift, 1, [ ]);
 
-% Get the input data range.
+% Get the input data range
 range = specrange(inp, range);
 inp = resize(inp, range);
 xStart = range(1);
 xEnd = range(end);
 
-% Determine the filter range.
+% Determine the filter range
 [fStart, fEnd, lStart, lEnd, gStart, gEnd] = getFilterRange( );
 isLevel = ~isempty(lStart);
 isGrowth = ~isempty(gStart);
 
-% Get time-varying gamma weights; default is 1.
+% Get time-varying gamma weights; default is 1
 gamma = [ ];
 getGamma( );
 
-% Get input, level and growth data on the filtering range.
-xData = rangedata(inp, [fStart, fEnd]);
+% Get input, level and growth data on the filtering range
+xData = getDataFromTo(inp, fStart, fEnd);
 
-% Separate soft and hard tunes.
+% Separate soft and hard tunes
 lData = [ ];
 gData = [ ];
 if isLevel
-    lData = rangedata(opt.Level, [fStart, fEnd]);
+    lData = getDataFromTo(opt.Level, fStart, fEnd);
 end
 if isGrowth
-    gData = rangedata(opt.Change, [fStart, fEnd]);
+    gData = getDataFromTo(opt.Change, fStart, fEnd);
 end
 
 % Log data and tunes if requested by the user.
@@ -95,15 +101,15 @@ if opt.Log
     end
 end
 
-[tnd, gap] = tseries.clpf( ...
-    xData, lambda, ...
-    'Order=', order, ...
-    'InfoSet=', opt.InfoSet, ...
-    'Level=', lData, ...
-    'Growth=', gData, ...
-    'Gamma=', gamma, ...
-    'Drift=', drift ...
-    );
+[tnd, gap] = numeric.clpf( ...
+    xData, lambda ...
+    , 'Order=', order ...
+    , 'InfoSet=', opt.InfoSet ...
+    , 'Level=', lData ...
+    , 'Growth=', gData ...
+    , 'Gamma=', gamma ...
+    , 'Drift=', drift ...
+);
 
 % De-log data back.
 if opt.Log
@@ -142,14 +148,14 @@ return
 
 
     function [fStart, fEnd, lStart, lEnd, gStart, gEnd] = getFilterRange( )
-        if ~isempty(opt.Level) && isa(opt.Level, 'tseries')
+        if ~isempty(opt.Level) && isa(opt.Level, 'NumericTimeSubscriptable')
             lStart = opt.Level.Start;
             lEnd = opt.Level.Start + size(opt.Level.Data, 1) - 1;
         else
             lStart = [ ];
             lEnd = [ ];
         end
-        if ~isempty(opt.Change) && isa(opt.Change, 'tseries')
+        if ~isempty(opt.Change) && isa(opt.Change, 'NumericTimeSubscriptable')
             gStart = opt.Change.Start - 1;
             gEnd = opt.Change.Start + size(opt.Change.Data, 1) - 1;
         else
@@ -164,12 +170,12 @@ return
 
     
     function getGamma( )
-        if isa(opt.Gamma, 'tseries')
-            gamma = rangedata(opt.Gamma, [fStart, fEnd]);
+        if isa(opt.Gamma, 'NumericTimeSubscriptable')
+            gamma = getDataFromTo(opt.Gamma, fStart, fEnd);
             gamma(isnan(gamma)) = 1;
             gamma = gamma(:, :);
         else
-            gamma = opt.Gamma(:).';
+            gamma = reshape(opt.Gamma, 1, [ ]);
         end
     end 
 end

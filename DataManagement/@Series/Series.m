@@ -19,7 +19,7 @@ classdef ( ...
 
     methods % Constructor
         function this = Series(varargin)
-            this = this@NumericTimeSubscriptable(varargin{:});
+            this = this@tseries(varargin{:});
         end%
 
 

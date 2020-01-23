@@ -179,8 +179,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         end%
 
         varargout = bpass(varargin)
-        varargout = bwf(varargin)
-        varargout = bwf2(varargin)
         varargout = bsxfun(varargin)
         varargout = chowlin(varargin)
         varargout = conbar(varargin)
@@ -213,16 +211,12 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = histogram(varargin)
         varargout = horzcat(varargin)
         varargout = hpdi(varargin)
-        varargout = hpf(varargin)
-        varargout = hpf2(varargin)
         varargout = infoset2line(varargin)
         varargout = interp(varargin)
         varargout = isempty(varargin)
         varargout = isequal(varargin)
         varargout = isscalar(varargin)
         varargout = length(varargin)
-        varargout = llf(varargin)
-        varargout = llf2(varargin)
         varargout = moving(varargin)
         varargout = ndims(varargin)
 
@@ -322,7 +316,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         end%
 
 
-        varargout = myfilter(varargin)
         varargout = mylagorlead(varargin)
         varargout = recognizeShift(varargin)
     end
@@ -331,7 +324,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     
     
     methods (Static, Hidden)
-        varargout = clpf(varargin)
         varargout = loadobj(varargin)        
 
         varargout = myband(varargin)

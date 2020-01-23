@@ -189,8 +189,8 @@ function varargout = llf(varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -IRIS Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 % BWF, HPF, LLF
 
@@ -203,6 +203,7 @@ opt = passvalopt('tseries.filter', varargin{:});
 %--------------------------------------------------------------------------
 
 order = 1;
-[varargout{1:nargout}] = myfilter(order, X, Range, opt);
+[varargout{1:nargout}] = implementFilter(order, X, Range, opt);
 
-end
+end%
+

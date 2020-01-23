@@ -236,7 +236,7 @@ function varargout = hpf(varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % BWF, HPF, LLF
 
@@ -249,7 +249,7 @@ opt = passvalopt('tseries.filter', varargin{:});
 %--------------------------------------------------------------------------
 
 order = 2;
-[varargout{1:nargout}] = myfilter(order, x, range, opt);
+[varargout{1:nargout}] = implementFilter(order, x, range, opt);
 
 end%
 
