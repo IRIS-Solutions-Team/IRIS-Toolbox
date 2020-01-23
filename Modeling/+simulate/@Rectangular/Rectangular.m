@@ -155,7 +155,7 @@ classdef Rectangular < handle
             idXib = VEC(this.SolutionVector{2}(nf+1:end));
             idCurrentXi = VEC(this.SolutionVector{2}(this.InxOfCurrentWithinXi));
             numQuants = length(this.Quantity.Name);
-            pretendSizeData = [numQuants, this.FirstColumn+max(imag(idXif))];
+            pretendSizeData = [numQuants, this.FirstColumn+max([0; imag(idXif)])];
             this.LinxOfXib = sub2ind( pretendSizeData, ...
                                       real(idXib), ...
                                       this.FirstColumn + imag(idXib) );
