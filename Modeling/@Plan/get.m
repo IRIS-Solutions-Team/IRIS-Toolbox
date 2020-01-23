@@ -79,7 +79,7 @@ elseif validate.anyString(query, 'Endogenized', 'OnlyEndogenized', 'EndogenizedO
     response = hereGetE_ogenized(names, inx);
 
 elseif validate.anyString(query, 'NamesOfAnticipated', 'NamesOfUnanticipated')
-    response = this.(query);
+    response = this.(char(query));
 
 elseif validate.anyString(query, 'AnticipationStatus', 'Anticipate')
     response = cell2struct( num2cell([this.AnticipationStatusOfEndogenous; this.AnticipationStatusOfExogenous]), ...
@@ -106,8 +106,8 @@ return
             if isOnly && all(ithRow(:)==0)
                 continue
             end
-            ithSeries = fill(template, permute(ithRow, [2, 3, 1]));
-            response = setfield(response, names{i}, ithSeries);
+            series__ = fill(template, permute(ithRow, [2, 3, 1]));
+            response.(names{i}) = series__;
         end
     end%
 
@@ -118,7 +118,7 @@ return
         baseRangeColumns = this.BaseRangeColumns;
         response = struct( );
         for i = 1 : numel(names)
-            response.(names(i)) = Series( ...
+            response.(char(names(i))) = Series( ...
                 start, permute(this.SigmasOfExogenous(i, baseRangeColumns, :), [2, 3, 1]) ...
             );
         end

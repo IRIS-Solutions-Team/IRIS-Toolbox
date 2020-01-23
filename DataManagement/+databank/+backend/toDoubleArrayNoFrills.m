@@ -15,11 +15,6 @@ if nargin<5
     apply = [ ];
 end
 
-if isstruct(inputDatabank)
-    exist = @isfield;
-    retrieve = @getfield;
-end
-
 %--------------------------------------------------------------------------
 
 if ~iscellstr(names)
@@ -36,29 +31,29 @@ end
 
 outputArray = nan(numDates, numNames);
 for i = 1 : numNames
-    ithName = names{i};
-    if ~exist(inputDatabank, ithName)
+    name__ = names{i};
+    if ~isfield(inputDatabank, name__)
         continue
     end
-    ithField = retrieve(inputDatabank, ithName);
-    if ~isa(ithField, 'NumericTimeSubscriptable')
+    field__ = inputDatabank.(name__);
+    if ~isa(field__, 'NumericTimeSubscriptable')
         continue
     end
-    sizeData = size(ithField);
+    sizeData = size(field__);
     numColumns = prod(sizeData(2:end));
-    ithValue = [ ];
+    value__ = [ ];
     if numColumns==1
-        ithValue = getDataNoFrills(ithField, dates, 1);
+        value__ = getDataNoFrills(field__, dates, 1);
     elseif numColumns>1
         try
-            ithValue = getDataNoFrills(ithField, dates, column);
+            value__ = getDataNoFrills(field__, dates, column);
         end
     end
-    if ~isempty(ithValue) 
+    if ~isempty(value__) 
         if ~isempty(apply)
-            ithValue = apply(ithValue);
+            value__ = apply(value__);
         end
-        outputArray(:, i) = ithValue;
+        outputArray(:, i) = value__;
     end
 end
 

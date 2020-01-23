@@ -26,7 +26,7 @@ for i = 1 : numNames
     if ~isfield(inputDb, name__)
         continue
     end
-    field__ = getfield(inputDb, name__);
+    field__ = inputDb.(name__);
     if isempty(field__)
         continue
     end

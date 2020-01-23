@@ -57,6 +57,7 @@ end%
 
 
 
+
 function outputData = hereFinalizeOutputData(this, outputData, extendedRange)
     nv = this.NumV;
     template = Series(extendedRange(1), 0);
@@ -65,13 +66,13 @@ function outputData = hereFinalizeOutputData(this, outputData, extendedRange)
     for i = 1 : numel(list)
         originalName = list{i}{1};
         newName = list{i}{2};
-        sub = getfield(outputData, originalName);
+        sub = outputData.(originalName);
         sub0 = sub;
         sub.Y = convert(sub.Y);
         sub.Xi = convert(sub.Xi);
         sub.V = convert(sub.E(1:nv, :, :));
         sub.W = convert(sub.E(nv+1:end, :, :));
-        outputData = setfield(outputData, newName, sub);
+        outputData.(newName) = sub;
         outputData = rmfield(outputData, originalName);
     end
 end% 

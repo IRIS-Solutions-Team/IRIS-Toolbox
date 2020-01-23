@@ -122,15 +122,17 @@ numFields = numel(fieldNames);
 X = cell(1, numFields);
 inxKeep = false(1, numFields);
 
-% __Process Subdatabanks__
+%
+% Process nested databanks
+%
 if opt.Recursive
     for i = 1 : numFields
-        ithName = fieldNames{i};
-        ithField = getfield(inputDatabanks{1}, ithName);
-        if ~validate.databank(ithField)
+        name__ = fieldNames{i};
+        field__ = inputDatabanks{1}.(name__);
+        if ~validate.databank(field__)
             continue
         end
-        args = cellfun(@(x) getfield(x, ithName), inputDatabanks, 'UniformOutput', false);
+        args = cellfun(@(x) x.(name__), inputDatabanks, 'UniformOutput', false);
         % Cannot pass in opt because it is a struct and would be confused
         % for a secondary input databank.
         X{i} = dbfun(func, args{:}, varargin{:});
@@ -146,17 +148,22 @@ inxErrors = false(1, numFields);
 listWarnings = cell(1, numFields);
 inxWarnings = false(1, numFields);
 
+%
 % Index of fields to be processed; exclude sub-databases (processed
-% earlier) and fields not on the select list.
-testFunc = @(field) ~validate.databank(getfield(inputDatabanks{1}, field)) ...
-                    && any(strcmp(field, listSelect));
+% earlier) and fields not on the select list
+%
+testFunc = @(field) ...
+    ~validate.databank(inputDatabanks{1}.(char(field))) ...
+    && any(strcmp(field, listSelect));
 inxToProcess = cellfun(testFunc, fieldNames);
 
 for i = find(inxToProcess)
     inxKeep(i) = true;
     try
-        fnArgList = cellfun( @(x) x.(fieldNames{i}), inputDatabanks, ...
-                             'UniformOutput', false );
+        fnArgList = cellfun( ...
+            @(x) x.(fieldNames{i}), inputDatabanks, ...
+            'UniformOutput', false ...    
+        );
         lastwarn('');
         X{i} = feval(func, fnArgList{:});
         if ~isempty( lastwarn( ) )
@@ -178,7 +185,9 @@ if any(inxErrors)
     hereReportMatlabErrors( );
 end
 
+%
 % Create output databank
+%
 if any(inxKeep)    
     if opt.Fresh || numel(inputDatabanks{1})>1
         % Only processed fields are included
@@ -186,7 +195,7 @@ if any(inxKeep)
     else
         % Keep unprocessed fields in the output databank
         for i = find(inxKeep)
-            inputDatabanks{1} = setfield(inputDatabanks{1}, fieldNames{i}, X{i});
+            inputDatabanks{1}.(fieldNames{i}) = X{i};
         end
         outp = inputDatabanks{1};
     end
@@ -213,8 +222,10 @@ return
             inxKeep(inxErrors) = false;
             inputDatabanks{1} = rmfield(inputDatabanks{1}, fieldNames(inxErrors));
         end
-        throw( exception.Base('Dbase:DbfunReportError', 'warning'), ...
-               errorMessage{:} );
+        throw( ...
+            exception.Base('Dbase:DbfunReportError', 'warning'), ...
+            errorMessage{:} ...
+        );
     end%
 
     
@@ -232,7 +243,9 @@ return
         else
             % Do nothing
         end
-        throw( exception.Base('Dbase:DbfunReportWarning', 'warning'), ...
-               warningMessage{:} );
+        throw( ...
+            exception.Base('Dbase:DbfunReportWarning', 'warning'), ...
+            warningMessage{:} ...
+        );
     end%
 end%

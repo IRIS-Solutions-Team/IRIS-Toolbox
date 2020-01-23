@@ -6,16 +6,16 @@ function [select, tokens] = filter(d, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('databank.filter');
-    inputParser.addRequired('Database', @validate.databank);
-    inputParser.addParameter({'Name', 'NameFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
-    inputParser.addParameter({'Class', 'ClassFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
-    inputParser.addParameter('Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank.filter');
+    addRequired(pp, 'Database', @validate.databank);
+    addParameter(pp, {'Name', 'NameFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
+    addParameter(pp, {'Class', 'ClassFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
+    addParameter(pp, 'Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
-inputParser.parse(d, varargin{:});
-opt = inputParser.Options;
+parse(pp, d, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ if isa(d, 'Dictionary')
 else
     listFields = fieldnames(d);
 end
+listFields = reshape(cellstr(listFields), 1, [ ]);
 
 %
 % Filter field names
@@ -44,20 +45,27 @@ else
         inxName = any(opt.Name==listFields, 2);
     end
 end
+inxName = reshape(inxName, 1, [ ]);
+
 
 %
 % Filter field classes
 %
-listClasses = cellfun(@(x) class(getfield(d, x)), listFields, 'UniformOutput', false);
 if isequal(opt.Class, @all) || isequal(opt.Class, "--all")
     inxClass = true(size(listFields));
 else
-    if ~isa(opt.Class, 'string')
-        opt.Class = string(opt.Class);
+    if isa(d, 'Dictionary')
+        func = @(x) class(retrieve(d, x));
+    else
+        func = @(x) class(d.(x));
     end
-    opt.Class = opt.Class(:).';
+    listClasses = cellfun(func, listFields, 'UniformOutput', false);
+    listClasses = reshape(string(listClasses), [ ], 1);
+    opt.Class = reshape(string(opt.Class), 1, [ ]);
     inxClass = any(opt.Class==listClasses, 2);
 end
+inxClass = reshape(inxClass, 1, [ ]);
+
 
 %
 % Run user filter
@@ -67,6 +75,8 @@ if isempty(opt.Filter)
 else
     inxFilter = cellfun(@(name) feval(opt.Filter, d.(name)), listFields);
 end
+inxFilter = reshape(inxFilter, 1, [ ]);
+
 
 %
 % Combine all filters

@@ -58,8 +58,8 @@ function d = addToDatabank(what, this, d, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
@@ -67,42 +67,44 @@ if nargin<3
     d = struct( );
 end
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model/addToDatabank');
-    parser.KeepUnmatched = true;
-    addRequired(parser, 'what', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    addRequired(parser, 'model', @(x) isa(x, 'model'));
-    addRequired(parser, 'databank', @validate.databank);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model/addToDatabank');
+    pp.KeepUnmatched = true;
+    addRequired(pp, 'what', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addRequired(pp, 'model', @(x) isa(x, 'model'));
+    addRequired(pp, 'databank', @validate.databank);
 end
-parse(parser, what, this, d);
+parse(pp, what, this, d);
 
 %--------------------------------------------------------------------------
 
 what = strtrim(cellstr(what));
 for i = 1 : numel(what)
-    ithWhat = what{i};
-    lenOfIthWhat = length(ithWhat);
-    if strncmpi(ithWhat, 'Parameters', min(10, lenOfIthWhat))
+    what__ = what{i};
+    lenWhat__ = length(what__);
+    if strncmpi(what__, 'Parameters', min(10, lenWhat__))
         addParameters( );
-    elseif strncmpi(ithWhat, 'Std', min(3, lenOfIthWhat))
+    elseif strncmpi(what__, 'Std', min(3, lenWhat__))
         addStd( );
-    elseif strncmpi(ithWhat, 'NonzeroCorr', min(11, lenOfIthWhat))
+    elseif strncmpi(what__, 'NonzeroCorr', min(11, lenWhat__))
         addZeroCorr = false;
         addCorr(addZeroCorr);
-    elseif strncmpi(ithWhat, 'Corr', min(4, lenOfIthWhat))
+    elseif strncmpi(what__, 'Corr', min(4, lenWhat__))
         addZeroCorr = true;
         addCorr(addZeroCorr);
-    elseif strncmpi(ithWhat, 'Shock', min(5, lenOfIthWhat));
+    elseif strncmpi(what__, 'Shock', min(5, lenWhat__))
         addShocks( );
-    elseif strncmpi(ithWhat, 'Default', min(7, lenOfIthWhat))
+    elseif strncmpi(what__, 'Default', min(7, lenWhat__))
         addParameters( );
         addStd( );
         addZeroCorr = false;
         addCorr(addZeroCorr);
     else
-        throw( exception.Base('Model:InvalidQuantityType', 'error'), ...
-               ithWhat );
+        throw( ...
+            exception.Base('Model:InvalidQuantityType', 'error'), ...
+            what__ ...
+        );
     end
 end
 
@@ -111,10 +113,10 @@ return
 
     function addParameters( )
         ixp = this.Quantity.Type==TYPE(4);
-        for i = find(ixp)
-            ithName = this.Quantity.Name{i};
-            ithValue = permute(this.Variant.Values(:, i, :), [1, 3, 2]);
-            d = hereCreateNewField(d, ithName, ithValue);
+        for ii = find(ixp)
+            name__ = this.Quantity.Name{ii};
+            value__ = permute(this.Variant.Values(:, ii, :), [1, 3, 2]);
+            d.(name__) = value__;
         end
     end%
 
@@ -123,30 +125,30 @@ return
         listOfStdNames = getStdNames(this.Quantity);
         ne = numel(listOfStdNames);
         vecStd = this.Variant.StdCorr(:, 1:ne, :);
-        for i = 1 : ne
-            ithName = listOfStdNames{i};
-            ithValue = permute(vecStd(1, i, :), [2, 3, 1]);
-            d = hereCreateNewField(d, ithName, ithValue);
+        for ii = 1 : ne
+            name__ = listOfStdNames{ii};
+            value__ = permute(vecStd(1, ii, :), [2, 3, 1]);
+            d.(name__) = value__;
         end
     end%
 
 
     function addCorr(addZeroCorr)
         ne = nnz(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
-        namesOfCorr = getCorrNames(this.Quantity);
-        valuesOfCorr = this.Variant.StdCorr(:, ne+1:end, :);
-        indexOfCorrAllowed = this.Variant.IndexOfStdCorrAllowed(ne+1:end);
-        namesOfCorr = namesOfCorr(indexOfCorrAllowed);
-        valuesOfCorr = valuesOfCorr(:, indexOfCorrAllowed, :);
+        namesCorr = getCorrNames(this.Quantity);
+        valuesCorr = this.Variant.StdCorr(:, ne+1:end, :);
+        inxCorrAllowed = this.Variant.IndexOfStdCorrAllowed(ne+1:end);
+        namesCorr = namesCorr(inxCorrAllowed);
+        valuesCorr = valuesCorr(:, inxCorrAllowed, :);
         if ~addZeroCorr
-            posToRemove = find(all(valuesOfCorr==0, 3));
-            valuesOfCorr(:, posToRemove, :) = [ ];
-            namesOfCorr(posToRemove) = [ ];
+            posToRemove = find(all(valuesCorr==0, 3));
+            valuesCorr(:, posToRemove, :) = [ ];
+            namesCorr(posToRemove) = [ ];
         end
-        for i = 1 : numel(namesOfCorr)
-            ithName = namesOfCorr{i};
-            ithValue = permute(valuesOfCorr(1, i, :), [2, 3, 1]);
-            d = hereCreateNewField(d, ithName, ithValue);
+        for ii = 1 : numel(namesCorr)
+            name__ = namesCorr{ii};
+            value__ = permute(valuesCorr(1, ii, :), [2, 3, 1]);
+            d.(name__) = value__;
         end
     end%
 
@@ -154,21 +156,5 @@ return
     function addShocks( )
         d = shockdb(this, d, varargin{:});
     end%
-end%
-
-
-%
-% Local Functions
-%
-
-
-function d = hereCreateNewField(d, name, value)
-    if isa(d, 'struct')
-        d = setfield(d, name, value);
-    elseif isa(d, 'Dictionary')
-        d = store(d, name, value);
-    elseif isa(d, 'containers.Map')
-        d(name) = value;
-    end
 end%
 

@@ -69,13 +69,8 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.fromFred');
     pp.KeepUnmatched = true;
-    %
-    % Required input arguments
-    %
     addRequired(pp,  'fredSeriesID', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    %
-    % Options
-    %
+
     addParameter(pp, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
     addParameter(pp, 'AggregationMethod', 'avg', @(x) any(strcmpi(x, {'avg', 'sum', 'eop'})));
     addParameter(pp, 'Frequency', '', @hereValidateFrequency);
@@ -112,32 +107,26 @@ numSeries = numel(fredSeriesId);
 validSeriesId = true(1, numSeries);
 dataRetrieved = true(1, numSeries);
 for i = 1 : numSeries
-    ithFredSeriesId = fredSeriesId{i};
-    matches = regexp(ithFredSeriesId, '\w+', 'match');
+    fredSeriesId__ = fredSeriesId{i};
+    matches = regexp(fredSeriesId__, '\w+', 'match');
     if numel(matches)==1
-        ithDatabankName = matches{1};
-        ithFredSeriesId = matches{1};
+        databankName__ = matches{1};
+        fredSeriesId__ = matches{1};
     else
-        ithDatabankName = matches{2};
-        ithFredSeriesId = matches{1};
+        databankName__ = matches{2};
+        fredSeriesId__ = matches{1};
     end
     try
-        ithRequest = sprintf(REQUEST, ithFredSeriesId, FRED_API_KEY);
-        jsonInfo = webread([URL_INFO, ithRequest]);
-        jsonData = webread([URL_DATA, ithRequest]);
+        request__ = sprintf(REQUEST, fredSeriesId__, FRED_API_KEY);
+        jsonInfo = webread([URL_INFO, request__]);
+        jsonData = webread([URL_DATA, request__]);
     catch Error
         validSeriesId(i) = false;
         continue
     end
     try
         x = hereExtractDataFromJson(jsonInfo, jsonData, opt);
-        if strcmpi(opt.OutputType, 'struct')
-            outputDatabank = setfield(outputDatabank, ithDatabankName, x);
-        elseif strcmpi(opt.OutputType, 'Dictionary')
-            outputDatabank = store(outputDatabank, ithDatabankName, x);
-        elseif strcmpi(opt.OutputType, 'containers.Map')
-            outputDatabank(ithDatabankName) = x;
-        end
+        outputDatabank.(char(databankName__)) = x;
     catch Error
         dataRetrieved(i) = false;
     end

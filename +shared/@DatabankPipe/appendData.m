@@ -1,11 +1,11 @@
 function outputData = appendData(this, inputData, outputData, range, varargin)
 % appendData  Append presample or postsample data
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 
 if numel(varargin)==2
@@ -51,11 +51,11 @@ else
 end
 
 range = double(range);
-startOfRange = range(1);
-endOfRange = range(end);
-freq = DateWrapper.getFrequencyAsNumeric(startOfRange);
-serialRangeStart = DateWrapper.getSerial(startOfRange);
-serialRangeEnd = DateWrapper.getSerial(endOfRange);
+startRange = range(1);
+endRange = range(end);
+freq = DateWrapper.getFrequencyAsNumeric(startRange);
+serialRangeStart = DateWrapper.getSerial(startRange);
+serialRangeEnd = DateWrapper.getSerial(endRange);
 
 previousSerialXStart = [ ];
 previousXStart = [ ];
@@ -63,26 +63,26 @@ previousXStart = [ ];
 listAppendables = nameAppendables(this);
 numAppendables = numel(listAppendables);
 for i = 1 : numAppendables
-    ithName = listAppendables{i};
+    name__ = listAppendables{i};
 
-    if ~isfield(outputData, ithName)
+    if ~isfield(outputData, name__)
         continue
     end
 
     preSeries = [ ];
     postSeries = [ ];
     if validate.databank(preDatabank)
-        if isfield(preDatabank, ithName) ...
-           && isa(preDatabank.(ithName), 'TimeSubscriptable') ...
-           && getFrequencyAsNumeric(preDatabank.(ithName))==freq
-            preSeries = getfield(preDatabank, ithName);
+        if isfield(preDatabank, name__) ...
+           && isa(preDatabank.(name__), 'TimeSubscriptable') ...
+           && getFrequencyAsNumeric(preDatabank.(name__))==freq
+            preSeries = preDatabank.(name__);
         end
     end
     if validate.databank(postDatabank)
-        if isfield(postDatabank, ithName) ...
-            && isa(postDatabank.(ithName), 'TimeSubscriptable') ...
-            && getFrequencyAsNumeric(postDatabank.(ithName))==freq
-            postSeries = getfield(postDatabank, ithName);
+        if isfield(postDatabank, name__) ...
+            && isa(postDatabank.(name__), 'TimeSubscriptable') ...
+            && getFrequencyAsNumeric(postDatabank.(name__))==freq
+            postSeries = postDatabank.(name__);
         end
     end
 
@@ -90,7 +90,7 @@ for i = 1 : numAppendables
         continue
     end
 
-    x = getfield(outputData, ithName);
+    x = outputData.(name__);
     serialXStart = round(x.Start);
     serialXStart0 = serialXStart;
     if isnan(serialXStart)
@@ -120,7 +120,7 @@ for i = 1 : numAppendables
     end
     x.Data = xData;
     x = trim(x);
-    outputData = setfield(outputData, ithName, x);
+    outputData.(name__) = x;
 end
 
 return

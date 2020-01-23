@@ -53,24 +53,21 @@ function [range, listFreq] = range(inputDatabank, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('databank.range');
-    addRequired(parser, 'inputDatabank', @validate.databank);
-    % Options
-    addParameter(parser, 'NameList', @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
-    addParameter(parser, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
-    addParameter(parser, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
-    addParameter(parser, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @any) || isa(x, 'Frequency'));
-end
-parse(parser, inputDatabank, varargin{:});
-opt = parser.Options;
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank.range');
+    addRequired(pp, 'inputDatabank', @validate.databank);
 
-if isa(inputDatabank, 'containers.Map')
-    allInputEntries = keys(inputDatabank);
-else
-    allInputEntries = fieldnames(inputDatabank);
+    addParameter(pp, 'NameList', @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
+    addParameter(pp, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
+    addParameter(pp, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
+    addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @any) || isa(x, 'Frequency'));
 end
+parse(pp, inputDatabank, varargin{:});
+opt = pp.Options;
+
+allInputEntries = fieldnames(inputDatabank);
+allInputEntries = reshape(cellstr(allInputEntries), 1, [ ]);
 
 list = opt.NameList;
 if validate.string(list)
@@ -99,19 +96,15 @@ for i = 1 : numEntries
     if ~any(strcmp(list{i}, allInputEntries))
         continue
     end
-    ithName = list{i};
-    if isa(inputDatabank, 'containers.Map')
-        x = inputDatabank(ithName);
-    else
-        x = getfield(inputDatabank, ithName);
-    end
-    if ~isa(x, 'TimeSubscriptable')
+    name__ = list{i};
+    field__ = inputDatabank.(name__);
+    if ~isa(field__, 'TimeSubscriptable')
         continue
     end
-    inxFreq = x.Frequency==listFreq;
+    inxFreq = field__.Frequency==listFreq;
     if any(inxFreq)
-        startDates{inxFreq}(end+1) = x.StartAsNumeric;
-        endDates{inxFreq}(end+1) = x.EndAsNumeric;
+        startDates{inxFreq}(end+1) = field__.StartAsNumeric;
+        endDates{inxFreq}(end+1) = field__.EndAsNumeric;
     end
 end
 

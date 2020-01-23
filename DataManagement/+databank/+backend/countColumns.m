@@ -9,7 +9,7 @@ function noc = countColumns(inputDatabank, list)
 
 %--------------------------------------------------------------------------
 
-list = reshape(string(list), 1, [ ]);
+list = reshape(cellstr(list), 1, [ ]);
 
 if isa(inputDatabank, 'Dictionary')
     allEntries = keys(inputDatabank);
@@ -21,15 +21,11 @@ allEntries = reshape(string(allEntries), 1, [ ]);
 lenList = numel(list);
 noc = nan(1, lenList);
 for i = 1 : lenList
-    name__ = list(i);
+    name__ = list{i};
     if ~any(name__==allEntries)
         continue
     end
-    if isa(inputDatabank, 'Dictionary')
-        x = retrieve(inputDatabank, name__);
-    else
-        x = getfield(inputDatabank, name__);
-    end
+    x = inputDatabank.(name__);
     if isa(x, 'TimeSubscriptable') || isnumeric(x) || islogical(x)
         sizeData = size(x);
         noc(i) = prod(sizeData(2:end));

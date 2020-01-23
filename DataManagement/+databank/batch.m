@@ -14,14 +14,11 @@ if isempty(pp)
     addRequired(pp, 'expression', @(x) isa(x, 'function_handle') || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
 parse(pp, runningDatabank, newNameTemplate, generator);
-if isstruct(runningDatabank)
-    store = @setfield;
-    retrieve = @getfield;
-end
 
 %--------------------------------------------------------------------------
 
 [ selectNames, selectTokens ] = databank.query( runningDatabank, varargin{:} );
+selectNames = cellstr(selectNames);
 
 if isa(generator, 'function_handle')
     errorReport = cellfun( @(name, tokens) hereGenerateNewFieldFromFunction(name, tokens), ...
@@ -49,7 +46,7 @@ return
             ithNewName = hereMakeSubstitution(newNameTemplate, ithName, ithTokens);
             ithExpressiong = hereMakeSubstitution(char(generator), ithName, ithTokens);
             ithNewField = databank.eval(runningDatabank, ithExpressiong);
-            runningDatabank = store(runningDatabank, ithNewName, ithNewField);
+            runningDatabank.(char(ithNewName)) = ithNewField; 
             errorReport = [ ];
         catch Err
             errorReport = {ithNewName, Err.message};
@@ -60,9 +57,9 @@ return
     function errorReport = hereGenerateNewFieldFromFunction( ithName, ithTokens )
         try
             ithNewName = hereMakeSubstitution(newNameTemplate, ithName, ithTokens);
-            ithInput = retrieve(runningDatabank, ithName);
+            ithInput = runningDatabank.(char(ithName));
             ithNewField = feval(generator, ithInput);
-            runningDatabank = store(runningDatabank, ithNewName, ithNewField);
+            runningDatabank.(char(ithNewName)) = ithNewField;
             errorReport = [ ];
         catch Err
             errorReport = {ithNewName, Err.message};

@@ -139,11 +139,7 @@ userDataFields = hereCreateUserDataFields( );
 inxSerialized = false(size(list));
 
 for i = 1 : nList
-    if isa(inputDatabank, 'Dictionary')
-        x = retrieve(inputDatabank, list{i});
-    else
-        x = getfield(inputDatabank, list{i});
-    end
+    x = inputDatabank.(list{i});
     
     if isa(x, 'TimeSubscriptable')
         freq__ = x.FrequencyAsNumeric;

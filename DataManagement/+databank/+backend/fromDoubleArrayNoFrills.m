@@ -31,7 +31,6 @@ end
 
 %--------------------------------------------------------------------------
 
-numPages = size(array, 3);
 numRows = size(array, 1);
 
 if isa(names, 'string')
@@ -57,12 +56,10 @@ if isequal(inxToInclude, @all)
 end
 
 for i = find(inxToInclude)
-    ithData = array(i, :, :);
-    ithData = permute(ithData, [2, 3, 1]);
-    ithName = names{i};
-    ithComment = comments{i};
-    ithSeries = fill(TIME_SERIES_TEMPLATE, ithData, startDate, ithComment);
-    hereStoreNewField( );
+    data__ = array(i, :, :);
+    data__ = permute(data__, [2, 3, 1]);
+    series__ = fill(TIME_SERIES_TEMPLATE, data__, startDate, comments{i});
+    outputDatabank.(names{i}) = series__;
 end
 
 return
@@ -71,20 +68,11 @@ return
         if numRows==numel(names) && numRows==numel(comments)
             return
         end
-        thisError = { 'Databank:InvalidSizeOfInputArguments'
-                      'Invalid dimensions of some of the input arguments {array, names, comments}' };
+        thisError = { 
+            'Databank:InvalidSizeOfInputArguments'
+            'Invalid dimensions of some of the input arguments {array, names, comments}'
+        };
         throw(exception.Base(thisError, 'error'));
-    end%
-
-
-    function hereStoreNewField( )
-        if strcmpi(outputType, 'struct')
-            outputDatabank = setfield(outputDatabank, ithName, ithSeries);
-        elseif strcmpi(outputType, 'Dictionary')
-            outputDatabank = store(outputDatabank, ithName, ithSeries);
-        elseif strcmpi(outputType, 'containers.Map')
-            outputDatabank(ithName) = ithSeries;
-        end
     end%
 end%
 

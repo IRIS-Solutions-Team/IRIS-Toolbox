@@ -54,10 +54,10 @@ inxRequiredNames = [true(size(requiredNames)), false(size(optionalNames))];
 checkIncluded = true(size(allNames));
 checkFrequency = true(size(allNames));
 for i = 1 : numel(allNames)
-    name__ = string(allNames{i});
+    name__ = allNames{i};
     allowedScalar__ = isequal(namesAllowedScalar, @all) || any(name__==namesAllowedScalar);
     try
-        field__ = getfield(inputDb, name__);
+        field__ = inputDb.(name__);
     catch
         field__ = missing( );
     end

@@ -78,17 +78,17 @@ else
     varargin(1:posLastStruct) = [ ];
 end
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('databank.merge');
-    parser.addRequired('Method', @(x) validate.anyString(char(x), 'horzcat', 'vertcat', 'replace', 'discard', 'error'));
-    parser.addRequired('InputDatabank', @validate.databank);
-    parser.addRequired('MergeWith');
-    parser.addParameter('MissingField', @remove);
-    parser.addParameter({'Names', 'List'}, @all, @(x) isequal(x, @all) || validate.list(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank.merge');
+    pp.addRequired('Method', @(x) validate.anyString(char(x), 'horzcat', 'vertcat', 'replace', 'discard', 'error'));
+    pp.addRequired('InputDatabank', @validate.databank);
+    pp.addRequired('MergeWith');
+    pp.addParameter('MissingField', @remove);
+    pp.addParameter({'Names', 'List'}, @all, @(x) isequal(x, @all) || validate.list(x));
 end
-parse(parser, method, mainDatabank, mergeWith, varargin{:});
-opt = parser.Options;
+parse(pp, method, mainDatabank, mergeWith, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
@@ -140,17 +140,17 @@ function mainDatabank = catNext(func, mainDatabank, mergeWith, opt)
             end
         end
         if isfield(mainDatabank, ithName)
-            mainDatabankField = getfield(mainDatabank, ithName);
+            mainDatabankField = mainDatabank.(ithName);
         else
             mainDatabankField = opt.MissingField;
         end
         if isfield(mergeWith, ithName)
-            mergeWithField = getfield(mergeWith, ithName);
+            mergeWithField = mergeWith.(ithName);
         else
             mergeWithField = opt.MissingField;
         end
         mainDatabankField = func(mainDatabankField, mergeWithField);
-        mainDatabank = setfield(mainDatabank, ithName, mainDatabankField);
+        mainDatabank.(ithName) = mainDatabankField;
     end
 end%
 

@@ -26,11 +26,11 @@ function outputDatabank = retrieveDatabank(this, range, varargin)
 %
 % ## Options ##
 %
-% __`AddToDatabank=[ ]`__ [ empty | struct | Dictionary | containers.Map ] -
+% __`AddToDatabank=[ ]`__ [ empty | struct | Dictionary ] -
 % Add the requested time series to an existing databank; the type (Matlab
 % class) of this databank needs to be consistent with option `OutputType=`.
 %
-% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` | `'containers.Map'` ] -
+% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` ] -
 % Type (Matlab class) of the output databank.
 %
 %
@@ -52,7 +52,7 @@ if isempty(parser)
     addRequired(parser, 'range', @(x) isnumeric(x) || validate.string(x));
     % Options
     addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
-    addParameter(parser, 'OutputType', 'struct', @(x) validate.anyString(x, 'struct', 'Dictionary', 'containers.Map'));
+    addParameter(parser, 'OutputType', 'struct', @(x) validate.anyString(x, 'struct', 'Dictionary'));
 end
 parse(parser, this, range, varargin{:});
 opt = parser.Options;
@@ -88,12 +88,10 @@ end
 return
 
     function outputDatabank = hereCreateOutputDatank( )
-        if strcmpi(opt.OutputType, 'struct')
-            outputDatabank = struct( );
-        elseif strcmpi(opt.OutputType, 'Dictionary')
+        if strcmpi(opt.OutputType, 'Dictionary')
             outputDatabank = Dictionary( );
         else
-            outputDatabank = containers.Map( );
+            outputDatabank = struct( );
         end
     end%
 
@@ -113,10 +111,10 @@ return
 
 
     function hereAddEntryToOutputDatabank(name, x)
-        if strcmpi(opt.OutputType, 'containers.Map')
-            outputDatabank(name) = x;
+        if strcmpi(opt.OutputType, 'Dictionary')
+            store(outputDatabank, name, x);
         else
-            outputDatabank = setfield(outputDatabank, name, x);
+            outputDatabank.(char(name)) = x;
         end
     end%
 end%

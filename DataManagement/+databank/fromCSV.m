@@ -3,107 +3,153 @@ function outputDatabank = fromCSV(fileName, varargin)
 %{
 % ## Syntax ##
 %
+%
 %     outputDatabank = databank.fromCSV(fileName, ...)
 %
 %
 % ## Input Arguments ##
 %
-% __`fileName`__ [ char | cellstr ] - 
+%
+% __`fileName`__ [ char | cellstr ] 
+% >
 % Name of the Input CSV data file or a cell array of CSV file names that
 % will be combined.
 %
 %
 % ## Output Arguments ##
 %
-% __`outputDatabank`__ [ struct ] -
+%
+% __`outputDatabank`__ [ struct ]
+% >
 % Database created from the input CSV file(s).
 %
 %
 % ## Options ##
 %
-% __`AddToDatabank`__ [ struct | containers.Map ] -
-% Add the data loaded from the input file to an existing databank (struct
-% or containers.Map); the format (Matlab class) of `AddToDatabank=`
-% must comply with option `OutputType=`.
 %
-% __`Case=''`__ [ `'lower'` | `'upper'` | empty ] - 
+% __`AddToDatabank`__ [ struct | Dictionary ]
+% >
+% Add the data loaded from the input file to an existing databank (struct
+% or Dictionary); the format (Matlab class) of `AddToDatabank=` must comply
+% with option `OutputType=`.
+%
+%
+% __`Case=''`__ [ `'lower'` | `'upper'` | empty ] 
+% >
 % Change case of variable names.
 %
-% __`CommentRow={'Comment', 'Comments'}`__ [ char | cellstr | numeric ] - 
+%
+% __`CommentRow={'Comment', 'Comments'}`__ [ char | cellstr | numeric ] 
+% >
 % Label at the start of row that will be used to create comments in time
 % series.
 %
-% __`Continuous=false`__ [ false | `'Descending'` | `'Ascending'` ] -
+%
+% __`Continuous=false`__ [ false | `'Descending'` | `'Ascending'` ]
+% >
 % Indicate that dates are a continuous range, either acending or
 % descending.
 %
-% __`DateFormat='YYYYFP'`__ [ char ] - 
+%
+% __`DateFormat='YYYYFP'`__ [ char ] 
+% >
 % Format of dates in first column.
 %
-% __`Delimiter=','`__ [ char ] - 
+%
+% __`Delimiter=','`__ [ char ] 
+% >
 % Delimiter separating the individual values (cells) in the CSV file; if
 % different from a comma, all occurences of the delimiter will replaced
 % with commas -- note that this will also affect text in comments.
 %
-% __`FirstDateOnly=false`__ [ `true` | `false` ] - 
+%
+% __`FirstDateOnly=false`__ [ `true` | `false` ] 
+% >
 % Read and parse only the first date string, and fill in the remaining
 % dates assuming a range of consecutive dates.
 %
-% __`EnforceFrequency=false`__ [ Frequency | `false` ] -
+%
+% __`EnforceFrequency=false`__ [ Frequency | `false` ]
+% >
 % Advise frequency of dates; if empty, frequency will be automatically
 % recognised.
 %
-% __`FreqLetters=@config`__ [ char | @config ] - 
+%
+% __`FreqLetters=@config`__ [ char | @config ] 
+% >
 % Letters representing frequency of dates in date column.
 %
-% __`InputFormat='auto'`__ [ `'auto'` | `'csv'` | `'xls'` ] - 
+%
+% __`InputFormat='auto'`__ [ `'auto'` | `'csv'` | `'xls'` ] 
+% >
 % Format of input data file; `'auto'` means the format will be determined
 % by the file extension.
 %
-% __`NameRow={'', 'Variables', 'Time'}`__ [ char | cellstr | numeric ] - 
+%
+% __`NameRow={'', 'Variables', 'Time'}`__ [ char | cellstr | numeric ] 
+% >
 % String, or cell array of possible strings, that is found at the beginning
 % (in the first cell) of the row with variable names, or the line number at
 % which the row with variable names appears (first row is numbered 1).
 %
-% __`NameFunc=[ ]`__ [ cell | function_handle | empty ] - 
+%
+% __`NameFunc=[ ]`__ [ cell | function_handle | empty ] 
+% >
 % Function used to change or transform the variable names. If a cell array
 % of function handles, each function will be applied in the given order.
 %
-% __`NaN='NaN'`__ [ char ] - 
+%
+% __`NaN='NaN'`__ [ char ] 
+% >
 % String representing missing observations (case insensitive).
 %
-% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` | `'containers.Map'` ] -
+%
+% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` ]
+% >
 % Format (Matlab class) of the output databank.
 %
-% __`Preprocess=[ ]`__ [ function_handle | cell | empty ] - 
+%
+% __`Preprocess=[ ]`__ [ function_handle | cell | empty ] 
+% >
 % Apply this function, or cell array of functions, to the raw text file
 % before parsing the data.
 %
-% __`Select={ }`__ [ char | cellstr | empty ] - 
+%
+% __`Select={ }`__ [ char | cellstr | empty ] 
+% >
 % Only databank entries included on this list will be read in and returned
 % in the output databank `outputDatabank`; entries not on this list will be
 % discarded.
 %
-% __`SkipRows=[ ]`__ [ char | cellstr | numeric | empty ] - 
+%
+% __`SkipRows=[ ]`__ [ char | cellstr | numeric | empty ] 
+% >
 % Skip rows whose first cell matches the string or strings (regular
 % expressions); or, skip a vector of row numbers.
 %
-% __`DatabankUserData=Inf`__ [ char | `Inf` ] - 
+%
+% __`DatabankUserData=Inf`__ [ char | `Inf` ] 
+% >
 % Field name under which the databank-wide user data loaded from the CSV
 % file (if they exist) will be stored in the output databank; `Inf` means
 % the field name will be read from the CSV file (and will be thus identical
 % to the originally saved databank).
 %
-% __`UserDataField='.'`__ [ char ] - 
+%
+% __`UserDataField='.'`__ [ char ] 
+% >
 % A leading character denoting user data fields for individual time series;
 % if empty, no user data fields will be read in and created.
 %
-% __`UserDataFieldList={ }`__ [ cellstr | numeric | empty ] - 
+%
+% __`UserDataFieldList={ }`__ [ cellstr | numeric | empty ] 
+% >
 % List of row headers, or vector of row numbers, that will be included as
 % user data in each time series.
 %
 %
 % ## Description ##
+%
 %
 % Use the `'EnforeFrequency='` option whenever there is ambiguity in intepreting
 % the date strings, and IRIS is not able to determine the frequency
@@ -153,6 +199,7 @@ function outputDatabank = fromCSV(fileName, varargin)
 %
 % ## Example ##
 %
+%
 % Typical example of using the `EnforeFrequency=` option is a quarterly
 % databank with dates represented by the corresponding months, such as a
 % sequence 2000-01-01, 2000-04-01, 2000-07-01, 2000-10-01, etc. In this
@@ -167,52 +214,50 @@ function outputDatabank = fromCSV(fileName, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('databank.fromCSV');
-    %
-    % Required
-    %
-    addRequired(parser, 'FileName', @validate.list);
-    %
-    % Options
-    %
-    addParameter(parser, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
-    addParameter(parser, {'Case', 'ChangeCase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
-    addParameter(parser, 'CommentRow', {'Comment', 'Comments'}, @(x) ischar(x) || iscellstr(x) || (isnumeric(x) && all(x==round(x)) && all(x>0)));
-    addParameter(parser, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
-    addParameter(parser, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
-    addParameter(parser, 'FirstDateOnly', false, @validate.logicalScalar);
-    addParameter(parser, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables', 'Time'}, @(x) ischar(x) || iscellstr(x) || validate.numericScalar(x));
-    addParameter(parser, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
-    addParameter(parser, 'NaN', 'NaN', @(x) ischar(x));
-    addParameter(parser, 'OutputType', 'struct', @validate.databankType);
-    addParameter(parser, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@isfunc, x))));
-    addParameter(parser, 'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
-    addParameter(parser, 'Select', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
-    addParameter(parser, {'SkipRows', 'skiprow'}, '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isnumeric(x));
-    addParameter(parser, {'DatabankUserData', 'UserData'}, Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x)));
-    addParameter(parser, 'UserDataField', '.', @(x) ischar(x) && isscalar(x));
-    addParameter(parser, 'UserDataFieldList', { }, @(x) isempty(x) || iscellstr(x) || isnumeric(x));
-    addParameter(parser, 'VariableNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
-    addDateOptions(parser);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank.fromCSV');
+    addRequired(pp, 'FileName', @validate.list);
+
+    addParameter(pp, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
+    addParameter(pp, {'Case', 'ChangeCase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
+    addParameter(pp, 'CommentRow', {'Comment', 'Comments'}, @(x) ischar(x) || iscellstr(x) || (isnumeric(x) && all(x==round(x)) && all(x>0)));
+    addParameter(pp, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
+    addParameter(pp, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
+    addParameter(pp, 'FirstDateOnly', false, @validate.logicalScalar);
+    addParameter(pp, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables', 'Time'}, @(x) ischar(x) || iscellstr(x) || validate.numericScalar(x));
+    addParameter(pp, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
+    addParameter(pp, 'NaN', 'NaN', @(x) ischar(x));
+    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
+    addParameter(pp, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@isfunc, x))));
+    addParameter(pp, 'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
+    addParameter(pp, 'Select', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
+    addParameter(pp, {'SkipRows', 'skiprow'}, '', @(x) isempty(x) || ischar(x) || iscellstr(x) || isnumeric(x));
+    addParameter(pp, {'DatabankUserData', 'UserData'}, Inf, @(x) isequal(x, Inf) || (ischar(x) && isvarname(x)));
+    addParameter(pp, 'UserDataField', '.', @(x) ischar(x) && isscalar(x));
+    addParameter(pp, 'UserDataFieldList', { }, @(x) isempty(x) || iscellstr(x) || isnumeric(x));
+    addParameter(pp, 'VariableNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
+    addDateOptions(pp);
 end
-parse(parser, fileName, varargin{:});
-opt = parser.Options;
+parse(pp, fileName, varargin{:});
+opt = pp.Options;
 fileName = cellstr(fileName);
 
 % Check consistency of options AddToDatabank= and OutputFormat=
-outputDatabank = databank.backend.ensureTypeConsistency( opt.AddToDatabank, ...
-                                                         opt.OutputType );
+outputDatabank = databank.backend.ensureTypeConsistency( ...
+    opt.AddToDatabank, ...
+    opt.OutputType ...
+);
 
 % Loop over all input databanks subcontracting `databank.fromCSV` and
 % merging the resulting databanks in one.
 if numel(fileName)>1
     numOfFileNames = numel(fileName);
     for i = 1 : numOfFileNames
-        outputDatabank = databank.fromCSV( fileName(i), ...
-                                           varargin{:}, ...
-                                           'AddToDatabank=', outputDatabank );
+        outputDatabank = databank.fromCSV( ...
+            fileName(i), varargin{:}, ...
+            'AddToDatabank=', outputDatabank ...
+        );
     end
     return
 else
@@ -740,7 +785,7 @@ return
                 end
                 newEntry = fnClass(iData);
             end
-            hereAddEntryToOutputDatabank(name, newEntry);
+            outputDatabank.(char(name)) = newEntry;
             count = count + numOfColumns;
         end
         
@@ -821,18 +866,7 @@ return
             throw( exception.Base('Dbase:ErrorLoadingUserData', 'error'), ...
                    fileName, err.message ); %#ok<GTARG>
         end
-        hereAddEntryToOutputDatabank(databankUserDataFieldName, userDataField);
-    end%
-
-
-
-
-    function hereAddEntryToOutputDatabank(newName, newData)
-        if isa(outputDatabank, 'containers.Map')
-            outputDatabank(newName) = newData;
-        else
-            outputDatabank = setfield(outputDatabank, newName, newData);
-        end
+        outputDatabank.(char(databankUserDataFieldName)) = userDataField;
     end%
 end%
 

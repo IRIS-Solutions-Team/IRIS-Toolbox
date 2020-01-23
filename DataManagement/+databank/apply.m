@@ -115,24 +115,24 @@ function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank,
 
 %--------------------------------------------------------------------------
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('databank.apply');
-    parser.addRequired('Function', @(x) isempty(x) || isa(x, 'function_handle'));
-    parser.addRequired('InputDatabank', @validate.databank);
-    parser.addParameter({'HasPrefix', 'StartsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter({'HasSuffix', 'EndsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter({'AddPrefix', 'AddToStart', 'Prepend'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter({'AddSuffix', 'AddToEnd', 'Append'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter({'RemovePrefix', 'RemoveStart'}, false, @validate.logicalScalar);
-    parser.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
-    parser.addParameter('RemoveSource', false, @validate.logicalScalar);
-    parser.addParameter({'InputNames', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || validate.list(x));
-    parser.addParameter('OutputNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
-    parser.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || validate.databank(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank.apply');
+    pp.addRequired('Function', @(x) isempty(x) || isa(x, 'function_handle'));
+    pp.addRequired('InputDatabank', @validate.databank);
+    pp.addParameter({'HasPrefix', 'StartsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    pp.addParameter({'HasSuffix', 'EndsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    pp.addParameter({'AddPrefix', 'AddToStart', 'Prepend'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    pp.addParameter({'AddSuffix', 'AddToEnd', 'Append'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    pp.addParameter({'RemovePrefix', 'RemoveStart'}, false, @validate.logicalScalar);
+    pp.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
+    pp.addParameter('RemoveSource', false, @validate.logicalScalar);
+    pp.addParameter({'InputNames', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || validate.list(x));
+    pp.addParameter('OutputNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
+    pp.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || validate.databank(x));
 end
-parser.parse(func, inputDatabank, varargin{:});
-opt = parser.Options;
+pp.parse(func, inputDatabank, varargin{:});
+opt = pp.Options;
 
 if ~isequal(opt.InputNames, @all)
     opt.InputNames = cellstr(opt.InputNames);
@@ -167,14 +167,14 @@ end
 inxApplied = false(1, numFields);
 inxToRemove = false(1, numFields);
 for i = 1 : numFields
-    ithName = namesFields{i};
-    if ~isequal(opt.InputNames, @all) && ~any(strcmpi(ithName, opt.InputNames))
+    name__ = namesFields{i};
+    if ~isequal(opt.InputNames, @all) && ~any(strcmpi(name__, opt.InputNames))
        continue
     end 
-    if ~isempty(opt.HasPrefix) && ~strncmpi(ithName, opt.HasPrefix, lenHasPrefix)
+    if ~isempty(opt.HasPrefix) && ~strncmpi(name__, opt.HasPrefix, lenHasPrefix)
         continue
     end
-    if ~isempty(opt.HasSuffix) && ~strncmpi(fliplr(ithName), fliplr(opt.HasSuffix), lenHasSuffix)
+    if ~isempty(opt.HasSuffix) && ~strncmpi(fliplr(name__), fliplr(opt.HasSuffix), lenHasSuffix)
         continue
     end
 
@@ -184,31 +184,31 @@ for i = 1 : numFields
     % Create output field name
     %
     if iscellstr(opt.OutputNames)
-        inxName = strcmp(opt.InputNames, ithName);
-        ithNewName = opt.OutputNames{inxName};
+        inxName = strcmp(opt.InputNames, name__);
+        newName__ = opt.OutputNames{inxName};
     else
-        ithNewName = ithName;
+        newName__ = name__;
         if opt.RemovePrefix
-            ithNewName(1:lenHasPrefix) = '';
+            newName__(1:lenHasPrefix) = '';
         end
         if opt.RemoveSuffix
-            ithNewName(end-lenHasSuffix+1:end) = '';
+            newName__(end-lenHasSuffix+1:end) = '';
         end
         if ~isempty(opt.AddPrefix)
-            ithNewName = [opt.AddPrefix, ithNewName];
+            newName__ = [opt.AddPrefix, newName__];
         end
         if ~isempty(opt.AddSuffix)
-            ithNewName = [ithNewName, opt.AddSuffix];
+            newName__ = [newName__, opt.AddSuffix];
         end
     end
-    newNames{i} = ithNewName;
+    newNames{i} = newName__;
 
-    ithField = getfield(inputDatabank, ithName);
+    field__ = inputDatabank.(name__);
     if ~isempty(func)
-        ithField = func(ithField);
+        field__ = func(field__);
     end
-    outputDatabank = setfield(outputDatabank, ithNewName, ithField);
-    inxToRemove(i) = opt.RemoveSource && ~strcmp(ithName, ithNewName);
+    outputDatabank.(newName__) = field__;
+    inxToRemove(i) = opt.RemoveSource && ~strcmp(name__, newName__);
 end
 
 if any(inxToRemove)

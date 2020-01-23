@@ -3,8 +3,8 @@ function spy(inputDatabank, listSeries, startDate, endDate)
 %{
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 startDate = double(startDate);
 if nargin<4
@@ -14,11 +14,6 @@ end
 endDate = double(endDate);
 
 %--------------------------------------------------------------------------
-
-if isstruct(inputDatabank)
-    retrieve = @getfield;
-    exist = @isfield;
-end
 
 if isequal(listSeries, @all)
     listSeries = fieldnames(inputDatabank);
@@ -35,9 +30,9 @@ end
 numSeries = numel(listSeries);
 inxToKeep = true(1, numSeries);
 for i = 1 : numel(listSeries)
-    ithName = listSeries{i};
-    if ~exist(inputDatabank, ithName) ...
-        || ~isa(retrieve(inputDatabank, ithName), 'TimeSubscriptable')
+    name__ = listSeries{i};
+    if ~isfield(inputDatabank, name__) ...
+        || ~isa(inputDatabank.(name__), 'TimeSubscriptable')
         inxToKeep(i) = false;
     end
 end
@@ -49,10 +44,10 @@ maxLengthName = max([lenNames{:}]);
 numPeriods = round(endDate - startDate + 1);
 textual.looseLine( );
 for i = 1 : numSeries
-    ithName = listSeries{i};
-    fprintf('%*s ', maxLengthName, ithName);
-    ithSeries = retrieve(inputDatabank, ithName);
-    data = getDataFromTo(ithSeries, startDate, endDate);
+    name__ = listSeries{i};
+    fprintf('%*s ', maxLengthName, name__);
+    series__ = inputDatabank.(name__);
+    data = getDataFromTo(series__, startDate, endDate);
     data = data(:, :);
     inxNaN = all(isnan(data), 2);
     if all(inxNaN)

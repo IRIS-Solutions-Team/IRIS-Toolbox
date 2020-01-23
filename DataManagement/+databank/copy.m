@@ -6,18 +6,18 @@ function targetDatabank = copy(sourceDatabank, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('databank.copy');
-    addRequired(parser, 'sourceDatabank', @validate.databank);
-    addOptional(parser, 'sourceNames', @all, @(x) isequal(x, @all) || validate.list(x));
-    addOptional(parser, 'targetDatabank', @empty, @(x) isequal(x, @empty) || validate.databank(x));
-    addOptional(parser, 'targetNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank.copy');
+    addRequired(pp, 'sourceDatabank', @validate.databank);
+    addOptional(pp, 'sourceNames', @all, @(x) isequal(x, @all) || validate.list(x));
+    addOptional(pp, 'targetDatabank', @empty, @(x) isequal(x, @empty) || validate.databank(x));
+    addOptional(pp, 'targetNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
 end
-parse(parser, sourceDatabank, varargin{:});
-sourceNames = parser.Results.sourceNames;
-targetDatabank = parser.Results.targetDatabank;
-targetNames = parser.Results.targetNames;
+parse(pp, sourceDatabank, varargin{:});
+sourceNames = pp.Results.sourceNames;
+targetDatabank = pp.Results.targetDatabank;
+targetNames = pp.Results.targetNames;
 
 %--------------------------------------------------------------------------
 
@@ -47,17 +47,13 @@ end
 hereCheckDimensions( );
 
 for i = 1 : numel(sourceNames)
-    ithSourceName = sourceNames(i);
-    ithTargetName = targetNames(i);
-    if isa(sourceDatabank, 'Dictionary')
-        value = retrieve(sourceDatabank, ithSourceName);
-    elseif isstruct(sourceDatabank)
-        value = getfield(sourceDatabank, char(ithSourceName));
-    end
+    sourceName__ = sourceNames(i);
+    targetName__ = targetNames(i);
+    value = sourceDatabank.(char(sourceName__));
     if isa(targetDatabank, 'Dictionary')
-        store(targetDatabank, ithTargetName, value);
+        store(targetDatabank, targetName__, value);
     elseif isstruct(targetDatabank)
-        targetDatabank = setfield(targetDatabank, char(ithTargetName), value);
+        targetDatabank.(char(targetName__)) = value;
     end
 end
 

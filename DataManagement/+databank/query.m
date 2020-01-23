@@ -3,29 +3,25 @@ function [ select, tokens ] = query( runningDatabank, varargin )
 %{
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.query');
-    pp.addRequired('database', @validate.databank);
-    pp.addParameter({'Name', 'NameFilter'}, @all, @(x) isa(x, 'function_handle') || ischar(x) || iscellstr(x) || isa(x, 'string'));
-    pp.addParameter({'Class', 'ClassFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-    pp.addParameter('Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
-end
-pp.parse(runningDatabank, varargin{:});
-opt = pp.Options;
+    addRequired(pp, 'database', @validate.databank);
 
-if isstruct(runningDatabank)
-    keys = @fieldnames;
-    retrieve = @getfield;
+    addParameter(pp, {'Name', 'NameFilter'}, @all, @(x) isa(x, 'function_handle') || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addParameter(pp, {'Class', 'ClassFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addParameter(pp, 'Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
+parse(pp, runningDatabank, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
-allKeys = keys(runningDatabank);
-allKeys = reshape(allKeys, 1, [ ]);
+allKeys = fieldnames(runningDatabank);
+allKeys = reshape(cellstr(allKeys), 1, [ ]);
 numFields = numel(allKeys);
 
 %
@@ -35,11 +31,7 @@ tokens = repmat({[ ]}, size(allKeys));
 if isequal(opt.Name, @all) || isequal(opt.Name, "--all")
     inxName = true(size(allKeys));
 elseif isa(opt.Name, 'function_handle')
-    if iscellstr(allKeys)
-        inxName = cellfun(opt.Name, allKeys);
-    else
-        inxName = arrayfun(opt.Name, allKeys);
-    end
+    inxName = cellfun(opt.Name, allKeys);
 else
     if ~isa(opt.Name, 'string')
         opt.Name = string(opt.Name);
@@ -57,7 +49,7 @@ end
 %
 % Filter field classes
 %
-listClasses = cellfun(@(name) class(retrieve(runningDatabank, name)), allKeys, 'UniformOutput', false);
+listClasses = cellfun(@(name) class(runningDatabank.(name)), allKeys, 'UniformOutput', false);
 if isequal(opt.Class, @all) || isequal(opt.Class, "--all")
     inxClass = true(size(allKeys));
 else
@@ -74,7 +66,7 @@ end
 if isempty(opt.Filter)
     inxFilter = true(size(allKeys));
 else
-    inxFilter = cellfun(@(name) feval(opt.Filter, retrieve(runningDatabank, name)), allKeys);
+    inxFilter = cellfun(@(name) feval(opt.Filter, runningDatabank.(name)), allKeys);
 end
 
 %

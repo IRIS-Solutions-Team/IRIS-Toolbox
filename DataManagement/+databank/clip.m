@@ -39,14 +39,14 @@ function d = clip(d, newStart, newEnd)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('databank.clip');
-    parser.addRequired('InputDatabank', @validate.databank);
-    parser.addRequired('NewStart', @(x) isequal(x, -Inf) || DateWrapper.validateDateInput(x));
-    parser.addRequired('NewEnd', @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank.clip');
+    addRequired(pp, 'InputDatabank', @validate.databank);
+    addRequired(pp, 'NewStart', @(x) isequal(x, -Inf) || DateWrapper.validateDateInput(x));
+    addRequired(pp, 'NewEnd', @(x) isequal(x, Inf) || DateWrapper.validateDateInput(x));
 end
-parser.parse(d, newStart, newEnd);
+parse(pp, d, newStart, newEnd);
 
 %--------------------------------------------------------------------------
 
@@ -64,18 +64,18 @@ else
 end
 
 listFields = fieldnames(d);
-numberOfFields = numel(listFields);
-for i = 1 : numberOfFields
-    ithName = listFields{i};
-    ithField = getfield(d, ithName);
-    if isa(ithField, 'TimeSubscriptable')
-        if isequaln(freq, NaN) || ithField.FrequencyAsNumeric==freq
-            ithField = clip(ithField, newStart, newEnd);
+numFields = numel(listFields);
+for i = 1 : numFields
+    name__ = listFields{i};
+    field__ = d.(char(name__));
+    if isa(field__, 'TimeSubscriptable')
+        if isequaln(freq, NaN) || field__.FrequencyAsNumeric==freq
+            field__ = clip(field__, newStart, newEnd);
         end
-    elseif validate.databank(ithField);
-        ithField = databank.clip(ithField, newStart, newEnd);
+    elseif validate.databank(field__);
+        field__ = databank.clip(field__, newStart, newEnd);
     end
-    d = setfield(d, ithName, ithField);
+    d.(name__) = field__;
 end
 
 end%

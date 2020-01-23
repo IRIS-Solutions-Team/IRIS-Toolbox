@@ -142,7 +142,7 @@ function inxTest = validateClasses(inputDatabank, listFields, classFilter)
     numFields = numel(listFields);
     if iscellstr(classFilter)
         for i = 1 : numFields
-            ithValue = getfield(inputDatabank, listFields{i});
+            ithValue = inputDatabank.(listFields{i});
             for j = 1 : numel(classFilter)
                 inxTest(i) = inxTest(i) | isa(ithValue, classFilter{j});
                 if inxTest(i)
@@ -152,7 +152,7 @@ function inxTest = validateClasses(inputDatabank, listFields, classFilter)
         end
     elseif isa(classFilter, 'rexp')
         for i = 1 : numFields
-            ithValue = getfield(inputDatabank, listFields{i});
+            ithValue = inputDatabank.(listFields{i});
             ithClass = class(ithValue);
             x = regexp(ithClass, classFilter, 'once');
             inxTest(i) = ~isempty(x);
@@ -170,7 +170,7 @@ function inxTest = validateUser(inputDatabank, listFields, userFilter)
         return
     end
     for i = 1 : numel(listFields)
-        ithValue = getfield(inputDatabank, listFields{i});
+        ithValue = inputDatabank.(listFields{i});
         try
             pass = userFilter(ithValue);
         catch

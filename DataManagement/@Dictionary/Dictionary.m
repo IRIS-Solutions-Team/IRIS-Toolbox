@@ -323,7 +323,7 @@ classdef Dictionary < matlab.mixin.Copyable
             if isa(this, 'Dictionary')
                 x = retrieve(this, key);
             elseif isstruct(this)
-                x = getfield(x, key);
+                x = x.(char(key));
             end
             if ~isa(x, 'TimeSubscriptable')
                 throw( exception.Base(this.EXCEPTION_UPDATE_SERIES, 'error') );
@@ -331,13 +331,13 @@ classdef Dictionary < matlab.mixin.Copyable
             if isa(data, 'Dictionary')
                 data = retrieve(data, key);
             elseif isstruct(data)
-                data = getfield(data, key);
+                data = data.(char(key));
             end
             x = setData(x, dates, data);
             if isa(this, 'Dictionary')
                 store(this, key, x);
             elseif isstruct(this)
-                this = setfield(this, key, x);
+                this.(char(key)) = x;
             end
         end%
 
@@ -537,7 +537,7 @@ classdef Dictionary < matlab.mixin.Copyable
             numFields = numel(names);
             this = Dictionary( );
             for i = 1 : numFields
-                this = store(this, names{i}, getfield(input, names{i}));
+                this = store(this, names{i}, input.(names{i}));
             end
         end% 
     end
