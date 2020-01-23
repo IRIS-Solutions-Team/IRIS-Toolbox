@@ -153,6 +153,15 @@
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
          tseries < NumericTimeSubscriptable
 
+    methods % Constructor
+        function this = tseries(varargin)
+            this = this@NumericTimeSubscriptable(varargin{:});
+        end%
+    end
+
+
+
+
     methods
         varargout = area(varargin)
         varargout = arma(varargin)
@@ -186,7 +195,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = expsm(varargin)
         function varargout = expsmooth(varargin)
             [varargout{1:nargout}] = expsm(varargin{:});
-        end
+        end%
 
 
         varargout = fft(varargin)
@@ -221,7 +230,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = normalize(varargin)
         function varargout = normalise(varargin)
             [varargout{1:nargout}] = normalize(varargin{:});
-        end
+        end%
 
 
         varargout = pctmean(varargin)
@@ -275,6 +284,8 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         end%
     end
     
+
+
     
     methods (Hidden)
         varargout = max(varargin)
@@ -337,10 +348,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
 
     methods (Hidden)
-        %
-        % Indexing
-        %
-
         function index = end(this, k, varargin)
             if k==1
                 numericStart = double(this.Start);

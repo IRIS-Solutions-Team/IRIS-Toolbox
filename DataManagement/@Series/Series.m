@@ -17,9 +17,9 @@ classdef ( ...
     InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper} ...
 ) Series < tseries 
 
-    methods
+    methods % Constructor
         function this = Series(varargin)
-            this = this@tseries(varargin{:});
+            this = this@NumericTimeSubscriptable(varargin{:});
         end%
 
 
@@ -30,7 +30,10 @@ classdef ( ...
     end
 
 
-    methods
+
+
+    methods % Plotting
+        %(
         varargout = plot(varargin)
 
 
@@ -82,12 +85,17 @@ classdef ( ...
         function varargout = errorbar(varargin)
             [varargout{1:nargout}] = Series.implementPlot(@numeric.errorbar, varargin{:});
         end%
+        %)
     end
+
+
 
 
     methods
         varargout = spy(varargin)
     end
+
+
 
 
     methods (Static)
