@@ -1,6 +1,6 @@
 classdef Data < shared.DataBlock
     properties
-        % ForceInit  Supply initial condition to replace YXEPG data
+        % ForceInit  Vector of initial conditions to replace YXEPG data
         ForceInit = double.empty(0)
 
         % InitYX  NumOfYX-by-NumOfPeriods matrix of original input data for YX
@@ -358,7 +358,7 @@ classdef Data < shared.DataBlock
 
             this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfColumns);
             this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfColumns);
-            if isempty(this.SigmasOfExogenous)
+            if isempty(plan.SigmasOfExogenous)
                 this.SigmasOfExogenous = ones(this.NumOfE, this.NumOfColumns);
             else
                 this.SigmasOfExogenous = plan.SigmasOfExogenous(:, :, planVariant);
