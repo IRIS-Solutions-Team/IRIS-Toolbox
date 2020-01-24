@@ -293,39 +293,48 @@ for run = 1 : numRuns
     end
 
 
-    % __Updating Step__
+    %
+    % Filter
+    %
     if s.retFilter
         if s.retFilterStd || s.retFilterMse
-            s = getFilterMse(s);
+            s = hereGetFilterMse(s);
         end
-        s = getFilterMean(s);
+        s = hereGetFilterMean(s);
     end
     
     
-    % __Smoother__
-    % Run smoother for all variables.
+    %
+    % Smoother
+    % 
     if s.retSmooth
         if s.retSmoothStd || s.retSmoothMse
-            s = getSmoothMse(s);
+            s = hereGetSmoothMse(s);
         end
-        s = getSmoothMean(s);
+        s = hereGetSmoothMean(s);
     end
     
 
-    % __Contributions of Measurement Variables__
+    %
+    % Contributions of Measurement Variables
+    % 
     if s.retCont
         s = kalman.cont(s);
     end
     
-    % __Return Requested Data__
+    %
+    % Return Requested Data
     % Columns in `pe` to be filled.
+    % 
     if s.Ahead>1
         predCols = 1 : s.Ahead;
     else
         predCols = run;
     end
 
-    % Populate hdata output arguments.
+    %
+    % Populate hdata output arguments
+    % 
     if s.retPred
         returnPred( );
     end
@@ -337,7 +346,9 @@ for run = 1 : numRuns
         returnSmooth( );
     end
     
-    % Populate regular (non-hdata) output arguments.
+    %
+    % Populate regular (non-hdata) output arguments
+    %
     regOutp.F(:, :, :, run) = s.F*s.V;
     regOutp.Pe(:, :, predCols) = permute(s.pe, [1, 3, 4, 2]);
     regOutp.V(run) = s.V;
@@ -348,7 +359,9 @@ for run = 1 : numRuns
     regOutp.Init{2}(:, :, run) = s.InitMse;
     
 
-    % __Update Progress Bar__
+    %
+    % Update progress bar
+    %
     if opt.Progress
         update(progress, run/numRuns);
     end
@@ -724,7 +737,7 @@ end%
 
 
 
-function s = getFilterMean(s)
+function s = hereGetFilterMean(s)
     nf = s.NumF;
     nb = s.NumB;
     ne = s.NumE;
@@ -742,7 +755,7 @@ function s = getFilterMean(s)
     s.e1(:, 2:end) = 0;
     if lastObs<nxp
         a0 = permute(s.a0(:, 1, :, 1), [1, 3, 4, 2]);
-        if ~isempty(s.U)
+        if isempty(s.U)
             s.b1(:, lastObs+1:end) = a0(:, lastObs+1:end);
         elseif size(s.U, 3)==1
             s.b1(:, lastObs+1:end) = s.U*a0(:, lastObs+1:end);
@@ -776,8 +789,8 @@ end%
 
 
 
-function s = getFilterMse(s)
-    % getFilterMse  MSE matrices for updating step.
+function s = hereGetFilterMse(s)
+    % hereGetFilterMse  MSE matrices for updating step.
     ny = s.NumY;
     nf = s.NumF;
     nb = s.NumB;
@@ -819,8 +832,8 @@ end%
 
 
 
-function s = getSmoothMse(s)
-    % getSmoothMse  Smoother for MSE matrices of all variables
+function s = hereGetSmoothMse(s)
+    % hereGetSmoothMse  Smoother for MSE matrices of all variables
     ny = s.NumY;
     nf = s.NumF;
     nb = s.NumB;
@@ -863,8 +876,8 @@ end%
 
 
 
-function s = getSmoothMean(s)
-    % getSmoothMean  Kalman smoother for point estimates of all variables.
+function s = hereGetSmoothMean(s)
+    % hereGetSmoothMean  Kalman smoother for point estimates of all variables.
     nb = s.NumB;
     nf = s.NumF;
     ne = s.NumE;
