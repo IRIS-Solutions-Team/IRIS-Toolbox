@@ -32,4 +32,5 @@ g.List = [this.Quantity.Name(ixType), add];
 g.Label = [this.Quantity.Label(ixType), add];
 g.IsLog = implementGet(this, 'IsLog');
 
-end
+end%
+
