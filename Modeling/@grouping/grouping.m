@@ -97,7 +97,7 @@ classdef grouping < shared.UserDataContainer ...
             %
             % * `'IncludeExtras='` [ `true` | *`false`* ] - Include two extra
             % decomposition columns, `Init+Const+Dtrend` and `Nonlinear`, produced by
-            % the `simulate( )` functio, in the list of constributions available in
+            % the `simulate( )` function, in the list of constributions available in
             % this grouping.
             %
             %
