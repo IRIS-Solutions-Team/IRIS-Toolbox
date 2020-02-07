@@ -16,8 +16,15 @@ inxStable = [false(1, numUnitRoots), true(1, nb-numUnitRoots)];
 transform = ~isempty(s.U);
 
 s.InitMean = hereGetInitMean( );
-s.InitMse = hereGetInitMse( );
-s.NInit = hereGetNInit( );
+
+if iscell(opt.Init) && numel(opt.Init)==2 && isempty(opt.Init{2})
+    % All initial conditions are fixed unknown
+    s.InitMse = zeros(nb);
+    s.NInit = nb;
+else
+    s.InitMse = hereGetInitMse( );
+    s.NInit = hereGetNInit( );
+end
 
 return
 
