@@ -42,9 +42,12 @@ function this = convert(this, newFreq, varargin)
 %
 % ## Options for High- to Low-Frequency Aggregation ##
 %
+%
 % __`Method=@mean`__ [ function_handle | `@first` | `@last` | `@random` ] -
 % Aggregation method; `'first'`, `'last'` and `'random'` select the
-% first, last of a random observation from the period.
+% first, last or a random observation from the high-frequency periods
+% contained in the correspoding low-frequency period.
+%
 %
 % __`Select=Inf`__ [ numeric ] -
 % Select only these high-frequency observations within each low-frequency
@@ -116,20 +119,20 @@ else
     range = Inf;
 end
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('TimeSubscriptable.convert');
-    parser.addRequired('InputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addRequired('NewFreq', @Frequency.validateProperFrequency);
-    parser.addParameter({'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || isequal(x, 'first') || isequal(x, 'last'));
-    parser.addParameter({'RemoveNaN', 'IgnoreNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'last', 'previous'}))) || isnumericscalar(x));
-    parser.addParameter({'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.string(x) || (isnumeric(x) && ~isempty(x)));
-    parser.addParameter('Position', 'center', @(x) ischar(x) && any(strncmpi(x, {'c', 's', 'e'}, 1)));
-    parser.addParameter('Select', Inf, @(x) isnumeric(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('TimeSubscriptable.convert');
+    addRequired(pp, 'InputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    addRequired(pp, 'NewFreq', @Frequency.validateProperFrequency);
+    addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || strcmpi(x, 'First') || strcmpi(x, 'Last'));
+    addParameter(pp, {'RemoveNaN', 'IgnoreNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'Last', 'Previous'}))) || validate.numericScalar(x));
+    addParameter(pp, {'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.string(x) || (isnumeric(x) && ~isempty(x)));
+    addParameter(pp, 'Position', 'center', @(x) ischar(x) && any(strncmpi(x, {'c', 's', 'e'}, 1)));
+    addParameter(pp, 'Select', Inf, @(x) isnumeric(x));
 end
-parser.parse(this, newFreq, varargin{:});
-opt = parser.Options;
+parse(pp, this, newFreq, varargin{:});
+opt = pp.Options;
 
 % Make sure newFreq is a Frequency object
 if ~isa(newFreq, 'Frequency')
@@ -159,7 +162,7 @@ end
 
 if oldFreq>newFreq
     % Aggregate
-    conversionFunc = @aggregate;
+    conversionFunc = @localAggregate;
 else
     % Weekly to daily intepolation not implemented
     if oldFreq==52 && newFreq==365
@@ -167,10 +170,10 @@ else
     end
     % Interpolate matching sum or average
     if any(strcmpi(opt.Method, {'quadsum', 'quadavg'}))
-        conversionFunc = @interpolateAndMatch;
+        conversionFunc = @localInterpolateAndMatch;
     else
         % Built-in interp1
-        conversionFunc = @interpolate;
+        conversionFunc = @localInterpolate;
     end
 end
 
@@ -186,16 +189,16 @@ end%
 %
 
 
-function [newData, newStart] = aggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
-    if isa(opt.Method, 'function_handle')
-        charMethod = char(opt.Method);
-        if strcmpi(charMethod, 'default')
-            opt.Method = @mean;
-        elseif any(strcmpi(charMethod, {'first', 'last', 'random'}))
-            opt.Method = char(opt.Method);
-        end
+function [newData, newStart] = localAggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+    if isequal(opt.Method, @default) || strcmpi(opt.Method, 'Default')
+        opt.Method = @mean;
+    elseif isequal(opt.Method, @last) || strcmpi(opt.Method, 'Last')
+        opt.Method = 'last';
+    elseif isequal(opt.Method, @first) || strcmpi(opt.Method, 'First')
+        opt.Method = 'first';
+    elseif isequal(opt.Method, @random) || strcmpi(opt.Method, 'Random')
+        opt.Method = 'random';
     end
-    
 
     % Stretch the original range from the beginning of first year until the end
     % of last year
@@ -306,8 +309,8 @@ end%
 
 
 
-function [newData, newStart] = interpolate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
-    if isequal(opt.Method, @default)
+function [newData, newStart] = localInterpolate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+    if isequal(opt.Method, @default) || strcmpi(opt.Method, 'Default')
         opt.Method = 'pchip';
     end
 
@@ -398,7 +401,7 @@ end%
 
 
 
-function [newData, newStart] = interpolateAndMatch(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+function [newData, newStart] = localInterpolateAndMatch(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     n = newFreq/oldFreq;
     if n~=round(n)
         utils.error('tseries:convert', ...
