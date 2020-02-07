@@ -190,13 +190,14 @@ end%
 
 
 function [newData, newStart] = localAggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
-    if isequal(opt.Method, @default) || strcmpi(opt.Method, 'Default')
+    charMethod = char(opt.Method);
+    if strcmpi(charMethod, 'Default')
         opt.Method = @mean;
-    elseif isequal(opt.Method, @last) || strcmpi(opt.Method, 'Last')
+    elseif strcmpi(charMethod, 'Last')
         opt.Method = 'last';
-    elseif isequal(opt.Method, @first) || strcmpi(opt.Method, 'First')
+    elseif strcmpi(charMethod, 'First')
         opt.Method = 'first';
-    elseif isequal(opt.Method, @random) || strcmpi(opt.Method, 'Random')
+    elseif strcmpi(charMethod, 'Random')
         opt.Method = 'random';
     end
 
@@ -256,42 +257,47 @@ function [newData, newStart] = localAggregate(this, oldStart, oldEnd, oldFreq, n
         if any(inxRows)
             oldAdd = oldData(inxRows, :);
             for col = 1 : numColumns
-                ithMethod = opt.Method;
-                if isnumeric(ithMethod)
-                    ithMethod = reshape(ithMethod, 1, [ ]);
+                method__ = opt.Method;
+                if isnumeric(method__)
+                    method__ = reshape(method__, 1, [ ]);
                 end
 
-                ithCol = oldAdd(:, col);
+                col__ = oldAdd(:, col);
 
                 if opt.RemoveNaN
-                    inxToKeep = ~isnan(ithCol);
-                    ithCol = ithCol(inxToKeep);
-                    if isnumeric(ithMethod)
-                        ithMethod = ithMethod(inxToKeep);
+                    inxToKeep = ~isnan(col__);
+                    col__ = col__(inxToKeep);
+                    if isnumeric(method__)
+                        method__ = method__(inxToKeep);
                     end
                 end
 
                 if ~isequal(opt.Select, Inf)
                     try
-                        ithCol = ithCol(opt.Select);
-                        if isnumeric(ithMethod)
-                            ithMethod = ithMethod(opt.Select);
+                        col__ = col__(opt.Select);
+                        if isnumeric(method__)
+                            method__ = method__(opt.Select);
                         end
                     catch
-                        ithCol = double.empty(0, 1);
-                        ithMethod = double.empty(1, 0);
+                        col__ = double.empty(0, 1);
+                        method__ = double.empty(1, 0);
                     end
                 end
 
-                if isempty(ithCol) 
+                if isempty(col__) 
                     continue
                 end
 
-                if isnumeric(ithMethod)
-                    try, newAdd(1, col) = ithMethod*ithCol; end
-                elseif isa(ithMethod, 'function_handle') || ischar(ithMethod) || isa(ithMethod, 'string')
-                    try, newAdd(1, col) = feval(ithMethod, ithCol, 1);
-                        catch, newAdd(1, col) = feval(ithMethod, ithCol); end
+                if isnumeric(method__)
+                    try %#ok<TRYNC>
+                        newAdd(1, col) = method__*col__;
+                    end
+                elseif isa(method__, 'function_handle') || ischar(method__) || isa(method__, 'string')
+                    try
+                        newAdd(1, col) = feval(method__, col__, 1);
+                    catch
+                        newAdd(1, col) = feval(method__, col__);
+                    end
                 end
             end
         end
