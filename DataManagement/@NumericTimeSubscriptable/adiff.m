@@ -1,5 +1,5 @@
-function this = diff(this, varargin)
-% diff  First difference
+function this = adiff(this, varargin)
+% adiff  Annnualized first difference
 %{
 % ## Syntax ##
 %
@@ -34,21 +34,9 @@ function this = diff(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-[shift, rows, power] = prepareChange(this, varargin{:});
-
 %--------------------------------------------------------------------------
 
-if isempty(this.data)
-    return
-end
-
-%**************************************************************************
-this = unop(@series.change, this, 0, @minus, shift, rows);
-%**************************************************************************
-
-if power~=1
-    this.Data = this.Data * power;
-end
+this = diff(this, varargin{:}, 'OutputFreq=', Frequency.YEARLY);
 
 end%
 

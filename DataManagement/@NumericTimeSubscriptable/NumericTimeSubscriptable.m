@@ -1,7 +1,8 @@
 classdef ( ...
     Abstract, CaseInsensitiveProperties=true, ...
     InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper} ...
-) NumericTimeSubscriptable ...
+) ...
+NumericTimeSubscriptable ...
     < TimeSubscriptable ...
     & shared.GetterSetter ...
     & shared.UserDataContainer
@@ -35,6 +36,7 @@ classdef ( ...
 
     methods
         varargout = acf(varargin)
+        varargout = adiff(varargin)
         varargout = apply(varargin)
         varargout = arf(varargin)
         varargout = apct(varargin)
@@ -53,6 +55,13 @@ classdef ( ...
         varargout = diff(varargin)
         varargout = difflog(varargin)
         varargout = ellone(varargin)
+        
+
+        function varargout = isfreq(this, freq)
+            [varargout{1:nargout}] = this.Frequency==freq;
+        end%
+
+
         varargout = llf(varargin)
         varargout = llf2(varargin)
         varargout = hpf(varargin)
@@ -131,6 +140,7 @@ classdef ( ...
 
         implementDisp(varargin)
         varargout = implementFilter(varargin)
+        varargout = prepareChange(varargin)
         varargout = unop(varargin)
         varargout = unopinx(varargin)
 

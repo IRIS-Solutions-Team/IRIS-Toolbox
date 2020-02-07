@@ -68,38 +68,10 @@ function this = pct(this, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('NumericTimeSubscriptable.pct');
-    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addOptional(pp, 'shift', -1, @(x) (validate.numericScalar(x) && x==round(x)) || strcmpi(x, 'yoy'));
-    % Options
-    addParameter(pp, 'OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
-end
-pp.parse(this, varargin{:});
-sh = pp.Results.shift;
-opt = pp.Options;
-
 %--------------------------------------------------------------------------
 
-if isempty(this.data)
-    return
-end
-
-inputFreq = DateWrapper.getFrequencyAsNumeric(this.Start);
-if strcmpi(sh, 'yoy')
-    sh = -double(inputFreq);
-    if sh==0
-        sh = -1;
-    end
-end
-
-power = 1;
-if ~isempty(opt.OutputFreq)
-    power = inputFreq / opt.OutputFreq / abs(sh);
-end
-
-this = unop( @numeric.pct, this, 0, sh, power );
+this = roc(this, varargin{:});
+this.Data = 100*(this.Data - 1);
 
 end%
 

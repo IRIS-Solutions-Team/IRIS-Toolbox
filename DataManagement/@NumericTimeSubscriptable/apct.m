@@ -28,38 +28,12 @@ function this = apct(this, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
-
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('NumericTimeSubscriptable.apct');
-    parser.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    parser.addOptional('Shift', -1, @(x) isnumeric(x) && isscalar(x) && x==round(x));
-    parser.addOptional('Power', @auto, @(x) isequal(x, @auto) || (isscalar(x) && isnumeric(x)) );
-end
-parser.parse(this, varargin{:});
-shift = parser.Results.Shift;
-power = parser.Results.Power;
-
-if isequal(power, @auto)
-    freq = DateWrapper.getFrequencyAsNumeric(this.Start);
-    if freq==0
-        power = 1;
-    elseif abs(shift)==1
-        power = freq;
-    else
-        power = freq / abs(shift);
-    end
-end
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-if isempty(this.Data)
-    return
-end
-
-this = unop(@numeric.pct, this, 0, shift, power);
+this = pct(this, varargin{:}, 'OutputFreq=', Frequency.YEARLY);
 
 end%
 

@@ -13,11 +13,12 @@ function this = roc(this, varargin)
 % __`x`__ [ NumericTimeSubscriptable ] -
 % Input time series.
 %
-% __`~shift`__ [ numeric | `'yoy'` ] -
+% __`~shift=-1`__ [ numeric | `'YoY'` | `'BoY'` | `'EoLY'` ] -
 % Time shift (lag or lead) over which the rate of change will be computed,
-% i.e. between time t and t+k; if omitted, `shift=-1`; if `shift='yoy'` a
-% year-on-year rate is calculated (with the actual `shift` depending on the
-% date frequency of the input series `x`).
+% i.e. between time t and t+k; the `shift` specified as `'YoY'`, `'BoY'` or
+% `'EoLY'` means year-on-year changes, changes relative to the beginning of
+% current year, or changes relative to the end of previous year,
+% respectively (these do not work with `INTEGER` date frequency).
 %
 %
 % ## Output Arguments ##
@@ -39,14 +40,14 @@ function this = roc(this, varargin)
 % ## Example ##
 %
 % In this example, `x` is a monthly time series. The following command
-% computes the annualized rate of change between month t and t-1:
+% computes the rate of change between month t and t-1:
 %
-%     roc(x, -1, 'OutputFreq=', 1)
+%     roc(x, -1)
 %
-% while the following line computes the annualized rate of change between
+% The following line computes the rate of change between
 % month t and t-3:
 %
-%     roc(x, -3, 'OutputFreq=', 1)
+%     roc(x, -3)
 %
 %
 % ## Example ##
@@ -56,29 +57,19 @@ function this = roc(this, varargin)
 % the year-over-year rates of change:
 % 
 %     roc(xm, -12)
-%     roc(xm, 'yoy')
+%     roc(xm, 'YoY')
 %
 % and
 %
 %     roc(xq, -4)
-%     roc(xq, 'yoy')
+%     roc(xq, 'YoY')
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent pp
-if isempty(pp)
-    pp = extend.InputParser('NumericTimeSubscriptable.roc');
-    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addOptional(pp, 'shift', -1, @(x) (validate.numericScalar(x) && x==round(x)) || strcmpi(x, 'yoy'));
-    % Options
-    addParameter(pp, 'OutputFreq', [ ], @(x) isempty(x) || isa(Frequency(x), 'Frequency'));
-end
-pp.parse(this, varargin{:});
-sh = pp.Results.shift;
-opt = pp.Options;
+[shift, rows, power] = prepareChange(this, varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -86,20 +77,13 @@ if isempty(this.data)
     return
 end
 
-inputFreq = DateWrapper.getFrequencyAsNumeric(this.Start);
-if strcmpi(sh, 'yoy')
-    sh = -double(inputFreq);
-    if sh==0
-        sh = -1;
-    end
-end
+%**************************************************************************
+this = unop(@series.change, this, 0, @rdivide, shift, rows);
+%**************************************************************************
 
-power = 1;
-if ~isempty(opt.OutputFreq)
-    power = inputFreq / opt.OutputFreq / abs(sh);
+if power~=1
+    this.Data = this.Data .^ power;
 end
-
-this = unop( @numeric.roc, this, 0, sh, power );
 
 end%
 

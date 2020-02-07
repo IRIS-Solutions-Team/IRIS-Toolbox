@@ -1,4 +1,4 @@
-function this = diff(this, shifts)
+function this = difflog(this, varargin)
 % diff  First difference of log
 %{
 % ## Syntax ##
@@ -32,24 +32,15 @@ function this = diff(this, shifts)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % diff, df, pct, apct
-
-if nargin<2
-    shifts = -1;
-end
-
-if isempty(shifts)
-    this = numeric.empty(this, 2);
-    return
-end
 
 %--------------------------------------------------------------------------
 
 this.Data = log(this.Data);
-this = unop(@numeric.diff, this, 0, shifts);
+this = diff(this, varargin{:});
 
 end%
 
