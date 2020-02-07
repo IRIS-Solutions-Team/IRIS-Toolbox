@@ -2,6 +2,7 @@ classdef Pseudofunc
     enumeration
         DIFF        ( 'diff', '-', -1, '0', '',    '*' )
         DOT         ( 'diff', '/', -1, '1', '',    '^' )
+        ROC         ( 'diff', '/', -1, '1', '',    '^' )
         DIFFLOG     ( 'diff', '-', -1, '0', 'log', '*' )
         MOVSUM      ( 'mov',  '+', -4, '0', '',    ''  )
         MOVPROD     ( 'mov',  '*', -4, '1', '',    ''  )
