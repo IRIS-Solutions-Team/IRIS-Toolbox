@@ -10,20 +10,26 @@ function s = initialize(s, iLoop, opt)
 %--------------------------------------------------------------------------
 
 numUnitRoots = s.NUnit;
-nb = s.nb;
-ne = s.ne;
-inxStable = [false(1, numUnitRoots), true(1, nb-numUnitRoots)];
+numXib = s.nb;
+numE = s.ne;
+inxStable = [false(1, numUnitRoots), true(1, numXib-numUnitRoots)];
 transform = ~isempty(s.U);
 
+%
+% Initialize mean
+%
 s.InitMean = hereGetInitMean( );
 
+%
+% Intialize MSE
+%
 if iscell(opt.Init) && numel(opt.Init)==2 && isempty(opt.Init{2})
     % All initial conditions are fixed unknown
-    s.InitMse = zeros(nb);
-    s.NInit = nb;
+    s.InitMse = zeros(numXib);
+    s.NInit = numXib;
 else
     s.InitMse = hereGetInitMse( );
-    s.NInit = hereGetNInit( );
+    s.NInit = hereGetNumInit( );
 end
 
 return
@@ -32,7 +38,7 @@ return
     function a0 = hereGetInitMean( )
         inxInit = reshape(s.InxInit, [ ], 1);
         % Initialize mean
-        a0 = zeros(nb, 1);
+        a0 = zeros(numXib, 1);
         if iscell(opt.Init)
             % User-supplied initial condition
             % Convert Mean[Xb] to Mean[Alpha]
@@ -49,7 +55,7 @@ return
         if ~isempty(s.ka) && any(s.ka(:)~=0)
             % Asymptotic initial condition for the stable part of Alpha;
             % the unstable part is kept at zero initially
-            I = eye(nb - numUnitRoots);
+            I = eye(numXib - numUnitRoots);
             a1 = zeros(numUnitRoots, 1);
             a2 = (I - s.Ta(inxStable, inxStable, 1)) \ s.ka(inxStable, 1);
             a0 = [a1; a2];
@@ -74,7 +80,7 @@ return
 
     function Pa0 = hereGetInitMse( )
 
-        Pa0 = zeros(nb);
+        Pa0 = zeros(numXib);
 
         %
         % Fixed initial condition with zero MSE
@@ -106,7 +112,7 @@ return
         if any(inxStable)
             % R matrix with rows corresponding to stable Alpha and columns
             % corresponding to transition shocks
-            RR = s.Ra(:, 1:ne, 1);
+            RR = s.Ra(:, 1:numE, 1);
             RR = RR(inxStable, s.InxV);
             % Reduced form covariance corresponding to stable alpha. Use the structural
             % shock covariance sub-matrix corresponding to transition shocks only in
@@ -156,7 +162,7 @@ return
 
 
 
-    function n = hereGetNInit( )
+    function n = hereGetNumInit( )
         % Number of init conditions estimated as fixed unknowns
         if iscell(opt.Init)
             % All init cond supplied by user
