@@ -175,8 +175,7 @@ elseif isstruct(opt.Init)
     [xbInitMean, listMissingMeanInit, xbInitMse, listMissingMSEInit] = ...
         datarequest('xbInit', this, opt.Init, range);
     if isempty(xbInitMse)
-        numPages = size(xbInitMean, 3);
-        xbInitMse = double.empty(0);
+        xbInitMse = zeros(numel(xbInitMean));
     end
     hereCheckNaNInit( );
     opt.Init = {xbInitMean, xbInitMse};
