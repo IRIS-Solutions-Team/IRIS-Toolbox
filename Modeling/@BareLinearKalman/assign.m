@@ -56,7 +56,8 @@ function inObject = hereAssign(time, inObject, user, names)
 
     thisError = [ 
         "BareLinearKalman:InvalidDimensions"
-        "Dimensions of this BareLinearKalman system or covariance matrix are invalid: %s" 
+        "Dimensions of this BareLinearKalman system matrix "
+        "or covariance matrix are invalid: %s" 
     ];
     throw(exception.Base(thisError, 'error'), names{~inxValidDim});
 end%

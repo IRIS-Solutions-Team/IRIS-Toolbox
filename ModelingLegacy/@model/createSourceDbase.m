@@ -1,11 +1,11 @@
-function outputDatabank = createSourceDbase(this, range, varargin)
+function outputDb = createSourceDbase(this, range, varargin)
 % createSourceDbase  Create model specific source database
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
@@ -15,30 +15,33 @@ if ischar(range)
     range = textinp2dat(range);
 end
 
-numOfColumnsRequested = [ ];
+numColumnsRequested = [ ];
 if ~isempty(varargin) && isnumericscalar(varargin{1})
-    numOfColumnsRequested = varargin{1};
+    numColumnsRequested = varargin{1};
     varargin(1) = [ ];
 end
 
 opt = passvalopt('model.createSourceDbase', varargin{:});
 
-numOfDrawsRequested = opt.ndraw;
-if isempty(numOfColumnsRequested)
-    numOfColumnsRequested = opt.ncol;
+numDrawsRequested = opt.ndraw;
+if isempty(numColumnsRequested)
+    numColumnsRequested = opt.ncol;
 end
 
 %--------------------------------------------------------------------------
 
 nv = length(this);
-checkNumColumnsRequested = numOfColumnsRequested==1 || nv==1;
-checkNumDrawsRequested = numOfDrawsRequested==1 || nv==1;
+checkNumColumnsRequested = numColumnsRequested==1 || nv==1;
+checkNumDrawsRequested = numDrawsRequested==1 || nv==1;
 if ~checkNumColumnsRequested || ~checkNumDrawsRequested
     throw( exception.Base('Model:NumOfColumnsNumOfDraws', 'error') );
 end
 
-% __Extended Range__
-% getActualMinMaxShifts( ) Includes at least one lag for reporting purposes.
+%
+% Extended Range
+% `getActualMinMaxShifts( )` includes at least one lag for reporting
+% purposes
+% 
 [minSh, maxSh] = getActualMinMaxShifts(this);
 start = range(1);
 extendedStart = range(1);
@@ -67,15 +70,17 @@ ixyxg = ixy | ixx | ixg;
 posyxg = find(ixy | ixx | ixg);
 ixLog = this.Quantity.IxLog;
 ny = sum(ixy);
-numOfQuantities = length(this.Quantity);
+numQuantities = length(this.Quantity);
 
-numOfColumnsToCreate = max([nv, numOfColumnsRequested, numOfDrawsRequested]);
-outputDatabank = struct( );
+numColumnsToCreate = max([nv, numColumnsRequested, numDrawsRequested]);
+outputDb = struct( );
 
-% Deterministic time trend.
+%
+% Deterministic time trend
+%
 ttrend = dat2ttrend(extendedRange, this);
 
-X = zeros(numOfQuantities, nXPer, nv);
+X = zeros(numQuantities, nXPer, nv);
 if ~opt.Deviation
     isDelog = false;
     X(ixyxg, :, :) = createTrendArray(this, Inf, isDelog, posyxg, ttrend);
@@ -88,44 +93,63 @@ end
 
 X(ixLog, :, :) = real(exp( X(ixLog, :, :) ));
 
-if numOfColumnsToCreate>1 && nv==1
-    X = repmat(X, 1, 1, numOfColumnsToCreate);
+if numColumnsToCreate>1 && nv==1
+    X = repmat(X, 1, 1, numColumnsToCreate);
 end
 
+
+%
 % Transition variables, exogenous variables
+%
 for i = find(ixx | ixg)
     name = this.Quantity.Name{i};
-    outputDatabank.(name) = replace( TIME_SERIES_TEMPLATE, ...
-                                     permute(X(i, :, :), [2, 3, 1]), ...
-                                     extendedStart, ...
-                                     label{i} );
+    outputDb.(name) = replace( ...
+        TIME_SERIES_TEMPLATE, ...
+        permute(X(i, :, :), [2, 3, 1]), ...
+        extendedStart, label{i} ...
+    );
 end
 
+
+%
 % Do not include pre-sample or post-sample in measurement variables and
 % shocks
+% 
 for i = find(ixy | ixe)
     name = this.Quantity.Name{i};
     x = X(i, 1-minSh:end-maxSh, :);
-    outputDatabank.(name) = replace( TIME_SERIES_TEMPLATE, ...
-                                     permute(x, [2, 3, 1]), ...
-                                     start, ...
-                                     label{i} );
+    outputDb.(name) = replace( ...
+        TIME_SERIES_TEMPLATE, ...
+        permute(x, [2, 3, 1]), ...
+        start, label{i} ...
+    );
 end
 
+
+%
 % Generate random residuals if requested
+% 
 if ~isequal(opt.shockfunc, @zeros)
-    outputDatabank = shockdb( this, outputDatabank, range, numOfColumnsToCreate, ...
-                              'ShockFunc=', opt.shockfunc );
+    outputDb = shockdb( ...
+        this, outputDb, range, numColumnsToCreate, ...
+        'ShockFunc=', opt.shockfunc ...
+    );
 end
 
-% Add parameters
-outputDatabank = addToDatabank( {'Parameters', 'Std', 'NonzeroCorr'}, this, outputDatabank);
 
+%
+% Add parameters
+%
+outputDb = addToDatabank( {'Parameters', 'Std', 'NonzeroCorr'}, this, outputDb);
+
+
+%
 % Add LHS names from reporting equations
+%
 nameLhs = this.Reporting.NamesOfLhs;
 for i = 1 : length(nameLhs)
     % TODO: use label or name
-    outputDatabank.(nameLhs{i}) = comment(TIME_SERIES_TEMPLATE, nameLhs{i});
+    outputDb.(nameLhs{i}) = comment(TIME_SERIES_TEMPLATE, nameLhs{i});
 end
 
 end%
