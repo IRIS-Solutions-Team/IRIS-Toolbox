@@ -1,4 +1,4 @@
-function [this, newStart, newEnd] = clip(this, newStart, newEnd)
+function [this, newStart, newEnd] = clip(this, newStart, varargin)
 % clip  Clip time series range
 %{
 % ## Syntax ##
@@ -43,14 +43,19 @@ function [this, newStart, newEnd] = clip(this, newStart, newEnd)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('TimeSubscriptable.clip');
-    parser.addRequired('inputSeries', @(x) isa(x, 'TimeSubscriptable'));
-    parser.addRequired('newStart', @(x) DateWrapper.validateDateInput(x) && isscalar(x));
-    parser.addRequired('newEnd', @(x) DateWrapper.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('TimeSubscriptable.clip');
+    addRequired(pp, 'inputSeries', @(x) isa(x, 'TimeSubscriptable'));
+    addRequired(pp, 'newStart', @(x) DateWrapper.validateDateInput(x));
+    addOptional(pp, 'newEnd', [ ], @(x) isempty(x) || (DateWrapper.validateDateInput(x) && isscalar(x) && ~isequal(x, -Inf)));
 end
-parser.parse(this, newStart, newEnd);
+parse(pp, this, newStart, varargin{:});
+newEnd = pp.Results.newEnd;
+if isempty(newEnd)
+    newEnd = newStart(end);
+end
+newStart = newStart(1);
 
 %--------------------------------------------------------------------------
 
