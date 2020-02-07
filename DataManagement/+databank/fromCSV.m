@@ -344,10 +344,10 @@ if ~isempty(dates)
     maxDate = max(dates);
     minDate = min(dates);
     numOfPeriods = 1 + round(maxDate - minDate);
-    posOfDates = 1 + round(dates - minDate);
+    posDates = 1 + round(dates - minDate);
 else
     numOfPeriods = 0;
-    posOfDates = [ ];
+    posDates = [ ];
     minDate = DateWrapper(NaN);
 end
 
@@ -451,8 +451,7 @@ return
             % entire match (including separating commas and double quotes), not only
             % tokens -- this is a workaround for a bug in Octave.
             % @@@@@ MOSW
-            tkn = regexp(line, ...
-                '[^",]*,|[^",]*$|"[^"]*",|"[^"]*"$', 'match');
+            tkn = regexp(line, '[^",]*,|[^",]*$|"[^"]*",|"[^"]*"$', 'match');
             % Remove separating commas from the end of cells.
             tkn = regexprep(tkn, ',$', '', 'once');
             % Remove double quotes from beginning and end of each cell.
@@ -487,15 +486,15 @@ return
             if strncmp(ident, opt.UserDataField, 1) ...
                     ...
                     || ( ...
-                    iscellstr(opt.UserDataFieldList) ...
-                    && ~isempty(opt.UserDataFieldList) ...
-                    && any(strcmpi(ident, opt.UserDataFieldList)) ...
+                        iscellstr(opt.UserDataFieldList) ...
+                        && ~isempty(opt.UserDataFieldList) ...
+                        && any(strcmpi(ident, opt.UserDataFieldList)) ...
                     ) ...
                     ...
                     || ( ...
-                    isnumeric(opt.UserDataFieldList) ...
-                    && ~isempty(opt.UserDataFieldList) ...
-                    && any(rowCount==opt.UserDataFieldList(:).') ...
+                        isnumeric(opt.UserDataFieldList) ...
+                        && ~isempty(opt.UserDataFieldList) ...
+                        && any(rowCount==opt.UserDataFieldList(:).') ...
                     )
                 fieldName = regexprep(ident, '\W', '');
                 fieldName = matlab.lang.makeUniqueStrings(fieldName);
@@ -746,47 +745,42 @@ return
                 if isempty(tmpSize)
                     tmpSize = [Inf, 1];
                 end
-                numOfColumns = prod(tmpSize(2:end));
+                numColumns = prod(tmpSize(2:end));
                 if ~isempty(data)
-                    if isreal(data(~inxNaNDates, count+(1:numOfColumns)))
+                    if isreal(data(~inxNaNDates, count+(1:numColumns)))
                         unit = 1;
                     else
                         unit = 1 + 1i;
                     end
-                    iData = nan(numOfPeriods, numOfColumns)*unit;
-                    iMiss = false(numOfPeriods, numOfColumns);
-                    iData(posOfDates, :) = data(~inxNaNDates, count+(1:numOfColumns));
-                    iMiss(posOfDates, :) = inxMissing(~inxNaNDates, count+(1:numOfColumns));
-                    iData(iMiss) = NaN*unit;
-                    iData = reshape(iData, [numOfPeriods, tmpSize(2:end)]);
-                    cmt = cmtRow(count+(1:numOfColumns));
-                    cmt = reshape(cmt, [1, tmpSize(2:end)]);
-                    newEntry = replace(TEMPLATE_SERIES, iData, minDate, cmt);
+                    data__ = nan(numOfPeriods, numColumns)*unit;
+                    inxMissing__ = false(numOfPeriods, numColumns);
+                    data__(posDates, :) = data(~inxNaNDates, count+(1:numColumns));
+                    inxMissing__(posDates, :) = inxMissing(~inxNaNDates, count+(1:numColumns));
+                    data__(inxMissing__) = NaN*unit;
+                    data__ = reshape(data__, [numOfPeriods, tmpSize(2:end)]);
+                    comment__ = cmtRow(count+(1:numColumns));
+                    comment__ = reshape(comment__, [1, tmpSize(2:end)]);
+                    newEntry = replace(TEMPLATE_SERIES, data__, minDate, comment__);
                 else
                     % Create an empty Series object with proper 2nd and higher
-                    % dimensions.
-                    iData = zeros([0, tmpSize(2:end)]);
-                    newEntry = replace(TEMPLATE_SERIES, iData, NaN, '');
+                    % dimensions
+                    data__ = zeros([0, tmpSize(2:end)]);
+                    newEntry = replace(TEMPLATE_SERIES, data__, NaN, '');
                 end
                 if numOfSeriesUserData>0
                     newEntry = userdata(newEntry, thisUserData);
                 end
             elseif ~isempty(tmpSize)
                 % Numeric data.
-                numOfColumns = prod(tmpSize(2:end));
-                iData = reshape(data(1:tmpSize(1), count+(1:numOfColumns)), tmpSize);
-                iMiss = reshape(inxMissing(1:tmpSize(1), count+(1:numOfColumns)), tmpSize);
-                iData(iMiss) = NaN;
-                % Convert to the right numeric class.
-                if true % ##### MOSW
-                    fnClass = str2func(cls);
-                else
-                    fnClass = mosw.str2func(cls); %#ok<UNRCH>
-                end
-                newEntry = fnClass(iData);
+                numColumns = prod(tmpSize(2:end));
+                data__ = reshape(data(1:tmpSize(1), count+(1:numColumns)), tmpSize);
+                inxMissing__ = reshape(inxMissing(1:tmpSize(1), count+(1:numColumns)), tmpSize);
+                data__(inxMissing__) = NaN;
+                fnClass = str2func(cls);
+                newEntry = fnClass(data__);
             end
             outputDatabank.(char(name)) = newEntry;
-            count = count + numOfColumns;
+            count = count + numColumns;
         end
         
         return
