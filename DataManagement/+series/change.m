@@ -11,11 +11,11 @@ if isempty(data)
     return
 end
 
-if nargin<2
+if nargin<3
     shifts = -1;
 end
 
-if nargin<3
+if nargin<4
     rows = [ ];
 end
 
