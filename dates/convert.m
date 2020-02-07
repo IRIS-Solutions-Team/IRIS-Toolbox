@@ -1,55 +1,68 @@
 function outputDate = convert(inputDate, toFreq, varargin)
 % convert   Convert dates to another frequency
+%{
+% ## Syntax ##
 %
-% __Syntax__
 %
 %     outputDate = convert(inputDate, newFreq, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `inputDate` [ DateWrapper ] - IRIS serial date numbers that will be
+%
+% __`inputDate`__ [ DateWrapper ]
+% >
+% IRIS serial date numbers that will be
 % converted to the new frequency, `NewFreq`.
 %
-% * `newFreq` [ Frequency.YEARLY | Frequency.HALFYEARLY |
-% Frequency.QUARTERLY | Frequency.MONTHLY | Frequency.WEEKLY |
-% Frequency.DAILY ] - New frequency to which the `inputDate` will be
+%
+% __`newFreq`__ [ Frequency.YEARLY | Frequency.HALFYEARLY | Frequency.QUARTERLY | Frequency.MONTHLY | Frequency.WEEKLY | Frequency.DAILY ]
+% >
+% New frequency to which the `inputDate` will be
 % converted.
 %
 %
-% __Output Arguments__
+% ## Output Arguments ##
 %
-% * `outputDate` [ DateWrapper ] - DateWrapper object representing the new
+%
+% __`outputDate`__ [ DateWrapper ]
+% >
+% DateWrapper object representing the new
 % frequency.
 %
 %
-% __Options__
-%
-% * `ConversionDay=1` [ numeric | `'last'` ] - Day within the
-% `ConversionMonth` that will be used to represent the `inputDate` in
-% low-requency to daily-frequency conversions.
-%
-% * `ConversionMonth=1` [ numeric | `'last'` ] - Month that will be
-% used to represent a certain period of time in low- to high-frequency
-% conversions.
+% ## Options ##
 %
 %
-% __Description__
+% __`ConversionDay=1`__ [ numeric | `'last'` ]
+% >
+% Day within the `ConversionMonth` that will be used to represent the
+% `inputDate` in low-requency to daily-frequency conversions.
 %
 %
-% __Example__
+% __`ConversionMonth=1`__ [ numeric | `'last'` ]
+% >
+% Month that will be used to represent a certain period of time in low- to
+% high-frequency conversions.
 %
+%
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('dates.convert');
-    parser.addRequired('InputDate', @DateWrapper.validateDateInput);
-    parser.addRequired('NewFreq', @Frequency.validateFrequency);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('dates.convert');
+    addRequired(pp, 'inputDate', @DateWrapper.validateDateInput);
+    addRequired(pp, 'newFreq', @Frequency.validateFrequency);
 end
-parser.parse(inputDate, toFreq);
+pp.parse(inputDate, toFreq);
 
 %--------------------------------------------------------------------------
 

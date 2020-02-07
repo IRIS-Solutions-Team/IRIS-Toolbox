@@ -1,21 +1,21 @@
 function data = moving(data, window, varargin)
 % moving  Implement moving function on numeric data
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('numeric.moving');
-    inputParser.addRequired('InputData', @isnumeric);
-    inputParser.addRequired('Window', @(x) isnumeric(x) && all(x==round(x)));
-    inputParser.addOptional('Function', @mean, @(x) isa(x, 'function_handle'));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('numeric.moving');
+    addRequired(pp, 'InputData', @isnumeric);
+    addRequired(pp, 'Window', @(x) isnumeric(x) && all(x==round(x)));
+    addOptional(pp, 'Function', @mean, @(x) isa(x, 'function_handle'));
 end
-inputParser.parse(data, window, varargin{:});
-func = inputParser.Results.Function;
+parse(pp, data, window, varargin{:});
+func = pp.Results.Function;
 
 if isempty(window)
     data(:) = NaN;
@@ -31,13 +31,12 @@ if ndimsData>2
 end
 
 for i = 1 : size(data, 2)
-    ithData = data(:, i);
-    shiftIthData = numeric.shift(data(:, i), window);
-    data(:, i) = feval(func, shiftIthData, 2);
+    data(:, i) = feval(func, numeric.shift(data(:, i), window), 2);
 end
 
 if ndimsData>2
     data = reshape(data, sizeData);
 end
 
-end
+end%
+

@@ -7,17 +7,17 @@ function outputDate = convert(inputDate, toFreq, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-persistent parser
-if isempty(parser)
+persistent pp
+if isempty(pp)
     validFrequencies = iris.get('Freq');
     validFrequencies = setdiff(validFrequencies, Frequency.INTEGER);
-    parser = extend.InputParser('dates.convert');
-    parser.addRequired('InputDate', @isnumeric);
-    parser.addRequired('NewFreq', @(x) isnumeric(x) && isscalar(x) && any(x==validFrequencies));
-    parser.addDateOptions( );
+    pp = extend.InputParser('+numeric/convert');
+    addRequired(pp, 'inputDate', @isnumeric);
+    addRequired(pp, 'newFreq', @(x) isnumeric(x) && isscalar(x) && any(x==validFrequencies));
+    addDateOptions(pp);
 end
-parser.parse(inputDate, toFreq, varargin{:});
-opt = parser.Options;
+pp.parse(inputDate, toFreq, varargin{:});
+opt = pp.Options;
 toFreqAsNumeric = double(toFreq);
 
 %--------------------------------------------------------------------------
