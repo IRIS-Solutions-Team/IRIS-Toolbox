@@ -27,6 +27,7 @@ classdef (Abstract) Kalman
 
 
     methods (Static, Hidden)
+        varargout = initialize(varargin)
         varargout = combineStdcorr(varargin)
     end
 end

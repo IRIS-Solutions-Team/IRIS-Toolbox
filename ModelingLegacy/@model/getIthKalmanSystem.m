@@ -1,4 +1,5 @@
-function [T, R, K, Z, H, D, U, Zb, inxV, inxW, numUnit, inxInit] = getIthKalmanSystem(this, variantRequested, requiredForward)
+function [T, R, K, Z, H, D, U, Zb, inxV, inxW, numUnit, inxInit] = ...
+    getIthKalmanSystem(this, variantRequested, requiredForward)
 % getIthKalmanSystem  Return description of state space for Kalman filter
 %
 % Backend IRIS function

@@ -1,19 +1,20 @@
 function [T, R, k, Z, H, d, U, Zb, inxV, inxW, numUnitRoots, inxInit] = getIthKalmanSystem(this, ~, requiredForward)
 
-nxi = this.NumXi;
-nv  = this.NumV;
-ny  = this.NumY;
-nw  = this.NumW;
-ne = nv + nw;
+numXi = this.NumXi;
+numXib = this.NumXib;
+numV = this.NumV;
+numY = this.NumY;
+numW = this.NumW;
+numE = numV + numW;
 
 [T, R, k, Z, H, d, U, Zb] = this.SystemMatrices{:};
 
 T = this.clipAndFillMissing(T);
 
 R = this.clipAndFillMissing(R);
-R = [R, zeros(nxi, nw, size(R, 3))];
+R = [R, zeros(numXi, numW, size(R, 3))];
 if requiredForward>0
-    R = [R, zeros(nxi, ne*requiredForward, size(R, 3))];
+    R = [R, zeros(numXi, numE*requiredForward, size(R, 3))];
 end
 
 k = this.clipAndFillMissing(k);
@@ -22,7 +23,7 @@ k = k(:, :);
 Z = this.clipAndFillMissing(Z);
 
 H = this.clipAndFillMissing(H);
-H = [zeros(ny, nv, size(H, 3)), H];
+H = [zeros(numY, numV, size(H, 3)), H];
 
 d = this.clipAndFillMissing(d);
 d = d(:, :);
@@ -39,10 +40,10 @@ else
     Zb = this.clipAndFillMissing(Zb);
 end
 
-inxV = [true(1, nv), false(1, nw)];
-inxW = [false(1, nv), true(1, nw)];
+inxV = [true(1, numV), false(1, numW)];
+inxW = [false(1, numV), true(1, numW)];
 numUnitRoots = this.NumUnitRoots;
-inxInit = true(nxi, 1);
+inxInit = true(numXi, 1);
 
 end%
 

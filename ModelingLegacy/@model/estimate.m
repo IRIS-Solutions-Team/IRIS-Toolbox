@@ -1,5 +1,5 @@
 function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] = estimate(this, inputDatabank, range, varargin)
-% estimate  Estimate model parameters by optimizing selected objective function.
+% estimate  Estimate model parameters by optimizing selected objective function
 %{
 % ## Syntax ##
 %
@@ -235,40 +235,40 @@ function [summary, p, proposalCov, hessian, this, V, delta, PDelta, varargout] =
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
-persistent inputParser outsideOptimOptions
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.estimate');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('InputDatabank', @isstruct);
-    inputParser.addRequired('Range', @(x) isempty(x) || DateWrapper.validateProperRangeInput(x));
-    inputParser.addRequired('EstimationSpecs', @(x) isstruct(x) && ~isempty(fieldnames(x)));
-    inputParser.addOptional('SystemPriors', [ ], @(x) isempty(x) || isa(x, 'systempriors') || isa(x, 'SystemPriorWrapper'));
+persistent pp outsideOptimOptions
+if isempty(pp)
+    pp = extend.InputParser('model.estimate');
+    pp.KeepUnmatched = true;
+    pp.addRequired('Model', @(x) isa(x, 'model'));
+    pp.addRequired('InputDatabank', @isstruct);
+    pp.addRequired('Range', @(x) isempty(x) || DateWrapper.validateProperRangeInput(x));
+    pp.addRequired('EstimationSpecs', @(x) isstruct(x) && ~isempty(fieldnames(x)));
+    pp.addOptional('SystemPriors', [ ], @(x) isempty(x) || isa(x, 'systempriors') || isa(x, 'SystemPriorWrapper'));
 
-    inputParser.addParameter('ChkSstate', true, @model.validateChksstate); 
-    inputParser.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
-    inputParser.addParameter({'Filter', 'FilterOpt'}, { }, @model.validateFilter);
-    inputParser.addParameter('NoSolution', 'Error', @(x) (isnumeric(x) && isscalar(x) && x>=1e10) || any(strcmpi(x, {'error', 'penalty'})));
-    inputParser.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @namedmat.validateMatrixFormat);
-    inputParser.addParameter({'Solve', 'SolveOpt'}, true, @model.validateSolve);
-    inputParser.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSstate);
-    inputParser.addParameter('Zero', false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('ChkSstate', true, @model.validateChksstate); 
+    pp.addParameter('Domain', 'time', @(x) any(strncmpi(x, {'time', 'freq'}, 4)));
+    pp.addParameter({'Filter', 'FilterOpt'}, { }, @model.validateFilter);
+    pp.addParameter('NoSolution', 'Error', @(x) (isnumeric(x) && isscalar(x) && x>=1e10) || any(strcmpi(x, {'error', 'penalty'})));
+    pp.addParameter({'MatrixFormat', 'MatrixFmt'}, 'namedmat', @namedmat.validateMatrixFormat);
+    pp.addParameter({'Solve', 'SolveOpt'}, true, @model.validateSolve);
+    pp.addParameter({'Steady', 'Sstate', 'SstateOpt'}, false, @model.validateSstate);
+    pp.addParameter('Zero', false, @(x) isequal(x, true) || isequal(x, false));
 
-    inputParser.addParameter('OptimSet', { }, @(x) isempty(x) || isstruct(x) || iscellstr(x(1:2:end)) );
+    pp.addParameter('OptimSet', { }, @(x) isempty(x) || isstruct(x) || iscellstr(x(1:2:end)) );
 
-    inputParser.addParameter('EpsPower', 1/2, @(x) isnumeric(x) && isscalar(x) && x>=0);
-    inputParser.addParameter('InitVal', 'struct', @(x) isempty(x) || isstruct(x) || isanystri(x, {'struct', 'model'}));
-    inputParser.addParameter('Penalty', 0, @(x) isnumeric(x) && isscalar(x) && x>=0);
-    inputParser.addParameter({'EvalLik', 'EvaluateData', 'EvalLikelihood'}, true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter({'EvalPPrior', 'EvaluateParameterPriors'}, true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter({'EvalSPrior', 'EvaluateSystemPriors'}, true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter({'Solver', 'Optimizer'}, 'fmin', @(x) isa(x, 'function_handle') || ischar(x) || isa(x, 'string') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle') || isa(x{1}, 'string'))));
-    inputParser.addParameter('Summary', 'struct', @(x) any(strcmpi(x, {'struct', 'table'})));
-    inputParser.addParameter('UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
+    pp.addParameter('EpsPower', 1/2, @(x) isnumeric(x) && isscalar(x) && x>=0);
+    pp.addParameter('InitVal', 'struct', @(x) isempty(x) || isstruct(x) || isanystri(x, {'struct', 'model'}));
+    pp.addParameter('Penalty', 0, @(x) isnumeric(x) && isscalar(x) && x>=0);
+    pp.addParameter({'EvalLik', 'EvaluateData', 'EvalLikelihood'}, true, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter({'EvalPPrior', 'EvaluateParameterPriors'}, true, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter({'EvalSPrior', 'EvaluateSystemPriors'}, true, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter({'Solver', 'Optimizer'}, 'fmin', @(x) isa(x, 'function_handle') || ischar(x) || isa(x, 'string') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle') || isa(x{1}, 'string'))));
+    pp.addParameter('Summary', 'struct', @(x) any(strcmpi(x, {'struct', 'table'})));
+    pp.addParameter('UpdateInit', [ ], @(x) isempty(x) || isstruct(x));
 end
 if isempty(outsideOptimOptions)
     outsideOptimOptions = extend.InputParser('model.estimate');
@@ -279,10 +279,10 @@ if isempty(outsideOptimOptions)
     outsideOptimOptions.addParameter('TolFun', 1e-6, @(x) isnumeric(x) && isscalar(x) && x>0);
     outsideOptimOptions.addParameter('TolX', 1e-6, @(x) isnumeric(x) && isscalar(x) && x>0);
 end
-inputParser.parse(this, inputDatabank, range, varargin{:});
-estimationSpecs = inputParser.Results.EstimationSpecs;
-opt = inputParser.Options;
-outsideOptimOptions.parse(inputParser.UnmatchedInCell{:});
+pp.parse(this, inputDatabank, range, varargin{:});
+estimationSpecs = pp.Results.EstimationSpecs;
+opt = pp.Options;
+outsideOptimOptions.parse(pp.UnmatchedInCell{:});
 
 % Process likelihood function options and create a likstruct.
 if strncmpi(opt.Domain, 't', 1)
@@ -314,7 +314,7 @@ end
 % ## Prepare Posterior object, model.Update, and EstimationWrapper ##
 [this, posterior] = preparePosteriorAndUpdate(this, estimationSpecs, opt);
 posterior.ObjectiveFunction = @(x) objfunc(x, this, inputArray, posterior, opt, likOpt);
-posterior.SystemPriors = inputParser.Results.SystemPriors;
+posterior.SystemPriors = pp.Results.SystemPriors;
 posterior.EvaluateData = opt.EvalLik;
 posterior.EvaluateParamPriors = opt.EvalPPrior;
 posterior.EvaluateSystemPriors = opt.EvalSPrior;
@@ -326,36 +326,49 @@ estimationWrapper = EstimationWrapper( );
 estimationWrapper.IsConstrained = posterior.IsConstrained;
 chooseSolver(estimationWrapper, opt.Solver, outsideOptimOptions.Options);
 
-% ## Run Optimizer ##
+
+%
+% Run Optimizer
+%
 maximizePosteriorMode(posterior, estimationWrapper);
+
 
 % Assign estimated parameters, refresh dynamic links, and re-compute steady
 % state, solution, and expansion matrices.
 variantRequested = 1;
 this = update(this, posterior.Optimum, variantRequested);
 
-% ## Set Up Posterior Object ##
+%
+% Set Up Posterior Object
+%
 % Set up posterior object before we assign out-of-liks and scale std
-% errors in the model object.
+% errors in the model object
 p = poster( );
 populatePosterObj( );
 
-% ## Re-run Loglik for Out-of-lik Params ##
+%
+% Re-run Loglik for Out-of-lik Params
+%
 % Re-run the Kalman filter or FD likelihood to get the estimates of V
 % and out-of-lik parameters.
 V = 1;
 delta = [ ];
 PDelta = [ ];
 if opt.EvalLik && (nargout>=5 || likOpt.Relative)
-    [~, regOutp] = likOpt.minusLogLikFunc(this, inputArray, [ ], [ ], likOpt);
+    argin = struct( ...
+        'InputData', inputArray, ...
+        'OutputData', [ ], ...
+        'OutputDataAssignFunc', [ ], ...
+        'Options', likOpt ...
+    );
+    [~, regOutp] = likOpt.minusLogLikFunc(this, argin);
     % Post-process the regular output arguments, update the std parameter
     % in the model object, and refresh if needed.
     xRange = range(1)-1 : range(end);
-    [~, ~, V, delta, PDelta, ~, this] ...
-        = kalmanFilterRegOutp(this, regOutp, xRange, likOpt, opt);
+    [~, ~, V, delta, PDelta, ~, this] = kalmanFilterRegOutp(this, regOutp, xRange, likOpt, opt);
 end
 
-% Database with point estimates.
+% Database with point estimates
 if strcmpi(opt.Summary, 'struct')
     summary = cell2struct(num2cell(posterior.Optimum(:)'), posterior.ParameterNames, 2);
 else

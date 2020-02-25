@@ -1,11 +1,11 @@
 function [this, exitFlag, nanDeriv, sing1, bk] = solveFirstOrder(this, variantsRequired, opt)
 % solveFirstOrder  First-order quasi-triangular solution
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % exitFlag
 % * 1 .. Unique stable solution
@@ -23,14 +23,16 @@ SEVN2_TOLERANCE = this.Tolerance.Sevn2Patch;
 
 %--------------------------------------------------------------------------
 
-doTransition = true; % Do transition equations.
-doMeasurement = true; % Do measurement equations.
-if strcmpi(opt.Eqtn, 'transition')
-    doTransition = true;
-    doMeasurement = false;
-elseif strcmpi(opt.Eqtn, 'measurement')
-    doTransition = false;
-    doMeasurement = true;
+doTransition = true; % Do transition equations
+doMeasurement = true; % Do measurement equations
+if isfield(opt, 'Eqtn')
+    if strcmpi(opt.Eqtn, 'transition')
+        doTransition = true;
+        doMeasurement = false;
+    elseif strcmpi(opt.Eqtn, 'measurement')
+        doTransition = false;
+        doMeasurement = true;
+    end
 end
 
 ixy = this.Quantity.Type==TYPE(1);
@@ -74,8 +76,9 @@ sing1 = false(nt, nv);
 nanDeriv = cell(1, nv);
 bk = nan(3, nv);
 
-if opt.Progress
-    progress = ProgressBar('IRIS model.solve progress');
+progress = [ ];
+if isfield(opt, 'Progress') && isequal(opt.Progress, true)
+    progress = ProgressBar('[IrisToolbox] model.solve progress');
 end
 
 for v = variantsRequired
@@ -165,7 +168,7 @@ for v = variantsRequired
         end
     end
     
-    if opt.Progress
+    if ~isempty(progress)
         update(progress, v/length(variantsRequired));
     end
 end

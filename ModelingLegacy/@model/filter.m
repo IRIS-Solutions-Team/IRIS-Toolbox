@@ -338,37 +338,38 @@ function [this, outp, V, Delta, Pe, SCov, init, F] = filter(this, inputDb, filte
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('model.filter');
     pp.KeepUnmatched = true;
-    %
-    % Required arguments
-    %
+
     addRequired(pp, 'solvedModel', @(x) isa(x, 'model') && ~isempty(x) && all(beenSolved(x)));
     addRequired(pp, 'inputDb', @(x) isempty(x) || validate.databank(x));
     addRequired(pp, 'filterRange', @DateWrapper.validateProperRangeInput);
-    %
-    % Options in addition to Kalman filter options
-    %
+
     addParameter(pp, 'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat);
     addParameter(pp, {'Data', 'Output'}, 'smooth', @ischar);
     addParameter(pp, 'Rename', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
 end
 parse(pp, this, inputDb, filterRange, varargin{:});
 opt = pp.Options;
-unmatched = pp.UnmatchedInCell;
 
 filterRange = double(filterRange);
 numBasePeriods = round(filterRange(end) - filterRange(1) + 1);
-kalmanOpt = prepareKalmanOptions(this, filterRange, unmatched{:});
-isOutputData = nargout>1;
-nv = length(this);
+needsOutputData = nargout>1;
+nv = countVariants(this);
 [ny, ~, nb, ~, ~, ng] = sizeOfSolution(this.Vector);
 
 %--------------------------------------------------------------------------
+
+%
+% Resolve Kalman filter options and create a time-varying LinearSystem if
+% necessary
+%
+[kalmanOpt, timeVarying] = prepareKalmanOptions(this, filterRange, pp.UnmatchedInCell{:});
+
 
 %
 % Temporarily rename quantities
@@ -388,21 +389,21 @@ if ~isempty(inputDb)
 else
     inputArray = nan(ny+ng, numBasePeriods);
 end
-numDataSets = size(inputArray, 3);
+numPages = size(inputArray, 3);
 
 % Check option conflicts
-checkConflicts( );
+hereCheckConflicts( );
 
 % Set up data sets for Rolling=
 if ~isequal(kalmanOpt.Rolling, false)
-    setupRolling( );
+    hereSetupRolling( );
 end
 
 nz = nnz(this.Quantity.IxObserved);
 extendedStart = DateWrapper.roundPlus(filterRange(1), -1);
 extendedEnd = filterRange(end);
-extendedRange = DateWrapper.roundColon(extendedStart, extendedEnd);
-numExtendedPeriods = numel(extendedRange);
+extRange = DateWrapper.roundColon(extendedStart, extendedEnd);
+numExtPeriods = numel(extRange);
 
 % Throw a warning if some of the data sets have no observations.
 inxNaNData = all( all(isnan(inputArray), 1), 2 );
@@ -412,16 +413,29 @@ if any(inxNaNData)
 end
 
 %
-% Pre-allocate requested hdata output arguments
+% Pre-allocate requested output data
 %
-hData = struct( );
-preallocHData( );
+outputData = struct( );
+herePreallocOutputData( );
 
 
+% /////////////////////////////////////////////////////////////////////////
 %
-% Run the Kalman filter
+% Call the Kalman filter
 %
-[obj, regOutp, hData] = kalmanFilter(this, inputArray, hData, @hdataassign, kalmanOpt); %#ok<ASGLU>
+argin = struct( ...
+    'InputData', inputArray, ...
+    'OutputData', outputData, ...
+    'OutputDataAssignFunc', @hdataassign, ...
+    'Options', kalmanOpt ...
+);
+if isempty(timeVarying)
+    [obj, regOutp, outputData] = kalmanFilter(this, argin); %#ok<ASGLU>
+else
+    [obj, regOutp, outputData] = kalmanFilter(timeVarying, argin); %#ok<ASGLU>
+end
+% /////////////////////////////////////////////////////////////////////////
+
 
 % If needed, expand the number of model parameterizations to include
 % estimated variance factors and/or out-of=lik parameters.
@@ -433,13 +447,13 @@ end
 % Postprocess regular (non-hdata) output arguments; update the std
 % parameters in the model object if `Relative=' true`
 %
-[F, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, extendedRange, kalmanOpt, opt);
+[F, Pe, V, Delta, ~, SCov, this] = kalmanFilterRegOutp(this, regOutp, extRange, kalmanOpt, opt);
 init = regOutp.Init;
 
 %
 % Post-process hdata output arguments
 %
-outp = hdataobj.hdatafinal(hData);
+outp = hdataobj.hdatafinal(outputData);
 
 if ~isempty(opt.Rename)
     this.Quantity = resetNames(this.Quantity);
@@ -448,8 +462,14 @@ end
 return
 
 
-    function checkConflicts( )
-        multiple = numDataSets>1 || nv>1;
+    function [kalmanOpt, timeVarying] = hereResolveOverride( )
+    end%
+
+
+
+
+    function hereCheckConflicts( )
+        multiple = numPages>1 || nv>1;
         if kalmanOpt.Ahead>1 && multiple
             error( ...
                 'Model:Filter:IllegalAhead', ...
@@ -471,90 +491,104 @@ return
     end% 
 
 
-    function setupRolling( )
+
+
+    function hereSetupRolling( )
         % No multiple data sets or parameter variants guaranteed here.
         numRolling = numel(kalmanOpt.RollingColumns);
         inputArray = repmat(inputArray, 1, 1, numRolling);
         for i = 1 : numRolling
             inputArray(:, kalmanOpt.RollingColumns(i)+1:end, i) = NaN;
         end
-        numDataSets = size(inputArray, 3);
+        numPages = size(inputArray, 3);
     end%
 
+
+
     
-    function preallocHData( )
+    function herePreallocOutputData( )
         % TODO Make .Output the primary option, allow for cellstr or string
         % inputs
         isPred = contains(opt.Data, 'Pred', 'IgnoreCase', true);
         isFilter = contains(opt.Data, 'Filter', 'IgnoreCase', true);
         isSmooth = contains(opt.Data, 'Smooth', 'IgnoreCase', true);
-        numRuns = max(numDataSets, nv);
-        nPred = max(numRuns, kalmanOpt.Ahead);
-        nCont = max(ny, nz);
-        if isOutputData
+        numRuns = max(numPages, nv);
+        numPredictions = max(numRuns, kalmanOpt.Ahead);
+        numContributions = max(ny, nz);
+        if needsOutputData
             
-            % __Prediction Step__
+            % 
+            % Prediction
+            %
             if isPred
-                hData.M0 = hdataobj( this, extendedRange, nPred, ...
+                outputData.M0 = hdataobj( this, extRange, numPredictions, ...
                                      'IncludeLag=', false );
                 if ~kalmanOpt.MeanOnly
                     if kalmanOpt.ReturnStd
-                        hData.S0 = hdataobj( this, extendedRange, numRuns, ...
+                        outputData.S0 = hdataobj( this, extRange, numRuns, ...
                                              'IncludeLag=', false, ...
                                              'IsVar2Std=', true );
                     end
                     if kalmanOpt.ReturnMSE
-                        hData.Mse0 = hdataobj( );
-                        hData.Mse0.Data = nan(nb, nb, numExtendedPeriods, numRuns);
-                        hData.Mse0.Range = extendedRange;
+                        outputData.Mse0 = hdataobj( );
+                        outputData.Mse0.Data = nan(nb, nb, numExtPeriods, numRuns);
+                        outputData.Mse0.Range = extRange;
                     end
                     if kalmanOpt.ReturnCont
-                        hData.predcont = hdataobj( this, extendedRange, nCont, ....
+                        outputData.predcont = hdataobj( this, extRange, numContributions, ....
                                                    'IncludeLag=', false, ...
                                                    'Contributions=', @measurement );
                     end
                 end
             end
             
-            % __Filter Step__
+            % 
+            % Filter
+            %
             if isFilter
-                hData.M1 = hdataobj( this, extendedRange, numRuns, ...
+                outputData.M1 = hdataobj( this, extRange, numRuns, ...
                                      'IncludeLag=', false );
                 if ~kalmanOpt.MeanOnly
                     if kalmanOpt.ReturnStd
-                        hData.S1 = hdataobj( this, extendedRange, numRuns, ...
+                        outputData.S1 = hdataobj( this, extRange, numRuns, ...
                                              'IncludeLag=', false, ...
                                              'IsVar2Std=', true);
                     end
                     if kalmanOpt.ReturnMSE
-                        hData.Mse1 = hdataobj( );
-                        hData.Mse1.Data = nan(nb, nb, numExtendedPeriods, numRuns);
-                        hData.Mse1.Range = extendedRange;
+                        outputData.Mse1 = hdataobj( );
+                        outputData.Mse1.Data = nan(nb, nb, numExtPeriods, numRuns);
+                        outputData.Mse1.Range = extRange;
                     end
                     if kalmanOpt.ReturnCont
-                        hData.filtercont = hdataobj( this, extendedRange, nCont, ...
+                        outputData.filtercont = hdataobj( this, extRange, numContributions, ...
                                                      'IncludeLag=', false, ...
                                                      'Contributions=', @measurement );
                     end
                 end
             end
             
-            % __Smoother__
+            %
+            % Smoother
+            %
             if isSmooth
-                hData.M2 = hdataobj(this, extendedRange, numRuns);
+                outputData.M2 = hdataobj(this, extRange, numRuns);
                 if ~kalmanOpt.MeanOnly
                     if kalmanOpt.ReturnStd
-                        hData.S2 = hdataobj( this, extendedRange, numRuns, ...
-                                             'IsVar2Std=', true );
+                        outputData.S2 = hdataobj( ...
+                            this, extRange, numRuns ...
+                            , 'IsVar2Std=', true ...
+                        );
                     end
                     if kalmanOpt.ReturnMSE
-                        hData.Mse2 = hdataobj( );
-                        hData.Mse2.Data = nan(nb, nb, numExtendedPeriods, numRuns);
-                        hData.Mse2.Range = extendedRange;
+                        outputData.Mse2 = hdataobj( );
+                        outputData.Mse2.Data = nan(nb, nb, numExtPeriods, numRuns);
+                        outputData.Mse2.Range = extRange;
                     end
                     if kalmanOpt.ReturnCont
-                        hData.C2 = hdataobj( this, extendedRange, nCont, ...
-                                             'Contributions=', @measurement );
+                        outputData.C2 = hdataobj( ...
+                            this, extRange, numContributions ...
+                            , 'Contributions=', @measurement ...
+                        );
                     end
                 end
             end

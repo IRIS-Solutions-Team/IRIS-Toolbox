@@ -1,10 +1,10 @@
-function varargout = genip(lowInput, varargin)
+function [output, info] = genip(lowInput, toFreq, model, aggregation, varargin)
 % genip  Generalized indicator based interpolation
 %{
 % ## Syntax ##
 %
 %
-%     [output, kalmanObj, info] = genip(lowInput, toFreq, model, indicator, ...)
+%     [output, info] = genip(lowInput, toFreq, model, indicator, ...)
 %
 %
 % ## Input Arguments ##
@@ -24,15 +24,17 @@ function varargout = genip(lowInput, varargin)
 %
 % __`model`__ [ `'Level'` | `'Diff'` | `'DiffDiff'` | `'Rate'` ]
 % >
-% Type of state-space relationship assumed between the interpolated series
-% and the indicator; see Description.
+% Type of state-space model for the dynamics of the interpolated series,
+% and for the relationship between the interpolated series and the
+% indicator (if included).
 %
 %
-% __`indicator`__ [ Series | numeric ] 
+% __`aggregation`__ [ `'mean'` | `'sum'` | `'lowEnd'` | numeric ]
 % >
-% High-frequency indicator whose dynamics will be used to
-% interpolate the `lowInput`; if the `indicator` is a numeric scalar, the
-% same value will be used throughout the entire interpolation range.
+% Type of aggregation of quarterly observations to yearly observations; the
+% `aggregation` can be assigned a `1-by-N` numeric vector with the weights
+% given, respectively, for the individual high-frequency periods within the
+% encompassing low-frequency period.
 %
 %
 % ## Output Arguments ##
@@ -44,26 +46,21 @@ function varargout = genip(lowInput, varargin)
 % `lowInput` using the dynamics of the `indicator`.
 %
 %
-% __`kalmanObj`__ [ BareLinearKalman ]
-% >
-% A BareLinearKalman object used to calculated the interpolated values.
-%
 %
 % __`info`__ [ struct ]
 % >
-% Output information struct with the initial condition, `.InitCond`, and a
-% complete Kalman filter data output, `.OutputData`
+% Output information struct with the the following fields:
+% * `.FromFreq` - Original (low) frequency of the input series
+% * `.ToFreq` - Target (high) frequency to which the input series has been interpolated
+% * `.LowRange` - Low frequency date range from which the input series has been interpolated
+% * `.HighRange` - High frequency date range to which the input series has been interpolated
+% * `.LinearSystem` - Time-varying LinearSystem object used to run the interpolation
+% * `.InitCond` - Numerical initial condition used in the Kalman filter: {mean, MSE}
+% * `.ObservedData` - Array with all observed data including conditioning and indicators
+% * `.OutputData` - Complete Kalman filter output data
 %
 %
 % ## Options ##
-%
-%
-% __`Aggregation='mean'`__ [ `'mean'` | `'sum'` | `'lowEnd'` | numeric ]
-% >
-% Type of aggregation of quarterly observations to yearly observations; the
-% option `Aggregation=` can be assigned a `1-by-N` numeric vector with the
-% weights given, respectively, for the individual high-frequency periods
-% within the encompassing low-frequency period.
 %
 %
 % __`DiffuseFactor=@auto`__ [ `@auto` | numeric ]
@@ -72,11 +69,17 @@ function varargout = genip(lowInput, varargin)
 % diffuse initial conditions.
 %
 %
-% __`QuarterlyLevel=[ ]`__ [ empty | Series ]
+% __`HighLevel=[ ]`__ [ empty | Series ]
 % >
 % High-frequency observations already available on the input series;
 % conflicting low-frequency observations will be removed from the
 % `lowInput` if `RemoveConflicts=true`.
+%
+%
+% __`Indicator=`__ [ Series | numeric ] 
+% >
+% High-frequency indicator whose dynamics will be used to
+% interpolate the `lowInput`.
 %
 %
 % __`Range=Inf`__ [ `Inf` | DateWrapper ]
@@ -88,7 +91,14 @@ function varargout = genip(lowInput, varargin)
 % __`ResolveConflicts=true`__ [ `true` | `false` ]
 % >
 % Resolve potential conflicts (singularity) between the `lowInput`
-% obervatations and the data supplied through the `QuarterlyLevel=` option.
+% obervatations and the data supplied through the `HighLevel=` option.
+%
+%
+% __`StdIndicator=1e-3`__ [ numeric ]
+% >
+% Relative std deviation of the measurement error associated with the
+% indicator measurement equation; the std deviation is entered relative to
+% the std deviation of the transition shock.
 %
 %
 % ## Description ##
@@ -140,38 +150,34 @@ function varargout = genip(lowInput, varargin)
 %
 %}
 
-% Invoke unit tests
-%(
-if nargin==2 && strcmp(varargin{1}, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
-
-
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('genip');
     addRequired(pp, 'lowInput', @(x) isa(x, 'NumericTimeSubscriptable') && x.Frequency==Frequency.YEARLY);
-    addRequired(pp, 'toFreq', @(x) isequal(x, Frequency.QUARTERLY));
-    addRequired(pp, 'model', @(x) validate.anyString(erase(string(x), "="), 'Rate', 'Level', 'Diff', 'DiffDiff'));
-    addRequired(pp, 'indicator', @(x) isequal(x, @auto) || validate.numericScalar(x) || isa(x, 'NumericTimeSubscriptable'));
+    addRequired(pp, 'toFreq', @(x) isa(x, 'Frequency') || isnumeric(x));
+    addRequired(pp, 'model', @(x) validate.anyString(strip(x), 'Rate', 'Level', 'Diff', 'DiffDiff'));
+    addRequired(pp, 'aggregation', @localValidateAggregation);
 
-    addParameter(pp, 'Aggregation', @mean, @hereValidateAggregation);
-    addParameter(pp, 'DiffuseFactor', @auto, @(x) isequal(x, auto) || validate.numericScalar(x));
     addParameter(pp, 'Range', Inf, @(x) isequal(x, Inf) || DateWrapper.validateProperRangeInput(x));
-    addParameter(pp, 'InitCond', @auto);
-    addParameter(pp, 'QuarterlyLevel', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addParameter(pp, 'ResolveConflicts', true, @validate.logicalScalar);
     addParameter(pp, 'StdScale', 1, @(x) isequal(x, 1) || isa(x, 'NumericTimeSubscriptable'));
-    addParameter(pp, 'QuarterlyRate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-end
-parse(pp, lowInput, varargin{:});
-model = erase(string(pp.Results.model), "=");
-indicator = pp.Results.indicator;
-toFreq = pp.Results.toFreq;
+    addParameter(pp, 'InitCond', @auto);
+    addParameter(pp, 'ResolveConflicts', true, @validate.logicalScalar);
+    addParameter(pp, 'TransitionRate', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x));
+    addParameter(pp, 'TransitionConstant', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x));
 
+    % Conditioning options
+    addParameter(pp, 'HighLevel', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'HighRate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'HighDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'HighDiffDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+
+    % Indicator options
+    addParameter(pp, 'Indicator', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'StdIndicator', 1e-3, @(x) validate.numericScalar(x, eps( ), Inf));
+end
+parse(pp, lowInput, toFreq, model, aggregation, varargin{:});
 opt = pp.Options;
+model = localResolveModel(model);
 
 %--------------------------------------------------------------------------
 
@@ -179,6 +185,11 @@ opt = pp.Options;
 % Resolve source frequency and the conversion factor
 %
 [fromFreq, numPeriodsWithin] = hereResolveFrequencyConversion( );
+
+%
+% Check frequency of all input series
+%
+hereCheckFrequency( );
 
 %
 % Define low-frequency dates
@@ -194,9 +205,19 @@ numLowPeriods = round(lowEnd - lowStart + 1);
 %
 % Define high-frequency dates
 %
-highStart = convert(lowStart, Frequency.QUARTERLY);
-highEnd = convert(lowEnd, Frequency.QUARTERLY) + 3;
-numHighPeriods = highEnd - highStart + 1;
+highStart = numeric.convert(lowStart, toFreq);
+highEnd = numeric.convert(lowEnd, toFreq, 'ConversionMonth=', 'Last');
+numHighPeriods = numPeriodsWithin*numLowPeriods;
+
+%
+% Resolve Indicator= option
+%
+indicatorTransformed = hereResolveIndicator( );
+
+%
+% Resolve Aggregation= option
+%
+aggregation = localResolveAggregation(aggregation, numPeriodsWithin);
 
 %
 % Resolve std dev scale
@@ -204,35 +225,34 @@ numHighPeriods = highEnd - highStart + 1;
 stdScale = hereResolveStdScale( );
 
 %
-% Resolve high-frequency indicator
+% Resolve low frequency level data
 %
-hereResolveHighIndicator( );
+lowLevel = hereGetLowLevelData( );
 
 %
 % Resolve rate of change conditioning
 %
-quarterlyRate = hereResolveRateConditioning( );
+[highLevel, highRate, highDiff, highDiffDiff] = hereGetConditioningData( );
 
 %
-% Resolve Aggregation= option
+% Resolve conflicts between observed low frequency levels and conditioning
 %
-aggregation = hereResolveAggregation(opt.Aggregation, numPeriodsWithin);
+hereResolveConflictsInMeasurement( );
 
 %
 % Set up a linear Kalman filter object
 %
-kalmanObj = hereSetupKalmanObject( );
+[kalmanObj, observed] = series.genip.setupKalmanObject( ...
+    model, lowLevel, aggregation, stdScale ...
+    , highLevel, highRate, highDiff, highDiffDiff ... 
+    , indicatorTransformed, opt.StdIndicator ...
+    , opt ...
+);
 
 %
 % Set up initial conditions
 %
 initCond = hereSetupInitCond( );
-
-%
-% Create measurement variables and resolve conflicts (singularity) between
-% `lowInput` and `quarterlyLevel`
-%
-observed = hereCreateObservedArray( );
 
 %
 % Run the Kalman filter
@@ -245,22 +265,20 @@ outputData = filter( ...
 %
 % Extract the last state variable
 %
-output = retrieveColumns(outputData.SmoothMean.Xi, 4);
+output = retrieveColumns(outputData.SmoothMean.Xi, numPeriodsWithin);
 output = clip(output, highStart, highEnd);
 
 info = struct( );
-if nargout>=3
+if nargout>=2
     info.FromFreq = fromFreq;
     info.ToFreq = toFreq;
+    info.LowRange = DateWrapper(lowStart):DateWrapper(lowEnd);
+    info.HighRange = DateWrapper(highStart):DateWrapper(highEnd);
+    info.LinearSystem = kalmanObj;
     info.InitCond = initCond;
     info.ObservedData = observed;
     info.OutputData = outputData;
 end
-
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout = { output, kalmanObj, info };
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 return
 
@@ -289,26 +307,103 @@ return
 
 
 
-    function hereResolveHighIndicator( )
-        if ~isequal(indicator, @auto)
-            return
+
+    function hereCheckFrequency( )
+    %(
+        if ~verifyFrequency(opt.Indicator, toFreq)
+            hereThrowInvalidFrequency('Indicator', toFreq);
         end
-        yearlyData = getDataFromTo(lowInput, lowStart, lowEnd);
-        indicator = (yearlyData(end)/yearlyData(1))^(1/(4*numLowPeriods));
+
+        if ~verifyFrequency(opt.HighLevel, toFreq)
+            hereThrowInvalidFrequency('HighLevel', toFreq);
+        end
+
+        if ~verifyFrequency(opt.HighRate, toFreq)
+            hereThrowInvalidFrequency('HighRate', toFreq);
+        end
+
+        if ~verifyFrequency(opt.HighDiff, toFreq)
+            hereThrowInvalidFrequency('HighDiff', toFreq);
+        end
+
+        if ~verifyFrequency(opt.HighDiffDiff, toFreq)
+            hereThrowInvalidFrequency('HighDiffDiff', toFreq);
+        end
+
+        return
+
+            function flag = verifyFrequency(input, freq)
+                if ~isa(input, 'NumericTimeSubscriptable')
+                    flag = isempty(input);
+                    return
+                end
+                flag = input.Frequency==freq;
+            end%
+
+
+            function hereThrowInvalidFrequency(option, freq)
+                thisError = [
+                    "Series:InvalidFrequencyGenip"
+                    "Time series assigned to option %s= "
+                    "must be of the following date frequency: %s"
+                ];
+                throw(exception.Base(thisError, 'error'), option, char(freq));
+            end%
+    %)
     end%
 
 
 
 
-    function quarterlyRate = hereResolveRateConditioning( )
-        if isempty(opt.QuarterlyRate)
-            quarterlyRate = nan(1, numHighPeriods);
-            return
-        end
-        quarterlyRate = getDataFromTo(opt.QuarterlyRate, highStart, highEnd);
+    function lowLevel = hereGetLowLevelData( )
+        lowLevel = getDataFromTo(lowInput, lowStart, lowEnd);
     end%
 
 
+
+
+    function [highLevel, highRate, highDiff, highDiffDiff] = hereGetConditioningData( )
+    %(
+        highLevel = [ ];
+        if isa(opt.HighLevel, 'NumericTimeSubscriptable') && isfreq(opt.HighLevel, toFreq)
+            highLevel = getDataFromTo(opt.HighLevel, highStart, highEnd);
+        end
+        highRate = [ ];
+        if isa(opt.HighRate, 'NumericTimeSubscriptable') && isfreq(opt.HighRate, toFreq)
+            highRate = getDataFromTo(opt.HighRate, highStart, highEnd);
+        end
+        highDiff = [ ];
+        if isa(opt.HighDiff, 'NumericTimeSubscriptable') && isfreq(opt.HighDiff, toFreq)
+            highDiff = getDataFromTo(opt.HighDiff, highStart, highEnd);
+        end
+        highDiffDiff = [ ];
+        if isa(opt.HighDiffDiff, 'NumericTimeSubscriptable') && isfreq(opt.HighDiffDiff, toFreq)
+            highDiffDiff = getDataFromTo(opt.HighDiffDiff, highStart, highEnd);
+        end
+    %)
+    end%
+
+
+
+
+    function indicatorTransformed = hereResolveIndicator( )
+        indicatorTransformed = [ ];
+        if isempty(opt.Indicator)
+            return
+        end
+        indicator = opt.Indicator;
+        switch string(model)
+            case "Level"
+                func = @(x) x;
+            case "Rate"
+                func = @roc;
+            case "Diff"
+                func = @diff;
+            case "DiffDiff"
+                func = @(x) diff(diff(x));
+        end
+        indicatorTransformed = getDataFromTo(func(indicator), highStart, highEnd);
+    end%
 
 
     function stdScale = hereResolveStdScale( )
@@ -321,195 +416,59 @@ return
             stdScale = stdScale/stdScale(1);
             stdScale = reshape(stdScale, 1, 1, [ ]);
         else
-            stdScale = ones(1, numHighPeriods);
+            stdScale = ones(1, 1, numHighPeriods);
         end
-    end%
-
-
-
-
-    function kalmanObj = hereSetupKalmanObject( )
-        nw = numPeriodsWithin;
-
-        indicatorVector = hereGetHighIndicatorVector( );
-
-        % 
-        % Transition matrix
-        %
-        T = hereSetupTransitionMatrix( );
-
-        %
-        % Transition innovation multiplier
-        %
-        R = zeros(nw+1, 1);
-        R(nw, 1) = 1;
-
-        %
-        % Transition intercept
-        %
-        k = hereSetupTransitionConstant( );
-
-        %
-        % Measurement (aggregation) matrix
-        %
-        Z = hereSetupMeasurementMatrix( );
-
-        %
-        % Measurement innovation and intercept
-        %
-        H = zeros(3, 0);
-        d = zeros(3, 1);
-
-        %
-        % Innovation covariance matrices
-        %
-        OmegaV = stdScale.^2;
-        OmegaW = [ ];
-
-        kalmanObj = BareLinearKalman([nw+1, 1, 3, 0], numHighPeriods);
-        kalmanObj = steadySystem(kalmanObj, 'NotNeeded');
-        kalmanObj = timeVaryingSystem(kalmanObj, 1:numHighPeriods, {T, R, k, Z, H, d}, {OmegaV, OmegaW});
-
-        return
-
-            function indicatorVector = hereGetHighIndicatorVector( )
-                if isa(indicator, 'NumericTimeSubscriptable')
-                    indicatorVector = getDataFromTo(indicator, highStart, highEnd);
-                else
-                    indicatorVector = indicator;
-                    if isscalar(indicatorVector)
-                        indicatorVector = repmat(indicatorVector, 1, 1, numHighPeriods);
-                    end
-                end
-                indicatorVector = reshape(indicatorVector, 1, 1, numHighPeriods);
-            end%
-
-
-            function T = hereSetupTransitionMatrix( )
-                % Transition for individual high-frequency periods
-                T = zeros(nw+1, nw+1);
-                T(1:nw, 1:nw) = diag(ones(1, nw-1), 1);
-                T = repmat(T, 1, 1, numHighPeriods);
-                switch model
-                    case "Rate"
-                        T(nw, nw, :) = indicatorVector;
-                    case "Diff"
-                        T(nw, nw, :) = 1;
-                    case "DiffDiff"
-                        T(nw, nw, :) = 2;
-                        T(nw, nw-1, :) = -1;
-                    otherwise
-                        % Level indicator, do nothing
-                end
-                % Transition for rate of change judgmental adjustments
-                inxRateObserved = ~isnan(quarterlyRate);
-                T(nw+1, nw, inxRateObserved) = quarterlyRate(inxRateObserved);
-            end%
-
-
-            function k = hereSetupTransitionConstant( )
-                switch model
-                    case "Rate"
-                        k = zeros(nw+1, 1);
-                    otherwise
-                        % Level, Diff or DiffDiff indicator
-                        k = zeros(nw+1, 1, numHighPeriods);
-                        if isa(indicator, 'NumericTimeSubscriptable')
-                            k(nw, 1, :) = getDataFromTo(indicator, highStart, highEnd);
-                        else
-                            k(nw, 1, :) = indicator;
-                        end
-                end
-            end%
-
-
-            function Z = hereSetupMeasurementMatrix( )
-                %
-                % Aggregation
-                %
-                Z1 = [aggregation, 0];
-
-                %
-                % Quarterly levels
-                %
-                Z2 = zeros(1, nw+1);
-                Z2(nw) = 1;
-
-                %
-                % Quarterly rates
-                %
-                Z3 = zeros(1, nw+1);
-                Z3(nw) = 1;
-                Z3(nw+1) = -1;
-
-                %
-                % Measurement matrix
-                %
-                Z = [Z1; Z2; Z3];
-            end%
     end%
 
 
     function initCond = hereSetupInitCond( )
         if isequal(opt.InitCond, @auto)
             %
-            % Diffuse initial condition around values matching approximately the
-            % first year of the `lowInput` in the pre-sample period
+            % All initial conditions are treated as fixed unknown, and
+            % initialized at a point derived from the first low-frequency
+            % observation
             %
-            diffuseFactor = opt.DiffuseFactor;
-            if isequal(diffuseFactor, @auto)
-                diffuseFactor = kalmanObj.DIFFUSE_SCALE;
+            %{
+            posFirst = find(isfinite(lowLevel), 1);
+            if ~isempty(posFirst)
+                x0 = lowLevel(posFirst);
+            else
+                x0 = 0;
             end
-            x0 = getDataFromTo(lowInput, lowStart, lowStart);
             x0 = x0 / sum(aggregation(:));
             initCond = { 
                 repmat(x0, numPeriodsWithin, 1)
-                ones(numPeriodsWithin)*diffuseFactor
+                [ ] % Shortcut to indicate all initial conditions are fixed uknown
             };
+            %}
+            initCond = 'FixedUnknown';
         else
             %
             % User-supplied initial condition
             %
             initCond = opt.InitCond;
         end
-
-        %
-        % Add zero init conditions for rate judgment
-        %
-        initCond{1} = [initCond{1}; 0];
-        initCond{2} = blkdiag(initCond{2}, 0);
     end%
 
 
-    function observed = hereCreateObservedArray( )
-        nw = numPeriodsWithin;
-        aggregateObserved = nan(nw, numLowPeriods);
-        aggregateObserved(end, :) = getDataFromTo(lowInput, lowStart, lowEnd);
-        aggregateObserved = reshape(aggregateObserved, 1, [ ]);
-        levelObserved = nan(1, numHighPeriods);
-        rateObserved = nan(1, numHighPeriods);
-        inxRateObserved = ~isnan(quarterlyRate);
-        rateObserved(inxRateObserved) = 0;
-        if isa(opt.QuarterlyLevel, 'NumericTimeSubscriptable')
-            levelObserved(1, :) = getDataFromTo(opt.QuarterlyLevel, highStart, highEnd);
-            if opt.ResolveConflicts
-                % Aggregate vs Level
-                inxAggregation = reshape(aggregation~=0, [ ], 1);
-                aggregateTemp = reshape(aggregateObserved, nw, [ ]);
-                levelTemp = reshape(levelObserved, nw, [ ]);
-                levelTemp = levelTemp(inxAggregation, :);
-                inxAggregate = ~isnan(aggregateTemp(end, :));
-                inxLevel = all(~isnan(levelTemp), 1);
-                inxToResolve = inxAggregate & inxLevel;
-                if any(inxToResolve)
-                    aggregateTemp(:, inxToResolve) = NaN;
-                    aggregateObserved = reshape(aggregateTemp, 1, [ ]);
-                end
-                % Level vs Rate
-                % TODO
+
+
+    function hereResolveConflictsInMeasurement( )
+        if ~opt.ResolveConflicts
+            return
+        end
+        % Aggregate vs Level
+        if ~isempty(highLevel) && any(isfinite(highLevel))
+            inxAggregation = aggregation~=0;
+            temp = reshape(highLevel, numPeriodsWithin, [ ]);
+            temp = temp(inxAggregation, :);
+            inxLowLevel = reshape(isfinite(lowLevel), 1, [ ]);
+            inxHighLevel = all(isfinite(temp), 1);
+            inxToResolve = inxLowLevel & inxHighLevel;
+            if any(inxToResolve)
+                lowLevel(inxToResolve) = NaN;
             end
         end
-        observed = [aggregateObserved; levelObserved; rateObserved];
     end%
 end%
 
@@ -519,15 +478,8 @@ end%
 %
 
 
-function flag = hereValidateYearlyRange(x)
-    flag = DateWrapper.validateProperRangeInput(x) ...
-           && all(DateWrapper.getFrequencyAsNumeric(x)==Frequency.YEARLY);
-end%
-
-
-
-
-function flag = hereValidateAggregation(x)
+function flag = localValidateAggregation(x)
+%(
     if any(strcmpi(char(x), {'sum', 'average', 'mean', 'last'}))
         flag = true;
         return
@@ -537,14 +489,14 @@ function flag = hereValidateAggregation(x)
         return
     end
     flag = false;
+%)
 end%
 
 
-
-
-function aggregation = hereResolveAggregation(aggregation, numPeriodsWithin)
+function aggregation = localResolveAggregation(aggregation, numPeriodsWithin)
+%(
     if isnumeric(aggregation)
-        aggregation = reshape(aggregation(1:numPeriodsWithin), 1, [ ]);
+        aggregation = reshape(aggregation, 1, numPeriodsWithin);
         return
     elseif any(strcmpi(char(aggregation), {'average', 'mean'}))
         aggregation = ones(1, numPeriodsWithin)/numPeriodsWithin;
@@ -561,346 +513,22 @@ function aggregation = hereResolveAggregation(aggregation, numPeriodsWithin)
         aggregation = ones(1, numPeriodsWithin);
         return
     end
-end%
-
-
-
-
-%
-% Unit test functions
-%
-%(
-function tests = unitTests( )
-    tests = functiontests({ 
-        @meanRateTest
-        @meanLevelTest
-        @meanDiffTest
-        @meanDiffDiffTest
-        @averageTest
-        @lastTest
-        @userSuppliedAggregationTest
-        @identicalTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
-
-
-function meanRateTest(this)
-    lowRange = yy(2001):yy(2020);
-    highStart = qq(lowRange(1)-1, 1);
-    highEnd = qq(lowRange(end), 4);
-    highRange = highStart:highEnd;
-    x = Series(lowRange, exp(cumsum(randn(numel(lowRange), 1)/10)));
-    y = Series(highStart:highEnd, exp(cumsum(randn(numel(highRange), 1)/40)));
-    dy = roc(y);
-
-    %
-    % Run genip
-    %
-    [zq, kalmanObj, info] = genip( ...
-        x, Frequency.QUARTERLY, 'Rate', dy ...
-    );
-
-    %
-    % Test output series
-    %
-    zy = convert(zq, Frequency.YEARLY);
-    assertEqual(this, getData(zy, lowRange), getData(x, lowRange), 'AbsTol', 1e-7);
-
-    % 
-    % Test aggregation matrix
-    %
-    Z = kalmanObj.SystemMatrices{4};
-    assertEqual(this, Z(:, :, 2), [1/4, 1/4, 1/4, 1/4, 0; 0, 0, 0, 1, 0; 1, 0, 0, 0, -1]);
-
-    %
-    % Test size of transition matrix
-    %
-    T = kalmanObj.SystemMatrices{1};
-    T = reshape(T(4, 4, 2:end), [ ], 1);
-    assertEqual(this, T, getData(dy, highRange(5:end)), 'AbsTol', 1e-10);
-
-    % 
-    % Test default versus explicit option Aggregation=
-    %
-    [zq1, kalmanObject1] = genip( ...
-        x, Frequency.QUARTERLY, 'Rate', dy ...
-        , 'Aggregation=', @mean...
-    );
-    assertEqual(this, zq.Data, zq1.Data, 'AbsTol', 1e-10);
-
-    tempRange = highRange(9:end);
-    xi1 = retrieveColumns(info.OutputData.SmoothMean.Xi, 1);
-    xi2 = retrieveColumns(info.OutputData.SmoothMean.Xi, 2);
-    xi3 = retrieveColumns(info.OutputData.SmoothMean.Xi, 3);
-    xi4 = retrieveColumns(info.OutputData.SmoothMean.Xi, 4);
-    assertEqual(this, getData(xi4, tempRange-1), getData(xi3, tempRange), 'AbsTol', 1e-7); 
-    assertEqual(this, getData(xi4, tempRange-2), getData(xi2, tempRange), 'AbsTol', 1e-7); 
-    assertEqual(this, getData(xi4, tempRange-3), getData(xi1, tempRange), 'AbsTol', 1e-7); 
-
-    %
-    % Test default versus explicit Range=
-    %
-    [zq2, kalmanObject2] = genip( ...
-        x, Frequency.QUARTERLY, 'Rate', dy ...
-        , 'Range', lowRange ...
-    );
-    assertEqual(this, zq.Data, zq2.Data, 'AbsTol', 1e-10);
-end%
-
-
-
-
-function meanLevelTest(testCase)
-    lowRange = yy(2001):yy(2020);
-    highStart = qq(lowRange(1)-1, 1);
-    highEnd = qq(lowRange(end), 4);
-    highRange = highStart:highEnd;
-    x = Series(lowRange, randn(numel(lowRange), 1));
-    ind = Series(highRange, randn(numel(highRange), 1));
-
-    [z0, kalmanObj0, info0] = genip( ...
-        x, Frequency.QUARTERLY, 'Level', 0 ...
-    );
-    [z1, kalmanObj1, info1] = genip( ...
-        x, Frequency.QUARTERLY, 'Level', ind ...
-    );
-
-    assertEqual(testCase, getData(convert(z0, 1), lowRange), getData(x, lowRange), 'AbsTol', 1e-7);
-    assertEqual(testCase, getData(convert(z1, 1), lowRange), getData(x, lowRange), 'AbsTol', 1e-7);
-    [~, r0] = acf([ind, z0]);
-    [~, r1] = acf([ind, z1]);
-    assertGreaterThan(testCase, r1(2, 1), 0);
-    assertGreaterThan(testCase, r1(2, 1), 3*r0(2, 1));
-    T = [0, 1, 0, 0; 0, 0, 1, 0; 0, 0, 0, 1; 0, 0, 0, 0];
-    assertEqual(testCase, kalmanObj0.SystemMatrices{1}(1:end-1, 1:end-1, 2), T);
-    assertEqual(testCase, kalmanObj1.SystemMatrices{1}(1:end-1, 1:end-1, 2), T);
-end%
-
-
-
-
-function meanDiffTest(testCase)
-    lowRange = yy(2001):yy(2020);
-    highStart = qq(lowRange(1)-1, 1);
-    highEnd = qq(lowRange(end), 4);
-    highRange = highStart:highEnd;
-    x = Series(lowRange, randn(numel(lowRange), 1));
-    ind = Series(highRange, randn(numel(highRange), 1));
-    dind = diff(ind);
-
-    [z0, kalmanObj0, info0] = genip( ...
-        x, Frequency.QUARTERLY, 'Diff', 0 ...
-    );
-    [z1, kalmanObj1, info1] = genip( ...
-        x, Frequency.QUARTERLY, 'Diff', dind ...
-    );
-
-    assertEqual(testCase, getData(convert(z0, 1), lowRange), getData(x, lowRange), 'AbsTol', 1e-7);
-    assertEqual(testCase, getData(convert(z1, 1), lowRange), getData(x, lowRange), 'AbsTol', 1e-7);
-    [~, r0] = acf([dind, diff(z0)]);
-    [~, r1] = acf([dind, diff(z1)]);
-    assertGreaterThan(testCase, r1(2, 1), 0);
-    assertGreaterThan(testCase, r1(2, 1), 5*abs(r0(2, 1)));
-    T = [0, 1, 0, 0; 0, 0, 1, 0; 0, 0, 0, 1; 0, 0, 0, 1];
-    assertEqual(testCase, kalmanObj0.SystemMatrices{1}(1:end-1, 1:end-1, 2), T);
-    assertEqual(testCase, kalmanObj1.SystemMatrices{1}(1:end-1, 1:end-1, 2), T);
-end%
-
-
-
-
-function meanDiffDiffTest(testCase)
-    lowRange = yy(2001):yy(2020);
-    highStart = qq(lowRange(1)-1, 1);
-    highEnd = qq(lowRange(end), 4);
-    highRange = highStart:highEnd;
-    x = Series(lowRange, randn(numel(lowRange), 1));
-    ind = Series(highRange, randn(numel(highRange), 1));
-    ddind = diff(diff(ind));
-
-    [z0, kalmanObj0, info0] = genip( ...
-        x, Frequency.QUARTERLY, 'DiffDiff', 0 ...
-    );
-    [z1, kalmanObj1, info1] = genip( ...
-        x, Frequency.QUARTERLY, 'DiffDiff', ddind ...
-    );
-
-    assertEqual(testCase, getData(convert(z0, 1), lowRange), getData(x, lowRange), 'AbsTol', 1e-7);
-    assertEqual(testCase, getData(convert(z1, 1), lowRange), getData(x, lowRange), 'AbsTol', 1e-7);
-    [~, r0] = acf([ddind, diff(diff(z0))]);
-    [~, r1] = acf([ddind, diff(diff(z1))]);
-    assertGreaterThan(testCase, r1(2, 1), 0);
-    assertGreaterThan(testCase, r1(2, 1), 5*abs(r0(2, 1)));
-    T = [0, 1, 0, 0; 0, 0, 1 0; 0, 0, 0, 1; 0, 0, -1, 2];
-    assertEqual(testCase, kalmanObj0.SystemMatrices{1}(1:end-1, 1:end-1, 2), T);
-    assertEqual(testCase, kalmanObj1.SystemMatrices{1}(1:end-1, 1:end-1, 2), T);
-end%
-
-
-
-
-function averageTest(this)
-    lowRange = yy(2001):yy(2020);
-    highStart = qq(lowRange(1)-1, 1);
-    highEnd = qq(lowRange(end), 4);
-    highRange = highStart:highEnd;
-    x = Series(lowRange, exp(cumsum(randn(numel(lowRange), 1)/40)));
-    y = Series(highStart:highEnd, exp(cumsum(randn(numel(highRange), 1)/40)));
-    dy = roc(y);
-
-    [zq, kalmanObj] = genip( ...
-        x, Frequency.QUARTERLY, 'Rate', dy ...
-    );
-
-    %
-    % Test output series
-    %
-    zy = convert(zq, Frequency.YEARLY, 'Method=', @mean);
-    assertEqual(this, getData(zy, lowRange), getData(x, lowRange), 'AbsTol', 1e-7);
-
-    %
-    % Test aggregation matrix
-    %
-    Z = kalmanObj.SystemMatrices{4};
-    assertEqual(this, Z(:, :, 2), [[1, 1, 1, 1, 0]/4; 0, 0, 0, 1, 0; 1, 0, 0, 0, -1]);
-
-    % 
-    % Test size of transition matrix
-    %
-    T = kalmanObj.SystemMatrices{1};
-    T = reshape(T(4, 4, 2:end), [ ], 1);
-    assertEqual(this, T, getData(dy, highRange(5:end)), 'AbsTol', 1e-10);
-end%
-
-
-
-
-function lastTest(this)
-    lowRange = yy(2001):yy(2020);
-    highStart = qq(lowRange(1)-1, 1);
-    highEnd = qq(lowRange(end), 4);
-    highRange = highStart:highEnd;
-    x = Series(lowRange, exp(cumsum(randn(numel(lowRange), 1)/40)));
-    y = Series(highStart:highEnd, exp(cumsum(randn(numel(highRange), 1)/40)));
-    dy = roc(y);
-
-    %
-    % Run genip
-    %
-    [zq, kalmanObj] = genip( ...
-        x, Frequency.QUARTERLY, 'Rate', dy ...
-        , 'Aggregation=', 'last' ...
-    );
-
-    %
-    % Test output series
-    %
-    zy = convert(zq, Frequency.YEARLY, 'Method=', 'last');
-    assertEqual(this, getData(zy, lowRange), getData(x, lowRange), 'AbsTol', 1e-7);
-
-    %
-    % Test aggregation matrix
-    %
-    Z = kalmanObj.SystemMatrices{4};
-    assertEqual(this, Z(:, :, 2), [0, 0, 0, 1, 0; 0, 0, 0, 1, 0; 1, 0, 0, 0, -1]);
-
-    % 
-    % Test size of transition matrix
-    %
-    T = kalmanObj.SystemMatrices{1};
-    T = reshape(T(4, 4, 2:end), [ ], 1);
-    assertEqual(this, T, getData(dy, highRange(5:end)), 'AbsTol', 1e-10);
-end%
-
-
-
-
-function userSuppliedAggregationTest(this)
-    lowRange = yy(2001):yy(2020);
-    highStart = qq(lowRange(1)-1, 1);
-    highEnd = qq(lowRange(end), 4);
-    highRange = highStart:highEnd;
-    x = Series(lowRange, exp(cumsum(randn(numel(lowRange), 1)/40)));
-    y = Series(highStart:highEnd, exp(cumsum(randn(numel(highRange), 1)/40)));
-    dy = roc(y);
-
-    aggregation = randn(1, 4);
-    aggregation = aggregation / sum(aggregation, 2);
-    [zq, kalmanObj] = genip( ...
-        x, Frequency.QUARTERLY, 'Rate', dy ...
-        , 'Aggregation=', aggregation ...
-    );
-
-    %
-    % Test output series
-    %
-    zy = convert(zq, Frequency.YEARLY, 'Method=', aggregation);
-    assertEqual(this, getData(zy, lowRange), getData(x, lowRange), 'AbsTol', 1e-7);
-
-    %
-    % Test aggregation matrix
-    %
-    Z = kalmanObj.SystemMatrices{4};
-    assertEqual(this, Z(:, :, 2), [aggregation, 0; 0, 0, 0, 1, 0; 1, 0, 0, 0, -1]);
-end%
-
-
-
-
-function identicalTest(this)
-    lowRange = yy(2001):yy(2020);
-    highStart = qq(lowRange(1)-1, 1);
-    highEnd = qq(lowRange(end), 4);
-    highRange = highStart:highEnd;
-    testRange = qq(lowRange(1), 1) : highEnd;
-    y = 100*Series(highStart:highEnd, exp(cumsum(randn(numel(highRange), 1)/100)));
-    dy = roc(y);
-
-    %
-    % Aggregation=sum
-    %
-    x = convert(y, Frequency.YEARLY, 'Method=', 'sum');
-    [zq, kalmanObj, info] = genip( ...
-        x, Frequency.QUARTERLY, 'Rate', dy ...
-        , 'Aggregation=', 'sum' ...
-        , 'Range=', lowRange ...
-    );
-    assertEqual(this, getData(zq, testRange), getData(y, testRange), 'AbsTol', 1e-7);
-
-    %
-    % Aggregation=mean (average)
-    %
-    x = convert(y, Frequency.YEARLY, 'Method=', 'mean');
-    [zq, kalmanObj] = genip( ...
-        x, Frequency.QUARTERLY, 'Rate', dy ...
-        , 'Aggregation=', 'mean' ...
-        , 'Range=', lowRange ...
-    );
-    assertEqual(this, getData(zq, testRange), getData(y, testRange), 'AbsTol', 1e-7);
-
-    %
-    % Aggregation=last 
-    %
-    x = convert(y, Frequency.YEARLY, 'Method=', 'last');
-    [zq, kalmanObj] = genip( ...
-        x, Frequency.QUARTERLY, 'Rate', dy ...
-        , 'Aggregation=', 'last' ...
-        , 'Range=', lowRange ...
-    );
-    assertEqual(this, getData(zq, testRange), getData(y, testRange), 'AbsTol', 1e-7);
-
-    %
-    % Aggregation=[...]
-    %
-    aggregation = 0.5 + 0.5*rand(1, 4);
-    x = convert(y, Frequency.YEARLY, 'Method=', aggregation);
-    [zq, kalmanObj] = genip( ...
-        x, Frequency.QUARTERLY, 'Rate', dy ...
-        , 'Aggregation=', aggregation ...
-        , 'Range=', lowRange ...
-    );
-    assertEqual(this, getData(zq, testRange), getData(y, testRange), 'AbsTol', 1e-7);
-end%
 %)
+end%
+
+
+function model = localResolveModel(model)
+%(
+    model = strip(string(model));
+    if strcmpi(model, "Rate")
+        model = "Rate";
+    elseif strcmpi(model, "Level")
+        model = "Level";
+    elseif strcmpi(model, "Diff")
+        model = "Diff";
+    elseif strcmpi(model, "DiffDiff")
+        model = "DiffDiff";
+    end
+%)
+end%
 

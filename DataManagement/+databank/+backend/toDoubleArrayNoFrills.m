@@ -1,4 +1,4 @@
-function outputArray = toDoubleArrayNoFrills(inputDatabank, names, dates, column, apply)
+function outputArray = toDoubleArrayNoFrills(inputDb, names, dates, column, apply)
 % toDoubleArrayNoFrills  Retrieve data from time series into numeric array with no checks
 %
 % Backend IRIS function
@@ -17,10 +17,7 @@ end
 
 %--------------------------------------------------------------------------
 
-if ~iscellstr(names)
-    names = cellstr(names);
-end
-
+names = cellstr(names);
 dates = double(dates);
 numNames = numel(names); numDates = numel(dates);
 
@@ -32,10 +29,14 @@ end
 outputArray = nan(numDates, numNames);
 for i = 1 : numNames
     name__ = names{i};
-    if ~isfield(inputDatabank, name__)
+    if ~isfield(inputDb, name__)
         continue
     end
-    field__ = inputDatabank.(name__);
+    if isstruct(inputDb)
+        field__ = inputDb.(name__);
+    else
+        field__ = retrieve(inputDb, name__);
+    end
     if ~isa(field__, 'NumericTimeSubscriptable')
         continue
     end

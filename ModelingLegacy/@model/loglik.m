@@ -170,18 +170,23 @@ end
 
 %--------------------------------------------------------------------------
 
-if nargout==1
-    if strncmpi(OPT.domain, 't', 1)
-        obj = kalmanFilter(this, DATA, [ ], [ ], LIKOPT);
-    else
-        obj = freql(this, DATA, [ ], [ ], LIKOPT);
-    end
+argin = struct( ...
+    'InputData', DATA, ...
+    'OutputData', [ ], ...
+    'OutputDataAssignFunc', [ ], ...
+    'Options', LIKOPT ...
+);
+
+if strncmpi(OPT.domain, 't', 1)
+    loglikFunc = @kalmanFilter;
 else
-    if strncmpi(OPT.domain, 't', 1)
-        [obj, regOutp] = kalmanFilter(this, DATA, [ ], [ ], LIKOPT);
-    else
-        [obj, regOutp] = freql(this, DATA, [ ], [ ], LIKOPT);
-    end
+    loglikFunc = @freql;
+end
+
+if nargout==1
+    obj = loglikFunc(this, argin);
+else
+    [obj, regOutp] = loglikFunc(this, argin);
     %
     % Populate regular (non-hdata) output arguments
     %

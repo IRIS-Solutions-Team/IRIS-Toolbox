@@ -1,11 +1,11 @@
 function this = assign(this, time, systemMatrices, covarianceMatrices)
 
-if ~isempty(systemMatrices)
+if ~isempty(systemMatrices) && ~isa(systemMatrices, 'missing')
     this.SystemMatrices = hereAssign( time, this.SystemMatrices, systemMatrices, ...
                                       this.NAMES_SYSTEM_MATRICES );
 end
 
-if ~isempty(covarianceMatrices)
+if ~isempty(covarianceMatrices) && ~isa(covarianceMatrices, 'missing')
     this.CovarianceMatrices = hereAssign( time, this.CovarianceMatrices, covarianceMatrices, ...
                                           this.NAMES_COVARIANCE_MATRICES );
 end
@@ -19,7 +19,6 @@ end%
 
 
 function inObject = hereAssign(time, inObject, user, names)
-
     numTimes = numel(time);
     inxValidDim = true(size(inObject));
     notNeeded = isequal(user, 0);
@@ -30,24 +29,24 @@ function inObject = hereAssign(time, inObject, user, names)
     end
     for i = 1 : n
         if notNeeded
-            ithUser = zeros(size(inObject{i}, 1), size(inObject{i}, 2));
+            user__ = zeros(size(inObject{i}, 1), size(inObject{i}, 2));
         else
             if isempty(user{i})
                 continue
             end
-            ithUser = user{i};
+            user__ = user{i};
         end
-        numPages = size(ithUser, 3);
-        if size(inObject{i}, 1)~=size(ithUser, 1) ...
-           || size(inObject{i}, 2)~=size(ithUser, 2) ...
+        numPages = size(user__, 3);
+        if size(inObject{i}, 1)~=size(user__, 1) ...
+           || size(inObject{i}, 2)~=size(user__, 2) ...
            || (numTimes~=numPages && numPages~=1)
             inxValidDim(i) = false;
             continue
         end
         if numPages==1 && numTimes>1
-            ithUser = repmat(ithUser, 1, 1, numTimes);
+            user__ = repmat(user__, 1, 1, numTimes);
         end
-        inObject{i}(:, :, 1+time) = ithUser;
+        inObject{i}(:, :, 1+time) = user__;
     end
 
     if all(inxValidDim)
@@ -55,9 +54,8 @@ function inObject = hereAssign(time, inObject, user, names)
     end
 
     thisError = [ 
-        "BareLinearKalman:InvalidDimensions"
-        "Dimensions of this BareLinearKalman system matrix "
-        "or covariance matrix are invalid: %s" 
+        "LinearSystem:InvalidDimensions"
+        "Invalid dimensions of this LinearSystem matrix: %s" 
     ];
     throw(exception.Base(thisError, 'error'), names{~inxValidDim});
 end%

@@ -1,4 +1,4 @@
-function [obj, regOutp, outputData] = kalmanFilter(this, inputData, outputData, outputDataAssignFunc, opt)
+function [obj, regOutp, outputData] = kalmanFilter(this, argin)
 % kalmanFilter  Kalman filter
 %
 % Backend IRIS function
@@ -18,6 +18,11 @@ function [obj, regOutp, outputData] = kalmanFilter(this, inputData, outputData, 
 % * missing observations entered as NaNs;
 % * infinite std devs of measurement shocks equivalent to missing obs.
 % * contributions of measurement variables to transition variables.
+
+inputData = argin.InputData;
+outputData = argin.OutputData;
+outputDataAssignFunc = argin.OutputDataAssignFunc;
+opt = argin.Options;
 
 [ny, nxi, nb, nf, ne, ng, nz] = sizeOfSolution(this);
 nv = countVariants(this);
@@ -61,7 +66,7 @@ s.ny = ny;
 s.nb = nb;
 s.nf = nf;
 s.ne = ne;
-s.NPOut = numPouts;
+s.NumPouts = numPouts;
 
 % Add pre-sample to objective function range and deterministic time trend
 s.IxObjRange = [false, opt.ObjFuncRange];
@@ -113,7 +118,7 @@ if ~s.IsObjOnly
     regOutp.PDelta = nan(numPouts, numPouts, numRuns);
     regOutp.SampleCov = nan(ne, ne, numRuns);
     regOutp.NLoop = numRuns;
-    regOutp.Init = { nan(nb, 1, numRuns), nan(nb, nb, numRuns) };
+    regOutp.Init = { nan(nb, 1, numRuns), nan(nb, nb, numRuns), zeros(nb, nb, numRuns) };
 end
 
 %
@@ -159,7 +164,7 @@ for run = 1 : numRuns
     v = min(run, nv);
     if run<=nv
         [ T, R, k, s.Z, s.H, d, s.U, Zb, ...
-          s.InxV, s.InxW, s.NUnit, s.InxInit ] = getIthKalmanSystem(this, v, requiredForward);
+          s.InxV, s.InxW, s.NumUnitRoots, s.InxInit ] = getIthKalmanSystem(this, v, requiredForward);
         if nz>0
             % Transition variables marked for measurement
             if isempty(s.U)
@@ -238,7 +243,17 @@ for run = 1 : numRuns
     % Initialize mean and MSE
     % Determine number of init cond estimated as fixed unknowns
     % 
-    s = kalman.initialize(s, run, opt);
+    if iscell(opt.Init)
+        init__ = cellfun(@(x) x(:, :, min(end, run)), opt.Init, 'UniformOutput', false);
+    else
+        init__ = opt.Init;
+    end
+    if isnumeric(opt.InitUnitRoot)
+        initUnit__ = opt.InitUnitRoot(:, :, min(end, run));
+    else
+        initUnit__ = opt.InitUnitRoot;
+    end
+    s = shared.Kalman.initialize(s, init__, initUnit__);
 
     %
     % Prediction step
@@ -263,7 +278,7 @@ for run = 1 : numRuns
     
     % Correct prediction errors for estimated initial conditions and DTrends
     % parameters.
-    if s.NInit>0 || numPouts>0
+    if s.NumEstimInit>0 || numPouts>0
         est = [s.delta; s.init];
         if s.storePredict
             [s.pe, s.a0, s.y0, s.ydelta] = ...
@@ -356,7 +371,10 @@ for run = 1 : numRuns
     regOutp.PDelta(:, :, run) = s.PDelta*s.V;
     regOutp.SampleCov(:, :, run) = s.SampleCov;
     regOutp.Init{1}(:, :, run) = s.InitMean;
-    regOutp.Init{2}(:, :, run) = s.InitMse;
+    regOutp.Init{2}(:, :, run) = s.InitMseReg;
+    if ~isempty(s.InitMseInf)
+        regOutp.Init{3}(:, :, run) = s.InitMseInf;
+    end
     
 
     %
@@ -674,7 +692,7 @@ function s = hereAhead(s)
             end
         end
     end
-    if s.NPOut>0
+    if s.NumPouts>0
         y0(:, :, 2:end) = y0(:, :, 2:end) + ydelta(:, :, ones(1, s.Ahead-1));
     end
     pe(:, :, 2:end) = s.y1(:, :, ones(1, s.Ahead-1)) - y0(:, :, 2:end);
@@ -958,7 +976,6 @@ function s = hereGetReducedFormCovariance(this, v, s, opt)
     ny = s.NumY;
     nf = s.NumF;
     nb = s.NumB;
-    nxp = s.NumExtendedPeriods;
     inxV = s.InxV;
     inxW = s.InxW;
 
@@ -967,7 +984,7 @@ function s = hereGetReducedFormCovariance(this, v, s, opt)
     % Override and Multiply including one presample period used to
     % initialize the filter
     %
-    s.Omg = getIthOmega(this, v, opt.OverrideStdcorr, opt.MultiplyStd, nxp);
+    s.Omg = getIthOmega(this, v, opt.OverrideStdcorr, opt.MultiplyStd, s.NumExtendedPeriods);
     lastOmg = size(s.Omg, 3);
 
     %
@@ -981,15 +998,15 @@ function s = hereGetReducedFormCovariance(this, v, s, opt)
         s.Sfa = zeros(nf, nb, lastSa);
         for t = 1 : lastSa
             if t<=lastR
-                Ra_t = s.Ra(:, inxV, t);
-                Rf_t = s.Rf(:, inxV, t);
+                Ra__ = s.Ra(:, inxV, t);
+                Rf__ = s.Rf(:, inxV, t);
             end
             if t<=lastOmg
-                OmgV_t = s.Omg(inxV, inxV, t);
+                OmgV__ = s.Omg(inxV, inxV, t);
             end
-            s.Sa(:, :, t)  = Ra_t * OmgV_t * Ra_t';
-            s.Sf(:, :, t)  = Rf_t * OmgV_t * Rf_t';
-            s.Sfa(:, :, t) = Rf_t * OmgV_t * Ra_t';
+            s.Sa(:, :, t)  = Ra__ * OmgV__ * transpose(Ra__);
+            s.Sf(:, :, t)  = Rf__ * OmgV__ * transpose(Rf__);
+            s.Sfa(:, :, t) = Rf__ * OmgV__ * transpose(Ra__);
         end
     else
         s.Sa  = zeros(nb, nb);

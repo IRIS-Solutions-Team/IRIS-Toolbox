@@ -12,7 +12,6 @@ function [Y2, F2, B2, E2, r, A2] = oneStepBackMean(s, time, Pe, A0, F0, YDelta, 
 ny = s.NumY;
 nf = s.NumF;
 ne = s.NumE;
-numPOut = s.NPOut;
 inxV = s.InxV; % Transition shocks
 inxW = s.InxW; % Measurement shocks
 Ra = s.Ra(:, :, min(time, end));
@@ -71,7 +70,7 @@ E2 = E2 + RaOmg.'*r;
 % Back out NaN measurement variables
 if any(~inxObs)
     Y2(~inxObs, :) = Z(~inxObs, :)*A2 + H(~inxObs, :)*E2;
-    if numPOut>0
+    if s.NumPouts>0
         % Correct the estimates of NaN observations for the effect of estimated
         % out-of-lik parameters
         Y2(~inxObs, :) = Y2(~inxObs, :) + YDelta(~inxObs, :);

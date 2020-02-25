@@ -23,7 +23,7 @@ classdef rexp
                 return
             end
             if ischar(varargin{1}) || isa(varargin{1}, 'string')
-                this.String = varargin{1};
+                this.String = char(varargin{1});
             end
         end%
     end
@@ -51,7 +51,12 @@ classdef rexp
         
         
         function varargout = length(this, varargin)
-            [varargout{1:nargout}] = length(this.String, varargin{:});
+            [varargout{1:nargout}] = strlength(this.String, varargin{:});
+        end%
+        
+        
+        function varargout = strlength(this, varargin)
+            [varargout{1:nargout}] = strlength(this.String, varargin{:});
         end%
         
         

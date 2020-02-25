@@ -66,70 +66,39 @@ function this = subsasgn(this, s, b)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
-
-if ~isa(this, 'model') ...
-   || ( ~isa(b, 'model') && ~isempty(b) && ~isnumeric(b) && ~islogical(b) )
-    utils.error('model:subsasgn', ...
-        'Invalid subscripted reference or assignment to model object.');
-end
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-nv = length(this);
+hereCheckInputArguments( );
 
-% ## Dot-Name Assignment ##
-% m.Name = x
-if isnumeric(b) ...
-        && (numel(b)==1 || numel(b)==nv) ...
-        && numel(s)==1 && s(1).type=='.'
+nv = countVariants(this);
+
+%
+% Dot-Name Assignment
+%     m.Name = x
+%
+if isnumeric(b) && (numel(b)==1 || numel(b)==nv) && numel(s)==1 && s(1).type=='.'
     name = char(s(1).subs);
-    ell = lookup(this.Quantity, {name});
-    posQty = ell.PosName;
-    posStdCorr = ell.PosStdCorr;
-    if ~isnan(posQty)
-        this.Variant.Values(:, posQty, :) = b;
-    elseif ~isnan(posStdCorr)
-        this.Variant.StdCorr(:, posStdCorr, :) = b;
-    else
-        behavior = this.Behavior.InvalidDotAssign;
-        if strcmpi(behavior, 'error')
-            throw(exception.Base('Model:InvalidName', 'error'), '', name); %#ok<GTARG>
-        elseif strcmpi(behavior, 'warning')
-            throw(exception.Base('Model:InvalidName', 'warning'), '', name); %#ok<GTARG>
-        else
-            % Do nothing
-        end 
-    end
+    this = assignNameValue(this, char(s(1).subs), b);
     return
 end
 
-s = checkSubscripted(s, nv);
+s = locallyCheckSubscripted(s, nv);
 
-% ## Regular Assignment ##
-% this(ix) = b
-% RHS must be model or empty.
-
+%
+% Regular Assignment
+%     this(inx) = b
+% RHS must be a compatible Model object or empty
+%
 if any(strcmp(s(1).type, {'()', '{}'}))
-    assert( ...
-        isa(b, 'model') || isempty(b), ...
-        'model:subsasgn', ...
-        'Invalid subscripted reference or assignment to model object.' ...
-    );
-    
-    % Make sure the LHS and RHS model objects are compatible in yvector,
-    % xvector, and evector.
-    assert( ...
-        isempty(b) || iscompatible(this, b), ...
-        'model:subsasgn', ...
-        'Model objects A and B are not compatible in subscripted assignment A( ) = B.' ...
-    );
-    
-    ixA = s(1).subs{1};
+    hereCheckRhsObject( );
+
+    inxA = s(1).subs{1};
     
     % `this([ ]) = B` leaves `this` unchanged.
-    if isempty(ixA)
+    if isempty(inxA)
         return
     end
     
@@ -137,26 +106,29 @@ if any(strcmp(s(1).type, {'()', '{}'}))
         % `this(Inx) = B`
         % where `B` is a non-empty model whose length is either 1 or the same as
         % the length of `this(Inx)`.
-        nb = length(b);
+        nb = countVariants(b);
         if nb==1
-            ixB = ones(size(ixA));
+            inxB = ones(size(inxA));
         else
-            ixB = ':';
-            assert( ...
-                length(ixA)==nb || nb==0, ...
-                'model:subsasgn', ...
-                'The numbers of parameter variants on LHS and RHS of subscripted assignment must be the same.' ...
-            );
+            inxB = ':';
+            if numel(inxA)~=nb && nb~=0
+                thisError = [
+                    "Model:InvalidNumVariants"
+                    "The number of parameter variants on the LHS and the RHS "
+                    "of a subscripted assignment must be the same."
+                ];
+                throw(exception.Base(thisError, 'error'));
+            end
         end
-        this.Variant = subscripted(this.Variant, ixA, b.Variant, ixB);
+        this.Variant = subscripted(this.Variant, inxA, b.Variant, inxB);
     else
         % `this(Inx) = [ ]` or `this(Inx) = B`
         % where `B` is an empty model.
-        this.Variant = subscripted(this.Variant, ixA, [ ]);
+        this.Variant = subscripted(this.Variant, inxA, [ ]);
     end
     
 elseif strcmp(s(1).type, '.')
-    % this.Name(ix) = b
+    % this.Name(inx) = b
     % RHS must be numeric.
     
     name = s(1).subs;
@@ -167,7 +139,7 @@ elseif strcmp(s(1).type, '.')
     posQty = ell.PosName;
     posStdCorr = ell.PosStdCorr;
     % Create `Inx` for the third dimension.
-    if length(s)>1
+    if numel(s)>1
         % `this.Name(Inx) = B`
         v = s(2).subs{1};
     else
@@ -175,45 +147,75 @@ elseif strcmp(s(1).type, '.')
         v = ':';
     end
 
-    % Assign the value or throw an error.
-    if ~isnan(posQty)
-        try
+    %
+    % Try assign the value if it's a valid name
+    %
+    try
+        if ~isnan(posQty)
             this.Variant.Values(:, posQty, v) = b;
-        catch Err
-            utils.error( ...
-                'model:subsasgn', ...
-                ['Error in model parameter assignment.\n', ...
-                '\tUncle says: %s '], ...
-                Err.message ...
-            );
-        end
-    elseif ~isnan(posStdCorr)
-        try
+        elseif ~isnan(posStdCorr)
             this.Variant.StdCorr(:, posStdCorr, v) = b;
-        catch Err
-            utils.error( ...
-                'model:subsasgn', ...
-                ['Error in model parameter assignment.\n', ...
-                '\tUncle says: %s '], ...
-                Err.message ...
-            );
         end
-    else
-        utils.error( ...
-            'model:subsasgn', ...
-            'This name does not exist in the model object: %s ', ...
-            name ...
-        );
+    catch Err
+        thisError = [ 
+            "Model:InvalidParameterAssignment"
+            "Error in a parameter assignment to a Model object. "
+            "\n%s" 
+        ];
+        throw(exception.Base(thisError, 'error'), Err.message);
+    end
+
+    %
+    % Throw an error if the name is invalid
+    %
+    if isnan(posQty) && isnan(posStdCorr)
+        thisError = [ 
+            "Model:InvalidNameInAssignment"
+            "This name does not exist in the Model object: %s "
+        ];
+        throw(exception.Base(thisError, 'error'));
     end
 
 end
 
-end
+return
+
+    function hereCheckInputArguments( )
+        if ~isa(this, 'model') ...
+                || ( ~isa(b, 'model') && ~isempty(b) && ~isnumeric(b) && ~islogical(b) )
+            thisError = [
+                "Model:InvalidSubscriptedAssignment"
+                "Invalid subscripted assignment to Model object."
+                ];
+            throw(exception.Base(thisError, 'error'));
+        end
+    end%
+
+
+    function hereCheckRhsObject( )
+        if ~isa(b, 'model') && ~isempty(b)
+            thisError = [
+                "Model:InvalidSubscriptedAssignment"
+                "Invalid subscripted assignment to Model object."
+            ];
+            throw(exception.Base(thisError, 'error'));
+        end
+        
+        if ~isempty(b) && ~iscompatible(this, b)
+            thisError = [
+                "Model:IncompatibleObjectsInSubscriptedAssignment"
+                "Model objects on the LHS and the RHS of a subsripted assignment "
+                "are incompatible."
+            ];
+            throw(exception.Base(thisError, 'error'));
+        end
+    end%
+end%
 
 
 
-function s = checkSubscripted(s, n)
-% Check and rearrange subscripted reference to models with mutliple parameter variants.
+function s = locallyCheckSubscripted(s, n)
+% Check and rearrange subscripted reference to models with mutliple parameter variants
 
 % This function accepts the following subscripts
 %     x(subs)
@@ -226,10 +228,10 @@ function s = checkSubscripted(s, n)
 %     x(numeric)
 %     x.name(numeric)
 
-% Convert x(subs1).name(subs2) to x.name(subs1(subs2)).
-if length(s)==3 && any(strcmp(s(1).type,{'()','{}'})) ...
-        && strcmp(s(2).type,{'.'}) ...
-        && any(strcmp(s(3).type,{'()','{}'}))
+% Convert x(subs1).name(subs2) to x.name(subs1(subs2))
+if numel(s)==3 && any(strcmp(s(1).type, {'()', '{}'})) ...
+        && strcmp(s(2).type, {'.'}) ...
+        && any(strcmp(s(3).type, {'()', '{}'}))
     % convert a(subs1).name(subs2) to a.name(subs1(subs2))
     subs1 = s(1).subs{1};
     if strcmp(subs1, ':')
@@ -237,27 +239,26 @@ if length(s)==3 && any(strcmp(s(1).type,{'()','{}'})) ...
     end
     subs2 = s(3).subs{1};
     if strcmp(subs2, ':')
-        subs2 = 1 : length(subs1);
+        subs2 = 1 : numel(subs1);
     end
     s(1) = [ ];
     s(2).subs{1} = subs1(subs2);
 end
 
-% Convert a(subs).name to a.name(subs).
-if length(s)==2 && any(strcmp(s(1).type, {'()', '{}'})) ...
+% Convert a(subs).name to a.name(subs)
+if numel(s)==2 && any(strcmp(s(1).type, {'()', '{}'})) ...
         && strcmp(s(2).type, {'.'})
     s = s([2, 1]);
 end
 
-if length(s)>2
-    utils.error('model:subsasgn', ...
-        'Invalid reference to model object.');
+if numel(s)>2
+    hereThrowInvalidLhsReference( );
 end
 
-% Convert a(:) or a.name(:) to a(1:n) or a.name(1:n).
-% Convert a(logical) or a.name(logical) to a(numeric) or a.name(numeric).
-if any(strcmp(s(end).type,{'()','{}'}))
-    if strcmp(s(end).subs{1},':')
+% Convert a(:) or a.name(:) to a(1:n) or a.name(1:n)
+% Convert a(logical) or a.name(logical) to a(numeric) or a.name(numeric)
+if any(strcmp(s(end).type, {'()', '{}'}))
+    if strcmp(s(end).subs{1}, ':')
         s(end).subs{1} = 1 : n;
     elseif islogical(s(end).subs{1})
         s(end).subs{1} = find(s(end).subs{1});
@@ -265,23 +266,36 @@ if any(strcmp(s(end).type,{'()','{}'}))
 end
 
 % Throw error for mutliple subscripts
-% a(subs1, subs2, ...) or a.name(subs1, subs2,...).
+% a(subs1, subs2, ...) or a.name(subs1, subs2, ...)
 if any(strcmp(s(end).type, {'()', '{}'}))
-    if length(s(end).subs)~=1 || ~isnumeric(s(end).subs{1})
-        utils.error('model:subsasgn', ...
-            'Invalid reference to model object.');
+    if numel(s(end).subs)~=1 || ~isnumeric(s(end).subs{1})
+        hereThrowInvalidLhsReference( );
     end
 end
 
-% Throw error if subscript is not real positive integer.
-if any(strcmp(s(end).type,{'()','{}'}))
-    ix = s(end).subs{1};
-    if any(ix<1) || any(round(ix)~=ix) ...
-            || any(imag(ix)~=0)
-        utils.error('model:subsasgn', ...
-            ['Subscript indices must be ', ...
-            'either real positive integers or logicals.']);
+% Throw error if subscript is not real positive integer
+if any(strcmp(s(end).type, {'()', '{}'}))
+    inx = s(end).subs{1};
+    if ~isnumeric(inx)
+        if islogical(inx)
+            inx = find(inx);
+        else
+            hereThrowInvalidLhsReference( );
+        end
+    end
+    if any(inx<1) || any(inx>n) || any(round(inx)~=inx) || any(imag(inx)~=0)
+        hereThrowInvalidLhsReference( );
     end
 end
 
-end
+return
+
+    function hereThrowInvalidLhsReference( )
+        thisError = [
+            "Model:InvalidLhsReferenceInAssignment"
+            "Invalid reference to the LHS Model object in a subscripted assignment."
+        ];
+        throw(exception.Base(thisError, 'error'));
+    end%
+end%
+

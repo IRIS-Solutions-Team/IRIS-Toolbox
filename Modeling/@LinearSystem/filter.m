@@ -1,12 +1,20 @@
 function [outputData, regOutput] = filter(this, inputData, range, varargin)
+% filter  Run Kalman filter
+%{
+%}
+
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+%--------------------------------------------------------------------------
 
 range = double(range);
 startRange = range(1);
 endRange = range(end);
 range = DateWrapper.roundColon(startRange, endRange);
-extendedRange = [DateWrapper.roundPlus(startRange, -1), range];
+extRange = [DateWrapper.roundPlus(startRange, -1), range];
 numPeriods = round(endRange - startRange + 1);
-numExtendedPeriods = numPeriods + 1;
+numExtPeriods = numPeriods + 1;
 
 if isa(inputData, 'NumericTimeSubscriptable')
     inputArray = getDataFromTo(inputData, startRange, endRange);
@@ -15,10 +23,27 @@ else
     inputArray = inputData;
 end
 
-opt = prepareKalmanOptions(this, range, varargin{:});
-outputData = hereCreateOutputDataRequest(this, numExtendedPeriods, opt);
-[obj, regOutput, outputData] = kalmanFilter(this, inputArray, outputData, @hereAssignOutputData, opt);
-outputData = hereFinalizeOutputData(this, outputData, extendedRange);
+kalmanOpt = prepareKalmanOptions(this, range, varargin{:});
+
+
+% /////////////////////////////////////////////////////////////////////////
+%
+% Call Kalman filter
+%
+argin = struct( ...
+    'InputData', inputArray, ...
+    'OutputData', hereCreateOutputDataRequest(this, numExtPeriods, kalmanOpt), ...
+    'OutputDataAssignFunc', @hereAssignOutputData, ...
+    'Options', kalmanOpt ...
+);
+[~, regOutput, outputData] = kalmanFilter(this, argin);
+% /////////////////////////////////////////////////////////////////////////
+
+
+%
+% Finalize output data
+%
+outputData = hereFinalizeOutputData(this, outputData, extRange);
 
 end%
 
@@ -28,7 +53,7 @@ end%
 %
 
 
-function outputData = hereCreateOutputDataRequest(this, numExtendedPeriods, opt)
+function outputData = hereCreateOutputDataRequest(this, numExtPeriods, opt)
     ny = this.NumY;
     nxi = this.NumXi;
     nv = this.NumV;
@@ -36,9 +61,9 @@ function outputData = hereCreateOutputDataRequest(this, numExtendedPeriods, opt)
     ne = nv + nw;
     
     template = struct( );
-    template.Y  = nan(ny,  numExtendedPeriods);
-    template.Xi = nan(nxi, numExtendedPeriods);
-    template.E  = nan(ne,  numExtendedPeriods);
+    template.Y  = nan(ny,  numExtPeriods);
+    template.Xi = nan(nxi, numExtPeriods);
+    template.E  = nan(ne,  numExtPeriods);
 
     outputData = struct( );
     outputData.M0 = template;
@@ -58,9 +83,9 @@ end%
 
 
 
-function outputData = hereFinalizeOutputData(this, outputData, extendedRange)
+function outputData = hereFinalizeOutputData(this, outputData, extRange)
     nv = this.NumV;
-    template = Series(extendedRange(1), 0);
+    template = Series(extRange(1), 0);
     list = {{'M0', 'PredictMean'}, {'M1', 'FilterMean'}, {'M2', 'SmoothMean'}};
     convert = @(x) fill(template, permute(x, [2, 1, 3]));
     for i = 1 : numel(list)

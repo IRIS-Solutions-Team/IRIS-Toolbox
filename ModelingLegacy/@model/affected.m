@@ -1,20 +1,20 @@
-function indexEquationsAffected = affected(this, variantRequested, opt)
+function inxEquationsAffected = affected(this, variantRequested, opt)
 % affected  Equations affected by parameter changes since last system
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-ixp = this.Quantity.Type==TYPE(4);
-nEqtn = length(this.Equation.Input);
+inxP = this.Quantity.Type==TYPE(4);
+numEquations = length(this.Equation.Input);
 
-indexEquationsAffected = true(1, nEqtn);
+inxEquationsAffected = true(1, numEquations);
 if ~opt.Select
     return
 end
@@ -28,13 +28,14 @@ end
 
 % Changes in steady states and parameters
 currentValues = this.Variant.Values(:, :, variantRequested);
-indexChanged = currentValues~=lastValues & (~isnan(currentValues) | ~isnan(lastValues));
+inxChanged = currentValues~=lastValues & (~isnan(currentValues) | ~isnan(lastValues));
 if this.IsLinear
     % Only parameter changes matter in linear models
-    indexChanged = indexChanged & ixp;
+    inxChanged = inxChanged & inxP;
 end
 
 % Affected equations
-indexEquationsAffected = any( this.Affected(:, indexChanged), 2 ).';
+inxEquationsAffected = any( this.Affected(:, inxChanged), 2 ).';
 
-end
+end%
+

@@ -1,11 +1,11 @@
 function [mldPosterior, mldData, mldParamPriors, mldSystemPriors] = objfunc(x, this, data, posterior, estOpt, likOpt)
 % objfunc  Evaluate minus log posterior
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
     
 %--------------------------------------------------------------------------
 
@@ -21,7 +21,10 @@ if any(x(:)<posterior.LowerBounds(:)) || any(x(:)>posterior.UpperBounds(:))
     mldPosterior = Inf;
 end
 
+
+%
 % Evaluate parameter priors; they return minus log density
+%
 if isfinite(mldPosterior)
     if posterior.EvaluateParamPriors && any(posterior.IndexPriors)
         mldParamPriors = evalParamPriors(posterior, x);
@@ -29,8 +32,11 @@ if isfinite(mldPosterior)
     end
 end
 
+
+%
 % Update model with new parameter values; do this before evaluating the
 % system priors
+%
 if isfinite(mldPosterior)
     if posterior.EvaluateData || isSystemPriors
         variantRequested = 1;
@@ -41,18 +47,31 @@ if isfinite(mldPosterior)
     end
 end
 
+
+%
 % Evaluate system priors
+%
 if isfinite(mldPosterior) && isSystemPriors
-    % Function systempriors/eval returns minus log density.
+    % Function systempriors/eval returns minus log density
     mldSystemPriors = eval(posterior.SystemPriors, this);
     mldPosterior = mldPosterior + mldSystemPriors;
 end
 
+
+%
 % Evaluate data likelihood
+%
 if isfinite(mldPosterior) && posterior.EvaluateData
-    % Evaluate minus log likelihood; no data output is required.
-    mldData = likOpt.minusLogLikFunc(this, data, [ ], [ ], likOpt);
-    % Sum up minus log priors and minus log likelihood.
+    % Evaluate minus log likelihood; request no data output
+    argin = struct( ...
+        'InputData', data, ...
+        'OutputData', [ ], ...
+        'OutputDataAssignFunc', [ ], ...
+        'Options', likOpt ...
+    );
+    mldData = likOpt.minusLogLikFunc(this, argin);
+
+    % Sum up minus log priors and minus log likelihood
     mldPosterior = mldPosterior + mldData;
 end
 
@@ -68,7 +87,8 @@ if ~isValid
     mldPosterior = penalty;
 end
 
-% Make sure Obj is a double, otherwise Optim Tbx will complain
+% Make sure the value of the objective function is a double, otherwise
+% Optim Tbx complains
 mldPosterior = double(mldPosterior);
 
 end%

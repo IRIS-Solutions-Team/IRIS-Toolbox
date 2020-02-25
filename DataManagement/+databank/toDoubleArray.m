@@ -1,4 +1,4 @@
-function [outputArray, inxOfValid] = toDoubleArray(inputDatabank, names, dates, column)
+function [outputArray, inxValid] = toDoubleArray(inputDatabank, names, dates, column)
 % toDoubleArray  Retrieve data from time series into numeric array
 
 % -IRIS Macroeconomic Modeling Toolbox
@@ -26,30 +26,32 @@ end
 %--------------------------------------------------------------------------
 
 dates = double(dates);
-numOfNames = numel(names);
-numOfDates = numel(dates);
+numNames = numel(names);
+numDates = numel(dates);
 
-if numOfNames==0
-    outputArray = double.empty(numOfDates, 0);
+if numNames==0
+    outputArray = double.empty(numDates, 0);
     return
 end
 
 freq = DateWrapper.getFrequencyAsNumeric(dates(1));
-inxOfValid = true(1, numOfNames);
-for i = 1 : numOfNames
-    iName = names{i};
-    inxOfValid(i) = isfield(inputDatabank, iName) ...
-                    && isa(inputDatabank.(iName), 'TimeSubscriptable') ...
-                    && ~isnan(inputDatabank.(iName).Start) ...
-                    && inputDatabank.(iName).FrequencyAsNumeric==freq ...
-                    && isnumeric(inputDatabank.(iName).Data);
+inxValid = true(1, numNames);
+for i = 1 : numNames
+    name__ = names{i};
+    inxValid(i) = isfield(inputDatabank, name__) ...
+        && isa(inputDatabank.(name__), 'TimeSubscriptable') ...
+        && ~isnan(inputDatabank.(name__).Start) ...
+        && inputDatabank.(name__).FrequencyAsNumeric==freq ...
+        && isnumeric(inputDatabank.(name__).Data);
 end
 
-outputArray = nan(numOfDates, numOfNames);
-outputArray(:, inxOfValid) = databank.backend.toDoubleArrayNoFrills( inputDatabank, ...
-                                                                     names(inxOfValid), ...
-                                                                     dates, ...
-                                                                     column );
+outputArray = nan(numDates, numNames);
+outputArray(:, inxValid) = databank.backend.toDoubleArrayNoFrills( ...
+    inputDatabank ...
+    , names(inxValid) ...
+    , dates ...
+    , column ...
+);
 
 end%
 

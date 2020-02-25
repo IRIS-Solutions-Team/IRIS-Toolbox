@@ -13,64 +13,64 @@ TYPE = @int8;
 
 outp = struct( );
 
-ixe = this.Type==TYPE(31) | this.Type==TYPE(32);
-lse = this.Name(ixe);
-ne = length(lse);
-numOfStdCorr = ne + ne*(ne-1)/2;
+inxE = this.Type==TYPE(31) | this.Type==TYPE(32);
+namesE = this.Name(inxE);
+numE = numel(namesE);
+numStdCorr = numE + numE*(numE-1)/2;
 
 names = this.Name;
-numOfQuantities = length(names);
+numQuantities = numel(names);
 doStdCorr = true;
-ixKeep = true(1, numOfQuantities);
+inxToKeep = true(1, numQuantities);
 if ~isempty(varargin)
-    ixKeep = false(1, numOfQuantities);
-    for i = 1 : length(varargin)
-        ixKeep = ixKeep | this.Type==varargin{i};
+    inxToKeep = false(1, numQuantities);
+    for i = 1 : numel(varargin)
+        inxToKeep = inxToKeep | this.Type==varargin{i};
     end
-    names(~ixKeep) = {''};
+    names(~inxToKeep) = {''};
     doStdCorr = any( [varargin{:}]==TYPE(4) );
 end
-outp.IxKeep = ixKeep;
+outp.IxKeep = inxToKeep;
 
 if iscellstr(query)
     % Input is a cellstr of names. Return vector of positions or NaNs.
-    nQuery = length(query);
-    outp.PosName = nan(1, nQuery);
-    outp.PosStdCorr = nan(1, nQuery);
-    outp.PosShk1 = nan(1, nQuery);
-    outp.PosShk2 = nan(1, nQuery);
-    outp.IxName = false(1, numOfQuantities);
-    outp.IxStdCorr = false(1, numOfStdCorr);
-    for i = 1 : nQuery
-        ixName = [ ];
-        ixStdCorr = [ ];
-        ixShk1 = [ ];
-        ixShk2 = [ ];
-        if length(query{i})>=5 && strncmp(query{i}, 'std_', 4)
+    numQueries = numel(query);
+    outp.PosName = nan(1, numQueries);
+    outp.PosStdCorr = nan(1, numQueries);
+    outp.PosShk1 = nan(1, numQueries);
+    outp.PosShk2 = nan(1, numQueries);
+    outp.IxName = false(1, numQuantities);
+    outp.IxStdCorr = false(1, numStdCorr);
+    for i = 1 : numQueries
+        inxName = [ ];
+        inxStdCorr = [ ];
+        inxShk1 = [ ];
+        inxShk2 = [ ];
+        if strlength(query{i})>=5 && strncmp(query{i}, 'std_', 4)
             if doStdCorr
-                [ixStdCorr, ixShk1] = getStd(query{i});
-                outp.IxStdCorr = outp.IxStdCorr | ixStdCorr;
+                [inxStdCorr, inxShk1] = hereGetStd(query{i});
+                outp.IxStdCorr = outp.IxStdCorr | inxStdCorr;
             end
-        elseif length(query{i})>=9 && strncmp(query{i}, 'corr_', 5)
+        elseif strlength(query{i})>=9 && strncmp(query{i}, 'corr_', 5)
             if doStdCorr
-                [ixStdCorr, ixShk1, ixShk2] = getCorr(query{i});
-                outp.IxStdCorr = outp.IxStdCorr | ixStdCorr;
+                [inxStdCorr, inxShk1, inxShk2] = hereGetCorr(query{i});
+                outp.IxStdCorr = outp.IxStdCorr | inxStdCorr;
             end
         else
-            ixName = callStrcmpOrRegexp(names, query{i});
-            outp.IxName = outp.IxName | ixName;
+            inxName = locallyCallStrcmpOrRegexp(names, query{i});
+            outp.IxName = outp.IxName | inxName;
         end
-        if any(ixName)
-            outp.PosName(i) = find(ixName);
+        if any(inxName)
+            outp.PosName(i) = find(inxName);
         end
-        if any(ixStdCorr)
-            outp.PosStdCorr(i) = find(ixStdCorr);
+        if any(inxStdCorr)
+            outp.PosStdCorr(i) = find(inxStdCorr);
         end
-        if any(ixShk1)
-            outp.PosShk1(i) = find(ixShk1);
+        if any(inxShk1)
+            outp.PosShk1(i) = find(inxShk1);
         end
-        if any(ixShk2)
-            outp.PosShk2(i) = find(ixShk2);
+        if any(inxShk2)
+            outp.PosShk2(i) = find(inxShk2);
         end
     end
 elseif ischar(query) || isa(query, 'rexp') || isa(query, 'string')
@@ -79,64 +79,64 @@ elseif ischar(query) || isa(query, 'rexp') || isa(query, 'string')
     if isa(query, 'string')
         query = char(query);
     end
-    outp.IxName = false(1, numOfQuantities);
-    outp.IxStdCorr = false(1, numOfStdCorr);
-    if length(query)>=5 && strncmp(query, 'std_', 4)
+    outp.IxName = false(1, numQuantities);
+    outp.IxStdCorr = false(1, numStdCorr);
+    if strlength(query)>=5 && strncmp(query, 'std_', 4)
         if doStdCorr
             shkName = query(5:end);
-            outp.IxStdCorr(1:ne) = callStrcmpOrRegexp(lse, shkName);
+            outp.IxStdCorr(1:numE) = locallyCallStrcmpOrRegexp(namesE, shkName);
         end
-    elseif length(query)>=9 && strncmp(query, 'corr_', 5)
+    elseif strlength(query)>=9 && strncmp(query, 'corr_', 5)
         if doStdCorr
-            outp.IxStdCorr = getCorr(query);
+            outp.IxStdCorr = hereGetCorr(query);
         end
     else
-        outp.IxName = callStrcmpOrRegexp(names, query);
+        outp.IxName = locallyCallStrcmpOrRegexp(names, query);
     end  
 end
 
 return
 
 
-    function [ixStdCorr, ixShkInName] = getStd(query)
+    function [inxStdCorr, inxShkInName] = hereGetStd(query)
         shkName = query(5:end);
-        ixStdCorr = false(1, numOfStdCorr);
-        ixStdCorr(1:ne) = callStrcmpOrRegexp(lse, shkName);
-        ixShkInName = callStrcmpOrRegexp(names, shkName);
+        inxStdCorr = false(1, numStdCorr);
+        inxStdCorr(1:numE) = locallyCallStrcmpOrRegexp(namesE, shkName);
+        inxShkInName = locallyCallStrcmpOrRegexp(names, shkName);
     end%
 
 
-    function [ixStdCorr, ixShk1InName, ixShk2InName] = getCorr(query)
-        ixStdCorr = false(1, numOfStdCorr);
-        ixShk1InName = false(1, numOfQuantities);
-        ixShk2InName = false(1, numOfQuantities);
+    function [inxStdCorr, inxShk1InName, inxShk2InName] = hereGetCorr(query)
+        inxStdCorr = false(1, numStdCorr);
+        inxShk1InName = false(1, numQuantities);
+        inxShk2InName = false(1, numQuantities);
         % Break down the corr coeff names corr_SHOCK1__SHOCK2 into SHOCK1 and SHOCK2.
         shkName = regexp(query(6:end), '^(.*?)__([^_].*)$', 'tokens', 'once');
         if isempty(shkName) || isempty(shkName{1}) || isempty(shkName{2})
             return
         end
         % Find positions of shock names within all names.
-        ixShk1InName = callStrcmpOrRegexp(names, shkName{1});
-        ixShk2InName = callStrcmpOrRegexp(names, shkName{2});        
+        inxShk1InName = locallyCallStrcmpOrRegexp(names, shkName{1});
+        inxShk2InName = locallyCallStrcmpOrRegexp(names, shkName{2});        
         % Find positions of shock names within shocks.
-        ixShk1InShk = callStrcmpOrRegexp(lse, shkName{1});
-        ixShk2InShk = callStrcmpOrRegexp(lse, shkName{2});
+        inxShk1InShk = locallyCallStrcmpOrRegexp(namesE, shkName{1});
+        inxShk2InShk = locallyCallStrcmpOrRegexp(namesE, shkName{2});
         % Place all combinations of shocks in the cross-correlation matrix, and
         % back out the position in the stdcorr vector.
-        ixCorrMat = false(ne);
-        ixCorrMat(ixShk1InShk, ixShk2InShk) = true;
-        ixCorrMat(ixShk2InShk, ixShk1InShk) = true;
+        ixCorrMat = false(numE);
+        ixCorrMat(inxShk1InShk, inxShk2InShk) = true;
+        ixCorrMat(inxShk2InShk, inxShk1InShk) = true;
         ixCorrMat = tril(ixCorrMat, -1);
         [posRow, posCol] = find(ixCorrMat);
-        for k = 1 : length(posRow)
-            p = ne + sum((ne-1):-1:(ne-posCol(k)+1)) + (posRow(k)-posCol(k));
-            ixStdCorr(p) = true;
+        for k = 1 : numel(posRow)
+            p = numE + sum((numE-1):-1:(numE-posCol(k)+1)) + (posRow(k)-posCol(k));
+            inxStdCorr(p) = true;
         end
     end%
 end%
 
 
-function ix = callStrcmpOrRegexp(list, query)
+function ix = locallyCallStrcmpOrRegexp(list, query)
     if isa(query, 'rexp') || ~isvarname(query)
         ix = ~cellfun(@isempty, regexp(list, query, 'once'));
     else

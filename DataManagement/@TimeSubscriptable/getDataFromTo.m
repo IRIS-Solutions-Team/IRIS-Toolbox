@@ -22,6 +22,10 @@ end
 if nargin==2
     to = from;
 end
+from = double(from);
+to = double(to);
+from = from(1);
+to = to(end);
 
 % Input dates from and to may be either date codes or serials; convert to
 % serials anyway

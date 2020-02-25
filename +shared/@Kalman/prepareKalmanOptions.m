@@ -1,11 +1,11 @@
-function opt = prepareKalmanOptions(this, range, varargin)
+function [opt, timeVarying] = prepareKalmanOptions(this, range, varargin)
 % prepareKalmanOptions  Prepare Kalman filter options
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
@@ -20,7 +20,7 @@ if isempty(pp)
     addParameter(pp, 'FmseCondTol', eps( ), @(x) isnumeric(x) && isscalar(x) && x>0 && x<1);
     addParameter(pp, {'ReturnCont', 'Contributions'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Rolling', false, @(x) isequal(x, false) || isa(x, 'DateWrapper'));
-    addParameter(pp, {'Init', 'InitCond'}, 'Steady', @(x) isstruct(x) || iscell(x) || (ischar(x) && any(strcmpi(x, {'Asymptotic', 'Stochastic', 'Steady', 'Fixed'}))));
+    addParameter(pp, {'Init', 'InitCond'}, 'Steady', @locallyValidateInitCond);
     addParameter(pp, {'InitUnitRoot', 'InitUnit', 'InitMeanUnit'}, 'FixedUnknown', @(x) isstruct(x) || (ischar(x) && any(strcmpi(x, {'FixedUnknown', 'ApproxDiffuse'}))));
     addParameter(pp, 'LastSmooth', Inf, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
     addParameter(pp, 'OutOfLik', { }, @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
@@ -39,7 +39,7 @@ if isempty(pp)
     addParameter(pp, 'ReturnMSE', true, @validate.logicalScalar);
     addDeviationOptions(pp, false);
 end  
-pp.parse(varargin{:});
+parse(pp, varargin{:});
 opt = pp.Options;
 
 %--------------------------------------------------------------------------
@@ -49,8 +49,13 @@ startRange = range(1);
 endRange = range(end);
 range = DateWrapper.roundColon(startRange, endRange);
 numPeriods = round(endRange - startRange + 1);
-
 [ny, ~, nb, ~, ~, ~, nz] = sizeOfSolution(this);
+
+
+%
+% Resolve Override, creating time varying LinearSystem object if necessary
+%
+timeVarying = hereResolveTimeVarying( );
 
 
 %
@@ -65,14 +70,19 @@ else
 end
 
 
-% Conditioning measurement variables
+%
+% Conditioning upon measurement variables
+%
 if isempty(opt.Condition) || nz>0
     opt.Condition = [ ];
 else
     [~, opt.Condition] = userSelection2Index(this.Quantity, opt.Condition, TYPE(1));
 end
 
+
+%
 % Out-of-lik parameters
+%
 if isempty(opt.OutOfLik)
     opt.OutOfLik = [ ];
 else
@@ -82,35 +92,37 @@ else
     opt.OutOfLik = opt.OutOfLik(:)';
     ell = lookup(this.Quantity, opt.OutOfLik, TYPE(4));
     pos = ell.PosName;
-    inxOfNaN = isnan(pos);
-    if any(inxOfNaN)
+    inxNaN = isnan(pos);
+    if any(inxNaN)
         throw( exception.Base('Model:InvalidName', 'error'), ...
-               'parameter ', opt.OutOfLik{inxOfNaN} ); %#ok<GTARG>
+               'parameter ', opt.OutOfLik{inxNaN} ); %#ok<GTARG>
     end
     opt.OutOfLik = pos;
 end
-opt.OutOfLik = opt.OutOfLik(:).';
-npout = length(opt.OutOfLik);
-if npout>0 && ~opt.DTrends
-    thisError  = { 'Model:CannotEstimateOutOfLik'
-                   'Cannot estimate out-of-likelihood parameters with the option DTrends=false' };
-    throw( exception.Base(thisError, 'error') );
+opt.OutOfLik = reshape(opt.OutOfLik, 1, [ ]);
+if numel(opt.OutOfLik)>0 && ~opt.DTrends
+    thisError  = [ 
+        "Model:CannotEstimateOutOfLik"
+        "Cannot estimate out-of-likelihood parameters with the option DTrends=false"
+    ];
+    throw(exception.Base(thisError, 'error'));
 end
 
 %
-% Time-varying StdCorr vector 
+% Time-varying std and corr
 % * --clip means trailing NaNs will be removed
 % * --presample means one presample period will be added
 %
 opt.OverrideStdcorr = [ ];
 opt.MultiplyStd = [ ];
 if ~isempty(opt.Override) || ~isempty(opt.Multiply)
-    [opt.OverrideStdcorr, ~, opt.MultiplyStd] = varyStdCorr(this, range, opt, '--clip', '--presample');
+    [opt.OverrideStdcorr, ~, opt.MultiplyStd] = ...
+        varyStdCorr(this, range, opt.Override, opt.Multiply, '--clip', '--presample');
 end
 
 
 %
-% Override the location of shocks
+% Override the means of shocks
 %
 temp = [ ];
 if ~isempty(opt.Override) && validate.databank(opt.Override)
@@ -153,10 +165,12 @@ switch lower(opt.ObjFunc)
 end
 
 
+%
 % Range on which the objective function will be evaluated. The
 % `'ObjFuncRange='` option gives the range from which sample information will
 % be used to calculate the objective function and estimate the out-of-lik
-% parameters.
+% parameters
+%
 if isequal(opt.ObjFuncRange, @all)
     opt.ObjFuncRange = true(1, numPeriods);
 else
@@ -165,6 +179,7 @@ else
     opt.ObjFuncRange = false(1, numPeriods);
     opt.ObjFuncRange(start : End) = true;
 end
+
 
 %
 % Initial condition
@@ -180,6 +195,7 @@ elseif isstruct(opt.Init)
     hereCheckNaNInit( );
     opt.Init = {xbInitMean, xbInitMse};
 end
+
 
 %
 % Initial condition for unit root components
@@ -219,6 +235,33 @@ end
 
 return
 
+
+    function timeVarying = hereResolveTimeVarying( )
+        timeVarying = [ ];
+        if ~isa(this, 'Model')
+            return
+        end
+        if isempty(opt.Override) || ~isstruct(opt.Override) || isempty(fieldnames(opt.Override))
+            return
+        end
+        argin = struct( ...
+            'Variant', 1, ...
+            'FilterRange', range, ...
+            'Override', opt.Override, ...
+            'Multiply', opt.Multiply, ...
+            'BreakUnlessTimeVarying', true ...
+        );
+        [timeVarying, initCond] = prepareLinearSystem(this, argin);
+        if ~isempty(timeVarying)
+            opt.Override = [ ];
+            opt.Multiply = [ ];
+            opt.Init = initCond;
+        end
+    end%
+
+
+
+
     function hereCheckNaNInit( )
         if ~isempty(listMissingMeanInit)
             thisError = { 'Model:MissingMeanInitial'
@@ -235,6 +278,8 @@ return
     end%
 
 
+
+
     function hereCheckRollingColumns( )
         x = opt.RollingColumns;
         assert( all(round(x)==x) && all(x>=1) && all(x<=numPeriods), ...
@@ -243,11 +288,35 @@ return
     end%
 
 
+
+
     function herePrepareSimulateSystemProperty( )
         opt.Simulate = simulate( ...
             this, "asynchronous", @auto, ...
             opt.Simulate{:}, 'SystemProperty=', 'S' ...
         );
     end%
+end%
+
+
+%
+% Local Validators
+%
+
+
+function flag = locallyValidateInitCond(x)
+    if validate.databank(x)
+        flag = true;
+        return
+    end
+    if iscell(x) && numel(x)>=1 && numel(x)<=3 && all(cellfun(@isnumeric, x))
+        flag = true;
+        return
+    end
+    if validate.anyString(x, 'Asymptotic', 'Stochastic', 'Steady', 'Fixed', 'FixedUnknown')
+        flag = true;
+        return
+    end
+    flag = false;
 end%
 

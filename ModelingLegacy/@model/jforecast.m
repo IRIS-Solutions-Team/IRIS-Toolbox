@@ -92,31 +92,32 @@ function outp = jforecast(this, inp, range, varargin)
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.jforecast');
-    inputParser.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
-    inputParser.addRequired('InputData', @(x) isstruct(x) || iscell(x));
-    inputParser.addRequired('Range', @DateWrapper.validateDateInput);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.jforecast');
+    pp.addRequired('SolvedModel', @(x) isa(x, 'model') && length(x)>=1 && ~any(isnan(x, 'solution')));
+    pp.addRequired('InputData', @(x) validate.databank(x) || iscell(x));
+    pp.addRequired('Range', @DateWrapper.validateDateInput);
 
-    inputParser.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('CurrentOnly', true, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('InitCond', 'data', @(x) isnumeric(x) || (ischar(x) && any(strcmpi(x, {'data', 'fixed'}))));
-    inputParser.addParameter('InitCondMSE', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && size(x, 1)==size(x, 2)));
-    inputParser.addParameter('MeanOnly', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Precision', 'double', @(x) any(strcmpi(x, {'double', 'single'})));
-    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Plan', [ ], @(x) isequal(x, [ ]) || isa(x, 'plan'));
-    inputParser.addParameter('StdScale', complex(1, 0), @(x) (isnumeric(x) && isscalar(x) && real(x)>=0 && imag(x)>=0 && abs(abs(x)-1)<1e-12) || strcmpi(x, 'normalize'));
-    inputParser.addParameter({'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) validate.databank(x) || isempty(x));
+    pp.addParameter('Anticipate', true, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('CurrentOnly', true, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('InitCond', 'data', @(x) isnumeric(x) || (ischar(x) && any(strcmpi(x, {'data', 'fixed'}))));
+    pp.addParameter('InitCondMSE', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && size(x, 1)==size(x, 2)));
+    pp.addParameter('MeanOnly', false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('Precision', 'double', @(x) any(strcmpi(x, {'double', 'single'})));
+    pp.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('Plan', [ ], @(x) isequal(x, [ ]) || isa(x, 'plan'));
+    pp.addParameter('StdScale', complex(1, 0), @(x) (isnumeric(x) && isscalar(x) && real(x)>=0 && imag(x)>=0 && abs(abs(x)-1)<1e-12) || strcmpi(x, 'normalize'));
+    pp.addParameter({'Override', 'TimeVarying', 'Vary', 'Std'}, [ ], @(x) isempty(x) || validate.databank(x));
+    pp.addParameter('Multiply', [ ], @(x) isempty(x) || validate.databank(x));
 
-    inputParser.addDeviationOptions(false);
+    pp.addDeviationOptions(false);
 end
-inputParser.parse(this, inp, range, varargin{:});
-opt = inputParser.Options;
+pp.parse(this, inp, range, varargin{:});
+opt = pp.Options;
 
 if ischar(range)
     range = textinp2dat(range);
@@ -683,7 +684,8 @@ return
         % TODO: use `combineStdCorr` here
         % Combine sx from the current parameterisation and
         % sx supplied in Override= or cond
-        [overrideStdCorrReal, overrideStdCorrImag] = varyStdCorr(this, range, opt);
+        [overrideStdCorrReal, overrideStdCorrImag] = ...
+            varyStdCorr(this, range, opt.Override, opt.Multiply);
 
         stdCorrReal = this.Variant.StdCorr(:, :, iLoop);
         stdCorrReal = repmat(stdCorrReal(:), 1, nPer);

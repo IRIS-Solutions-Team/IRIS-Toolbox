@@ -1,11 +1,11 @@
 function [this, ok] = update(this, p, variantRequested)
 % update  Update parameters, sstate, solve, and refresh
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 if nargin<3
     variantRequested = 1;
@@ -14,15 +14,15 @@ end
 %--------------------------------------------------------------------------
 
 update = this.Update;
-posOfValues = update.PosOfValues;
-posOfStdCorr = update.PosOfStdCorr;
+posValues = update.PosOfValues;
+posStdCorr = update.PosOfStdCorr;
 
-indexOfValues = ~isnan(posOfValues);
-posOfValues = posOfValues(indexOfValues);
-indexOfStdCorr = ~isnan(posOfStdCorr);
-posOfStdCorr = posOfStdCorr(indexOfStdCorr);
+inxValues = ~isnan(posValues);
+posValues = posValues(inxValues);
+inxStdCorr = ~isnan(posStdCorr);
+posStdCorr = posStdCorr(inxStdCorr);
 
-% Reset parameters and stdcorrs.
+% Reset parameters and stdcorrs
 this.Variant.Values(:, :, variantRequested) = update.Values;
 this.Variant.StdCorr(:, :, variantRequested) = update.StdCorr;
 
@@ -30,20 +30,20 @@ runSteady = ~isequal(update.Steady, false);
 runSolve = ~isequal(update.Solve, false);
 runCheckSteady = ~isequal(update.CheckSteady, false);
 
-% Update regular parameters and run refresh if needed.
+% Update regular parameters and run refresh if needed
 needsRefresh = any(this.Link);
 beenRefreshed = false;
-if any(indexOfValues)
-    this.Variant.Values(:, posOfValues, variantRequested) = p(indexOfValues);
+if any(inxValues)
+    this.Variant.Values(:, posValues, variantRequested) = p(inxValues);
 end
 
-% Update stds and corrs.
-if any(indexOfStdCorr)
-    this.Variant.StdCorr(:, posOfStdCorr, variantRequested) = p(indexOfStdCorr);
+% Update stdCorr
+if any(inxStdCorr)
+    this.Variant.StdCorr(:, posStdCorr, variantRequested) = p(inxStdCorr);
 end
 
-% Refresh dynamic links. The links can refer/define std devs and
-% cross-corrs.
+% Refresh dynamic links; the links can refer/define std devs and
+% cross-corrs
 if needsRefresh
     this = refresh(this, variantRequested);
     beenRefreshed = true;
@@ -52,19 +52,20 @@ end
 % If only stds or corrs have been changed, no values have been
 % refreshed, and no user preprocessor is called, return immediately as
 % there is no need to re-solve or re-sstate the model.
-if ~any(indexOfValues) && ~isa(update.Steady, 'function_handle') && ~beenRefreshed
+if ~any(inxValues) && ~isa(update.Steady, 'function_handle') && ~beenRefreshed
     ok = true;
     return
 end
 
 if this.IsLinear
-    % __Linear Models__
+    %
+    % Linear Models
+    %
     if runSolve
-        [this, numOfStablePaths, nanDerv, sing2, bk] = solveFirstOrder( this, ...
-                                                                        variantRequested, ...
-                                                                        update.Solve );
+        [this, numStablePaths, nanDerv, sing2, bk] = ...
+            solveFirstOrder(this, variantRequested, update.Solve);
     else
-        numOfStablePaths = 1;
+        numStablePaths = 1;
     end
     if runSteady
         this = steadyLinear(this, update.Steady, variantRequested);
@@ -75,8 +76,11 @@ if this.IsLinear
     okSteady = true;
     okCheckSteady = true;
 	sstateErrList = { };
+
 else
-    % __Nonlinear Models__
+    %
+    % Nonlinear Models
+    %
     okSteady = true;
     sstateErrList = { };
     okCheckSteady = true;
@@ -95,7 +99,7 @@ else
             [m, okSteady] = feval(update.Steady{1}, m, update.Steady{2:end});
             this(variantRequested) = m;
         else
-             % Call to the IRIS sstate solver.
+             % Call to the [IrisToolbox] sstate solver.
             [this, okSteady] = steadyNonlinear( this, ...
                                                 update.Steady, ...
                                                 variantRequested );
@@ -114,18 +118,18 @@ else
     end
     if okSteady && okCheckSteady && runSolve
         [ this, ...
-          numOfStablePaths, ...
+          numStablePaths, ...
           nanDerv, ...
           sing2, ...
           bk                    ] = solveFirstOrder( this, ...
                                                      variantRequested, ...
                                                      update.Solve );
     else
-        numOfStablePaths = 1;
+        numStablePaths = 1;
     end
 end
 
-ok = numOfStablePaths==1 && okSteady && okCheckSteady;
+ok = numStablePaths==1 && okSteady && okCheckSteady;
 if ok
     return
 end
@@ -134,7 +138,7 @@ if strcmpi(update.NoSolution, 'Error')
     % Throw error, give access to the failed model object and terminate
     m = this(variantRequested);
     model.failed( m, okSteady, okCheckSteady, sstateErrList, ...
-                  numOfStablePaths, nanDerv, sing2, bk );
+                  numStablePaths, nanDerv, sing2, bk );
 end
 
 end%

@@ -1,5 +1,5 @@
 function [shift, rows, power] = prepareChange(this, varargin)
-% prepareChange  Prepare options for time change functions
+% prepareChange  Prepare options for time change functions diff and roc
 %
 % Backend [IrisToolbox] method
 % No help provided

@@ -1,17 +1,18 @@
-% BareLinearKalman  Bare Bones Linear Kalman Filter Object
+% LinearSystem  Barebones Time-Varying Linear System Object
 %
-%     xi = T*xi(-1) + k + R*v
-%      y = Z*xi + d + H*w
+%      xi = T*xib(-1) + k + R*v
+%       y = Z*xib + d + H*w
+%     xib = xi(n+1:end)
 %
 %
 
-classdef BareLinearKalman < shared.Kalman
+classdef LinearSystem < shared.Kalman
     properties (SetAccess=protected)
         % NumPeriods  Number of periods in which system matrices vary from asymptotic system
         NumPeriods (1, 1) double = 0
 
         % Dimensions  Dimensions of state space vectors [xi, v, y, w]
-        Dimensions (1, 4) double = [0, 0, 0, 0]
+        Dimensions (1, 5) double = [0, 0, 0, 0, 0]
 
         % SystemMatrices  State space system matrices {T, R, k, Z, H, d, U, Zb}
         SystemMatrices (1, 8) cell = cell(1, 8)
@@ -38,6 +39,8 @@ classdef BareLinearKalman < shared.Kalman
         NumExtendedPeriods
         Omega
         NumXi
+        NumXib
+        NumXif
         NumV
         NumY
         NumW
@@ -48,8 +51,8 @@ classdef BareLinearKalman < shared.Kalman
 
     methods % Public interface 
         %( 
-        function this = BareLinearKalman(varargin)
-            if nargin==1 && isa(varargin{1}, 'BareLinearKalman')
+        function this = LinearSystem(varargin)
+            if nargin==1 && isa(varargin{1}, 'LinearSystem')
                 this = varargin{1};
             end
             if nargin>=1
@@ -73,7 +76,7 @@ classdef BareLinearKalman < shared.Kalman
 
         function this = timeVaryingSystem(this, time, varargin);
             if any(~ismember(time, 1:this.NumPeriods))
-                thisError = { 'BareLinearKalman'
+                thisError = { 'LinearSystem'
                               'Invalid time specified when assigning time varying system' };
                 throw(exception.Base(THIS_ERROR, 'error'));
             end
@@ -101,26 +104,28 @@ classdef BareLinearKalman < shared.Kalman
 
 
         function [W, dW] = evalTrendEquations(this, ~, inputData, ~)
-            ny = this.NumY;
+            numY = this.NumY;
             numPeriods = size(inputData, 2);
             numPages = size(inputData, 3);
             numVariantsRequested = 1;
             numParamsOut = 0;
-            W = zeros(ny, numPeriods, numPages);
-            dW = zeros(ny, numParamsOut, numPeriods, numVariantsRequested);
+            W = zeros(numY, numPeriods, numPages);
+            dW = zeros(numY, numParamsOut, numPeriods, numVariantsRequested);
         end%
 
 
-        function [ny, nxi, nb, nf, ne, ng, nz] = sizeOfSolution(this)
-            nxi = this.Dimensions(1);
-            nv  = this.Dimensions(2);
-            ny  = this.Dimensions(3);
-            nw  = this.Dimensions(4);
-            ne  = nv + nw;
-            nb  = nxi;
-            nf  = 0;
-            ng  = 0;
-            nz  = 0;
+        function [numY, numXi, numXib, numXif, numE, numG, numZ, numV, numW] = sizeOfSolution(this)
+            numXi = this.Dimensions(1);
+            numXib = this.Dimensions(2);
+            numV = this.Dimensions(3);
+            numY = this.Dimensions(4);
+            numW = this.Dimensions(5);
+            numE = numV + numW;
+            numXif = numXi - numXib;
+            numG = 0;
+            numZ = 0;
+            numV = numV;
+            numW = numW;
         end%
 
 
@@ -138,22 +143,23 @@ classdef BareLinearKalman < shared.Kalman
 
     methods (Access=protected, Hidden)
         function this = setup(this)
-            nxi = this.Dimensions(1);
-            nv  = this.Dimensions(2);
-            ny  = this.Dimensions(3);
-            nw  = this.Dimensions(4);
-            nxp = this.NumExtendedPeriods;
-            T = nan(nxi, nxi, nxp);
-            R = nan(nxi, nv, nxp);
-            k = nan(nxi, 1, nxp);
-            Z = nan(ny, nxi, nxp);
-            H = nan(ny, nw, nxp);
-            d = nan(ny, 1, nxp);
-            U = nan(0, 0, nxp);
-            Zb = nan(0, 0, nxp);
+            numXi = this.NumXi;
+            numXib = this.NumXib;
+            numV  = this.NumV;
+            numY  = this.NumY;
+            numW  = this.NumW;
+            numExtPeriods = this.NumExtendedPeriods;
+            T = nan(numXi, numXib, numExtPeriods);
+            R = nan(numXi, numV, numExtPeriods);
+            k = nan(numXi, 1, numExtPeriods);
+            Z = nan(numY, numXib, numExtPeriods);
+            H = nan(numY, numW, numExtPeriods);
+            d = nan(numY, 1, numExtPeriods);
+            U = nan(0, 0, numExtPeriods);
+            Zb = nan(0, 0, numExtPeriods);
             this.SystemMatrices = {T, R, k, Z, H, d, U, Zb};
-            OmegaV = nan(nv, nv, nxp);
-            OmegaW = nan(nw, nw, nxp);
+            OmegaV = nan(numV, numV, numExtPeriods);
+            OmegaW = nan(numW, numW, numExtPeriods);
             this.CovarianceMatrices = {OmegaV, OmegaW};
         end%
     end
@@ -170,15 +176,15 @@ classdef BareLinearKalman < shared.Kalman
 
 
         function Omega = get.Omega(this)
-            nv = this.NumV;
-            nw = this.NumW;
-            ne = nv + nw;
+            numV = this.NumV;
+            numW = this.NumW;
+            numE = numV + numW;
             OmegaV = this.clipAndFillMissing(this.CovarianceMatrices{1});
             OmegaW = this.clipAndFillMissing(this.CovarianceMatrices{2});
             numOmegaV = size(OmegaV, 3);
             numOmegaW = size(OmegaW, 3);
             numOmega = max(numOmegaV, numOmegaW);
-            Omega = zeros(ne, ne, numOmega);
+            Omega = zeros(numE, numE, numOmega);
             for i = 1 : numOmega
                 if i<=numOmegaV
                     OmegaV_t = this.CovarianceMatrices{1}(:, :, i);
@@ -186,8 +192,8 @@ classdef BareLinearKalman < shared.Kalman
                 if i<=numOmegaW
                     OmegaW_t = this.CovarianceMatrices{2}(:, :, i);
                 end
-                Omega(1:nv, 1:nv, i) = OmegaV_t;
-                Omega(nv+1:end, nv+1:end, i) = OmegaW_t;
+                Omega(1:numV, 1:numV, i) = OmegaV_t;
+                Omega(numV+1:end, numV+1:end, i) = OmegaW_t;
             end
             Omega = this.clipAndFillMissing(Omega);
         end%
@@ -195,29 +201,43 @@ classdef BareLinearKalman < shared.Kalman
 
 
 
-        function nv = get.NumXi(this)
-            nv = this.Dimensions(1);
+        function n = get.NumXi(this)
+            n = this.Dimensions(1);
         end%
 
 
 
 
-        function nv = get.NumV(this)
-            nv = this.Dimensions(2);
+        function n = get.NumXib(this)
+            n = this.Dimensions(2);
         end%
 
 
 
 
-        function nw = get.NumY(this)
-            nw = this.Dimensions(3);
+        function n = get.NumXif(this)
+            n = this.NumXi - this.NumXib;
         end%
 
 
 
 
-        function nw = get.NumW(this)
-            nw = this.Dimensions(4);
+        function n = get.NumV(this)
+            n = this.Dimensions(3);
+        end%
+
+
+
+
+        function n = get.NumY(this)
+            n = this.Dimensions(4);
+        end%
+
+
+
+
+        function n = get.NumW(this)
+            n = this.Dimensions(5);
         end%
     end
 
@@ -227,21 +247,25 @@ classdef BareLinearKalman < shared.Kalman
     methods (Static)
         function [x, last] = clipAndFillMissing(x)
             if isempty(x)
+                if size(x, 3)>1
+                    x = x(:, :, 1);
+                end
                 return
             end
-            inxValid = ~isnan(x);
-            inxValid = any(any(inxValid, 1), 2);
-            last = find(inxValid, 1, 'last');
-            if isempty(last)
-                last = 0;
-            end
-            x = x(:, :, 1:last);
+            [x, last] = numeric.removeTrailingNaNs(x, 3);
             if any(isnan(x(:)))
-                x = permute(x, [3, 1, 2]);
-                x = fillmissing(x, 'previous');
-                x = ipermute(x, [3, 1, 2]);
+                x = fillmissing(x, 'previous', 3);
             end
         end%
+    end
+
+
+
+
+    methods (Static) % Static constructors
+        %(
+        varargout = fromModel(varargin)
+        %)
     end
 end
 

@@ -9,11 +9,10 @@ function [Pe0, A0, Y0, YDelta] = correct(s, Pe0, A0, Y0, est, D)
 
 %--------------------------------------------------------------------------
 
-nPOut = s.NPOut;
-delta = est(1:nPOut, :);
-nxp = s.NumExtendedPeriods;
+delta = est(1:s.NumPouts, :);
+numExtendedPeriods = s.NumExtendedPeriods;
 
-for t = 2 : nxp
+for t = 2 : numExtendedPeriods
     j = s.yindex(:, t);
     Pe0(j, :, t) = Pe0(j, :, t) - s.M(j, :, t)*est;
 end
@@ -28,8 +27,8 @@ end
 % have been already accounted for in the estimates of `alpha`.
 ny = size(s.Z, 1);
 numColumns = size(A0, 2);
-YDelta = nan(ny, numColumns, nxp);
-for t = 1 : nxp
+YDelta = nan(ny, numColumns, numExtendedPeriods);
+for t = 1 : numExtendedPeriods
     Z = s.Z(:, :, min(t, end));
     A0(:, :, t) = A0(:, :, t) + s.Q{t}*est;
     YDelta(:, :, t) = s.X(:, :, t)*delta;

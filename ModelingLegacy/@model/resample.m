@@ -1,4 +1,4 @@
-function Outp = resample(this, varargin)
+function outputDb = resample(this, inputDb, range, numDraws, varargin)
 % resample  Resample from the model implied distribution.
 %
 % ## Syntax ##
@@ -78,35 +78,32 @@ function Outp = resample(this, varargin)
 % ## Example ##
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.resample');
-    inputParser.addRequired('Model', @(x) isa(x, 'model') && length(x)==1 && beenSolved(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.resample');
+    addRequired(pp, 'model', @(x) isa(x, 'model') && length(x)==1 && beenSolved(x));
+    addRequired(pp, 'initCondition', @(x) isempty(x) || validate.databank(x));
+    addRequired(pp, 'range', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'numDraws', @(x) validate.roundScalar(x, 1, Inf));
 
-    inputParser.addOptional('InitCondition', [ ], @(x) isempty(x) || isstruct(x));
-    inputParser.addOptional('Range', [ ], @DateWrapper.validateProperRangeInput);
-    inputParser.addOptional('NumDraws', 1, @(x) isnumeric(x) && isscalar(x) && x>=1);
-
-    inputParser.addParameter('BootstrapMethod', 'efron', @(x) (ischar(x) && any(strcmpi(x, {'efron', 'wild'}))) || isintscalar(x) || isnumericscalar(x, 0, 1));
-    inputParser.addParameter('Method', 'montecarlo', @(x) isa(x, 'function_handle') || (ischar(x) && any(strcmpi(x, {'montecarlo', 'bootstrap'}))));
-    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter({'RandomInitCond', 'RandomiseInitCond', 'RandomizeInitCond', 'Randomise', 'Randomize'}, true, @(x) isequal(x, true) || isequal(x, false) || (isnumeric(x) && isscalar(x) && x>=0));
-    inputParser.addParameter('SvdOnly', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('StateVector', 'alpha', @(x) ischar(x) && any(strcmpi(x, {'alpha', 'x'})));
-    inputParser.addParameter({'Override', 'TimeVarying', 'Vary'}, [ ], @(x) isempty(x) || isstruct(x));
+    addParameter(pp, 'BootstrapMethod', 'Efron', @(x) (ischar(x) && any(strcmpi(x, {'Efron', 'Wild'}))) || validate.roundScalar(x) || validate.numericScalar(x, 0, 1));
+    addParameter(pp, 'Method', 'montecarlo', @(x) isa(x, 'function_handle') || (ischar(x) && any(strcmpi(x, {'montecarlo', 'bootstrap'}))));
+    addParameter(pp, 'Progress', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, {'RandomInitCond', 'RandomiseInitCond', 'RandomizeInitCond', 'Randomise', 'Randomize'}, true, @(x) isequal(x, true) || isequal(x, false) || validate.roundScalar(x, 0, Inf));
+    addParameter(pp, 'SvdOnly', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'StateVector', 'alpha', @(x) ischar(x) && any(strcmpi(x, {'alpha', 'x'})));
+    addParameter(pp, {'Override', 'TimeVarying', 'Vary'}, [ ], @(x) isempty(x) || validate.databank(x));
+    addParameter(pp, 'Multiply', [ ], @(x) isempty(x) || validate.databank(x));
     
-    inputParser.addDeviationOptions(false);
+    addDeviationOptions(pp, false);
 end
-inputParser.parse(this, varargin{:});
-inp = inputParser.Results.InitCondition;
-range = inputParser.Results.Range;
-numDraws = inputParser.Results.NumDraws;
-opt = inputParser.Options;
+parse(pp, this, inputDb, range, numDraws, varargin{:});
+opt = pp.Options;
 
 % `numInit` is the number of pre-sample periods used to resample the initial
 % condition if user does not wish to factorise the covariance matrix.
@@ -117,19 +114,20 @@ if isnumeric(opt.RandomInitCond)
         utils.error('model:resample', ...
             'Cannot pre-simulate initial conditions in wild bootstrap.');
     else
-        numInit = round(opt.RandomInitCond);
+        numInit = opt.RandomInitCond;
         opt.RandomInitCond = false;
     end
 end
 
-if strcmpi(opt.Method, 'Bootstrap') && isempty(inp)
+if strcmpi(opt.Method, 'Bootstrap') && isempty(inputDb)
     utils.error('model:resample', ...
         'Cannot bootstrap when there are no input data.');
 end
 
 %--------------------------------------------------------------------------
 
-numOfPeriods = length(range);
+range = double(range);
+numPeriods = numel(range);
 extendedRange = range(1)-1 : range(end);
 
 ixd = this.Equation.Type==TYPE(3);
@@ -149,7 +147,7 @@ if any(isnan(T(:)))
     utils.warning('model:resample', ...
         'Solution(s) not available: #1.');
     % Convert emptpy hdataobj to tseries database.
-    Outp = hdata2tseries(hData);
+    outputDb = hdata2tseries(hData);
     return
 end
 
@@ -161,7 +159,7 @@ Ta2 = Ta(numUnitRoots+1:end, numUnitRoots+1:end);
 Ra2 = Ra(numUnitRoots+1:end, :);
 
 % Combine user-supplied stdcorr with model stdcorr.
-overrideStdCorr = varyStdCorr(this, range, opt);
+overrideStdCorr = varyStdCorr(this, range, opt.Override, opt.Multiply);
 usrStdcorrInx = ~isnan(overrideStdCorr);
 
 % Get variation in the location of shocks
@@ -174,7 +172,7 @@ if ~isempty(opt.Override) && validate.databank(opt.Override)
 end
 
 % Get exogenous variables including ttrend.
-G = datarequest('g', this, inp, range);
+G = datarequest('g', this, inputDb, range);
 
 % ## Describe Distribution of Initial Conditions ##
 if isequal(opt.RandomInitCond, false)
@@ -184,17 +182,17 @@ elseif strcmpi(opt.Method, 'Bootstrap')
     switch opt.BootstrapMethod
         case 'wild'
             % (1a) Wild bootstrap.
-            srcAlp0 = datarequest('init', this, inp, range, 1);
+            srcAlp0 = datarequest('init', this, inputDb, range, 1);
             Ealp = computeUncMean( );
         otherwise
             % (1b) Efron or block boostrap.
-            srcAlp = datarequest('alpha', this, inp, range, 1);
+            srcAlp = datarequest('alpha', this, inputDb, range, 1);
     end
 else
     % (2) Monte Carlo or user-supplied sampler.
-    if ~isempty(inp)
+    if ~isempty(inputDb)
         % (2a) User-supplied distribution.
-        [Ealp, ~, ~, Palp] = datarequest('init', this, inp, range, 1);
+        [Ealp, ~, ~, Palp] = datarequest('init', this, inputDb, range, 1);
         Ex = U*Ealp;
         if isempty(Palp)
             opt.RandomInitCond = false;
@@ -234,13 +232,13 @@ end
 % ## Describe Distribution of Shocks ##
 if strcmpi(opt.Method, 'Bootstrap')
     % (1) Bootstrap.
-    srcE = datarequest('e', this, inp, range, 1);
+    srcE = datarequest('e', this, inputDb, range, 1);
 else
     % (2) Monte Carlo
     % TODO: Use `combineStdCorr` instead.
     vecStdCorr = this.Variant.StdCorr;
     vecStdCorr = permute(vecStdCorr, [2, 3, 1]);
-    vecStdCorr = repmat(vecStdCorr, 1, numOfPeriods);
+    vecStdCorr = repmat(vecStdCorr, 1, numPeriods);
     % Combine the model object stdevs with the user-supplied stdevs.
     if any(usrStdcorrInx(:))
         vecStdCorr(usrStdcorrInx) = overrideStdCorr(usrStdcorrInx);
@@ -256,8 +254,8 @@ else
     % other periods, we need to compute and factorize the entire cov matrix.
     indexZeroCorr = all(vecStdCorr(ne+1:end, :)==0, 1);
     if any(~indexZeroCorr)
-        Pe = nan(ne, ne, numInit+numOfPeriods);
-        Fe = nan(ne, ne, numInit+numOfPeriods);
+        Pe = nan(ne, ne, numInit+numPeriods);
+        Fe = nan(ne, ne, numInit+numPeriods);
         Pe(:, :, ~indexZeroCorr) = ...
             covfun.stdcorr2cov(vecStdCorr(:, ~indexZeroCorr), ne);
         Fe(:, :, ~indexZeroCorr) = covfun.factorise(Pe(:, :, ~indexZeroCorr));
@@ -267,7 +265,7 @@ else
     % once. This allows for advanced user-supplied simulation methods, e.g.
     % latin hypercube.
     if isa(opt.Method, 'function_handle')
-        presampledE = opt.Method(ne*(numInit+numOfPeriods), numDraws);
+        presampledE = opt.Method(ne*(numInit+numPeriods), numDraws);
         if opt.RandomInitCond
             presampledInitNoise = opt.Method(nb, numDraws);
         end
@@ -292,15 +290,15 @@ for iDraw = 1 : numDraws
     end
     a0 = drawInitCond( );
     % Simulate transition variables.
-    w = nan(nxx, numInit+numOfPeriods);
+    w = nan(nxx, numInit+numPeriods);
     w(:, 1) = T*a0 + R(:, ixR)*e(ixR, 1) + K;
-    for t = 2 : numInit+numOfPeriods
+    for t = 2 : numInit+numPeriods
         w(:, t) = T*w(nf+1:end, t-1) + R(:, ixR)*e(ixR, t) + K;
     end
     % Simulate measurement variables.
     y = Z*w(nf+1:end, numInit+1:end) + H(:, ixH)*e(ixH, numInit+1:end);
     if ~opt.Deviation
-        y = y + D(:, ones(1, numOfPeriods));
+        y = y + D(:, ones(1, numPeriods));
     end
     % Add dtrends to simulated data.
     if isTrendEquations
@@ -319,7 +317,7 @@ for iDraw = 1 : numDraws
 end
 
 % Convert hdataobj to tseries database.
-Outp = hdata2tseries(hData);
+outputDb = hdata2tseries(hData);
 
 return
 
@@ -339,7 +337,7 @@ return
             if strcmpi(opt.BootstrapMethod, 'wild')
                 % _Wild Bootstrap_
                 % `numInit` is always zero for wild boostrap.
-                draw = randn(1, numOfPeriods);
+                draw = randn(1, numPeriods);
                 % To reproduce input sample: draw = ones(1, nper);
                 e = srcE.*draw(ones(1, ne), :);
             elseif isnumeric(opt.BootstrapMethod) ...
@@ -348,32 +346,32 @@ return
                 isRandom = ~isintscalar(opt.BootstrapMethod) ;
                 bs = NaN;
                 if ~isRandom
-                    bs = min(numOfPeriods, opt.BootstrapMethod) ;
+                    bs = min(numPeriods, opt.BootstrapMethod) ;
                 end
                 draw = [ ] ;
                 ii = 1 ;
-                while ii<=numInit+numOfPeriods
+                while ii<=numInit+numPeriods
                     % Sample block starting point.
-                    sPoint = randi([1, numOfPeriods], 1) ;
+                    sPoint = randi([1, numPeriods], 1) ;
                     if isRandom
                         bs = getRandBlockSize( ) ;
                     end
                     draw = [draw, sPoint:sPoint+bs-1] ; %#ok<AGROW>
                     ii = ii + bs ;
                 end
-                draw = draw(1:numInit+numOfPeriods) ;
-                % Take care of references to periods beyond numOfPeriods.
-                % Make draws circular: numOfPeriods+1 -> 1, etc.
-                indexBeyond = draw>numOfPeriods ;
+                draw = draw(1:numInit+numPeriods) ;
+                % Take care of references to periods beyond numPeriods.
+                % Make draws circular: numPeriods+1 -> 1, etc.
+                indexBeyond = draw>numPeriods ;
                 while any(indexBeyond)
-                    draw(indexBeyond) = draw(indexBeyond) - numOfPeriods ;
-                    indexBeyond = draw>numOfPeriods ;
+                    draw(indexBeyond) = draw(indexBeyond) - numPeriods ;
+                    indexBeyond = draw>numPeriods ;
                 end
                 e = srcE(:, draw) ;
             else
                 % _Standard Efron Bootstrap__
                 % `draw` is uniform on [1, nper].
-                draw = randi([1, numOfPeriods], [1, numInit+numOfPeriods]);
+                draw = randi([1, numPeriods], [1, numInit+numPeriods]);
                 % To reproduce input sample: draw = 0 : nper-1;
                 e = srcE(:, draw);
             end
@@ -381,13 +379,13 @@ return
             if isa(opt.Method, 'function_handle')
                 % Fetch and reshape the presampled shocks.
                 thisSampleE = presampledE(:, iDraw);
-                thisSampleE = reshape(thisSampleE, [ne, numInit+numOfPeriods]);
+                thisSampleE = reshape(thisSampleE, [ne, numInit+numPeriods]);
             else
                 % Draw shocks from standardised normal.
-                thisSampleE = randn(ne, numInit+numOfPeriods);
+                thisSampleE = randn(ne, numInit+numPeriods);
             end
             % Scale standardised normal by the std devs.
-            e = zeros(ne, numInit+numOfPeriods);
+            e = zeros(ne, numInit+numPeriods);
             e(:, indexZeroCorr) = ...
                 vecStdCorr(1:ne, indexZeroCorr) .* thisSampleE(:, indexZeroCorr);
             if any(~indexZeroCorr)
@@ -416,7 +414,7 @@ return
                         ];
                 else
                     % Efron-bootstrap init cond for alpha from sample.
-                    draw = randi([1, numOfPeriods], 1);
+                    draw = randi([1, numPeriods], 1);
                     a0 = srcAlp(:, draw);
                 end
             else
@@ -465,11 +463,11 @@ return
 
 
     function S = getRandBlockSize( )
-        % Block size determined by geo distribution, must be smaller than numOfPeriods.
+        % Block size determined by geo distribution, must be smaller than numPeriods.
         p = opt.BootstrapMethod ;
         while true
             S = ceil(log(rand)/log(1-p)) ;
-            if S<=numOfPeriods
+            if S<=numPeriods
                 break
             end
         end

@@ -1,11 +1,11 @@
 function X = requestData(~, dbInfo, inputDb, dates, names)
 % requestData  Return input data matrix for selected model names
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 

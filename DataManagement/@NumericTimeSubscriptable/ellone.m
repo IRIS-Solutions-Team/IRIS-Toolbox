@@ -1,21 +1,63 @@
 function [trend, rem] = ellone(this, order, lambda, varargin)
+% ellone  L1 norm trend filtering
+%{
+% ## Syntax ##
+%
+%
+%     output = function(input, ...)
+%
+%
+% ## Input Arguments ##
+%
+%
+% __`input`__ [ | ]
+% >
+% Description
+%
+%
+% ## Output Arguments ##
+%
+%
+% __`output`__ [ | ]
+% >
+% Description
+%
+%
+% ## Options ##
+%
+%
+% __`OptionName=Default`__ [ | ]
+% >
+% Description
+%
+%
+% ## Description ##
+%
+%
+% ## Example ##
+%
+%}
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('NumericTimeSubscriptable.ellone');
-    inputParser.addRequired('InputSeries', @(x) isa(x, 'NumericTimeSubscriptable') && isnumeric(x.Data));
-    inputParser.addRequired('Order', @(x) isequal(x, 1) || isequal(x, 2));
-    inputParser.addRequired('Lambda', @(x) isnumeric(x) && isscalar(x) && x>0);
-    inputParser.addOptional('StartDate', -Inf, @(x) DateWrapper.validateDateInput(x) && isscalar(x));
-    inputParser.addOptional('EndDate', Inf, @(x) DateWrapper.validateDateInput(x) && isscalar(x));
-end
-inputParser.parse(this, order, lambda, varargin{:});
-startDate = inputParser.Results.StartDate;
-endDate = inputParser.Results.EndDate;
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-[data, newStart] = getDataFromTo(this, startDate, endDate);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('NumericTimeSubscriptable.ellone');
+    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable') && isnumeric(x.Data));
+    addRequired(pp, 'order', @(x) isequal(x, 1) || isequal(x, 2));
+    addRequired(pp, 'Lambda', @(x) isnumeric(x) && isscalar(x) && x>0);
+
+    addParameter(pp, 'Range', Inf, @DateWrapper.validateRangeInput);
+end
+parse(pp, this, order, lambda, varargin{:});
+opt = pp.Options;
+
+%--------------------------------------------------------------------------
+
+[data, newStart] = getDataFromTo(this, opt.Range);
 numPeriods = size(data, 1);
 
 d = eye(numPeriods-order, numPeriods);

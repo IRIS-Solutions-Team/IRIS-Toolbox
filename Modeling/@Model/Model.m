@@ -128,7 +128,7 @@
 %
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 classdef Model ...
     < model ...
@@ -426,8 +426,17 @@ classdef Model ...
         varargout = getIdOfInitialConditions(varargin)
         varargout = getInxOfInitInPresample(varargin)
         varargout = prepareHashEquations(varargin)
+        varargout = prepareLinearSystem(varargin)
         varargout = simulateTimeFrames(varargin)
     end % methods
+
+
+
+
+    methods (Access=protected, Hidden)
+        varargout = varyParams(varargin)
+    end % methods
+
 
 
     methods (Static, Hidden) % Simulation methods

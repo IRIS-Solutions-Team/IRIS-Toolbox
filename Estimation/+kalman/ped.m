@@ -224,7 +224,7 @@ for t = 2 : numExtPeriods
     y0 = Zj*a;
     if ~isempty(s.d)
         d = s.d(:, min(t, end));
-        y0 = y0 + d(jy);
+        y0 = y0 + d(jy, 1);
     end
     
     % Prediction MSE, `F(t|t-1)`, for observables available at time t; the
@@ -446,7 +446,7 @@ return
         Zc = Z(cy, :);
         y0c = Zc*a;
         if ~isempty(s.d)
-            y0c = y0c + d(cy);
+            y0c = y0c + d(cy, 1);
         end
         pec = y1(cy, t) - y0c;
         Fc = Zc*P*Zc.' + Sy(cy, cy);
@@ -460,7 +460,7 @@ return
             Zx = Z(xy, :);
             y0x = Zx*ac;
             if ~isempty(s.d)
-                y0x = y0x + d(xy);
+                y0x = y0x + d(xy, 1);
             end
             pex = y1(xy, t) - y0x;
             Fx = Zx*Pc*Zx.' + Sy(xy, xy);

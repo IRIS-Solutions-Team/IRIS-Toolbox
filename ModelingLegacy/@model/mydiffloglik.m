@@ -1,14 +1,18 @@
 function [MLL, score, info, se2] = mydiffloglik(this, data, likOpt, opt)
 % mydiffloglik  Gradient and hessian of log-likelihood function
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 EPSILON = eps( )^(1/3);
+
+vecv = @(x) reshape(x, [ ], 1);
+vech = @(x) reshape(x, 1, [ ]);
+
 
 if ~isfield(opt, 'progress')
     opt.progress = false;
@@ -20,32 +24,32 @@ end
 
 %--------------------------------------------------------------------------
 
-posOfValues = this.Update.PosOfValues;
-posOfStdCorr = this.Update.PosOfStdCorr;
+posValues = this.Update.PosOfValues;
+posStdCorr = this.Update.PosOfStdCorr;
 
 ny = sum(this.Quantity.Type==TYPE(1));
-numOfParams = length(posOfValues);
-[~, numOfPeriods, numDataSets] = size(data);
+numParams = length(posValues);
+[~, numPeriods, numDataSets] = size(data);
 
 MLL = zeros(1, numDataSets);
-score = zeros(1, numOfParams, numDataSets);
-info = zeros(numOfParams, numOfParams, numDataSets);
+score = zeros(1, numParams, numDataSets);
+info = zeros(numParams, numParams, numDataSets);
 se2 = zeros(1, numDataSets);
 
-p = nan(1, numOfParams);
-indexNaNPosValues = isnan(posOfValues);
-indexNaNPosStdCorr = isnan(posOfStdCorr);
-p(~indexNaNPosValues) = this.Variant.Values(:, posOfValues(~indexNaNPosValues), :);
-p(~indexNaNPosStdCorr) = this.Variant.StdCorr(1, posOfStdCorr(~indexNaNPosStdCorr), :);
+p = nan(1, numParams);
+indexNaNPosValues = isnan(posValues);
+indexNaNPosStdCorr = isnan(posStdCorr);
+p(~indexNaNPosValues) = this.Variant.Values(:, posValues(~indexNaNPosValues), :);
+p(~indexNaNPosStdCorr) = this.Variant.StdCorr(1, posStdCorr(~indexNaNPosStdCorr), :);
 
 step = EPSILON * max([abs(p); ones(size(p))], [ ], 1);
-twoSteps = nan(1, numOfParams);
+twoSteps = nan(1, numParams);
 
 throwErr = true;
 
 % Create all parameterisations.
-this = alter(this, 2*numOfParams+1);
-for i = 1 : numOfParams
+this = alter(this, 2*numParams+1);
+for i = 1 : numParams
     pp = p;
     mp = p;
     pp(i) = pp(i) + step(i);
@@ -57,13 +61,16 @@ for i = 1 : numOfParams
     this = update(this, mp, variantRequested);
 end
 
-% Horizontal vectorisation.
-vechor = @(x) x(:)';
-
 if opt.progress
-    % Create progress bar.
+    % Create progress bar
     progress = ProgressBar('IRIS model.diffloglik progress');
 end
+
+kalmanFilterInput = struct( );
+kalmanFilterInput.InputData = [ ];
+kalmanFilterInput.OutputData = [ ];
+kalmanFilterInput.OutputDataAssignFunc = [ ];
+kalmanFilterInput.Options = likOpt;
 
 for iData = 1 : numDataSets
     mainLoop( );
@@ -73,27 +80,27 @@ return
 
 
     function mainLoop( )        
-        dpe = cell(1, numOfParams);
-        dpe(:) = {nan(ny, numOfPeriods)};
+        dpe = cell(1, numParams);
+        dpe(:) = {nan(ny, numPeriods)};
         
-        Fi_pe = zeros(ny, numOfPeriods);
+        Fi_pe = zeros(ny, numPeriods);
         X = zeros(ny);
         
-        Fi_dpe = cell(1, numOfParams);
-        Fi_dpe(1:numOfParams) = {nan(ny, numOfPeriods)};
+        Fi_dpe = cell(1, numParams);
+        Fi_dpe(1:numParams) = {nan(ny, numPeriods)};
         
-        dF = cell(1, numOfParams);
-        dF(:) = {nan(ny, ny, numOfPeriods)};
+        dF = cell(1, numParams);
+        dF(:) = {nan(ny, ny, numPeriods)};
         
-        dFvec = cell(1, numOfParams);
+        dFvec = cell(1, numParams);
         dFvec(:) = {[ ]};
         
-        Fi_dF = cell(1, numOfParams);
-        Fi_dF(:) = {nan(ny, ny, numOfPeriods)};
+        Fi_dF = cell(1, numParams);
+        Fi_dF(:) = {nan(ny, ny, numPeriods)};
 
-        % Call the Kalman filter.
-        temp = getVariant(this, 1);
-        [MLL(iData), Y] = kalmanFilter(temp, data(:, :, iData), [ ], [ ], likOpt);        
+        % Call the Kalman filter
+        kalmanFilterInput.InputData = data(:, :, iData);
+        [MLL(iData), Y] = kalmanFilter(getVariant(this, 1), kalmanFilterInput);
         se2(iData) = Y.V;
         F = Y.F(:, :, 2:end);
         pe = Y.Pe(:, 2:end);
@@ -103,7 +110,7 @@ return
             Fi(j, j, ii) = inv(Fi(j, j, ii));
         end
         
-        for ii = 1 : numOfParams
+        for ii = 1 : numParams
             pm = getVariant(this, 1+2*(ii-1)+1);
             [~, Y] = kalmanFilter(pm, data(:, :, iData), [ ], [ ], likOpt);
             pF =  Y.F(:, :, 2:end);
@@ -118,53 +125,52 @@ return
             dpe{ii}(:, :) = (ppe - mpe) / twoSteps(ii);
         end
         
-        for t = 1 : numOfPeriods
+        for t = 1 : numPeriods
             o = ~isnan(pe(:, t));
-            for ii = 1 : numOfParams
+            for ii = 1 : numParams
                 Fi_dF{ii}(o, o, t) = Fi(o, o, t)*dF{ii}(o, o, t);
             end
         end
         
-        for t = 1 : numOfPeriods
+        for t = 1 : numPeriods
             o = ~isnan(pe(:, t));
-            for ii = 1 : numOfParams
-                temp = dF{ii}(o, o, t);
-                dFvec{t}(:, ii) = temp(:);
+            for ii = 1 : numParams
+                dFvec{t}(:, ii) = vecv(dF{ii}(o, o, t));
                 for jj = 1 : ii
                     % Info(i, j, idata) =  ...
                     %     Info(i, j, idata) ...
                     %     + 0.5*trace(Fi_dF{i}(o, o, t)*Fi_dF{j}(o, o, t)) ...
                     %     + (transpose(dpe{i}(o, t))*Fi_dpe{j}(o, t));
                     % * the first term is data independent
-                    % * trace A*B = vechor(A')*vec(B)
+                    % * trace A*B = vech(A')*vec(B)
                     Xi = transpose(Fi_dF{ii}(o, o, t));
-                    Xi = transpose(Xi(:));
+                    Xi = vech(Xi);
                     Xj = Fi_dF{jj}(o, o, t);
-                    Xj = Xj(:);
+                    Xj = vecv(Xj);
                     info(ii, jj, iData) = info(ii, jj, iData) + Xi*Xj/2;
                 end
             end
         end
         
         % Score vector.
-        for t = 1 : numOfPeriods
+        for t = 1 : numPeriods
             o = ~isnan(pe(:, t));
             Fi_pe(o, t) = Fi(o, o, t)*pe(o, t);
             X(o, o, t) = eye(sum(o)) - Fi_pe(o, t)*transpose(pe(o, t));
             dpevec = [ ];
-            for ii = 1 : numOfParams
+            for ii = 1 : numParams
                 dpevec = [dpevec, dpe{ii}(o, t)]; %#ok<AGROW>
                 Fi_dpe{ii}(o, t) = Fi(o, o, t)*dpe{ii}(o, t);
             end
             score(1, :, iData) = score(1, :, iData) ...
-                + vechor(Fi(o, o, t)*transpose(X(o, o, t)))*dFvec{t}/2 ...
+                + vech(Fi(o, o, t)*transpose(X(o, o, t)))*dFvec{t}/2 ...
                 + transpose(Fi_pe(o, t))*dpevec;
         end
         
         % Information matrix.
-        for t = 1 : numOfPeriods
+        for t = 1 : numPeriods
             o = ~isnan(pe(:, t));
-            for ii = 1 : numOfParams
+            for ii = 1 : numParams
                 for jj = 1 : ii
                     % Info(i, j, idata) =
                     %     Info(i, j, idata)

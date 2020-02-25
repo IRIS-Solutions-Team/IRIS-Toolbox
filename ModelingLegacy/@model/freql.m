@@ -1,48 +1,49 @@
-function [obj, regOutp] = freql(this, inp, ~, ~, likOpt)
+function [obj, regOutp] = freql(this, argin)
 % freql  Approximate likelihood function in frequency domain
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% TODO: Allow for non-stationary measurement variables
+% TODO: Non-stationary measurement variables
 
 STEADY_TOLERANCE = this.Tolerance.Steady;
 TYPE = @int8;
 
+opt = argin.Options;
+
 %--------------------------------------------------------------------------
 
 s = struct( );
-s.NumOutOfLik = length(likOpt.OutOfLik);
+s.NumOutOfLik = numel(argin.Options.OutOfLik);
 s.isObjOnly = nargout==1;
 
-nv = length(this);
-ixy = this.Quantity.Type==TYPE(1);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ny = sum(ixy);
-ne = sum(ixe);
+nv = countVariants(this);
+inxY = this.Quantity.Type==TYPE(1);
+inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+numY = sum(inxY);
+numE = sum(inxE);
 
 % Number of original periods.
-[~, numPeriods, nData] = size(inp);
+[~, numPeriods, numPages] = size(argin.InputData);
 freq = 2*pi*(0 : numPeriods-1)/numPeriods;
 
-% Number of fundemantal frequencies.
+% Number of fundemantal frequencies
 N = 1 + floor(numPeriods/2);
 freq = freq(1:N);
 
 % Band of frequencies.
-frqLo = 2*pi/max(likOpt.Band);
-frqHi = 2*pi/min(likOpt.Band);
+frqLo = 2*pi/max(argin.Options.Band);
+frqHi = 2*pi/min(argin.Options.Band);
 inxFreq = freq>=frqLo & freq<=frqHi;
 
-% Drop zero frequency unless requested.
-if ~likOpt.Zero
+% Drop zero frequency unless requested
+if ~argin.Options.Zero
     inxFreq(freq==0) = false;
 end
-inxFreq = find(inxFreq);
-numFreq = length(inxFreq);
+numFreq = nnz(inxFreq);
 
 % Kronecker delta.
 kr = ones(1, N);
@@ -52,14 +53,16 @@ else
     kr(2:end) = 2;
 end
 
-numRuns = max(nv, nData);
+numRuns = max(nv, numPages);
 
-% Pre-allocate output data.
-nObj = 1;
-if likOpt.ObjFuncContributions
-    nObj = numFreq + 1;
+%
+% Pre-allocate output data
+%
+numObjFuncs = 1;
+if argin.Options.ObjFuncContributions
+    numObjFuncs = numFreq + 1;
 end
-obj = nan(nObj, numRuns);
+obj = nan(numObjFuncs, numRuns);
 
 if ~s.isObjOnly
     regOutp = struct( );
@@ -69,12 +72,17 @@ if ~s.isObjOnly
 end
 
 for i = 1 : numRuns
-    % __Next Data__
-    % Measurement variables.
-    y = inp(1:ny, :, min(i, end));
-    % Exogenous variables in DTrend equations.
-    g = inp(ny+1:end, :, min(i, end));
-    inxToExclude = likOpt.InxToExclude(:) | any(isnan(y), 2);
+    %
+    % Next measurement variables
+    %
+    y = argin.InputData(1:numY, :, min(i, end));
+
+    %
+    % Next exogenous variables in dtrend equations
+    %
+    g = argin.InputData(numY+1:end, :, min(i, end));
+
+    inxToExclude = argin.Options.InxToExclude(:) | any(isnan(y), 2);
     nYIncl = sum(~inxToExclude);
     inxOfDiag = logical(eye(nYIncl));
     
@@ -91,20 +99,20 @@ for i = 1 : numRuns
             throw( exception.Base(THIS_ERROR, 'error') );
         end
         T = T(nf+numOfUnitRoots+1:end, numOfUnitRoots+1:end);
-        R = R(nf+numOfUnitRoots+1:end, 1:ne);
+        R = R(nf+numOfUnitRoots+1:end, 1:numE);
         Z = Z(~inxToExclude, numOfUnitRoots+1:end);
         H = H(~inxToExclude, :);
         Sa = R*Omg*transpose(R);
         Sy = H(~inxToExclude, :)*Omg*H(~inxToExclude, :).';
         
-        % Fourier transform of steady state.
-        isSstate = false;
-        if ~likOpt.Deviation
-            id = find(ixy);
+        % Fourier transform of steady state
+        isSteady = false;
+        if ~argin.Options.Deviation
+            id = find(inxY);
             isDelog = false;
             S = createTrendArray(this, i, isDelog, id, 1:numPeriods);
-            isSstate = any(S(:) ~= 0);
-            if isSstate
+            isSteady = any(S(:) ~= 0);
+            if isSteady
                 S = S.';
                 S = fft(S);
                 S = S.';
@@ -115,30 +123,30 @@ for i = 1 : numRuns
         
     % Fourier transform of deterministic trends
     isTrendEquations = false;
-    nOutOfLik = 0;
-    if likOpt.DTrends
-        [W, M] = evalTrendEquations(this, likOpt.OutOfLik, g, i);
+    numPouts = 0;
+    if argin.Options.DTrends
+        [W, M] = evalTrendEquations(this, argin.Options.OutOfLik, g, i);
         isTrendEquations = any(W(:)~=0);
         if isTrendEquations
             W = fft(W.').';
         end
-        isOutOfLik = ~isempty(M) && any(M(:) ~= 0);
-        if isOutOfLik
+        isPouts = ~isempty(M) && any(M(:) ~= 0);
+        if isPouts
             M = permute(M, [3, 1, 2]);
             M = fft(M);
             M = ipermute(M, [3, 1, 2]);
         end
-        nOutOfLik = size(M, 2);
+        numPouts = size(M, 2);
     end
         
     % Subtract sstate trends from observations; note that fft(y-s)
     % equals fft(y) - fft(s).
-    if ~likOpt.Deviation && isSstate
+    if ~argin.Options.Deviation && isSteady
         y = y - S;
     end
     
     % Subtract deterministic trends from observations.
-    if likOpt.DTrends && isTrendEquations
+    if argin.Options.DTrends && isTrendEquations
         y = y - W;
     end
     
@@ -152,20 +160,20 @@ for i = 1 : numRuns
     
     L0 = zeros(1, numFreq+1);
     L1 = zeros(1, numFreq+1);
-    L2 = zeros(nOutOfLik, nOutOfLik, numFreq+1);
-    L3 = zeros(nOutOfLik, numFreq+1);
+    L2 = zeros(numPouts, numPouts, numFreq+1);
+    L3 = zeros(numPouts, numFreq+1);
     numObs = zeros(1, numFreq+1);
     
     pos = 0;
-    for j = inxFreq
+    for j = reshape(find(inxFreq), 1, [ ])
         pos = pos + 1;
-        ithFreq = freq(j);
-        iDelta = kr(j);
-        iY = y(:, j);
+        freq__ = freq(j);
+        delta__ = kr(j);
+        y__ = y(:, j);
         hereOneFrequency( );
     end
     
-    [obj(:, i), V, Delta, PDelta] = kalman.oolik(L0, L1, L2, L3, numObs, likOpt);
+    [obj(:, i), V, Delta, PDelta] = kalman.oolik(L0, L1, L2, L3, numObs, opt);
     
     if s.isObjOnly
         continue
@@ -180,16 +188,16 @@ return
     
     
     function hereOneFrequency( )
-        numObs(1, 1+pos) = iDelta*nYIncl;
-        ZiW = Z / ((eye(size(T)) - T*exp(-1i*ithFreq)));
+        numObs(1, 1+pos) = delta__*nYIncl;
+        ZiW = Z / ((eye(size(T)) - T*exp(-1i*freq__)));
         G = ZiW*Sa*ZiW' + Sy;
         G(inxOfDiag) = real(G(inxOfDiag));
-        L0(1, 1+pos) = iDelta*real(log(det(G)));
-        L1(1, 1+pos) = iDelta*real((y(:, j)'/G)*iY);
-        if isOutOfLik
+        L0(1, 1+pos) = delta__*real(log(det(G)));
+        L1(1, 1+pos) = delta__*real((y(:, j)'/G)*y__);
+        if isPouts
             MtGi = M(:, :, j)'/G;
-            L2(:, :, 1+pos) = iDelta*real(MtGi*M(:, :, j));
-            L3(:, 1+pos) = iDelta*real(MtGi*iY);
+            L2(:, :, 1+pos) = delta__*real(MtGi*M(:, :, j));
+            L3(:, 1+pos) = delta__*real(MtGi*y__);
         end
     end%
 end%

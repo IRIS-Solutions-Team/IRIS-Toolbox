@@ -58,15 +58,15 @@ function [mll, grad, hess, v] = diffloglik(this, data, range, parameterNames, va
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
 pp = inputParser( );
-pp.addRequired('Inp', @(x) isstruct(x) || iscell(x));
-pp.addRequired('Range', @DateWrapper.validateDateInput);
-pp.addRequired('PList', @(x) ischar(x) || iscellstr(x));
-pp.parse(data, range, parameterNames);
+addRequired(pp, 'Inp', @(x) isstruct(x) || iscell(x));
+addRequired(pp, 'Range', @DateWrapper.validateDateInput);
+addRequired(pp, 'PList', @(x) ischar(x) || iscellstr(x));
+parse(pp, data, range, parameterNames);
 
 [opt, varargin] = passvalopt('model.diffloglik', varargin{:});
 
@@ -93,7 +93,7 @@ data = datarequest('yg*', this, data, range);
 % * --clip means remove trailing NaNs
 % * --presample means include one presample period
 %
-lik.StdCorr = varyStdCorr(this, range, lik, '--clip', '--presample');
+lik.StdCorr = varyStdCorr(this, range, lik.Override, lik.Multiply, '--clip', '--presample');
 
 
 % Requested output data

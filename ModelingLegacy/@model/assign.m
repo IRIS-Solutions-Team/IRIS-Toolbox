@@ -90,7 +90,7 @@ n = length(varargin);
 ne = sum(ixe);
 nStdCorr = ne + ne*(ne-1)/2;
 nv = length(this.Variant);
-numOfQuantities = length(this.Quantity);
+numQuantities = length(this.Quantity);
 inputNames = cell(1, 0);
 invalidLength = cell(1, 0);
 invalidImag = cell(1, 0);
@@ -98,8 +98,8 @@ invalidLhsNames = cell(1, 0);
 
 % `Assign` and `stdcorr` are logical indices of values that have been
 % assigned.
-indexValues = false(1, numOfQuantities);
-indexStdCorr = false(1, nStdCorr);
+inxValues = false(1, numQuantities);
+inxStdCorr = false(1, nStdCorr);
 
 if isempty(varargin)
     % Do nothing.
@@ -139,16 +139,16 @@ elseif n<=2 && iscellstr(varargin{1})
     posStdCorr = ell.PosStdCorr;
     indexQuantityRhs = ~isnan(posQuantity);
     posQuantity = posQuantity(indexQuantityRhs);
-    indexStdCorrRhs = ~isnan(posStdCorr);
-    posStdCorr = posStdCorr(indexStdCorrRhs);
-    invalidLhsNames = inputNames(~indexQuantityRhs & ~indexStdCorrRhs);
+    inxStdCorrRhs = ~isnan(posStdCorr);
+    posStdCorr = posStdCorr(inxStdCorrRhs);
+    invalidLhsNames = inputNames(~indexQuantityRhs & ~inxStdCorrRhs);
     
     if isempty(varargin)
         % Initialize quick-assign access and return.
         POS_VALUES = posQuantity;
         POS_STDCORR = posStdCorr;
         INDEX_VALUES_RHS = indexQuantityRhs;
-        INDEX_STDCORR_RHS = indexStdCorrRhs;
+        INDEX_STDCORR_RHS = inxStdCorrRhs;
         getNamesAssigned( );
         NAMES_ASSIGNED = namesAssigned;
         
@@ -156,12 +156,12 @@ elseif n<=2 && iscellstr(varargin{1})
         return
     elseif isnumeric(varargin{1})
         value = varargin{1};
-        assignListAndValue( );
+        assignListValue( );
         assert( ...
             isempty(invalidLhsNames), ...
             exception.Base('Model:InvalidName', 'error'), ...
             '', invalidLhsNames{:} ...
-        ); %#ok<GTARG>
+        );
     else
         utils.error('modelobj:assign', '#Invalid_assign:model');
     end
@@ -194,23 +194,22 @@ elseif n<=2 && (isstruct(varargin{1}) || isa(varargin{1}, 'table'))
     posQuantity = ell.PosName;
     posStdCorr = ell.PosStdCorr;
     for i = 1 : numNames
-        ithName = inputNames{i};
         if iscell(inputValues)
-            ithValue = inputValues{i};
+            value__ = inputValues{i};
         else
-            ithValue = inputValues(i, :);
+            value__ = inputValues(i, :);
         end
-        % Do not check if names are valid LHS names in assignments from databases.
+        % Do not check if names are valid LHS names in assignments from databases
         if isnan(posQuantity(i)) && isnan(posStdCorr(i))
             continue
         end
-        assignNameAndValue(ithName, posQuantity(i), posStdCorr(i), ithValue);
+        hereAssignPositionValue(inputNames{i}, posQuantity(i), posStdCorr(i), value__);
     end
     reportInvalid( );
 
-elseif all(cellfun(@(x) ischar(x) || isa(x, 'rexp'), varargin(1:2:end)))
+elseif all(cellfun(@(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp'), varargin(1:2:end)))
     % m = assign(m, name, value, name, value, ...)
-    % name is char or char list or rexp or double dot but not cellstr.
+    % name is char or char list or rexp or double-dot list but not cellstr
     inputNames = varargin(1:2:end);
     numNames = length(inputNames);
     % Remove equal signs from assign(m, 'alpha=', 1).
@@ -225,36 +224,40 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'rexp'), varargin(1:2:end)))
     invalidLength = cell(1, 0);
     invalidImag = cell(1, 0);
     for i = 1 : numNames
-        name = inputNames{i};
-        value = inputValues{i};
-        if isa(name, 'rexp') || isempty(regexp(name, '\W', 'once'))
+        if isa(inputNames{i}, 'rexp') || isempty(regexp(inputNames{i}, '\W', 'once'))
+            %
             % Plain name
-            assignNameAndValue(name, [ ], [ ], inputValues{i});
-        else
-            % List of names:
-            % A1, A2, B
-            % or double-dot list 
-            % A1,..,A2
-            list = name;
-            if ~isempty(strfind(list, ',..,'))
-                list = parser.DoubleDot.parse(list, parser.DoubleDot.COMMA);
+            %
+            name__ = inputNames{i};
+            [posValues__, posStdCorr__] = hereGetPositions(name__);
+            if ~isempty(posValues__) || ~isempty(posStdCorr__)
+                hereAssignPositionValue(name__, posValues__, posStdCorr__, inputValues{i});
             end
-            list = regexp(list, '\w+', 'match');
-            for j = 1 : length(list)
-                ddName = list{j};
-                if size(value, 2)==1
-                    ddValue = value;
-                else
-                    ddValue = value(:, j, :);
+        else
+            %
+            % List of names: 'A1, A2, B'
+            % Double-dot list: 'A1,..,A2'
+            %
+            list__ = inputNames{i};
+            value__ = inputValues{i};
+            if contains(list__, ',..,')
+                list__ = parser.DoubleDot.parse(list__, parser.DoubleDot.COMMA);
+            end
+            list__ = regexp(list__, '\w+', 'match');
+            for j = 1 : numel(list__)
+                [posValues__, posStdCorr__] = hereGetPositions(list__{j});
+                if ~isempty(posValues__) || ~isempty(posStdCorr__)
+                    hereAssignPositionValue(list__{j}, posValues__, posStdCorr__, value__(:, min(j, end), :));
                 end
-                assignNameAndValue(ddName, [ ], [ ], ddValue);
             end
         end
     end
     reportInvalid( );
     if ~isempty(invalidLhsNames)
-        throw( exception.Base('Model:InvalidName', 'error'), ...
-               '', invalidLhsNames{:} );
+        throw( ...
+            exception.Base('Model:InvalidName', 'error'), ...
+            '', invalidLhsNames{:} ...
+        ); %#ok<GTARG>
     end
 
 else
@@ -263,7 +266,7 @@ else
            class(this) ); %#ok<GTARG>
 end
 
-% Reset persistent variables in each non-quick-assign calls.
+% Reset persistent variables in each non-quick-assign calls
 POS_VALUES = [ ];
 INDEX_VALUES_RHS = [ ];
 POS_STDCORR = [ ];
@@ -271,11 +274,13 @@ INDEX_STDCORR_RHS = [ ];
 NAMES_ASSIGNED = { };
 
 % Steady states cannot be changed from 0+0i.
-indexOfNonzeroShocks = false(1, numOfQuantities);
-indexOfNonzeroShocks(ixe) = any(this.Variant.Values(1, ixe, :)~=0, 3);
-if any(indexOfNonzeroShocks)
-    throw( exception.Base('Model:CannotChangeSteadyShocks', 'error'), ...
-           this.Quantity.Name{indexOfNonzeroShocks} );
+inxNonzeroShocks = false(1, numQuantities);
+inxNonzeroShocks(ixe) = any(this.Variant.Values(1, ixe, :)~=0, 3);
+if any(inxNonzeroShocks)
+    throw( ...
+        exception.Base('Model:CannotChangeSteadyShocks', 'error'), ...
+        this.Quantity.Name{inxNonzeroShocks} ...
+    );
 end
 
 if nargout<2
@@ -300,12 +305,16 @@ return
                 case '-excludenans'
                     flags.ExcludeNaNs = true;
                 otherwise
-                    throw( exception.Base('Model:INVALID_ASSIGN_FLAG', 'error'), ...
-                        varargin{1} );
+                    throw( ...
+                        exception.Base('Model:INVALID_ASSIGN_FLAG', 'error'), ...
+                        varargin{1} ...
+                    );
             end
             varargin(1) = [ ];
         end
     end%
+
+
 
 
     function assignFromModelObj( )
@@ -332,9 +341,9 @@ return
                          ['Cannot assign from object ', ...
                          'with different number of parameterisations.'] );
         end
-        numOfQuantities = length(this.Quantity);
-        indexOfMatchingTypes = true(1, numOfQuantities);
-        for ii = 1 : numOfQuantities
+        numQuantities = length(this.Quantity);
+        inxMatchingTypes = true(1, numQuantities);
+        for ii = 1 : numQuantities
             name = this.Quantity.Name{ii};
             if ~isequal(namesToAssign, @all) && ~any(strcmpi(name, namesToAssign))
                 continue
@@ -352,47 +361,53 @@ return
                     newValue = real(newValue) + 1i*imag(oldValue);
                 end
                 this.Variant.Values(1, ii, :) = newValue;
-                indexValues(ii) = true;
+                inxValues(ii) = true;
             else
-                indexOfMatchingTypes(ii) = false;
+                inxMatchingTypes(ii) = false;
             end
         end
-        listOfStdCorr = [ getStdNames(this.Quantity), getCorrNames(this.Quantity) ];
-        listOfStdCorrRhs = [ getStdNames(rhs.Quantity), getCorrNames(rhs.Quantity) ];
+        listStdCorr = [ getStdNames(this.Quantity), getCorrNames(this.Quantity) ];
+        listStdCorrRhs = [ getStdNames(rhs.Quantity), getCorrNames(rhs.Quantity) ];
         if ~isempty(cloneTemplate)
-            listOfStdCorrRhs = model.File.cloneAllNames(listOfStdCorrRhs, cloneTemplate);
+            listStdCorrRhs = model.File.cloneAllNames(listStdCorrRhs, cloneTemplate);
         end
-        for ii = 1 : length(listOfStdCorr)
-            ixRhs = strcmpi(listOfStdCorr{ii}, listOfStdCorrRhs);
+        for ii = 1 : length(listStdCorr)
+            ixRhs = strcmpi(listStdCorr{ii}, listStdCorrRhs);
             if ~any(ixRhs)
                 continue
             end
             this.Variant.StdCorr(1, ii, :) = rhs.Variant.StdCorr(1, ixRhs, :);
-            indexStdCorr(ii) = true;
+            inxStdCorr(ii) = true;
         end
-        if any(~indexOfMatchingTypes)
+        if any(~inxMatchingTypes)
             utils.warning( 'modelobj:assign', ...
                            'This name not assigned because of type mismatch: %s ', ...
-                           this.Quantity.Name{~indexOfMatchingTypes} );
+                           this.Quantity.Name{~inxMatchingTypes} );
         end
     end%
 
 
-    function assignNameAndValue(name, posQuantity, posStdCorr, value)
-        % One or more names, one value.
-        if isempty(posQuantity) && isempty(posStdCorr)
-            ell = lookup(this.Quantity, name);
-            indexValues = ell.IxName;
-            indexStdCorr = ell.IxStdCorr;
-            if ~any(indexValues) && ~any(indexStdCorr)
-                if ~isa(inputNames{i}, 'rexp')
-                    invalidLhsNames{end+1} = name;
-                end
-                return
+
+    function [posValues, posStdCorr] = hereGetPositions(name)
+        ell__ = lookup(this.Quantity, name);
+        if ~any(ell__.IxName) && ~any(ell__.IxStdCorr)
+            % Do not report rexps that match no name
+            if ~isa(inputNames{i}, 'rexp')
+                invalidLhsNames{end+1} = name;
             end
-            posQuantity = find(indexValues);
-            posStdCorr = find(indexStdCorr);
+            posValues = [ ];
+            posStdCorr = [ ];
+            return
         end
+        posValues = find(ell__.IxName);
+        posStdCorr = find(ell__.IxStdCorr);
+    end%
+
+
+
+
+    function hereAssignPositionValue(name, posValues, posStdCorr, value)
+        % One or more names, one value
         value = value(:);
         value = permute(value, [2, 3, 1]);
         numValues = numel(value);
@@ -404,13 +419,13 @@ return
         isValidImag = all(imag(value)==0) ...
             || ( ~flags.Growth && ~flags.Level ...
             && all(isnan(posStdCorr)) ...
-            && ~any(this.Quantity.Type(posQuantity)==TYPE(4)) );
+            && ~any(this.Quantity.Type(posValues)==TYPE(4)) );
         if ~isValidImag
             invalidImag{end+1} = name;
             return
         end
-        % Assign Variant.Values.
-        for pos = posQuantity(~isnan(posQuantity))
+        % Assign Variant.Values
+        for pos = posValues(~isnan(posValues))
             if flags.Level || flags.Growth
                 oldValues = this.Variant.Values(:, pos, :);
                 if flags.Growth
@@ -421,14 +436,16 @@ return
             end
             this.Variant.Values(:, pos, :) = value;
         end
-        % Assign Variant.StdCorr.
+        % Assign Variant.StdCorr
         for pos = posStdCorr(~isnan(posStdCorr))
             this.Variant.StdCorr(:, pos, :) = value;
         end
     end%
 
 
-    function assignListAndValue( )
+
+
+    function assignListValue( )
         if size(value, 2)==1 && numNames>1
             value = repmat(value, 1, numNames, 1);
         end
@@ -449,14 +466,16 @@ return
             end
         end
         if any(indexQuantityRhs)
-            indexValues(posQuantity) = true;
+            inxValues(posQuantity) = true;
             this.Variant.Values(:, posQuantity, :) = value(:, indexQuantityRhs, :);
         end
-        if any(indexStdCorrRhs)
-            indexStdCorr(posStdCorr) = true;
-            this.Variant.StdCorr(:, posStdCorr, :) = value(:, indexStdCorrRhs, :);
+        if any(inxStdCorrRhs)
+            inxStdCorr(posStdCorr) = true;
+            this.Variant.StdCorr(:, posStdCorr, :) = value(:, inxStdCorrRhs, :);
         end
     end%
+
+
 
 
     function reportInvalid( )
@@ -474,13 +493,15 @@ return
     end%
 
 
+
+
     function getNamesAssigned( )
-        namesAssigned = this.Quantity.Name(indexValues);
+        namesAssigned = this.Quantity.Name(inxValues);
         lse = this.Quantity.Name(ixe);
-        namesAssigned = [namesAssigned, strcat('std_', lse(indexStdCorr(1:ne)))];
+        namesAssigned = [namesAssigned, strcat('std_', lse(inxStdCorr(1:ne)))];
         pos = find( tril(ones(ne), -1)==1 );
         temp = zeros(ne);
-        temp(pos(indexStdCorr(ne+1:end))) = 1;
+        temp(pos(inxStdCorr(ne+1:end))) = 1;
         [row, col] = find(temp==1);
         namesAssigned = [ namesAssigned, ...
             strcat('corr_', lse(row), '__', lse(col)) ];

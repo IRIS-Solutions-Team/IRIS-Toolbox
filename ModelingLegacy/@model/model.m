@@ -427,6 +427,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     
     
     methods (Access=protected, Hidden)
+        varargout = assignNameValue(varargin)
         varargout = affected(varargin)
         varargout = build(varargin)
         varargout = chkStructureAfter(varargin)
@@ -520,11 +521,11 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         function this = model(varargin)
 % model  Legacy model object; use Model (capitalized) instead
 %
-% Legacy IRIS object
+% Legacy [IrisToolbox] object
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
             persistent pp ppOptimal ppParser
             if isempty(pp)
@@ -552,6 +553,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 addParameter(pp, 'stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
                 addParameter(pp, 'stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
             end
+
             if isempty(ppParser)
                 ppParser = extend.InputParser('model.model');
                 ppParser.KeepUnmatched = true;
@@ -561,6 +563,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 addParameter(ppParser, {'SteadyOnly', 'SstateOnly'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
                 addParameter(ppParser, {'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
             end
+
             if isempty(ppOptimal)
                 ppOptimal = extend.InputParser('model.model');
                 ppOptimal.KeepUnmatched = true;
@@ -587,7 +590,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                    || isa(varargin{1}, 'model.File')
                     modelFile = varargin{1};
                     varargin(1) = [ ];
-                    [opt, parserOpt, optimalOpt] = processOptions( );
+                    [opt, parserOpt, optimalOpt] = hereProcessOptions( );
                     this.IsLinear = opt.Linear;
                     this.IsGrowth = opt.Growth;
                     [this, opt] = file2model(this, modelFile, opt, parserOpt, optimalOpt);
@@ -595,7 +598,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 elseif isa(varargin{1}, 'model')
                     this = varargin{1};
                     varargin(1) = [ ];
-                    opt = processOptions( );
+                    opt = hereProcessOptions( );
                     this = build(this, opt);
                 end
             end
@@ -603,8 +606,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
             return
             
             
-                function [opt, parserOpt, optimalOpt] = processOptions( )
-                    pp.parse(varargin{:});
+                function [opt, parserOpt, optimalOpt] = hereProcessOptions( )
+                    parse(pp, varargin{:});
                     opt = pp.Options;
 
                     % Optimal policy options
@@ -639,6 +642,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                     end
                     opt.Assign.SteadyOnly = parserOpt.SteadyOnly;
                     opt.Assign.Linear = opt.Linear;
+
                     % Legacy options
                     opt.Assign.sstateonly = opt.Assign.SteadyOnly;
                     opt.Assign.linear = opt.Assign.Linear;

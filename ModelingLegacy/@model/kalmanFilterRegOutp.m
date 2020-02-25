@@ -2,11 +2,11 @@ function [F, Pe, V, delta, PDelta, sampleCov, this] ...
     = kalmanFilterRegOutp(this, regOutp, xRange, likOpt, opt);
 % kalmanFilterRegOutp  Postprocess regular (non-hdata) output arguments from the Kalman filter or FD lik.
 %
-% Backend IRIS function.
-% No help provided.
+% Backend [IrisToolbox] method
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 try
     isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
