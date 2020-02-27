@@ -28,7 +28,7 @@ for i = 1 : numNames
     elseif ~isnan(posStdCorr__)
         this.Variant.StdCorr(:, posStdCorr__, :) = values{i};
     else
-        inxValid(i) = false;k
+        inxValid(i) = false;
     end
 end
 

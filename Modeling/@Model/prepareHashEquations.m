@@ -1,16 +1,47 @@
-function [hashEquationsAsFunction, numOfHasEquations] = prepareHashEquations(this, rect, data)
+function [ ...
+    hashEquationsAll, ...
+    hashEquationsIndividually, ...
+    hashEquationsInput, ...
+    hashIncidence ...
+] = prepareHashEquations(this)
+% prepareHashEquations  Prepare anonymous functions for evaluating hash equations
+% 
+% Backend [IrisToolbox] method
+% No help provided
 
-% Function to evaluate hash equations
-eqtn = [ this.Equation.Dynamic{this.Equation.InxOfHashEquations} ];
-eqtn = [ '[', vectorize(eqtn), ']', ];
-rect.HashEquationsFunction = str2func([this.PREAMBLE_DYNAMIC, eqtn]);
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+%--------------------------------------------------------------------------
+
+%
+% Select dynamic hash equations
+%
+inxHash = this.Equation.InxOfHashEquations;
+eqtn = this.Equation.Dynamic(inxHash);
+eqtn = cellfun(@vectorize, eqtn, 'UniformOutput', false);
+preamble = this.PREAMBLE_DYNAMIC;
+
+%
+% Function to evaluate all hash equations at once
+%
+hashEquationsAll = str2func([preamble, '[', eqtn{:}, ']']);
+
+%
+% Functions to evaluate all hash equations individually
+%
+hashEquationsIndividually = cellfun(@(x) str2func([preamble, x]), eqtn, 'UniformOutput', false);
+
+%
+% Individual equtions in their user input forms
+%
+hashEquationsInput = this.Equation.Input(inxHash);
+
+%
 % Incidence of YX across hash equations
-inxOfHashEquations = this.Equation.InxOfHashEquations;
-hashIncidence = selectEquation(this.Incidence.Dynamic, inxOfHashEquations);
+%
+hashIncidence = selectEquation(this.Incidence.Dynamic, inxHash);
 hashIncidence = removeTrailingShifts(hashIncidence);
-rect.HashIncidence = hashIncidence;
-
-data.NonlinAddf = zeros(nnz(inxOfHashEquations), data.NumOfColumns);
 
 end%
+

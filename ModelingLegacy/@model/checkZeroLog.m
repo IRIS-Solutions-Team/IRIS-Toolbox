@@ -1,11 +1,11 @@
-function [flag, list] = checkZeroLog(this, variantsRequested)
-% checkZeroLog  Check steady-state levels of log-variables for zeros
+function [flag, list, inxInvalidLevel, inxInvalidGrowth] = checkZeroLog(this, variantsRequested)
+% checkZeroLog  Check steady levels and growth rates of log-variables for non-positive numbers
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided 
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 if nargin<2
     variantsRequested = ':';
@@ -13,18 +13,44 @@ end
 
 %--------------------------------------------------------------------------
 
-inxOfLog = this.Quantity.InxOfLog;
-absSteadyLevel  = abs(real(this.Variant.Values(:, :, variantsRequested)));
+inxLog = this.Quantity.InxOfLog;
+level = real(this.Variant.Values(:, :, variantsRequested));
+growth = imag(this.Variant.Values(:, :, variantsRequested));
 
-inxOfZeroLogs = inxOfLog ...
-              & any(absSteadyLevel<=this.Tolerance.Steady, 3);
+inxInvalidLevel = bsxfun(@and, inxLog, level<=this.Tolerance.Steady);
+inxInvalidLevelReport = any(inxInvalidLevel, 3);
 
-flag = ~any(inxOfZeroLogs);
-list = this.Quantity.Name(inxOfZeroLogs);
+inxInvalidGrowth = bsxfun(@and, inxLog, growth<0);
+inxInvalidGrowthReport = any(inxInvalidGrowth, 3);
 
-if ~flag
-    throw( exception.Base('Model:LOG_VARIABLE_ZERO_STEADY', 'warning'), ...
-           list{:} );
+flag = ~any(inxInvalidLevelReport) && ~any(inxInvalidGrowthReport);
+list = cell.empty(1, 0);
+if flag
+    return
+end
+
+if any(inxInvalidLevelReport)
+    listLevel = this.Quantity.Name(inxInvalidLevelReport);
+    thisError = [ 
+        "Model:InvalidSteadyLogVariable"
+        "Steady-state level of this log variable is zero or negative: %s"
+    ];
+    throw(exception.Base(thisError, 'warning'), listLevel{:});
+    list = [list, listLevel];
+end
+
+if any(inxInvalidGrowthReport)
+    listGrowth = this.Quantity.Name(inxInvalidGrowthReport);
+    thisError = [ 
+        "Model:InvalidSteadyLogVariable"
+        "Steady-state rate of change of this log variable is zero or negative: %s"
+    ];
+    throw(exception.Base(thisError, 'warning'), listGrowth{:});
+    list = [list, listGrowth];
+end
+
+if ~isempty(list)
+    list = unique(list, 'stable');
 end
 
 end%

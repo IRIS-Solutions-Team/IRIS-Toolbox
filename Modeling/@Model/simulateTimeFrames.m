@@ -1,11 +1,11 @@
 function prepared = simulateTimeFrames(this, systemProperty, run, prepareOnly)
 % simulateTimeFrames  Implement simulation by time frames
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 if nargin<4
@@ -36,53 +36,65 @@ needsEvalTrends = runningData.NeedsEvalTrends(min(run, end));
 
 % Set up @simulate.Data from @Model and @Plan, update parameters and
 % steady trends and measurement trends
-vthData = simulate.Data.fromModelAndPlan(this, run, plan, runningData);
-vthData.FirstColumnOfSimulation = firstColumnToRun;
-vthData.LastColumnOfSimulation = lastColumnToRun;
-vthData.Window = runningData.Window;
-vthData.Initial = runningData.Initial;
-vthData.SolverOptions = runningData.SolverOptions;
+data__ = simulate.Data.fromModelAndPlan(this, run, plan, runningData);
+data__.FirstColumnOfSimulation = firstColumnToRun;
+data__.LastColumnOfSimulation = lastColumnToRun;
+data__.Window = runningData.Window;
+data__.Initial = runningData.Initial;
+data__.SolverOptions = runningData.SolverOptions;
 
 if method==solver.Method.STACKED || method==solver.Method.STATIC
     if deviation
-        vthData.YXEPG = addSteadyTrends(vthData, vthData.YXEPG);
-        vthData.Deviation = false;
+        data__.YXEPG = addSteadyTrends(data__, data__.YXEPG);
+        data__.Deviation = false;
     end
 else
-    vthData.Deviation = deviation;
+    data__.Deviation = deviation;
 end
 
 % Set up @Rectangular object for simulation
-vthRect = simulate.Rectangular.fromModel(this, run);
-vthRect.SparseShocks = runningData.SparseShocks;
-vthRect.Deviation = vthData.Deviation;
-vthRect.SimulateY = true;
-vthRect.Method = method;
-vthRect.PlanMethod = plan.Method;
-vthRect.NeedsEvalTrends = vthData.NeedsEvalTrends;
+rect__ = simulate.Rectangular.fromModel(this, run);
+rect__.SparseShocks = runningData.SparseShocks;
+rect__.Deviation = data__.Deviation;
+rect__.SimulateY = true;
+rect__.Method = method;
+rect__.PlanMethod = plan.Method;
+rect__.NeedsEvalTrends = data__.NeedsEvalTrends;
 
+%
 % Equation-selective specific properties
+%
 if method==solver.Method.SELECTIVE
-    prepareHashEquations(this, vthRect, vthData);
+    % Prepare hash equations
+    [  ...
+        rect__.HashEquationsAll, ...
+        rect__.HashEquationsIndividually, ...
+        rect__.HashEquationsInput, ...
+        rect__.HashIncidence ...
+    ] = prepareHashEquations(this);
+
+    % Reset nonlin add factor array
+    numHashEquations = numel(rect__.HashEquationsIndividually);
+    data__.NonlinAddf = zeros(numHashEquations, data__.NumOfColumns);
 end
 
 % Split shocks into AnticipatedE and UnanticipatedE properties on
 % the whole simulation range
-% retrieveE(vthData);
-[ vthData.AnticipatedE, ...
-  vthData.UnanticipatedE ] = simulate.Data.splitE( vthData.E, ...
-                                                   vthData.AnticipationStatusOfE, ...
+% retrieveE(data__);
+[ data__.AnticipatedE, ...
+  data__.UnanticipatedE ] = simulate.Data.splitE( data__.E, ...
+                                                   data__.AnticipationStatusOfE, ...
                                                    baseRangeColumns );
 
 % Retrieve time frames
-timeFrames = runningData.TimeFrames{min(run, end)};
-vthData.MixinUnanticipated = runningData.MixinUnanticipated(min(run, end));
+timeFrames__ = runningData.TimeFrames{min(run, end)};
+data__.MixinUnanticipated = runningData.MixinUnanticipated(min(run, end));
 
 % Simulate @Rectangular object one timeFrame at a time
-numTimeFrames = size(timeFrames, 1);
+numTimeFrames = size(timeFrames__, 1);
 needsUpdateShocks = false;
-vthExitFlags = repmat(solver.ExitFlag.IN_PROGRESS, 1, numTimeFrames);
-vthDiscrepancyTables = cell(1, numTimeFrames);
+exitFlags__ = repmat(solver.ExitFlag.IN_PROGRESS, 1, numTimeFrames);
+discrepancyTables__ = cell(1, numTimeFrames);
 
 
 % 
@@ -91,11 +103,11 @@ vthDiscrepancyTables = cell(1, numTimeFrames);
 
 % /////////////////////////////////////////////////////////////////////////
 for frame = 1 : numTimeFrames
-    setTimeFrame(vthRect, timeFrames(frame, :));
-    setTimeFrame(vthData, timeFrames(frame, :));
-    updateSwapsFromPlan(vthData, plan);
-    ensureExpansionGivenData(vthRect, vthData);
-    if vthData.NumOfExogenizedPoints==0
+    setTimeFrame(rect__, timeFrames__(frame, :));
+    setTimeFrame(data__, timeFrames__(frame, :));
+    updateSwapsFromPlan(data__, plan);
+    ensureExpansionGivenData(rect__, data__);
+    if data__.NumOfExogenizedPoints==0
         simulateFirstOrderFunc = @flat;
     else
         simulateFirstOrderFunc = @swapped; 
@@ -104,8 +116,8 @@ for frame = 1 : numTimeFrames
     %
     % Choose simulation type and run simulation
     %
-    vthData.NeedsUpdateShocks = false;
-    vthRect.Header = sprintf('[Variant|Page:%g][TimeFrame:%g]', run, frame);
+    data__.NeedsUpdateShocks = false;
+    rect__.Header = sprintf('[Variant|Page:%g][TimeFrame:%g]', run, frame);
     func = simulateFunction(method);
 
     if prepareOnly
@@ -113,23 +125,23 @@ for frame = 1 : numTimeFrames
         % Prepare first-frame simulation only for asynchronous run, and
         % return immediately
         %
-        prepared = {func, simulateFirstOrderFunc, vthRect, vthData, blazers};
+        prepared = {func, simulateFirstOrderFunc, rect__, data__, blazers};
         return
     end
 
     [exitFlag__, dcy__] = func( ...
-        simulateFirstOrderFunc, vthRect, vthData, blazers ...
+        simulateFirstOrderFunc, rect__, data__, blazers ...
     );
 
-    vthExitFlags(frame) = exitFlag__;
+    exitFlags__(frame) = exitFlag__;
     if ~isempty(dcy__) && runningData.PrepareOutputInfo
         dcyTable = compileDiscrepancyTable( ...
             this, dcy__, ...
             this.Equation.Input(this.Equation.InxOfHashEquations) ...
         );
-        vthDiscrepancyTables{frame} = dcyTable;
+        discrepancyTables__{frame} = dcyTable;
     end
-    needsUpdateShocks = needsUpdateShocks | vthData.NeedsUpdateShocks;
+    needsUpdateShocks = needsUpdateShocks | data__.NeedsUpdateShocks;
 
     % If the simulation of this time frame fails and the user does not
     % request results from failed simulations, break immediately from
@@ -142,23 +154,23 @@ end % frame
 
 
 % Overall success
-vthSuccess = all(hasSucceeded(vthExitFlags));
+success__ = all(hasSucceeded(exitFlags__));
 
 % Update shocks back in YXEPG if needed
 if any(needsUpdateShocks)
-    storeE(vthData);
+    storeE(data__);
 end
 
 if method==solver.Method.STACKED || method==solver.Method.STATIC
     if deviation
-        vthData.YXEPG = removeSteadyTrends(vthData, vthData.YXEPG);
+        data__.YXEPG = removeSteadyTrends(data__, data__.YXEPG);
     end
 end
 
 % Fill in NaNs on the entire simulation range if the simulation failed
 % and the user does not request the numbers
-if ~vthSuccess && runningData.SuccessOnly
-    vthData.YXEPG(:, firstColumnToRun:lastColumnToRun) = NaN;
+if ~success__ && runningData.SuccessOnly
+    data__.YXEPG(:, firstColumnToRun:lastColumnToRun) = NaN;
 end
 
 % Reset all data outside the simulation range to NaN except the
@@ -168,27 +180,27 @@ hereResetOutsideBaseRange( );
 if regularCall
     % This is a call from @Model.simulate
     % Update running data
-    runningData.YXEPG(:, :, run) = vthData.YXEPG;
-    runningData.Success(run) = vthSuccess;
+    runningData.YXEPG(:, :, run) = data__.YXEPG;
+    runningData.Success(run) = success__;
     if runningData.PrepareOutputInfo
-        runningData.TimeFrames{run} = timeFrames;
-        runningData.ExitFlags{run} = vthExitFlags;
-        runningData.DiscrepancyTables{run} = vthDiscrepancyTables;
+        runningData.TimeFrames{run} = timeFrames__;
+        runningData.ExitFlags{run} = exitFlags__;
+        runningData.DiscrepancyTables{run} = discrepancyTables__;
     end
 else
     % This is a call from @SystemPriorWrapper
     % Create system property output
-    systemProperty.Outputs{1} = vthData.YXEPG(:, baseRangeColumns);
+    systemProperty.Outputs{1} = data__.YXEPG(:, baseRangeColumns);
 end
 
 return
 
 
     function hereResetOutsideBaseRange( )
-        temp = vthData.YXEPG(:, 1:firstColumnToRun-1);
+        temp = data__.YXEPG(:, 1:firstColumnToRun-1);
         temp(~inxInitInPresample) = NaN;
-        vthData.YXEPG(:, 1:firstColumnToRun-1) = temp;
-        vthData.YXEPG(:, lastColumnToRun+1:end) = NaN;
+        data__.YXEPG(:, 1:firstColumnToRun-1) = temp;
+        data__.YXEPG(:, lastColumnToRun+1:end) = NaN;
     end%
 end%
 

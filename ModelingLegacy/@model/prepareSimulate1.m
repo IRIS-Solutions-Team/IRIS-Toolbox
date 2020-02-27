@@ -79,7 +79,7 @@ if strcmpi(s.Method, 'Selective')
     label = getLabelOrInput(this.Equation);
     s.Selective.EqtnLabelN = label(ixh);
         
-    prepareHashEquations( );
+    herePrepareHashEquations( );
 
     defaultSolver = 'IRIS-QaD';
     prepareGradient = false;
@@ -115,7 +115,7 @@ end
 return
 
 
-    function prepareHashEquations( )
+    function herePrepareHashEquations( )
         s.Selective.EqtnNI = cell(1, nEqtn);
         s.Selective.EqtnNI(ixh) = createHashEquations(this, ixh);
         s.Selective.EqtnN = [ ...

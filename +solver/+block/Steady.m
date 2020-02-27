@@ -21,6 +21,7 @@ classdef Steady < solver.block.Block
         
         
         function c = printListOfUknowns(this, name)
+        %(
             if isstruct(this.PosQty)
                 posLevel = this.PosQty.Level;
                 posChange = this.PosQty.Change;
@@ -41,15 +42,17 @@ classdef Steady < solver.block.Block
             end
             change = ['Change(', listChange, ')'];
             c = [level, ' ', change];
+        %)
         end%
 
 
 
 
         function [lx, gx, exitFlag, error] = run(this, lnk, lx, gx, header)
+            %(
             exitFlag = solver.ExitFlag.IN_PROGRESS;
             error = struct( 'EvaluatesToNan', [ ] );
-            inxOfLog = this.InxOfLog;
+            inxLog = this.InxOfLog;
             
             posl = this.PosQty.Level;
             posg = this.PosQty.Growth;
@@ -64,17 +67,19 @@ classdef Steady < solver.block.Block
             nsh = this.NumberOfShifts;
             t0 = this.PositionOfZeroShift;
             nl = length(posl);
-            inxOfLogZ = [ inxOfLog(posl), inxOfLog(posg) ];
-            nRow = length(this.PosEqn);
-            nCol = length(posl) + length(posg);
+            inxLogZ = [ inxLog(posl), inxLog(posg) ];
+            numRows = length(this.PosEqn);
+            numColumns = length(posl) + length(posg);
             
             if this.Type==solver.block.Type.SOLVE
-                % __SOLVE Block__
+                % 
+                % Solve
+                %
                 % Initialize endogenous level and growth unknowns.
                 z0 = [ lx(posl), gx(posg) ];
                 % Transform initial conditions for log variables before we check bounds;
                 % bounds are in logs for log variables.
-                z0(inxOfLogZ) = log(abs( z0(inxOfLogZ) ));
+                z0(inxLogZ) = log(abs( z0(inxLogZ) ));
                 %* Make sure init conditions are within bounds.
                 %* Empty bounds if all are Inf.
                 %* Bounds are in logs for log variables.
@@ -87,9 +92,11 @@ classdef Steady < solver.block.Block
                 end
 
                 [z, exitFlag] = solve(this, @objective, z0, header);
-                z(inxOfLogZ) = exp( z(inxOfLogZ) );
+                z(inxLogZ) = exp( z(inxLogZ) );
             else
-                % __ASSIGN_* Block__
+                %
+                % Assign
+                %
                 [z, exitFlag] = assign( );
             end
             
@@ -105,47 +112,57 @@ classdef Steady < solver.block.Block
                 function hereCheckEquationsForCorrupt( )
                     XX = hereCreateTimeArray(0);
                     evalToCheck = this.EquationsFunc(XX, t0);
-                    inxOfCorrupt = ~isfinite(evalToCheck);
-                    if ~any(inxOfCorrupt)
+                    inxCorrupt = ~isfinite(evalToCheck);
+                    if ~any(inxCorrupt)
                         return
                     end
                     exitFlag = solver.ExitFlag.NAN_INF_PREEVAL;
-                    error.EvaluatesToNan = this.PosEqn(inxOfCorrupt);
+                    error.EvaluatesToNan = this.PosEqn(inxCorrupt);
                 end%
 
 
+
+
                 function [z, exitFlag] = assign( )
-                    % __Assignment__
                     % Vectors posl and posg are each either empty or scalar at this point.
-                    fnInv = this.Type.InvTransform;
-                    z = [ ];
+                    inxLog__ = any(inxLogZ);
+                    transformFunc = this.Type.InvTransform;
+                    z = double.empty(1, 0);
                     XX = hereCreateTimeArray(0);
                     y0 = this.EquationsFunc(XX, t0);
-                    if ~isempty(fnInv)
-                        y0 = fnInv(y0);
+                    if ~isempty(transformFunc)
+                        y0 = transformFunc(y0);
                     end
+                    realY0 = real(y0);
+                    imagY0 = imag(y0);
                     if ~isempty(posl)
-                        z = [z, real(y0)];
+                        z = [z, realY0];
                     end
                     if ~isempty(posg)
-                        if imag(y0)~=0
-                            z = [ z, imag(y0) ];
+                        if imagY0~=0
+                            z = [z, imagY0];
                         else
                             XX = hereCreateTimeArray(this.SteadyShift);
                             yk = this.EquationsFunc(XX, t0);
-                            if ~isempty(fnInv)
-                                yk = fnInv(yk);
+                            if ~isempty(transformFunc)
+                                yk = transformFunc(yk);
                             end
-                            if inxOfLog(posg)
+                            if inxLog__
                                 z = [ z, (yk/y0)^(1/this.SteadyShift) ];
                             else
                                 z = [ z, (yk-y0)/this.SteadyShift ];
                             end
                         end
                     end
-                    exitFlag = solver.ExitFlag.ASSIGNED;
+                    if any(inxLog__) && any(z<=0)
+                        exitFlag = solver.ExitFlag.LOG_NEGATIVE_ASSIGNED;
+                    else
+                        exitFlag = solver.ExitFlag.ASSIGNED;
+                    end
                 end%
                 
+
+
                 
                 function hereCheckInitBounds( )
                     ixOutOfBnds = z0<this.Lower | z0>this.Upper;
@@ -160,6 +177,8 @@ classdef Steady < solver.block.Block
                 end%
                 
                 
+
+
                 function [y, j] = objective(z, positionJacob)
                     j = [ ];
                     if nargin<2
@@ -176,8 +195,8 @@ classdef Steady < solver.block.Block
                     % Delogarithmize log variables; variables in steady equations are expected
                     % to be in original levels.
                     z = real(z);
-                    if any(inxOfLogZ)
-                        z(inxOfLogZ) = exp( z(inxOfLogZ) );
+                    if any(inxLogZ)
+                        z(inxLogZ) = exp( z(inxLogZ) );
                     end
                     
                     % Split the input vector of unknows into levels and growth rates; nlx is
@@ -193,7 +212,7 @@ classdef Steady < solver.block.Block
                         temp = transpose(temp);
                         lx = real(temp);
                         gx = imag(temp);
-                        gx(inxOfLog & gx==0) = 1;
+                        gx(inxLog & gx==0) = 1;
                     end
                     
                     XX = hereCreateTimeArray(0); 
@@ -216,7 +235,7 @@ classdef Steady < solver.block.Block
                             ...
                             'UniformOutput', false ...
                             );
-                        j = reshape([j{:}], nCol, nRow).';
+                        j = reshape([j{:}], numColumns, numRows).';
                     end
                     
                     if ~isempty(posg)
@@ -238,7 +257,7 @@ classdef Steady < solver.block.Block
                                 ...
                                 'UniformOutput', false ...
                                 );
-                            jk = reshape([jk{:}], nCol, nRow).';
+                            jk = reshape([jk{:}], numColumns, numRows).';
                             j = [ j; jk ];
                         end
                     end
@@ -247,9 +266,10 @@ classdef Steady < solver.block.Block
                 
                 function XX = hereCreateTimeArray(k)
                     XX = repmat(transpose(lx), 1, nsh);
-                    XX(~inxOfLog, :) = XX(~inxOfLog, :)  + bsxfun(@times, gx(~inxOfLog).', sh+k);
-                    XX( inxOfLog, :) = XX( inxOfLog, :) .* bsxfun(@power, gx( inxOfLog).', sh+k);
+                    XX(~inxLog, :) = XX(~inxLog, :)  + bsxfun(@times, gx(~inxLog).', sh+k);
+                    XX( inxLog, :) = XX( inxLog, :) .* bsxfun(@power, gx( inxLog).', sh+k);
                 end%
+        %)
         end%
     end
     

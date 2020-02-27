@@ -1,11 +1,11 @@
 function [exitFlag, dcy] = simulateSelective(simulateFunc, rect, data, ~)
 % simulateSelective  Run equations-selective simulation on one time frame
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 MAX_DENSITY = 1/3;
 MAX_NUM_OF_ELEMENTS = 2e6;
@@ -13,8 +13,8 @@ MAX_NUM_OF_ELEMENTS = 2e6;
 %--------------------------------------------------------------------------
 
 deviation = data.Deviation;
-hashEquations = rect.HashEquationsFunction;
-firstColumnOfTimeFrame = data.FirstColumnOfTimeFrame;
+hashEquations = rect.HashEquationsAll;
+firstColumnTimeFrame = data.FirstColumnOfTimeFrame;
 inxE = data.InxOfE;
 inxYX = data.InxOfYX;
 numYX = nnz(inxYX);
@@ -23,11 +23,11 @@ solverOpt = data.SolverOptions;
 solverName = solverOpt(1).SolverName;
 window = data.Window;
 
-columnRangeOfHashFactors = firstColumnOfTimeFrame + (0 : window-1);
+columnRangeHashFactors = firstColumnTimeFrame + (0 : window-1);
 
 tempE = data.AnticipatedE;
-tempE(:, firstColumnOfTimeFrame) = tempE(:, firstColumnOfTimeFrame) ...
-                                 + data.UnanticipatedE(:, firstColumnOfTimeFrame);
+tempE(:, firstColumnTimeFrame) = tempE(:, firstColumnTimeFrame) ...
+                                 + data.UnanticipatedE(:, firstColumnTimeFrame);
 
 if data.NumOfExogenizedPointsY==0
     %
@@ -38,7 +38,7 @@ if data.NumOfExogenizedPointsY==0
     rect.SimulateY = false;
 end
 
-objectiveFunction = @objectiveFunctionFull;
+objectiveFunction = @hereObjectiveFunctionFull;
 %
 % Calculate the density of the matrix indicating the variables occurring in
 % nonlinear equations; run the multiplier type of simulation only if the
@@ -47,7 +47,7 @@ objectiveFunction = @objectiveFunctionFull;
 if data.NumOfExogenizedPoints==0
     hereGetHashIncidence( );
     lastHashedYX = data.LastHashedYX;
-    columnRangeOfHashedYX = firstColumnOfTimeFrame : lastHashedYX;
+    columnRangeOfHashedYX = firstColumnTimeFrame : lastHashedYX;
     inxHashedYX = data.InxOfHashedYX(:, columnRangeOfHashedYX);
     density = nnz(inxHashedYX) / numel(inxHashedYX);
     numElements = nnz(inxHashedYX) * rect.NumOfHashEquations * data.Window;
@@ -62,14 +62,14 @@ if data.NumOfExogenizedPoints==0
         calculateHashMultipliers(rect, data);
         numHashedColumns = numel(columnRangeOfHashedYX);
         simulateFunc(rect, data);
-        objectiveFunction = @objectiveFunctionShort;
+        objectiveFunction = @hereObjectiveFunctionShort;
     end
 end
 
-nlafInit = data.NonlinAddf(:, columnRangeOfHashFactors);
+nlafInit = data.NonlinAddf(:, columnRangeHashFactors);
 
 if strncmpi(solverName, 'IRIS', 4)
-    % IRIS Solver
+    % [IrisToolbox] Solver
     data0 = data;
     initNlaf0 = nlafInit;
     for i = 1 : numel(solverOpt)
@@ -110,43 +110,39 @@ else
 end
 
 rect.SimulateY = true;
-data.NonlinAddf(:, columnRangeOfHashFactors) = nlafFinal; 
+data.NonlinAddf(:, columnRangeHashFactors) = nlafFinal; 
 simulateFunc(rect, data);
 
 return
 
 
-
-
-    function dcy = objectiveFunctionFull(nlaf)
-        data.NonlinAddf(:, columnRangeOfHashFactors) = nlaf;
+    function dcy = hereObjectiveFunctionFull(nlaf)
+    %(
+        data.NonlinAddf(:, columnRangeHashFactors) = nlaf;
         simulateFunc(rect, data);
-        tempYXEPG = data.YXEPG;
+        YXEPG = data.YXEPG;
 
         if data.NeedsUpdateShocks
             % The `simulateFunc` modified the shocks and they need to
             % be updated in the main databank
             tempE = data.AnticipatedE;
-            tempE(:, firstColumnOfTimeFrame) = tempE(:, firstColumnOfTimeFrame) ...
-                                             + data.UnanticipatedE(:, firstColumnOfTimeFrame);
+            tempE(:, firstColumnTimeFrame) = ...
+                tempE(:, firstColumnTimeFrame) ...
+                + data.UnanticipatedE(:, firstColumnTimeFrame);
         end
-        tempYXEPG(inxE, :) = tempE;
+        YXEPG(inxE, :) = tempE;
 
-        if deviation
-            tempYX = tempYXEPG(inxYX, :);
-            tempYX(~inxLogYX, :) = tempYX(~inxLogYX, :)  + data.BarYX(~inxLogYX, :);
-            tempYX(inxLogYX, :)  = tempYX(inxLogYX, :)  .* data.BarYX(inxLogYX, :);
-            tempYXEPG(inxYX, :) = tempYX;
-        end
-        dcy = hashEquations(tempYXEPG, columnRangeOfHashFactors, data.BarYX);
+        dcy = hereEvaluateHashEquations(YXEPG);
+    %)
     end%
 
 
 
 
-    function dcy = objectiveFunctionShort(nlaf)
+    function dcy = hereObjectiveFunctionShort(nlaf)
+    %(
         % Simulated data with zero hash factors
-        tempYXEPG = data.YXEPG;
+        YXEPG = data.YXEPG;
 
         % Calculate impact of current hash factors and add them to
         % simulated data
@@ -156,36 +152,80 @@ return
             impact(inxLogYX, :) = exp( impact(inxLogYX, :) );
         end
 
-        tempYX = tempYXEPG(inxYX, columnRangeOfHashedYX);
+        tempYX = YXEPG(inxYX, columnRangeOfHashedYX);
         tempYX(~inxLogYX, :) = tempYX(~inxLogYX, :)  + impact(~inxLogYX, :);
         tempYX(inxLogYX, :)  = tempYX(inxLogYX, :)  .* impact(inxLogYX, :);
-        tempYXEPG(inxYX, columnRangeOfHashedYX) = tempYX;
+        YXEPG(inxYX, columnRangeOfHashedYX) = tempYX;
 
-        tempYXEPG(inxE, :) = tempE;
+        YXEPG(inxE, :) = tempE;
 
+        dcy = hereEvaluateHashEquations(YXEPG);
+    %)
+    end%
+
+
+
+
+    function dcy = hereEvaluateHashEquations(YXEPG)
+    %(
+        yxepg0 = YXEPG;
         if deviation
-            tempYX = tempYXEPG(inxYX, :);
-            tempYX(~inxLogYX, :) = tempYX(~inxLogYX, :)  + data.BarYX(~inxLogYX, :);
-            tempYX(inxLogYX, :)  = tempYX(inxLogYX, :)  .* data.BarYX(inxLogYX, :);
-            tempYXEPG(inxYX, :) = tempYX;
+            yx = YXEPG(inxYX, :);
+            yx(~inxLogYX, :) = yx(~inxLogYX, :)  + data.BarYX(~inxLogYX, :);
+            yx(inxLogYX, :)  = yx(inxLogYX, :)  .* data.BarYX(inxLogYX, :);
+            YXEPG(inxYX, :) = yx;
         end
-        dcy = hashEquations(tempYXEPG, columnRangeOfHashFactors, data.BarYX);
+        try
+            dcy = hashEquations(YXEPG, columnRangeHashFactors, data.BarYX);
+        catch
+            dcy = [ ];
+            hereReportError( );
+        end
+        %if ~all(isfinite(dcy(:))
+        %    hereReportNaN( );
+        %end
+        return
+
+            function hereReportError( )
+                numHashEquations = numel(rect.HashEquationsIndividually);
+                report = cell.empty(1, 0);
+                for i = 1 : numHashEquations
+                    try
+                        rect.HashEquationsIndividually{i}(YXEPG, columnRangeHashFactors, data.BarYX);
+                    catch Err
+                        report{1, end+1} = rect.HashEquationsInput{i};
+                        report{1, end+1} = Err.message;
+                    end
+                end
+                thisError = [
+                    "Model:ErrorEvaluatingHashEquation"
+                    "Error evaluating this hash equation: %s \nMatlab reports this error:\n%s\n "
+                ];
+                throw(exception.Base(thisError, 'error'), report{:});
+            end%
+
+
+            function hereReportNaN( )
+            end%
+    %)
     end%
 
 
 
 
     function hereGetHashIncidence( )
+    %(
         TYPE = @int8;
         inc = across(rect.HashIncidence, 'Equations');
         inc = inc(inxYX, :);
         shifts = rect.HashIncidence.Shift;
         inxHashedYX = false(numYX, data.NumOfColumns);
-        for ii = columnRangeOfHashFactors
+        for ii = columnRangeHashFactors
             columnRange = ii + shifts;
             inxHashedYX(:, columnRange) = inxHashedYX(:, columnRange) | inc;
         end
         data.InxOfHashedYX = inxHashedYX;
+    %)
     end%
 end%
 

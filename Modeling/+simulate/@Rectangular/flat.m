@@ -8,7 +8,6 @@ function flat(this, data)
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
 TYPE = @int8;
-VEC = @(x) x(:);
 
 %--------------------------------------------------------------------------
 

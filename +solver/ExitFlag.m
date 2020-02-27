@@ -4,21 +4,22 @@ classdef ExitFlag
         IN_PROGRESS      (+0, '')
 
         % Success
-        CONVERGED            (+1, 'Successfully converged. Both step and function tolerance satisfied.')
-        ASSIGNED             (+2, 'Successfully assigned.')
-        NOTHING_TO_SOLVE     (+3, 'Nothing to solve.')
-        LINEAR_SYSTEM        (+4, 'Linear system solved.')
+        CONVERGED            ( +1, 'Successfully converged. Both step and function tolerance satisfied.')
+        ASSIGNED             ( +2, 'Successfully assigned.')
+        NOTHING_TO_SOLVE     ( +3, 'Nothing to solve.')
+        LINEAR_SYSTEM        ( +4, 'Linear system solved.')
 
         % Failed
-        MAX_ITER             (-1, 'Failed. Maximum number of iterations reached.') 
-        MAX_FUN_EVALS        (-2, 'Failed. Maximum number of function evaluations reached.') 
-        NO_PROGRESS          (-3, 'Failed. Cannot make any further progress.')
-        NAN_INF_JACOB        (-4, 'Failed. Jacobian ran into NaN or Inf values; cannot move further.') 
-        NAN_INF_SOLUTION     (-5, 'Failed. Solution ran into NaN or Inf values.')
-        NAN_INF_PREEVAL      (-6, 'Failed. Some equations evaluate to NaN or Inf values.')
-        OPTIM_TBX_FAILED     (-7, 'Failed. Optimization Toolbox failed to converge.')
-        MAX_ITER_FUN_EVALS   (-8, 'Failed. Maximum number of iterations or funcion evaluations reached.') 
-        OBJ_FUN_FAILED       (-9, 'Failed. Objective function failed.') 
+        MAX_ITER             ( -1, 'Failed. Maximum number of iterations reached.') 
+        MAX_FUN_EVALS        ( -2, 'Failed. Maximum number of function evaluations reached.') 
+        NO_PROGRESS          ( -3, 'Failed. Cannot make any further progress.')
+        NAN_INF_JACOB        ( -4, 'Failed. Jacobian ran into NaN or Inf values; cannot move further.') 
+        NAN_INF_SOLUTION     ( -5, 'Failed. Solution ran into NaN or Inf values.')
+        NAN_INF_PREEVAL      ( -6, 'Failed. Some equations evaluate to NaN or Inf values.')
+        OPTIM_TBX_FAILED     ( -7, 'Failed. Optimization Toolbox failed to converge.')
+        MAX_ITER_FUN_EVALS   ( -8, 'Failed. Maximum number of iterations or funcion evaluations reached.') 
+        OBJ_FUN_FAILED       ( -9, 'Failed. Objective function failed.') 
+        LOG_NEGATIVE_ASSIGNED(-10, 'Failed. Negative number assigned to log variable.')
     end
     
     

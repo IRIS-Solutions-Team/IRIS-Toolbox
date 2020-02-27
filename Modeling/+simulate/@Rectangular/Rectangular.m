@@ -26,8 +26,13 @@ classdef Rectangular < handle
         
         Quantity
 
+        HashEquationsAll
+        HashEquationsIndividually
+        HashEquationsInput
+
         % HashIncidence  Incidence object for hash equations
         HashIncidence = model.component.Incidence.empty(0)
+
         HashMultipliers = double.empty(0)
         MultipliersHashedYX = logical.empty(0)
 
@@ -40,8 +45,6 @@ classdef Rectangular < handle
         SimulateY = true
         NeedsEvalTrends = true
         UpdateEntireXib = false
-
-        HashEquationsFunction
 
         SparseShocks = false
 
@@ -67,7 +70,7 @@ classdef Rectangular < handle
         calculateHashMultipliers(varargin)
         multipliers(varargin)
 
-        
+
         function update(this, model, variantRequested)
         % update  Update first-order solution matrices and available expansion
             if nargin<3
@@ -86,6 +89,8 @@ classdef Rectangular < handle
         end%
 
 
+
+
         function ensureExpansionGivenData(this, data)
             lastAnticipatedE = data.LastAnticipatedE;
             lastEndogenizedE = data.LastEndogenizedE;
@@ -97,6 +102,8 @@ classdef Rectangular < handle
             end
             ensureExpansion(this, requiredForward);
         end%
+
+
 
 
         function ensureExpansion(this, requiredForward)
@@ -116,6 +123,8 @@ classdef Rectangular < handle
         end%
 
 
+
+
         function [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this)
             ny = numel(this.SolutionVector{1});
             [nxi, nb] = size(this.FirstOrderSolution{1});
@@ -123,6 +132,8 @@ classdef Rectangular < handle
             ne = numel(this.SolutionVector{3});
             ng = numel(this.SolutionVector{5});
         end%
+
+
 
 
         function currentForward = get.CurrentForward(this)
@@ -137,13 +148,13 @@ classdef Rectangular < handle
         end%
 
 
+
+
         function value = get.NumOfHashEquations(this)
-            if isempty(this.HashIncidence)
-                value = 0;
-                return
-            end
-            value = this.HashIncidence.NumOfEquations;
+            value = numel(this.HashEquationsIndividually);
         end%
+
+
 
 
         function setTimeFrame(this, timeFrame)

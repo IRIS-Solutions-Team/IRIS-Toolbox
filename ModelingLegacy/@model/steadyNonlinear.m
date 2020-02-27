@@ -82,7 +82,10 @@ for v = variantsRequested
         end
     end
 
+
+    %
     % Remove 1i from parameters with log-status=true
+    %
     gx(inxP & inxLogInBlazer) = 0;
 
     if any(gx(:)~=0)
@@ -90,17 +93,30 @@ for v = variantsRequested
     else
         this.Variant.Values(:, :, v) = lx;
     end
+
     
-    % Check for zero log variables
-    success(v) = checkZeroLog(this, v) ...
-              && all(hasSucceeded(outputInfo.ExitFlags{v}));
+    % 
+    % Check for zero or negative levels or rates of change in variables
+    % with log-status=true
+    %
+    [flagLog, ~, inxInvalidLevel, inxInvalidGrowth] = checkZeroLog(this, v);
+    if ~flagLog
+        hereInvalidSteady( );
+    end
+
+
+    %
+    % Overall success of the v-th variant
+    %
+    success(v) = flagLog && all(hasSucceeded(outputInfo.ExitFlags{v}));
     
+
     % TODO: Report more details on failed equations and variables
     if blazer.Warning && ~success(v)
         throw(exception.Base('Model:SteadyInaccurate', 'warning'));
     end
     
-    % Store current values to initialize next parameterisation.
+    % Store current values to initialize next parameterisation
     lx0 = lx;
     gx0 = gx;
     firstAlt = false;
@@ -151,6 +167,8 @@ return
     end%
 
 
+
+
     function hereCheckFixedToNaN( )
         numQuantities = length(this.Quantity);
         % __Check for Levels Fixed to NaN__
@@ -178,6 +196,8 @@ return
     end%
 
 
+
+
     function hereCheckExogenizedToNaN( )
         inxNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
         inxNeeded = full(inxNeeded);
@@ -199,6 +219,21 @@ return
                 exception.Base('Steady:ExogenousGrowthNan', 'warning'), ...
                 this.Quantity.Name{inxGrowthToReport} ...
             );
+        end
+    end%
+
+
+
+
+    function hereInvalidSteady( )
+        realValues__ = real(this.Variant.Values(:, :, v));
+        imagValues__ = imag(this.Variant.Values(:, :, v));
+        realValues__(inxInvalidLevel) = NaN;
+        imagValues__(inxInvalidGrowth) = NaN;
+        if all(imagValues__==0)
+            this.Variant.Values(:, :, v) = realValues__;
+        else
+            this.Variant.Values(:, :, v) = realValues__ + 1i*imagValues__;
         end
     end%
 end%
