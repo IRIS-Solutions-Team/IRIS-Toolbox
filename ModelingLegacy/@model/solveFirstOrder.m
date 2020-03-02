@@ -1,20 +1,27 @@
 function [this, exitFlag, nanDeriv, sing1, bk] = solveFirstOrder(this, variantsRequired, opt)
 % solveFirstOrder  First-order quasi-triangular solution
 %
-% Backend [IrisToolbox] function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+%
 % exitFlag
-% * 1 .. Unique stable solution
-% * 0 .. No stable solution (all explosive)
-% * Inf .. Multiple stable solutions
-% * -1 .. NaN in solved matrices
-% * -2 .. NaN in eigenvalues
-% * -3 .. NaN derivatives in system matrices
-% * -4 .. Steady state does not hold
+%
+% ----------------------------------------------------
+%  Value     |  Meaning
+% -----------+----------------------------------------
+%     1      |  Unique stable solution
+%     0      |  No stable solution (all explosive)
+%   Inf      |  Multiple stable solutions
+%    -1      |  NaN in solved matrices
+%    -2      |  NaN in eigenvalues
+%    -3      |  NaN derivatives in system matrices
+%    -4      |  Steady state does not hold
+% ----------------------------------------------------
+%
 
 TYPE = @int8;
 SOLVE_TOLERANCE = this.Tolerance.Solve;

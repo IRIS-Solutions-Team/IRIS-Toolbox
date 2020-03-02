@@ -55,6 +55,7 @@ function [allTheta, logPosterior, acceptRatio, this, sigma, finalCov] = arwm(thi
 % Speed of adaptation of the scale factor to
 % deviations of acceptance ratios from the target ratio, `targetAR`.
 %
+%
 % __`BurnIn=0.10`__ [ numeric ]
 % Number of burn-in draws entered
 % either as a percentage of total draws (between 0 and 1) or directly as a

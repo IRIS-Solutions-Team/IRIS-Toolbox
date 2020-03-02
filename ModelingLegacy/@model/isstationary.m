@@ -40,8 +40,8 @@ function [flag, test] = isstationary(this, varargin)
 %     isstationary(m, 'X - 0.5*log(Y)')
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
 
@@ -53,23 +53,32 @@ if isempty(this.Variant.FirstOrderSolution{1})
 end
 
 if isempty(varargin)
-    % Called flag = isstationary(this).
+    %
+    % Called:
+    % flag = isstationary(this)
+    %
     TYPE = @int8;
     flag = all(this.Variant.EigenStability~=TYPE(1), 2);
     flag = permute(flag, [1, 3, 2]);
 else
-    % Called [flag, test] = isstationary(this, expn).
-    [flag, test] = isCointegrated(this, varargin{1}, EIGEN_TOLERANCE);
+    %
+    % Called:
+    % [flag, test] = isstationary(this, expn)
+    %
+    [flag, test] = locallyCointegrationStatus(this, varargin{1}, EIGEN_TOLERANCE);
 end
 
-end
+end%
 
 
+%
+% Local Functions
+%
 
 
-function [flag, test] = isCointegrated(this, expn, EIGEN_TOLERANCE)
+function [flag, test] = locallyCointegrationStatus(this, expn, EIGEN_TOLERANCE)
     [~, ~, ~, nf] = sizeOfSolution(this.Vector);
-    nv = length(this);
+    nv = countVariants(this);
     % Get the vector of coefficients describing the tested linear combination.
     % Normalize the vector of coefficients by the largest coefficient.
     [w, ~, isValid] = parser.vectorizeLinComb(expn, printSolutionVector(this, 'x'));
@@ -83,10 +92,11 @@ function [flag, test] = isCointegrated(this, expn, EIGEN_TOLERANCE)
     % Test stationarity of the linear combination in each parameter variant.
     flag = false(1, nv);
     test = cell(1, nv);
-    numOfUnitRoots = getNumOfUnitRoots(this.Variant);
+    numUnitRoots = getNumOfUnitRoots(this.Variant);
     for v = 1 : nv
         [T, ~, ~, ~, ~, ~, U] = sspaceMatrices(this, v);
-        test{v} = w*[ T(1:nf, 1:numOfUnitRoots(v)); U(:, 1:numOfUnitRoots(v)) ];
+        test{v} = w*[ T(1:nf, 1:numUnitRoots(v)); U(:, 1:numUnitRoots(v)) ];
         flag(v) = all( abs(test{v})<=EIGEN_TOLERANCE );
     end
-end
+end%
+
