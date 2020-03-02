@@ -163,10 +163,18 @@ for run = 1 : numRuns
     %
     v = min(run, nv);
     if run<=nv
-        [ T, R, k, s.Z, s.H, d, s.U, Zb, ...
-          s.InxV, s.InxW, s.NumUnitRoots, s.InxInit ] = getIthKalmanSystem(this, v, requiredForward);
+        %
+        % Get the v-th Kalman system
+        %
+        [ ...
+            T, R, k, s.Z, s.H, d, s.U, Zb, ...
+            s.InxV, s.InxW, s.NumUnitRoots, s.InxInit ...
+        ] = getIthKalmanSystem(this, v, requiredForward);
+
+        %
+        % Transition variables marked for measurement
+        %
         if nz>0
-            % Transition variables marked for measurement
             if isempty(s.U)
                 s.Z = Zb;
             else

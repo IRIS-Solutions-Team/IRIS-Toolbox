@@ -46,11 +46,7 @@ return
 
 
     function a0 = hereInitializeMean( )
-        if isfield(s, 'InxInit')
-            inxInit = reshape(s.InxInit, [ ], 1);
-        else
-            inxInit = true(numXiB, 1);
-        end
+        inxInit = reshape(s.InxInit, [ ], 1);
 
         a0 = zeros(numXiB, 1);
 
