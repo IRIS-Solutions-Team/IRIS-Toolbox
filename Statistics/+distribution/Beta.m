@@ -20,10 +20,11 @@
 % These properties are directly accessible through the distribution object,
 % followed by a dot and the name of a property.
 %
+%   Name - Name of the distribution
+%   Domain - Domain of the distribution
+%
 %   A - Parameter A of Beta distribution
 %   Beta - Beta distribution object
-%   Lower - Lower bound of distribution domain
-%   Upper - Upper bound of distribution domain
 %   Mean - Mean (expected value) of distribution
 %   Var - Variance of distribution
 %   Std - Standard deviation of distribution
@@ -44,8 +45,8 @@
 % __Description__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -59,11 +60,6 @@ classdef Beta < distribution.Abstract
     end
 
 
-    properties (SetAccess=protected, Hidden)
-        Constant = NaN    % Integration constant
-    end
-
-
     properties (Constant)
         MAX_A = 1e10;
     end
@@ -73,34 +69,19 @@ classdef Beta < distribution.Abstract
         function this = Beta(varargin)
             this = this@distribution.Abstract(varargin{:});
             this.Name = 'Beta';
-            this.Lower = 0;
-            this.Upper = 1;
-        end
+            this.Domain = [0, 1];
+            this.Location = 0;
+        end%
 
 
-        function y = logPdf(this, x)
-            y = zeros(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            y(indexInDomain) = (this.A-1)*log(x) + (this.B-1)*log(1-x);
-            y(~indexInDomain) = -Inf;
-        end
+        function y = logPdfInDomain(this, x)
+            y = (this.A-1)*log(x) + (this.B-1)*log(1-x);
+        end%
 
 
-        function y = pdf(this, x)
-            y = zeros(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            y(indexInDomain) = x.^(this.A-1).*(1-x).^(this.B-1) * this.Constant;
-        end
-
-
-        function y = info(this, x)
-            y = nan(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            y(indexInDomain) = (this.B - 1)./(x - 1).^2 + (this.A - 1)./x.^2;
-        end
+        function y = infoInDomain(this, x)
+            y = (this.B - 1)./(x - 1).^2 + (this.A - 1)./x.^2;
+        end%
     end
 
 
@@ -122,14 +103,14 @@ classdef Beta < distribution.Abstract
             if ~isfinite(this.Std)
                 this.Std = sqrt(this.Var);
             end
-            this.Constant = 1./beta(this.A, this.B);
-        end
+            this.LogConstant = -betaln(this.A, this.B);
+        end%
 
 
         function ABFromMeanVar(this)
             this.A = (1-this.Mean)*this.Mean^2/this.Var - this.Mean;
             this.B = this.A*(1/this.Mean - 1);
-        end
+        end%
 
 
         function ABFromModeVar(this)
@@ -139,7 +120,7 @@ classdef Beta < distribution.Abstract
             f = @(A) Var*(A + B(A))^2*(A + B(A) + 1) - A*B(A);
             this.A = fzero(f, [1+eps( ), this.MAX_A]);
             this.B = B(this.A);
-        end
+        end%
     end
 
 
@@ -149,7 +130,7 @@ classdef Beta < distribution.Abstract
             this = distribution.Beta( );
             [this.A, this.B] = varargin{1:2};
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMeanVar(varargin)
@@ -158,7 +139,7 @@ classdef Beta < distribution.Abstract
             [this.Mean, this.Var] = varargin{1:2};
             ABFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMeanStd(varargin)
@@ -168,7 +149,7 @@ classdef Beta < distribution.Abstract
             this.Var = this.Std.^2;
             ABFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromModeVar(varargin)
@@ -177,7 +158,7 @@ classdef Beta < distribution.Abstract
             [this.Mode, this.Var] = varargin{1:2};
             ABFromModeVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function fromModeStd(varargin)
@@ -186,6 +167,6 @@ classdef Beta < distribution.Abstract
             this.Var = this.Std^2;
             ABFromModeVar(this);
             populateParameters(this);
-        end
+        end%
     end
 end

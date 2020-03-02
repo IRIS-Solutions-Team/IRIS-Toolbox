@@ -23,8 +23,9 @@
 % These properties are directly accessible through the distribution object,
 % followed by a dot and the name of a property.
 %
-%   Lower - Lower bound of distribution domain
-%   Upper - Upper bound of distribution domain
+%   Name - Name of the distribution
+%   Domain - Domain of the distribution
+%
 %   Mean - Mean (expected value) of distribution
 %   Var - Variance of distribution
 %   Std - Standard deviation of distribution
@@ -32,6 +33,7 @@
 %   Median - Median of distribution
 %   Location - Location parameter of distribution
 %   Scale - Scale parameter of distribution
+%   DegreesFreedom - Number of the degrees of freedom
 %
 %
 % __Density Related Functions__
@@ -45,17 +47,21 @@
 % __Description__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
 classdef Student < distribution.Abstract
     properties 
+        % DegreesFreedom  Number of the degrees of freedom
         DegreesFreedom = NaN
+        
+        % Mu  Location parameter of the distribution
         Mu = 0
+
+        % Sigma  Scale parameter of the distribution
         Sigma = 1
-        Constant = NaN
     end
 
 
@@ -63,27 +69,20 @@ classdef Student < distribution.Abstract
         function this = Student(varargin)
             this = this@distribution.Abstract(varargin{:});
             this.Name = 'Student';
-            this.Lower = -Inf;
-            this.Upper = Inf;
-        end
+            this.Domain = [-Inf, Inf];
+        end%
 
 
-        function y = logPdf(this, x)
+        function y = logPdfInDomain(this, x)
             nu = this.DegreesFreedom;
             mu = this.Mu;
             sigma = this.Sigma;
             w = (nu + 1)/2;
             y = -w*log(1 + (1/nu)*((x - mu)/sigma).^2);
-        end
+        end%
 
 
-        function y = pdf(this, x)
-            y = logPdf(this, x);
-            y = this.Constant * exp(y);
-        end
-
-
-        function y = info(this, x)
+        function y = infoInDomain(this, x)
             nu = this.DegreesFreedom;
             mu = this.Mu;
             sigma = this.Sigma;
@@ -100,7 +99,19 @@ classdef Student < distribution.Abstract
                 nusigma2 = nu*sigma2;
             end
             y = 2*w*(nusigma2 - xmu2)./(nusigma2 + xmu2).^2;
-        end
+        end%
+
+
+        function y = sample(this, varargin)
+            chi2 = distribution.ChiSquare.fromDegreesFreedom(this.DegreesFreedom);
+            y = randn(varargin{:}) .* sqrt(this.DegreesFreedom ./ sample(chi2, varargin{:}));
+            if this.Sigma~=1
+                y = this.Sigma*y;
+            end
+            if this.Mean~=0
+                y = this.Mean + y;
+            end
+        end%
     end
 
 
@@ -115,8 +126,6 @@ classdef Student < distribution.Abstract
                 sigma = this.Sigma;
                 sigma2 = sigma^2;
             end
-            w = (nu + 1)/2;
-            this.Constant = gamma(w)/(gamma(nu/2)*sqrt(pi*nu)*sigma);
             if ~isfinite(this.Mean)
                 if nu>1
                     this.Mean = mu;
@@ -127,20 +136,20 @@ classdef Student < distribution.Abstract
             if ~isfinite(this.Var)
                 if nu>2
                     this.Var = sigma2*nu/(nu - 2);
+                elseif nu>1
+                    this.Var = Inf;
                 else
                     this.Var = NaN;
                 end
-            end
-            if ~isfinite(this.Std)
-                this.Std = sqrt(this.Var);
-            elseif ~isfinite(this.Var)
-                this.Std = NaN;
             end
             this.Mode = this.Mean;
             this.Median = this.Mean;
             this.Location = this.Mu;
             this.Scale = this.Sigma;
-        end
+            % Constant = gamma(w)/(gamma(nu/2)*sqrt(pi*nu)*sigma)
+            w = (nu + 1)/2;
+            this.LogConstant = gammaln(w) - gammaln(nu/2) - log(sqrt(pi*nu)*sigma);
+        end%
 
 
         function muSigmaFromMeanVar(this)
@@ -157,7 +166,7 @@ classdef Student < distribution.Abstract
                 this.Var = NaN;
                 this.Sigma = NaN;
             end
-        end
+        end%
     end
 
 
@@ -169,7 +178,7 @@ classdef Student < distribution.Abstract
             this.Mu = 0;
             this.Sigma = 1;
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromLocationScale(varargin)
@@ -178,7 +187,7 @@ classdef Student < distribution.Abstract
             this.DegreesFreedom = varargin{1};
             [this.Mu, this.Sigma] = varargin{2:3};
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMeanVar(varargin)
@@ -188,7 +197,7 @@ classdef Student < distribution.Abstract
             [this.Mean, this.Var] = varargin{2:3};
             muSigmaFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMeanStd(varargin)
@@ -196,10 +205,9 @@ classdef Student < distribution.Abstract
             this = distribution.Student( );
             this.DegreesFreedom = varargin{1};
             [this.Mean, this.Std] = varargin{2:3};
-            this.Var = this.Std^2;
             muSigmaFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMedianVar(varargin)
@@ -210,7 +218,7 @@ classdef Student < distribution.Abstract
             this.Mean = this.Median;
             muSigmaFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMedianStd(varargin)
@@ -218,10 +226,9 @@ classdef Student < distribution.Abstract
             this.DegreesFreedom = varargin{1};
             [this.Median, this.Std] = varargin{2:3};
             this.Mean = this.Median;
-            this.Var = this.Std^2;
             muSigmaFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromModeVar(varargin)
@@ -232,7 +239,7 @@ classdef Student < distribution.Abstract
             this.Mean = this.Mode;
             muSigmaFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromModeStd(varargin)
@@ -240,9 +247,8 @@ classdef Student < distribution.Abstract
             this.DegreesFreedom = varargin{1};
             [this.Mode, this.Std] = varargin{2:3};
             this.Mean = this.Mode;
-            this.Var = this.Std^2;
             muSigmaFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
     end
 end

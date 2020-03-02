@@ -22,80 +22,71 @@
 % These properties are directly accessible through the distribution object,
 % followed by a dot and the name of a property.
 %
-%   Lower - Lower bound of distribution domain
-%   Upper - Upper bound of distribution domain
-%   Mean - Mean (expected value) of distribution
-%   Var - Variance of distribution
-%   Std - Standard deviation of distribution
-%   Mode - Mode of distribution
-%   Median - Median of distribution
-%   Location - Location parameter of distribution
-%   Scale - Scale parameter of distribution
+%   Name - Name of the distribution
+%   Domain - Domain of the distribution
+%
+%   Mean - Mean (expected value) of the distribution
+%   Var - Variance of the distribution
+%   Std - Standard deviation of the distribution
+%   Mode - Mode of the distribution
+%   Median - Median of the distribution
+%   Location - Location parameter of the distribution
+%   Scale - Scale parameter of the distribution
 %
 %
 % __Density Related Functions__
 %
 %   pdf - Probability density function
-%   logPdf - Log of probability density function up to constant
+%   logPdf - Log of probability density function up to a constant
 %   info - Minus second derivative of log of probability density function
-%   inDomain - True for data points within domain of distribution function
+%   inDomain - True for data points within domain of the distribution function
+%   draw - 
 %
 %
 % __Description__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-classdef Normal < distribution.Abstract
-    properties 
-        Constant = NaN
-    end
-
+classdef Normal ...
+    < distribution.Abstract
 
     methods
         function this = Normal(varargin)
             this = this@distribution.Abstract(varargin{:});
             this.Name = 'Normal';
-            this.Lower = -Inf;
-            this.Upper = Inf;
-        end
+            this.Domain = [-Inf, Inf];
+        end%
 
 
-        function y = logPdf(this, x)
+        function y = logPdfInDomain(this, x)
             y = -0.5*( (x - this.Mean).^2 ./ this.Var );
-        end
-
-
-        function y = pdf(this, x)
-            y = logPdf(this, x);
-            y = this.Constant * exp(y);
-        end
+        end%
 
 
         function y = info(this, x)
             y = 1/this.Var;
             y = y(ones(size(x)));
-        end
+        end%
+        
+        
+        function y = sample(this, varargin)
+            y = this.Mean + this.Std*randn(varargin{:});
+        end%
     end
 
 
     methods (Access=protected)
         function populateParameters(this)
-            if ~isfinite(this.Std)
-                this.Std = sqrt(this.Var);
-            end
-            if ~isfinite(this.Var)
-                this.Var = this.Std^2;
-            end
             this.Location = this.Mean;
             this.Scale = this.Std;
             this.Mode = this.Mean;
             this.Median = this.Mean;
-            this.Constant = 1/(sqrt(2*pi)*this.Std);
-        end
+            this.LogConstant = -log(this.Std) - 0.5*log(2*pi); 
+        end%
     end
 
 
@@ -106,7 +97,7 @@ classdef Normal < distribution.Abstract
             this.Mean = 0;
             this.Var = 1;
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMeanVar(varargin)
@@ -114,7 +105,7 @@ classdef Normal < distribution.Abstract
             this = distribution.Normal( );
             [this.Mean, this.Var] = varargin{1:2};
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMeanStd(varargin)
@@ -122,7 +113,7 @@ classdef Normal < distribution.Abstract
             this = distribution.Normal( );
             [this.Mean, this.Std] = varargin{1:2};
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMedianVar(varargin)
@@ -131,7 +122,7 @@ classdef Normal < distribution.Abstract
             [this.Median, this.Var] = varargin{1:2};
             this.Mean = this.Median;
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMedianStd(varargin)
@@ -140,7 +131,7 @@ classdef Normal < distribution.Abstract
             [this.Median, this.Std] = varargin{1:2};
             this.Mean = this.Median;
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromModeVar(varargin)
@@ -149,7 +140,7 @@ classdef Normal < distribution.Abstract
             [this.Mode, this.Var] = varargin{1:2};
             this.Mean = this.Mode;
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromModeStd(varargin)
@@ -158,6 +149,6 @@ classdef Normal < distribution.Abstract
             [this.Mode, this.Std] = varargin{1:2};
             this.Mean = this.Mode;
             populateParameters(this);
-        end
+        end%
     end
 end

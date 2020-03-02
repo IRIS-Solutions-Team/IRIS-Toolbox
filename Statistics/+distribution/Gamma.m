@@ -21,10 +21,11 @@
 % These properties are directly accessible through the distribution object,
 % followed by a dot and the name of a property.
 %
+%   Name - Name of the distribution
+%   Domain - Domain of the distribution
+%
 %   Alpha - Alpha (shape) parameter of Gamma distribution
 %   Beta - Beta (scale) parameter of Gamma distribution
-%   Lower - Lower bound of distribution domain
-%   Upper - Upper bound of distribution domain
 %   Mean - Mean (expected value) of distribution
 %   Var - Variance of distribution
 %   Std - Standard deviation of distribution
@@ -46,96 +47,45 @@
 % __Description__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-classdef Gamma < distribution.Abstract
+classdef Gamma ...
+    < distribution.Abstract ...
+    & distribution.GammaFamily
+
     properties (SetAccess=protected)
-        % Alpha  Alpha (shape) parameter of Gamma distribution
-        Alpha = NaN       
+        % Alpha  Alpha (shape) parameter of the distribution
+        Alpha = NaN
 
-        % Beta  Beta (scale) parameter of Gamma distribution
-        Beta = NaN        
-    end
-
-
-    properties (SetAccess=protected, Hidden)
-        Constant = NaN    % Integration constant
-        LogConstant = NaN % Log of integration constant
+        % Beta  Beta (scale) parameter of the distribution
+        Beta = NaN
     end
 
 
     methods
-        function this = Gamma(varargin)
-            this = this@distribution.Abstract(varargin{:});
+        function this = Gamma( )
             this.Name = 'Gamma';
-            this.Lower = 0;
-            this.Upper = Inf;
+            this.Domain = [0, Inf];
             this.Location = 0;
-        end
-
-
-        function y = logPdf(this, x)
-            y = zeros(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            y(indexInDomain) = (this.Alpha - 1)*log(x) - x/this.Beta;
-            y(~indexInDomain) = -Inf;
-        end
-
-
-        function y = pdf(this, x)
-            y = zeros(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            % y(indexInDomain) = x.^(this.Alpha-1).*exp(-x/this.Beta) * this.Constant;
-            y(indexInDomain) = exp( logPdf(this, x) + this.LogConstant );
-        end
-
-
-        function y = info(this, x)
-            y = nan(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            y(indexInDomain) = (this.Alpha - 1) / x.^2;
-        end
+        end%
     end
 
 
     methods (Access=protected)
-        function populateParameters(this)
-            if ~isfinite(this.Mean)
-                this.Mean = this.Alpha*this.Beta;
-            end
-            if ~isfinite(this.Mode)
-                this.Mode = max(0, (this.Alpha-1)*this.Beta);
-            end
-            if ~isfinite(this.Var)
-                this.Var = this.Alpha * this.Beta.^2;
-            end
-            if ~isfinite(this.Std)
-                this.Std = sqrt(this.Var);
-            end
-            this.Shape = this.Alpha;
-            this.Scale = this.Beta;
-            this.LogConstant = -(this.Alpha*log(this.Beta) + gammaln(this.Alpha));
-            this.Constant = 1./(this.Beta^this.Alpha * gamma(this.Alpha));
-        end
-
-
         function alphaBetaFromMeanVar(this)
             this.Beta = this.Var / this.Mean;
             this.Alpha = this.Mean / this.Beta;
-        end
+        end%
 
 
         function alphaBetaFromModeVar(this)
             k = this.Mode^2/this.Var + 2;
             this.Alpha = fzero(@(x) x+1/x - k, [1+1e-10, 1e10]);
             this.Beta = this.Mode/(this.Alpha - 1);
-        end
+        end%
     end
 
 
@@ -143,7 +93,7 @@ classdef Gamma < distribution.Abstract
         function this = fromShapeScale(varargin)
             % fromShapeScale  Gamma distribution from shape and scale parameters
             this = distribution.Gamma.fromAlphaBeta(varargin{:});
-        end
+        end%
 
 
         function this = fromAlphaBeta(varargin)
@@ -151,7 +101,7 @@ classdef Gamma < distribution.Abstract
             this = distribution.Gamma( );
             [this.Alpha, this.Beta] = varargin{1:2};
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMeanVar(varargin)
@@ -160,17 +110,16 @@ classdef Gamma < distribution.Abstract
             [this.Mean, this.Var] = varargin{1:2};
             alphaBetaFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMeanStd(varargin)
             % fromMeanStd  Gamma distribution from mean and std deviation
             this = distribution.Gamma( );
             [this.Mean, this.Std] = varargin{1:2};
-            this.Var = this.Std.^2;
             alphaBetaFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromModeVar(varargin)
@@ -179,16 +128,15 @@ classdef Gamma < distribution.Abstract
             [this.Mode, this.Var] = varargin{1:2};
             alphaBetaFromModeVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromModeStd(varargin)
             % fromModeStd  Gamma distribution from mode and std deviation
             this = distribution.Gamma( );
             [this.Mode, this.Std] = varargin{1:2};
-            this.Var = this.Std^2;
             alphaBetaFromModeVar(this);
             populateParameters(this);
-        end
+        end%
     end
 end

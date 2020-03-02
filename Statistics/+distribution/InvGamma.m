@@ -9,7 +9,7 @@
 % `distribution.InvGamma.` preceding their names.
 %
 %   fromShapeScale - Inverse Gamma distribution from shape and scale parameters
-%   fromAlphaBeta - Inverse Gamma distribution from alpha and beta parameters of underlying Gamma distribution
+%   fromAlphaBeta - Inverse Gamma distribution from alpha and beta parameters 
 %   fromMeanVar - Inverse Gamma distribution from mean and variance
 %   fromMeanStd - Inverse Gamma distribution from mean and std deviation
 %   fromModeVar - Inverse Gamma distribution from mode and variance
@@ -21,10 +21,11 @@
 % These properties are directly accessible through the distribution object,
 % followed by a dot and the name of a property.
 %
-%   Alpha - (scale) parameter of underlying Gamma distribution
-%   Beta - (shape) parameter of underlying Gamma distribution
-%   Lower - Lower bound of distribution domain
-%   Upper - Upper bound of distribution domain
+%   Name - Name of the distribution
+%   Domain - Domain of the distribution
+%
+%   Alpha - Alpha (scale) parameter of the distribution
+%   Beta - Beta (shape) parameter of the distribution
 %   Mean - Mean (expected value) of distribution
 %   Var - Variance of distribution
 %   Std - Standard deviation of distribution
@@ -46,23 +47,18 @@
 % __Description__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
 classdef InvGamma < distribution.Abstract
     properties (SetAccess=protected)
-        % Alpha (scale) parameter of underlying Gamma distribution
-        Alpha       
+        % Alpha  Alpha (shape) parameter of the distribution
+        Alpha
 
-        % Beta (shape) parameter of underlying Gamma distribution
-        Beta        
-    end
-
-
-    properties (SetAccess=protected, Hidden)
-        Constant    % Integration constant
+        % Beta  Beta (scale) parameter of the distribution
+        Beta
     end
 
 
@@ -73,50 +69,37 @@ classdef InvGamma < distribution.Abstract
 
     methods
         function this = InvGamma(varargin)
-            this = this@distribution.Abstract(varargin{:});
             this.Name = 'InvGamma';
-            this.Lower = 0;
-            this.Upper = Inf;
             this.Location = 0;
-        end
+        end%
 
 
-        function y = logPdf(this, x)
-            y = zeros(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            y(indexInDomain) = (-this.Alpha - 1)*log(x) - 1./(this.Beta * x);
-            y(~indexInDomain) = -Inf;
-        end
+        function y = logPdfInDomain(this, x)
+            y = -(this.Alpha + 1)*log(x) - this.Beta./x;
+        end%
 
 
-        function y = pdf(this, x)
-            y = zeros(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            y(indexInDomain) = x.^(-this.Alpha-1).*exp(-1./(this.Beta * x)) * this.Constant;
-        end
+        function y = infoInDomain(this, x)
+            x2 = x.^2;
+            x3 = x.^3;
+            y = -(this.Alpha + 1)./x2 + 2*this.Beta./x3;
+        end%
 
 
-        function y = info(this, x)
-            y = nan(size(x));
-            indexInDomain = inDomain(this, x);
-            x = x(indexInDomain);
-            x2 = x(indexInDomain).^2;
-            x3 = x(indexInDomain).^3;
-            y(indexInDomain) = (-this.Alpha - 1)./x2 + 2./(this.Beta * x3);
-        end
+        function y =  sample(this, varargin)
+            y = 1 ./ gamrnd(this.Alpha, 1/this.Beta, varargin{:});
+        end%
     end
 
 
     methods (Access=protected)
         function populateParameters(this)
-            this.Mode = 1/(this.Beta*(this.Alpha+1));
+            this.Mode = this.Beta ./ (this.Alpha + 1);
             if ~isfinite(this.Mean) && this.Alpha>1
-                this.Mean = 1/(this.Beta*(this.Alpha-1));
+                this.Mean = this.Beta ./ (this.Alpha - 1);
             end
             if ~isfinite(this.Var) && this.Alpha>2
-                this.Var = this.Mean^2 / (this.Alpha-2);
+                this.Var = this.Mean^2 ./ (this.Alpha - 2);
             end
             if ~isfinite(this.Std)
                 this.Std = sqrt(this.Var);
@@ -125,24 +108,25 @@ classdef InvGamma < distribution.Abstract
                 this.Shape = this.Alpha;
             end
             if ~isfinite(this.Scale)
-                this.Scale = 1./this.Beta;
+                this.Scale = this.Beta;
             end
-            this.Constant = 1./(this.Beta^this.Alpha * gamma(this.Alpha));
-        end
+            this.LogConstant = this.Alpha*log(this.Beta) - gammaln(this.Alpha);
+            this.Constant = exp(this.LogConstant);
+        end%
 
 
         function alphaBetaFromMeanVar(this)
             this.Alpha = this.Mean^2/this.Var + 2;
-            this.Beta = 1./(this.Mean*(this.Alpha-1));
-        end
+            this.Beta = this.Mean*(this.Alpha - 1);
+        end%
 
 
         function alphaBetaFromModeVar(this)
             k = this.Var/this.Mode^2;
             obj = @(Alpha) (Alpha+1)^2 - k*(Alpha-1)^2*(Alpha-2);
             this.Alpha = fzero(obj, [2+eps(), this.MAX_ALPHA]);
-            this.Beta = 1./(this.Mode * (this.Alpha+1));
-        end
+            this.Beta = this.Mode * (this.Alpha + 1);
+        end%
     end
 
 
@@ -152,9 +136,9 @@ classdef InvGamma < distribution.Abstract
             this = distribution.InvGamma( );
             [this.Shape, this.Scale] = varargin{1:2};
             this.Alpha = this.Shape;
-            this.Beta = 1/this.Scale;
+            this.Beta = this.Scale;
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromAlphaBeta(varargin)
@@ -162,7 +146,7 @@ classdef InvGamma < distribution.Abstract
             this = distribution.InvGamma( );
             [this.Alpha, this.Beta] = varargin{1:2};
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMeanVar(varargin)
@@ -171,17 +155,16 @@ classdef InvGamma < distribution.Abstract
             [this.Mean, this.Var] = varargin{1:2};
             alphaBetaFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromMeanStd(varargin)
             % fromMeanStd  Inverse Gamma distribution from mean and std deviation
             this = distribution.InvGamma( );
             [this.Mean, this.Std] = varargin{1:2};
-            this.Var = this.Std^2;
             alphaBetaFromMeanVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromModeVar(varargin)
@@ -190,16 +173,15 @@ classdef InvGamma < distribution.Abstract
             [this.Mode, this.Var] = varargin{1:2};
             alphaBetaFromModeVar(this);
             populateParameters(this);
-        end
+        end%
 
 
         function this = fromModeStd(varargin)
             % fromModeStd  Inverse Gamma distribution from mode and std deviation
             this = distribution.InvGamma( );
             [this.Mode, this.Std] = varargin{1:2};
-            this.Var = this.Std^2;
             alphaBetaFromModeVar(this);
             populateParameters(this);
-        end
+        end%
     end
 end

@@ -1,90 +1,106 @@
 % distribution.Abstract
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-classdef (Abstract) Abstract < handle
-    properties (SetAccess=protected)
-        % Name  Name of distribution
-        Name = ''
+classdef (Abstract) Abstract < matlab.mixin.Copyable
+    properties
+        % Name  Name of the distribution
+        Name
+        
+        % Doain  Domain of the distribution
+        Domain
 
-        % Lower  Lower bound of distribution domain
-        Lower = NaN
-
-        % Upper  Upper bound of distribution domain
-        Upper = NaN
-
-        % Location  Location parameter of distribution
+        % Location  Location parameter of the distribution
         Location = NaN
 
-        % Scale  Scale parameter of distribution
+        % Scale  Scale parameter of the distribution
         Scale = NaN
 
-        % Shape  Shape parameter of distribution
+        % Shape  Shape parameter of the distribution
         Shape = NaN
         
-        % Mean  Mean (expected value) of distribution
+        % Mean  Mean (expected value) of the distribution
         Mean = NaN
 
-        % Var  Variance of distribution
+        % Var  Variance of the distribution
         Var = NaN
 
-        % Std  Standard deviation of distribution
-        Std = NaN
-
-        % Mode  Mode of distribution
+        % Mode  Mode of the distribution
         Mode = NaN 
 
-        % Median  Median of distribution
+        % Median  Median of the distribution
         Median = NaN
+
+        % LogConstant  Log of integration constant
+        LogConstant = 0
     end
 
 
-    methods
-        function this = Abstract( )
-        end
+    properties (SetAccess=protected, Dependent)
+        % Std  Std deviation of the distribution
+        Std
     end
 
 
     methods (Abstract)
-        % logPdf  Log of probability density function up to constant
-        varargout = logPdf(varargin)
+        % logPdfInDomain  Log of probability density function up to a constant within domain
+        varargout = logPdfInDomain(varargin)
 
-        % pdf  Probability density function
-        varargout = pdf(varargin)
-
-        % info  Minus second derivative of log of probability density function
-        varargout = info(varargin)
+        % infoInDomain  Minus second derivative of the log of probability density function within domain
+        varargout = infoInDomain(varargin)
+        
+        % sample  Sample randomly from the distribution
+        varargout = sample(varargin)
     end
 
 
     methods
-        function indexInDomain = inDomain(this, x)
-            % inDomain  True for data points within domain of distribution function
-            indexInDomain = x>=this.Lower & x<=this.Upper;
-        end
-
-
-        function this = set.Lower(this, lower)
-            assert( ...
-                isnan(this.Upper) || lower<this.Upper, ...
-                exception.Base('Distribution:Abstract:LowerUpperBounds', 'error') ...
-            );
-            this.Lower = lower;
-        end
-
-
-        function this = set.Upper(this, upper)
-            assert( ...
-                isnan(this.Lower) || upper>this.Lower, ...
-                exception.Base('Distribution:Abstract:UpperLowerBounds', 'error') ...
-            );
-            this.Upper = upper;
-        end
+        function inxInDomain = inDomain(this, x)
+            inxInDomain = x>=this.Domain(1) & x<=this.Domain(2);
+        end%
     end
 
 
     methods (Abstract, Access=protected)
         varargout = populateParameters(varargin)
+    end
+
+
+    methods
+        function y = logPdf(this, x)
+            y = zeros(size(x));
+            inxInDomain = inDomain(this, x);
+            if any(inxInDomain)
+                x = x(inxInDomain);
+                y(inxInDomain) = logPdfInDomain(this, x);
+            end
+            y(~inxInDomain) = -Inf;
+        end%
+
+
+        function y = info(x)
+            y = zeros(size(x));
+            inxInDomain = inDomain(this, x);
+            if any(inxInDomain)
+                x = x(inxInDomain);
+                y(inxInDomain) = infoInDomain(this, x);
+            end
+        end%
+
+
+        function y = pdf(this, x)
+            y = exp( logPdf(this, x) + this.LogConstant );
+        end%
+
+
+        function value = get.Std(this)
+            value = sqrt(this.Var);
+        end%
+
+
+        function this = set.Std(this, value)
+            this.Var = value.^2;
+        end%
     end
 end
