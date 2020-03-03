@@ -14,9 +14,14 @@ classdef (Abstract) GammaFamily ...
 
 
         function y = sample(this, varargin)
-            y = gamrnd(this.Alpha, this.Beta, varargin{:});
+            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
+            if strcmpi(sampler, 'Iris')
+                y = distribution.GammaFamily.sampleMarsagliaTsang([this.Alpha, this.Beta], varargin{1:end-1});
+            else
+                y = gamrnd(this.Alpha, this.Beta, dim);
+            end
         end%
-
+                        
 
         function populateParameters(this)
             if ~validate.numericScalar(this.Mean) || ~isfinite(this.Mean)
@@ -31,6 +36,50 @@ classdef (Abstract) GammaFamily ...
             this.Shape = this.Alpha;
             this.Scale = this.Beta;
             this.LogConstant = -(this.Alpha*log(this.Beta) + gammaln(this.Alpha));
+        end%
+    end
+
+
+
+
+    methods (Static)
+        function y = sampleMarsagliaTsang(parameters, varargin)
+            if numel(varargin)==1
+                dim = varargin{1};
+            else
+                dim = [varargin{:}];
+            end
+            if numel(dim)==1
+                dim = [dim, dim];
+            end
+            alpha = parameters(1);
+            if parameters(1)<1
+                alpha = 1 + alpha;
+            end
+            beta = parameters(2);
+            y = nan(dim);
+            d = alpha-1/3;
+            c = 1/sqrt(9*d);
+            for i = 1 : numel(y)
+                while true
+                    z = randn( );
+                    if z<=-1/c
+                        continue
+                    end
+                    u = rand( );
+                    V = (1 + c*z)^3;
+                    if log(u)<(0.5*z^2 + d - d*V + d*log(V))
+                        y(i) = d*V;
+                        break
+                    end
+                end
+            end
+            if beta~=1
+                y = y * beta;
+            end
+            if parameters(1)<1
+                y = y .* (rand(size(y))).^(1/parameters(1));
+            end
         end%
     end
 end

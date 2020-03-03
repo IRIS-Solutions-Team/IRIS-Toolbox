@@ -49,9 +49,6 @@ classdef (Abstract) Abstract < matlab.mixin.Copyable
 
         % infoInDomain  Minus second derivative of the log of probability density function within domain
         varargout = infoInDomain(varargin)
-        
-        % sample  Sample randomly from the distribution
-        varargout = sample(varargin)
     end
 
 
@@ -101,6 +98,18 @@ classdef (Abstract) Abstract < matlab.mixin.Copyable
 
         function this = set.Std(this, value)
             this.Var = value.^2;
+        end%
+    end
+
+
+    methods (Static)
+        function [dim, sampler] = determineSampler(varargin)
+            sampler = 'Stats';
+            if ischar(varargin{end}) || isa(varargin{end}, 'string')
+                sampler = varargin{end};
+                varargin(end) = [ ];
+            end
+            dim = [varargin{:}];
         end%
     end
 end

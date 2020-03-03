@@ -87,7 +87,11 @@ classdef InvGamma < distribution.Abstract
 
 
         function y =  sample(this, varargin)
-            y = 1 ./ gamrnd(this.Alpha, 1/this.Beta, varargin{:});
+            % Create auxiliary Gamma(alpha, 1/beta)
+            gamma = distribution.Gamma( );
+            gamma.Alpha = this.Alpha;
+            gamma.Beta = 1/this.Beta;
+            y = 1 ./ sample(gamma, varargin{:});
         end%
     end
 

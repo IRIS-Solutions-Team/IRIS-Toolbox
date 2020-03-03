@@ -87,7 +87,20 @@ classdef Beta ...
 
 
         function y = sample(this, varargin)
-            y = betarnd(this.A, this.B, varargin{:});
+            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
+            if strcmpi(sampler, 'Iris')
+                y = nan(dim);
+                inxValid = isfinite(y);
+                while any(~inxValid)
+                    num = nnz(~inxValid);
+                    y1 = distribution.GammaFamily.sampleMarsagliaTsang([this.A, 1], num, 1);
+                    y2 = distribution.GammaFamily.sampleMarsagliaTsang([this.B, 1], num, 1);
+                    y(~inxValid) = y1 ./ (y1 + y2);
+                    inxValid = isfinite(y);
+                end
+            else
+                y = betarnd(this.A, this.B, dim);
+            end
         end%
     end
 

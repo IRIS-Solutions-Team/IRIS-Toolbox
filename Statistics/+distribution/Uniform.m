@@ -79,7 +79,8 @@ classdef Uniform ...
         
         
         function y = sample(this, varargin)
-            y = this.Lower + (this.Upper-this.Lower)*rand(varargin{:});
+            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
+            y = this.Lower + (this.Upper-this.Lower)*rand(dim);
         end%
     end
 

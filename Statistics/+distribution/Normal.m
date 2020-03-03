@@ -74,7 +74,8 @@ classdef Normal ...
         
         
         function y = sample(this, varargin)
-            y = this.Mean + this.Std*randn(varargin{:});
+            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
+            y = this.Mean + this.Std*randn(dim);
         end%
     end
 

@@ -103,8 +103,9 @@ classdef Student < distribution.Abstract
 
 
         function y = sample(this, varargin)
+            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
             chi2 = distribution.ChiSquare.fromDegreesFreedom(this.DegreesFreedom);
-            y = randn(varargin{:}) .* sqrt(this.DegreesFreedom ./ sample(chi2, varargin{:}));
+            y = randn(dim) .* sqrt(this.DegreesFreedom ./ sample(chi2, dim, sampler));
             if this.Sigma~=1
                 y = this.Sigma*y;
             end

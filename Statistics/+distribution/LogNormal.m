@@ -86,7 +86,8 @@ classdef LogNormal ...
         
         
         function y = sample(this, varargin)
-            y = exp(this.Mu + this.Sigma*randn(varargin{:}));
+            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
+            y = exp(this.Mu + this.Sigma*randn(dim));
         end%
     end
 
