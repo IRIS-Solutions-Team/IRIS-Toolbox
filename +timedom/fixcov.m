@@ -1,15 +1,17 @@
-function X = fixcov(X)
+function X = fixcov(X, tolerance)
 % fixcov  Remove numerically negative diagonals from covariance matrices
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+if nargin<2
+    tolerance = shared.Tolerance.DEFAULT_MSE;
+end
+    
 %--------------------------------------------------------------------------
-
-tolerance = model.DEFAULT_MSE_TOLERANCE;
 
 % Unfold x in 3rd dimension. This is to handle 4-th and higher
 % dimensional matrices without having to detect the exact structure of
@@ -25,15 +27,15 @@ if ~isRealX
 end
 
 for i = 1 : size(X, 3)
-    % Set very small or negative entries to zero.
-    indexToFix = abs(diag(X(:, :, i)))<tolerance;
-    if any(indexToFix)
-        X(indexToFix, indexToFix, i) = 0;
+    % Set very small or negative entries to zero
+    inxToFix = abs(diag(X(:, :, i)))<tolerance;
+    if any(inxToFix)
+        X(inxToFix, inxToFix, i) = 0;
     end
     if ~isRealX
-        indexToFix = abs(diag(imagX(:, :, i)))<tolerance;
-        if any(indexToFix)
-            imagX(indexToFix, indexToFix, i) = 0;
+        inxToFix = abs(diag(imagX(:, :, i)))<tolerance;
+        if any(inxToFix)
+            imagX(inxToFix, inxToFix, i) = 0;
         end
     end
 end

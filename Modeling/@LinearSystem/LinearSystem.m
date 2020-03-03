@@ -7,6 +7,14 @@
 %
 
 classdef LinearSystem < shared.Kalman
+    properties
+        % Tolerance  Tolerance level object
+        Tolerance = shared.Tolerance( )
+    end
+
+
+
+
     properties (SetAccess=protected)
         % NumPeriods  Number of periods in which system matrices vary from asymptotic system
         NumPeriods (1, 1) double = 0
@@ -39,8 +47,8 @@ classdef LinearSystem < shared.Kalman
         NumExtendedPeriods
         Omega
         NumXi
-        NumXib
-        NumXif
+        NumXiB
+        NumXiF
         NumV
         NumY
         NumW
@@ -114,14 +122,14 @@ classdef LinearSystem < shared.Kalman
         end%
 
 
-        function [numY, numXi, numXib, numXif, numE, numG, numZ, numV, numW] = sizeOfSolution(this)
+        function [numY, numXi, numXiB, numXiF, numE, numG, numZ, numV, numW] = sizeOfSolution(this)
             numXi = this.Dimensions(1);
-            numXib = this.Dimensions(2);
+            numXiB = this.Dimensions(2);
             numV = this.Dimensions(3);
             numY = this.Dimensions(4);
             numW = this.Dimensions(5);
             numE = numV + numW;
-            numXif = numXi - numXib;
+            numXiF = numXi - numXiB;
             numG = 0;
             numZ = 0;
             numV = numV;
@@ -144,15 +152,15 @@ classdef LinearSystem < shared.Kalman
     methods (Access=protected, Hidden)
         function this = setup(this)
             numXi = this.NumXi;
-            numXib = this.NumXib;
+            numXiB = this.NumXiB;
             numV  = this.NumV;
             numY  = this.NumY;
             numW  = this.NumW;
             numExtPeriods = this.NumExtendedPeriods;
-            T = nan(numXi, numXib, numExtPeriods);
+            T = nan(numXi, numXiB, numExtPeriods);
             R = nan(numXi, numV, numExtPeriods);
             k = nan(numXi, 1, numExtPeriods);
-            Z = nan(numY, numXib, numExtPeriods);
+            Z = nan(numY, numXiB, numExtPeriods);
             H = nan(numY, numW, numExtPeriods);
             d = nan(numY, 1, numExtPeriods);
             U = nan(0, 0, numExtPeriods);
@@ -208,15 +216,15 @@ classdef LinearSystem < shared.Kalman
 
 
 
-        function n = get.NumXib(this)
+        function n = get.NumXiB(this)
             n = this.Dimensions(2);
         end%
 
 
 
 
-        function n = get.NumXif(this)
-            n = this.NumXi - this.NumXib;
+        function n = get.NumXiF(this)
+            n = this.NumXi - this.NumXiB;
         end%
 
 

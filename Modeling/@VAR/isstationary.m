@@ -24,26 +24,26 @@ function flag = isstationary(this, varargin)
 % eigenvalue test.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('VAR.isstationary');
-    parser.addRequired(  'VAR', @(x) isa(x, 'VAR'));
-    parser.addParameter( 'Tolerance', @default, @(x) isequal(x, @default) || validate.numericScalar(x, [0, Inf]));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('VAR.isstationary');
+    addRequired(pp, 'VAR', @(x) isa(x, 'VAR'));
+    addParameter(pp, 'Tolerance', @default, @(x) isequal(x, @default) || validate.numericScalar(x, [0, Inf]));
 end
-parse(parser, this, varargin{:});
-opt = parser.Options;
+parse(pp, this, varargin{:});
+opt = pp.Options;
 
 if isequal(opt.Tolerance, @default)
-    opt.Tolerance = this.TOLERANCE;
+    opt.Tolerance = this.Tolerance.Eigen;
 end
 
 %--------------------------------------------------------------------------
 
-flag = all(abs(this.EigVal) <= 1-opt.Tolerance, 2);
-flag = transpose(flag(:));
+flag = all( abs(this.EigVal)<=(1-opt.Tolerance), 2 );
+flag = reshape(flag, 1, [ ]);
 
 end%
 

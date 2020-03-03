@@ -24,6 +24,8 @@ classdef SystemProperty < handle
         EigenStability = int8.empty(1, 0)
 
         Specifics = struct( )
+
+        Tolerance = shared.Tolerance( )
     end
 
 
@@ -46,6 +48,7 @@ classdef SystemProperty < handle
         function this = SystemProperty(model)
             [ny, nxi, nb, nf, ne, ng, nz] = sizeOfSolution(model);
             this.SizeSolution = [ny, nxi, nb, nf, ne, ng, nz];
+            this.Tolerance = tolerance(model);
         end%
 
 

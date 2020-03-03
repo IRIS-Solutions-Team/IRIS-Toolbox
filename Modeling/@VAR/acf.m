@@ -113,8 +113,8 @@ if any(inxOfUnstable)
     );
 end
 
-% Fix entries with negative variances.
-C = timedom.fixcov(C);
+% Fix entries with negative variances
+C = timedom.fixcov(C, this.Tolerance.Mse);
 
 % Autocorrelation function
 if returnCorrelations

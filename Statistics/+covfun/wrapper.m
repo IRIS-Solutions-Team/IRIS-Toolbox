@@ -1,11 +1,11 @@
-function wrapper(~, systemProperty, ~)
+function wrapper(this, systemProperty, ~)
 % wrapper  Calculate ACF and wrap it in a system property object
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
@@ -81,8 +81,8 @@ for ithContribution = 1 : numContributions
     end
 end
 
-% Fix negative variances (in the contemporaneous matrices).
-CC(:, :, 1, :, :) = timedom.fixcov(CC(:, :, 1, :, :));
+% Fix negative variances (in the contemporaneous matrices)
+CC(:, :, 1, :, :) = timedom.fixcov(CC(:, :, 1, :, :), systemProperty.Tolerance.Mse);
 
 if isCorrelations
     RR = covfun.cov2corr(CC);

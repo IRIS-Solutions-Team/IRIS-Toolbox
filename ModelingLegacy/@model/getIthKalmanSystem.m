@@ -2,11 +2,11 @@ function [T, R, K, Z, H, D, U, Zb, inxV, inxW, numUnit, inxInit] = ...
     getIthKalmanSystem(this, variantRequested, requiredForward)
 % getIthKalmanSystem  Return description of state space for Kalman filter
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 

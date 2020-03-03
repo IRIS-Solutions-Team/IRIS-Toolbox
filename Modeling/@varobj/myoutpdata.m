@@ -44,7 +44,7 @@ if numel(inpMse) == 1 && isnan(inpMse)
     nStd = size(inpMean, 1);
     std = nan(nStd, nPer, nData3, nData4);
 elseif ~isempty(inpMse)
-    inpMse = timedom.fixcov(inpMse);
+    inpMse = timedom.fixcov(inpMse, this.Tolerance.Mse);
     nStd = min(size(inpMean, 1), size(inpMse, 1));
     std = zeros(nStd, nPer, nData3, nData4);
     for i = 1 : nData3

@@ -7,10 +7,15 @@
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
 classdef (CaseInsensitiveProperties=true) ...
-         varobj < shared.UserDataContainer ...
-                & shared.CommentContainer ...
-                & shared.GetterSetter
+    varobj ...
+    < shared.UserDataContainer ...
+    & shared.CommentContainer ...
+    & shared.GetterSetter
+
     properties
+        % Tolerance  Tolerance level object
+        Tolerance = shared.Tolerance( )
+
         % YNames  Names of endogenous variables
         YNames = cell.empty(1, 0) 
 
@@ -68,11 +73,6 @@ classdef (CaseInsensitiveProperties=true) ...
     end
     
 
-    properties (Constant)
-        TOLERANCE =  eps( )^(5/9);
-    end
-
-
     properties (Dependent)
         % EigenValues  Eigenvalues of VAR transition matrix
         EigenValues
@@ -115,12 +115,11 @@ classdef (CaseInsensitiveProperties=true) ...
         NumReporting
         
         % IndexFitted  Logical index of dates in estimation range acutally fitted
-        IndexFitted = logical.empty(1, 0) 
+        IndexFitted
     end
 
 
     properties (Constant)
-        EIGEN_TOLERANCE = eps( )^(5/9)
         PREFIX_ERRORS = 'res_'
     end
 

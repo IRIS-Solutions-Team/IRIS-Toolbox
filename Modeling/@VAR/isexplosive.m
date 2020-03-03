@@ -36,20 +36,20 @@ function flag = isexplosive(this, varargin)
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('VAR.isexplosive');
-    pp.addRequired(  'VAR', @(x) isa(x, 'VAR'));
-    pp.addParameter( 'Tolerance', @default, @(x) isequal(x, @default) || validate.numericScalar(x, [0, Inf]));
+    addRequired(pp, 'VAR', @(x) isa(x, 'VAR'));
+    addParameter(pp, 'Tolerance', @default, @(x) isequal(x, @default) || validate.numericScalar(x, [0, Inf]));
 end
 parse(pp, this, varargin{:});
 opt = pp.Options;
 
 if isequal(opt.Tolerance, @default)
-    opt.Tolerance = this.TOLERANCE;
+    opt.Tolerance = this.Tolerance.Eigen;
 end
 
 %--------------------------------------------------------------------------
 
-flag = any(abs(this.EigVal) > 1+opt.Tolerance, 2);
-flag = transpose(flag(:));
+flag = any( abs(this.EigVal)>(1+opt.Tolerance), 2 );
+flag = reshape(flag, 1, [ ]);
 
 end%
 

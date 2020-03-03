@@ -20,10 +20,13 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
 
     properties (GetAccess=public, SetAccess=protected, Hidden)
-        IsGrowth = false % True for models with nonzero deterministic growth in steady state
-        Tolerance = model.DEFAULT_TOLERANCE_STRUCT % Tolerance levels for different contexts
+        % IsGrowth  True for models with nonzero deterministic growth in steady state
+        IsGrowth = false 
+
+        % Tolerance  Tolerance levels for different contexts
+        Tolerance = shared.Tolerance 
         
-        % Reporting  Reporting equations, legacy property
+        % Reporting  [Legacy] Reporting equations
         Reporting = rpteq( ) 
 
         % D2S  Derivatives to system matrices conversion
@@ -100,20 +103,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         FLOOR_PREFIX = 'floor_'
         LEVEL_BOUNDS_ALLOWED  = [int8(1), int8(2), int8(4)]
         GROWTH_BOUNDS_ALLOWED = [int8(1), int8(2)]
-        DEFAULT_SOLVE_TOLERANCE = eps( )^(5/9)
-        DEFAULT_EIGEN_TOLERANCE = eps( )^(5/9)
-        DEFAULT_SEVN2PATCH_TOLERANCE = eps( )^(5/9)
-        DEFAULT_MSE_TOLERANCE = eps( )^(7/9)
-        DEFAULT_STEADY_TOLERANCE = 1e-12
-        DEFAULT_DIFF_STEP = eps^(1/3)
-        DEFAULT_TOLERANCE_STRUCT = struct( ...
-            'Solve',      model.DEFAULT_SOLVE_TOLERANCE, ...
-            'Eigen',      model.DEFAULT_EIGEN_TOLERANCE, ...
-            'Mse',        model.DEFAULT_MSE_TOLERANCE, ...
-            'DiffStep',   model.DEFAULT_DIFF_STEP, ...
-            'Sevn2Patch', model.DEFAULT_SEVN2PATCH_TOLERANCE, ...
-            'Steady',     model.DEFAULT_STEADY_TOLERANCE ...
-            )
         DEFAULT_STEADY_EXOGENOUS = NaN
         DEFAULT_STD_LINEAR = 1
         DEFAULT_STD_NONLINEAR = log(1.01)

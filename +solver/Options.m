@@ -54,8 +54,8 @@ classdef (CaseInsensitiveProperties=true) Options
         DEFAULT_FUNCTION_NORM = 2
         DEFAULT_MAX_ITERATIONS = 5000
         DEFAULT_MAX_FUNCTION_EVALUATIONS = @(inp) 200*inp.NumberOfVariables
-        DEFAULT_FUNCTION_TOLERANCE = model.DEFAULT_STEADY_TOLERANCE
-        DEFAULT_STEP_TOLERANCE = model.DEFAULT_STEADY_TOLERANCE
+        DEFAULT_FUNCTION_TOLERANCE = shared.Tolerance.DEFAULT_STEADY
+        DEFAULT_STEP_TOLERANCE = shared.Tolerance.DEFAULT_STEADY
         DEFAULT_TRIM_OBJECTIVE_FUNCTION = false
 
         % Step Improvement Options
@@ -84,21 +84,21 @@ classdef (CaseInsensitiveProperties=true) Options
 
     methods
         function this = Options(solverName, varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('solver.Options');
-                parser.KeepUnmatched = true;
-                parser.PartialMatching = false; % Possible conflict of Display and DisplayMode
-                parser.addRequired('SolverName', @(x) (ischar(x) || (iscell(x) && ~isempty(x) && ischar(x{1})) || isa(x, 'string')) && validateIRISSolver(x));
-                parser.addParameter('DisplayMode', 'Verbose', @(x) any(strcmpi(x, {'Verbose', 'Silent'})));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('solver.Options');
+                pp.KeepUnmatched = true;
+                pp.PartialMatching = false; % Possible conflict of Display and DisplayMode
+                pp.addRequired('SolverName', @(x) (ischar(x) || (iscell(x) && ~isempty(x) && ischar(x{1})) || isa(x, 'string')) && validateIRISSolver(x));
+                addParameter(pp, 'DisplayMode', 'Verbose', @(x) any(strcmpi(x, {'Verbose', 'Silent'})));
             end
 
             if nargin==0
                 return
             end
 
-            parser.parse(solverName, varargin{:});
-            varargin = parser.UnmatchedInCell;
+            pp.parse(solverName, varargin{:});
+            varargin = pp.UnmatchedInCell;
 
             if validateSolver(solverName, {'IRIS-QaD', 'QaD'})
                 % QaD
@@ -146,40 +146,40 @@ classdef (CaseInsensitiveProperties=true) Options
                 end
             end
 
-            this.Display = resolveDisplayMode(this.Display, parser.Results.DisplayMode);
+            this.Display = resolveDisplayMode(this.Display, pp.Results.DisplayMode);
         end%
             
 
 
 
-        function parser = getParser(this)
-            parser = extend.InputParser('solver.Options.getParser');
-            parser.KeepUnmatched = true;
-            parser.addParameter('Display', this.DEFAULT_DISPLAY, @validateDisplay);
-            parser.addParameter('Reset', this.DEFAULT_RESET, @(x) isequal(x, true) || isequal(x, false));
-            parser.addParameter('JacobPattern', this.DEFAULT_JACOB_PATTERN, @(x) isempty(x) || (islogical(x) && issparse(x)) );
-            parser.addParameter('Lambda', this.DEFAULT_LAMBDA, @(x) isequal(x, @default) || (isnumeric(x) && all(x>0) && all(isreal(x))));
-            parser.addParameter('LastJacobUpdate', this.DEFAULT_LAST_JACOB_UPDATE, @(x) isnumeric(x) && isscalar(x));
-            parser.addParameter('LargeScale', this.DEFAULT_LARGE_SCALE, @(x) isequal(x, @default) || isequal(x, true) || isequal(x, false));
-            parser.addParameter({'MaxIterations', 'MaxIter'}, this.DEFAULT_MAX_ITERATIONS, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0));
-            parser.addParameter({'MaxFunctionEvaluations', 'MaxFunEvals'}, this.DEFAULT_MAX_FUNCTION_EVALUATIONS, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
-            parser.addParameter('TrimObjectiveFunction', this.DEFAULT_TRIM_OBJECTIVE_FUNCTION, @(x) isequal(x, true) || isequal(x, false));
-            parser.addParameter('FiniteDifferenceStepSize', this.DEFAULT_FINITE_DIFFERENCE_STEP_SIZE, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
-            parser.addParameter('FiniteDifferenceType', this.DEFAULT_FINITE_DIFFERENCE_TYPE, @(x) any(strcmpi(x, {'forward', 'central'})));
-            parser.addParameter('UsePinvIfJacobSingular', true, @validate.logicalScalar);
-            parser.addParameter('ForceJacobUpdateWhenReversing', this.DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING, @validate.logicalScalar);
-            parser.addParameter('LastBroydenUpdate', this.DEFAULT_LAST_BROYDEN_UPDATE, @validate.numericScalar);
-            parser.addParameter('FunctionNorm', this.DEFAULT_FUNCTION_NORM, @(x) isequal(x, @default) || isequal(x, 1) || isequal(x, 2) || isequal(x, Inf) || isa(x, 'function_handle'));
-            parser.addParameter({'FunctionTolerance', 'TolFun', 'Tolerance'}, this.DEFAULT_FUNCTION_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
-            parser.addParameter({'StepTolerance', 'TolX'}, this.DEFAULT_STEP_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
-            parser.addParameter('SpecifyObjectiveGradient', this.DEFAULT_SPECIFY_OBJECTIVE_GRADIENT, @(x) isequal(x, true) || isequal(x, false));
+        function pp = getParser(this)
+            pp = extend.InputParser('solver.Options.getParser');
+            pp.KeepUnmatched = true;
+            addParameter(pp, 'Display', this.DEFAULT_DISPLAY, @validateDisplay);
+            addParameter(pp, 'Reset', this.DEFAULT_RESET, @(x) isequal(x, true) || isequal(x, false));
+            addParameter(pp, 'JacobPattern', this.DEFAULT_JACOB_PATTERN, @(x) isempty(x) || (islogical(x) && issparse(x)) );
+            addParameter(pp, 'Lambda', this.DEFAULT_LAMBDA, @(x) isequal(x, @default) || (isnumeric(x) && all(x>0) && all(isreal(x))));
+            addParameter(pp, 'LastJacobUpdate', this.DEFAULT_LAST_JACOB_UPDATE, @(x) isnumeric(x) && isscalar(x));
+            addParameter(pp, 'LargeScale', this.DEFAULT_LARGE_SCALE, @(x) isequal(x, @default) || isequal(x, true) || isequal(x, false));
+            addParameter(pp, {'MaxIterations', 'MaxIter'}, this.DEFAULT_MAX_ITERATIONS, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0));
+            addParameter(pp, {'MaxFunctionEvaluations', 'MaxFunEvals'}, this.DEFAULT_MAX_FUNCTION_EVALUATIONS, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
+            addParameter(pp, 'TrimObjectiveFunction', this.DEFAULT_TRIM_OBJECTIVE_FUNCTION, @(x) isequal(x, true) || isequal(x, false));
+            addParameter(pp, 'FiniteDifferenceStepSize', this.DEFAULT_FINITE_DIFFERENCE_STEP_SIZE, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
+            addParameter(pp, 'FiniteDifferenceType', this.DEFAULT_FINITE_DIFFERENCE_TYPE, @(x) any(strcmpi(x, {'forward', 'central'})));
+            addParameter(pp, 'UsePinvIfJacobSingular', true, @validate.logicalScalar);
+            addParameter(pp, 'ForceJacobUpdateWhenReversing', this.DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING, @validate.logicalScalar);
+            addParameter(pp, 'LastBroydenUpdate', this.DEFAULT_LAST_BROYDEN_UPDATE, @validate.numericScalar);
+            addParameter(pp, 'FunctionNorm', this.DEFAULT_FUNCTION_NORM, @(x) isequal(x, @default) || isequal(x, 1) || isequal(x, 2) || isequal(x, Inf) || isa(x, 'function_handle'));
+            addParameter(pp, {'FunctionTolerance', 'TolFun', 'Tolerance'}, this.DEFAULT_FUNCTION_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
+            addParameter(pp, {'StepTolerance', 'TolX'}, this.DEFAULT_STEP_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
+            addParameter(pp, 'SpecifyObjectiveGradient', this.DEFAULT_SPECIFY_OBJECTIVE_GRADIENT, @(x) isequal(x, true) || isequal(x, false));
 
-            parser.addParameter({'DeflateStep', 'StepDown'}, this.DEFAULT_DEFLATE_STEP, @(x) isequal(x, @default) || isequal(x, false) || (isnumericscalar(x) && x>0 && x<1));
-            parser.addParameter({'InflateStep', 'StepUp'}, this.DEFAULT_INFLATE_STEP, @(x) isequal(x, @default) || isequal(x, false) || (isnumericscalar(x) && x>1));
+            addParameter(pp, {'DeflateStep', 'StepDown'}, this.DEFAULT_DEFLATE_STEP, @(x) isequal(x, @default) || isequal(x, false) || (isnumericscalar(x) && x>0 && x<1));
+            addParameter(pp, {'InflateStep', 'StepUp'}, this.DEFAULT_INFLATE_STEP, @(x) isequal(x, @default) || isequal(x, false) || (isnumericscalar(x) && x>1));
 
-            parser.addParameter('LastStepSizeOptim', this.DEFAULT_LAST_STEP_SIZE_OPTIM, @(x) isnumeric(x) && isscalar(x) && x>=0);
-            parser.addParameter('InitStepSize', this.DEFAULT_INIT_STEP_SIZE, @(x) isnumeric(x) && isscalar(x) && x>0 && x<=2);
-            parser.addParameter('StepSizeSwitch', this.DEFAULT_STEP_SIZE_SWITCH, @(x) isequal(x, 0) || isequal(x, 1));
+            addParameter(pp, 'LastStepSizeOptim', this.DEFAULT_LAST_STEP_SIZE_OPTIM, @(x) isnumeric(x) && isscalar(x) && x>=0);
+            addParameter(pp, 'InitStepSize', this.DEFAULT_INIT_STEP_SIZE, @(x) isnumeric(x) && isscalar(x) && x>0 && x<=2);
+            addParameter(pp, 'StepSizeSwitch', this.DEFAULT_STEP_SIZE_SWITCH, @(x) isequal(x, 0) || isequal(x, 1));
         end%
 
 
@@ -245,33 +245,33 @@ end
 
 
 function solverOpt = parseOptimTbx(solverOpt, displayMode, varargin)
-    persistent parser
-    if isempty(parser)
-        parser = extend.InputParser('solver.Options.parseOptimTbx');
-        parser.addParameter('Algorithm', 'levenberg-marquardt', @ischar);
-        parser.addParameter('Display', 'iter*', @validateDisplay);
-        parser.addParameter('JacobPattern', logical.empty(0), @(x) isempty(x) || (islogical(x) && issparse(x)));
-        parser.addParameter({'MaxIterations', 'MaxIter'}, @default, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0));
-        parser.addParameter({'MaxFunctionEvaluations', 'MaxFunEvals'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
-        parser.addParameter('FiniteDifferenceStepSize', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
-        parser.addParameter('FiniteDifferenceType', 'forward', @(x) any(strcmpi(x, {'finite', 'central'})));
-        parser.addParameter({'FunctionTolerance', 'TolFun', 'Tolerance'}, model.DEFAULT_STEADY_TOLERANCE, @(x) isnumericscalar(x) && x>0);
-        parser.addParameter('SpecifyObjectiveGradient', @default, @(x) isequal(x, @default) || isequal(x, true) || isequal(x, false));
-        parser.addParameter({'StepTolerance', 'TolX'}, model.DEFAULT_STEADY_TOLERANCE, @(x) isnumericscalar(x) && x>0);
+    persistent pp
+    if isempty(pp)
+        pp = extend.InputParser('solver.Options.parseOptimTbx');
+        addParameter(pp, 'Algorithm', 'levenberg-marquardt', @ischar);
+        addParameter(pp, 'Display', 'iter*', @validateDisplay);
+        addParameter(pp, 'JacobPattern', logical.empty(0), @(x) isempty(x) || (islogical(x) && issparse(x)));
+        addParameter(pp, {'MaxIterations', 'MaxIter'}, @default, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0));
+        addParameter(pp, {'MaxFunctionEvaluations', 'MaxFunEvals'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
+        addParameter(pp, 'FiniteDifferenceStepSize', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
+        addParameter(pp, 'FiniteDifferenceType', 'forward', @(x) any(strcmpi(x, {'finite', 'central'})));
+        addParameter(pp, {'FunctionTolerance', 'TolFun', 'Tolerance'}, shared.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
+        addParameter(pp, 'SpecifyObjectiveGradient', @default, @(x) isequal(x, @default) || isequal(x, true) || isequal(x, false));
+        addParameter(pp, {'StepTolerance', 'TolX'}, shared.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
     end
         
     if iscell(solverOpt)
         % Solver= {solverName, 'Name=', Value, ... }
         % where solverName is 'lsqnonlin' | 'fsolve'
-        parse(parser, solverOpt{2:end});
+        parse(pp, solverOpt{2:end});
         solverOpt = optimoptions(solverOpt{1});
     else
         % Solver= 'lsqnonlin' | 'fsolve'
-        parse(parser, varargin{:});
+        parse(pp, varargin{:});
         solverOpt = optimoptions(solverOpt);
     end
 
-    userOpt = parser.Options;
+    userOpt = pp.Options;
     if isequal(userOpt.Display, @auto)
         userOpt.Display = 'iter*';
     elseif isequal(userOpt.Display, true)

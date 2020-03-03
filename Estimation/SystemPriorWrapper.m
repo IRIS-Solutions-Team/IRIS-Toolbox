@@ -17,7 +17,7 @@
 %
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 classdef SystemPriorWrapper < handle
     properties
@@ -28,9 +28,13 @@ classdef SystemPriorWrapper < handle
     end
 
 
+
+
     properties (SetAccess=protected)
         BeenSealed = false
     end
+
+
 
 
     properties (Dependent)
@@ -39,20 +43,9 @@ classdef SystemPriorWrapper < handle
     end
 
 
+
+
     methods
-        function this = SystemPriorWrapper(varargin)
-            if nargin==0
-                return
-            end
-            if nargin==1 && isa(varargin{1}, 'SystemPriors')
-                this = varargin{1};
-                return
-            end
-            model = varargin{1};
-            this = prepareSystemPriorWrapper(model, this);
-        end%
-
-
         function add(this, element)
             persistent pp
             if isempty(pp)
@@ -211,6 +204,16 @@ classdef SystemPriorWrapper < handle
                 return
             end
             list = [ this.SystemProperties.OutputNames ];
+        end%
+    end
+
+
+
+
+    methods (Static) % Static constructors
+        function this = forModel(model)
+            this = SystemPriorWrapper( );
+            this = prepareSystemPriorWrapper(model, this);
         end%
     end
 end

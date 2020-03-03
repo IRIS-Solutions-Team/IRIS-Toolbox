@@ -8,10 +8,14 @@ classdef Posterior < handle
         PriorDistributions = cell.empty(1, 0)
         IndexPriors = logical.empty(1, 0)
         SystemPriors = SystemPriorWrapper.empty(1, 0)
+
+        HonorBounds = false
         EvaluateData = false
         EvaluateParamPriors = false
         EvaluateSystemPriors = false
     end
+
+
 
 
     properties (SetAccess=protected)
@@ -29,6 +33,8 @@ classdef Posterior < handle
     end
 
 
+
+
     properties (Dependent)
         NumParameters
         IsConstrained
@@ -37,13 +43,18 @@ classdef Posterior < handle
     end
 
 
+
+
     properties (Constant)
         IS_OPTIM_TBX = ~isempty(ver('optim'))
     end
 
+    
+
 
     methods
         function this = Posterior(varargin)
+        %(
             if nargin==0
                 return
             end
@@ -53,10 +64,14 @@ classdef Posterior < handle
             end
             numParameters = varargin{1};
             initialize(this, numParameters);
+        %)
         end%
 
 
+
+
         function initialize(this, numParameters)
+        %(
             this.Initial = nan(1, numParameters);
             this.ParameterNames = sprintfc('X%g', 1:numParameters);
             this.PriorDistributions = cell(1, numParameters);
@@ -72,14 +87,20 @@ classdef Posterior < handle
             this.LineInfoFromData = zeros(1, numParameters);
             this.LineInfoFromOwnPrior = zeros(1, numParameters);
             this.LineInfoFromSystemPriors = zeros(1, numParameters);
+        %)
         end%
             
 
+
+
         function maximizePosteriorMode(this, estimationWrapper)
+        %(
             if this.NumParameters==0
-                throw( ...
-                    exception.Base('Posterior:NoParametersToEstimate', 'warning') ...
-                );
+                thisWarning = [
+                    "Model:NoParameterToEstimate"
+                    "No parameter is specified to be estimated."
+                ];
+                throw(exception.Base(thisWarning, 'warning'));
                 return
             end
             checkBoundsConsistency(this);
@@ -94,10 +115,14 @@ classdef Posterior < handle
 
             repairToHonorBounds(this);
             diffObjectiveAtOptimum(this);
+        %)
         end%
             
 
+
+
         function [mldParamPriors, p] = evalParamPriors(this, x)
+        %(
             p = zeros(1, numel(x));
             for i = find(this.IndexPriors)
                 ithPriorDistribution = this.PriorDistributions{i};
@@ -114,10 +139,14 @@ classdef Posterior < handle
                 end
             end
             mldParamPriors = -sum(p); % Minus log density
+        %)
         end%
 
 
+
+
         function x = drawParameters(this, numOfDraws)
+        %(
             numOfParameters = this.NumParameters;
             x = nan(numOfDraws, numOfParameters);
             for i = 1 : numOfParameters
@@ -129,23 +158,36 @@ classdef Posterior < handle
                     indexWithin(pos) = x(pos, i)>=this.LowerBounds(i) & x(pos, i)<=this.UpperBounds(i);
                 end
             end
+        %)
         end%
     end
 
 
+
+
     methods (Access=protected)
         function checkBoundsConsistency(this)
+        %(
             numParameters = this.NumParameters;
-            indexConsistent = this.LowerBounds<this.UpperBounds;
-            assert( ...
-                all(indexConsistent), ...
-                exception.Base('Posterior:InconsistentBounds', 'error'), ...
-                this.ParameterNames(~indexConsistent) ...
-            );
+            inxConsistent = this.LowerBounds<this.UpperBounds;
+            if ~all(inxConsistent)
+                thisError = [
+                    "Model:InconsistentBounds"
+                    "The upper bound for this parameter is not above its lower bound: %s"
+                ];
+                throw( ...
+                    exception.Base(thisError, 'error'), ...
+                    this.ParameterNames(~inxConsistent) ...
+                );
+            end
+        %)
         end%
+
+
 
         
         function checkInitial(this)
+        %(
             [~, ~, namesBelow, namesAbove] = checkBounds(this, this.Initial);
             assert( ...
                 isempty(namesBelow), ...
@@ -164,41 +206,61 @@ classdef Posterior < handle
                 exception.Base('Posterior:InvalidPriorAtInitial', 'error'), ...
                 this.ParameterNames{~indexValidPriors} ...
             );
+        %)
         end%
 
 
-        function [indexBelow, indexAbove, namesBelow, namesAbove] = checkBounds(this, x)
-            indexBelow = x(:)<this.LowerBounds(:);
-            indexAbove = x(:)>this.UpperBounds(:);
-            if nargout>2
-                namesBelow = this.ParameterNames(indexBelow);
-                namesAbove = this.ParameterNames(indexAbove);
+
+
+        function [inxBelow, inxAbove, namesBelow, namesAbove] = checkBounds(this, x)
+        %(
+            if this.HonorBounds
+                inxBelow = x(:)<this.LowerBounds(:);
+                inxAbove = x(:)>this.UpperBounds(:);
+            else
+                inxBelow = false(size(x));
+                inxAbove = false(size(x));
             end
-            indexBelow = reshape(indexBelow, size(x));
-            indexAbove = reshape(indexAbove, size(x));
+            if nargout>2
+                namesBelow = this.ParameterNames(inxBelow);
+                namesAbove = this.ParameterNames(inxAbove);
+            end
+            inxBelow = reshape(inxBelow, size(x));
+            inxAbove = reshape(inxAbove, size(x));
+        %)
         end%
+
+
 
 
         function repairToHonorBounds(this)
-            [indexBelow, indexAbove, namesBelow, namesAbove] = checkBounds(this, this.Optimum);
-            if any(indexBelow)
-                this.Optimum(indexBelow) = this.LowerBounds(indexBelow);
+        %(
+            if ~this.HonorBounds
+                return
+            end
+            [inxBelow, inxAbove, namesBelow, namesAbove] = checkBounds(this, this.Optimum);
+            if any(inxBelow)
+                this.Optimum(inxBelow) = this.LowerBounds(inxBelow);
                 throw( ...
                     exception.Base('Posterior:repairToHonorBounds', 'warning'), ...
                     'lower', namesBelow{:} ...
                 );
             end
-            if any(indexAbove)
-                this.Optimum(indexAbove) = this.UpperBounds(indexAbove);
+            if any(inxAbove)
+                this.Optimum(inxAbove) = this.UpperBounds(inxAbove);
                 throw( ...
                     exception.Base('Posterior:repairToHonorBounds', 'warning'), ...
                     'upper', namesAbove{:} ...
                 );
             end
+        %)
         end%
 
 
+
+
         function diffObjectiveAtOptimum(this)
+        %(
             numParameters = this.NumParameters;
             indexDiagonal = logical(eye(numParameters)); % Index of diagonal elements
             h = eps( )^(1/4) * max(abs(this.Optimum), 1); % Differentiation step
@@ -229,17 +291,17 @@ classdef Posterior < handle
                 end
                 this.LineInfo(i) = ithDiffObj;
                 
-                % Diff data likelihood.
+                % Diff data likelihood
                 if this.EvaluateData
                     this.LineInfoFromData(i) = (lp - 2*l0 + lm) / h2;
                 end
 
-                % Diff parameter priors.
+                % Diff parameter priors
                 if this.EvaluateParamPriors
                     this.LineInfoFromOwnPrior(i) = (pp - 2*p0 + pm) / h2;
                 end
                 
-                % Diff system priors.
+                % Diff system priors
                 if this.EvaluateSystemPriors
                     this.LineInfoFromSystemPriors(i) = (sp - 2*s0 + sm) / h2;
                 end
@@ -261,8 +323,11 @@ classdef Posterior < handle
             else
                 this.Hessian{3} = zeros(numParameters);
             end
-        end
-    end%
+        %)
+        end%
+    end
+
+
 
 
     methods % Dependent properties, get and set methods for properties
@@ -278,8 +343,8 @@ classdef Posterior < handle
 
         function p = get.PropOfLineInfoFromData(this)
             p = nan(1, this.NumParameters);
-            indexPositiveLineInfo = this.LineInfo>0;
-            p = this.LineInfoFromData(indexPositiveLineInfo) ./ this.LineInfo(indexPositiveLineInfo);
+            inxPositiveLineInfo = this.LineInfo>0;
+            p = this.LineInfoFromData(inxPositiveLineInfo) ./ this.LineInfo(inxPositiveLineInfo);
             p(p<0 | ~isfinite(p)) = NaN;
         end%
 

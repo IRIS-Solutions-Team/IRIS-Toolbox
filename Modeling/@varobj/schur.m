@@ -28,8 +28,8 @@ function this = schur(this)
 % =======
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE= @int8;
 
@@ -40,9 +40,7 @@ p = p / max(ny, 1);
 
 if p==0
     this.T = zeros(ny, ny, nv);
-    % @@@@@ MOSW.
-    % Matlab accepts repmat(eye(ny), 1, 1, nv), too.
-    this.U = repmat(eye(ny), [1, 1, nv]);
+    this.U = repmat(eye(ny), 1, 1, nv);
     this.EigVal = double.empty(1, 0, nv);
     this.EigenStability = int8.empty(1, 0, nv);
     return
@@ -57,15 +55,16 @@ this.U = nan(ny*p, ny*p, nv);
 this.T = nan(ny*p, ny*p, nv);
 this.EigVal = nan(1, ny*p, nv);
 this.EigenStability = zeros(1, ny*p, nv, 'int8');
+tolerance = this.Tolerance.Eigen;
 for v = 1 : nv
     if any(any(isnan(A(:, :, v))))
         continue
     else
         [U, T] = schur(A(:, :, v));
         eigVal = ordeig(T);
-        eigVal = eigVal(:)';
-        indexUnstableRoots = abs(eigVal) > 1 + this.EIGEN_TOLERANCE;
-        indexUnitRoots = abs(abs(eigVal) - 1) <= this.EIGEN_TOLERANCE;
+        eigVal = reshape(eigVal, 1, [ ]);
+        indexUnstableRoots = abs(eigVal) > 1 + tolerance;
+        indexUnitRoots = abs(abs(eigVal) - 1) <= tolerance;
         numUnstableRoots = nnz(indexUnstableRoots);
         numUnitRoots = nnz(indexUnitRoots);
         clusters = zeros(size(eigVal));
@@ -80,4 +79,5 @@ for v = 1 : nv
     end
 end
 
-end
+end%
+

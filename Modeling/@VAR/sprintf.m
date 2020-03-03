@@ -82,7 +82,7 @@ if ~isempty(opt.Decimal)
 end
 
 if isequal(opt.Tolerance, @default)
-    opt.Tolerance = this.TOLERANCE;
+    opt.Tolerance = this.Tolerance.Solve;
 end
 
 %--------------------------------------------------------------------------
