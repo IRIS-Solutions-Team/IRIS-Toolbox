@@ -184,11 +184,15 @@ for t = 2 : numExtPeriods
         hereSimulatePredict( );
     end
 
+    %
     % Reduced-form covariance matrices at time t
+    %
     Omg = s.Omg(:, :, min(t, end));
     Sa = s.Sa(:, :, min(t, end));
     Sy = s.Sy(:, :, min(t, end));
+
     
+    %
     % MSE P(t|t-1) based on P(t-1|t-2), the predictive Kalman gain `K0(t-1)`, and
     % and the reduced-form covariance matrix Sa(t). Make sure P is numerically
     % symmetric and does not explode over time.
