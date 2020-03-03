@@ -55,7 +55,7 @@ return
             % User-supplied initial condition
             % Convert Mean[XiB] to Mean[Alpha]
             %
-            xb0 = init{1};
+            xb0 = reshape(init{1}, [ ], 1);
             inxZero = isnan(xb0) & ~inxInit;
             xb0(inxZero) = 0;
             if needsTransform
