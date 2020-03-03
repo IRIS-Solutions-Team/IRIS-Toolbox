@@ -80,6 +80,8 @@ if nargout>=2
     initCond = hereInitialize( );
 end
 
+obj.Tolerance = this.Tolerance;
+
 return
 
 
@@ -174,7 +176,7 @@ return
         numXiF = numXi - numXiB;
         inxXiB = [false(1, numXiF), true(1, numXiB)];
         s.NumE = numE;
-        s.Ta = T(inxXiB, inxXiB);
+        s.Ta = T(inxXiB, :);
         s.ka = k(inxXiB, :);
         s.Ra = R(inxXiB, :);
         s.Omg = getIthOmega(this, input.Variant);
