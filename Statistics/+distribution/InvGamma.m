@@ -111,7 +111,6 @@ classdef InvGamma < distribution.Abstract
                 this.Scale = this.Beta;
             end
             this.LogConstant = this.Alpha*log(this.Beta) - gammaln(this.Alpha);
-            this.Constant = exp(this.LogConstant);
         end%
 
 

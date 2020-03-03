@@ -50,7 +50,9 @@
 
 %--------------------------------------------------------------------------
 
-classdef Beta < distribution.Abstract
+classdef Beta ...
+    < distribution.Abstract
+
     properties (SetAccess=protected)
         % A  Parameter A of Beta distribution
         A = NaN       
@@ -81,6 +83,11 @@ classdef Beta < distribution.Abstract
 
         function y = infoInDomain(this, x)
             y = (this.B - 1)./(x - 1).^2 + (this.A - 1)./x.^2;
+        end%
+
+
+        function y = sample(this, varargin)
+            y = betarnd(this.A, this.B, varargin{:});
         end%
     end
 

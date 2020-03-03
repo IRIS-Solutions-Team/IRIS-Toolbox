@@ -67,7 +67,7 @@ classdef Normal ...
         end%
 
 
-        function y = info(this, x)
+        function y = infoInDomain(this, x)
             y = 1/this.Var;
             y = y(ones(size(x)));
         end%

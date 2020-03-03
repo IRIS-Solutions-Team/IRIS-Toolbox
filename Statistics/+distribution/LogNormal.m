@@ -106,8 +106,12 @@ classdef LogNormal ...
             if ~isfinite(this.Var) || isempty(this.Var)
                 this.Var = (exp(sigma2)-1).*this.Mean.^2;
             end
-            this.Scale = exp(this.Mu);
-            this.Shape = this.Sigma;
+            if ~isfinite(this.Scale) || isempty(this.Scale)
+                this.Scale = exp(this.Mu);
+            end
+            if ~isfinite(this.Shape) || isempty(this.Shape)
+                this.Shape = this.Sigma;
+            end
             this.LogConstant = -log(this.Sigma) - 0.5*log(2*pi); 
         end%
 
@@ -151,9 +155,17 @@ classdef LogNormal ...
 
 
         function this = fromShapeScale(varargin)
+            this = distribution.LogNormal( );
             [this.Shape, this.Scale] = varargin{:};
             this.Sigma = this.Shape;
             this.Mu = log(this.Scale);
+            populateParameters(this);
+        end%
+
+
+        function this = fromMuSigma(varargin)
+            this = distribution.LogNormal( );
+            [this.Mu, this.Sigma] = varargin{:};
             populateParameters(this);
         end%
 
