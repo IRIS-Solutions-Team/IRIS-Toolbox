@@ -86,7 +86,7 @@ classdef LogNormal ...
         
         
         function y = sample(this, varargin)
-            y = exp(this.Mean + this.Std*randn(varargin{:}));
+            y = exp(this.Mu + this.Sigma*randn(varargin{:}));
         end%
     end
 
