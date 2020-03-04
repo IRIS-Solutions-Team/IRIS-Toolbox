@@ -52,7 +52,7 @@
 
 %--------------------------------------------------------------------------
 
-classdef InvGamma < distribution.Abstract
+classdef InvGamma < distribution.Distribution
     properties (SetAccess=protected)
         % Alpha  Alpha (shape) parameter of the distribution
         Alpha
@@ -84,19 +84,28 @@ classdef InvGamma < distribution.Abstract
             x3 = x.^3;
             y = -(this.Alpha + 1)./x2 + 2*this.Beta./x3;
         end%
-
-
-        function y =  sample(this, varargin)
-            % Create auxiliary Gamma(alpha, 1/beta)
-            gamma = distribution.Gamma( );
-            gamma.Alpha = this.Alpha;
-            gamma.Beta = 1/this.Beta;
-            y = 1 ./ sample(gamma, varargin{:});
-        end%
     end
 
 
     methods (Access=protected)
+        function y =  sampleIris(this, dim)
+            % Create auxiliary Gamma(alpha, 1/beta)
+            gamma = distribution.Gamma( );
+            gamma.Alpha = this.Alpha;
+            gamma.Beta = 1/this.Beta;
+            y = 1 ./ sampleIris(gamma, dim);
+        end%
+
+
+        function y =  sampleStats(this, dim)
+            % Create auxiliary Gamma(alpha, 1/beta)
+            gamma = distribution.Gamma( );
+            gamma.Alpha = this.Alpha;
+            gamma.Beta = 1/this.Beta;
+            y = 1 ./ sampleStats(gamma, dim);
+        end%
+
+
         function populateParameters(this)
             this.Mode = this.Beta ./ (this.Alpha + 1);
             if ~isfinite(this.Mean) && this.Alpha>1

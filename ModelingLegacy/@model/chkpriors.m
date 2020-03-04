@@ -84,7 +84,7 @@ for i = find(ixFound)
     if numel(ithParam)>3 && ~isempty(ithParam{4})
         priorLogPdf = ithParam{4};
         % check prior consistency
-        if isa(priorLogPdf, 'distribution.Abstract')
+        if isa(priorLogPdf, 'distribution.Distribution')
             priorValue = priorLogPdf.logPdf(initVal);
         elseif isa(priorLogPdf, 'function_handle')
             priorValue = priorLogPdf(initVal);

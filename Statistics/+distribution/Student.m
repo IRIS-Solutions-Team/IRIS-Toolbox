@@ -52,7 +52,7 @@
 
 %--------------------------------------------------------------------------
 
-classdef Student < distribution.Abstract
+classdef Student < distribution.Distribution
     properties 
         % DegreesFreedom  Number of the degrees of freedom
         DegreesFreedom = NaN
@@ -67,7 +67,7 @@ classdef Student < distribution.Abstract
 
     methods
         function this = Student(varargin)
-            this = this@distribution.Abstract(varargin{:});
+            this = this@distribution.Distribution(varargin{:});
             this.Name = 'Student';
             this.Domain = [-Inf, Inf];
         end%
@@ -100,23 +100,34 @@ classdef Student < distribution.Abstract
             end
             y = 2*w*(nusigma2 - xmu2)./(nusigma2 + xmu2).^2;
         end%
-
-
-        function y = sample(this, varargin)
-            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
-            chi2 = distribution.ChiSquare.fromDegreesFreedom(this.DegreesFreedom);
-            y = randn(dim) .* sqrt(this.DegreesFreedom ./ sample(chi2, dim, sampler));
-            if this.Sigma~=1
-                y = this.Sigma*y;
-            end
-            if this.Mean~=0
-                y = this.Mean + y;
-            end
-        end%
     end
 
 
     methods (Access=protected)
+        function y = sampleIris(this, dim)
+            % Auxiliary ChiSquare distribution
+            chi2 = distribution.ChiSquare.fromDegreesFreedom(this.DegreesFreedom);
+            y = randn(dim) .* sqrt(this.DegreesFreedom ./ sampleIris(chi2, dim));
+            if this.Sigma~=1
+                y = this.Sigma*y;
+            end
+            if this.Mu~=0
+                y = this.Mu + y;
+            end
+        end%
+
+
+        function y = sampleStats(this, dim)
+            y = trnd(this.DegreesFreedom, dim);
+            if this.Sigma~=1
+                y = this.Sigma*y;
+            end
+            if this.Mu~=0
+                y = this.Mu + y;
+            end
+        end%
+
+
         function populateParameters(this)
             nu = this.DegreesFreedom;
             mu = this.Mu;

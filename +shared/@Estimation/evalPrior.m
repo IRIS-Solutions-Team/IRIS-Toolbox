@@ -2,7 +2,7 @@ function mldParamPriors = myevalpprior(x, pri)
 
 paramPriorsLogDensity = 0;
 for i = find(pri.IxPrior)
-    if isa(pri.FnPrior{i}, 'distribution.Abstract')
+    if isa(pri.FnPrior{i}, 'distribution.Distribution')
         ithPriorLogDensity = pri.FnPrior{i}.logPdf(x(i));
     elseif isa(pri.FnPrior{i}, 'function_handle')
         ithPriorLogDensity = pri.FnPrior{i}(x(i));

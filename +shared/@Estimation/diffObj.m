@@ -62,7 +62,7 @@ for i = 1 : numParameters
     if estOpt.EvalPPrior
         d = (pp - 2*p0 + pm) / h2;
         if ~isempty(itr.FnPrior{i}) && isfunc(itr.FnPrior{i})
-            if isa(itr.FnPrior{i}, 'distribution.Abstract')
+            if isa(itr.FnPrior{i}, 'distribution.Distribution')
                 d = -itr.FnPrior{i}.info(x0(i));
             elseif isa(itr.FnPrior{i}, 'function_handle')
                 try %#ok<TRYNC>

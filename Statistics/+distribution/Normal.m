@@ -52,11 +52,11 @@
 %--------------------------------------------------------------------------
 
 classdef Normal ...
-    < distribution.Abstract
+    < distribution.Distribution
 
     methods
         function this = Normal(varargin)
-            this = this@distribution.Abstract(varargin{:});
+            this = this@distribution.Distribution(varargin{:});
             this.Name = 'Normal';
             this.Domain = [-Inf, Inf];
         end%
@@ -71,16 +71,20 @@ classdef Normal ...
             y = 1/this.Var;
             y = y(ones(size(x)));
         end%
-        
-        
-        function y = sample(this, varargin)
-            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
-            y = this.Mean + this.Std*randn(dim);
-        end%
     end
 
 
     methods (Access=protected)
+        function y = sampleIris(this, dim)
+            y = this.Mean + this.Std*randn(dim);
+        end%
+        
+        
+        function y = sampleStats(this, dim)
+            y = normrnd(this.Mean, this.Std, dim);
+        end%
+
+
         function populateParameters(this)
             this.Location = this.Mean;
             this.Scale = this.Std;

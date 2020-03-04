@@ -52,7 +52,7 @@
 %--------------------------------------------------------------------------
 
 classdef LogNormal ...
-    < distribution.Abstract
+    < distribution.Distribution
 
     properties
         % Mu  Mean of the underlying Normal distribution
@@ -65,7 +65,7 @@ classdef LogNormal ...
 
     methods
         function this = LogNormal(varargin)
-            this = this@distribution.Abstract(varargin{:});
+            this = this@distribution.Distribution(varargin{:});
             this.Name = 'LogNormal';
             this.Domain = [0, Inf];
             this.Location = 0;
@@ -83,16 +83,20 @@ classdef LogNormal ...
             sigma2 = this.Sigma.^2;
             y = (1 - sigma2 + this.Mu - log(x)) ./ (sigma2 .* x2);
         end%
-        
-        
-        function y = sample(this, varargin)
-            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
-            y = exp(this.Mu + this.Sigma*randn(dim));
-        end%
     end
 
 
     methods (Access=protected)
+        function y = sampleIris(this, dim)
+            y = exp(this.Mu + this.Sigma*randn(dim));
+        end%
+        
+        
+        function y = sampleStats(this, dim)
+            y = lognrnd(this.Mu, this.Sigma, dim);
+        end%
+
+
         function populateParameters(this)
             sigma2 = this.Sigma.^2;
             if ~isfinite(this.Mean) || isempty(this.Mean)

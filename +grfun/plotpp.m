@@ -331,7 +331,7 @@ for i = 1 : nList
     if (isnan(from) || isnan(to) ) && ~isempty(f)
         low = bnd.(list{i})(1);
         high = bnd.(list{i})(2);
-        if isa(f, 'distribution.Abstract')
+        if isa(f, 'distribution.Distribution')
             mean = f.Mean;
             sgm = f.Std;
             mode = f.Mode;
@@ -374,7 +374,7 @@ for i = 1 : nList
         from = priorXLim.(list{i})(1);
         to = priorXLim.(list{i})(2);
         x = linspace(from, to, 1000);
-        if isa(f, 'distribution.Abstract')
+        if isa(f, 'distribution.Distribution')
             y = f.pdf(x);
         else
             try
@@ -749,7 +749,7 @@ return
         if isempty(f)
             addToTitle = sprintf('\nPrior: Flat');
         else
-            if isa(f, 'distribution.Abstract')
+            if isa(f, 'distribution.Distribution')
                 addToTitle = sprintf('\nPrior: %s {\\mu=}%g {\\sigma=}%g', f.Name, f.Mean, f.Std);
             else
                 try

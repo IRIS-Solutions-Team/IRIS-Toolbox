@@ -51,7 +51,7 @@
 %--------------------------------------------------------------------------
 
 classdef Beta ...
-    < distribution.Abstract
+    < distribution.Distribution
 
     properties (SetAccess=protected)
         % A  Parameter A of Beta distribution
@@ -69,7 +69,7 @@ classdef Beta ...
 
     methods
         function this = Beta(varargin)
-            this = this@distribution.Abstract(varargin{:});
+            this = this@distribution.Distribution(varargin{:});
             this.Name = 'Beta';
             this.Domain = [0, 1];
             this.Location = 0;
@@ -84,28 +84,28 @@ classdef Beta ...
         function y = infoInDomain(this, x)
             y = (this.B - 1)./(x - 1).^2 + (this.A - 1)./x.^2;
         end%
-
-
-        function y = sample(this, varargin)
-            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
-            if strcmpi(sampler, 'Iris')
-                y = nan(dim);
+    end
+        
+        
+    methods (Access=protected)
+        function y = sampleIris(this, dim)
+            y = nan(dim);
+            inxValid = isfinite(y);
+            while any(~inxValid)
+                num = nnz(~inxValid);
+                y1 = distribution.GammaFamily.sampleMarsagliaTsang([this.A, 1], num, 1);
+                y2 = distribution.GammaFamily.sampleMarsagliaTsang([this.B, 1], num, 1);
+                y(~inxValid) = y1 ./ (y1 + y2);
                 inxValid = isfinite(y);
-                while any(~inxValid)
-                    num = nnz(~inxValid);
-                    y1 = distribution.GammaFamily.sampleMarsagliaTsang([this.A, 1], num, 1);
-                    y2 = distribution.GammaFamily.sampleMarsagliaTsang([this.B, 1], num, 1);
-                    y(~inxValid) = y1 ./ (y1 + y2);
-                    inxValid = isfinite(y);
-                end
-            else
-                y = betarnd(this.A, this.B, dim);
             end
         end%
-    end
 
 
-    methods (Access=protected)
+        function y = sampleStats(this, dim)
+            y = betarnd(this.A, this.B, dim);
+        end%
+
+
         function populateParameters(this)
             if ~isfinite(this.Mean)
                 this.Mean = this.A / (this.A + this.B);

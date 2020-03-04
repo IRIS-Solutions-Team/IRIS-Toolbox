@@ -111,7 +111,7 @@ return
             % __Prior Distribution Function__
             priorDistribution__ = [ ];
             if length(spec__)>3 && ~isempty(spec__{4})
-                if isa(spec__{4}, 'distribution.Abstract')
+                if isa(spec__{4}, 'distribution.Distribution')
                     priorDistribution__ = spec__{4};
                 elseif isa(spec__{4},'function_handle')
                     % The 4th element is a prior distribution function handle

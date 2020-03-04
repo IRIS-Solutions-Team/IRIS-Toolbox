@@ -87,7 +87,7 @@ return
             isPrior = false;
             fnPrior = [ ];
             if length(spec)>3 && ~isempty(spec{4})
-                if isa(spec{4}, 'distribution.Abstract')
+                if isa(spec{4}, 'distribution.Distribution')
                     fnPrior = spec{4};
                     isPrior = true;
                 elseif isa(spec{4},'function_handle')

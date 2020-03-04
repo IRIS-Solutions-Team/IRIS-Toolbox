@@ -49,7 +49,7 @@
 %--------------------------------------------------------------------------
 
 classdef Uniform ...
-    < distribution.Abstract
+    < distribution.Distribution
 
     properties (SetAccess=protected, Hidden)
         % Lower  Lower bound of the uniform interval
@@ -62,7 +62,7 @@ classdef Uniform ...
 
     methods
         function this = Uniform(varargin)
-            this = this@distribution.Abstract(varargin{:});
+            this = this@distribution.Distribution(varargin{:});
             this.Name = 'Uniform';
             this.Domain = [NaN, NaN];
         end%
@@ -76,18 +76,20 @@ classdef Uniform ...
         function y = infoInDomain(~, x)
             y = zeros(size(x));
         end%
+    end
         
         
-        function y = sample(this, varargin)
-            [dim, sampler] = distribution.Abstract.determineSampler(varargin{:});
+    methods (Access=protected)
+        function y = sampleIris(this, dim)
             y = this.Lower + (this.Upper-this.Lower)*rand(dim);
         end%
-    end
+        
+        
+        function y = sampleStats(this, dim)
+            y = unifrnd(this.Lower, this.Upper, dim);
+        end%
 
 
-
-
-    methods (Access=protected)
         function populateParameters(this)
             this.Domain = [this.Lower, this.Upper];
             if ~isfinite(this.Mean)

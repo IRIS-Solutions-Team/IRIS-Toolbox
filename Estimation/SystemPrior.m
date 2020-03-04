@@ -15,7 +15,7 @@ classdef SystemPrior < handle
             if isempty(inputParser)
                 inputParser = extend.InputParser('SystemPrior.SystemPrior');
                 inputParser.addRequired('Expression', @(x) ischar(x) || isa(x, 'string'));
-                inputParser.addRequired('Distribution', @(x) isa(x, 'distribution.Abstract'));
+                inputParser.addRequired('Distribution', @(x) isa(x, 'distribution.Distribution'));
                 inputParser.addParameter('LowerBound', -Inf, @(x) isnumeric(x) && isscalar(x));
                 inputParser.addParameter('UpperBound', Inf, @(x) isnumeric(x) && isscalar(x));
             end

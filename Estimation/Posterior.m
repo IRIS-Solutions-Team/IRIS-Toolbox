@@ -126,7 +126,7 @@ classdef Posterior < handle
             p = zeros(1, numel(x));
             for i = find(this.IndexPriors)
                 ithPriorDistribution = this.PriorDistributions{i};
-                if isa(ithPriorDistribution, 'distribution.Abstract')
+                if isa(ithPriorDistribution, 'distribution.Distribution')
                     p(i) = ithPriorDistribution.logPdf(x(i));
                 elseif isa(ithPriorDistribution, 'function_handle')
                     p(i) = ithPriorDistribution(x(i));

@@ -1,9 +1,9 @@
-% distribution.Abstract
+% distribution.Distribution
 
 % -[IrisToolbox] Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-classdef (Abstract) Abstract < matlab.mixin.Copyable
+classdef (Abstract) Distribution < matlab.mixin.Copyable
     properties
         % Name  Name of the distribution
         Name
@@ -61,6 +61,8 @@ classdef (Abstract) Abstract < matlab.mixin.Copyable
 
     methods (Abstract, Access=protected)
         varargout = populateParameters(varargin)
+        varargout = sampleIris(varargin)
+        varargout = sampleStats(varargin)
     end
 
 
@@ -86,6 +88,12 @@ classdef (Abstract) Abstract < matlab.mixin.Copyable
         end%
 
 
+        function y = sample(this, varargin)
+            [dim, sampler] = distribution.Distribution.determineSampler(varargin{:});
+            y = sampler(this, dim);
+        end%
+
+
         function y = pdf(this, x)
             y = exp( logPdf(this, x) + this.LogConstant );
         end%
@@ -104,10 +112,22 @@ classdef (Abstract) Abstract < matlab.mixin.Copyable
 
     methods (Static)
         function [dim, sampler] = determineSampler(varargin)
-            sampler = 'Stats';
+            sampler = 'Iris';
             if ischar(varargin{end}) || isa(varargin{end}, 'string')
                 sampler = varargin{end};
                 varargin(end) = [ ];
+            end
+            if ~validate.anyString(sampler, 'Stats', 'Iris')
+                thisError = [
+                    "Distribution:InvalidSampler"
+                    "Distribution sampler switch must be either 'Iris' or 'Stats'."
+                ];
+                throw(exception.Base(thisError, 'error'));
+            end
+            if strcmpi(sampler, 'Iris')
+                sampler = @sampleIris;
+            else
+                sampler = @sampleStats;
             end
             dim = [varargin{:}];
         end%
