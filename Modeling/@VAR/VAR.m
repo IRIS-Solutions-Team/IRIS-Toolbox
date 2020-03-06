@@ -229,7 +229,7 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = assignEst(varargin)
         varargout = getEstimationData(varargin)
         varargout = mycompatible(varargin)
-        varargout = myglsqweights(varargin)
+        varargout = prepareLsqWeights(varargin)
         varargout = myisvalidinpdata(varargin)
         varargout = myny(varargin)
         varargout = myprealloc(varargin)
@@ -242,7 +242,7 @@ classdef (CaseInsensitiveProperties=true) VAR ...
     
     
     methods (Static, Hidden)
-        varargout = myglsq(varargin)
+        varargout = generalizedLsq(varargin)
         varargout = restrict(varargin)
         varargout = smoother(varargin)
     end

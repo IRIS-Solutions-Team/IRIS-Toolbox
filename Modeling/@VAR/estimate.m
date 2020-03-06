@@ -140,45 +140,47 @@ function [this, outputData, fitted, Rr, count] = estimate(this, inputData, range
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('VAR.estimate');
-    parser.addRequired('varModel', @(x) isa(x, 'VAR'));
-    parser.addRequired('inputData', @(x) myisvalidinpdata(this, x));
-    parser.addRequired('range', @DateWrapper.validateProperRangeInput);
-    parser.addParameter('Diff', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Order', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=0));
-    parser.addParameter('Cointeg', [ ], @isnumeric);
-    parser.addParameter('Comment', '', @(x) ischar(x) || isa(x, 'string') || isequal(x, Inf));
-    parser.addParameter({'Constraints', 'Constraint'}, '', @(x) ischar(x) || isa(x, 'string') || iscellstr(x) || isnumeric(x));
-    parser.addParameter({'Intercept', 'Constant', 'Const', 'Constants'}, @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    parser.addParameter({'CovParameters', 'CovParameter', 'CovParam'}, false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('EqtnByEqtn', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Schur', true, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter({'StartDate', 'Start'}, 'Presample', @(x) any(strcmpi(x, {'Presample', 'Fit', 'Fitted'})));
-    parser.addParameter('TimeWeights', [ ], @(x) isempty(x) || isa(x, 'tseries'));
-    parser.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
-    % Parameter constraints
-    parser.addParameter('A', [ ], @isnumeric);
-    parser.addParameter('C', [ ], @isnumeric);    
-    parser.addParameter('G', [ ], @isnumeric);
-    parser.addParameter('J', [ ], @isnumeric);
-    parser.addParameter('Mean', [ ], @(x) isempty(x) || isnumeric(x));
-    parser.addParameter('MaxIter', 1, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
-    parser.addParameter('Tolerance', 1e-5, @(x) isnumeric(x) && isscalar(x) && x>0);
-    % Prior dummy observations
-    parser.addParameter({'PriorDummies', 'BVAR'}, [ ], @(x) isempty(x) || isa(x, 'BVAR.bvarobj'));
-    parser.addParameter({'Standardize', 'Stdize'}, false, @(x) isequal(x, true) || isequal(x, false));
-    % Panel VAR
-    parser.addParameter({'FixedEff', 'FixedEffect'}, true, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('GroupWeights', [ ], @(x) isempty(x) || isnumeric(x));
-    parser.addParameter('GroupSpec', false, @(x) islogicalscalar(x) || iscellstr(x) || ischar(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('VAR.estimate');
+    addRequired(pp, 'varModel', @(x) isa(x, 'VAR'));
+    addRequired(pp, 'inputData', @(x) myisvalidinpdata(this, x));
+    addRequired(pp, 'range', @DateWrapper.validateProperRangeInput);
+
+    addParameter(pp, 'Diff', false, @validate.logicalScalar);
+    addParameter(pp, 'Order', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x, 0, intmax( )));
+    addParameter(pp, 'Cointeg', [ ], @isnumeric);
+    addParameter(pp, 'Comment', '', @(x) ischar(x) || isa(x, 'string') || isequal(x, Inf));
+    addParameter(pp, {'Constraints', 'Constraint'}, '', @(x) ischar(x) || isa(x, 'string') || iscellstr(x) || isnumeric(x));
+    addParameter(pp, {'Intercept', 'Constant', 'Const', 'Constants'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+    addParameter(pp, {'CovParameters', 'CovParameter', 'CovParam'}, false, @validate.logicalScalar);
+    addParameter(pp, 'EqtnByEqtn', false, @validate.logicalScalar);
+    addParameter(pp, 'Progress', false, @validate.logicalScalar);
+    addParameter(pp, 'Schur', true, @validate.logicalScalar);
+    addParameter(pp, {'StartDate', 'Start'}, 'Presample', @(x) validate.anyString(x, 'Presample', 'Fit', 'Fitted'));
+    addParameter(pp, 'TimeWeights', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'Warning', true, @validate.logicalScalar);
+    addParameter(pp, 'SmallSampleCorrection', false, @validate.logicalScalar);
+
+    addParameter(pp, 'A', [ ], @isnumeric);
+    addParameter(pp, 'C', [ ], @isnumeric);    
+    addParameter(pp, 'G', [ ], @isnumeric);
+    addParameter(pp, 'J', [ ], @isnumeric);
+    addParameter(pp, 'Mean', [ ], @(x) isempty(x) || isnumeric(x));
+    addParameter(pp, 'MaxIter', 1, @(x) validate.roundScalar(x, 0, Inf)); 
+    addParameter(pp, 'Tolerance', 1e-5, @(x) validate.numericScalar(x, eps( ), Inf));
+
+    addParameter(pp, {'PriorDummies', 'BVAR'}, [ ], @(x) isempty(x) || isa(x, 'BVAR.bvarobj'));
+    addParameter(pp, {'Standardize', 'Stdize'}, false, @validate.logicalScalar);
+
+    addParameter(pp, {'FixedEff', 'FixedEffect'}, true, @validate.logicalScalar);
+    addParameter(pp, 'GroupWeights', [ ], @(x) isempty(x) || isnumeric(x));
+    addParameter(pp, 'GroupSpec', false, @(x) validate.logicalScalar(x) || iscellstr(x) || ischar(x));
 end
-parser.parse(this, inputData, range, varargin{:});
-opt = parser.Options;
+parse(pp, this, inputData, range, varargin{:});
+opt = pp.Options;
 
 if isempty(this.NamesEndogenous)
     throw( exception.Base('VAR:CANNOT_ESTIMATE_EMPTY_VAR', 'error') );
@@ -285,7 +287,7 @@ s.ci = ci;
 s.order = p;
 % Weighted GLSQ; the function is different for VARs and panel VARs, because
 % Panel VARs possibly combine weights on time periods and weights on groups.
-s.w = myglsqweights(this, opt);
+s.w = prepareLsqWeights(this, opt);
 
 for iLoop = 1 : numRuns
     s.y0 = y0(:, :, min(iLoop, end));
@@ -294,8 +296,8 @@ for iLoop = 1 : numRuns
     s.x0 = x0(:, :, min(iLoop, end));
     s.g1 = g1(:, :, min(iLoop, end));
     
-    % Run generalised least squares.
-    s = VAR.myglsq(s, opt);
+    % Run generalised least squares
+    s = VAR.generalizedLsq(s, opt);
 
     % Assign estimated coefficient matrices to the VAR object.
     [this, fitted{iLoop}] = assignEst(this, s, inxGroupSpec, iLoop, opt);
