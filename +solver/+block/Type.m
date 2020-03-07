@@ -35,6 +35,30 @@ classdef Type
         function x = int16(this)
             x = this.TypeId;
         end%
+
+
+
+
+        function flag = isAssignBlock(this)
+            flag = this==solver.block.Type.ASSIGN ...
+                | this==solver.block.Type.ASSIGN_LOG ...
+                | this==solver.block.Type.ASSIGN_EXP ...
+                | this==solver.block.Type.ASSIGN_UMINUS ;
+        end%
+
+
+
+
+        function flag = isSolveBlock(this)
+            flag = this==solver.block.Type.SOLVE;
+        end%
+
+
+
+
+        function flag = isIterateBlock(this)
+            flag = this==solver.block.Type.ITERATE_TIME;
+        end%
         
         
         
@@ -67,10 +91,10 @@ classdef Type
     methods (Static)
         function this = getTypeFromId(id)
             PTR = @int16;
-            ls = enumeration('solver.block.Type');
-            for i = 1 : length(ls)
-                if ls(i).TypeId==PTR(id)
-                    this = ls(i);
+            listTypes = enumeration('solver.block.Type');
+            for i = 1 : length(listTypes)
+                if listTypes(i).TypeId==PTR(id)
+                    this = listTypes(i);
                     return
                 end
             end

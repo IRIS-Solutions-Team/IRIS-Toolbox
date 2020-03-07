@@ -5,33 +5,33 @@ PTR = @int16;
 
 %--------------------------------------------------------------------------
 
-nEqn = numel(equation.Input);
-nQty = numel(quantity.Name);
-asgn = model.component.Pairing.initAssignment(nEqn); % Initialize assignement struct.
+numEquations = numel(equation.Input);
+numQuantities = numel(quantity.Name);
+asgn = model.component.Pairing.initAssignment(numEquations); % Initialize assignement struct.
 ixm = equation.Type==TYPE(1);
 ixt = equation.Type==TYPE(2);
-ixmt = ixm | ixt;
-if ~any(ixmt)
+inxMT = ixm | ixt;
+if ~any(inxMT)
     return
 end
 
 
-% Equations written as assingments with a variable (or a log, exp, uminus
-% transformation) on the LHS.
-ixy = quantity.Type==TYPE(1);
-ixx = quantity.Type==TYPE(2);
-ixyx = ixy | ixx;
-lsName = repmat({''}, 1, nQty);
-lsName(ixyx) = quantity.Name(ixyx);
-allBlazerType = enumeration('solver.block.Type');
-nAssignType = numel(allBlazerType);
-lsAssign = cell(1, nAssignType);
-for i = 1 : nAssignType
-    type = allBlazerType(i);
-    lsAssign{i} = strcat(type, lsName);
+%
+% Equations written as assingments with a variable or a parameter (or its
+% log, exp, uminus transformation) on the LHS
+%
+inxYXP = getIndexByType(quantity, TYPE(1), TYPE(2), TYPE(4));
+listNames = repmat({''}, 1, numQuantities);
+listNames(inxYXP) = quantity.Name(inxYXP);
+allBlazerTypes = enumeration('solver.block.Type');
+numAssignTypes = numel(allBlazerTypes);
+listAssigns = cell(1, numAssignTypes);
+for i = 1 : numAssignTypes
+    type = allBlazerTypes(i);
+    listAssigns{i} = strcat(type, listNames);
 end
 
-for i = find(ixmt)
+for i = find(inxMT)
     [asgn.Dynamic.Lhs(i), asgn.Dynamic.Type(i)] = testLhs(euc.LhsDynamic{i});
     if ~isempty(euc.RhsSteady{i})
         [asgn.Steady.Lhs(i), asgn.Steady.Type(i)] = testLhs(euc.LhsSteady{i});
@@ -52,13 +52,13 @@ return
         if isempty(lhs)
             return
         end
-        for ii = 1 : length(lsAssign)
-            if isempty(lsAssign{ii})
+        for ii = 1 : length(listAssigns)
+            if isempty(listAssigns{ii})
                 continue
             end
-            ix = strcmp(lsAssign{ii}, lhs);
+            ix = strcmp(listAssigns{ii}, lhs);
             if any(ix)
-                type = allBlazerType(ii);
+                type = allBlazerTypes(ii);
                 ptr = PTR( find(ix) ); %#ok<FNDSB>
                 break
             end

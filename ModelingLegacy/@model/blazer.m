@@ -75,33 +75,33 @@ function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.blazer');
-    parser.KeepUnmatched = true;
-    parser.addRequired('model', @(x) isa(x, 'model'));
-    parser.addParameter('Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
-    parser.addParameter('SaveAs', '', @(x) isempty(x) || ischar(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.blazer');
+    pp.KeepUnmatched = true;
+    addRequired(pp, 'model', @(x) isa(x, 'model'));
+    addParameter(pp, 'Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
+    addParameter(pp, 'SaveAs', '', @(x) isempty(x) || ischar(x));
 end
-parser.parse(this, varargin{:});
-opt = parser.Options;
+parse(pp, this, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
 nameBlk = cell(1, 0); %#ok<PREALL>
 eqtnBlk = cell(1, 0); %#ok<PREALL>
 
-blazer = prepareBlazer(this, opt.Kind, parser.Unmatched);
+blazer = prepareBlazer(this, opt.Kind, pp.Unmatched);
 run(blazer);
 
 if blazer.IsSingular
     throw(exception.Base('Steady:StructuralSingularity', 'warning'));
 end
 
-[eqtnBlk, nameBlk, blkType] = getHuman(blazer);
+[eqtnBlk, nameBlk, blkType] = locallyGetHuman(blazer);
 
 if ~isempty(opt.SaveAs)
     saveAs(blazer, opt.SaveAs);
@@ -115,15 +115,15 @@ end%
 %
 
 
-function [blkEqnHuman, blkQtyHuman, blkType] = getHuman(blazer)
+function [blkEqnHuman, blkQtyHuman, blkType] = locallyGetHuman(blazer)
     numBlocks = numel(blazer.Block);
     blkEqnHuman = cell(1, numBlocks);
     blkQtyHuman = cell(1, numBlocks);
     blkType = repmat(solver.block.Type.SOLVE, 1, numBlocks);
     for i = 1 : numBlocks
         ithBlk = blazer.Block{i};
-        blkEqnHuman{i} = blazer.Model.Equation.Input( ithBlk.PosEqn );
-        blkQtyHuman{i} = blazer.Model.Quantity.Name( ithBlk.PosQty );
+        blkEqnHuman{i} = reshape(string(blazer.Model.Equation.Input( ithBlk.PosEqn )), [ ], 1);
+        blkQtyHuman{i} = reshape(string(blazer.Model.Quantity.Name( ithBlk.PosQty )), 1, [ ]);
         blkType(i) = ithBlk.Type;
     end
 end%
