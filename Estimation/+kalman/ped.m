@@ -283,7 +283,7 @@ for t = 2 : numExtPeriods
     % Objective Function Components
     %-------------------------------
     %
-    if s.IxObjRange(t)
+    if s.InxObjFunc(t)
         % The following variables may change in `doCond`, but we need to store the
         % original values in `doStorePed`.
         pex = pe;

@@ -69,7 +69,7 @@ s.ne = ne;
 s.NumPouts = numPouts;
 
 % Add pre-sample to objective function range and deterministic time trend
-s.IxObjRange = [false, opt.ObjFuncRange];
+s.InxObjFunc = [false, opt.ObjFuncRange];
 
 % Do not adjust the option `'lastSmooth='` -- see comments in `loglikopt`
 s.LastSmooth = opt.LastSmooth;
@@ -630,8 +630,8 @@ return
             outputData.C2 = outputDataAssignFunc(outputData.C2, ':', {yy, xx, ee, [ ], gg});
         end
         
-        ixObjRange = s.IxObjRange & any(s.yindex, 1);
-        s.SampleCov = ee(:, ixObjRange)*ee(:, ixObjRange).'/sum(ixObjRange);
+        inxObjFunc = s.InxObjFunc & any(s.yindex, 1);
+        s.SampleCov = ee(:, inxObjFunc)*ee(:, inxObjFunc).'/nnz(inxObjFunc);
         
         % Return smooth MSE for `xb`.
         if s.retSmoothMse

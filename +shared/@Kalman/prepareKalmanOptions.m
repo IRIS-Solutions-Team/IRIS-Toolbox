@@ -174,10 +174,11 @@ end
 if isequal(opt.ObjFuncRange, @all)
     opt.ObjFuncRange = true(1, numPeriods);
 else
-    start = max(1, round(opt.ObjFuncRange(1) - range(1) + 1));
-    End = min(numPeriods, round(opt.ObjFuncRange(end) - range(1) + 1));
+    objFuncRange = double(opt.ObjFuncRange);
+    firstColumn = max(1, round(objFuncRange(1) - range(1) + 1));
+    lastColumn = min(numPeriods, round(objFuncRange(end) - range(1) + 1));
     opt.ObjFuncRange = false(1, numPeriods);
-    opt.ObjFuncRange(start : End) = true;
+    opt.ObjFuncRange(firstColumn : lastColumn) = true;
 end
 
 

@@ -1,23 +1,21 @@
-function [Obj, V, Est, PEst] = oolik(LogDetF, PeFiPe, MtFiM, MtFiPe, NObs, opt)
+function [objFunc, V, Est, PEst] = oolik(LogDetF, PeFiPe, MtFiM, MtFiPe, NObs, opt)
 % oolik  Estimate out-of-lik parameters and sum up log-likelihood function components
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %#ok<*CTCH>
 
-try
-    opt.ObjFunc;
-catch
+if ~isfield(opt, 'ObjFunc')
     opt.ObjFunc = 1;
 end
 
 %--------------------------------------------------------------------------
 
-sumNObs = sum(NObs, 2);
+sumNumObs = sum(NObs, 2);
 sumLogDetF = sum(LogDetF, 2);
 sumPeFiPe = sum(PeFiPe, 2);
 sumMtFiM = sum(MtFiM, 3);
@@ -39,9 +37,9 @@ end
 % Estimate common variance factor
 V = 1;
 if opt.Relative && opt.ObjFunc==1
-    if sumNObs > 0
-        V = sumPeFiPe / sumNObs;
-        sumLogDetF = sumLogDetF + sumNObs*log(V);
+    if sumNumObs > 0
+        V = sumPeFiPe / sumNumObs;
+        sumLogDetF = sumLogDetF + sumNumObs*log(V);
         sumPeFiPe = sumPeFiPe / V;
     else
         sumPeFiPe = 0;
@@ -50,19 +48,21 @@ end
 
 % Put together the requested objective function
 if opt.ObjFunc==1
-    % Minus log likelihood.
+    % Minus log likelihood
     log2Pi = log(2*pi);
-    Obj = (sumNObs*log2Pi + sumLogDetF + sumPeFiPe) / 2;
+    objFunc = (sumNumObs*log2Pi + sumLogDetF + sumPeFiPe) / 2;
 else
-    % Weighted prediction errors.
-    Obj = sumPeFiPe / 2;
+    % Weighted prediction errors
+    objFunc = sumPeFiPe / 2;
 end
 
 if ~opt.ObjFuncContributions
     return
 end
 
-% Objective function factors (components)
+% 
+% Objective Function Components
+%
 if isOutOfLik
     PeFiPe = PeFiPe - Est.'*MtFiPe;
 end
@@ -70,13 +70,13 @@ if V~=1
     LogDetF = LogDetF + NObs*log(V);
     PeFiPe = PeFiPe / V;
 end
-sumObj = Obj;
+sumObj = objFunc;
 if opt.ObjFunc==1
-    Obj = (NObs*log2Pi + LogDetF + PeFiPe) / 2;
+    objFunc = (NObs*log2Pi + LogDetF + PeFiPe) / 2;
 else
-    Obj = PeFiPe / 2;
+    objFunc = PeFiPe / 2;
 end
-Obj(1) = sumObj;
+objFunc(1) = sumObj;
 
 end%
 
