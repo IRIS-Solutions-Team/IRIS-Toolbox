@@ -9,7 +9,7 @@ function ax = axisoneitherside(varargin)
 %     aa = grfun.axisoneitherside(spec)
 %     aa = grfun.axisoneitherside(aa, spec)
 %
-% Input arguments
+% Input Arguments
 % ================
 %
 % * `aa` [ numeric ] - Handle to the axes that will be changed.
