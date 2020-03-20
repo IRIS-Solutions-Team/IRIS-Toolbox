@@ -13,13 +13,12 @@ classdef ExternalFile < parser.control.Control
     
     methods (Static)
         function [arg, c, sh] = getBracketArg(key, c, sh)
-            import parser.control.*
             c = c(len(key)+1:end);
             sh = sh(len(key)+1:end);
-            [arg, to] = regexp(c, ExternalFile.BRACKET_PATTERN, 'once', 'match', 'end');
+            [arg, to] = regexp(c, parser.control.ExternalFile.BRACKET_PATTERN, 'once', 'match', 'end');
             arg = strtrim(arg(2:end-1));
             c = c(to+1:end);
             sh = sh(to+1:end);
-        end
+        end%
     end
 end

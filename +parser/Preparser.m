@@ -3,6 +3,10 @@ classdef Preparser < model.File
         UserComment = char.empty(1, 0)  % User comment line read from code
         White = char.empty(1, 0)  % Code with all labels whited out
         Assigned = struct.empty( ) % Database with control parameters
+
+        % AngleBrackets  Angle brackets can be used as an alternative to enclose Matlab expressions
+        AngleBrackets = false
+
         CloneTemplate = char.empty(1, 0)  % Template to clone model names
         Export = shared.Export.empty(1, 0) % Files to be saved into working folder
         CtrlParameters = cell(1, 0) % List of parameter names occuring in control expressions and interpolations
@@ -91,34 +95,35 @@ classdef Preparser < model.File
 
             for i = 1 : numel(this)
                 this(i).Assigned = assigned; %#ok<AGROW>
+                this(i).AngleBrackets = angleBrackets;
                 this(i).CloneTemplate = cloneTemplate; %#ok<AGROW>
             end
 
             for i = 1 : numel(this)
-                p = this(i);
+                this__ = this(i);
 
                 % Store parsed file name
-                exception.ParseTime.storeFileName(p.FileName);
-                if isempty(p.Code)
+                exception.ParseTime.storeFileName(this__.FileName);
+                if isempty(this__.Code)
                     continue
                 end
 
                 % Replace interpolation brackets $[...]$ with unicodes
                 % before comments (where white code is created)
-                p.Code = parser.Interp.replaceRegularBrackets(p.Code);
+                this__.Code = parser.Interp.replaceRegularBrackets(this__.Code);
                 
                 % Preparse individual components
-                parser.UserComment.parse(p);
-                parser.Comment.parse(p);
+                parser.UserComment.parse(this__);
+                parser.Comment.parse(this__);
 
                 % Replace angle brackts <...> with unicodes after removing
                 % comments and before parsing controls
                 if angleBrackets
-                    p.Code = parser.Interp.replaceAngleBrackets(p.Code);
-                    p.White = parser.Interp.replaceAngleBrackets(p.White);
+                    this__.Code = parser.Interp.replaceAngleBrackets(this__.Code);
+                    this__.White = parser.Interp.replaceAngleBrackets(this__.White);
                 end
 
-                parser.control.Control.parse(p);
+                parser.control.Control.parse(this__);
 
                 %
                 % Resolve interpolations *after* controls so that interpolated expressions
@@ -126,18 +131,18 @@ classdef Preparser < model.File
                 % !do keywords are resolved separately within For.writeFinal( ) in the
                 % previous step.
                 %
-                parser.Interp.parse(p);
+                parser.Interp.parse(this__);
 
-                parser.Substitution.parse(p);
-                parser.Pseudofunc.parse(p);
-                parser.DoubleDot.parse(p);
+                parser.Substitution.parse(this__);
+                parser.Pseudofunc.parse(this__);
+                parser.DoubleDot.parse(this__);
                 % Check leading and trailing empty lines
-                fixEmptyLines(p);
+                fixEmptyLines(this__);
                 % Clone preparsed code
                 if ~isempty(cloneTemplate)
-                    p.Code = model.File.cloneAllNames(p.Code, p.CloneTemplate);
+                    this__.Code = model.File.cloneAllNames(this__.Code, this__.CloneTemplate);
                 end
-                throwEvalWarning(p);
+                throwEvalWarning(this__);
             end     
             % Reset parsed file name
             exception.ParseTime.storeFileName( );            
@@ -266,13 +271,13 @@ classdef Preparser < model.File
             if isempty(pp)
                 pp = extend.InputParser('@Preparser/parse');
                 pp.KeepUnmatched = true;
-                addRequired(pp, 'ModelFile', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x) || isa(x, 'model.File'));
-                addRequired(pp, 'InputCode', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
+                addRequired(pp, 'modelFile', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x) || isa(x, 'model.File'));
+                addRequired(pp, 'inputCode', @(x) isempty(x) || ischar(x) || isa(x, 'string') || iscellstr(x));
 
                 addParameter(pp, 'AngleBrackets', false, @validate.logicalScalar);
                 addParameter(pp, {'Assigned', 'Assign'}, struct( ), @(x) isempty(x) || isstruct(x));
                 addParameter(pp, 'SaveAs', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
-                addParameter(pp, 'CloneString', '', @(x) isempty(x) || ischar(x) || isa(x, 'string')); 
+                addParameter(pp, {'CloneTemplate', 'CloneString'}, '', @(x) isempty(x) || ischar(x) || isa(x, 'string')); 
             end
             parse(pp, modelFile, inpCode, varargin{:});
             opt= pp.Options;
@@ -282,7 +287,7 @@ classdef Preparser < model.File
             %
             this = parser.Preparser( ...
                 modelFile, inpCode, ...
-                opt.Assigned, opt.CloneString, opt.AngleBrackets ...
+                opt.Assigned, opt.CloneTemplate, opt.AngleBrackets ...
             );
 
             % Combine file names

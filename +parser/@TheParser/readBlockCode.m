@@ -1,11 +1,11 @@
 function blockCode = readBlockCode(this)
 % readBlockCode  Read individual blocks of theparser code
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ eob = ['(?=$', eob, ')'];
 
 % Read blocks
 blockCode = repmat({''}, 1, numBlocks);
-ixValidEssential = true(1, numBlocks);
+inxValidEssential = true(1, numBlocks);
 for i = 1 : numBlocks
     if isempty(this.Block{i}.Keyword)
         continue
@@ -47,14 +47,14 @@ for i = 1 : numBlocks
         end
     end
     if this.Block{i}.IsEssential && this.FN_EMPTY_BLOCK(blockCode{i})
-        ixValidEssential(i) = false;
+        inxValidEssential(i) = false;
     end
 end
 
-if any(~ixValidEssential)
+if any(~inxValidEssential)
     throw( ...
         exception.ParseTime('TheParser:EssentialBlocksMissing', 'error'), ...
-        listBlockKeywords{~ixValidEssential} ...
+        listBlockKeywords{~inxValidEssential} ...
     );
 end
 
@@ -70,8 +70,8 @@ function checkKeywords(this, listBlockKeywords)
     % Allow for double exclamation marks immediately followed by \w; these can
     % be steady equations.
     UNKNOWN_KEY = '(?<!\!)!\w[\w\-]+';
-    ix = ~cellfun(@isempty, listBlockKeywords);
-    listAllowed = [ listBlockKeywords(ix), this.OtherKeyword ];
+    inx = ~cellfun(@isempty, listBlockKeywords);
+    listAllowed = [ listBlockKeywords(inx), this.OtherKeyword ];
     listKeywords = regexp(this.Code, UNKNOWN_KEY, 'match');
     numKeywords = length(listKeywords);
     inxValid = true(1, numKeywords);

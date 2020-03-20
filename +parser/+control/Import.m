@@ -5,27 +5,32 @@ classdef Import < parser.control.ExternalFile
                 return
             end
             this.FileName = varargin{1};
-        end
+        end%
         
         
         
         
         function c = writeFinal(this, p, varargin)
-            import parser.Preparser;
-            import parser.control.For;
+            import parser.Preparser
+            import parser.control.For
             fileName = this.FileName;
-            if ~isempty(p.StoreForCtrl) && ~isempty(strfind(fileName, '?'))
+            if ~isempty(p.StoreForCtrl) && contains(fileName, '?')
                 fileName = For.substitute(fileName, p);
             end
             fileName = strtrim(fileName);
             if ~isempty(fileName)
-                [c, ~, exportable, ctrlParameters] = Preparser.parse(fileName, [ ], 'Assigned=', p.Assigned);
+                [c, ~, exportable, ctrlParameters] = Preparser.parse( ...
+                    fileName, [ ] ...
+                    , 'Assigned=', p.Assigned ...
+                    , 'CloneTemplate=', p.CloneTemplate ...
+                    , 'AngleBrackets=', p.AngleBrackets ...
+                );
                 add(p, ctrlParameters, exportable);
-                % Reset file name back to caller file.
+                % Reset file name back to caller file
                 exception.ParseTime.storeFileName(p.FileName);
             else
                 c = '';
             end
-        end
+        end%
     end
 end
