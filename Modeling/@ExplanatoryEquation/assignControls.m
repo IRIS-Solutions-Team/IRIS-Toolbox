@@ -2,7 +2,7 @@ function controls = assignControls(this, inputDb)
 % assignControls  Create struct with control parameters assigned from input database
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -14,12 +14,12 @@ if isempty(controlNames)
 end
 
 listMissing = string.empty(1, 0);
-for n = reshape(controlNames, 1, [ ])
-    if ~isfield(inputDb, n)
-        listMissing = [listMissing, n];
+for name = reshape(controlNames, 1, [ ])
+    if ~isfield(inputDb, name)
+        listMissing = [listMissing, name];
         continue
     end
-    controls.(n) = inputDb.(n);
+    controls.(name) = inputDb.(name);
 end
 
 if ~isempty(listMissing)

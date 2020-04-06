@@ -67,7 +67,7 @@ function varargout = fromString(inputString, varargin)
 %--------------------------------------------------------------------------
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % Invoke unit tests
 %(

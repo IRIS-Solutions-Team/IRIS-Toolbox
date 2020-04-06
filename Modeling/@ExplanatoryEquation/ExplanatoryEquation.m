@@ -35,12 +35,30 @@ classdef ExplanatoryEquation ...
         Substitutions (1, 1) struct = struct( )
 
         IsIdentity (1, 1) logical = false
+
+
+% ResidualNamePattern  Two-element string array with a prefix and a suffix
+% attached to LHS variables names to create the residual name
         ResidualNamePattern (1, 2) string = ["res_", ""]
+
+
+% FittedNamePattern  Two-element string array with a prefix and a suffix
+% attached to LHS variables names to create the fitted name
         FittedNamePattern (1, 2) string = ["fit_", ""]
+
+
+% DateReference  Name under which the current date is accessible at runtime
         DateReference (1, 1) string = "date__"
 
+
+% Dependent  Dependent (LHS) term
         Dependent (1, :) regression.Term = regression.Term.empty(1, 0)
+
+
+% Explanatory  Array of explanatory (RHS) terms
         Explanatory (1, :) regression.Term = regression.Term.empty(1, 0)
+
+
         Parameters (1, :, :) double = double.empty(1, 0, 1)
         Statistics (1, 1) struct = struct( 'VarResiduals', NaN, ...
                                            'CovParameters', double.empty(0, 0, 1) )

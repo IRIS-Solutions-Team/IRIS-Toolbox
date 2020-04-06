@@ -33,12 +33,7 @@ function controlNames = collectControlNames(this)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
-
-%--------------------------------------------------------------------------
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 

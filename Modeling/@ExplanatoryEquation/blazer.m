@@ -1,4 +1,4 @@
-function varargout = blazer(this, varargin)
+function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, varargin)
 % blazer  Determine the order of execution within an ExplanatoryEquation array
 %{
 % ## Syntax ##
@@ -77,18 +77,9 @@ function varargout = blazer(this, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
-
-% Invoke unit tests
-%(
-if nargin==2 && isequal(varargin{1}, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
-
 
 persistent pp
 if isempty(pp)
@@ -158,8 +149,6 @@ end
 if ~isempty(opt.SaveAs) && string(opt.SaveAs)~=""
     hereSaveAs( );
 end
-
-varargout = { blocks, variableBlocks, equationBlocks, dynamicStatus };
 
 return
 
@@ -283,49 +272,3 @@ function hereThrowCannotSplitIntoBlocks( )
     throw(exception.Base(thisError, 'error'));
 end%
 
-
-
-
-%
-% Unit Tests
-%
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @blazerTest
-        @saveAsTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
-
-
-function blazerTest(testCase)
-    xq = ExplanatoryEquation.fromString([
-        "x = y{-1} + z{-1} + a"
-        "a = b"
-        "y = y{-1}"
-        "z = x{-1}"
-    ]);
-    act = blazer(xq);
-    assertEqual(testCase, numel(act{1}), 1);
-    assertEqual(testCase, numel(act{2}), 1);
-    assertEqual(testCase, sort(act{3}), sort(int16([1, 4])));
-end%
-
-
-function saveAsTest(testCase)
-    xq = ExplanatoryEquation.fromString([
-        "x = y{-1} + z{-1} + a"
-        "a = b"
-        "y = y{-1}"
-        "z = x{-1}"
-    ]);
-    fileName = './test_blazer.model';
-    blazer(xq, 'SaveAs=', fileName);
-    act = file2char(fileName); 
-    assertEqual(testCase, contains(act, 'Number of Blocks: 3'), true);
-    assertEqual(testCase, contains(act, 'Assign'), true); 
-    assertEqual(testCase, contains(act, 'Iterate'), true); 
-    delete(fileName);
-end%
-%)
