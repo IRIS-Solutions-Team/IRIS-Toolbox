@@ -41,28 +41,30 @@ function outputDatabank = retrieveDatabank(this, range, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('ExcelSheet.retrieveDatabank');
-    addRequired(parser, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
-    addRequired(parser, 'range', @(x) isnumeric(x) || validate.string(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('ExcelSheet.retrieveDatabank');
+    addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
+    addRequired(pp, 'range', @(x) isnumeric(x) || validate.string(x));
     % Options
-    addParameter(parser, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
-    addParameter(parser, 'OutputType', 'struct', @(x) validate.anyString(x, 'struct', 'Dictionary'));
+    addParameter(pp, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
+    addParameter(pp, 'OutputType', 'struct', @(x) validate.anyString(x, 'struct', 'Dictionary'));
 end
-parse(parser, this, range, varargin{:});
-opt = parser.Options;
+parse(pp, this, range, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
 if isequaln(this.NamesLocation, NaN)
-    THIS_ERROR = { 'ExcelSheet:NamesLocationNotSpecified'
-                   'NamesLocation needs to be specified before running retrieveDatabank(~)' };
-    throw( exception.Base(THIS_ERROR, 'error') );
+    thisError = [
+        "ExcelSheet:NamesLocationNotSpecified"
+        "The ExcelSheet property NamesLocation needs to be specified "
+        "before running retrieveDatabank( )."
+    ];
+    throw( exception.Base(thisError, 'error') );
 end
 
 outputDatabank = databank.backend.ensureTypeConsistency( opt.AddToDatabank, ...
@@ -103,9 +105,11 @@ return
             name = this.Buffer{this.NamesLocation, i};
         end
         if isempty(name) || ~validate.string(name)
-            THIS_ERROR = { 'ExcelSheet:InvalidSeriesName'
-                           'Some name(s) in NamesLocation are invalid' };
-            throw( exception.Base(THIS_ERROR, 'error') );
+            thisError = [
+                "ExcelSheet:InvalidSeriesName"
+                "Some name(s) in NamesLocation are invalid."
+            ];
+            throw( exception.Base(thisError, 'error') );
         end
     end%
 

@@ -31,26 +31,28 @@ function dates = readDates(this, locationRef, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 
 dataRange = this.DataRange;
 if isempty(dataRange)
-    THIS_ERROR = { 'ExcelSheet:CannotSetDates'
-                   'Set DataRange or (DataStart and DataEnd) first before setting or reading Dates' };
-    throw( exception.Base(THIS_ERROR, 'error') );
+    thisError = [ 
+        "ExcelSheet:CannotSetDates"
+        "Set DataRange or (DataStart and DataEnd) first before setting or reading Dates" 
+    ];
+    throw( exception.Base(thisError, 'error') );
 end
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('ExcelSheet.readDates');
-    addRequired(parser, 'ExcelSheet', @(x) isa(x, 'ExcelSheet'));
-    addRequired(parser, 'LocationRef', @(x) ~isempty(x));
-    addDateOptions(parser);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('ExcelSheet.readDates');
+    addRequired(pp, 'ExcelSheet', @(x) isa(x, 'ExcelSheet'));
+    addRequired(pp, 'LocationRef', @(x) ~isempty(x));
+    addDateOptions(pp);
 end
-parse(parser, this, locationRef, varargin{:});
-opt = parser.Options;
+parse(pp, this, locationRef, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
@@ -75,12 +77,11 @@ this.Dates = dates;
 
 return
 
-
     function dates = hereFromDatetime( )
         if isequal(opt.EnforceFrequency, false)
-            THIS_ERROR = { 'ExcelSheet:MustEnforceFrequencyForDatetime'
+            thisError = { 'ExcelSheet:MustEnforceFrequencyForDatetime'
                            'Option EnforceFrequency= must be used when DateFormat=@datetime' };
-            throw( exception.Base(THIS_ERROR, 'error') );
+            throw( exception.Base(thisError, 'error') );
         end
         inputDates = [ datesCutout{:} ];
         dates = DateWrapper.fromDatetimeAsNumeric(opt.EnforceFrequency, inputDates);

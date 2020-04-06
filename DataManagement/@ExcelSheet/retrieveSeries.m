@@ -31,28 +31,30 @@ function outputSeries = retrieveSeries(this, locationRef, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
-
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 dataRange = this.DataRange;
 if isempty(dataRange)
-    THIS_ERROR = { 'ExcelSheet:CannotSetDates'
-                   'Set DataRange or (DataStart and DataEnd) first before setting or retrieving time series' };
-    throw( exception.Base(THIS_ERROR, 'error') );
+    thisError = [
+        "ExcelSheet:CannotSetDates"
+        "DataRange or (DataStart and DataEnd) need to be set first before "
+        "setting or retrieving time series."
+    ];
+    throw(exception.Base(thisError, 'error'));
 end
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('ExcelSheet.retrieveSeries');
-    parser.addRequired('excelSheet', @(x) isa(x, 'ExcelSheet'));
-    parser.addRequired('locationRef', @(x) ~isempty(x));
-    % Options
-    parser.addParameter('Aggregator', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
-    parser.addParameter('Comment', '', @(x) validate.string(x) || validate.list(x));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('ExcelSheet.retrieveSeries');
+    addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
+    addRequired(pp, 'locationRef', @(x) ~isempty(x));
+
+    addParameter(pp, 'Aggregator', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
+    addParameter(pp, 'Comment', '', @(x) validate.string(x) || validate.list(x));
 end
-parse(parser, this, locationRef, varargin{:});
-opt = parser.Options;
+parse(pp, this, locationRef, varargin{:});
+opt = pp.Options;
 
 if ~iscell(locationRef)
     locationRef = { locationRef };
@@ -84,8 +86,4 @@ end
 outputSeries = Series(this.Dates, data, comment);
 
 end%
-
-
-
-
 
