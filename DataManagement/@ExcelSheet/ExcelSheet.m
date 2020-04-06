@@ -1,6 +1,8 @@
-% ExcelSheet  Extracting data from Excel sheets
+% ExcelSheet  Excel Spreadsheet Data and Time Series Extractor
 
-classdef ExcelSheet < matlab.mixin.Copyable
+classdef ExcelSheet ...
+    < matlab.mixin.Copyable
+
     properties
         Buffer (:, :) cell = cell.empty(0)
         FileName (1, 1) string = ""
@@ -18,38 +20,68 @@ classdef ExcelSheet < matlab.mixin.Copyable
     end
 
 
+
+
     methods % Constructor
         function this = ExcelSheet(fileName, varargin)
+        %(
             if nargin==0
                 return
             end
 
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('ExcelSheet.ExcelSheet');
-                addRequired(parser,  'fileName', @validate.string);
-                % Options
-                addParameter(parser, 'Sheet', 1, @(x) isempty(x) || validate.numericScalar(x) || validate.string(x));
-                addParameter(parser, 'Range', '', @validate.string);
-                addParameter(parser, 'InsertEmpty', [0, 0], @(x) isnumeric(x) && numel(x)==2 && all(x==round(x)) && all(x>=0));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('ExcelSheet/ExcelSheet');
+                addRequired(pp,  'fileName', @validate.string);
+
+                addParameter(pp, 'Sheet', 1, @(x) isempty(x) || validate.numericScalar(x) || validate.string(x));
+                addParameter(pp, 'Range', '', @validate.string);
+                addParameter(pp, 'InsertEmpty', [0, 0], @(x) isnumeric(x) && numel(x)==2 && all(x==round(x)) && all(x>=0));
             end
-            parse(parser, fileName, varargin{:});
-            opt = parser.Options;
+            parse(pp, fileName, varargin{:});
+            opt = pp.Options;
 
             this.FileName = fileName;
             this.SheetIdentification = opt.Sheet;
             this.SheetRange = opt.Range;
             this.InsertEmpty = opt.InsertEmpty;
             read(this);
+        %)
         end%
     end
 
 
 
+
     methods % Public Interface
+        %(
         varargout = readDates(varargin)
         varargout = retrieveSeries(varargin)
         varargout = retrieveDatabank(varargin)
+
+
+        function output = retrieveCell(this, locationRef)
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('ExcelSheet/retrieveCell');
+                addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
+                addRequired(pp, 'locationRef', @(x) ~isempty(x));
+            end
+            location = ExcelReference.decodeCell(locationRef);
+            output = this.Buffer(location(1), location(2));
+        end%
+
+
+        function output = retrieveRange(this, locationRef)
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('ExcelSheet/retrieveCell');
+                addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
+                addRequired(pp, 'locationRef', @(x) ~isempty(x));
+            end
+            [startLocation, endLocation] = ExcelReference.decodeRange(locationRef);
+            output = this.Buffer(startLocation(1):endLocation(1), startLocation(2):endLocation(2));
+        end%
 
 
         function read(this)
@@ -75,15 +107,15 @@ classdef ExcelSheet < matlab.mixin.Copyable
 
 
         function description = retrieveDescription(this, locationRef, varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('ExcelSheet.retrieveSeries');
-                parser.addRequired('ExcelSheet', @(x) isa(x, 'ExcelSheet'));
-                parser.addRequired('LocationRef', @(x) ~isempty(x));
-                parser.addParameter('Aggregator', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('ExcelSheet/retrieveSeries');
+                addRequired(pp, 'ExcelSheet', @(x) isa(x, 'ExcelSheet'));
+                addRequired(pp, 'LocationRef', @(x) ~isempty(x));
+                addParameter(pp, 'Aggregator', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
             end
-            parse(parser, this, locationRef, varargin{:});
-            opt = parser.Options;
+            parse(pp, this, locationRef, varargin{:});
+            opt = pp.Options;
 
             if ~iscell(locationRef)
                 locationRef = { locationRef };
@@ -113,14 +145,14 @@ classdef ExcelSheet < matlab.mixin.Copyable
 
 
         function pos = findRows(this, numToFind, varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('ExcelSheet.findColumns');
-                parser.KeepUnmatched = true;
-                addRequired(parser, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
-                addRequired(parser, 'numToFound', @(x) isempty(x) || isnumeric(x));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('ExcelSheet/findColumns');
+                pp.KeepUnmatched = true;
+                addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
+                addRequired(pp, 'numToFound', @(x) isempty(x) || isnumeric(x));
             end
-            parse(parser, this, numToFind);
+            parse(pp, this, numToFind);
 
             inx = true(this.NumOfRows, 1);
             for i = 1 : 2 : numel(varargin)
@@ -132,23 +164,25 @@ classdef ExcelSheet < matlab.mixin.Copyable
                 pos = find(inx);
                 return
             end
-            THIS_ERROR = { 'ExcelSheet:InvalidNumOfColumnsFound'
-                           'Number of rows passing test fails to comply with user restriction' };
-            throw( exception.Base(THIS_ERROR, 'error') );
+            thisError = [
+                "ExcelSheet:InvalidNumOfColumnsFound"
+                "Number of rows passing test fails to comply with user restriction."
+            ];
+            throw(exception.Base(thisError, 'error'));
         end%
 
 
 
 
         function pos = findColumns(this, numToFind, varargin)
-            persistent parser
-            if isempty(parser)
-                parser = extend.InputParser('ExcelSheet.findColumns');
-                parser.KeepUnmatched = true;
-                addRequired(parser, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
-                addRequired(parser, 'numToFind', @(x) isempty(x) || isnumeric(x));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('ExcelSheet/findColumns');
+                pp.KeepUnmatched = true;
+                addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
+                addRequired(pp, 'numToFind', @(x) isempty(x) || isnumeric(x));
             end
-            parse(parser, this, numToFind);
+            parse(pp, this, numToFind);
 
             inx = true(1, this.NumOfColumns);
             for i = 1 : 2 : numel(varargin)
@@ -160,10 +194,13 @@ classdef ExcelSheet < matlab.mixin.Copyable
                 pos = find(inx);
                 return
             end
-            THIS_ERROR = { 'ExcelSheet:InvalidNumOfColumnsFound'
-                           'Number of columns passing test fails to comply with user restriction' };
-            throw( exception.Base(THIS_ERROR, 'error') );
+            thisError = [
+                "ExcelSheet:InvalidNumOfColumnsFound"
+                "Number of columns passing test fails to comply with user restrictions."
+            ];
+            throw(exception.Base(thisError, 'error'));
         end%
+        %)
     end
 
 
@@ -265,18 +302,22 @@ classdef ExcelSheet < matlab.mixin.Copyable
         function this = set.Dates(this, value)
             dataRange = this.DataRange;
             if isempty(dataRange)
-                THIS_ERROR = { 'ExcelSheet:CannotSetDates'
-                               'Set DataRange or (DataStart and DataEnd) first before setting or retrieving Dates' };
-                throw( exception.Base(THIS_ERROR, 'error') );
+                thisError = [
+                    "ExcelSheet:CannotSetDates"
+                    "Set DataRange or (DataStart and DataEnd) first before setting or retrieving Dates."
+                ];
+                throw(exception.Base(thisError, 'error'));
             end
             numOfDates = numel(value);
             if numOfDates==1 || numOfDates==this.NumOfData;
                 this.Dates = value;
                 return
             end
-            THIS_ERROR = { 'ExcelSheet:DatesNotMatchData'
-                           'Number of Dates does not match size of DataRange' };
-            throw( exception.Base(THIS_ERROR, 'error') );
+            thisError = [
+                "ExcelSheet:DatesNotMatchData"
+                "Number of Dates must match the number of elements in DataRange."
+            ];
+            throw(exception.Base(thisError, 'error'));
         end%
     end
 end
@@ -292,8 +333,10 @@ function flag = validateOrientation(input)
     if flag
         return
     end
-    THIS_ERROR = { 'ExcelReference:InvalidPropertyOrientation' 
-                   'Property Orientation must be "Row" or "Column"' };
-    throw( exception.Base(THIS_ERROR, 'error') );
+    thisError = [
+        "ExcelReference:InvalidPropertyOrientation" 
+        "Property Orientation must be 'Row' or 'Column'"
+    ];
+    throw(exception.Base(thisError, 'error'));
 end%
 
