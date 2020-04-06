@@ -1,22 +1,22 @@
 classdef ExcelReference
     methods (Static)
         function varargout = parseRow(varargin)
-            [varargout{1:nargout}] = decodeRow(varargin{:});
+            [varargout{1:nargout}] = ExcelReference.decodeRow(varargin{:});
         end%
 
 
         function varargout = parseColumn(varargin)
-            [varargout{1:nargout}] = decodeColumn(varargin{:});
+            [varargout{1:nargout}] = ExcelReference.decodeColumn(varargin{:});
         end%
 
 
         function varargout = parseCell(varargin)
-            [varargout{1:nargout}] = decodeCell(varargin{:});
+            [varargout{1:nargout}] = ExcelReference.decodeCell(varargin{:});
         end%
 
 
         function varargout = parseRange(varargin)
-            [varargout{1:nargout}] = decodeRange(varargin{:});
+            [varargout{1:nargout}] = ExcelReference.decodeRange(varargin{:});
         end%
 
 
@@ -81,25 +81,28 @@ classdef ExcelReference
         function varargout = decodeCell(varargin)
             xlsCell = cellstr(varargin);
             xlsCell = strtrim(xlsCell);
-            numOfRefs = numel(xlsCell);
+            numRefs = numel(xlsCell);
             varargout = cell(size(varargin));
-            inxOfValid = true(1, numOfRefs);
-            for i = 1 : numOfRefs
-                tokens = regexp( xlsCell{i}, '([a-z]+)(\d+)', ...
-                                 'Tokens', 'Once', 'IgnoreCase' );
-                inxOfValid(i) = numel(tokens)==2;
-                if ~inxOfValid(i)
+            inxValid = true(1, numRefs);
+            for i = 1 : numRefs
+                tokens = regexp( ...
+                    xlsCell{i}, '([a-z]+)(\d+)' ...
+                    , 'Tokens', 'Once', 'IgnoreCase' ...
+                );
+                inxValid(i) = numel(tokens)==2;
+                if ~inxValid(i)
                     continue
                 end
                 row = ExcelReference.decodeRow(tokens{2});
                 column = ExcelReference.decodeColumn(tokens{1});
                 varargout{i} = [row, column];
             end
-            if any(~inxOfValid)
-                THIS_ERROR = { 'ExcelReference:InvalidExcelReference'
-                               'This is not a valid Excel cell address: %s ' };
-                throw( exception.Base(THIS_ERROR, 'error'), ...
-                       varargin{~inxOfValid} );
+            if any(~inxValid)
+                thisError = [
+                    "ExcelReference:InvalidExcelReference"
+                    "This is not a valid Excel cell address: %s "
+                ];
+                throw(exception.Base(thisError, 'error'), varargin{~inxValid});
             end
         end%
 
@@ -108,15 +111,18 @@ classdef ExcelReference
 
         function [startRef, endRef] = decodeRange(xlsRange)
             xlsRange = strtrim(xlsRange);
-            tokens = regexp( xlsRange, '^([a-z]+\d+)(\.\.([a-z]+\d+))?$', ...
-                             'Tokens', 'Once', 'IgnoreCase');
+            tokens = regexp( ...
+                xlsRange, '^([a-z]+\d+)(\.\.([a-z]+\d+))?$' ...
+                , 'Tokens', 'Once', 'IgnoreCase' ...
+            );
             tokens(cellfun('isempty', tokens)) = [ ];
             tokens = strrep(tokens, '.', '');
             if numel(tokens)~=1 && numel(tokens)~=2
-                THIS_ERROR = { 'ExcelReference:InvalidExcelRange'
-                               'This is not a valid Excel range string: %s ' };
-                throw( exception.Base(THIS_ERROR, 'error'), ...
-                       xlsRange );
+                thisError = [
+                    "ExcelReference:InvalidExcelRange"
+                    "This is not a valid Excel range string: %s " 
+                ];
+                throw(exception.Base(thisError, 'error'), xlsRange);
             end
             ref = cell(size(tokens));
             [ref{:}] = ExcelReference.decodeCell(tokens{:});
@@ -132,15 +138,18 @@ classdef ExcelReference
 
         function range = decodeRowRange(xlsRange)
             xlsRange = strtrim(xlsRange);
-            tokens = regexp( xlsRange, '^(\d+)(\.\.(\d+))?$', ...
-                             'Tokens', 'Once', 'IgnoreCase');
+            tokens = regexp( ...
+                xlsRange, '^(\d+)(\.\.(\d+))?$' ...
+                , 'Tokens', 'Once', 'IgnoreCase' ...
+            );
             tokens(cellfun('isempty', tokens)) = [ ];
             tokens = strrep(tokens, '.', '');
             if numel(tokens)~=1 && numel(tokens)~=2
-                THIS_ERROR = { 'ExcelReference:InvalidExcelRange'
-                               'This is not a valid Excel row range string: %s ' };
-                throw( exception.Base(THIS_ERROR, 'error'), ...
-                       xlsRange );
+                thisError = [
+                    "ExcelReference:InvalidExcelRange"
+                    "This is not a valid Excel row range string: %s "
+                ];
+                throw(exception.Base(thisError, 'error'), xlsRange);
             end
             ref = ExcelReference.decodeRow(tokens{:});
             range = ref(1);
@@ -154,15 +163,18 @@ classdef ExcelReference
 
         function range = decodeColumnRange(xlsRange)
             xlsRange = strtrim(xlsRange);
-            tokens = regexp( xlsRange, '^([a-z]+)(\.\.([a-z]+))?$', ...
-                             'Tokens', 'Once', 'IgnoreCase');
+            tokens = regexp( ...
+                xlsRange, '^([a-z]+)(\.\.([a-z]+))?$' ...
+                , 'Tokens', 'Once', 'IgnoreCase' ...
+            );
             tokens(cellfun('isempty', tokens)) = [ ];
             tokens = strrep(tokens, '.', '');
             if numel(tokens)~=1 && numel(tokens)~=2
-                THIS_ERROR = { 'ExcelReference:InvalidExcelRange'
-                               'This is not a valid Excel column range string: %s ' };
-                throw( exception.Base(THIS_ERROR, 'error'), ...
-                       xlsRange );
+                thisError = [
+                    "ExcelReference:InvalidExcelRange"
+                    "This is not a valid Excel column range string: %s "
+                ];
+                throw(exception.Base(thisError, 'error'), xlsRange);
             end
             ref = ExcelReference.decodeColumn(tokens{:});
             range = ref(1);
