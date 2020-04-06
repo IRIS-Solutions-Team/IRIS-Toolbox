@@ -11,6 +11,13 @@ classdef InputParser < inputParser
         HasSwapOptions = false
         HasOptionalRangeStartEnd = false
         HasStartEndOptions = false
+
+        Nested = struct( )
+    end
+
+
+    properties (Constant)
+        ERASE_CHARS = {'=', '.'}
     end
 
 
@@ -32,20 +39,37 @@ classdef InputParser < inputParser
 
 
         function parse(this, varargin)
-            ix = cellfun(@(x) ischar(x) || (isa(x, 'string') && isscalar(x)), varargin);
-            varargin(ix) = cellfun(@(x) regexprep(x, '=$', ''), varargin(ix), 'UniformOutput', false);
+            % Remove = and . from option names
+            for i = numel(varargin)-1 : -2 : 1
+                if ~( ischar(varargin{i}) || (isa(varargin{i}, 'string') && isscalar(varargin{i})) )
+                    break
+                end
+                if endsWith(varargin{i}, '=')
+                    varargin{i} = erase(varargin{i}, {'=', '.'});
+                end
+            end
+            
             parse@inputParser(this, varargin{:});
             for i = 1 : numel(this.PrimaryParameterNames)
-                ithName = this.PrimaryParameterNames{i};
-                this.Options.(ithName) = this.Results.(ithName);
+                name__ = this.PrimaryParameterNames{i};
+                if isfield(this.Nested, name__)
+                    super__ = this.Nested.(name__)(1);
+                    nested__ = this.Nested.(name__)(2);
+                    if ~isfield(this.Options, super__)
+                        this.Options.(super__) = struct( );
+                    end
+                    this.Options.(super__).(nested__) = this.Results.(name__);
+                else
+                    this.Options.(name__) = this.Results.(name__);
+                end
             end
-            listOfAliases = fieldnames(this.Aliases);
-            for i = 1 : numel(listOfAliases)
-                ithAlias = listOfAliases{i};
-                ithPrimaryName = this.Aliases.(ithAlias);
-                if any(strcmp(ithPrimaryName, this.UsingDefaults)) ...
-                    && ~any(strcmp(ithAlias, this.UsingDefaults))
-                    this.Options.(ithPrimaryName) = this.Results.(ithAlias);
+            listAliases = fieldnames(this.Aliases);
+            for i = 1 : numel(listAliases)
+                alias__ = listAliases{i};
+                primaryName__ = this.Aliases.(alias__);
+                if any(strcmp(primaryName__, this.UsingDefaults)) ...
+                    && ~any(strcmp(alias__, this.UsingDefaults))
+                    this.Options.(primaryName__) = this.Results.(alias__);
                 end
             end
             if this.HasDateOptions
@@ -65,8 +89,8 @@ classdef InputParser < inputParser
             end
 
             if ~isempty(this.Conditional)
-                numOfParameters = numel(this.Conditional.Parameters);
-                args = cell(1, 2*numOfParameters);
+                numParameters = numel(this.Conditional.Parameters);
+                args = cell(1, 2*numParameters);
                 args(1:2:end) = this.Conditional.Parameters;
                 args(2:2:end) = { this.Results };
                 parse(this.Conditional, args{:});
@@ -83,14 +107,20 @@ classdef InputParser < inputParser
             if isa(name, 'string')
                 name = cellstr(name);
             end
-            primaryName = name{1};
+            primaryName = erase(name{1}, {'=', '.'});
             addParameter@inputParser(this, primaryName, varargin{:});
             this.PrimaryParameterNames{end+1} = primaryName;
             for i = 2 : numel(name)
-                ithName = name{i};
-                this.Aliases.(ithName) = primaryName;
-                addParameter@inputParser(this, ithName, varargin{:});
+                this.Aliases.(name{i}) = primaryName;
+                addParameter@inputParser(this, name{i}, varargin{:});
             end
+        end%
+
+
+        function addNested(this, super, nested, varargin)
+            primaryName = string(super) + string(nested);
+            addParameter(this, primaryName, varargin{:});
+            this.Nested.(primaryName) = [string(super), string(nested)];
         end%
 
 
@@ -118,17 +148,17 @@ classdef InputParser < inputParser
         function usingDefaults = get.UsingDefaultsInStruct(this)
             usingDefaults = struct( );
             for i = 1 : numel(this.PrimaryParameterNames)
-                ithName = this.PrimaryParameterNames{i};
-                usingDefaults.(ithName) = any(strcmp(this.UsingDefaults, ithName));
+                name__ = this.PrimaryParameterNames{i};
+                usingDefaults.(name__) = any(strcmp(this.UsingDefaults, name__));
             end
         end%
 
 
         function value = get.PrimaryOptionsInCell(this)
-            listOfPrimaryOptions = fieldnames(this.Options);
-            numOfPrimaryOptions = numel(listOfPrimaryOptions);
-            value = cell(1, 2*numOfPrimaryOptions);
-            value(1:2:end) = listOfPrimaryOptions;
+            listPrimaryOptions = fieldnames(this.Options);
+            numPrimaryOptions = numel(listPrimaryOptions);
+            value = cell(1, 2*numPrimaryOptions);
+            value(1:2:end) = listPrimaryOptions;
             value(2:2:end) = struct2cell(this.Options);
         end%
 
@@ -303,32 +333,32 @@ classdef InputParser < inputParser
 
     methods (Static)
         function dateOptionsInCell = extractDateOptionsFromStruct(opt)
-            listOfFields = fieldnames(opt);
+            listFields = fieldnames(opt);
             dateOptionsInCell = cell.empty(1, 0);
-            index = strcmpi(listOfFields, 'DateFormat');
+            index = strcmpi(listFields, 'DateFormat');
             if any(index)
                 pos = find(index, 1, 'last');
-                dateOptionsInCell = [dateOptionsInCell, {'DateFormat', opt.(listOfFields{pos})}];
+                dateOptionsInCell = [dateOptionsInCell, {'DateFormat', opt.(listFields{pos})}];
             end
-            index = strncmpi(listOfFields, 'FreqLetter', 10);
+            index = strncmpi(listFields, 'FreqLetter', 10);
             if any(index)
                 pos = find(index, 1, 'last');
-                dateOptionsInCell = [dateOptionsInCell, {'FreqLetters', opt.(listOfFields{pos})}];
+                dateOptionsInCell = [dateOptionsInCell, {'FreqLetters', opt.(listFields{pos})}];
             end
-            index = strncmpi(listOfFields, 'Month', 5);
+            index = strncmpi(listFields, 'Month', 5);
             if any(index)
                 pos = find(index, 1, 'last');
-                dateOptionsInCell = [dateOptionsInCell, {'Months', opt.(listOfFields{pos})}];
+                dateOptionsInCell = [dateOptionsInCell, {'Months', opt.(listFields{pos})}];
             end
-            index = strcmpi(listOfFields, 'ConversionMonth') | strcmpi(listOfFields, 'StandInMonth');
+            index = strcmpi(listFields, 'ConversionMonth') | strcmpi(listFields, 'StandInMonth');
             if any(index)
                 pos = find(index, 1, 'last');
-                dateOptionsInCell = [dateOptionsInCell, {'ConversionMonth', opt.(listOfFields{pos})}];
+                dateOptionsInCell = [dateOptionsInCell, {'ConversionMonth', opt.(listFields{pos})}];
             end
-            index = strcmpi(listOfFields, 'WDay');
+            index = strcmpi(listFields, 'WDay');
             if any(index)
                 pos = find(index, 1, 'last');
-                dateOptionsInCell = [dateOptionsInCell, {'WDay', opt.(listOfFields{pos})}];
+                dateOptionsInCell = [dateOptionsInCell, {'WDay', opt.(listFields{pos})}];
             end
         end%
     end
