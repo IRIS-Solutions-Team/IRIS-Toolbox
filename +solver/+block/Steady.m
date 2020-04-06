@@ -80,9 +80,9 @@ classdef Steady < solver.block.Block
                 % Transform initial conditions for log variables before we check bounds;
                 % bounds are in logs for log variables.
                 z0(inxLogZ) = log(abs( z0(inxLogZ) ));
-                %* Make sure init conditions are within bounds.
-                %* Empty bounds if all are Inf.
-                %* Bounds are in logs for log variables.
+                %* Make sure init conditions are within bounds
+                %* Empty bounds if all are Inf
+                %* Bounds are in logs for log variables
                 hereCheckInitBounds( );
 
                 % Test all equations in this block for NaNs and Infs
@@ -108,7 +108,7 @@ classdef Steady < solver.block.Block
             
             return
             
-            
+           
                 function hereCheckEquationsForCorrupt( )
                     XX = hereCreateTimeArray(0);
                     evalToCheck = this.EquationsFunc(XX, t0);
@@ -203,7 +203,7 @@ classdef Steady < solver.block.Block
                     % the number of levels in the input vector
                     lx(posl) = z(1:nl);
                     gx(posg) = z(nl+1:end);
-                    
+
                     % Refresh all dynamic links in each iteration if needed
                     if needsRefresh
                         temp = lx + 1i*gx;

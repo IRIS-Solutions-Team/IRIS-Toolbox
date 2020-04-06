@@ -1,11 +1,11 @@
 function calculateHashMultipliers(this, data)
 % calculateHashMultipliers  Calculate multipliers of hash factors for one simulation frame
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -14,55 +14,55 @@ window = data.Window;
 
 % Simulation columns
 firstColumn = this.FirstColumn;
-lastColumnOfWindow = round(firstColumn + window - 1);
+lastColumnWindow = round(firstColumn + window - 1);
 lastHashedYX = data.LastHashedYX;
 
 if tryExistingMultipliers( )
     return
 end
 
-[ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
-idOfYXi = [ this.SolutionVector{1:2} ];
+[numY, ~, numXiB, numXiF] = sizeOfSolution(this);
+idYXi = [ this.SolutionVector{1:2} ];
 [T, ~, ~, ~, ~, ~, Q] = this.FirstOrderSolution{:};
-Tf = T(1:nf, :);
-Tb = T(nf+1:end, :);
-Qf = Q(1:nf, 1:nh*window);
-Qb = Q(nf+1:end, 1:nh*window);
+Tf = T(1:numXiF, :);
+Tb = T(numXiF+1:end, :);
+Qf = Q(1:numXiF, 1:nh*window);
+Qb = Q(numXiF+1:end, 1:nh*window);
 
 % First, find the rows in the multiplier matrix that will be filled in
-idOfAll = 1 : size(data.YXEPG, 1);
-idOfYX = idOfAll(data.InxOfYX);
+idAll = 1 : size(data.YXEPG, 1);
+idYX = idAll(data.InxOfYX);
 rows = cell(1, lastHashedYX);
-numOfRows = zeros(1, lastHashedYX);
+numRows = zeros(1, lastHashedYX);
 for t = firstColumn : lastHashedYX
-    idOfHashedYX_t = idOfYX(data.InxOfHashedYX(:, t));
-    if isempty(idOfHashedYX_t)
+    idHashedYX_t = idYX(data.InxOfHashedYX(:, t));
+    if isempty(idHashedYX_t)
         continue
     end
-    % Find the rows in which idOfHashedYX_t occur in idOfYXi
-    [~, rows{t}] = ismember(idOfHashedYX_t, idOfYXi);
-    numOfRows(t) = numel(rows{t});
+    % Find the rows in which idHashedYX_t occur in idYXi
+    [~, rows{t}] = ismember(idHashedYX_t, idYXi);
+    numRows(t) = numel(rows{t});
 end
 
 % Second, preallocate the multiplier matrix, and calculate the matrix
-M = zeros(sum(numOfRows), nh*window);
+M = zeros(sum(numRows), nh*window);
 xb = zeros(size(Qb));
-countOfRows = 0;
+countRows = 0;
 for t = firstColumn : lastHashedYX
     xf = Tf*xb;
     xb = Tb*xb;
-    if t<=lastColumnOfWindow
+    if t<=lastColumnWindow
         xb = xb + Qb;
         xf = xf + Qf;
-        Qb = [zeros(nb, nh), Qb(:, 1:end-nh)];
-        Qf = [zeros(nf, nh), Qf(:, 1:end-nh)];
+        Qb = [zeros(numXiB, nh), Qb(:, 1:end-nh)];
+        Qf = [zeros(numXiF, nh), Qf(:, 1:end-nh)];
     end
     if isempty(rows{t})
         continue
     end
-    addToM = [nan(ny, nh*window); xf; xb];
-    M(countOfRows+(1:numOfRows(t)), :) = addToM(rows{t}, :);
-    countOfRows = countOfRows + numOfRows(t);
+    addToM = [nan(numY, nh*window); xf; xb];
+    M(countRows+(1:numRows(t)), :) = addToM(rows{t}, :);
+    countRows = countRows + numRows(t);
 end
 
 this.HashMultipliers = M;
@@ -76,8 +76,8 @@ return
             flag = false;
             return
         end
-        inxOfHashedYX = data.InxOfHashedYX(:, firstColumn:lastHashedYX);
-        if isequal(this.MultipliersHashedYX, inxOfHashedYX) ...
+        inxHashedYX = data.InxOfHashedYX(:, firstColumn:lastHashedYX);
+        if isequal(this.MultipliersHashedYX, inxHashedYX) ...
            && size(this.HashMultipliers,2)==nh*window
             flag = true;
             return
@@ -87,13 +87,13 @@ return
             flag = false;
             return
         end
-        if ~isequal(inxOfHashedYX, this.MultipliersHashedYX(:, 1:window))
+        if ~isequal(inxHashedYX, this.MultipliersHashedYX(:, 1:window))
             flag = false;
             return
         end
-        numOfHashedYX = nnz(inxOfHashedYX);
-        this.HashMultipliers = this.HashMultipliers(1:numOfHashedYX, 1:nh*window);
-        this.MultipliersHashedYX = inxOfHashedYX;
+        numHashedYX = nnz(inxHashedYX);
+        this.HashMultipliers = this.HashMultipliers(1:numHashedYX, 1:nh*window);
+        this.MultipliersHashedYX = inxHashedYX;
         flag = true;
    end%
 end%

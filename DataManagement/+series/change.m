@@ -1,5 +1,5 @@
 function data = change(data, func, shifts, rows)
-% change  Change if values over time
+% change  Calculate change in time series values between periods
 %
 % Backend [IrisToolbox] function
 % No help provided

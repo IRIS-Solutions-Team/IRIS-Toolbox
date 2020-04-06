@@ -1,4 +1,4 @@
-function [x, f, exitFlag] = qnsd(objectiveFunc, xInit, opt, header)
+function [x, f, exitFlag] = qnsd(objectiveFunc, initX, opt, header)
 % qnsd  Quasi-Newton-Steepest-Descent algorithm
 %
 % Backend IRIS function
@@ -73,7 +73,7 @@ end
 lastJacobUpdate = opt.LastJacobUpdate;
 lastBroydenUpdate = opt.LastBroydenUpdate;
 
-sizeX = size(xInit);
+sizeX = size(initX);
 if any(sizeX(2:end)>1)
     objectiveFuncReshaped = @(x, varargin) objectiveFunc(reshape(x, sizeX), varargin{:});
 else
@@ -84,8 +84,8 @@ end
 % iteration
 trimObjectiveFunction = opt.TrimObjectiveFunction;
 
-xInit = xInit(:);
-numUnknowns = numel(xInit);
+initX = initX(:);
+numUnknowns = numel(initX);
 
 temp = struct('NumberOfVariables', numUnknowns);
 
@@ -106,7 +106,7 @@ end
 
 current = ITER_STRUCT;
 current.Iter = 0;
-current.X = xInit;
+current.X = initX;
 current.F = objectiveFuncReshaped(current.X);
 sizeOfF = size(current.F);
 current.F = current.F(:);

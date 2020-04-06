@@ -1,10 +1,10 @@
 % Block  Blazer block object
 %
-% Backend IRIS class
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 classdef (Abstract) Block < handle
     properties
@@ -195,7 +195,7 @@ classdef (Abstract) Block < handle
                 [z, ~, exitFlag] = solver.algorithm.qnsd(fnObjective, z0, this.Solver, header);
 
             elseif isa(this.Solver, 'optim.options.SolverOptions')
-                % __Optim Tbx__
+                % Optim Tbx
                 solverName = this.Solver.SolverName;
                 if strcmpi(solverName, 'lsqnonlin')
                     this.Solver.JacobPattern = sparse(double(this.JacobPattern));
@@ -213,7 +213,7 @@ classdef (Abstract) Block < handle
                 z( abs(z)<=this.Solver.StepTolerance ) = 0;
 
             elseif isa(this.Solver, 'function_handle')
-                % __User-Supplied Solver__
+                % User-Supplied Solver
                 [z, ~, exitFlag] = this.Solver(fnObjective, z0);
 
             else

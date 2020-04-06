@@ -1,32 +1,52 @@
 function outputTable = table(this, requests, varargin)
 % table  Extract requested values from model to table
+%{
 %
-% __Syntax__
+% ## Syntax ##
 %
 %     OutputTable = table(Model, Request, ...)
 %
 %
-% __Input Arguments__
+% ## Input Arguments ##
 %
-% * `Model` [ model ] - Model object.
 %
-% * `Requests` [ char | cellstr | string ] - Requested columns for the
-% table; see Description for the list of valid requests.
+% * `model` [ model ] 
+% >
+% Model object.
+%
+%
+% * `requests` [ char | cellstr | string ] 
+% >
+% Requested columns for the table; see Description for the list of valid
+% requests.
 %
 % 
-% __Output Arguments__
-%
-% * `OutputTable` [ table ] - Table object with requested values.
+% ## Output Arguments ##
 %
 %
-% __Options__
+% * `outputTable` [ table ]
+% >
+% Table object with requested values.
 %
-% * `CompareFirstColumn=true` [ `true` | `false` ] - Include the first
-% column in comparison tables (first column compares itself with itself).
+%
+% ## Options ##
+%
+%
+% __`CompareFirstColumn=true`__ [ `true` | `false` ] 
+% >
+% Include the first column in comparison tables (first column compares
+% itself with itself).
+%
 %
 % * `Diary=''` [ char | string ] - If `Diary=` is not empty, the table will
 % be printed on the screen in the command window, and captured in a text
 % file under this file name.
+%
+%
+% __`SelectNames=false`__ [ `true` | `false` ]
+% >
+% Select only a subset of names (variables, shocks, parameters) to be
+% included in the `outputTable`.
 %
 % * `Sort=false` [ `true` | `false` ] - If `true` sort the table rows
 % alphabetically by the row names.
@@ -126,26 +146,29 @@ function outputTable = table(this, requests, varargin)
 %
 % __Example__
 %
-%
+%}
 
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
 TYPE = @int8;
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.table');
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('Request', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-    parser.addParameter('CompareFirstColumn', true, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parser.addParameter('Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
-    parser.addParameter({'SortAlphabetically', 'Sort'}, false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('WriteTable', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('Model/table');
+    addRequired(pp, 'model', @(x) isa(x, 'model'));
+    addRequired(pp, 'request', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    
+    % Options
+    addParameter(pp, 'CompareFirstColumn', true, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
+    addParameter(pp, 'Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
+    addParameter(pp, 'SelectNames', false, @(x) isequal(x, false) || validate.list(x));
+    addParameter(pp, {'SortAlphabetically', 'Sort'}, false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'WriteTable', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
-parser.parse(this, requests, varargin{:});
-opt = parser.Options;
+parse(pp, this, requests, varargin{:});
+opt = pp.Options;
 
 if ischar(requests)
     requests = regexp(requests, '\w+', 'match');
@@ -158,12 +181,11 @@ nv = numel(this.Variant);
 %--------------------------------------------------------------------------
 
 numRequests = numel(requests);
-inxShocks = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+inxShocks = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
 
 outputTable = table(this.Quantity.Name(:), 'VariableNames', {'Name'});
 
 for i = 1 : numRequests
-
     if any(strcmpi(requests{i}, {'SteadyLevel', 'SteadyLevels'}))
         compare = false;
         addTable = tableValues(this, @real, compare, [ ], '', 'SteadyLevel', opt);
@@ -329,14 +351,19 @@ if any(strcmp(outputTable.Properties.VariableNames, 'Name'))
     end
 end
 
-% Round numeric entries
-if ~isinf(opt.Round)
-    outputTable = roundTable(outputTable, opt.Round);
+% Select rows
+if ~isequal(opt.SelectNames, false)
+    outputTable = outputTable(string(opt.SelectNames), :);
 end
 
 % Sort table rows alphabetically
 if opt.SortAlphabetically
     outputTable = sortrows(outputTable, 'RowNames');
+end
+
+% Round numeric entries
+if ~isinf(opt.Round)
+    outputTable = roundTable(outputTable, opt.Round);
 end
 
 % Write table to text or spreadsheet file

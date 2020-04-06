@@ -1,11 +1,11 @@
 function calculateShockMultipliers(this, data, anticipate)
 % calculateShockMultipliers  Get shock multipliers for one simulation frame
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 try
     anticipate;
@@ -15,13 +15,13 @@ end
 
 %--------------------------------------------------------------------------
 
-[ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
+[numY, ~, numXiB, numXiF, numE] = sizeOfSolution(this);
 idYXi = [ this.SolutionVector{1:2} ];
 [T, R, ~, Z, H, ~, Q] = this.FirstOrderSolution{:};
-Tf = T(1:nf, :);
-Tb = T(nf+1:end, :);
+Tf = T(1:numXiF, :);
+Tb = T(numXiF+1:end, :);
 if ~anticipate
-    R(:, ne+1:end) = 0;
+    R(:, numE+1:end) = 0;
 end
 
 % Simulation columns
@@ -48,9 +48,9 @@ vecEndogenizedE = inxEndogenizedE(:);
 numEndogenizedE = nnz(vecEndogenizedE);
 
 numPeriods = round(lastEndogenizedE - firstColumn + 1);
-Rf = R(1:nf, 1:ne*numPeriods);
-Rb = R(nf+1:end, 1:ne*numPeriods);
-H = [H, zeros(ny, ne*(numPeriods-1))];
+Rf = R(1:numXiF, 1:numE*numPeriods);
+Rb = R(numXiF+1:end, 1:numE*numPeriods);
+H = [H, zeros(numY, numE*(numPeriods-1))];
 
 M = zeros(0, numEndogenizedE);
 xb = zeros(size(Rb));
@@ -64,8 +64,8 @@ for t = firstColumn : lastExogenizedYX
     if t<=lastEndogenizedE
         xb = xb + Rb;
         xf = xf + Rf;
-        Rb = [zeros(nb, ne), Rb(:, 1:end-ne)];
-        Rf = [zeros(nf, ne), Rf(:, 1:end-ne)];
+        Rb = [zeros(numXiB, numE), Rb(:, 1:end-numE)];
+        Rf = [zeros(numXiF, numE), Rf(:, 1:end-numE)];
     end
 
     %
@@ -74,7 +74,7 @@ for t = firstColumn : lastExogenizedYX
     y = Z*xb;
     if t<=lastEndogenizedE
         y = y + H;
-        H = [zeros(ny, ne), H(:, 1:end-ne)];
+        H = [zeros(numY, numE), H(:, 1:end-numE)];
     end
 
     idExogenizedYX = idYX(data.InxOfExogenizedYX(:, t));
