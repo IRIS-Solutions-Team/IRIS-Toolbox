@@ -98,7 +98,7 @@ function [output, info] = genip(lowInput, toFreq, model, aggregation, varargin)
 % >
 % Relative std deviation of the measurement error associated with the
 % indicator measurement equation; the std deviation is entered relative to
-% the std deviation of the transition shock.
+% the beginning-of-sample std deviation of the transition shocks.
 %
 %
 % ## Description ##
@@ -150,46 +150,46 @@ function [output, info] = genip(lowInput, toFreq, model, aggregation, varargin)
 %
 %}
 
-persistent pp
+persistent pp 
 if isempty(pp)
-    pp = extend.InputParser('genip');
+    pp = extend.InputParser('NumericTimeSubscriptable/genip');
     addRequired(pp, 'lowInput', @(x) isa(x, 'NumericTimeSubscriptable') && x.Frequency==Frequency.YEARLY);
     addRequired(pp, 'toFreq', @(x) isa(x, 'Frequency') || isnumeric(x));
     addRequired(pp, 'model', @(x) validate.anyString(strip(x), 'Rate', 'Level', 'Diff', 'DiffDiff'));
-    addRequired(pp, 'aggregation', @localValidateAggregation);
+    addRequired(pp, 'aggregation', @locallyValidateAggregation);
 
+    % Options
     addParameter(pp, 'Range', Inf, @(x) isequal(x, Inf) || DateWrapper.validateProperRangeInput(x));
     addParameter(pp, 'StdScale', 1, @(x) isequal(x, 1) || isa(x, 'NumericTimeSubscriptable'));
     addParameter(pp, 'InitCond', @auto);
     addParameter(pp, 'ResolveConflicts', true, @validate.logicalScalar);
-    addParameter(pp, 'TransitionRate', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x));
-    addParameter(pp, 'TransitionConstant', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x));
 
-    % Conditioning options
-    addParameter(pp, 'HighLevel', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addParameter(pp, 'HighRate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addParameter(pp, 'HighDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addParameter(pp, 'HighDiffDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    % Nested options
+    addNested(pp, 'Transition', 'Rate', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x));
+    addNested(pp, 'Transition', 'Constant', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x));
 
-    % Indicator options
-    addParameter(pp, 'Indicator', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addParameter(pp, 'StdIndicator', 1e-3, @(x) validate.numericScalar(x, eps( ), Inf));
+    addNested(pp, 'Condition', 'Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addNested(pp, 'Condition', 'Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addNested(pp, 'Condition', 'Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addNested(pp, 'Condition', 'DiffDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+
+    addNested(pp, 'Indicator', 'Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addNested(pp, 'Indicator', 'Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addNested(pp, 'Indicator', 'Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addNested(pp, 'Indicator', 'DiffDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addNested(pp, 'Indicator', 'StdScale', 1e-3, @(x) validate.numericScalar(x, eps( ), Inf));
 end
 parse(pp, lowInput, toFreq, model, aggregation, varargin{:});
 opt = pp.Options;
-model = localResolveModel(model);
 
 %--------------------------------------------------------------------------
+
+model = locallyResolveModel(model);
 
 %
 % Resolve source frequency and the conversion factor
 %
 [fromFreq, numPeriodsWithin] = hereResolveFrequencyConversion( );
-
-%
-% Check frequency of all input series
-%
-hereCheckFrequency( );
 
 %
 % Define low-frequency dates
@@ -210,14 +210,17 @@ highEnd = numeric.convert(lowEnd, toFreq, 'ConversionMonth=', 'Last');
 numHighPeriods = numPeriodsWithin*numLowPeriods;
 
 %
-% Resolve Indicator= option
+% Resolve Indicator=, Transition= and Conditioning= options
 %
-indicatorTransformed = hereResolveIndicator( );
+indicator = series.genip.prepareIndicatorOptions(model, [highStart, highEnd], opt.Indicator);
+transition = series.genip.prepareTransitionOptions(opt.Transition);
+conditions = series.genip.prepareConditionOptions([highStart, highEnd], opt.Condition);
+
 
 %
 % Resolve Aggregation= option
 %
-aggregation = localResolveAggregation(aggregation, numPeriodsWithin);
+aggregation = locallyResolveAggregation(aggregation, numPeriodsWithin);
 
 %
 % Resolve std dev scale
@@ -230,11 +233,6 @@ stdScale = hereResolveStdScale( );
 lowLevel = hereGetLowLevelData( );
 
 %
-% Resolve rate of change conditioning
-%
-[highLevel, highRate, highDiff, highDiffDiff] = hereGetConditioningData( );
-
-%
 % Resolve conflicts between observed low frequency levels and conditioning
 %
 hereResolveConflictsInMeasurement( );
@@ -244,9 +242,7 @@ hereResolveConflictsInMeasurement( );
 %
 [kalmanObj, observed] = series.genip.setupKalmanObject( ...
     model, lowLevel, aggregation, stdScale ...
-    , highLevel, highRate, highDiff, highDiffDiff ... 
-    , indicatorTransformed, opt.StdIndicator ...
-    , opt ...
+    , conditions, indicator, transition ...
 );
 
 %
@@ -270,8 +266,8 @@ output = clip(output, highStart, highEnd);
 
 info = struct( );
 if nargout>=2
-    info.FromFreq = fromFreq;
-    info.ToFreq = toFreq;
+    info.LowFreq = fromFreq;
+    info.HighFreq = toFreq;
     info.LowRange = DateWrapper(lowStart):DateWrapper(lowEnd);
     info.HighRange = DateWrapper(highStart):DateWrapper(highEnd);
     info.LinearSystem = kalmanObj;
@@ -308,53 +304,6 @@ return
 
 
 
-    function hereCheckFrequency( )
-    %(
-        if ~verifyFrequency(opt.Indicator, toFreq)
-            hereThrowInvalidFrequency('Indicator', toFreq);
-        end
-
-        if ~verifyFrequency(opt.HighLevel, toFreq)
-            hereThrowInvalidFrequency('HighLevel', toFreq);
-        end
-
-        if ~verifyFrequency(opt.HighRate, toFreq)
-            hereThrowInvalidFrequency('HighRate', toFreq);
-        end
-
-        if ~verifyFrequency(opt.HighDiff, toFreq)
-            hereThrowInvalidFrequency('HighDiff', toFreq);
-        end
-
-        if ~verifyFrequency(opt.HighDiffDiff, toFreq)
-            hereThrowInvalidFrequency('HighDiffDiff', toFreq);
-        end
-
-        return
-
-            function flag = verifyFrequency(input, freq)
-                if ~isa(input, 'NumericTimeSubscriptable')
-                    flag = isempty(input);
-                    return
-                end
-                flag = input.Frequency==freq;
-            end%
-
-
-            function hereThrowInvalidFrequency(option, freq)
-                thisError = [
-                    "Series:InvalidFrequencyGenip"
-                    "Time series assigned to option %s= "
-                    "must be of the following date frequency: %s"
-                ];
-                throw(exception.Base(thisError, 'error'), option, char(freq));
-            end%
-    %)
-    end%
-
-
-
-
     function lowLevel = hereGetLowLevelData( )
         lowLevel = getDataFromTo(lowInput, lowStart, lowEnd);
     end%
@@ -362,63 +311,21 @@ return
 
 
 
-    function [highLevel, highRate, highDiff, highDiffDiff] = hereGetConditioningData( )
-    %(
-        highLevel = [ ];
-        if isa(opt.HighLevel, 'NumericTimeSubscriptable') && isfreq(opt.HighLevel, toFreq)
-            highLevel = getDataFromTo(opt.HighLevel, highStart, highEnd);
-        end
-        highRate = [ ];
-        if isa(opt.HighRate, 'NumericTimeSubscriptable') && isfreq(opt.HighRate, toFreq)
-            highRate = getDataFromTo(opt.HighRate, highStart, highEnd);
-        end
-        highDiff = [ ];
-        if isa(opt.HighDiff, 'NumericTimeSubscriptable') && isfreq(opt.HighDiff, toFreq)
-            highDiff = getDataFromTo(opt.HighDiff, highStart, highEnd);
-        end
-        highDiffDiff = [ ];
-        if isa(opt.HighDiffDiff, 'NumericTimeSubscriptable') && isfreq(opt.HighDiffDiff, toFreq)
-            highDiffDiff = getDataFromTo(opt.HighDiffDiff, highStart, highEnd);
-        end
-    %)
-    end%
-
-
-
-
-    function indicatorTransformed = hereResolveIndicator( )
-        indicatorTransformed = [ ];
-        if isempty(opt.Indicator)
-            return
-        end
-        indicator = opt.Indicator;
-        switch string(model)
-            case "Level"
-                func = @(x) x;
-            case "Rate"
-                func = @roc;
-            case "Diff"
-                func = @diff;
-            case "DiffDiff"
-                func = @(x) diff(diff(x));
-        end
-        indicatorTransformed = getDataFromTo(func(indicator), highStart, highEnd);
-    end%
-
-
     function stdScale = hereResolveStdScale( )
         if isa(opt.StdScale, 'NumericTimeSubscriptable')
             stdScale = getDataFromTo(opt.StdScale, highStart, highEnd);
             stdScale = abs(stdScale);
-            if any(isnan(stdScale))
+            if any(isnan(stdScale(:)))
                 stdScale = numeric.fillMissing(stdScale, NaN, 'globalLoglinear');
             end
             stdScale = stdScale/stdScale(1);
             stdScale = reshape(stdScale, 1, 1, [ ]);
         else
-            stdScale = ones(1, 1, numHighPeriods);
+            stdScale = 1;
         end
     end%
+
+
 
 
     function initCond = hereSetupInitCond( )
@@ -458,9 +365,9 @@ return
             return
         end
         % Aggregate vs Level
-        if ~isempty(highLevel) && any(isfinite(highLevel))
+        if ~isempty(conditions.Level) && any(isfinite(conditions.Level))
             inxAggregation = aggregation~=0;
-            temp = reshape(highLevel, numPeriodsWithin, [ ]);
+            temp = reshape(conditions.Level, numPeriodsWithin, [ ]);
             temp = temp(inxAggregation, :);
             inxLowLevel = reshape(isfinite(lowLevel), 1, [ ]);
             inxHighLevel = all(isfinite(temp), 1);
@@ -474,11 +381,11 @@ end%
 
 
 %
-% Local validators
+% Local Validation and Resolution
 %
 
 
-function flag = localValidateAggregation(x)
+function flag = locallyValidateAggregation(x)
 %(
     if any(strcmpi(char(x), {'sum', 'average', 'mean', 'last'}))
         flag = true;
@@ -493,7 +400,7 @@ function flag = localValidateAggregation(x)
 end%
 
 
-function aggregation = localResolveAggregation(aggregation, numPeriodsWithin)
+function aggregation = locallyResolveAggregation(aggregation, numPeriodsWithin)
 %(
     if isnumeric(aggregation)
         aggregation = reshape(aggregation, 1, numPeriodsWithin);
@@ -517,7 +424,7 @@ function aggregation = localResolveAggregation(aggregation, numPeriodsWithin)
 end%
 
 
-function model = localResolveModel(model)
+function model = locallyResolveModel(model)
 %(
     model = strip(string(model));
     if strcmpi(model, "Rate")

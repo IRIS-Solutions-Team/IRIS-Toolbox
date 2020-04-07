@@ -1,8 +1,6 @@
 function [kalmanObj, observed] = setupKalmanObject( ...
     model, lowLevel, aggregation, stdScale ...
-    , highLevel, highRate, highDiff, highDiffDiff ... 
-    , indicatorTransformed, stdIndicator ...
-    , opt ...
+    , conditions, indicator, transition ...
 )
 % setupKalmanObject  Set up time-varying LinearSystem and array of observed data for genip model
 %
@@ -37,6 +35,7 @@ k = hereSetupTransitionConstant( );
 %
 % Innovation covariance matrices
 %
+stdScale = reshape(stdScale, 1, 1, [ ]);
 OmegaV = ones(1, 1, numHighPeriods);
 OmegaV(1, 1, :) = double(stdScale).^2;
 
@@ -77,10 +76,10 @@ return
 
 
     function g = hereSetupTransitionRate( )
-        if isequal(opt.TransitionRate, @auto)
+        if isequal(transition.Rate, @auto)
             g = series.genip.getTransitionRate(model, aggregation, lowLevel);
         else
-            g = double(opt.TransitionRate);
+            g = double(transition.Rate);
         end
         if isscalar(g)
             g = repmat(g, 1, 1, numHighPeriods);
@@ -95,10 +94,10 @@ return
             case "Rate"
                 k = 0;
             otherwise
-                if isequal(opt.TransitionConstant, @auto)
+                if isequal(transition.Constant, @auto)
                     k = series.genip.getTransitionConstant(model, aggregation, lowLevel);
                 else
-                    k = double(opt.TransitionConstant);
+                    k = double(transition.Constant);
                 end
         end
         if isscalar(k)
@@ -120,84 +119,98 @@ return
         %
         % High to low frequency aggregation
         %
-        Z__ = aggregation;
-        H__ = zeros(1, size(H, 2));
-        observed__ = reshape([nan(numXi-1, numLowPeriods); reshape(lowLevel, 1, [ ])], 1, [ ]);
+        addZ = aggregation;
+        addH = zeros(1, size(H, 2));
+        addObserved = reshape([nan(numXi-1, numLowPeriods); reshape(lowLevel, 1, [ ])], 1, [ ]);
 
-        Z = [Z; repmat(Z__, 1, 1, size(Z, 3))];
-        H = [H; H__];
-        observed = [observed; observed__];
+        Z = [Z; repmat(addZ, 1, 1, size(Z, 3))];
+        H = [H; addH];
+        observed = [observed; addObserved];
 
 
         %
-        % High frequency levels
+        % High frequency level conditions
         %
-        if ~isempty(highLevel) && any(isfinite(highLevel))
-            Z__ = [zeros(1, numXi-1), 1];
-            H__ = zeros(1, size(H, 2));
-            observed__ = reshape(highLevel, 1, [ ]);
+        if ~isempty(conditions.Level) && any(isfinite(conditions.Level))
+            addZ = [zeros(1, numXi-1), 1];
+            addH = zeros(1, size(H, 2));
+            addObserved = reshape(conditions.Level, 1, [ ]);
 
-            Z = [Z; repmat(Z__, 1, 1, size(Z, 3))];
-            H = [H; H__];
-            observed = [observed; observed__];
+            Z = [Z; repmat(addZ, 1, 1, size(Z, 3))];
+            H = [H; addH];
+            observed = [observed; addObserved];
         end
 
 
         %
-        % High frequency rates
+        % High frequency rate conditions
         %
-        inxFinite = isfinite(highRate);
-        if ~isempty(highRate) && any(inxFinite)
+        inxFinite = isfinite(conditions.Rate);
+        if ~isempty(conditions.Rate) && any(inxFinite)
             hereExpandZ( );
-            [Z__, observed__] = localGetObservedRate(highRate, numXi);
-            H__ = zeros(1, size(H, 2));
+            [addZ, addObserved] = locallyGetObservedRate(conditions.Rate, numXi);
+            addH = zeros(1, size(H, 2));
 
-            Z = [Z; Z__];
-            H = [H; H__];
-            observed = [observed; observed__];
+            Z = [Z; addZ];
+            H = [H; addH];
+            observed = [observed; addObserved];
         end
 
 
         %
-        % High frequency diff
+        % High frequency diff conditions
         %
-        if ~isempty(highDiff) && any(isfinite(highDiff))
-            Z__ = [zeros(1, numXi-2), -1, 1];
-            H__ = zeros(1, size(H, 2));
-            observed__ = reshape(highDiff, 1, [ ]);
+        if ~isempty(conditions.Diff) && any(isfinite(conditions.Diff))
+            addZ = [zeros(1, numXi-2), -1, 1];
+            addH = zeros(1, size(H, 2));
+            addObserved = reshape(conditions.Diff, 1, [ ]);
 
-            Z = [Z; repmat(Z__, 1, 1, size(Z, 3))];
-            H = [H; H__];
-            observed = [observed; observed__];
+            Z = [Z; repmat(addZ, 1, 1, size(Z, 3))];
+            H = [H; addH];
+            observed = [observed; addObserved];
+        end
+
+
+        %
+        % High frequency diff-diff conditions
+        %
+        if ~isempty(conditions.DiffDiff) && any(isfinite(conditions.DiffDiff))
+            addZ = [zeros(1, numXi-3), 1, -2, 1];
+            addH = zeros(1, size(H, 2));
+            addObserved = reshape(conditions.DiffDiff, 1, [ ]);
+
+            Z = [Z; repmat(addZ, 1, 1, size(Z, 3))];
+            H = [H; addH];
+            observed = [observed; addObserved];
         end
 
 
         %
         % Indicator
         %
-        inxFinite = isfinite(indicatorTransformed);
-        if ~isempty(indicatorTransformed) && any(inxFinite)
+        inxFinite = isfinite(indicator.Transformed);
+        if ~isempty(indicator.Transformed) && any(inxFinite)
             switch string(model)
                 case "Level"
-                    Z__ = [zeros(1, numXi-1), 1];
-                    observed__ = reshape(indicatorTransformed, 1, [ ]);
+                    addZ = [zeros(1, numXi-1), 1];
+                    addObserved = reshape(indicator.Transformed, 1, [ ]);
                 case "Rate"
                     hereExpandZ( );
-                    [Z__, observed__] = localGetObservedRate(indicatorTransformed, numXi);
+                    [addZ, addObserved] = locallyGetObservedRate(indicator.Transformed, numXi);
                 case "Diff"
-                    Z__ = [zeros(1, numXi-2), -1, 1];
-                    observed__ = reshape(indicatorTransformed, 1, [ ]);
+                    addZ = [zeros(1, numXi-2), -1, 1];
+                    addObserved = reshape(indicator.Transformed, 1, [ ]);
                 case "DiffDiff"
-                    Z__ = [zeros(1, numXi-3), 1, -2, 1];
-                    observed__ = reshape(indicatorTransformed, 1, [ ]);
+                    addZ = [zeros(1, numXi-3), 1, -2, 1];
+                    addObserved = reshape(indicator.Transformed, 1, [ ]);
             end
-            H__ = 1;
-            stdW__ = stdIndicator;
+            addH = 1;
+            addStdW = indicator.StdScale;
 
-            Z = [Z; Z__];
-            observed = [observed; observed__];
-            H = blkdiag(H, H__);
-            stdW = blkdiag(stdW, stdW__);
+            Z = [Z; addZ];
+            observed = [observed; addObserved];
+            H = blkdiag(H, addH);
+            stdW = blkdiag(stdW, addStdW);
         end
 
         return
@@ -216,7 +229,16 @@ end%
 %
 
 
-function [Z, observed] = localGetObservedRate(x, numXi)
+function [Z, observed] = locallyGetObservedRate(x, numXi)
+% locallyGetObservedRate  Create measurement equation for rate of change model
+%
+% x  [ numeric ]
+% Vector of rates of change for individual high-frequency periods
+%
+% numXi  [ numeric ]
+% Dimension of state vector
+%
+
     numHighPeriods = numel(x);
     x = reshape(x, 1, [ ]);
     inxFinite = isfinite(x);
