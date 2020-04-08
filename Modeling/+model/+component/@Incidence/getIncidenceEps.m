@@ -1,77 +1,77 @@
-function [epsCurrent, epsShifted] = getIncidenceEps(eqn, ixSelect, letter)
-% getIncidenceEps  List of EPS incidences in select equations.
+function [epsCurrent, epsShifted] = getIncidenceEps(equationStrings, inxEquations, letter)
+% getIncidenceEps  List of EPS incidences in select equations
 %
-% Backend IRIS function.
-% No help provided.
+% Backend [IrisToolbox] method
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 PTR = @int32;
-FN_CELLSTR2NUM = @(x) sscanf( sprintf('%s,', x{:}), '%g,' ).';
-PTN_CURRENT = '\<x\((\d+),t\)';
-PTN_SHIFTED = '\<x\((\d+),t([+\-]\d+)\)';
-if nargin<2 || isequal(ixSelect, @all)
-    ixSelect = true(size(eqn));
+STRING_TO_NUM = @(x) sscanf(join(string(x)), '%g');
+CURRENT_VARIABLE = '\<x\((\d+),t\)';
+SHIFTED_VARIABLE = '\<x\((\d+),t([+\-]\d+)\)';
+if nargin<2 || isequal(inxEquations, @all)
+    inxEquations = true(size(equationStrings));
 end
 if nargin>=3
-    PTN_CURRENT = strrep(PTN_CURRENT, 'x', letter);
-    PTN_SHIFTED = strrep(PTN_SHIFTED, 'x', letter);
+    CURRENT_VARIABLE = replace(CURRENT_VARIABLE, 'x', letter);
+    SHIFTED_VARIABLE = replace(SHIFTED_VARIABLE, 'x', letter);
 end
 
 %--------------------------------------------------------------------------
 
-nEqn = length(eqn);
-lsShifted = cell(1, nEqn);
-lsCurrent = cell(1, nEqn);
+numEquations = numel(equationStrings);
+listShifted = cell(1, numEquations); % [^1]
+listCurrent = cell(1, numEquations); % [^2]
+% [^1]: List of incidences with time index other than zero
+% [^2]: List of incidences with time index zero
 
-% Convert equations that are function handles to char.
-ixFunc = cellfun(@(x) isa(x, 'function_handle'), eqn);
-ixConvert = ixFunc & ixSelect;
-if any(ixConvert)
-    eqn(ixConvert) = cellfun( ...
-        @(x) func2str(x), ...
-        eqn(ixConvert), ...
-        'UniformOutput', false ...
-        );
+%
+% Convert equations that are function handles to char
+%
+inxFunc = cellfun('isclass', equationStrings, 'function_handle');
+inxConvert = reshape(inxFunc, 1, [ ]) & reshape(inxEquations, 1, [ ]);
+for i = find(inxConvert)
+    equationStrings{i} = func2str(equationsStrings{i});
 end
 
-% Look for x(10,t).
-lsCurrent(ixSelect) = regexp( ...
-    eqn(ixSelect), ...
-    PTN_CURRENT, ...
-    'tokens' ...
-    );
+%
+% Look up current variables x(10,t)
+%
+listCurrent(inxEquations) = regexp( ...
+    equationStrings(inxEquations), CURRENT_VARIABLE, 'tokens' ...
+);
 
 % EPS = [Equation; Position of Name; Shift]
 epsCurrent = zeros(3, 0, 'int32');
-for iEqn = find( ~cellfun(@isempty, lsCurrent) ) % 1/
-    temp = FN_CELLSTR2NUM( [ lsCurrent{iEqn}{:} ] );
-    n = length(temp);
-    add = [repmat(PTR(iEqn), 1, n); PTR(temp); repmat(PTR(0), 1, n)];
+for i = find(~cellfun('isempty', listCurrent)) % [^1]
+    pos = reshape(STRING_TO_NUM([listCurrent{i}{:}]), 1, [ ]);
+    n = numel(pos);
+    add = [repmat(PTR(i), 1, n); PTR(pos); repmat(PTR(0), 1, n)];
     epsCurrent = [epsCurrent, add]; %#ok<AGROW>
 end
-
-% 1/ Steady equations may be completely empty and hence containing no
-% current dated variable.
+% [^1]: Steady equations may be completely empty and hence containing no
+% current dated variable
 
 if nargout==1
     return
 end
 
-% Look for x(10,t-2) or x(10,t+2).
-lsShifted(ixSelect) = regexp( ...
-    eqn(ixSelect), ...
-    PTN_SHIFTED, ...
-    'tokens' ...
-    );
+%
+% Look up shifted variables x(10,t-2) or x(10,t+2)
+%
+listShifted(inxEquations) = regexp( ...
+    equationStrings(inxEquations), SHIFTED_VARIABLE , 'tokens' ...
+);
 
 epsShifted = zeros(3, 0, 'int32');
-for iEqn = find( ~cellfun(@isempty, lsShifted) )
-    temp = FN_CELLSTR2NUM( [ lsShifted{iEqn}{:} ] );
-    n = length(temp)/2;
-    add = [repmat(PTR(iEqn), 1, n); PTR(temp(1:2:end)); PTR(temp(2:2:end))];
+for i = find(~cellfun('isempty', listShifted))
+    posShift = reshape(STRING_TO_NUM([listShifted{i}{:}]), 1, [ ]);
+    n = numel(posShift)/2;
+    add = [repmat(PTR(i), 1, n); PTR(posShift(1:2:end)); PTR(posShift(2:2:end))];
     epsShifted = [epsShifted, add]; %#ok<AGROW>
 end
 
-end
+end%
+

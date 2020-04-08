@@ -5,7 +5,7 @@ function this = postparse(this, qty, eqn, euc, puc, collector, opt, optimalOpt)
 % No help provided
 
 % -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2019 IRIS Solutions Team
 
 TYPE = @int8;
 
@@ -73,9 +73,9 @@ end
 %
 % Max Lag and Lead
 %
-ixmt = eqn.Type==TYPE(1) | eqn.Type==TYPE(2);
-maxSh = max([ euc.MaxShDynamic(ixmt), euc.MaxShSteady(ixmt) ]);
-minSh = min([ euc.MinShDynamic(ixmt), euc.MinShSteady(ixmt) ]);
+inxMT = eqn.Type==TYPE(1) | eqn.Type==TYPE(2);
+maxSh = max([ euc.MaxShDynamic(inxMT), euc.MaxShSteady(inxMT) ]);
+minSh = min([ euc.MinShDynamic(inxMT), euc.MinShSteady(inxMT) ]);
 if isOptimal
     % Anticipate that multipliers will have leads as far as the greatest
     % lag, and lags as far as the greatest lead.
@@ -143,11 +143,10 @@ end
 %
 numQuant = numel(qty.Name);
 numEqtn = numel(eqn.Input);
-ixm = eqn.Type==TYPE(1);
-ixt = eqn.Type==TYPE(2);
-ixd = eqn.Type==TYPE(3);
-ixmt = ixm | ixt;
-ixmtd = ixmt | ixd;
+inxM = eqn.Type==TYPE(1);
+inxT = eqn.Type==TYPE(2);
+inxD = eqn.Type==TYPE(3);
+inxL = eqn.Type==TYPE(4);
 
 % Remove blank spaces
 eqn.Input = regexprep(eqn.Input, {'\s+', '".*?"'}, {'', ''});
@@ -170,9 +169,9 @@ end
 %
 % Postparse Equations
 %
-% Check for sstate references occuring in the wrong equations
-hereCheckSteadyRef( );
 
+% Check for steady references in the wrong equations
+hereCheckSteadyRef( );
 try
     eqn = postparse(eqn, qty);
 catch exc
@@ -181,32 +180,31 @@ end
 
 if isOptimal
     % Retrieve and remove the expression for the discount factor from the
-    % parsed optimal policy equation.
+    % parsed optimal policy equation
     close = textfun.matchbrk(eqn.Dynamic{posLossEqtn});
-    % Discount factor has been already checked for empty.
+    % Discount factor has been already checked for empty
     lossDisc = eqn.Dynamic{posLossEqtn}(2:close-1);
     eqn.Dynamic{posLossEqtn} = eqn.Dynamic{posLossEqtn}(close+1:end);
 end
 
 % Check for orphan { and & after we have substituted for the valid
-% references.
+% references
 checkTimeSsref( );
 
 % Find the occurences of variables, shocks, and parameters in individual
-% equations, including the loss function and its discount factor. The
+% equations, including the loss function and its discount factor; the
 % occurences in the loss function will be replaced later with the
 % occurences in the Lagrangian derivatives.
 this.Incidence.Dynamic = model.component.Incidence(numEqtn, numQuant, minSh, maxSh);
 this.Incidence.Steady = model.component.Incidence(numEqtn, numQuant, minSh, maxSh);
-this.Incidence.Dynamic = fill(this.Incidence.Dynamic, qty, eqn.Dynamic, ixmtd); % 1/
-this.Incidence.Steady = fill(this.Incidence.Steady, qty, eqn.Steady, ixmt);
-ixCopy = ixmt & cellfun(@isempty, eqn.Steady);   
-this.Incidence.Steady.Matrix(ixCopy, :) = this.Incidence.Dynamic.Matrix(ixCopy, :); 
-
-% 1/ Do not create Incidence matrix for !links because they can have std_
-% and corr_ on both LHS and RHS for which Incidence matrix does not have
-% columns. Incidence in !links is only needed in model.reorderLinks and is
-% created in that file.
+this.Incidence.Dynamic = fill(this.Incidence.Dynamic, qty, eqn.Dynamic, inxM | inxT | inxD | inxL); % [^1]
+this.Incidence.Steady = fill(this.Incidence.Steady, qty, eqn.Steady, inxM | inxT);
+inxCopy = (inxM | inxT | inxL) & cellfun('isempty', eqn.Steady);   
+this.Incidence.Steady.Matrix(inxCopy, :) = this.Incidence.Dynamic.Matrix(inxCopy, :); 
+% [^1]: Here, we create incidence also for links but remove any references
+% to std or corr; this incidence is only used in steady state solver to
+% take into account links. Otherwise, the full !links incidence needed in
+% component.model.Link/reorder is created in that file.
 
 % Check equation syntax before we compute optimal policy but after we
 % remove the header min(...) from the loss function equation.
