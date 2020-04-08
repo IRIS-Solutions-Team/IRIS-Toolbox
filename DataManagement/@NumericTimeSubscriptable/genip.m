@@ -1,55 +1,51 @@
 function [output, info] = genip(lowInput, toFreq, model, aggregation, varargin)
 % genip  Generalized indicator based interpolation
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
 %
 %     [output, info] = genip(lowInput, toFreq, model, indicator, ...)
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 %
 % __`lowInput`__ [ Series ] 
-% >
-% Low-frequency input series that will be interpolated to the `toFreq`
+% > Low-frequency input series that will be interpolated to the `toFreq`
 % frequency using the `indicator`.
 %
 %
 % __`toFreq`__ [ Frequency ]
-% >
-% Target frequency to which the `lowInput` series will be interpolated;
+% > Target frequency to which the `lowInput` series will be interpolated;
 % `toFreq` must be higher than the frequency of the `lowInput`.
 %
 %
 % __`model`__ [ `'Level'` | `'Diff'` | `'DiffDiff'` | `'Rate'` ]
-% >
-% Type of state-space model for the dynamics of the interpolated series,
+% > Type of state-space model for the dynamics of the interpolated series,
 % and for the relationship between the interpolated series and the
 % indicator (if included).
 %
 %
 % __`aggregation`__ [ `'mean'` | `'sum'` | `'lowEnd'` | numeric ]
-% >
-% Type of aggregation of quarterly observations to yearly observations; the
+% > Type of aggregation of quarterly observations to yearly observations; the
 % `aggregation` can be assigned a `1-by-N` numeric vector with the weights
 % given, respectively, for the individual high-frequency periods within the
 % encompassing low-frequency period.
 %
 %
-% ## Output Arguments ##
+% Output Arguments
+%--------------------------------------------------------------------------
 %
 %
 % __`output`__ [ Series ] 
-% >
-% High-frequency output series constructed by interpolating the input
+% > High-frequency output series constructed by interpolating the input
 % `lowInput` using the dynamics of the `indicator`.
 %
 %
-%
 % __`info`__ [ struct ]
-% >
-% Output information struct with the the following fields:
+% > Output information struct with the the following fields:
 % * `.FromFreq` - Original (low) frequency of the input series
 % * `.ToFreq` - Target (high) frequency to which the input series has been interpolated
 % * `.LowRange` - Low frequency date range from which the input series has been interpolated
@@ -60,12 +56,12 @@ function [output, info] = genip(lowInput, toFreq, model, aggregation, varargin)
 % * `.OutputData` - Complete Kalman filter output data
 %
 %
-% ## Options ##
+% Options
+%--------------------------------------------------------------------------
 %
 %
 % __`DiffuseFactor=@auto`__ [ `@auto` | numeric ]
-% >
-% Numeric scaling factor used to approximate an infinite variance for
+% > Numeric scaling factor used to approximate an infinite variance for
 % diffuse initial conditions.
 %
 %
@@ -89,19 +85,18 @@ function [output, info] = genip(lowInput, toFreq, model, aggregation, varargin)
 %
 %
 % __`ResolveConflicts=true`__ [ `true` | `false` ]
-% >
-% Resolve potential conflicts (singularity) between the `lowInput`
+% > Resolve potential conflicts (singularity) between the `lowInput`
 % obervatations and the data supplied through the `HighLevel=` option.
 %
 %
 % __`StdIndicator=1e-3`__ [ numeric ]
-% >
-% Relative std deviation of the measurement error associated with the
+% > Relative std deviation of the measurement error associated with the
 % indicator measurement equation; the std deviation is entered relative to
 % the beginning-of-sample std deviation of the transition shocks.
 %
 %
-% ## Description ##
+% Description
+%--------------------------------------------------------------------------
 %
 %
 % The interpolated `lowInput` is obtained from the first element of the state
@@ -111,9 +106,12 @@ function [output, info] = genip(lowInput, toFreq, model, aggregation, varargin)
 %
 % #### State transition equation ####
 %
+%
 % \[ x_t = T_t x_{t-1} + v_t \]
 %
+%
 % #### Measurement equation ####
+%
 %
 % \[ y_t = Z x_t \]
 %
@@ -146,7 +144,8 @@ function [output, info] = genip(lowInput, toFreq, model, aggregation, varargin)
 % * \( v_t \) is a transition error with constant variance
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
 %
 %}
 
