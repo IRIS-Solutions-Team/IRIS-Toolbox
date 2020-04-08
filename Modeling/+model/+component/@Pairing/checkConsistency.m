@@ -1,24 +1,23 @@
 function flag = checkConsistency(pai, qty, eqn)
 % checkConsistency  Check internal consistency of object properties
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
 try
-    flag = checkAutoswapSimulate( ) && checkAutoswapSteady( ) ...
-           && checkDtrend( ) && checkRevision( );
+    flag = hereCheckAutoswapSimulate( ) && hereCheckAutoswapSteady( ) && hereCheckDtrend( );
 catch
     flag = false;
 end
 
 return
 
-    function flag = checkAutoswapSteady( )
+    function flag = hereCheckAutoswapSteady( )
         TYPE = @int8;
         PTR = @int16;
         ix = pai.Autoswap.Steady~=PTR(0);
@@ -29,7 +28,7 @@ return
     end%
 
 
-    function flag = checkAutoswapSimulate( )
+    function flag = hereCheckAutoswapSimulate( )
         TYPE = @int8;
         PTR = @int16;
         ixPtr = pai.Autoswap.Dynamic~=PTR(0);
@@ -41,7 +40,7 @@ return
     end%
 
 
-    function flag = checkDtrend( )
+    function flag = hereCheckDtrend( )
         TYPE = @int8;
         PTR = @int16;
         ixPtr = pai.Dtrend~=PTR(0);
@@ -59,21 +58,6 @@ return
         for i = find(ixd)
             ptr = pai.Dtrend(i);
             lhs = lsNameWithLog{ptr};
-            if ~strncmp(eqn.Input{i}, lhs, length(lhs))
-                flag = false;
-                return
-            end
-        end
-    end%
-
-
-    function flag = checkRevision( )
-        TYPE = @int8;
-        ixu = eqn.Type==TYPE(5);
-        flag = true;
-        for i = find(ixu)
-            ptr = pai.Revision(i);
-            lhs = [qty.Name{ptr}, '{+1}'];
             if ~strncmp(eqn.Input{i}, lhs, length(lhs))
                 flag = false;
                 return

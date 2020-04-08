@@ -5,7 +5,7 @@ function varargout = prepareSteady(this, displayMode, varargin)
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -44,15 +44,13 @@ if numel(varargin)==1 && iscell(varargin{1})
 end
 
 persistent parserLinear parserNonlinear
-if isempty(parserLinear)
+if isempty(parserLinear) || isempty(parserNonlinear)
     parserLinear = extend.InputParser('model.prepareSteady');
     parserLinear.addRequired('Model', @(x) isa(x, 'model'));
     parserLinear.addParameter('Growth', true, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     parserLinear.addParameter('Solve', false, @model.validateSolve);
     parserLinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false)); 
-end
 
-if isempty(parserNonlinear)
     parserNonlinear = extend.InputParser('model.prepareSteady');
     parserNonlinear.KeepUnmatched = true;
     parserNonlinear.addRequired('Model', @(x) isa(x, 'model'));
@@ -112,8 +110,8 @@ else
                                                            displayMode, ...
                                                            'SpecifyObjectiveGradient=', true, ...
                                                            unmatchedSolverOptions{:} );
-    blazer = hereRunBlazer(this, opt);
-    blazer = herePrepareBounds(this, blazer, opt);
+    blazer = locallyRunBlazer(this, opt);
+    blazer = locallyPrepareBounds(this, blazer, opt);
     blazer.NanInit = opt.NanInit;
     blazer.Reuse = opt.Reuse;
     blazer.Warning = opt.Warning;
@@ -123,7 +121,12 @@ end
 end%
 
 
-function hereProcessFixOptions(this, blazer, opt)
+%
+% Local Functions
+%
+
+
+function locallyProcessFixOptions(this, blazer, opt)
     % Process the fix, fixallbut, fixlevel, fixlevelallbut, fixgrowth,
     % and fixgrowthallbut options. All the user-supply information is
     % combined into fixlevel and fixgrowth.
@@ -131,10 +134,10 @@ function hereProcessFixOptions(this, blazer, opt)
     PTR = @int16;
 
     numQuants = length(this.Quantity.Name);
-    ixy = this.Quantity.Type==TYPE(1);
-    ixx = this.Quantity.Type==TYPE(2);
-    ixp = this.Quantity.Type==TYPE(4);
-    inxCanBeFixed =  ixy | ixx;
+    inxY = this.Quantity.Type==TYPE(1);
+    inxX = this.Quantity.Type==TYPE(2);
+    inxP = this.Quantity.Type==TYPE(4);
+    inxCanBeFixed =  inxY | inxX;
     namesCanBeFixed = this.Quantity.Name(inxCanBeFixed);
     list = {'Fix', 'FixLevel', 'FixChange'};
     for i = 1 : numel(list)
@@ -178,7 +181,7 @@ function hereProcessFixOptions(this, blazer, opt)
     fixG = false(1, numQuants);
 
     % Fix steady change of all endogenized parameters to zero
-    fixG(ixp) = true;
+    fixG(inxP) = true;
     if opt.Growth
         fixG(opt.Fix) = true;
         fixG(opt.FixChange) = true;
@@ -197,7 +200,7 @@ function hereProcessFixOptions(this, blazer, opt)
     blazer.IdToFix.Growth = PTR( find(fixG) ); %#ok<FNDSB>
 
     % Remove quantities fixed by user and LHS quantities from dynamic links
-    temp = getActiveLhsPtr(this.Link);
+    temp = this.Link.LhsPtrActive;
     blazer.IdToExclude.Level = [blazer.IdToFix.Level, temp];
     blazer.IdToExclude.Growth = [blazer.IdToFix.Growth, temp];
 end%
@@ -205,18 +208,23 @@ end%
 
 
 
-function blazer = hereRunBlazer(this, opt)
+function blazer = locallyRunBlazer(this, opt)
     TYPE = @int8;
 
     numQuants = length(this.Quantity.Name);
-    ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-    ixp = this.Quantity.Type==TYPE(4);
+
+    %
+    % Look up shocks and parameters; steady change will be fixed for these
+    % at zero no matter what
+    %
+    inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+    inxP = this.Quantity.Type==TYPE(4);
 
     % Run solver.blazer.Blazer on steady equations
     blazer = prepareBlazer(this, 'Steady', opt);
 
     % Populate IdToFix and IdToExclude
-    hereProcessFixOptions(this, blazer, opt);
+    locallyProcessFixOptions(this, blazer, opt);
 
     % Analyze block-sequential structure and prepare block.Steady
     run(blazer, opt);
@@ -225,13 +233,13 @@ function blazer = hereRunBlazer(this, opt)
         throw( exception.Base('Steady:StructuralSingularity', 'warning') );
     end
 
-    % Index of variables that will be always set to zero.
+    % Index of variables that will be always set to zero
     ixZero = struct( );
     ixZero.Level = false(1, numQuants);
-    ixZero.Level(ixe) = true;
+    ixZero.Level(inxE) = true;
     if opt.Growth
         ixZero.Growth = false(1, numQuants);
-        ixZero.Growth(ixe | ixp) = true;
+        ixZero.Growth(inxE | inxP) = true;
     else
         ixZero.Growth = true(1, numQuants);
     end
@@ -245,7 +253,7 @@ end%
 
 
 
-function blazer = herePrepareBounds(this, blazer, opt)
+function blazer = locallyPrepareBounds(this, blazer, opt)
     numQuants = length(this.Quantity.Name);
     numBlocks = length(blazer.Block);
     inxValidLevels = true(1, numQuants);
@@ -286,26 +294,30 @@ function blazer = herePrepareBounds(this, blazer, opt)
     end
 
     if any(~inxValidLevels)
-        throw( exception.Base('Steady:WRONG_SIGN_LEVEL_BOUNDS', 'error'), ...
-               this.Quantity.Name{~inxValidLevels} );
+        throw(  ...
+            exception.Base('Steady:WRONG_SIGN_LEVEL_BOUNDS', 'error'), ...
+            this.Quantity.Name{~inxValidLevels} ...
+        );
     end
     if any(~inxValidChanges)
-        throw( exception.Base('Steady:WRONG_SIGN_GROWTH_BOUNDS', 'error'), ...
-               this.Quantity.Name{~inxValidChanges} );
+        throw( ...
+            exception.Base('Steady:WRONG_SIGN_GROWTH_BOUNDS', 'error'), ...
+            this.Quantity.Name{~inxValidChanges} ...
+        );
     end
 
     return
 
 
         function [vecLb, vecUb, inxValid] = hereSetBounds(list, nameId, bnd, inxValid)
-            nList = length(list);
-            vecLb = -inf(1, nList);
-            vecUb = inf(1, nList);
-            for jj = 1 : nList
+            numList = numel(list);
+            vecLb = -inf(1, numList);
+            vecUb = inf(1, numList);
+            for jj = 1 : numList
                 name = list{jj};
                 %{
-                isLogPlus = opt.IxLogPlus( nameId(jj) );
-                isLogMinus = opt.IxLogMinus( nameId(jj) );
+                % isLogPlus = opt.IxLogPlus( nameId(jj) );
+                % isLogMinus = opt.IxLogMinus( nameId(jj) );
                 %}
                 isLog = blazer.Model.Quantity.IxLog( nameId(jj) );
                 %{

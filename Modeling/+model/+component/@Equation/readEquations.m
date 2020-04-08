@@ -1,44 +1,42 @@
 function equation = readEquations(equation, euc)
-% readEqtns  Post-parse measurement and transition equations.
+% readEqtns  Post-parse measurement and transition equations
 %
-% Backend IRIS function.
-% No help provided.
+% Backend [IrisToolbox] method
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-nEqtn = numel(equation.Input);
+numEquations = numel(equation.Input);
 
-ixm = equation.Type==TYPE(1);
-ixt = equation.Type==TYPE(2);
-ixmt = ixm | ixt;
-if ~any(ixmt)
+inxM = equation.Type==TYPE(1);
+inxT = equation.Type==TYPE(2);
+inxL = equation.Type==TYPE(4);
+inxMTL = inxM | inxT | inxL;
+if ~any(inxMTL)
     return
 end
 
-dynamic = repmat({''}, 1, nEqtn);
-steady = repmat({''}, 1, nEqtn);
-for i = find(ixmt)
-    dynamic{i} = combineLhsRhs(euc.LhsDynamic{i}, euc.RhsDynamic{i});
+dynamic = repmat({''}, 1, numEquations);
+steady = repmat({''}, 1, numEquations);
+for i = find(inxMTL)
+    dynamic{i} = hereCombineLhsRhs(euc.LhsDynamic{i}, euc.RhsDynamic{i});
     if ~isempty(euc.RhsSteady{i})
-        steady{i} = combineLhsRhs(euc.LhsSteady{i}, euc.RhsSteady{i});
+        steady{i} = hereCombineLhsRhs(euc.LhsSteady{i}, euc.RhsSteady{i});
     end
 end
 
-equation.Dynamic(ixmt) = dynamic(ixmt);
-equation.Steady(ixmt) = steady(ixmt);
-equation.IxHash(ixmt) = strcmp(euc.SignDynamic(ixmt), '=#');
+equation.Dynamic(inxMTL) = dynamic(inxMTL);
+equation.Steady(inxMTL) = steady(inxMTL);
+equation.IxHash(inxMTL) = strcmp(euc.SignDynamic(inxMTL), '=#');
 
 return
 
-
-
-
-    function eqtn = combineLhsRhs(lhs, rhs)
+    function eqtn = hereCombineLhsRhs(lhs, rhs)
         if isempty(lhs)
             eqtn = rhs;
         else
@@ -48,5 +46,6 @@ return
             end
             eqtn = ['-[', lhs, ']', sign, rhs];
         end
-    end
-end
+    end%
+end%
+
