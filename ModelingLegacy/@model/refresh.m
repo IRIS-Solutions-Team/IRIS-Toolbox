@@ -1,31 +1,40 @@
 function this = refresh(this, variantsRequested)
-% refresh  Refresh dynamic links.
-%
-% ## Syntax ##
-%
-%     M = refresh(M)
-%
-%
-% ## Input Arguments ##
-%
-% * `M` [ model ] - Model object whose dynamic links will be refreshed.
+% refresh  Refresh dynamic links
+%{
+% Syntax
+%--------------------------------------------------------------------------
 %
 %
-% ## Output Arguments ##
-%
-% * `M` [ model ] - Model object with dynamic links refreshed.
+%     model = refresh(model)
 %
 %
-% ## Description ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 %
-% ## Example ##
+% __`model`__ [ Model ] 
+% > Model object whose dynamic links will be refreshed.
 %
-%     m = refresh(m)
 %
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+%
+% __`model`__ [ Model ] 
+% > Model object with dynamic links refreshed.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
+%
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 PTR = @int16;
 
@@ -44,24 +53,25 @@ end
 
 %--------------------------------------------------------------------------
 
-numOfQuantities = length(this.Quantity);
+numQuantities = length(this.Quantity);
 
-% Get a 1-(numOfQuantities+numOfStdCorr)-nv matrix of quantities and stdcorrs.
-x = [ ...
+% Get a 1-(numQuantities+numStdCorr)-nv matrix of quantities and stdcorrs
+x = [
     this.Variant.Values(:, :, variantsRequested), ...
-    this.Variant.StdCorr(:, :, variantsRequested), ...
+    this.Variant.StdCorr(:, :, variantsRequested)
 ];
 
-% Permute from 1-numOfQuantities-nv to numOfQuantities-nv-1.
+% Permute from 1-numQuantities-nv to numQuantities-nv-1
 x = permute(x, [2, 3, 1]);
 
 x = refresh(this.Link, x);
 
-% Permute from (numOfQuantities+numOfStdCorr)-nv-1 to
-% 1-(numOfQuantities+numOfStdCorr)-nv.
+% Permute from (numQuantities+numStdCorr)-nv-1 to
+% 1-(numQuantities+numStdCorr)-nv
 x = ipermute(x, [2, 3, 1]);
 
-this.Variant.Values(:, :, variantsRequested) = x(:, 1:numOfQuantities, :);
-this.Variant.StdCorr(:, :, variantsRequested) = x(:, numOfQuantities+1:end, :);
+this.Variant.Values(:, :, variantsRequested) = x(:, 1:numQuantities, :);
+this.Variant.StdCorr(:, :, variantsRequested) = x(:, numQuantities+1:end, :);
 
-end
+end%
+

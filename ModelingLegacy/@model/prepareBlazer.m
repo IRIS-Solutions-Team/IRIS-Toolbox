@@ -1,75 +1,102 @@
 function blz = prepareBlazer(this, kind, varargin)
 % prepareBlazer  Create Blazer object from dynamic or steady equations
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.prepareBlazer');
-    parser.KeepUnmatched = true;
-    parser.addRequired('Model', @(x) isa(x, 'model'));
-    parser.addRequired('Kind', @validateKind);
-    parser.addParameter('Blocks', true, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter('Log', { }, @validateLogList);
-    parser.addParameter('Unlog', { }, @validateLogList);
-    parser.addSwapOptions( );
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.prepareBlazer');
+    pp.KeepUnmatched = true;
+    addRequired(pp, 'Model', @(x) isa(x, 'model'));
+    addRequired(pp, 'Kind', @validateKind);
+    addParameter(pp, 'Blocks', true, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'Log', { }, @validateLogList);
+    addParameter(pp, 'Unlog', { }, @validateLogList);
+    addSwapOptions(pp);
 end
-parse(parser, this, kind, varargin{:});
-opt = parser.Options;
+parse(pp, this, kind, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
-ixy = this.Quantity.Type==TYPE(1);
-ixx = this.Quantity.Type==TYPE(2);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixp = this.Quantity.Type==TYPE(4);
-ixm = this.Equation.Type==TYPE(1);
-ixt = this.Equation.Type==TYPE(2);
-ixmt = ixm | ixt;
-numOfEquations = length(this.Equation);
+inxY = this.Quantity.Type==TYPE(1);
+inxX = this.Quantity.Type==TYPE(2);
+inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+inxP = this.Quantity.Type==TYPE(4);
+inxM = this.Equation.Type==TYPE(1);
+inxT = this.Equation.Type==TYPE(2);
+inxYX = inxY | inxX;
+inxMT = inxM | inxT;
+numEquations = numel(this.Equation);
+numQuantities = numel(this.Quantity);
 
 if strcmpi(kind, 'Steady')
-    blz = solver.blazer.Steady(numOfEquations);
-    blz.Equation(ixmt) = this.Equation.Steady(ixmt);
-    inxCopy = ixmt & cellfun(@isempty, this.Equation.Steady(1, :));        
+    %
+    % Steady state solution
+    %
+    blz = solver.blazer.Steady(numEquations);
+
+    [inxP__, inxL__] = hereGetParameterLinks( );
+    blz.InxEndogenous = inxYX | inxP__;
+    blz.InxEquations = inxMT | inxL__ ;
+    blz.InxCanBeEndogenized = inxP & ~inxP__;
+    blz.InxCanBeExogenized = blz.InxEndogenous;
+
+    blz.Equation(blz.InxEquations) = this.Equation.Steady(blz.InxEquations);
+    inxCopy = blz.InxEquations & cellfun('isempty', this.Equation.Steady(1, :));        
     blz.Equation(inxCopy) = this.Equation.Dynamic(inxCopy);
-    blz.Gradient(:, ixmt) = this.Gradient.Steady(:, ixmt);
+
+    blz.Gradient(:, inxMT) = this.Gradient.Steady(:, inxMT);
     blz.Gradient(:, inxCopy) = this.Gradient.Dynamic(:, inxCopy);
     blz.Incidence = this.Incidence.Steady;
     incid = across(blz.Incidence, 'Shift');
-    blz.InxCanBeEndogenous = ixy | ixx | ixp;
     blz.Assignment = this.Pairing.Assignment.Steady;
     blz.IsBlocks = opt.Blocks;
     logStatusTypesAllowed = { TYPE(1), TYPE(2), TYPE(4), TYPE(5) };
 
+
 elseif strcmpi(kind, 'Static') || kind==solver.Method.STATIC
-    blz = solver.blazer.Stacked(numOfEquations);
-    blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
-    % blz.Gradient(:, ixmt) = this.Gradient.Dynamic(:, ixmt);
+    %
+    % Period by period simulations
+    % 
+    blz = solver.blazer.Stacked(numEquations);
+    blz.InxEndogenous = inxYX;
+    blz.InxEquations = inxMT;
+    blz.InxCanBeEndogenized = inxE;
+    blz.InxCanBeExogenized = blz.InxEndogenous;
+
+    blz.Equation(blz.InxEquations) = this.Equation.Dynamic(blz.InxEquations);
     blz.Incidence = selectShift(this.Incidence.Dynamic, 0);
-    blz.InxCanBeEndogenous = ixy | ixx | ixe;
     blz.Assignment = this.Pairing.Assignment.Dynamic;
     blz.IsBlocks = opt.Blocks;
     logStatusTypesAllowed = { TYPE(1), TYPE(2), TYPE(5) };
 
+
 elseif strcmpi(kind, 'Stacked') || kind==solver.Method.STACKED
-    blz = solver.blazer.Stacked(numOfEquations);
-    blz.Equation(ixmt) = this.Equation.Dynamic(ixmt);
+    %
+    % Stacked time simulation
+    %
+    blz = solver.blazer.Stacked(numEquations);
+    blz.InxEndogenous = inxYX;
+    blz.InxEquations = inxMT;
+    blz.InxCanBeEndogenized = inxE;
+    blz.InxCanBeExogenized = blz.InxEndogenous;
+
+    blz.Equation(blz.InxEquations) = this.Equation.Dynamic(blz.InxEquations);
     blz.Gradient(:, :) = [ ];
     blz.Incidence = this.Incidence.Dynamic;
-    blz.InxCanBeEndogenous = ixy | ixx | ixe;
     blz.Assignment = this.Pairing.Assignment.Dynamic;
     blz.IsBlocks = opt.Blocks;
     logStatusTypesAllowed = { TYPE(1), TYPE(2), TYPE(5) };
 
 else
-    throw( exception.Base('General:Internal', 'error') );
+    throw(exception.Base('General:Internal', 'error'));
 end
 
 blz.Model.Quantity = this.Quantity;
@@ -83,9 +110,6 @@ if isfield(opt, 'Unlog') && ~isempty(opt.Unlog)
     blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, false, opt.Unlog, logStatusTypesAllowed{:});
 end
 
-blz.InxEndogenous = ixy | ixx;
-blz.InxEquations = ixm | ixt;
-
 if isequal(opt.Exogenize, @auto) || isequal(opt.Endogenize, @auto)
     [listExogenize, listEndogenize] = resolveAutoswap(this, kind, opt.Exogenize, opt.Endogenize);
 else
@@ -93,6 +117,9 @@ else
     listEndogenize = opt.Endogenize;
 end
 
+%
+% Endogenize
+%
 if ischar(listEndogenize)
     listEndogenize = regexp(listEndogenize, '\w+', 'match');
 elseif ~iscellstr(listEndogenize)
@@ -102,13 +129,12 @@ listEndogenize = unique(listEndogenize);
 if ~isempty(listEndogenize)
     outp = lookup(blz.Model.Quantity, listEndogenize);
     vecEndg = outp.PosName;
-    error = endogenize(blz, vecEndg);
-    if any(error.IxCannotSwap)
-        throw( exception.Base('Blazer:CannotEndogenize', 'error'), ...
-               listEndogenize{error.IxCannotSwap} );
-    end
+    endogenize(blz, vecEndg);
 end
 
+%
+% Exogenize
+%
 if ischar(listExogenize)
     listExogenize = regexp(listExogenize, '\w+', 'match');
 elseif ~iscellstr(listExogenize)
@@ -118,13 +144,26 @@ listExogenize = unique(listExogenize);
 if ~isempty(listExogenize)
     outp = lookup(blz.Model.Quantity, listExogenize);
     vecExg = outp.PosName;
-    error = exogenize(blz, vecExg);
-    if any(error.IxCannotSwap)
-        throw( exception.Base('Blazer:CannotExogenize', 'error'), ...
-               listExogenize{error.IxCannotSwap} );
-    end
+    exogenize(blz, vecExg);
 end
 
+return
+
+    function [inxP__, inxL__] = hereGetParameterLinks( )
+        inxL = this.Equation.Type==TYPE(4);
+        inxP__ = false(1, numQuantities);
+        inxL__ = false(1, numEquations);
+        if isempty(this.Link)
+            return
+        end
+        % LHS pointers to parameters
+        posP__ = intersect(this.Link.LhsPtrActive, find(inxP));
+        if isempty(posP__)
+            return
+        end
+        inxP__(posP__) = true;
+        inxL__(inxL) = this.Link.InxActive;
+    end%
 end%
 
 

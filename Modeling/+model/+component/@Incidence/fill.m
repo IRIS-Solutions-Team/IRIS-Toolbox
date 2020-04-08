@@ -1,34 +1,69 @@
-function [this, epsCurrent, epsShifted] = fill(this, qty, lsEqn, ixEqn, varargin)
-% fill  Fill in incidence matrices
+function [this, epsCurrent, epsShifted] = fill(this, qty, equationStrings, inxEquations, varargin)
+% fill  Populate incidence matrices
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 PTR = @int32;
 
 %--------------------------------------------------------------------------
 
 t0 = PTR(find(this.Shift==0)); %#ok<FNDSB>
-numShifts = length(this.Shift);
-numEquations = length(lsEqn);
-numQuantities = length(qty.Name);
+numShifts = numel(this.Shift);
+numEquations = numel(equationStrings);
+numQuantities = numel(qty.Name);
 
+
+%
 % Reset incidence in indexEquations
-this.Matrix(ixEqn, :) = false;
+%
+this.Matrix(inxEquations, :) = false;
 
+
+%
 % Get equation, position of name, shift
+%
 [epsCurrent, epsShifted] = ...
-    model.component.Incidence.getIncidenceEps(lsEqn, ixEqn, varargin{:});
+    model.component.Incidence.getIncidenceEps(equationStrings, inxEquations, varargin{:});
 
-ind = sub2ind([numEquations, numQuantities, numShifts], ...
-    epsCurrent(1, :), epsCurrent(2, :), t0+epsCurrent(3, :));
+
+%
+% Place current dated incidence in the incidence matrix
+%
+epsCurrent = locallyRemovePosBeyondNumQuantities(epsCurrent, numQuantities); % [^1]
+ind = sub2ind( ...
+    [numEquations, numQuantities, numShifts] ...
+    , epsCurrent(1, :), epsCurrent(2, :), t0+epsCurrent(3, :) ...
+);
 this.Matrix(ind) = true;
 
-ind = sub2ind([numEquations, numQuantities, numShifts], ...
-    epsShifted(1, :), epsShifted(2, :), t0+epsShifted(3, :));
+
+%
+% Place time shifted incidence in the incidence matrix
+%
+epsShifted = locallyRemovePosBeyondNumQuantities(epsShifted, numQuantities); % [^1]
+ind = sub2ind( ...
+    [numEquations, numQuantities, numShifts] ...
+    , epsShifted(1, :), epsShifted(2, :), t0+epsShifted(3, :) ...
+);
 this.Matrix(ind) = true;
 
-end
+end%
+
+% [^1]: Incidence is sometimes also calculated for !links in which case
+% there might be references to std or corr; these are excluded here.
+
+%
+% Local Functions
+%
+
+function eps = locallyRemovePosBeyondNumQuantities(eps, numQuantities) % [^1]
+    inxToRemove = eps(2, :)>numQuantities;
+    if any(inxToRemove)
+        eps(:, inxToRemove) = [ ];
+    end
+end%
+

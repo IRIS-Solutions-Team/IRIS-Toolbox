@@ -17,7 +17,8 @@ classdef (Abstract) Blazer < handle
         Incidence
         InxEquations
         InxEndogenous
-        InxCanBeEndogenous
+        InxCanBeEndogenized
+        InxCanBeExogenized
         IsBlocks = true
         IsSingular = false
 
@@ -53,37 +54,45 @@ classdef (Abstract) Blazer < handle
         end%
         
         
-        
-        
-        function error = endogenize(this, vecEndg)
-            testFunc = @(this, pos) this.InxCanBeEndogenous(pos);
-            error = swap(this, vecEndg, true, testFunc);
+        function endogenize(this, posToEndogenize)
+            testFunc = @(this, pos) this.InxCanBeEndogenized(pos);
+            inxValid = swap(this, posToEndogenize, true, testFunc);
+            if any(~inxValid)
+                thisError = [
+                    "Blazer:CannotEndogenize"
+                    "This name cannot be endogenized because it is endogenous already: %s"
+                ];
+                pos = posToEndogenize(~inxValid);
+                throw(exception.Base(thisError, 'error'), this.Model.Quantity.Name{pos});
+            end
         end%
         
         
-        
-        
-        function error = exogenize(this, vecExg)
-            testFunc = @(this, pos) this.InxEndogenous(pos);
-            error = swap(this, vecExg, false, testFunc);
+        function exogenize(this, posToExogenize)
+            testFunc = @(this, pos) this.InxCanBeExogenized(pos);
+            inxValid = swap(this, posToExogenize, false, testFunc);
+            if any(~inxValid)
+                thisError = [
+                    "Blazer:CannotExogenize"
+                    "This name cannot be exogenized because it is exogenous already: %s"
+                ];
+                pos = posToExogenize(~inxValid);
+                throw(exception.Base(thisError, 'error'), this.Model.Quantity.Name{pos});
+            end
         end%
         
         
-        
-        
-        function error = swap(this, vecSwap, setIxEndgTo, testFunc)
-            error = struct( 'IxCannotSwap', [ ] );
-            nSwap = length(vecSwap);
-            ixValid = true(1, nSwap);
-            for i = 1 : nSwap
+        function inxValid = swap(this, vecSwap, setIxEndgTo, testFunc)
+            numSwaps = numel(vecSwap);
+            inxValid = true(1, numSwaps);
+            for i = 1 : numSwaps
                 pos = vecSwap(i);
                 if ~isfinite(pos) || ~testFunc(this, pos)
-                    ixValid(i) = false;
+                    inxValid(i) = false;
                     continue
                 end
                 this.InxEndogenous(pos) = setIxEndgTo;
             end
-            error.IxCannotSwap = ~ixValid;
         end%
         
         

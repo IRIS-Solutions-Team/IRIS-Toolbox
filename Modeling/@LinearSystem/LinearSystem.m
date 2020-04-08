@@ -19,7 +19,7 @@ classdef LinearSystem < shared.Kalman
         % NumPeriods  Number of periods in which system matrices vary from asymptotic system
         NumPeriods (1, 1) double = 0
 
-        % Dimensions  Dimensions of state space vectors [xi, v, y, w]
+        % Dimensions  Dimensions of state space vectors [xi, xiB, v, y, w]
         Dimensions (1, 5) double = [0, 0, 0, 0, 0]
 
         % SystemMatrices  State space system matrices {T, R, k, Z, H, d, U, Zb}

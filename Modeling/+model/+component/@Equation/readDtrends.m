@@ -1,69 +1,76 @@
-function [eqn, pai] = readDtrends(eqn, euc, qty)
-% readDtrends  Read deterministic trends.
+function [eqn, pairing] = readDtrends(eqn, euc, qty)
+% readDtrends  Read deterministic trends
 %
-% Backend IRIS function.
-% No help provided.
+% Backend [IrisToolbox] function
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 PTR = @int16;
 
 %--------------------------------------------------------------------------
 
-nEqtn = length(eqn.Input);
-pai = model.component.Pairing.initDtrend(nEqtn);
-ixd = eqn.Type==TYPE(3);
-if ~any(ixd)
+numEquations = numel(eqn.Input);
+pairing = model.component.Pairing.initDtrend(numEquations);
+inxD = eqn.Type==TYPE(3);
+if ~any(inxD)
     return
 end
-ixy = qty.Type==TYPE(1);
+inxY = qty.Type==TYPE(1);
 
 % Create list of measurement variable names against which the LHS of
 % dtrends equations will be matched. Add log(...) for log-variables.
-lsName = qty.Name;
-ixLog = qty.IxLog;
-lsCompleteName = lsName;
-lsCompleteName(ixLog) = strcat('log(', lsCompleteName(ixLog), ')');
-lsName(~ixy) = {[ ]};
-lsCompleteName(~ixy) = {[ ]};
+listName = qty.Name;
+inxLog = qty.IxLog;
+listCompleteName = listName;
+listCompleteName(inxLog) = strcat('log(', listCompleteName(inxLog), ')');
+listName(~inxY) = {[ ]};
+listCompleteName(~inxY) = {[ ]};
 
-ixLogMissing = false(1, nEqtn);
-ixInvalid = false(1, nEqtn);
-ixMultiple = false(1, nEqtn);
-for i = find(ixd)
-    ix = strcmp(lsCompleteName, euc.LhsDynamic{i});
-    if ~any(ix)
-        if any(strcmp(lsName, euc.LhsDynamic{i}))
-            ixLogMissing(i) = true;
+inxLogMissing = false(1, numEquations);
+inxInvalid = false(1, numEquations);
+inxMultiple = false(1, numEquations);
+for i = find(inxD)
+    inx = strcmp(listCompleteName, euc.LhsDynamic{i});
+    if ~any(inx)
+        if any(strcmp(listName, euc.LhsDynamic{i}))
+            inxLogMissing(i) = true;
         else
-            ixInvalid(i) = true;
+            inxInvalid(i) = true;
         end
         continue
     end
-    p = PTR(find(ix)); %#ok<FNDSB>
-    if any(p==pai)
-        ixMultiple(i) = true;
+    p = PTR(find(inx)); %#ok<FNDSB>
+    if any(p==pairing)
+        inxMultiple(i) = true;
     end
-    pai(i) = p;
+    pairing(i) = p;
 end
 
-if any(ixLogMissing)
-    throw( exception.Base('Equation:LHS_VARIABLE_MUST_LOG_IN_DTREND', 'error'), ...
-        eqn.Input{ixLogMissing} );
+if any(inxLogMissing)
+    throw( ...
+        exception.Base('Equation:LHS_VARIABLE_MUST_LOG_IN_DTREND', 'error'), ...
+        eqn.Input{inxLogMissing} ...
+    );
 end
-if any(ixInvalid)
-    throw( exception.Base('Equation:INVALID_LHS_DTREND', 'error'), ...
-        eqn.Input{ixInvalid} );
+if any(inxInvalid)
+    throw( ...
+        exception.Base('Equation:INVALID_LHS_DTREND', 'error'), ...
+        eqn.Input{inxInvalid} ...
+    );
 end
-if any(ixMultiple)
-    lsMultiple = euc.LhsDynamic(ixMultiple);
-    lsMultiple = unique(lsMultiple);
-    throw( exception.Base('Equation:MULTIPLE_LHS_DTREND', 'error'), ...
-        lsMultiple{:} );
+if any(inxMultiple)
+    listMultiple = euc.LhsDynamic(inxMultiple);
+    listMultiple = unique(listMultiple);
+    throw( ...
+        exception.Base('Equation:MULTIPLE_LHS_DTREND', 'error'), ...
+        listMultiple{:} ...
+    );
 end
 
-eqn.Dynamic(ixd) = euc.RhsDynamic(ixd);
+eqn.Dynamic(inxD) = euc.RhsDynamic(inxD);
 
-end
+end%
+
