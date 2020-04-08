@@ -55,19 +55,19 @@ end
 
 numQuantities = length(this.Quantity);
 
-% Get a 1-(numQuantities+numStdCorr)-nv matrix of quantities and stdcorrs.
+% Get a 1-(numQuantities+numStdCorr)-nv matrix of quantities and stdcorrs
 x = [
     this.Variant.Values(:, :, variantsRequested), ...
     this.Variant.StdCorr(:, :, variantsRequested)
 ];
 
-% Permute from 1-numQuantities-nv to numQuantities-nv-1.
+% Permute from 1-numQuantities-nv to numQuantities-nv-1
 x = permute(x, [2, 3, 1]);
 
 x = refresh(this.Link, x);
 
 % Permute from (numQuantities+numStdCorr)-nv-1 to
-% 1-(numQuantities+numStdCorr)-nv.
+% 1-(numQuantities+numStdCorr)-nv
 x = ipermute(x, [2, 3, 1]);
 
 this.Variant.Values(:, :, variantsRequested) = x(:, 1:numQuantities, :);
