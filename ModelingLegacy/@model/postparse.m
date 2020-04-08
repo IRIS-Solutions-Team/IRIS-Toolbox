@@ -71,7 +71,7 @@ catch exc
 end
 
 %
-% Max Lag and Lead
+% Max lag and lead in measurement and transition equations
 %
 inxMT = eqn.Type==TYPE(1) | eqn.Type==TYPE(2);
 maxSh = max([ euc.MaxShDynamic(inxMT), euc.MaxShSteady(inxMT) ]);
@@ -95,7 +95,7 @@ end
 % Check for empty dynamic parts in measurement and transition equations.
 % This may occur if the user types a semicolon between the full equations
 % and its steady state version.
-checkEmptyEqtn( );
+hereCheckEmptyEqtn( );
 
 %
 % Placeholders for Optimal Policy Equations
@@ -118,24 +118,25 @@ if  isOptimal
     prefix = optimalOpt.MultiplierPrefix;
     ixInvalidRef = strncmp(qty.Name, prefix, length(prefix));
     if any(ixInvalidRef)
-        throw( exception.ParseTime('Model:Postparser:PREFIX_MULTIPLIER', 'error'), ...
-            qty.Name{ixInvalidRef} );
+        throw( ...
+            exception.ParseTime('Model:Postparser:PREFIX_MULTIPLIER', 'error'), ...
+            qty.Name{ixInvalidRef} ...
+        );
     end
-    createPlaceholdersForOptimal( );
+    hereCreatePlaceholdersForOptimal( );
 end
 
 %
-% Read DTrends, Links, Autoswap
+% Read DTrends and Pairings
 %
 
 % Read them after placeholders for optimal policy have been created
 try
     [eqn, this.Pairing.Dtrend] = readDtrends(eqn, euc, qty);
-    [eqn, this.Link] = readLinks(eqn, euc, qty);
     this.Pairing.Autoswap = model.component.Pairing.readAutoswap(qty, puc);
     this.Pairing.Assignment = model.component.Pairing.readAssignments(eqn, euc, qty);
 catch exc
-    throw( exception.Rethrow(exc) );
+    throw(exception.Rethrow(exc));
 end
 
 %
@@ -153,24 +154,17 @@ eqn.Input = regexprep(eqn.Input, {'\s+', '".*?"'}, {'', ''});
 eqn.Dynamic = regexprep(eqn.Dynamic, '\s+', '');
 eqn.Steady = regexprep(eqn.Steady, '\s+', '');
 
-% Make sure all equations end with semicolons.
-for iEq = 1 : length(eqn.Input)
-    if ~isempty(eqn.Input{iEq}) && eqn.Input{iEq}(end)~=';'
-        eqn.Input{iEq}(end+1) = ';';
-    end
-    if ~isempty(eqn.Dynamic{iEq}) && eqn.Dynamic{iEq}(end)~=';'
-        eqn.Dynamic{iEq}(end+1) = ';';
-    end
-    if ~isempty(eqn.Steady{iEq}) && eqn.Steady{iEq}(end)~=';'
-        eqn.Steady{iEq}(end+1) = ';';
-    end
-end
+% Make sure all equations end with semicolons
+eqn = locallyEnsureSemicolon(eqn);
+
 
 %
 % Postparse Equations
 %
 
 % Check for steady references in the wrong equations
+% eqn.Dynamic(cellfun('isempty', eqn.Dynamic)) = {''};
+% eqn.Steady(cellfun('isempty', eqn.Steady)) = {''};
 hereCheckSteadyRef( );
 try
     eqn = postparse(eqn, qty);
@@ -189,7 +183,7 @@ end
 
 % Check for orphan { and & after we have substituted for the valid
 % references
-checkTimeSsref( );
+hereCheckTimeAndSteadyRef( );
 
 % Find the occurences of variables, shocks, and parameters in individual
 % equations, including the loss function and its discount factor; the
@@ -257,13 +251,16 @@ if ~isempty(exc)
     throw(exc, args{:});
 end
 
-% Create link object.
-ixl = eqn.Type==TYPE(4);
-this.Link.Input = eqn.Input(ixl);
-this.Link.RhsExpn = eqn.Dynamic(ixl);
-eqn.Dynamic(ixl) = {''};
 
+% 
+% Create the Link component
+%
+this.Link = model.component.Link(eqn, euc, qty);
+
+
+%
 % Reset parsed file name
+%
 exception.ParseTime.storeFileName( );
 this.Quantity = qty;
 this.Equation = eqn;
@@ -271,27 +268,22 @@ this.Equation = eqn;
 return
 
     
-    
-    
-    
-    function checkTimeSsref( )
-        % Check for { in dynamic and steady equations.
-        ixOrphan = ~cellfun( @isempty, strfind(eqn.Dynamic, '{') ) ...
-            | ~cellfun( @isempty,strfind(eqn.Steady, '{') ) ;
-        if any(ixOrphan)
+    function hereCheckTimeAndSteadyRef( )
+        % Check for { in dynamic and steady equations
+        inxOrphan = contains(eqn.Dynamic, '{') | contains(eqn.Steady, '{');
+        if any(inxOrphan)
             throw( ...
                 exception.ParseTime('Model:Postparser:MISPLACED_TIME_SUBSCRIPT', 'error'), ...
-                eqn.Input{ixOrphan} ...
-                );
+                eqn.Input{inxOrphan} ...
+            );
         end
-        % Check for & and $ in full and steady-state equations.
-        ixInvalidRef = ~cellfun( @isempty, strfind(eqn.Dynamic, '&') ) ...
-            | ~cellfun( @isempty, strfind(eqn.Steady, '&') );
-        if any(ixInvalidRef)
+        % Check for & and $ in full and steady-state equations
+        inxInvalidRef = contains(eqn.Dynamic, '&') | contains(eqn.Steady, '&');
+        if any(inxInvalidRef)
             throw( ...
                 exception.ParseTime('Model:Postparser:MISPLACED_STEADY_REFERENCE', 'error'), ...
-                eqn.Input{ixInvalidRef} ...
-                );
+                eqn.Input{inxInvalidRef} ...
+            );
         end
     end%
 
@@ -300,36 +292,39 @@ return
 
     function hereCheckSteadyRef( )
         % Check for sstate references in the wrong equations
-        func = @(c) ~cellfun(@(x) isempty(strfind(x, '&')), c);
-        inxSteadyRef = func(eqn.Dynamic) | func(eqn.Steady);
-        % Not allowed in deterministic trends.
+        inxSteadyRef = contains(eqn.Dynamic, '&') | contains(eqn.Dynamic, '&');
+        % Not allowed in deterministic trends
         inx = inxSteadyRef & eqn.Type==TYPE(3);
         if any(inx)
-            throw( exception.ParseTime('Model:Postparser:SSTATE_REF_IN_DTREND', 'error'), ...
-                eqn.Input{inx} );
+            throw( ...
+                exception.ParseTime('Model:Postparser:SSTATE_REF_IN_DTREND', 'error'), ...
+                eqn.Input{inx} ...
+            );
         end
         % Not allowed in dynamic links
         inx = inxSteadyRef & eqn.Type==TYPE(4);
         if any(inx)
-            throw( exception.ParseTime('Model:Postparser:SSTATE_REF_IN_LINK', 'error'), ...
-                eqn.Input{inx} );
+            throw( ...
+                exception.ParseTime('Model:Postparser:SSTATE_REF_IN_LINK', 'error'), ...
+                eqn.Input{inx} ...
+            );
         end
     end%
 
 
 
 
-    function createPlaceholdersForOptimal( )
+    function hereCreatePlaceholdersForOptimal( )
         % Add new variables, i.e. the Lagrange multipliers associated with all of
         % the existing transition equations except the loss function. These new
         % names will be ordered first -- the final equations will be ordered as
         % derivatives of the lagrangian wrt to the individual variables.
-        nAddEqtn = sum(qty.Type==TYPE(2)) - 1;
-        nAddQuan = sum(eqn.Type==TYPE(2)) - 1;
+        numEquationsToAdd = sum(qty.Type==TYPE(2)) - 1;
+        numQuantitiesToAdd = sum(eqn.Type==TYPE(2)) - 1;
         % The default name is 'Mu_Eq%g' but can be changed through the
         % option MultiplierPrefix=
-        newName = cell(1, nAddQuan);
-        for ii = 1 : nAddQuan
+        newName = cell(1, numQuantitiesToAdd);
+        for ii = 1 : numQuantitiesToAdd
             newName{ii} = [ ...
                 optimalOpt.MultiplierPrefix, ...
                 sprintf('Eq%g', ii) ...
@@ -337,8 +332,8 @@ return
         end
         isFloor = ~isempty(optimalOpt.Floor);
         if isFloor
-            nAddEqtn = nAddEqtn + 1;
-            nAddQuan = nAddQuan + 1;
+            numEquationsToAdd = numEquationsToAdd + 1;
+            numQuantitiesToAdd = numQuantitiesToAdd + 1;
             floorVariableName = [ ...
                 optimalOpt.MultiplierPrefix, ...
                 optimalOpt.Floor ...
@@ -349,12 +344,12 @@ return
         % transition variables.
         add = model.component.Quantity( );
         add.Name = newName;
-        add.Label = repmat({char.empty(1, 0)}, 1, nAddQuan);
-        add.Alias = repmat({char.empty(1, 0)}, 1, nAddQuan);
-        add.IxLog = false(1, nAddQuan);
-        add.IxLagrange = true(1, nAddQuan);
-        add.IxObserved = false(1, nAddQuan);
-        add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, nAddQuan);
+        add.Label = repmat({char.empty(1, 0)}, 1, numQuantitiesToAdd);
+        add.Alias = repmat({char.empty(1, 0)}, 1, numQuantitiesToAdd);
+        add.IxLog = false(1, numQuantitiesToAdd);
+        add.IxLagrange = true(1, numQuantitiesToAdd);
+        add.IxObserved = false(1, numQuantitiesToAdd);
+        add.Bounds = repmat(qty.DEFAULT_BOUNDS, 1, numQuantitiesToAdd);
         qty = insert(qty, add, TYPE(2), 'first');
         if isFloor
             floorParameterName = [model.FLOOR_PREFIX, optimalOpt.Floor];
@@ -393,44 +388,65 @@ return
             posFloorMultiplier = find( strcmp(qty.Name, floorVariableName) );
         end
         
-        % Add a total of `nAddEqtn` new transition equations, i.e. the
+        % Add a total of `numEquationsToAdd` new transition equations, i.e. the
         % derivatives of the Lagrangian wrt the existing transition
         % variables. At the same time, remove the loss function so
-        % a total of `nAddEqtn-1` placeholders need to be created.
+        % a total of `numEquationsToAdd-1` placeholders need to be created.
         add = model.component.Equation( );
-        add.Input = repmat({''}, 1, nAddEqtn);
-        add.Label = repmat({''}, 1, nAddEqtn);
-        add.Alias = repmat({''}, 1, nAddEqtn);
-        add.Dynamic = repmat({''}, 1, nAddEqtn);
-        add.Steady = repmat({''}, 1, nAddEqtn);
-        add.IxHash = false(1, nAddEqtn);
+        add.Input = repmat({''}, 1, numEquationsToAdd);
+        add.Label = repmat({''}, 1, numEquationsToAdd);
+        add.Alias = repmat({''}, 1, numEquationsToAdd);
+        add.Dynamic = repmat({''}, 1, numEquationsToAdd);
+        add.Steady = repmat({''}, 1, numEquationsToAdd);
+        add.IxHash = false(1, numEquationsToAdd);
         [eqn, ixPre, ixPost] = insert(eqn, add, TYPE(2), 'last');
 
         add = parser.EquationUnderConstruction( );
-        add.LhsDynamic = repmat({''}, 1, nAddEqtn);
-        add.RhsDynamic = repmat({''}, 1, nAddEqtn);
-        add.SignDynamic = repmat({''}, 1, nAddEqtn);
-        add.LhsSteady = repmat({''}, 1, nAddEqtn);
-        add.RhsSteady = repmat({''}, 1, nAddEqtn);
-        add.SignSteady = repmat({''}, 1, nAddEqtn);
-        add.MaxShDynamic = zeros(1, nAddEqtn);
-        add.MaxShSteady = zeros(1, nAddEqtn);
-        add.MinShDynamic = zeros(1, nAddEqtn);
-        add.MinShSteady = zeros(1, nAddEqtn);
+        add.LhsDynamic = repmat({''}, 1, numEquationsToAdd);
+        add.RhsDynamic = repmat({''}, 1, numEquationsToAdd);
+        add.SignDynamic = repmat({''}, 1, numEquationsToAdd);
+        add.LhsSteady = repmat({''}, 1, numEquationsToAdd);
+        add.RhsSteady = repmat({''}, 1, numEquationsToAdd);
+        add.SignSteady = repmat({''}, 1, numEquationsToAdd);
+        add.MaxShDynamic = zeros(1, numEquationsToAdd);
+        add.MaxShSteady = zeros(1, numEquationsToAdd);
+        add.MinShDynamic = zeros(1, numEquationsToAdd);
+        add.MinShSteady = zeros(1, numEquationsToAdd);
         insert(euc, add, ixPre, ixPost);
     end%
 
 
 
 
-    function checkEmptyEqtn( )
-        ixtm = eqn.Type==TYPE(1) | eqn.Type==TYPE(2);
-        ixEmpty = cellfun(@isempty, eqn.Dynamic) & ixtm;
+    function hereCheckEmptyEqtn( )
+        inxTM = eqn.Type==TYPE(1) | eqn.Type==TYPE(2);
+        ixEmpty = cellfun('isempty', eqn.Dynamic) & inxTM;
         if any(ixEmpty)
             throw( ...
                 exception.ParseTime('Model:Postparser:DYNAMIC_EQUATION_EMPTY', 'error'), ...
                 eqn.Input{ixEmpty} ...
-                );
+            );
         end
     end%
 end%
+
+
+%
+% Local Functions
+%
+
+
+function eqn = locallyEnsureSemicolon(eqn)
+    for i = 1 : numel(eqn.Input)
+        if ~isempty(eqn.Input{i}) && eqn.Input{i}(end)~=';'
+            eqn.Input{i}(end+1) = ';';
+        end
+        if ~isempty(eqn.Dynamic{i}) && eqn.Dynamic{i}(end)~=';'
+            eqn.Dynamic{i}(end+1) = ';';
+        end
+        if ~isempty(eqn.Steady{i}) && eqn.Steady{i}(end)~=';'
+            eqn.Steady{i}(end+1) = ';';
+        end
+    end
+end%
+

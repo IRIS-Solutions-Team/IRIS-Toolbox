@@ -27,11 +27,18 @@ classdef Equation < model.component.Insertable
         varargout = implementDisp(varargin)
         varargout = implementGet(varargin)
         varargout = isCompatible(varargin)
-        varargout = length(varargin)
+
+        function n = length(this)
+            n = length(this.Input);
+        end%
+
+        function n = numel(this)
+            n = numel(this.Input);
+        end%
+
         varargout = postparse(varargin)
         varargout = readEquations(varargin)
         varargout = readDtrends(varargin)
-        varargout = readLinks(varargin)
         varargout = readRevisions(varargin)
         varargout = saveObject(varargin)
         varargout = selectType(varargin)

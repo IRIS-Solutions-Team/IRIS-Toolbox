@@ -1,11 +1,11 @@
 function dEqtn = diff(eqtn, vecWrt, output)
-% diff  Differentiate one equation wrt to list of names.
+% diff  Differentiate one equation wrt to list of names
 %
-% Backend IRIS function.
-% No help provided.
+% Backend [IrisToolbox] method
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 try, output; catch, output = 'array'; end %#ok<NOCOM,VUNUS>
 
@@ -46,4 +46,5 @@ dEqtn = Ad.diff(eqtn, lsUnknown);
 % Replace LN, LNpK, LNmK back with L(n,t+/-K,:).
 dEqtn = model.component.Gradient.symb2array(dEqtn);
 
-end
+end%
+

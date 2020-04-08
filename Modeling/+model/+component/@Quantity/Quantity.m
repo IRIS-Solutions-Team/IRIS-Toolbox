@@ -63,7 +63,15 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         varargout = implementGet(varargin)
         varargout = isCompatible(varargin)
         varargout = isName(varargin)
-        varargout = length(varargin)
+
+        function n = length(this)
+            n = length(this.Name);
+        end%
+
+        function n = numel(this)
+            n = numel(this.Name);
+        end%
+
         varargout = lookup(varargin)
         varargout = pattern4postparse(varargin)
         varargout = remove(varargin)

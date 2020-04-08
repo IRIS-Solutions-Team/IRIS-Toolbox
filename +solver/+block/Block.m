@@ -181,7 +181,10 @@ classdef (Abstract) Block < handle
                 gr = blazer.Gradient(:, posEqn);
                 return
             end
-            % Redifferentiate this equation wrt quantities needed only.
+
+            %
+            % Redifferentiate this equation wrt the quantities needed only
+            %
             d = model.component.Gradient.diff(blazer.Equation{posEqn}, vecWrtNeeded);
             d = str2func([blazer.PREAMBLE, d]);
             gr = {d; vecWrtNeeded};

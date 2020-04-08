@@ -8,15 +8,14 @@ classdef Pairing
 
 
     methods
-        function this = Pairing(numOfQuantities, numOfEquations)
+        function this = Pairing(numQuantities, numEquations)
             if nargin==0
-                numOfQuantities = 0;
-                numOfEquations = 0;
+                numQuantities = 0;
+                numEquations = 0;
             end
-            this.Autoswap = model.component.Pairing.initAutoswap(numOfQuantities);
-            this.Dtrend = model.component.Pairing.initDtrend(numOfEquations);
-            this.Revision = model.component.Pairing.initRevision(numOfEquations);
-            this.Assignment = model.component.Pairing.initAssignment(numOfEquations);
+            this.Autoswap = model.component.Pairing.initAutoswap(numQuantities);
+            this.Dtrend = model.component.Pairing.initDtrend(numEquations);
+            this.Assignment = model.component.Pairing.initAssignment(numEquations);
         end%%
     end
 
@@ -48,33 +47,27 @@ classdef Pairing
     
     
     methods (Static)
-        function auto = initAutoswap(numOfQuantities)
+        function auto = initAutoswap(numQuantities)
             PTR = @int16;
             auto = model.component.AutoswapStruct( );
-            auto.Simulate = repmat(PTR(0), 1, numOfQuantities);
-            auto.Steady = repmat(PTR(0), 1, numOfQuantities);
+            auto.Simulate = repmat(PTR(0), 1, numQuantities);
+            auto.Steady = repmat(PTR(0), 1, numQuantities);
         end%
         
         
-        function dtrend = initDtrend(numOfEquations)
+        function dtrend = initDtrend(numEquations)
             PTR = @int16;
-            dtrend = repmat(PTR(0), 1, numOfEquations);
+            dtrend = repmat(PTR(0), 1, numEquations);
         end%
         
         
-        function upd = initRevision(numOfEquations)
-            PTR = @int16;
-            upd = repmat(PTR(0), 1, numOfEquations);
-        end%
-
-                
-        function asgn = initAssignment(numOfEquations)
+        function asgn = initAssignment(numEquations)
             PTR = @int16;
             asgn = struct( );
-            asgn.Dynamic.Lhs = repmat(PTR(0), 1, numOfEquations);
-            asgn.Dynamic.Type = repmat(solver.block.Type.UNKNOWN, 1, numOfEquations);
-            asgn.Steady.Lhs = repmat(PTR(0), 1, numOfEquations);
-            asgn.Steady.Type = repmat(solver.block.Type.UNKNOWN, 1, numOfEquations);
+            asgn.Dynamic.Lhs = repmat(PTR(0), 1, numEquations);
+            asgn.Dynamic.Type = repmat(solver.block.Type.UNKNOWN, 1, numEquations);
+            asgn.Steady.Lhs = repmat(PTR(0), 1, numEquations);
+            asgn.Steady.Type = repmat(solver.block.Type.UNKNOWN, 1, numEquations);
         end%
     end
 end
