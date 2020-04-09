@@ -1,11 +1,13 @@
 function varargout = irisset(varargin)
-%
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
-
-%--------------------------------------------------------------------------
+thisWarning = [
+    "Deprecated:FunctionName"
+    "The function irisset( ) is deprecated and will be removed "
+    "from the [IrisToolbox] in a future release. Use iris.set( ) instead."
+];
+throw(exception.Base(thisWarning, 'warning'));
 
 [varargout{1:nargout}] = iris.set(varargin{:});
 
-end
+end%
+

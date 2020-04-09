@@ -1,11 +1,13 @@
 function irisstartup(varargin)
-%
-
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
-
-%--------------------------------------------------------------------------
 
 iris.startup('--tseries', varargin{:});
 
-end
+thisWarning = [
+    "Deprecated:FunctionName"
+    "The function irisstartup( ) is deprecated and will be removed "
+    "from the [IrisToolbox] in a future release. Use iris.startup( ) instead."
+];
+throw(exception.Base(thisWarning, 'warning'));
+
+end%
+

@@ -1,11 +1,11 @@
 function [x, f, exitFlag] = qnsd(objectiveFunc, initX, opt, header)
 % qnsd  Quasi-Newton-Steepest-Descent algorithm
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s %13s %13s';
 FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g %13s';
@@ -16,16 +16,17 @@ MAX_ITER_MAKE_PROGRESS = 40;
 DEFAULT_STEP_SIZE = 1;
 NUM_OF_OPTIM_STEP_SIZES = 10;
 
-ITER_STRUCT = struct( 'Iter',     NaN, ...
-                      'X',        NaN, ...
-                      'MaxXChng', NaN, ...
-                      'F',        NaN, ...
-                      'J',        NaN, ...
-                      'Lambda',   NaN, ...
-                      'D',        NaN, ...
-                      'Norm',     NaN, ...
-                      'Step',     NaN, ...
-                      'Reverse',  false );
+ITER_STRUCT = struct( );
+ITER_STRUCT.Iter = NaN;
+ITER_STRUCT.X = NaN;
+ITER_STRUCT.MaxXChng = NaN;
+ITER_STRUCT.F = NaN;
+ITER_STRUCT.J = NaN;
+ITER_STRUCT.Lambda = NaN;
+ITER_STRUCT.D = NaN;
+ITER_STRUCT.Norm = NaN;
+ITER_STRUCT.Step = NaN;
+ITER_STRUCT.Reverse = false;
 
 %--------------------------------------------------------------------------
 
