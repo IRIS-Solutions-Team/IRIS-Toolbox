@@ -7,6 +7,7 @@ classdef Type
         ASSIGN_EXP    ( 3, 'Assign @exp', @log )
         ASSIGN_UMINUS ( 4, 'Assign @uminus', @uminus )
         ITERATE_TIME  ( 5, 'Iterate Period by Period', [ ] )
+        EMPTY         ( 6, 'Empty', [ ] )
     end
     
     
@@ -59,6 +60,13 @@ classdef Type
         function flag = isIterateBlock(this)
             flag = this==solver.block.Type.ITERATE_TIME;
         end%
+
+
+
+
+        function flag = isEmptyBlock(this)
+            flag = this==solver.block.Type.EMPTY;
+        end%
         
         
         
@@ -79,6 +87,8 @@ classdef Type
                     c = strcat('exp(', c, ')');
                 case solver.block.Type.ASSIGN_UMINUS
                     c = strcat('-', c);
+                case solver.block.Type.EMPTY
+                    c = [ ];
                 otherwise
                     throw(exception.Base('General:Internal', 'error'));
             end

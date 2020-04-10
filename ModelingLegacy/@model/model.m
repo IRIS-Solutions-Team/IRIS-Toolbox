@@ -43,7 +43,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                             'Steady',  model.component.Incidence( ) ) 
 
         % Link  Dynamic links
-        Link = model.component.Link( ) 
+        Link = model.component.Link.empty(0)
 
         % Gradient  Symbolic gradients of model equations
         Gradient = model.component.Gradient(0) 
@@ -186,7 +186,12 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
         varargout = checkSteady(varargin)
         function varargout = chksstate(varargin)
-            [varargout{1:nargout}] = checkSteady(varargin{:});
+            [flag, discrepancy, list] = checkSteady(varargin{:});
+            if nargout<=2
+                varargout = {flag, list};
+            else
+                varargout = {flag, discrepancy, list};
+            end
         end%
 
 
@@ -212,7 +217,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = icrf(varargin)
         varargout = ifrf(varargin)
         varargout = irf(varargin)
-        varargout = isactive(varargin)
+        varargout = isLinkActive(varargin)
         varargout = iscompatible(varargin)
         varargout = islinear(varargin)
         varargout = islog(varargin)
@@ -224,7 +229,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = length(varargin)
         varargout = lhsmrhs(varargin)
         varargout = lp4lhsmrhs(varargin)
-        varargout = disable(varargin)
+        varargout = deactivateLink(varargin)
         varargout = loglik(varargin)
         varargout = lognormal(varargin)
         varargout = refresh(varargin)
@@ -260,7 +265,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = templatedb(varargin)
         varargout = tolerance(varargin)
         varargout = trollify(varargin)
-        varargout = enable(varargin)
+        varargout = activateLink(varargin)
         varargout = VAR(varargin)
         varargout = varyStdCorr(varargin)
         varargout = vma(varargin)
@@ -434,7 +439,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = myfind(varargin)
         varargout = myforecastswap(varargin)
         varargout = swapForecast(varargin)
-        varargout = operateLock(varargin)
+        varargout = operateActivationStatusOfLink(varargin)
         varargout = optimalPolicy(varargin)
         varargout = populateTransient(varargin)
         varargout = postparse(varargin)

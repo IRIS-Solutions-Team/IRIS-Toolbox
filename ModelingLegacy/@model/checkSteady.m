@@ -1,56 +1,69 @@
-function [flag, varargout] = checkSteady(this, varargin)
-% checkSteady  Check if equations hold for currently assigned steady-state values.
+function [flag, dcy, list, sortedList] = checkSteady(this, varargin)
+% checkSteady  Check if equations hold for currently assigned steady-state values
 %{
-% ## Syntax ##
-%
-%     [flag, list] = checkSteady(model, ...)
-%     [flag, discr, list] = checkSteady(model, ...)
+% Syntax
+%--------------------------------------------------------------------------
 %
 %
-% ## Input Arguments ##
-%
-% __`model`__ [ model ] - 
-% Model object with steady-state values assigned.
+%     [flag, discrepancy, list, sortedList] = checkSteady(model, ...)
 %
 %
-% ## Output Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 %
-% __`flag`__ [ `true` | `false` ] - 
-% True if discrepancy between LHS and RHS is smaller than tolerance level
+% __`model`__ [ Model ]
+% > Model object with steady-state values assigned.
+%
+%
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+%
+% __`flag`__ [ `true` | `false` ] 
+% > True if discrepancy between LHS and RHS is smaller than tolerance level
 % in each equation.
 %
 %
-% __`discr`__ [ numeric ] - 
-% Discrepancies between LHS and RHS evaluated for each equation at two
+% __`discrepancy`__ [ numeric ] 
+% > Discrepancies between LHS and RHS evaluated for each equation at two
 % consecutive times, and returned as two column vectors.
 %
 %
-% __`list`__ [ cellstr ] - 
-% List of equations in which the discrepancy between LHS and RHS is greater
-% than predefined tolerance.
+% __`list`__ [ cellstr ]
+% > List of equations in which the discrepancy between LHS and RHS is
+% greater than predefined tolerance, in the order of appearance in the
+% `model`.
 %
 %
-% ## Options ##
+% __`sortedList`__ [ cellstr ]
+% > List of equations in which the discrepancy between LHS and RHS is
+% greater than predefined tolerance, sorted by the absolute discrepancy.
 %
 %
-% __`Error=true`__ [ `true` | `false` ] - 
-% Throw an error if one or more
-% equations fail to hold up to tolerance level.
+% Options
+%--------------------------------------------------------------------------
 %
 %
-% __`EquationSwitch='Dynamic'`__ [ `'Both'` | `'Dynamic'` | `'Steady'` ] - 
-% Check either dynamic equations or steady equations or both.
+% __`Error=true`__ [ `true` | `false` ]
+% > Throw an error if one or more equations fail to hold up to tolerance
+% level.
 %
 %
-% __`Warning=true`__ [ `true` | `false` ] - 
-% Display warnings produced by this function.
+% __`EquationSwitch='Dynamic'`__ [ `'Both'` | `'Dynamic'` | `'Steady'` ]
+% > Check either dynamic equations or steady equations or both.
 %
 %
-% ## Description ##
+% __`Warning=true`__ [ `true` | `false` ]  
+% > Display warnings produced by this function.
 %
 %
-% ## Example ##
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
 %
 %}
 
@@ -61,11 +74,12 @@ TYPE = @int8;
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('model.chksstate');
+    pp = extend.InputParser('Model/checkSteady');
     pp.KeepUnmatched = true;
-    pp.addRequired('Model', @(x) isa(x, 'model'));
-    pp.addParameter('Error', true, @validate.logicalScalar);
-    pp.addParameter('Warning', true, @validate.logicalScalar);
+    addRequired(pp, 'model', @(x) isa(x, 'model'));
+
+    addParameter(pp, 'Error', true, @validate.logicalScalar);
+    addParameter(pp, 'Warning', true, @validate.logicalScalar);
 end
 parse(pp, this, varargin{:});
 opt = pp.Options;
@@ -76,10 +90,8 @@ checkSteadyOpt = prepareCheckSteady(this, 'verbose', pp.UnmatchedInCell{:});
 
 %--------------------------------------------------------------------------
 
-% Refresh dynamic links.
-if any(this.Link)
-    this = refresh(this);
-end
+% Refresh dynamic links
+this = refresh(this);
 
 if opt.Warning
     if any(strcmpi(checkSteadyOpt.EquationSwitch, {'Dynamic', 'Full'}))
@@ -91,7 +103,7 @@ if opt.Warning
     end
 end
 
-nv = length(this);
+nv = countVariants(this);
 
 % `dcy` is a matrix of discrepancies; it has two columns when dynamic
 % equations are evaluated, or one column when steady equations are
@@ -115,28 +127,18 @@ if any(~flag) && opt.Error
 end
 
 if needsSort
-    sortList = cell(1, nv);
+    sortedList = cell(1, nv);
     for iAlt = 1 : nv
         [~, ix] = sort(maxAbsDiscr(:, iAlt), 1, 'descend');
         dcy(:, :, iAlt) = dcy(ix, :, iAlt);
-        sortList{iAlt} = this.Equation.Input(ix);
+        sortedList{iAlt} = this.Equation.Input(ix);
     end
 end
 
 if nv==1
     list = list{1};
     if needsSort
-        sortList = sortList{1};
-    end
-end
-
-if nargout==2
-    varargout{1} = list;
-elseif nargout>2
-    varargout{1} = dcy;
-    varargout{2} = list;
-    if needsSort
-        varargout{3} = sortList;
+        sortedList = sortedList{1};
     end
 end
 

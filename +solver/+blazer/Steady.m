@@ -1,8 +1,7 @@
-classdef Steady < solver.blazer.Blazer
+classdef Steady ...
+    < solver.blazer.Blazer
+
     properties
-        IxZero % Index of level and growth quantities set to zero
-        IdToFix = struct('Level', [ ], 'Growth', [ ]) % Positions of level and growth quantities fixed by user
-        IdToExclude = struct('Level', [ ], 'Growth', [ ]) % Positions of level and growth quantities excluded from optimization
         Reuse % Use values from previous variant as initial condition
         Warning % Throw warnings
     end
@@ -18,6 +17,14 @@ classdef Steady < solver.blazer.Blazer
     methods
         function this = Steady(varargin)
             this = this@solver.blazer.Blazer(varargin{:});
+        end%
+
+
+        function run(this, varargin)
+            run@solver.blazer.Blazer(this, varargin{:});
+            if this.IsSingular
+                throw( exception.Base('Steady:StructuralSingularity', 'warning') );
+            end
         end%
     
     
@@ -36,20 +43,6 @@ classdef Steady < solver.blazer.Blazer
                 this.Model.Equation.Input ...
             );
         end%
-    end
-
-
-    properties (Dependent)
-        InxOfZero
-    end
-
-
-    methods % Dependent
-        %(
-        function value = get.InxOfZero(this)
-            value = this.IxZero;
-        end%
-        %)
     end
 end
 

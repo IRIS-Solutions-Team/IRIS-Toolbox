@@ -1,15 +1,15 @@
 function  [this, success, outputInfo] = steadyNonlinear(this, blazer, variantsRequested)
 % steadyNonlinear  Solve steady equations in nonlinear models
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
-nv = length(this);
+nv = countVariants(this);
 if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     variantsRequested = 1 : nv;
 else
@@ -23,24 +23,18 @@ if isequal(blazer, false)
     return
 end
 
-inxZero = blazer.InxOfZero;
+inxZero = blazer.InxZero;
 
 %--------------------------------------------------------------------------
 
-numQuantities = length(this.Quantity);
+numQuantities = numel(this.Quantity);
 numBlocks = numel(blazer.Block);
 needsRefresh = any(this.Link);
 inxP = getIndexByType(this.Quantity, TYPE(4));
 inxLogInBlazer = blazer.Model.Quantity.InxOfLog;
 
-% Index of endogenous level and growth quantities
-ixEndg = struct( );
-ixEndg.Level = false(1, numQuantities);
-ixEndg.Growth = false(1, numQuantities);
-for i = 1 : numBlocks
-    ixEndg.Level(blazer.Block{i}.PosQty.Level) = true;
-    ixEndg.Growth(blazer.Block{i}.PosQty.Growth) = true;
-end
+% Index of endogenous level and change quantities
+[inxEndgLevel, inxEndgChange] = hereGetInxEndogenous( );
 
 if needsRefresh
     this = refresh(this, variantsRequested);
@@ -53,21 +47,24 @@ steadyChange = imag(this.Variant.Values(:, :, variantsRequested));
 hereCheckFixedToNaN( );
 hereCheckExogenizedToNaN( );
 
-lx0 = [ ];
-gx0 = [ ];
+levelX0 = [ ];
+changeX0 = [ ];
 firstAlt = true;
+
 
 outputInfo.ExitFlags = cell(1, nv);
 for v = variantsRequested
-    [lx, gx] = hereInitialize( );
+    [levelX, changeX] = hereInitialize( );
     
-    % __Cycle over Individual Blocks__
+    %
+    % Cycle over individual blocks
+    %
     outputInfo.ExitFlags{v} = repmat(solver.ExitFlag.IN_PROGRESS, 1, numBlocks);
     for i = 1 : numBlocks
         blk = blazer.Block{i};
         blk.SteadyShift = 3;
         header = sprintf('[Variant:%g][Block:%g]', v, i);
-        [lx, gx, exitFlag, error] = run(blk, this.Link, lx, gx, header);
+        [levelX, changeX, exitFlag, error] = run(blk, this.Link, levelX, changeX, header);
         outputInfo.ExitFlags{v}(i) = exitFlag;
         %{
         if hasFailed(exitFlag)
@@ -86,12 +83,12 @@ for v = variantsRequested
     %
     % Remove 1i from parameters with log-status=true
     %
-    gx(inxP & inxLogInBlazer) = 0;
+    changeX(inxP & inxLogInBlazer) = 0;
 
-    if any(gx(:)~=0)
-        this.Variant.Values(:, :, v) = lx + 1i*gx;
+    if any(changeX(:)~=0)
+        this.Variant.Values(:, :, v) = levelX + 1i*changeX;
     else
-        this.Variant.Values(:, :, v) = lx;
+        this.Variant.Values(:, :, v) = levelX;
     end
 
     
@@ -99,7 +96,7 @@ for v = variantsRequested
     % Check for zero or negative levels or rates of change in variables
     % with log-status=true
     %
-    [flagLog, ~, inxInvalidLevel, inxInvalidGrowth] = checkZeroLog(this, v);
+    [flagLog, ~, inxInvalidLevel, inxInvalidChange] = checkZeroLog(this, v);
     if ~flagLog
         hereInvalidSteady( );
     end
@@ -117,8 +114,8 @@ for v = variantsRequested
     end
     
     % Store current values to initialize next parameterisation
-    lx0 = lx;
-    gx0 = gx;
+    levelX0 = levelX;
+    changeX0 = changeX;
     firstAlt = false;
 end
 
@@ -132,65 +129,78 @@ success = success(variantsRequested);
 return
 
 
-    function [lx, gx] = hereInitialize( )
+    function [inxEndgLevel, inxEndgChange] = hereGetInxEndogenous( )
+        inxEndgLevel = false(1, numQuantities);
+        inxEndgChange = false(1, numQuantities);
+        for i = 1 : numBlocks
+            [ptrLevel, ptrChange] = iris.utils.splitRealImag(blazer.Block{i}.PtrQuantities);
+            inxEndgLevel(ptrLevel) = true;
+            inxEndgChange(ptrChange) = true;
+        end
+    end%
+
+
+
+
+    function [levelX, changeX] = hereInitialize( )
         % __Initialize levels of endogenous quantities__
-        lx = real(this.Variant.Values(:, :, v));
+        levelX = real(this.Variant.Values(:, :, v));
         % Level variables that are set to zero (all shocks)
-        lx(inxZero.Level) = 0;
+        levelX(inxZero.Level) = 0;
         % Assign NaN level initial conditions. First, assign values from the
         % previous iteration, if they exist and option 'reuse=' is `true`
-        ix = isnan(lx) & ixEndg.Level;
-        if ~firstAlt && blazer.Reuse && any(ix) && ~isempty(lx0)
-            lx(ix) = lx0(ix);
-            ix = isnan(lx) & ixEndg.Level;
+        inx = isnan(levelX) & inxEndgLevel;
+        if ~firstAlt && blazer.Reuse && any(inx) && ~isempty(levelX0)
+            levelX(inx) = levelX0(inx);
+            inx = isnan(levelX) & inxEndgLevel;
         end
         % Use option NanInit= to assign NaNs.
-        lx(ix) = real(blazer.NanInit);
+        levelX(inx) = real(blazer.NanInit);
         
         % __Initialize growth rates of endogenous quantities__
-        gx = imag(this.Variant.Values(:, :, v));
+        changeX = imag(this.Variant.Values(:, :, v));
         % Variables with zero growth (all variables if 'growth=' false).
-        gx(inxZero.Growth) = 0;
-        if any(~inxZero.Growth)
+        changeX(inxZero.Change) = 0;
+        if any(~inxZero.Change)
             % Assign NaN growth initial conditions. First, assign values from
             % the previous iteration if they exist and `reuse=true`
-            ix = isnan(gx) & ixEndg.Growth;
-            if ~firstAlt && blazer.Reuse && any(ix) && ~isempty(gx0)
-                gx(ix) = gx0(ix);
-                ix = isnan(gx) & ixEndg.Growth;
+            inx = isnan(changeX) & inxEndgChange;
+            if ~firstAlt && blazer.Reuse && any(inx) && ~isempty(changeX0)
+                changeX(inx) = changeX0(inx);
+                inx = isnan(changeX) & inxEndgChange;
             end
             % Use option NanInit= to assign NaNs.
-            gx(ix) = imag(blazer.NanInit);
+            changeX(inx) = imag(blazer.NanInit);
         end
         % Reset zero growth to 1 for *all* log quantities (not only endogenous).
-        gx(inxLogInBlazer & gx==0) = 1;
+        changeX(inxLogInBlazer & changeX==0) = 1;
     end%
 
 
 
 
     function hereCheckFixedToNaN( )
-        numQuantities = length(this.Quantity);
-        % __Check for Levels Fixed to NaN__
-        idToFix = blazer.IdToFix.Level;
-        indexToFix = false(1, numQuantities);
-        indexToFix(idToFix) = true;
-        indexNaN = any(isnan(steadyLevel), 3) & indexToFix & ~blazer.IxZero.Level;
-        if any(indexNaN)
+        [levelToExclude, changeToExclude] = iris.utils.splitRealImag(blazer.QuantitiesToExclude);
+
+        % Check for levels fixed to NaN
+        inxToExclude = false(1, numQuantities);
+        inxToExclude(levelToExclude) = true;
+        inxNaN = any(isnan(steadyLevel), 3) & inxToExclude & ~inxZero.Level;
+        if any(inxNaN)
             throw( ...
                 exception.Base('Steady:LevelFixedToNan', 'error'), ...
-                this.Quantity.Name{indexNaN} ...
+                this.Quantity.Name{inxNaN} ...
             );
         end
-        % __Check for Growth Rates Fixed to NaN__
-        idToFix = blazer.IdToFix.Growth;
-        indexToFix = false(1, numQuantities);
-        indexToFix(idToFix) = true;
-        indexNaN = any(isnan(steadyChange), 3) & indexToFix & ~blazer.IxZero.Growth;
-        if any(indexNaN)
+
+        % Check for change rates fixed to NaN
+        inxToExclude = false(1, numQuantities);
+        inxToExclude(changeToExclude) = true;
+        inxNaN = any(isnan(steadyChange), 3) & inxToExclude & ~inxZero.Change;
+        if any(inxNaN)
             throw( ...
                 exception.Base('Steady:GrowthFixedToNan', 'error'), ...
-                this.Quantity.Name{indexNaN} ...
+                this.Quantity.Name{inxNaN} ...
             );
         end
     end%
@@ -201,23 +211,23 @@ return
     function hereCheckExogenizedToNaN( )
         inxNeeded = any( across(this.Incidence.Steady, 'Shifts'), 1);
         inxNeeded = full(inxNeeded);
-        inxLevelNeeded = inxNeeded & ~ixEndg.Level & ~inxZero.Level;
-        inxGrowthNeeded = inxNeeded & ~ixEndg.Growth & ~inxZero.Growth;
+        inxLevelNeeded = inxNeeded & ~inxEndgLevel & ~inxZero.Level;
+        inxChangeNeeded = inxNeeded & ~inxEndgChange & ~inxZero.Change;
         % Level or growth is endogenous, not fixed, and NaN
         inxLevelNaN = any(isnan(steadyLevel), 3);
-        inxGrowthNaN = any(isnan(steadyChange), 3);
+        inxChangeNaN = any(isnan(steadyChange), 3);
         inxLevelToReport = inxLevelNeeded & inxLevelNaN;
-        inxGrowthToReport = inxGrowthNeeded & inxGrowthNaN;
+        inxChangeToReport = inxChangeNeeded & inxChangeNaN;
         if any(inxLevelToReport)
             throw( ...
                 exception.Base('Steady:ExogenousLevelNan', 'warning'), ...
                 this.Quantity.Name{inxLevelToReport} ...
             );
         end
-        if any(inxGrowthToReport)
+        if any(inxChangeToReport)
             throw( ...
                 exception.Base('Steady:ExogenousGrowthNan', 'warning'), ...
-                this.Quantity.Name{inxGrowthToReport} ...
+                this.Quantity.Name{inxChangeToReport} ...
             );
         end
     end%
@@ -229,7 +239,7 @@ return
         realValues__ = real(this.Variant.Values(:, :, v));
         imagValues__ = imag(this.Variant.Values(:, :, v));
         realValues__(inxInvalidLevel) = NaN;
-        imagValues__(inxInvalidGrowth) = NaN;
+        imagValues__(inxInvalidChange) = NaN;
         if all(imagValues__==0)
             this.Variant.Values(:, :, v) = realValues__;
         else

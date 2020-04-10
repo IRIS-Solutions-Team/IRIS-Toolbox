@@ -2,6 +2,8 @@ classdef (CaseInsensitiveProperties=true) Options
     properties
         Algorithm
         Display
+        DisplayLevel = solver.DisplayLevel.empty(0)
+
         Reset
 
         % Convergence Options
@@ -232,8 +234,18 @@ classdef (CaseInsensitiveProperties=true) Options
                 % Do nothing
             end
 
+            %
             % Resolve prepareGradient=@auto
+            %
             prepareGradient = resolvePrepareGradient(prepareGradient, solverOpt);
+
+            %
+            % Create DisplayLevel object setting the various levels of
+            % display to true or false
+            %
+            if isa(solverOpt, 'solver.Options')
+                solverOpt.DisplayLevel = solver.DisplayLevel(solverOpt.Display);
+            end
         end%
     end
 end

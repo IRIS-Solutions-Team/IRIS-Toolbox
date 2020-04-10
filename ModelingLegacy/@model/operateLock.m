@@ -1,15 +1,14 @@
 function varargout = operateLock(this, type, action, varargin)
 % operateLock  Query, enable, disable links and revisions
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 PTR = @int16;
-LIST_OF_TYPES = {'!links', 'links', '!revisions', 'revisions'};
 
 if isempty(varargin)
     list = @all;

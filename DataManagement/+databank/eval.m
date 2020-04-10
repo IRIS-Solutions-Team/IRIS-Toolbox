@@ -1,21 +1,27 @@
 function varargout = eval(d, varargin)
 % eval  Evaluate expressions in databank workspace
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
 %     [output, output, ...] = databank.eval(inputDatabank, expression, expression, ...)
 %     outputs = databank.eval(inputDatabank, expressions)
+%     outputDatabank = databank.eval(inputDatabank, expressionsDatabank)
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
+%
 %
 % __`inputDatabank`__ [ struct | Dictionary ] -
 % Input databank whose fields constitute a workspace in which the
 % expressions will be evaluated.%
 %
+%
 % __`expression`__ [ char | string ] -
 % Text string with an expression that will be evaluated in the workspace
 % consisting of the `inputDatabank` fields.
+%
 %
 % __`expressions`__ [ cellstr | string ] -
 % Cell array of char vectors or string array (more than one element) with
@@ -23,66 +29,90 @@ function varargout = eval(d, varargin)
 % `inputDatabank` fields.
 %
 %
-% ## Output Arguments ##
+% __`expressionsDatabank`__ [ struct | Dictionary ]
+% > Databank whose fields contain the expressions that are to be evaluated.
 %
-% __output__ [ * ] -
+%
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+%
+% __`output`__ [ * ] -
 % Result of the `expression` evaluated in the `inputDatabank` workspace.
 %
-% __outputs__ [ cell ] -
-% Result of the `expressions` evaluated in the `inputDatabank` workspace.
+%
+% __`outputs`__ [ cell ] -
+% Results of the `expressions` evaluated in the `inputDatabank` workspace.
 %
 %
-% ## Description ##
+% __`outputDatabank`__ [ struct | Dictionary ]
+% > Output databank with the results of the expressions evaluated in the
+% `inputDatabank` workspace.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
 %
 % Any names, including dot-separated composite names, not immediately
 % followed by an opening parenthesis (round bracket), are treated as
 % `inputDatabank` fields. Dot=separated composite names are therefore
 % considered to be fields of databanks nested withing the `inputDatabank`.
 %
+%
 % Any names, including dot-separated composite names, immediately followed
 % by an opening parenthesis (round bracket), are considered calls to
 % functions, and not treated as `inputDatabank` fields.
+%
 %
 % To include round-bracket references to `inputDatabank` fields (such as
 % references to elements of arrays), include an extra space between the
 % name and the opening parenthesis.
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
+%
 %
 %     >> d = struct( );
 %     >> d.aaa = [1, 2, 3];
 %     >> databank.eval('10*aaa(2)')
+%
 %
 % will fail with a Matlab error unless there is function named `aaa`
 % existing in the current workspace. This is because `aaa(2)` is considered
 % to be a call to a function named `aaa`, and not a reference to the field
 % existing in the databank `d`.
 %
+%
 % To refer the second element of the field `aaa`, include an extra space between `aaa` and `(` 
+%
 %
 %     >> databank.eval('10*aaa (2)')
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('databank.eval');
-    parser.addRequired('Database', @validate.databank);
-    parser.addRequired('Expressions', @validateExpressions);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('databank.eval');
+    addRequired(pp, 'databank', @validate.databank);
+    addRequired(pp, 'expressions', @validateExpressions);
 end
-parse(parser, d, varargin);
+parse(pp, d, varargin);
 
 %--------------------------------------------------------------------------
 
+expressionsInDatabank = isscalar(varargin) && validate.databank(varargin{1});
+needsCollapseOutput = ...
+    isscalar(varargin) && (iscell(varargin{1}) || (isa(varargin{1}, 'string') && numel(varargin{1})>1));
 
-needsCollapseOutput = numel(varargin)==1 ...
-                      && ( iscell(varargin{1}) || (isa(varargin{1}, 'string') && numel(varargin{1})>1) );
-
-if needsCollapseOutput
+if expressionsInDatabank
+    outputDatabank = varargin{1};
+    expressions = struct2cell(varargin{1});
+elseif needsCollapseOutput
     if iscell(varargin{1})
         expressions = varargin{1};
     else
@@ -99,7 +129,13 @@ for i = find(transpose(inxToEval(:)))
     expressions{i} = hereProtectedEval(d, expressions{i});
 end
 
-if needsCollapseOutput
+if expressionsInDatabank
+    list = reshape(fieldnames(outputDatabank), 1, [ ]);
+    for i = 1 : numel(list)
+        outputDatabank.(list{i}) = expressions{i};
+    end
+    varargout{1} = outputDatabank;
+elseif needsCollapseOutput
     varargout{1} = expressions;
 else
     varargout = expressions;
@@ -124,6 +160,7 @@ function expressions = herePreprocess(d, expressions)
     expressions = strtrim(expressions);
     expressions = regexprep(expressions, ';$', '');
     expressions = regexprep(expressions, '=[ ]*#', '=');
+    expressions = regexprep(expressions, ':[ ]*=', '=');
     expressions = regexprep(expressions, '=(.*)', '-($1)', 'once');
     
     replaceFunc = @replace;
@@ -145,6 +182,10 @@ end%
 
 
 function flag = validateExpressions(input)
+    if isscalar(input) && validate.databank(input{1}) && isscalar(input{1})
+        flag = true;
+        return
+    end
     if all(cellfun(@validate.stringScalar, input))
         flag = true;
         return

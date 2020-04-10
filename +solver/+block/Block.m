@@ -26,8 +26,8 @@ classdef (Abstract) Block < handle
         % InxOfLog  Log status of all model variables
         InxOfLog
 
-        PosQty
-        PosEqn
+        PtrQuantities
+        PtrEquations
         Equations
         EquationsFunc
         NumericalJacobFunc
@@ -75,39 +75,52 @@ classdef (Abstract) Block < handle
                 return
             end
         end%
+
+
         
         
         function classify(this, asgn, eqtn)
-            this.Type = solver.block.Type.SOLVE;
-            if numel(this.PosQty)>1 || numel(this.PosEqn)>1
+            if isempty(this.PtrQuantities) || isempty(this.PtrEquations)
+                this.Type = solver.block.Type.EMPTY;
                 return
             end
-            % this.PosEqn is scalar from now on.
-            lhs = asgn.Lhs(this.PosEqn);
-            type = asgn.Type(this.PosEqn);
-            if this.PosQty==lhs && chkRhsOfAssignment(this, eqtn)
+            this.Type = solver.block.Type.SOLVE;
+            if numel(this.PtrQuantities)>1 || numel(this.PtrEquations)>1
+                return
+            end
+            % this.PtrEquations is scalar from now on.
+            lhs = asgn.Lhs(this.PtrEquations);
+            type = asgn.Type(this.PtrEquations);
+            if this.PtrQuantities==lhs && chkRhsOfAssignment(this, eqtn)
                 this.Type = type;
             end
         end%
+
+
         
         
         function flag = chkRhsOfAssignment(this, eqtn)
             % Verify that the LHS quantity does not occur on the RHS of an assignment.
-            c = sprintf(this.LhsQuantityFormat, this.PosQty);
-            rhs = solver.block.Block.removeLhs( eqtn{this.PosEqn} );
+            c = sprintf(this.LhsQuantityFormat, this.PtrQuantities);
+            rhs = solver.block.Block.removeLhs( eqtn{this.PtrEquations} );
             flag = isempty( strfind(rhs, c) );
         end%
         
+
+
         
         function prepareBlock(this, blazer, opt)
+            if isEmptyBlock(this.Type)
+                return
+            end
             createEquationsFunc(this, blazer);
-            this.NamesInBlock = blazer.Model.Quantity.Name(this.PosQty);
+            this.NamesInBlock = blazer.Model.Quantity.Name(this.PtrQuantities);
             this.InxOfLog = blazer.Model.Quantity.InxOfLog;
 
+            this.Solver = opt.Solver;
             if this.Type==solver.block.Type.SOLVE
                 createJacobPattern(this, blazer);
                 try
-                    this.Solver = opt.Solver;
                     if isa(opt.Solver, 'optim.options.SolverOptions') ...
                             || isa(opt.Solver, 'solver.Options')
                         this.Solver.SpecifyObjectiveGradient = ...
@@ -116,11 +129,13 @@ classdef (Abstract) Block < handle
                 end
             end
         end%
-        
-        
+
+
+
+
         function createEquationsFunc(this, blazer)
-            funcToInclude = [ blazer.Equation{this.PosEqn} ];
-            this.Equations = blazer.Equation(this.PosEqn);
+            funcToInclude = [ blazer.Equation{this.PtrEquations} ];
+            this.Equations = blazer.Equation(this.PtrEquations);
             if this.Type==solver.block.Type.SOLVE
                 funcToInclude = [ '[', funcToInclude, ']' ];
             else
@@ -133,20 +148,22 @@ classdef (Abstract) Block < handle
         end%
 
 
-        function [gr, XX2L, DLevel, DGrowth0, DGrowthK] = createAnalyticalJacob(this, blazer, opt)
-            [~, numOfQuants] = size(blazer.Incidence);
-            numOfEqtnsHere = length(this.PosEqn);
-            gr = blazer.Gradient(:, this.PosEqn);
+
+
+        function [gr, XX2L, DLevel, DChange0, DChangeK] = createAnalyticalJacob(this, blazer, opt)
+            [~, numQuantities] = size(blazer.Incidence);
+            numEquationsHere = length(this.PtrEquations);
+            gr = blazer.Gradient(:, this.PtrEquations);
             sh = this.Shift;
             nsh = length(sh);
             sh0 = find(this.Shift==0);
-            aux = sub2ind([numOfQuants+1, nsh], numOfQuants+1, sh0); % Linear index to 1 in last row.
-            XX2L = cell(1, numOfEqtnsHere);
-            DLevel = cell(1, numOfEqtnsHere);
-            DGrowth0 = cell(1, numOfEqtnsHere);
-            DGrowthK = cell(1, numOfEqtnsHere);
-            for i = 1 : numOfEqtnsHere
-                posEqn = this.PosEqn(i);
+            aux = sub2ind([numQuantities+1, nsh], numQuantities+1, sh0); % Linear index to 1 in last row.
+            XX2L = cell(1, numEquationsHere);
+            DLevel = cell(1, numEquationsHere);
+            DChange0 = cell(1, numEquationsHere);
+            DChangeK = cell(1, numEquationsHere);
+            for i = 1 : numEquationsHere
+                posEqn = this.PtrEquations(i);
                 gr(:, i) = getGradient(this, blazer, posEqn, opt);
                 vecWrt = gr{2, i};
                 nWrt = length(vecWrt);
@@ -155,24 +172,26 @@ classdef (Abstract) Block < handle
                 ixLog = blazer.Model.Quantity.IxLog(real(vecWrt));
                 vecWrt(ixOutOfSh) = NaN;
                 ixLog(ixOutOfSh) = false;
-                XX2L{i}(ixLog) = sub2ind( [numOfQuants+1, nsh], ...
+                XX2L{i}(ixLog) = sub2ind( [numQuantities+1, nsh], ...
                                           real( vecWrt(ixLog) ), ...
                                           sh0 + imag( vecWrt(ixLog) ) );
                 DLevel{i} = double( bsxfun( @eq, ...
-                                            this.PosQty, ...
+                                            this.PtrQuantities, ...
                                             real(vecWrt).' ) );
                 if nargout>3
-                    DGrowth0{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).');
-                    DGrowthK{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).' + this.SteadyShift);
+                    DChange0{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).');
+                    DChangeK{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).' + this.SteadyShift);
                 end
             end
         end%
         
+
+
         
         function gr = getGradient(this, blazer, posEqn, opt)
             % Fetch gradient of posEqn-th equation from Blazer object or differentiate
             % again if needed.
-            vecWrtNeeded = find(blazer.Incidence, posEqn, this.PosQty);
+            vecWrtNeeded = find(blazer.Incidence, posEqn, this.PtrQuantities);
             vecWrtMissing = setdiff(vecWrtNeeded, blazer.Gradient{2, posEqn});
             if ~opt.ForceRediff ...
                     && isa(blazer.Gradient{1, posEqn}, 'function_handle') ...
@@ -190,12 +209,14 @@ classdef (Abstract) Block < handle
             gr = {d; vecWrtNeeded};
         end%
         
+
+
         
-        function [z, exitFlag] = solve(this, fnObjective, z0, header)
+        function [z, exitFlag] = solve(this, fnObjective, z0, exitFlagHeader)
             if isa(this.Solver, 'solver.Options')
                 % __IRIS Solver__
                 this.Solver.JacobPattern = this.JacobPattern;
-                [z, ~, exitFlag] = solver.algorithm.qnsd(fnObjective, z0, this.Solver, header);
+                [z, ~, exitFlag] = solver.algorithm.qnsd(fnObjective, z0, this.Solver, exitFlagHeader);
 
             elseif isa(this.Solver, 'optim.options.SolverOptions')
                 % Optim Tbx
@@ -234,14 +255,14 @@ classdef (Abstract) Block < handle
             if this.Type==solver.block.Type.SOLVE
                 keyword = keyword + printListOfUknowns(this, names);
             end
-            c = solver.block.Block.printBlock(blockId, keyword, input(this.PosEqn));
+            c = solver.block.Block.printBlock(blockId, keyword, input(this.PtrEquations));
         end%
 
 
 
 
         function c = printListOfUknowns(this, names)
-            c = "(" + join(names(this.PosQty), ",") + ")"; 
+            c = "(" + join(names(this.PtrQuantities), ",") + ")"; 
         end%
 
 
@@ -249,7 +270,10 @@ classdef (Abstract) Block < handle
         
         function setShift(this, blazer)
             % Return max lag and max lead across all equations in this block.
-            incid = selectEquation(blazer.Incidence, this.PosEqn);
+            if isEmptyBlock(this.Type)
+                return
+            end
+            incid = selectEquation(blazer.Incidence, this.PtrEquations);
             sh0 = blazer.Incidence.PosOfZeroShift;
             ixIncid = across(incid, 'Equation');
             ixIncid = any(ixIncid, 1);
@@ -266,7 +290,7 @@ classdef (Abstract) Block < handle
         
         
         function s = size(this)
-            s = [1, numel(this.PosEqn)];
+            s = [1, numel(this.PtrEquations)];
         end%
 
 
@@ -311,7 +335,10 @@ classdef (Abstract) Block < handle
             numEquations = numel(eqtn);
             newlineString = string(newline( ));
             separator = newlineString + solver.block.Block.SAVEAS_INDENT;
-            c = separator + join(eqtn, separator);
+            c = separator;
+            if ~isempty(eqtn)
+                c = c + join(eqtn, separator);
+            end
             header = string(sprintf( ...
                 solver.block.Block.SAVEAS_HEADER_FORMAT, ...
                 blockId, numEquations, keyword ...

@@ -42,12 +42,12 @@ classdef Stacked < solver.block.Block
             error = struct( );
             error.EvaluatesToNan = [ ];
             
-            if isempty(this.PosQty)
+            if isempty(this.PtrQuantities)
                 exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
                 return
             end
-            numQuantitiesInBlock = numel(this.PosQty);
-            numEquationsInBlock = numel(this.PosEqn);
+            numQuantitiesInBlock = numel(this.PtrQuantities);
+            numEquationsInBlock = numel(this.PtrEquations);
             firstColumnToRun = data.FirstColumnOfTimeFrame;
             lastColumnToRun = data.LastColumnOfTimeFrame;
             columnsToRun = firstColumnToRun : lastColumnToRun;
@@ -59,7 +59,7 @@ classdef Stacked < solver.block.Block
                 inxZ = this.InxOfEndogenousPoints;
                 %{
                 linx = sub2ind( size(data.YXEPG), ...
-                                repmat(this.PosQty(:), 1, numColumnsToRun), ...
+                                repmat(this.PtrQuantities(:), 1, numColumnsToRun), ...
                                 repmat(columnsToRun, numQuantitiesInBlock, 1) );
                 linx = linx(:);
                 %}
@@ -68,7 +68,7 @@ classdef Stacked < solver.block.Block
                 temp = repmat(this.InxOfLog(:), 1, size(data.YXEPG, 2));
                 inxLogZ = temp(inxZ);
                 %{
-                linxLog = this.InxOfLog(this.PosQty);
+                linxLog = this.InxOfLog(this.PtrQuantities);
                 linxLog = repmat(linxLog(:), numColumnsToRun, 1);
                 %}
 
@@ -152,7 +152,7 @@ classdef Stacked < solver.block.Block
                         return
                     end
                     inxInvalidEquationsInBlock = any(~inxValidData, 2);
-                    error.EvaluatesToNan = this.PosEqn(inxInvalidEquationsInBlock);
+                    error.EvaluatesToNan = this.PtrEquations(inxInvalidEquationsInBlock);
                     exitFlag = solver.ExitFlag.NAN_INF_PREEVAL;
                 end%
         end%
@@ -167,7 +167,7 @@ classdef Stacked < solver.block.Block
             posOfZ = find(this.InxOfEndogenousPoints);
             %{
             linx = sub2ind( size(data.YXEPG), ...
-                            repmat(this.PosQty, 1, numColumnsToRun), ...
+                            repmat(this.PtrQuantities, 1, numColumnsToRun), ...
                             columnsToRun );
             linx = linx(:);
             %}
@@ -193,34 +193,34 @@ classdef Stacked < solver.block.Block
             % exogenize/endogenize
             %{
             lastEquation = find(blz.InxEquations, 1, 'last');
-            inxToRemove = this.PosEqn>lastEquation;
-            this.PosEqn(inxToRemove) = [ ];
+            inxToRemove = this.PtrEquations>lastEquation;
+            this.PtrEquations(inxToRemove) = [ ];
             % Create linear index to endogenous quantities
             numColumnsToRun = numel(blz.ColumnsToRun);
-            numQuantitiesInBlock = numel(this.PosQty);
+            numQuantitiesInBlock = numel(this.PtrQuantities);
             linx = sub2ind( size(data.YXEPG), ...
-                            repmat(this.PosQty(:), 1, numColumnsToRun), ...
+                            repmat(this.PtrQuantities(:), 1, numColumnsToRun), ...
                             repmat(blz.ColumnsToRun, numQuantitiesInBlock, 1) );
             this.LinearIndex = linx(:);
 
             % Create index of logs within linx
-            linxLog = this.InxOfLog(this.PosQty);
+            linxLog = this.InxOfLog(this.PtrQuantities);
             linxLog = repmat(linxLog(:), numColumnsToRun, 1);
             %}
         end%
 
 
         function createJacobPattern(this, blz)
-            numQuantitiesInBlock = numel(this.PosQty);
-            numEquationsInBlock = numel(this.PosEqn);
+            numQuantitiesInBlock = numel(this.PtrQuantities);
+            numEquationsInBlock = numel(this.PtrEquations);
             numColumnsToRun = numel(blz.ColumnsToRun);
             numUnknownsInBlock = numQuantitiesInBlock * numColumnsToRun;
             % Incidence matrix numQuantities-by-numShifts
             acrossEquations = across(blz.Incidence, 'Equations');
-            acrossEquations = acrossEquations(this.PosQty, :);
+            acrossEquations = acrossEquations(this.PtrQuantities, :);
             % Incidence matrix numEquations-by-numQuantities
             acrossShifts = across(blz.Incidence, 'Shifts');
-            acrossShifts = acrossShifts(this.PosEqn, this.PosQty);
+            acrossShifts = acrossShifts(this.PtrEquations, this.PtrQuantities);
             this.MaxLag = nan(1, numQuantitiesInBlock);
             this.MaxLead = nan(1, numQuantitiesInBlock);
             for i = 1 : numQuantitiesInBlock

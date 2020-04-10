@@ -47,13 +47,16 @@ classdef ExitFlag
         end%
 
 
-        function print(this, header)
+        function print(this, header, displayLevel)
+            if nargin>=3 && ~displayLevel.Final
+                return
+            end
             if nargin<2 || isempty(header)
                 header = '';
             elseif header(end)~=' '
                 header = [header, ' '];
             end
-            fprintf('\n%s%s\n', header, this.Message);
+            fprintf('%s%s\n\n', header, this.Message);
         end%
         
         
