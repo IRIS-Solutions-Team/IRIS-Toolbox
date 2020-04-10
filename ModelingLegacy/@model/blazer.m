@@ -83,6 +83,7 @@ if isempty(pp)
     pp = extend.InputParser('model.blazer');
     pp.KeepUnmatched = true;
     addRequired(pp, 'model', @(x) isa(x, 'model'));
+
     addParameter(pp, 'Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
     addParameter(pp, 'SaveAs', '', @(x) isempty(x) || ischar(x));
 end
@@ -96,10 +97,6 @@ eqtnBlk = cell(1, 0); %#ok<PREALL>
 
 blazer = prepareBlazer(this, opt.Kind, pp.Unmatched);
 run(blazer);
-
-if blazer.IsSingular
-    throw(exception.Base('Steady:StructuralSingularity', 'warning'));
-end
 
 [eqtnBlk, nameBlk, blkType] = locallyGetHuman(blazer);
 
@@ -122,8 +119,8 @@ function [blkEqnHuman, blkQtyHuman, blkType] = locallyGetHuman(blazer)
     blkType = repmat(solver.block.Type.SOLVE, 1, numBlocks);
     for i = 1 : numBlocks
         ithBlk = blazer.Block{i};
-        blkEqnHuman{i} = reshape(string(blazer.Model.Equation.Input( ithBlk.PosEqn )), [ ], 1);
-        blkQtyHuman{i} = reshape(string(blazer.Model.Quantity.Name( ithBlk.PosQty )), 1, [ ]);
+        blkEqnHuman{i} = reshape(string(blazer.Model.Equation.Input( ithBlk.PtrEquations )), [ ], 1);
+        blkQtyHuman{i} = reshape(string(blazer.Model.Quantity.Name( ithBlk.PtrQuantities )), 1, [ ]);
         blkType(i) = ithBlk.Type;
     end
 end%

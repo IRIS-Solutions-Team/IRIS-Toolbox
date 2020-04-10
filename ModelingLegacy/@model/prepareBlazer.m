@@ -18,10 +18,15 @@ if isempty(pp)
     addParameter(pp, 'Blocks', true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Log', { }, @validateLogList);
     addParameter(pp, 'Unlog', { }, @validateLogList);
-    addSwapOptions(pp);
+    addParameter(pp, 'Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    addSwapFixOptions(pp);
 end
 parse(pp, this, kind, varargin{:});
 opt = pp.Options;
+
+if isequal(opt.Growth, @auto)
+    opt.Growth = this.IsGrowth;
+end
 
 %--------------------------------------------------------------------------
 
@@ -42,7 +47,13 @@ if strcmpi(kind, 'Steady')
     %
     blz = solver.blazer.Steady(numEquations);
 
-    [inxP__, inxL__] = hereGetParameterLinks( );
+    [inxP__, inxL__, link__] = hereGetParameterLinks( ); % [^1]
+    % [^1]: inxP__ is the index of parameters that are LHS names in links;
+    % inxL__ is the index of equations that are links with parameters on
+    % the LHS
+
+    % blz.Link = link__;
+
     blz.InxEndogenous = inxYX | inxP__;
     blz.InxEquations = inxMT | inxL__ ;
     blz.InxCanBeEndogenized = inxP & ~inxP__;
@@ -59,6 +70,9 @@ if strcmpi(kind, 'Steady')
     blz.Assignment = this.Pairing.Assignment.Steady;
     blz.IsBlocks = opt.Blocks;
     logStatusTypesAllowed = { TYPE(1), TYPE(2), TYPE(4), TYPE(5) };
+
+    blz.EquationsToExclude = find(inxL__);
+    blz.QuantitiesToExclude = find(inxP__);
 
 
 elseif strcmpi(kind, 'Static') || kind==solver.Method.STATIC
@@ -118,7 +132,7 @@ else
 end
 
 %
-% Endogenize
+% Endogenize= option
 %
 if ischar(listEndogenize)
     listEndogenize = regexp(listEndogenize, '\w+', 'match');
@@ -133,7 +147,7 @@ if ~isempty(listEndogenize)
 end
 
 %
-% Exogenize
+% Exogenize= option
 %
 if ischar(listExogenize)
     listExogenize = regexp(listExogenize, '\w+', 'match');
@@ -147,17 +161,24 @@ if ~isempty(listExogenize)
     exogenize(blz, vecExg);
 end
 
+%
+% Fix=, FixLevel=, FixChange= options
+%
+processFixOptions(blz, opt);
+
 return
 
-    function [inxP__, inxL__] = hereGetParameterLinks( )
+    function [inxP__, inxL__, link__] = hereGetParameterLinks( )
         inxL = this.Equation.Type==TYPE(4);
         inxP__ = false(1, numQuantities);
         inxL__ = false(1, numEquations);
+        link__ = this.Link;
         if isempty(this.Link)
             return
         end
-        % LHS pointers to parameters
-        posP__ = intersect(this.Link.LhsPtrActive, find(inxP));
+        % LHS pointers to parameters; inactive links (LhsPtr<0) are
+        % automatically excluded from the intersection
+        posP__ = intersect(this.Link.LhsPtr, find(inxP));
         if isempty(posP__)
             return
         end

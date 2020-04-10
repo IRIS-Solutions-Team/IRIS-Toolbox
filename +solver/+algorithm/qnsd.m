@@ -1,4 +1,4 @@
-function [x, f, exitFlag] = qnsd(objectiveFunc, initX, opt, header)
+function [x, f, exitFlag] = qnsd(objectiveFunc, initX, opt, exitFlagHeader)
 % qnsd  Quasi-Newton-Steepest-Descent algorithm
 %
 % Backend IRIS function
@@ -7,7 +7,6 @@ function [x, f, exitFlag] = qnsd(objectiveFunc, initX, opt, header)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-FORMAT_HEADER = '%6s %8s %13s %6s %13s %13s %13s %13s %13s';
 FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g %13s';
 MIN_STEP = 1e-8;
 MAX_STEP = 2;
@@ -29,35 +28,26 @@ ITER_STRUCT = struct( 'Iter',     NaN, ...
 
 %--------------------------------------------------------------------------
 
+if ~isempty(opt.DisplayLevel)
+    displayLevel = opt.DisplayLevel;
+else
+    displayLevel = solver.DisplayLevel(opt.Display);
+end
+
 desktopStatus = iris.get('DesktopStatus');
 maxChgFunc = @(x, x0) full(max(abs(x(:)-x0(:))));
 
-vecOfLambdas = opt.Lambda;
-vecOfLambdas(vecOfLambdas==0) = [ ];
-if isempty(vecOfLambdas)
-    stepType = 'Newton';
-else
-    stepType = 'Hybrid';
-end
+vecLambdas = opt.Lambda;
+vecLambdas(vecLambdas==0) = [ ];
 
 if isa(opt.FunctionNorm, 'function_handle')
     fnNorm = opt.FunctionNorm;
-    strFnNorm = func2str(fnNorm);
-    strFnNorm = regexprep(strFnNorm, '^@\(.*?\)', '', 'once');
-    if length(strFnNorm)>12
-        strFnNorm = strFnNorm(1:12);
-    end
 else
     fnNorm = @(x) norm(x, opt.FunctionNorm);
-    strFnNorm = sprintf('norm(x,%g)', opt.FunctionNorm);
 end
-if opt.SpecifyObjectiveGradient
-    strJacobNorm = 'Analytical';
-else
-    strJacobNorm = 'Numerical';
-end
+
 lastStepSizeOptim = opt.LastStepSizeOptim;
-if ~isempty(vecOfLambdas)
+if ~isempty(vecLambdas)
     % Never optimize Hybrid step size
     lastStepSizeOptim = 0;
 end
@@ -89,9 +79,8 @@ numUnknowns = numel(initX);
 
 temp = struct('NumberOfVariables', numUnknowns);
 
-displayLevel = hereGetDisplayLevel( );
 if nargin<4
-    header = '';
+    exitFlagHeader = '';
 end
 tolX = opt.StepTolerance;
 tolFun = opt.FunctionTolerance;
@@ -108,7 +97,7 @@ current = ITER_STRUCT;
 current.Iter = 0;
 current.X = initX;
 current.F = objectiveFuncReshaped(current.X);
-sizeOfF = size(current.F);
+sizeF = size(current.F);
 current.F = current.F(:);
 current.Norm = fnNorm(current.F);
 current.Step = NaN;
@@ -129,6 +118,7 @@ iter = 0;
 needsPrintHeader = true;
 extraJacobUpdate = false;
 
+headerInfo = hereCompileHeaderInfo( );
 
 %//////////////////////////////////////////////////////////////////////////
 while true
@@ -243,7 +233,7 @@ while true
         end
     end
 
-    if isempty(vecOfLambdas)
+    if isempty(vecLambdas)
         hereMakeNewtonStep( );
     else
         hereMakeHybridStep( );
@@ -324,18 +314,49 @@ if displayLevel.Iter
     fprintf('\n');
 end
 
-if displayLevel.Final
-    hereReportFinal( );
-end
-
-if displayLevel.Any
-    fprintf('\n');
-end
+print(exitFlag, exitFlagHeader, displayLevel);
 
 x = reshape(current.X, sizeX);
-f = reshape(current.F, sizeOfF);
+f = reshape(current.F, sizeF);
 
 return
+
+
+    function headerInfo = hereCompileHeaderInfo( )
+        headerInfo.Format = '%6s %8s %13s %6s %13s %13s %13s %13s %13s';
+
+        % Function norm
+        if isa(opt.FunctionNorm, 'function_handle')
+            strFnNorm = func2str(opt.FunctionNorm);
+            strFnNorm = regexprep(strFnNorm, '^@\(.*?\)', '', 'once');
+            if length(strFnNorm)>12
+                strFnNorm = strFnNorm(1:12);
+            end
+        else
+            strFnNorm = sprintf('norm(x,%g)', opt.FunctionNorm);
+        end
+        headerInfo.FnNorm = strFnNorm;
+
+        % Jacobian norm
+        if opt.SpecifyObjectiveGradient
+            headerInfo.JacobNorm = 'Analytical';
+        else
+            headerInfo.JacobNorm = 'Numerical';
+        end
+
+        % Step type
+        if isempty(vecLambdas)
+            headerInfo.StepType = 'Newton';
+        else
+            headerInfo.StepType = 'Hybrid';
+        end
+
+        % Number of equations and unknowns
+        headerInfo.NumEquations = numel(current.F);
+        headerInfo.NumUnknowns = numUnknowns;
+    end%
+
+
 
 
     function jacobUpdateString = hereUpdateJacobByBroyden( )
@@ -414,11 +435,11 @@ return
             minSingularValue = sj(end);
         end
         tol = numUnknowns * eps(maxSingularValue);
-        vecOfLambdas0 = vecOfLambdas;
+        vecLambdas0 = vecLambdas;
         if minSingularValue>tol
-            vecOfLambdas0 = [0, vecOfLambdas0];
+            vecLambdas0 = [0, vecLambdas0];
         end
-        lenLambda0 = numel(vecOfLambdas0);
+        lenLambda0 = numel(vecLambdas0);
         scale = tol * eye(numUnknowns);
         
         % Optimize lambda
@@ -427,12 +448,12 @@ return
         F = cell(1, lenLambda0);
         N = nan(1, lenLambda0);
         for ii = 1 : lenLambda0
-            if vecOfLambdas0(ii)==0
+            if vecLambdas0(ii)==0
                 % Lambda=0; run Newton step
                 D{ii} = -J0 \ F0;
             else
                 % Lambda>0; run hybrid step
-                D{ii} = -( jj + vecOfLambdas0(ii)*scale ) \ J0.' * F0;
+                D{ii} = -( jj + vecLambdas0(ii)*scale ) \ J0.' * F0;
             end
             X{ii} = X0 + step*D{ii};
             F{ii} = objectiveFuncReshaped(X{ii});
@@ -441,7 +462,7 @@ return
             N(ii) = fnNorm(F{ii});
         end
         [next.Norm, pos] = min(N);
-        next.Lambda = vecOfLambdas0(pos);
+        next.Lambda = vecLambdas0(pos);
         next.D = D{pos};
         next.X = X{pos};
         next.F = F{pos};
@@ -530,30 +551,40 @@ return
 
 
     function herePrintHeader( )
-        fprintf('\n');
-        c1 = sprintf( FORMAT_HEADER, ...
-                      'Iter', ...
-                      'Fn-Count', ...
-                      'Fn-Norm', ...
-                      'Lambda', ...
-                      'Step-Size', ...
-                      'Fn-Norm-Chg', ...
-                      'Max-X-Chg', ...
-                      'Max-Jacob-Chg', ...
-                      'Jacob-Update'        );
-        c2 = sprintf( FORMAT_HEADER, ...
-                      '', ...
-                      '', ...
-                      strFnNorm, ...
-                      stepType, ...
-                      '', ...
-                      '', ...
-                      '', ...
-                      strJacobNorm, ...
-                      ''                 );
-        disp(c1);
-        disp(c2);
-        disp( repmat('-', 1, max(length(c1), length(c2))) );
+        rows = cell(1, 3);
+        rows{1} = sprintf( ...
+            '[Num-Uknowns Num-Equations]: [%g %g]' ...
+            , headerInfo.NumUnknowns ...
+            , headerInfo.NumEquations ...
+        );
+        rows{2} = sprintf( ...
+            headerInfo.Format ...
+            , 'Iter' ...
+            , 'Fn-Count' ...
+            , 'Fn-Norm' ...
+            , 'Lambda' ...
+            , 'Step-Size' ...
+            , 'Fn-Norm-Chg' ...
+            , 'Max-X-Chg' ...
+            , 'Max-Jacob-Chg' ...
+            , 'Jacob-Update' ...
+        );
+        rows{3} = sprintf( ...
+            headerInfo.Format ...
+            , '' ...
+            , '' ...
+            , headerInfo.FnNorm ...
+            , headerInfo.StepType ...
+            , '' ...
+            , '' ...
+            , '' ...
+            , headerInfo.JacobNorm ...
+            , '' ...
+        );
+        maxLen = max(cellfun('length', rows));
+        divider = repmat('-', 1, maxLen);
+        cellfun(@disp, rows);
+        disp(divider);
     end%
 
 
@@ -584,31 +615,6 @@ return
     function hereReportStepSizeOptim( )
         fprintf('Optimal Step Size %g', next.Step);
         fprintf('\n');
-    end%
-
-
-    function hereReportFinal( )
-        print(exitFlag, header);
-    end%
-
-
-    function displayLevel = hereGetDisplayLevel( )
-        displayLevel.Any = ...
-            ~isequal(opt.Display, false) ...
-            && ~strcmpi(opt.Display, 'none') ...
-            && ~strcmpi(opt.Display, 'off');
-        displayLevel.Final = displayLevel.Any;
-        displayLevel.Iter = ...
-            isequal(opt.Display, true) ...
-            || strcmpi(opt.Display, 'iter') ...
-            || strcmpi(opt.Display, 'iter*') ...
-            || (isnumeric(opt.Display) && opt.Display~=0);
-        displayLevel.Every = NaN;
-        if isnumeric(opt.Display)
-            displayLevel.Every = opt.Display;
-        elseif isequal(displayLevel.Iter, true)
-            displayLevel.Every = 1;
-        end
     end%
 end%
 

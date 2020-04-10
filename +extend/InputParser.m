@@ -8,7 +8,7 @@ classdef InputParser < inputParser
         HasDateOptions = false
         DateOptionsContext = ''
         HasDeviationOptions = false
-        HasSwapOptions = false
+        HasSwapFixOptions = false
         HasOptionalRangeStartEnd = false
         HasStartEndOptions = false
 
@@ -84,8 +84,8 @@ classdef InputParser < inputParser
             if this.HasStartEndOptions
                 resolveStartEndOptions(this);
             end
-            if this.HasSwapOptions
-                resolveSwapOptions(this);
+            if this.HasSwapFixOptions
+                resolveSwapFixOptions(this);
             end
 
             if ~isempty(this.Conditional)
@@ -207,10 +207,13 @@ classdef InputParser < inputParser
         end%
 
 
-        function addSwapOptions(this)
+        function addSwapFixOptions(this)
             addParameter(this, 'Exogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
             addParameter(this, 'Endogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
-            this.HasSwapOptions = true;
+            addParameter(this, 'Fix', { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
+            addParameter(this, 'FixLevel', { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
+            addParameter(this, {'FixChange', 'FixGrowth'}, { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
+            this.HasSwapFixOptions = true;
         end%
 
 
@@ -304,7 +307,7 @@ classdef InputParser < inputParser
         end%
 
 
-        function resolveSwapOptions(this)
+        function resolveSwapFixOptions(this)
             if ~isa(this.Options.Exogenize, 'function_handle')
                 if ischar(this.Options.Exogenize)
                     this.Options.Exogenize = regexp(this.Options.Exogenize, '\w+', 'match');
