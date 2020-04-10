@@ -65,7 +65,7 @@ return
 
     function herePrepareInxOfEndogenousPoints( )
         inx = false(size(data.YXEPG));
-        inx(ithBlock.PosQty, columnsTimeFrame) = true;
+        inx(ithBlock.PtrQuantities, columnsTimeFrame) = true;
         if data.HasExogenizedPoints
             inx(data.InxOfYX, :) = ...
                 inx(data.InxOfYX, :) ...

@@ -1,6 +1,6 @@
 function [this, namesAssigned] = assign(this, varargin)
 % assign  Assign parameters, steady states, std deviations or cross-correlations
-%
+%{
 % ## Syntax ##
 %
 %     [M, Assigned] = assign(M, P)
@@ -65,31 +65,30 @@ function [this, namesAssigned] = assign(this, varargin)
 %
 %
 % ## Example ##
-%
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 persistent POS_VALUES INDEX_VALUES_RHS POS_STDCORR INDEX_STDCORR_RHS NAMES_ASSIGNED
 TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 
 namesAssigned = cell(1, 0);
 if isempty(varargin)
     return
 end
 
-flags = struct('Level', false, 'Growth', false, 'ExcludeNaNs', false);
-readFlags( );
+flags = hereReadFlags( );
 
 % Number of input arguments with the growth label removed.
-n = length(varargin);
-ne = sum(ixe);
-nStdCorr = ne + ne*(ne-1)/2;
-nv = length(this.Variant);
+n = numel(varargin);
+numE = nnz(inxE);
+nStdCorr = numE + numE*(numE-1)/2;
+nv = countVariants(this);
 numQuantities = length(this.Quantity);
 inputNames = cell(1, 0);
 invalidLength = cell(1, 0);
@@ -131,9 +130,9 @@ elseif n==1 && isnumeric(varargin{1})
 elseif n<=2 && iscellstr(varargin{1})
     % assign(m, cellstr) initializes quick-assign function.
     % m = assign(m, cellstr, array);
-    inputNames = varargin{1}(:).';
+    inputNames = reshape(varargin{1}, 1, [ ]);
     varargin(1) = [ ];
-    numNames = length(inputNames);
+    numNames = numel(inputNames);
     ell = lookup(this.Quantity, inputNames);
     posQuantity = ell.PosName;
     posStdCorr = ell.PosStdCorr;
@@ -187,7 +186,7 @@ elseif n<=2 && (isstruct(varargin{1}) || isa(varargin{1}, 'table'))
         cloneTemplate = varargin{1};
         inputNames = model.File.cloneAllNames(inputNames, cloneTemplate);
     end
-    numNames = length(inputNames);
+    numNames = numel(inputNames);
     invalidLength = cell(1, 0);
     invalidImag = cell(1, 0);
     ell = lookup(this.Quantity, inputNames);
@@ -211,7 +210,7 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp'), varargi
     % m = assign(m, name, value, name, value, ...)
     % name is char or char list or rexp or double-dot list but not cellstr
     inputNames = varargin(1:2:end);
-    numNames = length(inputNames);
+    numNames = numel(inputNames);
     % Remove equal signs from assign(m, 'alpha=', 1).
     for i = 1 : numNames
         inputNames{i} = strrep(inputNames{i}, ' ', '');
@@ -275,7 +274,7 @@ NAMES_ASSIGNED = { };
 
 % Steady states cannot be changed from 0+0i.
 inxNonzeroShocks = false(1, numQuantities);
-inxNonzeroShocks(ixe) = any(this.Variant.Values(1, ixe, :)~=0, 3);
+inxNonzeroShocks(inxE) = any(this.Variant.Values(1, inxE, :)~=0, 3);
 if any(inxNonzeroShocks)
     throw( ...
         exception.Base('Model:CannotChangeSteadyShocks', 'error'), ...
@@ -294,14 +293,18 @@ getNamesAssigned( );
 return
 
     
-    function readFlags( )
+    function flags = hereReadFlags( )
+        flags = struct( );
+        flags.Level = false;
+        flags.Change = false;
+        flags.ExcludeNaNs = false;
         while ~isempty(varargin) && ischar(varargin{1}) ...
                 && strncmp(varargin{1}, '-', 1)
             switch lower(strtrim(varargin{1}))
                 case '-level'
                     flags.Level = true;
-                case '-growth'
-                    flags.Growth = true;
+                case {'-change', '-growth'}
+                    flags.Change = true;
                 case '-excludenans'
                     flags.ExcludeNaNs = true;
                 otherwise
@@ -335,7 +338,7 @@ return
             end
             inputNames = model.File.cloneAllNames(inputNames, cloneTemplate);
         end
-        nvRhs = length(rhs.Variant);
+        nvRhs = countVariants(rhs);
         if nvRhs~=1 && nvRhs~=nv
             utils.error( 'modelobj:assign', ...
                          ['Cannot assign from object ', ...
@@ -355,7 +358,7 @@ return
             if rhs.Quantity.Type(ixRhs)==this.Quantity.Type(ii)
                 oldValue = this.Variant.Values(1, ii, :);
                 newValue = rhs.Variant.Values(1, ixRhs, :);
-                if flags.Growth
+                if flags.Change
                     newValue = real(oldValue) + 1i*imag(newValue);
                 elseif flags.Level
                     newValue = real(newValue) + 1i*imag(oldValue);
@@ -371,7 +374,7 @@ return
         if ~isempty(cloneTemplate)
             listStdCorrRhs = model.File.cloneAllNames(listStdCorrRhs, cloneTemplate);
         end
-        for ii = 1 : length(listStdCorr)
+        for ii = 1 : numel(listStdCorr)
             ixRhs = strcmpi(listStdCorr{ii}, listStdCorrRhs);
             if ~any(ixRhs)
                 continue
@@ -408,7 +411,7 @@ return
 
     function hereAssignPositionValue(name, posValues, posStdCorr, value)
         % One or more names, one value
-        value = value(:);
+        value = reshape(value, [ ], 1);
         value = permute(value, [2, 3, 1]);
         numValues = numel(value);
         isValidLen = numValues==1 || numValues==nv;
@@ -417,7 +420,7 @@ return
             return
         end
         isValidImag = all(imag(value)==0) ...
-            || ( ~flags.Growth && ~flags.Level ...
+            || ( ~flags.Change && ~flags.Level ...
             && all(isnan(posStdCorr)) ...
             && ~any(this.Quantity.Type(posValues)==TYPE(4)) );
         if ~isValidImag
@@ -426,9 +429,9 @@ return
         end
         % Assign Variant.Values
         for pos = posValues(~isnan(posValues))
-            if flags.Level || flags.Growth
+            if flags.Level || flags.Change
                 oldValues = this.Variant.Values(:, pos, :);
-                if flags.Growth
+                if flags.Change
                     value = real(oldValues) + 1i*value;
                 elseif flags.Level
                     value = value + 1i*imag(oldValues);
@@ -452,14 +455,14 @@ return
         if size(value, 3)==1 && nv>1
             value = repmat(value, 1, 1, nv);
         end
-        if (flags.Growth || flags.Level) && any(imag(value(:))~=0)
+        if (flags.Change || flags.Level) && any(imag(value(:))~=0)
             utils.error('modelobj:assign', ...
                 ['Cannot assign(...) non-zero imag numbers ', ...
                 'with flag ''-level'' or ''-growth''.']);
         end
-        if flags.Level || flags.Growth
+        if flags.Level || flags.Change
             oldValues = this.Variant(:, posQuantity, :);
-            if flags.Growth
+            if flags.Change
                 value(:, indexQuantityRhs, :) = real(oldValues) + 1i*value(:, indexQuantityRhs, :);
             elseif flags.Level
                 value(:, indexQuantityRhs, :) = value(:, indexQuantityRhs, :) + 1i*imag(oldValues);
@@ -497,11 +500,11 @@ return
 
     function getNamesAssigned( )
         namesAssigned = this.Quantity.Name(inxValues);
-        lse = this.Quantity.Name(ixe);
-        namesAssigned = [namesAssigned, strcat('std_', lse(inxStdCorr(1:ne)))];
-        pos = find( tril(ones(ne), -1)==1 );
-        temp = zeros(ne);
-        temp(pos(inxStdCorr(ne+1:end))) = 1;
+        lse = this.Quantity.Name(inxE);
+        namesAssigned = [namesAssigned, strcat('std_', lse(inxStdCorr(1:numE)))];
+        pos = find( tril(ones(numE), -1)==1 );
+        temp = zeros(numE);
+        temp(pos(inxStdCorr(numE+1:end))) = 1;
         [row, col] = find(temp==1);
         namesAssigned = [ namesAssigned, ...
             strcat('corr_', lse(row), '__', lse(col)) ];

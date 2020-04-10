@@ -1,4 +1,4 @@
-function this = refresh(this, variantsRequested)
+function this = refresh(this, variantsRequested);
 % refresh  Refresh dynamic links
 %{
 % Syntax
@@ -42,7 +42,7 @@ if ~any(this.Link)
     return
 end
 
-nv = length(this);
+nv = countVariants(this);
 try
     if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
         variantsRequested = 1 : nv;

@@ -50,6 +50,24 @@ classdef Link
         end%
 
 
+        function [this, inxValid] = changeActivationStatus(this, lhsPtr, newStatus)
+            absLhsPtr = abs(this.LhsPtr);
+            [posLink, inxValid] = lookup(this, lhsPtr);
+            this.LhsPtr(posLink) = sign(newStatus)*absLhsPtr(posLink);
+        end%
+
+
+        function [posLink, inxValid, lhsPtr] = lookup(this, lhsPtr)
+            if isequal(lhsPtr, @all)
+                inxValid = true;
+                posLink = 1 : numel(this.LhsPtr);
+                lhsPtr = abs(this.LhsPtr);
+            else
+                [inxValid, posLink] = ismember(lhsPtr, abs(this.LhsPtr));
+            end
+        end%
+
+
         function inxActive = get.InxActive(this)
             PTR = @int16;
             inxActive = this.LhsPtr>PTR(0);

@@ -141,7 +141,7 @@ classdef Global < handle
         function assignBlock(this, blk, state)
             t = state.Time;
             alt = state.IAlt;
-            pos = blk.PosQty;
+            pos = blk.PtrQuantities;
             invTransform = blk.Type.InvTransform;
             xt = blk.EquationsFunc(this.X(:,:,alt), t, this.L(:,:,alt));
             if ~isempty(invTransform)
@@ -154,7 +154,7 @@ classdef Global < handle
         function solveBlock(this, blk, state)
             t = state.Time;
             alt = state.IAlt;            
-            pos = blk.PosQty;
+            pos = blk.PtrQuantities;
             ixLog = blk.IxLog;
             X = this.X(:, 1:t, alt); %#ok<PROPLC>
             L = this.L(:, 1:t, alt); %#ok<PROPLC>

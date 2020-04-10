@@ -1,15 +1,20 @@
 % Blazer  Sequential block analysis object
 %
-% Backend IRIS class
+% Backend [IrisToolbox] class
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-classdef (Abstract) Blazer < handle
+classdef (Abstract) Blazer ...
+    < handle
+
     properties
-        Model = struct( 'Quantity', model.component.Quantity.empty(0), ...
-                        'Equation', model.component.Equation.empty(0) )
+        % Model  Model components copied over to Blazer object
+        Model = struct( ...
+            'Quantity', model.component.Quantity.empty(0), ...
+            'Equation', model.component.Equation.empty(0) ...
+        )
 
         Equation = cell.empty(1, 0)
         Gradient
@@ -20,6 +25,7 @@ classdef (Abstract) Blazer < handle
         InxCanBeEndogenized
         InxCanBeExogenized
         IsBlocks = true
+        IsGrowth = false
         IsSingular = false
 
         % NanInit  Values assigned to NaN initial conditions
@@ -27,6 +33,14 @@ classdef (Abstract) Blazer < handle
         
         Block
         AppData = struct( )
+
+        % QuantitiesToExclude  Pointers to levels and or changes in quantities to exclude
+        QuantitiesToExclude = double.empty(1, 0)
+
+        % EquationsToExclude  Equations to exclude
+        EquationsToExclude = double.empty(1, 0)
+
+        InxZero
     end
     
     
@@ -63,7 +77,7 @@ classdef (Abstract) Blazer < handle
                     "This name cannot be endogenized because it is endogenous already: %s"
                 ];
                 pos = posToEndogenize(~inxValid);
-                throw(exception.Base(thisError, 'error'), this.Model.Quantity.Name{pos});
+                throw(exception.Base(thisError, 'error'), quantities.Name{pos});
             end
         end%
         
@@ -77,7 +91,7 @@ classdef (Abstract) Blazer < handle
                     "This name cannot be exogenized because it is exogenous already: %s"
                 ];
                 pos = posToExogenize(~inxValid);
-                throw(exception.Base(thisError, 'error'), this.Model.Quantity.Name{pos});
+                throw(exception.Base(thisError, 'error'), quantities.Name{pos});
             end
         end%
         
@@ -103,14 +117,16 @@ classdef (Abstract) Blazer < handle
             numEquations = nnz(this.InxEquations);
             numEndogenous = nnz(this.InxEndogenous);
             if numEquations~=numEndogenous
-                throw( exception.Base('Blazer:NumberEquationsEndogenized', 'error'), ...
-                       numEquations, numEndogenous ); %#ok<GTARG>
+                throw( ...
+                    exception.Base('Blazer:NumberEquationsEndogenized', 'error'), ...
+                    numEquations, numEndogenous ...
+                ); %#ok<GTARG>
             end
             [inc, idEqn, idQty] = prepareIncidenceMatrix(this);
             if this.IsBlocks
-                [ordInc, ordPosEqn, ordPosQty] = this.reorder(inc, idEqn, idQty);
+                [ordInc, ordEquation, ordQuantity] = this.reorder(inc, idEqn, idQty);
                 this.IsSingular = sprank(ordInc)<min(size(ordInc));
-                [blkEqn, blkQty] = this.getBlocks(ordInc, ordPosEqn, ordPosQty);
+                [blkEqn, blkQty] = this.getBlocks(ordInc, ordEquation, ordQuantity);
             else
                 blkEqn = { idEqn };
                 blkQty = { idQty };
@@ -121,13 +137,15 @@ classdef (Abstract) Blazer < handle
             this.Block = cell(1, numBlocks);
             for i = 1 : numBlocks
                 blk = this.BLOCK_CONSTRUCTOR( );
-                blk.PosQty = blkQty{i};
-                blk.PosEqn = blkEqn{i};
+                blk.PtrEquations = setdiff(blkEqn{i}, this.EquationsToExclude, 'stable'); % [^1]
+                blk.PtrQuantities = blkQty{i}; % [^1]
                 blk.LhsQuantityFormat = this.LHS_QUANTITY_FORMAT;
-                classify(blk, this.Assignment, this.Equation); % Classify block as SOLVE or ASSIGNMENT.
-                setShift(blk, this); % Find max lag and lead within equations in this block.
+                classify(blk, this.Assignment, this.Equation); % Classify block as SOLVE or ASSIGNMENT
+                setShift(blk, this); % Find max lag and lead within equations in this block
                 this.Block{i} = blk;
             end
+            % [^1]: Exclude equations here, but exclude quantities in
+            % inside block preparation -- this is block type specific.
 
             if isempty(varargin)
                 return
@@ -162,9 +180,86 @@ classdef (Abstract) Blazer < handle
         end%        
 
 
+
+
         function [names, equations] = getNamesAndEquationsToPrint(this)
-            names = this.Model.Quantity.Name;
+            names = quantities.Name;
             equations = this.Model.Equation.Input;
+        end%
+
+
+
+
+        function processFixOptions(this, opt)
+            % Process Fix, FixLevel, FixChange, possible with Except
+            TYPE = @int8;
+            PTR = @int16;
+
+            quantities = this.Model.Quantity;
+            numQuantities = numel(quantities.Name);
+            inxP = quantities.Type==TYPE(4);
+            inxCanBeFixed = this.InxEndogenous;
+            namesCanBeFixed = quantities.Name(inxCanBeFixed);
+            list = {'Fix', 'FixLevel', 'FixChange'};
+            for i = 1 : numel(list)
+                fix = list{i};
+                temp = opt.(fix);
+
+                if isempty(temp)
+                    opt.(fix) = double.empty(1, 0);
+                    continue
+                end
+
+                if isa(temp, 'Except')
+                    temp = resolve(temp, namesCanBeFixed);
+                end
+
+                if (ischar(temp) && ~isempty(temp)) ...
+                   || (isa(temp, 'string') && isscalar(string) && strlength(sting)>0)
+                    temp = regexp(temp, '\w+', 'match');
+                    temp = cellstr(temp);
+                end
+                
+                if isempty(temp)
+                    opt.(fix) = double.empty(1, 0);
+                    continue
+                end
+
+                ell = lookup( quantities, temp, ...
+                              TYPE(1), TYPE(2), TYPE(4) );
+                posToFix = ell.PosName;
+                inxValid = ~isnan(posToFix);
+                if any(~inxValid)
+                    throw( exception.Base('Steady:CANNOT_FIX', 'error'), ...
+                           temp{~inxValid} );
+                end
+                opt.(fix) = posToFix;
+            end
+
+            fixLevel = false(1, numQuantities);
+            fixLevel(opt.Fix) = true;
+            fixLevel(opt.FixLevel) = true;
+
+            fixChange = false(1, numQuantities);
+
+            % Fix steady change of all endogenized parameters to zero
+            fixChange(inxP) = true;
+            if opt.Growth
+                fixChange(opt.Fix) = true;
+                fixChange(opt.FixChange) = true;
+            else
+                fixChange(:) = true;
+            end
+
+            % Fix optimal policy multipliers; the level and change of
+            % multipliers will be set to zero in the main loop
+            if isfield(opt, 'ZeroMultipliers') && opt.ZeroMultipliers
+                fixLevel = fixLevel | quantities.IxLagrange;
+                fixChange = fixChange | quantities.IxLagrange;
+            end
+
+            temp = [ ]; % this.Link.LhsPtrActive
+            this.QuantitiesToExclude = [this.QuantitiesToExclude, find(fixLevel), 1i*find(fixChange), temp];
         end%
     end
 

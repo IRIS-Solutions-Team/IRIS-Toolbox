@@ -12,15 +12,15 @@ PTR = @int16;
 
 %--------------------------------------------------------------------------
 
-numLinks = length(this.Input);
+numLinks = numel(this.Input);
 
-% Reset ordering of links.
+% Reset ordering of links
 this.Order = PTR(1:numLinks);
 if ~opt.OrderLinks
     return
 end
 
-numLinks = length(this);
+numLinks = numel(this);
 ptr = abs(this.LhsPtr);
 
 eps = model.component.Incidence.getIncidenceEps(this.RhsExpn);
@@ -41,7 +41,7 @@ end
 
 [ordInc, ordEqn, ordQty] = solver.blazer.Blazer.reorder(inc, 1:numLinks, ptr);
 blk = solver.blazer.Blazer.getBlocks(ordInc, ordEqn, ordQty);
-if any( cellfun(@length, blk)>1 )
+if any(cellfun('length', blk)>1)
     throw(exception.Base('Link:LinksNotSequential', 'warning'));
 end
 

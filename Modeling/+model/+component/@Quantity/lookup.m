@@ -33,7 +33,7 @@ end
 outp.IxKeep = inxToKeep;
 
 if iscellstr(query)
-    % Input is a cellstr of names. Return vector of positions or NaNs.
+    % Input is a cellstr of names; return vector of positions or NaNs.
     numQueries = numel(query);
     outp.PosName = nan(1, numQueries);
     outp.PosStdCorr = nan(1, numQueries);
