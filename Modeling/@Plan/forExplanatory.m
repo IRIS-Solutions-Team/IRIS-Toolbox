@@ -1,24 +1,24 @@
-function this = forExplanatoryEquation(xq, simulationRange)
-% forExplanatoryEquation  Construct a simulation Plan object for ExplanatoryEquation object or array
+function this = forExplanatory(explanatory, simulationRange)
+% forExplanatory  Construct a simulation Plan object for Explanatory object or array
 %{
 % ## Syntax ##
 %
 %
-%     p = Plan.forExplanatoryEquation(xq, simulationRange, ...)
+%     p = Plan.forExplanatory(explanatory, simulationRange, ...)
 %
 %
 % ## Input Arguments ##
 %
 %
-% __`xq`__ [ ExplanatoryEquation ]
+% __`explanatory`__ [ Explanatory ]
 % >
-% ExplanatoryEquation object or array for which the new simulation Plan `p`
+% Explanatory object or array for which the new simulation Plan `p`
 % will be created on the `simulationRange`.
 %
 %
 % __`simulationRange`__ [ DateWrapper ]
 % >
-% Range on which the `xq` will be simulated using the plan `p`.
+% Range on which the `explanatory` will be simulated using the plan `p`.
 %
 %
 % ## Output Arguments ##
@@ -26,15 +26,15 @@ function this = forExplanatoryEquation(xq, simulationRange)
 %
 % __`p`__ [ Plan ]
 % >
-% A new simulation Plan object that can be use when simulating the `xq`
+% A new simulation Plan object that can be use when simulating the `explanatory`
 % object or array on the `simulationRange`.
 %
 %
 % ## Description ##
 %
 %
-% The `Plan` object created by `Plan.forExplanatoryEquation( )` is to be
-% used in an `ExplanatoryEquation/simulate( )` function to specify the
+% The `Plan` object created by `Plan.forExplanatory( )` is to be
+% used in an `Explanatory/simulate( )` function to specify the
 % exogenized variables. Only the LHS variables in non-identities can be
 % exogenized.  When an LHS variables is exogenized, the respective residual
 % belonging to the equation is endogenized in the same periods; this is
@@ -42,7 +42,7 @@ function this = forExplanatoryEquation(xq, simulationRange)
 % called by the user.
 % 
 % There are two ways how to exogenize a variable in a `Plan` created for an
-% `Explanatory: 
+% `Explanatory`:
 %
 % * `exogenize( )` exogenizes some LHS variables in some periods no matter
 % what;
@@ -58,15 +58,15 @@ function this = forExplanatoryEquation(xq, simulationRange)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('Plan.Plan');
-    parser.addRequired('xq', @(x) isa(x, 'ExplanatoryEquation'));
-    parser.addRequired('simulationRange', @DateWrapper.validateProperRangeInput);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('Plan.Plan');
+    addRequired(pp, 'explanatory', @(x) isa(x, 'ExplanatoryEquation'));
+    addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
 end
-parser.parse(xq, simulationRange);
+parse(pp, explanatory, simulationRange);
 simulationRange = double(simulationRange);
 
 %--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ simulationRange = double(simulationRange);
 this = Plan( );
 this.BaseStart = simulationRange(1);
 this.BaseEnd = simulationRange(end);
-this = preparePlan(xq, this);
+this = preparePlan(explanatory, this);
 
 numEndogenous = this.NumOfEndogenous;
 numExogenous = this.NumOfExogenous;
