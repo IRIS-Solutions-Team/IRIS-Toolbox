@@ -21,6 +21,7 @@ highEnd = highRange(end);
 highFreq = DateWrapper.getFrequency(highStart);
 
 indicator = struct( );
+indicator.Model = hereResolveIndicatorModel( );
 indicator.Level = [ ];
 indicator.Transformed = [ ];
 indicator.StdScale = double(options.StdScale);
@@ -42,6 +43,14 @@ if ~isempty(invalidFreq)
 end
 
 return
+
+    function hereResolveIndicatorModel( )
+        indicator.Model = options.Model;
+        if isequal(indicator.Model, @auto)
+            indicator.Model = model;
+        end
+    end%
+
 
     function hereTryRetrieveLevel( )
         if isa(options.Level, 'NumericTimeSubscriptable') && ~isempty(options.Level) 

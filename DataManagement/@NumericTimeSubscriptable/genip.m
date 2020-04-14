@@ -172,6 +172,7 @@ if isempty(pp)
     addNested(pp, 'Condition', 'Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Condition', 'DiffDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
 
+    addNested(pp, 'Indicator', 'Model', @auto, @(x) validate.anyString(strip(x), 'Rate', 'Level', 'Diff', 'DiffDiff'));
     addNested(pp, 'Indicator', 'Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Indicator', 'Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Indicator', 'Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));

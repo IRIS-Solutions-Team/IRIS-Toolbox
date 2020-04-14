@@ -42,7 +42,10 @@ OmegaV(1, 1, :) = double(stdScale).^2;
 %
 % Measurement (aggregation) matrix
 %
-[Z, observed, H, stdW] = hereSetupMeasurement( );
+[Z, observed, H, stdW] = hereInitializeMeasurement( );
+[Z, observed, H, stdW] = hereSetupAggregation(Z, observed, H, stdW);
+[Z, observed, H, stdW] = hereSetupConditioning(Z, observed, H, stdW);
+[Z, observed, H, stdW] = hereSetupIndicator(Z, observed, H, stdW);
 OmegaW = diag(stdW.^2);
 numY = size(Z, 1);
 numW = size(OmegaW, 1);
@@ -109,13 +112,15 @@ return
     end%
 
 
-    function [Z, observed, H, stdW] = hereSetupMeasurement( )
+    function [Z, observed, H, stdW] = hereInitializeMeasurement( )
         Z = zeros(0, numXi);
         observed = zeros(0, numHighPeriods);
         H = double.empty(0);
         stdW = double.empty(0);
+    end%
 
 
+    function [Z, observed, H, stdW] = hereSetupAggregation(Z, observed, H, stdW)
         %
         % High to low frequency aggregation
         %
@@ -126,8 +131,10 @@ return
         Z = [Z; repmat(addZ, 1, 1, size(Z, 3))];
         H = [H; addH];
         observed = [observed; addObserved];
+    end%
 
 
+    function [Z, observed, H, stdW] = hereSetupConditioning(Z, observed, H, stdW)
         %
         % High frequency level conditions
         %
@@ -141,13 +148,15 @@ return
             observed = [observed; addObserved];
         end
 
-
         %
         % High frequency rate conditions
         %
         inxFinite = isfinite(conditions.Rate);
         if ~isempty(conditions.Rate) && any(inxFinite)
-            hereExpandZ( );
+            % First, expand Z across time if necessary
+            if size(Z, 3)==1
+                Z = repmat(Z, 1, 1, numHighPeriods);
+            end
             [addZ, addObserved] = locallyGetObservedRate(conditions.Rate, numXi);
             addH = zeros(1, size(H, 2));
 
@@ -155,7 +164,6 @@ return
             H = [H; addH];
             observed = [observed; addObserved];
         end
-
 
         %
         % High frequency diff conditions
@@ -170,7 +178,6 @@ return
             observed = [observed; addObserved];
         end
 
-
         %
         % High frequency diff-diff conditions
         %
@@ -183,19 +190,24 @@ return
             H = [H; addH];
             observed = [observed; addObserved];
         end
+    end%
 
 
+    function [Z, observed, H, stdW] = hereSetupIndicator(Z, observed, H, stdW)
         %
         % Indicator
         %
         inxFinite = isfinite(indicator.Transformed);
         if ~isempty(indicator.Transformed) && any(inxFinite)
-            switch string(model)
+            switch string(indicator.Model)
                 case "Level"
                     addZ = [zeros(1, numXi-1), 1];
                     addObserved = reshape(indicator.Transformed, 1, [ ]);
                 case "Rate"
-                    hereExpandZ( );
+                    % First, expand Z across time if necessary
+                    if size(Z, 3)==1
+                        Z = repmat(Z, 1, 1, numHighPeriods);
+                    end
                     [addZ, addObserved] = locallyGetObservedRate(indicator.Transformed, numXi);
                 case "Diff"
                     addZ = [zeros(1, numXi-2), -1, 1];
@@ -212,14 +224,6 @@ return
             H = blkdiag(H, addH);
             stdW = blkdiag(stdW, addStdW);
         end
-
-        return
-
-            function hereExpandZ( )
-                if size(Z, 3)==1
-                    Z = repmat(Z, 1, 1, numHighPeriods);
-                end
-            end%
     end%
 end%
 
