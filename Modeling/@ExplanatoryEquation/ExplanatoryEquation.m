@@ -1,4 +1,4 @@
-% ExplanatoryEquation  Equation with a LHS variable explained by RHS terms
+ % ExplanatoryEquation  Equation with a LHS variable explained by RHS terms
 %
 
 classdef ExplanatoryEquation ...
@@ -16,6 +16,7 @@ classdef ExplanatoryEquation ...
         Attributes (1, :) string = string.empty(1, 0)
         RaggedEdge (1, 1) logical = false
         Include = true
+        Parameters (1, :, :) double = double.empty(1, 0, 1)
     end
 
 
@@ -59,7 +60,6 @@ classdef ExplanatoryEquation ...
         Explanatory (1, :) regression.Term = regression.Term.empty(1, 0)
 
 
-        Parameters (1, :, :) double = double.empty(1, 0, 1)
         Statistics (1, 1) struct = struct( 'VarResiduals', NaN, ...
                                            'CovParameters', double.empty(0, 0, 1) )
 
