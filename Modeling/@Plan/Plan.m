@@ -880,7 +880,11 @@ classdef Plan < matlab.mixin.CustomDisplay
     methods (Static) % Static Constructor Signatures
         %(
         varargout = forModel(varargin)
-        varargout = forExplanatoryEquation(varargin)
+        varargout = forExplanatory(varargin)
+
+        function varargout = forExplanatoryEquation(varargin)
+            [varargout{1:nargout}] = Plan.forExplanatory(varargin{:});
+        end%
         %)
     end
 
