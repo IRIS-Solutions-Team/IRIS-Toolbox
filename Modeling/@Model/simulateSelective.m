@@ -14,7 +14,7 @@ MAX_NUM_OF_ELEMENTS = 2e6;
 
 deviation = data.Deviation;
 hashEquations = rect.HashEquationsAll;
-firstColumnTimeFrame = data.FirstColumnOfTimeFrame;
+firstColumnFrame = data.FirstColumnOfFrame;
 inxE = data.InxOfE;
 inxYX = data.InxOfYX;
 numYX = nnz(inxYX);
@@ -23,11 +23,11 @@ solverOpt = data.SolverOptions;
 solverName = solverOpt(1).SolverName;
 window = data.Window;
 
-columnRangeHashFactors = firstColumnTimeFrame + (0 : window-1);
+columnRangeHashFactors = firstColumnFrame + (0 : window-1);
 
 tempE = data.AnticipatedE;
-tempE(:, firstColumnTimeFrame) = tempE(:, firstColumnTimeFrame) ...
-                                 + data.UnanticipatedE(:, firstColumnTimeFrame);
+tempE(:, firstColumnFrame) = tempE(:, firstColumnFrame) ...
+                                 + data.UnanticipatedE(:, firstColumnFrame);
 
 if data.NumOfExogenizedPointsY==0
     %
@@ -47,7 +47,7 @@ objectiveFunction = @hereObjectiveFunctionFull;
 if data.NumOfExogenizedPoints==0
     hereGetHashIncidence( );
     lastHashedYX = data.LastHashedYX;
-    columnRangeOfHashedYX = firstColumnTimeFrame : lastHashedYX;
+    columnRangeOfHashedYX = firstColumnFrame : lastHashedYX;
     inxHashedYX = data.InxOfHashedYX(:, columnRangeOfHashedYX);
     density = nnz(inxHashedYX) / numel(inxHashedYX);
     numElements = nnz(inxHashedYX) * rect.NumOfHashEquations * data.Window;
@@ -126,9 +126,9 @@ return
             % The `simulateFunc` modified the shocks and they need to
             % be updated in the main databank
             tempE = data.AnticipatedE;
-            tempE(:, firstColumnTimeFrame) = ...
-                tempE(:, firstColumnTimeFrame) ...
-                + data.UnanticipatedE(:, firstColumnTimeFrame);
+            tempE(:, firstColumnFrame) = ...
+                tempE(:, firstColumnFrame) ...
+                + data.UnanticipatedE(:, firstColumnFrame);
         end
         YXEPG(inxE, :) = tempE;
 

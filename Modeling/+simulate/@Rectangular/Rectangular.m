@@ -157,7 +157,7 @@ classdef Rectangular < handle
 
 
 
-        function setTimeFrame(this, timeFrame)
+        function setFrame(this, timeFrame)
             VEC = @(x) x(:);
             this.FirstColumn = timeFrame(1);
             this.LastColumn = timeFrame(2);
@@ -182,7 +182,7 @@ classdef Rectangular < handle
 
 
     methods (Static)
-        function this = fromModel(model, variantRequested)
+        function this = fromModel(model, variantRequested, useFirstOrder)
             if nargin<2
                 variantRequested = 1;
             elseif variantRequested>1 && length(model)==1 
@@ -190,16 +190,14 @@ classdef Rectangular < handle
             end
 
             this = simulate.Rectangular( );
-
-            % Get first-order solution matrices and expansion matrices
-            update(this, model, variantRequested);
-
-            % Quantities
             this.Quantity = getp(model, 'Quantity');
 
-            % Solution vector
-            this.SolutionVector = getp(model, 'Vector', 'Solution');
+            % Get first-order solution matrices and expansion matrices
+            if useFirstOrder
+                update(this, model, variantRequested);
+            end
 
+            this.SolutionVector = getp(model, 'Vector', 'Solution');
             this.InxOfCurrentWithinXi = imag(this.SolutionVector{2})==0;
         end%
     end

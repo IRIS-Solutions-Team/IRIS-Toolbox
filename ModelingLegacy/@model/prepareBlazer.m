@@ -69,13 +69,13 @@ if strcmpi(kind, 'Steady')
     incid = across(blz.Incidence, 'Shift');
     blz.Assignment = this.Pairing.Assignment.Steady;
     blz.IsBlocks = opt.Blocks;
-    logStatusTypesAllowed = { TYPE(1), TYPE(2), TYPE(4), TYPE(5) };
+    logAllowed = { TYPE(1), TYPE(2), TYPE(4), TYPE(5) };
 
     blz.EquationsToExclude = find(inxL__);
     blz.QuantitiesToExclude = find(inxP__);
 
 
-elseif strcmpi(kind, 'Static') || kind==solver.Method.STATIC
+elseif strcmpi(kind, 'Period') || kind==solver.Method.PERIOD
     %
     % Period by period simulations
     % 
@@ -89,7 +89,7 @@ elseif strcmpi(kind, 'Static') || kind==solver.Method.STATIC
     blz.Incidence = selectShift(this.Incidence.Dynamic, 0);
     blz.Assignment = this.Pairing.Assignment.Dynamic;
     blz.IsBlocks = opt.Blocks;
-    logStatusTypesAllowed = { TYPE(1), TYPE(2), TYPE(5) };
+    logAllowed = { TYPE(1), TYPE(2), TYPE(5) };
 
 
 elseif strcmpi(kind, 'Stacked') || kind==solver.Method.STACKED
@@ -107,7 +107,7 @@ elseif strcmpi(kind, 'Stacked') || kind==solver.Method.STACKED
     blz.Incidence = this.Incidence.Dynamic;
     blz.Assignment = this.Pairing.Assignment.Dynamic;
     blz.IsBlocks = opt.Blocks;
-    logStatusTypesAllowed = { TYPE(1), TYPE(2), TYPE(5) };
+    logAllowed = { TYPE(1), TYPE(2), TYPE(5) };
 
 else
     throw(exception.Base('General:Internal', 'error'));
@@ -118,10 +118,10 @@ blz.Model.Equation = this.Equation;
 
 % Change log-status of variables and/or parameters
 if isfield(opt, 'Log') && ~isempty(opt.Log)
-    blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, true, opt.Log, logStatusTypesAllowed{:});
+    blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, true, opt.Log, logAllowed{:});
 end
 if isfield(opt, 'Unlog') && ~isempty(opt.Unlog)
-    blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, false, opt.Unlog, logStatusTypesAllowed{:});
+    blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, false, opt.Unlog, logAllowed{:});
 end
 
 if isequal(opt.Exogenize, @auto) || isequal(opt.Endogenize, @auto)
@@ -198,7 +198,7 @@ function flag = validateKind(input)
         flag = true;
         return
     end
-    if any(strcmpi(input, {'Steady', 'Stacked', 'Static', 'NoBlocks'}))
+    if any(strcmpi(input, {'Steady', 'Stacked', 'Period'}))
         flag = true;
         return
     end
