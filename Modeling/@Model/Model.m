@@ -427,7 +427,7 @@ classdef Model ...
         varargout = getInxOfInitInPresample(varargin)
         varargout = prepareHashEquations(varargin)
         varargout = prepareLinearSystem(varargin)
-        varargout = simulateTimeFrames(varargin)
+        varargout = simulateFrames(varargin)
     end % methods
 
 
@@ -446,6 +446,7 @@ classdef Model ...
         varargout = simulateStacked(varargin)
         varargout = simulateStatic(varargin)
         varargout = simulateNone(varargin)
+        varargout = splitIntoFrames(varargin)
         %)
     end
 

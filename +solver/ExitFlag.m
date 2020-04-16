@@ -52,9 +52,12 @@ classdef ExitFlag
                 return
             end
             if nargin<2 || isempty(header)
-                header = '';
-            elseif header(end)~=' '
-                header = [header, ' '];
+                header = "";
+            else
+                header = string(header);
+            end
+            if ~endsWith(header, ' ')
+                header = header + " ";
             end
             fprintf('%s%s\n\n', header, this.Message);
         end%

@@ -5,7 +5,7 @@ classdef Method < int8
         FIRST_ORDER ( 1)
         SELECTIVE   ( 2)
         STACKED     ( 3)
-        STATIC      ( 4)
+        PERIOD      ( 5)
     end
 
 
@@ -16,10 +16,8 @@ classdef Method < int8
                     func = @Model.simulateFirstOrder;
                 case solver.Method.SELECTIVE
                     func = @Model.simulateSelective;
-                case solver.Method.STACKED
+                case {solver.Method.STACKED, solver.Method.PERIOD}
                     func = @Model.simulateStacked;
-                case solver.Method.STATIC
-                    func = @Model.simulateStatic;
                 case solver.Method.NONE
                     func = @Model.simulateNone;
                 otherwise
@@ -58,8 +56,8 @@ classdef Method < int8
                 this = solver.Method.SELECTIVE;
             elseif strcmpi(input, 'Stacked')
                 this = solver.Method.STACKED;
-            elseif strcmpi(input, 'Static')
-                this = solver.Method.STATIC;
+            elseif strcmpi(input, 'Period')
+                this = solver.Method.PERIOD;
             else
                 this = solver.Method.INVALID;
             end

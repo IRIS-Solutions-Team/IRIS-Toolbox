@@ -69,11 +69,11 @@ classdef Data < shared.DataBlock
         % SolverOptions  Solver options for iterative methods
         SolverOptions = solver.Options.empty(0)
 
-        % FirstColumnOfTimeFrame  First column of current time frame to be simulated
-        FirstColumnOfTimeFrame
+        % FirstColumnOfFrame  First column of current time frame to be simulated
+        FirstColumnOfFrame
 
-        % LastColumnOfTimeFrame  Last column of current time frame to be simulated
-        LastColumnOfTimeFrame
+        % LastColumnOfFrame  Last column of current time frame to be simulated
+        LastColumnOfFrame
 
         % NeedsUpdateShocks  Shocks have been modified in simulation and need to be update in the output databan
         NeedsUpdateShocks = false
@@ -83,8 +83,8 @@ classdef Data < shared.DataBlock
     methods
         function updateSwapsFromPlan(this, plan)
             [ this.InxOfExogenizedYX, ... 
-              this.InxOfEndogenizedE ] = getSwapsWithinTimeFrame( plan, ...
-                                                                  this.FirstColumnOfTimeFrame, ...
+              this.InxOfEndogenizedE ] = getSwapsWithinFrame( plan, ...
+                                                                  this.FirstColumnOfFrame, ...
                                                                   this.LastColumnOfSimulation );
             this.Target = nan(this.NumOfYX, this.NumOfColumns);
             if this.NumOfExogenizedPoints>0
@@ -206,14 +206,14 @@ classdef Data < shared.DataBlock
         end%
 
 
-        function setTimeFrame(this, timeFrame)
+        function setFrame(this, timeFrame)
             if nargin<2
-                this.FirstColumnOfTimeFrame = this.FirstColumnOfSimulation;
-                this.LastColumnOfTimeFrame = this.LastColumnOfSimulation;
+                this.FirstColumnOfFrame = this.FirstColumnOfSimulation;
+                this.LastColumnOfFrame = this.LastColumnOfSimulation;
                 return
             end
-            this.FirstColumnOfTimeFrame = timeFrame(1);
-            this.LastColumnOfTimeFrame = timeFrame(2);
+            this.FirstColumnOfFrame = timeFrame(1);
+            this.LastColumnOfFrame = timeFrame(2);
         end%
     end
 

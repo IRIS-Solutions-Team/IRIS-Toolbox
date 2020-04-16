@@ -29,6 +29,8 @@ ITER_STRUCT.Reverse = false;
 
 %--------------------------------------------------------------------------
 
+exitFlagHeader = string(exitFlagHeader);
+
 if ~isempty(opt.DisplayLevel)
     displayLevel = opt.DisplayLevel;
 else
@@ -81,7 +83,7 @@ numUnknowns = numel(initX);
 temp = struct('NumberOfVariables', numUnknowns);
 
 if nargin<4
-    exitFlagHeader = '';
+    exitFlagHeader = "";
 end
 tolX = opt.StepTolerance;
 tolFun = opt.FunctionTolerance;
@@ -584,6 +586,7 @@ return
         );
         maxLen = max(cellfun('length', rows));
         divider = repmat('-', 1, maxLen);
+        fprintf('\n');
         cellfun(@disp, rows);
         disp(divider);
     end%
