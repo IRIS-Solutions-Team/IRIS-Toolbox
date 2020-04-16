@@ -36,8 +36,8 @@ classdef LinearSystem < shared.Kalman
 
 
     properties (Constant)
-        NAMES_SYSTEM_MATRICES     = {'T', 'R', 'k', 'Z', 'H', 'd', 'U', 'Zb'}
-        NAMES_COVARIANCE_MATRICES = {'OmegaV', 'OmegaW'}
+        NAMES_SYSTEM_MATRICES     = ["T", "R", "k", "Z", "H", "d", "U", "Zb"]
+        NAMES_COVARIANCE_MATRICES = ["OmegaV", "OmegaW"]
     end
 
 
@@ -92,6 +92,8 @@ classdef LinearSystem < shared.Kalman
         end%
 
 
+        varargout = getSystemMatrix(varargin)
+        varargout = getCovarianceMatrix(varargin)
         varargout = filter(varargin)
         % varargout = triangularize(this)
         %)
@@ -274,6 +276,24 @@ classdef LinearSystem < shared.Kalman
         %(
         varargout = fromModel(varargin)
         %)
+    end
+
+
+
+
+    methods (Static, Hidden)
+        function flag = validateSystemMatrixName(varargin)
+            flag = all( ...
+                cellfun(@(x) any(x==LinearSystem.NAMES_SYSTEM_MATRICES), varargin) ...
+            );
+        end%
+
+
+        function flag = validateCovarianceMatrixName(varargin)
+            flag = all( ...
+                cellfun(@(x) any(x==LinearSystem.NAMES_COVARIANCE_MATRICES), varargin) ...
+            );
+        end%
     end
 end
 
