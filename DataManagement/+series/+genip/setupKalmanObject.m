@@ -61,14 +61,17 @@ kalmanObj = timeVaryingSystem(kalmanObj, 1:numHighPeriods, {T, R, k, Z, H, d}, {
 
 return
 
-    function T = hereSetupTransitionMatrix( )
+    function [T, g] = hereSetupTransitionMatrix( )
         T = diag(ones(1, numXi-1), 1);
         T = repmat(T, 1, 1, numHighPeriods);
+        g = NaN;
         switch string(transitionModel)
             case "Rate"
-                T(numXi, numXi, :) = hereSetupTransitionRate( );
+                g = hereSetupTransitionRate( );
+                T(numXi, numXi, :) = g;
             case "Level"
                 % Level indicator, do nothing
+                % T(numXi, numXi, :) = 0;
             case "Diff"
                 T(numXi, numXi, :) = 1;
             case "DiffDiff"
@@ -84,9 +87,7 @@ return
         else
             g = double(transition.Rate);
         end
-        if isscalar(g)
-            g = repmat(g, 1, 1, numHighPeriods);
-        else
+        if ~isscalar(g)
             g = reshape(g, 1, 1, [ ]);
         end
     end%

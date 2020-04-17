@@ -137,7 +137,7 @@ inxValidFactor = true(1, numRuns);
 for run = 1 : numRuns
     if s.IsSimulate
         prepareOnly = true;
-        s.Simulate = simulateTimeFrames(this, opt.Simulate, run, prepareOnly);
+        s.Simulate = simulateFrames(this, opt.Simulate, run, prepareOnly);
     end
 
     %

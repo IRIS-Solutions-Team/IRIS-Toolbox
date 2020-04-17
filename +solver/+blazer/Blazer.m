@@ -26,7 +26,12 @@ classdef (Abstract) Blazer ...
         InxCanBeExogenized
         IsBlocks = true
         IsGrowth = false
+
+        % IsSingular  True if there is structural singularity in the system of equations
         IsSingular = false
+
+        % SuspectEquations  Equations suspect for causing structural singularity
+        SuspectEquations = double.empty(1, 0)
 
         % NanInit  Values assigned to NaN initial conditions
         NanInit = NaN
@@ -125,8 +130,9 @@ classdef (Abstract) Blazer ...
             [inc, idEqn, idQty] = prepareIncidenceMatrix(this);
             if this.IsBlocks
                 [ordInc, ordEquation, ordQuantity] = this.reorder(inc, idEqn, idQty);
-                this.IsSingular = sprank(ordInc)<min(size(ordInc));
-                [blkEqn, blkQty] = this.getBlocks(ordInc, ordEquation, ordQuantity);
+                [blkEqn, blkQty, blkInc] = this.getBlocks(ordInc, ordEquation, ordQuantity);
+                [this.IsSingular, this.SuspectEquations] = ...
+                    this.investigateSingularity(ordInc, blkInc, blkEqn);
             else
                 blkEqn = { idEqn };
                 blkQty = { idQty };
@@ -293,21 +299,41 @@ classdef (Abstract) Blazer ...
         end%
         
         
-        function [blkEqn, blkQty] = getBlocks(ordInc, idEqn, idQty)
+        function [blkEqn, blkQty, blkInc] = getBlocks(ordInc, idEqn, idQty)
             PTR = @int16;
             n = size(ordInc, 1);
             blkEqn = cell(1, 0);
             blkQty = cell(1, 0);
+            blkInc = cell(1, 0);
             currBlkEqn = repmat(PTR(0), 1, 0);
             currBlkQty = repmat(PTR(0), 1, 0);
+            previous = n+1;
             for i = n : -1 : 1
                 currBlkQty(end+1) = idQty(i); %#ok<AGROW>
                 currBlkEqn(end+1) = idEqn(i); %#ok<AGROW>
                 if ~any( any( ordInc(i:end, 1:i-1) ) )
                     blkQty{end+1} = fliplr(currBlkQty); %#ok<AGROW>
                     blkEqn{end+1} = fliplr(currBlkEqn); %#ok<AGROW>
+                    blkInc{end+1} = ordInc(i:previous-1, i:previous-1);
+                    previous = i;
                     currBlkQty = repmat(PTR(0), 1, 0);
                     currBlkEqn = repmat(PTR(0), 1, 0);
+                end
+            end
+        end%
+
+
+
+
+        function [isSingular, suspectEquations] = investigateSingularity(ordInc, blkInc, blkEqn)
+            isSingular = sprank(ordInc)<min(size(ordInc));
+            suspectEquations = double.empty(1, 0);
+            if isSingular
+                for i = 1 : numel(blkInc)
+                    if sprank(blkInc{i})<min(size(blkInc{i}))
+                        suspectEquations = blkEqn{i};
+                        break
+                    end
                 end
             end
         end%

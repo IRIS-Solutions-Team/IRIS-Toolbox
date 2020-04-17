@@ -16,8 +16,10 @@ else
     variantsRequested = variantsRequested(:).';
 end
 success = true(1, nv);
-outputInfo = struct( 'ExitFlags', solver.ExitFlag.empty(0), ...
-                     'Blazer', blazer );
+outputInfo = struct( ...
+    'ExitFlags', solver.ExitFlag.empty(0), ...
+    'Blazer', blazer ...
+);
 
 if isequal(blazer, false)
     return
@@ -63,7 +65,7 @@ for v = variantsRequested
     for i = 1 : numBlocks
         blk = blazer.Block{i};
         blk.SteadyShift = 3;
-        header = sprintf('[Variant:%g][Block:%g]', v, i);
+        header = sprintf("[Variant:%g][Block:%g]", v, i);
         [levelX, changeX, exitFlag, error] = run(blk, this.Link, levelX, changeX, header);
         outputInfo.ExitFlags{v}(i) = exitFlag;
         %{

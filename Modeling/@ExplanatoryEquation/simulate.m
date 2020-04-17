@@ -1,6 +1,7 @@
 function [outputDb, info] = simulate(this, inputDb, range, varargin)
-% simulate  Simulate Explanatory model
 %{
+% simulate  Simulate Explanatory model
+%
 % ## Syntax ##
 %
 %
