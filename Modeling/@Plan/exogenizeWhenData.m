@@ -10,6 +10,8 @@ function this = exogenizeWhenData(this, dates, names, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+% Parse input arguments
+%(
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Plan/exogenizeWhenData');
@@ -19,6 +21,7 @@ end
 parse(pp, varargin{:});
 unmatched = pp.UnmatchedInCell;
 opt = pp.Options;
+%)
 
 %--------------------------------------------------------------------------
 

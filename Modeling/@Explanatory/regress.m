@@ -87,7 +87,7 @@ for q = find(inxToEstimate)
     if opt.FixParameters
         fixed = this__.Parameters;
     else
-        fixed = [this__.Explanatory.Fixed];
+        fixed = [this__.ExplanatoryTerms.Fixed];
     end
     
     %

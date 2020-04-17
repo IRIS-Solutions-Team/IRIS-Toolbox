@@ -193,7 +193,7 @@ return
                     this__ = this(block(jj));
                     % Names of all current dated variables on the RHS in
                     % this equation
-                    incInEquation = [this__.Explanatory.Incidence];
+                    incInEquation = [this__.ExplanatoryTerms.Incidence];
                     incInEquation = incInEquation(imag(incInEquation)==0);
                     currentDatedVariablesInEquation = this__.VariableNames(incInEquation);
                     incInBlock(jj, ismember(lhsNamesInBlock, currentDatedVariablesInEquation)) = true;

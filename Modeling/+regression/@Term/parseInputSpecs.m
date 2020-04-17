@@ -1,11 +1,13 @@
 function varargout = parseInputSpecs(xq, inputSpecs, inputTransform, inputShift, types)
-% parseInputSpecs  Parse input specification of Dependent or Explanatory Terms
-% 
+% parseInputSpecs  Parse input specification of DependentTerm or
+% ExplanatoryTerms
+%{
 % Backend [IrisToolbox] method
 % No help provided
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % Invoke unit tests
 %(
@@ -286,7 +288,7 @@ return
                     c = "controls__." + c1;
                     return
                 end
-                pos = getPositionOfName(xq, c1);
+                pos = getPosName(xq, c1);
                 sh = 0;
                 if isnan(pos)
                     invalidNames = [invalidNames, string(c1)];

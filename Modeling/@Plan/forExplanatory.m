@@ -1,16 +1,16 @@
-function this = forExplanatory(explanatory, simulationRange)
+function this = forExplanatory(expy, simulationRange)
 % forExplanatory  Construct a simulation Plan object for Explanatory object or array
 %{
 % ## Syntax ##
 %
 %
-%     p = Plan.forExplanatory(explanatory, simulationRange, ...)
+%     p = Plan.forExplanatory(expy, simulationRange, ...)
 %
 %
 % ## Input Arguments ##
 %
 %
-% __`explanatory`__ [ Explanatory ]
+% __`expy`__ [ Explanatory ]
 % >
 % Explanatory object or array for which the new simulation Plan `p`
 % will be created on the `simulationRange`.
@@ -18,7 +18,8 @@ function this = forExplanatory(explanatory, simulationRange)
 %
 % __`simulationRange`__ [ DateWrapper ]
 % >
-% Range on which the `explanatory` will be simulated using the plan `p`.
+% The range on which the `expy` object or array will be simulated using the
+% simulation plan `p`.
 %
 %
 % ## Output Arguments ##
@@ -26,7 +27,7 @@ function this = forExplanatory(explanatory, simulationRange)
 %
 % __`p`__ [ Plan ]
 % >
-% A new simulation Plan object that can be use when simulating the `explanatory`
+% A new simulation Plan object that can be use when simulating the `expy`
 % object or array on the `simulationRange`.
 %
 %
@@ -63,10 +64,10 @@ function this = forExplanatory(explanatory, simulationRange)
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Plan.Plan');
-    addRequired(pp, 'explanatory', @(x) isa(x, 'Explanatory'));
+    addRequired(pp, 'expy', @(x) isa(x, 'Explanatory'));
     addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
 end
-parse(pp, explanatory, simulationRange);
+parse(pp, expy, simulationRange);
 simulationRange = double(simulationRange);
 
 %--------------------------------------------------------------------------
@@ -74,7 +75,7 @@ simulationRange = double(simulationRange);
 this = Plan( );
 this.BaseStart = simulationRange(1);
 this.BaseEnd = simulationRange(end);
-this = preparePlan(explanatory, this);
+this = preparePlan(expy, this);
 
 numEndogenous = this.NumOfEndogenous;
 numExogenous = this.NumOfExogenous;

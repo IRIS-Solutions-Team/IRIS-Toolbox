@@ -12,7 +12,7 @@ function blazerObj = prepareBlazer(this, isBlocks)
 numEquations = numel(this);
 lhsNames = [this(:).LhsName];
 
-blazerObj = solver.blazer.Explanatory( );
+blazerObj = solver.blazer.ExplanatoryTerms( );
 blazerObj.Model.Quantity = model.component.Quantity.fromNames(lhsNames);
 blazerObj.Model.Equation = model.component.Equation.fromInput({this.Input});
 blazerObj.InxEquations = true(1, numEquations);

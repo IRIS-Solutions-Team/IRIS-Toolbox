@@ -1,4 +1,4 @@
-function varargout = fromFile(sourceFiles, varargin)
+function this = fromFile(sourceFiles, varargin)
 % fromFile  Create an array of Explanatory objects from a source (text) file (or files)
 %{
 % ## Syntax ##
@@ -42,15 +42,8 @@ function varargout = fromFile(sourceFiles, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-% Invoke unit tests
+% Parse input arguments
 %(
-if nargin==1 && isequal(sourceFiles, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
-
-
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory.fromFile');
@@ -58,9 +51,11 @@ if isempty(pp)
     addRequired(pp, 'sourceFiles', @(x) validate.list(x) || isa(x, 'model.File'));
     addParameter(pp, {'Assigned', 'Assign'}, struct([ ]), @(x) isempty(x) || isstruct(x));
     addParameter(pp, 'Preparser', cell.empty(1, 0), @iscell);
+    addParameter(pp, 'InitObject', Explanatory( ), @(x) isa(x, 'Explanatory'));
 end
 parse(pp, sourceFiles, varargin{:});
 opt = pp.Options;
+%)
 
 %--------------------------------------------------------------------------
 
@@ -96,6 +91,7 @@ end
 this = Explanatory.fromString( ...
     equations, pp.UnmatchedInCell{:} ...
     , 'ControlNames=', controlNames ...
+    , 'InitObject=', opt.InitObject ...
 );
 
 
@@ -127,12 +123,6 @@ if ~isempty(export__)
     export(export__);
 end
 
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout{1} = this;
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-
 end%
 
 
@@ -142,208 +132,3 @@ end%
 % Unit Tests 
 %
 %(
-function tests = unitTests( )
-    tests = functiontests({ 
-        @singleSourceFileTest
-        @sourceFileWithCommentsTest
-        @sourceFileWithEmptyEquationsTest
-        @sourceFileWithAttributesTest
-        @preparserForIfTest
-        @preparserSwitchTest
-        @equationsAttributesTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
-
-
-function singleSourceFileTest(testCase)
-    f = model.File( );
-    f.FileName = 'test.model';
-    f.Code = [
-        "%% Model"
-        "!for ? = $[ list ]$ !do"
-        "  % Country specific equation"
-        "  x_? = @ + @*x_?{-1} - @*y + y*z;"
-        "!end"
-    ];
-    control = struct( );
-    control.list = ["AA", "BB", "CC"];
-    act = Explanatory.fromFile(f, 'Preparser=', {'Assign=', control});
-    for i = 1 : numel(control.list)
-        exp = Explanatory( );
-        s = control.list(i);
-        exp.VariableNames = ["x_"+s, "y", "z"];
-        exp.FileName = string(f.FileName);
-        exp.InputString = "x_"+s+"=@+@*x_"+s+"{-1}-@*y+y*z;";
-        exp.Comment = "Model";
-        exp = defineDependent(exp, 1);
-        exp = addExplanatory(exp, "1");
-        exp = addExplanatory(exp, 1, "Shift=", -1);
-        exp = addExplanatory(exp, "-y");
-        exp = addExplanatory(exp, "y*z", "Fixed=", 1);
-        assertEqual(testCase, act(i).Explanatory, exp.Explanatory);
-        assertEqual(testCase, act(i), exp);
-    end
-end%
-
-
-function sourceFileWithCommentsTest(testCase)
-    f = model.File( );
-    f.FileName = 'test.model';
-    f.Code = [
-        " 'aaa' a = a{-1};"
-        " 'bbb' b = b{-1};"
-        " c = c{-1};"
-        " 'ddd' d = d{-1};"
-    ];
-    act = Explanatory.fromFile(f);
-    exp_LhsName = ["a", "b", "c", "d"];
-    assertEqual(testCase, [act.LhsName], exp_LhsName);
-    exp_Label = ["aaa", "bbb", "", "ddd"];
-    assertEqual(testCase, [act.Label], exp_Label);
-end%
-
-
-function sourceFileWithEmptyEquationsTest(testCase)
-    f = model.File( );
-    f.FileName = 'test.model';
-    f.Code = [
-        " 'aaa' a = a{-1};"
-        "'bbb' b = b{-1}; :empty;"
-        " c = c{-1};"
-        " 'ddd' d = d{-1}; ; :xxx"
-    ];
-
-    state = warning('query');
-    warning('off');
-    act = Explanatory.fromFile(f);
-    warning(state);
-
-    exp_LhsName = ["a", "b", "c", "d"];
-    assertEqual(testCase, [act.LhsName], exp_LhsName);
-    exp_Label = ["aaa", "bbb", "", "ddd"];
-    assertEqual(testCase, [act.Label], exp_Label);
-    for i = 1 : numel(act)
-        assertEqual(testCase, act(i).Attributes, string.empty(1, 0));
-    end
-end%
-
-
-function sourceFileWithAttributesTest(testCase)
-    f = model.File( );
-    f.FileName = 'test.model';
-    f.Code = [
-        ":first 'aaa' a = a{-1};"
-        "'bbb' b = b{-1};"
-        ":second :first c = c{-1};"
-        ":first :last 'ddd' d = d{-1};"
-    ];
-    act = Explanatory.fromFile(f);
-    exp_Attributes = {
-        ":first"
-        string.empty(1, 0)
-        [":second" ":first"]
-        [":first" ":last"]
-    };
-    for i = 1 : 4
-        assertEqual(testCase, act(i).Attributes, exp_Attributes{i});
-    end
-end%
-
-
-function preparserForIfTest(testCase)
-    f1 = model.File( );
-    f1.FileName = 'test.model';
-    f1.Code = [
-        "!for ?c = $[ list ]$ !do"
-        "    x_?c = "
-        "    !for ?w = $[ list ]$ !do"
-        "        !if ""?w""~=""?c"" "
-        "            + w_?c_?w*x_?w"
-        "        !end"
-        "    !end"
-        "    ;"
-        "!end"
-    ];
-    f2 = model.File( );
-    f2.FileName = 'test.model';
-    f2.Code = [
-        "!for ?c = $[ list ]$ !do"
-        "    x_?c = "
-        "    !for ?w = $[ setdiff(list, ""?c"") ]$ !do"
-        "        !if ""?w""~=""?c"" "
-        "            + w_?c_?w*x_?w"
-        "        !end"
-        "    !end"
-        "    ;"
-        "!end"
-    ];
-    control = struct( );
-    control.list = ["AA", "BB", "CC"];
-    act1 = Explanatory.fromFile(f1, 'Preparser=', {'Assign=', control});
-    act2 = Explanatory.fromFile(f2, 'Preparser=', {'Assign=', control});
-    for i = 1 : numel(control.list)
-        assertEqual(testCase, act1(i).LhsName, "x_"+control.list(i));
-    end
-    assertEqual( ...
-        testCase, ...
-        func2str(act1(1).Explanatory.Expression), ...
-        '@(x,t,date__,controls__)x(2,t,:).*x(3,t,:)+x(4,t,:).*x(5,t,:)' ...
-    );
-    assertEqual(testCase, act1, act2);
-end%
-
-
-function preparserSwitchTest(testCase)
-    f1 = model.File( );
-    f1.FileName = 'test.model';
-    f1.Code = [
-        "!switch country"
-        "   !case ""AA"" "
-        "       x = 0.8*x{-1};"
-        "   !case ""BB"" "
-        "       x = sqrt(y);"
-        "    !case ""CC"" "
-        "       x = a + b;"
-        "   !otherwise"
-        "       x = 0;"
-        "!end"
-    ];
-    exp_Expression = {
-        '@(x,t,date__,controls__)0.8.*x(1,t-1,:)'
-        '@(x,t,date__,controls__)sqrt(x(2,t,:))'
-        '@(x,t,date__,controls__)x(2,t,:)+x(3,t,:)'
-        '@(x,t,date__,controls__)0'
-    };
-    list = ["AA", "BB", "CC", "DD"];
-    for i = 1 : numel(list)
-        control.country = list(i);
-        act = Explanatory.fromFile(f1, 'Preparser=', {'Assign=', control});
-        assertEqual(testCase, func2str(act.Explanatory.Expression), exp_Expression{i});
-    end
-end%
-
-
-function equationsAttributesTest(testCase)
-    f = model.File( );
-    f.FileName = "test.eqtn";
-    f.Code = [
-        "!equations(:aa, :bb)"
-        ":1 a=a{-1}; :2 b=b{-1};"
-        ":3 c=c{-1};"
-        "!equations :4 d=d{-1};"
-        "!equations(:cc)"
-        ":5 e=e{-1};"
-    ];
-    act = Explanatory.fromFile(f);
-    exp_Attributes = {
-        [":aa", ":bb", ":1"]
-        [":aa", ":bb", ":2"]
-        [":aa", ":bb", ":3"]
-        [":4"]
-        [":cc", ":5"]
-    };
-    assertEqual(testCase, reshape({act.Attributes}, [ ], 1), exp_Attributes);
-end%
-%)
-

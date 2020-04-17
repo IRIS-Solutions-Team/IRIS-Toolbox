@@ -236,14 +236,14 @@ return
 
 
     function hereRunRecursive( )
-        posLhs__ = this__.Dependent.Position;
+        posLhs__ = this__.DependentTerm.Position;
         lhsPlainData__ = plainData(posLhs__, :, :);
         inxData__ = ~isnan(lhsPlainData__(1, :, :));
         needsUpdate__ = false;
         for tt = baseRangeColumns
             if needsUpdate__
                 date = getIth(extendedRange, tt);
-                rhs = updateOwnExplanatory(this__.Explanatory, rhs, plainData, tt, date, controls);
+                rhs = updateOwnExplanatoryTerms(this__.ExplanatoryTerms, rhs, plainData, tt, date, controls);
             end
             columnsToUpdate = double.empty(1, 0);
             needsUpdate__ = false;
@@ -278,7 +278,7 @@ return
                     needsUpdate__ = true;
                 end
             end
-            plainData = updatePlainData(this__.Dependent, plainData, lhs, res, baseRangeColumns);
+            plainData = updatePlainData(this__.DependentTerm, plainData, lhs, res, baseRangeColumns);
         end
     end%
 
@@ -286,7 +286,7 @@ return
 
 
     function hereRunOnce(columnsToRun)
-        posLhs__ = this__.Dependent.Position;
+        posLhs__ = this__.DependentTerm.Position;
         lhsPlainData__ = plainData(posLhs__, :, :);
         for vv = 1 : numRuns
             if vv<=nv
@@ -319,7 +319,7 @@ return
                 lhs(1, inxColumnsToRun__, vv) = parameters__*rhs(:, inxColumnsToRun__, vv) + res__;
             end
         end
-        plainData = updatePlainData(this__.Dependent, plainData, lhs, res, columnsToRun);
+        plainData = updatePlainData(this__.DependentTerm, plainData, lhs, res, columnsToRun);
     end%
 
 

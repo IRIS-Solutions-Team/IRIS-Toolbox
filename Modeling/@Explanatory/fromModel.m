@@ -41,6 +41,8 @@ function this = fromModel(model, lhsNames, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+% Parse input arguments
+%(
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory/fromModel');
@@ -49,6 +51,8 @@ if isempty(pp)
     addRequired(pp, 'lhsNames', @(x) validate.list(x));
 end
 parse(pp, model, lhsNames, varargin{:});
+opt = pp.Options;
+%)
 
 %--------------------------------------------------------------------------
 

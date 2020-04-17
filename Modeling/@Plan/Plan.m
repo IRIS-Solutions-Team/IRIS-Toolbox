@@ -881,7 +881,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         varargout = forModel(varargin)
         varargout = forExplanatory(varargin)
 
-        function varargout = forExplanatory(varargin)
+        function varargout = forExplanatoryEquation(varargin)
             [varargout{1:nargout}] = Plan.forExplanatory(varargin{:});
         end%
         %)

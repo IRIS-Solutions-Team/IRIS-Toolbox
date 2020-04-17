@@ -9,7 +9,7 @@ classdef Explanatory ...
     & shared.Plan
 
 
-    properties
+    properties (SetAccess=protected)
         VariableNames (1, :) string = string.empty(1, 0)
         ControlNames (1, :) string = string.empty(1, 0)
         Label (1, 1) string = ""
@@ -52,12 +52,12 @@ classdef Explanatory ...
         DateReference (1, 1) string = "date__"
 
 
-% Dependent  Dependent (LHS) term
-        Dependent (1, :) regression.Term = regression.Term.empty(1, 0)
+% DependentTerm  Dependent (left-hand side) term
+        DependentTerm (1, :) regression.Term = regression.Term.empty(1, 0)
 
 
-% Explanatory  Array of explanatory (RHS) terms
-        Explanatory (1, :) regression.Term = regression.Term.empty(1, 0)
+% ExplanatoryTerms  Array of right hand side (explanatory) terms
+        ExplanatoryTerms (1, :) regression.Term = regression.Term.empty(1, 0)
 
 
         Statistics (1, 1) struct = struct( 'VarResiduals', NaN, ...
@@ -80,14 +80,14 @@ classdef Explanatory ...
     properties (Dependent)
         NeedsIterate
         FreeParameters
-        PosOfLhsName
+        PosLhsName
         RhsContainsLhsName
         LhsName
         ResidualName
         FittedName
         PlainDataNames
-        NumOfExplanatory
-        NumOfParameters
+        NumExplanatoryTerms
+        NumParameters
         MaxLag
         MaxLead
     end
@@ -125,7 +125,7 @@ classdef Explanatory ...
         varargout = collectRhsNames(varargin)
         varargout = checkUniqueLhs(varargin)
         varargout = declareSwitches(varargin)
-        varargout = defineDependent(varargin)
+        varargout = defineDependentTerm(varargin)
         varargout = getActualMinMaxShifts(varargin)
         varargout = lookup(varargin)
         varargout = regress(varargin)
@@ -139,10 +139,10 @@ classdef Explanatory ...
 
     methods % Frontend Definitions
         %(
-        function this = addExplanatory(this, varargin)
+        function this = addExplanatoryTerm(this, varargin)
             term = regression.Term(this, varargin{:});
             term.ContainsLhsName = containsLhsName(term, this);
-            this.Explanatory(1, end+1) = term;
+            this.ExplanatoryTerms(1, end+1) = term;
             this.Parameters(:, end+1, :) = term.Fixed;
             this.Statistics.CovParameters(end+1, end+1, :) = NaN;
         end%
@@ -172,23 +172,23 @@ classdef Explanatory ...
 
 
 
-        function this = removeExplanatory(this, varargin)
-            numExplanatory = this.NumOfExplanatory;
-            if numel(varargin)==1 && validated.roundScalarInRange(varargin{1}, 1, numExplanatory)
-                inx = false(1, numExplanatory);
+        function this = removeExplanatoryTerm(this, varargin)
+            numExplanatoryTerms = this.NumExplanatoryTerms;
+            if numel(varargin)==1 && validated.roundScalarInRange(varargin{1}, 1, numExplanatoryTerms)
+                inx = false(1, numExplanatoryTerms);
                 inx(pos) = true;
             else
                 term = regression.Term(this, varargin{:});
-                inx = this.Explanatory==term;
+                inx = this.ExplanatoryTerms==term;
             end
             if any(inx)
-                this.Explanatory(inx) = [ ];
+                this.ExplanatoryTerms(inx) = [ ];
                 this.Parameters(:, inx, :) = [ ];
                 this.Statistics.CovParameters(inx, inx, :) = [ ];
                 return
             end
             thisError = [ 
-                "Explanatory:CannotFindExplanatory"
+                "Explanatory:CannotFindExplanatoryTerm"
                 "Cannot find the specified explanatory variable or term "
                 "that is to be removed from an Explanatory model."
             ];
@@ -198,18 +198,14 @@ classdef Explanatory ...
 
 
 
-        function inx = matchExplanatorySpecs(this, term)
-            numExplanatory = this.NumOfExplanatory;
-            inx = false(1, numExplanatory);
-            for i = 1 : numExplanatory
-                inx(i) = isequal(term, this.Explanatory(i, :));
-            end
+        function inx = matchExplanatoryTerms(this, term)
+            inx = arrayfun(@(x) isequal(term, x), this.ExplanatoryTerms);
         end%
 
 
 
         
-        function pos = getPositionOfName(this, name)
+        function pos = getPosName(this, name)
             name = replace(string(name), " ", "");
             inx = name==this.VariableNames;
             if nnz(inx)==1
@@ -240,8 +236,8 @@ classdef Explanatory ...
                 return
             end
             nv = arrayfun(@(x) size(x.Parameters, 3), this);
-            value = nv(1);
-            if all(nv==value)
+            value = max(nv);
+            if all(nv==value | nv==1)
                 return
             end
             thisError = [ 
@@ -308,34 +304,34 @@ classdef Explanatory ...
 
 
     methods
-        function this = set.Dependent(this, term)
+        function this = set.DependentTerm(this, term)
             if ~isscalar(term)
                 thisError = [ 
-                    "Explanatory:InvalidDependent"
-                    "Only one Dependent (LHS) term can be specified "
+                    "Explanatory:InvalidDependentTerm"
+                    "Only one DependentTerm can be specified "
                     "in an Explanatory object." 
                 ];
                 throw(exception.Base(thisError, "error"));
             end
             if ~isempty(term.Expression)
                 thisError = [ 
-                    "Explanatory:InvalidDependent"
-                    "Invalid specification of the Dependent (LHS) term "
+                    "Explanatory:InvalidDependentTerm"
+                    "Invalid specification of the DependentTerm "
                     "in an ExplanatoryEqution object."
                 ];
                 throw(exception.Base(thisError, "error"));
             end
             if term.Shift~=0
                 thisError = [ 
-                    "Explanatory:InvalidDependent"
-                    "Depedent (LHS) term in an Explanatory objection "
+                    "Explanatory:InvalidDependentTerm"
+                    "Depedent term in an Explanatory objection "
                     "is not allowed with a time shift (lag or lead). "
                 ];
                 throw(exception.Base(thisError, 'error'));
             end
             term.Fixed = 1;
             term.ContainsLhsName = true;
-            this.Dependent = term;
+            this.DependentTerm = term;
         end%
 
 
@@ -400,8 +396,8 @@ classdef Explanatory ...
         function value = get.NeedsIterate(this)
             value = false(size(this));
             for i = 1 : numel(this)
-                value(i) = startsWith(this(i).Dependent.Transform, "diff") ...
-                    || any([this(i).Explanatory.ContainsLhsName]);
+                value(i) = startsWith(this(i).DependentTerm.Transform, "diff") ...
+                    || any([this(i).ExplanatoryTerms.ContainsLhsName]);
             end
         end%
 
@@ -409,7 +405,7 @@ classdef Explanatory ...
 
 
         function value = get.FreeParameters(this)
-            value = this.Parameters(:, isnan([this.Explanatory(:).Fixed]), :);
+            value = this.Parameters(:, isnan([this.ExplanatoryTerms(:).Fixed]), :);
         end%
 
 
@@ -421,25 +417,25 @@ classdef Explanatory ...
             if nv>1 && numValues==1
                 value = repmat(value, 1, 1, nv);
             end
-            this.Parameters(:, isnan([this.Explanatory(:).Fixed]), :) = value;
+            this.Parameters(:, isnan([this.ExplanatoryTerms(:).Fixed]), :) = value;
         end%
 
 
 
 
-        function value = get.PosOfLhsName(this)
-            if isempty(this.Dependent)
+        function value = get.PosLhsName(this)
+            if isempty(this.DependentTerm)
                 value = NaN;
                 return
             end
-            value = this.Dependent.Position;
+            value = this.DependentTerm.Position;
         end%
 
 
 
 
         function value = get.MaxLag(this)
-            allMaxLags = [this.Explanatory.MinShift];
+            allMaxLags = [this.ExplanatoryTerms.MinShift];
             value = min(allMaxLags);
             value = min(0, value);
         end%
@@ -448,7 +444,7 @@ classdef Explanatory ...
 
 
         function value = get.MaxLead(this)
-            allMaxLeads = [this.Explanatory.MaxShift];
+            allMaxLeads = [this.ExplanatoryTerms.MaxShift];
             value = max(allMaxLeads);
             value = max(0, value);
         end%
@@ -461,7 +457,7 @@ classdef Explanatory ...
                 value = "";
                 return
             end
-            posLhsName = this.PosOfLhsName;
+            posLhsName = this.PosLhsName;
             if ~isscalar(posLhsName) || ~isfinite(posLhsName)
                 value = "";
                 return
@@ -473,7 +469,7 @@ classdef Explanatory ...
 
 
         function value = get.RhsContainsLhsName(this)
-            value = any([this.Explanatory.ContainsLhsName]);
+            value = any([this.ExplanatoryTerms.ContainsLhsName]);
         end%
 
 
@@ -508,15 +504,15 @@ classdef Explanatory ...
 
 
 
-        function value = get.NumOfExplanatory(this)
-            value = numel(this.Explanatory);
+        function value = get.NumExplanatoryTerms(this)
+            value = numel(this.ExplanatoryTerms);
         end%
 
 
 
 
-        function value = get.NumOfParameters(this)
-            value = this.NumOfExplanatory;
+        function value = get.NumParameters(this)
+            value = this.NumExplanatoryTerms;
         end%
     end
 
