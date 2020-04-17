@@ -49,14 +49,12 @@ function inObject = hereAssign(time, inObject, user, names)
         inObject{i}(:, :, 1+time) = user__;
     end
 
-    if all(inxValidDim)
-        return
+    if any(~inxValidDim)
+        thisError = [ 
+            "LinearSystem:InvalidDimensions"
+            "Invalid dimensions of this LinearSystem matrix: %s" 
+        ];
+        throw(exception.Base(thisError, 'error'), names(~inxValidDim));
     end
-
-    thisError = [ 
-        "LinearSystem:InvalidDimensions"
-        "Invalid dimensions of this LinearSystem matrix: %s" 
-    ];
-    throw(exception.Base(thisError, 'error'), names{~inxValidDim});
 end%
 

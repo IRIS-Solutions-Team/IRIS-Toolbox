@@ -6,26 +6,26 @@ function const = getTransitionConstant(model, aggregation, lowData)
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-nw = size(aggregation, 2);
+numWithin = size(aggregation, 2);
 
 if strcmpi(model, 'Level')
     order = 0;
 elseif strcmpi(model, 'Diff')
     order = 1;
-elseif strcmpi(model, 'DiffDiff')
+elseif strcmpi(model, 'DiffDiff') || strcmpi(model, 'Diff^2')
     order = 2;
 end
 
-target = hereRegressTarget( );
-const = hereCalculateConstant( );
+target = hereCalculateLowConstant( );
+const = hereConvertToHighConstant( );
 
 return
 
-    function target = hereRegressTarget( )
+    function target = hereCalculateLowConstant( )
         numLowPeriods = size(lowData, 1);
         M = ones(numLowPeriods, 1);
         for i = 1 : order
@@ -37,12 +37,12 @@ return
     end%
 
 
-    function const = hereCalculateConstant( )
-        x = ones(nw*(order+1), 1);
+    function const = hereConvertToHighConstant( )
+        x = ones(numWithin*(order+1), 1);
         for i = 1 : order
             x = cumsum(x);
         end
-        y = aggregation*reshape(x, nw, [ ]);
+        y = aggregation*reshape(x, numWithin, [ ]);
         if order>0
             y = diff(y, order, 2);
         end
