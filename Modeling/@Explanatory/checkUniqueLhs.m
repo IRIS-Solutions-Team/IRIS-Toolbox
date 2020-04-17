@@ -10,9 +10,9 @@ function varargout = checkUniqueLhs(this, varargin)
 % ## Input Arguments ##
 %
 %
-% __`xq`__ [ ExplanatoryEquation ]
+% __`xq`__ [ Explanatory ]
 % >
-% An ExplanatoryEquation array whose LHS names will be checked
+% An Explanatory array whose LHS names will be checked
 %
 %
 % Description
@@ -41,8 +41,8 @@ end
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('@ExplanatoryEquation/checkUniqueLhs');
-    addRequired(pp, 'xq', @(x) isa(x, 'ExplanatoryEquation'));
+    pp = extend.InputParser('@Explanatory/checkUniqueLhs');
+    addRequired(pp, 'xq', @(x) isa(x, 'Explanatory'));
     addParameter(pp, 'ThrowAs', 'Error', @(x) validate.anyString(x, 'Error', 'Warning'));
 end
 parse(pp, this, varargin{:});
@@ -52,9 +52,9 @@ opt = pp.Options;
 
 [flag, list] = verifyUniqueLhs(this);
 if ~flag
-    thisError = [ "ExplanatoryEquation:NonuniqueLhs"
+    thisError = [ "Explanatory:NonuniqueLhs"
                   "This name occurs on the LHS of more than "
-                  "one equation in the ExplanatoryEquation array: %s " ];
+                  "one equation in the Explanatory array: %s " ];
     throw(exception.Base(thisError, opt.ThrowAs));
 end
 
@@ -80,7 +80,7 @@ end%
 
 function setupOnce(testCase)
     testCase.TestData.Object = ...
-        ExplanatoryEquation.fromString(["x=x{-1}", "diff(y)=z", "diff(x)=z"]);
+        Explanatory.fromString(["x=x{-1}", "diff(y)=z", "diff(x)=z"]);
 end%
 
 

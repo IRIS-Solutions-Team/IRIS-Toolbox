@@ -52,7 +52,7 @@ function varargout = if_(varargin)
 %
 % ## Description ##
 %
-% Use this function in an ExplanatoryEquation to mimic the following
+% Use this function in an Explanatory to mimic the following
 % if-elseif-else structure:
 % 
 %     if cond

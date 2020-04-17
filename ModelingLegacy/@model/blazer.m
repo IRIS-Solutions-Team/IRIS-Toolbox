@@ -82,6 +82,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('model.blazer');
     pp.KeepUnmatched = true;
+
     addRequired(pp, 'model', @(x) isa(x, 'model'));
 
     addParameter(pp, 'Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));

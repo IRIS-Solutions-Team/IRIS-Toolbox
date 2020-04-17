@@ -10,9 +10,9 @@ function lhsNames = collectLhsNames(this)
 % ## Input Arguments ##
 %
 %
-% __`this`__ [ ExplanatoryEquation ]
+% __`this`__ [ Explanatory ]
 % >
-% ExplanatoryEquation object or array whose LHS variables will be returned.
+% Explanatory object or array whose LHS variables will be returned.
 %
 %
 % ## Output Arguments ##
@@ -20,7 +20,7 @@ function lhsNames = collectLhsNames(this)
 %
 % __`lhsNames`__ [ string ]
 % >
-% Names of the LHS variables in `this` ExplanatoryEquation object or array.
+% Names of the LHS variables in `this` Explanatory object or array.
 %
 %
 % ## Description ##
