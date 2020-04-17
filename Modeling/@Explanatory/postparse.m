@@ -1,5 +1,5 @@
 function [equationStrings, attributes, controlNames] = postparse(code)
-% postparse  Parse ExplanatoryEquations source file
+% postparse  Parse Explanatorys source file
 %
 % Backend [IrisToolbox] method
 % No help provided
@@ -73,7 +73,7 @@ return
 
 
     function hereReportMissingClosing( )
-        thisError = [ "ExplanatoryEquations:MissingClosing"
+        thisError = [ "Explanatorys:MissingClosing"
                       "This keyword %1 with the list of attributes "
                       "has its closing parenthesis missing or misplaced: %s "];
         throw(exception.Base(thisError, 'error'), EQUATIONS_KEYWORD, reportMissingClosing{:});

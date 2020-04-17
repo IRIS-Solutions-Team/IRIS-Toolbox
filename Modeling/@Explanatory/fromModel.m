@@ -1,5 +1,5 @@
 function this = fromModel(model, lhsNames, varargin)
-% fromModel  Extract ExplanatoryEquations from Model object
+% fromModel  Extract Explanatorys from Model object
 %{
 % ## Syntax ##
 %
@@ -43,7 +43,7 @@ function this = fromModel(model, lhsNames, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('ExplanatoryEquation/fromModel');
+    pp = extend.InputParser('Explanatory/fromModel');
     pp.KeepUnmatched = true;
     addRequired(pp, 'model', @(x) isa(x, 'Model'));
     addRequired(pp, 'lhsNames', @(x) validate.list(x));
@@ -68,14 +68,14 @@ equations = [equations{:}];
 inxHasSteady = arrayfun(@(x) contains(x, "!!"), equations);
 equations(inxHasSteady) = arrayfun(@(x) extractBefore(x, "!!"), equations(inxHasSteady));
 
-this = ExplanatoryEquation.fromString(equations, pp.UnmatchedInCell{:});
+this = Explanatory.fromString(equations, pp.UnmatchedInCell{:});
 
 return
 
     function hereReportNotFound( )
         report = lhsNames(numEquations==0);
         thisError = [
-            "ExplanatoryEquations:FromModel"
+            "Explanatorys:FromModel"
             "No equation exists for this LHS variable in the Model object: %s"
         ];
         throw(exception.Base(thisError, 'error'), report{:});
@@ -85,7 +85,7 @@ return
     function hereReportMultiple( )
         report = lhsNames(numEquations>1);
         thisError = [
-            "ExplanatoryEquations:FromModel"
+            "Explanatorys:FromModel"
             "Multiple equations exist for this LHS variable in the Model object: %s"
         ];
         throw(exception.Base(thisError, 'error'), report{:});

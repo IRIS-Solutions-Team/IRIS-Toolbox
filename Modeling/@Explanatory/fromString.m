@@ -1,5 +1,5 @@
 function varargout = fromString(inputString, varargin)
-% fromString  Create ExplanatoryEquation object from string
+% fromString  Create Explanatory object from string
 %{
 % ## Syntax ##
 %
@@ -13,15 +13,15 @@ function varargout = fromString(inputString, varargin)
 % __`inputString`__ [ string ]
 % >
 % Input string, or an array of strings, that will be converted to
-% ExplanatoryEquation object or array.
+% Explanatory object or array.
 %
 %
 % ## Output Arguments ##
 %
 %
-% __`this`__ [ ExplanatoryEquation ]
+% __`this`__ [ Explanatory ]
 % >
-% New ExplanatoryEquation object or array created from the `inputString`.
+% New Explanatory object or array created from the `inputString`.
 %
 %
 % ## Options ##
@@ -51,10 +51,10 @@ function varargout = fromString(inputString, varargin)
 % ## Example ##
 %
 %
-% Create an array of three ExplanatoryEquation objects, with `x`, `y`, and
+% Create an array of three Explanatory objects, with `x`, `y`, and
 % `z` being the LHS variables:
 %
-%     q = ExplanatoryEquation.fromString([
+%     q = Explanatory.fromString([
 %         "x = 0.8*x{-1} + z"
 %         "diff(y) = 2*x + a + b"
 %         "z = 0.5*z{-1} + 0.3*z{-2}
@@ -80,7 +80,7 @@ end
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('ExplanatoryEquation.fromString');
+    pp = extend.InputParser('Explanatory.fromString');
     addRequired(pp, 'inputString', @validate.list);
     addParameter(pp, 'ControlNames', string.empty(1, 0), @(x) isempty(x) || isa(x, 'string') || iscellstr(x));
     addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
@@ -102,8 +102,8 @@ inputString = strtrim(inputString);
 
 for j = 1 : numel(inputString)
     inputString__ = inputString(j);
-    [inputString__, attributes__] = ExplanatoryEquation.extractAttributes(inputString__);
-    [inputString__, label__] = ExplanatoryEquation.extractLabel(inputString__);
+    [inputString__, attributes__] = Explanatory.extractAttributes(inputString__);
+    [inputString__, label__] = Explanatory.extractLabel(inputString__);
 
     inputString__ = regexprep(inputString__, "\s+", "");
     if inputString__=="" || inputString__==";"
@@ -113,7 +113,7 @@ for j = 1 : numel(inputString)
 
 
     %
-    % Create a new ExplanatoryEquation object, assign ResidualNamePattern
+    % Create a new Explanatory object, assign ResidualNamePattern
     % and FittedNamePattern, and enforce lower or upper case on
     % ResidualNamePattern and FittedNamePattern if requested
     %
@@ -163,7 +163,7 @@ for j = 1 : numel(inputString)
     this__.IsIdentity = equalSign~="=";
 
     %
-    % Populate the ExplanatoryEquation object
+    % Populate the Explanatory object
     %
     this__ = defineDependent(this__, lhsString);
     hereParseExplanatory( );
@@ -187,7 +187,7 @@ return
 
 
     function obj = hereCreateObject( )
-        obj = ExplanatoryEquation( );
+        obj = Explanatory( );
         if ~isequal(opt.ResidualNamePattern, @default)
             obj.ResidualNamePattern = string(opt.ResidualNamePattern);
         end
@@ -209,12 +209,12 @@ return
 
     function variableNames = hereCollectAllVariableNames( )
         if isempty(opt.EnforceCase)
-            variableNames = regexp(inputString__, ExplanatoryEquation.VARIABLE_NO_SHIFT, 'match');
+            variableNames = regexp(inputString__, Explanatory.VARIABLE_NO_SHIFT, 'match');
         else
             variableNames = string.empty(1, 0);
             enforceCaseFunc = opt.EnforceCase;
             replaceFunc = @hereEnforceCase;
-            inputString__ = regexprep(inputString__, ExplanatoryEquation.VARIABLE_NO_SHIFT, '${replaceFunc($0)}');
+            inputString__ = regexprep(inputString__, Explanatory.VARIABLE_NO_SHIFT, '${replaceFunc($0)}');
         end
 
         %
@@ -341,8 +341,8 @@ return
 
             function hereReportRegressionCoefficientsInIdentity( )
                 thisError = [ 
-                    "ExplanatoryEquation:RegressionInIdentity"
-                    "This ExplanatoryEquation includes regression "
+                    "Explanatory:RegressionInIdentity"
+                    "This Explanatory includes regression "
                     "coefficients even though it is marked as an identity: %s "
                 ];
                 throw(exception.Base(thisError, 'error'));
@@ -354,8 +354,8 @@ return
 
     function hereThrowInvalidInputString( )
         thisError = [ 
-            "ExplanatoryEquation:InvalidInputString"
-            "Invalid input string to define ExplanatoryEquation: %s" 
+            "Explanatory:InvalidInputString"
+            "Invalid input string to define Explanatory: %s" 
         ];
         throw(exception.Base(thisError, 'error'), this__.InputString);
     end%
@@ -365,8 +365,8 @@ return
 
     function hereThrowEmptyLhs( )
         thisError = [ 
-            "ExplanatoryEquation:EmptyLhs"
-            "This ExplanatoryEquation specification has an empty LHS: %s " 
+            "Explanatory:EmptyLhs"
+            "This Explanatory specification has an empty LHS: %s " 
         ];
         throw(exception.Base(thisError, 'error'), this__.InputString);
     end%
@@ -376,8 +376,8 @@ return
 
     function hereThrowEmptyRhs( )
         thisError = [ 
-            "ExplanatoryEquation:EmptyRhs"
-            "This ExplanatoryEquation specification has an empty RHS: %s" 
+            "Explanatory:EmptyRhs"
+            "This Explanatory specification has an empty RHS: %s" 
         ];
         throw(exception.Base(thisError, 'error'), this__.InputString);
     end%
@@ -387,7 +387,7 @@ return
 
     function hereWarnEmptyEquations( )
         thisWarning = [ 
-            "ExplanatoryEquation:EmptyEquations"
+            "Explanatory:EmptyEquations"
             "A total number of %g empty equation(s) excluded from the input string."
         ];
         throw(exception.Base(thisWarning, 'warning'), numEmpty);
@@ -445,8 +445,8 @@ end%
 
 function fromStringTest(testCase)
     input = "x = @*a + b*x{-1} + @*log(c);";
-    act = ExplanatoryEquation.fromString(input);
-    exp = ExplanatoryEquation( );
+    act = Explanatory.fromString(input);
+    exp = Explanatory( );
     exp.VariableNames = ["x", "a", "b", "c"];
     exp.InputString = regexprep(input, "\s+", "");
     exp = defineDependent(exp, 1);
@@ -460,8 +460,8 @@ end%
 
 function fromStringExogenousTest(testCase)
     input = "x = @*a + b*z{-1} + @*log(c);";
-    act = ExplanatoryEquation.fromString(input);
-    exp = ExplanatoryEquation( );
+    act = Explanatory.fromString(input);
+    exp = Explanatory( );
     exp.VariableNames = ["x", "a", "b", "z", "c"];
     exp.InputString = regexprep(input, "\s+", "");
     exp = defineDependent(exp, 1);
@@ -476,16 +476,16 @@ end%
 function fromLegacyStringTest(testCase)
     input = "x = @*a + b*x{-1} + @*log(c);";
     legacyInput = replace(input, "@", "?");
-    act = ExplanatoryEquation.fromString(legacyInput);
+    act = Explanatory.fromString(legacyInput);
     act.InputString = replace(act.InputString, "?", "@");
-    exp = ExplanatoryEquation.fromString(input);
+    exp = Explanatory.fromString(input);
     assertEqual(testCase, act, exp);
     assertEqual(testCase, act.RhsContainsLhsName, true);
 end%
 
 
 function sumTest(testCase)
-    act = ExplanatoryEquation.fromString("x = y{-1} + x{-2};");
+    act = Explanatory.fromString("x = y{-1} + x{-2};");
     exp_Explanatory = regression.Term( );
     exp_Explanatory.Position = NaN;
     exp_Explanatory.Shift = 0;
@@ -503,7 +503,7 @@ end%
 
 
 function sumExogenousTest(testCase)
-    act = ExplanatoryEquation.fromString("x = y{-1} + z{-2};");
+    act = Explanatory.fromString("x = y{-1} + z{-2};");
     exp_Explanatory = regression.Term( );
     exp_Explanatory.Position = NaN;
     exp_Explanatory.Shift = 0;
@@ -521,11 +521,11 @@ end%
 
 
 function lowerTest(testCase)
-    act = ExplanatoryEquation.fromString( ...
+    act = Explanatory.fromString( ...
         ["xa = Xa{-1} + xA{-2} + xb", "XB = xA{-1}"], ...
         'EnforceCase=', @lower ...
     );
-    exp = ExplanatoryEquation.fromString( ...
+    exp = Explanatory.fromString( ...
         ["xa = xa{-1} + xa{-2} + xb", "xb = xa{-1}"] ...
     );
     assertEqual(testCase, act, exp);
@@ -533,11 +533,11 @@ end%
 
 
 function upperTest(testCase)
-    act = ExplanatoryEquation.fromString( ...
+    act = Explanatory.fromString( ...
         ["xa = Xa{-1} + xA{-2} + xb", "XB = xA{-1}"], ...
         'EnforceCase=', @upper ...
     );
-    exp = ExplanatoryEquation.fromString( ...
+    exp = Explanatory.fromString( ...
         ["XA = XA{-1} + XA{-2} + XB", "XB = XA{-1}"] ...
     );
     for i = 1 : numel(exp)
@@ -550,7 +550,7 @@ end%
 
 
 function ifStaticTest(testCase)
-    q = ExplanatoryEquation.fromString("x = z + if(isfreq(date__, 1) & date__<yy(5), -10, 10)");
+    q = Explanatory.fromString("x = z + if(isfreq(date__, 1) & date__<yy(5), -10, 10)");
     inputDb = struct( );
     inputDb.x = Series(0, 0);
     inputDb.z = Series(1:10, @rand);
@@ -571,7 +571,7 @@ end%
 
 
 function ifDynamicTest(testCase)
-    q = ExplanatoryEquation.fromString("x = x{-1} + if(isfreq(date__, 1) & date__<yy(5), dummy1, dummy0)");
+    q = Explanatory.fromString("x = x{-1} + if(isfreq(date__, 1) & date__<yy(5), dummy1, dummy0)");
     inputDb = struct( );
     inputDb.x = Series(0, 0);
     inputDb.dummy1 = Series(1:10, @rand);
@@ -589,7 +589,7 @@ end%
 
 
 function compareDynamicStaticTest(testCase)
-    q = ExplanatoryEquation.fromString([
+    q = Explanatory.fromString([
         "x = x{-1} + if(isfreq(date__, 1) & date__<yy(5), dummy1, dummy0)"
         "y = 1 + if(isfreq(date__, 1) & date__<yy(5), dummy1, dummy0)"
     ]);
@@ -605,7 +605,7 @@ end%
 
 
 function switchVariableTest(testCase)
-    q = ExplanatoryEquation.fromString([
+    q = Explanatory.fromString([
         "x = if(switch__, dummy1, dummy0)"
     ]);
     inputDb = struct( );
@@ -622,13 +622,13 @@ end%
 
 
 function residualNameTest(testCase)
-    q = ExplanatoryEquation.fromString([
+    q = Explanatory.fromString([
         "x = x{-1}"
         "y = y{-1}"
     ], 'ResidualNamePattern=', ["", "_ma"]);
     assertEqual(testCase, [q.LhsName], ["x", "y"]);
     assertEqual(testCase, [q.ResidualName], ["x_ma", "y_ma"]);
-    q = ExplanatoryEquation.fromString([
+    q = Explanatory.fromString([
         "x = x{-1}"
         "y = y{-1}"
     ], 'ResidualNamePattern=', ["", "_ma"], 'EnforceCase=', @upper);
@@ -638,13 +638,13 @@ end%
 
 
 function fittedNameTest(testCase)
-    q = ExplanatoryEquation.fromString([
+    q = Explanatory.fromString([
         "x = x{-1}"
         "y = y{-1}"
     ], 'FittedNamePattern=', ["", "_fitted"]);
     assertEqual(testCase, [q.LhsName], ["x", "y"]);
     assertEqual(testCase, [q.FittedName], ["x_fitted", "y_fitted"]);
-    q = ExplanatoryEquation.fromString([
+    q = Explanatory.fromString([
         "x = x{-1}"
         "y = y{-1}"
     ], 'FittedNamePattern=', ["", "_fitted"], 'EnforceCase=', @upper);

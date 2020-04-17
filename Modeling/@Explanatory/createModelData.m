@@ -1,5 +1,5 @@
 function varargout = createModelData(this, dataBlock, controls)
-% createModelData  Create data matrices for ExplanatoryEquation model
+% createModelData  Create data matrices for Explanatory model
 %
 % Backend [IrisToolbox] function
 % No help provided
@@ -18,9 +18,9 @@ end
 
 if numel(this)~=1
     thisError = [ 
-        "ExplanatoryEquation:SingleEquationExpected"
-        "Method @ExplanatoryEquation/createModelData expects "
-        "a scalar ExplanatoryEquation object."
+        "Explanatory:SingleEquationExpected"
+        "Method @Explanatory/createModelData expects "
+        "a scalar Explanatory object."
     ];
     throw(exception.Base(thisError, 'error'));
 end
@@ -28,7 +28,7 @@ end
 %--------------------------------------------------------------------------
 
 %
-% Create array of plain data for this single ExplanatoryEquation consisting
+% Create array of plain data for this single Explanatory consisting
 % of a block of rows with variables followed by one row of residuals
 %
 plainData = dataBlock.YXEPG(this.Runtime.PosPlainData, :, :);
@@ -98,8 +98,8 @@ end%
 
 
 function setupOnce(testCase)
-    testCase.TestData.Model1 = ExplanatoryEquation.fromString("log(x) = ?*a + b*x{-1} + ?*log(c) + ?*y{+1} - ? + d");
-    testCase.TestData.Model2 = ExplanatoryEquation.fromString("log(m) = ?*a + b*m{-1} + ?*log(c) + ?*n{+1} - ? + d");
+    testCase.TestData.Model1 = Explanatory.fromString("log(x) = ?*a + b*x{-1} + ?*log(c) + ?*y{+1} - ? + d");
+    testCase.TestData.Model2 = Explanatory.fromString("log(m) = ?*a + b*m{-1} + ?*log(c) + ?*n{+1} - ? + d");
     baseRange = qq(2001,1) : qq(2010,10);
     extendedRange = baseRange(1)-1 : baseRange(end)+1;
     db = struct( );

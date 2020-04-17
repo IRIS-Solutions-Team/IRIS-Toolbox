@@ -1,10 +1,10 @@
 function varargout = fromFile(sourceFiles, varargin)
-% fromFile  Create an array of ExplanatoryEquation objects from a source (text) file (or files)
+% fromFile  Create an array of Explanatory objects from a source (text) file (or files)
 %{
 % ## Syntax ##
 %
 %
-%    xq = ExplanatoryEquation.fromFile(sourceFile, ...)
+%    xq = Explanatory.fromFile(sourceFile, ...)
 %
 %
 % ## Input Arguments ##
@@ -13,15 +13,15 @@ function varargout = fromFile(sourceFiles, varargin)
 % __`sourceFile`__ [ char | string | cellstr ]
 % >
 % The name of a source file or multiple source files from which a new
-% ExplanatoryEquation objects will be created.
+% Explanatory objects will be created.
 %
 %
 % ## Output Arguments ##
 %
 %
-% __`xq`__ [ ExplanatoryEquation ]
+% __`xq`__ [ Explanatory ]
 % >
-% A new ExplanatoryEquation object or an array of objects created from the
+% A new Explanatory object or an array of objects created from the
 % specification in the `sourceFile`.
 %
 %
@@ -29,9 +29,9 @@ function varargout = fromFile(sourceFiles, varargin)
 %
 %
 % Write a text file describing the equations, using possibly also the IRIS
-% preparser control structures, and run `ExplanatoryEquation.fromFile(...)`
-% to create an array of `ExplanatoryEquation` objects, one for each
-% equation. The `ExplanatoryEquation` array can be then estimated (equation
+% preparser control structures, and run `Explanatory.fromFile(...)`
+% to create an array of `Explanatory` objects, one for each
+% equation. The `Explanatory` array can be then estimated (equation
 % by equation) or simulated.
 %
 %
@@ -53,7 +53,7 @@ end
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('ExplanatoryEquation.fromFile');
+    pp = extend.InputParser('Explanatory.fromFile');
     pp.KeepUnmatched = true;
     addRequired(pp, 'sourceFiles', @(x) validate.list(x) || isa(x, 'model.File'));
     addParameter(pp, {'Assigned', 'Assign'}, struct([ ]), @(x) isempty(x) || isstruct(x));
@@ -87,13 +87,13 @@ end
 %
 % Split code into individual equations, resolve !equations(:attribute)
 %
-[equations, attributes, controlNames] = ExplanatoryEquation.postparse(code);
+[equations, attributes, controlNames] = Explanatory.postparse(code);
 
 
 %
-% Build array of ExplanatoryEquation objects
+% Build array of Explanatory objects
 %
-this = ExplanatoryEquation.fromString( ...
+this = Explanatory.fromString( ...
     equations, pp.UnmatchedInCell{:} ...
     , 'ControlNames=', controlNames ...
 );
@@ -168,9 +168,9 @@ function singleSourceFileTest(testCase)
     ];
     control = struct( );
     control.list = ["AA", "BB", "CC"];
-    act = ExplanatoryEquation.fromFile(f, 'Preparser=', {'Assign=', control});
+    act = Explanatory.fromFile(f, 'Preparser=', {'Assign=', control});
     for i = 1 : numel(control.list)
-        exp = ExplanatoryEquation( );
+        exp = Explanatory( );
         s = control.list(i);
         exp.VariableNames = ["x_"+s, "y", "z"];
         exp.FileName = string(f.FileName);
@@ -196,7 +196,7 @@ function sourceFileWithCommentsTest(testCase)
         " c = c{-1};"
         " 'ddd' d = d{-1};"
     ];
-    act = ExplanatoryEquation.fromFile(f);
+    act = Explanatory.fromFile(f);
     exp_LhsName = ["a", "b", "c", "d"];
     assertEqual(testCase, [act.LhsName], exp_LhsName);
     exp_Label = ["aaa", "bbb", "", "ddd"];
@@ -216,7 +216,7 @@ function sourceFileWithEmptyEquationsTest(testCase)
 
     state = warning('query');
     warning('off');
-    act = ExplanatoryEquation.fromFile(f);
+    act = Explanatory.fromFile(f);
     warning(state);
 
     exp_LhsName = ["a", "b", "c", "d"];
@@ -238,7 +238,7 @@ function sourceFileWithAttributesTest(testCase)
         ":second :first c = c{-1};"
         ":first :last 'ddd' d = d{-1};"
     ];
-    act = ExplanatoryEquation.fromFile(f);
+    act = Explanatory.fromFile(f);
     exp_Attributes = {
         ":first"
         string.empty(1, 0)
@@ -280,8 +280,8 @@ function preparserForIfTest(testCase)
     ];
     control = struct( );
     control.list = ["AA", "BB", "CC"];
-    act1 = ExplanatoryEquation.fromFile(f1, 'Preparser=', {'Assign=', control});
-    act2 = ExplanatoryEquation.fromFile(f2, 'Preparser=', {'Assign=', control});
+    act1 = Explanatory.fromFile(f1, 'Preparser=', {'Assign=', control});
+    act2 = Explanatory.fromFile(f2, 'Preparser=', {'Assign=', control});
     for i = 1 : numel(control.list)
         assertEqual(testCase, act1(i).LhsName, "x_"+control.list(i));
     end
@@ -318,7 +318,7 @@ function preparserSwitchTest(testCase)
     list = ["AA", "BB", "CC", "DD"];
     for i = 1 : numel(list)
         control.country = list(i);
-        act = ExplanatoryEquation.fromFile(f1, 'Preparser=', {'Assign=', control});
+        act = Explanatory.fromFile(f1, 'Preparser=', {'Assign=', control});
         assertEqual(testCase, func2str(act.Explanatory.Expression), exp_Expression{i});
     end
 end%
@@ -335,7 +335,7 @@ function equationsAttributesTest(testCase)
         "!equations(:cc)"
         ":5 e=e{-1};"
     ];
-    act = ExplanatoryEquation.fromFile(f);
+    act = Explanatory.fromFile(f);
     exp_Attributes = {
         [":aa", ":bb", ":1"]
         [":aa", ":bb", ":2"]

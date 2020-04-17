@@ -1,5 +1,5 @@
 function blazerObj = prepareBlazer(this, isBlocks)
-% prepareBlazer  Prepare blazer object for ExplanatoryEquation simulation
+% prepareBlazer  Prepare blazer object for Explanatory simulation
 % 
 % Backend [IrisToolbox] method
 % No help provided
@@ -12,7 +12,7 @@ function blazerObj = prepareBlazer(this, isBlocks)
 numEquations = numel(this);
 lhsNames = [this(:).LhsName];
 
-blazerObj = solver.blazer.ExplanatoryEquation( );
+blazerObj = solver.blazer.Explanatory( );
 blazerObj.Model.Quantity = model.component.Quantity.fromNames(lhsNames);
 blazerObj.Model.Equation = model.component.Equation.fromInput({this.Input});
 blazerObj.InxEquations = true(1, numEquations);

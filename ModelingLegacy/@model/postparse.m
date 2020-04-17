@@ -22,7 +22,7 @@ if ~isempty(collector.Preprocessor)
     f.FileName = this.FileName;
     f.Code = collector.Preprocessor;
     f.Preparsed = true;
-    this.Preprocessor = ExplanatoryEquation.fromFile(f);
+    this.Preprocessor = Explanatory.fromFile(f);
     [this.Preprocessor.Context] = deal("Preprocessor");
 end
 collector.Postprocessor = regexprep(collector.Postprocessor, '\s+', '');
@@ -31,7 +31,7 @@ if ~isempty(collector.Postprocessor)
     f.FileName = this.FileName;
     f.Code = collector.Postprocessor;
     f.Preparsed = true;
-    this.Postprocessor = ExplanatoryEquation.fromFile(f);
+    this.Postprocessor = Explanatory.fromFile(f);
     [this.Postprocessor.Context] = deal("Postprocessor");
 end
 

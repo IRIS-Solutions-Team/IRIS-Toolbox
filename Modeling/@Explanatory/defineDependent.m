@@ -1,5 +1,5 @@
 function varargout = defineDependent(this, varargin)
-% defineDependent  Define dependent term in ExplanatoryEquation
+% defineDependent  Define dependent term in Explanatory
 %{
 % ## Syntax ##
 %
@@ -12,9 +12,9 @@ function varargout = defineDependent(this, varargin)
 % ## Input Arguments ##
 %
 %
-% __`xq`__ [ ExplanatoryEquation ]
+% __`xq`__ [ Explanatory ]
 % >
-% ExplanatoryEquation object whose dependent (LHS) variable will be
+% Explanatory object whose dependent (LHS) variable will be
 % defined; `xq` needs to have its `VariableNames` defined before calling
 % `defineDependent(...)`.
 %
@@ -22,20 +22,20 @@ function varargout = defineDependent(this, varargin)
 % __`name`__ [ string ]
 % >
 % Name of the dependent (LHS) varible; the name must be from the list of
-% `VariableNames` in the ExplanatoryEquation object `xq`.
+% `VariableNames` in the Explanatory object `xq`.
 %
 %
 % __`position`__ [ numeric ]
 % >
 % Pointer to a name from the `VariableNames` list in the
-% ExplanatoryEquation object `xq`.
+% Explanatory object `xq`.
 %
 %
 % __`expression`__ [ string ]
 % > 
 % Expression to define the dependent (LHS) term. The `expression` may
 % involved a variable from the `VariableNames` list in the
-% ExplanatoryEquation object `xq` and one of the tranform functions (see
+% Explanatory object `xq` and one of the tranform functions (see
 % `transform`).
 %
 %
@@ -50,9 +50,9 @@ function varargout = defineDependent(this, varargin)
 % ## Output Arguments ##
 %
 %
-% __`xq`__ [ ExplanatoryEquation ]
+% __`xq`__ [ Explanatory ]
 % >
-% The ExplanatoryEquation object with a dependent (LHS) term defined.
+% The Explanatory object with a dependent (LHS) term defined.
 %
 %
 % ## Description ##
@@ -76,8 +76,8 @@ end
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('ExplanatoryEquation.defineDependent');
-    addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'ExplanatoryEquation'));
+    pp = extend.InputParser('Explanatory.defineDependent');
+    addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'Explanatory'));
 end
 parse(pp, this);
 
@@ -112,7 +112,7 @@ end%
 
 
 function setupOnce(testCase)
-    m = ExplanatoryEquation( );
+    m = Explanatory( );
     m.VariableNames = ["x", "y", "z"];
     testCase.TestData.Model = m;
 end%

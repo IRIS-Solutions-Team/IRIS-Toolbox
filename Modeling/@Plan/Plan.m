@@ -1,4 +1,4 @@
-% Plan  Simulation Plans for Model and ExplanatoryEquation objects
+% Plan  Simulation Plans for Model and Explanatory objects
 %
 
 % -[IrisToolbox] for Macroeconomic Modeling
@@ -881,7 +881,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         varargout = forModel(varargin)
         varargout = forExplanatory(varargin)
 
-        function varargout = forExplanatoryEquation(varargin)
+        function varargout = forExplanatory(varargin)
             [varargout{1:nargout}] = Plan.forExplanatory(varargin{:});
         end%
         %)

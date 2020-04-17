@@ -1,5 +1,5 @@
 function checkNames(this)
-% checkNames  Check all names in ExplanatoryEquation array for multiple occurrencies
+% checkNames  Check all names in Explanatory array for multiple occurrencies
 %
 % Backend [IrisToolbox] method
 % No help provided
@@ -17,8 +17,8 @@ nameConflicts = parser.getMultiple(checkList);
 if ~isempty(nameConflicts)
     nameConflicts = cellstr(nameConflicts);
     thisError = [ 
-        "ExplanatoryEquation:MultipleNames"
-        "This name is declared more than once in an ExplanatoryEquation object "
+        "Explanatory:MultipleNames"
+        "This name is declared more than once in an Explanatory object "
         "(including ResidualName, FittedName and ControlNames): %s "
     ];
     throw( exception.Base(thisError, 'error'), ...
@@ -27,8 +27,8 @@ end
 inxValid = arrayfun(@isvarname, checkList);
 if any(~inxValid)
     thisError = [ 
-        "ExplanatoryEquation:InvalidName"
-        "This name defined in an ExplanatoryEquation object "
+        "Explanatory:InvalidName"
+        "This name defined in an Explanatory object "
         "is not a valid Matlab name: %s"
     ];
     throw(exception.Base(thisError, 'error'), checkList{~inxValid});

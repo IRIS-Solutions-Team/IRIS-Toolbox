@@ -1,5 +1,5 @@
 function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, varargin)
-% blazer  Determine the order of execution within an ExplanatoryEquation array
+% blazer  Determine the order of execution within an Explanatory array
 %{
 % ## Syntax ##
 %
@@ -10,9 +10,9 @@ function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, 
 % ## Input Arguments ##
 %
 %
-% __`xq`__ [ ExplanatoryEquation ]
+% __`xq`__ [ Explanatory ]
 % >
-% An array of ExplanatoryEquation objects whose equations will be reordered
+% An array of Explanatory objects whose equations will be reordered
 % block recursively.
 %
 %
@@ -83,10 +83,10 @@ function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, 
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('ExplanatoryEquation.blazer');
+    pp = extend.InputParser('Explanatory.blazer');
     pp.KeepUnmatched = true;
 
-    addRequired(pp, 'equations', @(x) isa(x, 'ExplanatoryEquation'));
+    addRequired(pp, 'equations', @(x) isa(x, 'Explanatory'));
 
     addParameter(pp, 'Reorder', true, @(x) validate.logicalScalar(x) || (iscell(x) && all(cellfun(@(y) isnumeric(y), x))));
     addParameter(pp, {'SaveAs', 'SaveBlazerAs'}, [ ], @(x) isempty(x) || validate.string(x));
@@ -246,8 +246,8 @@ return
 
     function hereThrowInvalidReorder( )
         thisError = [ 
-            "ExplanatoryEquation:InvalidReorder"
-            "The option Reorder= fails to constitute a valid reordering of the ExplanatoryEquation "
+            "Explanatory:InvalidReorder"
+            "The option Reorder= fails to constitute a valid reordering of the Explanatory "
             "object or array; the option Reorder= needs to be true, false or a user-specified "
             "permutation of {1, ..., #equations}." 
         ];
@@ -263,8 +263,8 @@ end%
 
 function hereThrowCannotSplitIntoBlocks( )
     thisError = [ 
-        "ExplanatoryEquation:CannotSplitIntoBlocks"
-        "Error reordering the ExplanatoryEquation array block recursively. "
+        "Explanatory:CannotSplitIntoBlocks"
+        "Error reordering the Explanatory array block recursively. "
         "Make sure the equations are ordered correctly in the source file "
         "and rerun your task setting Reorder=false, or use the option "
         "Reorder= directly to specify your own block reordering."

@@ -63,7 +63,7 @@ function this = forExplanatory(explanatory, simulationRange)
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Plan.Plan');
-    addRequired(pp, 'explanatory', @(x) isa(x, 'ExplanatoryEquation'));
+    addRequired(pp, 'explanatory', @(x) isa(x, 'Explanatory'));
     addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
 end
 parse(pp, explanatory, simulationRange);

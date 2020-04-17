@@ -52,7 +52,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory/simulate');
 
-    addRequired(pp, 'explanatory', @(x) isa(x, 'ExplanatoryEquation'));
+    addRequired(pp, 'explanatory', @(x) isa(x, 'Explanatory'));
     addRequired(pp, 'inputDb', @validate.databank);
     addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
 

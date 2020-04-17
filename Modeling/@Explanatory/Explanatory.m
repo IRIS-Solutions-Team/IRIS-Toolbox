@@ -1,7 +1,7 @@
- % ExplanatoryEquation  Equation with a LHS variable explained by RHS terms
+ % Explanatory  Equation with a LHS variable explained by RHS terms
 %
 
-classdef ExplanatoryEquation ...
+classdef Explanatory ...
     < shared.GetterSetter ...
     & shared.UserDataContainer ...
     & shared.CommentContainer ...
@@ -23,7 +23,7 @@ classdef ExplanatoryEquation ...
 
 
     properties (Hidden)
-        Context = "ExplanatoryEquation"
+        Context = "Explanatory"
     end
 
 
@@ -96,18 +96,18 @@ classdef ExplanatoryEquation ...
 
 
     methods % Constructor
-        function this = ExplanatoryEquation(varargin)
+        function this = Explanatory(varargin)
             if nargin==0
                 return
             end
-            if nargin==0 && isa(varargin{1}, 'ExplanatoryEquation')
+            if nargin==0 && isa(varargin{1}, 'Explanatory')
                 this = varargin{1};
                 return
             end
-            thisError = [ "ExplanatoryEquation:InvalidContructorCall"
-                          "This is not a valid way to construct an ExplanatoryEquation object or array. "
-                          "Use one of the static constructors ExplanatoryEquation.fromString( ) "
-                          "or ExplanatoryEquation.fromFile( ). " ];
+            thisError = [ "Explanatory:InvalidContructorCall"
+                          "This is not a valid way to construct an Explanatory object or array. "
+                          "Use one of the static constructors Explanatory.fromString( ) "
+                          "or Explanatory.fromFile( ). " ];
             throw(exception.Base(thisError, 'error'));
         end%
     end
@@ -154,7 +154,7 @@ classdef ExplanatoryEquation ...
             attribute = strtrim(string(attribute));
             if ~isscalar(attribute) || ~startsWith(attribute, ":")
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidAttributeRequest"
+                    "Explanatory:InvalidAttributeRequest"
                     "Attribute has to be a scalar string starting with a colon." 
                 ];
                 throw(exception.Base(thisError, 'error'));
@@ -188,9 +188,9 @@ classdef ExplanatoryEquation ...
                 return
             end
             thisError = [ 
-                "ExplanatoryEquation:CannotFindExplanatory"
+                "Explanatory:CannotFindExplanatory"
                 "Cannot find the specified explanatory variable or term "
-                "that is to be removed from an ExplanatoryEquation model."
+                "that is to be removed from an Explanatory model."
             ];
             throw(exception.Base(thisError, 'error'));
         end%
@@ -245,8 +245,8 @@ classdef ExplanatoryEquation ...
                 return
             end
             thisError = [ 
-                "ExplanatoryEquation:InconsistentNumberOfVariants"
-                "All ExplanatoryEquation objects grouped in an array must have "
+                "Explanatory:InconsistentNumberOfVariants"
+                "All Explanatory objects grouped in an array must have "
                 "identical numbers of parameter variants." 
             ];
             throw(exception.Base(thisError, 'error'));
@@ -311,15 +311,15 @@ classdef ExplanatoryEquation ...
         function this = set.Dependent(this, term)
             if ~isscalar(term)
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidDependent"
+                    "Explanatory:InvalidDependent"
                     "Only one Dependent (LHS) term can be specified "
-                    "in an ExplanatoryEquation object." 
+                    "in an Explanatory object." 
                 ];
                 throw(exception.Base(thisError, "error"));
             end
             if ~isempty(term.Expression)
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidDependent"
+                    "Explanatory:InvalidDependent"
                     "Invalid specification of the Dependent (LHS) term "
                     "in an ExplanatoryEqution object."
                 ];
@@ -327,8 +327,8 @@ classdef ExplanatoryEquation ...
             end
             if term.Shift~=0
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidDependent"
-                    "Depedent (LHS) term in an ExplanatoryEquation objection "
+                    "Explanatory:InvalidDependent"
+                    "Depedent (LHS) term in an Explanatory objection "
                     "is not allowed with a time shift (lag or lead). "
                 ];
                 throw(exception.Base(thisError, 'error'));
@@ -348,8 +348,8 @@ classdef ExplanatoryEquation ...
             end
             if any(strlength(value)==0)
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidVariableNames"
-                    "Variable names in an ExplanatoryEquation object "
+                    "Explanatory:InvalidVariableNames"
+                    "Variable names in an Explanatory object "
                     "must be nonempty strings."
                 ];
                 throw(exception.Base(thisError, 'error'));
@@ -368,8 +368,8 @@ classdef ExplanatoryEquation ...
             end
             if any(strlength(value)==0)
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidVariableNames"
-                    "Control names in an ExplanatoryEquation object "
+                    "Explanatory:InvalidVariableNames"
+                    "Control names in an Explanatory object "
                     "must be nonempty strings."
                 ];
                 throw(exception.Base(thisError, 'error'));
