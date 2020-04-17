@@ -22,8 +22,22 @@ classdef Steady ...
 
         function run(this, varargin)
             run@solver.blazer.Blazer(this, varargin{:});
+
             if this.IsSingular
-                throw( exception.Base('Steady:StructuralSingularity', 'warning') );
+                if ~isempty(this.SuspectEquations)
+                    thisError = [
+                        "Blazer:StructuralSingularity"
+                        "System of steady equations is structurally singular: suspect %s"
+                    ];
+                    report = this.Model.Equation.Input(this.SuspectEquations);
+                    throw(exception.Base(thisError, 'warning'), report{:});
+                else
+                    thisError = [
+                        "Blazer:StructuralSingularity"
+                        "System of steady equations is structurally singular: no obvious suspect."
+                    ];
+                    throw(exception.Base(thisError, 'warning'));
+                end
             end
         end%
     

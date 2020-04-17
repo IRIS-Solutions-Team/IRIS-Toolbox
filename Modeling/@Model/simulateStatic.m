@@ -11,8 +11,8 @@ function [exitFlag, dcy] = simulateStatic(~, rect, data, blazers)
 
 dcy = double.empty(0);
 
-firstColumnOfTimeFrame = data.FirstColumnOfTimeFrame;
-lastColumnOfTimeFrame = data.LastColumnOfTimeFrame;
+firstColumnOfFrame = data.FirstColumnOfFrame;
+lastColumnOfFrame = data.LastColumnOfFrame;
 
 initYXEPG = data.YXEPG;
 finalYXEPG = data.YXEPG;
@@ -20,9 +20,9 @@ finalYXEPG = data.YXEPG;
 blazerWithBlocks = blazers(2);
 
 numBlocks = numel(blazerWithBlocks.Block);
-for column = firstColumnOfTimeFrame : lastColumnOfTimeFrame
+for column = firstColumnOfFrame : lastColumnOfFrame
     % Reset initial data
-    setTimeFrame(data, [column, column]);
+    setFrame(data, [column, column]);
     data.YXEPG = initYXEPG;
 
     for i = 1 : numBlocks

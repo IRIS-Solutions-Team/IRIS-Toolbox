@@ -1,11 +1,13 @@
 function varargout = parseInputSpecs(xq, inputSpecs, inputTransform, inputShift, types)
-% parseInputSpecs  Parse input specification of Dependent or Explanatory Terms
-% 
+% parseInputSpecs  Parse input specification of DependentTerm or
+% ExplanatoryTerms
+%{
 % Backend [IrisToolbox] method
 % No help provided
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % Invoke unit tests
 %(
@@ -249,8 +251,8 @@ return
         invalidNames = string.empty(1, 0);
         invalidShifts = string.empty(1, 0);
         replaceFunc = @replaceNameShift;
-        parsedSpecs = regexprep(parsedSpecs, ExplanatoryEquation.VARIABLE_WITH_SHIFT, "${replaceFunc($1, $2)}");
-        parsedSpecs = regexprep(parsedSpecs, ExplanatoryEquation.VARIABLE_NO_SHIFT, "${replaceFunc($1)}");
+        parsedSpecs = regexprep(parsedSpecs, Explanatory.VARIABLE_WITH_SHIFT, "${replaceFunc($1, $2)}");
+        parsedSpecs = regexprep(parsedSpecs, Explanatory.VARIABLE_NO_SHIFT, "${replaceFunc($1)}");
         parsedSpecs = replace(parsedSpecs, "$", "t");
 
         if ~isempty(invalidNames)
@@ -286,7 +288,7 @@ return
                     c = "controls__." + c1;
                     return
                 end
-                pos = getPositionOfName(xq, c1);
+                pos = getPosName(xq, c1);
                 sh = 0;
                 if isnan(pos)
                     invalidNames = [invalidNames, string(c1)];
@@ -321,7 +323,7 @@ return
                 thisError = [ 
                     "RegressionTerm:InvalidName"
                     "This name occurs in a regression.Term definition "
-                    "but is not on the list of ExplanatoryEquation.VariableNames: %s " 
+                    "but is not on the list of Explanatory.VariableNames: %s " 
                 ];
                 throw(exception.Base(thisError, "error"), invalidNames{:});
             end%
@@ -332,7 +334,7 @@ return
         thisError = [ 
             "RegressionTerm:InvalidPointerToVariableNames"
             "Regression term specification points to a non-existing position "
-            "in the ExplanatoryEquation.VariableNames list: %g " 
+            "in the Explanatory.VariableNames list: %g " 
         ];
         throw(exception.Base(thisError, 'error'), inputSpecs);
     end%
@@ -368,7 +370,7 @@ function tests = unitTests( )
 end%
 
 function setupOnce(testCase)
-    m = ExplanatoryEquation( );
+    m = Explanatory( );
     m.VariableNames = ["x", "y", "z"];
     output = struct( );
     output.Type = "";

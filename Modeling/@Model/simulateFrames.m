@@ -1,5 +1,5 @@
-function prepared = simulateTimeFrames(this, systemProperty, run, prepareOnly)
-% simulateTimeFrames  Implement simulation by time frames
+function prepared = simulateFrames(this, systemProperty, run, prepareOnly)
+% simulateFrames  Implement simulation by time frames
 %
 % Backend [IrisToolbox] method
 % No help provided
@@ -43,7 +43,7 @@ data__.Window = runningData.Window;
 data__.Initial = runningData.Initial;
 data__.SolverOptions = runningData.SolverOptions;
 
-if method==solver.Method.STACKED || method==solver.Method.STATIC
+if method==solver.Method.STACKED || method==solver.Method.PERIOD
     if deviation
         data__.YXEPG = addSteadyTrends(data__, data__.YXEPG);
         data__.Deviation = false;
@@ -53,7 +53,8 @@ else
 end
 
 % Set up @Rectangular object for simulation
-rect__ = simulate.Rectangular.fromModel(this, run);
+useFirstOrder = method~=solver.Method.PERIOD;
+rect__ = simulate.Rectangular.fromModel(this, run, useFirstOrder);
 rect__.SparseShocks = runningData.SparseShocks;
 rect__.Deviation = data__.Deviation;
 rect__.SimulateY = true;
@@ -87,14 +88,14 @@ end
                                                    baseRangeColumns );
 
 % Retrieve time frames
-timeFrames__ = runningData.TimeFrames{min(run, end)};
+timeFrames__ = runningData.Frames{min(run, end)};
 data__.MixinUnanticipated = runningData.MixinUnanticipated(min(run, end));
 
 % Simulate @Rectangular object one timeFrame at a time
-numTimeFrames = size(timeFrames__, 1);
+numFrames = size(timeFrames__, 1);
 needsUpdateShocks = false;
-exitFlags__ = repmat(solver.ExitFlag.IN_PROGRESS, 1, numTimeFrames);
-discrepancyTables__ = cell(1, numTimeFrames);
+exitFlags__ = repmat(solver.ExitFlag.IN_PROGRESS, 1, numFrames);
+discrepancyTables__ = cell(1, numFrames);
 
 
 % 
@@ -102,9 +103,9 @@ discrepancyTables__ = cell(1, numTimeFrames);
 %
 
 % /////////////////////////////////////////////////////////////////////////
-for frame = 1 : numTimeFrames
-    setTimeFrame(rect__, timeFrames__(frame, :));
-    setTimeFrame(data__, timeFrames__(frame, :));
+for frame = 1 : numFrames
+    setFrame(rect__, timeFrames__(frame, :));
+    setFrame(data__, timeFrames__(frame, :));
     updateSwapsFromPlan(data__, plan);
     ensureExpansionGivenData(rect__, data__);
     if data__.NumOfExogenizedPoints==0
@@ -117,7 +118,7 @@ for frame = 1 : numTimeFrames
     % Choose simulation type and run simulation
     %
     data__.NeedsUpdateShocks = false;
-    rect__.Header = sprintf('[Variant|Page:%g][TimeFrame:%g]', run, frame);
+    rect__.Header = sprintf("[Variant|Page:%g][Frame:%g]", run, frame);
     func = simulateFunction(method);
 
     if prepareOnly
@@ -161,7 +162,7 @@ if any(needsUpdateShocks)
     storeE(data__);
 end
 
-if method==solver.Method.STACKED || method==solver.Method.STATIC
+if method==solver.Method.STACKED || method==solver.Method.PERIOD
     if deviation
         data__.YXEPG = removeSteadyTrends(data__, data__.YXEPG);
     end
@@ -183,7 +184,7 @@ if regularCall
     runningData.YXEPG(:, :, run) = data__.YXEPG;
     runningData.Success(run) = success__;
     if runningData.PrepareOutputInfo
-        runningData.TimeFrames{run} = timeFrames__;
+        runningData.Frames{run} = timeFrames__;
         runningData.ExitFlags{run} = exitFlags__;
         runningData.DiscrepancyTables{run} = discrepancyTables__;
     end

@@ -1,5 +1,5 @@
 function varargout = regress(this, inputDatabank, fittedRange, varargin)
-% regress  Estimate regression parameters of ExplanatoryEquation 
+% regress  Estimate regression parameters of Explanatory 
 %{
 %}
 
@@ -17,11 +17,11 @@ end
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('ExplanatoryEquation.regress');
+    parser = extend.InputParser('Explanatory.regress');
     %
     % Required arguments
     %
-    addRequired(parser, 'explanatoryEquation', @(x) isa(x, 'ExplanatoryEquation'));
+    addRequired(parser, 'explanatoryEquation', @(x) isa(x, 'Explanatory'));
     addRequired(parser, 'inputDatabank', @validate.databank);
     addRequired(parser, 'fittedRange', @DateWrapper.validateProperRangeInput);
     %
@@ -87,7 +87,7 @@ for q = find(inxToEstimate)
     if opt.FixParameters
         fixed = this__.Parameters;
     else
-        fixed = [this__.Explanatory.Fixed];
+        fixed = [this__.ExplanatoryTerms.Fixed];
     end
     
     %
@@ -125,7 +125,7 @@ for q = find(inxToEstimate)
     updateDataBlock(this__, dataBlock, plainData);
 
     %
-    % Update statistics in the ExplanatoryEquation array
+    % Update statistics in the Explanatory array
     %
     this(q) = this__;
 end
@@ -164,8 +164,8 @@ return
     function hereReportEmptyData( )
         reportEmptyData = cellstr(reportEmptyData);
         thisWarning = [ 
-            "ExplanatoryEquation:EmptyRegressionData"
-            "ExplanatoryEquation[""%s""] cannot be regressed because "
+            "Explanatory:EmptyRegressionData"
+            "Explanatory[""%s""] cannot be regressed because "
             "there is not a single period of observations available." 
         ];
         throw(exception.Base(thisWarning, 'warning'), reportEmptyData{:});
@@ -186,8 +186,8 @@ return
             report = [report, DateWrapper.reportMissingPeriodsAndPages(dataBlock.ExtendedRange, inxMissingColumns, this.LhsName)];
         end
         thisWarning  = [ 
-            "ExplanatoryEquation:MissingObservationInRegressionRange"
-            "ExplanatoryEquation[""%s""] regression data " + action + " "
+            "Explanatory:MissingObservationInRegressionRange"
+            "Explanatory[""%s""] regression data " + action + " "
             "NaN or Inf observations [Variant|Page:%g]: %s" 
         ];
         throw(exception.Base(thisWarning, opt.MissingObservations), report{:});
@@ -235,8 +235,8 @@ end%
 
 
 function setupOnce(testCase)
-    m1 = ExplanatoryEquation.fromString('x = ? + ?*x{-1} + ?*y');
-    m2 = ExplanatoryEquation.fromString('a = ? + ?*a{-1} + ?*x');
+    m1 = Explanatory.fromString('x = ? + ?*x{-1} + ?*y');
+    m2 = Explanatory.fromString('a = ? + ?*a{-1} + ?*x');
     startDate = qq(2001,1);
     endDate = qq(2010, 4);
     baseRange = startDate:endDate;
