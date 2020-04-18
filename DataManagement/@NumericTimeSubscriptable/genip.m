@@ -212,8 +212,8 @@ numHighPeriods = numPeriodsWithin*numLowPeriods;
 %
 % Resolve Indicator=, Transition= and Conditioning= options
 %
-indicatorOptions = series.genip.prepareIndicatorOptions(transitionModel, [highStart, highEnd], opt.Indicator);
-transitionOptions = series.genip.prepareTransitionOptions([highStart, highEnd], opt.Transition);
+indicator = series.genip.prepareIndicatorOptions(transitionModel, [highStart, highEnd], opt.Indicator);
+transition = series.genip.prepareTransitionOptions(transitionModel, [highStart, highEnd], opt.Transition);
 conditions = series.genip.prepareConditionOptions([highStart, highEnd], opt.Condition);
 
 
@@ -240,9 +240,9 @@ hereResolveConflictsInMeasurement( );
 %
 % Set up a linear Kalman filter object
 %
-[kalmanObj, observed, transitionOptions] = series.genip.setupKalmanObject( ...
-    transitionModel, lowLevel, aggregationModel, stdScale ...
-    , conditions, indicatorOptions, transitionOptions ...
+[kalmanObj, observed, transition] = series.genip.setupKalmanObject( ...
+    lowLevel, aggregationModel, stdScale ...
+    , conditions, indicator, transition ...
 );
 
 %
@@ -270,6 +270,8 @@ if nargout>=2
     info.HighFreq = toFreq;
     info.LowRange = DateWrapper(lowStart):DateWrapper(lowEnd);
     info.HighRange = DateWrapper(highStart):DateWrapper(highEnd);
+    info.TransitionRate = transition.Rate;
+    info.TransitionConstant = transition.Constant;
     info.LinearSystem = kalmanObj;
     info.InitCondModel = initCond;
     info.ObservedData = observed;
