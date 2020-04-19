@@ -1,7 +1,11 @@
-classdef Stacked < solver.blazer.Blazer
+classdef Stacked ...
+    < solver.blazer.Blazer
+
     properties
         ColumnsToRun = double.empty(1, 0)
     end
+
+
 
 
     properties (Constant)
@@ -11,10 +15,14 @@ classdef Stacked < solver.blazer.Blazer
     end
     
 
+
+
     methods
         function this = Stacked(varargin)
             this = this@solver.blazer.Blazer(varargin{:});
         end%
+
+
 
 
         function [inc, idEqtns, idQties] = prepareIncidenceMatrix(this, plan)

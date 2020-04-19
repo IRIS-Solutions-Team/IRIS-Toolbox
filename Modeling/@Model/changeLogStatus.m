@@ -45,11 +45,13 @@ function this = changeLogStatus(this, newStatus, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team 
 
 TYPE = @int8;
 
+% Parse input arguments
+%(
 persistent parser
 if isempty(parser)
     parser = extend.InputParser('Model.changeLogStatus');
@@ -58,6 +60,7 @@ if isempty(parser)
     addRequired(parser, 'namesToChange', @validateNamesToChange);
 end
 parse(parser, this, newStatus, varargin);
+%)
 
 typesAllowed = { TYPE(1), TYPE(2), TYPE(5) };
 

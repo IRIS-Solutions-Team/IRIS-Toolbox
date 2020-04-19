@@ -65,10 +65,10 @@ classdef Stacked < solver.block.Block
                 %}
 
                 % Create index of logs within the z vector
-                temp = repmat(this.InxOfLog(:), 1, size(data.YXEPG, 2));
+                temp = repmat(this.InxLog(:), 1, size(data.YXEPG, 2));
                 inxLogZ = temp(inxZ);
                 %{
-                linxLog = this.InxOfLog(this.PtrQuantities);
+                linxLog = this.InxLog(this.PtrQuantities);
                 linxLog = repmat(linxLog(:), numColumnsToRun, 1);
                 %}
 
@@ -204,7 +204,7 @@ classdef Stacked < solver.block.Block
             this.LinearIndex = linx(:);
 
             % Create index of logs within linx
-            linxLog = this.InxOfLog(this.PtrQuantities);
+            linxLog = this.InxLog(this.PtrQuantities);
             linxLog = repmat(linxLog(:), numColumnsToRun, 1);
             %}
         end%

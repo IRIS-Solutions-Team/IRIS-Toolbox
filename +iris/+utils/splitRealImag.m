@@ -1,10 +1,10 @@
 function [realX, imagX] = splitRealImag(x)
 
-inxZeroImag = imag(x)==0;
-realX = real(x(inxZeroImag));
+realX = real(x);
+realX(realX==0) = [ ];
 
-inxZeroReal = real(x)==0;
-imagX = imag(x(inxZeroReal));
+imagX = imag(x);
+imagX(imagX==0) = [ ];
 
 end%
 

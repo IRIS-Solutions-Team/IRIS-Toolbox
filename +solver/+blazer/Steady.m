@@ -20,6 +20,8 @@ classdef Steady ...
         end%
 
 
+
+
         function run(this, varargin)
             run@solver.blazer.Blazer(this, varargin{:});
 
@@ -41,6 +43,8 @@ classdef Steady ...
             end
         end%
     
+
+
     
         function [inc, idEqtns, idQties] = prepareIncidenceMatrix(this, varargin)
             PTR = @int16;
@@ -49,6 +53,8 @@ classdef Steady ...
             idEqtns = PTR( find(this.InxEquations) ); %#ok<FNDSB>
             idQties = PTR( find(this.InxEndogenous) ); %#ok<FNDSB>
         end%
+
+
 
 
         function [names, equations] = getNamesAndEquationsToPrint(this)

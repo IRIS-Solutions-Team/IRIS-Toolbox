@@ -152,13 +152,26 @@ function blazer = locallyRunBlazer(this, opt)
     %
     blazer = prepareBlazer(this, 'Steady', opt);
 
-    % Analyze block-sequential structure and prepare block.Steady
+
+    %
+    % Split equations into sequential blocks, prepare blocks, and prepare
+    % solver options within the blocks
+    %
     run(blazer, opt);
+    prepareForSolver(blazer, opt);
+
+
+    %
+    % Save block-recursive structure to a text file
+    %
     if ~isempty(opt.SaveAs)
         saveAs(blazer, opt.SaveAs);
     end
 
-    % Index of variables that will be always set to zero
+
+    %
+    % Prepare index of variables that will be always set to zero
+    %
     inxZero = struct( );
     inxZero.Level = false(1, numQuants);
     inxZero.Level(inxE) = true;
@@ -180,17 +193,17 @@ end%
 
 function blazer = locallyPrepareBounds(this, blazer, opt)
     numQuants = length(this.Quantity.Name);
-    numBlocks = length(blazer.Block);
+    numBlocks = length(blazer.Blocks);
     inxValidLevels = true(1, numQuants);
     inxValidChanges = true(1, numQuants);
     for i = 1 : numBlocks
-        blk = blazer.Block{i};
-        if blk.Type~=solver.block.Type.SOLVE
+        block__ = blazer.Blocks{i};
+        if block__.Type~=solver.block.Type.SOLVE
             continue
         end
         
         % Steady level bounds
-        [ptrLevel, ptrChange] = iris.utils.splitRealImag(blk.PtrQuantities);
+        [ptrLevel, ptrChange] = iris.utils.splitRealImag(block__.PtrQuantities);
 
         listLevel = this.Quantity.Name(ptrLevel);
         [lbl, ubl, inxValidLevels] = hereSetBounds( ...
@@ -204,20 +217,20 @@ function blazer = locallyPrepareBounds(this, blazer, opt)
         );
         
         % Combine level and growth bounds
-        blk.Lower = [lbl, lbg];
-        blk.Upper = [ubl, ubg];
+        block__.Lower = [lbl, lbg];
+        block__.Upper = [ubl, ubg];
         
-        if isa(blk.Solver, 'optim.options.SolverOptions')
+        if isa(block__.Solver, 'optim.options.SolverOptions')
             % Make sure @lsqnonlin is used when there are some lower/upper bounds.
-            isBnd = any(~isinf(blk.Lower)) || any(~isinf(blk.Upper));
+            isBnd = any(~isinf(block__.Lower)) || any(~isinf(block__.Upper));
             if isBnd
-                if ~strcmp(blk.Solver.SolverName, 'lsqnonlin')
-                    blk.Solver = blk.Solver('lsqnonlin', blk.Solver);
+                if ~strcmp(block__.Solver.SolverName, 'lsqnonlin')
+                    block__.Solver = block__.Solver('lsqnonlin', block__.Solver);
                 end
             end
         end
 
-        blazer.Block{i} = blk;
+        blazer.Blocks{i} = block__;
     end
 
     if any(~inxValidLevels)

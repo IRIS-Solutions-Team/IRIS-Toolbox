@@ -1,4 +1,4 @@
-function blz = prepareBlazer(this, kind, varargin)
+function [blz, opt] = prepareBlazer(this, kind, varargin)
 % prepareBlazer  Create Blazer object from dynamic or steady equations
 %
 % Backend [IrisToolbox] method
@@ -9,20 +9,26 @@ function blz = prepareBlazer(this, kind, varargin)
 
 TYPE = @int8;
 
+% Parse input arguments
+%(
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('model.prepareBlazer');
+    pp = extend.InputParser('Model.prepareBlazer');
     pp.KeepUnmatched = true;
+
     addRequired(pp, 'Model', @(x) isa(x, 'model'));
     addRequired(pp, 'Kind', @validateKind);
+
     addParameter(pp, 'Blocks', true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Log', { }, @validateLogList);
     addParameter(pp, 'Unlog', { }, @validateLogList);
     addParameter(pp, 'Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'SaveAs', '', @(x) isempty(x) || ischar(x));
     addSwapFixOptions(pp);
 end
 parse(pp, this, kind, varargin{:});
 opt = pp.Options;
+%)
 
 if isequal(opt.Growth, @auto)
     opt.Growth = this.IsGrowth;
