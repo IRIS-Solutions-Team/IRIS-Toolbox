@@ -117,10 +117,11 @@ if isempty(pp)
 
     addRequired(pp, 'model', @(x) isa(x, 'model'));
 
-    addParameter(pp, 'Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Current', 'Stacked'})));
+    addParameter(pp, 'Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Period', 'Stacked'})));
 end
 parse(pp, this, varargin{:});
 opt = pp.Options;
+kind = opt.Kind;
 %)
 
 %--------------------------------------------------------------------------
@@ -128,7 +129,7 @@ opt = pp.Options;
 nameBlk = cell(1, 0); %#ok<PREALL>
 eqtnBlk = cell(1, 0); %#ok<PREALL>
 
-[blazer, opt] = prepareBlazer(this, opt.Kind, pp.Unmatched);
+[blazer, opt] = prepareBlazer(this, kind, pp.Unmatched);
 
 %
 % Split equations into sequential blocks and prepare blocks; do not prepare
@@ -136,7 +137,7 @@ eqtnBlk = cell(1, 0); %#ok<PREALL>
 %
 run(blazer, opt);
 
-[eqtnBlk, nameBlk, blkType] = locallyGetHuman(blazer);
+[eqtnBlk, nameBlk, blkType] = locallyGetHuman(blazer, kind);
 
 if ~isempty(opt.SaveAs)
     saveAs(blazer, opt.SaveAs);
@@ -150,19 +151,23 @@ end%
 %
 
 
-function [blkEqnHuman, blkQtyHuman, blkType] = locallyGetHuman(blazer)
+function [blkEqnHuman, blkQtyHuman, blkType] = locallyGetHuman(blazer, kind)
     numBlocks = numel(blazer.Blocks);
     blkEqnHuman = cell(1, numBlocks);
     blkQtyHuman = cell(1, numBlocks);
     blkType = repmat(solver.block.Type.SOLVE, 1, numBlocks);
     for i = 1 : numBlocks
         block__ = blazer.Blocks{i};
-        [ptrLevel__, ptrChange__] = iris.utils.splitRealImag(block__.PtrQuantities);
         blkEqnHuman{i} = reshape(string(blazer.Model.Equation.Input(block__.PtrEquations)), [ ], 1);
-        blkQtyHuman{i} = struct( ...
-            'Level', reshape(string(blazer.Model.Quantity.Name(ptrLevel__)), 1, [ ]), ...
-            'Change', reshape(string(blazer.Model.Quantity.Name(ptrChange__)), 1, [ ]) ...
-        );
+        if strcmpi(string(kind), "Steady")
+            [ptrLevel__, ptrChange__] = iris.utils.splitRealImag(block__.PtrQuantities);
+            blkQtyHuman{i} = struct( ...
+                'Level', reshape(string(blazer.Model.Quantity.Name(ptrLevel__)), 1, [ ]), ...
+                'Change', reshape(string(blazer.Model.Quantity.Name(ptrChange__)), 1, [ ]) ...
+            );
+        else
+            blkQtyHuman{i} = reshape(string(blazer.Model.Quantity.Name(block__.PtrQuantities)), 1, [ ]);
+        end
         blkType(i) = block__.Type;
     end
 end%
