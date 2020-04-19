@@ -26,8 +26,9 @@ classdef (Abstract) Block < handle
         % InxLog  Log status of all model variables
         InxLog
 
-        PtrQuantities
-        PtrEquations
+        PtrQuantities = double.empty(1, 0)
+        PtrEquations = double.empty(1, 0)
+
         Equations
         EquationsFunc
         NumericalJacobFunc
@@ -269,21 +270,35 @@ classdef (Abstract) Block < handle
                 + sprintf("%%%% Block #%g\n", blockId) ...
                 + sprintf("%% Number of Equations: %g\n", numEquations) ...
                 + sprintf("%% %s\n", this.Type.SaveAsKeyword) ...
-                + printListUknowns(this, names);
-
-            if ~isempty(this.PtrEquations)
-                separator = sprintf("\n%s", solver.block.Block.SAVEAS_INDENT);
-                s = s + separator + join(equations(this.PtrEquations), separator);
-            end
+                + printListUknowns(this, names) ...
+                + printListEquations(this, equations);
         end%
 
 
 
 
         function s = printListUknowns(this, names)
+            ptrQuantities = this.PtrQuantities;
+            if isempty(ptrQuantities) || isempty(names)
+                s = "";
+                return
+            end
             s = "% " + solver.block.Block.SAVEAS_INDENT ...
-                + "(" + join(names(this.PtrQuantities), ",") + ")" ...
+                + "(" + join(names(ptrQuantities), ",") + ")" ...
                 + sprintf("\n");
+        end%
+
+
+
+
+        function s = printListEquations(this, equations)
+            ptrEquations = this.PtrEquations;
+            if isempty(ptrEquations) || isempty(equations)
+                s = "";
+                return
+            end
+            separator = sprintf("\n%s", solver.block.Block.SAVEAS_INDENT);
+            s = separator + join(equations(ptrEquations), separator);
         end%
 
 
@@ -343,6 +358,8 @@ classdef (Abstract) Block < handle
                 eqtn(1) = '';
             end
         end%
+
+
 
 
         function exitFlag = checkFiniteSolution(z, exitFlag)
