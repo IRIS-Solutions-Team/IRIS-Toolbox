@@ -324,12 +324,12 @@ classdef Steady < solver.block.Block
             % Create the Jacob pattern for the union of levels and changes;
             % the exclusion will be done later
             %
-            ptrQuantities = iris.utils.unionRealImag(this.PtrQuantities);
+            ptrUnion = iris.utils.unionRealImag(this.PtrQuantities);
 
             numEquations = numel(this.Equations);
-            numQuantities = numel(ptrQuantities);
+            numQuantities = numel(ptrUnion);
             acrossShifts = across(blz.Incidence, 'Shifts');
-            this.JacobPattern = acrossShifts(this.PtrEquations, ptrQuantities);
+            this.JacobPattern = acrossShifts(this.PtrEquations, ptrUnion);
             this.NumericalJacobFunc = cell(1, numQuantities);
             for i = 1 : numQuantities
                 inxActiveEquations = this.JacobPattern(:, i);
@@ -369,9 +369,9 @@ classdef Steady < solver.block.Block
             % Exclude Levels
             %
             if isequal(ptrLevel, ptrUnion)
-                inxKeepLevel = ':';
+                posKeepLevel = ':';
             else
-                [inxKeepLevel, this.D.Level] = ...
+                [posKeepLevel, this.D.Level] = ...
                     hereExclude(ptrUnion, ptrLevel, this.D.Level);
             end
 
@@ -379,31 +379,34 @@ classdef Steady < solver.block.Block
             % Exclude Changes
             %
             if isequal(ptrChange, ptrUnion)
-                inxKeepChange = ':';
+                posKeepChange = ':';
             else
-                [inxKeepChange, this.D.Change0, this.D.ChangeK] = ...
+                [posKeepChange, this.D.Change0, this.D.ChangeK] = ...
                     hereExclude(ptrUnion, ptrChange, this.D.Change0, this.D.ChangeK);
             end
 
             this.JacobPattern = [ ...
-                this.JacobPattern(:, inxKeepLevel), ...
-                this.JacobPattern(:, inxKeepChange), ...
+                this.JacobPattern(:, posKeepLevel), ...
+                this.JacobPattern(:, posKeepChange), ...
             ];
 
             this.NumericalJacobFunc = [ ...
-                this.NumericalJacobFunc(1, inxKeepLevel), ...
-                this.NumericalJacobFunc(1, inxKeepChange), ...
+                this.NumericalJacobFunc(1, posKeepLevel), ...
+                this.NumericalJacobFunc(1, posKeepChange), ...
             ];
 
             return
 
-                function [inxKeep, varargout] = hereExclude(union, keep, varargin)
+                function [posKeep, varargout] = hereExclude(union, keep, varargin)
                     varargout = varargin;
-                    inxKeep = ismember(union, keep);
+
+                    % Positions of keep in union
+                    posKeep = arrayfun(@(x) find(x==union), keep);
+
                     for i = 1 : numel(varargout)
                         if ~isempty(varargout{i})
                             varargout{i} = cellfun( ...
-                                @(x) x(:, inxKeep), varargout{i}, ...
+                                @(x) x(:, posKeep), varargout{i}, ...
                                 'UniformOutput', false ...
                             );
                         end

@@ -167,16 +167,15 @@ classdef (Abstract) Block < handle
             DChange0 = cell(1, numEquationsHere);
             DChangeK = cell(1, numEquationsHere);
             for i = 1 : numEquationsHere
-                posEqn = this.PtrEquations(i);
                 ptrQuantities = iris.utils.unionRealImag(this.PtrQuantities);
-                gr(:, i) = getGradient(this, blazer, posEqn, opt);
+                gr(:, i) = getGradient(this, blazer, this.PtrEquations(i), opt);
                 vecWrt = gr{2, i};
-                nWrt = length(vecWrt);
-                ixOutOfSh = imag(vecWrt)<sh(1) | imag(vecWrt)>sh(end);
-                XX2L{i} = ones(1, nWrt)*aux;
+                numWrt = length(vecWrt);
+                inxOutOfSh = imag(vecWrt)<sh(1) | imag(vecWrt)>sh(end);
+                XX2L{i} = ones(1, numWrt)*aux;
                 ixLog = blazer.Model.Quantity.IxLog(real(vecWrt));
-                vecWrt(ixOutOfSh) = NaN;
-                ixLog(ixOutOfSh) = false;
+                vecWrt(inxOutOfSh) = NaN;
+                ixLog(inxOutOfSh) = false;
                 XX2L{i}(ixLog) = sub2ind( ...
                     [numQuantities+1, numSh], ...
                     real( vecWrt(ixLog) ), ...
