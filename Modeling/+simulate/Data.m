@@ -21,8 +21,8 @@ classdef Data < shared.DataBlock
         % InxOfE  True for shocks
         InxOfE = logical.empty(1, 0)
 
-        % InxOfLog  True for log variables
-        InxOfLog = logical.empty(1, 0)
+        % InxLog  True for log variables
+        InxLog = logical.empty(1, 0)
 
         % AnticipationStatusOfE  True for expected shocks
         AnticipationStatusOfE = logical.empty(0, 1)
@@ -95,20 +95,20 @@ classdef Data < shared.DataBlock
 
 
         function YXEPG = addSteadyTrends(this, YXEPG)
-            inx = this.InxOfYX & this.InxOfLog;
-            YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxOfLog(this.InxOfYX), :);
+            inx = this.InxOfYX & this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxLog(this.InxOfYX), :);
             
-            inx = this.InxOfYX & ~this.InxOfLog;
-            YXEPG(inx, :) = YXEPG(inx, :) + this.BarYX(~this.InxOfLog(this.InxOfYX), :);
+            inx = this.InxOfYX & ~this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) + this.BarYX(~this.InxLog(this.InxOfYX), :);
         end%
 
 
         function YXEPG = removeSteadyTrends(this, YXEPG)
-            inx = this.InxOfYX & this.InxOfLog;
-            YXEPG(inx, :) = YXEPG(inx, :) ./ this.BarYX(this.InxOfLog(this.InxOfYX), :);
+            inx = this.InxOfYX & this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) ./ this.BarYX(this.InxLog(this.InxOfYX), :);
             
-            inx = this.InxOfYX & ~this.InxOfLog;
-            YXEPG(inx, :) = YXEPG(inx, :) - this.BarYX(~this.InxOfLog(this.InxOfYX), :);
+            inx = this.InxOfYX & ~this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) - this.BarYX(~this.InxLog(this.InxOfYX), :);
         end%
 
 
@@ -354,7 +354,7 @@ classdef Data < shared.DataBlock
             this.InxOfY = getIndexByType(quantity, TYPE(1));
             this.InxOfX = getIndexByType(quantity, TYPE(2));
             this.InxOfE = getIndexByType(quantity, TYPE(31), TYPE(32));
-            this.InxOfLog = quantity.IxLog;
+            this.InxLog = quantity.IxLog;
 
             this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfColumns);
             this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfColumns);

@@ -1,5 +1,5 @@
-function [kalmanObj, observed] = setupKalmanObject( ...
-    transitionModel, lowLevel, aggregation, stdScale ...
+function [kalmanObj, observed, transition] = setupKalmanObject( ...
+    lowLevel, aggregation, stdScale ...
     , conditions, indicator, transition ...
 )
 % setupKalmanObject  Set up time-varying LinearSystem and array of observed data for genip model
@@ -65,7 +65,7 @@ return
         T = diag(ones(1, numXi-1), 1);
         T = repmat(T, 1, 1, numHighPeriods);
         g = NaN;
-        switch string(transitionModel)
+        switch string(transition.Model)
             case "Rate"
                 g = hereSetupTransitionRate( );
                 T(numXi, numXi, :) = g;
@@ -83,7 +83,7 @@ return
 
     function g = hereSetupTransitionRate( )
         if isequal(transition.Rate, @auto)
-            g = series.genip.getTransitionRate(transitionModel, aggregation, lowLevel);
+            g = series.genip.getTransitionRate(transition.Model, aggregation, lowLevel);
         else
             g = double(transition.Rate);
         end
@@ -94,12 +94,12 @@ return
 
 
     function k = hereSetupTransitionConstant( )
-        switch string(transitionModel)
+        switch string(transition.Model)
             case "Rate"
                 k = 0;
             otherwise
                 if isequal(transition.Constant, @auto)
-                    k = series.genip.getTransitionConstant(transitionModel, aggregation, lowLevel);
+                    k = series.genip.getTransitionConstant(transition.Model, aggregation, lowLevel);
                 else
                     k = double(transition.Constant);
                 end

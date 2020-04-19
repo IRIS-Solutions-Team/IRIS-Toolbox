@@ -29,7 +29,11 @@ ITER_STRUCT.Reverse = false;
 
 %--------------------------------------------------------------------------
 
-exitFlagHeader = string(exitFlagHeader);
+if nargin>=4
+    exitFlagHeader = string(exitFlagHeader);
+else
+    exitFlagHeader = "";
+end
 
 if ~isempty(opt.DisplayLevel)
     displayLevel = opt.DisplayLevel;
@@ -82,9 +86,6 @@ numUnknowns = numel(initX);
 
 temp = struct('NumberOfVariables', numUnknowns);
 
-if nargin<4
-    exitFlagHeader = "";
-end
 tolX = opt.StepTolerance;
 tolFun = opt.FunctionTolerance;
 maxIter = opt.MaxIterations;

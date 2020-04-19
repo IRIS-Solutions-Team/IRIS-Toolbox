@@ -36,7 +36,7 @@ classdef (Abstract) Blazer ...
         % NanInit  Values assigned to NaN initial conditions
         NanInit = NaN
         
-        Block
+        Blocks
         AppData = struct( )
 
         % QuantitiesToExclude  Pointers to levels and or changes in quantities to exclude
@@ -48,11 +48,15 @@ classdef (Abstract) Blazer ...
         InxZero
     end
     
-    
+
+
+
     properties (Constant)
-        SAVEAS_FILE_HEADER = '%%%% [IrisToolbox] Blazer File %s\n%% Number of Blocks: %g\n%% Number of Equations: %g';
+        SAVEAS_FILE_HEADER_FORMAT = '%%%% [IrisToolbox] Blazer File %s\n%% Number of Blocks: %g\n%% Number of Equations: %g';
     end
     
+
+
 
     properties (Abstract, Constant)
         BLOCK_CONSTRUCTOR 
@@ -61,9 +65,13 @@ classdef (Abstract) Blazer ...
     end
     
 
+
+
     methods (Abstract)
         varargout = prepareIncidenceMatrix(varargin)
     end
+
+
 
 
     methods
@@ -72,6 +80,8 @@ classdef (Abstract) Blazer ...
             this.Gradient = cell(2, numEquationsInModel);        
         end%
         
+
+
         
         function endogenize(this, posToEndogenize)
             testFunc = @(this, pos) this.InxCanBeEndogenized(pos);
@@ -86,6 +96,8 @@ classdef (Abstract) Blazer ...
             end
         end%
         
+
+
         
         function exogenize(this, posToExogenize)
             testFunc = @(this, pos) this.InxCanBeExogenized(pos);
@@ -101,6 +113,8 @@ classdef (Abstract) Blazer ...
         end%
         
         
+
+
         function inxValid = swap(this, vecSwap, setIxEndgTo, testFunc)
             numSwaps = numel(vecSwap);
             inxValid = true(1, numSwaps);
@@ -117,8 +131,9 @@ classdef (Abstract) Blazer ...
         
         
         
-        function run(this, varargin)
+        function run(this, opt)
             PTR = @int16;
+
             numEquations = nnz(this.InxEquations);
             numEndogenous = nnz(this.InxEndogenous);
             if numEquations~=numEndogenous
@@ -140,7 +155,7 @@ classdef (Abstract) Blazer ...
             
             % Create solver.block.Block objects for each block
             numBlocks = numel(blkEqn);
-            this.Block = cell(1, numBlocks);
+            this.Blocks = cell(1, numBlocks);
             for i = 1 : numBlocks
                 blk = this.BLOCK_CONSTRUCTOR( );
                 blk.PtrEquations = setdiff(blkEqn{i}, this.EquationsToExclude, 'stable'); % [^1]
@@ -148,25 +163,30 @@ classdef (Abstract) Blazer ...
                 blk.LhsQuantityFormat = this.LHS_QUANTITY_FORMAT;
                 classify(blk, this.Assignment, this.Equation); % Classify block as SOLVE or ASSIGNMENT
                 setShift(blk, this); % Find max lag and lead within equations in this block
-                this.Block{i} = blk;
+                this.Blocks{i} = blk;
             end
             % [^1]: Exclude equations here, but exclude quantities in
             % inside block preparation -- this is block type specific.
 
-            if isempty(varargin)
-                return
-            end
-            prepareBlocks(this, varargin{:});
+            prepareBlocks(this, opt);
         end%
         
 
 
         
         function prepareBlocks(this, varargin)
-            numBlocks = numel(this.Block);
-            for i = 1 : numBlocks
-                prepareBlock(this.Block{i}, this, varargin{:});
-                this.Block{i}.Id = i;
+            for i = 1 : numel(this.Blocks)
+                prepareBlock(this.Blocks{i}, this, varargin{:});
+                this.Blocks{i}.Id = i;
+            end
+        end%
+        
+
+
+        
+        function prepareForSolver(this, varargin)
+            for i = 1 : numel(this.Blocks)
+                prepareForSolver(this.Blocks{i}, this, varargin{:});
             end
         end%
         
@@ -174,15 +194,15 @@ classdef (Abstract) Blazer ...
 
 
         function saveAs(this, fileName)
-            numBlocks = numel(this.Block);
+            numBlocks = numel(this.Blocks);
             numEquations = nnz(this.InxEquations);
-            c = '';
+            s = "";
             [names, equations] = getNamesAndEquationsToPrint(this);
             for i = 1 : numBlocks
-                c = [c, newline( ), newline( ), newline( )]; %#ok<AGROW>
-                c = [c, char(print(this.Block{i}, i, names, equations)) ]; %#ok<AGROW>
+                s = s + sprintf("\n\n\n");
+                s = s + print(this.Blocks{i}, i, names, equations); %#ok<AGROW>
             end
-            solver.blazer.Blazer.wrapAndSave(c, fileName, numBlocks, numEquations);
+            solver.blazer.Blazer.wrapAndSave(s, fileName, numBlocks, numEquations);
         end%        
 
 
@@ -298,6 +318,8 @@ classdef (Abstract) Blazer ...
             idEqn = idEqn(r2);
         end%
         
+
+
         
         function [blkEqn, blkQty, blkInc] = getBlocks(ordInc, idEqn, idQty)
             PTR = @int16;
@@ -339,12 +361,14 @@ classdef (Abstract) Blazer ...
         end%
 
 
-        function c = wrapAndSave(c, fileName, numBlocks, numEquations)
+
+
+        function c = wrapAndSave(s, fileName, numBlocks, numEquations)
             header = sprintf( ...
-                solver.blazer.Blazer.SAVEAS_FILE_HEADER, ...
+                solver.blazer.Blazer.SAVEAS_FILE_HEADER_FORMAT, ...
                 datestr(now( )), numBlocks, numEquations ...
             );
-            char2file([char(header), char(c), newline( ), newline( )], fileName);
+            char2file([char(header), char(s), newline( ), newline( )], fileName);
         end%
     end
 end

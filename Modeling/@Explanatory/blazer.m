@@ -217,9 +217,9 @@ return
 
 
 
-    function blazerObj = hereSaveAs( )
+    function hereSaveAs( )
         allNames = collectAllNames(this);
-        c = "";
+        s = "";
         for i = 1 : numBlocks
             numEquationsInBlock = numel(blocks{i});
             if numEquationsInBlock==1
@@ -231,14 +231,16 @@ return
             else
                 type = solver.block.Type.ITERATE_TIME;
             end
-            keyword = string(type.SaveAsKeyword);
-            c = c + newlineString + newlineString ...
-                + solver.block.Block.printBlock(i, keyword, inputStrings(blocks{i}));
+            blockObj = solver.block.Explanatory( );
+            blockObj.Type = type;
+            blockObj.PtrEquations = blocks{i};
+            s = s + newlineString + newlineString ...
+                + print(blockObj, i, [ ], inputStrings);
         end
-        c = newlineString + "% LHS Variables: (" + join(lhsNames, ", ") + ")" ...
+        s = newlineString + "% LHS Variables: (" + join(lhsNames, ", ") + ")" ...
             + newlineString + "% RHS-Only Variables: (" + join(setdiff(allNames, lhsNames), ", ") + ")" ...
-            + c;
-        solver.blazer.Blazer.wrapAndSave(c, opt.SaveAs, numBlocks, numEquations);
+            + s;
+        solver.blazer.Blazer.wrapAndSave(s, opt.SaveAs, numBlocks, numEquations);
     end%
 
 

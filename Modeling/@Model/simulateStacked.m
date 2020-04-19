@@ -36,9 +36,9 @@ firstColumnFrame = data.FirstColumnOfFrame;
 lastColumnFrame = data.LastColumnOfFrame;
 columnsFrame = firstColumnFrame : lastColumnFrame;
 
-numBlocks = numel(blazer.Block);
+numBlocks = numel(blazer.Blocks);
 for i = 1 : numBlocks
-    block__ = blazer.Block{i};
+    block__ = blazer.Blocks{i};
     exitFlagHeader = string(rect.Header) + sprintf("[Block:%g]", i);
     herePrepareInxEndogenousPoints( );
     herePrepareTerminal( );
@@ -78,7 +78,8 @@ return
 
     function herePrepareTerminal( )
         maxMaxLead = max(block__.MaxLead);
-        if block__.Type~=solver.block.Type.SOLVE || maxMaxLead<=0
+        if block__.Type~=solver.block.Type.SOLVE ...
+            || isempty(maxMaxLead) || maxMaxLead<=0
             block__.Terminal = [ ];
         else
             fotcFrame = [lastColumnFrame+1, lastColumnFrame+maxMaxLead];
