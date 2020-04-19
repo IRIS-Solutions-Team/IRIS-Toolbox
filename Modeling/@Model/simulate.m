@@ -278,7 +278,7 @@ return
 
     function herePrepareContributions( )
         firstColumnToSimulate = runningData.BaseRangeColumns(1);
-        inxLog = this.Quantity.InxOfLog;
+        inxLog = this.Quantity.InxLog;
         inxE = getIndexByType(this, TYPE(31), TYPE(32));
         posE = find(inxE);
         numE = nnz(inxE);
@@ -327,11 +327,13 @@ return
                 blazer = prepareBlazer(this, opt.Method, opt);
                 blazer.ColumnsToRun = firstColumnToRun : lastColumnToRun;
                 run(blazer, opt);
+                prepareForSolver(blazer, opt);
 
                 opt.Blocks = false;
                 blazerNoBlocks = prepareBlazer(this, opt.Method, opt);
                 blazerNoBlocks.ColumnsToRun = firstColumnToRun : lastColumnToRun;
                 run(blazerNoBlocks, opt);
+                prepareForSolver(blazer, opt);
                 opt.Blocks = true;
 
                 runningData.Blazers = [blazerNoBlocks, blazer];
@@ -465,7 +467,7 @@ return
 
 
     function herePostprocessContributions( )
-        inxLog = this.Quantity.InxOfLog;
+        inxLog = this.Quantity.InxLog;
         if opt.Method~=solver.Method.FIRST_ORDER
             % Calculate contributions of nonlinearities
             runningData.YXEPG(inxLog, :, end) =  runningData.YXEPG(inxLog, :, end) ...

@@ -18,7 +18,7 @@ YXEPG = data.YXEPG;
 inxY = getIndexByType(this.Quantity, TYPE(1));
 inxE = getIndexByType(this.Quantity, TYPE(31) , TYPE(32));
 inxCurrentWithinXi = this.InxOfCurrentWithinXi;
-inxLog = this.Quantity.InxOfLog;
+inxLog = this.Quantity.InxLog;
 
 sizeData = size(YXEPG);
 firstColumnToRun = this.FirstColumn;

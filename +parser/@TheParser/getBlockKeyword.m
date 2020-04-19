@@ -1,20 +1,21 @@
-function lsBlockKey = getBlockKeyword(this)
-% getBlockKeyword  Get list of keywords that start individual blocks.
+function listBlockKeys = getBlockKeyword(this)
+% getBlockKeyword  Get list of keywords that start individual blocks
 %
-% Backend IRIS function.
-% No help provided.
+% Backend [IrisToolbox] method
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-nBlock = length(this.Block);
-lsBlockKey = cell(1, nBlock);
-for i = 1 : nBlock
-    lsBlockKey{i} = this.Block{i}.Keyword;
+numBlocks = numel(this.Block);
+listBlockKeys = cell(1, numBlocks);
+for i = 1 : numBlocks
+    listBlockKeys{i} = this.Block{i}.Keyword;
 end
-ixEmpty = cellfun(@isempty, lsBlockKey);
-lsBlockKey(ixEmpty) = [ ];
+inxEmpty = cellfun(@isempty, listBlockKeys);
+listBlockKeys(inxEmpty) = [ ];
 
-end
+end%
+

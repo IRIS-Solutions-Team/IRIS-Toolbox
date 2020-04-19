@@ -71,7 +71,7 @@ numOfInit = nnz(inxOfInit);
 if isequal(opt.Size, @auto)
     % Default 1 for linearized, log(1.01) for log-linearized
     sizeOfDeviation = ones(1, numOfInit);
-    inxOfLog = this.Quantity.InxOfLog;
+    inxOfLog = this.Quantity.InxLog;
     if any(inxOfLog)
         realId = real(this.Vector.Solution{2}(numOfFwl+1:end));
         realId = realId(inxOfInit);
