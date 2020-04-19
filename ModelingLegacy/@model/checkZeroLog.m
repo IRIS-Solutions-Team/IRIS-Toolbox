@@ -13,7 +13,7 @@ end
 
 %--------------------------------------------------------------------------
 
-inxLog = this.Quantity.InxOfLog;
+inxLog = this.Quantity.InxLog;
 level = real(this.Variant.Values(:, :, variantsRequested));
 growth = imag(this.Variant.Values(:, :, variantsRequested));
 

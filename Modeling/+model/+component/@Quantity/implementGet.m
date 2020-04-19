@@ -50,7 +50,7 @@ elseif compare(query1, 'CanBeEndogenized:Simulate')
     return
 
 elseif compare(query1, 'LogStatus')
-    answ = cell2struct(num2cell(this.InxOfLog), this.Name, 2);
+    answ = cell2struct(num2cell(this.InxLog), this.Name, 2);
     return
 
 else

@@ -20,22 +20,29 @@ classdef Steady < solver.block.Block
 
         
         
-        function c = printListOfUknowns(this, name)
+        function s = printListUknowns(this, names)
         %(
             [ptrLevel, ptrChange] = iris.utils.splitRealImag(this.PtrQuantities);
 
-            listLevel = ' ';
             if ~isempty(ptrLevel)
-                listLevel = strjoin(name(ptrLevel), ', ');
+                listLevel = strjoin(names(ptrLevel), ", ");
+            else
+                listLevel = " ";
             end
-            level = ['Level(', listLevel, ')'];
+            level = "% " + solver.block.Block.SAVEAS_INDENT ...
+                + "Level(" + listLevel + ")" ...
+                + sprintf("\n");
 
-            listChange = ' ';
             if ~isempty(ptrChange)
-                listChange = strjoin(name(ptrChange), ', ');
+                listChange = strjoin(names(ptrChange), ", ");
+            else
+                listChange = " ";
             end
-            change = ['Change(', listChange, ')'];
-            c = [level, ' ', change];
+            change = "% " + solver.block.Block.SAVEAS_INDENT ...
+                + "Change(" + listChange + ")" ...
+                + sprintf("\n");
+
+            s = level + change;
         %)
         end%
 
@@ -46,7 +53,7 @@ classdef Steady < solver.block.Block
             %(
             exitFlag = solver.ExitFlag.IN_PROGRESS;
             error = struct( 'EvaluatesToNan', [ ] );
-            inxLog = this.InxOfLog;
+            inxLog = this.InxLog;
             
             if isEmptyBlock(this.Type) || isempty(this.PtrQuantities)
                 exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
@@ -274,30 +281,59 @@ classdef Steady < solver.block.Block
     methods       
         function prepareBlock(this, blz, opt)
             prepareBlock@solver.block.Block(this, blz, opt);
+
+            [ptrLevelToExclude, ptrChangeToExclude] = iris.utils.splitRealImag(blz.QuantitiesToExclude);
+            ptrLevel = setdiff(double(this.PtrQuantities), double(ptrLevelToExclude), 'stable');
+            ptrChange = setdiff(double(this.PtrQuantities), double(ptrChangeToExclude), 'stable');
+
+            this.PtrQuantities = [ptrLevel, 1i*ptrChange];
+        end%
+
+
+
+
+        function prepareForSolver(this, blz, opt)
+
+            prepareForSolver@solver.block.Block(this, blz, opt);
+
+            %
             % Prepare function handles and auxiliary matrices for gradients
+            %
             this.RetGradient = opt.PrepareGradient && this.Type==solver.block.Type.SOLVE;
             this.SteadyShift = opt.SteadyShift;
+
             if this.RetGradient
+                %
+                % Prepare the analytical gradient for the same set of
+                % levels and changes, with the list of pointers being the
+                % union of levels and changes. The exclusion is done in the
+                % next step
+                %
                 [this.Gradient, this.XX2L, this.D.Level, this.D.Change0, this.D.ChangeK] = ...
                     createAnalyticalJacob(this, blz, opt);
             end
 
-            this.PtrQuantities = [double(this.PtrQuantities), 1i*double(this.PtrQuantities)];
-            excludeQuantities(this, blz);
+            excludeQuantitiesFromJacob(this, blz);
         end%
         
 
 
         
         function createJacobPattern(this, blz)
-            numEquations = length(this.Equations);
-            numQuantities = length(this.PtrQuantities);
+            %
+            % Create the Jacob pattern for the union of levels and changes;
+            % the exclusion will be done later
+            %
+            ptrUnion = iris.utils.unionRealImag(this.PtrQuantities);
+
+            numEquations = numel(this.Equations);
+            numQuantities = numel(ptrUnion);
             acrossShifts = across(blz.Incidence, 'Shifts');
-            this.JacobPattern = acrossShifts(this.PtrEquations, this.PtrQuantities);
+            this.JacobPattern = acrossShifts(this.PtrEquations, ptrUnion);
             this.NumericalJacobFunc = cell(1, numQuantities);
             for i = 1 : numQuantities
-                indexActiveEquations = this.JacobPattern(:, i);
-                activeEquationsString = ['[', this.Equations{indexActiveEquations}, ']'];
+                inxActiveEquations = this.JacobPattern(:, i);
+                activeEquationsString = ['[', this.Equations{inxActiveEquations}, ']'];
                 if this.VECTORIZE
                     activeEquationsString = vectorize(activeEquationsString);
                 end
@@ -308,47 +344,71 @@ classdef Steady < solver.block.Block
         
 
 
-        function excludeQuantities(this, blz)
-            [ptrLevel, ptrChange] = iris.utils.splitRealImag(this.PtrQuantities);
-            [ptrLevelToExclude, ptrChangeToExclude] = iris.utils.splitRealImag(blz.QuantitiesToExclude);
+        function excludeQuantitiesFromJacob(this, blz)
+            % excludeQuantitiesFromJacob  Exclude rows and columns
+            % corresponding to excluded Levels and Changes from
+            % JacobPatterna and NumericalJacobFunc
 
-            % Exclude levels fixed by user
-            if isempty(ptrLevelToExclude)
-                inxKeepLevel = ':';
+            if this.Type~=solver.block.Type.SOLVE
+                return
+            end
+
+            %
+            % Union of Levels and Changes for which JacobPattern and
+            % NumericalJacobFunc were prepared
+            %
+            ptrUnion = iris.utils.unionRealImag(this.PtrQuantities);
+
+            %
+            % Actual Levels and Changes with some of them excluded for
+            % which JacobPattern and NumericalJacobFunc need to be prepared
+            %
+            [ptrLevel, ptrChange] = iris.utils.splitRealImag(this.PtrQuantities);
+
+            %
+            % Exclude Levels
+            %
+            if isequal(ptrLevel, ptrUnion)
+                posKeepLevel = ':';
             else
-                [inxKeepLevel, ptrLevel, this.D.Level] = ...
-                    do(ptrLevel, ptrLevelToExclude, this.D.Level);
+                [posKeepLevel, this.D.Level] = ...
+                    hereExclude(ptrUnion, ptrLevel, this.D.Level);
             end
-            % Exclude growth rates fixed by user.
-            if isempty(ptrChangeToExclude) 
-                inxKeepChange = ':';
+
+            %
+            % Exclude Changes
+            %
+            if isequal(ptrChange, ptrUnion)
+                posKeepChange = ':';
             else
-                [inxKeepChange, ptrChange, this.D.Change0, this.D.ChangeK] = ...
-                    do(ptrChange, ptrChangeToExclude, this.D.Change0, this.D.ChangeK);
+                [posKeepChange, this.D.Change0, this.D.ChangeK] = ...
+                    hereExclude(ptrUnion, ptrChange, this.D.Change0, this.D.ChangeK);
             end
-            if this.Type==solver.block.Type.SOLVE
-                this.JacobPattern = [ ...
-                    this.JacobPattern(:, inxKeepLevel), ...
-                    this.JacobPattern(:, inxKeepChange), ...
-                ];
-                this.NumericalJacobFunc = [ ...
-                    this.NumericalJacobFunc(1, inxKeepLevel), ...
-                    this.NumericalJacobFunc(1, inxKeepChange), ...
-                ];
-            end
-            this.PtrQuantities = [ptrLevel, 1i*ptrChange];
+
+            this.JacobPattern = [ ...
+                this.JacobPattern(:, posKeepLevel), ...
+                this.JacobPattern(:, posKeepChange), ...
+            ];
+
+            this.NumericalJacobFunc = [ ...
+                this.NumericalJacobFunc(1, posKeepLevel), ...
+                this.NumericalJacobFunc(1, posKeepChange), ...
+            ];
+
             return
 
-                function [inxToKeep, id, varargout] = do(id, idToExclude, varargin)
+                function [posKeep, varargout] = hereExclude(union, keep, varargin)
                     varargout = varargin;
-                    inxToKeep = false(1, numel(id));
-                    [id, posToKeep] = setdiff(id, idToExclude, 'stable');
-                    inxToKeep(posToKeep) = true;
+
+                    % Positions of keep in union
+                    posKeep = arrayfun(@(x) find(x==union), keep);
+
                     for i = 1 : numel(varargout)
                         if ~isempty(varargout{i})
-                            D = varargout{i};
-                            D = cellfun(@(x) x(:, posToKeep), D, 'UniformOutput', false);
-                            varargout{i} = D;
+                            varargout{i} = cellfun( ...
+                                @(x) x(:, posKeep), varargout{i}, ...
+                                'UniformOutput', false ...
+                            );
                         end
                     end
                 end%

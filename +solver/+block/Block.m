@@ -23,8 +23,8 @@ classdef (Abstract) Block < handle
         % NamesInBlock  Names of unknowns to be solved for in this block
         NamesInBlock
 
-        % InxOfLog  Log status of all model variables
-        InxOfLog
+        % InxLog  Log status of all model variables
+        InxLog
 
         PtrQuantities
         PtrEquations
@@ -54,9 +54,8 @@ classdef (Abstract) Block < handle
     
     
     properties (Constant)
-        SAVEAS_INDENT = "    ";
-        SAVEAS_HEADER_FORMAT = "%%%% Block #%g\n%% Number of Equations: %g\n%% Execution: %s\n";
         SAVEAS_SECTION = string(repmat(' ', 1, 75))
+        SAVEAS_INDENT = "    "
     end
 
 
@@ -115,8 +114,13 @@ classdef (Abstract) Block < handle
             end
             createEquationsFunc(this, blazer);
             this.NamesInBlock = blazer.Model.Quantity.Name(this.PtrQuantities);
-            this.InxOfLog = blazer.Model.Quantity.InxOfLog;
+            this.InxLog = blazer.Model.Quantity.InxLog;
+        end%
 
+
+
+
+        function prepareForSolver(this, blazer, opt)
             this.Solver = opt.Solver;
             if this.Type==solver.block.Type.SOLVE
                 createJacobPattern(this, blazer);
@@ -152,32 +156,32 @@ classdef (Abstract) Block < handle
 
         function [gr, XX2L, DLevel, DChange0, DChangeK] = createAnalyticalJacob(this, blazer, opt)
             [~, numQuantities] = size(blazer.Incidence);
-            numEquationsHere = length(this.PtrEquations);
+            numEquationsHere = numel(this.PtrEquations);
             gr = blazer.Gradient(:, this.PtrEquations);
             sh = this.Shift;
-            nsh = length(sh);
+            numSh = numel(sh);
             sh0 = find(this.Shift==0);
-            aux = sub2ind([numQuantities+1, nsh], numQuantities+1, sh0); % Linear index to 1 in last row.
+            aux = sub2ind([numQuantities+1, numSh], numQuantities+1, sh0); % Linear index to 1 in last row.
             XX2L = cell(1, numEquationsHere);
             DLevel = cell(1, numEquationsHere);
             DChange0 = cell(1, numEquationsHere);
             DChangeK = cell(1, numEquationsHere);
             for i = 1 : numEquationsHere
-                posEqn = this.PtrEquations(i);
-                gr(:, i) = getGradient(this, blazer, posEqn, opt);
+                ptrQuantities = iris.utils.unionRealImag(this.PtrQuantities);
+                gr(:, i) = getGradient(this, blazer, this.PtrEquations(i), opt);
                 vecWrt = gr{2, i};
-                nWrt = length(vecWrt);
-                ixOutOfSh = imag(vecWrt)<sh(1) | imag(vecWrt)>sh(end);
-                XX2L{i} = ones(1, nWrt)*aux;
+                numWrt = length(vecWrt);
+                inxOutOfSh = imag(vecWrt)<sh(1) | imag(vecWrt)>sh(end);
+                XX2L{i} = ones(1, numWrt)*aux;
                 ixLog = blazer.Model.Quantity.IxLog(real(vecWrt));
-                vecWrt(ixOutOfSh) = NaN;
-                ixLog(ixOutOfSh) = false;
-                XX2L{i}(ixLog) = sub2ind( [numQuantities+1, nsh], ...
-                                          real( vecWrt(ixLog) ), ...
-                                          sh0 + imag( vecWrt(ixLog) ) );
-                DLevel{i} = double( bsxfun( @eq, ...
-                                            this.PtrQuantities, ...
-                                            real(vecWrt).' ) );
+                vecWrt(inxOutOfSh) = NaN;
+                ixLog(inxOutOfSh) = false;
+                XX2L{i}(ixLog) = sub2ind( ...
+                    [numQuantities+1, numSh], ...
+                    real( vecWrt(ixLog) ), ...
+                    sh0 + imag(vecWrt(ixLog)) ...
+                );
+                DLevel{i} = double(bsxfun(@eq, ptrQuantities, real(vecWrt).'));
                 if nargout>3
                     DChange0{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).');
                     DChangeK{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).' + this.SteadyShift);
@@ -189,9 +193,16 @@ classdef (Abstract) Block < handle
 
         
         function gr = getGradient(this, blazer, posEqn, opt)
+            %
+            % Create the gradient for the union of levels and changes
+            %
+            ptrQuantities = iris.utils.unionRealImag(this.PtrQuantities);
+
+            %
             % Fetch gradient of posEqn-th equation from Blazer object or differentiate
-            % again if needed.
-            vecWrtNeeded = find(blazer.Incidence, posEqn, this.PtrQuantities);
+            % again if needed
+            %
+            vecWrtNeeded = find(blazer.Incidence, posEqn, ptrQuantities);
             vecWrtMissing = setdiff(vecWrtNeeded, blazer.Gradient{2, posEqn});
             if ~opt.ForceRediff ...
                     && isa(blazer.Gradient{1, posEqn}, 'function_handle') ...
@@ -241,28 +252,38 @@ classdef (Abstract) Block < handle
                 [z, ~, exitFlag] = this.Solver(fnObjective, z0);
 
             else
-                THIS_ERROR = { 'Block:UnknownSolver'
-                               'Invalid or unknown solution method' };
-                throw(exception.Base(THIS_ERROR, 'error'));
+                thisError = [
+                    "Block:UnknownSolver"
+                    "Invalid or unknown solution method"
+                ];
+                throw(exception.Base(thisError, 'error'));
             end
         end%
 
 
         
 
-        function c = print(this, blockId, names, input)
-            keyword = string(this.Type.SaveAsKeyword);
-            if this.Type==solver.block.Type.SOLVE
-                keyword = keyword + printListOfUknowns(this, names);
+        function s = print(this, blockId, names, equations)
+            numEquations = numel(this.PtrEquations);
+            s = sprintf("%s\n", solver.block.Block.SAVEAS_SECTION) ...
+                + sprintf("%%%% Block #%g\n", blockId) ...
+                + sprintf("%% Number of Equations: %g\n", numEquations) ...
+                + sprintf("%% %s\n", this.Type.SaveAsKeyword) ...
+                + printListUknowns(this, names);
+
+            if ~isempty(this.PtrEquations)
+                separator = sprintf("\n%s", solver.block.Block.SAVEAS_INDENT);
+                s = s + separator + join(equations(this.PtrEquations), separator);
             end
-            c = solver.block.Block.printBlock(blockId, keyword, input(this.PtrEquations));
         end%
 
 
 
 
-        function c = printListOfUknowns(this, names)
-            c = "(" + join(names(this.PtrQuantities), ",") + ")"; 
+        function s = printListUknowns(this, names)
+            s = "% " + solver.block.Block.SAVEAS_INDENT ...
+                + "(" + join(names(this.PtrQuantities), ",") + ")" ...
+                + sprintf("\n");
         end%
 
 
@@ -305,10 +326,14 @@ classdef (Abstract) Block < handle
     end
 
 
+
+
     methods (Abstract)
        varargout = createJacobPattern(varargin) 
     end
     
+
+
     
     methods (Static)
         function eqtn = removeLhs(eqtn)
@@ -327,24 +352,6 @@ classdef (Abstract) Block < handle
             if ~all(isfinite(z(:)))
                 exitFlag = solver.ExitFlag.NAN_INF_SOLUTION;
             end
-        end%
-
-
-        function c = printBlock(blockId, keyword, eqtn)
-            eqtn = string(eqtn);
-            numEquations = numel(eqtn);
-            newlineString = string(newline( ));
-            separator = newlineString + solver.block.Block.SAVEAS_INDENT;
-            c = separator;
-            if ~isempty(eqtn)
-                c = c + join(eqtn, separator);
-            end
-            header = string(sprintf( ...
-                solver.block.Block.SAVEAS_HEADER_FORMAT, ...
-                blockId, numEquations, keyword ...
-            ));
-            c = solver.block.Block.SAVEAS_SECTION + newlineString + header ...
-                + c + newlineString + "%";
         end%
     end
 end
