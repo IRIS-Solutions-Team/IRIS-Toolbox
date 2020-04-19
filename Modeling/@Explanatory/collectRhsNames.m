@@ -10,9 +10,9 @@ function rhsNames = collectRhsNames(this)
 % ## Input Arguments ##
 %
 %
-% __`this`__ [ ExplanatoryEquation ]
+% __`this`__ [ Explanatory ]
 % >
-% ExplanatoryEquation object or array whose variables that occur only on
+% Explanatory object or array whose variables that occur only on
 % the RHS of equations will be collected.
 %
 %
@@ -22,7 +22,7 @@ function rhsNames = collectRhsNames(this)
 % __`rhsNames`__ [ string ]
 % >
 % Names of the variables that occur only on the RHS of equations in `this`
-% ExplanatoryEquation object or array.
+% Explanatory object or array.
 %
 %
 % ## Description ##

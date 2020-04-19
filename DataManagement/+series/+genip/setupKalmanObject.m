@@ -1,5 +1,5 @@
-function [kalmanObj, observed] = setupKalmanObject( ...
-    transitionModel, lowLevel, aggregation, stdScale ...
+function [kalmanObj, observed, transition] = setupKalmanObject( ...
+    lowLevel, aggregation, stdScale ...
     , conditions, indicator, transition ...
 )
 % setupKalmanObject  Set up time-varying LinearSystem and array of observed data for genip model
@@ -61,14 +61,17 @@ kalmanObj = timeVaryingSystem(kalmanObj, 1:numHighPeriods, {T, R, k, Z, H, d}, {
 
 return
 
-    function T = hereSetupTransitionMatrix( )
+    function [T, g] = hereSetupTransitionMatrix( )
         T = diag(ones(1, numXi-1), 1);
         T = repmat(T, 1, 1, numHighPeriods);
-        switch string(transitionModel)
+        g = NaN;
+        switch string(transition.Model)
             case "Rate"
-                T(numXi, numXi, :) = hereSetupTransitionRate( );
+                g = hereSetupTransitionRate( );
+                T(numXi, numXi, :) = g;
             case "Level"
                 % Level indicator, do nothing
+                % T(numXi, numXi, :) = 0;
             case "Diff"
                 T(numXi, numXi, :) = 1;
             case "DiffDiff"
@@ -80,25 +83,23 @@ return
 
     function g = hereSetupTransitionRate( )
         if isequal(transition.Rate, @auto)
-            g = series.genip.getTransitionRate(transitionModel, aggregation, lowLevel);
+            g = series.genip.getTransitionRate(transition.Model, aggregation, lowLevel);
         else
             g = double(transition.Rate);
         end
-        if isscalar(g)
-            g = repmat(g, 1, 1, numHighPeriods);
-        else
+        if ~isscalar(g)
             g = reshape(g, 1, 1, [ ]);
         end
     end%
 
 
     function k = hereSetupTransitionConstant( )
-        switch string(transitionModel)
+        switch string(transition.Model)
             case "Rate"
                 k = 0;
             otherwise
                 if isequal(transition.Constant, @auto)
-                    k = series.genip.getTransitionConstant(transitionModel, aggregation, lowLevel);
+                    k = series.genip.getTransitionConstant(transition.Model, aggregation, lowLevel);
                 else
                     k = double(transition.Constant);
                 end

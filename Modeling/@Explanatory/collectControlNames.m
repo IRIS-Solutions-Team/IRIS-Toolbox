@@ -10,9 +10,9 @@ function controlNames = collectControlNames(this)
 % ## Input Arguments ##
 %
 %
-% __`this`__ [ ExplanatoryEquation ]
+% __`this`__ [ Explanatory ]
 % >
-% An ExplanatoryEquation object or array from which all control parameter
+% An Explanatory object or array from which all control parameter
 % names will be collected.
 %
 %
@@ -22,7 +22,7 @@ function controlNames = collectControlNames(this)
 % __`controlNames`__ [ string ]
 % >
 % List of all unique control parameter names, in order of their appearance
-% in `this` ExplanatoryEquation object or array.
+% in `this` Explanatory object or array.
 %
 %
 % ## Description ##

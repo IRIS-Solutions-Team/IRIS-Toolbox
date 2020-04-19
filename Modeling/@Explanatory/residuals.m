@@ -1,5 +1,5 @@
 function varargout = residuals(this, inputDatabank, range, varargin)
-% residuals  Evaluate residuals from ExplanatoryEquation for currently assigned parameters
+% residuals  Evaluate residuals from Explanatory for currently assigned parameters
 %{
 %}
 
@@ -42,7 +42,7 @@ end%
 
 
 function setupOnce(testCase)
-    m1 = ExplanatoryEquation.fromString('x = ? + ?*x{-1} + ?*y');
+    m1 = Explanatory.fromString('x = ? + ?*x{-1} + ?*y');
     startDate = qq(2001,1);
     endDate = qq(2010, 4);
     baseRange = startDate:endDate;

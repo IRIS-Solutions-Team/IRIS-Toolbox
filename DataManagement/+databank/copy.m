@@ -1,111 +1,137 @@
 function targetDb = copy(sourceDb, varargin)
-% copy  Copy fields of source databank to target databank
 %{
-% ## Syntax ##
+% databank.copy  Copy fields of source databank to target databank
 %
-% Input arguments marked with a `~` sign may be omitted
+% Syntax
+%--------------------------------------------------------------------------
 %
-%     targetDb = databank.copy(sourceDb, ~sourceNames, ~targetDb, ~targetNames)
+%     targetDb = databank.copy(sourceDb, ...)
 %
 %
-% ## Input Arguments ##
-%
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 % __`sourceDb`__ [ struct | Dictionary ]
-% >
-% Source databank from which some (or all) fields will be copied over to
-% the `targetDb`.
+%
+%     Source databank from which some (or all) fields will be copied over
+%     to the `targetDb`.
 %
 %
-% __`sourceNames`__ [ cellstr | string ]
-% >
-% List of fieldnames to be copied over from the `sourceDb` to the
-% `targetDb`; if omitted, all fields existing in the `sourceDb` will be
-% copied.
+% Options
+%--------------------------------------------------------------------------
+%
+% __`SourceNames=@all`__ [ `@all` | cellstr | string ]
+%
+%     List of fieldnames to be copied over from the `sourceDb` to the
+%     `targetDb`; `@all` means all fields existing in the `sourceDb` will
+%     be copied.
 %
 %
-% __`~targetDb`__ [ struct | Dictionary ]
-% >
-% Target databank to which some (or all) fields form the `sourceDb` will be
-% copied over; if omitted, a new empty databank will be created of the
-% same type as the `sourceDb`.
+% __`TargetDb=@empty`__ [ `@empty` | struct | Dictionary ]
+%
+%     Target databank to which some (or all) fields form the `sourceDb`
+%     will be copied over; `@empty` means a new empty databank will be
+%     created of the same type as the `sourceDb` (either a struct or a
+%     Dictionary).
 % 
 %
-% __`~targetNames`__ [ cellstr | string ]
-% >
-% Names under which the fields from the `sourceDb` will be stored in the
-% `targetDb`; if omitted, the names will remain unchanged from the
-% `sourceDb`.
+% __`TargetNames=@auto`__ [ cellstr | string | function_handle]
+% 
+%     Names under which the fields from the `sourceDb` will be stored in
+%     the `targetDb`; `@auto` means the `TargetNames` will be simply the
+%     same as the `SourceNames`; if `TargetNames` is a function, the target
+%     names will be created by applying this function to each of
+%     the `SourceNames`.
 %
 %
-% ## Output Arguments ##
+% __`Transform=[ ]`__ [ empty | function_handle ]
 %
+%     Transformation function applied to each of the fields being copied
+%     over from the `sourceDb` to the `targetDb`; if empty, no
+%     transformation is performed.
+%
+%
+% __`WhenTransformFails='Error'`__ [ `'Error'` | `'Warning'` | `'Silence'` ]
+%
+%     Action to be taken if the transformation function `Transform=`
+%     evaluates to an error when applied to one or more fields of the source
+%     databank.
+%
+%
+% Output Arguments
+%--------------------------------------------------------------------------
 %
 % __`targetDb`__ [ struct | Dictionary ]
-% >
-% Target databank to which some (or all) fields from the `sourceDb` will be
-% copied over.
+% 
+%     Target databank to which some (or all) fields from the `sourceDb`
+%     will be copied over.
 %
 %
-% ## Description ##
+% Description
+%--------------------------------------------------------------------------
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
+%
+%
+% See also databank.apply, databank.batch
 %
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
-
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
-
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.copy');
     addRequired(pp, 'sourceDb', @validate.databank);
-    addOptional(pp, 'sourceNames', @all, @(x) isequal(x, @all) || validate.list(x));
-    addOptional(pp, 'targetDb', @empty, @(x) isequal(x, @empty) || validate.databank(x));
-    addOptional(pp, 'targetNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
+    addParameter(pp, 'SourceNames', @all, @(x) isequal(x, @all) || validate.list(x));
+    addParameter(pp, 'TargetDb', @empty, @(x) isequal(x, @empty) || validate.databank(x));
+    addParameter(pp, 'TargetNames', @auto, @(x) isequal(x, @auto) || validate.list(x) || isa(x, 'function_handle'));
+    addParameter(pp, 'Transform', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
+    addParameter(pp, 'WhenTransformFails', 'Error', @(x) validate.anyString(x, 'Error', 'Warning'));
 end
 parse(pp, sourceDb, varargin{:});
-sourceNames = pp.Results.sourceNames;
-targetDb = pp.Results.targetDb;
-targetNames = pp.Results.targetNames;
+opt = pp.Options;
+sourceNames = pp.Results.SourceNames;
+targetDb = pp.Results.TargetDb;
+targetNames = pp.Results.TargetNames;
+transform = pp.Results.Transform;
 
 %--------------------------------------------------------------------------
 
-if isequal(sourceNames, @all)
-    if isa(sourceDb, 'Dictionary')
-        sourceNames = keys(sourceDb);
-    else
-        sourceNames = fieldnames(sourceDb);
-    end
-end
-sourceNames = string(sourceNames);
+%
+% Resolve source names
+%
+sourceNames = hereResolveSourceNames( );
 
-if isequal(targetDb, @empty)
-    if isa(sourceDb, 'Dictionary')
-        targetDb = Dictionary( );
-    elseif isstruct(sourceDb)
-        targetDb = struct( );
-    end
-end
+%
+% Resolve target databank
+%
+targetDb = hereResolveTargetDb( );
 
-if isequal(targetNames, @auto)
-    targetNames = sourceNames;
-else
-    targetNames = string(targetNames);
-end
+%
+% Resolve target names
+%
+targetNames = hereResolveTargetNames( );
 
+numSourceNames = numel(sourceNames);
 hereCheckDimensions( );
 
-for i = 1 : numel(sourceNames)
+inxSuccess = true(1, numSourceNames);
+for i = 1 : numSourceNames
     sourceName__ = sourceNames(i);
     targetName__ = targetNames(i);
     value = sourceDb.(char(sourceName__));
+    if ~isempty(transform)
+        try
+            value = transform(value);
+        catch
+            inxSuccess(i) = false;
+            continue
+        end
+    end
     if isa(targetDb, 'Dictionary')
         store(targetDb, targetName__, value);
     elseif isstruct(targetDb)
@@ -113,15 +139,69 @@ for i = 1 : numel(sourceNames)
     end
 end
 
+if any(~inxSuccess)
+    hereThrowTransformFailed( );
+end
+
 return
+
+    function sourceNames = hereResolveSourceNames( )
+        sourceNames = opt.SourceNames;
+        if isequal(sourceNames, @all)
+            if isa(sourceDb, 'Dictionary')
+                sourceNames = keys(sourceDb);
+            else
+                sourceNames = fieldnames(sourceDb);
+            end
+        end
+        sourceNames = string(sourceNames);
+    end%
+
+
+    function targetDb = hereResolveTargetDb( )
+        targetDb = opt.TargetDb;
+        if isequal(targetDb, @empty)
+            if isa(sourceDb, 'Dictionary')
+                targetDb = Dictionary( );
+            elseif isstruct(sourceDb)
+                targetDb = struct( );
+            end
+        end
+    end%
+
+
+    function targetNames = hereResolveTargetNames( )
+        targetNames = opt.TargetNames;
+        if isequal(targetNames, @auto)
+            targetNames = sourceNames;
+        elseif isa(targetNames, 'function_handle')
+            targetNames = arrayfun(targetNames, sourceNames);
+        else
+            targetNames = string(targetNames);
+        end
+    end%
 
 
     function hereCheckDimensions( )
-        if numel(sourceNames)~=numel(targetNames)
-            targetDatabankError = { 'Databank:InvalidDimensionOfNames'
-                          'Number of source names must match number of target names' };
-            throw(exception.ParseTime(targetDatabankError, 'error'));
+        numTargetNames = numel(targetNames);
+        if numSourceNames~=numTargetNames
+            thisError = [
+                "Databank:InvalidDimensionOfNames"
+                "Number of source names must match number of target names: %s"
+            ];
+            report = numSourceNames + "~=" + numTargetNames;
+            throw(exception.ParseTime(thisError, 'error'), report);
         end
     end%
+
+
+    function hereThrowTransformFailed( )
+        thisError = [
+            "Databank:TransformFailed"
+            "Transformation function failed when applied to this source databank field: %s"
+        ];
+        throw(exception.Base(thisError, opt.WhenTransformFails), sourceNames(~inxSuccess));
+    end%
 end%
+
 

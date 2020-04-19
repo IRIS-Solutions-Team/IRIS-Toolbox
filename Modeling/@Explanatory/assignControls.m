@@ -31,7 +31,7 @@ return
     function hereReportMissing( )
         listMissing = cellstr(listMissing);
         thisError = [ 
-            "ExplanatoryEquation:MissingControl"
+            "Explanatory:MissingControl"
             "This control parameter is missing from the input databank: %s"
         ];
         throw(exception.Base(thisError, "error"), listMissing{:});

@@ -1,19 +1,13 @@
-function varargout = parseInputSpecs(xq, inputSpecs, inputTransform, inputShift, types)
-% parseInputSpecs  Parse input specification of Dependent or Explanatory Terms
-% 
+function output = parseInputSpecs(xq, inputSpecs, inputTransform, inputShift, types)
+% parseInputSpecs  Parse input specification of DependentTerm or
+% ExplanatoryTerms
+%{
 % Backend [IrisToolbox] method
 % No help provided
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
-
-% Invoke unit tests
-%(
-if nargin==1 && isequal(xq, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -31,7 +25,6 @@ output.Expression = [ ];
 if isequal(types, @all) || any(types=="Pointer")
     hereParsePointer( );
     if output.Type=="Pointer"
-        varargout{1} = output;
         return
     end
 end
@@ -48,7 +41,6 @@ inputSpecs = replace(string(inputSpecs), " ", "");
 if isequal(types, @all) || any(types=="Name")
     hereParseName( );
     if output.Type=="Name"
-        varargout{1} = output;
         return
     end
 end
@@ -59,12 +51,10 @@ end
 if isequal(types, @all) || any(types=="Transform")
     hereParseDiffTransform( );
     if output.Type=="Transform"
-        varargout{1} = output;
         return
     end
     hereParseTransform( );
     if output.Type=="Transform"
-        varargout{1} = output;
         return
     end
 end
@@ -76,7 +66,6 @@ end
 if isequal(types, @all) || any(types=="Expression")
     hereParseExpression( );
     if output.Type=="Expression"
-        varargout{1} = output;
         return
     end
 end
@@ -249,8 +238,8 @@ return
         invalidNames = string.empty(1, 0);
         invalidShifts = string.empty(1, 0);
         replaceFunc = @replaceNameShift;
-        parsedSpecs = regexprep(parsedSpecs, ExplanatoryEquation.VARIABLE_WITH_SHIFT, "${replaceFunc($1, $2)}");
-        parsedSpecs = regexprep(parsedSpecs, ExplanatoryEquation.VARIABLE_NO_SHIFT, "${replaceFunc($1)}");
+        parsedSpecs = regexprep(parsedSpecs, Explanatory.VARIABLE_WITH_SHIFT, "${replaceFunc($1, $2)}");
+        parsedSpecs = regexprep(parsedSpecs, Explanatory.VARIABLE_NO_SHIFT, "${replaceFunc($1)}");
         parsedSpecs = replace(parsedSpecs, "$", "t");
 
         if ~isempty(invalidNames)
@@ -286,7 +275,7 @@ return
                     c = "controls__." + c1;
                     return
                 end
-                pos = getPositionOfName(xq, c1);
+                pos = getPosName(xq, c1);
                 sh = 0;
                 if isnan(pos)
                     invalidNames = [invalidNames, string(c1)];
@@ -321,7 +310,7 @@ return
                 thisError = [ 
                     "RegressionTerm:InvalidName"
                     "This name occurs in a regression.Term definition "
-                    "but is not on the list of ExplanatoryEquation.VariableNames: %s " 
+                    "but is not on the list of Explanatory.VariableNames: %s " 
                 ];
                 throw(exception.Base(thisError, "error"), invalidNames{:});
             end%
@@ -332,7 +321,7 @@ return
         thisError = [ 
             "RegressionTerm:InvalidPointerToVariableNames"
             "Regression term specification points to a non-existing position "
-            "in the ExplanatoryEquation.VariableNames list: %g " 
+            "in the Explanatory.VariableNames list: %g " 
         ];
         throw(exception.Base(thisError, 'error'), inputSpecs);
     end%
@@ -346,137 +335,4 @@ return
         throw(exception.ParseTime(thisError, 'error'), inputSpecs);
     end%
 end%
-
-
-
-
-%
-% Unit Tests
-%
-%(
-function tests = unitTests( )
-    tests = functiontests({ 
-        @setupOnce 
-        @pointerTest
-        @nameTest
-        @nameShiftTest
-        @nameDifflogShiftTest
-        @transformTest
-        @expressionTest 
-    });
-    tests = reshape(tests, [ ], 1);
-end%
-
-function setupOnce(testCase)
-    m = ExplanatoryEquation( );
-    m.VariableNames = ["x", "y", "z"];
-    output = struct( );
-    output.Type = "";
-    output.Transform = "";
-    output.Incidence = double.empty(1, 0);
-    output.Position = NaN;
-    output.Shift = 0;
-    output.Expression = [ ];
-    testCase.TestData.Model = m;
-    testCase.TestData.Output = output;
-end%
-
-
-function pointerTest(testCase)
-    m = testCase.TestData.Model;
-    for ptr = 1 : numel(m.VariableNames)
-        act = regression.Term.parseInputSpecs(m, ptr, @auto, @auto, @all);
-        exp = testCase.TestData.Output;
-        exp.Type = "Pointer";
-        exp.Incidence = complex(ptr, 0);
-        exp.Position = ptr;
-        assertEqual(testCase, act, exp);
-    end
-end%
-
-
-function nameTest(testCase)
-    m = testCase.TestData.Model;
-    for name = m.VariableNames
-        act = regression.Term.parseInputSpecs(m, name, @auto, @auto, @all);
-        exp = testCase.TestData.Output;
-        exp.Type = "Name";
-        ptr = find(name==m.VariableNames);
-        exp.Incidence = complex(ptr, 0);
-        exp.Position = ptr;
-        assertEqual(testCase, act, exp);
-    end
-end%
-
-
-function nameShiftTest(testCase)
-    m = testCase.TestData.Model;
-    for name = m.VariableNames
-        act = regression.Term.parseInputSpecs(m, name + "{-1}", @auto, @auto, @all);
-        exp = testCase.TestData.Output;
-        exp.Type = "Transform";
-        ptr = find(name==m.VariableNames);
-        exp.Incidence = complex(ptr, -1);
-        exp.Position = ptr;
-        exp.Shift = -1;
-        assertEqual(testCase, act, exp);
-    end
-end%
-
-
-function nameDifflogShiftTest(testCase)
-    m = testCase.TestData.Model;
-    for name = m.VariableNames
-        act = regression.Term.parseInputSpecs(m, "difflog(" + name + "{-2})", @auto, @auto, @all);
-        exp = testCase.TestData.Output;
-        exp.Type = "Transform";
-        ptr = find(name==m.VariableNames);
-        exp.Transform = "difflog";
-        exp.Incidence = [complex(ptr, -2), complex(ptr, -3)];
-        exp.Position = ptr;
-        exp.Shift = -2;
-        assertEqual(testCase, act, exp);
-    end
-end%
-
-
-function transformTest(testCase)
-    m = testCase.TestData.Model;
-    for name = m.VariableNames
-        for transform = regression.Term.REGISTERED_TRANSFORMS
-            shift = randi(5)-10;
-            shiftSpecs = sprintf("{%g}", shift);
-            act = regression.Term.parseInputSpecs(m, transform + "(" + name + shiftSpecs + ")", @auto, @auto, @all);
-            ptr = find(name==m.VariableNames);
-            exp = testCase.TestData.Output;
-            exp.Type = "Transform";
-            exp.Transform = transform;
-            exp.Incidence = complex(ptr, shift);
-            if startsWith(transform, "diff")
-                exp.Incidence = [exp.Incidence, complex(ptr, shift-1)];
-            end
-            exp.Position = ptr;
-            exp.Shift = shift;
-            assertEqual(testCase, act.Type, exp.Type);
-            assertEqual(testCase, act.Transform, exp.Transform);
-            assertEqual(testCase, act.Incidence, exp.Incidence);
-        end
-    end
-end%
-
-
-function expressionTest(testCase)
-    m = testCase.TestData.Model;
-    act = regression.Term.parseInputSpecs(m, "x + movavg(y, -2) - z{+3}", @auto, @auto, @all);
-    exp = testCase.TestData.Output;
-    exp.Type = "Expression";
-    exp.Expression = @(x,t,date__,controls__)x(1,t,:)+(((x(2,t,:))+(x(2,t-1,:)))./2)-x(3,t+3,:);
-    exp.Incidence = [complex(1, 0), complex(2, 0), complex(2, -1), complex(3, 3)];
-    act.Expression = func2str(act.Expression);
-    exp.Expression = func2str(exp.Expression);
-    assertEqual(testCase, act.Expression, exp.Expression);
-    assertEqual(testCase, intersect(act.Incidence, exp.Incidence, 'stable'), act.Incidence);
-    assertEqual(testCase, union(act.Incidence, exp.Incidence, 'stable'), act.Incidence);
-end%
-%)
 

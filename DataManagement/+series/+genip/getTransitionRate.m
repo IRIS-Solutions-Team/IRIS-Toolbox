@@ -10,9 +10,9 @@ function rate = getTransitionRate(model, aggregation, lowData)
 
 %--------------------------------------------------------------------------
 
-nw = size(aggregation, 2);
+numWithin = size(aggregation, 2);
 target = hereRegressTarget( );
-rate = target .^ (1/nw);
+rate = target .^ (1/numWithin);
 
 return
 

@@ -1,5 +1,5 @@
 function outputDatabank = createOutputDatabank(this, inputDatabank, dataBlock, namesToInclude, fitted, opt)
-% createOutputDatabank  Create output databank from ExplanatoryEquation
+% createOutputDatabank  Create output databank from Explanatory
 %
 % Backend [IrisToolbox] function
 % No help provided

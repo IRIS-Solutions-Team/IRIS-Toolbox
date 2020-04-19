@@ -1,11 +1,11 @@
 function this = changeLogStatus(this, newStatus, namesToChange, varargin)
-% changeLogStatus  Change log status of names
+% changeLogStatus  Change log status of quantities
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
@@ -29,16 +29,23 @@ if ischar(namesToChange)
     end
 end
 
+%
+% Remove empty entries from the list
+%
+inxEmpty = cellfun(@(x) strlength(x)==0, namesToChange);
+namesToChange(inxEmpty) = [ ];
+
 ell = lookup(this, namesToChange, varargin{:});
-inxOfNaN = isnan(ell.PosName);
-if any(inxOfNaN)
-    THIS_ERROR = { 'Quantity:CannotChangeLogStatus'
-                   'Cannot change the log status for this name: %s ' };
-    throw( exception.Base(THIS_ERROR, 'error'), ...
-           namesToChange{inxOfNaN} );
+inxNaN = isnan(ell.PosName);
+if any(inxNaN)
+    thisError = [
+        "Quantity:CannotChangeLogStatus"
+        "Cannot change the log status for this name: %s "
+    ];
+    throw(exception.Base(thisError, 'error'), namesToChange{inxNaN});
 end
 
-this.InxOfLog(ell.PosName) = newStatus;
+this.IxLog(ell.PosName) = newStatus;
 this = enforceLogStatus(this);
 
 end%

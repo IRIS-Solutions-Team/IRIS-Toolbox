@@ -87,7 +87,7 @@ end%
 
 
 function setupOnce(testCase)
-    testCase.TestData.Model1 = ExplanatoryEquation.fromString("log(x) = ?*a + b*x{-1} + ?*log(c) + ?*z{+1} - ? + d"); baseRange = qq(2001,1) : qq(2010,10);
+    testCase.TestData.Model1 = Explanatory.fromString("log(x) = ?*a + b*x{-1} + ?*log(c) + ?*z{+1} - ? + d"); baseRange = qq(2001,1) : qq(2010,10);
     extendedRange = baseRange(1)-1 : baseRange(end)+1;
     db = struct( );
     db.x = Series(extendedRange, @rand);

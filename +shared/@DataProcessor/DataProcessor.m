@@ -1,7 +1,7 @@
 classdef DataProcessor
     properties
-        Preprocessor ExplanatoryEquation = ExplanatoryEquation.empty(0)
-        Postprocessor ExplanatoryEquation = ExplanatoryEquation.empty(0)
+        Preprocessor Explanatory = Explanatory.empty(0)
+        Postprocessor Explanatory = Explanatory.empty(0)
     end
 
 

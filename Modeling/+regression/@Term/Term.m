@@ -22,21 +22,21 @@ classdef Term
 
     methods % Constructor
         function this = Term(varargin)
-% Term  Create RHS term for ExplanatoryEquation object
+% Term  Create RHS term for Explanatory object
 %{
 % ## Syntax ##
 %
 %
-%     term = regression.Term(xq, expression)
-%     term = regression.Term(xq, position, ...)
+%     term = regression.Term(expy, expression)
+%     term = regression.Term(expy, position, ...)
 %
 %
 % ## Input Arguments ##
 %
 %
-% __`xq`__ [ ExplanatoryEquation ]
+% __`expy`__ [ Explanatory ]
 % >
-% Parent ExplanatoryEquation object to which the regression.Term will be
+% Parent Explanatory object to which the regression.Term will be
 % added.
 %
 %
@@ -44,14 +44,14 @@ classdef Term
 % > 
 % Create the regression.Term from a text string describing a possibly
 % nonlinear function involving variable names defined in the parent
-% ExplanatoryEquation object.
+% Explanatory object.
 %
 %
 % __`position`__ [ numeric ]
 % >
 % Create the regression.Term from a single variable a simple `Transform=`
 % function by specifying a pointer to the list of variables names in the
-% parent ExplanatoryEquation object.
+% parent Explanatory object.
 % 
 %
 % ## Output Arguments ##
@@ -59,7 +59,7 @@ classdef Term
 % __`term`__ [ regression.Term ]
 % >
 % New regression.Term object that can be added to its parent
-% ExplanatoryEquation object.
+% Explanatory object.
 %
 %
 % ## Options ##
@@ -107,7 +107,7 @@ classdef Term
             if isempty(pp)
                 pp = extend.InputParser('regression.Term');
 
-                addRequired(pp, 'xq', @(x) isa(x, 'ExplanatoryEquation'));
+                addRequired(pp, 'expy', @(x) isa(x, 'Explanatory'));
                 addRequired(pp, 'specification', @(x) validate.stringScalar(x) || validate.roundScalar(x, [1, intmax]));
 
                 addParameter(pp, 'Shift', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x));
@@ -116,7 +116,7 @@ classdef Term
                 addParameter(pp, 'Type', @all, @(x) isequal(x, @all) || isa(x, 'string'));
             end
             parse(pp, varargin{:});
-            xq = pp.Results.xq;
+            expy = pp.Results.expy;
             specification = pp.Results.specification;
             opt = pp.Options;
 
@@ -130,7 +130,7 @@ classdef Term
             %
             % Resolve input specification
             %
-            resolved = regression.Term.parseInputSpecs(xq, specification, opt.Transform, opt.Shift, opt.Type);
+            resolved = regression.Term.parseInputSpecs(expy, specification, opt.Transform, opt.Shift, opt.Type);
 
             this.Incidence = resolved.Incidence;
             this.Transform = resolved.Transform;
@@ -151,10 +151,12 @@ classdef Term
             return
 
                 function hereThrowInvalidTransformOrShift( )
-                    thisError = [ "ExplanatoryEquation:DefineDependent"
-                                  "Options Transform= and Shift= can only be specified when the regression.Term is "
-                                  "entered as a pointer (position) or a plain variable name; otherwise, "
-                                  "the transform function and the time shift is inferred from the expression string." ];
+                    thisError = [ 
+                        "Explanatory:DefineDependentTerm"
+                        "Options Transform= and Shift= can only be specified when the regression.Term is "
+                        "entered as a pointer (position) or a plain variable name; otherwise, "
+                        "the transform function and the time shift is inferred from the expression string." 
+                    ];
                     throw(exception.Base(thisError, 'error'));
                 end%
         end%
@@ -249,17 +251,19 @@ classdef Term
                 plainData(posLhs, t, :) = plainData(posLhs, t-1, :) .* exp(lhs(:, t, :));
                 return
             end
-            thisError = [ "ExplanatoryEquation:InvalidLhsTransformation"
-                          "Invalid transformation of the dependent (LHS) term in ExplanatoryEquation." ];
+            thisError = [ 
+                "Explanatory:InvalidLhsTransformation"
+                "Invalid transformation of the dependent (LHS) term in Explanatory." 
+            ];
             throw(exception.Base(thisError, 'error'));
         end%
 
 
 
 
-        function rhs = updateOwnExplanatory(this, rhs, plainData, t, date, controls)
+        function rhs = updateOwnExplanatoryTerms(this, rhs, plainData, t, date, controls)
             %
-            % The input object `this` is always explanatory (rhs) terms
+            % The input object `this` is always an array of ExplanatoryTerms
             %
             for i = find([this.ContainsLhsName])
                 rhs(i, t, :) = createModelData(this(i), plainData, t, date, controls);
@@ -304,8 +308,8 @@ classdef Term
 
 
     methods
-        function flag = containsLhsName(this, xq)
-            flag = any(real(this.Incidence)==xq.PosOfLhsName);
+        function flag = containsLhsName(this, expy)
+            flag = any(real(this.Incidence)==expy.PosLhsName);
         end%
 
 
