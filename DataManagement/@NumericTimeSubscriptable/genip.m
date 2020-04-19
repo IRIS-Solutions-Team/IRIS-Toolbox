@@ -1,11 +1,11 @@
-function [output, info] = genip(lowInput, toFreq, model, aggregation, varargin)
+function [output, info] = genip(lowInput, toFreq, transitionModel, aggregationModel, varargin)
 % genip  Generalized indicator based interpolation
 %{
 % Syntax
 %--------------------------------------------------------------------------
 %
 %
-%     [output, info] = genip(lowInput, toFreq, model, indicator, ...)
+%     [highSeries, info] = genip(lowInput, highFreq, transitionModel, aggregationModel, ...)
 %
 %
 % Input Arguments
@@ -22,15 +22,15 @@ function [output, info] = genip(lowInput, toFreq, model, aggregation, varargin)
 % `toFreq` must be higher than the frequency of the `lowInput`.
 %
 %
-% __`model`__ [ `'Level'` | `'Diff'` | `'DiffDiff'` | `'Rate'` ]
-% > Type of state-space model for the dynamics of the interpolated series,
+% __`transitionModel`__ [ `'Level'` | `'Diff'` | `'DiffDiff'` | `'Rate'` ]
+% > Type of state-space transitionModel for the dynamics of the interpolated series,
 % and for the relationship between the interpolated series and the
 % indicator (if included).
 %
 %
-% __`aggregation`__ [ `'mean'` | `'sum'` | `'lowEnd'` | numeric ]
+% __`aggregationModel`__ [ `'mean'` | `'sum'` | `'lowEnd'` | numeric ]
 % > Type of aggregation of quarterly observations to yearly observations; the
-% `aggregation` can be assigned a `1-by-N` numeric vector with the weights
+% `aggregationModel` can be assigned a `1-by-N` numeric vector with the weights
 % given, respectively, for the individual high-frequency periods within the
 % encompassing low-frequency period.
 %
@@ -154,8 +154,8 @@ if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable/genip');
     addRequired(pp, 'lowInput', @(x) isa(x, 'NumericTimeSubscriptable') && x.Frequency==Frequency.YEARLY);
     addRequired(pp, 'toFreq', @(x) isa(x, 'Frequency') || isnumeric(x));
-    addRequired(pp, 'model', @(x) validate.anyString(strip(x), 'Rate', 'Level', 'Diff', 'DiffDiff'));
-    addRequired(pp, 'aggregation', @locallyValidateAggregation);
+    addRequired(pp, 'transitionModel', @(x) validate.anyString(strip(x), 'Rate', 'Level', 'Diff', 'DiffDiff'));
+    addRequired(pp, 'aggregationModel', @locallyValidateAggregation);
 
     % Options
     addParameter(pp, 'Range', Inf, @(x) isequal(x, Inf) || DateWrapper.validateProperRangeInput(x));
@@ -164,26 +164,27 @@ if isempty(pp)
     addParameter(pp, 'ResolveConflicts', true, @validate.logicalScalar);
 
     % Nested options
-    addNested(pp, 'Transition', 'Rate', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x));
-    addNested(pp, 'Transition', 'Constant', @auto, @(x) isequal(x, @auto) || validate.numericScalar(x));
+    addNested(pp, 'Transition', 'Rate', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isa(x, 'NumericTimeSubscriptable'));
+    addNested(pp, 'Transition', 'Constant', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isa(x, 'NumericTimeSubscriptable'));
 
     addNested(pp, 'Condition', 'Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Condition', 'Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Condition', 'Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Condition', 'DiffDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
 
+    addNested(pp, 'Indicator', 'Model', @auto, @(x) validate.anyString(strip(x), 'Rate', 'Level', 'Diff', 'DiffDiff'));
     addNested(pp, 'Indicator', 'Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Indicator', 'Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Indicator', 'Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Indicator', 'DiffDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addNested(pp, 'Indicator', 'StdScale', 1e-3, @(x) validate.numericScalar(x, eps( ), Inf));
+    addNested(pp, 'Indicator', 'StdScale', 1e-3, @(x) isnumeric(x) && all(x(:)>0));
 end
-parse(pp, lowInput, toFreq, model, aggregation, varargin{:});
+parse(pp, lowInput, toFreq, transitionModel, aggregationModel, varargin{:});
 opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
-model = locallyResolveModel(model);
+transitionModel = locallyResolveTransitionModel(transitionModel);
 
 %
 % Resolve source frequency and the conversion factor
@@ -211,15 +212,15 @@ numHighPeriods = numPeriodsWithin*numLowPeriods;
 %
 % Resolve Indicator=, Transition= and Conditioning= options
 %
-indicator = series.genip.prepareIndicatorOptions(model, [highStart, highEnd], opt.Indicator);
-transition = series.genip.prepareTransitionOptions(opt.Transition);
+indicator = series.genip.prepareIndicatorOptions(transitionModel, [highStart, highEnd], opt.Indicator);
+transition = series.genip.prepareTransitionOptions(transitionModel, [highStart, highEnd], opt.Transition);
 conditions = series.genip.prepareConditionOptions([highStart, highEnd], opt.Condition);
 
 
 %
 % Resolve Aggregation= option
 %
-aggregation = locallyResolveAggregation(aggregation, numPeriodsWithin);
+aggregationModel = locallyResolveAggregationModel(aggregationModel, numPeriodsWithin);
 
 %
 % Resolve std dev scale
@@ -239,8 +240,8 @@ hereResolveConflictsInMeasurement( );
 %
 % Set up a linear Kalman filter object
 %
-[kalmanObj, observed] = series.genip.setupKalmanObject( ...
-    model, lowLevel, aggregation, stdScale ...
+[kalmanObj, observed, transition] = series.genip.setupKalmanObject( ...
+    lowLevel, aggregationModel, stdScale ...
     , conditions, indicator, transition ...
 );
 
@@ -269,8 +270,10 @@ if nargout>=2
     info.HighFreq = toFreq;
     info.LowRange = DateWrapper(lowStart):DateWrapper(lowEnd);
     info.HighRange = DateWrapper(highStart):DateWrapper(highEnd);
+    info.TransitionRate = transition.Rate;
+    info.TransitionConstant = transition.Constant;
     info.LinearSystem = kalmanObj;
-    info.InitCond = initCond;
+    info.InitCondModel = initCond;
     info.ObservedData = observed;
     info.OutputData = outputData;
 end
@@ -341,7 +344,7 @@ return
             else
                 x0 = 0;
             end
-            x0 = x0 / sum(aggregation(:));
+            x0 = x0 / sum(aggregationModel(:));
             initCond = { 
                 repmat(x0, numPeriodsWithin, 1)
                 [ ] % Shortcut to indicate all initial conditions are fixed uknown
@@ -365,7 +368,7 @@ return
         end
         % Aggregate vs Level
         if ~isempty(conditions.Level) && any(isfinite(conditions.Level))
-            inxAggregation = aggregation~=0;
+            inxAggregation = aggregationModel~=0;
             temp = reshape(conditions.Level, numPeriodsWithin, [ ]);
             temp = temp(inxAggregation, :);
             inxLowLevel = reshape(isfinite(lowLevel), 1, [ ]);
@@ -399,41 +402,41 @@ function flag = locallyValidateAggregation(x)
 end%
 
 
-function aggregation = locallyResolveAggregation(aggregation, numPeriodsWithin)
+function aggregationModel = locallyResolveAggregationModel(aggregationModel, numPeriodsWithin)
 %(
-    if isnumeric(aggregation)
-        aggregation = reshape(aggregation, 1, numPeriodsWithin);
+    if isnumeric(aggregationModel)
+        aggregationModel = reshape(aggregationModel, 1, numPeriodsWithin);
         return
-    elseif any(strcmpi(char(aggregation), {'average', 'mean'}))
-        aggregation = ones(1, numPeriodsWithin)/numPeriodsWithin;
+    elseif any(strcmpi(char(aggregationModel), {'average', 'mean'}))
+        aggregationModel = ones(1, numPeriodsWithin)/numPeriodsWithin;
         return
-    elseif strcmpi(char(aggregation), 'last')
-        aggregation = zeros(1, numPeriodsWithin);
-        aggregation(end) = 1;
+    elseif strcmpi(char(aggregationModel), 'last')
+        aggregationModel = zeros(1, numPeriodsWithin);
+        aggregationModel(end) = 1;
         return
-    elseif strcmpi(char(aggregation), 'first')
-        aggregation = zeros(1, numPeriodsWithin);
-        aggregation(1) = 1;
+    elseif strcmpi(char(aggregationModel), 'first')
+        aggregationModel = zeros(1, numPeriodsWithin);
+        aggregationModel(1) = 1;
     else
         % Default 'sum'
-        aggregation = ones(1, numPeriodsWithin);
+        aggregationModel = ones(1, numPeriodsWithin);
         return
     end
 %)
 end%
 
 
-function model = locallyResolveModel(model)
+function transitionModel = locallyResolveTransitionModel(transitionModel)
 %(
-    model = strip(string(model));
-    if strcmpi(model, "Rate")
-        model = "Rate";
-    elseif strcmpi(model, "Level")
-        model = "Level";
-    elseif strcmpi(model, "Diff")
-        model = "Diff";
-    elseif strcmpi(model, "DiffDiff")
-        model = "DiffDiff";
+    transitionModel = strip(string(transitionModel));
+    if strcmpi(transitionModel, "Rate")
+        transitionModel = "Rate";
+    elseif strcmpi(transitionModel, "Level")
+        transitionModel = "Level";
+    elseif strcmpi(transitionModel, "Diff")
+        transitionModel = "Diff";
+    elseif strcmpi(transitionModel, "DiffDiff")
+        transitionModel = "DiffDiff";
     end
 %)
 end%

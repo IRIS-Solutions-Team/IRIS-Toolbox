@@ -1,43 +1,61 @@
 function mainDatabank = merge(method, mainDatabank, varargin)
-% merge  Merge two or more databanks
 %{
-% ## Syntax ##
+% databank.merge  Merge two or more databanks
 %
-%     d = databank.merge(method, d, d1, ...)
-%
-%
-% ## Input Arguments ##
-%
-% __`method`__ [ `'horzcat'` | `'vertcat'` | `'replace'` | `'discard'` | `'error'` ] -
-% Action to perform when two or more of the input databanks contain a field
-% of the same ithName; see Description.
-%
-% __`d`__ [ struct | Dictionary | containers.Map ] -
-% Databank that will be merged with the other input databanks, `d1`, etc.
-% using the method specified by `Method=`.
-%
-% __`d1`__ [ struct | Dictionary ] -
-% One or more databanks which will be merged with the input databank `d`.
+% Syntax
+%--------------------------------------------------------------------------
 %
 %
-% ## Output Arguments ##
-%
-% __`d`__ [ struct | Dictionary | containers.Map ] -
-% Output databank created by merging the input databanks using the method
-% specified by `Method=`.
+%     outputDb = databank.merge(method, primaryDb, otherDb, ...)
 %
 %
-% ## Options ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
-% __`MissingField=@rmfield`__ [ `@rmfield` | `NaN` | `[ ]` | * ] -
-% Action to perform when a field is missing from one or more of the input
-% databanks when applying the method `'horzcat'`.
+% __`method`__ [ `'horzcat'` | `'vertcat'` | `'replace'` | `'discard'` | `'error'` ] 
+%
+%     Action to perform when two or more of the input databanks contain a
+%     field of the same name; see Description.
 %
 %
-% ## Description ##
+% __`primaryDb`__ [ struct | Dictionary ] 
 %
-% The fields from each of the additional databnaks (`d1` and further) are
-% added to the main databank `d`. If the ithName of a field to be added
+%     Primary input databank that will be merged with the other input
+%     databanks, `d1`, etc.  using the `method`.
+%
+%
+% __`otherDb`__ [ struct | Dictionary ] 
+%
+%     One or more databanks which will be merged with the primaryinput databank
+%     `primaryDb` to create the `outputDb`.
+%
+%
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+%
+% __`outputDb`__ [ struct | Dictionary ] 
+%
+%     Output databank created by merging the input databanks using the
+%     method specified by the `method`.
+%
+%
+% Options
+%--------------------------------------------------------------------------
+%
+%
+% __`MissingField=@rmfield`__ [ `@rmfield` | `NaN` | `[ ]` | * ] 
+%
+%     Action to perform when a field is missing from one or more of the
+%     input databanks when the `method` is `'horzcat'`.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% The fields from each of the additional databanks (`d1` and further) are
+% added to the main databank `d`. If the name of a field to be added
 % already exists in the main databank, `d`, one of the following actions is
 % performed:
 %
@@ -52,8 +70,12 @@ function mainDatabank = merge(method, mainDatabank, varargin)
 % * `error` - an error will be thrown.
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
 %
+%
+%--------------------------------------------------------------------------
+% See also databank.copy
 %}
 
 % -IRIS Macroeconomic Modeling Toolbox
@@ -130,27 +152,27 @@ function mainDatabank = catNext(func, mainDatabank, mergeWith, opt)
     fieldsToMerge = unique(fieldsToMerge, 'stable');
     numFieldsToMerge = numel(fieldsToMerge);
     for i = 1 : numFieldsToMerge
-        ithName = fieldsToMerge{i};
+        name__ = fieldsToMerge{i};
         if isequal(opt.MissingField, @remove) || isequal(opt.MissingField, @rmfield)
-            if ~isfield(mergeWith, ithName)
-                mainDatabank = rmfield(mainDatabank, ithName);
+            if ~isfield(mergeWith, name__)
+                mainDatabank = rmfield(mainDatabank, name__);
                 continue
-            elseif ~isfield(mainDatabank, ithName)
+            elseif ~isfield(mainDatabank, name__)
                 continue
             end
         end
-        if isfield(mainDatabank, ithName)
-            mainDatabankField = mainDatabank.(ithName);
+        if isfield(mainDatabank, name__)
+            mainDatabankField = mainDatabank.(name__);
         else
             mainDatabankField = opt.MissingField;
         end
-        if isfield(mergeWith, ithName)
-            mergeWithField = mergeWith.(ithName);
+        if isfield(mergeWith, name__)
+            mergeWithField = mergeWith.(name__);
         else
             mergeWithField = opt.MissingField;
         end
         mainDatabankField = func(mainDatabankField, mergeWithField);
-        mainDatabank.(ithName) = mainDatabankField;
+        mainDatabank.(name__) = mainDatabankField;
     end
 end%
 
@@ -165,12 +187,12 @@ function mainDatabank = replaceNext(mainDatabank, mergeWith, opt)
     end
     numNewFields = numel(newFields);
     for i = 1 : numNewFields
-        ithName = newFields{i};
-        if ~isfield(mergeWith, ithName)
+        name__ = newFields{i};
+        if ~isfield(mergeWith, name__)
             continue
         end
-        if isfield(mergeWith, ithName)
-            mainDatabank.(ithName) = mergeWith.(ithName);
+        if isfield(mergeWith, name__)
+            mainDatabank.(name__) = mergeWith.(name__);
         end
     end
 end%
@@ -186,12 +208,12 @@ function mainDatabank = discardNext(mainDatabank, mergeWith, opt)
     end
     numNewFields = numel(newFields);
     for i = 1 : numNewFields
-        ithName = newFields{i};
-        if ~isfield(mergeWith, ithName)
+        name__ = newFields{i};
+        if ~isfield(mergeWith, name__)
             continue
         end
-        if ~isfield(mainDatabank, ithName)
-            mainDatabank.(ithName) = mergeWith.(ithName);
+        if ~isfield(mainDatabank, name__)
+            mainDatabank.(name__) = mergeWith.(name__);
         end
     end
 end%
@@ -208,21 +230,22 @@ function mainDatabank = errorNext(mainDatabank, mergeWith, opt)
     numNewFields = numel(newFields);
     inxErrorFields = false(1, numNewFields);
     for i = 1 : numNewFields
-        ithName = newFields{i};
-        if ~isfield(mergeWith, ithName)
+        name__ = newFields{i};
+        if ~isfield(mergeWith, name__)
             continue
         end
-        if isfield(mainDatabank, ithName)
+        if isfield(mainDatabank, name__)
             inxErrorFields(i) = true;
             continue
         end
-        mainDatabank.(ithName) = mergeWith.(ithName);
+        mainDatabank.(name__) = mergeWith.(name__);
     end
     if any(inxErrorFields)
-        THIS_ERROR = { 'Databank:ErrorMergingFieldsWithSameName'
-                       'This field ithName occurs in more than one input databank: %s ' };
-        throw( exception.Base(THIS_ERROR, 'error'), ...
-               newFields{inxErrorFields} );
+        thisError = [
+            "Databank:ErrorMergingFieldsWithSameName"
+            "This field name occurs in more than one input databank: %s "
+        ];
+        throw(exception.Base(thisError, 'error'), newFields{inxErrorFields});
     end
 end%
 

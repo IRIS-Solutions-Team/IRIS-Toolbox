@@ -10,9 +10,9 @@ function [variableNames, residualNames, fittedNames, controlNames] = collectAllN
 % ## Input Arguments ##
 %
 %
-% __`this`__ [ ExplanatoryEquation ]
+% __`this`__ [ Explanatory ]
 % >
-% ExplanatoryEquation object or array whose variable names, residual names
+% Explanatory object or array whose variable names, residual names
 % and fitted names will be returned.
 %
 %
@@ -22,20 +22,20 @@ function [variableNames, residualNames, fittedNames, controlNames] = collectAllN
 % __`variableNames`__ [ string ]
 % >
 % List of all variable names, both LHS and RHS variables, that occur in
-% `this` ExplanatoryEquation object or array; each name is listed only once
+% `this` Explanatory object or array; each name is listed only once
 % even if it occurs in multiple equations.
 %
 %
 % __`residualNames`__ [ string ]
 % >
 % List of residual names associated with all equations in `this`
-% ExplanatoryEquation object or array.
+% Explanatory object or array.
 %
 %
 % __`fittedNames`__ [ string ]
 % >
 % List of fitted names associated with all equations in `this`
-% ExplanatoryEquation object or array.
+% Explanatory object or array.
 %
 %
 % ## Description ##

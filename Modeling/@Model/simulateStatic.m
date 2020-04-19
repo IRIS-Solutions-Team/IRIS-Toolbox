@@ -11,25 +11,25 @@ function [exitFlag, dcy] = simulateStatic(~, rect, data, blazers)
 
 dcy = double.empty(0);
 
-firstColumnOfTimeFrame = data.FirstColumnOfTimeFrame;
-lastColumnOfTimeFrame = data.LastColumnOfTimeFrame;
+firstColumnOfFrame = data.FirstColumnOfFrame;
+lastColumnOfFrame = data.LastColumnOfFrame;
 
 initYXEPG = data.YXEPG;
 finalYXEPG = data.YXEPG;
 
 blazerWithBlocks = blazers(2);
 
-numBlocks = numel(blazerWithBlocks.Block);
-for column = firstColumnOfTimeFrame : lastColumnOfTimeFrame
+numBlocks = numel(blazerWithBlocks.Blocks);
+for column = firstColumnOfFrame : lastColumnOfFrame
     % Reset initial data
-    setTimeFrame(data, [column, column]);
+    setFrame(data, [column, column]);
     data.YXEPG = initYXEPG;
 
     for i = 1 : numBlocks
-        ithBlk = blazerWithBlocks.Block{i};
+        block__ = blazerWithBlocks.Blocksk{i};
         ithHeader = [rect.Header, sprintf('[Block %g]', i)];
-        ithBlk.Terminal = [ ];
-        [exitFlag, error] = run(ithBlk, data, ithHeader);
+        block__.Terminal = [ ];
+        [exitFlag, error] = run(block__, data, ithHeader);
         if ~isempty(error.EvaluatesToNan)
         end
         if ~hasSucceeded(exitFlag)

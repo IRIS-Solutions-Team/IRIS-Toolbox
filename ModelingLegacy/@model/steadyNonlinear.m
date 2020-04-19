@@ -16,8 +16,10 @@ else
     variantsRequested = variantsRequested(:).';
 end
 success = true(1, nv);
-outputInfo = struct( 'ExitFlags', solver.ExitFlag.empty(0), ...
-                     'Blazer', blazer );
+outputInfo = struct( ...
+    'ExitFlags', solver.ExitFlag.empty(0), ...
+    'Blazer', blazer ...
+);
 
 if isequal(blazer, false)
     return
@@ -28,10 +30,10 @@ inxZero = blazer.InxZero;
 %--------------------------------------------------------------------------
 
 numQuantities = numel(this.Quantity);
-numBlocks = numel(blazer.Block);
+numBlocks = numel(blazer.Blocks);
 needsRefresh = any(this.Link);
 inxP = getIndexByType(this.Quantity, TYPE(4));
-inxLogInBlazer = blazer.Model.Quantity.InxOfLog;
+inxLogInBlazer = blazer.Model.Quantity.InxLog;
 
 % Index of endogenous level and change quantities
 [inxEndgLevel, inxEndgChange] = hereGetInxEndogenous( );
@@ -61,9 +63,9 @@ for v = variantsRequested
     %
     outputInfo.ExitFlags{v} = repmat(solver.ExitFlag.IN_PROGRESS, 1, numBlocks);
     for i = 1 : numBlocks
-        blk = blazer.Block{i};
+        blk = blazer.Blocks{i};
         blk.SteadyShift = 3;
-        header = sprintf('[Variant:%g][Block:%g]', v, i);
+        header = sprintf("[Variant:%g][Block:%g]", v, i);
         [levelX, changeX, exitFlag, error] = run(blk, this.Link, levelX, changeX, header);
         outputInfo.ExitFlags{v}(i) = exitFlag;
         %{
@@ -133,7 +135,7 @@ return
         inxEndgLevel = false(1, numQuantities);
         inxEndgChange = false(1, numQuantities);
         for i = 1 : numBlocks
-            [ptrLevel, ptrChange] = iris.utils.splitRealImag(blazer.Block{i}.PtrQuantities);
+            [ptrLevel, ptrChange] = iris.utils.splitRealImag(blazer.Blocks{i}.PtrQuantities);
             inxEndgLevel(ptrLevel) = true;
             inxEndgChange(ptrChange) = true;
         end

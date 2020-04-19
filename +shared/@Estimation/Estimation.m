@@ -1,10 +1,10 @@
-% Estimation  Estimation class.
+% Estimation  Estimation mixin class
 %
-% Backend IRIS class.
-% No help provided.
+% Backend [IrisToolbox] class
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 classdef Estimation
     properties

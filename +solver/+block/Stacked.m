@@ -36,7 +36,7 @@ classdef Stacked < solver.block.Block
         
 
 
-        function [exitFlag, error] = run(this, data, header)
+        function [exitFlag, error] = run(this, data, exitFlagHeader)
 
             exitFlag = solver.ExitFlag.IN_PROGRESS;
             error = struct( );
@@ -48,8 +48,8 @@ classdef Stacked < solver.block.Block
             end
             numQuantitiesInBlock = numel(this.PtrQuantities);
             numEquationsInBlock = numel(this.PtrEquations);
-            firstColumnToRun = data.FirstColumnOfTimeFrame;
-            lastColumnToRun = data.LastColumnOfTimeFrame;
+            firstColumnToRun = data.FirstColumnOfFrame;
+            lastColumnToRun = data.LastColumnOfFrame;
             columnsToRun = firstColumnToRun : lastColumnToRun;
             numColumnsToRun = numel(columnsToRun);
 
@@ -65,10 +65,10 @@ classdef Stacked < solver.block.Block
                 %}
 
                 % Create index of logs within the z vector
-                temp = repmat(this.InxOfLog(:), 1, size(data.YXEPG, 2));
+                temp = repmat(this.InxLog(:), 1, size(data.YXEPG, 2));
                 inxLogZ = temp(inxZ);
                 %{
-                linxLog = this.InxOfLog(this.PtrQuantities);
+                linxLog = this.InxLog(this.PtrQuantities);
                 linxLog = repmat(linxLog(:), numColumnsToRun, 1);
                 %}
 
@@ -98,7 +98,7 @@ classdef Stacked < solver.block.Block
                 if exitFlag~=solver.ExitFlag.IN_PROGRESS
                     return
                 end
-                [z, exitFlag] = solve(this, @objective, z0, header);
+                [z, exitFlag] = solve(this, @objective, z0, exitFlagHeader);
                 hereWriteEndogenousToData(z);
             else
                 % __Assign__
@@ -161,7 +161,7 @@ classdef Stacked < solver.block.Block
         
 
         function [z, exitFlag] = assign(this, data)
-            columnsToRun = data.FirstColumnOfTimeFrame : data.LastColumnOfTimeFrame;
+            columnsToRun = data.FirstColumnOfFrame : data.LastColumnOfFrame;
             numColumnsToRun = numel(columnsToRun);
             
             posOfZ = find(this.InxOfEndogenousPoints);
@@ -204,7 +204,7 @@ classdef Stacked < solver.block.Block
             this.LinearIndex = linx(:);
 
             % Create index of logs within linx
-            linxLog = this.InxOfLog(this.PtrQuantities);
+            linxLog = this.InxLog(this.PtrQuantities);
             linxLog = repmat(linxLog(:), numColumnsToRun, 1);
             %}
         end%

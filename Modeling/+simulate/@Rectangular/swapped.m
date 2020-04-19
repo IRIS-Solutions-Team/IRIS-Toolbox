@@ -51,9 +51,9 @@ function discrepancy = evaluateDiscrepancy(data)
     target = data.Target(inxExogenizedYX);
     actual = data.YXEPG(data.InxOfYX, :);
     actual = actual(inxExogenizedYX);
-    if any(data.InxOfLog)
+    if any(data.InxLog)
         % Take care of log-variables if there are any
-        inxLogYX = repmat(data.InxOfLog(data.InxOfYX), 1, data.NumOfColumns);
+        inxLogYX = repmat(data.InxLog(data.InxOfYX), 1, data.NumOfColumns);
         inxLogExogenizedYX = inxLogYX(inxExogenizedYX);
         target(inxLogExogenizedYX) = log(target(inxLogExogenizedYX));
         actual(inxLogExogenizedYX) = log(actual(inxLogExogenizedYX));

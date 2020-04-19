@@ -12,7 +12,7 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         % Alias  Alias strings for quantities
         Alias = cell.empty(1, 0)            
 
-        % InxOfLog  True for variabls declared as log-variables
+        % InxLog  True for variabls declared as log-variables
         IxLog = logical.empty(1, 0)
 
         % IxLagrange  True for Lagrange multipliers in optimal policy model
@@ -46,7 +46,7 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
 
 
     properties (Dependent)
-        InxOfLog
+        InxLog
         NumOfQuantities
         LabelOrName
         Label4ShockContributions
@@ -86,8 +86,13 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         end%
 
 
-        function value = get.InxOfLog(this)
+        function value = get.InxLog(this)
             value = this.IxLog;
+        end%
+
+
+        function this = set.InxLog(this, value)
+            this.IxLog = value;
         end%
 
 
@@ -112,7 +117,7 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
             contributions = [ this.Name(inxOfE), ...
                               {'Init+Const+Trends', 'Nonlinear'} ];
             posOfYX = find(inxOfYX);
-            inxOfLog = this.InxOfLog;
+            inxOfLog = this.InxLog;
             for pos = posOfYX
                 name = this.Name(pos);
                 if inxOfLog(pos)

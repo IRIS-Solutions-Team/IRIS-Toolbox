@@ -1,7 +1,7 @@
-% ExplanatoryEquation  Equation with a LHS variable explained by RHS terms
+ % Explanatory  Equation with a LHS variable explained by RHS terms
 %
 
-classdef ExplanatoryEquation ...
+classdef Explanatory ...
     < shared.GetterSetter ...
     & shared.UserDataContainer ...
     & shared.CommentContainer ...
@@ -9,20 +9,21 @@ classdef ExplanatoryEquation ...
     & shared.Plan
 
 
-    properties
+    properties (SetAccess=protected)
         VariableNames (1, :) string = string.empty(1, 0)
         ControlNames (1, :) string = string.empty(1, 0)
         Label (1, 1) string = ""
         Attributes (1, :) string = string.empty(1, 0)
         RaggedEdge (1, 1) logical = false
         Include = true
+        Parameters (1, :, :) double = double.empty(1, 0, 1)
     end
 
 
 
 
     properties (Hidden)
-        Context = "ExplanatoryEquation"
+        Context = "Explanatory"
     end
 
 
@@ -51,15 +52,14 @@ classdef ExplanatoryEquation ...
         DateReference (1, 1) string = "date__"
 
 
-% Dependent  Dependent (LHS) term
-        Dependent (1, :) regression.Term = regression.Term.empty(1, 0)
+% DependentTerm  Dependent (left-hand side) term
+        DependentTerm (1, :) regression.Term = regression.Term.empty(1, 0)
 
 
-% Explanatory  Array of explanatory (RHS) terms
-        Explanatory (1, :) regression.Term = regression.Term.empty(1, 0)
+% ExplanatoryTerms  Array of right hand side (explanatory) terms
+        ExplanatoryTerms (1, :) regression.Term = regression.Term.empty(1, 0)
 
 
-        Parameters (1, :, :) double = double.empty(1, 0, 1)
         Statistics (1, 1) struct = struct( 'VarResiduals', NaN, ...
                                            'CovParameters', double.empty(0, 0, 1) )
 
@@ -80,14 +80,14 @@ classdef ExplanatoryEquation ...
     properties (Dependent)
         NeedsIterate
         FreeParameters
-        PosOfLhsName
+        PosLhsName
         RhsContainsLhsName
         LhsName
         ResidualName
         FittedName
         PlainDataNames
-        NumOfExplanatory
-        NumOfParameters
+        NumExplanatoryTerms
+        NumParameters
         MaxLag
         MaxLead
     end
@@ -96,18 +96,18 @@ classdef ExplanatoryEquation ...
 
 
     methods % Constructor
-        function this = ExplanatoryEquation(varargin)
+        function this = Explanatory(varargin)
             if nargin==0
                 return
             end
-            if nargin==0 && isa(varargin{1}, 'ExplanatoryEquation')
+            if nargin==0 && isa(varargin{1}, 'Explanatory')
                 this = varargin{1};
                 return
             end
-            thisError = [ "ExplanatoryEquation:InvalidContructorCall"
-                          "This is not a valid way to construct an ExplanatoryEquation object or array. "
-                          "Use one of the static constructors ExplanatoryEquation.fromString( ) "
-                          "or ExplanatoryEquation.fromFile( ). " ];
+            thisError = [ "Explanatory:InvalidContructorCall"
+                          "This is not a valid way to construct an Explanatory object or array. "
+                          "Use one of the static constructors Explanatory.fromString( ) "
+                          "or Explanatory.fromFile( ). " ];
             throw(exception.Base(thisError, 'error'));
         end%
     end
@@ -125,7 +125,7 @@ classdef ExplanatoryEquation ...
         varargout = collectRhsNames(varargin)
         varargout = checkUniqueLhs(varargin)
         varargout = declareSwitches(varargin)
-        varargout = defineDependent(varargin)
+        varargout = defineDependentTerm(varargin)
         varargout = getActualMinMaxShifts(varargin)
         varargout = lookup(varargin)
         varargout = regress(varargin)
@@ -139,10 +139,10 @@ classdef ExplanatoryEquation ...
 
     methods % Frontend Definitions
         %(
-        function this = addExplanatory(this, varargin)
+        function this = addExplanatoryTerm(this, varargin)
             term = regression.Term(this, varargin{:});
             term.ContainsLhsName = containsLhsName(term, this);
-            this.Explanatory(1, end+1) = term;
+            this.ExplanatoryTerms(1, end+1) = term;
             this.Parameters(:, end+1, :) = term.Fixed;
             this.Statistics.CovParameters(end+1, end+1, :) = NaN;
         end%
@@ -154,7 +154,7 @@ classdef ExplanatoryEquation ...
             attribute = strtrim(string(attribute));
             if ~isscalar(attribute) || ~startsWith(attribute, ":")
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidAttributeRequest"
+                    "Explanatory:InvalidAttributeRequest"
                     "Attribute has to be a scalar string starting with a colon." 
                 ];
                 throw(exception.Base(thisError, 'error'));
@@ -172,25 +172,25 @@ classdef ExplanatoryEquation ...
 
 
 
-        function this = removeExplanatory(this, varargin)
-            numExplanatory = this.NumOfExplanatory;
-            if numel(varargin)==1 && validated.roundScalarInRange(varargin{1}, 1, numExplanatory)
-                inx = false(1, numExplanatory);
+        function this = removeExplanatoryTerm(this, varargin)
+            numExplanatoryTerms = this.NumExplanatoryTerms;
+            if numel(varargin)==1 && validated.roundScalarInRange(varargin{1}, 1, numExplanatoryTerms)
+                inx = false(1, numExplanatoryTerms);
                 inx(pos) = true;
             else
                 term = regression.Term(this, varargin{:});
-                inx = this.Explanatory==term;
+                inx = this.ExplanatoryTerms==term;
             end
             if any(inx)
-                this.Explanatory(inx) = [ ];
+                this.ExplanatoryTerms(inx) = [ ];
                 this.Parameters(:, inx, :) = [ ];
                 this.Statistics.CovParameters(inx, inx, :) = [ ];
                 return
             end
             thisError = [ 
-                "ExplanatoryEquation:CannotFindExplanatory"
+                "Explanatory:CannotFindExplanatoryTerm"
                 "Cannot find the specified explanatory variable or term "
-                "that is to be removed from an ExplanatoryEquation model."
+                "that is to be removed from an Explanatory model."
             ];
             throw(exception.Base(thisError, 'error'));
         end%
@@ -198,18 +198,14 @@ classdef ExplanatoryEquation ...
 
 
 
-        function inx = matchExplanatorySpecs(this, term)
-            numExplanatory = this.NumOfExplanatory;
-            inx = false(1, numExplanatory);
-            for i = 1 : numExplanatory
-                inx(i) = isequal(term, this.Explanatory(i, :));
-            end
+        function inx = matchExplanatoryTerms(this, term)
+            inx = arrayfun(@(x) isequal(term, x), this.ExplanatoryTerms);
         end%
 
 
 
         
-        function pos = getPositionOfName(this, name)
+        function pos = getPosName(this, name)
             name = replace(string(name), " ", "");
             inx = name==this.VariableNames;
             if nnz(inx)==1
@@ -240,13 +236,13 @@ classdef ExplanatoryEquation ...
                 return
             end
             nv = arrayfun(@(x) size(x.Parameters, 3), this);
-            value = nv(1);
-            if all(nv==value)
+            value = max(nv);
+            if all(nv==value | nv==1)
                 return
             end
             thisError = [ 
-                "ExplanatoryEquation:InconsistentNumberOfVariants"
-                "All ExplanatoryEquation objects grouped in an array must have "
+                "Explanatory:InconsistentNumberOfVariants"
+                "All Explanatory objects grouped in an array must have "
                 "identical numbers of parameter variants." 
             ];
             throw(exception.Base(thisError, 'error'));
@@ -308,34 +304,34 @@ classdef ExplanatoryEquation ...
 
 
     methods
-        function this = set.Dependent(this, term)
+        function this = set.DependentTerm(this, term)
             if ~isscalar(term)
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidDependent"
-                    "Only one Dependent (LHS) term can be specified "
-                    "in an ExplanatoryEquation object." 
+                    "Explanatory:InvalidDependentTerm"
+                    "Only one DependentTerm can be specified "
+                    "in an Explanatory object." 
                 ];
                 throw(exception.Base(thisError, "error"));
             end
             if ~isempty(term.Expression)
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidDependent"
-                    "Invalid specification of the Dependent (LHS) term "
+                    "Explanatory:InvalidDependentTerm"
+                    "Invalid specification of the DependentTerm "
                     "in an ExplanatoryEqution object."
                 ];
                 throw(exception.Base(thisError, "error"));
             end
             if term.Shift~=0
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidDependent"
-                    "Depedent (LHS) term in an ExplanatoryEquation objection "
+                    "Explanatory:InvalidDependentTerm"
+                    "Depedent term in an Explanatory objection "
                     "is not allowed with a time shift (lag or lead). "
                 ];
                 throw(exception.Base(thisError, 'error'));
             end
             term.Fixed = 1;
             term.ContainsLhsName = true;
-            this.Dependent = term;
+            this.DependentTerm = term;
         end%
 
 
@@ -348,8 +344,8 @@ classdef ExplanatoryEquation ...
             end
             if any(strlength(value)==0)
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidVariableNames"
-                    "Variable names in an ExplanatoryEquation object "
+                    "Explanatory:InvalidVariableNames"
+                    "Variable names in an Explanatory object "
                     "must be nonempty strings."
                 ];
                 throw(exception.Base(thisError, 'error'));
@@ -368,8 +364,8 @@ classdef ExplanatoryEquation ...
             end
             if any(strlength(value)==0)
                 thisError = [ 
-                    "ExplanatoryEquation:InvalidVariableNames"
-                    "Control names in an ExplanatoryEquation object "
+                    "Explanatory:InvalidVariableNames"
+                    "Control names in an Explanatory object "
                     "must be nonempty strings."
                 ];
                 throw(exception.Base(thisError, 'error'));
@@ -400,8 +396,8 @@ classdef ExplanatoryEquation ...
         function value = get.NeedsIterate(this)
             value = false(size(this));
             for i = 1 : numel(this)
-                value(i) = startsWith(this(i).Dependent.Transform, "diff") ...
-                    || any([this(i).Explanatory.ContainsLhsName]);
+                value(i) = startsWith(this(i).DependentTerm.Transform, "diff") ...
+                    || any([this(i).ExplanatoryTerms.ContainsLhsName]);
             end
         end%
 
@@ -409,7 +405,7 @@ classdef ExplanatoryEquation ...
 
 
         function value = get.FreeParameters(this)
-            value = this.Parameters(:, isnan([this.Explanatory(:).Fixed]), :);
+            value = this.Parameters(:, isnan([this.ExplanatoryTerms(:).Fixed]), :);
         end%
 
 
@@ -421,25 +417,25 @@ classdef ExplanatoryEquation ...
             if nv>1 && numValues==1
                 value = repmat(value, 1, 1, nv);
             end
-            this.Parameters(:, isnan([this.Explanatory(:).Fixed]), :) = value;
+            this.Parameters(:, isnan([this.ExplanatoryTerms(:).Fixed]), :) = value;
         end%
 
 
 
 
-        function value = get.PosOfLhsName(this)
-            if isempty(this.Dependent)
+        function value = get.PosLhsName(this)
+            if isempty(this.DependentTerm)
                 value = NaN;
                 return
             end
-            value = this.Dependent.Position;
+            value = this.DependentTerm.Position;
         end%
 
 
 
 
         function value = get.MaxLag(this)
-            allMaxLags = [this.Explanatory.MinShift];
+            allMaxLags = [this.ExplanatoryTerms.MinShift];
             value = min(allMaxLags);
             value = min(0, value);
         end%
@@ -448,7 +444,7 @@ classdef ExplanatoryEquation ...
 
 
         function value = get.MaxLead(this)
-            allMaxLeads = [this.Explanatory.MaxShift];
+            allMaxLeads = [this.ExplanatoryTerms.MaxShift];
             value = max(allMaxLeads);
             value = max(0, value);
         end%
@@ -461,7 +457,7 @@ classdef ExplanatoryEquation ...
                 value = "";
                 return
             end
-            posLhsName = this.PosOfLhsName;
+            posLhsName = this.PosLhsName;
             if ~isscalar(posLhsName) || ~isfinite(posLhsName)
                 value = "";
                 return
@@ -473,7 +469,7 @@ classdef ExplanatoryEquation ...
 
 
         function value = get.RhsContainsLhsName(this)
-            value = any([this.Explanatory.ContainsLhsName]);
+            value = any([this.ExplanatoryTerms.ContainsLhsName]);
         end%
 
 
@@ -508,15 +504,15 @@ classdef ExplanatoryEquation ...
 
 
 
-        function value = get.NumOfExplanatory(this)
-            value = numel(this.Explanatory);
+        function value = get.NumExplanatoryTerms(this)
+            value = numel(this.ExplanatoryTerms);
         end%
 
 
 
 
-        function value = get.NumOfParameters(this)
-            value = this.NumOfExplanatory;
+        function value = get.NumParameters(this)
+            value = this.NumExplanatoryTerms;
         end%
     end
 

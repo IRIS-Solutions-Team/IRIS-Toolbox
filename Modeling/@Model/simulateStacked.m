@@ -1,11 +1,11 @@
 function [exitFlag, dcy] = simulateStacked(simulateFunc, rect, data, blazers)
 % simulateStacked  Run stacked-time simulation on one time frame
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -32,17 +32,17 @@ end
 
 % Set time frame of rect to terminal condition range
 % Keep time frame of data set to simulation range
-firstColumnTimeFrame = data.FirstColumnOfTimeFrame;
-lastColumnTimeFrame = data.LastColumnOfTimeFrame;
-columnsTimeFrame = firstColumnTimeFrame : lastColumnTimeFrame;
+firstColumnFrame = data.FirstColumnOfFrame;
+lastColumnFrame = data.LastColumnOfFrame;
+columnsFrame = firstColumnFrame : lastColumnFrame;
 
-numBlocks = numel(blazer.Block);
+numBlocks = numel(blazer.Blocks);
 for i = 1 : numBlocks
-    ithBlock = blazer.Block{i};
-    ithHeader = [rect.Header, sprintf('[Block:%g]', i)];
-    herePrepareInxOfEndogenousPoints( );
+    block__ = blazer.Blocks{i};
+    exitFlagHeader = string(rect.Header) + sprintf("[Block:%g]", i);
+    herePrepareInxEndogenousPoints( );
     herePrepareTerminal( );
-    [exitFlag, error] = run(ithBlock, data, ithHeader);
+    [exitFlag, error] = run(block__, data, exitFlagHeader);
     if ~isempty(error.EvaluatesToNan)
         break
     end
@@ -63,33 +63,34 @@ hereCleanup( );
 return
 
 
-    function herePrepareInxOfEndogenousPoints( )
+    function herePrepareInxEndogenousPoints( )
         inx = false(size(data.YXEPG));
-        inx(ithBlock.PtrQuantities, columnsTimeFrame) = true;
+        inx(block__.PtrQuantities, columnsFrame) = true;
         if data.HasExogenizedPoints
             inx(data.InxOfYX, :) = ...
                 inx(data.InxOfYX, :) ...
                 & ~data.InxOfExogenizedYX;
-            inx(data.InxOfE, columnsTimeFrame) = data.InxOfEndogenizedE(:, columnsTimeFrame);
+            inx(data.InxOfE, columnsFrame) = data.InxOfEndogenizedE(:, columnsFrame);
         end
-        ithBlock.InxOfEndogenousPoints = inx;
+        block__.InxOfEndogenousPoints = inx;
     end%
 
 
     function herePrepareTerminal( )
-        maxMaxLead = max(ithBlock.MaxLead);
-        if ithBlock.Type~=solver.block.Type.SOLVE || maxMaxLead<=0
-            ithBlock.Terminal = [ ];
+        maxMaxLead = max(block__.MaxLead);
+        if block__.Type~=solver.block.Type.SOLVE ...
+            || isempty(maxMaxLead) || maxMaxLead<=0
+            block__.Terminal = [ ];
         else
-            fotcTimeFrame = [lastColumnTimeFrame+1, lastColumnTimeFrame+maxMaxLead];
-            setTimeFrame(rect, fotcTimeFrame);
-            ithBlock.Terminal = rect;
+            fotcFrame = [lastColumnFrame+1, lastColumnFrame+maxMaxLead];
+            setFrame(rect, fotcFrame);
+            block__.Terminal = rect;
         end
     end%
 
 
     function hereCleanup( )
-        setTimeFrame(rect, [firstColumnTimeFrame, lastColumnTimeFrame]);
+        setFrame(rect, [firstColumnFrame, lastColumnFrame]);
     end%
 end%
 

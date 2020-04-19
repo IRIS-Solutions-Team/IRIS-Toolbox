@@ -10,7 +10,7 @@ function varargout = lookup(this, varargin)
 % ## Input Arguments ##
 %
 %
-% __`input`__ [ ExplanatoryEquation ]
+% __`input`__ [ Explanatory ]
 % >
 % Input ExlanatoryEquation object or array from which a subset of equations
 % will be extracted.
@@ -19,7 +19,7 @@ function varargout = lookup(this, varargin)
 % __`lookFor`__ [ char | string ]
 % >
 % LHS name or attribute that will be searched for in the `input`
-% ExplanatoryEquation object or array.
+% Explanatory object or array.
 %
 %
 % ## Output Arguments ##
@@ -27,14 +27,14 @@ function varargout = lookup(this, varargin)
 %
 % __`inx`__ [ logical ]
 % >
-% Logical index of equations within the `input` ExplanatoryEquation object
+% Logical index of equations within the `input` Explanatory object
 % or array that have at least one of the LHS names or attributes specified
 % as the second and further input arguments `lookFor`.
 %
 %
-% __`output`__ [ ExplanatoryEquation ]
+% __`output`__ [ Explanatory ]
 % >
-% Output ExplanatoryEquation object or array with only those equations
+% Output Explanatory object or array with only those equations
 % included that have at least one of the LHS names or attributes specified
 % as the second and further input arguments `lookFor`.
 %
@@ -65,8 +65,8 @@ end
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('@ExplanatoryEquation/lookup');
-    addRequired(pp, 'xq', @(x) isa(x, 'ExplanatoryEquation'));
+    pp = extend.InputParser('@Explanatory/lookup');
+    addRequired(pp, 'xq', @(x) isa(x, 'Explanatory'));
     addOptional(pp, 'lookFor', cell.empty(1, 0), @(x) all(cellfun(@validate.stringScalar, x)));
 end
 parse(pp, this, varargin);
@@ -117,7 +117,7 @@ end%
 
 function setupOnce(testCase)
     testCase.TestData.Object = ...
-        ExplanatoryEquation.fromString([
+        Explanatory.fromString([
             ":a :b :c x = 0"
             ":b :c :d y = 0"
             ":c :d :e z = 0"

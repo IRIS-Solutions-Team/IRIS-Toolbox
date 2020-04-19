@@ -61,7 +61,7 @@ if isempty(pp)
     %
     % Required input arguments
     %
-    addRequired(pp, 'solvedModel', @validate.solvedModel);
+    addRequired(pp, 'solvedModel', @(x) isa(x, 'Model'));
     addRequired(pp, 'inputDb', @(x) validate.databank(x) || isa(x, 'simulate.Data') || isequal(x, "asynchronous"));
     addRequired(pp, 'simulationRange', @(x) DateWrapper.validateProperRangeInput(x) || isequal(x, @auto));
     %
@@ -95,7 +95,7 @@ usingDefaults = pp.UsingDefaultsInStruct;
 if ~isequal(baseRange, @auto)
     baseRange = double(baseRange);
 end
-[opt.Window, baseRange] = parseWindowOptionAndBaseRange(opt.Window, opt.Method, baseRange);
+[opt.Window, baseRange] = resolveWindowAndBaseRange(opt.Window, opt.Method, baseRange);
 opt.Method = solver.Method.parse(opt.Method);
 opt.Solver = parseSolverOption(opt.Solver, opt.Method);
 isAsynchronous = isequal(inputDb, "asynchronous");
@@ -103,7 +103,12 @@ opt.Solver = hereResolveSolverOption(opt.Solver);
 
 %--------------------------------------------------------------------------
 
-nv = length(this);
+%
+% All simulation methods except PERIOD require a solved Model
+%
+locallyCheckSolvedModel(this, opt.Method);
+
+nv = countVariants(this);
 
 % Check the input databank; treat all names as optional, and check for
 % missing initial conditions later
@@ -118,6 +123,7 @@ plan = opt.Plan;
 % Prepare running data
 %
 runningData = simulate.InputOutputData( );
+runningData.InxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
 runningData.IsAsynchronous = isAsynchronous;
 runningData.PrepareOutputInfo = nargout>=2;
 
@@ -131,9 +137,9 @@ if opt.Contributions
     herePrepareContributions( );
 end
 
-% Define time frames; can be done only after we expand the data for
-% contributions
-herePrepareTimeFrames( );
+% Define time frames and check for deficiency of simulation plans; can be
+% done only after we expand the data for contributions
+defineFrames(runningData);
 
 % Check initial conditions for NaNs
 hereCheckInitialConditions( );
@@ -156,7 +162,7 @@ end
 % /////////////////////////////////////////////////////////////////////////
 numRuns = runningData.NumOfPages;
 for i = 1 : numRuns
-    simulateTimeFrames(this, systemProperty, i);
+    simulateFrames(this, systemProperty, i);
     if opt.ProgressInfo
         hereUpdateProgressInfo(i);
     end
@@ -177,11 +183,7 @@ end
 
 outputDb = hereCreateOutputData( );
 outputInfo = herePrepareOutputInfo( );
-
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 varargout = { outputDb, outputInfo };
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 return
     
@@ -190,8 +192,10 @@ return
 
     function hereResolveOptionConflicts( )
         if ~usingDefaults.Anticipate && ~usingDefaults.Plan
-            thisError = { 'Model:CannotUseAnticipateAndPlan'
-                          'Options Anticipate= and Plan= cannot be combined in one simulate(~)' };
+            thisError = [
+                "Model:CannotUseAnticipateAndPlan"
+                "Options Anticipate= and Plan= cannot be combined in one simulate(~)" 
+            ];
             throw(exception.Base(thisError, 'error'));
         end
         if ~usingDefaults.Anticipate && usingDefaults.Plan
@@ -203,13 +207,17 @@ return
             checkCompatibilityOfPlan(this, baseRange, opt.Plan);
         end
         if opt.Contributions && opt.Plan.NumOfExogenizedPoints>0
-            thisError = { 'Model:CannotEvalContributionsWithExogenized'
-                          'Option Contributions=true cannot be used in simulations with exogenized variables' }
+            thisError = [
+                "Model:CannotEvalContributionsWithExogenized"
+                "Option Contributions=true cannot be used in simulations with exogenized variables" 
+            ];
             throw(exception.Base(thisError, 'error'));
         end
         if opt.Contributions && databankInfo.NumOfPages>1
-            thisError = { 'Model:CannotEvalContributionsWithMultipleDataSets'
-                          'Option Contributions=true cannot be used in simulations on multiple data sets' }
+            thisError = [
+                "Model:CannotEvalContributionsWithMultipleDataSets"
+                "Option Contributions=true cannot be used in simulations on multiple data sets" 
+            ];
             throw(exception.Base(thisError, 'error'));
         end
     end%
@@ -235,10 +243,10 @@ return
 
     function herePrepareData( )
         numDummyPeriods = hereCalculateNumOfDummyPeriods( );
-        startOfBaseRange = baseRange(1);
-        endOfBaseRange = baseRange(end);
-        endOfBaseRangePlusDummy = endOfBaseRange + numDummyPeriods;
-        baseRangePlusDummy = [startOfBaseRange, endOfBaseRangePlusDummy];
+        startBaseRange = baseRange(1);
+        endBaseRange = baseRange(end);
+        endBaseRangePlusDummy = endBaseRange + numDummyPeriods;
+        baseRangePlusDummy = [startBaseRange, endBaseRangePlusDummy];
         [ runningData.YXEPG, ~, ...
           extendedRange, ~, ...
           runningData.MaxShift, ...
@@ -248,11 +256,11 @@ return
                                                   'ResetShocks=', true, ...
                                                   'IgnoreShocks=', opt.IgnoreShocks, ...
                                                   'NumOfDummyPeriods', numDummyPeriods );
-        startOfExtendedRange = extendedRange(1);
-        endOfExtendedRange = extendedRange(end);
-        runningData.ExtendedRange = [startOfExtendedRange, endOfExtendedRange];
-        runningData.BaseRangeColumns = colon( round(startOfBaseRange - startOfExtendedRange + 1), ...
-                                              round(endOfBaseRange - startOfExtendedRange + 1) );
+        startExtendedRange = extendedRange(1);
+        endExtendedRange = extendedRange(end);
+        runningData.ExtendedRange = [startExtendedRange, endExtendedRange];
+        runningData.BaseRangeColumns = colon( round(startBaseRange - startExtendedRange + 1), ...
+                                              round(endBaseRange - startExtendedRange + 1) );
         numPages = runningData.NumOfPages;
         if numPages==1 && nv>1
             % Expand number of data sets to match number of parameter variants
@@ -270,7 +278,7 @@ return
 
     function herePrepareContributions( )
         firstColumnToSimulate = runningData.BaseRangeColumns(1);
-        inxLog = this.Quantity.InxOfLog;
+        inxLog = this.Quantity.InxLog;
         inxE = getIndexByType(this, TYPE(31), TYPE(32));
         posE = find(inxE);
         numE = nnz(inxE);
@@ -311,114 +319,21 @@ return
 
 
 
-    function timeFrameDates = herePrepareTimeFrames( )
-        numPages = runningData.NumOfPages;
-        inxE = getIndexByType(this.Quantity, TYPE(31), TYPE(32));
-        runningData.TimeFrames = cell(1, numPages);
-        runningData.MixinUnanticipated = false(1, numPages);
-        runningData.TimeFrameDates = cell(1, numPages);
-        extendedRange = runningData.ExtendedRange;
-        startExtendedRange = extendedRange(1);
-        deficiency = cell(1, numPages);
-        covariance = cell(1, numPages);
-        for page = 1 : numPages
-            [~, unanticipatedE] = simulate.Data.splitE( runningData.YXEPG(inxE, :, page), ...
-                                                        plan.AnticipationStatusOfExogenous, ...
-                                                        runningData.BaseRangeColumns );
-            [ runningData.TimeFrames{page}, ...
-              runningData.MixinUnanticipated(page) ] = ...
-                hereSplitIntoTimeFrames( unanticipatedE, ...
-                                         runningData.BaseRangeColumns, ...
-                                         plan, ...
-                                         runningData.MaxShift, ...
-                                         opt );
-            numTimeFrames = size(runningData.TimeFrames{page}, 1);
-            timeFrameDates = nan(numTimeFrames, 2);
-            deficiency{page} = zeros(1, numTimeFrames);
-            covariance{page} = cell(1, numTimeFrames);
-            for frame = 1 : numTimeFrames
-                startOfTimeFrame = startExtendedRange + runningData.TimeFrames{page}(frame, 1) - 1;
-                endOfTimeFrame = startExtendedRange + runningData.TimeFrames{page}(frame, end) - 1;
-                timeFrameDates(frame, :) = [startOfTimeFrame, endOfTimeFrame];
-                %
-                % Check determinacy of simulation plan within this time frame
-                % Determine covariance matrix for underdetermined systems
-                %
-                [deficiency{page}(frame), covariance{page}{frame}] = hereCheckDeterminacyOfPlan( );
-            end
-            runningData.TimeFrameDates{page} = DateWrapper(timeFrameDates);
-        end
-        if nnz([deficiency{:}])>0
-            hereReportDeficiencyOfPlan( );
-        end
-
-        return
-
-            function [deficiency, covariance] = hereCheckDeterminacyOfPlan( )
-                %
-                % Check determinacy of plan in each
-                firstColumnOfTimeFrame = runningData.TimeFrames{page}(frame, 1);
-                lastColumnOfSimulation = runningData.BaseRangeColumns(end);
-                [ inxExogenized, ...
-                  inxEndogenized ] = getSwapsWithinTimeFrame( plan, ...
-                                                              firstColumnOfTimeFrame, ...
-                                                              lastColumnOfSimulation );
-                numExogenized = nnz(inxExogenized);
-                numEndogenized = nnz(inxEndogenized);
-                deficiency = 0;
-                covariance = [ ];
-                if numExogenized==numEndogenized
-                    return
-                end
-                if numExogenized<numEndogenized
-                   if plan.AllowUnderdetermined
-                       return
-                   end
-                   deficiency = -1;
-                elseif numExogenized>numEndogenized
-                    if plan.AllowOverdetermined
-                        return
-                    end
-                    deficiency = 1;
-                end
-            end%
-
-
-            function hereReportDeficiencyOfPlan( )
-                temp = cell.empty(1, 0);
-                for ii = 1 : numel(deficiency)
-                    for jj = find(deficiency{ii}~=0)
-                        if deficiency{ii}(jj)==-1
-                            description = 'Underdetermined';
-                        else
-                            description = 'Overdetermined';
-                        end
-                        temp{end+1} = sprintf( '[Page:%g][TimeFrame:%g]: %s', ...
-                                               ii, jj, description );
-                    end
-                end
-                thisError = { 'Model:DeficientSimulationPlan' 
-                              'Simulation Plan is deficient in %s' };
-                throw(exception.Base(thisError, 'error'), temp{:});
-            end%
-    end%
-
-
-
-
     function herePrepareBlazer( )
         firstColumnToRun = runningData.BaseRangeColumns(1);
         lastColumnToRun = runningData.BaseRangeColumns(end);
         switch opt.Method
-            case {solver.Method.STACKED, solver.Method.STATIC}
+            case {solver.Method.STACKED, solver.Method.PERIOD}
                 blazer = prepareBlazer(this, opt.Method, opt);
                 blazer.ColumnsToRun = firstColumnToRun : lastColumnToRun;
                 run(blazer, opt);
+                prepareForSolver(blazer, opt);
 
                 opt.Blocks = false;
                 blazerNoBlocks = prepareBlazer(this, opt.Method, opt);
                 blazerNoBlocks.ColumnsToRun = firstColumnToRun : lastColumnToRun;
                 run(blazerNoBlocks, opt);
+                prepareForSolver(blazer, opt);
                 opt.Blocks = true;
 
                 runningData.Blazers = [blazerNoBlocks, blazer];
@@ -432,7 +347,7 @@ return
 
     function systemProperty = hereSetupSystemProperty( )
         systemProperty = SystemProperty(this);
-        systemProperty.Function = @simulateTimeFrames;
+        systemProperty.Function = @simulateFrames;
         systemProperty.MaxNumOfOutputs = 1;
         systemProperty.NamedReferences = cell(1, 1);
         systemProperty.NamedReferences{1} = this.Quantity.Name;
@@ -472,9 +387,9 @@ return
             return
         end
         % Report missing initial conditions
-        firstColumnOfSimulation = runningData.BaseRangeColumns(1);
-        inxNaNPresample = any(isnan(runningData.YXEPG(:, 1:firstColumnOfSimulation-1, :)), 3);
-        checkInitialConditions(this, inxNaNPresample, firstColumnOfSimulation);
+        firstColumnSimulation = runningData.BaseRangeColumns(1);
+        inxNaNPresample = any(isnan(runningData.YXEPG(:, 1:firstColumnSimulation-1, :)), 3);
+        checkInitialConditions(this, inxNaNPresample, firstColumnSimulation);
     end%
 
 
@@ -512,12 +427,12 @@ return
             end
             inxToInclude = ~getIndexByType(this.Quantity, TYPE(4));
             baseRange = runningData.BaseRange;
-            startOfExtendedRange = runningData.ExtendedRange(1);
-            lastColumnOfSimulation = runningData.BaseRangeColumns(end);
+            startExtendedRange = runningData.ExtendedRange(1);
+            lastColumnSimulation = runningData.BaseRangeColumns(end);
             timeSeriesConstructor = @default;
-            outputDb = databank.backend.fromDoubleArrayNoFrills( runningData.YXEPG(:, 1:lastColumnOfSimulation, :), ...
+            outputDb = databank.backend.fromDoubleArrayNoFrills( runningData.YXEPG(:, 1:lastColumnSimulation, :), ...
                                                                    this.Quantity.Name, ...
-                                                                   startOfExtendedRange, ...
+                                                                   startExtendedRange, ...
                                                                    comments, ...
                                                                    inxToInclude, ...
                                                                    timeSeriesConstructor, ...
@@ -539,8 +454,8 @@ return
         if ~runningData.PrepareOutputInfo
             return
         end
-        outputInfo.TimeFrames = runningData.TimeFrames;
-        outputInfo.TimeFrameDates = runningData.TimeFrameDates;
+        outputInfo.Frames = runningData.Frames;
+        outputInfo.FrameDates = runningData.FrameDates;
         outputInfo.BaseRange = DateWrapper(runningData.BaseRange);
         outputInfo.ExtendedRange = DateWrapper(runningData.ExtendedRange);
         outputInfo.Success =  runningData.Success;
@@ -552,7 +467,7 @@ return
 
 
     function herePostprocessContributions( )
-        inxLog = this.Quantity.InxOfLog;
+        inxLog = this.Quantity.InxLog;
         if opt.Method~=solver.Method.FIRST_ORDER
             % Calculate contributions of nonlinearities
             runningData.YXEPG(inxLog, :, end) =  runningData.YXEPG(inxLog, :, end) ...
@@ -634,7 +549,7 @@ end%
 
 
 
-function [windowOption, baseRange] = parseWindowOptionAndBaseRange(windowOption, methodOption, baseRange)
+function [windowOption, baseRange] = resolveWindowAndBaseRange(windowOption, methodOption, baseRange)
     if isequal(baseRange, @auto)
         if isequal(windowOption, @auto) || isequal(windowOption, @max)
             baseRange = 1;
@@ -657,8 +572,10 @@ function [windowOption, baseRange] = parseWindowOptionAndBaseRange(windowOption,
     if isequal(windowOption, @max)
         windowOption = lenBaseRange;
     elseif isnumeric(windowOption) && windowOption>lenBaseRange
-        thisError = { 'Model:WindowCannotExceedRangeLength'
-                      'Simulation windowOption cannot exceed number of simulation periods' };
+        thisError = [
+            "Model:WindowCannotExceedRangeLength"
+            "Simulation windowOption cannot exceed number of simulation periods" 
+        ];
         throw(exception.Base(thisError, 'error'));
     end
 end%
@@ -674,78 +591,31 @@ function solverOption = parseSolverOption(solverOption, methodOption)
             defaultSolver = 'IRIS-QaD';
             prepareGradient = false;
             displayMode = 'Verbose';
-            solverOption = solver.Options.parseOptions( solverOption, ...
-                                                        defaultSolver, ...
-                                                        prepareGradient, ...
-                                                        displayMode );
-        case {solver.Method.STACKED, solver.Method.STATIC}
+            solverOption = solver.Options.parseOptions( ...
+                solverOption, defaultSolver, prepareGradient, displayMode ...
+            );
+        case {solver.Method.STACKED, solver.Method.PERIOD}
             defaultSolver = 'IRIS-Newton';
             prepareGradient = false;
             displayMode = 'Verbose';
-            solverOption = solver.Options.parseOptions( solverOption, ...
-                                                        defaultSolver, ...
-                                                        prepareGradient, ...
-                                                        displayMode );
+            solverOption = solver.Options.parseOptions( ...
+                solverOption, defaultSolver, prepareGradient, displayMode ...
+            );
     end
 end%
 
 
 
 
-function [timeFrames, mixinUnanticipated] = hereSplitIntoTimeFrames(unanticipatedE, baseRangeColumns, plan, maxShift, opt)
-    inxUnanticipatedE = unanticipatedE~=0;
-    inxUnanticipatedAny = inxUnanticipatedE | plan.InxOfUnanticipatedEndogenized;
-    posUnanticipatedAny = find(any(inxUnanticipatedAny, 1));
-    firstColumnOfSimulation = baseRangeColumns(1);
-    lastColumnOfSimulation = baseRangeColumns(end);
-
-    % TODO: For some simulations, unanticipated shocks can be mixed in with
-    % anticipated shocks within a single time frame.
-    mixinUnanticipated = hereTestMixinUnanticipated( );
-    if mixinUnanticipated
-       timeFrames = [firstColumnOfSimulation, lastColumnOfSimulation];
-       return
+function locallyCheckSolvedModel(this, method)
+    if method==solver.Method.PERIOD || validate.solvedModel(this)
+        return
     end
-
-    if ~any(posUnanticipatedAny==firstColumnOfSimulation)
-        posUnanticipatedAny = [firstColumnOfSimulation, posUnanticipatedAny];
-    end
-    columnOfLastAnticipatedExogenizedYX = plan.ColumnOfLastAnticipatedExogenized;
-    numTimeFrames = numel(posUnanticipatedAny);
-    timeFrames = nan(numTimeFrames, 2);
-    for i = 1 : numTimeFrames
-        startOfTimeFrame = posUnanticipatedAny(i);
-        if i==numTimeFrames
-            endOfTimeFrame = lastColumnOfSimulation;
-        else
-            endOfTimeFrame = max([posUnanticipatedAny(i+1)-1, columnOfLastAnticipatedExogenizedYX]);
-        end
-        lenTimeFrame = endOfTimeFrame - startOfTimeFrame + 1;
-        minLenOfTimeFrame = opt.Window;
-        if strcmpi(opt.Method, 'Selective')
-            minLenOfTimeFrame = minLenOfTimeFrame + maxShift;
-        end
-        if lenTimeFrame<minLenOfTimeFrame
-            endOfTimeFrame = endOfTimeFrame + (minLenOfTimeFrame - lenTimeFrame);
-            lenTimeFrame = minLenOfTimeFrame;
-        end
-        timeFrames(i, :) = [startOfTimeFrame, endOfTimeFrame];
-    end
-    mixinUnanticipated = false;
-
-    return
-
-
-        function flag = hereTestMixinUnanticipated( )
-            if opt.Method==solver.Method.FIRST_ORDER ...
-               && plan.NumOfExogenizedPoints==0
-                flag = true;
-                return
-            end
-            if opt.Method==solver.Method.STATIC
-                flag = true;
-                return
-            end
-            flag = false;
-        end%
+    thisError = [
+        "Model:NeedsSolvedModel"
+        "The Model must be solved first before running a simulation "
+        "with Method=%s."
+    ];
+    throw(exception.Base(thisError, 'error'), method);
 end%
+

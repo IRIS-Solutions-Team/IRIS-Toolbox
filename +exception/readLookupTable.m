@@ -227,7 +227,6 @@ lookupTable = {
     'Steady:ExogenousGrowthNan', 'The growth rate of this exogenized variable is not assigned: %s '
     'Steady:InvalidLogminus', 'This name cannot be used in LogMinus= option: %s '
     'Steady:InvalidUnlog', 'This name cannot be used in Unlog= option: %s '
-    'Steady:StructuralSingularity', 'System of steady equations is structurally singular.'
     'Steady:WrongSignGrowthBounds', 'Invalid lower and/or upper bound for steady-state growth of this variable: %s '
     'Steady:WrongSignLevelBounds', 'Invalid lower and/or upper bound for steady-state level of this variable: %s '
     'Steady:LevelFixedToNan', 'Level of this variable fixed to NaN: %s'

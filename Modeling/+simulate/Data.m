@@ -21,8 +21,8 @@ classdef Data < shared.DataBlock
         % InxOfE  True for shocks
         InxOfE = logical.empty(1, 0)
 
-        % InxOfLog  True for log variables
-        InxOfLog = logical.empty(1, 0)
+        % InxLog  True for log variables
+        InxLog = logical.empty(1, 0)
 
         % AnticipationStatusOfE  True for expected shocks
         AnticipationStatusOfE = logical.empty(0, 1)
@@ -69,11 +69,11 @@ classdef Data < shared.DataBlock
         % SolverOptions  Solver options for iterative methods
         SolverOptions = solver.Options.empty(0)
 
-        % FirstColumnOfTimeFrame  First column of current time frame to be simulated
-        FirstColumnOfTimeFrame
+        % FirstColumnOfFrame  First column of current time frame to be simulated
+        FirstColumnOfFrame
 
-        % LastColumnOfTimeFrame  Last column of current time frame to be simulated
-        LastColumnOfTimeFrame
+        % LastColumnOfFrame  Last column of current time frame to be simulated
+        LastColumnOfFrame
 
         % NeedsUpdateShocks  Shocks have been modified in simulation and need to be update in the output databan
         NeedsUpdateShocks = false
@@ -83,8 +83,8 @@ classdef Data < shared.DataBlock
     methods
         function updateSwapsFromPlan(this, plan)
             [ this.InxOfExogenizedYX, ... 
-              this.InxOfEndogenizedE ] = getSwapsWithinTimeFrame( plan, ...
-                                                                  this.FirstColumnOfTimeFrame, ...
+              this.InxOfEndogenizedE ] = getSwapsWithinFrame( plan, ...
+                                                                  this.FirstColumnOfFrame, ...
                                                                   this.LastColumnOfSimulation );
             this.Target = nan(this.NumOfYX, this.NumOfColumns);
             if this.NumOfExogenizedPoints>0
@@ -95,20 +95,20 @@ classdef Data < shared.DataBlock
 
 
         function YXEPG = addSteadyTrends(this, YXEPG)
-            inx = this.InxOfYX & this.InxOfLog;
-            YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxOfLog(this.InxOfYX), :);
+            inx = this.InxOfYX & this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxLog(this.InxOfYX), :);
             
-            inx = this.InxOfYX & ~this.InxOfLog;
-            YXEPG(inx, :) = YXEPG(inx, :) + this.BarYX(~this.InxOfLog(this.InxOfYX), :);
+            inx = this.InxOfYX & ~this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) + this.BarYX(~this.InxLog(this.InxOfYX), :);
         end%
 
 
         function YXEPG = removeSteadyTrends(this, YXEPG)
-            inx = this.InxOfYX & this.InxOfLog;
-            YXEPG(inx, :) = YXEPG(inx, :) ./ this.BarYX(this.InxOfLog(this.InxOfYX), :);
+            inx = this.InxOfYX & this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) ./ this.BarYX(this.InxLog(this.InxOfYX), :);
             
-            inx = this.InxOfYX & ~this.InxOfLog;
-            YXEPG(inx, :) = YXEPG(inx, :) - this.BarYX(~this.InxOfLog(this.InxOfYX), :);
+            inx = this.InxOfYX & ~this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) - this.BarYX(~this.InxLog(this.InxOfYX), :);
         end%
 
 
@@ -206,14 +206,14 @@ classdef Data < shared.DataBlock
         end%
 
 
-        function setTimeFrame(this, timeFrame)
+        function setFrame(this, timeFrame)
             if nargin<2
-                this.FirstColumnOfTimeFrame = this.FirstColumnOfSimulation;
-                this.LastColumnOfTimeFrame = this.LastColumnOfSimulation;
+                this.FirstColumnOfFrame = this.FirstColumnOfSimulation;
+                this.LastColumnOfFrame = this.LastColumnOfSimulation;
                 return
             end
-            this.FirstColumnOfTimeFrame = timeFrame(1);
-            this.LastColumnOfTimeFrame = timeFrame(2);
+            this.FirstColumnOfFrame = timeFrame(1);
+            this.LastColumnOfFrame = timeFrame(2);
         end%
     end
 
@@ -354,7 +354,7 @@ classdef Data < shared.DataBlock
             this.InxOfY = getIndexByType(quantity, TYPE(1));
             this.InxOfX = getIndexByType(quantity, TYPE(2));
             this.InxOfE = getIndexByType(quantity, TYPE(31), TYPE(32));
-            this.InxOfLog = quantity.IxLog;
+            this.InxLog = quantity.IxLog;
 
             this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfColumns);
             this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfColumns);

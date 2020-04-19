@@ -2,12 +2,13 @@ classdef InputOutputData < shared.DataBlock
     properties
         IsAsynchronous = false
         Blazers
+        InxE
         MaxShift
         TimeTrend
         InxOfInitInPresample
         MixinUnanticipated
-        TimeFrames
-        TimeFrameDates
+        Frames
+        FrameDates
         Success
         ExitFlags = solver.ExitFlag.empty(1, 0)
         DiscrepancyTables = cell.empty(1, 0)
@@ -34,6 +35,12 @@ classdef InputOutputData < shared.DataBlock
 
         % Initial  Choose input data or first-order simulation for starting values
         Initial = 'Data'
+    end
+
+
+    methods
+        varargout = defineFrames(varargin)
+        varargout = checkDeficiency(varargin)
     end
 end
 

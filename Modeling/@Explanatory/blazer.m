@@ -1,5 +1,5 @@
 function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, varargin)
-% blazer  Determine the order of execution within an ExplanatoryEquation array
+% blazer  Determine the order of execution within an Explanatory array
 %{
 % ## Syntax ##
 %
@@ -10,9 +10,9 @@ function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, 
 % ## Input Arguments ##
 %
 %
-% __`xq`__ [ ExplanatoryEquation ]
+% __`xq`__ [ Explanatory ]
 % >
-% An array of ExplanatoryEquation objects whose equations will be reordered
+% An array of Explanatory objects whose equations will be reordered
 % block recursively.
 %
 %
@@ -83,10 +83,10 @@ function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, 
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('ExplanatoryEquation.blazer');
+    pp = extend.InputParser('Explanatory.blazer');
     pp.KeepUnmatched = true;
 
-    addRequired(pp, 'equations', @(x) isa(x, 'ExplanatoryEquation'));
+    addRequired(pp, 'equations', @(x) isa(x, 'Explanatory'));
 
     addParameter(pp, 'Reorder', true, @(x) validate.logicalScalar(x) || (iscell(x) && all(cellfun(@(y) isnumeric(y), x))));
     addParameter(pp, {'SaveAs', 'SaveBlazerAs'}, [ ], @(x) isempty(x) || validate.string(x));
@@ -193,7 +193,7 @@ return
                     this__ = this(block(jj));
                     % Names of all current dated variables on the RHS in
                     % this equation
-                    incInEquation = [this__.Explanatory.Incidence];
+                    incInEquation = [this__.ExplanatoryTerms.Incidence];
                     incInEquation = incInEquation(imag(incInEquation)==0);
                     currentDatedVariablesInEquation = this__.VariableNames(incInEquation);
                     incInBlock(jj, ismember(lhsNamesInBlock, currentDatedVariablesInEquation)) = true;
@@ -217,9 +217,9 @@ return
 
 
 
-    function blazerObj = hereSaveAs( )
+    function hereSaveAs( )
         allNames = collectAllNames(this);
-        c = "";
+        s = "";
         for i = 1 : numBlocks
             numEquationsInBlock = numel(blocks{i});
             if numEquationsInBlock==1
@@ -231,14 +231,16 @@ return
             else
                 type = solver.block.Type.ITERATE_TIME;
             end
-            keyword = string(type.SaveAsKeyword);
-            c = c + newlineString + newlineString ...
-                + solver.block.Block.printBlock(i, keyword, inputStrings(blocks{i}));
+            blockObj = solver.block.Explanatory( );
+            blockObj.Type = type;
+            blockObj.PtrEquations = blocks{i};
+            s = s + newlineString + newlineString ...
+                + print(blockObj, i, [ ], inputStrings);
         end
-        c = newlineString + "% LHS Variables: (" + join(lhsNames, ", ") + ")" ...
+        s = newlineString + "% LHS Variables: (" + join(lhsNames, ", ") + ")" ...
             + newlineString + "% RHS-Only Variables: (" + join(setdiff(allNames, lhsNames), ", ") + ")" ...
-            + c;
-        solver.blazer.Blazer.wrapAndSave(c, opt.SaveAs, numBlocks, numEquations);
+            + s;
+        solver.blazer.Blazer.wrapAndSave(s, opt.SaveAs, numBlocks, numEquations);
     end%
 
 
@@ -246,8 +248,8 @@ return
 
     function hereThrowInvalidReorder( )
         thisError = [ 
-            "ExplanatoryEquation:InvalidReorder"
-            "The option Reorder= fails to constitute a valid reordering of the ExplanatoryEquation "
+            "Explanatory:InvalidReorder"
+            "The option Reorder= fails to constitute a valid reordering of the Explanatory "
             "object or array; the option Reorder= needs to be true, false or a user-specified "
             "permutation of {1, ..., #equations}." 
         ];
@@ -263,8 +265,8 @@ end%
 
 function hereThrowCannotSplitIntoBlocks( )
     thisError = [ 
-        "ExplanatoryEquation:CannotSplitIntoBlocks"
-        "Error reordering the ExplanatoryEquation array block recursively. "
+        "Explanatory:CannotSplitIntoBlocks"
+        "Error reordering the Explanatory array block recursively. "
         "Make sure the equations are ordered correctly in the source file "
         "and rerun your task setting Reorder=false, or use the option "
         "Reorder= directly to specify your own block reordering."

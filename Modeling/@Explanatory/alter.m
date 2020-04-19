@@ -1,5 +1,5 @@
 function this = alter(this, newNumVariants, varargin)
-% alter  Expand or reduce the number of parameter variants in ExplanatoryEquation
+% alter  Expand or reduce the number of parameter variants in Explanatory
 %{
 %}
 
@@ -8,8 +8,8 @@ function this = alter(this, newNumVariants, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('ExplanatoryEquation.alter');
-    addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'ExplanatoryEquation'));
+    pp = extend.InputParser('Explanatory.alter');
+    addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'Explanatory'));
     addRequired(pp, 'newNumVariants', @(x) validate.roundScalarInRange(x, 1, Inf));
     addOptional(pp, 'reset', false, @validate.logicalScalar);
 end

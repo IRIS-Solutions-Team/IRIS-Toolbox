@@ -26,7 +26,7 @@ ixyxe = ixy | ixx | ixe;
 ixp = this.Quantity.Type==TYPE(4);
 ixm = this.Equation.Type==TYPE(1);
 ixt = this.Equation.Type==TYPE(2);
-inxOfLog = this.Quantity.InxOfLog;
+inxOfLog = this.Quantity.InxLog;
 eqSelect(~ixm & ~ixt) = false;
 
 ixNanDeriv = false(1, nEqtn);
