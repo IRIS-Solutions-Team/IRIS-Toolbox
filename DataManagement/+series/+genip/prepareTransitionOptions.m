@@ -10,6 +10,8 @@ function transition = prepareTransitionOptions(transitionModel, highRange, opt)
 %--------------------------------------------------------------------------
 
 highRange = double(highRange);
+highStart = highRange(1);
+highEnd = highRange(end);
 canHaveMissing = false;
 
 transition = struct( );
@@ -27,6 +29,18 @@ if ~isequal(transition.Constant, @auto)
     transition.Constant = series.genip.validateTimeVaryingInput( ...
         "Transition.Constant", highRange, opt.Constant, canHaveMissing ...
     );
+end
+
+if isa(opt.Std, 'NumericTimeSubscriptable')
+    transition.Std = getDataFromTo(opt.Std, highStart, highEnd);
+    transition.Std = abs(transition.Std);
+    if any(isnan(transition.Std(:)))
+        transition.Std = numeric.fillMissing(transition.Std, NaN, 'globalLoglinear');
+    end
+    transition.Std = transition.Std/transition.Std(1);
+    transition.Std = reshape(transition.Std, 1, 1, [ ]);
+else
+    transition.Std = 1;
 end
 
 end%

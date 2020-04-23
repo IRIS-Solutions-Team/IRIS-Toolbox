@@ -86,6 +86,7 @@ NumericTimeSubscriptable ...
 
         tabular(varargin)
         varargout = pct(varargin)
+        varargout = project(varargin)
         varargout = rmse(varargin)
         varargout = roc(varargin)
 

@@ -149,23 +149,29 @@ function [output, info] = genip(lowInput, toFreq, transitionModel, aggregationMo
 %
 %}
 
+if isempty(lowInput)
+    output = lowInput;
+    info = struct( );
+    return
+end
+
 persistent pp 
 if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable/genip');
-    addRequired(pp, 'lowInput', @(x) isa(x, 'NumericTimeSubscriptable') && x.Frequency==Frequency.YEARLY);
+    addRequired(pp, 'lowInput', @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(pp, 'toFreq', @(x) isa(x, 'Frequency') || isnumeric(x));
     addRequired(pp, 'transitionModel', @(x) validate.anyString(strip(x), 'Rate', 'Level', 'Diff', 'DiffDiff'));
     addRequired(pp, 'aggregationModel', @locallyValidateAggregation);
 
     % Options
     addParameter(pp, 'Range', Inf, @(x) isequal(x, Inf) || DateWrapper.validateProperRangeInput(x));
-    addParameter(pp, 'StdScale', 1, @(x) isequal(x, 1) || isa(x, 'NumericTimeSubscriptable'));
     addParameter(pp, 'InitCond', @auto);
     addParameter(pp, 'ResolveConflicts', true, @validate.logicalScalar);
 
     % Nested options
     addNested(pp, 'Transition', 'Rate', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Transition', 'Constant', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isa(x, 'NumericTimeSubscriptable'));
+    addNested(pp, 'Transition', 'Std', 1, @(x) isequal(x, 1) || isa(x, 'NumericTimeSubscriptable'));
 
     addNested(pp, 'Condition', 'Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addNested(pp, 'Condition', 'Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
@@ -222,27 +228,24 @@ conditions = series.genip.prepareConditionOptions([highStart, highEnd], opt.Cond
 %
 aggregationModel = locallyResolveAggregationModel(aggregationModel, numPeriodsWithin);
 
-%
-% Resolve std dev scale
-%
-stdScale = hereResolveStdScale( );
 
 %
 % Resolve low frequency level data
 %
 lowLevel = hereGetLowLevelData( );
 
+
 %
 % Resolve conflicts between observed low frequency levels and conditioning
 %
 hereResolveConflictsInMeasurement( );
 
+
 %
 % Set up a linear Kalman filter object
 %
 [kalmanObj, observed, transition] = series.genip.setupKalmanObject( ...
-    lowLevel, aggregationModel, stdScale ...
-    , conditions, indicator, transition ...
+    lowLevel, aggregationModel, conditions, indicator, transition ...
 );
 
 %
@@ -256,6 +259,7 @@ initCond = hereSetupInitCond( );
 outputData = filter( ...
     kalmanObj, observed, highStart:highEnd ...
     , 'Init=', initCond, 'Relative=', false ...
+    , 'MeanOnly=', true ...
 );
 
 %
@@ -308,23 +312,6 @@ return
 
     function lowLevel = hereGetLowLevelData( )
         lowLevel = getDataFromTo(lowInput, lowStart, lowEnd);
-    end%
-
-
-
-
-    function stdScale = hereResolveStdScale( )
-        if isa(opt.StdScale, 'NumericTimeSubscriptable')
-            stdScale = getDataFromTo(opt.StdScale, highStart, highEnd);
-            stdScale = abs(stdScale);
-            if any(isnan(stdScale(:)))
-                stdScale = numeric.fillMissing(stdScale, NaN, 'globalLoglinear');
-            end
-            stdScale = stdScale/stdScale(1);
-            stdScale = reshape(stdScale, 1, 1, [ ]);
-        else
-            stdScale = 1;
-        end
     end%
 
 
