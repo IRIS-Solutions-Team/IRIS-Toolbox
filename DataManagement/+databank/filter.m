@@ -1,4 +1,4 @@
-function [select, tokens] = filter(d, varargin)
+function [select, tokens, outputDb] = filter(inputDb, varargin)
 % filter  Filter databank fields by their names, classes or user filter
 %{
 %}
@@ -10,19 +10,19 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.filter');
     addRequired(pp, 'Database', @validate.databank);
-    addParameter(pp, {'Name', 'NameFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
+    addParameter(pp, {'Name', 'NameFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x) || isa(x, 'Rxp'));
     addParameter(pp, {'Class', 'ClassFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
     addParameter(pp, 'Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
-parse(pp, d, varargin{:});
+parse(pp, inputDb, varargin{:});
 opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
-if isa(d, 'Dictionary')
-    listFields = keys(d);
+if isa(inputDb, 'Dictionary')
+    listFields = keys(inputDb);
 else
-    listFields = fieldnames(d);
+    listFields = fieldnames(inputDb);
 end
 listFields = reshape(cellstr(listFields), 1, [ ]);
 
@@ -33,13 +33,24 @@ tokens = repmat({[]}, size(listFields));
 if isequal(opt.Name, @all) || isequal(opt.Name, "--all")
     inxName = true(size(listFields));
 else
-    if ~isa(opt.Name, 'string')
-        opt.Name = string(opt.Name);
+    isRegular = false;
+    if isa(opt.Name, 'Rxp')
+        isRegular = true;
+        opt.Name = opt.Name.String;
+    else
+        if ~isa(opt.Name, 'string')
+            opt.Name = string(opt.Name);
+        end
+        if isscalar(opt.Name) 
+            if startsWith(opt.Name, "--rexp:")
+                isRegular = true;
+                opt.Name = erase(opt.Name, "--rexp:");
+            end
+        end
     end
-    if isscalar(opt.Name) && startsWith(opt.Name, "--rexp:")
-        opt.Name = erase(opt.Name, "--rexp:");
+    if isRegular
         [start, tokens] = regexp(listFields, opt.Name, 'start', 'tokens', 'once');
-        inxName = ~cellfun(@isempty, start);
+        inxName = ~cellfun('isempty', start);
     else
         opt.Name = reshape(opt.Name, 1, [ ]);
         inxName = any(opt.Name==listFields, 2);
@@ -54,10 +65,10 @@ inxName = reshape(inxName, 1, [ ]);
 if isequal(opt.Class, @all) || isequal(opt.Class, "--all")
     inxClass = true(size(listFields));
 else
-    if isa(d, 'Dictionary')
-        func = @(x) class(retrieve(d, x));
+    if isa(inputDb, 'Dictionary')
+        func = @(x) class(retrieve(inputDb, x));
     else
-        func = @(x) class(d.(x));
+        func = @(x) class(inputDb.(x));
     end
     listClasses = cellfun(func, listFields, 'UniformOutput', false);
     listClasses = reshape(string(listClasses), [ ], 1);
@@ -73,7 +84,7 @@ inxClass = reshape(inxClass, 1, [ ]);
 if isempty(opt.Filter)
     inxFilter = true(size(listFields));
 else
-    inxFilter = cellfun(@(name) feval(opt.Filter, d.(name)), listFields);
+    inxFilter = cellfun(@(name) feval(opt.Filter, inputDb.(name)), listFields);
 end
 inxFilter = reshape(inxFilter, 1, [ ]);
 
@@ -83,8 +94,12 @@ inxFilter = reshape(inxFilter, 1, [ ]);
 %
 inxSelect = inxName & inxClass & inxFilter;
 
-select = listFields(inxSelect);
+select = string(listFields(inxSelect));
 tokens = tokens(inxSelect);
+
+if nargout>=3
+    outputDb = databank.copy(inputDb, 'SourceNames=', select);
+end
 
 end%
 

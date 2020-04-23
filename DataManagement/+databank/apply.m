@@ -127,7 +127,7 @@ if isempty(pp)
     pp.addParameter({'RemovePrefix', 'RemoveStart'}, false, @validate.logicalScalar);
     pp.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
     pp.addParameter('RemoveSource', false, @validate.logicalScalar);
-    pp.addParameter({'InputNames', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || validate.list(x));
+    pp.addParameter({'InputNames', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || validate.list(x) || isa(x, 'Rxp'));
     pp.addParameter('OutputNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
     pp.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || validate.databank(x));
 end
@@ -135,6 +135,9 @@ pp.parse(func, inputDatabank, varargin{:});
 opt = pp.Options;
 
 if ~isequal(opt.InputNames, @all)
+    if isa(opt.InputNames, 'Rxp')
+        opt.InputNames = databank.filter(inputDatabank, 'Name=', opt.InputNames);
+    end
     opt.InputNames = cellstr(opt.InputNames);
 end
 
