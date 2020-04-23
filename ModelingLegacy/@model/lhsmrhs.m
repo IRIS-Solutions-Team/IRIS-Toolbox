@@ -1,17 +1,23 @@
 function dcy = lhsmrhs(this, inputData, varargin)
 % lhsmrhs  Discrepancy between the LHS and RHS of each model equation for given data
+%{
+% Syntax for Casual Evaluation
+%--------------------------------------------------------------------------
 %
-% ## Syntax for Casual Evaluation ##
 %
 %     Q = lhsmrhs(Model, InputDatabank, Range)
 %
 %
-% ## Syntax for Fast Evaluation ##
+% Syntax for Fast (Repeated) Evaluation
+%--------------------------------------------------------------------------
+%
 %
 %     Q = lhsmrhs(Model, X)
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
+%
 %
 % * `Model` [ model ] - Model object whose equations and currently assigned
 % parameters will be evaluated.
@@ -70,23 +76,23 @@ function dcy = lhsmrhs(this, inputData, varargin)
 %
 %     YXET = data4lhsmrhs(M, d, range);
 %     Q = lhsmrhs(M, YXET);
-%
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.lhsmrhs');
-    parser.addParameter('HashEquationsOnly', false, @(x) isequal(x, true) || isequal(x, false));
-    parser.addParameter({'EquationSwitch', 'Kind'}, 'Dynamic', @(x) any(strcmpi(x, {'Dynamic', 'Steady'})));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.lhsmrhs');
+    addParameter(pp, 'HashEquationsOnly', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, {'EquationSwitch', 'Kind'}, 'Dynamic', @(x) any(strcmpi(x, {'Dynamic', 'Steady'})));
 end
 
 %--------------------------------------------------------------------------
 
-nv = length(this);
+nv = countVariants(this);
 inxM = this.Equation.Type==TYPE(1);
 inxT = this.Equation.Type==TYPE(2);
 inxEquations = inxM | inxT;
@@ -117,8 +123,8 @@ elseif isstruct(inputData)
     YXEPG = data4lhsmrhs(this, inputData, range);
 end
 
-parse(parser, varargin{:});
-opt = parser.Options;
+parse(pp, varargin{:});
+opt = pp.Options;
 
 if opt.HashEquationsOnly
     inxEquations = inxEquations & this.Equation.InxOfHashEquations;
