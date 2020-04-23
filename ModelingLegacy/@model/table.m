@@ -156,10 +156,10 @@ TYPE = @int8;
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Model/table');
+
     addRequired(pp, 'model', @(x) isa(x, 'model'));
     addRequired(pp, 'request', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     
-    % Options
     addParameter(pp, 'CompareFirstColumn', true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
     addParameter(pp, 'Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));

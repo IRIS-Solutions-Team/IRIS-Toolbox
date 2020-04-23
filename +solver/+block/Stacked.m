@@ -74,14 +74,31 @@ classdef Stacked < solver.block.Block
 
                 maxMaxLead = max(this.MaxLead);
                 needsRunFotc = this.Type==solver.block.Type.SOLVE ...
+                            && ~isempty(maxMaxLead) ...
                             && maxMaxLead>0 ...
                             && ~isempty(this.Terminal);
 
                 % Initialize endogenous quantities
                 z0 = data.YXEPG(inxZ);
-                ixNan = isnan(z0);
-                if any(ixNan)
-                    z0(ixNan) = 1;
+                inxNaN = ~isfinite(z0);
+                if any(inxNaN)
+                    % Try to replace NaNs with previous period data
+                    % TODO streamline this
+                    numRows = size(data.YXEPG, 1);
+                    inxNaNZ = ~isfinite(data.YXEPG) & inxZ;
+                    shift = 1;
+                    while any(inxNaNZ(:))
+                        inxPrevious = [inxNaNZ(:, 1+shift:end), false(numRows, shift)];
+                        if nnz(inxNaNZ)~=nnz(inxPrevious)
+                            break
+                        end
+                        data.YXEPG(inxNaNZ) = data.YXEPG(inxPrevious);
+                        inxNaNZ = ~isfinite(data.YXEPG) & inxZ;
+                        shift = shift + 1;
+                    end
+                    z0 = data.YXEPG(inxZ);
+                    inxNaN = ~isfinite(z0);
+                    z0(inxNaN) = 1;
                 end
                 % Transform initial conditions for log variables before we check bounds;
                 % bounds are in logs for log variables.
@@ -102,7 +119,7 @@ classdef Stacked < solver.block.Block
                 hereWriteEndogenousToData(z);
             else
                 % __Assign__
-                [z, exitFlag] = assign(this, data);
+                [z, exitFlag] = assign(this, data, exitFlagHeader);
             end
 
             exitFlag = this.checkFiniteSolution(z, exitFlag);
@@ -160,7 +177,7 @@ classdef Stacked < solver.block.Block
 
         
 
-        function [z, exitFlag] = assign(this, data)
+        function [z, exitFlag] = assign(this, data, exitFlagHeader)
             columnsToRun = data.FirstColumnOfFrame : data.LastColumnOfFrame;
             numColumnsToRun = numel(columnsToRun);
             
@@ -182,6 +199,7 @@ classdef Stacked < solver.block.Block
                 data.YXEPG(posOfZ(i)) = z(i);
             end
             exitFlag = solver.ExitFlag.ASSIGNED;
+            % print(exitFlag, exitFlagHeader, this.Solver.DisplayLevel);
         end%
 
 

@@ -46,6 +46,7 @@ classdef (Abstract) Blazer ...
         EquationsToExclude = double.empty(1, 0)
 
         InxZero
+        SuccessOnly = false
     end
     
 
@@ -209,7 +210,7 @@ classdef (Abstract) Blazer ...
 
 
         function [names, equations] = getNamesAndEquationsToPrint(this)
-            names = quantities.Name;
+            names = this.Model.Quantity.Name;
             equations = this.Model.Equation.Input;
         end%
 
