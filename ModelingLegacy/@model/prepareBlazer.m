@@ -122,6 +122,10 @@ end
 blz.Model.Quantity = this.Quantity;
 blz.Model.Equation = this.Equation;
 
+if isfield(opt, 'SuccessOnly')
+    blz.SuccessOnly = opt.SuccessOnly;
+end
+
 % Change log-status of variables and/or parameters
 if isfield(opt, 'Log') && ~isempty(opt.Log)
     blz.Model.Quantity = changeLogStatus(blz.Model.Quantity, true, opt.Log, logAllowed{:});
