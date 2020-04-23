@@ -1,4 +1,4 @@
-function const = getTransitionConstant(model, aggregation, lowData)
+function const = getTransitionConstant(transitionModel, aggregation, lowData)
 % getTransitionConstant  Calculate transition equation constant in Level,
 % Diff or DiffDiff genip models
 %
@@ -12,11 +12,11 @@ function const = getTransitionConstant(model, aggregation, lowData)
 
 numWithin = size(aggregation, 2);
 
-if strcmpi(model, 'Level')
+if strcmpi(transitionModel, 'Level')
     order = 0;
-elseif strcmpi(model, 'Diff')
+elseif strcmpi(transitionModel, 'Diff')
     order = 1;
-elseif strcmpi(model, 'DiffDiff') || strcmpi(model, 'Diff^2')
+elseif strcmpi(transitionModel, 'DiffDiff') || strcmpi(transitionModel, 'Diff^2')
     order = 2;
 end
 

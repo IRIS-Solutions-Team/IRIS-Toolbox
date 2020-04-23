@@ -123,10 +123,13 @@ else
     expressions = cellstr(varargin);
 end
 
+inputExpressions = expressions;
 inxToEval = cellfun('isclass', expressions, 'char');
 expressions(inxToEval) = herePreprocess(d, expressions(inxToEval));
+inxNaN = false(size(expressions));
 for i = find(transpose(inxToEval(:)))
     expressions{i} = hereProtectedEval(d, expressions{i});
+    inxNaN = isequaln(expressions{i}, NaN);
 end
 
 if expressionsInDatabank
@@ -139,6 +142,14 @@ elseif needsCollapseOutput
     varargout{1} = expressions;
 else
     varargout = expressions;
+end
+
+if any(inxNaN)
+    thisWarning = [
+        "Databank:EvaluatesToNaN"
+        "This expression evaluates to a scalar NaN in databank.eval( ): %s "
+    ];
+    throw(exception.Base(thisWarning, 'warning'), inputExpressions{inxNaN});
 end
 
 end%

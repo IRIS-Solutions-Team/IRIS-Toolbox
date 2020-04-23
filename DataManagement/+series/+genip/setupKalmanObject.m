@@ -1,6 +1,5 @@
 function [kalmanObj, observed, transition] = setupKalmanObject( ...
-    lowLevel, aggregation, stdScale ...
-    , conditions, indicator, transition ...
+    lowLevel, aggregation, conditions, indicator, transition ...
 )
 % setupKalmanObject  Set up time-varying LinearSystem and array of observed data for genip model
 %
@@ -19,7 +18,8 @@ numHighPeriods = numXi*numLowPeriods;
 % 
 % Transition matrix
 %
-T = hereSetupTransitionMatrix( );
+[T, transition.Rate] = hereSetupTransitionMatrix( );
+
 
 %
 % Transition equation innovation multiplier
@@ -30,14 +30,14 @@ R(numXi, 1) = 1;
 %
 % Transition equation constant
 %
-k = hereSetupTransitionConstant( );
+[k, transition.Constant] = hereSetupTransitionConstant( );
 
 %
-% Innovation covariance matrices
+% Transition innovation covariance matrices
 %
-stdScale = reshape(stdScale, 1, 1, [ ]);
+transition.Std = reshape(double(transition.Std), 1, 1, [ ]);
 OmegaV = ones(1, 1, numHighPeriods);
-OmegaV(1, 1, :) = double(stdScale).^2;
+OmegaV(1, 1, :) = transition.Std.^2;
 
 %
 % Measurement (aggregation) matrix
@@ -45,10 +45,13 @@ OmegaV(1, 1, :) = double(stdScale).^2;
 [Z, observed, H, stdW] = hereInitializeMeasurement( );
 [Z, observed, H, stdW] = hereSetupAggregation(Z, observed, H, stdW);
 [Z, observed, H, stdW] = hereSetupConditioning(Z, observed, H, stdW);
-[Z, observed, H, stdW] = hereSetupIndicator(Z, observed, H, stdW);
-OmegaW = diag(stdW.^2);
+[Z, observed, H, stdW] = hereSetupIndicator(Z, observed, H, stdW, transition);
+numW = size(stdW, 2);
+OmegaW = zeros(numW, numW, numHighPeriods);
+for i = 1 : numW
+    OmegaW(i, i, :) = stdW(1, i, :).^2;
+end
 numY = size(Z, 1);
-numW = size(OmegaW, 1);
 
 %
 % Measurement intercept
@@ -60,6 +63,7 @@ kalmanObj = steadySystem(kalmanObj, 'NotNeeded');
 kalmanObj = timeVaryingSystem(kalmanObj, 1:numHighPeriods, {T, R, k, Z, H, d}, {OmegaV, OmegaW});
 
 return
+
 
     function [T, g] = hereSetupTransitionMatrix( )
         T = diag(ones(1, numXi-1), 1);
@@ -81,29 +85,30 @@ return
     end%
 
 
+
+
     function g = hereSetupTransitionRate( )
         if isequal(transition.Rate, @auto)
             g = series.genip.getTransitionRate(transition.Model, aggregation, lowLevel);
-        else
-            g = double(transition.Rate);
         end
-        if ~isscalar(g)
-            g = reshape(g, 1, 1, [ ]);
-        end
+        g = reshape(double(g), 1, 1, [ ]);
     end%
 
 
-    function k = hereSetupTransitionConstant( )
+
+
+    function [k, c] = hereSetupTransitionConstant( )
         switch string(transition.Model)
             case "Rate"
-                k = 0;
+                c = 0;
             otherwise
                 if isequal(transition.Constant, @auto)
-                    k = series.genip.getTransitionConstant(transition.Model, aggregation, lowLevel);
+                    c = series.genip.getTransitionConstant(transition.Model, aggregation, lowLevel);
                 else
-                    k = double(transition.Constant);
+                    c = double(transition.Constant);
                 end
         end
+        k = c;
         if isscalar(k)
             k = repmat(k, 1, 1, numHighPeriods);
         else
@@ -113,12 +118,16 @@ return
     end%
 
 
+
+
     function [Z, observed, H, stdW] = hereInitializeMeasurement( )
         Z = zeros(0, numXi);
         observed = zeros(0, numHighPeriods);
         H = double.empty(0);
-        stdW = double.empty(0);
+        stdW = double.empty(1, 0, numHighPeriods);
     end%
+
+
 
 
     function [Z, observed, H, stdW] = hereSetupAggregation(Z, observed, H, stdW)
@@ -133,6 +142,8 @@ return
         H = [H; addH];
         observed = [observed; addObserved];
     end%
+
+
 
 
     function [Z, observed, H, stdW] = hereSetupConditioning(Z, observed, H, stdW)
@@ -194,14 +205,16 @@ return
     end%
 
 
-    function [Z, observed, H, stdW] = hereSetupIndicator(Z, observed, H, stdW)
+
+
+    function [Z, observed, H, stdW] = hereSetupIndicator(Z, observed, H, stdW, transition)
         %
         % Indicator
         %
         numIndicators = size(indicator.Transformed, 2);
-        for i = 1 : numIndicators
-            transformed = indicator.Transformed(:, i);
-            stdScale = indicator.StdScale(min(i, end));
+        for ii = 1 : numIndicators
+            transformed = indicator.Transformed(:, ii);
+            stdScale = indicator.StdScale(min(ii, end));
             inxFinite = isfinite(transformed);
             if ~any(inxFinite)
                 continue
@@ -224,7 +237,7 @@ return
                     addObserved = reshape(transformed, 1, [ ]);
             end
             addH = 1;
-            addStdW = stdScale;
+            addStdW = transition.Std .* repmat(stdScale, 1, 1, numHighPeriods);
 
             Z = [Z; addZ];
             observed = [observed; addObserved];
