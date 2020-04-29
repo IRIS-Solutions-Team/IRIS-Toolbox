@@ -1,4 +1,4 @@
-function runningDatabank = batch( runningDatabank, newNameTemplate, generator, varargin )
+function db = batch(db, newNameTemplate, generator, varargin )
 % batch  Execute batch job within databank
 %{
 %}
@@ -13,11 +13,11 @@ if isempty(pp)
     addRequired(pp, 'newNameTemplate', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     addRequired(pp, 'expression', @(x) isa(x, 'function_handle') || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
-parse(pp, runningDatabank, newNameTemplate, generator);
+parse(pp, db, newNameTemplate, generator);
 
 %--------------------------------------------------------------------------
 
-[ selectNames, selectTokens ] = databank.query( runningDatabank, varargin{:} );
+[ selectNames, selectTokens ] = databank.query( db, varargin{:} );
 selectNames = cellstr(selectNames);
 
 if isa(generator, 'function_handle')
@@ -45,8 +45,8 @@ return
         try
             ithNewName = hereMakeSubstitution(newNameTemplate, ithName, ithTokens);
             ithExpressiong = hereMakeSubstitution(char(generator), ithName, ithTokens);
-            ithNewField = databank.eval(runningDatabank, ithExpressiong);
-            runningDatabank.(char(ithNewName)) = ithNewField; 
+            ithNewField = databank.eval(db, ithExpressiong);
+            db.(char(ithNewName)) = ithNewField; 
             errorReport = [ ];
         catch Err
             errorReport = {ithNewName, Err.message};
@@ -57,9 +57,9 @@ return
     function errorReport = hereGenerateNewFieldFromFunction( ithName, ithTokens )
         try
             ithNewName = hereMakeSubstitution(newNameTemplate, ithName, ithTokens);
-            ithInput = runningDatabank.(char(ithName));
+            ithInput = db.(char(ithName));
             ithNewField = feval(generator, ithInput);
-            runningDatabank.(char(ithNewName)) = ithNewField;
+            db.(char(ithNewName)) = ithNewField;
             errorReport = [ ];
         catch Err
             errorReport = {ithNewName, Err.message};
