@@ -3,8 +3,8 @@ function db = batch(db, newNameTemplate, generator, varargin )
 %{
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 persistent pp
 if isempty(pp)
@@ -17,7 +17,7 @@ parse(pp, db, newNameTemplate, generator);
 
 %--------------------------------------------------------------------------
 
-[ selectNames, selectTokens ] = databank.query( db, varargin{:} );
+[ selectNames, selectTokens ] = databank.filter( db, varargin{:} );
 selectNames = cellstr(selectNames);
 
 if isa(generator, 'function_handle')
@@ -30,9 +30,9 @@ else
                            'UniformOutput', false );
 end
 
-ixError = ~cellfun(@isempty, errorReport);
-if any(ixError)
-    errorReport = errorReport(ixError);
+inxError = ~cellfun(@isempty, errorReport);
+if any(inxError)
+    errorReport = errorReport(inxError);
     errorReport = [errorReport{:}];
     error( 'databank:batch', ...
            'Error when generating this new databank field: %s \n    Matlab says: %s \n', ...
@@ -43,26 +43,26 @@ return
 
     function errorReport = hereGenerateNewFieldFromExpression( ithName, ithTokens )
         try
-            ithNewName = hereMakeSubstitution(newNameTemplate, ithName, ithTokens);
-            ithExpressiong = hereMakeSubstitution(char(generator), ithName, ithTokens);
-            ithNewField = databank.eval(db, ithExpressiong);
-            db.(char(ithNewName)) = ithNewField; 
+            newName__ = locallyMakeSubstitution(newNameTemplate, ithName, ithTokens);
+            expression__ = locallyMakeSubstitution(char(generator), ithName, ithTokens);
+            newField__ = databank.eval(db, expression__);
+            db.(char(newName__)) = newField__; 
             errorReport = [ ];
         catch Err
-            errorReport = {ithNewName, Err.message};
+            errorReport = {newName__, Err.message};
         end
     end%
 
 
     function errorReport = hereGenerateNewFieldFromFunction( ithName, ithTokens )
         try
-            ithNewName = hereMakeSubstitution(newNameTemplate, ithName, ithTokens);
-            ithInput = db.(char(ithName));
-            ithNewField = feval(generator, ithInput);
-            db.(char(ithNewName)) = ithNewField;
+            newName__ = locallyMakeSubstitution(newNameTemplate, ithName, ithTokens);
+            input__ = db.(char(ithName));
+            newField__ = feval(generator, input__);
+            db.(char(newName__)) = newField__;
             errorReport = [ ];
         catch Err
-            errorReport = {ithNewName, Err.message};
+            errorReport = {newName__, Err.message};
         end
     end%
 end%
@@ -73,7 +73,7 @@ end%
 %
  
 
-function c = hereMakeSubstitution( c, ithName, ithTokens )
+function c = locallyMakeSubstitution( c, ithName, ithTokens )
     numTokens = numel(ithTokens);
     c = strrep(c, '$0', ithName);
     for j = 1 : numTokens
