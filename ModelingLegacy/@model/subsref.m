@@ -48,10 +48,10 @@ function output = subsref(this, s)
 
 %--------------------------------------------------------------------------
 
-nv = length(this);
+nv = countVariants(this);
 
 % Dot-name reference m.name
-if strcmp(s(1).type,'.') && (ischar(s(1).subs) || isa(s(1).subs, 'string'))
+if isequal(s(1).type,'.') && validate.string(s(1).subs) 
     name = char(s(1).subs);
     ell = lookup(this.Quantity, {name});
     posQty = ell.PosName;
@@ -59,9 +59,20 @@ if strcmp(s(1).type,'.') && (ischar(s(1).subs) || isa(s(1).subs, 'string'))
     if ~isnan(posQty)
         % Quantity
         output = this.Variant.Values(:, posQty, :);
+        output = permute(output, [1, 3, 2]);
     elseif ~isnan(posStdCorr)
         % Std or Corr
         output = this.Variant.StdCorr(:, posStdCorr, :);
+        output = permute(output, [1, 3, 2]);
+    elseif nv==1 && contains(name, ',..,')
+        % Double dot reference ,..,
+        list = parser.DoubleDot.parse(name, parser.DoubleDot.COMMA);
+        list = regexp(string(list), "\w+", "match");
+        numList = numel(list);
+        output = nan(1, numList);
+        for i = 1 : numList
+            output(i) = subsref(this, substruct('.', list(i)));
+        end
     else
         behavior = this.Behavior.InvalidDotReference;
         if strcmpi(behavior, 'Error')
@@ -77,7 +88,6 @@ if strcmp(s(1).type,'.') && (ischar(s(1).subs) || isa(s(1).subs, 'string'))
             return
         end
     end
-    output = permute(output, [1, 3, 2]);
     if isa(this.Behavior.DotReferenceFunc, 'function_handle')
         output = feval(this.Behavior.DotReferenceFunc, output);
     end
