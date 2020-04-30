@@ -1,11 +1,11 @@
-function [outputDb, info] = simulate(this, inputDb, range, varargin)
+function [outputData, info] = simulate(this, inputData, range, varargin)
 %{
 % simulate  Simulate Explanatory model
 %
 % ## Syntax ##
 %
 %
-%     [outputDb, info] = simulate(input, ...)
+%     [outputData, info] = simulate(input, ...)
 %
 %
 % ## Input Arguments ##
@@ -40,20 +40,16 @@ function [outputDb, info] = simulate(this, inputDb, range, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
-
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory/simulate');
 
     addRequired(pp, 'explanatory', @(x) isa(x, 'Explanatory'));
-    addRequired(pp, 'inputDb', @validate.databank);
+    addRequired(pp, 'inputData', @(x) validate.databank(x) || isa(x, 'shared.DataBlock'));
     addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
 
     addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, [ ]) || validate.databank(x));
@@ -66,15 +62,15 @@ if isempty(pp)
     addParameter(pp, 'RaggedEdge', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
     addParameter(pp, 'Blazer', cell.empty(1, 0), @iscell);
 end
-parse(pp, this, inputDb, range, varargin{:});
+parse(pp, this, inputData, range, varargin{:});
 opt = pp.Options;
 
-storeToDatabank = nargout>=1;
+storeToDatabank = nargout>=1 && validate.databank(inputData);
 
 %--------------------------------------------------------------------------
 
 if isempty(this)
-    outputDb = inputDb;
+    outputData = inputData;
     info = struct( );
     info.Blocks = cell.empty(1, 0);
     info.DynamicStatus = false;
@@ -93,19 +89,23 @@ nv = countVariants(this);
 %
 lhsRequired = false;
 context = "for " + this(1).Context + " simulation";
-dataBlock = getDataBlock(this, inputDb, range, lhsRequired, context);
-numExtendedPeriods = dataBlock.NumOfExtendedPeriods;
-numPages = dataBlock.NumOfPages;
+outputData = getDataBlock(this, inputData, range, lhsRequired, context);
+numExtendedPeriods = outputData.NumOfExtendedPeriods;
+numPages = outputData.NumOfPages;
 numRuns = max(nv, numPages);
 lhsNames = [this.LhsName];
-baseRangeColumns = dataBlock.BaseRangeColumns;
-extendedRange = DateWrapper(dataBlock.ExtendedRange);
+baseRangeColumns = outputData.BaseRangeColumns;
+extendedRange = DateWrapper(outputData.ExtendedRange);
 
 
 %
 % Create struct with controls
 %
-controls = assignControls(this, inputDb);
+if validate.databank(inputData)
+    controls = assignControls(this, inputData);
+else
+    controls = struct( );
+end
 
 
 %
@@ -120,7 +120,7 @@ hereExpandPagesIfNeeded( );
 %
 % Prepare runtime information
 %
-this = runtime(this, dataBlock, "simulate");
+this = runtime(this, outputData, "simulate");
 
 %
 % Run blazer
@@ -134,21 +134,21 @@ for blk = 1 : numel(blocks)
         eqn = blocks{blk};
         this__ = this(eqn);
         [isExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
-        [plainData, lhs, rhs, res] = createModelData(this__, dataBlock, controls);
+        [plainData, lhs, rhs, res] = createModelData(this__, outputData, controls);
         if dynamicStatus(eqn)
             hereRunRecursive( );
         else
             hereRunOnce(baseRangeColumns);
         end
-        updateDataBlock(this__, dataBlock, plainData);
+        updateDataBlock(this__, outputData, plainData);
     else
         for column = baseRangeColumns
             for eqn = reshape(blocks{blk}, 1, [ ])
                 this__ = this(eqn);
                 [isExogenized__, inxExogenizedAlways__, inxExogenizedWhenData__] = hereExtractExogenized__( );
-                [plainData, lhs, rhs, res] = createModelData(this__, dataBlock, controls);
+                [plainData, lhs, rhs, res] = createModelData(this__, outputData, controls);
                 hereRunOnce(column);
-                updateDataBlock(this__, dataBlock, plainData);
+                updateDataBlock(this__, outputData, plainData);
             end
         end
     end
@@ -167,10 +167,10 @@ end
 %
 % Report LHS variables with NaN or Inf values
 %
-pos = textual.locate(lhsNames, dataBlock.Names);
+pos = textual.locate(lhsNames, outputData.Names);
 reorder = [blocks{:}];
 pos = pos(reorder);
-inxNaNLhs = any(any(~isfinite(dataBlock.YXEPG(pos, baseRangeColumns, :)), 3), 2);
+inxNaNLhs = any(any(~isfinite(outputData.YXEPG(pos, baseRangeColumns, :)), 3), 2);
 if any(inxNaNLhs)
     hereReportNaNSimulation( );
 end
@@ -180,12 +180,14 @@ end
 %
 if storeToDatabank
     namesToInclude = [this.LhsName, this.ResidualName];
-    outputDb = createOutputDatabank(this, inputDb, dataBlock, namesToInclude, [ ], opt);
+    outputData = createOutputDatabank(this, inputData, outputData, namesToInclude, [ ], opt);
 end
 
-info = struct( );
-info.Blocks = humanBlocks;
-info.DynamicStatus = dynamicStatus;
+if nargout>=2
+    info = struct( );
+    info.Blocks = humanBlocks;
+    info.DynamicStatus = dynamicStatus;
+end
 
 return
 
@@ -327,7 +329,7 @@ return
 
     function hereExpandPagesIfNeeded( )
         if numPages==1 && nv>1
-            dataBlock.YXEPG = repmat(dataBlock.YXEPG, 1, 1, nv);
+            outputData.YXEPG = repmat(outputData.YXEPG, 1, 1, nv);
             return
         elseif nv==1
             return
@@ -358,7 +360,7 @@ return
 
 
     function hereReportNaNSimulation( )
-        report = cellstr(dataBlock.Names(pos(inxNaNLhs)));
+        report = cellstr(outputData.Names(pos(inxNaNLhs)));
         thisWarning  = [ 
             "Explanatory:MissingObservationInSimulationRange"
             "Simulation of an Explanatory object produced "

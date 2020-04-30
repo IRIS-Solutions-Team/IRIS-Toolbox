@@ -1,8 +1,5 @@
-classdef Log < parser.theparser.Generic
-    properties
-        TypeCanBeLog
-    end
-
+classdef Log ...
+    < parser.theparser.Generic
 
     properties (Constant)
         ALLBUT_KEYWORD = '!all-but'
@@ -10,31 +7,18 @@ classdef Log < parser.theparser.Generic
     
     
     methods
-        function [quantity, equation] = parse(this, ~, code, quantity, equation, euc, puc, ~)
-            numQuantities = length(quantity.Name);
-            if isempty(strfind(code, parser.theparser.Log.ALLBUT_KEYWORD))
-                default = false;
-            else
-                default = true;
-                code = strrep(code, parser.theparser.Log.ALLBUT_KEYWORD, '');
+        function  log = parse(this, code)
+            except = false;
+            if contains(code, parser.theparser.Log.ALLBUT_KEYWORD)
+                except = true;
+                code = erase(code, parser.theparser.Log.ALLBUT_KEYWORD);
             end
-            
-            listLog = regexp(code, '\<[a-zA-Z]\w*\>', 'match');
-            ell = lookup(quantity, listLog, this.TypeCanBeLog{:});
-            
-            inxValid = ~isnan(ell.PosName);
-            if any(~inxValid)
-                THIS_ERROR = { 'TheParser:InvalidLogNameDeclared'
-                               'This name cannot be declared as log-variable: %s ' };
-                throw( exception.ParseTime(THIS_ERROR, 'error'), ...
-                       listLog{~inxValid} );
+            log = regexp(code, '\<[a-zA-Z]\w*\>', 'match');
+            if except
+                log = Except(log);
             end
-            
-            inxCanBeLog = ell.IxKeep;
-            quantity.IxLog = inxCanBeLog & repmat(default, 1, numQuantities);
-            quantity.IxLog(ell.IxName) = not(default);
         end%
-        
+
         
         function precheck(~, ~, blocks)
             inxPresent = cellfun( @isempty, regexp(blocks, parser.theparser.Log.ALLBUT_KEYWORD, 'match', 'once') );

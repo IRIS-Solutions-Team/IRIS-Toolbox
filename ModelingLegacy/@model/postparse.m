@@ -1,11 +1,11 @@
-function this = postparse(this, qty, eqn, euc, puc, collector, opt, optimalOpt)
+function this = postparse(this, qty, eqn, log, euc, puc, collector, opt, optimalOpt)
 % postparse  Postparse model code
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
@@ -16,24 +16,31 @@ exception.ParseTime.storeFileName(this.FileName);
 %
 % Data preprocessor and postprocessor
 %
-collector.Preprocessor = regexprep(collector.Preprocessor, '\s+', '');
-if ~isempty(collector.Preprocessor)
-    f = model.File( );
-    f.FileName = this.FileName;
-    f.Code = collector.Preprocessor;
-    f.Preparsed = true;
-    this.Preprocessor = Explanatory.fromFile(f);
-    [this.Preprocessor.Context] = deal("Preprocessor");
+removeFromLog = string.empty(1, 0);
+for processor = ["Preprocessor", "Postprocessor"]
+    collector.(processor) = regexprep(collector.(processor), '\s+', '');
+    if ~isempty(collector.(processor))
+        f = model.File( );
+        f.FileName = this.FileName;
+        f.Code = collector.(processor);
+        f.Preparsed = true;
+        this.(processor) = ExplanatoryEquation.fromFile(f);
+        [this.(processor).Context] = deal("Preprocessor");
+        this.(processor) = initializeLogStatus(this.(processor), log);
+        removeFromLog = [removeFromLog, reshape(collectLhsNames(this.(processor)), 1, [ ])];
+    end
 end
-collector.Postprocessor = regexprep(collector.Postprocessor, '\s+', '');
-if ~isempty(collector.Postprocessor)
-    f = model.File( );
-    f.FileName = this.FileName;
-    f.Code = collector.Postprocessor;
-    f.Preparsed = true;
-    this.Postprocessor = Explanatory.fromFile(f);
-    [this.Postprocessor.Context] = deal("Postprocessor");
+if ~isempty(removeFromLog)
+    log = setdiff(log, removeFromLog);
 end
+
+
+%
+% Initialize log status of names from the !log-variables section
+% and report invalid names
+%
+qty = initializeLogStatus(qty, log);
+
 
 %
 % Reporting Equations

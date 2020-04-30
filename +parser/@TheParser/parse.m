@@ -1,4 +1,4 @@
-function [qty, eqn, euc, puc, collector] = parse(this, opt)
+function [qty, eqn, euc, puc, collector, log] = parse(this, opt)
 % parse  Main parser for model code
 %
 % Backend IRIS function
@@ -19,6 +19,7 @@ altSyntax(this);
 % Read individual blocks
 blockCode = readBlockCode(this);
 
+log = string.empty(1, 0);
 qty = model.component.Quantity( );
 eqn = model.component.Equation( );
 euc = parser.EquationUnderConstruction( );
@@ -27,8 +28,14 @@ puc = parser.PairingUnderConstruction( );
 numBlocks = numel(this.Block);
 collector = struct( );
 for i = 1 : numBlocks
-    if this.Block{i}.Parse
-        [qty, eqn] = parse(this.Block{i}, this, blockCode{i}, qty, eqn, euc, puc, opt);
+    block__ = this.Block{i};
+    code__ = blockCode{i};
+    if block__.Parse
+        if isa(block__, 'parser.theparser.Log')
+            log = parse(block__, code__);
+        else
+            [qty, eqn] = parse(block__, this, code__, qty, eqn, euc, puc, opt);
+        end
     else
         collector.(this.Block{i}.Name) = blockCode{i};
     end
@@ -88,17 +95,19 @@ return
             end
             % The name 'ttrend' is a reserved name for time trend in
             % !dtrends
-            ixValid = ~strcmp(lsName, model.RESERVED_NAME_TTREND);
+            ixValid = ~strcmp(lsName, model.component.Quantity.RESERVED_NAME_TTREND);
             if any(~ixValid)
-                throw( exception.ParseTime('TheParser:RESERVED_NAME', 'error'), ...
-                       model.RESERVED_NAME_TTREND );
+                throw( ...
+                    exception.ParseTime('TheParser:RESERVED_NAME', 'error'), ...
+                    model.component.Quantity.RESERVED_NAME_TTREND ...
+                );
             end
             % The name 'linear' is reserved for the linear option, and can be used in
             % control expressions in model file.
-            ixValid = ~strcmp(lsName, model.RESERVED_NAME_LINEAR);
+            ixValid = ~strcmp(lsName, model.component.Quantity.RESERVED_NAME_LINEAR);
             if any(~ixValid)
                 throw( exception.ParseTime('TheParser:RESERVED_NAME', 'error'), ...
-                       model.RESERVED_NAME_LINEAR );
+                       model.component.Quantity.RESERVED_NAME_LINEAR );
             end
         end
         % Shock names must not contain double scores because of the way
@@ -116,7 +125,7 @@ return
 
 
     function hereAddSpecialExogenous( )
-        add = model.component.Quantity.fromNames(model.RESERVED_NAME_TTREND);
+        add = model.component.Quantity.fromNames(model.component.Quantity.RESERVED_NAME_TTREND);
         add.Label(:) = { model.COMMENT_TTREND };
         qty = insert(qty, add, TYPE(5), 'last');
     end%

@@ -17,6 +17,7 @@ classdef Explanatory ...
         RaggedEdge (1, 1) logical = false
         Include = true
         Parameters (1, :, :) double = double.empty(1, 0, 1)
+        LogStatus (1, 1) logical = false
     end
 
 
@@ -123,6 +124,7 @@ classdef Explanatory ...
         varargout = collectControlNames(varargin)
         varargout = collectLhsNames(varargin)
         varargout = collectRhsNames(varargin)
+        varargout = collectLogStatus(varargin)
         varargout = checkUniqueLhs(varargin)
         varargout = declareSwitches(varargin)
         varargout = defineDependentTerm(varargin)
@@ -260,6 +262,7 @@ classdef Explanatory ...
 
 
         varargout = runtime(varargin)
+        varargout = initializeLogStatus(varargin)
         varargout = updateDataBlock(varargin)
     end
 
