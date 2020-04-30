@@ -14,25 +14,35 @@ if isempty(pp)
     addRequired(pp, 'newNameTemplate', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     addRequired(pp, 'generator', @(x) isa(x, 'function_handle') || ischar(x) || (isstring(x) && isscalar(x)));
 
-    addParameter(pp, 'Arguments', ["$0"], @(x) isstring(x) || ischar(x) || iscellstr(x));
+    addParameter(pp, 'Arguments', ["$0"], @locallyValidateArguments);
     addParameter(pp, 'AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
 parse(pp, inputDb, newNameTemplate, generator, varargin{:});
 opt = pp.Options;
-opt.Arguments = string(opt.Arguments);
 
 %--------------------------------------------------------------------------
 
+opt.Arguments = locallyPrepareArguments(opt.Arguments);
+numArguments = numel(opt.Arguments);
+
+if iscell(opt.Arguments)
+%
+% Names and function arguments given by lists in Arguments=
+%
+    selectNames = opt.Arguments{1};
+    selectTokens = repmat("", 1, numel(selectNames));
+else
 %
 % Filter databank names 
 %
-if ~isempty(opt.Filter)
-    filterOpt = opt.Filter;
-else
-    filterOpt = pp.UnmatchedInCell;
+    if ~isempty(opt.Filter)
+        filterOpt = opt.Filter;
+    else
+        filterOpt = pp.UnmatchedInCell;
+    end
+    [selectNames, selectTokens] = databank.filter(inputDb, filterOpt{:});
 end
-[selectNames, selectTokens] = databank.filter(inputDb, filterOpt{:});
 
 
 %
@@ -57,7 +67,7 @@ newNames = locallyMakeSubstitutions(newNameTemplate, selectNames, selectTokens);
 %
 errorReport = cell.empty(1, 0);
 for i = 1 : numel(newNames)
-    hereGenerateNewField(newNames(i), selectNames(i), selectTokens(i));
+    hereGenerateNewField(newNames(i), selectNames(i), selectTokens(i), i);
 end
 
 
@@ -70,31 +80,13 @@ end
 
 return
 
-    function hereGenerateNewField(newName, oldName, tokens)
+
+    function hereGenerateNewField(newName, oldName, tokens, pos)
         try
             if isa(generator, 'function_handle')
-                isDictionary = isa(inputDb, 'Dictionary');
-                namArguments = opt.Arguments;
-                inxZero = namArguments=="$0";
-                namArguments(inxZero) = oldName;
-                if any(~inxZero)
-                    namArguments(~inxZero) = locallyMakeSubstitutions( ...
-                        namArguments(~inxZero), oldName, tokens ...
-                    );
-                end
-                numArguments = numel(opt.Arguments);
-                valArguments = cell(1, numArguments);
-                for i = 1 : numArguments
-                    if isDictionary
-                        valArguments{i} = retrieve(inputDb, namArguments(i));
-                    else
-                        valArguments{i} = inputDb.(namArguments(i));
-                    end
-                end
-                newValue = feval(generator, valArguments{:});
+                newValue = hereFromFunction( );
             else
-                expression = locallyMakeSubstitutions(string(generator), oldName, tokens);
-                newValue = databank.eval(inputDb, expression);
+                newValue = hereFromExpression( );
             end
             if isa(outputDb, 'Dictionary')
                 store(outputDb, newName, newValue);
@@ -104,16 +96,56 @@ return
         catch Err
             errorReport = [errorReport, {newName, Err.message}];
         end
+        return
+
+            function newValue = hereFromFunction( )
+                %(
+                if isstring(opt.Arguments)
+                    namArguments = repmat("", 1, numArguments);
+                    inxZero = namArguments=="$0";
+                    namArguments(inxZero) = oldName;
+                    if any(~inxZero)
+                        namArguments(~inxZero) = locallyMakeSubstitutions( ...
+                            namArguments(~inxZero), oldName, tokens ...
+                        );
+                    end
+                else
+                    namArguments = cellfun(@(x) x(pos), opt.Arguments);
+                end
+                isDictionary = isa(inputDb, 'Dictionary');
+                valArguments = cell(1, numArguments);
+                for ii = 1 : numArguments
+                    if isDictionary
+                        valArguments{ii} = retrieve(inputDb, namArguments(ii));
+                    else
+                        valArguments{ii} = inputDb.(namArguments(ii));
+                    end
+                end
+                newValue = feval(generator, valArguments{:});
+                %)
+            end%
+
+
+            function newValue = hereFromExpression( )
+                %(
+                expression = locallyMakeSubstitutions(string(generator), oldName, tokens);
+                newValue = databank.eval(inputDb, expression);
+                %)
+            end%
     end%
 
 
+
+
     function hereThrowError()
+        %(
         thisError= [
             "Databank:ErrorGeneratingField"
             "Error generating this new databank field: %s "
             "Matlab says %s "
         ];
         throw(exception.Base(thisError, 'error'), errorReport{:});
+        %)
     end%
 end%
 
@@ -124,6 +156,7 @@ end%
  
 
 function newNames = locallyMakeSubstitutions(template, names, tokens)
+    %(
     newNames = repmat(string(template), size(names));
     for i = 1 : numel(names)
         newNames(i) = replace(newNames(i), "$0", names(i));
@@ -134,6 +167,39 @@ function newNames = locallyMakeSubstitutions(template, names, tokens)
             );
         end
     end
+    %)
+end%
+
+
+
+
+function arguments = locallyPrepareArguments(arguments)
+    %(
+    if isstring(arguments) || ischar(arguments) || iscellstr(arguments)
+        arguments = reshape(string(arguments), 1, [ ]);
+        return
+    else
+        arguments = reshape(cellfun(@string, arguments, 'UniformOutput', false), 1, [ ]);
+        return
+    end
+    %)
+end%
+
+
+
+
+function flag = locallyValidateArguments(input)
+    %(
+    if isstring(input) || ischar(input) || iscellstr(input)
+        flag = true;
+        return
+    end
+    if iscell(input) && ~isempty(input) && all(cellfun(@(x) isstring(x) || iscellstr(x), input))
+        flag = true;
+        return
+    end
+    flag = false;
+    %)
 end%
 
 
