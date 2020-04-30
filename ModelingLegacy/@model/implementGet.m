@@ -115,6 +115,14 @@ else
 
     switch lower(query)
         
+        case 'preprocessor'
+            answ = this.Preprocessor;
+
+
+        case 'postprocessor'
+            answ = this.Postprocessor;
+
+
         case 'incidence'
             answ = struct( ...
                 'Dynamic', implementGet(this.Incidence.Dynamic, 'Incidence'), ...

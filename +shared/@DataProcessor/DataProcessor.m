@@ -27,14 +27,71 @@ classdef DataProcessor
 
 
         function varargout = preprocess(this, varargin)
-            [varargout{1:nargout}] = simulate(this.Preprocessor, varargin{:});
+            [varargout{1:nargout}] = runProcessor(this, this.Preprocessor, varargin{:});
         end%
 
 
         function varargout = postprocess(this, varargin)
-            [varargout{1:nargout}] = simulate(this.Postprocessor, varargin{:});
+            [varargout{1:nargout}] = runProcessor(this, this.Postprocessor, varargin{:});
+        end%
+
+
+        function [outputDb, info] = runProcessor(this, processor, inputDb, baseRange, varargin)
+            isSteady = (isstring(baseRange) || ischar(baseRange)) ...
+                && any(strcmpi(baseRange, ["Steady", "SteadyLevel", "SteadyChange"]));
+            if isSteady
+                steadyInput = baseRange;
+                [inputData, baseRange] = getInputDataForSteady(this, processor);
+            end
+            [outputData, info] = simulate(processor, inputData, baseRange, varargin{:});
+            if isSteady
+                outputDb = getOutputDataForSteady(this, processor, outputData, inputDb, steadyInput);
+            else
+                outputDb = outputData;
+            end
+        end%
+
+
+        function [inputData, baseRange] = getInputDataForSteady(this, processor)
+            [minSh, maxSh] = getActualMinMaxShifts(processor);
+            baseRange = 0 : 1;
+            extRange = baseRange(1) + minSh : baseRange(end) + maxSh;
+            inputData = shared.DataBlock( );
+            [inputData.YXEPG, ~, inputData.Names] = createTrendArray(this, @all, true, @all, extRange);
+            inputData.ExtendedRange = extRange;
+            inputData.BaseRangeColumns = [false(1, abs(minSh)), true(1, 2), false(1, maxSh)];
+        end%
+
+
+        function runningDb = getOutputDataForSteady(this, processor, outputDataBlock, runningDb, steadyInput)
+            if ~validate.databank(runningDb)
+                runningDb = struct( );
+            end
+            baseRangeColumns = outputDataBlock.BaseRangeColumns;
+            lhsNames = collectLhsNames(processor);
+            logStatus = collectLogStatus(processor);
+            if strcmpi(steadyInput, "Steady")
+                funcLogFalse = @(x) complex(x(1, 1, :), x(1, 2, :)-x(1, 1, :));
+                funcLogTrue = @(x) complex(x(1, 1, :), x(1, 2, :)./x(1, 1, :));
+            elseif strcmpi(steadyInput, "SteadyLevel")
+                funcLogFalse = @(x) x(1, 1, :);
+                funcLogTrue = funcLogFalse;
+            elseif strcmpi(steadyInput, "SteadyChange")
+                funcLogFalse = @(x) x(1, 2, :)-x(1, 1, :);
+                funcLogTrue = @(x) x(1, 2, :)./x(1, 1, :);
+            end
+
+            for i = 1 : numel(lhsNames)
+                pos = outputDataBlock.Names==lhsNames(i);
+                x = outputDataBlock.YXEPG(pos, baseRangeColumns, :);
+                if logStatus(i)
+                    x = funcLogTrue(x);
+                else
+                    x = funcLogFalse(x);
+                end
+                runningDb.(lhsNames(i)) = reshape(x, 1, [ ]);
+            end
         end%
     end
-
 end
 
