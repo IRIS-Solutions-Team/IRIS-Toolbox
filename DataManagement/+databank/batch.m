@@ -208,5 +208,27 @@ end%
     assertEqual(testCase, ismember(["a_1", "b_2", "c_3", "d_4"], keys(x1)), true(1, 4));
     assertEqual(testCase, ismember(["a1", "b2", "c3", "d4"], keys(x1)), false(1, 4));
 
+
+%% Test Function Arguments
+
+    d2 = struct( );
+    list = ["X", "AB", "XYZ"];
+    for name = list
+        d2.(name) = Series(1:10, @rand);
+        d2.("diff_"+name) = Series(1:20, @rand);
+    end
+    range = 11:20;
+    d3 = databank.batch( ...
+        d2, "$0_extend", @(x,y) grow(x, "+", y, range) ...
+        , "Name=", list ... 
+        , "Arguments=", ["$0", "diff_$0"] ...
+    );
+    assertEqual(testCase, all(ismember("diff_"+list, fieldnames(d3))), true);
+    for name = list
+        expd = grow(d2.(name), "+", d2.("diff_"+name), range);
+        assertEqual(testCase, expd, d3.(name+"_extend"));
+    end
+
+
 ##### SOURCE END #####
 %}
