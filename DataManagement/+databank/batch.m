@@ -14,11 +14,13 @@ if isempty(pp)
     addRequired(pp, 'newNameTemplate', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     addRequired(pp, 'generator', @(x) isa(x, 'function_handle') || ischar(x) || (isstring(x) && isscalar(x)));
 
-    addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
+    addParameter(pp, 'Arguments', ["$0"], @(x) isstring(x) || ischar(x) || iscellstr(x));
     addParameter(pp, 'AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
+    addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
 parse(pp, inputDb, newNameTemplate, generator, varargin{:});
 opt = pp.Options;
+opt.Arguments = string(opt.Arguments);
 
 %--------------------------------------------------------------------------
 
@@ -71,12 +73,25 @@ return
     function hereGenerateNewField(newName, oldName, tokens)
         try
             if isa(generator, 'function_handle')
-                if isa(inputDb, 'Dictionary')
-                    input = retrieve(inputDb, oldName);
-                else
-                    input = inputDb.(oldName);
+                isDictionary = isa(inputDb, 'Dictionary');
+                namArguments = opt.Arguments;
+                inxZero = namArguments=="$0";
+                namArguments(inxZero) = oldName;
+                if any(~inxZero)
+                    namArguments(~inxZero) = locallyMakeSubstitutions( ...
+                        namArguments(~inxZero), oldName, tokens ...
+                    );
                 end
-                newValue = feval(generator, input);
+                numArguments = numel(opt.Arguments);
+                valArguments = cell(1, numArguments);
+                for i = 1 : numArguments
+                    if isDictionary
+                        valArguments{i} = retrieve(inputDb, namArguments(i));
+                    else
+                        valArguments{i} = inputDb.(namArguments(i));
+                    end
+                end
+                newValue = feval(generator, valArguments{:});
             else
                 expression = locallyMakeSubstitutions(string(generator), oldName, tokens);
                 newValue = databank.eval(inputDb, expression);
