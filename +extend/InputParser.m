@@ -210,9 +210,9 @@ classdef InputParser < inputParser
         function addSwapFixOptions(this)
             addParameter(this, 'Exogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
             addParameter(this, 'Endogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
-            addParameter(this, 'Fix', { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
-            addParameter(this, 'FixLevel', { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
-            addParameter(this, {'FixChange', 'FixGrowth'}, { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
+            addParameter(this, 'Fix', string.empty(1, 0), @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x) || isstring(x));
+            addParameter(this, 'FixLevel', string.empty(1, 0), @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x) || isstring(x));
+            addParameter(this, {'FixChange', 'FixGrowth'}, string.empty(1, 0), @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x) || isstring(x));
             this.HasSwapFixOptions = true;
         end%
 

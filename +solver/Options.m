@@ -171,7 +171,7 @@ classdef (CaseInsensitiveProperties=true) Options
             addParameter(pp, 'UsePinvIfJacobSingular', true, @validate.logicalScalar);
             addParameter(pp, 'ForceJacobUpdateWhenReversing', this.DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING, @validate.logicalScalar);
             addParameter(pp, 'LastBroydenUpdate', this.DEFAULT_LAST_BROYDEN_UPDATE, @validate.numericScalar);
-            addParameter(pp, 'FunctionNorm', this.DEFAULT_FUNCTION_NORM, @(x) isequal(x, @default) || isequal(x, 1) || isequal(x, 2) || isequal(x, Inf) || isa(x, 'function_handle'));
+            addParameter(pp, 'FunctionNorm', this.DEFAULT_FUNCTION_NORM, @(x) isequal(x, @default) || validate.numericScalar(x, 0, Inf) || isa(x, 'function_handle'));
             addParameter(pp, {'FunctionTolerance', 'TolFun', 'Tolerance'}, this.DEFAULT_FUNCTION_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
             addParameter(pp, {'StepTolerance', 'TolX'}, this.DEFAULT_STEP_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
             addParameter(pp, 'SpecifyObjectiveGradient', this.DEFAULT_SPECIFY_OBJECTIVE_GRADIENT, @(x) isequal(x, true) || isequal(x, false));

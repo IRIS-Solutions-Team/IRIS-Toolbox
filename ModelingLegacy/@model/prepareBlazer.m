@@ -17,11 +17,11 @@ if isempty(pp)
     pp.KeepUnmatched = true;
 
     addRequired(pp, 'Model', @(x) isa(x, 'model'));
-    addRequired(pp, 'Kind', @validateKind);
+    addRequired(pp, 'Kind', @locallyValidateKind);
 
     addParameter(pp, 'Blocks', true, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'Log', { }, @validateLogList);
-    addParameter(pp, 'Unlog', { }, @validateLogList);
+    addParameter(pp, 'Log', { }, @locallyValidateLogList);
+    addParameter(pp, 'Unlog', { }, @locallyValidateLogList);
     addParameter(pp, 'Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     addParameter(pp, 'SaveAs', '', @(x) isempty(x) || ischar(x));
     addSwapFixOptions(pp);
@@ -203,7 +203,7 @@ end%
 %
 
 
-function flag = validateKind(input)
+function flag = locallyValidateKind(input)
     if isa(input, 'solver.Method')
         flag = true;
         return
@@ -216,8 +216,12 @@ function flag = validateKind(input)
 end%
 
 
-function flag = validateLogList(input)
+function flag = locallyValidateLogList(input)
     if isempty(input)
+        flag = true;
+        return
+    end
+    if isequal(input, @all)
         flag = true;
         return
     end

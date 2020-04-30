@@ -19,19 +19,13 @@
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 classdef Except
     properties
-        List = cell.empty(1, 0)
+        List (1, :) string = string.empty(1, 0)
         CaseSensitive = true
-    end
-
-
-    properties (Constant, Hidden)
-        ERROR_INVALID_LIST = { 'Except:InvalidInputList'
-                               'Input list into an Except object must be char, cellstr or string' }
     end
 
 
@@ -40,15 +34,17 @@ classdef Except
             if isempty(varargin)
                 return
             end
-            this.List = varargin;
+            if nargin==1
+                this.List = string(varargin{1});
+            else
+                this.List = string(varargin);
+            end
         end%
 
 
         function resolvedNames = resolve(this, allNames)
-            convertToString = isa(this.List, 'string') || isa(allNames, 'string');
-            if ~iscellstr(allNames)
-                allNames = cellstr(allNames);
-            end
+            convertToCell = ~isa(allNames, 'string');
+            allNames = string(allNames);
             if isempty(this.List)
                 resolvedNames = allNames;
             else
@@ -58,24 +54,26 @@ classdef Except
                     resolvedNames = setdiff(lower(allNames), lower(this.List), 'stable');
                 end
             end
-            if convertToString && ~isa(resolvedNames, 'string')
-                resolvedNames = string(resolvedNames);
+            if convertToCell
+                resolvedNames = cellstr(resolvedNames);
             end
         end%
 
 
+        function this = setdiff(this, listRemove)
+            this.List = setdiff(this.List, listRemove);
+        end%
+
+
         function this = set.List(this, value)
-            if iscell(value) && numel(value)==1
-                value = value{1};
-            end
             try
-                value = cellstr(value); 
-                if iscellstr(value)
-                    this.List = value;
-                    return
-                end
+                this.List = reshape(string(value), 1, [ ]);
             catch
-                throw( exception.Base(this.ERROR_INVALID_LIST, 'error') );
+                thisError = [
+                    "Except:InvalidInput"
+                    "Input into Except constructor must be a char, string, or cellstr."
+                ];
+                throw(exception.Base(thisError, 'error'));
             end
         end%
     end

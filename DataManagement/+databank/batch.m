@@ -177,11 +177,21 @@ end%
         assertEqual(testCase, x1.(name), retrieve(x2, name));
     end
 
-%% Test Option AddToDatabank
+
+%% Test Option AddToDatabank Struct
 
     x1 = databank.batch(d1, '$1_$2', @(x) 100+x, 'Name=', Rxp('^(.)(.)$'), 'AddToDatabank=', struct( ));
+    assertEqual(testCase, class(x1), 'struct');
     assertEqual(testCase, ismember(["a_1", "b_2", "c_3", "d_4"], fieldnames(x1)), true(1, 4));
     assertEqual(testCase, ismember(["a1", "b2", "c3", "d4"], fieldnames(x1)), false(1, 4));
+
+
+%% Test Option AddToDatabank Dictionary
+
+    x1 = databank.batch(Dictionary.fromStruct(d1), '$1_$2', @(x) 100+x, 'Name=', Rxp('^(.)(.)$'), 'AddToDatabank=', Dictionary( ));
+    assertEqual(testCase, class(x1), 'Dictionary');
+    assertEqual(testCase, ismember(["a_1", "b_2", "c_3", "d_4"], keys(x1)), true(1, 4));
+    assertEqual(testCase, ismember(["a1", "b2", "c3", "d4"], keys(x1)), false(1, 4));
 
 ##### SOURCE END #####
 %}
