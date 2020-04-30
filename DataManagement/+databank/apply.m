@@ -66,7 +66,7 @@ function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank,
 % List of databank field names to which the name selection procedure will
 % be reduced.
 %
-% __`OutputNames=@auto`__ [ `@auto` | cellstr | string ] -
+% __`OutputNames=@default`__ [ `@default` | cellstr | string ] -
 % New names for output databank fields.
 %
 %
@@ -128,8 +128,8 @@ if isempty(pp)
     pp.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
     pp.addParameter('RemoveSource', false, @validate.logicalScalar);
     pp.addParameter({'InputNames', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || validate.list(x) || isa(x, 'Rxp'));
-    pp.addParameter('OutputNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
-    pp.addParameter('AddToDatabank', @auto, @(x) isequal(x, @auto) || validate.databank(x));
+    pp.addParameter('OutputNames', @default, @(x) isequal(x, @default) || validate.list(x));
+    pp.addParameter('AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
 end
 pp.parse(func, inputDatabank, varargin{:});
 opt = pp.Options;
@@ -163,7 +163,7 @@ lenHasPrefix = length(opt.HasPrefix);
 lenHasSuffix = length(opt.HasSuffix);
 
 outputDatabank = opt.AddToDatabank;
-if isequal(outputDatabank, @auto)
+if isequal(outputDatabank, @default)
     outputDatabank = inputDatabank;
 end
 
@@ -225,7 +225,7 @@ return
 
 
     function hereCheckInputOutputNames( )
-        if isequal(opt.OutputNames, @auto)
+        if isequal(opt.OutputNames, @default)
             return
         end
         if validate.list(opt.InputNames)
