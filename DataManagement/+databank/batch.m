@@ -1,69 +1,104 @@
-function runningDatabank = batch( runningDatabank, newNameTemplate, generator, varargin )
+function outputDb = batch(inputDb, newNameTemplate, generator, varargin)
 % batch  Execute batch job within databank
 %{
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank/batch');
-    addRequired(pp, 'databank', @validate.databank);
+    pp.KeepUnmatched = true;
+    addRequired(pp, 'inputDb', @validate.databank);
     addRequired(pp, 'newNameTemplate', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
-    addRequired(pp, 'expression', @(x) isa(x, 'function_handle') || ischar(x) || (isa(x, 'string') && isscalar(x)));
+    addRequired(pp, 'generator', @(x) isa(x, 'function_handle') || ischar(x) || (isstring(x) && isscalar(x)));
+
+    addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
+    addParameter(pp, 'AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
 end
-parse(pp, runningDatabank, newNameTemplate, generator);
+parse(pp, inputDb, newNameTemplate, generator, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
-[ selectNames, selectTokens ] = databank.query( runningDatabank, varargin{:} );
-selectNames = cellstr(selectNames);
-
-if isa(generator, 'function_handle')
-    errorReport = cellfun( @(name, tokens) hereGenerateNewFieldFromFunction(name, tokens), ...
-                           selectNames, selectTokens, ...
-                           'UniformOutput', false );
+%
+% Filter databank names 
+%
+if ~isempty(opt.Filter)
+    filterOpt = opt.Filter;
 else
-    errorReport = cellfun( @(name, tokens) hereGenerateNewFieldFromExpression(name, tokens), ...
-                           selectNames, selectTokens, ...
-                           'UniformOutput', false );
+    filterOpt = pp.UnmatchedInCell;
+end
+[selectNames, selectTokens] = databank.filter(inputDb, filterOpt{:});
+
+
+%
+% Create output databank
+%
+if isequal(opt.AddToDatabank, @default)
+    outputDb = inputDb;
+else
+    outputDb = opt.AddToDatabank;
 end
 
-ixError = ~cellfun(@isempty, errorReport);
-if any(ixError)
-    errorReport = errorReport(ixError);
-    errorReport = [errorReport{:}];
-    error( 'databank:batch', ...
-           'Error when generating this new databank field: %s \n    Matlab says: %s \n', ...
-           errorReport{:} );
+
+%
+% Create new names based on the template, old names and tokens from the old
+% names
+%
+newNames = locallyMakeSubstitutions(newNameTemplate, selectNames, selectTokens);
+
+
+%
+% Generate new fields and intercept Matlab errors
+%
+errorReport = cell.empty(1, 0);
+for i = 1 : numel(newNames)
+    hereGenerateNewField(newNames(i), selectNames(i), selectTokens(i));
+end
+
+
+%
+% Report the new field names during whose creation Matlab threw an error
+%
+if ~isempty(errorReport)
+    hereThrowError();
 end
 
 return
 
-    function errorReport = hereGenerateNewFieldFromExpression( ithName, ithTokens )
+    function hereGenerateNewField(newName, oldName, tokens)
         try
-            ithNewName = hereMakeSubstitution(newNameTemplate, ithName, ithTokens);
-            ithExpressiong = hereMakeSubstitution(char(generator), ithName, ithTokens);
-            ithNewField = databank.eval(runningDatabank, ithExpressiong);
-            runningDatabank.(char(ithNewName)) = ithNewField; 
-            errorReport = [ ];
+            if isa(generator, 'function_handle')
+                if isa(inputDb, 'Dictionary')
+                    input = retrieve(inputDb, oldName);
+                else
+                    input = inputDb.(oldName);
+                end
+                newValue = feval(generator, input);
+            else
+                expression = locallyMakeSubstitutions(string(generator), oldName, tokens);
+                newValue = databank.eval(inputDb, expression);
+            end
+            if isa(outputDb, 'Dictionary')
+                store(outputDb, newName, newValue);
+            else
+                outputDb.(newName) = newValue;
+            end
         catch Err
-            errorReport = {ithNewName, Err.message};
+            errorReport = [errorReport, {newName, Err.message}];
         end
     end%
 
 
-    function errorReport = hereGenerateNewFieldFromFunction( ithName, ithTokens )
-        try
-            ithNewName = hereMakeSubstitution(newNameTemplate, ithName, ithTokens);
-            ithInput = runningDatabank.(char(ithName));
-            ithNewField = feval(generator, ithInput);
-            runningDatabank.(char(ithNewName)) = ithNewField;
-            errorReport = [ ];
-        catch Err
-            errorReport = {ithNewName, Err.message};
-        end
+    function hereThrowError()
+        thisError= [
+            "Databank:ErrorGeneratingField"
+            "Error generating this new databank field: %s "
+            "Matlab says %s "
+        ];
+        throw(exception.Base(thisError, 'error'), errorReport{:});
     end%
 end%
 
@@ -73,11 +108,90 @@ end%
 %
  
 
-function c = hereMakeSubstitution( c, ithName, ithTokens )
-    numTokens = numel(ithTokens);
-    c = strrep(c, '$0', ithName);
-    for j = 1 : numTokens
-        c = strrep(c, sprintf('$%g', j), ithTokens{j});
+function newNames = locallyMakeSubstitutions(template, names, tokens)
+    newNames = repmat(string(template), size(names));
+    for i = 1 : numel(names)
+        newNames(i) = replace(newNames(i), "$0", names(i));
+        if ~isempty(tokens) && ~isempty(tokens{i})
+            numTokens = numel(tokens{i});
+            newNames(i) = replace(...
+                newNames(i), compose("$%g", 1 : numTokens), string(tokens{i}) ...
+            );
+        end
     end
 end%
 
+
+
+
+%
+% Unit Tests
+%
+%{
+##### SOURCE BEGIN #####
+% saveAs=databank/batchUnitTest.m
+
+    testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+    d1 = struct();
+    d1.a1 = 1;
+    d1.b2 = 2;
+    d1.c3 = round(100*Series(1:10, @rand));
+    d1.d4 = round(100*Series(1:10, @rand));
+
+
+%% Test Expression Name Filter Tokens
+
+    x1 = databank.batch(d1, '$1_$2', '100+$0', 'Name=', Rxp('^(.)(.)$')); 
+    x2 = databank.batch(d1, '$1_$2', '100+$0', 'Filter=', {'Name=', Rxp('^(.)(.)$')});
+    x3 = databank.batch(Dictionary.fromStruct(d1), '$1_$2', '100+$0', 'Name=', Rxp('^(.)(.)$')); 
+    assertEqual(testCase, x1, x2);
+    assertEqual(testCase, all(ismember(fieldnames(d1), fieldnames(x1))), true);
+    assertEqual(testCase, ismember(["a_1", "b_2", "c_3", "d_4"], fieldnames(x1)), true(1, 4));
+    assertEqual(testCase, x1.a_1, d1.a1+100);
+    assertEqual(testCase, x1.b_2, d1.b2+100);
+    assertEqual(testCase, x1.c_3, d1.c3+100);
+    assertEqual(testCase, x1.d_4, d1.d4+100);
+
+
+
+%% Test Function Name Filter Tokens
+
+    x1 = databank.batch(d1, '$1_$2', @(x) 100+x, 'Name=', Rxp('^(.)(.)$')); 
+    x2 = databank.batch(d1, '$1_$2', @(x) 100+x, 'Filter=', {'Name=', Rxp('^(.)(.)$')});
+    assertEqual(testCase, x1, x2);
+    assertEqual(testCase, all(ismember(fieldnames(d1), fieldnames(x1))), true);
+    assertEqual(testCase, ismember(["a_1", "b_2", "c_3", "d_4"], fieldnames(x1)), true(1, 4));
+    assertEqual(testCase, ismember(["a1", "b2", "c3", "d4"], fieldnames(x1)), true(1, 4));
+    assertEqual(testCase, x1.a_1, d1.a1+100);
+    assertEqual(testCase, x1.b_2, d1.b2+100);
+    assertEqual(testCase, x1.c_3, d1.c3+100);
+    assertEqual(testCase, x1.d_4, d1.d4+100);
+
+
+%% Test Dictionary Against Struct
+
+    x1 = databank.batch(d1, '$1_$2', @(x) 100+x, 'Name=', Rxp('^(.)(.)$')); 
+    x2 = databank.batch(Dictionary.fromStruct(d1), '$1_$2', @(x) 100+x, 'Name=', Rxp('^(.)(.)$')); 
+    assertEqual(testCase, class(x2), 'Dictionary');
+    for name = ["a_1", "b_2", "c_3", "d_4"]
+        assertEqual(testCase, x1.(name), retrieve(x2, name));
+    end
+
+
+%% Test Option AddToDatabank Struct
+
+    x1 = databank.batch(d1, '$1_$2', @(x) 100+x, 'Name=', Rxp('^(.)(.)$'), 'AddToDatabank=', struct( ));
+    assertEqual(testCase, class(x1), 'struct');
+    assertEqual(testCase, ismember(["a_1", "b_2", "c_3", "d_4"], fieldnames(x1)), true(1, 4));
+    assertEqual(testCase, ismember(["a1", "b2", "c3", "d4"], fieldnames(x1)), false(1, 4));
+
+
+%% Test Option AddToDatabank Dictionary
+
+    x1 = databank.batch(Dictionary.fromStruct(d1), '$1_$2', @(x) 100+x, 'Name=', Rxp('^(.)(.)$'), 'AddToDatabank=', Dictionary( ));
+    assertEqual(testCase, class(x1), 'Dictionary');
+    assertEqual(testCase, ismember(["a_1", "b_2", "c_3", "d_4"], keys(x1)), true(1, 4));
+    assertEqual(testCase, ismember(["a1", "b2", "c3", "d4"], keys(x1)), false(1, 4));
+
+##### SOURCE END #####
+%}

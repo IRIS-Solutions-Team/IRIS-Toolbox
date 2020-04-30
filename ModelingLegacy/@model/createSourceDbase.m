@@ -30,7 +30,7 @@ end
 
 %--------------------------------------------------------------------------
 
-nv = length(this);
+nv = countVariants(this);
 checkNumColumnsRequested = numColumnsRequested==1 || nv==1;
 checkNumDrawsRequested = numDrawsRequested==1 || nv==1;
 if ~checkNumColumnsRequested || ~checkNumDrawsRequested
@@ -43,22 +43,23 @@ end
 % purposes
 % 
 [minSh, maxSh] = getActualMinMaxShifts(this);
+range = double(range);
 start = range(1);
-extendedStart = range(1);
-xEnd = range(end);
+extStart = range(1);
+extEnd = range(end);
 if ~isa(range, 'DateWrapper')
     start = DateWrapper(start);
-    extendedStart = DateWrapper(extendedStart);
-    xEnd = DateWrapper(xEnd);
+    extStart = DateWrapper(extStart);
+    extEnd = DateWrapper(extEnd);
 end
 if opt.AppendPresample
-    extendedStart = addTo(extendedStart, minSh);
+    extStart = addTo(extStart, minSh);
 end
 if opt.AppendPostsample
-    xEnd = addTo(xEnd, maxSh);
+    extEnd = addTo(extEnd, maxSh);
 end
-extendedRange = extendedStart : xEnd;
-nXPer = length(extendedRange);
+extRange = extStart : extEnd;
+numExtPeriods = length(extRange);
 
 label = this.Quantity.LabelOrName;
 
@@ -78,9 +79,9 @@ outputDb = struct( );
 %
 % Deterministic time trend
 %
-ttrend = dat2ttrend(extendedRange, this);
+ttrend = dat2ttrend(extRange, this);
 
-X = zeros(numQuantities, nXPer, nv);
+X = zeros(numQuantities, numExtPeriods, nv);
 if ~opt.Deviation
     isDelog = false;
     X(ixyxg, :, :) = createTrendArray(this, Inf, isDelog, posyxg, ttrend);
@@ -106,7 +107,7 @@ for i = find(ixx | ixg)
     outputDb.(name) = replace( ...
         TIME_SERIES_TEMPLATE, ...
         permute(X(i, :, :), [2, 3, 1]), ...
-        extendedStart, label{i} ...
+        extStart, label{i} ...
     );
 end
 

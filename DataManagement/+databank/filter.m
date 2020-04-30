@@ -3,8 +3,8 @@ function [select, tokens, outputDb] = filter(inputDb, varargin)
 %{
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 persistent pp
 if isempty(pp)
@@ -53,7 +53,7 @@ else
         inxName = ~cellfun('isempty', start);
     else
         opt.Name = reshape(opt.Name, 1, [ ]);
-        inxName = any(opt.Name==listFields, 2);
+        inxName = ismember(listFields, opt.Name);
     end
 end
 inxName = reshape(inxName, 1, [ ]);
@@ -102,4 +102,36 @@ if nargout>=3
 end
 
 end%
+
+
+
+
+% 
+% Unit Tests
+%
+%{
+##### SOURCE BEGIN #####
+% saveAs=databank/filterUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+s = struct( );
+s.a = Series( );
+s.b = Series( );
+s.c = 1;
+s.a_b = Series( );
+d = Dictionary( );
+store(d, "a", Series( ));
+store(d, "b", Series( ));
+store(d, "c", 1);
+store(d, "a.b", Series( ));
+
+
+%% Test with Name Filter As List
+assertEqual(testCase, databank.filter(s, 'NameFilter=', {'b', 'a_b', 'z'}), ["b", "a_b"]);
+assertEqual(testCase, databank.filter(s, 'NameFilter=', ["b", "a_b", "z"]), ["b", "a_b"]);
+assertEqual(testCase, databank.filter(d, 'NameFilter=', {'b', 'a.b', 'z'}), ["b", "a.b"]);
+assertEqual(testCase, databank.filter(d, 'NameFilter=', ["b", "a.b", "z"]), ["b", "a.b"]);
+
+##### SOURCE END #####
+%}
 

@@ -1,10 +1,10 @@
 % validate  Static utility class with validators
 %
-% Backend class
+% Backend [IrisToolbox] class
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 
 classdef validate
@@ -88,6 +88,19 @@ classdef validate
         function flag = solvedModel(input)
             flag = (isa(input, 'model') || isa(input, 'Model')) ...
                    && all(beenSolved(input));
+        end%
+
+
+        function flag = nestedOptions(input)
+            if ~iscell(input) 
+                flag = false;
+                return
+            end
+            if ~all(cellfun(@(x) ischar(x) || isstring(x), input(1:2:end)))
+                flag = false;
+                return
+            end
+            flag = true;
         end%
     end
 end

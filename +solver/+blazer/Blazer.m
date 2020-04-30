@@ -93,7 +93,7 @@ classdef (Abstract) Blazer ...
                     "This name cannot be endogenized because it is endogenous already: %s"
                 ];
                 pos = posToEndogenize(~inxValid);
-                throw(exception.Base(thisError, 'error'), quantities.Name{pos});
+                throw(exception.Base(thisError, 'error'), this.Model.Quantity.Name{pos});
             end
         end%
         
@@ -109,7 +109,7 @@ classdef (Abstract) Blazer ...
                     "This name cannot be exogenized because it is exogenous already: %s"
                 ];
                 pos = posToExogenize(~inxValid);
-                throw(exception.Base(thisError, 'error'), quantities.Name{pos});
+                throw(exception.Base(thisError, 'error'), this.Model.Quantity.Name{pos});
             end
         end%
         
@@ -227,13 +227,12 @@ classdef (Abstract) Blazer ...
             inxP = quantities.Type==TYPE(4);
             inxCanBeFixed = this.InxEndogenous;
             namesCanBeFixed = quantities.Name(inxCanBeFixed);
-            list = {'Fix', 'FixLevel', 'FixChange'};
-            for i = 1 : numel(list)
-                fix = list{i};
-                temp = opt.(fix);
+            list = ["Fix", "FixLevel", "FixChange"];
+            for fixOption = list
+                temp = opt.(fixOption);
 
                 if isempty(temp)
-                    opt.(fix) = double.empty(1, 0);
+                    opt.(fixOption) = double.empty(1, 0);
                     continue
                 end
 
@@ -241,26 +240,32 @@ classdef (Abstract) Blazer ...
                     temp = resolve(temp, namesCanBeFixed);
                 end
 
-                if (ischar(temp) && ~isempty(temp)) ...
-                   || (isa(temp, 'string') && isscalar(string) && strlength(sting)>0)
+                if ischar(temp) || (isstring(temp) && isscalar(string))
                     temp = regexp(temp, '\w+', 'match');
+                    if isempty(temp)
+                        opt.(fixOption) = double.empty(1, 0);
+                        continue
+                    end
+                    temp = cellstr(temp);
+                elseif isstring(temp)
                     temp = cellstr(temp);
                 end
                 
                 if isempty(temp)
-                    opt.(fix) = double.empty(1, 0);
+                    opt.(fixOption) = double.empty(1, 0);
                     continue
                 end
 
-                ell = lookup( quantities, temp, ...
-                              TYPE(1), TYPE(2), TYPE(4) );
+                ell = lookup(quantities, temp, TYPE(1), TYPE(2), TYPE(4));
                 posToFix = ell.PosName;
                 inxValid = ~isnan(posToFix);
                 if any(~inxValid)
-                    throw( exception.Base('Steady:CANNOT_FIX', 'error'), ...
-                           temp{~inxValid} );
+                    throw( ...
+                        exception.Base('Steady:CANNOT_FIX', 'error') ...
+                        , temp{~inxValid} ...
+                    );
                 end
-                opt.(fix) = posToFix;
+                opt.(fixOption) = posToFix;
             end
 
             fixLevel = false(1, numQuantities);

@@ -54,6 +54,7 @@ changeX0 = [ ];
 firstAlt = true;
 
 
+% /////////////////////////////////////////////////////////////////////////
 outputInfo.ExitFlags = cell(1, nv);
 for v = variantsRequested
     [levelX, changeX] = hereInitialize( );
@@ -68,11 +69,6 @@ for v = variantsRequested
         header = sprintf("[Variant:%g][Block:%g]", v, i);
         [levelX, changeX, exitFlag, error] = run(blk, this.Link, levelX, changeX, header);
         outputInfo.ExitFlags{v}(i) = exitFlag;
-        %{
-        if hasFailed(exitFlag)
-            fprintf('    Block %g of %g failed to solve.\n', i, numBlocks);
-        end
-        %}
         if ~isempty(error.EvaluatesToNan)
             throw( ...
                 exception.Base('Steady:EvaluatesToNan', 'error'), ...
@@ -120,6 +116,8 @@ for v = variantsRequested
     changeX0 = changeX;
     firstAlt = false;
 end
+% /////////////////////////////////////////////////////////////////////////
+
 
 if needsRefresh
     this = refresh(this, variantsRequested);
