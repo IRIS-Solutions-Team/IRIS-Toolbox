@@ -41,7 +41,8 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
     properties (Constant, Hidden)
         TYPE_ORDER = int8([1, 2, 31, 32, 4, 5])
         DEFAULT_BOUNDS = [-Inf; Inf; -Inf; Inf]
-        RESERVED_NAME_TTREND = model.RESERVED_NAME_TTREND
+        RESERVED_NAME_TTREND = 'ttrend'
+        RESERVED_NAME_LINEAR = 'linear'
     end
 
 
@@ -61,6 +62,7 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         varargout = getCorrNames(varargin)
         varargout = getStdNames(varargin)
         varargout = implementGet(varargin)
+        varargout = initializeLogStatus(varargin)
         varargout = isCompatible(varargin)
         varargout = isName(varargin)
 

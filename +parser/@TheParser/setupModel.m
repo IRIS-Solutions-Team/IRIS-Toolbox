@@ -45,9 +45,6 @@ this.Block{end+1} = x;
 
 x = parser.theparser.Log( );
 x.Keyword = '!log-variables';
-x.TypeCanBeLog = { TYPE(1)
-                   TYPE(2)
-                   TYPE(5) };
 this.Block{end+1} = x;
 
 x = parser.theparser.Equation( );

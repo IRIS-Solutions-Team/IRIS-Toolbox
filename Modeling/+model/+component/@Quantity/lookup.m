@@ -39,26 +39,26 @@ if iscellstr(query)
     outp.PosStdCorr = nan(1, numQueries);
     outp.PosShk1 = nan(1, numQueries);
     outp.PosShk2 = nan(1, numQueries);
-    outp.IxName = false(1, numQuantities);
-    outp.IxStdCorr = false(1, numStdCorr);
+    outp.InxName = false(1, numQuantities);
+    outp.InxStdCorr = false(1, numStdCorr);
     for i = 1 : numQueries
         inxName = [ ];
         inxStdCorr = [ ];
         inxShk1 = [ ];
         inxShk2 = [ ];
-        if strlength(query{i})>=5 && strncmp(query{i}, 'std_', 4)
+        if strlength(query{i})>=5 && startsWith(query{i}, 'std_')
             if doStdCorr
                 [inxStdCorr, inxShk1] = hereGetStd(query{i});
-                outp.IxStdCorr = outp.IxStdCorr | inxStdCorr;
+                outp.InxStdCorr = outp.InxStdCorr | inxStdCorr;
             end
-        elseif strlength(query{i})>=9 && strncmp(query{i}, 'corr_', 5)
+        elseif strlength(query{i})>=9 && startsWith(query{i}, 'corr_')
             if doStdCorr
                 [inxStdCorr, inxShk1, inxShk2] = hereGetCorr(query{i});
-                outp.IxStdCorr = outp.IxStdCorr | inxStdCorr;
+                outp.InxStdCorr = outp.InxStdCorr | inxStdCorr;
             end
         else
             inxName = locallyCallStrcmpOrRegexp(names, query{i});
-            outp.IxName = outp.IxName | inxName;
+            outp.InxName = outp.InxName | inxName;
         end
         if any(inxName)
             outp.PosName(i) = find(inxName);
@@ -73,33 +73,39 @@ if iscellstr(query)
             outp.PosShk2(i) = find(inxShk2);
         end
     end
-elseif ischar(query) || isa(query, 'rexp') || isa(query, 'string')
+elseif ischar(query) || isa(query, 'rexp') || isa(query, 'string') || isa(query, 'Rxp')
     % Single input can be regular expression. Return logical index of all
     % possible matches. No shock1, shock2 indices needed.
-    if isa(query, 'string')
-        query = char(query);
-    end
-    outp.IxName = false(1, numQuantities);
-    outp.IxStdCorr = false(1, numStdCorr);
-    if strlength(query)>=5 && strncmp(query, 'std_', 4)
+    query = string(query);
+    outp.InxName = false(1, numQuantities);
+    outp.InxStdCorr = false(1, numStdCorr);
+    if strlength(query)>=5 && startsWith(query, 'std_')
         if doStdCorr
-            shkName = query(5:end);
-            outp.IxStdCorr(1:numE) = locallyCallStrcmpOrRegexp(namesE, shkName);
+            shkName = extractAfter(query, 4);
+            outp.InxStdCorr(1:numE) = locallyCallStrcmpOrRegexp(namesE, shkName);
         end
-    elseif strlength(query)>=9 && strncmp(query, 'corr_', 5)
+    elseif strlength(query)>=9 && startsWith(query, 'corr_')
         if doStdCorr
-            outp.IxStdCorr = hereGetCorr(query);
+            outp.InxStdCorr = hereGetCorr(query);
         end
     else
-        outp.IxName = locallyCallStrcmpOrRegexp(names, query);
+        outp.InxName = locallyCallStrcmpOrRegexp(names, query);
     end  
+end
+
+if isfield(outp, 'InxName')
+    outp.IxName = outp.InxName;
+end
+
+if isfield(outp, 'InxStdCorr')
+    outp.IxStdCorr = outp.InxStdCorr;
 end
 
 return
 
 
     function [inxStdCorr, inxShkInName] = hereGetStd(query)
-        shkName = query(5:end);
+        shkName = extractAfter(query, 4);
         inxStdCorr = false(1, numStdCorr);
         inxStdCorr(1:numE) = locallyCallStrcmpOrRegexp(namesE, shkName);
         inxShkInName = locallyCallStrcmpOrRegexp(names, shkName);
@@ -111,7 +117,7 @@ return
         inxShk1InName = false(1, numQuantities);
         inxShk2InName = false(1, numQuantities);
         % Break down the corr coeff names corr_SHOCK1__SHOCK2 into SHOCK1 and SHOCK2.
-        shkName = regexp(query(6:end), '^(.*?)__([^_].*)$', 'tokens', 'once');
+        shkName = regexp(extractAfter(query, 5), '^(.*?)__([^_].*)$', 'tokens', 'once');
         if isempty(shkName) || isempty(shkName{1}) || isempty(shkName{2})
             return
         end

@@ -58,14 +58,16 @@ switch s(1).type
         % Run recognizeShift( ) to tell if the first reference is a lag/lead. If yes, 
         % the startdate `x` will be adjusted within recognizeShift( )
         sh = 0;
-        if length(s)>1 || isa(y, 'NumericTimeSubscriptable')
+        if numel(s)>1 || isa(y, 'NumericTimeSubscriptable')
             [this, s, sh] = recognizeShift(this, s);
         end
         % After a lag or lead, only one ( )-reference is allowed
-        if length(s)~=1 || ~isequal(s(1).type, '()')
-            utils.error('tseries:subsasgn', ...
-                ['Invalid subscripted assignment ', ...
-                'to tseries object.']);
+        if numel(s)~=1 || ~isequal(s(1).type, '()')
+            thisError = [
+                "NumericTimeSubscriptable:InvalidSubscriptedAssignment"
+                "Invalid subscripted assignment to time series. "
+            ];
+            throw(exception.Base(thisError, 'error'));k
         end
         this = setData(this, s, y);
         % Shift start date back

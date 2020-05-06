@@ -126,7 +126,7 @@ if opt.IgnoreShocks
     hereIgnoreShocks( );
 end
 
-inxTimeTrend = strcmp(rowNames, model.RESERVED_NAME_TTREND);
+inxTimeTrend = strcmp(rowNames, model.component.Quantity.RESERVED_NAME_TTREND);
 YXEPG(inxTimeTrend, :, :) = repmat(extendedTimeTrend, 1, 1, numDataSets);
 
 return

@@ -240,7 +240,7 @@ elseif all(cellfun(@(x) ischar(x) || isa(x, 'string') || isa(x, 'rexp'), varargi
             list__ = inputNames{i};
             value__ = inputValues{i};
             if contains(list__, ',..,')
-                list__ = parser.DoubleDot.parse(list__, parser.DoubleDot.COMMA);
+                list__ = parser.DoubleDot.parse(char(list__), parser.DoubleDot.COMMA);
             end
             list__ = regexp(list__, '\w+', 'match');
             for j = 1 : numel(list__)

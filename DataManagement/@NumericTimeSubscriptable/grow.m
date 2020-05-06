@@ -68,12 +68,12 @@ function this = grow(this, operator, growth, dates, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 persistent parser
 if isempty(parser)
-    parser = extend.InputParser('NumericTimeSubscriptable.grow');
+    parser = extend.InputParser('NumericTimeSubscriptable/grow');
     addRequired(parser, 'x', @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(parser, 'operator', @(x) validate.anyString(x, '*', '+', '/', '-') || isa(x, 'function_handle'));
     addRequired(parser, 'growth', @(x) isa(x, 'NumericTimeSubscriptable') || validate.numericScalar(x));
@@ -85,32 +85,31 @@ opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
-switch operator
-    case '*'
+switch string(operator)
+    case "*"
         func = @times;
-    case '+'
+    case "+"
         func = @plus;
-    case '/'
+    case "/"
         func = @rdivide;
-    case '-'
+    case "-"
         func = @minus;
     otherwise
         func = operator;
 end
 
-lag = -opt.BaseShift;
 dates = double(dates);
 minDate = min(dates);
 maxDate = max(dates);
-startOfX = this.StartAsNumeric;
-endOfX = this.EndAsNumeric;
-startOfAll = min(minDate-lag, startOfX);
-endOfAll = max(maxDate, endOfX+lag);
-extendedRange = startOfAll : endOfAll;
+startX = this.StartAsNumeric;
+endX = this.EndAsNumeric;
+startAll = min(minDate+opt.BaseShift, startX);
+endAll = max(maxDate, endX-opt.BaseShift);
+extendedRange = startAll : endAll;
 
 % Get level data
 xData = getData(this, extendedRange);
-sizeOfX = size(xData);
+sizeX = size(xData);
 xData = xData(:, :);
 
 % Get growth rate data
@@ -123,17 +122,17 @@ end
 
 
 % /////////////////////////////////////////////////////////////////////////
-posOfDates = round(dates - startOfAll + 1);
-for t = transpose(posOfDates(:))
-    xData(t, :) = func(xData(t-lag, :), growthData(t, :));
+posDates = round(dates - startAll + 1);
+for t = reshape(posDates, 1, [ ])
+    xData(t, :) = func(xData(t+opt.BaseShift, :), growthData(t, :));
 end
 % /////////////////////////////////////////////////////////////////////////
 
 hereCheckMissingObs( );
 
 % Reshape output data back
-if numel(sizeOfX)>2
-    xData = reshape(xData, [size(xData, 1), sizeOfX(2:end)]);
+if numel(sizeX)>2
+    xData = reshape(xData, [size(xData, 1), sizeX(2:end)]);
 end
 
 % Update output series
@@ -142,10 +141,12 @@ this = fill(this, xData, extendedRange(1));
 return
 
     function hereCheckMissingObs( )
-        inxFinite = all(isfinite(xData(posOfDates, :)), 2);
+        inxFinite = all(isfinite(xData(posDates, :)), 2);
         if any(~inxFinite)
-            thisWarning = { 'NumericTimeSubscriptable:OutputWithMissingObs'
-                            'Output time series contains Inf or NaN data' };
+            thisWarning = [ 
+                "NumericTimeSubscriptable:OutputWithMissingObs"
+                "Output time series contains Inf or NaN data" 
+            ];
             throw(exception.Base(thisWarning, 'warning'));
         end
     end%

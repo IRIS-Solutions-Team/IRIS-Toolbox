@@ -148,8 +148,6 @@ classdef Dictionary < matlab.mixin.Copyable
                     hereThrowError( );
                 end
             else
-                error('...')
-
                 index = s(1).subs{1};
                 if ~isnumeric(index) || any(index~=round(index)) || any(index<=0) ...
                    || numel(s(1).subs)>1

@@ -15,7 +15,7 @@ classdef LinearSystem < shared.Kalman
 
 
 
-    properties (SetAccess=protected)
+    properties % (SetAccess=protected)
         % NumPeriods  Number of periods in which system matrices vary from asymptotic system
         NumPeriods (1, 1) double = 0
 
@@ -27,6 +27,9 @@ classdef LinearSystem < shared.Kalman
 
         % CovarianceMatrices  Covariance matrices for transition and measurement shocks
         CovarianceMatrices (1, 2) cell = cell(1, 2)
+
+        % StdVectors  Vectors of std deviations for transition and measurement shocks
+        StdVectors (1, 2) cell = cell(1, 2)
 
         % NumUnitRoots  Number of unit roots in transition matrix T
         NumUnitRoots (1, 1) double = 0

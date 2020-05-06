@@ -1,11 +1,11 @@
 function [g, addCount] = finiteDifference(objectiveFuncReshaped, x, f, step, jacobPattern, largeScale)
 % finiteDifference  Forward finite difference
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 

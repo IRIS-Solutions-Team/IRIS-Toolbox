@@ -67,7 +67,7 @@ classdef Variant
             ixg = quantity.Type==TYPE(5);
             this.Values(1, ixg, :) = model.DEFAULT_STEADY_EXOGENOUS;
             % Steady state of ttrend cannot be changed from 0+1i.
-            inxTimeTrend = strcmp(quantity.Name, model.RESERVED_NAME_TTREND);
+            inxTimeTrend = strcmp(quantity.Name, model.component.Quantity.RESERVED_NAME_TTREND);
             this.Values(1, inxTimeTrend, :) = model.STEADY_TTREND;
         end%
 

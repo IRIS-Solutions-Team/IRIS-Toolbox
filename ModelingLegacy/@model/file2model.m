@@ -44,13 +44,13 @@ this.PreparserControl = d;
 % Run the main model-specific parser
 %
 the = parser.TheParser('model', this.FileName, code, opt.Assign);
-[quantity, equation, euc, puc, collector] = parse(the, parserOpt);
+[quantity, equation, euc, puc, collector, log] = parse(the, parserOpt);
 opt.Assign = the.AssignedDatabank;
 
 %
 % Run model-specific postparser
 %
-this = postparse(this, quantity, equation, euc, puc, collector, opt, optimalOpt);
+this = postparse(this, quantity, equation, log, euc, puc, collector, opt, optimalOpt);
 
 end%
 

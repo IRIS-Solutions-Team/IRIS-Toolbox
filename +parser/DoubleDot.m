@@ -33,6 +33,7 @@ classdef DoubleDot
         
         
         function c = parseKeyword(this, c)
+            c = char(c);
             import parser.DoubleDot
             import parser.White
             [ptnKey1, ptnKey2] = getPatterns(this);
@@ -115,23 +116,23 @@ classdef DoubleDot
 
     methods (Static)
         function c = parse(p, keywords)
-            isCharInp = ischar(p);
-            if isCharInp
-                c = p;
+            isTextInput = ischar(p) || isstring(p);;
+            if isTextInput
+                c = char(p);
             else
-                c = p.Code;
+                c = char(p.Code);
             end
             if nargin<2
                 keywords = enumeration('parser.DoubleDot');
             end
-            for key = transpose(keywords)
-                if isempty( strfind(c, key.Pattern) )
+            for key = reshape(keywords, 1, [ ])
+                if ~contains(c, key.Pattern)
                     continue
                 end
                 c = parseKeyword(key, c);
             end
-            if ~isCharInp
-                p.Code = c;
+            if ~isTextInput
+                p.Code = char(c);
             end
         end%
     end
