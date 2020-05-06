@@ -42,6 +42,8 @@ classdef DataProcessor
             if isSteady
                 steadyInput = baseRange;
                 [inputData, baseRange] = getInputDataForSteady(this, processor);
+            else
+                inputData = inputDb;
             end
             [outputData, info] = simulate(processor, inputData, baseRange, varargin{:});
             if isSteady

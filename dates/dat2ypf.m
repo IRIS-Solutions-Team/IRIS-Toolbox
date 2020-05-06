@@ -41,12 +41,13 @@ dateCode = double(dateCode);
 freq = DateWrapper.getFrequencyAsNumeric(dateCode);
 serial = DateWrapper.getSerial(dateCode);
 
-inxInteger = freq==Frequency.INTEGER;
-inxWeekly  = freq==Frequency.WEEKLY;
-inxDaily   = freq==Frequency.DAILY;
+inxInteger = freq==double(Frequency.INTEGER);
+inxWeekly  = freq==double(Frequency.WEEKLY);
+inxDaily   = freq==double(Frequency.DAILY);
 inxRegular = ~inxInteger & ~inxWeekly & ~inxDaily;
 
-[year, per] = deal(nan(size(dateCode)));
+year = nan(size(dateCode));
+per = nan(size(dateCode));
 
 %
 % Regular frequencies

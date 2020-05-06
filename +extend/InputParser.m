@@ -31,7 +31,7 @@ classdef InputParser < inputParser
 
 
     methods
-        function this = InputParser(functionName);
+        function this = InputParser(functionName)
             this = this@inputParser( );
             this.CaseSensitive = false;
             if nargin>=1
@@ -74,6 +74,9 @@ classdef InputParser < inputParser
                     this.Options.(primaryName__) = this.Results.(alias__);
                 end
             end
+            if this.HasDateOptions
+                this.Options = this.resolveDateOptions(this.Options, this.DateOptionsContext);
+            end
             if this.HasDeviationOptions
                 resolveDeviationOptions(this);
             end
@@ -98,6 +101,7 @@ classdef InputParser < inputParser
 
 
         function [skip, opt] = maybeSkipInputParser(this, varargin)
+            %(
             skip = this.KeepDefaultOptions ...
                 && ~isempty(varargin) && isequal(varargin{end}, "--SkipInputParser");
             if ~skip
@@ -110,6 +114,10 @@ classdef InputParser < inputParser
                 opt.(name);
                 opt.(name) = varargin{i+1};
             end
+            if this.HasDateOptions
+                opt = this.resolveDateOptions(opt, this.DateOptionsContext);
+            end
+            %)
         end%
 
 
@@ -186,15 +194,16 @@ classdef InputParser < inputParser
 
 
         function addDateOptions(this, context)
-            config = iris.get( );
-            addParameter(this, 'DateFormat', config.DateFormat, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime));
-            addParameter(this, {'EnforceFrequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==config.Freq)));
-            addParameter(this, {'FreqLetters', 'FreqLetter'}, config.FreqLetters, @iris.Configuration.validateFreqLetters);
-            addParameter(this, {'Months', 'Month'}, config.Months, @iris.Configuration.validateMonths);
-            addParameter(this, {'ConversionMonth', 'StandInMonth'}, config.ConversionMonth, @iris.Configuration.validateConversionMonth);
-            addParameter(this, 'ConversionDay', config.ConversionDay, @iris.Configuration.validateConversionDay);
-            addParameter(this, 'WDay', config.WDay, @iris.Configuration.validateWDay);
-            addParameter(this, 'DatePosition', 'c', @(x) ischar(x) && ~isempty(x) && any(x(1) == 'sec'));
+            configStruct = iris.get( );
+            addParameter(this, 'DateFormat', @config, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime));
+            addParameter(this, {'EnforceFrequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==configStruct.Freq)));
+            addParameter(this, {'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
+            addParameter(this, {'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
+            addParameter(this, {'ConversionMonth', 'StandInMonth'}, @config, @iris.Configuration.validateConversionMonth);
+            addParameter(this, 'ConversionDay', @config, @iris.Configuration.validateConversionDay);
+            addParameter(this, 'WDay', @config, @iris.Configuration.validateWDay);
+            addParameter(this, 'DatePosition', 'c', @(x) (ischar(x) || isstring(x)) && startsWith(lower(string(x)), ["s", "e", "c"]));
+            
             % Backward compatibility options for datxtick( )
             addParameter(this, {'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isa(x,'function_handle'));
             this.HasDateOptions = true;
@@ -322,6 +331,7 @@ classdef InputParser < inputParser
 
     methods (Static)
         function dateOptionsInCell = extractDateOptionsFromStruct(opt)
+            %(
             listFields = fieldnames(opt);
             dateOptionsInCell = cell.empty(1, 0);
             index = strcmpi(listFields, 'DateFormat');
@@ -349,6 +359,45 @@ classdef InputParser < inputParser
                 pos = find(index, 1, 'last');
                 dateOptionsInCell = [dateOptionsInCell, {'WDay', opt.(listFields{pos})}];
             end
+            %)
+        end%
+        
+        
+        function opt = resolveDateOptions(opt, context)
+            %(
+            configStruct = iris.get( );
+
+            if isequal(opt.DateFormat, @config)
+                switch context % this.DateOptionsContext
+                    case 'TimeSubscriptable'
+                        opt.DateFormat = configStruct.PlotDateTimeFormat;
+                    case 'tseries'
+                        opt.DateFormat = configStruct.PlotDateFormat;
+                    otherwise
+                        opt.DateFormat = configStruct.DateFormat;
+                end
+            end
+
+            if isequal(opt.FreqLetters, @config)
+                opt.FreqLetters = configStruct.FreqLetters;
+            end
+
+            if isequal(opt.Months, @config)
+                opt.Months = configStruct.Months;
+            end
+
+            if isequal(opt.ConversionMonth, @config)
+                opt.ConversionMonth = configStruct.ConversionMonth;
+            end
+
+            if isequal(opt.ConversionDay, @config)
+                opt.ConversionDay = configStruct.ConversionDay;
+            end
+
+            if isequal(opt.WDay, @config)
+                opt.WDay = configStruct.WDay;
+            end
+            %)
         end%
     end
 end

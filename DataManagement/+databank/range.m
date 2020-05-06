@@ -76,7 +76,7 @@ numFreq = numel(listFreq);
 startDates = cell(1, numFreq);
 endDates = cell(1, numFreq);
 range = cell(1, numFreq);
-namesApplied = string.emtpy(1, 0);
+namesApplied = string.empty(1, 0);
 for name = listNames
     if ~isfield(inputDb, name)
         continue

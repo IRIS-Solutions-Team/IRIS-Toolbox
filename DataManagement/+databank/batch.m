@@ -14,7 +14,7 @@ if isempty(pp)
     addRequired(pp, 'newNameTemplate', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     addRequired(pp, 'generator', @(x) isa(x, 'function_handle') || ischar(x) || (isstring(x) && isscalar(x)));
 
-    addParameter(pp, 'Arguments', ["$0"], @locallyValidateArguments);
+    addParameter(pp, 'Arguments', "$0", @locallyValidateArguments);
     addParameter(pp, 'AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
@@ -82,7 +82,7 @@ return
 
 
     function hereGenerateNewField(newName, oldName, tokens, pos)
-        try
+        %try
             if isa(generator, 'function_handle')
                 newValue = hereFromFunction( );
             else
@@ -93,15 +93,16 @@ return
             else
                 outputDb.(newName) = newValue;
             end
-        catch Err
-            errorReport = [errorReport, {newName, Err.message}];
-        end
+        %catch Err
+        %    errorReport = [errorReport, {newName, Err.message}];
+        %end
         return
 
             function newValue = hereFromFunction( )
                 %(
                 if isstring(opt.Arguments)
-                    namArguments = repmat("", 1, numArguments);
+                    % Arguments=["$0", "$1", "$1_$2"] etc
+                    namArguments = opt.Arguments;
                     inxZero = namArguments=="$0";
                     namArguments(inxZero) = oldName;
                     if any(~inxZero)
