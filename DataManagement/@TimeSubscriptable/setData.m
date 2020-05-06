@@ -106,13 +106,14 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
 
     convertToDateWrapper = isa(this.Start, 'DateWrapper');
     startThis = double(this.Start);
+    endThis = double(this.End);
     freqThis = DateWrapper.getFrequencyAsNumeric(startThis);
 
     % If LHS data are complex, use NaN+NaNi to pad missing observations
     missingValue = this.MissingValue;
 
     % Replace x(dates) with x(dates, :, ..., :).
-    if length(s.subs)==1
+    if numel(s.subs)==1
         s.subs(2:ndims(this.Data)) = {':'};
     end
 
@@ -121,7 +122,19 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
     % We cannot use isequal(s.subs{1}, ':') because isequal(58, ':')
     % Give standartd dot access to properties
     timeRef = s.subs{1};
-    if testColon(timeRef) || isequal(timeRef, Inf) || isequal(timeRef, [-Inf, Inf])
+    if isnumeric(timeRef)
+        timeRef = double(timeRef);
+    end
+    if isnumeric(timeRef) && numel(timeRef)==2 && any(isinf(timeRef))
+        if isequal(timeRef(1), -Inf)
+            timeRef(1) = startThis;
+        end
+        if isequal(timeRef(2), Inf)
+            timeRef(2) = endThis;
+        end
+        timeRef = DateWrapper.roundColon(timeRef(1), timeRef(2));
+    end
+    if testColon(timeRef) || isequal(timeRef, Inf)
         s.subs{1} = ':';
         if isnan(startThis)
             % LHS is empty
@@ -130,8 +143,8 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
             dates = startThis + (0 : size(this.Data, 1)-1);
         end
         freqTest = true(size(dates));
-    elseif (isa(timeRef, 'DateWrapper') || isnumeric(timeRef)) && ~isempty(timeRef)
-        dates = double(s.subs{1});
+    elseif isnumeric(timeRef) && ~isempty(timeRef)
+        dates = double(timeRef);
         if ~isempty(dates)
             freqDates = DateWrapper.getFrequencyAsNumeric(dates);
             if isnan(startThis)

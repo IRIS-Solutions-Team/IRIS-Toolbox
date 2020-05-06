@@ -23,10 +23,10 @@ end
 % points
 %
 if data.HasExogenizedPoints
-    % No blocks
+    % No Blocks
     blazer = blazers(1);
 else
-    % With blocks
+    % Block recursive
     blazer = blazers(2);
 end
 
@@ -43,11 +43,10 @@ for i = 1 : numBlocks
     herePrepareInxEndogenousPoints( );
     herePrepareTerminal( );
     [exitFlag, error] = run(block__, data, exitFlagHeader);
-    if ~isempty(error.EvaluatesToNan)
-        break
-    end
-    if ~hasSucceeded(exitFlag)
-        break
+    if ~isempty(error.EvaluatesToNan) || ~hasSucceeded(exitFlag)
+        if blazer.SuccessOnly
+            break
+        end
     end
 end 
 

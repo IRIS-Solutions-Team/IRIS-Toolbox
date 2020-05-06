@@ -318,6 +318,10 @@ end%
 function [newData, newStart] = localInterpolate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     if isequal(opt.Method, @default) || strcmpi(opt.Method, 'Default')
         opt.Method = 'pchip';
+    elseif strcmpi(opt.Method, 'WriteToBeginning')
+        opt.Method = 'First';
+    elseif strcmpi(opt.Method, 'WriteToEnd')
+        opt.Method = 'Last';
     end
 
     [oldStartYear, oldStartPer] = dat2ypf(oldStart);
@@ -354,7 +358,7 @@ function [newData, newStart] = localInterpolate(this, oldStart, oldEnd, oldFreq,
 
     oldData = getDataFromTo(this, oldStart, oldEnd);
     oldSize = size(oldData);
-    if any(strcmpi(opt.Method, {'Flat', 'WriteToBeginning', 'WriteToEnd'})) 
+    if any(strcmpi(opt.Method, {'Flat', 'First', 'Last'})) 
         newData = hereFlat( );
     else
         newData = hereInterpolate( );
@@ -389,9 +393,9 @@ function [newData, newStart] = localInterpolate(this, oldStart, oldEnd, oldFreq,
                 testPeriods = true(size(newConverted));
             else
                 [~, newPeriods] = dat2ypf(newRange);
-                if strcmpi(opt.Method, 'WriteToEnd')
+                if strcmpi(opt.Method, 'Last')
                     testPeriods = newPeriods==newFreq;
-                elseif strcmpi(opt.Method, 'WriteToBeginning')
+                elseif strcmpi(opt.Method, 'First')
                     testPeriods = newPeriods==1;
                 end
             end

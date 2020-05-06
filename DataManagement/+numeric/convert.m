@@ -1,26 +1,31 @@
 function outputDate = convert(inputDate, toFreq, varargin)
 % convert  Convert dates to another frequency
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 persistent pp
 if isempty(pp)
     validFrequencies = iris.get('Freq');
     validFrequencies = setdiff(validFrequencies, Frequency.INTEGER);
-    pp = extend.InputParser('+numeric/convert');
+    pp = extend.InputParser('numeric.convert');
+    pp.KeepDefaultOptions = true;
     addRequired(pp, 'inputDate', @isnumeric);
     addRequired(pp, 'newFreq', @(x) isnumeric(x) && isscalar(x) && any(x==validFrequencies));
     addDateOptions(pp);
 end
-pp.parse(inputDate, toFreq, varargin{:});
-opt = pp.Options;
-toFreqAsNumeric = double(toFreq);
+[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+if ~skip
+    pp.parse(inputDate, toFreq, varargin{:});
+    opt = pp.Options;
+end
 
 %--------------------------------------------------------------------------
+
+toFreqAsNumeric = double(toFreq);
 
 inputDate = double(inputDate);
 

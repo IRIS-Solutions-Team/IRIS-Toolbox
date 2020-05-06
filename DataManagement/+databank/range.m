@@ -1,14 +1,14 @@
-function [range, listFreq] = range(inputDatabank, varargin)
+function [range, listFreq, namesApplied] = range(inputDb, varargin)
 % range  Find a range that encompasses the ranges of the listed tseries objects
 %{
 % ## Syntax ##
 %
-%     [range, listFreq] = databank.range(inputDatabank, ...)
+%     [range, listFreq] = databank.range(inputDb, ...)
 %
 %
 % ## Input Arguments ##
 %
-% __`inputDatabank`__ [ struct | containers.Map | Dictionary ] -
+% __`inputDb`__ [ struct | containers.Map | Dictionary ] -
 % Input databank; can be either a struct, a containers.Map, or a
 % Dictionary.
 %
@@ -50,61 +50,46 @@ function [range, listFreq] = range(inputDatabank, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.range');
-    addRequired(pp, 'inputDatabank', @validate.databank);
+    addRequired(pp, 'inputDb', @validate.databank);
 
     addParameter(pp, 'NameList', @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
     addParameter(pp, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @any) || isa(x, 'Frequency'));
+    addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
-parse(pp, inputDatabank, varargin{:});
+parse(pp, inputDb, varargin{:});
 opt = pp.Options;
-
-allInputEntries = fieldnames(inputDatabank);
-allInputEntries = reshape(cellstr(allInputEntries), 1, [ ]);
-
-list = opt.NameList;
-if validate.string(list)
-    list = regexp(list, '\w+', 'match');
-elseif isa(list, 'rexp')
-    inxMatched = ~cellfun(@isempty, regexp(allInputEntries, list, 'once'));
-    list = allInputEntries(inxMatched);
-elseif isequal(list, @all)
-    list = allInputEntries;
-end
 
 %--------------------------------------------------------------------------
 
-if isequal(opt.Frequency, @any)
-    listFreq = reshape(iris.get('freq'), 1, [ ]);
-else
-    listFreq = unique(reshape(opt.Frequency, 1, [ ]), 'stable');
-end
+listNames = hereFilterNames( );
+listFreq = hereFilterFreq( );
 
 numFreq = numel(listFreq);
 startDates = cell(1, numFreq);
 endDates = cell(1, numFreq);
 range = cell(1, numFreq);
-numEntries = numel(list);
-for i = 1 : numEntries
-    if ~any(strcmp(list{i}, allInputEntries))
+namesApplied = string.emtpy(1, 0);
+for name = listNames
+    if ~isfield(inputDb, name)
         continue
     end
-    name__ = list{i};
-    field__ = inputDatabank.(name__);
-    if ~isa(field__, 'TimeSubscriptable')
+    field = inputDb.(name);
+    if ~isa(field, 'TimeSubscriptable')
         continue
     end
-    inxFreq = field__.Frequency==listFreq;
+    namesApplied = [namesApplied, name];
+    inxFreq = field.Frequency==listFreq;
     if any(inxFreq)
-        startDates{inxFreq}(end+1) = field__.StartAsNumeric;
-        endDates{inxFreq}(end+1) = field__.EndAsNumeric;
+        startDates{inxFreq}(end+1) = field.StartAsNumeric;
+        endDates{inxFreq}(end+1) = field.EndAsNumeric;
     end
 end
 
@@ -136,5 +121,39 @@ else
     listFreq = listFreq(~inxEmpty);
 end
 
+return
+
+    function listNames = hereFilterNames( )
+        if ~isempty(opt.Filter)
+            listNames = databank.filter(inputDb, opt.Filter{:});
+        else
+            allInputEntries = reshape(string(fieldnames(inputDb)), 1, [ ]);
+            listNames = opt.NameList;
+            if validate.string(listNames)
+                listNames = reshape(string(listNames), 1, [ ]);
+                if numel(listNames)==1
+                    if isa(inputDb, 'Dictionary')
+                        listNames = regexp(listNames, '[\w\.]+', 'match');
+                    else
+                        listNames = regexp(listNames, '\w+', 'match');
+                    end
+                end
+            elseif isa(listNames, 'rexp') || isa(listNames, 'Rxp')
+                inxMatched = ~cellfun('isempty', regexp(allInputEntries, string(listNames), 'once'));
+                listNames = allInputEntries(inxMatched);
+            elseif isequal(listNames, @all)
+                listNames = allInputEntries;
+            end
+        end
+    end%
+
+
+    function listFreq = hereFilterFreq( )
+        if isequal(opt.Frequency, @any)
+            listFreq = reshape(iris.get('freq'), 1, [ ]);
+        else
+            listFreq = unique(reshape(opt.Frequency, 1, [ ]), 'stable');
+        end
+    end%
 end%
 

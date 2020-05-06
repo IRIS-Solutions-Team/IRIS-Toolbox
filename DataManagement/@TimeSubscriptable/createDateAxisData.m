@@ -13,7 +13,7 @@ end
 
 %-------------------------------------------------------------------------------
 
-positionWithinPeriod = resolvePositionWithinPeriod(axesHandle, positionWithinPeriod);
+positionWithinPeriod = hereResolvePositionWithinPeriod(axesHandle, positionWithinPeriod);
 
 if ~isempty(time)
     timeFrequency = DateWrapper.getFrequencyAsNumeric(time(1));
@@ -50,7 +50,7 @@ end%
 % Local Functions
 %
 
-function positionWithinPeriod = resolvePositionWithinPeriod(axesHandle, positionWithinPeriod)
+function positionWithinPeriod = hereResolvePositionWithinPeriod(axesHandle, positionWithinPeriod)
     axesPositionWithinPeriod = getappdata(axesHandle, 'IRIS_PositionWithinPeriod');
     if isempty(axesPositionWithinPeriod) 
         if isequal(positionWithinPeriod, @auto)

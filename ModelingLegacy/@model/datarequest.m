@@ -297,7 +297,7 @@ return
         ixg = this.Quantity.Type==TYPE(5);
         ng = sum(ixg);
         posg = find(ixg);
-        ixq = strcmp(this.Quantity.Name, model.RESERVED_NAME_TTREND);
+        ixq = strcmp(this.Quantity.Name, model.component.Quantity.RESERVED_NAME_TTREND);
         ixgxq = ixg & ~ixq; % Exogenous variables except ttrend
         ngxq = sum(ixgxq);
         posq = find(ixq) - min(posg) + 1;

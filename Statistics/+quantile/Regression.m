@@ -39,7 +39,7 @@ classdef Regression < shared.UserDataContainer & shared.CommentContainer
                 end
             end
             this.InputSeries = varargin{2};
-            this.Quantile = varargin{3}(:).';
+            this.Quantile = reshape(varargin{3}, 1, [ ]);
         end
 
 

@@ -30,7 +30,7 @@ if nargout>1
         L = YXEPG(posOfYX, :, :);
     else
         % Create steady trends from model
-        inxOfTimeTrend = strcmp(this.Quantity.Name, model.RESERVED_NAME_TTREND);
+        inxOfTimeTrend = strcmp(this.Quantity.Name, model.component.Quantity.RESERVED_NAME_TTREND);
         timeTrend = YXEPG(inxOfTimeTrend, :, 1);
         L = createTrendArray(this, variantsRequested, needsDelog, posOfYX, timeTrend);
     end

@@ -10,11 +10,11 @@ function outputDatabank = fromDoubleArrayNoFrills( ...
 )
 % fromDoubleArrayNoFrills  Create databank from double array
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 if nargin<8
     addToDatabank = false;
@@ -33,9 +33,7 @@ end
 
 numRows = size(array, 1);
 
-if isa(names, 'string')
-    names = cellstr(names);
-end
+names = string(names);
 
 if isempty(comments)
     comments = repmat({''}, 1, numRows);
@@ -59,7 +57,7 @@ for i = find(inxToInclude)
     data__ = array(i, :, :);
     data__ = permute(data__, [2, 3, 1]);
     series__ = fill(TIME_SERIES_TEMPLATE, data__, startDate, comments{i});
-    outputDatabank.(names{i}) = series__;
+    outputDatabank.(names(i)) = series__;
 end
 
 return

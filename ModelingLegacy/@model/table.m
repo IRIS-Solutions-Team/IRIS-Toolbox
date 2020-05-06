@@ -1,66 +1,80 @@
 function outputTable = table(this, requests, varargin)
-% table  Extract requested values from model to table
+% table  Create table based on selected indicators from Model object 
 %{
-%
-% ## Syntax ##
-%
-%     OutputTable = table(Model, Request, ...)
+% Syntax
+%--------------------------------------------------------------------------
 %
 %
-% ## Input Arguments ##
+%     outputTable = table(model, request, ...)
 %
 %
-% * `model` [ model ] 
-% >
-% Model object.
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 %
-% * `requests` [ char | cellstr | string ] 
-% >
-% Requested columns for the table; see Description for the list of valid
-% requests.
+% __`model`__ [ Model ] 
+%
+%     Model object based on which the table will be prepared.
+%
+%
+% __`requests`__ [ char | cellstr | string ] 
+% 
+%     Requested columns for the table; see Description for the list of
+%     valid requests.
 %
 % 
-% ## Output Arguments ##
+% Output Arguments
+%--------------------------------------------------------------------------
 %
 %
-% * `outputTable` [ table ]
-% >
-% Table object with requested values.
+% __`outputTable`__ [ table ]
+% 
+%     Table object with requested values.
 %
 %
-% ## Options ##
+% Options
+%--------------------------------------------------------------------------
 %
 %
 % __`CompareFirstColumn=true`__ [ `true` | `false` ] 
-% >
-% Include the first column in comparison tables (first column compares
-% itself with itself).
+% 
+%     Include the first column in comparison tables (first column compares
+%     itself with itself).
 %
 %
-% * `Diary=''` [ char | string ] - If `Diary=` is not empty, the table will
-% be printed on the screen in the command window, and captured in a text
-% file under this file name.
+% __`Diary=''`__ [ char | string ] 
+%
+%     If `Diary=` is not empty, the table will be printed on the screen in
+%     the command window, and captured in a text file under this file name.
 %
 %
-% __`SelectNames=false`__ [ `true` | `false` ]
-% >
-% Select only a subset of names (variables, shocks, parameters) to be
-% included in the `outputTable`.
-%
-% * `Sort=false` [ `true` | `false` ] - If `true` sort the table rows
-% alphabetically by the row names.
-%
-% * `Round=Inf` [ `Inf` | numeric ] - Round numeric entries in the table to
-% the specified number of digits; `Inf` means no rounding.
-%
-% * `WriteTable=''` [ char | string ] - If not empty, the table will be
-% exported to a text or spreadsheet file (depending on the file extension
-% provided) under this file name using the standard `writetable( )`
-% function.
+% __`SelectNames=false`__ [ `false` | string ]
+% 
+%     Select only a subset of names (variables, shocks, parameters) to be
+%     included in the `outputTable`.
 %
 %
-% __Description__
+% __`Sort=false`__ [ `true` | `false` ] 
+%
+%     If `true` sort the table rows alphabetically by the row names.
+%
+%
+% __`Round=Inf`__ [ `Inf` | numeric ] 
+%
+%     Round numeric entries in the table to the specified number of digits;
+%     `Inf` means no rounding.
+%
+%
+% __`WriteTable=''`__ [ char | string ] 
+%
+%     If not empty, the table will be exported to a text or spreadsheet
+%     file (depending on the file extension provided) under this file name
+%     using the standard `writetable( )` function.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
 %
 % This is the list of valid requests that can be combined in one call of
 % the `table(~)` function:
@@ -148,24 +162,24 @@ function outputTable = table(this, requests, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Model/table');
+
     addRequired(pp, 'model', @(x) isa(x, 'model'));
     addRequired(pp, 'request', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     
-    % Options
     addParameter(pp, 'CompareFirstColumn', true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
     addParameter(pp, 'Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
     addParameter(pp, 'SelectNames', false, @(x) isequal(x, false) || validate.list(x));
     addParameter(pp, {'SortAlphabetically', 'Sort'}, false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'WriteTable', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
+    addParameter(pp, 'WriteTable', '', @locallyValidateWriteTable); % @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
 parse(pp, this, requests, varargin{:});
 opt = pp.Options;
@@ -366,11 +380,14 @@ if ~isinf(opt.Round)
     outputTable = roundTable(outputTable, opt.Round);
 end
 
-% Write table to text or spreadsheet file
-if ~isempty(opt.WriteTable)
-    writeRowNames = ~isempty(outputTable.Properties.RowNames);
-    writetable(outputTable, opt.WriteTable, 'WriteRowNames', writeRowNames);
+
+% 
+% Write table to file
+%
+if ~isempty(opt.WriteTable) && ~isequal(opt.WriteTable, false)
+    locallyWriteTable(outputTable, opt.WriteTable)
 end
+
 
 % Print table to screen and capture output in diary
 if ~isempty(opt.Diary)
@@ -514,5 +531,48 @@ function outputTable = roundTable(outputTable, decimals)
         x = round(x, decimals);
         outputTable.(name) = x;
     end
+end%
+
+
+function flag = locallyValidateWriteTable(x)
+    if isempty(x) || isequal(x, false)
+        flag = true;
+        return
+    end
+    if validate.stringScalar(x)
+        flag = true;
+        return
+    end
+    if iscell(x) && validate.stringScalar(x{1}) && iscellstr(x(2:2:end))
+        flag = true;
+        return
+    end
+    flag = false;
+end%
+
+
+function locallyWriteTable(table, writeTableOpt)
+% Write table to text or spreadsheet file
+    if iscell(writeTableOpt)
+        fileName = writeTableOpt{1};
+        writeTableOpt = writeTableOpt(2:end);
+        writeTableOpt(1:2:end) = replace(writeTableOpt(1:2:end), '=', '');
+    else
+        fileName = writeTableOpt;
+        writeTableOpt = cell.empty(1, 0);
+    end
+    writeRowNames = ~isempty(table.Properties.RowNames);
+    [~, ~, ext] = fileparts(fileName);
+    if startsWith(lower(ext), 'xls')
+        writeMode = 'OverwriteSheet';
+    else
+        writeMode = 'Overwrite';
+    end
+    writetable( ...
+        table, fileName ...
+        , 'WriteRowNames', writeRowNames ...
+        , 'WriteMode', writeMode ...
+        , writeTableOpt{:} ...
+    );
 end%
 

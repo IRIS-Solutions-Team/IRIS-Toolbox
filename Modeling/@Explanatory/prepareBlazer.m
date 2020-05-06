@@ -5,7 +5,7 @@ function blazerObj = prepareBlazer(this, isBlocks)
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 

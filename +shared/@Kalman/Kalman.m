@@ -1,4 +1,5 @@
 classdef (Abstract) Kalman
+
     properties (Constant, Hidden)
         DIFFUSE_SCALE = 1e8
         VARIANCE_FACTOR_TOLERANCE = eps( )^(7/9)

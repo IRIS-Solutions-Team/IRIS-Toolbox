@@ -1,11 +1,11 @@
 function [minSh, maxSh] = getActualMinMaxShifts(this)
 % getActualMinMaxShifts  Actual minimum and maximum shifts across steady equations
 %
-% Backend IRIS method
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 

@@ -13,6 +13,8 @@ classdef InputParser < inputParser
         HasStartEndOptions = false
 
         Nested = struct( )
+        DefaultOptions = struct( );
+        KeepDefaultOptions = false;
     end
 
 
@@ -29,10 +31,10 @@ classdef InputParser < inputParser
 
 
     methods
-        function this = InputParser(functionName)
+        function this = InputParser(functionName);
             this = this@inputParser( );
             this.CaseSensitive = false;
-            if nargin>0
+            if nargin>=1
                 this.FunctionName = char(functionName);
             end
         end%
@@ -72,9 +74,6 @@ classdef InputParser < inputParser
                     this.Options.(primaryName__) = this.Results.(alias__);
                 end
             end
-            if this.HasDateOptions
-                resolveDateOptions(this);
-            end
             if this.HasDeviationOptions
                 resolveDeviationOptions(this);
             end
@@ -98,10 +97,30 @@ classdef InputParser < inputParser
         end%
 
 
+        function [skip, opt] = maybeSkipInputParser(this, varargin)
+            skip = this.KeepDefaultOptions ...
+                && ~isempty(varargin) && isequal(varargin{end}, "--SkipInputParser");
+            if ~skip
+                opt = [ ];
+                return
+            end
+            opt = this.DefaultOptions;
+            for i = 1 : 2 : numel(varargin)-1
+                name = erase(varargin{i}, ["=", "."]);
+                opt.(name);
+                opt.(name) = varargin{i+1};
+            end
+        end%
+
+
         function addParameter(this, name, varargin)
             if ischar(name) || (isa(name, 'string') && numel(name)==1)
+                name = erase(name, ["=", "."]);
                 addParameter@inputParser(this, name, varargin{:});
                 this.PrimaryParameterNames{end+1} = name;
+                if this.KeepDefaultOptions
+                    this.DefaultOptions.(name) = varargin{1};
+                end
                 return
             end
             if isa(name, 'string')
@@ -109,6 +128,9 @@ classdef InputParser < inputParser
             end
             primaryName = erase(name{1}, {'=', '.'});
             addParameter@inputParser(this, primaryName, varargin{:});
+            if this.KeepDefaultOptions
+                this.DefaultOptions.(primaryName) = varargin{1};
+            end
             this.PrimaryParameterNames{end+1} = primaryName;
             for i = 2 : numel(name)
                 this.Aliases.(name{i}) = primaryName;
@@ -164,14 +186,14 @@ classdef InputParser < inputParser
 
 
         function addDateOptions(this, context)
-            configStruct = iris.get( );
-            addParameter(this, 'DateFormat', @config, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime));
-            addParameter(this, {'EnforceFrequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==configStruct.Freq)));
-            addParameter(this, {'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
-            addParameter(this, {'Months', 'Month'}, @config, @iris.Configuration.validateMonths);
-            addParameter(this, {'ConversionMonth', 'StandInMonth'}, @config, @iris.Configuration.validateConversionMonth);
-            addParameter(this, 'ConversionDay', @config, @iris.Configuration.validateConversionDay);
-            addParameter(this, 'WDay', @config, @iris.Configuration.validateWDay);
+            config = iris.get( );
+            addParameter(this, 'DateFormat', config.DateFormat, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime));
+            addParameter(this, {'EnforceFrequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==config.Freq)));
+            addParameter(this, {'FreqLetters', 'FreqLetter'}, config.FreqLetters, @iris.Configuration.validateFreqLetters);
+            addParameter(this, {'Months', 'Month'}, config.Months, @iris.Configuration.validateMonths);
+            addParameter(this, {'ConversionMonth', 'StandInMonth'}, config.ConversionMonth, @iris.Configuration.validateConversionMonth);
+            addParameter(this, 'ConversionDay', config.ConversionDay, @iris.Configuration.validateConversionDay);
+            addParameter(this, 'WDay', config.WDay, @iris.Configuration.validateWDay);
             addParameter(this, 'DatePosition', 'c', @(x) ischar(x) && ~isempty(x) && any(x(1) == 'sec'));
             % Backward compatibility options for datxtick( )
             addParameter(this, {'DateTick', 'DateTicks'}, @auto, @(x) isequal(x, @auto) || isnumeric(x) || isanystri(x, {'yearstart', 'yearend', 'yearly'}) || isa(x,'function_handle'));
@@ -210,9 +232,9 @@ classdef InputParser < inputParser
         function addSwapFixOptions(this)
             addParameter(this, 'Exogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
             addParameter(this, 'Endogenize', cell.empty(1, 0), @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string') || isequal(x, @auto));
-            addParameter(this, 'Fix', { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
-            addParameter(this, 'FixLevel', { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
-            addParameter(this, {'FixChange', 'FixGrowth'}, { }, @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x));
+            addParameter(this, 'Fix', string.empty(1, 0), @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x) || isstring(x));
+            addParameter(this, 'FixLevel', string.empty(1, 0), @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x) || isstring(x));
+            addParameter(this, {'FixChange', 'FixGrowth'}, string.empty(1, 0), @(x) isempty(x) || isa(x, 'Except') || iscellstr(x) || ischar(x) || isstring(x));
             this.HasSwapFixOptions = true;
         end%
 
@@ -233,42 +255,6 @@ classdef InputParser < inputParser
 
         function addDisplayOption(this, defaultDisplay)
             addParameter(this, 'Display', defaultDisplay, @solver.Options.validateDisplay);
-        end%
-
-
-        function resolveDateOptions(this)
-            configStruct = iris.get( );
-
-            if isequal(this.Options.DateFormat, @config)
-                switch this.DateOptionsContext
-                    case 'TimeSubscriptable'
-                        this.Options.DateFormat = configStruct.PlotDateTimeFormat;
-                    case 'tseries'
-                        this.Options.DateFormat = configStruct.PlotDateFormat;
-                    otherwise
-                        this.Options.DateFormat = configStruct.DateFormat;
-                end
-            end
-
-            if isequal(this.Options.FreqLetters, @config)
-                this.Options.FreqLetters = configStruct.FreqLetters;
-            end
-
-            if isequal(this.Options.Months, @config)
-                this.Options.Months = configStruct.Months;
-            end
-
-            if isequal(this.Options.ConversionMonth, @config)
-                this.Options.ConversionMonth = configStruct.ConversionMonth;
-            end
-
-            if isequal(this.Options.ConversionDay, @config)
-                this.Options.ConversionDay = configStruct.ConversionDay;
-            end
-
-            if isequal(this.Options.WDay, @config)
-                this.Options.WDay = configStruct.WDay;
-            end
         end%
 
 

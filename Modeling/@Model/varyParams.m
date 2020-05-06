@@ -1,5 +1,5 @@
 function overrideParams = varyParams(this, baseRange, override)
-% varyParams  Create array of user-supplied time-varying regular parameters
+% varyParams  Create array of user-supplied time-varying values for regular parameters
 %
 % Backend [IrisToolbox] method
 % No help provided

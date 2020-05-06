@@ -162,7 +162,9 @@ classdef Steady < solver.block.Block
                     else
                         exitFlag = solver.ExitFlag.ASSIGNED;
                     end
-                    print(exitFlag, exitFlagHeader, this.Solver.DisplayLevel);
+                    % try
+                    %     print(exitFlag, exitFlagHeader, this.Solver.DisplayLevel);
+                    % end
                 end%
                 
 

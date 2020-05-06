@@ -1,4 +1,4 @@
-function varargout = eval(d, varargin)
+function varargout = eval(inputDb, varargin)
 % eval  Evaluate expressions in databank workspace
 %{
 % Syntax
@@ -101,7 +101,7 @@ if isempty(pp)
     addRequired(pp, 'databank', @validate.databank);
     addRequired(pp, 'expressions', @validateExpressions);
 end
-parse(pp, d, varargin);
+parse(pp, inputDb, varargin);
 
 %--------------------------------------------------------------------------
 
@@ -125,10 +125,10 @@ end
 
 inputExpressions = expressions;
 inxToEval = cellfun('isclass', expressions, 'char');
-expressions(inxToEval) = herePreprocess(d, expressions(inxToEval));
+expressions(inxToEval) = herePreprocess(inputDb, expressions(inxToEval));
 inxNaN = false(size(expressions));
 for i = find(transpose(inxToEval(:)))
-    expressions{i} = hereProtectedEval(d, expressions{i});
+    expressions{i} = hereProtectedEval(inputDb, expressions{i});
     inxNaN = isequaln(expressions{i}, NaN);
 end
 
@@ -160,14 +160,14 @@ end%
 %
 
 
-function varargout = hereProtectedEval(d, varargin)
+function varargout = hereProtectedEval(inputDb, varargin)
     varargout{1} = eval(varargin{1}, 'NaN');
 end%
 
 
 
 
-function expressions = herePreprocess(d, expressions)
+function expressions = herePreprocess(inputDb, expressions)
     expressions = strtrim(expressions);
     expressions = regexprep(expressions, ';$', '');
     expressions = regexprep(expressions, '=[ ]*#', '=');
@@ -175,15 +175,25 @@ function expressions = herePreprocess(d, expressions)
     expressions = regexprep(expressions, '=(.*)', '-($1)', 'once');
     
     replaceFunc = @replace;
-    expressions = regexprep(expressions, '(?<![\.''"])(\<[A-Za-z]\w*\>)(\.\<[A-Za-z]\w*\>)*', '${replaceFunc($0)}');
+    expressions = regexprep( ...
+        expressions ...
+        , '(?<![\.''"])(\<[A-Za-z]\w*\>)(\.\<[A-Za-z]\w*\>)*' ...
+        , '${replaceFunc($0, $1)}' ...
+    );
 
-    expressions = strrep(expressions, '?.', 'd.');
+    expressions = strrep(expressions, '?.', 'inputDb.');
 
     return
         
-        function c = replace(c)
-            if isfield(d, c)
-                c = ['?.', char(c)];
+        function c = replace(c, c1)
+            if isstruct(inputDb) 
+                if isfield(inputDb, c1)
+                    c = ['?.', char(c)];
+                end
+            elseif isa(inputDb, 'Dictionary')
+                if isKey(inputDb, c)
+                    c = "?.(""" + string(c) + """)";
+                end
             end
         end%
 end%

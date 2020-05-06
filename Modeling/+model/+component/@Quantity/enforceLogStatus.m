@@ -12,12 +12,12 @@ TYPE = @int8;
 %--------------------------------------------------------------------------
 
 % Enforce false log status of shocks
-inxOfEnforced = this.Type==TYPE(31) | this.Type==TYPE(32);
-this.IxLog(inxOfEnforced) = false;
+inxEnforced = this.Type==TYPE(31) | this.Type==TYPE(32);
+this.IxLog(inxEnforced) = false;
 
 % Enforce false log status of time trend
-inxOfTimeTrend = strcmp(this.Name, this.RESERVED_NAME_TTREND);
-this.IxLog(inxOfTimeTrend) = false;
+inxTimeTrend = strcmp(this.Name, model.component.Quantity.RESERVED_NAME_TTREND);
+this.IxLog(inxTimeTrend) = false;
 
 end%
 
