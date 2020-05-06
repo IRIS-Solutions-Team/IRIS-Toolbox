@@ -433,6 +433,14 @@ classdef Frequency < double
         end%
 
 
+        function s = toString(freq)
+            if ~isa(freq, 'Frequency')
+                freq = Frequency(freq);
+            end
+            s = string(freq);
+        end%
+
+
         function c = toCellstr(freq)
             if ~isa(freq, 'Frequency')
                 freq = Frequency(freq);

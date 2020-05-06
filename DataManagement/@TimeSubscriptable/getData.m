@@ -22,9 +22,9 @@ if ~isempty(varargin)
     end 
 end
 
-sizeOfData = size(this.Data);
-serialOfStart = DateWrapper.getSerial(this.Start);
-freqOfStart = DateWrapper.getFrequencyAsNumeric(this.Start);
+sizeData = size(this.Data);
+serialStart = DateWrapper.getSerial(this.Start);
+freqStart = DateWrapper.getFrequencyAsNumeric(this.Start);
 
 if nargin<2 || testColon(timeRef) || isequal(timeRef, Inf)
     data = this.Data;
@@ -35,7 +35,7 @@ end
 missingValue = this.MissingValue;
 
 if isempty(timeRef)
-    data = repmat(missingValue, [0, sizeOfData(2:end)]);
+    data = repmat(missingValue, [0, sizeData(2:end)]);
     dates = DateWrapper.empty(0, 1);
     if nargout>2
         this = emptyData(this);
@@ -50,7 +50,7 @@ end
 
 switch subsCase(this, timeRef)
     case {'NaD_[]', 'NaD_NaD', 'NaD_:'}
-        data = repmat(missingValue, [0, sizeOfData(2:end)]);
+        data = repmat(missingValue, [0, sizeData(2:end)]);
         if nargout>1
             dates = startDateWhenEmpty(this);
             if nargout>2
@@ -59,7 +59,7 @@ switch subsCase(this, timeRef)
         end
         return
     case {'Date_NaD', 'Empty_NaD'}
-        data = repmat(missingValue, [0, sizeOfData(2:end)]);
+        data = repmat(missingValue, [0, sizeData(2:end)]);
         if nargout>1
             dates = startDateWhenEmpty(this);
             if nargout>2
@@ -68,8 +68,8 @@ switch subsCase(this, timeRef)
         end
         return
     case 'NaD_Date'
-        numOfPeriods = numel(timeRef);
-        data = repmat(missingValue, [numOfPeriods, sizeOfData(2:end)]);
+        numPeriods = numel(timeRef);
+        data = repmat(missingValue, [numPeriods, sizeData(2:end)]);
         if nargout>1
             dates = timeRef;
             if nargout>2
@@ -84,12 +84,12 @@ switch subsCase(this, timeRef)
         else
             [data, ~, pos] = getDataNoFrills(this, timeRef);
         end
-        if numel(sizeOfData)>2
-            data = reshape(data, [size(data, 1), sizeOfData(2:end)]);
+        if numel(sizeData)>2
+            data = reshape(data, [size(data, 1), sizeData(2:end)]);
         end
         if nargout>1
-            serialOfDates = serialOfStart + pos - 1;
-            dates = DateWrapper.getDateCodeFromSerial(freqOfStart, serialOfDates); 
+            serialDates = serialStart + pos - 1;
+            dates = DateWrapper.getDateCodeFromSerial(freqStart, serialDates); 
             dates = dates(:);
             if isa(this.Start, 'DateWrapper')
                 dates = DateWrapper(dates);

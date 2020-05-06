@@ -132,8 +132,8 @@ return
     function [inxEndgLevel, inxEndgChange] = hereGetInxEndogenous( )
         inxEndgLevel = false(1, numQuantities);
         inxEndgChange = false(1, numQuantities);
-        for i = 1 : numBlocks
-            [ptrLevel, ptrChange] = iris.utils.splitRealImag(blazer.Blocks{i}.PtrQuantities);
+        for ii = 1 : numBlocks
+            [ptrLevel, ptrChange] = iris.utils.splitRealImag(blazer.Blocks{ii}.PtrQuantities);
             inxEndgLevel(ptrLevel) = true;
             inxEndgChange(ptrChange) = true;
         end
