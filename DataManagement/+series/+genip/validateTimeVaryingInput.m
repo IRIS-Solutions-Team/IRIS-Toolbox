@@ -1,6 +1,8 @@
 function value = validateTimeVaryingInput(context, range, input, canHaveMissing)
 
 range = double(range);
+startDate = range(1);
+endDate = range(end);
 
 numPeriods = round(range(end) - range(1) + 1);
 if isnumeric(input) 
@@ -12,12 +14,12 @@ if isnumeric(input)
     end
 end
 
-freq = DataWrapper.getFrequency(range(1));
+freq = DateWrapper.getFrequency(range(1));
 if isa(input, 'NumericTimeSubscriptable')
     if isfreq(input, freq)
-        value = getDataFromTo(input, startDate, endData);
+        value = getDataFromTo(input, startDate, endDate);
         if ~canHaveMissing && any(~isfinite(value(:)))
-            hereThowMissing( );
+            hereThrowMissing( );
         end
     else
         hereThrowFrequency( );
@@ -36,13 +38,13 @@ return
     end%
 
 
-    function hereThowMissing( )
+    function hereThrowMissing( )
         thisError = [ 
             "Genip:InvalidFrequency"
             "Time series assigned to this option contains NaNs or Infs "
             "within the interpolation range: %s "
         ];
-        throw(exception.Base(thisErrorm, 'error'), context);
+        throw(exception.Base(thisError, 'error'), context);
     end%
 
 

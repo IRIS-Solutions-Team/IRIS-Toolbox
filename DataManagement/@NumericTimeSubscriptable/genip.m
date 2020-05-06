@@ -1,11 +1,11 @@
-function [output, info] = genip(lowInput, toFreq, transitionModel, aggregationModel, varargin)
+function [output, info, Xi] = genip(lowInput, toFreq, transitionOrder, aggregationModel, varargin)
 % genip  Generalized indicator based interpolation
 %{
 % Syntax
 %--------------------------------------------------------------------------
 %
 %
-%     [highSeries, info] = genip(lowInput, highFreq, transitionModel, aggregationModel, ...)
+%     [highOutput, info] = genip(lowInput, highFreq, transitionOrder, aggregationModel, ...)
 %
 %
 % Input Arguments
@@ -13,86 +13,113 @@ function [output, info] = genip(lowInput, toFreq, transitionModel, aggregationMo
 %
 %
 % __`lowInput`__ [ Series ] 
-% > Low-frequency input series that will be interpolated to the `toFreq`
-% frequency using the `indicator`.
+%
+%     Low-frequency input series that will be interpolated to the `toFreq`
+%     frequency using the `Indicator`, hard conditions specified in `Hard=`,
+%     and soft conditions specified in `Soft=`.
 %
 %
 % __`toFreq`__ [ Frequency ]
-% > Target frequency to which the `lowInput` series will be interpolated;
-% `toFreq` must be higher than the frequency of the `lowInput`.
+%
+%     Target frequency to which the `lowInput` series will be interpolated;
+%     `toFreq` must be higher than the date frequency of the `lowInput`.
 %
 %
-% __`transitionModel`__ [ `'Level'` | `'Diff'` | `'DiffDiff'` | `'Rate'` ]
-% > Type of state-space transitionModel for the dynamics of the interpolated series,
-% and for the relationship between the interpolated series and the
-% indicator (if included).
+% __`transitionOrder`__ [ `0` | `1` | `2` ]
+%
+%     Type of state-space transitionOrder for the dynamics of the
+%     interpolated series, and for the relationship between the
+%     interpolated series and the indicator (if included).
 %
 %
-% __`aggregationModel`__ [ `'mean'` | `'sum'` | `'lowEnd'` | numeric ]
-% > Type of aggregation of quarterly observations to yearly observations; the
-% `aggregationModel` can be assigned a `1-by-N` numeric vector with the weights
-% given, respectively, for the individual high-frequency periods within the
-% encompassing low-frequency period.
+% __`aggregationModel`__ [ `"Mean"` | `"Sum"` | `"First"` | `"Last"` | numeric ]
+%
+%     Type of aggregation of quarterly observations to yearly observations;
+%     the `aggregationModel` can be assigned a `1-by-N` numeric vector with
+%     the weights given, respectively, for the individual high-frequency
+%     periods within the encompassing low-frequency period.
 %
 %
 % Output Arguments
 %--------------------------------------------------------------------------
 %
 %
-% __`output`__ [ Series ] 
-% > High-frequency output series constructed by interpolating the input
-% `lowInput` using the dynamics of the `indicator`.
+% __`highOutput`__ [ Series ] 
+%
+%     High-frequency output series constructed by interpolating the input
+%     `lowInput` using the dynamics of the `indicator`.
 %
 %
 % __`info`__ [ struct ]
-% > Output information struct with the the following fields:
-% * `.FromFreq` - Original (low) frequency of the input series
-% * `.ToFreq` - Target (high) frequency to which the input series has been interpolated
-% * `.LowRange` - Low frequency date range from which the input series has been interpolated
-% * `.HighRange` - High frequency date range to which the input series has been interpolated
-% * `.LinearSystem` - Time-varying LinearSystem object used to run the interpolation
-% * `.InitCond` - Numerical initial condition used in the Kalman filter: {mean, MSE}
-% * `.ObservedData` - Array with all observed data including conditioning and indicators
-% * `.OutputData` - Complete Kalman filter output data
+%
+%     Output information struct with the the following fields:
+%
+%     * `.FromFreq` - Original (low) frequency of the input series
+%     * `.ToFreq` - Target (high) frequency to which the input series has been interpolated
+%     * `.LowRange` - Low frequency date range from which the input series has been interpolated
+%     * `.HighRange` - High frequency date range to which the input series has been interpolated
+%     * `.EffectiveLowRange` - Low frequency range after excluding years with full conditioning level information
+%     * `.StackedSystem` - Stacked-time linear system (StackedSystem) object used to run the interpolation
 %
 %
 % Options
 %--------------------------------------------------------------------------
 %
 %
-% __`DiffuseFactor=@auto`__ [ `@auto` | numeric ]
-% > Numeric scaling factor used to approximate an infinite variance for
-% diffuse initial conditions.
-%
-%
-% __`HighLevel=[ ]`__ [ empty | Series ]
-% >
-% High-frequency observations already available on the input series;
-% conflicting low-frequency observations will be removed from the
-% `lowInput` if `RemoveConflicts=true`.
-%
-%
-% __`Indicator=`__ [ Series | numeric ] 
-% >
-% High-frequency indicator whose dynamics will be used to
-% interpolate the `lowInput`.
-%
-%
 % __`Range=Inf`__ [ `Inf` | DateWrapper ]
-% >
-% Low-frequency range on which the interpolation will be calculated; `Inf`
-% means from the start of the `lowInput` to the end.
+%
+%     Low-frequency range on which the interpolation will be calculated;
+%     `Inf` means from the date of the first observation to
+%     the date of the last observation in the `lowInput` time series.
 %
 %
 % __`ResolveConflicts=true`__ [ `true` | `false` ]
-% > Resolve potential conflicts (singularity) between the `lowInput`
-% obervatations and the data supplied through the `HighLevel=` option.
+%
+%     Resolve potential conflicts (singularity) between the `lowInput`
+%     obervatations and the data supplied through the `HighLevel=` option.
 %
 %
-% __`StdIndicator=1e-3`__ [ numeric ]
-% > Relative std deviation of the measurement error associated with the
-% indicator measurement equation; the std deviation is entered relative to
-% the beginning-of-sample std deviation of the transition shocks.
+% __`Indicator.Level=[ ]`__ [ empty | Series ] 
+%
+%     High-frequency indicator whose dynamics will be used to interpolate
+%     the `lowInput`.
+%
+%
+% __`Indicator.Model="Difference"`__ [ `"Difference"` | `"Ratio"` ]
+%
+%     Type of model for the relationship between the interpolated series
+%     and the indicator in the transition equation: `"Difference"`
+%     means the indicator will be subtracted from the series, `"Ratio"`
+%     means the series will be divided by the indicator.
+%
+%
+% __`Initial=@auto`__ [ `@auto` | Series ]
+%
+%     Initial (presample condition) for the Kalman filter; `@auto` means
+%     the initial condition will be extracted from the `Hard.Level`
+%     time series; if no observations are supplied either directly
+%     through `Initial=` or through `Hard.Level=`, then the initial
+%     condition will be estimated by maximum likelihood.
+%
+%
+% __`Hard.Level=[ ]`__ [ empty | Series ]
+%
+%     Hard conditioning information; any values in this time series within
+%     the interpolation range or the presample initial condition (see also
+%     the option `Initial=`) will be imposed on the resulting `highOutput`.
+%
+%
+% __`Transition.Intercept=0`__ [ numeric | `@auto` ]
+%
+%     Intercept in the transition equation; if `@auto` the intercept will
+%     be estimated by GLS.
+%
+%
+% __`Transition.Rate=1`__ [ numeric ]
+%
+%     Rate of autoregression in the differencing term in the transition
+%     equation.
+%
 %
 %
 % Description
@@ -104,16 +131,31 @@ function [output, info] = genip(lowInput, toFreq, transitionModel, aggregationMo
 % estimated by a Kalman filter:
 % 
 %
-% #### State transition equation ####
+% #### State Transition Equation ####
 %
 %
-% \[ x_t = T_t x_{t-1} + v_t \]
+% \[ \left(1 - \rho L\right)^k \hat x_t = v_t \]
+%
+% where \( \hat x_t \) is a transformation of the unobserved higher-frequencuy interpolated
+% series, \( x_t \), depending on the option `Indicator.Model=`:
+%
+% * \( \hat x_t = x_t \) if no indicator is specified;
+%
+% * \( \hat x_t = x_t - q_t \) if an indicator \( q_t \) is entered through
+% `Indicator.Level=` and `Indicator.Model="Difference"`;
+%
+% * \( \hat x_t = x_t / q_t \) if an indicator \( q_t \) is entered through
+% `Indicator.Level=` and `Indicator.Model="Ratio"`;
+%
+% \( L \) is the lag operator, \( k \) is the order of differencing
+% specified by `transitionOrder`, and \(\rho\) is the transition rate of
+% autoregression specified in `Transition.Rate=`.
 %
 %
-% #### Measurement equation ####
+% #### Measurement Equation ####
 %
 %
-% \[ y_t = Z x_t \]
+% \[ y_t = Z x_t + w_t \]
 %
 % where 
 %
@@ -122,26 +164,22 @@ function [output, info] = genip(lowInput, toFreq, transitionModel, aggregationMo
 % every fourth observation is available, and the three in between are
 % missing
 %
-% * \( x_t \) is a state vector consisting of four elements: the unobserved
-% quarterly lowInput lags \(t-3\), \(t-2\), \(t-1\), and its current
-% dated value.
-%
-% * \( T_t \) is a time-varying transition matrix based on the quarterly rate
-% of change in the indicator variables, \(\rho_t = i_t / i_{t-1}\)
-%
-% \[ T_t = \begin{bmatrix} \rho_t & 0 & 0 & 0 \\ 
-%                               1 & 0 & 0 & 0 \\ 
-%                               0 & 1 & 0 & 0 \\
-%                               0 & 0 & 1 & 0 \end{bmatrix} \]
+% * \( x_t \) is a state vector consisting of \(N\) elements, where \(N\)
+% is the number of high-frequency periods within one low-frequency period:
+% the unobserved high-frequency lags \(t-N, \dots, t-1, t\).
 % 
 % * \( Z \) is a time-invariant aggregation matrix depending on the option
 % `Aggregation=`: 
-% \( Z=[1, 1, 1, 1] \) for `Aggregation='sum'`, 
-% \( Z=[1/4, 1/4, 1/4, 1/4] \) for `Aggregation='average'`, 
-% \( Z=[0, 0, 0, 1] \) for `Aggregation='lowEnd'`, 
+% \( Z=[1, 1, 1, 1] \) for `aggregationModel="Sum"`, 
+% \( Z=[1/4, 1/4, 1/4, 1/4] \) for `aggregationModel="Average"`, 
+% \( Z=[0, 0, 0, 1] \) for `aggregationModel="Last"`, 
+% \( Z=[1, 0, 0, 0] \) for `aggregationModel="First"`, 
 % or a user supplied 1-by-4 vector
 %
 % * \( v_t \) is a transition error with constant variance
+%
+% * \( w_t \) is a vector of measurement errors associated with soft
+% conditions.
 %
 %
 % Example
@@ -155,47 +193,54 @@ if isempty(lowInput)
     return
 end
 
-persistent pp 
+persistent pp defaultOpt
 if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable/genip');
+    pp.KeepDefaultOptions = true;
+
     addRequired(pp, 'lowInput', @(x) isa(x, 'NumericTimeSubscriptable'));
     addRequired(pp, 'toFreq', @(x) isa(x, 'Frequency') || isnumeric(x));
-    addRequired(pp, 'transitionModel', @(x) validate.anyString(strip(x), 'Rate', 'Level', 'Diff', 'DiffDiff'));
-    addRequired(pp, 'aggregationModel', @locallyValidateAggregation);
+    addRequired(pp, 'transitionOrder', @(x) isequal(x, 0) || isequal(x, 1) || isequal(x, 2) || validate.anyString(x, 'Level', 'Diff', 'DiffDiff'));
+    addRequired(pp, 'aggregationModel', @(x) locallyValidateAggregation(x));
 
     % Options
     addParameter(pp, 'Range', Inf, @(x) isequal(x, Inf) || DateWrapper.validateProperRangeInput(x));
-    addParameter(pp, 'InitCond', @auto);
+    addParameter(pp, 'Initial', @auto, @(x) isequal(x, @auto) || isa(x, 'NumericTimeSubscriptable'));
     addParameter(pp, 'ResolveConflicts', true, @validate.logicalScalar);
 
     % Nested options
-    addNested(pp, 'Transition', 'Rate', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isa(x, 'NumericTimeSubscriptable'));
-    addNested(pp, 'Transition', 'Constant', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isa(x, 'NumericTimeSubscriptable'));
-    addNested(pp, 'Transition', 'Std', 1, @(x) isequal(x, 1) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'Transition.Intercept', 0, @(x) isequal(x, @auto) || validate.numericScalar(x));
+    addParameter(pp, 'Transition.Rate', 1, @(x) isequal(x, @auto) || validate.numericScalar(x));
+    addParameter(pp, 'Transition.Std', 1, @(x) isequal(x, 1) || isa(x, 'NumericTimeSubscriptable'));
 
-    addNested(pp, 'Condition', 'Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addNested(pp, 'Condition', 'Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addNested(pp, 'Condition', 'Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addNested(pp, 'Condition', 'DiffDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'Hard.Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'Hard.Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'Hard.Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
 
-    addNested(pp, 'Indicator', 'Model', @auto, @(x) validate.anyString(strip(x), 'Rate', 'Level', 'Diff', 'DiffDiff'));
-    addNested(pp, 'Indicator', 'Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addNested(pp, 'Indicator', 'Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addNested(pp, 'Indicator', 'Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addNested(pp, 'Indicator', 'DiffDiff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
-    addNested(pp, 'Indicator', 'StdScale', 1e-3, @(x) isnumeric(x) && all(x(:)>0));
+    addParameter(pp, 'Soft.Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'Soft.Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'Soft.Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+
+    addParameter(pp, 'Indicator.Model', 'Difference', @(x) (ischar(x) || isstring(x)) && startsWith(x, ["Diff", "Rat"]));
+    addParameter(pp, 'Indicator.Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
 end
-parse(pp, lowInput, toFreq, transitionModel, aggregationModel, varargin{:});
-opt = pp.Options;
+
+[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+if ~skip
+    parse(pp, lowInput, toFreq, transitionOrder, aggregationModel, varargin{:});
+    opt = pp.Options;
+end
 
 %--------------------------------------------------------------------------
 
-transitionModel = locallyResolveTransitionModel(transitionModel);
+transition = struct( );
+transition = locallyResolveTransitionModel(transition, transitionOrder);
 
 %
 % Resolve source frequency and the conversion factor
 %
-[fromFreq, numPeriodsWithin] = hereResolveFrequencyConversion( );
+[fromFreq, numWithin] = hereResolveFrequencyConversion( );
+
 
 %
 % Define low-frequency dates
@@ -211,22 +256,25 @@ numLowPeriods = round(lowEnd - lowStart + 1);
 %
 % Define high-frequency dates
 %
-highStart = numeric.convert(lowStart, toFreq);
-highEnd = numeric.convert(lowEnd, toFreq, 'ConversionMonth=', 'Last');
-numHighPeriods = numPeriodsWithin*numLowPeriods;
+numInit = transition.Order;
+highStart = numeric.convert(lowStart, toFreq, "--SkipInputParser");
+highExtStart = DateWrapper.roundPlus(highStart, -numInit);
+highEnd = numeric.convert(lowEnd, toFreq, 'ConversionMonth=', 'Last', "--SkipInputParser");
+numHighPeriods = numWithin*numLowPeriods;
 
 %
-% Resolve Indicator=, Transition= and Conditioning= options
+% Resolve Indicator=, Transition= and Hard= options
 %
-indicator = series.genip.prepareIndicatorOptions(transitionModel, [highStart, highEnd], opt.Indicator);
-transition = series.genip.prepareTransitionOptions(transitionModel, [highStart, highEnd], opt.Transition);
-conditions = series.genip.prepareConditionOptions([highStart, highEnd], opt.Condition);
+transition = series.genip.prepareTransitionOptions(transition, [highStart, highEnd], opt);
+indicator = series.genip.prepareIndicatorOptions(transition, [highStart, highEnd], opt);
+hard = series.genip.prepareHardAndInitialOptions(transition, [highStart, highEnd], opt);
 
 
 %
 % Resolve Aggregation= option
 %
-aggregationModel = locallyResolveAggregationModel(aggregationModel, numPeriodsWithin);
+aggregation = struct( );
+aggregation = locallyResolveAggregationModel(aggregation, aggregationModel, numWithin);
 
 
 %
@@ -234,58 +282,71 @@ aggregationModel = locallyResolveAggregationModel(aggregationModel, numPeriodsWi
 %
 lowLevel = hereGetLowLevelData( );
 
+if ~isempty(hard.Level) && all(isfinite(hard.Level(numInit+1:end)))
+    Xi = hard.Level;
+    inxKeepLow = true(1, numLowPeriods);
+    stacked = [ ];
+else
+    %
+    % Resolve conflicts between observed low frequency levels and conditioning
+    %
+    hereResolveConflictsInMeasurement( );
+
+    [inxKeepLow, inxKeepHigh, lowLevel, hard, indicator] = ...
+        locallyClipRange(lowLevel, hard, indicator, transition, aggregation);
+
+    hereCheckIndicatorForNaNs( );
+
+    [stacked, Y, Xi0, transition, indicator] = ...
+        series.genip.setupStackedSystem(lowLevel, aggregation, transition, hard, indicator);
+
+    [Xi, Xi0] = smoother(stacked, Y, Xi0);
+    if isequal(transition.Intercept, @auto)
+        transition.Intercept = Xi0(end);
+    end
+    Xi = Xi(end:-1:1);
+    if ~isempty(indicator.Level)
+        if indicator.Model=="Difference"
+            Xi = Xi - indicator.Level;
+        elseif indicator.Model=="Ratio"
+            Xi = Xi .* indicator.Level;
+        end
+    end
+    if any(~inxKeepHigh)
+        Xi__ = Xi;
+        Xi = hard.LevelUnclipped;
+        Xi(inxKeepHigh) = Xi__;
+    end
+end
+
 
 %
-% Resolve conflicts between observed low frequency levels and conditioning
+% Output time series
 %
-hereResolveConflictsInMeasurement( );
+output = Series(highExtStart, Xi);
 
 
 %
-% Set up a linear Kalman filter object
+% Information struct
 %
-[kalmanObj, observed, transition] = series.genip.setupKalmanObject( ...
-    lowLevel, aggregationModel, conditions, indicator, transition ...
-);
-
-%
-% Set up initial conditions
-%
-initCond = hereSetupInitCond( );
-
-%
-% Run the Kalman filter
-%
-outputData = filter( ...
-    kalmanObj, observed, highStart:highEnd ...
-    , 'Init=', initCond, 'Relative=', false ...
-    , 'MeanOnly=', true ...
-);
-
-%
-% Extract the last state variable
-%
-output = retrieveColumns(outputData.SmoothMean.Xi, numPeriodsWithin);
-output = clip(output, highStart, highEnd);
-
 info = struct( );
 if nargout>=2
+    wholeRange = opt.Range(1) : opt.Range(end);
     info.LowFreq = fromFreq;
     info.HighFreq = toFreq;
     info.LowRange = DateWrapper(lowStart):DateWrapper(lowEnd);
     info.HighRange = DateWrapper(highStart):DateWrapper(highEnd);
+    info.EffectiveLowRange = wholeRange(inxKeepLow);
     info.TransitionRate = transition.Rate;
-    info.TransitionConstant = transition.Constant;
-    info.LinearSystem = kalmanObj;
-    info.InitCondModel = initCond;
-    info.ObservedData = observed;
-    info.OutputData = outputData;
+    info.TransitionIntercept = transition.Intercept;
+    info.StackedSystem = stacked;
 end
 
 return
 
 
-    function [fromFreq, numPeriodsWithin] = hereResolveFrequencyConversion( )
+    function [fromFreq, numWithin] = hereResolveFrequencyConversion( )
+        %(
         fromFreq = lowInput.Frequency;
         if double(toFreq)<=double(fromFreq)
             thisError = [ 
@@ -295,8 +356,8 @@ return
             ];
             throw(exception.Base(THIS_ERROR, 'error'), char(fromFreq), char(toFreq));
         end
-        numPeriodsWithin = double(toFreq)/double(fromFreq);
-        if numPeriodsWithin~=round(numPeriodsWithin)
+        numWithin = double(toFreq)/double(fromFreq);
+        if numWithin~=round(numWithin)
             thisError = [ 
                 "NumericTimeSubscriptable:CannotInterpolateToLowerFreq"
                 "Function genip( ) can only be used to interpolate between "
@@ -305,45 +366,16 @@ return
             ];
             throw(exception.Base(THIS_ERROR, 'error'), char(fromFreq), char(toFreq));
         end
+        %)
     end%
 
 
 
 
     function lowLevel = hereGetLowLevelData( )
+        %(
         lowLevel = getDataFromTo(lowInput, lowStart, lowEnd);
-    end%
-
-
-
-
-    function initCond = hereSetupInitCond( )
-        if isequal(opt.InitCond, @auto)
-            %
-            % All initial conditions are treated as fixed unknown, and
-            % initialized at a point derived from the first low-frequency
-            % observation
-            %
-            %{
-            posFirst = find(isfinite(lowLevel), 1);
-            if ~isempty(posFirst)
-                x0 = lowLevel(posFirst);
-            else
-                x0 = 0;
-            end
-            x0 = x0 / sum(aggregationModel(:));
-            initCond = { 
-                repmat(x0, numPeriodsWithin, 1)
-                [ ] % Shortcut to indicate all initial conditions are fixed uknown
-            };
-            %}
-            initCond = 'FixedUnknown';
-        else
-            %
-            % User-supplied initial condition
-            %
-            initCond = opt.InitCond;
-        end
+        %)
     end%
 
 
@@ -354,9 +386,9 @@ return
             return
         end
         % Aggregate vs Level
-        if ~isempty(conditions.Level) && any(isfinite(conditions.Level))
-            inxAggregation = aggregationModel~=0;
-            temp = reshape(conditions.Level, numPeriodsWithin, [ ]);
+        if ~isempty(hard.Level) && any(isfinite(hard.Level))
+            inxAggregation = aggregation.Model~=0;
+            temp = reshape(hard.Level(numInit+1:end, :), numWithin, [ ]);
             temp = temp(inxAggregation, :);
             inxLowLevel = reshape(isfinite(lowLevel), 1, [ ]);
             inxHighLevel = all(isfinite(temp), 1);
@@ -366,13 +398,26 @@ return
             end
         end
     end%
-end%
 
+
+    function hereCheckIndicatorForNaNs( )
+        %(
+        if ~isempty(indicator.Level) && ~all(isfinite(indicator.Level))
+            thisError = [
+                "Genip:MissingObservationsIndicator"
+                "Time series supplied as Indicator.Level= must have observations "
+                "avaliable for the entire higher-frequency interpolation range "
+                "plus the initial conditions as given by the difference order. "
+                ];
+            throw(exception.Base(thisError, 'error'));
+        end
+        %)
+    end%
+end%
 
 %
 % Local Validation and Resolution
 %
-
 
 function flag = locallyValidateAggregation(x)
 %(
@@ -389,42 +434,92 @@ function flag = locallyValidateAggregation(x)
 end%
 
 
-function aggregationModel = locallyResolveAggregationModel(aggregationModel, numPeriodsWithin)
+function aggregation = locallyResolveAggregationModel(aggregation, aggregationModel, numWithin)
 %(
     if isnumeric(aggregationModel)
-        aggregationModel = reshape(aggregationModel, 1, numPeriodsWithin);
+        aggregation.Model = reshape(aggregationModel, 1, numWithin);
         return
     elseif any(strcmpi(char(aggregationModel), {'average', 'mean'}))
-        aggregationModel = ones(1, numPeriodsWithin)/numPeriodsWithin;
+        aggregation.Model = ones(1, numWithin)/numWithin;
         return
     elseif strcmpi(char(aggregationModel), 'last')
-        aggregationModel = zeros(1, numPeriodsWithin);
-        aggregationModel(end) = 1;
+        aggregation.Model = zeros(1, numWithin);
+        aggregation.Model(end) = 1;
         return
     elseif strcmpi(char(aggregationModel), 'first')
-        aggregationModel = zeros(1, numPeriodsWithin);
-        aggregationModel(1) = 1;
+        aggregation.Model = zeros(1, numWithin);
+        aggregation.Model(1) = 1;
+        return
     else
         % Default 'sum'
-        aggregationModel = ones(1, numPeriodsWithin);
+        aggregation.Model = ones(1, numWithin);
         return
     end
 %)
 end%
 
 
-function transitionModel = locallyResolveTransitionModel(transitionModel)
+function transition = locallyResolveTransitionModel(transition, transitionOrder)
 %(
-    transitionModel = strip(string(transitionModel));
-    if strcmpi(transitionModel, "Rate")
-        transitionModel = "Rate";
-    elseif strcmpi(transitionModel, "Level")
-        transitionModel = "Level";
-    elseif strcmpi(transitionModel, "Diff")
-        transitionModel = "Diff";
-    elseif strcmpi(transitionModel, "DiffDiff")
-        transitionModel = "DiffDiff";
+    if isnumeric(transitionOrder)
+        transition.Order = transitionOrder;
+        return
+    end
+    transitionOrder = strip(string(transitionOrder));
+    if strcmpi(transitionOrder, "Level")
+        transition.Order = 0;
+    elseif strcmpi(transitionOrder, "Diff")
+        transition.Order = 1;
+    elseif strcmpi(transitionOrder, "DiffDiff")
+        transition.Order = 2;
     end
 %)
+end%
+
+%
+% Local Functions
+%
+
+function [inxKeepLow, inxKeepHigh, lowLevel, hard, indicator] = ...
+    locallyClipRange(lowLevel, hard, indicator, transition, aggregation)
+    %(
+    numLowPeriods = size(lowLevel, 1);
+    numInit = transition.Order;
+    numWithin = size(aggregation.Model, 2);
+    numHighPeriods = numWithin*numLowPeriods;
+
+    inxKeepLow = true(1, numLowPeriods);
+    inxKeepHigh = true(1, numHighPeriods+numInit);
+    hard.LevelUnclipped = hard.Level;
+
+    if isempty(hard.Level)
+        return
+    end
+
+    x__ = reshape(hard.Level(numInit+1:end), numWithin, [ ]);
+    inxFull = all(isfinite(x__), 1);
+
+    lastFull = find(~inxFull, 1) - 1;
+    if ~isempty(lastFull) && lastFull>1
+        inxKeepLow(1:lastFull-1) = false;
+        inxKeepHigh(1:(lastFull-1)*numWithin) = false;
+    end
+
+    firstFull = find(~inxFull, 1, 'Last') + 1;
+    if ~isempty(firstFull) && firstFull<numLowPeriods
+        numLowRemove = numLowPeriods - firstFull;
+        numHighRemove = numLowRemove*numWithin;
+        inxKeepLow(end-numLowRemove+1:end) = false;
+        inxKeepHigh(end-numHighRemove+1:end) = false;
+    end
+
+    if any(~inxKeepLow)
+        lowLevel = lowLevel(inxKeepLow);
+        hard.Level = hard.Level(inxKeepHigh);
+        if ~isempty(indicator.Level)
+            indicator.Level = indicator.Level(inxKeepHigh);
+        end
+    end
+    %)
 end%
 

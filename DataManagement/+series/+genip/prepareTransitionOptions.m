@@ -1,4 +1,4 @@
-function transition = prepareTransitionOptions(transitionModel, highRange, opt)
+function transition = prepareTransitionOptions(transition, highRange, opt)
 % prepareTransitionOptions  Prepare Transition opt for Series/genip
 % 
 % Backend [IrisToolbox] method
@@ -9,30 +9,18 @@ function transition = prepareTransitionOptions(transitionModel, highRange, opt)
 
 %--------------------------------------------------------------------------
 
+numInit = transition.Order;
 highRange = double(highRange);
 highStart = highRange(1);
 highEnd = highRange(end);
 canHaveMissing = false;
 
-transition = struct( );
-transition.Model = transitionModel;
-transition.Rate = opt.Rate;
-transition.Constant = opt.Constant;
+transition.Rate = opt.TransitionRate;
+transition.Intercept = opt.TransitionIntercept;
+transition.Std = opt.TransitionStd;
 
-if ~isequal(transition.Rate, @auto)
-    transition.Rate = series.genip.validateTimeVaryingInput( ...
-        "Transition.Rate", highRange, opt.Rate, canHaveMissing ...
-    );
-end
-
-if ~isequal(transition.Constant, @auto)
-    transition.Constant = series.genip.validateTimeVaryingInput( ...
-        "Transition.Constant", highRange, opt.Constant, canHaveMissing ...
-    );
-end
-
-if isa(opt.Std, 'NumericTimeSubscriptable')
-    transition.Std = getDataFromTo(opt.Std, highStart, highEnd);
+if isa(transition.Std, 'NumericTimeSubscriptable')
+    transition.Std = getDataFromTo(transition.Std, highStart, highEnd);
     transition.Std = abs(transition.Std);
     if any(isnan(transition.Std(:)))
         transition.Std = numeric.fillMissing(transition.Std, NaN, 'globalLoglinear');

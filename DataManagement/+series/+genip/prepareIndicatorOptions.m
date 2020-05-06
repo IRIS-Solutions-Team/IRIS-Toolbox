@@ -1,4 +1,4 @@
-function indicator = prepareIndicatorOptions(transitionModel, highRange, options)
+function indicator = prepareIndicatorOptions(transition, highRange, opt)
 % prepareIndicatorOptions  Prepare Indicator options for Series/genip
 %
 % Backend [IrisToolbox] method
@@ -15,88 +15,54 @@ MODELS.DiffDiff = @(x) diff(diff(x));
 
 %--------------------------------------------------------------------------
 
+numInit = transition.Order;
 highRange = double(highRange);
 highStart = highRange(1);
+highExtStart = DateWrapper.roundPlus(highStart, -numInit);
 highEnd = highRange(end);
 highFreq = DateWrapper.getFrequency(highStart);
 
 indicator = struct( );
-indicator.Model = hereResolveIndicatorModel( );
-indicator.Level = [ ];
-indicator.Transformed = [ ];
-indicator.StdScale = double(options.StdScale);
-
-invalidFreq = cell.empty(1, 0);
-
-hereTryRetrieveLevel( );
-if isempty(indicator.Transformed)
-    hereTryRetrieveTransformed( );
-end
-
-hereCheckDimensions( );
-
-if ~isempty(invalidFreq)
-    thisError = [
-        "Genip:InvalidFrequencyIndicator"
-        "Date frequency of the time series assigned to the Indicator option %s= "
-        "must match the target date frequency, which is %1. "
-    ];
-    throw(exception.Base(thisError, 'error'), char(highFreq), invalidFreq{:});
-end
+indicator.Model = locallyResolveIndicatorModel(opt.IndicatorModel);
+indicator.Level = hereTryRetrieveLevel( );
 
 return
 
-    function indicatorModel = hereResolveIndicatorModel( )
-        indicatorModel = options.Model;
-        if isequal(indicatorModel, @auto)
-            indicatorModel = transitionModel;
-        end
-    end%
 
-
-    function hereTryRetrieveLevel( )
-        model = indicator.Model;
-        if isa(options.Level, 'NumericTimeSubscriptable') && ~isempty(options.Level) 
-            if isfreq(options.Level, highFreq)
-                x__ = getDataFromTo(options.Level, highStart, highEnd);
-                if ~all(isnan(x__(:)))
-                    indicator.Level = x__;
-                    func = MODELS.(model);
-                    indicator.Transformed = getDataFromTo(func(options.Level), highStart, highEnd);
+    function level = hereTryRetrieveLevel( )
+        %(
+        level = [ ];
+        if isa(opt.IndicatorLevel, 'NumericTimeSubscriptable') && ~isempty(opt.IndicatorLevel) 
+            if isfreq(opt.IndicatorLevel, highFreq)
+                x__ = getDataFromTo(opt.IndicatorLevel, highExtStart, highEnd);
+                inxNaN = ~isfinite(x__(:));
+                if all(inxNaN)
+                    return
                 end
+                level = x__;
             else
-                invalidFreq{end+1} = 'Level';
+                thisError = [
+                    "Genip:InvalidFrequencyIndicator"
+                    "Date frequency of the time series supplied as Indicator.Level= "
+                    "must match the target date frequency, which is %s. "
+                ];
+                throw(exception.Base(thisError, 'error'), char(highFreq));
             end
         end
-    end%
-
-
-    function hereTryRetrieveTransformed( )
-        model = indicator.Model;
-        if isa(options.(model), 'NumericTimeSubscriptable') && ~isempty(options.(model)) 
-            if isfreq(options.(model), highFreq)
-                x = getDataFromTo(options.(model), highStart, highEnd);
-                if ~all(isnan(x(:)))
-                    indicator.Transformed = x;
-                end
-            else
-                invalidFreq{end+1} = char(model);
-            end
-        end
-    end%
-
-
-    function hereCheckDimensions( )
-        numStd = numel(indicator.StdScale);
-        numTransformed = size(indicator.Transformed, 2);
-        if numStd>1 && numStd~=numTransformed
-            thisError = [
-                "Genip:InvalidDimensionsIndicator"
-                "Number of elements in Indicator.Std= is not consistent "
-                "with the dimensions of Indicator.Level= or Indicator.%g=."
-            ];
-            throw(exception.Base(thisError, 'error'), indicator.Model);
-        end
+        %)
     end%
 end%
 
+
+%
+% Local Functions
+%
+
+
+function indicatorModel = locallyResolveIndicatorModel(indicatorModel)
+    if startsWith(indicatorModel, "Rat")
+        indicatorModel = "Ratio";
+    elseif startsWith(indicatorModel, "Diff")
+        indicatorModel = "Difference";
+    end
+end%
