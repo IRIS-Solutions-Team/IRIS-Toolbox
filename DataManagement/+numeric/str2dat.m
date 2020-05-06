@@ -1,4 +1,4 @@
-function dateCode = str2dat(string, varargin)
+function dateCode = str2dat(inputString, varargin)
 % numeric.str2dat  Convert strings to serial date numbers
 %
 % Backend IRIS function
@@ -11,14 +11,14 @@ persistent parser configStruct
 if isempty(parser)
     configStruct = iris.get( );
     parser = extend.InputParser('dates.str2dat');
-    parser.addRequired('InputString', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    parser.addRequired('InputString', @(x) ischar(x) || iscellstr(x) || isstring(x));
     parser.addDateOptions( );
 end
 
 if ~isempty(varargin) && isstruct(varargin{1})
     varargin = extend.InputParser.extractDateOptionsFromStruct(varargin{1});
 end
-parser.parse(string, varargin{:});
+parser.parse(inputString, varargin{:});
 opt = parser.Options;
 
 if isempty(opt.EnforceFrequency)
@@ -36,17 +36,15 @@ shortMonthList = sprintf('%s|',shortMonthList{:});
 shortMonthList(end) = '';
 romanList = 'xii|xi|x|ix|viii|vii|vi|v|iv|iii|ii|i|iv|v|x';
 
-if ischar(string)
-    string = cellstr(string);
-end
+inputString = string(inputString);
 
-dateCode = nan(size(string));
-if isempty(string)
+dateCode = nan(size(inputString));
+if isempty(inputString)
     return
 end
 
 ptn = hereParseFormat( );
-tkn = regexpi(string, ptn, 'names', 'once');
+tkn = regexpi(cellstr(inputString), ptn, 'names', 'once', 'forceCellOutput');
 [year, per, day, month, freq, inxPeriod] = hereParseDateStrings(tkn, configStruct, opt);
 
 inxCalendarDaily = freq==Frequency.DAILY;
@@ -70,8 +68,8 @@ if any(inxPeriod)
                                             per(inxPeriod) );
     % Try Indeterminate frequency for NaN dates.
     inxNaN = inxPeriod & isnan(dateCode);
-    for i = find(inxNaN(:).')
-        aux = sscanf(string{i}, '%g');
+    for i = find(reshape(inxNaN, 1, [ ]));
+        aux = sscanf(inputString(i), '%g');
         aux = round(aux);
         if ~isempty(aux)
             dateCode(i) = aux;
