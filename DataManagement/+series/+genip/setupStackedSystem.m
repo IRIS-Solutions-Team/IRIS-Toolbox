@@ -1,5 +1,5 @@
 function [stacked, Y, Xi0, transition, indicator] = ...
-    setupStackedSystem(lowLevel, aggregation, transition, hard, indicator)
+    setupStackedSystem(lowLevel, aggregation, transition, hard, indicator, Xi0)
 % setupKalmanObject  Set up time-varying LinearSystem and array of observed data for genip model
 %
 % Backend [IrisToolbox] function
@@ -46,7 +46,6 @@ Z = zeros(0, numHighPeriods+numInit);
 H = zeros(0);
 d = 0;
 stdW = zeros(0, 1);
-Xi0 = nan(numInit, 1);
 
 
 %
@@ -100,35 +99,17 @@ return
     end%
 
 
-    function K = hereSetupTransitionIntercept( )
-        %(
-        if isequal(transition.Intercept, @auto)
-            addT = ones(numHighPeriods, 1);
-            for ii = 1 : transition.Order
-                addT = cumsum(addT, 1);
-            end
-            addT = [addT; zeros(numInit, 1)];
-            T = [T, addT];
-            Xi0 = [Xi0; NaN];
-            K = 0;
-        else
-            K = R*repmat(transition.Intercept, numHighPeriods, 1);
-        end
-        %)
-    end%
-
-
     function hereAddAggregation( )
         %(
         lowLevelFlipped = lowLevel(end:-1:1);
         inxAggregation = isfinite(lowLevelFlipped);
         if any(inxAggregation)
-            aggregation.ModelFlipped = aggregation.Model(end:-1:1);
             numAggregation = nnz(inxAggregation);
-            rowZ = zeros(1, numHighPeriods+numInit);
-            rowZ(1:numWithin) = aggregation.ModelFlipped;
+            row = zeros(1, numHighPeriods);
+            row(1:numWithin) = aggregation.ModelFlipped;
             for i = reshape(find(inxAggregation), 1, [ ])
-                Z = [ Z; circshift(rowZ, [1, numWithin*(i-1)]) ];
+                addZ = [circshift(row, [0, (i-1)*numWithin]), zeros(1, numInit)];
+                Z = [Z; addZ];
             end
             Y = [Y; reshape(lowLevelFlipped(inxAggregation), [ ], 1)];
             H = [H; zeros(numAggregation, 0)];
@@ -143,7 +124,6 @@ return
             return
         end
 
-        Xi0 = hard.LevelFlipped(end-numInit+1:end);
         hard.LevelFlipped(end-numInit+1:end) = NaN;
 
         inxConditionsLevel = isfinite(hard.LevelFlipped);
@@ -165,10 +145,32 @@ return
             return
         elseif indicator.Model=="Difference"
             d = Z*indicator.LevelFlipped; 
-            Xi0 = Xi0 - indicator.LevelFlipped(end-numInit+1:end);
+            if ~isempty(Xi0)
+                Xi0 = Xi0 - indicator.LevelFlipped(end-numInit+1:end);
+            end
         elseif indicator.Model=="Ratio"
             Z = Z .* reshape(indicator.LevelFlipped, 1, [ ]);
-            Xi0 = Xi0 ./ indicator.LevelFlipped(end-numInit+1:end);
+            if ~isempty(Xi0)
+                Xi0 = Xi0 ./ indicator.LevelFlipped(end-numInit+1:end);
+            end
+        end
+        %)
+    end%
+
+
+    function K = hereSetupTransitionIntercept( )
+        %(
+        if isequal(transition.Intercept, @auto)
+            addT = ones(numHighPeriods, 1);
+            for ii = 1 : transition.Order
+                addT = cumsum(addT, 1);
+            end
+            addT = [addT; zeros(numInit, 1)];
+            T = [T, addT];
+            Xi0 = [Xi0; NaN];
+            K = 0;
+        else
+            K = R*repmat(transition.Intercept, numHighPeriods, 1);
         end
         %)
     end%

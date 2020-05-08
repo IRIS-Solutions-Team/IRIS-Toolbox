@@ -205,7 +205,7 @@ if isempty(pp)
 
     % Options
     addParameter(pp, 'Range', Inf, @(x) isequal(x, Inf) || DateWrapper.validateProperRangeInput(x));
-    addParameter(pp, 'Initial', @auto, @(x) isequal(x, @auto) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'Initial', @auto, @(x) isequal(x, @auto) || isnumeric(x) || isa(x, 'NumericTimeSubscriptable'));
     addParameter(pp, 'ResolveConflicts', true, @validate.logicalScalar);
 
     % Nested options
@@ -217,9 +217,11 @@ if isempty(pp)
     addParameter(pp, 'Hard.Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addParameter(pp, 'Hard.Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
 
+    %{
     addParameter(pp, 'Soft.Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addParameter(pp, 'Soft.Diff', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
     addParameter(pp, 'Soft.Rate', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    %}
 
     addParameter(pp, 'Indicator.Model', 'Difference', @(x) (ischar(x) || isstring(x)) && startsWith(x, ["Diff", "Rat"]));
     addParameter(pp, 'Indicator.Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
@@ -267,14 +269,13 @@ numHighPeriods = numWithin*numLowPeriods;
 %
 transition = series.genip.prepareTransitionOptions(transition, [highStart, highEnd], opt);
 indicator = series.genip.prepareIndicatorOptions(transition, [highStart, highEnd], opt);
-hard = series.genip.prepareHardAndInitialOptions(transition, [highStart, highEnd], opt);
+hard = series.genip.prepareHardOptions(transition, [highStart, highEnd], opt);
 
 
 %
 % Resolve Aggregation= option
 %
-aggregation = struct( );
-aggregation = locallyResolveAggregationModel(aggregation, aggregationModel, numWithin);
+aggregation = series.genip.prepareAggregation(aggregationModel, numLowPeriods, numWithin);
 
 
 %
@@ -282,9 +283,12 @@ aggregation = locallyResolveAggregationModel(aggregation, aggregationModel, numW
 %
 lowLevel = hereGetLowLevelData( );
 
-if ~isempty(hard.Level) && all(isfinite(hard.Level(numInit+1:end)))
-    Xi = hard.Level;
-    inxKeepLow = true(1, numLowPeriods);
+if ~isempty(hard.Level) && all(isfinite(hard.Level))
+    outputData = hard.Level;
+    if numInit>0
+        outputData(1:numInit) = hard.Initial;
+    end
+    inxRunLow = true(1, numLowPeriods);
     stacked = [ ];
 else
     %
@@ -292,42 +296,41 @@ else
     %
     hereResolveConflictsInMeasurement( );
 
-    [inxKeepLow, inxKeepHigh, lowLevel, hard, indicator] = ...
+    [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
         locallyClipRange(lowLevel, hard, indicator, transition, aggregation);
 
     hereCheckIndicatorForNaNs( );
 
+    Xi0 = series.genip.prepareInitialCondition( ...
+        transition, hard, [highStart, highEnd], inxInit, opt ...
+    );
+
     [stacked, Y, Xi0, transition, indicator] = ...
-        series.genip.setupStackedSystem(lowLevel, aggregation, transition, hard, indicator);
+        series.genip.setupStackedSystem(lowLevel, aggregation, transition, hard, indicator, Xi0);
 
     [Xi, Xi0] = smoother(stacked, Y, Xi0);
+
     if isequal(transition.Intercept, @auto)
         transition.Intercept = Xi0(end);
+        Xi0(end) = [ ];
     end
-    Xi = Xi(end:-1:1);
-    if ~isempty(indicator.Level)
-        if indicator.Model=="Difference"
-            Xi = Xi - indicator.Level;
-        elseif indicator.Model=="Ratio"
-            Xi = Xi .* indicator.Level;
-        end
-    end
-    if any(~inxKeepHigh)
-        Xi__ = Xi;
-        Xi = hard.LevelUnclipped;
-        Xi(inxKeepHigh) = Xi__;
-    end
+
+    %
+    % Compose output data from Xi0, Hard.Level and adjust for
+    % Indicator.Level if needed.
+    %
+    outputData = hereComposeOutputData( );
 end
 
 
 %
-% Output time series
+% Create output time series
 %
-output = Series(highExtStart, Xi);
+output = Series(highExtStart, outputData);
 
 
 %
-% Information struct
+% Create output information struct if requested
 %
 info = struct( );
 if nargout>=2
@@ -336,7 +339,7 @@ if nargout>=2
     info.HighFreq = toFreq;
     info.LowRange = DateWrapper(lowStart):DateWrapper(lowEnd);
     info.HighRange = DateWrapper(highStart):DateWrapper(highEnd);
-    info.EffectiveLowRange = wholeRange(inxKeepLow);
+    info.EffectiveLowRange = wholeRange(inxRunLow);
     info.TransitionRate = transition.Rate;
     info.TransitionIntercept = transition.Intercept;
     info.StackedSystem = stacked;
@@ -413,6 +416,25 @@ return
         end
         %)
     end%
+
+
+    function outputData = hereComposeOutputData( )
+        %(
+        outputData = Xi(end:-1:1);
+        if ~isempty(indicator.Level)
+            if indicator.Model=="Difference"
+                outputData = outputData - indicator.Level;
+            elseif indicator.Model=="Ratio"
+                outputData = outputData .* indicator.Level;
+            end
+        end
+        if any(~inxRunHigh)
+            x__ = outputData;
+            outputData = hard.LevelUnclipped;
+            outputData(inxRunHigh) = x__;
+        end
+        %)
+    end%
 end%
 
 %
@@ -430,31 +452,6 @@ function flag = locallyValidateAggregation(x)
         return
     end
     flag = false;
-%)
-end%
-
-
-function aggregation = locallyResolveAggregationModel(aggregation, aggregationModel, numWithin)
-%(
-    if isnumeric(aggregationModel)
-        aggregation.Model = reshape(aggregationModel, 1, numWithin);
-        return
-    elseif any(strcmpi(char(aggregationModel), {'average', 'mean'}))
-        aggregation.Model = ones(1, numWithin)/numWithin;
-        return
-    elseif strcmpi(char(aggregationModel), 'last')
-        aggregation.Model = zeros(1, numWithin);
-        aggregation.Model(end) = 1;
-        return
-    elseif strcmpi(char(aggregationModel), 'first')
-        aggregation.Model = zeros(1, numWithin);
-        aggregation.Model(1) = 1;
-        return
-    else
-        % Default 'sum'
-        aggregation.Model = ones(1, numWithin);
-        return
-    end
 %)
 end%
 
@@ -480,7 +477,7 @@ end%
 % Local Functions
 %
 
-function [inxKeepLow, inxKeepHigh, lowLevel, hard, indicator] = ...
+function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     locallyClipRange(lowLevel, hard, indicator, transition, aggregation)
     %(
     numLowPeriods = size(lowLevel, 1);
@@ -488,8 +485,9 @@ function [inxKeepLow, inxKeepHigh, lowLevel, hard, indicator] = ...
     numWithin = size(aggregation.Model, 2);
     numHighPeriods = numWithin*numLowPeriods;
 
-    inxKeepLow = true(1, numLowPeriods);
-    inxKeepHigh = true(1, numHighPeriods+numInit);
+    inxRunLow = true(1, numLowPeriods);
+    inxRunHigh = true(1, numHighPeriods+numInit);
+    inxInit = [true(1, numInit), false(1, numHighPeriods)];
     hard.LevelUnclipped = hard.Level;
 
     if isempty(hard.Level)
@@ -499,25 +497,31 @@ function [inxKeepLow, inxKeepHigh, lowLevel, hard, indicator] = ...
     x__ = reshape(hard.Level(numInit+1:end), numWithin, [ ]);
     inxFull = all(isfinite(x__), 1);
 
-    lastFull = find(~inxFull, 1) - 1;
+    lastFull = find(~inxFull, 1) - 1; % [^1]
     if ~isempty(lastFull) && lastFull>1
-        inxKeepLow(1:lastFull-1) = false;
-        inxKeepHigh(1:(lastFull-1)*numWithin) = false;
+        inxRunLow(1:lastFull-1) = false;
+        inxRunHigh(1:(lastFull-1)*numWithin) = false;
+        inxInit = circshift(inxInit, [0, (lastFull-1)*numWithin]);
     end
+    % [^1]: `lastFull` is the column of the last year that has all
+    % observations, counting only the uninterrupted sequence of
+    % full-observation years from the beginning. This last full year will
+    % be included in clipped range (becuase it may be needed for initial
+    % condition).
 
     firstFull = find(~inxFull, 1, 'Last') + 1;
     if ~isempty(firstFull) && firstFull<numLowPeriods
         numLowRemove = numLowPeriods - firstFull;
         numHighRemove = numLowRemove*numWithin;
-        inxKeepLow(end-numLowRemove+1:end) = false;
-        inxKeepHigh(end-numHighRemove+1:end) = false;
+        inxRunLow(end-numLowRemove+1:end) = false;
+        inxRunHigh(end-numHighRemove+1:end) = false;
     end
 
-    if any(~inxKeepLow)
-        lowLevel = lowLevel(inxKeepLow);
-        hard.Level = hard.Level(inxKeepHigh);
+    if any(~inxRunLow)
+        lowLevel = lowLevel(inxRunLow);
+        hard.Level = hard.Level(inxRunHigh);
         if ~isempty(indicator.Level)
-            indicator.Level = indicator.Level(inxKeepHigh);
+            indicator.Level = indicator.Level(inxRunHigh);
         end
     end
     %)
