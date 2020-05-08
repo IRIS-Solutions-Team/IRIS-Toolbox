@@ -6,17 +6,17 @@ classdef DateWrapper < double
 
 
         function disp(this)
-            sizeOfThis = size(this);
-            sizeString = sprintf('%gx', sizeOfThis);
+            sizeThis = size(this);
+            sizeString = sprintf('%gx', sizeThis);
             sizeString(end) = '';
-            empty = any(sizeOfThis==0);
+            empty = any(sizeThis==0);
             if empty
                 frequencyDisplayName = 'Empty';
             else
                 freq = DateWrapper.getFrequency(this);
-                firstOfFreq = freq(1);
-                if all(firstOfFreq==freq(:))
-                    frequencyDisplayName = char(firstOfFreq);
+                firstFreq = freq(1);
+                if all(firstFreq==freq(:))
+                    frequencyDisplayName = char(firstFreq);
                 else
                     frequencyDisplayName = 'Mixed Frequency';
                 end
@@ -350,7 +350,8 @@ classdef DateWrapper < double
                        report{:} );
             end
             freq = double(freq);
-            inxFreqCodes = freq~=Frequency.INTEGER & freq~=Frequency.DAILY;
+            %inxFreqCodes = freq~=Frequency.INTEGER & freq~=Frequency.DAILY;
+            inxFreqCodes = freq~=0 & freq~=365;
             freqCode = zeros(size(freq));
             freqCode(inxFreqCodes) = double(freq(inxFreqCodes)) / 100;
             dateCode = serial + freqCode;
@@ -391,9 +392,9 @@ classdef DateWrapper < double
             else
                 context = 'in this context';
             end
-            cellstrOfFreq = Frequency.toCellstr(unique(freq, 'stable'));
+            cellstrFreq = Frequency.toCellstr(unique(freq, 'stable'));
             throw( exception.Base('Dates:MixedFrequency', 'error'), ...
-                   context, cellstrOfFreq{:} ); %#ok<GTARG>
+                   context, cellstrFreq{:} ); %#ok<GTARG>
         end%
         
         
@@ -563,14 +564,14 @@ classdef DateWrapper < double
             pos = round(datesSerial - refSerial + 1);
             % Check lower and upper bounds on the positions
             if nargin>=3 && ~isempty(bounds)
-                inxOutOfRange = pos<bounds(1) | pos>bounds(2);
-                if any(inxOutOfRange)
+                inxOutRange = pos<bounds(1) | pos>bounds(2);
+                if any(inxOutRange)
                     if nargin<4
                         context = 'range';
                     end
                     THIS_ERROR = { 'DateWrapper:DateOutOfRange'
                                    'This date is out of %1: %s ' };
-                    temp = dat2str(dates(inxOutOfRange));
+                    temp = dat2str(dates(inxOutRange));
                     throw( exception.Base(THIS_ERROR, 'error'), ...
                            context, temp{:} );
                 end

@@ -101,7 +101,10 @@ return
             function newValue = hereFromFunction( )
                 %(
                 if isstring(opt.Arguments)
-                    % Arguments=["$0", "$1", "$1_$2"] etc
+                    %
+                    % Arguments=["$0", "$1", "$1_$2", ... ]
+                    % to evalute func(d.("$0"), d.("$1"), d.("$1_$2")
+                    %
                     namArguments = opt.Arguments;
                     inxZero = namArguments=="$0";
                     namArguments(inxZero) = oldName;
@@ -111,6 +114,11 @@ return
                         );
                     end
                 else
+                    %
+                    % Arguments={ ["x1,"y1"], ["x2", "y2"], ... }
+                    % to evaluate func(d.x1, d.x2), func(d.y1, d.y2),
+                    % etc.
+                    %
                     namArguments = cellfun(@(x) x(pos), opt.Arguments);
                 end
                 isDictionary = isa(inputDb, 'Dictionary');

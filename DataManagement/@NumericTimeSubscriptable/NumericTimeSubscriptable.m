@@ -572,7 +572,6 @@ NumericTimeSubscriptable ...
             
             this = this@shared.GetterSetter( );
             this = this@shared.UserDataContainer( );
-            this = resetComment(this);
 
             % Cast struct as NumericTimeSubscriptable
             if nargin==1 && isstruct(varargin{1}) 
@@ -597,25 +596,41 @@ NumericTimeSubscriptable ...
                 return
             end
 
+            [dates, values] = varargin{1:2};
+            varargin(1:2) = [ ];
+
+            skipInputParserArgument = cell.empty(1, 0);
+            if nargin>=3 && isequal(varargin{end}, "--SkipInputParser")
+                skipInputParserArgument = varargin(end);
+                varargin(end) = [ ];
+            end
+            if ~isempty(varargin)
+                comment = varargin{1};
+                varargin(1) = [ ];
+            else
+                comment = [ ];
+            end
+            if ~isempty(varargin)
+                userData = varargin{1};
+                varargin(1) = [ ];
+            else
+                userData = [ ];
+            end
+
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('NumericTimeSubscriptable.NumericTimeSubscriptable');
-                %
-                % Required input arguments
-                %
+                pp.KeepDefaultOptions = true;
+
                 addRequired(pp, 'Dates', @DateWrapper.validateDateInput);
                 addRequired(pp, 'Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle'));
-                addOptional(pp, 'Comment', {char.empty(1, 0)}, @(x) isempty(x) || ischar(x) || iscellstr(x) || isa(x, 'string'));
-                addOptional(pp, 'UserData', [ ], @(x) true);
+                addRequired(pp, 'Comment', @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x));
+                addRequired(pp, 'UserData');
             end
-
-            pp.parse(varargin{:});
-            dates = pp.Results.Dates;
-            values = pp.Results.Values;
-            comment = pp.Results.Comment;
-            userData = pp.Results.UserData;
-            opt = pp.Options;
-
+            skip = maybeSkipInputParser(pp, skipInputParserArgument{:});
+            if ~skip
+                parse(pp, dates, values, comment, userData);
+            end
 
             %
             % Initialize the time series start date and data, trim data
@@ -627,7 +642,9 @@ NumericTimeSubscriptable ...
             %
             % Populate comments for each data column
             %
-            this = resetComment(this);
+            if ~skip
+                this = resetComment(this);
+            end
             if ~isempty(comment)
                 this.Comment = comment;
             end
@@ -636,7 +653,9 @@ NumericTimeSubscriptable ...
             %
             % Populate user data
             %
-            this = userdata(this, userData);
+            if ~isequal(userData, [ ])
+                this = userdata(this, userData);
+            end
         end%
     end
 end
