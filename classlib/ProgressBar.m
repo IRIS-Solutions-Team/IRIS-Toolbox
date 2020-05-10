@@ -3,7 +3,7 @@
 % Backend [IrisToolbox] class
 % No help provided
 
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling 
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 classdef ProgressBar < handle    
@@ -67,7 +67,7 @@ classdef ProgressBar < handle
             emptyBars = repmat(this.EMPTY_BAR, 1, this.NumProgress - numel(fullBars) - numel(partialBar));
             deleteLastIndicatorRow(this);
             this.LastIndicatorRow = [ 
-                this.DIVIDER, fullBars, partialBar, emptyBars, this.DIVIDER, ...
+                this.DIVIDER, fullBars, partialBar, emptyBars, this.DIVIDER ...
                 sprintf(' %5.1f%%', 100*fraction)
             ];
             fprintf('%s', this.LastIndicatorRow);
