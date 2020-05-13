@@ -1,9 +1,9 @@
-function [outputDatabank, status] = fromFred(fredSeriesId, varargin)
+function [outputDb, status] = fromFred(fredSeriesId, varargin)
 % fromFred  Download time series from FRED, the St Louis Fed databank
 %{
 % ## Syntax ##
 %
-%     [outputDatabank, status] = databank.fromFred(fredSeriesId, ...)
+%     [outputDb, status] = databank.fromFred(fredSeriesId, ...)
 %
 %
 % ## Input Arguments ##
@@ -16,7 +16,7 @@ function [outputDatabank, status] = fromFred(fredSeriesId, varargin)
 %
 % ## Output Arguments ##
 %
-% __`outputDatabank`__ [ struct ] - 
+% __`outputDb`__ [ struct ] - 
 % Output databank with requested time series.
 %
 % __`status`__ [ `true` | `false` ] - 
@@ -69,19 +69,20 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.fromFred');
     pp.KeepUnmatched = true;
-    addRequired(pp,  'fredSeriesID', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addRequired(pp,  'fredSeriesId', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
 
     addParameter(pp, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
     addParameter(pp, 'AggregationMethod', 'avg', @(x) any(strcmpi(x, {'avg', 'sum', 'eop'})));
-    addParameter(pp, 'Frequency', '', @hereValidateFrequency);
+    addParameter(pp, 'Frequency', '', @locallyValidateFrequency);
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
     addParameter(pp, 'URL', 'https://api.stlouisfed.org/fred', @(x) (ischar(x) || isa(x, 'string')) && strlength(x)>0);
 end
 parse(pp, fredSeriesId, varargin{:});
 opt = pp.Options;
 
-outputDatabank = databank.backend.ensureTypeConsistency( opt.AddToDatabank, ...
-                                                         opt.OutputType );
+outputDb = databank.backend.ensureTypeConsistency( ...
+    opt.AddToDatabank, opt.OutputType ...
+);
 
 opt.URL = char(opt.URL);
 if opt.URL(end)=='/'
@@ -96,9 +97,9 @@ if ~isempty(opt.Frequency)
     if isa(opt.Frequency, 'Frequency')
         opt.Frequency = toFredLetter(opt.Frequency);
     end
-    FREQUENCY_CONVERSION = sprintf( FREQUENCY_CONVERSION, ...
-                                    lower(opt.Frequency), ...
-                                    lower(opt.AggregationMethod) );
+    FREQUENCY_CONVERSION = sprintf( ...
+        FREQUENCY_CONVERSION, lower(opt.Frequency), lower(opt.AggregationMethod) ...
+    );
     REQUEST = [REQUEST, FREQUENCY_CONVERSION];
 end
 
@@ -125,21 +126,25 @@ for i = 1 : numSeries
         continue
     end
     try
-        x = hereExtractDataFromJson(jsonInfo, jsonData, opt);
-        outputDatabank.(char(databankName__)) = x;
+        x = locallyExtractDataFromJson(jsonInfo, jsonData, opt);
+        outputDb.(char(databankName__)) = x;
     catch Error
         dataRetrieved(i) = false;
     end
 end
 
 if any(~validSeriesId)
-    throw( exception.Base('Databank:InvalidSeriesId', 'warning'), ...
-           fredSeriesId{~validSeriesId} );
+    throw( ...
+        exception.Base('Databank:InvalidSeriesId', 'warning'), ...
+        fredSeriesId{~validSeriesId} ...
+    );
 end
 
 if any(~dataRetrieved)
-    throw( exception.Base('Databank:FailedToRetrieveData', 'warning'), ...
-           fredSeriesId{~dataRetrieved} );
+    throw( ...
+        exception.Base('Databank:FailedToRetrieveData', 'warning'), ...
+        fredSeriesId{~dataRetrieved} ...
+    );
 end
 
 status = all(validSeriesId) && all(dataRetrieved);
@@ -152,30 +157,34 @@ end%
 %
 
 
-function outputSeries = hereExtractDataFromJson(jsonInfo, jsonData, opt)
-    frequency = hereGetFrequencyFromJsonInfo(jsonInfo, opt);
-    if frequency==Frequency.DAILY
+function outputSeries = locallyExtractDataFromJson(jsonInfo, jsonData, opt)
+    freq = locallyGetFrequencyFromJsonInfo(jsonInfo, opt);
+    if freq==Frequency.DAILY
         dates = datenum( {jsonData.observations.date} );
     else
-        dates = str2dat( {jsonData.observations.date}, ...
-                         'DateFormat=', 'YYYY-MM-DD', ...
-                         'Freq=', frequency );
+        dates = str2dat( ...
+            {jsonData.observations.date}, ...
+            'DateFormat=', 'YYYY-MM-DD', ...
+            'Freq=', freq ...
+        );
     end
     numPeriods = numel(jsonData.observations);
     values = nan(numPeriods, 1);
     for i = 1 : numPeriods
-        ithValue = sscanf(jsonData.observations(i).value, '%g');
-        if isnumeric(ithValue) && numel(ithValue)==1
-            values(i) = ithValue;
+        value__ = sscanf(jsonData.observations(i).value, '%g');
+        if isnumeric(value__) && numel(value__)==1
+            values(i) = value__;
         end
     end
-    outputSeries = Series(dates, values, jsonInfo.seriess.title, jsonInfo.seriess);
+    outputSeries = Series( ...
+        dates, values, jsonInfo.seriess.title, jsonInfo.seriess, "--SkipInputParser" ...
+    );
 end%
 
 
 
 
-function frequency = hereGetFrequencyFromJsonInfo(jsonInfo, opt)
+function freq = locallyGetFrequencyFromJsonInfo(jsonInfo, opt)
     if ~isempty(opt.Frequency)
         frequencyLetter = opt.Frequency;
     else
@@ -184,15 +193,15 @@ function frequency = hereGetFrequencyFromJsonInfo(jsonInfo, opt)
     frequencyLetter = lower(frequencyLetter);
     switch frequencyLetter
         case 'm' 
-            frequency = Frequency.MONTHLY;
+            freq = Frequency.MONTHLY;
         case 'q'
-            frequency = Frequency.QUARTERLY;
+            freq = Frequency.QUARTERLY;
         case 'sa'
-            frequency = Frequency.HALFYEARLY;
+            freq = Frequency.HALFYEARLY;
         case 'a'
-            frequency = Frequency.YEARLY;
+            freq = Frequency.YEARLY;
         case 'd'
-            frequency = Frequency.DAILY;
+            freq = Frequency.DAILY;
         otherwise
             throw( exception.Base('Databank:CannotDetermineFrequencyFromJson', 'error') );
     end
@@ -201,11 +210,13 @@ end%
 
 
 
-function flag = hereValidateFrequency(input)
-    FREQUENCIES_ALLOWED = [ Frequency.YEARLY
-                            Frequency.HALFYEARLY
-                            Frequency.QUARTERLY
-                            Frequency.MONTHLY ];
+function flag = locallyValidateFrequency(input)
+    FREQUENCIES_ALLOWED = [ 
+        Frequency.YEARLY
+        Frequency.HALFYEARLY
+        Frequency.QUARTERLY
+        Frequency.MONTHLY
+    ];
     if isempty(input)
         flag = true;
         return
