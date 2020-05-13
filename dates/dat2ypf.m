@@ -69,7 +69,7 @@ end
 % Daily frequency
 %
 if any(inxDaily)
-    [year(inxDaily), ~] = datevec(dateCode);
+    [year(inxDaily), ~] = datevec(dateCode(inxDaily));
     startYear = datenum(year(inxDaily), 1, 1);
     per(inxDaily) = round(serial(inxDaily) - startYear + 1);
 end

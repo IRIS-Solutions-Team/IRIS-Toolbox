@@ -1,6 +1,6 @@
 % distribution.Distribution
 
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 classdef (Abstract) Distribution < matlab.mixin.Copyable

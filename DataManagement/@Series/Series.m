@@ -99,7 +99,6 @@ classdef ( ...
 
 
     methods (Static)
-        varargout = fromFred(varargin)
         varargout = linearTrend(varargin)
         varargout = implementPlot(varargin)
         varargout = empty(varargin)

@@ -4,7 +4,7 @@ function [this, exitFlag, nanDeriv, sing1, bk] = solveFirstOrder(this, variantsR
 % Backend [IrisToolbox] method
 % No help provided
 
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %

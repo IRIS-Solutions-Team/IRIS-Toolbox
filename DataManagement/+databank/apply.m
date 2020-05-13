@@ -1,5 +1,5 @@
 function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank, varargin)
-% apply  Apply function to selection of databank fields
+% databank.apply  Apply function to selection of databank fields
 %{
 % ## Syntax ##
 %
@@ -110,8 +110,8 @@ function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank,
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 

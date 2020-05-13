@@ -1,16 +1,16 @@
-function outputDatabank = retrieveDatabank(this, range, varargin)
+function outputDb = retrieveDatabank(this, range, varargin)
 % retrieveDatabank  Retrieve batch of time series from ExcelSheet into databank
 %{
 % ## Syntax ##
 %
-%     outputDatabank = retrieveDatabank(excelSheet, excelRange, ...)
+%     outputDb = retrieveDatabank(excelSheet, excelRange, ...)
 %
 %
 % ## Input Arguments ##
 %
 % __`excelSheet`__ [ ExcelSheet ] -
 % ExcelSheet object from which the time series will be retrieved and
-% returned in an `outputDatabank`; `excelSheet` needs to have its
+% returned in an `outputDb`; `excelSheet` needs to have its
 % `NamesLocation` property assigned.
 %
 % __`range`__ [ char | string | numeric ] - Excel row range (if the
@@ -67,8 +67,9 @@ if isequaln(this.NamesLocation, NaN)
     throw( exception.Base(thisError, 'error') );
 end
 
-outputDatabank = databank.backend.ensureTypeConsistency( opt.AddToDatabank, ...
-                                                         opt.OutputType );
+outputDb = databank.backend.ensureTypeConsistency( ...
+    opt.AddToDatabank, opt.OutputType ...
+);
 
 if this.Orientation=="Row"
     if ~isnumeric(range)
@@ -89,11 +90,11 @@ end
 
 return
 
-    function outputDatabank = hereCreateOutputDatank( )
+    function outputDb = hereCreateOutputDatank( )
         if strcmpi(opt.OutputType, 'Dictionary')
-            outputDatabank = Dictionary( );
+            outputDb = Dictionary( );
         else
-            outputDatabank = struct( );
+            outputDb = struct( );
         end
     end%
 
@@ -116,9 +117,9 @@ return
 
     function hereAddEntryToOutputDatabank(name, x)
         if strcmpi(opt.OutputType, 'Dictionary')
-            store(outputDatabank, name, x);
+            store(outputDb, name, x);
         else
-            outputDatabank.(char(name)) = x;
+            outputDb.(char(name)) = x;
         end
     end%
 end%

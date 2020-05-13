@@ -362,7 +362,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
 
     methods (Static)
-        varargout = fromFred(varargin)
         varargout = linearTrend(varargin)
         varargout = implementPlot(varargin)
         varargout = empty(varargin)

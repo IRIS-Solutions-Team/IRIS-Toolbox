@@ -63,10 +63,10 @@ end%
 
 
 function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
+    start = double(start);
     lastDimSize = size(data, numDims);
     numPeriods = size(data, 1);
     sep = sprintf(':  ');
-    num2strFunc = @(x) fnum2str(x, cfg.SeriesFormat);
     if numDims>2
         subsref = cell([1, numDims]);
         subsref(1:numDims-1) = {':'};
@@ -76,29 +76,38 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
                     [i, pos], name, disp2dFunc, numDims-1, cfg );
         end
     else
+        toCharFunc = @(x) numericToChar(x, cfg.SeriesFormat);
         if ~isempty(pos)
             fprintf('%s{:, :%s} =\n', name, sprintf(', %g', pos));
             textual.looseLine( );
         end
         if numPeriods>0
-            X = feval(disp2dFunc, start, data, cfg.DispIndent, sep, num2strFunc);
-            % Reduce the number of white spaces between numbers to 5 at most
-            X = reduceSpaces(X, cfg.SeriesMaxWSpace);
-            % Print the dates and data
-            disp(X);
+            try
+                % Create and display 2D table
+                temp = Series.createTable(start, data, comment);
+                disp(temp);
+            catch
+                % Legacy method
+                range = DateWrapper.roundPlus(start, 0:numPeriods-1);
+                temp = feval(disp2dFunc, start, data, cfg.DispIndent, sep, toCharFunc);
+                % Reduce the number of white spaces between numbers to 5 at most
+                temp = reduceSpaces(temp, cfg.SeriesMaxWSpace);
+                % Print the dates and data
+                disp(temp);
+            end
         end
         % Make sure long scalar comments are never displayed as `[1xN char]`.
         textual.looseLine( );
-        disp([{'Dates'}, comment]);
+        disp(["Dates", string(comment)]);
     end
 end%
 
 
 
 
-function x = disp2d(start, data, indent, sep, num2strFunc)
+function x = disp2d(start, data, indent, sep, toCharFunc)
     numPeriods = size(data, 1);
-    range = start + (0 : numPeriods-1);
+    range = DateWrapper.roundPlus(start, 0:numPeriods-1);
     dates = strjust(dat2char(range));
     if DateWrapper.getFrequencyAsNumeric(start)==Frequency.WEEKLY
         dateFormatW = '$ (Aaa DD-Mmm-YYYY)';
@@ -108,7 +117,7 @@ function x = disp2d(start, data, indent, sep, num2strFunc)
     dates = [ repmat(indent, numPeriods, 1), ...
               dates, ...
               repmat(sep, numPeriods, 1) ];
-    dataChar = num2strFunc(data);
+    dataChar = toCharFunc(data);
     x = [dates, dataChar];
 end%
 
@@ -126,18 +135,18 @@ end%
 
 
 
-function c = fnum2str(x, fmt)
-    if isempty(fmt)
+function c = numericToChar(x, format)
+    if isempty(format)
         c = num2str(x);
     else
-        c = num2str(x, fmt);
+        c = num2str(x, format);
     end
 end%
 
 
 
 
-function x = disp2dDaily(start, data, indent, sep, num2strFunc)
+function x = disp2dDaily(start, data, indent, sep, toCharFunc)
     MAX_DAYS_IN_MONTH = 31;
 
     [numPeriods, nx] = size(data);
@@ -193,7 +202,7 @@ function x = disp2dDaily(start, data, indent, sep, num2strFunc)
     divider = divider(ones(size(x, 1)+1, 1), :);
     dataStr = '';
     for i = 1 : MAX_DAYS_IN_MONTH
-        c = num2strFunc(x(:, i));
+        c = toCharFunc(x(:, i));
         ixExist = i<=lastDay;
         if any(~ixExist)
             for j = find(~ixExist(:).')
@@ -214,7 +223,7 @@ end%
 
 
 
-function x = disp2dYearly(start, data, tab, separator, num2strFunc)
+function x = disp2dYearly(start, data, tab, separator, toCharFunc)
     % `data` is always a vector or a 2D matrix; no higher dimensions
     [numPeriods, nx] = size(data);
     freq = DateWrapper.getFrequencyAsNumeric(start);
@@ -272,7 +281,7 @@ function x = disp2dYearly(start, data, tab, separator, num2strFunc)
     dates = [ repmat(' ', 1, size(dates, 2)) ; dates ];
 
     % Add header line with periods over columns.
-    dataChar = feval(num2strFunc, [1:maxPiy; dataTable]);
+    dataChar = feval(toCharFunc, [1:maxPiy; dataTable]);
 
     % Add the frequency letter to period numbers in the header line.
     c = dataChar(1, :);

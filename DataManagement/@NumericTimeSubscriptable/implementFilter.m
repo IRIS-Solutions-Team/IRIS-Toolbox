@@ -4,7 +4,7 @@ function varargout = implementFilter(order, inp, range, opt)
 % Backend [IrisToolbox] method
 % No help provided
 
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % Function `implementFilter` is called from within `hpf`, `llf` and `bwf`.

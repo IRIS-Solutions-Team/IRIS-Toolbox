@@ -1,30 +1,33 @@
-function runningDatabank = ensureTypeConsistency(runningDatabank, outputType)
-% ensureTypeConsistency  Ensure consistency of input/output databank and option OutputType
+function runningDb = ensureTypeConsistency(runningDb, outputType)
+% databank.backend.ensureTypeConsistency  Ensure consistency
+% of input/output databank and option OutputType
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-if isequal(runningDatabank, [ ]) || isequal(runningDatabank, false)
+if isequal(runningDb, [ ]) || isequal(runningDb, false)
     if strcmpi(outputType, 'containers.Map')
-        runningDatabank = containers.Map('KeyType', 'char', 'ValueType', 'any');
+        runningDb = containers.Map('KeyType', 'char', 'ValueType', 'any');
     elseif strcmpi(outputType, 'Dictionary')
-        runningDatabank = Dictionary( );
+        runningDb = Dictionary( );
     else
-        runningDatabank = struct( );
+        runningDb = struct( );
     end
 else
-    if isa(runningDatabank, outputType)
+    if isa(runningDb, outputType)
         return
     end
-    THIS_ERROR = { 'Databank:InvalidDatabankFormat'
-                   [ 'The type of the databank in option AddToDatabank= ', ...
-                     'is not consistent with option OutputType= ' ] };
-    throw( exception.Base(THIS_ERROR, 'error') );
+    thisError = [
+        "Databank:InvalidDatabankFormat"
+        "The databank type in option AddToDatabank= "
+        "is not consistent with the option OutputType= "
+    ];
+    throw(exception.Base(thisError, 'error'));
 end
 
 end%
