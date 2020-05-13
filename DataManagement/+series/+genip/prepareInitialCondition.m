@@ -1,6 +1,6 @@
 function Xi0 = prepareInitialCondition(transition, hard, highRange, inxInit, opt)
 
-numInit = transition.Order;
+numInit = transition.NumInit;
 
 if numInit==0
     Xi0 = double.empty(0, 1);
