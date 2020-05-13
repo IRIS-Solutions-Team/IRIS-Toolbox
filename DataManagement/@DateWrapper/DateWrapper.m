@@ -9,8 +9,8 @@ classdef DateWrapper < double
             sizeThis = size(this);
             sizeString = sprintf('%gx', sizeThis);
             sizeString(end) = '';
-            empty = any(sizeThis==0);
-            if empty
+            isEmpty = any(sizeThis==0);
+            if isEmpty
                 frequencyDisplayName = 'Empty';
             else
                 freq = DateWrapper.getFrequency(this);
@@ -22,11 +22,16 @@ classdef DateWrapper < double
                 end
             end
             fprintf('  %s %s Date(s)\n', sizeString, frequencyDisplayName);
-            if ~empty
-                textfun.loosespace( )
-                disp( DateWrapper.toCellstr(this) )
+            if ~isEmpty
+                textual.looseLine( );
+                print = DateWrapper.toDefaultString(this);
+                if isscalar(this)
+                    disp(["    """ + print + """"]);
+                else
+                    disp(print);
+                end
             end
-            textfun.loosespace( )
+            textual.looseLine( );
         end%
         
         
@@ -340,32 +345,62 @@ classdef DateWrapper < double
         end%
 
 
-        function dateCode = getDateCodeFromSerial(freq, serial)
-            serial0 = serial;
-            serial = round(serial);
-            inxRound = serial==serial0 | isnan(serial);
-            if any(~inxRound)
-                report = num2cell( serial0(~inxRound) );
-                throw( exception.Base('Dates:NonIntegerSerialNumber', 'error'), ...
-                       report{:} );
-            end
+        function dateCode = fromIsoStringAsNumeric(freq, isoDate)
             freq = double(freq);
-            %inxFreqCodes = freq~=Frequency.INTEGER & freq~=Frequency.DAILY;
+            reshapeOutput = size(isoDate);
+            isoDate = reshape(extractBefore(string(isoDate), 11), 1, [ ]);
+            isoDate = join(replace(isoDate, "-", " "), " ");
+            ymd = sscanf(isoDate, "%g");
+            serial = Frequency.ymd2serial(freq, ymd(1:3:end), ymd(2:3:end), ymd(3:3:end)); 
+            dateCode = DateWrapper.getDateCodeFromSerial(freq, serial);
+            dateCode = reshape(dateCode, reshapeOutput);
+        end%
+
+
+        function this = fromIsoString(varargin)
+            dateCode = DateWrapper.fromIsoStringAsNumeric(varargin{:});
+            this = DateWrapper(dateCode);
+        end%
+
+
+        function isoDate = toIsoString(this)
+            if isempty(this)
+                isoDate = string.empty(size(this));
+                return
+            end
+            freq = DateWrapper.getFrequencyAsNumeric(this);
+            if ~Frequency.sameFrequency(freq)
+                thisError = [
+                    "DateWrapper:ToIsoString"
+                    "Cannot convert dates of multiple date frequencies "
+                    "in one run of the function."
+                ];
+                throw(exception.Base(thisError, 'error'));
+            end
+            reshapeOutput = size(this);
+            [year, month, day] = Frequency.serial2ymd(freq(1), floor(this));
+            isoDate = compose("%04g-%02g-%02g", [year(:), month(:), day(:)]);
+            isoDate = reshape(isoDate, reshapeOutput);
+        end%
+
+
+        function dateCode = getDateCodeFromSerial(freq, serial)
+            freq = double(freq);
             inxFreqCodes = freq~=0 & freq~=365;
             freqCode = zeros(size(freq));
             freqCode(inxFreqCodes) = double(freq(inxFreqCodes)) / 100;
-            dateCode = serial + freqCode;
+            dateCode = round(serial) + freqCode;
         end%
 
 
         function this = fromDatetime(frequency, dt)
-            serial = ymd2serial(frequency, year(dt), month(dt), day(dt));
+            serial = Frequency.ymd2serial(frequency, year(dt), month(dt), day(dt));
             this = DateWrapper.fromSerial(frequency, serial);
         end%
 
 
         function dateCode = fromDatetimeAsNumeric(freq, dt)
-            serial = ymd2serial(freq, year(dt), month(dt), day(dt));
+            serial = Frequency.ymd2serial(freq, year(dt), month(dt), day(dt));
             dateCode = DateWrapper.getDateCodeFromSerial(freq, serial);
         end%
 
@@ -607,31 +642,44 @@ classdef DateWrapper < double
         function s = toDefaultString(dates)
             dates = double(dates);
             s = repmat("", size(dates));
+
             [year, per, freq] = dat2ypf(dates);
             freqLetter = Frequency.toLetter(freq);
-            inxNaN = isnan(dates);
-            inxYearly = freq==Frequency.YEARLY;
-            inxMonthly = freq==Frequency.MONTHLY;
-            inxWeekly = freq==Frequency.WEEKLY;
-            inxDaily = freq==Frequency.DAILY;
-            inxInteger = freq==Frequency.INTEGER;
-            if any(inxNaN(:))
-                s(inxNaN) = "NaD";
+            
+            inx = isnan(dates);
+            if nnz(inx)>0
+                s(inx) = "NaD";
             end
-            for i = find(inxDaily)
-                s(i) = datestr(dates(i), 'yyyy-mmm-dd');
+
+            inx = freq==0;
+            if nnz(inx)>0
+                s(inx) = compose("%g", dates(inx));
             end
-            for i = find(inxInteger)
-                s(i) = sprintf('%g', dates(i));
+
+            inx = freq==365;
+            if nnz(inx)>0
+                s(inx) = datestr(dates(inx), "yyyy-mmm-dd");
             end
-            for i = find(inxYearly)
-                s(i) = sprintf('%g%s', year(i), freqLetter(i));
+
+            inx = freq==1;
+            if nnz(inx)>0
+                s(inx) = compose( ...
+                    "%g%s", [reshape(year(inx), [ ], 1), reshape(freqLetter(inx), [ ], 1)] ...
+                );
             end
-            for i = find(inxMonthly | inxWeekly)
-                s(i) = sprintf('%g%s%02g', year(i), freqLetter(i), per(i));
+
+            inx = freq==12 | freq==52;
+            if nnz(inx)>0
+                s(inx) = compose( ...
+                    "%g%s%02g", [reshape(year(inx), [ ], 1), reshape(freqLetter(inx), [ ], 1), reshape(per(inx), [ ], 1)] ...
+                );
             end
-            for i = find(~inxNaN & ~inxDaily & ~inxInteger & ~inxYearly & ~inxMonthly & ~inxWeekly)
-                s(i) = sprintf('%g%s%g', year(i), freqLetter(i), per(i));
+
+            inx = freq==2 | freq==4;
+            if nnz(inx)>0
+                s(inx) = compose( ...
+                    "%g%s%g", [reshape(year(inx), [ ], 1), reshape(freqLetter(inx), [ ], 1), reshape(per(inx), [ ], 1)] ...
+                );
             end
         end%
 
