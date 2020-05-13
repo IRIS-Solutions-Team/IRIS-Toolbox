@@ -18,18 +18,18 @@ end
 hereNormalizeIndicator( );
 hereCreateFlippedTimeSeries( );
 
+numInit = transition.NumInit;
 numWithin = size(aggregation.Model, 2);
-numInit = transition.Order;
 
 numLowPeriods = size(lowLevel, 1);
 numHighPeriods = numWithin*numLowPeriods;
 
 if isequal(transition.Order, 0)
     R = eye(numHighPeriods);
-    T = zeros(numHighPeriods, 0);
+    T = zeros(numHighPeriods, numInit);
 elseif isequal(transition.Order, 1)
     R = triu(toeplitz(ones(1, numHighPeriods)));
-    T = ones(numHighPeriods, 1);
+    T = [ones(numHighPeriods, 1), zeros(numHighPeriods, 1)];
 elseif isequal(transition.Order, 2)
     R = triu(toeplitz(1:numHighPeriods));
     T = [ (numHighPeriods+1:-1:2)', -(numHighPeriods:-1:1)' ];
@@ -55,9 +55,11 @@ hereAddAggregation( );
 
 
 %
-% Add hard.Level to measurement
+% Add hard conditions to measurement
 %
-hereAddConditionsLevel( );
+hereAddHardLevel( );
+hereAddHardDiff( );
+hereAddHardRate( );
 
 
 %
@@ -95,6 +97,12 @@ return
         if ~isempty(hard.Level)
             hard.LevelFlipped = hard.Level(end:-1:1);
         end
+        if ~isempty(hard.Diff)
+            hard.DiffFlipped = hard.Diff(end:-1:1);
+        end
+        if ~isempty(hard.Rate)
+            hard.RateFlipped = hard.Rate(end:-1:1);
+        end
         %)
     end%
 
@@ -118,7 +126,7 @@ return
     end%
 
 
-    function hereAddConditionsLevel( )
+    function hereAddHardLevel( )
         %(
         if isempty(hard.Level)
             return
@@ -128,12 +136,54 @@ return
 
         inxConditionsLevel = isfinite(hard.LevelFlipped);
         if any(inxConditionsLevel)
-            numConditionsLevel = nnz(inxConditionsLevel);
-            addZ = eye(numHighPeriods+numInit, numHighPeriods+numInit);
+            numHardLevel = nnz(inxConditionsLevel);
+            addZ = eye(numHighPeriods+numInit);
             addZ = addZ(inxConditionsLevel, :);
             Z = [Z; addZ];
             Y = [Y; reshape(hard.LevelFlipped(inxConditionsLevel), [ ], 1)];
-            H = [H; zeros(numConditionsLevel, 0)];
+            H = [H; zeros(numHardLevel, 0)];
+        end
+        %)
+    end%
+
+
+    function hereAddHardDiff( )
+        %(
+        if isempty(hard.Diff)
+            return
+        end
+        
+        hard.DiffFlipped(end-numInit+1:end) = NaN;
+
+        inxHardDiff = isfinite(hard.DiffFlipped);
+        if any(inxHardDiff)
+            numHardDiff = nnz(inxHardDiff);
+            addZ = eye(numHighPeriods+numInit) - diag(ones(numHighPeriods+numInit-1, 1), 1);
+            addZ = addZ(inxHardDiff, :);
+            Z = [Z; addZ];
+            Y = [Y; reshape(hard.DiffFlipped(inxHardDiff), [ ], 1)];
+            H = [H; zeros(numHardDiff, 0)];
+        end
+        %)
+    end%
+
+
+    function hereAddHardRate( )
+        %(
+        if isempty(hard.Rate)
+            return
+        end
+        
+        hard.RateFlipped(end-numInit+1:end) = NaN;
+
+        inxHardRate = isfinite(hard.RateFlipped);
+        if any(inxHardRate)
+            numHardRate = nnz(inxHardRate);
+            addZ = eye(numHighPeriods+numInit) - diag(hard.RateFlipped(1:end-1), 1);
+            addZ = addZ(inxHardRate, :);
+            Z = [Z; addZ];
+            Y = [Y; zeros(numHardRate, 1)];
+            H = [H; zeros(numHardRate, 0)];
         end
         %)
     end%

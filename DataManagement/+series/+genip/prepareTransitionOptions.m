@@ -9,15 +9,15 @@ function transition = prepareTransitionOptions(transition, highRange, opt)
 
 %--------------------------------------------------------------------------
 
-numInit = transition.Order;
 highRange = double(highRange);
 highStart = highRange(1);
 highEnd = highRange(end);
 canHaveMissing = false;
 
-transition.Rate = opt.TransitionRate;
-transition.Intercept = opt.TransitionIntercept;
-transition.Std = opt.TransitionStd;
+transition.NumInit = 2;
+transition.Rate = opt.Transition_Rate;
+transition.Intercept = opt.Transition_Intercept;
+transition.Std = opt.Transition_Std;
 
 if isa(transition.Std, 'NumericTimeSubscriptable')
     transition.Std = getDataFromTo(transition.Std, highStart, highEnd);

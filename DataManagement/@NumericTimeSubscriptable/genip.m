@@ -1,11 +1,13 @@
-function [output, info, Xi] = genip(lowInput, toFreq, transitionOrder, aggregationModel, varargin)
+%(
+%
 % genip  Generalized indicator based interpolation
-%{
+%
+%
 % Syntax
 %--------------------------------------------------------------------------
 %
 %
-%     [highOutput, info] = genip(lowInput, highFreq, transitionOrder, aggregationModel, ...)
+%     [highOutput, info] = genip(lowInput, highFreq, order, aggregation, ...)
 %
 %
 % Input Arguments
@@ -14,28 +16,28 @@ function [output, info, Xi] = genip(lowInput, toFreq, transitionOrder, aggregati
 %
 % __`lowInput`__ [ Series ] 
 %
-%     Low-frequency input series that will be interpolated to the `toFreq`
+%     Low-frequency input series that will be interpolated to the `highFreq`
 %     frequency using the `Indicator`, hard conditions specified in `Hard=`,
 %     and soft conditions specified in `Soft=`.
 %
 %
-% __`toFreq`__ [ Frequency ]
+% __`highFreq`__ [ Frequency ]
 %
 %     Target frequency to which the `lowInput` series will be interpolated;
-%     `toFreq` must be higher than the date frequency of the `lowInput`.
+%     `highFreq` must be higher than the date frequency of the `lowInput`.
 %
 %
-% __`transitionOrder`__ [ `0` | `1` | `2` ]
+% __`order`__ [ `0` | `1` | `2` ]
 %
-%     Type of state-space transitionOrder for the dynamics of the
-%     interpolated series, and for the relationship between the
-%     interpolated series and the indicator (if included).
+%     Autoregressive order of the transition equation for the dynamics
+%     of the interpolated series, and for the relationship between
+%     the interpolated series and the indicator (if included).
 %
 %
-% __`aggregationModel`__ [ `"Mean"` | `"Sum"` | `"First"` | `"Last"` | numeric ]
+% __`aggregation`__ [ `"Mean"` | `"Sum"` | `"First"` | `"Last"` | numeric ]
 %
 %     Type of aggregation of quarterly observations to yearly observations;
-%     the `aggregationModel` can be assigned a `1-by-N` numeric vector with
+%     the `aggregation` can be assigned a `1-by-N` numeric vector with
 %     the weights given, respectively, for the individual high-frequency
 %     periods within the encompassing low-frequency period.
 %
@@ -148,7 +150,7 @@ function [output, info, Xi] = genip(lowInput, toFreq, transitionOrder, aggregati
 % `Indicator.Level=` and `Indicator.Model="Ratio"`;
 %
 % \( L \) is the lag operator, \( k \) is the order of differencing
-% specified by `transitionOrder`, and \(\rho\) is the transition rate of
+% specified by `order`, and \(\rho\) is the transition rate of
 % autoregression specified in `Transition.Rate=`.
 %
 %
@@ -168,13 +170,14 @@ function [output, info, Xi] = genip(lowInput, toFreq, transitionOrder, aggregati
 % is the number of high-frequency periods within one low-frequency period:
 % the unobserved high-frequency lags \(t-N, \dots, t-1, t\).
 % 
-% * \( Z \) is a time-invariant aggregation matrix depending on the option
-% `Aggregation=`: 
-% \( Z=[1, 1, 1, 1] \) for `aggregationModel="Sum"`, 
-% \( Z=[1/4, 1/4, 1/4, 1/4] \) for `aggregationModel="Average"`, 
-% \( Z=[0, 0, 0, 1] \) for `aggregationModel="Last"`, 
-% \( Z=[1, 0, 0, 0] \) for `aggregationModel="First"`, 
-% or a user supplied 1-by-4 vector
+% * \( Z \) is a time-invariant aggregation matrix depending on
+% `aggregation`: 
+%
+%     * \( Z=[1, 1, 1, 1] \) for `aggregation="Sum"`, 
+%     * \( Z=[1/4, 1/4, 1/4, 1/4] \) for `aggregation="Average"`, 
+%     * \( Z=[0, 0, 0, 1] \) for `aggregation="Last"`, 
+%     * \( Z=[1, 0, 0, 0] \) for `aggregation="First"`, 
+%     * or a user supplied 1-by-\( N \) vector
 %
 % * \( v_t \) is a transition error with constant variance
 %
@@ -185,7 +188,9 @@ function [output, info, Xi] = genip(lowInput, toFreq, transitionOrder, aggregati
 % Example
 %--------------------------------------------------------------------------
 %
-%}
+%)
+
+function [output, info, Xi] = genip(lowInput, highFreq, transitionOrder, aggregationModel, varargin)
 
 if isempty(lowInput)
     output = lowInput;
@@ -199,9 +204,9 @@ if isempty(pp)
     pp.KeepDefaultOptions = true;
 
     addRequired(pp, 'lowInput', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(pp, 'toFreq', @(x) isa(x, 'Frequency') || isnumeric(x));
-    addRequired(pp, 'transitionOrder', @(x) isequal(x, 0) || isequal(x, 1) || isequal(x, 2) || validate.anyString(x, 'Level', 'Diff', 'DiffDiff'));
-    addRequired(pp, 'aggregationModel', @(x) locallyValidateAggregation(x));
+    addRequired(pp, 'highFreq', @(x) isa(x, 'Frequency') || isnumeric(x));
+    addRequired(pp, 'order', @(x) isequal(x, 0) || isequal(x, 1) || isequal(x, 2) || validate.anyString(x, 'Level', 'Diff', 'DiffDiff'));
+    addRequired(pp, 'aggregation', @(x) locallyValidateAggregation(x));
 
     % Options
     addParameter(pp, 'Range', Inf, @(x) isequal(x, Inf) || DateWrapper.validateProperRangeInput(x));
@@ -229,7 +234,7 @@ end
 
 [skip, opt] = maybeSkipInputParser(pp, varargin{:});
 if ~skip
-    parse(pp, lowInput, toFreq, transitionOrder, aggregationModel, varargin{:});
+    parse(pp, lowInput, highFreq, transitionOrder, aggregationModel, varargin{:});
     opt = pp.Options;
 end
 
@@ -258,10 +263,8 @@ numLowPeriods = round(lowEnd - lowStart + 1);
 %
 % Define high-frequency dates
 %
-numInit = transition.Order;
-highStart = numeric.convert(lowStart, toFreq, "--SkipInputParser");
-highExtStart = DateWrapper.roundPlus(highStart, -numInit);
-highEnd = numeric.convert(lowEnd, toFreq, 'ConversionMonth=', 'Last', "--SkipInputParser");
+highStart = numeric.convert(lowStart, highFreq, "--SkipInputParser");
+highEnd = numeric.convert(lowEnd, highFreq, 'ConversionMonth=', 'Last', "--SkipInputParser");
 numHighPeriods = numWithin*numLowPeriods;
 
 %
@@ -283,6 +286,8 @@ aggregation = series.genip.prepareAggregation(aggregationModel, numLowPeriods, n
 %
 lowLevel = hereGetLowLevelData( );
 
+
+numInit = transition.NumInit;
 if ~isempty(hard.Level) && all(isfinite(hard.Level))
     outputData = hard.Level;
     if numInit>0
@@ -326,6 +331,7 @@ end
 %
 % Create output time series
 %
+highExtStart = DateWrapper.roundPlus(highStart, -numInit);
 output = Series(highExtStart, outputData);
 
 
@@ -336,7 +342,7 @@ info = struct( );
 if nargout>=2
     wholeRange = opt.Range(1) : opt.Range(end);
     info.LowFreq = fromFreq;
-    info.HighFreq = toFreq;
+    info.HighFreq = highFreq;
     info.LowRange = DateWrapper(lowStart):DateWrapper(lowEnd);
     info.HighRange = DateWrapper(highStart):DateWrapper(highEnd);
     info.EffectiveLowRange = wholeRange(inxRunLow);
@@ -351,15 +357,15 @@ return
     function [fromFreq, numWithin] = hereResolveFrequencyConversion( )
         %(
         fromFreq = lowInput.Frequency;
-        if double(toFreq)<=double(fromFreq)
+        if double(highFreq)<=double(fromFreq)
             thisError = [ 
                 "NumericTimeSubscriptable:CannotInterpolateToLowerFreq"
                 "Series can only be interpolated from a lower to a higher frequency. "
                 "You are attempting to interpolate from %s to %s." 
             ];
-            throw(exception.Base(THIS_ERROR, 'error'), char(fromFreq), char(toFreq));
+            throw(exception.Base(THIS_ERROR, 'error'), char(fromFreq), char(highFreq));
         end
-        numWithin = double(toFreq)/double(fromFreq);
+        numWithin = double(highFreq)/double(fromFreq);
         if numWithin~=round(numWithin)
             thisError = [ 
                 "NumericTimeSubscriptable:CannotInterpolateToLowerFreq"
@@ -367,7 +373,7 @@ return
                 "YEARLY, HALFYEARLY, QUARTERLY and MONTHLY frequencies. "
                 "You are attempting to interpolate from %s to %s." 
             ];
-            throw(exception.Base(THIS_ERROR, 'error'), char(fromFreq), char(toFreq));
+            throw(exception.Base(THIS_ERROR, 'error'), char(fromFreq), char(highFreq));
         end
         %)
     end%
@@ -433,6 +439,8 @@ return
             outputData = hard.LevelUnclipped;
             outputData(inxRunHigh) = x__;
         end
+        % Remove ill-identified initial conditions from the output data
+        outputData(1:numInit-transition.Order) = NaN;
         %)
     end%
 end%
@@ -480,8 +488,8 @@ end%
 function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     locallyClipRange(lowLevel, hard, indicator, transition, aggregation)
     %(
+    numInit = transition.NumInit;
     numLowPeriods = size(lowLevel, 1);
-    numInit = transition.Order;
     numWithin = size(aggregation.Model, 2);
     numHighPeriods = numWithin*numLowPeriods;
 
@@ -522,6 +530,12 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
         hard.Level = hard.Level(inxRunHigh);
         if ~isempty(indicator.Level)
             indicator.Level = indicator.Level(inxRunHigh);
+        end
+        if ~isempty(hard.Diff)
+            hard.Diff = hard.Diff(inxRunHigh);
+        end
+        if ~isempty(hard.Rate)
+            hard.Rate = hard.Rate(inxRunHigh);
         end
     end
     %)
