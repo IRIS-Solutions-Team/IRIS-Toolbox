@@ -55,15 +55,15 @@ return
             Xi0 = zeros(0, 1);
         else
             if isempty(Xi0)
-                Xi0 = nan(size(T, 1), 1);
+                Xi0 = nan(size(T, 2), 1);
             end
             inxXi0 = isfinite(Xi0);
             if any(~inxXi0)
                 T1 = T(:, inxXi0);
                 T2 = T(:, ~inxXi0);
                 U0 = Y - (Z*(T1*Xi0(inxXi0, :) + k) + d);
-                temp = (T2'*Z'*(FiZ*T2)) \ (T2'*(FiZ'*U0));
-                Xi0(~inxXi0, :) = (T2'*Z'*(FiZ*T2)) \ (T2'*(FiZ'*U0));
+                % Xi0(~inxXi0, :) = (T2'*Z'*(FiZ*T2)) \ (T2'*(FiZ'*U0));
+                Xi0(~inxXi0, :) = pinv(T2'*Z'*(FiZ*T2)) * (T2'*(FiZ'*U0));
             end
         end
         %)

@@ -27,6 +27,8 @@ NumericTimeSubscriptable ...
             missingValue = this.MissingValue;
             if isequaln(missingValue, NaN)
                 missingTest = @isnan;
+            elseif isequaln(missingValue, missing)
+                missingTest = @ismissing;
             else
                 missingTest = @(x) x==missingValue;
             end
@@ -102,6 +104,7 @@ NumericTimeSubscriptable ...
         end%
 
 
+        varargout = table(varargin)
         varargout = vertcat(varargin)
         varargout = yearly(varargin)
     end
@@ -129,7 +132,7 @@ NumericTimeSubscriptable ...
 
 
         function checkDataClass(this, data)
-            if isnumeric(data) || islogical(data)
+            if isnumeric(data) || islogical(data) || isstring(data)
                 return
             end
             thisError = [ "NumericTimeSubscriptable:InvalidClassOfData"
@@ -149,12 +152,14 @@ NumericTimeSubscriptable ...
         function this = resetMissingValue(this, values)
             if isa(values, 'single')
                 this.MissingValue = single(NaN);
-            elseif isa(values, 'logical')
+            elseif islogical(values)
                 this.MissingValue = false;
             elseif isinteger(values)
                 this.MissingValue = zeros(1, 1, class(values));
             elseif isnumeric(values) && ~isreal(values)
                 this.MissingValue = complex(NaN, NaN);
+            elseif isstring(values)
+                this.MissingValue = string(missing( ));
             else
                 this.MissingValue = NaN;
             end
@@ -173,6 +178,7 @@ NumericTimeSubscriptable ...
 
 
     methods (Static)
+        varargout = createTable(varargin)
         varargout = getExpSmoothMatrix(varargin)
         varargout = linearTrend(varargin)
     end
@@ -623,7 +629,7 @@ NumericTimeSubscriptable ...
                 pp.KeepDefaultOptions = true;
 
                 addRequired(pp, 'Dates', @DateWrapper.validateDateInput);
-                addRequired(pp, 'Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle'));
+                addRequired(pp, 'Values', @(x) isnumeric(x) || islogical(x) || isa(x, 'function_handle') || isstring(x));
                 addRequired(pp, 'Comment', @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x));
                 addRequired(pp, 'UserData');
             end

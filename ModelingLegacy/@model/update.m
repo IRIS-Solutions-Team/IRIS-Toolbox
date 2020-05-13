@@ -4,7 +4,7 @@ function [this, ok] = update(this, p, variantRequested)
 % Backend [IrisToolbox] function
 % No help provided
 
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 if nargin<3

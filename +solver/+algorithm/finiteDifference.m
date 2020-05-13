@@ -4,7 +4,7 @@ function [g, addCount] = finiteDifference(objectiveFuncReshaped, x, f, step, jac
 % Backend [IrisToolbox] method
 % No help provided
 
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------

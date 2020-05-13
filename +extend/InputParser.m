@@ -19,7 +19,7 @@ classdef InputParser < inputParser
 
 
     properties (Constant)
-        ERASE_CHARS = {'=', '.'}
+        REPLACE = @(x) replace(x, ["=", "."], ["", "_"]);
     end
 
 
@@ -40,14 +40,14 @@ classdef InputParser < inputParser
         end%
 
 
-        function parse(this, varargin)
+        function opt = parse(this, varargin)
             % Remove = and . from option names
             for i = numel(varargin)-1 : -2 : 1
-                if ~( ischar(varargin{i}) || (isa(varargin{i}, 'string') && isscalar(varargin{i})) )
+                if ~( ischar(varargin{i}) || (isstring(varargin{i}) && isscalar(varargin{i})) )
                     break
                 end
                 if endsWith(varargin{i}, '=')
-                    varargin{i} = erase(varargin{i}, {'=', '.'});
+                    varargin{i} = this.REPLACE(varargin{i});
                 end
             end
             
@@ -97,6 +97,10 @@ classdef InputParser < inputParser
                 args(2:2:end) = { this.Results };
                 parse(this.Conditional, args{:});
             end
+
+            if nargout>=1
+                opt = this.Options;
+            end
         end%
 
 
@@ -108,11 +112,13 @@ classdef InputParser < inputParser
                 opt = [ ];
                 return
             end
+            varargin(end) = [ ];
             opt = this.DefaultOptions;
-            for i = 1 : 2 : numel(varargin)-1
-                name = erase(varargin{i}, ["=", "."]);
-                opt.(name);
-                opt.(name) = varargin{i+1};
+            if ~isempty(varargin)
+                for i = 1 : 2 : numel(varargin)-1
+                    name = this.REPLACE(varargin{i});
+                    opt.(name) = varargin{i+1};
+                end
             end
             if this.HasDateOptions
                 opt = this.resolveDateOptions(opt, this.DateOptionsContext);
@@ -123,7 +129,7 @@ classdef InputParser < inputParser
 
         function addParameter(this, name, varargin)
             if ischar(name) || (isa(name, 'string') && numel(name)==1)
-                name = erase(name, ["=", "."]);
+                name = this.REPLACE(name);
                 addParameter@inputParser(this, name, varargin{:});
                 this.PrimaryParameterNames{end+1} = name;
                 if this.KeepDefaultOptions
@@ -134,7 +140,7 @@ classdef InputParser < inputParser
             if isa(name, 'string')
                 name = cellstr(name);
             end
-            primaryName = erase(name{1}, {'=', '.'});
+            primaryName = this.REPLACE(name{1});
             addParameter@inputParser(this, primaryName, varargin{:});
             if this.KeepDefaultOptions
                 this.DefaultOptions.(primaryName) = varargin{1};

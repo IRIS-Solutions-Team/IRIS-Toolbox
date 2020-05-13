@@ -15,7 +15,7 @@ MODELS.DiffDiff = @(x) diff(diff(x));
 
 %--------------------------------------------------------------------------
 
-numInit = transition.Order;
+numInit = transition.NumInit;
 highRange = double(highRange);
 highStart = highRange(1);
 highExtStart = DateWrapper.roundPlus(highStart, -numInit);
@@ -23,7 +23,7 @@ highEnd = highRange(end);
 highFreq = DateWrapper.getFrequency(highStart);
 
 indicator = struct( );
-indicator.Model = locallyResolveIndicatorModel(opt.IndicatorModel);
+indicator.Model = locallyResolveIndicatorModel(opt.Indicator_Model);
 indicator.Level = hereTryRetrieveLevel( );
 
 return
@@ -32,9 +32,9 @@ return
     function level = hereTryRetrieveLevel( )
         %(
         level = [ ];
-        if isa(opt.IndicatorLevel, 'NumericTimeSubscriptable') && ~isempty(opt.IndicatorLevel) 
-            if isfreq(opt.IndicatorLevel, highFreq)
-                x__ = getDataFromTo(opt.IndicatorLevel, highExtStart, highEnd);
+        if isa(opt.Indicator_Level, 'NumericTimeSubscriptable') && ~isempty(opt.Indicator_Level) 
+            if isfreq(opt.Indicator_Level, highFreq)
+                x__ = getDataFromTo(opt.Indicator_Level, highExtStart, highEnd);
                 inxNaN = ~isfinite(x__(:));
                 if all(inxNaN)
                     return

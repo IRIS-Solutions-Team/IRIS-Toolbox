@@ -105,7 +105,7 @@ function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 %
 %}
 
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 % Parse input arguments

@@ -4,7 +4,7 @@ function [objFunc, V, Est, PEst] = oolik(LogDetF, PeFiPe, MtFiM, MtFiPe, NObs, o
 % Backend [IrisToolbox] method
 % No help provided
 
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %#ok<*CTCH>

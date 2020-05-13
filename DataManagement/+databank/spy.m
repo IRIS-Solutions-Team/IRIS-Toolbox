@@ -3,7 +3,7 @@ function spy(inputDatabank, listSeries, startDate, endDate)
 %{
 %}
 
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 startDate = double(startDate);

@@ -41,17 +41,6 @@ classdef Frequency < double
         end%
 
 
-        function periodsPerYear = getPeriodsPerYear(this)
-            switch this
-                case {Frequency.YEARLY, Frequency.HALFYEARLY, ...
-                        Frequency.QUARTERLY, Frequency.MONTHLY}
-                    periodsPerYear = double(this);
-                otherwise
-                    periodsPerYear = NaN;
-            end
-        end
-
-
         function daysPerPeriods = getDaysPerPeriod(this)
             switch this
                 case Frequency.WEEKLY
@@ -61,7 +50,7 @@ classdef Frequency < double
                 otherwise
                     daysPerPeriods = NaN;
             end
-        end
+        end%
 
 
         function datetimeFormat = getDateTimeFormat(this)
@@ -77,7 +66,7 @@ classdef Frequency < double
                 otherwise
                     datetimeFormat = char.empty(1, 0);
             end
-        end
+        end%
 
 
         function output = colon(a, b, varargin)
@@ -91,206 +80,7 @@ classdef Frequency < double
                 varargin{1} = double(varargin{1});
             end
             output = colon(a, b, varargin{:});
-        end
-
-
-        function serial = serialize(this, varargin)
-            switch this
-                case Frequency.INTEGER
-                    serial = round(varargin{1});
-                case {Frequency.YEARLY, Frequency.HALFYEARLY, ...
-                        Frequency.QUARTERLY, Frequency.MONTHLY}
-                    periodsPerYear = getPeriodsPerYear(this);
-                    year = round(varargin{1});
-                    period = 1;
-                    if length(varargin)>1
-                        period = round(varargin{2});
-                    end
-                    serial = round(periodsPerYear*year + period - 1);
-                case Frequency.WEEKLY
-                    year = varargin{1};
-                    month = varargin{2};
-                    day = varargin{3};
-                    dailySerial = floor(datenum(year, month, day));
-                    sh = Frequency.shiftToThursday(dailySerial);
-                    thursdayDailySerial = round(datenum(varargin{:}) + sh); % Serial of Thursday in the same week
-                    fridayDailySerial = thursdayDailySerial + 1;
-                    serial = round(fridayDailySerial/7); % Fridays are divisible by 7
-                    serial = serial - 1; % Subtract 1 to have the first entire week in year 0 numbered 1
-                case Frequency.DAILY
-                    year = varargin{1};
-                    month = varargin{2};
-                    day = varargin{3};
-                    dailySerial = floor(datenum(year, month, day));
-                    serial = dailySerial;
-                otherwise
-                    serial = NaN;
-            end
-        end
-
-
-        function varargout = deserialize(this, serial)
-            switch this
-                case Frequency.INTEGER
-                    varargout = { round(serial) };
-                case {Frequency.YEARLY, Frequency.HALFYEARLY, ...
-                        Frequency.QUARTERLY, Frequency.MONTHLY}
-                    periodsPerYear = getPeriodsPerYear(this);
-                    year = floor(serial/periodsPerYear);
-                    period = round(serial - periodsPerYear*year + 1);
-                    varargout = { year, period };
-                case Frequency.WEEKLY
-                    dailySerial = round((serial + 1)*7 - 1); % 7-multiples of weekly serials are Fridays, return Thursday.
-                    [year, month, day] = datevec(dailySerial);
-                    varargout = { round(year), round(month), round(day) };
-                case Frequency.DAILY
-                    [year, month, day] = datevec(serial);
-                    varargout = { round(year), round(month), round(day) };
-                otherwise
-                    varargout = { nan(size(serial)) };
-            end
-        end
-
-
-        function [year, period] = serial2yp(this, serial)
-            switch this
-                case Frequency.INTEGER
-                    year = nan(size(serial));
-                    period = deserialize(this, serial);
-                case {Frequency.YEARLY, Frequency.HALFYEARLY, ...
-                        Frequency.QUARTERLY, Frequency.MONTHLY}
-                    [year, period] = deserialize(this, serial);
-                case Frequency.WEEKLY
-                    year = deserialize(this, serial);
-                    firstThursdayOfYear = Frequency.firstThursdayOfYear(year);
-                    fwy = serialize(this, year, 1, firstThursdayOfYear);
-                    period = round(serial - fwy + 1);
-                case Frequency.DAILY
-                    [year, month, day] = deserialize(this, serial);
-                    startOfYear = floor(datenum(double(year), 1, 1));
-                    period = round(serial - startOfYear + 1);
-                otherwise
-                    year = nan(size(serial));
-                    period = nan(size(serial));
-            end
-        end
-
-
-        function [year, month, day] = serial2ymd(this, serial, position)
-            if nargin<3
-                position = 'Start';
-            end
-            if ~any(strncmpi(position, {'s', 'm', 'e'}, 1))
-                error( 'Frequency:serial2ymd', ...
-                       'Invalid within-period position for Date conversion.' );
-            end
-            position = lower(position);
-            switch this
-            case Frequency.YEARLY
-                year = deserialize(this, serial);
-                switch lower(position(1))
-                    case 's' % Start of period
-                        month = 1;
-                        day = 1;
-                    case 'm' % Middle of period
-                        month = 6;
-                        day = 30;
-                    case 'e' % End of period
-                        month = 12;
-                        day = 31;
-                end
-            case Frequency.HALFYEARLY
-                [year, halfyear] = deserialize(this, serial);
-                month = 6*(halfyear-1);
-                switch lower(position(1))
-                    case 's' % Start of period
-                        month = month + 1;
-                        day = 1;
-                    case 'm' % Middle of period
-                        month = month + 4;
-                        day = 1;
-                    case 'e' % End of period
-                        month = month + 6;
-                        day = eomday(year, month);
-                end 
-            case Frequency.QUARTERLY
-                [year, quarter] = deserialize(this, serial);
-                month = 3*(quarter-1);
-                switch lower(position(1))
-                    case 's' % Start of period
-                        month = month + 1;
-                        day = 1;
-                    case 'm' % Middle of period
-                        month = month + 2;
-                        day = 15;
-                    case 'e' % End of period
-                        month = month + 3;
-                        day = eomday(year, month);
-                end
-            case Frequency.MONTHLY
-                [year, month] = deserialize(this, serial);
-                switch lower(position(1))
-                    case 's' % Start of period
-                        day = 1;
-                    case 'm' % Middle of period
-                        day = 15;
-                    case 'e' % End of period
-                        day = eomday(year, month);
-                end
-            case Frequency.WEEKLY
-                [year, month, day] = deserialize(this, serial);
-                switch lower(position(1))
-                    case 's' % Start of period
-                        day = day - 3; % Return Monday
-                    case 'm' % Middle of period
-                        day = day + 0; % Return Thursday
-                    case 'e' % End of period
-                        day = day + 3; % Return Sunday
-                end
-            case Frequency.DAILY
-                [year, month, day] = deserialize(this, serial);
-            otherwise
-                year = nan(size(serial));
-                month = nan(size(serial));
-                day = nan(size(serial));
-            end
-            year = round(year);
-            month = round(month);
-            day = round(day);
-        end
-
-
-        function serial = ymd2serial(this, year, month, day)
-            switch this
-                case Frequency.YEARLY
-                    serial = serialize(this, year);
-                case Frequency.HALFYEARLY
-                    serial = serialize(this, year, month2period(this, month));
-                case Frequency.QUARTERLY
-                    serial = serialize(this, year, month2period(this, month));
-                case Frequency.MONTHLY
-                    serial = serialize(this, year, month);
-                otherwise
-                    serial = serialize(this, year, month, day);
-            end
-        end
-
-
-        function period = month2period(this, month)
-            period = nan(size(month));
-            ixYearly = false(size(month));
-            ixHalfYearly = false(size(month));
-            ixQuarterly = false(size(month));
-            ixMonthly = false(size(month));
-            ixYearly(:) = this==Frequency.YEARLY;
-            ixHalfYearly(:) = this==Frequency.HALFYEARLY;
-            ixQuarterly(:) = this==Frequency.QUARTERLY;
-            ixMonthly(:) = this==Frequency.MONTHLY;
-            period(ixYearly) = 1;
-            period(ixHalfYearly) = floor(double(month(ixHalfYearly)+5)/6);
-            period(ixQuarterly) = floor(double(month(ixQuarterly)+2)/3);
-            period(ixMonthly) = month(ixMonthly);
-        end
+        end%
 
 
         function datetimeObj = datetime(this, serial, varargin)
@@ -303,13 +93,13 @@ classdef Frequency < double
             day = zeros(size(serial));
             indexInf = isinf(serial);
             [year(~indexInf), month(~indexInf), day(~indexInf)] = ...
-                serial2ymd(this, serial(~indexInf), varargin{:});
+                Frequency.serial2ymd(this, serial(~indexInf), varargin{:});
             if this==Frequency.WEEKLY
                 day(~indexInf) = day(~indexInf) - 3; % Return Monday, not Thursday, for display
             end
             year(indexInf) = serial(indexInf);
             datetimeObj = datetime(year, month, day, 'Format', getDateTimeFormat(this));
-        end
+        end%
 
 
         function [durationObj, halfDurationObj] = duration(this)
@@ -336,29 +126,29 @@ classdef Frequency < double
                 durationObj = NaN;
                 halfDurationObj = NaN;
             end
-        end
+        end%
 
 
         function flag = isnaf(this)
             flag = isnan(this);
-        end
+        end%
 
 
         function [highExtStartSerial, highExtEndSerial, lowStartSerial, lowEndSerial, ixHighInLowBins] = ...
                 aggregateRange(highFreq, highStartSerial, highEndSerial, lowFreq)
-            [year1, month1, day1] = serial2ymd(highFreq, highStartSerial, 'Start');
-            lowStartSerial = ymd2serial(lowFreq, year1, month1, day1);
-            [year2, month2, day2] = serial2ymd(lowFreq, lowStartSerial, 'Start');
-            highExtStartSerial = ymd2serial(highFreq, year2, month2, day2);
+            [year1, month1, day1] = Frequency.serial2ymd(highFreq, highStartSerial, 'Start');
+            lowStartSerial = Frequency.ymd2serial(lowFreq, year1, month1, day1);
+            [year2, month2, day2] = Frequency.serial2ymd(lowFreq, lowStartSerial, 'Start');
+            highExtStartSerial = Frequency.ymd2serial(highFreq, year2, month2, day2);
 
-            [year3, month3, day3] = serial2ymd(highFreq, highEndSerial, 'End');
-            lowEndSerial = ymd2serial(lowFreq, year3, month3, day3);
-            [year4, month4, day4] = serial2ymd(lowFreq, lowEndSerial, 'End');
-            highExtEndSerial = ymd2serial(highFreq, year4, month4, day4);
+            [year3, month3, day3] = Frequency.serial2ymd(highFreq, highEndSerial, 'End');
+            lowEndSerial = Frequency.ymd2serial(lowFreq, year3, month3, day3);
+            [year4, month4, day4] = Frequency.serial2ymd(lowFreq, lowEndSerial, 'End');
+            highExtEndSerial = Frequency.ymd2serial(highFreq, year4, month4, day4);
 
             highExtRangeSerial = highExtStartSerial : highExtEndSerial;
-            [year5, month5, day5] = serial2ymd(highFreq, highExtRangeSerial, 'middle');
-            lowRangeSerial = ymd2serial(lowFreq, year5, month5, day5);
+            [year5, month5, day5] = Frequency.serial2ymd(highFreq, highExtRangeSerial, 'middle');
+            lowRangeSerial = Frequency.ymd2serial(lowFreq, year5, month5, day5);
 
             uniqueLowRangeSerial = unique(lowRangeSerial, 'stable');
             ixHighInLowBins = cell(size(uniqueLowRangeSerial));
@@ -376,28 +166,25 @@ classdef Frequency < double
         end%
 
 
-
-
         function c = toFredLetter(this)
+            %(
             switch this
                 case Frequency.YEARLY
                     c = 'A';
-                    return
                 case Frequency.HALFYEARLY
                     c = 'SA';
-                    return
                 case Frequency.QUARTERLY
                     c = 'Q';
-                    return
                 case Frequency.MONTHLY
                     c = 'M';
-                    return
                 otherwise
-                    THIS_ERROR = { 'Frequency:InvalidFredFrequency' 
-                                  'This is not a valid Fred frequency: %s' };
-                    throw( exception.Base(THIS_ERROR, 'error'), ...
-                           this );
+                    thisError = [ 
+                        "Frequency:InvalidFredFrequency" 
+                        "This is not a valid Fred frequency: %s" 
+                    ];
+                    throw(exception.Base(thisError, 'error'), this);
             end
+            %)
         end%
     end
 
@@ -405,23 +192,247 @@ classdef Frequency < double
 
 
     methods (Static)
-        function d = getXLimMarginCalendarDuration(input)
-            switch input
-                case Frequency.YEARLY
-                    d = calendarDuration(0, 6, 0);
-                case Frequency.HALFYEARLY
-                    d = calendarDuration(0, 3, 0);
-                case Frequency.QUARTERLY
-                    d = calendarDuration(0, 1, 15);
-                case Frequency.MONTHLY
-                    d = calendarDuration(0, 0, 15);
-                case Frequency.WEEKLY
-                    d = calendarDuration(0, 0, 3);
-                case Frequency.DAILY
-                    d = calendarDuration(0, 0, 1);
-                case Frequency.INTEGER
-                    d = 0.5;
+        function period = month2period(this, month)
+            %(
+            this = double(this);
+            switch this
+                case 1
+                    period = ones(size(month));
+                case 2
+                    period = floor(double(month+5)/6);
+                case 4
+                    period = floor(double(month+2)/3);
+                case 12
+                    period = month;
+                otherwise
+                    perios = nan(size(month));
             end
+            %)
+        end%
+
+
+        function ppy = getPeriodsPerYear(this)
+            %(
+            this = double(this);
+            if any(this==[1, 2, 4, 12])
+                ppy = this;
+            else
+                ppy = NaN;
+            end
+            %)
+        end%
+
+
+        function serial = ymd2serial(this, year, month, day)
+            %(
+            this = double(this);
+            switch this
+                case 1
+                    serial = Frequency.serialize(this, year);
+                case 2
+                    serial = Frequency.serialize(this, year, Frequency.month2period(this, month));
+                case 4
+                    serial = Frequency.serialize(this, year, Frequency.month2period(this, month));
+                case 12
+                    serial = Frequency.serialize(this, year, month);
+                otherwise
+                    serial = Frequency.serialize(this, year, month, day);
+            end
+            %)
+        end%
+
+
+        function serial = serialize(this, varargin)
+            %(
+            this = double(this);
+            switch this
+                case 0
+                    serial = round(varargin{1});
+                case {1, 2, 4, 12}
+                    ppy = Frequency.getPeriodsPerYear(this);
+                    year = round(varargin{1});
+                    period = 1;
+                    if numel(varargin)>1
+                        period = round(varargin{2});
+                    end
+                    serial = round(ppy*year + period - 1);
+                case 52
+                    [year, month, day] = varargin{1:3};
+                    dailySerial = floor(datenum(year, month, day));
+                    sh = Frequency.shiftToThursday(dailySerial);
+                    thursdayDailySerial = round(datenum(varargin{:}) + sh); % Serial of Thursday in the same week
+                    fridayDailySerial = thursdayDailySerial + 1;
+                    serial = round(fridayDailySerial/7); % Fridays are divisible by 7
+                    serial = serial - 1; % Subtract 1 to have the first entire week in year 0 numbered 1
+                case 365
+                    [year, month, day] = varargin{1:3};
+                    dailySerial = floor(datenum(year, month, day));
+                    serial = dailySerial;
+                otherwise
+                    serial = NaN;
+            end
+            %)
+        end%
+
+
+        function [year, period] = serial2yp(this, serial)
+            %(
+            this = double(this);
+            switch this
+                case 0
+                    year = nan(size(serial));
+                    period = Frequency.deserialize(this, serial);
+                case {1, 2, 4, 12}
+                    [year, period] = Frequency.deserialize(this, serial);
+                case 52
+                    year = Frequency.deserialize(this, serial);
+                    firstThursdayOfYear = Frequency.firstThursdayOfYear(year);
+                    fwy = Frequency.serialize(this, year, 1, firstThursdayOfYear);
+                    period = round(serial - fwy + 1);
+                case 365
+                    [year, month, day] = Frequency.deserialize(this, serial);
+                    startOfYear = floor(datenum(double(year), 1, 1));
+                    period = round(serial - startOfYear + 1);
+                otherwise
+                    year = nan(size(serial));
+                    period = nan(size(serial));
+            end
+            %)
+        end%
+
+
+        function [year, month, day] = serial2ymd(this, serial, position)
+            %(
+            if nargin>=3
+                position = lower(extractBefore(string(position), 2));
+                if ~any(position==["s", "m", "e"])
+                    position = "s";
+                end
+            else
+                position = "s";
+            end
+            this = double(this);
+            switch this
+                case 1
+                    year = Frequency.deserialize(this, serial);
+                    switch position
+                        case "s" % Start of period
+                            month = ones(size(year));
+                            day = ones(size(year));
+                        case "m" % Middle of period
+                            month = repmat(6, size(year));
+                            day = repmat(30, size(year));
+                        case "e" % End of period
+                            month = repmat(12, size(year));
+                            day = repmat(31, size(year));
+                    end
+                case 2
+                    [year, halfyear] = Frequency.deserialize(this, serial);
+                    month = 6*(halfyear-1);
+                    switch position
+                        case "s" % Start of period
+                            month = month + 1;
+                            day = ones(size(year));
+                        case "m" % Middle of period
+                            month = month + 4;
+                            day = ones(size(year));
+                        case "e" % End of period
+                            month = month + 6;
+                            day = eomday(year, month);
+                    end 
+                case 4
+                    [year, quarter] = Frequency.deserialize(this, serial);
+                    month = 3*(quarter-1);
+                    switch position
+                        case "s" % Start of period
+                            month = month + 1;
+                            day = ones(size(year));
+                        case "m" % Middle of period
+                            month = month + 2;
+                            day = repmat(15, size(year));
+                        case "e" % End of period
+                            month = month + 3;
+                            day = eomday(year, month);
+                    end
+                case 12
+                    [year, month] = Frequency.deserialize(this, serial);
+                    switch position
+                        case "s" % Start of period
+                            day = ones(size(year));
+                        case "m" % Middle of period
+                            day = repmat(15, size(year));
+                        case "e" % End of period
+                            day = eomday(year, month);
+                    end
+                case 52
+                    [year, month, day] = Frequency.deserialize(this, serial);
+                    switch position
+                        case "s" % Start of period
+                            day = day - 3; % Return Monday
+                        case "m" % Middle of period
+                            day = day + 0; % Return Thursday
+                        case "e" % End of period
+                            day = day + 3; % Return Sunday
+                    end
+                case 365
+                    [year, month, day] = Frequency.deserialize(this, serial);
+                otherwise
+                    year = nan(size(serial));
+                    month = nan(size(serial));
+                    day = nan(size(serial));
+            end
+            year = round(year);
+            month = round(month);
+            day = round(day);
+            %)
+        end%
+
+
+        function varargout = deserialize(this, serial)
+            %(
+            switch double(this)
+                case 0
+                    varargout = { round(serial) };
+                case {1, 2, 4, 12}
+                    ppy = Frequency.getPeriodsPerYear(this);
+                    year = floor(serial/ppy);
+                    period = round(serial - ppy*year + 1);
+                    varargout = { year, period };
+                case 52
+                    dailySerial = round((serial + 1)*7 - 1); % 7-multiples of weekly serials are Fridays, return Thursday.
+                    [year, month, day] = datevec(dailySerial);
+                    varargout = { round(year), round(month), round(day) };
+                case 365
+                    [year, month, day] = datevec(serial);
+                    varargout = { round(year), round(month), round(day) };
+                otherwise
+                    varargout = { nan(size(serial)) };
+            end
+            %)
+        end%
+
+
+        function d = getXLimMarginCalendarDuration(this)
+            %(
+            switch double(this)
+                case 1
+                    d = calendarDuration(0, 6, 0);
+                case 2
+                    d = calendarDuration(0, 3, 0);
+                case 4
+                    d = calendarDuration(0, 1, 15);
+                case 12
+                    d = calendarDuration(0, 0, 15);
+                case 52
+                    d = calendarDuration(0, 0, 3);
+                case 365
+                    d = calendarDuration(0, 0, 1);
+                case 0
+                    d = 0.5;
+                otherwise
+                    d = NaN;
+            end
+            %)
         end%
         
 
@@ -591,10 +602,11 @@ classdef Frequency < double
                     flag = true;
                     return
                 end
+                freq1 = double(freq1);
                 freq2 = freq1(2:end);
                 freq1 = freq1(1);
             end
-            if all(freq1==freq2)
+            if all(double(freq1)==double(freq2))
                 flag = true;
                 return
             end

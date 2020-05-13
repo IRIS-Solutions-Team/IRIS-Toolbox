@@ -9,7 +9,7 @@ function hard = prepareHardOptions(transition, rangeHigh, opt)
 
 %--------------------------------------------------------------------------
 
-numInit = transition.Order;
+numInit = transition.NumInit;
 rangeHigh = double(rangeHigh);
 startHigh = rangeHigh(1);
 endHigh = rangeHigh(end);
@@ -20,10 +20,10 @@ hard = struct( );
 invalidFreq = string.empty(1, 0);
 for g = ["Level", "Rate", "Diff"]
     hard.(g) = [ ];
-    oo__ = opt.("Hard"+g);
-    if isa(oo__, 'NumericTimeSubscriptable') && ~isempty(oo__) 
-        if isfreq(oo__, freqHigh)
-            x = getDataFromTo(oo__, startInit, endHigh);
+    x__ = opt.("Hard_" + g);
+    if isa(x__, 'NumericTimeSubscriptable') && ~isempty(x__) 
+        if isfreq(x__, freqHigh)
+            x = getDataFromTo(x__, startInit, endHigh);
             if any(isfinite(x(:)))
                 hard.(g) = x;
             end

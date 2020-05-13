@@ -4,7 +4,7 @@ function [epsCurrent, epsShifted] = getIncidenceEps(equationStrings, inxEquation
 % Backend [IrisToolbox] method
 % No help provided
 
-% -[IrisToolbox] Macroeconomic Modeling Toolbox
+% -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 PTR = @int32;
