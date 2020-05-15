@@ -344,7 +344,7 @@ classdef Dictionary < matlab.mixin.Copyable
 
         function value = retrieve(this, key)
 % retrieve  Retrieve value with specified key from Dictionary
-            [flag, pos] =  lookupKey(this, key);
+            [flag, pos] = lookupKey(this, key);
             if ~flag
                 throw( exception.Base(this.EXCEPTION_KEY_NOT_FOUND, 'error'), ...
                        key );
