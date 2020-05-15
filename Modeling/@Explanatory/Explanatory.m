@@ -1,4 +1,4 @@
- % Explanatory  Equation with a LHS variable explained by RHS terms
+% Explanatory  Equation with a LHS variable explained by a collection of RHS terms
 %
 
 classdef Explanatory ...
