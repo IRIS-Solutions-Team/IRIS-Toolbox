@@ -347,6 +347,10 @@ classdef DateWrapper < double
 
         function dateCode = fromIsoStringAsNumeric(freq, isoDate)
             freq = double(freq);
+            if isequal(freq, 0)
+                dateCode = double(isoDate);
+                return
+            end
             reshapeOutput = size(isoDate);
             isoDate = reshape(extractBefore(string(isoDate), 11), 1, [ ]);
             isoDate = join(replace(isoDate, "-", " "), " ");
@@ -376,6 +380,10 @@ classdef DateWrapper < double
                     "in one run of the function."
                 ];
                 throw(exception.Base(thisError, 'error'));
+            end
+            if freq(1)==0
+                isoDate = string(double(this));
+                return
             end
             reshapeOutput = size(this);
             [year, month, day] = Frequency.serial2ymd(freq(1), floor(this));
