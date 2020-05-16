@@ -123,7 +123,12 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
                 endDate = this.Start;
                 return
             end
-            endDate = addTo(this.Start, size(this.Data, 1)-1);
+            numRows = size(this.Data, 1);
+            if isa(this.Start, 'DateWrapper')
+                endDate = addTo(this.Start, numRows-1);
+            else
+                endDate = DateWrapper.roundPlus(this.Start, numRows-1);
+            end
         end%
 
 

@@ -314,10 +314,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
             implementDisp@NumericTimeSubscriptable(varargin{:});
             implementDisp@shared.UserDataContainer(varargin{:});
         end%
-
-
-        varargout = mylagorlead(varargin)
-        varargout = recognizeShift(varargin)
     end
 
 
@@ -342,11 +338,7 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     methods (Hidden)
         function index = end(this, k, varargin)
             if k==1
-                numericStart = double(this.Start);
-                index = numericStart + size(this.Data, 1) - 1;
-                if isa(this.Start, 'DateWrapper')
-                    index = DateWrapper(index);
-                end
+                index = this.End;
             else
                 index = size(this.Data, k);
             end

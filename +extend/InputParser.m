@@ -106,8 +106,7 @@ classdef InputParser < inputParser
 
         function [skip, opt] = maybeSkipInputParser(this, varargin)
             %(
-            skip = this.KeepDefaultOptions ...
-                && ~isempty(varargin) && isequal(varargin{end}, "--SkipInputParser");
+            skip = this.KeepDefaultOptions && ~isempty(varargin) && isequal(varargin{end}, "--SkipInputParser");
             if ~skip
                 opt = [ ];
                 return

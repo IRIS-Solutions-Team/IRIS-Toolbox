@@ -31,16 +31,16 @@ classdef File < handle
 
             
         function clone(this, cloneString, varargin)
-            persistent inputParser
-            if isempty(inputParser)
-                inputParser = extend.InputParser('model.File.clone');
-                inputParser.addRequired('ModelFile', @(x) isa(x, 'model.File'))
-                inputParser.addRequired('CloneString', @(x) ischar(x) || isa(x, 'string') || isnumeric(x));
-                inputParser.addParameter('NamesToClone', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                inputParser.addParameter('NamesToKeep', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('model.File.clone');
+                addRequired(pp, 'ModelFile', @(x) isa(x, 'model.File'))
+                addRequired(pp, 'CloneString', @(x) ischar(x) || isa(x, 'string') || isnumeric(x));
+                addParameter(pp, 'NamesToClone', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                addParameter(pp, 'NamesToKeep', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
             end
-            inputParser.parse(this, cloneString, varargin{:});
-            opt = inputParser.Options;
+            parse(pp, this, cloneString, varargin{:});
+            opt = pp.Options;
             this.Code = parser.Comment.parse(this.Code);
             [code, quotes] = model.File.protectQuotes(this.Code);
             if isempty(opt.NamesToClone) && isempty(opt.NamesToKeep)

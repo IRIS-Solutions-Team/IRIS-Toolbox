@@ -89,6 +89,7 @@ NumericTimeSubscriptable ...
         tabular(varargin)
         varargout = pct(varargin)
         varargout = project(varargin)
+        varargout = recognizeShift(varargin)
         varargout = rmse(varargin)
         varargout = roc(varargin)
 
