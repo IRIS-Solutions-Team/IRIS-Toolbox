@@ -1,77 +1,137 @@
-function [outputRmse, pe, dRmse, pe] = rmse(obs, pred, range, varargin)
-% rmse  Compute RMSE for given observations and predictions
+function [rmse, error] = rmse(actual, prediction, varargin)
+% rmse  Calculate RMSE for given observations and predictions
 %{
-% ## Syntax ##
-%
-% Input arguments marked with a `~` sign may be omitted
-%
-%     [rmseArray, pe] = rmse(obs, pred, ~range, ...)
+% Syntax
+%--------------------------------------------------------------------------
 %
 %
-% ## Input Arguments ##
+%     [rmse, error] = rmse(inputSeries, prediction, ...)
+%
+%
+% Input Arguments
+%--------------------------------------------------------------------------
+%
 % 
-% __`obs`__ [ NumericTimeSubscriptable ] -
-% Input data with observations.
+% __`actual`__ [ Series ] 
 %
-% __`pred`__ [ NumericTimeSubscriptable ] -
-% Input data with predictions (a different prediction horizon in each
-% column); `pred` is typically the outcome of the Kalman filter,
-% [`model/filter`](model/filter) or [`VAR/filter`](VAR/filter), called with
-% the option `'Ahead='`.
-%
-% __`~range`__ [ numeric | `Inf` ] -
-% Date range on which the RMSEs will be evaluated; `Inf` means the entire
-% possible range available; if omitted, `range=Inf`.
+%     Input time series with actual observations.
 %
 %
-% ## Output Arguments ##
+% __`prediction`__ [ Series ]
 %
-% __`rmseArray` [ numeric ] -
-% Numeric array with RMSEs for each column of `pred`.
-%
-% __`pe` [ NumericTimeSubscriptable ] -
-% Prediction errors, i.e. the difference `obs-pred` evaluated within
-% `range`.
+%     Input time series with predictions, possibly including multiple
+%     prediction horizons in individual columns; this is typically the
+%     outcome of running a Kalman filter with the option `Ahead=`.
 %
 %
-% ## Description ##
+% Options
+%--------------------------------------------------------------------------
 %
 %
-% ## Example ##
+% __`Range=Inf`__ [ DateWrapper | `Inf` ]
+%
+%     Date range on which the prediction errors will be calculated; `Inf`
+%     means all observations available will be included in the
+%     calculations.
+%
+%
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __`rootMSE`__ [ numeric ]
+%
+%     Numeric array with root mean squared errors for each column of the
+%     `prediction` time series.
+%
+%
+% __`error`__ [ Series ] -
+%
+%     Time series with prediction errors from which the RMSEs are
+%     calculated; `error` is simply the difference between `actual` and the
+%     individual columns in `prediction`.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-try
-    range; %#ok<VUNUS>
-catch %#ok<CTCH>
-    range = Inf;
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('@Series/rmse');
+    addRequired(pp, 'actual', @(x) isa(x, 'NumericTimeSubscriptable') && ndims(x) == 2 && size(x, 2) == 1); %#ok<ISMAT>
+    addRequired(pp, 'prediction', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addOptional(pp, 'legacyRange', Inf, @DateWrapper.validateRangeInput);
+    addParameter(pp, 'Range', Inf, @DateWrapper.validateRangeInput);
+end
+[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+if ~skip
+    opt = parse(pp, actual, prediction, varargin{:});
+    if any(strcmp(pp.UsingDefaults, 'Range'))
+        opt.Range = pp.Results.legacyRange;
+    end
 end
 
-pp = inputParser( );
-pp.addRequired('obs', @(x) isa(x, 'NumericTimeSubscriptable') && ndims(x) == 2 && size(x, 2) == 1); %#ok<ISMAT>
-pp.addRequired('pred', @(x) isa(x, 'NumericTimeSubscriptable'));
-pp.addRequired('range', @isnumeric);
-pp.parse(obs, pred, range);
+rmseFunc = @(error, from, to) sqrt(mean(getDataFromTo(error, from, to).^2, 1, 'OmitNaN'));
 
 %--------------------------------------------------------------------------
 
-obs0 = resize(obs, range) ;
-pred0 = resize(pred, range) ;
-pe = obs0 - pred0 ;
-
-mse = mean(pe.data.^2, 1, 'OmitNaN');
-outputRmse = sqrt(mse);
-
-if nargout>2
-    % Input data is in log levels; compute growth rate forecast errors
-    dPred = pred - redate(obs, qqtoday, qqtoday-1) ;
-    pe = diff(obs) - dPred ;
-    pe = resize(pe, range) ;
-    dRmse = sqrt(mean(pe.data.^2, 1, 'OmitNaN')) ;
-end
+[from, to] = resolveRange(actual, opt.Range);
+error = clip(actual - prediction, from, to);
+rmse = rmseFunc(error, from, to);
 
 end%
 
+
+
+
+%
+% Unit Tests
+%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Series/rmseTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+% Set Up Once
+    mf = model.File( );
+    mf.Code = '!variables x@ !shocks eps !equations x = 0.8*x{-1} + eps;';
+    m = Model(mf, 'Linear=', true);
+    m = solve(m);
+    d = struct( );
+    d.eps = Series(1, randn(20, 1));
+    d.x = arf(Series(0, 0), [1, -0.8], d.eps, 1:20);
+    [~, p] = filter(m, d, 1:20, 'Output=', 'Pred', 'Ahead=', 7, 'MeanOnly=', true);
+    d.x = clip(d.x, 1:20);
+
+
+%% Test Multiple Horizons
+
+   [r0, e0] = rmse(d.x, p.x);
+   r1 = sqrt(mean((d.x.Data - p.x.Data).^2, 1, 'OmitNaN'));
+   assertEqual(testCase, r0, r1);
+
+
+%% Test Legacy Range
+
+   [r0, e0] = rmse(d.x, p.x, 2:16);
+   r1 = sqrt(mean((d.x.Data(2:16) - p.x.Data(2:16, :)).^2, 1, 'OmitNaN'));
+   assertEqual(testCase, r0, r1);
+
+
+%% Test Range
+
+   [r0, e0] = rmse(d.x, p.x, 'Range=', 3:14);
+   r1 = sqrt(mean((d.x.Data(3:14) - p.x.Data(3:14, :)).^2, 1, 'OmitNaN'));
+   assertEqual(testCase, r0, r1);
+
+##### SOURCE END #####
+%}
