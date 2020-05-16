@@ -1,11 +1,11 @@
-function [from, to] = resolveRange(this, from, to)
+function [from, to] = resolveRange(this, varargin)
 % resolveRange  Resolve start and end dates of series specific range
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %-------------------------------------------------------------------------- 
 
@@ -15,19 +15,22 @@ if nargin==1
     return
 end
 
-if nargin==2
-    to = from;
+varargin{1} = double(varargin{1});
+from = varargin{1}(1);
+if nargin>=3
+    varargin{2} = double(varargin{2});
+    to = varargin{2}(end);
+else
+    to = varargin{1}(end);
 end
 
-from = double(from);
-to = double(to);
-
 if isinf(from)
-    from = double(this.Start);
+    from = this.StartAsNumeric;
 end
 
 if isinf(to)
-    to = double(this.End);
+    to = this.EndAsNumeric;
 end
 
 end%
+
