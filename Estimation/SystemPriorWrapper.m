@@ -134,10 +134,10 @@ classdef SystemPriorWrapper < handle
             namedReferences = getNamedReferencesForOutputName(systemPriorWrapper, outputName);
             arguments = textual.splitArguments(reference);
             arguments = strtrim(arguments);
-            for i = 1 : min(length(arguments), length(namedReferences))
-                ithIndex = strcmp(arguments{i}, namedReferences{i});
-                if any(ithIndex)
-                    arguments{i} = sprintf('%g', find(ithIndex));
+            for i = 1 : min(numel(arguments), numel(namedReferences))
+                index__ = strcmp(arguments{i}, namedReferences{i});
+                if any(index__)
+                    arguments{i} = sprintf('%g', find(index__));
                 end
             end
             replace = sprintf('%s,', arguments{:});

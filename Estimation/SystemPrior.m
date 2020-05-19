@@ -11,13 +11,13 @@ classdef SystemPrior < handle
 
     methods
         function this = SystemPrior(varargin)
-            persistent inputParser
-            if isempty(inputParser)
-                inputParser = extend.InputParser('SystemPrior.SystemPrior');
-                inputParser.addRequired('Expression', @(x) ischar(x) || isa(x, 'string'));
-                inputParser.addRequired('Distribution', @(x) isa(x, 'distribution.Distribution'));
-                inputParser.addParameter('LowerBound', -Inf, @(x) isnumeric(x) && isscalar(x));
-                inputParser.addParameter('UpperBound', Inf, @(x) isnumeric(x) && isscalar(x));
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser('SystemPrior.SystemPrior');
+                addRequired(pp, 'Expression', @(x) ischar(x) || isa(x, 'string'));
+                addRequired(pp, 'Distribution', @(x) isa(x, 'distribution.Distribution'));
+                addParameter(pp, 'LowerBound', -Inf, @(x) isnumeric(x) && isscalar(x));
+                addParameter(pp, 'UpperBound', Inf, @(x) isnumeric(x) && isscalar(x));
             end
             if nargin==0
                 return
@@ -26,10 +26,9 @@ classdef SystemPrior < handle
                 this = varargin{1};
                 return
             end
-            inputParser.parse(varargin{:});
-            opt = inputParser.Options;
-            this.Expression = inputParser.Results.Expression;
-            this.Distribution = inputParser.Results.Distribution;
+            opt = parse(pp, varargin{:});
+            this.Expression = pp.Results.Expression;
+            this.Distribution = pp.Results.Distribution;
             this.LowerBound = opt.LowerBound;
             this.UpperBound = opt.UpperBound;
         end
