@@ -6,7 +6,10 @@ classdef Serialize ...
         Dates = "Dates"
         Values = "Values"
         Frequency = "Frequency"
+        Comment = "Comment"
         UserData = ""
+        StartDateOnly = true
+        Format = ""
     end
 
 
@@ -17,8 +20,13 @@ classdef Serialize ...
             isoDates = reshape(string(inputRecord.(this.Dates)), [ ], 1);
             dates = DateWrapper.fromIsoStringAsNumeric(freq, isoDates);
             values = reshape(inputRecord.(this.Values), [ ], 1);
+            if ~isempty(this.Comment) && ~isequal(this.Comment, false) && isfield(inputRecord, this.Comment)
+                comment = inputRecord.(this.Comment);
+            else
+                comment = name;
+            end
             userData = rmfield(inputRecord, [this.Dates, this.Values, this.Frequency]);
-            outputSeries = Series(dates, values, name, userData, "--SkipInputParser");
+            outputSeries = Series(dates, values, comment, userData, "--SkipInputParser");
             %)
         end%
 
@@ -26,10 +34,31 @@ classdef Serialize ...
         function outputRecord = encodeSeries(this, inputSeries, name)
             %(
             outputRecord = struct( );
-            outputRecord.(this.Name) = name;
-            outputRecord.(this.Dates) = reshape(DateWrapper.toIsoString(inputSeries.Range), 1, [ ]);
-            outputRecord.(this.Values) = reshape(inputSeries.Data, 1, [ ]);
+
+            if ~isempty(this.Name) && ~isequal(this.Name, false)
+                outputRecord.(this.Name) = name;
+            end
+
+            if this.StartDateOnly
+                outputDate = inputSeries.StartAsNumeric;
+            else
+                outputDate = reshape(inputSeries.RangeAsNumeric, 1, [ ]);
+            end
+            if ~isempty(outputDate)
+                outputRecord.(this.Dates) = DateWrapper.toIsoString(outputDate);
+                if isscalar(outputDate) && ~this.StartDateOnly
+                    outputRecord.(this.Dates) = { outputRecord.(this.Dates) };
+                end
+            else
+                outputRecord.(this.Dates) = NaN;
+            end
+            
+            outputRecord.(this.Values) = encodeValues(this, inputSeries.Data);
+
             outputRecord.(this.Frequency) = this.encodeFrequency(inputSeries.Frequency);
+            if ~isequal(this.Comment, false)
+                outputRecord.(this.Comment) = inputSeries.Comment;
+            end
             %
             % There are three options for what to do with UserData
             % * UserData will not be serialized at all (`false`)
@@ -51,6 +80,23 @@ classdef Serialize ...
                         end
                     end
                 end
+            end
+            %)
+        end%
+
+
+        function outputValues = encodeValues(this, inputData);
+            %(
+            outputValues = inputData;
+            if isa(this.Format, 'function_handle')
+                outputValues = this.Format(outputValues);
+            elseif ~isequal(this.Format, false) && strlength(this.Format)>0
+                outputValues = compose(this.Format, outputValues);
+            end
+            if isscalar(outputValues)
+                outputValues = { outputValues };
+            else
+                outputValues = reshape(outputValues, 1, [ ]);
             end
             %)
         end%

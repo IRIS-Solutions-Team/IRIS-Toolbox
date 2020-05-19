@@ -175,8 +175,8 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
         function numericRange = get.RangeAsNumeric(this)
             numericStart = double(this.Start);
-            numericRange = numericStart + (0 : size(this.Data, 1)-1);
-            numericRange = transpose(numericRange);
+            numericRange = DateWrapper.roundPlus(double(this.Start), 0:size(this.Data, 1)-1);
+            numericRange = reshape(numericRange, [ ], 1);
         end%
 
 
