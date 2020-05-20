@@ -314,5 +314,22 @@ end%
         assertEqual(testCase, expd, d3.(name+"_extend"));
     end
 
+
+%% Test Csaba 2020-05-20 Issue
+
+    d = struct( );
+    list = ["A", "B", "C"];
+    for n = list
+        d.(n) = Series(1, rand(20, 1));
+        d.(n+"_U2W") = Series(1, rand(20, 1));
+        d.(n+"_U2") = Series(1, rand(20, 1));
+    end
+    d0 = d;
+    args = {'$0', '$0_U2W', '$0_U2'};
+    d = databank.batch(d, '$0', @(x, y, z) x*y/z, 'Name=', list, 'Arguments=', args);
+    for n = list
+        assertEqual(testCase, d.(n), d0.(n)*d0.(n+"_U2W")/d0.(n+"_U2"));
+    end
+
 ##### SOURCE END #####
 %}
