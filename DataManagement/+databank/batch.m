@@ -11,20 +11,18 @@ if isempty(pp)
     pp = extend.InputParser('databank/batch');
     pp.KeepUnmatched = true;
     addRequired(pp, 'inputDb', @validate.databank);
-    addRequired(pp, 'newNameTemplate', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    addRequired(pp, 'newNameTemplate', @(x) ischar(x) || isstring(x) || iscellstr(x));
     addRequired(pp, 'generator', @(x) isa(x, 'function_handle') || ischar(x) || (isstring(x) && isscalar(x)));
 
     addParameter(pp, 'Arguments', "$0", @locallyValidateArguments);
     addParameter(pp, 'AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
-parse(pp, inputDb, newNameTemplate, generator, varargin{:});
-opt = pp.Options;
+opt = parse(pp, inputDb, newNameTemplate, generator, varargin{:});
 
 %--------------------------------------------------------------------------
 
 opt.Arguments = locallyPrepareArguments(opt.Arguments);
-numArguments = numel(opt.Arguments);
 
 if iscell(opt.Arguments)
 %
@@ -59,7 +57,12 @@ end
 % Create new names based on the template, old names and tokens from the old
 % names
 %
-newNames = locallyMakeSubstitutions(newNameTemplate, selectNames, selectTokens);
+newNameTemplate = string(newNameTemplate);
+if isscalar(newNameTemplate);
+    newNames = locallyMakeSubstitutions(newNameTemplate, selectNames, selectTokens);
+else
+    newNames = newNameTemplate;
+end
 
 
 %
@@ -100,6 +103,9 @@ return
 
             function newValue = hereFromFunction( )
                 %(
+                isDictionary = isa(inputDb, 'Dictionary');
+                numArguments = numel(opt.Arguments);
+                valArguments = cell(1, numArguments);
                 if isstring(opt.Arguments)
                     %
                     % Arguments=["$0", "$1", "$1_$2", ... ]
@@ -113,21 +119,25 @@ return
                             namArguments(~inxZero), oldName, tokens ...
                         );
                     end
+                    for ii = 1 : numArguments
+                        if isDictionary
+                            valArguments{ii} = retrieve(inputDb, namArguments(ii));
+                        else
+                            valArguments{ii} = inputDb.(namArguments(ii));
+                        end
+                    end
                 else
                     %
                     % Arguments={ ["x1,"y1"], ["x2", "y2"], ... }
                     % to evaluate func(d.x1, d.x2), func(d.y1, d.y2),
                     % etc.
                     %
-                    namArguments = cellfun(@(x) x(pos), opt.Arguments);
-                end
-                isDictionary = isa(inputDb, 'Dictionary');
-                valArguments = cell(1, numArguments);
-                for ii = 1 : numArguments
-                    if isDictionary
-                        valArguments{ii} = retrieve(inputDb, namArguments(ii));
-                    else
-                        valArguments{ii} = inputDb.(namArguments(ii));
+                    for ii = 1 : numArguments
+                        if isDictionary
+                            valArguments{ii} = retrieve(inputDb, opt.Arguments{ii}(pos));
+                        else
+                            valArguments{ii} = inputDb.(opt.Arguments{ii}(pos));
+                        end
                     end
                 end
                 newValue = feval(generator, valArguments{:});
@@ -303,7 +313,6 @@ end%
         expd = grow(d2.(name), "+", d2.("diff_"+name), range);
         assertEqual(testCase, expd, d3.(name+"_extend"));
     end
-
 
 ##### SOURCE END #####
 %}

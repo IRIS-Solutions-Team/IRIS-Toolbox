@@ -8,7 +8,7 @@ if isempty(pp)
     addRequired(pp, 'startDate', @(x) isscalar(x) && DateWrapper.validateProperDateInput(x));
 
     % General options
-    addParameter(pp, 'Output', " @(x) isstring(x) && ischar(x) && iscellstr(x));
+    addParameter(pp, 'Output', "x11_d11", @(x) isstring(x) && ischar(x) && iscellstr(x));
 
     % Series specs
     addParameter(pp, 'Series.ExcludeEmpty', false, @(x) isequal(x, false));
@@ -34,7 +34,7 @@ code = string.empty(0, 1);
 
 code = [code; series.x13.series(data, startDate, opt)];
 
-listSpecs = ["X11"];
+listSpecs = ["x11"];
 for n = listSpecs
     code = [code; series.x13.compileSpecs(n, outputTables, opt)];
 end
@@ -46,19 +46,20 @@ return
     function outputTables = hereResolveOutputTables( )
         
         subs = [
-            "sf", "X11_d10"
-            "sa", "X11_d11"
-            "tc", "X11_d12"
-            "irr", "X11_d13"
+            "sf", "x11_d10"
+            "sa", "x11_d11"
+            "tc", "x11_d12"
+            "irr", "x11_d13"
         ];
-        outputTables = struct( );
         outputCodes = string(opt.Output);
         if isscalar(outputCodes)
             outputCodes = regexp(outputCodes, "\w+", "match");
         end
-        outputCodes = lower(outputCodes);
-        outputCodes = replace(outputCodes, ".", "_");
-        for ii = 1 : size(subs, 1)
+        outputCodes = replace(reshape(lower(outputCodes), 1, [ ]), ".", "_");
+        outputCodes = replace(outputCodes, subs(:, 1), sub(:, 2));
+        outputTables = struct( );
+
+        
             
         
     end%
