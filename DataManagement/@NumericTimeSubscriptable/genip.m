@@ -429,7 +429,7 @@ return
         outputData = Xi(end:-1:1);
         if ~isempty(indicator.Level)
             if indicator.Model=="Difference"
-                outputData = outputData - indicator.Level;
+                outputData = outputData + indicator.Level;
             elseif indicator.Model=="Ratio"
                 outputData = outputData .* indicator.Level;
             end

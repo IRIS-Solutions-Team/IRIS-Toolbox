@@ -49,8 +49,8 @@
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 
 classdef Dictionary < matlab.mixin.Copyable
@@ -344,7 +344,7 @@ classdef Dictionary < matlab.mixin.Copyable
 
         function value = retrieve(this, key)
 % retrieve  Retrieve value with specified key from Dictionary
-            [flag, pos] =  lookupKey(this, key);
+            [flag, pos] = lookupKey(this, key);
             if ~flag
                 throw( exception.Base(this.EXCEPTION_KEY_NOT_FOUND, 'error'), ...
                        key );

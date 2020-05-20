@@ -1,10 +1,11 @@
-function [data, maxLag, maxLead] = getDataBlock(this, inputData, range, lhsRequired, context)
 % getDataBlock  Get DataBlock of all time series for LHS and RHS names
 %{
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function [data, maxLag, maxLead] = getDataBlock(this, inputData, range, lhsRequired, context)
 
 %--------------------------------------------------------------------------
 
@@ -86,7 +87,9 @@ end%
 
 
 
+%
 % Unit Tests
+%
 %{
 ##### SOURCE BEGIN #####
 % saveAs=Explanatory/getDataBlockUnitTest.m
@@ -109,7 +112,6 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     testCase.TestData.Databank = db;
 
 
-
 %% Test Plain Vanilla
     g = testCase.TestData.Model1;
     db = testCase.TestData.Databank;
@@ -128,6 +130,5 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     exp_YXEPG(6, :) = db.d(extendedRange);
     exp_YXEPG(7, :) = db.res_x(extendedRange);
     assertEqual(testCase, act.YXEPG, exp_YXEPG);
-
 ##### SOURCE END #####
 %}

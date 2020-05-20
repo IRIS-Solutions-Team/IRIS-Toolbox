@@ -8,7 +8,7 @@ function outputDb = batch(inputDb, newNameTemplate, generator, varargin)
 
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('databank/batch');
+    pp = extend.InputParser('+databank/batch');
     pp.KeepUnmatched = true;
     addRequired(pp, 'inputDb', @validate.databank);
     addRequired(pp, 'newNameTemplate', @(x) ischar(x) || isstring(x) || iscellstr(x));
@@ -18,18 +18,32 @@ if isempty(pp)
     addParameter(pp, 'AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
-opt = parse(pp, inputDb, newNameTemplate, generator, varargin{:});
+parse(pp, inputDb, newNameTemplate, generator, varargin{:});
+opt = pp.Options;
 
 %--------------------------------------------------------------------------
 
+%
+% opt.Arguments is either of the following two:
+% 
+% * a string array with templates that will be resolved for each name and
+% each set of tokens, 
+%
+% * a cell array of strings with a list of arguments, and the size of this
+% list corresponds to the size of the list of names entered in
+% Filter={Name=...}
+%
 opt.Arguments = locallyPrepareArguments(opt.Arguments);
+numArguments = numel(opt.Arguments);
 
 if iscell(opt.Arguments)
 %
-% Names and function arguments given by lists in Arguments=
+% Names and function arguments given by lists in Arguments=;
+% make sure tokenSets is a 1-by-N cell array where N is the number of
+% selectNames
 %
     selectNames = opt.Arguments{1};
-    selectTokens = repmat("", 1, numel(selectNames));
+    tokenSets = cell(1, numel(selectNames));
 else
 %
 % Filter databank names 
@@ -39,7 +53,7 @@ else
     else
         filterOpt = pp.UnmatchedInCell;
     end
-    [selectNames, selectTokens] = databank.filter(inputDb, filterOpt{:});
+    [selectNames, tokenSets] = databank.filter(inputDb, filterOpt{:});
 end
 
 
@@ -58,8 +72,12 @@ end
 % names
 %
 newNameTemplate = string(newNameTemplate);
-if isscalar(newNameTemplate);
-    newNames = locallyMakeSubstitutions(newNameTemplate, selectNames, selectTokens);
+if isscalar(newNameTemplate)
+    numNames = numel(selectNames);
+    newNames = repmat("", 1, numNames);
+    for i = 1 : numNames
+        newNames(i) = locallyMakeSubstitutions(newNameTemplate, selectNames(i), tokenSets(i));
+    end
 else
     newNames = newNameTemplate;
 end
@@ -70,7 +88,7 @@ end
 %
 errorReport = cell.empty(1, 0);
 for i = 1 : numel(newNames)
-    hereGenerateNewField(newNames(i), selectNames(i), selectTokens(i), i);
+    hereGenerateNewField(newNames(i), selectNames(i), tokenSets(i), i);
 end
 
 
@@ -84,8 +102,8 @@ end
 return
 
 
-    function hereGenerateNewField(newName, oldName, tokens, pos)
-        %try
+    function hereGenerateNewField(newName, oldName, tokenSet, pos)
+        try
             if isa(generator, 'function_handle')
                 newValue = hereFromFunction( );
             else
@@ -96,9 +114,9 @@ return
             else
                 outputDb.(newName) = newValue;
             end
-        %catch Err
-        %    errorReport = [errorReport, {newName, Err.message}];
-        %end
+        catch Err
+            errorReport = [errorReport, {newName, Err.message}];
+        end
         return
 
             function newValue = hereFromFunction( )
@@ -106,38 +124,27 @@ return
                 isDictionary = isa(inputDb, 'Dictionary');
                 numArguments = numel(opt.Arguments);
                 valArguments = cell(1, numArguments);
-                if isstring(opt.Arguments)
-                    %
-                    % Arguments=["$0", "$1", "$1_$2", ... ]
-                    % to evalute func(d.("$0"), d.("$1"), d.("$1_$2")
-                    %
-                    namArguments = opt.Arguments;
-                    inxZero = namArguments=="$0";
-                    namArguments(inxZero) = oldName;
-                    if any(~inxZero)
-                        namArguments(~inxZero) = locallyMakeSubstitutions( ...
-                            namArguments(~inxZero), oldName, tokens ...
+                needsSubstitute = isstring(opt.Arguments);
+                for ii = 1 : numArguments
+                    if needsSubstitute
+                        %
+                        % Arguments=["$0", "$1", "$1_$2", ... ]
+                        % to evalute func(d.("$0"), d.("$1"), d.("$1_$2"))
+                        %
+                        name__ = locallyMakeSubstitutions( ...
+                            opt.Arguments(ii), oldName, tokenSet ...
                         );
+                    else
+                        %
+                        % Arguments={ ["x", "xa", "xb"], ["y", "ya", "yb"], ...}
+                        % to evaluate func(d.x, d.xa, d.xb), etc
+                        %
+                        name__ = opt.Arguments{ii}(pos);
                     end
-                    for ii = 1 : numArguments
-                        if isDictionary
-                            valArguments{ii} = retrieve(inputDb, namArguments(ii));
-                        else
-                            valArguments{ii} = inputDb.(namArguments(ii));
-                        end
-                    end
-                else
-                    %
-                    % Arguments={ ["x1,"y1"], ["x2", "y2"], ... }
-                    % to evaluate func(d.x1, d.x2), func(d.y1, d.y2),
-                    % etc.
-                    %
-                    for ii = 1 : numArguments
-                        if isDictionary
-                            valArguments{ii} = retrieve(inputDb, opt.Arguments{ii}(pos));
-                        else
-                            valArguments{ii} = inputDb.(opt.Arguments{ii}(pos));
-                        end
+                    if isDictionary
+                        valArguments{ii} = retrieve(inputDb, name__);
+                    else
+                        valArguments{ii} = inputDb.(name__);
                     end
                 end
                 newValue = feval(generator, valArguments{:});
@@ -147,7 +154,7 @@ return
 
             function newValue = hereFromExpression( )
                 %(
-                expression = locallyMakeSubstitutions(string(generator), oldName, tokens);
+                expression = locallyMakeSubstitutions(string(generator), oldName, tokenSet);
                 newValue = databank.eval(inputDb, expression);
                 %)
             end%
@@ -174,18 +181,16 @@ end%
 %
  
 
-function newNames = locallyMakeSubstitutions(template, names, tokens)
+function newName = locallyMakeSubstitutions(template, name, tokenSet)
     %(
-    newNames = repmat(string(template), size(names));
-    for i = 1 : numel(names)
-        newNames(i) = replace(newNames(i), "$0", names(i));
-        if ~isempty(tokens) && ~isempty(tokens{i})
-            numTokens = numel(tokens{i});
-            newNames(i) = replace(...
-                newNames(i), compose("$%g", 1 : numTokens), string(tokens{i}) ...
-            );
-        end
+    newName = replace(template, "$0", name);
+    % tokenSet is 1-by-1 cell array here, we need to write tokenSet{1}
+    if isempty(tokenSet) || isempty(tokenSet{1})
+        return
     end
+    newName = replace( ...
+        newName, compose("$%g", 1 : numel(tokenSet{1})), string(tokenSet{1}) ...
+    );
     %)
 end%
 
@@ -312,6 +317,29 @@ end%
     for name = list
         expd = grow(d2.(name), "+", d2.("diff_"+name), range);
         assertEqual(testCase, expd, d3.(name+"_extend"));
+    end
+
+
+%% Test Csaba 2020-05-20 Issue
+
+    d0 = struct( );
+    list = ["A", "B", "C"];
+    for n = list
+        d0.(n) = Series(1, rand(20, 1));
+        d0.(n+"_U2W") = Series(1, rand(20, 1));
+        d0.(n+"_U2") = Series(1, rand(20, 1));
+    end
+
+    args = {'$0', '$0_U2W', '$0_U2'};
+    d = databank.batch(d0, '$0', @(x, y, z) x*y/z, 'Name=', list, 'Arguments=', args);
+    for n = list
+        assertEqual(testCase, d.(n), d0.(n)*d0.(n+"_U2W")/d0.(n+"_U2"));
+    end
+
+    args = {list, list+"_U2W", list+"_U2"};
+    d = databank.batch(d0, list, @(x, y, z) x*y/z, 'Arguments=', args); 
+    for n = list
+        assertEqual(testCase, d.(n), d0.(n)*d0.(n+"_U2W")/d0.(n+"_U2"));
     end
 
 ##### SOURCE END #####

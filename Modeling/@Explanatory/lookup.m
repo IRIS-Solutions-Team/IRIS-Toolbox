@@ -1,67 +1,64 @@
-function varargout = lookup(this, varargin)
 % lookup  Look up equations by the LHS names or attributes
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
 %
-%     [inx, output, lhsNames] = function(input [, lookFor])
+%     [inx, output, lhsNames] = lookup(input [, lookFor])
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 %
 % __`input`__ [ Explanatory ]
-% >
-% Input ExlanatoryEquation object or array from which a subset of equations
-% will be extracted.
+%
+%     Input ExlanatoryEquation object or array from which a subset of
+%     equations will be extracted.
 %
 %
-% __`lookFor`__ [ char | string ]
-% >
-% LHS name or attribute that will be searched for in the `input`
-% Explanatory object or array.
+% __`lookFor`__ [ string ]
+%
+%     LHS name or attribute that will be searched for in the `input`
+%     Explanatory object or array.
 %
 %
-% ## Output Arguments ##
+% Output Arguments
+%--------------------------------------------------------------------------
 %
 %
 % __`inx`__ [ logical ]
-% >
-% Logical index of equations within the `input` Explanatory object
-% or array that have at least one of the LHS names or attributes specified
-% as the second and further input arguments `lookFor`.
+% 
+%     Logical index of equations within the `input` Explanatory object or
+%     array that have at least one of the LHS names or attributes specified
+%     as the second and further input arguments `lookFor`.
 %
 %
 % __`output`__ [ Explanatory ]
-% >
-% Output Explanatory object or array with only those equations
-% included that have at least one of the LHS names or attributes specified
-% as the second and further input arguments `lookFor`.
+%
+%     Output Explanatory object or array with only those equations included
+%     that have at least one of the LHS names or attributes specified as
+%     the second and further input arguments `lookFor`.
 %
 %
 % __`lhsNames`__ [ string ]
-% >
-% List of LHS names for the equations included in the `output`.
+%
+%     List of LHS names for the equations included in the `output`.
 %
 %
-% ## Description ##
+% Description
+%--------------------------------------------------------------------------
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
 %
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% Invoke unit tests
-%(
-if nargin==2 && isequal(varargin{1}, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
-
+function [inx, this, lhsNames] = lookup(this, varargin)
 
 persistent pp
 if isempty(pp)
@@ -85,15 +82,8 @@ for i = 1 : numel(varargin)
     end
 end
 
-try
 this = reshape(this(inx), [ ], 1);
-catch, keyboard, end
 lhsNames = [this.LhsName];
-
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout = { inx, this, lhsNames };
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 end%
 
@@ -103,54 +93,44 @@ end%
 %
 % Unit Tests 
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @setupOnce 
-        @lhsNamesTest
-        @attributesTest
-        @combinedTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Explanatory/lookupTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+% Set up once
+testCase.TestData.Object = Explanatory.fromString([
+        ":a :b :c x = 0"
+        ":b :c :d y = 0"
+        ":c :d :e z = 0"
+        ":0 u = 0"
+        ":1 v = 0"
+]);
 
 
-function setupOnce(testCase)
-    testCase.TestData.Object = ...
-        Explanatory.fromString([
-            ":a :b :c x = 0"
-            ":b :c :d y = 0"
-            ":c :d :e z = 0"
-            ":0 u = 0"
-            ":1 v = 0"
-        ]);
-end%
-
-
-function lhsNamesTest(testCase)
+%% Test LHS Names
     q = testCase.TestData.Object;
     [inx, qq, lhsNames] = lookup(q, "x", "z");
     assertEqual(testCase, inx, [true; false; true; false; false]);
     assertEqual(testCase, qq, q([1; 3]));
     assertEqual(testCase, lhsNames, ["x", "z"]);
-end%
 
 
-function attributesTest(testCase)
+%% Test Attributes
     q = testCase.TestData.Object;
     [inx, qq, lhsNames] = lookup(q, ":a", ":e");
     assertEqual(testCase, inx, [true; false; true; false; false]);
     assertEqual(testCase, qq, q([1; 3]));
     assertEqual(testCase, lhsNames, ["x", "z"]);
-end%
 
 
-function combinedTest(testCase)
+%% Test Combined
     q = testCase.TestData.Object;
     [inx, qq, lhsNames] = lookup(q, ":a", "z");
     assertEqual(testCase, inx, [true; false; true; false; false]);
     assertEqual(testCase, qq, q([1; 3]));
     assertEqual(testCase, lhsNames, ["x", "z"]);
-end%
-%)
+##### SOURCE END #####
+%}
 
