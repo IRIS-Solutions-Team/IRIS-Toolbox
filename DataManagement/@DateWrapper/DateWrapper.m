@@ -372,22 +372,29 @@ classdef DateWrapper < double
                 isoDate = string.empty(size(this));
                 return
             end
+            reshapeOutput = size(this);
+            isoDate = repmat("", reshapeOutput);
             freq = DateWrapper.getFrequencyAsNumeric(this);
+            inxNaN = isnan(freq);
+            if all(inxNaN)
+                return
+            end
+            freq(inxNaN) = [ ];
             if ~Frequency.sameFrequency(freq)
                 thisError = [
                     "DateWrapper:ToIsoString"
                     "Cannot convert dates of multiple date frequencies "
-                    "in one run of the function."
+                    "in one run of the function DateWrapper.toIsoString( )."
                 ];
                 throw(exception.Base(thisError, 'error'));
             end
-            if freq(1)==0
+            freq = freq(1);
+            if freq==0
                 isoDate = string(double(this));
                 return
             end
-            reshapeOutput = size(this);
-            [year, month, day] = Frequency.serial2ymd(freq(1), floor(this));
-            isoDate = compose("%04g-%02g-%02g", [year(:), month(:), day(:)]);
+            [year, month, day] = Frequency.serial2ymd(freq, floor(this));
+            isoDate(~inxNaN) = compose("%04g-%02g-%02g", [year(:), month(:), day(:)]);
             isoDate = reshape(isoDate, reshapeOutput);
         end%
 
