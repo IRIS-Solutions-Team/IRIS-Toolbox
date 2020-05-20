@@ -11,7 +11,7 @@ if isempty(pp)
     pp = extend.InputParser('+databank/batch');
     pp.KeepUnmatched = true;
     addRequired(pp, 'inputDb', @validate.databank);
-    addRequired(pp, 'newNameTemplate', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+    addRequired(pp, 'newNameTemplate', @(x) ischar(x) || isstring(x) || iscellstr(x));
     addRequired(pp, 'generator', @(x) isa(x, 'function_handle') || ischar(x) || (isstring(x) && isscalar(x)));
 
     addParameter(pp, 'Arguments', "$0", @locallyValidateArguments);
@@ -71,10 +71,16 @@ end
 % Create new names based on the template, old names and tokens from the old
 % names
 %
-newNames = arrayfun( ...
-    @(name__, tokenSet__) locallyMakeSubstitutions(string(newNameTemplate), name__, tokenSet__) ...
-    , selectNames, tokenSets ...
-);
+newNameTemplate = string(newNameTemplate);
+if isscalar(newNameTemplate)
+    numNames = numel(selectNames);
+    newNames = repmat("", 1, numNames);
+    for i = 1 : numNames
+        newNames(i) = locallyMakeSubstitutions(newNameTemplate, selectNames(i), tokenSets(i));
+    end
+else
+    newNames = newNameTemplate;
+end
 
 
 %
@@ -115,30 +121,30 @@ return
 
             function newValue = hereFromFunction( )
                 %(
-                if isstring(opt.Arguments)
-                    %
-                    % Arguments=["$0", "$1", "$1_$2", ... ]
-                    % to evalute func(d.("$0"), d.("$1"), d.("$1_$2")
-                    %
-                    namArguments = arrayfun( ...
-                        @(argument__) locallyMakeSubstitutions(argument__, oldName, tokenSet) ...
-                        , opt.Arguments ...
-                    );
-                else
-                    %
-                    % Arguments={ ["x1,"y1"], ["x2", "y2"], ... }
-                    % to evaluate func(d.x1, d.x2), func(d.y1, d.y2),
-                    % etc.
-                    %
-                    namArguments = cellfun(@(x) x(pos), opt.Arguments);
-                end
                 isDictionary = isa(inputDb, 'Dictionary');
+                numArguments = numel(opt.Arguments);
                 valArguments = cell(1, numArguments);
+                needsSubstitute = isstring(opt.Arguments);
                 for ii = 1 : numArguments
-                    if isDictionary
-                        valArguments{ii} = retrieve(inputDb, namArguments(ii));
+                    if needsSubstitute
+                        %
+                        % Arguments=["$0", "$1", "$1_$2", ... ]
+                        % to evalute func(d.("$0"), d.("$1"), d.("$1_$2"))
+                        %
+                        name__ = locallyMakeSubstitutions( ...
+                            opt.Arguments(ii), oldName, tokenSet ...
+                        );
                     else
-                        valArguments{ii} = inputDb.(namArguments(ii));
+                        %
+                        % Arguments={ ["x", "xa", "xb"], ["y", "ya", "yb"], ...}
+                        % to evaluate func(d.x, d.xa, d.xb), etc
+                        %
+                        name__ = opt.Arguments{ii}(pos);
+                    end
+                    if isDictionary
+                        valArguments{ii} = retrieve(inputDb, name__);
+                    else
+                        valArguments{ii} = inputDb.(name__);
                     end
                 end
                 newValue = feval(generator, valArguments{:});
@@ -316,16 +322,22 @@ end%
 
 %% Test Csaba 2020-05-20 Issue
 
-    d = struct( );
+    d0 = struct( );
     list = ["A", "B", "C"];
     for n = list
-        d.(n) = Series(1, rand(20, 1));
-        d.(n+"_U2W") = Series(1, rand(20, 1));
-        d.(n+"_U2") = Series(1, rand(20, 1));
+        d0.(n) = Series(1, rand(20, 1));
+        d0.(n+"_U2W") = Series(1, rand(20, 1));
+        d0.(n+"_U2") = Series(1, rand(20, 1));
     end
-    d0 = d;
+
     args = {'$0', '$0_U2W', '$0_U2'};
-    d = databank.batch(d, '$0', @(x, y, z) x*y/z, 'Name=', list, 'Arguments=', args);
+    d = databank.batch(d0, '$0', @(x, y, z) x*y/z, 'Name=', list, 'Arguments=', args);
+    for n = list
+        assertEqual(testCase, d.(n), d0.(n)*d0.(n+"_U2W")/d0.(n+"_U2"));
+    end
+
+    args = {list, list+"_U2W", list+"_U2"};
+    d = databank.batch(d0, list, @(x, y, z) x*y/z, 'Arguments=', args); 
     for n = list
         assertEqual(testCase, d.(n), d0.(n)*d0.(n+"_U2W")/d0.(n+"_U2"));
     end
