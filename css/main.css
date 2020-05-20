@@ -1,0 +1,57 @@
+body, h1, h2, h3, h4 {
+  font-weight: 300;
+  font-family: 'Lato';
+  font-style: normal;
+}
+
+.report-body {
+  overflow-y: scroll;
+}
+
+.report-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.logo {
+  height: 100px;
+}
+
+@media (max-width: 639px) {
+  .logo {
+    height: 75px;
+  }
+}
+
+@media print {
+  .report-content {
+    overflow: visible !important;
+    /* width: 1024px !important; */
+  }
+  .report-body {
+    overflow: visible;
+    width: 1024px !important;
+  }
+  .report-footer {
+    display: none;
+  }
+  .rephrase-chart-canvas {
+    min-height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    height: auto!important;
+    width: auto!important;
+  }
+  @page {
+    size: landscape;
+    margin: 1.0cm;
+    /* @top-center {
+      content: element(report-header);
+    }
+    @bottom-center {
+      content: element(report-footer);
+    }
+    @bottom-right {
+      content: counter(page) " of " counter(pages);
+    } */
+  }
+}
