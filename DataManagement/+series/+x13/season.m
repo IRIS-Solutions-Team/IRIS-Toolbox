@@ -18,6 +18,7 @@ if isempty(pp)
     % X11 specs
     addParameter(pp, 'X11.ExcludeEmpty', false, @(x) isequal(x, false));
     addParameter(pp, 'X11.Mode', @default, @(x) isequal(x, @default) || validate.anyString(x, 'Add', 'Mult', 'PseudoAdd', 'LogAdd'));
+    addParameter(pp, 'X11.Save', string.empty(1, 0), @isstring);
     addParameter(pp, 'X11.SeasonalMA', @default, @(x) isstring(x) || ischar(x));
     addParameter(pp, 'X11.TrendMA', @default, @(x) validate.roundScalar(x, 3, 101) && mod(x, 2)==1);
     addParameter(pp, 'X11.SigmaLim', @default, @(x) isequal(x, @default) || (isnumeric(x) && numel(x)==2 && all(x>0) && x(2)>x(1)));
@@ -44,8 +45,7 @@ keyboard
 return
 
     function outputTables = hereResolveOutputTables( )
-        
-        subs = [
+        predefined = [
             "sf", "x11_d10"
             "sa", "x11_d11"
             "tc", "x11_d12"
@@ -56,8 +56,20 @@ return
             outputCodes = regexp(outputCodes, "\w+", "match");
         end
         outputCodes = replace(reshape(lower(outputCodes), 1, [ ]), ".", "_");
-        outputCodes = replace(outputCodes, subs(:, 1), sub(:, 2));
+        outputCodes = replace(outputCodes, predefined(:, 1), sub(:, 2));
+        temp = lower(split(outputCodes, "_"));
+        spec = temp(:, :, 1);
+        table = temp(:, :, 2);
         outputTables = struct( );
+        permissibleSpecs = keys(opt);
+        permissibleSpecs(~endsWith(permissibleSpecs, "_Save")) = [ ];
+        permissibleSpecs = extractBefore(permissibleSpecs, "_");
+        inxValid = ismember(spec, lower(permissibleSpecs));
+        spec(~inxValid) = [ ];
+        table(~inxValid) = [ ];
+        
+
+
 
         
             
