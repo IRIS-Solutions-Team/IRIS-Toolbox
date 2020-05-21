@@ -9,7 +9,8 @@ if isempty(pp)
     addRequired(pp, 'startDate', @(x) isscalar(x) && DateWrapper.validateProperDateInput(x));
 
     % General options
-    addParameter(pp, 'Output', "d11", @(x) isstring(x) && ischar(x) && iscellstr(x));
+    addParameter(pp, 'Display', false, @validate.logicalScalar);
+    addParameter(pp, 'Output', "d11", @(x) isstring(x) || ischar(x) || iscellstr(x));
     addParameter(pp, 'ExcludeEmpty', ["automdl"], @isstring);
 
     % Series specs
@@ -17,7 +18,7 @@ if isempty(pp)
     addParameter(pp, 'Series.Decimals', 5, @(x) validate.roundScalar(x, 1, 5));
     
     % X11 specs
-    addParameter(pp, 'X11.Mode', @default, @(x) isequal(x, @default) || validate.anyString(x, 'Add', 'Mult', 'PseudoAdd', 'LogAdd'));
+    addParameter(pp, 'X11.Mode', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'Add', 'Mult', 'PseudoAdd', 'LogAdd'));
     addParameter(pp, 'X11.Save', string.empty(1, 0), @isstring);
     addParameter(pp, 'X11.SeasonalMA', @default, @(x) isstring(x) || ischar(x));
     addParameter(pp, 'X11.TrendMA', @default, @(x) validate.roundScalar(x, 3, 101) && mod(x, 2)==1);
@@ -28,23 +29,43 @@ end
 opt = parse(pp, data, startDate, varargin{:});
 %)
 
-hereResolveOutputTables( );
+outputTables = hereResolveOutputTables( );
+numOutputTables = numel(outputTables);
+
+data__ = data;
+opt__ = opt;
+startDate__ = startDate;
+
+flipSign = hereResolveMode( );
+
+if flipSign
+    data__ = -data__;
+end
 
 code = string.empty(0, 1);
-code = [code; series.x13.series(data, startDate, opt)];
+code = [code; series.x13.series(data__, startDate__, opt__)];
 
 listSpecs = ["x11"];
 for n = listSpecs
-    code = [code; series.x13.compileSpecs(n, opt)];
+    code = [code; series.x13.compileSpecs(n, opt__)];
 end
 
 code = join(code, string(newline()));
+outputData__ = cell(1, numOutputTables);
+[info__, outputData__{1:end}] = series.x13.run(code, outputTables, opt__);
+if flipSign
+    outputData__ = cellfun(@(x) -x, outputData__, 'UniformOutput', false);
+end
+info__.Mode = opt__.X11_Mode;
 
-keyboard
+outputData = outputData__;
+info = info__;
+
+varargout = [outputData, {info}];
 
 return
 
-    function hereResolveOutputTables( )
+    function outputTables = hereResolveOutputTables( )
         %(
         human = [
             "sf",  "d10"
@@ -58,17 +79,35 @@ return
             , "d12", "X11" ...
             , "d13", "X11" ...
         );
-        outputCodes = string(opt.Output);
-        if isscalar(outputCodes)
-            outputCodes = regexp(outputCodes, "\w+", "match");
+        outputTables = string(opt.Output);
+        if isscalar(outputTables)
+            outputTables = regexp(outputTables, "\w+", "match");
         end
-        outputCodes = reshape(lower(outputCodes), 1, [ ]);
+        outputTables = reshape(lower(outputTables), 1, [ ]);
         for n = transpose(human)
-            inx = outputCodes==n(1);
-            outputCodes(inx) = n(2);
+            inx = outputTables==n(1);
+            outputTables(inx) = n(2);
         end
-        for n = outputCodes
+        for n = outputTables
             opt.(mapTables.(n)+"_Save")(end+1) = n;
+        end
+        %)
+    end%
+
+
+    function flipSign = hereResolveMode( )
+        %(
+        flipSign = false;
+        if isequal(opt__.X11_Mode, @auto)
+            inxNaN = ~isfinite(data__);
+            if all(data__(~inxNaN)>0)
+                opt__.X11_Mode = "mult";
+            elseif all(data__(~inxNaN)<0)
+                opt__.X11_Mode = "mult";
+                flipSign = true;
+            else
+                opt__.X11_Mode = "add";
+            end
         end
         %)
     end%

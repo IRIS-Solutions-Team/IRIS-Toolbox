@@ -1,18 +1,24 @@
-function code = compileSpecs(specName, outputTables, opt)
+function code = compileSpecs(specName, opt)
 
 code = string.empty(0, 1);
 
 specName = lower(specName);
-list = lower(keys(opt));
-list = list(startsWith(list, specName + "_"));
+names = lower(keys(opt));
+values = struct2cell(opt);
 
-for n = list
-    if isequal(opt.(n), @default)
+inxKeep = startsWith(names, specName + "_", "IgnoreCase", true);
+names(~inxKeep) = [ ];
+values(~inxKeep) = [ ];
+
+for i = 1 : numel(names)
+    if isequal(values{i}, @default)
         continue
     end
-    code(end+1, 1) = ...
-        "     " + erase(n, specName + "_") + "=" ...
-        + series.x13.convertToString(opt.(n));
+    value__ = series.x13.convertToString(values{i});
+    if names(i)=="save" && isempty(value__)
+        continue
+    end
+    code(end+1, 1) = "     " + lower(extractAfter(names(i), "_")) + "=" + value__;
 end
 
 if isempty(code) && any(specName==lower(opt.ExcludeEmpty))
