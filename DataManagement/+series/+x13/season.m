@@ -1,5 +1,6 @@
 function varargout = season(data, startDate, varargin)
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('series.x13.series');
@@ -24,8 +25,8 @@ if isempty(pp)
     addParameter(pp, 'X11.AppendFcst', @default, @(x) isequal(x, @default) || validate.logicalScalar(x));
     addParameter(pp, 'X11.AppendBcst', @default, @(x) isequal(x, @default) || validate.logicalScalar(x));
 end
-
 opt = parse(pp, data, startDate, varargin{:});
+%)
 
 hereResolveOutputTables( );
 
