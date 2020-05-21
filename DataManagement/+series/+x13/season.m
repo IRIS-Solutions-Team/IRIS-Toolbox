@@ -8,15 +8,14 @@ if isempty(pp)
     addRequired(pp, 'startDate', @(x) isscalar(x) && DateWrapper.validateProperDateInput(x));
 
     % General options
-    addParameter(pp, 'Output', "x11_d11", @(x) isstring(x) && ischar(x) && iscellstr(x));
+    addParameter(pp, 'Output', "d11", @(x) isstring(x) && ischar(x) && iscellstr(x));
+    addParameter(pp, 'ExcludeEmpty', ["automdl"], @isstring);
 
     % Series specs
-    addParameter(pp, 'Series.ExcludeEmpty', false, @(x) isequal(x, false));
     addParameter(pp, 'Series.Precision', 5, @(x) validate.roundScalar(x, 1, 5));
     addParameter(pp, 'Series.Decimals', 5, @(x) validate.roundScalar(x, 1, 5));
     
     % X11 specs
-    addParameter(pp, 'X11.ExcludeEmpty', false, @(x) isequal(x, false));
     addParameter(pp, 'X11.Mode', @default, @(x) isequal(x, @default) || validate.anyString(x, 'Add', 'Mult', 'PseudoAdd', 'LogAdd'));
     addParameter(pp, 'X11.Save', string.empty(1, 0), @isstring);
     addParameter(pp, 'X11.SeasonalMA', @default, @(x) isstring(x) || ischar(x));
@@ -28,51 +27,68 @@ end
 
 opt = parse(pp, data, startDate, varargin{:});
 
-outputTables = hereResolveOutputTables( );
-specs = struct( );
+hereResolveOutputTables( );
 
 code = string.empty(0, 1);
-
 code = [code; series.x13.series(data, startDate, opt)];
 
 listSpecs = ["x11"];
 for n = listSpecs
-    code = [code; series.x13.compileSpecs(n, outputTables, opt)];
+    code = [code; series.x13.compileSpecs(n, opt)];
 end
+
+code = join(code, string(newline()));
 
 keyboard
 
 return
 
-    function outputTables = hereResolveOutputTables( )
-        predefined = [
-            "sf", "x11_d10"
-            "sa", "x11_d11"
-            "tc", "x11_d12"
-            "irr", "x11_d13"
+    function hereResolveOutputTables( )
+        %(
+        human = [
+            "sf",  "d10"
+            "sa",  "d11"
+            "tc",  "d12"
+            "irr", "d13"
         ];
+        mapTables = struct( ...
+            "d10", "X11" ...
+            , "d11", "X11" ...
+            , "d12", "X11" ...
+            , "d13", "X11" ...
+        );
         outputCodes = string(opt.Output);
         if isscalar(outputCodes)
             outputCodes = regexp(outputCodes, "\w+", "match");
         end
-        outputCodes = replace(reshape(lower(outputCodes), 1, [ ]), ".", "_");
-        outputCodes = replace(outputCodes, predefined(:, 1), sub(:, 2));
-        temp = lower(split(outputCodes, "_"));
-        spec = temp(:, :, 1);
-        table = temp(:, :, 2);
-        outputTables = struct( );
-        permissibleSpecs = keys(opt);
-        permissibleSpecs(~endsWith(permissibleSpecs, "_Save")) = [ ];
-        permissibleSpecs = extractBefore(permissibleSpecs, "_");
-        inxValid = ismember(spec, lower(permissibleSpecs));
-        spec(~inxValid) = [ ];
-        table(~inxValid) = [ ];
-        
-
-
-
-        
-            
-        
+        outputCodes = reshape(lower(outputCodes), 1, [ ]);
+        for n = transpose(human)
+            inx = outputCodes==n(1);
+            outputCodes(inx) = n(2);
+        end
+        for n = outputCodes
+            opt.(mapTables.(n)+"_Save")(end+1) = n;
+        end
+        %)
     end%
 end%
+
+
+
+
+%
+% Unit Tests
+%
+%{
+##### SOURCE BEGIN #####
+% saveAs=series.x13/seasonUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+%% Test Vanilla
+
+data = randn(40, 1);
+data = series.cumsumk(data, 4);
+
+##### SOURCE END #####
+%}
