@@ -28,16 +28,94 @@ h6 {
   font-size: 16;
 }
 
+.report-header {
+  /* main report title DIV */
+  /* nothing so far */
+}
+
+.report-header .title {
+  /* main report title H element */
+  /* nothing so far */
+}
+
+.report-header .subtitle {
+  /* main report subtitle H's SMALL element */
+  /* nothing so far */
+}
+
 .report-body {
+  /* report body DIV */
   overflow-y: scroll;
 }
 
 .report-footer {
+  /* report footer DIV */
   border-top: 1px solid rgba(0, 0, 0, 0.125);
 }
 
+.footer-text {
+  /* report footer P element */
+  /* nothing so far */
+}
+
+.left-logo {
+  /* left logo DIV */
+  /* nothing so far */
+}
+
+.right-logo {
+  /* right logo DIV */
+  /* nothing so far */
+}
+
 .left-logo-img, .right-logo-img {
+  /* left and right logo IMG elements */
   height: 100px;
+}
+
+.rephrase-chart {
+  /* chart parent DIV */
+  /* nothing so far */
+}
+
+.rephrase-chart-canvas {
+  /* chart CANVAS */
+  /* nothing so far */
+}
+
+.rephrase-table-title {
+  /* table title H element */
+  /* nothing so far */
+}
+
+.rephrase-table {
+  /* table TABLE element */
+  /* nothing so far */
+}
+
+.rephrase-table-row {
+  /* any kind of table TR element */
+  /* nothing so far */
+}
+
+.rephrase-table-section-row {
+  /* table TR element containing table section caption */
+  /* nothing so far */
+}
+
+.rephrase-table-data-row {
+  /* table TR element containing series data */
+  /* nothing so far */
+}
+
+.rephrase-table-row-title {
+  /* table TD element containing series caption cell */
+  /* nothing so far */
+}
+
+.rephrase-table-data-cell {
+  /* table TD element containing series data cell */
+  /* nothing so far */
 }
 
 @media (max-width: 639px) {
