@@ -14,14 +14,14 @@ var $report = {
     "Class": "",//"my-custom-report-class",
     "Subtitle": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras id faucibus felis. Nunc vulputate orci nibh, in aliquam risus finibus viverra.",
     "Footer": "Duis ut ultricies lorem. Nullam faucibus pulvinar massa vel faucibus.",
-    "Logo": [{
-      "Path": "./img/gpm-logo.png",
-      "Position": "Left" //"Left"|"Right"|"None"
-    },
-    {
-      "Path": "./img/iris-logo.png",
-      "Position": "Right" //"Left"|"Right"|"None"
-    }]
+    // "Logo": [{
+    //   "Path": "./img/gpm-logo.png",
+    //   "Position": "Left" //"Left"|"Right"|"None"
+    // },
+    // {
+    //   "Path": "./img/iris-logo.png",
+    //   "Position": "Right" //"Left"|"Right"|"None"
+    // }]
   },
   "Content": [
     {

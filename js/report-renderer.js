@@ -9,7 +9,8 @@ $(document).foundation();
   document.title = $report.Title || "";
 
   // apply custom css class to .report-content div
-  if ($report.Settings.Class && typeof $report.Settings.Class === "string") {
+  if ($report.Settings.Class && (typeof $report.Settings.Class === "string"
+    || $report.Settings.Class instanceof Array)) {
     var reportDiv = document.querySelector('.report-content');
     $(reportDiv).addClass($report.Settings.Class);
   }
@@ -30,6 +31,12 @@ $(document).foundation();
     // add logo(s)
     var leftLogoDiv = headerDiv.querySelector('.left-logo');
     var rightLogoDiv = headerDiv.querySelector('.right-logo');
+    if (!$report.Settings.hasOwnProperty("Logo")) {
+      $report.Settings.Logo = {
+        "Path": "./img/iris-logo.png",
+        "Position": "Left"
+      };
+    }
     var logo = $report.Settings.Logo || [];
     if (typeof logo === "object" && !(logo instanceof Array)) {
       logo = [logo];
