@@ -672,6 +672,7 @@ var $report = {
               "2024-07-01",
               "2024-10-01"
             ],
+            "Freq": "Q",
             "DateFormat": "YYYY:Q"
           },
           "Content": [
@@ -762,6 +763,7 @@ var $report = {
               "2024-07-01",
               "2024-10-01"
             ],
+            "Freq": "Q",
             "DateFormat": "YYYY:Q"
           },
           "Content": [
@@ -852,6 +854,7 @@ var $report = {
               "2024-07-01",
               "2024-10-01"
             ],
+            "Freq": "Q",
             "DateFormat": "YYYY:Q"
           },
           "Content": [
@@ -942,6 +945,7 @@ var $report = {
               "2024-07-01",
               "2024-10-01"
             ],
+            "Freq": "Q",
             "DateFormat": "YYYY:Q"
           },
           "Content": [
@@ -949,7 +953,8 @@ var $report = {
               "Type": "SERIES",
               "Title": "Series 401",
               "Settings": {
-                "Class": ""
+                "Class": "",
+                "Color": "#000"
               },
               "Content": [
                 0.87484986424024858,
