@@ -183,7 +183,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
         varargout = chowlin(varargin)
         varargout = conbar(varargin)
         varargout = convert(varargin)
-        varargout = cumsumk(varargin)
         varargout = detrend(varargin)
         varargout = double(varargin)
         varargout = doubledata(varargin)
