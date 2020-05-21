@@ -155,6 +155,20 @@ function getColorList(nColors) {
 }
 
 function createTable(parent, tableObj) {
+  if (tableObj.Title) {
+    var tableTitle = document.createElement("h3");
+    $(table).addClass("rephrase-table-title");
+    tableTitle.innerText = tableObj.Title;
+  }
+  var table = document.createElement("table");
+  $(table).addClass("rephrase-table");
+  // apply custom css class to .rephrase-chart div
+  if (tableObj.Settings.Class && (typeof tableObj.Settings.Class === "string"
+    || tableObj.Settings.Class instanceof Array)) {
+    $(table).addClass(tableObj.Settings.Class);
+  }
+  parent.appendChild(table);
+  
 
 }
 

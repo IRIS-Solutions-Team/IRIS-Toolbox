@@ -51,6 +51,7 @@ var $report = {
           "2024-07-01",
           "2024-10-01"
         ],
+        "Freq": "Q",
         "DateFormat": "YYYY:Q"
       },
       "Content": [
