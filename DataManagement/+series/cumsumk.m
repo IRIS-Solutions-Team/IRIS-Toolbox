@@ -1,23 +1,23 @@
 function x = cumsumk(x, k, varargin)
 % cumsumk  Cumulative sum over k periods
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('numeric.cumsumk');
-    inputParser.addRequired('InputData', @isnumeric);
-    inputParser.addRequired('K', @(x) isnumeric(x) && isscalar(x) && x==round(x));
-    inputParser.addOptional('Rho', 1, @(x) isnumeric(x) && isscalar(x));
-    inputParser.addOptional('NaNInit', 0, @isnumeric);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('numeric.cumsumk');
+    addRequired(pp, 'InputData', @isnumeric);
+    addRequired(pp, 'K', @(x) isnumeric(x) && isscalar(x) && x==round(x));
+    addOptional(pp, 'Rho', 1, @(x) isnumeric(x) && isscalar(x));
+    addOptional(pp, 'NaNInit', 0, @isnumeric);
 end
-inputParser.parse(x, k, varargin{:});
-rho = inputParser.Results.Rho;
-nanInit = inputParser.Results.NaNInit;
+parse(pp, x, k, varargin{:});
+rho = pp.Results.Rho;
+nanInit = pp.Results.NaNInit;
 
 %--------------------------------------------------------------------------
 
@@ -27,17 +27,17 @@ if ndimsX>2
     x = x(:, :);
 end
 
-numOfPeriods = sizeX(1);
+numPeriods = sizeX(1);
 for i = 1 : size(x, 2)
-    indexOfNaN = isnan(x(:, i));
-    x(indexOfNaN, i) = nanInit;
+    inxNaN = isnan(x(:, i));
+    x(inxNaN, i) = nanInit;
     if k<0
         first = find(~isnan(x(:, i)), 1);
         if isempty(first)
             continue
         end
         
-        for t = (first-k) : numOfPeriods
+        for t = (first-k) : numPeriods
             x(t, i) = rho*x(t+k, i) + x(t, i);
         end
     elseif k>0
@@ -63,4 +63,5 @@ if ndimsX>2
     x = reshape(x, sizeX);
 end
 
-end
+end%
+

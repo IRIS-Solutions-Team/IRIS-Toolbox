@@ -68,21 +68,20 @@ function this = cumsumk(this, range, varargin)
 % with `x1 = cumsumk(x)`.
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('tseries.cumsumk');
-    parser.addRequired('TimeSeries', @(x) isa(x, 'tseries'));
-    parser.addRequired('Range', @DateWrapper.validateProperRangeInput);
-    parser.addParameter('K', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x)));
-    parser.addParameter('Rho', 1, @(x) isnumeric(x) && isscalar(x));
-    parser.addParameter('Log', false, @(x) islogical(x) && isscalar(x));
-    parser.addParameter('NaNInit', 0, @isnumeric);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('tseries.cumsumk');
+    addRequired(pp, 'TimeSeries', @(x) isa(x, 'tseries'));
+    addRequired(pp, 'Range', @DateWrapper.validateProperRangeInput);
+    addParameter(pp, 'K', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x)));
+    addParameter(pp, 'Rho', 1, @(x) isnumeric(x) && isscalar(x));
+    addParameter(pp, 'Log', false, @(x) islogical(x) && isscalar(x));
+    addParameter(pp, 'NaNInit', 0, @isnumeric);
 end
-parser.parse(this, range, varargin{:});
-opt = parser.Options;
+opt = parse(pp, this, range, varargin{:});
 
 if isequal(opt.K, @auto)
     freqOfInput = DateWrapper.getFrequencyAsNumeric(this.Start);
@@ -98,9 +97,9 @@ range = double(range);
 %--------------------------------------------------------------------------
 
 start = range(1);
-extendedStart = start + min(0, opt.K); 
-extendedEnd = range(end) + max(0, opt.K); 
-data = getDataFromTo(this, extendedStart, extendedEnd);
+extStart = start + min(0, opt.K); 
+extEnd = range(end) + max(0, opt.K); 
+data = getDataFromTo(this, extStart, extEnd);
 
 sizeData = size(data);
 ndimsData = ndims(data);
@@ -110,7 +109,7 @@ if opt.Log
     data = log(data);
 end
 
-data = numeric.cumsumk(data, opt.K, opt.Rho, opt.NaNInit);
+data = series.cumsumk(data, opt.K, opt.Rho, opt.NaNInit);
 
 if opt.Log
     data = exp(data);

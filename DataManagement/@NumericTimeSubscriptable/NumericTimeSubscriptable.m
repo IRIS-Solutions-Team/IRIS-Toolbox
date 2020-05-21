@@ -46,46 +46,38 @@ NumericTimeSubscriptable ...
         varargout = bubble(varargin)
         varargout = bwf(varargin)
         varargout = bwf2(varargin)
-
+        varargout = cumsumk(varargin)
 
         varargout = destdize(varargin)
         function varargout = destdise(varargin)
             [varargout{1:nargout}] = destdize(varargin{:});
         end%
 
-
         varargout = diff(varargin)
         varargout = difflog(varargin)
         varargout = ellone(varargin)
         
-
         function varargout = isfreq(this, freq)
             [varargout{1:nargout}] = this.Frequency==freq;
         end%
-
 
         varargout = llf(varargin)
         varargout = llf2(varargin)
         varargout = hpf(varargin)
         varargout = hpf2(varargin)
 
-
         varargout = fill(varargin)
         function varargout = replace(varargin)
             [varargout{1:nargout}] = fill(varargin{:});
         end%
-
 
         varargout = fillMissing(varargin)
         function varargout = fillmissing(varargin)
             [varargout{1:nargout}] = fillMissing(varargin{:});
         end%
 
-
         varargout = genip(varargin)
         varargout = grow(varargin)
-
-
         tabular(varargin)
         varargout = pct(varargin)
         varargout = project(varargin)
@@ -93,17 +85,14 @@ NumericTimeSubscriptable ...
         varargout = rmse(varargin)
         varargout = roc(varargin)
 
-
         function this = round(this, varargin)
             this.Data = round(this.Data, varargin{:});
         end%
-
 
         varargout = stdize(varargin)
         function varargout = stdise(varargin)
             [varargout{1:nargout}] = stdize(varargin{:});
         end%
-
 
         varargout = table(varargin)
         varargout = vertcat(varargin)
