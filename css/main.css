@@ -4,6 +4,30 @@ body, h1, h2, h3, h4 {
   font-style: normal;
 }
 
+h1 {
+  font-size: 31;
+}
+
+h2 {
+  font-size: 25;
+}
+
+h3 {
+  font-size: 22;
+}
+
+h4 {
+  font-size: 20;
+}
+
+h5 {
+  font-size: 18;
+}
+
+h6 {
+  font-size: 16;
+}
+
 .report-body {
   overflow-y: scroll;
 }
@@ -12,13 +36,32 @@ body, h1, h2, h3, h4 {
   border-top: 1px solid rgba(0, 0, 0, 0.125);
 }
 
-.logo {
+.left-logo-img, .right-logo-img {
   height: 100px;
 }
 
 @media (max-width: 639px) {
-  .logo {
+  /* small screens */
+  .left-logo-img, .right-logo-img {
     height: 75px;
+  }
+  h1 {
+    font-size: 24;
+  }
+  h2 {
+    font-size: 22;
+  }
+  h3 {
+    font-size: 20;
+  }
+  h4 {
+    font-size: 18;
+  }
+  h5 {
+    font-size: 16;
+  }
+  h6 {
+    font-size: 14;
   }
 }
 

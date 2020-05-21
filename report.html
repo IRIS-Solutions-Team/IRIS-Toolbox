@@ -8,24 +8,48 @@
   <title>My report name</title>
   <link rel="stylesheet" href="css/foundation.min.css">
   <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/custom.css">
 </head>
 
 <body>
+  <!-- report template -->
   <div class="report-content grid-y grid-frame">
-    <div class="report-header"></div>
-    <div class="report-body"></div>
-    <div class="report-footer"></div>
+    <!-- sticky header  -->
+    <div class="report-header cell shrink">
+      <div class="grid-x grid-padding-x align-middle">
+        <div class="left-logo cell shrink"></div>
+        <div class="header-text cell auto">
+          <h2 class="title"></h2>
+          <h3><small class="subtitle"></small></h3>
+        </div>
+        <div class="right-logo cell shrink"></div>
+      </div>
+    </div>
+
+    <!-- report body -->
+    <div class="report-body cell auto"></div>
+
+    <!-- sticky footer  -->
+    <div class="report-footer cell shrink">
+      <p class="footer-text text-center"></p>
+    </div>
   </div>
+
+  <!-- Warn if JS is disabled in the browser -->
   <noscript>
-    <h1>You must enable javascript to view this page.</h1>
+    <h1>You must enable JavaScript to view this page.</h1>
   </noscript>
-  <!--  -->
+
+  <!-- rendering scripts and report data -->
   <script type="text/javascript" src="js/vendor/jquery.min.js"></script>
   <script type="text/javascript" src="js/vendor/what-input.js"></script>
   <script type="text/javascript" src="js/vendor/foundation.min.js"></script>
   <script type="text/javascript" src="js/vendor/moment.min.js"></script>
   <script type="text/javascript" src="js/vendor/Chart.min.js"></script>
-  <script type="text/javascript" src="js/report.js"></script>
+  <script type="text/javascript" src="js/report-utils.js"></script>
+  <script type="text/javascript" src="js/report-settings.js"></script>
+  <script type="text/javascript" src="js/report-data.js"></script>
+  <script type="text/javascript" src="js/report-renderer.js"></script>
 </body>
 
 </html>
