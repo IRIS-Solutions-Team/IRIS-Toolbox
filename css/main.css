@@ -1,31 +1,36 @@
-body, h1, h2, h3, h4 {
+body, h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
   font-weight: 300;
   font-family: 'Lato';
   font-style: normal;
 }
 
-h1 {
-  font-size: 31;
+h1, .h1 {
+  font-size: 31px;
 }
 
-h2 {
-  font-size: 25;
+h2, .h2 {
+  font-size: 25px;
 }
 
-h3 {
-  font-size: 22;
+h3, .h3 {
+  font-size: 22px;
 }
 
-h4 {
-  font-size: 20;
+h4, .h4 {
+  font-size: 20px;
 }
 
-h5 {
-  font-size: 18;
+h5, .h5 {
+  font-size: 18px;
 }
 
-h6 {
-  font-size: 16;
+h6, .h6 {
+  font-size: 16px;
+}
+
+.report-content {
+  /* report container DIV */
+  /* nothing so far */
 }
 
 .report-header {
@@ -45,7 +50,8 @@ h6 {
 
 .report-body {
   /* report body DIV */
-  overflow-y: scroll;
+  overflow-y: auto;
+  padding: 0 5%;
 }
 
 .report-footer {
@@ -83,13 +89,38 @@ h6 {
   /* nothing so far */
 }
 
+.rephrase-table-parent {
+  /* table parent DIV */
+  /* nothing so far */
+}
+
 .rephrase-table-title {
   /* table title H element */
-  /* nothing so far */
+  padding-top: 50px;
 }
 
 .rephrase-table {
   /* table TABLE element */
+  /* nothing so far */
+}
+
+.rephrase-table-header {
+  /* table THEAD element */
+  /* nothing so far */
+}
+
+.rephrase-table-body {
+  /* table TBODY element */
+  /* nothing so far */
+}
+
+.rephrase-table-header-row {
+  /* table THEAD's TR element */
+  /* nothing so far */
+}
+
+.rephrase-table-header-cell {
+  /* table THEAD's TH element */
   /* nothing so far */
 }
 
@@ -98,8 +129,8 @@ h6 {
   /* nothing so far */
 }
 
-.rephrase-table-section-row {
-  /* table TR element containing table section caption */
+.rephrase-table-heading-row {
+  /* table TD element containing table heading row */
   /* nothing so far */
 }
 
@@ -108,13 +139,24 @@ h6 {
   /* nothing so far */
 }
 
-.rephrase-table-row-title {
+.rephrase-table-data-row-title {
   /* table TD element containing series caption cell */
-  /* nothing so far */
+  font-weight: 700;
+  background: #f8f8f8;
 }
 
 .rephrase-table-data-cell {
   /* table TD element containing series data cell */
+  /* nothing so far */
+}
+
+.rephrase-grid-title {
+  /* grid title H element */
+  padding-top: 50px;
+}
+
+.rephrase-grid {
+  /* parent DIV of the report grid */
   /* nothing so far */
 }
 
@@ -123,23 +165,26 @@ h6 {
   .left-logo-img, .right-logo-img {
     height: 75px;
   }
-  h1 {
-    font-size: 24;
+  h1, .h1 {
+    font-size: 24px;
   }
-  h2 {
-    font-size: 22;
+  h2, .h2 {
+    font-size: 22px;
   }
-  h3 {
-    font-size: 20;
+  h3, .h3 {
+    font-size: 20px;
   }
-  h4 {
-    font-size: 18;
+  h4, .h4 {
+    font-size: 18px;
   }
-  h5 {
-    font-size: 16;
+  h5, .h5 {
+    font-size: 16px;
   }
-  h6 {
-    font-size: 14;
+  h6, .h6 {
+    font-size: 14px;
+  }
+  body {
+    font-size: 14px;
   }
 }
 
@@ -150,10 +195,15 @@ h6 {
   }
   .report-body {
     overflow: visible;
-    width: 1024px !important;
+    width: auto !important;
   }
   .report-footer {
     display: none;
+  }
+  .rephrase-table-parent {
+    overflow: visible !important;
+    max-width: 100%;
+    width: auto!important;
   }
   .rephrase-chart-canvas {
     min-height: 100%;
@@ -161,6 +211,20 @@ h6 {
     max-height: 100%;
     height: auto!important;
     width: auto!important;
+  }
+  .rephrase-grid {
+    width: auto!important;
+    max-width: 100%;
+    min-height: 100%;
+    max-height: 100%;
+    break-inside: avoid;
+  }
+  .rephrase-grid {
+    break-before: always;
+    break-after: avoid;
+  }
+  .rephrase-table-title {
+    break-after: avoid;
   }
   @page {
     size: landscape;

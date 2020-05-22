@@ -24,6 +24,15 @@ var $report = {
     // }]
   },
   "Content": [
+    // {
+    //   "Type": "GRID",
+    //   "Title": "Bigger Grid title",
+    //   "Settings": {
+    //     "Class": "",
+    //     "NumRows": 1,
+    //     "NumColumns": 2
+    //   },
+    //   "Content": [
     {
       "Type": "TABLE",
       "Title": "Table 1",
@@ -51,13 +60,13 @@ var $report = {
           "2024-07-01",
           "2024-10-01"
         ],
-        "Freq": "Q",
-        "DateFormat": "YYYY:Q"
+        "DateFormat": "YYYY:Q",
+        "NumberDecimals": 3
       },
       "Content": [
         {
           "Type": "SERIES",
-          "Title": "Series 1",
+          "Title": "Series 1 bla-bla-bla-bla-bla-bla",
           "Settings": {
             "Class": ""
           },
@@ -170,6 +179,14 @@ var $report = {
             0.48985529896706992,
             0.0052569536145787854
           ]
+        },
+        {
+          "Type": "HEADING",
+          "Title": "Table section heading",
+          "Settings": {
+            "Class": ""
+          },
+          "Content": null
         },
         {
           "Type": "SERIES",
@@ -639,7 +656,7 @@ var $report = {
     },
     {
       "Type": "GRID",
-      "Title": "",
+      "Title": "Grid title",
       "Settings": {
         "Class": "",
         "NumRows": 2,
@@ -1012,6 +1029,7 @@ var $report = {
           ]
         }
       ]
+      // }]
     }
   ]
 };

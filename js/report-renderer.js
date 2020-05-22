@@ -75,11 +75,8 @@ $(document).foundation();
 
   // create report body
   var bodyDiv = document.querySelector('.report-body');
-  var gridDiv = document.createElement("div");
-  $(gridDiv).addClass(["grid-x", "grid-padding-x"]);
-  bodyDiv.appendChild(gridDiv);
-  $ru.createChart(gridDiv, $report.Content[1].Content[0]);
-  $ru.createChart(gridDiv, $report.Content[1].Content[1]);
-  $ru.createChart(gridDiv, $report.Content[1].Content[2]);
-  $ru.createChart(gridDiv, $report.Content[1].Content[3]);
+  for (let i = 0; i < $report.Content.length; i++) {
+    const elementObj = $report.Content[i];
+    $ru.addReportElement(bodyDiv, elementObj);
+  }
 })();
