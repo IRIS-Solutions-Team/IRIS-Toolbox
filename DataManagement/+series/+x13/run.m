@@ -14,27 +14,39 @@ fid = fopen(specFileName + ".spc", "w+");
 fwrite(fid, specCode);
 fclose(fid);
 
+info = struct( );
 command = x13path + " """ + specFileName + """";
-[status, result] = system(command);
+[status, info.Message] = system(command);
 
 if opt.Display
-    disp(result);
+    disp(info.Message);
 end
 
 numOutputTables = numel(outputTables);
 varargout = cell.empty(1, 0);
 for n = outputTables
     tableFileName = specFileName + "." + n;
-    temp = textscan(string(fileread(tableFileName)), "%f %f", 'HeaderLines', 2);
-    varargout{end+1} = temp{2};
-    delete(tableFileName);
+    try
+        temp = textscan(string(fileread(tableFileName)), "%f %f", 'HeaderLines', 2);
+        varargout{end+1} = temp{2};
+    catch
+        varargout{end+1} = [ ];
+    end
+    if exist(tableFileName, 'file')
+        delete(tableFileName);
+    end
 end
 
-info = struct( );
-for n = ["log", "out", "err"]
+for n = ["spc", "log", "out", "err"]
     outputFileName = specFileName + "." + n;
-    info.(n) = string(fileread(outputFileName));
-    delete(outputFileName);
+    try
+        info.(n) = string(fileread(outputFileName));
+    catch
+        info.(n) = "";
+    end
+    if exist(outputFileName, 'file')
+        delete(outputFileName);
+    end
 end
 
 end%

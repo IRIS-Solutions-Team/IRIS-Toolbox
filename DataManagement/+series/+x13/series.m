@@ -1,6 +1,6 @@
 function code = series(data, startDate, opt)
 
-NAN_STANDIND = 99999;
+NAN_STANDIND = -99999;
 
 [startYear, startPeriod, freq] = dat2ypf(startDate);
 

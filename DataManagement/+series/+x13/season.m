@@ -5,7 +5,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('series.x13.series');
     pp.KeepUnmatched = true;
-    addRequired(pp, 'data', @(x) isnumeric(x) && iscolumn(x));
+    addRequired(pp, 'data', @(x) isnumeric(x));
     addRequired(pp, 'startDate', @(x) isscalar(x) && DateWrapper.validateProperDateInput(x));
 
     % General options
@@ -29,39 +29,54 @@ end
 opt = parse(pp, data, startDate, varargin{:});
 %)
 
+%-------------------------------------------------------------------------------
+
 outputTables = hereResolveOutputTables( );
 numOutputTables = numel(outputTables);
 
-data__ = data;
-opt__ = opt;
-startDate__ = startDate;
+sizeData = size(data);
+numColumns = prod(sizeData(2:end));
+outputData = repmat({nan(sizeData)}, 1, numOutputTables);
+outputInfo = [ ];
+inxMissingTable = false(1, numOutputTables);
+inxError = false(1, numColumns);
+for i = 1 : numColumns
+    opt__ = opt;
+    [data__, startDate__, first, last] = locallyResolveData(data(:, i), startDate, opt__);
+    if isempty(data__)
+        continue
+    end
 
-flipSign = hereResolveMode( );
+    [opt__, flipSign] = locallyResolveMode(data__, opt__);
+    data__ = flipSign*data__;
 
-if flipSign
-    data__ = -data__;
+    code = string.empty(0, 1);
+    code = [code; series.x13.series(data__, startDate__, opt__)];
+    listSpecs = ["x11"];
+    for n = listSpecs
+        code = [code; series.x13.compileSpecs(n, opt__)];
+    end
+    code = join(code, string(newline()));
+
+    outputData__ = cell(1, numOutputTables);
+    [info__, outputData__{1:end}] = series.x13.run(code, outputTables, opt__);
+    info__.Mode = opt__.X11_Mode;
+
+    for j = 1 : numOutputTables
+        x__ = outputData__{j};
+        if ~isempty(x__)
+            outputData{j}(first:last, i) = flipSign*x__;
+        else
+            inxMissingTable(j) = true;
+        end
+    end
+    inxError(i) = contains(info__.Message, "Check error file", 'IgnoreCase', true);
+    outputInfo = [outputInfo, info__];
 end
 
-code = string.empty(0, 1);
-code = [code; series.x13.series(data__, startDate__, opt__)];
-
-listSpecs = ["x11"];
-for n = listSpecs
-    code = [code; series.x13.compileSpecs(n, opt__)];
-end
-
-code = join(code, string(newline()));
-outputData__ = cell(1, numOutputTables);
-[info__, outputData__{1:end}] = series.x13.run(code, outputTables, opt__);
-if flipSign
-    outputData__ = cellfun(@(x) -x, outputData__, 'UniformOutput', false);
-end
-info__.Mode = opt__.X11_Mode;
-
-outputData = outputData__;
-info = info__;
-
-varargout = [outputData, {info}];
+varargout = [outputData, {outputInfo}];
+disp(inxMissingTable)
+disp(inxError)
 
 return
 
@@ -78,6 +93,7 @@ return
             , "d11", "X11" ...
             , "d12", "X11" ...
             , "d13", "X11" ...
+            , "mva", "Series" ...
         );
         outputTables = string(opt.Output);
         if isscalar(outputTables)
@@ -93,26 +109,43 @@ return
         end
         %)
     end%
-
-
-    function flipSign = hereResolveMode( )
-        %(
-        flipSign = false;
-        if isequal(opt__.X11_Mode, @auto)
-            inxNaN = ~isfinite(data__);
-            if all(data__(~inxNaN)>0)
-                opt__.X11_Mode = "mult";
-            elseif all(data__(~inxNaN)<0)
-                opt__.X11_Mode = "mult";
-                flipSign = true;
-            else
-                opt__.X11_Mode = "add";
-            end
-        end
-        %)
-    end%
 end%
 
+
+%
+% Local Functions
+%
+
+
+function [first, last, flipSign, opt] = locallyResolveData(data, startDate, opt)
+    %(
+    inxNaN = ~isfinite(data);
+    first = find(~inxNaN, 1, 'First');
+    last = find(~inxNaN, 1, 'Last');
+    flipSign = 1;
+    if isempty(first) || isempty(last)
+        data = [ ];
+        startDate = [ ];
+        return
+    end
+    data = data(first:last);
+    startDate = DateWrapper.roundPlus(startDate, first-1);
+    [startYear, startPeriod, freq] = dat2ypf(startDate);
+    opt.Series_Start = string(startYear) + "." + string(startPeriod);
+    opt.Series_Freq = string(freq); 
+    if isequal(opt.X11_Mode, @auto)
+        inxNaN = ~isfinite(data);
+        if all(data(~inxNaN)>0)
+            opt.X11_Mode = "mult";
+        elseif all(data(~inxNaN)<0)
+            opt.X11_Mode = "mult";
+            flipSign = -1;
+        else
+            opt.X11_Mode = "add";
+        end
+    end
+    %)
+end%
 
 
 
