@@ -61,7 +61,7 @@ var $report = {
           "2024-10-01"
         ],
         "DateFormat": "YYYY:Q",
-        "NumberDecimals": 3
+        "NumDecimals": 3
       },
       "Content": [
         {

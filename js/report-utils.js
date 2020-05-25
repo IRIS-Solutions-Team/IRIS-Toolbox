@@ -199,7 +199,7 @@ function createTable(parent, tableObj) {
     return t;
   });
   // number of decimals when showing numbers
-  const nDecimals = tableObj.Settings.NumberDecimals || 2;
+  const nDecimals = tableObj.Settings.NumDecimals || 2;
   // populate table body
   for (var i = 0; i < tableObj.Content.length; i++) {
     const tableRowObj = tableObj.Content[i];
