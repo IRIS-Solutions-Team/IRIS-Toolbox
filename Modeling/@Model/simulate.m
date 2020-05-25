@@ -58,16 +58,12 @@ TYPE = @int8;
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('model.simulate');
-    %
-    % Required input arguments
-    %
+
     addRequired(pp, 'solvedModel', @(x) isa(x, 'Model'));
     addRequired(pp, 'inputDb', @(x) validate.databank(x) || isa(x, 'simulate.Data') || isequal(x, "asynchronous"));
     addRequired(pp, 'simulationRange', @(x) DateWrapper.validateProperRangeInput(x) || isequal(x, @auto));
-    %
-    % Options
-    %
-    pp.addDeviationOptions(false);
+
+    addDeviationOptions(pp, false);
     addParameter(pp, 'Anticipate', true, @validate.logicalScalar);
     addParameter(pp, {'AppendPostsample', 'AppendInput'}, false, @validate.logicalScalar);
     addParameter(pp, {'AppendPresample', 'PrependInput'}, false, @validate.logicalScalar);
@@ -87,8 +83,7 @@ if isempty(pp)
     addParameter(pp, 'Initial', 'Data', @(x) validate.anyString(x, 'Data', 'FirstOrder'));
     addParameter(pp, 'PrepareGradient', true, @validate.logicalScalar);
 end
-parse(pp, this, inputDb, baseRange, varargin{:});
-opt = pp.Options;
+opt = parse(pp, this, inputDb, baseRange, varargin{:});
 opt.EvalTrends = opt.DTrends;
 usingDefaults = pp.UsingDefaultsInStruct;
 

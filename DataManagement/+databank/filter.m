@@ -29,7 +29,7 @@ listFields = reshape(cellstr(listFields), 1, [ ]);
 %
 % Filter field names
 %
-inxName = locallyFilterNames( );
+[inxName, tokens] = locallyFilterNames( );
 
 
 %
@@ -58,7 +58,7 @@ end
 
 return
 
-    function inxName = locallyFilterNames( )
+    function [inxName, tokens] = locallyFilterNames( )
         %(
         tokens = repmat({[]}, size(listFields));
         if isequal(opt.Name, @all) || isequal(opt.Name, "--all")
