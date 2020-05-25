@@ -36,7 +36,7 @@ for i = 1 : 20
         heading2 = copy(heading1);
 
         table1.Content{end+1} = heading1;
-        table2.Content{end+2} = heading2;
+        table2.Content{end+1} = heading2;
     end
 
     title = "Series " + i;
@@ -55,12 +55,12 @@ for i = 1 : 20
     db.(name) = Series(startDate, data);
 
     table1.Content{end+1} = series1;
-    table2.Content{end+2} = series2;
+    table2.Content{end+1} = series2;
 end
 
 
 rdo1.Content{end+1} = table1;
-rdo2.Content{end+2} = table2;
+rdo2.Content{end+1} = table2;
 
 
 grid1 = rephrase.Grid( ...
@@ -96,16 +96,16 @@ for i = 1 : 4
         db.(name) = Series(startDate, data);
 
         chart1.Content{end+1} = series1;
-        chart2.Content{end+2} = series2;
+        chart2.Content{end+1} = series2;
     end
 
     grid1.Content{end+1} = chart1;
-    grid2.Content{end+2} = chart2;
+    grid2.Content{end+1} = chart2;
 end 
 
 
 rdo1.Content{end+1} = grid1;
-rdo2.Content{end+2} = grid2;
+rdo2.Content{end+1} = grid2;
 
 
 j1 = string(jsonencode(rdo1));
