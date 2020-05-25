@@ -33,5 +33,19 @@ classdef (Abstract) Element ...
             end
         end%
     end
+
+
+    methods (Access=protected)
+        function new = copyElement(this)
+            new = copyElement@matlab.mixin.Copyable(this);
+            if iscell(new.Content)
+                for i = 1 : numel(new.Content)
+                    if isa(new.Content{i}, 'rephrase.Element')
+                        new.Content{i} = copy(new.Content{i});
+                    end
+                end
+            end
+        end% 
+    end
 end
 

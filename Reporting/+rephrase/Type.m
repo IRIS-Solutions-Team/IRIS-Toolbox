@@ -6,6 +6,7 @@ classdef Type
         TABLE
         CHART
         SERIES
+        HEADING
         SECTION
     end
 end
