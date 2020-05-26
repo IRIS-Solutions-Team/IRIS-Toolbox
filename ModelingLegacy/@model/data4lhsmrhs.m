@@ -1,10 +1,4 @@
-function [ ...
-    YXEPG, rowNames, extendedRange, ...
-    minShift, maxShift, extendedTimeTrend ...
-] = data4lhsmrhs( ...
-    this, inputDb, baseRange, varargin ...
-)
-% data4lhsmrhs  Prepare data array for running `lhsmrhs`
+% data4lhsmrhs  Prepare model data array
 %{
 % ## Syntax ##
 %
@@ -57,37 +51,40 @@ function [ ...
 %
 %}
 
+function [ ...
+    YXEPG, rowNames, extdRange ...
+    , minShift, maxShift ...
+    , extdTimeTrend, dbInfo ...
+] = data4lhsmrhs(this, inputDb, baseRange, varargin)
+
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
+%( Input parser
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('model/data4lhsmrhs.m');
-    %
-    % Required input arguments
-    %
+    pp = extend.InputParser('@Model/data4lhsmrhs.m');
+
     addRequired(pp, 'model', @(x) isa(x, 'model'));
     addRequired(pp, 'inputDb', @(x) validate.databank(x) || isequal(x, "asynchronous"));
     addRequired(pp, 'baseRange', @DateWrapper.validateProperRangeInput);
-    %
-    % Options
-    %
+
     addParameter(pp, 'IgnoreShocks', false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'ResetShocks', false, @(x) isequal(x, true) || isequal(x, false));
-    addParameter(pp, 'NumOfDummyPeriods', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
+    addParameter(pp, 'NumDummyPeriods', 0, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=0);
 end
-pp.parse(this, inputDb, baseRange, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, this, inputDb, baseRange, varargin{:});
 
 if ischar(baseRange) || isa(baseRange, 'string')
     baseRange = textinp2dat(baseRange);
 end
 
 baseRange = double(baseRange);
-startBaseRange = baseRange(1);
-endBaseRange = baseRange(end);
+baseStart = baseRange(1);
+baseEnd = baseRange(end);
 
 %--------------------------------------------------------------------------
 
@@ -97,23 +94,22 @@ rowNames = this.Quantity.Name;
 numQuants = numel(rowNames);
 rowNamesExceptParameters = rowNames(~inxP);
 
-[startExtendedRange, endExtendedRange, minShift, maxShift] = ...
-    getExtendedRange(this, [startBaseRange, endBaseRange]);
-lenExtendedRange = round(endExtendedRange - startExtendedRange + 1);
-extendedRange = startExtendedRange:endExtendedRange;
+[extdStart, extdEnd, minShift, maxShift] = getExtendedRange(this, [baseStart, baseEnd]);
+lenExtdRange = round(extdEnd - extdStart + 1);
+extdRange = extdStart:extdEnd;
 
-check = checkInputDatabank(this, inputDb, extendedRange, [ ], rowNamesExceptParameters);
-YXEG = requestData(this, check, inputDb, extendedRange, rowNamesExceptParameters);
+dbInfo = checkInputDatabank(this, inputDb, extdRange, [ ], rowNamesExceptParameters);
+YXEG = requestData(this, dbInfo, inputDb, extdRange, rowNamesExceptParameters);
 
-extendedTimeTrend = dat2ttrend(extendedRange, this);
-numDataSets = size(YXEG, 3);
+extdTimeTrend = dat2ttrend(extdRange, this);
+numPages = size(YXEG, 3);
 
-if opt.NumOfDummyPeriods>0
+if opt.NumDummyPeriods>0
     % Reset the last N periods to NaN
     % hereResetDummyPeriods( );
 end
 
-YXEPG = nan(numQuants, lenExtendedRange, numDataSets);
+YXEPG = nan(numQuants, lenExtdRange, numPages);
 YXEPG(~inxP, :, :) = YXEG;
 
 if opt.ResetShocks
@@ -127,14 +123,14 @@ if opt.IgnoreShocks
 end
 
 inxTimeTrend = strcmp(rowNames, model.component.Quantity.RESERVED_NAME_TTREND);
-YXEPG(inxTimeTrend, :, :) = repmat(extendedTimeTrend, 1, 1, numDataSets);
+YXEPG(inxTimeTrend, :, :) = repmat(extdTimeTrend, 1, 1, numPages);
 
 return
 
 
     function hereResetDummyPeriods( )
-        inxToReset = false(1, lenExtendedRange);
-        inxToReset(end-opt.NumOfDummyPeriods+1:end) = true;
+        inxToReset = false(1, lenExtdRange);
+        inxToReset(end-opt.NumDummyPeriods+1:end) = true;
         YXEG(:, inxToReset, :) = NaN;
     end%
 

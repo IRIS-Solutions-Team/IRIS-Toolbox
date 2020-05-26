@@ -1,4 +1,4 @@
-function X = requestData(~, dbInfo, inputDb, dates, names)
+function X = requestData(~, dbInfo, inputDb, dates, allNames)
 % requestData  Return input data matrix for selected model names
 %
 % Backend [IrisToolbox] method
@@ -10,47 +10,47 @@ function X = requestData(~, dbInfo, inputDb, dates, names)
 %--------------------------------------------------------------------------
 
 dates = double(dates);
-numNames = numel(names);
 numPeriods = numel(dates);
+numNames = numel(allNames);
 
 if isequal(inputDb, "asynchronous")
     X = nan(numNames, numPeriods, 1);
     return
 end
 
-numPages = dbInfo.NumOfPages;
+numPages = dbInfo.NumPages;
 X = nan(numNames, numPeriods, numPages);
 
-for i = 1 : numNames
-    name__ = names{i};
-    if ~isfield(inputDb, name__)
+for name = dbInfo.NamesAvailable
+    if isa(inputDb, 'Dictionary')
+        field = retrieve(inputDb, name);
+    else
+        field = inputDb.(name);
+    end
+    if isempty(field)
         continue
     end
-    field__ = inputDb.(name__);
-    if isempty(field__)
-        continue
-    end
-    if isa(field__, 'NumericTimeSubscriptable') 
+    if isa(field, 'NumericTimeSubscriptable') 
         %
-        % Databank field is time series
+        % Databank field is a time series
         %
-        data__ = getData(field__, dates);
-        data__ = data__(:, :);
-        if size(data__, 2)==1 && numPages>1
-            data__ = repmat(data__, 1, numPages);
+        data = getData(field, dates);
+        data = data(:, :);
+        if size(data, 2)==1 && numPages>1
+            data = repmat(data, 1, numPages);
         end
-        X(i, :, :) = permute(data__, [3, 1, 2]);
-    elseif (isnumeric(field__) || islogical(field__)) && ~all(isnan(field__))
+        data = permute(data, [3, 1, 2]);
+    else
         % 
-        % Databank field is numeric or logical scalar for each page
-        % (allowed)
+        % Databank field is a numeric or logical scalar for each page
         %
-        if numel(field__)==1
-            X(i, :, :) = field__;
+        if isscalar(field)
+            data = field;
         else
-            field__ = repmat(reshape(field__, 1, 1, [ ]), 1, numPeriods);
+            data = repmat(reshape(field, 1, 1, [ ]), 1, numPeriods, 1);
         end
     end
+    X(name==allNames, :, :) = data;
 end
 
 end%

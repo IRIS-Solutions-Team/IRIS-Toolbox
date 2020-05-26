@@ -1,33 +1,34 @@
-function noc = countColumns(inputDatabank, list)
+function noc = countColumns(inputDb, list)
 % countColumns  Number of columns in TimeSubscriptable objects in databank
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-list = reshape(cellstr(list), 1, [ ]);
-
-if isa(inputDatabank, 'Dictionary')
-    allEntries = keys(inputDatabank);
-else
-    allEntries = fieldnames(inputDatabank);
-end
-allEntries = reshape(string(allEntries), 1, [ ]);
-
+list = reshape(string(list), 1, [ ]);
 lenList = numel(list);
 noc = nan(1, lenList);
 for i = 1 : lenList
-    name__ = list{i};
-    if ~any(name__==allEntries)
-        continue
+    name__ = list(i);
+    if isa(inputDb, 'Dictionary')
+        if lookupKey(inputDb, name__)
+            field__ = retrieve(inputDb, name__);
+        else
+            continue
+        end
+    else
+        if isfield(inputDb, name__)
+            field__ = inputDb.(name__);
+        else
+            continue
+        end
     end
-    x = inputDatabank.(name__);
-    if isa(x, 'TimeSubscriptable') || isnumeric(x) || islogical(x)
-        sizeData = size(x);
+    if isa(field__, 'TimeSubscriptable') || isnumeric(field__) || islogical(field__)
+        sizeData = size(field__);
         noc(i) = prod(sizeData(2:end));
     end
 end

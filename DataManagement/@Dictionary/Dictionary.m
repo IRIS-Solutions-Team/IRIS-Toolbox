@@ -482,7 +482,7 @@ classdef Dictionary < matlab.mixin.Copyable
 
 
 
-    methods (Access=protected)
+    methods (Hidden)
         function [flag, pos, key] = lookupKey(this, key)
             key = preprocessKeyString(this, key);
             if isequal(this.CaseSensitive, true)
@@ -497,10 +497,12 @@ classdef Dictionary < matlab.mixin.Copyable
                 pos = double.empty(1, 0);
             end
         end%
+    end
 
 
 
 
+    methods (Access=protected)
         function pos = lookupKeys(this, keys)
             numOfInquiries = numel(keys);
             keys = preprocessKeyString(this, keys);

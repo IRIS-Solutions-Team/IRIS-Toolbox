@@ -1,56 +1,61 @@
-function [outputArray, inxValid] = toDoubleArray(inputDatabank, names, dates, column)
 % toDoubleArray  Retrieve data from time series into numeric array
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function [outputArray, inxValid] = toDoubleArray(inputDb, names, dates, columns)
 
 if nargin<4
-    column = 1;
+    columns = 1;
 end
 
-persistent parser
-if isempty(parser)
-    isRound = @(x) isnumeric(x) && all(x==round(x));
-    parser = extend.InputParser('databank.toDoubleArray');
-    parser.addRequired('InputDatabank', @(x) isstruct(x) && length(x)==1); 
-    parser.addRequired('Names', @(x) iscellstr(x) || ischar(x) || (isa(x, 'string') && isrow(x)));
-    parser.addRequired('Dates', @DateWrapper.validateDateInput);
-    parser.addRequired('Column', @(x) isnumeric(x) && numel(x)==1 && x==round(x)); 
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('+databank/toDoubleArray');
+    addRequired(pp, 'inputDb', @(x) validate.databank(x) && isscalar(x)); 
+    addRequired(pp, 'names', @(x) iscellstr(x) || ischar(x) || isstring(x));
+    addRequired(pp, 'dates', @DateWrapper.validateDateInput);
+    addRequired(pp, 'columns', @(x) isnumeric(x) && all(x(:)==round(x(:))) && all(x(:)>=1));
 end
-parser.parse(inputDatabank, names, dates, column);
+%)
+parse(pp, inputDb, names, dates, columns);
 
-if ~iscellstr(names)
-    names = cellstr(names);
-end
+names = reshape(string(names), 1, [ ]);
 
 %--------------------------------------------------------------------------
 
 dates = double(dates);
 numNames = numel(names);
 numDates = numel(dates);
-
-if numNames==0
-    outputArray = double.empty(numDates, 0);
+numPages = numel(columns);
+outputArray = nan(numDates, numNames, numPages);
+if isempty(outputArray)
     return
 end
 
 freq = DateWrapper.getFrequencyAsNumeric(dates(1));
-inxValid = true(1, numNames);
+inxValid = false(1, numNames);
 for i = 1 : numNames
-    name__ = names{i};
-    inxValid(i) = isfield(inputDatabank, name__) ...
-        && isa(inputDatabank.(name__), 'TimeSubscriptable') ...
-        && ~isnan(inputDatabank.(name__).Start) ...
-        && inputDatabank.(name__).FrequencyAsNumeric==freq ...
-        && isnumeric(inputDatabank.(name__).Data);
+    if isa(inputDb, 'Dictionary')
+        if ~lookupKey(inputDb, names(i))
+            continue
+        end
+        field__ = retrieve(inputDb, names(i));
+    else
+        if ~isfield(inputDb, names(i))
+            continue
+        end
+        field__ = inputDb.(names(i));
+    end
+    inxValid(i) = isa(field__, 'NumericTimeSubscriptable') ...
+        && ~isnan(field__.Start) ...
+        && field__.FrequencyAsNumeric==freq ...
+        && isnumeric(field__.Data);
 end
 
-outputArray = nan(numDates, numNames);
-outputArray(:, inxValid) = databank.backend.toDoubleArrayNoFrills( ...
-    inputDatabank ...
-    , names(inxValid) ...
-    , dates ...
-    , column ...
+outputArray(:, inxValid, :) = databank.backend.toDoubleArrayNoFrills( ...
+    inputDb, names(inxValid), dates, columns ...
 );
 
 end%
