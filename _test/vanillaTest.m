@@ -2,13 +2,17 @@
 
 characters = ['a':'z', 'A':'Z'];
 
-startDate = qq(2020,1);
-endDate = startDate + 19;
-range = startDate : endDate;
-numPeriods = numel(range);
+startDateQ = qq(2020,1);
+endDateQ = startDateQ + 19;
+startDateM = convert(startDateQ, 12, "ConversionMonth", "First");
+endDateM = convert(endDateQ, 12, "ConversionMonth", "Last");
+rangeQ = startDateQ : endDateQ;
+rangeM =  startDateM : endDateM ; 
+
+numPeriodsQ = numel(rangeQ);
+numPeriodsM = numel(rangeM);
 
 db = struct( );
-
 
 rdo1 = rephrase.Report( ...
     "Lorem ipsum dolor sit amet" ...
@@ -20,8 +24,7 @@ rdo2 = copy(rdo1);
 
 
 table1 = rephrase.Table( ...
-    "Table 1"...
-    , "Dates", DateWrapper.toIsoString(range) ...
+    "Table 1", rangeQ ...
     , "DateFormat", "YYYY:Q" ...
     , "NumDecimals", 3 ...
 );
@@ -46,13 +49,13 @@ for i = 1 : 20
     series1 = rephrase.Series( ...
         "Series " + i ...
     );
-    data = rand(numPeriods, 1);
-    series1.Content = data;
+    data = rand(numPeriodsQ, 1);
+    series1.Content = struct(serial.Dates, [ ], serial.Values, data);
 
     name = string(characters(randi(numel(characters), 1, 20)));
     series2 = copy(series1);
     series2.Content = name;
-    db.(name) = Series(startDate, data);
+    db.(name) = Series(startDateQ, data);
 
     table1.Content{end+1} = series1;
     table2.Content{end+1} = series2;
@@ -69,31 +72,36 @@ grid1 = rephrase.Grid( ...
 grid2 = copy(grid1);
 
 
+serial = series.Serialize( );
 for i = 1 : 4
     chart1 = rephrase.Chart( ...
-        "Chart " + i ...
-        , "Dates", DateWrapper.toIsoString(range) ...
+        "Chart " + i, rangeQ(1), rangeQ(end) ...
         , "DateFormat", "YYYY:Q" ...
     );
     chart2 = copy(chart1);
 
-    for j1 = 1 : 2
-        id = 100*i+j1;
+    for j = 1 : 2
+        id = 100*i+j;
         args = cell.empty(1, 0);
         if id==401
             args = [args, {"Color", "#000"}];
         end
         series1 = rephrase.Series( ...
-            "Series " + (100*i+j1) ...
+            "Series " + (100*i+j) ...
             , args{:} ...
         );
-        data = rand(numPeriods, 1);
-        series1.Content = data;
+        series2 = copy(series2);
+
+        if j==1
+            data = Series(startDateQ, rand(numPeriodsQ, 1));
+        else
+            data = Series(startDateM, rand(numPeriodsM, 1));
+        end
+        series1.Content = struct(serial.Dates, DateWrapper.toIsoString(data.Range, "m"), serial.Values, data.Data);
 
         name = string(characters(randi(numel(characters), 1, 20)));
-        series2 = copy(series2);
         series2.Content = name;
-        db.(name) = Series(startDate, data);
+        db.(name) = data;
 
         chart1.Content{end+1} = series1;
         chart2.Content{end+1} = series2;
@@ -118,7 +126,7 @@ fid = fopen("vanillaReport2.json", "w+");
 fwrite(fid, j2);
 fclose(fid);
 
-db = s.encodeDatabank(db);
+db = serial.encodeDatabank(db);
 jdb = string(jsonencode(db));
 fid = fopen("vanillaData2.json", "w+");
 fwrite(fid, jdb);
