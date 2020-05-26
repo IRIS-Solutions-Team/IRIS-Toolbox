@@ -8,8 +8,17 @@ var $ru = {
   createTable: createTable,
   createGrid: createGrid,
   addReportElement: addReportElement,
-  getColorList: getColorList
+  getColorList: getColorList,
+  addPageBreak: addPageBreak
 };
+
+// add div that would force page break when printing
+function addPageBreak(parent, breakObj) { 
+  var pageBreakDiv = document.createElement("div");
+  $(pageBreakDiv).addClass("page-break");
+  pageBreakDiv.innerHTML = "&nbsp;";
+  parent.appendChild(pageBreakDiv);
+}
 
 // create chart elements using Chart.js library
 function createChartForChartJs(parent, chartObj) {
@@ -289,6 +298,9 @@ function addReportElement(parent, elementObj) {
       break;
     case "grid":
       $ru.createGrid(parent, elementObj);
+      break;
+    case "pagebreak":
+      $ru.addPageBreak(parent, elementObj);
       break;
     default:
       break;
