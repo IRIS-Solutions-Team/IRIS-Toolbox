@@ -50,7 +50,7 @@ for i = 1 : 20
         "Series " + i ...
     );
     data = rand(numPeriodsQ, 1);
-    series1.Content = struct(serial.Values, data);
+    series1.Content = struct(serial.Dates, [ ], serial.Values, data);
 
     name = string(characters(randi(numel(characters), 1, 20)));
     series2 = copy(series1);
