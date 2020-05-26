@@ -1,14 +1,16 @@
+% checkInputDatabank  Check input databank for missing or non-compliant variables
+%
+% Backend [IrisToolbox] method
+% No help provided
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
 function dbInfo = checkInputDatabank( ...
     this, inputDb, range ...
     , requiredNames, optionalNames, context ...
     , allowedNumeric ...
 )
-% checkInputDatabank  Check input databank for missing or non-compliant variables
-%{
-%}
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 try
     if ~isempty(optionalNames)
@@ -38,7 +40,7 @@ end
     
 dbInfo = struct( );
 dbInfo.NumPages = NaN;
-
+dbInfo.NamesAvailable = string.empty(1, 0);
 if isequal(inputDb, "asynchronous")
     return
 end
@@ -59,6 +61,7 @@ allNames = [requiredNames, optionalNames];
 inxOptionalNames = [false(size(requiredNames)), true(size(optionalNames))];
 inxRequiredNames = [true(size(requiredNames)), false(size(optionalNames))];
 
+
 checkIncluded = true(size(allNames)); % ^[1]
 checkFrequency = true(size(allNames)); % ^[2]
 checkType = true(size(allNames)); % ^[3]
@@ -66,9 +69,11 @@ checkType = true(size(allNames)); % ^[3]
 % [2]: Check that all time series have the correct date frequency
 % [3]: Check that there is no invalid type of input data
 
+numAllNames = numel(allNames);
 namesAvailable = string.empty(1, 0);
 namesInputDb = keys(inputDb);
-for i = 1 : numel(allNames)
+numPages = nan(1, numAllNames);
+for i = 1 : numAllNames
     name__ = allNames(i);
     allowedNumeric__ = isequal(allowedNumeric, @all) || any(name__==allowedNumeric);
     if ~any(name__==namesInputDb)
@@ -80,16 +85,20 @@ for i = 1 : numel(allNames)
     else
         field__ = inputDb.(name__);
     end
-    if isa(field__, 'TimeSubscriptable')
+    if isa(field__, 'NumericTimeSubscriptable')
         if ~isempty(field__)
             freq__ = getFrequencyAsNumeric(field__);
             checkFrequency(i) = isnan(freq__) || freq__==requiredFreq;
         end
         namesAvailable(end+1) = string(name__);
+        sizeField__ = size(field__.Data);
+        numPages(i) = prod(sizeField__(2:end));
         continue
     end
     if (isnumeric(field__) || islogical(field__)) && allowedNumeric__ && isrow(field__)
         namesAvailable(end+1) = string(name__);
+        sizeField__ = size(field__);
+        numPages(i) = prod(sizeField__(2:end));
         continue
     end
     checkType(i) = false;
@@ -107,7 +116,6 @@ if ~all(checkType)
     hereReportInvalidType( );
 end
 
-numPages = databank.backend.countColumns(inputDb, namesAvailable);
 numPages(isnan(numPages) & inxOptionalNames) = 0;
 maxNumPages = max(numPages);
 
