@@ -1,4 +1,6 @@
-classdef InputOutputData < shared.DataBlock
+classdef InputOutputData ...
+    < shared.DataBlock
+
     properties
         IsAsynchronous = false
         Blazers

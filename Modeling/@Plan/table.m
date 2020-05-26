@@ -3,19 +3,19 @@ function outputTable = table(this, varargin)
 %{
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('Plan.table');
-    parser.addRequired('plan', @(x) isa(x, 'Plan'));
-    parser.addOptional('inputDatabank', [ ], @validate.databank);
-    parser.addParameter('WriteTable', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('@Plan/table');
+    addRequired(pp, 'plan', @(x) isa(x, 'Plan'));
+    addOptional(pp, 'inputDb', [ ], @validate.databank);
+
+    addParameter(pp, 'WriteTable', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
 end
-parse(parser, this, varargin{:});
-opt = parser.Options;
-inputDatabank = parser.Results.inputDatabank;
+opt = parse(pp, this, varargin{:});
+inputDb = pp.Results.inputDb;
 
 %-------------------------------------------------------------------------------
 
@@ -24,10 +24,12 @@ inxUnanticipatedExogenized  = this.InxOfUnanticipatedExogenized;
 inxAnticipatedEndogenized   = this.InxOfAnticipatedEndogenized;
 inxUnanticipatedEndogenized = this.InxOfUnanticipatedEndogenized;
 
-inxDates = any( [ inxAnticipatedExogenized 
-                  inxUnanticipatedExogenized
-                  inxAnticipatedEndogenized
-                  inxUnanticipatedEndogenized ], 1 );
+inxDates = any([ 
+    inxAnticipatedExogenized 
+    inxUnanticipatedExogenized
+    inxAnticipatedEndogenized
+    inxUnanticipatedEndogenized
+], 1 );
 numDates = nnz(inxDates);
 posDates = find(inxDates);
 dates = this.ExtendedStart + posDates - 1;
@@ -37,8 +39,8 @@ inxEndogenized = any(inxAnticipatedEndogenized | inxUnanticipatedEndogenized, 2)
 
 isData = false;
 data = cell.empty(0, 0);
-if ~isempty(inputDatabank)
-    data = databank.toDoubleArray(inputDatabank, this.NamesOfEndogenous, this.ExtendedRange, 1);
+if ~isempty(inputDb)
+    data = databank.toDoubleArray(inputDb, this.NamesOfEndogenous, this.ExtendedRange, 1);
     data = transpose(data);
     isData = true;
 end

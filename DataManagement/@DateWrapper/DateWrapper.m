@@ -367,7 +367,7 @@ classdef DateWrapper < double
         end%
 
 
-        function isoDate = toIsoString(this)
+        function isoDate = toIsoString(this, varargin)
             if isempty(this)
                 isoDate = string.empty(size(this));
                 return
@@ -393,7 +393,7 @@ classdef DateWrapper < double
                 isoDate = string(double(this));
                 return
             end
-            [year, month, day] = Frequency.serial2ymd(freq, floor(this));
+            [year, month, day] = Frequency.serial2ymd(freq, floor(this), varargin{:});
             isoDate(~inxNaN) = compose("%04g-%02g-%02g", [year(:), month(:), day(:)]);
             isoDate = reshape(isoDate, reshapeOutput);
         end%

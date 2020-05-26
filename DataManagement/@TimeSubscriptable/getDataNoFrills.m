@@ -1,13 +1,12 @@
-function [data, inxWithinRange, posOfTimes, this] = getDataNoFrills(this, timeRef, varargin)
 % getDataNoFrills  Get time series data for specified dates with no checks
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function [data, inxWithinRange, posTimes, this] = getDataNoFrills(this, timeRef, varargin)
 
 % Apply references in 2nd and higher dimensions
 if ~isempty(varargin)
@@ -16,41 +15,41 @@ if ~isempty(varargin)
 end
 data = this.Data;
 
-sizeOfData = size(data);
-ndimsOfData = numel(sizeOfData);
-numOfPeriods = sizeOfData(1);
+sizeData = size(data);
+ndimsData = numel(sizeData);
+numPeriods = sizeData(1);
 missingValue = this.MissingValue;
 
-posOfTimes = getPosOfTimes( );
-numOfTimes = numel(posOfTimes);
-inxWithinRange = posOfTimes>=1 & posOfTimes<=numOfPeriods;
+posTimes = getPosTimes( );
+numTimes = numel(posTimes);
+inxWithinRange = posTimes>=1 & posTimes<=numPeriods;
 
 if nargout>3
-    inxToKeep = false(1, numOfPeriods);
-    inxToKeep(posOfTimes(inxWithinRange)) = true;
+    inxToKeep = false(1, numPeriods);
+    inxToKeep(posTimes(inxWithinRange)) = true;
 end
 
 if all(inxWithinRange)
     % All time references are within time series range
     data = data(:, :);
-    data = data(posOfTimes, :);
-    if ndimsOfData>2
-        data = reshape(data, [numOfTimes, sizeOfData(2:end)]);
+    data = data(posTimes, :);
+    if ndimsData>2
+        data = reshape(data, [numTimes, sizeData(2:end)]);
     end
     if nargout>3
         createOutputSeries( );
     end
 elseif ~any(inxWithinRange)
     % No time references are within time series range
-    data = repmat(this.MissingValue, [numOfTimes, sizeOfData(2:end)]);
+    data = repmat(this.MissingValue, [numTimes, sizeData(2:end)]);
     if nargout>3
         this = emptyData(this);
     end
 else
     % Some time references are within time series range, some not
     temp = data;
-    data = repmat(this.MissingValue, [numOfTimes, sizeOfData(2:end)]);
-    data(inxWithinRange, :) = temp(posOfTimes(inxWithinRange), :);
+    data = repmat(this.MissingValue, [numTimes, sizeData(2:end)]);
+    data(inxWithinRange, :) = temp(posTimes(inxWithinRange), :);
     if nargout>=4
         createOutputSeries( );
     end
@@ -58,60 +57,63 @@ end
 
 return
 
-
-    function posOfTimes = getPosOfTimes( )
-        serialOfTimes = DateWrapper.getSerial(timeRef);
-        serialOfTimes = transpose(serialOfTimes(:));
-        freqOfTimes = DateWrapper.getFrequencyAsNumeric(timeRef);
-        freqOfTimes = transpose(freqOfTimes(:));
-        serialOfStart = DateWrapper.getSerial(this.Start);
-        freqOfStart = DateWrapper.getFrequencyAsNumeric(this.Start);
-        numOfTimes = numel(serialOfTimes);
-        if numOfTimes==1 && isequal(serialOfTimes, Inf)
+    function posTimes = getPosTimes( )
+        %(
+        serialTimes = DateWrapper.getSerial(timeRef);
+        serialTimes = transpose(serialTimes(:));
+        freqTimes = DateWrapper.getFrequencyAsNumeric(timeRef);
+        freqTimes = transpose(freqTimes(:));
+        serialStart = DateWrapper.getSerial(this.Start);
+        freqStart = DateWrapper.getFrequencyAsNumeric(this.Start);
+        numTimes = numel(serialTimes);
+        if numTimes==1 && isequal(serialTimes, Inf)
             % Inf
-            posOfTimes = 1 : numOfPeriods;
+            posTimes = 1 : numPeriods;
             return
         end
-        if numOfTimes==2 && isequal(serialOfTimes, [-Inf, Inf])
+        if numTimes==2 && isequal(serialTimes, [-Inf, Inf])
             % [-Inf, Inf]
-            posOfTimes = 1 : numOfPeriods;
+            posTimes = 1 : numPeriods;
             return
         end
-        if numOfTimes==2 && isequal(serialOfTimes(1), -Inf)
+        if numTimes==2 && isequal(serialTimes(1), -Inf)
             % [-Inf, Date]
-            if freqOfTimes(2)==freqOfStart
+            if freqTimes(2)==freqStart
                 % [-Inf, Date of valid frequency]
-                posOfLast = round(serialOfTimes(2) - serialOfStart + 1);
-                posOfTimes = 1 : posOfLast;
+                posLast = round(serialTimes(2) - serialStart + 1);
+                posTimes = 1 : posLast;
                 return
             else
                 % [-Inf, Date of invalid frequency]
-                posOfTimes = double.empty(1, 0);
+                posTimes = double.empty(1, 0);
                 return
             end
         end
-        if numOfTimes==2 && isequal(serialOfTimes(2), Inf)
+        if numTimes==2 && isequal(serialTimes(2), Inf)
             % [Date, Inf]
-            if freqOfTimes(1)==freqOfStart
+            if freqTimes(1)==freqStart
                 % [Date of valid frequency, Inf]
-                posOfFirst = round(serialOfTimes(1) - serialOfStart + 1);
-                posOfTimes = posOfFirst : numOfPeriods;
+                posFirst = round(serialTimes(1) - serialStart + 1);
+                posTimes = posFirst : numPeriods;
                 return
             else
                 % [Date of invalid frequency, Inf]
-                posOfTimes = double.empty(1, 0);
+                posTimes = double.empty(1, 0);
                 return
             end
         end
-        posOfTimes = round(serialOfTimes - serialOfStart + 1);
-        inxOfValidFreq = freqOfTimes==freqOfStart;
-        posOfTimes(~inxOfValidFreq) = NaN;
+        posTimes = round(serialTimes - serialStart + 1);
+        inxValidFreq = freqTimes==freqStart;
+        posTimes(~inxValidFreq) = NaN;
+        %)
     end%
 
 
     function createOutputSeries( )
+        %(
         this.Data(~inxToKeep, :) = missingValue;
-        this.Data = reshape(this.Data, sizeOfData);
+        this.Data = reshape(this.Data, sizeData);
         this = trim(this);
+        %)
     end%
 end%

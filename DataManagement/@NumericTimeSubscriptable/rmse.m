@@ -97,7 +97,7 @@ end%
 %
 %{
 ##### SOURCE BEGIN #####
-% saveAs=Series/rmseTest.m
+% saveAs=Series/rmseUnitTest.m
 
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
