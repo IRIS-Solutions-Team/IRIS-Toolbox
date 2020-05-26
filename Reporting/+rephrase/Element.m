@@ -1,4 +1,4 @@
-classdef (Abstract) Element ...
+classdef Element ...
     < matlab.mixin.Copyable
 
     properties (Abstract, Constant)
@@ -7,6 +7,7 @@ classdef (Abstract) Element ...
 
 
     properties
+        Parent
         Title (1, :) string = ""
         Settings (1, 1) struct = rephrase.Element.DEFAULT_ELEMENT_SETTINGS
         Content
@@ -30,6 +31,29 @@ classdef (Abstract) Element ...
             for i = 1 : 2 : numel(varargin)
                 name = erase(varargin{i}, "=");
                 this.Settings.(name) = varargin{i+1};
+            end
+        end%
+
+
+        function j = jsonencode(this)
+            j = jsonencode(prepareForJson(this));
+        end%
+    end
+
+
+    methods (Access=protected)
+        function j = prepareForJson(this)
+            j = struct( );
+            j.Type = this.Type;
+            j.Title = this.Title;
+            j.Settings = this.Settings;
+            j.Content = this.Content;
+            if isa(this, 'rephrase.Container')
+                for i = 1 : numel(j.Content)
+                    if isa(j.Content{i}, 'rephrase.Element')
+                        j.Content{i} = prepareForJson(j.Content{i});
+                    end
+                end
             end
         end%
     end

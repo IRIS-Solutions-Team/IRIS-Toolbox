@@ -1,8 +1,10 @@
 classdef Grid ...
-    < rephrase.Element
+    < rephrase.Element ...
+    & rephrase.Container
 
     properties (Constant)
         Type = rephrase.Type.GRID
+        CanBeParentOf = [rephrase.Type.TABLE, rephrase.Type.CHART]
     end
 
 

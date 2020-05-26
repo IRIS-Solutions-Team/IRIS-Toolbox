@@ -1,8 +1,10 @@
 classdef Report ...
-    < rephrase.Element
+    < rephrase.Element ...
+    & rephrase.Container
 
     properties (Constant)
         Type = rephrase.Type.REPORT
+        CanBeParentOf = [rephrase.Type.GRID, rephrase.Type.TABLE, rephrase.Type.CHART]
     end
 
 
