@@ -173,14 +173,28 @@ function createSeriesForChartJs(seriesObj, color) {
     && seriesObj.Settings.hasOwnProperty("Color")) {
     overrideColor = seriesObj.Settings.Color;
   }
-  return {
-    data: tsData,
-    lineTension: 0,
-    label: seriesObj.Title || "",
-    backgroundColor: "rgba(0,0,0,0)",
-    borderColor: overrideColor || color,
-    type: seriesObj.Settings.Type || "line"
-  };
+  const seriesPlotType = seriesObj.Settings.Type || "line";
+  if (seriesPlotType.toLowerCase() === "bar") {
+    return {
+      data: tsData,
+      label: seriesObj.Title || "",
+      borderWidth: 1,
+      borderColor: overrideColor || color,
+      backgroundColor: (overrideColor || color).replace(/,\s*\d*\.?\d+\)$/, ",0.2)"),
+      type: seriesPlotType
+    };
+  }
+  else {
+    return {
+      data: tsData,
+      lineTension: 0,
+      fill: false,
+      label: seriesObj.Title || "",
+      backgroundColor: overrideColor || color,
+      borderColor: overrideColor || color,
+      type: "line"
+    };
+  }
 }
 
 // convert frequency letter to Chart.js time unit
@@ -210,13 +224,13 @@ function freqToMomentJsUnit(freq) {
 
 function getColorList(nColors) {
   const defaultColorList = [
-    "#0072bd",
-    "#d95319",
-    "#edb120",
-    "#7e2f8e",
-    "#77ac30",
-    "#4dbeee",
-    "#a2142f"
+    'rgba(0, 114, 189, 1)',
+    'rgba(217, 83, 25, 1)',
+    'rgba(237, 177, 32, 1)',
+    'rgba(126, 47, 142, 1)',
+    'rgba(119, 172, 48, 1)',
+    'rgba(77, 190, 238, 1)',
+    'rgba(162, 20, 47, 1)'
   ];
   const nDefaults = defaultColorList.length;
   var colorList = [];
