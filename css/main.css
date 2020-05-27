@@ -84,6 +84,11 @@ h6, .h6 {
   /* nothing so far */
 }
 
+.rephrase-chart-title {
+  /* chart title DIV */
+  text-align: center;
+}
+
 .rephrase-chart-canvas {
   /* chart CANVAS */
   /* nothing so far */
