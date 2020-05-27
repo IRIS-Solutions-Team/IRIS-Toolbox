@@ -299,7 +299,7 @@ function createTable(parent, tableObj) {
               && tableRowObj.Content.hasOwnProperty("Dates")
               && tableRowObj.Content.hasOwnProperty("Values")
               && (dates instanceof Array)
-              && tableRowObj.Content.Values.length !== dates.length))))) {
+              && tableRowObj.Content.Values.length === dates.length))))) {
       continue;
     }
     const isSeries = (tableRowObj.Type.toLowerCase() === "series");
