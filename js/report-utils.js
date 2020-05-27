@@ -85,15 +85,20 @@ function createChartForChartJs(parent, chartObj) {
   var canvas = document.createElement("canvas");
   $(canvas).addClass("rephrase-chart-canvas");
   canvasParent.appendChild(canvas);
+  // generate data for the chart
   var data = [];
+  const limits = {
+    min: chartObj.Settings.StartDate ? new Date(chartObj.Settings.StartDate) : null,
+    max: chartObj.Settings.EndDate ? new Date(chartObj.Settings.EndDate) : null
+  };
   if (chartObj.hasOwnProperty("Content") && chartObj.Content instanceof Array) {
     const colorList = $ru.getColorList(chartObj.Content.length);
     for (var i = 0; i < chartObj.Content.length; i++) {
       const seriesObj = chartObj.Content[i];
-      data.push($ru.createSeries(seriesObj, colorList[i]));
+      data.push($ru.createSeries(seriesObj, limits, colorList[i]));
     }
   }
-
+  // draw chart in canvas
   Chart.defaults.global.defaultFontFamily = 'Lato';
   var chartJsObj = new Chart(canvas, {
     type: 'line',
@@ -129,9 +134,11 @@ function createChartForChartJs(parent, chartObj) {
         xAxes: [{
           type: 'time',
           distribution: 'series',
-          time: {
+          ticks: {
             min: new Date(chartObj.Settings.StartDate),
-            max: new Date(chartObj.Settings.EndDate),
+            max: new Date(chartObj.Settings.EndDate)
+          },
+          time: {
             minUnit: 'day',
             tooltipFormat: chartObj.Settings.DateFormat,
             parser: chartObj.Settings.DateFormat
@@ -144,7 +151,7 @@ function createChartForChartJs(parent, chartObj) {
 }
 
 // create series object for Chart.js chart
-function createSeriesForChartJs(seriesObj, color) {
+function createSeriesForChartJs(seriesObj, limits, color) {
   // return empty object if smth. is wrong
   if (!seriesObj || !(typeof seriesObj === "object") || !seriesObj.hasOwnProperty("Type")
     || seriesObj.Type.toLowerCase() !== "series" || !seriesObj.hasOwnProperty("Content")
@@ -163,8 +170,12 @@ function createSeriesForChartJs(seriesObj, color) {
   }
   var tsData = [];
   for (var i = 0; i < seriesObj.Content.Values.length; i++) {
+    const thisDate = seriesObj.Content.Dates[i];
+    if ((limits.min && thisDate < limits.min) || (limits.max && thisDate > limits.max)) {
+      continue;
+    }
     tsData.push({
-      x: seriesObj.Content.Dates[i],
+      x: thisDate,
       y: seriesObj.Content.Values[i]
     });
   }
