@@ -10,15 +10,48 @@ var $ru = {
   addReportElement: addReportElement,
   getColorList: getColorList,
   addPageBreak: addPageBreak,
-  getEntryFromDataBank: getEntryFromDataBank
+  databank: {
+    getEntry: getEntry,
+    getEntryName: getEntryName,
+    getSeriesContent: getSeriesContent,
+
+  }
 };
 
-// fetch an object stored in the global $data_bank variable under the given name
-function getEntryFromDataBank(name) {
-  if ($data_bank && typeof $data_bank === "object" && $data_bank.hasOwnProperty(name)) {
-    return $data_bank[name];
+// fetch an object stored in the global $databank variable under the given name
+function getEntry(name) {
+  if ($databank && typeof $databank === "object" && $databank.hasOwnProperty(name)) {
+    return $databank[name];
   }
-  return null;
+  return {};
+}
+
+// fetch an object stored in the global $databank variable under the given name
+function getEntryName(name) {
+  const dataObj = getEntry(name);
+  return dataObj.Name || "";
+}
+
+// fetch the series from $databank reconstructing all the dates
+function getSeriesContent(name) {
+  const dataObj = getEntry(name);
+  if (dataObj && typeof dataObj === "object" && dataObj.hasOwnProperty("Values")
+    && (dataObj.Values instanceof Array) && dataObj.hasOwnProperty("Dates")) {
+    var dates = [];
+    if (dataObj.Dates instanceof Array) {
+      dates = dataObj.Dates.map(function (d) {
+        return new Date(d);
+      });
+    } else {
+      const freqUnit = $ru.freqToUnit(dataObj.Frequency);
+      const startDate = moment(dataObj.Dates);
+      for (var i = 0; i < dataObj.Values.length; i++) {
+        dates.push(startDate.add(1, freqUnit).toDate());
+      }
+    }
+    return { Values: dataObj.Values, Dates: dates };
+  }
+  return {};
 }
 
 // add div that would force page break when printing
@@ -121,36 +154,18 @@ function createSeriesForChartJs(seriesObj, color) {
         && seriesObj.Content.hasOwnProperty("Values")))) {
     return {};
   }
-  const inDataBank = (typeof seriesObj.Content === "string");
-  var values, dates = [];
-  if (inDataBank) {
-    const dataObj = getEntryFromDataBank(seriesObj.Content);
-    if (dataObj && typeof dataObj === "object" && dataObj.hasOwnProperty("Values")
-      && (dataObj.Values instanceof Array)) {
-      values = dataObj.Values;
-      if (dataObj.Dates instanceof Array) {
-        dates = dataObj.Dates.map(function (d) {
-          return new Date(d);
-        });
-      } else {
-        const freqUnit = freqToMomentJsUnit(dataObj.Frequency);
-        const startDate = moment(dataObj.Dates);
-        for (var i = 0; i < values.length; i++) {
-          dates.push(startDate.add(1, freqUnit).toDate());
-        }
-      }
-    }
+  if (typeof seriesObj.Content === "string") {
+    seriesObj.Content = $ru.databank.getSeriesContent(seriesObj.Content);
   } else {
-    values = seriesObj.Content.Values;
-    dates = seriesObj.Content.Dates.map(function (d) {
+    seriesObj.Content.Dates = seriesObj.Content.Dates.map(function (d) {
       return new Date(d);
     });
   }
   var tsData = [];
-  for (var i = 0; i < values.length; i++) {
+  for (var i = 0; i < seriesObj.Content.Values.length; i++) {
     tsData.push({
-      x: dates[i],
-      y: values[i]
+      x: seriesObj.Content.Dates[i],
+      y: seriesObj.Content.Values[i]
     });
   }
   var overrideColor = null;
@@ -265,10 +280,12 @@ function createTable(parent, tableObj) {
       || ["series", "heading"].indexOf(tableRowObj.Type.toLowerCase()) === -1
       || (tableRowObj.Type.toLowerCase() === "series"
         && (!tableRowObj.hasOwnProperty("Content")
-          || !tableRowObj.Content.hasOwnProperty("Values")
-          || !(tableRowObj.Content.Values instanceof Array)
-          || !(dates instanceof Array)
-          || tableRowObj.Content.Values.length !== dates.length))) {
+          || !((typeof tableRowObj.Content === "string")
+            || (typeof tableRowObj.Content === "object"
+              && tableRowObj.Content.hasOwnProperty("Dates")
+              && tableRowObj.Content.hasOwnProperty("Values")
+              && (dates instanceof Array)
+              && tableRowObj.Content.Values.length !== dates.length))))) {
       continue;
     }
     const isSeries = (tableRowObj.Type.toLowerCase() === "series");
@@ -289,6 +306,9 @@ function createTable(parent, tableObj) {
     tbodyRow.appendChild(tbodyTitleCell);
     // create data cells
     if (isSeries) {
+      if (typeof tableRowObj.Content === "string") {
+        tableRowObj.Content = $ru.databank.getSeriesContent(tableRowObj.Content);
+      }
       for (var j = 0; j < tableRowObj.Content.Values.length; j++) {
         const v = tableRowObj.Content.Values[j];
         var tbodyDataCell = document.createElement("td");
