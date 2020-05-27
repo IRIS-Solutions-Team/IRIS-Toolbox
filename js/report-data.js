@@ -1,4 +1,4 @@
-var $report_with_data = {
+var $reportWithData = {
   "Type": "REPORT",
   "Title": "Lorem ipsum dolor sit amet",
   "Settings": {
@@ -40,7 +40,7 @@ var $report_with_data = {
       "Content": [
         {
           "Type": "SERIES",
-          "Title": "Series 1",
+          "Title": "Series 1 very-long-unbreakable-series1-title-and-more",
           "Settings": {
             "Class": ""
           },
@@ -1496,7 +1496,7 @@ var $report_with_data = {
   ]
 };
 
-var $report_nodata = {
+var $reportWithoutData = {
   "Type": "REPORT",
   "Title": "Lorem ipsum dolor sit amet",
   "Settings": {
@@ -1538,7 +1538,7 @@ var $report_nodata = {
       "Content": [
         {
           "Type": "SERIES",
-          "Title": "Series 1",
+          "Title": "Series 1 very-long-unbreakable-series1-title-and-more",
           "Settings": {
             "Class": ""
           },
@@ -1737,7 +1737,8 @@ var $report_nodata = {
               "Type": "SERIES",
               "Title": "Series 20",
               "Settings": {
-                "Class": ""
+                "Class": "",
+                "Type": "bar"
               },
               "Content": "IOsjaerpAuWiOjPDystt"
             }
@@ -1821,7 +1822,8 @@ var $report_nodata = {
               "Type": "SERIES",
               "Title": "Series 20",
               "Settings": {
-                "Class": ""
+                "Class": "",
+                "Color": "#000"
               },
               "Content": "FpOtZkORxJPmNVZTAaae"
             }
@@ -1832,7 +1834,7 @@ var $report_nodata = {
   ]
 };
 
-var $data_bank = {
+var $databank = {
   "vnFGNmpbpsHFNTUeBcPq": {
     "Name": "vnFGNmpbpsHFNTUeBcPq",
     "Dates": "2020-01-01",
@@ -2835,5 +2837,5 @@ var $data_bank = {
   }
 };
 
-// var $report = $report_with_data;
-var $report = $report_nodata;
+var $report = $reportWithData;
+// var $report = $reportWithoutData;
