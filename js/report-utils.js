@@ -101,7 +101,7 @@ function createChartForChartJs(parent, chartObj) {
   }
   // draw chart in canvas
   Chart.defaults.global.defaultFontFamily = 'Lato';
-  var chartJsObj = new Chart(canvas, {
+  const chartConfig = {
     type: 'line',
     data: {
       datasets: data
@@ -134,6 +134,7 @@ function createChartForChartJs(parent, chartObj) {
       maintainAspectRatio: true,
       scales: {
         xAxes: [{
+          id: 'x-axis',
           type: 'time',
           distribution: 'series',
           ticks: {
@@ -155,7 +156,28 @@ function createChartForChartJs(parent, chartObj) {
         }]
       }
     }
-  });
+  };
+  // add range highlighting if needed so
+  if (chartObj.Settings.hasOwnProperty("Highlight") && typeof chartObj.Settings.Highlight === "object" && chartObj.Settings.Highlight instanceof Array && chartObj.Settings.Highlight.length > 0) {
+    chartConfig.options.annotation = {
+      drawTime: 'beforeDatasetsDraw',
+      annotations: []
+    };
+    const defaultColor = "rgba(100, 100, 100, 0.2)";
+    for (let i = 0; i < chartObj.Settings.Highlight.length; i++) {
+      const hConfig = chartObj.Settings.Highlight[i];
+      chartConfig.options.annotation.annotations.push({
+        id: 'highlight-' + i,
+        type: 'box',
+        xScaleID: 'x-axis',
+        xMin: hConfig.StartDate ? new Date(hConfig.StartDate) : undefined,
+        xMax: hConfig.EndDate ? new Date(hConfig.EndDate) : undefined,
+        backgroundColor: hConfig.Color || defaultColor,
+        borderColor: hConfig.Color || defaultColor,
+      });
+    }
+  }
+  var chartJsObj = new Chart(canvas, chartConfig);
   return chartJsObj;
 }
 

@@ -1735,7 +1735,19 @@ var $reportWithoutData = {
             "Class": "",
             "DateFormat": "YYYY:Q",
             "StartDate": "2020-01-01",
-            "EndDate": "2024-12-31"
+            "EndDate": "2024-12-31",
+            "Highlight": [
+              {
+                // "StartDate": "2020-03-01",
+                "EndDate": "2020-12-31",
+                // "Color": "rgba(100, 100, 100, 0.2)"
+              },
+              {
+                "StartDate": "2022-04-08",
+                // "EndDate": "2024-12-31",
+                "Color": "rgba(100, 0, 200, 0.1)"
+              }
+            ]
           },
           "Content": [
             {
