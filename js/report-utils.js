@@ -237,10 +237,23 @@ function createTextBlock(parent, textObj) {
   if (textObj.Content && (typeof textObj.Content === "string")) {
     var textContent = document.createElement("div");
     $(textContent).addClass("rephrase-text-block-body");
+    if (textObj.Settings.HighlightCodeBlocks) {
+      const renderer = new marked.Renderer();
+      renderer.code = function (code, lang) {
+        const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
+        return "<pre><code class=\"hljs"
+          + (validLang ? " language-" + validLang : "")
+          + "\">" + hljs.highlight(validLang, code).value
+          + "</code></pre>";
+      }
+      marked.setOptions({
+        renderer: renderer
+      });
+    }
     textContent.innerHTML = marked(textObj.Content);
     textParent.appendChild(textContent);
-    if (textObj.Settings.ParseFormulas){
-      window.renderMathInElement(textContent,{
+    if (textObj.Settings.ParseFormulas) {
+      window.renderMathInElement(textContent, {
         // no options so far
       });
     }
