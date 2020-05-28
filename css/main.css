@@ -213,6 +213,10 @@ h6, .h6 {
 }
 
 @media print {
+  code, pre, .code-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
   .report-content {
     overflow: visible !important;
     /* width: 1024px !important; */
@@ -235,6 +239,8 @@ h6, .h6 {
     max-height: 100%;
     height: auto!important;
     width: auto!important;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
   .rephrase-grid {
     width: auto!important;
