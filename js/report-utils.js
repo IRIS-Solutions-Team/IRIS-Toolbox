@@ -44,9 +44,9 @@ function getSeriesContent(name) {
       });
     } else {
       const freqUnit = $ru.freqToUnit(dataObj.Frequency);
-      const startDate = moment(dataObj.Dates);
+      const startDate = new Date(dataObj.Dates);
       for (var i = 0; i < dataObj.Values.length; i++) {
-        dates.push(startDate.add(1, freqUnit).toDate());
+        dates.push(moment(startDate).add(i, freqUnit).toDate());
       }
     }
     return { Values: dataObj.Values, Dates: dates };
@@ -129,6 +129,7 @@ function createChartForChartJs(parent, chartObj) {
           }
         }
       },
+      aspectRatio: 1.5,
       maintainAspectRatio: true,
       scales: {
         xAxes: [{
@@ -136,12 +137,19 @@ function createChartForChartJs(parent, chartObj) {
           distribution: 'series',
           ticks: {
             min: new Date(chartObj.Settings.StartDate),
-            max: new Date(chartObj.Settings.EndDate)
+            max: new Date(chartObj.Settings.EndDate),
+            callback: function (d, i, v) {
+              // console.log(v);
+              return moment(d).format(chartObj.Settings.DateFormat);
+            }
           },
           time: {
             minUnit: 'day',
             tooltipFormat: chartObj.Settings.DateFormat,
-            parser: chartObj.Settings.DateFormat
+            // displayFormats: {
+            //   month: "YYYY[M]MM",
+            //   quarter: "YYYY[Q]Q"
+            // }
           }
         }]
       }
@@ -288,7 +296,7 @@ function createTable(parent, tableObj) {
   theadRow.appendChild(theadFirstCell);
   // re-format the date string and populate table header
   const dates = tableObj.Settings.Dates.map(function (d) {
-    const t = moment(d).format(tableObj.Settings.DateFormat);
+    const t = moment(new Date(d)).format(tableObj.Settings.DateFormat);
     var theadDateCell = document.createElement("th");
     $(theadDateCell).addClass('rephrase-table-header-cell');
     theadDateCell.innerText = t;
