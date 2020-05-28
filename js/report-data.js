@@ -1717,6 +1717,9 @@ var $reportWithoutData = {
       ]
     },
     {
+      "Type": "PAGEBREAK"
+    },
+    {
       "Type": "GRID",
       "Title": "",
       "Settings": {
