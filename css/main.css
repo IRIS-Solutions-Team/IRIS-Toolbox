@@ -165,6 +165,21 @@ h6, .h6 {
   /* nothing so far */
 }
 
+.rephrase-text-block {
+  /* parent DIV of the report text block */
+  /* nothing so far */
+}
+
+.rephrase-text-block-title {
+  /* text block title DIV*/
+  /* nothing so far */
+}
+
+.rephrase-text-block-body {
+  /* text block body DIV*/
+  /* nothing so far */
+}
+
 .page-break {
   display: none;
 }

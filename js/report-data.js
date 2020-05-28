@@ -1506,6 +1506,15 @@ var $reportWithoutData = {
   },
   "Content": [
     {
+      "Type": "TEXT",
+      "Title": "Text section with formulas",
+      "Settings": {
+        "Class": "",
+        "ParseFormulas": true
+      },
+      "Content": "# Section 1\n ## Lorem ipsum dolor sit amet, ne suavitate definiebas eum.\n Omnes integre euismod eum at, mei an placerat antiopam moderatius \\\\(\\alpha+\\lambda\\\\), ut sonet voluptatibus vim. Vivendo noluisse mea ad. $$f(x) = \\int_{-\\infty}^\\infty\n\\hat f\\xi\\,e^{2 \\pi i \\xi x}\n\\,d\\xi$$ Laudem quaerendum qui id. Est vero elit reque eu, sea iisque invidunt id.\n\nEx quas deseruisse liberavisse vel. Cu mei posse causae delicatissimi, ei simul fierent nam. Placerat percipitur in qui, no vis facete omnium elaboraret. An brute appareat tacimates quo. Quando invenire constituto duo et, usu nulla repudiandae cu, mel no virtute quaeque appellantur. No usu admodum consequuntur, nec te minim copiosae, vide justo nulla has ne. Vel te alii libris intellegat."
+    },
+    {
       "Type": "TABLE",
       "Title": "Table 1",
       "Settings": {

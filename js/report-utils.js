@@ -10,6 +10,7 @@ var $ru = {
   addReportElement: addReportElement,
   getColorList: getColorList,
   addPageBreak: addPageBreak,
+  createTextBlock: createTextBlock,
   databank: {
     getEntry: getEntry,
     getEntryName: getEntryName,
@@ -216,6 +217,37 @@ function createSeriesForChartJs(seriesObj, limits, color) {
   }
 }
 
+function createTextBlock(parent, textObj) {
+  var textParent = document.createElement("div");
+  $(textParent).addClass("rephrase-text-block");
+  // apply custom css class to .rephrase-text-block div
+  if (textObj.Settings.Class && (typeof textObj.Settings.Class === "string"
+    || textObj.Settings.Class instanceof Array)) {
+    $(textParent).addClass(textObj.Settings.Class);
+  }
+  parent.appendChild(textParent);
+  // create title
+  if (textObj.Title) {
+    var textTitle = document.createElement("h2");
+    $(textTitle).addClass("rephrase-text-block-title");
+    textTitle.innerText = textObj.Title;
+    textParent.appendChild(textTitle);
+  }
+  // create content
+  if (textObj.Content && (typeof textObj.Content === "string")) {
+    var textContent = document.createElement("div");
+    $(textContent).addClass("rephrase-text-block-body");
+    textContent.innerHTML = marked(textObj.Content);
+    textParent.appendChild(textContent);
+    if (textObj.Settings.ParseFormulas){
+      window.renderMathInElement(textContent,{
+        // no options so far
+      });
+    }
+  }
+
+}
+
 // convert frequency letter to Chart.js time unit
 function freqToMomentJsUnit(freq) {
   var unit = "";
@@ -403,6 +435,9 @@ function addReportElement(parent, elementObj) {
       break;
     case "grid":
       $ru.createGrid(parent, elementObj);
+      break;
+    case "text":
+      $ru.createTextBlock(parent, elementObj);
       break;
     case "pagebreak":
       $ru.addPageBreak(parent, elementObj);
