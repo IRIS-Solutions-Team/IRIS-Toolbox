@@ -53,7 +53,9 @@
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 
-classdef Dictionary < matlab.mixin.Copyable
+classdef Dictionary ...
+    < matlab.mixin.Copyable
+
     properties (SetAccess=protected)
         Keys (1, :) string = string.empty(1, 0)
         Values (1, :) cell = cell.empty(1, 0)
@@ -62,13 +64,9 @@ classdef Dictionary < matlab.mixin.Copyable
     end
 
 
-
-
     properties (Dependent)
         Count
     end
-
-
 
 
     properties (Constant, Hidden)

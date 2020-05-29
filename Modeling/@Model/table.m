@@ -167,22 +167,23 @@ function outputTable = table(this, requests, varargin)
 
 TYPE = @int8;
 
+%( Input parser
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('Model/table');
+    pp = extend.InputParser('@Model/table');
 
-    addRequired(pp, 'model', @(x) isa(x, 'model'));
+    addRequired(pp, 'model', @(x) isa(x, 'Model'));
     addRequired(pp, 'request', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
     
     addParameter(pp, 'CompareFirstColumn', true, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Diary', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
     addParameter(pp, 'Round', Inf, @(x) isequal(x, Inf) || (isnumeric(x) && isscalar(x) && x==round(x)));
-    addParameter(pp, 'SelectNames', false, @(x) isequal(x, false) || validate.list(x));
+    addParameter(pp, 'SelectRows', false, @(x) isequal(x, false) || validate.list(x));
     addParameter(pp, {'SortAlphabetically', 'Sort'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'WriteTable', '', @locallyValidateWriteTable); % @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
 end
-parse(pp, this, requests, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, this, requests, varargin{:});
 
 if ischar(requests)
     requests = regexp(requests, '\w+', 'match');
@@ -366,8 +367,8 @@ if any(strcmp(outputTable.Properties.VariableNames, 'Name'))
 end
 
 % Select rows
-if ~isequal(opt.SelectNames, false)
-    outputTable = outputTable(string(opt.SelectNames), :);
+if ~isequal(opt.SelectRows, false)
+    outputTable = outputTable(string(opt.SelectRows), :);
 end
 
 % Sort table rows alphabetically

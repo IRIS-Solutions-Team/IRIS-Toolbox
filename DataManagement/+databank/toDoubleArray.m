@@ -15,7 +15,7 @@ if isempty(pp)
     pp = extend.InputParser('+databank/toDoubleArray');
     addRequired(pp, 'inputDb', @(x) validate.databank(x) && isscalar(x)); 
     addRequired(pp, 'names', @(x) iscellstr(x) || ischar(x) || isstring(x));
-    addRequired(pp, 'dates', @DateWrapper.validateDateInput);
+    addRequired(pp, 'dates', @DateWrapper.validateProperRangeInput);
     addRequired(pp, 'columns', @(x) isnumeric(x) && all(x(:)==round(x(:))) && all(x(:)>=1));
 end
 %)
