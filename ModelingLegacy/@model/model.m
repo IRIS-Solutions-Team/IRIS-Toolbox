@@ -259,7 +259,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = subsasgn(varargin)
         varargout = subsref(varargin)        
         varargout = system(varargin)
-        varargout = table(varargin)
         varargout = templatedb(varargin)
         varargout = tolerance(varargin)
         varargout = trollify(varargin)

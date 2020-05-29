@@ -360,14 +360,18 @@ classdef Model ...
 
 
     methods % Public Interface
+        %(
         varargout = equationStartsWith(varargin)
         varargout = changeLogStatus(varargin)
         varargout = get(varargin)
         varargout = simulate(varargin)
+        varargout = table(varargin)
+        %)
     end % methods
 
 
     methods (Access=protected) % Custom Display
+        %(
         function groups = getPropertyGroups(this)
             x = struct( 'FileName', this.FileName, ...
                         'Comment', this.Comment, ...
@@ -410,6 +414,7 @@ classdef Model ...
             end
             header = ['  ', dimString, adjective, ' ', className, sprintf('\n')]; 
         end%
+        %)
     end % methods
 
 
