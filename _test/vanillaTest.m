@@ -30,6 +30,7 @@ table1 = rephrase.Table( ...
 );
 table2 = copy(table1);
 
+serial = series.Serialize( );
 
 for i = 1 : 20
     if i==5
@@ -38,8 +39,8 @@ for i = 1 : 20
         );
         heading2 = copy(heading1);
 
-        table1.Content{end+1} = heading1;
-        table2.Content{end+1} = heading2;
+        table1.add(heading1);
+        table2.add(heading2);
     end
 
     title = "Series " + i;
@@ -57,13 +58,13 @@ for i = 1 : 20
     series2.Content = name;
     db.(name) = Series(startDateQ, data);
 
-    table1.Content{end+1} = series1;
-    table2.Content{end+1} = series2;
+    table1.add(series1);
+    table2.add(series2);
 end
 
 
-rdo1.Content{end+1} = table1;
-rdo2.Content{end+1} = table2;
+rdo1.add(table1);
+rdo2.add(table2);
 
 
 grid1 = rephrase.Grid( ...
@@ -72,7 +73,6 @@ grid1 = rephrase.Grid( ...
 grid2 = copy(grid1);
 
 
-serial = series.Serialize( );
 for i = 1 : 4
     chart1 = rephrase.Chart( ...
         "Chart " + i, rangeQ(1), rangeQ(end) ...
@@ -103,17 +103,17 @@ for i = 1 : 4
         series2.Content = name;
         db.(name) = data;
 
-        chart1.Content{end+1} = series1;
-        chart2.Content{end+1} = series2;
+        chart1.add(series1);
+        chart2.add(series2);
     end
 
-    grid1.Content{end+1} = chart1;
-    grid2.Content{end+1} = chart2;
+    grid1.add(chart1);
+    grid2.add(chart2);
 end 
 
 
-rdo1.Content{end+1} = grid1;
-rdo2.Content{end+1} = grid2;
+rdo1.add(grid1);
+rdo2.add(grid2);
 
 
 j1 = string(jsonencode(rdo1));
