@@ -84,6 +84,11 @@ h6, .h6 {
   /* nothing so far */
 }
 
+.rephrase-chart-title {
+  /* chart title DIV */
+  text-align: center;
+}
+
 .rephrase-chart-canvas {
   /* chart CANVAS */
   /* nothing so far */
@@ -160,6 +165,25 @@ h6, .h6 {
   /* nothing so far */
 }
 
+.rephrase-text-block {
+  /* parent DIV of the report text block */
+  /* nothing so far */
+}
+
+.rephrase-text-block-title {
+  /* text block title DIV*/
+  /* nothing so far */
+}
+
+.rephrase-text-block-body {
+  /* text block body DIV*/
+  /* nothing so far */
+}
+
+.page-break {
+  display: none;
+}
+
 @media (max-width: 639px) {
   /* small screens */
   .left-logo-img, .right-logo-img {
@@ -189,6 +213,10 @@ h6, .h6 {
 }
 
 @media print {
+  code, pre, .code-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
   .report-content {
     overflow: visible !important;
     /* width: 1024px !important; */
@@ -211,20 +239,37 @@ h6, .h6 {
     max-height: 100%;
     height: auto!important;
     width: auto!important;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
   .rephrase-grid {
     width: auto!important;
     max-width: 100%;
     min-height: 100%;
     max-height: 100%;
+    /* this is to be agreed */
     break-inside: avoid;
+    page-break-inside: avoid;
   }
   .rephrase-grid {
-    break-before: always;
+    /* exact combination to be figured out */
+    /* break-before: always;
+    page-break-before: always;
     break-after: avoid;
+    page-break-after: avoid; */
   }
   .rephrase-table-title {
     break-after: avoid;
+    page-break-after: avoid;
+  }
+  .page-break {
+    display: block!important;
+    /* `break-before` should come as a replacement of 
+    `page-break-before` in the newer browsers */
+    break-before: always!important;
+    /* though this one is outdated but the only working one */
+    page-break-before: always!important;
+    /* clear: both!important; */
   }
   @page {
     size: landscape;

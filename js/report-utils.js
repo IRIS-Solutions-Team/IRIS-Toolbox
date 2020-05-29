@@ -4,12 +4,64 @@
 var $ru = {
   createChart: createChartForChartJs,
   createSeries: createSeriesForChartJs,
-  freqToUnit: freqToChartJsUnit,
+  freqToUnit: freqToMomentJsUnit,
   createTable: createTable,
   createGrid: createGrid,
   addReportElement: addReportElement,
-  getColorList: getColorList
+  getColorList: getColorList,
+  addPageBreak: addPageBreak,
+  createTextBlock: createTextBlock,
+  databank: {
+    getEntry: getEntry,
+    getEntryName: getEntryName,
+    getSeriesContent: getSeriesContent,
+
+  }
 };
+
+// fetch an object stored in the global $databank variable under the given name
+function getEntry(name) {
+  if ($databank && typeof $databank === "object" && $databank.hasOwnProperty(name)) {
+    return $databank[name];
+  }
+  return {};
+}
+
+// fetch an object stored in the global $databank variable under the given name
+function getEntryName(name) {
+  const dataObj = getEntry(name);
+  return dataObj.Name || "";
+}
+
+// fetch the series from $databank reconstructing all the dates
+function getSeriesContent(name) {
+  const dataObj = getEntry(name);
+  if (dataObj && typeof dataObj === "object" && dataObj.hasOwnProperty("Values")
+    && (dataObj.Values instanceof Array) && dataObj.hasOwnProperty("Dates")) {
+    var dates = [];
+    if (dataObj.Dates instanceof Array) {
+      dates = dataObj.Dates.map(function (d) {
+        return new Date(d);
+      });
+    } else {
+      const freqUnit = $ru.freqToUnit(dataObj.Frequency);
+      const startDate = new Date(dataObj.Dates);
+      for (var i = 0; i < dataObj.Values.length; i++) {
+        dates.push(moment(startDate).add(i, freqUnit).toDate());
+      }
+    }
+    return { Values: dataObj.Values, Dates: dates };
+  }
+  return {};
+}
+
+// add div that would force page break when printing
+function addPageBreak(parent, breakObj) {
+  var pageBreakDiv = document.createElement("div");
+  $(pageBreakDiv).addClass("page-break");
+  pageBreakDiv.innerHTML = "&nbsp;";
+  parent.appendChild(pageBreakDiv);
+}
 
 // create chart elements using Chart.js library
 function createChartForChartJs(parent, chartObj) {
@@ -21,67 +73,141 @@ function createChartForChartJs(parent, chartObj) {
     $(canvasParent).addClass(chartObj.Settings.Class);
   }
   parent.appendChild(canvasParent);
+  // whether to include title in canvas or make it a separate div
+  const titleOutOfCanvas = (chartObj.Settings.hasOwnProperty("IsTitlePartOfChart") && !chartObj.Settings.IsTitlePartOfChart);
+  // create chart title
+  const chartTitle = chartObj.Title || "";
+  if (chartTitle && titleOutOfCanvas) {
+    var chartTitleDiv = document.createElement("div");
+    $(chartTitleDiv).addClass(["rephrase-chart-title", "h4"]);
+    chartTitleDiv.innerText = chartTitle;
+    canvasParent.appendChild(chartTitleDiv);
+  }
   var canvas = document.createElement("canvas");
   $(canvas).addClass("rephrase-chart-canvas");
   canvasParent.appendChild(canvas);
-
-  const chartTitle = chartObj.Title || "";
-  const chartUnit = $ru.freqToUnit(chartObj.Settings.Freq);
-  const dates = chartObj.Settings.Dates.map(function (d) {
-    return new Date(d);
-  });
+  // generate data for the chart
   var data = [];
+  const limits = {
+    min: chartObj.Settings.StartDate ? new Date(chartObj.Settings.StartDate) : null,
+    max: chartObj.Settings.EndDate ? new Date(chartObj.Settings.EndDate) : null
+  };
   if (chartObj.hasOwnProperty("Content") && chartObj.Content instanceof Array) {
     const colorList = $ru.getColorList(chartObj.Content.length);
     for (var i = 0; i < chartObj.Content.length; i++) {
       const seriesObj = chartObj.Content[i];
-      data.push($ru.createSeries(dates, seriesObj, colorList[i]));
+      data.push($ru.createSeries(seriesObj, limits, colorList[i]));
     }
   }
-
-  var chartJsObj = new Chart(canvas, {
+  // draw chart in canvas
+  Chart.defaults.global.defaultFontFamily = 'Lato';
+  const chartConfig = {
     type: 'line',
     data: {
       datasets: data
     },
     options: {
       title: {
-        display: chartTitle !== "",
-        text: chartTitle
+        display: chartTitle !== "" && !titleOutOfCanvas,
+        text: chartTitle,
+        fontFamily: 'Lato',
+        fontSize: 20,
+        fontStyle: '300',
+        fontColor: '#0a0a0a'
       },
+      tooltips: {
+        intersect: false,
+        mode: 'x',
+        callbacks: {
+          label: function (tooltipItem, data) {
+            var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+            if (label) {
+              label += ': ';
+            }
+            label += Math.round(tooltipItem.yLabel * 1000) / 1000;
+            return label;
+          }
+        }
+      },
+      aspectRatio: 1.5,
       maintainAspectRatio: true,
       scales: {
         xAxes: [{
+          id: 'x-axis',
           type: 'time',
           distribution: 'series',
-          time: {
-            unit: chartUnit,
-            displayFormats: {
-              quarter: chartObj.Settings.DateFormat
+          ticks: {
+            min: new Date(chartObj.Settings.StartDate),
+            max: new Date(chartObj.Settings.EndDate),
+            callback: function (d, i, v) {
+              // console.log(v);
+              return moment(d).format(chartObj.Settings.DateFormat);
             }
+          },
+          time: {
+            minUnit: 'day',
+            tooltipFormat: chartObj.Settings.DateFormat,
+            // displayFormats: {
+            //   month: "YYYY[M]MM",
+            //   quarter: "YYYY[Q]Q"
+            // }
           }
         }]
       }
     }
-  });
-
+  };
+  // add range highlighting if needed so
+  if (chartObj.Settings.hasOwnProperty("Highlight") && typeof chartObj.Settings.Highlight === "object" && chartObj.Settings.Highlight instanceof Array && chartObj.Settings.Highlight.length > 0) {
+    chartConfig.options.annotation = {
+      drawTime: 'beforeDatasetsDraw',
+      annotations: []
+    };
+    const defaultColor = "rgba(100, 100, 100, 0.2)";
+    for (let i = 0; i < chartObj.Settings.Highlight.length; i++) {
+      const hConfig = chartObj.Settings.Highlight[i];
+      chartConfig.options.annotation.annotations.push({
+        id: 'highlight-' + i,
+        type: 'box',
+        xScaleID: 'x-axis',
+        xMin: hConfig.StartDate ? new Date(hConfig.StartDate) : undefined,
+        xMax: hConfig.EndDate ? new Date(hConfig.EndDate) : undefined,
+        backgroundColor: hConfig.Color || defaultColor,
+        borderColor: hConfig.Color || defaultColor,
+      });
+    }
+  }
+  var chartJsObj = new Chart(canvas, chartConfig);
   return chartJsObj;
 }
 
 // create series object for Chart.js chart
-function createSeriesForChartJs(dates, seriesObj, color) {
+function createSeriesForChartJs(seriesObj, limits, color) {
   // return empty object if smth. is wrong
   if (!seriesObj || !(typeof seriesObj === "object") || !seriesObj.hasOwnProperty("Type")
     || seriesObj.Type.toLowerCase() !== "series" || !seriesObj.hasOwnProperty("Content")
-    || !(seriesObj.Content instanceof Array) || !(dates instanceof Array)
-    || seriesObj.Content.length !== dates.length) {
+    || !((typeof seriesObj.Content === "string")
+      || (typeof seriesObj.Content === "object"
+        && seriesObj.Content.hasOwnProperty("Dates")
+        && seriesObj.Content.hasOwnProperty("Values")))) {
     return {};
   }
+  if (typeof seriesObj.Content === "string") {
+    seriesObj.Content = $ru.databank.getSeriesContent(seriesObj.Content);
+  } else {
+    seriesObj.Content.Dates = seriesObj.Content.Dates.map(function (d) {
+      return new Date(d);
+    });
+  }
   var tsData = [];
-  for (var i = 0; i < dates.length; i++) {
+  for (var i = 0; i < seriesObj.Content.Values.length; i++) {
+    const thisDate = seriesObj.Content.Dates[i];
+    if ((limits.min && thisDate < limits.min) || (limits.max && thisDate > limits.max)) {
+      continue;
+    }
     tsData.push({
-      x: dates[i],
-      y: seriesObj.Content[i]
+      x: thisDate,
+      y: seriesObj.Content.Values[i]
     });
   }
   var overrideColor = null;
@@ -89,45 +215,91 @@ function createSeriesForChartJs(dates, seriesObj, color) {
     && seriesObj.Settings.hasOwnProperty("Color")) {
     overrideColor = seriesObj.Settings.Color;
   }
-  return {
-    data: tsData,
-    lineTension: 0,
-    label: seriesObj.Title || "",
-    backgroundColor: "rgba(0,0,0,0)",
-    borderColor: overrideColor || color
-  };
+  const seriesPlotType = seriesObj.Settings.Type || "line";
+  if (seriesPlotType.toLowerCase() === "bar") {
+    return {
+      data: tsData,
+      label: seriesObj.Title || "",
+      borderWidth: 1,
+      borderColor: overrideColor || color,
+      backgroundColor: (overrideColor || color).replace(/,\s*\d*\.?\d+\)$/, ",0.2)"),
+      type: seriesPlotType
+    };
+  }
+  else {
+    return {
+      data: tsData,
+      lineTension: 0,
+      fill: false,
+      label: seriesObj.Title || "",
+      backgroundColor: overrideColor || color,
+      borderColor: overrideColor || color,
+      type: "line"
+    };
+  }
+}
+
+function createTextBlock(parent, textObj) {
+  var textParent = document.createElement("div");
+  $(textParent).addClass("rephrase-text-block");
+  // apply custom css class to .rephrase-text-block div
+  if (textObj.Settings.Class && (typeof textObj.Settings.Class === "string"
+    || textObj.Settings.Class instanceof Array)) {
+    $(textParent).addClass(textObj.Settings.Class);
+  }
+  parent.appendChild(textParent);
+  // create title
+  if (textObj.Title) {
+    var textTitle = document.createElement("h2");
+    $(textTitle).addClass("rephrase-text-block-title");
+    textTitle.innerText = textObj.Title;
+    textParent.appendChild(textTitle);
+  }
+  // create content
+  if (textObj.Content && (typeof textObj.Content === "string")) {
+    var textContent = document.createElement("div");
+    $(textContent).addClass("rephrase-text-block-body");
+    if (textObj.Settings.HighlightCodeBlocks) {
+      const renderer = new marked.Renderer();
+      renderer.code = function (code, lang) {
+        const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
+        return "<pre><code class=\"hljs"
+          + (validLang ? " language-" + validLang : "")
+          + "\">" + hljs.highlight(validLang, code).value
+          + "</code></pre>";
+      }
+      marked.setOptions({
+        renderer: renderer
+      });
+    }
+    textContent.innerHTML = marked(textObj.Content);
+    textParent.appendChild(textContent);
+    if (textObj.Settings.ParseFormulas) {
+      window.renderMathInElement(textContent, {
+        // no options so far
+      });
+    }
+  }
+
 }
 
 // convert frequency letter to Chart.js time unit
-function freqToChartJsUnit(freq) {
+function freqToMomentJsUnit(freq) {
   var unit = "";
-  switch (freq.toLowerCase()) {
-    case "d":
-    case "day":
-    case "daily":
+  switch (freq) {
+    case 365:
       unit = "day";
       break;
-    case "w":
-    case "week":
-    case "weekly":
+    case 52:
       unit = "week";
       break;
-    case "m":
-    case "month":
-    case "monthly":
+    case 12:
       unit = "month";
       break;
-    case "q":
-    case "quarter":
-    case "quarterly":
+    case 4:
       unit = "quarter";
       break;
-    case "y":
-    case "year":
-    case "yearly":
-    case "a":
-    case "annual":
-    case "annually":
+    case 1:
       unit = "year";
       break;
     default:
@@ -138,13 +310,13 @@ function freqToChartJsUnit(freq) {
 
 function getColorList(nColors) {
   const defaultColorList = [
-    "#0072bd",
-    "#d95319",
-    "#edb120",
-    "#7e2f8e",
-    "#77ac30",
-    "#4dbeee",
-    "#a2142f"
+    'rgba(0, 114, 189, 1)',
+    'rgba(217, 83, 25, 1)',
+    'rgba(237, 177, 32, 1)',
+    'rgba(126, 47, 142, 1)',
+    'rgba(119, 172, 48, 1)',
+    'rgba(77, 190, 238, 1)',
+    'rgba(162, 20, 47, 1)'
   ];
   const nDefaults = defaultColorList.length;
   var colorList = [];
@@ -191,7 +363,7 @@ function createTable(parent, tableObj) {
   theadRow.appendChild(theadFirstCell);
   // re-format the date string and populate table header
   const dates = tableObj.Settings.Dates.map(function (d) {
-    const t = moment(d).format(tableObj.Settings.DateFormat);
+    const t = moment(new Date(d)).format(tableObj.Settings.DateFormat);
     var theadDateCell = document.createElement("th");
     $(theadDateCell).addClass('rephrase-table-header-cell');
     theadDateCell.innerText = t;
@@ -204,10 +376,16 @@ function createTable(parent, tableObj) {
   for (var i = 0; i < tableObj.Content.length; i++) {
     const tableRowObj = tableObj.Content[i];
     // skip this entry if it's neither a SERIES nor HEADING or if smth. else is wrong
-    if (!tableRowObj.hasOwnProperty("Type") || ["series", "heading"].indexOf(tableRowObj.Type.toLowerCase()) === -1
-      || (tableRowObj.Type.toLowerCase() === "series" && (!tableRowObj.hasOwnProperty("Content")
-        || !(tableRowObj.Content instanceof Array) || !(dates instanceof Array)
-        || tableRowObj.Content.length !== dates.length))) {
+    if (!tableRowObj.hasOwnProperty("Type")
+      || ["series", "heading"].indexOf(tableRowObj.Type.toLowerCase()) === -1
+      || (tableRowObj.Type.toLowerCase() === "series"
+        && (!tableRowObj.hasOwnProperty("Content")
+          || !((typeof tableRowObj.Content === "string")
+            || (typeof tableRowObj.Content === "object"
+              && tableRowObj.Content.hasOwnProperty("Dates")
+              && tableRowObj.Content.hasOwnProperty("Values")
+              && (dates instanceof Array)
+              && tableRowObj.Content.Values.length === dates.length))))) {
       continue;
     }
     const isSeries = (tableRowObj.Type.toLowerCase() === "series");
@@ -228,8 +406,11 @@ function createTable(parent, tableObj) {
     tbodyRow.appendChild(tbodyTitleCell);
     // create data cells
     if (isSeries) {
-      for (var j = 0; j < tableRowObj.Content.length; j++) {
-        const v = tableRowObj.Content[j];
+      if (typeof tableRowObj.Content === "string") {
+        tableRowObj.Content = $ru.databank.getSeriesContent(tableRowObj.Content);
+      }
+      for (var j = 0; j < tableRowObj.Content.Values.length; j++) {
+        const v = tableRowObj.Content.Values[j];
         var tbodyDataCell = document.createElement("td");
         $(tbodyDataCell).addClass('rephrase-table-data-cell');
         tbodyDataCell.innerText = v.toFixed(nDecimals);
@@ -249,8 +430,8 @@ function createGrid(parent, gridObj) {
     var gridTitle = document.createElement("h2");
     $(gridTitle).addClass("rephrase-grid-title");
     gridTitle.innerText = gridObj.Title;
+    gridRowParent.appendChild(gridTitle);
   }
-  gridRowParent.appendChild(gridTitle);
   const nRows = gridObj.Settings.NumRows;
   const nCols = gridObj.Settings.NumColumns;
   // populate rows
@@ -289,6 +470,12 @@ function addReportElement(parent, elementObj) {
       break;
     case "grid":
       $ru.createGrid(parent, elementObj);
+      break;
+    case "text":
+      $ru.createTextBlock(parent, elementObj);
+      break;
+    case "pagebreak":
+      $ru.addPageBreak(parent, elementObj);
       break;
     default:
       break;
