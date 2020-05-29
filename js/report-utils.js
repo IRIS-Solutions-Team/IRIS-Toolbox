@@ -144,6 +144,8 @@ function createChartForChartJs(parent, chartObj) {
               // console.log(v);
               return moment(d).format(chartObj.Settings.DateFormat);
             }
+            // maxRotation: 0,
+            // minRotation: 0
           },
           time: {
             minUnit: 'day',
