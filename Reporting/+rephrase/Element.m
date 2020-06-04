@@ -44,7 +44,7 @@ classdef Element ...
     methods (Access=protected)
         function j = prepareForJson(this)
             j = struct( );
-            j.Type = this.Type;
+            j.Type = char(this.Type);
             j.Title = this.Title;
             j.Settings = this.Settings;
             j.Content = this.Content;
