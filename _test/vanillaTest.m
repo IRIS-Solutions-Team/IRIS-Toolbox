@@ -22,6 +22,17 @@ rdo1 = rephrase.Report( ...
 );
 rdo2 = copy(rdo1);
 
+text1 = rephrase.Text( ...
+    "Text section with formulas" ...
+    , "ParseFormulas", true ...
+    , "HighlightCodeBlocks", true ...
+);
+text1.Content = fileread("sample.md");
+text2 = copy(text1);
+
+rdo1.Content{end+1} = text1;
+rdo2.Content{end+1} = text2;
+
 
 table1 = rephrase.Table( ...
     "Table 1", rangeQ ...
@@ -30,6 +41,8 @@ table1 = rephrase.Table( ...
 );
 table2 = copy(table1);
 
+
+serial = series.Serialize( );
 
 for i = 1 : 20
     if i==5
@@ -72,8 +85,16 @@ grid1 = rephrase.Grid( ...
 grid2 = copy(grid1);
 
 
-serial = series.Serialize( );
 for i = 1 : 4
+    args = cell.empty(1, 0);
+    if i==1
+        args = [args, { ...
+            "Highlight", { ...
+                struct("EndDate", mm(2020,12)) ...
+                , struct("StartDate", mm(2022,4), "Color", "rgba(100, 0, 200, 0.1)"), ...
+                } ...
+        }];
+    end
     chart1 = rephrase.Chart( ...
         "Chart " + i, rangeQ(1), rangeQ(end) ...
         , "DateFormat", "YYYY:Q" ...
@@ -83,6 +104,11 @@ for i = 1 : 4
     for j = 1 : 2
         id = 100*i+j;
         args = cell.empty(1, 0);
+        if id==101
+            args = [args, { ...
+                "Type", "bar" 
+            }];
+        end
         if id==401
             args = [args, {"Color", "#000"}];
         end
@@ -90,7 +116,7 @@ for i = 1 : 4
             "Series " + (100*i+j) ...
             , args{:} ...
         );
-        series2 = copy(series2);
+        series2 = copy(series1);
 
         if j==1
             data = Series(startDateQ, rand(numPeriodsQ, 1));
@@ -132,3 +158,11 @@ fid = fopen("vanillaData2.json", "w+");
 fwrite(fid, jdb);
 fclose(fid);
 
+js = "var $reportWithData = " + j1 + ";";
+js = js + newline + "var $reportWithoutData = " + j2 + ";";
+js = js + newline + "var $databank = " + jdb + ";";
+js = js + newline + "var $report = $reportWithData;";
+% js = js + newline + "var $report = $reportWithoutData;";
+fid = fopen("../js/report-data.js", "w+");
+fwrite(fid, js);
+fclose(fid);
