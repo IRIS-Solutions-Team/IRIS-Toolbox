@@ -99,6 +99,7 @@ for i = 1 : 4
     chart1 = rephrase.Chart( ...
         "Chart " + i, rangeQ(1), rangeQ(end) ...
         , "DateFormat", "YYYY:Q" ...
+        , args{:} ...
     );
     chart2 = copy(chart1);
 
@@ -153,7 +154,7 @@ fid = fopen("vanillaReport2.json", "w+");
 fwrite(fid, j2);
 fclose(fid);
 
-% {
+%{
 id2=0;
 id3=0;
 for i = 1 : 300
@@ -225,12 +226,12 @@ for i = 1 : 300
     end
     rdo3.Content{end+1} = grid3;
 end
-%}
 
 j3 = string(jsonencode(rdo3));
 fid = fopen("vanillaReportHuge.json", "w+");
 fwrite(fid, j3);
 fclose(fid);
+%}
 
 db = serial.encodeDatabank(db);
 jdb = string(jsonencode(db));
@@ -242,9 +243,9 @@ js = "var $reportWithData = " + j1 + ";";
 js = js + newline + "var $reportWithoutData = " + j2 + ";";
 js = js + newline + "var $reportHuge = " + j3 + ";";
 js = js + newline + "var $databank = " + jdb + ";";
-js = js + newline + "var $report = $reportHuge;";
+% js = js + newline + "var $report = $reportHuge;";
 % js = js + newline + "var $report = $reportWithData;";
-% js = js + newline + "var $report = $reportWithoutData;";
+js = js + newline + "var $report = $reportWithoutData;";
 fid = fopen("../js/report-data.js", "w+");
 fwrite(fid, js);
 fclose(fid);
