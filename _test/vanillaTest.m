@@ -21,6 +21,7 @@ rdo1 = rephrase.Report( ...
     , "Class", "" ...
 );
 rdo2 = copy(rdo1);
+rdo3 = copy(rdo1);
 
 text1 = rephrase.Text( ...
     "Text section with formulas" ...
@@ -152,6 +153,85 @@ fid = fopen("vanillaReport2.json", "w+");
 fwrite(fid, j2);
 fclose(fid);
 
+% {
+id2=0;
+id3=0;
+for i = 1 : 300
+    rdo3.Content{end+1} = rephrase.Pagebreak( "" );
+
+    table3 = rephrase.Table( ...
+        "Table " + i, rangeQ ...
+        , "DateFormat", "YYYY:Q" ...
+        , "NumDecimals", 3 ...
+    );
+    for j = 1 : 20
+        if j==5
+            heading3 = rephrase.Heading( ...
+                "Table Heading" ...
+            );
+            table3.Content{end+1} = heading3;
+        end
+        id1 = 20*(i-1) + j;
+        title = "Series " + id1;
+        if j == 1
+            title = title + " very-long-unbreakable-series" + id1 + "-title-and-more";
+        end
+        series3 = rephrase.Series( ...
+            title ...
+        );
+        data = rand(numPeriodsQ, 1);
+        name = string(characters(randi(numel(characters), 1, 20)));
+        series3.Content = name;
+        db.(name) = Series(startDateQ, data);
+        table3.Content{end+1} = series3;
+    end
+    rdo3.Content{end+1} = table3;
+
+    rdo3.Content{end+1} = rephrase.Pagebreak( "" );
+
+    nRows = 1;4;randi([1,4]);
+    nCols = 1;3;randi([2,4]);
+    grid3 = rephrase.Grid( ...
+        "", [nRows, nCols] ...
+    );
+    for j = 1 : nRows*nCols
+        id2 = id2 + 1;
+        chart3 = rephrase.Chart( ...
+            "Chart " + id2, rangeQ(1), rangeQ(end) ...
+            , "DateFormat", "YYYY:Q" ...
+        );
+        nLines = randi([1,6]);
+        for k = 1 : nLines
+            id3 = id3 + 1;
+            args = cell.empty(1, 0);
+            if k==3
+                args = [args, {"Color", "#000"}];
+            end
+            series3 = rephrase.Series( ...
+                "Series " + id3 ...
+                , args{:} ...
+            );
+            if mod(k,2)==0
+                data = Series(startDateQ, rand(numPeriodsQ, 1));
+            else
+                data = Series(startDateM, rand(numPeriodsM, 1));
+            end
+            name = string(characters(randi(numel(characters), 1, 20)));
+            series3.Content = name;
+            db.(name) = data;
+            chart3.Content{end+1} = series3;
+        end
+        grid3.Content{end+1} = chart3;
+    end
+    rdo3.Content{end+1} = grid3;
+end
+%}
+
+j3 = string(jsonencode(rdo3));
+fid = fopen("vanillaReportHuge.json", "w+");
+fwrite(fid, j3);
+fclose(fid);
+
 db = serial.encodeDatabank(db);
 jdb = string(jsonencode(db));
 fid = fopen("vanillaData2.json", "w+");
@@ -160,9 +240,12 @@ fclose(fid);
 
 js = "var $reportWithData = " + j1 + ";";
 js = js + newline + "var $reportWithoutData = " + j2 + ";";
+js = js + newline + "var $reportHuge = " + j3 + ";";
 js = js + newline + "var $databank = " + jdb + ";";
-js = js + newline + "var $report = $reportWithData;";
+js = js + newline + "var $report = $reportHuge;";
+% js = js + newline + "var $report = $reportWithData;";
 % js = js + newline + "var $report = $reportWithoutData;";
 fid = fopen("../js/report-data.js", "w+");
 fwrite(fid, js);
 fclose(fid);
+
