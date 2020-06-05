@@ -1,44 +1,31 @@
 classdef Interp
     properties (Constant)
-        OPEN = char(10216)
-        CLOSE = char(10217)
+        OPEN = char(171) % «
+        CLOSE = char(187) % »
     end
     
     
-    
-    
     methods (Static)
-        function varargout = parse(varargin)
-            % Invoke unit tests
-            %(
-            if nargin==1 && isequal(varargin{1}, '--test')
-                varargout{1} = unitTests( );
-                return
-            end
-            %)
-
+        function [code, values] = parse(p, code, remove)
             import parser.Interp
             import parser.Preparser
 
-            assigned = struct( );
-            maxInterp = uint32(Inf);
-            if nargin==1 && isa(varargin{1}, 'parser.Preparser')
-                % parse(Preparser)
-                p = varargin{1};
+            try, code;
+                catch, code = @auto; end
+
+            % Do not interpolate in the code, remove the <...> segment, and
+            % only return string representation of the values
+            try, remove;
+                catch, remove = false; end
+
+            codeFromObject = isequal(code, @auto);
+            if codeFromObject
                 code = p.Code;
-                assigned = p.Assigned;
-            else 
-                % parse(code)
-                % parse(code, assigned)
-                % parse(code, assigned, maxInterp)
-                code = char(varargin{1});
-                if nargin>=2
-                    assigned = varargin{2};
-                end
-                if nargin>=3
-                    % (code, assigned, maxInterp)
-                    maxInterp = uint32(varargin{3});
-                end
+            end
+
+            code = parser.Interp.replaceSquareBrackets(code);
+            if p.AngleBrackets
+                code = parser.Interp.replaceAngleBrackets(code);
             end
 
             sh = Interp.createShadowCode(code, Interp.OPEN, Interp.CLOSE);
@@ -50,18 +37,19 @@ classdef Interp
                     code(posNested:end) ...
                 );
             end
-            count = uint32(0);
-            value = [ ];
-            codeAfter = '';
-            while count<maxInterp
+
+            values = cell.empty(1, 0);
+            while true
                 posOpen = find(level==1, 1);
                 if isempty(posOpen)
                     break
                 end
                 posClose = posOpen + find(level(posOpen+1:end)==0, 1);
                 if isempty(posClose)
-                    thisError = { 'Preparser:InterpolationStringNotClosed'
-                                  'This interpolation string is not closed: %s ' };
+                    thisError = [ 
+                        "Preparser:InterpolationStringNotClosed"
+                        "This interpolation string is not closed: %s "
+                    ];
                     throwCode( ...
                         exception.ParseTime(thisError, 'error'), ...
                         code(posOpen+1:end) ...
@@ -69,13 +57,13 @@ classdef Interp
                 end
                 expn = code(posOpen+1:posClose-1);
                 try
-                    value = Preparser.eval(expn, assigned);
-                    value = Interp.any2cellstr(value);
-                    s = '';
-                    if ~isempty(value)
-                        s = sprintf('%s,', value{:});
-                        s = s(1:end-1);
+                    addValues = Preparser.eval(expn, p.Assigned);
+                    addValues = Interp.any2cellstr(addValues);
+                    insertCode = "";
+                    if ~remove && ~isempty(addValues)
+                        insertCode = join(string(addValues), ",");
                     end
+                    values = [values, addValues];
                 catch
                     throwCode( ...
                         exception.ParseTime('Preparser:InterpEvalFailed', 'error'), ...
@@ -84,16 +72,14 @@ classdef Interp
                 end
                 before = posOpen - 1;
                 after = posClose + 1;
-                codeAfter = code(after:end);
-                code = [code(1:before), s, code(after:end)];
-                level = [level(1:before), zeros(1, length(s), 'int8'), level(after:end)];
-                count = count + 1;
+                code = [code(1:before), char(insertCode), code(after:end)];
+                level = [level(1:before), zeros(1, strlength(insertCode), 'int8'), level(after:end)];
             end
-            p.Code = code;
-            
 
-            if nargout>=1
-                varargout = { code, value, codeAfter };
+            if codeFromObject
+                % Update the input Preparser object; it is a handle object
+                % and does not need to be returned
+                p.Code = code;
             end
         end%
         
@@ -119,15 +105,17 @@ classdef Interp
         function value = any2cellstr(value)
             if isnumeric(value) || islogical(value) || ischar(value)
                 value = num2cell(value);
-            elseif isa(value, 'string')
+            elseif isstring(value)
                 value = cellstr(value);
             elseif ~iscell(value)
                 value = { value };
             end
             for i = 1 : numel(value)
-                if ischar(value{i})
+                if isempty(value{i})
+                    value{i} = char.empty(1, 0);
+                elseif ischar(value{i})
                     % Do nothing
-                elseif isa(value{i}, 'string')
+                elseif isstring(value{i})
                     value{i} = char(value{i});
                 elseif isnumeric(value{i})
                     value{i} = sprintf('%g', value{i});
@@ -145,7 +133,7 @@ classdef Interp
 
 
 
-        function code = replaceRegularBrackets(code)
+        function code = replaceSquareBrackets(code)
             code = strrep(code, '$[', parser.Interp.OPEN); 
             code = strrep(code, ']$', parser.Interp.CLOSE); 
         end%
@@ -166,26 +154,60 @@ end
 %
 % Unit Tests
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @setupOnce
-        @parseTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=preparser/InterpUnitTest.m
 
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
-function setupOnce(testCase)
-end%
+%% Test Unicode Brackets
 
-
-function parseTest(testCase)
-    code = ' aaaa $[ A+1 ]$ ';
-    code = parser.Interp.replaceRegularBrackets(code);
-    assigned = struct('A', 1);
-    act = parser.Interp.parse(code, assigned);
+    p = parser.Preparser( );
+    p.Assigned = struct('A', 1);
+    p.Code = ' aaaa « A+1 » ';
+    act = parser.Interp.parse(p);
     exp = ' aaaa 2 ';
     assertEqual(testCase, act, exp);
-end%
-%)
+    act = parser.Interp.parse(p, @auto);
+    exp = ' aaaa 2 ';
+    assertEqual(testCase, act, exp);
+
+
+%% Test Square Brackets
+
+    p = parser.Preparser( );
+    p.Assigned = struct('A', 1);
+    p.Code = ' aaaa $[ A+1 ]$ ';
+    act = parser.Interp.parse(p);
+    exp = ' aaaa 2 ';
+    assertEqual(testCase, act, exp);
+    act = parser.Interp.parse(p, @auto);
+    exp = ' aaaa 2 ';
+    assertEqual(testCase, act, exp);
+
+
+%% Test Angle Brackets
+
+    p = parser.Preparser( );
+    p.Assigned = struct('A', 1);
+    p.Code = ' aaaa < A+1 > ';
+    act = parser.Interp.parse(p);
+    exp = ' aaaa 2 ';
+    assertEqual(testCase, act, exp);
+    act = parser.Interp.parse(p, @auto)
+    exp = ' aaaa 2 ';
+    assertEqual(testCase, act, exp);
+
+
+%% Test Angle Brackets External Code
+
+    p = parser.Preparser( );
+    p.Assigned = struct('A', 1);
+    code = ' aaaa < A+1 > ';
+    act = parser.Interp.parse(p, code);
+    exp = ' aaaa 2 ';
+    assertEqual(testCase, act, exp);
+
+##### SOURCE END #####
+%}
+

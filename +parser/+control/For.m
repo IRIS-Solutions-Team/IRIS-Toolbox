@@ -13,7 +13,7 @@ classdef For < parser.control.Control
         CONTROL_NAME_PATTERN = '\?[^\s=!\.:;]*'
         
         FOR_PATTERN = [ '^(', parser.control.For.CONTROL_NAME_PATTERN, ')', ...
-                        '(\s*=)(.*)' ]
+                        '\s*=(.*)' ]
     end
     
     
@@ -21,7 +21,7 @@ classdef For < parser.control.Control
     
     methods
         function this = For(c, sh)
-            import parser.control.*;
+            import parser.control.*
             if nargin==0
                 return
             end
@@ -58,65 +58,49 @@ classdef For < parser.control.Control
         
         
         
-        function c = writeFinal(this, p, varargin)
+        function c = writeFinal(this, preparserObj, varargin)
             import parser.Preparser;
             c = '';
             if isempty(this.ForBody) || isempty(this.DoBody)
                 return
             end
-%             forCode = writeFinal(this.ForBody, p, varargin{:});
-%             doCode = writeFinal(this.DoBody, p, varargin{:});
-%             readForCode(this, forCode, p.Assigned);
+%             forCode = writeFinal(this.ForBody, preparserObj,, varargin{:});
+%             doCode = writeFinal(this.DoBody, preparserObj, varargin{:});
+%             readForCode(this, forCode, preparserObj);
 %             c = replaceDoCode(this, doCode);
             
-            forCode = writeFinal(this.ForBody, p, varargin{:});
-            readForCode(this, forCode, p.Assigned);
-            c = expandDoCode(this, p, varargin{:});
+            forCode = writeFinal(this.ForBody, preparserObj, varargin{:});
+            readForCode(this, forCode, preparserObj);
+            c = expandDoCode(this, preparserObj, varargin{:});
         end%
         
         
         
         
-        function readForCode(this, forCode, assigned)
-            import parser.control.For;
-            forCode = strtrim(forCode);
+        function readForCode(this, forCode, preparserObj)
+            import parser.control.For
+
+            forCode = strip(forCode);
             tkn = regexp(forCode, For.FOR_PATTERN, 'tokens', 'once');
             if ~isempty(tkn)
                 controlName = tkn{1};
-                tokenCode = tkn{3};
+                listTokens = tkn{2};
             else
                 controlName = '?';
-                tokenCode = forCode;
+                listTokens = forCode;
             end
             this.ControlName = controlName;
-            this.Token = cell(1, 0);
-            while true
-                [x, from, to] = regexp(tokenCode, '[^\s,;]+', 'match', 'start', 'end', 'once');
-                if isempty(x)
-                    break
-                end
-                if strncmp(x, parser.Interp.OPEN, 1)
-                    [~, value, tokenCode] = parser.Interp.parse(tokenCode(from:end), assigned, 1);
-                    this.Token = [this.Token, value];
-                else
-                    this.Token{end+1} = x;
-                    tokenCode = tokenCode(to+1:end);
-                end 
-                if isempty(tokenCode)
-                    break
-                end
-            end
+            [listTokens, listValues] = parser.Interp.parse(preparserObj, listTokens, true);
+            this.Token = [listValues, regexp(listTokens, '[^\s,;]+', 'match')];
         end%
         
         
         
         
         function c = expandDoCode(this, p, varargin)
-            import parser.control.For;
+            import parser.control.For
+
             c = '';
-            % Remove leading and trailing line breaks.
-            % doCode = regexprep(doCode, '^\s*\n', '');
-            % doCode = regexprep(doCode, '\n\s*$', '');
             controlName = this.ControlName;
             
             for i = 1 : numel(this.Token)
@@ -135,33 +119,34 @@ classdef For < parser.control.Control
         function c = substitute(c, p)
             % Substitute for control variable in a code segment (called from within
             % other classes).
-            import parser.control.For;
-            if isempty(strfind(c, '?'))
+            import parser.control.For
+
+            if ~contains(c, "?")
                 return
             end
             for i = 1 : size(p.StoreForCtrl, 1)
                 ctrlName = p.StoreForCtrl{i, 1};
                 tkn = p.StoreForCtrl{i, 2};
-                For.chkObsolete(c, ctrlName);
+                For.checkObsolete(c, ctrlName);
                 if length(ctrlName)>1
                     upperCtrlName = ['?:', ctrlName(2:end)];
                     upperToken = upper(tkn);
                     lowerCtrlName = ['?.', ctrlName(2:end)];
                     lowerToken = lower(tkn);
                     % Substitute lower case for for ?.name.
-                    c = strrep(c, lowerCtrlName, lowerToken);
+                    c = replace(c, lowerCtrlName, lowerToken);
                     % Substitute upper case for for ?:name.
-                    c = strrep(c, upperCtrlName, upperToken);
+                    c = replace(c, upperCtrlName, upperToken);
                 end
                 % Substitute for ?name.
-                c = strrep(c, ctrlName, tkn);
+                c = replace(c, ctrlName, tkn);
             end
         end%
         
         
         
         
-        function chkObsolete(c, controlName)
+        function checkObsolete(c, controlName)
             obsoleteFunc = @(syntax) regexp(c, regexptranslate('escape', syntax), 'match');
             listDeprecated = [ obsoleteFunc([ '!lower',  controlName       ]), ...
                                obsoleteFunc([ '!upper',  controlName       ]), ...

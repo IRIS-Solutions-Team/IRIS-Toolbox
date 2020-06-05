@@ -120,22 +120,24 @@ classdef rpteq < shared.GetterSetter ...
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
             
-            persistent inputParser ppParser
-            if isempty(inputParser) || isempty(ppParser)
-                inputParser = extend.InputParser('rpteq.rpteq');
-                inputParser.KeepUnmatched = true;
-                inputParser.PartialMatching = false;
-                inputParser.addRequired('Input', @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
-                inputParser.addParameter('Assign', struct( ), @isstruct);
-                inputParser.addParameter('saveas', char.empty(1, 0), @(x) ischar(x) || isa(x, 'string'));
+            %( Input parser
+            persistent pp ppParser
+            if isempty(pp) || isempty(ppParser)
+                pp = extend.InputParser('@rpteq/rpteq');
+                pp.KeepUnmatched = true;
+                pp.PartialMatching = false;
+                pp.addRequired('Input', @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
+                pp.addParameter({'Assigned', 'Assign'}, struct( ), @isstruct);
+                pp.addParameter('saveas', char.empty(1, 0), @(x) ischar(x) || isa(x, 'string'));
 
-                ppParser = extend.InputParser('rpteq.rpteq');
+                ppParser = extend.InputParser('@rpteq/rpteq');
                 ppParser.KeepUnmatched = true;
                 ppParser.PartialMatching = false;
                 ppParser.addParameter('AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
                 ppParser.addParameter({'SteadyOnly', 'SstateOnly'}, false, @(x) isequal(x, true) || isequal(x, false));
                 ppParser.addParameter({'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
             end
+            %)
             
             %--------------------------------------------------------------
             
@@ -149,16 +151,15 @@ classdef rpteq < shared.GetterSetter ...
                 euc = varargin{2};
                 this.FileName = varargin{3};
             elseif ischar(varargin{1}) || iscellstr(varargin{1})
-                parse(inputParser, varargin{:});
-                input = inputParser.Results.Input;
-                opt = inputParser.Options;
-                parse(ppParser, inputParser.UnmatchedInCell{:});
+                opt = parse(pp, varargin{:});
+                input = pp.Results.Input;
+                parse(ppParser, pp.UnmatchedInCell{:});
                 unmatched = ppParser.UnmatchedInCell;
-                if ~isstruct(opt.Assign)
-                    opt.Assign = struct( );
+                if ~isstruct(opt.Assigned)
+                    opt.Assigned = struct( );
                 end
                 for i = 1 : 2 : numel(unmatched)
-                    opt.Assign.(umatched{i}) = unmatched{i+1};
+                    opt.Assigned.(umatched{i}) = unmatched{i+1};
                 end
                 % Tell apart equations from file names
                 inxFileNames = cellfun(@isempty, strfind(cellstr(input), '='));
@@ -166,22 +167,22 @@ classdef rpteq < shared.GetterSetter ...
                     % Input is file name or cellstr of file names
                     [code, this.FileName, this.Export] = ...
                         parser.Preparser.parse( ...
-                            input, [ ], ...
-                            'AngleBrackets=', true, ...
-                            'Assigned=', opt.Assign ...
+                            input, [ ] ...
+                            , 'Assigned=', opt.Assigned ...
                         );
                 elseif all(~inxFileNames)
                     % Input is equation or cellstr of equations
                     [code, this.FileName, this.Export] = ...
                         parser.Preparser.parse( ...
                             [ ], input, ...
-                            'AngleBrackets=', true, ...
-                            'Assigned=', opt.Assign ...
+                            'Assigned=', opt.Assigned ...
                         );
                 else
-                    THIS_ERROR = { 'rpteq:Constructor'
-                                   'Input to rpteq constructor must be either file names or equations but not both' };
-                    throw( exception.Base(THIS_ERROR, 'error') );
+                    thisError = [ 
+                        "rpteq:Constructor"
+                        "Input to rpteq constructor must be either file names or equations but not both"
+                    ];
+                    throw(exception.Base(thisError, 'error'));
                 end
                 export(this);
                 % Supply the  `!reporting-equations` keyword if missing.
@@ -189,7 +190,7 @@ classdef rpteq < shared.GetterSetter ...
                     code = ['!reporting-equations', newline( ), code];
                 end
                 % Run theparser on preparsed code
-                the = parser.TheParser('rpteq', this.FileName, code, opt.Assign);
+                the = parser.TheParser('rpteq', this.FileName, code, opt.Assigned);
                 parserOptions = ppParser.Options;
                 parserOptions.EquationSwitch = @auto;
                 [~, eqn, euc] = parse(the, parserOptions);

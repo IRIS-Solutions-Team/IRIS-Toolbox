@@ -1,31 +1,37 @@
-function this = fromFile(sourceFiles, varargin)
 % fromFile  Create an array of Explanatory objects from a source (text) file (or files)
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
 %
 %    xq = Explanatory.fromFile(sourceFile, ...)
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 %
-% __`sourceFile`__ [ char | string | cellstr ]
-% >
-% The name of a source file or multiple source files from which a new
-% Explanatory objects will be created.
+% __`sourceFile`__ [ string ]
+%
+%     The name of a source file or multiple source files from which a new
+%     Explanatory objects will be created.
 %
 %
-% ## Output Arguments ##
+% Output Arguments
+%--------------------------------------------------------------------------
 %
 %
 % __`xq`__ [ Explanatory ]
-% >
-% A new Explanatory object or an array of objects created from the
-% specification in the `sourceFile`.
+%
+%     A new Explanatory object or an array of objects created from the
+%     specification in the `sourceFile`.
 %
 %
-% ## Description ##
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% ### Basic Use Case ###
 %
 %
 % Write a text file describing the equations, using possibly also the IRIS
@@ -35,12 +41,15 @@ function this = fromFile(sourceFiles, varargin)
 % by equation) or simulated.
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
 %
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+function this = fromFile(sourceFiles, varargin)
 
 % Parse input arguments
 %(
@@ -50,11 +59,10 @@ if isempty(pp)
     pp.KeepUnmatched = true;
     addRequired(pp, 'sourceFiles', @(x) validate.list(x) || isa(x, 'model.File'));
     addParameter(pp, {'Assigned', 'Assign'}, struct([ ]), @(x) isempty(x) || isstruct(x));
-    addParameter(pp, 'Preparser', cell.empty(1, 0), @iscell);
+    addParameter(pp, 'Preparser', cell.empty(1, 0), @validate.nestedOptions);
     addParameter(pp, 'InitObject', Explanatory( ), @(x) isa(x, 'Explanatory'));
 end
-parse(pp, sourceFiles, varargin{:});
-opt = pp.Options;
+opt = parse(pp, sourceFiles, varargin{:});
 %)
 
 %--------------------------------------------------------------------------
@@ -75,8 +83,11 @@ else
     if ~isempty(opt.Assigned)
         opt.Preparser = [opt.Preparser, {'Assigned=', opt.Assigned}];
     end
+    opt.Preparser = [{'AngleBrackets=', false}, opt.Preparser]; % [^1]
     [code, fileName, export__, ~, comment, substitutions] = ...
         parser.Preparser.parse(sourceFiles, [ ], opt.Preparser{:});
+    % [^1]: Disable AngleBrackets by default for Explanatory objects
+    % because < and > can be used in RHS expressions.
 end
 
 %
