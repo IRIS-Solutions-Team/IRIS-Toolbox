@@ -52,7 +52,9 @@
 
 %--------------------------------------------------------------------------
 
-classdef InvGamma < distribution.Distribution
+classdef InvGamma ...
+    < distribution.Distribution
+
     properties (SetAccess=protected)
         % Alpha  Alpha (shape) parameter of the distribution
         Alpha
@@ -70,6 +72,7 @@ classdef InvGamma < distribution.Distribution
     methods
         function this = InvGamma(varargin)
             this.Name = 'InvGamma';
+            this.Domain = [0, Inf];
             this.Location = 0;
         end%
 

@@ -1,12 +1,4 @@
-function varargout = preparePlan(this, plan)
-
-% Invoke unit tests
-%(
-if nargin==2 && isequal(plan, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
+function plan = preparePlan(this, plan)
 
 %--------------------------------------------------------------------------
 
@@ -22,11 +14,6 @@ sigmas = repmat(sigmas, 1, numExtPeriods, 1);
 sigmas(:, ~inxBaseRange, :) = NaN;
 plan.SigmasOfExogenous = sigmas;
 
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout{1} = plan;
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 end%
 
 
@@ -35,21 +22,13 @@ end%
 %
 % Unit Tests
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @setupOnce
-        @modelTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Model/preparePlanUnitTest.m
 
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
-function setupOnce(testCase)
-end%
-
-
-function modelTest(testCase)
+%% Vanilla Test
     f = model.File;
     f.FileName = "";
     f.Code = join([ 
@@ -68,5 +47,7 @@ function modelTest(testCase)
     exp(:, 2:end, :) = 1;
     exp(2, 2:end, :) = repmat(reshape(1:8, 1, 1, 8), 1, 10, 1);
     assertEqual(testCase, p8.SigmasOfExogenous, exp);
-end%
-%)
+
+##### SOURCE END #####
+%}
+

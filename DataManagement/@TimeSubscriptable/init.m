@@ -1,4 +1,4 @@
-function varargout = init(this, dates, data)
+function this = init(this, dates, data)
 % init  Create start date and data for new time series
 %
 % Backend [IrisToolbox] method
@@ -6,15 +6,6 @@ function varargout = init(this, dates, data)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
-
-% Invoke unit tests
-%(
-if nargin==2 && isequal(dates, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
-
 
 if ischar(dates) || isa(dates, 'string')
     dates = textinp2dat(dates);
@@ -82,8 +73,7 @@ numDates = numel(serials);
 sizeData = size(data);
 if sizeData(1)==0 && (all(isnan(serials)) || numDates==0)
     % No data entered, return empty series
-    this = hereCreateEmptySeries(this, sizeData);
-    varargout{1} = this;
+    this = locallyCreateEmptySeries(this, sizeData);
     return
 end
 
@@ -103,8 +93,7 @@ end
 
 if isempty(serials)
     % No proper date entered, return empty series
-    this = hereCreateEmptySeries(this, sizeData);
-    varargout{1} = this;
+    this = locallyCreateEmptySeries(this, sizeData);
     return
 end
 
@@ -134,18 +123,15 @@ this.Start = DateWrapper.fromSerial(freq, startSerial);
 %
 this = trim(this);
 
-
-% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout{1} = this;
-% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 end%
+
 
 %
 % Local functions
 %
 
-function this = hereCreateEmptySeries(this, sizeData)
+
+function this = locallyCreateEmptySeries(this, sizeData)
     sizeData(1) = 0;
     this.Start = DateWrapper(NaN);
     this.Data = repmat(this.MissingValue, sizeData);
@@ -157,21 +143,11 @@ end%
 %
 % Unit Tests
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @setupOnce
-        @trimLeadingTest
-        @trimTrailingTest
-        @trimLeadingTrailingTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Series/initUnitTest.m
 
-
-function setupOnce(this)
-end%
-
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 function trimLeadingTest(this)
     data = [NaN NaN;2 NaN;3 4;NaN 5];
@@ -192,4 +168,6 @@ function trimLeadingTrailingTest(this)
     x = Series(qq(2001,1):qq(2001,4), data);
     assertEqual(this, x.Data, data(2:3, :));
 end%
-%)
+
+##### SOURCE END #####
+%}

@@ -174,10 +174,12 @@ return
             % __Minimum and Maximum Shifts__
             minSh(ii) = min([0, posInc]);
             maxSh(ii) = max([0, posInc]);
-            % User requests adding one lead to all fwl variables.
+            %{
+            % User requests adding one lead to all fwl variables
             if opt.addlead && maxSh(ii)>0
                 maxSh(ii) = maxSh(ii) + 1;
             end
+            %}
             
             % __Leads in Nonlinear Equations__
             % Add one lead to fwl variables in hash signed equations if the max lead of

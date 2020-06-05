@@ -19,14 +19,11 @@ classdef Import < parser.control.ExternalFile
             end
             fileName = strtrim(fileName);
             if ~isempty(fileName)
-                [c, ~, exportable, ctrlParameters] = Preparser.parse( ...
-                    fileName, [ ] ...
-                    , 'Assigned=', p.Assigned ...
-                    , 'CloneTemplate=', p.CloneTemplate ...
-                    , 'AngleBrackets=', p.AngleBrackets ...
-                );
-                add(p, ctrlParameters, exportable);
+                [c, ~, exportable, controls] = Preparser.parse(fileName, [ ], p);
+                add(p, controls, exportable);
+                % 
                 % Reset file name back to caller file
+                %
                 exception.ParseTime.storeFileName(p.FileName);
             else
                 c = '';
