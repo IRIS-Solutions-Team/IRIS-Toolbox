@@ -519,11 +519,11 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
             persistent pp ppOptimal ppParser
-            if isempty(pp)
-                pp = extend.InputParser('model.model');
+            if isempty(pp) || isempty(ppParser) || isempty(ppOptimal)
+                pp = extend.InputParser('@Model');
                 pp.KeepUnmatched = true;
                 pp.PartialMatching = false;
-                addParameter(pp, 'addlead', false, @validate.logicalScalar);
+                % addParameter(pp, 'addlead', false, @validate.logicalScalar);
                 addParameter(pp, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
                 addParameter(pp, {'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
                 addParameter(pp, {'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
@@ -534,29 +534,28 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 addParameter(pp, {'removeleads', 'removelead'}, false, @validate.logicalScalar);
                 addParameter(pp, 'Linear', false, @(x) isequal(x, true) || isequal(x, false));
                 addParameter(pp, 'makebkw', @auto, @(x) isequal(x, @auto) || isequal(x, @all) || iscellstr(x) || ischar(x));
-                addParameter(pp, 'optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
+                addParameter(pp, 'Optimal', cell.empty(1, 0), @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))));
                 addParameter(pp, 'OrderLinks', true, @validate.logicalScalar);
                 addParameter(pp, {'precision', 'double'}, @(x) ischar(x) && any(strcmp(x, {'double', 'single'})));
                 % addParameter(pp, ('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
+                addParameter(pp, 'Preparser', cell.empty(1, 0), @validate.nestedOptions);
                 addParameter(pp, 'Refresh', true, @validate.logicalScalar);
                 addParameter(pp, {'SavePreparsed', 'SaveAs'}, '', @ischar);
                 addParameter(pp, {'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
                 addParameter(pp, 'stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
                 addParameter(pp, 'stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
-            end
 
-            if isempty(ppParser)
-                ppParser = extend.InputParser('model.model');
+
+                ppParser = extend.InputParser('@Model');
                 ppParser.KeepUnmatched = true;
                 ppParser.PartialMatching = false;
                 addParameter(ppParser, 'AutodeclareParameters', false, @(x) isequal(x, true) || isequal(x, false)); 
                 addParameter(ppParser, 'EquationSwitch', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'Dynamic', 'Steady'));
                 addParameter(ppParser, {'SteadyOnly', 'SstateOnly'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
                 addParameter(ppParser, {'AllowMultiple', 'Multiple'}, false, @(x) isequal(x, true) || isequal(x, false));
-            end
 
-            if isempty(ppOptimal)
-                ppOptimal = extend.InputParser('model.model');
+
+                ppOptimal = extend.InputParser('@Model');
                 ppOptimal.KeepUnmatched = true;
                 ppOptimal.PartialMatching = false;
                 addParameter(ppOptimal, 'MultiplierPrefix', 'Mu_', @ischar);
@@ -584,7 +583,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                     [opt, parserOpt, optimalOpt] = hereProcessOptions( );
                     this.IsLinear = opt.Linear;
                     this.IsGrowth = opt.Growth;
-                    [this, opt] = file2model(this, modelFile, opt, parserOpt, optimalOpt);
+                    [this, opt] = file2model(this, modelFile, opt, opt.Preparser, parserOpt, optimalOpt);
                     this = build(this, opt);
                 elseif isa(varargin{1}, 'model')
                     this = varargin{1};
@@ -602,10 +601,9 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                     opt = pp.Options;
 
                     % Optimal policy options
-                    parse(ppOptimal, opt.optimal{:});
-                    optimalOpt = ppOptimal.Options;
+                    optimalOpt = parse(ppOptimal, opt.Optimal{:});
 
-                    % IRIS parser options
+                    % Parser options
                     parse(ppParser, pp.UnmatchedInCell{:});
                     parserOpt = ppParser.Options;
                     if isequal(parserOpt.EquationSwitch, @auto) && ~isequal(parserOpt.SteadyOnly, @auto)

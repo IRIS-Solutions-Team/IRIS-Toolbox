@@ -44,6 +44,7 @@ else
     request = "all";
 end
 
+%( Input parser
 persistent pp 
 if isempty(pp)
     validRequests = ["all", "parameters", "sstate", "steady", "solution", "derivatives"];
@@ -51,6 +52,7 @@ if isempty(pp)
     addRequired(pp, 'Model', @(x) isa(x, 'model'));
     addRequired(pp, 'Request', @(x) any(x==validRequests));
 end
+%)
 parse(pp, this, request);
 
 if ~isempty(varargin) && (isnumeric(varargin{1}) || islogical(varargin{1}))

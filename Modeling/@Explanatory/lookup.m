@@ -95,7 +95,7 @@ end%
 %
 %{
 ##### SOURCE BEGIN #####
-% saveAs=Explanatory/lookupTest.m
+% saveAs=Explanatory/lookupUnitTest.m
 
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
