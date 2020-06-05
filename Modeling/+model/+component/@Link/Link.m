@@ -3,10 +3,10 @@ classdef Link
         % Input  Cell array of input equations
         Input = cell.empty(1, 0) 
 
-        % LhsPtr  Int8 array of positions of LHS variables
+        % LhsPtr  Int8 array of pointers to LHS variables
         LhsPtr = int8.empty(1, 0)
 
-        % RhsExpn  Cell array of RHS expressions
+        % RhsExpn  Cell array of link expressions
         RhsExpn = cell.empty(1, 0)
 
         % Order  Ordering of links

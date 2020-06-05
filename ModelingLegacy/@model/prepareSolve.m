@@ -1,11 +1,11 @@
 function opt = prepareSolve(this, mode, inputSolveOptions)
 % prepareSolve  Prepare model solution
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 if nargin<3
     inputSolveOptions = cell.empty(1, 0);
@@ -18,30 +18,30 @@ else
     end
 end
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('model.prepareSolve');
-    inputParser.addRequired('Model', @(x) isa(x, 'model'));
-    inputParser.addRequired('Mode', @ischar);
-    inputParser.addParameter({'Eqtn', 'Equations'}, @all, @(x) isequal(x, @all) || ischar(x));
-    inputParser.addParameter({'Normalize', 'Normalise'}, true, @(x) isequal(x, true) || isequal(x ,false));
-    inputParser.addParameter('Select', true, @(x) isequal(x, true) || isequal(x ,false));
-    inputParser.addParameter('Symbolic', true, @(x) isequal(x, true) || isequal(x ,false));
-    inputParser.addParameter('Error', false, @(x) isequal(x, true) || isequal(x ,false));
-    inputParser.addParameter('Fast', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Progress', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.prepareSolve');
+    addRequired(pp, 'Model', @(x) isa(x, 'model'));
+    addRequired(pp, 'Mode', @ischar);
+    addParameter(pp, {'Eqtn', 'Equations'}, @all, @(x) isequal(x, @all) || ischar(x));
+    addParameter(pp, {'Normalize', 'Normalise'}, true, @(x) isequal(x, true) || isequal(x ,false));
+    addParameter(pp, 'Select', true, @validate.logicalScalar);
+    addParameter(pp, 'Symbolic', true, @validate.logicalScalar);
+    addParameter(pp, 'Error', false, @validate.logicalScalar);
+    addParameter(pp, 'Fast', false, @validate.logicalScalar);
+    addParameter(pp, 'Progress', false, @validate.logicalScalar);
+    addParameter(pp, 'Warning', true, @validate.logicalScalar);
 end
-inputParser.parse(this, mode, inputSolveOptions{:});
-opt = inputParser.Options;
+%)
+opt = parse(pp, this, mode, inputSolveOptions{:});
 
 %--------------------------------------------------------------------------
 
-mode = lower(mode);
-
-if ~isempty( strfind(mode, 'silent') )
+if contains(mode, 'silent', 'IgnoreCase', true)
     opt.Progress = false;
     opt.Warning = false;
 end
 
-end
+end%
+
