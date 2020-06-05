@@ -38,6 +38,36 @@ classdef Element ...
         function j = jsonencode(this)
             j = jsonencode(prepareForJson(this));
         end%
+
+
+        function show(this, level, last);
+            %(
+            if nargin<2
+                last = false;
+                level = '';
+                textual.looseLine( );
+            end
+            if isempty(level)
+                fprintf('%s', [level, '    ']);
+                addToLevel = '    ';
+            else
+                fprintf('%s', [level, '|-- ']);
+                addToLevel = '|   ';
+            end
+            fprintf('%s "%s"\n', this.Type, this.Title);
+            if isa(this, 'rephrase.Container')
+                for i = 1 : numel(this.Content)
+                    if last
+                        addToLevel = '    ';
+                    end
+                    show(this.Content{i}, [level, addToLevel], i==numel(this.Content));
+                end
+            end
+            if isempty(level)
+                textual.looseLine( );
+            end
+            %)
+        end%
     end
 
 
