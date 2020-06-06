@@ -26,8 +26,9 @@ this.Matrix(inxEquations, :) = false;
 %
 % Get equation, position of name, shift
 %
-[epsCurrent, epsShifted] = ...
-    model.component.Incidence.getIncidenceEps(equationStrings, inxEquations, varargin{:});
+[epsCurrent, epsShifted] = model.component.Incidence.getIncidenceEps( ...
+    equationStrings, inxEquations, varargin{:} ...
+);
 
 
 %
@@ -53,12 +54,11 @@ this.Matrix(ind) = true;
 
 end%
 
-% [^1]: Incidence is sometimes also calculated for !links in which case
-% there might be references to std or corr; these are excluded here.
 
 %
 % Local Functions
 %
+
 
 function eps = locallyRemovePosBeyondNumQuantities(eps, numQuantities) % [^1]
     inxToRemove = eps(2, :)>numQuantities;
@@ -66,4 +66,7 @@ function eps = locallyRemovePosBeyondNumQuantities(eps, numQuantities) % [^1]
         eps(:, inxToRemove) = [ ];
     end
 end%
+% [^1]: Incidence is sometimes also calculated for !links in which case
+% there might be references to std or corr; these are excluded here.
+
 

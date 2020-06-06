@@ -1,17 +1,12 @@
-function varargout = parse(this, aux, code, qty, eqn, euc, ~, opt)
 % parse  Parse equations and add them to parser.theparser.Equation object
 %
 % Backend [IrisToolbox] method
 % No help provided
 
-% Invoke unit tests
-%(
-if nargin==2 && isequal(aux, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function [qty, eqn] = parse(this, aux, code, qty, eqn, euc, ~, opt)
 
 % 'Label' x=0.8*x{-1}+ex !! x=0;
 LABEL_PATTERN =       '\s*(?<LABEL>"[^\n"]*"|''[^\n'']*'')?';
@@ -24,7 +19,6 @@ EQUATION_PATTERN =    '(?<EQUATION>[^;]+);';
 %
 listEquations = this.splitCodeIntoEquations(code);
 if isempty(listEquations)
-    varargout = { qty, eqn };
     return
 end
 
@@ -77,7 +71,6 @@ if any(inxEmptyWarn)
     listSteady(inxEmptyWarn) = [ ];                
 end
 if isempty(listEquations)
-    varargout = { qty, eqn };
     return
 end
 
@@ -118,7 +111,6 @@ end
 [listLabels, alias] = this.splitLabelAlias(listLabels);
 
 if isempty(eqn)
-    varargout = { qty, eqn };
     return
 end
 
@@ -143,11 +135,6 @@ if ~isequal(euc, [ ])
     euc.MaxShSteady(end+(1:numEquations)) = maxShSteady;
     euc.MinShSteady(end+(1:numEquations)) = minShSteady;
 end
-
-
-% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout = { qty, eqn };
-% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 return
 
@@ -187,10 +174,6 @@ end%
 %
 
 
-
-
-
-
 function input = readSteadyOnly(input)
     separator = parser.theparser.Equation.READ_STEADY_ONLY;
     lenSeparator = length(separator);
@@ -199,10 +182,12 @@ function input = readSteadyOnly(input)
     if ~any(inxFound)
         return
     end
-    input(inxFound) = cellfun( @(eqn, pos) eqn(pos+lenSeparator:end), ...
-                                 input(inxFound), ...
-                                 posSeparator(inxFound), ...
-                                 'UniformOutput', false );
+    input(inxFound) = cellfun( ...
+        @(eqn, pos) eqn(pos+lenSeparator:end) ...
+        , input(inxFound) ...
+        , posSeparator(inxFound) ...
+        , 'UniformOutput', false ...
+    );
 end%
 
 
@@ -216,10 +201,12 @@ function input = readDynamicOnly(input)
     if ~any(inxFound)
         return
     end
-    input(inxFound) = cellfun( @(eqn, pos) eqn(1:pos-1), ...
-                                 input(inxFound), ...
-                                 posSeparator(inxFound), ...
-                                 'UniformOutput', false );
+    input(inxFound) = cellfun( ...
+        @(eqn, pos) eqn(1:pos-1) ...
+        , input(inxFound) ...
+        , posSeparator(inxFound) ...
+        , 'UniformOutput', false ...
+    );
 end%
 
 
@@ -227,19 +214,14 @@ end%
 
 % 
 % Unit Tests
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @setupOnce
-        @equationSwitchAutoTest
-        @equationSwitchDynamicTest
-        @equationSwitchSteadyTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%
+%{
+##### SOURCE BEGIN #####
+% saveAs=parser/EquationUnitTest.m
 
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
-function setupOnce(testCase)
+% Set up Once
     obj = parser.theparser.Equation( );
     obj.Type = 2;
     code = [
@@ -251,10 +233,9 @@ function setupOnce(testCase)
     code = char(join(code, " "));
     testCase.TestData.Obj = obj;
     testCase.TestData.Code = code;
-end%
 
 
-function equationSwitchAutoTest(testCase)
+%% Test Equation Switch Auto
     obj = testCase.TestData.Obj;
     code = testCase.TestData.Code;
     eqn = model.component.Equation( );
@@ -265,10 +246,9 @@ function equationSwitchAutoTest(testCase)
     exp_Input = {'a=a{-1}', 'b=0', 'c=c{-1}!!c=0', 'd=d{-1}'};
     assertEqual(testCase, eqn.Input, exp_Input);
     assertEqual(testCase, cellfun('isempty', eun.LhsSteady), [true, true, false, true]);
-end%
 
 
-function equationSwitchDynamicTest(testCase);
+%% Test Equation Switch Dynamic
     obj = testCase.TestData.Obj;
     code = testCase.TestData.Code;
     eqn = model.component.Equation( );
@@ -278,10 +258,10 @@ function equationSwitchDynamicTest(testCase);
     exp_Input = {'a=a{-1}', 'b=b{-1}', 'c=c{-1}', 'd=d{-1}'};
     assertEqual(testCase, eqn.Input, exp_Input);
     assertEqual(testCase, cellfun('isempty', eun.LhsSteady), true(1, 4));
-end%
 
 
-function equationSwitchSteadyTest(testCase);
+
+%% Test Equation Switch Steady
     obj = testCase.TestData.Obj;
     code = testCase.TestData.Code;
     eqn = model.component.Equation( );
@@ -291,5 +271,7 @@ function equationSwitchSteadyTest(testCase);
     exp_Input = {'a=0', 'b=0', 'c=0', 'd=d{-1}'};
     assertEqual(testCase, eqn.Input, exp_Input);
     assertEqual(testCase, cellfun('isempty', eun.LhsSteady), true(1, 4));
-end%
-%)
+
+##### SOURCE END #####
+%}
+

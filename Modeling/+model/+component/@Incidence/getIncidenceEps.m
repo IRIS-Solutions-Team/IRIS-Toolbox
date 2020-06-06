@@ -33,7 +33,7 @@ listCurrent = cell(1, numEquations); % [^2]
 inxFunc = cellfun('isclass', equationStrings, 'function_handle');
 inxConvert = reshape(inxFunc, 1, [ ]) & reshape(inxEquations, 1, [ ]);
 for i = find(inxConvert)
-    equationStrings{i} = func2str(equationsStrings{i});
+    equationStrings{i} = func2str(equationStrings{i});
 end
 
 %

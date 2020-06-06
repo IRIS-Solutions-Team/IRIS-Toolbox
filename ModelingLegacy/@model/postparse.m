@@ -204,7 +204,7 @@ inxCopy = (inxM | inxT | inxL) & cellfun('isempty', eqn.Steady);
 this.Incidence.Steady.Matrix(inxCopy, :) = this.Incidence.Dynamic.Matrix(inxCopy, :); 
 % [^1]: Here, we create incidence also for links but remove any references
 % to std or corr; this incidence is only used in steady state solver to
-% take into account links. Otherwise, the full !links incidence needed in
+% refresh links. Otherwise, the full !links incidence needed in
 % component.model.Link/reorder is created in that file.
 
 % Check equation syntax before we compute optimal policy but after we

@@ -1,4 +1,3 @@
-function varargout = abbreviate(x, varargin)
 % abbreviate  Abbreviate a long text string not to exceed a given number of characters
 %{
 % ## Syntax ##
@@ -50,22 +49,13 @@ function varargout = abbreviate(x, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function x = abbreviate(x, varargin)
 
 %--------------------------------------------------------------------------
 
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
-
-% Invoke unit tests
-%(
-if nargin==1 && isequal(x, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
-
-
+%( Input parser
 persistent pp
 if isempty(pp)
      pp = extend.InputParser('textual.abbreviate');
@@ -73,13 +63,12 @@ if isempty(pp)
      addParameter(pp, 'MaxLength', 20, @(x) validate.roundScalar(x, [1, Inf]));
      addParameter(pp, 'Ellipsis', @config, @(x) isequal(x, @config) || (validate.string(x) && strlength(x)==1));
 end
-parse(pp, x, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, x, varargin{:});
 
 %--------------------------------------------------------------------------
 
 if strlength(x)<=opt.MaxLength
-    varargout{1} = x;
     return
 end
 
@@ -95,11 +84,6 @@ else
     x = string(x) + string(ellipsis);
 end
 
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout{1} = x;
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 end%
 
 
@@ -108,38 +92,29 @@ end%
 %
 % Unit Tests 
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @setupOnce
-        @charTest
-        @stringTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=textual/abbreviate.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
-function setupOnce(testCase)
-end%
-
-
-function charTest(testCase)
+%% Test Char
     act = textual.abbreviate('abcdefg', 'MaxLength=', 5);
     exp = ['abcd', char(iris.get('Ellipsis'))];
     assertEqual(testCase, act, exp);
-end%
 
 
-function stringTest(testCase)
+%% Test String
     act = textual.abbreviate("abcdefg", "MaxLength=", 5);
     exp = "abcd" + string(iris.get("Ellipsis"));
     assertEqual(testCase, act, exp);
-end%
 
 
-function shortStringTest(testCase)
+%% Test Short String
     exp = "abcdefg";
     act = textual.abbreviate(exp);
     assertEqual(testCase, act, exp);
-end%
-%)
+
+##### SOURCE END #####
+%}
