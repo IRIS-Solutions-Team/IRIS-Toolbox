@@ -38,9 +38,23 @@ inxLogInBlazer = blazer.Model.Quantity.InxLog;
 % Index of endogenous level and change quantities
 [inxEndgLevel, inxEndgChange] = hereGetInxEndogenous( );
 
+
 if needsRefresh
     this = refresh(this, variantsRequested);
 end
+
+
+%
+% Find the largest position of a std or corr on the LHS or RHS in links,
+% and include a subvector of StdCorr in levelX and changeX
+%
+maxStdCorr = 0;
+if needsRefresh
+    eps = model.component.Incidence.getIncidenceEps(this.Link.RhsExpn);
+    temp = [eps(:, 2); reshape(this.Link.LhsPtr, [ ], 1)] - numQuantities;
+    maxStdCorr = max([0; temp]);
+end
+
 
 % * Check for levels and growth rate fixed to NaNs
 % * Check for NaN in non-endogenous quantities (parameters, exogenous)
@@ -51,14 +65,24 @@ hereCheckExogenizedToNaN( );
 
 levelX0 = [ ];
 changeX0 = [ ];
-firstAlt = true;
+firstRun = true;
 
 
 % /////////////////////////////////////////////////////////////////////////
 outputInfo.ExitFlags = cell(1, nv);
 for v = variantsRequested
     [levelX, changeX] = hereInitialize( );
+
     
+    %
+    % Add a minimum necessary subvector of StdCorr
+    %
+    addStdCorr = double.empty(1, 0);
+    if maxStdCorr>0
+        addStdCorr = this.Variant.StdCorr(:, 1:maxStdCorr, v);
+    end
+
+
     %
     % Cycle over individual blocks
     %
@@ -67,7 +91,9 @@ for v = variantsRequested
         blk = blazer.Blocks{i};
         blk.SteadyShift = 3;
         header = sprintf("[Variant:%g][Block:%g]", v, i);
-        [levelX, changeX, exitFlag, error] = run(blk, this.Link, levelX, changeX, header);
+        [levelX, changeX, exitFlag, error] = run( ...
+            blk, this.Link, levelX, changeX, addStdCorr, header ...
+        );
         outputInfo.ExitFlags{v}(i) = exitFlag;
         if ~isempty(error.EvaluatesToNan)
             throw( ...
@@ -112,9 +138,9 @@ for v = variantsRequested
     end
     
     % Store current values to initialize next parameterisation
-    levelX0 = levelX;
-    changeX0 = changeX;
-    firstAlt = false;
+    levelX0 = levelX(1:numQuantities);
+    changeX0 = changeX(1:numQuantities);
+    firstRun = false;
 end
 % /////////////////////////////////////////////////////////////////////////
 
@@ -150,7 +176,7 @@ return
         % Assign NaN level initial conditions. First, assign values from the
         % previous iteration, if they exist and option 'reuse=' is `true`
         inx = isnan(levelX) & inxEndgLevel;
-        if ~firstAlt && blazer.Reuse && any(inx) && ~isempty(levelX0)
+        if ~firstRun && blazer.Reuse && any(inx) && ~isempty(levelX0)
             levelX(inx) = levelX0(inx);
             inx = isnan(levelX) & inxEndgLevel;
         end
@@ -165,7 +191,7 @@ return
             % Assign NaN growth initial conditions. First, assign values from
             % the previous iteration if they exist and `reuse=true`
             inx = isnan(changeX) & inxEndgChange;
-            if ~firstAlt && blazer.Reuse && any(inx) && ~isempty(changeX0)
+            if ~firstRun && blazer.Reuse && any(inx) && ~isempty(changeX0)
                 changeX(inx) = changeX0(inx);
                 inx = isnan(changeX) & inxEndgChange;
             end
