@@ -1,27 +1,19 @@
-function varargout = residuals(this, inputDatabank, range, varargin)
 % residuals  Evaluate residuals from Explanatory for currently assigned parameters
 %{
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% Invoke unit tests
-%(
-if nargin==2 && isequal(inputDatabank, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
+function outputDb = residuals(this, inputDatabank, range, varargin)
 
 %--------------------------------------------------------------------------
 
-[~, outputDb] = regress(this, inputDatabank, range, varargin{:}, 'FixParameters=', true);
-
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout = { outputDb };
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+[~, outputDb] = regress( ...
+    this, inputDatabank, range ...
+    , varargin{:} ...
+    , 'FixParameters=', true ...
+);
 
 end%
 
@@ -31,17 +23,13 @@ end%
 %
 % Unit Tests
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({ 
-        @setupOnce
-        @residualsTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Explanatory/residualsUnitTest.m
 
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
-function setupOnce(testCase)
+% Set up Once
     m1 = Explanatory.fromString('x = ? + ?*x{-1} + ?*y');
     startDate = qq(2001,1);
     endDate = qq(2010, 4);
@@ -52,10 +40,9 @@ function setupOnce(testCase)
     testCase.TestData.Model1 = m1;
     testCase.TestData.Databank1 = db1;
     testCase.TestData.BaseRange = baseRange;
-end%
 
 
-function residualsTest(testCase)
+%% Test Residuals
     m1 = testCase.TestData.Model1;
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
@@ -65,6 +52,7 @@ function residualsTest(testCase)
     assertEqual(testCase, outputDb1.res_x.Data, outputDb2.res_x.Data);
     assertEqual(testCase, outputDb1.res_x.Data, outputDb3.res_x.Data);
     assertEqual(testCase, est1, est2);
-end%
-%)
+
+##### SOURCE END #####
+%}
 

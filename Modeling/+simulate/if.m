@@ -1,4 +1,3 @@
-function varargout = if_(varargin)
 % if  Functional or runtime form of an if-elseif-else structure
 %{
 % ## Syntax ##
@@ -70,16 +69,9 @@ function varargout = if_(varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% Invoke unit tests
-%(
-if nargin==1 && isequal(varargin{1}, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
-
+function output = if_(varargin)
 
 %--------------------------------------------------------------------------
 
@@ -130,11 +122,6 @@ if any(~dealt)
     output(~dealt) = final;
 end
 
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout{1} = output;
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 end%
 
 
@@ -143,18 +130,14 @@ end%
 %
 % Unit Tests 
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @scalarTest
-        @vectorTest
-        @mixedTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=simulate/if_.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
-function scalarTest(testCase)
+%% Test Scalar
     x = simulate.if(true, 1, true, 2, 3);
     assertEqual(testCase, x, 1);
     x = simulate.if(false, 1, true, 2, 3);
@@ -163,16 +146,14 @@ function scalarTest(testCase)
     assertEqual(testCase, x, 3);
     x = simulate.if(false, 1, false, 2, true, 3, 4);
     assertEqual(testCase, x, 3);
-end%
 
 
-function vectorTest(testCase)
+%% Test Vector
     x = simulate.if([false, false, true], [1, 2, 3], [true, false, true], [10, 20, 30], [100, 200, 300]);
     assertEqual(testCase, x, [10, 200, 3]);
-end%
 
 
-function mixedTest(testCase)
+%% Text Mixed
     x = simulate.if([false, false, true], 1, true, [10, 20, 30], NaN);
     assertEqual(testCase, x, [10, 20, 1]);
     x = simulate.if([false, false, true], 1, [false, false, false], [10, 20, 30], NaN);
@@ -181,5 +162,6 @@ function mixedTest(testCase)
     assertEqual(testCase, x, [1, 20, 1]);
     x = simulate.if([true, false, true], 1, [false, false, true], [10, 20, 30], [100, 200, 300]);
     assertEqual(testCase, x, [1, 200, 1]);
-end%
-%)
+
+##### SOURCE END #####
+%}
