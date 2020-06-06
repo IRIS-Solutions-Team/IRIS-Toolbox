@@ -51,12 +51,12 @@ classdef Steady < solver.block.Block
 
 
 
-        function [lx, gx, exitFlag, error] = run(this, link, lx, gx, exitFlagHeader)
+        function [lx, gx, exitFlag, error] = run(this, link, lx, gx, addStdCorr, exitFlagHeader)
             %(
             exitFlag = solver.ExitFlag.IN_PROGRESS;
             error = struct( 'EvaluatesToNan', [ ] );
             inxLog = this.InxLog;
-            
+                
             if isEmptyBlock(this.Type) || isempty(this.PtrQuantities)
                 exitFlag = solver.ExitFlag.NOTHING_TO_SOLVE;
                 return
@@ -65,6 +65,7 @@ classdef Steady < solver.block.Block
             [ptrLevel, ptrChange] = iris.utils.splitRealImag(this.PtrQuantities);
 
             needsRefresh = any(link);
+            needsAddStdCorr = needsRefresh && nargin>=6 && ~isempty(addStdCorr);
             retGradient = this.RetGradient;
             sh = this.Shift;
             nsh = this.NumberOfShifts;
@@ -213,8 +214,14 @@ classdef Steady < solver.block.Block
                     % Refresh all dynamic links in each iteration if needed
                     if needsRefresh
                         temp = lx + 1i*gx;
+                        if needsAddStdCorr
+                            temp = [temp, addStdCorr];
+                        end
                         temp = temp(:);
                         temp = refresh(link, temp);
+                        if needsAddStdCorr
+                            temp = temp(1:numel(lx));
+                        end
                         temp = transpose(temp);
                         lx = real(temp);
                         gx = imag(temp);
