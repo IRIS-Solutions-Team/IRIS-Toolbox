@@ -1,4 +1,3 @@
-function varargout = isfreq(date, freq)
 % isfreq  True for dates of the specified frequency
 %{
 % ## Syntax ##
@@ -41,22 +40,11 @@ function varargout = isfreq(date, freq)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-% Invoke unit tests
-%(
-if nargin==1 && isequal(date, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
+function flag = isfreq(date, freq)
 
 %--------------------------------------------------------------------------
 
 flag = DateWrapper.getFrequencyAsNumeric(date)==round(freq);
-
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout{1} = flag;
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 end%
 
@@ -66,18 +54,14 @@ end%
 %
 % Unit Tests 
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @isfreqDateWrapperTest
-        @isfreqNumericTest
-    });
-    tests = reshape(tests, [ ], 1);
-    flag = tests;
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=dates/isfreqUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
-function isfreqDateWrapperTest(testCase)
+%% Test DateWrapper
     i = ii(100);
     y = yy(2000);
     h = hh(2000);
@@ -93,10 +77,10 @@ function isfreqDateWrapperTest(testCase)
     assertEqual(testCase, isfreq(x, Frequency.MONTHLY), logical([0, 0, 0, 0, 1, 0, 0]));
     assertEqual(testCase, isfreq(x, Frequency.WEEKLY), logical([0, 0, 0, 0, 0, 1, 0]));
     assertEqual(testCase, isfreq(x, Frequency.DAILY), logical([0, 0, 0, 0, 0, 0, 1]));
-end%
 
 
-function isfreqNumericTest(testCase)
+
+%% Test Numeric
     i = 100;
     y = numeric.yy(2000);
     h = numeric.hh(2000);
@@ -112,6 +96,7 @@ function isfreqNumericTest(testCase)
     assertEqual(testCase, isfreq(x, 12), logical([0, 0, 0, 0, 1, 0, 0]));
     assertEqual(testCase, isfreq(x, 52), logical([0, 0, 0, 0, 0, 1, 0]));
     assertEqual(testCase, isfreq(x, 365), logical([0, 0, 0, 0, 0, 0, 1]));
-end%
-%)
+
+##### SOURCE END #####
+%}
 

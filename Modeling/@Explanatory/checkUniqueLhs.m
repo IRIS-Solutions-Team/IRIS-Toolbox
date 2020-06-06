@@ -1,4 +1,3 @@
-function varargout = checkUniqueLhs(this, varargin)
 % checkUniqueLhs  Verify that all LHS names are unique and throw an error if not
 %{
 % ## Syntax ##
@@ -28,25 +27,19 @@ function varargout = checkUniqueLhs(this, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-% Invoke unit tests
-%(
-if nargin==2 && isequal(varargin{1}, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
+function checkUniqueLhs(this, varargin)
 
-
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Explanatory/checkUniqueLhs');
     addRequired(pp, 'xq', @(x) isa(x, 'Explanatory'));
     addParameter(pp, 'ThrowAs', 'Error', @(x) validate.anyString(x, 'Error', 'Warning'));
 end
-parse(pp, this, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, this, varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -66,25 +59,18 @@ end%
 %
 % Unit Tests 
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @setupOnce
-        @nonuniqueErrorTest
-        @uniqueTest
-        @nonuniqueWarningTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Explanatory/checkUniqueLhsUnitTest.m
 
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
-function setupOnce(testCase)
+% Set up Once
     testCase.TestData.Object = ...
         Explanatory.fromString(["x=x{-1}", "diff(y)=z", "diff(x)=z"]);
-end%
 
 
-function nonuniqueErrorTest(testCase)
+%% Test Non Unique Error
     q = testCase.TestData.Object;
     errorThrown = false;
     try
@@ -100,10 +86,9 @@ function nonuniqueErrorTest(testCase)
         errorThrown = true;
     end
     assertEqual(testCase, errorThrown, true);
-end%
 
 
-function uniqueTest(testCase)
+%% Test Unique
     q = testCase.TestData.Object;
     errorThrown = false;
     try
@@ -112,10 +97,9 @@ function uniqueTest(testCase)
         errorThrown = true;
     end
     assertEqual(testCase, errorThrown, false);
-end%
 
 
-function nonuniqueWarningTest(testCase)
+%% Test Non Unique Warning
     q = testCase.TestData.Object;
     errorThrown = false;
     lastwarn('');
@@ -126,5 +110,6 @@ function nonuniqueWarningTest(testCase)
     end
     assertEqual(testCase, errorThrown, false);
     assertNotEmpty(testCase, lastwarn( ));
-end%
+
+##### SOURCE END #####
 %}
