@@ -8,6 +8,8 @@ classdef Type
         SERIES
         HEADING
         SECTION
+        PAGEBREAK
+        TEXT
     end
 end
 
