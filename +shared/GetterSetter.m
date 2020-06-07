@@ -1,10 +1,10 @@
-% GetterSetter  Helper class to implement some shared properties of IRIS objects
+% GetterSetter  Helper class implementing getters and setters
 %
-% Backend IRIS class
+% Backend [IrisToolbox] class
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modelingk
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 classdef GetterSetter
     properties (Hidden)
@@ -26,45 +26,42 @@ classdef GetterSetter
     methods
         function varargout = get(this, varargin)
             varargout = cell(size(varargin));
-            nArg = numel(varargin);
-            ixValid = true(1, nArg);
-            usrQuery = varargin;
-            for i = 1 : nArg
+            numArgs = numel(varargin);
+            inxValid = true(1, numArgs);
+            inputQuery = varargin;
+            for i = 1 : numArgs
                 func = [ ];
-                if ischar(usrQuery{i})
-                    queryArg = cell(1, 0);
+                if ischar(inputQuery{i}) || isstring(inputQuery{i})
+                    queryArgs = cell(1, 0);
                 else
-                    queryArg = usrQuery{i}(2:end);
-                    usrQuery{i} = usrQuery{i}{1};
+                    queryArgs = inputQuery{i}(2:end);
+                    inputQuery{i} = inputQuery{i}{1};
                 end
-                query = usrQuery{i};
-                query = strtrim(lower(query));
+                query = strip(lower(inputQuery{i}));
                 
-                % Remove equal signs.
-                query = strrep(query, '=', '');
+                query = erase(query, "=");
+                query = erase(query, "!");
+                query = erase(query, " ");
                 
-                % Capture function calls inside queries.
+                % Capture function calls inside queries
                 tkn = regexp(query, '^(\w+)\((\w+)\)$', 'once', 'tokens');
                 if ~isempty(tkn) && ~isempty(tkn{1})
                     func = tkn{1};
                     query = tkn{2};
                 end
                 
-                % Remove blank spaces.
-                query(isstrprop(query, 'wspace')) = '';
-                
-                % Call class implementation.
-                [varargout{i}, ixValid(i)] = implementGet(this, query, queryArg{:});
+                % Call class implementation
+                [varargout{i}, inxValid(i)] = implementGet(this, query, queryArgs{:});
                 
                 if ~isempty(func)
                     varargout{i} = feval(func, varargout{i});
                 end
             end
             
-            % Report invalid queries.
-            if any(~ixValid)
+            % Report invalid queries
+            if any(~inxValid)
                 throw( exception.Base('GetterSetter:INVALID_GET_QUERY', 'error'), ...
-                    class(this), usrQuery{~ixValid} ); %#ok<GTARG>
+                    class(this), inputQuery{~inxValid} ); %#ok<GTARG>
             end
         end%
         

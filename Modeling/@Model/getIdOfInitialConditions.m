@@ -1,30 +1,28 @@
-function idOfInit = getIdOfInitialConditions(this)
+function idInit = getIdOfInitialConditions(this)
 % getIdOfInitialConditions  Get positions and shifts of initial conditions
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-[ny, nxi, nb, nf] = sizeOfSolution(this);
-inxOfX = getIndexByType(this.Quantity, TYPE(2));
-idOfXib = this.Vector.Solution{2}(nf+1:end);
+inxX = getIndexByType(this.Quantity, TYPE(2));
 
-% Get numOfQuants-by-numOfShifts incidence matrix
+% Get numQuants-by-numShifts incidence matrix
 incidence = across(this.Incidence.Dynamic, 'Equations');
-posOfZeroShift = this.Incidence.Dynamic.PosOfZeroShift;
+posZeroShift = this.Incidence.Dynamic.PosOfZeroShift;
 
-incidence(~inxOfX, :) = false;
+incidence(~inxX, :) = false;
 
 % Move t-1 to the first plane, t-2 to the second plane, etc.
-incidence = fliplr(incidence(:, 1:posOfZeroShift-1));
+incidence = fliplr(incidence(:, 1:posZeroShift-1));
 
-for row = find(inxOfX)
+for row = find(inxX)
     maxLag = find(incidence(row, :), 1, 'last');
     if isempty(maxLag)
         continue
@@ -34,7 +32,7 @@ end
 
 % Incidence
 [name, shift] = find(incidence);
-idOfInit = name - 1i*shift;
+idInit = name - 1i*shift;
 
 end%
 
