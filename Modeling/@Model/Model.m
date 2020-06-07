@@ -363,7 +363,6 @@ classdef Model ...
         %(
         varargout = equationStartsWith(varargin)
         varargout = changeLogStatus(varargin)
-        varargout = get(varargin)
         varargout = simulate(varargin)
         varargout = table(varargin)
         %)
@@ -430,6 +429,7 @@ classdef Model ...
 
         varargout = getIdOfInitialConditions(varargin)
         varargout = getInxOfInitInPresample(varargin)
+        varargout = implementGet(varargin)
         varargout = prepareHashEquations(varargin)
         varargout = prepareLinearSystem(varargin)
         varargout = simulateFrames(varargin)
