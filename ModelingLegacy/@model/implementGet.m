@@ -1,4 +1,4 @@
-function [answ, flag, query] = implementGet(this, query, varargin)
+function [response, flag, query] = implementGet(this, query, varargin)
 % implementGet  Implement get method for model objects
 %
 % Backend [IrisToolbox] method
@@ -12,57 +12,37 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-[answ, flag] = implementGet@shared.UserDataContainer(this, query, varargin{:});
-if flag
-    return
-end
+[response, flag] = implementGet@shared.UserDataContainer(this, query, varargin{:});
+if flag, return, end
 
-[answ, flag] = implementGet@shared.LoadObjectAsStructWrapper(this, query, varargin{:});
-if flag
-    return
-end
+[response, flag] = implementGet@shared.LoadObjectAsStructWrapper(this, query, varargin{:});
+if flag, return, end
 
-[answ, flag] = implementGet(this.Export, query, varargin{:});
-if flag
-    return
-end
+[response, flag] = implementGet(this.Export, query, varargin{:});
+if flag, return, end
 
-[answ, flag] = implementGet(this.Link, this.Quantity, query, varargin{:});
-if flag
-    return
-end
+[response, flag] = implementGet(this.Link, this.Quantity, query, varargin{:});
+if flag, return, end
 
-[answ, flag] = implementGet(this.Quantity, query, varargin{:});
-if flag
-    return
-end
+[response, flag] = implementGet(this.Quantity, query, varargin{:});
+if flag, return, end
 
-[answ, flag] = implementGet(this.Equation, this.Quantity, this.Pairing, query, varargin{:});
-if flag
-    return
-end
+[response, flag] = implementGet(this.Equation, this.Quantity, this.Pairing, query, varargin{:});
+if flag, return, end
 
-[answ, flag] = implementGet(this.Gradient, query, varargin{:});
-if flag
-    return
-end
+[response, flag] = implementGet(this.Gradient, query, varargin{:});
+if flag, return, end
 
-[answ, flag] = model.component.Pairing.implementGet(this.Pairing, this.Quantity, query, varargin{:});
-if flag
-    return
-end
+[response, flag] = model.component.Pairing.implementGet(this.Pairing, this.Quantity, query, varargin{:});
+if flag, return, end
 
-[answ, flag] = implementGet(this.Vector, query, varargin{:});
-if flag
-    return
-end
+[response, flag] = implementGet(this.Vector, query, varargin{:});
+if flag, return, end
 
-[answ, flag] = implementGet(this.Behavior, query, varargin{:});
-if flag
-    return
-end
+[response, flag] = implementGet(this.Behavior, query, varargin{:});
+if flag, return, end
 
-answ = [ ];
+response = [ ];
 flag = true;
 
 logStyle = this.Behavior.LogStyleInSolutionVectors;
@@ -107,77 +87,77 @@ needsToCheckSolution = false;
 needsToAddToDatabank = cell.empty(1, 0);
 
 if strncmpi(query, 'Equations:ParameterValues', length('Equations:ParameterValues'))
-    answ = this.Equation.Input';
+    response = this.Equation.Input';
     format = strtrim(query(length('Equations:ParameterValues')+1:end));
-    answ = printParameterValues(this, answ, format);
+    response = printParameterValues(this, response, format);
 
 else
 
     switch lower(query)
         
         case 'preprocessor'
-            answ = this.Preprocessor;
+            response = this.Preprocessor;
 
 
         case 'postprocessor'
-            answ = this.Postprocessor;
+            response = this.Postprocessor;
 
 
         case 'incidence'
-            answ = struct( ...
+            response = struct( ...
                 'Dynamic', implementGet(this.Incidence.Dynamic, 'Incidence'), ...
                 'Steady',  implementGet(this.Incidence.Steady, 'Incidence') ...
                 );
             
             
         case 'file'
-            answ = this.FileName;
+            response = this.FileName;
 
             
         case 'param'
-            answ = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this);
+            response = addToDatabank({'Parameters', 'Std', 'NonzeroCorr'}, this);
             
             
         case 'plainparam'
-            answ = addToDatabank('Parameters', this);
+            response = addToDatabank('Parameters', this);
      
 
         case 'std'
-            answ = addToDatabank('Std', this);
+            response = addToDatabank('Std', this);
             
             
         case 'corr'
-            answ = addToDatabank('Corr', this);
+            response = addToDatabank('Corr', this);
 
 
         case 'nonzerocorr'
-            answ = addToDatabank('NonzeroCorr', this);
+            response = addToDatabank('NonzeroCorr', this);
             
             
         case 'stdcorr'
-            answ = addToDatabank({'Std', 'Corr'}, this);
+            response = addToDatabank({'Std', 'Corr'}, this);
             
             
         case 'exogenous'
             ixg = this.Quantity.Type==TYPE(5);
-            answ = struct( );
+            response = struct( );
             for i = find(ixg)
                 name = this.Quantity.Name{i};
                 values = this.Variant.Values(:, i, :);
-                answ.(name) = permute(value, [2, 3, 1]);
+                response.(name) = permute(value, [2, 3, 1]);
             end        
             
             
             
             
         case 'stdlist'
-            answ = getStdNames(this.Quantity);
+            response = getStdNames(this.Quantity);
             
             
             
             
         case 'corrlist'
-            answ = getCorrNames(this.Quantity);
+            response = getCorrNames(this.Quantity);
             
             
             
@@ -185,134 +165,134 @@ else
         case 'stdcorrlist'
             listOfStdNames = implementGet(this, 'StdList');
             listOfCorrNames = implementGet(this, 'CorrList');
-            answ = [listOfStdNames, listOfCorrNames];
+            response = [listOfStdNames, listOfCorrNames];
             
             
             
             
         case {'log', 'islog'}
             ixType = this.Quantity.Type~=TYPE(4);
-            answ = cell2struct( ...
+            response = cell2struct( ...
                 num2cell(this.Quantity.IxLog(ixType)), ...
                 this.Quantity.Name(ixType), 2 ...
                 );
             
             
         case {'loglist'}
-            answ = this.Quantity.Name(this.Quantity.IxLog);
+            response = this.Quantity.Name(this.Quantity.IxLog);
             
             
         case {'nonloglist'}
-            answ = this.Quantity.Name(~this.Quantity.IxLog);
+            response = this.Quantity.Name(~this.Quantity.IxLog);
             
             
         case {'covmat', 'omega'}
-            answ = getIthOmega(this, ':');
+            response = getIthOmega(this, ':');
             
             
         case {'stdvec'}
-            answ = permute(this.Variant.StdCorr(:, 1:ne, :), [2, 3, 1]);
+            response = permute(this.Variant.StdCorr(:, 1:ne, :), [2, 3, 1]);
             
             
         case {'stdcorrvec'}
-            answ = permute(this.Variant.StdCorr, [2, 3, 1]);
+            response = permute(this.Variant.StdCorr, [2, 3, 1]);
             
             
         case {'nalt', 'numofvariants'}
-            answ = nv;
+            response = nv;
             
             
         case {'nametype'}
-            answ = this.Quantity.Type;
+            response = this.Quantity.Type;
             
             
         case 'build'
-            answ = this.Build;
+            response = this.Build;
 
             
         case {'preparser', 'preparsercontrol', 'pset', 'controlparameters'}
-            answ = this.PreparserControl;
+            response = this.PreparserControl;
 
 
         case {'substitutions'}
-            answ = this.Substitutions;
+            response = this.Substitutions;
 
             
         case 'steady'
-            answ = cell2DbaseFunc(steadyLevel+1i*steadyGrowth);
+            response = cell2DbaseFunc(steadyLevel+1i*steadyGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
             
         case 'steadylevel'
-            answ = cell2DbaseFunc(steadyLevel);
+            response = cell2DbaseFunc(steadyLevel);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
             
         case 'steadygrowth'
-            answ = cell2DbaseFunc(steadyGrowth);
+            response = cell2DbaseFunc(steadyGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
 
 
         case 'dt'
-            answ = cell2DbaseFunc(dtLevel+1i*dtGrowth);
+            response = cell2DbaseFunc(dtLevel+1i*dtGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
             
         case 'dtlevel'
-            answ = cell2DbaseFunc(dtLevel);
+            response = cell2DbaseFunc(dtLevel);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
 
             
         case 'dtgrowth'
             inxNaNSolutions = this.Quantity.Type==TYPE(1);
-            answ = cell2DbaseFunc(dtGrowth);
+            response = cell2DbaseFunc(dtGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
         case 'steady+dt'
-            answ = cell2DbaseFunc(ssDtLevel+1i*ssDtGrowth);
+            response = cell2DbaseFunc(ssDtLevel+1i*ssDtGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
         case 'steadylevel+dtlevel'
-            answ = cell2DbaseFunc(ssDtLevel);
+            response = cell2DbaseFunc(ssDtLevel);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
         case 'steadygrowth+dtgrowth'
-            answ = cell2DbaseFunc(ssDtGrowth);
+            response = cell2DbaseFunc(ssDtGrowth);
             needsToAddToDatabank = {'Std', 'NonzeroCorr'};
             
         case {'eig', 'eigval', 'roots'}
-            answ = eig(this);
+            response = eig(this);
             
         case 'rlist'
-            answ = implementGet(this.Reporting, 'list');
+            response = implementGet(this.Reporting, 'list');
                     
         case 'reqtn'
-            answ = implementGet(this.Reporting, 'eqtn');
+            response = implementGet(this.Reporting, 'eqtn');
             
         case 'rlabel'
-            answ = implementGet(this.Reporting, 'label');
+            response = implementGet(this.Reporting, 'label');
             
         case {'yvector', 'yvec'}
-            answ = printSolutionVector(this, 'y', logStyle);
-            answ = answ.';
+            response = printSolutionVector(this, 'y', logStyle);
+            response = response.';
             
         case {'xvector', 'xvec'}
-            answ = printSolutionVector(this, 'x', logStyle);
-            answ = answ.';
+            response = printSolutionVector(this, 'x', logStyle);
+            response = response.';
             
         case {'xfvector', 'xfvec'}
-            answ = printSolutionVector(this, 'x', logStyle);
-            answ = answ(1:nf);
-            answ = answ.';
+            response = printSolutionVector(this, 'x', logStyle);
+            response = response(1:nf);
+            response = response.';
             
         case {'xbvector', 'xbvec'}
-            answ = printSolutionVector(this, 'x', logStyle);
-            answ = answ(nf+1:end);
-            answ = answ.';
+            response = printSolutionVector(this, 'x', logStyle);
+            response = response(nf+1:end);
+            response = response.';
             
         case {'evector', 'evec'}
-            answ = printSolutionVector(this, 'e', logStyle);
-            answ = answ.';
+            response = printSolutionVector(this, 'e', logStyle);
+            response = response.';
             
         case {'ylog', 'xlog', 'elog', 'plog', 'glog'}
             switch query(1)
@@ -330,7 +310,7 @@ else
                 otherwise
                     ixType = false(1, length(this.Quantity));
             end        
-            answ = this.Quantity.IxLog(ixType);
+            response = this.Quantity.IxLog(ixType);
             
 
         
@@ -342,7 +322,7 @@ else
                 case 'x'
                     ixType = this.Quantity.Type==TYPE(32);
             end
-            answ = this.Quantity.Name(ixType);
+            response = this.Quantity.Name(ixType);
             
             
             
@@ -356,13 +336,13 @@ else
         case 'maxlag'
             maxLagDynamic = this.Incidence.Dynamic.MinShift;
             maxLagSteady = this.Incidence.Steady.MinShift;
-            answ = min(maxLagDynamic, maxLagSteady);
+            response = min(maxLagDynamic, maxLagSteady);
             
             
         case 'maxlead'
             maxLeadDynamic = this.Incidence.Dynamic.MaxShift;
             maxLeadSteady = this.Incidence.Steady.MaxShift;
-            answ = max(maxLeadDynamic, maxLeadSteady);
+            response = max(maxLeadDynamic, maxLeadSteady);
             
             
             
@@ -371,13 +351,13 @@ else
             % True initial conditions required at least in one parameter variant.
             vecXb = this.Vector.Solution{2}(nf+1:end);
             ixInit = any(this.Variant.IxInit, 3);
-            answ = printSolutionVector(this, vecXb(ixInit)-1i, logStyle);
+            response = printSolutionVector(this, vecXb(ixInit)-1i, logStyle);
             
             
             
             
         case {'forward'}
-            answ = size(this.Variant.FirstOrderSolution{2}, 2)/ne - 1;
+            response = size(this.Variant.FirstOrderSolution{2}, 2)/ne - 1;
             needsToCheckSolution = true;
             
             
@@ -392,89 +372,89 @@ else
                 case 'unitroots'
                     ixSelect = eigenStability==TYPE(1);
             end
-            answ = nan(size(eigenValues));
+            response = nan(size(eigenValues));
             for v = 1 : nv
                 n = nnz(ixSelect(1, :, v));
-                answ(1, 1:n, v) = eigenValues(1, ixSelect(1, :, v), v);
+                response(1, 1:n, v) = eigenValues(1, ixSelect(1, :, v), v);
             end
-            answ(:, all(isnan(answ), 3), :) = [ ];
+            response(:, all(isnan(response), 3), :) = [ ];
             
             
         case 'epsilon'
-            answ = this.Tolerance.DiffStep;
+            response = this.Tolerance.DiffStep;
             
             
         case 'userdata'
-            answ = userdata(this);
+            response = userdata(this);
 
 
 
 
         % Database of autoexogenise definitions d.variable = 'shock';
         case {'autoexogenise', 'autoexogenised', 'autoexogenize', 'autoexogenized'}
-            answ = autoexogenise(this);
+            response = autoexogenise(this);
             
             
             
             
         case {'autoswap', 'autoswaps', 'autoexog'}
-            answ = autoswap(this);
+            response = autoswap(this);
 
             
         case {'reporting', 'rpteq'}
-            answ = this.Reporting;
+            response = this.Reporting;
             
             
         case 'nx'
-            answ = length(this.Vector.Solution{2});
+            response = length(this.Vector.Solution{2});
             
             
             
             
         case 'nb'
-            answ = size(this.Variant.FirstOrderSolution{7}, 1);
+            response = size(this.Variant.FirstOrderSolution{7}, 1);
             
             
             
             
         case 'nf'
-            answ = length(this.Vector.Solution{2}) - size(this.Variant.FirstOrderSolution{7}, 1);
+            response = length(this.Vector.Solution{2}) - size(this.Variant.FirstOrderSolution{7}, 1);
             
             
             
             
         case 'ny'
-            answ = sum(this.Quantity.Type==TYPE(1));
+            response = sum(this.Quantity.Type==TYPE(1));
             
             
             
             
         case 'ng'
-            answ = sum(this.Quantity.Type==TYPE(5));
+            response = sum(this.Quantity.Type==TYPE(5));
             
             
             
             
         case 'ne'
-            answ = sum(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
+            response = sum(this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32));
             
 
 
 
         case {'islinear', 'linear'}
-            answ = this.IsLinear;
+            response = this.IsLinear;
 
 
 
 
         case {'isgrowth', 'growth'}
-            answ = this.IsGrowth;
+            response = this.IsGrowth;
 
 
 
             
         case {'lastsyst', 'lastsystem'}
-            answ = this.LastSystem;
+            response = this.LastSystem;
             
 
 
@@ -498,7 +478,7 @@ end
 
 % Add parameters, std devs and non-zero cross-corrs.
 if ~isempty(needsToAddToDatabank)
-    answ = addToDatabank(needsToAddToDatabank, this, answ);
+    response = addToDatabank(needsToAddToDatabank, this, response);
 end
 
 return
@@ -523,10 +503,10 @@ return
             d = [dy, df, db];
             
             if strncmp(query, 's', 1)
-                % Stationary.
+                % Stationary
                 status(:, iiAlt) = double(~d(t0)).';
             else
-                % Non-stationary.
+                % Non-stationary
                 status(:, iiAlt) = double(d(t0)).';
             end
         end
@@ -534,20 +514,20 @@ return
             status = logical(status);
         end
         if ~isempty(strfind(query, 'list'))
-            % List.
+            % List
             if nv==1
-                answ = name(status==true | status==1);
-                answ = answ(:)';
+                response = name(status==true | status==1);
+                response = response(:)';
             else
-                answ = cell([1, nv]);
+                response = cell([1, nv]);
                 for ii = 1 : nv
-                    answ{ii} = name(status(:, ii)==true | status(:, ii)==1);
-                    answ{ii} = answ{ii}(:).';
+                    response{ii} = name(status(:, ii)==true | status(:, ii)==1);
+                    response{ii} = response{ii}(:).';
                 end
             end
         else
-            % Database.
-            answ = cell2struct( num2cell(status, 2), name(:), 1 );
+            % Databank
+            response = cell2struct( num2cell(status, 2), name(:), 1 );
         end
     end%
 end%

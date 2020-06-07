@@ -94,7 +94,7 @@ end%
 %
 %{
 ##### SOURCE BEGIN #####
-% saveAs=textual/abbreviate.m
+% saveAs=textual/abbreviateUnitTest.m
 
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 

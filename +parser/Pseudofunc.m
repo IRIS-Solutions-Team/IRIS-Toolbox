@@ -220,7 +220,6 @@ classdef Pseudofunc
         
         
         
-        
         function c = shiftTimeSubs(c, k)
             import parser.Pseudofunc
             s = sprintf(Pseudofunc.TIME_SUBS_FORMAT_STRING, k);
@@ -229,8 +228,6 @@ classdef Pseudofunc
             % Add time subs to names with no time subs, name -> name{+4}.
             c = regexprep(c, Pseudofunc.NAME_WITH_NO_SHIFT_PATTERN, ['$1{', s, '}']);
         end%
-
-
 
 
         function c = parse(p, keywords)
