@@ -1,12 +1,14 @@
 % getDataNoFrills  Get time series data for specified dates with no checks
 %
-% Backend [IrisToolbox] function
+% Backend [IrisToolbox] methods
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 function [data, inxWithinRange, posTimes, this] = getDataNoFrills(this, timeRef, varargin)
+
+timeRef = double(timeRef);
 
 % Apply references in 2nd and higher dimensions
 if ~isempty(varargin)
@@ -24,7 +26,9 @@ posTimes = getPosTimes( );
 numTimes = numel(posTimes);
 inxWithinRange = posTimes>=1 & posTimes<=numPeriods;
 
-if nargout>3
+needsCreateOutputSeries = nargout>=4;
+
+if needsCreateOutputSeries
     inxToKeep = false(1, numPeriods);
     inxToKeep(posTimes(inxWithinRange)) = true;
 end
@@ -36,13 +40,13 @@ if all(inxWithinRange)
     if ndimsData>2
         data = reshape(data, [numTimes, sizeData(2:end)]);
     end
-    if nargout>3
+    if needsCreateOutputSeries
         createOutputSeries( );
     end
 elseif ~any(inxWithinRange)
     % No time references are within time series range
     data = repmat(this.MissingValue, [numTimes, sizeData(2:end)]);
-    if nargout>3
+    if needsCreateOutputSeries
         this = emptyData(this);
     end
 else
@@ -50,7 +54,7 @@ else
     temp = data;
     data = repmat(this.MissingValue, [numTimes, sizeData(2:end)]);
     data(inxWithinRange, :) = temp(posTimes(inxWithinRange), :);
-    if nargout>=4
+    if needsCreateOutputSeries
         createOutputSeries( );
     end
 end
@@ -63,8 +67,9 @@ return
         serialTimes = transpose(serialTimes(:));
         freqTimes = DateWrapper.getFrequencyAsNumeric(timeRef);
         freqTimes = transpose(freqTimes(:));
-        serialStart = DateWrapper.getSerial(this.Start);
-        freqStart = DateWrapper.getFrequencyAsNumeric(this.Start);
+        thisStart = double(this.Start);
+        serialStart = DateWrapper.getSerial(thisStart);
+        freqStart = DateWrapper.getFrequencyAsNumeric(thisStart);
         numTimes = numel(serialTimes);
         if numTimes==1 && isequal(serialTimes, Inf)
             % Inf
