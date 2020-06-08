@@ -1,25 +1,27 @@
-function dateCode = str2dat(inputString, varargin)
 % numeric.str2dat  Convert strings to serial date numbers
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser configStruct
-if isempty(parser)
+function dateCode = str2dat(inputString, varargin)
+
+%( Input parser
+persistent pp configStruct
+if isempty(pp)
     configStruct = iris.get( );
-    parser = extend.InputParser('dates.str2dat');
-    parser.addRequired('InputString', @(x) ischar(x) || iscellstr(x) || isstring(x));
-    parser.addDateOptions( );
+    pp = extend.InputParser('dates.str2dat');
+    addRequired(pp, 'InputString', @(x) ischar(x) || iscellstr(x) || isstring(x));
+    addDateOptions(pp);
 end
+%)
 
 if ~isempty(varargin) && isstruct(varargin{1})
     varargin = extend.InputParser.extractDateOptionsFromStruct(varargin{1});
 end
-parser.parse(inputString, varargin{:});
-opt = parser.Options;
+opt =parse(pp, inputString, varargin{:});
 
 if isempty(opt.EnforceFrequency)
     opt.EnforceFrequency = false;
@@ -27,7 +29,7 @@ end
 
 %--------------------------------------------------------------------------
 
-parseDateFormatOption( );
+hereParseDateFormatOption( );
 
 longMonthList = sprintf('%s|',opt.Months{:});
 longMonthList(end) = '';
@@ -45,7 +47,7 @@ end
 
 ptn = hereParseFormat( );
 tkn = regexpi(cellstr(inputString), ptn, 'names', 'once', 'forceCellOutput');
-[year, per, day, month, freq, inxPeriod] = hereParseDateStrings(tkn, configStruct, opt);
+[year, per, day, month, freq, inxPeriod] = locallyParseDateStrings(tkn, configStruct, opt);
 
 inxCalendarDaily = freq==Frequency.DAILY;
 inxCalendarWeekly = freq==Frequency.WEEKLY & ~inxPeriod;
@@ -114,7 +116,7 @@ return
     
 
 
-    function parseDateFormatOption( )
+    function hereParseDateFormatOption( )
         if strcmpi(opt.EnforceFrequency, 'Daily')
             opt.EnforceFrequency = Frequency.DAILY;
         end
@@ -149,7 +151,7 @@ end%
 %
 
 
-function [year, per, day, month, freq, inxPeriod] = hereParseDateStrings(cellToken, configStruct, opt)
+function [year, per, day, month, freq, inxPeriod] = locallyParseDateStrings(cellToken, configStruct, opt)
     [thisYear, ~] = datevec(now( ));
     thisCentury = 100*floor(thisYear/100);
     freq = nan(size(cellToken));
@@ -212,11 +214,11 @@ function [year, per, day, month, freq, inxPeriod] = hereParseDateStrings(cellTok
         end
         
         if isfield(tkn, 'RomanPeriod')
-            per(i) = hereRoman2Num(tkn.RomanPeriod);
+            per(i) = locallyRoman2Num(tkn.RomanPeriod);
         end
         
         if isfield(tkn, 'RomanMonth')
-            month(i) = hereRoman2Num(tkn.RomanMonth);
+            month(i) = locallyRoman2Num(tkn.RomanMonth);
         end
         
         if isfield(tkn, 'NumericMonth')
@@ -242,7 +244,7 @@ function [year, per, day, month, freq, inxPeriod] = hereParseDateStrings(cellTok
         
         if ~isequal(opt.EnforceFrequency, false)
             freq(i) = opt.EnforceFrequency;
-        elseif hereTryYearlyFrequency(tkn)
+        elseif locallyTryYearlyFrequency(tkn)
             freq(i) = Frequency.YEARLY;
         end
         
@@ -286,7 +288,7 @@ end%
 
 
 
-function per = hereRoman2Num(romanPer)
+function per = locallyRoman2Num(romanPer)
     per = 1;
     list = { 'i', 'ii', 'iii', 'iv', 'v', 'vi', ...
              'vii', 'viii', 'ix', 'x', 'xi', 'xii' };
@@ -298,7 +300,7 @@ end%
 
 
 
-function flag = hereTryYearlyFrequency(tkn)
+function flag = locallyTryYearlyFrequency(tkn)
     listFields = fieldnames(tkn);
     flag = numel(listFields)==1 && ~isempty(strfind(listFields{1}, 'Year'));
 end%
