@@ -2,8 +2,12 @@
 
 // utility methods
 var $ru = {
-  createChart: createChartForChartJs,
-  createSeries: createSeriesForChartJs,
+  createChart: createChartForPlotly,//createChartForChartJs,//
+  createSeries: createSeriesForPlotly,//createSeriesForChartJs,//
+  createChartForChartJs: createChartForChartJs,
+  createSeriesForChartJs: createSeriesForChartJs,
+  createChartForPlotly: createChartForPlotly,
+  createSeriesForPlotly: createSeriesForPlotly,
   freqToUnit: freqToMomentJsUnit,
   createTable: createTable,
   createGrid: createGrid,
@@ -237,6 +241,201 @@ function createSeriesForChartJs(seriesObj, limits, color) {
       backgroundColor: overrideColor || color,
       borderColor: overrideColor || color,
       type: "line"
+    };
+  }
+}
+
+
+// create chart elements using Plotly library
+function createChartForPlotly(parent, chartObj) {
+  var chartParent = document.createElement("div");
+  $(chartParent).addClass("rephrase-chart");
+  // apply custom css class to .rephrase-chart div
+  if (chartObj.Settings.Class && (typeof chartObj.Settings.Class === "string"
+    || chartObj.Settings.Class instanceof Array)) {
+    $(chartParent).addClass(chartObj.Settings.Class);
+  }
+  parent.appendChild(chartParent);
+  // whether to include title in canvas or make it a separate div
+  const titleOutOfCanvas = (chartObj.Settings.hasOwnProperty("IsTitlePartOfChart") && !chartObj.Settings.IsTitlePartOfChart);
+  // create chart title
+  const chartTitle = chartObj.Title || "";
+  if (chartTitle && titleOutOfCanvas) {
+    var chartTitleDiv = document.createElement("div");
+    $(chartTitleDiv).addClass(["rephrase-chart-title", "h4"]);
+    chartTitleDiv.innerText = chartTitle;
+    chartParent.appendChild(chartTitleDiv);
+  }
+  var chartBody = document.createElement("div");
+  $(chartBody).addClass("rephrase-chart-body");
+  chartParent.appendChild(chartBody);
+  // generate data for the chart
+  var data = [];
+  const limits = {
+    min: chartObj.Settings.StartDate ? new Date(chartObj.Settings.StartDate) : null,
+    max: chartObj.Settings.EndDate ? new Date(chartObj.Settings.EndDate) : null
+  };
+  if (chartObj.hasOwnProperty("Content") && chartObj.Content instanceof Array) {
+    const colorList = $ru.getColorList(chartObj.Content.length);
+    for (var i = 0; i < chartObj.Content.length; i++) {
+      const seriesObj = chartObj.Content[i];
+      data.push($ru.createSeries(seriesObj, limits, colorList[i]));
+    }
+  }
+  const layout = {
+    title: {
+      text: chartTitle !== "" && !titleOutOfCanvas ? chartTitle : undefined,
+      // font: {
+      //   size: 20,
+      //   family: "Lato",
+      //   color: "#0a0a0a"
+      // }
+    },
+    font: {
+      family: "Lato",
+      color: "#0a0a0a"
+    },
+    xaxis: {
+      range: [chartObj.Settings.StartDate, chartObj.Settings.EndDate],
+      type: 'date'
+    },
+    yaxis: {
+      autorange: true,
+      type: 'linear'
+    },
+    legend: {
+      x: 0.5,
+      y: 1,
+      xanchor: "center",
+      yanchor: "bottom",
+      orientation: "h"
+    }
+  };
+  if (titleOutOfCanvas) {
+    layout.margin = {
+      l: 50,
+      r: 50,
+      b: 30,
+      t: 10,
+      pad: 4
+    };
+  }
+  const config = {
+    responsive: true,
+    staticPlot: true
+  };
+  // add range highlighting if needed so
+  if (chartObj.Settings.hasOwnProperty("Highlight") && typeof chartObj.Settings.Highlight === "object" && chartObj.Settings.Highlight instanceof Array && chartObj.Settings.Highlight.length > 0) {
+    const defaultColor = "rgba(100, 100, 100, 0.2)";
+    layout.shapes = [];
+    for (let i = 0; i < chartObj.Settings.Highlight.length; i++) {
+      const hConfig = chartObj.Settings.Highlight[i];
+      layout.shapes.push(
+        {
+          type: 'rect',
+          // x-reference is assigned to the x-values
+          xref: 'x',
+          // y-reference is assigned to the plot paper [0,1]
+          yref: 'paper',
+          x0: hConfig.StartDate ? new Date(hConfig.StartDate) : undefined,
+          y0: 0,
+          x1: hConfig.EndDate ? new Date(hConfig.EndDate) : undefined,
+          y1: 1,
+          fillcolor: hConfig.Color || defaultColor,
+          // opacity: 0.2,
+          line: {
+            width: 0
+          }
+        });
+    }
+  }
+  // todo: make this a setting of the report if necessary
+  // todo: add docs explaining this if/else if we keep it
+  const headlessPrint = false;
+  if (!headlessPrint) {
+    // we are adding charts only after document is ready
+    // because it (1) makes the browser open quicker (almost immediately 
+    // even for the huge reports), and (2) the widths of DIV containers 
+    // of the charts is not 100% known before document is ready (that's how
+    //  "cell auto" of XY grid behaves)
+    $(document).ready(function () {
+      Plotly.newPlot(chartBody, data, layout, config);
+    });
+  } else {
+    var chartObj = Plotly.newPlot(chartBody, data, layout, config);
+    // without this trick the charts are too wide because 
+    // the width of container DIV is automatically adjusted 
+    // after the chart is loaded, so we need to resize the chart
+    // this adds an extra waiting time for
+    chartObj.then(function () {
+      $(document).ready(function () {
+        Plotly.relayout(chartBody, { autosize: true });
+      });
+    });
+  }
+}
+
+// create series object for Plotly chart
+function createSeriesForPlotly(seriesObj, limits, color) {
+  // return empty object if smth. is wrong
+  if (!seriesObj || !(typeof seriesObj === "object") || !seriesObj.hasOwnProperty("Type")
+    || seriesObj.Type.toLowerCase() !== "series" || !seriesObj.hasOwnProperty("Content")
+    || !((typeof seriesObj.Content === "string")
+      || (typeof seriesObj.Content === "object"
+        && seriesObj.Content.hasOwnProperty("Dates")
+        && seriesObj.Content.hasOwnProperty("Values")))) {
+    return {};
+  }
+  if (typeof seriesObj.Content === "string") {
+    seriesObj.Content = $ru.databank.getSeriesContent(seriesObj.Content);
+  } else {
+    seriesObj.Content.Dates = seriesObj.Content.Dates.map(function (d) {
+      return new Date(d);
+    });
+  }
+  var tsData = [];
+  for (var i = 0; i < seriesObj.Content.Values.length; i++) {
+    const thisDate = seriesObj.Content.Dates[i];
+    if ((limits.min && thisDate < limits.min) || (limits.max && thisDate > limits.max)) {
+      continue;
+    }
+    tsData.push({
+      x: thisDate,
+      y: seriesObj.Content.Values[i]
+    });
+  }
+  var overrideColor = null;
+  if (seriesObj.hasOwnProperty("Settings") && (typeof seriesObj.Settings === "object")
+    && seriesObj.Settings.hasOwnProperty("Color")) {
+    overrideColor = seriesObj.Settings.Color;
+  }
+  const seriesPlotType = seriesObj.Settings.Type || "scatter";
+  if (seriesPlotType.toLowerCase() === "bar") {
+    return {
+      x: seriesObj.Content.Dates,
+      y: seriesObj.Content.Values,
+      name: seriesObj.Title || "",
+      type: "bar",
+      marker: {
+        color: (overrideColor || color).replace(/,\s*\d*\.?\d+\)$/, ",0.2)"),
+        line: {
+          color: overrideColor || color,
+          width: 1
+        }
+      }
+    };
+  }
+  else {
+    return {
+      x: seriesObj.Content.Dates,
+      y: seriesObj.Content.Values,
+      name: seriesObj.Title || "",
+      type: "scatter",
+      marker: {
+        line: {
+          color: overrideColor || color
+        }
+      }
     };
   }
 }

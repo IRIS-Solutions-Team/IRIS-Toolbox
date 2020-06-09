@@ -99,6 +99,7 @@ for i = 1 : 4
     chart1 = rephrase.Chart( ...
         "Chart " + i, rangeQ(1), rangeQ(end) ...
         , "DateFormat", "YYYY:Q" ...
+        , "IsTitlePartOfChart", false ...
         , args{:} ...
     );
     chart2 = copy(chart1);
@@ -140,8 +141,40 @@ for i = 1 : 4
 end 
 
 
+rdo1.Content{end+1} = rephrase.Pagebreak( "" );
+rdo2.Content{end+1} = rephrase.Pagebreak( "" );
+
 rdo1.Content{end+1} = grid1;
 rdo2.Content{end+1} = grid2;
+
+rdo1.Content{end+1} = rephrase.Pagebreak( "" );
+rdo2.Content{end+1} = rephrase.Pagebreak( "" );
+
+for i = 1 : 2
+    table1 = rephrase.Table( ...
+        "Table "+(i+1), rangeQ ...
+        , "DateFormat", "YYYY:Q" ...
+        , "NumDecimals", 3 ...
+    );
+    table2 = copy(table1);
+    for j = 1 : 5
+        series1 = rephrase.Series( ...
+            "Series " + 200*i+j ...
+        );
+        data = rand(numPeriodsQ, 1);
+        series1.Content = struct(serial.Dates, [ ], serial.Values, data);
+
+        name = string(characters(randi(numel(characters), 1, 20)));
+        series2 = copy(series1);
+        series2.Content = name;
+        db.(name) = Series(startDateQ, data);
+
+        table1.Content{end+1} = series1;
+        table2.Content{end+1} = series2;
+    end
+    rdo1.Content{end+1} = table1;
+    rdo2.Content{end+1} = table2;
+end
 
 
 j1 = string(jsonencode(rdo1));
@@ -154,7 +187,7 @@ fid = fopen("vanillaReport2.json", "w+");
 fwrite(fid, j2);
 fclose(fid);
 
-%{
+% {
 id2=0;
 id3=0;
 for i = 1 : 300
@@ -190,8 +223,8 @@ for i = 1 : 300
 
     rdo3.Content{end+1} = rephrase.Pagebreak( "" );
 
-    nRows = 1;4;randi([1,4]);
-    nCols = 1;3;randi([2,4]);
+    nRows = 4;randi([1,4]);1;
+    nCols = 3;randi([2,4]);1;
     grid3 = rephrase.Grid( ...
         "", [nRows, nCols] ...
     );
@@ -200,6 +233,7 @@ for i = 1 : 300
         chart3 = rephrase.Chart( ...
             "Chart " + id2, rangeQ(1), rangeQ(end) ...
             , "DateFormat", "YYYY:Q" ...
+            , "IsTitlePartOfChart", false ...
         );
         nLines = randi([1,6]);
         for k = 1 : nLines
@@ -243,9 +277,9 @@ js = "var $reportWithData = " + j1 + ";";
 js = js + newline + "var $reportWithoutData = " + j2 + ";";
 js = js + newline + "var $reportHuge = " + j3 + ";";
 js = js + newline + "var $databank = " + jdb + ";";
-% js = js + newline + "var $report = $reportHuge;";
+js = js + newline + "var $report = $reportHuge;";
 % js = js + newline + "var $report = $reportWithData;";
-js = js + newline + "var $report = $reportWithoutData;";
+% js = js + newline + "var $report = $reportWithoutData;";
 fid = fopen("../js/report-data.js", "w+");
 fwrite(fid, js);
 fclose(fid);
