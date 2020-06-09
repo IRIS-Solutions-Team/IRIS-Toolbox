@@ -349,30 +349,14 @@ function createChartForPlotly(parent, chartObj) {
         });
     }
   }
-  // todo: make this a setting of the report if necessary
-  // todo: add docs explaining this if/else if we keep it
-  const headlessPrint = false;
-  if (!headlessPrint) {
-    // we are adding charts only after document is ready
-    // because it (1) makes the browser open quicker (almost immediately 
-    // even for the huge reports), and (2) the widths of DIV containers 
-    // of the charts is not 100% known before document is ready (that's how
-    //  "cell auto" of XY grid behaves)
-    $(document).ready(function () {
-      Plotly.newPlot(chartBody, data, layout, config);
-    });
-  } else {
-    var chartObj = Plotly.newPlot(chartBody, data, layout, config);
-    // without this trick the charts are too wide because 
-    // the width of container DIV is automatically adjusted 
-    // after the chart is loaded, so we need to resize the chart
-    // this adds an extra waiting time for
-    chartObj.then(function () {
-      $(document).ready(function () {
-        Plotly.relayout(chartBody, { autosize: true });
-      });
-    });
-  }
+  // we are adding charts only after document is ready
+  // because it (1) makes the browser open quicker (almost immediately 
+  // even for the huge reports), and (2) the widths of DIV containers 
+  // of the charts is not 100% known before document is ready (that's how
+  //  "cell auto" of XY grid behaves)
+  $(document).ready(function () {
+    Plotly.newPlot(chartBody, data, layout, config);
+  });
 }
 
 // create series object for Plotly chart
