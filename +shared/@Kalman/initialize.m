@@ -77,12 +77,16 @@ return
             a0 = [a1; a2];
         end
 
-        if numUnitRoots>0 && isnumeric(initUnit)
+        if numUnitRoots>0 && (isnumeric(initUnit) || iscell(initUnit))
             %
             % User supplied data to initialize mean for unit root processes
             % Convert XiB to Alpha
             %
-            xb00 = initUnit;
+            if iscell(initUnit)
+                xb00 = initUnit{1};
+            else
+                xb00 = initUnit;
+            end
             inxZero = isnan(xb00) & ~inxInit;
             xb00(inxZero) = 0;
             if needsTransform
@@ -168,6 +172,9 @@ return
                 end
                 PaInf = zeros(numXiB);
                 PaInf(~inxStable, ~inxStable) = eye(numUnitRoots) * scale;
+            elseif iscell(initUnit) && numel(initUnit)>=2
+                
+                PaReg(~inxStable, ~inxStable)= initUnit{2}(~inxStable, ~inxStable);
             end
         end
     end%

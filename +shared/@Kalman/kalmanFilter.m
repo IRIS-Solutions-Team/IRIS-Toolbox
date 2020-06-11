@@ -258,6 +258,8 @@ for run = 1 : numRuns
     end
     if isnumeric(opt.InitUnitRoot)
         initUnit__ = opt.InitUnitRoot(:, :, min(end, run));
+    elseif iscell(opt.InitUnitRoot)
+        initUnit__ = cellfun(@(x) x(:, :, min(end, run)), opt.InitUnitRoot, 'UniformOutput', false);
     else
         initUnit__ = opt.InitUnitRoot;
     end

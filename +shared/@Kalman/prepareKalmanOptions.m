@@ -202,11 +202,11 @@ end
 % Initial condition for unit root components
 %
 if isstruct(opt.InitUnitRoot)
-    [xbInitMean, listMissingMeanInit] = ...
+    [xbInitMean, listMissingMeanInit, xbInitMse, listMissingMSEInit] = ...
         datarequest('xbInit', this, opt.InitUnitRoot, range);
     listMissingMSEInit = cell.empty(1, 0);
     hereCheckNaNInit( );
-    opt.InitUnitRoot = xbInitMean;
+    opt.InitUnitRoot = {xbInitMean, xbInitMse};
 end
 
 % Last backward smoothing period. The option  lastsmooth will not be
