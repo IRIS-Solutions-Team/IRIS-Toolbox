@@ -349,9 +349,6 @@ classdef Model ...
 % expressions.
 %}
 
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
-
 %--------------------------------------------------------------------------
 
             this = this@model(varargin{:});
