@@ -2,8 +2,8 @@
 
 // utility methods
 var $ru = {
-  createChart: createChartForPlotly,//createChartForChartJs,//
-  createSeries: createSeriesForPlotly,//createSeriesForChartJs,//
+  createChart: createChart,
+  createSeries: createSeries,
   createChartForChartJs: createChartForChartJs,
   createSeriesForChartJs: createSeriesForChartJs,
   createChartForPlotly: createChartForPlotly,
@@ -15,6 +15,7 @@ var $ru = {
   getColorList: getColorList,
   addPageBreak: addPageBreak,
   createTextBlock: createTextBlock,
+  appendObjSettings: appendObjSettings,
   databank: {
     getEntry: getEntry,
     getEntryName: getEntryName,
@@ -22,6 +23,86 @@ var $ru = {
 
   }
 };
+
+const DEFAULT_CHART_LIBRARY = "plotly";
+const DEFAULT_HIGHLIGHT_COLOR = "rgba(100, 100, 100, 0.2)";
+
+// generic function preparing the chart area and calling the implementation
+// specific for the chosen ChartLibrary
+function createChart(parent, chartObj) {
+  const chartLib = chartObj.Settings.ChartLibrary || DEFAULT_CHART_LIBRARY;
+  var chartParent = document.createElement("div");
+  $(chartParent).addClass("rephrase-chart");
+  // apply custom css class to .rephrase-chart div
+  if (chartObj.Settings.Class && (typeof chartObj.Settings.Class === "string"
+    || chartObj.Settings.Class instanceof Array)) {
+    $(chartParent).addClass(chartObj.Settings.Class);
+  }
+  parent.appendChild(chartParent);
+  // whether to include title in canvas or make it a separate div
+  const titleOutOfCanvas = (chartObj.Settings.hasOwnProperty("IsTitlePartOfChart") && !chartObj.Settings.IsTitlePartOfChart);
+  // create chart title
+  const chartTitle = chartObj.Title || "";
+  if (chartTitle && titleOutOfCanvas) {
+    var chartTitleDiv = document.createElement("div");
+    $(chartTitleDiv).addClass(["rephrase-chart-title", "h4"]);
+    chartTitleDiv.innerText = chartTitle;
+    chartParent.appendChild(chartTitleDiv);
+  }
+  // generate data for the chart
+  var data = [];
+  const limits = {
+    min: chartObj.Settings.StartDate ? new Date(chartObj.Settings.StartDate) : null,
+    max: chartObj.Settings.EndDate ? new Date(chartObj.Settings.EndDate) : null
+  };
+  if (chartObj.hasOwnProperty("Content") && chartObj.Content instanceof Array) {
+    const colorList = $ru.getColorList(chartObj.Content.length);
+    for (var i = 0; i < chartObj.Content.length; i++) {
+      const seriesObj = chartObj.Content[i];
+      data.push($ru.createSeries(seriesObj, limits, colorList[i], chartLib));
+    }
+  }
+  const interactive = (!chartObj.Settings.hasOwnProperty("InteractiveCharts"))
+    ? true
+    : chartObj.Settings.InteractiveCharts;
+  const chartBody = (chartLib.toLowerCase() === "chartjs")
+    ? $ru.createChartForChartJs(chartTitle, data, titleOutOfCanvas, limits, chartObj.Settings.DateFormat, chartObj.Settings.Highlight || [])
+    : $ru.createChartForPlotly(chartTitle, data, titleOutOfCanvas, limits, chartObj.Settings.DateFormat, chartObj.Settings.Highlight || [], interactive);
+  chartParent.appendChild(chartBody);
+}
+
+function createSeries(seriesObj, limits, color, chartLib) {
+  // return empty object if smth. is wrong
+  if (!seriesObj || !(typeof seriesObj === "object") || !seriesObj.hasOwnProperty("Type")
+    || seriesObj.Type.toLowerCase() !== "series" || !seriesObj.hasOwnProperty("Content")
+    || !((typeof seriesObj.Content === "string")
+      || (typeof seriesObj.Content === "object"
+        && seriesObj.Content.hasOwnProperty("Dates")
+        && seriesObj.Content.hasOwnProperty("Values")))) {
+    return {};
+  }
+  if (typeof seriesObj.Content === "string") {
+    seriesObj.Content = $ru.databank.getSeriesContent(seriesObj.Content);
+  } else {
+    seriesObj.Content.Dates = seriesObj.Content.Dates.map(function (d) {
+      return new Date(d);
+    });
+  }
+  const overrideColor = (seriesObj.hasOwnProperty("Settings") && (typeof seriesObj.Settings === "object")
+    && seriesObj.Settings.hasOwnProperty("Color")) ? seriesObj.Settings.Color : null;
+  const colors = {
+    barFaceColor: (overrideColor || color).replace(/,\s*\d*\.?\d+\)$/, ",0.2)"),
+    barBorderColor: overrideColor || color,
+    lineColor: overrideColor || color
+  }
+  switch (chartLib.toLowerCase()) {
+    case "chartjs":
+      return $ru.createSeriesForChartJs(seriesObj.Title, seriesObj.Content.Dates, seriesObj.Content.Values, seriesObj.Settings.Type, colors, limits);
+    case "plotly":
+    default:
+      return $ru.createSeriesForPlotly(seriesObj.Title, seriesObj.Content.Dates, seriesObj.Content.Values, seriesObj.Settings.Type, colors);
+  }
+}
 
 // fetch an object stored in the global $databank variable under the given name
 function getEntry(name) {
@@ -68,41 +149,9 @@ function addPageBreak(parent, breakObj) {
 }
 
 // create chart elements using Chart.js library
-function createChartForChartJs(parent, chartObj) {
-  var canvasParent = document.createElement("div");
-  $(canvasParent).addClass("rephrase-chart");
-  // apply custom css class to .rephrase-chart div
-  if (chartObj.Settings.Class && (typeof chartObj.Settings.Class === "string"
-    || chartObj.Settings.Class instanceof Array)) {
-    $(canvasParent).addClass(chartObj.Settings.Class);
-  }
-  parent.appendChild(canvasParent);
-  // whether to include title in canvas or make it a separate div
-  const titleOutOfCanvas = (chartObj.Settings.hasOwnProperty("IsTitlePartOfChart") && !chartObj.Settings.IsTitlePartOfChart);
-  // create chart title
-  const chartTitle = chartObj.Title || "";
-  if (chartTitle && titleOutOfCanvas) {
-    var chartTitleDiv = document.createElement("div");
-    $(chartTitleDiv).addClass(["rephrase-chart-title", "h4"]);
-    chartTitleDiv.innerText = chartTitle;
-    canvasParent.appendChild(chartTitleDiv);
-  }
+function createChartForChartJs(chartTitle, data, titleOutOfCanvas, limits, dateFormat, highlight) {
   var canvas = document.createElement("canvas");
   $(canvas).addClass("rephrase-chart-body");
-  canvasParent.appendChild(canvas);
-  // generate data for the chart
-  var data = [];
-  const limits = {
-    min: chartObj.Settings.StartDate ? new Date(chartObj.Settings.StartDate) : null,
-    max: chartObj.Settings.EndDate ? new Date(chartObj.Settings.EndDate) : null
-  };
-  if (chartObj.hasOwnProperty("Content") && chartObj.Content instanceof Array) {
-    const colorList = $ru.getColorList(chartObj.Content.length);
-    for (var i = 0; i < chartObj.Content.length; i++) {
-      const seriesObj = chartObj.Content[i];
-      data.push($ru.createSeries(seriesObj, limits, colorList[i]));
-    }
-  }
   // draw chart in canvas
   Chart.defaults.global.defaultFontFamily = 'Lato';
   const chartConfig = {
@@ -125,7 +174,6 @@ function createChartForChartJs(parent, chartObj) {
         callbacks: {
           label: function (tooltipItem, data) {
             var label = data.datasets[tooltipItem.datasetIndex].label || '';
-
             if (label) {
               label += ': ';
             }
@@ -142,161 +190,95 @@ function createChartForChartJs(parent, chartObj) {
           type: 'time',
           distribution: 'series',
           ticks: {
-            min: new Date(chartObj.Settings.StartDate),
-            max: new Date(chartObj.Settings.EndDate),
-            callback: function (d, i, v) {
-              // console.log(v);
-              return moment(d).format(chartObj.Settings.DateFormat);
+            min: limits.min,
+            max: limits.max,
+            callback: function (d) {
+              return moment(d).format(dateFormat);
             }
-            // maxRotation: 0,
-            // minRotation: 0
           },
           time: {
             minUnit: 'day',
-            tooltipFormat: chartObj.Settings.DateFormat,
-            // displayFormats: {
-            //   month: "YYYY[M]MM",
-            //   quarter: "YYYY[Q]Q"
-            // }
+            tooltipFormat: dateFormat
           }
         }]
       }
     }
   };
   // add range highlighting if needed so
-  if (chartObj.Settings.hasOwnProperty("Highlight") && typeof chartObj.Settings.Highlight === "object" && chartObj.Settings.Highlight instanceof Array && chartObj.Settings.Highlight.length > 0) {
+  if (highlight && highlight instanceof Array && highlight.length > 0) {
     chartConfig.options.annotation = {
       drawTime: 'beforeDatasetsDraw',
       annotations: []
     };
-    const defaultColor = "rgba(100, 100, 100, 0.2)";
-    for (let i = 0; i < chartObj.Settings.Highlight.length; i++) {
-      const hConfig = chartObj.Settings.Highlight[i];
+    for (let i = 0; i < highlight.length; i++) {
+      const hConfig = highlight[i];
       chartConfig.options.annotation.annotations.push({
         id: 'highlight-' + i,
         type: 'box',
         xScaleID: 'x-axis',
         xMin: hConfig.StartDate ? new Date(hConfig.StartDate) : undefined,
         xMax: hConfig.EndDate ? new Date(hConfig.EndDate) : undefined,
-        backgroundColor: hConfig.Color || defaultColor,
-        borderColor: hConfig.Color || defaultColor,
+        backgroundColor: hConfig.Color || DEFAULT_HIGHLIGHT_COLOR,
+        borderColor: hConfig.Color || DEFAULT_HIGHLIGHT_COLOR,
       });
     }
   }
-  var chartJsObj = new Chart(canvas, chartConfig);
-  return chartJsObj;
+  new Chart(canvas, chartConfig);
+  return canvas;
 }
 
 // create series object for Chart.js chart
-function createSeriesForChartJs(seriesObj, limits, color) {
-  // return empty object if smth. is wrong
-  if (!seriesObj || !(typeof seriesObj === "object") || !seriesObj.hasOwnProperty("Type")
-    || seriesObj.Type.toLowerCase() !== "series" || !seriesObj.hasOwnProperty("Content")
-    || !((typeof seriesObj.Content === "string")
-      || (typeof seriesObj.Content === "object"
-        && seriesObj.Content.hasOwnProperty("Dates")
-        && seriesObj.Content.hasOwnProperty("Values")))) {
-    return {};
-  }
-  if (typeof seriesObj.Content === "string") {
-    seriesObj.Content = $ru.databank.getSeriesContent(seriesObj.Content);
-  } else {
-    seriesObj.Content.Dates = seriesObj.Content.Dates.map(function (d) {
-      return new Date(d);
-    });
-  }
+function createSeriesForChartJs(title, dates, values, seriesType, colors, limits) {
   var tsData = [];
-  for (var i = 0; i < seriesObj.Content.Values.length; i++) {
-    const thisDate = seriesObj.Content.Dates[i];
+  for (var i = 0; i < values.length; i++) {
+    const thisDate = dates[i];
     if ((limits.min && thisDate < limits.min) || (limits.max && thisDate > limits.max)) {
       continue;
     }
     tsData.push({
       x: thisDate,
-      y: seriesObj.Content.Values[i]
+      y: values[i]
     });
   }
-  var overrideColor = null;
-  if (seriesObj.hasOwnProperty("Settings") && (typeof seriesObj.Settings === "object")
-    && seriesObj.Settings.hasOwnProperty("Color")) {
-    overrideColor = seriesObj.Settings.Color;
+  const seriesPlotType = seriesType || "line";
+  var seriesObj = {
+    data: tsData,
+    label: title || "",
+    type: seriesPlotType.toLowerCase()
+  };
+  if (seriesObj.type === "bar") {
+    seriesObj.borderWidth = 1;
+    seriesObj.borderColor = colors.barBorderColor;
+    seriesObj.backgroundColor = colors.barFaceColor;
+  } else {
+    seriesObj.lineTension = 0;
+    seriesObj.fill = false;
+    seriesObj.borderColor = colors.lineColor;
+    seriesObj.backgroundColor = colors.lineColor;
   }
-  const seriesPlotType = seriesObj.Settings.Type || "line";
-  if (seriesPlotType.toLowerCase() === "bar") {
-    return {
-      data: tsData,
-      label: seriesObj.Title || "",
-      borderWidth: 1,
-      borderColor: overrideColor || color,
-      backgroundColor: (overrideColor || color).replace(/,\s*\d*\.?\d+\)$/, ",0.2)"),
-      type: seriesPlotType
-    };
-  }
-  else {
-    return {
-      data: tsData,
-      lineTension: 0,
-      fill: false,
-      label: seriesObj.Title || "",
-      backgroundColor: overrideColor || color,
-      borderColor: overrideColor || color,
-      type: "line"
-    };
-  }
+  return seriesObj;
 }
 
 
 // create chart elements using Plotly library
-function createChartForPlotly(parent, chartObj) {
-  var chartParent = document.createElement("div");
-  $(chartParent).addClass("rephrase-chart");
-  // apply custom css class to .rephrase-chart div
-  if (chartObj.Settings.Class && (typeof chartObj.Settings.Class === "string"
-    || chartObj.Settings.Class instanceof Array)) {
-    $(chartParent).addClass(chartObj.Settings.Class);
-  }
-  parent.appendChild(chartParent);
-  // whether to include title in canvas or make it a separate div
-  const titleOutOfCanvas = (chartObj.Settings.hasOwnProperty("IsTitlePartOfChart") && !chartObj.Settings.IsTitlePartOfChart);
-  // create chart title
-  const chartTitle = chartObj.Title || "";
-  if (chartTitle && titleOutOfCanvas) {
-    var chartTitleDiv = document.createElement("div");
-    $(chartTitleDiv).addClass(["rephrase-chart-title", "h4"]);
-    chartTitleDiv.innerText = chartTitle;
-    chartParent.appendChild(chartTitleDiv);
-  }
+function createChartForPlotly(chartTitle, data, titleOutOfCanvas, limits, dateFormat, highlight, interactive) {
   var chartBody = document.createElement("div");
   $(chartBody).addClass("rephrase-chart-body");
-  chartParent.appendChild(chartBody);
-  // generate data for the chart
-  var data = [];
-  const limits = {
-    min: chartObj.Settings.StartDate ? new Date(chartObj.Settings.StartDate) : null,
-    max: chartObj.Settings.EndDate ? new Date(chartObj.Settings.EndDate) : null
-  };
-  if (chartObj.hasOwnProperty("Content") && chartObj.Content instanceof Array) {
-    const colorList = $ru.getColorList(chartObj.Content.length);
-    for (var i = 0; i < chartObj.Content.length; i++) {
-      const seriesObj = chartObj.Content[i];
-      data.push($ru.createSeries(seriesObj, limits, colorList[i]));
-    }
-  }
   const layout = {
     title: {
       text: chartTitle !== "" && !titleOutOfCanvas ? chartTitle : undefined,
-      // font: {
-      //   size: 20,
-      //   family: "Lato",
-      //   color: "#0a0a0a"
-      // }
+      font: {
+        size: 20,
+        family: "Lato",
+        color: "#0a0a0a"
+      }
     },
     font: {
       family: "Lato",
       color: "#0a0a0a"
     },
     xaxis: {
-      range: [chartObj.Settings.StartDate, chartObj.Settings.EndDate],
+      range: [limits.min, limits.max],
       type: 'date'
     },
     yaxis: {
@@ -322,14 +304,13 @@ function createChartForPlotly(parent, chartObj) {
   }
   const config = {
     responsive: true,
-    staticPlot: true
+    staticPlot: !interactive
   };
   // add range highlighting if needed so
-  if (chartObj.Settings.hasOwnProperty("Highlight") && typeof chartObj.Settings.Highlight === "object" && chartObj.Settings.Highlight instanceof Array && chartObj.Settings.Highlight.length > 0) {
-    const defaultColor = "rgba(100, 100, 100, 0.2)";
+  if (highlight && highlight instanceof Array && highlight.length > 0) {
     layout.shapes = [];
-    for (let i = 0; i < chartObj.Settings.Highlight.length; i++) {
-      const hConfig = chartObj.Settings.Highlight[i];
+    for (let i = 0; i < highlight.length; i++) {
+      const hConfig = highlight[i];
       layout.shapes.push(
         {
           type: 'rect',
@@ -341,7 +322,7 @@ function createChartForPlotly(parent, chartObj) {
           y0: 0,
           x1: hConfig.EndDate ? new Date(hConfig.EndDate) : undefined,
           y1: 1,
-          fillcolor: hConfig.Color || defaultColor,
+          fillcolor: hConfig.Color || DEFAULT_HIGHLIGHT_COLOR,
           // opacity: 0.2,
           line: {
             width: 0
@@ -357,7 +338,7 @@ function createChartForPlotly(parent, chartObj) {
   $(document).ready(function () {
     Plotly.newPlot(chartBody, data, layout, config);
   });
-  
+
   // make sure chart resizes correctly before printing
   const resizeChartWidth = function () {
     var bBox = chartBody.getBoundingClientRect();
@@ -365,7 +346,7 @@ function createChartForPlotly(parent, chartObj) {
   };
 
   if (window.matchMedia) { // Webkit
-    window.matchMedia('print').addListener(function(print) {
+    window.matchMedia('print').addListener(function (print) {
       if (print.matches) {
         resizeChartWidth();
       } else {
@@ -374,71 +355,35 @@ function createChartForPlotly(parent, chartObj) {
     });
   }
   window.onbeforeprint = resizeChartWidth; // FF, IE
+
+  return chartBody;
 }
 
 // create series object for Plotly chart
-function createSeriesForPlotly(seriesObj, limits, color) {
-  // return empty object if smth. is wrong
-  if (!seriesObj || !(typeof seriesObj === "object") || !seriesObj.hasOwnProperty("Type")
-    || seriesObj.Type.toLowerCase() !== "series" || !seriesObj.hasOwnProperty("Content")
-    || !((typeof seriesObj.Content === "string")
-      || (typeof seriesObj.Content === "object"
-        && seriesObj.Content.hasOwnProperty("Dates")
-        && seriesObj.Content.hasOwnProperty("Values")))) {
-    return {};
-  }
-  if (typeof seriesObj.Content === "string") {
-    seriesObj.Content = $ru.databank.getSeriesContent(seriesObj.Content);
-  } else {
-    seriesObj.Content.Dates = seriesObj.Content.Dates.map(function (d) {
-      return new Date(d);
-    });
-  }
-  var tsData = [];
-  for (var i = 0; i < seriesObj.Content.Values.length; i++) {
-    const thisDate = seriesObj.Content.Dates[i];
-    if ((limits.min && thisDate < limits.min) || (limits.max && thisDate > limits.max)) {
-      continue;
+function createSeriesForPlotly(title, dates, values, seriesType, colors) {
+  const seriesPlotType = seriesType || "scatter";
+  var seriesObj = {
+    x: dates,
+    y: values,
+    name: title || "",
+    type: seriesPlotType.toLowerCase()
+  };
+  if (seriesObj.type === "bar") {
+    seriesObj.marker = {
+      color: colors.barFaceColor,
+      line: {
+        color: colors.barBorderColor,
+        width: 1
+      }
     }
-    tsData.push({
-      x: thisDate,
-      y: seriesObj.Content.Values[i]
-    });
-  }
-  var overrideColor = null;
-  if (seriesObj.hasOwnProperty("Settings") && (typeof seriesObj.Settings === "object")
-    && seriesObj.Settings.hasOwnProperty("Color")) {
-    overrideColor = seriesObj.Settings.Color;
-  }
-  const seriesPlotType = seriesObj.Settings.Type || "scatter";
-  if (seriesPlotType.toLowerCase() === "bar") {
-    return {
-      x: seriesObj.Content.Dates,
-      y: seriesObj.Content.Values,
-      name: seriesObj.Title || "",
-      type: "bar",
-      marker: {
-        color: (overrideColor || color).replace(/,\s*\d*\.?\d+\)$/, ",0.2)"),
-        line: {
-          color: overrideColor || color,
-          width: 1
-        }
+  } else {
+    seriesObj.marker = {
+      line: {
+        color: colors.lineColor
       }
-    };
+    }
   }
-  else {
-    return {
-      x: seriesObj.Content.Dates,
-      y: seriesObj.Content.Values,
-      name: seriesObj.Title || "",
-      type: "scatter",
-      marker: {
-        line: {
-          color: overrideColor || color
-        }
-      }
-    };
-  }
+  return seriesObj;
 }
 
 function createTextBlock(parent, textObj) {
@@ -653,33 +598,50 @@ function createGrid(parent, gridObj) {
       $(gridCol).addClass(["cell", "auto"]);
       gridColParent.appendChild(gridCol);
       const gridElementObj = gridObj.Content[contentIndex];
-      $ru.addReportElement(gridCol, gridElementObj);
+      $ru.addReportElement(gridCol, gridElementObj, gridObj.Settings);
     }
   }
 }
 
-function addReportElement(parent, elementObj) {
+function addReportElement(parentElement, elementObj, parentObjSettings) {
   // do nothing if smth. is wrong
   if (!elementObj || !(typeof elementObj === "object") || !elementObj.hasOwnProperty("Type")) {
     return {};
   }
+  elementObj.Settings = appendObjSettings(elementObj.Settings || {}, parentObjSettings || {})
   switch (elementObj.Type.toLowerCase()) {
     case "chart":
-      $ru.createChart(parent, elementObj);
+      $ru.createChart(parentElement, elementObj);
       break;
     case "table":
-      $ru.createTable(parent, elementObj);
+      $ru.createTable(parentElement, elementObj);
       break;
     case "grid":
-      $ru.createGrid(parent, elementObj);
+      $ru.createGrid(parentElement, elementObj);
       break;
     case "text":
-      $ru.createTextBlock(parent, elementObj);
+      $ru.createTextBlock(parentElement, elementObj);
       break;
     case "pagebreak":
-      $ru.addPageBreak(parent, elementObj);
+      $ru.addPageBreak(parentElement, elementObj);
       break;
     default:
       break;
   }
+}
+
+// copy parent object settings to the current one if the setting
+// is not present in the current object yet
+// todo: perhaps we need to make the process more sophisticated,
+//       taking only the settings that are specific to the current 
+//       object or its possible children
+function appendObjSettings(objSettings, parentSettings) {
+  const parentKeys = Object.keys(parentSettings);
+  for (let i = 0; i < parentKeys.length; i++) {
+    const key = parentKeys[i];
+    if (!objSettings.hasOwnProperty(key)) {
+      objSettings[key] = parentSettings[key];
+    }
+  }
+  return objSettings;
 }

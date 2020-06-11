@@ -77,6 +77,6 @@ $(document).foundation();
   var bodyDiv = document.querySelector('.report-body');
   for (let i = 0; i < $report.Content.length; i++) {
     const elementObj = $report.Content[i];
-    $ru.addReportElement(bodyDiv, elementObj);
+    $ru.addReportElement(bodyDiv, elementObj, $report.Settings);
   }
 })();
