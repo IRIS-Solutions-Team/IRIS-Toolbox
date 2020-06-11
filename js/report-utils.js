@@ -16,6 +16,7 @@ var $ru = {
   addPageBreak: addPageBreak,
   createTextBlock: createTextBlock,
   appendObjSettings: appendObjSettings,
+  momentJsDateFormatToD3TimeFormat: momentJsDateFormatToD3TimeFormat,
   databank: {
     getEntry: getEntry,
     getEntryName: getEntryName,
@@ -279,11 +280,27 @@ function createChartForPlotly(chartTitle, data, titleOutOfCanvas, limits, dateFo
     },
     xaxis: {
       range: [limits.min, limits.max],
-      type: 'date'
+      type: 'date',
+      tickformat: $ru.momentJsDateFormatToD3TimeFormat(dateFormat),
+      // tickformatstops: [
+      //   {
+      //     "dtickrange": [null, 604800000],
+      //     "value": "%b %d, %Y"
+      //   },
+      //   {
+      //     "dtickrange": [604800000,"M1"],
+      //     "value": "%b %Y"
+      //   },
+      //   {
+      //     "dtickrange": ["M1", null],
+      //     "value": $ru.momentJsDateFormatToD3TimeFormat(dateFormat)
+      //   }
+      // ]
     },
     yaxis: {
       autorange: true,
-      type: 'linear'
+      type: 'linear',
+      fixedrange: true
     },
     legend: {
       x: 0.5,
@@ -427,7 +444,16 @@ function createTextBlock(parent, textObj) {
       });
     }
   }
+}
 
+function momentJsDateFormatToD3TimeFormat(dateFormat) {
+  var d3TimeFormat = dateFormat.replace("YYYY", "%Y");
+  d3TimeFormat = d3TimeFormat.replace("YY", "%y");
+  d3TimeFormat = d3TimeFormat.replace("Q", "%q");
+  d3TimeFormat = d3TimeFormat.replace("MMMM", "%B");
+  d3TimeFormat = d3TimeFormat.replace("MMM", "%b");
+  d3TimeFormat = d3TimeFormat.replace("MM", "%m");
+  return d3TimeFormat;
 }
 
 // convert frequency letter to Chart.js time unit
