@@ -89,8 +89,8 @@ h6, .h6 {
   text-align: center;
 }
 
-.rephrase-chart-canvas {
-  /* chart CANVAS */
+.rephrase-chart-body {
+  /* chart CANVAS/SVG parent */
   /* nothing so far */
 }
 
@@ -233,7 +233,7 @@ h6, .h6 {
     max-width: 100%;
     width: auto!important;
   }
-  .rephrase-chart-canvas {
+  .rephrase-chart-body {
     min-height: 100%;
     max-width: 100%;
     max-height: 100%;
@@ -245,11 +245,11 @@ h6, .h6 {
   .rephrase-grid {
     width: auto!important;
     max-width: 100%;
-    min-height: 100%;
-    max-height: 100%;
+    /* min-height: 100%;
+    max-height: 100%; */
     /* this is to be agreed */
-    break-inside: avoid;
-    page-break-inside: avoid;
+    /* break-inside: avoid;
+    page-break-inside: avoid; */
   }
   .rephrase-grid {
     /* exact combination to be figured out */
@@ -269,7 +269,7 @@ h6, .h6 {
     break-before: always!important;
     /* though this one is outdated but the only working one */
     page-break-before: always!important;
-    /* clear: both!important; */
+    clear: both!important;
   }
   @page {
     size: landscape;

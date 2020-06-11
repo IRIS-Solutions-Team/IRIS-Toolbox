@@ -6,7 +6,8 @@ Omnes integre euismod eum at, mei an placerat antiopam moderatius \\(\alpha+\lam
 \hat f\xi\,e^{2 \pi i \xi x}
 \,d\xi$$ Laudem quaerendum qui id. Est vero elit reque eu, sea iisque invidunt id.
 
-Ex quas deseruisse liberavisse vel. Cu mei posse causae delicatissimi, ei simul fierent nam. *Placerat percipitur in qui, no vis facete omnium **elaboraret***. 
+Ex quas deseruisse liberavisse vel. Cu mei posse causae delicatissimi, ei simul fierent nam. *Placerat percipitur in qui, no vis facete omnium **elaboraret***.
+ 
 > An brute appareat tacimates quo. 
 
 Quando invenire constituto duo et, usu nulla repudiandae cu, mel no virtute quaeque `appellantur`. No usu admodum consequuntur, nec te minim copiosae, vide justo nulla has ne. Vel te alii libris intellegat.

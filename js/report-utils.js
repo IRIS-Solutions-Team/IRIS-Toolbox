@@ -88,7 +88,7 @@ function createChartForChartJs(parent, chartObj) {
     canvasParent.appendChild(chartTitleDiv);
   }
   var canvas = document.createElement("canvas");
-  $(canvas).addClass("rephrase-chart-canvas");
+  $(canvas).addClass("rephrase-chart-body");
   canvasParent.appendChild(canvas);
   // generate data for the chart
   var data = [];
@@ -357,6 +357,23 @@ function createChartForPlotly(parent, chartObj) {
   $(document).ready(function () {
     Plotly.newPlot(chartBody, data, layout, config);
   });
+  
+  // make sure chart resizes correctly before printing
+  const resizeChartWidth = function () {
+    var bBox = chartBody.getBoundingClientRect();
+    Plotly.relayout(chartBody, { width: bBox.width, height: bBox.height });
+  };
+
+  if (window.matchMedia) { // Webkit
+    window.matchMedia('print').addListener(function(print) {
+      if (print.matches) {
+        resizeChartWidth();
+      } else {
+        Plotly.relayout(chartBody, { width: null, height: null, autosize: true })
+      }
+    });
+  }
+  window.onbeforeprint = resizeChartWidth; // FF, IE
 }
 
 // create series object for Plotly chart
