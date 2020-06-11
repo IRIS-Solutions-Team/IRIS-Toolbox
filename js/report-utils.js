@@ -318,9 +318,9 @@ function createChartForPlotly(chartTitle, data, titleOutOfCanvas, limits, dateFo
           xref: 'x',
           // y-reference is assigned to the plot paper [0,1]
           yref: 'paper',
-          x0: hConfig.StartDate ? new Date(hConfig.StartDate) : undefined,
+          x0: hConfig.StartDate ? new Date(hConfig.StartDate) : limits.min,
           y0: 0,
-          x1: hConfig.EndDate ? new Date(hConfig.EndDate) : undefined,
+          x1: hConfig.EndDate ? new Date(hConfig.EndDate) : limits.max,
           y1: 1,
           fillcolor: hConfig.Color || DEFAULT_HIGHLIGHT_COLOR,
           // opacity: 0.2,
