@@ -19,6 +19,8 @@ rdo1 = rephrase.Report( ...
     , "Subtitle", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras id faucibus felis. Nunc vulputate orci nibh, in aliquam risus finibus viverra." ...
     , "Footer", "Duis ut ultricies lorem. Nullam faucibus pulvinar massa vel faucibus." ...
     , "Class", "" ...
+    , "ChartLibrary", "plotly" ... % chartjs
+    , "InteractiveCharts", true ... % make it `false` for huge reports
 );
 rdo2 = copy(rdo1);
 rdo3 = copy(rdo1);
@@ -187,7 +189,7 @@ fid = fopen("vanillaReport2.json", "w+");
 fwrite(fid, j2);
 fclose(fid);
 
-% {
+%{
 id2=0;
 id3=0;
 for i = 1 : 300
@@ -275,11 +277,11 @@ fclose(fid);
 
 js = "var $reportWithData = " + j1 + ";";
 js = js + newline + "var $reportWithoutData = " + j2 + ";";
-js = js + newline + "var $reportHuge = " + j3 + ";";
+% js = js + newline + "var $reportHuge = " + j3 + ";";
 js = js + newline + "var $databank = " + jdb + ";";
-js = js + newline + "var $report = $reportHuge;";
+% js = js + newline + "var $report = $reportHuge;";
 % js = js + newline + "var $report = $reportWithData;";
-% js = js + newline + "var $report = $reportWithoutData;";
+js = js + newline + "var $report = $reportWithoutData;";
 fid = fopen("../js/report-data.js", "w+");
 fwrite(fid, js);
 fclose(fid);
