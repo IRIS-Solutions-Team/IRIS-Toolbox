@@ -1,11 +1,11 @@
 function flat(this, data)
 % flat  Flat rectangular simulation
-%
-% Backend IRIS function
+
+% Backend [IrisToolbox] methodk
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
@@ -74,9 +74,17 @@ end
 % Initial condition
 linxInit = linxXib - stepForLinx;
 if isempty(data.ForceInit)
-    Xib_0 = YXEPG(linxInit);
+    % If a linxInit element is negative, this means it is a lag preceding
+    % the actual minimum lag in the transition equation; e.g. because it
+    % was created as an artifical lag for a measurement equation. No
+    % initial condition is needed.
+    inxBeforeActual = reshape(linxInit<1, 1, [ ]);
+    Xib_0 = zeros(numel(linxInit), 1);
+    Xib_0(~inxBeforeActual) = YXEPG(linxInit(~inxBeforeActual));
+    inxZeroEffect = reshape(all(T==0, 1), [ ], 1);
+    inxReset = inxZeroEffect & ~isfinite(Xib_0);
 else
-    Xib_0 = data.ForceInit;
+    Xib_0 = reshape(data.ForceInit, [ ], 1);
     YXEPG(linxInit) = Xib_0;
 end
 
@@ -138,7 +146,7 @@ for t = columnsToRun
     % Measurement Equations
     %
     if simulateY
-        Y_t = Z*Xi_t(nf+1:end);
+        Y_t = Z*Xi_t(nf+1:end, :);
         if ~deviation
             % Add constant
             Y_t = Y_t + D;
@@ -163,11 +171,11 @@ for t = columnsToRun
 end
 
 %
-% __Deterministic Trends in Measurement Equations__
+% Deterministic Trends in Measurement Equations
 % 
 if simulateY && needsEvalTrends
-    YXEPG(inxY, columnsToRun) = YXEPG(inxY, columnsToRun) ...
-                              + data.Trends(:, columnsToRun);
+    YXEPG(inxY, columnsToRun) = ...
+        YXEPG(inxY, columnsToRun) + data.Trends(:, columnsToRun);
 end
 
 if any(inxLog)

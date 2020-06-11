@@ -2,11 +2,11 @@ function [startExtRange, endExtRange, minShift, maxShift, inxBaseRange] ...
     = getExtendedRange(this, baseRange)
 % getExtendedRange  Extend base range for dynamic simulations to include presample and postsample
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 

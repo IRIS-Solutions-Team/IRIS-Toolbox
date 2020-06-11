@@ -20,7 +20,7 @@ isAsynchronous = runningData.IsAsynchronous;
 % Regular call from @Model.simulate
 regularCall = systemProperty.NumOfOutputs==0;
 
-nv = length(this);
+nv = countVariants(this);
 numRuns = size(runningData.YXEPG, 3); 
 baseRangeColumns = runningData.BaseRangeColumns;
 firstColumnToRun = baseRangeColumns(1);
