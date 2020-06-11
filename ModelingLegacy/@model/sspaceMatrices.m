@@ -38,7 +38,7 @@ if strcmp(variantsRequested, ':')
     variantsRequested = 1 : numel(this.Variant);
 end
 
-[~, nxi, nb, nf, ne] = sizeOfSolution(this.Vector);
+[ny, nxi, nb, nf, ne] = sizeOfSolution(this.Vector);
 numVariantsRequested = numel(variantsRequested);
 numHashEquations = nnz(this.Equation.IxHash);
 
@@ -58,19 +58,19 @@ if isequal(keepExpansion, false)
 end
 
 if isempty(Z)    
-    Z = zeros(0, nb, numVariantsRequested);
+    Z = zeros(ny, nb, numVariantsRequested);
 end
 
 if isempty(Zb)
-    Zb = zeros(0, nb, numVariantsRequested);
+    Zb = zeros(ny, nb, numVariantsRequested);
 end
 
 if isempty(H)
-    H = zeros(0, ne, numVariantsRequested);
+    H = zeros(ny, ne, numVariantsRequested);
 end
 
 if isempty(D)
-    D = zeros(0, 1, numVariantsRequested);
+    D = zeros(ny, 1, numVariantsRequested);
 end
 
 if ~keepTriangular

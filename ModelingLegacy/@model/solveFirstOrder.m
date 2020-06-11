@@ -10,17 +10,15 @@ function [this, exitFlag, nanDeriv, sing1, bk] = solveFirstOrder(this, variantsR
 %
 % exitFlag
 %
-% ----------------------------------------------------
-%  Value     |  Meaning
-% -----------+----------------------------------------
-%     1      |  Unique stable solution
-%     0      |  No stable solution (all explosive)
-%   Inf      |  Multiple stable solutions
-%    -1      |  NaN in solved matrices
-%    -2      |  NaN in eigenvalues
-%    -3      |  NaN derivatives in system matrices
-%    -4      |  Steady state does not hold
-% ----------------------------------------------------
+%  Value      |  Meaning
+% ------------|----------------------------------------
+%      1      |  Unique stable solution
+%      0      |  No stable solution (all explosive)
+%     Inf     |  Multiple stable solutions
+%     -1      |  NaN in solved matrices
+%     -2      |  NaN in eigenvalues
+%     -3      |  NaN derivatives in system matrices
+%     -4      |  Steady state does not hold
 %
 
 TYPE = @int8;
@@ -188,12 +186,12 @@ return
 
 
     function [SS, TT, QQ, ZZ, eqOrd, numUnitRoots, numStableRoots] = computeSchur( )
-        % Ordered real QZ decomposition.
+        % Ordered real QZ decomposition
         fA = full(syst.A{2});
         fB = full(syst.B{2});
         eqOrd = 1 : size(fA, 1);
         % If the QZ re-ordering fails, change the order of equations --
-        % place the first equation last, and repeat.
+        % move the first equation last, and repeat
         wq = warning('query', 'MATLAB:ordqz:reorderingFailed');
         warning('off', 'MATLAB:ordqz:reorderingFailed');
         while true
@@ -241,7 +239,7 @@ return
                 eqOrd(1)-1);
         end
         
-        % Reorder inverse eigvals.
+        % Reorder inverse eigvals
         invEigen = -ordeig(SS, TT);
         invEigen = invEigen(:).';
         isSevn2 = applySevn2Patch( ) | isSevn2;
@@ -256,13 +254,13 @@ return
         numUnitRoots = nnz(indexUnitRoots);
         numStableRoots = nnz(indexStableRoots);
         
-        % Undo eigval inversion.
+        % Undo eigval inversion
         eigen = invEigen;
         ixInfEigVal = invEigen==0;
         eigen(~ixInfEigVal) = 1./invEigen(~ixInfEigVal);
         eigen(ixInfEigVal) = Inf;
         
-        % Check BK saddle-path condition.
+        % Check BK saddle-path condition
         if any(isnan(eigen))
             exitFlag(v) = -2;
         elseif nb==numStableRoots+numUnitRoots
@@ -282,8 +280,8 @@ return
         
         
         function flag = applySevn2Patch( )
-            % Sum of two eigvals near to 2 may indicate inaccuracy.
-            % Largest eigval less than 1.
+            % Sum of two eigvals near to 2 may indicate inaccuracy
+            % Largest eigval less than 1
             flag = false;
             eigval0 = invEigen;
             eigval0(abs(invEigen)>=1-EIGEN_TOLERANCE) = 0;
@@ -293,7 +291,7 @@ return
             else
                 below = [ ];
             end
-            % Smallest eig greater than 1.
+            % Smallest eig greater than 1
             eigval0 = invEigen;
             eigval0(abs(invEigen)<=1+EIGEN_TOLERANCE) = Inf;
             eigval0(imag(invEigen)~=0) = Inf;
@@ -312,7 +310,7 @@ return
                 flag = true;
             end
         end
-    end
+    end%
 
     
     function flag = transitionEquations( )
@@ -514,7 +512,7 @@ return
         if isHash
             this.Variant.FirstOrderExpansion{5}(:, :, v) = Yu;
         end
-    end
+    end%
 
 
     function flag = measurementEquations( )
@@ -533,11 +531,11 @@ return
             ix = bsxfun(@eq, pos(:), xbVector);
             Zb(ix) = 1;
         elseif ny>0
-            % Measurement variables.
+            % Measurement variables
             Zb = -full(syst.A{1}\syst.B{1});
             if any(isnan(Zb(:)))
                 flag = false;
-                % Find singularities in measurement equations and their culprits.
+                % Find singularities in measurement equations and their culprits
                 if rcond(full(syst.A{1}))<=SOLVE_TOLERANCE
                     s = size(syst.A{1}, 1);
                     r = rank(full(syst.A{1}));
@@ -566,7 +564,7 @@ return
         this.Variant.FirstOrderSolution{5}(:, :, v) = H;
         this.Variant.FirstOrderSolution{6}(:, :, v) = D;
         this.Variant.FirstOrderSolution{9}(:, :, v) = Zb;
-    end
+    end%
 
     
     function transformMeasurement( )
@@ -576,5 +574,5 @@ return
         U = this.Variant.FirstOrderSolution{7}(:, :, v);
         Za = Zb*U;
         this.Variant.FirstOrderSolution{4}(:, :, v) = Za;
-    end
+    end%
 end

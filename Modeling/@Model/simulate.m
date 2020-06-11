@@ -85,10 +85,10 @@ if isempty(pp)
     addParameter(pp, 'Initial', 'Data', @(x) validate.anyString(x, 'Data', 'FirstOrder'));
     addParameter(pp, 'PrepareGradient', true, @validate.logicalScalar);
 end
+%)
 opt = parse(pp, this, inputDb, baseRange, varargin{:});
 opt.EvalTrends = opt.DTrends;
 usingDefaults = pp.UsingDefaultsInStruct;
-%)
 
 if ~isequal(baseRange, @auto)
     baseRange = double(baseRange);
