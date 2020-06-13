@@ -113,7 +113,7 @@ end
 [h,isY] = myparsetest(This,SortBy);
 
 if opt.progress
-    pBar = ProgressBar('IRIS SVAR.sort progress');
+    progress = ProgressBar('[IrisToolbox] @SVAR/sort Progress');
 end
 
 XX = [ ];
@@ -121,7 +121,7 @@ for iAlt = 1 : nAlt
     [S,Y] = doSimulate( ); %#ok<ASGLU>
     doEvalSort( );
     if opt.progress
-        update(pBar,iAlt/nAlt);
+        update(progress,iAlt/nAlt);
     end
 end
 

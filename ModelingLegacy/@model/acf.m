@@ -203,7 +203,7 @@ end
 inxNaNSolutions = reportNaNSolutions(this);
 
 if opt.Progress
-    progress = ProgressBar('IRIS model.acf progress');
+    progress = ProgressBar('[IrisToolbox] @Model/acf Progress');
 end
 
 

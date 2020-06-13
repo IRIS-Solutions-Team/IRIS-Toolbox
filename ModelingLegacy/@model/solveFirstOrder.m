@@ -83,7 +83,7 @@ bk = nan(3, nv);
 
 progress = [ ];
 if isfield(opt, 'Progress') && isequal(opt.Progress, true)
-    progress = ProgressBar('[IrisToolbox] model.solve progress');
+    progress = ProgressBar('[IrisToolbox] @Model/solve Progress');
 end
 
 for v = variantsRequired
@@ -524,7 +524,7 @@ return
         H = zeros(0, ne);
         D = zeros(0, 1);
         if nz>0
-            % Transition variables marked for measurement.
+            % Transition variables marked for measurement
             pos = find(this.Quantity.IxObserved);
             xbVector = this.Vector.Solution{2}(nf+1:end);
             Zb = zeros(nz, nb);

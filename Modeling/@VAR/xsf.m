@@ -70,8 +70,9 @@ numFreq = numel(freq);
 % Pre-process filter options.
 [~, filter, ~, applyTo] = freqdom.applyfilteropt(opt, freq, this.NamesEndogenous);
 
+progress = [ ];
 if opt.Progress
-    progress = ProgressBar('IRIS VAR.xsf Progress');
+    progress = ProgressBar('[IrisToolbox] @VAR/xsf Progress');
 end
 
 S = nan(ny, ny, numFreq, nv);
@@ -79,7 +80,7 @@ for v = 1 : nv
     % Compute power spectrum function.
     S(:, :, :, v) = freqdom.xsfvar( ...
         this.A(:, :, v), this.Omega(:, :, v), freq, filter, applyTo);
-    if opt.Progress
+    if ~isempty(progress)
         update(progress, v/nv);
     end
 end

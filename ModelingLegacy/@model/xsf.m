@@ -106,7 +106,7 @@ end
 numOfUnitRoots = getNumOfUnitRoots(this.Variant);
 
 if opt.Progress
-    progress = ProgressBar('IRIS model.xsf progress');
+    progress = ProgressBar('[IrisToolbox] @Model/xsf Progress');
 end
 
 

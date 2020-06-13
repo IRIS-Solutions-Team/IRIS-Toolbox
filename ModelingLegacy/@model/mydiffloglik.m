@@ -14,8 +14,8 @@ vecv = @(x) reshape(x, [ ], 1);
 vech = @(x) reshape(x, 1, [ ]);
 
 
-if ~isfield(opt, 'progress')
-    opt.progress = false;
+if ~isfield(opt, 'Progress')
+    opt.Progress = false;
 end
 
 if ~isfield(opt, 'percent')
@@ -27,7 +27,15 @@ end
 posValues = this.Update.PosOfValues;
 posStdCorr = this.Update.PosOfStdCorr;
 
-ny = sum(this.Quantity.Type==TYPE(1));
+%
+% Switch betwen measurement variables versus transition variables marked
+% for measurement
+%
+[ny, ~, ~, ~, ~, ~, nz] = sizeOfSolution(this);
+if ny==0 && nz>0
+    ny = nz;
+end
+
 numParams = length(posValues);
 [~, numPeriods, numDataSets] = size(data);
 
@@ -61,9 +69,9 @@ for i = 1 : numParams
     this = update(this, mp, variantRequested);
 end
 
-if opt.progress
+if opt.Progress
     % Create progress bar
-    progress = ProgressBar('IRIS model.diffloglik progress');
+    progress = ProgressBar('[IrisToolbox] @Model/diffloglik Progress');
 end
 
 kalmanFilterInput = struct( );
@@ -112,12 +120,12 @@ return
         
         for ii = 1 : numParams
             pm = getVariant(this, 1+2*(ii-1)+1);
-            [~, Y] = kalmanFilter(pm, data(:, :, iData), [ ], [ ], likOpt);
+            [~, Y] = kalmanFilter(pm, kalmanFilterInput);
             pF =  Y.F(:, :, 2:end);
             ppe = Y.Pe(:, 2:end);
             
             mm = getVariant(this, 1+2*(ii-1)+2);
-            [~, Y] = kalmanFilter(mm, data(:, :, iData), [ ], [ ], likOpt);
+            [~, Y] = kalmanFilter(mm, kalmanFilterInput);
             mF =  Y.F(:, :, 2:end);
             mpe = Y.Pe(:, 2:end);
             
@@ -185,7 +193,7 @@ return
         
         info(:, :, iData) = info(:, :, iData) + transpose(tril(info(:, :, iData), -1));
         
-        if opt.progress
+        if opt.Progress
             % Update progress bar.
             update(progress, iData/numDataSets);
         end
