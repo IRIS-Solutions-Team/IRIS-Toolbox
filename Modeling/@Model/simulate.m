@@ -75,7 +75,7 @@ if isempty(pp)
     addParameter(pp, 'OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
     addParameter(pp, 'Plan', true, @(x) validate.logicalScalar(x) || isa(x, 'Plan'));
-    addParameter(pp, 'ProgressInfo', false, @validate.logicalScalar);
+    addParameter(pp, 'Progress', false, @validate.logicalScalar);
     addParameter(pp, 'SuccessOnly', false, @validate.logicalScalar);
     addParameter(pp, 'Solver', @auto, @validateSolver);
     addParameter(pp, 'SparseShocks', false, @validate.logicalScalar)
@@ -85,10 +85,10 @@ if isempty(pp)
     addParameter(pp, 'Initial', 'Data', @(x) validate.anyString(x, 'Data', 'FirstOrder'));
     addParameter(pp, 'PrepareGradient', true, @validate.logicalScalar);
 end
+%)
 opt = parse(pp, this, inputDb, baseRange, varargin{:});
 opt.EvalTrends = opt.DTrends;
 usingDefaults = pp.UsingDefaultsInStruct;
-%)
 
 if ~isequal(baseRange, @auto)
     baseRange = double(baseRange);
@@ -155,9 +155,9 @@ if ~isequal(opt.SystemProperty, false)
     return
 end
 
-progressInfo = ProgressInfo.empty(0);
-if opt.ProgressInfo
-    progressInfo = herePrepareProgressInfo( );
+progress = [ ];
+if opt.Progress
+    progress = ProgressBar('[IrisToolbox] @Model/simulate Progress');
 end
 
 
@@ -165,12 +165,9 @@ end
 numRuns = runningData.NumOfPages;
 for i = 1 : numRuns
     simulateFrames(this, systemProperty, i);
-    if opt.ProgressInfo
-        hereUpdateProgressInfo(i);
+    if opt.Progress
+        update(progress, i/numRuns);
     end
-end
-if opt.ProgressInfo
-    complete(progressInfo);
 end
 % /////////////////////////////////////////////////////////////////////////
 
@@ -369,26 +366,6 @@ return
     end%
 
 
-    function progressInfo = herePrepareProgressInfo( )
-        %(
-        oneLiner = true;
-        if isa(opt.SolverOptions, 'solver.Options')
-            solverDisplay = { opt.SolverOptions.Display };
-            for ii = 1 : numel(solverDisplay)
-                if ~isequal(solverDisplay{ii}, false) ...
-                   && ~strcmpi(solverDisplay{ii}, 'None') ...
-                   && ~strcmpi(solverDisplay{ii}, 'Off')
-                   oneLiner = false;
-                   break
-                end
-            end
-        end
-        progressInfo = ProgressInfo(runningData.NumOfPages, oneLiner);
-        update(progressInfo);
-        %)
-    end%
-
-
     function hereCheckInitialConditions( )
         %(
         if isAsynchronous
@@ -412,15 +389,6 @@ return
         if numDummyPeriods>0
             plan = extendWithDummies(plan, numDummyPeriods);
         end
-        %)
-    end%
-
-
-    function hereUpdateProgressInfo(run)
-        %(
-        progressInfo.Completed = run;
-        progressInfo.Success = nnz(runningData.Success);
-        update(progressInfo);
         %)
     end%
 
@@ -471,6 +439,7 @@ return
         outputInfo.Success =  runningData.Success;
         outputInfo.ExitFlags = runningData.ExitFlags;
         outputInfo.DiscrepancyTables = runningData.DiscrepancyTables;
+        outputInfo.ProgressBar = progress;
         %)
     end%
 

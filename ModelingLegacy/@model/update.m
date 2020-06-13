@@ -89,41 +89,34 @@ else
     bk = nan(3, 1);
     if runSteady
         if isa(update.Steady, 'function_handle')
-            % Call to a user-supplied sstate solver.
+            % Call to a user-supplied sstate solver
             m = this(variantRequested);
             [m, okSteady] = feval(update.Steady, m);
             this(variantRequested) = m;
         elseif iscell(update.Steady) && isa(update.Steady{1}, 'function_handle')
-            %  Call to a user-supplied sstate solver with extra arguments.
+            %  Call to a user-supplied sstate solver with extra arguments
             m = this(variantRequested);
             [m, okSteady] = feval(update.Steady{1}, m, update.Steady{2:end});
             this(variantRequested) = m;
         else
-             % Call to the [IrisToolbox] sstate solver.
-            [this, okSteady] = steadyNonlinear( this, ...
-                                                update.Steady, ...
-                                                variantRequested );
+             % Call to the [IrisToolbox] sstate solver
+            [this, okSteady] = ...
+                steadyNonlinear(this, update.Steady, variantRequested);
         end
         if needsRefresh
             m = refresh(m, variantRequested);
         end
     end
-    % Run chksstate only if steady state recomputed.
+    % Run chksstate only if steady state recomputed
     if runSteady && runCheckSteady
-        [~, ~, ~, sstateErrList] = implementCheckSteady( this, ...
-                                                         variantRequested, ...
-                                                         update.CheckSteady );
+        [~, ~, ~, sstateErrList] = ...
+            implementCheckSteady(this, variantRequested, update.CheckSteady);
         sstateErrList = sstateErrList{1};
         okCheckSteady = isempty(sstateErrList);
     end
     if okSteady && okCheckSteady && runSolve
-        [ this, ...
-          numStablePaths, ...
-          nanDerv, ...
-          sing2, ...
-          bk                    ] = solveFirstOrder( this, ...
-                                                     variantRequested, ...
-                                                     update.Solve );
+        [this, numStablePaths, nanDerv, sing2, bk] = ...
+            solveFirstOrder(this, variantRequested, update.Solve);
     else
         numStablePaths = 1;
     end
@@ -137,8 +130,10 @@ end
 if strcmpi(update.NoSolution, 'Error')
     % Throw error, give access to the failed model object and terminate
     m = this(variantRequested);
-    model.failed( m, okSteady, okCheckSteady, sstateErrList, ...
-                  numStablePaths, nanDerv, sing2, bk );
+    model.failed( ...
+        m, okSteady, okCheckSteady, sstateErrList, ...
+        numStablePaths, nanDerv, sing2, bk ...
+    );
 end
 
 end%

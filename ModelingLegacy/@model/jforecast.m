@@ -275,14 +275,13 @@ if ~opt.MeanOnly
         'Precision=', opt.Precision);
 end
 
-% Main loop
-%-----------
-
 if opt.Progress
-    % Create progress bar.
-    progress = ProgressBar('IRIS model.solve progress');
+    % Create progress bar
+    progress = ProgressBar('[IrisToolbox] @Model/solve Progress');
 end
 
+
+% /////////////////////////////////////////////////////////////////////////
 for iLoop = 1 : numOfRuns
     
     % Get exogenous data and compute deterministic trends if requested.
@@ -452,7 +451,8 @@ for iLoop = 1 : numOfRuns
         update(progress, iLoop/numOfRuns);
     end
 end
-% End of main loop.
+% /////////////////////////////////////////////////////////////////////////
+
 
 % Report parameterisation with solutions not available.
 checkNaNSolutions( );
@@ -461,9 +461,6 @@ checkNaNSolutions( );
 returnOutp( );
 
 return
-    
-
-
 
     function checkInitCond( )
         if ~isempty(listOfNaNInitials)

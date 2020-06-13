@@ -463,12 +463,15 @@ NumericTimeSubscriptable ...
             end
             x = unop(@mean, x, dim, dim, varargin{:});
         end%
+
+
         function x = median(x, dim, varargin)
             if nargin <2
                 dim = 1;
             end
             x = unop(@median, x, dim, dim, varargin{:});
         end%
+
 
         function x = mode(x, dim, varargin)
             if nargin <2
@@ -485,6 +488,7 @@ NumericTimeSubscriptable ...
             x = unop(@numeric.prctile, x, dim, p, dim);
         end%
 
+
         function varargout = pctile(varargin)
             [varargout{1:nargout}] = prctile(varargin{:});
         end%
@@ -499,12 +503,16 @@ NumericTimeSubscriptable ...
             end
             x = unop(@std, x, dim, flag, dim, varargin{:});
         end%
+
+
         function x = sum(x, dim, varargin)
             if nargin<2
                 dim = 1;
             end
             x = unop(@sum, x, dim, dim, varargin{:});
         end%
+
+
         function x = var(x, flag, dim, varargin)
             if nargin<2
                 flag = 0;

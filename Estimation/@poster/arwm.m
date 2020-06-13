@@ -220,7 +220,7 @@ else
 end
 
 if opt.progress
-    progress = ProgressBar('IRIS poster.arwm progress');
+    progress = ProgressBar('[IrisToolbox] @poster/arwm Progress');
 end
 
 % __Main Loop__

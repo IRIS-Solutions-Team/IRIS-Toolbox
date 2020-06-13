@@ -72,7 +72,7 @@ C = nan(ny, ny, maxOrder+1, nv);
 inxOfUnstable = isexplosive(this);
 
 if opt.Progress
-    pBar = ProgressBar('IRIS VAR.acf progress');
+    pBar = ProgressBar('[IrisToolbox] @VAR/acf Progress');
 end
 
 for v = find(~inxOfUnstable)

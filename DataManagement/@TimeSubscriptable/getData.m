@@ -79,7 +79,7 @@ switch subsCase(this, timeRef)
         return
     case 'Date_Date'
         checkFrequency(this, timeRef, 'warning');
-        if nargout>2
+        if nargout>=3
             [data, ~, pos, this] = getDataNoFrills(this, timeRef);
         else
             [data, ~, pos] = getDataNoFrills(this, timeRef);

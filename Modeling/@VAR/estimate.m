@@ -275,9 +275,9 @@ count = zeros(1, numRuns);
 % Pre-allocate VAR matrices.
 this = myprealloc(this, numEndogenous, p, numExtendedPeriods, numRuns, numCointeg);
 
-% Create command-window progress bar.
+% Create command-window progress bar
 if opt.Progress
-    progress = ProgressBar('IRIS VAR.estimate progress');
+    progress = ProgressBar('[IrisToolbox] @VAR/estimate Progress');
 end
 
 % __Main Loop__

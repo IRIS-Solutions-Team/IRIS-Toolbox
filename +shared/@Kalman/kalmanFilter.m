@@ -126,7 +126,7 @@ end
 %
 
 if ~s.IsObjOnly && opt.Progress
-    progress = ProgressBar(sprintf('IRIS %s.kalmanFilter progress', class(this)));
+    progress = ProgressBar(sprintf('[IrisToolbox] %s.kalmanFilter Progress', class(this)));
 end
 
 inxSolutionAvailable = true(1, nv);

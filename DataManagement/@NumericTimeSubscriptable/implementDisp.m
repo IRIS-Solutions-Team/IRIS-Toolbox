@@ -1,11 +1,11 @@
 function implementDisp(this, name, disp2dFunc)
 % implementDisp  Implement disp method for numeric time series
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 config = iris.get( );
 
@@ -76,7 +76,6 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
                     [i, pos], name, disp2dFunc, numDims-1, cfg );
         end
     else
-        toCharFunc = @(x) numericToChar(x, cfg.SeriesFormat);
         if ~isempty(pos)
             fprintf('%s{:, :%s} =\n', name, sprintf(', %g', pos));
             textual.looseLine( );
@@ -84,10 +83,10 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
         if numPeriods>0
             try
                 % Create and display 2D table
-                temp = Series.createTable(start, data, comment);
-                disp(temp);
+                disp(Series.createTable(start, data, comment, true));
             catch
                 % Legacy method
+                toCharFunc = @(x) numericToChar(x, cfg.SeriesFormat);
                 range = DateWrapper.roundPlus(start, 0:numPeriods-1);
                 temp = feval(disp2dFunc, start, data, cfg.DispIndent, sep, toCharFunc);
                 % Reduce the number of white spaces between numbers to 5 at most
@@ -96,7 +95,6 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
                 disp(temp);
             end
         end
-        % Make sure long scalar comments are never displayed as `[1xN char]`.
         textual.looseLine( );
         disp(["Dates", string(comment)]);
     end

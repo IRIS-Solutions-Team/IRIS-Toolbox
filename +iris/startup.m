@@ -190,7 +190,6 @@ end%
 
 
 function options = resolveInputOptions(varargin)
-
     options = struct( );
     options.Silent = false;
     options.SeriesConstructor = @Series;

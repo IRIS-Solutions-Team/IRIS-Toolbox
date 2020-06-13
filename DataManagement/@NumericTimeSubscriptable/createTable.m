@@ -1,4 +1,13 @@
-function outputTable = createTable(startDate, data, comments)
+% createTable  Create table from Series object
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function outputTable = createTable(startDate, data, comments, padDates)
+
+try, padDates; catch, padDates = false; end
+
+%--------------------------------------------------------------------------
 
 if ndims(data)>2
     thisError = [
@@ -15,6 +24,9 @@ endDate = DateWrapper.roundPlus(startDate, numRows-1);
 range = DateWrapper.roundColon(startDate, endDate);
 dates = DateWrapper.toDefaultString(range) + ":";
 dates = reshape(string(dates), [ ], 1);
+if padDates
+    dates = pad(dates, "left", char(160));
+end
 dataColumns = mat2cell(data, numRows, ones(1, numColumns));
 outputTable = table( ...
     dataColumns{:} ...

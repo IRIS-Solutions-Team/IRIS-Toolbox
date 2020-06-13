@@ -1,16 +1,28 @@
-function checkInitialCondition(this, inxOfNaNYXEPG, firstColumn)
 % checkInitialCondition  Look up initial conditions missing from input databank
+%
+% Beckend [IrisToolbox] method
+% No help provided
 
-[~, linxOfInit, idOfInit] = getInxOfInitInPresample(this, firstColumn);
-inxOfNaNInit = inxOfNaNYXEPG(linxOfInit);
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-if any(inxOfNaNInit)
-    THIS_ERROR = { 'Model:MissingInitialCondition'
-                   'This initial condition is missing from input databank: %s ' };
+function checkInitialCondition(this, inxNaNYXEPG, firstColumn)
+
+%--------------------------------------------------------------------------
+
+[~, linxInit, idInit] = getInxOfInitInPresample(this, firstColumn);
+inxNaNInit = inxNaNYXEPG(linxInit);
+%T = this.Variant.FirstOrderSolution{1};
+%inxZero = all(T==0, 1);
+
+if any(inxNaNInit)
+    thisError = [
+        "Model:MissingInitialCondition"
+        "This initial condition is missing from input databank: %s "
+    ];
     logStyle = '';
-    listOfNaNInit = printSolutionVector(this, idOfInit(inxOfNaNInit), logStyle);
-    throw( exception.Base(THIS_ERROR, 'error'), ...
-           listOfNaNInit{:} );
+    listNaNInit = printSolutionVector(this, idInit(inxNaNInit), logStyle);
+    throw(exception.Base(thisError, 'error'), listNaNInit{:});
 end    
 
 end%
