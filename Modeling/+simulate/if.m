@@ -132,7 +132,7 @@ end%
 %
 %{
 ##### SOURCE BEGIN #####
-% saveAs=simulate/if_.m
+% saveAs=simulate/ifUnitTest.m
 
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 

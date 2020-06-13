@@ -157,7 +157,7 @@ F = nan(numOfParameters, numOfParameters, nv);
 
 % Create a command-window progress bar.
 if opt.progress
-    progress = ProgressBar('IRIS model.fisher progress');
+    progress = ProgressBar('[IrisToolbox] @Model/fisher Progress');
 end
 
 

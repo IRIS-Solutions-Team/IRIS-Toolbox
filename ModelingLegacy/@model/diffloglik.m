@@ -1,9 +1,9 @@
-function [mll, grad, hess, v] = diffloglik(this, data, range, parameterNames, varargin)
+function [mll, grad, hess, varScale] = diffloglik(this, data, range, parameterNames, varargin)
 % diffloglik  Approximate gradient and hessian of log-likelihood function
 %{
 % ## Syntax ##
 %
-%     [mll, Grad, Hess, V] = diffloglik(M, Inp, Range, PList, ...)
+%     [mll, Grad, Hess, varScale] = diffloglik(M, Inp, Range, PList, ...)
 %
 %
 % ## Input arguments ##
@@ -30,13 +30,13 @@ function [mll, grad, hess, v] = diffloglik(this, data, range, parameterNames, va
 %
 % * `Hess` [ numeric ] - Hessian (or information) matrix.
 %
-% * `V` [ numeric ] - Estimated variance scale factor if the `'relative='`
+% * `varScale` [ numeric ] - Estimated variance scale factor if the `'relative='`
 % options is true; otherwise `v` is 1.
 %
 %
 % ## Options ##
 %
-% * `'ChkSstate='` [ `true` | *`false`* | cell ] - Check steady state in
+% * `'CheckSteady='` [ `true` | *`false`* | cell ] - Check steady state in
 % each iteration; works only in non-linear models.
 %
 % * `'Solve='` [ *`true`* | `false` | cellstr ] - Re-compute solution for
@@ -62,13 +62,23 @@ function [mll, grad, hess, v] = diffloglik(this, data, range, parameterNames, va
 
 TYPE = @int8;
 
-pp = inputParser( );
-addRequired(pp, 'Inp', @(x) isstruct(x) || iscell(x));
-addRequired(pp, 'Range', @DateWrapper.validateDateInput);
-addRequired(pp, 'PList', @(x) ischar(x) || iscellstr(x));
-parse(pp, data, range, parameterNames);
+persistent pp
+%(
+if isempty(pp)
+    pp = extend.InputParser('@Model/diffloglik');
+    pp.KeepUnmatched = true;
+    addRequired(pp, 'inputData', @(x) validate.databank(x) || iscell(x));
+    addRequired(pp, 'range', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'parameterNames', @(x) isstring(x) || ischar(x) || iscellstr(x));
 
-[opt, varargin] = passvalopt('model.diffloglik', varargin{:});
+    addParameter(pp, {'CheckSteady', 'ChkSstate'}, true, @model.validateChksstate);
+    addParameter(pp, 'Progress', false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, 'Solve', true, @model.validateSolve);
+    addParameter(pp, {'Steady', 'sstate', 'sstateopt'}, false, @model.validateSstate);
+end
+%)
+opt = parse(pp, data, range, parameterNames, varargin{:});
+unmatched = pp.UnmatchedInCell;
 
 if ischar(range)
     range = textinp2dat(range);
@@ -79,7 +89,7 @@ end
 % Process Kalman filter options; `loglikopt` also expands solution forward
 % if anticipated shifts in shocks are included
 %
-lik = prepareKalmanOptions(this, range, varargin{:});
+lik = prepareKalmanOptions(this, range, unmatched{:});
 
 
 %
@@ -95,26 +105,33 @@ data = datarequest('yg*', this, data, range);
 %
 lik.StdCorr = varyStdCorr(this, range, lik.Override, lik.Multiply, '--clip', '--presample');
 
+%--------------------------------------------------------------------------
 
+%
 % Requested output data
+%
 lik.retpevec = true;
 lik.retf = true;
 
 if ischar(parameterNames)
     parameterNames = regexp(parameterNames, '\w+', 'match');
 end
+parameterNames = cellstr(parameterNames);
 
-%--------------------------------------------------------------------------
+nv = countVariants(this);
 
-nv = length(this);
-
-% Multiple parameterizations are not allowed.
+%
+% Multiple parameterizations are not allowed
+%
 if nv>1
     utils.error('model:diffloglik', ...
         'Cannot run diffloglik( ) on multiple parametrisations.');
 end
 
-% Find parameter names and create parameter index.
+
+%
+% Find parameter names and create parameter index
+%
 ell = lookup(this.Quantity, parameterNames, TYPE(4));
 posValues = ell.PosName;
 posStdCorr = ell.PosStdCorr;
@@ -125,21 +142,30 @@ if any(~indexValidNames)
         parameterNames{~indexValidNames});
 end
 
+
+%
 % Populate temporary Update container
+%
 this.Update = this.EMPTY_UPDATE;
 this.Update.Values = this.Variant.Values;
 this.Update.StdCorr = this.Variant.StdCorr;
 this.Update.PosOfValues = posValues;
 this.Update.PosOfStdCorr = posStdCorr;
 this.Update.Steady = prepareSteady(this, 'silent', opt.Steady);
-this.Update.CheckSteady = prepareCheckSteady(this, 'silent', opt.ChkSstate);
+this.Update.CheckSteady = prepareCheckSteady(this, 'silent', opt.CheckSteady);
 this.Update.Solve = prepareSolve(this, 'silent, fast', opt.Solve);
 this.Update.NoSolution = 'Error';
 
-% Call low-level diffloglik.
-[mll, grad, hess, v] = mydiffloglik(this, data, lik, opt);
+%
+% Call low-level diffloglik
+%
+[mll, grad, hess, varScale] = mydiffloglik(this, data, lik, opt);
 
+
+%
 % Clean up 
+%
 this.Update = this.EMPTY_UPDATE;
 
-end
+end%
+
