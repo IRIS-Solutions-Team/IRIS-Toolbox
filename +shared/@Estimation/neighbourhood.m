@@ -103,7 +103,7 @@ nPct = numel(pct);
 man = opt.neighbourhood;
 
 if opt.progress
-    msg = sprintf('IRIS %s.neighbourhood progress',class(this));
+    msg = sprintf('[IrisToolbox]k @%s/neighborhood Progress', class(this));
     progress = ProgressBar(msg);
 end
 

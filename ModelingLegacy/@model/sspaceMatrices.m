@@ -2,11 +2,11 @@ function [T, R, K, Z, H, D, U, Omega, Zb, Y, inxV, inxW, numUnitRoots, inxInit] 
         sspaceMatrices(this, variantsRequested, keepExpansion, keepTriangular)
 % sspaceMatrices  Return state space matrices for given parameter variant
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
@@ -38,7 +38,7 @@ if strcmp(variantsRequested, ':')
     variantsRequested = 1 : numel(this.Variant);
 end
 
-[ny, nxi, nb, nf, ne] = sizeOfSolution(this.Vector);
+[ny, nxi, nb, nf, ne, ~, nz] = sizeOfSolution(this);
 numVariantsRequested = numel(variantsRequested);
 numHashEquations = nnz(this.Equation.IxHash);
 
@@ -62,7 +62,11 @@ if isempty(Z)
 end
 
 if isempty(Zb)
-    Zb = zeros(ny, nb, numVariantsRequested);
+    if nz>0
+        Zb = zeros(nz, nb, numVariantsRequested);
+    else
+        Zb = zeros(ny, nb, numVariantsRequested);
+    end
 end
 
 if isempty(H)
@@ -80,15 +84,19 @@ if ~keepTriangular
     % Z <- Zb;
     % U <- eye
     % Y <- U*Y
-    for i = 1 : numVariantsRequested
-        ithU = U(:, :, i);
-        T(:, :, i) = T(:, :, i) / ithU;
-        T(nf+1:end, :, i) = ithU*T(nf+1:end, :, i);
-        R(nf+1:end, :, i) = ithU*R(nf+1:end, :, i);
-        K(nf+1:end, :, i) = ithU*K(nf+1:end, :, i);
-        Z(:, :, i) = Zb(:, :, i);
+    for v = 1 : numVariantsRequested
+        U__ = U(:, :, v);
+        T(:, :, v) = T(:, :, v) / U__;
+        T(nf+1:end, :, v) = U__*T(nf+1:end, :, v);
+        R(nf+1:end, :, v) = U__*R(nf+1:end, :, v);
+        K(nf+1:end, :, v) = U__*K(nf+1:end, :, v);
+        if nz>0
+            % Do nothing
+        else
+            Z(:, :, v) = Zb(:, :, v);
+        end
         if returnY
-            Y(nf+1:end, :, i) = ithU*Y(nf+1:end, :, i);
+            Y(nf+1:end, :, v) = U__*Y(nf+1:end, :, v);
         end
     end
     U = repmat(eye(nb), 1, 1, numVariantsRequested);

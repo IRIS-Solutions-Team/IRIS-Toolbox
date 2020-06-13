@@ -77,12 +77,12 @@ for v = variantsRequested
         success(v) = true;
     end
     % Assign the values to the model object, measurement and transition
-    % variables only.
+    % variables only
     this.Variant.Values(:, ixyx, v) = lvl(1, ixyx) + 1i*grw(1, ixyx);
     this.Variant.Values(:, ixe, v) = 0;
 end
 
-% Some parameterizations are not difference stationary.
+% Some parameterizations are not difference stationary
 if ~any(ixDiffStat)
     throw( exception.Base('Model:NotDifferenceStationary', 'warning'), ...
            exception.Base.alt2str(ixDiffStat) ); %#ok<GTARG>

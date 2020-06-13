@@ -166,7 +166,7 @@ end
 
 % Create a command-window progress bar.
 if opt.progress
-    progress = ProgressBar('IRIS VAR.resample progress');
+    progress = ProgressBar('[IrisToolbox] @VAR/resample Progress');
 end
 
 % __Simulate__

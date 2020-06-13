@@ -41,13 +41,6 @@ def.chkredundant = {
     };
 
 
-def.diffloglik = {
-    'ChkSstate', true, @model.validateChksstate
-    'progress', false, @(x) isequal(x, true) || isequal(x, false)
-    'Solve', true, @model.validateSolve
-    'Steady, sstate, sstateopt', false, @model.validateSstate
-    };
-
 def.fmse = [
     matrixFormat
     select

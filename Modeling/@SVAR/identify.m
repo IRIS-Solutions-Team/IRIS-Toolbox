@@ -176,7 +176,7 @@ YY = nan(ny, ny, 0);
 
 % Create command-window progress bar.
 if Opt.progress
-    pbar = ProgressBar('IRIS VAR.SVAR progress');
+    pbar = ProgressBar('[IrisToolbox] @VAR/SVAR Progress');
 end
 
 nb = 0;
