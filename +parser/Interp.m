@@ -163,7 +163,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
     p = parser.Preparser( );
     p.Assigned = struct('A', 1);
-    p.Code = ' aaaa « A+1 » ';
+    p.Code = ' aaaa Â« A+1 Â» ';
     act = parser.Interp.parse(p);
     exp = ' aaaa 2 ';
     assertEqual(testCase, act, exp);
