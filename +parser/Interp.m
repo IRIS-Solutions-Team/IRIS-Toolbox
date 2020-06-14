@@ -10,12 +10,12 @@ classdef Interp
             import parser.Interp
             import parser.Preparser
 
-            try, code;
+            try code;
                 catch, code = @auto; end
 
             % Do not interpolate in the code, remove the <...> segment, and
             % only return string representation of the values
-            try, remove;
+            try remove;
                 catch, remove = false; end
 
             codeFromObject = isequal(code, @auto);
@@ -125,7 +125,6 @@ classdef Interp
                     value{i} = 'false';
                 else
                     error('IRIS:Intermediate', 'Intermediate Error');
-                    return
                 end
             end
         end%
