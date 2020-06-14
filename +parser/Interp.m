@@ -10,12 +10,12 @@ classdef Interp
             import parser.Interp
             import parser.Preparser
 
-            try, code;
+            try code;
                 catch, code = @auto; end
 
             % Do not interpolate in the code, remove the <...> segment, and
             % only return string representation of the values
-            try, remove;
+            try remove;
                 catch, remove = false; end
 
             codeFromObject = isequal(code, @auto);
@@ -125,7 +125,6 @@ classdef Interp
                     value{i} = 'false';
                 else
                     error('IRIS:Intermediate', 'Intermediate Error');
-                    return
                 end
             end
         end%
@@ -164,7 +163,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
     p = parser.Preparser( );
     p.Assigned = struct('A', 1);
-    p.Code = ' aaaa Â« A+1 Â» ';
+    p.Code = ' aaaa « A+1 » ';
     act = parser.Interp.parse(p);
     exp = ' aaaa 2 ';
     assertEqual(testCase, act, exp);
