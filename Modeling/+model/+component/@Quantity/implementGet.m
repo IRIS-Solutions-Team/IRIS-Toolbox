@@ -28,8 +28,8 @@ elseif compare(query1, { ...
             'ydescript', 'xdescript', 'edescript', 'pdescript', 'gdescript', ...
             'yalias', 'xalias', 'ealias', 'palias', 'galias' ...
         })
-    ixType = getType(query1);
-    prop = getProperty(query1);
+    ixType = getType(extractBetween(query1, 1, 1));
+    prop = getProperty(extractAfter(query1, 1));
     answ = this.(prop)(ixType);
     return
         
@@ -61,28 +61,28 @@ end
 return
 
 
-    function ixType = getType(query1)
-        if strcmpi(query1(1), 'y')
+    function ixType = getType(query)
+        if strcmpi(query(1), 'y')
             ixType = this.Type==TYPE(1);
-        elseif strcmpi(query1(1), 'x')
+        elseif strcmpi(query(1), 'x')
             ixType = this.Type==TYPE(2);
-        elseif strcmpi(query1(1), 'e') 
+        elseif strcmpi(query(1), 'e') 
             ixType = this.Type==TYPE(31) | this.Type==TYPE(32);
-        elseif strcmpi(query1(1), 'p')
+        elseif strcmpi(query(1), 'p')
             ixType = this.Type==TYPE(4);
-        elseif strcmpi(query1(1), 'g')
+        elseif strcmpi(query(1), 'g')
             ixType = this.Type==TYPE(5);
         end
     end%
 
 
-    function prop = getProperty(query1) 
-        if compare(query1(2:end), {'List', 'Name', 'Names'})
-            prop = 'Name';
-        elseif compare(query1(2:end), {'Descript', 'Description', 'Descriptions'})
-            prop = 'Label';
-        elseif compare(query1(2:end), {'Alias', 'Aliases'})
-            prop = 'Alias';
+    function prop = getProperty(query) 
+        if compare(query, ["List", "Name", "Names"])
+            prop = "Name";
+        elseif compare(query, ["Descript", "Description", "Descriptions"])
+            prop = "Label";
+        elseif compare(query, ["Alias", "Aliases"])
+            prop = "Alias";
         end
     end%
 end%
