@@ -155,6 +155,63 @@ h6, .h6 {
   /* nothing so far */
 }
 
+.rephrase-diff-table-button-group {
+  /* button group shown in the header of DIFF table */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button {
+  /* any button from the DIFF table button group */
+  font-weight: normal;
+}
+
+.rephrase-diff-table-button-show-diff {
+  /* "show diff" button from the DIFF table button group */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button-show-args {
+  /* "show arg rows" button from the DIFF table button group */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-title {
+  /* common title for the diff table row */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-diff-title {
+  /*title for the diff row of the diff table */
+  font-weight: normal;
+  text-align: right;
+}
+
+.rephrase-diff-table-data-row-arg-title {
+  /*title for the args row of the diff table */
+  font-weight: normal;
+  text-align: right;
+}
+
+.rephrase-diff-table-data-row-diff {
+  /* diff table TR element containing diff series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-arg {
+  /* diff table TR element containing args series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-cell-diff {
+  /* diff table TD element containing diff series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-cell-arg {
+  /* diff table TD element containing args series data */
+  /* nothing so far */
+}
+
 .rephrase-grid-title {
   /* grid title H element */
   padding-top: 50px;
