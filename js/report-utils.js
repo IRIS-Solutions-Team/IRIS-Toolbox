@@ -18,6 +18,7 @@ var $ru = {
   createTextBlock: createTextBlock,
   appendObjSettings: appendObjSettings,
   momentJsDateFormatToD3TimeFormat: momentJsDateFormatToD3TimeFormat,
+  postProcessIrisCode: postProcessIrisCode,
   databank: {
     getEntry: getEntry,
     getEntryName: getEntryName,
@@ -428,11 +429,17 @@ function createTextBlock(parent, textObj) {
     if (textObj.Settings.HighlightCodeBlocks) {
       const renderer = new marked.Renderer();
       renderer.code = function (code, lang) {
+        const isIris = (lang.toLowerCase() === "iris");
+        if (isIris) {
+          lang = "matlab";
+        }
         const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
-        return "<pre><code class=\"hljs"
+        const theCode = "<pre><code class=\"hljs"
           + (validLang ? " language-" + validLang : "")
           + "\">" + hljs.highlight(validLang, code).value
           + "</code></pre>";
+        // add IRIS specific highlighting on the top of MATLAB's
+        return (isIris) ? postProcessIrisCode(theCode) : theCode;
       }
       marked.setOptions({
         renderer: renderer
@@ -446,6 +453,17 @@ function createTextBlock(parent, textObj) {
       });
     }
   }
+}
+
+function postProcessIrisCode(code) {
+  // add hljs classes to IRIS specific keywords
+
+  // todo: implement this properly
+
+  // make all words starting with "!" a keywords (.hljs-keyword)
+  code = code.replace(/(![a-zA-Z_]*)/gim, "<span class='hljs-keyword'>$1</span>");
+
+  return code;
 }
 
 function momentJsDateFormatToD3TimeFormat(dateFormat) {
