@@ -501,99 +501,6 @@ function getColorList(nColors) {
   }
   return colorList;
 }
-/*
-function createTable(parent, tableObj) {
-  // create a div to wrap the table
-  var tableParent = document.createElement("div");
-  $(tableParent).addClass(["rephrase-table-parent", "table-scroll"]);
-  parent.appendChild(tableParent);
-  // create table title
-  if (tableObj.Title) {
-    var tableTitle = document.createElement("h3");
-    $(tableTitle).addClass("rephrase-table-title");
-    tableTitle.innerText = tableObj.Title;
-  }
-  tableParent.appendChild(tableTitle);
-  var table = document.createElement("table");
-  $(table).addClass(["rephrase-table", "hover", "unstriped"]);
-  // apply custom css class to .rephrase-chart div
-  if (tableObj.Settings.Class && (typeof tableObj.Settings.Class === "string"
-    || tableObj.Settings.Class instanceof Array)) {
-    $(table).addClass(tableObj.Settings.Class);
-  }
-  tableParent.appendChild(table);
-  // initiate table header and body
-  var thead = document.createElement("thead");
-  $(thead).addClass('rephrase-table-header');
-  table.appendChild(thead);
-  var theadRow = document.createElement("tr");
-  $(theadRow).addClass('rephrase-table-header-row');
-  thead.appendChild(theadRow);
-  var tbody = document.createElement("tbody");
-  $(tbody).addClass('rephrase-table-body');
-  table.appendChild(tbody);
-  // create title column in header
-  var theadFirstCell = document.createElement("th");
-  $(theadFirstCell).addClass('rephrase-table-header-cell');
-  theadRow.appendChild(theadFirstCell);
-  // re-format the date string and populate table header
-  const dates = tableObj.Settings.Dates.map(function (d) {
-    const t = moment(new Date(d)).format(tableObj.Settings.DateFormat);
-    var theadDateCell = document.createElement("th");
-    $(theadDateCell).addClass('rephrase-table-header-cell');
-    theadDateCell.innerText = t;
-    theadRow.appendChild(theadDateCell);
-    return t;
-  });
-  // number of decimals when showing numbers
-  const nDecimals = tableObj.Settings.NumDecimals || 2;
-  // populate table body
-  for (var i = 0; i < tableObj.Content.length; i++) {
-    const tableRowObj = tableObj.Content[i];
-    // skip this entry if it's neither a SERIES nor HEADING or if smth. else is wrong
-    if (!tableRowObj.hasOwnProperty("Type")
-      || ["series", "heading"].indexOf(tableRowObj.Type.toLowerCase()) === -1
-      || (tableRowObj.Type.toLowerCase() === "series"
-        && (!tableRowObj.hasOwnProperty("Content")
-          || !((typeof tableRowObj.Content === "string")
-            || (typeof tableRowObj.Content === "object"
-              && tableRowObj.Content.hasOwnProperty("Dates")
-              && tableRowObj.Content.hasOwnProperty("Values")
-              && (dates instanceof Array)
-              && tableRowObj.Content.Values.length === dates.length))))) {
-      continue;
-    }
-    const isSeries = (tableRowObj.Type.toLowerCase() === "series");
-    // create new table row
-    var tbodyRow = document.createElement("tr");
-    $(tbodyRow).addClass(['rephrase-table-row',
-      isSeries ? 'rephrase-table-data-row' : 'rephrase-table-heading-row']);
-    tbody.appendChild(tbodyRow);
-    // create title cell
-    var tbodyTitleCell = document.createElement("td");
-    if (isSeries) {
-      $(tbodyTitleCell).addClass('rephrase-table-data-row-title');
-    } else {
-      $(tbodyTitleCell).addClass('h5');
-      tbodyTitleCell.setAttribute('colspan', dates.length + 1);
-    }
-    tbodyTitleCell.innerText = tableRowObj.Title || "";
-    tbodyRow.appendChild(tbodyTitleCell);
-    // create data cells
-    if (isSeries) {
-      if (typeof tableRowObj.Content === "string") {
-        tableRowObj.Content = $ru.databank.getSeriesContent(tableRowObj.Content);
-      }
-      for (var j = 0; j < tableRowObj.Content.Values.length; j++) {
-        const v = tableRowObj.Content.Values[j];
-        var tbodyDataCell = document.createElement("td");
-        $(tbodyDataCell).addClass('rephrase-table-data-cell');
-        tbodyDataCell.innerText = v.toFixed(nDecimals);
-        tbodyRow.appendChild(tbodyDataCell);
-      }
-    }
-  }
-}*/
 
 function createTable(parent, tableObj, isDiffTable) {
   // create a div to wrap the table
@@ -608,27 +515,39 @@ function createTable(parent, tableObj, isDiffTable) {
   }
   tableParent.appendChild(tableTitle);
   // what rows to display
-  tableObj.Settings.DisplayRows = tableObj.Settings.DisplayRows || 1;
+  tableObj.Settings.DisplayRows = tableObj.Settings.DisplayRows || {
+    "Diff": true,
+    "Baseline": false,
+    "Alternative": false
+  };
   if (isDiffTable) {
     // create button group
     var buttonGroup = document.createElement("div");
     $(buttonGroup).addClass(["small", "button-group", "rephrase-diff-table-button-group"]);
     var showDiffBtn = document.createElement("a");
-    showDiffBtn.innerText = "Show/Hide Diff Rows";
+    showDiffBtn.innerText = "Show/Hide Difference";
     $(showDiffBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-diff"]);
-    if (tableObj.Settings.DisplayRows === 2) {
+    if (!tableObj.Settings.DisplayRows.Diff) {
       $(showDiffBtn).addClass("hollow");
     }
     showDiffBtn.addEventListener("click", onBtnClick, false);
     buttonGroup.appendChild(showDiffBtn);
-    var showArgsBtn = document.createElement("a");
-    showArgsBtn.innerText = "Show/Hide Args Rows";
-    $(showArgsBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-args"]);
-    if (tableObj.Settings.DisplayRows === 1) {
-      $(showArgsBtn).addClass("hollow");
+    var showBaselineBtn = document.createElement("a");
+    showBaselineBtn.innerText = "Show/Hide Baseline";
+    $(showBaselineBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-baseline"]);
+    if (!tableObj.Settings.DisplayRows.Baseline) {
+      $(showBaselineBtn).addClass("hollow");
     }
-    showArgsBtn.addEventListener("click", onBtnClick, false);
-    buttonGroup.appendChild(showArgsBtn);
+    showBaselineBtn.addEventListener("click", onBtnClick, false);
+    buttonGroup.appendChild(showBaselineBtn);
+    var showAlternativeBtn = document.createElement("a");
+    showAlternativeBtn.innerText = "Show/Hide Alternative Rows";
+    $(showAlternativeBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-alternative"]);
+    if (!tableObj.Settings.DisplayRows.Alternative) {
+      $(showAlternativeBtn).addClass("hollow");
+    }
+    showAlternativeBtn.addEventListener("click", onBtnClick, false);
+    buttonGroup.appendChild(showAlternativeBtn);
     tableParent.appendChild(buttonGroup);
   }
   var table = document.createElement("table");
@@ -697,33 +616,41 @@ function createTable(parent, tableObj, isDiffTable) {
       tbodyRow.appendChild(tbodyTitleCell);
     }
   }
-  if (tableObj.Settings.DisplayRows === 2) {
-    toggleRows("hide", true);
+  if (!tableObj.Settings.DisplayRows.Diff) {
+    toggleRows(tableParent, "hide", "diff");
   }
-  if (tableObj.Settings.DisplayRows === 1) {
-    toggleRows("hide", false);
+  if (!tableObj.Settings.DisplayRows.Baseline) {
+    toggleRows(tableParent, "hide", "baseline");
+  }
+  if (!tableObj.Settings.DisplayRows.Alternative) {
+    toggleRows(tableParent, "hide", "alternative");
   }
   // button click event handler
   function onBtnClick(event) {
     const thisBtn = event.target;
     const tableParent = $(thisBtn).parent().parent();
-    const otherBtn = $(thisBtn).siblings()[0];
+    const otherBtn1 = $(thisBtn).siblings()[0];
+    const otherBtn2 = $(thisBtn).siblings()[1];
     const isDiff = $(thisBtn).hasClass("rephrase-diff-table-button-show-diff");
+    const isBaseline = $(thisBtn).hasClass("rephrase-diff-table-button-show-baseline");
+    const btnType = isDiff ? "diff" : (isBaseline ? "baseline" : "alternative");
     if ($(thisBtn).hasClass("hollow")) {
       // toggle ON
       $(thisBtn).removeClass("hollow");
-      toggleRows("show", isDiff);
-    } else if (!$(otherBtn).hasClass("hollow")) {
-      // toggle OFF (if the other button is not OFF)
+      toggleRows(tableParent, "show", btnType);
+    } else if (!($(otherBtn1).hasClass("hollow") && $(otherBtn2).hasClass("hollow"))) {
+      // toggle OFF (if the other buttons are not OFF both)
       $(thisBtn).addClass("hollow");
-      toggleRows("hide", isDiff);
+      toggleRows(tableParent, "hide", btnType);
     }
   }
   // show/hide the specified rows of the diff table
-  function toggleRows(toggleState, isDiff) {
-    const rows = (isDiff)
+  function toggleRows(tableParent, toggleState, btnType) {
+    const rows = (btnType === "diff")
       ? $(tableParent).find(".rephrase-diff-table-data-row-diff")
-      : $(tableParent).find(".rephrase-diff-table-data-row-arg");
+      : ((btnType === "baseline")
+        ? $(tableParent).find(".rephrase-diff-table-data-row-baseline")
+        : $(tableParent).find(".rephrase-diff-table-data-row-alternative"));
     for (var i = 0; i < rows.length; i++) {
       const row = rows[i];
       row.style.display = (toggleState === "hide") ? "none" : "";
@@ -734,7 +661,6 @@ function createTable(parent, tableObj, isDiffTable) {
 function createTableSeries(tbodyRow, tableRowObj, isDiffTable) {
   // number of decimals when showing numbers
   const nDecimals = tableRowObj.Settings.NumDecimals || 2;
-  const displayRows = tableRowObj.Settings.DisplayRows;
   var tbodyTitleCell = document.createElement("td");
   $(tbodyTitleCell).addClass('rephrase-table-data-row-title');
   tbodyTitleCell.innerText = tableRowObj.Title || "";
@@ -751,48 +677,48 @@ function createTableSeries(tbodyRow, tableRowObj, isDiffTable) {
       ? tableRowObj.Settings.RowTitles.Diff
       : "Diff";
     diffRow.appendChild(diffRowTitleCell);
-    var argRow1 = document.createElement("tr");
-    $(argRow1).addClass("rephrase-diff-table-data-row-arg");
-    var argRowTitleCell1 = document.createElement("td");
-    $(argRowTitleCell1).addClass(['rephrase-table-data-row-title', 'rephrase-diff-table-data-row-arg-title']);
-    argRowTitleCell1.innerText = (tableRowObj.Settings.RowTitles && tableRowObj.Settings.RowTitles.Row1)
-      ? tableRowObj.Settings.RowTitles.Row1
+    var baselineRow = document.createElement("tr");
+    $(baselineRow).addClass("rephrase-diff-table-data-row-baseline");
+    var baselineRowTitleCell = document.createElement("td");
+    $(baselineRowTitleCell).addClass(['rephrase-table-data-row-title', 'rephrase-diff-table-data-row-baseline-title']);
+    baselineRowTitleCell.innerText = (tableRowObj.Settings.RowTitles && tableRowObj.Settings.RowTitles.Baseline)
+      ? tableRowObj.Settings.RowTitles.Baseline
       : "Series 1";
-    argRow1.appendChild(argRowTitleCell1);
-    var argRow2 = document.createElement("tr");
-    $(argRow2).addClass("rephrase-diff-table-data-row-arg");
-    var argRowTitleCell2 = document.createElement("td");
-    $(argRowTitleCell2).addClass(['rephrase-table-data-row-title', 'rephrase-diff-table-data-row-arg-title']);
-    argRowTitleCell2.innerText = (tableRowObj.Settings.RowTitles && tableRowObj.Settings.RowTitles.Row2)
-      ? tableRowObj.Settings.RowTitles.Row2
+    baselineRow.appendChild(baselineRowTitleCell);
+    var alternativeRow = document.createElement("tr");
+    $(alternativeRow).addClass("rephrase-diff-table-data-row-alternative");
+    var alternativeRowTitleCell = document.createElement("td");
+    $(alternativeRowTitleCell).addClass(['rephrase-table-data-row-title', 'rephrase-diff-table-data-row-alternative-title']);
+    alternativeRowTitleCell.innerText = (tableRowObj.Settings.RowTitles && tableRowObj.Settings.RowTitles.Alternative)
+      ? tableRowObj.Settings.RowTitles.Alternative
       : "Series 2";
-    argRow2.appendChild(argRowTitleCell2);
-    var argSeries1 = (typeof tableRowObj.Content[0] === "string")
+    alternativeRow.appendChild(alternativeRowTitleCell);
+    var baselineSeries = (typeof tableRowObj.Content[0] === "string")
       ? $ru.databank.getSeriesContent(tableRowObj.Content[0])
       : tableRowObj.Content[0];
-    var argSeries2 = (typeof tableRowObj.Content[1] === "string")
+    var alternativeSeries = (typeof tableRowObj.Content[1] === "string")
       ? $ru.databank.getSeriesContent(tableRowObj.Content[1])
       : tableRowObj.Content[1];
-    for (var j = 0; j < Math.max(argSeries1.Values.length, argSeries2.Values.length); j++) {
-      const v1 = argSeries1.Values[j];
-      const v2 = argSeries2.Values[j];
+    for (var j = 0; j < Math.max(baselineSeries.Values.length, alternativeSeries.Values.length); j++) {
+      const v1 = baselineSeries.Values[j];
+      const v2 = alternativeSeries.Values[j];
       const vDiff = v1 - v2;
-      var argDataCell1 = document.createElement("td");
-      $(argDataCell1).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-arg']);
-      argDataCell1.innerText = v1.toFixed(nDecimals);
-      argRow1.appendChild(argDataCell1);
-      var argDataCell2 = document.createElement("td");
-      $(argDataCell2).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-arg']);
-      argDataCell2.innerText = v2.toFixed(nDecimals);
-      argRow2.appendChild(argDataCell2);
+      var baselineDataCell = document.createElement("td");
+      $(baselineDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-baseline']);
+      baselineDataCell.innerText = v1.toFixed(nDecimals);
+      baselineRow.appendChild(baselineDataCell);
+      var alternativeDataCell = document.createElement("td");
+      $(alternativeDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-alternative']);
+      alternativeDataCell.innerText = v2.toFixed(nDecimals);
+      alternativeRow.appendChild(alternativeDataCell);
       var diffDataCell = document.createElement("td");
       $(diffDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-diff']);
       diffDataCell.innerText = vDiff.toFixed(nDecimals);
       diffRow.appendChild(diffDataCell);
     }
-    $(tbodyRow).after(argRow1);
-    $(argRow1).after(argRow2);
-    $(argRow2).after(diffRow);
+    $(tbodyRow).after(baselineRow);
+    $(baselineRow).after(alternativeRow);
+    $(alternativeRow).after(diffRow);
   } else {
     if (typeof tableRowObj.Content === "string") {
       tableRowObj.Content = $ru.databank.getSeriesContent(tableRowObj.Content);

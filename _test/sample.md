@@ -20,7 +20,7 @@ Quando invenire constituto duo et, usu nulla repudiandae cu, mel no virtute quae
 
 ---
 
-#### Matlab code block
+#### Matlab/IRIS code block
 
 ```matlab
 s = 'Matlab syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting';

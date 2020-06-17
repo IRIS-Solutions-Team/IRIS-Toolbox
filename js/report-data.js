@@ -27,11 +27,15 @@ var $reportWithoutData = {
         "Class": "",
         "DateFormat": "YYYY:Q",
         "NumDecimals": 3,
-        "DisplayRows": 1, // 1 - only one line (diff only), 2 - two lines (series 1 and series2), 3 - three lines (series 1, series 2, and diff)
+        "DisplayRows": {
+          "Diff": true,
+          "Baseline": true,
+          "Alternative": false
+        }, // 1 - only one line (diff only), 2 - two lines (series 1 and series2), 3 - three lines (series 1, series 2, and diff)
         "RowTitles": {
           "Diff": "Diff",
-          "Row1": "Baseline",
-          "Row2": "Alternative"
+          "Baseline": "Baseline",
+          "Alternative": "Alternative"
         },
         "Dates": [
           "2020-02-15",

@@ -170,8 +170,13 @@ h6, .h6 {
   /* nothing so far */
 }
 
-.rephrase-diff-table-button-show-args {
-  /* "show arg rows" button from the DIFF table button group */
+.rephrase-diff-table-button-show-baseline {
+  /* "show baseline" button from the DIFF table button group */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button-show-alternative {
+  /* "show alternative" button from the DIFF table button group */
   /* nothing so far */
 }
 
@@ -186,8 +191,14 @@ h6, .h6 {
   text-align: right;
 }
 
-.rephrase-diff-table-data-row-arg-title {
-  /*title for the args row of the diff table */
+.rephrase-diff-table-data-row-baseline-title {
+  /*title for the baseline row of the diff table */
+  font-weight: normal;
+  text-align: right;
+}
+
+.rephrase-diff-table-data-row-alternative-title {
+  /*title for the alternative row of the diff table */
   font-weight: normal;
   text-align: right;
 }
@@ -197,8 +208,13 @@ h6, .h6 {
   /* nothing so far */
 }
 
-.rephrase-diff-table-data-row-arg {
-  /* diff table TR element containing args series data */
+.rephrase-diff-table-data-row-baseline {
+  /* diff table TR element containing baseline series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-alternative {
+  /* diff table TR element containing alternative series data */
   /* nothing so far */
 }
 
@@ -207,8 +223,13 @@ h6, .h6 {
   /* nothing so far */
 }
 
-.rephrase-diff-table-data-cell-arg {
-  /* diff table TD element containing args series data */
+.rephrase-diff-table-data-cell-baseline {
+  /* diff table TD element containing baseline series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-cell-alternative {
+  /* diff table TD element containing alternative series data */
   /* nothing so far */
 }
 
