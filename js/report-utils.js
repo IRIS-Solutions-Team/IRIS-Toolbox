@@ -473,7 +473,7 @@ function momentJsDateFormatToD3TimeFormat(dateFormat) {
   var escaped = [];
   var re = /\[(.*?)\]/ig;
   var match = re.exec(d3TimeFormat);
-  while(match !== null){
+  while (match !== null) {
     escaped.push(match[1]);
     match = re.exec(d3TimeFormat);
   }
@@ -853,6 +853,9 @@ function appendObjSettings(objSettings, parentSettings) {
   const parentKeys = Object.keys(parentSettings);
   for (let i = 0; i < parentKeys.length; i++) {
     const key = parentKeys[i];
+    if (key.toLowerCase() === "class") {
+      continue
+    }
     if (!objSettings.hasOwnProperty(key)) {
       objSettings[key] = parentSettings[key];
     }
