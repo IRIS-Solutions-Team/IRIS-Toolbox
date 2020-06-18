@@ -763,10 +763,10 @@ function createTableSeries(tbodyRow, tableRowObj) {
       const v1 = baselineSeries.Values[j];
       const v2 = alternativeSeries.Values[j];
       const vDiff = (diffMethod === "ratio")
-        ? v1 / v2
+        ? v2 / v1
         : ((diffMethod === "percent")
-          ? 100 * (v1 - v2) / v2
-          : v1 - v2); // difference
+          ? 100 * (v2 - v1) / v1
+          : v2 - v1); // difference
       var baselineDataCell = document.createElement("td");
       $(baselineDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-baseline']);
       baselineDataCell.innerText = v1.toFixed(nDecimals);
