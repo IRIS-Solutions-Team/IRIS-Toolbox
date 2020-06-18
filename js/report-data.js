@@ -62,7 +62,7 @@ var $reportWithoutData = {
       },
       "Content": [
         {
-          "Type": "SERIES",
+          "Type": "DIFFSERIES",
           "Title": "Series 1 very-long-unbreakable-series1-title-and-more",
           "Settings": {
             "Class": ""
@@ -71,11 +71,11 @@ var $reportWithoutData = {
         },
         {
           "Type": "SERIES",
-          "Title": "Series 3",
+          "Title": "Series 2",
           "Settings": {
             "Class": ""
           },
-          "Content": ["iPqBiFnIJMxelVhQBZex", "SGsAudmgjmvcUXzzrUtf"]
+          "Content": "iPqBiFnIJMxelVhQBZex"
         },
         {
           "Type": "HEADING",
@@ -86,64 +86,64 @@ var $reportWithoutData = {
           "Content": null
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 5",
+          "Type": "DIFFSERIES",
+          "Title": "Series 3",
           "Settings": {
             "Class": ""
           },
           "Content": ["CpMjJjtGOeWOzwxpAAQP", "qWwjVYwfnvEnFKlgpqwA"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 7",
+          "Type": "DIFFSERIES",
+          "Title": "Series 4",
           "Settings": {
             "Class": ""
           },
           "Content": ["bUVPfnrJhLfHzOLUUrKk", "dJcdBfQQLhIAYHPxwQeg"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 9",
+          "Type": "DIFFSERIES",
+          "Title": "Series 5",
           "Settings": {
             "Class": ""
           },
           "Content": ["XVcMnvCXvZpKICKIjgZi", "npGnQZLrEfVTQnEbwqij"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 11",
+          "Type": "DIFFSERIES",
+          "Title": "Series 6",
           "Settings": {
             "Class": ""
           },
           "Content": ["OwenhowBxTAXHXmJpIKd", "jLyhrFjMmVnNjoeDJCwH"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 13",
+          "Type": "DIFFSERIES",
+          "Title": "Series 7",
           "Settings": {
             "Class": ""
           },
           "Content": ["ECTnqgWHyHCHCLBZlffd", "shEncNmxJsMuJKwbrwok"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 15",
+          "Type": "DIFFSERIES",
+          "Title": "Series 8",
           "Settings": {
             "Class": ""
           },
           "Content": ["ATEikvMQPqBefhJzjzhc", "MEmIeGILUZNEWEagSzRk"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 17",
+          "Type": "DIFFSERIES",
+          "Title": "Series 9",
           "Settings": {
             "Class": ""
           },
           "Content": ["gzSTokDHvkXefhiGDcWL", "DSsxcjIrUgZCKZovyNQf"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 19",
+          "Type": "DIFFSERIES",
+          "Title": "Series 10",
           "Settings": {
             "Class": ""
           },

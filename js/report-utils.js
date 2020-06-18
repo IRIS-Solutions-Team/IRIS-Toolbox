@@ -631,19 +631,27 @@ function createTable(parent, tableObj, isDiffTable) {
     const tableRowObj = tableObj.Content[i];
     // skip this entry if it's neither a SERIES nor HEADING or if smth. else is wrong
     if (!tableRowObj.hasOwnProperty("Type")
-      || ["series", "heading"].indexOf(tableRowObj.Type.toLowerCase()) === -1
+      || ["diffseries", "series", "heading"].indexOf(tableRowObj.Type.toLowerCase()) === -1
       || (tableRowObj.Type.toLowerCase() === "series"
         && (!tableRowObj.hasOwnProperty("Content")
-          || !((tableRowObj.Content instanceof Array)
-            || (typeof tableRowObj.Content === "string")
+          || !((typeof tableRowObj.Content === "string")
             || (typeof tableRowObj.Content === "object"
               && tableRowObj.Content.hasOwnProperty("Dates")
               && tableRowObj.Content.hasOwnProperty("Values")
               && (dates instanceof Array)
-              && tableRowObj.Content.Values.length === dates.length))))) {
+              && tableRowObj.Content.Values.length === dates.length))))
+      || (tableRowObj.Type.toLowerCase() === "diffseries"
+        && (!tableRowObj.hasOwnProperty("Content")
+          || !((tableRowObj.Content instanceof Array)
+            && ((typeof tableRowObj.Content[0] === "string")
+              || (typeof tableRowObj.Content[0] === "object"
+                && tableRowObj.Content[0].hasOwnProperty("Dates")
+                && tableRowObj.Content[0].hasOwnProperty("Values")
+                && (dates instanceof Array)
+                && tableRowObj.Content[0].Values.length === dates.length)))))) {
       continue;
     }
-    const isSeries = (tableRowObj.Type.toLowerCase() === "series");
+    const isSeries = (["series", "diffseries"].indexOf(tableRowObj.Type.toLowerCase()) !== -1);
     // create new table row
     var tbodyRow = document.createElement("tr");
     tbody.appendChild(tbodyRow);
@@ -711,7 +719,7 @@ function createTableSeries(tbodyRow, tableRowObj, isDiffTable) {
   tbodyTitleCell.innerText = tableRowObj.Title || "";
   tbodyRow.appendChild(tbodyTitleCell);
   // create data cells
-  if (isDiffTable) {
+  if (tableRowObj.Type.toLowerCase() === "diffseries") {
     $(tbodyRow).addClass("rephrase-diff-table-data-row-title");
     tbodyTitleCell.setAttribute('colspan', tableRowObj.Settings.Dates.length + 1);
     var diffRow = document.createElement("tr");
