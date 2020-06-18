@@ -12,6 +12,7 @@ var $ru = {
   createTable: createTable,
   createTableSeries: createTableSeries,
   createGrid: createGrid,
+  createMatrix: createMatrix,
   addReportElement: addReportElement,
   getColorList: getColorList,
   addPageBreak: addPageBreak,
@@ -404,6 +405,86 @@ function createSeriesForPlotly(title, dates, values, seriesType, colors) {
     }
   }
   return seriesObj;
+}
+
+
+function createMatrix(parent, matrixObj) {
+  // by default do not round matrix numbers
+  const nDecimals = matrixObj.Settings.NumDecimals || -1;
+  var matrixParent = document.createElement("div");
+  $(matrixParent).addClass("rephrase-matrix");
+  // apply custom css class to .rephrase-matrix div
+  if (matrixObj.Settings.Class && (typeof matrixObj.Settings.Class === "string"
+    || matrixObj.Settings.Class instanceof Array)) {
+    $(matrixParent).addClass(matrixObj.Settings.Class);
+  }
+  parent.appendChild(matrixParent);
+  // create title
+  if (matrixObj.Title) {
+    var matrixTitle = document.createElement("div");
+    $(matrixTitle).addClass(["rephrase-matrix-title", "h3"]);
+    matrixTitle.innerText = matrixObj.Title;
+    matrixParent.appendChild(matrixTitle);
+  }
+  var matrixBodyDiv = document.createElement("div");
+  $(matrixBodyDiv).addClass(["rephrase-matrix-body", "table-scroll"]);
+  matrixParent.appendChild(matrixBodyDiv);
+  // create content
+  if (matrixObj.Content && (matrixObj.Content instanceof Array) && matrixObj.Content.length > 0) {
+    var matrix = document.createElement("table");
+    $(matrix).addClass(["rephrase-matrix-table", "hover", "unstriped"]);
+    // apply custom css class to .rephrase-chart div
+    if (matrixObj.Settings.Class && (typeof matrixObj.Settings.Class === "string"
+      || matrixObj.Settings.Class instanceof Array)) {
+      $(matrix).addClass(matrixObj.Settings.Class);
+    }
+    matrixBodyDiv.appendChild(matrix);
+    // initiate matrix header column if needed
+    const hasColNames = (matrixObj.Settings.ColNames && (matrixObj.Settings.ColNames instanceof Array) && matrixObj.Settings.ColNames.length > 0);
+    const hasRowNames = (matrixObj.Settings.RowNames && (matrixObj.Settings.RowNames instanceof Array) && matrixObj.Settings.RowNames.length > 0);
+    if (hasColNames) {
+      var thead = document.createElement("thead");
+      $(thead).addClass('rephrase-matrix-header');
+      matrix.appendChild(thead);
+      var theadRow = document.createElement("tr");
+      thead.appendChild(theadRow);
+      if (hasRowNames) {
+        var theadFirstCell = document.createElement("th");
+        $(theadFirstCell).addClass(['rephrase-matrix-header-cell', 'rephrase-matrix-header-cell-col', 'rephrase-matrix-header-cell-row']);
+        theadRow.appendChild(theadFirstCell);
+      }
+      for (let i = 0; i < matrixObj.Settings.ColNames.length; i++) {
+        const cName = matrixObj.Settings.ColNames[i];
+        var theadCell = document.createElement("th");
+        $(theadCell).addClass(['rephrase-matrix-header-cell', 'rephrase-matrix-header-cell-col']);
+        theadCell.innerText = cName;
+        theadRow.appendChild(theadCell);
+      }
+    }
+    var tbody = document.createElement("tbody");
+    $(tbody).addClass('rephrase-matrix-table-body');
+    matrix.appendChild(tbody);
+    // populate table body
+    for (var i = 0; i < matrixObj.Content.length; i++) {
+      var tbodyRow = document.createElement("tr");
+      tbody.appendChild(tbodyRow);
+      const matrixRow = matrixObj.Content[i];
+      if (hasRowNames) {
+        const rName = matrixObj.Settings.RowNames[i];
+        var theadCell = document.createElement("th");
+        $(theadCell).addClass(['rephrase-matrix-header-cell', 'rephrase-matrix-header-cell-row']);
+        theadCell.innerText = rName;
+        tbodyRow.appendChild(theadCell);
+      }
+      for (let j = 0; j < matrixRow.length; j++) {
+        const v = (nDecimals === -1) ? matrixRow[j] : matrixRow[j].toFixed(nDecimals);
+        var tbodyDataCell = document.createElement("td");
+        $(tbodyDataCell).addClass('rephrase-matrix-data-cell');
+        tbodyDataCell.innerText = v;
+        tbodyRow.appendChild(tbodyDataCell);
+      }
+    }
+  }
 }
 
 function createTextBlock(parent, textObj) {
@@ -845,6 +926,9 @@ function addReportElement(parentElement, elementObj, parentObjSettings) {
       break;
     case "table":
       $ru.createTable(parentElement, elementObj);
+      break;
+    case "matrix":
+      $ru.createMatrix(parentElement, elementObj);
       break;
     case "grid":
       $ru.createGrid(parentElement, elementObj);
