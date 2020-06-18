@@ -308,6 +308,12 @@ h6, .h6 {
   display: none;
 }
 
+.hljs-bold {
+  /* color: #998;
+  font-style: italic; */
+  font-weight: bold;
+}
+
 @media (max-width: 639px) {
   /* small screens */
   .left-logo-img, .right-logo-img {
@@ -395,7 +401,7 @@ h6, .h6 {
     page-break-before: always!important;
     clear: both!important;
   }
-  .rephrase-diff-table-button-group{
+  .rephrase-diff-table-button-group {
     display: none;
   }
   @page {

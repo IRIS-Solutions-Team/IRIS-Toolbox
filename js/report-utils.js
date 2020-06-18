@@ -519,8 +519,9 @@ function createTextBlock(parent, textObj) {
           + (validLang ? " language-" + validLang : "")
           + "\">" + hljs.highlight(validLang, code).value
           + "</code></pre>";
+        
         // add IRIS specific highlighting on the top of MATLAB's
-        return (isIris) ? postProcessIrisCode(theCode) : theCode;
+        return (isIris) ? postProcessIrisCode(postProcessMatlabCode(theCode)) : postProcessMatlabCode(theCode);
       }
       marked.setOptions({
         renderer: renderer
@@ -534,6 +535,15 @@ function createTextBlock(parent, textObj) {
       });
     }
   }
+}
+
+function postProcessMatlabCode(code) {
+  // add missing stuff to Matlab highlighting
+
+  // make %%-comments bold
+  code = code.replace(/(\<span class\=['"]hljs\-comment)(['"]\>\s*%%\s+.*?\<\/span\>)/gim, "$1 hljs-bold$2");
+
+  return code;
 }
 
 function postProcessIrisCode(code) {
