@@ -547,7 +547,7 @@ function getColorList(nColors) {
   return colorList;
 }
 
-function createTable(parent, tableObj, isDiffTable) {
+function createTable(parent, tableObj) {
   // create a div to wrap the table
   var tableParent = document.createElement("div");
   $(tableParent).addClass(["rephrase-table-parent", "table-scroll"]);
@@ -565,6 +565,7 @@ function createTable(parent, tableObj, isDiffTable) {
     "Baseline": false,
     "Alternative": false
   };
+  const isDiffTable = tableObj.Content.findIndex(function (el) { return el.Type.toLowerCase() === "diffseries"; }) !== -1;
   if (isDiffTable) {
     // create button group
     var buttonGroup = document.createElement("div");
@@ -660,7 +661,7 @@ function createTable(parent, tableObj, isDiffTable) {
     // create title cell
     if (isSeries) {
       tableRowObj.Settings = appendObjSettings(tableRowObj.Settings || {}, tableObj.Settings || {});
-      $ru.createTableSeries(tbodyRow, tableRowObj, isDiffTable);
+      $ru.createTableSeries(tbodyRow, tableRowObj);
     } else {
       var tbodyTitleCell = document.createElement("td");
       $(tbodyTitleCell).addClass('h5');
@@ -711,7 +712,7 @@ function createTable(parent, tableObj, isDiffTable) {
   }
 }
 
-function createTableSeries(tbodyRow, tableRowObj, isDiffTable) {
+function createTableSeries(tbodyRow, tableRowObj) {
   // number of decimals when showing numbers
   const nDecimals = tableRowObj.Settings.NumDecimals || 2;
   var tbodyTitleCell = document.createElement("td");
@@ -833,10 +834,7 @@ function addReportElement(parentElement, elementObj, parentObjSettings) {
       $ru.createChart(parentElement, elementObj);
       break;
     case "table":
-      $ru.createTable(parentElement, elementObj, false);
-      break;
-    case "difftable":
-      $ru.createTable(parentElement, elementObj, true);
+      $ru.createTable(parentElement, elementObj);
       break;
     case "grid":
       $ru.createGrid(parentElement, elementObj);
