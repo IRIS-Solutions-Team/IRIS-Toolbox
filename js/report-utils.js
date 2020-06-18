@@ -467,12 +467,39 @@ function postProcessIrisCode(code) {
 }
 
 function momentJsDateFormatToD3TimeFormat(dateFormat) {
-  var d3TimeFormat = dateFormat.replace("YYYY", "%Y");
+  // percent sign has a special meaning in D3
+  var d3TimeFormat = dateFormat.replace("%", "%%");
+  // moment.js [] escape -- temporary take them out
+  var escaped = [];
+  var re = /\[(.*?)\]/ig;
+  var match = re.exec(d3TimeFormat);
+  while(match !== null){
+    escaped.push(match[1]);
+    match = re.exec(d3TimeFormat);
+  }
+  d3TimeFormat = d3TimeFormat.replace(re, "[]");
+  // years
+  d3TimeFormat = d3TimeFormat.replace("YYYY", "%Y");
   d3TimeFormat = d3TimeFormat.replace("YY", "%y");
+  // quarters
+  d3TimeFormat = d3TimeFormat.replace("QQ", "0%q");
   d3TimeFormat = d3TimeFormat.replace("Q", "%q");
+  // months
   d3TimeFormat = d3TimeFormat.replace("MMMM", "%B");
   d3TimeFormat = d3TimeFormat.replace("MMM", "%b");
   d3TimeFormat = d3TimeFormat.replace("MM", "%m");
+  d3TimeFormat = d3TimeFormat.replace("M", "%-m");
+  // week days
+  d3TimeFormat = d3TimeFormat.replace("dddd", "%A");
+  d3TimeFormat = d3TimeFormat.replace("ddd", "%a");
+  // days
+  d3TimeFormat = d3TimeFormat.replace("DDDD", "%j");
+  d3TimeFormat = d3TimeFormat.replace("DDD", "%j");
+  d3TimeFormat = d3TimeFormat.replace("DD", "%d");
+  d3TimeFormat = d3TimeFormat.replace("D", "%-d");
+  // moment.js [] escape -- put them back
+  var i = 0;
+  d3TimeFormat = d3TimeFormat.replace(/\[\]/g, function () { return escaped[i++]; });
   return d3TimeFormat;
 }
 
