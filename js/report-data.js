@@ -37,6 +37,7 @@ var $reportWithoutData = {
           "Baseline": "Baseline",
           "Alternative": "Alternative"
         },
+        "Method": "Difference", // "Ratio", "Percent"
         "Dates": [
           "2020-02-15",
           "2020-05-15",
@@ -65,7 +66,8 @@ var $reportWithoutData = {
           "Type": "DIFFSERIES",
           "Title": "Series 1 very-long-unbreakable-series1-title-and-more",
           "Settings": {
-            "Class": ""
+            "Class": "",
+            "Method": "Ratio"
           },
           "Content": ["IbSWJNMuIiKbocfQKqXb", "NnAKUXChhnRnQmWsknGy"]
         },
@@ -89,7 +91,9 @@ var $reportWithoutData = {
           "Type": "DIFFSERIES",
           "Title": "Series 3",
           "Settings": {
-            "Class": ""
+            "Class": "",
+            "NumDecimals": 1,
+            "Method": "Percent"
           },
           "Content": ["CpMjJjtGOeWOzwxpAAQP", "qWwjVYwfnvEnFKlgpqwA"]
         },
@@ -628,12 +632,12 @@ var $reportWithoutData = {
           "Content": "hnewnpwgzKmOdualajhn"
         },
         {
-          "Type": "SERIES",
+          "Type": "DIFFSERIES",
           "Title": "Series 4002",
           "Settings": {
             "Class": ""
           },
-          "Content": "KHClOltUSuqFVVErSxVb"
+          "Content": ["KHClOltUSuqFVVErSxVb", "KHClOltUSuqFVVErSxVb"]
         },
         {
           "Type": "SERIES",

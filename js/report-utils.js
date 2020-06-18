@@ -571,25 +571,28 @@ function createTable(parent, tableObj) {
     var buttonGroup = document.createElement("div");
     $(buttonGroup).addClass(["small", "button-group", "rephrase-diff-table-button-group"]);
     var showDiffBtn = document.createElement("a");
-    showDiffBtn.innerText = "Show/Hide Difference";
+    showDiffBtn.innerText = "Hide Difference";
     $(showDiffBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-diff"]);
     if (!tableObj.Settings.DisplayRows.Diff) {
+      showDiffBtn.innerText = "Show Difference";
       $(showDiffBtn).addClass("hollow");
     }
     showDiffBtn.addEventListener("click", onBtnClick, false);
     buttonGroup.appendChild(showDiffBtn);
     var showBaselineBtn = document.createElement("a");
-    showBaselineBtn.innerText = "Show/Hide Baseline";
+    showBaselineBtn.innerText = "Hide Baseline";
     $(showBaselineBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-baseline"]);
     if (!tableObj.Settings.DisplayRows.Baseline) {
+      showBaselineBtn.innerText = "Show Baseline";
       $(showBaselineBtn).addClass("hollow");
     }
     showBaselineBtn.addEventListener("click", onBtnClick, false);
     buttonGroup.appendChild(showBaselineBtn);
     var showAlternativeBtn = document.createElement("a");
-    showAlternativeBtn.innerText = "Show/Hide Alternative Rows";
+    showAlternativeBtn.innerText = "Hide Alternative";
     $(showAlternativeBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-alternative"]);
     if (!tableObj.Settings.DisplayRows.Alternative) {
+      showAlternativeBtn.innerText = "Show Alternative";
       $(showAlternativeBtn).addClass("hollow");
     }
     showAlternativeBtn.addEventListener("click", onBtnClick, false);
@@ -691,10 +694,12 @@ function createTable(parent, tableObj) {
     if ($(thisBtn).hasClass("hollow")) {
       // toggle ON
       $(thisBtn).removeClass("hollow");
+      thisBtn.innerText = thisBtn.innerText.replace("Show", "Hide");
       toggleRows(tableParent, "show", btnType);
     } else if (!($(otherBtn1).hasClass("hollow") && $(otherBtn2).hasClass("hollow"))) {
       // toggle OFF (if the other buttons are not OFF both)
       $(thisBtn).addClass("hollow");
+      thisBtn.innerText = thisBtn.innerText.replace("Hide", "Show");
       toggleRows(tableParent, "hide", btnType);
     }
   }
@@ -715,6 +720,7 @@ function createTable(parent, tableObj) {
 function createTableSeries(tbodyRow, tableRowObj) {
   // number of decimals when showing numbers
   const nDecimals = tableRowObj.Settings.NumDecimals || 2;
+  const diffMethod = (tableRowObj.Settings.Method || "Difference").toLowerCase();
   var tbodyTitleCell = document.createElement("td");
   $(tbodyTitleCell).addClass('rephrase-table-data-row-title');
   tbodyTitleCell.innerText = tableRowObj.Title || "";
@@ -737,7 +743,7 @@ function createTableSeries(tbodyRow, tableRowObj) {
     $(baselineRowTitleCell).addClass(['rephrase-table-data-row-title', 'rephrase-diff-table-data-row-baseline-title']);
     baselineRowTitleCell.innerText = (tableRowObj.Settings.RowTitles && tableRowObj.Settings.RowTitles.Baseline)
       ? tableRowObj.Settings.RowTitles.Baseline
-      : "Series 1";
+      : "Baseline";
     baselineRow.appendChild(baselineRowTitleCell);
     var alternativeRow = document.createElement("tr");
     $(alternativeRow).addClass("rephrase-diff-table-data-row-alternative");
@@ -745,7 +751,7 @@ function createTableSeries(tbodyRow, tableRowObj) {
     $(alternativeRowTitleCell).addClass(['rephrase-table-data-row-title', 'rephrase-diff-table-data-row-alternative-title']);
     alternativeRowTitleCell.innerText = (tableRowObj.Settings.RowTitles && tableRowObj.Settings.RowTitles.Alternative)
       ? tableRowObj.Settings.RowTitles.Alternative
-      : "Series 2";
+      : "Alternative";
     alternativeRow.appendChild(alternativeRowTitleCell);
     var baselineSeries = (typeof tableRowObj.Content[0] === "string")
       ? $ru.databank.getSeriesContent(tableRowObj.Content[0])
@@ -756,7 +762,11 @@ function createTableSeries(tbodyRow, tableRowObj) {
     for (var j = 0; j < Math.max(baselineSeries.Values.length, alternativeSeries.Values.length); j++) {
       const v1 = baselineSeries.Values[j];
       const v2 = alternativeSeries.Values[j];
-      const vDiff = v1 - v2;
+      const vDiff = (diffMethod === "ratio")
+        ? v1 / v2
+        : ((diffMethod === "percent")
+          ? 100 * (v1 - v2) / v2
+          : v1 - v2); // difference
       var baselineDataCell = document.createElement("td");
       $(baselineDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-baseline']);
       baselineDataCell.innerText = v1.toFixed(nDecimals);
@@ -767,7 +777,7 @@ function createTableSeries(tbodyRow, tableRowObj) {
       alternativeRow.appendChild(alternativeDataCell);
       var diffDataCell = document.createElement("td");
       $(diffDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-diff']);
-      diffDataCell.innerText = vDiff.toFixed(nDecimals);
+      diffDataCell.innerText = vDiff.toFixed(nDecimals) + ((diffMethod === "percent") ? "%" : "");
       diffRow.appendChild(diffDataCell);
     }
     $(tbodyRow).after(baselineRow);
