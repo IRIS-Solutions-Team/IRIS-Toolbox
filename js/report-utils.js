@@ -543,6 +543,8 @@ function postProcessIrisCode(code) {
 
   // make all words starting with "!" a keywords (.hljs-keyword)
   code = code.replace(/(![a-zA-Z_]*)/gim, "<span class='hljs-keyword'>$1</span>");
+  // highlight lags and leads (.hljs-symbol)
+  code = code.replace(/\{\<span class\=['"]hljs\-number['"]\>([\+\-]?\d+)\<\/span\>\}/gim, "<span class='hljs-symbol'>{$1}</span>");
 
   return code;
 }
