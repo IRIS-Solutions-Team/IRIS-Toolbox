@@ -89,8 +89,8 @@ h6, .h6 {
   text-align: center;
 }
 
-.rephrase-chart-canvas {
-  /* chart CANVAS */
+.rephrase-chart-body {
+  /* chart CANVAS/SVG parent */
   /* nothing so far */
 }
 
@@ -152,6 +152,84 @@ h6, .h6 {
 
 .rephrase-table-data-cell {
   /* table TD element containing series data cell */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button-group {
+  /* button group shown in the header of DIFF table */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button {
+  /* any button from the DIFF table button group */
+  font-weight: normal;
+}
+
+.rephrase-diff-table-button-show-diff {
+  /* "show diff" button from the DIFF table button group */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button-show-baseline {
+  /* "show baseline" button from the DIFF table button group */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button-show-alternative {
+  /* "show alternative" button from the DIFF table button group */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-title {
+  /* common title for the diff table row */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-diff-title {
+  /*title for the diff row of the diff table */
+  font-weight: normal;
+  text-align: right;
+}
+
+.rephrase-diff-table-data-row-baseline-title {
+  /*title for the baseline row of the diff table */
+  font-weight: normal;
+  text-align: right;
+}
+
+.rephrase-diff-table-data-row-alternative-title {
+  /*title for the alternative row of the diff table */
+  font-weight: normal;
+  text-align: right;
+}
+
+.rephrase-diff-table-data-row-diff {
+  /* diff table TR element containing diff series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-baseline {
+  /* diff table TR element containing baseline series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-alternative {
+  /* diff table TR element containing alternative series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-cell-diff {
+  /* diff table TD element containing diff series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-cell-baseline {
+  /* diff table TD element containing baseline series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-cell-alternative {
+  /* diff table TD element containing alternative series data */
   /* nothing so far */
 }
 
@@ -233,7 +311,7 @@ h6, .h6 {
     max-width: 100%;
     width: auto!important;
   }
-  .rephrase-chart-canvas {
+  .rephrase-chart-body {
     min-height: 100%;
     max-width: 100%;
     max-height: 100%;
@@ -245,11 +323,11 @@ h6, .h6 {
   .rephrase-grid {
     width: auto!important;
     max-width: 100%;
-    min-height: 100%;
-    max-height: 100%;
+    /* min-height: 100%;
+    max-height: 100%; */
     /* this is to be agreed */
-    break-inside: avoid;
-    page-break-inside: avoid;
+    /* break-inside: avoid;
+    page-break-inside: avoid; */
   }
   .rephrase-grid {
     /* exact combination to be figured out */
@@ -269,7 +347,7 @@ h6, .h6 {
     break-before: always!important;
     /* though this one is outdated but the only working one */
     page-break-before: always!important;
-    /* clear: both!important; */
+    clear: both!important;
   }
   @page {
     size: landscape;
