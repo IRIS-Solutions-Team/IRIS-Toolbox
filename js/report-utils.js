@@ -16,6 +16,7 @@ var $ru = {
   addReportElement: addReportElement,
   getColorList: getColorList,
   addPageBreak: addPageBreak,
+  createWrapper: createWrapper,
   createTextBlock: createTextBlock,
   appendObjSettings: appendObjSettings,
   momentJsDateFormatToD3TimeFormat: momentJsDateFormatToD3TimeFormat,
@@ -519,7 +520,6 @@ function createTextBlock(parent, textObj) {
           + (validLang ? " language-" + validLang : "")
           + "\">" + hljs.highlight(validLang, code).value
           + "</code></pre>";
-        
         // add IRIS specific highlighting on the top of MATLAB's
         return (isIris) ? postProcessIrisCode(postProcessMatlabCode(theCode)) : postProcessMatlabCode(theCode);
       }
@@ -926,6 +926,14 @@ function createGrid(parent, gridObj) {
   }
 }
 
+// wrapper element for cascading its settings down the ladder
+function createWrapper(parent, wrapperObj) {
+  for (let i = 0; i < wrapperObj.Content.length; i++) {
+    const elementObj = wrapperObj.Content[i];
+    $ru.addReportElement(parent, elementObj, wrapperObj.Settings);
+  }
+}
+
 function addReportElement(parentElement, elementObj, parentObjSettings) {
   // do nothing if smth. is wrong
   if (!elementObj || !(typeof elementObj === "object") || !elementObj.hasOwnProperty("Type")) {
@@ -947,6 +955,9 @@ function addReportElement(parentElement, elementObj, parentObjSettings) {
       break;
     case "text":
       $ru.createTextBlock(parentElement, elementObj);
+      break;
+    case "wrapper":
+      $ru.createWrapper(parentElement, elementObj);
       break;
     case "pagebreak":
       $ru.addPageBreak(parentElement, elementObj);
