@@ -45,7 +45,7 @@ function createChart(parent, chartObj) {
   }
   parent.appendChild(chartParent);
   // whether to include title in canvas or make it a separate div
-  const titleOutOfCanvas = (chartObj.Settings.hasOwnProperty("IsTitlePartOfChart") && !chartObj.Settings.IsTitlePartOfChart);
+  const titleOutOfCanvas = (chartObj.Settings.hasOwnProperty("DisplayTitle") && !chartObj.Settings.IsTitlePartOfChart);
   // create chart title
   const chartTitle = chartObj.Title || "";
   if (chartTitle && titleOutOfCanvas) {
