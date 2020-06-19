@@ -74,7 +74,7 @@ file = hereReadFromFile( );
 hereRemoveUTFBOM( );
 
 % Convert any EOLs to \n
-file = textfun.converteols(file);
+file = textual.convertEndOfLines(file);
 
 if splitByLines
     hereConvertToCell( );

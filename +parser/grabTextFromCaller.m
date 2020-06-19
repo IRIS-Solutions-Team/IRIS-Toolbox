@@ -22,7 +22,7 @@ inputFileName = stack(2).file;
 
 % Read the m-file and convert all end-of-lines to \n.
 file = file2char(inputFileName);
-file = textfun.converteols(file);
+file = textual.convertEndOfLines(file);
 
 % Find the following block comment
 %{

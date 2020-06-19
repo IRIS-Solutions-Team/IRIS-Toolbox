@@ -57,7 +57,7 @@ char2file(c,FName);
 %**************************************************************************
     function dothrowerror( )
         x = c(pos-20:pos+20);
-        x = textfun.converteols(x);
+        x = textual.convertEndOfLines(x);
         x = strrep(x,char(10),' ');
         utils.error('latex', ...
             'Syntax error in LaTeX \\matlab command: ''...%s...''.',x);
