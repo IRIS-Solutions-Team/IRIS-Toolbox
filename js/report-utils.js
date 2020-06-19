@@ -12,9 +12,11 @@ var $ru = {
   createTable: createTable,
   createTableSeries: createTableSeries,
   createGrid: createGrid,
+  createMatrix: createMatrix,
   addReportElement: addReportElement,
   getColorList: getColorList,
   addPageBreak: addPageBreak,
+  createWrapper: createWrapper,
   createTextBlock: createTextBlock,
   appendObjSettings: appendObjSettings,
   momentJsDateFormatToD3TimeFormat: momentJsDateFormatToD3TimeFormat,
@@ -406,6 +408,86 @@ function createSeriesForPlotly(title, dates, values, seriesType, colors) {
   return seriesObj;
 }
 
+
+function createMatrix(parent, matrixObj) {
+  // by default do not round matrix numbers
+  const nDecimals = matrixObj.Settings.NumDecimals || -1;
+  var matrixParent = document.createElement("div");
+  $(matrixParent).addClass("rephrase-matrix");
+  // apply custom css class to .rephrase-matrix div
+  if (matrixObj.Settings.Class && (typeof matrixObj.Settings.Class === "string"
+    || matrixObj.Settings.Class instanceof Array)) {
+    $(matrixParent).addClass(matrixObj.Settings.Class);
+  }
+  parent.appendChild(matrixParent);
+  // create title
+  if (matrixObj.Title) {
+    var matrixTitle = document.createElement("div");
+    $(matrixTitle).addClass(["rephrase-matrix-title", "h3"]);
+    matrixTitle.innerText = matrixObj.Title;
+    matrixParent.appendChild(matrixTitle);
+  }
+  var matrixBodyDiv = document.createElement("div");
+  $(matrixBodyDiv).addClass(["rephrase-matrix-body", "table-scroll"]);
+  matrixParent.appendChild(matrixBodyDiv);
+  // create content
+  if (matrixObj.Content && (matrixObj.Content instanceof Array) && matrixObj.Content.length > 0) {
+    var matrix = document.createElement("table");
+    $(matrix).addClass(["rephrase-matrix-table", "hover", "unstriped"]);
+    // apply custom css class to .rephrase-chart div
+    if (matrixObj.Settings.Class && (typeof matrixObj.Settings.Class === "string"
+      || matrixObj.Settings.Class instanceof Array)) {
+      $(matrix).addClass(matrixObj.Settings.Class);
+    }
+    matrixBodyDiv.appendChild(matrix);
+    // initiate matrix header column if needed
+    const hasColNames = (matrixObj.Settings.ColNames && (matrixObj.Settings.ColNames instanceof Array) && matrixObj.Settings.ColNames.length > 0);
+    const hasRowNames = (matrixObj.Settings.RowNames && (matrixObj.Settings.RowNames instanceof Array) && matrixObj.Settings.RowNames.length > 0);
+    if (hasColNames) {
+      var thead = document.createElement("thead");
+      $(thead).addClass('rephrase-matrix-header');
+      matrix.appendChild(thead);
+      var theadRow = document.createElement("tr");
+      thead.appendChild(theadRow);
+      if (hasRowNames) {
+        var theadFirstCell = document.createElement("th");
+        $(theadFirstCell).addClass(['rephrase-matrix-header-cell', 'rephrase-matrix-header-cell-col', 'rephrase-matrix-header-cell-row']);
+        theadRow.appendChild(theadFirstCell);
+      }
+      for (let i = 0; i < matrixObj.Settings.ColNames.length; i++) {
+        const cName = matrixObj.Settings.ColNames[i];
+        var theadCell = document.createElement("th");
+        $(theadCell).addClass(['rephrase-matrix-header-cell', 'rephrase-matrix-header-cell-col']);
+        theadCell.innerText = cName;
+        theadRow.appendChild(theadCell);
+      }
+    }
+    var tbody = document.createElement("tbody");
+    $(tbody).addClass('rephrase-matrix-table-body');
+    matrix.appendChild(tbody);
+    // populate table body
+    for (var i = 0; i < matrixObj.Content.length; i++) {
+      var tbodyRow = document.createElement("tr");
+      tbody.appendChild(tbodyRow);
+      const matrixRow = matrixObj.Content[i];
+      if (hasRowNames) {
+        const rName = matrixObj.Settings.RowNames[i];
+        var theadCell = document.createElement("th");
+        $(theadCell).addClass(['rephrase-matrix-header-cell', 'rephrase-matrix-header-cell-row']);
+        theadCell.innerText = rName;
+        tbodyRow.appendChild(theadCell);
+      }
+      for (let j = 0; j < matrixRow.length; j++) {
+        const v = (nDecimals === -1) ? matrixRow[j] : matrixRow[j].toFixed(nDecimals);
+        var tbodyDataCell = document.createElement("td");
+        $(tbodyDataCell).addClass('rephrase-matrix-data-cell');
+        tbodyDataCell.innerText = v;
+        tbodyRow.appendChild(tbodyDataCell);
+      }
+    }
+  }
+}
+
 function createTextBlock(parent, textObj) {
   var textParent = document.createElement("div");
   $(textParent).addClass("rephrase-text-block");
@@ -439,7 +521,7 @@ function createTextBlock(parent, textObj) {
           + "\">" + hljs.highlight(validLang, code).value
           + "</code></pre>";
         // add IRIS specific highlighting on the top of MATLAB's
-        return (isIris) ? postProcessIrisCode(theCode) : theCode;
+        return (isIris) ? postProcessIrisCode(postProcessMatlabCode(theCode)) : postProcessMatlabCode(theCode);
       }
       marked.setOptions({
         renderer: renderer
@@ -455,6 +537,15 @@ function createTextBlock(parent, textObj) {
   }
 }
 
+function postProcessMatlabCode(code) {
+  // add missing stuff to Matlab highlighting
+
+  // make %%-comments bold
+  code = code.replace(/(\<span class\=['"]hljs\-comment)(['"]\>\s*%%\s+.*?\<\/span\>)/gim, "$1 hljs-bold$2");
+
+  return code;
+}
+
 function postProcessIrisCode(code) {
   // add hljs classes to IRIS specific keywords
 
@@ -462,17 +553,46 @@ function postProcessIrisCode(code) {
 
   // make all words starting with "!" a keywords (.hljs-keyword)
   code = code.replace(/(![a-zA-Z_]*)/gim, "<span class='hljs-keyword'>$1</span>");
+  // highlight lags and leads (.hljs-symbol)
+  code = code.replace(/\{\<span class\=['"]hljs\-number['"]\>([\+\-]?\d+)\<\/span\>\}/gim, "<span class='hljs-symbol'>{$1}</span>");
 
   return code;
 }
 
 function momentJsDateFormatToD3TimeFormat(dateFormat) {
-  var d3TimeFormat = dateFormat.replace("YYYY", "%Y");
+  // percent sign has a special meaning in D3
+  var d3TimeFormat = dateFormat.replace("%", "%%");
+  // moment.js [] escape -- temporary take them out
+  var escaped = [];
+  var re = /\[(.*?)\]/ig;
+  var match = re.exec(d3TimeFormat);
+  while (match !== null) {
+    escaped.push(match[1]);
+    match = re.exec(d3TimeFormat);
+  }
+  d3TimeFormat = d3TimeFormat.replace(re, "[]");
+  // years
+  d3TimeFormat = d3TimeFormat.replace("YYYY", "%Y");
   d3TimeFormat = d3TimeFormat.replace("YY", "%y");
+  // quarters
+  d3TimeFormat = d3TimeFormat.replace("QQ", "0%q");
   d3TimeFormat = d3TimeFormat.replace("Q", "%q");
+  // months
   d3TimeFormat = d3TimeFormat.replace("MMMM", "%B");
   d3TimeFormat = d3TimeFormat.replace("MMM", "%b");
   d3TimeFormat = d3TimeFormat.replace("MM", "%m");
+  d3TimeFormat = d3TimeFormat.replace("M", "%-m");
+  // week days
+  d3TimeFormat = d3TimeFormat.replace("dddd", "%A");
+  d3TimeFormat = d3TimeFormat.replace("ddd", "%a");
+  // days
+  d3TimeFormat = d3TimeFormat.replace("DDDD", "%j");
+  d3TimeFormat = d3TimeFormat.replace("DDD", "%j");
+  d3TimeFormat = d3TimeFormat.replace("DD", "%d");
+  d3TimeFormat = d3TimeFormat.replace("D", "%-d");
+  // moment.js [] escape -- put them back
+  var i = 0;
+  d3TimeFormat = d3TimeFormat.replace(/\[\]/g, function () { return escaped[i++]; });
   return d3TimeFormat;
 }
 
@@ -520,7 +640,7 @@ function getColorList(nColors) {
   return colorList;
 }
 
-function createTable(parent, tableObj, isDiffTable) {
+function createTable(parent, tableObj) {
   // create a div to wrap the table
   var tableParent = document.createElement("div");
   $(tableParent).addClass(["rephrase-table-parent", "table-scroll"]);
@@ -538,30 +658,34 @@ function createTable(parent, tableObj, isDiffTable) {
     "Baseline": false,
     "Alternative": false
   };
+  const isDiffTable = tableObj.Content.findIndex(function (el) { return el.Type.toLowerCase() === "diffseries"; }) !== -1;
   if (isDiffTable) {
     // create button group
     var buttonGroup = document.createElement("div");
     $(buttonGroup).addClass(["small", "button-group", "rephrase-diff-table-button-group"]);
     var showDiffBtn = document.createElement("a");
-    showDiffBtn.innerText = "Show/Hide Difference";
+    showDiffBtn.innerText = "Hide Difference";
     $(showDiffBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-diff"]);
     if (!tableObj.Settings.DisplayRows.Diff) {
+      showDiffBtn.innerText = "Show Difference";
       $(showDiffBtn).addClass("hollow");
     }
     showDiffBtn.addEventListener("click", onBtnClick, false);
     buttonGroup.appendChild(showDiffBtn);
     var showBaselineBtn = document.createElement("a");
-    showBaselineBtn.innerText = "Show/Hide Baseline";
+    showBaselineBtn.innerText = "Hide Baseline";
     $(showBaselineBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-baseline"]);
     if (!tableObj.Settings.DisplayRows.Baseline) {
+      showBaselineBtn.innerText = "Show Baseline";
       $(showBaselineBtn).addClass("hollow");
     }
     showBaselineBtn.addEventListener("click", onBtnClick, false);
     buttonGroup.appendChild(showBaselineBtn);
     var showAlternativeBtn = document.createElement("a");
-    showAlternativeBtn.innerText = "Show/Hide Alternative Rows";
+    showAlternativeBtn.innerText = "Hide Alternative";
     $(showAlternativeBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-alternative"]);
     if (!tableObj.Settings.DisplayRows.Alternative) {
+      showAlternativeBtn.innerText = "Show Alternative";
       $(showAlternativeBtn).addClass("hollow");
     }
     showAlternativeBtn.addEventListener("click", onBtnClick, false);
@@ -604,19 +728,27 @@ function createTable(parent, tableObj, isDiffTable) {
     const tableRowObj = tableObj.Content[i];
     // skip this entry if it's neither a SERIES nor HEADING or if smth. else is wrong
     if (!tableRowObj.hasOwnProperty("Type")
-      || ["series", "heading"].indexOf(tableRowObj.Type.toLowerCase()) === -1
+      || ["diffseries", "series", "heading"].indexOf(tableRowObj.Type.toLowerCase()) === -1
       || (tableRowObj.Type.toLowerCase() === "series"
         && (!tableRowObj.hasOwnProperty("Content")
-          || !((tableRowObj.Content instanceof Array)
-            || (typeof tableRowObj.Content === "string")
+          || !((typeof tableRowObj.Content === "string")
             || (typeof tableRowObj.Content === "object"
               && tableRowObj.Content.hasOwnProperty("Dates")
               && tableRowObj.Content.hasOwnProperty("Values")
               && (dates instanceof Array)
-              && tableRowObj.Content.Values.length === dates.length))))) {
+              && tableRowObj.Content.Values.length === dates.length))))
+      || (tableRowObj.Type.toLowerCase() === "diffseries"
+        && (!tableRowObj.hasOwnProperty("Content")
+          || !((tableRowObj.Content instanceof Array)
+            && ((typeof tableRowObj.Content[0] === "string")
+              || (typeof tableRowObj.Content[0] === "object"
+                && tableRowObj.Content[0].hasOwnProperty("Dates")
+                && tableRowObj.Content[0].hasOwnProperty("Values")
+                && (dates instanceof Array)
+                && tableRowObj.Content[0].Values.length === dates.length)))))) {
       continue;
     }
-    const isSeries = (tableRowObj.Type.toLowerCase() === "series");
+    const isSeries = (["series", "diffseries"].indexOf(tableRowObj.Type.toLowerCase()) !== -1);
     // create new table row
     var tbodyRow = document.createElement("tr");
     tbody.appendChild(tbodyRow);
@@ -625,7 +757,7 @@ function createTable(parent, tableObj, isDiffTable) {
     // create title cell
     if (isSeries) {
       tableRowObj.Settings = appendObjSettings(tableRowObj.Settings || {}, tableObj.Settings || {});
-      $ru.createTableSeries(tbodyRow, tableRowObj, isDiffTable);
+      $ru.createTableSeries(tbodyRow, tableRowObj);
     } else {
       var tbodyTitleCell = document.createElement("td");
       $(tbodyTitleCell).addClass('h5');
@@ -655,10 +787,12 @@ function createTable(parent, tableObj, isDiffTable) {
     if ($(thisBtn).hasClass("hollow")) {
       // toggle ON
       $(thisBtn).removeClass("hollow");
+      thisBtn.innerText = thisBtn.innerText.replace("Show", "Hide");
       toggleRows(tableParent, "show", btnType);
     } else if (!($(otherBtn1).hasClass("hollow") && $(otherBtn2).hasClass("hollow"))) {
       // toggle OFF (if the other buttons are not OFF both)
       $(thisBtn).addClass("hollow");
+      thisBtn.innerText = thisBtn.innerText.replace("Hide", "Show");
       toggleRows(tableParent, "hide", btnType);
     }
   }
@@ -676,15 +810,16 @@ function createTable(parent, tableObj, isDiffTable) {
   }
 }
 
-function createTableSeries(tbodyRow, tableRowObj, isDiffTable) {
+function createTableSeries(tbodyRow, tableRowObj) {
   // number of decimals when showing numbers
   const nDecimals = tableRowObj.Settings.NumDecimals || 2;
+  const diffMethod = (tableRowObj.Settings.Method || "Difference").toLowerCase();
   var tbodyTitleCell = document.createElement("td");
   $(tbodyTitleCell).addClass('rephrase-table-data-row-title');
   tbodyTitleCell.innerText = tableRowObj.Title || "";
   tbodyRow.appendChild(tbodyTitleCell);
   // create data cells
-  if (isDiffTable) {
+  if (tableRowObj.Type.toLowerCase() === "diffseries") {
     $(tbodyRow).addClass("rephrase-diff-table-data-row-title");
     tbodyTitleCell.setAttribute('colspan', tableRowObj.Settings.Dates.length + 1);
     var diffRow = document.createElement("tr");
@@ -701,7 +836,7 @@ function createTableSeries(tbodyRow, tableRowObj, isDiffTable) {
     $(baselineRowTitleCell).addClass(['rephrase-table-data-row-title', 'rephrase-diff-table-data-row-baseline-title']);
     baselineRowTitleCell.innerText = (tableRowObj.Settings.RowTitles && tableRowObj.Settings.RowTitles.Baseline)
       ? tableRowObj.Settings.RowTitles.Baseline
-      : "Series 1";
+      : "Baseline";
     baselineRow.appendChild(baselineRowTitleCell);
     var alternativeRow = document.createElement("tr");
     $(alternativeRow).addClass("rephrase-diff-table-data-row-alternative");
@@ -709,7 +844,7 @@ function createTableSeries(tbodyRow, tableRowObj, isDiffTable) {
     $(alternativeRowTitleCell).addClass(['rephrase-table-data-row-title', 'rephrase-diff-table-data-row-alternative-title']);
     alternativeRowTitleCell.innerText = (tableRowObj.Settings.RowTitles && tableRowObj.Settings.RowTitles.Alternative)
       ? tableRowObj.Settings.RowTitles.Alternative
-      : "Series 2";
+      : "Alternative";
     alternativeRow.appendChild(alternativeRowTitleCell);
     var baselineSeries = (typeof tableRowObj.Content[0] === "string")
       ? $ru.databank.getSeriesContent(tableRowObj.Content[0])
@@ -720,7 +855,11 @@ function createTableSeries(tbodyRow, tableRowObj, isDiffTable) {
     for (var j = 0; j < Math.max(baselineSeries.Values.length, alternativeSeries.Values.length); j++) {
       const v1 = baselineSeries.Values[j];
       const v2 = alternativeSeries.Values[j];
-      const vDiff = v1 - v2;
+      const vDiff = (diffMethod === "ratio")
+        ? v2 / v1
+        : ((diffMethod === "percent")
+          ? 100 * (v2 - v1) / v1
+          : v2 - v1); // difference
       var baselineDataCell = document.createElement("td");
       $(baselineDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-baseline']);
       baselineDataCell.innerText = v1.toFixed(nDecimals);
@@ -731,7 +870,7 @@ function createTableSeries(tbodyRow, tableRowObj, isDiffTable) {
       alternativeRow.appendChild(alternativeDataCell);
       var diffDataCell = document.createElement("td");
       $(diffDataCell).addClass(['rephrase-table-data-cell', 'rephrase-diff-table-data-cell-diff']);
-      diffDataCell.innerText = vDiff.toFixed(nDecimals);
+      diffDataCell.innerText = vDiff.toFixed(nDecimals) + ((diffMethod === "percent") ? "%" : "");
       diffRow.appendChild(diffDataCell);
     }
     $(tbodyRow).after(baselineRow);
@@ -787,6 +926,14 @@ function createGrid(parent, gridObj) {
   }
 }
 
+// wrapper element for cascading its settings down the ladder
+function createWrapper(parent, wrapperObj) {
+  for (let i = 0; i < wrapperObj.Content.length; i++) {
+    const elementObj = wrapperObj.Content[i];
+    $ru.addReportElement(parent, elementObj, wrapperObj.Settings);
+  }
+}
+
 function addReportElement(parentElement, elementObj, parentObjSettings) {
   // do nothing if smth. is wrong
   if (!elementObj || !(typeof elementObj === "object") || !elementObj.hasOwnProperty("Type")) {
@@ -798,16 +945,19 @@ function addReportElement(parentElement, elementObj, parentObjSettings) {
       $ru.createChart(parentElement, elementObj);
       break;
     case "table":
-      $ru.createTable(parentElement, elementObj, false);
+      $ru.createTable(parentElement, elementObj);
       break;
-    case "difftable":
-      $ru.createTable(parentElement, elementObj, true);
+    case "matrix":
+      $ru.createMatrix(parentElement, elementObj);
       break;
     case "grid":
       $ru.createGrid(parentElement, elementObj);
       break;
     case "text":
       $ru.createTextBlock(parentElement, elementObj);
+      break;
+    case "wrapper":
+      $ru.createWrapper(parentElement, elementObj);
       break;
     case "pagebreak":
       $ru.addPageBreak(parentElement, elementObj);
@@ -826,6 +976,9 @@ function appendObjSettings(objSettings, parentSettings) {
   const parentKeys = Object.keys(parentSettings);
   for (let i = 0; i < parentKeys.length; i++) {
     const key = parentKeys[i];
+    if (key.toLowerCase() === "class") {
+      continue
+    }
     if (!objSettings.hasOwnProperty(key)) {
       objSettings[key] = parentSettings[key];
     }

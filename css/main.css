@@ -94,6 +94,52 @@ h6, .h6 {
   /* nothing so far */
 }
 
+.rephrase-matrix {
+  /* matrix parent DIV */
+  /* nothing so far */
+}
+
+.rephrase-matrix-title {
+  /* matrix title DIV */
+  text-align: center;
+}
+
+.rephrase-matrix-body {
+  /* matrix's TABLE parent DIV */
+  /* nothing so far */
+}
+
+.rephrase-matrix-table {
+  /* matrix TABLE element */
+  /* nothing so far */
+}
+
+.rephrase-matrix-table-body {
+  /* matrix TBODY element */
+  /* nothing so far */
+}
+
+.rephrase-matrix-header {
+  /* matrix THEAD element */
+  /* nothing so far */
+}
+
+.rephrase-matrix-header-cell {
+  /* matrix TH element */
+  /* nothing so far */
+}
+
+.rephrase-matrix-header-cell-row {
+  /* matrix TH element containing row names */
+  font-weight: 700;
+  background: #f8f8f8;
+}
+
+.rephrase-matrix-header-cell-col {
+  /* matrix TH element containing column names */
+  /* nothing so far */
+}
+
 .rephrase-table-parent {
   /* table parent DIV */
   /* nothing so far */
@@ -262,6 +308,12 @@ h6, .h6 {
   display: none;
 }
 
+.hljs-bold {
+  /* color: #998;
+  font-style: italic; */
+  font-weight: bold;
+}
+
 @media (max-width: 639px) {
   /* small screens */
   .left-logo-img, .right-logo-img {
@@ -348,6 +400,9 @@ h6, .h6 {
     /* though this one is outdated but the only working one */
     page-break-before: always!important;
     clear: both!important;
+  }
+  .rephrase-diff-table-button-group {
+    display: none;
   }
   @page {
     size: landscape;

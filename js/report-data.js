@@ -18,10 +18,10 @@ var $reportWithoutData = {
         "ParseFormulas": true,
         "HighlightCodeBlocks": true
       },
-      "Content": "---\n\n# Section 1\n## Lorem ipsum dolor sit amet, ne suavitate definiebas eum.\nOmnes integre euismod eum at, mei an placerat antiopam moderatius \\\\(\\alpha+\\lambda\\\\), ut sonet voluptatibus vim. Vivendo noluisse mea ad. $$f(x) = \\int_{-\\infty}^\\infty\n\\hat f\\xi\\,e^{2 \\pi i \\xi x}\n\\,d\\xi$$ Laudem quaerendum qui id. Est vero elit reque eu, sea iisque invidunt id.\n\nEx quas deseruisse liberavisse vel. Cu mei posse causae delicatissimi, ei simul fierent nam. *Placerat percipitur in qui, no vis facete omnium **elaboraret***.\n \n> An brute appareat tacimates quo. \n\nQuando invenire constituto duo et, usu nulla repudiandae cu, mel no virtute quaeque `appellantur`. No usu admodum consequuntur, nec te minim copiosae, vide justo nulla has ne. Vel te alii libris intellegat.\n\n| Tables        | Are           | Cool  |\n| ------------- |:-------------:| -----:|\n| col 3 is      | right-aligned | $1600 |\n| col 2 is      | centered      |   $12 |\n| zebra stripes | are neat      |    $1 |\n\n---\n\n#### Matlab code block\n\n```matlab\ns = 'Matlab syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting';\n% comment\nd = \"sfdfsdfsdf\";\n!variables \ndisp(s);\n```\n\n#### Matlab/IRIS code block\n\n```iris\ns = 'Matlab syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting';\n% comment\nd = \"sfdfsdfsdf\";\n!variables \ndisp(s);\n```\n\n#### JavaScript code block\n\n```javascript\nvar s = \"JavaScript syntax highlighting\";\n// comment\nalert(s);\n```\n\n#### Python code block\n\n```python\ns = \"Python syntax highlighting\"\n# comment\nprint s\n```\n\n#### Julia code block\n\n```julia\n#= comment\nanother comment=#\nf(x::Integer) = 1 + invoke(f, Tuple{Real}, x);\n```\n\n#### R code block\n\n```r\nlibrary(glue)\n\n# comment\nname <- \"Bianca\"\nglue(\"The result of `1 + 2` is {1 + 2}, so says {name}.\")\n```\n\n***"
+      "Content": "---\n\n# Section 1\n## Lorem ipsum dolor sit amet, ne suavitate definiebas eum.\nOmnes integre euismod eum at, mei an placerat antiopam moderatius \\\\(\\alpha+\\lambda\\\\), ut sonet voluptatibus vim. Vivendo noluisse mea ad. $$f(x) = \\int_{-\\infty}^\\infty\n\\hat f\\xi\\,e^{2 \\pi i \\xi x}\n\\,d\\xi$$ Laudem quaerendum qui id. Est vero elit reque eu, sea iisque invidunt id.\n\nEx quas deseruisse liberavisse vel. Cu mei posse causae delicatissimi, ei simul fierent nam. *Placerat percipitur in qui, no vis facete omnium **elaboraret***.\n \n> An brute appareat tacimates quo. \n\nQuando invenire constituto duo et, usu nulla repudiandae cu, mel no virtute quaeque `appellantur`. No usu admodum consequuntur, nec te minim copiosae, vide justo nulla has ne. Vel te alii libris intellegat.\n\n| Tables        | Are           | Cool  |\n| ------------- |:-------------:| -----:|\n| col 3 is      | right-aligned | $1600 |\n| col 2 is      | centered      |   $12 |\n| zebra stripes | are neat      |    $1 |\n\n---\n\n#### Matlab code block\n\n```matlab\ns = 'Matlab syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting';\n% comment\n%% cell title comment\nd = \"sfdfsdfsdf\";\n!variables \ndisp(s);\n```\n\n#### Matlab/IRIS code block\n\n```iris\ns = 'Matlab syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting syntax highlighting';\n% comment\n%% cell title comment\nd = \"sfdfsdfsdf\";\n!variables \ndisp(s);\ndl_y = 4*(l_y-l_y{-1});\n```\n\n#### JavaScript code block\n\n```javascript\nvar s = \"JavaScript syntax highlighting\";\n// comment\nalert(s);\n```\n\n#### Python code block\n\n```python\ns = \"Python syntax highlighting\"\n# comment\nprint s\n```\n\n#### Julia code block\n\n```julia\n#= comment\nanother comment=#\nf(x::Integer) = 1 + invoke(f, Tuple{Real}, x);\n```\n\n#### R code block\n\n```r\nlibrary(glue)\n\n# comment\nname <- \"Bianca\"\nglue(\"The result of `1 + 2` is {1 + 2}, so says {name}.\")\n```\n\n***"
     },
     {
-      "Type": "DIFFTABLE",
+      "Type": "TABLE",
       "Title": "Table 0 (DIFF)",
       "Settings": {
         "Class": "",
@@ -37,6 +37,7 @@ var $reportWithoutData = {
           "Baseline": "Baseline",
           "Alternative": "Alternative"
         },
+        "Method": "Difference", // "Ratio", "Percent"
         "Dates": [
           "2020-02-15",
           "2020-05-15",
@@ -62,20 +63,21 @@ var $reportWithoutData = {
       },
       "Content": [
         {
-          "Type": "SERIES",
+          "Type": "DIFFSERIES",
           "Title": "Series 1 very-long-unbreakable-series1-title-and-more",
           "Settings": {
-            "Class": ""
+            "Class": "",
+            "Method": "Ratio"
           },
           "Content": ["IbSWJNMuIiKbocfQKqXb", "NnAKUXChhnRnQmWsknGy"]
         },
         {
           "Type": "SERIES",
-          "Title": "Series 3",
+          "Title": "Series 2",
           "Settings": {
             "Class": ""
           },
-          "Content": ["iPqBiFnIJMxelVhQBZex", "SGsAudmgjmvcUXzzrUtf"]
+          "Content": "iPqBiFnIJMxelVhQBZex"
         },
         {
           "Type": "HEADING",
@@ -86,64 +88,66 @@ var $reportWithoutData = {
           "Content": null
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 5",
+          "Type": "DIFFSERIES",
+          "Title": "Series 3",
           "Settings": {
-            "Class": ""
+            "Class": "",
+            "NumDecimals": 1,
+            "Method": "Percent"
           },
           "Content": ["CpMjJjtGOeWOzwxpAAQP", "qWwjVYwfnvEnFKlgpqwA"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 7",
+          "Type": "DIFFSERIES",
+          "Title": "Series 4",
           "Settings": {
             "Class": ""
           },
           "Content": ["bUVPfnrJhLfHzOLUUrKk", "dJcdBfQQLhIAYHPxwQeg"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 9",
+          "Type": "DIFFSERIES",
+          "Title": "Series 5",
           "Settings": {
             "Class": ""
           },
           "Content": ["XVcMnvCXvZpKICKIjgZi", "npGnQZLrEfVTQnEbwqij"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 11",
+          "Type": "DIFFSERIES",
+          "Title": "Series 6",
           "Settings": {
             "Class": ""
           },
           "Content": ["OwenhowBxTAXHXmJpIKd", "jLyhrFjMmVnNjoeDJCwH"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 13",
+          "Type": "DIFFSERIES",
+          "Title": "Series 7",
           "Settings": {
             "Class": ""
           },
           "Content": ["ECTnqgWHyHCHCLBZlffd", "shEncNmxJsMuJKwbrwok"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 15",
+          "Type": "DIFFSERIES",
+          "Title": "Series 8",
           "Settings": {
             "Class": ""
           },
           "Content": ["ATEikvMQPqBefhJzjzhc", "MEmIeGILUZNEWEagSzRk"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 17",
+          "Type": "DIFFSERIES",
+          "Title": "Series 9",
           "Settings": {
             "Class": ""
           },
           "Content": ["gzSTokDHvkXefhiGDcWL", "DSsxcjIrUgZCKZovyNQf"]
         },
         {
-          "Type": "SERIES",
-          "Title": "Series 19",
+          "Type": "DIFFSERIES",
+          "Title": "Series 10",
           "Settings": {
             "Class": ""
           },
@@ -357,6 +361,64 @@ var $reportWithoutData = {
             "Class": ""
           },
           "Content": "KCudOrFMfgCzUPMcdePX"
+        }
+      ]
+    },
+    {
+      "Type": "PAGEBREAK",
+      "Title": "",
+      "Settings": {
+        "Class": ""
+      },
+      "Content": null
+    },
+    {
+      "Type": "GRID",
+      "Title": "Matrices",
+      "Settings": {
+        "Class": "",
+        "NumRows": 1,
+        "NumColumns": 2
+      },
+      "Content": [
+        {
+          "Type": "MATRIX",
+          "Title": "Matrix 1",
+          "Settings": {
+            "Class": "",
+            "NumDecimals": 3,
+            "RowNames": ["a", "b", "c", "ddd", "ee!!!"],
+            "ColNames": ["v1", "v2", "v3", "v4"]
+          },
+          "Content": [
+            [1, 35, 49, 0.256],
+            [1, 35, 49, 0.25654654],
+            [1, 35, 49.44, 0.25633],
+            [1, 35, 49, 0.256],
+            [1, 35, 49, 0.256]
+          ]
+        },
+        {
+          "Type": "MATRIX",
+          "Title": "Matrix 2",
+          "Settings": {
+            "Class": "",
+          },
+          "Content": [
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.266559545656, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 100],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 1000000000],
+            [1000000, 0.2235, 4229, 0.256, 0.256, 0.256, 0.256, 0.256, 0.256, 10000]
+          ]
         }
       ]
     },
@@ -628,12 +690,12 @@ var $reportWithoutData = {
           "Content": "hnewnpwgzKmOdualajhn"
         },
         {
-          "Type": "SERIES",
+          "Type": "DIFFSERIES",
           "Title": "Series 4002",
           "Settings": {
             "Class": ""
           },
-          "Content": "KHClOltUSuqFVVErSxVb"
+          "Content": ["KHClOltUSuqFVVErSxVb", "KHClOltUSuqFVVErSxVb"]
         },
         {
           "Type": "SERIES",
