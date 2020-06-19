@@ -663,15 +663,6 @@ function createTable(parent, tableObj) {
     // create button group
     var buttonGroup = document.createElement("div");
     $(buttonGroup).addClass(["small", "button-group", "rephrase-diff-table-button-group"]);
-    var showDiffBtn = document.createElement("a");
-    showDiffBtn.innerText = "Hide Difference";
-    $(showDiffBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-diff"]);
-    if (!tableObj.Settings.DisplayRows.Diff) {
-      showDiffBtn.innerText = "Show Difference";
-      $(showDiffBtn).addClass("hollow");
-    }
-    showDiffBtn.addEventListener("click", onBtnClick, false);
-    buttonGroup.appendChild(showDiffBtn);
     var showBaselineBtn = document.createElement("a");
     showBaselineBtn.innerText = "Hide Baseline";
     $(showBaselineBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-baseline"]);
@@ -690,6 +681,15 @@ function createTable(parent, tableObj) {
     }
     showAlternativeBtn.addEventListener("click", onBtnClick, false);
     buttonGroup.appendChild(showAlternativeBtn);
+    var showDiffBtn = document.createElement("a");
+    showDiffBtn.innerText = "Hide Diff";
+    $(showDiffBtn).addClass(["button", "rephrase-diff-table-button", "rephrase-diff-table-button-show-diff"]);
+    if (!tableObj.Settings.DisplayRows.Diff) {
+      showDiffBtn.innerText = "Show Diff";
+      $(showDiffBtn).addClass("hollow");
+    }
+    showDiffBtn.addEventListener("click", onBtnClick, false);
+    buttonGroup.appendChild(showDiffBtn);
     tableParent.appendChild(buttonGroup);
   }
   var table = document.createElement("table");
