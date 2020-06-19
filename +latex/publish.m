@@ -130,7 +130,7 @@ else
         opt.linespread = 1;
     end
 end
-template = textfun.converteols(template);
+template = textual.convertEndOfLines(template);
 
 thisDir = pwd( );
 wDir = tempname(thisDir);

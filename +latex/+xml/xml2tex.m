@@ -169,7 +169,7 @@ end
 y = latex.xml.xpath(X,'mcode','node');
 if ~isempty(y)
     inpCode = char(y.getTextContent( ));
-    inpCode = textfun.converteols(inpCode);
+    inpCode = textual.convertEndOfLines(inpCode);
     inpCode = textfun.removetrails(inpCode);
     [~,n] = parseOriginalCode(inpCode);
     
@@ -194,7 +194,7 @@ end
 outputCode = latex.xml.xpath(X,'mcodeoutput','node');
 if ~isempty(outputCode)
     outputCode = char(outputCode.getTextContent( ));
-    outputCode = textfun.converteols(outputCode);
+    outputCode = textual.convertEndOfLines(outputCode);
     C = [C,br, ...
         '\begin{outputcode}',br, ...
         '\begin{lstlisting}',br, ...
@@ -222,7 +222,7 @@ try %#ok<TRYNC>
     if ~ischar(X)
         % Initialise `originalcode` when `x` is an xml dom.
         CODE = latex.xml.xpath(X,'//originalCode','string');
-        CODE = textfun.converteols(CODE);
+        CODE = textual.convertEndOfLines(CODE);
         CODE = textfun.removetrails(CODE);
     end
 end
