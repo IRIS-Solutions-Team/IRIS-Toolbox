@@ -4,8 +4,10 @@ classdef Type
         REPORT
         GRID
         TABLE
+        DIFFTABLE
         CHART
         SERIES
+        DIFFSERIES
         HEADING
         SECTION
         PAGEBREAK

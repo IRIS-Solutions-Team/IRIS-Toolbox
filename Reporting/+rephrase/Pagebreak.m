@@ -1,5 +1,6 @@
 classdef Pagebreak ...
-    < rephrase.Element
+    < rephrase.Element ...
+    & rephrase.Terminus
 
     properties (Constant)
         Type = rephrase.Type.PAGEBREAK
@@ -13,3 +14,4 @@ classdef Pagebreak ...
         end%
     end
 end 
+
