@@ -37,6 +37,11 @@ s = 'Matlab syntax highlighting syntax highlighting syntax highlighting syntax h
 % comment
 d = "fsdfsdf";
 !variables
+    "Double quotes" x
+    'Single quotes' y
+!equations
+    x = x{-1};
+    y = 0 !! y = 0;
 disp(s);
 ```
 

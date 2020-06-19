@@ -1,9 +1,10 @@
 
 
+%( Generate data
 characters = ['a':'z', 'A':'Z'];
 
 startDateQ = qq(2020,1);
-endDateQ = startDateQ + 19;
+endDateQ = startDateQ + 15;
 startDateM = convert(startDateQ, 12, "ConversionMonth", "First");
 endDateM = convert(endDateQ, 12, "ConversionMonth", "Last");
 rangeQ = startDateQ : endDateQ;
@@ -12,288 +13,98 @@ rangeM =  startDateM : endDateM ;
 numPeriodsQ = numel(rangeQ);
 numPeriodsM = numel(rangeM);
 
+allNames = string.empty(1, 0);
 db = struct( );
-
-rdo1 = rephrase.Report( ...
-    "Lorem ipsum dolor sit amet" ...
-    , "Subtitle", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras id faucibus felis. Nunc vulputate orci nibh, in aliquam risus finibus viverra." ...
-    , "Footer", "Duis ut ultricies lorem. Nullam faucibus pulvinar massa vel faucibus." ...
-    , "Class", "" ...
-    , "ChartLibrary", "plotly" ... % chartjs
-    , "InteractiveCharts", true ... % make it `false` for huge reports
-);
-rdo2 = copy(rdo1);
-rdo3 = copy(rdo1);
-
-text1 = rephrase.Text( ...
-    "Text section with formulas" ...
-    , "ParseFormulas", true ...
-    , "HighlightCodeBlocks", true ...
-);
-text1.Content = fileread("sample.md");
-text2 = copy(text1);
-
-rdo1.Content{end+1} = text1;
-rdo2.Content{end+1} = text2;
-
-
-table1 = rephrase.Table( ...
-    "Table 1", rangeQ ...
-    , "DateFormat", "YYYY:Q" ...
-    , "NumDecimals", 3 ...
-);
-table2 = copy(table1);
-
-serial = series.Serialize( );
-
-serial = series.Serialize( );
-
-for i = 1 : 20
-    if i==5
-        heading1 = rephrase.Heading( ...
-            "Table Heading" ...
-        );
-        heading2 = copy(heading1);
-
-        table1.add(heading1);
-        table2.add(heading2);
-    end
-
-    title = "Series " + i;
-    if i==1
-        title = title + " very-long-unbreakable-series1-title-and-more";
-    end
-    series1 = rephrase.Series( ...
-        title ...
-    );
+for i = 1 : 50
+    name = string(characters(randi(numel(characters), 1, 8)));
     data = rand(numPeriodsQ, 1);
-    series1.Content = struct(serial.Dates, [ ], serial.Values, data);
-
-    name = string(characters(randi(numel(characters), 1, 20)));
-    series2 = copy(series1);
-    series2.Content = name;
     db.(name) = Series(startDateQ, data);
-
-    table1.add(series1);
-    table2.add(series2);
+    allNames(end+1) = name;
 end
+%)
 
 
-rdo1.add(table1);
-rdo2.add(table2);
 
 
-grid1 = rephrase.Grid( ...
-    "", [2, 2] ...
+report = rephrase.Report( ...
+    "Lorem ipsum dolor sit amet" ...
+    , "Subtitle=", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras id faucibus felis. Nunc vulputate orci nibh, in aliquam risus finibus viverra." ...
+    , "Footer=", "Duis ut ultricies lorem. Nullam faucibus pulvinar massa vel faucibus." ...
+    , "ChartLibrary=", "plotly" ... % chartjs
+    , "InteractiveCharts=", true ... % make it `false` for huge reports
 );
-grid2 = copy(grid1);
 
-
-for i = 1 : 4
-    args = cell.empty(1, 0);
-    if i==1
-        args = [args, { ...
-            "Highlight", { ...
-                struct("EndDate", mm(2020,12)) ...
-                , struct("StartDate", mm(2022,4), "Color", "rgba(100, 0, 200, 0.1)"), ...
-                } ...
-        }];
-    end
-    if i==2
-        args = [args, { ...
-            "ChartLibrary", "chartjs" ...
-        }];
-    end
-    if i==4
-        args = [args, { ...
-            "DateFormat", "MMM YYYY" ...
-        }];
-    end
-    chart1 = rephrase.Chart( ...
-        "Chart " + i, rangeQ(1), rangeQ(end) ...
-        , "DateFormat", "YYYY:Q" ...
-        , "IsTitlePartOfChart", false ...
-        , args{:} ...
+report ...
+    < rephrase.Text.fromFile( ...
+        "Text section with formulas" ...
+        , "sample.md" ...
+        , "ParseFormulas=", true ...
+        , "HighlightCodeBlocks=", true ...
     );
-    chart2 = copy(chart1);
 
-    for j = 1 : 2
-        id = 100*i+j;
-        args = cell.empty(1, 0);
-        if id==101
-            args = [args, { ...
-                "Type", "bar" 
-            }];
-        end
-        if id==401
-            args = [args, {"Color", "#000"}];
-        end
-        series1 = rephrase.Series( ...
-            "Series " + (100*i+j) ...
-            , args{:} ...
-        );
-        series2 = copy(series1);
+table1 = rephrase.Table("Table 1", rangeQ, "DateFormat", "YYYY:Q", "NumDecimals", 3) ...
+    < rephrase.Series("Inflation", db.(allNames(1))) ...
+    < rephrase.Series("GDP Growth", db.(allNames(2))) ...
+    < rephrase.Series("Policy Rate", db.(allNames(3))) ...
+    < rephrase.Heading("Table Heading") ...
+    < rephrase.Series("Very-long-long-unbreakable-series-title-and-even-longer", db.(allNames(4))) ...
+    < rephrase.Series("Exchange Rate", db.(allNames(5)));
 
-        if j==1
-            data = Series(startDateQ, rand(numPeriodsQ, 1));
-        else
-            data = Series(startDateM, rand(numPeriodsM, 1));
-        end
-        series1.Content = struct(serial.Dates, DateWrapper.toIsoString(data.Range, "m"), serial.Values, data.Data);
-
-        name = string(characters(randi(numel(characters), 1, 20)));
-        series2.Content = name;
-        db.(name) = data;
-
-        chart1.add(series1);
-        chart2.add(series2);
-    end
-
-    grid1.add(chart1);
-    grid2.add(chart2);
-end 
+report < table1;
 
 
-rdo1.Content{end+1} = rephrase.Pagebreak( "" );
-rdo2.Content{end+1} = rephrase.Pagebreak( "" );
+grid1 = rephrase.Grid("", 2, 2, "DateFormat=", "YYYY:Q", "DisplayTitle", false);
 
-rdo1.Content{end+1} = grid1;
-rdo2.Content{end+1} = grid2;
+    highlight1 = rephrase.Highlight(-Inf, mm(2020, 12));
+    highlight2 = rephrase.Highlight(mm(2022, 4), Inf, [100, 0, 200, 0.1]);
 
-rdo1.Content{end+1} = rephrase.Pagebreak( "" );
-rdo2.Content{end+1} = rephrase.Pagebreak( "" );
+    chart1 = rephrase.Chart("Chart 1", startDateQ, endDateQ, "Highlight=", [highlight1, highlight2]) ...
+        < rephrase.Series("Series 101", db.(allNames(6)), "Type=", "Bar") ...
+        < rephrase.Series("Series 102", db.(allNames(7))) ...
+    ;
 
-for i = 1 : 2
-    table1 = rephrase.Table( ...
-        "Table "+(i+1), rangeQ ...
-        , "DateFormat", "YYYY:Q" ...
-        , "NumDecimals", 3 ...
-    );
-    table2 = copy(table1);
-    for j = 1 : 5
-        series1 = rephrase.Series( ...
-            "Series " + 200*i+j ...
-        );
-        data = rand(numPeriodsQ, 1);
-        series1.Content = struct(serial.Dates, [ ], serial.Values, data);
+    chart2 = rephrase.Chart("Chart 2", startDateQ, endDateQ, "ChartLibrary=", "chartjs") ...
+        < rephrase.Series("Series 201", db.(allNames(7))) ...
+        < rephrase.Series("Series 202", db.(allNames(8))) ...
+    ;
 
-        name = string(characters(randi(numel(characters), 1, 20)));
-        series2 = copy(series1);
-        series2.Content = name;
-        db.(name) = Series(startDateQ, data);
+    chart3 = rephrase.Chart("Chart 3", startDateQ, endDateQ) ...
+        < rephrase.Series("Series 301", db.(allNames(9))) ...
+        < rephrase.Series("Series 302", db.(allNames(10))) ...
+    ;
 
-        table1.Content{end+1} = series1;
-        table2.Content{end+1} = series2;
-    end
-    rdo1.Content{end+1} = table1;
-    rdo2.Content{end+1} = table2;
-end
+    chart4 = rephrase.Chart("Chart 4", startDateQ, endDateQ, "DateFormat=", "MMM YYYY") ...
+        < rephrase.Series("Series 401", db.(allNames(11)), "Color=", "#000") ...
+        < rephrase.Series("Series 402", db.(allNames(12))) ...
+    ;
 
+report ...
+    < rephrase.Pagebreak() ...
+    < (grid1 < chart1 < chart2 < chart3 < chart4) ...
+;
 
-j1 = string(jsonencode(rdo1));
-fid = fopen("vanillaReport1.json", "w+");
-fwrite(fid, j1);
-fclose(fid);
+report < rephrase.Pagebreak( );
 
-j2 = string(jsonencode(rdo2));
-fid = fopen("vanillaReport2.json", "w+");
-fwrite(fid, j2);
-fclose(fid);
+table2 = rephrase.Table( ...
+    "Comparison Table", rangeQ ...
+    , "DateFormat=", "YYYY:Q" ...
+    , "NumDecimals=", 3 ...
+    , "DisplayRows=", struct("Diff", true, "Baseline", true, "Alternative", true) ...
+    , "RowTitles=", struct("Diff", "&Delta;") ...
+);
 
-%{
-id2=0;
-id3=0;
-for i = 1 : 300
-    rdo3.Content{end+1} = rephrase.Pagebreak( "" );
+table2 ...
+        < rephrase.DiffSeries("Unemployment Rate", db.(allNames(13)), db.(allNames(14))) ...
+        < rephrase.DiffSeries("Output Gap", db.(allNames(15)), db.(allNames(16))) ...
+        < rephrase.DiffSeries("Financial Conditions", db.(allNames(17)), db.(allNames(18))) ...
+        < rephrase.DiffSeries("Foreign Demand", allNames(19), allNames(20)) ...
+        < rephrase.DiffSeries("Oil Prices", allNames(21), allNames(22)) ...
+        < rephrase.DiffSeries("US Treasury Bill", allNames(23), allNames(24)) ...
+;
 
-    table3 = rephrase.Table( ...
-        "Table " + i, rangeQ ...
-        , "DateFormat", "YYYY:Q" ...
-        , "NumDecimals", 3 ...
-    );
-    for j = 1 : 20
-        if j==5
-            heading3 = rephrase.Heading( ...
-                "Table Heading" ...
-            );
-            table3.Content{end+1} = heading3;
-        end
-        id1 = 20*(i-1) + j;
-        title = "Series " + id1;
-        if j == 1
-            title = title + " very-long-unbreakable-series" + id1 + "-title-and-more";
-        end
-        series3 = rephrase.Series( ...
-            title ...
-        );
-        data = rand(numPeriodsQ, 1);
-        name = string(characters(randi(numel(characters), 1, 20)));
-        series3.Content = name;
-        db.(name) = Series(startDateQ, data);
-        table3.Content{end+1} = series3;
-    end
-    rdo3.Content{end+1} = table3;
+report < table2;
 
-    rdo3.Content{end+1} = rephrase.Pagebreak( "" );
+show(report)
 
-    nRows = 4;randi([1,4]);1;
-    nCols = 3;randi([2,4]);1;
-    grid3 = rephrase.Grid( ...
-        "", [nRows, nCols] ...
-    );
-    for j = 1 : nRows*nCols
-        id2 = id2 + 1;
-        chart3 = rephrase.Chart( ...
-            "Chart " + id2, rangeQ(1), rangeQ(end) ...
-            , "DateFormat", "YYYY:Q" ...
-            , "IsTitlePartOfChart", false ...
-        );
-        nLines = randi([1,6]);
-        for k = 1 : nLines
-            id3 = id3 + 1;
-            args = cell.empty(1, 0);
-            if k==3
-                args = [args, {"Color", "#000"}];
-            end
-            series3 = rephrase.Series( ...
-                "Series " + id3 ...
-                , args{:} ...
-            );
-            if mod(k,2)==0
-                data = Series(startDateQ, rand(numPeriodsQ, 1));
-            else
-                data = Series(startDateM, rand(numPeriodsM, 1));
-            end
-            name = string(characters(randi(numel(characters), 1, 20)));
-            series3.Content = name;
-            db.(name) = data;
-            chart3.Content{end+1} = series3;
-        end
-        grid3.Content{end+1} = chart3;
-    end
-    rdo3.Content{end+1} = grid3;
-end
-
-j3 = string(jsonencode(rdo3));
-fid = fopen("vanillaReportHuge.json", "w+");
-fwrite(fid, j3);
-fclose(fid);
-%}
-
-db = serial.encodeDatabank(db);
-jdb = string(jsonencode(db));
-fid = fopen("vanillaData2.json", "w+");
-fwrite(fid, jdb);
-fclose(fid);
-
-js = "var $reportWithData = " + j1 + ";";
-js = js + newline + "var $reportWithoutData = " + j2 + ";";
-% js = js + newline + "var $reportHuge = " + j3 + ";";
-js = js + newline + "var $databank = " + jdb + ";";
-% js = js + newline + "var $report = $reportHuge;";
-% js = js + newline + "var $report = $reportWithData;";
-js = js + newline + "var $report = $reportWithoutData;";
-fid = fopen("../js/report-data.js", "w+");
-fwrite(fid, js);
-fclose(fid);
+build(report, "../test1.html", db, "SaveJson", true);
 
