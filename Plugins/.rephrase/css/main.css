@@ -1,0 +1,420 @@
+body, h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+  font-weight: 300;
+  font-family: 'Lato';
+  font-style: normal;
+}
+
+h1, .h1 {
+  font-size: 31px;
+}
+
+h2, .h2 {
+  font-size: 25px;
+}
+
+h3, .h3 {
+  font-size: 22px;
+}
+
+h4, .h4 {
+  font-size: 20px;
+}
+
+h5, .h5 {
+  font-size: 18px;
+}
+
+h6, .h6 {
+  font-size: 16px;
+}
+
+.report-content {
+  /* report container DIV */
+  /* nothing so far */
+}
+
+.report-header {
+  /* main report title DIV */
+  /* nothing so far */
+}
+
+.report-header .title {
+  /* main report title H element */
+  /* nothing so far */
+}
+
+.report-header .subtitle {
+  /* main report subtitle H's SMALL element */
+  /* nothing so far */
+}
+
+.report-body {
+  /* report body DIV */
+  overflow-y: auto;
+  padding: 0 5%;
+}
+
+.report-footer {
+  /* report footer DIV */
+  border-top: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.footer-text {
+  /* report footer P element */
+  /* nothing so far */
+}
+
+.left-logo {
+  /* left logo DIV */
+  /* nothing so far */
+}
+
+.right-logo {
+  /* right logo DIV */
+  /* nothing so far */
+}
+
+.left-logo-img, .right-logo-img {
+  /* left and right logo IMG elements */
+  height: 100px;
+}
+
+.rephrase-chart {
+  /* chart parent DIV */
+  /* nothing so far */
+}
+
+.rephrase-chart-title {
+  /* chart title DIV */
+  text-align: center;
+}
+
+.rephrase-chart-body {
+  /* chart CANVAS/SVG parent */
+  /* nothing so far */
+}
+
+.rephrase-matrix {
+  /* matrix parent DIV */
+  /* nothing so far */
+}
+
+.rephrase-matrix-title {
+  /* matrix title DIV */
+  text-align: center;
+}
+
+.rephrase-matrix-body {
+  /* matrix's TABLE parent DIV */
+  /* nothing so far */
+}
+
+.rephrase-matrix-table {
+  /* matrix TABLE element */
+  /* nothing so far */
+}
+
+.rephrase-matrix-table-body {
+  /* matrix TBODY element */
+  /* nothing so far */
+}
+
+.rephrase-matrix-header {
+  /* matrix THEAD element */
+  /* nothing so far */
+}
+
+.rephrase-matrix-header-cell {
+  /* matrix TH element */
+  /* nothing so far */
+}
+
+.rephrase-matrix-header-cell-row {
+  /* matrix TH element containing row names */
+  font-weight: 700;
+  background: #f8f8f8;
+}
+
+.rephrase-matrix-header-cell-col {
+  /* matrix TH element containing column names */
+  /* nothing so far */
+}
+
+.rephrase-table-parent {
+  /* table parent DIV */
+  /* nothing so far */
+}
+
+.rephrase-table-title {
+  /* table title H element */
+  padding-top: 50px;
+}
+
+.rephrase-table {
+  /* table TABLE element */
+  /* nothing so far */
+}
+
+.rephrase-table-header {
+  /* table THEAD element */
+  /* nothing so far */
+}
+
+.rephrase-table-body {
+  /* table TBODY element */
+  /* nothing so far */
+}
+
+.rephrase-table-header-row {
+  /* table THEAD's TR element */
+  /* nothing so far */
+}
+
+.rephrase-table-header-cell {
+  /* table THEAD's TH element */
+  /* nothing so far */
+}
+
+.rephrase-table-row {
+  /* any kind of table TR element */
+  /* nothing so far */
+}
+
+.rephrase-table-heading-row {
+  /* table TD element containing table heading row */
+  /* nothing so far */
+}
+
+.rephrase-table-data-row {
+  /* table TR element containing series data */
+  /* nothing so far */
+}
+
+.rephrase-table-data-row-title {
+  /* table TD element containing series caption cell */
+  font-weight: 700;
+  background: #f8f8f8;
+}
+
+.rephrase-table-data-cell {
+  /* table TD element containing series data cell */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button-group {
+  /* button group shown in the header of DIFF table */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button {
+  /* any button from the DIFF table button group */
+  font-weight: normal;
+}
+
+.rephrase-diff-table-button-show-diff {
+  /* "show diff" button from the DIFF table button group */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button-show-baseline {
+  /* "show baseline" button from the DIFF table button group */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-button-show-alternative {
+  /* "show alternative" button from the DIFF table button group */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-title {
+  /* common title for the diff table row */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-diff-title {
+  /*title for the diff row of the diff table */
+  font-weight: normal;
+  text-align: right;
+}
+
+.rephrase-diff-table-data-row-baseline-title {
+  /*title for the baseline row of the diff table */
+  font-weight: normal;
+  text-align: right;
+}
+
+.rephrase-diff-table-data-row-alternative-title {
+  /*title for the alternative row of the diff table */
+  font-weight: normal;
+  text-align: right;
+}
+
+.rephrase-diff-table-data-row-diff {
+  /* diff table TR element containing diff series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-baseline {
+  /* diff table TR element containing baseline series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-row-alternative {
+  /* diff table TR element containing alternative series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-cell-diff {
+  /* diff table TD element containing diff series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-cell-baseline {
+  /* diff table TD element containing baseline series data */
+  /* nothing so far */
+}
+
+.rephrase-diff-table-data-cell-alternative {
+  /* diff table TD element containing alternative series data */
+  /* nothing so far */
+}
+
+.rephrase-grid-title {
+  /* grid title H element */
+  padding-top: 50px;
+}
+
+.rephrase-grid {
+  /* parent DIV of the report grid */
+  /* nothing so far */
+}
+
+.rephrase-text-block {
+  /* parent DIV of the report text block */
+  /* nothing so far */
+}
+
+.rephrase-text-block-title {
+  /* text block title DIV*/
+  /* nothing so far */
+}
+
+.rephrase-text-block-body {
+  /* text block body DIV*/
+  /* nothing so far */
+}
+
+.page-break {
+  display: none;
+}
+
+.hljs-bold {
+  /* color: #998;
+  font-style: italic; */
+  font-weight: bold;
+}
+
+@media (max-width: 639px) {
+  /* small screens */
+  .left-logo-img, .right-logo-img {
+    height: 75px;
+  }
+  h1, .h1 {
+    font-size: 24px;
+  }
+  h2, .h2 {
+    font-size: 22px;
+  }
+  h3, .h3 {
+    font-size: 20px;
+  }
+  h4, .h4 {
+    font-size: 18px;
+  }
+  h5, .h5 {
+    font-size: 16px;
+  }
+  h6, .h6 {
+    font-size: 14px;
+  }
+  body {
+    font-size: 14px;
+  }
+}
+
+@media print {
+  code, pre, .code-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .report-content {
+    overflow: visible !important;
+    /* width: 1024px !important; */
+  }
+  .report-body {
+    overflow: visible;
+    width: auto !important;
+  }
+  .report-footer {
+    display: none;
+  }
+  .rephrase-table-parent {
+    overflow: visible !important;
+    max-width: 100%;
+    width: auto!important;
+  }
+  .rephrase-chart-body {
+    min-height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    height: auto!important;
+    width: auto!important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .rephrase-grid {
+    width: auto!important;
+    max-width: 100%;
+    /* min-height: 100%;
+    max-height: 100%; */
+    /* this is to be agreed */
+    /* break-inside: avoid;
+    page-break-inside: avoid; */
+  }
+  .rephrase-grid {
+    /* exact combination to be figured out */
+    /* break-before: always;
+    page-break-before: always;
+    break-after: avoid;
+    page-break-after: avoid; */
+  }
+  .rephrase-table-title {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  .page-break {
+    display: block!important;
+    /* `break-before` should come as a replacement of 
+    `page-break-before` in the newer browsers */
+    break-before: always!important;
+    /* though this one is outdated but the only working one */
+    page-break-before: always!important;
+    clear: both!important;
+  }
+  .rephrase-diff-table-button-group {
+    display: none;
+  }
+  @page {
+    size: landscape;
+    margin: 1.0cm;
+    /* @top-center {
+      content: element(report-header);
+    }
+    @bottom-center {
+      content: element(report-footer);
+    }
+    @bottom-right {
+      content: counter(page) " of " counter(pages);
+    } */
+  }
+}

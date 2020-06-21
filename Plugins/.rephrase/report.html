@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My report name</title>
+  <link rel="stylesheet" href="css/foundation.min.css">
+  <link rel="stylesheet" href="css/katex-embed-fonts.min.css">
+  <link rel="stylesheet" href="css/highlight.min.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+
+<body>
+  <!-- report template -->
+  <div class="report-content grid-y grid-frame">
+    <!-- sticky header  -->
+    <div class="report-header cell shrink">
+      <div class="grid-x grid-padding-x align-middle">
+        <div class="left-logo cell shrink"></div>
+        <div class="header-text cell auto">
+          <h1 class="title"></h1>
+          <h2><small class="subtitle"></small></h2>
+        </div>
+        <div class="right-logo cell shrink"></div>
+      </div>
+    </div>
+
+    <!-- report body -->
+    <div class="report-body cell auto"></div>
+
+    <!-- sticky footer  -->
+    <div class="report-footer cell shrink">
+      <p class="footer-text text-center"></p>
+    </div>
+  </div>
+
+  <!-- Warn if JS is disabled in the browser -->
+  <noscript>
+    <h1>You must enable JavaScript to view this page.</h1>
+  </noscript>
+
+  <!-- external dependencies -->
+  <script src="js/vendor/jquery.min.js"></script>
+  <script src="js/vendor/what-input.js"></script>
+  <script src="js/vendor/foundation.min.js"></script>
+  <script src="js/vendor/moment.min.js"></script>
+  <script src="js/vendor/Chart.min.js"></script>
+  <script src="js/vendor/chartjs-plugin-annotation.min.js"></script>
+  <script src="js/vendor/katex.min.js"></script>
+  <script src="js/vendor/auto-render.min.js"></script>
+  <script src="js/vendor/marked.min.js"></script>
+  <script src="js/vendor/highlight.min.js"></script>
+  <!-- <script src="js/vendor/plotly-latest.min.js"></script> -->
+  <script src="js/vendor/plotly-custom.min.js"></script>
+
+  <!-- rendering scripts and report data -->
+  <script src="js/report-utils.js"></script>
+  <script src="js/report-settings.js"></script>
+  <script src="js/report-data.js"></script>
+  <script src="js/report-renderer.js"></script>
+  
+  <!-- uncomment this line for the headless printing -->
+  <!-- <script src="js/report-loading-delay.js"></script> -->
+</body>
+
+</html>
