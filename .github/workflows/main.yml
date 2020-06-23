@@ -29,13 +29,6 @@ jobs:
       run: |
         zip -r report-unbundled.zip ./dist -x *report-template.bundle.html
         zip -r report-bundled.zip ./dist -x */report-template.html -x *lib/
-    - name: Push new dist
-      run: |
-        git config --global user.name 'Sergey Plotnikov'
-        git config --global user.email 'nul0m@users.noreply.github.com'
-        git add dist
-        git commit -m "Automated build on push to <master>"
-        git push
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -66,3 +59,11 @@ jobs:
         asset_path: ./report-bundled.zip
         asset_name: report-bundled.zip
         asset_content_type: application/zip
+    - name: Push new dist
+      run: |
+        echo "Release ${{ github.ref }}" > ./dist/.release
+        git config --global user.name 'Sergey Plotnikov'
+        git config --global user.email 'nul0m@users.noreply.github.com'
+        git add dist
+        git commit -m "Automated build on push to <master>"
+        git push
