@@ -16,6 +16,13 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: master
+    - name: Checkout DIST branch
+      uses: actions/checkout@v2
+      with:
+        ref: dist
+        path: dist
+    - name: Change dir to master/
+      run: cd ./master
     - name: Set outputs
       id: vars
       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
@@ -27,7 +34,7 @@ jobs:
       run: npm i -g inline-source-cli uglify-es clean-css-cli
     - name: Create new dist
       run: |
-        cd ./master/scripts
+        cd ./scripts
         ./bundle-report.sh
         cd ../
     - name: Push new dist to MASTER
@@ -38,14 +45,10 @@ jobs:
         git add -A
         git commit -m "Automated build on push to <master>"
         git push
-    - name: Checkout DIST branch
-      uses: actions/checkout@v2
-      with:
-        ref: dist
-        path: master
+    - name: Change dir to dist/
+      run: cd ../dist
     - name: Copy MASTER's dist/ to DIST branch
       run: |
-        cd ../dist
         find . ! -name '.gitignore' -type f -exec rm -f {} +
         find . ! -name '.git' -type d -exec rm -rf {} +
         cp -r ../master/dist/ ./
