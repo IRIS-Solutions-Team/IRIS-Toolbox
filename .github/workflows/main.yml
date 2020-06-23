@@ -12,8 +12,10 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Checkout code
+    - name: Checkout MASTER
       uses: actions/checkout@v2
+      with:
+        path: master
     - name: Set outputs
       id: vars
       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
@@ -25,10 +27,10 @@ jobs:
       run: npm i -g inline-source-cli uglify-es clean-css-cli
     - name: Create new dist
       run: |
-        cd ./scripts
+        cd ./master/scripts
         ./bundle-report.sh
         cd ../
-    - name: Push new dist
+    - name: Push new dist to MASTER
       run: |
         echo "Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}" > ./dist/.release
         git config --global user.name 'Sergey Plotnikov'
@@ -36,6 +38,20 @@ jobs:
         git add -A
         git commit -m "Automated build on push to <master>"
         git push
+    - name: Checkout DIST branch
+      with:
+        ref: dist
+        path: master
+    - name: Copy MASTER's dist/ to DIST branch
+      run: |
+        cd ../dist
+        find . ! -name '.gitignore' -type f -exec rm -f {} +
+        find . ! -name '.git' -type d -exec rm -rf {} +
+        cp -r ../master/dist/ ./
+        git add -A
+        git commit -m "Automated build on push to <master>"
+        git push
+        cd ../master
     - name: Package Release Assets
       run: |
         zip -r report-unbundled.zip ./dist -x *report-template.bundle.html -x *no-plotly*
