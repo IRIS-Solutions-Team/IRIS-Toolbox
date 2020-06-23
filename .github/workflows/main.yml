@@ -39,6 +39,7 @@ jobs:
         git commit -m "Automated build on push to <master>"
         git push
     - name: Checkout DIST branch
+      uses: actions/checkout@v2
       with:
         ref: dist
         path: master
