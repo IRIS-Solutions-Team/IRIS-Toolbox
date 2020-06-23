@@ -26,5 +26,6 @@ jobs:
       run: |
         git config --global user.name 'Sergey Plotnikov'
         git config --global user.email 'nul0m@users.noreply.github.com'
-        git commit -am "Automated build on push to <master>"
+        git add dist
+        git commit -m "Automated build on push to <master>"
         git push
