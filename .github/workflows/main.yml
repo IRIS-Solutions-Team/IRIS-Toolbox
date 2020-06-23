@@ -14,62 +14,62 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-#     - name: Set outputs
-#       id: vars
-#       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-#     - name: Setup node 12
-#       uses: actions/setup-node@v1
-#       with:
-#         node-version: 12.x
-#     - name: Install NPM packages
-#       run: npm i -g inline-source-cli uglify-es clean-css-cli
-#     - name: Create new dist
-#       run: |
-#         cd ./scripts
-#         ./bundle-report.sh
-#         cd ../
-#     - name: Push new dist
-#       run: |
-#         echo "Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}" > ./dist/.release
-#         git config --global user.name 'Sergey Plotnikov'
-#         git config --global user.email 'nul0m@users.noreply.github.com'
-#         git add -A
-#         git commit -m "Automated build on push to <master>"
-#         git push
-#     - name: Package Release Assets
-#       run: |
-#         zip -r report-unbundled.zip ./dist -x *report-template.bundle.html
-#         zip -r report-bundled.zip ./dist -x */report-template.html -x *lib/*
-#     - name: Create Release
-#       id: create_release
-#       uses: actions/create-release@v1
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       with:
-#         tag_name: release-auto-${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
-#         release_name: Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
-#         draft: false
-#         prerelease: false
-#     - name: Upload Release Asset I
-#       id: upload-release-asset-1
-#       uses: actions/upload-release-asset@v1
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       with:
-#         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-#         asset_path: ./report-unbundled.zip
-#         asset_name: report-unbundled.zip
-#         asset_content_type: application/zip
-#     - name: Upload Release Asset II
-#       id: upload-release-asset-2 
-#       uses: actions/upload-release-asset@v1
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       with:
-#         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-#         asset_path: ./report-bundled.zip
-#         asset_name: report-bundled.zip
-#         asset_content_type: application/zip
+    - name: Set outputs
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+    - name: Setup node 12
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: Install NPM packages
+      run: npm i -g inline-source-cli uglify-es clean-css-cli
+    - name: Create new dist
+      run: |
+        cd ./scripts
+        ./bundle-report.sh
+        cd ../
+    - name: Push new dist
+      run: |
+        echo "Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}" > ./dist/.release
+        git config --global user.name 'Sergey Plotnikov'
+        git config --global user.email 'nul0m@users.noreply.github.com'
+        git add -A
+        git commit -m "Automated build on push to <master>"
+        git push
+    - name: Package Release Assets
+      run: |
+        zip -r report-unbundled.zip ./dist -x *report-template.bundle.html
+        zip -r report-bundled.zip ./dist -x */report-template.html -x *lib/*
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: release-auto-${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
+        release_name: Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
+        draft: false
+        prerelease: false
+    - name: Upload Release Asset I
+      id: upload-release-asset-1
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./report-unbundled.zip
+        asset_name: report-unbundled.zip
+        asset_content_type: application/zip
+    - name: Upload Release Asset II
+      id: upload-release-asset-2 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./report-bundled.zip
+        asset_name: report-bundled.zip
+        asset_content_type: application/zip
     - name: Repository Dispatch
       uses: peter-evans/repository-dispatch@v1
       with:
