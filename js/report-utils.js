@@ -963,6 +963,7 @@ function addReportElement(parentElement, elementObj, parentObjSettings) {
       $ru.addPageBreak(parentElement, elementObj);
       break;
     default:
+      console.log("Unknown report element");
       break;
   }
 }
