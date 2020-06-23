@@ -1,0 +1,30 @@
+name: Snapshot Release Action
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Setup node 12
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: Install NPM packages
+      run: npm i -g inline-source-cli uglify-es clean-css-cli
+    - name: Create new dist
+      run: ./scripts/bundle-report.sh
+    - name: Push new dist
+      run: |
+        git config --global user.name 'Sergey Plotnikov'
+        git config --global user.email 'nul0m@users.noreply.github.com'
+        git commit -am "Automated build on push to <master>"
+        git push
