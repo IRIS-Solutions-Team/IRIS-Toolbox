@@ -21,7 +21,10 @@ jobs:
     - name: Install NPM packages
       run: npm i -g inline-source-cli uglify-es clean-css-cli
     - name: Create new dist
-      run: cd ./scripts && ./bundle-report.sh
+      run: |
+        cd ./scripts
+        ./bundle-report.sh
+        cd ../
     - name: Push new dist
       run: |
         git config --global user.name 'Sergey Plotnikov'
