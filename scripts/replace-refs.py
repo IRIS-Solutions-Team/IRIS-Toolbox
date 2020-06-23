@@ -1,6 +1,6 @@
 import re
 
-# load HTML file
+# load HTML files
 with open("../dist/report-template.html", "r") as f:
     html = f.read()
 # replace vendor CSS block
@@ -47,4 +47,14 @@ html = re.sub(
 
 # save adjusted HTML file
 with open("../dist/report-template.html", "w") as f:
+    f.write(html)
+
+# create and save "no-plotly" version
+html = re.sub(
+    "lib/vendor\.min\.js",
+    "lib/vendor-no-plotly.min.js",
+    html,
+    flags=re.DOTALL|re.MULTILINE,
+)
+with open("../dist/report-template-no-plotly.html", "w") as f:
     f.write(html)

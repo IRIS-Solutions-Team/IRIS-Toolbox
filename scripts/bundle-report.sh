@@ -6,7 +6,7 @@ rm -rf ../dist
 mkdir -p ../dist/lib
 
 # minify, concat and copy all vendor scripts into one ./dist/lib/vendor.min.js
-declare -a js_vendor_list=(
+declare -a js_vendor_list_no_plotly=(
   "../js/vendor/jquery.min.js"
   "../js/vendor/what-input.js"
   "../js/vendor/foundation.min.js"
@@ -17,9 +17,10 @@ declare -a js_vendor_list=(
   "../js/vendor/auto-render.min.js"
   "../js/vendor/marked.min.js"
   "../js/vendor/highlight.min.js"
-  "../js/vendor/plotly.js"
 )
+declare -a js_vendor_list=("${js_vendor_list_no_plotly[@]}" "../js/vendor/plotly.js")
 uglifyjs $(IFS=" " ; echo "${js_vendor_list[*]}") -o ../dist/lib/vendor.min.js -c
+uglifyjs $(IFS=" " ; echo "${js_vendor_list_no_plotly[*]}") -o ../dist/lib/vendor-no-plotly.min.js -c
 
 # minify, concat and copy all vendor styles into one ./dist/lib/vendor.min.css
 declare -a css_vendor_list=(
@@ -54,3 +55,4 @@ python replace-refs.py
 # create bundled version of HTML
 cd ../dist
 inline-source --compress true report-template.html report-template.bundle.html
+inline-source --compress true report-template-no-plotly.html report-template-no-plotly.bundle.html

@@ -38,8 +38,10 @@ jobs:
         git push
     - name: Package Release Assets
       run: |
-        zip -r report-unbundled.zip ./dist -x *report-template.bundle.html
-        zip -r report-bundled.zip ./dist -x */report-template.html -x *lib/*
+        zip -r report-unbundled.zip ./dist -x *report-template.bundle.html -x *no-plotly*
+        zip -r report-unbundled-no-plotly.zip ./dist -x *report-template*.bundle.html -x *vendor.min.js* -x */report-template.html
+        zip -r report-bundled.zip ./dist -x */report-template.html -x *lib/* -x *no-plotly*
+        zip -r report-bundled-no-plotly.zip ./dist -x */report-template.html -x */report-template-no-plotly.html -x */report-template.bundle.html -x *lib/*
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -69,6 +71,26 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
         asset_path: ./report-bundled.zip
         asset_name: report-bundled.zip
+        asset_content_type: application/zip
+    - name: Upload Release Asset III
+      id: upload-release-asset-3 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./report-unbundled-no-plotly.zip
+        asset_name: report-unbundled-no-plotly.zip
+        asset_content_type: application/zip
+    - name: Upload Release Asset IV
+      id: upload-release-asset-4
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./report-bundled-no-plotly.zip
+        asset_name: report-bundled-no-plotly.zip
         asset_content_type: application/zip
     - name: Repository Dispatch
       uses: peter-evans/repository-dispatch@v1
