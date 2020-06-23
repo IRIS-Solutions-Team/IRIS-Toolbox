@@ -14,6 +14,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Set outputs
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
     - name: Setup node 12
       uses: actions/setup-node@v1
       with:
@@ -25,18 +28,26 @@ jobs:
         cd ./scripts
         ./bundle-report.sh
         cd ../
+    - name: Push new dist
+      run: |
+        echo "Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}" > ./dist/.release
+        git config --global user.name 'Sergey Plotnikov'
+        git config --global user.email 'nul0m@users.noreply.github.com'
+        git add -A
+        git commit -m "Automated build on push to <master>"
+        git push
     - name: Package Release Assets
       run: |
         zip -r report-unbundled.zip ./dist -x *report-template.bundle.html
-        zip -r report-bundled.zip ./dist -x */report-template.html -x *lib/
+        zip -r report-bundled.zip ./dist -x */report-template.html -x *lib/*
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: release-auto-${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
+        release_name: Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
         draft: false
         prerelease: false
     - name: Upload Release Asset I
@@ -59,11 +70,3 @@ jobs:
         asset_path: ./report-bundled.zip
         asset_name: report-bundled.zip
         asset_content_type: application/zip
-    - name: Push new dist
-      run: |
-        echo "Release ${{ github.ref }}" > ./dist/.release
-        git config --global user.name 'Sergey Plotnikov'
-        git config --global user.email 'nul0m@users.noreply.github.com'
-        git add dist
-        git commit -m "Automated build on push to <master>"
-        git push
