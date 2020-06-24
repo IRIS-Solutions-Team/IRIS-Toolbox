@@ -13,8 +13,8 @@
 %
 % __`input`__ [ Explanatory ]
 %
-%     Input ExlanatoryEquation object or array from which a subset of
-%     equations will be extracted.
+%     Input Explanatory object or array from which a subset of equations
+%     will be extracted.
 %
 %
 % __`lookFor`__ [ string ]
@@ -60,12 +60,14 @@
 
 function [inx, this, lhsNames] = lookup(this, varargin)
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Explanatory/lookup');
     addRequired(pp, 'xq', @(x) isa(x, 'Explanatory'));
-    addOptional(pp, 'lookFor', cell.empty(1, 0), @(x) all(cellfun(@validate.stringScalar, x)));
+    addOptional(pp, 'lookFor', cell.empty(1, 0), @(x) all(cellfun(@(y) isstring(y) || ischar(y) || iscellstr(y), x)));
 end
+%)
 parse(pp, this, varargin);
 
 %--------------------------------------------------------------------------
@@ -73,17 +75,22 @@ parse(pp, this, varargin);
 inx = false(size(this));
 lhsNames = reshape([this.LhsName], size(this));
 
-for i = 1 : numel(varargin)
-    identifier = string(varargin{i});
-    if startsWith(identifier, ":")
-        inx = inx | hasAttribute(this, identifier);
-    else
-        inx = inx | lhsNames==identifier;
+for v = varargin
+    for identifier = reshape(strip(string(v{:})), 1, [ ])
+        if startsWith(identifier, ":")
+            inx = inx | hasAttribute(this, identifier);
+        else
+            inx = inx | lhsNames==identifier;
+        end
     end
 end
 
-this = reshape(this(inx), [ ], 1);
-lhsNames = [this.LhsName];
+if nargout>=2
+    this = reshape(this(inx), [ ], 1);
+    if nargout>=3
+        lhsNames = reshape(lhsNames(inx), 1, [ ]);
+    end
+end
 
 end%
 

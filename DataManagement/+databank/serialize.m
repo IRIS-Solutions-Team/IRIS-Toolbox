@@ -40,6 +40,7 @@ function [c, listSerialized] = serialize(inputDatabank, dates, varargin)
 
 FN_PRINT_SIZE = @(s) [ '[', sprintf('%g', s(1)), sprintf('-by-%g', s(2:end)), ']' ];
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.serialize');
@@ -62,8 +63,8 @@ if isempty(pp)
 
     addDateOptions(pp);
 end
-parse(pp, inputDatabank, dates, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, inputDatabank, dates, varargin{:});
 
 % Set up the formatting string
 if isempty(opt.Decimals)

@@ -352,7 +352,10 @@ classdef DateWrapper < double
                 return
             end
             reshapeOutput = size(isoDate);
-            isoDate = reshape(extractBefore(string(isoDate), 11), 1, [ ]);
+            isoDate = reshape(string(isoDate), 1, [ ]);
+            if strlength(isoDate)>10
+                isoDate = extractBefore(isoDate, 11);
+            end
             isoDate = join(replace(isoDate, "-", " "), " ");
             ymd = sscanf(isoDate, "%g");
             serial = Frequency.ymd2serial(freq, ymd(1:3:end), ymd(2:3:end), ymd(3:3:end)); 

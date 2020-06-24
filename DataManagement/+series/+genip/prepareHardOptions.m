@@ -1,4 +1,3 @@
-function hard = prepareHardOptions(transition, rangeHigh, opt)
 % prepareHardOptions  Prepare hard conditioning options for Series/genip
 %
 % Backend [IrisToolbox] method
@@ -7,14 +6,16 @@ function hard = prepareHardOptions(transition, rangeHigh, opt)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function hard = prepareHardOptions(transition, ~, highRange, ~, opt)
+
 %--------------------------------------------------------------------------
 
 numInit = transition.NumInit;
-rangeHigh = double(rangeHigh);
-startHigh = rangeHigh(1);
-endHigh = rangeHigh(end);
-freqHigh = DateWrapper.getFrequency(startHigh);
-startInit = DateWrapper.roundPlus(startHigh, -numInit);
+highRange = double(highRange);
+highStart = highRange(1);
+highEnd = highRange(end);
+highFreq = DateWrapper.getFrequency(highStart);
+extdStart = DateWrapper.roundPlus(highStart, -numInit);
 
 hard = struct( );
 invalidFreq = string.empty(1, 0);
@@ -22,8 +23,8 @@ for g = ["Level", "Rate", "Diff"]
     hard.(g) = [ ];
     x__ = opt.("Hard_" + g);
     if isa(x__, 'NumericTimeSubscriptable') && ~isempty(x__) 
-        if isfreq(x__, freqHigh)
-            x = getDataFromTo(x__, startInit, endHigh);
+        if isfreq(x__, highFreq)
+            x = getDataFromTo(x__, extdStart, highEnd);
             if any(isfinite(x(:)))
                 hard.(g) = x;
             end
@@ -50,7 +51,7 @@ return
         thisError = [
             "Series:InvalidFrequencyGenip"
             "Date frequency of the time series assigned to the option %s= "
-            "must match the target date frequency, which is " + Frequency.toString(freqHigh) + ". "
+            "must match the target date frequency, which is " + Frequency.toString(highFreq) + ". "
         ];
         throw(exception.Base(thisError, 'error'), invalidFreq);
         %)
