@@ -50,7 +50,7 @@ jobs:
         cd $GITHUB_WORKSPACE/dist
         find . -mindepth 1 ! -regex '^./\.git[a-z]*\(/.*\)?' -delete
         ls -altr $GITHUB_WORKSPACE/master/dist/
-        cp -r $GITHUB_WORKSPACE/master/dist/* ./
+        cp -r $GITHUB_WORKSPACE/master/dist/. ./
         ls -altr
         git add -A
         git commit -m "Automated build on push to <master>"
