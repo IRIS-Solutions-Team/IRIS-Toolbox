@@ -48,6 +48,8 @@ jobs:
     - name: Copy MASTER's dist/ to DIST branch
       run: |
         cd $GITHUB_WORKSPACE/dist
+        ls -altr
+        ls -altr .git/
         find . ! -name '.gitignore' -type f -exec rm -f {} +
         find . -mindepth 1 -maxdepth 1 ! -name '.git' -type d -exec rm -rf {} +
         ls -altr
