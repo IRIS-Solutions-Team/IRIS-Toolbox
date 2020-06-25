@@ -26,25 +26,25 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/master
         echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-#     - name: Setup node 12
-#       uses: actions/setup-node@v1
-#       with:
-#         node-version: 12.x
-#     - name: Install NPM packages
-#       run: npm i -g inline-source-cli uglify-es clean-css-cli
-#     - name: Create new dist
-#       run: |
-#         cd $GITHUB_WORKSPACE/master/scripts
-#         ./bundle-report.sh
-#     - name: Push new dist to MASTER
-#       run: |
-#         cd $GITHUB_WORKSPACE/master
-#         echo "Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}" > ./dist/.release
-#         git config --global user.name 'Sergey Plotnikov'
-#         git config --global user.email 'nul0m@users.noreply.github.com'
-#         git add -A
-#         git commit -m "Automated build on push to <master>"
-#         git push
+    - name: Setup node 12
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: Install NPM packages
+      run: npm i -g inline-source-cli uglify-es clean-css-cli
+    - name: Create new dist
+      run: |
+        cd $GITHUB_WORKSPACE/master/scripts
+        ./bundle-report.sh
+    - name: Push new dist to MASTER
+      run: |
+        cd $GITHUB_WORKSPACE/master
+        echo "Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}" > ./dist/.release
+        git config --global user.name 'Sergey Plotnikov'
+        git config --global user.email 'nul0m@users.noreply.github.com'
+        git add -A
+        git commit -m "Automated build on push to <master>"
+        git push
     - name: Copy MASTER's dist/ to DIST branch
       run: |
         cd $GITHUB_WORKSPACE/dist
