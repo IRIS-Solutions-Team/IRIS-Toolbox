@@ -49,9 +49,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/dist
         find . -mindepth 1 ! -regex '^./\.git[a-z]*\(/.*\)?' -delete
-        ls -altr $GITHUB_WORKSPACE/master/dist/
         cp -r $GITHUB_WORKSPACE/master/dist/. ./
-        ls -altr
         git add -A
         git commit -m "Automated build on push to <master>"
         git push
@@ -113,10 +111,10 @@ jobs:
         asset_path: ./report-bundled-no-plotly.zip
         asset_name: report-bundled-no-plotly.zip
         asset_content_type: application/zip
-#     - name: Repository Dispatch
-#       uses: peter-evans/repository-dispatch@v1
-#       with:
-#         token: ${{ secrets.IRIS_REPO_TOKEN }}
-#         repository: IRIS-Solutions-Team/IRIS-Toolbox
-#         event-type: rephrase-release-event
-#         client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+    - name: Repository Dispatch
+      uses: peter-evans/repository-dispatch@v1
+      with:
+        token: ${{ secrets.IRIS_REPO_TOKEN }}
+        repository: IRIS-Solutions-Team/IRIS-Toolbox
+        event-type: rephrase-release-event
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
