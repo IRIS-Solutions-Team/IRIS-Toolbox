@@ -49,7 +49,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/dist
         find . ! -name '.gitignore' -type f -exec rm -f {} +
-        find . ! -name '.git' ! -name '.' -type d -exec rm -rf {} +
+        find . -mindepth 1 -maxdepth 1 ! -name '.git' -type d -exec rm -rf {} +
         cp -r $GITHUB_WORKSPACE/master/dist/ ./
         git add -A
         git commit -m "Automated build on push to <master>"
