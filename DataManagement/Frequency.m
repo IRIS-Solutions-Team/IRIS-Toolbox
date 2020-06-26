@@ -164,28 +164,6 @@ classdef Frequency < double
         function c = cellstr(this)
             c = arrayfun(@(x) char(x), this, 'UniformOutput', false);
         end%
-
-
-        function c = toFredLetter(this)
-            %(
-            switch this
-                case Frequency.YEARLY
-                    c = 'A';
-                case Frequency.HALFYEARLY
-                    c = 'SA';
-                case Frequency.QUARTERLY
-                    c = 'Q';
-                case Frequency.MONTHLY
-                    c = 'M';
-                otherwise
-                    thisError = [ 
-                        "Frequency:InvalidFredFrequency" 
-                        "This is not a valid Fred frequency: %s" 
-                    ];
-                    throw(exception.Base(thisError, 'error'), this);
-            end
-            %)
-        end%
     end
 
 
@@ -611,6 +589,29 @@ classdef Frequency < double
                 return
             end
             flag = false;
+        end%
+
+
+        function c = toFredLetter(this)
+            %(
+            switch this
+                case Frequency.YEARLY
+                    c = "A";
+                case Frequency.HALFYEARLY
+                    c = "SA";
+                case Frequency.QUARTERLY
+                    c = "Q";
+                case Frequency.MONTHLY
+                    c = "M";
+                otherwise
+                    thisError = [ 
+                        "Frequency:InvalidFredFrequency" 
+                        "This is not a valid Fred frequency: %s" 
+                        "Fred frequency must be one of {YEARLY, HALFYEARLY, QUARTERY, MONTHLY}." 
+                    ];
+                    throw(exception.Base(thisError, 'error'), this);
+            end
+            %)
         end%
     end
 end

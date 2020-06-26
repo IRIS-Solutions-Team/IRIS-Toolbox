@@ -1,4 +1,4 @@
-# IRIS Macroeconomic Modeling Toolbox
+# [IrisToolbox] for Macroeconomic Modeling
 
 ## Recent Build Info
 ### MS Windows 10
