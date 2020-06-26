@@ -25,11 +25,7 @@ classdef DateWrapper < double
             if ~isEmpty
                 textual.looseLine( );
                 print = DateWrapper.toDefaultString(this);
-                if isscalar(this)
-                    disp(["    """ + print + """"]);
-                else
-                    disp(print);
-                end
+                disp(categorical(print));
             end
             textual.looseLine( );
         end%
