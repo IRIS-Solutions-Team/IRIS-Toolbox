@@ -35,7 +35,7 @@ jobs:
     - name: Create new dist
       run: |
         cd $GITHUB_WORKSPACE/master/scripts
-        ./bundle-report.sh
+        ./bundle-report.sh 'release-auto-${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}'
     - name: Push new dist to MASTER
       run: |
         cd $GITHUB_WORKSPACE/master

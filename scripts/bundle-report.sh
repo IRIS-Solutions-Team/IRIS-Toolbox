@@ -50,7 +50,7 @@ cp ../img/iris-logo.png ../dist/img/iris-logo.png
 # preprocess html replacing vendor and report <script> and <link>
 # tags with the references to their bundles
 cp ../report-template.html ../dist/report-template.html
-python replace-refs.py
+python replace-refs.py $1
 
 # create bundled version of HTML
 cd ../dist
