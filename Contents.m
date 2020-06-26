@@ -1,3 +1,2 @@
 % [IrisToolbox] for Macroeconomic Modeling
-% Version $day_time
-
+% Version 20200626 23:42:12
