@@ -1,5 +1,7 @@
 classdef Series ...
-    < rephrase.Element
+    < rephrase.Element ...
+    & rephrase.Terminus ...
+    & rephrase.Data
 
     properties (Constant)
         Type = rephrase.Type.SERIES
@@ -7,8 +9,14 @@ classdef Series ...
 
 
     methods
-        function this = Series(varargin)
-            this = this@rephrase.Element(varargin{:});
+        function this = Series(title, input, varargin)
+            this = this@rephrase.Element(title, varargin{:});
+            this.Content = input;
+        end%
+
+
+        function build(this, varargin)
+            this.Content = buildSeriesData(this, this.Content);
         end%
     end
 end 

@@ -6,6 +6,7 @@ end
 
 for a = reshape(axesHandle, 1, [ ])
     setappdata(a, 'IRIS_PositionWithinPeriod', 'Middle');
+    hold(a, 'on');
 end
 
 end%

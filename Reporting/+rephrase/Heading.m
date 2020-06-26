@@ -1,5 +1,6 @@
 classdef Heading ...
-    < rephrase.Element
+    < rephrase.Element ...
+    & rephrase.Terminus
 
     properties (Constant)
         Type = rephrase.Type.HEADING
@@ -7,9 +8,10 @@ classdef Heading ...
 
 
     methods
-        function this = Heading(varargin)
-            this = this@rephrase.Element(varargin{:});
+        function this = Heading(title, varargin)
+            this = this@rephrase.Element(title, varargin{:});
             this.Content = NaN;
         end%
     end
 end 
+

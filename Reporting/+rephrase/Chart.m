@@ -4,29 +4,29 @@ classdef Chart ...
 
     properties (Constant)
         Type = rephrase.Type.CHART
-        CanBeParentOf = [rephrase.Type.SERIES]
+    end
+
+
+    properties (Constant, Hidden)
+        PossibleChildren = [ 
+            rephrase.Type.SERIES
+        ]
     end
 
 
     methods
-        function this = Chart(varargin)
-            startDate = varargin{2};
-            endDate = varargin{3};
-            varargin(2:3) = [ ];
-            this = this@rephrase.Element(varargin{:});
+        function this = Chart(title, startDate, endDate, varargin)
+            this = this@rephrase.Element(title, varargin{:});
             this.Content = cell.empty(1, 0);
-            this.Settings.StartDate = DateWrapper.toIsoString(startDate, "s");
-            this.Settings.EndDate = DateWrapper.toIsoString(endDate, "e");
-            if isfield(this.Settings, "Highlight")
-                for i=1:numel(this.Settings.Highlight)
-                    if isfield(this.Settings.Highlight{i},"StartDate")
-                        this.Settings.Highlight{i}.StartDate = DateWrapper.toIsoString(this.Settings.Highlight{i}.StartDate, "s");
-                    end
-                    if isfield(this.Settings.Highlight{i},"EndDate")
-                        this.Settings.Highlight{i}.EndDate = DateWrapper.toIsoString(this.Settings.Highlight{i}.EndDate, "e");
-                    end
-                end
-            end
+            this.Settings.StartDate = double(startDate);
+            this.Settings.EndDate = double(endDate);
+        end%
+
+
+        function build(this, varargin)
+            build@rephrase.Container(this, varargin{:});
+            this.Settings.StartDate = DateWrapper.toIsoString(this.Settings.StartDate, "m");
+            this.Settings.EndDate = DateWrapper.toIsoString(this.Settings.EndDate, "m");
         end%
     end
 end 

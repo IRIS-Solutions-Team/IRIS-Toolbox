@@ -11,6 +11,8 @@ classdef ProgressBar < handle
         Title = ''
         TitleRow = ''
         NumProgress = 40
+        TotalCount = 0
+        RunningCount = 0
         LastIndicatorRow = ''
         LastNumFullBars = 0
         Done = false
@@ -34,7 +36,8 @@ classdef ProgressBar < handle
                 this.Title = varargin{1};
             end
             if nargin>=2
-                this.NumProgress = varargin{2};
+                this.TotalCount = double(varargin{2});
+                this.RunningCount = 0;
             end
             %{
             this.TitleRow = [this.TITLE_FILL , repmat(this.TITLE_FILL, 1, this.NumProgress), this.TITLE_FILL];
@@ -74,10 +77,26 @@ classdef ProgressBar < handle
             this.LastIndicatorRow = indicatorRow;
             this.Diary(end+1, :) = {permille, indicatorRow};
             if permille==1000
+                done(this);
+            end
+        end%
+
+
+        function done(this)
+            if ~this.Done
                 this.Done = true;
                 fprintf('\n');
                 textual.looseLine( );
             end
+        end%
+
+
+        function increment(this)
+            this.RunningCount = this.RunningCount + 1;
+            if this.RunningCount>this.TotalCount
+                this.RunningCount = this.TotalCount;
+            end
+            update(this, this.RunningCount/this.TotalCount);
         end%
 
 

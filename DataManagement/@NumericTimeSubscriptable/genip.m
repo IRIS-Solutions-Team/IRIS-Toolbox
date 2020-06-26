@@ -198,7 +198,8 @@ if isempty(lowInput)
     return
 end
 
-persistent pp defaultOpt
+%( Input parser
+persistent pp
 if isempty(pp)
     pp = extend.InputParser('NumericTimeSubscriptable/genip');
     pp.KeepDefaultOptions = true;
@@ -231,7 +232,7 @@ if isempty(pp)
     addParameter(pp, 'Indicator.Model', 'Difference', @(x) (ischar(x) || isstring(x)) && startsWith(x, ["Diff", "Rat"]));
     addParameter(pp, 'Indicator.Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
 end
-
+%)
 [skip, opt] = maybeSkipInputParser(pp, varargin{:});
 if ~skip
     parse(pp, lowInput, highFreq, transitionOrder, aggregationModel, varargin{:});
@@ -265,26 +266,25 @@ numLowPeriods = round(lowEnd - lowStart + 1);
 %
 highStart = numeric.convert(lowStart, highFreq, "--SkipInputParser");
 highEnd = numeric.convert(lowEnd, highFreq, 'ConversionMonth=', 'Last', "--SkipInputParser");
-numHighPeriods = numWithin*numLowPeriods;
 
 %
-% Resolve Indicator=, Transition= and Hard= options
+% Get low-frequency level data
 %
-transition = series.genip.prepareTransitionOptions(transition, [highStart, highEnd], opt);
-indicator = series.genip.prepareIndicatorOptions(transition, [highStart, highEnd], opt);
-hard = series.genip.prepareHardOptions(transition, [highStart, highEnd], opt);
+lowLevel = getDataFromTo(lowInput, lowStart, lowEnd);
 
 
 %
-% Resolve Aggregation= option
+% Resolve Aggregation 
 %
 aggregation = series.genip.prepareAggregation(aggregationModel, numLowPeriods, numWithin);
 
 
 %
-% Resolve low frequency level data
+% Resolve Indicator=, Transition= and Hard= options
 %
-lowLevel = hereGetLowLevelData( );
+transition = series.genip.prepareTransitionOptions(transition, aggregation, [highStart, highEnd], lowLevel, opt);
+indicator = series.genip.prepareIndicatorOptions(transition, [ ], [highStart, highEnd], [ ], opt);
+hard = series.genip.prepareHardOptions(transition, [ ], [highStart, highEnd], [ ], opt);
 
 
 numInit = transition.NumInit;
@@ -353,7 +353,6 @@ end
 
 return
 
-
     function [fromFreq, numWithin] = hereResolveFrequencyConversion( )
         %(
         fromFreq = lowInput.Frequency;
@@ -363,7 +362,7 @@ return
                 "Series can only be interpolated from a lower to a higher frequency. "
                 "You are attempting to interpolate from %s to %s." 
             ];
-            throw(exception.Base(THIS_ERROR, 'error'), char(fromFreq), char(highFreq));
+            throw(exception.Base(thisError, 'error'), char(fromFreq), char(highFreq));
         end
         numWithin = double(highFreq)/double(fromFreq);
         if numWithin~=round(numWithin)
@@ -373,24 +372,14 @@ return
                 "YEARLY, HALFYEARLY, QUARTERLY and MONTHLY frequencies. "
                 "You are attempting to interpolate from %s to %s." 
             ];
-            throw(exception.Base(THIS_ERROR, 'error'), char(fromFreq), char(highFreq));
+            throw(exception.Base(thisError, 'error'), char(fromFreq), char(highFreq));
         end
         %)
     end%
 
 
-
-
-    function lowLevel = hereGetLowLevelData( )
-        %(
-        lowLevel = getDataFromTo(lowInput, lowStart, lowEnd);
-        %)
-    end%
-
-
-
-
     function hereResolveConflictsInMeasurement( )
+        %(
         if ~opt.ResolveConflicts
             return
         end
@@ -406,6 +395,7 @@ return
                 lowLevel(inxToResolve) = NaN;
             end
         end
+        %)
     end%
 
 

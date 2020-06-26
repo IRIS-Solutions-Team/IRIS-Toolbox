@@ -1,5 +1,3 @@
-function [stacked, Y, Xi0, transition, indicator] = ...
-    setupStackedSystem(lowLevel, aggregation, transition, hard, indicator, Xi0)
 % setupKalmanObject  Set up time-varying LinearSystem and array of observed data for genip model
 %
 % Backend [IrisToolbox] function
@@ -7,6 +5,9 @@ function [stacked, Y, Xi0, transition, indicator] = ...
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function [stacked, Y, Xi0, transition, indicator] = ...
+    setupStackedSystem(lowLevel, aggregation, transition, hard, indicator, Xi0)
 
 persistent STACKED_LINEAR_SYSTEM
 if ~isa(STACKED_LINEAR_SYSTEM, 'StackedLinearSystem')

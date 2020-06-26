@@ -1,5 +1,6 @@
 classdef (CaseInsensitiveProperties=true) Configuration 
     properties (SetAccess=protected)
+        %(
         % IrisRoot  IrisToolbox root folder (not customizable)
         IrisRoot = iris.Configuration.getIrisRoot( )
 
@@ -29,11 +30,13 @@ classdef (CaseInsensitiveProperties=true) Configuration
         UserConfigPath = ''
 
         % Fred API 
-        FredApiKey = '951f01181da86ccb9045ce8716f82f43'
+        FredApiKey = "951f01181da86ccb9045ce8716f82f43"
+        %)
     end
         
 
     properties
+        %(
         % FreqLetters  One-letter representation of each regular frequency
         FreqLetters = iris.Configuration.DEFAULT_FREQ_LETTERS
 
@@ -90,6 +93,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         % UserData  Any kind of user data
         UserData = [ ]
+        %)
     end
 
 
@@ -106,6 +110,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
     properties (Constant, Hidden)
+        %(
         DEFAULT_FREQ = [ Frequency.INTEGER
                          Frequency.YEARLY
                          Frequency.HALFYEARLY
@@ -192,6 +197,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
         CONFIGURATION_MAT_FILE_NAME = 'Configuration.mat'
 
         APPDATA_FIELD_NAME = 'IRIS_Configuration'
+        %)
     end
 
 
@@ -200,11 +206,13 @@ classdef (CaseInsensitiveProperties=true) Configuration
             this.UserConfigPath = which('irisuserconfig.m');
             if ~isempty(this.UserConfigPath)
                 this = irisuserconfig(this);
-                thisWarning = { 'IrisToolbox:Deprecated'
-                                'Using <irisuserconfig.m> file to modify IrisToolbox configuration '
-                                'is deprecated and will be discontinued in a future release. '
-                                'Use the standard Matlab <startup.m> file with iris.set( ) instead.' };
-                warning(thisWarning{1}, [thisWarning{2:end}]);
+                thisWarning = [ 
+                    "IrisToolbox:Deprecated"
+                    "Using <irisuserconfig.m> file to modify IrisToolbox configuration "
+                    "is deprecated and will be discontinued in a future release. "
+                    "Use the standard Matlab <startup.m> file with iris.set( ) instead. "
+                ];
+                warning(thisWarning(1), join(thisWarning(2:end), newline));
             end
         end%
 
@@ -219,9 +227,11 @@ classdef (CaseInsensitiveProperties=true) Configuration
         function this = load( )
             this = getappdata(0, iris.Configuration.APPDATA_FIELD_NAME);
             if ~isa(this, 'iris.Configuration')
-                thisWarning = { 'IrisToolbox:ConfigurationDamaged'
-                                'Configuration data for [IrisToolbox] need to be reset.' };
-                warning(thisWarning{1}, [thisWarning{2:end}]);
+                thisWarning = [ 
+                    "IrisToolbox:ConfigurationDamaged"
+                    "Configuration data for [IrisToolbox] need to be reset."
+                ];
+                warning(thisWarning(1), join(thisWarning(2:end), newline));
                 this = iris.reset( );
             end
         end%
