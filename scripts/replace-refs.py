@@ -96,6 +96,21 @@ html_web = re.sub(
     html_web,
     flags=re.DOTALL | re.MULTILINE,
 )
+# replace logo image source
+html = re.sub(
+    "<!\-\- build:logo:img \-\->.*<!\-\- endbuild:logo:img \-\->",
+    '<img inline class="report-default-logo" src="img/iris-logo.png">',
+    html,
+    flags=re.DOTALL | re.MULTILINE,
+)
+html_web = re.sub(
+    "<!\-\- build:logo:img \-\->.*<!\-\- endbuild:logo:img \-\->",
+    '<img class="report-default-logo" src="https://cdn.jsdelivr.net/gh/OGResearch/rephrase@'
+    + ver
+    + '/dist/img/iris-logo.png">',
+    html_web,
+    flags=re.DOTALL | re.MULTILINE,
+)
 
 # save adjusted HTML file
 with open("../dist/report-template.html", "w") as f:

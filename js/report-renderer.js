@@ -31,12 +31,17 @@ $(document).foundation();
     // add logo(s)
     var leftLogoDiv = headerDiv.querySelector('.left-logo');
     var rightLogoDiv = headerDiv.querySelector('.right-logo');
+    // default logo container
+    const hiddenLogoImg = document.querySelector('.report-default-logo');
     if (!$report.Settings.hasOwnProperty("Logo")) {
+      // get img src from the hidden img.report-default-logo
+      const imgSrc = hiddenLogoImg.getAttribute("src") || "";
       $report.Settings.Logo = {
-        "Path": "./img/iris-logo.png",
+        "Path": imgSrc,
         "Position": "Left"
       };
     }
+    hiddenLogoImg.parentNode.removeChild(hiddenLogoImg);
     var logo = $report.Settings.Logo || [];
     if (typeof logo === "object" && !(logo instanceof Array)) {
       logo = [logo];

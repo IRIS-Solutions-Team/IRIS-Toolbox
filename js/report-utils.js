@@ -45,10 +45,10 @@ function createChart(parent, chartObj) {
   }
   parent.appendChild(chartParent);
   // whether to include title in canvas or make it a separate div
-  const titleOutOfCanvas = (chartObj.Settings.hasOwnProperty("DisplayTitle") && !chartObj.Settings.IsTitlePartOfChart);
+  const hideTitle = (chartObj.Settings.hasOwnProperty("DisplayTitle") && !chartObj.Settings.DisplayTitle);
   // create chart title
   const chartTitle = chartObj.Title || "";
-  if (chartTitle && titleOutOfCanvas) {
+  if (chartTitle && !hideTitle) {
     var chartTitleDiv = document.createElement("div");
     $(chartTitleDiv).addClass(["rephrase-chart-title", "h4"]);
     chartTitleDiv.innerText = chartTitle;
@@ -72,8 +72,8 @@ function createChart(parent, chartObj) {
     ? true
     : chartObj.Settings.InteractiveCharts;
   const chartBody = (chartLib.toLowerCase() === "chartjs")
-    ? $ru.createChartForChartJs(chartTitle, data, titleOutOfCanvas, limits, chartObj.Settings.DateFormat, chartObj.Settings.Highlight || [])
-    : $ru.createChartForPlotly(chartTitle, data, titleOutOfCanvas, limits, chartObj.Settings.DateFormat, chartObj.Settings.Highlight || [], interactive);
+    ? $ru.createChartForChartJs(data, limits, chartObj.Settings.DateFormat, chartObj.Settings.Highlight || [])
+    : $ru.createChartForPlotly(data, limits, chartObj.Settings.DateFormat, chartObj.Settings.Highlight || [], interactive);
   chartParent.appendChild(chartBody);
 }
 
@@ -155,7 +155,7 @@ function addPageBreak(parent, breakObj) {
 }
 
 // create chart elements using Chart.js library
-function createChartForChartJs(chartTitle, data, titleOutOfCanvas, limits, dateFormat, highlight) {
+function createChartForChartJs(data, limits, dateFormat, highlight) {
   var canvas = document.createElement("canvas");
   $(canvas).addClass("rephrase-chart-body");
   // draw chart in canvas
@@ -167,12 +167,7 @@ function createChartForChartJs(chartTitle, data, titleOutOfCanvas, limits, dateF
     },
     options: {
       title: {
-        display: chartTitle !== "" && !titleOutOfCanvas,
-        text: chartTitle,
-        fontFamily: 'Lato',
-        fontSize: 20,
-        fontStyle: '300',
-        fontColor: '#0a0a0a'
+        display: false // title is always out of canvas
       },
       tooltips: {
         intersect: false,
@@ -267,18 +262,10 @@ function createSeriesForChartJs(title, dates, values, seriesType, colors, limits
 
 
 // create chart elements using Plotly library
-function createChartForPlotly(chartTitle, data, titleOutOfCanvas, limits, dateFormat, highlight, interactive) {
+function createChartForPlotly(data, limits, dateFormat, highlight, interactive) {
   var chartBody = document.createElement("div");
   $(chartBody).addClass("rephrase-chart-body");
   const layout = {
-    title: {
-      text: chartTitle !== "" && !titleOutOfCanvas ? chartTitle : undefined,
-      font: {
-        size: 20,
-        family: "Lato",
-        color: "#0a0a0a"
-      }
-    },
     font: {
       family: "Lato",
       color: "#0a0a0a"
@@ -313,17 +300,15 @@ function createChartForPlotly(chartTitle, data, titleOutOfCanvas, limits, dateFo
       xanchor: "center",
       yanchor: "bottom",
       orientation: "h"
-    }
-  };
-  if (titleOutOfCanvas) {
-    layout.margin = {
+    },
+    margin: {
       l: 50,
       r: 50,
       b: 30,
       t: 10,
       pad: 4
-    };
-  }
+    }
+  };
   const config = {
     responsive: true,
     staticPlot: !interactive

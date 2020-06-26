@@ -314,6 +314,11 @@ h6, .h6 {
   font-weight: bold;
 }
 
+.report-default-logo {
+  /* IMG containing the link to default logo */
+  display: none;
+}
+
 @media (max-width: 639px) {
   /* small screens */
   .left-logo-img, .right-logo-img {
