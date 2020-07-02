@@ -108,24 +108,24 @@ numPeriods = length(range);
 isBackcast = range(1)>range(end);
 if isBackcast
     this = backward(this);
-    extendedRange = range(end) : range(1)+pp;
-    indeextendedRange = [true(1, numPeriods), false(1, pp)];
+    extRange = range(end) : range(1)+pp;
+    indeextRange = [true(1, numPeriods), false(1, pp)];
 else
-    extendedRange = range(1)-pp : range(end);
-    indeextendedRange = [false(1, pp), true(1, numPeriods)];
+    extRange = range(1)-pp : range(end);
+    indeextRange = [false(1, pp), true(1, numPeriods)];
 end
 
 % Check availability of input data in input databank
 requiredNames = [this.NamesEndogenous, this.NamesExogenous];
 optionalNames = this.NamesErrors;
 databankInfo = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames);
-numOfPages = databankInfo.NumOfPages;
+numOfPages = databankInfo.NumPages;
 
 allNames = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
-XEG = requestData(this, databankInfo, inputDatabank, extendedRange, allNames);
+XEG = requestData(this, databankInfo, inputDatabank, extRange, allNames);
 
-%req = datarequest('y* x* e', this, inputDatabank, extendedRange);
-%extendedRange = req.Range;
+%req = datarequest('y* x* e', this, inputDatabank, extRange);
+%extRange = req.Range;
 %y = req.Y;
 %x = req.X;
 %e = req.E;
@@ -139,7 +139,7 @@ if isBackcast
 end
 
 %e(:, 1:pp, :) = NaN;
-numExtendedPeriods = length(extendedRange);
+numExtendedPeriods = length(extRange);
 %numDataY = size(y, 3);
 %numDataX = size(x, 3);
 %numDataE = size(e, 3);
@@ -177,9 +177,9 @@ end
 %end
 
 %if ~opt.Contributions
-%    outp1 = hdataobj(this, extendedRange, numOfRuns);
+%    outp1 = hdataobj(this, extRange, numOfRuns);
 %else
-%    outp1 = hdataobj(this, extendedRange, numOfRuns, 'Contributions=', @shock);
+%    outp1 = hdataobj(this, extRange, numOfRuns, 'Contributions=', @shock);
 %end
 
 % __Main Loop__
@@ -273,7 +273,7 @@ end
 
 % Create output database.
 %outp1 = hdata2tseries(outp1);
-outputDatabank = returnData(this, XEG, extendedRange, allNames);
+outputDatabank = returnData(this, XEG, extRange, allNames);
 
 outputDatabank = appendData(this, inputDatabank, outputDatabank, range, opt);
 %outp1 = appendData(this, inputDatabank, outp1, range, opt);

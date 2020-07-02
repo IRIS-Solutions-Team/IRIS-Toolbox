@@ -33,11 +33,11 @@ classdef Clone < parser.control.ExternalFile
             fileName = strtrim(fileName);
             cloneString = strtrim(cloneString);
             if ~isempty(fileName)
-                [c, ~, exportable, ctrlParameters] = Preparser.parse( fileName, [ ], ...
-                                                                      'assigned=', p.Assigned, ...
-                                                                      'cloneString=', cloneString );
-                add(p, ctrlParameters, exportable);
-                % Reset file name back to caller file.
+                [c, ~, exportable, controls] = Preparser.parse(fileName, [ ], p);
+                add(p, controls, exportable);
+                % 
+                % Reset file name back to caller file
+                %
                 exception.ParseTime.storeFileName(p.FileName);
             else
                 c = '';

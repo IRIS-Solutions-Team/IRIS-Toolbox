@@ -20,7 +20,7 @@ isAsynchronous = runningData.IsAsynchronous;
 % Regular call from @Model.simulate
 regularCall = systemProperty.NumOfOutputs==0;
 
-nv = length(this);
+nv = countVariants(this);
 numRuns = size(runningData.YXEPG, 3); 
 baseRangeColumns = runningData.BaseRangeColumns;
 firstColumnToRun = baseRangeColumns(1);
@@ -34,9 +34,12 @@ method = runningData.Method(min(run, end));
 deviation = runningData.Deviation(min(run, end));
 needsEvalTrends = runningData.NeedsEvalTrends(min(run, end));
 
-% Set up @simulate.Data from @Model and @Plan, update parameters and
-% steady trends and measurement trends
+%
+% Set up @simulate.Data from @Model and @Plan, fill in parameters,
+% steady trends and measurement trends from @Model
+%
 data__ = simulate.Data.fromModelAndPlan(this, run, plan, runningData);
+
 data__.FirstColumnOfSimulation = firstColumnToRun;
 data__.LastColumnOfSimulation = lastColumnToRun;
 data__.Window = runningData.Window;
@@ -82,10 +85,8 @@ end
 % Split shocks into AnticipatedE and UnanticipatedE properties on
 % the whole simulation range
 % retrieveE(data__);
-[ data__.AnticipatedE, ...
-  data__.UnanticipatedE ] = simulate.Data.splitE( data__.E, ...
-                                                   data__.AnticipationStatusOfE, ...
-                                                   baseRangeColumns );
+[data__.AnticipatedE, data__.UnanticipatedE] = ...
+    simulate.Data.splitE(data__.E, data__.AnticipationStatusOfE, baseRangeColumns);
 
 % Retrieve time frames
 timeFrames__ = runningData.Frames{min(run, end)};

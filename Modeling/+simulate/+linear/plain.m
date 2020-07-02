@@ -71,7 +71,7 @@ end
 
 % __Transition Variables__
 for t = 1 : numPeriods
-    wt = T*wt(nf+1:end) + K;
+    wt = T*wt(nf+1:end, :) + K;
     if lastEa>=t
         eat = Ea(:, t:lastEa);
         eat = eat(:);

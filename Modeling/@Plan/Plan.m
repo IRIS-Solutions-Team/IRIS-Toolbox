@@ -37,7 +37,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         DefaultAnticipationStatus = true
         AllowUnderdetermined = true
         AllowOverdetermined = false
-        NumOfDummyPeriods = 0
+        NumDummyPeriods = 0
     end
 
 
@@ -224,7 +224,7 @@ classdef Plan < matlab.mixin.CustomDisplay
             this.IdOfUnanticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
             this.InxToKeepEndogenousNaN(:, end+(1:numDummyPeriods)) = false;
             this.SigmasOfExogenous(:, end+(1:numDummyPeriods), :) = NaN;
-            this.NumOfDummyPeriods = numDummyPeriods;
+            this.NumDummyPeriods = numDummyPeriods;
         end%
     %)
     end
@@ -236,7 +236,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         function [inxExogenized, inxEndogenized] = getSwapsWithinFrame( ...
             this, firstColumnOfFrame, lastColumnOfSimulation ...
         )
-            numColumns = this.NumOfExtendedPeriods + this.NumOfDummyPeriods;
+            numColumns = this.NumOfExtendedPeriods + this.NumDummyPeriods;
             inxExogenized = false(this.NumOfEndogenous, numColumns);
             inxEndogenized = false(this.NumOfExogenous, numColumns);
             if this.NumOfExogenizedPoints>0

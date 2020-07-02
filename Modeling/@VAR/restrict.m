@@ -45,7 +45,7 @@ isPlain = ~isempty(opt.A) ...
 % General constraints.
 rest = lower(strtrim(opt.Constraints));
 if ~isempty(rest)
-    rest = textfun.converteols(rest);
+    rest = textual.convertEndOfLines(rest);
     rest = strrep(rest, char(10), ' ');
     rest = lower(rest);
     % Convert char to cellstr: for bkw compatibility, char strings can use

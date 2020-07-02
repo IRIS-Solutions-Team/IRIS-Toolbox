@@ -12,20 +12,22 @@ if nargin==1 && all(isgraphics(varargin{1}))
 end
 
 if all(isgraphics(varargin{1}))
-    varargin([1, 2]) = varargin([2, 1]);
+    varargin = [varargin(2), {'Figure'}, varargin(1), varargin(3:end)];
 end
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('visual.heading');
-    inputParser.KeepUnmatched = true;
-    inputParser.addRequired('String', @(x) ischar(x) || isa(x, 'string') || iscellstr(x));
-    inputParser.addParameter('Figure', gobjects(0), @(x) all(isgraphics(x)));
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('visual.heading');
+    pp.KeepUnmatched = true;
+    addRequired(pp, 'String', @(x) ischar(x) || isstring(x) || iscellstr(x));
+    addParameter(pp, 'Figure', gobjects(0), @(x) all(isgraphics(x)));
 end
-inputParser.parse(varargin{:});
-string = inputParser.Results.String;
-handleFigure = inputParser.Results.Figure;
-unmatched = inputParser.UnmatchedInCell;
+%)
+parse(pp, varargin{:});
+string = pp.Results.String;
+handleFigure = pp.Results.Figure;
+unmatched = pp.UnmatchedInCell;
 
 if isempty(string)
     return
@@ -41,17 +43,22 @@ end
 %--------------------------------------------------------------------------
 
 for i = 1 : numel(handleFigure)
-    textHandles = [ textHandles
-                    printHeading(handleFigure(i), string, unmatched{:}) ]; %#ok<AGROW>
+    textHandles = [ 
+        textHandles
+        printHeading(handleFigure(i), string, unmatched{:}) 
+    ]; %#ok<AGROW>
 end
 
 end%
+
 
 %
 % Local Functions
 %
 
+
 function textHandles = printHeading(handleFigure, string, varargin)
+    %(
     figureFontSize = get(handleFigure, 'DefaultAxesFontSize');
     fontSize = 1.3*figureFontSize;
     textHandles = annotation( ...
@@ -64,5 +71,6 @@ function textHandles = printHeading(handleFigure, string, varargin)
         'LineStyle', 'None', ...
         varargin{:} ...
     );
+    %)
 end%
 

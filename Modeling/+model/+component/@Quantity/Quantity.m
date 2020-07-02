@@ -1,4 +1,7 @@
-classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
+classdef (CaseInsensitiveProperties=true) ...
+    Quantity ...
+    < model.component.Insertable
+
     properties
         % Name  Names of quantities
         Name = cell.empty(1, 0)
@@ -151,6 +154,11 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
             index = getIndexByType(this, varargin{:});
             list = this.Name(index);
         end%
+
+
+        function pos = getPosTimeTrend(this)
+            pos = find(string(this.Name)==string(this.RESERVED_NAME_TTREND));
+        end%
     end
 
     
@@ -175,3 +183,4 @@ classdef (CaseInsensitiveProperties=true) Quantity < model.component.Insertable
         end%
     end
 end
+

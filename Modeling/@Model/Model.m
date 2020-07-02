@@ -349,9 +349,6 @@ classdef Model ...
 % expressions.
 %}
 
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
-
 %--------------------------------------------------------------------------
 
             this = this@model(varargin{:});
@@ -360,14 +357,17 @@ classdef Model ...
 
 
     methods % Public Interface
+        %(
         varargout = equationStartsWith(varargin)
         varargout = changeLogStatus(varargin)
-        varargout = get(varargin)
         varargout = simulate(varargin)
+        varargout = table(varargin)
+        %)
     end % methods
 
 
     methods (Access=protected) % Custom Display
+        %(
         function groups = getPropertyGroups(this)
             x = struct( 'FileName', this.FileName, ...
                         'Comment', this.Comment, ...
@@ -410,6 +410,7 @@ classdef Model ...
             end
             header = ['  ', dimString, adjective, ' ', className, sprintf('\n')]; 
         end%
+        %)
     end % methods
 
 
@@ -425,6 +426,7 @@ classdef Model ...
 
         varargout = getIdOfInitialConditions(varargin)
         varargout = getInxOfInitInPresample(varargin)
+        varargout = implementGet(varargin)
         varargout = prepareHashEquations(varargin)
         varargout = prepareLinearSystem(varargin)
         varargout = simulateFrames(varargin)

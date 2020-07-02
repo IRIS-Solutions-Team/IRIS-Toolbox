@@ -1,4 +1,4 @@
-function outputDatabank = fromDoubleArrayNoFrills( ...
+function outputDb = fromDoubleArrayNoFrills( ...
     array, ...
     names, ...
     startDate, ...
@@ -32,13 +32,12 @@ end
 %--------------------------------------------------------------------------
 
 numRows = size(array, 1);
-
-names = string(names);
+names = reshape(string(names), 1, [ ]);
 
 if isempty(comments)
     comments = repmat({''}, 1, numRows);
 elseif isa(comments, 'string')
-    comments = cellstr(comments);
+    comments = reshape(cellstr(comments), 1, [ ]);
 end
 
 hereCheckDimensions( );
@@ -47,7 +46,7 @@ if ~isa(startDate, 'DateWrapper')
     startDate = DateWrapper(startDate);
 end
 
-outputDatabank = databank.backend.ensureTypeConsistency(addToDatabank, outputType);
+outputDb = databank.backend.ensureTypeConsistency(addToDatabank, outputType);
 
 if isequal(inxToInclude, @all)
     inxToInclude = true(1, numRows);
@@ -57,20 +56,22 @@ for i = find(inxToInclude)
     data__ = array(i, :, :);
     data__ = permute(data__, [2, 3, 1]);
     series__ = fill(TIME_SERIES_TEMPLATE, data__, startDate, comments{i});
-    outputDatabank.(names(i)) = series__;
+    outputDb.(names(i)) = series__;
 end
 
 return
 
     function hereCheckDimensions( )
+        %(
         if numRows==numel(names) && numRows==numel(comments)
             return
         end
-        thisError = { 
-            'Databank:InvalidSizeOfInputArguments'
-            'Invalid dimensions of some of the input arguments {array, names, comments}'
-        };
+        thisError = [ 
+            "Databank:InvalidSizeOfInputArguments"
+            "Invalid dimensions of some of the input arguments {array, names, comments}"
+        ];
         throw(exception.Base(thisError, 'error'));
+        %)
     end%
 end%
 

@@ -104,11 +104,21 @@ classdef Serialize ...
 
         function db = encodeDatabank(this, db)
             %(
-            for name = reshape(string(fieldnames(db)), 1, [ ])
-                if ~isa(db.(name), 'Series')
+            for name = keys(db)
+                if isa(db, 'Dictionary')
+                    x__ = retrieve(db, name);
+                else
+                    x__ = db.(name);
+                end
+                if ~isa(x__, 'Series')
                     continue
                 end
-                db.(name) = this.encodeSeries(db.(name), name);
+                x__ = this.encodeSeries(x__, name);
+                if isa(db, 'Dictionary')
+                    store(db, name, x__);
+                else
+                    db.(name) = x__;
+                end
             end
             %)
         end%
@@ -116,15 +126,25 @@ classdef Serialize ...
 
         function db = decodeDatabank(this, db, nameMap)
             %(
-            for name = reshape(string(fieldnames(db)), 1, [ ])
-                if ~isa(db.(name), 'struct') ...
-                    || ~isfield(db.(name), this.Name) ...
-                    || ~isfield(db.(name), this.Dates) ...
-                    || ~isfield(db.(name), this.Values) ...
-                    || ~isfield(db.(name), this.Frequency)
+            for name = keys(db)
+                if isa(db, 'Dictionary')
+                    x__ = retrieve(db, name);
+                else
+                    x__ = db.(name);
+                end
+                if ~isa(x__, 'struct') ...
+                    || ~isfield(x__, this.Name) ...
+                    || ~isfield(x__, this.Dates) ...
+                    || ~isfield(x__, this.Values) ...
+                    || ~isfield(x__, this.Frequency)
                     continue
                 end
-                db.(name) = this.decodeSeries(db.(name), name);
+                x__ = this.decodeSeries(x__, name);
+                if isa(db, 'Dictionary')
+                    store(db, name, x__);
+                else
+                    db.(name) = x__;
+                end
             end
             %)
         end%

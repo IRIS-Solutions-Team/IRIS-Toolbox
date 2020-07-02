@@ -285,4 +285,7 @@ else
     [this, flag, outputInfo] = steadyNonlinear(this, steady, Inf);
 end
 
+pos = getPosTimeTrend(this.Quantity);
+this.Variant.Values(1, pos, :) = complex(0, 1);
+
 end%

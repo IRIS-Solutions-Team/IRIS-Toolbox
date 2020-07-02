@@ -1,4 +1,3 @@
-function targetDb = copy(sourceDb, varargin)
 %{
 % databank.copy  Copy fields of source databank to target databank
 %
@@ -82,6 +81,9 @@ function targetDb = copy(sourceDb, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
+function targetDb = copy(sourceDb, varargin)
+
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.copy');
@@ -92,8 +94,9 @@ if isempty(pp)
     addParameter(pp, 'Transform', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
     addParameter(pp, 'WhenTransformFails', 'Error', @(x) validate.anyString(x, 'Error', 'Warning'));
 end
-parse(pp, sourceDb, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, sourceDb, varargin{:});
+
 sourceNames = pp.Results.SourceNames;
 targetDb = pp.Results.TargetDb;
 targetNames = pp.Results.TargetNames;

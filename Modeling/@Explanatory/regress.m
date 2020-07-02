@@ -1,41 +1,34 @@
-function varargout = regress(this, inputDatabank, fittedRange, varargin)
 % regress  Estimate regression parameters of Explanatory 
 %{
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% Invoke unit tests
-%(
-if nargin==2 && isequal(inputDatabank, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
+function [this, outputDb] = regress(this, inputDatabank, fittedRange, varargin)
 
-
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('Explanatory.regress');
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('Explanatory.regress');
     %
     % Required arguments
     %
-    addRequired(parser, 'explanatoryEquation', @(x) isa(x, 'Explanatory'));
-    addRequired(parser, 'inputDatabank', @validate.databank);
-    addRequired(parser, 'fittedRange', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'Explanatory'));
+    addRequired(pp, 'inputDatabank', @validate.databank);
+    addRequired(pp, 'fittedRange', @DateWrapper.validateProperRangeInput);
     %
     % Options
     % 
-    addParameter(parser, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, [ ]) || validate.databank(x));
-    addParameter(parser, 'AppendPostsample', false, @validate.logicalScalar);
-    addParameter(parser, 'AppendPresample', false, @validate.logicalScalar);
-    addParameter(parser, 'OutputType', 'struct', @validate.databankType);
-    addParameter(parser, 'MissingObservations', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
-    addParameter(parser, 'FixParameters', false, @validate.logicalScalar);
+    addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, [ ]) || validate.databank(x));
+    addParameter(pp, 'AppendPostsample', false, @validate.logicalScalar);
+    addParameter(pp, 'AppendPresample', false, @validate.logicalScalar);
+    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
+    addParameter(pp, 'MissingObservations', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
+    addParameter(pp, 'FixParameters', false, @validate.logicalScalar);
 end
-parse(parser, this, inputDatabank, fittedRange, varargin{:});
-opt = parser.Options;
+%)
+opt = parse(pp, this, inputDatabank, fittedRange, varargin{:});
 
 storeToDatabank = nargout>=2;
 
@@ -153,11 +146,6 @@ end
 %
 this = runtime(this);
 
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout = {this, outputDb};
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 return
 
 
@@ -219,22 +207,13 @@ end%
 %
 % Unit Tests 
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({ 
-        @setupOnce 
-        @arxTest  
-        @resimulateTest
-        @resimulatePrependTest
-        @resimulateAppendTest
-        @arxSystemTest
-        @arxSystemVariantsTest 
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Explanatory/regressUnitTest.m
 
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
-function setupOnce(testCase)
+% Set up Once
     m1 = Explanatory.fromString('x = ? + ?*x{-1} + ?*y');
     m2 = Explanatory.fromString('a = ? + ?*a{-1} + ?*x');
     startDate = qq(2001,1);
@@ -253,10 +232,10 @@ function setupOnce(testCase)
     testCase.TestData.Databank1 = db1;
     testCase.TestData.Databank2 = db2;
     testCase.TestData.BaseRange = baseRange;
-end%
 
 
-function arxTest(testCase)
+
+%% Test ARX
     m1 = testCase.TestData.Model1;
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
@@ -266,20 +245,19 @@ function arxTest(testCase)
     exp_parameters = transpose(X\y);
     assertEqual(testCase, est1.Parameters, exp_parameters, 'AbsTol', 1e-12);
     assertEqual(testCase, isfield(outputDb, m1.ResidualName), true);
-end%
 
 
-function resimulateTest(testCase)
+%% Test Resimulate 
     m1 = testCase.TestData.Model1;
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
     [est1, outputDb] = regress(m1, db1, baseRange);
     simDb = simulate(est1, outputDb, baseRange);
     assertEqual(testCase, db1.x(baseRange), simDb.x(baseRange), 'AbsTol', 1e-12);
-end%
 
 
-function resimulatePrependTest(testCase)
+
+%% Test Resimulate Prepend
     m1 = testCase.TestData.Model1;
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
@@ -288,10 +266,9 @@ function resimulatePrependTest(testCase)
     startDate = db1.x.Start;
     range = db1.x.Start : baseRange(end);
     assertEqual(testCase, db1.x(range), simDb.x(range), 'AbsTol', 1e-12);
-end%
 
 
-function resimulateAppendTest(testCase)
+%% Test Resimulate Append
     m1 = testCase.TestData.Model1;
     db1 = testCase.TestData.Databank1;
     baseRange = testCase.TestData.BaseRange;
@@ -299,10 +276,9 @@ function resimulateAppendTest(testCase)
     simDb = simulate(est1, outputDb, baseRange, 'AppendInput=', true);
     range = baseRange(1)-1 : db1.x.End;
     assertEqual(testCase, db1.x(range), simDb.x(range), 'AbsTol', 1e-12);
-end%
 
 
-function arxSystemTest(testCase)
+%% Test ARX System
     m1 = testCase.TestData.Model1;
     m2 = testCase.TestData.Model2;
     m = [m1, m2];
@@ -319,10 +295,9 @@ function arxSystemTest(testCase)
     assertEqual(testCase, est(2).Parameters, exp_parameters, 'AbsTol', 1e-12);
     assertEqual(testCase, isfield(outputDb, m1.ResidualName), true);
     assertEqual(testCase, isfield(outputDb, m2.ResidualName), true);
-end%
 
 
-function arxSystemVariantsTest(testCase)
+%% Test ARX System Variants
     m1 = testCase.TestData.Model1;
     m2 = testCase.TestData.Model2;
     m = [m1, m2];
@@ -346,6 +321,7 @@ function arxSystemVariantsTest(testCase)
         exp_parameters(:, :, i) = transpose(X\y);
     end
     assertEqual(testCase, est(2).Parameters, exp_parameters, 'AbsTol', 1e-12);
-end%
-%)
+
+##### SOURCE END #####
+%}
 

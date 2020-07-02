@@ -1,4 +1,6 @@
-classdef DataBlock < matlab.mixin.Copyable
+classdef DataBlock ...
+    < matlab.mixin.Copyable
+
     properties
         % YXEPG  NumOfQuants-by-NumOfPeriods-by-NumOfPages matrix of variables 
         YXEPG = double.empty(0)

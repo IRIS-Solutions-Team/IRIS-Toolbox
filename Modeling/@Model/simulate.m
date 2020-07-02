@@ -1,4 +1,3 @@
-function varargout = simulate(this, inputDb, baseRange, varargin)
 % simulate  Simulate model
 %{
 %
@@ -51,10 +50,13 @@ function varargout = simulate(this, inputDb, baseRange, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function [outputDb, outputInfo] = simulate(this, inputDb, baseRange, varargin)
 
 TYPE = @int8;
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('model.simulate');
@@ -73,7 +75,7 @@ if isempty(pp)
     addParameter(pp, 'OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
     addParameter(pp, 'Plan', true, @(x) validate.logicalScalar(x) || isa(x, 'Plan'));
-    addParameter(pp, 'ProgressInfo', false, @validate.logicalScalar);
+    addParameter(pp, 'Progress', false, @validate.logicalScalar);
     addParameter(pp, 'SuccessOnly', false, @validate.logicalScalar);
     addParameter(pp, 'Solver', @auto, @validateSolver);
     addParameter(pp, 'SparseShocks', false, @validate.logicalScalar)
@@ -83,6 +85,7 @@ if isempty(pp)
     addParameter(pp, 'Initial', 'Data', @(x) validate.anyString(x, 'Data', 'FirstOrder'));
     addParameter(pp, 'PrepareGradient', true, @validate.logicalScalar);
 end
+%)
 opt = parse(pp, this, inputDb, baseRange, varargin{:});
 opt.EvalTrends = opt.DTrends;
 usingDefaults = pp.UsingDefaultsInStruct;
@@ -107,12 +110,13 @@ nv = countVariants(this);
 
 % Check the input databank; treat all names as optional, and check for
 % missing initial conditions later
-requiredNames = cell.empty(1, 0);
-optionalNames = this.Quantity.Name;
-databankInfo = checkInputDatabank(this, inputDb, baseRange, requiredNames, optionalNames);
+requiredNames = string.empty(1, 0);
+optionalNames = this.Quantity.Name(this.Quantity.Type~=TYPE(4));
+dbInfo = checkInputDatabank( ...
+    this, inputDb, baseRange, requiredNames, optionalNames ...
+);
 
-hereResolveOptionConflicts( );
-plan = opt.Plan;
+plan = hereResolvePlan( );
 
 %
 % Prepare running data
@@ -124,6 +128,10 @@ runningData.PrepareOutputInfo = nargout>=2;
 
 % Retrieve data from intput databank, set up ranges
 herePrepareData( );
+
+% Check Contributions= only after preparing data and resolving the number
+% of runs (variants, pages)
+hereResolveContributionsConflicts( );
 
 hereCopyOptionsToRunningData( );
 
@@ -142,15 +150,14 @@ hereCheckInitialConditions( );
 herePrepareBlazer( );
 
 systemProperty = hereSetupSystemProperty( );
-
 if ~isequal(opt.SystemProperty, false)
-    varargout{1} = systemProperty;
+    outputDb = systemProperty;
     return
 end
 
-progressInfo = ProgressInfo.empty(0);
-if opt.ProgressInfo
-    progressInfo = herePrepareProgressInfo( );
+progress = [ ];
+if opt.Progress
+    progress = ProgressBar('[IrisToolbox] @Model/simulate Progress');
 end
 
 
@@ -158,12 +165,9 @@ end
 numRuns = runningData.NumOfPages;
 for i = 1 : numRuns
     simulateFrames(this, systemProperty, i);
-    if opt.ProgressInfo
-        hereUpdateProgressInfo(i);
+    if opt.Progress
+        update(progress, i/numRuns);
     end
-end
-if opt.ProgressInfo
-    complete(progressInfo);
 end
 % /////////////////////////////////////////////////////////////////////////
 
@@ -178,49 +182,54 @@ end
 
 outputDb = hereCreateOutputData( );
 outputInfo = herePrepareOutputInfo( );
-varargout = { outputDb, outputInfo };
 
 return
-    
 
-
-
-    function hereResolveOptionConflicts( )
+    function plan = hereResolvePlan( )
+        %(
+        plan = opt.Plan;
         if ~usingDefaults.Anticipate && ~usingDefaults.Plan
             thisError = [
                 "Model:CannotUseAnticipateAndPlan"
-                "Options Anticipate= and Plan= cannot be combined in one simulate(~)" 
+                "Options Anticipate= and Plan= cannot be combined in one simulation."
             ];
             throw(exception.Base(thisError, 'error'));
         end
         if ~usingDefaults.Anticipate && usingDefaults.Plan
-            opt.Plan = opt.Anticipate;
+            plan = opt.Anticipate;
         end
-        if ~isa(opt.Plan, 'Plan')
-            opt.Plan = Plan(this, baseRange, 'Anticipate=', opt.Plan);
+        if ~isa(plan, 'Plan')
+            plan = Plan(this, baseRange, 'Anticipate=', plan);
         else
-            checkCompatibilityOfPlan(this, baseRange, opt.Plan);
+            checkCompatibilityOfPlan(this, baseRange, plan);
         end
-        if opt.Contributions && opt.Plan.NumOfExogenizedPoints>0
-            thisError = [
-                "Model:CannotEvalContributionsWithExogenized"
-                "Option Contributions=true cannot be used in simulations with exogenized variables" 
-            ];
-            throw(exception.Base(thisError, 'error'));
-        end
-        if opt.Contributions && databankInfo.NumOfPages>1
-            thisError = [
-                "Model:CannotEvalContributionsWithMultipleDataSets"
-                "Option Contributions=true cannot be used in simulations on multiple data sets" 
-            ];
-            throw(exception.Base(thisError, 'error'));
-        end
+        %)
     end%
 
 
+    function hereResolveContributionsConflicts( )
+        %(
+        if opt.Contributions && plan.NumOfExogenizedPoints>0
+            thisError = [
+                "Model:CannotEvalContributionsWithExogenized"
+                "Option Contributions=true cannot be used in simulations with exogenized variables." 
+            ];
+            throw(exception.Base(thisError, 'error'));
+        end
+        if opt.Contributions && runningData.NumOfPages>1
+            thisError = [
+                "Model:CannotEvalContributionsWithMultipleDataSets"
+                "Option Contributions=true cannot be used in simulations "
+                "with multiple parameter variants or data pages."
+            ];
+            throw(exception.Base(thisError, 'error'));
+        end
+        %)
+    end%
 
 
     function hereCopyOptionsToRunningData( )
+        %(
         numRuns = runningData.NumOfPages;
         runningData.Plan = plan;
         runningData.Initial = opt.Initial;
@@ -231,31 +240,32 @@ return
         runningData.Method = repmat(opt.Method, 1, numRuns);
         runningData.Deviation = repmat(opt.Deviation, 1, numRuns);
         runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numRuns);
+        %)
     end%
 
 
-
-
     function herePrepareData( )
-        numDummyPeriods = hereCalculateNumOfDummyPeriods( );
-        startBaseRange = baseRange(1);
-        endBaseRange = baseRange(end);
-        endBaseRangePlusDummy = endBaseRange + numDummyPeriods;
-        baseRangePlusDummy = [startBaseRange, endBaseRangePlusDummy];
-        [ runningData.YXEPG, ~, ...
-          extendedRange, ~, ...
-          runningData.MaxShift, ...
-          runningData.TimeTrend ] = data4lhsmrhs( this, ...
-                                                  inputDb, ...
-                                                  baseRangePlusDummy, ...
-                                                  'ResetShocks=', true, ...
-                                                  'IgnoreShocks=', opt.IgnoreShocks, ...
-                                                  'NumOfDummyPeriods', numDummyPeriods );
-        startExtendedRange = extendedRange(1);
-        endExtendedRange = extendedRange(end);
-        runningData.ExtendedRange = [startExtendedRange, endExtendedRange];
-        runningData.BaseRangeColumns = colon( round(startBaseRange - startExtendedRange + 1), ...
-                                              round(endBaseRange - startExtendedRange + 1) );
+        %(
+        numDummyPeriods = hereCalculateNumDummyPeriods( );
+        baseStart = baseRange(1);
+        baseEnd = baseRange(end);
+        endBaseRangePlusDummy = baseEnd + numDummyPeriods;
+        baseRangePlusDummy = [baseStart, endBaseRangePlusDummy];
+        [ ... 
+            runningData.YXEPG, ~, extdRange, ~ ...
+            , runningData.MaxShift, runningData.TimeTrend ...
+            , dbInfo ...
+        ] = data4lhsmrhs( ...
+            this, inputDb, baseRangePlusDummy ...
+            , 'ResetShocks=', true ...
+            , 'IgnoreShocks=', opt.IgnoreShocks ...
+            , 'NumDummyPeriods', numDummyPeriods ...
+        );
+        extdStart = extdRange(1);
+        extdEnd = extdRange(end);
+        runningData.ExtendedRange = [extdStart, extdEnd];
+        runningData.BaseRangeColumns = colon( round(baseStart - extdStart + 1), ...
+                                              round(baseEnd - extdStart + 1) );
         numPages = runningData.NumOfPages;
         if numPages==1 && nv>1
             % Expand number of data sets to match number of parameter variants
@@ -266,12 +276,12 @@ return
         runningData.Method = repmat(opt.Method, 1, numRuns);
         runningData.Deviation = repmat(opt.Deviation, 1, numRuns);
         runningData.NeedsEvalTrends = repmat(opt.EvalTrends, 1, numRuns);
+        %)
     end%
 
 
-
-
     function herePrepareContributions( )
+        %(
         firstColumnToSimulate = runningData.BaseRangeColumns(1);
         inxLog = this.Quantity.InxLog;
         inxE = getIndexByType(this, TYPE(31), TYPE(32));
@@ -309,12 +319,12 @@ return
         runningData.Deviation(end-1:end) = opt.Deviation;
         runningData.NeedsEvalTrends = false(1, numRuns);
         runningData.NeedsEvalTrends(end-1:end) = opt.EvalTrends;
+        %)
     end%
 
 
-
-
     function herePrepareBlazer( )
+        %(
         firstColumnToRun = runningData.BaseRangeColumns(1);
         lastColumnToRun = runningData.BaseRangeColumns(end);
         switch opt.Method
@@ -335,12 +345,12 @@ return
             otherwise
                 runningData.Blazers = [ ];
         end
+        %)
     end%
 
 
-
-
     function systemProperty = hereSetupSystemProperty( )
+        %(
         systemProperty = SystemProperty(this);
         systemProperty.Function = @simulateFrames;
         systemProperty.MaxNumOfOutputs = 1;
@@ -352,32 +362,12 @@ return
         else
             systemProperty.OutputNames = opt.SystemProperty;
         end
+        %)
     end%
-
-
-
-
-    function progressInfo = herePrepareProgressInfo( )
-        oneLiner = true;
-        if isa(opt.SolverOptions, 'solver.Options')
-            solverDisplay = { opt.SolverOptions.Display };
-            for ii = 1 : numel(solverDisplay)
-                if ~isequal(solverDisplay{ii}, false) ...
-                   && ~strcmpi(solverDisplay{ii}, 'None') ...
-                   && ~strcmpi(solverDisplay{ii}, 'Off')
-                   oneLiner = false;
-                   break
-                end
-            end
-        end
-        progressInfo = ProgressInfo(runningData.NumOfPages, oneLiner);
-        update(progressInfo);
-    end%
-
-
 
 
     function hereCheckInitialConditions( )
+        %(
         if isAsynchronous
             return
         end
@@ -385,12 +375,12 @@ return
         firstColumnSimulation = runningData.BaseRangeColumns(1);
         inxNaNPresample = any(isnan(runningData.YXEPG(:, 1:firstColumnSimulation-1, :)), 3);
         checkInitialConditions(this, inxNaNPresample, firstColumnSimulation);
+        %)
     end%
 
 
-
-
-    function numDummyPeriods = hereCalculateNumOfDummyPeriods( )
+    function numDummyPeriods = hereCalculateNumDummyPeriods( )
+        %(
         numDummyPeriods = opt.Window - 1;
         if ~strcmpi(opt.Method, 'FirstOrder')
             [~, maxShift] = getActualMinMaxShifts(this);
@@ -399,39 +389,32 @@ return
         if numDummyPeriods>0
             plan = extendWithDummies(plan, numDummyPeriods);
         end
+        %)
     end%
-
-
-
-
-    function hereUpdateProgressInfo(run)
-        progressInfo.Completed = run;
-        progressInfo.Success = nnz(runningData.Success);
-        update(progressInfo);
-    end%
-
-
 
 
     function outputDb = hereCreateOutputData( )
+        %(
         if strcmpi(opt.OutputData, 'Databank')
             if opt.Contributions
                 comments = this.Quantity.Label4ShockContributions;
             else
                 comments = this.Quantity.LabelOrName;
             end
-            inxToInclude = ~getIndexByType(this.Quantity, TYPE(4));
+            inxInclude = ~getIndexByType(this.Quantity, TYPE(4));
             baseRange = runningData.BaseRange;
-            startExtendedRange = runningData.ExtendedRange(1);
+            extdStart = runningData.ExtendedRange(1);
             lastColumnSimulation = runningData.BaseRangeColumns(end);
             timeSeriesConstructor = @default;
-            outputDb = databank.backend.fromDoubleArrayNoFrills( runningData.YXEPG(:, 1:lastColumnSimulation, :), ...
-                                                                   this.Quantity.Name, ...
-                                                                   startExtendedRange, ...
-                                                                   comments, ...
-                                                                   inxToInclude, ...
-                                                                   timeSeriesConstructor, ...
-                                                                   opt.OutputType );
+            outputDb = databank.backend.fromDoubleArrayNoFrills( ...
+                runningData.YXEPG(:, 1:lastColumnSimulation, :), ...
+                this.Quantity.Name, ...
+                extdStart, ...
+                comments, ...
+                inxInclude, ...
+                timeSeriesConstructor, ...
+                opt.OutputType ...
+            );
             outputDb = addToDatabank('Default', this, outputDb);
             if validate.databank(inputDb)
                 outputDb = appendData(this, inputDb, outputDb, baseRange, opt);
@@ -439,12 +422,12 @@ return
         else
             outputDb = runningData.YXEPG;
         end
+        %)
     end%
 
 
-
-
     function outputInfo = herePrepareOutputInfo( )
+        %(
         outputInfo = struct( );
         if ~runningData.PrepareOutputInfo
             return
@@ -456,12 +439,13 @@ return
         outputInfo.Success =  runningData.Success;
         outputInfo.ExitFlags = runningData.ExitFlags;
         outputInfo.DiscrepancyTables = runningData.DiscrepancyTables;
+        outputInfo.ProgressBar = progress;
+        %)
     end%
 
 
-
-
     function herePostprocessContributions( )
+        %(
         inxLog = this.Quantity.InxLog;
         if opt.Method~=solver.Method.FIRST_ORDER
             % Calculate contributions of nonlinearities
@@ -470,6 +454,7 @@ return
             runningData.YXEPG(~inxLog, :, end) = runningData.YXEPG(~inxLog, :, end) ...
                                      - sum(runningData.YXEPG(~inxLog, :, 1:end-1), 3);
         end
+        %)
     end%
 end%
 
@@ -480,6 +465,7 @@ end%
 
 
 function flag = validateMethod(x)
+    %(
     listOfMethods = {'FirstOrder', 'Selective', 'Stacked', 'NoForward'};
     if validate.anyString(x, listOfMethods{:})
         flag = true;
@@ -490,20 +476,20 @@ function flag = validateMethod(x)
         flag = true;
     end
     flag = false; 
+    %)
 end%
-
-
 
 
 function flag = validateSolver(x)
+    %(
     flag = isequal(x, @auto) || isa(x, 'solver.Options') || validateSolverName(x) ...
            || (iscell(x) && validateSolverName(x{1}) && iscellstr(x(2:2:end)));
+    %)
 end%
 
 
-
-
 function flag = validateSolverName(x)
+    %(
     if ~ischar(x) && ~isa(x, 'string') && ~isa(x, 'function_handle')
         flag = false;
         return
@@ -520,12 +506,12 @@ function flag = validateSolverName(x)
         'fsolve'      
     };
     flag = any(strcmpi(char(x), listSolverNames));
+    %)
 end%
 
 
-
-
 function solverOption = hereResolveSolverOption(solverOption)
+    %(
     if ischar(solverOption) || isstring(solverOption)
         solverName = solverOption;
         keep = cell.empty(1, 0);
@@ -539,12 +525,12 @@ function solverOption = hereResolveSolverOption(solverOption)
         solverOption = optimset(keep{:});
         solverOption.SolverName = 'fminsearch';
     end
+    %)
 end%
 
 
-
-
 function [windowOption, baseRange] = resolveWindowAndBaseRange(windowOption, methodOption, baseRange)
+    %(
     if isequal(baseRange, @auto)
         if isequal(windowOption, @auto) || isequal(windowOption, @max)
             baseRange = 1;
@@ -573,12 +559,12 @@ function [windowOption, baseRange] = resolveWindowAndBaseRange(windowOption, met
         ];
         throw(exception.Base(thisError, 'error'));
     end
+    %)
 end%
 
 
-
-
 function solverOption = parseSolverOption(solverOption, methodOption)
+    %(
     switch methodOption
         case solver.Method.FIRST_ORDER
             solverOption = [ ];
@@ -597,12 +583,12 @@ function solverOption = parseSolverOption(solverOption, methodOption)
                 solverOption, defaultSolver, prepareGradient, displayMode ...
             );
     end
+    %)
 end%
 
 
-
-
 function locallyCheckSolvedModel(this, method)
+    %(
     if method==solver.Method.PERIOD || validate.solvedModel(this)
         return
     end
@@ -612,5 +598,6 @@ function locallyCheckSolvedModel(this, method)
         "with Method=%s."
     ];
     throw(exception.Base(thisError, 'error'), method);
+    %)
 end%
 

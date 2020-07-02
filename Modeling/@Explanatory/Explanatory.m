@@ -128,6 +128,7 @@ classdef Explanatory ...
         varargout = checkUniqueLhs(varargin)
         varargout = declareSwitches(varargin)
         varargout = defineDependentTerm(varargin)
+        varargout = retrieve(varargin)
         varargout = getActualMinMaxShifts(varargin)
         varargout = lookup(varargin)
         varargout = regress(varargin)

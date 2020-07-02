@@ -6,7 +6,7 @@ if isempty(ext)
 end
 
 c = file2char(file);
-c = textfun.converteols(c);
+c = textual.convertEndOfLines(c);
 
 start = regexp(c,'^%%(?!%)', 'start', 'lineanchors');
 

@@ -31,26 +31,29 @@ function [flag, list] = isnan(this, varargin)
 % ## Example ##
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 
-if ~isempty(varargin) && (ischar(varargin{1}) &&  ~strcmp(varargin{1}, ':'))
-    request = lower(strtrim(varargin{1}));
+if ~isempty(varargin) ...
+    && (validate.stringScalar(varargin{1}) && string(varargin{1})~=":")
+    request = lower(strtrim(string(varargin{1})));
     varargin(1) = [ ];
 else
-    request = 'All';
+    request = "all";
 end
 
-persistent INPUT_PARSER 
-if isempty(INPUT_PARSER)
-    validRequests = {'All', 'Parameters', 'Sstate', 'Steady', 'Solution', 'Derivatives'};
-    INPUT_PARSER = extend.InputParser('model/isnan');
-    INPUT_PARSER.addRequired('Model', @(x) isa(x, 'model'));
-    INPUT_PARSER.addRequired('Request', @(x) any(strcmpi(x, validRequests)));
+%( Input parser
+persistent pp 
+if isempty(pp)
+    validRequests = ["all", "parameters", "sstate", "steady", "solution", "derivatives"];
+    pp = extend.InputParser('model/isnan');
+    addRequired(pp, 'Model', @(x) isa(x, 'model'));
+    addRequired(pp, 'Request', @(x) any(x==validRequests));
 end
-INPUT_PARSER.parse(this, request);
+%)
+parse(pp, this, request);
 
 if ~isempty(varargin) && (isnumeric(varargin{1}) || islogical(varargin{1}))
     variantsRequested = varargin{1};
@@ -64,65 +67,56 @@ end
 %--------------------------------------------------------------------------
 
 
-if strcmpi(request, 'All')
-    x = this.Variant.Values(:, :, variantsRequested);
-    indexNaN = any(isnan(x), 3);
-    if nargout>1
-        list = this.Quantity.Name(indexNaN);
-    end
-    flag = any(indexNaN);
+switch request
+    case "all"
+        x = this.Variant.Values(:, :, variantsRequested);
+        inxNaN = any(isnan(x), 3);
+        if nargout>1
+            list = this.Quantity.Name(inxNaN);
+        end
+        flag = any(inxNaN);
 
-elseif strcmpi(request, 'Parameters')
-    x = this.Variant.Values(:, :, variantsRequested);
-    indexNaN = any(isnan(x), 3);
-    indexNaN = indexNaN & this.Quantity.Type==TYPE(4);
-    if nargout>1
-        list = this.Quantity.Name(indexNaN);
-    end
-    flag = any(indexNaN);
+    case "parameters"
+        x = this.Variant.Values(:, :, variantsRequested);
+        inxNaN = any(isnan(x), 3);
+        inxNaN = inxNaN & this.Quantity.Type==TYPE(4);
+        if nargout>1
+            list = this.Quantity.Name(inxNaN);
+        end
+        flag = any(inxNaN);
 
-elseif any(strcmpi(request, {'Steady', 'SState'}))
-    % Check for NaNs in transition and measurement variables.
-    x = this.Variant.Values(:, :, variantsRequested);
-    indexNaN = any(isnan(x), 3);
-    indexNaN = indexNaN & ...
-        (this.Quantity.Type==TYPE(1) ...
-        | this.Quantity.Type==TYPE(2));
-    if nargout>1
-        list = this.Quantity.Name(indexNaN);
-    end
-    flag = any(indexNaN);
+    case {"steady", "sstate"}
+        % Check for NaNs in transition and measurement variables.
+        x = this.Variant.Values(:, :, variantsRequested);
+        inxNaN = any(isnan(x), 3);
+        inxNaN = inxNaN & ...
+            (this.Quantity.Type==TYPE(1) ...
+            | this.Quantity.Type==TYPE(2));
+        if nargout>1
+            list = this.Quantity.Name(inxNaN);
+        end
+        flag = any(inxNaN);
 
-elseif strcmpi(request, 'Solution')
-    T = this.Variant.FirstOrderSolution{1}(:, :, variantsRequested);
-    R = this.Variant.FirstOrderSolution{2}(:, :, variantsRequested);
-    % Transition matrix can be empty in 2nd dimension (no lagged
-    % variables).
-    if size(T, 1)>0 && size(T, 2)==0
-        indexNaN = false(1, size(T, 3));
-    else
-        indexNaN = any(any(isnan(T), 1), 2) | any(any(isnan(R), 1), 2);
-        indexNaN = indexNaN(:).';
-    end
-    flag = any(indexNaN);
-    if nargout>1
-        list = indexNaN;
-    end
+    case "solution"
+        inxSolved = beenSolved(this, variantsRequested);
+        flag = ~all(inxSolved);
+        list = ~inxSolved;
 
-elseif strcmpi(request, 'Derivatives')
-    nv = length(this);
-    numEquations = length(this.Equation);
-    eqSelect = true(1, numEquations);
-    list = false(1, numEquations);
-    flag = false;
-    opt = struct( );
-    opt.select = true;
-    for v = 1 : nv
-        [~, ~, indexNaNDeriv] = diffFirstOrder(this, eqSelect, v, opt);
-        flag = flag || any(indexNaNDeriv);
-        list(indexNaNDeriv) = true;
-    end
-    list = this.Equation.Input(list);
+    case "derivatives"
+        nv = length(this);
+        numEquations = length(this.Equation);
+        eqSelect = true(1, numEquations);
+        list = false(1, numEquations);
+        flag = false;
+        opt = struct( );
+        opt.select = true;
+        for v = 1 : nv
+            [~, ~, indexNaNDeriv] = diffFirstOrder(this, eqSelect, v, opt);
+            flag = flag || any(indexNaNDeriv);
+            list(indexNaNDeriv) = true;
+        end
+        list = this.Equation.Input(list);
 end
 
-end
+end%
+

@@ -1,4 +1,3 @@
-function transition = prepareTransitionOptions(transition, highRange, opt)
 % prepareTransitionOptions  Prepare Transition opt for Series/genip
 % 
 % Backend [IrisToolbox] method
@@ -6,6 +5,8 @@ function transition = prepareTransitionOptions(transition, highRange, opt)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function transition = prepareTransitionOptions(transition, aggregation, highRange, lowLevel, opt)
 
 %--------------------------------------------------------------------------
 
@@ -16,6 +17,10 @@ canHaveMissing = false;
 
 transition.NumInit = 2;
 transition.Rate = opt.Transition_Rate;
+if isequal(transition.Rate, @auto)
+    transition.Rate = series.genip.fitTransitionRate(aggregation, lowLevel);
+end
+    
 transition.Intercept = opt.Transition_Intercept;
 transition.Std = opt.Transition_Std;
 

@@ -25,11 +25,7 @@ classdef DateWrapper < double
             if ~isEmpty
                 textual.looseLine( );
                 print = DateWrapper.toDefaultString(this);
-                if isscalar(this)
-                    disp(["    """ + print + """"]);
-                else
-                    disp(print);
-                end
+                disp(categorical(print));
             end
             textual.looseLine( );
         end%
@@ -352,7 +348,10 @@ classdef DateWrapper < double
                 return
             end
             reshapeOutput = size(isoDate);
-            isoDate = reshape(extractBefore(string(isoDate), 11), 1, [ ]);
+            isoDate = reshape(string(isoDate), 1, [ ]);
+            if strlength(isoDate)>10
+                isoDate = extractBefore(isoDate, 11);
+            end
             isoDate = join(replace(isoDate, "-", " "), " ");
             ymd = sscanf(isoDate, "%g");
             serial = Frequency.ymd2serial(freq, ymd(1:3:end), ymd(2:3:end), ymd(3:3:end)); 
@@ -367,7 +366,7 @@ classdef DateWrapper < double
         end%
 
 
-        function isoDate = toIsoString(this)
+        function isoDate = toIsoString(this, varargin)
             if isempty(this)
                 isoDate = string.empty(size(this));
                 return
@@ -393,7 +392,7 @@ classdef DateWrapper < double
                 isoDate = string(double(this));
                 return
             end
-            [year, month, day] = Frequency.serial2ymd(freq, floor(this));
+            [year, month, day] = Frequency.serial2ymd(freq, floor(this), varargin{:});
             isoDate(~inxNaN) = compose("%04g-%02g-%02g", [year(:), month(:), day(:)]);
             isoDate = reshape(isoDate, reshapeOutput);
         end%

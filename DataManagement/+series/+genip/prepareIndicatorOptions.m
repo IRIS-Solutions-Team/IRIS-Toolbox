@@ -1,4 +1,3 @@
-function indicator = prepareIndicatorOptions(transition, highRange, opt)
 % prepareIndicatorOptions  Prepare Indicator options for Series/genip
 %
 % Backend [IrisToolbox] method
@@ -6,6 +5,8 @@ function indicator = prepareIndicatorOptions(transition, highRange, opt)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function indicator = prepareIndicatorOptions(transition, ~, highRange, ~, opt)
 
 MODELS = struct( );
 MODELS.Level = @(x) x;

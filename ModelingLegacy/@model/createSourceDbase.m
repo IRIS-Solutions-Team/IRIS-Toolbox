@@ -63,15 +63,15 @@ numExtPeriods = length(extRange);
 
 label = this.Quantity.LabelOrName;
 
-ixy = this.Quantity.Type==TYPE(1);
-ixx = this.Quantity.Type==TYPE(2);
-ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
-ixg = this.Quantity.Type==TYPE(5);
-ixyxg = ixy | ixx | ixg;
-posyxg = find(ixy | ixx | ixg);
-ixLog = this.Quantity.IxLog;
-ny = sum(ixy);
-numQuantities = length(this.Quantity);
+inxY = this.Quantity.Type==TYPE(1);
+inxX = this.Quantity.Type==TYPE(2);
+inxE = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
+inxG = this.Quantity.Type==TYPE(5);
+inxYXG = inxY | inxX | inxG;
+posYXG = find(inxY | inxX | inxG);
+inxLog = this.Quantity.IxLog;
+ny = sum(inxY);
+numQuantities = numel(this.Quantity);
 
 numColumnsToCreate = max([nv, numColumnsRequested, numDrawsRequested]);
 outputDb = struct( );
@@ -84,25 +84,24 @@ ttrend = dat2ttrend(extRange, this);
 X = zeros(numQuantities, numExtPeriods, nv);
 if ~opt.Deviation
     isDelog = false;
-    X(ixyxg, :, :) = createTrendArray(this, Inf, isDelog, posyxg, ttrend);
+    X(inxYXG, :, :) = createTrendArray(this, Inf, isDelog, posYXG, ttrend);
 end
 
 if opt.DTrends
-    W = evalTrendEquations(this, [ ], X(ixg, :, :), @all);
+    W = evalTrendEquations(this, [ ], X(inxG, :, :), @all);
     X(1:ny, :, :) = X(1:ny, :, :) + W;
 end
 
-X(ixLog, :, :) = real(exp( X(ixLog, :, :) ));
+X(inxLog, :, :) = real(exp( X(inxLog, :, :) ));
 
 if numColumnsToCreate>1 && nv==1
     X = repmat(X, 1, 1, numColumnsToCreate);
 end
 
-
 %
 % Transition variables, exogenous variables
 %
-for i = find(ixx | ixg)
+for i = find(inxX | inxG)
     name = this.Quantity.Name{i};
     outputDb.(name) = replace( ...
         TIME_SERIES_TEMPLATE, ...
@@ -116,7 +115,7 @@ end
 % Do not include pre-sample or post-sample in measurement variables and
 % shocks
 % 
-for i = find(ixy | ixe)
+for i = find(inxY | inxE)
     name = this.Quantity.Name{i};
     x = X(i, 1-minSh:end-maxSh, :);
     outputDb.(name) = replace( ...

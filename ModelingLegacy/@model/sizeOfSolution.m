@@ -1,11 +1,12 @@
-function [ny, nxi, nb, nf, ne, ng, nz, numV, numW] = sizeOfSolution(this)
 % sizeOfSolution  Size of solution vectors
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function [ny, nxi, nb, nf, ne, ng, nz, numV, numW] = sizeOfSolution(this)
 
 %--------------------------------------------------------------------------
 
@@ -24,3 +25,4 @@ numV = nnz(this.Quantity.Type==TYPE(32));
 numW = nnz(this.Quantity.Type==TYPE(31));
 
 end%
+

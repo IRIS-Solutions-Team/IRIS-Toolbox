@@ -305,7 +305,7 @@ return
     function readFile( )
         % Read CSV file to char.
         file = file2char(fileName);
-        file = textfun.converteols(file);
+        file = textual.convertEndOfLines(file);
         if isempty(opt.preprocess)
             return
         end

@@ -1,92 +1,86 @@
-function [answ, isValid, query] = implementGet(this, qty, pai, query, varargin)
+function [response, isValid, query] = implementGet(this, ~, ~, query, varargin)
 
 TYPE = @int8;
-PTR = @int16;
-answ = [ ];
+response = [ ];
 isValid = true;
-numOfEquations = numel(this.Input);
+numEquations = numel(this.Input);
 
-query1 = query;
-query1 = lower(query1);
-query1 = strrep(query1, 'eqtns', 'eqtn');
-query1 = strrep(query1, 'labels', 'label');
-query1 = regexprep(query1, '[^\w]', '');
+lowerQuery = lower(query);
+lowerQuery = replace(lowerQuery, 'eqtns', 'eqtn');
+lowerQuery = replace(lowerQuery, 'equations', 'eqtn');
+lowerQuery = replace(lowerQuery, 'equation', 'eqtn');
+lowerQuery = replace(lowerQuery, 'labels', 'label');
+lowerQuery = regexprep(lowerQuery, '[^\w]', '');
 
-flagStruct = hereGetFlags( );
+[lowerQuery, flagStruct] = locallyGetFlags(lowerQuery);
+isQuery = @(varargin) any(strcmpi(lowerQuery, varargin));
 
-if any(strcmpi(query1, {'eqtn', 'equations', 'allEquations'}))
-    answ = this.Input;
+if isQuery('Eqtn')
+    response = this.Input;
     if flagStruct.Dynamic
-        answ = model.component.Equation.extractInput(answ, 'Dynamic');
+        response = model.component.Equation.extractInput(response, 'Dynamic');
     elseif flagStruct.Steady
-        answ = model.component.Equation.extractInput(answ, 'Steady');
+        response = model.component.Equation.extractInput(response, 'Steady');
     end
-    select = true(1, numOfEquations);
+    select = true(1, numEquations);
     if flagStruct.Measurement
         select = this.Type==TYPE(1);
     elseif flagStruct.Transition
         select = this.Type==TYPE(2);
     end
-    answ = answ(select);
-    answ = transpose(answ);
+    response = response(select);
+    response = reshape(response, [ ], 1);
 
-elseif any(strcmpi(query1, {'EqtnLabel', 'Label'}))
-    answ = this.Label;
-    answ = transpose(answ);
+elseif isQuery('EqtnLabel', 'Label')
+    response = this.Label;
+    response = reshape(response, [ ], 1);
     
+elseif isQuery('EqtnAlias')
+    response = this.Alias;
+    response = reshape(response, [ ], 1);
     
-elseif any(strcmpi(query1, {'EqtnAlias'}))
-    answ = this.Alias;
-    answ = transpose(answ);
-    
-    
-elseif any(strcmpi(query1, {'EqtnSteady'}))
-    answ = model.component.Equation.extractInput(this.Input, 'Steady');
-    answ = transpose(answ);
-    
-    
-elseif any(strcmpi(query1, {'EqtnDynamic'}))
-    answ = model.component.Equation.extractInput(this.Input, 'Dynamic');
-    answ = transpose(answ);
-    
-    
-elseif any(strcmpi(query1, ...
-        {'YEqtn', 'XEqtn', 'DEqtn', 'LEqtn', 'UEqtn', 'NEqtn', ...
-        'YLabel', 'XLabel', 'DLabel', 'LLabel', 'ULabel', 'NLabel', ...
-        'YEqtnAlias', 'XEqtnAlias', 'DEqtnAlias', 'LEqtnAlias', 'UEqtnAlias', 'NEqtnAlias'} ...
-        ))
-    if strncmpi(query1, 'N', 1)
-        ix = this.IxHash;
+elseif isQuery( ...
+    'YEqtn', 'XEqtn', 'DEqtn', 'LEqtn', 'NEqtn', ...
+    'YLabel', 'XLabel', 'DLabel', 'LLabel', 'NLabel', ...
+    'YEqtnLabel', 'XEqtnLabel', 'DEqtnLabel', 'LEqtnLabel', 'NEqtnLabel', ...
+    'YEqtnAlias', 'XEqtnAlias', 'DEqtnAlias', 'LEqtnAlias', 'NEqtnAlias' ...
+    )
+    if strncmpi(lowerQuery, 'N', 1)
+        inx = this.IxHash;
     else
-        ix = this.Type==TYPE(find(strncmpi(query1, {'Y', 'X', 'D', 'L', 'U'}, 1))); %#ok<FNDSB>
+        inx = this.Type==TYPE(find(strncmpi(lowerQuery, {'Y', 'X', 'D', 'L'}, 1))); %#ok<FNDSB>
     end
-    if strcmpi(query1(2:end), 'Eqtn')
-        answ = this.Input(ix);
-    elseif strcmpi(query1(2:end), 'Label')
-        answ = this.Label(ix);
-    elseif strcmpi(query1(2:end), 'EqtnAlias')
-        answ = this.Alias(ix);
+    if endsWith(lowerQuery, 'Eqtn', 'IgnoreCase', true)
+        response = this.Input(inx);
+    elseif endsWith(lowerQuery, 'Label', 'IgnoreCase', true)
+        response = this.Label(inx);
+    elseif endsWith(lowerQuery, 'Alias', 'IgnoreCase', true)
+        response = this.Alias(inx);
     end
-    answ = transpose(answ);
+    response = reshape(response, [ ], 1);
     
-
 else
     isValid = false;
 end
 
-return
-
-
-    function flagStruct = hereGetFlags( )
-        listOfFlags = { 'Dynamic'
-                        'Steady'
-                        'Measurement'
-                        'Transition' };
-        flagStruct = struct( );
-        for i = 1 : numel(listOfFlags)
-            temp = query1;
-            query1 = regexprep(query1, listOfFlags{i}, '', 'IgnoreCase');
-            flagStruct.(listOfFlags{i}) = ~isequal(temp, query1);
-        end
-    end%
 end%
+
+
+%
+% Local Functions
+%
+
+
+function [query, flagStruct] = locallyGetFlags(query)
+    %(
+    flagStruct = struct( );
+    for flag = ["Dynamic", "Steady", "Measurement", "Transition"]
+        lowerFlag = lower(flag);
+        flagStruct.(flag) = contains(query, lowerFlag);
+        if flagStruct.(flag)
+            query = erase(query, lowerFlag);
+        end
+    end
+    %)
+end%
+

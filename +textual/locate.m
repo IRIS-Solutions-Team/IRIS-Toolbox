@@ -1,30 +1,37 @@
-function varargout = locate(items, list, varargin)
 % locate  Find positions of selected items in a list
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
 %     pos = textual.locate(items, list)
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
+%
 %
 % __`items`__ [ string | cellstr | char ]
-% >
-% List of strings, each of which will be located in the `list`.
+%
+%     List of strings, each of which will be located in the `list`.
+%
 %
 % __`list`__ [ string | cellstr | char ]
-% >
-% List of strings within which the `items` will be located.
+%
+%     List of strings within which the `items` will be located.
 %
 %
-% ## Output Arguments ##
+% Output Arguments
+%--------------------------------------------------------------------------
+%
 %
 % __`pos`__ [ numeric ]
-% >
-% Position of each item from the `items` in the `list`.
+%
+%     Position of each item from the `items` in the `list`.
 %
 %
-% ## Description ##
+% Description
+%--------------------------------------------------------------------------
+%
 %
 % The function returns a numeric array of the same size as the input
 % `items`. Each element of the `pos` is either the position (linear index)
@@ -33,7 +40,9 @@ function varargout = locate(items, list, varargin)
 % first will be reported.
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
+%
 %
 %     >> items = ["aa", "BB", "C_"];
 %     >> list = ["BB", "x", "y", "zz", "C_", "C_"];
@@ -43,16 +52,9 @@ function varargout = locate(items, list, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% Invoke unit tests
-%(
-if nargin==1 && isequal(items, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
-
+function pos = locate(items, list, varargin)
 
 %--------------------------------------------------------------------------
 
@@ -66,11 +68,6 @@ for i = 1 : numel(items)
     end
 end
 
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout{1} = pos;
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 end%
 
 
@@ -79,47 +76,42 @@ end%
 %
 % Unit Tests 
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({
-        @stringTest
-        @stringFirstTest
-        @stringLastTest
-        @cellstrTest
-    });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=textual/locateUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
-function stringTest(this)
+%% Test String
     items = ["aa", "BB", "C_"];
     list = ["BB", "x", "y", "zz", "C_", "C_"];
     pos = textual.locate(items, list);
-    assertEqual(this, pos, [NaN, 1, 5]);
-end%
+    assertEqual(testCase, pos, [NaN, 1, 5]);
 
 
-function stringFirstTest(this)
+%% Test String First 
     items = ["aa", "BB", "C_"];
     list = ["BB", "x", "y", "zz", "C_", "C_"];
     pos = textual.locate(items, list, 'first');
-    assertEqual(this, pos, [NaN, 1, 5]);
-end%
+    assertEqual(testCase, pos, [NaN, 1, 5]);
 
 
-function stringLastTest(this)
+
+%% Test String Last
     items = ["aa", "BB", "C_"];
     list = ["BB", "x", "y", "zz", "C_", "C_"];
     pos = textual.locate(items, list, 'last');
-    assertEqual(this, pos, [NaN, 1, 6]);
-end%
+    assertEqual(testCase, pos, [NaN, 1, 6]);
 
 
-function cellstrTest(this)
+
+%% Test Cellstr
     items = {'aa', 'BB', 'C_'};
     list = {'BB', 'x', 'y', 'zz', 'C_', 'C_'};
     pos = textual.locate(items, list);
-    assertEqual(this, pos, [NaN, 1, 5]);
-end%
-%)
+    assertEqual(testCase, pos, [NaN, 1, 5]);
 
+
+##### SOURCE END #####
+%}

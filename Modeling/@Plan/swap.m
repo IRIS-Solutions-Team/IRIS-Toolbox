@@ -1,31 +1,46 @@
-function this = swap(this, dates, varargin)
 % swap  Swap endogeneity and exogeneity of variable-shock pairs at specified dates
-%
-% __Syntax__
+%{
+% Syntax
+%--------------------------------------------------------------------------
 %
 %     p = swap(p, datesToSwap, pairToSwap, pairToSwap, ...)
 %
 %
-% __Input Arguments__
-%
-% * `p` [ Plan ] - Simulation plan.
-%
-% * `datesToSwap` [ DateWrapper | numeric ] - Dates at which the
-% endogeneity and exogeneity of the variable-shock pairs will be swapped.
-%
-% * `pairToSwap` [ cellstr ] - Cell array consisting of the name of a
-% variables (transition or measurement) and the name of a shock (transition
-% or measurement) whose endogeneity and exogeneity will be swapped in the
-% simulation at specified dates, `datesToSwap`. Any number of pairs can be
-% specified as input arguments to the `swap(~)` function.
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 %
-% __Output Arguments__
+% __`p`__ [ Plan ] 
 %
-% * `p` [ Plan ] - Simulation plan with the new information included.
+%     Simulation plan to which the new swapped pairs will be added.
 %
 %
-% __Description__
+% __`datesToSwap`__ [ DateWrapper ]
+%
+%     Dates at which the endogeneity and exogeneity of the variable-shock
+%     pairs will be swapped.
+%
+%
+% __`pairToSwap`__ [ string ] 
+% 
+%     String array consisting of the name of a variables (transition or
+%     measurement) and the name of a shock (transition or measurement)
+%     whose endogeneity and exogeneity will be swapped in the simulation at
+%     specified dates, `datesToSwap`. Any number of pairs can be specified
+%     as input arguments to the `swap(~)` function.
+%
+%
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __`p`__ [ Plan ] 
+%
+%     Simulation plan with the new swap information included.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
 %
 % The simulation plan only specifies the dates and the names of variables
 % and shocks; it does not include the particular values to which the
@@ -34,12 +49,15 @@ function this = swap(this, dates, varargin)
 % function.
 %
 %
-% __Example__
+% Example
+%--------------------------------------------------------------------------
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function this = swap(this, dates, varargin)
 
 if isempty(varargin)
     pairsToSwap = cell.empty(1, 0);
@@ -47,95 +65,74 @@ elseif isstruct(varargin{1})
     pairsToSwap = varargin{1};
     varargin(1) = [ ];
 else
-    inxOfPairs = cellfun(@(x) (iscellstr(x) || isa(x, 'string')) && size(x, 2)==2, varargin);
+    inxPairs = cellfun(@(x) (iscellstr(x) || isa(x, 'string')) && size(x, 2)==2, varargin);
     pairsToSwap = cell.empty(0, 2);
-    while ~isempty(inxOfPairs) && inxOfPairs(1)
-        pairsToSwap = [ pairsToSwap
-                        varargin{1}  ];
+    while ~isempty(inxPairs) && inxPairs(1)
+        pairsToSwap = [ 
+            pairsToSwap
+            varargin{1}  
+        ];
         varargin(1) = [ ];
-        inxOfPairs(1) = [ ];
+        inxPairs(1) = [ ];
     end
 end
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Plan.swap');
     addRequired(pp, 'Plan', @(x) isa(x, 'Plan'));
     addRequired(pp, 'DatesToSwap', @DateWrapper.validateDateInput);
-    addRequired(pp, 'PairsToSwap', @validatePairsToSwap);
+    addRequired(pp, 'PairsToSwap', @locallyValidatePairsToSwap);
     addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
 end
-pp.parse(this, dates, pairsToSwap, varargin{:});
-opt = pp.Options;
+%)
+opt = pp.parse(this, dates, pairsToSwap, varargin{:});
 
-if numel(varargin)==1 && isstruct(varargin{1})
+if isscalar(varargin) && isstruct(varargin{1})
     inputStruct = varargin{1};
-    namesToExogenize = fieldnames(inputStruct);
-    numOfPairs = numel(namesToExogenize);
-    pairsToSwap = cell(numOfPairs, 2);
-    for i = 1 : numOfPairs
-        pairsToSwap(i, :) = { namesToExogenize{i}, ...
-                              inputStruct.(namesToExogenize{i}) };
+    namesToExogenize = keys(inputStruct);
+    pairsToSwap = string.empty(0, 2);
+    for n = namesToExogenize
+        pairsToSwap = [pairsToSwap; n, inputStruct.(n)];
     end
 end
+pairsToSwap = string(pairsToSwap);
 
 %--------------------------------------------------------------------------
 
-numOfPairs = size(pairsToSwap, 1);
 anticipationMismatch = cell(1, 0);
-for i = 1 : numOfPairs
+for pair = transpose(pairsToSwap)
     swapId = this.DEFAULT_SWAP_LINK;
-    [nameToExogenize, nameToEndogenize] = pairsToSwap{i, :};
 
-    [this, anticipateEndogenized] = ...
-        implementEndogenize( this, ...
-                             dates, ...
-                             nameToEndogenize, ...
-                             swapId, ...
-                             'AnticipationStatus=', opt.AnticipationStatus );
+    [this, anticipateEndogenized] = implementEndogenize( ...
+        this, dates, pair(2), swapId ...
+        , 'AnticipationStatus=', opt.AnticipationStatus ...
+    );
 
-    [this, anticipateExogenized] = ...
-        implementExogenize( this, ...
-                            dates, ...
-                            nameToExogenize, ...
-                            swapId, ...
-                            'AnticipationStatus=', opt.AnticipationStatus );
+    [this, anticipateExogenized] = implementExogenize( ...
+        this, dates, pair(1), swapId ...
+        , 'AnticipationStatus=', opt.AnticipationStatus ...
+    );
 
     if ~isequal(anticipateEndogenized, anticipateExogenized)
         % Throw a warning (future error) if the anticipation
         % status of the variable and that of the shock fail to
         % match
-        anticipationMismatch{end+1} = sprintf( '%s[%s] <-> %s[%s]', ...
-                                               nameToExogenize, ...
-                                               statusToString(anticipateExogenized), ...
-                                               nameToEndogenize, ...
-                                               statusToString(anticipateEndogenized) );
-        % Do the swap using the anticipation status of the shock
-        % This is for GPMN compatibility only
-        % Will be removed in the near future
-        [this, anticipateEndogenized] = ...
-            implementEndogenize( this, ...
-                                 dates, ...
-                                 nameToEndogenize, ...
-                                 swapId, ...
-                                 'AnticipationStatus=', anticipateEndogenized );
-
-        [this, anticipateExogenized] = ...
-            implementExogenize( this, ...
-                                dates, ...
-                                nameToExogenize, ...
-                                swapId, ...
-                                'AnticipationStatus=', anticipateEndogenized );
+        anticipationMismatch{end+1} = sprintf( ...
+            '%s[%s] <-> %s[%s]' ...
+            , pair(1), locallyStatusToString(anticipateExogenized) ...
+            , pair(2), locallyStatusToString(anticipateEndogenized) ...
+        );
     end
 end
 
 if ~isempty(anticipationMismatch)
-    THIS_ERROR = { 'Plan:AnticipationStatusMismatch' 
-                   [ 'Anticipation status mismatch in this swapped pair: %s \n', ...
-                     '    Use anticipate(~) to align anticipation status of the paired variable and shock\n', ...
-                     '    This warning will become an error in a future IRIS release' ] };
-    throw( exception.Base(THIS_ERROR, 'warning'), ...
-           anticipationMismatch{:} );
+    thisError = [ 
+        "Plan:AnticipationStatusMismatch" 
+        "Anticipation status mismatch in this swapped pair: %s "
+    ];
+    throw(exception.Base(thisError, 'error'), anticipationMismatch{:});
 end
 
 end%
@@ -146,22 +143,23 @@ end%
 %
 
 
-function flag = validatePairsToSwap(pairs)
+function flag = locallyValidatePairsToSwap(pairs)
+    %(
     if numel(pairs)==1 && isstruct(pairs{1})
         flag = true;
         return
     end
-    if iscellstr(pairs) && size(pairs, 2)==2
+    if (iscellstr(pairs) || isstring(pairs)) && ndims(pairs)==2 && size(pairs, 2)==2
         flag = true;
         return
     end
     flag = false;
+    %)
 end%
 
 
-
-
-function varargout = statusToString(varargin)
+function varargout = locallyStatusToString(varargin)
+    %(
     varargout = varargin;
     for i = 1 : nargin
         if isequal(varargin{i}, true)
@@ -170,4 +168,5 @@ function varargout = statusToString(varargin)
             varargout{i} = 'false';
         end
     end
+    %)
 end%

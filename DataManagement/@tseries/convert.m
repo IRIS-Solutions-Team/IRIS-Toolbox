@@ -105,8 +105,8 @@ function this = convert(this, newFreq, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 if isempty(this)
     return
@@ -125,7 +125,7 @@ if isempty(pp)
     addRequired(pp, 'InputSeries', @(x) isa(x, 'TimeSubscriptable'));
     addRequired(pp, 'NewFreq', @Frequency.validateProperFrequency);
     addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || strcmpi(x, 'First') || strcmpi(x, 'Last'));
-    addParameter(pp, {'RemoveNaN', 'IgnoreNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
+    addParameter(pp, {'RemoveNaN', 'IgnoreNaN', 'OmitNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'Last', 'Previous'}))) || validate.numericScalar(x));
     addParameter(pp, {'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.string(x) || (isnumeric(x) && ~isempty(x)));
     addParameter(pp, 'Position', 'center', @(x) ischar(x) && any(strncmpi(x, {'c', 's', 'e'}, 1)));

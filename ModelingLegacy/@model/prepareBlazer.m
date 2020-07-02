@@ -53,16 +53,14 @@ if strcmpi(kind, 'Steady')
     %
     blz = solver.blazer.Steady(numEquations);
 
-    [inxP__, inxL__, link__] = hereGetParameterLinks( ); % [^1]
-    % [^1]: inxP__ is the index of parameters that are LHS names in links;
-    % inxL__ is the index of equations that are links with parameters on
+    [inxPwL, inxLwP] = hereGetParameterLinks( ); % [^1]
+    % [^1]: inxPwL is the index of parameters that are LHS names in links;
+    % inxLwP is the index of equations that are links with parameters on
     % the LHS
 
-    % blz.Link = link__;
-
-    blz.InxEndogenous = inxYX | inxP__;
-    blz.InxEquations = inxMT | inxL__ ;
-    blz.InxCanBeEndogenized = inxP & ~inxP__;
+    blz.InxEndogenous = inxYX | inxPwL;
+    blz.InxEquations = inxMT | inxLwP ;
+    blz.InxCanBeEndogenized = inxP & ~inxPwL;
     blz.InxCanBeExogenized = blz.InxEndogenous;
 
     blz.Equation(blz.InxEquations) = this.Equation.Steady(blz.InxEquations);
@@ -77,8 +75,8 @@ if strcmpi(kind, 'Steady')
     blz.IsBlocks = opt.Blocks;
     logAllowed = { TYPE(1), TYPE(2), TYPE(4), TYPE(5) };
 
-    blz.EquationsToExclude = find(inxL__);
-    blz.QuantitiesToExclude = find(inxP__);
+    blz.EquationsToExclude = find(inxLwP);
+    blz.QuantitiesToExclude = find(inxPwL);
 
 
 elseif strcmpi(kind, 'Period') || kind==solver.Method.PERIOD
@@ -178,22 +176,27 @@ processFixOptions(blz, opt);
 
 return
 
-    function [inxP__, inxL__, link__] = hereGetParameterLinks( )
+    function [inxPwL, inxLwP] = hereGetParameterLinks( )
         inxL = this.Equation.Type==TYPE(4);
-        inxP__ = false(1, numQuantities);
-        inxL__ = false(1, numEquations);
-        link__ = this.Link;
+        numL = nnz(inxL);
+        inxPwL = false(1, numQuantities); % [^1]
+        inxLwP = false(1, numEquations); % [^2]
+        % [^1]: Index of parameters that occur on the LHS of a link
+        % {^2]: Index of links that have a parameter on the LHS
         if isempty(this.Link)
             return
         end
         % LHS pointers to parameters; inactive links (LhsPtr<0) are
         % automatically excluded from the intersection
-        posP__ = intersect(this.Link.LhsPtr, find(inxP));
-        if isempty(posP__)
+        [posPwL, pos] = intersect(this.Link.LhsPtr, find(inxP));
+        if isempty(posPwL)
             return
         end
-        inxP__(posP__) = true;
-        inxL__(inxL) = this.Link.InxActive;
+        inxPwL(posPwL) = true;
+        % Index of links that have a parameter on the LHS
+        inx = false(1, numL);
+        inx(pos) = true;
+        inxLwP(inxL) = inx;
     end%
 end%
 

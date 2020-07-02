@@ -93,8 +93,8 @@ classdef SystemProperty < handle
     methods
         function this = set.OutputNames(this, outputNames)
             outputNames = cellstr(outputNames);
-            numOfOutputs = numel(outputNames);
-            if numOfOutputs>this.MaxNumOfOutputs
+            numOutputs = numel(outputNames);
+            if numOutputs>this.MaxNumOfOutputs
                 throw( exception.Base('SystemPriorWrapper:NamesExceedMaxOfNumOfOutputs', 'error') );
             end
             if ~all(cellfun(@isvarname, outputNames))

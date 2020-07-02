@@ -1,22 +1,22 @@
-function [inxOfInit, linxOfInit, idOfInit] = getInxOfInitInPresample(this, firstColumn)
+function [inxInit, linxInit, idInit] = getInxOfInitInPresample(this, firstColumn)
 % getInxOfInitInPresample  Get index of initial conditions in presample data
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-numOfQuants = numel(this.Quantity.Name);
-idOfInit = getIdOfInitialConditions(this);
-row = real(idOfInit);
-column = firstColumn + imag(idOfInit);
-sizeOfPresampleArray = [numOfQuants, firstColumn-1];
-linxOfInit = sub2ind(sizeOfPresampleArray, row, column);
-inxOfInit = false(sizeOfPresampleArray);
-inxOfInit(linxOfInit) = true;
+numQuants = numel(this.Quantity.Name);
+idInit = getIdOfInitialConditions(this);
+row = real(idInit);
+column = firstColumn + imag(idInit);
+sizePresampleArray = [numQuants, firstColumn-1];
+linxInit = sub2ind(sizePresampleArray, row, column);
+inxInit = false(sizePresampleArray);
+inxInit(linxInit) = true;
 
 end%
 

@@ -1,20 +1,12 @@
-function varargout = createModelData(this, dataBlock, controls)
 % createModelData  Create data matrices for Explanatory model
 %
 % Backend [IrisToolbox] function
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% Invoke unit tests
-%(
-if nargin==2 && isequal(dataBlock, '--test')
-    varargout{1} = unitTests( );
-    return
-end
-%)
-
+function [plainData, lhs, rhs, res] = createModelData(this, dataBlock, controls)
 
 if numel(this)~=1
     thisError = [ 
@@ -63,11 +55,6 @@ if nargout>=4 && ~this.IsIdentity && ~isempty(this.Runtime.PosResidual)
     hereFixResidualsInBaseRange( );
 end
 
-
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-varargout = {plainData, lhs, rhs, res};
-%<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 return
 
     function hereFixResidualsInBaseRange( )
@@ -87,44 +74,39 @@ end%
 %
 % Unit Tests 
 %
-%(
-function tests = unitTests( )
-    tests = functiontests({ @setupOnce
-                                @yxeSingleTest
-                                @yxeSystem1Test 
-                                @yxeSystem2Test });
-    tests = reshape(tests, [ ], 1);
-end%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Explanatory/createModelDataUnitTest.m
 
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
-function setupOnce(testCase)
+% Set up Once
     testCase.TestData.Model1 = Explanatory.fromString("log(x) = ?*a + b*x{-1} + ?*log(c) + ?*y{+1} - ? + d");
     testCase.TestData.Model2 = Explanatory.fromString("log(m) = ?*a + b*m{-1} + ?*log(c) + ?*n{+1} - ? + d");
     baseRange = qq(2001,1) : qq(2010,10);
-    extendedRange = baseRange(1)-1 : baseRange(end)+1;
+    extdRange = baseRange(1)-1 : baseRange(end)+1;
     db = struct( );
-    db.x = Series(extendedRange, @rand);
-    db.m = Series(extendedRange, @rand);
+    db.x = Series(extdRange, @rand);
+    db.m = Series(extdRange, @rand);
     db.a = Series(baseRange, @rand);
     db.b = Series(baseRange, @rand);
     db.c = Series(baseRange, @rand);
-    db.d = Series(extendedRange, @rand);
-    db.y = Series(extendedRange, @rand);
-    db.n = Series(extendedRange, @rand);
-    db.res_x = Series(extendedRange(5:10), @rand);
-    db.res_m = Series(extendedRange(5:10), @rand);
+    db.d = Series(extdRange, @rand);
+    db.y = Series(extdRange, @rand);
+    db.n = Series(extdRange, @rand);
+    db.res_x = Series(extdRange(5:10), @rand);
+    db.res_m = Series(extdRange(5:10), @rand);
     testCase.TestData.BaseRange = baseRange;
-    testCase.TestData.ExtendedRange = extendedRange;
+    testCase.TestData.ExtendedRange = extdRange;
     testCase.TestData.Databank = db;
-end%
 
 
-function yxeSingleTest(testCase)
+%% Test YXE Single
     m = testCase.TestData.Model1;
     db = testCase.TestData.Databank;
     baseRange = testCase.TestData.BaseRange;
-    extendedRange = testCase.TestData.ExtendedRange;
-    numExtendedPeriods = numel(extendedRange);
+    extdRange = testCase.TestData.ExtendedRange;
+    numExtendedPeriods = numel(extdRange);
     lhsRequired = true; 
     dataBlock = getDataBlock(m, db, baseRange, lhsRequired, "");
     baseRangeColumns = dataBlock.BaseRangeColumns;
@@ -149,25 +131,24 @@ function yxeSingleTest(testCase)
     assertEqual(testCase, res, exp_res);
 
     exp_plain = nan(7, numExtendedPeriods);
-    exp_plain(1, :) = db.x(extendedRange);
-    exp_plain(2, :) = db.a(extendedRange);
-    exp_plain(3, :) = db.b(extendedRange);
-    exp_plain(4, :) = db.c(extendedRange);
-    exp_plain(5, :) = db.y(extendedRange);
-    exp_plain(6, :) = db.d(extendedRange);
-    exp_plain(7, :) = db.res_x(extendedRange);
+    exp_plain(1, :) = db.x(extdRange);
+    exp_plain(2, :) = db.a(extdRange);
+    exp_plain(3, :) = db.b(extdRange);
+    exp_plain(4, :) = db.c(extdRange);
+    exp_plain(5, :) = db.y(extdRange);
+    exp_plain(6, :) = db.d(extdRange);
+    exp_plain(7, :) = db.res_x(extdRange);
     assertEqual(testCase, plain, exp_plain);
-end%
 
 
-function yxeSystem1Test(testCase)
+%% Test YXE System One
     m1 = testCase.TestData.Model1;
     m2 = testCase.TestData.Model2;
     m = [m1, m2];
     db = testCase.TestData.Databank;
     baseRange = testCase.TestData.BaseRange;
-    extendedRange = testCase.TestData.ExtendedRange;
-    numExtendedPeriods = numel(extendedRange);
+    extdRange = testCase.TestData.ExtendedRange;
+    numExtendedPeriods = numel(extdRange);
     lhsRequired = true; 
     dataBlock = getDataBlock(m, db, baseRange, lhsRequired, "");
     baseRangeColumns = dataBlock.BaseRangeColumns;
@@ -193,25 +174,24 @@ function yxeSystem1Test(testCase)
     assertEqual(testCase, res, exp_res);
 
     exp_plain = nan(7, numExtendedPeriods);
-    exp_plain(1, :) = db.x(extendedRange);
-    exp_plain(2, :) = db.a(extendedRange);
-    exp_plain(3, :) = db.b(extendedRange);
-    exp_plain(4, :) = db.c(extendedRange);
-    exp_plain(5, :) = db.y(extendedRange);
-    exp_plain(6, :) = db.d(extendedRange);
-    exp_plain(7, :) = db.res_x(extendedRange);
+    exp_plain(1, :) = db.x(extdRange);
+    exp_plain(2, :) = db.a(extdRange);
+    exp_plain(3, :) = db.b(extdRange);
+    exp_plain(4, :) = db.c(extdRange);
+    exp_plain(5, :) = db.y(extdRange);
+    exp_plain(6, :) = db.d(extdRange);
+    exp_plain(7, :) = db.res_x(extdRange);
     assertEqual(testCase, plain, exp_plain);
-end%
 
 
-function yxeSystem2Test(testCase)
+%% Test YXE System Two
     m1 = testCase.TestData.Model1;
     m2 = testCase.TestData.Model2;
     m = [m1, m2];
     db = testCase.TestData.Databank;
     baseRange = testCase.TestData.BaseRange;
-    extendedRange = testCase.TestData.ExtendedRange;
-    numExtendedPeriods = numel(extendedRange);
+    extdRange = testCase.TestData.ExtendedRange;
+    numExtendedPeriods = numel(extdRange);
     lhsRequired = true; 
     dataBlock = getDataBlock(m, db, baseRange, lhsRequired, "");
     baseRangeColumns = dataBlock.BaseRangeColumns;
@@ -237,14 +217,15 @@ function yxeSystem2Test(testCase)
     assertEqual(testCase, res, exp_res);
 
     exp_plain = nan(7, numExtendedPeriods);
-    exp_plain(1, :) = db.m(extendedRange);
-    exp_plain(2, :) = db.a(extendedRange);
-    exp_plain(3, :) = db.b(extendedRange);
-    exp_plain(4, :) = db.c(extendedRange);
-    exp_plain(5, :) = db.n(extendedRange);
-    exp_plain(6, :) = db.d(extendedRange);
-    exp_plain(7, :) = db.res_m(extendedRange);
+    exp_plain(1, :) = db.m(extdRange);
+    exp_plain(2, :) = db.a(extdRange);
+    exp_plain(3, :) = db.b(extdRange);
+    exp_plain(4, :) = db.c(extdRange);
+    exp_plain(5, :) = db.n(extdRange);
+    exp_plain(6, :) = db.d(extdRange);
+    exp_plain(7, :) = db.res_m(extdRange);
     assertEqual(testCase, plain, exp_plain);
-end%
-%)
+
+##### SOURCE END #####
+%}
 
