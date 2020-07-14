@@ -9,8 +9,8 @@ function updateDataBlock(this, dataBlock, plainData, residuals)
 
 %--------------------------------------------------------------------------
 
-if ~isempty(this.Runtime.PosUpdateTo) && ~isempty(this.Runtime.PosUpdateFrom)
-    dataBlock.YXEPG(this.Runtime.PosUpdateTo, :, :) = plainData(this.Runtime.PosUpdateFrom, :, :);
+if ~isempty(this.Runtime.PosUpdateInDataBlock) && ~isempty(this.Runtime.PosUpdateInPlainData)
+    dataBlock.YXEPG(this.Runtime.PosUpdateInDataBlock, :, :) = plainData(this.Runtime.PosUpdateInPlainData, :, :);
 end
 
 end%

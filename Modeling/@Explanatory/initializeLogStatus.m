@@ -33,6 +33,7 @@ end%
 
 
 
+%
 % Unit Tests
 %{
 ##### SOURCE BEGIN #####
@@ -44,16 +45,16 @@ expy = Explanatory.fromString(["a=x", "b=y", "c=z"]);
 
 %% Test Default True
 
-log = ["a", "c"];
-expy = initializeLogStatus(expy, log);
-assertEqual(testCase, collectLogStatus(expy), [true, false, true]);
+    log = ["a", "c"];
+    expy = initializeLogStatus(expy, log);
+    assertEqual(testCase, collectLogStatus(expy), [true, false, true]);
 
 
 %% Test Default False
 
-log = Except(["a", "b"]);
-expy = initializeLogStatus(expy, log);
-assertEqual(testCase, collectLogStatus(expy), [false, false, true]);
+    log = Except(["a", "b"]);
+    expy = initializeLogStatus(expy, log);
+    assertEqual(testCase, collectLogStatus(expy), [false, false, true]);
 
 ##### SOURCE END #####
 %}

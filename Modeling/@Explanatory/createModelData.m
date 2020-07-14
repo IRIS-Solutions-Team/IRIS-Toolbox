@@ -20,8 +20,8 @@ end
 %--------------------------------------------------------------------------
 
 %
-% Create array of plain data for this single Explanatory consisting
-% of a block of rows with variables followed by one row of residuals
+% Create array of plain data for this single Explanatory inclusive of
+% `ResidualName` (ordered last)
 %
 plainData = dataBlock.YXEPG(this.Runtime.PosPlainData, :, :);
 
@@ -50,14 +50,15 @@ rhs(:, baseRangeColumns, :) = createModelData( ...
 % Model data for residuals; reset NaN residuals to zero
 %
 res = double.empty(0, numExtendedPeriods, numPages);
-if nargout>=4 && ~this.IsIdentity && ~isempty(this.Runtime.PosResidual)
-    res = dataBlock.YXEPG(this.Runtime.PosResidual, :, :);
-    hereFixResidualsInBaseRange( );
+if nargout>=4 && ~this.IsIdentity && ~isempty(this.Runtime.PosResidualInDataBlock)
+    res = dataBlock.YXEPG(this.Runtime.PosResidualInDataBlock, :, :);
+    hereFixResidualValuesInBaseRange( );
 end
 
 return
 
-    function hereFixResidualsInBaseRange( )
+    function hereFixResidualValuesInBaseRange( )
+        %(
         res__ = res(:, baseRangeColumns, :);
         inxNaN = isnan(res__);
         if nnz(inxNaN)==0
@@ -65,6 +66,7 @@ return
         end
         res__(inxNaN) = 0;
         res(:, baseRangeColumns, :) = res__;
+        %)
     end%
 end%
 
@@ -81,8 +83,8 @@ end%
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 % Set up Once
-    testCase.TestData.Model1 = Explanatory.fromString("log(x) = ?*a + b*x{-1} + ?*log(c) + ?*y{+1} - ? + d");
-    testCase.TestData.Model2 = Explanatory.fromString("log(m) = ?*a + b*m{-1} + ?*log(c) + ?*n{+1} - ? + d");
+    testCase.TestData.Model1 = Explanatory.fromString("log(x) = @*a + b*x{-1} + @*log(c) + @*y{+1} - @ + d");
+    testCase.TestData.Model2 = Explanatory.fromString("log(m) = @*a + b*m{-1} + @*log(c) + @*n{+1} - @ + d");
     baseRange = qq(2001,1) : qq(2010,10);
     extdRange = baseRange(1)-1 : baseRange(end)+1;
     db = struct( );
@@ -99,7 +101,6 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     testCase.TestData.BaseRange = baseRange;
     testCase.TestData.ExtendedRange = extdRange;
     testCase.TestData.Databank = db;
-
 
 %% Test YXE Single
     m = testCase.TestData.Model1;

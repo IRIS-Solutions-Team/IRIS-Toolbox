@@ -7,7 +7,6 @@ classdef Term
 
         Expression = [ ]
 
-        Fixed (1, 1) double = NaN
         ContainsLhsName (1, 1) logical = false
 
         MinShift (1, 1) double = 0
@@ -16,7 +15,34 @@ classdef Term
 
 
     properties (Constant)
-        REGISTERED_TRANSFORMS = [ "log", "diff", "difflog" ]
+        %(
+        TRANSFORMS = struct( ...
+            "log", @(plainData, row, t, sh) log(plainData(row, t+sh, :)) ... 
+            , "exp", @(plainData, row, t, sh) exp(plainData(row, t+sh, :)) ... 
+            , "diff", @(plainData, row, t, sh) plainData(row, t+sh, :) - plainData(row, t+sh-1, :) ...
+            , "difflog", @(plainData, row, t, sh) log(plainData(row, t+sh, :)) - log(plainData(row, t+sh-1, :)) ...
+            , "roc", @(plainData, row, t, sh) plainData(row, t+sh, :) ./ plainData(row, t+sh-1, :) ...
+            , "pct", @(plainData, row, t, sh) 100*(plainData(row, t+sh, :) ./ plainData(row, t+sh-1, :) - 1) ...
+        )
+
+        INV_TRANSFORMS = struct( ...
+            "log", @(lhs, plainData, row, t) exp(plainData(row, t+sh, :)) ... 
+            , "exp", @(lhs, plainData, row, t) log(lhs, plainData(row, t+sh, :)) ... 
+            , "diff", @(lhs, plainData, row, t) plainData(row, t-1, :) + lhs(:, t, :) ...
+            , "difflog", @(lhs, plainData, row, t) plainData(row, t-1, :) .* exp(lhs(:, t, :)) ...
+            , "roc", @(lhs, plainData, row, t) plainData(row, t-1, :) .* lhs(:, t, :) ...
+            , "pct", @(lhs, plainData, row, t) plainData(row, t-1, :) .* (1 + lhs(:, t, :)/100) ...
+        )
+
+        TRANSFORMS_SHIFTS = struct( ...
+            "log", double.empty(1, 0) ...
+            , "exp", double.empty(1, 0) ... 
+            , "diff", -1 ...
+            , "difflog", -1 ...
+            , "roc", -1 ...
+            , "pct", -1 ...
+        )
+        %)
     end
 
 
@@ -79,12 +105,6 @@ classdef Term
 % Tranformation of the explanatory variable.
 %
 %
-% __`Fixed=NaN`__ [ `NaN` | numeric ]
-% >
-% Indicate whether this regression.Term is to be estimated (`Fixed=NaN`) or
-% assigned a fixed coefficient (a numeric value).
-%
-%
 % ## Description ##
 %
 %
@@ -103,6 +123,7 @@ classdef Term
                 return
             end
 
+            %( Input parser
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('regression.Term');
@@ -111,14 +132,13 @@ classdef Term
                 addRequired(pp, 'specification', @(x) validate.stringScalar(x) || validate.roundScalar(x, [1, intmax]));
 
                 addParameter(pp, 'Shift', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x));
-                addParameter(pp, 'Transform', @auto, @(x) isequal(x, @auto) || validate.anyString(x, regression.Term.REGISTERED_TRANSFORMS)); 
-                addParameter(pp, 'Fixed', NaN, @validate.numericScalar);
+                addParameter(pp, 'Transform', @auto, @(x) isequal(x, @auto) || validate.anyString(x, keys(regression.Term.TRANSFORMS))); 
                 addParameter(pp, 'Type', @all, @(x) isequal(x, @all) || isa(x, 'string'));
             end
-            parse(pp, varargin{:});
+            %)
+            opt = parse(pp, varargin{:});
             expy = pp.Results.expy;
             specification = pp.Results.specification;
-            opt = pp.Options;
 
             %
             % Remove a leading plus sign
@@ -143,7 +163,6 @@ classdef Term
                 hereThrowInvalidTransformOrShift( );
             end
 
-            this.Fixed = opt.Fixed;
             imagIncidence0 = [imag(this.Incidence), 0];
             this.MinShift = min(imagIncidence0);
             this.MaxShift = max(imagIncidence0);
@@ -151,6 +170,7 @@ classdef Term
             return
 
                 function hereThrowInvalidTransformOrShift( )
+                    %(
                     thisError = [ 
                         "Explanatory:DefineDependentTerm"
                         "Options Transform= and Shift= can only be specified when the regression.Term is "
@@ -158,11 +178,10 @@ classdef Term
                         "the transform function and the time shift is inferred from the expression string." 
                     ];
                     throw(exception.Base(thisError, 'error'));
+                    %)
                 end%
         end%
     end
-
-
 
 
     methods
@@ -196,77 +215,13 @@ classdef Term
                 % If `Expression` is empty, then `Position` and `Shift` are
                 % both scalars
                 %
-                plainData__ = plainData(this__.Position, :, :);
+                pos = this__.Position;
                 sh = this__.Shift;
                 if this__.Transform==""
-                    y(i, :, :) = plainData__(:, t+sh, :);
-                    continue
+                    y(i, :, :) = plainData(pos, t+sh, :);
+                else
+                    y(i, :, :) = regression.Term.TRANSFORMS.(this__.Transform)(plainData, pos, t, sh);
                 end
-                if this__.Transform=="log"
-                    y(i, :, :) = log(plainData__(:, t+sh, :));
-                    continue
-                end
-                if this__.Transform=="diff"
-                    y(i, :, :) = plainData__(:, t+sh, :) - plainData__(:, t+sh-1, :);
-                    continue
-                end
-                if this__.Transform=="difflog"
-                    y(i, :, :) = log(plainData__(:, t+sh, :)) - log(plainData__(:, t+sh-1, :));
-                    continue
-                end
-            end
-        end%
-
-
-
-
-        function plainData = updatePlainData(this, plainData, lhs, res, t)
-            %
-            % Update residuals first; residuals are ordered last in the
-            % plainData array
-            %
-            if ~isempty(res)
-                posResiduals = size(plainData, 1);
-                plainData(posResiduals, t, :) = res(1, t, :);
-            end
-            %
-            % The input object `this` is always a dependent (LHS) terms,
-            % and its Position property points to the respective LHS
-            % name
-            %
-            posLhs = this.Position;
-            if isequal(this.Transform, "")
-                plainData(posLhs, t, :) = lhs(:, t, :);
-                return
-            end
-            if isequal(this.Transform, "log")
-                plainData(posLhs, t, :) = exp(lhs(:, t, :));
-                return
-            end
-            if isequal(this.Transform, "diff")
-                plainData(posLhs, t, :) = plainData(posLhs, t-1, :) + lhs(:, t, :);
-                return
-            end
-            if isequal(this.Transform, "difflog")
-                plainData(posLhs, t, :) = plainData(posLhs, t-1, :) .* exp(lhs(:, t, :));
-                return
-            end
-            thisError = [ 
-                "Explanatory:InvalidLhsTransformation"
-                "Invalid transformation of the dependent (LHS) term in Explanatory." 
-            ];
-            throw(exception.Base(thisError, 'error'));
-        end%
-
-
-
-
-        function rhs = updateOwnExplanatoryTerms(this, rhs, plainData, t, date, controls)
-            %
-            % The input object `this` is always an array of ExplanatoryTerms
-            %
-            for i = find([this.ContainsLhsName])
-                rhs(i, t, :) = createModelData(this(i), plainData, t, date, controls);
             end
         end%
 
@@ -346,3 +301,120 @@ classdef Term
     end
 end
 
+
+
+
+%
+% Unit Tests 
+%{
+##### SOURCE BEGIN #####
+% saveAs=Explanatory/regressionTermUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+% Set up once
+    expy = Explanatory( );
+    expy = setp(expy, 'VariableNames', ["x", "y", "z"]);
+    output = struct( );
+    output.Type = "";
+    output.Transform = "";
+    output.Incidence = double.empty(1, 0);
+    output.Position = NaN;
+    output.Shift = 0;
+    output.Expression = [ ];
+    testCase.TestData.Model = expy;
+    testCase.TestData.Output = output;
+
+
+%% Test Pointer
+    expy = testCase.TestData.Model;
+    for ptr = 1 : numel(expy.VariableNames)
+        act = regression.Term.parseInputSpecs(expy, ptr, @auto, @auto, @all);
+        exd = testCase.TestData.Output;
+        exd.Type = "Pointer";
+        exd.Incidence = complex(ptr, 0);
+        exd.Position = ptr;
+        assertEqual(testCase, act, exd);
+    end
+
+
+%% Test Name
+    expy = testCase.TestData.Model;
+    for name = expy.VariableNames
+        act = regression.Term.parseInputSpecs(expy, name, @auto, @auto, @all);
+        exd = testCase.TestData.Output;
+        exd.Type = "Name";
+        ptr = find(name==expy.VariableNames);
+        exd.Incidence = complex(ptr, 0);
+        exd.Position = ptr;
+        assertEqual(testCase, act, exd);
+    end
+
+
+%% Test Name Shift
+    expy = testCase.TestData.Model;
+    for name = expy.VariableNames
+        act = regression.Term.parseInputSpecs(expy, name + "{-1}", @auto, @auto, @all);
+        exd = testCase.TestData.Output;
+        exd.Type = "Name";
+        ptr = find(name==expy.VariableNames);
+        exd.Incidence = complex(ptr, -1);
+        exd.Position = ptr;
+        exd.Shift = -1;
+        assertEqual(testCase, act, exd);
+    end
+
+
+%% Test Name Difflog
+    expy = testCase.TestData.Model;
+    for name = expy.VariableNames
+        act = regression.Term.parseInputSpecs(expy, "difflog(" + name + ")", @auto, @auto, @all);
+        exd = testCase.TestData.Output;
+        exd.Type = "Transform";
+        ptr = find(name==expy.VariableNames);
+        exd.Transform = "difflog";
+        exd.Incidence = [complex(ptr, 0), complex(ptr, -1)];
+        exd.Position = ptr;
+        exd.Shift = 0;
+        assertEqual(testCase, act, exd);
+    end
+
+
+%% Test Transform
+    expy = testCase.TestData.Model;
+    for name = expy.VariableNames
+        for transform = keys(regression.Term.TRANSFORMS)
+            act = regression.Term.parseInputSpecs(expy, transform + "(" + name + ")", @auto, @auto, @all);
+            ptr = find(name==expy.VariableNames);
+            exd = testCase.TestData.Output;
+            exd.Type = "Transform";
+            exd.Transform = transform;
+            exd.Incidence = complex(ptr, 0);
+            shift = regression.Term.TRANSFORMS_SHIFTS.(transform);
+            if ~isempty(shift)
+                exd.Incidence = [exd.Incidence, complex(ptr, shift)];
+            end
+            exd.Position = ptr;
+            exd.Shift = 0;
+            assertEqual(testCase, act.Type, exd.Type);
+            assertEqual(testCase, act.Transform, exd.Transform);
+            assertEqual(testCase, act.Incidence, exd.Incidence);
+        end
+    end
+
+
+%% Test Expression
+    expy = testCase.TestData.Model;
+    act = regression.Term.parseInputSpecs(expy, "x + movavg(y, -2) - z{+3}", @auto, @auto, @all);
+    exd = testCase.TestData.Output;
+    exd.Type = "Expression";
+    exd.Expression = @(x,t,date__,controls__)x(1,t,:)+(((x(2,t,:))+(x(2,t-1,:)))./2)-x(3,t+3,:);
+    exd.Incidence = [complex(1, 0), complex(2, 0), complex(2, -1), complex(3, 3)];
+    act.Expression = func2str(act.Expression);
+    exd.Expression = func2str(exd.Expression);
+    assertEqual(testCase, act.Expression, exd.Expression);
+    assertEqual(testCase, intersect(act.Incidence, exd.Incidence, 'stable'), act.Incidence);
+    assertEqual(testCase, union(act.Incidence, exd.Incidence, 'stable'), act.Incidence);
+
+##### SOURCE END #####
+%}

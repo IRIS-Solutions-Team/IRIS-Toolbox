@@ -9,25 +9,25 @@ classdef Explanatory ...
     & shared.Plan
 
 
+    properties
+        Fixed (1, :, :) double = double.empty(1, 0, 1)
+        Parameters (1, :, :) double = double.empty(1, 0, 1)
+    end
+
+
     properties (SetAccess=protected)
         VariableNames (1, :) string = string.empty(1, 0)
         ControlNames (1, :) string = string.empty(1, 0)
         Label (1, 1) string = ""
         Attributes (1, :) string = string.empty(1, 0)
-        RaggedEdge (1, 1) logical = false
         Include = true
-        Parameters (1, :, :) double = double.empty(1, 0, 1)
         LogStatus (1, 1) logical = false
     end
-
-
 
 
     properties (Hidden)
         Context = "Explanatory"
     end
-
-
 
 
     properties (SetAccess=protected)
@@ -80,13 +80,19 @@ classdef Explanatory ...
 
     properties (Dependent)
         NeedsIterate
-        FreeParameters
         PosLhsName
         RhsContainsLhsName
         LhsName
         ResidualName
         FittedName
+
+        % PlainDataNames  List of plain names in a single Explanatory object
+        %
+        % List of all names occurring on the LHS and RHS of the Explanatory
+        % object complemented with the `ResidualName` (ordered last in the
+        % list)
         PlainDataNames
+
         NumExplanatoryTerms
         NumParameters
         MaxLag
@@ -142,11 +148,12 @@ classdef Explanatory ...
 
     methods % Frontend Definitions
         %(
-        function this = addExplanatoryTerm(this, varargin)
+        function this = addExplanatoryTerm(this, fixed, varargin)
             term = regression.Term(this, varargin{:});
             term.ContainsLhsName = containsLhsName(term, this);
             this.ExplanatoryTerms(1, end+1) = term;
-            this.Parameters(:, end+1, :) = term.Fixed;
+            this.Fixed(:, end+1, :) = double(fixed);
+            this.Parameters(:, end+1, :) = double(fixed);
             this.Statistics.CovParameters(end+1, end+1, :) = NaN;
         end%
 
@@ -265,6 +272,46 @@ classdef Explanatory ...
         varargout = runtime(varargin)
         varargout = initializeLogStatus(varargin)
         varargout = updateDataBlock(varargin)
+
+
+        function this = setp(this, name, value)
+            this.(name) = value;
+        end%
+
+
+        function value = getp(this, name)
+            value = this.(name);
+        end%
+
+
+        function plainData = updateResidualsInPlainData(this, plainData, res, t)
+            if isempty(res) || isempty(this.Runtime.PosResidualInPlainData)
+                return
+            end
+            plainData(this.Runtime.PosResidualInPlainData, t, :) = res(1, t, :);
+        end%
+
+
+        function plainData = updateLhsInPlainData(this, plainData, lhs, t)
+            if isempty(lhs)
+                return
+            end
+            posLhs = this.DependentTerm.Position;
+            transform = this.DependentTerm.Transform;
+            if strlength(transform)==0
+                plainData(posLhs, t, :) = lhs(:, t, :);
+            else
+                plainData(posLhs, t, :) = regression.Term.INV_TRANSFORMS.(transform)(lhs, plainData, posLhs, t);
+            end
+        end%
+
+
+        function rhs = updateOwnExplanatoryTerms(this, rhs, plainData, t, date, controls)
+            % Update RHS rows for RHS terms that contain the LHS variable
+            for i = find([this.ExplanatoryTerms.ContainsLhsName])
+                rhs(i, t, :) = createModelData(this.ExplanatoryTerms(i), plainData, t, date, controls);
+            end
+        end%
     end
 
 
@@ -305,8 +352,6 @@ classdef Explanatory ...
     end
 
 
-
-
     methods
         function this = set.DependentTerm(this, term)
             if ~isscalar(term)
@@ -333,12 +378,9 @@ classdef Explanatory ...
                 ];
                 throw(exception.Base(thisError, 'error'));
             end
-            term.Fixed = 1;
             term.ContainsLhsName = true;
             this.DependentTerm = term;
         end%
-
-
 
 
         function this = set.VariableNames(this, value)
@@ -359,8 +401,6 @@ classdef Explanatory ...
         end%
 
 
-
-
         function this = set.ControlNames(this, value)
             if isempty(value)
                 this.ControlNames = string.empty(1, 0);
@@ -379,14 +419,10 @@ classdef Explanatory ...
         end%
 
 
-
-
         function this = set.ResidualNamePattern(this, value)
             this.ResidualNamePattern = value;
             checkNames(this);
         end%
-
-
 
 
         function this = set.FittedNamePattern(this, value)
@@ -395,33 +431,68 @@ classdef Explanatory ...
         end%
 
 
+        function this = set.Parameters(this, value)
+            %(
+            if ~isnumeric(value)
+                thisError = [
+                    "Explanatory:InvalidParametersAssigned"
+                    "Parameters in Explanatory objects must be numeric values"
+                ];
+                throw(exception.Base(thisError, 'error'));
+            end
+            numTerms = numel(this.ExplanatoryTerms);
+            this.Parameters = value;
+            if size(this.Parameters, 2)~=numTerms
+                thisError = [
+                    "Explanatory:InvalidParametersAssigned"
+                    "Invalid dimension of parameters assigned to Explanatory object:"
+                    "there are %g explanatory term(s) and %g parameter variant(s)."
+                ];
+                throw( ...
+                    exception.Base(thisError, 'error') ...
+                    , numTerms, countVariants(this) ...
+                );
+            end
+            %)
+        end%
+
+
+        function this = set.Fixed(this, value)
+            %(
+            if ~isnumeric(value)
+                thisError = [
+                    "Explanatory:InvalidFixedAssigned"
+                    "Fixed parameters in Explanatory objects must be numeric values"
+                ];
+                throw(exception.Base(thisError, 'error'));
+            end
+            this.Fixed = value;
+            numTerms = numel(this.ExplanatoryTerms);
+            if size(this.Fixed, 2)~=numTerms
+                thisError = [
+                    "Explanatory:InvalidFixedParametersAssigned"
+                    "Invalid dimension of fixed parameters assigned to Explanatory object:"
+                    "there are %g explanatory term(s) and %g parameter variant(s)."
+                ];
+                throw( ...
+                    exception.Base(thisError, 'error') ...
+                    , numTerms, countVariants(this) ...
+                );
+            end
+            %)
+        end%
 
 
         function value = get.NeedsIterate(this)
             value = false(size(this));
             for i = 1 : numel(this)
-                value(i) = startsWith(this(i).DependentTerm.Transform, "diff") ...
-                    || any([this(i).ExplanatoryTerms.ContainsLhsName]);
+                transform = this(i).DependentTerm.Transform;
+                if (strlength(transform)>0 && ~isempty(regression.Term.TRANSFORMS_SHIFTS.(transform))) ...
+                    || any([this(i).ExplanatoryTerms.ContainsLhsName])
+                    value(i) = true;
+                    continue
+                end
             end
-        end%
-
-
-
-
-        function value = get.FreeParameters(this)
-            value = this.Parameters(:, isnan([this.ExplanatoryTerms(:).Fixed]), :);
-        end%
-
-
-
-
-        function this = set.FreeParameters(this, value)
-            nv = countVariants(this);
-            numValues = size(value, 3);
-            if nv>1 && numValues==1
-                value = repmat(value, 1, 1, nv);
-            end
-            this.Parameters(:, isnan([this.ExplanatoryTerms(:).Fixed]), :) = value;
         end%
 
 

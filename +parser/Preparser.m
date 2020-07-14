@@ -39,7 +39,7 @@ classdef Preparser ...
     methods
         function this = Preparser( ...
             modelFile, inpCode, assigned ...
-            , cloneTemplate, angleBrackets ...
+            , cloneTemplate, angleBrackets, skip ...
         )
 
             import parser.Preparser
@@ -47,9 +47,13 @@ classdef Preparser ...
             if nargin==0
                 return
             end
-            if nargin<5
-                angleBrackets = false;
-            end
+
+            try, angleBrackets;
+                catch, angleBrackets = false; end
+
+            try, skip;
+                catch, skip = string.empty(1, 0); end
+
             if ~isempty(modelFile)
                 if ~isa(modelFile, 'model.File')
                     fileName = strtrim(cellstr(modelFile));
@@ -121,11 +125,20 @@ classdef Preparser ...
                 % one, e.g. `$[` with `<`
                 % this__.Code = parser.Interp.replaceSquareBrackets(this__.Code);
                 
+                %
                 % Preparse individual components
-                parser.UserComment.parse(this__);
-                parser.Comment.parse(this__);
+                %
+                if ~any(skip=="UserComment")
+                    parser.UserComment.parse(this__);
+                end
 
-                parser.control.Control.parse(this__);
+                if ~any(skip=="Comment")
+                    parser.Comment.parse(this__);
+                end
+
+                if ~any(skip=="Control")
+                    parser.control.Control.parse(this__);
+                end
 
                 %
                 % Resolve interpolations *after* controls so that interpolated expressions
@@ -133,11 +146,22 @@ classdef Preparser ...
                 % !do keywords are resolved separately within For.writeFinal( ) in the
                 % previous step.
                 %
-                parser.Interp.parse(this__);
+                if ~any(skip=="Interp")
+                    parser.Interp.parse(this__);
+                end
 
-                parser.Substitution.parse(this__);
-                parser.Pseudofunc.parse(this__);
-                parser.DoubleDot.parse(this__);
+                if ~any(skip=="Substitution")
+                    parser.Substitution.parse(this__);
+                end
+
+                if ~any(skip=="Pseudofunc")
+                    parser.Pseudofunc.parse(this__);
+                end
+
+                if ~any(skip=="DoubleDot")
+                    parser.DoubleDot.parse(this__);
+                end
+
                 % Check leading and trailing empty lines
                 fixEmptyLines(this__);
                 % Clone preparsed code
@@ -287,7 +311,8 @@ classdef Preparser ...
 
                 addParameter(pp, 'AngleBrackets', true, @validate.logicalScalar);
                 addParameter(pp, {'Assigned', 'Assign'}, struct( ), @(x) isempty(x) || isstruct(x));
-                addParameter(pp, {'CloneTemplate', 'CloneString'}, '', @(x) isempty(x) || ischar(x) || isa(x, 'string')); 
+                addParameter(pp, {'CloneTemplate', 'CloneString'}, '', @(x) isempty(x) || ischar(x) || isstring(x)); 
+                addParameter(pp, 'Skip', string.empty(1, 0), @isstring);
             end
             %)
             opt = parse(pp, modelFile, inpCode, varargin{:});
@@ -297,7 +322,7 @@ classdef Preparser ...
             %
             this = parser.Preparser( ...
                 modelFile, inpCode, ...
-                opt.Assigned, opt.CloneTemplate, opt.AngleBrackets ...
+                opt.Assigned, opt.CloneTemplate, opt.AngleBrackets, reshape(opt.Skip, 1, [ ]) ...
             );
 
             % Combine file names
