@@ -8,21 +8,13 @@
   <title>My report name</title>
   
   <!-- load vendor styles -->
-  <!-- build:vendor:css -->
-  <link rel="stylesheet" href="css/foundation.min.css">
-  <link rel="stylesheet" href="css/katex-embed-fonts.min.css">
-  <link rel="stylesheet" href="css/highlight.min.css">
-  <!-- endbuild:vendor:css -->
+  <link rel="stylesheet" inline href="lib/vendor.min.css">
 
   <!-- load default report styles -->
-  <!-- build:report:css -->
-  <link rel="stylesheet" href="css/main.css">
-  <!-- endbuild:report:css -->
+  <link rel="stylesheet" inline href="lib/report.min.css">
 
   <!-- user-defined styles -->
-  <!-- build:user:css -->
-  <link rel="stylesheet" href="css/custom.css">
-  <!-- endbuild:user:css -->
+  <link rel="stylesheet" href="user-defined.css">
 </head>
 
 <body>
@@ -50,9 +42,7 @@
   </div>
 
   <!-- link to default report logo (hidden) -->
-  <!-- build:logo:img -->
-  <img class="report-default-logo" src="./img/iris-logo.png">
-  <!-- endbuild:logo:img -->
+  <img inline class="report-default-logo" src="img/iris-logo.png">
 
   <!-- Warn if JS is disabled in the browser -->
   <noscript>
@@ -67,31 +57,6 @@
   
   <!-- rendering scripts -->
   <script inline src="lib/render.min.js"></script>
-  <!-- build:vendor:js -->
-  <script src="js/vendor/jquery.min.js"></script>
-  <script src="js/vendor/what-input.js"></script>
-  <script src="js/vendor/foundation.min.js"></script>
-  <script src="js/vendor/moment.min.js"></script>
-  <script src="js/vendor/Chart.min.js"></script>
-  <script src="js/vendor/chartjs-plugin-annotation.min.js"></script>
-  <script src="js/vendor/katex.min.js"></script>
-  <script src="js/vendor/auto-render.min.js"></script>
-  <script src="js/vendor/marked.min.js"></script>
-  <script src="js/vendor/highlight.min.js"></script>
-  <script src="js/vendor/plotly.js"></script>
-  <!-- endbuild:vendor:js -->
-  
-  <!-- report data -->
-  <!-- build:data:js -->
-  <script src="js/report-data.js"></script>
-  <!-- endbuild:data:js -->
-  
-  <!-- rendering scripts -->
-  <!-- build:report:js -->
-  <script src="js/report-utils.js"></script>
-  <script src="js/report-settings.js"></script>
-  <script src="js/report-renderer.js"></script>
-  <!-- endbuild:report:js -->
 </body>
 
 </html>
