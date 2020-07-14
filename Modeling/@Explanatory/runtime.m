@@ -5,7 +5,7 @@ function this = runtime(this, dataBlock, context)
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -20,9 +20,11 @@ else
         this__.Runtime.PosPlainData = textual.locate(this__.PlainDataNames, dataBlock.Names);
         residualName__ = this__.ResidualName;
         if this__.IsIdentity
-            this__.Runtime.PosResidual = double.empty(1, 0);
+            this__.Runtime.PosResidualInPlainData = double.empty(1, 0);
+            this__.Runtime.PosResidualInDataBlock = double.empty(1, 0);
         else
-            this__.Runtime.PosResidual = textual.locate(residualName__, dataBlock.Names);
+            this__.Runtime.PosResidualInPlainData = textual.locate(residualName__, this__.PlainDataNames);
+            this__.Runtime.PosResidualInDataBlock = textual.locate(residualName__, dataBlock.Names);
         end
         if strcmp(context, 'simulate') 
             namesToUpdate = [this__.LhsName, residualName__];
@@ -36,11 +38,11 @@ else
         % Update DataBlock after simulation or estimation
         %
         if isempty(namesToUpdate)
-            this__.Runtime.PosUpdateFrom = double.empty(1, 0);
-            this__.Runtime.PosUpdateTo = double.empty(1, 0);
+            this__.Runtime.PosUpdateInPlainData = double.empty(1, 0);
+            this__.Runtime.PosUpdateInDataBlock = double.empty(1, 0);
         else
-            this__.Runtime.PosUpdateFrom = textual.locate(namesToUpdate, this__.PlainDataNames);
-            this__.Runtime.PosUpdateTo = textual.locate(namesToUpdate, dataBlock.Names);
+            this__.Runtime.PosUpdateInPlainData = textual.locate(namesToUpdate, this__.PlainDataNames);
+            this__.Runtime.PosUpdateInDataBlock = textual.locate(namesToUpdate, dataBlock.Names);
         end
         this(eqn) = this__;
     end

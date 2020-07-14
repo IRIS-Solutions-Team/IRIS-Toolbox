@@ -81,6 +81,7 @@ function [blocks, variableBlocks, equationBlocks, dynamicStatus] = blazer(this, 
 
 %--------------------------------------------------------------------------
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory.blazer');
@@ -92,8 +93,8 @@ if isempty(pp)
     addParameter(pp, {'SaveAs', 'SaveBlazerAs'}, [ ], @(x) isempty(x) || validate.string(x));
     addParameter(pp, 'Dynamic', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
 end
-parse(pp, this, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, this, varargin{:});
 
 %--------------------------------------------------------------------------
 

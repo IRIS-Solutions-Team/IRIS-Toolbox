@@ -1,4 +1,4 @@
-function output = parseInputSpecs(xq, inputSpecs, inputTransform, inputShift, types)
+function output = parseInputSpecs(expy, inputSpecs, inputTransform, inputShift, types)
 % parseInputSpecs  Parse input specification of DependentTerm or
 % ExplanatoryTerms
 %{
@@ -35,25 +35,27 @@ end
 
 inputSpecs = replace(string(inputSpecs), " ", "");
 
+
 %
-% Plain variable name
+% Plain variable name or variables name and shift
 %
 if isequal(types, @all) || any(types=="Name")
     hereParseName( );
     if output.Type=="Name"
         return
     end
-end
-
-%
-% Registered transform, possibly expanded
-%
-if isequal(types, @all) || any(types=="Transform")
-    hereParseDiffTransform( );
-    if output.Type=="Transform"
+    hereParseNameShift( );
+    if output.Type=="Name"
         return
     end
-    hereParseTransform( );
+end
+
+
+%
+% Registered transform
+%
+if isequal(types, @all) || any(types=="Transform")
+    hereParseRegisteredTransforms( );
     if output.Type=="Transform"
         return
     end
@@ -79,143 +81,112 @@ return
         if ~isnumeric(inputSpecs)
             return
         end
-        if ~validate.roundScalarInRange(inputSpecs, 1, numel(xq.VariableNames));
+        pos = inputSpecs;
+        if ~validate.roundScalar(pos, 1, numel(expy.VariableNames));
             hereThrowInvalidPointer( );
         end
-        if isequal(inputTransform, @auto)
-            inputTransform = "";
+        transform = inputTransform;
+        if isequal(transform, @auto)
+            transform = "";
         end
-        if isequal(inputShift, @auto)
-            inputShift = 0;
+        shift = inputShift;
+        if isequal(shift, @auto)
+            shift = 0;
         end
         output.Type = "Pointer";
-        output.Transform = inputTransform;
-        output.Incidence = complex(inputSpecs, inputShift);
-        if startsWith(output.Transform, "diff")
-            output.Incidence = [output.Incidence, complex(inputSpecs, inputShift-1)];
-        end
-        output.Position = inputSpecs;
-        output.Shift = inputShift;
+        output.Transform = transform;
+        output.Position = pos;
+        output.Shift = shift;
+        output.Incidence = locallyCreateIncidence(pos, shift, transform);
     end%
-
-
 
 
     function hereParseName( )
-        inx = inputSpecs==xq.VariableNames;
+        inx = inputSpecs==expy.VariableNames;
         if ~any(inx)
             return
         end
         pos = find(inx);
-        if isequal(inputTransform, @auto)
-            inputTransform = "";
+        transform = inputTransform;
+        if isequal(transform, @auto)
+            transform = "";
         end
-        if isequal(inputShift, @auto)
-            inputShift = 0;
+        shift = inputShift;
+        if isequal(shift, @auto)
+            shift = 0;
         end
         output.Type = "Name";
-        output.Transform = inputTransform;
-        output.Incidence = complex(pos, inputShift);
-        if startsWith(output.Transform, "diff")
-            output.Incidence = [output.Incidence, complex(pos, inputShift-1)];
-        end
-        output.Position = pos;
-        output.Shift = inputShift;
-    end%
-
-
-
-
-    function hereParseDiffTransform( )
-        %
-        % Parse input string with one of the following:
-        %
-        % * diff(name) 
-        % * difflog(name) 
-        % * expanded diff(name) 
-        % * expanded difflog(name)
-        %
-        if ~contains(inputSpecs, "diff") && ~contains(inputSpecs, "log") && ~contains(inputSpecs, "(") && ~contains(inputSpecs, ")")
-            return
-        end
-        name = string.empty(1, 0);
-        transform = string.empty(1, 0);
-        if startsWith(inputSpecs, "diff(")
-            % ^diff(name)$
-            name = regexp(inputSpecs, "^diff\(([A-Za-z]\w*)\)$", "tokens", "once");
-            transform = "diff";
-        end
-        if isempty(name) && startsWith(inputSpecs, "difflog(")
-            % ^difflog(name)$
-            name = regexp(inputSpecs, "^difflog\(([A-Za-z]\w*)\)$", "tokens", "once");
-            transform = "difflog";
-        end
-        if isempty(name) && startsWith(inputSpecs, "(")
-            % ^((name)-(name{-1}))$
-            name = regexp(inputSpecs, "^\(\(([A-Za-z]\w*)\)-\(\1{-1}\)\)$", "tokens", "once");
-            transform = "diff";
-        end
-        if isempty(name) && startsWith(inputSpecs, "(")
-            % ^(log(name)-log(name{-1}))$
-            name = regexp(inputSpecs, "\(log\(([A-Za-z]\w*)\)-log\(\1{-1}\)\)", "tokens", "once");
-            transform = "difflog";
-        end
-
-        if isempty(name)
-            return
-        end
-
-        inx = name==xq.VariableNames;
-        if ~any(inx)
-            return
-        end
-
-        if isequal(inputShift, @auto)
-            inputShift = 0;
-        end
-
-        pos = find(inx);
-        output.Type = "Transform";
         output.Transform = transform;
-        output.Incidence = [complex(pos, inputShift), complex(pos, inputShift-1)];
         output.Position = pos;
-        output.Shift = inputShift;
+        output.Shift = shift;
+        output.Incidence = locallyCreateIncidence(pos, shift, transform);
     end%
 
 
-
-
-    function hereParseTransform( )
-        x__ = inputSpecs;
-        if ~endsWith(x__, ")")
-            x__ = "(" + x__ + ")";
+    function hereParseNameShift( )
+        if ~contains(inputSpecs, "{") || ~endsWith(inputSpecs, "}")
+            return
         end
-        pattern = "^(|" + join(regression.Term.REGISTERED_TRANSFORMS, "|") + ")\((\<\w+\>)(\{[^\}]+\})?\)$";
-        tokens = regexp(x__, pattern, "tokens", "once");
+        tokens = split(inputSpecs, ["{", "}"]);
         if numel(tokens)~=3
             return
         end
-        inx = tokens(2)==xq.VariableNames;
-        sh = 0;
-        if strlength(tokens(3))>0
-            sh = sscanf(tokens(3), "{%g}"); 
-        end
-        if ~any(inx) || ~validate.roundScalar(sh)
+        inx = tokens(1)==expy.VariableNames;
+        if ~any(inx)
             return
         end
-        transform = string(tokens(1));
-        pos = find(inx);
-        output.Type = "Transform";
-        output.Transform = transform;
-        output.Incidence = complex(pos, sh);
-        if startsWith(transform, "diff")
-            output.Incidence = [output.Incidence, complex(pos, sh-1)];
+        shift = double(tokens(2));
+        if ~validate.roundScalar(shift)
+            return
         end
+        pos = find(inx);
+        transform = inputTransform;
+        if isequal(transform, @auto)
+            transform = "";
+        end
+        if ~isequal(inputShift, @auto)
+            shift = shift + inputShift;
+        end
+        output.Type = "Name";
+        output.Transform = transform;
         output.Position = pos;
-        output.Shift = sh;
+        output.Shift = shift;
+        output.Incidence = locallyCreateIncidence(pos, shift, transform);
     end%
 
 
+    function hereParseRegisteredTransforms( )
+        %(
+        inputSpecs__ = replace(strip(inputSpecs), " ", "");
+
+        keysTransforms = keys(regression.Term.TRANSFORMS);
+        if ~startsWith(inputSpecs__, keysTransforms+"(") || ~endsWith(inputSpecs__, ")")
+            return
+        end
+        transform = extractBefore(inputSpecs__, "(");
+
+        name = extractBetween( ...
+            inputSpecs__, strlength(transform)+1, strlength(inputSpecs__) ...
+            , "Boundaries", "Exclusive" ...
+        );
+        inxName = name==expy.VariableNames;
+        if strlength(name)==0 || ~any(inxName)
+            return
+        end
+
+        shift = inputShift;
+        if isequal(shift, @auto)
+            shift = 0;
+        end
+
+        pos = find(inxName);
+        output.Type = "Transform";
+        output.Transform = transform;
+        output.Position = pos;
+        output.Shift = shift;
+        output.Incidence = locallyCreateIncidence(pos, shift, transform);
+        %)
+    end%
 
 
     function hereParseExpression( )
@@ -228,7 +199,7 @@ return
         %
         % Unique names of all control parameters
         %
-        controlNames = collectControlNames(xq);
+        controlNames = collectControlNames(expy);
 
         %
         % Replace name{k} with x(pos, t+k, :)
@@ -267,7 +238,7 @@ return
 
             function c = replaceNameShift(c1, c2)
                 c = '';
-                if string(c1)==string(xq.DateReference)
+                if string(c1)==string(expy.DateReference)
                     c = 'date__';
                     return
                 end
@@ -275,7 +246,7 @@ return
                     c = "controls__." + c1;
                     return
                 end
-                pos = getPosName(xq, c1);
+                pos = getPosName(expy, c1);
                 sh = 0;
                 if isnan(pos)
                     invalidNames = [invalidNames, string(c1)];
@@ -336,3 +307,16 @@ return
     end%
 end%
 
+%
+% Local Functions
+%
+
+function incidence = locallyCreateIncidence(pos, shift, transform)
+    incidence = complex(pos, shift);
+    if strlength(transform)>0
+        addShifts = regression.Term.TRANSFORMS_SHIFTS.(transform);
+        if ~isempty(addShifts)
+            incidence = [incidence, complex(pos, shift+addShifts)];
+        end
+    end
+end%
