@@ -10,12 +10,13 @@ classdef Interp
             import parser.Interp
             import parser.Preparser
 
-            try code;
+            try, code;
                 catch, code = @auto; end
 
-            % Do not interpolate in the code, remove the <...> segment, and
-            % only return string representation of the values
-            try remove;
+            % If remove=true, do not interpolate in the code, remove the
+            % <...> segment, and only return string representation of the
+            % values
+            try, remove;
                 catch, remove = false; end
 
             codeFromObject = isequal(code, @auto);

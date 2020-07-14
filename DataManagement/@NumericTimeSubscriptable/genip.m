@@ -235,8 +235,7 @@ end
 %)
 [skip, opt] = maybeSkipInputParser(pp, varargin{:});
 if ~skip
-    parse(pp, lowInput, highFreq, transitionOrder, aggregationModel, varargin{:});
-    opt = pp.Options;
+    opt = parse(pp, lowInput, highFreq, transitionOrder, aggregationModel, varargin{:});
 end
 
 %--------------------------------------------------------------------------
@@ -290,9 +289,6 @@ hard = series.genip.prepareHardOptions(transition, [ ], [highStart, highEnd], [ 
 numInit = transition.NumInit;
 if ~isempty(hard.Level) && all(isfinite(hard.Level))
     outputData = hard.Level;
-    if numInit>0
-        outputData(1:numInit) = hard.Initial;
-    end
     inxRunLow = true(1, numLowPeriods);
     stacked = [ ];
 else
@@ -349,6 +345,7 @@ if nargout>=2
     info.TransitionRate = transition.Rate;
     info.TransitionIntercept = transition.Intercept;
     info.StackedSystem = stacked;
+    info.NumYearsStacked = nnz(inxRunLow);
 end
 
 return
@@ -477,6 +474,12 @@ end%
 
 function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     locallyClipRange(lowLevel, hard, indicator, transition, aggregation)
+    %
+    % If the hard conditions are available for a continuous span of dates
+    % from the beginning of the interpolation range, and/or backwards from
+    % the end of the interpolation range, clip the Kalman filter range to a
+    % subset of inner years.
+    %
     %(
     numInit = transition.NumInit;
     numLowPeriods = size(lowLevel, 1);
@@ -495,8 +498,8 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     x__ = reshape(hard.Level(numInit+1:end), numWithin, [ ]);
     inxFull = all(isfinite(x__), 1);
 
-    lastFull = find(~inxFull, 1) - 1; % [^1]
-    if ~isempty(lastFull) && lastFull>1
+    lastFull = find(~inxFull, 1, "First") - 1; % [^1]
+    if ~isempty(lastFull) && lastFull>1;
         inxRunLow(1:lastFull-1) = false;
         inxRunHigh(1:(lastFull-1)*numWithin) = false;
         inxInit = circshift(inxInit, [0, (lastFull-1)*numWithin]);
@@ -507,7 +510,7 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     % be included in clipped range (becuase it may be needed for initial
     % condition).
 
-    firstFull = find(~inxFull, 1, 'Last') + 1;
+    firstFull = find(~inxFull, 1, "Last") + 1;
     if ~isempty(firstFull) && firstFull<numLowPeriods
         numLowRemove = numLowPeriods - firstFull;
         numHighRemove = numLowRemove*numWithin;
@@ -530,4 +533,119 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     end
     %)
 end%
+
+
+
+
+%
+% Unit Tests
+%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Series/genipUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+% Set up Once
+
+startQ = qq(1990,1);
+endQ = qq(2050,4);
+startY = convert(startQ, Frequency.YEARLY) + 1;
+endY = convert(endQ, Frequency.YEARLY);
+quarterly = cumprod(1 + Series(startQ:endQ, @randn)/100);
+indicator = quarterly + Series(startQ:endQ, @randn)/100;
+yearly = convert(quarterly, Frequency.YEARLY, "Method=", "sum");
+
+
+%% Test Initial Condition
+
+interp = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+3) ...
+);
+
+assertEqual(testCase, interp(startQ+2:startQ+3), quarterly(startQ+2:startQ+3), "AbsTol", 1e-12);
+
+
+%% Test Initial Condition and Hard Level
+
+
+for k = 4 : 40
+    interp = genip( ...
+        yearly, Frequency.QUARTERLY, 2, "sum" ...
+        , "Range=", startY:endY ...
+        , "Hard.Level=", clip(quarterly, -Inf, startQ+k) ...
+    );
+
+    assertEqual(testCase, interp(startQ+2:startQ+k), quarterly(startQ+2:startQ+k), "AbsTol", 1e-12);
+end
+
+
+%% Test Hard Level but No Initial Condition
+
+interp1 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, startQ+4, startQ+12) ...
+);
+
+interp2 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Initial=", NaN ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+12) ...
+);
+
+assertEqual(testCase, interp1(startQ+4:end), interp2(startQ+4:end), "AbsTol", 1e-12);
+assertEqual(testCase, interp1(startQ+(4:12)), quarterly(startQ+(4:12)), "AbsTol", 1e-12);
+
+%% Test Indicator
+
+interp1 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+40) ...
+);
+
+interp2 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+40) ...
+    , "Indicator.Level=", indicator ...
+    , "Indicator.Model=", "Ratio" ...
+);
+
+[~, r1] = acf(pct([interp1, indicator]));
+[~, r2] = acf(pct([interp2, indicator]));
+
+assertGreaterThan(testCase, r2(1), r1(2));
+
+
+%% Test Indicator and Hard Level
+
+indicator1 = indicator;
+indicator2 = clip(indicator, startQ+38, Inf);
+indicator2 = fillMissing(indicator2, startQ:endQ, "Next");
+
+interp1 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+40) ...
+    , "Indicator.Level=", indicator1 ...
+    , "Indicator.Model=", "Ratio" ...
+);
+
+interp2 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+40) ...
+    , "Indicator.Level=", indicator2 ...
+    , "Indicator.Model=", "Ratio" ...
+);
+
+assertEqual(testCase, interp1(:), interp2(:), "AbsTol", 1e-9);
+
+##### SOURCE END #####
+%}
 

@@ -68,6 +68,7 @@ opt = parse(pp, x, varargin{:});
 
 %--------------------------------------------------------------------------
 
+x = join(splitlines(x), " ");
 if strlength(x)<=opt.MaxLength
     return
 end

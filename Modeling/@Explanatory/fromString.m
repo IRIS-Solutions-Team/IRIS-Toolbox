@@ -71,8 +71,8 @@ function this = fromString(inputString, varargin)
 
 % Parse input arguments
 %(
-persistent pp
-if isempty(pp)
+persistent pp INIT_EXPLANATORY
+if isempty(pp) || isempty(INIT_EXPLANATORY)
     pp = extend.InputParser('Explanatory.fromString');
 
     addRequired(pp, 'inputString', @validate.list);
@@ -82,7 +82,8 @@ if isempty(pp)
     addParameter(pp, 'ResidualNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
     addParameter(pp, 'FittedNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
     addParameter(pp, 'DateReference', @default, @(x) isequal(x, @default) || validate.stringScalar(x));
-    addParameter(pp, 'InitObject', Explanatory( ), @(x) isa(x, 'Explanatory'));
+
+    INIT_EXPLANATORY = Explanatory( );
 end
 parse(pp, inputString, varargin{:});
 opt = pp.Options;
@@ -179,7 +180,7 @@ return
 
 
     function obj = hereCreateObject( )
-        obj = opt.InitObject;
+        obj = INIT_EXPLANATORY;
         if ~isequal(opt.ResidualNamePattern, @default)
             obj.ResidualNamePattern = string(opt.ResidualNamePattern);
         end
@@ -242,24 +243,26 @@ return
         %
         rhsString = replace(rhsString, "?", "@");
 
-        rhsString = char(rhsString);
-        if rhsString(end)==';'
-            rhsString(end) = '';
+        if endsWith(rhsString, ";")
+            len__ = strlength(rhsString);
+            rhsString = eraseBetween(rhsString, len__, len__);
         end
+
         %
         % Add an implicit plus sign if RHS starts with an @ to make the
         % start of all regression terms of one of the following forms: +@
         % or -@ 
         %
-        if rhsString(1)=='@'
-            rhsString = ['+', rhsString];
+        if startsWith(rhsString, "@")
+            rhsString = "+" + rhsString;
         end
 
         %
         % Find all characters outside any brackets (round, curly, square);
         % these characters will have level==0
         %
-        [level, allClosed] = textual.bracketLevel(rhsString, {'()', '{}', '[]'});
+        rhsString = char(rhsString);
+        [level, allClosed] = textual.bracketLevel(rhsString, {'()', '{}', '[]'}, '--SkipInputParser');
 
         %
         % Find the starts of all regression terms
@@ -272,10 +275,10 @@ return
         %
         % Collect all regression terms first and see what's left afterwards
         %
-        numTerms = numel(posStart);
-        termStrings = repmat("", 1, numTerms);
-        fixed = nan(1, numTerms);
-        for ii = 1 : numTerms
+        numRegressionTerms = numel(posStart);
+        termStrings = repmat("", 1, numRegressionTerms);
+        fixed = nan(1, numRegressionTerms);
+        for ii = 1 : numRegressionTerms
             ithPosStart = posStart(ii);
             after = false(size(rhsString));
             after(ithPosStart+1:end) = true;
@@ -317,7 +320,7 @@ return
         end
         if ~isempty(rhsString)
             termStrings(end+1) = string(rhsString);
-            fixed(end+1) = true;
+            fixed(1, end+1) = 1;
         end
         termStrings = strtrim(termStrings);
 
@@ -326,7 +329,7 @@ return
         % fixed lump-sum term
         %
         for ii = 1 : numel(termStrings)
-            this__ = addExplanatoryTerm(this__, termStrings(ii), 'Fixed=', fixed(ii));
+            this__ = addExplanatoryTerm(this__, fixed(ii), termStrings(ii));
         end
 
         return
@@ -408,3 +411,213 @@ function userInputString = hereComposeUserInputString(inputString__, label, attr
     end
 end%
 
+
+
+
+%
+% Unit Tests 
+%{
+##### SOURCE BEGIN #####
+% saveAs=Explanatory/fromStringUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+%% Test Plain Vanilla
+    input = "x = @*a + b*x{-1} + @*log(c);";
+    act = Explanatory.fromString(input);
+    exp = Explanatory( );
+    exp = setp(exp, 'VariableNames', ["x", "a", "b", "c"]);
+    exp = setp(exp, 'InputString', regexprep(input, "\s+", ""));
+    exp = defineDependentTerm(exp, 1);
+    exp = addExplanatoryTerm(exp, NaN, 2);
+    exp = addExplanatoryTerm(exp, NaN, 4, "Transform=", "log");
+    exp = addExplanatoryTerm(exp, 1, "b*x{-1}");
+    assertEqual(testCase, act, exp);
+    assertEqual(testCase, act.RhsContainsLhsName, true);
+
+
+%% Test Exogenous
+    input = "x = @*a + b*z{-1} + @*log(c);";
+    act = Explanatory.fromString(input);
+    exp = Explanatory( );
+    exp = setp(exp, 'VariableNames', ["x", "a", "b", "z", "c"]);
+    exp = setp(exp, 'InputString', regexprep(input, "\s+", ""));
+    exp = defineDependentTerm(exp, 1);
+    exp = addExplanatoryTerm(exp, NaN, 2);
+    exp = addExplanatoryTerm(exp, NaN, 5, "Transform=", "log");
+    exp = addExplanatoryTerm(exp, 1, "b*z{-1}");
+    assertEqual(testCase, act, exp);
+    assertEqual(testCase, act.RhsContainsLhsName, false);
+
+
+%% Test Legacy String
+    input = "x = @*a + b*x{-1} + @*log(c);";
+    legacyInput = replace(input, "@", "?");
+    act = Explanatory.fromString(legacyInput);
+    act = setp(act, 'InputString', replace(getp(act, 'InputString'), "?", "@"));
+    exp = Explanatory.fromString(input);
+    assertEqual(testCase, act, exp);
+    assertEqual(testCase, act.RhsContainsLhsName, true);
+
+
+%% Test Sum
+    act = Explanatory.fromString("x = y{-1} + x{-2};");
+    exp_ExplanatoryTerm = regression.Term( );
+    exp_ExplanatoryTerm.Position = NaN;
+    exp_ExplanatoryTerm.Shift = 0;
+    exp_ExplanatoryTerm.Incidence = sort([complex(2, -1), complex(1, -2)]); 
+    exp_ExplanatoryTerm.Transform = "";
+    exp_ExplanatoryTerm.Expression = @(x,t,date__,controls__)x(2,t-1,:)+x(1,t-2,:);
+    exp_ExplanatoryTerm.ContainsLhsName = true;
+    exp_ExplanatoryTerm.MinShift = -2;
+    exp_ExplanatoryTerm.MaxShift = 0;
+    temp = getp(act, 'ExplanatoryTerms');
+    temp.Incidence = sort(temp.Incidence);
+    act = setp(act, 'ExplanatoryTerms', temp);
+    assertEqual(testCase, getp(act, 'ExplanatoryTerms'), exp_ExplanatoryTerm);
+    assertEqual(testCase, act.RhsContainsLhsName, true);
+
+
+%% Test Exogenous Sum
+    act = Explanatory.fromString("x = y{-1} + z{-2};");
+    exp_ExplanatoryTerm = regression.Term( );
+    exp_ExplanatoryTerm.Position = NaN;
+    exp_ExplanatoryTerm.Shift = 0;
+    exp_ExplanatoryTerm.Incidence = sort([complex(2, -1), complex(3, -2)]); 
+    exp_ExplanatoryTerm.Transform = "";
+    exp_ExplanatoryTerm.Expression = @(x,t,date__,controls__)x(2,t-1,:)+x(3,t-2,:);
+    exp_ExplanatoryTerm.ContainsLhsName = false;
+    exp_ExplanatoryTerm.MinShift = -2;
+    exp_ExplanatoryTerm.MaxShift = 0;
+    temp = getp(act, 'ExplanatoryTerms');
+    temp.Incidence = sort(temp.Incidence);
+    act = setp(act, 'ExplanatoryTerms', temp);
+    assertEqual(testCase, getp(act, 'ExplanatoryTerms'), exp_ExplanatoryTerm);
+    assertEqual(testCase, act.RhsContainsLhsName, false);
+
+
+%% Test Lower
+    act = Explanatory.fromString( ...
+        ["xa = Xa{-1} + xA{-2} + xb", "XB = xA{-1}"], ...
+        'EnforceCase=', @lower ...
+    );
+    exp = Explanatory.fromString( ...
+        ["xa = xa{-1} + xa{-2} + xb", "xb = xa{-1}"] ...
+    );
+    assertEqual(testCase, act, exp);
+
+
+%% Test Upper
+    act = Explanatory.fromString( ...
+        ["xa = Xa{-1} + xA{-2} + xb", "XB = xA{-1}"], ...
+        'EnforceCase=', @upper ...
+    );
+    exp = Explanatory.fromString( ...
+        ["XA = XA{-1} + XA{-2} + XB", "XB = XA{-1}"] ...
+    );
+    for i = 1 : numel(exp)
+        exp(i) = setp(exp(i), 'ResidualNamePattern', upper(getp(exp(i), 'ResidualNamePattern')));
+        exp(i) = setp(exp(i), 'FittedNamePattern', upper(getp(exp(i), 'FittedNamePattern')));
+        exp(i) = setp(exp(i), 'DateReference', upper(getp(exp(i), 'DateReference')));
+    end
+    assertEqual(testCase, act, exp);
+
+
+%% Test Static If
+    q = Explanatory.fromString("x = z + if(isfreq(date__, 1) & date__<yy(5), -10, 10)");
+    inputDb = struct( );
+    inputDb.x = Series(0, 0);
+    inputDb.z = Series(1:10, @rand);
+    simDb1 = simulate(q, inputDb, 1:10);
+    assertEqual(testCase, simDb1.x(1:10), inputDb.z(1:10)+10);
+    inputDb = struct( );
+    inputDb.x = Series(yy(0), 0);
+    inputDb.z = Series(yy(1:10), @rand);
+    [simDb2, info2] = simulate(q, inputDb, yy(1:10));
+    add = [-10; -10; -10; -10; 10; 10; 10; 10; 10; 10];
+    assertEqual(testCase, simDb2.x(yy(1:10)), inputDb.z(yy(1:10))+add, 'AbsTol', 1e-14);
+    assertEqual(testCase, info2.DynamicStatus, false);
+    [simDb3, info3] = simulate(q, inputDb, yy(1:10), 'Blazer=', {'Dynamic=', true});
+    add = [-10; -10; -10; -10; 10; 10; 10; 10; 10; 10];
+    assertEqual(testCase, simDb3.x(yy(1:10)), inputDb.z(yy(1:10))+add, 'AbsTol', 1e-14);
+    assertEqual(testCase, info3.DynamicStatus, true);
+
+
+%% Test Dynamic If
+    q = Explanatory.fromString("x = x{-1} + if(isfreq(date__, 1) & date__<yy(5), dummy1, dummy0)");
+    inputDb = struct( );
+    inputDb.x = Series(0, 0);
+    inputDb.dummy1 = Series(1:10, @rand);
+    inputDb.dummy0 = -Series(1:10, @rand);
+    simDb1 = simulate(q, inputDb, 1:10);
+    assertEqual(testCase, simDb1.x(1:10), cumsum(inputDb.dummy0(1:10)), 'AbsTol', 1e-14);
+    inputDb = struct( );
+    inputDb.x = Series(yy(0), 0);
+    inputDb.dummy1 = Series(yy(1:10), @rand);
+    inputDb.dummy0 = -Series(yy(1:10), @rand);
+    simDb2 = simulate(q, inputDb, yy(1:10));
+    temp = [inputDb.dummy1(yy(1:4)); inputDb.dummy0(yy(5:10))];
+    assertEqual(testCase, simDb2.x(yy(1:10)), cumsum(temp), 'AbsTol', 1e-14);
+
+
+%% Test Compare Dynamic Static
+    q = Explanatory.fromString([
+        "x = x{-1} + if(isfreq(date__, 1) & date__<yy(5), dummy1, dummy0)"
+        "y = 1 + if(isfreq(date__, 1) & date__<yy(5), dummy1, dummy0)"
+    ]);
+    inputDb = struct( );
+    inputDb.x = Series(yy(0:9), 1);
+    inputDb.dummy1 = Series(yy(1:10), @rand);
+    inputDb.dummy0 = -Series(yy(1:10), @rand);
+    simDb = simulate(q, inputDb, yy(1:10), 'Blazer=', {'Dynamic=', false});
+    temp = 1 + [inputDb.dummy1(yy(1:4)); inputDb.dummy0(yy(5:10))];
+    assertEqual(testCase, simDb.x(yy(1:10)), temp, 'AbsTol', 1e-14);
+    assertEqual(testCase, simDb.y(yy(1:10)), temp, 'AbsTol', 1e-14);
+
+
+%% Test Switch Variable
+    q = Explanatory.fromString([
+        "x = if(switch__, dummy1, dummy0)"
+    ]);
+    inputDb = struct( );
+    inputDb.x = Series(yy(0:9), 1);
+    inputDb.dummy1 = Series(yy(1:10), @rand);
+    inputDb.dummy0 = -Series(yy(1:10), @rand);
+    inputDb.switch__ = false;
+    simDb1 = simulate(q, inputDb, yy(1:10));
+    assertEqual(testCase, simDb1.x(yy(1:10)), inputDb.dummy0(yy(1:10)));
+    inputDb.switch__ = true;
+    simDb2 = simulate(q, inputDb, yy(1:10));
+    assertEqual(testCase, simDb2.x(yy(1:10)), inputDb.dummy1(yy(1:10)));
+
+
+%% Test Residual Name
+    q = Explanatory.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'ResidualNamePattern=', ["", "_ma"]);
+    assertEqual(testCase, [q.LhsName], ["x", "y"]);
+    assertEqual(testCase, [q.ResidualName], ["x_ma", "y_ma"]);
+    q = Explanatory.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'ResidualNamePattern=', ["", "_ma"], 'EnforceCase=', @upper);
+    assertEqual(testCase, [q.LhsName], ["X", "Y"]);
+    assertEqual(testCase, [q.ResidualName], ["X_MA", "Y_MA"]);
+
+
+%% Test Fitted name
+    q = Explanatory.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'FittedNamePattern=', ["", "_fitted"]);
+    assertEqual(testCase, [q.LhsName], ["x", "y"]);
+    assertEqual(testCase, [q.FittedName], ["x_fitted", "y_fitted"]);
+    q = Explanatory.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'FittedNamePattern=', ["", "_fitted"], 'EnforceCase=', @upper);
+    assertEqual(testCase, [q.LhsName], ["X", "Y"]);
+    assertEqual(testCase, [q.FittedName], ["X_FITTED", "Y_FITTED"]);
+##### SOURCE END #####
+%}
