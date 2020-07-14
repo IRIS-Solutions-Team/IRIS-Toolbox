@@ -74,12 +74,11 @@
 %% Example
 %--------------------------------------------------------------------------
 %
-% Create an Explanatory object from a string inclusive of regression terms,
-% i.e. additive terms preceded by `@*`:
+% Create an Explanatory object from a string inclusive of three regression
+% terms, i.e. additive terms preceded by `+@*` or `-@*`:
 %
 %     expy0 = Explanatory.fromString("difflog(x) = @ + @*difflog(x{-1}) + @*log(z)");
 %     expy0.Parameters
-%     expy0.Fixed
 % 
 % Assign some parameters to the three regression terms:
 %
