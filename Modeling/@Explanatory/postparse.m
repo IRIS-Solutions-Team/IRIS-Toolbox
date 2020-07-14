@@ -28,7 +28,7 @@ attributes = cell.empty(0, 1);
 controlNames = string.empty(1, 0);
 
 
-reportMissingClosing = cell.empty(1, 0);
+reportInvalidBlockAttributes = string.empty(1, 0);
 [blocks, keywords] = split(code, [EQUATIONS_KEYWORD, CONTROLS_KEYWORD]);
 blocks(1) = [ ];
 numBlocks = numel(blocks);
@@ -47,13 +47,23 @@ for i = 1 : numBlocks
     end
 end
 
+if ~isempty(reportInvalidBlockAttributes)
+    hereReportInvalidBlockAttributes( );
+end
+
 controlNames = unique(controlNames, 'stable');
 
 return
 
     function hereParseEquationsBlock( )
         %(
-        [block, attributes__] = locallyExtractBlockAttributes(block);
+        [block, attributes__, status] = locallyExtractBlockAttributes(block);
+        if status~=0
+            reportInvalidBlockAttributes = [
+                reportInvalidBlockAttributes, ...
+                textual.abbreviate(EQUATIONS_KEYWORD + reportBlock, "MaxLength=", 30)
+            ];
+        end
         equationStrings__ = strip(split(block, ";"));
         equationStrings__(equationStrings__=="" | equationStrings__==";") = [ ];
         numEquations__ = numel(equationStrings__);
@@ -73,12 +83,18 @@ return
     end%
 
 
-    function hereReportMissingClosing( )
+    function hereReportInvalidBlockAttributes( )
         %(
-        thisError = [ "Explanatorys:MissingClosing"
-                      "This keyword %1 with the list of attributes "
-                      "has its closing parenthesis missing or misplaced: %s "];
-        throw(exception.Base(thisError, 'error'), EQUATIONS_KEYWORD, reportMissingClosing{:});
+        thisError = [ 
+            "Explanatorys:InvalidBlockAttributes"
+            "This %1 keyword is followed by an invalid "
+            "list of block attributes: %s "
+        ];
+        throw( ...
+            exception.Base(thisError, 'error') ...
+            , EQUATIONS_KEYWORD ...
+            , reportInvalidBlockAttributes ...
+        ); %#ok<GTARG>
         %)
     end%
 end%
@@ -89,19 +105,29 @@ end%
 %
 
 
-function [block, attributes] = locallyExtractBlockAttributes(block)
+function [block, attributes, status] = locallyExtractBlockAttributes(block)
     %(
+    validateAttribute = @(x) startsWith(x, ":") && isvarname(extractAfter(x, 1));
+    status = 0;
     attributes = string.empty(1, 0);
     if ~startsWith(block, "(")
         return
     end
     attributesString = extractBetween(block, "(", ")");
+    block = extractAfter(block, ")");
     if isempty(attributesString)
-        reportMissingClosing{end+1} = textual.abbreviate(EQUATIONS_KEYWORD + reportBlock, 'MaxLength=', 30);
+        status = 1;
         return
     end
-    attributes = regexp(attributesString, ":\w+", "match");
-    block = extractAfter(block, ")");
+    % Extract the attributes from the first pair of parentheses
+    attributesString = attributesString(1);
+    attributes = strip(split(attributesString, compose(["\r\n", "\n", "\r", " ", ",", ";"])));
+    attributes(attributes=="") = [ ];
+    attributes = reshape(attributes, 1, [ ]);
+    if ~all(arrayfun(validateAttribute, attributes))
+        status = 1;
+        return
+    end
     %)
 end%
 
