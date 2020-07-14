@@ -138,6 +138,7 @@ testCase.TestData.Object = Explanatory.fromString([
     assertEqual(testCase, inx, [true; false; true; false; false]);
     assertEqual(testCase, qq, q([1; 3]));
     assertEqual(testCase, lhsNames, ["x", "z"]);
+
 ##### SOURCE END #####
 %}
 

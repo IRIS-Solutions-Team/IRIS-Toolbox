@@ -1,4 +1,3 @@
-function [this, datesMissing] = fillMissing(this, range, varargin)
 % fillMissing  Fill missing time series observations
 %{
 % ## Syntax ##
@@ -6,8 +5,10 @@ function [this, datesMissing] = fillMissing(this, range, varargin)
 %     [x, datesMissing] = fillMissing(x, range, method)
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function [this, datesMissing] = fillMissing(this, range, varargin)
 
 if isempty(this.Data)
     return

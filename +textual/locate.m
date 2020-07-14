@@ -62,9 +62,9 @@ items = string(items);
 list = string(list);
 pos = nan(size(items));
 for i = 1 : numel(items)
-    x_ = find(items(i)==list, 1, varargin{:});
-    if ~isempty(x_)
-        pos(i) = x_;
+    pos__ = find(items(i)==list, 1, varargin{:});
+    if ~isempty(pos__)
+        pos(i) = pos__;
     end
 end
 

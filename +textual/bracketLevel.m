@@ -1,4 +1,4 @@
-function [level, allClosed] = bracketLevel(inputString, bracketTypes)
+function [level, allClosed] = bracketLevel(inputString, bracketTypes, varargin)
 % bracketLevel  Return the nested bracket level for each character in a string
 %{
 % ## Syntax ##
@@ -45,13 +45,19 @@ function [level, allClosed] = bracketLevel(inputString, bracketTypes)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('+textual/bracketLevel');
-    addRequired(pp, 'InputString', @validate.string);
-    addRequired(pp, 'BracketTypes', @(x) validate.list(x) && all(cellfun(@(y) any(strcmp(y, {'()', '[]', '{}', '<>'})), cellstr(x))));
+    addRequired(pp, 'inputString', @validate.string);
+    addRequired(pp, 'bracketTypes', @(x) validate.list(x) && all(cellfun(@(y) any(strcmp(y, {'()', '[]', '{}', '<>'})), cellstr(x))));
+end
+%)
+[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+if ~skip
+    opt = parse(pp, inputString, bracketTypes);
 end
 
 %--------------------------------------------------------------------------

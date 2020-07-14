@@ -65,12 +65,14 @@ function this = defineDependenTerm(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory.defineDependenTerm');
     addRequired(pp, 'expy', @(x) isa(x, 'Explanatory'));
 end
-parse(pp, this);
+%)
+opt = parse(pp, this);
 
 %--------------------------------------------------------------------------
 
@@ -79,4 +81,70 @@ this.DependentTerm = term;
 checkNames(this);
 
 end%
+
+
+
+
+%
+% Unit Tests
+%{
+##### SOURCE BEGIN #####
+% saveAs=Explanatory/defineDependentTermUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+% Set up once
+    expy = Explanatory( );
+    expy = setp(expy, 'VariableNames', ["x", "y", "z"]);
+    testCase.TestData.Model = expy;
+
+
+%% Test Pointer
+    expy = testCase.TestData.Model;
+    expy = defineDependentTerm(expy, 3, "Transform=", "log");
+    act = getp(expy, 'DependentTerm');
+    exp = regression.Term(expy, 3, "Transform", "log");
+    exp.ContainsLhsName = true;
+    assertEqual(testCase, act, exp);
+    act = expy.LhsName;
+    exp = "z";
+    assertEqual(testCase, act, exp);
+
+
+%% Test Name
+    expy = testCase.TestData.Model;
+    expy = defineDependentTerm(expy, "z", "Transform=", "log");
+    act = getp(expy, 'DependentTerm');
+    exp = regression.Term(expy, 3, "Transform", "log");
+    exp.ContainsLhsName = true;
+    assertEqual(testCase, act, exp);
+    act = expy.LhsName;
+    exp = "z";
+    assertEqual(testCase, act, exp);
+
+
+%% Test Transform
+    expy = testCase.TestData.Model;
+    expy = defineDependentTerm(expy, "log(z)");
+    act = getp(expy, 'DependentTerm');
+    exp = regression.Term(expy, 3, "Transform", "log");
+    exp.ContainsLhsName = true;
+    assertEqual(testCase, act, exp);
+    act = expy.LhsName;
+    exp = "z";
+    assertEqual(testCase, act, exp);
+
+
+%% Test Invalid Shift
+    expy = testCase.TestData.Model;
+    thrownError = false;
+    try
+        expy = defineDependentTerm(expy, "z", "Transform=", "log", "Shift=", -1);
+    catch exc
+        thrownError = true;
+    end
+    assertEqual(testCase, thrownError, true);
+
+##### SOURCE END #####
+%}
 

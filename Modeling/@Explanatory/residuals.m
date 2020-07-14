@@ -9,12 +9,28 @@ function outputDb = residuals(this, inputDatabank, range, varargin)
 
 %--------------------------------------------------------------------------
 
+inxMissingParameters = any(~isfinite(this.Parameters), 3);
+if any(inxMissingParameters(:))
+    hereReportMissingParameters( );
+end
+
 [~, outputDb] = regress( ...
     this, inputDatabank, range ...
     , varargin{:} ...
-    , 'FixParameters=', true ...
+    , "ResidualsOnly=", true ...
 );
 
+return
+
+    function hereReportMissingParameters( )
+        %(
+        thisError = [
+            "Explanatory:MissingParameters"
+            "Parameters for the following explanatory terms are missing: %s"
+        ];
+        throw(exception.Base(thisError, 'error'), join("#"+string(find(inxMissingParameters)), ", "));
+        %)
+    end%
 end%
 
 
@@ -48,7 +64,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     baseRange = testCase.TestData.BaseRange;
     [est1, outputDb1] = regress(m1, db1, baseRange);
     outputDb2 = residuals(est1, db1, baseRange);
-    [est2, outputDb3] = regress(est1, db1, baseRange, 'FixParameters=', true);
+    [est2, outputDb3] = regress(est1, db1, baseRange, "ResidualsOnly=", true);
     assertEqual(testCase, outputDb1.res_x.Data, outputDb2.res_x.Data);
     assertEqual(testCase, outputDb1.res_x.Data, outputDb3.res_x.Data);
     assertEqual(testCase, est1, est2);
