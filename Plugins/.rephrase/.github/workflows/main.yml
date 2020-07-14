@@ -1,0 +1,139 @@
+name: Snapshot Release Action
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    - name: Checkout MASTER
+      uses: actions/checkout@v2
+      with:
+        path: master
+    - name: Checkout DIST branch
+      uses: actions/checkout@v2
+      with:
+        ref: dist
+        path: dist
+    - name: Set outputs
+      id: vars
+      run: |
+        cd $GITHUB_WORKSPACE/master
+        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+    - name: Setup node 12
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: Install NPM packages
+      run: npm i -g inline-source-cli uglify-es clean-css-cli
+    - name: Create new dist
+      run: |
+        cd $GITHUB_WORKSPACE/master/scripts
+        ./bundle-report.sh 'release-auto-${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}'
+    - name: Push new dist to MASTER
+      run: |
+        cd $GITHUB_WORKSPACE/master
+        echo "Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}" > $GITHUB_WORKSPACE/master/dist/.release
+        git config --global user.name 'Sergey Plotnikov'
+        git config --global user.email 'nul0m@users.noreply.github.com'
+        git add -A
+        git commit -m "Automated build on push to <master>"
+        git push
+    - name: Copy MASTER's dist/ to DIST branch
+      run: |
+        cd $GITHUB_WORKSPACE/dist
+        find . -mindepth 1 ! -regex '^./\.git[a-z]*\(/.*\)?' -delete
+        cp -r $GITHUB_WORKSPACE/master/dist/. ./
+        git add -A
+        git commit -m "Automated build on push to <master>"
+        git push
+    - name: Package Release Assets
+      run: |
+        cd $GITHUB_WORKSPACE/master
+        zip -r $GITHUB_WORKSPACE/report-unbundled.zip ./dist -x *report-template.bundle.html -x *no-plotly* -x *web-source*
+        zip -r $GITHUB_WORKSPACE/report-unbundled-no-plotly.zip ./dist -x *report-template*.bundle.html -x *vendor.min.js* -x */report-template.html -x *web-source*
+        cp ./dist/{user-defined.css,report-template.bundle.html,report-template-no-plotly.bundle.html,report-template-web-source.html,report-template-web-source-no-plotly.html} $GITHUB_WORKSPACE/
+        cd $GITHUB_WORKSPACE
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: release-auto-${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
+        release_name: Snapshot Release ${{ steps.vars.outputs.sha_short }}-${{ github.run_number }}
+        draft: false
+        prerelease: false
+    - name: Upload Release Asset I
+      id: upload-release-asset-1
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./report-unbundled.zip
+        asset_name: report-unbundled.zip
+        asset_content_type: application/zip
+    - name: Upload Release Asset II
+      id: upload-release-asset-2 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./user-defined.css
+        asset_name: user-defined.css
+        asset_content_type: text/css
+    - name: Upload Release Asset III
+      id: upload-release-asset-3 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./report-template.bundle.html
+        asset_name: report-template.bundle.html
+        asset_content_type: text/html
+    - name: Upload Release Asset IV
+      id: upload-release-asset-4
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./report-template-no-plotly.bundle.html
+        asset_name: report-template-no-plotly.bundle.html
+        asset_content_type: text/html
+    - name: Upload Release Asset V
+      id: upload-release-asset-5
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./report-template-web-source.html
+        asset_name: report-template-web-source.html
+        asset_content_type: text/html
+    - name: Upload Release Asset VI
+      id: upload-release-asset-6
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./report-template-web-source-no-plotly.html
+        asset_name: report-template-web-source-no-plotly.html
+        asset_content_type: text/html
+    - name: Repository Dispatch
+      uses: peter-evans/repository-dispatch@v1
+      with:
+        token: ${{ secrets.IRIS_REPO_TOKEN }}
+        repository: IRIS-Solutions-Team/IRIS-Toolbox
+        event-type: rephrase-release-event
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
