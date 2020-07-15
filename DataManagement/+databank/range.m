@@ -1,58 +1,75 @@
-function [range, listFreq, namesApplied] = range(inputDb, varargin)
-% range  Find a range that encompasses the ranges of the listed tseries objects
+% range  Find a range that encompasses the ranges of all or selected databank time series
 %{
-% ## Syntax ##
+%% Syntax
+%--------------------------------------------------------------------------
 %
 %     [range, listFreq] = databank.range(inputDb, ...)
 %
 %
-% ## Input Arguments ##
+%% Input Arguments
+%--------------------------------------------------------------------------
 %
-% __`inputDb`__ [ struct | containers.Map | Dictionary ] -
-% Input databank; can be either a struct, a containers.Map, or a
-% Dictionary.
+% __`inputDb`__ [ struct | containers.Map | Dictionary ]
 %
-% ## Output Arguments ##
-%
-% __`range`__ [ numeric | cell ] - 
-% Range that encompasses the observations of the tseries objects in the
-% input database; if tseries objects with different frequencies exist, the
-% ranges are returned in a cell array.
-%
-% __`listFreq`__ [ numeric ] - 
-% Vector of date frequencies coresponding to the returned ranges.
+%     Input databank; can be either a struct, a containers.Map, or a
+%     Dictionary.
 %
 %
-% ## Options ##
+%% Output Arguments
+%--------------------------------------------------------------------------
 %
-% __`List=@all`__ [ cellstr | rexp | `@all` ] - 
-% List of time series that will be included in the range search or a
-% regular expression that will be matched to compose the list; `@all` means
-% all tseries objects existing in the input databases will be included; may
-% be omitted.
+% __`range`__ [ numeric | cell ] 
 %
-%
-% __`StartDate='MaxRange'`__ [ `'MaxRange'` | `'MinRange'` ] - 
-% `'MaxRange'` means the output `Range` will start at the earliest start
-% date among all time series included in the search; `'MinRange'` means the
-% `range` will start at the latest start date.
-%
-% __`EndDate='MaxRange'`__ [ `'MaxRange'` | `'MinRange'` ] - 
-% `'MaxRange'` means the `range` will end at the latest end date among all
-% time series included in the search; `'MinRange'` means the `range` will
-% end at the earliest end date.
+%     Range that encompasses the observations of the tseries objects in the
+%     input database; if tseries objects with different frequencies exist,
+%     the ranges are returned in a cell array.
 %
 %
-% ## Description ##
+% __`listFreq`__ [ numeric ]
+%
+%     Vector of date frequencies coresponding to the returned ranges.
 %
 %
-% ## Example ##
+% Options
+%--------------------------------------------------------------------------
+%
+% __`List=@all`__ [ cellstr | rexp | `@all` ]
+%
+%     List of time series that will be included in the range search or a
+%     regular expression that will be matched to compose the list; `@all`
+%     means all time series objects existing in the input databases will be
+%     included.
+%
+%
+% __`StartDate='MaxRange'`__ [ `'MaxRange'` | `'MinRange'` ]
+%
+%     `'MaxRange'` means the output `Range` will start at the earliest
+%     start date among all them time series included in the search;
+%     `'MinRange'` means the `range` will start at the latest start date.
+%
+%
+% __`EndDate='MaxRange'`__ [ `'MaxRange'` | `'MinRange'` ] 
+%
+%     `'MaxRange'` means the `range` will end at the latest end date among
+%     all the time series included in the search; `'MinRange'` means the
+%     `range` will end at the earliest end date.
+%
+%
+%% Description
+%--------------------------------------------------------------------------
+%
+%
+%% Example
+%--------------------------------------------------------------------------
 %
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function [range, listFreq, namesApplied] = range(inputDb, varargin)
+
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.range');
@@ -64,8 +81,8 @@ if isempty(pp)
     addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @any) || isa(x, 'Frequency'));
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
-parse(pp, inputDb, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, inputDb, varargin{:});
 
 %--------------------------------------------------------------------------
 
@@ -124,6 +141,7 @@ end
 return
 
     function listNames = hereFilterNames( )
+        %(
         if ~isempty(opt.Filter)
             listNames = databank.filter(inputDb, opt.Filter{:});
         else
@@ -145,15 +163,18 @@ return
                 listNames = allInputEntries;
             end
         end
+        %)
     end%
 
 
     function listFreq = hereFilterFreq( )
+        %(
         if isequal(opt.Frequency, @any)
             listFreq = reshape(iris.get('freq'), 1, [ ]);
         else
             listFreq = unique(reshape(opt.Frequency, 1, [ ]), 'stable');
         end
+        %)
     end%
 end%
 

@@ -329,7 +329,7 @@ return
         % fixed lump-sum term
         %
         for ii = 1 : numel(termStrings)
-            this__ = addExplanatoryTerm(this__, fixed(ii), termStrings(ii));
+            this__ = addExplanatoryTerm(this__, fixed(ii), termStrings(ii), "--SkipInputParser");
         end
 
         return
