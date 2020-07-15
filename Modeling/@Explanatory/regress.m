@@ -315,13 +315,13 @@ function [fittedRange, missingObservations] = locallyResolveRange(this, inputDb,
     fittedRange = double(fittedRange);
     from = fittedRange(1);
     to = fittedRange(end);
-    auto = "Warning";
+    defaultMissingObservations = "Warning";
     if isinf(from) || isinf(to)
         [from, to] = databank.backend.resolveRange(inputDb, collectAllNames(this), from, to);
-        auto = "Silent";
+        defaultMissingObservations = "Silent";
     end
     if isequal(missingObservations, @auto)
-        missingObservations = auto;
+        missingObservations = defaultMissingObservations;
     end
     fittedRange = [from, to];
     %)

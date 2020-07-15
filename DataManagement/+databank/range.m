@@ -78,7 +78,7 @@ if isempty(pp)
     addParameter(pp, 'NameList', @all, @(x) isequal(x, @all) || validate.string(x) || isa(x, 'rexp'));
     addParameter(pp, 'StartDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
     addParameter(pp, 'EndDate', 'MaxRange', @(x) validate.anyString(x, 'MaxRange', 'MinRange', 'Any', 'All', 'Unbalanced', 'Balanced'));
-    addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @any) || isa(x, 'Frequency'));
+    addParameter(pp, {'Frequency', 'Frequencies'}, @any, @(x) isequal(x, @all) || isequal(x, @any) || isa(x, 'Frequency'));
     addParameter(pp, 'Filter', cell.empty(1, 0), @validate.nestedOptions);
 end
 %)
@@ -169,7 +169,7 @@ return
 
     function listFreq = hereFilterFreq( )
         %(
-        if isequal(opt.Frequency, @any)
+        if isequal(opt.Frequency, @any) || isequal(opt.Frequency, @all)
             listFreq = reshape(iris.get('freq'), 1, [ ]);
         else
             listFreq = unique(reshape(opt.Frequency, 1, [ ]), 'stable');
