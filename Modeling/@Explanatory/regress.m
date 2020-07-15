@@ -107,7 +107,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function [this, outputDb] = regress(this, inputDb, fittedRange, varargin)
+function [this, outputDb, info] = regress(this, inputDb, fittedRange, varargin)
 
 %( Input parser
 persistent pp
@@ -116,17 +116,18 @@ if isempty(pp)
 
     addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'Explanatory'));
     addRequired(pp, 'inputDb', @validate.databank);
-    addRequired(pp, 'fittedRange', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'fittedRange', @DateWrapper.validateRangeInput);
 
     addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, [ ]) || validate.databank(x));
     addParameter(pp, {'AppendPostsample', 'PrependInput'}, false, @validate.logicalScalar);
     addParameter(pp, {'AppendPresample', 'AppendInput'}, false, @validate.logicalScalar);
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
-    addParameter(pp, 'MissingObservations', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
+    addParameter(pp, "MissingObservations", @auto, @(x) isequal(x, @auto) || validate.anyString(x, ["Error", "Warning", "Silent"]));
     addParameter(pp, 'ResidualsOnly', false, @validate.logicalScalar);
 end
 %)
 opt = parse(pp, this, inputDb, fittedRange, varargin{:});
+[fittedRange, opt.MissingObservations] = locallyResolveRange(this, inputDb, fittedRange, opt.MissingObservations);
 
 storeToDatabank = nargout>=2;
 
@@ -134,6 +135,7 @@ storeToDatabank = nargout>=2;
 
 fittedRange = double(fittedRange);
 numEquations = numel(this);
+
 
 %
 % Create a DataBlock for all variables across all models; LHS variables are
@@ -156,10 +158,12 @@ fitted = nan(numEquations, numExtendedPeriods, numPages);
 inxMissingColumns = false(numEquations, numExtendedPeriods, numPages);
 reportEmptyData = string.empty(1, 0);
 
+
 %
 % Prepare runtime information
 %
 this = runtime(this, dataBlock, "regress");
+
 
 %
 % Preallocate space for parameters and statistics, reset all to NaN
@@ -169,6 +173,7 @@ this = alter(this, numPages, resetToNaN);
 
 
 % /////////////////////////////////////////////////////////////////////////
+inxColumns = cell(numEquations, numPages);
 inxToEstimate = ~[this.IsIdentity];
 for q = find(inxToEstimate)
     this__ = this(q);
@@ -186,30 +191,31 @@ for q = find(inxToEstimate)
     %
     res__ = nan(size(lhs));
     for v = 1 : numPages
-        inxColumns = dataBlock.InxBaseRange;
+        inxColumns__ = dataBlock.InxBaseRange;
         inxFiniteColumns = all(isfinite([rhs(:, :, v); lhs(:, :, v)]), 1);
-        inxMissingColumns(q, :, v) = inxColumns & ~inxFiniteColumns;
+        inxMissingColumns(q, :, v) = inxColumns__ & ~inxFiniteColumns;
         if strcmpi(opt.MissingObservations, 'Warning') || strcmpi(opt.MissingObservations, 'Silent')
-            inxColumns = inxColumns & inxFiniteColumns;
+            inxColumns__ = inxColumns__ & inxFiniteColumns;
         elseif any(inxMissingColumns(q, :, v))
             continue
         end
-        if ~any(inxColumns)
+        if ~any(inxColumns__)
             reportEmptyData = [reportEmptyData, this__.LhsName];
             continue
         end
 
-        lhs__ = lhs(:, inxColumns, v);
-        rhs__ = rhs(:, inxColumns, v);
+        lhs__ = lhs(:, inxColumns__, v);
+        rhs__ = rhs(:, inxColumns__, v);
         [parameters, varResiduals, covParameters] = locallyLeastSquares(lhs__, rhs__, fixed(1, :, min(v, end)));
 
         this__.Parameters(1, :, v) = parameters;
-        fitted(q, inxColumns, v) = parameters*rhs__;
-        res__(:, inxColumns, v) = lhs(:, inxColumns, v) - fitted(q, inxColumns, v);
+        fitted(q, inxColumns__, v) = parameters*rhs__;
+        res__(:, inxColumns__, v) = lhs(:, inxColumns__, v) - fitted(q, inxColumns__, v);
         this__.Statistics.VarResiduals(:, :, v) = varResiduals;
         this__.Statistics.CovParameters(:, :, v) = covParameters;
+        inxColumns{q, v} = inxColumns__;
     end
-    plainData = updateResidualsInPlainData(this__, plainData, res__, inxColumns);
+    plainData = updateResidualsInPlainData(this__, plainData, res__, inxColumns__);
 
     %
     % Update residuals in dataBlock from plainData
@@ -244,6 +250,10 @@ end
 % Reset runtime information
 %
 this = runtime(this);
+
+if nargout>=3
+    info = herePopulateOutputInfo( );
+end
 
 return
 
@@ -282,13 +292,40 @@ return
         throw(exception.Base(thisWarning, opt.MissingObservations), report{:});
         %)
     end%
-end%
 
+
+    function info = herePopulateOutputInfo( )
+        %(
+        info = struct( );
+        info.FittedPeriods = cell(size(inxColumns));
+        extendedRange = double(dataBlock.ExtendedRange);
+        for i = 1 : numel(inxColumns)
+            info.FittedPeriods{i} = DateWrapper(extendedRange(inxColumns{i}));
+        end
+        %)
+    end%
+end%
 
 %
 % Local Functions
 %
 
+function [fittedRange, missingObservations] = locallyResolveRange(this, inputDb, fittedRange, missingObservations)
+    %(
+    fittedRange = double(fittedRange);
+    from = fittedRange(1);
+    to = fittedRange(end);
+    auto = "Warning";
+    if isinf(from) || isinf(to)
+        [from, to] = databank.backend.resolveRange(inputDb, collectAllNames(this), from, to);
+        auto = "Silent";
+    end
+    if isequal(missingObservations, @auto)
+        missingObservations = auto;
+    end
+    fittedRange = [from, to];
+    %)
+end%
 
 function [parameters, varResiduals, covParameters] = locallyLeastSquares(y, X, fixed)
     %(

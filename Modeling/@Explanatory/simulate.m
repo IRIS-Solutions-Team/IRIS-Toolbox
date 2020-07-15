@@ -129,7 +129,6 @@ this = runtime(this, outputData, "simulate");
 % 
 [blocks, ~, humanBlocks, dynamicStatus] = blazer(this, opt.Blazer{:});
 
-
 % /////////////////////////////////////////////////////////////////////////
 for blk = 1 : numel(blocks)
     if numel(blocks{blk})==1

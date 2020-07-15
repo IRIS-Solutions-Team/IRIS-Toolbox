@@ -8,6 +8,8 @@ classdef Term
         Expression = [ ]
 
         ContainsLhsName (1, 1) logical = false
+        ContainsCurrentLhsName (1, 1) logical = false
+        ContainsLaggedLhsName (1, 1) logical = false
 
         MinShift (1, 1) double = 0
         MaxShift (1, 1) double = 0
@@ -47,7 +49,7 @@ classdef Term
 
 
     methods % Constructor
-        function this = Term(varargin)
+        function this = Term(expy, specification, varargin)
 % Term  Create RHS term for Explanatory object
 %{
 % ## Syntax ##
@@ -118,8 +120,9 @@ classdef Term
             if nargin==0
                 return
             end
-            if nargin==1 && isa(varargin{1}, 'regression.Term')
-                this = varargin{1};
+
+            if nargin==1 && isa(expy, 'regression.Term')
+                this = expy;
                 return
             end
 
@@ -127,6 +130,7 @@ classdef Term
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('regression.Term');
+                pp.KeepDefaultOptions = true;
 
                 addRequired(pp, 'expy', @(x) isa(x, 'Explanatory'));
                 addRequired(pp, 'specification', @(x) validate.stringScalar(x) || validate.roundScalar(x, [1, intmax]));
@@ -136,9 +140,10 @@ classdef Term
                 addParameter(pp, 'Type', @all, @(x) isequal(x, @all) || isa(x, 'string'));
             end
             %)
-            opt = parse(pp, varargin{:});
-            expy = pp.Results.expy;
-            specification = pp.Results.specification;
+            [skip, opt] = maybeSkipInputParser(pp, varargin{:});
+            if ~skip
+                opt = parse(pp, expy, specification, varargin{:});
+            end
 
             %
             % Remove a leading plus sign
@@ -263,8 +268,10 @@ classdef Term
 
 
     methods
-        function flag = containsLhsName(this, expy)
-            flag = any(real(this.Incidence)==expy.PosLhsName);
+        function this = containsLhsName(this, posLhs)
+            this.ContainsLhsName = any(real(this.Incidence)==posLhs);
+            this.ContainsCurrentLhsName = any(real(this.Incidence)==posLhs & imag(this.Incidence)==0);
+            this.ContainsLaggedLhsName = any(real(this.Incidence)==posLhs & imag(this.Incidence)<0);
         end%
 
 
