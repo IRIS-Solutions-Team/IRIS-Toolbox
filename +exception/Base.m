@@ -149,8 +149,6 @@ classdef Base
         end%
 
 
-
-
         function stack = reduceStack(adj)
             stack = exception.Base.getStack( );
             [~, irisFolder] = fileparts( iris.get('irisroot') );
@@ -161,13 +159,13 @@ classdef Base
             inxIris = cellfun(@(x) ~isempty(strfind(lower(x), irisFolder)), {stack.file});
             lastIris = find(inxIris, 1, 'last');
             lastIris = lastIris+adj;
-            lenOfStack = numel(stack);
-            if lastIris<=lenOfStack
+            lenStack = numel(stack);
+            if lastIris<=lenStack
                 stack = stack(lastIris:end);
+            else
+                stack = stack([ ]);
             end
         end%
-        
-        
         
         
         function throwAsError(identifier, message)
@@ -177,8 +175,6 @@ classdef Base
                                   'stack', stack );
             error(errorStruct);
         end%
-        
-        
         
         
         function throwAsWarning(identifier, message)
