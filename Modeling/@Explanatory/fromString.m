@@ -81,6 +81,7 @@ if isempty(pp) || isempty(INIT_EXPLANATORY)
     addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
     addParameter(pp, 'ResidualNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
     addParameter(pp, 'FittedNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
+    addParameter(pp, 'ArReference', @default, @(x) isequal(x, @default) || validate.stringScalar(x));
     addParameter(pp, 'DateReference', @default, @(x) isequal(x, @default) || validate.stringScalar(x));
 
     INIT_EXPLANATORY = Explanatory( );
@@ -189,6 +190,9 @@ return
         end
         if ~isequal(opt.DateReference, @default)
             obj.DateReference = string(opt.DateReference);
+        end
+        if ~isequal(opt.ArReference, @default)
+            obj.ArReference = string(opt.ArReference);
         end
         if ~isempty(opt.EnforceCase)
             obj.ResidualNamePattern = opt.EnforceCase(obj.ResidualNamePattern);
@@ -463,12 +467,14 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 %% Test Sum
     act = Explanatory.fromString("x = y{-1} + x{-2};");
     exp_ExplanatoryTerm = regression.Term( );
+    exp_ExplanatoryTerm.InputString = "y{-1}+x{-2}";
     exp_ExplanatoryTerm.Position = NaN;
     exp_ExplanatoryTerm.Shift = 0;
     exp_ExplanatoryTerm.Incidence = sort([complex(2, -1), complex(1, -2)]); 
     exp_ExplanatoryTerm.Transform = "";
     exp_ExplanatoryTerm.Expression = @(x,t,date__,controls__)x(2,t-1,:)+x(1,t-2,:);
     exp_ExplanatoryTerm.ContainsLhsName = true;
+    exp_ExplanatoryTerm.ContainsLaggedLhsName = true;
     exp_ExplanatoryTerm.MinShift = -2;
     exp_ExplanatoryTerm.MaxShift = 0;
     temp = getp(act, 'ExplanatoryTerms');
@@ -481,6 +487,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 %% Test Exogenous Sum
     act = Explanatory.fromString("x = y{-1} + z{-2};");
     exp_ExplanatoryTerm = regression.Term( );
+    exp_ExplanatoryTerm.InputString = "y{-1}+z{-2}";
     exp_ExplanatoryTerm.Position = NaN;
     exp_ExplanatoryTerm.Shift = 0;
     exp_ExplanatoryTerm.Incidence = sort([complex(2, -1), complex(3, -2)]); 
@@ -524,7 +531,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
 %% Test Static If
-    q = Explanatory.fromString("x = z + if(isfreq(date__, 1) & date__<yy(5), -10, 10)");
+    q = Explanatory.fromString("x = z + if(isfreq(__date, 1) & __date<yy(5), -10, 10)");
     inputDb = struct( );
     inputDb.x = Series(0, 0);
     inputDb.z = Series(1:10, @rand);
@@ -544,7 +551,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 
 %% Test Dynamic If
-    q = Explanatory.fromString("x = x{-1} + if(isfreq(date__, 1) & date__<yy(5), dummy1, dummy0)");
+    q = Explanatory.fromString("x = x{-1} + if(isfreq(__date, 1) & __date<yy(5), dummy1, dummy0)");
     inputDb = struct( );
     inputDb.x = Series(0, 0);
     inputDb.dummy1 = Series(1:10, @rand);
@@ -562,8 +569,8 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 %% Test Compare Dynamic Static
     q = Explanatory.fromString([
-        "x = x{-1} + if(isfreq(date__, 1) & date__<yy(5), dummy1, dummy0)"
-        "y = 1 + if(isfreq(date__, 1) & date__<yy(5), dummy1, dummy0)"
+        "x = x{-1} + if(isfreq(__date, 1) & __date<yy(5), dummy1, dummy0)"
+        "y = 1 + if(isfreq(__date, 1) & __date<yy(5), dummy1, dummy0)"
     ]);
     inputDb = struct( );
     inputDb.x = Series(yy(0:9), 1);
@@ -619,5 +626,6 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     ], 'FittedNamePattern=', ["", "_fitted"], 'EnforceCase=', @upper);
     assertEqual(testCase, [q.LhsName], ["X", "Y"]);
     assertEqual(testCase, [q.FittedName], ["X_FITTED", "Y_FITTED"]);
+
 ##### SOURCE END #####
 %}

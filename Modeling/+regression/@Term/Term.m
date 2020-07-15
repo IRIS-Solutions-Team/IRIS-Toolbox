@@ -1,5 +1,6 @@
 classdef Term
     properties
+        InputString = ""
         Incidence (1, :) double = double.empty(1, 0)
         Position (1, 1) double = NaN
         Shift (1, 1) double = 0
@@ -162,6 +163,7 @@ classdef Term
             this.Position = resolved.Position;
             this.Shift = resolved.Shift;
             this.Expression = resolved.Expression;
+            this.InputString = resolved.InputString;
 
             needsCheckOptions = resolved.Type=="Transform" || resolved.Type=="Expression";
             if needsCheckOptions && (~isequal(opt.Transform, @auto) || ~isequal(opt.Shift, @auto))
@@ -341,6 +343,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         exd.Type = "Pointer";
         exd.Incidence = complex(ptr, 0);
         exd.Position = ptr;
+        exd.InputString = expy.VariableNames(ptr);
         assertEqual(testCase, act, exd);
     end
 
@@ -354,6 +357,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         ptr = find(name==expy.VariableNames);
         exd.Incidence = complex(ptr, 0);
         exd.Position = ptr;
+        exd.InputString = name;
         assertEqual(testCase, act, exd);
     end
 
@@ -368,6 +372,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         exd.Incidence = complex(ptr, -1);
         exd.Position = ptr;
         exd.Shift = -1;
+        exd.InputString = name + "{-1}";
         assertEqual(testCase, act, exd);
     end
 
@@ -383,6 +388,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         exd.Incidence = [complex(ptr, 0), complex(ptr, -1)];
         exd.Position = ptr;
         exd.Shift = 0;
+        exd.InputString = "difflog(" + name + ")";
         assertEqual(testCase, act, exd);
     end
 
@@ -403,6 +409,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
             end
             exd.Position = ptr;
             exd.Shift = 0;
+            exd.InputString = transform + "(" + name + ")";
             assertEqual(testCase, act.Type, exd.Type);
             assertEqual(testCase, act.Transform, exd.Transform);
             assertEqual(testCase, act.Incidence, exd.Incidence);
@@ -419,9 +426,11 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     exd.Incidence = [complex(1, 0), complex(2, 0), complex(2, -1), complex(3, 3)];
     act.Expression = func2str(act.Expression);
     exd.Expression = func2str(exd.Expression);
+    exd.InputString = erase("x + movavg(y, -2) - z{+3}", " ");
     assertEqual(testCase, act.Expression, exd.Expression);
     assertEqual(testCase, intersect(act.Incidence, exd.Incidence, 'stable'), act.Incidence);
     assertEqual(testCase, union(act.Incidence, exd.Incidence, 'stable'), act.Incidence);
 
 ##### SOURCE END #####
 %}
+

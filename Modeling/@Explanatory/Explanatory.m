@@ -54,8 +54,14 @@ classdef Explanatory ...
         IsIdentity (1, 1) logical = false
 
 
-% DateReference  Name under which the current date is accessible at runtime
-        DateReference (1, 1) string = "date__"
+% ArReference  Symbol used to create lags of LHS variables (aka AR terms) on
+% the RHS; each LhsReferece on the RHS must be followed by a shift
+% specification in curly braces (lags are specified as negative numbers)
+        ArReference (1, 1) string = "__ar"
+
+
+% DateReference  Symbol under which the current date is accessible at runtime
+        DateReference (1, 1) string = "__date"
 
 
 % DependentTerm  Dependent (left-hand side) term

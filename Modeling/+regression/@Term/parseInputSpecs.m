@@ -18,6 +18,7 @@ output.Incidence = double.empty(1, 0);
 output.Position = NaN;
 output.Shift = 0;
 output.Expression = [ ];
+output.InputString = "";
 
 %
 % Pointer to VariableNames
@@ -33,7 +34,7 @@ if ~isa(inputSpecs, 'string')
     hereThrowInvalidSpecification( );
 end
 
-inputSpecs = replace(string(inputSpecs), " ", "");
+inputSpecs = erase(string(inputSpecs), [" ", "\t"]);
 
 
 %
@@ -98,6 +99,7 @@ return
         output.Position = pos;
         output.Shift = shift;
         output.Incidence = locallyCreateIncidence(pos, shift, transform);
+        output.InputString = locallyCreateInputString(expy, pos, shift, transform);
     end%
 
 
@@ -120,6 +122,7 @@ return
         output.Position = pos;
         output.Shift = shift;
         output.Incidence = locallyCreateIncidence(pos, shift, transform);
+        output.InputString = locallyCreateInputString(expy, pos, shift, transform);
     end%
 
 
@@ -152,6 +155,7 @@ return
         output.Position = pos;
         output.Shift = shift;
         output.Incidence = locallyCreateIncidence(pos, shift, transform);
+        output.InputString = locallyCreateInputString(expy, pos, shift, transform);
     end%
 
 
@@ -185,16 +189,21 @@ return
         output.Position = pos;
         output.Shift = shift;
         output.Incidence = locallyCreateIncidence(pos, shift, transform);
+        output.InputString = locallyCreateInputString(expy, pos, shift, transform);
         %)
     end%
 
 
     function hereParseExpression( )
         %
+        % Substitute for AR terms
         % Expand pseudofunctions
         % diff, difflog, dot, movsum, movavg, movprod, movgeom
         %
-        parsedSpecs = parser.Pseudofunc.parse(inputSpecs);
+        output.InputString = inputSpecs;
+        parsedSpecs = inputSpecs;
+        herePreparseSpecials( );
+        parsedSpecs = parser.Pseudofunc.parse(parsedSpecs);
 
         %
         % Unique names of all control parameters
@@ -225,8 +234,8 @@ return
         %
         % Create anonymous function
         %
-        try
-            hereParseSpecials( );
+        try %#ok<TRYNC>
+            herePostparseSpecials( );
             func = str2func("@(x,t,date__,controls__)" + parsedSpecs);
             output.Type = "Expression";
             output.Expression = func;
@@ -238,8 +247,9 @@ return
 
             function c = replaceNameShift(c1, c2)
                 c = '';
-                if string(c1)==string(expy.DateReference)
-                    c = 'date__';
+                c1 = string(c1);
+                if c1=="date__"
+                    c = c1;
                     return
                 end
                 if any(c1==controlNames)
@@ -249,13 +259,14 @@ return
                 pos = getPosName(expy, c1);
                 sh = 0;
                 if isnan(pos)
-                    invalidNames = [invalidNames, string(c1)];
+                    invalidNames = [invalidNames, c1];
                     return
                 end
-                if nargin>=2 && ~isempty(c2) && ~strcmp(c2, '{}') && ~strcmp(c2, '{0}')
-                    sh = str2num(c2(2:end-1));
+                if nargin>=2 && strlength(c2)>0 && ~strcmp(c2, '{}') && ~strcmp(c2, '{0}')
+                    c2 = string(c2);
+                    sh = str2num(replace(c2, ["{", "}"], ["", ""]));
                     if ~validate.numericScalar(sh) || ~isfinite(sh)
-                        invalidShifts = [invalidShifts, string(c2)];
+                        invalidShifts = [invalidShifts, c2];
                         return
                     end
                 end
@@ -268,7 +279,24 @@ return
             end%
 
 
-            function hereParseSpecials( )
+            function herePreparseSpecials( )
+                %(
+                if contains(parsedSpecs, expy.DateReference)
+                    parsedSpecs = regexprep(parsedSpecs, "\<" + expy.DateReference + "\>", "date__");
+                end
+                if contains(parsedSpecs, expy.ArReference)
+                    lhs = expy.DependentTerm.InputString;
+                    parsedSpecs = regexprep( ...
+                        parsedSpecs ...
+                        , "\<" + expy.ArReference + "\>\{([^\}]*)\}" ...
+                        , "${parser.Pseudofunc.shiftTimeSubs(""" + lhs + """, $1)}" ...
+                    );
+                end
+                %)
+            end%
+
+
+            function herePostparseSpecials( )
                 % Replace `ifnan(` with `simulate.ifnan(`
                 parsedSpecs = regexprep(parsedSpecs, "(?<!\.)\<ifnan\(", "simulate.ifnan(");
                 % Replace `if(` with `simulate.if(`
@@ -320,3 +348,15 @@ function incidence = locallyCreateIncidence(pos, shift, transform)
         end
     end
 end%
+
+
+function inputString = locallyCreateInputString(expy, pos, shift, transform)
+    inputString = expy.VariableNames(pos);
+    if shift~=0
+        inputString = inputString + "{" + double(shift) + "}";
+    end
+    if transform~=""
+        inputString = transform + "(" + inputString + ")";
+    end
+end%
+
