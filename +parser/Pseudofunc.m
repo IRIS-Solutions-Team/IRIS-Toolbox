@@ -236,7 +236,11 @@ classdef Pseudofunc
         
         function c = shiftTimeSubs(c, k)
             import parser.Pseudofunc
-            s = sprintf(Pseudofunc.TIME_SUBS_FORMAT_STRING, k);
+            if isstring(k) || ischar(k)
+                s = char(k);
+            else
+                s = sprintf(Pseudofunc.TIME_SUBS_FORMAT_STRING, k);
+            end
             % Shift existing time subs, name{-1} -> name{-1+4}
             c = regexprep(c, Pseudofunc.NAME_WITH_SHIFT_PATTERN, ['$1' , s, '}'] );
             % Add time subs to names with no time subs, name -> name{+4}

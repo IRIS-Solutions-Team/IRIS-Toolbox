@@ -620,7 +620,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 %% Test Runtime If
     xq = Explanatory.fromString([
-        "a = a{-1} + if(date__==qq(2001,4), 5, 0);"
+        "a = a{-1} + if(__date==qq(2001,4), 5, 0);"
         "b = b{-1} + if(b{-1}<0, 1, 0);"
     ]);
     db = struct( );
