@@ -62,14 +62,14 @@ classdef Report ...
             for source = reshape(lower(opt.Source), 1, [ ])
                 template = hereReadTemplate(source);
                 hereEmbedReportData( );
-                outputFileNames(end+1) = hereWriteFinalHtml( );
+                outputFileNames(end+1) = hereWriteFinalHtml( ); %#ok<*AGROW>
             end
 
             return
 
                 function fileNameBase = hereResolveFileNameBase(fileName)
                     %(
-                    [p, t, x] = fileparts(fileName);
+                    [p, t, ~] = fileparts(fileName);
                     fileNameBase = fullfile(string(p), string(t));
                     %)
                 end%
