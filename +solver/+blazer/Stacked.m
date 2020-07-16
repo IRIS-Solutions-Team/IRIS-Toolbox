@@ -6,8 +6,6 @@ classdef Stacked ...
     end
 
 
-
-
     properties (Constant)
         BLOCK_CONSTRUCTOR = @solver.block.Stacked
         LHS_QUANTITY_FORMAT = 'x(%g,t)'
@@ -15,14 +13,10 @@ classdef Stacked ...
     end
     
 
-
-
     methods
         function this = Stacked(varargin)
             this = this@solver.blazer.Blazer(varargin{:});
         end%
-
-
 
 
         function [inc, idEqtns, idQties] = prepareIncidenceMatrix(this, plan)
