@@ -1,5 +1,25 @@
 classdef DateWrapper < double 
     methods
+        function value = get(this, query)
+            startsWith__ = @(x) startsWith(string(query), x, "IgnoreCase", true);
+            if startsWith__("FrequencyAsNum")
+                value = DateWrapper.getFrequencyAsNumeric(this);
+            elseif startsWith__("Freq")
+                value = DateWrapper.getFrequency(this);
+            elseif startsWith__("Year")
+                value = DateWrapper.getYear(this);
+            else
+                thisError = [
+                    "DateWrapper:InvalidQuery"
+                    "This is not a valid query into @DateWrapper/get: %s "
+                ];
+                throw(exception.Base(thisError, 'error'), query);
+            end
+        end%
+    end
+
+
+    methods
         function this = DateWrapper(varargin)
             this = this@double(varargin{:});
         end%
@@ -299,6 +319,11 @@ classdef DateWrapper < double
 
         function c = toCellstr(dateCode, varargin)
             c = dat2str(double(dateCode), varargin{:});
+        end%
+
+
+        function year = getYear(dateCode)
+            year = dat2ypf(double(dateCode));
         end%
 
 

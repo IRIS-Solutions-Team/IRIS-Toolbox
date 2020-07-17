@@ -50,6 +50,9 @@ if any(inxFromRegular(:))
     if toFreq==Frequency.DAILY
         toDay = getConversionDay(opt.ConversionDay, toYear, toMonth);
         outputDate(inxFromRegular) = numeric.dd(toYear, toMonth, toDay);
+    elseif toFreq==Frequency.WEEKLY
+        toDay = getConversionDay(opt.ConversionDay, toYear, toMonth);
+        outputDate(inxFromRegular) = numeric.ww(toYear, toMonth, toDay);
     else
         outputDate(inxFromRegular) = numeric.datecode(toFreqAsNumeric, toYear, toPeriod);
     end
