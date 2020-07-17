@@ -213,7 +213,7 @@ classdef Pseudofunc
                     case '*'
                         format = this.GEOMETRIC_AVG_FORMAT;
                 end
-                c = [c, sprintf(format, lenList)];
+                c = ['(', c, ')', sprintf(format, lenList)];
             end            
             if enclose
                 c = ['(', c, ')'];

@@ -47,14 +47,18 @@ inxDaily   = freq==double(Frequency.DAILY);
 inxRegular = ~inxInteger & ~inxWeekly & ~inxDaily;
 
 year = nan(size(dateCode));
-per = nan(size(dateCode));
+if nargout>=2
+    per = nan(size(dateCode));
+end
 
 %
 % Regular frequencies
 %
 if any(inxRegular)
     year(inxRegular) = floor( double(serial(inxRegular)) ./ double(freq(inxRegular)) );
-    per(inxRegular) = round(serial(inxRegular) - year(inxRegular).*freq(inxRegular) + 1);
+    if nargout>=2
+        per(inxRegular) = round(serial(inxRegular) - year(inxRegular).*freq(inxRegular) + 1);
+    end
 end
 
 %
@@ -62,7 +66,9 @@ end
 %
 if any(inxInteger)
     year(inxInteger) = NaN;
-    per(inxInteger) = serial(inxInteger);
+    if nargout>=2
+        per(inxInteger) = serial(inxInteger);
+    end
 end
 
 %
@@ -70,8 +76,10 @@ end
 %
 if any(inxDaily)
     [year(inxDaily), ~] = datevec(dateCode(inxDaily));
-    startYear = datenum(year(inxDaily), 1, 1);
-    per(inxDaily) = round(serial(inxDaily) - startYear + 1);
+    if nargout>=2
+        startYear = datenum(year(inxDaily), 1, 1);
+        per(inxDaily) = round(serial(inxDaily) - startYear + 1);
+    end
 end
 
 %
@@ -79,7 +87,11 @@ end
 %
 if any(inxWeekly)
     x = ww2day(serial(inxWeekly));
-    [year(inxWeekly), per(inxWeekly)] = day2ypfweekly(x);
+    if nargout>=2
+        [year(inxWeekly), per(inxWeekly)] = day2ypfweekly(x);
+    else
+        year(inxWeekly) = day2ypfweekly(x);
+    end
 end
 
 end%
