@@ -372,15 +372,20 @@ classdef DateWrapper < double
                 dateCode = double(isoDate);
                 return
             end
+            isoDate = string(isoDate);
             reshapeOutput = size(isoDate);
-            isoDate = reshape(string(isoDate), 1, [ ]);
-            if strlength(isoDate)>10
-                isoDate = extractBefore(isoDate, 11);
+            isoDate = reshape(isoDate, 1, [ ]);
+            inx = strlength(isoDate)>10;
+            if any(inx)
+                isoDate(inx) = extractBefore(isoDate(inx), 11);
             end
+            inxMissing = ismissing(isoDate);
+            isoDate(inxMissing) = [ ];
             isoDate = join(replace(isoDate, "-", " "), " ");
             ymd = sscanf(isoDate, "%g");
-            serial = Frequency.ymd2serial(freq, ymd(1:3:end), ymd(2:3:end), ymd(3:3:end)); 
-            dateCode = DateWrapper.getDateCodeFromSerial(freq, serial);
+            serial = Frequency.ymd2serial(freq, ymd(1:3:end), ymd(2:3:end), ymd(3:3:end));
+            dateCode = nan(size(inxMissing));
+            dateCode(~inxMissing) = DateWrapper.getDateCodeFromSerial(freq, serial);
             dateCode = reshape(dateCode, reshapeOutput);
         end%
 
