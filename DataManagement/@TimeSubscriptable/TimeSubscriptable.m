@@ -94,6 +94,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         varargout = getData(varargin)
         varargout = getDataFromTo(varargin)
         varargout = getDataNoFrills(varargin)
+        varargout = getDataFromMultiple(varargin)
         varargout = ifelse(varargin)
         varargout = init(varargin)
         varargout = redate(varargin)

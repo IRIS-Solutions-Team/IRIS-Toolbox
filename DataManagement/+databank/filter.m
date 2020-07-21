@@ -10,14 +10,18 @@ function [listFields, tokens, outputDb] = filter(inputDb, varargin)
 %( Input parser
 persistent pp
 if isempty(pp)
-    pp = extend.InputParser('databank.filter');
+    pp = extend.InputParser("~databank/filter");
+    pp.KeepDefaultOptions = true;
     addRequired(pp, 'Database', @validate.databank);
     addParameter(pp, {'Name', 'NameFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x) || isa(x, 'Rxp'));
     addParameter(pp, {'Class', 'ClassFilter'}, @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isstring(x));
     addParameter(pp, 'Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
 %)
-opt = parse(pp, inputDb, varargin{:});
+[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+if ~skip
+    opt = parse(pp, inputDb, varargin{:});
+end
 
 %--------------------------------------------------------------------------
 
