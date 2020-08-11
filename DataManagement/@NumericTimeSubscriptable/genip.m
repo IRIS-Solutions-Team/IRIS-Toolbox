@@ -1,67 +1,61 @@
-%(
-%
 % genip  Generalized indicator based interpolation
-%
-%
+%{
 % Syntax
 %--------------------------------------------------------------------------
 %
-%
-%     [highOutput, info] = genip(lowInput, highFreq, order, aggregation, ...)
+%>    [highOutput, info] = genip(lowInput, highFreq, order, aggregation, ...)
 %
 %
 % Input Arguments
 %--------------------------------------------------------------------------
 %
-%
 % __`lowInput`__ [ Series ] 
 %
-%     Low-frequency input series that will be interpolated to the `highFreq`
-%     frequency using the `Indicator`, hard conditions specified in `Hard=`,
-%     and soft conditions specified in `Soft=`.
+%>    Low-frequency input series that will be interpolated to the `highFreq`
+%>    frequency using the `Indicator`, hard conditions specified in `Hard=`,
+%>    and soft conditions specified in `Soft=`.
 %
 %
 % __`highFreq`__ [ Frequency ]
-%
-%     Target frequency to which the `lowInput` series will be interpolated;
-%     `highFreq` must be higher than the date frequency of the `lowInput`.
+% 
+%>    Target frequency to which the `lowInput` series will be interpolated;
+%>    `highFreq` must be higher than the date frequency of the `lowInput`.
 %
 %
 % __`order`__ [ `0` | `1` | `2` ]
 %
-%     Autoregressive order of the transition equation for the dynamics
-%     of the interpolated series, and for the relationship between
-%     the interpolated series and the indicator (if included).
+%>    Autoregressive order of the transition equation for the dynamics
+%>    of the interpolated series, and for the relationship between
+%>    the interpolated series and the indicator (if included).
 %
 %
 % __`aggregation`__ [ `"Mean"` | `"Sum"` | `"First"` | `"Last"` | numeric ]
 %
-%     Type of aggregation of quarterly observations to yearly observations;
-%     the `aggregation` can be assigned a `1-by-N` numeric vector with
-%     the weights given, respectively, for the individual high-frequency
-%     periods within the encompassing low-frequency period.
+%>     Type of aggregation of quarterly observations to yearly observations;
+%>     the `aggregation` can be assigned a `1-by-N` numeric vector with
+%>     the weights given, respectively, for the individual high-frequency
+%>     periods within the encompassing low-frequency period.
 %
 %
 % Output Arguments
 %--------------------------------------------------------------------------
 %
-%
 % __`highOutput`__ [ Series ] 
 %
-%     High-frequency output series constructed by interpolating the input
-%     `lowInput` using the dynamics of the `indicator`.
+%>    High-frequency output series constructed by interpolating the input
+%>    `lowInput` using the dynamics of the `indicator`.
 %
 %
 % __`info`__ [ struct ]
 %
-%     Output information struct with the the following fields:
-%
-%     * `.FromFreq` - Original (low) frequency of the input series
-%     * `.ToFreq` - Target (high) frequency to which the input series has been interpolated
-%     * `.LowRange` - Low frequency date range from which the input series has been interpolated
-%     * `.HighRange` - High frequency date range to which the input series has been interpolated
-%     * `.EffectiveLowRange` - Low frequency range after excluding years with full conditioning level information
-%     * `.StackedSystem` - Stacked-time linear system (StackedSystem) object used to run the interpolation
+%>    Output information struct with the the following fields:
+%>
+%>    * `.FromFreq` - Original (low) frequency of the input series
+%>    * `.ToFreq` - Target (high) frequency to which the input series has been interpolated
+%>    * `.LowRange` - Low frequency date range from which the input series has been interpolated
+%>    * `.HighRange` - High frequency date range to which the input series has been interpolated
+%>    * `.EffectiveLowRange` - Low frequency range after excluding years with full conditioning level information
+%>    * `.StackedSystem` - Stacked-time linear system (StackedSystem) object used to run the interpolation
 %
 %
 % Options
@@ -70,57 +64,57 @@
 %
 % __`Range=Inf`__ [ `Inf` | DateWrapper ]
 %
-%     Low-frequency range on which the interpolation will be calculated;
-%     `Inf` means from the date of the first observation to
-%     the date of the last observation in the `lowInput` time series.
+%>    Low-frequency range on which the interpolation will be calculated;
+%>    `Inf` means from the date of the first observation to
+%>    the date of the last observation in the `lowInput` time series.
 %
 %
 % __`ResolveConflicts=true`__ [ `true` | `false` ]
 %
-%     Resolve potential conflicts (singularity) between the `lowInput`
-%     obervatations and the data supplied through the `HighLevel=` option.
+%>    Resolve potential conflicts (singularity) between the `lowInput`
+%>    obervatations and the data supplied through the `HighLevel=` option.
 %
 %
 % __`Indicator.Level=[ ]`__ [ empty | Series ] 
 %
-%     High-frequency indicator whose dynamics will be used to interpolate
-%     the `lowInput`.
+%>    High-frequency indicator whose dynamics will be used to interpolate
+%>    the `lowInput`.
 %
 %
 % __`Indicator.Model="Difference"`__ [ `"Difference"` | `"Ratio"` ]
 %
-%     Type of model for the relationship between the interpolated series
-%     and the indicator in the transition equation: `"Difference"`
-%     means the indicator will be subtracted from the series, `"Ratio"`
-%     means the series will be divided by the indicator.
+%>    Type of model for the relationship between the interpolated series
+%>    and the indicator in the transition equation: `"Difference"`
+%>    means the indicator will be subtracted from the series, `"Ratio"`
+%>    means the series will be divided by the indicator.
 %
 %
 % __`Initial=@auto`__ [ `@auto` | Series ]
 %
-%     Initial (presample condition) for the Kalman filter; `@auto` means
-%     the initial condition will be extracted from the `Hard.Level`
-%     time series; if no observations are supplied either directly
-%     through `Initial=` or through `Hard.Level=`, then the initial
-%     condition will be estimated by maximum likelihood.
+%>    Initial (presample condition) for the Kalman filter; `@auto` means
+%>    the initial condition will be extracted from the `Hard.Level`
+%>    time series; if no observations are supplied either directly
+%>    through `Initial=` or through `Hard.Level=`, then the initial
+%>    condition will be estimated by maximum likelihood.
 %
 %
 % __`Hard.Level=[ ]`__ [ empty | Series ]
 %
-%     Hard conditioning information; any values in this time series within
-%     the interpolation range or the presample initial condition (see also
-%     the option `Initial=`) will be imposed on the resulting `highOutput`.
+%>    Hard conditioning information; any values in this time series within
+%>    the interpolation range or the presample initial condition (see also
+%>    the option `Initial=`) will be imposed on the resulting `highOutput`.
 %
 %
 % __`Transition.Intercept=0`__ [ numeric | `@auto` ]
 %
-%     Intercept in the transition equation; if `@auto` the intercept will
-%     be estimated by GLS.
+%>    Intercept in the transition equation; if `@auto` the intercept will
+%>    be estimated by GLS.
 %
 %
 % __`Transition.Rate=1`__ [ numeric ]
 %
-%     Rate of autoregression in the differencing term in the transition
-%     equation.
+%>    Rate of autoregression in the differencing term in the transition
+%>    equation.
 %
 %
 %
@@ -136,59 +130,59 @@
 % #### State Transition Equation ####
 %
 %
-% \[ \left(1 - \rho L\right)^k \hat x_t = v_t \]
+% $$ \left(1 - \rho L\right)^k \hat x_t = v_t $$
 %
-% where \( \hat x_t \) is a transformation of the unobserved higher-frequencuy interpolated
-% series, \( x_t \), depending on the option `Indicator.Model=`:
+% where $ \hat x_t $ is a transformation of the unobserved higher-frequencuy interpolated
+% series, $ x_t $, depending on the option `Indicator.Model=`:
 %
-% * \( \hat x_t = x_t \) if no indicator is specified;
+% * $ \hat x_t = x_t $ if no indicator is specified;
 %
-% * \( \hat x_t = x_t - q_t \) if an indicator \( q_t \) is entered through
+% * $ \hat x_t = x_t - q_t $ if an indicator $ q_t $ is entered through
 % `Indicator.Level=` and `Indicator.Model="Difference"`;
 %
-% * \( \hat x_t = x_t / q_t \) if an indicator \( q_t \) is entered through
+% * $ \hat x_t = x_t / q_t $ if an indicator $ q_t $ is entered through
 % `Indicator.Level=` and `Indicator.Model="Ratio"`;
 %
-% \( L \) is the lag operator, \( k \) is the order of differencing
-% specified by `order`, and \(\rho\) is the transition rate of
+% $ L $ is the lag operator, $ k $ is the order of differencing
+% specified by `order`, and $\rho$ is the transition rate of
 % autoregression specified in `Transition.Rate=`.
 %
 %
 % #### Measurement Equation ####
 %
 %
-% \[ y_t = Z x_t + w_t \]
+% $$ y_t = Z x_t + w_t $$
 %
 % where 
 %
-% * \( y_t \) is a measurement variables containing the yearly data
+% * $ y_t $ is a measurement variables containing the yearly data
 % placed in the last (fourth) quarter of every year; in other words, only
 % every fourth observation is available, and the three in between are
 % missing
 %
-% * \( x_t \) is a state vector consisting of \(N\) elements, where \(N\)
+% * $ x_t $ is a state vector consisting of $N$ elements, where $N$
 % is the number of high-frequency periods within one low-frequency period:
-% the unobserved high-frequency lags \(t-N, \dots, t-1, t\).
+% the unobserved high-frequency lags $t-N, \dots, t-1, t$.
 % 
-% * \( Z \) is a time-invariant aggregation matrix depending on
+% * $ Z $ is a time-invariant aggregation matrix depending on
 % `aggregation`: 
 %
-%     * \( Z=[1, 1, 1, 1] \) for `aggregation="Sum"`, 
-%     * \( Z=[1/4, 1/4, 1/4, 1/4] \) for `aggregation="Average"`, 
-%     * \( Z=[0, 0, 0, 1] \) for `aggregation="Last"`, 
-%     * \( Z=[1, 0, 0, 0] \) for `aggregation="First"`, 
-%     * or a user supplied 1-by-\( N \) vector
+%     * $ Z=[1, 1, 1, 1] $ for `aggregation="Sum"`, 
+%     * $ Z=[1/4, 1/4, 1/4, 1/4] $ for `aggregation="Average"`, 
+%     * $ Z=[0, 0, 0, 1] $ for `aggregation="Last"`, 
+%     * $ Z=[1, 0, 0, 0] $ for `aggregation="First"`, 
+%     * or a user supplied 1-by-$ N $ vector
 %
-% * \( v_t \) is a transition error with constant variance
+% * $ v_t $ is a transition error with constant variance
 %
-% * \( w_t \) is a vector of measurement errors associated with soft
+% * $ w_t $ is a vector of measurement errors associated with soft
 % conditions.
 %
 %
 % Example
 %--------------------------------------------------------------------------
 %
-%)
+%}
 
 function [output, info, Xi] = genip(lowInput, highFreq, transitionOrder, aggregationModel, varargin)
 
@@ -233,10 +227,9 @@ if isempty(pp)
     addParameter(pp, 'Indicator.Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
 end
 %)
-[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+[skip, opt] = maybeSkip(pp, varargin{:});
 if ~skip
-    parse(pp, lowInput, highFreq, transitionOrder, aggregationModel, varargin{:});
-    opt = pp.Options;
+    opt = parse(pp, lowInput, highFreq, transitionOrder, aggregationModel, varargin{:});
 end
 
 %--------------------------------------------------------------------------
@@ -264,8 +257,8 @@ numLowPeriods = round(lowEnd - lowStart + 1);
 %
 % Define high-frequency dates
 %
-highStart = numeric.convert(lowStart, highFreq, "--SkipInputParser");
-highEnd = numeric.convert(lowEnd, highFreq, 'ConversionMonth=', 'Last', "--SkipInputParser");
+highStart = numeric.convert(lowStart, highFreq, "--skip");
+highEnd = numeric.convert(lowEnd, highFreq, 'ConversionMonth=', 'Last', "--skip");
 
 %
 % Get low-frequency level data
@@ -290,9 +283,6 @@ hard = series.genip.prepareHardOptions(transition, [ ], [highStart, highEnd], [ 
 numInit = transition.NumInit;
 if ~isempty(hard.Level) && all(isfinite(hard.Level))
     outputData = hard.Level;
-    if numInit>0
-        outputData(1:numInit) = hard.Initial;
-    end
     inxRunLow = true(1, numLowPeriods);
     stacked = [ ];
 else
@@ -349,6 +339,7 @@ if nargout>=2
     info.TransitionRate = transition.Rate;
     info.TransitionIntercept = transition.Intercept;
     info.StackedSystem = stacked;
+    info.NumYearsStacked = nnz(inxRunLow);
 end
 
 return
@@ -477,6 +468,12 @@ end%
 
 function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     locallyClipRange(lowLevel, hard, indicator, transition, aggregation)
+    %
+    % If the hard conditions are available for a continuous span of dates
+    % from the beginning of the interpolation range, and/or backwards from
+    % the end of the interpolation range, clip the Kalman filter range to a
+    % subset of inner years.
+    %
     %(
     numInit = transition.NumInit;
     numLowPeriods = size(lowLevel, 1);
@@ -495,8 +492,8 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     x__ = reshape(hard.Level(numInit+1:end), numWithin, [ ]);
     inxFull = all(isfinite(x__), 1);
 
-    lastFull = find(~inxFull, 1) - 1; % [^1]
-    if ~isempty(lastFull) && lastFull>1
+    lastFull = find(~inxFull, 1, "First") - 1; % [^1]
+    if ~isempty(lastFull) && lastFull>1;
         inxRunLow(1:lastFull-1) = false;
         inxRunHigh(1:(lastFull-1)*numWithin) = false;
         inxInit = circshift(inxInit, [0, (lastFull-1)*numWithin]);
@@ -507,7 +504,7 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     % be included in clipped range (becuase it may be needed for initial
     % condition).
 
-    firstFull = find(~inxFull, 1, 'Last') + 1;
+    firstFull = find(~inxFull, 1, "Last") + 1;
     if ~isempty(firstFull) && firstFull<numLowPeriods
         numLowRemove = numLowPeriods - firstFull;
         numHighRemove = numLowRemove*numWithin;
@@ -530,4 +527,119 @@ function [inxRunLow, inxRunHigh, inxInit, lowLevel, hard, indicator] = ...
     end
     %)
 end%
+
+
+
+
+%
+% Unit Tests
+%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Series/genipUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+% Set up Once
+
+startQ = qq(1990,1);
+endQ = qq(2050,4);
+startY = convert(startQ, Frequency.YEARLY) + 1;
+endY = convert(endQ, Frequency.YEARLY);
+quarterly = cumprod(1 + Series(startQ:endQ, @randn)/100);
+indicator = quarterly + Series(startQ:endQ, @randn)/100;
+yearly = convert(quarterly, Frequency.YEARLY, "Method=", "sum");
+
+
+%% Test Initial Condition
+
+interp = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+3) ...
+);
+
+assertEqual(testCase, interp(startQ+2:startQ+3), quarterly(startQ+2:startQ+3), "AbsTol", 1e-12);
+
+
+%% Test Initial Condition and Hard Level
+
+
+for k = 4 : 40
+    interp = genip( ...
+        yearly, Frequency.QUARTERLY, 2, "sum" ...
+        , "Range=", startY:endY ...
+        , "Hard.Level=", clip(quarterly, -Inf, startQ+k) ...
+    );
+
+    assertEqual(testCase, interp(startQ+2:startQ+k), quarterly(startQ+2:startQ+k), "AbsTol", 1e-12);
+end
+
+
+%% Test Hard Level but No Initial Condition
+
+interp1 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, startQ+4, startQ+12) ...
+);
+
+interp2 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Initial=", NaN ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+12) ...
+);
+
+assertEqual(testCase, interp1(startQ+4:end), interp2(startQ+4:end), "AbsTol", 1e-12);
+assertEqual(testCase, interp1(startQ+(4:12)), quarterly(startQ+(4:12)), "AbsTol", 1e-12);
+
+%% Test Indicator
+
+interp1 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+40) ...
+);
+
+interp2 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+40) ...
+    , "Indicator.Level=", indicator ...
+    , "Indicator.Model=", "Ratio" ...
+);
+
+[~, r1] = acf(pct([interp1, indicator]));
+[~, r2] = acf(pct([interp2, indicator]));
+
+assertGreaterThan(testCase, r2(1), r1(2));
+
+
+%% Test Indicator and Hard Level
+
+indicator1 = indicator;
+indicator2 = clip(indicator, startQ+38, Inf);
+indicator2 = fillMissing(indicator2, startQ:endQ, "Next");
+
+interp1 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+40) ...
+    , "Indicator.Level=", indicator1 ...
+    , "Indicator.Model=", "Ratio" ...
+);
+
+interp2 = genip( ...
+    yearly, Frequency.QUARTERLY, 2, "sum" ...
+    , "Range=", startY:endY ...
+    , "Hard.Level=", clip(quarterly, -Inf, startQ+40) ...
+    , "Indicator.Level=", indicator2 ...
+    , "Indicator.Model=", "Ratio" ...
+);
+
+assertEqual(testCase, interp1(:), interp2(:), "AbsTol", 1e-9);
+
+##### SOURCE END #####
+%}
 

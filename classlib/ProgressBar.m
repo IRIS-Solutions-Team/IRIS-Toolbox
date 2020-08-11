@@ -91,8 +91,11 @@ classdef ProgressBar < handle
         end%
 
 
-        function increment(this)
-            this.RunningCount = this.RunningCount + 1;
+        function increment(this, add)
+            if nargin<2
+                add = 1;
+            end
+            this.RunningCount = this.RunningCount + add;
             if this.RunningCount>this.TotalCount
                 this.RunningCount = this.TotalCount;
             end

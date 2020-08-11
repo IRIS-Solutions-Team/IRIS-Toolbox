@@ -1,13 +1,14 @@
 classdef Pseudofunc
     enumeration
-        DIFF        ( 'diff', '-', -1, '0', '',    '*' )
-        DOT         ( 'diff', '/', -1, '1', '',    '^' )
-        ROC         ( 'diff', '/', -1, '1', '',    '^' )
-        DIFFLOG     ( 'diff', '-', -1, '0', 'log', '*' )
-        MOVSUM      ( 'mov',  '+', -4, '0', '',    ''  )
-        MOVPROD     ( 'mov',  '*', -4, '1', '',    ''  )
-        MOVAVG      ( 'avg',  '+', -4, '0', '',    ''  )
-        MOVGEOM     ( 'avg',  '*', -4, '1', '',    ''  )
+        DIFF        ( 'diff', '-', -1, '0', '',    '*' , ''   , '')
+        DOT         ( 'diff', '/', -1, '1', '',    '^' , ''   , '')
+        ROC         ( 'diff', '/', -1, '1', '',    '^' , ''   , '')
+        PCT         ( 'diff', '/', -1, '1', '',    ''  , '-1' , '100*')
+        DIFFLOG     ( 'diff', '-', -1, '0', 'log', '*' , ''   , '')
+        MOVSUM      ( 'mov',  '+', -4, '0', '',    ''  , ''   , '')
+        MOVPROD     ( 'mov',  '*', -4, '1', '',    ''  , ''   , '')
+        MOVAVG      ( 'avg',  '+', -4, '0', '',    ''  , ''   , '')
+        MOVGEOM     ( 'avg',  '*', -4, '1', '',    ''  , ''   , '')
     end
     
     
@@ -23,6 +24,9 @@ classdef Pseudofunc
 
         Transform
         BetaOperator
+
+        ExtraTerm
+        ExtraWrap
     end
     
     
@@ -40,13 +44,15 @@ classdef Pseudofunc
     
     
     methods
-        function this = Pseudofunc(type, op, defaultK, emptyReturn, transform, betaOp)
+        function this = Pseudofunc(type, op, defaultK, emptyReturn, transform, betaOp, extraTerm, extraWrap)
             this.Type = type;
             this.Operator = op;
             this.DefaultK = defaultK;
             this.EmptyReturn = emptyReturn;
             this.Transform = transform;
             this.BetaOperator = betaOp;
+            this.ExtraTerm = extraTerm;
+            this.ExtraWrap = extraWrap;
         end%
         
         
@@ -62,31 +68,37 @@ classdef Pseudofunc
             while true
                 [startKey, openBracket] = regexp(wh, ptnKey, 'start', 'end', 'once');
                 if isempty(startKey)
-                    % No further pseudofunction found, terminate.
+                    % No further pseudofunction found, terminate
                     break
                 end
-                level = cumsum(sh(openBracket:end));
+                roundLevel = cumsum(real(sh(openBracket:end)));
+                squareLevel = cumsum(imag(sh(openBracket:end)));
+                level = roundLevel + squareLevel;
                 closeBracket = find(level==0, 1);
                 if isempty(closeBracket)
-                    throwCode( exception.ParseTime('Preparser:PSEUDOFUNC_UNFINISHED', 'error'), ...
-                               c(startKey:end) );
+                    throwCode( ...
+                        exception.ParseTime('Preparser:PSEUDOFUNC_UNFINISHED', 'error'), ...
+                        c(startKey:end) ...
+                    );
                 end
                 level = level(1:closeBracket);
                 closeBracket = openBracket + closeBracket - 1;
-                % Last comma at level 1 separates second (optional) input argument.
+                % Last comma at level 1 separates second (optional) input argument
                 temp = wh(openBracket:closeBracket);
                 posDelim = [1, find(temp==',' & level==1), length(temp)];
-                nArg = length(posDelim) - 1;
-                arg = cell(1, nArg);
-                for i = 1 : nArg
-                    arg{i} = strtrim( temp(posDelim(i)+1:posDelim(i+1)-1) );
+                numArgs = numel(posDelim) - 1;
+                args = cell(1, numArgs);
+                for i = 1 : numArgs
+                    args{i} = strtrim( temp(posDelim(i)+1:posDelim(i+1)-1) );
                 end
-                arg = resolveDefaultArg(this, arg);
-                if isnan(arg{2})
-                    throwCode( exception.ParseTime('Preparser:PSEUDOFUNC_SECOND_INPUT_FAILED', 'error'), ...
-                               c(startKey:end) );
+                args = resolveDefaultArg(this, args);
+                if isnan(args{2})
+                    throwCode( ...
+                        exception.ParseTime('Preparser:PSEUDOFUNC_SECOND_INPUT_FAILED', 'error'), ...
+                        c(startKey:end) ...
+                    );
                 end
-                repl = replaceCode(this, arg{:});
+                repl = expand(this, args{:});
                 shRepl = this.createShadowCode(repl);
                 c = [ c(1:startKey-1), repl, c(closeBracket+1:end) ];
                 wh = [ wh(1:startKey-1), repl, wh(closeBracket+1:end) ];
@@ -97,48 +109,55 @@ classdef Pseudofunc
         
         
         
-        function arg = resolveDefaultArg(this, arg)
-            if length(arg)==1
-                arg{2} = '';
-            end
-            k = arg{2};
-            if isempty(k)
-                k = this.DefaultK;
+        function args = resolveDefaultArg(this, args)
+            if numel(args)<2 || strlength(args{2})==0
+                args{2} = this.DefaultK;
             else
-                k = sscanf(k, '%g');
-                if ~isnumericscalar(k)
-                    k = NaN;
+                args{2} = sscanf(erase(args{2}, ["[", "]", ",", ";"]), "%g");
+                if isnumeric(args{2})
+                    args{2} = reshape(args{2}, 1, [ ]);
+                else
+                    args{2} = NaN;
                 end
             end
-            arg{2} = k;
         end%%
         
         
         
         
-        function repl = replaceCode(this, varargin)
-            body = varargin{1};
-            k = varargin{2};
-            varargin(1:2) = [ ];
-            if k==0
+        function body = expand(this, varargin)
+            [body, diffops] = varargin{1:2};
+            body = char(body);
+            diffops = reshape(double(diffops), 1, [ ]);
+            if ~isnumeric(diffops) || any(diffops==0) 
                 repl = this.EmptyReturn;
                 return
             end
-            [list, beta] = createAllTerms(this, body, k, varargin{:});
-            repl = concatenateTerms(this, list, beta);
+            numDiffops = numel(diffops);
+            for i = 1 : numDiffops
+                transform = i==1; % [^1]
+                enclose = i==numDiffops; % [^2]
+                % [^1]: Apply transformation, such as log( ), only when
+                % expanding the pseudofunction the first time 
+                % [^2]: Wrap the expansion in an extra pair of parentheses
+                % only when expending the pseudofunction the last time
+
+                [list, beta] = createAllTerms(this, body, diffops(i), varargin{3:end});
+                body = concatenateTerms(this, list, beta, transform, enclose);
+            end
         end%
         
         
         
         
-        function [list, beta] = createAllTerms(this, body, k, varargin)
+        function [list, beta] = createAllTerms(this, body, shift, varargin)
             import parser.Pseudofunc
             beta = '';
             body(isstrprop(body, 'wspace')) = '';
             switch this.Type
                 case 'diff'
-                    if isempty(k)
-                        k = -1;
+                    if isempty(shift)
+                        shift = -1;
                     end
                     if ~isempty(varargin)
                         beta = varargin{1};
@@ -146,18 +165,18 @@ classdef Pseudofunc
                             beta = ['(', beta, ')'];
                         end
                     end                    
-                    temp = this.shiftTimeSubs(body, k);
+                    temp = this.shiftTimeSubs(body, shift);
                     list = { body, temp };
                 case {'mov', 'avg'}
-                    if isempty(k)
-                        k = -4;
+                    if isempty(shift)
+                        shift = -4;
                     end
-                    time = 0 : sign(k) : k;
+                    time = 0 : sign(shift) : shift;
                     time(end) = [ ];
-                    nTime = length(time);
-                    list = cell(1, nTime);
+                    numTimes = length(time);
+                    list = cell(1, numTimes);
                     list{1} = body;
-                    for i = 2 : nTime
+                    for i = 2 : numTimes
                         list{i} = this.shiftTimeSubs(body, time(i));
                     end
             end
@@ -166,22 +185,28 @@ classdef Pseudofunc
         
         
         
-        function c = concatenateTerms(this, list, beta)
+        function c = concatenateTerms(this, list, beta, transform, enclose)
             import parser.Pseudofunc
-            list = strcat(this.Transform, '(', list, ')' );
+            list = strcat('(', list, ')');
+            if transform
+                list = strcat(this.Transform, list);
+            end
             if length(list)==1
                 c = list{1};
                 return
             end
-            nList = length(list);
+            lenList = numel(list);
             c = list{1};
-            for i = 2 : nList
-                if ~isempty(beta)
+            for i = 2 : lenList
+                if ~isempty(beta) && ~isempty(this.BetaOperator)
                     list{i} = ['(', list{i}, this.BetaOperator, beta, ')'];
                 end
                 c = [c, this.Operator, list{i}]; %#ok<AGROW>
             end
-            c = ['(', c, ')'];
+            c = [c, this.ExtraTerm];
+            if ~isempty(this.ExtraWrap)
+                c = [this.ExtraWrap, '(', c, ')'];
+            end
             if isequal(this.Type, 'avg')
                 switch this.Operator
                     case '+'
@@ -189,8 +214,11 @@ classdef Pseudofunc
                     case '*'
                         format = this.GEOMETRIC_AVG_FORMAT;
                 end
-                c = ['(', c, sprintf(format, nList), ')'];
+                c = ['(', c, ')', sprintf(format, lenList)];
             end            
+            if enclose
+                c = ['(', c, ')'];
+            end
         end%
         
         
@@ -213,19 +241,26 @@ classdef Pseudofunc
     
     methods (Static)
         function sh = createShadowCode(c)
-            sh = zeros(1, length(c), 'int8');
+            c = char(c);
+            sh = zeros(1, strlength(c));
             sh(c=='(') = 1;
             sh(c==')') = -1;
+            sh(c=='[') = 1i;
+            sh(c==']') = -1i;
         end%
         
         
         
         function c = shiftTimeSubs(c, k)
             import parser.Pseudofunc
-            s = sprintf(Pseudofunc.TIME_SUBS_FORMAT_STRING, k);
-            % Shift existing time subs, name{-1} -> name{-1+4}.
+            if isstring(k) || ischar(k)
+                s = char(k);
+            else
+                s = sprintf(Pseudofunc.TIME_SUBS_FORMAT_STRING, k);
+            end
+            % Shift existing time subs, name{-1} -> name{-1+4}
             c = regexprep(c, Pseudofunc.NAME_WITH_SHIFT_PATTERN, ['$1' , s, '}'] );
-            % Add time subs to names with no time subs, name -> name{+4}.
+            % Add time subs to names with no time subs, name -> name{+4}
             c = regexprep(c, Pseudofunc.NAME_WITH_NO_SHIFT_PATTERN, ['$1{', s, '}']);
         end%
 
@@ -243,8 +278,8 @@ classdef Pseudofunc
             if nargin<2
                 keywords = enumeration('parser.Pseudofunc');
             end
-            for key = transpose(keywords)
-                if isempty( strfind(c, lower(char(key))) )
+            for key = reshape(keywords, 1, [ ])
+                if ~contains(c, lower(char(key)))
                     continue
                 end
                 c = parseKeyword(key, c);

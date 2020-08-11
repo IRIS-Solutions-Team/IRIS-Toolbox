@@ -524,7 +524,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 pp.KeepUnmatched = true;
                 pp.PartialMatching = false;
                 % addParameter(pp, 'addlead', false, @validate.logicalScalar);
-                addParameter(pp, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || (iscell(x) && iscellstr(x(1:2:end))));
+                addParameter(pp, 'Assign', [ ], @(x) isempty(x) || isstruct(x) || validate.nestedOptions(x));
                 addParameter(pp, {'baseyear', 'torigin'}, @config, @(x) isequal(x, @config) || isempty(x) || (isnumeric(x) && isscalar(x) && x==round(x)));
                 addParameter(pp, {'CheckSyntax', 'ChkSyntax'}, true, @(x) isequal(x, true) || isequal(x, false));
                 addParameter(pp, 'comment', '', @ischar);
@@ -540,7 +540,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 % addParameter(pp, ('quadratic', false, @(x) isequal(x, true) || isequal(x, false));
                 addParameter(pp, 'Preparser', cell.empty(1, 0), @validate.nestedOptions);
                 addParameter(pp, 'Refresh', true, @validate.logicalScalar);
-                addParameter(pp, {'SavePreparsed', 'SaveAs'}, '', @ischar);
+                addParameter(pp, {'SavePreparsed', 'SaveAs'}, '', @validate.stringScalar);
                 addParameter(pp, {'symbdiff', 'symbolicdiff'}, true, @(x) isequal(x, true) || isequal(x, false) || ( iscell(x) && iscellstr(x(1:2:end)) ));
                 addParameter(pp, 'stdlinear', model.DEFAULT_STD_LINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);
                 addParameter(pp, 'stdnonlinear', model.DEFAULT_STD_NONLINEAR, @(x) isnumeric(x) && isscalar(x) && x>=0);

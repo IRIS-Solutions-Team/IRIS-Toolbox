@@ -1,48 +1,37 @@
-function data = fillMissing(data, missingValue, varargin)
+function data = fillMissing(data, inxMissing, varargin)
 % fillMissing  Fill missing observations for numeric data
 %
 % Backend [IrisToolbox] function
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-if ~any(isnan(data(:)))
+if ~any(inxMissing(:))
     return
 end
 
-conversionFunction = [ ];
-if islogical(data)
-    data = double(data);
-    conversionFunction = @logical;
-end
-
-if any(strcmpi(varargin{1}, {'GlobalLinear', 'GlobalLoglinear', 'GlobalMean'}))
+if (ischar(varargin{1}) || isstring(varargin{1})) ...
+    && startsWith(varargin{1}, "regress", "ignoreCase", true)
+    % regressConstant, regressTrend, regressLogTrend
     sizeData = size(data);
     data = data(:, :);
+    inxMissing = inxMissing(:, :);
     for i = 1 : size(data, 2)
-        if ~any(isnan(data(:, i)))
+        if ~any(inxMissing(:, i))
             continue
         end
-        data(:, i) = hereFillGlobal(data(:, i), varargin{1});
+        data(:, i) = locallyFillTrend(data(:, i), inxMissing(:, min(i, end)), varargin{1});
     end
     data = reshape(data, sizeData);
 else
-    try
-        % Call built-in `fillmissing` and supply the locations of missing values
-        data = fillmissing(data, varargin{:}, 'MissingLocations', inxMissing);
-    catch
-        % Older Matlab releases do not have the MissingLocation option
-        data = fillmissing(data, varargin{:});
+    if validate.numericScalar(varargin{1})
+        varargin = [{"constant"}, varargin(1)];
     end
-end
-
-if ~isempty(conversionFunction)
-    inxNaN = isnan(data);
-    data(inxNaN) = missingValue;
-    data = conversionFunction(data);
+    % Call built-in `fillmissing` and supply the locations of missing values
+    data = fillmissing(data, varargin{:}, "MissingLocations", inxMissing);
 end
 
 end%
@@ -53,26 +42,24 @@ end%
 %
 
 
-function data = hereFillGlobal(data, method)
-    if strcmpi(method, 'GlobalLoglinear')
+function data = locallyFillTrend(data, inxMissing, method)
+    method = string(method);
+    if matches(method, "regressLogTrend", "ignoreCase", true)
         data = log(data);
     end
 
-    numData = size(data, 1);
-    data(~isfinite(data) | imag(data)~=0) = NaN;
-    inxNaN = isnan(data);
-
-    M = ones(numData, 1);
-    if any(strcmpi(method, {'GlobalLinear', 'GlobalLoglinear'}))
-        meanDiff = mean(diff(data, 1, 1), 1, 'OmitNaN');
-        trend = transpose(0:numData-1) * meanDiff;
+    numPeriods = size(data, 1);
+    M = ones(numPeriods, 1);
+    if matches(method, ["regressTrend", "regressLogTrend"], "ignoreCase", true)
+        meanDiff = mean(diff(data, 1, 1), 1, "OmitNaN");
+        trend = transpose(0:numPeriods-1) * meanDiff;
         M = [M, trend];
     end
 
-    fit = M * (M(~inxNaN, :)\data(~inxNaN, :));
-    data(inxNaN) = fit(inxNaN, :);
+    fit = M * (M(~inxMissing, :)\data(~inxMissing, :));
+    data(inxMissing) = fit(inxMissing, :);
 
-    if strcmpi(method, 'GlobalLoglinear')
+    if matches(method, "regressLogTrend", "ignoreCase", true)
         data = exp(data);
     end
 end%

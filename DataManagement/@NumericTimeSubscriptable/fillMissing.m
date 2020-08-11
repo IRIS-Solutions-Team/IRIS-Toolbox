@@ -1,39 +1,91 @@
-function [this, datesMissing] = fillMissing(this, range, varargin)
 % fillMissing  Fill missing time series observations
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
-%     [x, datesMissing] = fillMissing(x, range, method)
+%     outputSeries = function(inputSeries, range, method)
+%     outputSeries = function(inputSeries, range, method, specs)
+%
+%
+% Input Arguments
+%--------------------------------------------------------------------------
+%
+% __`inputSeries`__ [ Series ]
+%
+%>    Input time series whose missing observations (lying within the
+%>    `range`) will be filled with values determined by the `method`.
+%
+%
+% __`range`__ [ DateWrapper | `Inf` ]
+%
+%>    Date range within which missing observations will be looked up in the
+%>    `inputSeries` and filled with values determined by the `method`.
+%
+%
+% __`method`__ [ string ]
+%
+%>    String specifying the method to obtain missing observations; the
+%>    `method` can be any of the methods valid in the built-in
+%>    `fillmissing()` function (see `help fillmissing`) or one of the
+%>    regression methods provided by IrisT: `"regressConstant"`,
+%>    `"regressTrend"` or `"regressLogTrend"` for a regression on a
+%>    constant, a regression on a constant and a linear time trend, and
+%>    a log-regression on a constant and a time trend, respectively.
+%
+%
+% __`specs`__ [ * ]
+%
+%>    Some of the methods in the built-in `fillmissing()` function require
+%>    addition specification (see `help fillmissing`).
+%
+%
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __`outputSeries`__ [ ]
+%
+%>    Output time series whose missing observations found within the
+%>    `range` have been filled with values determined by the `method`.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
+%
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
+
+function [this, datesMissing] = fillMissing(this, range, varargin)
 
 if isempty(this.Data)
     return
 end
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('NumericTimeSubscriptable.fillMissing');
-    addRequired(parser, 'InputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(parser, 'Range', @DateWrapper.validateRangeInput);
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('NumericTimeSubscriptable.fillMissing');
+    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addRequired(pp, 'range', @DateWrapper.validateRangeInput);
+    addRequired(pp, 'method', @(x) ~isempty(x));
 end
-parse(parser, this, range);
+%)
+opt = parse(pp, this, range, varargin);
 
 %-------------------------------------------------------------------------- 
 
-range = double(range);
-startDate = range(1);
-endDate = range(end);
+[startDate, endDate, inxRange] = locallyResolveDates(this, range);
+data = getDataFromTo(this, startDate, endDate);
 
-[data, startDate, endDate] = getDataFromTo(this, startDate, endDate);
-
-missingTest = this.MissingTest;
-inxMissing = missingTest(data);
+inxMissing = this.MissingTest(data) & inxRange;
 if nargout>=2
     if any(inxMissing)
-        datesMissing = (round(100*startDate) + round(100*(find(inxMissing)-1)))/100;
+        datesMissing = DateWrapper.roundPlus(startDate, find(inxMissing)-1);
         datesMissing = DateWrapper(datesMissing);
     else
         datesMissing = DateWrapper.empty(0, 1);
@@ -44,11 +96,39 @@ if ~any(inxMissing(:))
     return
 end
 
-missingValue = this.MissingValue;
+data = numeric.fillMissing(data, inxMissing, varargin{:});
+this = fill(this, data, startDate);
 
-data = numeric.fillMissing(data, missingValue, varargin{:});
+end%
 
-this = setData(this, startDate:endDate, data);
+%
+% Local Functions
+%
 
+function [startDate, endDate, inxRange] = locallyResolveDates(this, range)
+    range = double(range);
+    startMissing = range(1);
+    endMissing = range(end);
+    startDate = this.StartAsNumeric;
+    endDate = this.EndAsNumeric;
+    if isinf(startMissing)
+        startMissing = startDate;
+    elseif isnan(startDate)
+        startDate = startMissing;
+    elseif startMissing<startDate
+        startDate = startMissing;
+    end
+    if isinf(endMissing)
+        endMissing = endDate;
+    elseif isnan(endDate)
+        endDate = endMissing;
+    elseif endMissing>endDate
+        endDate = endMissing;
+    end
+    numPeriods = round(endDate - startDate + 1);
+    inxRange = false(numPeriods, 1);
+    posStartMissing = round(startMissing - startDate + 1);
+    posEndMissing = round(endMissing - startDate + 1);
+    inxRange(posStartMissing:posEndMissing) = true;
 end%
 

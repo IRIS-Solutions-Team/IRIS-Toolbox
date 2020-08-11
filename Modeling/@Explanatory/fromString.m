@@ -1,30 +1,30 @@
-function this = fromString(inputString, varargin)
 % fromString  Create Explanatory object from string
 %{
-% ## Syntax ##
-%
+% Syntax
+%--------------------------------------------------------------------------
 %
 %     this = function(inputString, ...)
 %
 %
-% ## Input Arguments ##
-%
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 % __`inputString`__ [ string ]
-% >
-% Input string, or an array of strings, that will be converted to
-% Explanatory object or array.
+%
+%>    Input string, or an array of strings, that will be converted to
+%>    Explanatory object or array.
 %
 %
-% ## Output Arguments ##
-%
+% Output Arguments
+%--------------------------------------------------------------------------
 %
 % __`this`__ [ Explanatory ]
-% >
-% New Explanatory object or array created from the `inputString`.
+%
+%>    New Explanatory object or array created from the `inputString`.
 %
 %
-% ## Options ##
+% Options
+%--------------------------------------------------------------------------
 %
 %
 % __`EnforceCase=[ ]`__ [ empty | `@lower` | `@upper` ]
@@ -45,11 +45,12 @@ function this = fromString(inputString, varargin)
 % the name for fitted values, based on the LHS variable name.
 %
 %
-% ## Description ##
+% Description
+%--------------------------------------------------------------------------
 %
 %
-% ## Example ##
-%
+% Example
+%--------------------------------------------------------------------------
 %
 % Create an array of three Explanatory objects, with `x`, `y`, and
 % `z` being the LHS variables:
@@ -62,17 +63,14 @@ function this = fromString(inputString, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+function this = fromString(inputString, varargin)
 
 % Parse input arguments
 %(
-persistent pp
-if isempty(pp)
+persistent pp INIT_EXPLANATORY
+if isempty(pp) || isempty(INIT_EXPLANATORY)
     pp = extend.InputParser('Explanatory.fromString');
 
     addRequired(pp, 'inputString', @validate.list);
@@ -81,8 +79,9 @@ if isempty(pp)
     addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
     addParameter(pp, 'ResidualNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
     addParameter(pp, 'FittedNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
-    addParameter(pp, 'DateReference', @default, @(x) isequal(x, @default) || validate.stringScalar(x));
-    addParameter(pp, 'InitObject', Explanatory( ), @(x) isa(x, 'Explanatory'));
+    addParameter(pp, 'LhsReference', @default, @(x) isequal(x, @default) || validate.stringScalar(x));
+
+    INIT_EXPLANATORY = Explanatory( );
 end
 parse(pp, inputString, varargin{:});
 opt = pp.Options;
@@ -164,6 +163,7 @@ for j = 1 : numel(inputString)
     %
     this__ = defineDependentTerm(this__, lhsString);
     hereParseExplanatoryTerms( );
+    this__ = seal(this__);
     this__.Label = label__;
     this__.Attributes = attributes__;
     array{j} = this__;
@@ -179,20 +179,19 @@ return
 
 
     function obj = hereCreateObject( )
-        obj = opt.InitObject;
+        obj = INIT_EXPLANATORY;
         if ~isequal(opt.ResidualNamePattern, @default)
             obj.ResidualNamePattern = string(opt.ResidualNamePattern);
         end
         if ~isequal(opt.FittedNamePattern, @default)
             obj.FittedNamePattern = string(opt.FittedNamePattern);
         end
-        if ~isequal(opt.DateReference, @default)
-            obj.DateReference = string(opt.DateReference);
+        if ~isequal(opt.LhsReference, @default)
+            obj.LhsReference = string(opt.LhsReference);
         end
         if ~isempty(opt.EnforceCase)
             obj.ResidualNamePattern = opt.EnforceCase(obj.ResidualNamePattern);
             obj.FittedNamePattern = opt.EnforceCase(obj.FittedNamePattern);
-            obj.DateReference = opt.EnforceCase(obj.DateReference);
         end
     end%
 
@@ -213,11 +212,6 @@ return
         % Collect unique names of all variables
         %
         variableNames = unique(string(variableNames), 'stable');
-
-        %
-        % Remove DateReference from the list of variables
-        %
-        variableNames(variableNames==this__.DateReference) = [ ];
 
         %
         % Remove control parameter names from the list of variables
@@ -242,24 +236,26 @@ return
         %
         rhsString = replace(rhsString, "?", "@");
 
-        rhsString = char(rhsString);
-        if rhsString(end)==';'
-            rhsString(end) = '';
+        if endsWith(rhsString, ";")
+            len__ = strlength(rhsString);
+            rhsString = eraseBetween(rhsString, len__, len__);
         end
+
         %
         % Add an implicit plus sign if RHS starts with an @ to make the
         % start of all regression terms of one of the following forms: +@
         % or -@ 
         %
-        if rhsString(1)=='@'
-            rhsString = ['+', rhsString];
+        if startsWith(rhsString, "@")
+            rhsString = "+" + rhsString;
         end
 
         %
         % Find all characters outside any brackets (round, curly, square);
         % these characters will have level==0
         %
-        [level, allClosed] = textual.bracketLevel(rhsString, {'()', '{}', '[]'});
+        rhsString = char(rhsString);
+        [level, allClosed] = textual.bracketLevel(rhsString, {'()', '{}', '[]'}, '--skip');
 
         %
         % Find the starts of all regression terms
@@ -272,10 +268,10 @@ return
         %
         % Collect all regression terms first and see what's left afterwards
         %
-        numTerms = numel(posStart);
-        termStrings = repmat("", 1, numTerms);
-        fixed = nan(1, numTerms);
-        for ii = 1 : numTerms
+        numRegressionTerms = numel(posStart);
+        termStrings = repmat("", 1, numRegressionTerms);
+        fixed = nan(1, numRegressionTerms);
+        for ii = 1 : numRegressionTerms
             ithPosStart = posStart(ii);
             after = false(size(rhsString));
             after(ithPosStart+1:end) = true;
@@ -317,7 +313,7 @@ return
         end
         if ~isempty(rhsString)
             termStrings(end+1) = string(rhsString);
-            fixed(end+1) = true;
+            fixed(1, end+1) = 1;
         end
         termStrings = strtrim(termStrings);
 
@@ -326,7 +322,7 @@ return
         % fixed lump-sum term
         %
         for ii = 1 : numel(termStrings)
-            this__ = addExplanatoryTerm(this__, termStrings(ii), 'Fixed=', fixed(ii));
+            this__ = addExplanatoryTerm(this__, fixed(ii), termStrings(ii));
         end
 
         return
@@ -408,3 +404,226 @@ function userInputString = hereComposeUserInputString(inputString__, label, attr
     end
 end%
 
+
+
+
+%
+% Unit Tests 
+%{
+##### SOURCE BEGIN #####
+% saveAs=Explanatory/fromStringUnitTest.m
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+%% Test Plain Vanilla
+    input = "x = @*a + b*x{-1} + @*log(c);";
+    act = Explanatory.fromString(input);
+    exp = Explanatory( );
+    exp = setp(exp, 'VariableNames', ["x", "a", "b", "c"]);
+    exp = setp(exp, 'InputString', regexprep(input, "\s+", ""));
+    exp = defineDependentTerm(exp, "x");
+    exp = addExplanatoryTerm(exp, NaN, "a");
+    exp = addExplanatoryTerm(exp, NaN, "log(c)");
+    exp = addExplanatoryTerm(exp, 1, "b*x{-1}");
+    exp = seal(exp);
+    %
+    exp_struct = struct(exp);
+    act_struct = struct(act);
+    assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
+    for n = keys(exp_struct)
+        if isa(exp_struct.(n), 'function_handle')
+            assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
+        else
+            assertEqual(testCase, exp_struct.(n), act_struct.(n));
+        end
+    end
+    %
+    assertEqual(testCase, act.RhsContainsLhsName, true);
+
+
+%% Test Exogenous
+    input = "x = @*a + b*z{-1} + @*log(c);";
+    act = Explanatory.fromString(input);
+    exp = Explanatory( );
+    exp = setp(exp, 'VariableNames', ["x", "a", "b", "z", "c"]);
+    exp = setp(exp, 'InputString', regexprep(input, "\s+", ""));
+    exp = defineDependentTerm(exp, "x");
+    exp = addExplanatoryTerm(exp, NaN, "a");
+    exp = addExplanatoryTerm(exp, NaN, "log(c)");
+    exp = addExplanatoryTerm(exp, 1, "b*z{-1}");
+    exp = seal(exp);
+    %
+    exp_struct = struct(exp);
+    act_struct = struct(act);
+    assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
+    for n = keys(exp_struct)
+        if isa(exp_struct.(n), 'function_handle')
+            assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
+        else
+            assertEqual(testCase, exp_struct.(n), act_struct.(n));
+        end
+    end
+    %
+    assertEqual(testCase, act.RhsContainsLhsName, false);
+
+
+%% Test Legacy String
+    input = "x = @*a + b*x{-1} + @*log(c);";
+    legacyInput = replace(input, "@", "?");
+    act = Explanatory.fromString(legacyInput);
+    act = setp(act, 'InputString', replace(getp(act, 'InputString'), "?", "@"));
+    exp = Explanatory.fromString(input);
+    %
+    exp_struct = struct(exp);
+    act_struct = struct(act);
+    assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
+    for n = keys(exp_struct)
+        if isa(exp_struct.(n), 'function_handle')
+            assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
+        else
+            assertEqual(testCase, exp_struct.(n), act_struct.(n));
+        end
+    end
+    %
+    assertEqual(testCase, act.RhsContainsLhsName, true);
+
+
+%% Test Lower
+    act = Explanatory.fromString( ...
+        ["xa = Xa{-1} + xA{-2} + xb", "XB = xA{-1}"], ...
+        'EnforceCase=', @lower ...
+    );
+    exp = Explanatory.fromString( ...
+        ["xa = xa{-1} + xa{-2} + xb", "xb = xa{-1}"] ...
+    );
+    %
+    exp_struct = struct(exp);
+    act_struct = struct(act);
+    assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
+    for n = keys(exp_struct)
+        if isa(exp_struct.(n), 'function_handle')
+            assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
+        else
+            assertEqual(testCase, exp_struct.(n), act_struct.(n));
+        end
+    end
+
+
+%% Test Upper
+    act = Explanatory.fromString( ...
+        ["xa = Xa{-1} + xA{-2} + xb", "XB = xA{-1}"], ...
+        'EnforceCase=', @upper ...
+    );
+    exp = Explanatory.fromString( ...
+        ["XA = XA{-1} + XA{-2} + XB", "XB = XA{-1}"] ...
+    );
+    for i = 1 : numel(exp)
+        exp(i) = setp(exp(i), 'ResidualNamePattern', upper(getp(exp(i), 'ResidualNamePattern')));
+        exp(i) = setp(exp(i), 'FittedNamePattern', upper(getp(exp(i), 'FittedNamePattern')));
+    end
+    %
+    exp_struct = struct(exp);
+    act_struct = struct(act);
+    assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
+    for n = keys(exp_struct)
+        if isa(exp_struct.(n), 'function_handle')
+            assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
+        else
+            assertEqual(testCase, exp_struct.(n), act_struct.(n));
+        end
+    end
+
+
+%% Test Static If
+    q = Explanatory.fromString("x = z + if(w<0, -10, 10)");
+    inputDb = struct( );
+    inputDb.x = Series(0, 0);
+    inputDb.z = Series(1:10, @rand);
+    inputDb.w = -1;
+    simDb1 = simulate(q, inputDb, 1:10);
+    assertEqual(testCase, simDb1.x(1:10), inputDb.z(1:10)-10);
+    inputDb = struct( );
+    inputDb.x = Series(yy(0), 0);
+    inputDb.z = Series(yy(1:10), @rand);
+    inputDb.w = 1;
+    [simDb2, info2] = simulate(q, inputDb, yy(1:10));
+    assertEqual(testCase, simDb2.x(yy(1:10)), inputDb.z(yy(1:10))+10);
+
+
+%% Test Compare Dynamic Static If
+    q = Explanatory.fromString([
+        "x = x{-1} + if(w<0, dummy1, dummy0)"
+        "y = 1 + if(w, dummy1, dummy0)"
+    ]);
+    inputDb = struct( );
+    inputDb.x = Series(yy(0:9), 1);
+    inputDb.w = -1;
+    inputDb.dummy1 = Series(yy(1:10), @rand);
+    inputDb.dummy0 = -Series(yy(1:10), @rand);
+    simDb = simulate(q, inputDb, yy(1:10), "Blazer=", {"Dynamic=", false});
+    temp = 1 + inputDb.dummy1;
+    assertEqual(testCase, simDb.x(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
+    assertEqual(testCase, simDb.y(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
+    inputDb.w = Series();
+    inputDb.w(yy(1:10)) = -1;
+    inputDb.w(yy(6:10)) = 1;
+    simDb = simulate(q, inputDb, yy(1:10));
+    assertEqual(testCase, simDb.y(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
+    temp = inputDb.x{yy(0)};
+    for t = yy(1:10)
+        if inputDb.w(t)<0 
+            temp(t) = temp(t-1) + inputDb.dummy1(t);
+        else
+            temp(t) = temp(t-1) + inputDb.dummy0(t);
+        end
+    end
+    assertEqual(testCase, simDb.x(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
+
+
+%% Test Switch Variable
+    q = Explanatory.fromString([
+        "x = if(switch__, dummy1, dummy0)"
+    ]);
+    inputDb = struct( );
+    inputDb.x = Series(yy(0:9), 1);
+    inputDb.dummy1 = Series(yy(1:10), @rand);
+    inputDb.dummy0 = -Series(yy(1:10), @rand);
+    inputDb.switch__ = false;
+    simDb1 = simulate(q, inputDb, yy(1:10));
+    assertEqual(testCase, simDb1.x(yy(1:10)), inputDb.dummy0(yy(1:10)));
+    inputDb.switch__ = true;
+    simDb2 = simulate(q, inputDb, yy(1:10));
+    assertEqual(testCase, simDb2.x(yy(1:10)), inputDb.dummy1(yy(1:10)));
+
+
+%% Test Residual Name
+    q = Explanatory.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'ResidualNamePattern=', ["", "_ma"]);
+    assertEqual(testCase, [q.LhsName], ["x", "y"]);
+    assertEqual(testCase, [q.ResidualName], ["x_ma", "y_ma"]);
+    q = Explanatory.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'ResidualNamePattern=', ["", "_ma"], 'EnforceCase=', @upper);
+    assertEqual(testCase, [q.LhsName], ["X", "Y"]);
+    assertEqual(testCase, [q.ResidualName], ["X_MA", "Y_MA"]);
+
+
+%% Test Fitted name
+    q = Explanatory.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'FittedNamePattern=', ["", "_fitted"]);
+    assertEqual(testCase, [q.LhsName], ["x", "y"]);
+    assertEqual(testCase, [q.FittedName], ["x_fitted", "y_fitted"]);
+    q = Explanatory.fromString([
+        "x = x{-1}"
+        "y = y{-1}"
+    ], 'FittedNamePattern=', ["", "_fitted"], 'EnforceCase=', @upper);
+    assertEqual(testCase, [q.LhsName], ["X", "Y"]);
+    assertEqual(testCase, [q.FittedName], ["X_FITTED", "Y_FITTED"]);
+
+##### SOURCE END #####
+%}

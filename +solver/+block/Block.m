@@ -88,7 +88,7 @@ classdef (Abstract) Block < handle
             if numel(this.PtrQuantities)>1 || numel(this.PtrEquations)>1
                 return
             end
-            % this.PtrEquations is scalar from now on.
+            % this.PtrEquations is scalar from now on
             lhs = asgn.Lhs(this.PtrEquations);
             type = asgn.Type(this.PtrEquations);
             if this.PtrQuantities==lhs && chkRhsOfAssignment(this, eqtn)

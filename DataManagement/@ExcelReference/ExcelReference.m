@@ -23,45 +23,47 @@ classdef ExcelReference
 
 
         function outputRow = decodeRow(varargin)
-            outputRow = nan(size(varargin));
+            outputRow = [ ];
             for i = 1 : numel(varargin)
                 rowRef = varargin{i};
                 if isnumeric(rowRef)
                     row = rowRef;
+                elseif isstring(rowRef)
+                    row = double(row);
                 elseif validate.string(rowRef)
                     row = str2num(rowRef);
                 end
-                outputRow(i) = row;
+                outputRow = [outputRow, reshape(row, 1, [ ])];
             end
         end%
 
 
-
-
         function outputColumn = decodeColumn(varargin)
             LETTERS = 'A' : 'Z';
-            NUM_OF_LETTERS = length(LETTERS);
-            outputColumn = nan(size(varargin));
+            NUM_LETTERS = numel(LETTERS);
+            outputColumn = [ ];
             for i = 1 : nargin
                 columnRef = varargin{i};
                 if isnumeric(columnRef)
-                    outputColumn(i) = columnRef;
+                    outputColumn = [outputColumn, reshape(columnRef, 1, [ ])];
                     continue
                 end
                 column = [ ];
                 try
-                    column = str2num(columnRef);
+                    column = double(string(columnRef));
                 end
-                if validate.numericScalar(column)
-                    outputColumn(i) = column;
+                if isnumeric(column) && ~isempty(column) && all(isfinite(column))
+                    outputColumn = [outputColumn, reshape(column, 1, [ ])];
                     continue
                 end
-                columnRef = upper(char(columnRef));
-                column = 0;
-                for j = 1 : length(columnRef)
-                    column = column*NUM_OF_LETTERS + find(columnRef(j)==LETTERS);
+                columnRef = upper(cellstr(columnRef));
+                for j = 1 : numel(columnRef)
+                    column = 0;
+                    for k = 1 : numel(columnRef{j}) 
+                        column = column*NUM_LETTERS + find(columnRef{j}(k)==LETTERS);
+                    end
+                    outputColumn = [outputColumn, column];
                 end
-                outputColumn(i) = column;
             end
         end%
 

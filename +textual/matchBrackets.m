@@ -3,7 +3,7 @@ function [posClose, inside, thisLevel] = matchBrackets(inputText, varargin)
 %{
 % ## Syntax ##
 %
-% Input arguments marked with a `~` sign may be omitted.
+% Input arguments marked with a `~` sign may be omitted
 %
 %     [close, inside, thisLevel] = textfun.matchBrakets(inputText, ~open, ~fill)
 %

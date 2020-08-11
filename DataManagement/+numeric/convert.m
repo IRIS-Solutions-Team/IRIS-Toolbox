@@ -17,7 +17,7 @@ if isempty(pp)
     addRequired(pp, 'newFreq', @(x) isnumeric(x) && isscalar(x) && any(x==validFrequencies));
     addDateOptions(pp);
 end
-[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+[skip, opt] = maybeSkip(pp, varargin{:});
 if ~skip
     pp.parse(inputDate, toFreq, varargin{:});
     opt = pp.Options;
@@ -50,6 +50,9 @@ if any(inxFromRegular(:))
     if toFreq==Frequency.DAILY
         toDay = getConversionDay(opt.ConversionDay, toYear, toMonth);
         outputDate(inxFromRegular) = numeric.dd(toYear, toMonth, toDay);
+    elseif toFreq==Frequency.WEEKLY
+        toDay = getConversionDay(opt.ConversionDay, toYear, toMonth);
+        outputDate(inxFromRegular) = numeric.ww(toYear, toMonth, toDay);
     else
         outputDate(inxFromRegular) = numeric.datecode(toFreqAsNumeric, toYear, toPeriod);
     end

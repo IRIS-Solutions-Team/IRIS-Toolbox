@@ -13,13 +13,13 @@ if ~isempty(opt.SaveAs)
     [~, ~, opt.SaveAsformat] = fileparts(opt.SaveAs);
 end
 
-% Create report struct.
+% Create report struct
 q = inp2Struct(list, opt);
 
-% Evaluate expressions.
+% Evaluate expressions
 q = evalExpr(q, d, opt);
 
-% Replace empty titles with eval strings.
+% Replace empty titles with eval strings
 q = handleEmptyTitles(q, opt);
 
 % Create figures and output database (if requested).
@@ -245,7 +245,7 @@ function q = handleEmptyTitles(q, opt)
     if isnumericscalar(opt.DeviationFrom)
         dateS = dat2char(opt.DeviationFrom);
     end
-    for j = 1 : length(q.children)
+    for j = 1 : numel(q.children)
         ch = q.children{j};
         if isequal(ch.func, 'empty') ...
                 || isequal(ch.func, 'subplot') ...
@@ -297,13 +297,13 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
     nCol = NaN;
     pos = NaN;
     figureTitle = { };
-    lsError = { };
+    listErrors = { };
     lsUnknown = { };
 
     % New figure.
     createNewFigure( );
     
-    numPanels = length(qq.children);
+    numPanels = numel(qq.children);
     for j = 1 : numPanels
         func = qq.children{j}.func;
         funcArgs = qq.children{j}.funcArgs;
@@ -348,8 +348,8 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
                 lsUnknown{end+1} = qq.children{j}.caption; %#ok<AGROW>
             end
         catch Error
-            lsError{end+1} = qq.children{j}.caption; %#ok<AGROW>
-            lsError{end+1} = Error.message; %#ok<AGROW>
+            listErrors{end+1} = qq.children{j}.caption; %#ok<AGROW>
+            listErrors{end+1} = Error.message; %#ok<AGROW>
         end
         if ~isempty(tit)
             grfun.title(tit, 'interpreter=', opt.Interpreter);
@@ -386,11 +386,11 @@ function [vecHFig, vecHAx, plotDb, figureTitle] = render(qq, range, opt, varargi
         pos = pos + 1;
     end
 
-    if ~isempty(lsError)
+    if ~isempty(listErrors)
         utils.warning('dbplot:dbplot', ...
             ['Error plotting %s.\n', ...
             '\tUncle says: %s'], ...
-            lsError{:});
+            listErrors{:});
     end
 
     if ~isempty(lsUnknown)

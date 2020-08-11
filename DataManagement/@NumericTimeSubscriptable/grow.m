@@ -1,42 +1,54 @@
-function this = grow(this, operator, growth, dates, varargin)
 % grow  Cumulate time series at specified growth rates or differences
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
-%     x = grow(x, operator, growth, dates, ...)
+% Input arguments marked with a `~` sign may be omitted
 %
-%
-% ## Input arguments ##
-%
-% __`x`__ [ Series ] - 
-% Input time series including at least the initial condition for the level.
-%
-% __`operator`__ [ `*` | `+` | `/` | `-` | function_handle ] - 
-% Operator applied to cumulate the time series.
-%
-% __`growth`__ [ Series | numeric ] - 
-% Time series or numeric scalar specifying the growth rates or differences.
-%
-% __`dates`__ [ DateWrapper ] - 
-% Date range or a vector of dates on which the level series will be
-% cumulated.
+%     outputSeries = grow(inputSeries, operator, growth, dates, ~shift)
 %
 %
-% ## Output Arguments ##
+% Input arguments
+%--------------------------------------------------------------------------
 %
-% __`x`__ [ Series ] - 
-% Output time series constructed from the input time series, `x`, extended by
-% its growth rates or differences, `growth`.
+% __`inputSeries`__ [ Series ] 
 %
-%
-% ## Options ##
-%
-% __`BaseShift=-1`__ [ numeric ] -
-% Negative number specifying the lag of the base period to which the growth
-% rates apply.
+%>    Input time series including at least the initial condition for the level.
 %
 %
-% ## Description ##
+% __`operator`__ [ `*` | `+` | `/` | `-` | function_handle ] 
+%
+%>    Operator applied to cumulate the time series.
+%
+%
+% __`growth`__ [ Series | numeric ] 
+%
+%>    Time series or numeric scalar specifying the growth rates or differences.
+%
+%
+% __`dates`__ [ DateWrapper ] 
+%
+%>    Date range or a vector of dates on which the level series will be
+%>    cumulated.
+%
+%
+% __`shift=-1`__ [ numeric ]
+%
+%>    Negative number specifying the lag of the base period to which the growth
+%>    rates apply.
+%
+%
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __`outputSeries`__ [ Series ] 
+%
+%>    Output time series constructed from the input time series, `inputSeries`, extended by
+%>    its growth rates or differences, `growth`.
+%
+%
+% Description
+%--------------------------------------------------------------------------
 %
 % The function `grow(~)` calculates new values at `dates` (which may not
 % constitute a continuous range, and be discrete time periods instead)
@@ -55,14 +67,15 @@ function this = grow(this, operator, growth, dates, varargin)
 % Alternatively, the operator applied to $$ x_{t-k} $$ and $$ g_t $$ can be
 % any user-specified function.
 %
-% Any values contained in the input series `x` outside the `dates` are
-% preserved in the output series unchanged.
+% Any values contained in the input time series `inputSeries` outside the
+% `dates` are preserved in the output time series unchanged.
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
 %
-% Extend a quarterly series `x` using the gross rates of growth calculated
-% from another series, `y`:
+% Extend a quarterly time series `x` using the gross rates of growth calculated
+% from another time series, `y`:
 %
 %     >> x = grow(x, '*', roc(y), qq(2020,1):qq(2030,4));
 %
@@ -71,50 +84,63 @@ function this = grow(this, operator, growth, dates, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('NumericTimeSubscriptable/grow');
-    addRequired(parser, 'x', @(x) isa(x, 'NumericTimeSubscriptable'));
-    addRequired(parser, 'operator', @(x) validate.anyString(x, '*', '+', '/', '-') || isa(x, 'function_handle'));
-    addRequired(parser, 'growth', @(x) isa(x, 'NumericTimeSubscriptable') || validate.numericScalar(x));
-    addRequired(parser, 'dates', @DateWrapper.validateProperDateInput);
-    addParameter(parser, 'BaseShift', -1, @(x) validate.numericScalar(x) && x==round(x) && x<0);
+function this = grow(this, operator, growth, dates, varargin)
+
+%( Input pp
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('@Series/grow');
+    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addRequired(pp, 'operator', @(x) validate.anyString(x, ["*", "+", "/", "-", "diff", "roc", "pct"]) || isa(x, "function_handle"));
+    addRequired(pp, 'growth', @(x) isa(x, 'NumericTimeSubscriptable') || validate.numericScalar(x));
+    addRequired(pp, 'dates', @DateWrapper.validateProperDateInput);
+    addOptional(pp, 'shift', -1, @(x) validate.roundScalar(x, -intmax( ), -1) || validate.anyString(x, ["YoY", "EoPY", "BoY"]));
+
+    % Legacy option
+    addParameter(pp, 'BaseShift', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x, -intmax( ), -1));
 end
-parse(parser, this, operator, growth, dates, varargin{:});
-opt = parser.Options;
+%)
+opt = parse(pp, this, operator, growth, dates, varargin{:});
+if isequal(opt.BaseShift, @auto)
+    shift = pp.Results.shift;
+else
+    % Legacy option
+    shift = opt.BaseShift;
+end
 
 %--------------------------------------------------------------------------
 
-switch string(operator)
-    case "*"
-        func = @times;
-    case "+"
-        func = @plus;
-    case "/"
-        func = @rdivide;
-    case "-"
-        func = @minus;
-    otherwise
-        func = operator;
+if isa(operator, "function_handle")
+    func = operator;
+else
+    switch string(operator)
+        case {"*", "roc"}
+            func = @times;
+        case {"+", "diff"}
+            func = @plus;
+        case "/"
+            func = @rdivide;
+        case "-"
+            func = @minus;
+        case "pct"
+            func = @(x, y) x.*(1 + y/100);
+    end
 end
 
-dates = double(dates);
-minDate = min(dates);
-maxDate = max(dates);
-startX = this.StartAsNumeric;
-endX = this.EndAsNumeric;
-startAll = min(minDate+opt.BaseShift, startX);
-endAll = max(maxDate, endX-opt.BaseShift);
-extendedRange = startAll : endAll;
+dates = reshape(double(dates), 1, [ ]);
+shift = DateWrapper.resolveShift(dates, shift);
+datesShifted = DateWrapper.roundPlus(dates, shift);
+startAll = min([dates, datesShifted]);
+endAll = max([dates, datesShifted]);
 
 % Get level data
-xData = getData(this, extendedRange);
+xData = getDataFromTo(this, startAll, endAll);
 sizeX = size(xData);
 xData = xData(:, :);
 
 % Get growth rate data
 if isa(growth, 'NumericTimeSubscriptable')
-    growthData = getData(growth, extendedRange);
+    growthData = getDataFromTo(growth, startAll, endAll);
     growthData = growthData(:, :);
 else
     growthData = repmat(growth, size(xData));
@@ -123,8 +149,9 @@ end
 
 % /////////////////////////////////////////////////////////////////////////
 posDates = round(dates - startAll + 1);
-for t = reshape(posDates, 1, [ ])
-    xData(t, :) = func(xData(t+opt.BaseShift, :), growthData(t, :));
+posDatesShifted = round(datesShifted - startAll + 1);
+for i = 1 : numel(posDates)
+    xData(posDates(i), :) = func(xData(posDatesShifted(i), :), growthData(posDates(i), :));
 end
 % /////////////////////////////////////////////////////////////////////////
 
@@ -136,19 +163,88 @@ if numel(sizeX)>2
 end
 
 % Update output series
-this = fill(this, xData, extendedRange(1));
+this = setData(this, DateWrapper.roundColon(startAll, endAll), xData);
 
 return
 
     function hereCheckMissingObs( )
         inxFinite = all(isfinite(xData(posDates, :)), 2);
-        if any(~inxFinite)
-            thisWarning = [ 
-                "NumericTimeSubscriptable:OutputWithMissingObs"
-                "Output time series contains Inf or NaN data" 
-            ];
-            throw(exception.Base(thisWarning, 'warning'));
+        if all(inxFinite)
+            return
         end
+        report = join(DateWrapper.toDefaultString(dates(inxFinite)));
+        throw(exception.Base([ 
+            "Series:OutputWithMissingObs"
+            "Output time series contains Inf or NaN observations "
+            "in these periods: %s"
+        ], "warning"), report);
     end%
 end%
 
+
+
+%
+% Unit Tests 
+%
+%{
+##### SOURCE BEGIN #####
+% saveAs=Series/growUnitTest.m
+
+% Set Up Once
+this = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+%% Test Grow Default Multiplicative
+    x = Series(qq(2001,1):qq(2010,4), @rand);
+    g = 1 + Series(qq(2005,1):qq(2020,4), @rand) / 10;
+    y = grow(x, '*', g, g.Range);
+    z = y / y{-1};
+    assertEqual(this, y.Start, x.Start, 'AbsTol', 1e-10);
+    assertEqual(this, y.End, g.End, 'AbsTol', 1e-10);
+    assertEqual(this, z(g.Range), g(g.Range), 'AbsTol', 1e-10);
+
+
+%% Test Grow Default Additive
+
+x = Series(qq(2001,1):qq(2010,4), @rand);
+g = 1 + Series(qq(2005,1):qq(2020,4), @rand) / 10;
+
+y = grow(x, '+', g, g.Range);
+z = y - y{-1};
+
+assertEqual(this, y.Start, x.Start, 'AbsTol', 1e-10);
+assertEqual(this, y.End, g.End, 'AbsTol', 1e-10);
+assertEqual(this, z(g.Range), g(g.Range), 'AbsTol', 1e-10);
+
+
+%% Test Grow with BaseShift=-4
+
+x = Series(qq(2001,1):qq(2010,4), @rand);
+g = 1 + Series(qq(2005,1):qq(2020,4), @rand) / 10;
+
+y = grow(x, '*', g, g.Range, 'BaseShift=', -4);
+z = y / y{-4};
+
+assertEqual(this, y.Start, x.Start, 'AbsTol', 1e-10);
+assertEqual(this, y.End, g.End, 'AbsTol', 1e-10);
+assertEqual(this, z(g.Range), g(g.Range), 'AbsTol', 1e-10);
+
+
+%% Test Grow with Discrete Dates
+
+x = Series(qq(2001,1):qq(2010,4), @rand);
+g = 1 + Series(qq(2005,1):qq(2010,4), @rand) / 10;
+
+dates = qq(2005,1) : 3 : qq(2010,4);
+y = grow(x, '*', g, dates);
+z = roc(y);
+
+assertEqual(this, y.Start, x.Start, 'AbsTol', 1e-10);
+assertEqual(this, y.End, g.End, 'AbsTol', 1e-10);
+assertEqual(this, z(dates), g(dates), 'AbsTol', 1e-10);
+
+z1 = z;
+z(dates) = -9999;
+assertNotEqual(this, round(z(g.Range), 8), round(g(g.Range), 8));
+
+##### SOURCE END #####
+%}

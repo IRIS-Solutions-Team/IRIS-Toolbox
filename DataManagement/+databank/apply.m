@@ -115,11 +115,13 @@ function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank,
 
 %--------------------------------------------------------------------------
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.apply');
     pp.addRequired('Function', @(x) isempty(x) || isa(x, 'function_handle'));
     pp.addRequired('InputDatabank', @validate.databank);
+
     pp.addParameter({'HasPrefix', 'StartsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     pp.addParameter({'HasSuffix', 'EndsWith'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
     pp.addParameter({'AddPrefix', 'AddToStart', 'Prepend'}, '',  @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
@@ -131,8 +133,8 @@ if isempty(pp)
     pp.addParameter('OutputNames', @default, @(x) isequal(x, @default) || validate.list(x));
     pp.addParameter('AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
 end
-pp.parse(func, inputDatabank, varargin{:});
-opt = pp.Options;
+%)
+opt = pp.parse(func, inputDatabank, varargin{:});
 
 if ~isequal(opt.InputNames, @all)
     if isa(opt.InputNames, 'Rxp')

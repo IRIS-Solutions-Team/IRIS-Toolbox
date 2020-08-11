@@ -26,7 +26,7 @@ classdef Serialize ...
                 comment = name;
             end
             userData = rmfield(inputRecord, [this.Dates, this.Values, this.Frequency]);
-            outputSeries = Series(dates, values, comment, userData, "--SkipInputParser");
+            outputSeries = Series(dates, values, comment, userData, "--skip");
             %)
         end%
 

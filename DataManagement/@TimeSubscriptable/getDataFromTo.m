@@ -1,11 +1,11 @@
 function [x, actualFrom, actualTo] = getDataFromTo(this, from, to)
 % getDataFromTo  Retrieve time series data from date to date
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %-------------------------------------------------------------------------- 
 
@@ -19,13 +19,22 @@ if nargin==1
     return
 end
 
+from = double(from);
 if nargin==2
     to = from;
 end
-from = double(from);
 to = double(to);
 from = from(1);
 to = to(end);
+
+if isnan(from) || isnan(to)
+    ndimsData = ndims(this.Data);
+    ref = [{[]}, repmat({':'}, 1, ndimsData-1)];
+    x = this.Data(ref{:});
+    actualFrom = from;
+    actualTo = to;
+    return
+end
 
 % Input dates from and to may be either date codes or serials; convert to
 % serials anyway
@@ -40,8 +49,10 @@ missingValue = this.MissingValue;
 
 if ~isinf(serialFrom) && ~isinf(serialTo) && serialTo<serialFrom
     x = repmat(missingValue, [0, sizeData(2:end)]);
-    actualStart = DateWrapper.empty(0, 0);
-    actualEnd = DateWrapper.empty(0, 0);
+    if nargout>=2
+        actualFrom = DateWrapper.empty(0, 0);
+        actualTo = DateWrapper.empty(0, 0);
+    end
     return
 end
 
@@ -52,8 +63,10 @@ if isnan(serialStart)
         lenRange = round(serialTo - serialFrom + 1);
     end
     x = repmat(missingValue, [lenRange, sizeData(2:end)]);
-    actualStart = DateWrapper.empty(0, 0);
-    actualEnd = DateWrapper.empty(0, 0);
+    if nargout>=2
+        actualFrom = DateWrapper.empty(0, 0);
+        actualTo = DateWrapper.empty(0, 0);
+    end
     return
 end
 
@@ -92,7 +105,7 @@ if numel(sizeData)>2
     x = reshape(x, [size(x, 1), sizeData(2:end)]);
 end
 
-if nargout>1
+if nargout>=2
     actualFrom = DateWrapper.getDateCodeFromSerial(freqStart, serialStart + posFrom - 1);
     actualTo = DateWrapper.getDateCodeFromSerial(freqStart, serialStart + posTo - 1);
 end

@@ -59,29 +59,29 @@ function x = abbreviate(x, varargin)
 persistent pp
 if isempty(pp)
      pp = extend.InputParser('textual.abbreviate');
-     addRequired(pp, 'inputString', @validate.string);
-     addParameter(pp, 'MaxLength', 20, @(x) validate.roundScalar(x, [1, Inf]));
-     addParameter(pp, 'Ellipsis', @config, @(x) isequal(x, @config) || (validate.string(x) && strlength(x)==1));
+     addRequired(pp, 'inputString', @validate.stringScalar);
+
+     addParameter(pp, 'MaxLength', 20, @(x) validate.roundScalar(x, 1, Inf));
+     addParameter(pp, 'Ellipsis', @config, @(x) isequal(x, @config) || (validate.stringScalar(x) && strlength(x)==1));
 end
 %)
 opt = parse(pp, x, varargin{:});
 
 %--------------------------------------------------------------------------
 
-if strlength(x)<=opt.MaxLength
-    return
+inputClass = class(x);
+
+x = join(splitlines(string(x)), " ");
+if strlength(x)>opt.MaxLength
+    ellipsis = opt.Ellipsis;
+    if isequal(ellipsis, @config)
+        ellipsis = iris.get('Ellipsis');
+    end
+    x = extractBefore(x, opt.MaxLength) + string(ellipsis);
 end
 
-ellipsis = opt.Ellipsis;
-if isequal(ellipsis, @config)
-    ellipsis = iris.get('Ellipsis');
-end
-
-x = extractBefore(x, opt.MaxLength);
-if ischar(x)
-    x = [x, char(ellipsis)];
-else
-    x = string(x) + string(ellipsis);
+if isequal(inputClass, 'char')
+    x = char(x);
 end
 
 end%

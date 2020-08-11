@@ -12,23 +12,21 @@ classdef List < handle
     end
     
     
-    
-    
     methods (Static)
         function c = parse(c)
             FN_REPLACE = @replace; %#ok<NASGU>
             this = parser.List;
             c = regexprep(c, this.LIST_PATTERN, '${FN_REPLACE($1)}');
             c = regexprep(c, [this.DELIMITER, this.SUFFIX_PATTERN], '');
+            return 
             
-            
-            function listOfNames = replace(c1)
-                listOfNames = cell.empty(1, 0);
-                listOfNames = regexp(c, ['\w+', c1], 'match');
-                listOfNames = strrep(listOfNames, c1, '');
-                listOfNames = unique(listOfNames, 'stable');
-                listOfNames = textfun.delimlist(listOfNames, 'Wrap=', this.WRAP);
-            end
-        end
+            function listNames = replace(c1)
+                listNames = cell.empty(1, 0);
+                listNames = regexp(c, ['\w+', c1], 'match');
+                listNames = strrep(listNames, c1, '');
+                listNames = unique(listNames, 'stable');
+                listNames = textfun.delimlist(listNames, 'Wrap=', this.WRAP);
+            end%
+        end%
     end
 end

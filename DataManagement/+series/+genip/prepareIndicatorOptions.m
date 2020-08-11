@@ -42,12 +42,11 @@ return
                 end
                 level = x__;
             else
-                thisError = [
+                throw(exception.Base([
                     "Genip:InvalidFrequencyIndicator"
                     "Date frequency of the time series supplied as Indicator.Level= "
                     "must match the target date frequency, which is %s. "
-                ];
-                throw(exception.Base(thisError, 'error'), char(highFreq));
+                ], "error"), string(highFreq));
             end
         end
         %)

@@ -93,8 +93,18 @@ usingDefaults = pp.UsingDefaultsInStruct;
 if ~isequal(baseRange, @auto)
     baseRange = double(baseRange);
 end
-[opt.Window, baseRange] = resolveWindowAndBaseRange(opt.Window, opt.Method, baseRange);
+
 opt.Method = solver.Method.parse(opt.Method);
+if opt.Method==solver.Method.SELECTIVE && ~any(this.Equation.InxOfHashEquations)
+    opt.Method = solver.Method.FIRST_ORDER;
+    exception.warning([
+        "Model:FirstOrderInsteadSelective"
+        "The model has no hash equations; switching from Method=Selective "
+        "to Method=FirstOrder. "
+    ]);
+end
+
+[opt.Window, baseRange] = resolveWindowAndBaseRange(opt.Window, opt.Method, baseRange);
 opt.Solver = parseSolverOption(opt.Solver, opt.Method);
 isAsynchronous = isequal(inputDb, "asynchronous");
 opt.Solver = hereResolveSolverOption(opt.Solver);

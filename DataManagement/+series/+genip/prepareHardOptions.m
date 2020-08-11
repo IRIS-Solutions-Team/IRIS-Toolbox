@@ -15,7 +15,8 @@ highRange = double(highRange);
 highStart = highRange(1);
 highEnd = highRange(end);
 highFreq = DateWrapper.getFrequency(highStart);
-extdStart = DateWrapper.roundPlus(highStart, -numInit);
+initStart = DateWrapper.roundPlus(highStart, -numInit);
+initEnd = DateWrapper.roundPlus(highStart, -1);
 
 hard = struct( );
 invalidFreq = string.empty(1, 0);
@@ -24,7 +25,7 @@ for g = ["Level", "Rate", "Diff"]
     x__ = opt.("Hard_" + g);
     if isa(x__, 'NumericTimeSubscriptable') && ~isempty(x__) 
         if isfreq(x__, highFreq)
-            x = getDataFromTo(x__, extdStart, highEnd);
+            x = getDataFromTo(x__, initStart, highEnd);
             if any(isfinite(x(:)))
                 hard.(g) = x;
             end
@@ -38,10 +39,27 @@ if ~isempty(invalidFreq)
     hereReportInvalidFrequency( );
 end
 
-hard.Initial = nan(numInit, 1);
-if numInit>0 && ~isempty(hard.Level)
-    hard.Initial = hard.Level(1:numInit);
-    hard.Level(1:numInit) = NaN;
+if numInit==0
+    return
+end
+
+if isequal(opt.Initial, @auto)
+    % Do nothing
+else
+    % Override initial condition in Hard.Level
+    if isnumeric(opt.Initial)
+        if isscalar(opt.Initial)
+            Xi0 = repmat(opt.Initial, numInit, 1);
+        else
+            Xi0 = reshape(opt.Initial, [ ], 1);
+            if numel(Xi0)~=numInit
+                hereReportInvalidNumInitial( );
+            end
+        end
+    elseif isa(opt.Initial, 'NumericTimeSubscriptable')
+        Xi0 = getDataFromTo(opt.Initial, initStart, initEnd);
+    end
+    hard.Level(1:numInit) = Xi0;
 end
 
 return
@@ -54,6 +72,18 @@ return
             "must match the target date frequency, which is " + Frequency.toString(highFreq) + ". "
         ];
         throw(exception.Base(thisError, 'error'), invalidFreq);
+        %)
+    end%
+
+
+    function hereReportInvalidNumInitial( )
+        %(
+        thisError = [
+            "Genip:InvalidNumInitial"
+            "The numeric vector assigned to Initia= has %g elements "
+            "while a total of %g initial conditions is needed."
+        ];
+        throw(exception.Base(thisError, 'error'), numel(Xi0), numInit);
         %)
     end%
 end%

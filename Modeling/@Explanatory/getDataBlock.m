@@ -130,5 +130,6 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     exp_YXEPG(6, :) = db.d(extendedRange);
     exp_YXEPG(7, :) = db.res_x(extendedRange);
     assertEqual(testCase, act.YXEPG, exp_YXEPG);
+
 ##### SOURCE END #####
 %}
