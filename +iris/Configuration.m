@@ -74,13 +74,13 @@ classdef (CaseInsensitiveProperties=true) Configuration
         SeriesMaxWSpace = iris.Configuration.DEFAULT_SERIES_MAX_WSPACE
 
         % PdfLatexPath  Path to the PDFLATEX executable
-        PdfLatexPath = iris.Configuration.DEFAULT_LATEX_PATHS{1} 
+        PdfLatexPath = [ ]
 
         % EpsToPdfpath  Path to the EPSTOPDF executable
-        EpsToPdfPath = iris.Configuration.DEFAULT_LATEX_PATHS{2}
+        EpsToPdfPath = [ ] 
 
         % PsToPdfPath  Path to the PSTOPDF executable
-        PsToPdfPath = iris.Configuration.DEFAULT_LATEX_PATHS{3}
+        PsToPdfPath = [ ] 
 
         % GhostscriptPath  Path to the GS executable
         GhostscriptPath = iris.Configuration.DEFAULT_GHOSTSCRIPT_PATH
@@ -180,8 +180,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         DEFAULT_SERIES_MAX_WSPACE = 5
 
-        DEFAULT_LATEX_PATHS = iris.Configuration.findTexFiles( )
-
         DEFAULT_GHOSTSCRIPT_PATH = iris.Configuration.findGhostscript( )
 
         NUM_FREQUENCIES = numel(iris.Configuration.DEFAULT_FREQ)
@@ -201,9 +199,14 @@ classdef (CaseInsensitiveProperties=true) Configuration
     end
 
 
-    methods
-        function this = Configuration( )
-            this.UserConfigPath = which('irisuserconfig.m');
+    methods function this = Configuration(varargin)
+            this.UserConfigPath = which("irisuserconfig.m");
+
+            if isempty(varargin) || ~isa(varargin{1}, "struct") || varargin{1}.TeX
+                paths = iris.Configuration.findTexFiles( );
+                [this.PdfLatexPath, this.EpsToPdfPath, this.PsToPdfPath] = paths{:};
+            end
+
             if ~isempty(this.UserConfigPath)
                 this = irisuserconfig(this);
                 thisWarning = [ 
