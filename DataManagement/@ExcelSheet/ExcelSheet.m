@@ -24,11 +24,56 @@ classdef ExcelSheet ...
 
     methods % Constructor
         function this = ExcelSheet(fileName, varargin)
-        %(
+% ExcelSheet  Construct a new ExcelSheet object
+%{
+% Syntax
+%--------------------------------------------------------------------------
+%
+%     output = function(input, ...)
+%
+%
+% Input Arguments
+%--------------------------------------------------------------------------
+%
+% __``__ [ ]
+%
+%>    Description
+%
+%
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __``__ [ ]
+%
+%>    Description
+%
+%
+% Options
+%--------------------------------------------------------------------------
+%
+%
+% __`=`__ [ | ]
+%
+%>    Description
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
+%
+%}
+
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
             if nargin==0
                 return
             end
 
+            
+            %(
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('ExcelSheet/ExcelSheet');
@@ -38,8 +83,8 @@ classdef ExcelSheet ...
                 addParameter(pp, 'Range', '', @validate.string);
                 addParameter(pp, 'InsertEmpty', [0, 0], @(x) isnumeric(x) && numel(x)==2 && all(x==round(x)) && all(x>=0));
             end
-            parse(pp, fileName, varargin{:});
-            opt = pp.Options;
+            %)
+            opt = parse(pp, fileName, varargin{:});
 
             this.FileName = fileName;
             this.SheetIdentification = opt.Sheet;
@@ -96,10 +141,10 @@ classdef ExcelSheet ...
             insertRows = this.InsertEmpty(1);
             insertColumns = this.InsertEmpty(2);
             if insertRows>0
-                this.Buffer = [ repmat({[]}, insertRows, this.NumOfColumns); this.Buffer ];
+                this.Buffer = [ repmat({[]}, insertRows, this.NumColumns); this.Buffer ];
             end
             if insertColumns>0
-                this.Buffer = [ repmat({[]}, this.NumOfRows, insertColumn), this.Buffer ];
+                this.Buffer = [ repmat({[]}, this.NumRows, insertColumn), this.Buffer ];
             end
         end%
 
@@ -144,17 +189,18 @@ classdef ExcelSheet ...
 
 
 
-        function pos = findRows(this, numToFind, varargin)
+        function [pos, inx] = findRows(this, numToFind, varargin)
+            %(
             persistent pp
             if isempty(pp)
-                pp = extend.InputParser('ExcelSheet/findColumns');
+                pp = extend.InputParser('@ExcelSheet/findRows');
                 pp.KeepUnmatched = true;
                 addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
                 addRequired(pp, 'numToFound', @(x) isempty(x) || isnumeric(x));
             end
             parse(pp, this, numToFind);
 
-            inx = true(this.NumOfRows, 1);
+            inx = true(this.NumRows, 1);
             for i = 1 : 2 : numel(varargin)
                 column = ExcelReference.decodeColumn(varargin{i});
                 testFunc = varargin{i+1};
@@ -164,27 +210,27 @@ classdef ExcelSheet ...
                 pos = find(inx);
                 return
             end
-            thisError = [
-                "ExcelSheet:InvalidNumOfColumnsFound"
+            exception.error([
+                "ExcelSheet:InvalidNumColumnsFound"
                 "Number of rows passing test fails to comply with user restriction."
-            ];
-            throw(exception.Base(thisError, 'error'));
+            ]);
+            %)
         end%
 
 
 
 
-        function pos = findColumns(this, numToFind, varargin)
+        function [pos, inx] = findColumns(this, numToFind, varargin)
             persistent pp
             if isempty(pp)
-                pp = extend.InputParser('ExcelSheet/findColumns');
+                pp = extend.InputParser('@ExcelSheet/findColumns');
                 pp.KeepUnmatched = true;
                 addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
                 addRequired(pp, 'numToFind', @(x) isempty(x) || isnumeric(x));
             end
             parse(pp, this, numToFind);
 
-            inx = true(1, this.NumOfColumns);
+            inx = true(1, this.NumColumns);
             for i = 1 : 2 : numel(varargin)
                 row = ExcelReference.decodeRow(varargin{i});
                 testFunc = varargin{i+1};
@@ -194,11 +240,10 @@ classdef ExcelSheet ...
                 pos = find(inx);
                 return
             end
-            thisError = [
-                "ExcelSheet:InvalidNumOfColumnsFound"
+            exception.error([
+                "ExcelSheet:InvalidNumColumnsFound"
                 "Number of columns passing test fails to comply with user restrictions."
-            ];
-            throw(exception.Base(thisError, 'error'));
+            ]);
         end%
         %)
     end
@@ -207,21 +252,21 @@ classdef ExcelSheet ...
     
 
     properties (Dependent)
-        NumOfData
-        NumOfRows
-        NumOfColumns
+        NumData
+        NumRows
+        NumColumns
     end
 
 
 
 
     methods % Getters and Setters
-        function value = get.NumOfRows(this)
+        function value = get.NumRows(this)
             value = size(this.Buffer, 1);
         end%
 
 
-        function value = get.NumOfColumns(this)
+        function value = get.NumColumns(this)
             value = size(this.Buffer, 2);
         end%
 
@@ -229,9 +274,9 @@ classdef ExcelSheet ...
         function value = get.DataEnd(this)
             if isequal(this.DataEnd, Inf)
                 if this.Orientation=="Row"
-                    value = this.NumOfColumns;
+                    value = this.NumColumns;
                 else
-                    value = this.NumOfRows;
+                    value = this.NumRows;
                 end
             else
                 value = this.DataEnd;
@@ -253,7 +298,7 @@ classdef ExcelSheet ...
         end%
 
 
-        function value = get.NumOfData(this)
+        function value = get.NumData(this)
             dataRange = this.DataRange;
             if islogical(dataRange)
                 value = nnz(dataRange);
@@ -308,8 +353,8 @@ classdef ExcelSheet ...
                 ];
                 throw(exception.Base(thisError, 'error'));
             end
-            numOfDates = numel(value);
-            if numOfDates==1 || numOfDates==this.NumOfData;
+            numDates = numel(value);
+            if numDates==1 || numDates==this.NumData;
                 this.Dates = value;
                 return
             end

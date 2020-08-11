@@ -16,13 +16,13 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
     b.Data = b.Data(:, :);
     [rowA, colA] = size(a.Data);
     [rowB, colB] = size(b.Data);
-    if colA==1 && not(colB==1)
+    if colA==1 && colB~=1
         % First input argument is NumericTimeSubscriptable scalar; second NumericTimeSubscriptable with
         % multiple columns. Expand the first NumericTimeSubscriptable to match the size of the
         % second in 2nd and higher dimensions.
         a.Data = repmat(a.Data, 1, colB);
         sizeX = sizeB;
-    elseif not(colA==1) && colB==1
+    elseif colA~=1 && colB==1
         % First NumericTimeSubscriptable non-scalar; second
         % NumericTimeSubscriptable scalar
         b.Data = repmat(b.Data, 1, colA);
@@ -36,21 +36,34 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
         startDate = NaN;
         endDate = NaN;
     else
+        freqA = DateWrapper.getFrequencyAsNumeric(startA);
+        freqB = DateWrapper.getFrequencyAsNumeric(startB);
+        if freqA~=freqB
+            exception.error([
+                "Series:FrequencyMismatch"
+                "Date frequency mismatch between input time series when evaluating "
+                "this function: %s(%s, %s) "
+            ], string(func2str(fn)), Frequency(freqA), Frequency(freqB));
+        end
         startDate = min([startA, startB]);
         endDate = max([startA+rowA-1, startB+rowB-1]);
     end
-    range = startDate : endDate;
-    dataA = rangedata(a, range);
-    dataB = rangedata(b, range);
-    % Evaluate the operator.
-    [dataX, varargout{1:nargout-1}] = fn(dataA, dataB, varargin{:});    
+    dataA = getDataFromTo(a, startDate, endDate);
+    dataB = getDataFromTo(b, startDate, endDate);
+    % Evaluate the operator or function
+    [dataX, varargout{1:nargout-1}] = fn(dataA, dataB, varargin{:}); 
+    % Create output series
     x = a;
     try
         x.Data = reshape(dataX, [size(dataX, 1), sizeX(2:end)]);
     catch %#ok<CTCH>
-        throw(exception.Base('Series:BinopSizeMismatch', 'error'));
+        exception.error([
+            "Series:DimensionMismatch"
+            "Invalid dimensions of output time series produced when evaluating "
+            "this function: %s "
+        ], string(func2str(fn)));
     end
-    x.Start = DateWrapper(range(1));
+    x.Start = DateWrapper(startDate);
     x = resetComment(x);
     x = trim(x);
 else
@@ -86,7 +99,7 @@ else
         % input NumericTimeSubscriptable object. Return a NumericTimeSubscriptable object with the original
         % number of periods.
         x.Data = y;
-        if length(sizeY)~=length(sizeX) || any(sizeY(2:end)~=sizeX(2:end))
+        if numel(sizeY)~=numel(sizeX) || any(sizeY(2:end)~=sizeX(2:end))
             x.Comment = repmat({''}, [1, sizeY(2:end)]);
         end
         x = trim(x);

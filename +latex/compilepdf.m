@@ -29,7 +29,7 @@ if isempty(config.PdfLaTeXPath)
     throw( exception.Base(THIS_ERROR, 'error') );
 end
 
-[inpPath, inpTitle] = fileparts(inpFile);
+[inpPath, inpTitle, inpExt] = fileparts(inpFile);
 
 % TODO: We need to verify that all pdflatex distributions support the
 % option `-halt-on-error`.
@@ -41,7 +41,7 @@ if opt.Echo
     systemOpt = {'-echo'};
 end
 
-command = ['"', config.PdfLatexPath, '" ',  haltOnError, inpTitle];
+command = ['"', config.PdfLatexPath, '" ',  haltOnError, ' "', inpTitle, '"'];
 
 % Capture the current directory, and switch to the input file directory
 thisDir = pwd( );
@@ -73,9 +73,8 @@ end
 
 pdf = fullfile(inpPath, [inpTitle, '.pdf']);
 fprintf('\n');
+
 end%
-
-
 
 
 function needsRerun = rerunTest(result, fileTitle)

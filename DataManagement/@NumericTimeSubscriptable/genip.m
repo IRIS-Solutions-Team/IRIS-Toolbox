@@ -1,12 +1,12 @@
 % genip  Generalized indicator based interpolation
 %{
-%% Syntax
+% Syntax
 %--------------------------------------------------------------------------
 %
 %>    [highOutput, info] = genip(lowInput, highFreq, order, aggregation, ...)
 %
 %
-%% Input Arguments
+% Input Arguments
 %--------------------------------------------------------------------------
 %
 % __`lowInput`__ [ Series ] 
@@ -37,7 +37,7 @@
 %>     periods within the encompassing low-frequency period.
 %
 %
-%% Output Arguments
+% Output Arguments
 %--------------------------------------------------------------------------
 %
 % __`highOutput`__ [ Series ] 
@@ -58,7 +58,7 @@
 %>    * `.StackedSystem` - Stacked-time linear system (StackedSystem) object used to run the interpolation
 %
 %
-%% Options
+% Options
 %--------------------------------------------------------------------------
 %
 %
@@ -118,7 +118,7 @@
 %
 %
 %
-%% Description
+% Description
 %--------------------------------------------------------------------------
 %
 %
@@ -179,7 +179,7 @@
 % conditions.
 %
 %
-%% Example
+% Example
 %--------------------------------------------------------------------------
 %
 %}
@@ -227,7 +227,7 @@ if isempty(pp)
     addParameter(pp, 'Indicator.Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
 end
 %)
-[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+[skip, opt] = maybeSkip(pp, varargin{:});
 if ~skip
     opt = parse(pp, lowInput, highFreq, transitionOrder, aggregationModel, varargin{:});
 end
@@ -257,8 +257,8 @@ numLowPeriods = round(lowEnd - lowStart + 1);
 %
 % Define high-frequency dates
 %
-highStart = numeric.convert(lowStart, highFreq, "--SkipInputParser");
-highEnd = numeric.convert(lowEnd, highFreq, 'ConversionMonth=', 'Last', "--SkipInputParser");
+highStart = numeric.convert(lowStart, highFreq, "--skip");
+highEnd = numeric.convert(lowEnd, highFreq, 'ConversionMonth=', 'Last', "--skip");
 
 %
 % Get low-frequency level data

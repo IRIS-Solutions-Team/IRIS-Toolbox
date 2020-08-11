@@ -18,7 +18,7 @@ if isempty(pp)
     addParameter(pp, 'Filter', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
 end
 %)
-[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+[skip, opt] = maybeSkip(pp, varargin{:});
 if ~skip
     opt = parse(pp, inputDb, varargin{:});
 end
