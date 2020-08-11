@@ -92,7 +92,7 @@ classdef Dictionary ...
                                             'Too many output arguments' };
 
         EXCEPTION_UPDATE_SERIES = { 'Dictionary:UpdateMustBeTimeSubscriptable'
-                                    'Method udpateSeries only works on entries of TimeSubscriptable class' }
+                                    'Method updateSeries only works on entries of TimeSubscriptable class' }
 
     end
 
@@ -287,6 +287,11 @@ classdef Dictionary ...
         end%
 
 
+        function flag = hasKey(this, key)
+            flag = lookupKey(this, key);
+        end%
+
+
 
 
         function flag = exist(this, key)
@@ -314,7 +319,7 @@ classdef Dictionary ...
 
 
 
-        function [this, x] = updateSeries(this, key, dates, data)
+        function [this, x] = updateSeries(this, key, varargin) % dates, data)
 % updateSeries  Update time series in Dictionary
             if isa(this, 'Dictionary')
                 x = retrieve(this, key);
@@ -329,7 +334,11 @@ classdef Dictionary ...
             elseif isstruct(data)
                 data = data.(char(key));
             end
-            x = setData(x, dates, data);
+            if nargin==3
+                x = [x; varargin{1}];
+            else
+                x = setData(x, varargin{:});
+            end
             if isa(this, 'Dictionary')
                 store(this, key, x);
             elseif isstruct(this)
