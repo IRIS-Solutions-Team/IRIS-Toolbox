@@ -76,6 +76,7 @@ NumericTimeSubscriptable ...
             [varargout{1:nargout}] = fillMissing(varargin{:});
         end%
 
+        varargout = filter(varargin)
         varargout = genip(varargin)
         varargout = grow(varargin)
         tabular(varargin)
@@ -134,7 +135,6 @@ NumericTimeSubscriptable ...
 
         implementDisp(varargin)
         varargout = implementFilter(varargin)
-        varargout = prepareChange(varargin)
         varargout = unop(varargin)
         varargout = unopinx(varargin)
 
@@ -604,7 +604,8 @@ NumericTimeSubscriptable ...
             varargin(1:2) = [ ];
 
             skipInputParserArgument = cell.empty(1, 0);
-            if nargin>=3 && isequal(varargin{end}, "--SkipInputParser")
+            if nargin>=3 && (ischar(varargin{end}) || isstring(varargin{end})) ...
+                && startsWith(varargin{end}, "--skip", "ignoreCase", true)
                 skipInputParserArgument = varargin(end);
                 varargin(end) = [ ];
             end
@@ -631,7 +632,7 @@ NumericTimeSubscriptable ...
                 addRequired(pp, 'Comment', @(x) isempty(x) || ischar(x) || iscellstr(x) || isstring(x));
                 addRequired(pp, 'UserData');
             end
-            skip = maybeSkipInputParser(pp, skipInputParserArgument{:});
+            skip = maybeSkip(pp, skipInputParserArgument{:});
             if ~skip
                 parse(pp, dates, values, comment, userData);
             end
