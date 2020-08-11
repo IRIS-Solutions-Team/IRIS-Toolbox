@@ -41,14 +41,14 @@ classdef Incidence
             anyInc = any(inc, 1);
             firstInc = find(anyInc, 1);
             lastInc = find(anyInc, 1, 'last');
-            numOfQuantities = this.NumOfQuantities;
+            numQuantities = this.NumOfQuantities;
             if lastInc<this.NumOfShifts
                 this.Shift = this.Shift(1:lastInc);
-                this.Matrix = this.Matrix(:, 1:lastInc*numOfQuantities);
+                this.Matrix = this.Matrix(:, 1:lastInc*numQuantities);
             end
             if firstInc>1
                 this.Shift = this.Shift(firstInc:end);
-                this.Matrix = this.Matrix(:, (firstInc-1)*numOfQuantities+1:end);
+                this.Matrix = this.Matrix(:, (firstInc-1)*numQuantities+1:end);
             end
         end%
             
@@ -103,9 +103,9 @@ classdef Incidence
 
         function fullMatrix = get.FullMatrix(this)
             fullMatrix = full(this.Matrix);
-            numOfShifts = this.NumOfShifts;
-            numOfQuantities = size(fullMatrix, 2) / numOfShifts;
-            fullMatrix = reshape(fullMatrix, [ ], numOfQuantities, numOfShifts);
+            numShifts = this.NumOfShifts;
+            numQuantities = size(fullMatrix, 2) / numShifts;
+            fullMatrix = reshape(fullMatrix, [ ], numQuantities, numShifts);
         end%
     end
     
