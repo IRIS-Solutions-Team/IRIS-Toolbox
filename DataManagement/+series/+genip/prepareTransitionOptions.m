@@ -24,11 +24,12 @@ end
 transition.Intercept = opt.Transition_Intercept;
 transition.Std = opt.Transition_Std;
 
-if isa(transition.Std, 'NumericTimeSubscriptable')
+if isa(transition.Std, "NumericTimeSubscriptable")
     transition.Std = getDataFromTo(transition.Std, highStart, highEnd);
     transition.Std = abs(transition.Std);
-    if any(isnan(transition.Std(:)))
-        transition.Std = numeric.fillMissing(transition.Std, NaN, 'globalLoglinear');
+    inxNaN = isnan(transition.Std);
+    if any(inxNaN(:))
+        transition.Std = numeric.fillMissing(transition.Std, inxNaN, "regressLogTrend");
     end
     transition.Std = transition.Std/transition.Std(1);
     transition.Std = reshape(transition.Std, 1, 1, [ ]);

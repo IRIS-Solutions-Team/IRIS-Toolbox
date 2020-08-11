@@ -1,11 +1,12 @@
 function this = mtimes(this, list)
-% See help on dbase/dbmtimes.
+% See help on databank.retrieve
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-this = dbmtimes(this, list);
+this = databank.retrieve(this, list);
 
-end
+end%
+

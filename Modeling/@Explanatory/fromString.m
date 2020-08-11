@@ -1,30 +1,30 @@
-function this = fromString(inputString, varargin)
 % fromString  Create Explanatory object from string
 %{
-% ## Syntax ##
-%
+% Syntax
+%--------------------------------------------------------------------------
 %
 %     this = function(inputString, ...)
 %
 %
-% ## Input Arguments ##
-%
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 % __`inputString`__ [ string ]
-% >
-% Input string, or an array of strings, that will be converted to
-% Explanatory object or array.
+%
+%>    Input string, or an array of strings, that will be converted to
+%>    Explanatory object or array.
 %
 %
-% ## Output Arguments ##
-%
+% Output Arguments
+%--------------------------------------------------------------------------
 %
 % __`this`__ [ Explanatory ]
-% >
-% New Explanatory object or array created from the `inputString`.
+%
+%>    New Explanatory object or array created from the `inputString`.
 %
 %
-% ## Options ##
+% Options
+%--------------------------------------------------------------------------
 %
 %
 % __`EnforceCase=[ ]`__ [ empty | `@lower` | `@upper` ]
@@ -45,11 +45,12 @@ function this = fromString(inputString, varargin)
 % the name for fitted values, based on the LHS variable name.
 %
 %
-% ## Description ##
+% Description
+%--------------------------------------------------------------------------
 %
 %
-% ## Example ##
-%
+% Example
+%--------------------------------------------------------------------------
 %
 % Create an array of three Explanatory objects, with `x`, `y`, and
 % `z` being the LHS variables:
@@ -62,12 +63,9 @@ function this = fromString(inputString, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2019 IRIS Solutions Team
+% -Copyright (c) 2007-2019 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
-
-% -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+function this = fromString(inputString, varargin)
 
 % Parse input arguments
 %(
@@ -81,8 +79,7 @@ if isempty(pp) || isempty(INIT_EXPLANATORY)
     addParameter(pp, 'EnforceCase', [ ], @(x) isempty(x) || isequal(x, @upper) || isequal(x, @lower));
     addParameter(pp, 'ResidualNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
     addParameter(pp, 'FittedNamePattern', @default, @(x) isequal(x, @default) || ((isstring(x) || iscellstr(x)) && numel(x)==2));
-    addParameter(pp, 'ArReference', @default, @(x) isequal(x, @default) || validate.stringScalar(x));
-    addParameter(pp, 'DateReference', @default, @(x) isequal(x, @default) || validate.stringScalar(x));
+    addParameter(pp, 'LhsReference', @default, @(x) isequal(x, @default) || validate.stringScalar(x));
 
     INIT_EXPLANATORY = Explanatory( );
 end
@@ -166,6 +163,7 @@ for j = 1 : numel(inputString)
     %
     this__ = defineDependentTerm(this__, lhsString);
     hereParseExplanatoryTerms( );
+    this__ = seal(this__);
     this__.Label = label__;
     this__.Attributes = attributes__;
     array{j} = this__;
@@ -188,16 +186,12 @@ return
         if ~isequal(opt.FittedNamePattern, @default)
             obj.FittedNamePattern = string(opt.FittedNamePattern);
         end
-        if ~isequal(opt.DateReference, @default)
-            obj.DateReference = string(opt.DateReference);
-        end
-        if ~isequal(opt.ArReference, @default)
-            obj.ArReference = string(opt.ArReference);
+        if ~isequal(opt.LhsReference, @default)
+            obj.LhsReference = string(opt.LhsReference);
         end
         if ~isempty(opt.EnforceCase)
             obj.ResidualNamePattern = opt.EnforceCase(obj.ResidualNamePattern);
             obj.FittedNamePattern = opt.EnforceCase(obj.FittedNamePattern);
-            obj.DateReference = opt.EnforceCase(obj.DateReference);
         end
     end%
 
@@ -218,11 +212,6 @@ return
         % Collect unique names of all variables
         %
         variableNames = unique(string(variableNames), 'stable');
-
-        %
-        % Remove DateReference from the list of variables
-        %
-        variableNames(variableNames==this__.DateReference) = [ ];
 
         %
         % Remove control parameter names from the list of variables
@@ -266,7 +255,7 @@ return
         % these characters will have level==0
         %
         rhsString = char(rhsString);
-        [level, allClosed] = textual.bracketLevel(rhsString, {'()', '{}', '[]'}, '--SkipInputParser');
+        [level, allClosed] = textual.bracketLevel(rhsString, {'()', '{}', '[]'}, '--skip');
 
         %
         % Find the starts of all regression terms
@@ -333,7 +322,7 @@ return
         % fixed lump-sum term
         %
         for ii = 1 : numel(termStrings)
-            this__ = addExplanatoryTerm(this__, fixed(ii), termStrings(ii), "--SkipInputParser");
+            this__ = addExplanatoryTerm(this__, fixed(ii), termStrings(ii));
         end
 
         return
@@ -432,11 +421,23 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     exp = Explanatory( );
     exp = setp(exp, 'VariableNames', ["x", "a", "b", "c"]);
     exp = setp(exp, 'InputString', regexprep(input, "\s+", ""));
-    exp = defineDependentTerm(exp, 1);
-    exp = addExplanatoryTerm(exp, NaN, 2);
-    exp = addExplanatoryTerm(exp, NaN, 4, "Transform=", "log");
+    exp = defineDependentTerm(exp, "x");
+    exp = addExplanatoryTerm(exp, NaN, "a");
+    exp = addExplanatoryTerm(exp, NaN, "log(c)");
     exp = addExplanatoryTerm(exp, 1, "b*x{-1}");
-    assertEqual(testCase, act, exp);
+    exp = seal(exp);
+    %
+    exp_struct = struct(exp);
+    act_struct = struct(act);
+    assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
+    for n = keys(exp_struct)
+        if isa(exp_struct.(n), 'function_handle')
+            assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
+        else
+            assertEqual(testCase, exp_struct.(n), act_struct.(n));
+        end
+    end
+    %
     assertEqual(testCase, act.RhsContainsLhsName, true);
 
 
@@ -446,11 +447,23 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     exp = Explanatory( );
     exp = setp(exp, 'VariableNames', ["x", "a", "b", "z", "c"]);
     exp = setp(exp, 'InputString', regexprep(input, "\s+", ""));
-    exp = defineDependentTerm(exp, 1);
-    exp = addExplanatoryTerm(exp, NaN, 2);
-    exp = addExplanatoryTerm(exp, NaN, 5, "Transform=", "log");
+    exp = defineDependentTerm(exp, "x");
+    exp = addExplanatoryTerm(exp, NaN, "a");
+    exp = addExplanatoryTerm(exp, NaN, "log(c)");
     exp = addExplanatoryTerm(exp, 1, "b*z{-1}");
-    assertEqual(testCase, act, exp);
+    exp = seal(exp);
+    %
+    exp_struct = struct(exp);
+    act_struct = struct(act);
+    assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
+    for n = keys(exp_struct)
+        if isa(exp_struct.(n), 'function_handle')
+            assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
+        else
+            assertEqual(testCase, exp_struct.(n), act_struct.(n));
+        end
+    end
+    %
     assertEqual(testCase, act.RhsContainsLhsName, false);
 
 
@@ -460,47 +473,19 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     act = Explanatory.fromString(legacyInput);
     act = setp(act, 'InputString', replace(getp(act, 'InputString'), "?", "@"));
     exp = Explanatory.fromString(input);
-    assertEqual(testCase, act, exp);
+    %
+    exp_struct = struct(exp);
+    act_struct = struct(act);
+    assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
+    for n = keys(exp_struct)
+        if isa(exp_struct.(n), 'function_handle')
+            assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
+        else
+            assertEqual(testCase, exp_struct.(n), act_struct.(n));
+        end
+    end
+    %
     assertEqual(testCase, act.RhsContainsLhsName, true);
-
-
-%% Test Sum
-    act = Explanatory.fromString("x = y{-1} + x{-2};");
-    exp_ExplanatoryTerm = regression.Term( );
-    exp_ExplanatoryTerm.InputString = "y{-1}+x{-2}";
-    exp_ExplanatoryTerm.Position = NaN;
-    exp_ExplanatoryTerm.Shift = 0;
-    exp_ExplanatoryTerm.Incidence = sort([complex(2, -1), complex(1, -2)]); 
-    exp_ExplanatoryTerm.Transform = "";
-    exp_ExplanatoryTerm.Expression = @(x,t,date__,controls__)x(2,t-1,:)+x(1,t-2,:);
-    exp_ExplanatoryTerm.ContainsLhsName = true;
-    exp_ExplanatoryTerm.ContainsLaggedLhsName = true;
-    exp_ExplanatoryTerm.MinShift = -2;
-    exp_ExplanatoryTerm.MaxShift = 0;
-    temp = getp(act, 'ExplanatoryTerms');
-    temp.Incidence = sort(temp.Incidence);
-    act = setp(act, 'ExplanatoryTerms', temp);
-    assertEqual(testCase, getp(act, 'ExplanatoryTerms'), exp_ExplanatoryTerm);
-    assertEqual(testCase, act.RhsContainsLhsName, true);
-
-
-%% Test Exogenous Sum
-    act = Explanatory.fromString("x = y{-1} + z{-2};");
-    exp_ExplanatoryTerm = regression.Term( );
-    exp_ExplanatoryTerm.InputString = "y{-1}+z{-2}";
-    exp_ExplanatoryTerm.Position = NaN;
-    exp_ExplanatoryTerm.Shift = 0;
-    exp_ExplanatoryTerm.Incidence = sort([complex(2, -1), complex(3, -2)]); 
-    exp_ExplanatoryTerm.Transform = "";
-    exp_ExplanatoryTerm.Expression = @(x,t,date__,controls__)x(2,t-1,:)+x(3,t-2,:);
-    exp_ExplanatoryTerm.ContainsLhsName = false;
-    exp_ExplanatoryTerm.MinShift = -2;
-    exp_ExplanatoryTerm.MaxShift = 0;
-    temp = getp(act, 'ExplanatoryTerms');
-    temp.Incidence = sort(temp.Incidence);
-    act = setp(act, 'ExplanatoryTerms', temp);
-    assertEqual(testCase, getp(act, 'ExplanatoryTerms'), exp_ExplanatoryTerm);
-    assertEqual(testCase, act.RhsContainsLhsName, false);
 
 
 %% Test Lower
@@ -511,7 +496,17 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     exp = Explanatory.fromString( ...
         ["xa = xa{-1} + xa{-2} + xb", "xb = xa{-1}"] ...
     );
-    assertEqual(testCase, act, exp);
+    %
+    exp_struct = struct(exp);
+    act_struct = struct(act);
+    assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
+    for n = keys(exp_struct)
+        if isa(exp_struct.(n), 'function_handle')
+            assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
+        else
+            assertEqual(testCase, exp_struct.(n), act_struct.(n));
+        end
+    end
 
 
 %% Test Upper
@@ -525,61 +520,64 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     for i = 1 : numel(exp)
         exp(i) = setp(exp(i), 'ResidualNamePattern', upper(getp(exp(i), 'ResidualNamePattern')));
         exp(i) = setp(exp(i), 'FittedNamePattern', upper(getp(exp(i), 'FittedNamePattern')));
-        exp(i) = setp(exp(i), 'DateReference', upper(getp(exp(i), 'DateReference')));
     end
-    assertEqual(testCase, act, exp);
+    %
+    exp_struct = struct(exp);
+    act_struct = struct(act);
+    assertEqual(testCase, sort(fieldnames(exp_struct)), sort(fieldnames(act_struct)));
+    for n = keys(exp_struct)
+        if isa(exp_struct.(n), 'function_handle')
+            assertEqual(testCase, char(exp_struct.(n)), char(act_struct.(n)));
+        else
+            assertEqual(testCase, exp_struct.(n), act_struct.(n));
+        end
+    end
 
 
 %% Test Static If
-    q = Explanatory.fromString("x = z + if(isfreq(__date, 1) & __date<yy(5), -10, 10)");
+    q = Explanatory.fromString("x = z + if(w<0, -10, 10)");
     inputDb = struct( );
     inputDb.x = Series(0, 0);
     inputDb.z = Series(1:10, @rand);
+    inputDb.w = -1;
     simDb1 = simulate(q, inputDb, 1:10);
-    assertEqual(testCase, simDb1.x(1:10), inputDb.z(1:10)+10);
+    assertEqual(testCase, simDb1.x(1:10), inputDb.z(1:10)-10);
     inputDb = struct( );
     inputDb.x = Series(yy(0), 0);
     inputDb.z = Series(yy(1:10), @rand);
+    inputDb.w = 1;
     [simDb2, info2] = simulate(q, inputDb, yy(1:10));
-    add = [-10; -10; -10; -10; 10; 10; 10; 10; 10; 10];
-    assertEqual(testCase, simDb2.x(yy(1:10)), inputDb.z(yy(1:10))+add, 'AbsTol', 1e-14);
-    assertEqual(testCase, info2.DynamicStatus, false);
-    [simDb3, info3] = simulate(q, inputDb, yy(1:10), 'Blazer=', {'Dynamic=', true});
-    add = [-10; -10; -10; -10; 10; 10; 10; 10; 10; 10];
-    assertEqual(testCase, simDb3.x(yy(1:10)), inputDb.z(yy(1:10))+add, 'AbsTol', 1e-14);
-    assertEqual(testCase, info3.DynamicStatus, true);
+    assertEqual(testCase, simDb2.x(yy(1:10)), inputDb.z(yy(1:10))+10);
 
 
-%% Test Dynamic If
-    q = Explanatory.fromString("x = x{-1} + if(isfreq(__date, 1) & __date<yy(5), dummy1, dummy0)");
-    inputDb = struct( );
-    inputDb.x = Series(0, 0);
-    inputDb.dummy1 = Series(1:10, @rand);
-    inputDb.dummy0 = -Series(1:10, @rand);
-    simDb1 = simulate(q, inputDb, 1:10);
-    assertEqual(testCase, simDb1.x(1:10), cumsum(inputDb.dummy0(1:10)), 'AbsTol', 1e-14);
-    inputDb = struct( );
-    inputDb.x = Series(yy(0), 0);
-    inputDb.dummy1 = Series(yy(1:10), @rand);
-    inputDb.dummy0 = -Series(yy(1:10), @rand);
-    simDb2 = simulate(q, inputDb, yy(1:10));
-    temp = [inputDb.dummy1(yy(1:4)); inputDb.dummy0(yy(5:10))];
-    assertEqual(testCase, simDb2.x(yy(1:10)), cumsum(temp), 'AbsTol', 1e-14);
-
-
-%% Test Compare Dynamic Static
+%% Test Compare Dynamic Static If
     q = Explanatory.fromString([
-        "x = x{-1} + if(isfreq(__date, 1) & __date<yy(5), dummy1, dummy0)"
-        "y = 1 + if(isfreq(__date, 1) & __date<yy(5), dummy1, dummy0)"
+        "x = x{-1} + if(w<0, dummy1, dummy0)"
+        "y = 1 + if(w, dummy1, dummy0)"
     ]);
     inputDb = struct( );
     inputDb.x = Series(yy(0:9), 1);
+    inputDb.w = -1;
     inputDb.dummy1 = Series(yy(1:10), @rand);
     inputDb.dummy0 = -Series(yy(1:10), @rand);
-    simDb = simulate(q, inputDb, yy(1:10), 'Blazer=', {'Dynamic=', false});
-    temp = 1 + [inputDb.dummy1(yy(1:4)); inputDb.dummy0(yy(5:10))];
-    assertEqual(testCase, simDb.x(yy(1:10)), temp, 'AbsTol', 1e-14);
-    assertEqual(testCase, simDb.y(yy(1:10)), temp, 'AbsTol', 1e-14);
+    simDb = simulate(q, inputDb, yy(1:10), "Blazer=", {"Dynamic=", false});
+    temp = 1 + inputDb.dummy1;
+    assertEqual(testCase, simDb.x(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
+    assertEqual(testCase, simDb.y(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
+    inputDb.w = Series();
+    inputDb.w(yy(1:10)) = -1;
+    inputDb.w(yy(6:10)) = 1;
+    simDb = simulate(q, inputDb, yy(1:10));
+    assertEqual(testCase, simDb.y(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
+    temp = inputDb.x{yy(0)};
+    for t = yy(1:10)
+        if inputDb.w(t)<0 
+            temp(t) = temp(t-1) + inputDb.dummy1(t);
+        else
+            temp(t) = temp(t-1) + inputDb.dummy0(t);
+        end
+    end
+    assertEqual(testCase, simDb.x(yy(1:10)), temp(yy(1:10)), "AbsTol", 1e-14);
 
 
 %% Test Switch Variable

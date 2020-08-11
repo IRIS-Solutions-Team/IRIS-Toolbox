@@ -71,7 +71,7 @@ if isempty(pp)
     addOptional(pp, 'legacyRange', Inf, @DateWrapper.validateRangeInput);
     addParameter(pp, 'Range', Inf, @DateWrapper.validateRangeInput);
 end
-[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+[skip, opt] = maybeSkip(pp, varargin{:});
 if ~skip
     opt = parse(pp, actual, prediction, varargin{:});
     if any(strcmp(pp.UsingDefaults, 'Range'))

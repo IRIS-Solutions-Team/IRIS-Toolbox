@@ -604,12 +604,31 @@ classdef Frequency < double
                 case Frequency.MONTHLY
                     c = "M";
                 otherwise
-                    thisError = [ 
+                    exception.error([ 
                         "Frequency:InvalidFredFrequency" 
                         "This is not a valid Fred frequency: %s" 
-                        "Fred frequency must be one of {YEARLY, HALFYEARLY, QUARTERY, MONTHLY}." 
-                    ];
-                    throw(exception.Base(thisError, 'error'), this);
+                        "Fred frequency needs to be one of {YEARLY, HALFYEARLY, QUARTERY, MONTHLY}." 
+                    ], this);
+            end
+            %)
+        end%
+
+
+        function c = toIMFLetter(this)
+            %(
+            switch this
+                case Frequency.YEARLY
+                    c = "A";
+                case Frequency.QUARTERLY
+                    c = "Q";
+                case Frequency.MONTHLY
+                    c = "M";
+                otherwise
+                    exception.error([ 
+                        "Frequency:InvalidIMFFrequency" 
+                        "This is not a valid IMF frequency: %s" 
+                        "IMF frequency needs to be one of {YEARLY, QUARTERY, MONTHLY}." 
+                    ], this);
             end
             %)
         end%

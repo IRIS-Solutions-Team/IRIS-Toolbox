@@ -55,7 +55,7 @@ if isempty(pp)
     addRequired(pp, 'bracketTypes', @(x) validate.list(x) && all(cellfun(@(y) any(strcmp(y, {'()', '[]', '{}', '<>'})), cellstr(x))));
 end
 %)
-[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+[skip, opt] = maybeSkip(pp, varargin{:});
 if ~skip
     opt = parse(pp, inputString, bracketTypes);
 end

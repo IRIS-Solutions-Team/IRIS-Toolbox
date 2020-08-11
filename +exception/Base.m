@@ -1,7 +1,7 @@
 classdef Base
     properties
         Identifier = ''
-        ThrowAs = ''
+        ThrowAs (1, 1) string = ""
         Message = ''
         NeedsHighlight = false
     end
@@ -31,9 +31,9 @@ classdef Base
                 return
             end
             if nargin==1
-                throwAs = 'error';
+                throwAs = "error";
             end
-            if strcmpi(throwAs, 'Silent')
+            if matches(throwAs, "Silent", "ignoreCase", true)
                 return
             end
             this.ThrowAs = throwAs;
@@ -78,7 +78,7 @@ classdef Base
             message = strrep(message, '\h', EMPTY_HIGHLIGHT);
             if ~isempty(varargin)
                 % Look for shared arguments %1, %2, ...
-                for i = 1 : length(varargin)
+                for i = 1 : numel(varargin)
                     c = ['%', sprintf('%g', i)];
                     pos = strfind(message, c);
                     if isempty(pos)
@@ -97,9 +97,9 @@ classdef Base
             if ~strcmpi(get(0, 'FormatSpacing'), 'Compact')
                 message = [message, sprintf('\n')];
             end
-            if strcmpi(this.ThrowAs, 'Error')
+            if this.ThrowAs=="error"
                 exception.Base.throwAsError(this.Identifier, message);
-            elseif strcmpi(this.ThrowAs, 'Warning')
+            elseif this.ThrowAs=="warning"
                 exception.Base.throwAsWarning(this.Identifier, message);
             end
         end%
@@ -108,9 +108,9 @@ classdef Base
         
         
         function header = createHeader(this)
-            if strcmpi(this.ThrowAs, 'Error')
+            if this.ThrowAs=="error"
                 header = this.BASE_ERROR_HEADER_FORMAT;
-            elseif strcmpi(this.ThrowAs, 'Warning')
+            elseif this.ThrowAs=="warning"
                 header = this.BASE_WARNING_HEADER_FORMAT;
             else
                 header = '';
@@ -124,14 +124,19 @@ classdef Base
             BR = sprintf('\n');
             varargin = strrep(varargin, BR, ' '); % Replace line breaks with spaces.
             varargin = regexprep(varargin, '[ ]{2, }', ' '); % Replace multiple spaces with one space.
-            for i = 1 : length(varargin)
-                if length(varargin{i})>this.MAX_LEN
+            for i = 1 : numel(varargin)
+                if numel(varargin{i})>this.MAX_LEN
                     varargin{i} = [ varargin{i}(1:this.MAX_LEN), ...
                                     this.ELLIPSIS ];
                 end
             end
             varargin = strtrim(varargin);
             throw(this, varargin{:});
+        end%
+
+
+        function this = set.ThrowAs(this, value)
+            this.ThrowAs = lower(string(value));
         end%
     end
     

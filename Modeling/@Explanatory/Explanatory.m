@@ -27,6 +27,15 @@ classdef Explanatory ...
 % FittedNamePattern  Two-element string array with a prefix and a suffix
 % attached to LHS variables names to create the fitted name
         FittedNamePattern (1, 2) string = ["fit_", ""]
+
+
+% ResidualModel  Armani or ParameterizedArmani object specifying an ARMA
+% model for residuals
+        ResidualModel = [ ]
+
+
+% ResidualModelParameters  Parameters in residual model
+        ResidualModelParameters (1, :, :) double = double.empty(1, 0, 1)
     end
 
 
@@ -51,17 +60,19 @@ classdef Explanatory ...
         Export (1, :) shared.Export = shared.Export.empty(1, 0)
         Substitutions (1, 1) struct = struct( )
 
+        Sealed = false
+        Simulate = [ ]
+        EndogenizeResiduals = [ ]
+
+% IsIdentity  True if the Explanatory object is an identity without
+% residuals
         IsIdentity (1, 1) logical = false
 
 
-% ArReference  Symbol used to create lags of LHS variables (aka AR terms) on
+% LhsReference  Symbol used to create lags of LHS variables (aka AR terms) on
 % the RHS; each LhsReferece on the RHS must be followed by a shift
 % specification in curly braces (lags are specified as negative numbers)
-        ArReference (1, 1) string = "__ar"
-
-
-% DateReference  Symbol under which the current date is accessible at runtime
-        DateReference (1, 1) string = "__date"
+        LhsReference (1, 1) string = "__lhs"
 
 
 % DependentTerm  Dependent (left-hand side) term
@@ -97,12 +108,17 @@ classdef Explanatory ...
         ResidualName
         FittedName
 
-        % PlainDataNames  List of plain names in a single Explanatory object
-        %
-        % List of all names occurring on the LHS and RHS of the Explanatory
-        % object complemented with the `ResidualName` (ordered last in the
-        % list)
+% PlainDataNames  List of plain names in a single Explanatory object
+%
+%>    List of all names occurring on the LHS and RHS of the Explanatory
+%>    object complemented with the `ResidualName` (ordered last in the
+%>    list)
         PlainDataNames
+
+
+% HasResidualModel  True if a non-identity ARIMA model for residual exists
+        HasResidualModel
+
 
         NumExplanatoryTerms
         NumParameters
@@ -122,11 +138,12 @@ classdef Explanatory ...
                 this = varargin{1};
                 return
             end
-            thisError = [ "Explanatory:InvalidContructorCall"
-                          "This is not a valid way to construct an Explanatory object or array. "
-                          "Use one of the static constructors Explanatory.fromString( ) "
-                          "or Explanatory.fromFile( ). " ];
-            throw(exception.Base(thisError, 'error'));
+            throw(exception.Base([
+                "Explanatory:InvalidContructorCall"
+                "This is not a valid way to construct an Explanatory object or array. "
+                "Use one of the static constructors Explanatory.fromString( ) "
+                "or Explanatory.fromFile( ). "
+            ], "error"));
         end%
     end
 
@@ -148,8 +165,10 @@ classdef Explanatory ...
         varargout = retrieve(varargin)
         varargout = getActualMinMaxShifts(varargin)
         varargout = lookup(varargin)
+        varargout = parameterizeResidualModels(varargin)
         varargout = regress(varargin)
         varargout = simulate(varargin)
+        varargout = simulateResidualModel(varargin)
         varargout = residuals(varargin)
         %)
     end
@@ -157,10 +176,10 @@ classdef Explanatory ...
 
 
 
-    methods % Frontend Definitions
+    methods 
         %(
-        function this = addExplanatoryTerm(this, fixed, specification, varargin)
-            term = regression.Term(this, specification, varargin{:});
+        function this = addExplanatoryTerm(this, fixed, inputString)
+            term = regression.Term(this, inputString, "rhs");
             term = containsLhsName(term, this.PosLhsName);
             if term.ContainsCurrentLhsName
                 hereReportCurrentLhsName( );
@@ -173,25 +192,52 @@ classdef Explanatory ...
             end
             this.Statistics.CovParameters(end+1, end+1, :) = NaN;
             return
+
                 function hereReportCurrentLhsName( )
-                    thisWarning = [
+                    throw(exception.Base([
                         "Explanatory:RhsContainsCurrentLhsName"
                         "RHS of the Explanatory object contains the current date of its own LHS name: %s "
                         "Careful because Explanatory objects are not solved as simultaneous systems. "
-                    ];
-                    throw(exception.Base(thisWarning, 'warning'), this.LhsName);
+                    ], "warning"), this.LhsName);
                 end%
+        end%
+
+
+        function this = seal(this)
+            build = "";
+            for i = 1 : this.NumExplanatoryTerms
+                build = build + "+p(:," + string(i) + ",v)*(" + this.ExplanatoryTerms(i).Expression + ")";
+            end
+            if ~this.IsIdentity
+                this.EndogenizeResiduals = ...
+                    str2func("@(x,e,p,t,v,controls__)" + this.DependentTerm.Expression + "-(" + build + ")");
+                build = build + "+e(:, t, v)";
+            end
+            if isempty(this.DependentTerm.InverseTransform)
+                invert = build;
+            else
+                invert = replace(this.DependentTerm.InverseTransform, "__lhs", "("+build+")");
+                this.DependentTerm.InverseTransform = [ ];
+            end
+            this.Simulate = str2func("@(x,e,p,t,v,controls__)" + invert);
+            
+            for i = 1 : this.NumExplanatoryTerms
+                this.ExplanatoryTerms(i).Expression = ...
+                    str2func("@(x,e,p,t,v,controls__)" + this.ExplanatoryTerms(i).Expression);
+            end
+            this.DependentTerm.Expression = ...
+                str2func("@(x,e,p,t,v,controls__)" + this.DependentTerm.Expression);
+            this.Sealed = true;
         end%
 
 
         function flag = hasAttribute(this, attribute)
             attribute = strtrim(string(attribute));
             if ~isscalar(attribute) || ~startsWith(attribute, ":")
-                thisError = [ 
+                throw(exception.Base([ 
                     "Explanatory:InvalidAttributeRequest"
                     "Attribute has to be a scalar string starting with a colon." 
-                ];
-                throw(exception.Base(thisError, 'error'));
+                ], "error"));
             end
             flag = arrayfun(@(x) any(x.Attributes==attribute), this);
         end%
@@ -217,12 +263,11 @@ classdef Explanatory ...
                 this.Statistics.CovParameters(inx, inx, :) = [ ];
                 return
             end
-            thisError = [ 
+            throw(exception.Base([ 
                 "Explanatory:CannotFindExplanatoryTerm"
                 "Cannot find the specified explanatory variable or term "
                 "that is to be removed from an Explanatory model."
-            ];
-            throw(exception.Base(thisError, 'error'));
+            ], "error"));
         end%
 
 
@@ -264,16 +309,16 @@ classdef Explanatory ...
             if all(nv==value | nv==1)
                 return
             end
-            thisError = [ 
+            throw(exception.Base([ 
                 "Explanatory:InconsistentNumberOfVariants"
                 "All Explanatory objects grouped in an array must have "
                 "identical numbers of parameter variants." 
-            ];
-            throw(exception.Base(thisError, 'error'));
+            ], 'error'));
         end%
 
 
-        varargout = createModelData(varargin)
+        varargout = createData4Simulate(varargin)
+        varargout = createData4Regress(varargin)
         varargout = createOutputDatabank(varargin)
 
 
@@ -295,36 +340,6 @@ classdef Explanatory ...
 
         function value = getp(this, name)
             value = this.(name);
-        end%
-
-
-        function plainData = updateResidualsInPlainData(this, plainData, res, t)
-            if isempty(res) || isempty(this.Runtime.PosResidualInPlainData)
-                return
-            end
-            plainData(this.Runtime.PosResidualInPlainData, t, :) = res(1, t, :);
-        end%
-
-
-        function plainData = updateLhsInPlainData(this, plainData, lhs, t)
-            if isempty(lhs)
-                return
-            end
-            posLhs = this.DependentTerm.Position;
-            transform = this.DependentTerm.Transform;
-            if strlength(transform)==0
-                plainData(posLhs, t, :) = lhs(:, t, :);
-            else
-                plainData(posLhs, t, :) = regression.Term.INV_TRANSFORMS.(transform)(lhs, plainData, posLhs, t);
-            end
-        end%
-
-
-        function rhs = updateOwnExplanatoryTerms(this, rhs, plainData, t, date, controls)
-            % Update RHS rows for RHS terms that contain the LHS variable
-            for i = find([this.ExplanatoryTerms.ContainsLhsName])
-                rhs(i, t, :) = createModelData(this.ExplanatoryTerms(i), plainData, t, date, controls);
-            end
         end%
     end
 
@@ -367,48 +382,17 @@ classdef Explanatory ...
 
 
     methods
-        function this = set.DependentTerm(this, term)
-            if ~isscalar(term)
-                thisError = [ 
-                    "Explanatory:InvalidDependentTerm"
-                    "Only one DependentTerm can be specified "
-                    "in an Explanatory object." 
-                ];
-                throw(exception.Base(thisError, "error"));
-            end
-            if ~isempty(term.Expression)
-                thisError = [ 
-                    "Explanatory:InvalidDependentTerm"
-                    "Invalid specification of the DependentTerm "
-                    "in an ExplanatoryEqution object."
-                ];
-                throw(exception.Base(thisError, "error"));
-            end
-            if term.Shift~=0
-                thisError = [ 
-                    "Explanatory:InvalidDependentTerm"
-                    "Depedent term in an Explanatory objection "
-                    "is not allowed with a time shift (lag or lead). "
-                ];
-                throw(exception.Base(thisError, 'error'));
-            end
-            term = containsLhsName(term, term.Position);
-            this.DependentTerm = term;
-        end%
-
-
         function this = set.VariableNames(this, value)
             if isempty(value)
                 this.VariableNames = string.empty(1, 0);
                 return
             end
             if any(strlength(value)==0)
-                thisError = [ 
+                throw(exception.Base([ 
                     "Explanatory:InvalidVariableNames"
                     "Variable names in an Explanatory object "
                     "must be nonempty strings."
-                ];
-                throw(exception.Base(thisError, 'error'));
+                ], "error"));
             end
             this.VariableNames = string(value);
             checkNames(this);
@@ -421,12 +405,11 @@ classdef Explanatory ...
                 return
             end
             if any(strlength(value)==0)
-                thisError = [ 
+                throw(exception.Base([ 
                     "Explanatory:InvalidVariableNames"
                     "Control names in an Explanatory object "
                     "must be nonempty strings."
-                ];
-                throw(exception.Base(thisError, 'error'));
+                ], "error"));
             end
             this.ControlNames = unique(string(value), 'stable');
             checkNames(this);
@@ -466,24 +449,19 @@ classdef Explanatory ...
         function this = set.Parameters(this, value)
             %(
             if ~isnumeric(value)
-                thisError = [
+                throw(exception.Base([ 
                     "Explanatory:InvalidParametersAssigned"
                     "Parameters in Explanatory objects must be numeric values"
-                ];
-                throw(exception.Base(thisError, 'error'));
+                ], "error"));
             end
             for i = 1 : numel(this)
                 numTerms = numel(this(i).ExplanatoryTerms);
                 if size(value, 2)~=numTerms
-                    thisError = [
+                    throw(exception.Base([ 
                         "Explanatory:InvalidParametersAssigned"
                         "Invalid dimension of parameters assigned to Explanatory object:"
-                        "there are %g explanatory term(s) and %s values being assigned."
-                    ];
-                    throw( ...
-                        exception.Base(thisError, 'error') ...
-                        , numTerms, size(value, 2) ...
-                    );
+                        "there are %g explanatory term(s) and %g value(s) being assigned."
+                    ], "error"), numTerms, size(value, 2));
                 end
                 this(i).Parameters = value;
             end
@@ -503,16 +481,39 @@ classdef Explanatory ...
             this.Fixed = value;
             numTerms = numel(this.ExplanatoryTerms);
             if size(this.Fixed, 2)~=numTerms
-                thisError = [
+                throw(exception.Base([
                     "Explanatory:InvalidFixedParametersAssigned"
                     "Invalid dimension of fixed parameters assigned to Explanatory object:"
                     "there are %g explanatory term(s) and %g parameter variant(s)."
-                ];
-                throw( ...
-                    exception.Base(thisError, 'error') ...
-                    , numTerms, countVariants(this) ...
-                );
+                ], "error"), numTerms, countVariants(this));
             end
+            %)
+        end%
+
+
+        function this = set.ResidualModel(this, value)
+            %(
+            nv = countVariants(this);
+            if isempty(value)
+                this.ResidualModel = [ ];
+                this.ResidualModelParameters = double.empty(1, 0, nv);
+                return
+            end
+            if isa(value, "ParameterizedArmani")
+                this.ResidualModel = value;
+                this.ResidualModelParameters = nan(1, value.NumParameters, nv);
+                return
+            end
+            if isa(value, "Armani")
+                this.ResidualModel = value;
+                this.ResidualModelParameters = double.empty(1, 0, nv);
+                return
+            end
+            throw(exception.Base([
+                "Exception:InvalidResidualModel"
+                "Invalid ResidualModel assigned to an Explanatory object. "
+                "ResidualModel needs to be one of {empty, Armani, ParameterizedArmani}."
+            ], "error"));
             %)
         end%
 
@@ -526,8 +527,6 @@ classdef Explanatory ...
         end%
 
 
-
-
         function value = get.PosLhsName(this)
             if isempty(this.DependentTerm)
                 value = NaN;
@@ -537,24 +536,24 @@ classdef Explanatory ...
         end%
 
 
+        function value = get.HasResidualModel(this)
+            value = false(size(this));
+            for i = 1 : numel(this)
+                value(i) = ~isempty(this(i).ResidualModel) && ~this(i).ResidualModel.IsIdentity;
+            end
+        end%
 
 
         function value = get.MaxLag(this)
-            allMaxLags = [this.ExplanatoryTerms.MinShift];
-            value = min(allMaxLags);
+            value = min([this.DependentTerm.MinShift, this.ExplanatoryTerms(:).MinShift]);
             value = min(0, value);
         end%
 
 
-
-
         function value = get.MaxLead(this)
-            allMaxLeads = [this.ExplanatoryTerms.MaxShift];
-            value = max(allMaxLeads);
+            value = max([this.DependentTerm.MaxShift, this.ExplanatoryTerms(:).MaxShift]);
             value = max(0, value);
         end%
-
-
 
 
         function value = get.LhsName(this)
@@ -571,13 +570,9 @@ classdef Explanatory ...
         end%
 
 
-
-
         function value = get.RhsContainsLhsName(this)
             value = any([this.ExplanatoryTerms.ContainsLhsName]);
         end%
-
-
 
 
         function value = get.ResidualName(this)
@@ -597,13 +592,6 @@ classdef Explanatory ...
                 return
             end
             value = this.FittedNamePattern(1) + this.LhsName + this.FittedNamePattern(2);
-        end%
-
-
-
-
-        function value = get.PlainDataNames(this)
-                value = [this.VariableNames, this.ResidualName];
         end%
 
 

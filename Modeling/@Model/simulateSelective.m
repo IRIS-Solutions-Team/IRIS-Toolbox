@@ -23,7 +23,7 @@ solverOpt = data.SolverOptions;
 solverName = solverOpt(1).SolverName;
 window = data.Window;
 
-columnRangeHashFactors = firstColumnFrame + (0 : window-1);
+columnRangeHashWindow = firstColumnFrame + (0 : window-1);
 
 tempE = data.AnticipatedE;
 tempE(:, firstColumnFrame) = tempE(:, firstColumnFrame) ...
@@ -66,7 +66,7 @@ if data.NumOfExogenizedPoints==0
     end
 end
 
-nlafInit = data.NonlinAddf(:, columnRangeHashFactors);
+nlafInit = data.NonlinAddf(:, columnRangeHashWindow);
 
 if strncmpi(solverName, 'IRIS', 4)
     % [IrisToolbox] Solver
@@ -110,7 +110,7 @@ else
 end
 
 rect.SimulateY = true;
-data.NonlinAddf(:, columnRangeHashFactors) = nlafFinal; 
+data.NonlinAddf(:, columnRangeHashWindow) = nlafFinal; 
 simulateFunc(rect, data);
 
 return
@@ -118,7 +118,7 @@ return
 
     function dcy = hereObjectiveFunctionFull(nlaf)
     %(
-        data.NonlinAddf(:, columnRangeHashFactors) = nlaf;
+        data.NonlinAddf(:, columnRangeHashWindow) = nlaf;
         simulateFunc(rect, data);
         YXEPG = data.YXEPG;
 
@@ -176,7 +176,7 @@ return
             YXEPG(inxYX, :) = yx;
         end
         try
-            dcy = hashEquations(YXEPG, columnRangeHashFactors, data.BarYX);
+            dcy = hashEquations(YXEPG, columnRangeHashWindow, data.BarYX);
         catch
             dcy = [ ];
             hereReportError( );
@@ -191,7 +191,7 @@ return
                 report = cell.empty(1, 0);
                 for i = 1 : numHashEquations
                     try
-                        rect.HashEquationsIndividually{i}(YXEPG, columnRangeHashFactors, data.BarYX);
+                        rect.HashEquationsIndividually{i}(YXEPG, columnRangeHashWindow, data.BarYX);
                     catch Err
                         report{1, end+1} = rect.HashEquationsInput{i};
                         report{1, end+1} = Err.message;
@@ -220,7 +220,7 @@ return
         inc = inc(inxYX, :);
         shifts = rect.HashIncidence.Shift;
         inxHashedYX = false(numYX, data.NumOfColumns);
-        for ii = columnRangeHashFactors
+        for ii = columnRangeHashWindow
             columnRange = ii + shifts;
             inxHashedYX(:, columnRange) = inxHashedYX(:, columnRange) | inc;
         end

@@ -17,7 +17,7 @@ if isempty(pp)
     addRequired(pp, 'newFreq', @(x) isnumeric(x) && isscalar(x) && any(x==validFrequencies));
     addDateOptions(pp);
 end
-[skip, opt] = maybeSkipInputParser(pp, varargin{:});
+[skip, opt] = maybeSkip(pp, varargin{:});
 if ~skip
     pp.parse(inputDate, toFreq, varargin{:});
     opt = pp.Options;

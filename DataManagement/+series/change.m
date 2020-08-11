@@ -1,4 +1,4 @@
-function data = change(data, func, shifts, rows)
+function data = change(data, func, shift)
 % change  Calculate change in time series values between periods
 %
 % Backend [IrisToolbox] function
@@ -12,30 +12,25 @@ if isempty(data)
 end
 
 if nargin<3
-    shifts = -1;
+    shift = -1;
 end
 
-if nargin<4
-    rows = [ ];
-end
-
-if isempty(shifts) && isempty(rows)
+if isempty(shift) 
     data = numeric.empty(data, 2);
     return
 end
 
 %--------------------------------------------------------------------------
 
-if ~isempty(shifts)
-    dataShifted = numeric.shift(data, shifts);
-    data = repmat(data, 1, numel(shifts));
-else
-    inxValidRows = isfinite(rows);
-    dataShifted = nan(size(data));
-    dataShifted(inxValidRows, :) = data(rows(inxValidRows), :);
-end
+numPeriods = size(data, 1);
+rows = (1 : numPeriods) + shift;
+inxValidRows = rows>=1 & rows<=numPeriods;
+dataShifted = nan(size(data));
+dataShifted(inxValidRows, :) = data(rows(inxValidRows), :);
 
+% /////////////////////////////////////////////////////////////////////////
 data = func(data, dataShifted);
+% /////////////////////////////////////////////////////////////////////////
 
 end%
 

@@ -1,31 +1,39 @@
 function output = xlist(glue, varargin)
 % textual.xlist  Create list of all combinations of components
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
 %     output = textual.xlist(glue, component, component, etc...)
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
 % 
-% __`glue`__ [ char | string ] -
-% String that will be used as a glue placed between individual components.
+% __`glue`__ [ char | string ]
 %
-% __`component`__ [ char | cellstr | string | numeric ] -
-% Individual components from which the output string will be composed. Each
-% `component` can be either a scalar (a char vector, a string scalar, or a
-% numeric scalar) or a non-scalar (a cell array of chars, a string array,
-% or a numeric array); see Description for how non-scalar inputs are
-% combined into the final `output`.
+%>    String that will be used as a glue placed between individual components.
 %
 %
-% ## Output Arguments ##
+% __`component`__ [ char | cellstr | string | numeric ]
 %
-% __`output`__ [ string ] -
-% Horizontal string vector composed from the input components.
+%>    Individual components from which the output string will be composed. Each
+%>    `component` can be either a scalar (a char vector, a string scalar, or a
+%>    numeric scalar) or a non-scalar (a cell array of chars, a string array,
+%>    or a numeric array); see Description for how non-scalar inputs are
+%>    combined into the final `output`.
 %
 %
-% ## Description ##
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __`output`__ [ string ]
+%
+%>    Horizontal string vector composed from the input components.
+%
+%
+% Description
+%--------------------------------------------------------------------------
 %
 % If each of the inputs is a scalar (a char vector, a string scalar, or a
 % numeric scalar), the final `output` is either a char vector or a string
@@ -41,21 +49,43 @@ function output = xlist(glue, varargin)
 % chars.
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
 %
-% Examples of scalar components
-% 
-%     >> textual.xlist('_', "my', "cross", 'list')
+% Example of scalar components;  
+%
+%     >> textual.xlist("_", "my", "scalar", "xlist")
 %     ans =
-%         "my_cross_list"
+%         "my_scalar_xlist"
 %
-%     >> textual.crosslist('_', 1, 2, 3) 
+%     >> textual.xlist("_", 1, 2, 3) 
 %     ans =
 %         "1_2_3"
+%
+% Obviously, the same result can be here achieved by simply running
+%
+%     >> join(["my", "scalar", "xlist"], "_")
+%
+%
+% Example
+%--------------------------------------------------------------------------
+%
+% Example of array components
+%
+%     >> textual.xlist("_", ["a", "b", "c"], ["1", "2", "3", "4"], ["#", $"])
+%     ans =
+%       1x24 string array
+%       Columns 1 through 10
+%         "a_1_#"    "a_1_$"    "a_2_#"    "a_2_$"    "a_3_#"    "a_3_$"    "a_4_#"    "a_4_$"    "b_1_#"    "b_1_$"
+%       Columns 11 through 20
+%         "b_2_#"    "b_2_$"    "b_3_#"    "b_3_$"    "b_4_#"    "b_4_$"    "c_1_#"    "c_1_$"    "c_2_#"    "c_2_$"
+%       Columns 21 through 24
+%         "c_3_#"    "c_3_$"    "c_4_#"    "c_4_$"
+%
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 

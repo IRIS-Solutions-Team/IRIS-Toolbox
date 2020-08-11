@@ -98,7 +98,7 @@ classdef Pseudofunc
                         c(startKey:end) ...
                     );
                 end
-                repl = replaceCode(this, args{:});
+                repl = expand(this, args{:});
                 shRepl = this.createShadowCode(repl);
                 c = [ c(1:startKey-1), repl, c(closeBracket+1:end) ];
                 wh = [ wh(1:startKey-1), repl, wh(closeBracket+1:end) ];
@@ -125,23 +125,24 @@ classdef Pseudofunc
         
         
         
-        function body = replaceCode(this, varargin)
-            [body, shifts] = varargin{1:2};
-            shifts = reshape(shifts, 1, [ ]);
-            if ~isnumeric(shifts) || any(shifts==0) 
+        function body = expand(this, varargin)
+            [body, diffops] = varargin{1:2};
+            body = char(body);
+            diffops = reshape(double(diffops), 1, [ ]);
+            if ~isnumeric(diffops) || any(diffops==0) 
                 repl = this.EmptyReturn;
                 return
             end
-            numShifts = numel(shifts);
-            for i = 1 : numShifts
+            numDiffops = numel(diffops);
+            for i = 1 : numDiffops
                 transform = i==1; % [^1]
-                enclose = i==numShifts; % [^2]
+                enclose = i==numDiffops; % [^2]
                 % [^1]: Apply transformation, such as log( ), only when
                 % expanding the pseudofunction the first time 
                 % [^2]: Wrap the expansion in an extra pair of parentheses
                 % only when expending the pseudofunction the last time
 
-                [list, beta] = createAllTerms(this, body, shifts(i), varargin{3:end});
+                [list, beta] = createAllTerms(this, body, diffops(i), varargin{3:end});
                 body = concatenateTerms(this, list, beta, transform, enclose);
             end
         end%

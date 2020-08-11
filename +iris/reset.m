@@ -4,8 +4,8 @@ function irisConfig = reset(options)
 % Backend IRIS class
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 if nargin==0
     options.SeriesConstructor = @Series;
@@ -18,7 +18,7 @@ passvalopt( );
 
 iris.Configuration.clear( );
 
-irisConfig = iris.Configuration( );
+irisConfig = iris.Configuration(options);
 irisConfig.DefaultTimeSeriesConstructor = options.SeriesConstructor;
 save(irisConfig);
 
@@ -56,4 +56,5 @@ return
                    'and reinstall [IrisToolbox].'] );
         end
     end%
-end
+end%
+

@@ -1,18 +1,19 @@
-function startup(varargin)
-% iris.startup  Start IRIS session
-%
-% __Syntax__
+% iris.startup  Start an [IrisToolbox] session
+%{
+% Syntax
+%--------------------------------------------------------------------------
 %
 %     iris.startup
 %     iris.startup('--option')
 %
 %
-% __Description__
+% Description
+%--------------------------------------------------------------------------
 %
 % We recommend that you keep the IRIS root directory on the permanent
 % Matlab search path. Each time you wish to start working with IRIS, you
 % run `iris.startup` form the command line. At the end of the session, you
-% can run [`irisfinish`](config/irisfinish) to remove IRIS
+% can run [`iris.finish`](config/irisfinish) to remove IRIS
 % subfolders from the temporary Matlab search path, and to clear persistent
 % variables in some of the backend functions.
 %
@@ -24,39 +25,58 @@ function startup(varargin)
 % * Removes redundant IRIS folders (e.g. other or older installations) from
 % the Matlab search path.
 %
-% * Resets IRIS configuration options to default, updates the location of
-% TeX/LaTeX executables, and calls
-% [`irisuserconfig`](config/irisuserconfighelp) to modify the configuration
-% option.
-%
-% * Associates the default IRIS extensions with the Matlab Editor. If they
-% had not been associated before, Matlab must be re-started for the
-% association to take effect.
+% * Resets IRIS configuration options to default and updates the location
+% of TeX/LaTeX executables.
 %
 %
-% __Options__
+% Options
+%--------------------------------------------------------------------------
 %
-% * `--Silent` - Do not print introductory message on the screen.
+% __`silent`__ 
 %
-% * `--tseries` - Use the `tseries` class as the default time series class.
+%>    Do not print introductory message on the screen.
 %
-% * `--Series` - Use the `Series` class as the default time series class.
 %
+% __`tseries`__ 
+%
+%>    Use the old `tseries` class as the default time series class.
+%
+%
+% __`Series`__
+%
+%>    Use the regular `Series` class as the default time series class (this
+%>    is the default behavior and does not need to be explicitly stated).
+%
+%
+% __`noIdCheck`__
+%
+%>    Do not verify the IrisT release check file
+%
+%
+% __`noTeX`__
+%
+%>    Do not try to look up TeX executables
+%
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-MATLAB_RELEASE_OR_HIGHER = 'R2016b';
+function startup(varargin)
+
+MINIMUM_MATLAB = 'R2016b';
 
 %--------------------------------------------------------------------------
 
-if getMatlabRelease( )<release2num(MATLAB_RELEASE_OR_HIGHER)
-    thisError = { 'IrisToolbox:StartupError'
-                  'Matlab %s or later is needed to run this [IrisToolbox] release' };
-    error(thisError{1}, [thisError{2:end}], MATLAB_RELEASE_OR_HIGHER);
+if locallyGetMatlabRelease( )<locallyReleaseToNum(MINIMUM_MATLAB)
+    error( ...
+        "IrisToolbox:StartupError" ...
+        , "Matlab %s or later is needed to run this [IrisToolbox] release" ...
+        , MINIMUM_MATLAB ...
+    );
 end
 
-options = resolveInputOptions(varargin{:});
+options = locallyResolveInputOptions(varargin{:});
 
 % Reset path, remove other root folders
 [root, ~, rootsRemoved] = iris.path( );
@@ -69,14 +89,13 @@ if ~options.Silent
     if config.DesktopStatus
         fprintfx = @(varargin) fprintf(varargin{:});       
     else
-        fprintfx = @(varargin) fprintf('%s', removeTags(sprintf(varargin{:})));
+        fprintfx = @(varargin) fprintf('%s', locallyRemoveTags(sprintf(varargin{:})));
     end
     hereDisplayIntro( );
     hereDisplayDetails( );
 end
 
 return
-
 
     function hereDisplayIntro( )
         release = config.Release;
@@ -92,8 +111,6 @@ return
     end%
         
 
-
-
     function hereDisplayDetails( )
         % IRIS root folder
         fprintfx('\tRoot Folder: <a href="file:///%s">%s</a>\n', root, root);
@@ -107,7 +124,7 @@ return
         % LaTeX engine
         fprintf('\tLaTeX Engine: ');
         if isempty(config.PdfLaTeXPath)
-            fprintf('No PDF LaTeX engine found');
+            fprintf('No PDF LaTeX engine configured');
         else
             fprintfx( ...
                 '<a href="file:///%s">%s</a>', ...
@@ -120,7 +137,7 @@ return
         % Ghostscript
         fprintf('\tGhostscript Engine: ');
         if isempty(config.GhostscriptPath)
-            fprintf('No Ghostscript engine found');
+            fprintf('No Ghostscript engine configured');
         else
             fprintfx( ...
                 '<a href="file:///%s">%s</a>', ...
@@ -152,9 +169,7 @@ return
 end%
 
 
-
-
-function r = getMatlabRelease( )
+function r = locallyGetMatlabRelease( )
     r = uint16(0);
     try %#ok<TRYNC>
         s = ver('MATLAB');
@@ -163,16 +178,14 @@ function r = getMatlabRelease( )
             s = s(find(ixMatlab, 1));
             r = regexp(s.Release, 'R\d{4}[ab]', 'match', 'once');
             if ~isempty(r)
-                r = release2num(r);
+                r = locallyReleaseToNum(r);
             end
         end
     end
 end%
 
 
-
-
-function n = release2num(r)
+function n = locallyReleaseToNum(r)
     n = uint16(0);
     r = lower(r);
     if length(r)~=6 || r(1)~='r' || ~any(r(6)=='ab')
@@ -187,35 +200,35 @@ function n = release2num(r)
 end%
 
 
-
-
-function options = resolveInputOptions(varargin)
+function options = locallyResolveInputOptions(varargin)
     options = struct( );
     options.Silent = false;
     options.SeriesConstructor = @Series;
     options.CheckId = true;
+    options.TeX = true;
+    if nargin==0
+        return
+    end
 
-    varargin = strtrim(varargin);
-    varargin = strrep(varargin, '-', '');
-    for i = 1 : numel(varargin)
-        ithArg = varargin{i};
-        if strcmpi(ithArg, 'Shutup') || strcmpi(ithArg, 'Silent')
+    inputOptions = cellfun(@string, varargin);
+    inputOptions = strip(erase(inputOptions, "-"));
+    for n = inputOptions
+        if matches(n, ["Shutup", "Silent"], "ignoreCase", true)
             options.Silent = true;
-        elseif strcmpi(ithArg, 'tseries')
+        elseif matches(n, "tseries", "ignoreCase", true);
             options.SeriesConstructor = @tseries;
-        elseif strcmpi(ithArg, 'Series')
+        elseif matches(n, "Series", "ignoreCase", true);
             options.SeriesConstructor = @Series;
-        elseif strcmpi(ithArg, 'NoIdChk') || strcmpi(ithArg, 'NoIdCheck')
+        elseif matches(n, ["NoIdChk", "NoIdCheck"], "ignoreCase", true)
             options.CheckId = false;
+        elseif matches(n, ["NoTex"], "ignoreCase", true)
+            options.TeX = false;
         end
     end
-    options.CheckId = ~any(strcmpi(varargin, '-noidchk'));
 end%
 
 
-
-
-function msg = removeTags(msg)
+function msg = locallyRemoveTags(msg)
     msg = regexprep(msg, '<a[^<]*>', '');
     msg = strrep(msg, '</a>', '');
     msg = strrep(msg, '<strong>', '');
