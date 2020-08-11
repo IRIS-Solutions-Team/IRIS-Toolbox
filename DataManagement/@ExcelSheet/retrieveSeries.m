@@ -36,14 +36,14 @@ function outputSeries = retrieveSeries(this, locationRef, varargin)
 
 dataRange = this.DataRange;
 if isempty(dataRange)
-    thisError = [
+    exception.error([
         "ExcelSheet:CannotSetDates"
         "DataRange or (DataStart and DataEnd) need to be set first before "
         "setting or retrieving time series."
-    ];
-    throw(exception.Base(thisError, 'error'));
+    ]);
 end
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('ExcelSheet.retrieveSeries');
@@ -53,8 +53,8 @@ if isempty(pp)
     addParameter(pp, 'Aggregator', [ ], @(x) isempty(x) || isa(x, 'function_handle'));
     addParameter(pp, 'Comment', '', @(x) validate.string(x) || validate.list(x));
 end
-parse(pp, this, locationRef, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, this, locationRef, varargin{:});
 
 if ~iscell(locationRef)
     locationRef = { locationRef };

@@ -44,27 +44,35 @@ function outputDb = retrieveDatabank(this, range, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('ExcelSheet.retrieveDatabank');
     addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
-    addRequired(pp, 'range', @(x) isnumeric(x) || validate.string(x));
-    % Options
+    addRequired(pp, 'range', @(x) isnumeric(x) || isstring(x) || validate.string(x));
+    
     addParameter(pp, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
     addParameter(pp, 'OutputType', 'struct', @(x) validate.anyString(x, 'struct', 'Dictionary'));
+    addParameter(pp, "UpdateWhenExists", false, @validate.logicalScalar);
 end
-parse(pp, this, range, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, this, range, varargin{:});
 
 %--------------------------------------------------------------------------
 
-if isequaln(this.NamesLocation, NaN)
-    thisError = [
+names = [ ];
+if isstring(range) && numel(range)>1 && all(contains(range, "->"))
+    [range, names] = textual.split(range, "->"); 
+    range = strip(range);
+    names = strip(names);
+end
+
+if isequaln(this.NamesLocation, NaN) && isempty(names)
+    exception.error([
         "ExcelSheet:NamesLocationNotSpecified"
-        "The ExcelSheet property NamesLocation needs to be specified "
-        "before running retrieveDatabank( )."
-    ];
-    throw( exception.Base(thisError, 'error') );
+        "The ExcelSheet property NamesLocation needs to be specified first "
+        "when running retrieveDatabank( ) without the reference->name mapping."
+    ]);
 end
 
 outputDb = databank.backend.ensureTypeConsistency( ...
@@ -72,19 +80,27 @@ outputDb = databank.backend.ensureTypeConsistency( ...
 );
 
 if this.Orientation=="Row"
-    if ~isnumeric(range)
+    if isstring(range) && numel(range)>1
+        range = ExcelReference.decodeRow(range);
+    elseif ~isnumeric(range)
         range = ExcelReference.decodeRowRange(range);
     end
 else
-    if ~isnumeric(range)
+    if isstring(range) && numel(range)>1
+        range = ExcelReference.decodeColumn(range);
+    elseif ~isnumeric(range)
         range = ExcelReference.decodeColumnRange(range);
     end
 end
-range = transpose(range(:));
+range = reshape(range, 1, [ ]);
 
-for i = range
-    name = hereRetrieveName( );
-    x = retrieveSeries(this, i);
+for i = 1 : numel(range)
+    if ~isempty(names)
+        name = names(i);
+    else
+        name = hereRetrieveName(range(i));
+    end
+    x = retrieveSeries(this, range(i));
     hereAddEntryToOutputDatabank(name, x);
 end
 
@@ -103,23 +119,30 @@ return
         if this.Orientation=="Row"
             name = this.Buffer{location, this.NamesLocation};
         else
-            name = this.Buffer{this.NamesLocation, i};
+            name = this.Buffer{this.NamesLocation, location};
         end
         if isempty(name) || ~validate.string(name)
-            thisError = [
+            exception.error([
                 "ExcelSheet:InvalidSeriesName"
                 "Some name(s) in NamesLocation are invalid."
-            ];
-            throw( exception.Base(thisError, 'error') );
+            ]);
         end
     end%
 
 
-    function hereAddEntryToOutputDatabank(name, x)
-        if strcmpi(opt.OutputType, 'Dictionary')
-            store(outputDb, name, x);
+    function hereAddEntryToOutputDatabank(name, newSeries)
+        if opt.UpdateWhenExists && isfield(outputDb, name) && ~isempty(outputDb.(name))
+            if matches(opt.OutputType, "Dictionary", "ignoreCase", true)
+                updateSeries(outputDb, name, newSeries);
+            else
+                outputDb.(name) = [outputDb.(name); newSeries];
+            end
         else
-            outputDb.(char(name)) = x;
+            if matches(opt.OutputType, "Dictionary", "ignoreCase", true)
+                store(outputDb, name, newSeries);
+            else
+                outputDb.(name) = newSeries;
+            end
         end
     end%
 end%
