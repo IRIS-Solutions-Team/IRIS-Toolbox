@@ -5,16 +5,16 @@ classdef InputParser < inputParser
         Aliases = struct( )
         Conditional = inputParser.empty(0)
 
-        HasDateOptions = false
+        HasDateOptions (1, 1) logical = false
         DateOptionsContext = ''
-        HasDeviationOptions = false
-        HasSwapFixOptions = false
-        HasOptionalRangeStartEnd = false
-        HasStartEndOptions = false
+        HasDeviationOptions (1, 1) logical = false
+        HasSwapFixOptions (1, 1) logical = false
+        HasOptionalRangeStartEnd (1, 1) logical = false
+        HasStartEndOptions (1, 1) logical = false
 
         Nested = struct( )
-        DefaultOptions = struct( );
-        KeepDefaultOptions = false;
+        DefaultOptions = struct( )
+        KeepDefaultOptions (1, 1) logical = false
     end
 
 
@@ -104,10 +104,12 @@ classdef InputParser < inputParser
         end%
 
 
-        function [skip, opt] = maybeSkipInputParser(this, varargin)
+        function [skipped, opt] = maybeSkip(this, varargin)
             %(
-            skip = this.KeepDefaultOptions && ~isempty(varargin) && isequal(varargin{end}, "--SkipInputParser");
-            if ~skip
+            skipped = this.KeepDefaultOptions && ~isempty(varargin) ...
+                && isstring(varargin{end}) && isscalar(varargin{end}) ...
+                && startsWith(varargin{end}, "--skip", "ignoreCase", true);
+            if ~skipped
                 opt = [ ];
                 return
             end
