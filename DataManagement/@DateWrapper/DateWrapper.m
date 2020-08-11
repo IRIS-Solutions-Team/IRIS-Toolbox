@@ -1,7 +1,9 @@
-classdef DateWrapper < double 
+classdef DateWrapper ...
+    < double 
+
     methods
         function value = get(this, query)
-            startsWith__ = @(x) startsWith(string(query), x, "IgnoreCase", true);
+            startsWith__ = @(x) startsWith(string(query), x, "ignoreCase", true);
             if startsWith__("FrequencyAsNum")
                 value = DateWrapper.getFrequencyAsNumeric(this);
             elseif startsWith__("Freq")
@@ -9,11 +11,10 @@ classdef DateWrapper < double
             elseif startsWith__("Year")
                 value = DateWrapper.getYear(this);
             else
-                thisError = [
+                throw(exception.Base([
                     "DateWrapper:InvalidQuery"
                     "This is not a valid query into @DateWrapper/get: %s "
-                ];
-                throw(exception.Base(thisError, 'error'), query);
+                ], "error"), query);
             end
         end%
     end
@@ -27,21 +28,20 @@ classdef DateWrapper < double
 
         function disp(this)
             sizeThis = size(this);
-            sizeString = sprintf('%gx', sizeThis);
-            sizeString(end) = '';
+            sizeString = join(string(sizeThis), "x");
             isEmpty = any(sizeThis==0);
             if isEmpty
-                frequencyDisplayName = 'Empty';
+                frequencyDisplayName = "Empty";
             else
                 freq = DateWrapper.getFrequency(this);
                 firstFreq = freq(1);
                 if all(firstFreq==freq(:))
                     frequencyDisplayName = char(firstFreq);
                 else
-                    frequencyDisplayName = 'Mixed Frequency';
+                    frequencyDisplayName = "Mixed Frequency";
                 end
             end
-            fprintf('  %s %s Date(s)\n', sizeString, frequencyDisplayName);
+            fprintf("  %s %s Date(s)\n", sizeString, frequencyDisplayName);
             if ~isEmpty
                 textual.looseLine( );
                 print = DateWrapper.toDefaultString(this);
@@ -68,7 +68,7 @@ classdef DateWrapper < double
         function this = uminus(this)
             inxInf = isinf(double(this));
             if ~all(inxInf)
-                throw( exception.Base('DateWrapper:InvalidInputsIntoUminus', 'error') );
+                throw(exception.Base('DateWrapper:InvalidInputsIntoUminus', 'error'));
             end
             this = DateWrapper(-double(this));
         end%
@@ -285,13 +285,9 @@ classdef DateWrapper < double
         end%
 
 
-
-
         function varargout = datestr(this, varargin)
             [varargout{1:nargout}] = datestr(double(this), varargin{:});
         end%
-
-
 
 
         function varargout = xline(this, varargin)
@@ -303,8 +299,7 @@ classdef DateWrapper < double
     methods (Static)
         varargout = reportConsecutive(varargin)
         varargout = reportMissingPeriodsAndPages(varargin)
-
-
+        varargout = resolveShift(varargin)
 
 
         function this = Inf( )
@@ -397,6 +392,7 @@ classdef DateWrapper < double
 
 
         function isoDate = toIsoString(this, varargin)
+            %(
             if isempty(this)
                 isoDate = string.empty(size(this));
                 return
@@ -425,6 +421,7 @@ classdef DateWrapper < double
             [year, month, day] = Frequency.serial2ymd(freq, floor(this), varargin{:});
             isoDate(~inxNaN) = compose("%04g-%02g-%02g", [year(:), month(:), day(:)]);
             isoDate = reshape(isoDate, reshapeOutput);
+            %)
         end%
 
 
@@ -634,9 +631,10 @@ classdef DateWrapper < double
             refFreq = DateWrapper.getFrequencyAsNumeric(ref);
             datesFreq = DateWrapper.getFrequencyAsNumeric(dates);
             if ~all(datesFreq==refFreq)
-                THIS_ERROR= { 'DateWrapper:CannotRelativePositionForMixedFrequencies', ...
-                              'Relative positions can be only calculated for dates of identical frequencies' };
-                throw( exception.Base(THIS_ERROR, 'error') );
+                throw(exception.Base([
+                    "DateWrapper:CannotRelativePositionForMixedFrequencies"
+                    "Relative positions can be only calculated for dates of identical frequencies"
+                ], "error"));
             end
             refSerial = DateWrapper.getSerial(ref);
             datesSerial = DateWrapper.getSerial(dates);
@@ -646,13 +644,12 @@ classdef DateWrapper < double
                 inxOutRange = pos<bounds(1) | pos>bounds(2);
                 if any(inxOutRange)
                     if nargin<4
-                        context = 'range';
+                        context = "range";
                     end
-                    THIS_ERROR = { 'DateWrapper:DateOutOfRange'
-                                   'This date is out of %1: %s ' };
-                    temp = dat2str(dates(inxOutRange));
-                    throw( exception.Base(THIS_ERROR, 'error'), ...
-                           context, temp{:} );
+                    throw(exception.Base([
+                        "DateWrapper:DateOutOfRange"
+                        "These dates are out of %1: %s "
+                    ], "error"), context, join(DateWrapper.toDefaultString(dates(inxOutRange))));
                 end
             end
         end%
@@ -684,15 +681,26 @@ classdef DateWrapper < double
 
 
         function s = toDefaultString(dates)
+            %(
             dates = double(dates);
             s = repmat("", size(dates));
 
             [year, per, freq] = dat2ypf(dates);
-            freqLetter = Frequency.toLetter(freq);
+            freqLetters = Frequency.toLetter(freq);
             
             inx = isnan(dates);
             if nnz(inx)>0
                 s(inx) = "NaD";
+            end
+
+            inx = isinf(dates) & dates<0;
+            if nnz(inx)>0
+                s(inx) = "-Inf";
+            end
+
+            inx = isinf(dates) & dates>0;
+            if nnz(inx)>0
+                s(inx) = "Inf";
             end
 
             inx = freq==0;
@@ -708,26 +716,58 @@ classdef DateWrapper < double
             inx = freq==1;
             if nnz(inx)>0
                 s(inx) = compose( ...
-                    "%g%s", [reshape(year(inx), [ ], 1), reshape(freqLetter(inx), [ ], 1)] ...
+                    "%g%s", [reshape(year(inx), [ ], 1), reshape(freqLetters(inx), [ ], 1)] ...
                 );
             end
 
             inx = freq==12 | freq==52;
             if nnz(inx)>0
                 s(inx) = compose( ...
-                    "%g%s%02g", [reshape(year(inx), [ ], 1), reshape(freqLetter(inx), [ ], 1), reshape(per(inx), [ ], 1)] ...
+                    "%g%s%02g", [reshape(year(inx), [ ], 1), reshape(freqLetters(inx), [ ], 1), reshape(per(inx), [ ], 1)] ...
                 );
             end
 
             inx = freq==2 | freq==4;
             if nnz(inx)>0
                 s(inx) = compose( ...
-                    "%g%s%g", [reshape(year(inx), [ ], 1), reshape(freqLetter(inx), [ ], 1), reshape(per(inx), [ ], 1)] ...
+                    "%g%s%g", [reshape(year(inx), [ ], 1), reshape(freqLetters(inx), [ ], 1), reshape(per(inx), [ ], 1)] ...
                 );
             end
+            %)
         end%
 
 
+        function dateString = toIMFString(date)
+            dateString = DateWrapper.toDefaultString(date);
+            freqLetters = iris.get('FreqLetters');
+            % Replace yearly format 2020Y with 2020
+            dateString = erase(dateString, freqLetters(1));
+            % Replace half-yearly format 2020H1 with 2020B1
+            dateString = replace(dateString, freqLetters(2), "B");
+        end%
+
+
+        function date = fromIMFString(freq, dateString)
+            dateString = string(dateString);
+            sizeDateString = size(dateString);
+            switch freq
+                case Frequency.YEARLY
+                    date = yy(double(dateString));
+                case Frequency.QUARTERLY
+                    % Force the results to be 1-by-N-by-2
+                    dateString = [reshape(dateString, 1, [ ]), "xxx-Qx"];
+                    yp = split(dateString, "-Q");
+                    yp(:, end, :) = [ ];
+                    yp = double(yp);
+                    date = qq(yp(:, :, 1), yp(:, :, 2));
+                case Frequency.MONTHLY
+                    dateString = [reshape(dateString, 1, [ ]), "xxx-xx"];
+                    yp = split(dateString, "-");
+                    yp(:, end, :) = [ ];
+                    yp = double(yp);
+                    date = mm(yp(:, :, 1), yp(:, :, 2));
+            end
+        end%
 
 
         function output = roundEqual(this, that)
@@ -738,16 +778,27 @@ classdef DateWrapper < double
 
 
         function output = roundColon(from, varargin)
-            from = double(from);
-            convertToDateWrapper = isa(from, 'DateWrapper');
             if nargin==2
-                to = double(varargin{1});
+                to = varargin{1};
                 step = 1;
             elseif nargin==3
                 step = double(varargin{1});
-                to = double(varargin{2});
+                to = varargin{2};
             end
-            output = (round(100*from) : round(100*step) : round(100*to))/100;
+            convertToDateWrapper = isa(from, "DateWrapper") || isa(to, "DateWrapper");
+            from = double(from);
+            to = double(to);
+            if ~isinf(from) && ~isinf(to)
+                output = (round(100*from) : round(100*step) : round(100*to))/100;
+            else
+                if isinf(from)
+                    from = -Inf;
+                end
+                if isinf(to)
+                    to = Inf;
+                end
+                output = [from, to];
+            end
             if convertToDateWrapper
                 output = DateWrapper(output);
             end
