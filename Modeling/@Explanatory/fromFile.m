@@ -167,13 +167,25 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         exd = setp(exd, 'FileName', string(f.FileName));
         exd = setp(exd, 'InputString', "x_"+s+"=@+@*x_"+s+"{-1}-@*y+y*z;");
         exd = setp(exd, 'Comment', "Model");
-        exd = defineDependentTerm(exd, 1);
+        exd = defineDependentTerm(exd, "x_"+s);
         exd = addExplanatoryTerm(exd, NaN, "1");
-        exd = addExplanatoryTerm(exd, NaN, 1, "Shift=", -1);
+        exd = addExplanatoryTerm(exd, NaN, "x_"+s+"{-1}");
         exd = addExplanatoryTerm(exd, NaN, "-y");
         exd = addExplanatoryTerm(exd, 1, "y*z");
+        exd = seal(exd);
+        %
         assertEqual(testCase, act(i).ExplanatoryTerms, exd.ExplanatoryTerms);
-        assertEqual(testCase, act(i), exd);
+        %
+        exd_struct = struct(exd);
+        act_struct = struct(act(i));
+        assertEqual(testCase, sort(fieldnames(exd_struct)), sort(fieldnames(act_struct)));
+        for n = keys(exd_struct)
+            if isa(exd_struct.(n), 'function_handle')
+                assertEqual(testCase, char(exd_struct.(n)), char(act_struct.(n)));
+            else
+                assertEqual(testCase, exd_struct.(n), act_struct.(n));
+            end
+        end
     end
 
 
@@ -202,12 +214,12 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         " c = c{-1};"
         " 'ddd' d = d{-1}; ; :xxx"
     ];
-
+    %
     state = warning('query');
     warning('off');
     act = Explanatory.fromFile(f);
     warning(state);
-
+    %
     exp_LhsName = ["a", "b", "c", "d"];
     assertEqual(testCase, [act.LhsName], exp_LhsName);
     exp_Label = ["aaa", "bbb", "", "ddd"];
@@ -276,9 +288,19 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     assertEqual( ...
         testCase, ...
         func2str(act1(1).ExplanatoryTerms.Expression), ...
-        '@(x,t,date__,controls__)x(2,t,:).*x(3,t,:)+x(4,t,:).*x(5,t,:)' ...
+        '@(x,e,p,t,v,controls__)x(2,t,v).*x(3,t,v)+x(4,t,v).*x(5,t,v)' ...
     );
-    assertEqual(testCase, act1, act2);
+    %
+    act1_struct = struct(act1);
+    act2_struct = struct(act2);
+    assertEqual(testCase, sort(fieldnames(act1_struct)), sort(fieldnames(act2_struct)));
+    for n = keys(act1_struct)
+        if isa(act1_struct.(n), 'function_handle')
+            assertEqual(testCase, char(act1_struct.(n)), char(act2_struct.(n)));
+        else
+            assertEqual(testCase, act1_struct.(n), act2_struct.(n));
+        end
+    end
 
 
 %% Test Preparser Switch
@@ -297,10 +319,10 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         "!end"
     ];
     exp_Expression = {
-        '@(x,t,date__,controls__)0.8.*x(1,t-1,:)'
-        '@(x,t,date__,controls__)sqrt(x(2,t,:))'
-        '@(x,t,date__,controls__)x(2,t,:)+x(3,t,:)'
-        '@(x,t,date__,controls__)0'
+        '@(x,e,p,t,v,controls__)0.8.*x(1,t-1,v)'
+        '@(x,e,p,t,v,controls__)sqrt(x(2,t,v))'
+        '@(x,e,p,t,v,controls__)x(2,t,v)+x(3,t,v)'
+        '@(x,e,p,t,v,controls__)0'
     };
     list = ["AA", "BB", "CC", "DD"];
     for i = 1 : numel(list)
