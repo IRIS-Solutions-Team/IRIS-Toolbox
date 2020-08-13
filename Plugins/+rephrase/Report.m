@@ -11,10 +11,10 @@ classdef Report ...
         PossibleChildren = [
             rephrase.Type.GRID
             rephrase.Type.TABLE
-            rephrase.Type.DIFFTABLE
             rephrase.Type.CHART
             rephrase.Type.TEXT
             rephrase.Type.PAGEBREAK
+            rephrase.Type.MATRIX
         ]
         EMBED_REPORT_DATA = "// report-data-script-here"
     end
