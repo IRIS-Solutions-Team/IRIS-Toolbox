@@ -108,7 +108,6 @@ end%
 testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 % Set Up Once
-
     f = model.File( );
     f.FileName = "test.model";
     f.Code = [
@@ -127,7 +126,6 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
                                                                            
 %% Unique Test
-
     m = testCase.TestData.Model;
     q = Explanatory.fromModel(m, ["v", "y", "w"]);
     assertEqual(testCase, [q.LhsName], ["v", "y", "w"]);
@@ -135,7 +133,6 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
                                                                            
 %% Nonunique Test
-
     m = testCase.TestData.Model;
     errorThrown = false;
     try
@@ -144,6 +141,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         errorThrown = true;
     end
     assertEqual(testCase, errorThrown, true);
+
 
 ##### SOURCE END #####
 %}

@@ -31,38 +31,47 @@ for i = 1 : numAssignTypes
     listAssigns{i} = strcat(type, listNames);
 end
 
-for i = find(inxMT)
-    [asgn.Dynamic.Lhs(i), asgn.Dynamic.Type(i)] = testLhs(euc.LhsDynamic{i});
-    if ~isempty(euc.RhsSteady{i})
-        [asgn.Steady.Lhs(i), asgn.Steady.Type(i)] = testLhs(euc.LhsSteady{i});
+for eq = find(inxMT)
+    [asgn.Dynamic.Lhs(eq), asgn.Dynamic.Type(eq)] = hereTestEquation(euc.LhsDynamic{eq}, euc.RhsDynamic{eq});
+    if ~isempty(euc.RhsSteady{eq})
+        [asgn.Steady.Lhs(eq), asgn.Steady.Type(eq)] = hereTestEquation(euc.LhsSteady{eq}, euc.RhsSteady{eq});
     else
-        asgn.Steady.Lhs(i) = asgn.Dynamic.Lhs(i);
-        asgn.Steady.Type(i) = asgn.Dynamic.Type(i);
+        asgn.Steady.Lhs(eq) = asgn.Dynamic.Lhs(eq);
+        asgn.Steady.Type(eq) = asgn.Dynamic.Type(eq);
     end
 end
 
 return
 
-
-
-
-    function [ptr, type] = testLhs(lhs)
+    function [ptr, type] = hereTestEquation(lhs, rhs)
+        % First, try to match the LHS of the equation with on of the
+        % possible transformation of all possible variables. If a match is
+        % found, check that the variable itself does not occur on the RHS
+        % of the equation.
+        %(
         ptr = PTR(0);
         type = solver.block.Type.UNKNOWN;
         if isempty(lhs)
             return
         end
-        for ii = 1 : length(listAssigns)
+
+        for ii = 1 : numel(listAssigns)
             if isempty(listAssigns{ii})
                 continue
             end
-            ix = strcmp(listAssigns{ii}, lhs);
-            if any(ix)
-                type = allBlazerTypes(ii);
-                ptr = PTR( find(ix) ); %#ok<FNDSB>
-                break
+            inxName = strcmp(listAssigns{ii}, lhs);
+            if ~any(inxName)
+                continue
+            end
+            if any(inxName)
+                name = listNames{inxName};
+                if isempty(regexp(rhs, ['\<', name, '\>'], 'Once'))
+                    type = allBlazerTypes(ii);
+                    ptr = PTR( find(inxName) ); %#ok<FNDSB>
+                end
             end
         end
+        %)
     end%
 end%
 

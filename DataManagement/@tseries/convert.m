@@ -1,14 +1,15 @@
-function this = convert(this, newFreq, varargin)
-% convert  Convert timer series to different frequency
+% convert  Convert time series to another frequency
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
 % Input arguments marked with a `~` sign may be omitted
 %
 %     Y = convert(X, NewFreq, ~Range, ...)
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
 % __`X`__ [ Series ] -
 % Input tseries object that will be converted to a new
@@ -24,14 +25,16 @@ function this = convert(this, newFreq, varargin)
 % converted; if omitted, the conversion will be done on the entire range.
 %
 %
-% ## Output Arguments ##
+% Output Arguments
+%--------------------------------------------------------------------------
 %
 % __`y`__ [ tseries ] -
 % Output tseries created by converting `x` to the new
 % frequency.
 %
 %
-% ## Options ##
+% Options
+%--------------------------------------------------------------------------
 %
 % __`RemoveNaN=false`__ [ `true` | `false` ] -
 % Exclude NaNs from agreggation.
@@ -40,7 +43,8 @@ function this = convert(this, newFreq, varargin)
 % Replace missing observations with this value.
 %
 %
-% ## Options for High- to Low-Frequency Aggregation ##
+% Options for High- to Low-Frequency Aggregation
+%--------------------------------------------------------------------------
 %
 %
 % __`Method=@mean`__ [ function_handle | `@first` | `@last` | `@random` ] -
@@ -54,11 +58,12 @@ function this = convert(this, newFreq, varargin)
 % period; `Inf` means all observations will be used.
 %
 %
-% ## Options for Low- to High-Frequency Interpolation ##
+% Options for Low- to High-Frequency Interpolation
+%--------------------------------------------------------------------------
 %
-% __`Method='pchip'`__ [ char | `'QuadSum'` | `'QuadAvg'` | `'Flat'` | `'WriteToEnd'` ] -
+% __`Method='pchip'`__ [ char | `'QuadSum'` | `'QuadMean'` | `'Flat'` | `'WriteToEnd'` ] -
 % Interpolation method; any option valid for the built-in function
-% `interp1` can be used, or `'quadsum'` or `'quadavg'`; these two options
+% `interp1` can be used, or `'QuadSum'` or `'QuadMean'`; these two options
 % use quadratic interpolation preserving the sum or the average of
 % observations within each period.
 %
@@ -66,7 +71,8 @@ function this = convert(this, newFreq, varargin)
 % Position of dates within each period in the low-frequency date grid.
 %
 %
-% ## Description ##
+% Description
+%--------------------------------------------------------------------------
 %
 % The function handle that you pass in through the 'method' option when you
 % aggregate the data (convert higher frequency to lower frequency) should
@@ -101,12 +107,15 @@ function this = convert(this, newFreq, varargin)
 % `h`, `q`, `m`, `w`, `d`.
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
 %
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function this = convert(this, newFreq, varargin)
 
 if isempty(this)
     return
@@ -119,20 +128,22 @@ else
     range = Inf;
 end
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('TimeSubscriptable.convert');
     addRequired(pp, 'InputSeries', @(x) isa(x, 'TimeSubscriptable'));
     addRequired(pp, 'NewFreq', @Frequency.validateProperFrequency);
-    addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || strcmpi(x, 'First') || strcmpi(x, 'Last'));
+
+    addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || matches(x, "first", "ignoreCase", true) || matches(x, "last", "ignoreCase", true));
     addParameter(pp, {'RemoveNaN', 'IgnoreNaN', 'OmitNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'Last', 'Previous'}))) || validate.numericScalar(x));
-    addParameter(pp, {'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.string(x) || (isnumeric(x) && ~isempty(x)));
+    addParameter(pp, {'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.stringScalar(x) || isnumeric(x));
     addParameter(pp, 'Position', 'center', @(x) ischar(x) && any(strncmpi(x, {'c', 's', 'e'}, 1)));
     addParameter(pp, 'Select', Inf, @(x) isnumeric(x));
 end
-parse(pp, this, newFreq, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, this, newFreq, varargin{:});
 
 % Make sure newFreq is a Frequency object
 if ~isa(newFreq, 'Frequency')
@@ -162,18 +173,18 @@ end
 
 if oldFreq>newFreq
     % Aggregate
-    conversionFunc = @localAggregate;
+    conversionFunc = @locallyAggregate;
 else
     % Weekly to daily intepolation not implemented
     if oldFreq==52 && newFreq==365
         throw( exception.Base('Series:CannotConvertWeeklyToDaily', 'error') )
     end
     % Interpolate matching sum or average
-    if any(strcmpi(opt.Method, {'quadsum', 'quadavg'}))
-        conversionFunc = @localInterpolateAndMatch;
+    if validate.stringScalar(opt.Method) && matches(opt.Method, ["quadSum", "quadAvg", "quadMean"], "ignoreCase", true)
+        conversionFunc = @locallyInterpolateAndMatch;
     else
         % Built-in interp1
-        conversionFunc = @localInterpolate;
+        conversionFunc = @locallyInterpolate;
     end
 end
 
@@ -189,16 +200,16 @@ end%
 %
 
 
-function [newData, newStart] = localAggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     charMethod = char(opt.Method);
-    if strcmpi(charMethod, 'Default')
+    if matches(charMethod, "Default", "ignoreCase", true)
         opt.Method = @mean;
-    elseif strcmpi(charMethod, 'Last')
-        opt.Method = 'last';
-    elseif strcmpi(charMethod, 'First')
-        opt.Method = 'first';
-    elseif strcmpi(charMethod, 'Random')
-        opt.Method = 'random';
+    elseif matches(charMethod, "Last", "ignoreCase", true)
+        opt.Method = "last";
+    elseif matches(charMethod, "First", "ignoreCase", true)
+        opt.Method = "first";
+    elseif matches(charMethod, "Random", "ignoreCase", true)
+        opt.Method = "random";
     end
 
     % Stretch the original range from the beginning of first year until the end
@@ -219,8 +230,10 @@ function [newData, newStart] = localAggregate(this, oldStart, oldEnd, oldFreq, n
         oldEndYear = dat2ypf(oldEnd);
         oldStart = numeric.datecode(oldFreq, oldStartYear, 1);
         oldEnd = numeric.datecode(oldFreq, oldEndYear, 'end');
-        newDates = numeric.convert( oldStart:oldEnd, newFreq, ...
-                                    'ConversionMonth=', opt.ConversionMonth );
+        newDates = numeric.convert( ...
+            oldStart:oldEnd, newFreq, ...
+            'ConversionMonth=', opt.ConversionMonth ...
+        );
     end
 
     oldData = getDataFromTo(this, oldStart, oldEnd);
@@ -292,7 +305,7 @@ function [newData, newStart] = localAggregate(this, oldStart, oldEnd, oldFreq, n
                     try %#ok<TRYNC>
                         newAdd(1, col) = method__*col__;
                     end
-                elseif isa(method__, 'function_handle') || ischar(method__) || isa(method__, 'string')
+                elseif isa(method__, 'function_handle') || ischar(method__) || isstring(method__)
                     try
                         newAdd(1, col) = feval(method__, col__, 1);
                     catch
@@ -313,15 +326,14 @@ function [newData, newStart] = localAggregate(this, oldStart, oldEnd, oldFreq, n
 end%
 
 
-
-
-function [newData, newStart] = localInterpolate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
-    if isequal(opt.Method, @default) || strcmpi(opt.Method, 'Default')
-        opt.Method = 'pchip';
-    elseif strcmpi(opt.Method, 'WriteToBeginning')
-        opt.Method = 'First';
-    elseif strcmpi(opt.Method, 'WriteToEnd')
-        opt.Method = 'Last';
+function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+    %(
+    if isequal(opt.Method, @default) || matches(opt.Method, "default", "ignoreCase", true)
+        opt.Method = "pchip";
+    elseif matches(opt.Method, "writeToBeginning", "ignoreCase", true)
+        opt.Method = "first";
+    elseif matches(opt.Method, "writeToEnd", "ignoreCase", true)
+        opt.Method = "last";
     end
 
     [oldStartYear, oldStartPer] = dat2ypf(oldStart);
@@ -336,8 +348,9 @@ function [newData, newStart] = localInterpolate(this, oldStart, oldEnd, oldFreq,
         newEnd = numeric.day2ww(oldEndDay);
         % Cut off the very first and very last week; it helps handle some weird
         % cases
-        newStart = newStart + 1;
-        newEnd = newEnd - 1;
+        % Disabled until we describe the weird cases
+        % newStart = newStart + 1;
+        % newEnd = newEnd - 1;
     elseif newFreq==Frequency.DAILY
         startMonth = per2month(oldStartPer, oldFreq, 'first');
         endMonth = per2month(oldEndPer, oldFreq, 'last');
@@ -358,7 +371,7 @@ function [newData, newStart] = localInterpolate(this, oldStart, oldEnd, oldFreq,
 
     oldData = getDataFromTo(this, oldStart, oldEnd);
     oldSize = size(oldData);
-    if any(strcmpi(opt.Method, {'Flat', 'First', 'Last'})) 
+    if matches(opt.Method, ["flat", "first", "last"], "ignoreCase", true)
         newData = hereFlat( );
     else
         newData = hereInterpolate( );
@@ -371,7 +384,7 @@ function [newData, newStart] = localInterpolate(this, oldStart, oldEnd, oldFreq,
             numNewPeriods = floor(newEnd) - floor(newStart) + 1;
             oldGrid = dat2dec(oldStart:oldEnd, opt.Position);
             newGrid = dat2dec(newStart:newEnd, opt.Position);
-            newData = interp1(oldGrid, oldData, newGrid, opt.Method, 'extrap');
+            newData = interp1(oldGrid, oldData, newGrid, opt.Method, "extrap");
             if size(newData, 1)==1 && size(newData, 2)==numNewPeriods
                 newData = newData(:);
             else
@@ -389,13 +402,13 @@ function [newData, newStart] = localInterpolate(this, oldStart, oldEnd, oldFreq,
             newData = nan(newSize);
             oldRange100 = round(100*oldRange);
             newConverted100 = round(100*newConverted);
-            if strcmpi(opt.Method, 'Flat')
+            if matches(opt.Method, "flat", "ignoreCase", true)
                 testPeriods = true(size(newConverted));
             else
                 [~, newPeriods] = dat2ypf(newRange);
-                if strcmpi(opt.Method, 'Last')
+                if matches(opt.Method, "last", "ignoreCase", true)
                     testPeriods = newPeriods==newFreq;
-                elseif strcmpi(opt.Method, 'First')
+                elseif matches(opt.Method, "first", "ignoreCase", true)
                     testPeriods = newPeriods==1;
                 end
             end
@@ -406,12 +419,11 @@ function [newData, newStart] = localInterpolate(this, oldStart, oldEnd, oldFreq,
                 end
             end
         end%
+    %)
 end%
 
 
-
-
-function [newData, newStart] = localInterpolateAndMatch(this, oldStart, oldEnd, oldFreq, newFreq, opt)
+function [newData, newStart] = locallyInterpolateAndMatch(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     n = newFreq/oldFreq;
     if n~=round(n)
         utils.error('tseries:convert', ...
@@ -443,7 +455,7 @@ function [newData, newStart] = localInterpolateAndMatch(this, oldStart, oldEnd, 
             'with in-sample NaNs.'], ...
             opt.Method);
     end
-    if strcmpi(opt.Method, 'quadavg')
+    if matches(opt.Method, ["quadAvg", "quadMean"], "ignoreCase", true)
         newData = newData*n;
     end
     newData = reshape(newData, [size(newData, 1), oldSize(2:end)]);

@@ -73,14 +73,14 @@ classdef validate
 
 
         function flag = anyString(input, varargin)
-            if ~validate.string(input)
+            if ~ischar(input) && ~isstring(input)
                 flag = false;
                 return
             end
             if numel(varargin)==1 && isa(varargin{1}, 'string')
-                flag = any(strcmpi(input, varargin{1}));
+                flag = matches(input, varargin{1}, "ignoreCase", true);
             else
-                flag = any(strcmpi(input, varargin));
+                flag = matches(input, string(varargin), "ignoreCase", true);
             end
         end%
 

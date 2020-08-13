@@ -61,7 +61,6 @@ hereCleanup( );
 
 return
 
-
     function herePrepareInxEndogenousPoints( )
         inx = false(size(data.YXEPG));
         inx(block__.PtrQuantities, columnsFrame) = true;

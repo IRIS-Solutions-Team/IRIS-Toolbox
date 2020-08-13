@@ -1,106 +1,106 @@
 % fromFred  Download time series from FRED, the St Louis Fed databank
 %{
-%% Syntax
+% Syntax
 %--------------------------------------------------------------------------
 %
 %     [outputDb, status] = databank.fromFred(fredSeriesId, ...)
 %
 %
-%% Input Arguments
+% Input Arguments
 %--------------------------------------------------------------------------
 %
 % __`fredSeriesId`__ [ string ]
 %
-%     List of Fred series Ids to retrieve, or `"Id->Name"` pairs specifying
-%     a `Name` different from `Id` under which the series will be saved in
-%     the databank.
+%>    List of Fred series Ids to retrieve, or `"Id->Name"` mappings
+%>    specifying a `Name` different from `Id` under which the series will
+%>    be saved in the databank.
 %
 %
-%% Output Arguments
+% Output Arguments
 %--------------------------------------------------------------------------
 %
 % __`outputDb`__ [ struct ]
 %
-%     Output databank with requested time series.
+%>    Output databank with requested time series.
 %
 %
 % __`status`__ [ `true` | `false` ]
 %
-%     True if all requested time series have been sucessfully downloaded.
+%>    True if all requested time series have been sucessfully downloaded.
 %
 %
-%% Options
+% Options
 %--------------------------------------------------------------------------
 %
 % __`AddToDatabank=[ ]`__ [ struct | empty ]  
 %
-%     Requested time series will be added to this existing databank; if
-%     empty, a new databank of the `OutputType=` class will be created;
-%     the type of `AddToDatabank=` option must be consistent with the
-%     `OutputType=`.
+%>    Requested time series will be added to this existing databank; if
+%>    empty, a new databank of the `OutputType=` class will be created; the
+%>    type of `AddToDatabank=` option must be consistent with the
+%>    `OutputType=`.
 %
 %
 % __`AggregationMethod="avg"`__ [ `"avg"` | `"sum"` | `"eop"` ]
 %
-%     Aggregation (frequency conversion) method applied when option
-%     `'Frequency='` is used.
+%>    Aggregation (frequency conversion) method applied when option
+%>    `'Frequency='` is used.
 %
 %
 % __`Frequency=[ ]`__ [ empty | Frequency ]
 %
-%     Request time series conversion to the specified frequency; frequency
-%     conversion will be performed server-side; only high- to low-frequency
-%     conversion is possible (aggregation).
+%>    Request time series conversion to the specified frequency; frequency
+%>    conversion will be performed server-side; only high- to low-frequency
+%>    conversion is possible (aggregation).
 %
 %
 % __`Request="Observations"`__ [ `"Observations"` | `"Vintages"` ]
 %
-%     Kind of information requested from Fred: `Observations` means the
-%     actual observations arranged in a time series databank; `Vintages`
-%     means vintage dates currently available for each series specified.
+%>    Kind of information requested from Fred: `Observations` means the
+%>    actual observations arranged in a time series databank; `Vintages`
+%>    means vintage dates currently available for each series specified.
 %
 %
 % __`MaxRequestAttempts=3`__ [ numeric ]
 %
-%     Maximum number of attempts to run each HTTPS request.
+%>    Maximum number of attempts to run each HTTPS request.
 %
 %
 % __`OutputType='struct'`__ [ `struct` | `Dictionary` ]
 %
-%     Type (Matlab class) of the output databank; the type of
-%     `AddToDatabank=` option must be consistent with the `OutputType=`.
+%>    Type (Matlab class) of the output databank; the type of
+%>    `AddToDatabank=` option must be consistent with the `OutputType=`.
 %
 %
 % __`Progress=false`__ [ `true` | `false` ]
 %
-%     Show command line progress bar.
+%>    Show command line progress bar.
 %
 %
 % __`URL="https://api.stlouisfed.org/fred/series"`__ [ string ]
 %
-%     URL for the Fred(R) API.
+%>    URL for the Fred(R) API.
 %
 %
 % __`Vintage=[ ]`__ [ string | "*" | DateW ]
 %
-%     List of vintage dates (strings in ISO format, "YYYY-MM-DD") for which
-%     the time series will be requested; the resulting time series will
-%     have as many columns as the number of vintages actually returned;
-%     with the column comments starting with the vintage date string. 
+%>    List of vintage dates (strings in ISO format, "YYYY-MM-DD") for which
+%>    the time series will be requested; the resulting time series will
+%>    have as many columns as the number of vintages actually returned;
+%>    with the column comments starting with the vintage date string. 
+%>    
+%>    Requesting "*" means all vintages currently available will be first
+%>    obtained for each series, and then observations for all these
+%>    vintages will be requested requested; the list of vintages is
+%>    then returned in each series as a user data field named
+%>    "Vintages".
 %
-%     Requesting "*" means all vintages currently available will be first
-%     obtained for each series, and then observations for all these
-%     vintages will be requested requested; the list of vintages is
-%     then returned in each series as a user data field named
-%     "Vintages".
 %
-%
-%% Description
+% Description
 %--------------------------------------------------------------------------
 %
 %
 %
-%% Examples of Basic Use Cases
+% Examples of Basic Use Cases
 %--------------------------------------------------------------------------
 %
 % Run a plain vanilla command to retrieve one quarterly (`GDPC1`) and one
@@ -122,7 +122,7 @@
 %
 % 
 %
-%% Examples of User Specified Vintage Use Case
+% Examples of User Specified Vintage Use Case
 %--------------------------------------------------------------------------
 %
 % Specify the vintage dates for which you wish to retrieve the series. The
@@ -142,7 +142,7 @@
 %     disp(db.GDPC1)
 %
 %
-%% Example of All-Vintage Use Case
+% Example of All-Vintage Use Case
 %--------------------------------------------------------------------------
 %
 % First, run a request for the list of vintages currently available for one
@@ -469,7 +469,7 @@ function outputSeries = locallyExtractDataFromJson(jsonInfo, jsonData, vintage, 
         comment = "[Vintage:" + vintage + "] " + comment;
     end
     outputSeries = Series( ...
-        dates, values, comment, jsonInfo.seriess, "--SkipInputParser" ...
+        dates, values, comment, jsonInfo.seriess, "--skip" ...
     );
     %)
 end%

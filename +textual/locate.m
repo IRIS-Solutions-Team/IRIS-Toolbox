@@ -60,6 +60,7 @@ function pos = locate(items, list, varargin)
 
 items = string(items);
 list = string(list);
+
 pos = nan(size(items));
 for i = 1 : numel(items)
     pos__ = find(items(i)==list, 1, varargin{:});

@@ -1,44 +1,59 @@
 function value = accessUserData(this, field)
 % accessUserData  Access field in user data
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
 %     value = accessUserData(obj, field)
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
-% __`obj`__ [ Model | Series | VAR | SVAR | DFM ] -
-% IRIS object subclassed from UserDataContainer.
+% __`obj`__ [ Model | Series | VAR | SVAR | DFM ]
 %
-% __`field`__ [ char | string ] - 
-% Field of the user data struct; if user data is empty, the field can be
-% created.
+%>    An [IrisToolbox] object subclassed from UserDataContainer.
 %
 %
-% ## Output Arguments ##
+% __`field`__ [ string ]
 %
-% __`value`__ [ * ] - 
-% Current value of the requested field, `field`; if the field does not
-% exist an error is raised.
-%
-%
-% ## Description ##
+%>    Field of the user data struct; if user data is empty, the field can
+%>    be created.
 %
 %
-% ## Example ##
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __`value`__ [ * ]  
+%
+%>    Current value of the requested field, `field`; if the field does not
+%>    exist an error is raised.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
 if ~isempty(this.UserData) && ~isstruct(this.UserData)
-    THIS_ERROR = { 'UserDataContainer:UserDataNotStruct'
-                   'Cannot access user data fields because the existing user data are not a struct' };
-    throw( exception.Base(THIS_ERROR, 'error') );
+    throw(exception.Base([
+        "UserDataContainer:UserDataNotStruct"
+        "Cannot access user data fields because the existing user data are not a struct"
+    ], 'error'));
+end
+
+if nargin<2
+    value = this.UserData;
+    return
 end
 
 field = shared.UserDataContainer.preprocessFieldName(field);
@@ -47,9 +62,10 @@ field = shared.UserDataContainer.preprocessFieldName(field);
 if isstruct(this.UserData) && isfield(this.UserData, field)
     value = this.UserData.(field);
 else
-    THIS_ERROR = { 'UserDataContainer:FieldDoesNotExist'
-                   'This user data field does not exist: %s ' };
-    throw(exception.Base(THIS_ERROR, 'error'), field);
+    throw(exception.Base([
+        "UserDataContainer:FieldDoesNotExist"
+        "This user data field does not exist: %s "
+    ], 'error'), field);
 end
 
 end%

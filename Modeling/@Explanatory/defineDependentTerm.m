@@ -1,4 +1,3 @@
-function this = defineDependenTerm(this, varargin)
 % defineDependenTerm  Define dependent term in Explanatory object
 %{
 % ## Syntax ##
@@ -65,18 +64,22 @@ function this = defineDependenTerm(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function this = defineDependenTerm(this, inputString)
+
 %( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Explanatory.defineDependenTerm');
     addRequired(pp, 'expy', @(x) isa(x, 'Explanatory'));
+    addRequired(pp, 'inputString', @validate.stringScalar);
 end
 %)
-opt = parse(pp, this);
+opt = parse(pp, this, inputString);
 
 %--------------------------------------------------------------------------
 
-term = regression.Term(this, varargin{:}, "Type=", ["Pointer", "Name", "Transform"]);
+term = regression.Term(this, inputString, "lhs");
+term = containsLhsName(term, term.Position);
 this.DependentTerm = term;
 checkNames(this);
 
@@ -99,47 +102,26 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     testCase.TestData.Model = expy;
 
 
-%% Test Pointer
-    expy = testCase.TestData.Model;
-    expy = defineDependentTerm(expy, 3, "Transform=", "log");
-    act = getp(expy, 'DependentTerm');
-    exp = regression.Term(expy, 3, "Transform", "log");
-    exp.ContainsLhsName = true;
-    assertEqual(testCase, act, exp);
-    act = expy.LhsName;
-    exp = "z";
-    assertEqual(testCase, act, exp);
-
-
 %% Test Name
     expy = testCase.TestData.Model;
-    expy = defineDependentTerm(expy, "z", "Transform=", "log");
+    expy = defineDependentTerm(expy, "z");
     act = getp(expy, 'DependentTerm');
-    exp = regression.Term(expy, 3, "Transform", "log");
-    exp.ContainsLhsName = true;
-    assertEqual(testCase, act, exp);
-    act = expy.LhsName;
-    exp = "z";
-    assertEqual(testCase, act, exp);
+    assertEqual(testCase, act.Position, 3);
+    assertEqual(testCase, act.Shift, 0);
+    assertEqual(testCase, string(act.Expression), "x(3,t,v)");
 
 
 %% Test Transform
     expy = testCase.TestData.Model;
-    expy = defineDependentTerm(expy, "log(z)");
+    expy = defineDependentTerm(expy, "difflog(z,-4)");
     act = getp(expy, 'DependentTerm');
-    exp = regression.Term(expy, 3, "Transform", "log");
-    exp.ContainsLhsName = true;
-    assertEqual(testCase, act, exp);
-    act = expy.LhsName;
-    exp = "z";
-    assertEqual(testCase, act, exp);
-
+    assertEqual(testCase, string(act.Expression), "(log(x(3,t,v))-log(x(3,t-4,v)))");
 
 %% Test Invalid Shift
     expy = testCase.TestData.Model;
     thrownError = false;
     try
-        expy = defineDependentTerm(expy, "z", "Transform=", "log", "Shift=", -1);
+        expy = defineDependentTerm(expy, "log(z{-1})");
     catch exc
         thrownError = true;
     end

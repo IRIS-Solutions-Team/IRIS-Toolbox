@@ -107,7 +107,7 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function [this, outputDb] = regress(this, inputDb, fittedRange, varargin)
+function [this, outputDb, info] = regress(this, inputDb, fittedRange, varargin)
 
 %( Input parser
 persistent pp
@@ -116,17 +116,20 @@ if isempty(pp)
 
     addRequired(pp, 'explanatoryEquation', @(x) isa(x, 'Explanatory'));
     addRequired(pp, 'inputDb', @validate.databank);
-    addRequired(pp, 'fittedRange', @DateWrapper.validateProperRangeInput);
+    addRequired(pp, 'fittedRange', @DateWrapper.validateRangeInput);
 
     addParameter(pp, 'AddToDatabank', @auto, @(x) isequal(x, @auto) || isequal(x, [ ]) || validate.databank(x));
     addParameter(pp, {'AppendPostsample', 'PrependInput'}, false, @validate.logicalScalar);
     addParameter(pp, {'AppendPresample', 'AppendInput'}, false, @validate.logicalScalar);
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
-    addParameter(pp, 'MissingObservations', 'Warning', @(x) validate.anyString(x, 'Error', 'Warning', 'Silent'));
+    addParameter(pp, "MissingObservations", @auto, @(x) isequal(x, @auto) || validate.anyString(x, ["Error", "Warning", "Silent"]));
+    addParameter(pp, "Optim", [ ], @(x) isempty(x) || isa(x, "optim.options.Lsqnonlin"));
+    addParameter(pp, "Progress", false, @validate.logicalScalar);
     addParameter(pp, 'ResidualsOnly', false, @validate.logicalScalar);
 end
 %)
 opt = parse(pp, this, inputDb, fittedRange, varargin{:});
+[fittedRange, opt.MissingObservations] = locallyResolveRange(this, inputDb, fittedRange, opt.MissingObservations);
 
 storeToDatabank = nargout>=2;
 
@@ -156,68 +159,95 @@ fitted = nan(numEquations, numExtendedPeriods, numPages);
 inxMissingColumns = false(numEquations, numExtendedPeriods, numPages);
 reportEmptyData = string.empty(1, 0);
 
+
 %
 % Prepare runtime information
 %
 this = runtime(this, dataBlock, "regress");
 
+
 %
 % Preallocate space for parameters and statistics, reset all to NaN
 %
-resetToNaN = true;
-this = alter(this, numPages, resetToNaN);
+inxColumns = cell(numEquations, numPages);
+inxToEstimate = ~[this.IsIdentity];
+this(inxToEstimate) = alter(this(inxToEstimate), numPages, true);
 
+
+if opt.Progress
+    progress = ProgressBar("@Explanatory/regress", nnz(inxToEstimate)*numPages);
+end
 
 % /////////////////////////////////////////////////////////////////////////
-inxToEstimate = ~[this.IsIdentity];
+
 for q = find(inxToEstimate)
     this__ = this(q);
 
-    [plainData, lhs, rhs] = createModelData(this__, dataBlock, controls);
+    [lhs, rhs] = createData4Regress(this__, dataBlock, controls);
 
     if opt.ResidualsOnly
         fixed = this__.Parameters;
     else
         fixed = this__.Fixed;
     end
+    residualModel = this__.ResidualModel;
     
     %
     % Estimate parameter variants from individual data pages
     %
-    res__ = nan(size(lhs));
+    res = nan(size(lhs));
     for v = 1 : numPages
-        inxColumns = dataBlock.InxBaseRange;
-        inxFiniteColumns = all(isfinite([rhs(:, :, v); lhs(:, :, v)]), 1);
-        inxMissingColumns(q, :, v) = inxColumns & ~inxFiniteColumns;
-        if strcmpi(opt.MissingObservations, 'Warning') || strcmpi(opt.MissingObservations, 'Silent')
-            inxColumns = inxColumns & inxFiniteColumns;
+        lhs__ = lhs(:, :, min(v, end));
+        rhs__ = rhs(:, :, min(v, end));
+        fixed__ = fixed(:, :, min(v, end));
+        inxColumns__ = dataBlock.InxBaseRange;
+        inxFiniteColumns = all(isfinite([rhs__; lhs__]), 1);
+        inxMissingColumns(q, :, v) = inxColumns__ & ~inxFiniteColumns;
+        if matches(opt.MissingObservations, ["warning", "silent"], "ignoreCase", true)
+            inxColumns__ = inxColumns__ & inxFiniteColumns;
         elseif any(inxMissingColumns(q, :, v))
             continue
         end
-        if ~any(inxColumns)
+        lhs__ = lhs__(:, inxColumns__);
+        rhs__ = rhs__(:, inxColumns__);
+        if ~any(inxColumns__)
             reportEmptyData = [reportEmptyData, this__.LhsName];
             continue
         end
+        numObservations__ = nnz(inxColumns__);
 
-        lhs__ = lhs(:, inxColumns, v);
-        rhs__ = rhs(:, inxColumns, v);
-        [parameters, varResiduals, covParameters] = locallyLeastSquares(lhs__, rhs__, fixed(1, :, min(v, end)));
+        residualModelParameters__ = double.empty(1, 0, 1);
+        if isa(residualModel, "ParameterizedArmani") && residualModel.NumParameters>0
+            [residualModelParameters__, residualModel] ...
+                = locallyEstimateResidualModel(lhs__, rhs__, fixed__, residualModel, opt.Optim);
+        end
 
-        this__.Parameters(1, :, v) = parameters;
-        fitted(q, inxColumns, v) = parameters*rhs__;
-        res__(:, inxColumns, v) = lhs(:, inxColumns, v) - fitted(q, inxColumns, v);
-        this__.Statistics.VarResiduals(:, :, v) = varResiduals;
-        this__.Statistics.CovParameters(:, :, v) = covParameters;
+        if ~isempty(residualModel)
+            residualModel = update(residualModel, residualModelParameters__);
+        end
+
+        [parameters__, varResiduals__, covParameters__, fitted__, res__] ...
+            = locallyLeastSquares(lhs__, rhs__, fixed__, residualModel);
+
+        this__.Parameters(1, :, v) = parameters__;
+        this__.ResidualModelParameters(1, :, v) = residualModelParameters__;
+        fitted(q, inxColumns__, v) = fitted__;
+        res(:, inxColumns__, v) = res__;
+        this__.Statistics.VarResiduals(:, :, v) = varResiduals__;
+        this__.Statistics.CovParameters(:, :, v) = covParameters__;
+        inxColumns{q, v} = inxColumns__;
+        if opt.Progress
+            increment(progress);
+        end
     end
-    plainData = updateResidualsInPlainData(this__, plainData, res__, inxColumns);
 
     %
-    % Update residuals in dataBlock from plainData
+    % Update residuals in dataBlock
     %
-    updateDataBlock(this__, dataBlock, plainData);
+    updateDataBlock(this__, dataBlock, [ ], res);
 
     %
-    % Update statistics in the Explanatory array
+    % Update Parameters, ResidualModelParameters and Statistics 
     %
     this(q) = this__;
 end
@@ -244,6 +274,10 @@ end
 % Reset runtime information
 %
 this = runtime(this);
+
+if nargout>=3
+    info = herePopulateOutputInfo( );
+end
 
 return
 
@@ -282,28 +316,98 @@ return
         throw(exception.Base(thisWarning, opt.MissingObservations), report{:});
         %)
     end%
-end%
 
+
+    function info = herePopulateOutputInfo( )
+        %(
+        info = struct( );
+        info.FittedPeriods = cell(size(inxColumns));
+        extendedRange = double(dataBlock.ExtendedRange);
+        for i = 1 : numel(inxColumns)
+            info.FittedPeriods{i} = DateWrapper(extendedRange(inxColumns{i}));
+        end
+        %)
+    end%
+end%
 
 %
 % Local Functions
 %
 
+function [fittedRange, missingObservations] = locallyResolveRange(this, inputDb, fittedRange, missingObservations)
+    %(
+    fittedRange = double(fittedRange);
+    from = fittedRange(1);
+    to = fittedRange(end);
+    defaultMissingObservations = "Warning";
+    if isinf(from) || isinf(to)
+        [from, to] = databank.backend.resolveRange(inputDb, collectAllNames(this), from, to);
+        defaultMissingObservations = "Silent";
+    end
+    if isequal(missingObservations, @auto)
+        missingObservations = defaultMissingObservations;
+    end
+    fittedRange = [from, to];
+    %)
+end%
 
-function [parameters, varResiduals, covParameters] = locallyLeastSquares(y, X, fixed)
+
+function [parameters, varResiduals, covParameters, fitted, res] = locallyLeastSquares(y, X, fixed, residualModel)
     %(
     numParameters = numel(fixed);
+    numObservations = size(y, 2);
     parameters = fixed;
-    covParameters = zeros(numParameters, numParameters);
     inxFixed = ~isnan(fixed);
+    y0 = y;
+    X0 = X;
     if any(inxFixed)
         y = y - fixed(inxFixed)*X(inxFixed, :);
         X = X(~inxFixed, :);
     end
-    [beta, ~, varResiduals, covBeta] = lscov(transpose(X), transpose(y));
-    parameters(~inxFixed) = transpose(beta);
-    covParameters(~inxFixed, ~inxFixed) = covBeta;
+    covParameters = zeros(numParameters, numParameters);
+    if any(~inxFixed)
+        if isempty(residualModel)
+            [beta, ~, ~, covBeta]  = lscov(transpose(X), transpose(y));
+        else
+            F = filterMatrix(residualModel, numObservations);
+            [beta, ~, ~, covBeta]  = lscov(F\transpose(X), F\transpose(y));
+        end
+        parameters(~inxFixed) = transpose(beta);
+        covParameters(~inxFixed, ~inxFixed) = covBeta;
+    end
+    fitted = parameters*X0;
+    res = y - fitted;
+    varResiduals = sum(res .* res, 2) / (numObservations - nnz(~inxFixed));
     %)
+end%
+
+
+function [gamma, rm] = locallyEstimateResidualModel(y, X, fixed, rm, optim)
+    numObservations = size(y, 2);
+    inxFixed = ~isnan(fixed);
+    y0 = y;
+    X0 = X;
+    if any(inxFixed)
+        y = y - fixed(inxFixed)*X(inxFixed, :);
+        X = X(~inxFixed, :);
+    end
+    yt = transpose(y);
+    Xt = transpose(X);
+    if isempty(optim)
+        optim = optimoptions("lsqnonlin", "display", "none");
+    end
+    gamma = lsqnonlin(@hereObjectiveFunc, zeros(1, rm.NumParameters), [ ], [ ], optim);
+    rm = update(rm, gamma);
+    
+    return
+        function obj = hereObjectiveFunc(p)
+            rm = update(rm, p);
+            F = filterMatrix(rm, numObservations);
+            FXt = F\Xt;
+            Fyt = F\yt;
+            beta = lscov(FXt, Fyt);
+            obj = Fyt - FXt*beta;
+        end%
 end%
 
 
@@ -406,9 +510,9 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     m = [m1, m2];
     db2 = testCase.TestData.Databank2;
     baseRange = testCase.TestData.BaseRange;
-
+    %
     [est, outputDb] = regress(m, db2, baseRange);
-
+    %
     exp_parameters = nan(1, 3, 3);
     for i = 1 : 3
         y = db2.x(baseRange, i);
@@ -416,7 +520,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
         exp_parameters(:, :, i) = transpose(X\y);
     end
     assertEqual(testCase, est(1).Parameters, exp_parameters, 'AbsTol', 1e-12);
-
+    %
     exp_parameters = nan(1, 3, 3);
     for i = 1 : 3
         y = db2.a(baseRange);

@@ -1,4 +1,4 @@
-function output = parseInputSpecs(expy, inputSpecs, inputTransform, inputShift, types)
+function this = parseInputSpecs(this, expy, inputSpecs, type)
 % parseInputSpecs  Parse input specification of DependentTerm or
 % ExplanatoryTerms
 %{
@@ -9,292 +9,174 @@ function output = parseInputSpecs(expy, inputSpecs, inputTransform, inputShift, 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+LIST_TRANSFORMS = ["log", "exp", "roc", "pct", "diff", "difflog"];
+
 %--------------------------------------------------------------------------
-
-output = struct( );
-output.Type = "";
-output.Transform = "";
-output.Incidence = double.empty(1, 0);
-output.Position = NaN;
-output.Shift = 0;
-output.Expression = [ ];
-
-%
-% Pointer to VariableNames
-%
-if isequal(types, @all) || any(types=="Pointer")
-    hereParsePointer( );
-    if output.Type=="Pointer"
-        return
-    end
-end
 
 if ~isa(inputSpecs, 'string')
     hereThrowInvalidSpecification( );
 end
-
-inputSpecs = replace(string(inputSpecs), " ", "");
+% Remove white spaces and leading plus signs
+inputSpecs = erase(string(inputSpecs), [" ", "\t"]);
+while startsWith(inputSpecs, "+")
+    inputSpecs = eraseBetween(inputSpecs, 1, 1);
+end
+isLhs = matches(type, "lhs", "ignoreCase", true);
 
 
 %
 % Plain variable name or variables name and shift
 %
-if isequal(types, @all) || any(types=="Name")
-    hereParseName( );
-    if output.Type=="Name"
-        return
-    end
-    hereParseNameShift( );
-    if output.Type=="Name"
-        return
-    end
+if hereTryNameShift( )==0
+    return
 end
 
 
 %
 % Registered transform
 %
-if isequal(types, @all) || any(types=="Transform")
-    hereParseRegisteredTransforms( );
-    if output.Type=="Transform"
-        return
-    end
+if isLhs && hereTryRegisteredTransform( )==0
+    return
 end
 
 
 %
 % Expression as anonymous function
 %
-if isequal(types, @all) || any(types=="Expression")
-    hereParseExpression( );
-    if output.Type=="Expression"
-        return
-    end
+if ~isLhs 
+    hereTryExpression( );
+    return
 end
 
 hereThrowInvalidSpecification( );
 
 return
 
-
-    function hereParsePointer( )
-        if ~isnumeric(inputSpecs)
-            return
-        end
-        pos = inputSpecs;
-        if ~validate.roundScalar(pos, 1, numel(expy.VariableNames));
-            hereThrowInvalidPointer( );
-        end
-        transform = inputTransform;
-        if isequal(transform, @auto)
-            transform = "";
-        end
-        shift = inputShift;
-        if isequal(shift, @auto)
-            shift = 0;
-        end
-        output.Type = "Pointer";
-        output.Transform = transform;
-        output.Position = pos;
-        output.Shift = shift;
-        output.Incidence = locallyCreateIncidence(pos, shift, transform);
-    end%
-
-
-    function hereParseName( )
-        inx = inputSpecs==expy.VariableNames;
-        if ~any(inx)
-            return
-        end
-        pos = find(inx);
-        transform = inputTransform;
-        if isequal(transform, @auto)
-            transform = "";
-        end
-        shift = inputShift;
-        if isequal(shift, @auto)
-            shift = 0;
-        end
-        output.Type = "Name";
-        output.Transform = transform;
-        output.Position = pos;
-        output.Shift = shift;
-        output.Incidence = locallyCreateIncidence(pos, shift, transform);
-    end%
-
-
-    function hereParseNameShift( )
-        if ~contains(inputSpecs, "{") || ~endsWith(inputSpecs, "}")
-            return
-        end
-        tokens = split(inputSpecs, ["{", "}"]);
-        if numel(tokens)~=3
-            return
-        end
-        inx = tokens(1)==expy.VariableNames;
-        if ~any(inx)
-            return
-        end
-        shift = double(tokens(2));
-        if ~validate.roundScalar(shift)
-            return
-        end
-        pos = find(inx);
-        transform = inputTransform;
-        if isequal(transform, @auto)
-            transform = "";
-        end
-        if ~isequal(inputShift, @auto)
-            shift = shift + inputShift;
-        end
-        output.Type = "Name";
-        output.Transform = transform;
-        output.Position = pos;
-        output.Shift = shift;
-        output.Incidence = locallyCreateIncidence(pos, shift, transform);
-    end%
-
-
-    function hereParseRegisteredTransforms( )
+    function status = hereTryNameShift( )
         %(
-        inputSpecs__ = replace(strip(inputSpecs), " ", "");
+        status = 1;
+        tokens = strip(split(string(inputSpecs), ["{", "}"]));
 
-        keysTransforms = keys(regression.Term.TRANSFORMS);
-        if ~startsWith(inputSpecs__, keysTransforms+"(") || ~endsWith(inputSpecs__, ")")
-            return
-        end
-        transform = extractBefore(inputSpecs__, "(");
-
-        name = extractBetween( ...
-            inputSpecs__, strlength(transform)+1, strlength(inputSpecs__) ...
-            , "Boundaries", "Exclusive" ...
-        );
-        inxName = name==expy.VariableNames;
-        if strlength(name)==0 || ~any(inxName)
-            return
-        end
-
-        shift = inputShift;
-        if isequal(shift, @auto)
+        if numel(tokens)==1
+            name = tokens(1);
             shift = 0;
+        elseif numel(tokens)==3 && strlength(tokens(3))==0
+            name = tokens{1};
+            shift = eval(tokens{2});
+            if ~validate.roundScalar(shift) || (isLhs && shift~=0)
+                return
+            end
+        else
+            return
+        end
+        inx = name==expy.VariableNames;
+        if ~any(inx)
+            return
         end
 
-        pos = find(inxName);
-        output.Type = "Transform";
-        output.Transform = transform;
-        output.Position = pos;
-        output.Shift = shift;
-        output.Incidence = locallyCreateIncidence(pos, shift, transform);
+        %
+        % Success
+        %
+        status = 0;
+        pos = find(inx);
+        this.InputString = inputSpecs;
+        this.Position = pos;
+        this.Shift = shift;
+        this.Incidence = complex(pos, shift);
+        if shift==0
+            timeString = "t";
+        elseif shift<0
+            timeString = "t-" + string(abs(shift));
+        else
+            timeString = "t+" + string(shift);
+        end
+        this.Expression = "x(" + this.Position + "," + timeString + ",v)";
+        this.InverseTransform = [ ];
         %)
     end%
 
 
-    function hereParseExpression( )
-        %
-        % Expand pseudofunctions
-        % diff, difflog, dot, movsum, movavg, movprod, movgeom
-        %
-        parsedSpecs = parser.Pseudofunc.parse(inputSpecs);
-
-        %
-        % Unique names of all control parameters
-        %
-        controlNames = collectControlNames(expy);
-
-        %
-        % Replace name{k} with x(pos, t+k, :)
-        % Replace name with x(pos, t, :)
-        %
-        incidence = double.empty(1, 0);
-        invalidNames = string.empty(1, 0);
-        invalidShifts = string.empty(1, 0);
-        replaceFunc = @replaceNameShift;
-        parsedSpecs = regexprep(parsedSpecs, Explanatory.VARIABLE_WITH_SHIFT, "${replaceFunc($1, $2)}");
-        parsedSpecs = regexprep(parsedSpecs, Explanatory.VARIABLE_NO_SHIFT, "${replaceFunc($1)}");
-        parsedSpecs = replace(parsedSpecs, "$", "t");
-
-        if ~isempty(invalidNames)
-            hereThrowInvalidNames( );
+    function status = hereTryRegisteredTransform( )
+        % (
+        status = 1;
+        if ~startsWith(inputSpecs, LIST_TRANSFORMS+"(") || ~endsWith(inputSpecs, ")")
+            return
         end
 
-        %
-        % Vectorize operators
-        %
-        parsedSpecs = vectorize(parsedSpecs);
-
-        %
-        % Create anonymous function
-        %
-        try
-            hereParseSpecials( );
-            func = str2func("@(x,t,date__,controls__)" + parsedSpecs);
-            output.Type = "Expression";
-            output.Expression = func;
-            output.Incidence = incidence;
+        transform = extractBefore(inputSpecs, "(");
+        args = extractBetween( ...
+            inputSpecs, strlength(transform)+1, strlength(inputSpecs) ...
+            , "boundaries", "exclusive" ...
+        );
+        args = parser.splitout(args);
+        if isempty(args) || args(1)==""
+            return
+        end
+        name = args(1);
+        inxName = name==expy.VariableNames;
+        if ~any(inxName)
+            return
         end
 
-        return
 
-
-            function c = replaceNameShift(c1, c2)
-                c = '';
-                if string(c1)==string(expy.DateReference)
-                    c = 'date__';
-                    return
-                end
-                if any(c1==controlNames)
-                    c = "controls__." + c1;
-                    return
-                end
-                pos = getPosName(expy, c1);
-                sh = 0;
-                if isnan(pos)
-                    invalidNames = [invalidNames, string(c1)];
-                    return
-                end
-                if nargin>=2 && ~isempty(c2) && ~strcmp(c2, '{}') && ~strcmp(c2, '{0}')
-                    sh = str2num(c2(2:end-1));
-                    if ~validate.numericScalar(sh) || ~isfinite(sh)
-                        invalidShifts = [invalidShifts, string(c2)];
-                        return
+        switch transform
+            case {"log", "exp"}
+                diffops = double.empty(1, 0);
+                resolvedSpecs = inputSpecs;
+            case {"diff", "difflog"}
+                if numel(args)<2
+                    diffops = -1;
+                else
+                    diffops = reshape(str2num(args(2)), 1, [ ]);
+                    if ~isnumeric(diffops) || isempty(diffops)
+                        diffops = -1;
                     end
                 end
-                if sh==0
-                    c = sprintf('x(%g, $, :)', pos);
+                pseudofuncObj = parser.Pseudofunc.(upper(transform));
+                resolvedSpecs = expand(pseudofuncObj, name, diffops);
+            case {"roc", "pct"}
+                pseudofuncObj = parser.Pseudofunc.(upper(transform));
+                if numel(args)<2
+                    diffops = -1;
                 else
-                    c = sprintf('x(%g, $%+g, :)', pos, sh);
+                    diffops = diffops(1);
                 end
-                incidence = [incidence, complex(pos, sh)];
-            end%
+                pseudofuncObj = parser.Pseudofunc.(upper(transform));
+                resolvedSpecs = expand(pseudofuncObj, name, diffops);
+        end
+
+        if any(diffops>=0)
+            thisError = [
+                "Explanatory:InvalidTimeShift"
+                "The dependent term of the Explanatory object contains a lead of the LHS variable, "
+                "which is not allowed: %s "
+            ];
+            throw(exception.Base(thisError, "error"), inputSpecs);
+        end
+
+        [resolvedSpecs, incidence] = locallyParseExpression(expy, resolvedSpecs);
+        pos = find(inxName);
+        this.InputString = inputSpecs;
+        this.Position = find(inxName);
+        this.Shift = 0;
+        this.Incidence = incidence;
+        this.Expression = resolvedSpecs;
+        this.InverseTransform = locallyCreateInverseTransform(transform, diffops, this.Position);
+        status = 0;
+        %)
+    end%
 
 
-            function hereParseSpecials( )
-                % Replace `ifnan(` with `simulate.ifnan(`
-                parsedSpecs = regexprep(parsedSpecs, "(?<!\.)\<ifnan\(", "simulate.ifnan(");
-                % Replace `if(` with `simulate.if(`
-                parsedSpecs = regexprep(parsedSpecs, "(?<!\.)\<if\(", "simulate.if(");
-            end%
-
-
-            function hereThrowInvalidNames( )
-                invalidNames = cellstr(invalidNames);
-                thisError = [ 
-                    "RegressionTerm:InvalidName"
-                    "This name occurs in a regression.Term definition "
-                    "but is not on the list of Explanatory.VariableNames: %s " 
-                ];
-                throw(exception.Base(thisError, "error"), invalidNames{:});
-            end%
-        end%
-
-
-    function hereThrowInvalidPointer( )
-        thisError = [ 
-            "RegressionTerm:InvalidPointerToVariableNames"
-            "Regression term specification points to a non-existing position "
-            "in the Explanatory.VariableNames list: %g " 
-        ];
-        throw(exception.Base(thisError, 'error'), inputSpecs);
+    function status = hereTryExpression( )
+        % (
+        resolvedSpecs = locallyPreparseSpecials(expy, inputSpecs);
+        resolvedSpecs = parser.Pseudofunc.parse(resolvedSpecs);
+        [resolvedSpecs, incidence] = locallyParseExpression(expy, resolvedSpecs);
+        resolvedSpecs = locallyPostparseSpecials(expy, resolvedSpecs);
+        this.Expression = resolvedSpecs;
+        this.InputString = inputSpecs;
+        this.Incidence = incidence;
+        %)
     end%
 
 
@@ -311,12 +193,160 @@ end%
 % Local Functions
 %
 
-function incidence = locallyCreateIncidence(pos, shift, transform)
-    incidence = complex(pos, shift);
-    if strlength(transform)>0
-        addShifts = regression.Term.TRANSFORMS_SHIFTS.(transform);
-        if ~isempty(addShifts)
-            incidence = [incidence, complex(pos, shift+addShifts)];
-        end
+function incidence = locallyCreateIncidence(pos, shifts, transform)
+end%
+
+
+function inputString = locallyCreateInputString(expy, pos, shift, transform)
+    inputString = expy.VariableNames(pos);
+    if shift~=0
+        inputString = inputString + "{" + double(shift) + "}";
+    end
+    if transform~=""
+        inputString = transform + "(" + inputString + ")";
     end
 end%
+
+
+function [resolvedSpecs, incidence] = locallyParseExpression(expy, resolvedSpecs)
+    %
+    % Unique names of all control parameters
+    %
+    controlNames = collectControlNames(expy);
+    %
+    % Replace name{k} with x(pos, t+k, v)
+    % Replace name with x(pos, t, v)
+    %
+    incidence = double.empty(1, 0);
+    invalidNames = string.empty(1, 0);
+    invalidShifts = string.empty(1, 0);
+    replaceFunc = @replaceNameShift;
+    resolvedSpecs = regexprep(resolvedSpecs, Explanatory.VARIABLE_WITH_SHIFT, "${replaceFunc($1, $2)}");
+    resolvedSpecs = regexprep(resolvedSpecs, Explanatory.VARIABLE_NO_SHIFT, "${replaceFunc($1)}");
+    resolvedSpecs = replace(resolvedSpecs, ",$$", ",t");
+    resolvedSpecs = replace(resolvedSpecs, ",::)", ",v)");
+    if ~isempty(invalidNames)
+        hereThrowInvalidNames( );
+    end
+    %
+    % Vectorize operators
+    %
+    resolvedSpecs = vectorize(resolvedSpecs);
+    incidence = unique(incidence, "stable");
+
+    return
+
+        function c = replaceNameShift(c1, c2)
+            c = '';
+            c1 = string(c1);
+            if any(c1==controlNames)
+                c = "controls__." + c1;
+                return
+            end
+            pos = getPosName(expy, c1);
+            sh = 0;
+            if isnan(pos)
+                invalidNames = [invalidNames, c1];
+                return
+            end
+            if nargin>=2 && strlength(c2)>0 && ~strcmp(c2, '{}') && ~strcmp(c2, '{0}')
+                c2 = string(c2);
+                sh = str2num(replace(c2, ["{", "}"], ["", ""]));
+                if ~validate.numericScalar(sh) || ~isfinite(sh)
+                    invalidShifts = [invalidShifts, c2];
+                    return
+                end
+            end
+            if sh==0
+                c = sprintf('x(%g,$$,::)', pos);
+            else
+                c = sprintf('x(%g,$$%+g,::)', pos, sh);
+            end
+            incidence = [incidence, complex(pos, sh)];
+        end%
+
+
+        function hereThrowInvalidNames( )
+            invalidNames = cellstr(invalidNames);
+            thisError = [ 
+                "RegressionTerm:InvalidName"
+                "This name occurs in a regression.Term definition "
+                "but is not on the list of Explanatory.VariableNames: %s " 
+            ];
+            throw(exception.Base(thisError, "error"), invalidNames{:});
+        end%
+end%
+
+
+function specs = locallyPreparseSpecials(expy, specs)
+    %
+    % Substitute for AR terms
+    % diff, difflog, dot, movsum, movavg, movprod, movgeom
+    %
+    %(
+    if contains(specs, expy.LhsReference)
+        lhs = expy.DependentTerm.InputString;
+        specs = regexprep( ...
+            specs ...
+            , "\<" + expy.LhsReference + "\>\{([^\}]*)\}" ...
+            , "${parser.Pseudofunc.shiftTimeSubs(""" + lhs + """, $1)}" ...
+        );
+    end
+    %)
+end%
+
+
+function specs = locallyPostparseSpecials(expy, specs)
+    % Replace `ifnan(` with `simulate.ifnan(`
+    specs = regexprep(specs, "(?<!\.)\<ifnan\(", "simulate.ifnan(");
+    % Replace `if(` with `simulate.if(`
+    specs = regexprep(specs, "(?<!\.)\<if\(", "simulate.if(");
+end%
+
+
+function build = locallyCreateInverseTransform(transform, diffops, posLhs)
+    if isempty(diffops)
+        poly = 1;
+    else
+        poly = [1, zeros(1, -diffops(1)-1), -1];
+        for i = reshape(diffops(2:end), 1, [ ])
+            poly = conv(poly, [1, zeros(1, -i-1), -1]);
+        end
+    end
+
+    dataRow = "x(" + string(posLhs);
+    switch transform
+        case "log"
+            build = "exp(__lhs)"
+        case "exp"
+            build = "log(__lhs)"
+        case "roc"
+            build = "__lhs.*" + dataRow + ", t-" + string(-diffops) + ",v)";
+        case "pct"
+            build = "(1+__lhs/100).*" + dataRow + ",t-" + string(-diffops) + ",v)";
+        case {"diff", "difflog"}
+            build = "__lhs";
+            poly1 = -poly(2:end);
+            for lag = find(poly1~=0)
+                coeff = poly1(lag);
+                if coeff==1
+                    coeff = "+";
+                elseif coeff==-1
+                    coeff = "-";
+                elseif coeff>0
+                    coeff = "+" + string(coeff) + "*";
+                else
+                    coeff = "-" + string(coeff) + "*";
+                end
+                p = dataRow + ",t-" + lag + ",v)";
+                if transform=="difflog"
+                    p = "log(" + p + ")";
+                end
+                build = build + coeff + p;
+            end
+            if transform=="difflog"
+                build = "exp(" + build + ")";
+            end
+    end
+end%
+

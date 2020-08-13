@@ -1,20 +1,18 @@
-function dat = datecode(freq, year, per, varargin)
 % numeric.datcode  Create IRIS date code
 %
-% Backend IRIS function
+% Backend [IrisToolbox] function
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function dat = datecode(freq, year, per, day)
 
 if nargin<3
     per = 1;
 end
 
-if ~isempty(varargin)
-    day = varargin{1};
-    varargin(1) = [ ];
-else
+if nargin<4
     day = 1;
 end
 
