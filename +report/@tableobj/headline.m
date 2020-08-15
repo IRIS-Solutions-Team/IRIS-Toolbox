@@ -7,16 +7,14 @@ function c = headline(this)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
-BR = sprintf('\n');
-
 %--------------------------------------------------------------------------
 
 isDates = isempty(this.options.colstruct);
 if isDates
-    range = this.options.range;
+    range = double(this.options.range);
 else
-    nCol = length(this.options.colstruct);
-    range = 1 : nCol;
+    numColumns = numel(this.options.colstruct);
+    range = 1 : numColumns;
 end
 
 dateFormat = this.options.dateformat;
@@ -28,7 +26,7 @@ if isDates
     isTwoLines = isDates && ~isequaln(yearFmt, NaN);
 else
     isTwoLines = false;
-    for i = 1 : nCol
+    for i = 1 : numColumns
         isTwoLines = ~isequaln(this.options.colstruct(i).name{1}, NaN);
         if isTwoLines
             break
@@ -42,13 +40,13 @@ if isempty(range)
     if isnan(yearFmt)
         c = lead;
     else
-        c = [lead,BR,'\\',lead];
+        c = [lead, newline( ) ,'\\',lead];
     end
     return
 end
 
-range = range(:).';
-nPer = length(range);
+range = reshape(range, 1, [ ]);
+numPeriods = numel(range);
 if isDates
     currentDates = dat2str( range, ...
                             'dateFormat=',currentFmt, ...
@@ -75,8 +73,8 @@ yCount = 0;
 colFootDate = [ this.options.colfootnote{1:2:end} ];
 colFootText = this.options.colfootnote(2:2:end);
 
-for i = 1 : nPer
-    isLastCol = i == nPer;
+for i = 1 : numPeriods
+    isLastCol = i == numPeriods;
     yCount = yCount + 1;
     colW = this.options.colwidth(min(i,end));
     f = '';
@@ -100,8 +98,8 @@ for i = 1 : nPer
         end
     end
     
-    % Footnotes in the headings of individual columns.
-    inx = datcmp(colFootDate,range(i));
+    % Footnotes in the headings of individual columns
+    inx = dater.eq(colFootDate, range(i));
     for j = find(inx)
         if ~isempty(colFootText{j})
             s = [s, ...
@@ -147,7 +145,7 @@ for i = 1 : nPer
 end
 
 if isTwoLines
-    c = [firstLine, '\\[-8pt]', BR, divider, '\\', BR, secondLine];
+    c = [firstLine, '\\[-8pt]',  newline( ), divider, '\\', newline( ), secondLine];
 else
     c = secondLine;
 end

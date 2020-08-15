@@ -96,11 +96,9 @@ if isempty(pp)
 end
 %)
 opt = parse(pp, sourceDb, varargin{:});
-
-sourceNames = pp.Results.SourceNames;
-targetDb = pp.Results.TargetDb;
-targetNames = pp.Results.TargetNames;
-transform = pp.Results.Transform;
+sourceNames = opt.SourceNames;
+targetNames = opt.TargetNames;
+transform = opt.Transform;
 
 %--------------------------------------------------------------------------
 

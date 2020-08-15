@@ -49,10 +49,10 @@ opt = spec.Options;
 listUnused = cell(1, 0);
 
 if ~isempty(varargin)
-    if iscellstr(varargin(1:2:end))
+    if iscellstr(varargin(1:2:end)) || all(cellfun(@isstring, varargin(1:2:end)))
         % Called passvalopt(Spec, 'Name=', Value,...).
         % This is the preferred way.
-        userName = varargin(1:2:end);
+        userName = cellstr(varargin(1:2:end));
         userValue = varargin(2:2:end);
         
     elseif nargin==2 && isstruct(varargin{1})

@@ -52,7 +52,7 @@ range = double(range);
 if isequal(range, Inf)
     startYear = numeric.convert(this.StartAsNumeric, Frequency.YEARLY);
     endYear = numeric.convert(this.EndAsNumeric, Frequency.YEARLY);
-    range = DateWrapper.roundColon(startYear, endYear);
+    range = dater.colon(startYear, endYear);
 end
 range = reshape(range, [ ], 1);
 

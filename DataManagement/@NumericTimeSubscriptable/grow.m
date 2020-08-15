@@ -163,7 +163,7 @@ if numel(sizeX)>2
 end
 
 % Update output series
-this = setData(this, DateWrapper.roundColon(startAll, endAll), xData);
+this = setData(this, dater.colon(startAll, endAll), xData);
 
 return
 

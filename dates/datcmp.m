@@ -43,14 +43,11 @@ function flag = datcmp(dat1, dat2)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
-% Parse required input arguments.
-pp = inputParser( );
-pp.addRequired('D1',@isnumeric);
-pp.addRequired('D2',@isnumeric);
-pp.parse(dat1,dat2);
-
 %--------------------------------------------------------------------------
 
-flag = abs(dat1 - dat2) < 0.01 | (isinf(dat1) & isinf(dat2));
+dat1 = double(dat1);
+dat2 = double(dat2);
+flag = round(100*dat1)==round(100*dat2) | (isinf(dat1) & isinf(dat2));
 
-end
+end%
+

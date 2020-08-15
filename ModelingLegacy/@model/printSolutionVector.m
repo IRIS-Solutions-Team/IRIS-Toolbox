@@ -15,14 +15,14 @@ end
 
 if ischar(type)
     vec = cell(1, 0);
-    indexLog = false(1, 0);
+    inxLog = false(1, 0);
     for iType = lower(type)
         switch iType
             case 'y'
                 % Vector of measurement variables.
                 pos = this.Vector.Solution{1};
                 vec = [vec, this.Quantity.Name(pos)]; %#ok<AGROW>
-                indexLog = [indexLog, this.Quantity.IxLog(pos)]; %#ok<AGROW>
+                inxLog = [inxLog, this.Quantity.IxLog(pos)]; %#ok<AGROW>
             case {'x', 'xi'}
                 % Vector of transition variables.
                 pos = real(this.Vector.Solution{2});
@@ -32,17 +32,17 @@ if ischar(type)
                     iVec{i} = sprintf('%s{%+g}', iVec{i}, sh(i));
                 end
                 vec = [vec, iVec]; %#ok<AGROW>
-                indexLog = [indexLog, this.Quantity.IxLog(pos)]; %#ok<AGROW>
+                inxLog = [inxLog, this.Quantity.IxLog(pos)]; %#ok<AGROW>
             case 'e'
                 % Vector of shocks.
                 pos = this.Vector.Solution{3};
                 vec = [vec, this.Quantity.Name(pos)]; %#ok<AGROW>
-                indexLog = [indexLog, this.Quantity.IxLog(pos)]; %#ok<AGROW>
+                inxLog = [inxLog, this.Quantity.IxLog(pos)]; %#ok<AGROW>
             case 'g'
                 % Vector of exogenous variables.
                 pos = this.Vector.Solution{5};
                 vec = [vec, this.Quantity.Name(pos)]; %#ok<AGROW>
-                indexLog = [indexLog, this.Quantity.IxLog(pos)]; %#ok<AGROW>
+                inxLog = [inxLog, this.Quantity.IxLog(pos)]; %#ok<AGROW>
         end
     end
 else
@@ -54,19 +54,19 @@ else
     for i = find(sh~=0)
         vec{i} = sprintf('%s{%+g}', vec{i}, sh(i));
     end
-    indexLog = this.Quantity.IxLog(pos);
+    inxLog = this.Quantity.IxLog(pos);
 end
 
 % Wrap log variables
-if any(indexLog)
+if any(inxLog)
     if isequal(logStyle, @Behavior)
         logStyle = this.Behavior.LogStyleInSolutionVectors;
     end
     switch logStyle
         case 'log()'
-            vec(indexLog) = strcat('log(', vec(indexLog), ')');
+            vec(inxLog) = strcat('log(', vec(inxLog), ')');
         case this.LOG_PREFIX
-            vec(indexLog) = strcat(this.LOG_PREFIX, vec(indexLog));
+            vec(inxLog) = strcat(this.LOG_PREFIX, vec(inxLog));
         otherwise
             % Do nothing
     end

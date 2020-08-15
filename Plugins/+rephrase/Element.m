@@ -35,6 +35,7 @@ classdef Element ...
             varargin(1) = [ ];
             for i = 1 : 2 : numel(varargin)
                 name = erase(varargin{i}, "=");
+                name = replaceBetween(name, 1, 1, upper(extractBetween(name, 1, 1)));
                 this.Settings.(name) = varargin{i+1};
             end
         end%
