@@ -1,4 +1,4 @@
-function [c, listSerialized] = serialize(inputDatabank, dates, varargin)
+function [c, listSerialized] = serialize(inputDatabank, varargin)
 % serialize  Serialize databank entries to character vector
 %{
 % ## Syntax ##
@@ -64,7 +64,8 @@ if isempty(pp)
     addDateOptions(pp);
 end
 %)
-opt = parse(pp, inputDatabank, dates, varargin{:});
+opt = parse(pp, inputDatabank, varargin{:});
+dates = pp.Results.dates;
 
 % Set up the formatting string
 if isempty(opt.Decimals)
@@ -77,12 +78,15 @@ opt.UserDataFields = cellstr(opt.UserDataFields);
 
 %--------------------------------------------------------------------------
 
+% TODO: Implement -Inf:date, date:Inf
 if isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
     dates = databank.range(inputDatabank);
     if iscell(dates)
-        THIS_ERROR = { 'Databank:CannotSaveMixedFrequencies'
-                       'Input date range needs to be specified when saving databanks containing time series of multiple date frequencies' };
-        throw( exception.Base(THIS_ERROR, 'error') );
+        exception.error([
+            "Databank:CannotSaveMixedFrequencies"
+            "Proper date range needs to be specified when saving databanks "
+            "containing time series of multiple date frequencies."
+        ]);
     end
     dates = double(dates);
     userFreq = DateWrapper.getFrequencyAsNumeric(dates);
