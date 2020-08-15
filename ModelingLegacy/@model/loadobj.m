@@ -9,9 +9,11 @@ function this = loadobj(this, varargin)
 
 %--------------------------------------------------------------------------
 
+build = [ ];
 try
     build = sscanf(this.Build, '%g', 1);
-catch
+end
+if ~isnumeric(build) || ~isscalar(build)
     build = 0;
 end
 
