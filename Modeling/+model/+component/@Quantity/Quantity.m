@@ -79,6 +79,7 @@ classdef (CaseInsensitiveProperties=true) ...
 
         varargout = lookup(varargin)
         varargout = pattern4postparse(varargin)
+        varargout = printVector(varargin)
         varargout = remove(varargin)
         varargout = rename(varargin)
         varargout = saveObject(varargin)
