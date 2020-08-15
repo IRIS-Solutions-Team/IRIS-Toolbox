@@ -4,7 +4,7 @@ TYPE = @int8; %#ok<NASGU>
 response = [ ];
 isValid = true;
 
-if matches(query, "Gradient", "IgnoreCase", true)
+if matches(query, ["Gradient", "Gradients"], "IgnoreCase", true)
     response = this;
     numEquations = size(response.Dynamic, 2);
     for i = 1 : numEquations
