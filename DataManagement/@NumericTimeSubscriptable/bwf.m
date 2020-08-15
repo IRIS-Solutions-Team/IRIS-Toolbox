@@ -1,4 +1,4 @@
-function varargout = bwf(varargin)
+function varargout = bwf(this, order, varargin)
 % bwf  Butterworth filter with tunes.
 %
 %
@@ -105,12 +105,9 @@ function varargout = bwf(varargin)
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-[X, Order, Range, varargin] = irisinp.parser.parse('tseries.bwf', varargin{:});
-opt = passvalopt('tseries.filter', varargin{:});
-
 %--------------------------------------------------------------------------
 
-[varargout{1:nargout}] = implementFilter(Order, X, Range, opt);
+[varargout{1:nargout}] = implementFilter(order, this, varargin{:});
 
 end%
 

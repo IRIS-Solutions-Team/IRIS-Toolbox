@@ -243,13 +243,10 @@ function varargout = hpf(varargin)
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-[x, range, varargin] = irisinp.parser.parse('tseries.filter', varargin{:});
-opt = passvalopt('tseries.filter', varargin{:});
-
 %--------------------------------------------------------------------------
 
 order = 2;
-[varargout{1:nargout}] = implementFilter(order, x, range, opt);
+[varargout{1:nargout}] = implementFilter(order, varargin{:});
 
 end%
 

@@ -1,4 +1,4 @@
-function [lowp, highp] = clpf(xData, lambda, varargin)
+function [lowp, highp] = clpf(data, lambda, order, infoSet, levelData, changeData, gamma, drift) 
 % clpf  Constrained low-pass filter
 %
 % Backend [IrisToolbox] function
@@ -7,18 +7,10 @@ function [lowp, highp] = clpf(xData, lambda, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-opt = passvalopt('tseries.clpf', varargin{:});
-order = opt.Order;
-infoSet = opt.InfoSet;
-lData = opt.Level;
-gData = opt.Change;
-gamma = opt.Gamma;
-drift = opt.Drift;
-
 %--------------------------------------------------------------------------
 
-sizeData = size(xData);
-xData = xData(:, :);
+sizeData = size(data);
+data = data(:, :);
 numPeriods = sizeData(1);
 lambda = reshape(lambda, 1, [ ]);
 
@@ -32,109 +24,108 @@ if size(drift, 1)==1
     drift = repmat(drift, numPeriods, 1);
 end
 
-isLevel = ~isempty(lData);
-isGrowth = ~isempty(gData);
+isLevel = ~isempty(levelData);
+isChange = ~isempty(changeData);
 
-lDataSoft = [ ];
-lWeight = [ ];
-gDataSoft = [ ];
-gWeight = [ ];
+levelDataSoft = [ ];
+levelWeight = [ ];
+changeDataSoft = [ ];
+changeWeight = [ ];
 hereSeparateSoftHard( );
 
-
-nLambda = length(lambda);
-nDrift = size(drift, 2);
-nx = size(xData, 2);
-nGamma = size(gamma, 2);
+numLambdas = numel(lambda);
+numDrifts = size(drift, 2);
+numColumns = size(data, 2);
+numGammas = size(gamma, 2);
 if isLevel
-    nl = size(lData, 2);
+    numLevels = size(levelData, 2);
 else
-    nl = [ ];
+    numLevels = [ ];
 end
-if isGrowth
-    ng = size(gData, 2);
+if isChange
+    numChanges = size(changeData, 2);
 else
-    ng = [ ];
+    numChanges = [ ];
 end
-nLoop = max([nLambda, nDrift, nx, nl, ng, nGamma]);
+numRuns = max([numLambdas, numDrifts, numColumns, numLevels, numChanges, numGammas]);
 
-lowp = nan(numPeriods, nLoop);
-highp = nan(numPeriods, nLoop);
+lowp = nan(numPeriods, numRuns);
+highp = nan(numPeriods, numRuns);
 
-% Main loop.
-for iLoop = 1 : nLoop
+
+% /////////////////////////////////////////////////////////////////////////
+for run = 1 : numRuns
     if infoSet==2
-        % Two-sided filter.
+        % Two-sided filter
         T = numPeriods;
         [XX, xi] = hereDoOneColumn( );
-        lowp(:, iLoop) = XX(1:numPeriods);
-        highp(:, iLoop) = xi - lowp(:, iLoop);
+        lowp(:, run) = XX(1:numPeriods);
+        highp(:, run) = xi - lowp(:, run);
     else
-        % One-sided filter.
+        % One-sided filter
         for T = 1 : numPeriods
             [XX, xi] = hereDoOneColumn( );
-            lowp(T, iLoop) = XX(T);
-            highp(T, iLoop) = xi(T) - lowp(T, iLoop);
+            lowp(T, run) = XX(T);
+            highp(T, run) = xi(T) - lowp(T, run);
         end
     end
 end
+% /////////////////////////////////////////////////////////////////////////
+
 
 lowp = reshape(lowp, [numPeriods, sizeData(2:end)]);
 highp = reshape(highp, [numPeriods, sizeData(2:end)]);
 
 return
 
-
     function hereSeparateSoftHard( )
         % Separate soft and hard level tunes.
         if isLevel
-            lData = lData(:, :);
-            remove = isinf(imag(lData)) | isnan(imag(lData));
-            lData(remove) = NaN;
-            lDataSoft = nan(size(lData));
-            lWeight = nan(size(lData));
-            softindex = imag(lData) ~= 0 & ~isnan(real(lData));
-            lDataSoft(softindex) = real(lData(softindex));
-            lWeight(softindex) = imag(lData(softindex));
-            lWeight = 1./lWeight;
-            lData(softindex) = NaN;
+            levelData = levelData(:, :);
+            remove = isinf(imag(levelData)) | isnan(imag(levelData));
+            levelData(remove) = NaN;
+            levelDataSoft = nan(size(levelData));
+            levelWeight = nan(size(levelData));
+            inxSoft = imag(levelData) ~= 0 & ~isnan(real(levelData));
+            levelDataSoft(inxSoft) = real(levelData(inxSoft));
+            levelWeight(inxSoft) = imag(levelData(inxSoft));
+            levelWeight = 1./levelWeight;
+            levelData(inxSoft) = NaN;
         end
         % Separate soft and hard growth tunes.
-        if isGrowth
-            gData = gData(:, :);
-            remove = isinf(imag(gData)) | isnan(imag(gData));
-            gData(remove) = NaN;
-            gDataSoft = nan(size(gData));
-            gWeight = nan(size(gData));
-            softindex = imag(gData) ~= 0 & ~isnan(real(gData));
-            gDataSoft(softindex) = real(gData(softindex));
-            gWeight(softindex) = imag(gData(softindex));
-            gWeight = 1./gWeight;
-            gData(softindex) = NaN;
+        if isChange
+            changeData = changeData(:, :);
+            remove = isinf(imag(changeData)) | isnan(imag(changeData));
+            changeData(remove) = NaN;
+            changeDataSoft = nan(size(changeData));
+            changeWeight = nan(size(changeData));
+            inxSoft = imag(changeData) ~= 0 & ~isnan(real(changeData));
+            changeDataSoft(inxSoft) = real(changeData(inxSoft));
+            changeWeight(inxSoft) = imag(changeData(inxSoft));
+            changeWeight = 1./changeWeight;
+            changeData(inxSoft) = NaN;
         end
     end%
 
 
-
-
     function [XX, xi] = hereDoOneColumn( )
-        xi = xData(1:T, min(iLoop, end));
-        lambdai = lambda(min(iLoop, end));
-        drifti = drift(min(iLoop, end));
-        gammai = gamma(1:T, min(iLoop, end));
+        xi = data(1:T, min(run, end));
+        lambdai = lambda(min(run, end));
+        drifti = drift(min(run, end));
+        gammai = gamma(1:T, min(run, end));
         
         % Get current level constraints.
         if isLevel
-            li = lData(1:T, min(iLoop, end));
-            lsofti = lDataSoft(1:T, min(iLoop, end));
-            lweighti = lWeight(1:T, min(iLoop, end));
+            li = levelData(1:T, min(run, end));
+            lsofti = levelDataSoft(1:T, min(run, end));
+            lweighti = levelWeight(1:T, min(run, end));
         end
         
         % Get current growth constraints.
-        if isGrowth
-            gi = gData(1:T, min(iLoop, end));
-            gsofti = gDataSoft(1:T, min(iLoop, end));
-            gweighti = gWeight(1:T, min(iLoop, end));
+        if isChange
+            gi = changeData(1:T, min(run, end));
+            gsofti = changeDataSoft(1:T, min(run, end));
+            gweighti = changeWeight(1:T, min(run, end));
         end
         
         % Multiply observations by gamma weights.
@@ -153,7 +144,7 @@ return
         end
         
         % Soft growth tunes.
-        if isGrowth && any(~isnan(gsofti))
+        if isChange && any(~isnan(gsofti))
             [X, B] = hereAddGrowthSoft(X, B, gsofti, gweighti);
         end
         
@@ -163,7 +154,7 @@ return
         end
         
         % Hard growth tunes.
-        if isGrowth && any(~isnan(gi))
+        if isChange && any(~isnan(gi))
             [X, B] = hereAddGrowth(X, B, gi);
         end
         
@@ -173,13 +164,11 @@ return
 end%
 
 
-
-
-function [y, b] = hereAddLevel(y, b, lData)
-    lData = reshape(lData, [ ], 1);
-    index = ~isnan(lData).';
+function [y, b] = hereAddLevel(y, b, levelData)
+    levelData = reshape(levelData, [ ], 1);
+    index = ~isnan(levelData).';
     if any(index)
-        y = [y;lData(index)];
+        y = [y;levelData(index)];
         for j = find(index)
             b(end+1, j) = 1; %#ok<*AGROW>
             b(j, end+1) = 1;
@@ -188,21 +177,17 @@ function [y, b] = hereAddLevel(y, b, lData)
 end% 
 
 
-
-
-function [y, b] = hereAddGrowth(y, b, gData)
-    gData = reshape(gData, [ ], 1);
-    inx = ~isnan(gData).';
+function [y, b] = hereAddGrowth(y, b, changeData)
+    changeData = reshape(changeData, [ ], 1);
+    inx = ~isnan(changeData).';
     if any(inx)
-        y = [y;gData(inx)];
+        y = [y;changeData(inx)];
         for j = find(inx)
             b(end+1, [j-1, j]) = [-1, 1];
             b([j-1, j], end+1) = [-1;1];
         end
     end
 end%
-
-
 
 
 function [y, b] = hereAddLevelSoft(y, b, lSoft, lw)
@@ -215,8 +200,6 @@ function [y, b] = hereAddLevelSoft(y, b, lSoft, lw)
 end% 
 
 
-
-
 function [y, b] = hereAddGrowthSoft(y, b, gSoft, gw)
     inx = ~isnan(gSoft);
     inx = reshape(inx, 1, [ ]);
@@ -227,8 +210,6 @@ function [y, b] = hereAddGrowthSoft(y, b, gSoft, gw)
         b(j-1:j, j-1:j) =  b(j-1:j, j-1:j) + gw(j)*[1, -1;-1, 1];
     end
 end%
-
-
 
 
 function [y, b] = herePlainSystem(y, lambda, gamma, drift, p)
@@ -280,8 +261,6 @@ function [y, b] = herePlainSystem(y, lambda, gamma, drift, p)
 end%
 
 
-
-
 function x2 = herePascalRow(n)
     % xxPascalRows  Get decomposition of one row of the Pascal triangle.
     if n == 0
@@ -290,18 +269,16 @@ function x2 = herePascalRow(n)
     end
     % Pascal triangle.
     x = [1, 1];
-    for i = 2 : n
+    for ii = 2 : n
         x = sum([x(1:end-1);x(2:end)], 1);
         x = [1, x, 1];
     end
     % Row x row.
     x2 = x;
-    for i = 2 : n+1
-        x2(i, i:end+1) = x(i)*x;
+    for ii = 2 : n+1
+        x2(ii, ii:end+1) = x(ii)*x;
     end
 end%
-
-
 
 
 function b = hereAddGamma(b, gamma, nanObs)
@@ -311,3 +288,4 @@ function b = hereAddGamma(b, gamma, nanObs)
     e(nanObs, nanObs) = 0;
     b = b + e;
 end%
+
