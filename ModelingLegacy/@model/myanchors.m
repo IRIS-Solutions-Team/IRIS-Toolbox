@@ -18,7 +18,7 @@ if DateWrapper.getFrequencyAsNumeric(p.Start)~=DateWrapper.getFrequencyAsNumeric
 end
 
 % Adjust plan range to simulation range if not equal.
-if ~datcmp(p.Start, rng(1)) || ~datcmp(p.End, rng(end))
+if ~dater.eq(p.Start, rng(1)) || ~dater.eq(p.End, rng(end))
     p = p(rng);
 end
 

@@ -132,7 +132,7 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
         if isequal(timeRef(2), Inf)
             timeRef(2) = endThis;
         end
-        timeRef = DateWrapper.roundColon(timeRef(1), timeRef(2));
+        timeRef = dater.colon(timeRef(1), timeRef(2));
     end
     if testColon(timeRef) || isequal(timeRef, Inf)
         s.subs{1} = ':';

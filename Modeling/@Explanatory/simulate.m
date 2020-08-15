@@ -411,7 +411,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     m5 = Explanatory.fromString("c = y");
     startDate = numeric.qq(2001,1);
     endDate = numeric.qq(2010, 4);
-    range = DateWrapper.roundColon(startDate, endDate);
+    range = dater.colon(startDate, endDate);
     db = struct( );
     db.x = Series(DateWrapper.roundPlus(startDate, -1), 0);
     db.y = Series(range, @rand)*0.5 + 5;

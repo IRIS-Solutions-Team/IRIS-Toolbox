@@ -47,7 +47,7 @@ opt = pp.Options;
 range = double(range);
 startRange = range(1);
 endRange = range(end);
-range = DateWrapper.roundColon(startRange, endRange);
+range = dater.colon(startRange, endRange);
 numPeriods = round(endRange - startRange + 1);
 [ny, ~, nb, ~, ~, ~, nz] = sizeOfSolution(this);
 

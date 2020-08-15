@@ -14,7 +14,7 @@ classdef (Abstract) Data ...
                 startDate = locallyReadDates(freq, parent.Settings.StartDate);
                 endDate = locallyReadDates(freq, parent.Settings.EndDate);
                 values = getDataFromTo(input, startDate, endDate);
-                dates = DateWrapper.roundColon(startDate, endDate);
+                dates = dater.colon(startDate, endDate);
                 dates = DateWrapper.toIsoString(dates, "m");
             else
                 dates = locallyReadDates(freq, parent.Settings.Dates);
@@ -23,7 +23,7 @@ classdef (Abstract) Data ...
             end
             values = values(:, 1);
             output = struct( );
-            output.Dates = dates;
+            output.Dates = DateWrapper(dates);
             output.Values = reshape(values, 1, [ ]);
         end%
     end

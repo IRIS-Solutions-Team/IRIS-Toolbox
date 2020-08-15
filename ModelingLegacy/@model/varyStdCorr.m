@@ -83,7 +83,7 @@ return
             % Add one presample period if requested
             startDate = DateWrapper.roundPlus(startDate, -1);
         end
-        range = DateWrapper.roundColon(startDate, endDate);
+        range = dater.colon(startDate, endDate);
     end%
 end%
 

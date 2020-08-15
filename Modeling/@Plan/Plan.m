@@ -693,7 +693,7 @@ classdef Plan < matlab.mixin.CustomDisplay
                 value = DateWrapper.NaD;
                 return
             end
-            value = DateWrapper.roundColon(this.BaseStart, this.BaseEnd);
+            value = dater.colon(this.BaseStart, this.BaseEnd);
             value = DateWrapper(value);
         end%
 
@@ -710,7 +710,7 @@ classdef Plan < matlab.mixin.CustomDisplay
                 value = DateWrapper.NaD;
                 return
             end
-            value = DateWrapper.roundColon(this.ExtendedStart, this.ExtendedEnd);
+            value = dater.colon(this.ExtendedStart, this.ExtendedEnd);
             value = DateWrapper(value);
         end%
 

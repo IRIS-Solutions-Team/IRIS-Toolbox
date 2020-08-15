@@ -21,7 +21,7 @@ numColumns = size(data, 2);
 numRows = size(data, 1);
 startDate = double(startDate);
 endDate = DateWrapper.roundPlus(startDate, numRows-1);
-range = DateWrapper.roundColon(startDate, endDate);
+range = dater.colon(startDate, endDate);
 dates = DateWrapper.toDefaultString(range) + ":";
 dates = reshape(string(dates), [ ], 1);
 if padDates

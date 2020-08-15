@@ -15,7 +15,7 @@ startDate = range(1);
 endDate = range(end);
 extStartDate = DateWrapper.roundPlus(startDate, maxLag);
 extEndDate = DateWrapper.roundPlus(endDate, maxLead);
-extRange = DateWrapper.roundColon(extStartDate, extEndDate);
+extRange = dater.colon(extStartDate, extEndDate);
 numExtPeriods = numel(extRange);
 
 [variableNames, residualNames] = collectAllNames(this);
