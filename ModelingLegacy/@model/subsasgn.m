@@ -201,7 +201,7 @@ return
             throw(exception.Base(thisError, 'error'));
         end
         
-        if ~isempty(b) && ~iscompatible(this, b)
+        if ~isempty(b) && ~isCompatible(this, b)
             thisError = [
                 "Model:IncompatibleObjectsInSubscriptedAssignment"
                 "Model objects on the LHS and the RHS of a subsripted assignment "

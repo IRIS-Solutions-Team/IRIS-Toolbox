@@ -216,7 +216,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = ifrf(varargin)
         varargout = irf(varargin)
         varargout = isLinkActive(varargin)
-        varargout = iscompatible(varargin)
+        varargout = isCompatible(varargin)
         varargout = islinear(varargin)
         varargout = islog(varargin)
         varargout = ismissing(varargin)
@@ -518,6 +518,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+            %( Input parser
             persistent pp ppOptimal ppParser
             if isempty(pp) || isempty(ppParser) || isempty(ppOptimal)
                 pp = extend.InputParser('@Model');
@@ -562,6 +563,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 addParameter(ppOptimal, {'Floor', 'NonNegative'}, cell.empty(1, 0), @(x) isempty(x) || ( ischar(x) && isvarname(x) ));
                 addParameter(ppOptimal, 'Type', 'Discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
             end
+            %)
                 
             %--------------------------------------------------------------------------
             
