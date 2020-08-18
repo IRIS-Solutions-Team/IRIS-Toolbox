@@ -1,5 +1,5 @@
 function outp = myoutpdata(this, range, inpMean, inpMse, lsy, addDb) %#ok<INUSL>
-% myoutpdata  Output data for varobj objects.
+% myoutpdata  Output data for BaseVAR objects.
 %
 % Backend IRIS function.
 % No help provided.

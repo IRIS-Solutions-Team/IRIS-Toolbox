@@ -9,7 +9,7 @@ function [Y0,K0,Y1,G1] = mydummymat(This,varargin)
 
 Ng = 0;
 if numel(varargin)==1 
-    if isa(varargin{1}, 'varobj')
+    if isa(varargin{1}, 'BaseVAR')
         model = varargin{1};
         Ny = model.NumEndogenous;
         P = model.Order;

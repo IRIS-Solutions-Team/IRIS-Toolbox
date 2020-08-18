@@ -28,7 +28,7 @@ elseif nargin==3 && isempty(obj)
     this.Std(:, ixLhs) = [ ];
     this.Rank(:, ixLhs) = [ ];
     this.Method(:, ixLhs) = [ ];
-elseif nargin==4 && mycompatible(this, obj)
+elseif nargin==4 && testCompatible(this, obj)
     % Proper subscripted assignment This(Lhs) = Obj(Rhs)
     this = subsalt@VAR(this, ixLhs, obj, ixRhs);
     try

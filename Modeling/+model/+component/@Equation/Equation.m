@@ -26,7 +26,7 @@ classdef Equation < model.component.Insertable
         varargout = getLabelOrInput(varargin)
         varargout = implementDisp(varargin)
         varargout = implementGet(varargin)
-        varargout = isCompatible(varargin)
+        varargout = testCompatible(varargin)
 
         function n = length(this)
             n = length(this.Input);

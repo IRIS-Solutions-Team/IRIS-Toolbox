@@ -82,6 +82,7 @@ classdef ExcelSheet ...
                 addParameter(pp, 'Sheet', 1, @(x) isempty(x) || validate.numericScalar(x) || validate.string(x));
                 addParameter(pp, 'Range', '', @validate.string);
                 addParameter(pp, 'InsertEmpty', [0, 0], @(x) isnumeric(x) && numel(x)==2 && all(x==round(x)) && all(x>=0));
+                addParameter(pp, "ForceString", false, @validate.logicalScalar);
             end
             %)
             opt = parse(pp, fileName, varargin{:});
@@ -91,6 +92,9 @@ classdef ExcelSheet ...
             this.SheetRange = opt.Range;
             this.InsertEmpty = opt.InsertEmpty;
             read(this);
+            if opt.ForceString
+                this = forceString(this);
+            end
         %)
         end%
     end
@@ -103,6 +107,7 @@ classdef ExcelSheet ...
         varargout = readDates(varargin)
         varargout = retrieveSeries(varargin)
         varargout = retrieveDatabank(varargin)
+        varargout = forceString(varargin)
 
 
         function output = retrieveCell(this, locationRef)
@@ -124,7 +129,7 @@ classdef ExcelSheet ...
                 addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
                 addRequired(pp, 'locationRef', @(x) ~isempty(x));
             end
-            [startLocation, endLocation] = ExcelReference.decodeRange(locationRef);
+            [startLocation, endLocation] = ExcelReference.decodeRange(locationRef, size(this.Buffer));
             output = this.Buffer(startLocation(1):endLocation(1), startLocation(2):endLocation(2));
         end%
 
@@ -221,6 +226,7 @@ classdef ExcelSheet ...
 
 
         function [pos, inx] = findColumns(this, numToFind, varargin)
+            %( Input parser
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('@ExcelSheet/findColumns');
@@ -228,6 +234,7 @@ classdef ExcelSheet ...
                 addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
                 addRequired(pp, 'numToFind', @(x) isempty(x) || isnumeric(x));
             end
+            %)
             parse(pp, this, numToFind);
 
             inx = true(1, this.NumColumns);

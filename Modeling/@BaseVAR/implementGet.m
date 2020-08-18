@@ -1,5 +1,5 @@
 function [answ, flag] = implementGet(this, query, varargin)
-% implementGet  Implement get method for varobj objects
+% implementGet  Implement get method for BaseVAR objects
 %
 % Backend IRIS function.
 % No help provided.

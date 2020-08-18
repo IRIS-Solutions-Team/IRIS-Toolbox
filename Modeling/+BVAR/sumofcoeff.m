@@ -14,7 +14,7 @@ function [O,Y0,K0,Y1,G1] = sumofcoeff(Mu,varargin)
 % Output arguments
 % =================
 %
-% * `O` [ bvarobj ] - BVAR object that can be passed into the
+% * `O` [ DummyWrapper ] - BVAR object that can be passed into the
 % [`VAR/estimate`](VAR/estimate) function.
 %
 % Description
@@ -42,7 +42,7 @@ end
 
 %--------------------------------------------------------------------------
 
-This = BVAR.bvarobj( );
+This = BVAR.DummyWrapper( );
 This.name = 'sumofcoeff';
 This.y0 = @y0;
 This.k0 = @k0;

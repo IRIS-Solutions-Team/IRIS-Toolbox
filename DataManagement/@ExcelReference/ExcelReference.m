@@ -111,14 +111,18 @@ classdef ExcelReference
 
 
 
-        function [startRef, endRef] = decodeRange(xlsRange)
-            xlsRange = strtrim(xlsRange);
+        function [startRef, endRef] = decodeRange(xlsRange, sizeBuffer)
+            xlsRange = strip(xlsRange);
             tokens = regexp( ...
-                xlsRange, '^([a-z]+\d+)(\.\.([a-z]+\d+))?$' ...
-                , 'Tokens', 'Once', 'IgnoreCase' ...
+                xlsRange, "^(([a-z]+|\|)(\d+|_))(\.\.(([a-z]+|\|)(\d+|_)))?$" ...
+                , "Tokens", "Once", "IgnoreCase" ...
             );
-            tokens(cellfun('isempty', tokens)) = [ ];
-            tokens = strrep(tokens, '.', '');
+            tokens(cellfun(@isempty, tokens)) = [ ];
+            tokens = replace(tokens, ".", "");
+            if any(contains(tokens, ["|", "_"]))
+                tokens = replace(tokens, "|", string(sizeBuffer(2)));
+                tokens = replace(tokens, "_", string(sizeBuffer(1)));
+            end
             if numel(tokens)~=1 && numel(tokens)~=2
                 thisError = [
                     "ExcelReference:InvalidExcelRange"

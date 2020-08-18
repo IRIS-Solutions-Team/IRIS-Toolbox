@@ -1,5 +1,5 @@
 function this = loadobj(this)
-% loadobj  Prepare varobj based objects for loading and handle bkw compatibility.
+% loadobj  Prepare BaseVAR based objects for loading and handle bkw compatibility.
 %
 % Backend IRIS function.
 % No help provided.

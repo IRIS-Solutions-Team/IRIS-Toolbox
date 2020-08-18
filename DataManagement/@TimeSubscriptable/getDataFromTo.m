@@ -106,8 +106,8 @@ if numel(sizeData)>2
 end
 
 if nargout>=2
-    actualFrom = DateWrapper.getDateCodeFromSerial(freqStart, serialStart + posFrom - 1);
-    actualTo = DateWrapper.getDateCodeFromSerial(freqStart, serialStart + posTo - 1);
+    actualFrom = dater.fromSerial(freqStart, serialStart + posFrom - 1);
+    actualTo = dater.fromSerial(freqStart, serialStart + posTo - 1);
 end
 
 end%

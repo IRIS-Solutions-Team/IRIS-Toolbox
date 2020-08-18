@@ -3,7 +3,7 @@ classdef Behavior
         InvalidDotAssign = 'Error'
         InvalidDotReference = 'Error'
         DotReferenceFunc = [ ]
-        LogStyleInSolutionVectors = model.LOG_PREFIX
+        LogStyleInSolutionVectors (1, 1) string = string(model.component.Quantity.LOG_PREFIX)
     end
     
     
@@ -69,13 +69,16 @@ classdef Behavior
 
 
         function this = set.LogStyleInSolutionVectors(this, newValue)
-            newValue = char(newValue);
-            assert( ...
-                isequal(newValue, 'log()') || isequal(newValue, model.LOG_PREFIX), ...
-                exception.Base('Behavior:LogStyleInSolutionVectors', 'error'), ...
-                char(newValue) ...
-            );
-            this.LogStyleInSolutionVectors = newValue;
+            newValue = string(newValue);
+            if newValue=="log()" || newValue==string(model.component.Quantity.LOG_PREFIX)
+                this.LogStyleInSolutionVectors = newValue;
+                return
+            end
+            exception.error([
+                "Behavior:InvalidLogStyle"
+                "LogStyleInSolutionVectors is allowed to be assigned"
+                "one of {""log()"", ""%s""} only."
+            ], string(model.component.Quantity.LOG_PREFIX));
         end%
     end
 end

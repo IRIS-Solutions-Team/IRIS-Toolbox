@@ -1,10 +1,10 @@
-function flag = iscompatible(m1, m2)
-% iscompatible  True if two models can occur together on the LHS and RHS in an assignment.
+function flag = testCompatible(m1, m2)
+% testCompatible  True if two models can occur together on the LHS and RHS in an assignment.
 %
 % Syntax
 % =======
 %
-%     Flag = iscompatible(M1,M2)
+%     Flag = testCompatible(M1,M2)
 %
 %
 % Input arguments
@@ -39,11 +39,11 @@ function flag = iscompatible(m1, m2)
 
 try
     flag = isa(m1, 'model') && isa(m2, 'model') ...
-        && isCompatible(m1.Quantity, m2.Quantity) ...
-        && isCompatible(m1.Equation, m2.Equation) ...
-        && isCompatible(m1.Incidence.Dynamic, m2.Incidence.Dynamic) ...
-        && isCompatible(m1.Incidence.Steady, m2.Incidence.Steady) ...
-        && isCompatible(m1.Vector, m2.Vector);
+        && testCompatible(m1.Quantity, m2.Quantity) ...
+        && testCompatible(m1.Equation, m2.Equation) ...
+        && testCompatible(m1.Incidence.Dynamic, m2.Incidence.Dynamic) ...
+        && testCompatible(m1.Incidence.Steady, m2.Incidence.Steady) ...
+        && testCompatible(m1.Vector, m2.Vector);
 catch %#ok<CTCH>
     flag = false;
 end

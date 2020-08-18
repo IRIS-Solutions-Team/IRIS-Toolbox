@@ -227,6 +227,7 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = identify(varargin)        
         varargout = red2struct(varargin)        
         varargout = implementGet(varargin)
+        varargout = testCompatible(varargin)        
     end
     
     
@@ -234,7 +235,6 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = populateFromVAR(varargin)
 
         varargout = mybmatrix(varargin)
-        varargout = mycompatible(varargin)
         varargout = mycovmatrix(varargin)
         varargout = myparsetest(varargin)
         varargout = subsalt(varargin)

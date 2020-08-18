@@ -74,7 +74,7 @@
 %   eig - Eigenvalues of a VAR process
 %   fprintf - Write VAR model as formatted model code to text file
 %   get - Query VAR object properties
-%   iscompatible - True if two VAR objects can occur together on the LHS and RHS in an assignment
+%   testCompatible - True if two VAR objects can occur together on the LHS and RHS in an assignment
 %   isexplosive - True if any eigenvalue is outside unit circle
 %   ispanel - True for panel VAR objects
 %   isstationary - True if all eigenvalues are within unit circle
@@ -137,7 +137,7 @@
 % -Copyright (c) 2007-2020 IRIS Solutions Team
     
 classdef (CaseInsensitiveProperties=true) VAR ...
-    < varobj ...
+    < BaseVAR ...
     & shared.DatabankPipe
 
     properties
@@ -190,7 +190,7 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = infocrit(varargin)
         varargout = instrument(varargin)
         varargout = integrate(varargin)
-        varargout = iscompatible(varargin)
+        varargout = testCompatible(varargin)
         varargout = isexplosive(varargin)
         varargout = isstationary(varargin)
         varargout = lrtest(varargin)
@@ -228,7 +228,6 @@ classdef (CaseInsensitiveProperties=true) VAR ...
     methods (Access=protected, Hidden)
         varargout = assignEst(varargin)
         varargout = getEstimationData(varargin)
-        varargout = mycompatible(varargin)
         varargout = prepareLsqWeights(varargin)
         varargout = myisvalidinpdata(varargin)
         varargout = myny(varargin)
@@ -350,7 +349,7 @@ classdef (CaseInsensitiveProperties=true) VAR ...
 
 %--------------------------------------------------------------------------
             
-            this = this@varobj(varargin{:});
+            this = this@BaseVAR(varargin{:});
             
             if nargin==0
                 return

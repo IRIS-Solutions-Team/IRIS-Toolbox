@@ -356,37 +356,13 @@ classdef DateWrapper ...
 
 
         function this = fromSerial(varargin)
-            dateCode = DateWrapper.getDateCodeFromSerial(varargin{:});
+            dateCode = dater.fromSerial(varargin{:});
             this = DateWrapper(dateCode);
         end%
 
 
-        function dateCode = fromIsoStringAsNumeric(freq, isoDate)
-            freq = double(freq);
-            if isequal(freq, 0)
-                dateCode = double(isoDate);
-                return
-            end
-            isoDate = string(isoDate);
-            reshapeOutput = size(isoDate);
-            isoDate = reshape(isoDate, 1, [ ]);
-            inx = strlength(isoDate)>10;
-            if any(inx)
-                isoDate(inx) = extractBefore(isoDate(inx), 11);
-            end
-            inxMissing = ismissing(isoDate);
-            isoDate(inxMissing) = [ ];
-            isoDate = join(replace(isoDate, "-", " "), " ");
-            ymd = sscanf(isoDate, "%g");
-            serial = Frequency.ymd2serial(freq, ymd(1:3:end), ymd(2:3:end), ymd(3:3:end));
-            dateCode = nan(size(inxMissing));
-            dateCode(~inxMissing) = DateWrapper.getDateCodeFromSerial(freq, serial);
-            dateCode = reshape(dateCode, reshapeOutput);
-        end%
-
-
         function this = fromIsoString(varargin)
-            dateCode = DateWrapper.fromIsoStringAsNumeric(varargin{:});
+            dateCode = dater.fromIsoString(varargin{:});
             this = DateWrapper(dateCode);
         end%
 
@@ -425,24 +401,13 @@ classdef DateWrapper ...
         end%
 
 
-        function dateCode = getDateCodeFromSerial(freq, serial)
-            freq = double(freq);
-            inxFreqCodes = freq~=0 & freq~=365;
-            freqCode = zeros(size(freq));
-            freqCode(inxFreqCodes) = double(freq(inxFreqCodes)) / 100;
-            dateCode = round(serial) + freqCode;
+        function this = fromDatetime(varargin)
+            this = fromMatlab(varargin{:});
         end%
 
 
-        function this = fromDatetime(frequency, dt)
-            serial = Frequency.ymd2serial(frequency, year(dt), month(dt), day(dt));
-            this = DateWrapper.fromSerial(frequency, serial);
-        end%
-
-
-        function dateCode = fromDatetimeAsNumeric(freq, dt)
-            serial = Frequency.ymd2serial(freq, year(dt), month(dt), day(dt));
-            dateCode = DateWrapper.getDateCodeFromSerial(freq, serial);
+        function this = fromMatlab(varargin)
+            this = DateWrapper(dater.fromMatlab(varargin{:}));
         end%
 
 

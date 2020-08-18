@@ -9,7 +9,7 @@ function [answ, flag] = implementGet(this, query, varargin)
 
 %--------------------------------------------------------------------------
 
-[answ, flag] = implementGet@varobj(this, query, varargin{:});
+[answ, flag] = implementGet@BaseVAR(this, query, varargin{:});
 if flag
     return
 end

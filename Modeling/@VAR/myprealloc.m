@@ -9,7 +9,7 @@ function This = myprealloc(This,Ny,P,NXPer,NAlt,Ng)
 
 %--------------------------------------------------------------------------
 
-This = myprealloc@varobj(This,Ny,P,NXPer,NAlt);
+This = myprealloc@BaseVAR(This,Ny,P,NXPer,NAlt);
 nGrp = max(1,length(This.GroupNames));
 nx = length(This.NamesExogenous);
 

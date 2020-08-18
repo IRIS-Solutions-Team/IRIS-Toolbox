@@ -1,57 +1,73 @@
-function outputDb = retrieveDatabank(this, range, varargin)
 % retrieveDatabank  Retrieve batch of time series from ExcelSheet into databank
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
 %     outputDb = retrieveDatabank(excelSheet, excelRange, ...)
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
-% __`excelSheet`__ [ ExcelSheet ] -
-% ExcelSheet object from which the time series will be retrieved and
-% returned in an `outputDb`; `excelSheet` needs to have its
-% `NamesLocation` property assigned.
+% __`excelSheet`__ [ ExcelSheet ] 
 %
-% __`range`__ [ char | string | numeric ] - Excel row range (if the
-% ExcelSheet object has Row orientation) or column range (column
-% orientation) from which the time series will be retrieved.
+%>    ExcelSheet object from which the time series will be retrieved and
+%>    returned in an `outputDb`; `excelSheet` needs to have its
+%>    `NamesLocation` property assigned.
 %
 %
-% ## Output Arguments ##
+% __`excelRange`__ [ string | numeric ] 
 %
-% __`outputDataban`__ [ | ] -
-% Output databank with the requsted time series.
-%
-%
-% ## Options ##
-%
-% __`AddToDatabank=[ ]`__ [ empty | struct | Dictionary ] -
-% Add the requested time series to an existing databank; the type (Matlab
-% class) of this databank needs to be consistent with option `OutputType=`.
-%
-% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` ] -
-% Type (Matlab class) of the output databank.
+%>    Excel row range (if the ExcelSheet object has Row orientation) or
+%>    column range (column orientation) from which the time series will be
+%>    retrieved.
 %
 %
-% ## Description ##
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __`outputDb`__ [ | ] 
+%
+%>    Output databank with the requsted time series.
 %
 %
-% ## Example ##
+% Options
+%--------------------------------------------------------------------------
+%
+% __`AddToDatabank=[ ]`__ [ empty | struct | Dictionary ] 
+%
+%>    Add the requested time series to an existing databank; the type (Matlab
+%>    class) of this databank needs to be consistent with option `OutputType=`.
+%
+%
+% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` ] 
+%
+%>    Type (Matlab class) of the output databank.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
 %
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function outputDb = retrieveDatabank(this, range, varargin)
+
 %( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('ExcelSheet.retrieveDatabank');
     addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
-    addRequired(pp, 'range', @(x) isnumeric(x) || isstring(x) || validate.string(x));
+    addRequired(pp, 'excelRange', @(x) isnumeric(x) || isstring(x) || validate.string(x));
     
     addParameter(pp, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
+    addParameter(pp, "NameFunc", [ ], @(x) isempty(x) || isa(x, "function_handle"));
     addParameter(pp, 'OutputType', 'struct', @(x) validate.anyString(x, 'struct', 'Dictionary'));
     addParameter(pp, "UpdateWhenExists", false, @validate.logicalScalar);
 end
@@ -120,6 +136,9 @@ return
             name = this.Buffer{location, this.NamesLocation};
         else
             name = this.Buffer{this.NamesLocation, location};
+        end
+        if ~isempty(opt.NameFunc)
+            name = opt.NameFunc(name);
         end
         if isempty(name) || ~validate.string(name)
             exception.error([

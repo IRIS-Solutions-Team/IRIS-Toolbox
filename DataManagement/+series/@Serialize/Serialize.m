@@ -18,7 +18,7 @@ classdef Serialize ...
             %(
             freq = decodeFrequency(this, inputRecord.(this.Frequency));
             isoDates = reshape(string(inputRecord.(this.Dates)), [ ], 1);
-            dates = DateWrapper.fromIsoStringAsNumeric(freq, isoDates);
+            dates = dater.fromIsoString(freq, isoDates);
             values = reshape(inputRecord.(this.Values), [ ], 1);
             if ~isempty(this.Comment) && ~isequal(this.Comment, false) && isfield(inputRecord, this.Comment)
                 comment = inputRecord.(this.Comment);

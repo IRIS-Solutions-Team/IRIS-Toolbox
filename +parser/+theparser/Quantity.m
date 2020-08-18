@@ -97,11 +97,13 @@ classdef Quantity < parser.theparser.Generic
             if this.IsReservedPrefix
                 % Report all names starting with STD_PREFIX, CORR_PREFIX, 
                 % LOG_PREFIX.
-                inxStd = strncmp(name, model.STD_PREFIX, length(model.STD_PREFIX));
-                inxCorr = strncmp(name, model.CORR_PREFIX, length(model.CORR_PREFIX));
-                inxLog = strncmp(name, model.LOG_PREFIX, length(model.LOG_PREFIX));
-                inxFloor = strncmp(name, model.FLOOR_PREFIX, length(model.FLOOR_PREFIX));
-                inxReservedPrefix = inxStd | inxCorr | inxLog | inxFloor;
+                reservedPrefixes = [ 
+                    string(model.component.Quantity.STD_PREFIX)
+                    string(model.component.Quantity.CORR_PREFIX) 
+                    string(model.component.Quantity.LOG_PREFIX)
+                    string(model.component.Quantity.FLOOR_PREFIX)
+                ];
+                inxReservedPrefix = startsWith(name, reservedPrefixes);
                 if any(inxReservedPrefix)
                     throw( ...
                         exception.ParseTime('TheParser:ReservedPrefixDeclared', 'error'), ...
