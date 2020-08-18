@@ -162,6 +162,7 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = myoutpdata(varargin)
         varargout = myselect(varargin)
         varargout = implementGet(varargin)
+        varargout = isCompatible(varargin)        
         varargout = vertcat(varargin)
     end
     
@@ -170,7 +171,6 @@ classdef (CaseInsensitiveProperties=true) ...
     
     methods (Access=protected, Hidden)
         implementDisp(varargin)
-        varargout = isCompatible(varargin)
         varargout = mygroupmethod(varargin)
         varargout = mygroupnames(varargin)
         varargout = myny(varargin)
@@ -195,8 +195,8 @@ classdef (CaseInsensitiveProperties=true) ...
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('BaseVAR.BaseVAR');
-                pp.addRequired('EndogenousNames', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                pp.addParameter('Comment', '', @(x) ischar(x) || (isa(x, 'string') && isscalar(x)));
+                pp.addRequired('EndogenousNames', @validate.list);
+                pp.addParameter('Comment', '', @validate.scalarString);
                 pp.addParameter({'ExogenousNames', 'Exogenous'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
                 pp.addParameter({'GroupNames', 'Groups'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
                 pp.addParameter('Reporting', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));

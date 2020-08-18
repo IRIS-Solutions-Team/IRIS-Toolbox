@@ -228,7 +228,6 @@ classdef (CaseInsensitiveProperties=true) VAR ...
     methods (Access=protected, Hidden)
         varargout = assignEst(varargin)
         varargout = getEstimationData(varargin)
-        varargout = isCompatible(varargin)
         varargout = prepareLsqWeights(varargin)
         varargout = myisvalidinpdata(varargin)
         varargout = myny(varargin)
