@@ -1,4 +1,3 @@
-function [X, inxLog, allNames] = createTrendArray(this, variantsRequested, needsDelog, id, vecTime)
 % createTrendArray  Create row-oriented array with steady path for each variable
 %
 % Backend [IrisToolbox] method
@@ -7,24 +6,31 @@ function [X, inxLog, allNames] = createTrendArray(this, variantsRequested, needs
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function [X, inxLog, allNames] = createTrendArray(this, variantsRequested, needsDelog, id, vecTime)
+
 nv = countVariants(this);
-if nargin<2 || isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
+
+try, variantsRequested;
+    catch, variantsRequested = @all; end
+
+try, needsDelog;
+    catch, needsDelog = true; end
+
+try, id;
+    catch, id = @all; end
+
+try, vecTime;
+    catch, vecTime = this.Incidence.Dynamic.Shift; end
+
+%--------------------------------------------------------------------------
+
+if isequal(variantsRequested, Inf) || isequal(variantsRequested, @all)
     variantsRequested = 1 : nv;
 end
 
-if nargin<3
-    needsDelog = true;
+if isequal(id, @all)
+    id = 1 : numel(this.Quantity.Name);
 end
-
-if nargin<4 || isequal(id, @all)
-    id = 1 : numel(this.Quantity);
-end
-
-if nargin<5
-    vecTime = this.Incidence.Dynamic.Shift;
-end
-
-%--------------------------------------------------------------------------
 
 posTimeTrend = getPosTimeTrend(this.Quantity);
 vecTime = reshape(vecTime, 1, [ ]);
@@ -51,7 +57,7 @@ if anyTimeTrend
     changeX(:, posTimeTrendWithin, :) = 0;
 end
 
-% Zero or no imag means zero growth also for log variables
+% Zero or no imag means zero change also for log variables
 if anyLog
     inxReset = inxLog3d & changeX==0;
     if any(inxReset)
