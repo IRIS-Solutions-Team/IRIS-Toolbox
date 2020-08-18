@@ -18,7 +18,7 @@ function [This,Y0,K0,Y1,G1] = covmat(C,Rep,varargin)
 % Output arguments
 % =================
 %
-% * `O` [ bvarobj ] - BVAR object that can be passed into the
+% * `O` [ DummyWrapper ] - BVAR object that can be passed into the
 % [`VAR/estimate`](VAR/estimate) function.
 %
 % Description
@@ -45,7 +45,7 @@ else
     C = chol(C).';
 end
 
-This = BVAR.bvarobj( );
+This = BVAR.DummyWrapper( );
 This.name = 'covmat';
 This.y0 = @y0;
 This.k0 = @k0;

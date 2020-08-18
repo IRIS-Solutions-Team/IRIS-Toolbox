@@ -23,7 +23,7 @@ function This = user(UserY0,UserK0,UserY1,UserG1)
 % Output arguments
 % =================
 %
-% * `O` [ bvarobj ] - BVAR object that can be passed into the
+% * `O` [ DummyWrapper ] - BVAR object that can be passed into the
 % [`VAR/estimate`](VAR/estimate) function.
 %
 % Description
@@ -48,7 +48,7 @@ pp.parse(UserY0,UserK0,UserY1,UserG1);
 
 %--------------------------------------------------------------------------
 
-This = BVAR.bvarobj( );
+This = BVAR.DummyWrapper( );
 This.name = 'user';
 This.y0 = @y0;
 This.k0 = @k0;

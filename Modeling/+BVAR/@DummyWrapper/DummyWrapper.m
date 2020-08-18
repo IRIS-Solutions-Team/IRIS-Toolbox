@@ -1,5 +1,5 @@
-classdef bvarobj
-    % bvarobj  [Not a public class] Bayesian VAR object for creating dummy observations
+classdef DummyWrapper
+    % DummyWrapper  [Not a public class] Bayesian VAR object for creating dummy observations
     %
     % Backend IRIS class.
     % No help provided.
@@ -17,9 +17,9 @@ classdef bvarobj
     
     methods
         
-        function This = bvarobj(varargin)
+        function This = DummyWrapper(varargin)
             if length(varargin) == 1 ...
-                    && isa(varargin{1},'bvarobj')
+                    && isa(varargin{1},'DummyWrapper')
                 This = varargin{1};
                 return
             end
