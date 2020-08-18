@@ -11,7 +11,7 @@ function this = subsalt(this, ixlhs, obj, ixRhs)
 
 if nargin==2
     % Subscripted reference this(lhs).
-    this = subsalt@varobj(this, ixlhs);
+    this = subsalt@BaseVAR(this, ixlhs);
     this.K = this.K(:, :, ixlhs);
     this.J = this.J(:, :, ixlhs);
     this.G = this.G(:, :, ixlhs);
@@ -25,7 +25,7 @@ if nargin==2
     end
 elseif nargin==3 && isempty(obj)
     % Empty subscripted assignment this(lhs) = empty.
-    this = subsalt@varobj(this, ixlhs, obj);
+    this = subsalt@BaseVAR(this, ixlhs, obj);
     this.K(:, :, ixlhs) = [ ];
     this.J(:, :, ixlhs) = [ ];
     this.G(:, :, ixlhs) = [ ];
@@ -39,7 +39,7 @@ elseif nargin==3 && isempty(obj)
     end
 elseif nargin==4 && mycompatible(this, obj)
     % Proper subscripted assignment this(lhs) = Obj(Rhs).
-    this = subsalt@varobj(this, ixlhs, obj, ixRhs);
+    this = subsalt@BaseVAR(this, ixlhs, obj, ixRhs);
     try
         this.K(:, :, ixlhs) = obj.K(:, :, ixRhs);
         this.J(:, :, ixlhs) = obj.J(:, :, ixRhs);

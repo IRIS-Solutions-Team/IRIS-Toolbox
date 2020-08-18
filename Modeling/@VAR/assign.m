@@ -80,7 +80,7 @@ p = size(A,2) / ny;
 nFree = p*ny*ny;
 
 This = myprealloc(This,ny,p,nXPer,nAlt,ng);
-This = assign@varobj(This,A,Omg,xRange,Fitted);
+This = assign@BaseVAR(This,A,Omg,xRange,Fitted);
 
 if isempty(K)
     This.K = zeros(ny,nGrp,nAlt);

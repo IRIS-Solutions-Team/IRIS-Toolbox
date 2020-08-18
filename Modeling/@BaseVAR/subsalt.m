@@ -1,11 +1,11 @@
 function this = subsalt(this, ixLhs, obj, ixRhs)
-% subsalt  Implement subscripted reference and assignment for varobj objects with multiple parameterisations.
+% subsalt  Implement subscripted reference and assignment for BaseVAR derived objects with multiple parameterisations
 %
-% Backend IRIS function.
-% No help provided.
+% Backend [IrisToolbox] method
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -28,12 +28,13 @@ elseif nargin==4 && mycompatible(this, obj)
         this.EigVal(:, :, ixLhs) = obj.EigVal(:, :, ixRhs);
         this.IxFitted(:, :, ixLhs) = obj.IxFitted(:, :, ixRhs);
     catch %#ok<CTCH>
-        utils.error('varobj:subsalt', ...
-            ['Subscripted assignment failed, ', ...
-            'LHS and RHS objects are incompatible.']);
+        exception.error([
+            "BaseVAR:SubscriptedAssignmentFailed"
+            "Subscripted assignment failed; the LHS and RHS objects "
+            "are not compatible with each other. "
+        ]);
     end
-else
-    throw( exception.Base('General:INVALID_REFERENCE', 'error'), class(this) );
 end
 
-end
+end%
+

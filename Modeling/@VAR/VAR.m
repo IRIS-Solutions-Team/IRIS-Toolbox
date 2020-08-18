@@ -137,7 +137,7 @@
 % -Copyright (c) 2007-2020 IRIS Solutions Team
     
 classdef (CaseInsensitiveProperties=true) VAR ...
-    < varobj ...
+    < BaseVAR ...
     & shared.DatabankPipe
 
     properties
@@ -350,7 +350,7 @@ classdef (CaseInsensitiveProperties=true) VAR ...
 
 %--------------------------------------------------------------------------
             
-            this = this@varobj(varargin{:});
+            this = this@BaseVAR(varargin{:});
             
             if nargin==0
                 return

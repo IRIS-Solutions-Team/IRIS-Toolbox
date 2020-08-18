@@ -1,5 +1,5 @@
 function flag = mycompatible(v1, V2)
-% mycompatible  True if two varobj objects can occur together on the LHS and RHS in an assignment
+% mycompatible  True if two BaseVAR objects can occur together on the LHS and RHS in an assignment
 %
 % Backend IRIS function.
 % No help provided.

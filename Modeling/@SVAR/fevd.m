@@ -61,7 +61,7 @@ TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 opt = passvalopt('SVAR.fevd',varargin{:});
 
 % Tell whether time is `NPer` or `Range`.
-[range,nPer] = varobj.mytelltime(Time);
+[range,nPer] = BaseVAR.mytelltime(Time);
 
 isNamedMat = strcmpi(opt.MatrixFormat,'namedmat');
 
