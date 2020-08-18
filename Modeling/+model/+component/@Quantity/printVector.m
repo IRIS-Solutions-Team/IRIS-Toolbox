@@ -1,5 +1,8 @@
 function output = printVector(this, vector, logStyle)
 
+try, logStyle;
+    catch, logStyle = "log()"; end
+
 pos = reshape(real(vector), 1, [ ]);
 sh = reshape(imag(vector), 1, [ ]);
 output = reshape(string(this.Name(pos)), 1, [ ]);
@@ -12,13 +15,10 @@ output = output + shiftString;
 inxLog = this.IxLog(pos);
 
 if any(inxLog)
-    if isequal(logStyle, @Behavior)
-        logStyle = string(this.Behavior.LogStyleInSolutionVectors);
-    end
-    if matches(logStyle, "log()")
+    if matches(string(logStyle), "log()")
         output(inxLog) = "log(" + output(inxLog) + ")";
-    elseif matches(logStyle, string(this.LOG_PREFIX))
-        output(inxLog) = string(this.LOG_PREFIX) + output(inxLog);
+    else
+        output(inxLog) = string(logStyle) + output(inxLog);
     end
 end
 

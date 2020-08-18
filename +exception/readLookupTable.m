@@ -6,7 +6,6 @@ lookupTable = {
     'General:InvalidInput', 'Expecting input argument <%s> but none found or its value fails validation.'
     'General:InvalidReference', 'Invalid subscripted reference or assignment to a %1 object.'
     'Behavior:DotReferenceFunc', 'Behavior for DotReferenceFunc must be function handle or empty array'
-    'Behavior:LogStyleInSolutionVectors', 'This is not valid behavior for LogStyleInSolutionVectors: %s'
     'Blazer:CannotAutoendogenize', 'Cannot autoendogenize this name: %s '
     'Blazer:CannotAutoexogenize', 'Cannot autoexogenize this name: %s '
     'Blazer:CannotEndogenize', 'Cannot endogenize this name: %s '

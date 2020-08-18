@@ -46,6 +46,10 @@ classdef (CaseInsensitiveProperties=true) ...
         DEFAULT_BOUNDS = [-Inf; Inf; -Inf; Inf]
         RESERVED_NAME_TTREND = 'ttrend'
         RESERVED_NAME_LINEAR = 'linear'
+        STD_PREFIX = 'std_'
+        CORR_PREFIX = 'corr_'
+        LOG_PREFIX = 'log_'
+        FLOOR_PREFIX = 'floor_'
     end
 
 

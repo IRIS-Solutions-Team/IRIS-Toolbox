@@ -97,10 +97,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
     properties (Constant, Hidden)
         LAST_LOADABLE = 20180116
-        STD_PREFIX = 'std_'
-        CORR_PREFIX = 'corr_'
-        LOG_PREFIX = 'log_'
-        FLOOR_PREFIX = 'floor_'
         LEVEL_BOUNDS_ALLOWED  = [int8(1), int8(2), int8(4)]
         GROWTH_BOUNDS_ALLOWED = [int8(1), int8(2)]
         DEFAULT_STEADY_EXOGENOUS = NaN
