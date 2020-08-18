@@ -1,10 +1,10 @@
-function flag = iscompatible(m1, m2)
-% iscompatible  True if two models can occur together on the LHS and RHS in an assignment.
+function flag = isCompatible(m1, m2)
+% isCompatible  True if two models can occur together on the LHS and RHS in an assignment.
 %
 % Syntax
 % =======
 %
-%     Flag = iscompatible(M1,M2)
+%     Flag = isCompatible(M1,M2)
 %
 %
 % Input arguments
