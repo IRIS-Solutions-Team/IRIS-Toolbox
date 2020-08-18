@@ -322,7 +322,7 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
         newSize(1) = numNewPeriods;
         newData = reshape(newData, newSize);
     end
-    newStart = DateWrapper.getDateCodeFromSerial(newFreq, newStartSerial);
+    newStart = dater.fromSerial(newFreq, newStartSerial);
 end%
 
 

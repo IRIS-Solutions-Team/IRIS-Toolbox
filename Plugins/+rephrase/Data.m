@@ -34,6 +34,6 @@ function dates = locallyReadDates(freq, dates)
     if isnumeric(dates)
         return
     end
-    dates = DateWrapper.fromIsoStringAsNumeric(freq, dates);
+    dates = dater.fromIsoString(freq, dates);
 end%
 

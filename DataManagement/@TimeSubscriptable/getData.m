@@ -89,7 +89,7 @@ switch subsCase(this, timeRef)
         end
         if nargout>1
             serialDates = serialStart + pos - 1;
-            dates = DateWrapper.getDateCodeFromSerial(freqStart, serialDates); 
+            dates = dater.fromSerial(freqStart, serialDates); 
             dates = dates(:);
             if isa(this.Start, 'DateWrapper')
                 dates = DateWrapper(dates);

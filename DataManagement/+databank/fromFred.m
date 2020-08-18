@@ -455,7 +455,7 @@ end%
 function outputSeries = locallyExtractDataFromJson(jsonInfo, jsonData, vintage, opt)
     %(
     freq = locallyGetFrequencyFromJsonInfo(jsonInfo, opt);
-    dates = DateWrapper.fromIsoStringAsNumeric(freq, {jsonData.observations.date});
+    dates = dater.fromIsoString(freq, {jsonData.observations.date});
     numPeriods = numel(jsonData.observations);
     values = nan(numPeriods, 1);
     for i = 1 : numPeriods
