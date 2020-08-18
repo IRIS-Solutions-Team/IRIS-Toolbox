@@ -234,7 +234,7 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = populateFromVAR(varargin)
 
         varargout = mybmatrix(varargin)
-        varargout = mycompatible(varargin)
+        varargout = isCompatible(varargin)
         varargout = mycovmatrix(varargin)
         varargout = myparsetest(varargin)
         varargout = subsalt(varargin)

@@ -37,7 +37,7 @@ elseif nargin==3 && isempty(obj)
     if ~isempty(this.Sigma) && ~isempty(x.Sigma)
         this.Sigma(:, :, ixlhs) = [ ];
     end
-elseif nargin==4 && mycompatible(this, obj)
+elseif nargin==4 && isCompatible(this, obj)
     % Proper subscripted assignment this(lhs) = Obj(Rhs).
     this = subsalt@BaseVAR(this, ixlhs, obj, ixRhs);
     try

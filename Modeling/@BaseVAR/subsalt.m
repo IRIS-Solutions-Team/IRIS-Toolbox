@@ -21,7 +21,7 @@ elseif nargin==3 && isempty(obj)
     this.Omega(:, :, ixLhs) = [ ];
     this.EigVal(:, :, ixLhs) = [ ];
     this.IxFitted(:, :, ixLhs) = [ ];
-elseif nargin==4 && mycompatible(this, obj)
+elseif nargin==4 && isCompatible(this, obj)
     try
         this.A(:, :, ixLhs) = obj.A(:, :, ixRhs);
         this.Omega(:, :, ixLhs) = obj.Omega(:, :, ixRhs);

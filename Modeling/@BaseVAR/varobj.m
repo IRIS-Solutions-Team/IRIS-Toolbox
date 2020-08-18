@@ -170,7 +170,7 @@ classdef (CaseInsensitiveProperties=true) ...
     
     methods (Access=protected, Hidden)
         implementDisp(varargin)
-        varargout = mycompatible(varargin)
+        varargout = isCompatible(varargin)
         varargout = mygroupmethod(varargin)
         varargout = mygroupnames(varargin)
         varargout = myny(varargin)
