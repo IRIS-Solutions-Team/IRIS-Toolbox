@@ -137,18 +137,18 @@ classdef Frequency < double
         function [highExtStartSerial, highExtEndSerial, lowStartSerial, lowEndSerial, ixHighInLowBins] = ...
                 aggregateRange(highFreq, highStartSerial, highEndSerial, lowFreq)
             [year1, month1, day1] = Frequency.serial2ymd(highFreq, highStartSerial, 'Start');
-            lowStartSerial = Frequency.ymd2serial(lowFreq, year1, month1, day1);
+            lowStartSerial = dater.serialFromYmd(lowFreq, year1, month1, day1);
             [year2, month2, day2] = Frequency.serial2ymd(lowFreq, lowStartSerial, 'Start');
-            highExtStartSerial = Frequency.ymd2serial(highFreq, year2, month2, day2);
+            highExtStartSerial = dater.serialFromYmd(highFreq, year2, month2, day2);
 
             [year3, month3, day3] = Frequency.serial2ymd(highFreq, highEndSerial, 'End');
-            lowEndSerial = Frequency.ymd2serial(lowFreq, year3, month3, day3);
+            lowEndSerial = dater.serialFromYmd(lowFreq, year3, month3, day3);
             [year4, month4, day4] = Frequency.serial2ymd(lowFreq, lowEndSerial, 'End');
-            highExtEndSerial = Frequency.ymd2serial(highFreq, year4, month4, day4);
+            highExtEndSerial = dater.serialFromYmd(highFreq, year4, month4, day4);
 
             highExtRangeSerial = highExtStartSerial : highExtEndSerial;
             [year5, month5, day5] = Frequency.serial2ymd(highFreq, highExtRangeSerial, 'middle');
-            lowRangeSerial = Frequency.ymd2serial(lowFreq, year5, month5, day5);
+            lowRangeSerial = dater.serialFromYmd(lowFreq, year5, month5, day5);
 
             uniqueLowRangeSerial = unique(lowRangeSerial, 'stable');
             ixHighInLowBins = cell(size(uniqueLowRangeSerial));
@@ -196,25 +196,6 @@ classdef Frequency < double
                 ppy = this;
             else
                 ppy = NaN;
-            end
-            %)
-        end%
-
-
-        function serial = ymd2serial(this, year, month, day)
-            %(
-            this = double(this);
-            switch this
-                case 1
-                    serial = Frequency.serialize(this, year);
-                case 2
-                    serial = Frequency.serialize(this, year, Frequency.month2period(this, month));
-                case 4
-                    serial = Frequency.serialize(this, year, Frequency.month2period(this, month));
-                case 12
-                    serial = Frequency.serialize(this, year, month);
-                otherwise
-                    serial = Frequency.serialize(this, year, month, day);
             end
             %)
         end%
