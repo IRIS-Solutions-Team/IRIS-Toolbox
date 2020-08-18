@@ -33,7 +33,7 @@ classdef Incidence
         varargout = fill(varargin)
         varargout = find(varargin)
         varargout = implementGet(varargin)
-        varargout = isCompatible(varargin)
+        varargout = testCompatible(varargin)
 
 
         function this = removeTrailingShifts(this)

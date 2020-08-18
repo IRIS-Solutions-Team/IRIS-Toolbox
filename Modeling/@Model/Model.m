@@ -31,7 +31,7 @@
 %   findname                  - Find names of variables, shocks, or parameters by their labels
 %   get                       - Query @Model object properties
 %   isactive                  - True if dynamic link or steady-state revision is active (not disabled)
-%   isCompatible              - True if two models can occur together on the LHS and RHS in an assignment
+%   testCompatible              - True if two models can occur together on the LHS and RHS in an assignment
 %   islinear                  - True for models declared as linear
 %   islog                     - True for log-linearised variables
 %   ismissing                 - True if some initical conditions are missing from input database

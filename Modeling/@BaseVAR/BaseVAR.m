@@ -162,7 +162,7 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = myoutpdata(varargin)
         varargout = myselect(varargin)
         varargout = implementGet(varargin)
-        varargout = isCompatible(varargin)        
+        varargout = testCompatible(varargin)        
         varargout = vertcat(varargin)
     end
     

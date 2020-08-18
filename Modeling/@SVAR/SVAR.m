@@ -227,7 +227,7 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = identify(varargin)        
         varargout = red2struct(varargin)        
         varargout = implementGet(varargin)
-        varargout = isCompatible(varargin)        
+        varargout = testCompatible(varargin)        
     end
     
     

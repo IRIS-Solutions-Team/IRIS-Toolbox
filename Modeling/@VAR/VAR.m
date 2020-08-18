@@ -74,7 +74,7 @@
 %   eig - Eigenvalues of a VAR process
 %   fprintf - Write VAR model as formatted model code to text file
 %   get - Query VAR object properties
-%   isCompatible - True if two VAR objects can occur together on the LHS and RHS in an assignment
+%   testCompatible - True if two VAR objects can occur together on the LHS and RHS in an assignment
 %   isexplosive - True if any eigenvalue is outside unit circle
 %   ispanel - True for panel VAR objects
 %   isstationary - True if all eigenvalues are within unit circle
@@ -190,7 +190,7 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = infocrit(varargin)
         varargout = instrument(varargin)
         varargout = integrate(varargin)
-        varargout = isCompatible(varargin)
+        varargout = testCompatible(varargin)
         varargout = isexplosive(varargin)
         varargout = isstationary(varargin)
         varargout = lrtest(varargin)

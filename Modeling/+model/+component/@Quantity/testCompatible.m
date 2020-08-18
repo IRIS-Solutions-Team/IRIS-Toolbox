@@ -1,5 +1,5 @@
-function flag = isCompatible(q1, q2)
-% isCompatible  True if two model.component.Quantity objects are compatible.
+function flag = testCompatible(q1, q2)
+% testCompatible  True if two model.component.Quantity objects are compatible.
 %
 % Backend IRIS function.
 % No help provided.

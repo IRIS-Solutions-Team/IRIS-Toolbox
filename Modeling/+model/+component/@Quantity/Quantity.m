@@ -70,7 +70,7 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = getStdNames(varargin)
         varargout = implementGet(varargin)
         varargout = initializeLogStatus(varargin)
-        varargout = isCompatible(varargin)
+        varargout = testCompatible(varargin)
         varargout = isName(varargin)
 
         function n = length(this)
