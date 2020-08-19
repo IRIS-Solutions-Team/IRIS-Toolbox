@@ -78,7 +78,7 @@ function flag = hereValidateDates(input)
         return
     end
     if DateWrapper.validateProperDateInput(input) ...
-       && all(DateWrapper.getFrequencyAsNumeric(input)==Frequency.YEARLY)
+       && all(dater.getFrequency(input)==Frequency.YEARLY)
         flag = true;
         return
     end

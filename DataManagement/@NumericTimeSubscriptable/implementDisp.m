@@ -16,7 +16,7 @@ catch %#ok<CTCH>
 end
 
 start = double(this.Start);
-freq = DateWrapper.getFrequencyAsNumeric(start);
+freq = dater.getFrequency(start);
 
 if nargin<3
     disp2dFunc = 'disp2d';
@@ -107,7 +107,7 @@ function x = disp2d(start, data, indent, sep, toCharFunc)
     numPeriods = size(data, 1);
     range = DateWrapper.roundPlus(start, 0:numPeriods-1);
     dates = strjust(dat2char(range));
-    if DateWrapper.getFrequencyAsNumeric(start)==Frequency.WEEKLY
+    if dater.getFrequency(start)==Frequency.WEEKLY
         dateFormatW = '$ (Aaa DD-Mmm-YYYY)';
         dates = [ dates, ...
                   strjust(dat2char(range, 'dateFormat=', dateFormatW)) ];
@@ -224,7 +224,7 @@ end%
 function x = disp2dYearly(start, data, tab, separator, toCharFunc)
     % `data` is always a vector or a 2D matrix; no higher dimensions
     [numPeriods, nx] = size(data);
-    freq = DateWrapper.getFrequencyAsNumeric(start);
+    freq = dater.getFrequency(start);
     range = start+(0:numPeriods-1);
     [year, per] = dat2ypf(range);
     firstYear = year(1);

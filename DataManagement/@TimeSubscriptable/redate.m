@@ -73,7 +73,7 @@ parser.parse(this, oldDate, newDate);
 oldDate = double(oldDate);
 newDate = double(newDate);
 freqOfSeries = this.FrequencyAsNumeric;
-freqOfOldDate = DateWrapper.getFrequencyAsNumeric(oldDate);
+freqOfOldDate = dater.getFrequency(oldDate);
 
 if freqOfOldDate~=freqOfSeries
     throw( exception.Base('Series:FrequencyMismatch', 'error'), ...

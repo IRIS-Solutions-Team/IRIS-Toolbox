@@ -29,7 +29,7 @@ toFreqAsNumeric = double(toFreq);
 
 inputDate = double(inputDate);
 
-fromFreq = DateWrapper.getFrequencyAsNumeric(inputDate);
+fromFreq = dater.getFrequency(inputDate);
 inxFromInteger = fromFreq==0;
 inxFromDaily = fromFreq==365;
 inxFromWeekly = fromFreq==52;

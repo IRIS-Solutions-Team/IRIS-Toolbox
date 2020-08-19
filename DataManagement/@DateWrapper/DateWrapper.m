@@ -5,7 +5,7 @@ classdef DateWrapper ...
         function value = get(this, query)
             startsWith__ = @(x) startsWith(string(query), x, "ignoreCase", true);
             if startsWith__("FrequencyAsNum")
-                value = DateWrapper.getFrequencyAsNumeric(this);
+                value = dater.getFrequency(this);
             elseif startsWith__("Freq")
                 value = DateWrapper.getFrequency(this);
             elseif startsWith__("Year")
@@ -84,7 +84,7 @@ classdef DateWrapper ...
             x = double(a) + double(b);
             x = round(x*100)/100;
             try
-                freq = DateWrapper.getFrequencyAsNumeric(x);
+                freq = dater.getFrequency(x);
             catch
                 throw( exception.Base('DateWrapper:InvalidInputsIntoPlus', 'error') );
             end
@@ -99,7 +99,7 @@ classdef DateWrapper ...
         
         function this = minus(a, b)
             if isa(a, 'DateWrapper') && isa(b, 'DateWrapper')
-                if ~all(DateWrapper.getFrequencyAsNumeric(a(:))==DateWrapper.getFrequencyAsNumeric(b(:)))
+                if ~all(dater.getFrequency(a(:))==dater.getFrequency(b(:)))
                     throw( exception.Base('DateWrapper:InvalidInputsIntoMinus', 'error') );
                 end
                 this = floor(a) - floor(b);
@@ -118,7 +118,7 @@ classdef DateWrapper ...
             if isempty(x)
                 this = DateWrapper.empty(size(x));
             else
-                serial = DateWrapper.getSerial(x);
+                serial = dater.getSerial(x);
                 this = DateWrapper.fromSerial(frequency(1), serial); 
             end
         end%
@@ -147,13 +147,13 @@ classdef DateWrapper ...
             end
             if ~isnumeric(from) || ~isnumeric(to) ...
                 || not(numel(from)==1) || not(numel(to)==1) ...
-                || not(DateWrapper.getFrequencyAsNumeric(from)==DateWrapper.getFrequencyAsNumeric(to))
+                || not(dater.getFrequency(from)==dater.getFrequency(to))
                 throw(exception.Base('DateWrapper:InvalidStartEndInColon', 'error'));
             end
             if ~isnumeric(step) || numel(step)~=1 || step~=round(step)
                 throw(exception.Base('DateWrapper:InvalidStepInColon', 'error'));
             end
-            freq = DateWrapper.getFrequencyAsNumeric(from);
+            freq = dater.getFrequency(from);
             fromSerial = floor(from);
             toSerial = floor(to);
             serial = fromSerial : step : toSerial;
@@ -210,8 +210,8 @@ classdef DateWrapper ...
             if ~isa(firstDate, 'DateWrapper') || ~isa(lastDate, 'DateWrapper')
                 throw( exception.Base('DateWrapper:InvalidInputsIntoRnglen', 'error') );
             end
-            firstFrequency = DateWrapper.getFrequencyAsNumeric(firstDate(:));
-            lastFrequency = DateWrapper.getFrequencyAsNumeric(lastDate(:));
+            firstFrequency = dater.getFrequency(firstDate(:));
+            lastFrequency = dater.getFrequency(lastDate(:));
             if ~all(firstFrequency==lastFrequency)
                 throw( exception.Base('DateWrapper:InvalidInputsIntoRnglen', 'error') );
             end
@@ -322,24 +322,8 @@ classdef DateWrapper ...
         end%
 
 
-        function frequency = getFrequencyAsNumeric(dateCode)
-            frequency = round(100*(double(dateCode) - floor(dateCode)));
-            inxZero = frequency==0;
-            if any(inxZero)
-                inxDaily = frequency==0 & floor(dateCode)>=Frequency.MIN_DAILY_SERIAL;
-                frequency(inxDaily) = 365;
-            end
-        end%
-
-
-        function frequency = getFrequency(dateCode)
-            numericFrequency = DateWrapper.getFrequencyAsNumeric(dateCode);
-            frequency = Frequency(numericFrequency);
-        end%
-
-
-        function serial = getSerial(input)
-            serial = floor(double(input));
+        function freq = getFrequency(dateCode)
+            freq = Frequency(dater.getFrequency(dateCode));
         end%
 
 
@@ -349,8 +333,8 @@ classdef DateWrapper ...
 
 
         function [this, frequency, serial] = fromDateCode(x)
-            frequency = DateWrapper.getFrequencyAsNumeric(x);
-            serial = DateWrapper.getSerial(x);
+            frequency = dater.getFrequency(x);
+            serial = dater.getSerial(x);
             this = DateWrapper.fromSerial(frequency, serial);
         end%
 
@@ -375,7 +359,7 @@ classdef DateWrapper ...
             end
             reshapeOutput = size(this);
             isoDate = repmat("", reshapeOutput);
-            freq = DateWrapper.getFrequencyAsNumeric(this);
+            freq = dater.getFrequency(this);
             inxNaN = isnan(freq);
             if all(inxNaN)
                 return
@@ -416,7 +400,7 @@ classdef DateWrapper ...
             if ~all(frequency(1)==frequency(:))
                 throw( exception.Base('DateWrapper:InvalidInputsIntoDatetime', 'error') )
             end
-            datetimeObj = datetime(frequency(1), DateWrapper.getSerial(input), varargin{:});
+            datetimeObj = datetime(frequency(1), dater.getSerial(input), varargin{:});
         end%
 
 
@@ -593,16 +577,16 @@ classdef DateWrapper ...
         function pos = getRelativePosition(ref, dates, bounds, context)
             ref = double(ref);
             dates =  double(dates);
-            refFreq = DateWrapper.getFrequencyAsNumeric(ref);
-            datesFreq = DateWrapper.getFrequencyAsNumeric(dates);
+            refFreq = dater.getFrequency(ref);
+            datesFreq = dater.getFrequency(dates);
             if ~all(datesFreq==refFreq)
-                throw(exception.Base([
+                exception.error([
                     "DateWrapper:CannotRelativePositionForMixedFrequencies"
                     "Relative positions can be only calculated for dates of identical frequencies"
-                ], "error"));
+                ]);
             end
-            refSerial = DateWrapper.getSerial(ref);
-            datesSerial = DateWrapper.getSerial(dates);
+            refSerial = dater.getSerial(ref);
+            datesSerial = dater.getSerial(dates);
             pos = round(datesSerial - refSerial + 1);
             % Check lower and upper bounds on the positions
             if nargin>=3 && ~isempty(bounds)
@@ -611,10 +595,10 @@ classdef DateWrapper ...
                     if nargin<4
                         context = "range";
                     end
-                    throw(exception.Base([
+                    exception.error([
                         "DateWrapper:DateOutOfRange"
                         "These dates are out of %1: %s "
-                    ], "error"), context, join(DateWrapper.toDefaultString(dates(inxOutRange))));
+                    ], context, join(DateWrapper.toDefaultString(dates(inxOutRange))));
                 end
             end
         end%

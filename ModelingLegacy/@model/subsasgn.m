@@ -112,12 +112,11 @@ if any(strcmp(s(1).type, {'()', '{}'}))
         else
             inxB = ':';
             if numel(inxA)~=nb && nb~=0
-                thisError = [
+                exception.error([
                     "Model:InvalidNumVariants"
                     "The number of parameter variants on the LHS and the RHS "
                     "of a subscripted assignment must be the same."
-                ];
-                throw(exception.Base(thisError, 'error'));
+                ]);
             end
         end
         this.Variant = subscripted(this.Variant, inxA, b.Variant, inxB);
@@ -157,23 +156,21 @@ elseif strcmp(s(1).type, '.')
             this.Variant.StdCorr(:, posStdCorr, v) = b;
         end
     catch Err
-        thisError = [ 
+        exception.error([ 
             "Model:InvalidParameterAssignment"
             "Error in a parameter assignment to a Model object. "
             "\n%s" 
-        ];
-        throw(exception.Base(thisError, 'error'), Err.message);
+        ], Err.message);
     end
 
     %
     % Throw an error if the name is invalid
     %
     if isnan(posQty) && isnan(posStdCorr)
-        thisError = [ 
+        exception.error([ 
             "Model:InvalidNameInAssignment"
             "This name does not exist in the Model object: %s "
-        ];
-        throw(exception.Base(thisError, 'error'));
+        ]);
     end
 
 end
@@ -183,31 +180,28 @@ return
     function hereCheckInputArguments( )
         if ~isa(this, 'model') ...
                 || ( ~isa(b, 'model') && ~isempty(b) && ~isnumeric(b) && ~islogical(b) )
-            thisError = [
+            exception.error([
                 "Model:InvalidSubscriptedAssignment"
                 "Invalid subscripted assignment to Model object."
-                ];
-            throw(exception.Base(thisError, 'error'));
+            ]);
         end
     end%
 
 
     function hereCheckRhsObject( )
         if ~isa(b, 'model') && ~isempty(b)
-            thisError = [
+            exception.error([
                 "Model:InvalidSubscriptedAssignment"
                 "Invalid subscripted assignment to Model object."
-            ];
-            throw(exception.Base(thisError, 'error'));
+            ]);
         end
         
         if ~isempty(b) && ~testCompatible(this, b)
-            thisError = [
+            exception.error([
                 "Model:IncompatibleObjectsInSubscriptedAssignment"
                 "Model objects on the LHS and the RHS of a subsripted assignment "
                 "are incompatible."
-            ];
-            throw(exception.Base(thisError, 'error'));
+            ]);
         end
     end%
 end%
@@ -291,11 +285,10 @@ end
 return
 
     function hereThrowInvalidLhsReference( )
-        thisError = [
+        exception.error([
             "Model:InvalidLhsReferenceInAssignment"
             "Invalid reference to the LHS Model object in a subscripted assignment."
-        ];
-        throw(exception.Base(thisError, 'error'));
+        ]);
     end%
 end%
 

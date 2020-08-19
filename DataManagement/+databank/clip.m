@@ -58,9 +58,9 @@ if isNewStartInf && isNewEndInf
 end
 
 if ~isNewStartInf
-    freq = DateWrapper.getFrequencyAsNumeric(newStart);
+    freq = dater.getFrequency(newStart);
 else
-    freq = DateWrapper.getFrequencyAsNumeric(newEnd);
+    freq = dater.getFrequency(newEnd);
 end
 
 listFields = fieldnames(d);

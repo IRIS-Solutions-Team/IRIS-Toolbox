@@ -16,7 +16,7 @@ end
 for i = 1 : numSeries
     startDate(i) = double(varargin{i}.Start);
     endDate(i) = double(varargin{i}.End);
-    freq(i) = DateWrapper.getFrequencyAsNumeric(startDate(i));
+    freq(i) = dater.getFrequency(startDate(i));
     inxNaN(i) = isnan(startDate(i));
 end
 

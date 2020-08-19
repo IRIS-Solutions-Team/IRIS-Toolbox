@@ -36,8 +36,8 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
         startDate = NaN;
         endDate = NaN;
     else
-        freqA = DateWrapper.getFrequencyAsNumeric(startA);
-        freqB = DateWrapper.getFrequencyAsNumeric(startB);
+        freqA = dater.getFrequency(startA);
+        freqB = dater.getFrequency(startB);
         if freqA~=freqB
             exception.error([
                 "Series:FrequencyMismatch"

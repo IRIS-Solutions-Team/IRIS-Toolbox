@@ -161,7 +161,7 @@ if isempty(range)
     return
 end
 
-oldFreq = DateWrapper.getFrequencyAsNumeric(this.Start);
+oldFreq = dater.getFrequency(this.Start);
 
 if oldFreq==newFreq
     return
@@ -257,7 +257,7 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
         end
     end
 
-    newDatesSerial = DateWrapper.getSerial(newDates);
+    newDatesSerial = dater.getSerial(newDates);
     newStartSerial = newDatesSerial(1);
     newEndSerial = newDatesSerial(end);
     numNewPeriods = newEndSerial - newStartSerial + 1;

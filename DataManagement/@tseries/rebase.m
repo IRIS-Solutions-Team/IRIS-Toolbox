@@ -66,7 +66,7 @@ if ischar(basePeriod) || isa(basePeriod, 'string')
 end
 
 % Frequency check
-freqOfBasePeriod = DateWrapper.getFrequencyAsNumeric(basePeriod);
+freqOfBasePeriod = dater.getFrequency(basePeriod);
 freqOfInput = this.FrequencyAsNumeric;
 if isnan(basePeriod) || freqOfBasePeriod~=freqOfInput
     this = this.empty(this);

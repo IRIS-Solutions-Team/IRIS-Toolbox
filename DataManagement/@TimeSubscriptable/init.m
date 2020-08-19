@@ -16,14 +16,14 @@ if isempty(dates)
     freq = double.empty(1, 0);
 else
     if isa(dates, 'DateWrapper')
-        freq = DateWrapper.getFrequencyAsNumeric(getFirst(dates));
+        freq = dater.getFrequency(getFirst(dates));
     else
-        freq = DateWrapper.getFrequencyAsNumeric(dates(1));
+        freq = dater.getFrequency(dates(1));
     end
     freq = freq(~isnan(freq));
     DateWrapper.checkMixedFrequency(freq);
 end
-serials = DateWrapper.getSerial(dates);
+serials = dater.getSerial(dates);
 serials = serials(:);
 
 %--------------------------------------------------------------------------

@@ -703,7 +703,7 @@ return
         
         % Homogeneous frequency check
         if ~isempty(dates)
-            freqDates = DateWrapper.getFrequencyAsNumeric(dates);
+            freqDates = dater.getFrequency(dates);
             DateWrapper.checkMixedFrequency(freqDates, [ ], 'in CSV data files');
         end
     end% 

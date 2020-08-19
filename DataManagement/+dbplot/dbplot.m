@@ -670,7 +670,7 @@ function appropriateRange = selectAppropriateRange(range, inputSeries)
         else
             continue
         end
-        ithFreq = DateWrapper.getFrequencyAsNumeric(firstOfRange);
+        ithFreq = dater.getFrequency(firstOfRange);
         if freq==ithFreq
             appropriateRange = range{i};
             return

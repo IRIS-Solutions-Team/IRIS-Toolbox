@@ -72,8 +72,8 @@ end
 
 numOfColumns = prod(sizeData(2:end));
 
-f1 = DateWrapper.getFrequencyAsNumeric(start);
-f2 = DateWrapper.getFrequencyAsNumeric(range);
+f1 = dater.getFrequency(start);
+f2 = dater.getFrequency(range);
 if ~isequal(range, Inf) && any(f2~=f1)
     cellstrOfFreq = cellstr( unique([f1, f2], 'stable') );
     throw( exception.Base('Series:FrequencyMismatch', 'error'), ...

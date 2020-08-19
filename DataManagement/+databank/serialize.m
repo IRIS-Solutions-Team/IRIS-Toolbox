@@ -89,7 +89,7 @@ if isequal(dates, Inf) || isequal(dates, [-Inf, Inf])
         ]);
     end
     dates = double(dates);
-    userFreq = DateWrapper.getFrequencyAsNumeric(dates);
+    userFreq = dater.getFrequency(dates);
 else
     dates = double(dates);
     dates = transpose(dates(:));
@@ -101,7 +101,7 @@ else
 end
 isRange = all(round(diff(dates))==1);
 if ~isempty(dates)
-    userFreq = DateWrapper.getFrequencyAsNumeric(dates);
+    userFreq = dater.getFrequency(dates);
 else
     userFreq = NaN;
 end

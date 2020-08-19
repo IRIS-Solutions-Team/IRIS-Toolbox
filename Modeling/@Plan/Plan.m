@@ -549,8 +549,8 @@ classdef Plan < matlab.mixin.CustomDisplay
             end
             try
                 value = double(value);
-                pass = Frequency.sameFrequency( DateWrapper.getFrequencyAsNumeric(this.BaseStart), ...
-                                                DateWrapper.getFrequencyAsNumeric(value) );
+                pass = Frequency.sameFrequency( dater.getFrequency(this.BaseStart), ...
+                                                dater.getFrequency(value) );
             catch
                 pass = false;
             end
@@ -601,8 +601,8 @@ classdef Plan < matlab.mixin.CustomDisplay
             end
             try
                 value = double(value);
-                pass = Frequency.sameFrequency( DateWrapper.getFrequencyAsNumeric(this.BaseEnd), ...
-                                                DateWrapper.getFrequencyAsNumeric(value) );
+                pass = Frequency.sameFrequency( dater.getFrequency(this.BaseEnd), ...
+                                                dater.getFrequency(value) );
             catch
                 pass = false;
             end

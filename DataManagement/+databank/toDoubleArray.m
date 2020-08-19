@@ -34,7 +34,7 @@ if isempty(outputArray)
     return
 end
 
-freq = DateWrapper.getFrequencyAsNumeric(dates(1));
+freq = dater.getFrequency(dates(1));
 inxValid = false(1, numNames);
 for i = 1 : numNames
     if isa(inputDb, 'Dictionary')

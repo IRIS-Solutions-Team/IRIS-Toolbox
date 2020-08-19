@@ -44,7 +44,7 @@ end
 defaultLambdaFunc = @(freq, order) (10*freq)^order;
 lambdaFunc = @(cutoff, order) (2*sin(pi./cutoff)).^(-2*order);
 cutoffFunc = @(lambda, order) pi./asin(0.5*lambda.^(-1/(2*order)));
-freq = DateWrapper.getFrequencyAsNumeric(this.Start);
+freq = dater.getFrequency(this.Start);
 
 if ~isempty(opt.CutOffYear)
     cutoff = opt.CutOffYear * freq;

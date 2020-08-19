@@ -38,11 +38,11 @@ end
 
 % Input dates from and to may be either date codes or serials; convert to
 % serials anyway
-serialFrom = DateWrapper.getSerial(from);
-serialTo = DateWrapper.getSerial(to);
+serialFrom = dater.getSerial(from);
+serialTo = dater.getSerial(to);
 
-freqStart = DateWrapper.getFrequencyAsNumeric(this.Start);
-serialStart = DateWrapper.getSerial(this.Start);
+freqStart = dater.getFrequency(this.Start);
+serialStart = dater.getSerial(this.Start);
 data = this.Data;
 sizeData = size(data);
 missingValue = this.MissingValue;

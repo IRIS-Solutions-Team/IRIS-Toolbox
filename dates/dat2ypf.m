@@ -38,8 +38,8 @@ function [year, per, freq, doy] = dat2ypf(dateCode)
 %--------------------------------------------------------------------------
 
 dateCode = double(dateCode);
-freq = DateWrapper.getFrequencyAsNumeric(dateCode);
-serial = DateWrapper.getSerial(dateCode);
+freq = dater.getFrequency(dateCode);
+serial = dater.getSerial(dateCode);
 
 inxInteger = freq==double(Frequency.INTEGER);
 inxWeekly  = freq==double(Frequency.WEEKLY);

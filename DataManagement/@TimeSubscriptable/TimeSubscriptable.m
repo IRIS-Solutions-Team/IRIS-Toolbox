@@ -152,7 +152,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
         function frequency = get.FrequencyAsNumeric(this)
-            frequency = DateWrapper.getFrequencyAsNumeric(double(this.Start));
+            frequency = dater.getFrequency(double(this.Start));
         end%
 
 
@@ -162,7 +162,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
 
         function frequency = getFrequencyAsNumeric(this)
-            frequency = DateWrapper.getFrequencyAsNumeric(double(this.Start));
+            frequency = dater.getFrequency(double(this.Start));
         end%
 
 
@@ -270,7 +270,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
                 flag = true(size(dates));
                 return
             end
-            flag = DateWrapper.getFrequencyAsNumeric(this.Start)==DateWrapper.getFrequencyAsNumeric(dates) ...
+            flag = dater.getFrequency(this.Start)==dater.getFrequency(dates) ...
                  | isnan(dates);
         end%
 

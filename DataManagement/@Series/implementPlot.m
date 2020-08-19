@@ -44,7 +44,7 @@ end
 [yData, dates] = getData(this, dates);
 
 if ~isempty(dates)
-    timeFrequency = DateWrapper.getFrequencyAsNumeric(dates(1));
+    timeFrequency = dater.getFrequency(dates(1));
 else
     timeFrequency = NaN;
 end

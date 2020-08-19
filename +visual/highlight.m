@@ -204,7 +204,7 @@ function xData = getXData(h, range, opt)
     if isa(range, 'DateWrapper')
         startOfRange = double( getFirst(range) );
         endOfRange = double( getLast(range) );
-        freq = DateWrapper.getFrequencyAsNumeric(startOfRange);
+        freq = dater.getFrequency(startOfRange);
         xLim = get(h, 'XLim');
         if isa(xLim, 'datetime')
             switch lower(opt.DatePosition)

@@ -146,8 +146,8 @@ unmatched = inputParser.UnmatchedInCell;
 %--------------------------------------------------------------------------
 
 if ~isempty(x1)
-    f1 = DateWrapper.getFrequencyAsNumeric(x1.Start);
-    f2 = DateWrapper.getFrequencyAsNumeric(x2.Start);
+    f1 = dater.getFrequency(x1.Start);
+    f2 = dater.getFrequency(x2.Start);
     if f1~=f2
         throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
                Frequency.toChar(f1), Frequency.toChar(f2) );

@@ -94,15 +94,15 @@ end
 
 %--------------------------------------------------------------------------
 
-freqOfStart = cellfun(@DateWrapper.getFrequencyAsNumeric, startDate);
-freqOfEnd = cellfun(@DateWrapper.getFrequencyAsNumeric, endDate);
+freqOfStart = cellfun(@dater.getFrequency, startDate);
+freqOfEnd = cellfun(@dater.getFrequency, endDate);
 
 list = fieldnames(D);
 numList = numel(list);
 for i = 1 : numList
     name = list{i};
     if isa(D.(name), 'TimeSubscriptable') && ~isempty(D.(name))
-        freqX = DateWrapper.getFrequencyAsNumeric(D.(name).start);
+        freqX = dater.getFrequency(D.(name).start);
         posOfStart = find(freqX==freqOfStart, 1);
         posOfEnd = find(freqX==freqOfEnd, 1);
         if isempty(posOfStart) && isempty(posOfEnd)
