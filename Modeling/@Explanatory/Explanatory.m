@@ -72,7 +72,7 @@ classdef Explanatory ...
 % LhsReference  Symbol used to create lags of LHS variables (aka AR terms) on
 % the RHS; each LhsReferece on the RHS must be followed by a shift
 % specification in curly braces (lags are specified as negative numbers)
-        LhsReference (1, 1) string = "__lhs"
+        LhsReference (1, 1) string = "__"
 
 
 % DependentTerm  Dependent (left-hand side) term
@@ -138,12 +138,12 @@ classdef Explanatory ...
                 this = varargin{1};
                 return
             end
-            throw(exception.Base([
+            exception.error([
                 "Explanatory:InvalidContructorCall"
                 "This is not a valid way to construct an Explanatory object or array. "
                 "Use one of the static constructors Explanatory.fromString( ) "
                 "or Explanatory.fromFile( ). "
-            ], "error"));
+            ]);
         end%
     end
 
@@ -194,11 +194,11 @@ classdef Explanatory ...
             return
 
                 function hereReportCurrentLhsName( )
-                    throw(exception.Base([
+                    exception.warning([
                         "Explanatory:RhsContainsCurrentLhsName"
                         "RHS of the Explanatory object contains the current date of its own LHS name: %s "
                         "Careful because Explanatory objects are not solved as simultaneous systems. "
-                    ], "warning"), this.LhsName);
+                    ], this.LhsName);
                 end%
         end%
 
@@ -216,7 +216,7 @@ classdef Explanatory ...
             if isempty(this.DependentTerm.InverseTransform)
                 invert = build;
             else
-                invert = replace(this.DependentTerm.InverseTransform, "__lhs", "("+build+")");
+                invert = replace(this.DependentTerm.InverseTransform, "__lhs", "(" + build + ")");
                 this.DependentTerm.InverseTransform = [ ];
             end
             this.Simulate = str2func("@(x,e,p,t,v,controls__)" + invert);
@@ -234,10 +234,10 @@ classdef Explanatory ...
         function flag = hasAttribute(this, attribute)
             attribute = strtrim(string(attribute));
             if ~isscalar(attribute) || ~startsWith(attribute, ":")
-                throw(exception.Base([ 
+                exception.error([
                     "Explanatory:InvalidAttributeRequest"
                     "Attribute has to be a scalar string starting with a colon." 
-                ], "error"));
+                ]);
             end
             flag = arrayfun(@(x) any(x.Attributes==attribute), this);
         end%
@@ -263,11 +263,11 @@ classdef Explanatory ...
                 this.Statistics.CovParameters(inx, inx, :) = [ ];
                 return
             end
-            throw(exception.Base([ 
+            exception.error([
                 "Explanatory:CannotFindExplanatoryTerm"
                 "Cannot find the specified explanatory variable or term "
                 "that is to be removed from an Explanatory model."
-            ], "error"));
+            ]);
         end%
 
 
@@ -309,11 +309,11 @@ classdef Explanatory ...
             if all(nv==value | nv==1)
                 return
             end
-            throw(exception.Base([ 
+            exception.error([
                 "Explanatory:InconsistentNumberOfVariants"
                 "All Explanatory objects grouped in an array must have "
                 "identical numbers of parameter variants." 
-            ], 'error'));
+            ]);
         end%
 
 
@@ -388,11 +388,11 @@ classdef Explanatory ...
                 return
             end
             if any(strlength(value)==0)
-                throw(exception.Base([ 
+                exception.error([
                     "Explanatory:InvalidVariableNames"
                     "Variable names in an Explanatory object "
                     "must be nonempty strings."
-                ], "error"));
+                ]);
             end
             this.VariableNames = string(value);
             checkNames(this);
@@ -405,11 +405,11 @@ classdef Explanatory ...
                 return
             end
             if any(strlength(value)==0)
-                throw(exception.Base([ 
+                exception.error([
                     "Explanatory:InvalidVariableNames"
                     "Control names in an Explanatory object "
                     "must be nonempty strings."
-                ], "error"));
+                ]);
             end
             this.ControlNames = unique(string(value), 'stable');
             checkNames(this);
@@ -449,19 +449,19 @@ classdef Explanatory ...
         function this = set.Parameters(this, value)
             %(
             if ~isnumeric(value)
-                throw(exception.Base([ 
+                exception.error([
                     "Explanatory:InvalidParametersAssigned"
                     "Parameters in Explanatory objects must be numeric values"
-                ], "error"));
+                ]);
             end
             for i = 1 : numel(this)
                 numTerms = numel(this(i).ExplanatoryTerms);
                 if size(value, 2)~=numTerms
-                    throw(exception.Base([ 
+                    exception.error([
                         "Explanatory:InvalidParametersAssigned"
                         "Invalid dimension of parameters assigned to Explanatory object:"
                         "there are %g explanatory term(s) and %g value(s) being assigned."
-                    ], "error"), numTerms, size(value, 2));
+                    ], numTerms, size(value, 2));
                 end
                 this(i).Parameters = value;
             end
@@ -472,20 +472,19 @@ classdef Explanatory ...
         function this = set.Fixed(this, value)
             %(
             if ~isnumeric(value)
-                thisError = [
+                exception.error([
                     "Explanatory:InvalidFixedAssigned"
                     "Fixed parameters in Explanatory objects must be numeric values"
-                ];
-                throw(exception.Base(thisError, 'error'));
+                ]);
             end
             this.Fixed = value;
             numTerms = numel(this.ExplanatoryTerms);
             if size(this.Fixed, 2)~=numTerms
-                throw(exception.Base([
+                exception.error([
                     "Explanatory:InvalidFixedParametersAssigned"
                     "Invalid dimension of fixed parameters assigned to Explanatory object:"
                     "there are %g explanatory term(s) and %g parameter variant(s)."
-                ], "error"), numTerms, countVariants(this));
+                ], numTerms, countVariants(this));
             end
             %)
         end%
@@ -509,11 +508,11 @@ classdef Explanatory ...
                 this.ResidualModelParameters = double.empty(1, 0, nv);
                 return
             end
-            throw(exception.Base([
+            exception.error([
                 "Exception:InvalidResidualModel"
                 "Invalid ResidualModel assigned to an Explanatory object. "
                 "ResidualModel needs to be one of {empty, Armani, ParameterizedArmani}."
-            ], "error"));
+            ]);
             %)
         end%
 
