@@ -33,7 +33,7 @@ start = nan(size(inxOfSeries));
 for i = find(inxOfSeries)
     start(i) = varargin{i}.Start;
 end
-freq(inxOfSeries) = DateWrapper.getFrequencyAsNumeric(start(inxOfSeries));
+freq(inxOfSeries) = dater.getFrequency(start(inxOfSeries));
 indexNaN = isnan(freq);
 if sum(~indexNaN & inxOfSeries)>1 ...
    && any( diff(freq(~indexNaN & inxOfSeries))~=0 )

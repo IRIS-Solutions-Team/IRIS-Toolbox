@@ -29,12 +29,12 @@ return
         end
         time = range;
         
-        freqOfRange = DateWrapper.getFrequencyAsNumeric(range);
+        freqOfRange = dater.getFrequency(range);
         freqOfData = nan(size(inp));
         for i = 1 : numel(inp)
             freqOfData(i) = inp{i}.FrequencyAsNumeric;
         end
-        freqOfData = cellfun(@(x) DateWrapper.getFrequencyAsNumeric(x.Start), inp);
+        freqOfData = cellfun(@(x) dater.getFrequency(x.Start), inp);
         % We cannot pre-allocate `outp` because the number of columns is
         % unknown at this point.
         outp = [ ];

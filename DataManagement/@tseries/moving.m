@@ -92,7 +92,7 @@ function window = locallyResolveWindow(window, inputSeries)
         window = reshape(window, 1, [ ]);
         return
     end
-    freq = DateWrapper.getFrequencyAsNumeric(inputSeries.Start);
+    freq = dater.getFrequency(inputSeries.Start);
     if freq==0
         thisError = [
             "Series:InvalidMovingWindow"

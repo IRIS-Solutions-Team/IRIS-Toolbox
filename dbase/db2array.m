@@ -196,7 +196,7 @@ else
 end
 
 range = startDate : endDate;
-freqOfRange = DateWrapper.getFrequencyAsNumeric(startDate);
+freqOfRange = dater.getFrequency(startDate);
 numOfPeriods = numel(range);
 
 % If all existing time series have the same size in 2nd and higher

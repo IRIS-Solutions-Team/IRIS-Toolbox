@@ -304,8 +304,8 @@ classdef InputParser < inputParser
                     throw( exception.Base('InputParser:InvalidEndOption', 'error') );
                 end
             end
-            this.Options.SerialOfStart = DateWrapper.getSerial(this.Options.Start);
-            this.Options.SerialOfEnd = DateWrapper.getSerial(this.Options.End);
+            this.Options.SerialOfStart = dater.getSerial(this.Options.Start);
+            this.Options.SerialOfEnd = dater.getSerial(this.Options.End);
         end%
 
 

@@ -235,7 +235,7 @@ classdef Regression < shared.UserDataContainer & shared.CommentContainer
         function data = getInputData(this, d, vecDat)
             list = this.InputSeries;
             vecDat = vecDat(:);
-            dateFreq = DateWrapper.getFrequencyAsNumeric(vecDat(1));
+            dateFreq = dater.getFrequency(vecDat(1));
             numOfPeriods = numel(vecDat);
             data = zeros(numOfPeriods, 0);
             nList = numel(list);
@@ -244,7 +244,7 @@ classdef Regression < shared.UserDataContainer & shared.CommentContainer
                 name = list{i};
                 i = i + 1;
                 x = d.(name);
-                xFreq = DateWrapper.getFrequencyAsNumeric(x.Start);
+                xFreq = dater.getFrequency(x.Start);
                 vecSh = 0;
                 if i<=nList && isnumeric(list{i})
                     vecSh = list{i};

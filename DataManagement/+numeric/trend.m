@@ -60,7 +60,7 @@ function [breakPoints, season] =  preprocessOptions(opt, numPeriods)
     % Seasonals
     if ~isempty(opt.StartDate)
         if isequal(opt.Season, true)
-            freq = DateWrapper.getFrequencyAsNumeric(opt.StartDate);
+            freq = dater.getFrequency(opt.StartDate);
             if any(freq==[2, 4, 12])
                 season = freq;
             end

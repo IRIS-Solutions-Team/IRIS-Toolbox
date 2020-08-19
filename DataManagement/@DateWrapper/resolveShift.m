@@ -29,7 +29,7 @@ end
 %--------------------------------------------------------------------------
 
 dates = reshape(double(dates), 1, [ ]);
-inputFreq = DateWrapper.getFrequencyAsNumeric(dates(1));
+inputFreq = dater.getFrequency(dates(1));
 power = locallyResolvePower(inputFreq, opt.OutputFreq, shift);
 shift = locallyResolveShift(dates, inputFreq, shift);
 

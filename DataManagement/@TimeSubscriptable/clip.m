@@ -80,7 +80,7 @@ end
 
 serialXStart = round(this.Start);
 serialXEnd = round(serialXStart + size(this.Data, 1) - 1);
-freqOfX = DateWrapper.getFrequencyAsNumeric(this.Start);
+freqOfX = dater.getFrequency(this.Start);
 
 serialNewStart = getSerialNewStart( );
 serialNewEnd = getSerialNewEnd( );
@@ -137,7 +137,7 @@ return
         if isStartInf
             serialNewStart = serialXStart;
         else
-            freqOfNewStart = DateWrapper.getFrequencyAsNumeric(newStart);
+            freqOfNewStart = dater.getFrequency(newStart);
             if freqOfNewStart~=freqOfX
                 throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
                        Frequency.toChar(freqOfX), Frequency.toChar(freqOfNewStart) );
@@ -151,7 +151,7 @@ return
         if isEndInf
             serialNewEnd = serialXEnd;
         else
-            freqOfNewEnd = DateWrapper.getFrequencyAsNumeric(newEnd);
+            freqOfNewEnd = dater.getFrequency(newEnd);
             if freqOfNewEnd~=freqOfX
                 throw( exception.Base('Series:FrequencyMismatch', 'error'), ...
                        Frequency.toChar(freqOfX), Frequency.toChar(freqOfNewEnd) );

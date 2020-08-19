@@ -40,7 +40,7 @@ kf = opt.Forecast;
 nPer = size(inputData, 1);
 nx = size(inputData, 2);
 startDate = double(startDate);
-freq = DateWrapper.getFrequencyAsNumeric(startDate);
+freq = dater.getFrequency(startDate);
 
 % __Preallocate output arguments__
 % Input data with backcast and forecast appended
@@ -324,7 +324,7 @@ function xxSpecFile(TempTitle, Data, startDate, dummy, opt)
 
     % Seasonal period specs
     %-----------------------
-    freqOfStart = DateWrapper.getFrequencyAsNumeric(startDate);
+    freqOfStart = dater.getFrequency(startDate);
     spec = strrep(spec, '$series_freq$', sprintf('%g', freqOfStart));
     % Start date.
     spec = strrep(spec, '$series_startyear$', sprintf('%g', round(dataYear)));
