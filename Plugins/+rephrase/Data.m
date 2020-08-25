@@ -15,7 +15,7 @@ classdef (Abstract) Data ...
                 endDate = locallyReadDates(freq, parent.Settings.EndDate);
                 values = getDataFromTo(input, startDate, endDate);
                 dates = dater.colon(startDate, endDate);
-                dates = DateWrapper.toIsoString(dates, "m");
+                dates = dater.toIsoString(dates, "m");
             else
                 dates = locallyReadDates(freq, parent.Settings.Dates);
                 values = getData(input, dates);

@@ -25,8 +25,8 @@ classdef Chart ...
 
         function build(this, varargin)
             build@rephrase.Container(this, varargin{:});
-            this.Settings.StartDate = DateWrapper.toIsoString(this.Settings.StartDate, "m");
-            this.Settings.EndDate = DateWrapper.toIsoString(this.Settings.EndDate, "m");
+            this.Settings.StartDate = dater.toIsoString(this.Settings.StartDate, "m");
+            this.Settings.EndDate = dater.toIsoString(this.Settings.EndDate, "m");
         end%
     end
 end 

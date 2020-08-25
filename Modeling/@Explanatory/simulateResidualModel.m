@@ -4,7 +4,7 @@ range = double(range);
 startDate = range(1);
 endDate = range(end);
 numPeriods = round(endDate - startDate + 1);
-endPresample = DateWrapper.roundPlus(startDate, -1);
+endPresample = dater.plus(startDate, -1);
 
 for this__ = reshape(this, 1, [ ])
     if this__.IsIdentity

@@ -87,7 +87,7 @@ function dispND(start, data, comment, pos, name, disp2dFunc, numDims, cfg)
             catch
                 % Legacy method
                 toCharFunc = @(x) numericToChar(x, cfg.SeriesFormat);
-                range = DateWrapper.roundPlus(start, 0:numPeriods-1);
+                range = dater.plus(start, 0:numPeriods-1);
                 temp = feval(disp2dFunc, start, data, cfg.DispIndent, sep, toCharFunc);
                 % Reduce the number of white spaces between numbers to 5 at most
                 temp = reduceSpaces(temp, cfg.SeriesMaxWSpace);
@@ -105,7 +105,7 @@ end%
 
 function x = disp2d(start, data, indent, sep, toCharFunc)
     numPeriods = size(data, 1);
-    range = DateWrapper.roundPlus(start, 0:numPeriods-1);
+    range = dater.plus(start, 0:numPeriods-1);
     dates = strjust(dat2char(range));
     if dater.getFrequency(start)==Frequency.WEEKLY
         dateFormatW = '$ (Aaa DD-Mmm-YYYY)';

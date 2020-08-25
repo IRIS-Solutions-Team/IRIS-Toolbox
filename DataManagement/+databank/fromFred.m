@@ -214,7 +214,7 @@ if startsWith(opt.Request, "Observation", "IgnoreCase", true)
     if isempty(opt.Vintage)
         opt.Vintage = "";
     elseif isnumeric(opt.Vintage)
-        opt.Vintage = DateWrapper.toIsoString(opt.Vintage);
+        opt.Vintage = dater.toIsoString(opt.Vintage);
     else
         opt.Vintage = string(opt.Vintage);
     end

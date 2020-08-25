@@ -35,6 +35,7 @@ if nargin<2
     userPosition = '';
     pos = 's';
 else
+    pos = char(pos);
     pos = lower(pos(1));
     userPosition = pos;
 end
@@ -69,11 +70,11 @@ switch freq
         dec = year + (per + adjust) ./ freq;
     case Frequency.WEEKLY
         switch pos
-            case {'s', 'b'}
+            case {'s', 'b', 'f'}
                 conversionDay = 'Monday';
             case {'c', 'm'}
                 conversionDay = 'Thursday';
-            case {'e'}
+            case {'e', 'l'}
                 conversionDay = 'Sunday';
             otherwise
                 conversionDay = 'Monday';
@@ -94,11 +95,11 @@ end%
 
 function adjust = getAdjustmentFactor(pos)
     switch pos
-        case {'s', 'b'}
+        case {'s', 'b', 'f'}
             adjust = -1;
         case {'c', 'm'}
             adjust = -1/2;
-        case {'e'}
+        case {'e', 'l'}
             adjust = 0;
         otherwise
             adjust = -1;

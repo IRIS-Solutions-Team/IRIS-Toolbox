@@ -28,7 +28,7 @@ if isa(varargin{1}, 'DateWrapper') || isequal(varargin{1}, Inf)
     dates = varargin{1};
     varargin(1) = [ ];
 elseif isnumeric(varargin{1})
-    dates = DateWrapper.fromDouble(varargin{1});
+    dates = DateWrapper(varargin{1});
     varargin(1) = [ ];
 else
     dates = Inf;

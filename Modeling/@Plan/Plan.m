@@ -583,8 +583,8 @@ classdef Plan < matlab.mixin.CustomDisplay
                     this.(name) = [add, this.(name)];
                 end
             end
-            this.BaseStart = DateWrapper.roundPlus(this.BaseStart, shift);
-            this.ExtendedStart = DateWrapper.roundPlus(this.ExtendedStart, shift);
+            this.BaseStart = dater.plus(this.BaseStart, shift);
+            this.ExtendedStart = dater.plus(this.ExtendedStart, shift);
             this = resetOutsideBaseRange(this);
             %)
         end%
@@ -635,8 +635,8 @@ classdef Plan < matlab.mixin.CustomDisplay
                     this.(name) = this.(name)(:, 1:end+shift, :);
                 end
             end
-            this.BaseEnd = DateWrapper.roundPlus(this.BaseEnd, shift);
-            this.ExtendedEnd = DateWrapper.roundPlus(this.ExtendedEnd, shift);
+            this.BaseEnd = dater.plus(this.BaseEnd, shift);
+            this.ExtendedEnd = dater.plus(this.ExtendedEnd, shift);
             this = resetOutsideBaseRange(this);
             %)
         end%
@@ -920,7 +920,7 @@ classdef Plan < matlab.mixin.CustomDisplay
 
     methods (Access=protected, Hidden)
         function pg = getPropertyGroups(this)
-            toChar = @(x) char(DateWrapper.toDefaultString(x));
+            toChar = @(x) char(dater.toDefaultString(x));
 
             % Dates
             s1 = struct( ...
@@ -1014,6 +1014,6 @@ function date = hereGetLastDate(start, id)
         return
     end
     column = find(any(inx, 1), 1, 'Last');
-    date = DateWrapper.roundPlus(start, column-1);
+    date = dater.plus(start, column-1);
 end%
 

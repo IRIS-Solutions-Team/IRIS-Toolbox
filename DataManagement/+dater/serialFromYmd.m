@@ -1,4 +1,4 @@
-function serial = ymd2serial(freq, year, month, day)
+function serial = serialFromYmd(freq, year, month, day)
 
 freq = round(double(freq));
 switch freq

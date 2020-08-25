@@ -20,9 +20,9 @@ end
 numColumns = size(data, 2);
 numRows = size(data, 1);
 startDate = double(startDate);
-endDate = DateWrapper.roundPlus(startDate, numRows-1);
+endDate = dater.plus(startDate, numRows-1);
 range = dater.colon(startDate, endDate);
-dates = DateWrapper.toDefaultString(range) + ":";
+dates = dater.toDefaultString(range) + ":";
 dates = reshape(string(dates), [ ], 1);
 if padDates
     dates = pad(dates, "left", char(160));

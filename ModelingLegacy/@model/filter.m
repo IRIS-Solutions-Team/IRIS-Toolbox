@@ -400,7 +400,7 @@ if ~isequal(kalmanOpt.Rolling, false)
 end
 
 nz = nnz(this.Quantity.IxObserved);
-extendedStart = DateWrapper.roundPlus(filterRange(1), -1);
+extendedStart = dater.plus(filterRange(1), -1);
 extendedEnd = filterRange(end);
 extRange = dater.colon(extendedStart, extendedEnd);
 numExtPeriods = numel(extRange);

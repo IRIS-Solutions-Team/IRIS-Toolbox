@@ -106,7 +106,7 @@ end
 data = cell(size(allSeries));
 [dates, data{:}] = getDataFromMultiple(dates, allSeries{:});
 dates = reshape(dates, [ ], 1);
-dt = DateWrapper.toDatetime(dates);
+dt = dater.toMatlab(dates);
 
 if opt.Timetable
     outputTable = timetable(dt, data{:}, 'VariableNames', names);

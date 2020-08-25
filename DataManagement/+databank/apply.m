@@ -196,8 +196,6 @@ end
 numFields = numel(namesFields);
 newNames = repmat({''}, size(namesFields));
 
-lenHasPrefix = length(opt.HasPrefix);
-lenHasSuffix = length(opt.HasSuffix);
 
 outputDb = opt.AddToDatabank;
 if isequal(outputDb, @default)
@@ -211,10 +209,10 @@ for i = 1 : numFields
     if ~isequal(opt.InputNames, @all) && ~any(strcmpi(name__, opt.InputNames))
        continue
     end 
-    if ~isempty(opt.HasPrefix) && ~strncmpi(name__, opt.HasPrefix, lenHasPrefix)
+    if ~isempty(opt.HasPrefix) && ~startsWith(name__, opt.HasPrefix)
         continue
     end
-    if ~isempty(opt.HasSuffix) && ~strncmpi(fliplr(name__), fliplr(opt.HasSuffix), lenHasSuffix)
+    if ~isempty(opt.HasSuffix) && ~endsWith(name__, opt.HasSuffix)
         continue
     end
 
@@ -229,10 +227,10 @@ for i = 1 : numFields
     else
         newName__ = name__;
         if opt.RemovePrefix
-            newName__(1:lenHasPrefix) = '';
+            newName__ = extractAfter(newName__, strlength(opt.HasPrefix));
         end
         if opt.RemoveSuffix
-            newName__(end-lenHasSuffix+1:end) = '';
+            newName__ = extractBefore(newName__, strlength(newName__)-strlength(opt.HasSuffix)+1);
         end
         if ~isempty(opt.AddPrefix)
             newName__ = [opt.AddPrefix, newName__];
