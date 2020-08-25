@@ -26,7 +26,7 @@ classdef Table ...
 
         function build(this, varargin)
             build@rephrase.Container(this, varargin{:});
-            this.Settings.Dates = DateWrapper.toIsoString(this.Settings.Dates, "m");
+            this.Settings.Dates = dater.toIsoString(this.Settings.Dates, "m");
         end%
     end
 end 

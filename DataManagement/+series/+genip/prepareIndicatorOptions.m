@@ -19,7 +19,7 @@ MODELS.DiffDiff = @(x) diff(diff(x));
 numInit = transition.NumInit;
 highRange = double(highRange);
 highStart = highRange(1);
-highExtStart = DateWrapper.roundPlus(highStart, -numInit);
+highExtStart = dater.plus(highStart, -numInit);
 highEnd = highRange(end);
 highFreq = DateWrapper.getFrequency(highStart);
 

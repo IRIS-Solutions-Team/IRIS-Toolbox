@@ -86,9 +86,9 @@ function outputDatabank = fromCSV(fileName, varargin)
 % by the file extension.
 %
 %
-% __`NameRow={'', 'Variables', 'Time'}`__ [ char | cellstr | numeric ] 
+% __`NamesHeader=["", "Variables", "Time"]`__ [ string | numeric ] 
 % >
-% String, or cell array of possible strings, that is found at the beginning
+% String, or an array of strings, that is at the beginning
 % (in the first cell) of the row with variable names, or the line number at
 % which the row with variable names appears (first row is numbered 1).
 %
@@ -99,7 +99,7 @@ function outputDatabank = fromCSV(fileName, varargin)
 % of function handles, each function will be applied in the given order.
 %
 %
-% __`NaN='NaN'`__ [ char ] 
+% __`NaN="NaN"`__ [ string ] 
 % >
 % String representing missing observations (case insensitive).
 %
@@ -225,9 +225,9 @@ if isempty(pp)
     addParameter(pp, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
     addParameter(pp, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
     addParameter(pp, 'FirstDateOnly', false, @validate.logicalScalar);
-    addParameter(pp, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables', 'Time'}, @(x) ischar(x) || iscellstr(x) || validate.numericScalar(x));
+    addParameter(pp, {'NamesHeader', 'NameRow', 'NamesRow', 'LeadingRow'}, ["", "Variables", "Time"], @(x) ischar(x) || isstring(x) || iscellstr(x) || validate.numericScalar(x));
     addParameter(pp, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
-    addParameter(pp, 'NaN', 'NaN', @(x) ischar(x));
+    addParameter(pp, 'NaN', "NaN", @validate.stringScalar);
     addParameter(pp, 'OutputType', 'struct', @validate.databankType);
     addParameter(pp, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(pp, 'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
@@ -442,7 +442,7 @@ return
             else
                 line = file(start:eol-1);
             end
-            if validate.numericScalar(opt.NameRow) && rowCount<opt.NameRow
+            if validate.numericScalar(opt.NamesHeader) && rowCount<opt.NamesHeader
                 hereMoveToNextEol( );
                 continue
             end
@@ -546,10 +546,10 @@ return
                 if isNameRowDone
                     flag = false;
                     return
-                elseif isequal(opt.NameRow, rowCount)
+                elseif isequal(opt.NamesHeader, rowCount)
                     flag = true;
                     return
-                elseif any(strcmpi(ident, opt.NameRow))
+                elseif any(strcmpi(ident, opt.NamesHeader))
                     flag = true;
                     return
                 end
@@ -591,34 +591,31 @@ return
         
         % Replace user-supplied NaN strings with 'NaN'. The user-supplied NaN
         % strings must not contain commas.
-        file = lower(file);
-        file = strrep(file, ' ', '');
-        opt.NaN = strtrim(lower(opt.NaN));
-        
+        file = erase(lower(file), " ");
+        opt.NaN = strip(lower(string(opt.NaN)));
+
         % When replacing user-defined NaNs, there can be in theory conflict with
         % date strings. We do not resolve this conflict because it is not very
         % likely.
-        if strcmp(opt.NaN, 'nan')
-            % Remove quotes from quoted NaNs.
-            file = strrep(file, '"nan"', 'nan');
+        if strcmpi(opt.NaN, "NaN")
+            % Remove quotes from quoted NaNs
+            file = replace(file, '"nan"', "NaN");
         else
             % We cannot have multiple NaN strings because of the way `strrep` handles
             % repeated patterns and because `strrep` is not able to detect word
             % boundaries. Handle quoted NaNs first.
-            file = strrep(file, ['"', opt.NaN, '"'], 'NaN');
-			if strcmp('.', opt.NaN)
-				file = regexprep(file, ...
-                    ['(?<=,)(\', opt.NaN, ')(?=(,|\n|\r))'], ...
-                    'NaN');
+            file = replace(file, """" + opt.NaN + """", "NaN");
+			if strcmp(opt.NaN, ".")
+				file = regexprep(file, "(?<=,)(\.)(?=(,|\n|\r))", "NaN");
 			else
-				file = strrep(file, opt.NaN, 'NaN');
+				file = replace(file, opt.NaN, "NaN");
 			end
         end
         
         % Replace empty character cells with numeric NaNs
-        file = strrep(file, '""', 'NaN');
+        file = replace(file, '""', "NaN");
         % Replace date highlights with numeric NaNs
-        file = strrep(file, '"***"', 'NaN');
+        file = replace(file, '"***"', "NaN");
         % Define white spaces
         whiteSpace = sprintf(' \b\r\t');
         

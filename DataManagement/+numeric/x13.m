@@ -203,7 +203,7 @@ return
 end%
 
 
-function [Data, Fcast, Bcast, Ok] = runX13(x13Dir, TempTitle, Data, startDate, dummy, opt)
+function [Data, Fcast, Bcast, Ok] = runX13(x13Dir, fileTitle, Data, startDate, dummy, opt)
     Fcast = zeros(0, 1);
     Bcast = zeros(0, 1);
 
@@ -231,7 +231,7 @@ function [Data, Fcast, Bcast, Ok] = runX13(x13Dir, TempTitle, Data, startDate, d
     end
 
     % Write a spec file.
-    xxSpecFile(TempTitle, Data, startDate, dummy, opt);
+    locallyWriteSpecFile(fileTitle, Data, startDate, dummy, opt);
 
     % Set up a system command to run the X13 executable, enclosing the command in
     % double quotes.
@@ -252,7 +252,7 @@ function [Data, Fcast, Bcast, Ok] = runX13(x13Dir, TempTitle, Data, startDate, d
     end
     cmd = [ '"', fullfile(x13Dir, executableName), '"' ];
 
-    cmd = [ cmd, ' "', TempTitle, '"' ];
+    cmd = [ cmd, ' "', fileTitle, '"' ];
     [status, result] = system(cmd);
 
     if opt.Display
@@ -270,20 +270,20 @@ function [Data, Fcast, Bcast, Ok] = runX13(x13Dir, TempTitle, Data, startDate, d
 
     % Read in-sample results.
     nPer = length(Data);
-    [Data, dataOk] = xxGetOutpData(TempTitle, nPer, opt.Output, 2);
+    [Data, dataOk] = xxGetOutpData(fileTitle, nPer, opt.Output, 2);
 
     % Try to read forecasts.
     fcastOk = true;
     kf = opt.Forecast;
     if kf>0
-        [Fcast, fcastOk] = xxGetOutpData(TempTitle, kf, {'fct'}, 4);
+        [Fcast, fcastOk] = xxGetOutpData(fileTitle, kf, {'fct'}, 4);
     end
 
     % Try to read backcasts.
     bcastOk = true;
     kb = opt.Backcast;
     if kb>0
-        [Bcast, bcastOk] = xxGetOutpData(TempTitle, kb, {'bct'}, 4);
+        [Bcast, bcastOk] = xxGetOutpData(fileTitle, kb, {'bct'}, 4);
     end
 
     Ok = dataOk && fcastOk && bcastOk;
@@ -296,17 +296,19 @@ function [Data, Fcast, Bcast, Ok] = runX13(x13Dir, TempTitle, Data, startDate, d
 end%
 
 
-function xxSpecFile(TempTitle, Data, startDate, dummy, opt)
-    % xxSpecFile  Create and save SPC file based on a template.
-    [dataYear, dataPer] = dat2ypf(startDate);
+function locallyWriteSpecFile(fileTitle, data, startDate, dummy, opt)
+    % locallyWriteSpecFile  Create and save SPC file based on a template
+    [startYear, startPer] = dat2ypf(startDate);
+    endDate = dater.plus(startDate, size(data, 1)-1);
+    [endYear, endPer] = dat2ypf(endDate);
     [dummyYear, dummyPer] = dat2ypf(startDate-opt.Backcast);
-    spec = file2char(opt.SpecFile);
+    spec = fileread(opt.SpecFile);
 
     % Time series specs
     %-------------------
     % Check for the required placeholders $series_data$ and $x11_save$:
-    if length(strfind(spec, '$series_data$')) ~= 1 ...
-            || length(strfind(spec, '$x11_save$')) ~= 1
+    if numel(strfind(spec, '$series_data$'))~=1 ...
+            || numel(strfind(spec, '$x11_save$'))~=1
         utils.error('x13:x13', ...
             ['Invalid X13 spec file. Some of the required placeholders, ', ...
             '$series_data$ and $x11_save$, are missing or used more than once.']);
@@ -317,34 +319,34 @@ function xxSpecFile(TempTitle, Data, startDate, dummy, opt)
     % Data
     %------
     format = '%.8f';
-    cData = sprintf(['    ', format, br], Data);
+    cData = sprintf(['    ', format, br], data);
     cData = strrep(cData, sprintf(format, -99999), sprintf(format, -99999.01));
     cData = strrep(cData, 'NaN', '-99999');
     spec = strrep(spec, '$series_data$', cData);
 
     % Seasonal period specs
     %-----------------------
-    freqOfStart = dater.getFrequency(startDate);
-    spec = strrep(spec, '$series_freq$', sprintf('%g', freqOfStart));
-    % Start date.
-    spec = strrep(spec, '$series_startyear$', sprintf('%g', round(dataYear)));
-    spec = strrep(spec, '$series_startper$', sprintf('%g', round(dataPer)));
+    freq = dater.getFrequency(startDate);
+    spec = replace(spec, "$series_freq$", string(freq));
+    spec = replace(spec, "$series_startyear$", string(startYear));
+    spec = replace(spec, "$series_startper$", string(startPer));
+    spec = replace(spec, "$series_endyear$", string(endYear));
+    spec = replace(spec, "$series_endper$", string(endPer));
     if any(strcmp(opt.Output, 'mv'))
-        % Save missing value adjusted series.
-        spec = strrep(spec, '$series_missingvaladj$', 'save = (mv)');
-        opt.Output = setdiff(opt.Output, {'mv'});
+        % Save missing value adjusted series
+        spec = replace(spec, "$series_missingvaladj$", "save = (mv)");
+        opt.Output = setdiff(opt.Output, "mv");
     else
-        spec = strrep(spec, '$series_missingvaladj$', '');
+        spec = strrep(spec, "$series_missingvaladj$", "");
     end    
 
     % Transform specs
     %-----------------
     if any(strcmp(opt.Mode, {'mult', 'pseudoadd', 'logadd'}))
-        replace = 'log';
+        spec = replace(spec, "$transform_function$", "log");
     else
-        replace = 'none';
+        spec = replace(spec, "$transform_function$", "none");
     end
-    spec = strrep(spec, '$transform_function$', replace);
 
     % AUTOMDL specs
     %---------------
@@ -393,11 +395,11 @@ function xxSpecFile(TempTitle, Data, startDate, dummy, opt)
     spec = strrep(spec, '$x11_save$', sprintf('%s ', opt.Output{:}));
 
     % Write specs to text file
-    char2file(spec, [TempTitle, '.spc']);
+    char2file(char(spec), [fileTitle, '.spc']);
 end%
 
 
-function [Data, Flag] = xxGetOutpData(TempTitle, NPer, Outp, NCol)
+function [Data, Flag] = xxGetOutpData(fileTitle, NPer, Outp, NCol)
     if ischar(Outp)
         Outp = {Outp};
     end
@@ -406,7 +408,7 @@ function [Data, Flag] = xxGetOutpData(TempTitle, NPer, Outp, NCol)
     format = repmat(' %f', 1, NCol);
     numOfOutputs = length(Outp);
     for i = 1 : numOfOutputs
-        file = sprintf('%s.%s', TempTitle, Outp{i});
+        file = sprintf('%s.%s', fileTitle, Outp{i});
         fId = fopen(file, 'r');
         if fId>-1
             fgetl(fId); % skip first 2 lines
@@ -428,14 +430,14 @@ end%
 
 
 function C = xxReadOutpFile(FName)
-    C = file2char(FName);
+    C = fileread(FName);
     C = textfun.removeltel(C);
     C = regexprep(C, '\n\n+', '\n\n');
 end%
 
 
 function arimaModel = readModel(arimaModel, FName, OuputFile)
-    C = file2char(FName);
+    C = fileread(FName);
 
     % ARIMA spec block.
     arima = regexp(C, 'arima\s*\{\s*model\s*=([^\}]+)\}', 'once', 'tokens');

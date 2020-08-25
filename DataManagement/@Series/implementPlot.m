@@ -156,7 +156,7 @@ return
             return
         end
         try
-            dateTick = DateWrapper.toDatetime(opt.DateTick);
+            dateTick = dater.toMatlab(opt.DateTick);
             set(axesHandle, 'XTick', dateTick);
         end
     end%

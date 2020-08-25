@@ -1,5 +1,5 @@
 function [year, per, freq, doy] = dat2ypf(dateCode)
-% dat2ypf  Convert IRIS serial date number to year, period and frequency
+% dat2ypf  Convert IrisT serial date number to year, period and frequency
 %{
 % ## Syntax ##
 %
@@ -32,8 +32,8 @@ function [year, per, freq, doy] = dat2ypf(dateCode)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
@@ -42,8 +42,8 @@ freq = dater.getFrequency(dateCode);
 serial = dater.getSerial(dateCode);
 
 inxInteger = freq==double(Frequency.INTEGER);
-inxWeekly  = freq==double(Frequency.WEEKLY);
-inxDaily   = freq==double(Frequency.DAILY);
+inxWeekly = freq==double(Frequency.WEEKLY);
+inxDaily = freq==double(Frequency.DAILY);
 inxRegular = ~inxInteger & ~inxWeekly & ~inxDaily;
 
 year = nan(size(dateCode));

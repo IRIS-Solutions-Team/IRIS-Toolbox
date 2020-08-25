@@ -117,7 +117,7 @@ if isscalar(sh)
         this.Start = addTo(this.Start, -sh);
         return
     else
-        this.Start = DateWrapper.roundPlus(this.Start, -sh);
+        this.Start = dater.plus(this.Start, -sh);
         return
     end
 end

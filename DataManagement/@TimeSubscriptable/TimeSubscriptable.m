@@ -128,7 +128,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
             if isa(this.Start, 'DateWrapper')
                 endDate = addTo(this.Start, numRows-1);
             else
-                endDate = DateWrapper.roundPlus(this.Start, numRows-1);
+                endDate = dater.plus(this.Start, numRows-1);
             end
         end%
 
@@ -176,7 +176,7 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
         function numericRange = get.RangeAsNumeric(this)
             numericStart = double(this.Start);
-            numericRange = DateWrapper.roundPlus(double(this.Start), 0:size(this.Data, 1)-1);
+            numericRange = dater.plus(double(this.Start), 0:size(this.Data, 1)-1);
             numericRange = reshape(numericRange, [ ], 1);
         end%
 

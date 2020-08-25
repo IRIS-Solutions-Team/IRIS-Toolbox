@@ -94,8 +94,8 @@ end
 dates = reshape(double(dates), 1, [ ]);
 minDate = min(dates);
 maxDate = max(dates);
-extendedStart = DateWrapper.roundPlus(minDate, minSh);
-extendedEnd = DateWrapper.roundPlus(maxDate, maxSh);
+extendedStart = dater.plus(minDate, minSh);
+extendedEnd = dater.plus(maxDate, maxSh);
 
 data = getDataFromTo(this, extendedStart, extendedEnd);
 sizeData = size(data);

@@ -321,7 +321,7 @@ end
 %
 % Create output time series
 %
-highExtStart = DateWrapper.roundPlus(highStart, -numInit);
+highExtStart = dater.plus(highStart, -numInit);
 output = Series(highExtStart, outputData);
 
 

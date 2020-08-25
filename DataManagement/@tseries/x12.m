@@ -244,7 +244,7 @@ if isempty(parser)
     parser.addParameter('Mode', 'auto', @(x) (isnumeric(x) && any(x==(-1 : 3))) || any(strcmp(x, {'add', 'a', 'mult', 'm', 'auto', 'sign', 'pseudo', 'pseudoadd', 'p', 'log', 'logadd', 'l'})));
     parser.addParameter('Output', 'd11', @(x) ischar(x) || iscellstr(x));
     parser.addParameter('SaveAs', '', @ischar);
-    parser.addParameter('SpecFile', 'default', @(x) ischar(x) || isinf(x));
+    parser.addParameter('SpecFile', 'default', @validate.stringScalar);
     parser.addParameter({'TDays', 'TDay'}, false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('TempDir', '.', @(x) ischar(x) || isa(x, 'function_handle'));
     parser.addParameter('Tolerance', 1e-5, @(x) isnumeric(x) && isscalar(x) && x>0);

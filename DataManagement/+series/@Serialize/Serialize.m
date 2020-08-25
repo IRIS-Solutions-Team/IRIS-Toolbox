@@ -14,12 +14,17 @@ classdef Serialize ...
 
 
     methods 
-        function outputSeries = decodeSeries(this, inputRecord, name)
+        function outputSeries = seriesFromJson(this, inputRecord, name)
             %(
-            freq = decodeFrequency(this, inputRecord.(this.Frequency));
+            freq = frequencyFromLetter(this, inputRecord.(this.Frequency));
             isoDates = reshape(string(inputRecord.(this.Dates)), [ ], 1);
-            dates = dater.fromIsoString(freq, isoDates);
             values = reshape(inputRecord.(this.Values), [ ], 1);
+            if ~isnan(freq)>0 && ~isempty(isoDates) && ~isempty(values)
+                dates = dater.fromIsoString(freq, isoDates);
+            else
+                dates = double.empty(0, 1);
+                values = double.empty(0, 1);
+            end
             if ~isempty(this.Comment) && ~isequal(this.Comment, false) && isfield(inputRecord, this.Comment)
                 comment = inputRecord.(this.Comment);
             else
@@ -31,7 +36,7 @@ classdef Serialize ...
         end%
 
 
-        function outputRecord = encodeSeries(this, inputSeries, name)
+        function outputRecord = jsonFromSeries(this, inputSeries, name)
             %(
             outputRecord = struct( );
 
@@ -45,17 +50,17 @@ classdef Serialize ...
                 outputDate = reshape(inputSeries.RangeAsNumeric, 1, [ ]);
             end
             if ~isempty(outputDate)
-                outputRecord.(this.Dates) = DateWrapper.toIsoString(outputDate);
+                outputRecord.(this.Dates) = dater.toIsoString(outputDate);
                 if isscalar(outputDate) && ~this.StartDateOnly
                     outputRecord.(this.Dates) = { outputRecord.(this.Dates) };
                 end
             else
-                outputRecord.(this.Dates) = NaN;
+                outputRecord.(this.Dates) = outputDate;
             end
             
-            outputRecord.(this.Values) = encodeValues(this, inputSeries.Data);
+            outputRecord.(this.Values) = jsonFromValues(this, inputSeries.Data);
 
-            outputRecord.(this.Frequency) = this.encodeFrequency(inputSeries.Frequency);
+            outputRecord.(this.Frequency) = this.letterFromFrequency(inputSeries.Frequency);
             if ~isequal(this.Comment, false)
                 outputRecord.(this.Comment) = inputSeries.Comment;
             end
@@ -85,7 +90,7 @@ classdef Serialize ...
         end%
 
 
-        function outputValues = encodeValues(this, inputData);
+        function outputValues = jsonFromValues(this, inputData);
             %(
             outputValues = inputData;
             if isa(this.Format, 'function_handle')
@@ -102,7 +107,7 @@ classdef Serialize ...
         end%
 
 
-        function db = encodeDatabank(this, db)
+        function db = jsonFromDatabank(this, db)
             %(
             for name = keys(db)
                 if isa(db, 'Dictionary')
@@ -113,7 +118,7 @@ classdef Serialize ...
                 if ~isa(x__, 'Series')
                     continue
                 end
-                x__ = this.encodeSeries(x__, name);
+                x__ = this.jsonFromSeries(x__, name);
                 if isa(db, 'Dictionary')
                     store(db, name, x__);
                 else
@@ -124,7 +129,7 @@ classdef Serialize ...
         end%
 
 
-        function db = decodeDatabank(this, db, nameMap)
+        function db = databankFromJson(this, db, nameMap)
             %(
             for name = keys(db)
                 if isa(db, 'Dictionary')
@@ -139,7 +144,7 @@ classdef Serialize ...
                     || ~isfield(x__, this.Frequency)
                     continue
                 end
-                x__ = this.decodeSeries(x__, name);
+                x__ = this.seriesFromJson(x__, name);
                 if isa(db, 'Dictionary')
                     store(db, name, x__);
                 else
@@ -150,7 +155,7 @@ classdef Serialize ...
         end%
 
 
-        function freq = decodeFrequency(this, freq)
+        function freq = frequencyFromLetter(this, freq)
             %(
             if isnumeric(freq)
                 freq = Frequency(freq);
@@ -171,20 +176,27 @@ classdef Serialize ...
                     freq = Frequency.WEEKLY;
                 case {"D", "B"}
                     freq = Frequency.DAILY;
+                otherwise
+                    freq = Frequency(NaN);
             end
             %)
         end%
 
 
-        function freq = encodeFrequency(this, freq)
+        function freq = letterFromFrequency(this, freq)
             %(
             freq = double(freq);
             %)
         end%
 
 
-        function outputNames = mapNames(this, inputNames, nameMap)
+        function outputNames = mapNames(this, inputNames, varargin)
             %(
+            if isempty(varargin)
+                outputNames = inputNames;
+                return
+            end
+            nameMap = varargin{1};
             if isa(nameMap, 'function_handle')
                 outputNames = arrayfun(nameMap, inputNames);
             elseif isstring(nameMap)
@@ -195,7 +207,10 @@ classdef Serialize ...
                     outputNames(i) = retrieve(nameMap, inputNames(i));
                 end
             else
-                outputNames = inputNames;
+                exception.error([
+                    "Serialize:InvalidNameMap"
+                    "Invalid type of a name map for the Serialize object."
+                ]);
             end
             %)
         end%
@@ -210,9 +225,9 @@ classdef Serialize ...
         end%
 
 
-        function saveStructAsJson(jsonStruct, fileName)
+        function saveJson(jsonStruct, fileName)
             %(
-            fid = fopen(fileName, "w+");
+            fid = fopen(fileName, "w+t");
             fwrite(fid, string(jsonencode(jsonStruct)));
             fclose(fid);
             %)

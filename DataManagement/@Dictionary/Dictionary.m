@@ -329,11 +329,15 @@ classdef Dictionary ...
             if ~isa(x, 'TimeSubscriptable')
                 throw( exception.Base(this.EXCEPTION_UPDATE_SERIES, 'error') );
             end
+
+            %{
             if isa(data, 'Dictionary')
                 data = retrieve(data, key);
             elseif isstruct(data)
                 data = data.(char(key));
             end
+            %}
+
             if nargin==3
                 x = [x; varargin{1}];
             else

@@ -56,7 +56,7 @@ ssDtLevel = [ ];
 ssDtGrowth = [ ];
 
 % Replace alternate names with the default names
-if isempty(strfind(query, '.')) && isempty(strfind(query, ':'))
+if ~contains(query, '.') && ~contains(query, ':')
     query = this.myalias(query);
 end
 
@@ -145,7 +145,7 @@ else
             for i = find(ixg)
                 name = this.Quantity.Name{i};
                 values = this.Variant.Values(:, i, :);
-                response.(name) = permute(value, [2, 3, 1]);
+                response.(name) = permute(values, [2, 3, 1]);
             end        
             
             
@@ -416,13 +416,13 @@ else
             
             
             
-        case 'numXiB'
+        case 'numxib'
             response = size(this.Variant.FirstOrderSolution{7}, 1);
             
             
             
             
-        case 'numXiF'
+        case 'numxif'
             response = length(this.Vector.Solution{2}) - size(this.Variant.FirstOrderSolution{7}, 1);
             
             
@@ -518,7 +518,7 @@ return
         try %#ok<TRYNC>
             status = logical(status);
         end
-        if ~isempty(strfind(query, 'list'))
+        if contains(query, "list", "IgnoreCase", true)
             % List
             if nv==1
                 response = name(status==true | status==1);
