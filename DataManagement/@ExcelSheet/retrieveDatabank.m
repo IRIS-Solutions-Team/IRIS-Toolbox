@@ -110,14 +110,30 @@ else
 end
 range = reshape(range, 1, [ ]);
 
+invalidNames = string.empty(1, 0);
 for i = 1 : numel(range)
     if ~isempty(names)
         name = names(i);
     else
-        name = hereRetrieveName(range(i));
+        [name, isMissing, isValid] = hereRetrieveName(range(i));
+        if isMissing
+            continue
+        end
+        if ~isValid
+            invalidNames(end+1) = string(name);
+            continue
+        end
     end
     x = retrieveSeries(this, range(i));
     hereAddEntryToOutputDatabank(name, x);
+end
+
+if ~isempty(invalidNames)
+    exception.warning([
+        "ExcelSheet:InvalidSeriesName"
+        "This name in NamesLocation is not a valid name and has not been "
+        "created in the output databank: %s"
+    ], invalidNames);
 end
 
 return
@@ -131,21 +147,25 @@ return
     end%
 
 
-    function name = hereRetrieveName(location)
+    function [name, isMissing, isValid] = hereRetrieveName(location)
         if this.Orientation=="Row"
             name = this.Buffer{location, this.NamesLocation};
         else
             name = this.Buffer{this.NamesLocation, location};
         end
+        isMissing = ismissing(name) || isempty(name);
+        if isMissing
+        isValid = false;
+            return
+        end
+        isValid = validate.string(name);
+        if ~isValid
+            return
+        end
         if ~isempty(opt.NameFunc)
             name = opt.NameFunc(name);
         end
-        if isempty(name) || ~validate.string(name)
-            exception.error([
-                "ExcelSheet:InvalidSeriesName"
-                "Some name(s) in NamesLocation are invalid."
-            ]);
-        end
+        isValid = ~isstruct(outputDb) || isvarname(name);
     end%
 
 
