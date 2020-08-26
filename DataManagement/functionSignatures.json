@@ -1,11 +1,13 @@
 {
-    "ExcelSheet":
-    {
-        "inputs":
-        [
-            {"name":"FileName", "kind":"required", "type":"file"},
-            {"name":"Sheet", "kind":"required", "type":"numeric"}
+    "databank.fromCSV": {
+        "inputs": [
+            {
+                "name": "fileName",
+                "kind": "required",
+                "type": [
+                    "file=*.csv"
+                ]
+            }
         ]
     }
 }
-
