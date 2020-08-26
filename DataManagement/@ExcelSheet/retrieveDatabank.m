@@ -1,58 +1,74 @@
-function outputDb = retrieveDatabank(this, range, varargin)
 % retrieveDatabank  Retrieve batch of time series from ExcelSheet into databank
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
 %     outputDb = retrieveDatabank(excelSheet, excelRange, ...)
 %
 %
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
-% __`excelSheet`__ [ ExcelSheet ] -
-% ExcelSheet object from which the time series will be retrieved and
-% returned in an `outputDb`; `excelSheet` needs to have its
-% `NamesLocation` property assigned.
+% __`excelSheet`__ [ ExcelSheet ] 
 %
-% __`range`__ [ char | string | numeric ] - Excel row range (if the
-% ExcelSheet object has Row orientation) or column range (column
-% orientation) from which the time series will be retrieved.
+%>    ExcelSheet object from which the time series will be retrieved and
+%>    returned in an `outputDb`; `excelSheet` needs to have its
+%>    `NamesLocation` property assigned.
 %
 %
-% ## Output Arguments ##
+% __`excelRange`__ [ string | numeric ] 
 %
-% __`outputDataban`__ [ | ] -
-% Output databank with the requsted time series.
-%
-%
-% ## Options ##
-%
-% __`AddToDatabank=[ ]`__ [ empty | struct | Dictionary ] -
-% Add the requested time series to an existing databank; the type (Matlab
-% class) of this databank needs to be consistent with option `OutputType=`.
-%
-% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` ] -
-% Type (Matlab class) of the output databank.
+%>    Excel row range (if the ExcelSheet object has Row orientation) or
+%>    column range (column orientation) from which the time series will be
+%>    retrieved.
 %
 %
-% ## Description ##
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __`outputDb`__ [ | ] 
+%
+%>    Output databank with the requsted time series.
 %
 %
-% ## Example ##
+% Options
+%--------------------------------------------------------------------------
+%
+% __`AddToDatabank=[ ]`__ [ empty | struct | Dictionary ] 
+%
+%>    Add the requested time series to an existing databank; the type (Matlab
+%>    class) of this databank needs to be consistent with option `OutputType=`.
+%
+%
+% __`OutputType='struct'`__ [ `'struct'` | `'Dictionary'` ] 
+%
+%>    Type (Matlab class) of the output databank.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
 %
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function outputDb = retrieveDatabank(this, range, varargin)
+
 %( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('ExcelSheet.retrieveDatabank');
     addRequired(pp, 'excelSheet', @(x) isa(x, 'ExcelSheet'));
-    addRequired(pp, 'range', @(x) isnumeric(x) || isstring(x) || validate.string(x));
+    addRequired(pp, 'excelRange', @(x) isnumeric(x) || isstring(x) || validate.string(x));
     
     addParameter(pp, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
-    addParameter(pp, 'OutputType', 'struct', @(x) validate.anyString(x, 'struct', 'Dictionary'));
+    addParameter(pp, "NameFunc", [ ], @(x) isempty(x) || isa(x, "function_handle"));
+    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.databankType(x));
     addParameter(pp, "UpdateWhenExists", false, @validate.logicalScalar);
 end
 %)
@@ -75,9 +91,7 @@ if isequaln(this.NamesLocation, NaN) && isempty(names)
     ]);
 end
 
-outputDb = databank.backend.ensureTypeConsistency( ...
-    opt.AddToDatabank, opt.OutputType ...
-);
+outputDb = databank.backend.ensureTypeConsistency(opt.AddToDatabank, opt.OutputType);
 
 if this.Orientation=="Row"
     if isstring(range) && numel(range)>1
@@ -94,54 +108,68 @@ else
 end
 range = reshape(range, 1, [ ]);
 
+invalidNames = string.empty(1, 0);
 for i = 1 : numel(range)
     if ~isempty(names)
         name = names(i);
     else
-        name = hereRetrieveName(range(i));
+        [name, isMissing, isValid] = hereRetrieveName(range(i));
+        if isMissing
+            continue
+        end
+        if ~isValid
+            invalidNames(end+1) = string(name);
+            continue
+        end
     end
     x = retrieveSeries(this, range(i));
     hereAddEntryToOutputDatabank(name, x);
 end
 
+if ~isempty(invalidNames)
+    exception.warning([
+        "ExcelSheet:InvalidSeriesName"
+        "This name in NamesLocation is not a valid name and has not been "
+        "created in the output databank: %s"
+    ], invalidNames);
+end
+
 return
 
-    function outputDb = hereCreateOutputDatank( )
-        if strcmpi(opt.OutputType, 'Dictionary')
-            outputDb = Dictionary( );
-        else
-            outputDb = struct( );
-        end
-    end%
-
-
-    function name = hereRetrieveName(location)
+    function [name, isMissing, isValid] = hereRetrieveName(location)
         if this.Orientation=="Row"
             name = this.Buffer{location, this.NamesLocation};
         else
             name = this.Buffer{this.NamesLocation, location};
         end
-        if isempty(name) || ~validate.string(name)
-            exception.error([
-                "ExcelSheet:InvalidSeriesName"
-                "Some name(s) in NamesLocation are invalid."
-            ]);
+        isMissing = ismissing(name) || isempty(name);
+        if isMissing
+        isValid = false;
+            return
         end
+        isValid = validate.string(name);
+        if ~isValid
+            return
+        end
+        if ~isempty(opt.NameFunc)
+            name = opt.NameFunc(name);
+        end
+        isValid = ~isstruct(outputDb) || isvarname(name);
     end%
 
 
     function hereAddEntryToOutputDatabank(name, newSeries)
         if opt.UpdateWhenExists && isfield(outputDb, name) && ~isempty(outputDb.(name))
-            if matches(opt.OutputType, "Dictionary", "ignoreCase", true)
-                updateSeries(outputDb, name, newSeries);
-            else
+            if isstruct(outputDb)
                 outputDb.(name) = [outputDb.(name); newSeries];
+            else
+                updateSeries(outputDb, name, newSeries);
             end
         else
-            if matches(opt.OutputType, "Dictionary", "ignoreCase", true)
-                store(outputDb, name, newSeries);
-            else
+            if isstruct(outputDb)
                 outputDb.(name) = newSeries;
+            else
+                store(outputDb, name, newSeries);
             end
         end
     end%

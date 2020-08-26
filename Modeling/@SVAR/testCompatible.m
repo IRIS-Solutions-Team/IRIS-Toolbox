@@ -1,5 +1,5 @@
-function flag = mycompatible(V1, V2)
-% mycompatible  [Not a public function] True if two SVAR objects can occur together on the LHS and RHS in an assignment.
+function flag = testCompatible(V1, V2)
+% testCompatible  [Not a public function] True if two SVAR objects can occur together on the LHS and RHS in an assignment.
 %
 % Backend IRIS function.
 % No help provided.
@@ -11,7 +11,7 @@ function flag = mycompatible(V1, V2)
 
 try
     flag = isequal(class(V1), class(V2)) ...
-           && mycompatible@VAR(V1, V2);
+           && testCompatible@VAR(V1, V2);
 catch
     flag = false;
     

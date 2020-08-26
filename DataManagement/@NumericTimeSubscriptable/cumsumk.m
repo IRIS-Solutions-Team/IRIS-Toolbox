@@ -84,7 +84,7 @@ end
 opt = parse(pp, this, range, varargin{:});
 
 if isequal(opt.K, @auto)
-    freqOfInput = DateWrapper.getFrequencyAsNumeric(this.Start);
+    freqOfInput = dater.getFrequency(this.Start);
     opt.K = -max(1, freqOfInput);
 end
 

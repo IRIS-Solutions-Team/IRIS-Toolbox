@@ -17,8 +17,8 @@ if isempty(Data)
 end
 nPer = numel(Data);
 ixHighlight = false(1,nPer);
-for i = 1 : numel(This.options.highlight)
-    ixHighlight = ixHighlight | datcmp(Time,This.options.highlight(i));
+for i = reshape(double(This.options.highlight), 1, [ ])
+    ixHighlight = ixHighlight | dater.eq(Time, i);
 end
 c1 = cell(1,nPer);
 [year,per,freq] = dat2ypf(Time);

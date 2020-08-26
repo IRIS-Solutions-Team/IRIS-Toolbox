@@ -107,7 +107,7 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
     convertToDateWrapper = isa(this.Start, 'DateWrapper');
     startThis = double(this.Start);
     endThis = double(this.End);
-    freqThis = DateWrapper.getFrequencyAsNumeric(startThis);
+    freqThis = dater.getFrequency(startThis);
 
     % If LHS data are complex, use NaN+NaNi to pad missing observations
     missingValue = this.MissingValue;
@@ -132,7 +132,7 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
         if isequal(timeRef(2), Inf)
             timeRef(2) = endThis;
         end
-        timeRef = DateWrapper.roundColon(timeRef(1), timeRef(2));
+        timeRef = dater.colon(timeRef(1), timeRef(2));
     end
     if testColon(timeRef) || isequal(timeRef, Inf)
         s.subs{1} = ':';
@@ -146,7 +146,7 @@ function [this, s, dates, freqTest] = hereExpand(this, s)
     elseif isnumeric(timeRef) && ~isempty(timeRef)
         dates = double(timeRef);
         if ~isempty(dates)
-            freqDates = DateWrapper.getFrequencyAsNumeric(dates);
+            freqDates = dater.getFrequency(dates);
             if isnan(startThis)
                 % If LHS series is empty time series, set start date to the minimum
                 % date with the same frequency as the first date

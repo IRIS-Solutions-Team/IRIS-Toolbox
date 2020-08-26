@@ -84,7 +84,7 @@ return
             throw( exception.Base(thisError, 'error') );
         end
         inputDates = [ datesCutout{:} ];
-        dates = DateWrapper.fromDatetimeAsNumeric(opt.EnforceFrequency, inputDates);
+        dates = dater.fromMatlab(opt.EnforceFrequency, inputDates);
     end%
     
 

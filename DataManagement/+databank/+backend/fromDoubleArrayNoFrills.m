@@ -25,10 +25,6 @@ if isequal(timeSeriesConstructor, @default)
 end
 TIME_SERIES_TEMPLATE = timeSeriesConstructor( );
 
-if isequal(outputType, @default)
-    outputType = 'struct';
-end
-
 %--------------------------------------------------------------------------
 
 numRows = size(array, 1);

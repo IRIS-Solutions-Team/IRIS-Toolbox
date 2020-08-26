@@ -153,7 +153,7 @@ else
         range = textinp2dat(range);
     end
     RANGE = reshape(double(range), 1, [ ]);
-    EXTENDED_RANGE = [DateWrapper.roundPlus(RANGE(1), -1), RANGE];
+    EXTENDED_RANGE = [dater.plus(RANGE(1), -1), RANGE];
     
     [OPT, varargin] = passvalopt('model.loglik', varargin{:});
 

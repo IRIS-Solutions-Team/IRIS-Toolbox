@@ -5,7 +5,7 @@ classdef DateWrapper ...
         function value = get(this, query)
             startsWith__ = @(x) startsWith(string(query), x, "ignoreCase", true);
             if startsWith__("FrequencyAsNum")
-                value = DateWrapper.getFrequencyAsNumeric(this);
+                value = dater.getFrequency(this);
             elseif startsWith__("Freq")
                 value = DateWrapper.getFrequency(this);
             elseif startsWith__("Year")
@@ -44,7 +44,7 @@ classdef DateWrapper ...
             fprintf("  %s %s Date(s)\n", sizeString, frequencyDisplayName);
             if ~isEmpty
                 textual.looseLine( );
-                print = DateWrapper.toDefaultString(this);
+                print = dater.toDefaultString(this);
                 disp(categorical(print));
             end
             textual.looseLine( );
@@ -57,7 +57,7 @@ classdef DateWrapper ...
 
 
         function dt = not(this)
-            dt = DateWrapper.toDatetime(this);
+            dt = dater.toMatlab(this);
         end%
 
 
@@ -84,7 +84,7 @@ classdef DateWrapper ...
             x = double(a) + double(b);
             x = round(x*100)/100;
             try
-                freq = DateWrapper.getFrequencyAsNumeric(x);
+                freq = dater.getFrequency(x);
             catch
                 throw( exception.Base('DateWrapper:InvalidInputsIntoPlus', 'error') );
             end
@@ -99,7 +99,7 @@ classdef DateWrapper ...
         
         function this = minus(a, b)
             if isa(a, 'DateWrapper') && isa(b, 'DateWrapper')
-                if ~all(DateWrapper.getFrequencyAsNumeric(a(:))==DateWrapper.getFrequencyAsNumeric(b(:)))
+                if ~all(dater.getFrequency(a(:))==dater.getFrequency(b(:)))
                     throw( exception.Base('DateWrapper:InvalidInputsIntoMinus', 'error') );
                 end
                 this = floor(a) - floor(b);
@@ -118,7 +118,7 @@ classdef DateWrapper ...
             if isempty(x)
                 this = DateWrapper.empty(size(x));
             else
-                serial = DateWrapper.getSerial(x);
+                serial = dater.getSerial(x);
                 this = DateWrapper.fromSerial(frequency(1), serial); 
             end
         end%
@@ -147,13 +147,13 @@ classdef DateWrapper ...
             end
             if ~isnumeric(from) || ~isnumeric(to) ...
                 || not(numel(from)==1) || not(numel(to)==1) ...
-                || not(DateWrapper.getFrequencyAsNumeric(from)==DateWrapper.getFrequencyAsNumeric(to))
+                || not(dater.getFrequency(from)==dater.getFrequency(to))
                 throw(exception.Base('DateWrapper:InvalidStartEndInColon', 'error'));
             end
             if ~isnumeric(step) || numel(step)~=1 || step~=round(step)
                 throw(exception.Base('DateWrapper:InvalidStepInColon', 'error'));
             end
-            freq = DateWrapper.getFrequencyAsNumeric(from);
+            freq = dater.getFrequency(from);
             fromSerial = floor(from);
             toSerial = floor(to);
             serial = fromSerial : step : toSerial;
@@ -210,8 +210,8 @@ classdef DateWrapper ...
             if ~isa(firstDate, 'DateWrapper') || ~isa(lastDate, 'DateWrapper')
                 throw( exception.Base('DateWrapper:InvalidInputsIntoRnglen', 'error') );
             end
-            firstFrequency = DateWrapper.getFrequencyAsNumeric(firstDate(:));
-            lastFrequency = DateWrapper.getFrequencyAsNumeric(lastDate(:));
+            firstFrequency = dater.getFrequency(firstDate(:));
+            lastFrequency = dater.getFrequency(lastDate(:));
             if ~all(firstFrequency==lastFrequency)
                 throw( exception.Base('DateWrapper:InvalidInputsIntoRnglen', 'error') );
             end
@@ -228,13 +228,28 @@ classdef DateWrapper ...
             
 
         function datetimeObj = datetime(this, varargin)
-            datetimeObj = DateWrapper.toDatetime(this, varargin{:});
+            datetimeObj = dater.toMatlab(this, varargin{:});
         end%
 
 
         function [durationObj, halfDurationObj] = duration(this)
             frequency = DateWrapper.getFrequency(this);
             [durationObj, halfDurationObj] = duration(frequency);
+        end%
+
+
+        function isoString = toIsoString(varargin)
+            isoString = dater.toIsoString(varargin{:});
+        end%
+
+
+        function defaultString = toDefaultString(varargin)
+            defaultString = dater.toDefaultString(varargin{:});
+        end%
+
+
+        function datetimeObj = toMatlab(varargin)
+            datetimeObj = dater.toMatlab(varargin{:});
         end%
     end
 
@@ -291,7 +306,7 @@ classdef DateWrapper ...
 
 
         function varargout = xline(this, varargin)
-            [varargout{1:nargout}] = xline(DateWrapper.toDatetime(this), varargin{:});
+            [varargout{1:nargout}] = xline(dater.toMatlab(this), varargin{:});
         end%
     end
 
@@ -322,136 +337,28 @@ classdef DateWrapper ...
         end%
 
 
-        function frequency = getFrequencyAsNumeric(dateCode)
-            frequency = round(100*(double(dateCode) - floor(dateCode)));
-            inxZero = frequency==0;
-            if any(inxZero)
-                inxDaily = frequency==0 & floor(dateCode)>=Frequency.MIN_DAILY_SERIAL;
-                frequency(inxDaily) = 365;
-            end
-        end%
-
-
-        function frequency = getFrequency(dateCode)
-            numericFrequency = DateWrapper.getFrequencyAsNumeric(dateCode);
-            frequency = Frequency(numericFrequency);
-        end%
-
-
-        function serial = getSerial(input)
-            serial = floor(double(input));
-        end%
-
-
-        function varargout = fromDouble(varargin)
-            [varargout{1:nargout}] = DateWrapper.fromDateCode(varargin{:});            
-        end%
-
-
-        function [this, frequency, serial] = fromDateCode(x)
-            frequency = DateWrapper.getFrequencyAsNumeric(x);
-            serial = DateWrapper.getSerial(x);
-            this = DateWrapper.fromSerial(frequency, serial);
+        function freq = getFrequency(dateCode)
+            freq = Frequency(dater.getFrequency(dateCode));
         end%
 
 
         function this = fromSerial(varargin)
-            dateCode = DateWrapper.getDateCodeFromSerial(varargin{:});
-            this = DateWrapper(dateCode);
-        end%
-
-
-        function dateCode = fromIsoStringAsNumeric(freq, isoDate)
-            freq = double(freq);
-            if isequal(freq, 0)
-                dateCode = double(isoDate);
-                return
-            end
-            isoDate = string(isoDate);
-            reshapeOutput = size(isoDate);
-            isoDate = reshape(isoDate, 1, [ ]);
-            inx = strlength(isoDate)>10;
-            if any(inx)
-                isoDate(inx) = extractBefore(isoDate(inx), 11);
-            end
-            inxMissing = ismissing(isoDate);
-            isoDate(inxMissing) = [ ];
-            isoDate = join(replace(isoDate, "-", " "), " ");
-            ymd = sscanf(isoDate, "%g");
-            serial = Frequency.ymd2serial(freq, ymd(1:3:end), ymd(2:3:end), ymd(3:3:end));
-            dateCode = nan(size(inxMissing));
-            dateCode(~inxMissing) = DateWrapper.getDateCodeFromSerial(freq, serial);
-            dateCode = reshape(dateCode, reshapeOutput);
+            this = DateWrapper(dater.fromSerial(varargin{:}));
         end%
 
 
         function this = fromIsoString(varargin)
-            dateCode = DateWrapper.fromIsoStringAsNumeric(varargin{:});
-            this = DateWrapper(dateCode);
+            this = DateWrapper(dater.fromIsoString(varargin{:}));
         end%
 
 
-        function isoDate = toIsoString(this, varargin)
-            %(
-            if isempty(this)
-                isoDate = string.empty(size(this));
-                return
-            end
-            reshapeOutput = size(this);
-            isoDate = repmat("", reshapeOutput);
-            freq = DateWrapper.getFrequencyAsNumeric(this);
-            inxNaN = isnan(freq);
-            if all(inxNaN)
-                return
-            end
-            freq(inxNaN) = [ ];
-            if ~Frequency.sameFrequency(freq)
-                thisError = [
-                    "DateWrapper:ToIsoString"
-                    "Cannot convert dates of multiple date frequencies "
-                    "in one run of the function DateWrapper.toIsoString( )."
-                ];
-                throw(exception.Base(thisError, 'error'));
-            end
-            freq = freq(1);
-            if freq==0
-                isoDate = string(double(this));
-                return
-            end
-            [year, month, day] = Frequency.serial2ymd(freq, floor(this), varargin{:});
-            isoDate(~inxNaN) = compose("%04g-%02g-%02g", [year(:), month(:), day(:)]);
-            isoDate = reshape(isoDate, reshapeOutput);
-            %)
+        function this = fromDatetime(varargin)
+            this = DateWrapper(dater.fromMatlab(varargin{:}));
         end%
 
 
-        function dateCode = getDateCodeFromSerial(freq, serial)
-            freq = double(freq);
-            inxFreqCodes = freq~=0 & freq~=365;
-            freqCode = zeros(size(freq));
-            freqCode(inxFreqCodes) = double(freq(inxFreqCodes)) / 100;
-            dateCode = round(serial) + freqCode;
-        end%
-
-
-        function this = fromDatetime(frequency, dt)
-            serial = Frequency.ymd2serial(frequency, year(dt), month(dt), day(dt));
-            this = DateWrapper.fromSerial(frequency, serial);
-        end%
-
-
-        function dateCode = fromDatetimeAsNumeric(freq, dt)
-            serial = Frequency.ymd2serial(freq, year(dt), month(dt), day(dt));
-            dateCode = DateWrapper.getDateCodeFromSerial(freq, serial);
-        end%
-
-
-        function datetimeObj = toDatetime(input, varargin)
-            frequency = DateWrapper.getFrequency(input);
-            if ~all(frequency(1)==frequency(:))
-                throw( exception.Base('DateWrapper:InvalidInputsIntoDatetime', 'error') )
-            end
-            datetimeObj = datetime(frequency(1), DateWrapper.getSerial(input), varargin{:});
+        function this = fromMatlab(varargin)
+            this = DateWrapper(dater.fromMatlab(varargin{:}));
         end%
 
 
@@ -628,16 +535,16 @@ classdef DateWrapper ...
         function pos = getRelativePosition(ref, dates, bounds, context)
             ref = double(ref);
             dates =  double(dates);
-            refFreq = DateWrapper.getFrequencyAsNumeric(ref);
-            datesFreq = DateWrapper.getFrequencyAsNumeric(dates);
+            refFreq = dater.getFrequency(ref);
+            datesFreq = dater.getFrequency(dates);
             if ~all(datesFreq==refFreq)
-                throw(exception.Base([
+                exception.error([
                     "DateWrapper:CannotRelativePositionForMixedFrequencies"
                     "Relative positions can be only calculated for dates of identical frequencies"
-                ], "error"));
+                ]);
             end
-            refSerial = DateWrapper.getSerial(ref);
-            datesSerial = DateWrapper.getSerial(dates);
+            refSerial = dater.getSerial(ref);
+            datesSerial = dater.getSerial(dates);
             pos = round(datesSerial - refSerial + 1);
             % Check lower and upper bounds on the positions
             if nargin>=3 && ~isempty(bounds)
@@ -646,15 +553,13 @@ classdef DateWrapper ...
                     if nargin<4
                         context = "range";
                     end
-                    throw(exception.Base([
+                    exception.error([
                         "DateWrapper:DateOutOfRange"
                         "These dates are out of %1: %s "
-                    ], "error"), context, join(DateWrapper.toDefaultString(dates(inxOutRange))));
+                    ], context, join(dater.toDefaultString(dates(inxOutRange))));
                 end
             end
         end%
-
-
 
 
         function date = ii(input)
@@ -662,83 +567,8 @@ classdef DateWrapper ...
         end%
 
 
-
-
-        function dates = removeWeekends(dates)
-            inxWeekend = DateWrapper.isWeekend(double(dates));
-            dates(inxWeekend) = [ ];
-        end%
-
-
-
-
-        function inxWeekend = isWeekend(dates)
-            weekday = weekdayiso(double(dates));
-            inxWeekend = weekday==6 | weekday==7;
-        end%
-
-
-
-
-        function s = toDefaultString(dates)
-            %(
-            dates = double(dates);
-            s = repmat("", size(dates));
-
-            [year, per, freq] = dat2ypf(dates);
-            freqLetters = Frequency.toLetter(freq);
-            
-            inx = isnan(dates);
-            if nnz(inx)>0
-                s(inx) = "NaD";
-            end
-
-            inx = isinf(dates) & dates<0;
-            if nnz(inx)>0
-                s(inx) = "-Inf";
-            end
-
-            inx = isinf(dates) & dates>0;
-            if nnz(inx)>0
-                s(inx) = "Inf";
-            end
-
-            inx = freq==0;
-            if nnz(inx)>0
-                s(inx) = compose("%g", dates(inx));
-            end
-
-            inx = freq==365;
-            if nnz(inx)>0
-                s(inx) = datestr(dates(inx), "yyyy-mmm-dd");
-            end
-
-            inx = freq==1;
-            if nnz(inx)>0
-                s(inx) = compose( ...
-                    "%g%s", [reshape(year(inx), [ ], 1), reshape(freqLetters(inx), [ ], 1)] ...
-                );
-            end
-
-            inx = freq==12 | freq==52;
-            if nnz(inx)>0
-                s(inx) = compose( ...
-                    "%g%s%02g", [reshape(year(inx), [ ], 1), reshape(freqLetters(inx), [ ], 1), reshape(per(inx), [ ], 1)] ...
-                );
-            end
-
-            inx = freq==2 | freq==4;
-            if nnz(inx)>0
-                s(inx) = compose( ...
-                    "%g%s%g", [reshape(year(inx), [ ], 1), reshape(freqLetters(inx), [ ], 1), reshape(per(inx), [ ], 1)] ...
-                );
-            end
-            %)
-        end%
-
-
         function dateString = toIMFString(date)
-            dateString = DateWrapper.toDefaultString(date);
+            dateString = dater.toDefaultString(date);
             freqLetters = iris.get('FreqLetters');
             % Replace yearly format 2020Y with 2020
             dateString = erase(dateString, freqLetters(1));
@@ -799,19 +629,6 @@ classdef DateWrapper ...
                 end
                 output = [from, to];
             end
-            if convertToDateWrapper
-                output = DateWrapper(output);
-            end
-        end%
-
-
-
-
-        function output = roundPlus(this, that)
-            convertToDateWrapper = isa(this, 'DateWrapper') || isa(that, 'DateWrapper');
-            this = double(this);
-            that = double(that);
-            output = (round(100*this) + round(100*that))/100;
             if convertToDateWrapper
                 output = DateWrapper(output);
             end

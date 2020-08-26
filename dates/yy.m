@@ -1,10 +1,10 @@
 function outputDate = yy(year, varargin)
-% yy  IRIS yearly date
+% yy  IrisT yearly date
 %
 % Syntax
 % =======
 %
-%     dat = yy(year)
+%     d = yy(year)
 %
 %
 % Input arguments
@@ -16,7 +16,7 @@ function outputDate = yy(year, varargin)
 % Output arguments
 % =================
 %
-% * `dat` [ dates.date ] - IRIS serial date numbers.
+% * `d` [ dates.date ] - IRIS serial date numbers.
 %
 %
 % Description
@@ -27,12 +27,12 @@ function outputDate = yy(year, varargin)
 % ========
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-dateCode = numeric.yy(year, varargin{:});
-outputDate = DateWrapper(dateCode);
+outputDate = DateWrapper(dater.yy(year, varargin{:}));
 
-end
+end%
+

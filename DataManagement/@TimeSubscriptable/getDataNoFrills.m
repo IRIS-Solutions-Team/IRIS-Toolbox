@@ -63,13 +63,13 @@ return
 
     function posTimes = getPosTimes( )
         %(
-        serialTimes = DateWrapper.getSerial(timeRef);
+        serialTimes = dater.getSerial(timeRef);
         serialTimes = transpose(serialTimes(:));
-        freqTimes = DateWrapper.getFrequencyAsNumeric(timeRef);
+        freqTimes = dater.getFrequency(timeRef);
         freqTimes = transpose(freqTimes(:));
         thisStart = double(this.Start);
-        serialStart = DateWrapper.getSerial(thisStart);
-        freqStart = DateWrapper.getFrequencyAsNumeric(thisStart);
+        serialStart = dater.getSerial(thisStart);
+        freqStart = dater.getFrequency(thisStart);
         numTimes = numel(serialTimes);
         if numTimes==1 && isequal(serialTimes, Inf)
             % Inf

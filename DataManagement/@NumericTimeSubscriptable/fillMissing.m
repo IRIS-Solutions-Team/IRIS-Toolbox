@@ -85,7 +85,7 @@ data = getDataFromTo(this, startDate, endDate);
 inxMissing = this.MissingTest(data) & inxRange;
 if nargout>=2
     if any(inxMissing)
-        datesMissing = DateWrapper.roundPlus(startDate, find(inxMissing)-1);
+        datesMissing = dater.plus(startDate, find(inxMissing)-1);
         datesMissing = DateWrapper(datesMissing);
     else
         datesMissing = DateWrapper.empty(0, 1);

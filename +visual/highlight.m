@@ -204,19 +204,19 @@ function xData = getXData(h, range, opt)
     if isa(range, 'DateWrapper')
         startOfRange = double( getFirst(range) );
         endOfRange = double( getLast(range) );
-        freq = DateWrapper.getFrequencyAsNumeric(startOfRange);
+        freq = dater.getFrequency(startOfRange);
         xLim = get(h, 'XLim');
         if isa(xLim, 'datetime')
             switch lower(opt.DatePosition)
                 case 'start'
-                    xData = [ DateWrapper.toDatetime(startOfRange-1, 'middle'), ...
-                              DateWrapper.toDatetime(endOfRange, 'middle') ];
+                    xData = [ dater.toMatlab(startOfRange-1, 'middle'), ...
+                              dater.toMatlab(endOfRange, 'middle') ];
                 case 'middle'
-                    xData = [ DateWrapper.toDatetime(startOfRange, 'start'), ...
-                              DateWrapper.toDatetime(endOfRange, 'end') ];
+                    xData = [ dater.toMatlab(startOfRange, 'start'), ...
+                              dater.toMatlab(endOfRange, 'end') ];
                 case 'end'
-                    xData = [ DateWrapper.toDatetime(startOfRange, 'middle'), ...
-                              DateWrapper.toDatetime(endOfRange+1, 'middle') ];
+                    xData = [ dater.toMatlab(startOfRange, 'middle'), ...
+                              dater.toMatlab(endOfRange+1, 'middle') ];
             end
         else
             xData = [ dat2dec(startOfRange, 'centre'), ...

@@ -1,79 +1,107 @@
-function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank, varargin)
 % databank.apply  Apply function to selection of databank fields
 %{
-% ## Syntax ##
+% Syntax
+%--------------------------------------------------------------------------
 %
-%     [outputDatabank, appliedToNames, newNames] = apply(function, inputDatabank, ...) 
+%     [outputDb, appliedToNames, newNames] = apply(inputDb, func, ...) 
 %
 % 
-% ## Input Arguments ##
+% Input Arguments
+%--------------------------------------------------------------------------
 %
-% __`function`__ [ function_handle ] - 
-% Function (function handle) that will be applied to the selected fields of
-% the `inputDatabank`.
+% __`inputDb`__ [ struct | Dictionary ]
 %
-% __`inputDatabank`__ [ struct | Dictionary ] -
-% Input databank to whose fields the `function` will be applied.
+%>    Input databank to whose fields the `function` will be applied.
 %
 %
-% ## Output Arguments ##
+% __`function`__ [ function_handle ]
 %
-% __`outputDatabank`__ [ struct | Dictionary ] - 
-% Output databank created from the `inputDatabank` with new fields or some
-% fields modified.
+%>    Function (function handle) that will be applied to the selected fields of
+%>    the `inputDb`.
 %
-% __`appliedToNames`__ [ cellstr | string ] -
+%
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __`outputDb`__ [ struct | Dictionary ]
+%
+%>    Output databank created from the `inputDb` with new fields or some
+%>    fields modified.
+%
+%
+% __`appliedToNames`__ [ cellstr | string ] 
 % List of names to which the `function` has been actually applied.
 %
-% __`newNames`__ [ cellstr | string ] -
-% List of names under which the results are stored in the `outputDatabank`.
+%
+% __`newNames`__ [ cellstr | string ] 
+%
+%>    List of names under which the results are stored in the `outputDb`.
 %
 %
-% ## Options ##
+% Options
+%--------------------------------------------------------------------------
 %
-% __`StartsWith=""`__ [ char | string ] -
-% Apply the `function` to fields whose names start with this string.
+% __`StartsWith=""`__ [ char | string ] 
 %
-% __`EndsWith=""`__ [ char | string ] -
-% Apply the `function` to fields whose names end with this string.
+%>    Apply the `function` to fields whose names start with this string.
 %
-% __`RemoveStart=false`__ [ `true` | `false` ] -
-% If option `StartsWith=` was used, a new field will be created after the
-% `function` has been applied with its named derived from the original name
-% by removing the start of the string.
 %
-% __`RemoveEnd=false`__ [ `true` | `false` ] -
-% If option `EndsWith=` was used, a new field will be created after the
-% `function` has been applied with its named derived from the original name
-% by removing the end of the string.
+% __`EndsWith=""`__ [ char | string ] 
 %
-% __`Prepend=""`__ [ char | string ] -
-% A new field will be created after the `function` has been applied with
-% its named derived from the original name by prepending this string to the
-% beginning of the original field name.
+%>    Apply the `function` to fields whose names end with this string.
+%
+%
+% __`RemoveStart=false`__ [ `true` | `false` ] 
+%
+%>    If option `StartsWith=` was used, a new field will be created after the
+%>    `function` has been applied with its named derived from the original name
+%>    by removing the start of the string.
+%
+%
+% __`RemoveEnd=false`__ [ `true` | `false` ] 
+%
+%>    If option `EndsWith=` was used, a new field will be created after the
+%>    `function` has been applied with its named derived from the original name
+%>    by removing the end of the string.
+%>    
+%
+% __`Prepend=""`__ [ char | string ] 
+%
+%>    A new field will be created after the `function` has been applied with
+%>    its named derived from the original name by prepending this string to the
+%>    beginning of the original field name.
 % 
-% __`Append=""`__ [ char | string ] -
-% A new field will be created after the `function` has been applied with
-% its named derived from the original name by appending this string to the
-% end of the original field name.
 %
-% __`RemoveSource=false`__ [ `true` | `false` ] -
-% Remove the source field from the `outputDatabank`; the source field is
-% the `inputDatabank` on which the `function` was run to create a new
-% field.
+% __`Append=""`__ [ char | string ] 
 %
-% __`InputNames=@all`__ [ `@all` | cellstr | string ] -
-% List of databank field names to which the name selection procedure will
-% be reduced.
-%
-% __`OutputNames=@default`__ [ `@default` | cellstr | string ] -
-% New names for output databank fields.
+%>    A new field will be created after the `function` has been applied with
+%>    its named derived from the original name by appending this string to the
+%>    end of the original field name.
 %
 %
-% ## Description ##
+% __`RemoveSource=false`__ [ `true` | `false` ] 
+%
+%>    Remove the source field from the `outputDb`; the source field is
+%>    the `inputDb` on which the `function` was run to create a new
+%>    field.
+%
+% __`InputNames=@all`__ [ `@all` | cellstr | string ] 
+%
+%>    List of databank field names to which the name selection procedure will
+%>    be reduced.
 %
 %
-% ## Example ##
+% __`OutputNames=@default`__ [ `@default` | cellstr | string ] 
+%
+%>    New names for output databank fields.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
 %
 %     >> d1 = struct( );
 %     >> d1.x = Series(1:10, 1:10);
@@ -90,7 +118,8 @@ function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank,
 %         y_u: [64x1 Series]2 = databank.apply(@(x) x+1, d1)
 %
 %
-% ## Example ##
+% Example
+%--------------------------------------------------------------------------
 %
 %     >> d1 = struct( );
 %     >> d1.x = Series(1:10, 1:10);
@@ -113,7 +142,13 @@ function [outputDatabank, appliedToNames, newNames] = apply(func, inputDatabank,
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function [outputDb, appliedToNames, newNames] = apply(inputDb, func, varargin)
+
 %--------------------------------------------------------------------------
+
+if validate.databank(func)
+    [func, inputDb] = deal(inputDb, func);
+end
 
 %( Input parser
 persistent pp
@@ -129,16 +164,16 @@ if isempty(pp)
     pp.addParameter({'RemovePrefix', 'RemoveStart'}, false, @validate.logicalScalar);
     pp.addParameter({'RemoveSuffix', 'RemoveEnd'}, false, @validate.logicalScalar);
     pp.addParameter('RemoveSource', false, @validate.logicalScalar);
-    pp.addParameter({'InputNames', 'Names', 'Fields'}, @all, @(x) isequal(x, @all) || validate.list(x) || isa(x, 'Rxp'));
-    pp.addParameter('OutputNames', @default, @(x) isequal(x, @default) || validate.list(x));
+    pp.addParameter({'InputNames', 'Names', 'Fields', 'SourceNames'}, @all, @(x) isequal(x, @all) || validate.list(x) || isa(x, 'Rxp'));
+    pp.addParameter({'OutputNames', 'TargetNames'}, @default, @(x) isequal(x, @default) || validate.list(x));
     pp.addParameter('AddToDatabank', @default, @(x) isequal(x, @default) || validate.databank(x));
 end
 %)
-opt = pp.parse(func, inputDatabank, varargin{:});
+opt = pp.parse(func, inputDb, varargin{:});
 
 if ~isequal(opt.InputNames, @all)
     if isa(opt.InputNames, 'Rxp')
-        opt.InputNames = databank.filter(inputDatabank, 'Name=', opt.InputNames);
+        opt.InputNames = databank.filter(inputDb, 'Name=', opt.InputNames);
     end
     opt.InputNames = cellstr(opt.InputNames);
 end
@@ -152,21 +187,19 @@ hereCheckInputOutputNames( );
 
 %--------------------------------------------------------------------------
 
-if isa(inputDatabank, 'Dictionary')
-    namesFields = cellstr(keys(inputDatabank));
-elseif isstruct(inputDatabank)
-    namesFields = fieldnames(inputDatabank);
+if isa(inputDb, 'Dictionary')
+    namesFields = cellstr(keys(inputDb));
+elseif isstruct(inputDb)
+    namesFields = fieldnames(inputDb);
 end
 
 numFields = numel(namesFields);
 newNames = repmat({''}, size(namesFields));
 
-lenHasPrefix = length(opt.HasPrefix);
-lenHasSuffix = length(opt.HasSuffix);
 
-outputDatabank = opt.AddToDatabank;
-if isequal(outputDatabank, @default)
-    outputDatabank = inputDatabank;
+outputDb = opt.AddToDatabank;
+if isequal(outputDb, @default)
+    outputDb = inputDb;
 end
 
 inxApplied = false(1, numFields);
@@ -176,10 +209,10 @@ for i = 1 : numFields
     if ~isequal(opt.InputNames, @all) && ~any(strcmpi(name__, opt.InputNames))
        continue
     end 
-    if ~isempty(opt.HasPrefix) && ~strncmpi(name__, opt.HasPrefix, lenHasPrefix)
+    if ~isempty(opt.HasPrefix) && ~startsWith(name__, opt.HasPrefix)
         continue
     end
-    if ~isempty(opt.HasSuffix) && ~strncmpi(fliplr(name__), fliplr(opt.HasSuffix), lenHasSuffix)
+    if ~isempty(opt.HasSuffix) && ~endsWith(name__, opt.HasSuffix)
         continue
     end
 
@@ -194,10 +227,10 @@ for i = 1 : numFields
     else
         newName__ = name__;
         if opt.RemovePrefix
-            newName__(1:lenHasPrefix) = '';
+            newName__ = extractAfter(newName__, strlength(opt.HasPrefix));
         end
         if opt.RemoveSuffix
-            newName__(end-lenHasSuffix+1:end) = '';
+            newName__ = extractBefore(newName__, strlength(newName__)-strlength(opt.HasSuffix)+1);
         end
         if ~isempty(opt.AddPrefix)
             newName__ = [opt.AddPrefix, newName__];
@@ -208,16 +241,16 @@ for i = 1 : numFields
     end
     newNames{i} = newName__;
 
-    field__ = inputDatabank.(name__);
+    field__ = inputDb.(name__);
     if ~isempty(func)
         field__ = func(field__);
     end
-    outputDatabank.(newName__) = field__;
+    outputDb.(newName__) = field__;
     inxToRemove(i) = opt.RemoveSource && ~strcmp(name__, newName__);
 end
 
 if any(inxToRemove)
-    outputDatabank = rmfield(outputDatabank, namesFields(inxToRemove));
+    outputDb = rmfield(outputDb, namesFields(inxToRemove));
 end
 
 appliedToNames = namesFields(inxApplied);

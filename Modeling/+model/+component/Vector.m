@@ -26,7 +26,7 @@ classdef Vector
         end
         
         
-        function flag = isCompatible(this, obj)
+        function flag = testCompatible(this, obj)
             flag = isa(this, 'model.component.Vector') && isa(obj, 'model.component.Vector') ...
                 && isequal(this.System, obj.System) ...
                 && isequal(this.Solution, obj.Solution);

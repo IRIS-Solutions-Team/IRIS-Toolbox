@@ -199,7 +199,7 @@ return
         if isempty(axesPositionWithinPeriod)
             axesPositionWithinPeriod = 'start';
         end
-        datetimeLocation = DateWrapper.toDatetime(location, axesPositionWithinPeriod);
+        datetimeLocation = dater.toMatlab(location, axesPositionWithinPeriod);
         if strcmpi(opt.Placement, 'before')
             [~, halfDuration] = duration(location);
             datetimeLocation = datetimeLocation - halfDuration;

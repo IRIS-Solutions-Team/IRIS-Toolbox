@@ -88,6 +88,7 @@ persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.copy');
     addRequired(pp, 'sourceDb', @validate.databank);
+
     addParameter(pp, 'SourceNames', @all, @(x) isequal(x, @all) || validate.list(x));
     addParameter(pp, 'TargetDb', @empty, @(x) isequal(x, @empty) || validate.databank(x));
     addParameter(pp, 'TargetNames', @auto, @(x) isequal(x, @auto) || validate.list(x) || isa(x, 'function_handle'));
@@ -96,11 +97,9 @@ if isempty(pp)
 end
 %)
 opt = parse(pp, sourceDb, varargin{:});
-
-sourceNames = pp.Results.SourceNames;
-targetDb = pp.Results.TargetDb;
-targetNames = pp.Results.TargetNames;
-transform = pp.Results.Transform;
+sourceNames = opt.SourceNames;
+targetNames = opt.TargetNames;
+transform = opt.Transform;
 
 %--------------------------------------------------------------------------
 

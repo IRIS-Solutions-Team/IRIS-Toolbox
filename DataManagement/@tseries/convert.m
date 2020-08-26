@@ -139,7 +139,7 @@ if isempty(pp)
     addParameter(pp, {'RemoveNaN', 'IgnoreNaN', 'OmitNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'Last', 'Previous'}))) || validate.numericScalar(x));
     addParameter(pp, {'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.stringScalar(x) || isnumeric(x));
-    addParameter(pp, 'Position', 'center', @(x) ischar(x) && any(strncmpi(x, {'c', 's', 'e'}, 1)));
+    addParameter(pp, 'Position', 'center', @(x) validate.stringScalar(x) && startsWith(x, ["s", "b", "f", "c", "m", "e", "l"], "IgnoreCase", true));
     addParameter(pp, 'Select', Inf, @(x) isnumeric(x));
 end
 %)
@@ -161,7 +161,7 @@ if isempty(range)
     return
 end
 
-oldFreq = DateWrapper.getFrequencyAsNumeric(this.Start);
+oldFreq = dater.getFrequency(this.Start);
 
 if oldFreq==newFreq
     return
@@ -257,7 +257,7 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
         end
     end
 
-    newDatesSerial = DateWrapper.getSerial(newDates);
+    newDatesSerial = dater.getSerial(newDates);
     newStartSerial = newDatesSerial(1);
     newEndSerial = newDatesSerial(end);
     numNewPeriods = newEndSerial - newStartSerial + 1;
@@ -322,7 +322,7 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
         newSize(1) = numNewPeriods;
         newData = reshape(newData, newSize);
     end
-    newStart = DateWrapper.getDateCodeFromSerial(newFreq, newStartSerial);
+    newStart = dater.fromSerial(newFreq, newStartSerial);
 end%
 
 

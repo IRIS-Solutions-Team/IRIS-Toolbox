@@ -172,7 +172,7 @@ if isempty(pp)
     addParameter(pp, 'MaxIter', 1, @(x) validate.roundScalar(x, 0, Inf)); 
     addParameter(pp, 'Tolerance', 1e-5, @(x) validate.numericScalar(x, eps( ), Inf));
 
-    addParameter(pp, {'PriorDummies', 'BVAR'}, [ ], @(x) isempty(x) || isa(x, 'BVAR.bvarobj'));
+    addParameter(pp, {'PriorDummies', 'BVAR'}, [ ], @(x) isempty(x) || isa(x, 'BVAR.DummyWrapper'));
     addParameter(pp, {'Standardize', 'Stdize'}, false, @validate.logicalScalar);
 
     addParameter(pp, {'FixedEff', 'FixedEffect'}, true, @validate.logicalScalar);

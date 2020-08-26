@@ -77,20 +77,20 @@ classdef tableobj < report.tabularobj
             if isempty(this.options.colstruct)
                 tmpRange = this.options.range;
             else
-                tmpRange = 1 : length(this.options.colstruct);
+                tmpRange = 1 : numel(this.options.colstruct);
             end
             tmpRange = [tmpRange(1)-1, tmpRange];
             
             % Find positions of vertical lines.
             this.vline = zeros(1, 0);
-            for i = this.options.vlineafter(:).'
-                inx = datcmp(i, tmpRange);
+            for i = reshape(double(this.options.vlineafter), 1, [ ])
+                inx = dater.eq(i, tmpRange);
                 if any(inx)
                     this.vline(1, end+1) = find(inx) - 1;
                 end
             end
-            for i = this.options.vlinebefore(:).'
-                inx = datcmp(i, tmpRange);
+            for i = reshape(double(this.options.vlinebefore), 1, [ ])
+                inx = dater.eq(i, tmpRange);
                 if any(inx)
                     this.vline(1, end+1) = find(inx) - 2;
                 end
@@ -98,8 +98,8 @@ classdef tableobj < report.tabularobj
             
             % Find positions of highlighted columns.
             this.highlight = zeros(1, 0);
-            for i = this.options.colhighlight(:).'
-                inx = datcmp(i, tmpRange);
+            for i = reshape(double(this.options.colhighlight), 1, [ ])
+                inx = dater.eq(i, tmpRange);
                 if any(inx)
                     this.highlight(1, end+1) = find(inx) - 1;
                 end

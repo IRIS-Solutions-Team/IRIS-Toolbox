@@ -1,4 +1,3 @@
-function this = trim(this)
 % trim  Remove leading and trailing missing values from time series data
 %
 % Backend [IrisToolbox] method
@@ -7,7 +6,7 @@ function this = trim(this)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function this = trim(this)
 
 newData = this.Data;
 if isempty(newData)
@@ -32,7 +31,7 @@ else
     last = find(~inxMissing, 1, 'last');
     n = last - first + 1;
     newData = reshape(newData(first:last, :), [n, sizeData(2:end)]);
-    newStart = DateWrapper.roundPlus(double(newStart), first - 1);
+    newStart = dater.plus(double(newStart), first - 1);
 end
 
 this.Data = newData;

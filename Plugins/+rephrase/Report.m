@@ -11,10 +11,10 @@ classdef Report ...
         PossibleChildren = [
             rephrase.Type.GRID
             rephrase.Type.TABLE
-            rephrase.Type.DIFFTABLE
             rephrase.Type.CHART
             rephrase.Type.TEXT
             rephrase.Type.PAGEBREAK
+            rephrase.Type.MATRIX
         ]
         EMBED_REPORT_DATA = "// report-data-script-here"
     end
@@ -51,7 +51,7 @@ classdef Report ...
             else
                 requestDb = databank.copy(reportDb, "SourceNames=", this.DataRequests);
                 serial = series.Serialize( );
-                dataJson = string(jsonencode(serial.encodeDatabank(requestDb)));
+                dataJson = string(jsonencode(serial.jsonFromDatabank(requestDb)));
             end
             script = ...
                 "var $report=" + reportJson + ";" + string(newline( )) ...

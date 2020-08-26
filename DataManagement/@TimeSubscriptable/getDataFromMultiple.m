@@ -16,7 +16,7 @@ end
 for i = 1 : numSeries
     startDate(i) = double(varargin{i}.Start);
     endDate(i) = double(varargin{i}.End);
-    freq(i) = DateWrapper.getFrequencyAsNumeric(startDate(i));
+    freq(i) = dater.getFrequency(startDate(i));
     inxNaN(i) = isnan(startDate(i));
 end
 
@@ -61,7 +61,7 @@ end
 for i = 1 : numSeries
     varargout{i} = getDataFromTo(varargin{i}, from, to);
 end
-outputDates = DateWrapper.roundColon(from, to);
+outputDates = dater.colon(from, to);
 
 end%
 

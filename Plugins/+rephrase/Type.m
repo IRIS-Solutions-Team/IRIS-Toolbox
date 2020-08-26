@@ -12,6 +12,7 @@ classdef Type
         SECTION
         PAGEBREAK
         TEXT
+        MATRIX
     end
 end
 

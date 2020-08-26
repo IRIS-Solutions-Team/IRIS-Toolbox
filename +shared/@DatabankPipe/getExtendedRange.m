@@ -19,12 +19,12 @@ endBaseRange = baseRange(end);
 
 startExtRange = startBaseRange;
 if minShift<0
-    startExtRange = DateWrapper.roundPlus(startExtRange, minShift);
+    startExtRange = dater.plus(startExtRange, minShift);
 end
 
 endExtRange = endBaseRange;
 if maxShift>0
-    endExtRange = DateWrapper.roundPlus(endExtRange, maxShift);
+    endExtRange = dater.plus(endExtRange, maxShift);
 end
 
 if nargout<=4

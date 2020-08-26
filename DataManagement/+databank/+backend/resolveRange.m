@@ -36,9 +36,9 @@ end
 if isinf(from) || isinf(to)
     freq = @all;
     if ~isinf(from)
-        freq = DateWrapper.getFrequencyAsNumeric(from);
+        freq = dater.getFrequency(from);
     elseif ~isinf(to)
-        freq = DateWrapper.getFrequencyAsNumeric(to);
+        freq = dater.getFrequency(to);
     end
     range = databank.range(inputDb, "NameList=", names, "Frequency=", freq);
     if isempty(range)

@@ -196,7 +196,7 @@ if isempty(pp)
     addParameter(pp, "AggregationMethod", "avg", @(x) validate.anyString(x, ["avg", "sum", "eop"]));
     addParameter(pp, 'Frequency', '', @locallyValidateFrequency);
     addParameter(pp, 'MaxRequestAttempts', 3, @(x) validate.numericScalar(x, 1, Inf));
-    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
+    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.databankType(x));
     addParameter(pp, 'Progress', false, @validate.logicalScalar);
     addParameter(pp, 'Request', "Observations", @(x) startsWith(x, ["Observation", "Vintage"], "IgnoreCase", true));
     addParameter(pp, {'Vintage', 'Vintages', 'VintageDate', 'VintageDates'}, "", @(x) isempty(x) || isstring(x) || ischar(x) || iscellstr(x) || isnumeric(x));
@@ -214,7 +214,7 @@ if startsWith(opt.Request, "Observation", "IgnoreCase", true)
     if isempty(opt.Vintage)
         opt.Vintage = "";
     elseif isnumeric(opt.Vintage)
-        opt.Vintage = DateWrapper.toIsoString(opt.Vintage);
+        opt.Vintage = dater.toIsoString(opt.Vintage);
     else
         opt.Vintage = string(opt.Vintage);
     end
@@ -455,7 +455,7 @@ end%
 function outputSeries = locallyExtractDataFromJson(jsonInfo, jsonData, vintage, opt)
     %(
     freq = locallyGetFrequencyFromJsonInfo(jsonInfo, opt);
-    dates = DateWrapper.fromIsoStringAsNumeric(freq, {jsonData.observations.date});
+    dates = dater.fromIsoString(freq, {jsonData.observations.date});
     numPeriods = numel(jsonData.observations);
     values = nan(numPeriods, 1);
     for i = 1 : numPeriods

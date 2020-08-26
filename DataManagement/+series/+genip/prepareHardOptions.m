@@ -15,8 +15,8 @@ highRange = double(highRange);
 highStart = highRange(1);
 highEnd = highRange(end);
 highFreq = DateWrapper.getFrequency(highStart);
-initStart = DateWrapper.roundPlus(highStart, -numInit);
-initEnd = DateWrapper.roundPlus(highStart, -1);
+initStart = dater.plus(highStart, -numInit);
+initEnd = dater.plus(highStart, -1);
 
 hard = struct( );
 invalidFreq = string.empty(1, 0);

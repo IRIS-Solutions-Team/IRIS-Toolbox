@@ -1,45 +1,94 @@
-function flag = compareFields(d1, d2)
+function [success, info] = compareFields(d1, d2, opt)
 
-[keys1, keys2] = hereGetKeys( );
-
-if ~isequal(sort(keys1), sort(keys2))
-    warning('Number of fields or field names do not match');
-    flag = false;
-    return
+arguments
+    d1 (1, 1) {validate.databank(d1)}
+    d2 (1, 1) {validate.databank(d2)}
+    opt.AbsTol = 1e-12
+    opt.Keys = @all
+    opt.Error = false
+    opt.Warning = false
 end
 
-for i = 1 : numel(keys1)
-    key__ = keys1{i};
-    field1 = d1.(key__);
-    field2 = d2.(key__);
-    if isa(field1, 'NumericTimeSubscriptable') && isa(field2, 'NumericTimeSubscriptable')
-        if ~isequal(field1.Start, field2.Start)
-            warning('Start dates for these fields do not match: %s', key__);
-            flag = false;
-            return
+success = true;
+info = struct( );
+info.FieldNamesMatch = true;
+info.ClassesNotEqual = string.empty(1, 0);
+info.DimensionsNotEqual = string.empty(1, 0);
+info.SeriesStartDatesNotEqual = string.empty(1, 0);
+info.SeriesDataNotEqual = string.empty(1, 0);
+info.NumericDataNotEqual = string.empty(1, 0);
+info.OtherDataNotEqual = string.empty(1, 0);
+
+keys1 = databank.keys(d1);
+keys2 = databank.keys(d2);
+
+if isequal(opt.Keys, @all)
+    info.FieldNamesMatch = isequal(sort(keys1), sort(keys2));
+    keys = keys1;
+else
+    opt.Keys = reshape(string(opt.Keys), 1, [ ]);
+    info.FieldNamesMatch = all(ismember(opt.Keys, keys1)) && all(ismember(opt.Keys, keys2));
+    keys = opt.Keys;
+end
+
+success = info.FieldNamesMatch;
+
+if success
+    for k = keys1
+        field1 = d1.(k);
+        field2 = d2.(k);
+        if ~isequal(class(field1), class(field2))
+            info.ClassesNotEqual(end+1) = k;
+            success = false;
+            continue
         end
-        if ~isequal(field1.Data, field2.Data)
-            warning('Time series data for these fields do not match: %s', key__);
-            flag = false;
-            return
+
+        if ~isequal(size(field1), size(field2))
+            info.DimensionsNotEqual(end+1) = k;
+            success = false;
+            continue
         end
-    elseif ~isequal(field1, field2)
-        warning('This field does not match: %s', key__);
-        flag = false;
-        return
+
+        if isa(field1, 'NumericTimeSubscriptable') && isa(field2, 'NumericTimeSubscriptable')
+            if ~dater.eq(field1.Start, field2.Start)
+                info.SeriesStartDatesNotEqual(end+1) = k;
+                success = false;
+                continue
+            end
+            if maxabs(field1.Data, field2.Data)>opt.AbsTol
+                info.SeriesDataNotEqual(end+1) = k;
+                success = false;
+                continue
+            end
+        elseif isnumeric(field1) && isnumeric(field2)
+            if maxabs(field1, field2)>opt.AbsTol
+                info.NumericDataNotEqual(end+1) = k;
+                success = false;
+                continue
+            end
+        else
+            if ~isequaln(field1, field2)
+                info.OtherDataNotEqual(end+1) = k;
+                success = false;
+                continue
+            end
+        end
     end
 end
 
-flag = true;
+if ~success
+    if isequal(opt.Error, true)
+        exception.error([
+            "Databank:FieldsFailToMatch"
+            "Databank comparison failed."
+        ]);
+    elseif isequal(opt.Warning, true);
+        exception.warning([
+            "Databank:FieldsFailToMatch"
+            "Databank comparison failed."
+        ]);
+    end
+end
 
-return
-
-    function [keys1, keys2] = hereGetKeys( )
-        keys1 = fieldnames(d1);
-        keys1 = reshape(cellstr(keys1), 1, [ ]);
-
-        keys2 = fieldnames(d2);
-        keys2 = reshape(cellstr(keys2), 1, [ ]);
-    end%
 end%
 

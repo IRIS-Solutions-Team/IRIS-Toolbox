@@ -1,4 +1,3 @@
-function [response, flag, query] = implementGet(this, query, varargin)
 % implementGet  Implement get method for model objects
 %
 % Backend [IrisToolbox] method
@@ -6,6 +5,8 @@ function [response, flag, query] = implementGet(this, query, varargin)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function [response, flag, query] = implementGet(this, query, varargin)
 
 EIGEN_TOLERANCE = this.Tolerance.Eigen;
 TYPE = @int8;
@@ -30,7 +31,7 @@ if flag, return, end
 [response, flag] = implementGet(this.Equation, this.Quantity, this.Pairing, query, varargin{:});
 if flag, return, end
 
-[response, flag] = implementGet(this.Gradient, query, varargin{:});
+[response, flag] = implementGet(this.Gradient, query, this.Quantity, varargin{:});
 if flag, return, end
 
 [response, flag] = model.component.Pairing.implementGet(this.Pairing, this.Quantity, query, varargin{:});
@@ -55,7 +56,7 @@ ssDtLevel = [ ];
 ssDtGrowth = [ ];
 
 % Replace alternate names with the default names
-if isempty(strfind(query, '.')) && isempty(strfind(query, ':'))
+if ~contains(query, '.') && ~contains(query, ':')
     query = this.myalias(query);
 end
 
@@ -74,7 +75,7 @@ elseif any(strcmpi(query, steadyList))
     [steadyLevel, steadyGrowth] = getSteady(this);
 end
 
-[~, ~, nb, nf] = sizeOfSolution(this.Vector);
+[~, ~, numXiB, numXiF] = sizeOfSolution(this.Vector);
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ne = sum(ixe);
 nv = length(this);
@@ -144,7 +145,7 @@ else
             for i = find(ixg)
                 name = this.Quantity.Name{i};
                 values = this.Variant.Values(:, i, :);
-                response.(name) = permute(value, [2, 3, 1]);
+                response.(name) = permute(values, [2, 3, 1]);
             end        
             
             
@@ -273,26 +274,29 @@ else
             response = implementGet(this.Reporting, 'label');
             
         case {'yvector', 'yvec'}
-            response = printSolutionVector(this, 'y', logStyle);
-            response = response.';
+            response = printVector(this.Quantity, this.Vector.Solution{1}, logStyle);
+            response = reshape(response, [ ], 1);
+            response = cellstr(response);
             
-        case {'xvector', 'xvec'}
-            response = printSolutionVector(this, 'x', logStyle);
-            response = response.';
+        case {'xvector', 'xvec', 'xivector', 'xivec'}
+            response = printVector(this.Quantity, this.Vector.Solution{2}, logStyle);
+            response = reshape(response, [ ], 1);
+            response = cellstr(response);
             
-        case {'xfvector', 'xfvec'}
-            response = printSolutionVector(this, 'x', logStyle);
-            response = response(1:nf);
-            response = response.';
+        case {'xfvector', 'xfvec', 'xifvector', 'xifvec'}
+            response = printVector(this.Quantity, this.Vector.Solution{2}, logStyle);
+            response = reshape(response(1:numXiF), [ ], 1);
+            response = cellstr(response);
             
-        case {'xbvector', 'xbvec'}
-            response = printSolutionVector(this, 'x', logStyle);
-            response = response(nf+1:end);
-            response = response.';
+        case {'xbvector', 'xbvec', 'xibvector', 'xibvec'}
+            response = printVector(this.Quantity, this.Vector.Solution{2}, logStyle);
+            response = reshape(response(numXiF+1:end), [ ], 1);
+            response = cellstr(response);
             
         case {'evector', 'evec'}
-            response = printSolutionVector(this, 'e', logStyle);
-            response = response.';
+            response = printVector(this.Quantity, this.Vector.Solution{3}, logStyle);
+            response = reshape(response, [ ], 1);
+            response = cellstr(response);
             
         case {'ylog', 'xlog', 'elog', 'plog', 'glog'}
             switch query(1)
@@ -349,9 +353,10 @@ else
             
         case {'icond', 'initcond', 'required', 'requiredinitcond'}
             % True initial conditions required at least in one parameter variant.
-            vecXb = this.Vector.Solution{2}(nf+1:end);
+            vecXb = this.Vector.Solution{2}(numXiF+1:end);
             ixInit = any(this.Variant.IxInit, 3);
-            response = printSolutionVector(this, vecXb(ixInit)-1i, logStyle);
+            response = printVector(this.Quantity, vecXb(ixInit)-1i, logStyle);
+            response = cellstr(response);
             
             
             
@@ -411,13 +416,13 @@ else
             
             
             
-        case 'nb'
+        case 'numxib'
             response = size(this.Variant.FirstOrderSolution{7}, 1);
             
             
             
             
-        case 'nf'
+        case 'numxif'
             response = length(this.Vector.Solution{2}) - size(this.Variant.FirstOrderSolution{7}, 1);
             
             
@@ -496,9 +501,9 @@ return
         [~, inxNaNSolutions] = isnan(this, 'solution');
         status = nan([sum(t0), nv]);
         for iiAlt = find(~inxNaNSolutions)
-            inxUnitRoots = this.Variant.EigenStability(:, 1:nb, iiAlt)==TYPE(1);
+            inxUnitRoots = this.Variant.EigenStability(:, 1:numXiB, iiAlt)==TYPE(1);
             dy = any(abs(this.Variant.FirstOrderSolution{4}(:, inxUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
-            df = any(abs(this.Variant.FirstOrderSolution{1}(1:nf, inxUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
+            df = any(abs(this.Variant.FirstOrderSolution{1}(1:numXiF, inxUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
             db = any(abs(this.Variant.FirstOrderSolution{7}(:, inxUnitRoots, iiAlt))>EIGEN_TOLERANCE, 2).';
             d = [dy, df, db];
             
@@ -513,7 +518,7 @@ return
         try %#ok<TRYNC>
             status = logical(status);
         end
-        if ~isempty(strfind(query, 'list'))
+        if contains(query, "list", "IgnoreCase", true)
             % List
             if nv==1
                 response = name(status==true | status==1);

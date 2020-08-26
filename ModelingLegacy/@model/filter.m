@@ -400,9 +400,9 @@ if ~isequal(kalmanOpt.Rolling, false)
 end
 
 nz = nnz(this.Quantity.IxObserved);
-extendedStart = DateWrapper.roundPlus(filterRange(1), -1);
+extendedStart = dater.plus(filterRange(1), -1);
 extendedEnd = filterRange(end);
-extRange = DateWrapper.roundColon(extendedStart, extendedEnd);
+extRange = dater.colon(extendedStart, extendedEnd);
 numExtPeriods = numel(extRange);
 
 % Throw a warning if some of the data sets have no observations.

@@ -97,10 +97,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 
     properties (Constant, Hidden)
         LAST_LOADABLE = 20180116
-        STD_PREFIX = 'std_'
-        CORR_PREFIX = 'corr_'
-        LOG_PREFIX = 'log_'
-        FLOOR_PREFIX = 'floor_'
         LEVEL_BOUNDS_ALLOWED  = [int8(1), int8(2), int8(4)]
         GROWTH_BOUNDS_ALLOWED = [int8(1), int8(2)]
         DEFAULT_STEADY_EXOGENOUS = NaN
@@ -216,7 +212,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = ifrf(varargin)
         varargout = irf(varargin)
         varargout = isLinkActive(varargin)
-        varargout = iscompatible(varargin)
+        varargout = testCompatible(varargin)
         varargout = islinear(varargin)
         varargout = islog(varargin)
         varargout = ismissing(varargin)
@@ -518,6 +514,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+            %( Input parser
             persistent pp ppOptimal ppParser
             if isempty(pp) || isempty(ppParser) || isempty(ppOptimal)
                 pp = extend.InputParser('@Model');
@@ -562,6 +559,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                 addParameter(ppOptimal, {'Floor', 'NonNegative'}, cell.empty(1, 0), @(x) isempty(x) || ( ischar(x) && isvarname(x) ));
                 addParameter(ppOptimal, 'Type', 'Discretion', @(x) ischar(x) && any(strcmpi(x, {'consistent', 'commitment', 'discretion'})));
             end
+            %)
                 
             %--------------------------------------------------------------------------
             

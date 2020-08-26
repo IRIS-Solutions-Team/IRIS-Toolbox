@@ -17,7 +17,7 @@ mustI = ~isempty( strfind(req, 'i*') );
 X = [ ];
 I = [ ];
 
-output = datarequest@varobj(req, this, inp, range);
+output = datarequest@BaseVAR(req, this, inp, range);
 
 range = output.Range;
 

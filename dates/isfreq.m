@@ -44,7 +44,7 @@ function flag = isfreq(date, freq)
 
 %--------------------------------------------------------------------------
 
-flag = DateWrapper.getFrequencyAsNumeric(date)==round(freq);
+flag = dater.getFrequency(date)==round(freq);
 
 end%
 

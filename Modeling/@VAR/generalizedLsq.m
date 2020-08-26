@@ -22,7 +22,7 @@ numY = size(y0, 1);
 numK = size(k0, 1); 
 numX = size(x0, 1); 
 numG = size(g1, 1); 
-isPrior = isa(priorDummies, 'BVAR.bvarobj') && ~isempty(priorDummies); 
+isPrior = isa(priorDummies, 'BVAR.DummyWrapper') && ~isempty(priorDummies); 
 
 if ~isempty(Rr)
     R = Rr(:, 1:end-1); 

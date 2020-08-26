@@ -129,7 +129,7 @@ end
 
 dates = reshape(double(dates), 1, [ ]);
 shift = DateWrapper.resolveShift(dates, shift);
-datesShifted = DateWrapper.roundPlus(dates, shift);
+datesShifted = dater.plus(dates, shift);
 startAll = min([dates, datesShifted]);
 endAll = max([dates, datesShifted]);
 
@@ -163,7 +163,7 @@ if numel(sizeX)>2
 end
 
 % Update output series
-this = setData(this, DateWrapper.roundColon(startAll, endAll), xData);
+this = setData(this, dater.colon(startAll, endAll), xData);
 
 return
 
@@ -172,7 +172,7 @@ return
         if all(inxFinite)
             return
         end
-        report = join(DateWrapper.toDefaultString(dates(inxFinite)));
+        report = join(dater.toDefaultString(dates(inxFinite)));
         throw(exception.Base([ 
             "Series:OutputWithMissingObs"
             "Output time series contains Inf or NaN observations "

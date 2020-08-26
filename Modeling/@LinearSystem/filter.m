@@ -11,8 +11,8 @@ function [outputData, regOutput] = filter(this, inputData, range, varargin)
 range = double(range);
 startRange = range(1);
 endRange = range(end);
-range = DateWrapper.roundColon(startRange, endRange);
-extRange = [DateWrapper.roundPlus(startRange, -1), range];
+range = dater.colon(startRange, endRange);
+extRange = [dater.plus(startRange, -1), range];
 numPeriods = round(endRange - startRange + 1);
 numExtPeriods = numPeriods + 1;
 

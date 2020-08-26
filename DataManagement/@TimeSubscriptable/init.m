@@ -7,7 +7,7 @@ function this = init(this, dates, data)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-if ischar(dates) || isa(dates, 'string')
+if ischar(dates) || isstring(dates)
     dates = textinp2dat(dates);
 end
 numDates = numel(dates);            
@@ -16,15 +16,15 @@ if isempty(dates)
     freq = double.empty(1, 0);
 else
     if isa(dates, 'DateWrapper')
-        freq = DateWrapper.getFrequencyAsNumeric(getFirst(dates));
+        freq = dater.getFrequency(getFirst(dates));
     else
-        freq = DateWrapper.getFrequencyAsNumeric(dates(1));
+        freq = dater.getFrequency(dates(1));
     end
     freq = freq(~isnan(freq));
     DateWrapper.checkMixedFrequency(freq);
 end
-serials = DateWrapper.getSerial(dates);
-serials = serials(:);
+serials = dater.getSerial(dates);
+serials = reshape(serials, [ ], 1);
 
 %--------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ elseif sum(size(data)>1)==1 && numel(data)>1 && numDates>1
     % Squeeze `data` if scalar time series is entered as an non-columnwise
     % vector
     %
-    data = data(:);
+    data = reshape(data, [ ], 1);
 elseif numel(data)==1 && numDates>1
     %
     % Expand scalar observation to match more than one of `dates`

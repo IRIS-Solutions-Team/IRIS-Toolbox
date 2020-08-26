@@ -19,7 +19,7 @@ function [This,Y0,K0,Y1,G1] = uncmean(YBar,Mu,varargin)
 % * `X` [ numeric ] - Array with prior dummy observations that can be used
 % in the `'BVAR='` option of the [`VAR/estimate`](VAR/estimate) function.
 %
-% * `O` [ bvarobj ] - BVAR object that can be passed into the
+% * `O` [ DummyWrapper ] - BVAR object that can be passed into the
 % [`VAR/estimate`](VAR/estimate) function.
 %
 % Description
@@ -48,7 +48,7 @@ end
 
 %--------------------------------------------------------------------------
 
-This = BVAR.bvarobj( );
+This = BVAR.DummyWrapper( );
 This.name = 'uncmean';
 This.y0 = @y0;
 This.k0 = @k0;

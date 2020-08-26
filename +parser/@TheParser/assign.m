@@ -50,8 +50,8 @@ end
 
 % Remove the declared `std_` and `corr_` names from the list of names
 % after values in the model file have been assigned.
-ixStd = strncmp(quantity.Name, model.STD_PREFIX, length(model.STD_PREFIX));
-ixCorr = strncmp(quantity.Name, model.CORR_PREFIX, length(model.CORR_PREFIX));
+ixStd = startsWith(quantity.Name, quantity.STD_PREFIX);
+ixCorr = startsWith(quantity.Name, quantity.CORR_PREFIX);
 ixStdCorr = ixStd | ixCorr;
 if any(ixStdCorr)
     % Check if all declared std_ and corr_ names are valid.

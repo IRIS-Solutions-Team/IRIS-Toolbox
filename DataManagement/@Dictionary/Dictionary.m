@@ -64,11 +64,6 @@ classdef Dictionary ...
     end
 
 
-    properties (Dependent)
-        Count
-    end
-
-
     properties (Constant, Hidden)
         EXCEPTION_KEY_NOT_FOUND =    { 'Dictionary:KeyNotFound'
                                        'This key does not exist in the Dictionary: %s ' }
@@ -99,7 +94,7 @@ classdef Dictionary ...
 
 
 
-    methods
+    methods (Hidden)
         function this = Dictionary(varargin)
 % Dictionary  Create new Dictionary object
             if nargin==0
@@ -223,14 +218,16 @@ classdef Dictionary ...
         end%
 
 
-
-
         function list = fieldnames(this)
             list = this.Keys(:);
             list = cellstr(list);
         end%
 
 
+        function list = properties(this)
+            list = this.Keys(:);
+            list = cellstr(list);
+        end%
 
 
         function this = rmfield(this, keys)
@@ -238,13 +235,9 @@ classdef Dictionary ...
         end%
 
 
-
-
         function value = getfield(this, key)
             value = retrieve(this, key);
         end%
-
-
 
 
         function this = setfield(this, key, value)
@@ -252,13 +245,9 @@ classdef Dictionary ...
         end%
 
 
-
-
         function value = numel(this, varargin)
             value = prod(size(this));
         end%
-
-
 
 
         function list = keys(this)
@@ -266,20 +255,14 @@ classdef Dictionary ...
         end%
 
 
-
-
         function list = keysAsChar(this)
             list = cellstr(this.Keys);
         end%
 
 
-
-
         function output = values(this)
             output = this.Values;
         end%
-
-
 
 
         function flag = isKey(this, key)
@@ -329,11 +312,15 @@ classdef Dictionary ...
             if ~isa(x, 'TimeSubscriptable')
                 throw( exception.Base(this.EXCEPTION_UPDATE_SERIES, 'error') );
             end
+
+            %{
             if isa(data, 'Dictionary')
                 data = retrieve(data, key);
             elseif isstruct(data)
                 data = data.(char(key));
             end
+            %}
+
             if nargin==3
                 x = [x; varargin{1}];
             else
@@ -480,15 +467,6 @@ classdef Dictionary ...
 
 
 
-    methods % Getters and Setters
-        function value = get.Count(this)
-            value = numel(this.Keys);
-        end%
-    end
-
-
-
-
     methods (Hidden)
         function [flag, pos, key] = lookupKey(this, key)
             key = preprocessKeyString(this, key);
@@ -509,7 +487,7 @@ classdef Dictionary ...
 
 
 
-    methods (Access=protected)
+    methods (Hidden, Access=protected)
         function pos = lookupKeys(this, keys)
             numOfInquiries = numel(keys);
             keys = preprocessKeyString(this, keys);
@@ -538,7 +516,7 @@ classdef Dictionary ...
 
 
 
-    methods (Static)
+    methods (Hidden, Static)
         function this = fromStruct(input)
             names = fieldnames(input);
             numFields = numel(names);

@@ -25,11 +25,11 @@ if isnan(referenceDate) && isnan(dates)
     return
 end
 
-freqOfReference = DateWrapper.getFrequencyAsNumeric(referenceDate);
-freqOfDates = DateWrapper.getFrequencyAsNumeric(dates);
+freqOfReference = dater.getFrequency(referenceDate);
+freqOfDates = dater.getFrequency(dates);
 DateWrapper.checkMixedFrequency(freqOfReference, freqOfDates);
-serialOfReference = DateWrapper.getSerial(referenceDate);
-serialOfDates = DateWrapper.getSerial(dates);
+serialOfReference = dater.getSerial(referenceDate);
+serialOfDates = dater.getSerial(dates);
 len = round(serialOfDates - serialOfReference + 1);
 
 end%

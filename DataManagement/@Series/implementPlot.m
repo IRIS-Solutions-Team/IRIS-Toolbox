@@ -44,7 +44,7 @@ end
 [yData, dates] = getData(this, dates);
 
 if ~isempty(dates)
-    timeFrequency = DateWrapper.getFrequencyAsNumeric(dates(1));
+    timeFrequency = dater.getFrequency(dates(1));
 else
     timeFrequency = NaN;
 end
@@ -156,7 +156,7 @@ return
             return
         end
         try
-            dateTick = DateWrapper.toDatetime(opt.DateTick);
+            dateTick = dater.toMatlab(opt.DateTick);
             set(axesHandle, 'XTick', dateTick);
         end
     end%

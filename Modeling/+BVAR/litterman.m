@@ -30,7 +30,7 @@ function [this, y0, k, y1, g] = litterman(rho, mu, lambda, varargin)
 % ## Output Arguments ##
 %
 %
-% __`b`__ [ bvarobj ]
+% __`b`__ [ DummyWrapper ]
 % >
 % BVAR object that can be passed into the
 % [`VAR/estimate`](VAR/estimate) function.
@@ -112,7 +112,7 @@ parse(pp, rho, mu, lambda);
 rho = rho(:);
 mu = mu(:);
 
-this = BVAR.bvarobj( );
+this = BVAR.DummyWrapper( );
 this.name = 'litterman';
 this.y0 = @getY0;
 this.k0 = @getK0;

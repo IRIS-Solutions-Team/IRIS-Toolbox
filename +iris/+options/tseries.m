@@ -27,30 +27,6 @@ def.fft = { ...
     'full', false, @islogicalscalar
 };
 
-def.filter = { ...
-    'Change, Growth', [ ], @(x) isempty(x) || isa(x, 'tseries')
-    'Gamma', 1, @(x) isa(x, 'tseries') || (isnumericscalar(x) && x>0)
-    'CutOff', [ ], @(x) isempty(x) || (isnumeric(x) && all(x(:)>0))
-    'CutOffYear', [ ], @(x) isempty(x) || (isnumeric(x) && all(x(:)>0))
-    'Drift', 0, @(x) isnumeric(x) && length(x)==1
-    'Gap', [ ], @(x) isempty(x) || isa(x, 'tseries')
-    'InfoSet', 2, @(x) isequal(x, 1) || isequal(x, 2)
-    'Lambda', @auto, @(x) isequal(x, @auto) || isempty(x) || (isnumeric(x) && all(x(:)>0)) || (ischar(x) && strcmpi(x, 'auto'))
-    'Level', [ ], @(x) isempty(x) || isa(x, 'tseries')
-    'Log', false, @islogical
-    'Swap', false, @islogical
-    'Forecast', [ ], @(x) isnumeric(x) && length(x)<=1
-};
-
-def.clpf = {
-    'Level', [ ], @isnumeric 
-    'Change, Growth', [ ], @isnumeric
-    'Order', 2, @(x) isintscalar(x) && x>0
-    'InfoSet', 2, @(x) isequal(x, 2) || isequal(x, 1)
-    'Gamma', 1, @isnumeric
-    'Drift', 0, @isnumeric
-};
-
 def.barcon = {
     'barwidth', 0.8, @isnumericscalar, ...
     'colormap', [ ], @isnumeric, ...

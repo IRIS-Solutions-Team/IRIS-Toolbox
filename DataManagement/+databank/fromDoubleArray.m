@@ -10,7 +10,7 @@ if isempty(pp)
     addRequired(pp, 'startDate', @DateWrapper.validateProperDateInput);
 
     addParameter(pp, 'Comments', [ ], @(x) isempty(x) || isstring(x) || ischar(x) || iscellstr(x));
-    addParameter(pp, 'OutputType', @default, @(x) isequal(x, @default) || validate.anyString(x, 'struct', 'Dictionary'));
+    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));
     addParameter(pp, 'AddToDatabank', false, @(x) isempty(x) || isequal(x, false) || validate.databank(x));
 end
 %)

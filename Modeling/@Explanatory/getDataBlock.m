@@ -13,9 +13,9 @@ function [data, maxLag, maxLead] = getDataBlock(this, inputData, range, lhsRequi
 range = double(range);
 startDate = range(1);
 endDate = range(end);
-extStartDate = DateWrapper.roundPlus(startDate, maxLag);
-extEndDate = DateWrapper.roundPlus(endDate, maxLead);
-extRange = DateWrapper.roundColon(extStartDate, extEndDate);
+extStartDate = dater.plus(startDate, maxLag);
+extEndDate = dater.plus(endDate, maxLead);
+extRange = dater.colon(extStartDate, extEndDate);
 numExtPeriods = numel(extRange);
 
 [variableNames, residualNames] = collectAllNames(this);

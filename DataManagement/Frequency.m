@@ -53,22 +53,6 @@ classdef Frequency < double
         end%
 
 
-        function datetimeFormat = getDateTimeFormat(this)
-            switch this
-                case Frequency.YEARLY
-                    datetimeFormat = 'uuuu''Y''';
-                case {Frequency.HALFYEARLY, Frequency.MONTHLY}
-                    datetimeFormat = 'uuuu''M''MM';
-                case Frequency.QUARTERLY
-                    datetimeFormat = 'uuuuQQQ';
-                case {Frequency.WEEKLY, Frequency.DAILY}
-                    datetimeFormat = 'uuuu-MMM-dd';
-                otherwise
-                    datetimeFormat = char.empty(1, 0);
-            end
-        end%
-
-
         function output = colon(a, b, varargin)
             if isa(a, 'Frequency')
                 a = double(a);
@@ -84,6 +68,7 @@ classdef Frequency < double
 
 
         function datetimeObj = datetime(this, serial, varargin)
+            datetimeObj = dater.matlabFromSerial(double(this), double(serial), varargin{:});
             if isequaln(this, Frequency.NaF)
                 datetimeObj = NaT(size(serial));
                 return
@@ -93,12 +78,12 @@ classdef Frequency < double
             day = zeros(size(serial));
             indexInf = isinf(serial);
             [year(~indexInf), month(~indexInf), day(~indexInf)] = ...
-                Frequency.serial2ymd(this, serial(~indexInf), varargin{:});
+                dater.ymdFromSerial(this, serial(~indexInf), varargin{:});
             if this==Frequency.WEEKLY
                 day(~indexInf) = day(~indexInf) - 3; % Return Monday, not Thursday, for display
             end
             year(indexInf) = serial(indexInf);
-            datetimeObj = datetime(year, month, day, 'Format', getDateTimeFormat(this));
+            datetimeObj = datetime(year, month, day, 'Format', dater.getFormatForMatlab(this));
         end%
 
 
@@ -136,19 +121,19 @@ classdef Frequency < double
 
         function [highExtStartSerial, highExtEndSerial, lowStartSerial, lowEndSerial, ixHighInLowBins] = ...
                 aggregateRange(highFreq, highStartSerial, highEndSerial, lowFreq)
-            [year1, month1, day1] = Frequency.serial2ymd(highFreq, highStartSerial, 'Start');
-            lowStartSerial = Frequency.ymd2serial(lowFreq, year1, month1, day1);
-            [year2, month2, day2] = Frequency.serial2ymd(lowFreq, lowStartSerial, 'Start');
-            highExtStartSerial = Frequency.ymd2serial(highFreq, year2, month2, day2);
+            [year1, month1, day1] = dater.ymdFromSerial(highFreq, highStartSerial, 'Start');
+            lowStartSerial = dater.serialFromYmd(lowFreq, year1, month1, day1);
+            [year2, month2, day2] = dater.ymdFromSerial(lowFreq, lowStartSerial, 'Start');
+            highExtStartSerial = dater.serialFromYmd(highFreq, year2, month2, day2);
 
-            [year3, month3, day3] = Frequency.serial2ymd(highFreq, highEndSerial, 'End');
-            lowEndSerial = Frequency.ymd2serial(lowFreq, year3, month3, day3);
-            [year4, month4, day4] = Frequency.serial2ymd(lowFreq, lowEndSerial, 'End');
-            highExtEndSerial = Frequency.ymd2serial(highFreq, year4, month4, day4);
+            [year3, month3, day3] = dater.ymdFromSerial(highFreq, highEndSerial, 'End');
+            lowEndSerial = dater.serialFromYmd(lowFreq, year3, month3, day3);
+            [year4, month4, day4] = dater.ymdFromSerial(lowFreq, lowEndSerial, 'End');
+            highExtEndSerial = dater.serialFromYmd(highFreq, year4, month4, day4);
 
             highExtRangeSerial = highExtStartSerial : highExtEndSerial;
-            [year5, month5, day5] = Frequency.serial2ymd(highFreq, highExtRangeSerial, 'middle');
-            lowRangeSerial = Frequency.ymd2serial(lowFreq, year5, month5, day5);
+            [year5, month5, day5] = dater.ymdFromSerial(highFreq, highExtRangeSerial, 'middle');
+            lowRangeSerial = dater.serialFromYmd(lowFreq, year5, month5, day5);
 
             uniqueLowRangeSerial = unique(lowRangeSerial, 'stable');
             ixHighInLowBins = cell(size(uniqueLowRangeSerial));
@@ -196,25 +181,6 @@ classdef Frequency < double
                 ppy = this;
             else
                 ppy = NaN;
-            end
-            %)
-        end%
-
-
-        function serial = ymd2serial(this, year, month, day)
-            %(
-            this = double(this);
-            switch this
-                case 1
-                    serial = Frequency.serialize(this, year);
-                case 2
-                    serial = Frequency.serialize(this, year, Frequency.month2period(this, month));
-                case 4
-                    serial = Frequency.serialize(this, year, Frequency.month2period(this, month));
-                case 12
-                    serial = Frequency.serialize(this, year, month);
-                otherwise
-                    serial = Frequency.serialize(this, year, month, day);
             end
             %)
         end%

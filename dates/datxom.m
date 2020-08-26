@@ -36,7 +36,7 @@ dateCode = double(dateCode);
 sizeDateCode = size(dateCode);
 dateCode = dateCode(:);
 
-freq = DateWrapper.getFrequencyAsNumeric(dateCode);
+freq = dater.getFrequency(dateCode);
 inxDaily = freq==Frequency.DAILY;
 inxMonthly = freq==Frequency.MONTHLY;
 

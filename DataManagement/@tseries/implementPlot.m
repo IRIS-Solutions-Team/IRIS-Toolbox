@@ -64,7 +64,7 @@ if isempty(inputRange)
     return
 end
 
-freq = DateWrapper.getFrequencyAsNumeric( inputRange(1) );
+freq = dater.getFrequency( inputRange(1) );
 
 if ~isempty(plotFunc) && isa(axesHandle, 'function_handle')
     axesHandle = axesHandle( );

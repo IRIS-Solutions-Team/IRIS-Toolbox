@@ -16,7 +16,7 @@ end
 positionWithinPeriod = hereResolvePositionWithinPeriod(axesHandle, positionWithinPeriod);
 
 if ~isempty(time)
-    timeFrequency = DateWrapper.getFrequencyAsNumeric(time(1));
+    timeFrequency = dater.getFrequency(time(1));
 else
     timeFrequency = NaN;
 end
@@ -27,9 +27,9 @@ if isempty(time)
 end
 
 if timeFrequency==Frequency.INTEGER
-    xData = DateWrapper.getSerial(time);
+    xData = dater.getSerial(time);
 else
-    xData = DateWrapper.toDatetime(time, lower(positionWithinPeriod));
+    xData = dater.toMatlab(time, lower(positionWithinPeriod));
     if isequal(dateFormat, @config) || isequal(dateFormat, @default)
         temp = iris.get('PlotDateTimeFormat');
         nameOfFreq = Frequency.toChar(timeFrequency);

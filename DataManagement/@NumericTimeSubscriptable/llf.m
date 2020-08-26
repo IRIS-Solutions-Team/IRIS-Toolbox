@@ -197,13 +197,10 @@ function varargout = llf(varargin)
 %#ok<*VUNUS>
 %#ok<*CTCH>
 
-[X, Range, varargin] = irisinp.parser.parse('tseries.filter', varargin{:});
-opt = passvalopt('tseries.filter', varargin{:});
-
 %--------------------------------------------------------------------------
 
 order = 1;
-[varargout{1:nargout}] = implementFilter(order, X, Range, opt);
+[varargout{1:nargout}] = implementFilter(order, varargin{:});
 
 end%
 

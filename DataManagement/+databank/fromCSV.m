@@ -86,9 +86,9 @@ function outputDatabank = fromCSV(fileName, varargin)
 % by the file extension.
 %
 %
-% __`NameRow={'', 'Variables', 'Time'}`__ [ char | cellstr | numeric ] 
+% __`NamesHeader=["", "Variables", "Time"]`__ [ string | numeric ] 
 % >
-% String, or cell array of possible strings, that is found at the beginning
+% String, or an array of strings, that is at the beginning
 % (in the first cell) of the row with variable names, or the line number at
 % which the row with variable names appears (first row is numbered 1).
 %
@@ -99,7 +99,7 @@ function outputDatabank = fromCSV(fileName, varargin)
 % of function handles, each function will be applied in the given order.
 %
 %
-% __`NaN='NaN'`__ [ char ] 
+% __`NaN="NaN"`__ [ string ] 
 % >
 % String representing missing observations (case insensitive).
 %
@@ -217,7 +217,7 @@ function outputDatabank = fromCSV(fileName, varargin)
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.fromCSV');
-    addRequired(pp, 'FileName', @validate.list);
+    addRequired(pp, 'fileName', @validate.list);
 
     addParameter(pp, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
     addParameter(pp, {'Case', 'ChangeCase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
@@ -225,10 +225,10 @@ if isempty(pp)
     addParameter(pp, 'Continuous', false, @(x) isequal(x, false) || any(strcmpi(x, {'Ascending', 'Descending'})));
     addParameter(pp, 'Delimiter', ', ', @(x) ischar(x) && numel(sprintf(x))==1);
     addParameter(pp, 'FirstDateOnly', false, @validate.logicalScalar);
-    addParameter(pp, {'NameRow', 'NamesRow', 'LeadingRow'}, {'', 'Variables', 'Time'}, @(x) ischar(x) || iscellstr(x) || validate.numericScalar(x));
+    addParameter(pp, {'NamesHeader', 'NameRow', 'NamesRow', 'LeadingRow'}, ["", "Variables", "Time"], @(x) ischar(x) || isstring(x) || iscellstr(x) || validate.numericScalar(x));
     addParameter(pp, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
-    addParameter(pp, 'NaN', 'NaN', @(x) ischar(x));
-    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
+    addParameter(pp, 'NaN', "NaN", @validate.stringScalar);
+    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));
     addParameter(pp, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(pp, 'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
     addParameter(pp, 'Select', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
@@ -252,8 +252,8 @@ outputDatabank = databank.backend.ensureTypeConsistency( ...
 % Loop over all input databanks subcontracting `databank.fromCSV` and
 % merging the resulting databanks in one.
 if numel(fileName)>1
-    numOfFileNames = numel(fileName);
-    for i = 1 : numOfFileNames
+    numFileNames = numel(fileName);
+    for i = 1 : numFileNames
         outputDatabank = databank.fromCSV( ...
             fileName(i), varargin{:}, ...
             'AddToDatabank=', outputDatabank ...
@@ -343,10 +343,10 @@ end
 if ~isempty(dates)
     maxDate = max(dates);
     minDate = min(dates);
-    numOfPeriods = 1 + round(maxDate - minDate);
+    numPeriods = 1 + round(maxDate - minDate);
     posDates = 1 + round(dates - minDate);
 else
-    numOfPeriods = 0;
+    numPeriods = 0;
     posDates = [ ];
     minDate = DateWrapper(NaN);
 end
@@ -442,7 +442,7 @@ return
             else
                 line = file(start:eol-1);
             end
-            if validate.numericScalar(opt.NameRow) && rowCount<opt.NameRow
+            if validate.numericScalar(opt.NamesHeader) && rowCount<opt.NamesHeader
                 hereMoveToNextEol( );
                 continue
             end
@@ -546,10 +546,10 @@ return
                 if isNameRowDone
                     flag = false;
                     return
-                elseif isequal(opt.NameRow, rowCount)
+                elseif isequal(opt.NamesHeader, rowCount)
                     flag = true;
                     return
-                elseif any(strcmpi(ident, opt.NameRow))
+                elseif any(strcmpi(ident, opt.NamesHeader))
                     flag = true;
                     return
                 end
@@ -591,34 +591,31 @@ return
         
         % Replace user-supplied NaN strings with 'NaN'. The user-supplied NaN
         % strings must not contain commas.
-        file = lower(file);
-        file = strrep(file, ' ', '');
-        opt.NaN = strtrim(lower(opt.NaN));
-        
+        file = erase(lower(file), " ");
+        opt.NaN = strip(lower(string(opt.NaN)));
+
         % When replacing user-defined NaNs, there can be in theory conflict with
         % date strings. We do not resolve this conflict because it is not very
         % likely.
-        if strcmp(opt.NaN, 'nan')
-            % Remove quotes from quoted NaNs.
-            file = strrep(file, '"nan"', 'nan');
+        if strcmpi(opt.NaN, "NaN")
+            % Remove quotes from quoted NaNs
+            file = replace(file, '"nan"', "NaN");
         else
             % We cannot have multiple NaN strings because of the way `strrep` handles
             % repeated patterns and because `strrep` is not able to detect word
             % boundaries. Handle quoted NaNs first.
-            file = strrep(file, ['"', opt.NaN, '"'], 'NaN');
-			if strcmp('.', opt.NaN)
-				file = regexprep(file, ...
-                    ['(?<=,)(\', opt.NaN, ')(?=(,|\n|\r))'], ...
-                    'NaN');
+            file = replace(file, """" + opt.NaN + """", "NaN");
+			if strcmp(opt.NaN, ".")
+				file = regexprep(file, "(?<=,)(\.)(?=(,|\n|\r))", "NaN");
 			else
-				file = strrep(file, opt.NaN, 'NaN');
+				file = replace(file, opt.NaN, "NaN");
 			end
         end
         
         % Replace empty character cells with numeric NaNs
-        file = strrep(file, '""', 'NaN');
+        file = replace(file, '""', "NaN");
         % Replace date highlights with numeric NaNs
-        file = strrep(file, '"***"', 'NaN');
+        file = replace(file, '"***"', "NaN");
         % Define white spaces
         whiteSpace = sprintf(' \b\r\t');
         
@@ -703,7 +700,7 @@ return
         
         % Homogeneous frequency check
         if ~isempty(dates)
-            freqDates = DateWrapper.getFrequencyAsNumeric(dates);
+            freqDates = dater.getFrequency(dates);
             DateWrapper.checkMixedFrequency(freqDates, [ ], 'in CSV data files');
         end
     end% 
@@ -715,12 +712,12 @@ return
         TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
         TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
         count = 0;
-        lenOfNameRow = numel(nameRow);
+        lenNameRow = numel(nameRow);
         seriesUserdataList = fieldnames(seriesUserdata);
-        numOfSeriesUserData = numel(seriesUserdataList);
-        while count<lenOfNameRow
+        numSeriesUserData = numel(seriesUserdataList);
+        while count<lenNameRow
             name = nameRow{count+1};
-            if numOfSeriesUserData>0
+            if numSeriesUserData>0
                 thisUserData = hereCreateSeriesUserdata( );
             end
             if isempty(name)
@@ -752,12 +749,12 @@ return
                     else
                         unit = 1 + 1i;
                     end
-                    data__ = nan(numOfPeriods, numColumns)*unit;
-                    inxMissing__ = false(numOfPeriods, numColumns);
+                    data__ = nan(numPeriods, numColumns)*unit;
+                    inxMissing__ = false(numPeriods, numColumns);
                     data__(posDates, :) = data(~inxNaNDates, count+(1:numColumns));
                     inxMissing__(posDates, :) = inxMissing(~inxNaNDates, count+(1:numColumns));
                     data__(inxMissing__) = NaN*unit;
-                    data__ = reshape(data__, [numOfPeriods, tmpSize(2:end)]);
+                    data__ = reshape(data__, [numPeriods, tmpSize(2:end)]);
                     comment__ = cmtRow(count+(1:numColumns));
                     comment__ = reshape(comment__, [1, tmpSize(2:end)]);
                     newEntry = replace(TEMPLATE_SERIES, data__, minDate, comment__);
@@ -767,7 +764,7 @@ return
                     data__ = zeros([0, tmpSize(2:end)]);
                     newEntry = replace(TEMPLATE_SERIES, data__, NaN, '');
                 end
-                if numOfSeriesUserData>0
+                if numSeriesUserData>0
                     newEntry = userdata(newEntry, thisUserData);
                 end
             elseif ~isempty(tmpSize)
@@ -788,7 +785,7 @@ return
         
         function userData = hereCreateSeriesUserdata( )
             userData = struct( );
-            for ii = 1 : numOfSeriesUserData
+            for ii = 1 : numSeriesUserData
                 try
                     userData.(seriesUserdataList{ii}) = ...
                         seriesUserdata.(seriesUserdataList{ii}){count+1};
@@ -830,7 +827,7 @@ return
 
     function hereCheckNames( )
         inxEmpty = cellfun(@isempty, nameRow);
-        if strcmpi(opt.OutputType, 'struct')
+        if isstruct(outputDatabank)
             inxValid = cellfun(@isvarname, nameRow);
         else
             inxValid = true(size(nameRow));

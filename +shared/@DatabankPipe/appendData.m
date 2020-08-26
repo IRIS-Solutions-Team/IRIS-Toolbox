@@ -53,9 +53,9 @@ end
 range = double(range);
 startRange = range(1);
 endRange = range(end);
-freq = DateWrapper.getFrequencyAsNumeric(startRange);
-serialRangeStart = DateWrapper.getSerial(startRange);
-serialRangeEnd = DateWrapper.getSerial(endRange);
+freq = dater.getFrequency(startRange);
+serialRangeStart = dater.getSerial(startRange);
+serialRangeEnd = dater.getSerial(endRange);
 
 previousSerialXStart = [ ];
 previousXStart = [ ];

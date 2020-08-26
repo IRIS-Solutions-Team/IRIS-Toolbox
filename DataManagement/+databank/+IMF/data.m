@@ -212,7 +212,7 @@ function locallyValidateDate(date, freq)
     if isinf(date)
         return
     end
-    if DateWrapper.getFrequencyAsNumeric(date)==double(freq)
+    if dater.getFrequency(date)==double(freq)
         return
     end
     error("Options StartDate and EndDate need to be regular dates complying with Frequency.");

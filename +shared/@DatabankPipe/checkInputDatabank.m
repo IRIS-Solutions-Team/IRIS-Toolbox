@@ -53,7 +53,7 @@ elseif ~iscellstr(requiredNames)
     requiredNames = reshape(string(requiredNames), 1, [ ]);
 end
 
-freq = DateWrapper.getFrequencyAsNumeric(range);
+freq = dater.getFrequency(range);
 DateWrapper.checkMixedFrequency(freq);
 requiredFreq = freq(1);
 

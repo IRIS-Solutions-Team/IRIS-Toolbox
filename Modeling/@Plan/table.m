@@ -104,7 +104,7 @@ for t = 1 : numDates
 end
 outputTable = table(string(rowNames), actionColumn, linkColumn, tableDataOrganized{:});
 
-dateNames = cellstr(DateWrapper.toDefaultString(dates));
+dateNames = cellstr(dater.toDefaultString(dates));
 try
     outputTable.Properties.VariableNames = [{'Name', 'Action', 'Link'}, dateNames];
 catch

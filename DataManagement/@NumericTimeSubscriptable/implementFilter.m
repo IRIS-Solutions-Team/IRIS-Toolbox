@@ -1,4 +1,4 @@
-function varargout = implementFilter(order, inp, range, opt)
+function varargout = implementFilter(order, this, varargin)
 % implementFilter  Low/high-pass filter with condition information
 %
 % Backend [IrisToolbox] method
@@ -9,9 +9,33 @@ function varargout = implementFilter(order, inp, range, opt)
 
 % Function `implementFilter` is called from within `hpf`, `llf` and `bwf`.
 
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('@NumericTimeSubscriptable/implementFilter');
+    addRequired(pp, 'order', @(x) validate.roundScalar(x, 0, Inf));
+    addRequired(pp, 'inputSeries', @(x) isa(x, 'NumericTimeSubscriptable'));
+    addOptional(pp, 'range', Inf, @DateWrapper.validateRangeInput);
+
+    addParameter(pp, {'Change', 'Growth'}, [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'Gamma', 1, @(x) isa(x, 'NumericTimeSubscriptable') || validate.numericScalar(x, 0, Inf));
+    addParameter(pp, 'CutOff', [ ], @(x) isempty(x) || (isnumeric(x) && all(x(:)>0)));
+    addParameter(pp, 'CutOffYear', [ ], @(x) isempty(x) || (isnumeric(x) && all(x(:)>0)));
+    addParameter(pp, 'Drift', 0, @validate.numericScalar);
+    addParameter(pp, 'Gap', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'InfoSet', 2, @(x) isequal(x, 1) || isequal(x, 2));
+    addParameter(pp, 'Lambda', @auto, @(x) isequal(x, @auto) || isempty(x) || (isnumeric(x) && all(x(:)>0)));
+    addParameter(pp, 'Level', [ ], @(x) isempty(x) || isa(x, 'NumericTimeSubscriptable'));
+    addParameter(pp, 'Log', false, @validate.logicalScalar);
+    addParameter(pp, 'Swap', false, @validate.logicalScalar);
+end
+%)
+opt = parse(pp, order, this, varargin{:});
+range = double(pp.Results.range);
+
 if isempty(range)
-    varargout{1} = inp.empty(inp);
-    varargout{2} = inp.empty(inp);
+    varargout{1} = this.empty(this);
+    varargout{2} = this.empty(this);
     varargout{3} = NaN;
     varargout{4} = NaN;
     return
@@ -20,7 +44,7 @@ end
 defaultLambdaFunc = @(freq, order) (10*freq)^order;
 lambdaFunc = @(cutoff, order) (2*sin(pi./cutoff)).^(-2*order);
 cutoffFunc = @(lambda, order) pi./asin(0.5*lambda.^(-1/(2*order)));
-freq = DateWrapper.getFrequencyAsNumeric(inp.Start);
+freq = dater.getFrequency(this.Start);
 
 if ~isempty(opt.CutOffYear)
     cutoff = opt.CutOffYear * freq;
@@ -33,12 +57,11 @@ else
             || isempty(opt.Lambda) ...
             || isequal(opt.Lambda, 'auto')
         if freq==Frequency.INTEGER || freq==Frequency.DAILY
-            thisError = [
+            exception.error([
                 "NumericTimeSubscriptable:implementFilter"
                 "Option Lambda= must be used for time series "
                 "with integer or daily date frequency."
-            ];
-            throw(exception.Base(thisError, 'error'));
+            ]);
         else
             lambda = defaultLambdaFunc(freq, order);
         end
@@ -49,134 +72,118 @@ else
 end
 
 if any(lambda<=0)
-    thisError = [
+    exception.error([
         "Series:InvalidSmoothingParameter"
         "Smoothing parameter Lambda= must be a positive number. "
-    ];
-    throw(exception.Base(thisError, 'error'));
+    ]);
 end
 
 %--------------------------------------------------------------------------
 
+[inputStart, inputEnd] = resolveRange(this, range);
+this = clip(this, inputStart, inputEnd);
+
 lambda = reshape(lambda, 1, [ ]);
 drift = reshape(opt.Drift, 1, [ ]);
 
-% Get the input data range
-range = specrange(inp, range);
-inp = resize(inp, range);
-xStart = range(1);
-xEnd = range(end);
-
 % Determine the filter range
-[fStart, fEnd, lStart, lEnd, gStart, gEnd] = getFilterRange( );
-isLevel = ~isempty(lStart);
-isGrowth = ~isempty(gStart);
+[filterStart, filterEnd, levelStart, levelEnd, changeStart, changeEnd] = hereGetFilterRange( );
+isLevel = ~isempty(levelStart);
+isGrowth = ~isempty(changeStart);
 
 % Get time-varying gamma weights; default is 1
-gamma = [ ];
-getGamma( );
+gamma = hereGetGamma( );
 
 % Get input, level and growth data on the filtering range
-xData = getDataFromTo(inp, fStart, fEnd);
+data = getDataFromTo(this, filterStart, filterEnd);
 
 % Separate soft and hard tunes
-lData = [ ];
-gData = [ ];
+levelData = [ ];
+changeData = [ ];
 if isLevel
-    lData = getDataFromTo(opt.Level, fStart, fEnd);
+    levelData = getDataFromTo(opt.Level, filterStart, filterEnd);
 end
 if isGrowth
-    gData = getDataFromTo(opt.Change, fStart, fEnd);
+    changeData = getDataFromTo(opt.Change, filterStart, filterEnd);
 end
 
 % Log data and tunes if requested by the user.
 if opt.Log
-    xData = log(xData);
+    data = log(data);
     fnLogReal = @(x) log(real(x)) + 1i*imag(x);
     if isLevel
-        lData = fnLogReal(lData);
+        levelData = fnLogReal(levelData);
     end
     if isGrowth
-        gData = fnLogReal(gData);
+        changeData = fnLogReal(changeData);
     end
 end
 
 [tnd, gap] = numeric.clpf( ...
-    xData, lambda ...
-    , 'Order=', order ...
-    , 'InfoSet=', opt.InfoSet ...
-    , 'Level=', lData ...
-    , 'Growth=', gData ...
-    , 'Gamma=', gamma ...
-    , 'Drift=', drift ...
+    data, lambda, order, opt.InfoSet, levelData, changeData, gamma, drift ...
 );
 
-% De-log data back.
+% Delog data back
 if opt.Log
     tnd = exp(tnd);
     gap = exp(gap);
 end
 
-% Output arguments.
+% Output arguments
 varargout = cell(1, 4);
 
 % The option `'swap='` swaps the first two output arguments, trend and gap.
 if ~opt.Swap
-    tndPos = 1;
-    gapPos = 2;
+    posLow = 1;
+    posHigh = 2;
 else
-    tndPos = 2;
-    gapPos = 1;
+    posLow = 2;
+    posHigh = 1;
 end
 
-varargout{tndPos} = inp;
-varargout{tndPos}.Start = fStart;
-varargout{tndPos}.data = tnd;
-varargout{tndPos} = trim(varargout{tndPos});
+varargout{posLow} = this;
+varargout{posLow}.Start = filterStart;
+varargout{posLow}.data = tnd;
+varargout{posLow} = trim(varargout{posLow});
 
-varargout{gapPos} = inp;
-varargout{gapPos}.Start = fStart;
-varargout{gapPos}.data = gap;
-varargout{gapPos} = trim(varargout{gapPos});
+varargout{posHigh} = this;
+varargout{posHigh}.Start = filterStart;
+varargout{posHigh}.data = gap;
+varargout{posHigh} = trim(varargout{posHigh});
 
 varargout{3} = cutoff;
 varargout{4} = lambda;
 
 return
 
-
-
-
-    function [fStart, fEnd, lStart, lEnd, gStart, gEnd] = getFilterRange( )
+    function [filterStart, filterEnd, levelStart, levelEnd, changeStart, changeEnd] = hereGetFilterRange( )
         if ~isempty(opt.Level) && isa(opt.Level, 'NumericTimeSubscriptable')
-            lStart = opt.Level.Start;
-            lEnd = opt.Level.Start + size(opt.Level.Data, 1) - 1;
+            levelStart = opt.Level.Start;
+            levelEnd = opt.Level.Start + size(opt.Level.Data, 1) - 1;
         else
-            lStart = [ ];
-            lEnd = [ ];
+            levelStart = [ ];
+            levelEnd = [ ];
         end
         if ~isempty(opt.Change) && isa(opt.Change, 'NumericTimeSubscriptable')
-            gStart = opt.Change.Start - 1;
-            gEnd = opt.Change.Start + size(opt.Change.Data, 1) - 1;
+            changeStart = opt.Change.Start - 1;
+            changeEnd = opt.Change.Start + size(opt.Change.Data, 1) - 1;
         else
-            gStart = [ ];
-            gEnd = [ ];
+            changeStart = [ ];
+            changeEnd = [ ];
         end
-        fStart = min([xStart, lStart, gStart]);
-        fEnd = max([xEnd, lEnd, gEnd]);
-    end 
-
-
+        filterStart = min([inputStart, levelStart, changeStart]);
+        filterEnd = max([inputEnd, levelEnd, changeEnd]);
+    end%
 
     
-    function getGamma( )
+    function gamma = hereGetGamma( )
         if isa(opt.Gamma, 'NumericTimeSubscriptable')
-            gamma = getDataFromTo(opt.Gamma, fStart, fEnd);
+            gamma = getDataFromTo(opt.Gamma, filterStart, filterEnd);
             gamma(isnan(gamma)) = 1;
             gamma = gamma(:, :);
         else
             gamma = reshape(opt.Gamma, 1, [ ]);
         end
-    end 
-end
+    end% 
+end%
 

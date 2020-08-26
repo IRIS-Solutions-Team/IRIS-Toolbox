@@ -23,8 +23,8 @@ if ~isempty(varargin)
 end
 
 sizeData = size(this.Data);
-serialStart = DateWrapper.getSerial(this.Start);
-freqStart = DateWrapper.getFrequencyAsNumeric(this.Start);
+serialStart = dater.getSerial(this.Start);
+freqStart = dater.getFrequency(this.Start);
 
 if nargin<2 || testColon(timeRef) || isequal(timeRef, Inf)
     data = this.Data;
@@ -89,7 +89,7 @@ switch subsCase(this, timeRef)
         end
         if nargout>1
             serialDates = serialStart + pos - 1;
-            dates = DateWrapper.getDateCodeFromSerial(freqStart, serialDates); 
+            dates = dater.fromSerial(freqStart, serialDates); 
             dates = dates(:);
             if isa(this.Start, 'DateWrapper')
                 dates = DateWrapper(dates);
@@ -128,7 +128,7 @@ function c = subsCase(this, timeRef)
                class(this) );
     end
 
-    freq = DateWrapper.getFrequencyAsNumeric(start);
+    freq = dater.getFrequency(start);
     if isnan(freq) || isempty(start)
         start = 'NaD';
     else

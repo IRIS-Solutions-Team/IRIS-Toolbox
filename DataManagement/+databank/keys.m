@@ -3,10 +3,10 @@
 
 function list = keys(inputDb)
 
-if isa(inputDb, 'Dictionary')
-    list = keys(inputDb);
-elseif isstruct(inputDb)
+if isstruct(inputDb)
     list = reshape(string(fieldnames(inputDb)), 1, [ ]);
+elseif isa(inputDb, 'Dictionary')
+    list = keys(inputDb);
 else
     list = reshape(string(keys(inputDb)), 1, [ ]);
 end

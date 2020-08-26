@@ -110,7 +110,7 @@ if isequal(range, Inf) || isequal(range, @all) || isequal(range, ':')
             last = find(ixObs, 1, 'last');
             range = range(first:last);
             if ~isa(range, 'DateWrapper')
-                range = DateWrapper.fromDouble(range);
+                range = DateWrapper(range);
             end
         else
             range = DateWrapper.empty(1, 0);
@@ -136,6 +136,7 @@ else
     endDate = range(end);
 end
 
-range = DateWrapper.fromDouble(startDate:endDate);
+range = DateWrapper(startDate:endDate);
 
-end
+end%
+

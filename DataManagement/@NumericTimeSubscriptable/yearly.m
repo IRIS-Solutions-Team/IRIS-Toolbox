@@ -52,7 +52,7 @@ range = double(range);
 if isequal(range, Inf)
     startYear = numeric.convert(this.StartAsNumeric, Frequency.YEARLY);
     endYear = numeric.convert(this.EndAsNumeric, Frequency.YEARLY);
-    range = DateWrapper.roundColon(startYear, endYear);
+    range = dater.colon(startYear, endYear);
 end
 range = reshape(range, [ ], 1);
 
@@ -78,7 +78,7 @@ function flag = hereValidateDates(input)
         return
     end
     if DateWrapper.validateProperDateInput(input) ...
-       && all(DateWrapper.getFrequencyAsNumeric(input)==Frequency.YEARLY)
+       && all(dater.getFrequency(input)==Frequency.YEARLY)
         flag = true;
         return
     end

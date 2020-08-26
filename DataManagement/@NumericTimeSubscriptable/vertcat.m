@@ -66,7 +66,7 @@ end
 % Check date frequency
 freq = nan(1, numInputs);
 for i = 1 : numInputs
-    freq(i) = DateWrapper.getFrequencyAsNumeric(varargin{i}.Start);
+    freq(i) = dater.getFrequency(varargin{i}.Start);
 end
 inxNaNFreq = isnan(freq);
 if any(~inxNaNFreq)

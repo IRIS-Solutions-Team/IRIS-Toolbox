@@ -146,12 +146,11 @@ return
         end
 
         if any(diffops>=0)
-            thisError = [
+            exception.error([
                 "Explanatory:InvalidTimeShift"
                 "The dependent term of the Explanatory object contains a lead of the LHS variable, "
                 "which is not allowed: %s "
-            ];
-            throw(exception.Base(thisError, "error"), inputSpecs);
+            ], inputSpecs);
         end
 
         [resolvedSpecs, incidence] = locallyParseExpression(expy, resolvedSpecs);
@@ -181,11 +180,10 @@ return
 
 
     function hereThrowInvalidSpecification( )
-        thisError = [ 
+        exception.error([
             "Regression:InvalidTermSpecification"
             "Cannot parse this regression.Term specification: %s " 
-        ];
-        throw(exception.ParseTime(thisError, 'error'), inputSpecs);
+        ], inputSpecs);
     end%
 end%
 
@@ -267,13 +265,11 @@ function [resolvedSpecs, incidence] = locallyParseExpression(expy, resolvedSpecs
 
 
         function hereThrowInvalidNames( )
-            invalidNames = cellstr(invalidNames);
-            thisError = [ 
+            exception.error([
                 "RegressionTerm:InvalidName"
                 "This name occurs in a regression.Term definition "
                 "but is not on the list of Explanatory.VariableNames: %s " 
-            ];
-            throw(exception.Base(thisError, "error"), invalidNames{:});
+            ], string(invalidNames));
         end%
 end%
 
@@ -286,10 +282,15 @@ function specs = locallyPreparseSpecials(expy, specs)
     %(
     if contains(specs, expy.LhsReference)
         lhs = expy.DependentTerm.InputString;
+        % LHS reference with time shift
         specs = regexprep( ...
             specs ...
             , "\<" + expy.LhsReference + "\>\{([^\}]*)\}" ...
             , "${parser.Pseudofunc.shiftTimeSubs(""" + lhs + """, $1)}" ...
+        );
+        % LHS reference with no time shift
+        specs = regexprep( ...
+            specs, "\<" + expy.LhsReference + "\>", lhs ...
         );
     end
     %)

@@ -102,5 +102,6 @@ classdef ( ...
         varargout = linearTrend(varargin)
         varargout = implementPlot(varargin)
         varargout = empty(varargin)
+        varargout = seasonDummy(varargin)
     end
 end

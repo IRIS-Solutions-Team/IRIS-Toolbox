@@ -10,8 +10,8 @@ classdef Grid ...
     properties (Constant, Hidden)
         PossibleChildren = [
             rephrase.Type.TABLE
-            rephrase.Type.DIFFTABLE
             rephrase.Type.CHART
+            rephrase.Type.MATRIX
         ]
     end
 

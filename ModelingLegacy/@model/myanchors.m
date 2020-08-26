@@ -11,14 +11,14 @@ TYPE = @int8;
 
 % Check date frequencies
 rng = double(rng);
-if DateWrapper.getFrequencyAsNumeric(p.Start)~=DateWrapper.getFrequencyAsNumeric(rng(1)) ...
-   || DateWrapper.getFrequencyAsNumeric(p.End)~=DateWrapper.getFrequencyAsNumeric(rng(end))
+if dater.getFrequency(p.Start)~=dater.getFrequency(rng(1)) ...
+   || dater.getFrequency(p.End)~=dater.getFrequency(rng(end))
     utils.error('model:myanchors', ...
         'Simulation range and plan range must be the same frequency.');
 end
 
 % Adjust plan range to simulation range if not equal.
-if ~datcmp(p.Start, rng(1)) || ~datcmp(p.End, rng(end))
+if ~dater.eq(p.Start, rng(1)) || ~dater.eq(p.End, rng(end))
     p = p(rng);
 end
 
