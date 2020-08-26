@@ -68,7 +68,7 @@ if isempty(pp)
     
     addParameter(pp, 'AddToDatabank', [ ], @(x) isempty(x) || validate.databank(x));
     addParameter(pp, "NameFunc", [ ], @(x) isempty(x) || isa(x, "function_handle"));
-    addParameter(pp, 'OutputType', 'struct', @(x) validate.anyString(x, 'struct', 'Dictionary'));
+    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.databankType(x));
     addParameter(pp, "UpdateWhenExists", false, @validate.logicalScalar);
 end
 %)
@@ -91,9 +91,7 @@ if isequaln(this.NamesLocation, NaN) && isempty(names)
     ]);
 end
 
-outputDb = databank.backend.ensureTypeConsistency( ...
-    opt.AddToDatabank, opt.OutputType ...
-);
+outputDb = databank.backend.ensureTypeConsistency(opt.AddToDatabank, opt.OutputType);
 
 if this.Orientation=="Row"
     if isstring(range) && numel(range)>1
@@ -138,15 +136,6 @@ end
 
 return
 
-    function outputDb = hereCreateOutputDatank( )
-        if strcmpi(opt.OutputType, 'Dictionary')
-            outputDb = Dictionary( );
-        else
-            outputDb = struct( );
-        end
-    end%
-
-
     function [name, isMissing, isValid] = hereRetrieveName(location)
         if this.Orientation=="Row"
             name = this.Buffer{location, this.NamesLocation};
@@ -171,16 +160,16 @@ return
 
     function hereAddEntryToOutputDatabank(name, newSeries)
         if opt.UpdateWhenExists && isfield(outputDb, name) && ~isempty(outputDb.(name))
-            if matches(opt.OutputType, "Dictionary", "ignoreCase", true)
-                updateSeries(outputDb, name, newSeries);
-            else
+            if isstruct(outputDb)
                 outputDb.(name) = [outputDb.(name); newSeries];
+            else
+                updateSeries(outputDb, name, newSeries);
             end
         else
-            if matches(opt.OutputType, "Dictionary", "ignoreCase", true)
-                store(outputDb, name, newSeries);
-            else
+            if isstruct(outputDb)
                 outputDb.(name) = newSeries;
+            else
+                store(outputDb, name, newSeries);
             end
         end
     end%

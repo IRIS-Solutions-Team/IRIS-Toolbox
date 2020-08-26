@@ -10,7 +10,7 @@
 classdef validate
     methods (Static)
         function flag = databankType(input)
-            flag = validate.anyString(input, 'struct', 'Dictionary');
+            flag = validate.anyString(input, ["struct", "Dictionary"]);
         end%
 
 

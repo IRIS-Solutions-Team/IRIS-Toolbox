@@ -63,34 +63,34 @@ function [runningData, YXEPG] = shockdb(this, runningData, range, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('model.shockdb');
-    addRequired(parser, 'Model', @(x) isa(x, 'model'));
-    addRequired(parser, 'InputDatabank', @(x) isempty(x) || validate.databank(x));
-    addRequired(parser, 'Range', @(x) DateWrapper.validateProperRangeInput(x));
-    addOptional(parser, 'NumOfDrawsOptional', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
-    addParameter(parser, 'NumOfDraws', @auto, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
-    addParameter(parser, 'OutputType', 'struct', @validate.databankType);
-    addParameter(parser, 'ShockFunc', @zeros, @(x) isa(x, 'function_handle'));
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('model.shockdb');
+    addRequired(pp, 'Model', @(x) isa(x, 'model'));
+    addRequired(pp, 'InputDatabank', @(x) isempty(x) || validate.databank(x));
+    addRequired(pp, 'Range', @(x) DateWrapper.validateProperRangeInput(x));
+    addOptional(pp, 'NumOfDrawsOptional', @auto, @(x) isequal(x, @auto) || (isnumeric(x) && isscalar(x) && x==round(x) && x>=1));
+    addParameter(pp, 'NumOfDraws', @auto, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>=1);
+    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));
+    addParameter(pp, 'ShockFunc', @zeros, @(x) isa(x, 'function_handle'));
 end
-parse(parser, this, runningData, range, varargin{:});
-numDrawsOptional = parser.Results.NumOfDrawsOptional;
-opt = parser.Options;
+%)
+opt = parse(pp, this, runningData, range, varargin{:});
+numDrawsOptional = pp.Results.NumOfDrawsOptional;
 if ~isequal(numDrawsOptional, @auto)
     opt.NumOfDraws = numDrawsOptional;
 end
 range = double(range);
 
-runningData = databank.backend.ensureTypeConsistency( runningData, ...
-                                                      opt.OutputType );
+runningData = databank.backend.ensureTypeConsistency(runningData, opt.OutputType);
 
 %--------------------------------------------------------------------------
 
