@@ -196,7 +196,7 @@ if isempty(pp)
     addParameter(pp, "AggregationMethod", "avg", @(x) validate.anyString(x, ["avg", "sum", "eop"]));
     addParameter(pp, 'Frequency', '', @locallyValidateFrequency);
     addParameter(pp, 'MaxRequestAttempts', 3, @(x) validate.numericScalar(x, 1, Inf));
-    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
+    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.databankType(x));
     addParameter(pp, 'Progress', false, @validate.logicalScalar);
     addParameter(pp, 'Request', "Observations", @(x) startsWith(x, ["Observation", "Vintage"], "IgnoreCase", true));
     addParameter(pp, {'Vintage', 'Vintages', 'VintageDate', 'VintageDates'}, "", @(x) isempty(x) || isstring(x) || ischar(x) || iscellstr(x) || isnumeric(x));

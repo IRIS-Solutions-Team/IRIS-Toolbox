@@ -73,7 +73,7 @@ if isempty(pp)
     addParameter(pp, 'IgnoreShocks', false, @validate.logicalScalar);
     addParameter(pp, 'Method', solver.Method.FIRST_ORDER, @solver.Method.validate);
     addParameter(pp, 'OutputData', 'Databank', @(x) validateString(x, {'Databank', 'simulate.Data'}));
-    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
+    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));
     addParameter(pp, 'Plan', true, @(x) validate.logicalScalar(x) || isa(x, 'Plan'));
     addParameter(pp, 'Progress', false, @validate.logicalScalar);
     addParameter(pp, 'SuccessOnly', false, @validate.logicalScalar);

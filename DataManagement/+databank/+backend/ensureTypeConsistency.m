@@ -19,15 +19,14 @@ if isequal(runningDb, [ ]) || isequal(runningDb, false)
         runningDb = struct( );
     end
 else
-    if isa(runningDb, outputType)
+    if isequal(outputType, @auto) || isa(runningDb, outputType)
         return
     end
-    thisError = [
+    exception.error([
         "Databank:InvalidDatabankFormat"
         "The databank type in option AddToDatabank= "
         "is not consistent with the option OutputType= "
-    ];
-    throw(exception.Base(thisError, 'error'));
+    ]);
 end
 
 end%

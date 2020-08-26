@@ -19,7 +19,7 @@ dispIndent = iris.get('DispIndent');
 keys = this.Keys(:);
 keys = dispIndent + keys + ": ";
 
-count = this.Count;
+count = numel(this.Keys);
 info = cell(count, 1);
 inxKeep = true(count, 1);
 

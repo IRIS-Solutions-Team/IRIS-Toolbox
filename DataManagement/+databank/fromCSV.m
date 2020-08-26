@@ -217,7 +217,7 @@ function outputDatabank = fromCSV(fileName, varargin)
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.fromCSV');
-    addRequired(pp, 'FileName', @validate.list);
+    addRequired(pp, 'fileName', @validate.list);
 
     addParameter(pp, 'AddToDatabank', [ ], @(x) isequal(x, [ ]) || validate.databank(x));
     addParameter(pp, {'Case', 'ChangeCase'}, '', @(x) isempty(x) || any(strcmpi(x, {'lower', 'upper'})));
@@ -228,7 +228,7 @@ if isempty(pp)
     addParameter(pp, {'NamesHeader', 'NameRow', 'NamesRow', 'LeadingRow'}, ["", "Variables", "Time"], @(x) ischar(x) || isstring(x) || iscellstr(x) || validate.numericScalar(x));
     addParameter(pp, {'NameFunc', 'NamesFunc'}, [ ], @(x) isempty(x) || isfunc(x) || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(pp, 'NaN', "NaN", @validate.stringScalar);
-    addParameter(pp, 'OutputType', 'struct', @validate.databankType);
+    addParameter(pp, 'OutputType', @auto, @(x) isequal(x, @auto) || validate.anyString(x, 'struct', 'Dictionary'));
     addParameter(pp, 'Preprocess', [ ], @(x) isempty(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@isfunc, x))));
     addParameter(pp, 'RemoveFromData', cell.empty(1, 0), @(x) iscellstr(x) || ischar(x) || isa(x, 'string'));
     addParameter(pp, 'Select', @all, @(x) isequal(x, @all) || ischar(x) || iscellstr(x));
@@ -252,8 +252,8 @@ outputDatabank = databank.backend.ensureTypeConsistency( ...
 % Loop over all input databanks subcontracting `databank.fromCSV` and
 % merging the resulting databanks in one.
 if numel(fileName)>1
-    numOfFileNames = numel(fileName);
-    for i = 1 : numOfFileNames
+    numFileNames = numel(fileName);
+    for i = 1 : numFileNames
         outputDatabank = databank.fromCSV( ...
             fileName(i), varargin{:}, ...
             'AddToDatabank=', outputDatabank ...
@@ -343,10 +343,10 @@ end
 if ~isempty(dates)
     maxDate = max(dates);
     minDate = min(dates);
-    numOfPeriods = 1 + round(maxDate - minDate);
+    numPeriods = 1 + round(maxDate - minDate);
     posDates = 1 + round(dates - minDate);
 else
-    numOfPeriods = 0;
+    numPeriods = 0;
     posDates = [ ];
     minDate = DateWrapper(NaN);
 end
@@ -712,12 +712,12 @@ return
         TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
         TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
         count = 0;
-        lenOfNameRow = numel(nameRow);
+        lenNameRow = numel(nameRow);
         seriesUserdataList = fieldnames(seriesUserdata);
-        numOfSeriesUserData = numel(seriesUserdataList);
-        while count<lenOfNameRow
+        numSeriesUserData = numel(seriesUserdataList);
+        while count<lenNameRow
             name = nameRow{count+1};
-            if numOfSeriesUserData>0
+            if numSeriesUserData>0
                 thisUserData = hereCreateSeriesUserdata( );
             end
             if isempty(name)
@@ -749,12 +749,12 @@ return
                     else
                         unit = 1 + 1i;
                     end
-                    data__ = nan(numOfPeriods, numColumns)*unit;
-                    inxMissing__ = false(numOfPeriods, numColumns);
+                    data__ = nan(numPeriods, numColumns)*unit;
+                    inxMissing__ = false(numPeriods, numColumns);
                     data__(posDates, :) = data(~inxNaNDates, count+(1:numColumns));
                     inxMissing__(posDates, :) = inxMissing(~inxNaNDates, count+(1:numColumns));
                     data__(inxMissing__) = NaN*unit;
-                    data__ = reshape(data__, [numOfPeriods, tmpSize(2:end)]);
+                    data__ = reshape(data__, [numPeriods, tmpSize(2:end)]);
                     comment__ = cmtRow(count+(1:numColumns));
                     comment__ = reshape(comment__, [1, tmpSize(2:end)]);
                     newEntry = replace(TEMPLATE_SERIES, data__, minDate, comment__);
@@ -764,7 +764,7 @@ return
                     data__ = zeros([0, tmpSize(2:end)]);
                     newEntry = replace(TEMPLATE_SERIES, data__, NaN, '');
                 end
-                if numOfSeriesUserData>0
+                if numSeriesUserData>0
                     newEntry = userdata(newEntry, thisUserData);
                 end
             elseif ~isempty(tmpSize)
@@ -785,7 +785,7 @@ return
         
         function userData = hereCreateSeriesUserdata( )
             userData = struct( );
-            for ii = 1 : numOfSeriesUserData
+            for ii = 1 : numSeriesUserData
                 try
                     userData.(seriesUserdataList{ii}) = ...
                         seriesUserdata.(seriesUserdataList{ii}){count+1};
@@ -827,7 +827,7 @@ return
 
     function hereCheckNames( )
         inxEmpty = cellfun(@isempty, nameRow);
-        if strcmpi(opt.OutputType, 'struct')
+        if isstruct(outputDatabank)
             inxValid = cellfun(@isvarname, nameRow);
         else
             inxValid = true(size(nameRow));
