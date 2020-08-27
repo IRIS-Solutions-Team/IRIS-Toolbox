@@ -41,7 +41,14 @@ function [this, newStart, newEnd] = clip(this, newStart, varargin)
 %}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+%
+% Fast track for `x = clip(x, Inf)`
+%
+if isempty(varargin) && nargout<2 && isequal(newStart, Inf)
+    return
+end
 
 persistent pp
 if isempty(pp)

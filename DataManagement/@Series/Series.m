@@ -103,5 +103,13 @@ classdef ( ...
         varargout = implementPlot(varargin)
         varargout = empty(varargin)
         varargout = seasonDummy(varargin)
+
+        function this = template(varargin)
+            persistent persistentSeries
+            if ~isa(persistentSeries, "Series")
+                persistentSeries = Series( );
+            end
+            this = persistentSeries;
+        end%
     end
 end
