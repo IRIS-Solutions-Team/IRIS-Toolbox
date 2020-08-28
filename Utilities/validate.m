@@ -103,5 +103,14 @@ classdef validate
             flag = true;
         end%
     end
+
+
+    methods (Static)
+        function mustBeAnyString(x, varargin)
+            if ~validate.anyString(x, varargin{:})
+                error("Must be one of the following strings: " + sprintf("""%s""", varargin{:}));
+            end
+        end%
+    end
 end
 
