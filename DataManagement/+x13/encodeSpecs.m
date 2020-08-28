@@ -26,7 +26,7 @@ for n = regularSpecsNames
         continue
     end
     isDate = locallyTellDate(n);
-    [value, useBrackets] = locallyTranslateValue(value, isDate);
+    [value, useBrackets] = x13.convertToString(value, isDate);
     code = locallyEncodeAttribute(name, value, useBrackets);
     store.(prefix) = [store.(prefix); code];
 end
@@ -71,47 +71,6 @@ end%
 
 function store = locallyInitializeSpec(store, prefix)
     store.(prefix) = string.empty(0, 1);
-end%
-
-
-function [value, useBrackets] = locallyTranslateValue(value, isDate)
-    useBrackets = false;
-    useBrackets = numel(value)>1;
-    if isDate
-        [year, period, freq] = dater.getYearPeriodFrequency(value);
-        value = string(double(year));
-        if freq>1
-             value = value + "." + string(double(period));
-        end
-        value = erase(value, ["NaN.NaN", "NaN"]);;
-        if numel(value)>1
-            value = join(value, ",");
-        end
-    elseif islogical(value)
-        temp = repmat("", size(value));
-        temp(value) = "yes";
-        temp(~value) = "no";
-        value = temp;
-    elseif isnumeric(value)
-        value = value(:, :);
-        if all(round(value)==value)
-            format = "%g";
-        else
-            format = "%.10f";
-        end
-        numColumns = size(value, 2);
-        if numColumns>1
-            format = join(repmat(format, 1, numColumns), " ");
-        end
-        value = compose(format, value);
-    elseif isstring(value) || ischar(value) || iscellstr(value)
-        value = string(value);
-        if numel(value)>1
-            value = join(value, " ");
-        end
-    else
-        value = string(value);
-    end
 end%
 
 
