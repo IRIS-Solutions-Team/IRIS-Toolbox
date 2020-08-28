@@ -115,14 +115,14 @@ function varargout = get(this, varargin)
 %
 % _First-Order Taylor Expansion of Equations_
 %
-% * `'Derivatives'` - Returns [ cellstr ] the symbolic/automatic
-% derivatives for each model equation; in each equation, the derivatives
-% w.r.t. all variables present in that equation are evaluated at once and
-% returned as a vector of numbers; see also `'Wrt'`.
-%
-% * `'Wrt'` -  Returns [ cellstr ] the list of the variables (and their
-% auxiliary lags or leads) with respect to which the corresponding
-% equation in `'derivatives'` is differentiated.
+% * `'Gradients'` - Returns [ struct ] with two nested structures,
+% `.Dynamic` and `.Steady` with the gradients for each equation calculaated
+% with respect to each variable that occurs in the respective equation.
+% Both the `.Dynamic` and the `.Steady` gradients are n-by-2 cell arrays
+% where n is the number of equations. The {n, 1} element is a function
+% handle returning all derivatives at once; the {n, 2} element is a string
+% vector listing the order of the variales w.r.t. which the derivatives are
+% calculated.
 %
 %
 % _Descriptions and Aliases of Variables, Parameters, and Shocks_
