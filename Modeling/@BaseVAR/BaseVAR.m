@@ -1,35 +1,36 @@
 % BaseVAR  Superclass for VAR based model objects
 %
-% Backend IRIS class
+% Backend [IrisToolbox] class
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 classdef (CaseInsensitiveProperties=true) ...
     BaseVAR ...
-    < shared.UserDataContainer ...
+    < matlab.mixin.CustomDisplay ...
+    & shared.UserDataContainer ...
     & shared.CommentContainer ...
-    & shared.GetterSetter
+    & shared.GetterSetter 
 
     properties
         % Tolerance  Tolerance level object
-        Tolerance = shared.Tolerance( )
+        Tolerance (1, 1) shared.Tolerance = shared.Tolerance( )
 
-        % YNames  Names of endogenous variables
-        YNames = cell.empty(1, 0) 
+        % EndogenousNames  Names of endogenous variables
+        EndogenousNames (1, :) string = string.empty(1, 0) 
 
-        % ENames  Names of forecast errors
-        ENames = @auto
+        % ResidualNames  Names of forecast errors
+        ResidualNames (1, :) string = string.empty(1, 0)
 
-        % XNames  Names of exogenous variables
-        XNames = cell.empty(1, 0)
+        % ExogenouskNames  Names of exogenous variables
+        ExogenousNames (1, :) string = string.empty(1, 0)
         
-        % INames  Names of conditioning variables
-        INames = cell.empty(1, 0) 
+        % ConditioningNames  Names of conditioning variables
+        ConditioningNames (1, :) string = string.empty(1, 0) 
 
         % IEqtn  Expressions for conditioning variables
-        IEqtn = cell.empty(1, 0) 
+        ConditiontingEquations (1, :) string = string.empty(1, 0) 
 
         Intercept (1, 1) logical = true
 
@@ -67,9 +68,7 @@ classdef (CaseInsensitiveProperties=true) ...
         % IxFitted  Logical index of dates in estimation range acutally fitted
         IxFitted = logical.empty(1, 0) 
         
-        GroupNames = cell.empty(1, 0) % Groups in panel objects
-
-        Reporting = rpteq.empty(1, 0) % Reporting equations
+        GroupNames (1, :) string = string.empty(1, 0) % Groups in panel objects
     end
     
 
@@ -77,31 +76,19 @@ classdef (CaseInsensitiveProperties=true) ...
         % EigenValues  Eigenvalues of VAR transition matrix
         EigenValues
         
-        % AllNames  List of all names in VAR: endogenous, errors, exogenous, conditioning, reporting
+        % AllNames  List of all endogenous, residual, exogenous, conditioning and reporting names in VAR
         AllNames
 
-        % NamesEndogenous  Names of endogenous variables
-        NamesEndogenous
-
-        % NamesErrors  Names of errors
-        NamesErrors
-
-        % NamesExogenous  Names of exogenous variables
-        NamesExogenous
-
-        % NamesConditioning  Names of conditioning instruments
-        NamesConditioning
-
-        % NamesGroups  Names of groups in panel VARs
-        NamesGroups
-
-        NamesReporting
+        YNames
+        ENames
+        XNames
+        INames
 
         % NumEndogenous  Number of endogenous variables
         NumEndogenous
         
-        % NumErrors  Number of errors
-        NumErrors
+        % NumResiduals  Number of errors
+        NumResiduals
 
         % NumExogenous  Number of exogenous variables
         NumExogenous
@@ -111,11 +98,12 @@ classdef (CaseInsensitiveProperties=true) ...
 
         % NumGroups  Number of groups in panel VARs
         NumGroups
-
-        NumReporting
         
-        % IndexFitted  Logical index of dates in estimation range acutally fitted
-        IndexFitted
+        % InxFitted  Logical index of dates in estimation range acutally fitted
+        InxFitted
+
+        % IsPanel  True if this is a panel model
+        IsPanel
     end
 
 
@@ -129,7 +117,6 @@ classdef (CaseInsensitiveProperties=true) ...
         varargout = datarequest(varargin)
         varargout = horzcat(varargin)
         varargout = isempty(varargin)
-        varargout = ispanel(varargin)
         varargout = nfitted(varargin)
         varargout = schur(varargin)
         varargout = length(varargin)
@@ -148,14 +135,8 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
         
-        function disp(varargin)
-            implementDisp(varargin{:});
-            textual.looseLine( );
-        end%
-
-
         function names = nameAppendables(this)
-            names = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
+            names = [this.EndogenousNames, this.ExogenousNames, this.ResidualNames];
         end%
 
 
@@ -167,76 +148,64 @@ classdef (CaseInsensitiveProperties=true) ...
     end
     
     
-    
-    
     methods (Access=protected, Hidden)
-        implementDisp(varargin)
-        varargout = mygroupmethod(varargin)
-        varargout = mygroupnames(varargin)
-        varargout = myny(varargin)
-        varargout = myprealloc(varargin)
+        varargout = runGroups(varargin)
+        varargout = preallocate(varargin)
         varargout = subsalt(varargin)
-        varargout = specdisp(varargin)
+
+
+        function residualNames = printResidualNames(this)
+            residualNames = string(this.PREFIX_ERRORS) + this.EndogenousNames;
+        end%
+
+
+        function implementDisp(varargin)
+        end%
     end
     
     
-    
-    
     methods (Static, Hidden)
-        varargout = loadobj(varargin)
         varargout = mytelltime(varargin)
     end
     
     
-    
-    
     methods
         function this = BaseVAR(varargin)
+            %( Input parser
             persistent pp
             if isempty(pp)
                 pp = extend.InputParser('BaseVAR.BaseVAR');
-                pp.addRequired('EndogenousNames', @validate.list);
+                pp.addRequired('EndogenousNames', @(x) ~isempty(x) && validate.list(x));
                 pp.addParameter('Comment', '', @validate.scalarString);
-                pp.addParameter({'ExogenousNames', 'Exogenous'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                pp.addParameter({'GroupNames', 'Groups'}, cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
-                pp.addParameter('Reporting', cell.empty(1, 0), @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+                pp.addParameter({'ExogenousNames', 'Exogenous'}, string.empty(1, 0), @validate.list);
+                pp.addParameter({'GroupNames', 'Groups'}, string.empty(1, 0), @validate.list);
+                pp.addParameter("ResidualNames", string.empty(1, 0), @validate.list);
                 pp.addParameter('Order', 1, @(x) validate.roundScalar(x, 0, Inf));
                 pp.addParameter('Intercept', true, @validate.logicalScalar);
                 pp.addUserDataOption( );
                 pp.addBaseYearOption( );
             end
+            %)
 
             if isempty(varargin)
                 return
             end
             
-            if length(varargin)==1 && isa(varargin, 'BaseVAR')
+            if numel(varargin)==1 && isa(varargin, 'BaseVAR')
                 this = varargin{1};
                 return
             end
             
-            pp.parse(varargin{:});
+            opt = pp.parse(varargin{:});
 
-            % Create Reporting before all other names so that AllNames
-            % include reporting names when checking for uniqueness
-            reportingFiles = pp.Results.Reporting;
-            if ~iscellstr(reportingFiles)
-                reportingFiles = cellstr(reportingFiles);
-            end
-            if ~isempty(reportingFiles)
-                for i = 1 : numel(reportingFiles)
-                    this.Reporting(1, end+1) = rpteq(reportingFiles{i});
-                end
-            end
-
-            opt = pp.Options;
-            this.NamesEndogenous = pp.Results.EndogenousNames;
-            this.NamesErrors = @auto;
-            this.NamesExogenous = opt.ExogenousNames;
+            this.EndogenousNames = pp.Results.EndogenousNames;
+            this.ResidualNames = string.empty(1, 0);
+            this.ExogenousNames = opt.ExogenousNames;
             this.GroupNames = opt.GroupNames;
+            this.ResidualNames = string.empty(1, 0);
+            this.ResidualNames = opt.ResidualNames;
             this.UserData = opt.UserData;
             this.BaseYear = opt.BaseYear;
-
             this.Intercept = opt.Intercept;
             this.Order = opt.Order;
         end%
@@ -250,92 +219,40 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
         function names = get.AllNames(this)
-            names = [ this.NamesEndogenous, ...
-                      this.NamesExogenous, ...
-                      this.NamesErrors, ...
-                      this.NamesConditioning, ...
-                      this.NamesReporting         ];
+            names = [ 
+                this.EndogenousNames, ...
+                this.ExogenousNames, ...
+                this.ResidualNames, ...
+                this.ConditioningNames, ...
+            ];
         end%
 
 
-        function names = get.NamesEndogenous(this)
-            names = this.YNames;
-            if ~isempty(names)
-                names = names(:)';
-            else
-                names = cell.empty(1, 0);
+        function names = get.ResidualNames(this)
+            names = this.ResidualNames;
+            if isempty(names)
+                names = string(this.PREFIX_ERRORS) + this.EndogenousNames;
             end
-        end%
-
-
-        function names = get.NamesErrors(this)
-            names = this.ENames;
-            if isequal(names, @auto)
-                names = strcat(this.PREFIX_ERRORS, this.NamesEndogenous);
-            elseif ~isempty(names)
-                names = names(:)';
-            else
-                names = cell.empty(1, 0);
-            end
-        end%
-
-
-        function names = get.NamesExogenous(this)
-            names = this.XNames;
-            if ~isempty(names)
-                names = names(:)';
-            else
-                names = cell.empty(1, 0);
-            end
-        end%
-
-
-        function names = get.NamesConditioning(this)
-            names = this.INames;
-            if ~isempty(names)
-                names = names(:)';
-            else
-                names = cell.empty(1, 0);
-            end
-        end%
-
-
-        function names = get.NamesGroups(this)
-            names = this.GroupNames;
-            if ~isempty(names)
-                names = names(:)';
-            else
-                names = cell.empty(1, 0);
-            end
-        end%
-
-
-        function names = get.NamesReporting(this)
-            if isempty(this.Reporting)
-                names = cell.empty(1, 0);
-                return
-            end
-            names = [this.Reporting(:).NamesOfLhs];
         end%
 
 
         function num = get.NumEndogenous(this)
-            num = numel(this.YNames);
+            num = numel(this.EndogenousNames);
         end%
 
 
-        function num = get.NumErrors(this)
+        function num = get.NumResiduals(this)
             num = this.NumEndogenous;
         end%
 
 
         function num = get.NumExogenous(this)
-            num = numel(this.XNames);
+            num = numel(this.ExogenousNames);
         end%
 
 
         function num = get.NumConditioning(this)
-            num = numel(this.INames);
+            num = numel(this.ConditioningNames);
         end%
 
 
@@ -344,149 +261,222 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
 
-        function index = get.IndexFitted(this)
-            index = this.IxFitted;
+        function inx = get.InxFitted(this)
+            inx = this.IxFitted;
         end%
 
 
-        function this = set.NamesEndogenous(this, newNames)
-            numEndogenous = this.NumEndogenous;
-            if ischar(newNames)
-                newNames = regexp(newNames, '\w+', 'match');
-            elseif isa(newNames, 'string')
-                newNames = cellstr(newNames);
-            end
+        function value = get.IsPanel(this)
+            value = ~isempty(this.GroupNames);
+        end%
+
+
+        function newNames = beforeSettingNames(this, newNames, numRequired)
+            newNames = reshape(string(newNames), 1, [ ]);
             numNewNames = numel(newNames);
-            assert( ...
-                numEndogenous==0 || numNewNames==numEndogenous, ...
-                'BaseVAR:set:NamesEndogenous', ...
-                'Illegal number of names for endogenous variables.' ...
-            );
-            newNames = newNames(:)';
-            this.YNames = newNames;
-            checkNames(this);
-        end
-
-
-        function this = set.NamesErrors(this, newNames)
-            if ischar(newNames)
-                newNames = regexp(newNames, '\w+', 'match');
-            elseif isa(newNames, 'string')
-                newNames = cellstr(newNames);
+            if numRequired>0 && numNewNames~=numRequired
+                exception.error([
+                    "BaseVar:InvalidNumNamesAssigned"
+                    "Invalid number of names assigned to %sNames in a %s object. "
+                    "The number of names required is %g while the number of names assigned is %g. "
+                ], class(this), numRequired, numNewNames);
             end
-            assert( ...
-                isequal(newNames, @auto) ...
-                    || numel(newNames)==this.NumNamesEndogenous, ...
-                'BaseVAR:set:NamesErrors', ...
-                'Illegal number of names for error terms.' ...
-            );
-            if ~isequal(newNames, @auto)
-                newNames = newNames(:)';
-            end
-            this.ENames = newNames;
-            checkNames(this);
-        end
+        end%
 
-            
-        function this = set.NamesExogenous(this, newNames)
+
+        function this = set.EndogenousNames(this, newNames)
+            newNames = beforeSettingNames(this, newNames, this.NumEndogenous);
+            this.EndogenousNames = newNames;
+            checkNames(this);
+        end%
+
+
+        function this = set.ResidualNames(this, newNames)
             if isempty(newNames)
-                newNames = cell.empty(1, 0);
-            end
-            numExogenous = this.NumExogenous;
-            if ischar(newNames)
-                newNames = regexp(newNames, '\w+', 'match');
-            elseif isa(newNames, 'string')
-                newNames = cellstr(newNames);
-            end
-            numNewNames = numel(newNames);
-            assert( ...
-                numExogenous==0 || numNewNames==numExogenous, ...
-                'BaseVAR:set:NamesExogenous', ...
-                'Illegal number of names for exogenous variables.' ...
-            );
-            newNames = newNames(:)';
-            this.XNames = newNames;
-            checkNames(this);
-        end
-
-
-        function this = set.NamesConditioning(this, newNames)
-            if isempty(newNames)
-                this.INames = cell.empty(1, 0);
+                this.ResidualNames = printResidualNames(this);
                 return
             end
-            newNames = newNames(:)';
-            this.INames = newNames;
+            newNames = beforeSettingNames(this, newNames, this.NumEndogenous);
+            this.ResidualNames = newNames;
             checkNames(this);
-        end
+        end%
+
+            
+        function this = set.ExogenousNames(this, newNames)
+            newNames = beforeSettingNames(this, newNames, this.NumExogenous);
+            this.ExogenousNames = newNames;
+            checkNames(this);
+        end%
+
+            
+        function this = set.GroupNames(this, newNames)
+            if isempty(newNames)
+                if size(this.InxFitted, 1)>1 || size(this.K, 2)>1 || size(this.X0, 2)>1 || size(this.J, 2)>this.NumExogenous
+                    exception.error([
+                        "BaseVAR:CannotEmptyGroups"
+                        "Cannot reset GroupNames to empty when coefficient matrices contain "
+                        "data for more than one group. "
+                    ]);
+                end
+                this.GroupNames = string.empty(1, 0);
+                return
+            end
+            newNames = beforeSettingNames(this, newNames, this.NumGroups);
+            this.GroupNames = newNames;
+        end%
+
+
+        function this = set.ConditioningNames(this, newNames)
+            if isempty(newNames)
+                this.ConditioningNames = string.empty(1, 0);
+                return
+            end
+            this.ConditioningNames = newNames;
+            checkNames(this);
+        end%
 
 
         function checkNames(this)
             checkValid(this);
             checkPrefix(this);
             checkUnique(this);
-        end
+        end%
 
 
         function checkValid(this)
-            allNames = this.AllNames;
-            indexValid = true(size(allNames));
-            for i = 1 : numel(allNames)
-                indexValid = isvarname(allNames{i});
+            allNames = reshape(string(this.AllNames), 1, [ ]);
+            inxValid = arrayfun(@isvarname, allNames);
+            if ~all(inxValid)
+                exception.error([
+                    "BaseVAR:InvalidName"
+                    "This is not a valid %1 model name: %s "
+                ], class(this), allNames(~inxValid));
             end
-            assert( ...
-                all(indexValid), ...
-                'BaseVAR:checkValid', ...
-                'This is not a legal name for variables or error terms: %s ', ...
-                allNames{~indexValid} ...
-            );
-        end
+        end%
 
 
         function checkPrefix(this)
-            lenPrefix = length(this.PREFIX_ERRORS);
-            % Check names of endogenous variables
-            namesEndogenous = this.NamesEndogenous;
-            indexEndogenousStartsWithPrefix = strncmp( ...
-                namesEndogenous, this.PREFIX_ERRORS, lenPrefix ...
-            );
-            assert( ...
-                ~any(indexEndogenousStartsWithPrefix), ...
-                'BaseVAR:checkPrefix', ...
-                'This endogenous variable name starts with a reserved prefix: %s ', ...
-                namesEndogenous(indexEndogenousStartsWithPrefix) ...
-            );
-            % Check names of exogenous variables
-            namesExogenous = this.NamesExogenous;
-            indexExogenousStartsWithPrefix = strncmp( ...
-                namesExogenous, this.PREFIX_ERRORS, lenPrefix ...
-            );
-            assert( ...
-                ~any(indexExogenousStartsWithPrefix), ...
-                'BaseVAR:checkPrefix', ...
-                'This exogenous variable name starts with a reserved prefix: %s ', ...
-                namesExogenous(indexExogenousStartsWithPrefix) ...
-            );
-            % Check names of conditioning variables
-            namesConditioning = this.NamesConditioning;
-            indexConditioningStartsWithPrefix = strncmp( ...
-                namesConditioning, this.PREFIX_ERRORS, lenPrefix ...
-            );
-            assert( ...
-                ~any(indexConditioningStartsWithPrefix), ...
-                'BaseVAR:checkPrefix', ...
-                'This conditioning variable name starts with a reserved prefix: %s ', ...
-                namesConditioning(indexConditioningStartsWithPrefix) ...
-            );
-        end
+            invalidNames = string.empty(1, 0);
+            for n = ["Endogenous", "Exogenous", "Conditioning"]
+                property = n + "Names";
+                inxStartsWithPrefix = startsWith( ...
+                    this.(property), this.PREFIX_ERRORS ...
+                );
+                if any(inxStartsWithPrefix)
+                    invalidNames = [invalidNames, this.(property)(inxStartsWithPrefix)];
+                end
+            end
+            if any(inxStartsWithPrefix)
+                exception.error([
+                    "BaseVAR:checkPrefix"
+                    "This %s model name starts with a reserved prefix: %s "
+                ], class(this), invalidNames);
+            end
+        end%
 
 
         function checkUnique(this)
             [flag, duplicateNames] = textual.nonunique(this.AllNames);
             if flag
-                throw( exception.Base('VAR:NonuniqueName', 'error'), ...
-                       duplicateNames{:} );
+                exception.error([
+                    "VAR:MultipleNames"
+                    "This name has been assigned more than once in the %s model object: %s "
+                ], class(this), string(duplicateNames));
             end
         end%
     end
+
+
+    methods % Legacy
+        %(
+        function value = get.YNames(this)
+            value = this.EndogenousNames;
+        end%
+
+
+        function value = get.ENames(this)
+            value = this.ResidualNames;
+        end%
+
+
+        function value = get.XNames(this)
+            value = this.ExogenousNames;
+        end%
+
+
+        function value = get.INames(this)
+            value = this.ConditioningNames;
+        end%
+
+
+        function value = set.YNames(this, value)
+            this.EndogenousNames = value;
+        end%
+
+
+        function value = set.ENames(this, value)
+            this.ResidualNames = value;
+        end%
+
+
+        function value = set.XNames(this, value)
+            this.ExogenousNames = value;
+        end%
+
+
+        function value = set.INames(this, value)
+            this.ConditioningNames = value;
+        end%
+        %)
+    end
+
+
+    methods (Access=protected) % Custom Display
+        %(
+        function groups = getPropertyGroups(this)
+            x = struct( );
+            x.EndogenousNames = this.EndogenousNames;
+            x.ExogenousNames = this.ExogenousNames;
+            x.ConditioningNames = this.ConditioningNames;
+            if this.IsPanel
+                x.GroupNames = this.GroupNames;
+            end
+            x.NumVariants = countVariants(this);
+            x.Comment = string(this.Comment);
+            x.UserData = this.UserData;
+            groups = matlab.mixin.util.PropertyGroup(x);
+        end% 
+
+
+        function displayScalarObject(this)
+            groups = getPropertyGroups(this);
+            disp(getHeader(this));
+            disp(groups.PropertyList);
+        end%
+
+
+        function displayNonScalarObject(this)
+            displayScalarObject(this);
+        end%
+
+
+        function header = getHeader(this)
+            dimString = matlab.mixin.CustomDisplay.convertDimensionsToString(this);
+            className = matlab.mixin.CustomDisplay.getClassNameForHeader(this);
+            adjective = string.empty(1, 0);
+            if isempty(this)
+                adjective(end+1) = "Empty";
+            end
+            if this.IsPanel
+                adjective(end+1) = "Panel";
+            end
+            if isempty(adjective)
+                adjective = " ";
+            else
+                adjective = " " + join(adjective, " ") + " ";
+            end
+            header = "  " + string(dimString) + adjective + string(className) + string(newline( ));
+        end%
+        %)
+    end % methods
 end

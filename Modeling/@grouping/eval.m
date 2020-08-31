@@ -64,7 +64,7 @@ opt = passvalopt('grouping.eval', varargin{:});
 isOther = any(this.OtherContents);
 
 % Contributions of shocks or measurement variables.
-nGroup = numel(this.GroupNames) ;
+nGroup = numel(this.GroupNames);
 nNewCol = nGroup + double(isOther) ;
 
 % Number of old columns used in grouping; the remaing old columns will

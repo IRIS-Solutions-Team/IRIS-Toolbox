@@ -64,7 +64,7 @@ nv = size(this.A, 3);
 maxOrder = opt.Order;
 
 % Preprocess filter options
-[isFilter, filter, freq, applyTo] = freqdom.applyfilteropt(opt, [ ], this.NamesEndogenous);
+[isFilter, filter, freq, applyTo] = freqdom.applyfilteropt(opt, [ ], this.EndogenousNames);
 
 C = nan(ny, ny, maxOrder+1, nv);
 
@@ -124,9 +124,9 @@ end
 
 % Convert double arrays to namedmat objects if requested.
 if isNamedMat
-    C = namedmat(C, this.NamesEndogenous, this.NamesEndogenous);
+    C = namedmat(C, this.EndogenousNames, this.EndogenousNames);
     try %#ok<TRYNC>
-        Q = namedmat(Q, this.NamesEndogenous, this.NamesEndogenous);
+        Q = namedmat(Q, this.EndogenousNames, this.EndogenousNames);
     end
 end
 

@@ -68,7 +68,7 @@ nv = size(this.A, 3);
 numFreq = numel(freq);
 
 % Pre-process filter options.
-[~, filter, ~, applyTo] = freqdom.applyfilteropt(opt, freq, this.NamesEndogenous);
+[~, filter, ~, applyTo] = freqdom.applyfilteropt(opt, freq, this.EndogenousNames);
 
 progress = [ ];
 if opt.Progress

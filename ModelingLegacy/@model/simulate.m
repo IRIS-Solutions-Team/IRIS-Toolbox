@@ -396,7 +396,7 @@ end
 s.progress = [ ];
 if opt.Progress
     if strcmpi(opt.Method, 'FirstOrder') ...
-       || (strcmpi(opt.Method, 'Selective') && opt.Solver.Display==0)
+       || (strcmpi(opt.Method, 'Selective') && s.Solver.Display==0)
         s.progress = ProgressBar('[IrisToolbox] @model/simulate Progress');
     end
 end

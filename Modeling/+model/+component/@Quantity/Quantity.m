@@ -186,6 +186,21 @@ classdef (CaseInsensitiveProperties=true) ...
             this.Bounds = repmat(this.DEFAULT_BOUNDS, 1, numNames);
             this.OriginalNames = this.Name;
         end%
+
+
+        function std = printStd(shockName)
+            std = string(model.component.Quantity.STD_PREFIX) + string(shockName);
+        end%
+
+
+        function corr = printCorr(shockName1, shockName2)
+            corr = string(model.component.Quantity.CORR_PREFIX) + string(shockName1) + "__" + string(shockName2);
+        end%
+
+
+        function log = printLog(variableName)
+            log = string(model.component.Quantity.LOG_PREFIX) + string(variableName);
+        end%
     end
 end
 

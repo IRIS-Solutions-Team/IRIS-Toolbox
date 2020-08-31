@@ -1,4 +1,4 @@
-function [x, inxOfIncluded, range, inxOfNotFound, inxOfNonSeries] = db2array(d, list, range, sw)
+function [x, inxIncluded, range, inxNotFound, inxNonSeries] = db2array(d, list, range, sw)
 % db2array  Convert tseries database entries to numeric array.
 %
 % __Syntax__
@@ -136,8 +136,8 @@ try, sw.BaseYear; catch, sw.BaseYear = @config; end
 
 try, sw.ExpandMethod; catch, sw.ExpandMethod = 'RepeatLast'; end %#ok<*NOCOM>
 
-% Swap `list` and `Range` if needed.
-if isnumeric(list) && (iscellstr(range) || ischar(range))
+% Swap `list` and `Range` if needed
+if isnumeric(list) && (iscellstr(range) || ischar(range) || isstring(range))
     [list, range] = deal(range, list);
 end
 
@@ -145,10 +145,11 @@ persistent parser
 if isempty(parser)
     parser = extend.InputParser('dbase.db2array');
     parser.addRequired('InputDatabank', @validate.databank);
-    parser.addRequired('List', @(x) iscellstr(x) || ischar(x) || isa(x, 'rexp') || isequal(x, @all));
+    parser.addRequired('List', @(x) isstring(x) || iscellstr(x) || ischar(x) || isa(x, 'rexp') || isequal(x, @all));
     parser.addRequired('Range', @DateWrapper.validateRangeInput);
 end
 parser.parse(d, list, range);
+range = double(range);
 
 %--------------------------------------------------------------------------
 
@@ -158,15 +159,17 @@ elseif isa(list, 'rexp')
     list = dbnames(d, 'ClassFilter=', 'tseries', 'NameFilter=', list);
 elseif ischar(list)
     list = regexp(list, '\w+', 'match');
+elseif isstring(list)
+    list = cellstr(list);
 end
-list = list(:).';
+list = reshape(list, 1, [ ]);
 
-nList = length(list);
-inxOfInvalid = false(1, nList);
-inxOfIncluded = false(1, nList);
-inxOfFreqMismatch = false(1, nList);
-inxOfNotFound = false(1, nList);
-inxOfNonSeries = false(1, nList);
+nList = numel(list);
+inxInvalid = false(1, nList);
+inxIncluded = false(1, nList);
+inxFreqMismatch = false(1, nList);
+inxNotFound = false(1, nList);
+inxNonSeries = false(1, nList);
 
 range2 = [ ];
 if any(isinf(range([1, end])))
@@ -195,21 +198,21 @@ else
     endDate = range(end);
 end
 
-range = startDate : endDate;
-freqOfRange = dater.getFrequency(startDate);
-numOfPeriods = numel(range);
+range = dater.colon(startDate, endDate);
+freqRange = dater.getFrequency(startDate);
+numPeriods = numel(range);
 
 % If all existing time series have the same size in 2nd and higher
 % dimensions, reshape the output array to match that size; otherwise,
 % return a 2D array.
-sizeOfOutput = [ ];
+sizeOutput = [ ];
 isReshape = true;
 
-x = nan(numOfPeriods, 0);
+x = nan(numPeriods, 0);
 for i = 1 : nList
     name = list{i};
     try
-        numOfDataSets = max(1, size(x, 3));
+        numDataSets = max(1, size(x, 3));
         if strcmp(name, '!ttrend')
             ithX = [ ];
             getTtrend( );
@@ -221,26 +224,26 @@ for i = 1 : nList
                 getSeriesData( );
                 addData( );
             else
-                inxOfNonSeries(i) = true;
+                inxNonSeries(i) = true;
             end
         end
     catch
-        inxOfNotFound(i) = true;
+        inxNotFound(i) = true;
         continue
     end
 end
 
-inxOfIncluded = list(inxOfIncluded);
+inxIncluded = list(inxIncluded);
 
 throwWarning( );
 
 if isempty(x)
-    x = nan(numOfPeriods, nList);
+    x = nan(numPeriods, nList);
 end
 
 if isReshape
-    sizeOfOutput = [ size(x, 1), size(x, 2), sizeOfOutput ];
-    x = reshape(x, sizeOfOutput);
+    sizeOutput = [ size(x, 1), size(x, 2), sizeOutput ];
+    x = reshape(x, sizeOutput);
 end
 
 return
@@ -249,11 +252,11 @@ return
 
 
     function getSeriesData( )
-        freqOfSeries = field.FrequencyAsNumeric;
-        if ~isnan(freqOfSeries) && freqOfRange~=freqOfSeries
-            numOfDataSets = max(1, size(x, 3));
-            ithX = nan(numOfPeriods, numOfDataSets);
-            inxOfFreqMismatch(i) = true;
+        freqSeries = field.FrequencyAsNumeric;
+        if ~isnan(freqSeries) && freqRange~=freqSeries
+            numDataSets = max(1, size(x, 3));
+            ithX = nan(numPeriods, numDataSets);
+            inxFreqMismatch(i) = true;
         else
             k = 0;
             if ~isempty(sw.LagOrLead)
@@ -262,10 +265,10 @@ return
             ithX = rangedata(field, range+k);
             iSize = size(ithX);
             iSize(1) = [ ];
-            if isempty(sizeOfOutput)
-                sizeOfOutput = iSize;
+            if isempty(sizeOutput)
+                sizeOutput = iSize;
             else
-                isReshape = isReshape && isequal(sizeOfOutput, iSize);
+                isReshape = isReshape && isequal(sizeOutput, iSize);
             end
             % Make sure ithX is processed as 2D array.
             ithX = ithX(:, :);
@@ -289,7 +292,7 @@ return
 
     function addData( )
         if isempty(x)
-            x = nan(numOfPeriods, nList, size(ithX, 2));
+            x = nan(numPeriods, nList, size(ithX, 2));
         end
         ithX = permute(ithX, [1, 3, 2]);
         nAltX = size(x, 3);
@@ -308,9 +311,9 @@ return
                 ithX = log(ithX);
             end
             x(:, i, 1:nAltXi) = ithX;
-            inxOfIncluded(i) = true;
+            inxIncluded(i) = true;
         else
-            inxOfInvalid(i) = true;
+            inxInvalid(i) = true;
         end
         
         
@@ -326,24 +329,24 @@ return
 
 
     function throwWarning( )
-        if sw.Warn.NotFound && any(inxOfNotFound)
+        if sw.Warn.NotFound && any(inxNotFound)
             throw( exception.Base('Dbase:NameNotExist', 'warning'), ...
-                   list{inxOfNotFound} );
+                   list{inxNotFound} );
         end
         
-        if sw.Warn.SizeMismatch && any(inxOfInvalid)
+        if sw.Warn.SizeMismatch && any(inxInvalid)
             throw( exception.Base('Dbase:EntrySizeMismatch', 'warning'), ...
-                   list{inxOfInvalid} );
+                   list{inxInvalid} );
         end
         
-        if sw.Warn.FreqMismatch && any(inxOfFreqMismatch)
+        if sw.Warn.FreqMismatch && any(inxFreqMismatch)
             throw( exception.Base('Dbase:EntryFrequencyMismatch', 'warning'), ...
-                   list{inxOfFreqMismatch} );
+                   list{inxFreqMismatch} );
         end
         
-        if sw.Warn.NonTseries && any(inxOfNonSeries)
+        if sw.Warn.NonTseries && any(inxNonSeries)
             throw( exception.Base('Dbase:EntryNotSeries', 'warning'), ...
-                   list{inxOfNonSeries} );
+                   list{inxNonSeries} );
         end
     end%
 end%

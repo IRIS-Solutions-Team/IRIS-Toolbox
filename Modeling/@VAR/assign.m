@@ -1,12 +1,12 @@
-function This = assign(This,A,K,J,Omg,Fitted)
+function this = assign(this, A, K, J, Omg, Fitted)
 % assign  Manually assign system matrices to VAR object.
 %
 %
 % Syntax
 % =======
 % 
-%     V = assign(V,A,K,J,Omg)
-%     V = assign(V,A,K,J,Omg,Dates)
+%     V = assign(V, A, K, J, Omg)
+%     V = assign(V, A, K, J, Omg, Dates)
 %
 %
 % Input arguments
@@ -39,13 +39,13 @@ function This = assign(This,A,K,J,Omg,Fitted)
 % Description
 % ============
 %
-% To assign matrices for a p-th order VAR, stack the transition
+% To assign matrices for a order-th order VAR, stack the transition
 % matrices for individual lags horizontally, 
 %
-%     A = [A1,...,Ap]
+%     A = [A1, ..., Ap]
 %
 % where `A1` is the coefficient matrix on the first lag, and `Ap` is the
-% coefficient matrix on the last, p-th, lag.
+% coefficient matrix on the last, order-th, lag.
 %
 %
 % Example
@@ -63,50 +63,51 @@ try
     xRange = min(x) : max(x);
 catch
     Fitted = { };
-    xRange = zeros(1,0);
+    xRange = zeros(1, 0);
 end
 
 %--------------------------------------------------------------------------
 
-A = A(:,:,:);
+A = A(:, :, :);
 
-ny = length(This.NamesEndogenous);
-nx = length(This.NamesExogenous);
-nGrp = max(1,length(This.GroupNames));
-nAlt = size(A,3);
+ny = length(this.EndogenousNames);
+nx = length(this.ExogenousNames);
+numGroups = max(1, this.NumGroups);
+nv = countVariants(this);
 nXPer = length(xRange);
 ng = 0;
-p = size(A,2) / ny;
-nFree = p*ny*ny;
+order = size(A, 2) / ny;
+numFree = order*ny*ny;
 
-This = myprealloc(This,ny,p,nXPer,nAlt,ng);
-This = assign@BaseVAR(This,A,Omg,xRange,Fitted);
+this = preallocate(this, ny, order, nXPer, nv, ng);
+this = assign@BaseVAR(this, A, Omg, xRange, Fitted);
 
 if isempty(K)
-    This.K = zeros(ny,nGrp,nAlt);
-elseif size(K,1) ~= ny || size(K,2) ~= nGrp || size(K,3) ~= nAlt
+    this.K = zeros(ny, nGrp, nv);
+elseif size(K, 1) ~= ny || size(K, 2) ~= nGrp || size(K, 3) ~= nv
     utils.error('VAR:assign', ...
         'Invalid size of the constant matrix K.');
 else
-    This.K = K;
-    nFree = nFree + ny;
+    this.K = K;
+    numFree = numFree + ny;
 end
 
 if isempty(J)
-    This.J = zeros(nx,nGrp,nAlt);
-elseif size(J,1) ~= ny || size(J,2) ~= nx*nGrp || size(J,3) ~= nAlt
+    this.J = zeros(nx, nGrp, nv);
+elseif size(J, 1) ~= ny || size(J, 2) ~= nx*nGrp || size(J, 3) ~= nv
     utils.error('VAR:assign', ...
         'Invalid size of the coefficient matrix J.');
 else
-    This.J = J;
-    nFree = nFree + ny*nx;
+    this.J = J;
+    numFree = numFree + ny*nx;
 end
 
-This.G = zeros(ny,0);
-This.Zi = zeros(0,ny*p+1);
-This.NHyper = nFree;
+this.G = zeros(ny, 0);
+this.Zi = zeros(0, ny*order+1);
+this.NHyper = numFree;
 
-This = schur(This);
-This = infocrit(This);
+this = schur(this);
+this = infocrit(this);
 
-end
+end%
+

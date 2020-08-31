@@ -108,7 +108,7 @@ return
                 valid = true(1, nList);
                 opt.reorder = nan(1, nList);
                 for i = 1 : nList
-                    pos = strcmp(this.NamesEndogenous, list{i});
+                    pos = strcmp(this.EndogenousNames, list{i});
                     valid(i) = any(pos);
                     if valid(i);
                         opt.reorder(i) = find(pos);

@@ -1,18 +1,18 @@
 function output = datarequest(req, this, inp, range)
 % datarequest  Request input data
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
-retX = ~isempty( strfind(req, 'x') );
-mustX = ~isempty( strfind(req, 'x*') );
-retI = ~isempty( strfind(req, 'i') );
-mustI = ~isempty( strfind(req, 'i*') );
+retX = contains(req, "x", "IgnoreCase", true);
+mustX = contains(req, "x*", "IgnoreCase", true);
+retI = contains(req, "i", "IgnoreCase", true);
+mustI = contains(req, "i*", "IgnoreCase", true);
 
 X = [ ];
 I = [ ];
@@ -28,16 +28,16 @@ end
 sw = struct( );
 sw.BaseYear = this.BaseYear;
 
-if retX && ~isempty(this.NamesExogenous)
+if retX && ~isempty(this.ExogenousNames)
     sw.Warn.NotFound = mustX;
     sw.Warn.NonTseries = mustX;
-    X = db2array(inp, range, this.NamesExogenous, sw);
+    X = db2array(inp, range, this.ExogenousNames, sw);
 end
 
-if retI && ~isempty(this.NamesConditioning)
+if retI && ~isempty(this.ConditioningNames)
     sw.Warn.NotFound = mustI;
     sw.Warn.NonTseries = mustI;
-    I = db2array(inp, range, this.NamesConditioning, sw);
+    I = db2array(inp, range, this.ConditioningNames, sw);
 end
 
 % Transpose and return data

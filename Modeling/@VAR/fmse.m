@@ -1,4 +1,4 @@
-function [X, D, D1] = fmse(This, Time, varargin)
+function [X, D, D1] = fmse(this, time, varargin)
 % fmse  Forecast mean square error matrices.
 %
 % __Syntax__
@@ -47,10 +47,10 @@ TEMPLATE_SERIES = TIME_SERIES_CONSTRUCTOR( );
 opt = passvalopt('VAR.fmse', varargin{:});
 
 % Tell whether time is nper or range.
-if length(Time) == 1 && round(Time) == Time && Time > 0
-    range = 1 : Time;
+if length(time) == 1 && round(time) == time && time > 0
+    range = 1 : time;
 else
-    range = Time(1) : Time(end);
+    range = time(1) : time(end);
 end
 nPer = length(range);
 
@@ -58,15 +58,15 @@ isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 
 %--------------------------------------------------------------------------
 
-ny = size(This.A, 1);
-nAlt = size(This.A, 3);
+ny = size(this.A, 1);
+nAlt = size(this.A, 3);
 
 % Orthonormalise residuals so that we do not have to multiply the VMA
 % representation by Omega.
-B = covfun.factorise(This.Omega);
+B = covfun.factorise(this.Omega);
 
 % Get VMA representation.
-X = timedom.var2vma(This.A, B, nPer);
+X = timedom.var2vma(this.A, B, nPer);
 
 % Compute FMSE matrices.
 for iAlt = 1 : nAlt
@@ -86,7 +86,7 @@ if nargout > 1
     % All VAR output data will be returned as dbase (struct).
     D = struct( );
     for i = 1 : ny
-        name = This.NamesEndogenous{i};
+        name = this.EndogenousNames(i);
         data = x(:, i, :);
         D.(name) = replace(TEMPLATE_SERIES, data(:, :), range(1));
     end
@@ -99,13 +99,10 @@ if nargout > 1
     end
 end
 
-if true % ##### MOSW
-    % Convert output matrix to namedmat object if requested.
-    if isNamedMat
-        X = namedmat(X, This.NamesEndogenous, This.NamesEndogenous);
-    end
-else
-    % Do nothing.
+% Convert output matrix to namedmat object if requested
+if isNamedMat
+    X = namedmat(X, this.EndogenousNames, this.EndogenousNames);
 end
 
-end
+end%
+

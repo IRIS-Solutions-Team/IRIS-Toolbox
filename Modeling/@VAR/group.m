@@ -1,29 +1,39 @@
-function this = group(this, grp)
-% group  Retrieve VAR object from panel VAR for specified group of data.
+% group  Retrieve VAR object from panel VAR for specified group of data
+%{
+% Syntax
+%--------------------------------------------------------------------------
 %
-% __Syntax__
-%
-%     V = group(V, Group)
-%
-%
-% __Input Arguments__
-%
-% * `V` [ VAR ] - Panel VAR object estimated on multiple groups of data.
-%
-% * `Group` [ char ] - Requested group name; must be one of the names
-% specified when the panel VAR object was constructed using the function
-% [`VAR`](VAR/VAR).
+%     v = group(v, groupID)
 %
 %
-% __Output Arguments__
+% Input Arguments
+%--------------------------------------------------------------------------
 %
-% * `V` [ VAR ] - VAR object for the `K`-th group of data.
+% __`v`__ [ VAR ] 
+%
+%>    Panel VAR object estimated on multiple groups of data.
 %
 %
-% __Description__
+% __`groupID`__ [ string ] 
+% 
+%>    Requested group name; must be one of the names specified when the
+%>    panel VAR object was constructed using the function [`VAR`](VAR/VAR).
 %
 %
-% __Example__
+% Output Arguments
+%--------------------------------------------------------------------------
+%
+% __`v`__ [ VAR ] 
+%
+% > VAR object for the `K`-th group of data.
+%
+%
+% Description
+%--------------------------------------------------------------------------
+%
+%
+% Example
+%--------------------------------------------------------------------------
 %
 % Create and estimate a panel VAR for three variables, `x`, `y`, `z`, and
 % three countries, `US`, `EU`, `JA`. Then, retrieve a plain VAR for an
@@ -33,51 +43,73 @@ function this = group(this, grp)
 %     v = estimate(v, d, range, 'fixedEffect=', true);
 %     vi_us = group(v, 'US');
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-pp = inputParser( );
-pp.addRequired('V', @(x) isa(x, 'VAR') && ispanel(x));
-pp.addRequired('Group', @(x) ischar(x) || isnumericscalar(x) || islogical(x));
-pp.parse(this, grp);
+function [this, groupName] = group(this, groupID)
+
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('@VAR/group');
+    addRequired(pp, 'v', @(x) isa(x, 'VAR') && x.IsPanel);
+    addRequired(pp, 'groupID', @(x) isstring(x) || ischar(x) || validate.numericScalar(x) || islogical(x));
+end
+parse(pp, this, groupID);
 
 %--------------------------------------------------------------------------
 
-if ischar(grp)
-    GrpName = grp;
-    grp = strcmp(grp, this.GroupNames);
-    if ~any(grp)
-        utils.error('VAR:group', ...
-            'this group does not exist in the %s object: ''%s''.', ...
-            class(this), GrpName);
+if isstring(groupID) || ischar(groupID)
+    name = string(groupID);
+    groupID = this.GroupNames==name;
+    if ~any(groupID)
+        locallyDoesNotExist(this, name);
     end
 end
 
-if islogical(grp)
-    grp = find(grp);
-    if length(grp) ~= 1
-        utils.error('VAR:group', ...
-            'Exactly one group only must be requested.');
-    end
+if islogical(groupID)
+    groupID = find(groupID);
+end
+
+if numel(groupID)~=1
+    exception.error([
+        "VAR:MutlipleGroupReference"
+        "Only one group can be extracted."
+    ]);
 end
 
 try
-    this.GroupNames = { };
-    this.IxFitted = this.IxFitted(grp, :, :);
-    this.K = this.K(:, grp, :);
-    this.X0 = this.X0(:, grp, :);
-    if islogical(grp)
-        grp = find(grp);
-    end
-    nx = length(this.NamesExogenous);
-    pos = (grp-1)*nx + (1:nx);
+    groupName = this.GroupNames(groupID);
+    this.IxFitted = this.IxFitted(groupID, :, :);
+    this.K = this.K(:, groupID, :);
+    this.X0 = this.X0(:, groupID, :);
+    nx = this.NumExogenous;
+    pos = (groupID-1)*nx + (1:nx);
     this.J = this.J(:, pos, :);
-    
+
+    %
+    % Reset GroupNames to empty only after the coefficient matrices have
+    % been reduced to a single group; otherwise set.GroupNames would throw
+    % an error.
+    %
+    this.GroupNames = string.empty(1, 0);
 catch
-    utils.error('VAR:group', ...
-        'this group does not exist in the %s object: %g.', ...
-        class(this), grp);
+    locallyDoesNotExist(this, groupID);
 end
 
-end
+end%
+
+%
+% Local Functions
+%
+
+function locallyDoesNotExist(this, groupID)
+    %(
+    exception.error([
+        "VAR:InvalidGroupReference"
+        "This group does not exist in the %s object: %s"
+    ], class(this), string(groupID));
+    %)
+end%
+

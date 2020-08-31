@@ -98,14 +98,14 @@ function this = instrument(this, varargin)
 
 if isempty(varargin)
     % Clear conditioning variables
-    this.NamesConditioning = cell.empty(1, 0);
+    this.ConditioningNames = cell.empty(1, 0);
     this.Zi = double.empty(0);
     return
 end
 
 %--------------------------------------------------------------------------
 
-if isempty(this.NamesEndogenous)
+if isempty(this.EndogenousNames)
     utils.error('VAR:instrument', ...
         ['Cannot create instruments in VAR objects ', ...
         'without named variables.']);
@@ -181,7 +181,7 @@ end
 
 checkExpression( );
 
-this.NamesConditioning = [this.NamesConditioning, newNames];
+this.ConditioningNames = [this.ConditioningNames, newNames];
 this.IEqtn = [this.IEqtn, lsInput];
 
 % The constant term is placed first in Zi, but last in user inputs/outputs.
@@ -218,10 +218,10 @@ return
 
 
     function createXVector( )
-        xVector = this.NamesEndogenous;
+        xVector = this.EndogenousNames;
         for ii = 1 : p-1
             sh = sprintf('{-%g}', ii);
-            xVector = [xVector, strcat(this.NamesEndogenous, sh)]; %#ok<AGROW>
+            xVector = [xVector, strcat(this.EndogenousNames, sh)]; %#ok<AGROW>
         end
     end 
 

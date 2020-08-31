@@ -60,72 +60,73 @@ function outputDatabank = simulate(this, inputDatabank, range, varargin)
 % __Example__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% Panel VAR.
-if ispanel(this)
-    outputDatabank = mygroupmethod(@simulate, this, inputDatabank, range, varargin{:});
+% Panel VAR
+if this.IsPanel
+    outputDatabank = runGroups(@simulate, this, inputDatabank, range, varargin{:});
     return
 end
 
-persistent inputParser
-if isempty(inputParser)
-    inputParser = extend.InputParser('VAR.simulate');
-    inputParser.addRequired('VAR', @(x) isa(x, 'VAR'));
-    inputParser.addRequired('InputDatabank', @isstruct);
-    inputParser.addRequired('Range', @DateWrapper.validateProperRangeInput);
-    inputParser.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
-    inputParser.addParameter('AppendPostsample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
-    inputParser.addParameter('DbOverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
-    inputParser.addParameter({'Deviation', 'Deviations'}, false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
-    inputParser.addParameter('Reporting', true, @(x) isequal(x, true) || isequal(x, false));
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('@VAR/simulate');
+    pp.addRequired('VAR', @(x) isa(x, 'VAR'));
+    pp.addRequired('InputDatabank', @validate.databank);
+    pp.addRequired('Range', @DateWrapper.validateProperRangeInput);
+    pp.addParameter('AppendPresample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    pp.addParameter('AppendPostsample', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    pp.addParameter('DbOverlay', false, @(x) isequal(x, true) || isequal(x, false) || isstruct(x));
+    pp.addParameter({'Deviation', 'Deviations'}, false, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
 end
-inputParser.parse(this, inputDatabank, range, varargin{:});
-opt = inputParser.Options;
+%)
+opt = parse(pp, this, inputDatabank, range, varargin{:});
+
 if ischar(range)
     range = textinp2dat(range);
 end
+range = double(range);
 
 %--------------------------------------------------------------------------
 
 ny = this.NumEndogenous;
-ne = this.NumErrors;
+ne = this.NumResiduals;
 ng = this.NumExogenous;
 nv = countVariants(this);
-indexX = [ true(ny, 1); false(ng, 1); false(ne, 1)];
+indexX = [true(ny, 1); false(ng, 1); false(ne, 1)];
 indexG = [false(ny, 1);  true(ng, 1); false(ne, 1)];
 indexE = [false(ny, 1); false(ng, 1);  true(ne, 1)];
-
-pp = size(this.A, 2) / max(ny, 1);
+order = this.Order;
 
 if isempty(range)
     return
 end
-numPeriods = length(range);
+numPeriods = numel(range);
 
 isBackcast = range(1)>range(end);
 if isBackcast
     this = backward(this);
-    extRange = range(end) : range(1)+pp;
-    indeextRange = [true(1, numPeriods), false(1, pp)];
+    extdRange = dater.colon(range(end), dater.plus(range(1), order));
+    indeextRange = [true(1, numPeriods), false(1, order)];
 else
-    extRange = range(1)-pp : range(end);
-    indeextRange = [false(1, pp), true(1, numPeriods)];
+    extdRange = dater.colon(dater.plus(range(1), -order), range(end));
+    indeextRange = [false(1, order), true(1, numPeriods)];
 end
 
 % Check availability of input data in input databank
-requiredNames = [this.NamesEndogenous, this.NamesExogenous];
-optionalNames = this.NamesErrors;
+requiredNames = [this.EndogenousNames, this.ExogenousNames];
+optionalNames = this.ResidualNames;
 databankInfo = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames);
 numOfPages = databankInfo.NumPages;
 
-allNames = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
-XEG = requestData(this, databankInfo, inputDatabank, extRange, allNames);
+allNames = [this.EndogenousNames, this.ExogenousNames, this.ResidualNames];
+XEG = requestData(this, databankInfo, inputDatabank, extdRange, allNames);
 
-%req = datarequest('y* x* e', this, inputDatabank, extRange);
-%extRange = req.Range;
+%req = datarequest('y* x* e', this, inputDatabank, extdRange);
+%extdRange = req.Range;
 %y = req.Y;
 %x = req.X;
 %e = req.E;
@@ -138,8 +139,8 @@ if isBackcast
 %    x = flip(x, 2);
 end
 
-%e(:, 1:pp, :) = NaN;
-numExtendedPeriods = length(extRange);
+%e(:, 1:order, :) = NaN;
+numExtdPeriods = numel(extdRange);
 %numDataY = size(y, 3);
 %numDataX = size(x, 3);
 %numDataE = size(e, 3);
@@ -168,7 +169,7 @@ end
 %if ng>0 && numDataX<numOfRuns
 %    x = cat(3, x, repmat(x, 1, 1, numOfRuns-numDataX));
 %elseif ng==0
-%    x = zeros(0, numExtendedPeriods, numOfRuns);
+%    x = zeros(0, numExtdPeriods, numOfRuns);
 %end
 
 %if opt.Contributions
@@ -177,9 +178,9 @@ end
 %end
 
 %if ~opt.Contributions
-%    outp1 = hdataobj(this, extRange, numOfRuns);
+%    outp1 = hdataobj(this, extdRange, numOfRuns);
 %else
-%    outp1 = hdataobj(this, extRange, numOfRuns, 'Contributions=', @shock);
+%    outp1 = hdataobj(this, extdRange, numOfRuns, 'Contributions=', @shock);
 %end
 
 % __Main Loop__
@@ -192,7 +193,7 @@ for iLoop = 1 : numOfRuns
     ithG = XEG(indexG, :, iLoop);
     ithE = XEG(indexE, :, iLoop);
     ithE(isnan(ithE)) = 0;
-    ithE(:, 1:pp-1) = NaN;
+    ithE(:, 1:order-1) = NaN;
 
     includeConstant = ~opt.Deviation;
     if opt.Contributions
@@ -236,21 +237,21 @@ for iLoop = 1 : numOfRuns
     %end
 
     % Collect deterministic terms (constant, exogenous inputs).
-    %iKJ = zeros(ny, numExtendedPeriods);
-    ithDeterministic = zeros(ny, numExtendedPeriods);
+    %iKJ = zeros(ny, numExtdPeriods);
+    ithDeterministic = zeros(ny, numExtdPeriods);
     if includeConstant
-        %iKJ = iKJ + K(:, ones(1, numExtendedPeriods));
-        ithDeterministic = ithDeterministic + K(:, ones(1, numExtendedPeriods));
+        %iKJ = iKJ + K(:, ones(1, numExtdPeriods));
+        ithDeterministic = ithDeterministic + K(:, ones(1, numExtdPeriods));
     end
     if ng>0
         %iKJ = iKJ + J*iX;
         ithDeterministic = ithDeterministic + J*ithG;
     end
     
-    for t = pp + 1 : numExtendedPeriods
-        %iXLags = iY(:, t-(1:pp));
+    for t = order + 1 : numExtdPeriods
+        %iXLags = iY(:, t-(1:order));
         %iY(:, t) = A*iXLags(:) + iKJ(:, t) + iBe(:, t);
-        stackLags = ithX(:, t-(1:pp));
+        stackLags = ithX(:, t-(1:order));
         ithX(:, t) = A*stackLags(:) + ithDeterministic(:, t) + ithBE(:, t);
     end
 
@@ -271,28 +272,9 @@ if isBackcast
     XEG = flip(XEG, 2);
 end
 
-% Create output database.
-%outp1 = hdata2tseries(outp1);
-outputDatabank = returnData(this, XEG, extRange, allNames);
-
+% Create output database
+outputDatabank = returnData(this, XEG, extdRange, allNames);
 outputDatabank = appendData(this, inputDatabank, outputDatabank, range, opt);
-%outp1 = appendData(this, inputDatabank, outp1, range, opt);
-
-if opt.Reporting && ~isempty(this.Reporting)
-    for i = 1 : numel(allNames)
-        ithName = allNames{i};
-        inputDatabank.(ithName) = outputDatabank.(ithName);
-    end
-    for i = 1 : numel(this.Reporting)
-        inputDatabank = run(this.Reporting(i), inputDatabank, range, ...
-            'AppendPresample=', opt.AppendPresample);
-    end
-    namesReporting = this.NamesReporting;
-    for i = 1 : numel(namesReporting)
-        ithName = namesReporting{i};
-        outputDatabank.(ithName) = inputDatabank.(ithName);
-    end
-end
 
 end%
 

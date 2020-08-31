@@ -10,7 +10,7 @@ function This = assign(This,A,Omg,XRange,Fitted)
 %--------------------------------------------------------------------------
 
 A = A(:,:,:);
-ny = length(This.NamesEndogenous);
+ny = length(This.EndogenousNames);
 nAlt = size(A,3);
 p = size(A,2) / ny;
 

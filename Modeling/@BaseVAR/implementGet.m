@@ -1,18 +1,18 @@
 function [answ, flag] = implementGet(this, query, varargin)
 % implementGet  Implement get method for BaseVAR objects
 %
-% Backend IRIS function.
-% No help provided.
+% Backend [IrisToolbox] method
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
 
 answ = [ ];
 flag = true;
 
-nAlt = size(this.A, 3);
+numVariants = countVariants(this);
 realSmall = getrealsmall( );
 
 switch query    
@@ -32,7 +32,7 @@ switch query
                 test = @(x) abs(abs(x) - 1) <= realSmall;
         end
         answ = nan(size(this.EigVal));
-        for ialt = 1 : nAlt
+        for ialt = 1 : numVariants
             inx = test(this.EigVal(1, :, ialt));
             answ(1, 1:sum(inx), ialt) = this.EigVal(1, inx, ialt);
         end
@@ -43,8 +43,8 @@ switch query
         answ = permute(sum(this.IxFitted, 2), [2, 3, 1]);
         
     case {'sample', 'fitted'}
-        answ = cell(1, nAlt);
-        for ialt = 1 : nAlt
+        answ = cell(1, numVariants);
+        for ialt = 1 : numVariants
             answ{ialt} = this.Range(this.IxFitted(1, :, ialt));
         end
         
@@ -54,18 +54,30 @@ switch query
     case 'comment'
         % Bkw compatibility only; use comment(this) directly.
         answ = comment(this);
+
+    case 'endogenousnames'
+        answ = this.EndogenousNames;
         
     case {'ynames', 'ylist'}
-        answ = this.NamesEndogenous;
+        answ = cellstr(this.EndogenousNames);
         
+    case 'residualnames'
+        answ = this.ResidualNames;
+
     case {'enames', 'elist'}
-        answ = this.NamesErrors;
+        answ = cellstr(this.ResidualNames);
+
+    case 'exogenousnames'
+        answ = this.ExogenousNames;
         
     case {'xnames', 'xlist'}
-        answ = this.NamesExogenous;
+        answ = cellstr(this.ExogenousNames);
+
+    case 'conditioningnames'
+        answ = this.ConditioningNames;
 
     case {'inames', 'ilist'}
-        answ = this.NamesConditioning;
+        answ = cellstr(this.ConditioningNames);
 
     case {'ieqtn'}
         answ = this.IEqtn;
@@ -75,7 +87,7 @@ switch query
         % inputs/outputs.
         answ = [this.Zi(:, 2:end), this.Zi(:, 1)];
         
-    case {'names', 'list'}
+    case {'allnames', 'names', 'list'}
         answ = this.AllNames;
         
     case {'numvariants', 'nalt'}

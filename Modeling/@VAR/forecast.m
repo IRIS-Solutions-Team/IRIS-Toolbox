@@ -56,9 +56,9 @@ function outp = forecast(this, inp, range, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
-% Panel VAR.
-if ispanel(this)
-    outp = mygroupmethod(@forecast, this, inp, range, varargin{:});
+% Panel VAR
+if this.IsPanel
+    outp = runGroups(@forecast, this, inp, range, varargin{:});
     return
 end
 
@@ -79,18 +79,22 @@ pp.parse(this, inp, range, cond);
 % Parse options.
 opt = passvalopt('VAR.forecast',varargin{1:end});
 
+range = double(range);
+
 %--------------------------------------------------------------------------
 
 ny = size(this.A, 1);
 p = size(this.A, 2) / max(ny, 1);
-nAlt = size(this.A, 3);
-kx = length(this.NamesExogenous);
-ni = size(this.Zi, 1);
+nAlt = countVariants(this);
+kx = this.NumEndogenous;
+ni = this.NumConditioning;
 isX = kx>0;
 
 if isempty(range)
-    utils.warning('VAR:forecast', ...
-        'Forecast range is empty.');
+    exception.warning([
+        "VAR:EmptyForecastRange"
+        "Forecast range is empty."
+    ]);
     if opt.meanonly
         inp = [ ];
     else
@@ -104,16 +108,16 @@ if range(1)>range(end)
     % Go backward in time.
     isBackcast = true;
     this = backward(this);
-    xRange = range(end) : range(1)+p;
+    extdRange = range(end) : range(1)+p;
     range = range(end) : range(1);
 else
     isBackcast = false;
-    xRange = range(1)-p : range(end);
+    extdRange = range(1)-p : range(end);
 end
 
 % Include pre-sample.
-req = datarequest('y* x* e', this, inp, xRange);
-xRange = req.Range;
+req = datarequest('y* x* e', this, inp, extdRange);
+extdRange = req.Range;
 y = req.Y;
 x = req.X;
 e = req.E;
@@ -137,10 +141,12 @@ e(isnan(e)) = 0;
 condE(isnan(condE)) = 0;
 if any( condE(:)~=0 )
     if any( e(:)~=0 )
-        utils.error('VAR:forecast', ...
-            ['Changes in residual means can be entered either ', ...
-            'in the input database or in the conditioning database, ', ...
-            'but not in both.']);
+        exception.error([
+            "VAR:InconsistentInputResiduals"
+            "Changes in the mean values of residuals can be entered either " 
+            "in the input database or in the conditioning database, " 
+            "but not in both."
+        ]);
     else
         e = condE;
     end
@@ -154,8 +160,8 @@ if isBackcast
     condI = flip(condI, 2);
 end
 
-nPer = length(range);
-nXPer = length(xRange);
+numPeriods = length(range);
+numExtdPeriods = length(extdRange);
 nDataY = size(y, 3);
 nDataX = size(x, 3);
 nDataE = size(e, 3);
@@ -172,11 +178,11 @@ y0 = y0(:,p:-1:1,:);
 y0 = reshape(y0(:), ny*p,size(y0, 3));
 
 % Preallocate output data.
-Y = nan(ny, nXPer, nLoop);
-X = nan(kx, nXPer, nLoop);
-E = nan(ny, nXPer, nLoop);
-P = zeros(ny, ny, nXPer, nLoop);
-I = nan(ni, nXPer, nLoop);
+Y = nan(ny, numExtdPeriods, nLoop);
+X = nan(kx, numExtdPeriods, nLoop);
+E = nan(ny, numExtdPeriods, nLoop);
+P = zeros(ny, ny, numExtdPeriods, nLoop);
+I = nan(ni, numExtdPeriods, nLoop);
 
 Zi = this.Zi;
 if isempty(Zi)
@@ -233,15 +239,15 @@ for iLoop = 1 : nLoop
     end
 
     % Collect all deterministic terms (constant and exogenous inputs).
-    iKJ = zeros(ny, nPer);
+    iKJ = zeros(ny, numPeriods);
     if ~opt.Deviation
-        iKJ = iKJ + repmat(iK, 1, nPer);
+        iKJ = iKJ + repmat(iK, 1, numPeriods);
     end    
     if isX
         iKJ = iKJ + iJ*iX;
     end
     
-    % Run Kalman filter and smoother.
+    % Run Kalman filter and smoother
     [~,~, iE,~, iY, iP] = ...
         timedom.varsmoother(iA, iB, iKJ, Z, D, iOmg, ...
         [ ], [iCondY;iCondI], iE, iY0,0,s);
@@ -276,7 +282,7 @@ data = [Y; X; E; I];
 
 % Output data for endougenous variables, residuals, and instruments.
 if opt.meanonly
-    outp = myoutpdata(this, xRange, data, [ ], allNames);
+    outp = myoutpdata(this, extdRange, data, [ ], allNames);
     if opt.dboverlay
         if ~isfield(inp, 'mean')
             outp = dboverlay(inp, outp);
@@ -285,7 +291,7 @@ if opt.meanonly
         end
     end
 else
-    outp = myoutpdata(this, xRange, data, P, allNames);
+    outp = myoutpdata(this, extdRange, data, P, allNames);
     if opt.dboverlay
         if ~isfield(inp, 'mean')
             outp.mean = dboverlay(inp, outp.mean);
@@ -295,4 +301,5 @@ else
     end    
 end
 
-end
+end%
+

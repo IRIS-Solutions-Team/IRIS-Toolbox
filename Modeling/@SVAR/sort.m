@@ -130,7 +130,7 @@ This = subsalt(This,Inx);
 
 if isData
     e = e(:,:,Inx);
-    Data = myoutpdata(This, rng, e, [ ], This.NamesErrors, Data);
+    Data = myoutpdata(This, rng, e, [ ], This.ResidualNames, Data);
 end
 
 

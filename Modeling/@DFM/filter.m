@@ -155,16 +155,16 @@ if opt.MeanOnly
 end
 
 if nargout>1
-    lsy = get(this, 'YNames');
+    endogenousNames = this.EndogenousNames;
     [y, Py] = DFM.destdize(y, this.Mean, this.Std, Py);
-    d = myoutpdata(this, range, y, Py, lsy);
+    d = myoutpdata(this, range, y, Py, endogenousNames);
 end
 
 if nargout>2
     % Common components.
     [cc, Pc] = DFM.cc(this.C, x(1:nx, :, :), Px(1:nx, 1:nx, :, :));
     [cc, Pc] = DFM.destdize(cc, this.Mean, this.Std, Pc);
-    cc = myoutpdata(this, range, cc, Pc, lsy);
+    cc = myoutpdata(this, range, cc, Pc, endogenousNames);
 end
 
 if nargout>3
@@ -173,7 +173,7 @@ end
 
 if nargout>4
     uu = DFM.destdize(uu, 0, this.Std);
-    uu = myoutpdata(this, range, uu, NaN, lsy);
+    uu = myoutpdata(this, range, uu, NaN, endogenousNames);
 end
 
 if nargout>5

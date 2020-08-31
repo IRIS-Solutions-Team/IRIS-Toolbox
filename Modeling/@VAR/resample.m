@@ -54,9 +54,9 @@ function [outputData, draws] = resample(this, inp, range, numDraws, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-% Panel VAR.
-if ispanel(this)
-    outputData = mygroupmethod(@resample, this, inp, range, numDraws, varargin{:});
+% Panel VAR
+if this.IsPanel
+    outputData = runGroups(@resample, this, inp, range, numDraws, varargin{:});
     return
 end
 
@@ -78,7 +78,7 @@ end
 %--------------------------------------------------------------------------
 
 ny = size(this.A, 1);
-kx = length(this.NamesExogenous);
+kx = length(this.ExogenousNames);
 p = size(this.A, 2) / max(ny, 1);
 nv = size(this.A, 3);
 
@@ -217,10 +217,10 @@ if any(ixNanResid)
 end
 
 % Return only endogenous variables, not shocks.
-names = [this.NamesEndogenous, this.NamesErrors];
+names = [this.EndogenousNames, this.ResidualNames];
 data = [Y; E];
 if kx>0
-    names = [names, this.NamesExogenous];
+    names = [names, this.ExogenousNames];
     data = [data; repmat(x, 1, 1, numDraws)];
 end
 outputData = myoutpdata(this, extendedRange, data, [ ], names);

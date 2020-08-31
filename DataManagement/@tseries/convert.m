@@ -280,7 +280,7 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
                 if opt.RemoveNaN
                     inxToKeep = ~isnan(col__);
                     col__ = col__(inxToKeep);
-                    if isnumeric(method__)
+                    if isnumeric(method__) && ~isempty(method__)
                         method__ = method__(inxToKeep);
                     end
                 end
@@ -288,7 +288,7 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
                 if ~isequal(opt.Select, Inf)
                     try
                         col__ = col__(opt.Select);
-                        if isnumeric(method__)
+                        if isnumeric(method__) && ~isempty(method__)
                             method__ = method__(opt.Select);
                         end
                     catch
@@ -301,7 +301,9 @@ function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq,
                     continue
                 end
 
-                if isnumeric(method__)
+                if isempty(method__)
+                    newAdd(1, col) = col__;
+                elseif isnumeric(method__)
                     try %#ok<TRYNC>
                         newAdd(1, col) = method__*col__;
                     end

@@ -69,11 +69,12 @@
 %
 %
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
     
 classdef (CaseInsensitiveProperties=true) ...
     DFM < BaseVAR
+
     properties
         % C  Factor loading matrix
         C = double.empty(0)
@@ -84,7 +85,8 @@ classdef (CaseInsensitiveProperties=true) ...
         % Std  Std deviations of observed variables used to standardized their data
         Std = double.empty(0, 1)
 
-        SingVal = [ ] % Singular values of the principal components.
+        % SingVal   Singular values of the principal components
+        SingVal = [ ] 
 
         % B  Impact matrix of orthonormalized errors in factor VAR
         B = double.empty(0)
@@ -98,8 +100,8 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
     properties (Dependent)
-        % NamesObserved  Names of observed variables
-        NamesObserved
+        % ObservedNames  Names of observed variables in DMF object
+        ObservedNames
     end
     
     
@@ -120,7 +122,6 @@ classdef (CaseInsensitiveProperties=true) ...
     
     
     methods (Access=protected, Hidden)
-        varargout = myny(varargin)
         varargout = getEstimationData(varargin)
         varargout = outputFactorData(varargin)
     end
@@ -171,23 +172,23 @@ classdef (CaseInsensitiveProperties=true) ...
             %     f = estimate(f, d, range);
             %
             
-            % -IRIS Macroeconomic Modeling Toolbox
-            % -Copyright (c) 2007-2020 IRIS Solutions Team
+            % -[IrisToolbox] for Macroeconomic Modeling
+            % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
             
             this = this@BaseVAR(varargin{:});
-            if length(varargin)==1
+            if numel(varargin)==1
                 if isa(varargin{1}, 'DFM')
                     this = varargin{1};
                     return
                 end
             end
-        end
+        end%
     end
 
 
     methods
-        function list = get.NamesObserved(this)
-            list = this.YNames;
-        end
+        function list = get.ObservedNames(this)
+            list = this.EndogenousNames;
+        end%
     end
 end

@@ -78,7 +78,7 @@ opt = parser.Options;
 ny = size(this.A, 1);
 p = size(this.A, 2) / max(ny, 1);
 nv = size(this.A, 3);
-nx = length(this.NamesExogenous);
+nx = length(this.ExogenousNames);
 isX = nx>0;
 isConst = ~opt.Deviation;
 
@@ -289,7 +289,7 @@ return
         if  ~any(inxMissingNames)
             return
         end
-        endogenousNames = this.NamesEndogenous;
+        endogenousNames = this.EndogenousNames;
         thisWarning = { 'VAR:MissingInitial'
                         'Some initial conditions are missing from input databank for this variable: %s' };
         throw( exception.Base(thisWarning, 'warning'), ...

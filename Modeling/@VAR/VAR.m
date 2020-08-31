@@ -52,14 +52,14 @@
 %   EigenValues - Eigenvalues of VAR transition matrix
 %   EigenStability - Stability indicator for each eigenvalue
 %   Range - Estimation range entered by user
-%   IndexFitted - Logical index of dates in estimation range acutally fitted
-%   NamesEndogenous - Names of endogenous variables
-%   NamesErrors - Names of errors
-%   NamesExogenous - Names of exogenous variables
-%   NamesGroups - Names of groups in panel VARs
-%   NamesConditioning - Names of conditioning instruments
+%   InxFitted - Logical index of dates in estimation range acutally fitted
+%   EndogenousNames - Names of endogenous variables
+%   ResidualNames - Names of errors
+%   ExogenousNames - Names of exogenous variables
+%   GroupNames - Names of groups in panel VARs
+%   ConditioningNames - Names of conditioning instruments
 %   NumEndogenous - Number of endogenous variables
-%   NumErrors - Number of errors
+%   NumResiduals - Number of errors
 %   NumExogenous - Number of exogenous variables
 %   NumGroups - Number of groups in panel VARs
 %   NumConditioning - Number of conditioning instruments
@@ -76,7 +76,6 @@
 %   get - Query VAR object properties
 %   testCompatible - True if two VAR objects can occur together on the LHS and RHS in an assignment
 %   isexplosive - True if any eigenvalue is outside unit circle
-%   ispanel - True for panel VAR objects
 %   isstationary - True if all eigenvalues are within unit circle
 %   length - Number of parameter variants in VAR object
 %   mean - Asymptotic mean of VAR process
@@ -138,6 +137,7 @@
     
 classdef (CaseInsensitiveProperties=true) VAR ...
     < BaseVAR ...
+    & matlab.mixin.CustomDisplay ...
     & shared.DatabankPipe
 
     properties
@@ -230,8 +230,7 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = getEstimationData(varargin)
         varargout = prepareLsqWeights(varargin)
         varargout = myisvalidinpdata(varargin)
-        varargout = myny(varargin)
-        varargout = myprealloc(varargin)
+        varargout = preallocate(varargin)
         varargout = myrngcmp(varargin);
         varargout = subsalt(varargin)
         varargout = size(varargin)
@@ -257,95 +256,96 @@ classdef (CaseInsensitiveProperties=true) VAR ...
     methods
         function this = VAR(varargin)
 % VAR  Create new empty reduced-form VAR object.
+%{
+% Syntax for Plain VAR and VAR with Exogenous Variables
+%--------------------------------------------------------------------------
+%
+%     V = VAR(EndogenousNames)
+%     V = VAR(EndogenousNames, "Exogenous", ExogenousNames)
 %
 %
-% ## Syntax for Plain VAR and VAR with Exogenous Variables ##
+% Syntax for Panel VAR and Panel VAR with Exogenous Variables
+%--------------------------------------------------------------------------
 %
-%     V = VAR(YNames)
-%     V = VAR(YNames, 'Exogenous=', XNames)
-%
-%
-% ## Syntax for Panel VAR and VAR with Exogenous Variables ##
-%
-%     V = VAR(YNames, 'Groups=', GroupNames)
-%     V = VAR(YNames, 'Exogenous=', XNames, 'Groups=', GroupNames)
+%     V = VAR(EndogenousNames, "Groups", GroupNames)
+%     V = VAR(EndogenousNames, "Exogenous", ExogenousNames, "Groups", GroupNames)
 %
 %
-% ## Output Arguments ##
-%
+% Output Arguments
+%--------------------------------------------------------------------------
 %
 % __`V`__ [ VAR ] –
-% >
-% New empty VAR object.
+%
+%>    New empty VAR model object.
 %
 %
-% __`YNames`__ [ cellstr | char | function_handle ] –
-% >
-% Names of endogenous variables.
+% __`EndogenousNames`__ [ string ]
+% 
+%>    Names of endogenous variables.
 %
 %
-% __`XNames`__ [ cellstr | char | function_handle ] –
-% >
-% Names of exogenous inputs.
+% __`ExogenousNames`__ [ string ]
+%
+%>    Names of exogenous inputs.
 %
 %
-% __`GroupNames`__ [ cellstr | char | function_handle ] –
-% >
-% Names of groups for
-% panel VAR estimation.
+% __`GroupNames`__ [ string ] 
+% 
+%>    Names of groups for panel VAR estimation.
 %
 %
-% ## Options ##
+% Options
+%--------------------------------------------------------------------------
+%
+% __`Exogenous=[ ]` [ string ] 
+% 
+%>    Names of exogenous regressors; one of the names can be `!ttrend`, a
+%>    linear time trend, which will be created automatically each time
+%>    input data are required, and then included in the output database
+%>    under the name `ttrend`.
 %
 %
-% __`Exogenous=[ ]` [ cellstr | string | empty ] 
-% >
-% Names of exogenous regressors;
-% one of the names can be `!ttrend`, a linear time trend, which will be
-% created automatically each time input data are required, and then
-% included in the output database under the name `ttrend`.
+% __`Groups=[ ]`__ [ string ] 
+%
+%>    Names of groups for panel VAR estimation.
 %
 %
-% __`Groups=[ ]`__ [ cellstr | string | empty ] 
-% >
-% Names of groups for panel VAR estimation.
+% __`Intercept=true`___ [ `true` | `false` ] 
+% 
+%>    Include the intercept in the VAR model.
 %
 %
-% __`Intercept=true` [ `true` | `false` ] 
-% >
-% Include the intercept in the VAR model.
+% __`Order=1`__ [ numeric ] 
+% 
+%>    Order of the VAR model, i.e. the number of lags of endogenous
+%>    variables included in estimation.
 %
 %
-% __`Order=1` [ numeric ] 
-% >
-% Order of the VAR model, i.e. the number of lags of endogenous
-% variables included in estimation.
-%
-%
-% ## Description ## 
-%
+% Description
+%-------------------------------------------------------------------------- 
 %
 % Create a new empty VAR object. The VAR constructor is usually
 % followed by an [`estimate`](VAR/estimate) command to estimate
 % the coefficient matrices in the VAR object using some data.
 %
 %
-% ## Example ##
-%
+% Example
+%--------------------------------------------------------------------------
 %
 % To estimate a VAR, first create an empty VAR object specifying the
 % variable names, and then run the [VAR/estimate](VAR/estimate) function on
 % it, e.g.
 %
-%     v = VAR({'x', 'y', 'z'});
+%     v = VAR(["x", "y", "z"]);
 %     [v, d] = estimate(v, d, range);
 %
 % where the input database `d` is expected to include at least the time
 % series `d.x`, `d.y`, `d.z`.
 %
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 %--------------------------------------------------------------------------
             
@@ -360,10 +360,8 @@ classdef (CaseInsensitiveProperties=true) VAR ...
                 this = struct2obj(this, varargin{1});
                 return
             end
-        end
+        end%
     end
-
-
 
 
     methods
@@ -372,3 +370,4 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         end%
     end
 end
+
