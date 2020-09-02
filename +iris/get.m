@@ -27,9 +27,6 @@ function varargout = get(varargin)
 % [`irisset`](config/irisset), plus the following non-modifiable ones
 % (these cannot be changed by the user):
 %
-% * `'UserConfigPath'` [ char ] - The path to the user configuration file
-% called by the last executed `iris.startup`.
-%
 % * `'IrisRoot'` [ char ] - The current IRIS root directory.
 %
 % * `'Version'` [ char ] - The current IRIS version string.

@@ -219,9 +219,9 @@ function options = locallyResolveInputOptions(varargin)
             options.SeriesConstructor = @tseries;
         elseif contains(n, "Series")
             options.SeriesConstructor = @Series;
-        elseif contains(n, ["NoIdChk", "NoIdCheck"])
+        elseif contains(n, ["NoIdChk", "NoIdCheck"], "IgnoreCase", true)
             options.CheckId = false;
-        elseif contains(n, "NoTex")
+        elseif contains(n, "NoTex", "IgnoreCase", true)
             options.TeX = false;
         end
     end

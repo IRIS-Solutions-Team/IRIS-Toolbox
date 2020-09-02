@@ -26,9 +26,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
                                Frequency.MONTHLY
                                Frequency.WEEKLY ]
 
-        % UserConfigPath  Path to the user config file (not customizable)
-        UserConfigPath = ''
-
         % Fred API 
         FredApiKey = "951f01181da86ccb9045ce8716f82f43"
         %)
@@ -83,7 +80,7 @@ classdef (CaseInsensitiveProperties=true) Configuration
         PsToPdfPath = [ ] 
 
         % GhostscriptPath  Path to the GS executable
-        GhostscriptPath = iris.Configuration.DEFAULT_GHOSTSCRIPT_PATH
+        GhostscriptPath = [ ]
 
         % DefaultTimeSeriesConstructor  Function handle to default time series constructor
         DefaultTimeSeriesConstructor = @Series
@@ -180,8 +177,6 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
         DEFAULT_SERIES_MAX_WSPACE = 5
 
-        DEFAULT_GHOSTSCRIPT_PATH = iris.Configuration.findGhostscript( )
-
         NUM_FREQUENCIES = numel(iris.Configuration.DEFAULT_FREQ)
 
         DATE_FORMAT_STRUCT_FIELDS = { 'ii'
@@ -200,22 +195,11 @@ classdef (CaseInsensitiveProperties=true) Configuration
 
 
     methods function this = Configuration(varargin)
-            this.UserConfigPath = which("irisuserconfig.m");
-
-            if isempty(varargin) || ~isa(varargin{1}, "struct") || varargin{1}.TeX
+            if ~isempty(varargin) && isa(varargin{1}, "struct") ...
+                && (isfield(varargin{1}, "TeX") && isequal(varargin{1}.TeX, true))
                 paths = iris.Configuration.findTexFiles( );
                 [this.PdfLatexPath, this.EpsToPdfPath, this.PsToPdfPath] = paths{:};
-            end
-
-            if ~isempty(this.UserConfigPath)
-                this = irisuserconfig(this);
-                thisWarning = [ 
-                    "IrisToolbox:Deprecated"
-                    "Using <irisuserconfig.m> file to modify IrisToolbox configuration "
-                    "is deprecated and will be discontinued in a future release. "
-                    "Use the standard Matlab <startup.m> file with iris.set( ) instead. "
-                ];
-                warning(thisWarning(1), join(thisWarning(2:end), newline));
+                this.GhostscriptPath = iris.Configuration.findGhostscript( );
             end
         end%
 

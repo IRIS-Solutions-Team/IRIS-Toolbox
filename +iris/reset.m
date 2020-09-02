@@ -10,6 +10,7 @@ function irisConfig = reset(options)
 if nargin==0
     options.SeriesConstructor = @Series;
     options.CheckId = true;
+    options.TeX = false;
 end
 
 %--------------------------------------------------------------------------
