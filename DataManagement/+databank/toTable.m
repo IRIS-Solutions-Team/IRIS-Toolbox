@@ -80,7 +80,7 @@ if isempty(pp)
     pp = extend.InputParser('databank/toTimetable');
     addRequired(pp, 'inputDb', @validate.databank);
     addOptional(pp, 'names', @all, @(x) isequal(x, @all) || isstring(x) || iscellstr(x) || ischar(x));
-    addOptional(pp, 'dates', "longRange", @(x) (isstring(x) && matches(x, ["longRange", "shortRange", "head", "tail"], "ignoreCase", true) || DateWrapper.validateProperRangeInput));
+    addOptional(pp, 'dates', "longRange", @(x) (isstring(x) && startsWith(x, ["longRange", "shortRange", "head", "tail"], "ignoreCase", true) || DateWrapper.validateProperRangeInput));
     addParameter(pp, 'Timetable', false, @(x) isequal(x, true) || isequal(x, false));
 end
 %)
@@ -127,10 +127,10 @@ end%
 function [dates, transform] = locallyResolveDates(dates)
     transform = [ ];
     if isstring(dates)
-        if matches(dates, "head", "ignoreCase", true)
+        if startsWith(dates, "head", "ignoreCase", true)
             transform = @head;
             dates = "longRange";
-        elseif matches(dates, "tail", "ignoreCase", true)
+        elseif startsWith(dates, "tail", "ignoreCase", true)
             transform = @tail;
             dates = "longRange";
         end

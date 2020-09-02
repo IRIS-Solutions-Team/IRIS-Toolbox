@@ -360,7 +360,7 @@ return
         qty = insert(qty, add, TYPE(2), 'first');
         if isFloor
             floorParameterName = string(model.Quantity.FLOOR_PREFIX) + string(optimalOpt.Floor);
-            inxFloorParameter = matches(qty.Name, floorParameterName);
+            inxFloorParameter = startsWith(qty.Name, model.Quantity.FLOOR_PREFIX);
             % Floor parameter may be declared by the user
             if any(inxFloorParameter)
                 posFloorParameter = find(inxFloorParameter);

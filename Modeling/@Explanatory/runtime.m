@@ -23,7 +23,7 @@ else
         if ~this__.IsIdentity
             this__.Runtime.PosResidualInDataBlock = textual.locate(this__.ResidualName, dataBlock.Names);
         end
-        if matches(context, "simulate", "ignoreCase", true)
+        if startsWith(context, "simulate", "ignoreCase", true)
             this__.Runtime.PosUpdateInPlainData = textual.locate(this__.LhsName, this__.VariableNames);
             this__.Runtime.PosUpdateInDataBlock = textual.locate(this__.LhsName, dataBlock.Names);
         end

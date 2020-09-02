@@ -51,11 +51,11 @@ function shift = locallyResolveShift(dates, inputFreq, shift)
                 "for time series of INTEGER date frequency. "
             ], "error"));
         end
-        if matches(shift, "YoY", "ignoreCase", true)
+        if startsWith(shift, "YoY", "ignoreCase", true)
             shift = -inputFreq;
-        elseif matches(shift, "EoPY", "ignoreCase", true)
+        elseif startsWith(shift, "EoPY", "ignoreCase", true)
             shift = locallyResolveShifts(dates, 0);
-        elseif matches(shift, "BoY", "ignoreCase", true)
+        elseif startsWith(shift, "BoY", "ignoreCase", true)
             shift = locallyResolveShifts(dates, -1);
         end
     end

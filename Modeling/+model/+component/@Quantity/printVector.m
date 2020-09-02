@@ -15,7 +15,7 @@ output = output + shiftString;
 inxLog = this.IxLog(pos);
 
 if any(inxLog)
-    if matches(string(logStyle), "log()")
+    if startsWith(string(logStyle), "log()")
         output(inxLog) = "log(" + output(inxLog) + ")";
     else
         output(inxLog) = string(logStyle) + output(inxLog);

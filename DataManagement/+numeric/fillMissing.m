@@ -44,13 +44,14 @@ end%
 
 function data = locallyFillTrend(data, inxMissing, method)
     method = string(method);
-    if matches(method, "regressLogTrend", "ignoreCase", true)
+    needsLog = startsWith(method, "regressLogTrend", "ignoreCase", true);
+    if needsLog
         data = log(data);
     end
 
     numPeriods = size(data, 1);
     M = ones(numPeriods, 1);
-    if matches(method, ["regressTrend", "regressLogTrend"], "ignoreCase", true)
+    if startsWith(method, ["regressTrend", "regressLogTrend"], "ignoreCase", true)
         meanDiff = mean(diff(data, 1, 1), 1, "OmitNaN");
         trend = transpose(0:numPeriods-1) * meanDiff;
         M = [M, trend];
@@ -59,7 +60,7 @@ function data = locallyFillTrend(data, inxMissing, method)
     fit = M * (M(~inxMissing, :)\data(~inxMissing, :));
     data(inxMissing) = fit(inxMissing, :);
 
-    if matches(method, "regressLogTrend", "ignoreCase", true)
+    if needsLog
         data = exp(data);
     end
 end%

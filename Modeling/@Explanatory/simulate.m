@@ -536,8 +536,9 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     range = testCase.TestData.Range;
     db.res_a = Series(range, randn(numel(range), nv));
     s = simulate(m, db, range);
+    nb = size(s.b, 2);
     for v = 1 : nv
-        exp_res_a = s.a{:,v} - (s.b{:,min(v,end)} + rho(v)*(s.a{-1}{:,v} - s.b{:,min(v,end)}) - 0);
+        exp_res_a = s.a{:,v} - (s.b{:,min(v,nb)} + rho(v)*(s.a{-1}{:,v} - s.b{:,min(v,nb)}) - 0);
         assertEqual(testCase, exp_res_a(range), s.res_a(range, v), 'absTol', 1e-12);
     end
     exp_z = s.x{range} + s.a{-1}{range};
@@ -572,8 +573,9 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     range = testCase.TestData.Range;
     db.res_a = Series(range, randn(numel(range), nv));
     s = simulate(m, db, range);
+    nb = size(s.b, 2);
     for v = 1 : nv
-        exp_res_a = s.a{:,v} - (s.b{:,min(v,end)} + rho(v)*(s.a{-1}{:,v} - s.b{:,min(v,end)}) - 0);
+        exp_res_a = s.a{:,v} - (s.b{:,min(v,nb)} + rho(v)*(s.a{-1}{:,v} - s.b{:,min(v,nb)}) - 0);
         assertEqual(testCase, exp_res_a(range), s.res_a(range, v), 'absTol', 1e-12);
     end
     exp_z = s.x{range} + s.a{-1}{range};

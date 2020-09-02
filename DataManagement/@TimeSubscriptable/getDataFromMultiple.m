@@ -44,18 +44,18 @@ if ~all(freq==freq(1))
     ], 'error'));
 end
 
-if matches(dates, "longRange", "ignoreCase", true)
+if startsWith(dates, "longRange", "ignoreCase", true)
     from = min(startDate); 
     to = max(endDate); 
-elseif matches(dates, "shortRange", "ignoreCase", true)
+elseif startsWith(dates, "shortRange", "ignoreCase", true)
     from = max(startDate); 
     to = min(endDate); 
 else
-    throw(exception.Base([
+    exception.error([
         "Series:NonhomogeneousFrequency"
         "Invalid date range specification; it needs to be "
-        "one of { DateWrapper, ""longRange"", ""shortRange"" }. "
-    ], 'error'));
+        "one of { dater, ""longRange"", ""shortRange"" }. "
+    ]);
 end
 
 for i = 1 : numSeries

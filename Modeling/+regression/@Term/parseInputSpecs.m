@@ -21,7 +21,7 @@ inputSpecs = erase(string(inputSpecs), [" ", "\t"]);
 while startsWith(inputSpecs, "+")
     inputSpecs = eraseBetween(inputSpecs, 1, 1);
 end
-isLhs = matches(type, "lhs", "ignoreCase", true);
+isLhs = lower(type)=="lhs";
 
 
 %

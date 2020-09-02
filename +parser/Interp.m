@@ -162,6 +162,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
 
 %% Test Unicode Brackets
 
+if ~verLessThan("matlab", "9.9")
     p = parser.Preparser( );
     p.Assigned = struct('A', 1);
     p.Code = ' aaaa « A+1 » ';
@@ -171,6 +172,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     act = parser.Interp.parse(p, @auto);
     exp = ' aaaa 2 ';
     assertEqual(testCase, act, exp);
+end
 
 
 %% Test Square Brackets
@@ -194,7 +196,7 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     act = parser.Interp.parse(p);
     exp = ' aaaa 2 ';
     assertEqual(testCase, act, exp);
-    act = parser.Interp.parse(p, @auto)
+    act = parser.Interp.parse(p, @auto);
     exp = ' aaaa 2 ';
     assertEqual(testCase, act, exp);
 

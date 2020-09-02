@@ -203,7 +203,7 @@ for q = find(inxToEstimate)
         inxColumns__ = dataBlock.InxBaseRange;
         inxFiniteColumns = all(isfinite([rhs__; lhs__]), 1);
         inxMissingColumns(q, :, v) = inxColumns__ & ~inxFiniteColumns;
-        if matches(opt.MissingObservations, ["warning", "silent"], "ignoreCase", true)
+        if startsWith(opt.MissingObservations, ["warning", "silent"], "ignoreCase", true)
             inxColumns__ = inxColumns__ & inxFiniteColumns;
         elseif any(inxMissingColumns(q, :, v))
             continue
@@ -403,10 +403,14 @@ function [gamma, rm] = locallyEstimateResidualModel(y, X, fixed, rm, optim)
         function obj = hereObjectiveFunc(p)
             rm = update(rm, p);
             F = filterMatrix(rm, numObservations);
-            FXt = F\Xt;
             Fyt = F\yt;
-            beta = lscov(FXt, Fyt);
-            obj = Fyt - FXt*beta;
+            if isempty(Xt)
+                obj = Fyt;
+            else
+                FXt = F\Xt;
+                beta = lscov(FXt, Fyt);
+                obj = Fyt - FXt*beta;
+            end
         end%
 end%
 

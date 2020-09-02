@@ -135,7 +135,7 @@ if isempty(pp)
     addRequired(pp, 'InputSeries', @(x) isa(x, 'TimeSubscriptable'));
     addRequired(pp, 'NewFreq', @Frequency.validateProperFrequency);
 
-    addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || matches(x, "first", "ignoreCase", true) || matches(x, "last", "ignoreCase", true));
+    addParameter(pp, {'ConversionMonth', 'StandinMonth'}, 1, @(x) (isnumeric(x) && isscalar(x) && x==round(x)) || startsWith(x, "first", "ignoreCase", true) || startsWith(x, "last", "ignoreCase", true));
     addParameter(pp, {'RemoveNaN', 'IgnoreNaN', 'OmitNaN'}, false, @(x) isequal(x, true) || isequal(x, false));
     addParameter(pp, 'Missing', NaN, @(x) (ischar(x) && any(strcmpi(x, {'Last', 'Previous'}))) || validate.numericScalar(x));
     addParameter(pp, {'Method', 'Function'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || validate.stringScalar(x) || isnumeric(x));
@@ -180,7 +180,7 @@ else
         throw( exception.Base('Series:CannotConvertWeeklyToDaily', 'error') )
     end
     % Interpolate matching sum or average
-    if validate.stringScalar(opt.Method) && matches(opt.Method, ["quadSum", "quadAvg", "quadMean"], "ignoreCase", true)
+    if validate.stringScalar(opt.Method) && startsWith(opt.Method, ["quadSum", "quadAvg", "quadMean"], "ignoreCase", true)
         conversionFunc = @locallyInterpolateAndMatch;
     else
         % Built-in interp1
@@ -202,13 +202,13 @@ end%
 
 function [newData, newStart] = locallyAggregate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     charMethod = char(opt.Method);
-    if matches(charMethod, "Default", "ignoreCase", true)
+    if startsWith(charMethod, "Default", "ignoreCase", true)
         opt.Method = @mean;
-    elseif matches(charMethod, "Last", "ignoreCase", true)
+    elseif startsWith(charMethod, "Last", "ignoreCase", true)
         opt.Method = "last";
-    elseif matches(charMethod, "First", "ignoreCase", true)
+    elseif startsWith(charMethod, "First", "ignoreCase", true)
         opt.Method = "first";
-    elseif matches(charMethod, "Random", "ignoreCase", true)
+    elseif startsWith(charMethod, "Random", "ignoreCase", true)
         opt.Method = "random";
     end
 
@@ -330,11 +330,11 @@ end%
 
 function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFreq, newFreq, opt)
     %(
-    if isequal(opt.Method, @default) || matches(opt.Method, "default", "ignoreCase", true)
+    if isequal(opt.Method, @default) || startsWith(opt.Method, "default", "ignoreCase", true)
         opt.Method = "pchip";
-    elseif matches(opt.Method, "writeToBeginning", "ignoreCase", true)
+    elseif startsWith(opt.Method, "writeToBeginning", "ignoreCase", true)
         opt.Method = "first";
-    elseif matches(opt.Method, "writeToEnd", "ignoreCase", true)
+    elseif startsWith(opt.Method, "writeToEnd", "ignoreCase", true)
         opt.Method = "last";
     end
 
@@ -373,7 +373,7 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
 
     oldData = getDataFromTo(this, oldStart, oldEnd);
     oldSize = size(oldData);
-    if matches(opt.Method, ["flat", "first", "last"], "ignoreCase", true)
+    if startsWith(opt.Method, ["flat", "first", "last"], "ignoreCase", true)
         newData = hereFlat( );
     else
         newData = hereInterpolate( );
@@ -404,13 +404,13 @@ function [newData, newStart] = locallyInterpolate(this, oldStart, oldEnd, oldFre
             newData = nan(newSize);
             oldRange100 = round(100*oldRange);
             newConverted100 = round(100*newConverted);
-            if matches(opt.Method, "flat", "ignoreCase", true)
+            if startsWith(opt.Method, "flat", "ignoreCase", true)
                 testPeriods = true(size(newConverted));
             else
                 [~, newPeriods] = dat2ypf(newRange);
-                if matches(opt.Method, "last", "ignoreCase", true)
+                if startsWith(opt.Method, "last", "ignoreCase", true)
                     testPeriods = newPeriods==newFreq;
-                elseif matches(opt.Method, "first", "ignoreCase", true)
+                elseif startsWith(opt.Method, "first", "ignoreCase", true)
                     testPeriods = newPeriods==1;
                 end
             end
@@ -452,12 +452,13 @@ function [newData, newStart] = locallyInterpolateAndMatch(this, oldStart, oldEnd
 
     [newData, flag] = interpolateAndMatchEval(oldData, n);
     if ~flag
-        utils.warning('tseries:convert', ...
-            ['Cannot compute ''%s'' interpolation for series ', ...
-            'with in-sample NaNs.'], ...
-            opt.Method);
+        exception.warning([
+            "Series:CannotInterpolateInsampleNaNs"
+            "Cannot calculate the ""%s"" interpolation the time series "
+            "with in-sample missing observations. "
+        ], opt.Method);
     end
-    if matches(opt.Method, ["quadAvg", "quadMean"], "ignoreCase", true)
+    if startsWith(opt.Method, ["quadAvg", "quadMean"], "ignoreCase", true)
         newData = newData*n;
     end
     newData = reshape(newData, [size(newData, 1), oldSize(2:end)]);
