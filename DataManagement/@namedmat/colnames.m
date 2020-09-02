@@ -1,4 +1,4 @@
-function ColNames = colnames(This)
+function ColNames = colnames(this)
 % colnames  Names of columns in namedmat object.
 %
 % Syntax
@@ -29,6 +29,7 @@ function ColNames = colnames(This)
 
 %--------------------------------------------------------------------------
 
-ColNames = This.ColNames;
+ColNames = this.ColNames;
 
-end
+end%
+

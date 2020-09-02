@@ -38,10 +38,10 @@
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
-classdef namedmat < double % >>>>> MOSW classdef namedmat
+classdef namedmat < double 
     properties (SetAccess = protected)
-        RowNames = cell.empty(1, 0);
-        ColNames = cell.empty(1, 0);
+        RowNames (1, :) string = string.empty(1, 0)
+        ColNames (1, :) string = string.empty(1, 0)
     end
 
 
@@ -108,8 +108,8 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
                 X = double.empty(0, 0);
             end
             this = this@double(X);
-            this.RowNames = repmat({''}, 1, size(X, 1));
-            this.ColNames = repmat({''}, 1, size(X, 2));
+            this.RowNames = string.empty(1, 0);
+            this.ColNames = string.empty(1, 0);
             if length(varargin)>=1
                 this.RowNames = varargin{1};
             end
@@ -138,31 +138,45 @@ classdef namedmat < double % >>>>> MOSW classdef namedmat
         varargout = vertcat(varargin)    
 
 
-        function this = set.RowNames(this, rowNames)
-            if isempty(rowNames)
+        function names = setNames(this, dimension, names)
+            switch dimension
+                case 1
+                    dimensionName = "Row";
+                case 2
+                    dimensionName = "Column";
+            end
+
+            numRequired = size(this, dimension);
+            if isempty(names)
+                names = compose(dimensionName + "_%g", 1:numRequired);
                 return
             end
-            numOfRows = size(this, 1);
-            if ~iscellstr(rowNames) || numel(rowNames)~=numOfRows
-                THIS_ERROR = { 'NamedMatrix:InvalidRowNames'
-                               'Row names must be entered as a cellstr matching the number of rows.' };
-                throw( exception.Base(THIS_ERROR, 'error') );
+
+            names = reshape(string(names), 1, [ ]);
+            if numel(names)~=size(this, dimension)
+                exception.error([
+                    "NamedMatrix:InvalidNumNames"
+                    "Invalid number of %sNames assigned."
+                ], dimensionName);
             end
-            this.RowNames = rowNames;
+            [flag, nonunique] = textual.nonunique(names);
+            if flag
+                exception.error([
+                    "NamedMatrix:NonuniqueNames"
+                    "Row and column names in NamedMatrix objects must be unique. "
+                    "This name is being assigned more than once: %s"
+                ], nonunique);
+            end
+        end%
+
+
+        function this = set.RowNames(this, rowNames)
+            this.RowNames = setNames(this, 1, rowNames);
         end%
 
 
         function this = set.ColNames(this, columnNames)
-            if isempty(columnNames)
-                return
-            end
-            numOfColumns = size(this, 2);
-            if ~iscellstr(columnNames) || numel(columnNames)~=numOfColumns
-                THIS_ERROR = { 'NamedMatrix:InvalidColumnNames'
-                               'Column names must be entered as a cellstr matching the number of columns.' };
-                throw( exception.Base(THIS_ERROR, 'error') );
-            end
-            this.ColNames = columnNames;
+            this.ColNames = setNames(this, 2, columnNames);
         end%
 
 

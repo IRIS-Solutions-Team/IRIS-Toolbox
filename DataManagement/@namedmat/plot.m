@@ -15,4 +15,5 @@ varargin(last+1:2:end) = strrep(varargin(last+1:2:end), '=', '');
 
 [varargout{1:nargout}] = plot(varargin{:});
 
-end
+end%
+

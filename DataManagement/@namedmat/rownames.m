@@ -1,10 +1,10 @@
-function RowNames = rownames(This)
+function rowNames = rownames(this)
 % rownames  Names of rows in namedmat object.
 %
 % Syntax
 % =======
 %
-%     RowNames = rownames(X)
+%     rowNames = rownames(X)
 %
 % Input arguments
 % ================
@@ -15,7 +15,7 @@ function RowNames = rownames(This)
 % Output arguments
 % =================
 %
-% * `RowNames` [ cellstr ] - Names of rows in `X`.
+% * `rowNames` [ cellstr ] - Names of rows in `X`.
 %
 % Description
 % ============
@@ -29,6 +29,7 @@ function RowNames = rownames(This)
 
 %--------------------------------------------------------------------------
 
-RowNames = This.RowNames;
+rowNames = this.RowNames;
 
-end
+end%
+

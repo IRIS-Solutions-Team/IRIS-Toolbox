@@ -1,4 +1,4 @@
-function [X, Pos] = myselect(X, RowNames, ColNames, varargin)
+function [X, Pos] = myselect(X, rowNames, colNames, varargin)
 % myselect  Implementation of namedmat selection.
 %
 % Backend IRIS function.
@@ -7,48 +7,55 @@ function [X, Pos] = myselect(X, RowNames, ColNames, varargin)
 % -IRIS Macroeconomic Modeling Toolbox.
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
-RowSel = varargin{1};
+rowSelection = varargin{1};
 varargin(1) = [ ];
 
 isColSelect = ~isempty(varargin);
 if isColSelect
-    ColSel = varargin{1};
+    colSelection = varargin{1};
     varargin(1) = [ ]; %#ok<NASGU>
 else
-    ColSel = RowSel;
+    colSelection = rowSelection;
 end
 
-if ischar(RowSel)
-    RowSel = regexp(RowSel, '[\w\{\}\(\)\+\-]+', 'match');
+if ischar(rowSelection)
+    rowSelection = regexp(rowSelection, '[\w\{\}\(\)\+\-]+', 'match');
 end
+rowSelection = string(rowSelection);
 
-if ischar(ColSel)
-    ColSel = regexp(ColSel, '[\w\{\}\(\)\+\-]+', 'match');
+if ischar(colSelection)
+    colSelection = regexp(colSelection, '[\w\{\}\(\)\+\-]+', 'match');
 end
+colSelection = string(colSelection);
 
-usrRowSelect = RowSel;
-usrColSelect = ColSel;
+usrRowSelect = rowSelection;
+usrColSelect = colSelection;
 
 %--------------------------------------------------------------------------
 
-RowSel = removeLog(RowSel(:).');
-ColSel = removeLog(ColSel(:).');
-RowNames = removeLog(RowNames(:).');
-ColNames = removeLog(ColNames(:).');
+rowSelection = reshape(rowSelection, 1, [ ]);
+colSelection = reshape(colSelection, 1, [ ]);
+rowNames = reshape(rowNames, 1, [ ]);
+colNames = reshape(colNames, 1, [ ]);
+
+rowSelection = locallyRemoveLog(rowSelection);
+colSelection = locallyRemoveLog(colSelection);
+rowNames = locallyRemoveLog(rowNames);
+colNames = locallyRemoveLog(colNames);
 
 
-rowPos = nan(size(RowSel));
-colPos = nan(size(ColSel));
+rowPos = nan(size(rowSelection));
+colPos = nan(size(colSelection));
 
 % Match row and columns selections against row and columns names.
-for i = 1 : length(RowSel)
-    pos = find(strcmp(RowNames, RowSel{i}), 1);
+for i = 1 : length(rowSelection)
+    pos = find(strcmp(rowNames, rowSelection(i)), 1);
     if ~isempty(pos)
         rowPos(i) = pos;
     end
 end
-for i = 1 : length(ColSel)
-    pos = find(strcmp(ColNames, ColSel{i}), 1);
+for i = 1 : length(colSelection)
+    pos = find(strcmp(colNames, colSelection(i)), 1);
     if ~isempty(pos)
         colPos(i) = pos;
     end
@@ -105,12 +112,12 @@ return
             'This is not a valid %s name: ''%s''.', ...
             msg{:});
     end 
-end
+end%
 
 
-function c = removeLog(c)
+function c = locallyRemoveLog(c)
     c = strtrim(c);
     c = regexprep(c, '^log\((.*?)\)$', '$1', 'once');
     c = regexprep(c, '^log_(.*?)$', '$1', 'once');
-end
+end%
 
