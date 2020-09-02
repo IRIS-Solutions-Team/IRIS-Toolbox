@@ -5,7 +5,7 @@
 %
 % Input arguments marked with a `~` sign may be omitted
 %
-%     outputSeries = grow(inputSeries, operator, growth, dates, ~shift)
+%     outputSeries = grow(inputSeries, operator, changeSeries, dates, ~shift)
 %
 %
 % Input arguments
@@ -16,14 +16,17 @@
 %>    Input time series including at least the initial condition for the level.
 %
 %
-% __`operator`__ [ `*` | `+` | `/` | `-` | function_handle ] 
+% __`operator`__ [ `"diff"` | `"roc"` | `"pcr"` ]
 %
-%>    Operator applied to cumulate the time series.
+%>    Function expressing the relationship between the resulting
+%>    `outputSeries` and the input `changeSeries` series.
 %
 %
-% __`growth`__ [ Series | numeric ] 
+% __`changeSeries`__ [ Series | numeric ] 
 %
-%>    Time series or numeric scalar specifying the growth rates or differences.
+%>    Time series or numeric scalar specifying the change in the input time
+%>    series (difference, gross rate of change, or percent change, see the
+%>    input argument `operator`).
 %
 %
 % __`dates`__ [ DateWrapper ] 
@@ -34,8 +37,8 @@
 %
 % __`shift=-1`__ [ numeric ]
 %
-%>    Negative number specifying the lag of the base period to which the growth
-%>    rates apply.
+%>    Negative number specifying the lag of the base period to which the change
+%>    `operator` function applies.
 %
 %
 % Output Arguments
@@ -45,6 +48,16 @@
 %
 %>    Output time series constructed from the input time series, `inputSeries`, extended by
 %>    its growth rates or differences, `growth`.
+%
+%
+% Options
+%--------------------------------------------------------------------------
+%
+% __`Direction="Forward"`__ [ `"Forward"` | `"Backward"` ]
+% 
+%>    Direction of calculations in time; `Direction="Backward"` means that
+%>    the calculations start from the last date in `dates` going backwards
+%>    to the first one, and an inverse operator is applied.
 %
 %
 % Description
@@ -98,6 +111,7 @@ if isempty(pp)
 
     % Legacy option
     addParameter(pp, 'BaseShift', @auto, @(x) isequal(x, @auto) || validate.roundScalar(x, -intmax( ), -1));
+    addParameter(pp, "Direction", "Forward", @(x) any(strcmpi(x, ["Forward", "Backward"])));
 end
 %)
 opt = parse(pp, this, operator, growth, dates, varargin{:});
@@ -108,6 +122,10 @@ else
     shift = opt.BaseShift;
 end
 
+if strcmpi(opt.Direction, "Backward")
+    shift = -shift;
+end
+
 %--------------------------------------------------------------------------
 
 if isa(operator, "function_handle")
@@ -115,15 +133,27 @@ if isa(operator, "function_handle")
 else
     switch string(operator)
         case {"*", "roc"}
-            func = @times;
+            if strcmpi(opt.Direction, "Forward")
+                func = @times;
+            else
+                func = @rdivide;
+            end
         case {"+", "diff"}
-            func = @plus;
+            if strcmpi(opt.Direction, "Forward")
+                func = @plus;
+            else
+                func = @minus;
+            end
         case "/"
             func = @rdivide;
         case "-"
             func = @minus;
         case "pct"
-            func = @(x, y) x.*(1 + y/100);
+            if strcmpi(opt.Direction, "Forward")
+                func = @(x, y) x.*(1 + y/100);
+            else
+                func = @(x, y) x./(1 + y/100);
+            end
     end
 end
 
@@ -150,8 +180,16 @@ end
 % /////////////////////////////////////////////////////////////////////////
 posDates = round(dates - startAll + 1);
 posDatesShifted = round(datesShifted - startAll + 1);
+if strcmpi(opt.Direction, "Forward")
+    posDatesGrowth = posDates;
+else
+    posDates = fliplr(posDates);
+    posDatesShifted = fliplr(posDatesShifted);
+    posDatesGrowth = posDatesShifted;
+end
+
 for i = 1 : numel(posDates)
-    xData(posDates(i), :) = func(xData(posDatesShifted(i), :), growthData(posDates(i), :));
+    xData(posDates(i), :) = func(xData(posDatesShifted(i), :), growthData(posDatesGrowth(i), :));
 end
 % /////////////////////////////////////////////////////////////////////////
 
