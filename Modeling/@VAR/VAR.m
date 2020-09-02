@@ -137,8 +137,7 @@
     
 classdef (CaseInsensitiveProperties=true) VAR ...
     < BaseVAR ...
-    & matlab.mixin.CustomDisplay ...
-    & shared.DatabankPipe
+    & matlab.mixin.CustomDisplay
 
     properties
         G = [ ] % Coefficients at cointegrating vector in VEC form.
@@ -174,7 +173,6 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = assign(varargin)
         varargout = acf(varargin)
         varargout = backward(varargin)
-        varargout = companion(varargin)
         varargout = datarequest(varargin)
         varargout = demean(varargin)
         varargout = eig(varargin)
@@ -205,12 +203,6 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = xsf(varargin)
         varargout = subsref(varargin)
         varargout = subsasgn(varargin)
-
-
-        function [minSh, maxSh] = getActualMinMaxShifts(this)
-            minSh = -this.Order;
-            maxSh = 0;
-        end%
     end
     
     
@@ -221,7 +213,6 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = implementGet(varargin)
         varargout = SVAR(varargin)
         varargout = myresponse(varargin)
-        varargout = mysystem(varargin)
     end
     
     
@@ -243,13 +234,6 @@ classdef (CaseInsensitiveProperties=true) VAR ...
         varargout = generalizedLsq(varargin)
         varargout = restrict(varargin)
         varargout = smoother(varargin)
-    end
-    
-    
-    methods (Access=protected, Hidden)
-        % Methods sealed in extension classes svarobj.
-        varargout = mybmatrix(varargin)
-        varargout = mycovmatrix(varargin)
     end
 
     

@@ -1,6 +1,5 @@
-function outputDatabank = simulate(this, inputDatabank, range, varargin)
-% simulate  Simulate VAR model.
-%
+% simulate  Simulate VAR model
+%{
 % __Syntax__
 %
 %     Outp = simulate(V, Inp, Range, ...)
@@ -59,13 +58,16 @@ function outputDatabank = simulate(this, inputDatabank, range, varargin)
 %
 % __Example__
 %
+%}
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% Panel VAR
+function outputDb = simulate(this, inputDb, range, varargin)
+
+% Panel VAR model
 if this.IsPanel
-    outputDatabank = runGroups(@simulate, this, inputDatabank, range, varargin{:});
+    outputDb = runGroups(@simulate, this, inputDb, range, varargin{:});
     return
 end
 
@@ -83,7 +85,7 @@ if isempty(pp)
     pp.addParameter('Contributions', false, @(x) isequal(x, true) || isequal(x, false));
 end
 %)
-opt = parse(pp, this, inputDatabank, range, varargin{:});
+opt = parse(pp, this, inputDb, range, varargin{:});
 
 if ischar(range)
     range = textinp2dat(range);
@@ -119,13 +121,12 @@ end
 % Check availability of input data in input databank
 requiredNames = [this.EndogenousNames, this.ExogenousNames];
 optionalNames = this.ResidualNames;
-databankInfo = checkInputDatabank(this, inputDatabank, range, requiredNames, optionalNames);
-numOfPages = databankInfo.NumPages;
+dbInfo = checkInputDatabank(this, inputDb, range, requiredNames, optionalNames);
 
-allNames = [this.EndogenousNames, this.ExogenousNames, this.ResidualNames];
-XEG = requestData(this, databankInfo, inputDatabank, extdRange, allNames);
+allNames = [requiredNames, optionalNames];
+YEG = requestData(this, dbInfo, inputDb, extdRange, allNames);
 
-%req = datarequest('y* x* e', this, inputDatabank, extdRange);
+%req = datarequest('y* x* e', this, inputDb, extdRange);
 %extdRange = req.Range;
 %y = req.Y;
 %x = req.X;
@@ -133,7 +134,7 @@ XEG = requestData(this, databankInfo, inputDatabank, extdRange, allNames);
 %e(isnan(e)) = 0;
 
 if isBackcast
-    XEG = flip(XEG, 2);
+    YEG = flip(YEG, 2);
 %    y = flip(y, 2);
 %    e = flip(e, 2);
 %    x = flip(x, 2);
@@ -144,32 +145,33 @@ numExtdPeriods = numel(extdRange);
 %numDataY = size(y, 3);
 %numDataX = size(x, 3);
 %numDataE = size(e, 3);
-numOfRuns = max(nv, numOfPages);
+numRuns = max(nv, dbInfo.NumPages);
 
 if opt.Contributions 
-    if numOfRuns~=1
-        THIS_ERROR = { 'VAR:CannotSimulateContributions'
-                       'Cannot simulate shock contributions in VAR with multiple parameter variants' };
-        throw( exception.Base(THIS_ERROR, 'error') );
+    if numRuns~=1
+        exception.error([
+            "VAR:CannotSimulateContributions"
+            "Cannot simulate shock contributions in VAR with multiple parameter variants"
+        ]);
     end
-    numOfRuns = ny + 2;
+    numRuns = ny + 2;
 end
 
-% Expand Y, E, X data in 3rd dimension to match numOfRuns.
-if numOfPages<numOfRuns
-    numAdd = numOfRuns - numOfPages;
-    XEG(:, :, end+1:numOfRuns) = repmat(XEG(:, :, end), 1, 1, numAdd);
+% Expand Y, E, X data in 3rd dimension to match numRuns.
+if dbInfo.NumPages<numRuns
+    numAdd = numRuns - dbInfo.NumPages;
+    YEG(:, :, end+1:numRuns) = repmat(YEG(:, :, end), 1, 1, numAdd);
 end
-%if numDataY<numOfRuns
-%    y = cat(3, y, repmat(y, 1, 1, numOfRuns-numDataY));
+%if numDataY<numRuns
+%    y = cat(3, y, repmat(y, 1, 1, numRuns-numDataY));
 %end
-%if numDataE<numOfRuns
-%    e = cat(3, e, repmat(e, 1, 1, numOfRuns-numDataE));
+%if numDataE<numRuns
+%    e = cat(3, e, repmat(e, 1, 1, numRuns-numDataE));
 %end
-%if ng>0 && numDataX<numOfRuns
-%    x = cat(3, x, repmat(x, 1, 1, numOfRuns-numDataX));
+%if ng>0 && numDataX<numRuns
+%    x = cat(3, x, repmat(x, 1, 1, numRuns-numDataX));
 %elseif ng==0
-%    x = zeros(0, numExtdPeriods, numOfRuns);
+%    x = zeros(0, numExtdPeriods, numRuns);
 %end
 
 %if opt.Contributions
@@ -178,62 +180,63 @@ end
 %end
 
 %if ~opt.Contributions
-%    outp1 = hdataobj(this, extdRange, numOfRuns);
+%    outp1 = hdataobj(this, extdRange, numRuns);
 %else
-%    outp1 = hdataobj(this, extdRange, numOfRuns, 'Contributions=', @shock);
+%    outp1 = hdataobj(this, extdRange, numRuns, 'Contributions=', @shock);
 %end
 
-% __Main Loop__
-for iLoop = 1 : numOfRuns
-    if iLoop<=nv
-        [A, B, K, J] = mysystem(this, iLoop);
+
+% /////////////////////////////////////////////////////////////////////////
+for run = 1 : numRuns
+    if run<=nv
+        [A, B, K, J] = getIthSystem(this, run);
     end
 
-    ithX = XEG(indexX, :, iLoop);
-    ithG = XEG(indexG, :, iLoop);
-    ithE = XEG(indexE, :, iLoop);
-    ithE(isnan(ithE)) = 0;
-    ithE(:, 1:order-1) = NaN;
+    Y__ = YEG(indexX, :, run);
+    G__ = YEG(indexG, :, run);
+    E__ = YEG(indexE, :, run);
+    E__(isnan(E__)) = 0;
+    E__(:, 1:order-1) = NaN;
 
     includeConstant = ~opt.Deviation;
     if opt.Contributions
-        if iLoop<=ny
+        if run<=ny
             % Contributions of shock i
             inx = true(1, ny);
-            inx(iLoop) = false;
-            %e(inx, :, iLoop) = 0;
-            ithE(inx, :) = 0;
-            ithX(:, :) = 0;
-            ithG(:, :) = 0;
+            inx(run) = false;
+            %e(inx, :, run) = 0;
+            E__(inx, :) = 0;
+            Y__(:, :) = 0;
+            G__(:, :) = 0;
             includeConstant = false;
-        elseif iLoop==ny+1
+        elseif run==ny+1
             % Contributions of init and const
-            %e(:, :, iLoop) = 0;
-            ithE(:, :) = 0;
-            ithG(:, :) = 0;
+            %e(:, :, run) = 0;
+            E__(:, :) = 0;
+            G__(:, :) = 0;
             includeConstant = true;
-        elseif iLoop==ny+2
+        elseif run==ny+2
             % Contributions of exogenous variables
-            %e(:, :, iLoop) = 0;
-            ithE(:, :) = 0;
-            ithX(:, :) = 0;
+            %e(:, :, run) = 0;
+            E__(:, :) = 0;
+            Y__(:, :) = 0;
             includeConstant = false;
         end
     end
     
-    %iE = e(:, :, iLoop);
+    %iE = e(:, :, run);
     if isempty(B)
         %iBe = iE;
-        ithBE = ithE;
+        ithBE = E__;
     else
         %iBe = B*iE;
-        ithBE = B*ithE;
+        ithBE = B*E__;
     end
     
-    %iY = y(:, :, iLoop);
+    %iY = y(:, :, run);
     %iX = [ ];
     %if ng>0
-    %    iX = x(:, :, iLoop);
+    %    iX = x(:, :, run);
     %end
 
     % Collect deterministic terms (constant, exogenous inputs).
@@ -245,14 +248,14 @@ for iLoop = 1 : numOfRuns
     end
     if ng>0
         %iKJ = iKJ + J*iX;
-        ithDeterministic = ithDeterministic + J*ithG;
+        ithDeterministic = ithDeterministic + J*G__;
     end
     
     for t = order + 1 : numExtdPeriods
         %iXLags = iY(:, t-(1:order));
         %iY(:, t) = A*iXLags(:) + iKJ(:, t) + iBe(:, t);
-        stackLags = ithX(:, t-(1:order));
-        ithX(:, t) = A*stackLags(:) + ithDeterministic(:, t) + ithBE(:, t);
+        stackLags = Y__(:, t-(1:order));
+        Y__(:, t) = A*stackLags(:) + ithDeterministic(:, t) + ithBE(:, t);
     end
 
     %if isBackcast
@@ -264,17 +267,16 @@ for iLoop = 1 : numOfRuns
     %end
 
     % Assign current results.
-    %hdataassign(outp1, iLoop, {iY, iX, iE, [ ]} );
-    XEG(:, :, iLoop) = [ithX; ithE; ithG];
+    YEG(:, :, run) = [Y__; E__; G__];
 end
 
 if isBackcast
-    XEG = flip(XEG, 2);
+    YEG = flip(YEG, 2);
 end
 
 % Create output database
-outputDatabank = returnData(this, XEG, extdRange, allNames);
-outputDatabank = appendData(this, inputDatabank, outputDatabank, range, opt);
+outputDb = returnData(this, YEG, extdRange, allNames);
+outputDb = appendData(this, inputDb, outputDb, range, opt);
 
 end%
 

@@ -201,7 +201,7 @@ s.reuse = false;
 s.ahead = 1;
 
 for iLoop = 1 : nLoop
-    [iA, iB, iK, iJ, iOmg] = mysystem(this, min(iLoop, nAlt));
+    [iA, iB, iK, iJ, ~, iOmg] = getIthSystem(this, min(iLoop, nAlt));
     
     if ~isempty(opt.omega)
         iOmg(:,:) = opt.omega(:,:, min(iLoop, end));

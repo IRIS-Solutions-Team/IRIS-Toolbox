@@ -14,10 +14,10 @@ flag = true;
 
 switch query
     case 'b'
-        answ = this.B;
+        [~, answ] = getResidualComponents(this);
         
     case 'cov'
-        answ = mycovmatrix(this);
+        answ = getResidualComponents(this);
         
     case 'std'
         answ = this.Std;

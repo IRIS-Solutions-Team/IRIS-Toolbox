@@ -11,7 +11,8 @@ classdef (CaseInsensitiveProperties=true) ...
     < matlab.mixin.CustomDisplay ...
     & shared.UserDataContainer ...
     & shared.CommentContainer ...
-    & shared.GetterSetter 
+    & shared.GetterSetter ...
+    & shared.DatabankPipe
 
     properties
         % Tolerance  Tolerance level object
@@ -69,6 +70,9 @@ classdef (CaseInsensitiveProperties=true) ...
         IxFitted = logical.empty(1, 0) 
         
         GroupNames (1, :) string = string.empty(1, 0) % Groups in panel objects
+
+        % IsIdentified  True for structural VAR models, false for reduced-form VAR models
+        IsIdentified (1, 1) logical = false
     end
     
 
@@ -114,6 +118,7 @@ classdef (CaseInsensitiveProperties=true) ...
     
     methods
         varargout = assign(varargin)
+        varargout = companion(varargin)
         varargout = datarequest(varargin)
         varargout = horzcat(varargin)
         varargout = isempty(varargin)
@@ -135,11 +140,6 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
         
-        function names = nameAppendables(this)
-            names = [this.EndogenousNames, this.ExogenousNames, this.ResidualNames];
-        end%
-
-
         varargout = myoutpdata(varargin)
         varargout = myselect(varargin)
         varargout = implementGet(varargin)
@@ -213,6 +213,9 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
     methods
+        varargout = getResidualComponents(varargin);
+
+
         function x = get.EigenValues(this)
             x = this.EigVal;
         end%
@@ -285,7 +288,7 @@ classdef (CaseInsensitiveProperties=true) ...
 
 
         function this = set.EndogenousNames(this, newNames)
-            newNames = beforeSettingNames(this, newNames, this.NumEndogenous);
+            newNames = beforeSettingNames(this, newNames, numel(this.EndogenousNames));
             this.EndogenousNames = newNames;
             checkNames(this);
         end%
@@ -296,14 +299,14 @@ classdef (CaseInsensitiveProperties=true) ...
                 this.ResidualNames = printResidualNames(this);
                 return
             end
-            newNames = beforeSettingNames(this, newNames, this.NumEndogenous);
+            newNames = beforeSettingNames(this, newNames, numel(this.EndogenousNames));
             this.ResidualNames = newNames;
             checkNames(this);
         end%
 
             
         function this = set.ExogenousNames(this, newNames)
-            newNames = beforeSettingNames(this, newNames, this.NumExogenous);
+            newNames = beforeSettingNames(this, newNames, numel(this.ExogenousNames));
             this.ExogenousNames = newNames;
             checkNames(this);
         end%
@@ -321,7 +324,7 @@ classdef (CaseInsensitiveProperties=true) ...
                 this.GroupNames = string.empty(1, 0);
                 return
             end
-            newNames = beforeSettingNames(this, newNames, this.NumGroups);
+            newNames = beforeSettingNames(this, newNames, numel(this.GroupNames));
             this.GroupNames = newNames;
         end%
 
@@ -385,8 +388,8 @@ classdef (CaseInsensitiveProperties=true) ...
             end
         end%
     end
-
-
+    
+    
     methods % Legacy
         %(
         function value = get.YNames(this)
@@ -409,29 +412,29 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
 
-        function value = set.YNames(this, value)
+        function this = set.YNames(this, value)
             this.EndogenousNames = value;
         end%
 
 
-        function value = set.ENames(this, value)
+        function this = set.ENames(this, value)
             this.ResidualNames = value;
         end%
 
 
-        function value = set.XNames(this, value)
+        function this = set.XNames(this, value)
             this.ExogenousNames = value;
         end%
 
 
-        function value = set.INames(this, value)
+        function this = set.INames(this, value)
             this.ConditioningNames = value;
         end%
         %)
     end
 
 
-    methods (Access=protected) % Custom Display
+    methods (Access=protected) % Implement CustomDisplay
         %(
         function groups = getPropertyGroups(this)
             x = struct( );
@@ -479,4 +482,23 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
         %)
     end % methods
+
+
+    methods % Implement shared.DatabankPipe
+        %(
+        function appendables = nameAppendables(this)
+            appendables = [ 
+                this.EndogenousNames, ...
+                this.ExogenousNames, ...
+                this.ResidualNames, ...
+            ];
+        end%
+
+
+        function [minSh, maxSh] = getActualMinMaxShifts(this)
+            minSh = -this.Order;
+            maxSh = 0;
+        end%
+        %)
+    end
 end

@@ -88,16 +88,15 @@ end
 
 return
 
-
     function addCoefficients( )
         d.A_ = this.A;
-        d.B_ = mybmatrix(this);
+        [~, d.B_] = getResidualComponents(this);
         d.K_ = this.K;
         d.J_ = this.J;
-    end
+    end%
 
 
     function addCov( )
-        d.Cov_ = mycovmatrix(this);
-    end
-end
+        d.Cov_ = getResidualComponents(this);
+    end%
+end%

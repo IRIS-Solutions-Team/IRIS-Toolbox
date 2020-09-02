@@ -30,5 +30,6 @@ classdef (Abstract) Kalman
     methods (Static, Hidden)
         varargout = initialize(varargin)
         varargout = combineStdcorr(varargin)
+        varargout = smootherForVAR(varargin)
     end
 end

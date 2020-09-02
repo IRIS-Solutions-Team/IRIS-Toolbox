@@ -128,8 +128,7 @@ for v = 1 : nv
     if ~opt.Constant
         K(:) = 0;
     end
-    B = mybmatrix(this, v);
-    c = mycovmatrix(this, v);
+    [c, B] = getResidualComponents(this, v);
 	R = covfun.cov2corr(c);
     
     % Print individual equations

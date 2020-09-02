@@ -129,9 +129,10 @@ else
 end
 %}
 
-% __System matrices__
-[A, ~, K, J] = mysystem(this);
-[B, isIdentified] = mybmatrix(this);
+%
+% System matrices
+%
+[A, B, K, J] = getIthSystem(this);
 
 % Collect all deterministic terms (constant and exogenous inputs).
 KJ = zeros(ny, numExtendedPeriods);
@@ -142,14 +143,12 @@ if kx>0
     KJ = KJ + J*x;
 end
 
-% Back out reduced-form errors from structural errors if this is a
+% Calculate reduced-form errors from structural errors if this is a
 % structural VAR. The B matrix is then discarded, and only the covariance
 % matrix of reduced-form residuals is used.
-if isIdentified
-    % Structural VAR
+if this.IsIdentified
     Be = B*e;
 else
-    % Reduced-form VAR
     Be = e;
 end
 
@@ -164,12 +163,14 @@ if ~isequal(opt.method, 'bootstrap')
     end
 end
 
-% Create a command-window progress bar.
+% Create a command-window progress bar
 if opt.progress
     progress = ProgressBar('[IrisToolbox] @VAR/resample Progress');
 end
 
-% __Simulate__
+%
+% Simulate
+%
 ixNanInit = false(1, numDraws);
 ixNanResid = false(1, numDraws);
 E = nan(ny, numExtendedPeriods, numDraws);
@@ -191,7 +192,7 @@ for v = 1 : numDraws
     end
     Y(:, :, v) = iY;
     iE = iBe;
-    if isIdentified
+    if this.IsIdentified
         iE = B\iE;
     end
     E(:, p+1:end, v) = iE(:, p+1:end);

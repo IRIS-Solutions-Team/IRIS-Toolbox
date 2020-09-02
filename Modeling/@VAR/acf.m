@@ -130,7 +130,7 @@ if isNamedMat
     end
 end
 
-end
+end%
 
 
 function C = yuleWalker(A, C, P)
@@ -149,4 +149,5 @@ function C = yuleWalker(A, C, P)
         end
         C(1:ny, :, 1+i) = X;
     end
-end
+end%
+

@@ -28,7 +28,7 @@ if isTimeWeights
     Wt = Wt(:).';
     Wt = repmat(Wt, 1, numGroups);
 else
-    Wt = ones(1, numExtPeriods);
+    Wt = ones(1, numExtdPeriods);
 end
 
 % Group weights
