@@ -33,7 +33,7 @@ classdef Base
             if nargin==1
                 throwAs = "error";
             end
-            if matches(throwAs, "Silent", "ignoreCase", true)
+            if strcmpi(throwAs, "Silent")
                 return
             end
             this.ThrowAs = throwAs;

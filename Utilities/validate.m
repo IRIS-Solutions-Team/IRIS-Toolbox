@@ -77,10 +77,18 @@ classdef validate
                 flag = false;
                 return
             end
-            if numel(varargin)==1 && isa(varargin{1}, 'string')
-                flag = matches(input, varargin{1}, "ignoreCase", true);
+            if numel(varargin)==1 
+                try
+                    flag = matches(input, varargin{1}, "ignoreCase", true);
+                catch
+                    flag = any(strcmpi(input, varargin{1}));
+                end
             else
-                flag = matches(input, string(varargin), "ignoreCase", true);
+                try
+                    flag = matches(input, string(varargin), "ignoreCase", true);
+                catch
+                    flag = any(strcmpi(input, string(varargin)));
+                end
             end
         end%
 

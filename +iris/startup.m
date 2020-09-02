@@ -213,15 +213,15 @@ function options = locallyResolveInputOptions(varargin)
     inputOptions = cellfun(@string, varargin);
     inputOptions = strip(erase(inputOptions, "-"));
     for n = inputOptions
-        if matches(n, ["Shutup", "Silent"], "ignoreCase", true)
+        if contains(n, ["Shutup", "Silent"], "IgnoreCase", true)
             options.Silent = true;
-        elseif matches(n, "tseries", "ignoreCase", true);
+        elseif contains(n, "tseries")
             options.SeriesConstructor = @tseries;
-        elseif matches(n, "Series", "ignoreCase", true);
+        elseif contains(n, "Series")
             options.SeriesConstructor = @Series;
-        elseif matches(n, ["NoIdChk", "NoIdCheck"], "ignoreCase", true)
+        elseif contains(n, ["NoIdChk", "NoIdCheck"])
             options.CheckId = false;
-        elseif matches(n, ["NoTex"], "ignoreCase", true)
+        elseif contains(n, "NoTex")
             options.TeX = false;
         end
     end
