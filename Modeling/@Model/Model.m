@@ -399,16 +399,16 @@ classdef Model ...
         function header = getHeader(this)
             dimString = matlab.mixin.CustomDisplay.convertDimensionsToString(this);
             className = matlab.mixin.CustomDisplay.getClassNameForHeader(this);
-            adjective = ' ';
+            adjective = " ";
             if isempty(this)
-                adjective = [adjective, 'Empty '];
+                adjective = adjective + "Empty ";
             end
             if this.IsLinear
-                adjective = [adjective, 'Linear'];
+                adjective = adjective + "Linear";
             else
-                adjective = [adjective, 'Nonlinear'];
+                adjective = adjective + "Nonlinear";
             end
-            header = ['  ', dimString, adjective, ' ', className, sprintf('\n')]; 
+            header = "  " + string(dimString) + string(adjective) + " " + string(className) + string(newline( ));
         end%
         %)
     end % methods

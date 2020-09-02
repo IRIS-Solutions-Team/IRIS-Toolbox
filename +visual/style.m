@@ -1,20 +1,27 @@
-function style(handles, specs, varargin)
 % visual.style  Style graphics objects
 
-BACKGROUND = { 'Highlight'
-               'VLine'
-               'HLine'
-               'ZeroLine' };
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('visual.style');
-    parser.addRequired('Handle', @(x) isempty(x) || all(isgraphics(x)));
-    parser.addRequired('Specs', @isstruct);
-    parser.addParameter('Children', true, @(x) isequal(x, true) || isequal(x, false));
+function style(handles, specs, varargin)
+
+BACKGROUND = [ 
+    "Highlight"
+    "VLine"
+    "HLine"
+    "ZeroLine"
+];
+
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('visual.style');
+    pp.addRequired('Handle', @(x) isempty(x) || all(isgraphics(x)));
+    pp.addRequired('Specs', @isstruct);
+    pp.addParameter('Children', true, @(x) isequal(x, true) || isequal(x, false));
 end
-parser.parse(handles, specs, varargin{:});
-opt = parser.Options;
+%)
+opt = pp.parse(handles, specs, varargin{:});
 
 if isempty(handles)
     return
@@ -22,11 +29,11 @@ end
 
 %--------------------------------------------------------------------------
 
-numOfHandles = numel(handles);
+numHandles = numel(handles);
 specsTypes = fieldnames(specs);
 errors = cell.empty(0, 1);
 count = struct( );
-for i = numOfHandles : -1 : 1
+for i = numHandles : -1 : 1
     ithHandle = handles(i);
     handleVisible = get(ithHandle, 'HandleVisibility');
     if ~strcmpi(handleVisible, 'On')
@@ -47,9 +54,9 @@ for i = numOfHandles : -1 : 1
         if ~isfield(count, ithType)
             count.(ithType) = 1;
         end
-        inxOfMatchType = strcmpi(specsTypes, ithType);
-        if any(inxOfMatchType)
-            pos = find(inxOfMatchType, 1);
+        inxMatchType = strcmpi(specsTypes, ithType);
+        if any(inxMatchType)
+            pos = find(inxMatchType, 1);
             testLevel = true;
             [errors, addCount] = apply(ithHandle, ithType, specs.(specsTypes{pos}), count.(ithType), errors, testLevel);
             count.(ithType) = count.(ithType) + addCount;
@@ -93,8 +100,8 @@ function [errors, addCount] = apply(handle, type, specs, j, errors, testLevel)
 
     errors = runPreAndPost('Prestyle', handle, type, specs, j, errors); 
     propertyNames = fieldnames(specs);
-    numOfProperties = numel(propertyNames);
-    for i = 1 : numOfProperties
+    numProperties = numel(propertyNames);
+    for i = 1 : numProperties
         ithPropertyName = propertyNames{i};
         if any(strcmpi(ithPropertyName, {'Prestyle', 'Poststyle'}))
             continue
@@ -115,10 +122,10 @@ function [errors, addCount] = apply(handle, type, specs, j, errors, testLevel)
                 continue
             end
         end
-        inxOfExtras = strcmpi([type, '.', ithPropertyName], listOfExtras(:, 1));
+        inxExtras = strcmpi([type, '.', ithPropertyName], listOfExtras(:, 1));
         try
-            if any(inxOfExtras)
-                extraFunctionName = listOfExtras{inxOfExtras, 2};
+            if any(inxExtras)
+                extraFunctionName = listOfExtras{inxExtras, 2};
                 feval(extraFunctionName, handle, ithPropertyValue);
             else
                 set(handle, ithPropertyName, assignValue);

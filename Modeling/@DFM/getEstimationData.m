@@ -9,9 +9,9 @@ function [Y, range, lsy] = getEstimationData(this, inp, range)
 
 %--------------------------------------------------------------------------
 
-lsy = this.NamesEndogenous;
+lsy = this.EndogenousNames;
 usrRange = range;
-[Y, ~, range] = db2array(inp, this.NamesEndogenous, range);
+[Y, ~, range] = db2array(inp, this.EndogenousNames, range);
 Y = permute(Y, [2, 1, 3]);
 
 if isequal(usrRange, Inf) && nargout>1

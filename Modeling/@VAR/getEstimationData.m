@@ -1,4 +1,4 @@
-function [y, x, extendedRange] = getEstimationData(this, d, range, p, startDate)
+function [y, x, extdRange] = getEstimationData(this, d, range, p, startDate)
 % getEstimationData  Retrieve input data and determine extended range 
 %
 % Backend IRIS function
@@ -9,48 +9,49 @@ function [y, x, extendedRange] = getEstimationData(this, d, range, p, startDate)
 
 %--------------------------------------------------------------------------
 
+range = double(range);
+
 % Get extended range including pre-sample
 if strcmpi(startDate, 'Presample')
     % User entered range including pre-sample
-    extendedRange = range;
+    extdRange = range;
 elseif strncmpi(startDate, 'Fit', 3)
     % User entered fit range excluding pre-sample
     if isinf(range(1))
-        extendedRange = range;
+        extdRange = range;
     else
-        extendedRange = range(1)-p : range(end);
+        extdRange = dater.colon(dater.plus(range(1), -p), range(end));
     end
 end
 
-isPanel = ispanel(this);
-ky = length(this.NamesEndogenous);
-kx = length(this.NamesExogenous);
-extendedRange = extendedRange(:).';
-nGrp = max(1, length(this.GroupNames));
-y = cell(1, nGrp);
-x = cell(1, nGrp);
-lsyx = [this.NamesEndogenous, this.NamesExogenous];
+ky = this.NumEndogenous;
+kx = this.NumExogenous;
+extdRange = reshape(extdRange, 1, [ ]);
+numGroups = max(1, this.NumGroups);
+y = cell(1, numGroups);
+x = cell(1, numGroups);
+lsyx = [this.EndogenousNames, this.ExogenousNames];
 
 sw = struct( );
 sw.BaseYear = this.BaseYear;
 
-if isPanel
+if this.IsPanel
     % Check if all group names are contained withing the input database.
-    checkGroupNames( );
-    if any(isinf(extendedRange(:)))
+    hereCheckGroupNames( );
+    if any(isinf(extdRange(:)))
         throw( exception.Base('VAR:CANNOT_INF_RANGE_IN_PANEL', 'error') );
     end
 end
-isFirstInf = isinf(extendedRange(1));
-isLastInf = isinf(extendedRange(end));
+isFirstInf = isinf(extdRange(1));
+isLastInf = isinf(extdRange(end));
 
-for iGrp = 1 : nGrp
-    if ~isPanel
+for iGrp = 1 : numGroups
+    if ~this.IsPanel
         % Capture range on output to deal with -Inf, Inf.
-        [yx, ~, extendedRange] = db2array(d, lsyx, extendedRange, sw);
+        [yx, ~, extdRange] = db2array(d, lsyx, extdRange, sw);
     else
-        name = this.GroupNames{iGrp};
-        yx = db2array(d.(name), lsyx, extendedRange, sw);
+        name = this.GroupNames(iGrp);
+        yx = db2array(d.(name), lsyx, extdRange, sw);
     end
     if isempty(yx)
         yx = nan(0, ky+kx);
@@ -60,7 +61,7 @@ for iGrp = 1 : nGrp
     yx(ky+(1:kx), 1:p, :) = NaN;
     y{iGrp} = yx(1:ky, :, :);
     x{iGrp} = yx(ky+(1:kx), :, :);
-    if ~isPanel
+    if ~this.IsPanel
         clipRange( );
     end
 end
@@ -68,18 +69,18 @@ end
 return
 
 
-    function checkGroupNames( )
-        found = true(1,nGrp);
-        for iiGrp = 1 : nGrp
-            if ~isfield(d,this.GroupNames{iiGrp})
+    function hereCheckGroupNames( )
+        found = true(1, numGroups);
+        for iiGrp = 1 : numGroups
+            if ~isfield(d, this.GroupNames(iiGrp))
                 found(iiGrp) = false;
             end
         end
         if any(~found)
             throw( exception.Base('VAR:GROUP_NOT_INPUT_DATA', 'error'), ...
-                this.GroupNames{~found} );
+                this.GroupNames(~found) );
         end
-    end
+    end%
 
 
     function clipRange( )
@@ -91,14 +92,14 @@ return
             first = find(sample, 1);
             y{iGrp} = y{iGrp}(:, first:end, :);
             x{iGrp} = x{iGrp}(:, first:end, :);
-            extendedRange = extendedRange(first:end);
+            extdRange = extdRange(first:end);
         end
         if isLastInf
             sample = ~any( any(isnan(y{iGrp}), 3), 1 );
             last = find(sample, 1, 'last');
             y{iGrp} = y{iGrp}(:, 1:last, :);
             x{iGrp} = x{iGrp}(:, 1:last, :);
-            extendedRange = extendedRange(1:last);
+            extdRange = extdRange(1:last);
         end
-    end
-end
+    end%
+end%

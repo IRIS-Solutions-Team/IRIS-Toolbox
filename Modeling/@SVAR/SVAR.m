@@ -79,7 +79,8 @@
 % -Copyright (c) 2007-2020 IRIS Solutions Team
     
 classdef (CaseInsensitiveProperties=true) ...
-    SVAR < VAR
+    SVAR ...
+    < VAR
 
     properties
         % B  Matrix of instantaneous shock multipliers
@@ -199,6 +200,7 @@ classdef (CaseInsensitiveProperties=true) ...
             % -Copyright (c) 2007-2020 IRIS Solutions Team
             
             this = this@VAR( );
+            this.IsIdentified = true;
             if nargin==0
                 return
             elseif nargin==1 && isa(varargin{1}, 'SVAR')
@@ -234,8 +236,6 @@ classdef (CaseInsensitiveProperties=true) ...
     methods (Access=protected, Hidden)
         varargout = populateFromVAR(varargin)
 
-        varargout = mybmatrix(varargin)
-        varargout = mycovmatrix(varargin)
         varargout = myparsetest(varargin)
         varargout = subsalt(varargin)
         specdisp(varaargin)

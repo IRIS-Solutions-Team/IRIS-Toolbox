@@ -1,10 +1,10 @@
-function [X,Y,XX,YY] = fevd(This,Time,varargin)
+function [X, Y, XX, YY] = fevd(this, time, varargin)
 % fevd  Forecast error variance decomposition for SVAR variables.
 %
 % __Syntax__
 %
-%     [X,Y,XX,YY] = fevd(V,NPer)
-%     [X,Y,XX,YY] = fevd(V,Range)
+%     [X, Y, XX, YY] = fevd(V, NPer)
+%     [X, Y, XX, YY] = fevd(V, Range)
 %
 %
 % __Input arguments__
@@ -58,12 +58,12 @@ function [X,Y,XX,YY] = fevd(This,Time,varargin)
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
-opt = passvalopt('SVAR.fevd',varargin{:});
+opt = passvalopt('SVAR.fevd', varargin{:});
 
 % Tell whether time is `NPer` or `Range`.
-[range,nPer] = BaseVAR.mytelltime(Time);
+[range, numPeriods] = BaseVAR.mytelltime(time);
 
-isNamedMat = strcmpi(opt.MatrixFormat,'namedmat');
+isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 
 %--------------------------------------------------------------------------
 
@@ -72,59 +72,54 @@ Y = [ ];
 XX = struct( );
 YY = struct( );
 
-if isempty(This)
+if isempty(this)
     return
 end
 
-ny = size(This.A,1);
-nAlt = size(This.A,3);
+ny = size(this.A, 1);
+nv = countVariants(this);
 
-Phi = timedom.var2vma(This.A,This.B,nPer);
-X = cumsum(Phi.^2,3);
+Phi = timedom.var2vma(this.A, this.B, numPeriods);
+X = cumsum(Phi.^2, 3);
 if nargout > 1
     Y = nan(size(X));
 end
-varVec = This.Std .^ 2;
-for iAlt = 1 : nAlt
-    for t = 1 : nPer
-        if varVec(iAlt) ~= 1
-            X(:,:,t,iAlt) = X(:,:,t,iAlt) .* varVec(iAlt);
+varVec = this.Std .^ 2;
+for v = 1 : nv
+    for t = 1 : numPeriods
+        if varVec(v) ~= 1
+            X(:, :, t, v) = X(:, :, t, v) .* varVec(v);
         end
-        Xsum = sum(X(:,:,t,iAlt),2);
-        Xsum = Xsum(:,ones(1,ny));
+        Xsum = sum(X(:, :, t, v), 2);
+        Xsum = Xsum(:, ones(1, ny));
         if nargout > 1
-            Y(:,:,t,iAlt) = X(:,:,t,iAlt) ./ Xsum; %#ok<AGROW>
+            Y(:, :, t, v) = X(:, :, t, v) ./ Xsum; %#ok<AGROW>
         end
     end
 end
 
 % Create databases `XX` and `YY` from `X` and `Y`.
-if nargout > 2 && ~isempty(This.NamesEndogenous)
+if nargout > 2 && ~isempty(this.EndogenousNames)
     for i = 1 : ny
-        name = This.NamesEndogenous{i};
-        c = utils.concomment(name,This.NamesErrors);
-        if nAlt > 1
-            % @@@@@ MOSW.
-            % Matlab accepts repmat(c,1,1,nAlt), too.
-            c = repmat(c,[1,1,nAlt]);
+        name = this.EndogenousNames(i);
+        c = utils.concomment(char(name), this.ResidualNames);
+        if nv>1
+            c = repmat(c, 1, 1, nv);
         end
-        XX.(name) = TIME_SERIES_CONSTRUCTOR(range,permute(X(i,:,:,:),[3,2,4,1]),c);
+        XX.(name) = TIME_SERIES_CONSTRUCTOR(range, permute(X(i, :, :, :), [3, 2, 4, 1]), c);
         if nargout > 3
-            YY.(name) = TIME_SERIES_CONSTRUCTOR(range,permute(Y(i,:,:,:),[3,2,4,1]),c);
+            YY.(name) = TIME_SERIES_CONSTRUCTOR(range, permute(Y(i, :, :, :), [3, 2, 4, 1]), c);
         end
     end
 end
 
-if true % ##### MOSW
-    % Convert output matrices to namedmat objects if requested.
-    if isNamedMat
-        X = namedmat(X,This.NamesEndogenous,This.NamesErrors);
-        if nargout > 1
-            Y = namedmat(Y,This.NamesEndogenous,This.NamesErrors);
-        end
+% Convert output matrices to namedmat objects if requested
+if isNamedMat
+    X = namedmat(X, this.EndogenousNames, this.ResidualNames);
+    if nargout>1
+        Y = namedmat(Y, this.EndogenousNames, this.ResidualNames);
     end
-else
-    % Do nothing.
 end
 
-end
+end%
+

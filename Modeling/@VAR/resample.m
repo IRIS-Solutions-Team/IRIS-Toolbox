@@ -54,9 +54,9 @@ function [outputData, draws] = resample(this, inp, range, numDraws, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-% Panel VAR.
-if ispanel(this)
-    outputData = mygroupmethod(@resample, this, inp, range, numDraws, varargin{:});
+% Panel VAR
+if this.IsPanel
+    outputData = runGroups(@resample, this, inp, range, numDraws, varargin{:});
     return
 end
 
@@ -78,7 +78,7 @@ end
 %--------------------------------------------------------------------------
 
 ny = size(this.A, 1);
-kx = length(this.NamesExogenous);
+kx = length(this.ExogenousNames);
 p = size(this.A, 2) / max(ny, 1);
 nv = size(this.A, 3);
 
@@ -129,9 +129,10 @@ else
 end
 %}
 
-% __System matrices__
-[A, ~, K, J] = mysystem(this);
-[B, isIdentified] = mybmatrix(this);
+%
+% System matrices
+%
+[A, B, K, J] = getIthSystem(this);
 
 % Collect all deterministic terms (constant and exogenous inputs).
 KJ = zeros(ny, numExtendedPeriods);
@@ -142,14 +143,12 @@ if kx>0
     KJ = KJ + J*x;
 end
 
-% Back out reduced-form errors from structural errors if this is a
+% Calculate reduced-form errors from structural errors if this is a
 % structural VAR. The B matrix is then discarded, and only the covariance
 % matrix of reduced-form residuals is used.
-if isIdentified
-    % Structural VAR
+if this.IsIdentified
     Be = B*e;
 else
-    % Reduced-form VAR
     Be = e;
 end
 
@@ -164,12 +163,14 @@ if ~isequal(opt.method, 'bootstrap')
     end
 end
 
-% Create a command-window progress bar.
+% Create a command-window progress bar
 if opt.progress
     progress = ProgressBar('[IrisToolbox] @VAR/resample Progress');
 end
 
-% __Simulate__
+%
+% Simulate
+%
 ixNanInit = false(1, numDraws);
 ixNanResid = false(1, numDraws);
 E = nan(ny, numExtendedPeriods, numDraws);
@@ -191,7 +192,7 @@ for v = 1 : numDraws
     end
     Y(:, :, v) = iY;
     iE = iBe;
-    if isIdentified
+    if this.IsIdentified
         iE = B\iE;
     end
     E(:, p+1:end, v) = iE(:, p+1:end);
@@ -217,10 +218,10 @@ if any(ixNanResid)
 end
 
 % Return only endogenous variables, not shocks.
-names = [this.NamesEndogenous, this.NamesErrors];
+names = [this.EndogenousNames, this.ResidualNames];
 data = [Y; E];
 if kx>0
-    names = [names, this.NamesExogenous];
+    names = [names, this.ExogenousNames];
     data = [data; repmat(x, 1, 1, numDraws)];
 end
 outputData = myoutpdata(this, extendedRange, data, [ ], names);

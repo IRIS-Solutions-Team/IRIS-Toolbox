@@ -113,14 +113,14 @@ if this.Cross < 1
 end
 
 if nargout>1
-    D = myoutpdata(this, range, y0, [ ], this.NamesObserved);
+    D = myoutpdata(this, range, y0, [ ], this.ObservedNames);
 end
 
 if nargout>2
-    % Common components.
+    % Common components
     CC = DFM.cc(this.C, FF);
     CC = DFM.destdize(CC, this.Mean, this.Std); 
-    CC = myoutpdata(this, range, CC, [ ], this.NamesObserved);
+    CC = myoutpdata(this, range, CC, [ ], this.ObservedNames);
 end
 
 if nargout>3
@@ -129,9 +129,9 @@ if nargout>3
 end
 
 if nargout>4
-    % Idiosyncratic residuals.
+    % Idiosyncratic residuals
     U = DFM.destdize(U, 0, this.Std);
-    U = myoutpdata(this, range, U, [ ], this.NamesObserved);
+    U = myoutpdata(this, range, U, [ ], this.ObservedNames);
 end
 
 if nargout>5

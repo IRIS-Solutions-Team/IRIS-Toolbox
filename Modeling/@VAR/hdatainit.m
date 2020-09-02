@@ -20,9 +20,9 @@ H.IxLog = false(size(H.Name));
 H.Label = this.AllNames;
 
 if isequal(H.Contributions, @shock)
-    H.Contributions = [ this.NamesErrors, {'Init+Const'}, {'Exog'} ];
+    H.Contributions = [ this.ResidualNames, {'Init+Const'}, {'Exog'} ];
 elseif isequal(H.Contributions, @measurement)
-    H.Contributions = this.NamesEndogenous;
+    H.Contributions = this.EndogenousNames;
 end
 
 end

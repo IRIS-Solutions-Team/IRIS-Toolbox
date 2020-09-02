@@ -39,7 +39,7 @@ else
     xRange = range;
 end
 
-names = [This.NamesEndogenous, This.NamesErrors];
+names = [This.EndogenousNames, This.ResidualNames];
 S = myoutpdata( This, xRange, [Phi; Eps], [ ], names);
 if nargout>1
     Psi = cumsum(Phi, 2);

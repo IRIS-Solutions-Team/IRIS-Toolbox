@@ -61,27 +61,30 @@ if ischar(list)
     list = regexp(list, '\w+', 'match');
 elseif isa(list, 'rexp')
     f = fieldnames(d);
-    inxOfMatched = ~cellfun(@isempty, regexp(f, list, 'once'));
-    list = f(inxOfMatched);
+    inxMatched = ~cellfun(@isempty, regexp(f, list, 'once'));
+    list = f(inxMatched);
 elseif isequal(list, @all)
     list = fieldnames(d);
+elseif isstring(list)
+    list = cellstr(list);
 end
+list = reshape(list, 1, [ ]);
 
 %--------------------------------------------------------------------------
 
 freqList = iris.get('freq');
-numOfFreq = length(freqList);
-startDates = cell(1, numOfFreq);
-endDates = cell(1, numOfFreq);
-range = cell(1, numOfFreq);
-numOfEntries = numel(list);
-for i = 1 : numOfEntries
+numFreq = length(freqList);
+startDates = cell(1, numFreq);
+endDates = cell(1, numFreq);
+range = cell(1, numFreq);
+numEntries = numel(list);
+for i = 1 : numEntries
     if isfield(d, list{i}) && isa(d.(list{i}), 'TimeSubscriptable')
         x = d.(list{i});
-        inxOfFreq = freq(x)==freqList;
-        if any(inxOfFreq)
-            startDates{inxOfFreq}(end+1) = x.Start;
-            endDates{inxOfFreq}(end+1) = x.End;
+        inxFreq = freq(x)==freqList;
+        if any(inxFreq)
+            startDates{inxFreq}(end+1) = x.Start;
+            endDates{inxFreq}(end+1) = x.End;
         end
     end
 end

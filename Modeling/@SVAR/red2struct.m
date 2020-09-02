@@ -7,9 +7,9 @@ function outp = red2struct(this, inp, opt)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-% Panel SVARs
-if ispanel(this)
-    outp = mygroupmethod(@red2struct, this, inp, opt);
+% Panel SVAR
+if this.IsPanel
+    outp = runGroups(@red2struct, this, inp, opt);
     return
 end
 

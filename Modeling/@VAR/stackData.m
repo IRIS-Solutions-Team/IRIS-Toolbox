@@ -18,7 +18,7 @@ ny = size(yInp{1}, 1);
 kx = size(xInp{1}, 1);
 nv = size(yInp{1}, 3);
 nXPer = size(yInp{1}, 2); % nXPer is the same for each group because Range cannot be Inf for panel VARs.
-p = opt.Order;
+order = opt.Order;
 
 
 % Endogenous variables
@@ -26,8 +26,8 @@ p = opt.Order;
 
 Y0 = [ ];
 for iGrp = 1 : nGrp
-    % Separate groups by a total of p NaNs.
-    Y0 = [Y0, yInp{iGrp}, nan(ny, p, nv)]; %#ok<AGROW>
+    % Separate groups by a total of order NaNs.
+    Y0 = [Y0, yInp{iGrp}, nan(ny, order, nv)]; %#ok<AGROW>
 end
 n = size(Y0, 2);
 
@@ -41,11 +41,11 @@ if opt.Intercept
         K0 = ones(1, n);
     else
         % Dummy constants for fixed-effect panel estimation.
-        % Separate each group by a total of `p` NaNs so that two adjacent groups do
+        % Separate each group by a total of `order` NaNs so that two adjacent groups do
         % not interfere in estimation.
         K0 = zeros(nGrp, 0);
         for iGrp = 1 : nGrp
-            k = zeros(nGrp, nXPer+p);
+            k = zeros(nGrp, nXPer+order);
             k(iGrp, 1:nXPer) = 1;
             k(iGrp, nXPer+1:end) = NaN;
             K0 = [K0, k]; %#ok<AGROW>
@@ -57,23 +57,23 @@ end
 % Exogenous inputs including fixed effect
 %-----------------------------------------
 s3 = size(xInp{1}, 3);
-X0 = zeros(0, nGrp*(nXPer+p), s3);
+X0 = zeros(0, nGrp*(nXPer+order), s3);
 if kx>0
     % Total number of rows in X0 depends on how many exogenous variables with
     % group-specific coefficients there are.
-    X0 = zeros(0, nGrp*(nXPer+p), s3);
+    X0 = zeros(0, nGrp*(nXPer+order), s3);
     for i = 1 : kx
         if ixGroupSpecX(i)
             x = zeros(nGrp, 0, s3);
             for iGrp = 1 : nGrp
-                z = zeros(nGrp, nXPer+p, s3);
-                z(iGrp, :, :) = [xInp{iGrp}(i, :, :), nan(1, p, s3)];
+                z = zeros(nGrp, nXPer+order, s3);
+                z(iGrp, :, :) = [xInp{iGrp}(i, :, :), nan(1, order, s3)];
                 x = [x, z]; %#ok<AGROW>
             end
         else
             x = zeros(1, 0, s3);
             for iGrp = 1 : nGrp
-                x = [x, xInp{iGrp}(i, :, :), nan(1, p, s3)]; %#ok<AGROW>
+                x = [x, xInp{iGrp}(i, :, :), nan(1, order, s3)]; %#ok<AGROW>
             end
         end
         X0 = [X0; x]; %#ok<AGROW>
@@ -95,8 +95,8 @@ ng = size(CI, 1);
 G1 = zeros(ng, n, nv);
 if ~opt.Diff
     % __Level VAR__
-    Y1 = nan(p*ny, n, nv);
-    for i = 1 : p
+    Y1 = nan(order*ny, n, nv);
+    for i = 1 : order
         Y1((i-1)*ny+(1:ny),1+i:end,:) = Y0(:,1:end-i,:);
     end  
 else
@@ -114,8 +114,8 @@ else
             G1(:,:,iLoop) = CI*[kg; y];
         end
     end
-    dY1 = nan((p-1)*ny, n, nv);
-    for i = 1 : p-1
+    dY1 = nan((order-1)*ny, n, nv);
+    for i = 1 : order-1
         dY1((i-1)*ny+(1:ny), 1+i:end, :) = dY0(:, 1:end-i, :);
     end
     Y0 = dY0;

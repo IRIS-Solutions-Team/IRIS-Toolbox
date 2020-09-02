@@ -35,7 +35,7 @@ else
 end
 
 if isInfRange
-    range = dbrange(inp, this.NamesEndogenous);
+    range = dbrange(inp, cellstr(this.EndogenousNames));
 end
 
 sw = struct( );
@@ -44,13 +44,13 @@ sw.BaseYear = this.BaseYear;
 if retY
     sw.Warn.NotFound = mustY;
     sw.Warn.NonTseries = mustY;
-    Y = db2array(inp, range, this.NamesEndogenous, sw);
+    Y = db2array(inp, range, this.EndogenousNames, sw);
 end
 
 if retE
     sw.Warn.NotFound = mustE;
     sw.Warn.NonTseries = mustE;
-    E = db2array(inp, range, this.NamesErrors, sw);
+    E = db2array(inp, range, this.ResidualNames, sw);
 end
 
 outp.Range = range;

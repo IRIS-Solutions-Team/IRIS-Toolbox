@@ -177,12 +177,12 @@ if isempty(pp)
 
     addParameter(pp, {'FixedEff', 'FixedEffect'}, true, @validate.logicalScalar);
     addParameter(pp, 'GroupWeights', [ ], @(x) isempty(x) || isnumeric(x));
-    addParameter(pp, 'GroupSpec', false, @(x) validate.logicalScalar(x) || iscellstr(x) || ischar(x));
+    addParameter(pp, 'GroupSpec', false, @(x) validate.logicalScalar(x) || isstring(x) || iscellstr(x) || ischar(x));
 end
 parse(pp, this, inputData, range, varargin{:});
 opt = pp.Options;
 
-if isempty(this.NamesEndogenous)
+if isempty(this.EndogenousNames)
     throw( exception.Base('VAR:CANNOT_ESTIMATE_EMPTY_VAR', 'error') );
 end
 
@@ -196,8 +196,7 @@ isIntercept = hereResolveIntercept( );
 this.Intercept = isIntercept;
 opt.Intercept = isIntercept;
 
-numGroups = max(1, length(this.GroupNames));
-kx = length(this.NamesExogenous);
+kx = this.NumExogenous;
 inxGroupSpec = resolveGroupSpec( );
 
 if ~isempty(opt.A) && p>1 && size(opt.A, 3)==1
@@ -273,7 +272,7 @@ fitted = cell(1, numRuns);
 count = zeros(1, numRuns);
 
 % Pre-allocate VAR matrices.
-this = myprealloc(this, numEndogenous, p, numExtendedPeriods, numRuns, numCointeg);
+this = preallocate(this, numEndogenous, p, numExtendedPeriods, numRuns, numCointeg);
 
 % Create command-window progress bar
 if opt.Progress
@@ -360,18 +359,17 @@ return
 
 
     function organizeOutpData( )
-        lsyxe = [this.NamesEndogenous, this.NamesExogenous, this.NamesErrors];
-        if ispanel(this)
+        lsyxe = [this.EndogenousNames, this.ExogenousNames, this.ResidualNames];
+        if this.IsPanel
             % _Panel VAR_
             % `numExogenous` is #row in the array `x`. In panel VARs with fixed effect, each
             % group has its own block of exogenous variables, so that the total row
             % count is #exogenous variables times #groups. The true number of exogenous
             % variables is therefore `numExogenous/numGroups`.
-            numGroups = length(this.GroupNames);
             outputData = struct( );
-            for iiGroup = 1 : numGroups
+            for iiGroup = 1 : this.NumGroups
                 yxe = [y0(:, 1:numExtendedPeriods, :); inputExogenous{iiGroup}; e0(:, 1:numExtendedPeriods, :)];
-                name = this.GroupNames{iiGroup};
+                name = this.GroupNames(iiGroup);
                 outputData.(name) = myoutpdata(this, this.Range, yxe, [ ], lsyxe);
                 y0(:, 1:numExtendedPeriods+p, :) = [ ];
                 e0(:, 1:numExtendedPeriods+p, :) = [ ];
@@ -381,7 +379,7 @@ return
             % Get columns 1:numExtendedPeriods from y0 and e0 because they still include the NaNs at
             % the end used as group separators.
             yxe = [y0(:, 1:numExtendedPeriods, :); inputExogenous{1}(:, 1:numExtendedPeriods, :); e0(:, 1:numExtendedPeriods, :)];
-            outputData = inputData * this.NamesExogenous;
+            outputData = databank.copy(inputData, "SourceNames", this.ExogenousNames);
             outputData = myoutpdata(this, this.Range, yxe, [ ], lsyxe);
         end
         y0 = [ ];
@@ -392,7 +390,7 @@ return
 
     function inxGroupSpec = resolveGroupSpec( )
         inxGroupSpec = false(1, 1+kx);
-        if ~ispanel(this) || numGroups==1 || ...
+        if ~this.IsPanel || this.NumGroups==1 || ...
                 ( isequal(opt.FixedEff, false) && isequal(opt.GroupSpec, false) )
             return
         end
@@ -401,11 +399,11 @@ return
             inxGroupSpec(2:end) = opt.GroupSpec;
             return
         end
-        if ischar(opt.GroupSpec)
+        if isstring(opt.GroupSpec) || ischar(opt.GroupSpec)
             opt.GroupSpec = regexp(opt.GroupSpec, '\w+', 'match');
         end
         for ii = 1 : kx
-            name = this.NamesExogenous{ii};
+            name = this.ExogenousNames(ii);
             inxGroupSpec(1+ii) = any(strcmpi(opt.GroupSpec, name));
         end
     end%

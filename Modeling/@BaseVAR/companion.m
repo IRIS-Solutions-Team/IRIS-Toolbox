@@ -1,10 +1,10 @@
-function [A,B,K,J] = companion(This,varargin)
-% companion  Matrices of first-order companion VAR.
+function [A, B, K, J, Cov] = companion(this, varargin)
+% companion  Matrices of first-order companion VAR
 %
 % Syntax
 % =======
 %
-%     [A,B,K,J] = companion(V)
+%     [A, B, K, J, Cov] = companion(V)
 %
 % Input arguments
 % ================
@@ -34,32 +34,33 @@ function [A,B,K,J] = companion(This,varargin)
 
 %--------------------------------------------------------------------------
 
-ny = size(This.A,1);
-p = size(This.A,2) / max(ny,1);
-nAlt = size(This.A,3);
+ny = this.NumEndogenous;
+p = this.Order;
+nv = countVariants(this);
 
-if p == 0
-    A = zeros(ny,ny,nAlt);
+if p==0
+    A = zeros(ny, ny, nv);
 else
-    A = zeros(ny*p,ny*p,nAlt);
-    for i = 1 : nAlt
-        A(:,:,i) = [This.A(:,:,i);eye(ny*(p-1),ny*p)];
+    A = zeros(ny*p, ny*p, nv);
+    for i = 1 : nv
+        A(:, :, i) = [this.A(:, :, i);eye(ny*(p-1), ny*p)];
     end
 end
 
-if nargout > 1
-    B = mybmatrix(This);
-    B = [B;zeros(ny*(p-1),ny,nAlt)];
+if nargout>1
+    [Cov, B] = getResidualComponents(this);
+    B = [B;zeros(ny*(p-1), ny, nv)];
 end
 
-if nargout > 2
-    K = This.K;
-    K(end+(1:ny*(p-1)),:,:) = 0;
+if nargout>2
+    K = this.K;
+    K(end+(1:ny*(p-1)), :, :) = 0;
 end
 
-if nargout > 3
-    J = This.J;
-    J(end+(1:ny*(p-1)),:,:) = 0;
+if nargout>3
+    J = this.J;
+    J(end+(1:ny*(p-1)), :, :) = 0;
 end
 
-end
+end%
+

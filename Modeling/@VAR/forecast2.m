@@ -57,8 +57,8 @@ function outp = forecast(this, inp, range, varargin)
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 % Panel VAR.
-if ispanel(this)
-    outp = mygroupmethod(@forecast, this, inp, range, varargin{:});
+if this.IsPanel
+    outp = runGroups(@forecast, this, inp, range, varargin{:});
     return
 end
 
@@ -84,7 +84,7 @@ opt = passvalopt('VAR.forecast',varargin{1:end});
 ny = size(this.A, 1);
 p = size(this.A, 2) / max(ny, 1);
 nAlt = size(this.A, 3);
-kx = length(this.NamesExogenous);
+kx = length(this.ExogenousNames);
 ni = size(this.Zi, 1);
 isX = kx>0;
 
@@ -201,7 +201,7 @@ s.reuse = false;
 s.ahead = 1;
 
 for iLoop = 1 : nLoop
-    [iA, iB, iK, iJ, iOmg] = mysystem(this, min(iLoop, nAlt));
+    [iA, iB, iK, iJ, ~, iOmg] = getIthSystem(this, min(iLoop, nAlt));
     
     if ~isempty(opt.omega)
         iOmg(:,:) = opt.omega(:,:, min(iLoop, end));
@@ -224,9 +224,10 @@ for iLoop = 1 : nLoop
     Y(:,p+1:end, iLoop) = iY;
 end
 
-outp = myoutpdata(this, xRange, Y, [ ], this.YNames);
+outp = myoutpdata(this, xRange, Y, [ ], this.EndogenousNames);
 if opt.dboverlay
     outp = dboverlay(inp, outp);
 end
 
-end
+end%
+

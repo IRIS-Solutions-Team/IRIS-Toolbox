@@ -1,4 +1,4 @@
-function [YMean,YInit] = mean(This)
+function [meanY, initY] = mean(this)
 % mean  Asymptotic mean of VAR process.
 %
 % Syntax
@@ -47,59 +47,57 @@ isYInit = nargout>1;
 
 %--------------------------------------------------------------------------
 
-ny = size(This.A, 1);
-nx = length(This.NamesExogenous);
-p = size(This.A, 2) / max(ny, 1);
-nAlt = size(This.A, 3);
-nGrp = max(1, length(This.GroupNames));
+ny = size(this.A, 1);
+nx = length(this.ExogenousNames);
+p = size(this.A, 2) / max(ny, 1);
+nAlt = size(this.A, 3);
+numGroups = max(1, this.NumGroups);
 
-% Add the effect of exogenous inputs to the constant term, This.K. This
+% Add the effect of exogenous inputs to the constant term, this.K. this
 % will work also in `sspace(...)`.
 if nx>0
-    KJ = This.K;
-    X0 = This.X0;
+    KJ = this.K;
+    X0 = this.X0;
     getExogMean( );
-    This.K(:,:,:) = KJ;
+    this.K(:,:,:) = KJ;
 end
 
 if p==0
-    YMean = This.K;
+    meanY = this.K;
     if isYInit
-        YInit = zeros(ny, 0, nAlt);
+        initY = zeros(ny, 0, nAlt);
     end
     return
 end
 
 realSmall = getrealsmall( );
 
-YMean = nan(size(This.K));
+meanY = nan(size(this.K));
 if isYInit
-    YInit = nan(ny, p, nAlt);
+    initY = nan(ny, p, nAlt);
 end
 for iAlt = 1 : nAlt
     [iMean, iInit] = getMean(iAlt);
-    YMean(:, :, iAlt) = iMean;
+    meanY(:, :, iAlt) = iMean;
     if isYInit
-        YInit(:, :, iAlt) = iInit;
+        initY(:, :, iAlt) = iInit;
     end
 end
 
 return
 
 
-
-
     function [m, init] = getMean(iAlt)
-        unit = abs(abs(This.EigVal(1, :, iAlt)) - 1)<=realSmall;
+        unit = abs(abs(this.EigVal(1, :, iAlt)) - 1)<=realSmall;
         nUnit = sum(unit);
         init = [ ];
         if nUnit==0
             % Stationary parameterisation
             %-----------------------------
-            m = sum(polyn.var2polyn(This.A(:,:,iAlt)),3) ...
-                \ This.K(:,:,iAlt);
+            m = sum(polyn.var2polyn(this.A(:,:,iAlt)),3) ...
+                \ this.K(:,:,iAlt);
             if isYInit
-                % The function `mean` requests YInit only when called on VAR, not panel VAR
+                % The function `mean` requests initY only when called on VAR, not panel VAR
                 % objects; at this point, the size of `m` is guaranteed to be 1 in 2nd
                 % dimension.
                 init(:, 1:p) = repmat(m, 1, p);
@@ -107,12 +105,12 @@ return
         else
             % Unit-root parameterisation
             %----------------------------
-            [T, ~, k, ~, ~, ~, U] = sspace(This, iAlt);
+            [T, ~, k, ~, ~, ~, U] = sspace(this, iAlt);
             a2 = (eye(ny*p-nUnit) - T(nUnit+1:end, nUnit+1:end)) ...
                 \ k(nUnit+1:end,:);
             % Return NaNs for unit-root variables.
             dy = any( abs(U(1:ny,unit))>realSmall, 2 ).';
-            m = nan(size(This.K,1), size(This.K,2));
+            m = nan(size(this.K,1), size(this.K,2));
             m(~dy, :) = U(~dy,nUnit+1:end)*a2;
             if isYInit
                 init = U*[zeros(nUnit,1); a2];
@@ -137,10 +135,10 @@ return
         end
         if nx>0
             for iiAlt = 1 : nAlt
-                for iiGrp = 1 : nGrp
+                for iiGrp = 1 : numGroups
                     pos = (iiGrp-1)*nx + (1:nx);
                     iiX = X0(:, iiGrp, iiAlt);                    
-                    iiJ = This.J(:, pos, iiAlt);
+                    iiJ = this.J(:, pos, iiAlt);
                     KJ(:, iiGrp, iiAlt) = KJ(:, iiGrp, iiAlt) + iiJ*iiX;
                 end
             end

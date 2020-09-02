@@ -1,10 +1,10 @@
-function [T,R,k,Z,H,d,U,Cov] = sspace(This,varargin)
+function [T, R, k, Z, H, d, U, Cov] = sspace(this, varargin)
 % sspace  Quasi-triangular state-space representation of SVAR.
 %
 % Syntax
 % =======
 %
-%     [T,R,K,Z,H,D,Cov] = sspace(V,...)
+%     [T, R, K, Z, H, D, Cov] = sspace(V, ...)
 %
 % Input arguments
 % ================
@@ -44,24 +44,20 @@ function [T,R,k,Z,H,d,U,Cov] = sspace(This,varargin)
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 if ~isempty(varargin) && isnumericscalar(varargin{1}) 
-   Alt = varargin{1};
+   variantsRequested = varargin{1};
    varargin(1) = [ ]; %#ok<NASGU>
 else
-   Alt = ':';
+   variantsRequested = ':';
 end
 
 %--------------------------------------------------------------------------
 
-[T,R,k,Z,H,d,U,~] = sspace@VAR(This,Alt);
-n3 = size(T,3);
+[T, R, k, Z, H, d, U, ~] = sspace@VAR(this, variantsRequested);
 
-% Matrix of instantaneous effect of structural shocks.
-B = This.B(:,:,Alt);
-for i3 = 1 : n3
-    R(:,:,i3) = R(:,:,i3)*B(:,:,i3);
+[Cov, B] = getResidualComponents(this, variantsRequested);
+for i = 1 : size(R, 3)
+    R(:, :, i) = R(:, :, i)*B(:, :, i);
 end
 
-% Covariance matrix of structural shocks.
-Cov = mycovmatrix(This,Alt);
+end%
 
-end

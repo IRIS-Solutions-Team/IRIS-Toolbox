@@ -11,9 +11,9 @@ function [indexSelected, namesInvalid] = myselect(this, type, select)
 
 switch lower(type)
     case 'y'
-        list = this.NamesEndogenous;
+        list = this.EndogenousNames;
     case 'e'
-        list = this.NamesErrors;
+        list = this.ResidualNames;
 end
 
 numEndogenous = this.NumEndogenous;

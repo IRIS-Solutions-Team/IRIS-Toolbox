@@ -1,6 +1,5 @@
-function [code, d] = sprintf(this, varargin)
-% sprintf  Print VAR model as formatted model code
-%
+% sprintf  Print VAR model as f + 1;ormatted model code
+%{
 % __Syntax__
 %
 %     [c, d] = sprintf(v, ...)
@@ -29,7 +28,7 @@ function [code, d] = sprintf(this, varargin)
 % * `'Declare='` [ `true` | *`false`* ] - Add declaration blocks and
 % keywords for VAR variables, shocks, and equations.
 %
-% * `'ENames='` [ cellstr | char | *empty* ] - Names that will be given to
+% * `'ResidualNames='` [ cellstr | char | *empty* ] - Names that will be given to
 % the VAR residuals; if empty, the names from the VAR object will be used.
 %
 % * `'Format='` [ char | *'%+.16g'* ] - Numeric format for parameter values;
@@ -39,7 +38,7 @@ function [code, d] = sprintf(this, varargin)
 % numbers; otherwise, create parameter names and return a parameter
 % database.
 %
-% * `'YNames='` [ cellstr | char | *empty* ] - Names that will be given to
+% * `'EndogenousNames='` [ cellstr | char | *empty* ] - Names that will be given to
 % the variables; if empty, the names from the VAR object will be used.
 %
 % * `'Tolerance='` [ numeric | *getrealsmall( )* ] - Treat VAR coefficients
@@ -52,34 +51,35 @@ function [code, d] = sprintf(this, varargin)
 %
 % __Example__
 %
+%}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('VAR.sprintf');
-    parser.addRequired(  'VAR', @(x) isa(x, 'VAR'));
-    parser.addParameter({'Constant', 'Constants', 'Const'}, true, @validate.logicalScalar);
-    parser.addParameter({'Decimal', 'Decimals'}, [ ], @(x) isempty(x) || validate.numericScalar(x));
-    parser.addParameter( 'Declare', false, @validate.logicalScalar);
-    parser.addParameter({'ENames', 'EName'}, cell.empty(1, 0), @validate.list);
-    parser.addParameter( 'Format', '%+.16g', @ischar);
-    parser.addParameter({'HardParameters', 'HardParameter'}, true, @validate.logicalScalar);
-    parser.addParameter( 'Tolerance', @default, @(x) isa(x, @default) || validate.numericScalar(x));
-    parser.addParameter({'YNames', 'YName'}, cell.empty(1, 0), @validate.list);
+function [code, d] = sprintf(this, varargin)
+
+%( Input pp
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('@VAR/sprintf');
+    pp.addRequired(  'VAR', @(x) isa(x, 'VAR'));
+    pp.addParameter({'Constant', 'Constants', 'Const'}, true, @validate.logicalScalar);
+    pp.addParameter({'Decimal', 'Decimals'}, [ ], @(x) isempty(x) || validate.numericScalar(x));
+    pp.addParameter( 'Declare', false, @validate.logicalScalar);
+    pp.addParameter({'ResidualNames', 'ENames', 'EName'}, string.empty(1, 0), @validate.list);
+    pp.addParameter( 'Format', '%+.16g', @(x) validate.stringScalar(x) && contains(x, "%+"));
+    pp.addParameter({'HardParameters', 'HardParameter'}, true, @validate.logicalScalar);
+    pp.addParameter( 'Tolerance', @default, @(x) isa(x, @default) || validate.numericScalar(x));
+    pp.addParameter({'EndogenousNames', 'YNames', 'YName'}, string.empty(1, 0), @validate.list);
+    pp.addParameter("ExogenousNames", string.empty(1, 0), @validate.list);
 end
-parse(parser, this, varargin{:});
-opt = parser.Options;
-
-if isempty(strfind(opt.Format, '%+'))
-    utils.error('VAR', ...
-        'Format string must contain ''%+'': ''%s''.', opt.Format);
-end
+%)
+opt = parse(pp, this, varargin{:});
 
 if ~isempty(opt.Decimal)
-    opt.Format = ['%+.', sprintf('%g', opt.Decimal), 'f'];
+    opt.Format = "%+." + string(round(opt.Decimal)) + "f";
 end
+opt.Format = string(opt.Format);
 
 if isequal(opt.Tolerance, @default)
     opt.Tolerance = this.Tolerance.Solve;
@@ -87,92 +87,70 @@ end
 
 %--------------------------------------------------------------------------
 
-ny = size(this.A, 1);
-nx = length(this.NamesExogenous);
+ny = this.NumEndogenous;
 p = size(this.A, 2) / max(ny, 1);
 nv = size(this.A, 3);
 
-if nx>0
-    utils.error('VAR:sprintf', ...
-        ['VAR objects with exogenous inputs cannot be printed ', ...
-        'using sprintf( ) or fprintf( ).']);
-end
+endogenousNames = locallyResolveNames("EndogenousNames", this, opt);
+residualNames = locallyResolveNames("ResidualNames", this, opt);
+exogenousNames = locallyResolveNames("ExogenousNames", this, opt);
 
-if ~isempty(opt.YNames)
-    this.ynames = opt.YNames;
-end
-yName = get(this, 'yNames');
-
-if ~isempty(opt.ENames)
-    this.enames = opt.ENames;
-end
-eName = get(this, 'eNames');
-
-% Add time subscripts if missing from the variable names.
+% Create string array [ "y1", "y1{-1}", ...; "y2", "y2{-1}", ...; ... ]
+endogenousNamesWithShift = endogenousNames;
+inxNeedsShift = ~contains(endogenousNamesWithShift, "{t}");
+endogenousNamesWithShift(inxNeedsShift) = endogenousNamesWithShift(inxNeedsShift) + "{t}";
+endogenousNamesWithShift = replace(endogenousNamesWithShift, "{t}", "{%+g}");
+endogenousNamesWithShift = reshape(endogenousNamesWithShift, [ ], 1);
+endogenousNamesWithShift = [reshape(endogenousNames, [ ], 1), repmat(endogenousNamesWithShift, 1, p)];
 for i = 1 : ny
-    if isempty(strfind(yName{i}, '{t}'))
-        yName{i} = sprintf('%s{t}', yName{i});
+    for j = 1 : p
+        endogenousNamesWithShift(i, j+1) = sprintf(endogenousNamesWithShift(i, j+1), -j);
     end
 end
 
-% Replace time subscripts with hard typed lags.
-yName = strrep(yName, '{t}', '{%+g}');
-yNameLag = cell(1, ny);
-for i = 1 : ny
-    yNameLag{i} = cell(1, p+1);
-    for j = 0 : p
-        yNameLag{i}{1+j} = sprintf(yName{i}, -j);
-    end
-    yNameLag{i}{1} = strrep(yNameLag{i}{1}, '{-0}', '');
-end
-
-% Number of digits for printing parameter indices.
+% Number of digits for printing parameter indices
 if ~opt.HardParameters
-    pDecim = floor(log10(max(ny, p)))+1;
-    pDecim = sprintf('%g', pDecim);
-    pFormat = ['%', pDecim, 'g'];
+    numDecimals = 1 + floor(log10(max(ny, p)));
+    parameterFormat = "%" + string(numDecimals) + "g";
 end
 
-% Preallocatte output arguments.
-code = cell(1, nv);
+% Preallocatte output arguments
+code = repmat("", 1, nv);
 d = cell(1, nv);
 
-% Cycle over all parameterisations.
-for iAlt = 1 : nv
-    % Reset the list of parameters for each parameterisation.
-    pName = { };
+for v = 1 : nv
+    % Reset the list of parameters for each parameterisation
+    parameterNames = string.empty(1, 0);
     
     % Retrieve VAR system matrices.
-    A = reshape(this.A(:, :, iAlt), [ny, ny, p]);
-    K = this.K(:, iAlt);
+    A = reshape(this.A(:, :, v), [ny, ny, p]);
+    K = this.K(:, v);
     if ~opt.Constant
         K(:) = 0;
     end
-    B = mybmatrix(this, iAlt);
-    c = mycovmatrix(this, iAlt);
+    [c, B] = getResidualComponents(this, v);
 	R = covfun.cov2corr(c);
     
     % Print individual equations
-    eqn = cell(1, ny);
-    d{iAlt} = struct( );
+    equations = repmat("", 1, ny);
+    d{v} = struct( );
     
-    for iEqn = 1 : ny
+    for eq = 1 : ny
         % LHS with current-dated endogenous variable
-        eqn{iEqn} = [yNameLag{iEqn}{1}, ' ='];
+        equations(eq) = endogenousNamesWithShift(eq, 1) + " =";
         rhs = false;
-        if abs(K(iEqn))>opt.Tolerance || ~opt.HardParameters
-            eqn{iEqn} = [ eqn{iEqn}, ' ', ...
-                          printParameter('K', {iEqn}, K(iEqn))  ];
+        if abs(K(eq))>opt.Tolerance || ~opt.HardParameters
+            equations(eq) = equations(eq) + " " + herePrintParameter("K", {eq}, K(eq));
             rhs = true;
         end
         
         % Lags of endogenous variables
         for t = 1 : p
             for y = 1 : ny
-                if abs(A(iEqn, y, t))>opt.Tolerance || ~opt.HardParameters
-                    eqn{iEqn} = [ eqn{iEqn}, ' ', ...
-                                  printParameter('A', {iEqn, y, t}, A(iEqn, y, t)), ...
-                                  '*',  yNameLag{y}{1+t} ];
+                if abs(A(eq, y, t))>opt.Tolerance || ~opt.HardParameters
+                    equations(eq) = equations(eq) ...
+                        + " " + herePrintParameter("A", {eq, y, t}, A(eq, y, t)) ...
+                        + "*" + endogenousNamesWithShift(y, 1+t);
                     rhs = true;
                 end
             end
@@ -180,55 +158,50 @@ for iAlt = 1 : nv
         
         % Shocks
         for e = 1 : ny
-            value = B(iEqn, e);
+            value = B(eq, e);
             if abs(value)>opt.Tolerance || ~opt.HardParameters
-                eqn{iEqn} = [ eqn{iEqn}, ' ', ...
-                              printParameter('B', {iEqn, e}, value), ...
-                              '*', eName{e} ];
+                equations(eq) = equations(eq) ...
+                    + " " + herePrintParameter("B", {eq, e}, value) + "*" + residualNames(e);
                 rhs = true;
             end
         end
         
         if ~rhs
             % If nothing occurs on the RHS, add zero
-            eqn{iEqn} = [eqn{iEqn}, ' 0'];
+            equations(eq) = equations(eq) + " 0";
         end
     end
     
-    eqn = strrep(eqn, '+1*', '+');
+    equations = replace(equations, "+1*", "+");
 
-    % Declare variables if requested.
+    % Declare variables if requested
     if opt.Declare
-        br = sprintf('\n');
-        lead = '    ';
-        yName = regexprep(yName, '\{.*\}', '');
-        yDecl = textfun.delimlist(yName, 'wrap=', 75, 'lead=', lead);
-        eDecl = textfun.delimlist(eName, 'wrap=', 75, 'lead=', lead);
-        eqtnDecl = sprintf('\t%s;\n', eqn{:});
-        code{iAlt} = [ ...
-            '!variables', br, yDecl, br, br, ...
-            '!shocks', br, eDecl, br, br, ...
-            '!equations', br, eqtnDecl, br, ...
-            ];
+        br = string(newline( ));
+        lead = "    ";
+        createWrappedList = @(list) join(lead + textual.wrapList(list, 75, ", "), br);
+        declareEndogenous = createWrappedList(endogenousNames);
+        declareResiduals = createWrappedList(residualNames);
+        code(v) = ...
+            "!variables" + br + declareEndogenous + br + br + ...
+            "!shocks" + br + declareResiduals + br + br + ...
+            "!equations" + br + sprintf("\t%s;\n", equations) + br;
         if ~opt.HardParameters
-            pDecl = textfun.delimlist(pName, 'wrap=', 75, 'lead=', lead);
-            code{iAlt} = [code{iAlt}, ...
-                '!parameters', br, pDecl, br, ...
-                ];
+            declareParameters = createWrappedList(parameterNames);
+            code(v) = code(v) + "!parameters" + br + declareParameters + br;
         end
     else
-        code{iAlt} = sprintf('%s;\n', eqn{:});
+        code(v) = sprintf("%s;\n", equations);
     end
     
-    % Add std and corr to the parameter database.
+    % Add std and corr to the parameter database
     if ~opt.HardParameters
         for i = 1 : ny
-            name = sprintf('std_%s', eName{i});
-            d{iAlt}.(name) = sqrt(c(i, i));
+            name = model.component.Quantity.printStd(residualNames(i));
+            d{v}.(name) = sqrt(c(i, i));
             for j = 1 : i-1
                 if abs(R(i, j))>opt.Tolerance
-                    name = sprintf('corr_%s__%s', eName{i}, eName{j});
-                    d{iAlt}.(name) = R(i, j);
+                    name = model.component.Quantity.printCorr(residualNames(i), residualNames(j));
+                    d{v}.(name) = R(i, j);
                 end
             end
         end
@@ -237,20 +210,54 @@ end
 
 return
 
-
-
-
-    function x = printParameter(matrix, pos, value)
+    function x = herePrintParameter(matrix, pos, value)
         if opt.HardParameters
             x = sprintf(opt.Format, value);
         else
             if p<=1 && numel(pos)==3
                 pos = pos(1:2);
             end
-            x = [matrix, sprintf(pFormat, pos{:})];
-            d{iAlt}.(x) = value;
-            pName{end+1} = x;
-            x = ['+', x];
+            x = matrix + sprintf(parameterFormat, pos{:});
+            d{v}.(x) = value;
+            parameterNames(end+1) = x;
+            x = "+" + x;
         end
+    end%
+end%
+
+%
+% Local Functions
+%
+
+function names = locallyResolveNames(kind, this, opt);
+    if isempty(opt.(kind))
+        names = string(this.(kind));
+    else
+        names = string(opt.(kind));
     end
-end
+end%
+
+
+
+
+%
+% Unit Tests
+%
+%{
+% saveAs=VAR/sprintf.m
+##### SOURCE BEGIN #####
+
+testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
+
+%% Test VARX
+
+d.x1 = Series(1:20, @rand);
+d.x2 = Series(1:20, @rand);
+d.x3 = Series(1:20, @rand);
+d.g1 = Series(1:20, @rand);
+d.g2 = Series(1:20, @rand);
+
+v = VAR(["x1", "x2", "x3"], "Exogenous", ["g1", "g2"]);
+
+##### SOURCE END #####
+%}

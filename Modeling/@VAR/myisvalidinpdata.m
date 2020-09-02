@@ -14,26 +14,26 @@ if isempty(inp)
     return
 end
 
-if ispanel(this)
-    % Panel VAR.
-    isStruct = isstruct(inp);
-    nGrp = length(this.GroupNames);
-    isGrpStruct = false(1,nGrp);
-    if isStruct
-        for iGrp = 1 : nGrp
-            name = this.GroupNames{iGrp};
-            isGrpStruct(iGrp) = isfield(inp,name) && isstruct(inp.(name));
+if this.IsPanel
+    % Panel VAR
+    numGroups = this.NumGroups;
+    inxGroupStruct = false(1, numGroups);
+    if isstruct(inp)
+        for i = 1 : numGroups
+            name = this.GroupNames(i);
+            inxGroupStruct(i) = isfield(inp, name) && isstruct(inp.(name));
         end
     end
-    if any(~isGrpStruct)
+    if any(~inxGroupStruct)
         utils.warning('VAR:myisvalidinpdata', ...
             'This group is missing from input database: ''%s''.', ...
-            this.GroupNames{~isGrpStruct});
+            this.GroupNames(~inxGroupStruct));
     end
-    flag = isStruct && all(isGrpStruct);
+    flag = isstruct(inp) && all(inxGroupStruct);
 else
     % Non-panel VAR.
     flag = isstruct(inp);
 end
 
-end
+end%
+

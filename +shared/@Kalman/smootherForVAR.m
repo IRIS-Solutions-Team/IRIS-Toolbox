@@ -1,12 +1,13 @@
-function [X2, Px2, E, U, Y2, Py2, YInx, Y0, F, Y1, Py1] = ...
-         varsmoother(A, B, K, Z, D, Omg, Sgm, y, E, x0, P0, S)
-% varsmoother  Kalman smoother for VAR-based systems
+% smoother  Kalman smoother for VAR-based systems
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function [X2, Px2, E, U, Y2, Py2, YInx, Y0, F, Y1, Py1] = ...
+         smoother(this, A, B, K, Z, D, Omg, Sgm, y, E, x0, P0, S)
 
 % The VAR-based state-space system is given by
 %
@@ -34,7 +35,7 @@ if isempty(D)
     D = zeros(ny, 1);
 end
 
-symm = @(x) (x + x')/2;
+ensureSymmetric = @(x) (x + x')/2;
 
 T = [A;eye((p-1)*nx, p*nx)];
 
@@ -65,15 +66,15 @@ end
 if isempty(B)
     Be = E;
     BOmg = Omg;
-    BOmgBt = symm(Omg);
+    BOmgBt = ensureSymmetric(Omg);
 else
     Be = B*E;
     BOmg = B*Omg;
-    BOmgBt = symm(BOmg*B');
+    BOmgBt = ensureSymmetric(BOmg*B');
 end
 
-isKEmpty = isempty(K);
-isDEmpty = isempty(D);
+isEmptyK = isempty(K);
+isEmptyD = isempty(D);
 
 isSgm = ~isempty(Sgm) && any(any(Sgm ~= 0));
 if allObs
@@ -83,8 +84,8 @@ if allObs
         FF = FF + Sgm;
     end
     FFi = invFunc(FF);
-    FF = symm(FF);
-    FFi = symm(FFi);
+    FF = ensureSymmetric(FF);
+    FFi = ensureSymmetric(FFi);
 end
 
 % __Prediction and updating steps__
@@ -93,7 +94,7 @@ end
 nonZero = any(A ~= 0, 1);
 X2(1:nx, 1) = A(:, nonZero)*x0(nonZero) + Be(:, 1);
 X2(nx+1:end, 1) = x0(1:end-nx);
-if ~isKEmpty
+if ~isEmptyK
     X2(1:nx, 1) = X2(1:nx, 1) + K(:, 1);
 end
 
@@ -103,7 +104,7 @@ else
     Px2(:, :, 1) = T*P0*T';
     Px2(1:nx, 1:nx, 1) = Px2(1:nx, 1:nx, 1) + BOmgBt;
 end
-Px2(:, :, 1) = symm(Px2(:, :, 1));
+Px2(:, :, 1) = ensureSymmetric(Px2(:, :, 1));
 
 jy = false(ny, 1);
 YInx = ~isnan(y);
@@ -112,12 +113,13 @@ nz2 = size(Z, 2);
 for t = 1 : numPeriods
     j0 = jy;
     jy = YInx(:, t);
-    % Predictions of observables.
+
+    % Predictions of observables
     Y0(:, t, 1) = Z*X2(1:nz2, t);
-    if ~isDEmpty
+    if ~isEmptyD
         Y0(:, t, 1) = Y0(:, t, 1) + D;
     end
-    if ahead > 1
+    if ahead>1
         hereAhead( );
     end
     % Prediction error.
@@ -137,7 +139,7 @@ for t = 1 : numPeriods
             if isSgm
                 F(:, :, t) = F(:, :, t) + Sgm;
             end
-            F(:, :, t) = symm(F(:, :, t));
+            F(:, :, t) = ensureSymmetric(F(:, :, t));
             recompute = true;
             if t > 1 && all(j0 == jy)
                 f = F(jy, jy, t);
@@ -149,7 +151,7 @@ for t = 1 : numPeriods
             end
             if recompute
                 Fi(jy, jy, t) = invFunc(F(jy, jy, t));
-                Fi(jy, jy, t) = symm(Fi(jy, jy, t));
+                Fi(jy, jy, t) = ensureSymmetric(Fi(jy, jy, t));
             end
         end
     end
@@ -166,7 +168,7 @@ for t = 1 : numPeriods
     L(:, 1:nz2, t) = L(:, 1:nz2, t) - G(:, jy, t)*Z(jy, :);
     if t < numPeriods
         X2(1:nx, t+1) = A(:, nonZero)*X2(nonZero, t) + Be(:, t+1);
-        if ~isKEmpty
+        if ~isEmptyK
             X2(1:nx, t+1) = X2(1:nx, t+1) + K(:, min(t+1, end));
         end
         X2(nx+1:end, t+1) = X2(1:end-nx, t);
@@ -182,11 +184,13 @@ for t = 1 : numPeriods
         else
             Px2(1:nx, 1:nx, t+1) = Px2(1:nx, 1:nx, t+1) + BOmgBt;
         end
-        Px2(:, :, t+1) = symm(Px2(:, :, t+1));
+        Px2(:, :, t+1) = ensureSymmetric(Px2(:, :, t+1));
     end
 end
 
-% __Reuse FMSE matrices for observables__
+%
+% Reuse FMSE matrices for observables
+%
 
 if reuse
     if isempty(REUSE)
@@ -198,10 +202,12 @@ else
     REUSE = [ ];
 end
 
-% __Backward smoothing__
+%
+% Smoothing
+%
 
 lastObs = max([0, find(any(YInx, 1), 1, 'last')]);
-if lastObs < numPeriods
+if lastObs<numPeriods
     Y2(:, lastObs+1:end) = Z*X2(1:nz2, lastObs+1:end);
     Py2(:, :, lastObs+1:end) = F(:, :, lastObs+1:end);
 end
@@ -235,8 +241,8 @@ for t = lastObs : -1 : 1
     N = L(:, :, t)'*N*L(:, :, t);
     N(1:nz2, 1:nz2) = N(1:nz2, 1:nz2) + Z(jy, :).'*Fi(jy, jy, t)*Z(jy, :);
     PxNPx = Px2(:, :, t)*N*Px2(:, :, t);
-    Px2(:, :, t) = symm(Px2(:, :, t) - PxNPx);
-    Py2(:, :, t) = symm(F(:, :, t) - Z*PxNPx(1:nz2, 1:nz2)*Z');
+    Px2(:, :, t) = ensureSymmetric(Px2(:, :, t) - PxNPx);
+    Py2(:, :, t) = ensureSymmetric(F(:, :, t) - Z*PxNPx(1:nz2, 1:nz2)*Z');
     Py2(jy, :, t) = 0;
     Py2(:, jy, t) = 0;
     if allObs && all(jy)
@@ -246,16 +252,13 @@ end
 
 return
 
-
     function hereUpdate( )
         X1 = X2(:, t) + Px2(:, 1:nz2, t)*Z(jy, :).'*Fipe(jy, t);
         Y1(:, t) = Z*X1(1:nz2, :);
-        if ~isDEmpty
+        if ~isEmptyD
             Y1(:, t) = Y1(:, t) + D;
         end
     end%
-
-
 
 
     function hereAhead( )
@@ -263,12 +266,12 @@ return
         x(:, 1) = X2(:, t);
         for kk = 2 : min(ahead, numPeriods-t+1)
             x(1:nx, kk) = A(:, nonZero)*x(nonZero, kk-1);
-            if ~isKEmpty
+            if ~isEmptyK
                 x(1:nx, kk) = x(1:nx, kk) + K(:, min(kk, end));
             end
             x(nx+1:end, kk) = x(1:end-nx, kk-1);
             y0 = Z*x(1:nz2, kk);
-            if ~isDEmpty
+            if ~isEmptyD
                 y0 = y0 + D;
             end
             Y0(:, t+kk-1, kk) = y0;

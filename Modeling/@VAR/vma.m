@@ -1,10 +1,10 @@
-function Phi = vma(This,N)
+function Phi = vma(this, N)
 % vma  Matrices describing the VMA representation of a VAR process.
 %
 % Syntax
 % =======
 %
-%     Phi = vma(V,N)
+%     Phi = vma(V, N)
 %
 % Input arguments
 % ================
@@ -29,12 +29,13 @@ function Phi = vma(This,N)
 % -Copyright (c) 2007-2020 IRIS Solutions Team.
 
 pp = inputParser( );
-pp.addRequired('N',@isnumericscalar);
+pp.addRequired('N', @isnumericscalar);
 pp.parse(N);
 
 %--------------------------------------------------------------------------
 
-[A,B] = mysystem(This);
-Phi = timedom.var2vma(A,B,N);
+[A, B] = getIthSystemk(this);
+Phi = timedom.var2vma(A, B, N);
 
-end
+end%
+

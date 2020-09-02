@@ -9,15 +9,10 @@ function W = prepareLsqWeights(this, opt)
 
 %--------------------------------------------------------------------------
 
-extRange = this.Range;
-numExtendedPeriods = numel(extRange);
-p = opt.Order;
-
-if ispanel(this)
-    numGroups = numel(this.GroupNames);
-else
-    numGroups = 1;
-end
+extdRange = this.Range;
+numExtdPeriods = numel(extdRange);
+order = opt.Order;
+numGroups = max(1, this.NumGroups);
 
 isTimeWeights = ~isempty(opt.TimeWeights) && isa(opt.TimeWeights, 'tseries');
 isGrpWeights = ~isempty(opt.GroupWeights);
@@ -29,11 +24,11 @@ end
 
 % Time weights
 if isTimeWeights
-    Wt = opt.TimeWeights(extRange, :);
+    Wt = opt.TimeWeights(extdRange, :);
     Wt = Wt(:).';
     Wt = repmat(Wt, 1, numGroups);
 else
-    Wt = ones(1, numExtPeriods);
+    Wt = ones(1, numExtdPeriods);
 end
 
 % Group weights
@@ -47,7 +42,7 @@ end
 % Total weights
 W = [ ];
 for i = 1 : numGroups
-    W = [W, Wt*Wg(i), nan(1, p)]; %#ok<AGROW>
+    W = [W, Wt*Wg(i), nan(1, order)]; %#ok<AGROW>
 end
 W(W == 0) = NaN;
 if all(isnan(W(:)))

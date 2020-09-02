@@ -54,8 +54,8 @@ V.IxFitted = A.IxFitted; % Effective estimation sample.
 V.Rr = [ ]; % Parameter restrictions.
 V.NHyper = nx*p; % Number of estimated hyperparameters.
 V.EigVal = A.EigVal; % Vector of eigenvalues.
-V.NamesEndogenous = @(n) sprintf('factor%g', n); % Names of endogenous variables.
-V.NamesErrors = @(yname, n) ['res_', yname]; % Names of residuals.
+V.EndogenousNames = @(n) sprintf('factor%g', n); % Names of endogenous variables.
+V.ResidualNames = @(yname, n) ['res_', yname]; % Names of residuals.
 % w.Aic, w.Sbc to be populated within VAR( ).
 
 % Convert the struct to a VAR object

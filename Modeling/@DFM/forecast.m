@@ -153,8 +153,8 @@ s.tol = opt.Tolerance;
 s.reuse = opt.Persist;
 s.ahead = 1;
 
-[x, Px, e, u, y, Py, ixy] = timedom.varsmoother( ...
-   this.A, this.B, [ ], this.C, [ ], 1, Sgm, y, [ ], x0, P0, s ...
+[x, Px, e, u, y, Py, ixy] = shared.Kalman.smootherForVAR( ...
+   this, this.A, this.B, [ ], this.C, [ ], 1, Sgm, y, [ ], x0, P0, s ...
 );
 
 if opt.MeanOnly
@@ -164,14 +164,14 @@ end
 
 [y, Py] = DFM.destdize(y, this.Mean, this.Std, Py);
 
-yNames = get(this, 'YNames');
-d = myoutpdata(this, range, y, Py, yNames);
+endogenousNames = this.EndogenousNames;
+d = myoutpdata(this, range, y, Py, endogenousNames);
 
 if nargout>1
    % Common components.
    [cc, Pc] = DFM.cc(this.C, x(1:nx, :, :), Px(1:nx, 1:nx, :, :));
    [cc, Pc] = DFM.destdize(cc, this.Mean, this.Std, Pc);
-   cc = myoutpdata(this, range, cc, Pc, yNames);   
+   cc = myoutpdata(this, range, cc, Pc, endogenousNames);   
 end
 
 if nargout>2
@@ -180,7 +180,7 @@ end
 
 if nargout>3
    u = DFM.destdize(u, 0, this.Std);
-   u = myoutpdata(this, range, u, NaN, yNames);
+   u = myoutpdata(this, range, u, NaN, endogenousNames);
 end
 
 if nargout>5

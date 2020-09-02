@@ -57,23 +57,23 @@ end
 
 %--------------------------------------------------------------------------
 
-nx = length(This.NamesExogenous);
-nGrp = max(1,length(This.GroupNames));
+nx = length(This.ExogenousNames);
+numGroups = max(1, this.NumGroups);
 nAlt = size(This.A,3);
 
 if size(X0,1) == 1 && nx > 1
     X0 = X0(ones(1,nx),:,:);
 end
 
-if size(X0,2) == 1 && nGrp > 1
-    X0 = X0(:,ones(1,nGrp),:);
+if size(X0,2) == 1 && numGroups > 1
+    X0 = X0(:,ones(1,numGroups),:);
 end
 
 if size(X0,3) == 1 && nAlt > 1
     X0 = X0(:,:,ones(1,nAlt));
 end
 
-if size(X0,1) ~= nx || size(X0,2) ~= nGrp || size(X0,3) ~= nAlt
+if size(X0,1) ~= nx || size(X0,2) ~= numGroups || size(X0,3) ~= nAlt
     utils.error('VAR:mean', ...
         ['Invalid size of vector/matrix of asymptotic assumptions for ', ...
         'exogenous inputs.']);

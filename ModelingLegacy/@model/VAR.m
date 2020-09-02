@@ -129,10 +129,10 @@ for v = 1 : nv
 end
 
 % Assign variable names
-outputVAR.NamesEndogenous = select; 
+outputVAR.EndogenousNames = select; 
 
 % Create residual names automatically
-outputVAR.NamesErrors = @auto;
+outputVAR.ResidualNames = @auto;
 
 % Compute triangular representation
 outputVAR = schur(outputVAR);
