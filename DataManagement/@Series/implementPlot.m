@@ -12,20 +12,21 @@ function [ plotHandle, dates, yData, ...
 [axesHandle, dates, this, plotSpec, varargin] = ...
     NumericTimeSubscriptable.preparePlot(varargin{:});
 
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('Series.implementPlot');
-    parser.KeepUnmatched = true;
-    parser.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x));
-    parser.addParameter('DateFormat', @default, @(x) isequal(x, @default) || ischar(x));
-    parser.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('Series.implementPlot');
+    pp.KeepUnmatched = true;
+    pp.addParameter('DateTick', @auto, @(x) isequal(x, @auto) || DateWrapper.validateDateInput(x));
+    pp.addParameter('DateFormat', @default, @(x) isequal(x, @default) || isstring(x) || ischar(x) || iscellstr(x));
+    pp.addParameter( 'PositionWithinPeriod', @auto, @(x) isequal(x, @auto) ...
                          || any(strncmpi(x, {'Start', 'Middle', 'End'}, 1)) );
-    parser.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    parser.addParameter('Smooth', false, @validate.logicalScalar);
+    pp.addParameter('XLimMargins', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    pp.addParameter('Smooth', false, @validate.logicalScalar);
 end
-parser.parse(varargin{:});
-opt = parser.Options;
-unmatchedOptions = parser.UnmatchedInCell;
+opt = pp.parse(varargin{:});
+%)
+unmatchedOptions = pp.UnmatchedInCell;
 
 dates = double(dates);
 enforceXLimHere = true;
@@ -53,12 +54,8 @@ if ndims(yData)>2
     yData = yData(:, :);
 end
 
-[ xData, ...
-  positionWithinPeriod, ...
-  dateFormat ] = TimeSubscriptable.createDateAxisData( axesHandle, ...
-                                                       dates, ...
-                                                       opt.PositionWithinPeriod, ...
-                                                       opt.DateFormat );
+[xData, positionWithinPeriod, dateFormat] ...
+    = TimeSubscriptable.createDateAxisData(axesHandle, dates, opt.PositionWithinPeriod, opt.DateFormat);
 
 if isempty(plotFunc)
     plotHandle = gobjects(0);
@@ -70,13 +67,14 @@ if ~ishold(axesHandle)
 end
 
 set(axesHandle, 'XLimMode', 'auto', 'XTickMode', 'auto');
-[plotHandle, isTimeAxis] = this.plotSwitchboard( plotFunc, ...
-                                                 axesHandle, ...
-                                                 xData, ...
-                                                 yData, ...
-                                                 plotSpec, ...
-                                                 opt.Smooth, ...
-                                                 unmatchedOptions{:} );
+[plotHandle, isTimeAxis] = this.plotSwitchboard( ...
+    plotFunc, axesHandle, xData, yData, plotSpec, opt.Smooth, unmatchedOptions{:} ...
+);
+
+try
+    axesHandle.XAxis.TickLabelFormat = char(dateFormat);
+end
+
 if isTimeAxis
     addXLimMargins( );
     setXLim( );

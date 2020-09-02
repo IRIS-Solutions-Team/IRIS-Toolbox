@@ -1,7 +1,6 @@
-function [xData, positionWithinPeriod, dateFormat] = createDateAxisData( axesHandle, ...
-                                                                         time, ...
-                                                                         positionWithinPeriod, ...
-                                                                         dateFormat )
+function [xData, positionWithinPeriod, dateFormat] = createDateAxisData( ...
+    axesHandle, time, positionWithinPeriod, dateFormat ...
+)
 
 if nargin<3
     positionWithinPeriod = @auto;
@@ -32,15 +31,11 @@ else
     xData = dater.toMatlab(time, lower(positionWithinPeriod));
     if isequal(dateFormat, @config) || isequal(dateFormat, @default)
         temp = iris.get('PlotDateTimeFormat');
-        nameOfFreq = Frequency.toChar(timeFrequency);
-        dateFormat = temp.(nameOfFreq);
+        dateFormat = temp.(Frequency.toChar(timeFrequency));
     end
     dateFormat = backwardCompatibilityDateFormat(dateFormat, timeFrequency);
     try
         xData.Format = dateFormat;
-    end
-    try
-        axesHandle.XAxis.TickLabelFormat = dateFormat;
     end
 end
 
@@ -67,54 +62,53 @@ function positionWithinPeriod = hereResolvePositionWithinPeriod(axesHandle, posi
 end%
 
 
-
-
 function dateFormat = backwardCompatibilityDateFormat(dateFormat, timeFrequency)
-    if strcmp(dateFormat, 'YYYY')
-        dateFormat = 'uuuu';
-        return
+    dateFormat = string(dateFormat);
+    if contains(dateFormat, "YYYY", "IgnoreCase", true)
+        dateFormat = replace(dateFormat, "YYYY", "uuuu");
     end
-    if strcmp(dateFormat, 'YYYYFP')
+
+    if contains(dateFormat, "uuuuFP")
+        replacement = [ ];
         if timeFrequency==Frequency.YEARLY
-            dateFormat = 'uuuu''Y''';
-        elseif timeFrequency==Frequency.HALFYEARLY
-            dateFormat = 'uuuu''H''MM';
+            replacement = "uuuu'Y'";
+        elseif timeFrequency==Frequency.HALFYEARLY || timeFrequency==Frequency.MONTHLY
+            replacement = "uuuu'M'MM";
         elseif timeFrequency==Frequency.QUARTERLY
-            dateFormat = 'uuuuQQQ';
-        elseif timeFrequency==Frequency.MONTHLY
-            dateFormat = 'uuuu''M''MM';
+            replacement = "uuuuQQQ";
         end
-        return
+        if ~isempty(replacement)
+            dateFormat = replace(dateFormat, "uuuuFP", replacement);
+        end
     end
-    if strcmp(dateFormat, 'YYYYF')
+
+    if contains(dateFormat, "uuuu:P")
+        replacement = [ ];
         if timeFrequency==Frequency.YEARLY
-            dateFormat = 'uuuu''Y''';
-        elseif timeFrequency==Frequency.HALFYEARLY
-            dateFormat = 'uuuu''H''';
+            replacement = "uuuu";
+        elseif timeFrequency==Frequency.HALFYEARLY || timeFrequency==Frequency.MONTHLY
+            replacement = "uuuu:MM";
         elseif timeFrequency==Frequency.QUARTERLY
-            dateFormat = 'uuuu''Q''';
-        elseif timeFrequency==Frequency.MONTHLY
-            dateFormat = 'uuuu''M''';
+            dateFormat = "uuuu:Q";
         end
-        return
+        if ~isempty(replacement)
+            dateFormat = replace(dateFormat, "uuuu:P", replacement);
+        end
     end
-    if strcmp(dateFormat, 'YY:P')
+
+    dateFormat = replace(dateFormat, "YY", "yy");
+    if contains(dateFormat, "yy:P")
+        replacement = [ ];k
         if timeFrequency==Frequency.YEARLY
-            dateFormat = 'yy:';
-        elseif timeFrequency==Frequency.HALFYEARLY
-            dateFormat = 'yy:MM';
+            dateFormat = "yy";
+        elseif timeFrequency==Frequency.HALFYEARLY || timeFrequency==Frequency.MONTHLY
+            dateFormat = "yy:MM";
         elseif timeFrequency==Frequency.QUARTERLY
-            dateFormat = 'yy:Q';
-        elseif timeFrequency==Frequency.MONTHLY
-            dateFormat = 'yy:MM';
+            dateFormat = "yy:Q";
         end
-        return
-    end
-    if strcmp(dateFormat, 'YY:MM')
-        if timeFrequency==Frequency.MONTHLY
-            dateFormat = 'yy''M''MM';
+        if ~isempty(replacement)
+            dateFormat = replace(dateFormat, "yy:P", replacement);
         end
-        return
     end
 end%
 
