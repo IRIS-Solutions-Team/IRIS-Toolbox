@@ -1,4 +1,4 @@
-function This = ctranspose(This)
+function this = ctranspose(this)
 % ctranspose  Conjugate-transpose each page of matrix with names rows and columns.
 %
 % Syntax
@@ -29,17 +29,18 @@ function This = ctranspose(This)
 
 %--------------------------------------------------------------------------
 
-rowNames = This.RowNames;
-colNames = This.ColNames;
+rowNames = this.RowNames;
+colNames = this.ColNames;
 
-This = double(This);
-n = ndims(This);
-realX = real(This);
-imagX = imag(This);
-realX = permute(realX,[2,1,3:n]);
-imagX = permute(imagX,[2,1,3:n]);
-This = realX - 1i*imagX;
+this = double(this);
+n = ndims(this);
+realX = real(this);
+imagX = imag(this);
+realX = permute(realX, [2, 1, 3:n]);
+imagX = permute(imagX, [2, 1, 3:n]);
+this = realX - 1i*imagX;
 
-This = namedmat(This,colNames,rowNames);
+this = namedmat(this, colNames, rowNames);
 
-end
+end%
+

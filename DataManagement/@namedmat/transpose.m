@@ -1,4 +1,4 @@
-function This = transpose(This)
+function this = transpose(this)
 % transpose  Transpose each page of matrix with names rows and columns.
 %
 % Syntax
@@ -29,13 +29,14 @@ function This = transpose(This)
 
 %--------------------------------------------------------------------------
 
-rowNames = This.RowNames;
-colNames = This.ColNames;
+rowNames = this.RowNames;
+colNames = this.ColNames;
 
-This = double(This);
-n = ndims(This);
-This = permute(This,[2,1,3:n]);
+this = double(this);
+n = ndims(this);
+this = permute(this, [2, 1, 3:n]);
 
-This = namedmat(This,colNames,rowNames);
+this = namedmat(this, colNames, rowNames);
 
-end
+end%
+
