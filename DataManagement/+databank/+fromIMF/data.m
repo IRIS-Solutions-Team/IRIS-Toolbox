@@ -1,9 +1,9 @@
-% databank.IMF.data  Download time series from IMF Data Portal
+% databank.fromIMF.data  Download time series from IMF Data Portal
 %{
 % Syntax
 %--------------------------------------------------------------------------
 %
-%     output = function(input, ...)
+%     output = databank.fromIMF.data(input, ...)
 %
 %
 % Input Arguments
