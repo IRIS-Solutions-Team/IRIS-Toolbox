@@ -1,4 +1,3 @@
-function this = init(this, dates, data)
 % init  Create start date and data for new time series
 %
 % Backend [IrisToolbox] method
@@ -7,19 +6,20 @@ function this = init(this, dates, data)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-if ischar(dates) || isstring(dates)
-    dates = textinp2dat(dates);
+function this = init(this, dates, data)
+
+if isa(dates, "DateWrapper")
+    dateFunction = @DateWrapper;
+else
+    dateFunction = @double;
 end
+dates = double(dates);
 numDates = numel(dates);            
 
 if isempty(dates)
     freq = double.empty(1, 0);
 else
-    if isa(dates, 'DateWrapper')
-        freq = dater.getFrequency(getFirst(dates));
-    else
-        freq = dater.getFrequency(dates(1));
-    end
+    freq = dater.getFrequency(dates(1));
     freq = freq(~isnan(freq));
     DateWrapper.checkMixedFrequency(freq);
 end
@@ -116,7 +116,13 @@ posData = round(serials - startSerial + 1);
 % this.Data
 %
 this.Data(posData, :) = data;
-this.Start = DateWrapper.fromSerial(freq, startSerial);
+
+%
+% Create the start date from the serial number, preserve the class of the
+% dates input
+%
+start = dater.fromSerial(freq, startSerial);
+this.Start = dateFunction(start);
 
 %
 % Trim leading and trailing rows containing MissinValues only

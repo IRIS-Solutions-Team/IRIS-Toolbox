@@ -1,4 +1,3 @@
-function x = vertcat(varargin)
 % vertcat  Vertical concatenation of tseries objects
 %
 % __Syntax__
@@ -39,6 +38,8 @@ function x = vertcat(varargin)
 
 %--------------------------------------------------------------------------
 
+function x = vertcat(varargin)
+
 if numel(varargin)==1
     x = varargin{1};
     return
@@ -63,6 +64,9 @@ if numInputs==1
     return
 end
 
+if isa(varargin{1}.Start, "DateWrapper"), dateFunction = @DateWrapper;
+    else, dateFunction = @double; end;
+
 % Check date frequency
 freq = nan(1, numInputs);
 for i = 1 : numInputs
@@ -76,15 +80,15 @@ else
     freq = NaN;
 end
 
-sizeOfXData = size(x.Data);
-ndimsOfXData = ndims(x.Data);
+sizeXData = size(x.Data);
+ndimsXData = ndims(x.Data);
 x.Data = x.Data(:, :);
 
 serialXStart = round(x.Start);
 for i = 2 : numInputs
     y = varargin{i};
-    sizeOfYData = size(y.Data);
-    ndimsOfYData = ndims(y.Data);
+    sizeYData = size(y.Data);
+    ndimsYData = ndims(y.Data);
     y.Data = y.Data(:, :);
     numColumnsX = size(x.Data, 2);
     numColumnsY = size(y.Data, 2);
@@ -92,13 +96,13 @@ for i = 2 : numInputs
         if numColumnsX==1
             x.Data = repmat(x.Data, 1, numColumnsY);
             x.Comment = repmat(x.Comment, 1, numColumnsY);
-            sizeOfXData = sizeOfYData;
-            ndimsOfXData = ndimsOfYData;
+            sizeXData = sizeYData;
+            ndimsXData = ndimsYData;
         elseif numColumnsY==1
             y.Data = repmat(y.Data, 1, numColumnsX);
             y.Comment = repmat(y.Comment, 1, numColumnsX);
-            sizeOfYData = sizeOfXData;
-            ndimsOfYData = ndimsOfXData;
+            sizeYData = sizeXData;
+            ndimsYData = ndimsXData;
         else
             throw( exception.Base('Series:InconsistentSizeVertCat', 'error') )
         end
@@ -110,8 +114,8 @@ for i = 2 : numInputs
     if isempty(x.Data) || isnan(serialXStart)
         x = y;
         serialXStart = serialYStart;
-        sizeOfXData = size(x.Data);
-        ndimsOfXData = ndims(x.Data);
+        sizeXData = size(x.Data);
+        ndimsXData = ndims(x.Data);
         x.Data = x.Data(:, :);
         continue
     end
@@ -143,13 +147,15 @@ for i = 2 : numInputs
     % Update start date for the output series
     serialXStart = serialStart;
 end
-x.Start = DateWrapper.fromSerial(freq, serialXStart);
 
-if ndimsOfXData>2
-    x.Data = reshape(x.Data, [size(x.Data, 1), sizeOfXData(2:end)]);
+x.Start = dateFunction(dater.fromSerial(freq, serialXStart));
+
+if ndimsXData>2
+    x.Data = reshape(x.Data, [size(x.Data, 1), sizeXData(2:end)]);
 end
 x.Comment(:) = y.Comment(:);
 
 x = trim(x);
 
-end
+end%
+

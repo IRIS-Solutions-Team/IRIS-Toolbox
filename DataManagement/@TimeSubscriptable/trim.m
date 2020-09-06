@@ -31,12 +31,12 @@ else
     last = find(~inxMissing, 1, 'last');
     n = last - first + 1;
     newData = reshape(newData(first:last, :), [n, sizeData(2:end)]);
-    newStart = dater.plus(double(newStart), first - 1);
+    newStart = dater.plus(newStart, first - 1);
 end
 
 this.Data = newData;
 if round(oldStart)~=round(newStart)
-    if isa(this.Start, 'DateWrapper') && ~isa(newStart, 'DateWrapper')
+    if isa(this.Start, 'DateWrapper') 
         this.Start = DateWrapper(newStart);
     else
         this.Start = newStart;

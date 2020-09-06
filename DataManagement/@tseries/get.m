@@ -47,15 +47,10 @@ function varargout = get(this, varargin)
 % __Description__
 %
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
-
-P = inputParser( );
-P.addRequired('Query', @iscellstr);
-P.parse(varargin);
-
-%--------------------------------------------------------------------------
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
 [varargout{1:nargout}] = get@shared.GetterSetter(this, varargin{:});
 
-end
+end%
+

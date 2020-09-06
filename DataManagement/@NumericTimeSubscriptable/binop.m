@@ -1,13 +1,12 @@
-function [x, varargout] = binop(fn, a, b, varargin)
 % binop  Binary operators and functions on NumericTimeSubscriptable objects
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function [x, varargout] = binop(fn, a, b, varargin)
 
 if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
     sizeA = size(a.Data);
@@ -30,6 +29,10 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
     else
         sizeX = sizeA;
     end
+
+    if isa(a.Start, "DateWrapper"), dateFunction = @DateWrapper;
+        else, dateFunction = @double; end
+
     startA = double(a.Start);
     startB = double(b.Start);
     if isnan(startA) && isnan(startB)
@@ -63,20 +66,20 @@ if isa(a, 'NumericTimeSubscriptable') && isa(b, 'NumericTimeSubscriptable')
             "this function: %s "
         ], string(func2str(fn)));
     end
-    x.Start = DateWrapper(startDate);
+    x.Start = dateFunction(startDate);
     x = resetComment(x);
     x = trim(x);
 else
     sizeB = size(b);
     sizeA = size(a);
     strFn = func2str(fn);
-    if isa(a, 'tseries')
+    if isa(a, "TimeSubscriptable")
         x = a;
         a = a.Data;
         if any(strcmp(strFn, ...
                 {'times', 'plus', 'minus', 'rdivide', 'mdivide', 'power'})) ...
                 && sizeB(1)==1 && all(sizeB(2:end)==sizeA(2:end))
-            % Expand non-tseries data in first dimension to match the number
+            % Expand non time seriesk data in first dimension to match the number
             % of periods of the NumericTimeSubscriptable object for elementwise operators.
             b = repmat(b, sizeA(1), 1);
         end
@@ -86,7 +89,7 @@ else
         if any(strcmp(strFn, ...
                 {'times', 'plus', 'minus', 'rdivide', 'mdivide', 'power'})) ...
                 && sizeA(1)==1 && all(sizeA(2:end)==sizeB(2:end))
-            % Expand non-NumericTimeSubscriptable data in first dimension to match the number
+            % Expand non time series data in first dimension to match the number
             % of periods of the NumericTimeSubscriptable object for elementwise operators.
             a = repmat(a, sizeB(1), 1);
         end

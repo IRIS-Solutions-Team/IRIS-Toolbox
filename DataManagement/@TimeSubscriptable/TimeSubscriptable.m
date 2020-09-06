@@ -3,13 +3,11 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
 
     properties 
         % Start  Date of first observation in time series
-        Start = DateWrapper.NaD
+        Start (1, 1) = DateWrapper.NaD
 
         % Comment  User comments attached to individual columns of time series
         Comment = { TimeSubscriptable.EMPTY_COMMENT }
     end
-
-
 
 
     properties (Abstract)
@@ -21,13 +19,12 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     end
 
 
-
-
     properties (Dependent)
         % StartAsNumeric  Date of first observation in time series returned as numeric value (double)
         StartAsNumeric
 
-        % StartAsDateWrapper  Date of first observation in time series returned as DateWrapper
+        % StartAsDate  Date of first observation in time series returned as IrisT date
+        StartAsDate
         StartAsDateWrapper
 
         % End  Date of last observation in time series
@@ -36,7 +33,8 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         % EndAsNumeric  Date of last observation in time series returned as numeric value (double)
         EndAsNumeric
 
-        % EndAsDateWrapper  Date of last observation in time series returned as DateWrapper
+        % EndAsDate  Date of last observation in time series returned as DateWrapper
+        EndAsDate
         EndAsDateWrapper
 
         % Frequency  Date frequency of time series
@@ -48,14 +46,13 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         % Range  Date range from first to last observation in time series
         Range
 
-        % RangeAsDateWrapper  Date range from first to last observation in time series returned as numeric value
+        % RangeAsNumeric  Date range from first to last observation in time series returned as numeric value
         RangeAsNumeric
 
-        % RangeAsDateWrapper  Date range from first to last observation in time series returned as DateWrapper
+        % RangeAsDate  Date range from first to last observation in time series returned as DateWrapper
+        RangeAsDate
         RangeAsDateWrapper
     end
-
-
 
 
     properties (Abstract, Dependent)
@@ -63,13 +60,9 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
     end
 
 
-
-
     properties (Constant)
         EMPTY_COMMENT = char.empty(1, 0)
     end
-
-
 
 
     methods (Abstract, Access=protected, Hidden)
@@ -77,8 +70,6 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         varargout = createDataFromFunction(varargin)
         varargout = resetMissingValue(varargin)
     end
-
-
 
 
     methods (Access=protected)
@@ -111,13 +102,18 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         end%
          
 
-        function startDateAsDateWrapper = get.StartAsDateWrapper(this)
-            startDateAsDateWrapper = this.Start;
-            if ~isa(startDateAsDateWrapper, 'DateWrapper')
-                startDateAsDateWrapper = DateWrapper(startDateAsDateWrapper);
+        function startAsDate = get.StartAsDate(this)
+            startAsDate = this.Start;
+            if ~isa(startAsDate, 'Date')
+                startAsDate = Date(startAsDate);
             end
         end%
          
+
+        function startAsDate = get.StartAsDateWrapper(this)
+            startAsDate = this.StartAsDate;
+        end%
+
 
         function endDate = get.End(this)
             if isnan(this.Start)
@@ -138,11 +134,16 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         end%
          
 
-        function endDateAsDateWrapper = get.EndAsDateWrapper(this)
-            endDateAsDateWrapper = this.End;
-            if ~isa(endDateAsDateWrapper, 'DateWrapper')
-                endDateAsDateWrapper = DateWrapper(endDateAsDateWrapper);
+        function endAsDate = get.EndAsDate(this)
+            endAsDate = this.End;
+            if ~isa(endAsDate, 'DateWrapper')
+                endAsDate = DateWrapper(endAsDate);
             end
+        end%
+         
+
+        function endAsDate = get.EndAsDateWrapper(this)
+            endAsDate = this.EndAsDate;
         end%
          
 
@@ -181,9 +182,14 @@ classdef (Abstract, InferiorClasses={?matlab.graphics.axis.Axes}) ...
         end%
 
 
-        function range = get.RangeAsDateWrapper(this)
+        function range = get.RangeAsDate(this)
             range = this.RangeAsNumeric;
             range = DateWrapper(range);
+        end%
+
+
+        function range = get.RangeAsDateWrapper(this)
+            range = this.RangeAsDate;
         end%
 
 

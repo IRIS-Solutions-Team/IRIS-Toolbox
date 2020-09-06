@@ -46,6 +46,7 @@ NumericTimeSubscriptable ...
         varargout = bubble(varargin)
         varargout = bwf(varargin)
         varargout = bwf2(varargin)
+        varargout = cat(varargin)
         varargout = cumsumk(varargin)
 
         varargout = destdize(varargin)
@@ -61,6 +62,7 @@ NumericTimeSubscriptable ...
             [varargout{1:nargout}] = this.Frequency==freq;
         end%
 
+        varargout = horzcat(varargin)
         varargout = llf(varargin)
         varargout = llf2(varargin)
         varargout = hpf(varargin)
@@ -572,7 +574,7 @@ NumericTimeSubscriptable ...
 %}
             
             % -[IrisToolbox] for Macroeconomic Modeling
-            % -Copyright (c) 2007-2020 IRIS Solutions Team
+            % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
             
             this = this@shared.GetterSetter( );
             this = this@shared.UserDataContainer( );
@@ -581,10 +583,11 @@ NumericTimeSubscriptable ...
             if nargin==1 && isstruct(varargin{1}) 
                 this = struct2obj(this, varargin{1});
                 if ~checkConsistency(this)
-                    thisError = [ "NumericTimeSubscriptable:InvalidStructPassedToConstructor"
-                                  "The struct passed into the NumericTimeSubscriptable constructor "
-                                  "is invalid or its fields are not consistent. " ];
-                    throw(exception.Base(thisError, 'error'));
+                    exception.error([ 
+                        "NumericTimeSubscriptable:InvalidStructPassedToConstructor"
+                        "The struct passed into the NumericTimeSubscriptable constructor "
+                        "is invalid or its fields are not consistent. "
+                    ]);
                 end
                 return
             end

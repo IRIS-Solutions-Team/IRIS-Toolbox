@@ -12,69 +12,63 @@ function [answ, flag] = implementGet(this, query, varargin)
 answ = [ ];
 flag = true;
 
+if isa(this.Start, "DateWrapper")
+    dateFunction = @DateWrapper;
+    freqFunction = @Frequency;
+else
+    dateFunction = @double;
+    freqFunction = @double;
+end
+
 switch query
     case {'range', 'first2last', 'start2end', 'first:last', 'start:end'}
-        answ = this.Range;
-        if ~isa(answ, 'DateWrapper')
-            answ = DateWrapper(answ);
-        end
-        % Bkw compatibility
-        answ = answ(:)';
+        answ = reshape(this.Range, 1, [ ]);k
         
         
     case {'min', 'minrange', 'nanrange'}
         sample = all(~isnan(this.Data(:, :)), 2);
         answ = this.Range;
         answ = answ(sample);
-        if ~isa(answ, 'DateWrapper')
-            answ = DateWrapper(answ);
-        end
         
         
     case {'start', 'startdate', 'first'}
         answ = this.Start;
-        if ~isa(answ, 'DateWrapper')
-            answ = DateWrapper(answ);
-        end
     
         
     case {'nanstart', 'nanstartdate', 'nanfirst', 'allstart', 'allstartdate'}
         if isnan(this.Start) || isempty(this.Data)
-            answ = DateWrapper.NaD;
+            answ = dateFunction(NaN);
         else
             sample = all(~isnan(this.Data(:, :)), 2);
             if isempty(sample) || ~any(sample)
-                answ = DateWrapper.NaD;
+                answ = dateFunction(NaN);
             else
                 pos = find(sample, 1, 'first');
-                answ = addTo(this.Start, pos-1);
+                answ = dateFunction(dater.plus(start, pos-1));
             end
         end
         
         
     case {'end', 'enddate', 'last'}
         answ = this.End;
-        if ~isa(answ, 'DateWrapper')
-            answ = DateWrapper(answ);
-        end
         
         
     case {'nanend', 'nanenddate', 'nanlast', 'allend', 'allenddate'}
         if isnan(this.Start) || isempty(this.Data)
-            answ = DateWrapper.NaD;
+            answ = dateFunction(NaN);
         else
             sample = all(~isnan(this.Data(:, :)), 2);
             if isempty(sample) || ~any(sample)
-                answ = DateWrapper.NaD;
+                answ = dateFunction(NaN);
             else
                 pos = find(sample, 1, 'last');
-                answ = addTo(this.Start, pos-1);
+                answ = dateFunction(dater.plus(start, pos-1));
             end
         end
         
         
     case {'freq', 'frequency', 'per', 'periodicity'}
-        answ = DateWrapper.getFrequency(this.Start);
+        answ = freqFunction(dater.getFrequency(this.Start));
     
         
     case {'data', 'value', 'values'}
@@ -91,4 +85,5 @@ switch query
         flag = false;
 end
 
-end
+end%
+

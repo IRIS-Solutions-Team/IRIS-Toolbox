@@ -1,13 +1,12 @@
-function [this, varargout] = unop(func, this, dim, varargin)
 % unop  Unary operators and functions on tseries objects
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function [this, varargout] = unop(func, this, dim, varargin)
 
 if dim==0
     % Returns time series of the same size

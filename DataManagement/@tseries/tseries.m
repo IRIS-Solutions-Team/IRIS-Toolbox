@@ -151,7 +151,8 @@
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
 classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis.Axes, ?DateWrapper}) ...
-         tseries < NumericTimeSubscriptable
+    tseries ...
+    < NumericTimeSubscriptable
 
     methods % Constructor
         function this = tseries(varargin)
@@ -208,7 +209,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
         varargout = get(varargin)
         varargout = histogram(varargin)
-        varargout = horzcat(varargin)
         varargout = hpdi(varargin)
         varargout = infoset2line(varargin)
         varargout = interp(varargin)
@@ -283,7 +283,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
     methods (Hidden)
         varargout = max(varargin)
         varargout = min(varargin)
-        varargout = cat(varargin)
         varargout = cut(varargin)
         varargout = df(varargin)
         varargout = divisia(varargin)
@@ -306,9 +305,6 @@ classdef (CaseInsensitiveProperties=true, InferiorClasses={?matlab.graphics.axis
 
 
     methods (Access=protected, Hidden)
-        varargout = catcheck(varargin)
-
-
         function implementDisp(varargin)
             implementDisp@NumericTimeSubscriptable(varargin{:});
             implementDisp@shared.UserDataContainer(varargin{:});
