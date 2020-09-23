@@ -64,7 +64,7 @@ end
 
 %--------------------------------------------------------------------------
 
-[~, ~, nb, nf, ne] = sizeOfSolution(this.Vector);
+[~, ~, nb, nf, ne] = sizeSolution(this.Vector);
 nv = length(this);
 range = range(1) : range(end);
 numPeriods = length(range);

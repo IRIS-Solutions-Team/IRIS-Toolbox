@@ -31,7 +31,7 @@ posStdCorr = this.Update.PosOfStdCorr;
 % Switch betwen measurement variables versus transition variables marked
 % for measurement
 %
-[ny, ~, ~, ~, ~, ~, nz] = sizeOfSolution(this);
+[ny, ~, ~, ~, ~, ~, nz] = sizeSolution(this);
 if ny==0 && nz>0
     ny = nz;
 end

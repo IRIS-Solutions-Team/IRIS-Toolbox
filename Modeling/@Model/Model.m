@@ -362,6 +362,9 @@ classdef Model ...
         varargout = changeLogStatus(varargin)
         varargout = simulate(varargin)
         varargout = table(varargin)
+        varargout = setBounds(varargin)
+        varargout = resetBounds(varargin)
+        varargout = getBounds(varargin)
         %)
     end % methods
 
@@ -424,11 +427,12 @@ classdef Model ...
         end%
 
 
-        varargout = getIdOfInitialConditions(varargin)
+        varargout = getIdInitialConditions(varargin)
         varargout = getInxOfInitInPresample(varargin)
         varargout = implementGet(varargin)
         varargout = prepareHashEquations(varargin)
         varargout = prepareLinearSystem(varargin)
+        varargout = prepareRectangular(varargin)
         varargout = simulateFrames(varargin)
     end % methods
 
@@ -477,7 +481,7 @@ classdef Model ...
 
 
         function value = get.SizeOfTransitionMatrix(this)
-            [~, nxi, nb] = sizeOfSolution(this);
+            [~, nxi, nb] = sizeSolution(this);
             value = [nxi, nb];
         end%
 

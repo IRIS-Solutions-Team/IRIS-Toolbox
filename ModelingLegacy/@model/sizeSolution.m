@@ -1,4 +1,4 @@
-% sizeOfSolution  Size of solution vectors
+% sizeSolution  Size of solution vectors
 %
 % Backend [IrisToolbox] method
 % No help provided
@@ -6,11 +6,11 @@
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-function [ny, nxi, nb, nf, ne, ng, nz, numV, numW] = sizeOfSolution(this)
+function [ny, nxi, nb, nf, ne, ng, nz, numV, numW] = sizeSolution(this)
 
 %--------------------------------------------------------------------------
 
-[ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
+[ny, nxi, nb, nf, ne, ng] = sizeSolution(this.Vector);
 if nargout<=6
     return
 end

@@ -6,17 +6,17 @@ classdef Vector
     
     
     methods
-        function [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this)
+        function [ny, nxi, nb, nf, ne, ng] = sizeSolution(this)
             ny = length(this.Solution{1});
             nxi = length(this.Solution{2});
-            nb = sum( imag(this.System{2})<0 ); % Needs to be Vector.System{2}
+            nb = sum(imag(this.System{2})<0); % Needs to be Vector.System{2}
             nf = nxi - nb;
             ne = length(this.Solution{3});
             ng = length(this.Solution{5});
         end
         
         
-        function [ky, kxi, kb, kf, ke, kg] = sizeOfSystem(this)
+        function [ky, kxi, kb, kf, ke, kg] = sizeSystem(this)
             ky = length(this.System{1});
             kxi = length(this.System{2});
             kb = sum( imag(this.System{2})<0 );

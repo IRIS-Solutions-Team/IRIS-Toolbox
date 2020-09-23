@@ -3,11 +3,17 @@ classdef Explanatory ...
 
     properties (Constant)
         VECTORIZE = false
+        PREAMBLE
     end
 
 
     methods
-        function varargout = createJacobPattern(varargin)
+        function prepareForSolver(varargin)
+        end%
+
+
+        function prepareJacob(varargin)
         end%
     end
 end
+

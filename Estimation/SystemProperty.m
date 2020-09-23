@@ -23,7 +23,7 @@ classdef SystemProperty < handle
         EigenValues = double.empty(1, 0)
         EigenStability = int8.empty(1, 0)
 
-        Specifics = struct( )
+        CallerData = struct( )
 
         Tolerance = shared.Tolerance( )
     end
@@ -46,7 +46,7 @@ classdef SystemProperty < handle
 
     methods
         function this = SystemProperty(model)
-            [ny, nxi, nb, nf, ne, ng, nz] = sizeOfSolution(model);
+            [ny, nxi, nb, nf, ne, ng, nz] = sizeSolution(model);
             this.SizeSolution = [ny, nxi, nb, nf, ne, ng, nz];
             this.Tolerance = tolerance(model);
         end%

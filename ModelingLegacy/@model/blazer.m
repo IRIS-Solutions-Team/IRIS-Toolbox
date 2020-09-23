@@ -1,4 +1,3 @@
-function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 % blazer  Reorder dynamic or steady equations and variables into sequential block structure
 %{
 % Syntax
@@ -63,7 +62,7 @@ function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 %
 % __`Kind='Steady'`__ [ `'Current'` | `'Stacked'` | `'Steady'` ]
 %
-%     The kind of sequential block analysis that will be performed.
+%     The method of sequential block analysis that will be performed.
 %
 %
 % Description
@@ -108,20 +107,26 @@ function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-% Parse input arguments
-%(
+function [nameBlk, eqtnBlk, blkType, blazer] = blazer(this, varargin)
+
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('model.blazer');
     pp.KeepUnmatched = true;
 
     addRequired(pp, 'model', @(x) isa(x, 'model'));
+    addParameter(pp, 'Kind', 'Steady', @(x) any(startsWith(x, ["Steady", "Stacked", "Period"], "ignoreCase", true)));
 
-    addParameter(pp, 'Kind', 'Steady', @(x) ischar(x) && any(strcmpi(x, {'Steady', 'Period', 'Stacked'})));
+    pp.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
+    pp.addParameter('Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
+    pp.addParameter('Log', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
+    pp.addParameter('Unlog', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
+    pp.addParameter('SaveAs', [ ], @(x) isempty(x) || ischar(x) || (isstring(x) && isscalar(x)));
+    pp.addParameter("SuccessOnly", false, @validate.logicalScalar);
+    pp.addSwapFixOptions( );
 end
-parse(pp, this, varargin{:});
-opt = pp.Options;
-kind = opt.Kind;
+opt = parse(pp, this, varargin{:});
 %)
 
 %--------------------------------------------------------------------------
@@ -129,15 +134,26 @@ kind = opt.Kind;
 nameBlk = cell(1, 0); %#ok<PREALL>
 eqtnBlk = cell(1, 0); %#ok<PREALL>
 
-[blazer, opt] = prepareBlazer(this, kind, pp.Unmatched);
+%
+% Create a blazer object of the right type
+%
+if startsWith(opt.Kind, "steady", "ignoreCase", true)
+    blazer = solver.blazer.Steady.forModel(this, opt);
+elseif startsWith(opt.Kind, "stacked", "ignoreCase", true)
+    blazer = solver.blazer.Stacked.forModel(this, opt);
+elseif startsWith(opt.Kind, "period", "ignoreCase", true)
+    blazer = solver.blazer.Period.forModel(this, opt);
+else
+    blazer = [ ];
+end
 
 %
 % Split equations into sequential blocks and prepare blocks; do not prepare
 % solver options and Jacobian information
 %
-run(blazer, opt);
+run(blazer);
 
-[eqtnBlk, nameBlk, blkType] = locallyGetHuman(blazer, kind);
+[eqtnBlk, nameBlk, blkType] = locallyGetHuman(blazer, opt.Kind);
 
 if ~isempty(opt.SaveAs)
     saveAs(blazer, opt.SaveAs);
@@ -159,11 +175,11 @@ function [blkEqnHuman, blkQtyHuman, blkType] = locallyGetHuman(blazer, kind)
     for i = 1 : numBlocks
         block__ = blazer.Blocks{i};
         blkEqnHuman{i} = reshape(string(blazer.Model.Equation.Input(block__.PtrEquations)), [ ], 1);
-        if strcmpi(string(kind), "Steady")
+        if startsWith(kind, "steady", "ignoreCase", true)
             [ptrLevel__, ptrChange__] = iris.utils.splitRealImag(block__.PtrQuantities);
             blkQtyHuman{i} = struct( ...
-                'Level', reshape(string(blazer.Model.Quantity.Name(ptrLevel__)), 1, [ ]), ...
-                'Change', reshape(string(blazer.Model.Quantity.Name(ptrChange__)), 1, [ ]) ...
+                "Level", reshape(string(blazer.Model.Quantity.Name(ptrLevel__)), 1, [ ]), ...
+                "Change", reshape(string(blazer.Model.Quantity.Name(ptrChange__)), 1, [ ]) ...
             );
         else
             blkQtyHuman{i} = reshape(string(blazer.Model.Quantity.Name(block__.PtrQuantities)), 1, [ ]);

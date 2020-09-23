@@ -105,10 +105,16 @@ end
         
 data = cell(size(allSeries));
 [dates, data{:}] = getDataFromMultiple(dates, allSeries{:});
-dates = reshape(dates, [ ], 1);
-dt = dater.toMatlab(dates);
+dates = reshape(double(dates), [ ], 1);
+freq = dater.getFrequency(dates(1));
 
-if opt.Timetable
+if freq>0
+    dt = dater.toMatlab(dates);
+else
+    dt = dates;
+end
+
+if opt.Timetable && freq>0
     outputTable = timetable(dt, data{:}, 'VariableNames', names);
 else
     outputTable = table(dt, data{:}, 'VariableNames', ["Time", names]);

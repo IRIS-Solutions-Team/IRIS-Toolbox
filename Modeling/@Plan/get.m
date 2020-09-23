@@ -70,19 +70,19 @@ function response = get(this, query)
 
 if validate.anyString(query, 'Exogenized', 'OnlyExogenized', 'ExogenizedOnly')
     names = this.NamesOfEndogenous;
-    inx = this.IdOfAnticipatedExogenized~=0 | this.IdOfUnanticipatedExogenized~=0;
+    inx = this.IdAnticipatedExogenized~=0 | this.IdUnanticipatedExogenized~=0;
     response = hereGetE_ogenized(names, inx);
 
 elseif validate.anyString(query, 'Endogenized', 'OnlyEndogenized', 'EndogenizedOnly')
     names = this.NamesOfExogenous;
-    inx = this.IdOfAnticipatedEndogenized~=0 | this.IdOfUnanticipatedEndogenized~=0;
+    inx = this.IdAnticipatedEndogenized~=0 | this.IdUnanticipatedEndogenized~=0;
     response = hereGetE_ogenized(names, inx);
 
 elseif validate.anyString(query, 'NamesOfAnticipated', 'NamesOfUnanticipated')
     response = this.(char(query));
 
 elseif validate.anyString(query, 'AnticipationStatus', 'Anticipate')
-    response = cell2struct( num2cell([this.AnticipationStatusOfEndogenous; this.AnticipationStatusOfExogenous]), ...
+    response = cell2struct( num2cell([this.AnticipationStatusEndogenous; this.AnticipationStatusExogenous]), ...
                             [this.NamesOfEndogenous(:); this.NamesOfExogenous(:)] );
 
 elseif validate.anyString(query, 'Sigma', 'Sigmas')
@@ -119,7 +119,7 @@ return
         response = struct( );
         for i = 1 : numel(names)
             response.(char(names(i))) = Series( ...
-                start, permute(this.SigmasOfExogenous(i, baseRangeColumns, :), [2, 3, 1]) ...
+                start, permute(this.SigmasExogenous(i, baseRangeColumns, :), [2, 3, 1]) ...
             );
         end
     end%

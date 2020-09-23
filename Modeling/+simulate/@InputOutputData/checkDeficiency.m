@@ -1,4 +1,3 @@
-function checkDeficiency(this)
 % checkDeficiency  Check and report deficiency of simulation plans in each frame
 %
 % Backend [IrisToolbox] method
@@ -7,18 +6,18 @@ function checkDeficiency(this)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function checkDeficiency(this)
 
 lastColumnSimulation = this.BaseRangeColumns(end);
 
-numPages = this.NumOfPages;
+numPages = this.NumPages;
 deficiencyStatus = cell(1, numPages);
 
 for page = 1 : numPages
-    numFrames = size(this.Frames{page}, 1);
+    numFrames = size(this.FrameColumns{page}, 1);
     deficiencyStatus{page} = zeros(1, numFrames);
     for frame = 1 : numFrames
-        firstColumnFrame = this.Frames{page}(frame, 1);
+        firstColumnFrame = this.FrameColumns{page}(frame, 1);
         [inxExogenized, inxEndogenized] = ...
             getSwapsWithinFrame(this.Plan, firstColumnFrame, lastColumnSimulation);
         numExogenized = nnz(inxExogenized);
@@ -56,11 +55,10 @@ for page = 1 : numPages
     end
 end
 
-thisError = [
+exception.error([
     "Model:DeficientSimulationPlan" 
     "Simulation Plan is deficient in %s"
-];
-throw(exception.Base(thisError, 'error'), report{:});
+], report{:});
 
 end%
 

@@ -64,10 +64,8 @@ this.Link = reorder(this.Link, opt);
 % Pre-compute symbolic derivatives of
 % * transition and measurement equations wrt variables (if symbdiff=true),
 % * dtrends equations wrt parameters (always).
-this = symbDiff(this, opt.symbdiff);
-
-% Convert model equations to anonymous functions.
-this = myeqtn2afcn(this);
+% Convert string equations to anonymous functions
+this = differentiate(this, opt.symbdiff);
 
 % Create Deriv to System convertor.
 this = createD2S(this, opt);

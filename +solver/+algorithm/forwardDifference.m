@@ -1,4 +1,4 @@
-function [g, addCount] = finiteDifference(objectiveFuncReshaped, x, f, step, jacobPattern, largeScale)
+function [g, addCount] = finiteDifference(objectiveFuncReshaped, x, f, step, jacobPattern)
 % finiteDifference  Forward finite difference
 %
 % Backend [IrisToolbox] method
@@ -6,6 +6,9 @@ function [g, addCount] = finiteDifference(objectiveFuncReshaped, x, f, step, jac
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+try, jacobPattern;
+    catch, jacobPattern = [ ]; end
 
 %--------------------------------------------------------------------------
 
@@ -16,18 +19,7 @@ h = step*z;
 nf = numel(f);
 nx = numel(x);
 
-if ~largeScale
-    % Evaluate all equations for all quantities regardless of the Jacobian
-    % pattern
-    g = zeros(nf, nx);
-    for i = 1 : nx
-        xp = x;
-        xp(i) = xp(i) + h(i);
-        fnPlus = objectiveFuncReshaped(xp);
-        fnPlus = fnPlus(:);
-        g(:, i) = (fnPlus - f) / h(i);
-    end
-else
+if isequal(size(jacobPattern), [nf, nx])
     % Evaluate equations based on the Jacobian pattern (large scale
     % problems). Objective function is expected to return only the
     % derivatives indicated in the Jacobian pattern matrix.
@@ -40,6 +32,17 @@ else
         fnPlus = fnPlus(:);
         % TODO: Replace sparse matrix indexing
         g(inxEquations, i) = (fnPlus - f(inxEquations)) / h(i);
+    end
+else
+    % Evaluate all equations for all quantities regardless of the Jacobian
+    % pattern
+    g = zeros(nf, nx);
+    for i = 1 : nx
+        xp = x;
+        xp(i) = xp(i) + h(i);
+        fnPlus = objectiveFuncReshaped(xp);
+        fnPlus = fnPlus(:);
+        g(:, i) = (fnPlus - f) / h(i);
     end
 end
 

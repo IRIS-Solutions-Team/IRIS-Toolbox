@@ -1,11 +1,12 @@
 function [response, isValid, query] = implementGet(this, query, quantity, varargin)
 
-TYPE = @int8; %#ok<NASGU>
 response = [ ];
 isValid = true;
 
 if startsWith(query, "Gradients", "IgnoreCase", true)
-    response = this;
+    response = struct( );
+    response.Dynamic = this.Dynamic(1:2, :);
+    response.Steady = this.Steady(1:2, :);
     numEquations = size(response.Dynamic, 2);
     for i = 1 : numEquations
         response.Dynamic{2, i} = printVector(quantity, response.Dynamic{2, i}, "");
@@ -13,7 +14,6 @@ if startsWith(query, "Gradients", "IgnoreCase", true)
     end
     response.Dynamic = transpose(response.Dynamic);
     response.Steady = transpose(response.Steady);
-
 
 else
     isValid = false;

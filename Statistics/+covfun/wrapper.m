@@ -20,17 +20,17 @@ ne = systemProperty.NumShocks;
 R = R(:, 1:ne);
 Omega = systemProperty.CovShocks;
 
-maxOrder = systemProperty.Specifics.MaxOrder;
-isContributions = systemProperty.Specifics.IsContributions;
-isCorrelations = isequal(systemProperty.Specifics.IsCorrelations, true) ...
+maxOrder = systemProperty.CallerData.MaxOrder;
+isContributions = systemProperty.CallerData.IsContributions;
+isCorrelations = isequal(systemProperty.CallerData.IsCorrelations, true) ...
                  || systemProperty.NumOfOutputs>=2;
-isFilter = systemProperty.Specifics.IsFilter;
-numContributions = systemProperty.Specifics.NumContributions;
+isFilter = systemProperty.CallerData.IsFilter;
+numContributions = systemProperty.CallerData.NumContributions;
 if isFilter
     numUnitRoots = systemProperty.NumUnitRoots;
-    filter = systemProperty.Specifics.Filter;
-    applyFilterTo = systemProperty.Specifics.ApplyFilterTo;
-    freq = systemProperty.Specifics.Frequencies;
+    filter = systemProperty.CallerData.Filter;
+    applyFilterTo = systemProperty.CallerData.ApplyFilterTo;
+    freq = systemProperty.CallerData.Frequencies;
 end
 inxOfUnitRoots = systemProperty.EigenStability==TYPE(1);
 

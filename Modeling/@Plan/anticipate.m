@@ -1,4 +1,3 @@
-function this = anticipate(this, anticipationStatus, varargin)
 % anticipate  Set anticipation status individually 
 %{
 % ## Syntax ##
@@ -38,10 +37,12 @@ function this = anticipate(this, anticipationStatus, varargin)
 %
 %}
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function this = anticipate(this, anticipationStatus, varargin)
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Plan/anticipate');
@@ -49,12 +50,14 @@ if isempty(pp)
     addRequired(pp, 'anticipationStatus', @validate.logicalScalar);
     addRequired(pp, 'names', @(x) validate.list(x) || (iscell(x) && isscalar(x) && validate.list(x{1})));
 end
+%)
 
 if this.NumOfEndogenizedPoints>0 || this.NumOfExogenizedPoints>0
-    thisError = [ "Plan:CannotChangeAnticipateAfterEndogenize"
-                  "Cannot change anticipation status in a Plan object "
-                  "after some names have been already exogenized or endogenized" ];
-    throw(exception.Base(thisError, 'error'));
+    exeption.error([
+        "Plan:CannotChangeAnticipateAfterEndogenize"
+        "Cannot change anticipation status in a Plan object "
+        "after some names have been already exogenized or endogenized"
+    ]);
 end
 
 names = varargin;
@@ -73,12 +76,12 @@ this.resolveNames(names, this.AllNames, context);
 
 inxEndogenous = this.resolveNames(names, this.NamesOfEndogenous, context, throwError);
 if any(inxEndogenous)
-    this.AnticipationStatusOfEndogenous(inxEndogenous) = anticipationStatus;
+    this.AnticipationStatusEndogenous(inxEndogenous) = anticipationStatus;
 end
 
 inxExogenous = this.resolveNames(names, this.NamesOfExogenous, context, throwError);
 if any(inxExogenous)
-    this.AnticipationStatusOfExogenous(inxExogenous) = anticipationStatus;
+    this.AnticipationStatusExogenous(inxExogenous) = anticipationStatus;
 end
 
 end%

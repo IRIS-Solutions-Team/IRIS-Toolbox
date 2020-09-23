@@ -1,17 +1,18 @@
-function flat(this, data)
 % flat  Flat rectangular simulation
-
+%
 % Backend [IrisToolbox] methodk
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function flat(this, data)
+
 TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-[ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
+[ny, nxi, nb, nf, ne, ng] = sizeSolution(this);
 nh = this.NumOfHashEquations;
 YXEPG = data.YXEPG;
 
@@ -25,6 +26,7 @@ firstColumnToRun = this.FirstColumn;
 lastColumnToRun = this.LastColumn;
 columnsToRun = firstColumnToRun : lastColumnToRun;
 sparseShocks = this.SparseShocks;
+ignoreShocks = data.IgnoreShocks;
 
 linxXib = this.LinxOfXib;
 linxCurrentXi = this.LinxOfCurrentXi;
@@ -34,20 +36,28 @@ deviation = this.Deviation;
 simulateY = this.SimulateY && ny>0;
 needsEvalTrends = this.NeedsEvalTrends;
 
-anticipatedE = data.AnticipatedE;
-unanticipatedE = data.UnanticipatedE;
+if ignoreShocks
+    ne = 0;
+end
+
+
 lastAnticipatedE = 0;
 lastUnanticipatedE = 0;
-if isempty(anticipatedE) && isempty(unanticipatedE)
-    ne = 0;
-elseif ne>0
-    if data.MixinUnanticipated
-        lastUnanticipatedE = data.LastUnanticipatedE;
+if ne>0
+    anticipatedE = data.AnticipatedE(data.InxE, :);
+    unanticipatedE = data.UnanticipatedE(data.InxE, :);
+    if isempty(anticipatedE) && isempty(unanticipatedE)
+        ne = 0;
     else
-        lastUnanticipatedE = min(data.LastUnanticipatedE, firstColumnToRun);
+        if data.MixinUnanticipated
+            lastUnanticipatedE = data.LastUnanticipatedE;
+        else
+            lastUnanticipatedE = min(data.LastUnanticipatedE, firstColumnToRun);
+        end
+        lastAnticipatedE = data.LastAnticipatedE;
     end
-    lastAnticipatedE = data.LastAnticipatedE;
 end
+
 
 % Retrieve first-order solution after making sure expansion is sufficient
 [T, R, K, Z, H, D, Q] = this.FirstOrderSolution{:};
@@ -92,13 +102,8 @@ end
 % remaining (seeming) initial conditions 
 Xib_0(isnan(Xib_0)) = 0;
 
-if simulateY
-    Xb = nan(nxi, sizeData(2));
-    E = nan(ne, sizeData(2));
-end
 
-
-% /////////////////////////////////////////////////////////////////////////
+%===========================================================================
 for t = columnsToRun
     %
     % Transition Equations
@@ -127,6 +132,7 @@ for t = columnsToRun
         end
     end
 
+
     if t<=lastNlaf
         % Add nonlinear add-factors
         nlaf_t = nlaf(:, t:lastNlaf);
@@ -141,6 +147,7 @@ for t = columnsToRun
     if this.UpdateEntireXib
         YXEPG(linxXib) = Xi_t(nf+1:end);
     end
+
 
     %
     % Measurement Equations
@@ -169,6 +176,8 @@ for t = columnsToRun
 
     Xib_0 = YXEPG(linxXib-stepForLinx);
 end
+%===========================================================================
+
 
 %
 % Deterministic Trends in Measurement Equations

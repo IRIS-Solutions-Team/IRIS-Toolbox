@@ -20,6 +20,8 @@ else
     freqFunction = @double;
 end
 
+start = double(this.Start);
+
 switch query
     case {'range', 'first2last', 'start2end', 'first:last', 'start:end'}
         answ = reshape(this.Range, 1, [ ]);k
@@ -36,7 +38,7 @@ switch query
     
         
     case {'nanstart', 'nanstartdate', 'nanfirst', 'allstart', 'allstartdate'}
-        if isnan(this.Start) || isempty(this.Data)
+        if isnan(start) || isempty(this.Data)
             answ = dateFunction(NaN);
         else
             sample = all(~isnan(this.Data(:, :)), 2);
@@ -54,7 +56,7 @@ switch query
         
         
     case {'nanend', 'nanenddate', 'nanlast', 'allend', 'allenddate'}
-        if isnan(this.Start) || isempty(this.Data)
+        if isnan(start) || isempty(this.Data)
             answ = dateFunction(NaN);
         else
             sample = all(~isnan(this.Data(:, :)), 2);
@@ -68,7 +70,7 @@ switch query
         
         
     case {'freq', 'frequency', 'per', 'periodicity'}
-        answ = freqFunction(dater.getFrequency(this.Start));
+        answ = freqFunction(dater.getFrequency(start));
     
         
     case {'data', 'value', 'values'}

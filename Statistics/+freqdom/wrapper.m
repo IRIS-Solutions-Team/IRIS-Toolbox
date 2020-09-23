@@ -14,11 +14,11 @@ numOfUnitRoots = systemProperty.NumUnitRoots;
 R = R(:, 1:ne);
 Omega = systemProperty.CovShocks;
 
-freq = systemProperty.Specifics.Frequencies;
-isDensity = systemProperty.Specifics.IsDensity || length(systemProperty.Outputs)>=2;
-isFilter = systemProperty.Specifics.IsFilter;
-filter = systemProperty.Specifics.Filter;
-applyFilterTo = systemProperty.Specifics.ApplyFilterTo;
+freq = systemProperty.CallerData.Frequencies;
+isDensity = systemProperty.CallerData.IsDensity || length(systemProperty.Outputs)>=2;
+isFilter = systemProperty.CallerData.IsFilter;
+filter = systemProperty.CallerData.Filter;
+applyFilterTo = systemProperty.CallerData.ApplyFilterTo;
 numFreq = numel(freq);
 
 % Preallocate output arguments

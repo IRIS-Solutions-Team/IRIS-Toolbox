@@ -1,52 +1,64 @@
-classdef Data < shared.DataBlock
+classdef Data ...
+    < shared.DataBlock
+
     properties
         % ForceInit  Vector of initial conditions to replace YXEPG data
         ForceInit = double.empty(0)
 
-        % InitYX  NumOfYX-by-NumOfPeriods matrix of original input data for YX
-        InitYX = double.empty(0)
+        % InitYX  Sparse matrix of the original input data for YX
+        InitYX = [ ]
 
-        % BarYX  NumOfYX-by-NumOfPeriods matrix of steady levels for [observed; endogenous]
+        % BarYX  NumYX-by-NumOfPeriods matrix of steady levels for [observed; endogenous]
         BarYX = double.empty(0) 
 
         % NonlinAddf  Add-factors in hash equations
         NonlinAddf = double.empty(0)
 
-        % InxOfY  True for measurement variables
-        InxOfY = logical.empty(1, 0)
+        % InxY  True for measurement variables within rows of YXEPG
+        InxY = logical.empty(1, 0)
 
-        % InxOfX  True for transition variables
-        InxOfX = logical.empty(1, 0)
+        % InxX  True for transition variables within rows of YXEPG
+        InxX = logical.empty(1, 0)
 
-        % InxOfE  True for shocks
-        InxOfE = logical.empty(1, 0)
+        % InxE  True for shocks within rows of YXEPG
+        InxE = logical.empty(1, 0)
 
-        % InxLog  True for log variables
+        % InxLog  True for log variables within rows of YXEPG
         InxLog = logical.empty(1, 0)
 
-        % AnticipationStatusOfE  True for expected shocks
-        AnticipationStatusOfE = logical.empty(0, 1)
+        % InxAnticipatedE  True for shocks declared anticipated within rows
+        % of YXEPG
+        InxAnticipatedE
+
+        % InxUnanticipatedE  True for shocks declared unanticipated within rows
+        % of YXEPG
+        InxUnanticipatedE
 
         % MixinUnanticipated  True if anticipated and unanticipated shocks are simulated in one run
         MixinUnanticipated = false
 
-        InxOfExogenizedYX = logical.empty(0)
-        InxOfEndogenizedE = logical.empty(0)
+        % InxExogenizedYX  Sparse true for exogenized measurement or
+        % transition variables within the YXEPG array
+        InxExogenizedYX = [ ]
 
-        % SigmasOfExogenous  Sigmas (inverse weights) for individual endogenized data points
-        SigmasOfExogenous = double.empty(0)
+        % InxEndogenizedE  Sparse true for endogenized shocks within the YXEPG
+        % array
+        InxEndogenizedE = [ ]
+
+        % SigmasE  Vector of sigmas (inverse weights) for individual shocks
+        SigmasE = [ ]
 
         % Sigma  Inverse weighting matrix composed of squares of individual sigmas
-        Sigma = double.empty(0)
+        Sigma = [ ]
 
-        % Target  Target values for exogenized variables
-        Target = double.empty(0)
+        % TargetYX  Sparse target values for exogenized variables
+        TargetYX = [ ]
 
-        % InxOfHashedYX  Incidence of measurement and transtion variables in hash equations
-        InxOfHashedYX = logical.empty(0)
+        % InxHashedYX  Incidence of measurement and transtion variables in hash equations
+        InxHashedYX = logical.empty(0)
 
         % AnticipatedE  Values of anticipated shocks within the current simulation range
-        AnticipatedE = double.empty(0)
+        AnticipatedE = [ ]
 
         % UnanticipatedE  Values of unanticipated shocks within the current simulation range
         UnanticipatedE = double.empty(0)
@@ -57,226 +69,230 @@ classdef Data < shared.DataBlock
         Deviation = false
         NeedsEvalTrends = true
 
-        FirstColumnOfSimulation
-        LastColumnOfSimulation
+        FirstColumnSimulation
+        LastColumnSimulation
         
         % Window  Window for nonlinear addfactors
         Window = 0
 
-        % Initial  How to obtain initial condition in iterative methods
-        Initial = "Data"
+        % FirstColumnFrame  First column of current frame to be simulated
+        FirstColumnFrame
 
-        % SolverOptions  Solver options for iterative methods
-        SolverOptions = solver.Options.empty(0)
-
-        % FirstColumnOfFrame  First column of current time frame to be simulated
-        FirstColumnOfFrame
-
-        % LastColumnOfFrame  Last column of current time frame to be simulated
-        LastColumnOfFrame
+        % LastColumnFrame  Last column of current frame to be simulated
+        LastColumnFrame
 
         % NeedsUpdateShocks  Shocks have been modified in simulation and need to be update in the output databan
         NeedsUpdateShocks = false
+
+        % IgnoreShocks  True if shocks to be ignored in the simulation
+        IgnoreShocks = false
     end
 
 
     methods
         function updateSwapsFromPlan(this, plan)
-            [ this.InxOfExogenizedYX, ... 
-              this.InxOfEndogenizedE ] = getSwapsWithinFrame( plan, ...
-                                                                  this.FirstColumnOfFrame, ...
-                                                                  this.LastColumnOfSimulation );
-            this.Target = nan(this.NumOfYX, this.NumOfColumns);
-            if this.NumOfExogenizedPoints>0
-                this.Target(this.InxOfExogenizedYX) = this.InitYX(this.InxOfExogenizedYX);
+            %
+            % Preallocate InxExogenizedYX and InxEndogenizedE as sparse
+            % arrays the size of YXEPG
+            %
+            this.InxExogenizedYX = logical(this.EmptySparse);
+            this.InxEndogenizedE = logical(this.EmptySparse);
+
+            %
+            % Retrieve indices of exogenized and endogenized data points
+            % within the frame from the @Plan. The @Plan returns the
+            % exogenized indices for the array of endogenous quantities
+            % (YX) only, and the endogenzed indices for the array of
+            % exogenous quantities (E) only.
+            %
+            [this.InxExogenizedYX(this.InxYX, :), this.InxEndogenizedE(this.InxE, :)] ...
+                 = getSwapsWithinFrame(plan, this.FirstColumnFrame, this.LastColumnSimulation);
+
+            %
+            % Restore the exogenized YX values in YXEPG from their TargetYX
+            % storage because they may have been overwritten in the
+            % simulations of the preceding frames
+            %
+            if this.HasExogenizedYX 
+                this.YXEPG(this.InxExogenizedYX) = this.TargetYX(this.InxExogenizedYX); 
             end
-            this.Sigma = diag(power(this.SigmasOfExogenous(this.InxOfEndogenizedE), 2));
+
+            %
+            % Create an inverse weighting matrix for endogenized E
+            %
+            if this.HasEndogenizedE
+                this.Sigma = diag(power(full(this.SigmasE(this.InxEndogenizedE)), 2));
+            end
         end%
 
 
         function YXEPG = addSteadyTrends(this, YXEPG)
-            inx = this.InxOfYX & this.InxLog;
-            YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxLog(this.InxOfYX), :);
+            inx = this.InxYX & this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) .* this.BarYX(this.InxLog(this.InxYX), :);
             
-            inx = this.InxOfYX & ~this.InxLog;
-            YXEPG(inx, :) = YXEPG(inx, :) + this.BarYX(~this.InxLog(this.InxOfYX), :);
+            inx = this.InxYX & ~this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) + this.BarYX(~this.InxLog(this.InxYX), :);
         end%
 
 
         function YXEPG = removeSteadyTrends(this, YXEPG)
-            inx = this.InxOfYX & this.InxLog;
-            YXEPG(inx, :) = YXEPG(inx, :) ./ this.BarYX(this.InxLog(this.InxOfYX), :);
+            inx = this.InxYX & this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) ./ this.BarYX(this.InxLog(this.InxYX), :);
             
-            inx = this.InxOfYX & ~this.InxLog;
-            YXEPG(inx, :) = YXEPG(inx, :) - this.BarYX(~this.InxLog(this.InxOfYX), :);
+            inx = this.InxYX & ~this.InxLog;
+            YXEPG(inx, :) = YXEPG(inx, :) - this.BarYX(~this.InxLog(this.InxYX), :);
         end%
-
-
-        %{
-        function [anticipatedE, unanticipatedE] = retrieveE(this)
-            [numOfQuants, numOfPeriods] = size(this.YXEPG);
-            numOfE = nnz(this.InxOfE);
-            if numOfE==0
-                % No shocks in model, return immediately
-                this.AnticipatedE = zeros(0, numOfPeriods);
-                this.UnanticipatedE = zeros(0, numOfPeriods);
-                return
-            end
-            if all(this.AnticipationStatusOfE)
-                % All shocks anticipated
-                anticipatedE = real( this.YXEPG(this.InxOfE, :) );
-                unanticipatedE = imag( this.YXEPG(this.InxOfE, :) );
-            elseif all(~this.AnticipationStatusOfE)
-                % All shocks unanticipated
-                anticipatedE = imag( this.YXEPG(this.InxOfE, :) );
-                unanticipatedE = real( this.YXEPG(this.InxOfE, :) );
-            else
-                % Mixed anticipation status 
-                anticipatedE = zeros(numOfE, numOfPeriods);
-                unanticipatedE = zeros(numOfE, numOfPeriods);
-                % Retrieve anticipated shocks
-                inxOfExpE = false(1, numOfQuants);
-                inxOfExpE(this.InxOfE) = this.AnticipationStatusOfE;
-                anticipatedE(this.AnticipationStatusOfE, :) = real( this.YXEPG(inxOfExpE, :) );
-                unanticipatedE(this.AnticipationStatusOfE, :) = imag( this.YXEPG(inxOfExpE, :) );
-                % Retrieve unanticipated shocks
-                inxOfUnxE = false(1, numOfQuants);
-                inxOfUnxE(this.InxOfE) = ~this.AnticipationStatusOfE;
-                anticipatedE(~this.AnticipationStatusOfE, :) = imag( this.YXEPG(inxOfUnxE, :) );
-                unanticipatedE(~this.AnticipationStatusOfE, :) = real( this.YXEPG(inxOfUnxE, :) );
-            end
-            % Reset shocks outside the current simulation range to zero
-            anticipatedE(:, [1:this.FirstColumnOfSimulation-1, this.LastColumnOfSimulation+1:end]) = 0;
-            unanticipatedE(:, [1:this.FirstColumnOfSimulation-1, this.LastColumnOfSimulation+1:end]) = 0;
-            if nargout==0
-                this.AnticipatedE = anticipatedE;
-                this.UnanticipatedE = unanticipatedE;
-            end
-        end%
-        %}
 
 
         function storeE(this)
-            [numOfQuants, numOfPeriods] = size(this.YXEPG);
-            numOfE = nnz(this.InxOfE);
-            columnRange = this.FirstColumnOfSimulation : this.LastColumnOfSimulation;
-            if numOfE==0
+            if ~any(this.InxE)
                 % No shocks in model, return immediately
                 return
             end
-            if all(this.AnticipationStatusOfE)
-                % All shocks anticipated
-                if any(this.UnanticipatedE(:)~=0)
-                    this.YXEPG(this.InxOfE, columnRange) = complex( this.AnticipatedE(:, columnRange), ...
-                                                                    this.UnanticipatedE(:, columnRange) );
-                else
-                    this.YXEPG(this.InxOfE, columnRange) = this.AnticipatedE(:, columnRange);
-                end
-            elseif all(~this.AnticipationStatusOfE)
-                % All shocks unanticipated
-                if any(this.AnticipatedE(:)~=0)
-                    this.YXEPG(this.InxOfE, columnRange) = complex( this.UnanticipatedE(:, columnRange), ...
-                                                                    this.AnticipatedE(:, columnRange) );
-                else
-                    this.YXEPG(this.InxOfE, columnRange) = this.UnanticipatedE(:, columnRange);
-                end
-            else
-                % Mixed anticipation status 
-                % Store anticipated shocks
-                tempInx = false(1, numOfQuants);
-                tempInx(this.InxOfE) = this.AnticipationStatusOfE;
-                tempReal = this.AnticipatedE(this.AnticipationStatusOfE, columnRange);
-                tempImag = this.UnanticipatedE(this.AnticipationStatusOfE, columnRange);
-                if any(tempImag(:)~=0)
-                    this.YXEPG(tempInx, columnRange) = complex(tempReal, tempImag);
-                else
-                    this.YXEPG(tempInx, columnRange) = tempReal;
-                end
-                % Store unanticipated shocks
-                tempInx = false(1, numOfQuants);
-                tempInx(this.InxOfE) = ~this.AnticipationStatusOfE;
-                tempReal = this.UnanticipatedE(~this.AnticipationStatusOfE, columnRange);
-                tempImag = this.AnticipatedE(~this.AnticipationStatusOfE, columnRange);
-                if any(tempImag(:)~=0)
-                    this.YXEPG(tempInx, columnRange) = complex(tempReal, tempImag);
-                else
-                    this.YXEPG(tempInx, columnRange) = tempReal;
-                end
+            columnRange = this.FirstColumnSimulation : this.LastColumnSimulation;
+            inxAnticipatedE = this.InxAnticipatedE;
+            inxUnanticipatedE = this.InxUnanticipatedE;
+            if any(inxAnticipatedE)
+                this.YXEPG(this.InxAnticipatedE, columnRange) ...
+                    = this.AnticipatedE(this.InxAnticipatedE, columnRange) ...
+                    + 1i * this.UnanticipatedE(this.InxAnticipatedE, columnRange);
+            end
+            if any(inxUnanticipatedE)
+                this.YXEPG(this.InxUnanticipatedE, columnRange) ...
+                    = this.UnanticipatedE(this.InxUnanticipatedE, columnRange) ...
+                    + 1i * this.AnticipatedE(this.InxUnanticipatedE, columnRange);
             end
         end%
 
 
         function setFrame(this, timeFrame)
             if nargin<2
-                this.FirstColumnOfFrame = this.FirstColumnOfSimulation;
-                this.LastColumnOfFrame = this.LastColumnOfSimulation;
+                this.FirstColumnFrame = this.FirstColumnSimulation;
+                this.LastColumnFrame = this.LastColumnSimulation;
                 return
             end
-            this.FirstColumnOfFrame = timeFrame(1);
-            this.LastColumnOfFrame = timeFrame(2);
+            this.FirstColumnFrame = timeFrame(1);
+            this.LastColumnFrame = timeFrame(2);
+        end%
+
+
+        function E = combineShocksWithinFrame(this)
+            columnsFrame = this.FirstColumnFrame : this.LastColumnFrame;
+            E = this.EmptySparse;
+            E(:, columnsFrame) = this.AnticipatedE(:, columnsFrame);
+            E(:, columnsFrame(1)) = E(:, columnsFrame(1)) + this.UnanticipatedE(:, columnsFrame(1));
+        end%
+
+
+        function updateShocksWithinFrame(this)
+            %(
+            columnsFrame = this.FirstColumnFrame : this.LastColumnFrame;
+
+            %
+            % Combine anticipated and unanticipated shocks within this frame
+            %
+            E = combineShocksWithinFrame(this);
+
+            %
+            % Use endogenized shocks either from the input data
+            %
+            if this.HasEndogenizedE
+                E(this.InxEndogenizedE) = this.YXEPG(this.InxEndogenizedE);
+            end
+
+            inxNaN = isnan(E);
+            if any(inxNaN(:))
+                E(inxNaN) = 0;
+            end
+            this.YXEPG(this.InxE, columnsFrame) = E(this.InxE, columnsFrame);
+            %)
+        end%
+
+
+        function updateTargetsWithinFrame(this)
+            %(
+            if ~this.HasExogenizedYX
+                return
+            end
+            this.YXEPG(this.InxExogenizedYX) = this.TargetYX(this.InxExogenizedYX);
+            %)
+        end%
+
+
+        function inxEndogenous = getEndogenousPointsWithinFrame(this)
+            columnsFrame = this.FirstColumnFrame : this.LastColumnFrame;
+            columnsOutsideFrame = [1:columnsFrame(1)-1, columnsFrame(end)+1:size(this.YXEPG, 2)];
+
+            %
+            % First, set all measurement and transition variables within
+            % the frame to true
+            %
+            inxEndogenous = false(size(this.YXEPG));
+            inxEndogenous(this.InxYX, columnsFrame) = true;
+
+            %
+            % Then, set all exogenized measurement and transition variables
+            % within the frame to false
+            %
+            inxExogenizedYX = this.InxExogenizedYX;
+            inxExogenizedYX(:, columnsOutsideFrame) = false;
+            inxEndogenous = inxEndogenous & ~inxExogenizedYX;
+
+            %
+            % Finally, set all endogenized shocks within the frame to true
+            %
+            inxEndogenizedE = this.InxEndogenizedE;
+            inxEndogenizedE(:, columnsOutsideFrame) = false;
+            inxEndogenous = inxEndogenous | inxEndogenizedE;
         end%
     end
 
 
     properties (Dependent)
-        E
-        InxOfYX
-        NumOfYX
-        NumOfE
-        NumOfExogenizedPoints
-        NumOfExogenizedPointsY
-        NumOfEndogenizedPoints
+        InxYX
+        InxLogWithinYX
+        NumExogenizedYX
+        NumExogenizedY
+        NumEndogenizedE
         LastAnticipatedE
         LastUnanticipatedE
         LastEndogenizedE
         LastExogenizedYX
         LastHashedYX
-        HasExogenizedPoints
+        HasExogenizedYX
+        HasEndogenizedE
+        EmptySparse
     end
 
 
     methods
-        function value = get.E(this)
-            value = this.YXEPG(this.InxOfE, :);
+        function value = get.InxYX(this)
+            value = this.InxY | this.InxX;
         end%
 
 
-        function value = get.InxOfYX(this)
-            value = this.InxOfY | this.InxOfX;
+        function value = get.InxLogWithinYX(this)
+            value = this.InxLog(this.InxYX);
         end%
 
 
-        function value = get.NumOfYX(this)
-            value = nnz(this.InxOfY) + nnz(this.InxOfX);
+        function value = get.NumExogenizedYX(this)
+            value = nnz(this.InxExogenizedYX);
         end%
 
 
-        function value = get.NumOfE(this)
-            value = nnz(this.InxOfE);
+        function value = get.NumExogenizedY(this)
+            value = nnz(this.InxExogenizedYX(this.InxY, :));
         end%
 
 
-        function value = get.NumOfExogenizedPoints(this)
-            value = nnz(this.InxOfExogenizedYX);
-        end%
-
-
-        function value = get.NumOfExogenizedPointsY(this)
-            inxOfYX = this.InxOfYX;
-            inxOfY = this.InxOfY;
-            inx = inxOfY(inxOfYX);
-            value = nnz(this.InxOfExogenizedYX(inx, :));
-        end%
-
-
-        function value = get.NumOfEndogenizedPoints(this)
-            value = nnz(this.InxOfEndogenizedE);
+        function value = get.NumEndogenizedE(this)
+            value = nnz(this.InxEndogenizedE);
         end%
 
 
         function value = get.LastAnticipatedE(this)
-            temp = any(this.AnticipatedE~=0, 1);
-            value = find(temp, 1, 'Last');
+            value = find(any(this.AnticipatedE~=0, 1), 1, "last");
             if isempty(value)
                 value = 0;
             end
@@ -284,8 +300,7 @@ classdef Data < shared.DataBlock
 
 
         function value = get.LastUnanticipatedE(this)
-            temp = any(this.UnanticipatedE~=0, 1);
-            value = find(temp, 1, 'Last');
+            value = find(any(this.UnanticipatedE~=0, 1), 1, "last");
             if isempty(value)
                 value = 0;
             end
@@ -293,8 +308,7 @@ classdef Data < shared.DataBlock
 
 
         function value = get.LastEndogenizedE(this)
-            temp = any(this.InxOfEndogenizedE, 1);
-            value = find(temp, 1, 'Last');
+            value = find(any(this.InxEndogenizedE, 1), 1, "last");
             if isempty(value)
                 value = 0;
             end
@@ -302,8 +316,7 @@ classdef Data < shared.DataBlock
 
 
         function value = get.LastExogenizedYX(this)
-            temp = any(this.InxOfExogenizedYX, 1);
-            value = find(temp, 1, 'Last');
+            value = find(any(this.InxExogenizedYX, 1), 1, "last");
             if isempty(value)
                 value = 0;
             end
@@ -311,20 +324,30 @@ classdef Data < shared.DataBlock
 
 
         function value = get.LastHashedYX(this)
-            if isempty(this.InxOfHashedYX)
+            if isempty(this.InxHashedYX)
                 value = 0;
                 return
             end
-            anyHashedYX = any(this.InxOfHashedYX, 1);
-            value = find(anyHashedYX, 1, 'Last');
+            anyHashedYX = any(this.InxHashedYX, 1);
+            value = find(anyHashedYX, 1, "last");
             if isempty(value)
                 value = 0;
             end
         end%
 
 
-        function value = get.HasExogenizedPoints(this)
-            value = this.NumOfExogenizedPoints>0;
+        function value = get.HasExogenizedYX(this)
+            value = this.NumExogenizedYX>0;
+        end%
+
+
+        function value = get.HasEndogenizedE(this)
+            value = this.NumEndogenizedE>0;
+        end%
+
+
+        function value = get.EmptySparse(this)
+            value = sparse(size(this.YXEPG, 1), size(this.YXEPG, 2));
         end%
     end
 
@@ -349,30 +372,59 @@ classdef Data < shared.DataBlock
             end
 
             this = simulate.Data( );
+            this.FirstColumnSimulation = runningData.BaseRangeColumns(1);
+            this.LastColumnSimulation = runningData.BaseRangeColumns(end);
+            this.Window = runningData.Window;
+            columnsSimulation = this.FirstColumnSimulation : this.LastColumnSimulation;
+            numQuantities = size(this.YXEPG, 1);
+
             [this.YXEPG, this.BarYX] = lp4lhsmrhs(model, runningData.YXEPG(:, :, dataPage), modelVariant, [ ]);
             quantity = getp(model, 'Quantity');
-            this.InxOfY = getIndexByType(quantity, TYPE(1));
-            this.InxOfX = getIndexByType(quantity, TYPE(2));
-            this.InxOfE = getIndexByType(quantity, TYPE(31), TYPE(32));
-            this.InxLog = quantity.IxLog;
+            this.InxY = getIndexByType(quantity, TYPE(1));
+            this.InxX = getIndexByType(quantity, TYPE(2));
+            this.InxE = getIndexByType(quantity, TYPE(31), TYPE(32));
+            this.InxLog = quantity.InxLog;
 
-            this.InxOfExogenizedYX = false(this.NumOfYX, this.NumOfColumns);
-            this.InxOfEndogenizedE = false(this.NumOfE, this.NumOfColumns);
-            if isempty(plan.SigmasOfExogenous)
-                this.SigmasOfExogenous = ones(this.NumOfE, this.NumOfColumns);
-            else
-                this.SigmasOfExogenous = plan.SigmasOfExogenous(:, :, planVariant);
+            this.InxExogenizedYX = logical(this.EmptySparse);
+            this.InxEndogenizedE = logical(this.EmptySparse);
+
+            %
+            % Preserve the exogenized YX input data outside YXEPG
+            %
+            this.TargetYX = this.EmptySparse;
+            if plan.NumOfExogenizedPoints>0
+                inxAllExogenized = plan.InxOfAnticipatedExogenized | plan.InxOfUnanticipatedExogenized;
+                input = runningData.YXEPG(this.InxYX, :, dataPage);
+                target = sparse(size(input, 1), size(input, 2));
+                target(inxAllExogenized) = input(inxAllExogenized);
+                this.TargetYX(this.InxYX, :) = target;
             end
-            this.InitYX = this.YXEPG(this.InxOfYX, :);
 
-            if isa(plan, 'Plan')
-                this.AnticipationStatusOfE = plan.AnticipationStatusOfExogenous;
+            this.SigmasE = this.EmptySparse;
+            if isempty(plan.SigmasExogenous)
+                this.SigmasE(this.InxE, columnsSimulation) = 1;
             else
-                ne = nnz(this.InxOfE);
-                this.AnticipationStatusOfE = repmat(plan, ne, 1);
+                this.SigmasE(this.InxE, columnsSimulation) ...
+                    = plan.SigmasExogenous(:, columnsSimulation, planVariant);
+            end
+
+            %
+            % Index of anticipated and unanticipated shocks either from the
+            % @Plan object or depending on the true/false plan.
+            %
+            this.InxAnticipatedE = false(1, numQuantities);
+            this.InxUnanticipatedE = false(1, numQuantities);
+            if isa(plan, "Plan")
+                this.InxAnticipatedE(this.InxE) = plan.AnticipationStatusExogenous;
+                this.InxUnanticipatedE(this.InxE) = not(plan.AnticipationStatusExogenous);
+            else
+                this.InxAnticipatedE(this.InxE) = plan;
+                this.InxUnanticipatedE(this.InxE) = not(plan);
             end
                 
+            %
             % Prepare data for measurement trend equations
+            %
             this.NeedsEvalTrends = runningData.NeedsEvalTrends(min(run, end));
             if this.NeedsEvalTrends
                 this.Trends = evalTrendEquations(model, [ ], this.YXEPG);
@@ -381,44 +433,33 @@ classdef Data < shared.DataBlock
         end%
 
 
+        function [anticipatedE, unanticipatedE] = splitE(YXEPG, inxAnticipatedE, inxUnanticipatedE, columns)
+            %
+            % Preallocate sparse arrays
+            %
+            anticipatedE = sparse(size(YXEPG, 1), size(YXEPG, 2));
+            unanticipatedE = sparse(size(YXEPG, 1), size(YXEPG, 2));
 
-
-        function [anticipatedE, unanticipatedE] = splitE(E, anticipationStatus, simulationColumns)
-            [numOfE, numOfPeriods] = size(E);
-            if numOfE==0
-                % No shocks in model, return immediately
-                anticipatedE = zeros(0, numOfPeriods);
-                unanticipatedE = zeros(0, numOfPeriods);
+            %
+            % Return immediately if there are no shocks
+            %
+            if ~any(inxAnticipatedE(:)) && ~any(inxUnanticipatedE(:))
                 return
             end
-            % Mixed anticipation status 
-            anticipatedE = zeros(numOfE, numOfPeriods);
-            unanticipatedE = zeros(numOfE, numOfPeriods);
+            
+            %
             % Retrieve anticipated shocks
-            anticipatedE(anticipationStatus, :) = real(E(anticipationStatus, :));
-            anticipatedE(~anticipationStatus, :) = imag(E(~anticipationStatus, :));
+            %
+            anticipatedE(inxAnticipatedE, columns) = real(YXEPG(inxAnticipatedE, columns));
+            anticipatedE(inxUnanticipatedE, columns) = imag(YXEPG(inxUnanticipatedE, columns));
+            
+            %
             % Retrieve unanticipated shocks
-            unanticipatedE(anticipationStatus, :) = imag(E(anticipationStatus, :));
-            unanticipatedE(~anticipationStatus, :) = real(E(~anticipationStatus, :));
-            % Reset shocks outside the current simulation range to zero
-            firstColumnOfSimulation = simulationColumns(1);
-            lastColumnOfSimulation = simulationColumns(end);
-            anticipatedE(:, [1:firstColumnOfSimulation-1, lastColumnOfSimulation+1:end]) = 0;
-            unanticipatedE(:, [1:firstColumnOfSimulation-1, lastColumnOfSimulation+1:end]) = 0;
+            %
+            unanticipatedE(inxUnanticipatedE, columns) = real(YXEPG(inxUnanticipatedE, columns));
+            unanticipatedE(inxAnticipatedE, columns) = imag(YXEPG(inxAnticipatedE, columns));
         end%
     end
 end
 
-
-%
-% Local Functions
-%
-
-
-function inx = correctInxForDummies(inx, n)
-    if n==0
-        return
-    end
-    inx(:, end-n+1:end) = false;
-end%
 

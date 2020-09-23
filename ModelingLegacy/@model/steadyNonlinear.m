@@ -1,11 +1,12 @@
-function  [this, success, outputInfo] = steadyNonlinear(this, blazer, variantsRequested)
 % steadyNonlinear  Solve steady equations in nonlinear models
 %
-% Backend [IrisToolbox] function
+% Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function  [this, success, outputInfo] = steadyNonlinear(this, blazer, variantsRequested)
 
 TYPE = @int8;
 
@@ -51,8 +52,8 @@ end
 maxStdCorr = 0;
 if needsRefresh
     eps = model.component.Incidence.getIncidenceEps(this.Link.RhsExpn);
-    temp = [eps(:, 2); reshape(this.Link.LhsPtr, [ ], 1)] - numQuantities;
-    maxStdCorr = max([0; temp]);
+    temp = [eps(2, :), reshape(this.Link.LhsPtr, 1, [ ])] - numQuantities;
+    maxStdCorr = max([0, temp]);
 end
 
 
@@ -89,7 +90,6 @@ for v = variantsRequested
     outputInfo.ExitFlags{v} = repmat(solver.ExitFlag.IN_PROGRESS, 1, numBlocks);
     for i = 1 : numBlocks
         blk = blazer.Blocks{i};
-        blk.SteadyShift = 3;
         header = sprintf("[Variant:%g][Block:%g]", v, i);
         [levelX, changeX, exitFlag, error] = run( ...
             blk, this.Link, levelX, changeX, addStdCorr, header ...

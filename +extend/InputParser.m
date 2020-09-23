@@ -129,7 +129,7 @@ classdef InputParser < inputParser
 
 
         function addParameter(this, name, varargin)
-            if ischar(name) || (isa(name, 'string') && numel(name)==1)
+            if ischar(name) || (isstring(name) && numel(name)==1)
                 name = this.REPLACE(name);
                 addParameter@inputParser(this, name, varargin{:});
                 this.PrimaryParameterNames{end+1} = name;
@@ -138,9 +138,7 @@ classdef InputParser < inputParser
                 end
                 return
             end
-            if isa(name, 'string')
-                name = cellstr(name);
-            end
+            name = cellstr(name);
             primaryName = this.REPLACE(name{1});
             addParameter@inputParser(this, primaryName, varargin{:});
             if this.KeepDefaultOptions
@@ -202,7 +200,7 @@ classdef InputParser < inputParser
 
         function addDateOptions(this, context)
             configStruct = iris.get( );
-            addParameter(this, 'DateFormat', @config, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime));
+            addParameter(this, 'DateFormat', @config, @(x) iris.Configuration.validateDateFormat(x) || isequal(x, @datetime) || isequal(x, @default) || isequal(x, @iso));
             addParameter(this, {'EnforceFrequency', 'Freq'}, false, @(x) isequal(x, false) || isempty(x) || strcmpi(x, 'Daily') || ((isa(x, 'Frequency') || isnumeric(x)) && isscalar(x) && any(x==configStruct.Freq)));
             addParameter(this, {'FreqLetters', 'FreqLetter'}, @config, @iris.Configuration.validateFreqLetters);
             addParameter(this, {'Months', 'Month'}, @config, @iris.Configuration.validateMonths);

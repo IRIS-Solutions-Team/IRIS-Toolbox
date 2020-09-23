@@ -127,7 +127,7 @@ classdef LinearSystem < shared.Kalman
         end%
 
 
-        function [numY, numXi, numXiB, numXiF, numE, numG, numZ, numV, numW] = sizeOfSolution(this)
+        function [numY, numXi, numXiB, numXiF, numE, numG, numZ, numV, numW] = sizeSolution(this)
             numXi = this.Dimensions(1);
             numXiB = this.Dimensions(2);
             numV = this.Dimensions(3);

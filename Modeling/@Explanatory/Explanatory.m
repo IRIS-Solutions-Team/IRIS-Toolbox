@@ -8,7 +8,6 @@ classdef Explanatory ...
     & shared.DatabankPipe ...
     & shared.Plan
 
-
     properties
         Fixed (1, :, :) double = double.empty(1, 0, 1)
 

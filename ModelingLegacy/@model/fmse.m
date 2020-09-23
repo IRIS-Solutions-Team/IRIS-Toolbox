@@ -74,7 +74,7 @@ isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 
 %--------------------------------------------------------------------------
 
-[ny, nxx] = sizeOfSolution(this.Vector);
+[ny, nxx] = sizeSolution(this.Vector);
 nv = length(this);
 X = zeros(ny+nxx, ny+nxx, nPer, nv);
 

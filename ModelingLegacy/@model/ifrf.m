@@ -63,7 +63,7 @@ isNamedMat = strcmpi(opt.MatrixFormat,'namedmat');
 
 freq = freq(:)';
 nFreq = length(freq);
-[ny, nxx, ~, ~, ne] = sizeOfSolution(this.Vector);
+[ny, nxx, ~, ~, ne] = sizeSolution(this.Vector);
 nAlt = length(this);
 W = zeros(ny+nxx, ne, nFreq, nAlt);
 

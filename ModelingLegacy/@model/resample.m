@@ -132,7 +132,7 @@ extendedRange = range(1)-1 : range(end);
 
 ixd = this.Equation.Type==TYPE(3);
 isTrendEquations = opt.DTrends && any(ixd);
-[ny, nxx, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
+[ny, nxx, nb, nf, ne, ng] = sizeSolution(this.Vector);
 [T, R, K, Z, H, D, U, Omg] = sspaceMatrices(this, 1, false);
 if opt.Deviation
     K(:) = 0;

@@ -97,13 +97,13 @@ if this.Orientation=="Row"
     if isstring(range) && numel(range)>1
         range = ExcelReference.decodeRow(range);
     elseif ~isnumeric(range)
-        range = ExcelReference.decodeRowRange(range);
+        range = ExcelReference.decodeRowRange(range, size(this.Buffer));
     end
 else
     if isstring(range) && numel(range)>1
         range = ExcelReference.decodeColumn(range);
     elseif ~isnumeric(range)
-        range = ExcelReference.decodeColumnRange(range);
+        range = ExcelReference.decodeColumnRange(range, size(this.Buffer));
     end
 end
 range = reshape(range, 1, [ ]);
@@ -142,6 +142,7 @@ return
         else
             name = this.Buffer{this.NamesLocation, location};
         end
+        name = string(name);
         isMissing = ismissing(name) || isempty(name);
         if isMissing
         isValid = false;

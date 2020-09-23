@@ -11,15 +11,11 @@ classdef Type
     end
     
     
-    
-    
     properties
         TypeId
         SaveAsKeyword
         InvTransform
     end
-    
-    
     
     
     methods
@@ -31,13 +27,9 @@ classdef Type
         end%
         
         
-        
-        
         function x = int16(this)
             x = this.TypeId;
         end%
-
-
 
 
         function flag = isAssignBlock(this)
@@ -48,13 +40,9 @@ classdef Type
         end%
 
 
-
-
         function flag = isSolveBlock(this)
             flag = this==solver.block.Type.SOLVE;
         end%
-
-
 
 
         function flag = isIterateBlock(this)
@@ -62,13 +50,9 @@ classdef Type
         end%
 
 
-
-
         function flag = isEmptyBlock(this)
             flag = this==solver.block.Type.EMPTY;
         end%
-        
-        
         
         
         function c = strcat(this, c)
@@ -96,8 +80,6 @@ classdef Type
     end
     
     
-    
-    
     methods (Static)
         function this = getTypeFromId(id)
             PTR = @int16;
@@ -112,3 +94,4 @@ classdef Type
         end%
     end
 end
+

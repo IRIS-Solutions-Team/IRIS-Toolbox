@@ -1,4 +1,3 @@
-function calculateHashMultipliers(this, data)
 % calculateHashMultipliers  Calculate multipliers of hash factors for one simulation frame
 %
 % Backend [IrisToolbox] function
@@ -7,7 +6,7 @@ function calculateHashMultipliers(this, data)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function calculateHashMultipliers(this, data)
 
 nh = this.NumOfHashEquations;
 window = data.Window;
@@ -21,8 +20,8 @@ if tryExistingMultipliers( )
     return
 end
 
-[numY, ~, numXiB, numXiF] = sizeOfSolution(this);
-idYXi = [ this.SolutionVector{1:2} ];
+[numY, ~, numXiB, numXiF] = sizeSolution(this);
+idYXi = [ this.Vector.Solution{1:2} ];
 [T, ~, ~, ~, ~, ~, Q] = this.FirstOrderSolution{:};
 Tf = T(1:numXiF, :);
 Tb = T(numXiF+1:end, :);
@@ -31,11 +30,11 @@ Qb = Q(numXiF+1:end, 1:nh*window);
 
 % First, find the rows in the multiplier matrix that will be filled in
 idAll = 1 : size(data.YXEPG, 1);
-idYX = idAll(data.InxOfYX);
+idYX = idAll(data.InxYX);
 rows = cell(1, lastHashedYX);
 numRows = zeros(1, lastHashedYX);
 for t = firstColumn : lastHashedYX
-    idHashedYX_t = idYX(data.InxOfHashedYX(:, t));
+    idHashedYX_t = idYX(data.InxHashedYX(:, t));
     if isempty(idHashedYX_t)
         continue
     end
@@ -66,7 +65,7 @@ for t = firstColumn : lastHashedYX
 end
 
 this.HashMultipliers = M;
-this.MultipliersHashedYX = data.InxOfHashedYX(:, firstColumn:lastHashedYX);
+this.MultipliersHashedYX = data.InxHashedYX(:, firstColumn:lastHashedYX);
 
 return
 
@@ -76,7 +75,7 @@ return
             flag = false;
             return
         end
-        inxHashedYX = data.InxOfHashedYX(:, firstColumn:lastHashedYX);
+        inxHashedYX = data.InxHashedYX(:, firstColumn:lastHashedYX);
         if isequal(this.MultipliersHashedYX, inxHashedYX) ...
            && size(this.HashMultipliers,2)==nh*window
             flag = true;

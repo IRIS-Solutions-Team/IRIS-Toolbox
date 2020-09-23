@@ -30,24 +30,16 @@ end
 
 preDatabank = [ ];
 if isequal(presample, true)
-    pre = true;
     preDatabank = inputData;
 elseif validate.databank(presample)
-    pre = true;
     preDatabank = presample;
-else
-    pre = false;
 end
 
 postDatabank = [ ];
 if isequal(postsample, true)
-    post = true;
     postDatabank = inputData;
 elseif validate.databank(postsample)
-    post = true;
     postDatabank = postsample;
-else
-    post = false;
 end
 
 range = double(range);
@@ -91,7 +83,7 @@ for i = 1 : numAppendables
     end
 
     x = outputData.(name__);
-    serialXStart = round(x.Start);
+    serialXStart = round(double(x.Start));
     serialXStart0 = serialXStart;
     if isnan(serialXStart)
         serialXStart = serialRangeStart;

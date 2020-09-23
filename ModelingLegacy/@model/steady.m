@@ -1,4 +1,3 @@
-function [this, flag, outputInfo] = steady(this, varargin)
 % steady  Compute steady state or balance-growth path of the model
 %{
 % ## Syntax ##
@@ -274,6 +273,8 @@ function [this, flag, outputInfo] = steady(this, varargin)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 IRIS Solutions Team
+
+function [this, flag, outputInfo] = steady(this, varargin)
 
 steady = prepareSteady(this, 'verbose', varargin{:});
 

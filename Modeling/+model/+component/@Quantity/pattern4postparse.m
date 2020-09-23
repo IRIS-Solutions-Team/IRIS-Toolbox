@@ -1,15 +1,14 @@
-function [rpl, rplSx] = pattern4postparse(this, lsStdCorr)
-% pattern4postparse  Patterns and replacements for names in equations.
+% pattern4postparse  Patterns and replacements for names in equations
 %
-% Backend IRIS function.
-% No help provided.
+% Backend [IrisToolbox] method
+% No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox.
-% -Copyright (c) 2007-2020 IRIS Solutions Team.
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function [replaceNames, replaceStdCorr] = pattern4postparse(this, listStdCorr)
 
-nQuan = length(this.Name);
+numQuantities = numel(this.Name);
 
 % Name patterns to search.
 % ptn = strcat('\<', this.Name, '\>');
@@ -20,26 +19,27 @@ nQuan = length(this.Name);
 
 % Replacements in dynamic equations.
 % Replacements in dtrends.
-rpl = cell(1, nQuan);
-for i = 1 : nQuan
-    rpl{i} = sprintf('%g', i);
+replaceNames = cell(1, numQuantities);
+for i = 1 : numQuantities
+    replaceNames{i} = sprintf('%g', i);
 end
-rpl = strcat('x(', rpl, ',t)');
+replaceNames = strcat('x(', replaceNames, ',t)');
 
-nStdCorr = length(lsStdCorr);
-ell = lookup(this, lsStdCorr);
-ixValid = ~isnan(ell.PosStdCorr);
+numStdCorr = numel(listStdCorr);
+ell = lookup(this, listStdCorr);
+inxValid = ~isnan(ell.PosStdCorr);
 
-if any(~ixValid)
+if any(~inxValid)
     throw( exception.Base('Quantity:INVALID_STD_CORR_IN_LINK', 'error'), ...
-        lsStdCorr{~ixValid} );
+        listStdCorr{~inxValid} );
 end
 
-% Replacements for std_ and corr_ in links.
-rplSx = cell(1, nStdCorr);
-for i = 1 : nStdCorr
-    rplSx{i} = sprintf('%g', nQuan+ell.PosStdCorr(i));
+% Replacements for std_ and corr_ in links
+replaceStdCorr = cell(1, numStdCorr);
+for i = 1 : numStdCorr
+    replaceStdCorr{i} = sprintf('%g', numQuantities+ell.PosStdCorr(i));
 end
-rplSx = strcat('x(', rplSx, ',t)');
+replaceStdCorr = strcat('x(', replaceStdCorr, ',t)');
 
-end
+end%
+

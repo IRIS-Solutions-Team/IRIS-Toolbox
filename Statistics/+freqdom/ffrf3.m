@@ -10,10 +10,10 @@ function [YY, count] = ffrf3(model, systemProperty, variant)
 [T, R, ~, Z, H, ~, U] = systemProperty.FirstOrderTriangular{:};
 Omega = systemProperty.CovShocks;
 numOfUnitRoots = systemProperty.NumUnitRoots;
-freq = systemProperty.Specifics.Frequencies;
-inxToInclude = systemProperty.Specifics.IndexToInclude;
-tolerance = systemProperty.Specifics.Tolerance;
-maxIter = systemProperty.Specifics.MaxIter;
+freq = systemProperty.CallerData.Frequencies;
+inxToInclude = systemProperty.CallerData.IndexToInclude;
+tolerance = systemProperty.CallerData.Tolerance;
+maxIter = systemProperty.CallerData.MaxIter;
 
 %{
 else

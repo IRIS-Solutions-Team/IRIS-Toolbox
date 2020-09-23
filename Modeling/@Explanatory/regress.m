@@ -153,8 +153,8 @@ dataBlock = getDataBlock(this, inputDb, fittedRange, lhsRequired, context);
 controls = assignControls(this, inputDb);
 
 
-numExtendedPeriods = dataBlock.NumOfExtendedPeriods;
-numPages = dataBlock.NumOfPages;
+numExtendedPeriods = dataBlock.NumExtendedPeriods;
+numPages = dataBlock.NumPages;
 fitted = nan(numEquations, numExtendedPeriods, numPages);
 inxMissingColumns = false(numEquations, numExtendedPeriods, numPages);
 reportEmptyData = string.empty(1, 0);

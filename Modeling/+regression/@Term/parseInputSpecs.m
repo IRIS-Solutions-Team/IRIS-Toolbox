@@ -318,9 +318,9 @@ function build = locallyCreateInverseTransform(transform, diffops, posLhs)
     dataRow = "x(" + string(posLhs);
     switch transform
         case "log"
-            build = "exp(__lhs)"
+            build = "exp(__lhs)";
         case "exp"
-            build = "log(__lhs)"
+            build = "log(__lhs)";
         case "roc"
             build = "__lhs.*" + dataRow + ", t-" + string(-diffops) + ",v)";
         case "pct"

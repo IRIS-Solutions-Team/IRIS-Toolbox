@@ -25,7 +25,7 @@ end
 %--------------------------------------------------------------------------
 
 ixx = this.Quantity.Type==TYPE(2);
-[ny, nxx] = sizeOfSolution(this.Vector);
+[ny, nxx] = sizeSolution(this.Vector);
 nPer = round(rng(end) - rng(1) + 1);
 
 % Anchors for exogenized measurement variables, and conditioning measurement

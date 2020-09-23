@@ -108,7 +108,7 @@ isNamedMat = strcmpi(opt.MatrixFormat, 'namedmat');
 %--------------------------------------------------------------------------
 
 nv = length(this);
-[ny, nxi] = sizeOfSolution(this.Vector);
+[ny, nxi] = sizeSolution(this.Vector);
 
 assert( usingDefaults.Include || usingDefaults.Exclude, ...
         'model:ffrf:CannotCombineSelectExclude', ...
@@ -139,7 +139,7 @@ if ~isequal(opt.SystemProperty, false)
     return
 end
 
-numFreq = numel(systemProperty.Specifics.Frequencies);
+numFreq = numel(systemProperty.CallerData.Frequencies);
 F = complex(nan(nxi, ny, numFreq, nv), nan(nxi, ny, numFreq, nv));
 
 
@@ -171,10 +171,10 @@ return
         systemProperty.Function = @freqdom.ffrf3;
         systemProperty.MaxNumOfOutputs = 1;
         systemProperty.NamedReferences = {solutionVectorX, solutionVectorY};
-        systemProperty.Specifics.IndexToInclude = inxToInclude;
-        systemProperty.Specifics.MaxIter = opt.MaxIter;
-        systemProperty.Specifics.Frequencies = freq(:)';
-        systemProperty.Specifics.Tolerance = opt.Tolerance;
+        systemProperty.CallerData.IndexToInclude = inxToInclude;
+        systemProperty.CallerData.MaxIter = opt.MaxIter;
+        systemProperty.CallerData.Frequencies = freq(:)';
+        systemProperty.CallerData.Tolerance = opt.Tolerance;
         if isequal(opt.SystemProperty, false)
             % Regular call
             systemProperty.OutputNames = { 'FF' };

@@ -1,4 +1,3 @@
-function [YXEPG, L] = lp4lhsmrhs(this, YXEPG, variantsRequested, howToCreateL)
 % lp4lhsmrhs  Fill in parameters and steady trends in YXEPG data matrix
 %
 % Backend [IrisToolbox] method
@@ -7,9 +6,9 @@ function [YXEPG, L] = lp4lhsmrhs(this, YXEPG, variantsRequested, howToCreateL)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-TYPE = @int8;
+function [YXEPG, L] = lp4lhsmrhs(this, YXEPG, variantsRequested, howToCreateL)
 
-%--------------------------------------------------------------------------
+TYPE = @int8;
 
 nv = countVariants(this);
 inxP = getIndexByType(this.Quantity, TYPE(4));

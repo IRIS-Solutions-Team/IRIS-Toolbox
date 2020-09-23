@@ -1,4 +1,3 @@
-function [exitFlag, dcy] = simulateSelective(simulateFunc, rect, data, ~)
 % simulateSelective  Run equations-selective simulation on one time frame
 %
 % Backend [IrisToolbox] method
@@ -7,6 +6,8 @@ function [exitFlag, dcy] = simulateSelective(simulateFunc, rect, data, ~)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function [exitFlag, dcy] = simulateSelective(simulateFunc, rect, data, blazer, varargin)
+
 MAX_DENSITY = 1/3;
 MAX_NUM_OF_ELEMENTS = 2e6;
 
@@ -14,22 +15,21 @@ MAX_NUM_OF_ELEMENTS = 2e6;
 
 deviation = data.Deviation;
 hashEquations = rect.HashEquationsAll;
-firstColumnFrame = data.FirstColumnOfFrame;
-inxE = data.InxOfE;
-inxYX = data.InxOfYX;
+firstColumnFrame = data.FirstColumnFrame;
+inxE = data.InxE;
+inxYX = data.InxYX;
 numYX = nnz(inxYX);
-inxLogYX = data.InxLog(inxYX);
-solverOpt = data.SolverOptions;
-solverName = solverOpt(1).SolverName;
+inxLogWithinYX = data.InxLogWithinYX;
+solverOptions = blazer.Blocks{1}.SolverOptions;
+solverName = solverOptions(1).SolverName;
 window = data.Window;
 
 columnRangeHashWindow = firstColumnFrame + (0 : window-1);
 
 tempE = data.AnticipatedE;
-tempE(:, firstColumnFrame) = tempE(:, firstColumnFrame) ...
-                                 + data.UnanticipatedE(:, firstColumnFrame);
+tempE(:, firstColumnFrame) = tempE(:, firstColumnFrame) + data.UnanticipatedE(:, firstColumnFrame);
 
-if data.NumOfExogenizedPointsY==0
+if data.NumExogenizedY==0
     %
     % No need to simulate measurement equations in the interim iterations
     % (before the final run) if there are no exogenized measurement
@@ -44,11 +44,11 @@ objectiveFunction = @hereObjectiveFunctionFull;
 % nonlinear equations; run the multiplier type of simulation only if the
 % density is smaller than a cut-off.
 %
-if data.NumOfExogenizedPoints==0
+if data.NumExogenizedYX==0
     hereGetHashIncidence( );
     lastHashedYX = data.LastHashedYX;
     columnRangeOfHashedYX = firstColumnFrame : lastHashedYX;
-    inxHashedYX = data.InxOfHashedYX(:, columnRangeOfHashedYX);
+    inxHashedYX = data.InxHashedYX(:, columnRangeOfHashedYX);
     density = nnz(inxHashedYX) / numel(inxHashedYX);
     numElements = nnz(inxHashedYX) * rect.NumOfHashEquations * data.Window;
     if  density<MAX_DENSITY || numElements<MAX_NUM_OF_ELEMENTS
@@ -72,8 +72,8 @@ if strncmpi(solverName, 'IRIS', 4)
     % [IrisToolbox] Solver
     data0 = data;
     initNlaf0 = nlafInit;
-    for i = 1 : numel(solverOpt)
-        ithSolver = solverOpt(i);
+    for i = 1 : numel(solverOptions)
+        ithSolver = solverOptions(i);
         if i>1 && ithSolver.Reset
             data = data0;
             nlafInit = initNlaf0;
@@ -89,7 +89,7 @@ if strncmpi(solverName, 'IRIS', 4)
 elseif strcmpi(solverName, 'fminsearch')
     % Plain fminsearch
     temp = @(x) sum(power(objectiveFunction(x), 2), [1, 2]);
-    [nlafFinal, dcy, exitFlag] = fminsearch(temp, nlafInit, solverOpt);
+    [nlafFinal, dcy, exitFlag] = fminsearch(temp, nlafInit, solverOptions);
     if exitFlag==1
         exitFlag = solver.ExitFlag.CONVERGED;
     elseif exitFlag==0
@@ -101,10 +101,10 @@ elseif strcmpi(solverName, 'fminsearch')
 else
     if strcmpi(solverName, 'fsolve')
         % Optimization Tbx
-        [nlafFinal, dcy, exitFlag] = fsolve(objectiveFunction, nlafInit, solverOpt);
+        [nlafFinal, dcy, exitFlag] = fsolve(objectiveFunction, nlafInit, solverOptions);
     elseif strcmpi(solverName, 'lsqnonlin')
         % Optimization Tbx
-        [nlafFinal, ~, dcy, exitFlag] = lsqnonlin(objectiveFunction, nlafInit, [ ], [ ], solverOpt);
+        [nlafFinal, ~, dcy, exitFlag] = lsqnonlin(objectiveFunction, nlafInit, [ ], [ ], solverOptions);
     end
     exitFlag = solver.ExitFlag.fromOptimTbx(exitFlag);
 end
@@ -115,8 +115,7 @@ simulateFunc(rect, data);
 
 return
 
-
-    function dcy = hereObjectiveFunctionFull(nlaf)
+    function dcy = hereObjectiveFunctionFull(nlaf, varargin)
     %(
         data.NonlinAddf(:, columnRangeHashWindow) = nlaf;
         simulateFunc(rect, data);
@@ -126,20 +125,16 @@ return
             % The `simulateFunc` modified the shocks and they need to
             % be updated in the main databank
             tempE = data.AnticipatedE;
-            tempE(:, firstColumnFrame) = ...
-                tempE(:, firstColumnFrame) ...
-                + data.UnanticipatedE(:, firstColumnFrame);
+            tempE(:, firstColumnFrame) = tempE(:, firstColumnFrame) + data.UnanticipatedE(:, firstColumnFrame);
         end
-        YXEPG(inxE, :) = tempE;
+        YXEPG(inxE, :) = tempE(inxE, :);
 
         dcy = hereEvaluateHashEquations(YXEPG);
     %)
     end%
 
 
-
-
-    function dcy = hereObjectiveFunctionShort(nlaf)
+    function dcy = hereObjectiveFunctionShort(nlaf, varargin)
     %(
         % Simulated data with zero hash factors
         YXEPG = data.YXEPG;
@@ -148,22 +143,20 @@ return
         % simulated data
         impact = zeros(numYX, numHashedColumns);
         impact(inxHashedYX) = rect.HashMultipliers * (nlaf(:) - nlafInit(:));
-        if any(inxLogYX)
-            impact(inxLogYX, :) = exp( impact(inxLogYX, :) );
+        if any(inxLogWithinYX)
+            impact(inxLogWithinYX, :) = exp(impact(inxLogWithinYX, :));
         end
 
         tempYX = YXEPG(inxYX, columnRangeOfHashedYX);
-        tempYX(~inxLogYX, :) = tempYX(~inxLogYX, :)  + impact(~inxLogYX, :);
-        tempYX(inxLogYX, :)  = tempYX(inxLogYX, :)  .* impact(inxLogYX, :);
+        tempYX(~inxLogWithinYX, :) = tempYX(~inxLogWithinYX, :)  + impact(~inxLogWithinYX, :);
+        tempYX(inxLogWithinYX, :)  = tempYX(inxLogWithinYX, :)  .* impact(inxLogWithinYX, :);
         YXEPG(inxYX, columnRangeOfHashedYX) = tempYX;
 
-        YXEPG(inxE, :) = tempE;
+        YXEPG(inxE, :) = tempE(inxE, :);
 
         dcy = hereEvaluateHashEquations(YXEPG);
     %)
     end%
-
-
 
 
     function dcy = hereEvaluateHashEquations(YXEPG)
@@ -171,8 +164,8 @@ return
         yxepg0 = YXEPG;
         if deviation
             yx = YXEPG(inxYX, :);
-            yx(~inxLogYX, :) = yx(~inxLogYX, :)  + data.BarYX(~inxLogYX, :);
-            yx(inxLogYX, :)  = yx(inxLogYX, :)  .* data.BarYX(inxLogYX, :);
+            yx(~inxLogWithinYX, :) = yx(~inxLogWithinYX, :)  + data.BarYX(~inxLogWithinYX, :);
+            yx(inxLogWithinYX, :)  = yx(inxLogWithinYX, :)  .* data.BarYX(inxLogWithinYX, :);
             YXEPG(inxYX, :) = yx;
         end
         try
@@ -211,20 +204,18 @@ return
     end%
 
 
-
-
     function hereGetHashIncidence( )
     %(
         TYPE = @int8;
         inc = across(rect.HashIncidence, 'Equations');
         inc = inc(inxYX, :);
         shifts = rect.HashIncidence.Shift;
-        inxHashedYX = false(numYX, data.NumOfColumns);
+        inxHashedYX = false(numYX, data.NumColumns);
         for ii = columnRangeHashWindow
             columnRange = ii + shifts;
             inxHashedYX(:, columnRange) = inxHashedYX(:, columnRange) | inc;
         end
-        data.InxOfHashedYX = inxHashedYX;
+        data.InxHashedYX = inxHashedYX;
     %)
     end%
 end%

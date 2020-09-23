@@ -16,7 +16,7 @@ end
 
 %--------------------------------------------------------------------------
 
-[~, ~, nb, ~, ne] = sizeOfSolution(this.Vector);
+[~, ~, nb, ~, ne] = sizeSolution(this.Vector);
 [T, R, K, Z, H, D, U, ~, Zb] = getIthFirstOrderSolution(this.Variant, variantRequested);
 
 currentForward = size(R, 2)/ne - 1;

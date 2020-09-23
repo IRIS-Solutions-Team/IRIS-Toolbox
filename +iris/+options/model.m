@@ -9,11 +9,6 @@ function def = model( )
 
 %--------------------------------------------------------------------------
 
-deviation_dtrends = {
-    'Deviation, Deviations', false, @(x) isequal(x, true) || isequal(x, false)
-    'DTrends, DTrend', @auto, @(x) isequal(x, true) || isequal(x, false) || isequal(x, @auto)
-    };
-
 matrixFormat = {
     'MatrixFormat', 'namedmat', @namedmat.validateMatrixFormat
     };
@@ -112,30 +107,6 @@ def.shockplot = { ...
     || (ischar(x) && strcmpi(x, 'std')), ...
     };
 
-def.symbdiff = { ...
-    'simplify', true, @islogicalscalar, ...
-    };
-
-def.createSourceDbase = [
-    deviation_dtrends
-    {
-    'AppendPresample, AddPresample', true, @islogicalscalar
-    'AppendPostsample, AddPostsample', true, @islogicalscalar
-    'ndraw', 1, @(x) isintscalar(x) && x>=0
-    'ncol', 1, @(x) isintscalar(x) && x>=0
-    'shockfunc, randfunc, randfn', @zeros, @(x) isa(x, 'function_handle') && any(strcmp(func2str(x), {'randn', 'lhsnorm', 'zeros'}))
-    }
-];
-
-
-def.trollify = { 
-    'SrcTemplate', 'trollify_template.src', @ischar
-    'InpTemplate', 'trollify_template.inp', @ischar
-    'InpFileName', 'StartVals.inp', @ischar
-    'ModelName', @auto, @(x) isequal(x, @auto) || ischar(x)
-    'ParametersAs=', 'Exogenous', @(x) ischar(x) && any(strcmpi(x, {'Parameters', 'Exogenous'}))
-    'SteadyRefSuffix', 'SS', @ischar
-    };
 
 def.VAR = {...
     'acf', { }, @(x) iscell(x) && iscellstr(x(1:2:end))

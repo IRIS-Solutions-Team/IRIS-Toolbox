@@ -2,28 +2,28 @@ classdef DataBlock ...
     < matlab.mixin.Copyable
 
     properties
-        % YXEPG  NumOfQuants-by-NumOfPeriods-by-NumOfPages matrix of variables 
-        YXEPG = double.empty(0)
+        % YXEPG  NumQuantities-by-NumExtdPeriods-by-NumPages matrix of variables 
+        YXEPG (:, :, :) double = double.empty(0, 0, 0)
 
         % Names  Names corresponding to rows in `YXEPG`
-        Names = string.empty(1, 0)
+        Names (1, :) string = string.empty(1, 0)
 
         % ExtendedRange  Continuous date range corresponding to columns in `YXEPG`
-        ExtendedRange = DateWrapper.empty(1, 0)
+        ExtendedRange (1, :) double = double.empty(1, 0)
 
         % BaseRangeColumns  Indices of columns corresponding to base range in `ExtendedRange`
-        BaseRangeColumns = double.empty(1, 0)
+        BaseRangeColumns (1, :) double = double.empty(1, 0)
     end
 
 
     properties (Dependent)
         BaseRange
         InxBaseRange
-        NumOfExtendedPeriods
-        NumOfBasePeriods
-        NumOfQuantities
-        NumOfColumns
-        NumOfPages
+        NumExtendedPeriods
+        NumBasePeriods
+        NumQuantities
+        NumColumns
+        NumPages
     end
 
 
@@ -36,32 +36,32 @@ classdef DataBlock ...
 
 
         function value = get.InxBaseRange(this)
-            value = false(1, this.NumOfExtendedPeriods);
+            value = false(1, this.NumExtendedPeriods);
             value(this.BaseRangeColumns) = true;
         end%
 
 
-        function value = get.NumOfExtendedPeriods(this)
+        function value = get.NumExtendedPeriods(this)
             value = size(this.YXEPG, 2);
         end%
 
 
-        function value = get.NumOfBasePeriods(this)
+        function value = get.NumBasePeriods(this)
             value = numel(this.BaseRangeColumns);
         end%
 
 
-        function value = gert.NumOfQuantities(this)
+        function value = gert.NumQuantities(this)
             value = size(this.YXEPG, 1);
         end%
 
 
-        function value = get.NumOfColumns(this)
+        function value = get.NumColumns(this)
             value = size(this.YXEPG, 2);
         end%
 
 
-        function value = get.NumOfPages(this)
+        function value = get.NumPages(this)
             value = size(this.YXEPG, 3);
         end%
     end

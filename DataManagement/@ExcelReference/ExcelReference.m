@@ -145,11 +145,15 @@ classdef ExcelReference
         function range = decodeRowRange(xlsRange)
             xlsRange = strtrim(xlsRange);
             tokens = regexp( ...
-                xlsRange, '^(\d+)(\.\.(\d+))?$' ...
-                , 'Tokens', 'Once', 'IgnoreCase' ...
+                xlsRange, "^(\d+|_)(\.\.(\d+|_))?$" ...
+                , "Tokens", "Once", "IgnoreCase" ...
             );
-            tokens(cellfun('isempty', tokens)) = [ ];
-            tokens = strrep(tokens, '.', '');
+            tokens(cellfun(@isempty, tokens)) = [ ];
+            tokens = replace(tokens, ".", "");
+            if any(contains(tokens, ["|", "_"]))
+                tokens = replace(tokens, "|", string(sizeBuffer(2)));
+                tokens = replace(tokens, "_", string(sizeBuffer(1)));
+            end
             if numel(tokens)~=1 && numel(tokens)~=2
                 thisError = [
                     "ExcelReference:InvalidExcelRange"
@@ -167,14 +171,17 @@ classdef ExcelReference
 
 
 
-        function range = decodeColumnRange(xlsRange)
+        function range = decodeColumnRange(xlsRange, sizeBuffer)
             xlsRange = strtrim(xlsRange);
             tokens = regexp( ...
-                xlsRange, '^([a-z]+)(\.\.([a-z]+))?$' ...
+                xlsRange, '^([a-z]+|\|)(\.\.([a-z]+|\|))?$' ...
                 , 'Tokens', 'Once', 'IgnoreCase' ...
             );
-            tokens(cellfun('isempty', tokens)) = [ ];
-            tokens = strrep(tokens, '.', '');
+            tokens(cellfun(@isempty, tokens)) = [ ];
+            tokens = strrep(tokens, ".", "");
+            if any(contains(tokens, ["|", "_"]))
+                tokens = replace(tokens, "|", string(sizeBuffer(2)));
+            end
             if numel(tokens)~=1 && numel(tokens)~=2
                 thisError = [
                     "ExcelReference:InvalidExcelRange"

@@ -4,7 +4,7 @@ TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
 
-[ny, ~, nb, nf, ne] = sizeOfSolution(solution);
+[ny, ~, nb, nf, ne] = sizeSolution(solution);
 ixy = quantity.Type==TYPE(1);
 ixe = quantity.Type==TYPE(31) | quantity.Type==TYPE(32);
 posy = find(ixy);

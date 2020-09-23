@@ -22,9 +22,11 @@ classdef Rectangular < handle
         MultipliersExogenizedYX = logical.empty(0)
         MultipliersEndogenizedE = logical.empty(0)
 
-        SolutionVector
+        % Vector  System and solution vectors derived from @Model
+        Vector 
         
-        Quantity
+        % Quantity  Information about model quantities derived from @Modelk
+        Quantity 
 
         HashEquationsAll
         HashEquationsIndividually
@@ -50,6 +52,12 @@ classdef Rectangular < handle
 
         % Header  Header to display with the final convergence report
         Header (1, 1) string = ""
+
+        % StackedNoShocks_   Solution matrices and data point indices for
+        % stacked time simulation of selected data points with no shocks
+        StackedNoShocks_Transition 
+        StackedNoShocks_Constant
+        StackedNoShocks_InxDataPoints
     end
 
 
@@ -69,6 +77,8 @@ classdef Rectangular < handle
         flat(varargin)
         calculateHashMultipliers(varargin)
         multipliers(varargin)
+        prepareStackedNoShocks(varargin)
+        resetStackedNoShocks(varargin)
 
 
         function update(this, model, variantRequested)
@@ -88,6 +98,9 @@ classdef Rectangular < handle
         end%
 
 
+        function varargout = sizeSolution(this)
+            [varargout{1:nargout}] = sizeSolution(this.Vector);
+        end%
 
 
         function ensureExpansionGivenData(this, data)
@@ -103,8 +116,6 @@ classdef Rectangular < handle
             end
             ensureExpansion(this, requiredForward);
         end%
-
-
 
 
         function ensureExpansion(this, requiredForward)
@@ -124,19 +135,6 @@ classdef Rectangular < handle
         end%
 
 
-
-
-        function [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this)
-            ny = numel(this.SolutionVector{1});
-            [nxi, nb] = size(this.FirstOrderSolution{1});
-            nf = nxi - nb;
-            ne = numel(this.SolutionVector{3});
-            ng = numel(this.SolutionVector{5});
-        end%
-
-
-
-
         function currentForward = get.CurrentForward(this)
             R = this.FirstOrderSolution{2};
             if size(R, 2)==0
@@ -144,11 +142,9 @@ classdef Rectangular < handle
                 currentForward = 0;
                 return
             end
-            ne = numel(this.SolutionVector{3});
+            ne = numel(this.Vector.Solution{3});
             currentForward = size(R, 2)/ne - 1;
         end%
-
-
 
 
         function value = get.NumOfHashEquations(this)
@@ -156,51 +152,64 @@ classdef Rectangular < handle
         end%
 
 
-
-
         function setFrame(this, timeFrame)
-            VEC = @(x) x(:);
             this.FirstColumn = timeFrame(1);
             this.LastColumn = timeFrame(2);
-            [ny, nxi, nb, nf, ne, ng] = sizeOfSolution(this);
-            idXif = VEC(this.SolutionVector{2}(1:nf));
-            idXib = VEC(this.SolutionVector{2}(nf+1:end));
+            [ny, nxi, nb, nf, ne, ng] = sizeSolution(this);
+            idXiF = reshape(this.Vector.Solution{2}(1:nf), [ ], 1);
+            idXiB = reshape(this.Vector.Solution{2}(nf+1:end), [ ], 1);
             T = this.FirstOrderSolution{1};
-            idCurrentXi = VEC(this.SolutionVector{2}(this.InxOfCurrentWithinXi));
+            idCurrentXi = reshape(this.Vector.Solution{2}(this.InxOfCurrentWithinXi), [ ], 1);
             numQuants = numel(this.Quantity.Name);
-            pretendSizeData = [numQuants, this.FirstColumn+max([0; imag(idXif)])];
-            this.LinxOfXib = sub2ind( pretendSizeData, ...
-                                      real(idXib), ...
-                                      this.FirstColumn + imag(idXib) );
-            this.LinxOfXif = sub2ind( pretendSizeData, ...
-                                      real(idXif), ...
-                                      this.FirstColumn + imag(idXif) );
-            this.LinxOfCurrentXi = sub2ind( pretendSizeData, ...
-                                            real(idCurrentXi), ...
-                                            this.FirstColumn + imag(idCurrentXi) );
+            maxLead = max([0; imag(idXiF)]);
+            pretendSizeData = [numQuants, this.FirstColumn + maxLead];
+            this.LinxOfXib = sub2ind( ...
+                pretendSizeData, ...
+                real(idXiB), ...
+                this.FirstColumn + imag(idXiB) ...
+            );
+            this.LinxOfXif = sub2ind( ...
+                pretendSizeData, ...
+                real(idXiF), ...
+                this.FirstColumn + imag(idXiF) ...
+            );
+            this.LinxOfCurrentXi = sub2ind( ...
+                pretendSizeData, ...
+                real(idCurrentXi), ...
+                this.FirstColumn + imag(idCurrentXi) ...
+            );
         end%
     end
 
 
-
     methods (Static)
         function this = fromModel(model, variantRequested, useFirstOrder)
+            %(
             if nargin<2
                 variantRequested = 1;
-            elseif variantRequested>1 && length(model)==1 
+            elseif variantRequested>1 && countVariants(model)==1 
                 variantRequested = 1;
             end
 
             this = simulate.Rectangular( );
-            this.Quantity = getp(model, 'Quantity');
+            
+            %
+            % Populate Quantity and Vector
+            %
+            this = prepareRectangular(model, this);
 
+            %
             % Get first-order solution matrices and expansion matrices
+            % 
             if useFirstOrder
                 update(this, model, variantRequested);
             end
 
-            this.SolutionVector = getp(model, 'Vector', 'Solution');
-            this.InxOfCurrentWithinXi = imag(this.SolutionVector{2})==0;
+            %
+            % Index of current dated transition variables in the solution vector
+            %
+            this.InxOfCurrentWithinXi = imag(this.Vector.Solution{2})==0;
+            %)
         end%
     end
 end

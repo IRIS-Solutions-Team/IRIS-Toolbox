@@ -38,7 +38,7 @@ if strcmp(variantsRequested, ':')
     variantsRequested = 1 : numel(this.Variant);
 end
 
-[ny, nxi, nb, nf, ne, ~, nz] = sizeOfSolution(this);
+[ny, nxi, nb, nf, ne, ~, nz] = sizeSolution(this);
 numVariantsRequested = numel(variantsRequested);
 numHashEquations = nnz(this.Equation.IxHash);
 

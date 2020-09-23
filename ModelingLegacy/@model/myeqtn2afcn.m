@@ -1,4 +1,3 @@
- function this = myeqtn2afcn(this)
 % myeqtn2afcn  Convert equation strings to anonymous functions
 %
 % Backend [IrisToolbox] function
@@ -6,6 +5,8 @@
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function this = myeqtn2afcn(this)
 
 TYPE = @int8;
 

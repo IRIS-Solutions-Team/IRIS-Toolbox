@@ -17,7 +17,7 @@ try, expandMethod; catch, expandMethod = 'RepeatLast'; end %#ok<NOCOM>
 
 %--------------------------------------------------------------------------
 
-[ny, nxi, nb, nf, ~, ~, nz] = sizeOfSolution(this);
+[ny, nxi, nb, nf, ~, ~, nz] = sizeSolution(this);
 nv = length(this);
 range = double(range);
 range = range(1) : range(end);

@@ -24,7 +24,7 @@ outputData = argin.OutputData;
 outputDataAssignFunc = argin.OutputDataAssignFunc;
 opt = argin.Options;
 
-[ny, nxi, nb, nf, ne, ng, nz] = sizeOfSolution(this);
+[ny, nxi, nb, nf, ne, ng, nz] = sizeSolution(this);
 nv = countVariants(this);
 
 % Transition variables marked as observables

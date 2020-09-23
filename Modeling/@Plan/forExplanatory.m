@@ -1,4 +1,3 @@
-function this = forExplanatory(expy, simulationRange)
 % forExplanatory  Construct a simulation Plan object for Explanatory object or array
 %{
 % ## Syntax ##
@@ -61,12 +60,16 @@ function this = forExplanatory(expy, simulationRange)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function this = forExplanatory(expy, simulationRange)
+
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('Plan.Plan');
     addRequired(pp, 'expy', @(x) isa(x, 'Explanatory'));
     addRequired(pp, 'simulationRange', @DateWrapper.validateProperRangeInput);
 end
+%)
 parse(pp, expy, simulationRange);
 simulationRange = double(simulationRange);
 
@@ -79,15 +82,15 @@ this = preparePlan(expy, this);
 
 numEndogenous = this.NumOfEndogenous;
 numExogenous = this.NumOfExogenous;
-numExtendedPeriods = this.NumOfExtendedPeriods;
-this.IdOfAnticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
-this.IdOfUnanticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
-this.IdOfAnticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
-this.IdOfUnanticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
+numExtendedPeriods = this.NumExtendedPeriods;
+this.IdAnticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
+this.IdUnanticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
+this.IdAnticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
+this.IdUnanticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
 this.InxToKeepEndogenousNaN = false(numEndogenous, numExtendedPeriods);
 
-this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, numEndogenous, 1);
-this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, numExogenous, 1);
+this.AnticipationStatusEndogenous = repmat(this.DefaultAnticipationStatus, numEndogenous, 1);
+this.AnticipationStatusExogenous = repmat(this.DefaultAnticipationStatus, numExogenous, 1);
 
 this.AllowUnderdetermined = true;
 this.AllowOverdetermined = true;

@@ -1,4 +1,3 @@
-function varargout = prepareSteady(this, displayMode, varargin)
 % prepareSteady  Prepare steady-state solver
 %
 % Backend [IrisToolbox] method
@@ -7,7 +6,7 @@ function varargout = prepareSteady(this, displayMode, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function varargout = prepareSteady(this, displayMode, varargin)
 
 % Run user-supplied steady-state solver:
 % sstate = @func
@@ -43,6 +42,7 @@ if numel(varargin)==1 && iscell(varargin{1})
     varargin = { varargin{1}{:} };
 end
 
+%( Input parser
 persistent parserLinear parserNonlinear
 if isempty(parserLinear) || isempty(parserNonlinear)
     %
@@ -61,25 +61,27 @@ if isempty(parserLinear) || isempty(parserNonlinear)
     parserNonlinear.KeepUnmatched = true;
     parserNonlinear.addRequired('model', @(x) isa(x, 'model'));
 
-    parserNonlinear.addParameter('SaveAs', '', @(x) isempty(x) || ischar(x) || (isa(x, 'string') && isscalar(x)));
-    parserNonlinear.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
-    parserNonlinear.addParameter('ForceRediff', false, @(x) isequal(x, true) || isequal(x, false));
-    parserNonlinear.addParameter('Growth', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter({'ChangeBounds', 'GrowthBounds', 'GrowthBnds'}, [ ], @(x) isempty(x) || isstruct(x));
     parserNonlinear.addParameter({'LevelBounds', 'LevelBnds'}, [ ], @(x) isempty(x) || isstruct(x));
     parserNonlinear.addParameter('OptimSet', { }, @(x) isempty(x) || (iscell(x) && iscellstr(x(1:2:end))) || isstruct(x));
     parserNonlinear.addParameter({'NanInit', 'Init'}, 1, @(x) isnumeric(x) && isscalar(x) && isfinite(x));
     parserNonlinear.addParameter('ResetInit', [ ], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && isfinite(x)));
     parserNonlinear.addParameter('Reuse', false, @(x) isequal(x, true) || isequal(x, false));
-    parserNonlinear.addParameter('Solver', @auto, @(x) isequal(x, @auto) || ischar(x) || isa(x, 'function_handle') || (iscell(x) && iscellstr(x(2:2:end)) && (ischar(x{1}) || isa(x{1}, 'function_handle'))));
-    parserNonlinear.addParameter('SteadyShift', 3, @(x) isnumeric(x) && isscalar(x) && x==round(x) && x>0);    
-    parserNonlinear.addParameter('PrepareGradient', @auto, @(x) isequal(x, @auto) || isequal(x, true) || isequal(x, false));
-    parserNonlinear.addParameter('Unlog', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
-    parserNonlinear.addParameter('Log', { }, @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
+    parserNonlinear.addParameter({'SolverOptions', 'Solver'}, @auto, @(x) isequal(x, @auto) || isa(x, "solver.Options") || isa(x, "optim.options.SolverOptions") || isstring(x) || ischar(x) || isa(x, 'function_handle') || (iscell(x) && all(cellfun(@(y) isstring(y) ||  ischar(y), x(2:2:end))) && (isstring(x{1}) || ischar(x{1}) || isa(x{1}, 'function_handle'))));
     parserNonlinear.addParameter('Warning', true, @(x) isequal(x, true) || isequal(x, false));
     parserNonlinear.addParameter('ZeroMultipliers', true, @(x) isequal(x, true) || isequal(x, false));
+
+    % Blazer related options
+
+    parserNonlinear.addParameter({'Blocks', 'Block'}, true, @(x) isequal(x, true) || isequal(x, false));
+    parserNonlinear.addParameter("SuccessOnly", false, @validate.logicalScalar);
+    parserNonlinear.addParameter('Growth', @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+    parserNonlinear.addParameter('Log', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
+    parserNonlinear.addParameter('Unlog', [ ], @(x) isempty(x) || ischar(x) || iscellstr(x) || isequal(x, @all));
+    parserNonlinear.addParameter('SaveAs', [ ], @(x) isempty(x) || ischar(x) || (isstring(x) && isscalar(x)));
     parserNonlinear.addSwapFixOptions( );
 end
+%)
 
 %--------------------------------------------------------------------------
 
@@ -87,17 +89,17 @@ if this.IsLinear
     %
     % Linear Steady State Solver
     %
-    parserLinear.parse(this, varargin{:});
+    parse(parserLinear, this, varargin{:});
     varargout{1} = parserLinear.Options;
 else
     %
     % Nonlinear Steady State Solver
     %
     % Capture obsolete syntax with solver options directly passed among other
-    % sstate options and not as suboptions through Solver=; these are only used
-    % if Solver= is a char.
+    % sstate options and not as suboptions through SolverOptions=; these are only used
+    % if SolverOptions= is a string
     %
-    parserNonlinear.parse(this, varargin{:});
+    parse(parserNonlinear, this, varargin{:});
     opt = parserNonlinear.Options;
     unmatchedSolverOptions = parserNonlinear.UnmatchedInCell;
     if isequal(opt.Growth, @auto)
@@ -109,13 +111,14 @@ else
     else
         defaultSolver = 'IRIS-Qnsd';
     end
-    [ opt.Solver, ...
-      opt.PrepareGradient ] = solver.Options.parseOptions( opt.Solver, ...
-                                                           defaultSolver, ...
-                                                           opt.PrepareGradient, ...
-                                                           displayMode, ...
-                                                           'SpecifyObjectiveGradient=', true, ...
-                                                           unmatchedSolverOptions{:} );
+
+    opt.SolverOptions = solver.Options.parseOptions( ...
+        opt.SolverOptions, ...
+        defaultSolver, ...
+        displayMode, ...
+        unmatchedSolverOptions{:} ...
+    );
+
     blazer = locallyRunBlazer(this, opt);
     blazer = locallyPrepareBounds(this, blazer, opt);
     blazer.NanInit = opt.NanInit;
@@ -126,13 +129,9 @@ end
 
 end%
 
-
 %
 % Local Functions
 %
-
-
-
 
 function blazer = locallyRunBlazer(this, opt)
     TYPE = @int8;
@@ -150,15 +149,15 @@ function blazer = locallyRunBlazer(this, opt)
     % Run solver.blazer.Blazer on steady equations, process Exogenize=,
     % Endogenize=, Fix...= options
     %
-    blazer = prepareBlazer(this, 'Steady', opt);
+    blazer = solver.blazer.Steady.forModel(this, opt);
 
 
     %
     % Split equations into sequential blocks, prepare blocks, and prepare
     % solver options within the blocks
     %
-    run(blazer, opt);
-    prepareForSolver(blazer, opt);
+    run(blazer);
+    prepareForSolver(blazer, opt.SolverOptions);
 
 
     %
@@ -220,12 +219,12 @@ function blazer = locallyPrepareBounds(this, blazer, opt)
         block__.Lower = [lbl, lbg];
         block__.Upper = [ubl, ubg];
         
-        if isa(block__.Solver, 'optim.options.SolverOptions')
+        if isa(block__.SolverOptions, 'optim.options.SolverOptions')
             % Make sure @lsqnonlin is used when there are some lower/upper bounds.
             isBnd = any(~isinf(block__.Lower)) || any(~isinf(block__.Upper));
             if isBnd
-                if ~strcmp(block__.Solver.SolverName, 'lsqnonlin')
-                    block__.Solver = block__.Solver('lsqnonlin', block__.Solver);
+                if ~strcmp(block__.SolverOptions.SolverName, 'lsqnonlin')
+                    block__.SolverOptions = block__.SolverOptions('lsqnonlin', block__.SolverOptions);
                 end
             end
         end

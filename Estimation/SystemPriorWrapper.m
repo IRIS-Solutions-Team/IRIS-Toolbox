@@ -132,15 +132,15 @@ classdef SystemPriorWrapper < handle
 
         function replace = replaceSystemPropertyReferences(systemPriorWrapper, outputName, reference)
             namedReferences = getNamedReferencesForOutputName(systemPriorWrapper, outputName);
-            arguments = textual.splitArguments(reference);
-            arguments = strtrim(arguments);
-            for i = 1 : min(numel(arguments), numel(namedReferences))
-                index__ = strcmp(arguments{i}, namedReferences{i});
+            args = textual.splitArguments(reference);
+            args = strtrim(args);
+            for i = 1 : min(numel(args), numel(namedReferences))
+                index__ = strcmp(args{i}, namedReferences{i});
                 if any(index__)
-                    arguments{i} = sprintf('%g', find(index__));
+                    args{i} = sprintf('%g', find(index__));
                 end
             end
-            replace = sprintf('%s,', arguments{:});
+            replace = sprintf('%s,', args{:});
             replace = ['(', replace(1:end-1), ')'];
         end%
 
@@ -165,7 +165,7 @@ classdef SystemPriorWrapper < handle
                     systemProperty.Function = this.SystemProperties(i).Function;
                     systemProperty.MaxNumOfOutputs = this.SystemProperties(i).MaxNumOfOutputs;
                     systemProperty.OutputNames = this.SystemProperties(i).OutputNames;
-                    systemProperty.Specifics = this.SystemProperties(i).Specifics;
+                    systemProperty.CallerData = this.SystemProperties(i).CallerData;
                     ithNumOfOutputs = this.SystemProperties(i).NumOfOutputs;
                     eval(systemProperty, model, v);
                     outputs(count+(1:ithNumOfOutputs)) = systemProperty.Outputs(1:end);
@@ -206,8 +206,6 @@ classdef SystemPriorWrapper < handle
             list = [ this.SystemProperties.OutputNames ];
         end%
     end
-
-
 
 
     methods (Static) % Static constructors

@@ -8,35 +8,38 @@
 
 classdef (Abstract) Block < handle
     properties
+        % ParentBlazer  Pointer to the parent Blazer object
+        ParentBlazer 
+
         % Type  Type of block
         Type
 
         % Id  Id number of block
         Id
 
-        % Solver  Solver options
-        Solver
+        % SolverOptions  Solver options
+        SolverOptions = [ ]
 
-        % RetGradient  Return gradient from objective function
-        RetGradient = false 
-        
-        % NamesInBlock  Names of unknowns to be solved for in this block
-        NamesInBlock
-
-        % InxLog  Log status of all model variables
-        InxLog
+        % IsAnalyticalJacob  Return analytical Jacobian from objective function
+        IsAnalyticalJacob = false 
 
         PtrQuantities = double.empty(1, 0)
         PtrEquations = double.empty(1, 0)
 
-        Equations
         EquationsFunc
         NumericalJacobFunc
-        LhsQuantityFormat % Format to create string representing an LHS variable to verify the RHS of possible assignments.
+
+        % LhsQuantityFormat  Format to create string representing an LHS
+        % variable to verify the RHS of possible assignments
+        LhsQuantityFormat 
         
-        Shift = zeros(1, 0)
-        JacobPattern = logical.empty(0)
-        Gradient = cell(2, 0)
+        Shift (1, :) double = zeros(1, 0)
+
+        % JacobPattern  Logical index of pairs equation-quantity that has a
+        % nonzero gradient, size numEquations-by-numQuantities in the block
+        JacobPattern (:, :) logical = logical.empty(0)
+
+        Gradients (3, :) cell = cell(3, 0)
         
         XX2L
         D
@@ -51,6 +54,7 @@ classdef (Abstract) Block < handle
     properties (Dependent)
         NumberOfShifts
         PositionOfZeroShift
+        NeedsAnalyticalJacob
     end
     
     
@@ -62,6 +66,7 @@ classdef (Abstract) Block < handle
 
     properties (Abstract, Constant)
         VECTORIZE
+        PREAMBLE
     end
     
 
@@ -76,10 +81,10 @@ classdef (Abstract) Block < handle
             end
         end%
 
-
         
-        
-        function classify(this, asgn, eqtn)
+        function classify(this)
+            asgn = this.ParentBlazer.Assignments;
+            eqtn = this.ParentBlazer.Equations;
             if isempty(this.PtrQuantities) || isempty(this.PtrEquations)
                 this.Type = solver.block.Type.EMPTY;
                 return
@@ -88,180 +93,91 @@ classdef (Abstract) Block < handle
             if numel(this.PtrQuantities)>1 || numel(this.PtrEquations)>1
                 return
             end
+
             % this.PtrEquations is scalar from now on
             lhs = asgn.Lhs(this.PtrEquations);
             type = asgn.Type(this.PtrEquations);
-            if this.PtrQuantities==lhs && chkRhsOfAssignment(this, eqtn)
+            if this.PtrQuantities==lhs && checkRhsOfAssignment(this, eqtn)
                 this.Type = type;
             end
         end%
-
-
         
         
-        function flag = chkRhsOfAssignment(this, eqtn)
+        function flag = checkRhsOfAssignment(this, eqtn)
             % Verify that the LHS quantity does not occur on the RHS of an assignment.
             c = sprintf(this.LhsQuantityFormat, this.PtrQuantities);
             rhs = solver.block.Block.removeLhs( eqtn{this.PtrEquations} );
             flag = isempty( strfind(rhs, c) );
         end%
         
-
-
         
-        function prepareBlock(this, blazer, opt)
-            if isEmptyBlock(this.Type)
+        function prepareBlock(this, blazer)
+            this.ParentBlazer = blazer;
+            classify(this); % Classify block as SOLVE or ASSIGNMENT
+            setShift(this); % Find max lag and lead within equations in this block
+            createEquationsFunc(this);
+        end%
+
+
+        function createEquationsFunc(this)
+            if isempty(this.PtrEquations)
                 return
             end
-            createEquationsFunc(this, blazer);
-            this.NamesInBlock = blazer.Model.Quantity.Name(this.PtrQuantities);
-            this.InxLog = blazer.Model.Quantity.InxLog;
-        end%
-
-
-
-
-        function prepareForSolver(this, blazer, opt)
-            this.Solver = opt.Solver;
-            if this.Type==solver.block.Type.SOLVE
-                createJacobPattern(this, blazer);
-                try
-                    if isa(opt.Solver, 'optim.options.SolverOptions') ...
-                            || isa(opt.Solver, 'solver.Options')
-                        this.Solver.SpecifyObjectiveGradient = ...
-                            opt.PrepareGradient && opt.Solver.SpecifyObjectiveGradient;
-                    end
-                end
+            equationsFunc = [ this.ParentBlazer.Equations{this.PtrEquations} ];
+            if ~isempty(this.ParentBlazer.Gradients)
+                this.Gradients = this.ParentBlazer.Gradients(:, this.PtrEquations);
             end
-        end%
-
-
-
-
-        function createEquationsFunc(this, blazer)
-            funcToInclude = [ blazer.Equation{this.PtrEquations} ];
-            this.Equations = blazer.Equation(this.PtrEquations);
             if this.Type==solver.block.Type.SOLVE
-                funcToInclude = [ '[', funcToInclude, ']' ];
+                equationsFunc = [ '[', equationsFunc, ']' ];
             else
-                funcToInclude = this.removeLhs(funcToInclude);
+                equationsFunc = this.removeLhs(equationsFunc);
             end
             if this.VECTORIZE
-                funcToInclude = vectorize(funcToInclude);
+                equationsFunc = vectorize(equationsFunc);
             end
-            this.EquationsFunc = str2func([blazer.PREAMBLE, funcToInclude]);
-        end%
-
-
-
-
-        function [gr, XX2L, DLevel, DChange0, DChangeK] = createAnalyticalJacob(this, blazer, opt)
-            [~, numQuantities] = size(blazer.Incidence);
-            numEquationsHere = numel(this.PtrEquations);
-            gr = blazer.Gradient(:, this.PtrEquations);
-            sh = this.Shift;
-            numSh = numel(sh);
-            sh0 = find(this.Shift==0);
-            aux = sub2ind([numQuantities+1, numSh], numQuantities+1, sh0); % Linear index to 1 in last row.
-            XX2L = cell(1, numEquationsHere);
-            DLevel = cell(1, numEquationsHere);
-            DChange0 = cell(1, numEquationsHere);
-            DChangeK = cell(1, numEquationsHere);
-            for i = 1 : numEquationsHere
-                ptrQuantities = iris.utils.unionRealImag(this.PtrQuantities);
-                gr(:, i) = getGradient(this, blazer, this.PtrEquations(i), opt);
-                vecWrt = gr{2, i};
-                numWrt = length(vecWrt);
-                inxOutOfSh = imag(vecWrt)<sh(1) | imag(vecWrt)>sh(end);
-                XX2L{i} = ones(1, numWrt)*aux;
-                ixLog = blazer.Model.Quantity.IxLog(real(vecWrt));
-                vecWrt(inxOutOfSh) = NaN;
-                ixLog(inxOutOfSh) = false;
-                XX2L{i}(ixLog) = sub2ind( ...
-                    [numQuantities+1, numSh], ...
-                    real( vecWrt(ixLog) ), ...
-                    sh0 + imag(vecWrt(ixLog)) ...
-                );
-                DLevel{i} = double(bsxfun(@eq, ptrQuantities, real(vecWrt).'));
-                if nargout>3
-                    DChange0{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).');
-                    DChangeK{i} = bsxfun(@times, DLevel{i}, imag(vecWrt).' + this.SteadyShift);
-                end
-            end
+            this.EquationsFunc = str2func(this.PREAMBLE + string(equationsFunc));
         end%
         
-
-
-        
-        function gr = getGradient(this, blazer, posEqn, opt)
-            %
-            % Create the gradient for the union of levels and changes
-            %
-            ptrQuantities = iris.utils.unionRealImag(this.PtrQuantities);
-
-            %
-            % Fetch gradient of posEqn-th equation from Blazer object or differentiate
-            % again if needed
-            %
-            vecWrtNeeded = find(blazer.Incidence, posEqn, ptrQuantities);
-            vecWrtMissing = setdiff(vecWrtNeeded, blazer.Gradient{2, posEqn});
-            if ~opt.ForceRediff ...
-                    && isa(blazer.Gradient{1, posEqn}, 'function_handle') ...
-                    && isempty(vecWrtMissing)
-                % vecWrtNeeded is a subset of vecWrt currently available.
-                gr = blazer.Gradient(:, posEqn);
-                return
-            end
-
-            %
-            % Redifferentiate this equation wrt the quantities needed only
-            %
-            d = model.component.Gradient.diff(blazer.Equation{posEqn}, vecWrtNeeded);
-            d = str2func([blazer.PREAMBLE, d]);
-            gr = {d; vecWrtNeeded};
-        end%
-        
-
-
         
         function [z, exitFlag] = solve(this, fnObjective, z0, exitFlagHeader)
-            if isa(this.Solver, 'solver.Options')
-                % __IRIS Solver__
-                this.Solver.JacobPattern = this.JacobPattern;
-                [z, ~, exitFlag] = solver.algorithm.qnsd(fnObjective, z0, this.Solver, exitFlagHeader);
+            if isa(this.SolverOptions, 'solver.Options')
+                %
+                % Iris solvers
+                %
+                this.SolverOptions.JacobPattern = this.JacobPattern;
+                [z, ~, exitFlag] = solver.algorithm.qnsd(fnObjective, z0, this.SolverOptions, exitFlagHeader);
 
-            elseif isa(this.Solver, 'optim.options.SolverOptions')
+            elseif isa(this.SolverOptions, 'optim.options.SolverOptions')
+                %
                 % Optim Tbx
-                solverName = this.Solver.SolverName;
+                %
+                solverName = this.SolverOptions.SolverName;
                 if strcmpi(solverName, 'lsqnonlin')
-                    this.Solver.JacobPattern = sparse(double(this.JacobPattern));
+                    this.SolverOptions.JacobPattern = sparse(double(this.JacobPattern));
                     [z, ~, ~, exitFlag] = ...
-                        lsqnonlin(fnObjective, z0, this.Lower, this.Upper, this.Solver);
+                        lsqnonlin(fnObjective, z0, this.Lower, this.Upper, this.SolverOptions);
                 elseif strcmpi(solverName, 'fsolve')
-                    %this.Solver.JacobPattern = sparse(double(this.JacobPattern));
-                    this.Solver.Algorithm = 'levenberg-marquardt';
-                    %this.Solver.Algorithm = 'trust-region';
-                    %this.Solver.SubproblemAlgorithm = 'cg';
-                    [z, ~, exitFlag] = fsolve(fnObjective, z0, this.Solver);
+                    %this.SolverOptions.JacobPattern = sparse(double(this.JacobPattern));
+                    this.SolverOptions.Algorithm = 'levenberg-marquardt';
+                    %this.SolverOptions.Algorithm = 'trust-region';
+                    %this.SolverOptions.SubproblemAlgorithm = 'cg';
+                    [z, ~, exitFlag] = fsolve(fnObjective, z0, this.SolverOptions);
                 end
                 exitFlag = solver.ExitFlag.fromOptimTbx(exitFlag);
                 z = real(z);
-                z( abs(z)<=this.Solver.StepTolerance ) = 0;
+                z( abs(z)<=this.SolverOptions.StepTolerance ) = 0;
 
-            elseif isa(this.Solver, 'function_handle')
+            elseif isa(this.SolverOptions, 'function_handle')
                 % User-Supplied Solver
-                [z, ~, exitFlag] = this.Solver(fnObjective, z0);
+                [z, ~, exitFlag] = this.SolverOptions(fnObjective, z0);
 
             else
-                thisError = [
+                exception.error([
                     "Block:UnknownSolver"
-                    "Invalid or unknown solution method"
-                ];
-                throw(exception.Base(thisError, 'error'));
+                    "Invalid, empty or unknown solver specified."
+                ]);
             end
         end%
-
-
         
 
         function s = print(this, blockId, names, equations)
@@ -304,13 +220,13 @@ classdef (Abstract) Block < handle
 
         
         
-        function setShift(this, blazer)
+        function setShift(this)
             % Return max lag and max lead across all equations in this block.
             if isEmptyBlock(this.Type)
                 return
             end
-            incid = selectEquation(blazer.Incidence, this.PtrEquations);
-            sh0 = blazer.Incidence.PosOfZeroShift;
+            incid = selectEquation(this.ParentBlazer.Incidence, this.PtrEquations);
+            sh0 = this.ParentBlazer.Incidence.PosOfZeroShift;
             ixIncid = across(incid, 'Equation');
             ixIncid = any(ixIncid, 1);
             from = find(ixIncid, 1, 'first') - sh0;
@@ -338,17 +254,30 @@ classdef (Abstract) Block < handle
         function sh0 = get.PositionOfZeroShift(this)
             sh0 = find(this.Shift==0);
         end%
+
+
+        function value = get.NeedsAnalyticalJacob(this)
+            %
+            % Prepare analytical Jacobian each time a non-Iris solver is
+            % used
+            %
+            if ~isa(this.SolverOptions, "solver.Options")
+                value = true;
+                return
+            end
+            %
+            % If an Iris solver is used, check the option Jacobian
+            %
+            value = startsWith(this.SolverOptions.JacobCalculation, "Analytical", "ignoreCase", true);
+        end%
     end
-
-
 
 
     methods (Abstract)
-       varargout = createJacobPattern(varargin) 
+       prepareForSolver(varargin)
+       prepareJacob(varargin) 
     end
     
-
-
     
     methods (Static)
         function eqtn = removeLhs(eqtn)
@@ -360,13 +289,11 @@ classdef (Abstract) Block < handle
         end%
 
 
-
-
         function exitFlag = checkFiniteSolution(z, exitFlag)
             if ~hasSucceeded(exitFlag) 
                 return
             end
-            if ~all(isfinite(z(:)))
+            if any(isnan(z(:)) | isinf(z(:)))
                 exitFlag = solver.ExitFlag.NAN_INF_SOLUTION;
             end
         end%

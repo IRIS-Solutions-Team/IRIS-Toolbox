@@ -8,7 +8,7 @@ classdef Incidence
     properties (Dependent)
         PosOfZeroShift
         NumOfShifts
-        NumOfQuantities
+        NumQuantities
         NumOfEquations
         MinShift
         MaxShift
@@ -41,7 +41,7 @@ classdef Incidence
             anyInc = any(inc, 1);
             firstInc = find(anyInc, 1);
             lastInc = find(anyInc, 1, 'last');
-            numQuantities = this.NumOfQuantities;
+            numQuantities = this.NumQuantities;
             if lastInc<this.NumOfShifts
                 this.Shift = this.Shift(1:lastInc);
                 this.Matrix = this.Matrix(:, 1:lastInc*numQuantities);
@@ -75,7 +75,7 @@ classdef Incidence
         end%
 
 
-        function n = get.NumOfQuantities(this)
+        function n = get.NumQuantities(this)
             n = size(this.Matrix, 2) / this.NumOfShifts;
         end%
 

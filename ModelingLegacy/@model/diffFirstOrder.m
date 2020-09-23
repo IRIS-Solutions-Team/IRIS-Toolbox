@@ -17,8 +17,8 @@ isNanDeriv = nargout > 2;
 deriv = this.LastSystem.Deriv;
 
 asgn = this.Variant.Values(:, :, variantRequested);
-nName = length(this.Quantity);
-nEqtn = length(this.Equation);
+nName = numel(this.Quantity);
+nEqtn = numel(this.Equation);
 ixy = this.Quantity.Type==TYPE(1);
 ixx = this.Quantity.Type==TYPE(2);
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
@@ -119,11 +119,11 @@ return
             fn = str2func([this.PREAMBLE_DYNAMIC, '[', eqtn, ']']);
             
             % Get incidence of variables in this equation.
-            nm = real(this.Gradient.Dynamic{2, iiEq});
-            sh = sh0 + imag(this.Gradient.Dynamic{2, iiEq});
+            nm = reshape(real(this.Gradient.Dynamic{2, iiEq}), 1, [ ]);
+            sh = sh0 + reshape(imag(this.Gradient.Dynamic{2, iiEq}), 1, [ ]);
 
             % Total number of derivatives to be computed in this equation.
-            n = length(nm);
+            n = numel(nm);
             value = zeros(1, n);
             for ii = 1 : n
                 iNm = nm(ii);
@@ -171,8 +171,8 @@ return
    
         for iiEq = find(ixSymb)
             % Get incidence of variables in this equation
-            nm = real(this.Gradient.Dynamic{2, iiEq});
-            sh = sh0 + imag(this.Gradient.Dynamic{2, iiEq});
+            nm = reshape(real(this.Gradient.Dynamic{2, iiEq}), 1, [ ]);
+            sh = sh0 + reshape(imag(this.Gradient.Dynamic{2, iiEq}), 1, [ ]);
 
             % Log derivatives need to be multiplied by x 
             %
@@ -192,6 +192,7 @@ return
             
             % Evaluate all derivatives at once.
             value = this.Gradient.Dynamic{1, iiEq}(x, sh0, L);
+            value = reshape(value, 1, [ ]);
             
             % Multiply derivatives wrt to log variables by x.
             if ~isempty(logMult)

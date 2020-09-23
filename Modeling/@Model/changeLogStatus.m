@@ -1,4 +1,3 @@
-function this = changeLogStatus(this, newStatus, varargin)
 % changeLogStatus  Change log status of model variables
 %{
 % ## Syntax for Changing Log Status ##
@@ -48,19 +47,21 @@ function this = changeLogStatus(this, newStatus, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team 
 
+function this = changeLogStatus(this, newStatus, varargin)
+
 TYPE = @int8;
 
 % Parse input arguments
 %(
-persistent parser
-if isempty(parser)
-    parser = extend.InputParser('Model.changeLogStatus');
-    addRequired(parser, 'model', @(x) isa(x, 'Model'));
-    addRequired(parser, 'newStatus', @(x) isstruct(x) || validate.logicalScalar(x));
-    addRequired(parser, 'namesToChange', @validateNamesToChange);
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser('Model.changeLogStatus');
+    addRequired(pp, 'model', @(x) isa(x, 'Model'));
+    addRequired(pp, 'newStatus', @(x) isstruct(x) || validate.logicalScalar(x));
+    addRequired(pp, 'namesToChange', @locallyValidateNamesToChange);
 end
-parse(parser, this, newStatus, varargin);
 %)
+parse(pp, this, newStatus, varargin);
 
 typesAllowed = { TYPE(1), TYPE(2), TYPE(5) };
 
@@ -84,13 +85,12 @@ this.Quantity = changeLogStatus(this.Quantity, newStatus, namesToChange, typesAl
 
 return
 
-
     function hereChangeLogStatusFromStruct( )
-        inxOfVariables = getIndexByType(this.Quantity, typesAllowed{:});
-        namesOfVariables = this.Quantity(inxOfVariables);
+        inxVariables = getIndexByType(this.Quantity, typesAllowed{:});
+        namesVariables = this.Quantity(inxVariables);
         namesToChange = fieldnames(newStatus);
         newStatus = struct2cell(newStatus);
-        [namesToChange, pos] = intersect(namesToChange, namesOfVariables);
+        [namesToChange, pos] = intersect(namesToChange, namesVariables);
         if isempty(namesToChange)
             return
         end
@@ -101,13 +101,11 @@ return
     end%
 end%
 
-
 %
 % Local Functions
 %
 
-
-function flag = validateNamesToChange(input)
+function flag = locallyValidateNamesToChange(input)
     if isempty(input)
         flag = true;
         return
@@ -123,5 +121,4 @@ function flag = validateNamesToChange(input)
     end
     flag = false;
 end%
-
 

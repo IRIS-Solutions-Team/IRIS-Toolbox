@@ -36,6 +36,10 @@ classdef Equation < model.component.Insertable
             n = numel(this.Input);
         end%
 
+        function numEquations = countEquations(this)
+            numEquations = numel(this.Input);
+        end%
+
         varargout = postparse(varargin)
         varargout = readEquations(varargin)
         varargout = readDtrends(varargin)

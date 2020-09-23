@@ -48,7 +48,7 @@ opt = passvalopt('model.chkmissing',varargin{:});
 listOfMissing = cell.empty(1, 0);
 
 nv = length(this);
-[~, ~, nb, nf] = sizeOfSolution(this.Vector);
+[~, ~, nb, nf] = sizeSolution(this.Vector);
 vecXb = this.Vector.Solution{2}(nf+1:end);
 
 indexOfAvailable = true(1, nb);

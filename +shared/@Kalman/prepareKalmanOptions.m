@@ -49,7 +49,7 @@ startRange = range(1);
 endRange = range(end);
 range = dater.colon(startRange, endRange);
 numPeriods = round(endRange - startRange + 1);
-[ny, ~, nb, ~, ~, ~, nz] = sizeOfSolution(this);
+[ny, ~, nb, ~, ~, ~, nz] = sizeSolution(this);
 
 
 %

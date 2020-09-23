@@ -1,44 +1,47 @@
-function [namesOfExogenized, namesOfEndogenized] = resolveAutoswap(this, kind, namesOfExogenized, namesOfEndogenized)
 % resolveAutoswap  Resolve autoexogenize and autoendogenize options
 %
-% Backend IRIS function
+% Backend [IrisToolbox] method
 % No help provided
 
-% -IRIS Macroeconomic Modeling Toolbox
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -[IrisToolbox] for Macroeconomic Modeling
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function [namesExogenized, namesEndogenized] = resolveAutoswap(this, kind, namesExogenized, namesEndogenized)
 
 PTR = @int16;
 
 %--------------------------------------------------------------------------
 
-if strcmpi(kind, 'Simulate')
+if startsWith(kind, "simulate", "ignoreCase", true)
     ptrAutoswap = this.Pairing.Autoswap.Simulate;
-elseif strcmpi(kind, 'Steady')
+elseif startsWith(kind, "steady", "ignoreCase", true)
     ptrAutoswap = this.Pairing.Autoswap.Steady;
+else
+    ptrAutoswap = [ ];
 end
 
-isExgAuto = isequal(namesOfExogenized, @auto);
-isEndgAuto = isequal(namesOfEndogenized, @auto);
-if ischar(namesOfExogenized)
-    namesOfExogenized = regexp(namesOfExogenized, '\w+', 'match');
+isExgAuto = isequal(namesExogenized, @auto);
+isEndgAuto = isequal(namesEndogenized, @auto);
+if ischar(namesExogenized)
+    namesExogenized = regexp(namesExogenized, '\w+', 'match');
 end
-if ischar(namesOfEndogenized)
-    namesOfEndogenized = regexp(namesOfEndogenized, '\w+', 'match');
+if ischar(namesEndogenized)
+    namesEndogenized = regexp(namesEndogenized, '\w+', 'match');
 end
-if iscellstr(namesOfExogenized)
-    ellExg = lookup(this.Quantity, namesOfExogenized);
-    inxOfValid = isfinite(ellExg.PosName);
-    if any(~inxOfValid)
+if iscellstr(namesExogenized)
+    ellExg = lookup(this.Quantity, namesExogenized);
+    inxValid = isfinite(ellExg.PosName);
+    if any(~inxValid)
         throw( exception.Base('Blazer:CannotExogenize', 'error'), ...
-               namesOfExogenized{~inxOfValid} );
+               namesExogenized{~inxValid} );
     end
 end
-if iscellstr(namesOfEndogenized)
-    ellEndg = lookup(this.Quantity, namesOfEndogenized);
-    inxOfValid = isfinite(ellEndg.PosName);
-    if any(~inxOfValid)
+if iscellstr(namesEndogenized)
+    ellEndg = lookup(this.Quantity, namesEndogenized);
+    inxValid = isfinite(ellEndg.PosName);
+    if any(~inxValid)
         throw( exception.Base('Blazer:CannotEndogenize', 'error'), ...
-               namesOfEndogenized{~inxOfValid} );
+               namesEndogenized{~inxValid} );
     end
 end
 
@@ -46,17 +49,17 @@ if isExgAuto && isEndgAuto
     % Use all exogenized-endogenized names
     ix = ptrAutoswap>PTR(0);
     ptr = ptrAutoswap(ix);
-    namesOfExogenized = this.Quantity.Name(ix);
-    namesOfEndogenized = this.Quantity.Name(ptr);
+    namesExogenized = this.Quantity.Name(ix);
+    namesEndogenized = this.Quantity.Name(ptr);
 elseif isEndgAuto
     % List of exogenized names, look up the corresponding endogenized names
     ptr = ptrAutoswap( ellExg.PosName );
-    inxOfValid = ptr>PTR(0);
-    if any(~inxOfValid)
+    inxValid = ptr>PTR(0);
+    if any(~inxValid)
         throw( exception.Base('Blazer:CannotAutoexogenize', 'error'), ...
-               namesOfExogenized{~inxOfValid} );
+               namesExogenized{~inxValid} );
     end
-    namesOfEndogenized = this.Quantity.Name(ptr);
+    namesEndogenized = this.Quantity.Name(ptr);
 elseif isExgAuto
     % List of endogenized names, look up the corresponding exogenized names
     ptr = ellEndg.PosName;
@@ -64,16 +67,16 @@ elseif isExgAuto
     pos = nan(1, nPtr);
     for i = 1 : nPtr
         ix = PTR(ptr(i))==ptrAutoswap;
-        inxOfValid(i) = any(ix);
-        if inxOfValid(i)
+        inxValid(i) = any(ix);
+        if inxValid(i)
             pos(i) = find(ix);
         end
     end
-    if any(~inxOfValid)
+    if any(~inxValid)
         throw( exception.Base('Blazer:CannotAutoendogenize', 'error'), ...
-               namesOfEndogenized{~inxOfValid} );
+               namesEndogenized{~inxValid} );
     end
-    namesOfExogenized = this.Quantity.Name(pos);
+    namesExogenized = this.Quantity.Name(pos);
 end
 
 end%

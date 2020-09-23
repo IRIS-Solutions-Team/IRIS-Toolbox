@@ -50,7 +50,7 @@ nh = numHashed;
 nz = numObserved;
 nt = nnz(ixt);
 
-[ny, nxi, nb, nf, ne] = sizeOfSolution(this.Vector);
+[ny, nxi, nb, nf, ne] = sizeSolution(this.Vector);
 kxi = length(this.Vector.System{2});
 kf = kxi - nb; % Fwl in system.
 indexXfToKeep = ~this.D2S.IndexOfXfToRemove;
@@ -129,7 +129,7 @@ for v = variantsRequired
     if exitFlag(v)==1
         if ~this.IsLinear
             % Steady-state levels needed in doTransition( ) and
-            % doMeasurement( ).
+            % doMeasurement( )
             isDelog = false;
             ssY = createTrendArray(this, v, isDelog, find(ixy), 0);
             ssXf = createTrendArray(this, v, isDelog, ...
@@ -138,19 +138,21 @@ for v = variantsRequired
                 this.Vector.Solution{2}(nf+1:end), [-1, 0]);
         end
         
-        % __Solution Matrices__
+        %
+        % Solution matrices
+        %
         flagTransition = true;
         flagMeasurement = true;
         if doMeasurement
-            % Measurement matrices.
-            flagMeasurement = measurementEquations( );
+            % Measurement matrices
+            flagMeasurement = hereMeasurementEquations( );
         end
         if doTransition
-            % Transition matrices.
-            flagTransition = transitionEquations( );
+            % Transition matrices
+            flagTransition = hereTransitionEquations( );
         end
         if ~flagTransition || ~flagMeasurement
-            if ~this.IsLinear && ~implementCheckSteady(this, v, struct('Kind', 'Dynamic'));
+            if ~this.IsLinear && ~implementCheckSteady(this, v, struct("EquationSwitch", "Dynamic"));
                 exitFlag(v) = -4;
                 continue;
             else
@@ -313,7 +315,7 @@ return
     end%
 
     
-    function flag = transitionEquations( )
+    function flag = hereTransitionEquations( )
         flag = true;
         isHash = any(ixh);
         S11 = SS(1:nb, 1:nb);
@@ -515,7 +517,7 @@ return
     end%
 
 
-    function flag = measurementEquations( )
+    function flag = hereMeasurementEquations( )
         flag = true;
         % First, create untransformed measurement equation; the transformed
         % measurement matrix will be calculated later on.

@@ -1,4 +1,4 @@
-function [exitFlag, dcy] = simulateFirstOrder(simulateFunc, rect, data, ~)
+function [exitFlag, dcy] = simulateFirstOrder(simulateFunc, rect, data, varargin)
 % simulateFirstOrder  Run first-order simulation on one time frame
 %
 % Backend IRIS function

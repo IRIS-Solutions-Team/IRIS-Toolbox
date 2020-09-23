@@ -54,9 +54,9 @@ else
 end
 from = double(from);
 to = double(to);
+step = double(step);
 
-output = ( round(100*from) : 100*step : round(100*to) )/100;
+output = (round(100*from) : round(100*step) : round(100*to)) / 100;
 
 end%
-
 

@@ -473,7 +473,7 @@ classdef Ad
             if numWrt==1
                 D.(lsWrt{1}).Diff = { Ad.X1 };
             else
-                wrt = repmat('0,', 1, numWrt);
+                wrt = repmat('0;', 1, numWrt);
                 if mode==1
                     for i = 1:numWrt
                         name = lsWrt{i};

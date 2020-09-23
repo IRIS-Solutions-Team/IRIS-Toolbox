@@ -17,8 +17,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
     end
 
 
-
-
     properties (GetAccess=public, SetAccess=protected, Hidden)
         % IsGrowth  True for models with nonzero deterministic growth in steady state
         IsGrowth = false 
@@ -189,7 +187,13 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         end%
 
 
+        function value = countVariants(this)
+            value = length(this.Variant);
+        end%
+
+
         varargout = data4lhsmrhs(varargin)
+        varargout = differentiate(varargin)
         varargout = diffloglik(varargin)
         varargout = diffsrf(varargin)
         varargout = eig(varargin)
@@ -207,6 +211,11 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = fprintf(varargin)
         varargout = get(varargin)
         varargout = getActualMinMaxShifts(varargin)
+
+        function flag = hasGrowth(this)
+            flag = this.IsGrowth;
+        end%
+
         varargout = horzcat(varargin)        
         varargout = icrf(varargin)
         varargout = ifrf(varargin)
@@ -257,7 +266,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = system(varargin)
         varargout = templatedb(varargin)
         varargout = tolerance(varargin)
-        varargout = trollify(varargin)
         varargout = activateLink(varargin)
         varargout = VAR(varargin)
         varargout = varyStdCorr(varargin)
@@ -280,11 +288,13 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = checkConsistency(varargin)
         varargout = chkQty(varargin)
 
-
-        function value = countVariants(this)
-            value = length(this.Variant);
+        function numEquations = countEquations(this)
+            numEquations = countEquations(this.Equation);
         end%
 
+        function numQuantities = countQuantities(this)
+            numQuantities = countQuantities(this.Quantity);
+        end%
 
         varargout = createHashEquations(varargin)
         varargout = createTrendArray(varargin)        
@@ -327,11 +337,13 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = prepareSolve(varargin)        
         varargout = prepareSteady(varargin)
         varargout = prepareSystemPriorWrapper(varargin)
+        varargout = resolveAutoswap(varargin)
         
 
         %varargout = saveobj(varargin)
         varargout = size(varargin)        
-        varargout = sizeOfSolution(varargin)
+        varargout = sizeSolution(varargin)
+        varargout = sizeSystem(varargin)
         varargout = sspaceMatrices(varargin)
 
 
@@ -421,7 +433,7 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = chkStructureBefore(varargin)
         varargout = checkSyntax(varargin)
         varargout = createD2S(varargin)
-        varargout = createSourceDbase(varargin)
+        varargout = createSourceDb(varargin)
         varargout = diffFirstOrder(varargin)        
         varargout = file2model(varargin)        
         implementDisp(varargin)
@@ -443,7 +455,6 @@ classdef (InferiorClasses={?table, ?timetable}) ...
         varargout = solveFirstOrder(varargin)        
         varargout = steadyLinear(varargin)
         varargout = steadyNonlinear(varargin)
-        varargout = symbDiff(varargin)
         varargout = systemFirstOrder(varargin)
 
         varargout = implementCheckSteady(varargin)
@@ -615,10 +626,9 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                     unmatched = ppParser.UnmatchedInCell;
                     if ~isstruct(opt.Assign)
                         if iscell(opt.Assign)
-                            opt.Assign(1:2:end) = regexprep(opt.Assign(1:2:end), '\W', '');
                             newAssign = struct( );
                             for i = 1 : 2 : numel(opt.Assign)
-                                name = opt.Assign{i};
+                                name = strip(erase(string(opt.Assign{i}), "="));
                                 value = opt.Assign{i+1};
                                 newAssign.(name) = value;
                             end
@@ -627,12 +637,8 @@ classdef (InferiorClasses={?table, ?timetable}) ...
                             opt.Assign = struct( );
                         end
                     end
-                    opt.Assign.SteadyOnly = parserOpt.SteadyOnly;
-                    opt.Assign.Linear = opt.Linear;
 
                     % Legacy options
-                    opt.Assign.sstateonly = opt.Assign.SteadyOnly;
-                    opt.Assign.linear = opt.Assign.Linear;
                     for i = 1 : 2 : numel(unmatched)
                         opt.Assign.(unmatched{i}) = unmatched{i+1};
                     end

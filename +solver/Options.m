@@ -21,12 +21,15 @@ classdef (CaseInsensitiveProperties=true) Options
         InflateStep
         DeflateStep
 
+        % Bounds
+        Bounds double = [ ]
+
         % Jacobian Options
-        SpecifyObjectiveGradient
-        LargeScale
-        JacobPattern 
-        LastJacobUpdate
-        FiniteDifferenceStepSize
+        JacobPattern (:, :) logical = logical.empty(0)
+        JacobCalculation (1, 1) string
+        LastJacobUpdate (1, 1) double = Inf
+        SkipJacobUpdate (1, 1) double { mustBeNonnegative } = 0
+        FiniteDifferenceStepSize (1, 1) double
         FiniteDifferenceType
         UsePinvIfJacobSingular
         ForceJacobUpdateWhenReversing
@@ -39,13 +42,9 @@ classdef (CaseInsensitiveProperties=true) Options
     end
 
 
-
-
     properties (Dependent)
         SolverName
     end
-
-
 
 
     properties (Hidden)
@@ -63,13 +62,13 @@ classdef (CaseInsensitiveProperties=true) Options
         % Step Improvement Options
         DEFAULT_LAMBDA = [0.1, 1, 10, 100]
         DEFAULT_INFLATE_STEP = 1.2
-        DEFAULT_DEFLATE_STEP = 0.8
+        DEFAULT_DEFLATE_STEP = 0.5
 
         % Jacobian Options
+        DEFAULT_JACOB_CALCULATION = "Analytical"
         DEFAULT_SPECIFY_OBJECTIVE_GRADIENT = false
-        DEFAULT_LARGE_SCALE = false
-        DEFAULT_JACOB_PATTERN = logical.empty(0)
         DEFAULT_LAST_JACOB_UPDATE = Inf
+        DEFAULT_SKIP_JACOB_UPDATE = 0
         DEFAULT_FINITE_DIFFERENCE_STEP_SIZE = eps( )^(1/3)
         DEFAULT_FINITE_DIFFERENCE_TYPE = 'forward'
         DEFAULT_FORCE_JACOB_UPDATE_WHEN_REVERSING = false
@@ -91,7 +90,7 @@ classdef (CaseInsensitiveProperties=true) Options
                 pp = extend.InputParser('solver.Options');
                 pp.KeepUnmatched = true;
                 pp.PartialMatching = false; % Possible conflict of Display and DisplayMode
-                pp.addRequired('SolverName', @(x) (ischar(x) || (iscell(x) && ~isempty(x) && ischar(x{1})) || isa(x, 'string')) && validateIRISSolver(x));
+                pp.addRequired('SolverName', @(x) (ischar(x) || (iscell(x) && ~isempty(x) && ischar(x{1})) || isa(x, 'string')) && locallyValidateIRISSolver(x));
                 addParameter(pp, 'DisplayMode', 'Verbose', @(x) any(strcmpi(x, {'Verbose', 'Silent'})));
             end
 
@@ -152,17 +151,17 @@ classdef (CaseInsensitiveProperties=true) Options
         end%
             
 
-
-
         function pp = getParser(this)
+            %(
             pp = extend.InputParser('solver.Options.getParser');
             pp.KeepUnmatched = true;
             addParameter(pp, 'Display', this.DEFAULT_DISPLAY, @validateDisplay);
             addParameter(pp, 'Reset', this.DEFAULT_RESET, @(x) isequal(x, true) || isequal(x, false));
-            addParameter(pp, 'JacobPattern', this.DEFAULT_JACOB_PATTERN, @(x) isempty(x) || (islogical(x) && issparse(x)) );
             addParameter(pp, 'Lambda', this.DEFAULT_LAMBDA, @(x) isequal(x, @default) || (isnumeric(x) && all(x>0) && all(isreal(x))));
-            addParameter(pp, 'LastJacobUpdate', this.DEFAULT_LAST_JACOB_UPDATE, @(x) isnumeric(x) && isscalar(x));
-            addParameter(pp, 'LargeScale', this.DEFAULT_LARGE_SCALE, @(x) isequal(x, @default) || isequal(x, true) || isequal(x, false));
+            addParameter(pp, 'JacobPattern', logical.empty(0), @islogical);
+            addParameter(pp, 'JacobCalculation', this.DEFAULT_JACOB_CALCULATION, @(x) startsWith(x, ["Analytical", "ForwardDiff"], "ignoreCase", true));
+            addParameter(pp, 'LastJacobUpdate', this.DEFAULT_LAST_JACOB_UPDATE);
+            addParameter(pp, "SkipJacobUpdate", this.DEFAULT_SKIP_JACOB_UPDATE);
             addParameter(pp, {'MaxIterations', 'MaxIter'}, this.DEFAULT_MAX_ITERATIONS, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0));
             addParameter(pp, {'MaxFunctionEvaluations', 'MaxFunEvals'}, this.DEFAULT_MAX_FUNCTION_EVALUATIONS, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
             addParameter(pp, 'TrimObjectiveFunction', this.DEFAULT_TRIM_OBJECTIVE_FUNCTION, @(x) isequal(x, true) || isequal(x, false));
@@ -174,7 +173,6 @@ classdef (CaseInsensitiveProperties=true) Options
             addParameter(pp, 'FunctionNorm', this.DEFAULT_FUNCTION_NORM, @(x) isequal(x, @default) || validate.numericScalar(x, 0, Inf) || isa(x, 'function_handle'));
             addParameter(pp, {'FunctionTolerance', 'TolFun', 'Tolerance'}, this.DEFAULT_FUNCTION_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
             addParameter(pp, {'StepTolerance', 'TolX'}, this.DEFAULT_STEP_TOLERANCE, @(x) isnumeric(x) && isscalar(x) && x>0);
-            addParameter(pp, 'SpecifyObjectiveGradient', this.DEFAULT_SPECIFY_OBJECTIVE_GRADIENT, @(x) isequal(x, true) || isequal(x, false));
 
             addParameter(pp, {'DeflateStep', 'StepDown'}, this.DEFAULT_DEFLATE_STEP, @(x) isequal(x, @default) || isequal(x, false) || (isnumericscalar(x) && x>0 && x<1));
             addParameter(pp, {'InflateStep', 'StepUp'}, this.DEFAULT_INFLATE_STEP, @(x) isequal(x, @default) || isequal(x, false) || (isnumericscalar(x) && x>1));
@@ -182,25 +180,18 @@ classdef (CaseInsensitiveProperties=true) Options
             addParameter(pp, 'LastStepSizeOptim', this.DEFAULT_LAST_STEP_SIZE_OPTIM, @(x) isnumeric(x) && isscalar(x) && x>=0);
             addParameter(pp, 'InitStepSize', this.DEFAULT_INIT_STEP_SIZE, @(x) isnumeric(x) && isscalar(x) && x>0 && x<=2);
             addParameter(pp, 'StepSizeSwitch', this.DEFAULT_STEP_SIZE_SWITCH, @(x) isequal(x, 0) || isequal(x, 1));
+            %)
         end%
-
-
 
 
         function value = get.SolverName(this)
             value = sprintf('IRIS-%s', lower(this.Algorithm));
         end%
     end
-    
-
 
     
     methods (Static)
-        function [solverOpt, prepareGradient] = parseOptions( solverOpt, ...
-                                                              defaultSolver, ...
-                                                              prepareGradient, ...
-                                                              displayMode, ...
-                                                              varargin )
+        function solverOpt = parseOptions(solverOpt, defaultSolver, displayMode, varargin)
 
             % Resolve solverOpt=@auto or solverOpt = { @auto, ... }
             solverOpt = resolveAutoSolverOption(solverOpt, defaultSolver);
@@ -216,7 +207,7 @@ classdef (CaseInsensitiveProperties=true) Options
                 % Optim Tbx
                 solverOpt = parseOptimTbx(solverOpt, displayMode, varargin{:});                
 
-            elseif validateIRISSolver(solverOpt)
+            elseif locallyValidateIRISSolver(solverOpt)
                 % IRIS Solver
                 if iscell(solverOpt)
                     solverName = char(solverOpt{1});
@@ -225,19 +216,16 @@ classdef (CaseInsensitiveProperties=true) Options
                     solverName = char(solverOpt);
                     userOpt = varargin;
                 end
-                solverOpt = solver.Options( solverName, ...
-                                            'DisplayMode=', displayMode, ...
-                                            userOpt{:} );
+                solverOpt = solver.Options( ...
+                    solverName, ...
+                    'DisplayMode=', displayMode, ...
+                    userOpt{:} ...
+                );
                 
             else
                 % Solver= @userFunction
                 % Do nothing
             end
-
-            %
-            % Resolve prepareGradient=@auto
-            %
-            prepareGradient = resolvePrepareGradient(prepareGradient, solverOpt);
 
             %
             % Create DisplayLevel object setting the various levels of
@@ -262,13 +250,11 @@ function solverOpt = parseOptimTbx(solverOpt, displayMode, varargin)
         pp = extend.InputParser('solver.Options.parseOptimTbx');
         addParameter(pp, 'Algorithm', 'levenberg-marquardt', @ischar);
         addParameter(pp, 'Display', 'iter*', @validateDisplay);
-        addParameter(pp, 'JacobPattern', logical.empty(0), @(x) isempty(x) || (islogical(x) && issparse(x)));
         addParameter(pp, {'MaxIterations', 'MaxIter'}, @default, @(x) isequal(x, @default) || (isnumericscalar(x) || round(x)==x || x>0));
         addParameter(pp, {'MaxFunctionEvaluations', 'MaxFunEvals'}, @default, @(x) isequal(x, @default) || isa(x, 'function_handle') || (isnumericscalar(x) && round(x)==x && x>0));
         addParameter(pp, 'FiniteDifferenceStepSize', @default, @(x) isequal(x, @default) || (isnumericscalar(x) && x>0));
         addParameter(pp, 'FiniteDifferenceType', 'forward', @(x) any(strcmpi(x, {'finite', 'central'})));
         addParameter(pp, {'FunctionTolerance', 'TolFun', 'Tolerance'}, shared.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
-        addParameter(pp, 'SpecifyObjectiveGradient', @default, @(x) isequal(x, @default) || isequal(x, true) || isequal(x, false));
         addParameter(pp, {'StepTolerance', 'TolX'}, shared.Tolerance.DEFAULT_STEADY, @(x) isnumericscalar(x) && x>0);
     end
         
@@ -317,27 +303,12 @@ function solverOpt = resolveAutoSolverOption(solverOpt, defaultSolver)
 end%
 
 
-
-
 function display = resolveDisplayMode(display, displayMode)
     if strcmpi(display, 'iter*')
         if strcmpi(displayMode, 'Silent')
             display = 'off';
         else
             display = 'iter';
-        end
-    end
-end%
-
-
-
-
-function prepareGradient = resolvePrepareGradient(prepareGradient, solverOpt)
-    if isequal(prepareGradient, @auto)
-        try
-            prepareGradient = solverOpt.SpecifyObjectiveGradient;
-        catch
-            prepareGradient = false;
         end
     end
 end%
@@ -359,14 +330,14 @@ end%
 
 
 function flag = validateSolver(x, choice)
-    checkFunc = @(x) (ischar(x) || isa(x, 'string') || isa(x, 'function_handle')) && any(strcmpi(char(x), choice));
-    flag = checkFunc(x) || (iscell(x) && ~isempty(x) && checkFunc(x{1}) && iscellstr(x(2:2:end)));
+    checkFunc = @(x) (ischar(x) || isstring(x) || isa(x, 'function_handle')) && any(strcmpi(char(x), choice));
+    flag = checkFunc(x) || (iscell(x) && ~isempty(x) && checkFunc(x{1}) && validate.nestedOptions(x(2:2:end)));
 end%
 
 
 
 
-function flag = validateIRISSolver(x)
+function flag = locallyValidateIRISSolver(x)
    flag = validateSolver(x, {'IRIS', 'IRIS-qnsd', 'IRIS-newton', 'IRIS-qad', 'qad'}); 
 end%
 

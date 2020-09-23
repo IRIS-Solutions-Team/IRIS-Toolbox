@@ -1,4 +1,3 @@
-function [exitFlag, dcy] = simulateStacked(simulateFunc, rect, data, blazers)
 % simulateStacked  Run stacked-time simulation on one time frame
 %
 % Backend [IrisToolbox] method
@@ -7,41 +6,44 @@ function [exitFlag, dcy] = simulateStacked(simulateFunc, rect, data, blazers)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-%--------------------------------------------------------------------------
+function [exitFlag, dcy] = simulateStacked(~, rect, data, blazer, idFrame)
 
+firstColumnFrame = data.FirstColumnFrame;
+lastColumnFrame = data.LastColumnFrame;
+columnsFrame = firstColumnFrame : lastColumnFrame;
 dcy = double.empty(0);
 
 %
-% Run first-order simulation to create initial condition
+% Run plain-vanilla first-order simulation to create initial condition,
+% ignoring shocks (IgnoreShocks=true is set in simulateFrames)
 %
-if strcmpi(data.Initial, 'FirstOrder')
-    simulateFunc(vthRect, vthData);
+if startsWith(blazer.Initial, "firstOrder", "ignoreCase", true)
+    flat(rect, data);
 end
+hereFillMissingData( );
+
 
 %
-% Choose a blazer with no blocks for simulations with exogenized data
-% points
+% Copy the values of exogenized variables from Target to YXEPG because
+% these might have become overwrittend when running the plain vanilla
+% first-order simulation
 %
-if data.HasExogenizedPoints
-    % No Blocks
-    blazer = blazers(1);
-else
-    % Block recursive
-    blazer = blazers(2);
-end
+updateTargetsWithinFrame(data);
 
-% Set time frame of rect to terminal condition range
-% Keep time frame of data set to simulation range
-firstColumnFrame = data.FirstColumnOfFrame;
-lastColumnFrame = data.LastColumnOfFrame;
-columnsFrame = firstColumnFrame : lastColumnFrame;
 
 numBlocks = numel(blazer.Blocks);
 for i = 1 : numBlocks
     block__ = blazer.Blocks{i};
+
+    %
+    % Set up first-order terminal simulator if needed
+    %
+    block__.TerminalSimulator = [ ];
+    if block__.NeedsTerminal && startsWith(blazer.Terminal, "firstOrder", "ignoreCase", true)
+        herePrepareTerminal( );
+    end
+
     exitFlagHeader = string(rect.Header) + sprintf("[Block:%g]", i);
-    herePrepareInxEndogenousPoints( );
-    herePrepareTerminal( );
     [exitFlag, error] = run(block__, data, exitFlagHeader);
     if ~isempty(error.EvaluatesToNan) || ~hasSucceeded(exitFlag)
         if blazer.SuccessOnly
@@ -50,45 +52,58 @@ for i = 1 : numBlocks
     end
 end 
 
-if ~isempty(error.EvaluatesToNan)
-    throw( ...
-        exception.Base('Dynamic:EvaluatesToNan', 'error'), ...
-        '', blazer.Model.Equation.Input{error.EvaluatesToNan} ...
-    );
-end
-
-hereCleanup( );
+hereReportEvaluatesToNaN( );
+hereCleanupTerminal( );
 
 return
 
-    function herePrepareInxEndogenousPoints( )
-        inx = false(size(data.YXEPG));
-        inx(block__.PtrQuantities, columnsFrame) = true;
-        if data.HasExogenizedPoints
-            inx(data.InxOfYX, :) = ...
-                inx(data.InxOfYX, :) ...
-                & ~data.InxOfExogenizedYX;
-            inx(data.InxOfE, columnsFrame) = data.InxOfEndogenizedE(:, columnsFrame);
+    function hereFillMissingData( )
+        inxRowsNaN = any(isnan(data.YXEPG(:, columnsFrame)), 2);
+        if any(inxRowsNaN)
+            alongDim = 2;
+            data.YXEPG(inxRowsNaN, 1:columnsFrame(end)) ...
+                = fillmissing(data.YXEPG(inxRowsNaN, 1:columnsFrame(end)), "previous", alongDim);
         end
-        block__.InxOfEndogenousPoints = inx;
+        inxRowsNaN = any(isnan(data.YXEPG(:, columnsFrame)), 2);
+        if any(inxRowsNaN)
+            data.YXEPG(inxRowsNaN, 1:columnsFrame(end)) ...
+                = fillmissing(data.YXEPG(inxRowsNaN, 1:columnsFrame(end)), "constant", 0);
+        end
     end%
 
 
     function herePrepareTerminal( )
-        maxMaxLead = max(block__.MaxLead);
-        if block__.Type~=solver.block.Type.SOLVE ...
-            || isempty(maxMaxLead) || maxMaxLead<=0
-            block__.Terminal = [ ];
-        else
-            fotcFrame = [lastColumnFrame+1, lastColumnFrame+maxMaxLead];
-            setFrame(rect, fotcFrame);
-            block__.Terminal = rect;
-        end
+        %(
+        %
+        % Reset frame columns in rect; rect is only used as a terminal
+        % simulator from now until the next frame in simulateFrames
+        %
+        lastTerminalColumn = block__.LastTerminalColumn;
+        terminalFrame = [lastColumnFrame+1, lastTerminalColumn];
+        setFrame(rect, terminalFrame);
+        prepareStackedNoShocks(rect, block__.InxTerminalDataPoints);
+        block__.TerminalSimulator = rect;
+        %)
     end%
 
 
-    function hereCleanup( )
+    function hereReportEvaluatesToNaN( )
+        %(
+        if ~isempty(error.EvaluatesToNan)
+            exception.error([
+                "Model:NonlinearSimulationEvaluatesToNaN"
+                "This dynamic equation evaluates to NaN or Inf: %s"
+            ], blazer.Model.Equation.Input{error.EvaluatesToNan});
+        end
+        %)
+    end%
+
+
+    function hereCleanupTerminal( )
+        %(
         setFrame(rect, [firstColumnFrame, lastColumnFrame]);
+        resetStackedNoShocks(rect);        
+        %)
     end%
 end%
 

@@ -7,6 +7,7 @@ function outputDate = convert(inputDate, toFreq, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+%( Input parser
 persistent pp
 if isempty(pp)
     validFrequencies = iris.get('Freq');
@@ -17,10 +18,10 @@ if isempty(pp)
     addRequired(pp, 'newFreq', @(x) isnumeric(x) && isscalar(x) && any(x==validFrequencies));
     addDateOptions(pp);
 end
-[skip, opt] = maybeSkip(pp, varargin{:});
-if ~skip
-    pp.parse(inputDate, toFreq, varargin{:});
-    opt = pp.Options;
+%)
+[hasSkipped, opt] = maybeSkip(pp, varargin{:});
+if ~hasSkipped
+    opt = parse(pp, inputDate, toFreq, varargin{:});
 end
 
 %--------------------------------------------------------------------------

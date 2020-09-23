@@ -65,7 +65,7 @@ elseif isstruct(varargin{1})
     pairsToSwap = varargin{1};
     varargin(1) = [ ];
 else
-    inxPairs = cellfun(@(x) (iscellstr(x) || isa(x, 'string')) && size(x, 2)==2, varargin);
+    inxPairs = cellfun(@(x) (iscellstr(x) || isstring(x)) && size(x, 2)==2, varargin);
     pairsToSwap = cell.empty(0, 2);
     while ~isempty(inxPairs) && inxPairs(1)
         pairsToSwap = [ 
@@ -84,7 +84,7 @@ if isempty(pp)
     addRequired(pp, 'Plan', @(x) isa(x, 'Plan'));
     addRequired(pp, 'DatesToSwap', @DateWrapper.validateDateInput);
     addRequired(pp, 'PairsToSwap', @locallyValidatePairsToSwap);
-    addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
+    addParameter(pp, ["AnticipationStatus", "Anticipate"], @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
 end
 %)
 opt = pp.parse(this, dates, pairsToSwap, varargin{:});
@@ -101,26 +101,26 @@ pairsToSwap = string(pairsToSwap);
 
 %--------------------------------------------------------------------------
 
-anticipationMismatch = cell(1, 0);
+anticipationMismatch = string.empty(1, 0);
 for pair = transpose(pairsToSwap)
     swapId = this.DEFAULT_SWAP_LINK;
 
     [this, anticipateEndogenized] = implementEndogenize( ...
         this, dates, pair(2), swapId ...
-        , 'AnticipationStatus=', opt.AnticipationStatus ...
+        , "AnticipationStatus=", opt.AnticipationStatus ...
     );
 
     [this, anticipateExogenized] = implementExogenize( ...
         this, dates, pair(1), swapId ...
-        , 'AnticipationStatus=', opt.AnticipationStatus ...
+        , "AnticipationStatus=", opt.AnticipationStatus ...
     );
 
     if ~isequal(anticipateEndogenized, anticipateExogenized)
         % Throw a warning (future error) if the anticipation
         % status of the variable and that of the shock fail to
         % match
-        anticipationMismatch{end+1} = sprintf( ...
-            '%s[%s] <-> %s[%s]' ...
+        anticipationMismatch(end+1) = sprintf( ...
+            "%s[%s] <-> %s[%s]" ...
             , pair(1), locallyStatusToString(anticipateExogenized) ...
             , pair(2), locallyStatusToString(anticipateEndogenized) ...
         );
@@ -128,20 +128,17 @@ for pair = transpose(pairsToSwap)
 end
 
 if ~isempty(anticipationMismatch)
-    thisError = [ 
+    exception.error([ 
         "Plan:AnticipationStatusMismatch" 
         "Anticipation status mismatch in this swapped pair: %s "
-    ];
-    throw(exception.Base(thisError, 'error'), anticipationMismatch{:});
+    ], anticipationMismatch);
 end
 
 end%
 
-
 %
 % Local Functions
 %
-
 
 function flag = locallyValidatePairsToSwap(pairs)
     %(

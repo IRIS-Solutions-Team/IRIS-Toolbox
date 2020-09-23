@@ -2,9 +2,11 @@
 %
 
 % -[IrisToolbox] for Macroeconomic Modeling
-% -Copyright (c) 2007-2020 IRIS Solutions Team
+% -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-classdef Plan < matlab.mixin.CustomDisplay
+classdef Plan ...
+    < matlab.mixin.CustomDisplay
+
     properties
         NamesOfEndogenous = cell.empty(1, 0)
         NamesOfExogenous = cell.empty(1, 0)
@@ -16,20 +18,18 @@ classdef Plan < matlab.mixin.CustomDisplay
 
         SwapLink = int16(-1)
 
-        AnticipationStatusOfEndogenous = logical.empty(0)
-        AnticipationStatusOfExogenous = logical.empty(0)
+        AnticipationStatusEndogenous = logical.empty(0)
+        AnticipationStatusExogenous = logical.empty(0)
 
-        IdOfAnticipatedExogenized = int16.empty(0, 0)
-        IdOfUnanticipatedExogenized = int16.empty(0, 0)
-        IdOfAnticipatedEndogenized = int16.empty(0, 0)
-        IdOfUnanticipatedEndogenized = int16.empty(0, 0)
+        IdAnticipatedExogenized = int16.empty(0, 0)
+        IdUnanticipatedExogenized = int16.empty(0, 0)
+        IdAnticipatedEndogenized = int16.empty(0, 0)
+        IdUnanticipatedEndogenized = int16.empty(0, 0)
         InxToKeepEndogenousNaN = logical.empty(0)
         
-        SigmasOfExogenous = double.empty(0, 0)
-        DefaultSigmasOfExogenous = double.empty(0, 0)
+        SigmasExogenous = double.empty(0, 0)
+        DefaultSigmasExogenous = double.empty(0, 0)
     end
-
-
 
 
     properties (SetAccess=protected)
@@ -39,8 +39,6 @@ classdef Plan < matlab.mixin.CustomDisplay
         AllowOverdetermined = false
         NumDummyPeriods = 0
     end
-
-
 
 
     properties (Constant, Hidden)
@@ -54,12 +52,12 @@ classdef Plan < matlab.mixin.CustomDisplay
         WHEN_DATA_MARK = '?'
         DATE_PREFIX = 't'
         RANGE_DEPENDENT = [ 
-            "IdOfAnticipatedExogenized"
-            "IdOfUnanticipatedExogenized"
-            "IdOfAnticipatedEndogenized"
-            "IdOfUnanticipatedEndogenized"
+            "IdAnticipatedExogenized"
+            "IdUnanticipatedExogenized"
+            "IdAnticipatedEndogenized"
+            "IdUnanticipatedEndogenized"
             "InxToKeepEndogenousNaN"
-            "SigmasOfExogenous" 
+            "SigmasExogenous" 
         ]
     end
 
@@ -106,7 +104,7 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
         function value = countVariants(this)
-            value = size(this.SigmasOfExogenous, 3);
+            value = size(this.SigmasExogenous, 3);
         end%
 
 
@@ -125,8 +123,8 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
         function this = unexogenizeAll(this)
-            this.IdOfAnticipatedExogenized(:, :) = int16(0);
-            this.IdOfUnanticipatedExogenized(:, :) = int16(0);
+            this.IdAnticipatedExogenized(:, :) = int16(0);
+            this.IdUnanticipatedExogenized(:, :) = int16(0);
             this.InxToKeepEndogenousNaN(:, :) = false;
         end%
 
@@ -146,8 +144,8 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
         function this = unendogenizeAll(this)
-            this.IdOfAnticipatedEndogenized(:, :) = int16(0);
-            this.IdOfUnanticipatedEndogenized(:, :) = int16(0);
+            this.IdAnticipatedEndogenized(:, :) = int16(0);
+            this.IdUnanticipatedEndogenized(:, :) = int16(0);
         end%
 
 
@@ -218,12 +216,12 @@ classdef Plan < matlab.mixin.CustomDisplay
             if numDummyPeriods==0
                 return
             end
-            this.IdOfAnticipatedEndogenized(:, end+(1:numDummyPeriods)) = int16(0);
-            this.IdOfUnanticipatedEndogenized(:, end+(1:numDummyPeriods)) = int16(0);
-            this.IdOfAnticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
-            this.IdOfUnanticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
+            this.IdAnticipatedEndogenized(:, end+(1:numDummyPeriods)) = int16(0);
+            this.IdUnanticipatedEndogenized(:, end+(1:numDummyPeriods)) = int16(0);
+            this.IdAnticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
+            this.IdUnanticipatedExogenized(:, end+(1:numDummyPeriods)) = int16(0);
             this.InxToKeepEndogenousNaN(:, end+(1:numDummyPeriods)) = false;
-            this.SigmasOfExogenous(:, end+(1:numDummyPeriods), :) = NaN;
+            this.SigmasExogenous(:, end+(1:numDummyPeriods), :) = NaN;
             this.NumDummyPeriods = numDummyPeriods;
         end%
     %)
@@ -234,24 +232,24 @@ classdef Plan < matlab.mixin.CustomDisplay
 
     methods 
         function [inxExogenized, inxEndogenized] = getSwapsWithinFrame( ...
-            this, firstColumnOfFrame, lastColumnOfSimulation ...
+            this, firstColumnFrame, lastColumnSimulation ...
         )
-            numColumns = this.NumOfExtendedPeriods + this.NumDummyPeriods;
-            inxExogenized = false(this.NumOfEndogenous, numColumns);
-            inxEndogenized = false(this.NumOfExogenous, numColumns);
+            numColumns = this.NumExtendedPeriods + this.NumDummyPeriods;
+            inxExogenized = logical(sparse(this.NumOfEndogenous, numColumns));
+            inxEndogenized = logical(sparse(this.NumOfExogenous, numColumns));
             if this.NumOfExogenizedPoints>0
-                inxExogenized(:, firstColumnOfFrame) = ...
-                    this.InxOfAnticipatedExogenized(:, firstColumnOfFrame) ...
-                    | this.InxOfUnanticipatedExogenized(:, firstColumnOfFrame);
-                inxExogenized(:, firstColumnOfFrame+1:lastColumnOfSimulation) = ...
-                    this.InxOfAnticipatedExogenized(:, firstColumnOfFrame+1:lastColumnOfSimulation);
+                inxExogenized(:, firstColumnFrame) = ...
+                    this.InxOfAnticipatedExogenized(:, firstColumnFrame) ...
+                    | this.InxOfUnanticipatedExogenized(:, firstColumnFrame);
+                inxExogenized(:, firstColumnFrame+1:lastColumnSimulation) = ...
+                    this.InxOfAnticipatedExogenized(:, firstColumnFrame+1:lastColumnSimulation);
             end
             if this.NumOfEndogenizedPoints>0
-                inxEndogenized(:, firstColumnOfFrame) = ...
-                    this.InxOfAnticipatedEndogenized(:, firstColumnOfFrame) ...
-                    | this.InxOfUnanticipatedEndogenized(:, firstColumnOfFrame);
-                inxEndogenized(:, firstColumnOfFrame+1:lastColumnOfSimulation) = ...
-                    this.InxOfAnticipatedEndogenized(:, firstColumnOfFrame+1:lastColumnOfSimulation);
+                inxEndogenized(:, firstColumnFrame) = ...
+                    this.InxOfAnticipatedEndogenized(:, firstColumnFrame) ...
+                    | this.InxOfUnanticipatedEndogenized(:, firstColumnFrame);
+                inxEndogenized(:, firstColumnFrame+1:lastColumnSimulation) = ...
+                    this.InxOfAnticipatedEndogenized(:, firstColumnFrame+1:lastColumnSimulation);
             end
         end%
     end
@@ -273,7 +271,7 @@ classdef Plan < matlab.mixin.CustomDisplay
             pp.parse(this, dates, names, varargin{:});
             opt = pp.Options;
 
-            anticipationStatusOfEndogenous = this.AnticipationStatusOfEndogenous;
+            anticipationStatusOfEndogenous = this.AnticipationStatusEndogenous;
             if ~isequal(opt.AnticipationStatus, @auto)
                 anticipationStatusOfEndogenous(:) = opt.AnticipationStatus;
             end
@@ -290,22 +288,20 @@ classdef Plan < matlab.mixin.CustomDisplay
                     % Exogenize
                     outputAnticipationStatus(end+1, 1) = anticipationStatusOfEndogenous(column);
                     if anticipationStatusOfEndogenous(column)
-                        this.IdOfAnticipatedExogenized(inxNames, inxDates) = id;
+                        this.IdAnticipatedExogenized(inxNames, inxDates) = id;
                     else
-                        this.IdOfUnanticipatedExogenized(inxNames, inxDates) = id;
+                        this.IdUnanticipatedExogenized(inxNames, inxDates) = id;
                     end
                     % Exogenize only when data available
                     this.InxToKeepEndogenousNaN(inxNames, inxDates) = strcmpi(opt.MissingValue, 'KeepEndogenous');
                 else
                     % Unexogenize
-                    this.IdOfAnticipatedExogenized(inxNames, inxDates) = id;
-                    this.IdOfUnanticipatedExogenized(inxNames, inxDates) = id;
+                    this.IdAnticipatedExogenized(inxNames, inxDates) = id;
+                    this.IdUnanticipatedExogenized(inxNames, inxDates) = id;
                     this.InxToKeepEndogenousNaN(inxNames, inxDates) = false;
                 end
             end
         end%
-
-
 
 
         function [this, outputAnticipationStatus] = implementEndogenize(this, dates, names, id, varargin)
@@ -317,10 +313,10 @@ classdef Plan < matlab.mixin.CustomDisplay
                 addRequired(pp, 'namesToEndogenize', @(x) isequal(x, @all) || ischar(x) || iscellstr(x) || isa(x, 'string'));
                 addParameter(pp, {'AnticipationStatus', 'Anticipate'}, @auto, @(x) isequal(x, @auto) || validate.logicalScalar(x));
             end
-            pp.parse(this, dates, names);
+            pp.parse(this, dates, names, varargin{:});
             opt = pp.Options;
 
-            anticipationStatusOfExogenous = this.AnticipationStatusOfExogenous;
+            anticipationStatusOfExogenous = this.AnticipationStatusExogenous;
             if ~isequal(opt.AnticipationStatus, @auto)
                 anticipationStatusOfExogenous(:) = opt.AnticipationStatus;
             end
@@ -338,14 +334,14 @@ classdef Plan < matlab.mixin.CustomDisplay
                     % Endogenize
                     outputAnticipationStatus(end+1, 1) = anticipationStatusOfExogenous(column);
                     if anticipationStatusOfExogenous(column)
-                        this.IdOfAnticipatedEndogenized(column, inxDates) = id;
+                        this.IdAnticipatedEndogenized(column, inxDates) = id;
                     else
-                        this.IdOfUnanticipatedEndogenized(column, inxDates) = id;
+                        this.IdUnanticipatedEndogenized(column, inxDates) = id;
                     end
                 else
                     % Unendogenize
-                    this.IdOfAnticipatedEndogenized(column, inxDates) = id;
-                    this.IdOfUnanticipatedEndogenized(column, inxDates) = id;
+                    this.IdAnticipatedEndogenized(column, inxDates) = id;
+                    this.IdUnanticipatedEndogenized(column, inxDates) = id;
                 end
             end
         end%
@@ -355,14 +351,14 @@ classdef Plan < matlab.mixin.CustomDisplay
 
         function inxDates = resolveDates(this, dates)
             if isequal(dates, @all)
-                inxDates = false(1, this.NumOfExtendedPeriods);
+                inxDates = false(1, this.NumExtendedPeriods);
                 inxDates(this.PosOfBaseStart:this.PosOfBaseEnd) = true;
                 return
             end
             posDates = DateWrapper.getRelativePosition( this.ExtendedStart, dates, ...
                                                         [this.PosOfBaseStart, this.PosOfBaseEnd], ...
                                                         'simulation Plan range' );
-            inxDates = false(1, this.NumOfExtendedPeriods);
+            inxDates = false(1, this.NumExtendedPeriods);
             inxDates(posDates) = true;
         end%
 
@@ -396,6 +392,8 @@ classdef Plan < matlab.mixin.CustomDisplay
         LastUnanticipatedExogenized
         LastAnticipatedEndogenized
         LastUnanticipatedEndogenized
+        HasExogenized
+        InxAllExogenized
 
 
 % Start  Start date of the simulation range
@@ -485,11 +483,11 @@ classdef Plan < matlab.mixin.CustomDisplay
         BaseRange
         BaseRangeColumns
         ExtendedRange
-        ColumnOfLastAnticipatedExogenized
+        ColumnLastAnticipatedExogenized
         NumOfEndogenous
         NumOfExogenous
-        NumOfBasePeriods
-        NumOfExtendedPeriods
+        NumBasePeriods
+        NumExtendedPeriods
         NumOfExogenizedPoints
         NumOfAnticipatedExogenizedPoints
         NumOfUnanticipatedExogenizedPoints
@@ -512,6 +510,15 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
     methods % Get Set Methods
+        function values = get.InxAllExogenized(this)
+            numColumns = this.NumExtendedPeriods + this.NumDummyPeriods;
+            inxAllExogenized = logical(sparse(this.NumOfEndogenous, numColumns));
+            if this.NumOfExogenizedPoints>0
+                inxExogenized(:, :) = this.InxOfAnticipatedExogenized | this.InxOfUnanticipatedExogenized;
+            end
+        end%
+
+
         function this = set.AutoswapPairs(this, value)
             if ~iscellstr(value) || size(value, 2)~=2
                 hereThrowError( );
@@ -575,8 +582,8 @@ classdef Plan < matlab.mixin.CustomDisplay
                 for name = reshape(this.RANGE_DEPENDENT, 1, [ ])
                     numRows = size(this.(name), 1);
                     numPages = size(this.(name), 3);
-                    if name=="SigmasOfExogenous"
-                        add = repmat(this.DefaultSigmasOfExogenous, 1, -shift, 1);
+                    if name=="SigmasExogenous"
+                        add = repmat(this.DefaultSigmasExogenous, 1, -shift, 1);
                     else
                         add = zeros(numRows, -shift, numPages, 'like', this.(name));
                     end
@@ -623,8 +630,8 @@ classdef Plan < matlab.mixin.CustomDisplay
                 for name = reshape(this.RANGE_DEPENDENT, 1, [ ])
                     numRows = size(this.(name), 1);
                     numPages = size(this.(name), 3);
-                    if name=="SigmasOfExogenous"k
-                        add = repmat(this.DefaultSigmasOfExogenous, 1, shift, 1);
+                    if name=="SigmasExogenous"k
+                        add = repmat(this.DefaultSigmasExogenous, 1, shift, 1);
                     else
                         add = zeros(numRows, shift, numPages, 'like', this.(name));
                     end
@@ -649,29 +656,34 @@ classdef Plan < matlab.mixin.CustomDisplay
         end%
 
 
+        function value = get.HasExogenized(this)
+            value = this.NumOfExogenizedPoints>0;
+        end%
+
+
         function value = get.InxOfAnticipatedExogenized(this)
-            value = not(this.IdOfAnticipatedExogenized==0);
+            value = not(this.IdAnticipatedExogenized==0);
         end%
 
 
 
 
         function value = get.InxOfUnanticipatedExogenized(this)
-            value = not(this.IdOfUnanticipatedExogenized==0);
+            value = not(this.IdUnanticipatedExogenized==0);
         end%
 
 
 
 
         function value = get.InxOfAnticipatedEndogenized(this)
-            value = not(this.IdOfAnticipatedEndogenized==0);
+            value = not(this.IdAnticipatedEndogenized==0);
         end%
 
 
 
 
         function value = get.InxOfUnanticipatedEndogenized(this)
-            value = not(this.IdOfUnanticipatedEndogenized==0);
+            value = not(this.IdUnanticipatedEndogenized==0);
         end%
 
 
@@ -725,7 +737,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         end%
 
 
-        function value = get.NumOfBasePeriods(this)
+        function value = get.NumBasePeriods(this)
             if isempty(this.BaseStart) || isempty(this.BaseEnd)
                 value = NaN;
                 return
@@ -734,7 +746,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         end%
 
 
-        function value = get.NumOfExtendedPeriods(this)
+        function value = get.NumExtendedPeriods(this)
             if isempty(this.ExtendedStart) || isempty(this.ExtendedEnd)
                 value = 0;
                 return
@@ -745,7 +757,7 @@ classdef Plan < matlab.mixin.CustomDisplay
 
         function value = get.NumOfExogenizedPoints(this)
             value = this.NumOfAnticipatedExogenizedPoints ...
-                  + this.NumOfUnanticipatedExogenizedPoints;
+                + this.NumOfUnanticipatedExogenizedPoints;
         end%
 
 
@@ -805,7 +817,7 @@ classdef Plan < matlab.mixin.CustomDisplay
         end%
 
 
-        function value = get.ColumnOfLastAnticipatedExogenized(this)
+        function value = get.ColumnLastAnticipatedExogenized(this)
             value = find(any(this.InxOfAnticipatedExogenized, 1), 1, 'last');
             if isempty(value)
                 value = 0;
@@ -814,17 +826,17 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
         function value = get.NamesOfAnticipated(this)
-            value = this.NamesOfExogenous(this.AnticipationStatusOfExogenous);
+            value = this.NamesOfExogenous(this.AnticipationStatusExogenous);
         end%
 
 
         function value = get.NamesOfUnanticipated(this)
-            value = this.NamesOfExogenous(~this.AnticipationStatusOfExogenous);
+            value = this.NamesOfExogenous(~this.AnticipationStatusExogenous);
         end%
 
 
         function value = get.StructWithAnticipationStatus(this)
-            temp = num2cell(this.AnticipationStatusOfExogenous);
+            temp = num2cell(this.AnticipationStatusExogenous);
             value = cell2struct(temp, this.NamesOfExogenous, 1);
         end%
 
@@ -837,35 +849,35 @@ classdef Plan < matlab.mixin.CustomDisplay
         function output = get.DatabankOfAnticipatedExogenized(this)
             output = createDatabankOfAnchors( this, ...
                                               this.NamesOfEndogenous, ...
-                                              this.IdOfAnticipatedExogenized );
+                                              this.IdAnticipatedExogenized );
         end%
 
 
         function output = get.DatabankOfUnanticipatedExogenized(this)
             output = createDatabankOfAnchors( this, ...
                                               this.NamesOfEndogenous, ...
-                                              this.IdOfUnanticipatedExogenized );
+                                              this.IdUnanticipatedExogenized );
         end%
 
 
         function output = get.DatabankOfAnticipatedEndogenized(this)
             output = createDatabankOfAnchors( this, ...
                                               this.NamesOfExogenous, ...
-                                              this.IdOfAnticipatedEndogenized );
+                                              this.IdAnticipatedEndogenized );
         end%
 
 
         function output = get.DatabankOfUnanticipatedEndogenized(this)
             output = createDatabankOfAnchors( this, ...
                                               this.NamesOfExogenous, ...
-                                              this.IdOfAnticipatedEndogenized );
+                                              this.IdAnticipatedEndogenized );
         end%
 
 
         function output = createDatabankOfAnchors(this, names, anchors)
             output = struct( );
             baseRangeColumns = this.PosOfBaseStart : this.PosOfBaseEnd;
-            template = Series(this.BaseStart, false(this.NumOfBasePeriods, 1));
+            template = Series(this.BaseStart, false(this.NumBasePeriods, 1));
             numNames = numel(names);
             for i = 1 : numNames
                 name = names{i};
@@ -963,10 +975,12 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
         function ids = getUniqueIds(this)
-            list = [ reshape(this.IdOfAnticipatedExogenized,    [ ], 1)
-                     reshape(this.IdOfUnanticipatedExogenized,  [ ], 1)
-                     reshape(this.IdOfAnticipatedEndogenized,   [ ], 1)
-                     reshape(this.IdOfUnanticipatedEndogenized, [ ], 1) ];
+            list = [ 
+                reshape(this.IdAnticipatedExogenized,    [ ], 1)
+                reshape(this.IdUnanticipatedExogenized,  [ ], 1)
+                reshape(this.IdAnticipatedEndogenized,   [ ], 1)
+                reshape(this.IdUnanticipatedEndogenized, [ ], 1) 
+            ];
             list(list==0) = [ ];
             list = unique(list);
             negativeIds = reshape(list(list<0), 1, [ ]);
@@ -978,7 +992,7 @@ classdef Plan < matlab.mixin.CustomDisplay
 
 
         function this = resetOutsideBaseRange(this)
-            numExtendedPeriods = this.NumOfExtendedPeriods;
+            numExtendedPeriods = this.NumExtendedPeriods;
             numPresample = round(this.BaseStart-this.ExtendedStart);
             if numPresample==0
                 posPresample = double.empty(1, 0);
@@ -993,7 +1007,7 @@ classdef Plan < matlab.mixin.CustomDisplay
             end
             for name = reshape(this.RANGE_DEPENDENT, 1, [ ])
                 value = 0;
-                if name=="SigmasOfExogenous"
+                if name=="SigmasExogenous"
                     value = NaN;
                 end
                 this.(name)(:, [posPresample, posPostsample], :) = value;

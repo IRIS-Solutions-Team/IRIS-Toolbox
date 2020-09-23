@@ -11,7 +11,7 @@ TYPE = @int8;
 
 %--------------------------------------------------------------------------
 
-[ny, nxx] = sizeOfSolution(this.Vector);
+[ny, nxx] = sizeSolution(this.Vector);
 ixLog = this.Quantity.IxLog;
 ixy = this.Quantity.Type==TYPE(1); 
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
@@ -82,12 +82,8 @@ if strcmpi(s.Method, 'Selective')
     herePrepareHashEquations( );
 
     defaultSolver = 'IRIS-QaD';
-    prepareGradient = false;
-    s.Solver = solver.Options.parseOptions( opt.Solver, ...
-                                            defaultSolver, ...
-                                            prepareGradient, ...
-                                            displayMode, ...
-                                            varargin{:} );
+    s.Solver = solver.Options.parseOptions(opt.Solver, defaultSolver, displayMode, varargin{:});
+
     % Positions of variables in [y;xx] vector that occur in nonlinear
     % equations. These will be combined with positions of exogenized variables
     % in each segment.

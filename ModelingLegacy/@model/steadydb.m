@@ -76,7 +76,7 @@ if flag
                    list{:} );
 end
 
-d = createSourceDbase(this, range, varargin{:}, 'Deviation=', false);
+d = createSourceDb(this, range, varargin{:}, 'Deviation=', false);
 deviation = false;
 
 end%

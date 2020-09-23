@@ -372,6 +372,27 @@ classdef ExcelSheet ...
             throw(exception.Base(thisError, 'error'));
         end%
     end
+
+
+    methods (Static) % Static constructors
+        function output = collection(fileName, sheets, varargin)
+            %( Input parser
+            persistent pp
+            if isempty(pp)
+                pp = extend.InputParser("@ExcelSheet/collection");
+                pp.KeepUnmatched = true;
+                addRequired("sheets", @(x) isstring(x) || isnumeric(x) || isequal(x, @all));
+                addParameter("NameFunc", [ ], @(x) isempty(x) || isa(x, "function_handle"));
+            end
+            opt = parse(pp, varargin{:});
+
+            output = struct( );
+            if isequal(sheets, @all)
+                sheets = sheetnames(fileName);
+            end
+            sheets = reshape(string(sheets), 1, [ ]);
+
+        
 end
 
 

@@ -351,16 +351,14 @@ classdef Preparser ...
         function c = convertEols(c)
             % convertEols - Convert any style EOLs to Unix style.
             % Windows:
-            c = strrep(c, sprintf('\r\n'), newline( ));
+            c = replace(c, sprintf('\r\n'), newline( ));
             % Mac:
-            c = strrep(c, sprintf('\r'), newline( ));            
+            c = replace(c, sprintf('\r'), newline( ));            
         end%
-        
-
 
         
         function varargout = eval(varargin)
-            if isempty(regexp(varargin{1}, '[A-Za-z_\?]', 'once'))
+            if isempty(regexp(varargin{1}, "[A-Za-z]", "once"))
                 varargout{1} = eval(varargin{1});
             else
                 parser.Preparser.evalPopulateWorkspace(varargin{:});
@@ -368,29 +366,27 @@ classdef Preparser ...
             end
         end%
         
-        
-
 
         function evalPopulateWorkspace(expn, assigned, p)
             import parser.White
             shadowExpn = White.whiteOutLabel(expn);
-            shadowExpn = strrep(shadowExpn, '!', '');
-            listAssigned = fieldnames(assigned);
-            listAssigned = listAssigned(:).';
-            listExpn = regexp( shadowExpn, ...
-                             '(?<!\.)\<[a-zA-Z]\w*\>(?![\(\.])', ...
-                             'match' );
-            ixControl = false(size(listAssigned));
-            for i = 1 : length(listExpn)
-                name = listExpn{i};
-                ix = strcmp(name, listAssigned);
-                if any(ix)
+            shadowExpn = replace(shadowExpn, "!", "");
+            listAssigned = reshape(string(fieldnames(assigned)), 1, [ ]);
+            listExpn = regexp( ...
+                shadowExpn ...
+                , "(?<!\.)\<[a-zA-Z]\w*\>(?![\(\.])" ...
+                , "match" ...
+            );
+            inxControl = false(size(listAssigned));
+            for name = listAssigned
+                inx = name==listAssigned;
+                if any(inx)
                     assignin('caller', name, assigned.(name));
-                    ixControl = ixControl | ix;
+                    inxControl = inxControl | inx;
                 end
             end
-            if nargin>2 && any(ixControl)
-                addCtrlParameter(p, listAssigned(ixControl));
+            if nargin>2 && any(inxControl)
+                addCtrlParameter(p, listAssigned(inxControl));
             end
         end%
         

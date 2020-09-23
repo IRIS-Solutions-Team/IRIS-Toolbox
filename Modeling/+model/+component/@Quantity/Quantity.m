@@ -55,13 +55,18 @@ classdef (CaseInsensitiveProperties=true) ...
 
     properties (Dependent)
         InxLog
-        NumOfQuantities
+        NumQuantities
         LabelOrName
         Label4ShockContributions
     end
     
     
     methods
+        % Bounds
+        varargout = getBounds(varargin)
+        varargout = resetBounds(varargin)
+        varargout = setBounds(varargin)
+
         varargout = changeLogStatus(varargin)
         varargout = checkConsistency(varargin)
         varargout = createTemplateDbase(varargin)
@@ -106,8 +111,13 @@ classdef (CaseInsensitiveProperties=true) ...
         end%
 
 
-        function n = get.NumOfQuantities(this)
+        function n = get.NumQuantities(this)
             n = numel(this.Name);
+        end%
+
+
+        function numQuantities = countQuantities(this)
+            numQuantities = numel(this.Name);
         end%
 
 

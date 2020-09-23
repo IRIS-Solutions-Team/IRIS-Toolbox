@@ -56,13 +56,13 @@ for i = find(inxSeries)
     startDate = double(inputs{i}.Start);
     if ~isnan(startDate)
         vecStart(1, end+1) = startDate;
-        vecEnd(1, end+1) = dater.plus(startDate, size(inputs{i}.Data, 1));
+        vecEnd(1, end+1) = dater.plus(startDate, size(inputs{i}.Data, 1) - 1);
     end
 end
 if ~isempty(vecStart)
     minStart = min(vecStart);
     maxEnd = max(vecEnd);
-    numPeriods = dater.minus(maxEnd, minStart);
+    numPeriods = dater.minus(maxEnd, minStart) + 1;
 else
     minStart = NaN;
     maxEnd = NaN;
@@ -113,7 +113,9 @@ function [data__, comment__] = locallyCreateDataFromNumeric(data__, numPeriods)
     elseif size__(1)==1 && numPeriods>1
         data__ = repmat(data__, numPeriods, 1);
     end
-    data__ = reshape(data__, [numPeriods, size__(2:end)]);
+    if numel(size__)>2
+        data__ = reshape(data__, [numPeriods, size__(2:end)]);
+    end
     comment__ = repmat({''}, [1, size__(2:end)]);                                                                               
 end%
 

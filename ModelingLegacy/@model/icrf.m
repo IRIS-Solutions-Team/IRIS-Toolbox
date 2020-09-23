@@ -63,7 +63,7 @@ opt = parser.Options;
 
 %--------------------------------------------------------------------------
 
-[~, ~, numOfBwl, numOfFwl] = sizeOfSolution(this.Vector);
+[~, ~, numOfBwl, numOfFwl] = sizeSolution(this.Vector);
 inxOfInit = this.Variant.InxOfInit;
 numOfInit = nnz(inxOfInit);
 

@@ -1,11 +1,12 @@
-function idInit = getIdOfInitialConditions(this)
-% getIdOfInitialConditions  Get positions and shifts of initial conditions
+% getIdInitialConditions  Get positions and shifts of initial conditions
 %
 % Backend [IrisToolbox] method
 % No help provided
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function idInit = getIdInitialConditions(this)
 
 TYPE = @int8;
 

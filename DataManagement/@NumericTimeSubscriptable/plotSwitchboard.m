@@ -82,7 +82,7 @@ return
         if any(numOfYDataColumns==x)
             return
         end
-        THIS_ERROR = { 'TimeSubscriptable:PlotInvalidNumOfColumns'
+        THIS_ERROR = { 'TimeSubscriptable:PlotInvalidNumColumns'
                        'Invalid number of columns in input time series in %s(~)' };
         throw( exception.Base(THIS_ERROR, 'error'), ...
                plotFuncString );

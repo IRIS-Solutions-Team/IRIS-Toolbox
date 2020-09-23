@@ -25,7 +25,7 @@ likOpt = pp.Options;
 
 %--------------------------------------------------------------------------
 
-[ny, ~, nb] = sizeOfSolution(this.Vector);
+[ny, ~, nb] = sizeSolution(this.Vector);
 nz = nnz(this.Quantity.IxObserved);
 numPeriods = length(range);
 

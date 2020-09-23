@@ -360,7 +360,7 @@ filterRange = double(filterRange);
 numBasePeriods = round(filterRange(end) - filterRange(1) + 1);
 needsOutputData = nargout>1;
 nv = countVariants(this);
-[ny, ~, nb, ~, ~, ng] = sizeOfSolution(this.Vector);
+[ny, ~, nb, ~, ~, ng] = sizeSolution(this.Vector);
 
 %--------------------------------------------------------------------------
 

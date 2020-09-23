@@ -1,5 +1,4 @@
-function outputDb = createSourceDbase(this, range, varargin)
-% createSourceDbase  Create model specific source database
+% createSourceDb  Create model specific source database
 %
 % Backend [IrisToolbox] function
 % No help provided
@@ -7,13 +6,11 @@ function outputDb = createSourceDbase(this, range, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function outputDb = createSourceDb(this, range, varargin)
+
 TYPE = @int8;
 TIME_SERIES_CONSTRUCTOR = iris.get('DefaultTimeSeriesConstructor');
 TIME_SERIES_TEMPLATE = TIME_SERIES_CONSTRUCTOR( );
-
-if ischar(range)
-    range = textinp2dat(range);
-end
 
 numColumnsRequested = [ ];
 if ~isempty(varargin) && isnumericscalar(varargin{1})
@@ -21,11 +18,30 @@ if ~isempty(varargin) && isnumericscalar(varargin{1})
     varargin(1) = [ ];
 end
 
-opt = passvalopt('model.createSourceDbase', varargin{:});
+%( Input parser
+persistent pp
+if isempty(pp)
+    pp = extend.InputParser("@Model/createSourceDb");
+    pp.KeepDefaultOptions = true;
+    addRequired(pp, "model", @(x) isa(x, "model"));
+    addRequired(pp, "range", @DateWrapper.validateProperRangeInput);
 
-numDrawsRequested = opt.ndraw;
+    addParameter(pp, ["AppendPresample", "AddPresample"], true, @validate.logicalScalar);
+    addParameter(pp, ["AppendPostsample", "AddPostsample"], true, @validate.logicalScalar);
+    addParameter(pp, ["NumDraws", "NDraw"], 1, @(x) validate.roundScalar(x, 1, Inf));
+    addParameter(pp, ["NumColumns", "NCol"], 1, @(x) validate.roundScalar(x, 1, Inf));
+    addParameter(pp, 'ShockFunc', @zeros, @(x) isequal(x, @zeros) || isequal(x, @randn) || isequal(x, @lhsnorm)); 
+    addDeviationOptions(pp, false);
+end
+%)
+[skipped, opt] = maybeSkip(pp, this, range, varargin{:});
+if ~skipped
+    opt = parse(pp, this, range, varargin{:});
+end
+
+numDrawsRequested = opt.NumDraws;
 if isempty(numColumnsRequested)
-    numColumnsRequested = opt.ncol;
+    numColumnsRequested = opt.NumColumns;
 end
 
 %--------------------------------------------------------------------------
@@ -34,7 +50,7 @@ nv = countVariants(this);
 checkNumColumnsRequested = numColumnsRequested==1 || nv==1;
 checkNumDrawsRequested = numDrawsRequested==1 || nv==1;
 if ~checkNumColumnsRequested || ~checkNumDrawsRequested
-    throw( exception.Base('Model:NumOfColumnsNumOfDraws', 'error') );
+    throw( exception.Base('Model:NumColumnsNumOfDraws', 'error') );
 end
 
 %
@@ -98,15 +114,16 @@ if numColumnsToCreate>1 && nv==1
     X = repmat(X, 1, 1, numColumnsToCreate);
 end
 
+
 %
-% Transition variables, exogenous variables
+% Transition variables
 %
-for i = find(inxX | inxG)
+for i = find(inxX)
     name = this.Quantity.Name{i};
     outputDb.(name) = replace( ...
-        TIME_SERIES_TEMPLATE, ...
-        permute(X(i, :, :), [2, 3, 1]), ...
-        extStart, label{i} ...
+        TIME_SERIES_TEMPLATE ...
+        , permute(X(i, :, :), [2, 3, 1]) ...
+        , extStart, label{i} ...
     );
 end
 
@@ -119,9 +136,9 @@ for i = find(inxY | inxE)
     name = this.Quantity.Name{i};
     x = X(i, 1-minSh:end-maxSh, :);
     outputDb.(name) = replace( ...
-        TIME_SERIES_TEMPLATE, ...
-        permute(x, [2, 3, 1]), ...
-        start, label{i} ...
+        TIME_SERIES_TEMPLATE ...
+        , permute(x, [2, 3, 1]) ...
+        , start, label{i} ...
     );
 end
 
@@ -129,10 +146,23 @@ end
 %
 % Generate random residuals if requested
 % 
-if ~isequal(opt.shockfunc, @zeros)
+if ~isequal(opt.ShockFunc, @zeros)
     outputDb = shockdb( ...
-        this, outputDb, range, numColumnsToCreate, ...
-        'ShockFunc=', opt.shockfunc ...
+        this, outputDb, range, numColumnsToCreate ...
+        , 'ShockFunc=', opt.ShockFunc ...
+    );
+end
+
+
+%
+% Exogenous variables
+%
+for i = find(inxG)
+    name = this.Quantity.Name{i};
+    outputDb.(name) = replace( ...
+        TIME_SERIES_TEMPLATE ...
+        , permute(X(i, :, :), [2, 3, 1]) ...
+        , extStart, label{i} ...
     );
 end
 

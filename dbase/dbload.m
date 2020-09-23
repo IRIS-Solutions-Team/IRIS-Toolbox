@@ -321,7 +321,7 @@ return
 
 
     function processOptions( )
-        % Headers for rows to be skipped.
+        % Headers for rows to be skipped
         if ischar(opt.skiprows)
             opt.skiprows = {opt.skiprows};
         end

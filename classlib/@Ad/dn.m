@@ -30,9 +30,10 @@ end
 return
 
     function df = hereNumDiff(func, k, varargin)
-        epsilon = eps( )^(1/3.5);
+        % epsilon = eps( )^(1/3.5);
+        epsilon = eps( )^(1/3);
         x0 = varargin{k};
-        hx = abs( epsilon*max(x0, 1) );
+        hx = epsilon*max(abs(x0), 1);
         xp = x0 + hx;
         xm = x0 - hx;
         varargin{k} = xp;

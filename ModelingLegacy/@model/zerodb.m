@@ -6,7 +6,7 @@ function [d, deviation] = zerodb(this, range, varargin)
 %
 % Input arguments marked with a `~` sign may be omitted.
 %
-%     [D, IsDev] = zerodb(Model, SimulationRange, ~NumOfColumns, ...)
+%     [D, IsDev] = zerodb(Model, SimulationRange, ~NumColumns, ...)
 %
 %
 % ## Input Arguments ##
@@ -18,8 +18,8 @@ function [d, deviation] = zerodb(this, range, varargin)
 % database will be created on a range that also automatically includes all
 % the necessary lags.
 %
-% * `~NumOfColumns` [ numeric | *`1`* ] - Number of columns created in the
-% time series object for each variable; the input argument `NumOfColumns`
+% * `~NumColumns` [ numeric | *`1`* ] - Number of columns created in the
+% time series object for each variable; the input argument `NumColumns`
 % can be only used on models with one parameterisation; may be omitted.
 %
 %
@@ -65,7 +65,7 @@ parser.parse(this, range);
 
 %--------------------------------------------------------------------------
 
-d = createSourceDbase(this, range, varargin{:}, 'Deviation=', true);
+d = createSourceDb(this, range, varargin{:}, 'Deviation=', true);
 deviation = true;
 
 end%

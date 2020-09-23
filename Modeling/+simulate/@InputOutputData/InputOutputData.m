@@ -3,40 +3,60 @@ classdef InputOutputData ...
 
     properties
         IsAsynchronous = false
-        Blazers
         InxE
         MaxShift
         TimeTrend
         InxOfInitInPresample
         MixinUnanticipated
-        Frames
-        FrameDates
+
+        % FrameColumns  Column range [from, to] of the individual frames
+        FrameColumns (1, :) cell = cell.empty(1, 0)
+
+        % FrameDates  Date range [from, to] of the individual frames
+        FrameDates (1, :) cell = cell.empty(1, 0)
+
+        % FrameData  Recording of simulate.Data objects for individual frames
+        FrameData (1, :) cell = cell.empty(1, 0)
+
         Success
-        ExitFlags = solver.ExitFlag.empty(1, 0)
-        DiscrepancyTables = cell.empty(1, 0)
-        Method = solver.Method.empty(1, 0) 
-        Deviation = logical.empty(1, 0)
-        NeedsEvalTrends = logical.empty(1, 0)
-        PrepareOutputInfo = false
-        Plan = Plan.empty(0)
+        ExitFlags 
+        DiscrepancyTables (1, :) cell = cell.empty(1, 0)
+        Method (1, :) solver.Method = solver.Method.empty(1, 0) 
+        Deviation (1, :) logical = logical.empty(1, 0)
+        NeedsEvalTrends (1, :) logical = logical.empty(1, 0)
 
+        % PrepareOutputInfo  True if output info is requested by the user
+        PrepareOutputInfo (1, 1) logical = false
 
-        % __Options Copied over From Input Parser__
+        % PrepareFrameData  True if databanks for individual frames are
+        % requested by the user
+        PrepareFrameData (1, 1) logical = false
 
-        % Solver  Solver options
-        SolverOptions = solver.Options.empty(0)
+        % Plan  Copy of the input plan
+        Plan (:, :) Plan = Plan.empty(0)
+
+        % 
+        % Options copied over from InputParser
+        %
+
+        % SolverOptions  Solver options
+        SolverOptions
+
+        % DefaultBlazer  Default blazer object for simulations
+        DefaultBlazer
+
+        % ExogenizedBlazer  Blazer object for simulations with exogenized
+        % data points
+        ExogenizedBlazer
 
         % Window  Minimum lengths of time frame required
         Window = @auto
 
         % SuccessOnly  Stop simulation if a time frame fails
-        SuccessOnly = false
+        SuccessOnly (1, 1) logical = false
 
-        % Store shocks in sparse arrays
-        SparseShocks = false
-
-        % Initial  Choose input data or first-order simulation for starting values
-        Initial = 'Data'
+        % SparseShocks  Store shocks in sparse arrays
+        SparseShocks (1, 1) logical = false
     end
 
 

@@ -306,7 +306,7 @@ end
 % Input struct to the backend functions in `+simulate` package.
 s = struct( );
 
-[ny, nxx, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
+[ny, nxx, nb, nf, ne, ng] = sizeSolution(this.Vector);
 nv = length(this);
 
 nPer = length(range);
@@ -429,7 +429,7 @@ for ithRun = 1 : numRuns
     s.v = [ ]; % Correction vector for nonlinear equations.
     s.M = [ ];
 
-    systemProperty.Specifics = s;
+    systemProperty.CallerData = s;
     if ~isequal(opt.SystemProperty, false)
         systemProperty.OutputNames = opt.SystemProperty;
         outputData = systemProperty;

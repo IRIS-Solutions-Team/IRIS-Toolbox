@@ -40,7 +40,7 @@ end
 %
 % Initialize LinearSystem
 %
-[numY, numXi, numXib, numXif, numE, ~, ~, numV, numW] = sizeOfSolution(this);
+[numY, numXi, numXib, numXif, numE, ~, ~, numV, numW] = sizeSolution(this);
 inxV = [true(1, numV), false(1, numW)];
 inxW = [false(1, numV), true(1, numW)];
 

@@ -35,7 +35,7 @@ ixx = this.Quantity.Type==TYPE(2);
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ixg = this.Quantity.Type==TYPE(5);
 nx = sum(ixx);
-[ny, nxx] = sizeOfSolution(this.Vector);
+[ny, nxx] = sizeSolution(this.Vector);
 posx = find(ixx);
 nv = length(this);
 numOfRuns = length(namesOfResponses);

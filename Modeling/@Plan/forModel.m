@@ -74,15 +74,15 @@ this.DefaultAnticipationStatus = opt.DefaultAnticipationStatus;
 
 numEndogenous = this.NumOfEndogenous;
 numExogenous = this.NumOfExogenous;
-numExtendedPeriods = this.NumOfExtendedPeriods;
-this.IdOfAnticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
-this.IdOfUnanticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
-this.IdOfAnticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
-this.IdOfUnanticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
+numExtendedPeriods = this.NumExtendedPeriods;
+this.IdAnticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
+this.IdUnanticipatedExogenized = zeros(numEndogenous, numExtendedPeriods, 'int16');
+this.IdAnticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
+this.IdUnanticipatedEndogenized = zeros(numExogenous, numExtendedPeriods, 'int16');
 this.InxToKeepEndogenousNaN = false(numEndogenous, numExtendedPeriods);
 
-this.AnticipationStatusOfEndogenous = repmat(this.DefaultAnticipationStatus, numEndogenous, 1);
-this.AnticipationStatusOfExogenous = repmat(this.DefaultAnticipationStatus, numExogenous, 1);
+this.AnticipationStatusEndogenous = repmat(this.DefaultAnticipationStatus, numEndogenous, 1);
+this.AnticipationStatusExogenous = repmat(this.DefaultAnticipationStatus, numExogenous, 1);
 
 this.Method = opt.Method;
 if strcmpi(this.Method, 'Exogenize')

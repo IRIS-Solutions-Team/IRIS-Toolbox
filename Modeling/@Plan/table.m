@@ -1,4 +1,3 @@
-function outputTable = table(this, varargin)
 % table  Display table of exogenized and endogenized data points 
 %{
 %}
@@ -6,6 +5,9 @@ function outputTable = table(this, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+function outputTable = table(this, varargin)
+
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('@Plan/table');
@@ -14,6 +16,7 @@ if isempty(pp)
 
     addParameter(pp, 'WriteTable', '', @(x) isempty(x) || ischar(x) || isa(x, 'string'));
 end
+%)
 opt = parse(pp, this, varargin{:});
 inputDb = pp.Results.inputDb;
 
@@ -29,7 +32,7 @@ inxDates = any([
     inxUnanticipatedExogenized
     inxAnticipatedEndogenized
     inxUnanticipatedEndogenized
-], 1 );
+], 1);
 numDates = nnz(inxDates);
 posDates = find(inxDates);
 dates = this.ExtendedStart + posDates - 1;
@@ -53,17 +56,17 @@ for id = getUniqueIds(this)
     %
     % Collect info on exogenized variables
     %
-    marksExogenized = repmat({this.EMPTY_MARK}, this.NumOfEndogenous, this.NumOfExtendedPeriods);
-    inxAnticipated = this.IdOfAnticipatedExogenized==id;
-    inxUnanticipated = this.IdOfUnanticipatedExogenized==id;
+    marksExogenized = repmat({this.EMPTY_MARK}, this.NumOfEndogenous, this.NumExtendedPeriods);
+    inxAnticipated = this.IdAnticipatedExogenized==id;
+    inxUnanticipated = this.IdUnanticipatedExogenized==id;
     inxWhenData = this.InxToKeepEndogenousNaN;
     inxExogenized = inxAnticipated | inxUnanticipated;
     anyExogenized = any(inxExogenized(:));
     if anyExogenized
         marksExogenized(inxAnticipated & ~inxWhenData) = {[this.ANTICIPATED_MARK, this.ALWAYS_MARK]};
         marksExogenized(inxAnticipated & inxWhenData) = {[this.ANTICIPATED_MARK, this.WHEN_DATA_MARK]};
-        marksExogenized(inxUnanticipated & inxWhenData) = {[this.UNANTICIPATED_MARK, this.ALWAYS_MARK]};
-        marksExogenized(inxUnanticipated & ~inxWhenData) = {[this.UNANTICIPATED_MARK, this.WHEN_DATA_MARK]};
+        marksExogenized(inxUnanticipated & ~inxWhenData) = {[this.UNANTICIPATED_MARK, this.ALWAYS_MARK]};
+        marksExogenized(inxUnanticipated & inxWhenData) = {[this.UNANTICIPATED_MARK, this.WHEN_DATA_MARK]};
         keep = any(inxAnticipated | inxUnanticipated, 2);
         numKeep = nnz(keep);
         addTableData = marksExogenized(keep, inxDates);
@@ -81,11 +84,11 @@ for id = getUniqueIds(this)
     %
     % Collect info on endogenized variables
     %
-    inxAnticipated = this.IdOfAnticipatedEndogenized==id;
-    inxUnanticipated = this.IdOfUnanticipatedEndogenized==id;
+    inxAnticipated = this.IdAnticipatedEndogenized==id;
+    inxUnanticipated = this.IdUnanticipatedEndogenized==id;
     anyEndogenized = any(inxAnticipated(:)) || any(inxUnanticipated(:));
     if anyEndogenized
-        marksEndogenized = repmat({this.EMPTY_MARK}, this.NumOfExogenous, this.NumOfExtendedPeriods);
+        marksEndogenized = repmat({this.EMPTY_MARK}, this.NumOfExogenous, this.NumExtendedPeriods);
         marksEndogenized(inxAnticipated) = {this.ANTICIPATED_MARK};
         marksEndogenized(inxUnanticipated) =  {this.UNANTICIPATED_MARK};
         keep = any(inxAnticipated | inxUnanticipated, 2);

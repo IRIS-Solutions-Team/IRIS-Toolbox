@@ -9,16 +9,14 @@ classdef Quantity < parser.theparser.Generic
     
     methods
         function [qty, eqn] = parse(this, the, code, qty, eqn, ~, ~, opt)
-            %(
             import parser.White
             BR = sprintf('\n');
             TYPE = @int8;
             
             % Parse names with labels and assignments
-            NAME_PATTERN = [ '("[ ]*"|''[ ]*'')?\s*', ...  % Label
+            NAME_PATTERN = [ '("[ ]*"|''[ ]*'')?\s*', ...  % "Label" or 'Label'
                              '([a-zA-Z]\w*)', ...          % Name
-                             '(@?)', ...                   % Observed transition variable
-                             '(\{[^\}]*\}){0,2}', ...      % Bounds {LoLevel, HiLevel} or {LoLevel, HiLevel}{LoGrowth, HiGrowth}
+                             '(@?)', ...                   % @ Observed transition variable
                              '\s*(=[^;,\n]+[;,\n])?'   ];  % =Value
             
             %--------------------------------------------------------------------------
@@ -54,14 +52,12 @@ classdef Quantity < parser.theparser.Generic
             label = cell(1, numQuantities);
             name = cell(1, numQuantities);
             inxObserved = false(1, numQuantities);
-            boundsString = cell(1, numQuantities);
             assignedString = cell(1, numQuantities);
             for i = 1 : numQuantities
                 label{i} = code( tokenExtents{i}(1, 1)+1 : tokenExtents{i}(1, 2)-1 );
                 name{i}  = code( tokenExtents{i}(2, 1) : tokenExtents{i}(2, 2)   );
                 inxObserved(i) = tokenExtents{i}(3, 1)<=tokenExtents{i}(3, 2);
-                boundsString{i} = code( tokenExtents{i}(4, 1) : tokenExtents{i}(4, 2) );
-                assignedString{i} = code( tokenExtents{i}(5, 1)+1 : tokenExtents{i}(5, 2) );
+                assignedString{i} = code( tokenExtents{i}(4, 1)+1 : tokenExtents{i}(4, 2) );
             end
             name = strtrim(name);
             label = strtrim(label);
@@ -83,7 +79,6 @@ classdef Quantity < parser.theparser.Generic
                     inxObserved = inxObserved(posUnique);
                     label = label(posUnique);
                     assignedString = assignedString(posUnique);
-                    boundsString = boundsString(posUnique);
                 else
                     % Otherwise, throw an error.
                     listDuplicate = parser.getMultiple(name);
@@ -112,8 +107,7 @@ classdef Quantity < parser.theparser.Generic
                 end
             end
             
-            numQuantities = length(name);
-            bounds = evalBounds(this, boundsString);
+            numQuantities = numel(name);
             [label, alias] = this.splitLabelAlias(label);
             
             qty.Name(end+(1:numQuantities)) = name;
@@ -121,55 +115,12 @@ classdef Quantity < parser.theparser.Generic
             qty.Type(end+(1:numQuantities)) = repmat(this.Type, 1, numQuantities);
             qty.Label(end+(1:numQuantities)) = label;
             qty.Alias(end+(1:numQuantities)) = alias;
-            qty.Bounds(:, end+(1:numQuantities)) = bounds;
+            qty.Bounds(:, end+(1:numQuantities)) = repmat(model.component.Quantity.DEFAULT_BOUNDS, 1, numQuantities);
             
             qty.IxLog(end+(1:numQuantities)) = repmat(this.IsLog, 1, numQuantities);
             qty.IxLagrange(end+(1:numQuantities)) = repmat(this.IsLagrange, 1, numQuantities);
             
             the.AssignedString = [the.AssignedString, assignedString];
-            %)
-        end%
-    
-    
-        function bounds = evalBounds(this, boundsString)
-            %(
-            levelBoundsAllowed = ismember(this.Type, model.LEVEL_BOUNDS_ALLOWED);
-            growthBoundsAllowed = ismember(this.Type, model.GROWTH_BOUNDS_ALLOWED);
-            nName = length(boundsString);
-            bounds = repmat(model.component.Quantity.DEFAULT_BOUNDS, 1, nName);
-            ixValid = true(1, nName);
-            boundsString = strrep(boundsString, ' ', '');
-            boundsString = strrep(boundsString, ',}', ',Inf}');
-            boundsString = strrep(boundsString, '{,', '{Inf,');
-            boundsString = strrep(boundsString, '}{', '},{');
-            boundsString = strrep(boundsString, '{', '[');
-            boundsString = strrep(boundsString, '}', ']');
-            inxEmptyBounds = cellfun(@isempty, boundsString);
-            for i = find(~inxEmptyBounds)
-                try
-                    b = eval(['[', boundsString{i}, ']']);
-                    b = b(:);
-                    numBounds = numel(b);
-                    ixValid(i) = ...
-                        numBounds<=size(bounds, 1) ...
-                        && (levelBoundsAllowed || numBounds==0) ...
-                        && (growthBoundsAllowed || numBounds<=2) ...
-                    ;
-                    if ~ixValid(i)
-                        continue
-                    end
-                    bounds(1:numBounds, i) = b(1:numBounds);
-                catch
-                    ixValid(i) = false;
-                end
-            end
-            if any(~ixValid)
-                throw( ...
-                    exception.ParseTime('TheParser:InvalidBounds', 'error'), ...
-                    boundsString{~ixValid} ...
-                );
-            end
-            %)
         end%
     end
 end

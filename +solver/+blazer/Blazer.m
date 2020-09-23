@@ -16,9 +16,10 @@ classdef (Abstract) Blazer ...
             'Equation', model.component.Equation.empty(0) ...
         )
 
-        Equation = cell.empty(1, 0)
-        Gradient
-        Assignment
+        Equations (1, :) cell = cell.empty(1, 0)
+        Gradients (3, :) cell = cell.empty(3, 0)
+        Assignments
+
         Incidence
         InxEquations
         InxEndogenous
@@ -36,8 +37,8 @@ classdef (Abstract) Blazer ...
         % NanInit  Values assigned to NaN initial conditions
         NanInit = NaN
         
-        Blocks
-        AppData = struct( )
+        % Blocks  Cell of solution or assignment blocks
+        Blocks (1, :) cell = cell.empty(1, 0)
 
         % QuantitiesToExclude  Pointers to levels and or changes in quantities to exclude
         QuantitiesToExclude = double.empty(1, 0)
@@ -50,40 +51,32 @@ classdef (Abstract) Blazer ...
     end
     
 
-
-
     properties (Constant)
         SAVEAS_FILE_HEADER_FORMAT = '%%%% [IrisToolbox] Blazer File %s\n%% Number of Blocks: %g\n%% Number of Equations: %g';
     end
     
 
-
-
     properties (Abstract, Constant)
         BLOCK_CONSTRUCTOR 
         LHS_QUANTITY_FORMAT % Format to create string representing an LHS variable to verify the RHS of possible assignments.
-        PREAMBLE
+        TYPES_ALLOWED_CHANGE_LOG_STATUS
     end
     
-
-
 
     methods (Abstract)
         varargout = prepareIncidenceMatrix(varargin)
     end
 
 
+    methods % Constructor
+        function this = Blazer(numEquationsInModel)
+            this.Equations = cell(1, numEquationsInModel);
+            this.Gradients = cell(3, numEquationsInModel);        
+        end%
+    end
 
 
     methods
-        function this = Blazer(numEquationsInModel)
-            this.Equation = cell(1, numEquationsInModel);
-            this.Gradient = cell(2, numEquationsInModel);        
-        end%
-        
-
-
-        
         function endogenize(this, posToEndogenize)
             testFunc = @(this, pos) this.InxCanBeEndogenized(pos);
             inxValid = swap(this, posToEndogenize, true, testFunc);
@@ -96,8 +89,6 @@ classdef (Abstract) Blazer ...
                 throw(exception.Base(thisError, 'error'), this.Model.Quantity.Name{pos});
             end
         end%
-        
-
 
         
         function exogenize(this, posToExogenize)
@@ -113,15 +104,13 @@ classdef (Abstract) Blazer ...
             end
         end%
         
-        
 
-
-        function inxValid = swap(this, vecSwap, setIxEndgTo, testFunc)
+        function inxValid = swap(this, vecSwap, setIxEndgTo, testFunc) 
             numSwaps = numel(vecSwap);
             inxValid = true(1, numSwaps);
             for i = 1 : numSwaps
                 pos = vecSwap(i);
-                if ~isfinite(pos) || ~testFunc(this, pos)
+                if isnan(pos) || isinf(pos) || ~testFunc(this, pos)
                     inxValid(i) = false;
                     continue
                 end
@@ -130,20 +119,15 @@ classdef (Abstract) Blazer ...
         end%
         
         
-        
-        
-        function run(this, opt)
-            PTR = @int16;
-
-            numEquations = nnz(this.InxEquations);
-            numEndogenous = nnz(this.InxEndogenous);
+        function run(this, varargin)
+            [inc, idEqn, idQty] = prepareIncidenceMatrix(this, varargin{:});
+            [numEquations, numEndogenous] = size(inc);
             if numEquations~=numEndogenous
-                throw( ...
-                    exception.Base('Blazer:NumberEquationsEndogenized', 'error'), ...
-                    numEquations, numEndogenous ...
-                ); %#ok<GTARG>
+                exception.error([
+                    "Blazer:InvalidNumberEquationsOrUnknowns"
+                    "The number of endogenized names (%g) does not match the number of equations (%g). "
+                ], numEndogenous, numEquations);
             end
-            [inc, idEqn, idQty] = prepareIncidenceMatrix(this);
             if this.IsBlocks
                 [ordInc, ordEquation, ordQuantity] = this.reorder(inc, idEqn, idQty);
                 [blkEqn, blkQty, blkInc] = this.getBlocks(ordInc, ordEquation, ordQuantity);
@@ -154,44 +138,31 @@ classdef (Abstract) Blazer ...
                 blkQty = { idQty };
             end
             
+            
             % Create solver.block.Block objects for each block
             numBlocks = numel(blkEqn);
             this.Blocks = cell(1, numBlocks);
             for i = 1 : numBlocks
                 blk = this.BLOCK_CONSTRUCTOR( );
-                blk.PtrEquations = setdiff(blkEqn{i}, this.EquationsToExclude, 'stable'); % [^1]
-                blk.PtrQuantities = blkQty{i}; % [^1]
+                blk.Id = i;
+                blk.PtrEquations = reshape(setdiff(blkEqn{i}, this.EquationsToExclude, 'stable'), 1, [ ]); % [^1]
+                blk.PtrQuantities = reshape(blkQty{i}, 1, [ ]); % [^1]
                 blk.LhsQuantityFormat = this.LHS_QUANTITY_FORMAT;
-                classify(blk, this.Assignment, this.Equation); % Classify block as SOLVE or ASSIGNMENT
-                setShift(blk, this); % Find max lag and lead within equations in this block
+
+                prepareBlock(blk, this);
+
                 this.Blocks{i} = blk;
             end
             % [^1]: Exclude equations here, but exclude quantities in
             % inside block preparation -- this is block type specific.
-
-            prepareBlocks(this, opt);
         end%
-        
-
 
         
-        function prepareBlocks(this, varargin)
+        function prepareForSolver(this, solverOptions, varargin)
             for i = 1 : numel(this.Blocks)
-                prepareBlock(this.Blocks{i}, this, varargin{:});
-                this.Blocks{i}.Id = i;
+                prepareForSolver(this.Blocks{i}, solverOptions, varargin{:});
             end
         end%
-        
-
-
-        
-        function prepareForSolver(this, varargin)
-            for i = 1 : numel(this.Blocks)
-                prepareForSolver(this.Blocks{i}, this, varargin{:});
-            end
-        end%
-        
-        
 
 
         function saveAs(this, fileName)
@@ -207,95 +178,25 @@ classdef (Abstract) Blazer ...
         end%        
 
 
-
-
         function [names, equations] = getNamesAndEquationsToPrint(this)
             names = this.Model.Quantity.Name;
             equations = this.Model.Equation.Input;
         end%
 
 
-
-
-        function processFixOptions(this, opt)
-            % Process Fix, FixLevel, FixChange, possible with Except
-            TYPE = @int8;
-            PTR = @int16;
-
-            quantities = this.Model.Quantity;
-            numQuantities = numel(quantities.Name);
-            inxP = quantities.Type==TYPE(4);
-            inxCanBeFixed = this.InxEndogenous;
-            namesCanBeFixed = quantities.Name(inxCanBeFixed);
-            list = ["Fix", "FixLevel", "FixChange"];
-            for fixOption = list
-                temp = opt.(fixOption);
-
-                if isempty(temp)
-                    opt.(fixOption) = double.empty(1, 0);
-                    continue
-                end
-
-                if isa(temp, 'Except')
-                    temp = resolve(temp, namesCanBeFixed);
-                end
-
-                if ischar(temp) || (isstring(temp) && isscalar(string))
-                    temp = regexp(temp, '\w+', 'match');
-                    if isempty(temp)
-                        opt.(fixOption) = double.empty(1, 0);
-                        continue
-                    end
-                    temp = cellstr(temp);
-                elseif isstring(temp)
-                    temp = cellstr(temp);
-                end
-                
-                if isempty(temp)
-                    opt.(fixOption) = double.empty(1, 0);
-                    continue
-                end
-
-                ell = lookup(quantities, temp, TYPE(1), TYPE(2), TYPE(4));
-                posToFix = ell.PosName;
-                inxValid = ~isnan(posToFix);
-                if any(~inxValid)
-                    throw( ...
-                        exception.Base('Steady:CANNOT_FIX', 'error') ...
-                        , temp{~inxValid} ...
-                    );
-                end
-                opt.(fixOption) = posToFix;
+        function this = processLogOptions(this, opt)
+            if isfield(opt, "Log") && ~isempty(opt.Log)
+                this.Model.Quantity = changeLogStatus( ...
+                    this.Model.Quantity, true, opt.Log, this.TYPES_ALLOWED_CHANGE_LOG_STATUS{:} ...
+                );
             end
-
-            fixLevel = false(1, numQuantities);
-            fixLevel(opt.Fix) = true;
-            fixLevel(opt.FixLevel) = true;
-
-            fixChange = false(1, numQuantities);
-
-            % Fix steady change of all endogenized parameters to zero
-            fixChange(inxP) = true;
-            if opt.Growth
-                fixChange(opt.Fix) = true;
-                fixChange(opt.FixChange) = true;
-            else
-                fixChange(:) = true;
+            if isfield(opt, "Unlog") && ~isempty(opt.Unlog)
+                this.Model.Quantity = changeLogStatus( ...
+                    this.Model.Quantity, false, opt.Unlog, this.TYPES_ALLOWED_CHANGE_LOG_STATUS{:} ...
+                );
             end
-
-            % Fix optimal policy multipliers; the level and change of
-            % multipliers will be set to zero in the main loop
-            if isfield(opt, 'ZeroMultipliers') && opt.ZeroMultipliers
-                fixLevel = fixLevel | quantities.IxLagrange;
-                fixChange = fixChange | quantities.IxLagrange;
-            end
-
-            temp = [ ]; % this.Link.LhsPtrActive
-            this.QuantitiesToExclude = [this.QuantitiesToExclude, find(fixLevel), 1i*find(fixChange), temp];
         end%
     end
-
-
 
 
     methods (Static)
@@ -325,8 +226,6 @@ classdef (Abstract) Blazer ...
         end%
         
 
-
-        
         function [blkEqn, blkQty, blkInc] = getBlocks(ordInc, idEqn, idQty)
             PTR = @int16;
             n = size(ordInc, 1);
@@ -338,7 +237,13 @@ classdef (Abstract) Blazer ...
             previous = n+1;
             for i = n : -1 : 1
                 currBlkQty(end+1) = idQty(i); %#ok<AGROW>
-                currBlkEqn(end+1) = idEqn(i); %#ok<AGROW>
+
+                if real(idEqn(i))>0 % [^1]
+                    currBlkEqn(end+1) = idEqn(i); %#ok<AGROW>
+                end
+                % [^1]: Equations with negative pointers are dummy
+                % equations to be removed immediately
+
                 if ~any( any( ordInc(i:end, 1:i-1) ) )
                     blkQty{end+1} = fliplr(currBlkQty); %#ok<AGROW>
                     blkEqn{end+1} = fliplr(currBlkEqn); %#ok<AGROW>
@@ -351,10 +256,8 @@ classdef (Abstract) Blazer ...
         end%
 
 
-
-
         function [isSingular, suspectEquations] = investigateSingularity(ordInc, blkInc, blkEqn)
-            isSingular = sprank(ordInc)<min(size(ordInc));
+            isSingular = sprank(ordInc) < min(size(ordInc));
             suspectEquations = double.empty(1, 0);
             if isSingular
                 for i = 1 : numel(blkInc)
@@ -367,8 +270,6 @@ classdef (Abstract) Blazer ...
         end%
 
 
-
-
         function c = wrapAndSave(s, fileName, numBlocks, numEquations)
             header = sprintf( ...
                 solver.blazer.Blazer.SAVEAS_FILE_HEADER_FORMAT, ...
@@ -378,3 +279,4 @@ classdef (Abstract) Blazer ...
         end%
     end
 end
+

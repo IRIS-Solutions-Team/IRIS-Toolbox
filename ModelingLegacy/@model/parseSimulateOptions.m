@@ -53,7 +53,6 @@ if isempty(parser)
     % TODO Consolidate the following options
     % Global Nonlinear Simulations
     parser.addParameter('ChkSstate', true, @model.validateChksstate);
-    parser.addParameter('ForceRediff', false, @(x) isequal(x, true) || isequal(x, false));
     parser.addParameter('InitEndog', 'Dynamic', @(x) ischar(x) && any(strcmpi(x, {'Dynamic', 'Static'})));
     parser.addParameter('Solve', true, @model.validateSolve);
     parser.addParameter({'Steady', 'Sstate', 'SstateOpt'}, true, @model.validateSstate);

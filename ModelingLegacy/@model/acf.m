@@ -178,7 +178,7 @@ isCorrelations = nargout>=2;
 
 %--------------------------------------------------------------------------
 
-[ny, nxi, ~, ~, ne] = sizeOfSolution(this.Vector);
+[ny, nxi, ~, ~, ne] = sizeSolution(this.Vector);
 nv = length(this);
 
 if isContributions
@@ -255,15 +255,15 @@ return
         systemProperty.Function = @covfun.wrapper;
         systemProperty.MaxNumOfOutputs = 2;
         systemProperty.NamedReferences = {solutionVector, solutionVector};
-        systemProperty.Specifics = struct( );
-        systemProperty.Specifics.MaxOrder = opt.Order;
-        systemProperty.Specifics.IsContributions = isContributions;
-        systemProperty.Specifics.IsCorrelations = isCorrelations;
-        systemProperty.Specifics.NumContributions = numContributions;
-        systemProperty.Specifics.IsFilter = isFilter;
-        systemProperty.Specifics.Filter = filter;
-        systemProperty.Specifics.ApplyFilterTo = applyFilterTo;
-        systemProperty.Specifics.Frequencies = freq;
+        systemProperty.CallerData = struct( );
+        systemProperty.CallerData.MaxOrder = opt.Order;
+        systemProperty.CallerData.IsContributions = isContributions;
+        systemProperty.CallerData.IsCorrelations = isCorrelations;
+        systemProperty.CallerData.NumContributions = numContributions;
+        systemProperty.CallerData.IsFilter = isFilter;
+        systemProperty.CallerData.Filter = filter;
+        systemProperty.CallerData.ApplyFilterTo = applyFilterTo;
+        systemProperty.CallerData.Frequencies = freq;
         if isequal(opt.SystemProperty, false)
             % Regular call
             if ~isCorrelations

@@ -1,6 +1,6 @@
 function s = wrapper(~, systemProperty, ~)
 
-s = systemProperty.Specifics;
+s = systemProperty.CallerData;
 ny = nnz(s.IxObserved);
 ne = nnz(s.IxShocks);
 

@@ -47,18 +47,21 @@ classdef Interp
                 end
                 posClose = posOpen + find(level(posOpen+1:end)==0, 1);
                 if isempty(posClose)
-                    thisError = [ 
+                    throwCode(exception.ParseTime([ 
                         "Preparser:InterpolationStringNotClosed"
                         "This interpolation string is not closed: %s "
-                    ];
-                    throwCode( ...
-                        exception.ParseTime(thisError, 'error'), ...
-                        code(posOpen+1:end) ...
-                    );
+                    ], "error"), code(posOpen+1:end));
                 end
-                expn = code(posOpen+1:posClose-1);
+                matlabExpression = code(posOpen+1:posClose-1);
+                if contains(matlabExpression, "?")
+                    throwCode(exception.ParseTime([
+                        "Preparser:UnresolvedForControl"
+                        "This Matlab expression contains an unresolved or unknown reference "
+                        "to a !for control variable(s): %s "
+                    ], "error"), matlabExpression);
+                end
                 try
-                    addValues = Preparser.eval(expn, p.Assigned);
+                    addValues = Preparser.eval(matlabExpression, p.Assigned);
                     addValues = Interp.any2cellstr(addValues);
                     insertCode = "";
                     if ~remove && ~isempty(addValues)
@@ -66,10 +69,10 @@ classdef Interp
                     end
                     values = [values, addValues];
                 catch
-                    throwCode( ...
-                        exception.ParseTime('Preparser:InterpEvalFailed', 'error'), ...
-                        code(posOpen:posClose) ...
-                    );
+                    throwCode(exception.ParseTime([
+                        "Preparser:MatlabExpressionFailed"
+                        "Error evaluating this Matlab expression: %s"
+                    ], "error"), code(posOpen:posClose));
                 end
                 before = posOpen - 1;
                 after = posClose + 1;

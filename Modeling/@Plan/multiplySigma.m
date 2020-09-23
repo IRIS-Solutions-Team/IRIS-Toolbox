@@ -71,7 +71,7 @@ end
 
 inxVariants = resolveVariants(this, variants);
 
-this.SigmasOfExogenous(inxNames, inxDates, inxVariants) = this.SigmasOfExogenous(inxNames, inxDates, inxVariants) .* multiplier;
+this.SigmasExogenous(inxNames, inxDates, inxVariants) = this.SigmasExogenous(inxNames, inxDates, inxVariants) .* multiplier;
 
 end%
 

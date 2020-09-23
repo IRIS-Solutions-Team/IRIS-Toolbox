@@ -214,6 +214,7 @@ function outputDatabank = fromCSV(fileName, varargin)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
+%( Input parser
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('databank.fromCSV');
@@ -239,8 +240,8 @@ if isempty(pp)
     addParameter(pp, 'VariableNames', @auto, @(x) isequal(x, @auto) || validate.list(x));
     addDateOptions(pp);
 end
-parse(pp, fileName, varargin{:});
-opt = pp.Options;
+%)
+opt = parse(pp, fileName, varargin{:});
 fileName = cellstr(fileName);
 
 % Check consistency of options AddToDatabank= and OutputFormat=
@@ -680,13 +681,24 @@ return
         end
         % Convert date strings
         if ~isempty(dateCol) && ~all(inxEmptyDates)
-            dates(~inxEmptyDates) = str2dat( ...
-                dateCol(~inxEmptyDates), ...
-                'DateFormat=', opt.DateFormat, ...
-                'Months=', opt.Months, ...
-                'EnforceFrequency=', opt.EnforceFrequency, ...
-                'FreqLetters=', opt.FreqLetters ...
-            );
+            if isequal(opt.DateFormat, @iso)
+                if ~validate.numericScalar(opt.EnforceFrequency)
+                    exception.error([
+                        "Databank:EnforceFrequencyWhenIso"
+                        "Option EnforceFrequency must be specified whenever DateFormat=@iso."
+                    ]);
+                end
+                dates(~inxEmptyDates) ...
+                    = dater.fromIsoString(opt.EnforceFrequency, string(dateCol(~inxEmptyDates)));
+            else
+                dates(~inxEmptyDates) = str2dat( ...
+                    dateCol(~inxEmptyDates), ...
+                    'DateFormat=', opt.DateFormat, ...
+                    'Months=', opt.Months, ...
+                    'EnforceFrequency=', opt.EnforceFrequency, ...
+                    'FreqLetters=', opt.FreqLetters ...
+                );
+            end
             if strcmpi(opt.Continuous, 'Ascending')
                 dates(2:end) = dates(1) + (1 : numDates-1);
             elseif strcmpi(opt.Continuous, 'Descending')

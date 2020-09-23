@@ -2,17 +2,18 @@ classdef Method < int8
     enumeration
         INVALID     (-1)
         NONE        ( 0)
-        FIRST_ORDER ( 1)
+        FIRSTORDER ( 1)
         SELECTIVE   ( 2)
         STACKED     ( 3)
         PERIOD      ( 5)
+        STEADY      ( 6)
     end
 
 
     methods
         function func = simulateFunction(this)
             switch this
-                case solver.Method.FIRST_ORDER
+                case solver.Method.FIRSTORDER
                     func = @Model.simulateFirstOrder;
                 case solver.Method.SELECTIVE
                     func = @Model.simulateSelective;
@@ -24,45 +25,38 @@ classdef Method < int8
                     func = [ ];
             end
         end%
-    end
 
 
-    methods (Static)
-        function flag = validate(input)
-            if isa(input, 'solver.Method') ...
-               && input~=solver.Method.INVALID ...
-               && input~=solver.Method.NONE
+        function flag = needsFirstOrderSolution(this, model, initial, terminal)
+            if this==solver.Method.FIRSTORDER || this==solver.Method.SELECTIVE
                 flag = true;
-                return
-            end
-            if ~ischar(input) && ~isa(input, 'string')
+            elseif this==solver.Method.PERIOD || this==solver.Method.STACKED
+                maxLead = get(model, "maxLead");
+                flag = startsWith(initial, "firstOrder", "ignoreCase", true) ...
+                    || (startsWith(terminal, "firstOrder", "ignoreCase", true) && maxLead>0);
+            else
                 flag = false;
-                return
             end
-            flag = solver.Method.parse(input)~=solver.Method.INVALID;
         end%
 
 
-        function this = parse(input)
-            if isa(input, 'solver.Method')
-                this = input;
-                return
-            end
-            if strcmpi(input, 'None')
-                this = solver.Method.NONE;
-            elseif strcmpi(input, 'FirstOrder')
-                this = solver.Method.FIRST_ORDER;
-            elseif strcmpi(input, 'Selective')
-                this = solver.Method.SELECTIVE;
-            elseif strcmpi(input, 'Stacked')
-                this = solver.Method.STACKED;
-            elseif strcmpi(input, 'Period')
-                this = solver.Method.PERIOD;
+        function flag = needsFirstOrderTerminal(this, model, terminal)
+            if this==solver.Method.PERIOD || this==solver.Method.STACKED
+                maxLead = get(model, "maxLead");
+                flag = startsWith(terminal, "firstOrder", "ignoreCase", true) && maxLead>0;
             else
-                this = solver.Method.INVALID;
+                flag = false;
             end
+        end%
+
+
+        function flag = needsIgnoreShocks(this)
+            %
+            % Only plain-vanilla first-order simulators are used in STACKED
+            % and PERIOD methods
+            %
+            flag = this==solver.Method.PERIOD || this==solver.Method.STACKED;
         end%
     end
 end
-
 

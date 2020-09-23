@@ -10,7 +10,7 @@ classdef (Abstract) Kalman
 
     methods (Abstract, Hidden)
         varargout = evalTrendEquations(varargin)
-        varargout = sizeOfSolution(varargin)
+        varargout = sizeSolution(varargin)
         varargout = getIthKalmanSystem(varargin)
         varargout = getIthStdcorr(varargin)
         varargout = getIthOmega(varargin)

@@ -9,7 +9,7 @@ function [M, Ma, N, Na] = myforecastswap(this, variantRequested, indexOfExogeniz
 
 %--------------------------------------------------------------------------
 
-[ny, ~, nb, nf, ne] = sizeOfSolution(this.Vector);
+[ny, ~, nb, nf, ne] = sizeSolution(this.Vector);
 
 % Current-dated variables in the original state vector.
 ixXCurr = imag(this.Vector.Solution{2}) == 0;

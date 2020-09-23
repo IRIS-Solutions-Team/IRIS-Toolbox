@@ -6,22 +6,22 @@ data.NeedsUpdateShocks = true;
 
 calculateShockMultipliers(this, data);
 flat(this, data);
-updateEndogenizedE(this, data);
+locallyUpdateEndogenizedE(this, data);
 flat(this, data);
 
 end%
-
 
 %
 % Local Functions
 %
 
-
-function updateEndogenizedE(this, data)
+function locallyUpdateEndogenizedE(this, data)
 % Evaluate discrepancy between the inxExogenized values and their targets,
 % and calculate the implied increments to the endogenized shocks
-    inxEndogenizedE = data.InxOfEndogenizedE;
-    discrepancy = evaluateDiscrepancy(data);
+    inxEndogenizedE = data.InxEndogenizedE;
+    inxAnticipatedE = data.InxAnticipatedE;
+    inxUnanticipatedE = data.InxUnanticipatedE;
+    discrepancy = locallyEvaluateDiscrepancy(data);
     if ~isempty(this.KalmanGain)
         vecAddToE = this.KalmanGain * discrepancy(:);
     else
@@ -29,34 +29,31 @@ function updateEndogenizedE(this, data)
         if numExogenized==numEndogenized && ~strcmpi(this.PlanMethod, 'Condition')
             vecAddToE = this.FirstOrderMultipliers \ discrepancy(:);
         else
-            F = this.FirstOrderMultipliers*data.Sigma*this.FirstOrderMultipliers';
-            vecAddToE = data.Sigma*this.FirstOrderMultipliers'*(F\discrepancy(:));
+            F = this.FirstOrderMultipliers * data.Sigma * transpose(this.FirstOrderMultipliers);
+            vecAddToE = data.Sigma * transpose(this.FirstOrderMultipliers) * (F\discrepancy(:));
         end
     end
-    addToE = zeros(data.NumOfE, data.NumOfColumns);
-    addToE(inxEndogenizedE) = addToE(inxEndogenizedE) + vecAddToE;
-    inx = data.AnticipationStatusOfE;
-    data.AnticipatedE(inx, :) ...
-        = data.AnticipatedE(inx, :) + addToE(inx, :);
-    data.UnanticipatedE(~inx, :) ...
-        = data.UnanticipatedE(~inx, :) + addToE(~inx, :);
+
+    addToE = data.EmptySparse; 
+    addToE(inxEndogenizedE) = vecAddToE;
+    data.AnticipatedE(inxAnticipatedE, :) ...
+        = data.AnticipatedE(inxAnticipatedE, :) + addToE(inxAnticipatedE, :);
+    data.UnanticipatedE(inxUnanticipatedE, :) ...
+        = data.UnanticipatedE(inxUnanticipatedE, :) + addToE(inxUnanticipatedE, :);
 end%
 
 
-
-
-function discrepancy = evaluateDiscrepancy(data)
+function discrepancy = locallyEvaluateDiscrepancy(data)
 % Evaluate discrepancy between the inxExogenized values and their targets
-    inxExogenizedYX = data.InxOfExogenizedYX;
-    target = data.Target(inxExogenizedYX);
-    actual = data.YXEPG(data.InxOfYX, :);
-    actual = actual(inxExogenizedYX);
+    inxExogenizedYX = data.InxExogenizedYX;
+    target = data.TargetYX(inxExogenizedYX);
+    actual = data.YXEPG(inxExogenizedYX);
     if any(data.InxLog)
         % Take care of log-variables if there are any
-        inxLogYX = repmat(data.InxLog(data.InxOfYX), 1, data.NumOfColumns);
-        inxLogExogenizedYX = inxLogYX(inxExogenizedYX);
-        target(inxLogExogenizedYX) = log(target(inxLogExogenizedYX));
-        actual(inxLogExogenizedYX) = log(actual(inxLogExogenizedYX));
+        inxLogWithinYXEPG = repmat(data.InxLog, 1, data.NumColumns);
+        inxLogWithinExogenizedYX = inxLogWithinYXEPG(inxExogenizedYX);
+        target(inxLogWithinExogenizedYX) = log(target(inxLogWithinExogenizedYX));
+        actual(inxLogWithinExogenizedYX) = log(actual(inxLogWithinExogenizedYX));
     end
     discrepancy = target - actual;
 end%

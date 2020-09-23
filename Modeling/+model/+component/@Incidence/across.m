@@ -1,6 +1,6 @@
 function matrix = across(this, dim)
 
-numShifts = length(this.Shift);
+numShifts = numel(this.Shift);
 numEquations = size(this.Matrix, 1);
 if numShifts>0
     numQuantities = size(this.Matrix, 2) / numShifts;
@@ -8,18 +8,20 @@ else
     numQuantities = 0;
 end
 
-if startsWith(dim, 'Sh', 'IgnoreCase', true) % Across all shifts.
+if startsWith(dim, "Sh", "ignoreCase", true) % Across all shifts.
     matrix = acrossShifts(this.Matrix);
-elseif startsWith(dim, 'La','IgnoreCase', true) % Across all lags (negative shifts).
+elseif startsWith(dim, "La","ignoreCase", true) % Across all lags (negative shifts).
     matrix = acrossLags(this.Matrix);
-elseif startsWith(dim, 'Le', 'IgnoreCase', true) % Across all leads (positive shifts).
+elseif startsWith(dim, "Le", "ignoreCase", true) % Across all leads (positive shifts).
     matrix = acrossLeads(this.Matrix);
-elseif startsWith(dim, 'No', 'IgnoreCase', true) % Across all non-zero shifts (lags and leads).
+elseif startsWith(dim, "No", "ignoreCase", true) % Across all non-zero shifts (lags and leads).
     matrix = acrossNonzeros(this.Matrix);
-elseif startsWith(dim, 'Ze', 'IgnoreCase', true) % At zero shift.
+elseif startsWith(dim, "Ze", "ignoreCase", true) % At zero shift.
     matrix = atZero(this.Matrix);
-elseif startsWith(dim, 'Eq', 'IgnoreCase', true) % Across all equations.
+elseif startsWith(dim, "Eq", "ignoreCase", true) % Across all equations.
     matrix = acrossEquations(this.Matrix);
+elseif startsWith(dim, "Qu", "ignoreCase", true) % Across all quantities
+    matrix = acrossQuantities(this.Matrix);
 end
 
 return
@@ -69,6 +71,14 @@ return
     function inx = acrossEquations(inx)
         inx = any(inx, 1);
         inx = reshape(inx, numQuantities, numShifts);
+    end%
+
+    function output = acrossQuantities(input)
+        output = sparse(numEquations, 0);
+        for sh = 1 : numShifts
+            temp = input(:, (sh-1)*numQuantities+(1:numQuantities));
+            output = [output, any(temp, 2)];
+        end
     end%
 end%
 

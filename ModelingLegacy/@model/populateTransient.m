@@ -50,7 +50,7 @@ return
         % System matrices
         %-----------------
         % Sizes of system matrices (different from solution matrices).
-        [~, kxx, kb] = sizeOfSystem(this.Vector);
+        [~, kxx, kb] = sizeSystem(this.Vector);
         system = struct( );
         system.K{1} = zeros(ny, 1);
         system.K{2} = zeros(kxx, 1);

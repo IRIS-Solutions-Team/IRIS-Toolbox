@@ -1,4 +1,3 @@
-function [x, f, exitFlag] = qnsd(objectiveFunc, initX, opt, exitFlagHeader)
 % qnsd  Quasi-Newton-Steepest-Descent algorithm
 %
 % Backend [IrisToolbox] function
@@ -7,7 +6,9 @@ function [x, f, exitFlag] = qnsd(objectiveFunc, initX, opt, exitFlagHeader)
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
 
-FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g %13s';
+function [x, f, exitFlag] = qnsd(objectiveFunc, initX, opt, exitFlagHeader)
+
+FORMAT_ITER   = '%6g %8g %13g %6g %13g %13g %13g %13g %13s %9s';
 MIN_STEP = 1e-8;
 MAX_STEP = 2;
 MAX_ITER_IMPROVE_PROGRESS = 40;
@@ -20,12 +21,14 @@ ITER_STRUCT.Iter = NaN;
 ITER_STRUCT.X = NaN;
 ITER_STRUCT.MaxXChng = NaN;
 ITER_STRUCT.F = NaN;
-ITER_STRUCT.J = NaN;
+ITER_STRUCT.J = [ ];
+ITER_STRUCT.InvJ = [ ];
 ITER_STRUCT.Lambda = NaN;
 ITER_STRUCT.D = NaN;
 ITER_STRUCT.Norm = NaN;
 ITER_STRUCT.Step = NaN;
 ITER_STRUCT.Reverse = false;
+ITER_STRUCT.BoundsReport = "None";
 
 %--------------------------------------------------------------------------
 
@@ -64,11 +67,18 @@ inflateStep = opt.InflateStep;
 doTryMakeProgress = ~isequal(deflateStep, false);
 doTryImproveProgress = ~isequal(inflateStep, false);
 diffStep = opt.FiniteDifferenceStepSize;
-if ~opt.SpecifyObjectiveGradient
-    jacobPattern = opt.JacobPattern;
+lastJacobUpdate = round(opt.LastJacobUpdate);
+modJacobUpdate = round(opt.SkipJacobUpdate) + 1;
+lastBroydenUpdate = round(opt.LastBroydenUpdate);
+useAnalyticalJacob = startsWith(opt.JacobCalculation, "Analytical", "ignoreCase", true);
+
+%
+% Prepare bounds
+%
+bounds = opt.Bounds;
+if isempty(bounds) || all(isinf(bounds(:)));
+    bounds = [ ];
 end
-lastJacobUpdate = opt.LastJacobUpdate;
-lastBroydenUpdate = opt.LastBroydenUpdate;
 
 sizeX = size(initX);
 if any(sizeX(2:end)>1)
@@ -99,15 +109,15 @@ end
 
 current = ITER_STRUCT;
 current.Iter = 0;
-current.X = initX;
+[current.X, current.BoundsReport] = locallyEnforceBounds(initX, bounds);
 current.F = objectiveFuncReshaped(current.X);
 sizeF = size(current.F);
 current.F = current.F(:);
 current.Norm = fnNorm(current.F);
 current.Step = NaN;
+current.InvJ = [ ];
 
 last = ITER_STRUCT;
-last.J = 1;
 
 best = ITER_STRUCT;
 best.Norm = Inf;
@@ -124,7 +134,8 @@ extraJacobUpdate = false;
 
 headerInfo = hereCompileHeaderInfo( );
 
-%//////////////////////////////////////////////////////////////////////////
+
+%===========================================================================
 while true
     %
     % Set jacobUpdate=false in case this is the last iteration, which means
@@ -132,7 +143,7 @@ while true
     %
 
     jacobUpdate = false;
-    jacobUpdateString = 'None';
+    jacobUpdateString = "None";
 
     %
     % Check convergence before calculating current Jacobian
@@ -163,32 +174,40 @@ while true
     %
     % Calculate Jacobian for current iteration
     %
-    jacobUpdate = iter<=lastJacobUpdate || extraJacobUpdate;
+    jacobUpdate = (iter<=lastJacobUpdate && mod(iter, modJacobUpdate)==0) || extraJacobUpdate;
     if jacobUpdate 
-        if opt.SpecifyObjectiveGradient
-            [current.F, current.J] = objectiveFuncReshaped(current.X);
+        if useAnalyticalJacob
+            [~, current.J] = objectiveFuncReshaped(current.X, [ ], last.J);
             fnCount = fnCount + 1;
-            current.F = current.F(:);
-            jacobUpdateString = 'Analytical';
+            jacobUpdateString = "Analytical";
         else
-            [current.J, addCount] = solver.algorithm.finiteDifference( objectiveFuncReshaped, ...
-                                                                       current.X, current.F, diffStep, ...
-                                                                       jacobPattern, opt.LargeScale );
+            [current.J, addCount] = solver.algorithm.forwardDifference( ...
+                objectiveFuncReshaped, current.X, current.F, diffStep, opt.JacobPattern ...
+            );
             fnCount = fnCount + addCount;
-            jacobUpdateString = 'Finite-Diff';
+            jacobUpdateString = "Forward-Diff";
         end
+        current.InvJ = [ ];
+
     elseif iter>0 && iter<=lastBroydenUpdate && ~current.Reverse
         jacobUpdateString = hereUpdateJacobByBroyden( );
+
     else
         current.J = last.J;
-        jacobUpdateString = 'None';
+        current.InvJ = last.InvJ;
+        % if iter>lastJacobUpdate && isempty(current.InvJ)
+            % current.InvJ = inv(current.J);
+        % end
+        if isempty(current.J) && isempty(current.InvJ)
+            current.J = 1;
+        end
+        jacobUpdateString = "None";
     end
 
     %
     % NaN of Inf in Jacobian
     %
-    if any(~isfinite(current.J(:)))
-        % Max fun evals reached, exit
+    if any(isnan(current.J(:)) | isinf(current.J(:)))
         exitFlag = solver.ExitFlag.NAN_INF_JACOB;
         break
     end
@@ -302,9 +321,10 @@ while true
     last = current;
     current = next;
 end
-%//////////////////////////////////////////////////////////////////////////
+%===========================================================================
 
 
+% Restore warning messages
 warning(w);
 
 if displayLevel.Iter
@@ -327,7 +347,7 @@ return
 
 
     function headerInfo = hereCompileHeaderInfo( )
-        headerInfo.Format = '%6s %8s %13s %6s %13s %13s %13s %13s %13s';
+        headerInfo.Format = '%6s %8s %13s %6s %13s %13s %13s %13s %13s %9s';
 
         % Function norm
         if isa(opt.FunctionNorm, 'function_handle')
@@ -340,13 +360,6 @@ return
             strFnNorm = sprintf('norm(x,%g)', opt.FunctionNorm);
         end
         headerInfo.FnNorm = strFnNorm;
-
-        % Jacobian norm
-        if opt.SpecifyObjectiveGradient
-            headerInfo.JacobNorm = 'Analytical';
-        else
-            headerInfo.JacobNorm = 'Numerical';
-        end
 
         % Step type
         if isempty(vecLambdas)
@@ -361,45 +374,52 @@ return
     end%
 
 
-
-
     function jacobUpdateString = hereUpdateJacobByBroyden( )
         step = current.Step;
-        if ~isscalar(step) || ~isfinite(step)
-            jacobUpdateString = 'None';
+        if ~isscalar(step) || isnan(step) || isinf(step)
+            jacobUpdateString = "None";
             return
         end
-        jacob = last.J;
-        if isscalar(jacob)
-            jacob = jacob * eye(numUnknowns);
+
+        if ~isfield(last, "InvJ") || isempty(last.InvJ)
+            last.InvJ = inv(last.J);
         end
-        s = current.X - last.X;
-        y = current.F - last.F;
-        update = (y - step*jacob*s)*transpose(s) / ( transpose(s)*s );
-        if all(isfinite(update(:)))
-            jacob = jacob + update*step;
-        end
-        current.J = jacob;
-        jacobUpdateString = 'Broyden';
+        invJacob = last.InvJ;
+
+        u = invJacob * (current.F - last.F);
+        d = current.X - last.X;
+        c = reshape(d, 1, [ ]) * reshape(u, [ ], 1);
+        invJacob = invJacob + 0.*reshape(d - u, [ ], 1) * reshape(d, 1, [ ]) * invJacob / c;
+
+        current.J = [ ];
+        current.InvJ = invJacob;
+        jacobUpdateString = "Broyden";
     end%
 
 
     function hereMakeNewtonStep( )
         % Get and trim current objective function
         F0 = hereGetCurrentObjectiveFunction( );
-        jacob = current.J;
         step = next.Step;
         lenStepSize = numel(step);
         lastwarn('');
-        next.D = -jacob \ F0;
-        if opt.UsePinvIfJacobSingular && ~isempty(lastwarn( ))
-            next.D = -pinv(jacob) * F0;
+
+        if isfield(current, "InvJ") && ~isempty(current.InvJ)
+            next.D = -current.InvJ * F0;
+        else
+            jacob = current.J;
+            next.D = -jacob \ F0;
+            if opt.UsePinvIfJacobSingular && ~isempty(lastwarn( ))
+                next.D = -pinv(full(jacob)) * F0;
+            end
         end
+
         X = cell(1, lenStepSize);
         F = cell(1, lenStepSize);
         N = nan(1, lenStepSize);
+        boundsReport = repmat("", 1, lenStepSize);
         for ii = 1 : lenStepSize
-            X{ii} = current.X + step(ii)*next.D;
+            [X{ii}, boundsReport(ii)] = locallyEnforceBounds(current.X + step(ii)*next.D, bounds);
             F{ii} = objectiveFuncReshaped(X{ii});
             fnCount = fnCount + 1;
             F{ii} = F{ii}(:);
@@ -415,6 +435,7 @@ return
         next.Step = step(pos);
         next.F = F{pos};
         next.Lambda = 0;
+        next.BoundsReport = boundsReport(pos);
         if lenStepSize>1 && displayLevel.Iter
             hereReportStepSizeOptim( );
         end
@@ -451,6 +472,7 @@ return
         X = cell(1, lenLambda0);
         F = cell(1, lenLambda0);
         N = nan(1, lenLambda0);
+        boundsReport = repmat("", 1, lenLambda0);
         for ii = 1 : lenLambda0
             if vecLambdas0(ii)==0
                 % Lambda=0; run Newton step
@@ -459,7 +481,7 @@ return
                 % Lambda>0; run hybrid step
                 D{ii} = -( jj + vecLambdas0(ii)*scale ) \ J0.' * F0;
             end
-            X{ii} = X0 + step*D{ii};
+            [X{ii}, boundsReport(ii)] = locallyEnforceBounds(X0 + step*D{ii}, bounds);
             F{ii} = objectiveFuncReshaped(X{ii});
             fnCount = fnCount + 1;
             F{ii} = F{ii}(:);
@@ -470,6 +492,7 @@ return
         next.D = D{pos};
         next.X = X{pos};
         next.F = F{pos};
+        next.BoundsReport = boundsReport(pos);
     end%
 
 
@@ -496,7 +519,7 @@ return
         iterMakeProgress = 0;
         while step>=MIN_STEP && step<=MAX_STEP && iterMakeProgress<MAX_ITER_MAKE_PROGRESS
             step = changeStep*step;
-            X = X0 + step*D;
+            [X, boundsReport] = locallyEnforceBounds(X0 + step*D, bounds);
             F = objectiveFuncReshaped(X);
             fnCount = fnCount + 1;
             F = F(:);
@@ -506,6 +529,7 @@ return
                 next.F = F;
                 next.Step = step;
                 next.Norm = N;
+                next.BoundsReport = boundsReport;
                 success = true;
                 break
             end
@@ -525,7 +549,7 @@ return
         iterImproveProgress = 0;
         while step>=MIN_STEP && step<=MAX_STEP && iterImproveProgress<MAX_ITER_IMPROVE_PROGRESS
             step = changeStep*step;
-            X = X0 + step*D0;
+            [X, boundsReport] = locallyEnforceBounds(X0 + step*D0, bounds);
             F = objectiveFuncReshaped(X);
             fnCount = fnCount + 1;
             F = F(:);
@@ -538,6 +562,7 @@ return
             next.F = F;
             next.Norm = N;
             next.Step = step;
+            next.BoundsReport = boundsReport;
         end
         success = iterImproveProgress>0;
     end%
@@ -555,11 +580,12 @@ return
 
 
     function herePrintHeader( )
-        rows = cell(1, 3);
+        %(
+        rows = repmat({''}, 1, 4);
         rows{1} = sprintf( ...
-            '[Num-Uknowns Num-Equations]: [%g %g]' ...
-            , headerInfo.NumUnknowns ...
+            '--Dimension: [%g %g]' ...
             , headerInfo.NumEquations ...
+            , headerInfo.NumUnknowns ...
         );
         rows{2} = sprintf( ...
             headerInfo.Format ...
@@ -572,6 +598,7 @@ return
             , 'Max-X-Chg' ...
             , 'Max-Jacob-Chg' ...
             , 'Jacob-Update' ...
+            , 'Bounds' ...
         );
         rows{3} = sprintf( ...
             headerInfo.Format ...
@@ -582,32 +609,43 @@ return
             , '' ...
             , '' ...
             , '' ...
-            , headerInfo.JacobNorm ...
+            , '' ...
+            , '' ...
             , '' ...
         );
-        maxLen = max(cellfun('length', rows));
-        divider = repmat('-', 1, maxLen);
+        maxLen = max(cellfun(@strlength, rows));
+        rows{1} = [rows{1}, repmat('-', 1, maxLen-strlength(rows{1}))];
+        rows{4} = repmat('-', 1, maxLen);
         fprintf('\n');
         cellfun(@disp, rows);
-        disp(divider);
+        %)
     end%
 
 
     function hereReportIter( )
+        %(
         if needsPrintHeader
             herePrintHeader( );
             needsPrintHeader = false;
         end
-        fprintf( FORMAT_ITER, ...
-                 current.Iter, ...
-                 fnCount, ...
-                 current.Norm, ...
-                 current.Lambda, ...
-                 current.Step, ...
-                 abs(current.Norm-last.Norm), ...
-                 current.MaxXChng, ...
-                 maxChgFunc(current.J, last.J), ...
-                 jacobUpdateString );
+        jacobChange = NaN;
+        if ~isempty(current.J) && ~isempty(last.J)
+            jacobChange = maxChgFunc(current.J, last.J);
+        end
+        fprintf( ...
+            FORMAT_ITER ...
+            , current.Iter ...
+            , fnCount ...
+            , current.Norm ...
+            , current.Lambda ...
+            , current.Step ...
+            , abs(current.Norm-last.Norm) ...
+            , current.MaxXChng ...
+            , jacobChange ...
+            , jacobUpdateString ...
+            , current.BoundsReport ...
+        );
+        %)
     end%
 
 
@@ -621,5 +659,36 @@ return
         fprintf('Optimal Step Size %g', next.Step);
         fprintf('\n');
     end%
+end%
+
+%
+% Local Function
+%
+
+function [x, report] = locallyEnforceBounds(x, bounds)
+    %(
+    if isempty(bounds)
+        report = "None";
+        return
+    end
+    inxLower = reshape(x, 1, [ ])<bounds(1, :);
+    inxUpper = reshape(x, 1, [ ])>bounds(2, :);
+    anyLower = any(inxLower);
+    anyUpper = any(inxUpper);
+    if ~anyLower && ~anyUpper
+        report = "Honored";
+        return
+    end
+    x0 = x;
+    if anyLower
+        x(inxLower) = bounds(1, inxLower);
+        report = "Enforced";
+        report = sprintf("%g", max(abs(x(inxLower))-abs(x0(inxLower))));
+    end
+    if anyUpper
+        x(inxUpper) = bounds(1, inxUpper);
+        report = "Enforced";
+    end
+    %)
 end%
 

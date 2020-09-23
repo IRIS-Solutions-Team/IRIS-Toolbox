@@ -30,7 +30,7 @@ function [response, flag, query] = locallyGet(this, query, varargin)
     isQuery = @(varargin) any(strcmpi(query, varargin));
 
     if isQuery('InitCond', 'Required') 
-        idInit = getIdOfInitialConditions(this);
+        idInit = getIdInitialConditions(this);
         response = printSolutionVector(this, idInit);
         return
     end

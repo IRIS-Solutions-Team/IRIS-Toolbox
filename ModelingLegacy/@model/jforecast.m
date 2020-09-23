@@ -135,7 +135,7 @@ isSwap = isa(opt.Plan, 'plan') && ~isempty(opt.Plan, 'tunes');
 
 %--------------------------------------------------------------------------
 
-[ny, nxx, nb, nf, ne, ng] = sizeOfSolution(this.Vector);
+[ny, nxx, nb, nf, ne, ng] = sizeSolution(this.Vector);
 
 nAlt = length(this);
 nPer = length(range);

@@ -83,7 +83,7 @@ INPUT_PARSER.parse(this, numOfPeriods, lsPar);
 opt = passvalopt('model.fisher', varargin{:});
 
 ixy = this.Quantity.Type==TYPE(1);
-[ny, ~, ~, nf, ne] = sizeOfSolution(this.Vector);
+[ny, ~, ~, nf, ne] = sizeSolution(this.Vector);
 nv = length(this);
 
 % Process the 'exclude' option.

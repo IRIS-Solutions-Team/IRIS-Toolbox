@@ -75,7 +75,7 @@ elseif any(strcmpi(query, steadyList))
     [steadyLevel, steadyGrowth] = getSteady(this);
 end
 
-[~, ~, numXiB, numXiF] = sizeOfSolution(this.Vector);
+[~, ~, numXiB, numXiF] = sizeSolution(this.Vector);
 ixe = this.Quantity.Type==TYPE(31) | this.Quantity.Type==TYPE(32);
 ne = sum(ixe);
 nv = length(this);
@@ -609,7 +609,7 @@ function [Dl, Dg] = getSteadyDtrends(this)
         fn = eqn.Dynamic{iEqn};
         Dl(posy==ptr, 1, :) = fn(lx, 1);
         if ~isempty(wrt) && any(qty.Type(wrt)==TYPE(5))
-            for j = 1 : length(wrt)
+            for j = 1 : numel(wrt)
                 if qty.Type(wrt(j))~=TYPE(5)
                     continue
                 end

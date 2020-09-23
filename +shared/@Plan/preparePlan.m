@@ -8,11 +8,11 @@ plan.NamesOfExogenous = getExogenousForPlan(this);
 plan.AutoswapPairs = getAutoswapsForPlan(this);
 sigmas = getSigmasForPlan(this);
 numVariants = size(sigmas, 3);
-numExtPeriods = plan.NumOfExtendedPeriods;
-plan.DefaultSigmasOfExogenous = sigmas;
+numExtPeriods = plan.NumExtendedPeriods;
+plan.DefaultSigmasExogenous = sigmas;
 sigmas = repmat(sigmas, 1, numExtPeriods, 1);
 sigmas(:, ~inxBaseRange, :) = NaN;
-plan.SigmasOfExogenous = sigmas;
+plan.SigmasExogenous = sigmas;
 
 end%
 
@@ -37,16 +37,16 @@ testCase = matlab.unittest.FunctionTestCase.fromFunction(@(x)x);
     ]);
     m = Model(f, 'Linear=', true);
     p = Plan(m, 1:10);
-    assertEqual(testCase, p.SigmasOfExogenous, [nan(3,1), ones(3,10)]);
+    assertEqual(testCase, p.SigmasExogenous, [nan(3,1), ones(3,10)]);
     m8 = alter(m, 8);
     p8 = Plan(m8, 1:10);
-    assertEqual(testCase, p8.SigmasOfExogenous, [nan(3,1,8), ones(3,10,8)]);
+    assertEqual(testCase, p8.SigmasExogenous, [nan(3,1,8), ones(3,10,8)]);
     m8 = assign(m8, 'std_ey', 1:8);
     p8 = Plan(m8, 1:10);
     exp = nan(3, 11, 8);
     exp(:, 2:end, :) = 1;
     exp(2, 2:end, :) = repmat(reshape(1:8, 1, 1, 8), 1, 10, 1);
-    assertEqual(testCase, p8.SigmasOfExogenous, exp);
+    assertEqual(testCase, p8.SigmasExogenous, exp);
 
 ##### SOURCE END #####
 %}

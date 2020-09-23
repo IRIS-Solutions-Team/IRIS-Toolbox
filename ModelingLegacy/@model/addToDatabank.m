@@ -67,35 +67,35 @@ if nargin<3
     d = struct( );
 end
 
+%( Input parserk
 persistent pp
 if isempty(pp)
     pp = extend.InputParser('model/addToDatabank');
     pp.KeepUnmatched = true;
-    addRequired(pp, 'what', @(x) ischar(x) || iscellstr(x) || isa(x, 'string'));
+    addRequired(pp, 'what', @(x) isstring(x) || ischar(x) || iscellstr(x));
     addRequired(pp, 'model', @(x) isa(x, 'model'));
     addRequired(pp, 'databank', @validate.databank);
 end
+%)
 parse(pp, what, this, d);
 
 %--------------------------------------------------------------------------
 
-what = strtrim(cellstr(what));
-for i = 1 : numel(what)
-    what__ = what{i};
+for what__ = reshape(strip(string(what)), 1, [ ]);
     lenWhat__ = length(what__);
-    if strncmpi(what__, 'Parameters', min(10, lenWhat__))
+    if startsWith(what__, "parameters", "ignoreCase", true)
         addParameters( );
-    elseif strncmpi(what__, 'Std', min(3, lenWhat__))
+    elseif startsWith(what__, "std", "ignoreCase", true)
         addStd( );
-    elseif strncmpi(what__, 'NonzeroCorr', min(11, lenWhat__))
+    elseif startsWith(what__, "nonzeroCorr", "ignoreCase", true)
         addZeroCorr = false;
         addCorr(addZeroCorr);
-    elseif strncmpi(what__, 'Corr', min(4, lenWhat__))
+    elseif startsWith(what__, "corr", "ignoreCase", true)
         addZeroCorr = true;
         addCorr(addZeroCorr);
-    elseif strncmpi(what__, 'Shock', min(5, lenWhat__))
+    elseif startsWith(what__, "shock", "ignoreCase", true)
         addShocks( );
-    elseif strncmpi(what__, 'Default', min(7, lenWhat__))
+    elseif startsWith(what__, "default", "ignoreCase", true)
         addParameters( );
         addStd( );
         addZeroCorr = false;

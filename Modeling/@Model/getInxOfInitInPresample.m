@@ -10,7 +10,7 @@ function [inxInit, linxInit, idInit] = getInxOfInitInPresample(this, firstColumn
 %--------------------------------------------------------------------------
 
 numQuants = numel(this.Quantity.Name);
-idInit = getIdOfInitialConditions(this);
+idInit = getIdInitialConditions(this);
 row = real(idInit);
 column = firstColumn + imag(idInit);
 sizePresampleArray = [numQuants, firstColumn-1];

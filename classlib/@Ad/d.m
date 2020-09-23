@@ -33,14 +33,14 @@ end
 %
 % Capture the user-supplied derivative
 %
-nd = length(varargin{k(end)});
+nd = numel(varargin{k(end)});
 if isUserDiff
     status = warning( );
     warning('off');
     try
         % User-supplied derivatives.
         df = feval(func, varargin{:}, 'diff', k);
-        if ~isnumeric(df) || length(df)~=nd
+        if ~isnumeric(df) || numel(df)~=nd
             df = NaN;
         end
     catch %#ok<CTCH>

@@ -1,4 +1,3 @@
-function calculateShockMultipliers(this, data, anticipate)
 % calculateShockMultipliers  Get shock multipliers for one simulation frame
 %
 % Backend [IrisToolbox] function
@@ -6,6 +5,8 @@ function calculateShockMultipliers(this, data, anticipate)
 
 % -[IrisToolbox] for Macroeconomic Modeling
 % -Copyright (c) 2007-2020 [IrisToolbox] Solutions Team
+
+function calculateShockMultipliers(this, data, anticipate)
 
 try
     anticipate;
@@ -15,8 +16,8 @@ end
 
 %--------------------------------------------------------------------------
 
-[numY, ~, numXiB, numXiF, numE] = sizeOfSolution(this);
-idYXi = [ this.SolutionVector{1:2} ];
+[numY, ~, numXiB, numXiF, numE] = sizeSolution(this);
+idYXi = [ this.Vector.Solution{1:2} ];
 [T, R, ~, Z, H, ~, Q] = this.FirstOrderSolution{:};
 Tf = T(1:numXiF, :);
 Tb = T(numXiF+1:end, :);
@@ -29,22 +30,20 @@ firstColumn = this.FirstColumn;
 
 % Period of last endogenized and last exogenized point within simulation
 % columns
-if isempty(data.InxOfExogenizedYX)
-    lastExogenizedYX = 0;
-else
-    anyExogenized = any(data.InxOfExogenizedYX, 1);
-    lastExogenizedYX = max([0, find(anyExogenized, 1, 'Last')]);
-end
+lastExogenizedYX = data.LastExogenizedYX;
 lastEndogenizedE = data.LastEndogenizedE;
 
-inxEndogenizedE = data.InxOfEndogenizedE(:, firstColumn:lastEndogenizedE);
-inxExogenizedYX = data.InxOfExogenizedYX(:, firstColumn:lastExogenizedYX);
+inxEndogenizedE = data.InxEndogenizedE;
+inxExogenizedYX = data.InxExogenizedYX;
 
-if tryExistingMultipliers( )
+inxEndogenizedWithinE = inxEndogenizedE(data.InxE, firstColumn:lastEndogenizedE);
+inxExogenizedWithinYX = inxExogenizedYX(data.InxYX, :);
+
+if hereTryExistingMultipliers( )
     return
 end
 
-vecEndogenizedE = inxEndogenizedE(:);
+vecEndogenizedE = reshape(inxEndogenizedWithinE, [ ], 1);
 numEndogenizedE = nnz(vecEndogenizedE);
 
 numPeriods = round(lastEndogenizedE - firstColumn + 1);
@@ -54,7 +53,7 @@ H = [H, zeros(numY, numE*(numPeriods-1))];
 
 M = zeros(0, numEndogenizedE);
 xb = zeros(size(Rb));
-idYX = find(data.InxOfYX);
+idYX = find(data.InxYX);
 for t = firstColumn : lastExogenizedYX
     %
     % Update transition variables
@@ -77,10 +76,15 @@ for t = firstColumn : lastExogenizedYX
         H = [zeros(numY, numE), H(:, 1:end-numE)];
     end
 
-    idExogenizedYX = idYX(data.InxOfExogenizedYX(:, t));
-    if isempty(idExogenizedYX)
+    %
+    % No exogenized YX in this column, continue immediately
+    %
+    if ~any(inxExogenizedWithinYX(:, t))
         continue
     end
+
+    idExogenizedYX = idYX(inxExogenizedWithinYX(:, t));
+
     addToM = [y; xf; xb];
     % Find the rows in which idExogenizedYX occur in idYXi
     [~, rows] = ismember(idExogenizedYX, idYXi);
@@ -91,26 +95,25 @@ this.FirstOrderMultipliers = M;
 if this.Method==solver.Method.SELECTIVE
     hereCalculateKalmanGain( );
 end
-this.MultipliersEndogenizedE = data.InxOfEndogenizedE(:, firstColumn:lastEndogenizedE);
-this.MultipliersExogenizedYX = data.InxOfExogenizedYX(:, firstColumn:lastExogenizedYX);
+this.MultipliersEndogenizedE = inxEndogenizedE(:, firstColumn:lastEndogenizedE);
+this.MultipliersExogenizedYX = inxExogenizedYX(:, firstColumn:lastExogenizedYX);
 
 return
 
-
-    function flag = tryExistingMultipliers( )
+    function flag = hereTryExistingMultipliers( )
         if isempty(this.FirstOrderMultipliers)
             flag = false;
             return
         end
-        sizeExogenizedYX = size(inxExogenizedYX, 2);
-        sizeEndogenizedE = size(inxEndogenizedE, 2);
-        if sizeExogenizedYX>size(this.MultipliersExogenizedYX, 2) ...
-           || sizeEndogenizedE>size(this.MultipliersEndogenizedE, 2)
+        numColumnsExogenizedYX = size(inxExogenizedYX, 2);
+        numColumnsEndogenizedE = size(inxEndogenizedE, 2);
+        if numColumnsExogenizedYX>size(this.MultipliersExogenizedYX, 2) ...
+           || numColumnsEndogenizedE>size(this.MultipliersEndogenizedE, 2)
             flag = false;
            return
         end
-        if ~isequal(inxExogenizedYX, this.MultipliersExogenizedYX(:, 1:sizeExogenizedYX)) ...
-           || ~isequal(inxEndogenizedE, this.MultipliersEndogenizedE(:, 1:sizeEndogenizedE))
+        if ~isequal(inxExogenizedYX, this.MultipliersExogenizedYX(:, 1:numColumnsExogenizedYX)) ...
+           || ~isequal(inxEndogenizedE, this.MultipliersEndogenizedE(:, 1:numColumnsEndogenizedE))
             flag = false;
             return
         end

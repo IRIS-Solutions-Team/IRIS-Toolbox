@@ -103,8 +103,8 @@ classdef Variant
         function this = preallocateSolution(this, vector, ahead, numHashed, numObserved)
             TYPE = @int8;
             nv = size(this.Values, 3);
-            [ny, nxi, nb, nf, ne] = sizeOfSolution(vector);
-            [~, kxi, ~, kf] = sizeOfSystem(vector);
+            [ny, nxi, nb, nf, ne] = sizeSolution(vector);
+            [~, kxi, ~, kf] = sizeSystem(vector);
             nh = numHashed;
             nz = numObserved;
 
@@ -133,7 +133,7 @@ classdef Variant
         function this = resetTransition(this, variantsRequested, vector, numHashed, numObserved)
             TYPE = @int8;
             nv = size(this.Values, 3);
-            [~, ~, ~, ~, ne] = sizeOfSolution(vector);
+            [~, ~, ~, ~, ne] = sizeSolution(vector);
 
             % Preallocate all solution and expansion matrices first if they
             % are missing.

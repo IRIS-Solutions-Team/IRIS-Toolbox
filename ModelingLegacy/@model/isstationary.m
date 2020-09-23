@@ -77,7 +77,7 @@ end%
 
 
 function [flag, test] = locallyCointegrationStatus(this, expn, EIGEN_TOLERANCE)
-    [~, ~, ~, nf] = sizeOfSolution(this.Vector);
+    [~, ~, ~, nf] = sizeSolution(this.Vector);
     nv = countVariants(this);
     % Get the vector of coefficients describing the tested linear combination.
     % Normalize the vector of coefficients by the largest coefficient.

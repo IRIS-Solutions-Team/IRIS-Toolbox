@@ -88,7 +88,7 @@ isNamedMat = strcmpi(opt.MatrixFormat, 'NamedMat');
 
 %--------------------------------------------------------------------------
 
-[ny, nxi] = sizeOfSolution(this.Vector);
+[ny, nxi] = sizeSolution(this.Vector);
 nv = length(this);
 
 solutionVector = printSolutionVector(this, 'yx', @Behavior);
@@ -158,12 +158,12 @@ return
         systemProperty.Function = @freqdom.wrapper;
         systemProperty.MaxNumOfOutputs = 2;
         systemProperty.NamedReferences = {solutionVector, solutionVector};
-        systemProperty.Specifics = struct( );
-        systemProperty.Specifics.Frequencies = freq;
-        systemProperty.Specifics.IsDensity = isDensity;
-        systemProperty.Specifics.IsFilter = isFilter;
-        systemProperty.Specifics.Filter = filter;
-        systemProperty.Specifics.ApplyFilterTo = applyFilterTo;
+        systemProperty.CallerData = struct( );
+        systemProperty.CallerData.Frequencies = freq;
+        systemProperty.CallerData.IsDensity = isDensity;
+        systemProperty.CallerData.IsFilter = isFilter;
+        systemProperty.CallerData.Filter = filter;
+        systemProperty.CallerData.ApplyFilterTo = applyFilterTo;
         if isequal(opt.SystemProperty, false)
             if ~isDensity
                 systemProperty.OutputNames = {'SS'};
