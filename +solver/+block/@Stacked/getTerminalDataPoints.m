@@ -40,14 +40,26 @@ this.InxEquationsUsingTerminal = (imag(this.IdEquations) + maxLeads) > columnsTo
 
 inxTerminalDataPoints = logical(sparse(sizeYXEPG(1), sizeYXEPG(2)));
 
+%
+% Transform the incidence matrix into a 3D array of
+% quantities-shifts-equations; needs to be full (cannot have 3D sparse)
+%
+incidenceMatrix = this.ParentBlazer.Incidence.Matrix;
+numShifts = numel(this.ParentBlazer.Incidence.Shift);
+numEquations = size(incidenceMatrix, 1);
+numQuantities = size(incidenceMatrix, 2) / numShifts;
+incidenceMatrix = permute(incidenceMatrix, [2, 1]);
+incidenceMatrix = reshape(full(incidenceMatrix), numQuantities, numShifts, [ ]);
+
 if this.NeedsTerminal
     for i = find(this.InxEquationsUsingTerminal)
         ptrEquation = real(this.IdEquations(i));
         column = imag(this.IdEquations(i));
-        inc = across(selectEquation(this.ParentBlazer.Incidence, ptrEquation), "equations");
+        inc = incidenceMatrix(:, :, ptrEquation);
         inc = inc(:, sh0+1:end);
         n = size(inc, 2);
-        for j = columnsToRun(end)-maxLeads(i)+1:columnsToRun(end)
+        fromColumn = max(columnsToRun(end)-maxLeads(i)+1, 1);
+        for j = fromColumn:columnsToRun(end)
             inxTerminalDataPoints(:, j+(1:n)) ...
                 = inxTerminalDataPoints(:, j+(1:n)) | inc;
         end

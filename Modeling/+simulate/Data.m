@@ -172,7 +172,7 @@ classdef Data ...
                 return
             end
             this.FirstColumnFrame = timeFrame(1);
-            this.LastColumnFrame = timeFrame(2);
+            this.LastColumnFrame = timeFrame(end);
         end%
 
 

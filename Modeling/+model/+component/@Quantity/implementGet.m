@@ -6,13 +6,13 @@ isValid = true;
 compare = @(x, y) any(strcmpi(x, y));
 
 query1 = lower(query);
-query1 = strrep(query1, 'list', 'names');
-query1 = strrep(query1, 'descriptions', 'descript');
-query1 = strrep(query1, 'description', 'descript');
-query1 = strrep(query1, 'aliases', 'alias');
+query1 = replace(query1, "list", "names");
+query1 = replace(query1, "descriptions", "descript");
+query1 = replace(query1, "description", "descript");
+query1 = replace(query1, "aliases", "alias");
 
-if strncmpi(query1, 'Quantity.', 9) || strncmpi(query1, 'Quantity:', 9)
-    property = query1(10:end);
+if startsWith(query1, ["Quantity.", "Quantity:"], "ignoreCase", true)
+    property = extractAfter(query1, 9);; 
     try
         answ = this.(property);
         return

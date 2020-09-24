@@ -138,8 +138,9 @@ classdef (Abstract) Blazer ...
                 blkQty = { idQty };
             end
             
-            
+            % 
             % Create solver.block.Block objects for each block
+            %
             numBlocks = numel(blkEqn);
             this.Blocks = cell(1, numBlocks);
             for i = 1 : numBlocks

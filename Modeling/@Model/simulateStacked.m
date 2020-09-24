@@ -13,14 +13,22 @@ lastColumnFrame = data.LastColumnFrame;
 columnsFrame = firstColumnFrame : lastColumnFrame;
 dcy = double.empty(0);
 
+
 %
 % Run plain-vanilla first-order simulation to create initial condition,
 % ignoring shocks (IgnoreShocks=true is set in simulateFrames)
 %
 if startsWith(blazer.Initial, "firstOrder", "ignoreCase", true)
-    flat(rect, data);
+    if idFrame==1
+        % Simulate the entire frame range
+        flat(rect, data);
+    else
+        % Simulate only missing data
+        hereSimulateMissingData( );
+    end
+else
+    hereFillMissingData( );
 end
-hereFillMissingData( );
 
 
 %
@@ -56,6 +64,21 @@ hereReportEvaluatesToNaN( );
 hereCleanupTerminal( );
 
 return
+
+    function hereSimulateMissingData( )
+        %
+        % Find the first column within the frame that has at least one
+        % missing observation, and first-order simulate from that column to
+        % the end of the frame
+        %
+        inxColumnsNaN = any(isnan(data.YXEPG(:, columnsFrame)), 1);
+        if any(inxColumnsNaN)
+            firstColumnMissing = columnsFrame(1) - 1 + find(inxColumnsNaN, 1);
+            setFrame(rect, [firstColumnMissing, columnsFrame(end)]);
+            flat(rect, data);
+        end
+    end%
+
 
     function hereFillMissingData( )
         inxRowsNaN = any(isnan(data.YXEPG(:, columnsFrame)), 2);

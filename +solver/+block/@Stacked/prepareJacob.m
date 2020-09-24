@@ -6,8 +6,11 @@ numQuantities = numel(this.IdQuantities);
 %
 % Prepare the common part of the Jacobian
 %
-createGradientsMap(this);
-createGradientsFunc(this);
+if isempty(this.StackedJacob_GradientsMap)
+    createGradientsMap(this);
+    createGradientsFunc(this);
+end
+
 
 %
 % Prepare the terminal part of the Jacobian

@@ -257,13 +257,15 @@ function blazer = locallyPrepareBlazer(this, runningData, frameFromTo, data)
 
     if ~data.HasExogenizedYX || ~runningData.DefaultBlazer.IsBlocks
         blazer = runningData.DefaultBlazer;
+        setFrame(blazer, frameFromTo);
+        prepareForSolver(blazer, runningData.SolverOptions, data);
     else
         blazer = runningData.ExogenizedBlazer;
         run(blazer, data);
+        setFrame(blazer, frameFromTo);
+        prepareForSolver(blazer, runningData.SolverOptions, data);
     end
 
-    setFrame(blazer, frameFromTo);
-    prepareForSolver(blazer, runningData.SolverOptions, data);
     %)
 end%
 

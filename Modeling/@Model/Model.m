@@ -358,6 +358,7 @@ classdef Model ...
 
     methods % Public Interface
         %(
+        varargout = access(varargin)
         varargout = equationStartsWith(varargin)
         varargout = changeLogStatus(varargin)
         varargout = simulate(varargin)

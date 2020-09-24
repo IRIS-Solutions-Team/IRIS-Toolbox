@@ -154,7 +154,7 @@ classdef Rectangular < handle
 
         function setFrame(this, timeFrame)
             this.FirstColumn = timeFrame(1);
-            this.LastColumn = timeFrame(2);
+            this.LastColumn = timeFrame(end);
             [ny, nxi, nb, nf, ne, ng] = sizeSolution(this);
             idXiF = reshape(this.Vector.Solution{2}(1:nf), [ ], 1);
             idXiB = reshape(this.Vector.Solution{2}(nf+1:end), [ ], 1);
