@@ -152,8 +152,6 @@ classdef LinearSystem < shared.Kalman
     end
 
 
-
-
     methods (Access=protected, Hidden)
         function this = setup(this)
             numXi = this.NumXi;

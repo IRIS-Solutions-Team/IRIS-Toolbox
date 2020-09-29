@@ -1,4 +1,3 @@
-function varargout = loadFrom(fileName, varargin)
 % loadFrom  Load variables from mat file under different names
 %{
 % ## Syntax ##
@@ -39,7 +38,7 @@ function varargout = loadFrom(fileName, varargin)
 % -IRIS Macroeconomic Modeling Toolbox
 % -Copyright (c) 2007-2020 IRIS Solutions Team
 
-%--------------------------------------------------------------------------
+function varargout = loadFrom(fileName, varargin)
 
 x = matfile(fileName);
 fullFileName = which(fileName);
