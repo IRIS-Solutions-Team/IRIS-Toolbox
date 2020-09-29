@@ -25,9 +25,10 @@ classdef Serialize ...
                 dates = double.empty(0, 1);
                 values = double.empty(0, 1);
             end
+            comment = "";
             if ~isempty(this.Comment) && ~isequal(this.Comment, false) && isfield(inputRecord, this.Comment)
                 comment = inputRecord.(this.Comment);
-            else
+            elseif nargin>=3
                 comment = name;
             end
             userData = rmfield(inputRecord, [this.Dates, this.Values, this.Frequency]);
@@ -90,7 +91,7 @@ classdef Serialize ...
         end%
 
 
-        function outputValues = jsonFromValues(this, inputData);
+        function outputValues = jsonFromValues(this, inputData)
             %(
             outputValues = inputData;
             if isa(this.Format, 'function_handle')
@@ -129,7 +130,7 @@ classdef Serialize ...
         end%
 
 
-        function db = databankFromJson(this, db, nameMap)
+        function db = databankFromJson(this, db, varargin)
             %(
             for name = keys(db)
                 if isa(db, 'Dictionary')
@@ -158,26 +159,39 @@ classdef Serialize ...
         function freq = frequencyFromLetter(this, freq)
             %(
             if isnumeric(freq)
-                freq = Frequency(freq);
+                freq = Frequency(freq); %#ok<CPROPLC>
+            else
+                freq = upper(string(freq));
+            end
+            if numel(freq)>1
+                if ~all(freq==freq(1))
+                    exception.error([
+                        "Serialize:NonHomogeneousArrayOfFrequencies"
+                        "If entered as an array, date frequencies must be all the same."
+                    ]);
+                end
+                freq = freq(1);
+            end
+            if isnumeric(freq)
                 return
             end
             switch upper(string(freq))
                 case "I"
-                    freq = Frequency.INTEGER;
+                    freq = Frequency.INTEGER;  %#ok<PROPLC>
                 case {"A", "Y"}
-                    freq = Frequency.YEARLY;
+                    freq = Frequency.YEARLY;  %#ok<PROPLC>
                 case "H"
-                    freq = Frequency.HALFYEARLY;
+                    freq = Frequency.HALFYEARLY;  %#ok<PROPLC>
                 case "Q"
-                    freq = Frequency.QUARTERLY;
+                    freq = Frequency.QUARTERLY;  %#ok<PROPLC>
                 case "M"
-                    freq = Frequency.MONTHLY;
+                    freq = Frequency.MONTHLY;  %#ok<PROPLC>
                 case "W"
-                    freq = Frequency.WEEKLY;
+                    freq = Frequency.WEEKLY;  %#ok<PROPLC>
                 case {"D", "B"}
-                    freq = Frequency.DAILY;
+                    freq = Frequency.DAILY;  %#ok<PROPLC>
                 otherwise
-                    freq = Frequency(NaN);
+                    freq = Frequency(NaN);  %#ok<CPROPLC>
             end
             %)
         end%
